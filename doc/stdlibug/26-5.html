@@ -1,0 +1,152 @@
+<HTML>
+<HEAD>
+<TITLE>The Phone Number Facet Class Revisited</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="26-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="26-6.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>26.5 The Phone Number Facet Class Revisited</H2>
+<A NAME="idx593"><!></A>
+<P>Let us now try to implement the phone number facet class. What does this facet need to know?</P>
+<UL>
+<LI><P CLASS="LIST">A facet needs to know its own locality, because a phone number is formatted differently for domestic and international use; for example, a German number looks like (089) / 636-48018 when used in Germany, but it looks like +1-49-89-636-48018 when used internationally.</P></LI>
+<LI><P CLASS="LIST">A facet needs information about the prefix for dialing international numbers; for example, 011 for dialing foreign numbers from the US, or 00 from Germany, or 19 from France.</P></LI>
+<LI><P CLASS="LIST">A facet needs access to a table of all country codes, so that one can enter a mnemonic for the country instead of looking up the respective country code. For example, I would like to say: "This is a phone number somewhere in Japan" without having to know what the country code for Japan is.</P></LI>
+</UL>
+<A NAME="idx594"><!></A>
+<A NAME="2651"><H3>26.5.1 Adding Data Members</H3></A>
+<A NAME="idx595"><!></A>
+<P>The following class declaration for the telephone number formatting facet class is enhanced with a virtual member function <SAMP>do_put()</SAMP> which is delegated the task of actually constructing a phone number in a locale-dependent fashion in derived classes, as well as data members for the facet object's own locality, and its prefix for international calls (see <SAMP>//4</SAMP> and <SAMP>//5</SAMP> in the code below). Adding a table of country codes is omitted for the time being.</P>
+
+<UL><PRE>
+class phone_put: public std::locale::facet {
+  public:
+    static std::locale::id id;
+    typedef std::string string_type;
+
+    phone_put (std::size_t refs = 0)
+      : std::locale::facet (refs) { }
+
+    string_type put (const string_type &amp;cntryName,
+                     const string_type &amp;areaCode,
+                     const string_type &amp;extension) const {
+      return do_put (cntryName, areaCode, extension);        // 1
+    }
+
+  protected:
+
+    phone_put (const string_type cntryName,
+               const string_type intlPrefix,
+               std::size_t refs = 0)                           // 2
+      : std::locale::facet(refs),
+        _cntryName(cntryName), _intlPrefix(intlPrefix);
+
+    virtual string_type
+    do_put(const string_type &amp;cntryName,                       // 3
+           const string_type &amp;areaCode,
+           const string_type &amp;extension) const { ... }
+    const  string_type       _cntryName;                       // 4
+    const  string_type       _intlPrefix;                      // 5
+};
+</PRE></UL>
+<P>Note how this class serves as a base class for the facet classes that really implement a locale-dependent phone number formatting. Hence, the public constructor does not need to be extended, and a protected constructor is added instead (see <SAMP>//2</SAMP> above). The virtual member function <SAMP>do_put()</SAMP> is added (see <SAMP>//3</SAMP> above) so that it may be overridden in derived classes without hiding any overloads of the <SAMP>put()</SAMP> function if they existed, and also so that code can be placed in <SAMP>put()</SAMP> that will always be executed even though <SAMP>do_put()</SAMP> will be overridden (this is the same strategy used in the design of the standard facets). In this base class, <SAMP>do_put()</SAMP> could be implemented to construct phone numbers in a generic international fashion, e.g., "+49-89-636-48018". </P>
+<A NAME="2652"><H3>26.5.2 Adding Country Codes</H3></A>
+<A NAME="idx596"><!></A>
+<P>Let us now deal with the problem of adding the international country codes that were omitted from the previous class declaration. These country codes can be held as a map of strings that associates the country code with a mnemonic for the country's name, as shown in <A HREF="8-2.html#Table&nbsp;14">Table&nbsp;14</A>:</P>
+<A NAME="idx597"><!></A>
+<H4><A NAME="Figure&nbsp;14">Figure&nbsp;14: Map associating country codes with mnemonics for countries' names</A></H4>
+
+<P><IMG SRC="images/stdlibug-Locales12.gif" WIDTH=560 HEIGHT=206></P>
+<A NAME="idx598"><!></A>
+<P>In the following code, we add the table of country codes:</P>
+
+<UL><PRE>
+class phone_put: public std::locale::facet {
+public:
+  ...
+  class CodeMap
+      : public std::map&lt;std::string, std::string&gt; {      // 1
+    public:
+      CodeMap() {
+        insert (std::make_pair ("De", "49"));
+        insert (std::make_pair ("Fr", "33"));
+        insert (std::make_pair ("US", "1"));
+        ...
+      }
+  };
+
+  static const CodeMap* getStdCodes () {                  // 2
+    return &amp;_stdCodes;
+  }
+protected:
+  ...
+  static CodeMap         _stdCodes;                       // 3
+};
+</PRE></UL>
+<P>Since the table of country codes is a constant table that is valid for all telephone number facet objects, it is added as a static data member _<SAMP>stdCodes</SAMP> (see <SAMP>//3</SAMP>). The initialization of this data member is encapsulated in a class, <SAMP>CodeMap</SAMP> (see <SAMP>//1</SAMP>). For convenience, a function <SAMP>getStdCodes()</SAMP> is added to give access to the table (see <SAMP>//2</SAMP>).</P>
+<P>Despite its appealing simplicity, however, having just one static country code table might prove too inflexible. Consider that mnemonics might vary from one locale to another due to different languages. Maybe mnemonics are not called for, and you really need more extended names associated with the actual country code.</P>
+<P>In order to provide more flexibility, we can build in the ability to work with an arbitrary table. A pointer to the respective country code table can be provided when a facet object is constructed. The static table, shown in <A HREF="26-5.html#Figure&nbsp;15">Figure&nbsp;15</A> below,  serves as a default:</P>
+<A NAME="idx599"><!></A>
+<H4><A NAME="Figure&nbsp;15">Figure&nbsp;15: Map associating country codes with country names</A></H4>
+
+<P><IMG SRC="images/stdlibug-Locales13.gif" WIDTH=552 HEIGHT=209></P>
+<A NAME="idx600"><!></A>
+<P>Since we hold the table as a pointer, we need to pay attention to memory management for the table pointed to. We use a flag for determining whether the provided table needs to be deleted when the facet is destroyed. The following code demonstrates use of the table and its associated flag:</P>
+
+<UL><PRE>
+class phone_put: public std::locale::facet {
+
+  public:
+
+    phone_put (size_t refs = 0)
+      : std::locale::facet (refs), _codeMap (&amp;_stdCodes),
+        _delete_it (false) {}
+
+  protected:
+
+    phone_put (const string_type &amp;cntryName,                  // 1
+               const string_type &amp;intlPrefix,
+               const CodeMap* codeMap = 0,
+               bool delete_it = false,
+               size_t refs = 0)
+      : std::locale::facet (refs), _cntryName (cntryName),
+         _intlPrefix (intlPrefix), _codeMap (codeMap),
+         _delete_it (delete_it)
+    {
+      if (!codeMap)                                           // 2
+        _codeMap = &amp;_stdCodes;
+    }
+
+    const CodeMap* getCodes () {                              // 3
+      return _codeMap;
+    }
+
+  public:
+    virtual ~phone_put () {
+        if (_delete_it)
+            delete _codeMap;                                  // 4
+    }
+
+    ...
+
+  protected:
+    bool                _delete_it;
+    const  CodeMap*     _codeMap;
+    static CodeMap      _stdCodes;                            // 5
+
+    ...
+
+};
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The constructor is enhanced to take a pointer to the country code table, together with the flag for memory management of the provided table.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>If no table is provided, the static table is installed as a default.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>For convenience, a function that returns a pointer to the current table is added.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>The table is deleted if the memory management flags says so.
+<TR VALIGN="top"><TD><SAMP>//5</SAMP></TD><TD>Protected data members are added to hold the pointer to the current country code table, as well as the associated memory management flag.
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="26-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="26-6.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

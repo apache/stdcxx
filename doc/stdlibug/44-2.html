@@ -1,0 +1,58 @@
+<HTML>
+<HEAD>
+<TITLE>The Locking Mechanism</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="44-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="45.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>44.2 The Locking Mechanism</H2>
+<A NAME="idx982"><!></A>
+<A NAME="idx983"><!></A>
+<P>The locking mechanism has been designed for maximum efficiency, with no reentrant locks needed. There are two different mutex objects involved in this scheme: </P>
+<UL>
+<LI><P CLASS="LIST">The first mutex object is located in the class <B><I><A HREF="../stdlibref/ios-base.html">ios_base</A></I></B>. It enforces multithread safety for all formatting operations performed on the stream, for imbuing the stream with a new locale object, and for accessing the raw storage mechanism (<SAMP>pword</SAMP>, <SAMP>iword</SAMP>). All functions performing these operations lock the mutex object beforehand and release it afterwards. These operations are not time-critical and do not occur often in comparison to buffer operations like inserting a character. They are located in classes <B><I>ios_base</I></B> or <B><I><A HREF="../stdlibref/basic-ios.html">basic_ios&lt;&gt;</A></I></B>. </P></LI>
+<LI><P CLASS="LIST">The second mutex object, located in <B><I><A HREF="../stdlibref/basic-streambuf.html">basic_streambuf</A></I></B>, protects the buffer. The locking and unlocking of this mutex object is critical, since buffer operations are on the direct path of performance issues. </P></LI>
+</UL>
+<P>It is easy to see that locking and unlocking the buffer after each independent buffer operation would be disastrous. For example, when inserting a <SAMP>char*</SAMP> sequence of characters, a call to an inline <B><I><A HREF="../stdlibref/basic-streambuf.html">basic_streambuf</A></I></B> function is made for each character inserted; therefore, the locking mechanism is carried out at a higher level. For all formatted and unformatted stream functions, the locking is performed in the <B><I>basic_{i,o}stream&lt;&gt;::sentry</I></B> object constructor, and the release in the <B><I>sentry</I></B> object destructor. If the function does not make use of the <B><I>sentry</I></B> class, the lock is directly performed inside the function. This is the case with <SAMP>std::basic_istream&lt;&gt;::seekg()</SAMP> and <SAMP>std::basic_ostream&lt;&gt;::seekp()</SAMP>. </P>
+<P>Consider the following example: </P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE"><B>Thread 1:</B></P>
+</td><td valign=top><P CLASS="TABLE"><B>Thread 2:</B></P>
+</td></tr>
+<tr><td valign=top>
+<UL><PRE>std::cout &lt;&lt; "Hello Thread&nbsp;1"
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;&lt; std::endl;
+
+</PRE></UL>
+</td><td valign=top>
+<UL><PRE>std::cout &lt;&lt; "Hello Thread 2"
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;&lt; std::endl;
+
+</PRE></UL>
+</td></tr>
+</TABLE>
+<P>If <B>Thread 1</B> is the first thread locking the buffer, the sequence of characters <SAMP>"Hello Thread 1"</SAMP> is output to the standard output and the lock is released; <B>Thread 2</B> then acquires the lock, outputs its sequence of characters, and releases the lock.</P>
+<P>Note that each of the statements performs two insertions:  first the character string is inserted, then the manipulator.  This involves two separate calls to the insertion operator, each with its own sentry object.  There is a window of opportunity between the two insertions in which <B>Thread 1</B> may be preempted and <B>Thread 2</B> be given a chance to run.  In other words, the output is not atomic with respect to the string and the terminating new line. </P>
+<A NAME="4421"><H3>44.2.1 Protecting the Buffer</H3></A>
+<A NAME="idx984"><!></A>
+<P>Notice that only one lock occurs on the <B><I><A HREF="../stdlibref/basic-streambuf.html">basic_streambuf</A></I></B> mutex object for each stream operation. The advantage of this scheme is obviously high performance, but the drawback is that while buffer functionality is directly accessed, the buffer is left unprotected.   However, since the sentry classes nested in <B><I><A HREF="../stdlibref/basic-istream.html">basic_istream</A></I></B> and <B><I><A HREF="../stdlibref/basic-ostream.html">basic_ostream</A></I></B> are responsible for the locking and unlocking of the stream buffer mutex, code that accesses stream buffers in a way that requires protection from multiple threads should first construct a sentry object to guarantee thread-safe exception.  The following example illustrates how sentry objects work:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE"><B>Thread 1:</B></P>
+</td><td valign=top><P CLASS="TABLE"><B>Thread 2:</B></P>
+</td></tr>
+<tr><td valign=top>
+<UL><PRE>std::cout &lt;&lt; "Thread 1" ;
+</PRE></UL>
+</td><td valign=top>
+<UL><PRE>const char *s = "Thread 2";
+std::ios::sentry opfx(std::cout);
+while(*s)
+  std::cout.rdbuf()-&gt;sputc(*s++);
+</PRE></UL>
+</td></tr>
+</TABLE>
+<P>In this scheme, if <B>Thread 2</B> is the first one to execute, when it constructs the sentry object, it locks the <B><I><A HREF="../stdlibref/basic-streambuf.html">basic_streambuf</A></I></B> object pointed at by <SAMP>std::cout.rdbuf()</SAMP>. <B>Thread 1</B> also constructs a sentry object in the insertion operator; the sentry constructor must wait until <B>Thread 2</B> reaches the end of the scope of the <SAMP>opfx </SAMP>sentry object.  When <SAMP>opfx</SAMP> goes out of scope, the sentry destructor releases the lock.  This technique is easy to use and allows high performance for both stream and buffer operations.  It is also safe in the presence of exceptions, since if an exception occurs at any point after the construction of the sentry object the stack is unwound, the sentry destructor is called, and the mutex object is guaranteed to be released.</P>
+
+<BR>
+<HR>
+<A HREF="44-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="45.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

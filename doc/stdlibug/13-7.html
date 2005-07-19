@@ -1,0 +1,139 @@
+<HTML>
+<HEAD>
+<TITLE>Sequence-Generating Algorithms</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="13-6.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-8.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>13.7 Sequence-Generating Algorithms</H2>
+<A NAME="idx336"><!></A>
+<P>All of the algorithms described in this section are used to generate a new sequence from an existing sequence by performing some type of transformation. In most cases, the output sequence is described by an output <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>. This means these algorithms can be used to overwrite an existing structure, such as a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>. Alternatively, by using an insert <B><I>iterator</I></B> (see <A HREF="2-4.html">Section&nbsp;2.4</A>), the algorithms can insert the new elements into a variable length structure, such as a <B><I><A HREF="../stdlibref/set.html">set</A></I></B> or <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. Finally, in some cases that we will discuss, the output iterator can be the same as one of the sequences specified by an input <B><I>iterator</I></B>, thereby providing the ability to make an in-place transformation.</P>
+<P>The functions <SAMP>std::partial_sum()</SAMP> and <SAMP>std::adjacent_difference()</SAMP> are declared in the header file <SAMP>&lt;numeric&gt;</SAMP>, while the other functions are described in the header file <SAMP>&lt;algorithm&gt;</SAMP>.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- The example functions described in the following sections can be found in the file alg6.cpp.
+</B><HR></BLOCKQUOTE>
+<A NAME="1371"><H3>13.7.1 Transform One or Two Sequences</H3></A>
+<A NAME="idx337"><!></A>
+<P>The algorithm <SAMP>std::transform()</SAMP> is used either to make a general transformation of a single sequence, or to produce a new sequence by applying a binary function in a pair-wise fashion to corresponding elements from two different sequences. The general definition of the argument and result types are as follows:</P>
+
+<UL><PRE>
+namespace std {
+  OutputIterator transform(InputIterator first, 
+                           InputIterator last,
+                           OutputIterator result,
+                           UnaryFunction);
+
+  OutputIterator transform(InputIterator first1,
+                           InputIterator last1,
+                           InputIterator first2,
+                           OutputIterator result,
+                           BinaryFunction);
+}
+</PRE></UL>
+<P>The first form applies a unary function to each element of a sequence. In the example program given below, this is used to produce a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> of <SAMP>int</SAMP> values that hold the arithmetic negation of the values in a linked <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. The input and output <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s can be the same, in which case the transformation is applied in-place, as shown in the example program.</P>
+<P>The second form takes two sequences and applies the binary function in a pair-wise fashion to corresponding elements. The transaction assumes, but does not verify, that the second sequence has at least as many elements as the first sequence. Once more, the result can either be a third sequence, or one of the two input sequences.</P>
+
+<A NAME="idx338"><!></A>
+<UL><PRE>
+int square(int n) { return n * n; }
+
+void transform_example()
+// illustrates the use of the transform algorithm
+// see alg6.cpp for complete source code
+{
+  // generate a list of values 1 to 6
+  std::list&lt;int&gt; aList;
+  std::generate_n(std::inserter(aList, aList.begin()),
+                  6, iotaGen(1));
+
+  // transform elements by squaring, copy into vector
+  std::vector&lt;int&gt; aVec(6);
+  std::transform(aList.begin(), aList.end(), aVec.begin(),
+                 square);
+
+  // transform vector again, in place, yielding 4th powers
+  std::transform(aVec.begin(), aVec.end(), aVec.begin(), square);
+  
+  // transform in parallel, yielding cubes
+  std::vector&lt;int&gt; cubes(6);
+  std::transform(aVec.begin(), aVec.end(), aList.begin(),
+                 cubes.begin(), std::divides&lt;int&gt;());
+}
+</PRE></UL>
+<A NAME="1372"><H3>13.7.2 Partial Sums</H3></A>
+<A NAME="idx339"><!></A>
+<P>A <I>partial sum</I> of a sequence is a new sequence in which every element is formed by adding the values of all prior elements. For example, the partial sum of the vector <SAMP>1 3 2 4 5</SAMP> is the new vector <SAMP>1 4 6 10 15</SAMP>. The element <SAMP>4</SAMP> is formed from the sum <SAMP>1 + 3</SAMP>, the element <SAMP>6</SAMP> from the sum <SAMP>1 + 3 + 2</SAMP>, and so on. Although the term <I>sum</I> is used in describing the operation, the binary function can be any arbitrary function. The example program illustrates this by computing partial products. </P>
+<P>The arguments to the partial sum function are described as follows:</P>
+
+<UL><PRE>
+namespace std {
+  OutputIterator partial_sum(InputIterator first, 
+                             InputIterator last,
+                             OutputIterator result
+                             [, BinaryFunction]);
+}
+</PRE></UL>
+<P>By using the same value for both the input iterator and the result, the partial sum can be changed into an in-place transformation.</P>
+
+<A NAME="idx340"><!></A>
+<UL><PRE>
+void partial_sum_example()
+// illustrates the use of the partial sum algorithm
+//see alg6.cpp for complete source code
+{
+  // generate values 1 to 5
+  std::vector&lt;int&gt; aVec(5);
+  std::generate(aVec.begin(), aVec.end(), iotaGen(1));
+
+  // output partial sums
+  std::partial_sum(aVec.begin(), aVec.end(),
+                   std::ostream_iterator&lt;int&gt; (std::cout, " "));
+  std::cout &lt;&lt; std::endl;
+
+  // output partial products
+  std::partial_sum(aVec.begin(), aVec.end(),
+                   std::ostream_iterator&lt;int&gt; (std::cout, " "),
+                   std::multiplies&lt;int&gt;() );
+  std::cout &lt;&lt; std::endl;
+}
+</PRE></UL>
+<A NAME="1373"><H3>13.7.3 Adjacent Differences</H3></A>
+<A NAME="idx341"><!></A>
+<P>An <I>adjacent difference</I> of a sequence is a new sequence formed by replacing every element with the difference between the element and the immediately preceding element. The first value in the new sequence remains unchanged. For example, a sequence such as <SAMP>(1, 3, 2, 4, 5)</SAMP> is transformed into <SAMP>(1, 3-1, 2-3, 4-2, 5-4)</SAMP>, and in this manner becomes the sequence <SAMP>(1, 2, -1, 2, 1)</SAMP>.</P>
+<P>As with the algorithm <SAMP>std::partial_sum()</SAMP>, the term <I>difference</I> is not necessarily accurate, as an arbitrary binary function can be employed. The adjacent sums for this sequence are <SAMP>(1, 4, 5, 6, 9)</SAMP>, for example. The adjacent difference algorithm has the following declaration:</P>
+
+<UL><PRE>
+namespace std{
+  OutputIterator adjacent_difference(InputIterator first, 
+     InputIterator last, OutputIterator result
+     [, BinaryFunction ]);
+}
+</PRE></UL>
+<P>By using the same <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> as both input and output <B><I>iterator</I></B>, the adjacent difference operation can be performed in place.</P>
+
+<A NAME="idx342"><!></A>
+<UL><PRE>
+void adjacent_difference_example()
+// illustrates the use of the adjacent difference algorithm
+//see alg6.cpp for complete source code
+{
+  // generate values 1 to 5
+  std::vector&lt;int&gt; aVec(5);
+  std::generate(aVec.begin(), aVec.end(), iotaGen(1));
+
+  // output adjacent differences
+  std::adjacent_difference(aVec.begin(), aVec.end(),
+          std::ostream_iterator&lt;int,char&gt;(std::cout," ")),
+  std::cout &lt;&lt; std::endl;
+
+  // output adjacent sums
+  std::adjacent_difference(aVec.begin(), aVec.end(),
+               std::ostream_iterator&lt;int,char&gt;(std::cout," "),
+               std::plus&lt;int&gt;() );
+  std::cout &lt;&lt; std::endl;
+}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="13-6.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-8.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,84 @@
+escape_char	/
+comment_char    %
+
+% Finnish language locale for Europe
+% Source: CEN/ISSS Eurolocale workshop
+% Address: rue de Stassart, 36
+%          B-1050 Brussels
+% Contact: Keld Simonsen
+% Email: Keld.Simonsen@dkuug.dk
+% Tel: +45 - 33226543
+% Fax: +45 - 33256543
+% Language: fi
+% Territory: EU
+% Revision: 5.1
+% Date: 2000-01-04
+% Application: specific
+% Users: specific
+% Repertoiremap: mes-2.ds
+% Charset: ISO-8859-1
+% Distribution and use is free, also
+% for commercial purposes.
+
+LC_COLLATE
+copy "_EU"
+END LC_COLLATE
+
+LC_CTYPE
+copy "_EU"
+END LC_CTYPE
+
+LC_NUMERIC
+copy "_EU"
+END LC_NUMERIC
+
+LC_MONETARY
+copy "_EU"
+END LC_MONETARY
+
+LC_TIME
+abday    "<s><u>";"<m><a>";"<t><i>";/
+         "<k><e>";"<t><o>";"<p><e>";/
+         "<l><a>"
+day      "<s><u><n><n><u><n><t><a><i>";/
+         "<m><a><a><n><a><n><t><a><i>";/
+         "<t><i><i><s><t><a><i>";/
+         "<k><e><s><k><i><v><i><i><k><k><o>";/
+         "<t><o><r><s><t><a><i>";/
+         "<p><e><r><j><a><n><t><a><i>";/
+         "<l><a><u><a><n><t><a><i>"
+abmon    "<1><.>";/
+         "<2><.>";/
+         "<3><.>";/
+         "<4><.>";/
+         "<5><.>";/
+         "<6><.>";/
+         "<7><.>";/
+         "<8><.>";/
+         "<9><.>";/
+         "<1><0><.>";/
+         "<1><1><.>";/
+         "<1><2><.>"
+mon      "<t><a><m><m><i><k><u><u>";/
+         "<h><e><l><m><i><k><u><u>";/
+         "<m><a><a><l><i><s><k><u><u>";/
+         "<h><u><h><t><i><k><u><u>";/
+         "<t><o><u><k><o><k><u><u>";/
+         "<k><e><s><a:><k><u><u>";/
+         "<h><e><i><n><a:><k><u><u>";/
+         "<e><l><o><k><u><u>";/
+         "<s><y><y><s><k><u><u>";/
+         "<l><o><k><a><k><u><u>";/
+         "<m><a><r><r><a><s><k><u><u>";/
+         "<j><o><u><l><u><k><u><u>"
+d_t_fmt   "<%><Y><-><%><m><-><%><d><SP><%><H><:><%><M><:><%><S>"
+d_fmt     "<%><Y><-><%><m><-><%><d>"
+t_fmt     "<%><H><:><%><M><:><%><S>"
+am_pm     "";""
+t_fmt_ampm  ""
+END LC_TIME
+
+LC_MESSAGES
+yesexpr  "<<(><k><K><+><j><J><y><Y><o><O><)/>><.><*>"
+noexpr   "<<(><e><E><-><n><N><)/>><.><*>"
+END LC_MESSAGES

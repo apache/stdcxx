@@ -1,0 +1,381 @@
+<HTML>
+<HEAD>
+<TITLE>numeric_limits</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="numeric-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="numpunct.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>numeric_limits</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-2.html">Language support</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Fields and Functions</A></LI>
+<LI><A HREF="#sec8">Warnings</A></LI>
+<LI><A HREF="#sec9">See Also</A></LI>
+<LI><A HREF="#sec10">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1011">denorm_min()</A><BR>
+<A HREF="#idx1012">digits</A><BR>
+<A HREF="#idx1013">digits10</A><BR>
+<A HREF="#idx1014">epsilon()</A><BR>
+<A HREF="#idx1015">has_denorm</A><BR>
+<A HREF="#idx1016">has_denorm_loss</A><BR>
+<A HREF="#idx1017">has_infinity</A><BR>
+<A HREF="#idx1018">has_quiet_NaN</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1019">has_signaling_NaN</A><BR>
+<A HREF="#idx1020">infinity()</A><BR>
+<A HREF="#idx1021">is_bounded</A><BR>
+<A HREF="#idx1022">is_exact</A><BR>
+<A HREF="#idx1023">is_iec559</A><BR>
+<A HREF="#idx1024">is_integer</A><BR>
+<A HREF="#idx1025">is_modulo</A><BR>
+<A HREF="#idx1026">is_signed</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1027">is_specialized</A><BR>
+<A HREF="#idx1028">max()</A><BR>
+<A HREF="#idx1029">max_exponent</A><BR>
+<A HREF="#idx1030">max_exponent10</A><BR>
+<A HREF="#idx1031">min()</A><BR>
+<A HREF="#idx1032">min_exponent</A><BR>
+<A HREF="#idx1033">min_exponent10</A><BR>
+<A HREF="#idx1034">quiet_NaN()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1035">radix</A><BR>
+<A HREF="#idx1036">round_error()</A><BR>
+<A HREF="#idx1037">round_style</A><BR>
+<A HREF="#idx1038">signaling_NaN()</A><BR>
+<A HREF="#idx1039">tinyness_before</A><BR>
+<A HREF="#idx1040">traps</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A class template for representing information about arithmetic types.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;limits&gt;
+
+namespace std {
+  template &lt;class T&gt;
+  class numeric_limits;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+
+<UL><PRE>namespace std {
+  template &lt;&gt; class numeric_limits&lt;float&gt;;
+  template &lt;&gt; class numeric_limits&lt;double&gt;;
+  template &lt;&gt; class numeric_limits&lt;long double&gt;;
+  template &lt;&gt; class numeric_limits&lt;short&gt;;
+  template &lt;&gt; class numeric_limits&lt;unsigned short&gt;;
+  template &lt;&gt; class numeric_limits&lt;int&gt;;
+  template &lt;&gt; class numeric_limits&lt;unsigned int&gt;;
+  template &lt;&gt; class numeric_limits&lt;long&gt;;
+  template &lt;&gt; class numeric_limits&lt;unsigned long&gt;;
+  // extension: long long specializations
+  template &lt;&gt; class numeric_limits&lt;long long&gt;;
+  template &lt;&gt; class numeric_limits&lt;unsigned long long&gt;;
+  template &lt;&gt; class numeric_limits&lt;char&gt;;
+  template &lt;&gt; class numeric_limits&lt;wchar_t&gt;;
+  template &lt;&gt; class numeric_limits&lt;unsigned char&gt;;
+  template &lt;&gt; class numeric_limits&lt;signed char&gt;;
+  template &lt;&gt; class numeric_limits&lt;bool&gt;;
+}
+</PRE></UL>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>Members of class template <B><I>numeric_limits</I></B> provide information about the properties of the implementation's fundamental arithmetic types. Specializations of the template are included for each arithmetic type. The program may specialize the primary template on user-defined types.</P>
+<P>This class encapsulates information that is contained in the <SAMP>&lt;climits&gt;</SAMP> and <SAMP>&lt;cfloat&gt;</SAMP> headers, and includes additional information that is not contained in any existing C or C++ header. </P>
+<P>Not all of the information given by members is meaningful for all specializations of <B><I>numeric_limits</I></B>. Any value that is not meaningful for a particular type is set to <SAMP>0</SAMP> or <SAMP>false</SAMP>. </P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class T&gt;
+  class numeric_limits {
+
+    public:
+
+    // General -- meaningful for all specializations.
+    static const bool is_specialized ;
+    static T min () throw();
+    static T max () throw();
+    static const int radix ;
+    static const int digits ;
+    static const int digits10 ;
+    static const bool is_signed ;
+    static const bool is_integer ;
+    static const bool is_exact ;
+    static const bool traps ;
+    static const bool is_modulo ;
+    static const bool is_bounded ;
+
+    // Floating point specific.
+    static T epsilon () throw();
+    static T round_error () throw();
+    static const int min_exponent10 ;
+    static const int max_exponent10 ;
+    static const int min_exponent ;
+    static const int max_exponent ;
+    static const bool has_infinity ;
+    static const bool has_quiet_NaN ;
+    static const bool has_signaling_NaN ;
+    static const bool is_iec559 ;
+    static const float_denorm_style has_denorm ;
+    static const bool has_denorm_loss;
+    static const bool tinyness_before ;
+    static const float_round_style round_style ;
+    static T denorm_min () throw();
+    static T infinity () throw();
+    static T quiet_NaN () throw();
+    static T signaling_NaN () throw();
+  };
+
+  enum float_round_style {
+    round_indeterminate       = -1,
+    round_toward_zero         =  0,
+    round_to_nearest          =  1,
+    round_toward_infinity     =  2,
+    round_toward_neg_infinity =  3
+  };
+  enum float_denorm_style {
+    denorm_indeterminate      = -1,
+    denorm_absent             =  0,
+    denorm_present            =  1
+  };
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Fields and Functions</H3></A>
+
+<A NAME="idx1011"></A><PRE>static T 
+<B>denorm_min</B>() throw();</PRE>
+<UL>
+<P>Returns the minimum denormalized value. Meaningful for all floating point types. For types that do not allow denormalized values, this method must return the minimum normalized value.</P>
+</UL>
+
+
+<A NAME="idx1012"></A><PRE>static const int 
+<B>digits</B>;</PRE>
+<UL>
+<P>The number of radix digits that can be represented without change.   For built-in integer types, <SAMP>digits</SAMP> is usually the number of non-sign bits in the representation. For floating point types, <SAMP>digits</SAMP> is the number of radix digits in the mantissa. This member is meaningful for all specializations that declare <SAMP>is_bounded</SAMP> to be <SAMP>true</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1013"></A><PRE>static const int 
+<B>digits10</B>;</PRE>
+<UL>
+<P>The number of base 10 digits that can be represented without change.   This function is meaningful for all specializations that declare <SAMP>is_bounded</SAMP> to be <SAMP>true</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1014"></A><PRE>static T 
+<B>epsilon</B>() throw();</PRE>
+<UL>
+<P>Returns the machine epsilon (the difference between <SAMP>1</SAMP> and the least value greater than <SAMP>1</SAMP> that is representable). This function is meaningful for floating point types only.</P>
+</UL>
+
+
+<A NAME="idx1015"></A><PRE>static const float_denorm_style 
+<B>has_denorm</B>;</PRE>
+<UL>
+<P>Returns <SAMP>denorm_present</SAMP> if the type allows denormalized values. Returns <SAMP>denorm_absent</SAMP> if the type does not allow denormalized values. Returns <SAMP>denorm_indeterminate</SAMP> if it is indeterminate at compile time whether the type allows denormalized values. It is meaningful for floating point types only.</P>
+</UL>
+
+
+<A NAME="idx1016"></A><PRE>static const bool
+<B>has_denorm_loss</B>; </PRE>
+<UL>
+<P>This field is <SAMP>true</SAMP> if a loss of accuracy can be attributed to denormalization. Meaningful for floating point types only.</P>
+</UL>
+
+
+<A NAME="idx1017"></A><PRE>static const bool 
+<B>has_infinity</B>;</PRE>
+<UL>
+<P>This field is <SAMP>true</SAMP> if the type has a representation for positive infinity.   It is meaningful for floating point types only. This field must be <SAMP>true</SAMP> for any type claiming conformance to IEC 559.</P>
+</UL>
+
+
+<A NAME="idx1018"></A><PRE>static const bool 
+<B>has_quiet_NaN</B>;</PRE>
+<UL>
+<P>This field is <SAMP>true</SAMP> if the type has a representation for a quiet (non-signaling) "Not a Number". It is meaningful for floating point types only and must be <SAMP>true</SAMP> for any type claiming conformance to IEC 559.</P>
+</UL>
+
+
+<A NAME="idx1019"></A><PRE>static const bool 
+<B>has_signaling_NaN</B>;</PRE>
+<UL>
+<P>This field is <SAMP>true</SAMP> if the type has a representation for a signaling "Not a Number".   It is meaningful for floating point types only, and must be <SAMP>true</SAMP> for any type claiming conformance to IEC 559.</P>
+</UL>
+
+
+<A NAME="idx1020"></A><PRE>static T 
+<B>infinity</B>() throw();</PRE>
+<UL>
+<P>Returns the representation of positive infinity, if available. This member function is meaningful for only those specializations that declare <SAMP>has_infinity</SAMP> to be <SAMP>true</SAMP>. Required for any type claiming conformance to IEC 559.</P>
+</UL>
+
+
+<A NAME="idx1021"></A><PRE>static const bool 
+<B>is_bounded</B>;</PRE>
+<UL>
+<P>This field is <SAMP>true</SAMP> if the set of values representable by the type is finite. All built-in C types are bounded; this member would be <SAMP>false</SAMP> for arbitrary precision types.</P>
+</UL>
+
+
+<A NAME="idx1022"></A><PRE>static const bool 
+<B>is_exact</B>;</PRE>
+<UL>
+<P>This static member field is <SAMP>true</SAMP> if the type uses an exact representation. All integer types are exact, but not vice versa. For example, rational and fixed-exponent representations are exact but not integer. This member is meaningful for all specializations.</P>
+</UL>
+
+
+<A NAME="idx1023"></A><PRE>static const bool 
+<B>is_iec559</B>;</PRE>
+<UL>
+<P>This member is <SAMP>true</SAMP> if and only if the type adheres to the IEC 559 standard. It is meaningful for floating point types only.</P>
+</UL>
+
+
+<A NAME="idx1024"></A><PRE>static const bool 
+<B>is_integer</B>;</PRE>
+<UL>
+<P>This member is <SAMP>true</SAMP> if the type is integer. This member is meaningful for all specializations.</P>
+</UL>
+
+
+<A NAME="idx1025"></A><PRE>static const bool 
+<B>is_modulo</B>;</PRE>
+<UL>
+<P>This field is <SAMP>true</SAMP> if the type is modulo. Generally, this is <SAMP>false</SAMP> for floating types, <SAMP>true</SAMP> for unsigned integers, and <SAMP>true</SAMP> for signed integers on most machines. A type is modulo if it is possible to add two positive numbers and have a result that wraps around to a third number, which is less.</P>
+</UL>
+
+
+<A NAME="idx1026"></A><PRE>static const bool 
+<B>is_signed</B>;</PRE>
+<UL>
+<P>This member is <SAMP>true</SAMP> if the type is signed. This member is meaningful for all specializations.</P>
+</UL>
+
+
+<A NAME="idx1027"></A><PRE>static const bool 
+<B>is_specialized</B>;</PRE>
+<UL>
+<P>Indicates whether <B><I>numeric_limits</I></B> has been specialized for type <SAMP>T</SAMP>. This flag must be <SAMP>true</SAMP> for all specializations of <B><I>numeric_limits</I></B>. For the default <B><I>numeric_limits</I></B> template, this flag must be <SAMP>false</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx1028"></A><PRE>static T
+<B>max</B>() throw();</PRE>
+<UL>
+<P>Returns the maximum finite value. This function is meaningful for all specializations for which <SAMP>is_bounded</SAMP> == <SAMP>true</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1029"></A><PRE>static const int 
+<B>max_exponent</B>;</PRE>
+<UL>
+<P>The maximum positive integer such that the radix raised to the power one less than that integer is in range. This field is meaningful for floating point types only.</P>
+</UL>
+
+
+<A NAME="idx1030"></A><PRE>static const int 
+<B>max_exponent10</B>;</PRE>
+<UL>
+<P>The maximum positive integer such that 10 raised to that power is in range. This field is meaningful for floating point types only.</P>
+</UL>
+
+
+<A NAME="idx1031"></A><PRE>static T 
+<B>min</B>() throw(;</PRE>
+<UL>
+<P>Returns the minimum finite value. For floating point types with denormalization, <SAMP>min()</SAMP> must return the minimum normalized value. The minimum denormalized value is given by <SAMP>denorm_min()</SAMP>. This function is meaningful for all specializations for which <SAMP>is_bounded == true</SAMP>, or for which <SAMP>is_bounded == false &amp;&amp; is_signed == false</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1032"></A><PRE>static const int 
+<B>min_exponent</B>;</PRE>
+<UL>
+<P>The minimum negative integer such that the radix raised to the power one less than that integer is in range. This field is meaningful for floating point types only.</P>
+</UL>
+
+
+<A NAME="idx1033"></A><PRE>static const int 
+<B>min_exponent10</B>;</PRE>
+<UL>
+<P>The minimum negative integer such that 10 raised to that power is in range. This field is meaningful for floating point types only.</P>
+</UL>
+
+
+<A NAME="idx1034"></A><PRE>static T 
+<B>quiet_NaN</B>() throw();</PRE>
+<UL>
+<P>Returns the representation of a quiet "Not a Number", if available.   This function is meaningful only for those specializations that declare <SAMP>has_quiet_NaN</SAMP> to be <SAMP>true</SAMP>. This field is required for any type claiming conformance to IEC 559.</P>
+</UL>
+
+
+<A NAME="idx1035"></A><PRE>static const int 
+<B>radix</B>;</PRE>
+<UL>
+<P>For floating types, specifies the base or radix of the exponent representation (often 2). For integer types, this member must specify the base of the representation. This field is meaningful for all specializations.</P>
+</UL>
+
+
+<A NAME="idx1036"></A><PRE>static T 
+<B>round_error</B>() throw();</PRE>
+<UL>
+<P>Returns the measure of the maximum rounding error. This function is meaningful for floating point types only.</P>
+</UL>
+
+
+<A NAME="idx1037"></A><PRE>static const float_round_style 
+<B>round_style</B>;</PRE>
+<UL>
+<P>The rounding style for the type. Specializations for integer types must return <SAMP>round_toward_zero</SAMP>. This is meaningful for all floating point types.</P>
+</UL>
+
+
+<A NAME="idx1038"></A><PRE>static T 
+<B>signaling_NaN</B>() throw();</PRE>
+<UL>
+<P>Returns the representation of a signaling "Not a Number", if available. This function is meaningful for only those specializations that declare <SAMP>has_signaling_NaN</SAMP> to be <SAMP>true</SAMP>. This function must be meaningful for any type claiming conformance to IEC 559.</P>
+</UL>
+
+
+<A NAME="idx1039"></A><PRE>static const bool 
+<B>tinyness_before</B>;</PRE>
+<UL>
+<P>This member is <SAMP>true</SAMP> if <SAMP>tinyness</SAMP> is detected before rounding. It is meaningful for floating point types only.</P>
+</UL>
+
+
+<A NAME="idx1040"></A><PRE>static const bool 
+<B>traps</B>;</PRE>
+<UL>
+<P>This field is <SAMP>true</SAMP> if trapping is implemented for this type.   The <SAMP>traps</SAMP> field is meaningful for all specializations.</P>
+</UL>
+
+<A NAME="sec8"><H3>Warnings</H3></A>
+<P>The specializations for <SAMP>wide</SAMP> <SAMP>chars</SAMP> and <SAMP>bool</SAMP> are only available if your compiler has implemented them as real types and not simulated them with typedefs. </P>
+<A NAME="sec9"><H3>See Also</H3></A>
+<P>IEEE Standard for Binary Floating-Point Arithmetic, 345 East 47th Street, New York, NY 10017</P>
+<P>Language Independent Arithmetic (LIA-1)</P>
+<A NAME="sec10"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 18.2.1</I></P>
+
+<BR>
+<HR>
+<A HREF="numeric-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="numpunct.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

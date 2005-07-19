@@ -1,0 +1,72 @@
+<HTML>
+<HEAD>
+<TITLE>How the Standard Iostreams Work</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="27-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="27-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>27.2 How the Standard Iostreams Work</H2>
+<A NAME="idx620"><!></A>
+<P>The main purpose of the standard iostreams is to serve as a tool for input and output of data. Generally, input and output are the transfer of data between a program and any kind of external device, as illustrated in <A HREF="27-2.html#Figure&nbsp;17">Figure&nbsp;17</A>:</P>
+<A NAME="idx621"><!></A>
+<H4><A NAME="Figure&nbsp;17">Figure&nbsp;17: Data transfer supported by iostreams</A></H4>
+
+<P><IMG SRC="images/iofig1.gif" WIDTH=587 HEIGHT=300></P>
+<P>The internal representation of such data is meant to be convenient for data processing in a program. On the other hand, the external representation can vary quite a bit: it might be a display in human-readable form, or a portable data exchange format. The intent of a representation, such as conserving space for storage, can also influence the representation.</P>
+<A NAME="idx622"><!></A>
+<P><I>T</I><I>ext I/O</I> involves the external representation of a sequence of characters; every other case involves <I>binary I/O</I>. Traditionally, iostreams are used for text processing. Such text processing through iostreams involves two processes: <I>formatting</I> and <I>code conversion</I>.</P>
+<A NAME="idx623"><!></A>
+<P><I>Formatting</I> is the transformation from a byte sequence representing internal data into a human-readable character sequence; for example, from a floating point number, or an integer value held in a variable, into a sequence of digits. <A HREF="27-2.html#Figure&nbsp;18">Figure&nbsp;18</A> illustrates the formatting process:</P>
+<A NAME="idx624"><!></A>
+<H4><A NAME="Figure&nbsp;18">Figure&nbsp;18: Formatting program data</A></H4>
+
+<P><IMG SRC="images/iofig2.gif" WIDTH=680 HEIGHT=129></P>
+<A NAME="idx625"><!></A>
+<P><I>Code conversion</I> is the process of translating one character representation into another; for example, from wide characters held internally to a sequence of multibyte characters for external use. Wide characters are all the same size, and thus are convenient for internal data processing. Multibyte characters have different sizes and are stored more compactly. They are typically used for data transfer, or for storage on external devices such as files. <A HREF="27-2.html#Figure&nbsp;19">Figure&nbsp;19</A> illustrates the conversion process:</P>
+<A NAME="idx626"><!></A>
+<H4><A NAME="Figure&nbsp;19">Figure&nbsp;19: Code conversion between multibyte and wide characters</A></H4>
+
+<P><IMG SRC="images/iofig3.gif" WIDTH=548 HEIGHT=302></P>
+<A NAME="2721"><H3>27.2.1 The Iostream Layers</H3></A>
+<A NAME="idx627"><!></A>
+<P>The iostreams facility has two layers: one that handles formatting, and another that handles code conversion and transport of characters to and from the external device. The layers communicate through a buffer, as illustrated in <A HREF="27-2.html#Figure&nbsp;20">Figure&nbsp;20</A>:</P>
+<A NAME="idx628"><!></A>
+<H4><A NAME="Figure&nbsp;20">Figure&nbsp;20: The iostreams layers</A></H4>
+
+<P><IMG SRC="images/iofig4.gif" WIDTH=639 HEIGHT=98></P>
+<P>In the next sections we'll look at the function of each layer in more detail.</P>
+<A NAME="2721-1"><H4>27.2.1.1 The Formatting Layer</H4></A>
+<A NAME="idx629"><!></A>
+<P>In the formatting layer, the transformation between a program's internal data representation and a readable representation as a character sequence takes place. This formatting and parsing may involve, among other things:</P>
+<UL>
+<LI><P CLASS="LIST">Precision and notation of floating point numbers</P></LI>
+<LI><P CLASS="LIST">Hexadecimal, octal, or decimal representation of integers</P></LI>
+<LI><P CLASS="LIST">Skipping of white space in the input</P></LI>
+<LI><P CLASS="LIST">Field width for output</P></LI>
+<LI><P CLASS="LIST">Adapting of number formatting to local conventions</P></LI>
+</UL>
+<A NAME="2721-2"><H4>27.2.1.2 The Transport Layer</H4></A>
+<A NAME="idx630"><!></A>
+<P>The transport layer is responsible for producing and consuming characters. It encapsulates knowledge about the properties of a specific external device. Among other things, this involves:</P>
+<UL>
+<LI><P CLASS="LIST">Block-wise output to files through system calls</P></LI>
+<LI><P CLASS="LIST">Code conversion to multibyte encodings</P></LI>
+<P CLASS="LIST">To reduce the number of accesses to the external device, a buffer is used. For output, the formatting layer sends sequences of characters to the transport layer, which stores them in a <I>stream buffer</I>. The actual transport to the external device happens only when the buffer is full or explicitly flushed. For input, the transport layer reads from the external device and fills the buffer. The formatting layer receives characters from the buffer. When the buffer is empty, the transport layer is responsible for refilling it.</P>
+</UL>
+<A NAME="2721-3"><H4>27.2.1.3 Locales</H4></A>
+<A NAME="idx631"><!></A>
+<P>Both the formatting and the transport layers use the stream's locale. The formatting layer delegates the handling of numeric entities to the locale's numeric facets. The transport layer uses the locale's code conversion facet for character-wise transformation between the buffer content and characters transported to and from the external device. <A HREF="27-2.html#Figure&nbsp;21">Figure&nbsp;21</A> shows how locales are used with iostreams:</P>
+<A NAME="idx632"><!></A>
+<H4><A NAME="Figure&nbsp;21">Figure&nbsp;21: Use of locales in iostreams</A></H4>
+
+<P><IMG SRC="images/iofig5.gif" WIDTH=689 HEIGHT=206></P>
+<A NAME="2722"><H3>27.2.2 File and In-Memory I/O</H3></A>
+<P>Iostreams support two kinds of I/O: file I/O and in-memory I/O.</P>
+<A NAME="idx633"><!></A>
+<P><I>File I/O</I> involves the transfer of data to and from an external device. The device need not necessarily be a file in the usual sense of the word. It could just as well be a communication channel, or another construct that conforms to the file abstraction.</P>
+<A NAME="idx634"><!></A>
+<P>In contrast, <I>in-memory I/O</I> involves no external device. Thus code conversion and transport are not necessary; only formatting is performed. The result of such formatting is maintained in memory, and can be retrieved in the form of a character string.</P>
+
+<BR>
+<HR>
+<A HREF="27-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="27-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,49 @@
+<HTML>
+<HEAD>
+<TITLE>Implicit Synchronization Using the unitbuf Format Flag</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="35-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="35-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>35.3 Implicit Synchronization Using the unitbuf Format Flag</H2>
+<A NAME="idx877"><!></A>
+<A NAME="idx878"><!></A>
+<P>You can achieve a kind of automatic synchronization for output files by using the format flag <SAMP>ios_base::unitbuf</SAMP>. It causes an output stream to flush its buffer after each output operation as follows:</P>
+
+<UL><PRE>
+std::ofstream ostr("/tmp/fil");
+std::ifstream istr("/tmp/fil");
+
+ostr &lt;&lt; std::ios_base::unitbuf;                            //1
+
+while (some_condition) {
+  ostr &lt;&lt; "... some output ...";                                //2
+  // process the output
+  istr &gt;&gt; s;
+  // ...
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Set the <SAMP>unitbuf</SAMP> format flag.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>After each insertion into the file <SAMP>/tmp/fil,</SAMP> the buffer is automatically flushed, and the output is available to other streams that read from the same file.
+</TABLE>
+<A NAME="idx879"><!></A>
+<P>Since it is not overly efficient to flush after every single token that is inserted, you might consider switching off the <SAMP>unitbuf</SAMP> flag for a lengthy output that is not supposed to be read partially.</P>
+
+<UL><PRE>
+ostr.unsetf(std::ios_base::unitbuf);                          //1
+
+ostr &lt;&lt; "... some lengthy and complicated output ...";
+
+ostr.flush().setf(std::ios_base::unitbuf);                    //2
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Switch off the <SAMP>unitbuf</SAMP> flag. Alternatively, using manipulators, you can use <SAMP>ostr &lt;&lt; std::ios_base::nounitbuf;</SAMP>
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Flush the buffer and switch on the <SAMP>unitbuf</SAMP> flag again. Alternatively, you can use the <SAMP>std::ios_base::flush</SAMP> and <SAMP>std::ios::base::unitbuf</SAMP> manipulators.
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="35-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="35-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

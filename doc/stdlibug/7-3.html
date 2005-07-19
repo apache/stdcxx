@@ -1,0 +1,145 @@
+<HTML>
+<HEAD>
+<TITLE>Example Program: Radix Sort</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="7-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="8.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>7.3 Example Program: Radix Sort</H2>
+<A NAME="idx125"><!></A>
+<A NAME="idx126"><!></A>
+<P>The radix sort algorithm is a good illustration of how different types of standard containers can be combined. In the radix sort, a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> of <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>s is manipulated much like a hash table to sort the values in a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- The complete radix sort program is in the file radix.cpp.
+</B><HR></BLOCKQUOTE>
+<P>Radix sorting is a technique for ordering a list of positive integer values. The values are successively ordered on digit positions, from right to left. This is accomplished by copying the values into <I>buckets</I>, where the index for the bucket is given by the position of the digit being sorted. Once all digit positions are examined, the list must be sorted. </P>
+<P><A HREF="7-3.html#Table&nbsp;12">Table&nbsp;12</A> shows the sequences of values found in each bucket during the four steps involved in sorting the list <SAMP>624 852 426 987 269 146 415 301 730 78 593</SAMP>. During pass 1, the ones place digits are ordered. During pass 2, the tens place digits are ordered, retaining the relative positions of values set by the earlier pass. On pass 3 the hundreds place digits are ordered, again retaining the previous relative ordering. After three passes the result is an ordered list.</P>
+<H4><A NAME="Table&nbsp;12">Table&nbsp;12: Sequence of values in each bucket during radix sort</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Bucket </B>
+</td><td valign=top><B> Pass 1 </B>
+</td><td valign=top><B> Pass 2 </B>
+</td><td valign=top><B> Pass 3 </B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">0 </P>
+</td><td valign=top><P CLASS="TABLE"> 730 </P>
+</td><td valign=top><P CLASS="TABLE"> 301 </P>
+</td><td valign=top><P CLASS="TABLE">   78 </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">1 </P>
+</td><td valign=top><P CLASS="TABLE"> 301 </P>
+</td><td valign=top><P CLASS="TABLE"> 415 </P>
+</td><td valign=top><P CLASS="TABLE"> 146 </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">2 </P>
+</td><td valign=top><P CLASS="TABLE"> 852 </P>
+</td><td valign=top><P CLASS="TABLE"> 624, 426 </P>
+</td><td valign=top><P CLASS="TABLE"> 269 </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">3 </P>
+</td><td valign=top><P CLASS="TABLE"> 593 </P>
+</td><td valign=top><P CLASS="TABLE"> 730 </P>
+</td><td valign=top><P CLASS="TABLE"> 301 </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">4 </P>
+</td><td valign=top><P CLASS="TABLE"> 624 </P>
+</td><td valign=top><P CLASS="TABLE"> 146 </P>
+</td><td valign=top><P CLASS="TABLE"> 415, 426 </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">5 </P>
+</td><td valign=top><P CLASS="TABLE"> 415 </P>
+</td><td valign=top><P CLASS="TABLE"> 852 </P>
+</td><td valign=top><P CLASS="TABLE"> 593 </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">6 </P>
+</td><td valign=top><P CLASS="TABLE"> 426, 146 </P>
+</td><td valign=top><P CLASS="TABLE"> 269 </P>
+</td><td valign=top><P CLASS="TABLE"> 624 </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">7 </P>
+</td><td valign=top><P CLASS="TABLE"> 987 </P>
+</td><td valign=top><P CLASS="TABLE">   78 </P>
+</td><td valign=top><P CLASS="TABLE"> 730 </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">8 </P>
+</td><td valign=top><P CLASS="TABLE">   78 </P>
+</td><td valign=top><P CLASS="TABLE"> 987 </P>
+</td><td valign=top><P CLASS="TABLE"> 852 </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">9 </P>
+</td><td valign=top><P CLASS="TABLE"> 269 </P>
+</td><td valign=top><P CLASS="TABLE"> 593 </P>
+</td><td valign=top><P CLASS="TABLE"> 987 </P>
+</td></tr>
+</TABLE>
+<P>The radix sorting algorithm is simple. A <SAMP>while</SAMP> loop is used to cycle through the various passes. The value of the variable <SAMP>divisor</SAMP> indicates which digit is currently being examined. A boolean flag is used to determine when execution should halt. Each time the <SAMP>while</SAMP> loop is executed, a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> of <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>s is declared. By placing the declaration of this structure inside the <SAMP>while</SAMP> loop, it is reinitialized to empty each step. Each time the loop is executed, the values in the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> are copied into the appropriate bucket by executing the function <SAMP>copyIntoBuckets()</SAMP> on each value. Once distributed into the buckets, the values are gathered back into the <B><I>list</I></B> by means of an accumulation.</P>
+
+<UL><PRE>
+typedef std::deque&lt;int&gt;            deque_type;
+typedef std::vector&lt;deque_type&gt;    vector_type;
+typedef std::list&lt;int&gt;             list_type;
+typedef std::ostream_iterator&lt;int&gt; ostrm_iter_type;
+
+void radixSort(list_type &amp; values) {
+
+  bool flag = true;
+  int divisor = 1;
+  
+  while (flag) {
+    vector_type buckets(10);
+    flag = false;
+
+    std::for_each(values.begin(), values.end(), 
+                  copyIntoBuckets(divisor, buckets_flag));
+
+    std::accumulate(buckets.begin(), buckets.end(), 
+                    values.begin(), copyList);
+
+    divisor *= 10;
+
+    std::copy (values.begin(), values.end(),
+               ostrm_iter_type(std::cout, " "));
+
+    std::cout &lt;&lt; std::endl;
+  }
+
+}
+</PRE></UL>
+<P>The use of the standard algorithm <SAMP>std::accumulate()</SAMP> here is slightly unusual. The <I>scalar</I> value being constructed is the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> itself. The initial value for the accumulation is the iterator denoting the beginning of the <B><I>list</I></B>. Each bucket is processed by the following binary function:</P>
+
+<UL><PRE>
+list_type::iterator 
+copyList(list_type::iterator c, deque_type &amp;lst)
+{
+  return std::copy(lst.begin(), lst.end(), c);
+}
+</PRE></UL>
+<P>The only difficulty remaining is defining the function <SAMP>copyIntoBuckets()</SAMP>. The problem here is that the function must take as its argument only the element being inserted, but it must also have access to the three values <SAMP>buckets</SAMP>, <SAMP>divisor</SAMP>, and <SAMP>flag</SAMP>. In languages that permit functions to be defined within other functions, the solution is to define <SAMP>copyIntoBuckets()</SAMP> as a local function within the <SAMP>while</SAMP> loop. But C++ has no such facilities. Instead, we must create a class definition, which can be initialized with references to the appropriate values. The function call operator for this class is then used as the function for the <SAMP>std::for_each()</SAMP> invocation in the radix sort program.</P>
+
+<UL><PRE>
+class copyIntoBuckets {
+
+public:
+  copyIntoBuckets(int d, vector_type &amp;b, bool &amp;f) 
+        : divisor(d), buckets(b), flag(f) {}
+   
+
+  void operator()(unsigned int v) {
+    int index = (v / divisor) % 10;
+
+    // flag is set to true if any bucket 
+    // other than zeroth is used
+    if (index) flag = true; 
+    buckets[index].push_back(v);
+  }
+   
+  int         divisor;
+  vector_type &amp;buckets;
+  bool        &amp;flag;
+
+};
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="7-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="8.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

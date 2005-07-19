@@ -1,0 +1,312 @@
+<HTML>
+<HEAD>
+<TITLE>char_traits</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="cerr.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="cin.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>char_traits</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-5.html">Strings</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Types</A></LI>
+<LI><A HREF="#sec8">Types:  Default Values</A></LI>
+<LI><A HREF="#sec9">Value Functions</A></LI>
+<LI><A HREF="#sec10">Test Functions</A></LI>
+<LI><A HREF="#sec11">Conversion Functions</A></LI>
+<LI><A HREF="#sec12">See Also</A></LI>
+<LI><A HREF="#sec13">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx463">assign()</A><BR>
+<A HREF="#idx458">char_type</A><BR>
+<A HREF="#idx471">compare()</A><BR>
+<A HREF="#idx465">copy()</A><BR>
+<A HREF="#idx466">eof()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx472">eq()</A><BR>
+<A HREF="#idx473">eq_int_type()</A><BR>
+<A HREF="#idx467">find()</A><BR>
+<A HREF="#idx459">int_type</A><BR>
+<A HREF="#idx468">length()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx474">lt()</A><BR>
+<A HREF="#idx469">move()</A><BR>
+<A HREF="#idx470">not_eof()</A><BR>
+<A HREF="#idx460">off_type</A><BR>
+<A HREF="#idx461">pos_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx462">state_type</A><BR>
+<A HREF="#idx475">to_char_type()</A><BR>
+<A HREF="#idx476">to_int_type()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A traits class with types and operations for the <B><I><A HREF="basic-string.html">basic_string</A></I></B> container and <B><I><A HREF="basic-iostream.html">iostream</A></I></B> classes</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;string&gt;
+
+namespace std {
+  template&lt;class charT&gt;
+  struct char_traits;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+
+<UL><PRE>namespace std {
+  template&lt;&gt; struct char_traits&lt;char&gt;;
+  template&lt;&gt; struct char_traits&lt;wchar_t&gt;; 
+}
+</PRE></UL>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The structure template <B><I>char_traits</I></B> defines the types and functions necessary to implement the iostreams and string class templates. It is templatized on <SAMP>charT</SAMP>, which represents the character container type. Each specialized version of <B><I>char_traits</I></B> includes the default definitions corresponding to the specialized character container type.</P>
+<P>Users have to provide specialization for <B><I>char_traits</I></B> if they use character types other than <SAMP>char</SAMP> and <SAMP>wchar_t</SAMP>. </P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template&lt;class charT&gt; 
+  struct char_traits {
+
+    typedef charT       char_type;
+    typedef INT_T       int_type;
+    typedef POS_T       pos_type;
+    typedef OFF_T       off_type;
+    typedef STATE_T     state_type;
+
+    static char_type    to_char_type(const int_type&amp;); 
+    static int_type     to_int_type(const char_type&amp;);
+    static bool         eq(const char_type&amp;,const char_type&amp;);
+    static bool         eq_int_type(const int_type&amp;,
+                                    const int_type&amp;);
+
+    static int_type         eof();
+    static int_type         not_eof(const int_type&amp;);
+
+    static void             assign(char_type&amp;,
+                                   const char_type&amp;);
+    static bool             lt(const char_type&amp;,
+                               const char_type&amp;);
+    static int              compare(const char_type*,
+                                    const char_type*,size_t);
+    static size_t           length(const char_type*);
+    static const char_type* find(const char_type*,int n,
+                                 const char_type&amp;);
+
+    static char_type*       move(char_type*,
+                                 const char_type*,size_t);
+    static char_type*       copy(char_type*,const char_type*,
+                                 size_t);
+    static char_type*       assign(char_type*,size_t,
+                                   char_type);
+  };
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Types</H3></A>
+
+<A NAME="idx458"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>The type <SAMP>char_type</SAMP> represents the character container type. It must be convertible to <SAMP>int_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx459"></A><PRE><B>int_type</B></PRE>
+<UL>
+<P>The type <SAMP>int_type</SAMP> is another character container type that can also hold an end-of-file value. It is used as the return type of some of the iostream class member functions. If <SAMP>char_type</SAMP> is either <SAMP>char</SAMP> or <SAMP>wchar_t</SAMP>, <SAMP>int_type</SAMP> is <SAMP>int</SAMP> or <SAMP>wint_t</SAMP>, respectively.</P>
+</UL>
+
+
+<A NAME="idx460"></A><PRE><B>off_type</B></PRE>
+<UL>
+<P>The type <SAMP>off_type</SAMP> represents offsets to positional information. It is used to represent:</P>
+<UL>
+<LI><P CLASS="LIST">A signed displacement, measured in characters, from a specified position within a sequence.</P></LI>
+<LI><P CLASS="LIST">An absolute position within a sequence.</P></LI>
+</UL>
+<P>The value <SAMP>off_type(-1)</SAMP> can be used as an error indicator. Value of type <SAMP>off_type</SAMP> can be converted to type <SAMP>pos_type</SAMP>, but no validity of the resulting <SAMP>pos_type</SAMP> value is ensured.</P>
+<P>If <SAMP>char_type</SAMP> is either <SAMP>char</SAMP> or <SAMP>wchar_t</SAMP>, <SAMP>off_type</SAMP> is <SAMP>streamoff</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx461"></A><PRE><B>pos_type</B></PRE>
+<UL>
+<P>The type <SAMP>pos_type</SAMP> describes an object that can store all the information necessary to restore an arbitrary sequence to a previous stream position and conversion state. The conversion <SAMP>pos_type(off_type(-1))</SAMP> constructs the invalid <SAMP>pos_type</SAMP> value to signal error.</P>
+<P>If <SAMP>char_type</SAMP> is either <SAMP>char</SAMP> or <SAMP>wchar_t</SAMP>, <SAMP>pos_type</SAMP> is <SAMP>streampos</SAMP> or <SAMP>wstreampos</SAMP>, respectively.</P>
+</UL>
+
+
+<A NAME="idx462"></A><PRE><B>state_type</B></PRE>
+<UL>
+<P>The type <SAMP>state_type</SAMP> holds the conversion state, and is compatible with the function <SAMP>locale::codecvt()</SAMP>.</P>
+<P>If <SAMP>char_type</SAMP> is either <SAMP>char</SAMP> or <SAMP>wchar_t</SAMP>, <SAMP>state_type</SAMP> is <SAMP>mbstate_t</SAMP>.</P>
+</UL>
+
+<A NAME="sec8"><H3>Types:  Default Values</H3></A>
+<P><A HREF="char-traits.html#Table&nbsp;12">Table&nbsp;12</A> lists the default specialization types and their values on <SAMP>char</SAMP> and <SAMP>wchar_t</SAMP>.  </P>
+<H4><A NAME="Table&nbsp;12">Table&nbsp;12: Default values for types</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>specialization type</B>
+</td>
+<td valign=top><B>on char</B>
+</td>
+<td valign=top><B>on wchar_t</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>char_type</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>char</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>wchar_t</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>int_type</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>int</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>wint_t</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>off_type</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>streamoff</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>streamoff</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>pos_type</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>streampos</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>wstreampos</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>state_type</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>mbstate_t</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>mbstate_t</SAMP></P>
+</td>
+</tr>
+</TABLE>
+<A NAME="sec9"><H3>Value Functions</H3></A>
+
+<A NAME="idx463"></A><PRE>void 
+<B>assign</B>(char_type&amp; c1, const char_type&amp; c2);</PRE>
+<UL>
+<P>Assigns one character value to another. The value of <SAMP>c2</SAMP> is assigned to <SAMP>c1</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx464"></A><PRE>char_type*
+<B>assign</B>(char_type* s, size_t n, char_type a);</PRE>
+<UL>
+<P>Assigns one character value to <SAMP>n</SAMP> elements of a character array. The value of <SAMP>a</SAMP> is assigned to <SAMP>n</SAMP> elements of <SAMP>s</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx465"></A><PRE>char_type* 
+<B>copy</B>(char_type* s1, const char_type* s2, size_t n);</PRE>
+<UL>
+<P>Copies <SAMP>n</SAMP> characters from the object pointed to by <SAMP>s1</SAMP> into the object pointed to by <SAMP>s2</SAMP>. The ranges of <SAMP>(s1,s1+n)</SAMP> and <SAMP>(s2,s2+n)</SAMP> may not overlap.</P>
+</UL>
+
+
+<A NAME="idx466"></A><PRE>int_type 
+<B>eof</B>();</PRE>
+<UL>
+<P>Returns an <SAMP>int_type</SAMP> value that represents the end-of-file. It is returned by several functions to indicate end-of-file state, or to indicate an invalid return value.</P>
+</UL>
+
+
+<A NAME="idx467"></A><PRE>const char_type* 
+<B>find</B>(const char_type* s, int n, const char_type&amp; a);</PRE>
+<UL>
+<P>Looks for the value of <SAMP>a</SAMP> in <SAMP>s</SAMP>. Only <SAMP>n</SAMP> elements of <SAMP>s</SAMP> are examined. Returns a pointer to the matched element if one is found. Otherwise returns <SAMP>0</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx468"></A><PRE>size_t 
+<B>length</B>(const char_type* s);</PRE>
+<UL>
+<P>Returns the length of a null terminated character string pointed to by <SAMP>s</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx469"></A><PRE>char_type* 
+<B>move</B>(char_type* s1, const char_type* s2, size_t n);</PRE>
+<UL>
+<P>Moves <SAMP>n</SAMP> characters from the object pointed to by <SAMP>s1</SAMP> into the object pointed to by <SAMP>s2</SAMP>. The ranges of <SAMP>(s1,s1+n)</SAMP> and <SAMP>(s2,s2+n)</SAMP> may overlap.</P>
+</UL>
+
+
+<A NAME="idx470"></A><PRE>int_type 
+<B>not_eof</B>(const int_type&amp; c);</PRE>
+<UL>
+<P>Returns <SAMP>c</SAMP> if <SAMP>c</SAMP> is not equal to the end-of-file value. Otherwise returns <SAMP>0</SAMP>.</P>
+</UL>
+
+<A NAME="sec10"><H3>Test Functions</H3></A>
+
+<A NAME="idx471"></A><PRE>int 
+<B>compare</B>(const char_type* s1,const char_type* s2,size_t n);</PRE>
+<UL>
+<P>Compares <SAMP>n</SAMP> values from <SAMP>s1</SAMP> with <SAMP>n</SAMP> values from <SAMP>s2</SAMP>. Returns <SAMP>1</SAMP> if <SAMP>s1</SAMP> is greater than <SAMP>s2</SAMP>, <SAMP>-1</SAMP> if <SAMP>s1</SAMP> is less than<SAMP> s2,</SAMP> or <SAMP>0</SAMP> if they are equal. </P>
+</UL>
+
+
+<A NAME="idx472"></A><PRE>bool 
+<B>eq</B>(const char_type&amp; c1, const char_type&amp; c2);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>c1</SAMP> and <SAMP>c2</SAMP> represent the same character. </P>
+</UL>
+
+
+<A NAME="idx473"></A><PRE>bool 
+<B>eq_int_type</B>(const int_type&amp; c1, const int_type&amp; c2);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>c1</SAMP> and <SAMP>c2</SAMP> are equal.</P>
+</UL>
+
+
+<A NAME="idx474"></A><PRE>bool 
+<B>lt</B>(const char_type&amp; c1,const char_type&amp; c2);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>c1</SAMP> is less than <SAMP>c2</SAMP>.</P>
+</UL>
+
+<A NAME="sec11"><H3>Conversion Functions</H3></A>
+
+<A NAME="idx475"></A><PRE>char_type 
+<B>to_char_type</B>(const int_type&amp; c);</PRE>
+<UL>
+<P>Converts a valid character represented by a value of type <SAMP>int_type</SAMP> to the corresponding <SAMP>char_type</SAMP> value. </P>
+</UL>
+
+
+<A NAME="idx476"></A><PRE>int_type 
+<B>to_int_type</B>(const char_type&amp; c);</PRE>
+<UL>
+<P>Converts a valid character represented by a value of type <SAMP>char_type</SAMP> to the corresponding <SAMP>int_type</SAMP> value.</P>
+</UL>
+
+<A NAME="sec12"><H3>See Also</H3></A>
+<P><B><I>iosfwd</I></B>, <B><I><A HREF="fpos.html">fpos</A></I></B></P>
+<A NAME="sec13"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 21.1</I></P>
+
+<BR>
+<HR>
+<A HREF="cerr.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="cin.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

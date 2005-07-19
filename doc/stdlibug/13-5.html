@@ -1,0 +1,123 @@
+<HTML>
+<HEAD>
+<TITLE>Removal Algorithms</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="13-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-6.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>13.5 Removal Algorithms</H2>
+<A NAME="idx317"><!></A>
+<P>The <SAMP>std::remove()</SAMP> algorithm and the <SAMP>std::unique()</SAMP> algorithm can be somewhat confusing the first time you encounter them. Both claim to remove certain values from a sequence, yet neither reduces the size of the sequence. Both operate by moving the values that are to be <I>retained</I> to the front of the sequence, and returning an <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> that describes where this sequence ends. Elements after this <B><I>iterator</I></B> are simply the original sequence values, left unchanged. This is necessary because the generic algorithm has no knowledge of the container it is working on. It only has a generic iterator. This is part of the price we pay for generic algorithms. In most cases you will want to use this <B><I>iterator</I></B> result as an argument to the <SAMP>std::erase()</SAMP> member function for the container, removing the values from the <B><I>iterator</I></B> to the end of the sequence.</P>
+<P>Let us illustrate this with a simple example. Suppose we want to remove the even numbers from the sequence <SAMP>1 2 3 4 5 6 7 8 9 10</SAMP>, something we could do with the <SAMP>std::remove_if()</SAMP> algorithm. Applying this algorithm would leave us with the following sequence:</P>
+<P><SAMP>1 3 5 7 9 | 6 7 8 9 10</SAMP></P>
+<P>The vertical bar here represents the position of the iterator returned by the <SAMP>std::remove_if()</SAMP> algorithm. Notice that the five elements before the bar represent the result we want, while the five values after the bar are simply the original contents of those locations. Using this <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> value along with the end-of-sequence iterator as arguments to <SAMP>std::erase(),</SAMP> we can eliminate the unwanted values, and obtain the desired result.</P>
+<P>Both the algorithms described here have an alternative <I>copy</I> version. The copy version of the algorithms leaves the original unchanged, and places the preserved elements into an output sequence.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- The example functions described in this section can be found in the file alg4.cpp.
+</B><HR></BLOCKQUOTE>
+<A NAME="1351"><H3>13.5.1 Remove Unwanted Elements</H3></A>
+<A NAME="idx318"><!></A>
+<P>The algorithm <SAMP>std::remove()</SAMP> eliminates unwanted values from a sequence. As with the <SAMP>std::find()</SAMP> algorithm, these can be values that match a specific constant, or values that satisfy a given predicate. The declaration of the argument types is as follows:</P>
+
+<UL><PRE>
+namespace std {
+  ForwardIterator remove(ForwardIterator first, 
+                         ForwardIterator last, const T&amp;);
+  ForwardIterator remove_if(ForwardIterator first, 
+                            ForwardIterator last, Predicate);
+}
+</PRE></UL>
+<P>The algorithm <SAMP>std::remove()</SAMP> copies values to the front of the sequence, overwriting the location of the removed elements. All elements not removed remain in their relative order. Once all values have been examined, the remainder of the sequence is left unchanged. The iterator returned as the result of the operation provides the end of the new sequence. For example, eliminating the element <SAMP>2</SAMP> from the sequence <SAMP>1 2 4 3 2</SAMP> results in the sequence <SAMP>1 4 3 3 2</SAMP>, with the <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> returned as the result pointing at the second <SAMP>3</SAMP>. This value can be used as argument to <SAMP>std::erase()</SAMP> in order to eliminate the remaining elements <SAMP>3</SAMP> and <SAMP>2</SAMP>, as illustrated in the example program.</P>
+<P>A copy version of the algorithms copies values to an output sequence, rather than making transformations in place.</P>
+
+<UL><PRE>
+namespace std {
+  OutputIterator remove_copy 
+           (InputIterator first, InputIterator last,
+            OutputIterator result, const T&amp;);
+
+  OutputIterator remove_copy_if 
+           (InputIterator first, InputIterator last,
+            OutputIterator result, Predicate);
+}
+</PRE></UL>
+<P>The use of <SAMP>std::remove()</SAMP> is shown in the following program.</P>
+
+<A NAME="idx319"><!></A>
+<UL><PRE>
+void remove_example()
+// illustrates the use of the remove algorithm
+// see alg4.cpp for complete source code
+{
+  // create a list of numbers
+  int data[] = {1, 2, 4, 3, 1, 4, 2};
+  std::list&lt;int&gt; aList;
+  std::copy(data, data+7, std::inserter(aList, aList.begin()));
+
+  // remove 2's, copy into new list
+  std::list&lt;int&gt; newList;
+  std::remove_copy(aList.begin(), aList.end(), 
+                   std::back_inserter(newList), 2);
+
+  // remove 2's in place
+  std::list&lt;int&gt;::iterator where;
+  where = std::remove(aList.begin(), aList.end(), 2);
+  aList.erase(where, aList.end());
+
+  // remove all even values
+  where = std::remove_if(aList.begin(), aList.end(), isEven);
+  aList.erase(where, aList.end());
+}
+</PRE></UL>
+<A NAME="1352"><H3>13.5.2 Remove Runs of Similar Values</H3></A>
+<A NAME="idx320"><!></A>
+<P>The algorithm <SAMP>std::unique()</SAMP> moves through a linear sequence, eliminating all but the first element from every consecutive group of equal elements. The argument sequence is described by forward iterators:</P>
+
+<UL><PRE>
+namespace std {
+  ForwardIterator unique (ForwardIterator first, 
+     ForwardIterator last [, BinaryPredicate ] );
+}
+</PRE></UL>
+<P>As the algorithm moves through the collection, elements are moved to the front of the sequence, overwriting the existing elements. Once all unique values are identified, the remainder of the sequence is left unchanged. For example, a sequence such as <SAMP>1 3 3 2 2 2 4</SAMP> is changed into <SAMP>1 3 2 4 | 2 2 4</SAMP>. We use a vertical bar to indicate the location returned by the iterator result value. This location marks the end of the unique sequence, and the beginning of the left-over elements. With most containers, the value returned by the algorithm can be used as an argument in a subsequent call on <SAMP>std::erase()</SAMP> to remove the undesired elements from the collection. This is illustrated in the example program.</P>
+<A NAME="idx321"><!></A>
+<P>A copy version of the algorithm moves the unique values to an output iterator, rather than making modifications in place. In transforming a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> or <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B>, an insert <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> can be used to change the copy operations of the output <B><I>iterator</I></B> into insertions. </P>
+
+<UL><PRE>
+namespace std {
+  OutputIterator unique_copy(InputIterator first, 
+                             InputIterator last,
+                             OutputIterator result
+                             [, BinaryPredicate ] );
+}
+</PRE></UL>
+<P>These are illustrated in the sample program:</P>
+
+<A NAME="idx322"><!></A>
+<UL><PRE>
+void unique_example()
+// illustrates the use of the unique algorithm
+// see alg4.cpp for complete source code
+{
+  // first make a list of values
+  int data[] = {1, 3, 3, 2, 2, 4};
+  std::list&lt;int&gt; aList;
+  std::set&lt;int&gt; aSet;
+  std::copy(data, data+6, std::inserter(aList, aList.begin()));
+
+  // copy unique elements into a set
+  std::unique_copy (aList.begin(), aList.end(),
+                    std::inserter(aSet, aSet.begin()));
+
+  // copy unique elements in place
+  std::list&lt;int&gt;::iterator where;
+  where = std::unique(aList.begin(), aList.end());
+
+  // remove trailing values
+  aList.erase(where, aList.end());
+}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="13-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-6.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

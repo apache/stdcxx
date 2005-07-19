@@ -1,0 +1,57 @@
+<HTML>
+<HEAD>
+<TITLE>The for_each() Algorithm</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="13-7.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="14.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>13.8 The for_each() Algorithm</H2>
+<A NAME="idx343"><!></A>
+<P>The algorithm <SAMP>std::for_each()</SAMP> applies a function to all elements in a collection. This algorithm takes three arguments: the first two provide the <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s that describe the sequence to be evaluated, and the third is a one-argument function. The algorithm <SAMP>std::for_each()</SAMP> applies the function to each value of the sequence, passing the value as an argument:</P>
+
+<UL><PRE>
+namespace std {
+  Function for_each(InputIterator first, 
+                    InputIterator last, Function);
+}
+</PRE></UL>
+<P>For example, the following code fragment, which uses the <SAMP>print_if_leap()</SAMP> function, prints a list of the leap years that occur between 1900 and 1997: </P>
+
+<UL><PRE>
+std::cout &lt;&lt; "leap years between 1990 and 1997 are: ";
+std::for_each(1990, 1997, print_if_leap);
+std::cout &lt;&lt; std::endl;
+</PRE></UL>
+<P>The argument function is guaranteed to be invoked only once for each element in the sequence. The <SAMP>std::for_each()</SAMP> algorithm itself returns the value of the third argument, although this is usually ignored.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- The function passed as the third argument is not permitted to make any modifications to the sequence, so it can only achieve a result by means of a side effect, such as printing, assigning a value to a global or static variable, or invoking another function that produces a side effect. If the argument function returns any result, it is ignored.
+</B><HR></BLOCKQUOTE>
+<P>The following example searches an array of <SAMP>int</SAMP> values representing dates, to determine which vintage wine years were also leap years:</P>
+
+<UL><PRE>
+int vintageYears[] = {1947, 1955, 1960, 1967, 1994};
+...
+
+std::cout &lt;&lt; "vintage years which were also leap years are: ";
+std::for_each(vintageYears, vintageYears + 5, print_if_leap);
+std::cout &lt;&lt; std::endl;
+</PRE></UL>
+<P>Side effects need not be restricted to printing. Assume we have a function <SAMP>countCaps()</SAMP> that counts the occurrence of capital letters:</P>
+
+<UL><PRE>
+int capCount = 0;
+
+void countCaps(char c)  { if (std::isupper(c)) capCount++; }
+</PRE></UL>
+<P>The following example counts the number of capital letters in a string value:</P>
+
+<UL><PRE>
+std::string advice = "Never Trust Anybody Over 30!";
+std::for_each(advice.begin(), advice.end(),countCaps);
+std::cout &lt;&lt; "upper-case letter count is "
+          &lt;&lt; capCount &lt;&lt; std::endl;
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="13-7.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="14.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

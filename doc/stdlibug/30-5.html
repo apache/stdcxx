@@ -1,0 +1,89 @@
+<HTML>
+<HEAD>
+<TITLE>File Positioning</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="30-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="31.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>30.5 File Positioning</H2>
+<A NAME="idx767"><!></A>
+<A NAME="idx768"><!></A>
+<P>Iostream support for file positioning operations depends on the character encoding of a particular stream. For fixed-width encodings, such as ASCII or UNICODE, the file stream classes allow a full set of positioning operations comparable to those offered by `C' stdio. The options for variable-width and state-dependent encodings, such as JIS, are limited. For these more complex encodings, the only allowed positioning operations are 'seek to beginning', 'seek to end', or 'seek to a previously known location'. The last option requires that you arrive at and then store a particular position before a seek can be performed. Attempting to seek to an arbitrary offset on a stream with variable-width or state-dependent character encodings has an undefined effect on the file position. Here's an example of the correct way to seek to a position in any file stream, regardless of encoding:</P>
+
+<UL><PRE>
+int main(int argc, char argv[])
+{
+  std::ofstream fs("foo.out");
+  fs &lt;&lt; "Anyone";                             //1
+  std::ofstream::pos_type p = fs.tellp();     //2
+  fs &lt;&lt; " remember J.P. Patches?";            //3
+  fs.seekp(p);                                //4
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Here we output some characters in order to move the file position to some arbitrary location that we'll later seek back to.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Now we use the <SAMP>tellp()</SAMP> function to obtain the current file position.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Output some more text to move the file position along.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>Finally, seek back to our previously saved position.
+</TABLE>
+<P>This is the only possible method for seeking to an <I>arbitrary position</I>--that is, a position other than beginning or end of file--in a stream with variable or state-dependent character encoding. Of course, the method also works with fixed-width encodings.</P>
+<A NAME="idx769"><!></A>
+<P>The example above shows one use of two of the output file positioning functions, <SAMP>tellp()</SAMP> and a version of <SAMP>seekp()</SAMP>. An <B><I><A HREF="../stdlibref/basic-ofstream.html">ofstream</A></I></B> also has another version of the <SAMP>seekp()</SAMP> function that allows a seek to an arbitrary offset in much the same way that the `C' stdio <SAMP>fseek()</SAMP> function works. This function can be used to seek to the beginning or end of any <B><I>ofstream</I></B>, or anywhere else in an <B><I>ofstream</I></B> with a fixed-width character encoding. For instance:</P>
+
+<UL><PRE>
+std::ofstream fs("foo.out");
+fs &lt;&lt; "Anyone remember J.P. Patches?";
+fs.seekp(-2, std::ios_base::cur);             //1
+fs.seekp(0, std::ios_base::beg);              //2
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Seek back two characters. Position at the <SAMP>s</SAMP> in <SAMP>Patches</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Seek to beginning of the file.
+</TABLE>
+<P>The first parameter of this function is a value of <SAMP>std::ofstream::off_type</SAMP>, and the second is one of three constants indicating starting position for the seek. These three values correspond to the three possible seek types available with the `C' stdio function <SAMP>fseek()</SAMP>. They are defined in the base class <SAMP>std::ios_base</SAMP>. The table below summarizes the three different kinds of seeks possible with this version of <SAMP>seekp()</SAMP>:</P>
+<A NAME="idx770"><!></A>
+<H4><A NAME="Table&nbsp;35">Table&nbsp;35: Possible seeks for seekp&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Type of seek</B>
+</td><td valign=top><B>Argument to seekp</B>
+</td><td valign=top><B>`C' stdio equivalent</B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">seek relative to beginning of file</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>ios_base::beg</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>SEEK_SET</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">seek relative to end of file</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>ios_base::end</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>SEEK_END</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">seek relative to current position</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>ios_base::cur</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>SEEK_CUR</SAMP></P>
+</td></tr>
+</TABLE>
+<P>As in the example, passing <SAMP>0</SAMP> as the offset with <SAMP>std::ios_base::beg</SAMP> as the seek type seeks to the beginning of the file. Likewise, using <SAMP>0</SAMP> with <SAMP>std::ios_base::end</SAMP> seeks to the end of the file. Since the function returns the current position after the seek operation, passing <SAMP>0</SAMP> along with<SAMP> std::ios_base::cur</SAMP> gets you the current file position without moving it. This is equivalent to calling the <SAMP>tellp()</SAMP> member function.</P>
+<A NAME="idx771"><!></A>
+<P><B><I><A HREF="../stdlibref/basic-ifstream.html">ifstream</A></I></B> provides the same set of functions but with slightly different names: <SAMP>tellg()</SAMP> instead of <SAMP>tellp()</SAMP>, and <SAMP>seekg(...)</SAMP> instead of <SAMP>seekp(...)</SAMP>. The reason for this specialized naming scheme can be seen in the <B><I><A HREF="../stdlibref/basic-fstream.html">fstream</A></I></B> class, which provides both sets of functions so that the input and output streams can be manipulated separately.</P>
+<A NAME="idx772"><!></A>
+<A NAME="3051"><H3>30.5.1 How Positioning Works with the Iostream Architecture</H3></A>
+<A NAME="idx773"><!></A>
+<P>If you look at the <B><I><A HREF="../stdlibref/basic-iostream.html">iostream</A></I></B> class definitions, you notice that the seek functions are not defined in these classes. Instead, they are inherited from a base class template: <B><I><A HREF="../stdlibref/basic-ostream.html">basic_ostream</A></I></B> for <SAMP>tellp()</SAMP> and <SAMP>seekp()</SAMP>, and <B><I><A HREF="../stdlibref/basic-istream.html">basic_istream</A></I></B> for <SAMP>tellg()</SAMP> and <SAMP>seekg()</SAMP>. These functions then call (indirectly, through their public interface) virtual functions in the stream buffer, where seeking is actually implemented. Seek functions for <B><I><A HREF="../stdlibref/basic-ofstream.html">ofstream</A></I></B>, <B><I><A HREF="../stdlibref/basic-ifstream.html">ifstream</A></I></B>, and <B><I><A HREF="../stdlibref/basic-fstream.html">fstream</A></I></B> actually call <SAMP>pubseekoff()</SAMP> and <SAMP>pubseekpos()</SAMP> in <B><I><A HREF="../stdlibref/basic-filebuf.html">filebuf</A></I></B>. The code looks like this:</P>
+
+<UL><PRE>
+template&lt;class CharT, class Traits&gt;
+basic_ostream&lt;CharT, Traits&gt;&amp; 
+basic_ostream&lt;CharT, Traits&gt;::seekp (pos_type pos) 
+{ 
+  if (!this-&gt;fail () &amp;&amp; 
+    -1 == this-&gt;rdbuf()-&gt;pubseekpos (pos, 
+            ios_base::out)) this-&gt;setstate (ios_base::failbit); 
+   return *this;
+} 
+</PRE></UL>
+<P>Calling virtual functions in the stream buffer maintains the fundamental separation of buffer manipulation and I/O from string formatting. While it's not necessary to know this in order to use file seek operations, it is important if you ever need to subclass a stream buffer.</P>
+
+<BR>
+<HR>
+<A HREF="30-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="31.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

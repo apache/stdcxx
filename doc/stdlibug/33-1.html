@@ -1,0 +1,45 @@
+<HTML>
+<HEAD>
+<TITLE>A Recap of Manipulators</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="33.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="33-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>33.1 A Recap of Manipulators</H2>
+<A NAME="idx798"><!></A>
+<P>We showed examples of manipulators in <A HREF="28-3.html">Section&nbsp;28.3</A>. There we learned that:</P>
+<UL>
+<LI><P CLASS="LIST">Manipulators are objects that can be inserted into or extracted from a stream.</P></LI>
+<LI><P CLASS="LIST">Such insertions and extractions have specific desirable side effects.</P></LI>
+</UL>
+<P>As a recap, here is a typical example of two manipulators:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; std::setw(10) &lt;&lt; 10.55 &lt;&lt; std::endl;
+</PRE></UL>
+<P>The inserted objects <SAMP>std::setw(10)</SAMP> and <SAMP>std::endl</SAMP> are the manipulators. As its only side effect, the manipulator <SAMP>setw(10)</SAMP> sets the stream's field width to <SAMP>10</SAMP>. Similarly, the manipulator <SAMP>std::endl</SAMP> inserts the end of line character and flushes the output. </P>
+<A NAME="idx799"><!></A>
+<P>As we mentioned previously, extensibility is a major advantage of iostreams. We've seen in the previous <A HREF="32-3.html">Section&nbsp;32.3</A> how you can implement inserters and extractors for user-defined types that behave like the built-in input and output operations. Additionally, you can add user-defined manipulators that fit seamlessly into the iostreams framework. In this section, we show how to do this.</P>
+<A NAME="idx800"><!></A>
+<P>First of all, to be extracted or inserted, a manipulator must be an object of a type that we call <SAMP>manipT</SAMP>, for which overloaded versions of the shift operators exist. (Associated with the manipulator type <SAMP>manipT,</SAMP> there is usually a function called <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP>()</SAMP>that we explain in detail later.) Here's the pattern for the manipulator extractor:</P>
+
+<UL><PRE>
+template &lt;class charT, class Traits&gt;
+std::basic istream&lt;charT,Traits&gt;&amp;
+operator&gt;&gt;(std::basic istream&lt;charT,Traits&gt;&amp; istr,
+           const manipT&amp; manip)
+{   return f<SUB>manipT</SUB>(istr, ...);   }
+</PRE></UL>
+<A NAME="idx801"><!></A>
+<P>With this extractor defined, you can extract a manipulator <SAMP>Manip</SAMP>, which is an object of type <SAMP>manipT</SAMP>, by simply saying:</P>
+
+<UL><PRE>
+std::cin &gt;&gt; Manip;
+</PRE></UL>
+<P>This results in a call to the <SAMP>operator&gt;&gt;()</SAMP> sketched out above. The manipulator inserter is analogous.</P>
+<P>A manipulator's side effect is often created by calling an associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP>()</SAMP> that takes a stream and returns the stream. There are several ways to associate the manipulator type <SAMP>manipT</SAMP> to the function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP>()</SAMP>, which we explore in the following sections. The iostream framework does not specify a way to implement manipulators, but there is a simple way to write your own manipulators. We explain this technique along with other useful approaches.</P>
+<P>It turns out that there is a major difference between manipulators with parameters like <SAMP>std::width(10)</SAMP> and manipulators without parameters like <SAMP>std::endl</SAMP>. Let's start with the simpler case of manipulators without parameters.</P>
+
+<BR>
+<HR>
+<A HREF="33.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="33-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

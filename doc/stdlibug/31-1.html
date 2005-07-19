@@ -1,0 +1,50 @@
+<HTML>
+<HEAD>
+<TITLE>About String Streams</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="31.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="31-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>31.1 About String Streams</H2>
+<A NAME="idx774"><!></A>
+<A NAME="idx775"><!></A>
+<P>The iostreams facility supports not only input and output to external devices like files. It also allows in-memory parsing and formatting. Source and sink of the characters read or written becomes a string held somewhere in memory. You use in-memory I/O if the information to be read is already available in the form of a string, or if the formatted result is processed as a string. For example, to interpret the contents of the string <SAMP>argv[1]</SAMP> as an integer value, the code might look like this:</P>
+
+<UL><PRE>
+int i;
+std::istringstream strm("...");            //1
+if (strm &gt;&gt; i)                             //2
+  // use the value of i
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The parameter of the input string stream constructor is a string; here a character array is provided as an argument and is implicitly converted to a string.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>An integer value is extracted from the input string stream.
+</TABLE>
+<P>The inverse operation, taking a value and converting it to characters that are stored in a string, might look like this:</P>
+
+<UL><PRE>
+struct date {
+  int day,month,year;
+} today = {8,4,1996};
+
+std::ostringstream ostr;                                      //1
+
+ostr &lt;&lt; today.month &lt;&lt; '-' &lt;&lt; today.day &lt;&lt;'-' &lt;&lt; today.year;  //2
+
+if (ostr)
+   display(ostr.str());                                       //3
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>An output string stream is created.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Values are inserted into the output string stream. 
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>The result of the formatting can be retrieved in the form of a string, which is returned by <SAMP>ostr.str()</SAMP>.
+</TABLE>
+<A NAME="idx776"><!></A>
+<P>As with file streams, there are three class templates that implement string streams: <B><I><A HREF="../stdlibref/basic-istringstream.html">basic_istringstream</A></I></B>, <B><I><A HREF="../stdlibref/basic-ostringstream.html">basic_ostringstream</A></I></B>, and <B><I><A HREF="../stdlibref/basic-stringstream.html">basic_stringstream</A></I></B>. These are derived from the stream base class templates <B><I>basic_istream, basic_ostream</I></B>, and <B><I><A HREF="../stdlibref/basic-iostream.html">basic_iostream</A></I></B>. Therefore they inherit all the functions for formatted input and output described in <A HREF="28.html">Chapter&nbsp;28</A>, as well as the stream state. They also have functions for setting and retrieving the string that serves as source or sink, and constructors that allow you to set the string before construction time. For convenience, there are the regular typedefs <SAMP>std::istringstream</SAMP>, <SAMP>std::ostringstream</SAMP>, and <SAMP>std::stringstream,</SAMP> with<SAMP> std::wistringstream</SAMP>, <SAMP>std::wostringstream</SAMP>, and <SAMP>std::wstringstream</SAMP> for the respective narrow and wide character string streams.</P>
+<P>The buffering is implemented by a stream buffer class template, <B><I><A HREF="../stdlibref/basic-stringbuf.html">basic_stringbuf</A></I></B>.</P>
+
+<BR>
+<HR>
+<A HREF="31.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="31-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

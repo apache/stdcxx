@@ -1,0 +1,105 @@
+<HTML>
+<HEAD>
+<TITLE>min_element()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="min.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="minus.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>min_element()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that finds the minimum value in a range</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class ForwardIterator&gt;
+  ForwardIterator
+  min_element(ForwardIterator start, ForwardIterator finish);
+
+  template &lt;class ForwardIterator, class Compare&gt;
+  InputIterator
+  min_element(ForwardIterator start, ForwardIterator finish,
+              Compare comp);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>min_element()</SAMP> algorithm returns an iterator that denotes the minimum element in a sequence. If the sequence contains more than one copy of the minimum element, the iterator points to the first occurrence of the element. In the second version of the function, the argument <SAMP>comp</SAMP> defines a comparison function object to be used in place of <SAMP>operator&lt;()</SAMP>.</P>
+<P>Algorithm <SAMP>min_element()</SAMP> returns the first iterator <SAMP>i</SAMP> in the range <SAMP>[start, finish)</SAMP> such that for any iterator <SAMP>j</SAMP> in the same range, either of the following conditions hold:</P>
+<P><SAMP>!(*j &lt; *i)</SAMP></P>
+<P>or</P>
+<P><SAMP>comp(*j, *i) == false. </SAMP></P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P><SAMP>min_element()</SAMP> performs exactly <SAMP>max((finish - start) - 1, 0)</SAMP> applications of the corresponding comparisons.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  max_elem.cpp
+//
+
+#include &lt;algorithm&gt;    // for max_element
+#include &lt;functional&gt;   // for less
+#include &lt;iostream&gt;     // for cout, endl
+#include &lt;vector&gt;       // for vector
+
+
+int main ()
+{
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; Vector;
+    typedef Vector::iterator                       Iterator;
+
+    const Vector::value_type d1[] = { 1, 3, 5, 32, 64 };                
+    // Set up vector.
+    Vector v1(d1 + 0, d1 + sizeof d1 / sizeof *d1);  
+
+    // Find the largest element in the vector.
+    Iterator it1 = std::max_element (v1.begin(), v1.end());
+
+    // Find the largest element in the range from
+    // the beginning of the vector to the 2nd to last.
+    Iterator it2 = std::max_element (v1.begin(), v1.end() - 1,
+                                     std::less&lt;int&gt;());
+
+    // Find the smallest element.
+    Iterator it3 = std::min_element (v1.begin(), v1.end());
+
+    // Find the smallest value in the range from
+    // the beginning of the vector plus 1 to the end.
+    Iterator it4 = std::min_element (v1.begin() + 1, v1.end(),
+                                     std::less&lt;int&gt;());
+
+    std::cout &lt;&lt; *it1 &lt;&lt; " " &lt;&lt; *it2 &lt;&lt; " "
+              &lt;&lt; *it3 &lt;&lt; " " &lt;&lt; *it4 &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Files:
+</PRE></UL>
+<UL><PRE>64 32 1 3
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="max.html">max()</A></SAMP>, <SAMP><A HREF="max-element.html">max_element()</A></SAMP>, <SAMP><A HREF="min.html">min()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.3.7</I></P>
+
+<BR>
+<HR>
+<A HREF="min.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="minus.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

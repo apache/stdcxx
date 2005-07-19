@@ -1,0 +1,99 @@
+# -*- Makefile -*-
+#
+# $Id: //stdlib/dev/etc/stdlib/config/GNUmakefile.rwt#17 $
+#
+##############################################################################
+#
+# Usage:
+#
+#   $ make
+#
+#   To make all tests uder $(TOPDIR)/tests. Will generate a .d file
+#   an place in the directory $(DEPENDDIR) for every source file.
+#
+##############################################################################
+
+# Generated when make is run in TOPDIR
+include ../makefile.in
+
+# The place where the sources are looked for;
+# used in the variables setup in makefile.common
+RWTESTDIR    = $(TOPDIR)/../rwtest
+TESTDIR      = $(TOPDIR)/tests
+SRCDIRS      = $(RWTESTDIR)/src
+
+TARGET       = $(RWTESTDIR)/$(RWTESTLIB)
+
+# include common variables setting for all makefiles
+ONE_REPOSITORY = 1
+include ../makefile.common
+
+# Reset LIBSUFFIX to .a until we decide to build a dynamic library
+LIBSUFFIX    = .a
+
+# Target library to be built
+RWTESTLIB    = librwtest$(BUILDTYPE)$(LIBSUFFIX)
+
+# Additional include directories: 
+INCLUDES    += -I$(RWTESTDIR) -I$(RWTESTDIR)/include -I$(TESTDIR)/include
+
+# VPATH to look for sources in (appended dir for test.cpp)
+VPATH       += $(RWTESTDIR)/src $(TESTDIR)/src
+
+# Sources and corresponding objects for the rw test library
+RWTESTSRCS   = $(notdir $(shell echo $(RWTESTDIR)/src/*.cpp)) \
+               $(notdir $(shell echo $(TESTDIR)/src/*.cpp))
+
+RWTESTOBJS   = $(patsubst %.cpp,%.o,$(RWTESTSRCS))
+
+RUNFLAGS    += -X "-C $(CXX)-$(CCVER)" 
+
+# For xlC 5.0.2.0
+ifneq ($(DEFAULT_SHROBJ),)
+SOBJS        = $(DEFAULT_SHROBJ)
+else
+SOBJS        = $(RWTESTOBJS)
+endif
+
+
+# CXXPRELINK - command for compilers that use template
+# instantiation models that require a prelink stage
+ifneq ($(PRELINKFLAGS),)
+CXXPRELINK = $(CXX) $(CPPFLAGS) $(PRELINKFLAGS) $(RWTESTOBJS) $(LDFLAGS)
+endif   # ($(PRELINKFLAGS),)
+
+##############################################################################
+#  TARGETS
+##############################################################################
+
+all:  $(LIBDIR)/$(LIBNAME) $(RWTESTLIB)
+
+$(LIBDIR)/$(LIBNAME):
+	@$(MAKE) -C $(LIBDIR)
+
+# do any directory specific cleanup using the realclean target
+realclean: clean dependclean
+	rm -f $(RWTESTLIB)
+
+
+# For the time being the rules are identical until we 
+# decide to build a shared library for rw test lib.
+ifeq ($(findstring shared,$(BUILDMODE)),shared)
+$(RWTESTLIB): $(RWTESTOBJS)
+	@echo "$(CXXPRELINK)" >> $(LOGFILE)
+	$(CXXPRELINK) $(TEEOPTS)
+	@echo "$(AR) $(ARFLAGS) $(RWTESTLIB) $(SOBJS)" >> $(LOGFILE)
+	$(AR) $(ARFLAGS) $(RWTESTLIB) $(SOBJS)
+
+else
+$(RWTESTLIB): $(RWTESTOBJS)
+	@echo "$(CXXPRELINK)" >> $(LOGFILE)
+	$(CXXPRELINK) $(TEEOPTS)
+	@echo "$(AR) $(ARFLAGS) $(RWTESTLIB) $(SOBJS)" >> $(LOGFILE)
+	$(AR) $(ARFLAGS) $(RWTESTLIB) $(SOBJS)
+
+endif # ($(findstring shared,$(BUILDMODE)),shared)
+
+
+# Common rules for all Makefile_s
+include ../makefile.rules

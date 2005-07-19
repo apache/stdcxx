@@ -1,0 +1,397 @@
+<HTML>
+<HEAD>
+<TITLE>basic_fstream</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="basic-filebuf.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-ifstream.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>basic_fstream</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P>
+
+<PRE><HR>                         <IMG SRC="images/inherits.gif"><B><I><A HREF="basic-ostream.html">basic_ostream</A></I></B><IMG SRC="images/inherits.gif">
+<B><I>basic_fstream</I></B><IMG SRC="images/inherits.gif"><B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B>                      <B><I><A HREF="basic-ios.html">basic_ios</A></I></B><IMG SRC="images/inherits.gif"><B><I><A HREF="ios-base.html">ios_base</A></I></B>
+                         <IMG SRC="images/inherits.gif"><B><I><A HREF="basic-istream.html">basic_istream</A></I></B><IMG SRC="images/inherits.gif"><HR></PRE>
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Nonmember Types</A></LI>
+<LI><A HREF="#sec8">Constructors</A></LI>
+<LI><A HREF="#sec9">Destructors</A></LI>
+<LI><A HREF="#sec10">Member Functions</A></LI>
+<LI><A HREF="#sec11">Example</A></LI>
+<LI><A HREF="#sec12">See Also</A></LI>
+<LI><A HREF="#sec13">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx73">basic_fstream()</A><BR>
+<A HREF="#idx66">char_type</A><BR>
+<A HREF="#idx79">close()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx80">fd()</A><BR>
+<A HREF="#idx67">int_type</A><BR>
+<A HREF="#idx81">is_open()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx68">off_type</A><BR>
+<A HREF="#idx82">open()</A><BR>
+<A HREF="#idx69">pos_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx86">rdbuf()</A><BR>
+<A HREF="#idx70">traits_type</A><BR>
+<A HREF="#idx78">~basic_fstream()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx71">fstream</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx72">wfstream</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Class that supports reading and writing of named files or devices associated with a file descriptor</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;fstream&gt; 
+
+namespace std {
+  template&lt;class charT, class traits = char_traits&lt;charT&gt; &gt; 
+  class basic_fstream; 
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class template <B><I>basic_fstream</I></B> supports reading and writing to named files or other devices associated with a file descriptor. It uses a <B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B> object to control the associated sequences. It inherits from <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B> and can therefore use all the formatted and unformatted input and output functions.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template&lt;class charT, class traits = char_traits&lt;charT&gt; &gt; 
+  class basic_fstream 
+  : public basic_iostream&lt;charT, traits&gt; {
+
+   public:
+
+    typedef charT  char_type;
+    typedef traits traits_type;
+    typedef typename traits_type::int_type  int_type; 
+    typedef typename traits_type::pos_type  pos_type; 
+    typedef typename traits_type::off_type  off_type; 
+
+    basic_fstream();
+    explicit basic_fstream(const char*, 
+             ios_base::openmode = ios_base::in | ios_base::out);
+  
+    // extensions: 
+    explicit basic_fstream(const char*, 
+                           ios_base::openmode, 
+                           long);
+    explicit basic_fstream(int, char_type* = 0, 
+                           streamsize = /* default size */); 
+    explicit basic_fstream(FILE*, char_type* = 0, 
+                           streamsize = /* default size */);
+  
+    virtual ~basic_fstream();
+
+    basic_filebuf&lt;char_type, traits_type&gt; *rdbuf() const;
+    bool is_open() const;
+
+    void open(const char*, ios_base::openmode = ios_base::in); 
+  
+    // extensions: 
+    int fd() const;
+    void open(const char*, ios_base::openmode, long);
+    void open(int, char_type* = 0, 
+              streamsize = /* default size */);  
+    void open(FILE*, char_type* = 0, 
+              streamsize = /* default size */); 
+    void close();
+
+  };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx66"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>The type <SAMP>char_type</SAMP> is a synonym for the template parameter <SAMP>charT</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx67"></A><PRE><B>int_type</B></PRE>
+<UL>
+<P>The type <SAMP>int_type</SAMP> is a synonym of type <SAMP>traits_type::in_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx68"></A><PRE><B>off_type</B></PRE>
+<UL>
+<P>The type <SAMP>off_type</SAMP> is a synonym of type <SAMP>traits_type::off_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx69"></A><PRE><B>pos_type</B></PRE>
+<UL>
+<P>The type <SAMP>pos_type</SAMP> is a synonym of type <SAMP>traits_type::pos_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx70"></A><PRE><B>traits_type</B></PRE>
+<UL>
+<P>The type <SAMP>traits_type</SAMP> is a synonym for the template parameter <SAMP>traits</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Nonmember Types</H3></A>
+
+<A NAME="idx71"></A><PRE><B>fstream</B></PRE>
+<UL>
+<P>The type <SAMP>fstream</SAMP> is an instantiation of class <B><I>basic_fstream</I></B> on type <SAMP>char</SAMP>:</P>
+<P><SAMP>typedef basic_fstream&lt;char&gt; fstream;</SAMP></P>
+</UL>
+
+
+<A NAME="idx72"></A><PRE><B>wfstream</B></PRE>
+<UL>
+<P>The type <SAMP>wfstream</SAMP> is an instantiation of class <B><I>basic_fstream</I></B> on type <SAMP>wchar_t:</SAMP></P>
+<P><SAMP>typedef basic_fstream&lt;wchar_t&gt; wfstream;</SAMP></P>
+</UL>
+
+<A NAME="sec8"><H3>Constructors</H3></A>
+
+<A NAME="idx73"></A><PRE><B>basic_fstream</B>();</PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_fstream</I></B>, initializing the base class <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B> with the associated file buffer. This buffer is initialized by calling the <B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B> constructor:</P>
+<P><SAMP>basic_filebuf&lt;char_type, traits_type&gt;(rdbuf())</SAMP></P>
+<P>After construction, a file can be attached to the <B><I>basic_fstream</I></B> object by using the <SAMP>open()</SAMP> member function.</P>
+</UL>
+
+
+<A NAME="idx74"></A><PRE><B>basic_fstream</B>(const char* s,
+              ios_base::openmode mode = 
+                ios_base::in | iosw_base::out);</PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_fstream</I></B>, initializing the base class <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B> with the associated file buffer. This buffer is initialized by calling the constructor: </P>
+<P><SAMP>basic_filebuf&lt;char_type, traits_type&gt;(rdbuf())</SAMP></P>
+<P>The constructor then calls <SAMP>open(s, mode)</SAMP> in order to attach the file, whose name is pointed to by <SAMP>s</SAMP>, to the <B><I>basic_fstream</I></B> object. </P>
+</UL>
+
+
+<A NAME="idx75"></A><PRE><B>basic_fstream</B>(const char* s, ios_base::openmode mode, 
+              long protection);</PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_fstream</I></B>, initializing the base class <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B> with the associated file buffer. This buffer is initialized by calling the <B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B> constructor: </P>
+<P><SAMP>basic_filebuf&lt;char_type, traits_type&gt;(rdbuf()) </SAMP></P>
+<P>The constructor then calls: </P>
+<P><SAMP>rdbuf()-&gt;open(s, mode, protection)</SAMP></P>
+<P>in order to attach the file, whose name is pointed to by <SAMP>s</SAMP>, to the <B><I>basic_fstream</I></B> object. </P>
+<P>The third argument, <SAMP>protection</SAMP>, holds file permissions. It determines the file read/write/execute permissions under UNIX, but is more limited elsewhere. </P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- The protection argument is not part of the C++ Standard, but is included here as a convenience extension. See <A HREF="B.html">Appendix&nbsp;B</A> for  a complete list of Rogue Wave extensions.
+</B><HR></BLOCKQUOTE>
+
+<A NAME="idx76"></A><PRE><B>basic_fstream</B>(int fd, char_type *buf, streamsize n); </PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_fstream</I></B>, initializing the base class <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B> with the associated file buffer. This buffer is initialized by calling the <B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B> constructor:</P>
+<P><SAMP>basic_filebuf&lt;char_type, traits_type&gt;(rdbuf ())</SAMP></P>
+<P>The constructor then calls: </P>
+<P><SAMP>rdbuf()-&gt;open (fd, buf, n)</SAMP> </P>
+<P>in order to attach the file descriptor <SAMP>fd</SAMP> to the <B><I>basic_fstream</I></B> object. If the function fails, it sets <SAMP>ios_base::failbit</SAMP>. </P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is not part of the C++ Standard, but is included here as an extension in order to manipulate pipes, sockets, or other UNIX devices that can be accessed through file descriptors. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions.
+</B><HR></BLOCKQUOTE>
+
+<A NAME="idx77"></A><PRE><B>basic_fstream</B>(FILE *fp, char_type* buf, streamsize n); </PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_fstream</I></B>, initializing the base class <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B> with the associated file buffer. This buffer is initialized by calling the <B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B> constructor: </P>
+<P><SAMP>basic_filebuf&lt;char_type, traits_type&gt;(rdbuf ())</SAMP> </P>
+<P>The constructor then calls:</P>
+<P><SAMP>rdbuf()-&gt;open (fp, buf, n)</SAMP> </P>
+<P>in order to attach the file pointer <SAMP>fp</SAMP> to the <B><I>basic_fstream</I></B> object. If the function fails, it sets <SAMP>ios_base::failbit</SAMP>.</P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is not part of the C++ Standard, but is provided here as a convenience extension. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions. 
+</B><HR></BLOCKQUOTE>
+<A NAME="sec9"><H3>Destructors</H3></A>
+
+<A NAME="idx78"></A><PRE>virtual <B>~basic_fstream</B>();</PRE>
+<UL>
+<P>Destroys an object of class <B><I>basic_fstream</I></B>.</P>
+</UL>
+
+<A NAME="sec10"><H3>Member Functions</H3></A>
+
+<A NAME="idx79"></A><PRE>void
+<B>close</B>();</PRE>
+<UL>
+<P>Calls <SAMP>rdbuf()-&gt;close()</SAMP>. If this function fails, it calls <SAMP>setstate(failbit)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx80"></A><PRE>int 
+<B>fd</B>() const;</PRE>
+<UL>
+<P>Returns the file descriptor associated with the stream.</P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is not part of the C++ Standard, but is provided here as a convenience extension. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions.
+</B><HR></BLOCKQUOTE>
+
+<A NAME="idx81"></A><PRE>bool 
+<B>is_open</B>() const;</PRE>
+<UL>
+<P>Returns <SAMP>rdbuf()-&gt;is_open()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx82"></A><PRE>void 
+<B>open</B>(const char* s,
+     ios_base::openmode = ios_base::in | ios_base::out);</PRE>
+<UL>
+<P>Calls <SAMP>rdbuf()-&gt;open(s, mode)</SAMP>. If this function fails to open the file, it calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(failbit)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx83"></A><PRE>void 
+<B>open</B>(const char* s, 
+     ios_base::openmode, long protection);</PRE>
+<UL>
+<P>Calls <SAMP>rdbuf()-&gt;open (s, mode, protection)</SAMP>. If this function fails to open the file, it calls <SAMP>setstate(failbit)</SAMP>. </P>
+<P>The third argument, <SAMP>protection</SAMP>, holds file permissions. It determines the file read/write/execute permissions under UNIX. It is more limited under DOS, since files are always readable and do not have special execute permission.</P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- The protection argument does not appear in the C++ Standard C++, but is included here as a convenience extension. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions.
+</B><HR></BLOCKQUOTE>
+
+<A NAME="idx84"></A><PRE>void 
+<B>open</B>(int fd, char_type *buf = 0, 
+      streamsize n = /* default size */);</PRE>
+<UL>
+<P>Calls <SAMP>rdbuf()-&gt;open (fd, buf, n)</SAMP>. If this function fails to open the file, it calls <SAMP>setstate(failbit)</SAMP>. </P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is not part of the C++ Standard, but is provided here as a convenience extension. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions.
+</B><HR></BLOCKQUOTE>
+
+<A NAME="idx85"></A><PRE>void 
+<B>open</B>(FILE *fp, char_type *buf = 0, 
+     streamsize n = /* default size */);</PRE>
+<UL>
+<P>Returns <SAMP>open(fileno (fp), buf, n)</SAMP>. If this function fails to open the file, it calls <SAMP>setstate(failbit)</SAMP>. </P>
+<P><SAMP>fileno</SAMP> is a UNIX98 function declared in <SAMP>&lt;cstdio&gt;</SAMP>.</P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is not part of the C++ Standard, but is provided here as a convenience extension. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions.
+</B><HR></BLOCKQUOTE>
+
+<A NAME="idx86"></A><PRE>basic_filebuf&lt;charT_type,traits_type&gt;* 
+<B>rdbuf</B>() const; </PRE>
+<UL>
+<P>Returns a pointer to the <B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B> associated with the stream.</P>
+</UL>
+
+<A NAME="sec11"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  fstream.cpp
+//
+
+#include &lt;fstream&gt;    // for fstream
+#include &lt;iostream&gt;   // for cout, endl
+#include &lt;string&gt;     // for string
+
+
+int main ( )
+{
+    // create a bi-directional fstream object
+    std::fstream inout ("test_fstream.out",
+                        std::ios::in | std::ios::out | 
+                        std::ios::trunc);
+
+    // write out three lines to the file
+    inout &lt;&lt; "Dieses ist die Geschichte eines Mannes.\n"
+          &lt;&lt; "C'est l'histoire d'un homme.\n"
+          &lt;&lt; "This is the story of a man." &lt;&lt; std::endl;
+
+    std::string line;
+
+    // seek back to the beginning of the file
+    inout.seekg (0);
+
+    // extract the first line
+    std::getline (inout, line);
+
+    // output the first line to standard output
+    std::cout &lt;&lt; "\nDeutsch:\n" &lt;&lt; line &lt;&lt; std::endl;
+
+    // obtain current position in file
+    std::fstream::pos_type pos = inout.tellg ();
+
+    // extract the second line
+    std::getline (inout, line);
+
+    // output the second line to standard output
+    std::cout &lt;&lt; "Fran&ccedil;ais:\n" &lt;&lt; line &lt;&lt; std::endl;
+
+    // extract the third line
+    std::getline (inout, line);
+
+    // output the third line to standard output
+    std::cout &lt;&lt; "English:\n" &lt;&lt; line &lt;&lt; std::endl;
+ 
+    // move the put sequence before the second line
+    inout.seekp (pos);
+
+    // replace the second and third lines
+    inout &lt;&lt; "This is the story of a man.\n"
+          &lt;&lt; "C'est l'histoire d'un homme.";
+
+    // seek to the beginning of the file
+    inout.seekg (0);
+
+    // output the all content of the fstream object to stdout
+    std::cout &lt;&lt; "\n" &lt;&lt; inout.rdbuf () &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>
+Deutsch:
+Dieses ist die Geschichte eines Mannes.
+Francais:
+C'est l'histoire d'un homme.
+English:
+This is the story of a man.
+
+Dieses ist die Geschichte eines Mannes.
+This is the story of a man.
+C'est l'histoire d'un homme.
+
+</PRE></UL>
+<A NAME="sec12"><H3>See Also</H3></A>
+<P><B><I><A HREF="char-traits.html">char_traits</A></I></B>, <B><I><A HREF="ios-base.html">ios_base</A></I></B>, <B><I><A HREF="basic-ios.html">basic_ios</A></I></B>, <B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B>, <B><I><A HREF="basic-ifstream.html">basic_ifstream</A></I></B>, <B><I><A HREF="basic-ofstream.html">basic_ofstream</A></I></B></P>
+<A NAME="sec13"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.8.1.11</I></P>
+
+<BR>
+<HR>
+<A HREF="basic-filebuf.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-ifstream.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

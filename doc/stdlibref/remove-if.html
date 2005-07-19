@@ -1,0 +1,139 @@
+<HTML>
+<HEAD>
+<TITLE>remove_if()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="remove-copy-if.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="replace.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>remove_if()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that moves all occurrences of elements that satisfy the given predicate from a range to the end of the range, and returns an iterator pointing to the first moved occurrence</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class ForwardIterator, class Predicate&gt;
+  ForwardIterator remove_if(ForwardIterator start,
+                            ForwardIterator finish,
+                            Predicate pred);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>remove_if()</SAMP> algorithm eliminates all the elements referred to by iterator <SAMP>i</SAMP> in the range <SAMP>[start, finish)</SAMP> for which the following corresponding condition holds: <SAMP>pred(*i) == true</SAMP>. The <SAMP><A HREF="remove-copy-if.html">remove_copy_if()</A></SAMP> algorithm returns an iterator that points to the end of the resulting range. The  <SAMP>remove_copy_if()</SAMP> algorithm is stable, which means that the relative order of the elements that are not removed is the same as their relative order in the original range. </P>
+<P>The <SAMP><A HREF="remove-copy-if.html">remove_copy_if()</A></SAMP> algorithm does not actually reduce the size of the sequence. It 1) copies the values that are to be <I>retained</I> to the front of the sequence, and 2) returns an iterator that describes where the sequence of retained values ends. Elements that follow this iterator are simply the original sequence values, left unchanged. Here's a simple example:</P>
+<P>Say we want to remove all even numbers from the following sequence:</P>
+<P><SAMP>    123456789</SAMP></P>
+<P>Applying the <SAMP>remove_if()</SAMP> algorithm results in the following sequence:</P>
+<P><SAMP>    13579|XXXX</SAMP></P>
+<P>The vertical bar represents the position of the iterator returned by <SAMP>remove_if()</SAMP>. Note that the elements to the left of the vertical bar are the original sequence with the even numbers removed. The elements to the right of the bar are simply the untouched original members of the original sequence. </P>
+<P>If you want to actually delete items from a container, use the following technique:</P>
+<P><SAMP>container.erase(remove(start,finish,value),container.end());</SAMP></P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>Exactly <SAMP>finish - start </SAMP>applications of the corresponding predicate are done. </P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  remove.cpp
+//
+
+#include &lt;algorithm&gt;    // for copy, remove, remove_copy, remove_if
+#include &lt;functional&gt;   // for unary_function
+#include &lt;iostream&gt;     // for cout, endl
+#include &lt;iterator&gt;     // for ostream_iterator
+#include &lt;vector&gt;       // for vector
+
+ 
+template&lt;class Arg&gt;
+struct not_zero: public std::unary_function&lt;Arg, bool&gt;
+{
+    bool operator() (const Arg &amp;a) const {
+        return a != 0;
+    }
+};
+
+
+int main ()
+{
+    // For convenience.
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; Vector;
+    typedef std::ostream_iterator&lt;int, char,
+                                  std::char_traits&lt;char&gt; &gt;
+            Iter;
+
+    // Populate a vector with elements from an array.
+    const Vector::value_type arr[] = { 1, 2, 3, 4, 5, 
+                                       6, 7, 8, 9, 10};
+    Vector v (arr + 0, arr + sizeof arr / sizeof *arr);
+
+    // Write out the contents to cout.
+    std::copy (v.begin (), v.end (), Iter (std::cout," "));
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    // Move the 7 to the end of the vector.
+    Vector::iterator result = std::remove (v.begin (), 
+                                           v.end (), 7);
+
+    // Delete the 7 from the vector.
+    v.erase (result, v.end ());
+
+    std::copy (v.begin (), v.end (), Iter (std::cout, " "));
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    // Remove all non-zero elements beyond the fourth element.
+    v.erase (std::remove_if (v.begin () + 4, v.end (), 
+                             not_zero&lt;int&gt; ()), v.end ());
+
+    std::copy (v.begin (), v.end (), Iter (std::cout, " "));
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    // Now remove all 3s on output.
+    std::remove_copy (v.begin (), v.end (), 
+                      Iter (std::cout, " "), 3);
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    // Now remove everything satisfying predicate on output.
+    std::remove_copy_if (v.begin (), v.end (), 
+                         Iter (std::cout, " "),
+                         not_zero&lt;int&gt;());
+
+    // Return 0 on success, a non-zero value on failure
+    return !!v.empty ();
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>1 2 3 4 5 6 7 8 9 10 
+
+1 2 3 4 5 6 8 9 10 
+
+1 2 3 4 
+
+1 2 4 
+
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="remove.html">remove()</A></SAMP>, <SAMP><A HREF="remove-copy.html">remove_copy()</A></SAMP>, <SAMP><A HREF="remove-copy-if.html">remove_copy_if()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.2.7</I></P>
+
+<BR>
+<HR>
+<A HREF="remove-copy-if.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="replace.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

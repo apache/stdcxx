@@ -1,0 +1,304 @@
+<HTML>
+<HEAD>
+<TITLE>num_get</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="nth-element.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="num-put.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>num_get</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR><B><I>num_get</I></B> <IMG SRC="images/inherits.gif"> <B><I>locale::facet</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Types</A></LI>
+<LI><A HREF="#sec8">Constructors</A></LI>
+<LI><A HREF="#sec9">Facet ID</A></LI>
+<LI><A HREF="#sec10">Public Member Functions</A></LI>
+<LI><A HREF="#sec11">Protected Member Functions</A></LI>
+<LI><A HREF="#sec12">Example</A></LI>
+<LI><A HREF="#sec13">See Also</A></LI>
+<LI><A HREF="#sec14">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx998">char_type</A><BR>
+<A HREF="#idx1003">do_get()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1002">get()</A><BR>
+<A HREF="#idx1001">id</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx999">iter_type</A><BR>
+<A HREF="#idx1000">num_get()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A numeric parsing facet</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  template &lt;class charT, class InputIterator&gt; class num_get;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+<P>The primary template can be implicitly or explicitly specialized on any character type that satisfies the requirements on the type of the character used by iostream class templates, and on any iterator type that satisfies the requirements of Input Iterator.</P>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The <B><I>num_get</I></B> facet includes facilities for the parsing of sequences of characters and interpreting them as numeric values. <B><I><A HREF="basic-istream.html">basic_istream</A></I></B> and all other input-oriented streams use this facet to implement formatted numeric input.</P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class charT, class InputIterator =
+    istreambuf_iterator&lt;charT&gt; &gt;
+  class num_get : public locale::facet {
+  
+    public:
+    typedef charT char_type;
+    typedef InputIterator iter_type;
+    explicit num_get(size_t refs = 0);
+    iter_type get(iter_type, iter_type, ios_base&amp;,
+                  ios_base::iostate&amp;, bool&amp;) const;
+    iter_type get(iter_type, iter_type, ios_base&amp;,
+                  ios_base::iostate&amp;, long&amp;) const;
+    iter_type get(iter_type, iter_type, ios_base&amp;,
+                  ios_base::iostate&amp;, unsigned short&amp;) const;
+    iter_type get(iter_type, iter_type, ios_base&amp;,
+                  ios_base::iostate&amp;, unsigned int&amp;) const;
+    iter_type get(iter_type, iter_type, ios_base&amp;,
+                  ios_base::iostate&amp;, unsigned long&amp;) const;
+    iter_type get(iter_type, iter_type, ios_base&amp;,
+                  ios_base::iostate&amp;, float&amp;) const;
+    iter_type get(iter_type, iter_type, ios_base&amp;,
+                  ios_base::iostate&amp;, double&amp;) const;
+    iter_type get(iter_type, iter_type, ios_base&amp;,
+                  ios_base::iostate&amp;, long double&amp;) const;
+    iter_type get(iter_type in, iter_type end, ios_base&amp;,
+                  ios_base::iostate&amp;, void*&amp;) const;
+  
+    static locale::id id;
+
+    protected:
+    virtual iter_type do_get(iter_type, iter_type, ios_base&amp;,
+                             ios_base::iostate&amp;, bool&amp;) const;
+    virtual iter_type do_get(iter_type, iter_type, ios_base&amp;,
+                             ios_base::iostate&amp;, long&amp;) const;
+    virtual iter_type do_get(iter_type, iter_type, ios_base&amp;,
+                             ios_base::iostate&amp;, 
+                             unsigned short&amp;) const;
+    virtual iter_type do_get(iter_type, iter_type, ios_base&amp;,
+                             ios_base::iostate&amp;, 
+                             unsigned int&amp;) const;
+    virtual iter_type do_get(iter_type, iter_type, ios_base&amp;,
+                             ios_base::iostate&amp;, 
+                             unsigned long&amp;) const;
+    virtual iter_type do_get(iter_type, iter_type, ios_base&amp;,
+                             ios_base::iostate&amp;, float&amp;)
+                             const;
+    virtual iter_type do_get(iter_type, iter_type, ios_base&amp;,
+                             ios_base::iostate&amp;, double&amp;)
+                             const;
+    virtual iter_type do_get(iter_type, iter_type, ios_base&amp;,
+                             ios_base::iostate&amp;, 
+                             long double&amp;) const;
+    virtual iter_type do_get(iter_type, iter_type, ios_base&amp;,
+                             ios_base::iostate&amp;, void*&amp;) const;
+  };
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Types</H3></A>
+
+<A NAME="idx998"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>Type of the first template argument.</P>
+</UL>
+
+
+<A NAME="idx999"></A><PRE><B>iter_type</B></PRE>
+<UL>
+<P>Type of the second template argument.</P>
+</UL>
+
+<A NAME="sec8"><H3>Constructors</H3></A>
+
+<A NAME="idx1000"></A><PRE>explicit <B>num_get</B>(size_t refs = 0) </PRE>
+<UL>
+<P>Constructs a <B><I>num_get</I></B> object. Calls <SAMP>locale::facet (refs)</SAMP>. </P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the <B><I>num_get</I></B> object's reference count. A <B><I>num_get</I></B> object <SAMP>f</SAMP> constructed with <SAMP>(refs == 0)</SAMP> that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. A <B><I>num_get</I></B> object constructed with <SAMP>(refs != 0)</SAMP> will not be destroyed by any locale objects in which it may have been installed.</P>
+</UL>
+
+<A NAME="sec9"><H3>Facet ID</H3></A>
+
+<A NAME="idx1001"></A><PRE>static locale::id <B>id</B>;</PRE>
+<UL>
+<P>Unique identifier for this type of facet. </P>
+</UL>
+
+<A NAME="sec10"><H3>Public Member Functions</H3></A>
+<P>The public members of the <B><I>num_get</I></B> facet include an interface to protected members. Each public member <SAMP>get()</SAMP> calls the corresponding protected virtual member function <SAMP>do_get()</SAMP>. </P>
+
+<A NAME="idx1002"></A><PRE>iter_type 
+<B>get</B>(iter_type in, iter_type end, ios_base&amp; io,
+    ios_base::iostate&amp; err, bool&amp; v) const; 
+iter_type 
+<B>get</B>(iter_type in, iter_type end, ios_base&amp; io,
+    ios_base::iostate&amp; err, long&amp; v) const; 
+iter_type 
+<B>get</B>(iter_type in, iter_type end, ios_base&amp; io,
+    ios_base::iostate&amp; err, unsigned short&amp; v) const; 
+iter_type 
+<B>get</B>(iter_type in, iter_type end, ios_base&amp; io,
+    ios_base::iostate&amp; err, unsigned int&amp; v) const;
+iter_type 
+<B>get</B>(iter_type in, iter_type end, ios_base&amp; io,
+    ios_base::iostate&amp; err, unsigned long&amp; v) const; 
+iter_type 
+<B>get</B>(iter_type in, iter_type end, ios_base&amp; io,
+    ios_base::iostate&amp; err, float&amp; v) const; 
+iter_type 
+<B>get</B>(iter_type in, iter_type end, ios_base&amp; io,
+    ios_base::iostate&amp; err, double&amp; v) const; 
+iter_type 
+<B>get</B>(iter_type in, iter_type end, ios_base&amp; io,
+    ios_base::iostate&amp; err, long double&amp; v) const; 
+iter_type 
+<B>get</B>(iter_type in, iter_type end, ios_base&amp; io,
+    ios_base::iostate&amp; err, void*&amp; v) const; </PRE>
+<UL>
+<P>Each overload of the <SAMP>get()</SAMP> function calls the corresponding protected virtual <SAMP>do_get()</SAMP> function.</P>
+</UL>
+
+<A NAME="sec11"><H3>Protected Member Functions</H3></A>
+
+<A NAME="idx1003"></A><PRE>virtual iter_type 
+<B>do_get</B>(iter_type in, iter_type end, ios_base&amp; io,
+       ios_base::iostate&amp; err, long&amp; v) const; 
+virtual iter_type 
+<B>do_get</B>(iter_type in, iter_type end, ios_base&amp; io,
+       ios_base::iostate&amp; err, 
+       unsigned short&amp; v) const; 
+virtual iter_type 
+<B>do_get</B>(iter_type in, iter_type end, ios_base&amp; io,
+       ios_base::iostate&amp; err, 
+       unsigned int&amp; v) const; 
+virtual iter_type 
+<B>do_get</B>(iter_type in, iter_type end, ios_base&amp; io,
+       ios_base::iostate&amp; err, 
+       unsigned long&amp; v) const; 
+virtual iter_type 
+<B>do_get</B>(iter_type in, iter_type end, ios_base&amp; io,
+       ios_base::iostate&amp; err, float&amp; v) const; 
+virtual iter_type 
+<B>do_get</B>(iter_type in, iter_type end, ios_base&amp; io,
+       ios_base::iostate&amp; err, double&amp; v) const; 
+virtual iter_type 
+<B>do_get</B>(iter_type in, iter_type end, ios_base&amp; io,
+       ios_base::iostate&amp; err, long double&amp; v) const; 
+virtual iter_type
+<B>do_get</B>(iter_type in, iter_type end, ios_base&amp; io,
+       ios_base::iostate&amp; err, void*&amp; v) const;</PRE>
+<UL>
+<P>All overloads of the <SAMP>do_get()</SAMP> member function take a sequence of characters <SAMP>[in,end)</SAMP>, and attempt to extract a numeric value. On success, the numeric value is returned in <SAMP>v</SAMP>, and <SAMP>err</SAMP> is set to <SAMP>ios_base::goodbit</SAMP>; otherwise <SAMP>v</SAMP> is left unchanged and <SAMP>err</SAMP> is set to <SAMP>ios_base::failbit</SAMP>. The functions return an iterator pointing just past the last extracted character.</P>
+<P>The <SAMP>io</SAMP> argument is used to obtain a reference to the <B><I><A HREF="numpunct.html">numpunct&lt;char_type&gt;</A></I></B> facet installed in the object's locale and containing locale-specific punctuation data (grouping, if any, the character used as the thousands separator, and the character used as the decimal point), to obtain a reference to the <B><I><A HREF="ctype.html">ctype&lt;char_type&gt;</A></I></B> facet installed in the same locale needed to interpret the parsed characters, and to obtain information necessary to determine which base to use to interpret the parsed digits. Input in base 1 through 36 is accepted. Base of 1 accepts Roman numerals between 1 and 4999, inclusive. Use <SAMP>ios_base::oct</SAMP>, <SAMP>dec</SAMP>, <SAMP>hex</SAMP>, and the extension of this implementation, <SAMP>ios_base::bin</SAMP>, to set the base to 8, 10, 16, and 2, respectively. Use the <SAMP>std::setbase()</SAMP> manipulator declared in <SAMP>&lt;iomanip&gt;</SAMP> to set base other than 2, 8, 10, and 16. If the functions reach the end of the input sequence while attempting to extract additional characters, they set <SAMP>ios_base::eofbit in err</SAMP>.</P>
+<P>If <SAMP>use_facet&lt;numpunct&lt;char_type&gt; &gt;(io.getloc()).grouping() </SAMP>returns a non-empty string, the positions of any characters found in the input sequence prior to the character returned by <SAMP>use_facet&lt;numpunct&lt;char_type&gt; &gt;(io.getloc()).decimal_point()</SAMP>, if any, which match that returned by <SAMP>use_facet&lt;numpunct&lt;char_type&gt; &gt;(io.getloc()).thousands_sep()</SAMP> are checked for consistency with the grouping string. The functions indicate inconsistencies in the placement of thousands separators by setting <SAMP>err</SAMP> to <SAMP>ios_base::failbit</SAMP>. If the grouping is empty, the first thousands separator terminates input.</P>
+<P>Except for the optional grouping, the format of interpreted sequences is the same as that accepted by the <B><I>scanf()</I></B> function declared in <B><I>&lt;cstdio&gt;</I></B>. </P>
+<P>If after a successful extraction of a numeric value the function determines that the value is not representable in the type <SAMP>T</SAMP> of the argument <SAMP>v</SAMP>, (i.e., the function detects an arithmetic overflow), it stores <B><I><A HREF="numeric-limits.html">numeric_limits&lt;T&gt;</A></I></B><SAMP>::min() </SAMP>or <SAMP>max()</SAMP> in <SAMP>v</SAMP>, for positive and negative integer overflow, respectively, and <SAMP>+/-numeric_limits&lt;T&gt;::infinity()</SAMP> for positive and negative floating point overflow, respectively, and sets <SAMP>ios_base::failbit</SAMP> in <SAMP>err</SAMP>.</P>
+<P>If the function determines that the value is too small to be accurately represented in the type <SAMP>T</SAMP> of the argument <SAMP>v</SAMP>, (i.e., the function detects a floating point underflow) the function stores <SAMP>+/-numeric_limits&lt;T&gt;::min()</SAMP> in <SAMP>v</SAMP> without setting <SAMP>ios_base::eofbit</SAMP> in <SAMP>err</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1004"></A><PRE>virtual iter_type 
+<B>do_get</B>(iter_type in, iter_type end, ios_base&amp; io, 
+       ios_base::iostate&amp; err, bool&amp; v) const;</PRE>
+<UL>
+<P>If <SAMP>(io.flags() &amp; ios_base::boolalpha)</SAMP> evaluates to non-zero, the function attempts to match characters extracted from the input sequence against consecutive characters of the strings returned from <SAMP>use_facet&lt;numpunct&lt;char_type&gt; &gt;(io.getloc()).falsename()</SAMP> and <SAMP>truename()</SAMP>. Upon a successful match the function stores in <SAMP>v</SAMP> the value <SAMP>false</SAMP> or <SAMP>true</SAMP>, respectively. In the case of ambiguity, the function stores <SAMP>false</SAMP>. </P>
+<P>If <SAMP>(io.flags() &amp; ios_base::boolalpha)</SAMP> evaluates to zero, the function behaves the same as the long overload of <SAMP>do_get()</SAMP>, except that if the extracted value is <SAMP>0</SAMP>, it stores <SAMP>false</SAMP>; if the extracted value is <SAMP>1</SAMP>, it stores <SAMP>true</SAMP>; otherwise the function set <SAMP>ios_base::eofbit</SAMP> in <SAMP>err</SAMP> and leaves <SAMP>v</SAMP> unmodified.</P>
+</UL>
+
+<A NAME="sec12"><H3>Example</H3></A>
+
+<UL><PRE>#include &lt;iostream&gt;   // for cout, endl
+#include &lt;sstream&gt;    // for istringstream
+#include &lt;string&gt;     // for string
+
+
+int main ()
+{
+    typedef std::istreambuf_iterator&lt;char, std::char_traits&lt;char&gt; &gt; Iter;
+  
+    std::ios::iostate state;
+    Iter              end;
+
+    bool        bval  = false;
+    long        lval  = 0L;
+    long double ldval = 0.0;
+
+    // Get a num_get facet
+    const std::num_get&lt;char, Iter&gt; &amp;ng =
+        std::use_facet&lt;std::num_get&lt;char, Iter&gt; &gt;(std::locale ());
+
+#ifndef _RWSTD_NO_BOOL
+    {
+        // Build an istringstream from the buffer and construct
+        // beginning and ending iterators on it.
+        std::istringstream ins ("true");
+        Iter begin (ins);
+
+        // Set stream flags to recognize boolalpha input.
+        ins.setf (std::ios::boolalpha);
+
+        // Get the boolean value from the stream.
+        ng.get (begin, end, ins, state, bval);
+    }
+#endif
+
+    std::cout &lt;&lt; bval &lt;&lt; std::endl;
+
+    {
+        // Get the date
+        std::istringstream ins ("2422235");
+        Iter begin (ins);
+        ng.get (begin, end, ins, state, lval);
+    }
+
+    std::cout &lt;&lt; lval &lt;&lt; std::endl;
+
+    {
+        // Get the weekday
+        std::istringstream ins ("32324342.98908");
+        Iter begin (ins);
+        ng.get (begin, end, ins, state, ldval);
+    }
+
+    std::cout.setf (std::ios::fixed, std::ios::floatfield);
+    std::cout &lt;&lt; ldval &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+1
+2422235
+32324342.989080
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<A NAME="sec13"><H3>See Also</H3></A>
+<P><B><I><A HREF="ctype.html">ctype</A></I></B>, <B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="numpunct.html">numpunct</A></I></B>, <B><I><A HREF="num-put.html">num_put</A></I></B> </P>
+<A NAME="sec14"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.2.1</I></P>
+
+<BR>
+<HR>
+<A HREF="nth-element.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="num-put.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,152 @@
+<HTML>
+<HEAD>
+<TITLE>slice</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="set-union.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="slice-array.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>slice</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-10.html">Numerics</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Constructors</A></LI>
+<LI><A HREF="#sec7">Accessors</A></LI>
+<LI><A HREF="#sec8">Example</A></LI>
+<LI><A HREF="#sec9">See Also</A></LI>
+<LI><A HREF="#sec10">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1174">size()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1170">slice()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1173">start()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1175">stride()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A numeric array class for representing a BLAS-like slice from an array</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;valarray&gt;
+
+namespace std {
+  class slice ;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <B><I><A HREF="valarray.html">valarray</A></I></B> helper class <B><I>slice</I></B> allows you to represent a BLAS-like slice from an array. A BLAS slice contains a starting index, a length, and a stride. The index indicates the first element in the slice, the length determines the number of elements, and the stride indicates the interval between elements in the original array. For instance, the <B><I>slice</I></B> (1,3,2) applied to the array (1,2,3,4,5,6,7) produces the array (2,4,6).</P>
+<P>When applied to a <B><I><A HREF="valarray.html">valarray</A></I></B> using the <B><I>slice</I></B> subscript operator (see <B><I>valarray</I></B>) a <B><I>slice</I></B> produces a <B><I><A HREF="slice-array.html">slice_array</A></I></B>. The <B><I>slice_array</I></B> gives a view into the original <B><I>valarray</I></B> that is tailored to match parameters of the <B><I>slice</I></B>. The elements in a <B><I>slice_array</I></B> are references to the elements in the original array. This means you need to explicitly copy the <B><I>slice_array</I></B> into another <B><I>valarray</I></B> in order to have a distinct array. </P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  class slice {
+  public:
+    // Constructors
+    slice();
+    slice(size_t, size_t, size_t);
+    slice(const slice&amp;) 
+    
+    // Accessors
+    size_t start() const;
+    size_t size() const;
+    size_t stride() const;
+  };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Constructors</H3></A>
+
+<A NAME="idx1170"></A><PRE><B>slice</B>();</PRE>
+<UL>
+<P>Creates a <B><I>slice</I></B> specifying no elements. This constructor is only intended to allow the creation of arrays of slices. </P>
+</UL>
+
+
+<A NAME="idx1171"></A><PRE><B>slice</B>(size_t start, size_t length, size_t stride);</PRE>
+<UL>
+<P>Creates a <B><I>slice</I></B> with starting index, length, and stride as indicated by the arguments. </P>
+</UL>
+
+
+<A NAME="idx1172"></A><PRE><B>slice</B>(const slice&amp;)</PRE>
+<UL>
+<P>Creates a <B><I>slice</I></B> with starting index, length, and stride as indicated by the slice argument. </P>
+</UL>
+
+<A NAME="sec7"><H3>Accessors</H3></A>
+
+<A NAME="idx1173"></A><PRE>size_t <B>start</B>() const;</PRE>
+<UL>
+<P>Returns the starting index of the slice.</P>
+</UL>
+
+
+<A NAME="idx1174"></A><PRE>size_t <B>size</B>() const;</PRE>
+<UL>
+<P>Returns the length of the slice.</P>
+</UL>
+
+
+<A NAME="idx1175"></A><PRE>size_t <B>stride</B>() const;</PRE>
+<UL>
+<P>Returns the stride of the slice. </P>
+</UL>
+
+<A NAME="sec8"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  slice.cpp
+//
+
+#include &lt;valarray.h&gt;  // Includes valarray and provides stream inserter.
+
+typedef std::valarray&lt;int&gt; valarray_t;
+
+int main(void) {
+
+  // Create a valarray of ints.
+  valarray_t::value_type ibuf[10] = {0,1,2,3,4,5,6,7,8,9};  
+  valarray_t vi(ibuf,10);
+
+  // Print it out.
+  std::cout &lt;&lt; "original valarray vi:\n\n" &lt;&lt; vi &lt;&lt; "\n\n";
+
+  // Print out a slice.
+  std::cout &lt;&lt; "vi[slice(1,3,2)]\n\n" 
+            &lt;&lt; vi[std::slice(1,3,2)] &lt;&lt; std::endl;
+
+  return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>original valarray vi:
+
+[0,1,2,3,4,5,6,7,8,9]
+
+vi[slice(1,3,2)]
+
+[1,3,5]
+</PRE></UL>
+<A NAME="sec9"><H3>See Also</H3></A>
+<P><B><I><A HREF="valarray.html">valarray</A></I></B>, <B><I><A HREF="slice-array.html">slice_array</A></I></B>, <B><I><A HREF="gslice.html">gslice</A></I></B>, <B><I><A HREF="gslice-array.html">gslice_array</A></I></B>, <B><I><A HREF="mask-array.html">mask_array</A></I></B>, <B><I><A HREF="indirect-array.html">indirect_array</A></I></B></P>
+<A NAME="sec10"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 26.3.4</I></P>
+
+<BR>
+<HR>
+<A HREF="set-union.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="slice-array.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

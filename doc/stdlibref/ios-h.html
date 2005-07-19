@@ -1,0 +1,74 @@
+<HTML>
+<HEAD>
+<TITLE>&lt;ios&gt;</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="iomanip-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="ios-base.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>&lt;ios&gt;</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P>
+
+<PRE><HR><B><I>Header</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">See Also</A></LI>
+<LI><A HREF="#sec5">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>The header <SAMP>&lt;ios&gt;</SAMP> is part of the Input/output library of the Standard C++  Library. It defines the types <B><I>streamoff</I></B> and <B><I>streampos</I></B>, the class <B><I><A HREF="ios-base.html">ios_base</A></I></B>, the class templates <B><I><A HREF="fpos.html">fpos</A></I></B> and <B><I><A HREF="basic-ios.html">basic_ios</A></I></B>, and the manipulator functions <SAMP>boolalpha()</SAMP>, <SAMP>noboolalpha()</SAMP>, <SAMP>showbase()</SAMP>, <SAMP>noshowbase()</SAMP>, <SAMP>showpoint()</SAMP>, <SAMP>noshowpoint()</SAMP>, <SAMP>showpos()</SAMP>, <SAMP>noshowpos()</SAMP>, <SAMP>skipws()</SAMP>, <SAMP>noskipws()</SAMP>, <SAMP>uppercase()</SAMP>, <SAMP>nouppercase()</SAMP>, <SAMP>internal()</SAMP>, <SAMP>left()</SAMP>, <SAMP>right()</SAMP>, <SAMP>dec()</SAMP>, <SAMP>hex()</SAMP>, <SAMP>oct()</SAMP>, <SAMP>fixed()</SAMP>, and <SAMP>scientific()</SAMP>.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;iosfwd&gt;
+
+namespace std {
+  typedef  OFF_T   streamoff;
+  typedef  SZ_T  streamsize;
+  template &lt;class stateT&gt; class <SAMP><A HREF="fpos.html">fpos</A></SAMP>;
+
+  class <SAMP><A HREF="ios-base.html">ios_base</A></SAMP>;
+  template &lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class <SAMP><A HREF="basic-ios.html">basic_ios</A></SAMP>;
+
+  ios_base&amp; <SAMP>boolalpha</SAMP>(ios_base&amp;);
+  ios_base&amp; <SAMP>noboolalpha</SAMP>(ios_base&amp;);
+
+  ios_base&amp; <SAMP>showbase</SAMP>(ios_base&amp;);
+  ios_base&amp; <SAMP>noshowbase</SAMP>(ios_base&amp;);
+
+  ios_base&amp; <SAMP>showpoint</SAMP>(ios_base&amp;);
+  ios_base&amp; <SAMP>noshowpoint</SAMP>(ios_base&amp;);
+
+  ios_base&amp; <SAMP>showpos</SAMP>(ios_base&amp;);
+  ios_base&amp; <SAMP>noshowpos</SAMP>(ios_base&amp;);
+
+  ios_base&amp; <SAMP>skipws</SAMP>(ios_base&amp;);
+  ios_base&amp; <SAMP>noskipws</SAMP>(ios_base&amp;);
+
+  ios_base&amp; <SAMP>uppercase</SAMP>(ios_base&amp;);
+  ios_base&amp; <SAMP>nouppercase</SAMP>(ios_base&amp;);
+
+  ios_base&amp; <SAMP>internal</SAMP>(ios_base&amp;);
+  ios_base&amp; <SAMP>left</SAMP>(ios_base&amp;);
+  ios_base&amp; <SAMP>right</SAMP>(ios_base&amp;);
+
+  ios_base&amp; <SAMP>dec</SAMP>(ios_base&amp;);
+  ios_base&amp; <SAMP>hex</SAMP>(ios_base&amp;);
+  ios_base&amp; <SAMP>oct</SAMP>(ios_base&amp;);
+
+  ios_base&amp; <SAMP>fixed</SAMP>(ios_base&amp;);
+  ios_base&amp; <SAMP>scientific</SAMP>(ios_base&amp;);
+}
+</PRE>
+<A NAME="sec4"><H3>See Also</H3></A>
+<P><B><I><A HREF="fpos.html">fpos</A></I></B>, <B><I><A HREF="ios-base.html">ios_base</A></I></B>, <B><I><A HREF="basic-ios.html">basic_ios</A></I></B></P>
+<A NAME="sec5"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.4</I></P>
+
+<BR>
+<HR>
+<A HREF="iomanip-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="ios-base.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

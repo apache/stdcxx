@@ -1,0 +1,1445 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * vector - declarations for the Standard Library vector class
+ *
+ * $Id: //stdlib/dev/include/vector#65 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994
+ * Hewlett-Packard Company
+ *
+ * Permission to use, copy, modify, distribute and sell this software
+ * and its documentation for any purpose is hereby granted without fee,
+ * provided that the above copyright notice appear in all copies and
+ * that both that copyright notice and this permission notice appear
+ * in supporting documentation.  Hewlett-Packard Company makes no
+ * representations about the suitability of this software for any
+ * purpose.  It is provided "as is" without express or implied warranty.
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_VECTOR_INCLUDED
+#define _RWSTD_VECTOR_INCLUDED
+
+
+#include <rw/_algobase.h>
+#include <rw/_allocator.h>
+#include <rw/_error.h>
+#include <rw/_iterator.h>
+#include <rw/_select.h>
+#include <rw/_defs.h>
+
+
+_RWSTD_NAMESPACE (std) {
+
+_EXPORT
+template <class _TypeT,
+         class _Allocator _RWSTD_COMPLEX_DEFAULT(allocator<_TypeT>) >
+class vector;
+
+#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#  ifdef _RWSTD_NO_MEMBER_TEMPLATES
+
+// declarations of non-member function templates implementing
+// the functionality of vector member function templates
+
+_EXPORT
+template <class _TypeT, class _Allocator, class _InputIter>
+void __rw_assign_range (vector<_TypeT, _Allocator>*,
+                        _InputIter, _InputIter, input_iterator_tag);
+
+_EXPORT
+template <class _TypeT, class _Allocator, class _FwdIter>
+void __rw_assign_range (vector<_TypeT, _Allocator>*,
+                        _FwdIter, _FwdIter, forward_iterator_tag);
+
+_EXPORT
+template <class _TypeT, class _Allocator, class _VectorIter, class _InputIter>
+void __rw_insert_range (vector<_TypeT, _Allocator>*, _VectorIter,
+                        _InputIter, _InputIter, input_iterator_tag);
+
+_EXPORT
+template <class _TypeT, class _Allocator, class _VectorIter, class _FwdIter>
+void __rw_insert_range (vector<_TypeT, _Allocator>*, _VectorIter,
+                        _FwdIter, _FwdIter, forward_iterator_tag);
+
+#  endif   // _RWSTD_NO_MEMBER_TEMPLATES
+#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+
+_EXPORT
+template <class _TypeT, class _Allocator>
+class vector: private _Allocator
+{
+public:
+
+    typedef _TypeT                                     value_type;
+    typedef _Allocator                                 allocator_type;
+    typedef _TYPENAME allocator_type::size_type        size_type;
+    typedef _TYPENAME allocator_type::difference_type  difference_type;
+    typedef _TYPENAME allocator_type::reference        reference;
+    typedef _TYPENAME allocator_type::const_reference  const_reference;
+    typedef _TYPENAME allocator_type::pointer          pointer;
+    typedef _TYPENAME allocator_type::const_pointer    const_pointer;
+    typedef _RWSTD_ALLOC_TYPE (allocator_type, value_type) _C_value_alloc_type;
+
+public:
+
+#ifndef _RWSTD_NO_DEBUG_ITER
+
+    typedef _RW::__rw_debug_iter <vector, pointer, pointer>  iterator;
+    
+    typedef _RW::__rw_debug_iter <vector, const_pointer, pointer>
+        const_iterator;
+
+    iterator _C_make_iter (pointer __ptr) {
+        return iterator (*this, __ptr);
+    }
+
+    const_iterator _C_make_iter (pointer __ptr) const {
+        return const_iterator (*this, __ptr);
+    }
+
+#else   // if defined (_RWSTD_NO_DEBUG_ITER)
+
+    typedef pointer         iterator;
+    typedef const_pointer   const_iterator;
+
+    iterator _C_make_iter (pointer __ptr) {
+        return __ptr;
+    }
+
+    const_iterator _C_make_iter (const_pointer __ptr) const {
+        return __ptr;
+    }
+
+#endif   // _RWSTD_NO_DEBUG_ITER
+
+#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC 
+
+    typedef _STD::reverse_iterator<const_iterator> const_reverse_iterator;
+    typedef _STD::reverse_iterator<iterator>       reverse_iterator;
+
+#else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
+
+    typedef _STD::reverse_iterator<const_iterator, 
+        random_access_iterator_tag, value_type, 
+        const_reference, const_pointer, difference_type>
+    const_reverse_iterator;
+
+    typedef _STD::reverse_iterator<iterator, 
+        random_access_iterator_tag, value_type,
+        reference, pointer, difference_type>
+    reverse_iterator;
+
+#endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC 
+
+public:
+
+    _EXPLICIT
+    vector (const allocator_type &__alloc = allocator_type ())
+        : allocator_type (__alloc), _C_begin (0), _C_end (0), _C_bufend (0) { }
+
+    _EXPLICIT
+    vector (size_type __n, const_reference __x = value_type (),
+            const allocator_type &__alloc = allocator_type ())
+        : allocator_type (__alloc), _C_begin (0), _C_end (0), _C_bufend (0) {
+        assign (__n, __x);
+    }
+
+#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+#  if !defined (_MSC_VER) || _MSC_VER >= 1300
+
+    template <class _InputIter>
+    vector (_InputIter __first, _InputIter __last,
+            const allocator_type &__alloc = allocator_type ())
+        : allocator_type (__alloc), _C_begin (0), _C_end (0), _C_bufend (0) {
+        assign (__first, __last);
+    }
+
+#  else   // if !MSVC || MSVC <= 6.0
+
+    // working around an MSVC 6.0 ICE (bug #554)
+    template <class _InputIter>
+    vector (_InputIter __first, _InputIter __last)
+        : allocator_type (), _C_begin (0), _C_end (0), _C_bufend (0) {
+        assign (__first, __last);
+    }
+
+    template <class _InputIter>
+    vector (_InputIter __first, _InputIter __last,
+            const allocator_type &__alloc)
+        : allocator_type (__alloc), _C_begin (0), _C_end (0), _C_bufend (0) {
+        assign (__first, __last);
+    }
+
+#  endif   // MSVC <= 6.0
+    
+#else  // defined _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    vector (const_iterator __first, const_iterator __last,
+            const _Allocator &__alloc = allocator_type ())
+        : allocator_type (__alloc), _C_begin (0), _C_end (0), _C_bufend (0) {
+        assign (__first, __last);
+    }
+    
+#endif // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    vector (const vector &__rhs)
+        : allocator_type (__rhs.get_allocator ()),
+          _C_begin (0), _C_end (0), _C_bufend (0) {
+        assign (__rhs.begin (), __rhs.end ());
+    }
+    
+    
+    ~vector () { 
+        _C_destroy (begin (), end ()); 
+        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
+                            deallocate (_C_begin, _C_bufend - _C_begin));
+    }
+    
+    vector& operator= (const vector&);
+    
+#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    template <class _InputIter>
+    void assign (_InputIter __first, _InputIter __last) {
+        // dispatch either to a range assign or to an assign with repetition
+        _C_assign (__first, __last, _RWSTD_DISPATCH (_InputIter));
+    }
+
+#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+
+    void assign (const_iterator, const_iterator);
+
+#  ifndef _RWSTD_NO_DEBUG_ITER
+
+    // otherwise, const_pointer is the same as const_iterator
+    void assign (const_pointer, const_pointer);
+
+#  endif   // _RWSTD_NO_DEBUG_ITER
+
+#endif // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    void assign (size_type __n, const_reference __x) {
+        _C_assign_n (__n, __x);
+    }
+
+    allocator_type get_allocator () const {
+        return *this;
+    }
+    
+    iterator begin () {
+        return _C_make_iter (_C_begin);
+    }
+
+    const_iterator begin () const {
+        return _C_make_iter (_C_begin);
+    }
+
+    iterator end () {
+        return _C_make_iter (_C_end);
+    }
+
+    const_iterator end () const {
+        return _C_make_iter (_C_end);
+    }
+    
+    reverse_iterator rbegin () { 
+        return reverse_iterator (end ());
+    }
+    
+    const_reverse_iterator rbegin () const { 
+        return const_reverse_iterator (end ());
+    }
+    
+    reverse_iterator rend () { 
+        return reverse_iterator (begin ());
+    }
+    
+    const_reverse_iterator rend () const { 
+        return const_reverse_iterator (begin ());
+    }
+
+    size_type size () const {
+        return size_type (_C_end - _C_begin);
+    }
+
+    size_type max_size () const {
+        return _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this, max_size ());
+    }
+    
+    void resize (size_type, value_type = value_type ());
+
+    size_type capacity () const {
+        return _C_bufend - _C_begin;
+    }
+    
+    bool empty () const {
+        return _C_begin == _C_end;
+    }
+    
+    void reserve (size_type);
+
+    reference operator[] (size_type);
+  
+    const_reference operator[] (size_type) const;
+  
+    reference at (size_type);
+
+    const_reference at (size_type __n)  const;
+    
+    reference front () {
+        _RWSTD_ASSERT (!empty ());
+        return *begin ();
+    }
+    
+    const_reference front () const {
+        _RWSTD_ASSERT (!empty ());
+        return *begin ();
+    }
+    
+    reference back () {
+        _RWSTD_ASSERT (!empty ());
+        return *(end () - 1);
+    }
+    
+    const_reference back () const {
+        _RWSTD_ASSERT (!empty ());
+        return *(end () - 1);
+    }
+
+    void push_back (const_reference);
+    
+    void pop_back () {
+        _RWSTD_ASSERT (!empty ());
+        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this, destroy (_C_end - 1));
+        --_C_end;
+    }
+
+    iterator insert (iterator, const_reference);
+
+#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    template <class _InputIter>
+    void insert (iterator __it, _InputIter __first, _InputIter __last) {
+        _C_insert (__it, __first, __last, _RWSTD_DISPATCH (_InputIter));
+    }
+
+#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+
+    void insert (iterator __it,
+                 const_iterator __first, const_iterator __last) {
+        _RWSTD_INSERT_RANGE (__it, __first, __last);
+    }
+    
+#endif // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    void insert (iterator __it, size_type __n, const_reference __x) {
+        _C_insert_n (__it, __n, __x);
+    }
+    
+    iterator erase (iterator);
+
+    iterator erase (iterator, iterator);
+
+    void swap (vector&);
+    
+    void clear () {
+        erase (begin (), end ());
+    }
+
+private:
+
+    // implements assign with repetition
+    void _C_assign_n (size_type, const_reference);
+
+    // implements a single-element insert
+    void _C_insert_1 (const iterator&, const_reference);
+
+    // implements insert with repetition
+    void _C_insert_n (const iterator&, size_type, const_reference);
+
+#ifndef _RWSTD_NO_MEMBER_TEMPLATES
+
+    // implements range insert for ForwardIterators
+    template <class _FwdIter>
+    void _C_insert_range (iterator, _FwdIter, _FwdIter,
+                          forward_iterator_tag);
+
+    // implements range insert for InputIterators
+    template <class _InputIter>
+    void _C_insert_range (iterator, _InputIter, _InputIter,
+                          input_iterator_tag);
+
+#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
+
+public:
+
+#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+
+#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    // implements range assign
+    template <class _InputIter>
+    void _C_assign (_InputIter __first, _InputIter __last, void*) {
+        _RWSTD_ASSERT_RANGE (__first, __last);
+
+        // dispatch to an assign suitable for the category of InputIter
+        _RWSTD_ASSIGN_RANGE (__first, __last,
+                             _RWSTD_ITERATOR_CATEGORY (_InputIter, __first));
+    }
+
+    // implements assign with repetition if value_type == size_type
+    template <class _IntType>
+    void _C_assign (_IntType __n, _IntType __x, int) {
+        _C_assign_n (size_type (__n), __x);
+    }
+
+    // implements range insert for ForwardIterators
+    template <class _FwdIter>
+    void _C_assign_range (_FwdIter, _FwdIter, forward_iterator_tag);
+
+    // implements range insert for InputIterators
+    template <class _InputIter>
+    void _C_assign_range (_InputIter, _InputIter, input_iterator_tag);
+
+    // implements range insert
+    template <class _InputIter>
+    void _C_insert (const iterator &__it,
+                   _InputIter __first, _InputIter __last, void*) {
+        _RWSTD_ASSERT_RANGE (begin (), __it);
+        _RWSTD_ASSERT_RANGE (__first, __last);
+
+        // dispatch to an insert suitable for the category of InputIter
+        _RWSTD_INSERT_RANGE (__it, __first, __last,
+                             _RWSTD_ITERATOR_CATEGORY (_InputIter, __first));
+    }
+
+    // implements insert with repetition if value_type == size_type
+    template <class _IntType>
+    void _C_insert (const iterator &__it,
+                    _IntType __n, _IntType __x, int) {
+        _C_insert_n (__it, size_type (__n), __x);
+    }
+
+#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    void _C_realloc (size_type);
+
+    void _C_construct (pointer __where, const_reference __what) {
+        _RWSTD_VALUE_ALLOC (_C_value_alloc_type,
+                            *this, construct (__where, __what));
+    }
+
+    void _C_destroy (iterator __first, iterator __last) {
+        for ( ; __first != __last; ++__first)
+            _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
+                destroy (_RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
+                              address (*__first))));
+    }
+
+    pointer _C_begin;
+    pointer _C_end;
+    pointer _C_bufend;
+};
+
+
+template <class _TypeT, class _Allocator>
+inline _TYPENAME vector<_TypeT, _Allocator>::reference
+vector<_TypeT, _Allocator>::
+operator[] (size_type __n)
+{
+#ifdef _RWSTD_BOUNDS_CHECKING
+
+    _RWSTD_REQUIRES (__n < size (),
+                     (_RWSTD_ERROR_OUT_OF_RANGE,
+                      _RWSTD_FUNC ("vector::operator[](size_type)"),
+                      __n, size ()));
+
+#endif   // _RWSTD_BOUNDS_CHECKING
+
+    return *(begin () + __n);
+}
+  
+
+template <class _TypeT, class _Allocator>
+inline _TYPENAME vector<_TypeT, _Allocator>::const_reference
+vector<_TypeT, _Allocator>::
+operator[] (size_type __n) const
+{
+#ifdef _RWSTD_BOUNDS_CHECKING
+
+    _RWSTD_REQUIRES (__n < size (),
+                     (_RWSTD_ERROR_OUT_OF_RANGE,
+                      _RWSTD_FUNC ("vector::operator[](size_type) const"),
+                      __n, size ()));
+
+#endif   // _RWSTD_BOUNDS_CHECKING
+
+    return *(begin () + __n);
+}
+  
+
+template <class _TypeT, class _Allocator>
+inline _TYPENAME vector<_TypeT, _Allocator>::reference
+vector<_TypeT, _Allocator>::
+at (size_type __n)
+{
+    _RWSTD_REQUIRES (__n < size (),
+                     (_RWSTD_ERROR_OUT_OF_RANGE,
+                      _RWSTD_FUNC ("vector::at (size_type)"),
+                      __n, size ()));
+    return *(begin () + __n); 
+}
+    
+
+template <class _TypeT, class _Allocator>
+inline _TYPENAME vector<_TypeT, _Allocator>::const_reference
+vector<_TypeT, _Allocator>::
+at (size_type __n)  const
+{
+    _RWSTD_REQUIRES (__n < size (),
+                     (_RWSTD_ERROR_OUT_OF_RANGE,
+                      _RWSTD_FUNC ("vector::at(size_type) const"),
+                      __n, size ()));
+    return *(begin () + __n); 
+}
+
+
+template <class _TypeT, class _Allocator>
+inline void
+vector<_TypeT, _Allocator>::
+resize (size_type __new_size, value_type __x /* = value_type () */)
+{
+    if (size () < __new_size)
+        insert (end (), __new_size - size (), __x);
+    else if (__new_size < size ())
+        erase (begin () + __new_size, end ());
+}
+
+
+template <class _TypeT, class _Allocator>
+inline void
+vector<_TypeT, _Allocator>::
+reserve (size_type __n)
+{
+    _RWSTD_REQUIRES (__n <= max_size (),
+                     (_RWSTD_ERROR_LENGTH_ERROR,
+                      _RWSTD_FUNC ("vector::reserve(size_type)"),
+                      __n, max_size ()));
+
+    if (capacity () < __n)
+        _C_realloc (__n);
+}
+
+
+template <class _TypeT, class _Allocator>
+inline void
+vector<_TypeT, _Allocator>::
+push_back (const_reference __x)
+{
+    if (_C_end == _C_bufend) {
+        _C_insert_1 (end (), __x);
+    }
+    else {
+        _C_construct (_C_end, __x);
+
+        ++_C_end;
+    }
+}
+
+
+template <class _TypeT, class _Allocator>
+inline _TYPENAME vector<_TypeT, _Allocator>::iterator
+vector<_TypeT, _Allocator>::
+insert (iterator __it, const_reference __x)
+{
+    const difference_type __off = __it - begin ();
+
+    if (end () == __it)
+        push_back (__x);
+    else
+        _C_insert_1 (__it, __x);
+
+    return begin () + __off;
+}
+
+
+template <class _TypeT, class _Allocator>
+inline _TYPENAME vector<_TypeT, _Allocator>::iterator
+vector<_TypeT, _Allocator>::
+erase (iterator __it)
+{
+    if (!empty ()) { 
+        if (__it + 1 != end ()) 
+            _STD::copy (__it + 1, end (), __it);
+        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this, destroy (_C_end - 1));
+        --_C_end;
+    }
+    return __it;
+}
+
+
+template <class _TypeT, class _Allocator>
+inline _TYPENAME vector<_TypeT, _Allocator>::iterator
+vector<_TypeT, _Allocator>::
+erase (iterator __first, iterator __last)
+{
+    _RWSTD_ASSERT_RANGE (__first, __last);
+    _RWSTD_ASSERT_RANGE (begin (), __first);
+
+    const iterator __it = _STD::copy (__last, end (), __first);
+
+    _C_destroy (__it, end ());
+
+    _C_end -= __last - __first;
+
+    return __first;
+}
+
+
+template <class _TypeT, class _Allocator>
+inline void
+vector<_TypeT, _Allocator>::
+swap (vector &__other)
+{
+    if (get_allocator () == __other.get_allocator ()) {
+        _STD::swap (_C_begin, __other._C_begin);
+        _STD::swap (_C_end, __other._C_end);
+        _STD::swap (_C_bufend, __other._C_bufend);
+    }
+    else {   // not exception-safe
+
+        // avoid passing the whole objects to other vecto member
+        // functions in case they are implemented in terms of
+        // swap(); use iterators instead
+
+        vector __tmp (begin (), end ());
+        assign (__other.begin (), __other.end ());
+        __other.assign (__tmp.begin (), __tmp.end ());
+    }
+}
+
+
+template <class _TypeT, class _Allocator>
+inline bool
+operator== (const vector<_TypeT, _Allocator> &__x,
+            const vector<_TypeT, _Allocator> &__y)
+{
+    return __x.size () == __y.size ()
+        && _STD::equal(__x.begin (), __x.end (), __y.begin ());
+}
+
+template <class _TypeT, class _Allocator>
+inline bool
+operator< (const vector<_TypeT, _Allocator> &__x,
+           const vector<_TypeT, _Allocator> &__y)
+{
+    return _STD::lexicographical_compare (__x.begin (), __x.end (),
+                                          __y.begin (), __y.end ());
+}
+
+template <class _TypeT, class _Allocator>
+inline bool
+operator!= (const vector<_TypeT, _Allocator> &__x,
+            const vector<_TypeT, _Allocator> &__y)
+{
+    return !(__x == __y);
+}
+
+template <class _TypeT, class _Allocator>
+inline bool
+operator> (const vector<_TypeT, _Allocator> &__x,
+           const vector<_TypeT, _Allocator> &__y)
+{
+    return __y < __x;
+}
+
+template <class _TypeT, class _Allocator>
+inline bool
+operator>= (const vector<_TypeT, _Allocator> &__x,
+            const vector<_TypeT, _Allocator> &__y)
+{
+    return !(__x < __y);
+}
+
+template <class _TypeT, class _Allocator>
+inline bool
+operator<= (const vector<_TypeT, _Allocator> &__x,
+            const vector<_TypeT, _Allocator> &__y)
+{
+    return !(__y <  __x);
+}
+
+#ifndef _RWSTD_NO_PART_SPEC_OVERLOAD
+
+template <class _TypeT, class _Allocator>
+inline void
+swap (vector<_TypeT, _Allocator> &__x, vector<_TypeT, _Allocator> &__y)
+{
+    __x.swap (__y);
+}
+
+#endif   // _RWSTD_NO_PART_SPEC_OVERLOAD
+
+/***************************************************************************/
+
+#ifndef _RWSTD_NO_VECTOR_BOOL
+
+#ifndef _RWSTD_NO_BOOL
+
+   // number of bits in a machine word
+#  define _RWSTD_WORD_BIT (int (_RWSTD_CHAR_BIT * sizeof (unsigned int)))
+
+
+#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
+
+#  define _VB_TYPENAME   _TYPENAME
+
+_EXPORT
+template <class _Allocator>
+class
+
+#else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
+
+#  define _VB_TYPENAME
+
+     // use a macro to mutate _Allocator into allocator<bool>
+# define _Allocator allocator<bool>
+
+_RWSTD_SPECIALIZED_CLASS
+class _RWSTD_EXPORT
+
+#endif  // _RWSTD_NO_CLASS_PARTIAL_SPEC
+
+vector<bool, _Allocator >: private _Allocator
+{
+    typedef _RWSTD_REBIND(_Allocator, unsigned int)       _C_value_alloc_type;
+    typedef vector                                        _C_self;
+public:
+
+    typedef _Allocator                                      allocator_type;
+    typedef bool                                            value_type;
+
+    typedef _VB_TYPENAME allocator_type::size_type          size_type;
+    typedef _VB_TYPENAME allocator_type::difference_type    difference_type;
+    typedef _VB_TYPENAME _C_value_alloc_type::pointer       pointer;
+    typedef _VB_TYPENAME _C_value_alloc_type::const_pointer const_pointer;
+
+    class iterator;
+    class const_iterator;
+
+    class reference {
+
+#if !defined (__INTEL_COMPILER) || !defined (_MSC_VER)
+        // avoid MSVC 6.0 bug 576
+        friend class iterator;
+#else   // if Intel C++ 8.1 with MSVC
+        // work around Intel C++ 8.1 bug 575
+        friend class _C_self::iterator;
+#endif   // Intel C++ with MSVC
+
+        friend class const_iterator;
+
+    private:
+
+        unsigned int* _C_p;
+        unsigned int _C_mask;
+        reference (unsigned int* __x, unsigned int __y)
+            : _C_p (__x), _C_mask (__y) { }
+    public:
+
+        reference () : _C_p(0), _C_mask(0) {}
+
+        operator bool () const {
+            return !!(*_C_p & _C_mask);
+        }
+
+        reference& operator= (bool __x) {
+            if (__x)      
+                *_C_p |= _C_mask;
+            else
+                *_C_p &= ~_C_mask;
+            return *this;
+        }
+
+        reference& operator= (const reference& __x) {
+            return *this = bool(__x);
+        }
+
+#ifndef _RWSTD_NO_EXT_VECTOR_BOOL_REF_OPS
+
+      bool operator== (const reference& __x) const {
+          return bool(*this) == bool(__x);
+      }
+
+      bool operator< (const reference& __x) const {
+#ifndef _MSC_VER
+          return bool(*this) < bool(__x);
+#else
+          return int(*this) < int(__x);
+#endif
+      }
+
+        bool operator!= (const reference& __x) const {
+            return !(*this == __x);
+        }
+
+        bool operator> (const reference& __x) const {
+            return  __x < *this;
+        }
+
+        bool operator>= (const reference& __x) const {
+            return !(*this < __x);
+        }
+
+        bool operator<= (const reference& __x) const {
+            return !(*this > __x);
+        }
+
+#endif // _RWSTD_NO_EXT_VECTOR_BOOL_REF_OPS
+
+        void flip () {
+            *_C_p ^= _C_mask;
+        }
+    };
+    
+    typedef bool const_reference;
+
+    // hacks working around bogus g++ 2.95.2 warnings coming out of
+    // iterators below as well as what's probably an MSVC 6.0 bug
+    typedef reference       _C_ref;
+    typedef const_reference _C_const_ref;
+    typedef difference_type _C_diff_t;
+
+    class _C_iter {
+        friend class iterator;
+        friend class const_iterator;
+
+    private:
+
+#if defined (__GNUG__)
+        // gcc 3.0.1 and prior take 14.5.3, p9 literally
+    public:
+#elif    defined (_MSC_VER) && _MSC_VER <= 1300 || defined (__APOGEE__)
+        friend class vector<bool, _Allocator>;
+#else
+        friend class vector;
+#endif
+        unsigned int* _C_p;        // pointer to the current word
+        unsigned int  _C_offset;   // number of the pointed-to bit
+
+        _C_iter (unsigned int* __x = 0, unsigned int __y = 0)
+            : _C_p (__x), _C_offset (__y) { }
+
+        // On Sun, gcc 3.1 does generate an incorrect copy constructor
+        // that has as an effect an incompletely/incorrectly initialized 
+        // iterator.
+#if defined (__sun__) && defined (__GNUG__) 
+        _C_iter (const _C_iter& __it)
+            : _C_p (__it._C_p), _C_offset (__it._C_offset) {}
+#endif // __GNUG__
+
+        void operator++ () {
+            if (_C_offset++ == _RWSTD_WORD_BIT - 1) {
+                _C_offset = 0; 
+                ++_C_p;
+            }
+        }
+
+        void operator-- () {
+            if (_C_offset-- == 0) {
+                _C_offset = _RWSTD_WORD_BIT - 1; 
+                --_C_p;
+            }
+        }
+
+        void operator+= (difference_type __i) {
+            difference_type __n = __i + _C_offset;
+            _C_p += __n / _RWSTD_WORD_BIT;
+            __n = __n % _RWSTD_WORD_BIT;
+            if (__n < 0) {
+                _C_offset = _RWSTD_STATIC_CAST (unsigned int,
+                                                __n + _RWSTD_WORD_BIT);
+                --_C_p;
+            }
+            else
+                _C_offset = _RWSTD_STATIC_CAST (unsigned int,__n);
+        }
+
+    public:
+
+        bool operator== (const _C_iter& __x) const {
+            return _C_p == __x._C_p && _C_offset == __x._C_offset;
+        }
+
+        bool operator< (const _C_iter& __x) const {
+            return _C_p < __x._C_p ||
+                (_C_p == __x._C_p && _C_offset < __x._C_offset);
+        }
+
+        bool operator!= (const _C_iter& __x) const {
+            return !(*this == __x);
+        }
+
+        bool operator> (const _C_iter& __x) const {
+            return __x < *this;
+        }
+
+        bool operator>= (const _C_iter& __x) const {
+            return !(*this < __x);
+        }
+
+        bool operator<= (const _C_iter& __x) const {
+            return !(*this > __x);
+        }
+    };
+      
+    class iterator
+        : public _C_iter,
+          public _STD::iterator<random_access_iterator_tag,
+                                value_type, _C_diff_t,
+                                pointer, _C_ref> {
+    public:
+
+        // bring names used in declarations below into scope
+        // (dependent base members not visible without qualification)
+        typedef _C_ref    reference;
+        typedef _C_diff_t difference_type;
+
+        iterator (unsigned int *__x = 0, unsigned int __y = 0)
+            : _C_iter (__x, __y) { }
+
+        reference operator* () const { 
+            return reference (this->_C_p, 1U << this->_C_offset); 
+        }
+
+        iterator& operator++ () {
+            return _C_iter::operator++(), *this;
+        }
+
+        iterator operator++ (int) {
+            iterator __tmp = *this;
+            ++*this;
+            return __tmp;
+        }
+
+        iterator& operator-- () {
+            return _C_iter::operator--(), *this;
+        }
+
+        iterator operator-- (int) {
+            iterator __tmp = *this;
+            --*this;
+            return __tmp;
+        }
+
+        iterator& operator+= (difference_type __i) {
+            return _C_iter::operator+= (__i), *this;
+        }
+
+        iterator& operator-= (difference_type __i) {
+            *this += -__i;
+            return *this;
+        }
+
+        iterator operator+ (difference_type __i) const {
+            iterator __tmp = *this;
+            return __tmp += __i;
+        }
+
+        iterator operator- (difference_type __i) const {
+            iterator __tmp = *this;
+            return __tmp -= __i;
+        }
+
+        difference_type operator- (iterator __x) const {
+            return   _RWSTD_WORD_BIT * (this->_C_p - __x._C_p)
+                   + this->_C_offset - __x._C_offset;
+        }
+
+        reference operator[] (difference_type __i) {
+            return *(*this + __i);
+        }
+    };
+
+    class const_iterator
+        : public _C_iter,
+          public _STD::iterator<random_access_iterator_tag,
+                                value_type, _C_diff_t,
+                                const_pointer, _C_const_ref> {
+    public:
+
+        // bring names used in declarations below into scope
+        // (dependent base members not visible without qualification)
+        typedef _C_const_ref const_reference;
+        typedef _C_diff_t    difference_type;
+
+        const_iterator (unsigned int *__x = 0, unsigned int __y = 0)
+            : _C_iter (__x, __y) { }
+
+        const_iterator (const _C_iter &__x)
+            : _C_iter (__x) { }
+
+        const_reference operator* () const {
+            return _C_ref (this->_C_p, 1U << this->_C_offset);
+        }
+
+        const_iterator& operator++ () {
+            return _C_iter::operator++(), *this;
+        }
+
+        const_iterator operator++ (int) {
+            const_iterator __tmp = *this;
+            ++*this;
+            return __tmp;
+        }
+
+        const_iterator& operator-- () {
+            return _C_iter::operator--(), *this;
+        }
+
+        const_iterator operator-- (int) {
+            const_iterator __tmp = *this;
+            --*this;
+            return __tmp;
+        }
+
+        const_iterator& operator+= (difference_type __i) {
+            return _C_iter::operator+= (__i), *this;
+        }
+
+        const_iterator& operator-= (difference_type __i) {
+            return *this += -__i;
+        }
+
+        const_iterator
+        operator+ (difference_type __i) const {
+            return const_iterator (*this) += __i;
+        }
+
+        const_iterator operator- (difference_type __i) const {
+            return const_iterator (*this) -= __i;
+        }
+
+        difference_type operator- (const_iterator __x) const {
+            return   _RWSTD_WORD_BIT * (this->_C_p - __x._C_p)
+                   + this->_C_offset - __x._C_offset;
+        }
+
+        const_reference operator[] (difference_type __i) { 
+            return *(*this + __i); 
+        }
+    };
+
+#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC 
+
+    typedef _STD::reverse_iterator<const_iterator> const_reverse_iterator;
+    typedef _STD::reverse_iterator<iterator>       reverse_iterator;
+
+#else
+
+    typedef _STD::reverse_iterator<const_iterator, 
+        random_access_iterator_tag, value_type, 
+        const_reference, const_pointer, difference_type>
+    const_reverse_iterator;
+
+    typedef _STD::reverse_iterator<iterator, 
+        random_access_iterator_tag, value_type,
+        reference, pointer, difference_type>
+    reverse_iterator;
+
+#endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC 
+
+  private:
+    //
+    // These private functions are replicas of generic algorithms.
+    //  We provide them here to avoid putting instantiations of 
+    //  the generic algorithms into an archive or shared library.
+    //  This gives you full flexibilty in deciding where you want
+    //  to put particular instantiations of the generic 
+    //  algorithms.
+    //
+  
+    void _C_fill (iterator __first, iterator __last, const bool& __value) {
+        while (__first != __last) *__first++ = __value;
+    }
+
+    void _C_fill_n (iterator __first, size_type __n, const bool& __value) {
+        while (__n-- > 0) *__first++ = __value;
+    }
+
+#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    template <class _Iterator>
+    iterator _C_copy (_Iterator __first, _Iterator __last, iterator __res) {
+        while (__first != __last)
+            *__res++ = *__first++;
+        return __res;
+    }
+
+    template <class _Iterator>
+    iterator
+    _C_copy_backward (_Iterator __first, _Iterator __last, iterator __res) {
+        while (__first != __last) *--__res = *--__last;
+        return __res;
+    }
+
+#else
+    iterator
+    _C_copy (const_iterator __first, const_iterator __last, iterator __res) {
+        while (__first != __last)
+            *__res++ = *__first++;
+        return __res;
+    }
+
+    iterator _C_copy (const bool* __first, const bool* __last, iterator __res) {
+        while (__first != __last)
+            *__res++ = *__first++;
+        return __res;
+    }
+
+    iterator _C_copy_backward (const_iterator __first, const_iterator __last,
+                               iterator __res) {
+        while (__first != __last)
+            *--__res = *--__last;
+        return __res;
+    }
+
+    iterator
+    _C_copy_backward (const bool* __first, const bool* __last, iterator __res) {
+        while (__first != __last)
+            *--__res = *--__last;
+        return __res;
+    }
+
+#endif
+
+private:
+
+    iterator       _C_begin;
+    iterator       _C_end;
+    unsigned int * _C_bufend;
+
+    unsigned int* _C_bit_alloc (size_type __n) {
+        return _C_value_alloc_type(*this).
+            allocate ((__n + _RWSTD_WORD_BIT - 1)/_RWSTD_WORD_BIT,
+                      pointer(_C_begin._C_p));
+    }
+
+    void _C_init (size_type __n) {
+        unsigned int* __q = _C_bit_alloc(__n);
+        _C_bufend = __q + (__n + _RWSTD_WORD_BIT - 1)/_RWSTD_WORD_BIT;
+        _C_begin  = iterator(__q, 0);
+        _C_end    = _C_begin + __n;
+    }
+
+    void _C_insert (iterator, bool);
+
+public:
+
+    vector (const _Allocator&  __alloc = allocator_type ())
+        : allocator_type (__alloc), _C_begin(iterator()), _C_end(iterator()), 
+        _C_bufend(0) { }
+
+#if !defined (__SUNPRO_CC) || __SUNPRO_CC > 0x530
+    // working around a SunPro 5.3 bug (see PR #25962)
+    _EXPLICIT
+#endif   // SunPro > 5.3
+    vector (size_type __n, bool __value = bool(), 
+       const _Allocator&  __alloc = allocator_type ())
+        : allocator_type (__alloc), _C_bufend(0) {
+      _C_init(__n); 
+      unsigned int * __first = _C_begin._C_p;
+      size_type __m = (__n + _RWSTD_WORD_BIT - 1)/_RWSTD_WORD_BIT;
+      while (__m-- > 0) *__first++ = __value ? ~0 : 0;
+    }
+
+    vector (const _C_self &__x)
+        : allocator_type (__x.get_allocator ()), _C_bufend (0) {
+        _C_init (__x.size ()); 
+        _C_copy (__x.begin (), __x.end (), _C_begin);
+    }
+
+#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    template<class _InputIter>
+    vector  (_InputIter __first, _InputIter __last)
+        : allocator_type (), _C_bufend(0)
+    {
+      size_type __n = _DISTANCE (__first, __last, size_type);
+      _C_init(__n); 
+      _C_copy(__first, __last, _C_begin);
+    }
+#else
+    vector (const_iterator __first, const_iterator __last)
+        : allocator_type (), _C_bufend(0)
+    {
+      size_type __n = _DISTANCE (__first, __last, size_type);
+      _C_init(__n);
+      _C_copy(__first, __last, _C_begin);
+    }
+    vector (const bool* __first, const bool* __last)
+        : allocator_type (), _C_bufend(0)
+    {
+      size_type __n = _DISTANCE (__first, __last, size_type);
+      _C_init(__n);
+      _C_copy(__first, __last, _C_begin);
+    }
+#endif
+  
+    ~vector () {
+      _C_value_alloc_type(*this).deallocate(_C_begin._C_p,  
+        _C_bufend - _C_begin._C_p); 
+    }
+    _C_self& operator= (const _C_self& __x)
+    {
+      if (&__x == this) return *this;
+      if (__x.size() > capacity())
+      {
+        _C_value_alloc_type(*this).deallocate(_C_begin._C_p,
+          _C_bufend - _C_begin._C_p); 
+        _C_init(__x.size());
+      }
+      _C_copy(__x.begin(), __x.end(), begin());
+      _C_end = begin() + __x.size();
+      return *this;
+    }
+
+#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    template<class _InputIter>
+    void assign (_InputIter __first, _InputIter __last) {
+        erase (begin (), end ());
+        insert (begin (), __first, __last);
+    }
+
+#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+
+    void assign (const_iterator __first, const_iterator __last) {
+        erase (begin (), end ());
+        insert (begin (), __first, __last);
+    }
+
+#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    void assign (size_type __n, const bool& __x = bool()) { 
+        erase (begin (), end ());
+        insert (begin (), __n, __x);
+    }
+
+    allocator_type get_allocator() const {
+      return *this;
+    }
+
+    //
+    // iterators
+    //
+    iterator       begin ()       { return _C_begin; }
+    const_iterator begin () const 
+    { return const_iterator(_C_begin._C_p,_C_begin._C_offset); }
+    iterator       end   ()       { return _C_end; }
+    const_iterator end   () const 
+    { return const_iterator(_C_end._C_p,_C_end._C_offset); }
+
+    reverse_iterator       rbegin () { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin () const
+    { 
+      return const_reverse_iterator(end()); 
+    }
+    reverse_iterator       rend () { return reverse_iterator(begin()); }
+    const_reverse_iterator rend () const
+    { 
+      return const_reverse_iterator(begin()); 
+    }
+
+    //
+    // capacity
+    //
+    size_type size     () const { return size_type(end() - begin());  }
+    size_type max_size () const {
+        return _C_value_alloc_type(*this).max_size();
+    }
+    void resize (size_type __new_size, bool __c = false);
+    size_type capacity () const
+    {
+      return size_type(const_iterator(_C_bufend, 0) - begin());
+    }
+    bool empty () const { return begin() == end(); }
+    void reserve (size_type __n)
+    {
+        _RWSTD_REQUIRES (__n <= max_size (),
+                         (_RWSTD_ERROR_LENGTH_ERROR,
+                          _RWSTD_FUNC ("vector<bool>::reserve (size_type)"),
+                          __n, max_size ()));
+
+      if (capacity() < __n)
+      {
+        unsigned int* __q = _C_bit_alloc(__n);
+        _C_end = _C_copy(begin(), end(), iterator(__q, 0));
+        _C_value_alloc_type(*this).deallocate(_C_begin._C_p,
+                                             _C_bufend - _C_begin._C_p);
+        _C_begin = iterator(__q, 0);
+        _C_bufend = __q + (__n + _RWSTD_WORD_BIT - 1)/_RWSTD_WORD_BIT;
+      }
+    }
+
+    //
+    // element access
+    //
+    reference       operator[] (size_type __n)       
+    { 
+#ifdef _RWSTD_BOUNDS_CHECKING
+
+        _RWSTD_REQUIRES (__n < size (),
+                         (_RWSTD_ERROR_LENGTH_ERROR,
+                          _RWSTD_FUNC ("vector<bool>::[](size_type)"),
+                          __n, size ()));
+
+#endif   // _RWSTD_BOUNDS_CHECKING
+
+      return *(begin() + __n); 
+    }
+    const_reference operator[] (size_type __n) const 
+    { 
+#ifdef _RWSTD_BOUNDS_CHECKING
+
+        _RWSTD_REQUIRES (__n < size (),
+                         (_RWSTD_ERROR_LENGTH_ERROR,
+                          _RWSTD_FUNC ("vector<bool>::[](size_type)"),
+                          __n, size ()));
+
+#endif   // _RWSTD_BOUNDS_CHECKING
+
+      return *(begin() + __n); 
+    }
+    reference       at (size_type __n)               
+    { 
+        _RWSTD_REQUIRES (__n < size (),
+                         (_RWSTD_ERROR_LENGTH_ERROR,
+                          _RWSTD_FUNC ("vector<bool>::at(size_type)"),
+                          __n, size ()));
+      return *(begin() + __n); 
+    }
+    const_reference at (size_type __n)   const 
+    {
+        _RWSTD_REQUIRES (__n < size (),
+                         (_RWSTD_ERROR_LENGTH_ERROR,
+                          _RWSTD_FUNC ("vector<bool>::at(size_type) const"),
+                          __n, size ()));
+
+      return *(begin() + __n); 
+    }
+    reference       front ()       { return *begin();     }
+    const_reference front () const { return *begin();     }
+    reference       back  ()       { return *(end() - 1); }
+    const_reference back  () const { return *(end() - 1); }
+    
+    //
+    // modifiers
+    //
+    void push_back (const bool& __x)
+    {
+        if (_C_end._C_p != _C_bufend) {
+            ++_C_end;
+            *(_C_end-1) = __x;
+        }
+        else
+            _C_insert(end(), __x);
+    }
+    void pop_back () { --_C_end; }
+
+    iterator insert (iterator __it, const bool& __x = bool())
+    {
+      size_type __n = __it - begin();
+      if (_C_end._C_p != _C_bufend && __it == end()) {
+          ++_C_end;
+          *(_C_end-1) = __x;
+      }
+      else
+        _C_insert(__it, __x);
+      return begin() + __n;
+    }
+    void insert (iterator __it, size_type __n, const bool& __x);
+
+#ifndef _RWSTD_NO_MEMBER_TEMPLATES
+    template<class _InputIter>
+    void insert (iterator __it, _InputIter __first,
+                 _InputIter __last);
+#else
+    void insert (iterator __it, const_iterator __first, 
+                 const_iterator __last);
+#endif
+
+    iterator erase (iterator __it)
+    {
+      if (!(__it + 1 == end()))
+        _C_copy(__it + 1, end(), __it);
+      --_C_end;
+      return __it;
+    }
+    iterator erase(iterator __first, iterator __last)
+    {
+      _C_end = _C_copy(__last, end(), __first);
+      return __first;
+    }
+    void swap (_C_self& __x)
+    {
+      if((_C_value_alloc_type)*this == (_C_value_alloc_type)__x)
+      {
+        _STD::swap (_C_begin,  __x._C_begin);
+        _STD::swap (_C_end,    __x._C_end);
+        _STD::swap (_C_bufend, __x._C_bufend);
+      }
+      else
+      {
+        _C_self _x = *this;
+        *this = __x;
+        __x=_x;
+      } 
+    }
+    static void swap(reference __x, reference __y);
+    void flip ();
+    void clear()
+    {
+      erase(begin(),end());
+    }
+};
+
+#undef _Allocator 
+
+#endif   // _RWSTD_NO_BOOL
+
+#endif   // _RWSTD_NO_VECTOR_BOOL
+
+}   // namespace std
+
+
+#if defined (_RWSTD_NO_IMPLICIT_INCLUSION)
+#  include <vector.cc>
+#endif
+
+
+#ifndef _RWSTD_NO_STL_SPECIALIZATION
+#include "vector_spec.h"
+#endif   // _RWSTD_NO_STL_SPECIALIZATION
+
+
+#endif   // _RWSTD_VECTOR_INCLUDED

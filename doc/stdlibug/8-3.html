@@ -1,0 +1,66 @@
+<HTML>
+<HEAD>
+<TITLE>Example Program: A Spelling Checker</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="8-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="8-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>8.3 Example Program: A Spelling Checker</H2>
+<A NAME="idx150"><!></A>
+<P>A simple example program that uses a <B><I><A HREF="../stdlibref/set.html">set</A></I></B> is a spelling checker. </P>
+<BLOCKQUOTE><HR><B>
+NOTE -- This program can be found in the file spell.cpp.
+</B><HR></BLOCKQUOTE>
+<P>The checker takes as arguments two input streams: the first represents a stream of correctly spelled words (that is, a dictionary), and the second a text file. To begin, the dictionary is read into a set. This is performed with a <SAMP>std::copy()</SAMP> function and an input stream iterator, copying the values into an inserter for the dictionary. Next, words from the text are examined one by one, to see if they are in the dictionary. If they are not, they are added to a set of misspelled words. After the entire text has been examined, the program outputs the list of misspelled words.</P>
+
+<UL><PRE>
+typedef
+  std::set &lt;std::string,
+            std::less&lt;std::string&gt;, std::allocator&lt;std::string&gt; &gt;
+  stringset;
+
+typedef
+  std::ostream_iterator&lt;std::string, char, std::char_traits&lt;char&gt; &gt;
+  ostrm_iter;
+
+typedef
+  std::istream_iterator&lt;std::string,
+                        char, std::char_traits&lt;char&gt;, ptrdiff_t&gt;
+  istrm_iter;
+
+void spellCheck (istream&amp; dictionary, istream&amp; text) {
+  stringset words, misspellings;
+  std::string word;
+  istrm_iter  eof, dstream (dictionary);
+
+  // First read the dictionary.
+  std::copy (dstream, eof, std::inserter (words, words.begin ()));
+
+  // Next read the text.
+  while (text &gt;&gt; word)
+    if (! words.count (word))
+      misspellings.insert (word);
+
+  // Finally, output all misspellings.
+  std::cout &lt;&lt; std::endl &lt;&lt; "Misspelled words:" &lt;&lt; std::endl;
+
+  std::copy (misspellings.begin (), misspellings.end (),
+             ostrm_iter (std::cout, "\n"));
+}
+</PRE></UL>
+<P>An improvement would be to suggest alternative words for each misspelling. There are various heuristics that can be used to discover alternatives. The technique we use here is to simply exchange adjacent letters. To find these, a call to the following function is inserted into the loop that displays the misspellings:</P>
+
+<UL><PRE>{
+  for (int I = 1; I &lt; word.length(); I++) {
+    std::swap(word[I-1], word[I]);
+    if (words.count(word)) 
+      std::cout &lt;&lt; "Suggestion: " &lt;&lt; word &lt;&lt; std::endl;
+    // put word back as before
+    std::swap(word[I-1], word[I]);
+    }
+}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="8-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="8-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

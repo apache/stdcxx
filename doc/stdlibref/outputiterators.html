@@ -1,0 +1,66 @@
+<HTML>
+<HEAD>
+<TITLE>Output Iterators</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="out-of-range.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="overflow-error.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>Output Iterators</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-8.html">Iterators</A></P><UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Description</A></LI>
+<LI><A HREF="#sec4">Key to Iterator Requirements</A></LI>
+<LI><A HREF="#sec5">Requirements for Output Iterators</A></LI>
+<LI><A HREF="#sec6">See Also</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A write only, forward moving iterator</P>
+<A NAME="sec3"><H3>Description</H3></A>
+<BLOCKQUOTE><HR><B>
+NOTE -- For a complete discussion of iterators, see the <B><I><A HREF="iterators.html">Iterators</A></I></B> section of this reference.
+</B><HR></BLOCKQUOTE>
+<P>Iterators are a generalization of pointers that allow a C++ program to uniformly interact with different data structures. Output iterators are write-only, forward moving iterators that satisfy the requirements listed below. Note that unlike other iterators used with the standard library, output iterators cannot be constant.</P>
+<A NAME="sec4"><H3>Key to Iterator Requirements</H3></A>
+<P>The following key pertains to the iterator requirements listed below: </P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>values of type <SAMP>X</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>u  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>identifiers</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>value of type <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>t  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>value of type <SAMP>T</SAMP></P></TD></TR>
+</TABLE></P>
+<A NAME="sec5"><H3>Requirements for Output Iterators</H3></A>
+<P>The following expressions must be valid for output iterators:</P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X(a)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>copy constructor, <SAMP>a == X(a)</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u(a)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>copy constructor, <SAMP>u == a</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u = a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>assignment, <SAMP>u == a</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*a = t  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>result is not used</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>++r  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r++  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to const <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*r++ = t  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>result is not used</P></TD></TR>
+</TABLE></P>
+<P>The only valid use for the <SAMP>operator *</SAMP> is on the left-hand side of the assignment statement.</P>
+<P>Algorithms using output iterators should be single pass algorithms. That is, they should not pass through the same iterator twice. </P>
+<A NAME="sec6"><H3>See Also</H3></A>
+<P><A HREF="iterators.html">Iterators</A>, <A HREF="inputiterators.html">Input Iterators</A></P>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 24.1.2</I></P>
+
+<BR>
+<HR>
+<A HREF="out-of-range.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="overflow-error.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

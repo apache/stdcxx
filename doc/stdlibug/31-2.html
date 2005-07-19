@@ -1,0 +1,16 @@
+<HTML>
+<HEAD>
+<TITLE>The Internal Buffer</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="31-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="31-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>31.2 The Internal Buffer</H2>
+<A NAME="idx777"><!></A>
+<P>String streams can take a string object as an argument, provided either as an argument to the constructor, or set later through the member function <SAMP>str(const basic_string &lt;char_type, traits_type,</SAMP> <SAMP>allocator_type&gt;&amp;)</SAMP>. This string is copied into an internal buffer, and serves as source or sink of characters to subsequent insertions or extractions. Each time the string is retrieved through the <SAMP>str()</SAMP> member function, a copy of the internal buffer is created and returned.</P>
+<P>Output string streams are <I>dynamic</I>. The internal buffer is allocated once an output string stream is constructed. The buffer is automatically extended during insertion each time the internal buffer is full. (This is different from old iostreams, which allowed both dynamic and static output streams. See for <A HREF="45-4.html">Section&nbsp;45.4</A> further details.)</P>
+<P>Input string streams are always <I>static</I>. You can extract as many items as are available in the string you provided the string stream.</P>
+
+<BR>
+<HR>
+<A HREF="31-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="31-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

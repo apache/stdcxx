@@ -1,0 +1,69 @@
+<HTML>
+<HEAD>
+<TITLE>use_facet()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="upper-bound.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="utility-h.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>use_facet()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Example</A></LI>
+<LI><A HREF="#sec6">See Also</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A template  function used to obtain a facet from a specific <B><I><A HREF="locale.html">locale</A></I></B> </P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  template&lt;class Facet&gt; const Facet&amp; use_facet(const locale&amp;);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P><SAMP>use_facet()</SAMP> returns a reference to the corresponding facet contained in the <SAMP>locale</SAMP> argument. You specify the facet type by explicitly including the template parameter (see the example below). If that facet is not present, then <SAMP>use_facet()</SAMP> throws <B><I><A HREF="bad-cast.html">bad_cast</A></I></B>. Otherwise, the reference remains valid for as long as any copy of the locale exists.</P>
+<A NAME="sec5"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  usefacet.cpp
+//
+ 
+#include &lt;iostream&gt;
+
+int main () {
+
+  std::locale loc;
+
+  // Get a ctype facet
+  const std::ctype&lt;char&gt;&amp;
+      ct = std::use_facet&lt;std::ctype&lt;char&gt; &gt;(loc); 
+
+  std::cout &lt;&lt; 'a' &lt;&lt; ct.toupper('c') &lt;&lt; std::endl;
+ 
+  return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>aC
+</PRE></UL>
+<A NAME="sec6"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <SAMP><A HREF="has-facet.html">has_facet()</A></SAMP></P>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.1.1</I></P>
+
+<BR>
+<HR>
+<A HREF="upper-bound.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="utility-h.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,36 @@
+<HTML>
+<HEAD>
+<TITLE>Predicates</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="3-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="3-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>3.3 Predicates</H2>
+<A NAME="idx51"><!></A>
+<P>A <I>predicate</I> is simply a function object that returns a value convertible to a <SAMP>bool</SAMP>. Here is an example of a predicate, which takes an integer as argument and returns <SAMP>true</SAMP> if the number represents a leap year, and <SAMP>false</SAMP> otherwise:</P>
+
+<UL><PRE>
+// return true if year is leap year
+struct isLeapYear {
+  bool operator(unsigned int year) const {
+    // Every fourth century is a leap year
+    if (0 == year % 400) return true;
+    // ...but other centuries aren't.
+    if (0 == year % 100) return false;
+    // Otherwise, every fourth year is
+    if (0 == year % 4) return true;
+    // ...but all other years are not.
+    return false;
+  }
+};
+</PRE></UL>
+<P>A predicate is used as an argument, for example, in the generic algorithm named <SAMP>std::find_if()</SAMP>. This algorithm returns the first value that satisfies the predicate, returning the end-of-range value if no such element is found. Using this algorithm, the following locates the first leap year in a list of years:</P>
+
+<UL><PRE>
+std::list&lt;int&gt;::iterator firstLeap = 
+   std::find_if(aList.begin(), aList.end(), isLeapYear);
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="3-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="3-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

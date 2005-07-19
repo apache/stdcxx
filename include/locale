@@ -1,0 +1,43 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * locale - declarations of the C++ Standard Library localization classes
+ *
+ * $Id: //stdlib/dev/include/locale#16 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_LOCALE_INCLUDED
+#define _RWSTD_LOCALE_INCLUDED
+
+#include <loc/_locale.h>
+#include <loc/_codecvt.h>
+#include <loc/_convenience.h>
+#include <loc/_collate.h>
+#include <loc/_ctype.h>
+#include <loc/_money_get.h>
+#include <loc/_money_put.h>
+#include <loc/_moneypunct.h>
+#include <loc/_num_get.h>
+#include <loc/_num_put.h>
+#include <loc/_numpunct.h>
+#include <loc/_messages.h>
+#include <loc/_time_get.h>
+#include <loc/_time_put.h>
+
+#include <rw/_defs.h>
+
+#endif   // _RWSTD_LOCALE_INCLUDED

@@ -1,0 +1,673 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * fstream -- declarations of the C++ Standard Library file stream classes
+ *
+ * $Id: //stdlib/dev/include/fstream#39 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_FSTREAM_INCLUDED
+#define _RWSTD_FSTREAM_INCLUDED
+
+#if __GNUG__ >= 3
+#  pragma GCC system_header
+#endif   // gcc >= 3
+
+#include <streambuf>
+
+#include <loc/_codecvt.h>
+
+#include <rw/_file.h>
+#include <rw/_iosbase.h>
+#include <rw/_iosfwd.h>
+#include <rw/_defs.h>
+
+#ifndef _RWSTD_NO_REDUNDANT_DEFINITIONS
+#  include <istream>
+#  include <ostream>
+#endif   // _RWSTD_NO_REDUNDANT_DEFINITIONS
+
+
+#ifndef _RWSTD_PBACK_SIZE
+#  define _RWSTD_PBACK_SIZE   ((_RWSTD_STREAMSIZE)4)
+#endif   // _RWSTD_PBACK_SIZE
+
+
+_RWSTD_NAMESPACE (std) { 
+
+#ifndef _RWSTD_IOSFWD_INCLUDED
+
+_EXPORT
+template <class _CharT,
+          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+class basic_filebuf;
+
+_EXPORT
+template <class _CharT,
+          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+class basic_ifstream;
+
+_EXPORT
+template <class _CharT,
+          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+class basic_ofstream;
+
+_EXPORT
+template <class _CharT,
+          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+class basic_fstream;
+
+typedef basic_filebuf<char, char_traits<char> >  filebuf;
+typedef basic_ifstream<char, char_traits<char> > ifstream;
+typedef basic_ofstream<char, char_traits<char> > ofstream;
+typedef basic_fstream<char, char_traits<char> >  fstream;
+
+#  ifndef _RWSTD_NO_WCHAR_T
+
+typedef basic_filebuf<wchar_t, char_traits<wchar_t> >  wfilebuf;
+typedef basic_ifstream<wchar_t, char_traits<wchar_t> > wifstream;
+typedef basic_ofstream<wchar_t, char_traits<wchar_t> > wofstream;
+typedef basic_fstream<wchar_t, char_traits<wchar_t> >  wfstream;
+
+#  endif   // _RWSTD_NO_WCHAR_T
+#endif   // _RWSTD_IOSFWD_INCLUDED
+
+
+_EXPORT
+template<class _CharT, class _Traits>
+class basic_filebuf: public basic_streambuf<_CharT, _Traits>
+{
+    typedef basic_streambuf<_CharT, _Traits> _Streambuf;
+
+public:
+    typedef _CharT                          char_type;
+    typedef _Traits                         traits_type;
+    typedef _TYPENAME traits_type::int_type int_type;
+    typedef _TYPENAME traits_type::pos_type pos_type;
+    typedef _TYPENAME traits_type::off_type off_type;
+
+    // 27.8.1.2, p1
+    basic_filebuf ()
+        : _Streambuf(), _C_file (0),
+          _C_cur_pos (pos_type (off_type (-1))),
+          _C_beg_pos (pos_type (off_type (-1))),
+          _C_pbacksize (0) {
+        setbuf (0, _RWSTD_DEFAULT_BUFSIZE);
+    }
+
+#if     defined (_RWSTD_NO_EXT_FILEBUF)            \
+    && !defined (_RWSTD_NO_STATIC_IOSTREAM_INIT)   \
+    && (!defined (__GNUG__) || _GNUC_MINOR > 96)
+
+private:
+
+    // g++ 2.95 error: `std::ios_base::Init' does not declare a template type
+    friend class ios_base::Init;
+
+#endif   // _RWSTD_NO_EXT_FILEBUF && !_RWSTD_NO_STATIC_IOSTREAM_INIT
+
+    // ctor extensions - associate this with an open file and
+    // optionally set buffer size and caller-allocated buffer
+    // NOTE: passed in buffer will NOT be deallocated
+    _EXPLICIT
+    basic_filebuf (int __fd, char_type* __buf   = 0,
+                   _RWSTD_STREAMSIZE __bufsz = _RWSTD_DEFAULT_BUFSIZE)
+        : _Streambuf (ios_base::openmode (_RW::__rw_fdmode (__fd))),
+          _C_file (0), _C_cur_pos (), _C_beg_pos (), _C_pbacksize (0) {
+        _C_open (__fd, 0, __buf, __bufsz);
+    }
+
+public:
+
+#ifndef _RWSTD_NO_EXT_FILEBUF
+
+    // extension enabled only if the macro stdin is also #defined
+    // i.e., if the header <cstdio> or <stdio.h> has been #included
+
+#  ifdef stdin
+
+    _EXPLICIT
+    basic_filebuf (FILE *__fptr, char_type* __buf = 0,
+                   _RWSTD_STREAMSIZE __bufsz = _RWSTD_DEFAULT_BUFSIZE)
+        : _Streambuf (),
+          _C_file (0), _C_cur_pos (), _C_beg_pos (), _C_pbacksize (0) {
+        open (__fptr, __buf, __bufsz);
+    }
+
+#  endif   // stdin
+#endif   // _RWSTD_NO_EXT_FILEBUF
+
+    // 27.8.1.2, p3
+    virtual ~basic_filebuf ();
+
+    // 27.8.1.3, p2 (last optional argument is an extension)
+    basic_filebuf* open (const char*, ios_base::openmode, long = 0666);
+    
+#ifndef _RWSTD_NO_EXT_FILEBUF
+
+    // extensions - associate *this with an open file descriptor
+    // and optionally set buffer size and caller-allocated buffer
+    // NOTE: passed in buffer will NOT be deallocated
+
+    basic_filebuf* open (int __fd, char_type *__buf = 0,
+          _RWSTD_STREAMSIZE __bufsz = _RWSTD_DEFAULT_BUFSIZE) {
+        return _C_open (__fd, 0, __buf, __bufsz);
+    }
+
+#  ifdef stdin
+
+    // extension enabled only if the macro stdin is also #defined
+    // i.e., if the header <cstdio> or <stdio.h> has been #included
+
+    basic_filebuf* open (FILE *__file, char_type *__buf = 0,
+          _RWSTD_STREAMSIZE __bufsz = _RWSTD_DEFAULT_BUFSIZE) {
+        return _C_open (-1, __file, __buf, __bufsz);
+    }
+
+#  endif   // stdin
+    
+    // extension - return the associated file descriptor
+    int fd () const {
+        return _RW::__rw_fileno (_C_file, this->_C_state);
+    }
+
+    // extension - associate *this with an open file descriptor
+    basic_filebuf* attach (int __fd) {
+        return _C_open (__fd, 0, this->_C_buffer, this->_C_bufsize);
+    }
+
+    // extension - flush and detach from file descriptor without closing it
+    int detach () {
+        const int __fd = fd ();
+        return close (false) ? __fd : -1;
+    }
+
+#endif   // _RWSTD_NO_EXT_FILEBUF
+
+    // 27.8.1.3, p6, argument is an extension
+    basic_filebuf* close (bool = true);
+
+    // 27.8.1.3, p1
+    bool is_open () const {
+        return 0 != _C_file;
+    }
+
+protected:
+
+    // 27.8.1.4, p1
+    virtual _RWSTD_STREAMSIZE showmanyc ();
+
+    // 27.8.1.4, p3
+    virtual int_type underflow ();
+
+    // 27.8.1.4, p4 - same as base implementation
+    // virtual int_type uflow ();
+
+    // 27.8.1.4, p8
+    virtual int_type overflow (int_type = traits_type::eof ());
+
+    // 27.8.1.4, p5
+    virtual int_type pbackfail (int_type = traits_type::eof ());
+
+    // 27.8.1.4, p10 
+    //   setbuf (0, 0) sets unbuffered mode (safe to use at any time)
+    //   setbuf (0, N) sets buffered mode with internal buffer of size N
+    //   setbuf (b, N) sets buffered mode with user-allocated buffer `b'
+    //                 of size `N' (user responsible for deallocation)
+    virtual basic_streambuf<char_type, traits_type>*
+    setbuf (char_type*, _RWSTD_STREAMSIZE);
+ 
+    // 27.8.1.4, p11
+    virtual pos_type
+    seekoff (off_type, ios_base::seekdir,
+             ios_base::openmode = _RW::__rw_in_out);
+
+    // 27.8.1.4, p14
+    virtual pos_type
+    seekpos (pos_type, ios_base::openmode = _RW::__rw_in_out);
+
+    // 27.8.1.4, p16 - in input mode, repopulates buffer from file
+    virtual int sync ();
+
+private:
+
+    basic_filebuf*
+    _C_open (int, void*, char_type*, _RWSTD_STREAMSIZE);
+
+    // count newlines in char sequence to handle CR/LF translation on win32
+    // calculates seek offsets in external representation
+    off_type _C_crlf_extern_count (const char*, const char*) const;
+    
+    // calculates seek offsets in internal representation
+    off_type _C_crlf_intern_count (const char_type*, const char_type*) const;
+
+    // write unshift sequence to file (multibyte, state-dependent encondings)
+    bool _C_unshift ();
+    
+    void      *_C_file;               // underlying FILE ptr or file descriptor
+    pos_type   _C_cur_pos;            // offset/state in file corresponding to
+                                      //  end of buffer, and actual pos in file 
+    pos_type   _C_beg_pos;            // offset/state in file corresponding
+                                      //  to the beginning of buffer 
+    _RWSTD_STREAMSIZE _C_pbacksize;   // current size of putback area
+};
+
+
+template<class _CharT, class _Traits>
+inline basic_filebuf<_CharT, _Traits>::~basic_filebuf ()
+{
+    close ();
+
+    if (this->_C_own_buf ())
+        delete [] this->_C_buffer;
+}
+
+
+template<class _CharT, class _Traits>
+inline _TYPENAME basic_filebuf<_CharT, _Traits>::off_type
+basic_filebuf<_CharT, _Traits>::
+_C_crlf_extern_count (const char* __start, const char* __finish) const
+{
+    _RWSTD_ASSERT (__start <= __finish);
+
+    off_type __n = 0;
+
+#ifdef _RWSTD_CRLF_CONVENTION
+
+    if (!(this->_C_state & ios_base::binary)) {
+        while (__start != __finish)
+            if (char_traits<char>::eq ('\n', *__start++))
+                ++__n;
+    }
+
+#else   // if !defined (_RWSTD_CRLF_CONVENTION)
+
+    _RWSTD_UNUSED (__start);
+    _RWSTD_UNUSED (__finish);
+
+#endif   // _RWSTD_CRLF_CONVENTION
+
+    return __n;
+}
+
+
+template<class _CharT, class _Traits>
+inline _TYPENAME basic_filebuf<_CharT, _Traits>::off_type
+basic_filebuf<_CharT, _Traits>::
+_C_crlf_intern_count (const char_type* __start,
+                      const char_type* __finish) const
+{
+    _RWSTD_ASSERT (__start <= __finish);
+
+    off_type __n = 0;
+
+#ifdef _RWSTD_CRLF_CONVENTION
+
+    if (!(this->_C_state & ios_base::binary)) {
+        const char_type __eol = _USE_FACET (ctype<char_type>,
+                                            this->getloc ()).widen ('\n');
+        while (__start != __finish)
+            if (traits_type::eq (__eol, *__start++))
+                ++__n;
+    }
+#else   // if !defined (_RWSTD_CRLF_CONVENTION)
+
+    _RWSTD_UNUSED (__start);
+    _RWSTD_UNUSED (__finish);
+
+#endif   // _RWSTD_CRLF_CONVENTION
+
+    return __n;
+}
+
+
+template<class _CharT, class _Traits>
+class basic_ifstream: public basic_istream<_CharT, _Traits>
+{
+public:
+
+    typedef _CharT                          char_type;
+    typedef _Traits                         traits_type;
+    typedef _TYPENAME traits_type::int_type int_type;
+    typedef _TYPENAME traits_type::pos_type pos_type;
+    typedef _TYPENAME traits_type::off_type off_type;
+
+    // NOTE: the ctors below pass the address of an unitialized
+    //       member variable, _C_filebuf, to a base class ctor
+    // the variable will be initialized only *after* the base
+    // class ctor returns
+
+    basic_ifstream ()
+        : basic_istream<char_type, traits_type> (rdbuf ()) { }
+
+    _EXPLICIT
+    basic_ifstream (const char        *__name,
+                    ios_base::openmode __mode = ios_base::in,
+                    long               __prot = 0666)
+        : basic_istream<char_type, traits_type> (rdbuf ()) {
+        open (__name, __mode, __prot);
+    }
+
+#ifndef  _RWSTD_NO_EXT_FILEBUF
+
+    // extensions - associate this with an open file and set buffer
+    _EXPLICIT
+    basic_ifstream (int __fd, char_type *__buf = 0,
+                    _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE)
+        : basic_istream<char_type, traits_type> (rdbuf ()) {
+        open (__fd, __buf, __n);
+    }
+
+#  ifdef stdin
+
+    _EXPLICIT
+    basic_ifstream (FILE *__fptr, char_type *__buf = 0,
+                    _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE)
+        : basic_istream<char_type, traits_type> (rdbuf ()) {
+        open (__fptr, __buf, __n);
+    }
+
+#  endif   // stdin
+
+#endif   // _RWSTD_NO_EXT_FILEBUF
+    
+    // NOTE: the pointer returned from rdbuf() may be different from
+    //       the one passed to basic_ios<>::rdbuf (basic_filebuf<>*)
+
+    basic_filebuf<char_type, traits_type>* rdbuf() const {
+        // necessary to help SunPro 5.0/T9
+        typedef basic_ifstream <char_type, traits_type> __self_type;
+        return &_RWSTD_CONST_CAST (__self_type*, this)->_C_filebuf;
+    }
+
+    bool is_open () const {
+        return rdbuf ()->is_open ();
+    }
+
+    void open (const char         *__name,
+               ios_base::openmode  __mode = ios_base::in,
+               long                __prot = 0666) {
+        this->clear (rdbuf ()->open (__name, __mode |= ios_base::in, __prot)
+                     ? ios_base::goodbit : ios_base::failbit);
+    }
+
+#ifndef  _RWSTD_NO_EXT_FILEBUF
+
+    // extensions - associate this with an open file and set buffer
+    void open (int __fd, char_type *__buf=0,
+               _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE) {
+        this->clear (rdbuf ()->open (__fd, __buf, __n) ?
+                     ios_base::goodbit : ios_base::failbit);
+    }
+
+#  ifdef stdin
+
+    void open (FILE *__fptr, char_type *__buf=0,
+               _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE) {
+        this->clear (rdbuf ()->open (__fptr, __buf, __n) ?
+                     ios_base::goodbit : ios_base::failbit);
+    }
+
+#  endif   // stdin
+
+#endif   // _RWSTD_NO_EXT_FILEBUF
+
+    void close () {
+        if (!rdbuf ()->close ())
+            this->setstate (ios_base::failbit);
+    }
+
+private:
+    basic_filebuf<char_type, traits_type> _C_filebuf;
+};
+
+
+template<class _CharT, class _Traits>
+class basic_ofstream: public basic_ostream<_CharT, _Traits>
+{
+public:
+
+    typedef _CharT                          char_type;
+    typedef _Traits                         traits_type;
+    typedef _TYPENAME traits_type::int_type int_type;
+    typedef _TYPENAME traits_type::pos_type pos_type;
+    typedef _TYPENAME traits_type::off_type off_type;
+
+    // NOTE: the ctors below pass the address of an unitialized
+    //       member variable, _C_filebuf, to a base class ctor
+    // the variable will be initialized only *after* the base
+    // class ctor returns
+
+    basic_ofstream ()
+        : basic_ostream<char_type, traits_type> (rdbuf ()) { }
+
+    _EXPLICIT basic_ofstream (const char         *__name,
+                              ios_base::openmode  __mode = ios_base::out,
+                              long                __prot = 0666)
+        : basic_ostream<char_type, traits_type> (rdbuf ()) {
+        open (__name, __mode, __prot);
+    }
+
+#ifndef _RWSTD_NO_EXT_FILEBUF
+
+    // extensions - associate this with an open file and set buffer
+    _EXPLICIT
+    basic_ofstream (int __fd, char_type *__buf = 0,
+                    _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE)
+        : basic_ostream<char_type, traits_type> (rdbuf ()) {
+        open (__fd, __buf, __n);
+    }
+    
+#  ifdef stdin
+
+    _EXPLICIT
+    basic_ofstream (FILE *__fptr, char_type *__buf = 0,
+                    _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE)
+        : basic_ostream<char_type, traits_type> (rdbuf ()) {
+        open (__fptr, __buf, __n);
+    }
+
+#  endif   // stdin
+
+#endif   // _RWSTD_NO_EXT_FILEBUF
+    
+    // NOTE: the pointer returned from rdbuf() may be different from
+    //       the one passed to basic_ios<>::rdbuf (basic_filebuf<>*)
+
+    basic_filebuf<char_type, traits_type>* rdbuf () const {
+        // necessary to help SunPro 5.0/T9
+        typedef basic_ofstream <char_type, traits_type> _SelfT;
+        return &_RWSTD_CONST_CAST (_SelfT*, this)->_C_filebuf;
+    }
+
+    bool is_open () const {
+        return rdbuf ()->is_open ();
+    }
+     
+    void open (const char         *__name,
+               ios_base::openmode  __mode = ios_base::out,
+               long                __prot = 0666) {
+        this->clear (rdbuf ()->open (__name, __mode |= ios_base::out, __prot)
+                     ? ios_base::goodbit : ios_base::failbit);
+    }
+
+#ifndef _RWSTD_NO_EXT_FILEBUF
+
+    // extensions - associate this with an open file and set buffer
+    void open (int  __fd, char_type *__buf=0,
+               _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE) {
+        this->clear (rdbuf ()->open (__fd, __buf, __n) ?
+                     ios_base::goodbit : ios_base::failbit);
+    }
+
+#  ifdef stdin
+
+    void open (FILE *__fp, char_type *__buf=0,
+               _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE) {
+        this->clear (rdbuf ()->open (__fp, __buf, __n) ?
+                     ios_base::goodbit : ios_base::failbit);
+    }
+
+#  endif   // stdin
+
+#endif   // _RWSTD_NO_EXT_FILEBUF
+    
+    void close() {
+        if (!rdbuf ()->close ())
+            this->setstate (ios_base::failbit);
+    }
+
+private:
+    basic_filebuf<char_type, traits_type> _C_filebuf;
+};
+
+
+template<class _CharT, class _Traits>
+class basic_fstream: public basic_iostream<_CharT, _Traits>
+{
+public:
+
+    typedef _CharT                          char_type;
+    typedef _Traits                         traits_type;
+    typedef _TYPENAME traits_type::int_type int_type;
+    typedef _TYPENAME traits_type::pos_type pos_type;
+    typedef _TYPENAME traits_type::off_type off_type;
+
+    // NOTE: the ctors below pass the address of an unitialized
+    //       member variable, _C_filebuf, to a base class ctor
+    // the variable will be initialized only *after* the base
+    // class ctor returns
+
+    basic_fstream ()
+        : basic_iostream<char_type, traits_type>(rdbuf ()) { }
+
+    _EXPLICIT
+    basic_fstream (const char         *__name,
+                   ios_base::openmode  __mode = _RW::__rw_in_out,
+                   long                __prot = 0666)
+        : basic_iostream<char_type, traits_type>(rdbuf ()) {
+        open (__name, __mode, __prot);
+    }
+
+#ifndef _RWSTD_NO_EXT_FILEBUF
+
+    // extensions - associate this with an open file and set buffer
+    _EXPLICIT
+    basic_fstream (int __fd, char_type *__buf = 0,
+                   _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE)
+        : basic_iostream<char_type, traits_type>(rdbuf ()) {
+        open (__fd, __buf, __n);
+    }
+
+#  ifdef stdin
+
+    _EXPLICIT
+    basic_fstream (FILE *__fptr, char_type *__buf = 0,
+                   _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE)
+        : basic_iostream<char_type, traits_type>(rdbuf ()) {
+        open (__fptr, __buf, __n);
+    }
+
+#  endif   // stdin
+
+#endif   // _RWSTD_NO_EXT_FILEBUF
+
+    // NOTE: the pointer returned from rdbuf() may be different from
+    //       the one passed to basic_ios<>::rdbuf (basic_filebuf<>*)
+
+    basic_filebuf<char_type, traits_type>* rdbuf() const {
+        // necessary to help SunPro 5.0/T9
+        typedef basic_fstream <char_type, traits_type> _SelfT;
+        return &_RWSTD_CONST_CAST (_SelfT*, this)->_C_filebuf;
+    }
+
+    bool is_open () const {
+        return rdbuf ()->is_open ();
+    }
+
+    void open (const char         *__name,
+               ios_base::openmode  __mode = _RW::__rw_in_out,
+               long                __prot = 0666) {
+        this->clear (rdbuf ()->open (__name, __mode, __prot)
+                     ? ios_base::goodbit : ios_base::failbit);
+    }
+
+#ifndef _RWSTD_NO_EXT_FILEBUF
+
+    // extensions - associate this with an open file and set buffer"
+    void open (int __fd, char_type *__buf=0,
+               _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE) {
+        this->clear (rdbuf ()->open (__fd, __buf, __n) ?
+                     ios_base::goodbit : ios_base::failbit);
+    }
+
+#  ifdef stdin
+
+    void open (FILE *__fptr, char_type *__buf=0,
+               _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE) {
+        this->clear (rdbuf ()->open (__fptr, __buf, __n) ?
+                     ios_base::goodbit : ios_base::failbit);
+    }
+
+#  endif    // stdin
+
+#endif   // _RWSTD_NO_EXT_FILEBUF
+
+    void close () {
+        if (!rdbuf ()->close ())
+            this->setstate (ios_base::failbit);
+    }
+
+private:
+    basic_filebuf<char_type, traits_type> _C_filebuf;
+};
+
+
+}   // namespace std
+
+
+#if _RWSTD_DEFINE_TEMPLATE_FIRST (_BASIC_FILEBUF)
+#  include <fstream.cc>
+#endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (_BASIC_FILEBUF)
+
+
+_RWSTD_NAMESPACE (std) { 
+
+#if _RWSTD_INSTANTIATE (_BASIC_FILEBUF, _CHAR)
+
+_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+                      basic_filebuf<char, char_traits<char> >);
+
+#endif   // _RWSTD_INSTANTIATE (_BASIC_FILEBUF, _CHAR)
+
+
+#if _RWSTD_INSTANTIATE (_BASIC_FILEBUF, _WCHAR_T)
+
+_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+                      basic_filebuf<wchar_t, char_traits<wchar_t> >);
+
+#endif   // _RWSTD_INSTANTIATE (_BASIC_FILEBUF, _WCHAR_T)
+
+}   // namespace std
+
+
+#if _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_FILEBUF)
+#  include <fstream.cc>
+#endif   // _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_FILEBUF)
+
+
+#endif   // _RWSTD_FSTREAM_INCLUDED

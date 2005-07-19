@@ -1,0 +1,105 @@
+<HTML>
+<HEAD>
+<TITLE>reverse()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="return-temporary-buffer.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="reverse-copy.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>reverse()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An algorithm that reverses the order of elements in a sequence</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class BidirectionalIterator&gt;
+  void reverse(BidirectionalIterator start,
+               BidirectionalIterator finish);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The algorithm <SAMP>reverse()</SAMP> reverses the elements in a sequence so that the last element becomes the new first element, and the first element becomes the new last. For each non-negative integer <SAMP>i &lt;= (finish - start)/2</SAMP>, <SAMP>reverse()</SAMP> applies <SAMP><A HREF="iter-swap.html">iter_swap()</A></SAMP> to all pairs of iterators <SAMP>start + I, (finish&nbsp;-&nbsp;I)&nbsp;- 1</SAMP>. </P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P><SAMP>reverse()</SAMP> performs exactly <SAMP>(finish - start)/2</SAMP> swaps.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  reverse.cpp
+//
+
+#include &lt;algorithm&gt;   // for reverse, reverse_copy
+#include &lt;vector&gt;      // for vector
+#include &lt;iostream&gt;    // for cout, endl
+#include &lt;iterator&gt;    // for ostream_iterator
+
+
+
+int main ()
+{
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; Vector;
+    typedef std::ostream_iterator&lt;int, char,
+                                  std::char_traits&lt;char&gt; &gt;
+            Iter;
+
+    // Initialize a vector with an array of integers.
+    const Vector::value_type a[] = { 1, 2, 3, 4, 5, 
+                                     6, 7, 8, 9, 10 };
+
+    Vector v (a + 0, a + sizeof a / sizeof *a);
+
+    // Print out elements in original (sorted) order.
+    std::cout &lt;&lt; "Elements before reverse: \n     ";
+    std::copy (v.begin (), v.end (), Iter (std::cout, " "));
+
+    // Reverse the ordering.
+    std::reverse (v.begin (), v.end ());
+
+    // Print out the reversed elements.
+    std::cout &lt;&lt; "\n\nElements after reverse: \n     ";
+    std::copy (v.begin (), v.end (), Iter (std::cout, " "));
+
+    std::cout &lt;&lt; "\n\nA reverse_copy to cout: \n     ";
+    std::reverse_copy (v.begin (), v.end (), 
+                       Iter (std::cout, " "));
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>Elements before reverse: 
+     1 2 3 4 5 6 7 8 9 10 
+
+Elements after reverse: 
+     10 9 8 7 6 5 4 3 2 1 
+
+A reverse_copy to cout: 
+     1 2 3 4 5 6 7 8 9 10 
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="reverse-copy.html">reverse_copy()</A></SAMP>, <SAMP><A HREF="swap.html">swap()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.2.9</I></P>
+
+<BR>
+<HR>
+<A HREF="return-temporary-buffer.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="reverse-copy.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,215 @@
+<HTML>
+<HEAD>
+<TITLE>pair</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="overflow-error.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="partial-sort.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>pair</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Constructors</A></LI>
+<LI><A HREF="#sec8">Destructor</A></LI>
+<LI><A HREF="#sec9">Nonmember Operators</A></LI>
+<LI><A HREF="#sec10">Nonmember Functions</A></LI>
+<LI><A HREF="#sec11">See Also</A></LI>
+<LI><A HREF="#sec12">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1091">first_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1093">pair()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1092">second_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1096">~pair()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1103">make_pair()</A><BR>
+<A HREF="#idx1098">operator!=()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1100">operator&gt;()</A><BR>
+<A HREF="#idx1102">operator&gt;=()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1099">operator&lt;()</A><BR>
+<A HREF="#idx1101">operator&lt;=()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1097">operator==()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A template utility class for pairs of values that may be of different types</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;utility&gt;
+
+namespace std {
+  template &lt;class T1, class T2&gt;
+  struct pair;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <B><I>pair</I></B> class is a template for encapsulating pairs of values that may be of different types.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class T1, class T2&gt;
+  struct pair {
+     typedef T1 first_type;
+     typedef T2 second_type;
+     T1 first;
+     T2 second;
+     pair();
+     pair(const T1&amp;, const T2&amp;);
+     template &lt;class V, class U&gt;
+     pair (const pair &lt;V, U&gt;&amp; p);
+     ~pair();
+  };
+
+  template &lt;class T1, class T2&gt;
+  bool operator==(const pair&lt;T1, T2&gt;&amp;,
+                  const pair T1, T2&gt;&amp;);
+
+  template &lt;class T1, class T2&gt;
+  bool operator!=(const pair&lt;T1, T2&gt;&amp;,
+                  const pair T1, T2&gt;&amp;);
+
+  template &lt;class T1, class T2&gt;
+  bool operator&lt;(const pair&lt;T1, T2&gt;&amp;,
+                 const pair T1, T2&gt;&amp;);
+
+  template &lt;class T1, class T2&gt;
+  bool operator&gt;(const pair&lt;T1, T2&gt;&amp;,
+                 const pair T1, T2&gt;&amp;);
+
+  template &lt;class T1, class T2&gt;
+  bool operator&lt;=(const pair&lt;T1, T2&gt;&amp;,
+                 const pair T1, T2&gt;&amp;);
+
+  template &lt;class T1, class T2&gt;
+  bool operator&gt;=(const pair&lt;T1, T2&gt;&amp;,
+                 const pair T1, T2&gt;&amp;);
+
+  template &lt;class T1, class T2&gt;
+  pair&lt;T1,T2&gt; make_pair (const T1&amp;, const T2&amp;);
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx1091"></A><PRE><B>first_type</B></PRE>
+<UL>
+<P>Type of the first element in a pair.</P>
+</UL>
+
+
+<A NAME="idx1092"></A><PRE><B>second_type</B></PRE>
+<UL>
+<P>Type of the second element in a pair.</P>
+</UL>
+
+<A NAME="sec7"><H3>Constructors</H3></A>
+
+<A NAME="idx1093"></A><PRE><B>pair</B>();</PRE>
+<UL>
+<P>Default constructor. Initializes <SAMP>first</SAMP> and <SAMP>second</SAMP> using their default constructors.</P>
+</UL>
+
+
+<A NAME="idx1094"></A><PRE><B>pair</B>(const T1&amp; x, const T2&amp; y);</PRE>
+<UL>
+<P>Creates a <B><I>pair</I></B> of types <SAMP>T1</SAMP> and <SAMP>T2</SAMP>, making the necessary conversions in<SAMP> x&nbsp;</SAMP>and <SAMP>y</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1095"></A><PRE>template &lt;class V, class U&gt;
+<B>pair</B>(const pair &lt;V, U&gt;&amp; p);</PRE>
+<UL>
+<P>Copies <SAMP>first</SAMP> and <SAMP>second</SAMP> from the corresponding elements of <SAMP>p</SAMP>.</P>
+</UL>
+
+<A NAME="sec8"><H3>Destructor</H3></A>
+
+<A NAME="idx1096"></A><PRE><B>~pair</B> ();</PRE>
+<A NAME="sec9"><H3>Nonmember Operators</H3></A>
+
+<A NAME="idx1097"></A><PRE>template &lt;class T1, class T2&gt;
+bool <B>operator==</B> (const pair&lt;T1, T2&gt;&amp; x,
+                  const pair T1, T2&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>(x.first == y.first &amp;&amp; x.second == y.second</SAMP>) is <SAMP>true</SAMP>. Otherwise it returns <SAMP>false</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1098"></A><PRE>template &lt;class T1, class T2&gt;
+bool <B>operator!=</B> (const pair&lt;T1, T2&gt;&amp; x,
+                  const pair T1, T2&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>!(x==y)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1099"></A><PRE>template &lt;class T1, class T2&gt;
+bool <B>operator&lt;</B> (const pair&lt;T1, T2&gt;&amp; x,
+                const pair T1, T2&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>(x.first &lt; y.first || (!(y.first &lt; x.first) &amp;&amp; x.second &lt; y.second))</SAMP> is <SAMP>true</SAMP>. Otherwise it returns <SAMP>false</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1100"></A><PRE>template &lt;class T1, class T2&gt;
+bool <B>operator&gt;</B> (const pair&lt;T1, T2&gt;&amp; x,
+                const pair T1, T2&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>y &lt; x</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1101"></A><PRE>template &lt;class T1, class T2&gt;
+bool <B>operator&lt;=</B> (const pair&lt;T1, T2&gt;&amp; x,
+                const pair T1, T2&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>!(y &gt; x)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1102"></A><PRE>template &lt;class T1, class T2&gt;
+bool <B>operator&gt;=</B> (const pair&lt;T1, T2&gt;&amp; x,
+                const pair T1, T2&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>!(x &lt; y)</SAMP>.</P>
+</UL>
+
+<A NAME="sec10"><H3>Nonmember Functions</H3></A>
+
+<A NAME="idx1103"></A><PRE>template &lt;class T1, class T2&gt;
+pair&lt;T1,T2&gt;
+<B>make_pair</B>(x,y);</PRE>
+<UL>
+<P>Creates a <B><I>pair</I></B> by deducing and returning the types of <SAMP>x</SAMP> and <SAMP>y</SAMP>.</P>
+</UL>
+
+<A NAME="sec11"><H3>See Also</H3></A>
+<P><A HREF="utility-h.html">&lt;utility&gt;</A></P>
+<A NAME="sec12"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 20.2.2</I></P>
+
+<BR>
+<HR>
+<A HREF="overflow-error.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="partial-sort.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

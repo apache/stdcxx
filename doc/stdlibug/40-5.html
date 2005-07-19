@@ -1,0 +1,106 @@
+<HTML>
+<HEAD>
+<TITLE>Example 2: Defining a Multibyte Character Code Conversion (JIS &lt;-&gt; Unicode)</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="40-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="41.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>40.5 Example 2: Defining a Multibyte Character Code Conversion (JIS &lt;-&gt; Unicode)</H2>
+<A NAME="idx960"><!></A>
+<P>Let us consider the example of a state-dependent code conversion. As mentioned previously, this type of conversion would occur between JIS, which is a state-dependent multibyte encoding for Japanese characters, and Unicode, which is a wide-character encoding. As usual, we assume that the external device uses multibyte encoding, and the internal processing uses wide-character encoding.</P>
+<P>Here is what you must do to implement and use a state-dependent code conversion facet:</P>
+<OL>
+<LI><P CLASS="LIST">Define a new conversion state type if necessary.</P></LI>
+<LI><P CLASS="LIST">Define a new character traits type if necessary, or instantiate the character traits template with the new state type.</P></LI>
+<LI><P CLASS="LIST">Define the code conversion facet.</P></LI>
+<LI><P CLASS="LIST">Instantiate new stream types using the new character traits type.</P></LI>
+<LI><P CLASS="LIST">Imbue a file stream's buffer with a locale that carries the new code conversion facet.</P></LI>
+</OL>
+<P>These steps are explained in detail in the following sections.</P>
+<A NAME="4051"><H3>40.5.1 Define a New Conversion State Type</H3></A>
+<A NAME="idx961"><!></A>
+<P>While parsing or creating a sequence of multibytes in a state-dependent multibyte encoding, the code conversion facet has to maintain a conversion state. This state is by default of type <SAMP>mbstate_t</SAMP>, which is the implementation-dependent state type defined in <SAMP>&lt;cwchar&gt;</SAMP>. If this type does not suffice to keep track of the conversion state, you must provide your own conversion state type that satisfies the requirements of <SAMP>CopyConstructible</SAMP>.</P>
+
+<UL><PRE>
+class JISstate_t { /* ... */ };
+</PRE></UL>
+<A NAME="4052"><H3>40.5.2 Define a New Character Traits Type</H3></A>
+<A NAME="idx962"><!></A>
+<P>The conversion state type is part of the character traits. Hence, with a new conversion state type, you need a new character traits type.</P>
+<P>If you do not want to rely on a nonstandard and thus non-portable feature of the library, you must define a new character traits type and redefine the necessary types:</P>
+
+<UL><PRE>
+struct JIS_char_traits: std::char_traits&lt;wchar_t&gt; 
+{
+   typedef JISstate_t                state_type;
+   typedef std::fpos&lt;state_type&gt;     pos_type;
+   typedef std::streamoff            off_type;
+};
+</PRE></UL>
+<A NAME="4053"><H3>40.5.3 Define the Code Conversion Facet</H3></A>
+<A NAME="idx963"><!></A>
+<P>Just as in the first example, you must define the actual code conversion facet. The steps are basically the same as before, too: define a new class template for the new code conversion type and specialize it. The code would look like this:</P>
+
+<UL><PRE>
+template &lt;class internT, class externT, class stateT&gt;
+class UnicodeJISConversion
+    : public std::codecvt&lt;internT, externT, stateT&gt;
+{};
+
+class UnicodeJISConversion&lt;wchar_t, char, JISstate_t&gt;
+: public std::codecvt&lt;wchar_t, char, JISstate_t&gt;
+{
+protected:
+
+ virtual std::codecvt_base::result
+ do_in(JISstate_t&amp;  state,
+       const char*  from,
+       const char*  from_end,
+       const char*&amp; from_next,
+       wchar_t*     to,
+       wchar_t*     to_limit,
+       wchar_t*&amp;    to_next) const;
+
+ virtual std::codecvt_base::result
+ do_out(JISstate_t&amp;     state,
+        const wchar_t*  from,
+        const wchar_t*  from_end,
+        const wchar_t*&amp; from_next,
+        char*           to,
+        char*           to_limit, 
+        char*&amp;          to_next) const;
+
+ virtual bool do_always_noconv() const throw(){
+      return false;
+ }
+
+ virtual int do_encoding() const throw(){ 
+       return -1;
+ }
+};
+</PRE></UL>
+<P>In this case, the member function <SAMP>do_encoding()</SAMP> has to return <SAMP>-1</SAMP>, which identifies the code conversion as state-dependent. Again, the member functions <SAMP>in()</SAMP> and <SAMP>out()</SAMP> must conform to the error indication policy explained under class <B><I><A HREF="../stdlibref/codecvt.html">codecvt</A></I></B> in the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A>.</P>
+<P>The distinguishing characteristic of a state-independent conversion is that the conversion state argument to <SAMP>in()</SAMP> and <SAMP>out()</SAMP> is used for communication between the file stream buffer and the code conversion facet. The file stream buffer is responsible for creating, maintaining, and deleting the conversion state. At the beginning, the file stream buffer creates a conversion state object that represents the initial conversion state and hands it over to the code conversion facet. The facet modifies it according to the conversion it performs. The file stream buffer receives it and stores it between two subsequent code conversions.</P>
+<A NAME="4054"><H3>40.5.4 Use the New Code Conversion Facet</H3></A>
+<A NAME="idx964"><!></A>
+<P>Here is an example of how the new code conversion facet can be used:</P>
+
+<UL><PRE>
+typedef std::basic_fstream&lt;wchar_t,
+                            JIS_char_traits&gt; JIS_fstream;     //1
+JIS_fstream inout("/tmp/fil");
+UnicodeJISConversion&lt;wchar_t,char,JISstate_t&gt; cvtfac;
+std::locale cvtloc(std::locale(), &amp;cvtfac);
+inout.rdbuf()-&gt;pubimbue(cvtloc)                               //2
+std::wcout &lt;&lt; inout.rdbuf();                                  //3
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Our Unicode-JIS code conversion needs a conversion state type different from the default type <SAMP>std::mbstate_t</SAMP>. Since the conversion state type is contained in the character traits, we must create a new file type.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Here the stream buffer's locale is replaced by a copy of the global locale that has a Unicode-JIS code conversion facet.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>The content of the JIS encoded file <SAMP>"/tmp/fil"</SAMP> is read, automatically converted to Unicode, and written to <SAMP>std::wcout</SAMP>.
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="40-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="41.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

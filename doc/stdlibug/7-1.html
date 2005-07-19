@@ -1,0 +1,25 @@
+<HTML>
+<HEAD>
+<TITLE>The deque Data Abstraction</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="7.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="7-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>7.1 The deque Data Abstraction</H2>
+<A NAME="idx122"><!></A>
+<P>The name <I>deque</I> is short for <I>double-ended queue</I>, and is pronounced like <I>deck</I>. Traditionally, the term is used to describe any data structure that permits both insertions and removals from either the front or the back of a collection. The <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> container class permits this and much more. In fact, the capabilities of the <B><I>deque</I></B> data structure are almost a union of those provided by the <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> and <B><I><A HREF="../stdlibref/list.html">list</A></I></B> classes.</P>
+<P>Like a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>, the <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> is an indexed collection. Values can be accessed by subscript, using the position within the collection as a key. This capability is not provided by the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> class.</P>
+<P>Like a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>, however, values can be efficiently added either to the front or to the back of a <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>. This capability is provided only in part by the vector class.</P>
+<P>As with both the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> and <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> classes, insertions can be made into the middle of the sequence held by a <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>. Such insertion operations are not as efficient as with a <B><I>list</I></B>, but slightly more efficient that they are in a <B><I>vector</I></B>.</P>
+<P>In short, a <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> can often be used in situations that require a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> and in situations that require a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. Often, using a <B><I>deque</I></B> in place of either a <B><I>vector</I></B> or a <B><I>list</I></B> results in faster programs. To determine which data structure should be used, you can refer to the set of questions described in <A HREF="4-2.html">Section&nbsp;4.2</A></P>
+<A NAME="711"><H3>7.1.1 Include Files</H3></A>
+<A NAME="idx123"><!></A>
+<P>The <SAMP>deque</SAMP> header file must appear in all programs that use the <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> datatype:</P>
+
+<UL><PRE>
+#include &lt;deque&gt;
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="7.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="7-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

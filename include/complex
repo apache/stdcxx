@@ -1,0 +1,947 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * <complex> - definitions of the template complex and specializations
+ *
+ * $Id: //stdlib/dev/include/complex#28 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_COMPLEX_INCLUDED
+#define _RWSTD_COMPLEX_INCLUDED
+
+#include <sstream>
+#include <iosfwd>
+#include <utility>
+
+#include <rw/_defs.h>
+#include _RWSTD_CMATH
+
+
+#ifdef _MSC_VER
+#  pragma warning (push)
+   // disable conversion from 'double' to 'float', possible loss of data
+   // until a conforming <cmath> header with float and long double overloads
+   // for the C functions is provided
+#  pragma warning (disable: 4244)
+#endif   // _MSC_VER
+
+
+_RWSTD_NAMESPACE (std) { 
+
+// 26.2.2
+template <class _TypeT>
+class complex;
+
+// 26.2.3
+_RWSTD_SPECIALIZED_CLASS
+class complex<float>;
+
+// 26.2.3
+_RWSTD_SPECIALIZED_CLASS
+class complex<double>;
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+// 26.2.3
+_RWSTD_SPECIALIZED_CLASS
+class complex<long double>;
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+
+// 26.2.6 complex non-member operations (used from within member functions)
+
+// 26.2.6, p7
+template <class _TypeT>
+inline complex<_TypeT>
+operator* (const complex<_TypeT> &__lhs, const complex<_TypeT> &__rhs)
+{
+    return complex<_TypeT>(_TypeT (  __lhs.real () * __rhs.real ()
+                                   - __lhs.imag () * __rhs.imag ()),
+                           _TypeT (  __lhs.imag () * __rhs.real ()
+                                   + __lhs.real () * __rhs.imag ()));
+}
+
+
+// 26.2.6, p8
+template <class _TypeT>
+inline complex<_TypeT>
+operator/ (const complex<_TypeT> &__lhs, const complex<_TypeT> &__rhs)
+{
+    _TypeT __den = __rhs.real() * __rhs.real() + __rhs.imag() * __rhs.imag();
+
+    return complex<_TypeT>(_TypeT (  __lhs.real () * __rhs.real ()
+                                   + __lhs.imag () * __rhs.imag ()) / __den,
+                           _TypeT (  __lhs.imag () * __rhs.real ()
+                                   - __lhs.real () * __rhs.imag ()) / __den);
+}
+
+
+#ifndef _RWSTD_NO_MEMBER_TEMPLATES
+#  define _RWSTD_MEMBER_TEMPLATE(name)  \
+          template <class _TypeX>       \
+          complex<value_type>& name (const complex<_TypeX> &__rhs)
+
+#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
+
+#  define _RWSTD_MEMBER_TEMPLATE(name)     \
+          complex<value_type>& name (const complex &__rhs)
+
+#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+
+
+// 26.2.3 - complex specializations
+
+_RWSTD_SPECIALIZED_CLASS
+class complex<float>
+{
+public:
+    typedef float value_type;
+
+    // implicit conversion
+    complex (value_type __re = value_type (), value_type __im = value_type ())
+      : _C_re (__re), _C_im (__im) { }
+
+    // defined after the definition of the incomplete complex<double>
+    _EXPLICIT complex (const complex<double>&);
+    
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+    // defined after the definition of the incomplete complex<long double>
+    _EXPLICIT complex (const complex<long double>&);
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+    value_type imag () const {
+        return _C_im;
+    }
+
+    value_type real () const {
+        return _C_re;
+    }
+
+#if defined (_COMPILER_VERSION) && _COMPILER_VERSION <= 730
+
+    // working around a MIPSpro 7.3.1 bug (SGI serial #0800690BCFC2)
+    complex<value_type>& operator= (const complex<value_type>& __rhs) {
+        return (_C_re = __rhs._C_re), (_C_im = __rhs._C_im), *this;
+    }
+
+#endif   // _COMPILER_VERSION <= 730
+
+#ifndef _RWSTD_NO_MEMBER_TEMPLATE
+
+    template <class _TypeT>
+    complex<value_type>& operator= (const complex<_TypeT>& __rhs) {
+        return (_C_re = __rhs._C_re), (_C_im = __rhs._C_im), *this;
+    }
+
+#endif   // _RWSTD_NO_MEMBER_TEMPLATE
+    
+    _RWSTD_MEMBER_TEMPLATE (operator+=) {
+        return (_C_re += __rhs.real ()), (_C_im += __rhs.imag ()), *this;
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator-=) {
+        return (_C_re -= __rhs.real ()), (_C_im -= __rhs.imag ()), *this;
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator*=) {
+        return *this = *this * complex<value_type>(__rhs);
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator/=) {
+        return *this = *this / complex<value_type>(__rhs);
+    }
+
+    complex<value_type>& operator= (value_type __rhs) {
+        return (_C_re = __rhs), (_C_im = value_type ()), *this;
+    }
+
+    complex<value_type>& operator+= (value_type __rhs) {
+        return _C_re += __rhs, *this;
+    }
+
+    complex<value_type>& operator-= (value_type __rhs) {
+        return _C_re -= __rhs, *this;
+    }
+
+    complex<value_type>& operator*= (value_type __rhs) {
+        return (_C_re *= __rhs), (_C_im *= __rhs), *this;
+    }
+
+    complex<value_type>& operator/= (value_type __rhs) {
+        return (_C_re /= __rhs), (_C_im /= __rhs), *this;
+    }
+
+private:
+    value_type _C_re, _C_im;
+};
+
+
+_RWSTD_SPECIALIZED_CLASS
+class complex<double>
+{
+public:
+    typedef double value_type;
+
+    // implicit conversion
+    complex (value_type __re = value_type (), value_type __im = value_type ())
+      : _C_re (__re), _C_im (__im) { }
+
+    // implicit conversion
+    complex (const complex<float> &__rhs)
+        : _C_re (__rhs.real ()), _C_im (__rhs.imag ()) { }
+    
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+    // defined after the definition of the incomplete complex<long double>
+    _EXPLICIT complex (const complex<long double>&);
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+    value_type imag () const {
+        return _C_im;
+    }
+
+    value_type real () const {
+        return _C_re;
+    }
+
+#if defined (_COMPILER_VERSION) && _COMPILER_VERSION <= 730
+
+    // working around a MIPSpro 7.3.1 bug (SGI serial #0800690BCFC2)
+    complex<value_type>& operator= (const complex<value_type>& __rhs) {
+        return (_C_re = __rhs._C_re), (_C_im = __rhs._C_im), *this;
+    }
+
+#endif   // _COMPILER_VERSION <= 730
+
+#ifndef _RWSTD_NO_MEMBER_TEMPLATE
+
+    template <class _TypeT>
+    complex<value_type>& operator= (const complex<_TypeT>& __rhs) {
+        return (_C_re = __rhs._C_re), (_C_im = __rhs._C_im), *this;
+    }
+
+#endif   // _RWSTD_NO_MEMBER_TEMPLATE
+    
+    _RWSTD_MEMBER_TEMPLATE (operator+=) {
+        return (_C_re += __rhs.real ()), (_C_im += __rhs.imag ()), *this;
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator-=) {
+        return (_C_re -= __rhs.real ()), (_C_im -= __rhs.imag ()), *this;
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator*=) {
+        return *this = *this * complex<value_type>(__rhs);
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator/=) {
+        return *this = *this / complex<value_type>(__rhs);
+    }
+
+    complex<value_type>& operator= (value_type __rhs) {
+        return (_C_re = __rhs), (_C_im = value_type ()), *this;
+    }
+
+    complex<value_type>& operator+= (value_type __rhs) {
+        return _C_re += __rhs, *this;
+    }
+
+    complex<value_type>& operator-= (value_type __rhs) {
+        return _C_re -= __rhs, *this;
+    }
+
+    complex<value_type>& operator*= (value_type __rhs) {
+        return (_C_re *= __rhs), (_C_im *= __rhs), *this;
+    }
+
+    complex<value_type>& operator/= (value_type __rhs) {
+        return (_C_re /= __rhs), (_C_im /= __rhs), *this;
+    }
+
+private:
+    value_type _C_re, _C_im;
+};
+
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+_RWSTD_SPECIALIZED_CLASS
+class complex<long double>
+{
+public:
+    typedef long double value_type;
+
+    // implicit conversion
+    complex (value_type __re = value_type (), value_type __im = value_type ())
+      : _C_re (__re), _C_im (__im) { }
+
+    // implicit conversion
+    complex (const complex<float> &__rhs)
+        : _C_re (__rhs.real ()), _C_im (__rhs.imag ()) { }
+    
+    // implicit conversion
+    complex (const complex<double> &__rhs)
+        : _C_re (__rhs.real ()), _C_im (__rhs.imag ()) { }
+
+    value_type imag () const {
+        return _C_im;
+    }
+
+    value_type real () const {
+        return _C_re;
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator+=) {
+        return (_C_re += __rhs.real ()), (_C_im += __rhs.imag ()), *this;
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator-=) {
+        return (_C_re -= __rhs.real ()), (_C_im -= __rhs.imag ()), *this;
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator*=) {
+        return *this = *this * complex<value_type>(__rhs);
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator/=) {
+        return *this = *this / complex<value_type>(__rhs);
+    }
+
+#if defined (_COMPILER_VERSION) && _COMPILER_VERSION <= 730
+
+    // working around a MIPSpro 7.3.1 bug (SGI serial #0800690BCFC2)
+    complex<value_type>& operator= (const complex<value_type>& __rhs) {
+        return (_C_re = __rhs._C_re), (_C_im = __rhs._C_im), *this;
+    }
+
+#endif   // _COMPILER_VERSION <= 730
+
+#ifndef _RWSTD_NO_MEMBER_TEMPLATE
+
+    template <class _TypeT>
+    complex& operator= (const complex<_TypeT>& __rhs) {
+        return (_C_re = __rhs._C_re), (_C_im = __rhs._C_im), *this;
+    }
+
+#endif   // _RWSTD_NO_MEMBER_TEMPLATE
+
+    complex& operator+= (value_type __rhs) {
+        return _C_re += __rhs, *this;
+    }
+
+    complex& operator-= (value_type __rhs) {
+        return _C_re -= __rhs, *this;
+    }
+
+    complex& operator*= (value_type __rhs) {
+        return (_C_re *= __rhs), (_C_im *= __rhs), *this;
+    }
+
+    complex& operator/= (value_type __rhs) {
+        return (_C_re /= __rhs), (_C_im /= __rhs), *this;
+    }
+
+private:
+    value_type _C_re, _C_im;
+};
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+
+inline complex<float>::complex (const complex<double> &__rhs)
+    : _C_re (_RWSTD_STATIC_CAST (value_type, __rhs.real ())),
+      _C_im (_RWSTD_STATIC_CAST (value_type, __rhs.imag ()))
+{ }
+    
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+inline complex<float>::complex (const complex<long double> &__rhs)
+    : _C_re (_RWSTD_STATIC_CAST (value_type, __rhs.real ())),
+      _C_im (_RWSTD_STATIC_CAST (value_type, __rhs.imag ()))
+{ }
+
+inline complex<double>::complex (const complex<long double> &__rhs)
+    : _C_re (_RWSTD_STATIC_CAST (value_type, __rhs.real ())),
+      _C_im (_RWSTD_STATIC_CAST (value_type, __rhs.imag ()))
+{ }
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+
+
+// 26.2.2
+template <class _TypeT>
+class complex
+{
+public:
+    typedef _TypeT value_type;
+
+    complex (const value_type &__re = value_type (),
+             const value_type &__im = value_type ())
+        : _C_re (__re), _C_im (__im) { }
+
+    value_type imag () const {
+        return _C_im;
+    }
+
+    value_type real () const {
+        return _C_re;
+    }
+
+#ifndef _RWSTD_NO_MEMBER_TEMPLATE
+
+    template <class _TypeU>
+    complex (const complex<_TypeU>& __rhs)
+        : _C_re (_RWSTD_STATIC_CAST (value_type, __rhs.real ())),
+          _C_im (_RWSTD_STATIC_CAST (value_type, __rhs.imag ())) { }
+
+    template <class _TypeU>
+    complex& operator= (const complex<_TypeU>& __rhs) {
+        // not recursive: calls the compiler-generated operator=()
+        return *this = complex (__rhs);
+    }
+
+#endif   // _RWSTD_NO_MEMBER_TEMPLATE
+    
+    _RWSTD_MEMBER_TEMPLATE (operator+=) {
+        return *this = *this + __rhs;
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator-=) {
+        return *this = *this - __rhs;
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator*=) {
+        return *this = *this * __rhs;
+    }
+
+    _RWSTD_MEMBER_TEMPLATE (operator/=) {
+        return *this = *this / __rhs;
+    }
+
+    complex& operator= (value_type __rhs) {
+        return (_C_re = __rhs), (_C_im = value_type ()), *this;
+    }
+
+    complex& operator+= (value_type __rhs) {
+        return _C_re += __rhs, *this;
+    }
+
+    complex& operator-= (value_type __rhs) {
+        return _C_re -= __rhs, *this;
+    }
+
+    complex& operator*= (value_type __rhs) {
+        return (_C_re *= __rhs), (_C_im *= __rhs), *this;
+    }
+
+    complex& operator/= (value_type __rhs) {
+        return (_C_re /= __rhs), (_C_im /= __rhs), *this;
+    }
+
+private:
+    value_type _C_re, _C_im;
+};
+
+
+// 26.2.6 complex non-member operations
+
+// 26.2.6, p1
+template <class _TypeT>
+inline complex<_TypeT>
+operator+ (const complex<_TypeT> &__rhs)
+{
+    return __rhs;
+}
+
+
+// 26.2.6, p3
+template <class _TypeT>
+inline complex<_TypeT>
+operator+ (const complex<_TypeT> &__lhs, const complex<_TypeT> &__rhs)
+{
+    return complex<_TypeT>(_TypeT (__lhs.real () + __rhs.real ()),
+                           _TypeT (__lhs.imag () + __rhs.imag ()));
+}
+
+template <class _TypeT>
+inline complex<_TypeT>
+operator+ (const complex<_TypeT> &__lhs, const _TypeT &__rhs)
+{
+    return complex<_TypeT>(__lhs.real () + __rhs, __lhs.imag ());
+}
+
+
+template <class _TypeT>
+inline complex<_TypeT>
+operator+ (const _TypeT &__lhs, const complex<_TypeT> &__rhs)
+{
+    return __rhs + __lhs;
+}
+
+
+// 26.2.6, p4
+template <class _TypeT>
+inline complex<_TypeT>
+operator- (const complex<_TypeT> &__rhs)
+{
+    return complex<_TypeT>(-__rhs.real (), -__rhs.imag ());
+}
+
+
+// 26.2.6, p6
+template <class _TypeT>
+inline complex<_TypeT>
+operator- (const complex<_TypeT> &__lhs, const complex<_TypeT> &__rhs)
+{
+    return complex<_TypeT>(_TypeT (__lhs.real () - __rhs.real ()),
+                           _TypeT (__lhs.imag () - __rhs.imag ()));
+}
+
+
+template <class _TypeT>
+inline complex<_TypeT>
+operator- (const complex<_TypeT> &__lhs, const _TypeT &__rhs)
+{
+    return complex<_TypeT>(__lhs.real () - __rhs, __lhs.imag ());
+}
+
+
+template <class _TypeT>
+inline complex<_TypeT>
+operator- (const _TypeT &__lhs, const complex<_TypeT> &__rhs)
+{
+    return complex<_TypeT>(__lhs - __rhs.real (), - __rhs.imag ());
+}
+
+
+// 26.2.6, p7
+template <class _TypeT>
+inline complex<_TypeT>
+operator* (const complex<_TypeT> &__lhs, const _TypeT &__rhs)
+{
+    return complex<_TypeT>(__lhs.real () * __rhs, __lhs.imag () * __rhs);
+}
+
+
+template <class _TypeT>
+inline complex<_TypeT>
+operator* (const _TypeT &__lhs, const complex<_TypeT> &__rhs)
+{
+    return __rhs * __lhs;
+}
+
+
+// 26.2.6, p8
+template <class _TypeT>
+inline complex<_TypeT>
+operator/ (const complex<_TypeT> &__lhs, const _TypeT &__rhs)
+{
+    return complex<_TypeT>(__lhs.real () / __rhs,
+                           __lhs.imag () / __rhs);
+}
+
+
+template <class _TypeT>
+inline complex<_TypeT>
+operator/ (const _TypeT &__lhs, const complex<_TypeT> &__rhs)
+{
+    _TypeT __den = __rhs.real() * __rhs.real() + __rhs.imag() * __rhs.imag();
+
+    return complex<_TypeT>(_TypeT (__lhs * __rhs.real ()) / __den,
+                           -_TypeT (__lhs * __rhs.imag ()) / __den);
+}
+
+
+// 26.2.6, p9
+template <class _TypeT>
+inline bool
+operator== (const complex<_TypeT> &__lhs, const complex<_TypeT> &__rhs)
+{
+    return __lhs.real () == __rhs.real () && __lhs.imag () == __rhs.imag ();
+} 
+
+
+template <class _TypeT>
+inline bool operator== (const complex<_TypeT> &__lhs, const _TypeT &__rhs)
+{
+    return __lhs.real () == __rhs && __lhs.imag () == _TypeT ();
+} 
+
+
+template <class _TypeT>
+inline bool operator== (const _TypeT &__lhs, const complex<_TypeT> &__rhs)
+{
+    return __rhs == __lhs;
+} 
+
+
+// 26.2.6, p11
+template <class _TypeT>
+inline bool
+operator!= (const complex<_TypeT> &__lhs, const complex<_TypeT> &__rhs)
+{
+    return !(__lhs == __rhs);
+} 
+
+
+template <class _TypeT>
+inline bool operator!= (const complex<_TypeT> &__lhs, const _TypeT &__rhs)
+{
+    return !(__lhs == __rhs);
+} 
+
+
+template <class _TypeT>
+inline bool operator!= (const _TypeT &__lhs, const complex<_TypeT> &__rhs)
+{
+    return !(__lhs == __rhs);
+} 
+
+
+// 26.2.7 - complex value operations
+
+// 26.2.7, p1
+template<class _TypeT>
+inline _TypeT real (const complex<_TypeT> &__a)
+{
+    return __a.real ();
+}
+
+
+// 26.2.7, p2
+template<class _TypeT>
+inline _TypeT imag (const complex<_TypeT> &__a)
+{
+    return __a.imag ();
+}
+
+
+// 26.2.7, p3
+template <class _TypeT>
+inline _TypeT abs (const complex<_TypeT> &__a)
+{
+    return _RWSTD_C::sqrt (norm (__a));
+}
+
+
+// 26.2.7, p4
+template <class _TypeT>
+inline _TypeT arg (const complex<_TypeT>& __a)
+{
+    // guarantee that arg (complex<T>()) == 0
+    return __a == complex<_TypeT>() ? _TypeT ()
+        : _RWSTD_C::atan2 (__a.imag (), __a.real ());
+}
+
+
+// 26.2.7, p5
+template <class _TypeT>
+inline _TypeT norm (const complex<_TypeT> &__a)
+{
+    return __a.real () * __a.real () + __a.imag () * __a.imag ();
+}
+
+
+// 26.2.7, p6
+template <class _TypeT>
+inline complex<_TypeT> conj (const complex<_TypeT> &__a)
+{
+    return complex<_TypeT>(__a.real (), -__a.imag ());
+}
+
+
+// 26.2.7, p7, lwg issue 79
+template <class _TypeT>
+inline complex<_TypeT> polar (const _TypeT &__rho,
+                              const _TypeT &__theta = _TypeT ())
+{
+    return complex<_TypeT>(__rho * _RWSTD_C::cos (__theta),
+                           __rho * _RWSTD_C::sin (__theta));
+}
+
+
+// 26.2.8 - complex transcendentals
+
+
+// complex cosine of complex number `a'
+//     cos (a) = cos u * cosh v - i * sin u * sinh v
+template <class _TypeT>
+inline complex<_TypeT> cos (const complex<_TypeT>& __a)
+{
+    return complex<_TypeT>(  _RWSTD_C::cos (__a.real ())
+                           * _RWSTD_C::cosh (__a.imag ()),
+                             -_RWSTD_C::sin (__a.real ())
+                           * _RWSTD_C::sinh (__a.imag ()));
+}
+
+
+// complex hyperbolic cosine of complex number `a'
+//     cosh (a) = cosh u * cosv + i * sinh u * sin v
+template <class _TypeT>
+inline complex<_TypeT> cosh (const complex<_TypeT>& __a)
+{
+    return complex<_TypeT>(  _RWSTD_C::cosh (__a.real ())
+                           * _RWSTD_C::cos (__a.imag ()),
+                             _RWSTD_C::sinh (__a.real ())
+                           * _RWSTD_C::sin (__a.imag ()));
+}
+
+
+// complex exponential of complex number `a'
+//     exp (a) = exp(u) * (cos v + i * sin v)
+template <class _TypeT>
+inline complex<_TypeT> exp (const complex<_TypeT>& __a)
+{
+    _TypeT __e = _RWSTD_C::exp (__a.real ());
+    return complex<_TypeT>(__e * _RWSTD_C::cos (__a.imag ()),
+                           __e * _RWSTD_C::sin (__a.imag ()));
+}
+
+
+
+// complex<T> natural log of complex<T> number `a'
+//     log (a) = log(r) + i * theta
+template <class _TypeT>
+inline complex<_TypeT> log (const complex<_TypeT>& __a)
+{
+    return complex<_TypeT>(_RWSTD_C::log (abs (__a)), arg (__a));
+}
+
+
+template <class _TypeT>
+complex<_TypeT> log10 (const complex<_TypeT>&);
+
+//
+// For all the power functions:
+//
+//   0**0 == 1
+//   0**x == 0 for x != 0
+//
+
+
+// complex number `a' raised to an integer power `n'
+//     a**n = r**n * (cos(n theta) + i sin (n theta))
+template <class _TypeT>
+inline complex<_TypeT> pow (const complex<_TypeT>& __a, int __n)
+{
+    if (__a == complex<_TypeT>())
+        return complex<_TypeT>(0 == __n);
+
+    if (_TypeT () == __a.imag ()) {
+        if (__a.real () < _TypeT ())
+            return pow (__a, complex<_TypeT>(__n));
+
+        return complex<_TypeT>(_RWSTD_C::pow (__a.real (), __n));
+    }
+
+    _TypeT __r  = _RWSTD_C::pow (_TypeT (abs (__a)), __n);
+    _TypeT __th = __n * arg (__a);
+
+    return complex<_TypeT>(__r * _RWSTD_C::cos (__th),
+                           __r * _RWSTD_C::sin (__th));
+}
+
+
+// complex number `a' raised to a real power `s'
+//     a**s = exp(s * log(a))
+template <class _TypeT>
+inline complex<_TypeT> pow (const complex<_TypeT> &__a, const _TypeT &__s)
+{
+    if (__a == complex<_TypeT>())
+        return complex<_TypeT>(_TypeT () == __s);
+
+    if (_TypeT () == __a.imag ()) {
+        if (__a.real () < _TypeT ())
+            return pow (__a, complex<_TypeT>(__s));
+
+        return complex<_TypeT>(_RWSTD_C::pow (__a.real (), __s));
+    }
+    return exp (__s * log (__a));
+}
+
+
+// real number `s' raised to a complex power `a'
+//     s**a = exp(a * log (s))
+template <class _TypeT>
+inline complex<_TypeT> pow (const _TypeT& __s, const complex<_TypeT>& __a)
+{
+    if (_TypeT() == __s)
+        return complex<_TypeT>(complex<_TypeT>() == __a);
+
+    if (__s < _TypeT ())
+        return pow (complex<_TypeT>(__s), __a);
+
+    if (_TypeT () == __a.imag ())
+        return complex<_TypeT>(_RWSTD_C::pow (__s, __a.real ()));
+
+    return complex<_TypeT>(exp(__a * _TypeT (_RWSTD_C::log (__s))));
+}
+
+
+// complex<T> number `a1' raised to `a' complex<T> power `a2'
+//     a1**a2 = rho * (cos(phi) + i sin(phi))
+//     rho = r1 ** u2   *  exp (-v2 * theta1)
+//     phi = v2 * log(r1) + u2 * theta1
+template <class _TypeT>
+inline complex<_TypeT>
+pow (const complex<_TypeT>& __x, const complex<_TypeT>& __y)
+{
+    if (complex<_TypeT>() == __x)
+        return complex<_TypeT>(complex<_TypeT>() == __y);
+
+    _TypeT __r1  = abs (__x);
+    _TypeT __u2  = real (__y);
+    _TypeT __v2  = imag (__y);
+    _TypeT __th1 = arg (__x);
+    _TypeT __rho = _RWSTD_C::pow (__r1, __u2) * _RWSTD_C::exp (-__v2 * __th1);
+    _TypeT __phi = __v2 * _RWSTD_C::log (__r1) + __u2 * __th1;
+
+    return complex<_TypeT>(__rho * _RWSTD_C::cos (__phi),
+                           __rho * _RWSTD_C::sin (__phi));
+}      
+
+
+// complex<T> sine of complex<T> number `a'
+//     sin (a) = sin u * cosh v + i * cos u * sinh v
+template <class _TypeT>
+inline complex<_TypeT> sin (const complex<_TypeT>& __a)
+{
+    return complex<_TypeT>(  _RWSTD_C::sin (__a.real ())
+                           * _RWSTD_C::cosh (__a.imag ()),
+                             _RWSTD_C::cos (__a.real ())
+                           * _RWSTD_C::sinh (__a.imag ()));
+}
+
+
+// complex<T> hyperbolic sine of complex<T> number `a'
+//     sinh (a) = sinh u cos v + i cosh u sin v
+template <class _TypeT>
+inline complex<_TypeT> sinh (const complex<_TypeT>& __a)
+{
+    return complex<_TypeT>(  _RWSTD_C::sinh (__a.real ())
+                           * _RWSTD_C::cos (__a.imag ()),
+                             _RWSTD_C::cosh (__a.real ())
+                           * _RWSTD_C::sin (__a.imag ()));
+}
+
+
+// complex<T> square root of complex<T> number `a'
+//     sqrt(a) = sqrt(r) * ( cos (theta/2) + i sin (theta/2))
+template <class _TypeT>
+inline complex<_TypeT> sqrt (const complex<_TypeT>& __a)
+{
+    _TypeT __r  = _RWSTD_C::sqrt(abs(__a));
+    _TypeT __th = arg (__a) / _TypeT (2.0);
+    return complex<_TypeT>(__r * _RWSTD_C::cos (__th),
+                           __r * _RWSTD_C::sin (__th));
+}
+
+
+template <class _TypeT>
+inline complex<_TypeT> tan (const complex<_TypeT>& __a)
+{
+    return complex<_TypeT>(sin (__a) / cos (__a));
+}
+
+
+template <class _TypeT>
+inline complex<_TypeT> tanh (const complex<_TypeT>& __a)
+{
+    return complex<_TypeT>(sinh (__a) / cosh (__a));
+}
+
+
+template <class _TypeT>
+inline complex<_TypeT> log10 (const complex<_TypeT>& __a)
+{
+    const _TypeT __log10e = _TypeT (0.4342944819032518276511289189166051L);
+    return __log10e * log (__a);
+}
+
+
+// 26.2.6, p12: MT-safe extractor (not atomic)
+template <class _TypeT, class _CharT, class _Traits>
+inline basic_istream<_CharT, _Traits >&
+operator>> (basic_istream<_CharT, _Traits>& __strm, complex<_TypeT> &__val)
+{
+    // read a complex number in one of the following forms:
+    // "r", "(r)", "(r, i)"
+
+    // lwg issue 156: extraction is performed as a series of simpler
+    // extractions. Therefore, the skipping of whitespace is specified
+    // to be the same for each of the simpler extractions.
+
+    _TypeT __re = _TypeT (),
+           __im = _TypeT ();
+
+    _CharT __ch;
+
+    if (!(__strm >> __ch))
+        return __strm;
+
+    if ('(' == __ch) {
+        if (__strm >> __re && __strm >> __ch) {
+            if (',' == __ch && __strm >> __im)
+                __strm >> __ch;
+
+            // avoid setting failbit if either badbit
+            // or failbit is already set in the stream
+            if (')' != __ch && __strm)
+                __strm.setstate (__strm.failbit);
+        }
+    }
+    else if (__strm.putback (__ch)) {
+        __strm >> __re;
+    }
+
+    if (__strm)
+      __val = complex<_TypeT>(__re, __im);
+
+    return __strm;
+}
+
+
+// 26.2.6, p15: MT-safe atomic inserter
+template <class _TypeT, class _CharT, class _Traits>
+inline basic_ostream<_CharT, _Traits>&
+operator<< (basic_ostream<_CharT, _Traits >& __strm,
+            const complex<_TypeT>&           __val)
+{
+    basic_ostringstream<_CharT, _Traits, allocator<_CharT> > __ss;
+    __ss.flags (__strm.flags ());
+    __ss.imbue (__strm.getloc ());
+    __ss.precision (__strm.precision ());
+    __ss << '(' << __val.real () << ',' << __val.imag () << ')';
+    return __strm << __ss.str ();
+}
+
+
+}   // namespace std
+
+
+#ifdef _MSC_VER
+#  pragma warning (pop)
+#endif   // _MSC_VER
+
+
+#endif   // _RWSTD_COMPLEX_INCLUDED

@@ -1,0 +1,15 @@
+STL generic algorithms -- algorithms that produce scalar results
+There are 3 letter e's 
+and 8 vowels in the text:Now is the time to begin
+The sum of the first five numbers is 15
+The product of the first five numbers is 120
+1 2 1 3 2 1 4 3 2 1 5 4 3 2 1 
+Inner product is 33
+any equal? 1
+a = b is:0
+a = c is:1
+a pair-wise-greater_equal b is1
+compare everybody to everything 1
+compare a to b: 0
+compare a to c: 1
+End of scalar algorithms test

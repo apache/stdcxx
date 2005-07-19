@@ -1,0 +1,106 @@
+<HTML>
+<HEAD>
+<TITLE>find()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="fill.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="find-end.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>find()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that finds an occurrence of value in a sequence</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class InputIterator, class T&gt;
+  InputIterator find(InputIterator start, 
+                     InputIterator finish,
+                     const T&amp; value);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>find()</SAMP> algorithm lets you search for the first occurrence of a particular value in a sequence. <SAMP>find()</SAMP> returns the first iterator <SAMP>i</SAMP> in the range <SAMP>[start, finish)</SAMP> for which the following condition holds: </P>
+<P><SAMP>*i == value. </SAMP></P>
+<P>If <SAMP>find()</SAMP> does not find a match for <SAMP>value</SAMP>, it returns the iterator <SAMP>finish</SAMP>.</P>
+<P>Type <SAMP>T</SAMP> must be EqualityComparable.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P><SAMP>find()</SAMP> performs at most <SAMP>finish - start</SAMP> comparisons.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  find.cpp
+//
+
+#include &lt;vector&gt;      // for vector
+#include &lt;algorithm&gt;   // for adjacent_find, find
+#include &lt;functional&gt;  // for bind1st, equal_to
+#include &lt;iostream&gt;    // for cout, endl
+
+
+
+int main ()
+{
+    // Typedef for convenience.
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; Vector;
+
+    const Vector::value_type arr[] = { 0, 1, 2, 2, 3, 
+                                       4, 2, 2, 6, 7 };
+
+    // Set up a vector.
+    const Vector v1 (arr, arr + sizeof arr / sizeof *arr);
+
+    // Try find.
+    Vector::const_iterator it = std::find (v1.begin (), 
+                                           v1.end (), 3);
+
+    std::cout &lt;&lt; *it &lt;&lt; ' ';
+
+    // Try find_if.
+    it = std::find_if (v1.begin (), v1.end (),
+             std::bind1st (std::equal_to&lt;Vector::value_type&gt;(), 
+             3));
+
+    std::cout &lt;&lt; *it &lt;&lt; ' ';
+
+    // Try both adjacent_find variants.
+    it = std::adjacent_find (v1.begin (), v1.end ());
+
+    std::cout &lt;&lt; *it &lt;&lt; ' ';
+
+    it = std::adjacent_find (v1.begin (), v1.end (),
+                          std::equal_to&lt;Vector::value_type&gt;());
+
+    std::cout &lt;&lt; *it &lt;&lt; std::endl;
+
+    return 0;
+}
+Program Output
+
+3 3 2 2
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="adjacent-find.html">adjacent_find()</A></SAMP>, <SAMP><A HREF="find-first-of.html">find_first_of()</A></SAMP>, <SAMP><A HREF="find-if.html">find_if()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.1.2</I></P>
+
+<BR>
+<HR>
+<A HREF="fill.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="find-end.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

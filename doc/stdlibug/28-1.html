@@ -1,0 +1,43 @@
+<HTML>
+<HEAD>
+<TITLE>The Predefined Streams</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="28.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="28-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>28.1 The Predefined Streams</H2>
+<A NAME="idx692"><!></A>
+<A NAME="idx693"><!></A>
+<P>There are eight predefined standard stream objects that are automatically created and initialized at program startup if the header <SAMP>&lt;iostream&gt;</SAMP> is included. These standard stream objects are associated with the C standard files <SAMP>stdin</SAMP>, <SAMP>stdout</SAMP>, and <SAMP>stderr</SAMP>, as shown in <A HREF="28-1.html#Table&nbsp;26">Table&nbsp;26</A>: </P>
+<A NAME="idx694"><!></A>
+<H4><A NAME="Table&nbsp;26">Table&nbsp;26: Predefined standard streams with their associated C standard files</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Narrow character<br> stream</B>
+</td><td valign=top><B>Wide character<br> stream</B>
+</td><td valign=top><B>Associated C standard<br> files</B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>cin</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>wcin</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>stdin</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>cout</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>wcout</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>stdout</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>cerr</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>wcerr</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>stderr</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>clog</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>wclog</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>stderr</SAMP></P>
+</td></tr>
+</TABLE>
+<P>Like the C standard files, these stream objects are all associated by default with the terminal.</P>
+<P>The difference between <SAMP>clog</SAMP> and <SAMP>cerr</SAMP> is that <SAMP>clog</SAMP> is fully buffered, whereas output to <SAMP>cerr</SAMP> is written to the external device after each formatting. With a fully buffered stream, output to the actual external device is written only when the buffer is full. Thus <SAMP>clog</SAMP> is more efficient for redirecting output to a file, while <SAMP>cerr</SAMP> is mainly useful for terminal I/O. Writing to the external device after every formatting, to the terminal in the case of <SAMP>cerr</SAMP>, serves the purpose of synchronizing output to and input from the terminal. Also, the predefined streams are synchronized with their associated C standard files. See <A HREF="35-6.html">Section&nbsp;35.6</A> for details. </P>
+<P>The standard stream objects are initialized in such a way that they can be used even in constructors and destructors of non-local objects with static storage duration. However, care must be taken to always include the header <SAMP>&lt;iostream&gt;</SAMP> prior to the definition of any such object.</P>
+<P>Since the initialization of the standard iostream objects is a fairly resource-intensive operation it is not advisable to include the header <SAMP>&lt;iostream&gt;</SAMP> just as a convenience to gain access to either or both of <SAMP>basic_istream</SAMP> and <SAMP>basic_ostream</SAMP> in translation units that do not refer to the objects. In such cases, include the headers <SAMP>&lt;istream&gt;</SAMP> and <SAMP>&lt;ostream&gt;</SAMP> instead.</P>
+
+<BR>
+<HR>
+<A HREF="28.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="28-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

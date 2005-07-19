@@ -1,0 +1,42 @@
+<HTML>
+<HEAD>
+<TITLE>Using Phone Number Facets</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="26-6.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="26-8.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>26.7 Using Phone Number Facets</H2>
+<A NAME="idx602"><!></A>
+<P>Now that we have laid the groundwork, we are almost ready to format phone numbers. Here is an example of how instances of the new facet class can be used:</P>
+
+<UL><PRE>
+using std::cout;
+using std::endl;
+using std::locale;
+
+cout.imbue (locale (locale::classic (), new US_phone_put));     //1
+cout &lt;&lt; PhoneNumber ("Fr", "1", "60 17 07 16") &lt;&lt; endl;
+cout &lt;&lt; PhoneNumber ("US", "303", "545-3200") &lt;&lt; endl;
+cout.imbue (locale (locale ("Fr"), 
+            new Fr_phone_put (&amp;myCountryCodes)));               //2
+cout &lt;&lt; PhoneNumber ("Allemagne", "89", "636-40938") &lt;&lt; endl;   //3
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Imbue an output stream with a locale object that has a phone number facet object. In the example above, it is the US English ASCII locale with a US phone number facet, and 
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>A French locale using a French phone number facet with a particular country code table.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Output phone numbers using the inserter function. The output is:</P>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<TR><TD VALIGN="top"><P>1-33-1-60170716</P>
+</TD></TR>
+<TR><TD VALIGN="top"><P>(303) 545-3200</P>
+</TD></TR>
+<TR><TD VALIGN="top"><P>19 49 89 636 40938</P>
+</TD></TR>
+</TABLE>
+
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="26-6.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="26-8.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

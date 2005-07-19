@@ -1,0 +1,50 @@
+<HTML>
+<HEAD>
+<TITLE>The C++ Locales</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="24-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="24-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>24.2 The C++ Locales</H2>
+<P>In C++, a locale is a class called <B><I><A HREF="../stdlibref/locale.html">locale</A></I></B> provided by the Standard C++ Library. The C++ class <B><I>locale</I></B> differs from the C locale because it is more than a language table, or data representation of the various culture and language dependencies. It also includes the internationalization services, which in C are global functions.</P>
+<A NAME="idx512"><!></A>
+<P>In C++, internationalization semantics are broken out into separate classes called <I>facets</I>. Each facet handles a set of internationalization services; for example, the formatting of monetary values. Facets may also represent a set of culture and language dependencies, such as the rules and symbols for monetary information.</P>
+<A NAME="idx513"><!></A>
+<P>Each locale object maintains a set of facet objects. In fact, you can think of a C++ locale as a container of facets, as illustrated in <A HREF="24-2.html#Figure&nbsp;5">Figure&nbsp;5</A> below:</P>
+<A NAME="idx514"><!></A>
+<H4><A NAME="Figure&nbsp;5">Figure&nbsp;5: A C++ locale is a container of facets</A></H4>
+
+<P><IMG SRC="images/locfig5.gif" WIDTH=551 HEIGHT=409></P>
+<A NAME="2421"><H3>24.2.1 Facets</H3></A>
+<A NAME="idx515"><!></A>
+<P>Facet classes encapsulate data that represents a set of culture and language dependencies, and offer a set of related internationalization services. Facet classes are very flexible. They can contain just about any internationalization service you can invent. The Standard C++ Library offers a number of predefined standard facets, which provide services similar to those contained in the C library. However, you could bundle additional internationalization services into a new facet class, or purchase a facet library.</P>
+<A NAME="2421-1"><H4>24.2.1.1 The Standard Facets</H4></A>
+<A NAME="idx516"><!></A>
+<P>The C locale is composed of six categories of locale-dependent information: <SAMP>LC_NUMERIC</SAMP> (rules and symbols for numbers), <SAMP>LC_TIME</SAMP> (values for date and time information), <SAMP>LC_MONETARY</SAMP> (rules and symbols for monetary information), <SAMP>LC_CTYPE</SAMP> (character classification and conversion), <SAMP>LC_COLLATE</SAMP> (collation sequence), and <SAMP>LC_MESSAGES</SAMP> (formats and values of messages). </P>
+<A NAME="idx517"><!></A>
+<P>Similarly, there are six categories of standard facet classes. A detailed description of these facets is contained in the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A>, but a brief overview is given below. Note that an abbreviation like <B><I><A HREF="../stdlibref/num-get.html">num_get&lt;&gt;</A></I></B> means that <B><I>num_get</I></B> is a class template taking two template arguments, a character type, and an input iterator type. The categories of the standard facets are:</P>
+<UL>
+<A NAME="idx518"><!></A>
+<LI><P CLASS="LIST"><B>Numeric. </B>The facet classes <B><I><A HREF="../stdlibref/num-get.html">num_get&lt;&gt;</A></I></B> and <B><I><A HREF="../stdlibref/num-put.html">num_put&lt;&gt;</A></I></B> handle numeric formatting and parsing. The facet classes provide <SAMP>get()</SAMP> and <SAMP>put()</SAMP> member functions for values of type <SAMP>long</SAMP>, <SAMP>double</SAMP>, etc.</P></LI>
+<A NAME="idx519"><!></A>
+<P CLASS="LIST">The facet class <B><I><A HREF="../stdlibref/numpunct.html">numpunct&lt;&gt;</A></I></B> specifies numeric punctuation. It provides functions like <SAMP>decimal_point()</SAMP>,  <SAMP>thousands_sep()</SAMP>, etc.</P>
+<A NAME="idx520"><!></A>
+<LI><P CLASS="LIST"><B>Time. </B>The facet classes <B><I><A HREF="../stdlibref/time-get.html">time_get&lt;&gt;</A></I></B> and <B><I><A HREF="../stdlibref/time-put.html">time_put&lt;&gt;</A></I></B> handle date and time formatting and parsing. They provide functions like <SAMP>get_time()</SAMP>, <SAMP>get_date()</SAMP>, <SAMP>get_weekday()</SAMP>, etc.</P></LI>
+<A NAME="idx521"><!></A>
+<LI><P CLASS="LIST"><B>Monetary. </B>The facet classes <B><I><A HREF="../stdlibref/money-get.html">money_get&lt;&gt;</A></I></B> and <B><I><A HREF="../stdlibref/money-put.html">money_put&lt;&gt;</A></I></B> handle formatting and parsing of monetary values. They provide <SAMP>get()</SAMP> and <SAMP>put()</SAMP> member functions that parse or produce a sequence of digits, representing a count of the smallest unit of the currency. For example, the sequence $1,056.23 in a common US locale would yield 105623 units, or the character sequence "105623".</P></LI>
+<A NAME="idx522"><!></A>
+<P CLASS="LIST">The facet class <B><I><A HREF="../stdlibref/moneypunct.html">moneypunct&lt;&gt;</A></I></B> handles monetary punctuation like the facet <B><I><A HREF="../stdlibref/numpunct.html">numpunct&lt;&gt;</A></I></B> handles numeric punctuation. It comes with functions like <SAMP>curr_symbol()</SAMP>, etc.</P>
+<A NAME="idx523"><!></A>
+<LI><P CLASS="LIST"><B>Ctype. </B>The facet class <B><I><A HREF="../stdlibref/ctype.html">ctype&lt;&gt;</A></I></B> encapsulates the Standard C++ Library <B><I>ctype</I></B> features for character classification, like <SAMP>tolower()</SAMP>, <SAMP>toupper()</SAMP>, <SAMP>isspace()</SAMP>, <SAMP>isprint()</SAMP>, etc.</P></LI>
+<A NAME="idx524"><!></A>
+<P CLASS="LIST">The facet class <B><I><A HREF="../stdlibref/codecvt.html">codecvt&lt;&gt;</A></I></B> is used when converting from one encoding scheme to another, such as from the multibyte encoding JIS to the wide-character encoding Unicode. The main member functions are <SAMP>in()</SAMP> and <SAMP>out()</SAMP>. There is a template specialization <B><I>codecvt&lt;&gt;</I></B>  for multibyte to wide character conversions.</P>
+<A NAME="idx525"><!></A>
+<LI><P CLASS="LIST"><B>Collate. </B>The facet class <B><I><A HREF="../stdlibref/collate.html">collate&lt;&gt;</A></I></B> provides features for string collation, including a <SAMP>compare()</SAMP> function used for string comparison.</P></LI>
+<A NAME="idx526"><!></A>
+<LI><P CLASS="LIST"><B>Messages. </B>The facet class <B><I><A HREF="../stdlibref/messages.html">messages&lt;&gt;</A></I></B> implements the X/Open message retrieval facility. It provides facilities to access message catalogues via <SAMP>open()</SAMP> and <SAMP>close(catalog)</SAMP>, and to retrieve messages via <SAMP>get(..., int msgid,...)</SAMP>.</P></LI>
+</UL>
+<P>The names of the standard facets obey certain naming rules. The <SAMP>get</SAMP> facet classes, like <B><I><A HREF="../stdlibref/num-get.html">num_get</A></I></B> and <B><I><A HREF="../stdlibref/time-get.html">time_get</A></I></B>, handle parsing. The <SAMP>put</SAMP> facet classes handle formatting. The <SAMP>punct</SAMP> facet classes, like <B><I><A HREF="../stdlibref/numpunct.html">numpunct</A></I></B> and <B><I><A HREF="../stdlibref/moneypunct.html">moneypunct</A></I></B>, represent rules and symbols.</P>
+
+<BR>
+<HR>
+<A HREF="24-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="24-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

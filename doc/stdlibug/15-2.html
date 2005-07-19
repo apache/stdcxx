@@ -1,0 +1,47 @@
+<HTML>
+<HEAD>
+<TITLE>Using Allocators with Existing Standard C++ Library Containers</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="15-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="15-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>15.2 Using Allocators with Existing Standard C++ Library Containers</H2>
+<A NAME="idx375"><!></A>
+<P>Using allocators with existing Standard C++ Library container classes is a simple process. You just provide an allocator type when you instantiate a container, and provide an actual allocator object when you construct a container object:</P>
+
+<UL><PRE>
+template &lt;class T&gt; class my_allocator {...}; // Define an allocator
+my_allocator&lt;int&gt; alloc;                     // Construct instance
+std::vector&lt;int,my_allocator&lt;int&gt; &gt; v(alloc);// Use the allocator
+</PRE></UL>
+<A NAME="idx376"><!></A>
+<P>All standard containers have a default allocator template of type <SAMP>std::allocator&lt;T&gt; </SAMP>and a default allocator constructor argument of type <SAMP>allocator_type()</SAMP>, where <SAMP>allocator_type</SAMP> is a typedef for the allocator template parameter. This means that the simplest use of allocators is to ignore them entirely. When you do not specify an allocator, the default allocator is used for all storage management.</P>
+<P>If you do provide a different allocator type as a template parameter, the type of the allocator argument passed to the container's constructor must either exactly match or be implicitly convertible to the allocator template parameter. For example, the following code will cause a compiler error because the types of the template parameter and the constructor argument don't match: </P>
+
+<UL><PRE>
+template &lt;class T&gt; class my_allocator {...};
+
+std::list&lt;int,std::allocator&lt;int&gt; &gt;
+  my_list(my_allocator&lt;int&gt;());                          // Wrong!
+</PRE></UL>
+<P>The following call to the allocator constructor does match the template signature:</P>
+
+<UL><PRE>
+std::list &lt;int,my_allocator&lt;int&gt; &gt; my_list(my_allocator&lt;int&gt;());
+</PRE></UL>
+<P>It's also important that the type used for the allocator template parameter and the type used as the element type in a standard container agree. For instance:</P>
+
+<UL><PRE>
+std::list&lt;int, std::allocator&lt;long&gt; &gt;                    // Wrong!
+</PRE></UL>
+<P>won't work. Remember that with a <B><I><A HREF="../stdlibref/map.html">map</A></I></B> the contained type is actually a key-value pair:</P>
+
+<UL><PRE>
+std::map&lt;int,long,std::less&lt;int&gt;,
+         std::allocator&lt;std::pair&lt;const int,long&gt; &gt; &gt;
+</PRE></UL>
+<P>Note that the container always holds a <I>copy</I> of the <B><I><A HREF="../stdlibref/allocator.html">allocator</A></I></B> object that is passed to the constructor. If you need a single <B><I>allocator</I></B> object to manage all storage for a number of containers, you must provide an <B><I>allocator</I></B> that maintains a reference to some shared implementation.</P>
+
+<BR>
+<HR>
+<A HREF="15-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="15-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

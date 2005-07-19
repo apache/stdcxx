@@ -1,0 +1,156 @@
+<HTML>
+<HEAD>
+<TITLE>inplace_merge()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="inner-product.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="inputiterators.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>inplace_merge()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that merges two sorted consecutive sequences into a single sorted sequence</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class BidirectionalIterator&gt;
+  void inplace_merge(BidirectionalIterator start,
+                     BidirectionalIterator mid,
+                     BidirectionalIterator finish);
+
+  template &lt;class BidirectionalIterator, class Compare&gt;
+  void inplace_merge(BidirectionalIterator start,
+                     BidirectionalIterator mid,
+                     BidirectionalIterator finish, 
+                     Compare comp);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>inplace_merge()</SAMP> algorithm merges two sorted consecutive ranges <SAMP>[start, mid)</SAMP> and <SAMP>[mid, finish)</SAMP>, and puts the result of the merge into the range <SAMP>[start, finish)</SAMP>. The merge is stable, which means that if the two ranges contain equivalent elements, the elements from the first range always precede the elements from the second. </P>
+<P>There are two versions of the <SAMP>inplace_merge()</SAMP> algorithm. The first version uses <SAMP>operator&lt;()</SAMP> as the default for comparison, and the second version accepts a third argument that specifies a binary predicate function object.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>When enough additional memory is available, <SAMP>inplace_merge()</SAMP> does at most<SAMP> (finish - start) - 1</SAMP> comparisons. If no additional memory is available, an algorithm with <SAMP>O(N * log(N))</SAMP> complexity may be used, where <SAMP>N</SAMP> is equal to <SAMP>finish - start</SAMP>.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  merge.cpp
+//
+
+#include &lt;algorithm&gt;    // advance, copy, inplace_merge, merge
+#include &lt;functional&gt;   // less
+#include &lt;iostream&gt;     // cout
+#include &lt;iterator&gt;     // back_inserter, ostream_iterator
+#include &lt;vector&gt;       // vector
+
+
+
+int main ()
+{
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; Vector;
+
+    const Vector::value_type d1[] = { 1, 2, 3, 4};
+    const Vector::value_type d2[] = { 11, 13, 15, 17, 
+                                      12, 14, 16, 18};
+
+    // Set up two vectors.
+    Vector v1 (d1 + 0, d1 + sizeof d1 / sizeof *d1);
+    Vector v2 (d1 + 0, d1 + sizeof d1 / sizeof *d1);
+
+    // Set up four destination vectors.
+    Vector v3 (d2 + 0, d2 + sizeof d2 / sizeof *d2);
+    Vector v4 (v3);
+    Vector v5 (v3);
+    Vector v6 (v3);
+
+    // Set up one empty vector.
+    Vector v7;
+
+    // Merge v1 with v2.
+    std::merge (v1.begin (), v1.end (),
+                v2.begin (), v2.end (), v3.begin ());
+
+    // Now use comparator.
+    std::merge (v1.begin (), v1.end (),
+                v2.begin (), v2.end (), v4.begin (), 
+                std::less&lt;int&gt;());
+
+    // In place merge v5.
+    Vector::iterator mid = v5.begin ();
+    std::advance (mid, 4);   // equivalent to mid += 4 
+                             // but more generic
+    std::inplace_merge (v5.begin (), mid, v5.end ());
+
+    // Now use a comparator on v6.
+    mid = v6.begin ();
+    std::advance (mid, 4);   // equivalent to mid += 4 
+                             // but more generic
+    std::inplace_merge (v6.begin (), mid, v6.end (), 
+                        std::less&lt;int&gt;());    
+
+    // Merge v1 and v2 to empty vector using insert iterator.
+    std::merge (v1.begin (), v1.end (),
+                v2.begin (), v2.end (), 
+                std::back_inserter (v7));
+
+    // Copy all to cout.
+    std::ostream_iterator&lt;int, char, std::char_traits&lt;char&gt; &gt;
+        out (std::cout," ");
+
+    std::copy (v1.begin (), v1.end (), out);
+    std::cout &lt;&lt; std::endl;
+    std::copy (v2.begin(), v2.end (), out);
+    std::cout &lt;&lt; std::endl;
+    std::copy (v3.begin (), v3.end (), out);
+    std::cout &lt;&lt; std::endl;
+    std::copy (v4.begin (), v4.end (), out);
+    std::cout &lt;&lt; std::endl;
+    std::copy (v5.begin (), v5.end (), out);
+    std::cout &lt;&lt; std::endl;
+    std::copy (v6.begin (),v6.end (), out);
+    std::cout &lt;&lt; std::endl;
+    std::copy (v7.begin (), v7.end (), out);
+    std::cout &lt;&lt; std::endl;
+
+    // Merge v1 and v2 to cout.
+    std::merge (v1.begin (), v1.end (), 
+                v2.begin (), v2.end (), out);
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>1 2 3 4 
+1 2 3 4 
+1 1 2 2 3 3 4 4 
+1 1 2 2 3 3 4 4 
+11 12 13 14 15 16 17 18 
+11 12 13 14 15 16 17 18 
+1 1 2 2 3 3 4 4 
+1 1 2 2 3 3 4 4 
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="merge.html">merge()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.3.4</I></P>
+
+<BR>
+<HR>
+<A HREF="inner-product.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="inputiterators.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

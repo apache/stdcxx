@@ -1,0 +1,48 @@
+<HTML>
+<HEAD>
+<TITLE>binary_function</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="bidirectionaliterators.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="binary-negate.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>binary_function</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">See Also</A></LI>
+<LI><A HREF="#sec6">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Base class for creating binary function objects</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;functional&gt;
+
+namespace std {
+  template &lt;class Arg1, class Arg2, class Result&gt;
+     struct binary_function{
+           typedef Arg1 first_argument_type;
+           typedef Arg2 second_argument_type;
+           typedef Result result_type;
+     };
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>Function objects are objects with an <SAMP>operator()</SAMP> defined. They are important for the effective use of the standard library's generic algorithms, because the interface for each algorithmic template can accept either an object with an <SAMP>operator()</SAMP> defined or a pointer to a function. The Standard C++ Library includes both a standard set of function objects, and a pair of classes that you can use as the base for creating your own function objects. </P>
+<P>Function objects that take two arguments are called<I> binary function objects</I>. Binary function objects are required to include the typedefs <SAMP>first_argument_type</SAMP>, <SAMP>second_argument_type</SAMP>, and <SAMP>result_type</SAMP>. The <B><I>binary_function</I></B> class makes the task of creating templatized binary function objects easier by including the necessary typedefs for a binary function object. You can create your own binary function objects by inheriting from <B><I>binary_function</I></B>.</P>
+<A NAME="sec5"><H3>See Also</H3></A>
+<P><A HREF="functionobjects.html">Function Objects</A>, <B><I><A HREF="unary-function.html">unary_function</A></I></B>, and <A HREF="../stdlibug/3-2.html">Section 3.2, "Function Objects," in the<I> User's Guide</I></A></P>
+<A NAME="sec6"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 20.3.1</I></P>
+
+<BR>
+<HR>
+<A HREF="bidirectionaliterators.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="binary-negate.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

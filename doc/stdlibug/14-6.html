@@ -1,0 +1,75 @@
+<HTML>
+<HEAD>
+<TITLE>set Operations</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="14-5.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="14-7.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>14.6 set Operations</H2>
+<A NAME="idx363"><!></A>
+<P>The operations of <SAMP>set_union</SAMP>, <SAMP>set_intersection</SAMP>, and <SAMP>set_difference</SAMP> were all described in <A HREF="8-2.html#827">Section&nbsp;8.2.7</A> when we discussed the <B><I><A HREF="../stdlibref/set.html">set</A></I></B> container class. However, the algorithms that implement these operations are generic, and applicable to any ordered data structure. The algorithms assume the input ranges are ordered collections that represent <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B>s; that is, elements can be repeated. However, if the inputs represent <B><I>set</I></B>s, then the result will always be a <B><I>set</I></B>. Unlike the <SAMP>std::merge()</SAMP> algorithm, none of the <B><I>set</I></B> algorithms produce repeated elements in the output that are not present in the input <B><I>set</I></B>s.</P>
+<P>The <B><I><A HREF="../stdlibref/set.html">set</A></I></B> operations all have the same format. The two input <B><I>set</I></B>s are specified by pairs of input <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s. The output <B><I>set</I></B> is specified by an input <B><I>iterator</I></B>, and the end of this range is returned as the result value. An optional comparison operator is the final argument. In all cases it is required that the output sequence not overlap in any manner with either of the input sequences.</P>
+
+<UL><PRE>
+namespace std {
+  OutputIterator set_union 
+     (InputIterator first1, InputIterator last1,
+      InputIterator first2, InputIterator last2,
+      OutputIterator result [, Compare ] );
+}
+</PRE></UL>
+<A NAME="idx364"><!></A>
+<P>The example program illustrates the use of the four <B><I><A HREF="../stdlibref/set.html">set</A></I></B> algorithms, <SAMP> std::set_union()</SAMP>, <SAMP>std::set_intersection()</SAMP>, <SAMP>std::set_difference(),</SAMP> and <SAMP>std::set_symmetric_difference()</SAMP>. It also shows a call on <SAMP>std::merge()</SAMP> in order to contrast the merge and the set union operations. The algorithm <SAMP>std::includes()</SAMP> is slightly different. Again the two input sets are specified by pairs of input <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s, and the comparison operator is an optional fifth argument. The return value for the algorithm is <SAMP>true</SAMP> if the first <B><I>set</I></B> is entirely included in the second, and <SAMP>false</SAMP> otherwise.</P>
+
+<A NAME="idx365"><!></A>
+<UL><PRE>
+void set_example()
+// illustrates the use of the generic set algorithms
+// see alg7.cpp for complete source code
+{
+  std::ostream_iterator&lt;int&gt; intOut(cout, " ");
+
+  // make a couple of ordered lists
+  std::list&lt;int&gt; listOne, listTwo;
+  std::generate_n(std::inserter(listOne, listOne.begin()), 5,
+                                iotaGen(1));
+  std::generate_n(std::inserter(listTwo, listTwo.begin()), 5,
+                                iotaGen(3));
+
+  // now do the set operations
+  // union - 1 2 3 4 5 6 7
+  std::set_union(listOne.begin(), listOne.end(),
+                 listTwo.begin(), listTwo.end(), intOut);
+  std::cout &lt;&lt; std::endl;
+   
+  // merge - 1 2 3 3 4 4 5 5 6 7
+  std::merge(listOne.begin(), listOne.end(),
+             listTwo.begin(), listTwo.end(), intOut);
+  std::cout &lt;&lt; std::endl;
+
+  // intersection - 3 4 5
+  std::set_intersection(listOne.begin(), listOne.end(),
+                        listTwo.begin(), listTwo.end(), intOut);
+  std::cout &lt;&lt; std::endl;
+
+  // difference - 1 2
+  std::set_difference(listOne.begin(), listOne.end(),
+                      listTwo.begin(), listTwo.end(), intOut);
+  std::cout &lt;&lt; std::endl;
+  // symmetric difference - 1 2 6 7
+  std::set_symmetric_difference(listOne.begin(), listOne.end(),
+                                listTwo.begin(), listTwo.end(),
+                                intOut);
+  std::cout &lt;&lt; std::endl;
+
+  if (std::includes(listOne.begin(), listOne.end(),
+                    listTwo.begin(), listTwo.end()))
+    std::cout &lt;&lt; "set is subset" &lt;&lt; std::endl;
+  else
+    std::cout &lt;&lt; "set is not subset" &lt;&lt; std::endl;
+}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="14-5.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="14-7.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

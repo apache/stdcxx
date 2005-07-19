@@ -1,0 +1,50 @@
+<HTML>
+<HEAD>
+<TITLE>Operators</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="operatornew.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="ostream-h.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>Operators</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P><UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Operators for the C++ Standard Template Library</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;utility&gt;
+
+namespace rel_ops {
+  template &lt;class T&gt;
+  bool operator!=(const T&amp;, const T&amp;);
+
+  template &lt;class T&gt;
+  bool operator&gt;(const T&amp;, const T&amp;);
+
+  template &lt;class T&gt;
+  bool operator&lt;=(const T&amp;, const T&amp;);
+
+  template &lt;class T&gt;
+  bool operator&gt;=(const T&amp;, const T&amp;);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The STL includes the following operators to avoid redundant definitions of <SAMP>operator!=</SAMP> out of <SAMP>operator==</SAMP>, and of operators <SAMP>&gt;</SAMP>, <SAMP>&lt;=</SAMP>, and <SAMP>&gt;=</SAMP> out of <SAMP>operator&lt;</SAMP>: </P>
+<P>    <SAMP>operator!=(x,y)</SAMP> returns <SAMP>!(x==y)</SAMP></P>
+<P>    <SAMP>operator&gt;(x,y)</SAMP>  returns <SAMP>y&gt;x</SAMP></P>
+<P>    <SAMP>operator&lt;=(x,y)</SAMP> returns <SAMP>!(y&lt;x)</SAMP></P>
+<P>    <SAMP>operator&gt;=(x,y)</SAMP> returns <SAMP>!(x&lt;y)</SAMP></P>
+<P>To avoid clashes with other global operators, these definitions are contained in the namespace <SAMP>rel_ops</SAMP>.  To use them, either scope explicitly or include a using declaration, such as <SAMP>using namespace rel_ops</SAMP>.</P>
+<A NAME="sec5"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 20.2</I></P>
+
+<BR>
+<HR>
+<A HREF="operatornew.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="ostream-h.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

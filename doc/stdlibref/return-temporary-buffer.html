@@ -1,0 +1,48 @@
+<HTML>
+<HEAD>
+<TITLE>return_temporary_buffer()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="replace-if.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="reverse.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>return_temporary_buffer()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">See Also</A></LI>
+<LI><A HREF="#sec6">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Function template for deallocation of temporary storage</P>
+
+<PRE>
+</PRE>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;memory&gt;
+
+namespace std {
+  template &lt;class T&gt;
+  void return_temporary_buffer(T* ptr);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>Specializations of the <SAMP>return_temporary_buffer()</SAMP> function template deallocate temporary storage previously allocated by a call to the matching specialization of <SAMP>get_temporary_buffer()</SAMP>.</P>
+<P>The detsructors of any objects stored in the temporary storage region are not invoked as a result of the call. The caller is responsible for destroying the objects prior to making the call.</P>
+<P>The function is thread-safe but must be called from the same thread as the one that made the call to the matching specialization of <SAMP>get_temporary_buffer()</SAMP> to obtain the storage. </P>
+<A NAME="sec5"><H3>See Also</H3></A>
+<P><B><I><A HREF="allocator.html">allocator</A></I></B>, <SAMP><A HREF="get-temporary-buffer.html">get_temporary_buffer()</A></SAMP></P>
+<A NAME="sec6"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 20.4.3</I></P>
+
+<BR>
+<HR>
+<A HREF="replace-if.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="reverse.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

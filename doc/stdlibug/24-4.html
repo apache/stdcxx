@@ -1,0 +1,62 @@
+<HTML>
+<HEAD>
+<TITLE>The Locale Object</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="24-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>24.4 The Locale Object</H2>
+<A NAME="idx550"><!></A>
+<P>A C++ locale object is a container of facet objects which encapsulate internationalization services, and represent culture and language dependencies. Here are some functions of class <B><I><A HREF="../stdlibref/locale.html">locale</A></I></B> which allow you to create locales:</P>
+
+<UL><PRE>
+class locale {
+  public:
+    // construct/copy/destroy:
+    explicit locale(const char* std_name);            //1
+    // global locale objects:
+    static const locale&amp; classic();                   //2
+};
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>You can create a locale object from a C locale's external representation. The constructor <SAMP>std::locale::locale(const char* std_name)</SAMP> takes the name of a C locale. This locale name is like the one you would use for a call to the C library function <SAMP>setlocale()</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>You can also use a predefined locale object, returned by <SAMP>std::locale::classic()</SAMP>, which represents the US English ASCII environment.
+</TABLE>
+<P>For a comprehensive description of the constructors described above, see the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A>.</P>
+<A NAME="idx551"><!></A>
+<P>It's important to understand that locales are immutable objects: once a locale object is created, it cannot be modified. This makes locales reliable and easy to use. As a programmer, you know that whenever you use pointers or references to elements held in a container, you have to worry about the validity of the pointers and references. If the container changes, pointers and references to its elements might not be valid any longer.</P>
+<P>A locale object is a container, too. However, it is an immutable container; that is, it does not change. Therefore, you can take references to a locale's facet objects and pass the references around without worrying about their validity, as long as the locale object or any copy of it remains in existence. The locale object is never modified; no facets can be silently replaced.</P>
+<P>At some time, you will most likely need locale objects other than the US classic locale or a snapshot of the global locale. Since locales are immutable objects, however, you cannot take one of these and replace its facet objects. You have to say at construction time how they shall be built.</P>
+<A NAME="idx552"><!></A>
+<P>Here are some constructors of class <B><I><A HREF="../stdlibref/locale.html">locale</A></I></B> which allow you to build a locale object by composition; in other words, you construct it by copying an existing locale object, and replacing one or several facet objects.</P>
+
+<UL><PRE>
+class locale {
+public:
+  locale(const locale&amp; other, const char* std_name, category);
+  template &lt;class Facet&gt; locale(const locale&amp; other, Facet* f);
+  locale(const locale&amp; other, const locale&amp; one, category);
+};
+</PRE></UL>
+<A NAME="idx553"><!></A>
+<P>The following example shows how you can construct a locale object as a copy of the classic locale object, and take the numeric facet objects from a German locale object:</P>
+
+<UL><PRE>
+std::locale loc(std::locale::classic(),
+                std::locale("De_DE"), LC_NUMERIC);
+</PRE></UL>
+<P>For a comprehensive description of the constructors described above, see the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A>.</P>
+<A NAME="idx554"><!></A>
+<P>Copying a locale object is a cheap operation. You should have no hesitation about passing locale objects around by value. You may copy locale objects for composing new locale objects; you may pass copies of locale objects as arguments to functions, etc. </P>
+<A NAME="idx555"><!></A>
+<P>Locales are implemented using reference counting and the handle-body idiom: When a locale object is copied, only its handle is duplicated, a fast and inexpensive action. Similarly, constructing a locale object with the default constructor is cheap -- this is equivalent to copying the global locale object. All other locale constructors that take a second locale as an argument are moderately more expensive, because they require cloning the body of the locale object. However, the facets are not all copied. The byname constructor is the most expensive, because it requires creating the locale from an external locale representation.</P>
+<P><A HREF="24-4.html#Figure&nbsp;10">Figure&nbsp;10</A> describes an overview of the locale architecture. It is a handle to a body that maintains a vector of pointers of facets. The facets are reference-counted, too.</P>
+<A NAME="idx556"><!></A>
+<H4><A NAME="Figure&nbsp;10">Figure&nbsp;10: The locale architecture</A></H4>
+
+<P><IMG SRC="images/locfig10.gif" WIDTH=693 HEIGHT=509></P>
+
+<BR>
+<HR>
+<A HREF="24-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

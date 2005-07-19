@@ -1,0 +1,42 @@
+<HTML>
+<HEAD>
+<TITLE>wcin</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="wcerr.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="wclog.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>wcin</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P><UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Warnings</A></LI>
+<LI><A HREF="#sec6">See Also</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A predefined stream that controls input from a stream buffer associated with the object <SAMP>stdin</SAMP> declared in <SAMP>&lt;cstdio&gt;</SAMP></P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;iostream&gt;
+
+namespace std {
+  extern wistream wcin;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The object <SAMP>wcin</SAMP> controls input from a stream buffer associated with the object <SAMP>stdin</SAMP> declared in <SAMP>&lt;cstdio&gt;.</SAMP> By default the standard C and C++ streams are synchronized, but performance improvement can be achieved by using the <B><I><A HREF="ios-base.html">ios_base</A></I></B> member function <SAMP>synch_with_stdio</SAMP> to desynchronize them. </P>
+<P>After the object <SAMP>wcin</SAMP> is initialized, <SAMP>wcin.tie()</SAMP> returns <SAMP>&amp;wcout</SAMP>, which implies that <SAMP>wcin</SAMP> and <SAMP>wcout</SAMP> are synchronized. <SAMP>wcin</SAMP> uses the locale <B><I><A HREF="codecvt.html">codecvt</A></I></B> facet to convert the tiny characters extracted from <SAMP>stdin</SAMP> to the wide characters stored in the <SAMP>wcin</SAMP> buffer. </P>
+<A NAME="sec5"><H3>Warnings</H3></A>
+<P>Keep in mind that while the manipulator <SAMP>endl</SAMP> flushes the stream buffer, outputting the character <SAMP>L'\n'</SAMP> is <I>not</I> guaranteed to flush the stream buffer. You should output  the <SAMP>L'\n'</SAMP> character without <SAMP>endl</SAMP> only if you do not need the buffer flushed. Note that outputting the <SAMP>L'\n'</SAMP> character in such cases, and hence not forcing a buffer flush, may result in a performance improvement. It greatly improves performance when C and C++ streams are not synchronized.</P>
+<A NAME="sec6"><H3>See Also</H3></A>
+<P><B><I><A HREF="basic-istream.html">basic_istream</A></I></B>, <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B>, <B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B>, <B><I><A HREF="cin.html">cin</A></I></B>, <B><I><A HREF="cout.html">cout</A></I></B>, <B><I><A HREF="cerr.html">cerr</A></I></B>, <B><I><A HREF="clog.html">clog</A></I></B>, <B><I><A HREF="wcout.html">wcout</A></I></B>, <B><I><A HREF="wcerr.html">wcerr</A></I></B>, <B><I><A HREF="wclog.html">wclog</A></I></B>, <B><I><A HREF="ios-base.html">ios_base</A></I></B>, <B><I><A HREF="basic-ios.html">basic_ios</A></I></B></P>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.3.2</I></P>
+
+<BR>
+<HR>
+<A HREF="wcerr.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="wclog.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

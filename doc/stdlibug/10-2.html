@@ -1,0 +1,145 @@
+<HTML>
+<HEAD>
+<TITLE>The stack Data Abstraction</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="10-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="10-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>10.2 The stack Data Abstraction</H2>
+<A NAME="idx185"><!></A>
+<P>As a data abstraction, a <B><I><A HREF="../stdlibref/stack.html">stack</A></I></B> is traditionally defined as any object that implements the operations defined in <A HREF="10-2.html#Table&nbsp;16">Table&nbsp;16</A>:</P>
+<H4><A NAME="Table&nbsp;16">Table&nbsp;16: Stack operations</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Function</B>
+</td><td valign=top><B>Implemented operation</B>
+</td></tr>
+<A NAME="idx186"><!></A>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>empty()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Returns true if the collection is empty</P>
+</td></tr>
+<A NAME="idx187"><!></A>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>size()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Returns number of elements in collection</P>
+</td></tr>
+<A NAME="idx188"><!></A>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>top()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Returns (but does not remove) the topmost element in the stack</P>
+</td></tr>
+<A NAME="idx189"><!></A>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>push(newElement)</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Pushes a new element onto the stack</P>
+</td></tr>
+<A NAME="idx190"><!></A>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>pop()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Removes (but does not return) the topmost element from the stack</P>
+</td></tr>
+</TABLE>
+<P>Note that removing the element at the top of the stack does not return a value.  If the value of the element is important, you must retrieve the element before you remove the element.</P>
+<A NAME="1021"><H3>10.2.1 Include Files</H3></A>
+<A NAME="idx191"><!></A>
+<P>Programs that use the <B><I><A HREF="../stdlibref/stack.html">stack</A></I></B> data abstraction should include the <SAMP>stack</SAMP> header:</P>
+
+<UL><PRE>
+#include &lt;stack&gt;
+</PRE></UL>
+<A NAME="1022"><H3>10.2.2 Declaration and Initialization of stack</H3></A>
+<P>A stack can use either a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> or <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> as the underlying container. When deciding which to use, consider the data which is to be stored.  If the number of elements will vary widely, a <B><I>deque</I></B> may decrease the total amount of memory used when the <B><I><A HREF="../stdlibref/stack.html">stack</A></I></B> has few elements. A <B><I>vector</I></B> has less overhead, so may be more efficient in cases where the <B><I>stack</I></B> will tend to remain at approximately the same size.  However, increasing the memory allocated to a <B><I>vector</I></B> is relatively slow, so a <B><I>vector</I></B> may be inefficient if the size of the container will tend to increase. These are, of course, generalized statements which may not apply to the problem at hand. In cases where efficiency of either speed or memory is important, you should try both underlying containers and compare the results. </P>
+<P>The following are sample declarations for a stack:</P>
+
+<UL><PRE>
+std::stack&lt;int&gt; stackOne;                     // stack using deque
+std::stack&lt;double, std::deque&lt;double&gt; &gt; stackTwo;
+std::stack&lt;Part*, std::list&lt;Part*&gt; &gt; stackThree;
+std::stack&lt;Customer, std::list&lt;Customer&gt; &gt; stackFour;
+</PRE></UL>
+<P>The last example creates a <B><I><A HREF="../stdlibref/stack.html">stack</A></I></B> from a user-defined type named <B><I>Customer</I></B>. </P>
+<A NAME="idx192"><!></A>
+<A NAME="1023"><H3>10.2.3 Example Program: An RPN Calculator</H3></A>
+<A NAME="idx193"><!></A>
+<P>A classic application of a <B><I><A HREF="../stdlibref/stack.html">stack</A></I></B> is in the implementation of this calculator. </P>
+<BLOCKQUOTE><HR><B>
+NOTE -- The executable version of this program is in the file calc.cpp.
+</B><HR></BLOCKQUOTE>
+<P>Input to the calculator consists of a standard <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> that represents an expression written in reverse polish notation (RPN). <I>Operands</I>, called <I>integer constants</I>, are pushed onto a <B><I><A HREF="../stdlibref/stack.html">stack</A></I></B> of values. As operators are encountered, the appropriate number of operands are popped off the stack, the operation is performed, and the result is pushed back onto the stack.</P>
+<P>We can divide the development of our <B><I><A HREF="../stdlibref/stack.html">stack</A></I></B> simulation into two parts, a <I>calculator engine</I> and a <I>calculator program</I>. A <I>calculator engine</I> is concerned with the actual work involved in the simulation, but does not perform any input or output operations. The name is intended to suggest an analogy to a car engine or a computer processor: the mechanism performs the actual work, but the user of the mechanism does not normally directly interact with it. Wrapped around this is the <I>calculator program</I>, which interacts with the user and passes appropriate instructions to the calculator engine.</P>
+<P>We can use the following class definition for our calculator engine. Inside the class declaration we define an enumerated <B><I><A HREF="../stdlibref/list.html">list</A></I></B> of values to represent each of the possible operators that the calculator is prepared to accept. We have made two simplifying assumptions: all operands will be integer values, and only binary operators will be handled.</P>
+
+<UL><PRE>
+class CalculatorEngine {
+public:
+  enum binaryOperator { PLUS, MINUS, TIMES, DIVIDE };
+  int  currentMemory () {
+    return data.top ();
+  }
+  void pushOperand (int value) {
+    data.push (value);
+  }
+  void doOperator (binaryOperator);
+protected:
+  std::stack&lt; int, std::vector&lt;int, std::allocator&lt;int&gt; &gt; &gt; data;
+};
+
+</PRE></UL>
+<P>The member function <SAMP>doOperator()</SAMP> performs the actual work. It pops values from the stack, performs the operation, then pushes the result back onto the stack:</P>
+
+<UL><PRE>
+void CalculatorEngine::doOperator (binaryOperator theOp) {
+  int right = data.top ();
+  data.pop ();
+  int left = data.top ();
+  data.pop ();
+  switch (theOp) {
+    case PLUS:   data.push (left + right); break;
+    case MINUS:  data.push (left - right); break;
+    case TIMES:  data.push (left * right); break;
+    case DIVIDE: data.push (left / right); break;
+  }
+}
+</PRE></UL>
+<P>(This code is simplified for demonstration purposes.  A more robust program would check to see if the stack were empty before attempting to <SAMP>pop()</SAMP> elements from it.)</P>
+<P>The main program reads values in reverse polish notation, invoking the calculator engine to do the actual work:</P>
+
+<UL><PRE>
+int main () {
+
+  std::cout &lt;&lt; "Calculator example program, from Chapter 8"
+            &lt;&lt; std::endl;
+
+  std::cout &lt;&lt; "Enter a legal RPN expression, "
+            &lt;&lt; "end with p q (print and quit)"
+            &lt;&lt; std::endl;
+
+  char c;
+  int intval;
+  CalculatorEngine calc;
+    
+  while (std::cin &gt;&gt; c)
+    switch (c) {
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+        std::cin.putback (c);
+        std::cin &gt;&gt; intval;
+        calc.pushOperand (intval);
+        break;
+      case '+': 
+        calc.doOperator (CalculatorEngine::PLUS); break;
+      case '-':
+        calc.doOperator (CalculatorEngine::MINUS); break;
+      case '*':
+        calc.doOperator (CalculatorEngine::TIMES); break;
+      case '/':
+        calc.doOperator (CalculatorEngine::DIVIDE); break;
+      case 'p':
+        std::cout &lt;&lt; calc.currentMemory () &lt;&lt; std::endl;
+      case 'q':
+        std::cout &lt;&lt; "End calculator program" &lt;&lt; std::endl;
+        return 0; // quit program
+    }
+
+  return 0;
+}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="10-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="10-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

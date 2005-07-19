@@ -1,0 +1,80 @@
+<HTML>
+<HEAD>
+<TITLE>operator delete</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="numpunct.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="operatornew.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>operator delete</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-2.html">Language support</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Global Operators</A></LI>
+<LI><A HREF="#sec6">See Also</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1050">delete()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Storage deallocation functions implicitly called by the corresponding delete expressions to deallocate storage previously allocated by one of the matching allocation functions</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;new&gt;
+
+namespace std {
+    struct nothrow_t {};
+    extern const nothrow_t nothrow;
+}
+
+void operator delete(void*) throw();
+void operator delete(void*, const std::nothrow_t&amp;) throw();
+void operator delete[](void*) throw();
+void operator delete[](void*, const std::nothrow_t&amp;) throw();
+void operator delete(void*, void*) throw();
+void operator delete[](void*, void*) throw(); 
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The library provides definitions for six overloads of the global operator <SAMP>delete</SAMP>. The functions are implicitly called as the second step (after the call to the destructor, if any) during the evaluation of the corresponding <SAMP>delete</SAMP> expression to deallocate storage previously allocated by one of the matching allocation functions (<SAMP>::operator new</SAMP>). Replacements for the replaceable forms of the functions should always paired with the replacements for the corresponding overload of operator <SAMP>new</SAMP>.</P>
+<A NAME="sec5"><H3>Global Operators</H3></A>
+
+<A NAME="idx1050"></A><PRE>void operator <B>delete</B>(void*) throw();
+void operator <B>delete</B>(void*, const std::nothrow_t&amp;) throw();</PRE>
+<UL>
+<P>Deallocation functions implicitly called by a <SAMP>delete</SAMP> expression to deallocate storage previously allocated by the matching <SAMP>::operator new (std::size_t)</SAMP> or <SAMP>::operator new (std::size_t, std::nothrow&amp;)</SAMP>, respectively. A C++ program may replace these functions.</P>
+</UL>
+
+
+<A NAME="idx1051"></A><PRE>void operator <B>delete</B>[](void*) throw();
+void operator <B>delete</B>[](void*, const std::nothrow_t&amp;) throw(); </PRE>
+<UL>
+<P>Deallocation functions implicitly called by a <SAMP>delete</SAMP> expression to deallocate storage previously allocated by the matching <SAMP>::operator new[] (std::size_t)</SAMP> or <SAMP>::operator new[] (std::size_t, std::nothrow&amp;)</SAMP>, respectively. A C++ program may replace these functions.</P>
+</UL>
+
+
+<A NAME="idx1052"></A><PRE>void operator <B>delete</B>(void*, void*) throw();
+void operator <B>delete</B>[](void*, void*) throw(); </PRE>
+<UL>
+<P>Default functions implicitly called when the initialization in a placement <SAMP>new</SAMP> expression that invokes the placement form of operator <SAMP>new</SAMP> terminates by throwing an exception. A C++ program may not replace these functions.</P>
+</UL>
+
+<A NAME="sec6"><H3>See Also</H3></A>
+<P><B><I><A HREF="new-h.html">&lt;new&gt;</A></I></B>, <B><I><A HREF="bad-alloc.html">bad_alloc</A></I></B>, <B><I><A HREF="operatornew.html">operator new</A></I></B></P>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 18.4</I></P>
+
+<BR>
+<HR>
+<A HREF="numpunct.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="operatornew.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

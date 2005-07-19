@@ -1,0 +1,21 @@
+<HTML>
+<HEAD>
+<TITLE>Memory Management Issues</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="4-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="4-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>4.3 Memory Management Issues</H2>
+<P>Containers in the Standard C++ Library can maintain a variety of different types of elements. These include the fundamental datatypes (<SAMP>int</SAMP>, <SAMP>char</SAMP>, and so on), pointers, or user-defined types. Containers cannot hold references. In general, memory management is handled automatically by the standard container classes through the allocator template parameter type. </P>
+<P>An allocator type can be provided as a second template parameter when declaring any container. Of course, if the allocator template parameter is provided explicitly, then its type must match the contained type. By default, all containers use the standard default allocator. See <A HREF="15-3.html">Section&nbsp;15.3</A> for a discussion of user-defined allocators.</P>
+<P>Values are placed into a container using the copy constructor. Some operations on a container require a default constructor. Generic algorithms that copy into a container, like <SAMP>std::copy()</SAMP>, use the assignment operator.</P>
+<A NAME="idx61"><!></A>
+<P>When an entire container is duplicated by invoking a copy constructor or by assignment, for example, every value is copied into the new structure using either the copy constructor or the assignment operator. Whether a deep copy or a shallow copy results is controlled by the programmer, who can provide the assignment operator with whatever meaning is desired. Memory for structures used internally by the various container classes is allocated and released automatically and efficiently.</P>
+<P>If a destructor is defined for the element type, this destructor is invoked when values are removed from a container. When an entire collection is destroyed, the destructor is invoked for each remaining value being held by the container.</P>
+<P>A few words should be said about containers that hold pointer values. Such collections are not uncommon. For example, a collection of pointers is the only way to store values that can potentially represent either instances of a class or instances of a subclass. Such a collection is encountered in an example problem discussed in <A HREF="11-3.html">Section&nbsp;11.3</A>. </P>
+<A NAME="idx62"><!></A>
+<P>In these cases, the container is responsible only for maintaining the pointer values themselves. It is the responsibility of the programmer to manage the memory for the values being referenced by the pointers. This includes making certain that the memory values are properly allocated, usually by invoking operator <SAMP>new</SAMP>; that they are not released while the container holds references to them; and that they are properly released once they have been removed from the container.</P>
+
+<BR>
+<HR>
+<A HREF="4-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="4-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

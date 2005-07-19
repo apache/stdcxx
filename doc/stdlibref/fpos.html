@@ -1,0 +1,184 @@
+<HTML>
+<HEAD>
+<TITLE>fpos</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="forwarditerators.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="front-insert-iterator.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>fpos</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Constructors</A></LI>
+<LI><A HREF="#sec8">Public Member Functions</A></LI>
+<LI><A HREF="#sec9">Valid Operations</A></LI>
+<LI><A HREF="#sec10">See Also</A></LI>
+<LI><A HREF="#sec11">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx634">fpos()</A><BR>
+<A HREF="#idx640">operator!=()</A><BR>
+<A HREF="#idx639">operator+()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx638">operator+=()</A><BR>
+<A HREF="#idx639">operator-()</A><BR>
+<A HREF="#idx638">operator-=()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx640">operator==()</A><BR>
+<A HREF="#idx635">state()</A><BR>
+<A HREF="#idx633">state_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx637">streamoff()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Class that maintains position information for the <B><I><A HREF="basic-iostream.html">iostream</A></I></B> classes</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;rw/iotraits&gt;
+
+namespace std {
+  template&lt;class stateT&gt;
+  class fpos;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class template <B><I>fpos</I></B> is used by the <B><I><A HREF="basic-iostream.html">iostream</A></I></B> classes to maintain position information. It maintains the absolute position within the external sequence, and the conversion state at that position. Streams instantiated on narrow characters use <B><I>streampos</I></B> as their positioning type, whereas streams instantiated on wide characters use <B><I>wstreampos</I></B>.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  template &lt;class stateT&gt; 
+  class fpos {
+
+   public:
+          
+    typedef stateT  state_type;
+
+    fpos(streamoff off = 0, 
+         state_type = state_type());
+
+    void        state(state_type); 
+    state_type  state() const;
+
+    fpos&amp; operator+=(streamoff);
+    fpos&amp; operator-=(streamoff);
+
+    fpos&amp; operator+(streamoff) const;
+    fpos&amp; operator-(streamoff) const;
+
+    bool operator==(const fpos&amp;) const;
+    bool operator+=(const fpos&amp;) const;
+
+  };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx633"></A><PRE><B>state_type</B></PRE>
+<UL>
+<P>The type <SAMP>state_type</SAMP> is an alias for the template parameter <SAMP>stateT</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Constructors</H3></A>
+
+<A NAME="idx634"></A><PRE><B>fpos</B>(streamoff off = 0, state_type st = state_type()); </PRE>
+<UL>
+<P>Constructs an <B><I>fpos</I></B> object, initializing its position with <SAMP>off</SAMP> and its conversion state with <SAMP>st</SAMP>.</P>
+</UL>
+
+<A NAME="sec8"><H3>Public Member Functions</H3></A>
+
+<A NAME="idx635"></A><PRE>state_type 
+<B>state</B>() const; </PRE>
+<UL>
+<P>Returns the conversion state stored in the <B><I>fpos</I></B> object. </P>
+</UL>
+
+
+<A NAME="idx636"></A><PRE>void 
+<B>state</B>(state_type st); </PRE>
+<UL>
+<P>Stores <SAMP>st</SAMP> as the new conversion state in the <B><I>fpos</I></B> object.</P>
+</UL>
+
+
+<A NAME="idx637"></A><PRE>operator <B>streamoff</B>() const;</PRE>
+<UL>
+<P>Returns the offset part of the <B><I>fpos</I></B> object without the state information.</P>
+</UL>
+
+
+<A NAME="idx638"></A><PRE>fpos&amp; <B>operator+=</B>(streamoff off);
+fpos&amp; <B>operator-=</B>(streamoff off);</PRE>
+<UL>
+<P>Adds or subtracts <SAMP>off</SAMP> to or from an <B><I>fpos</I></B> object and assigns the result to it.</P>
+</UL>
+
+
+<A NAME="idx639"></A><PRE>fpos&amp; <B>operator+</B>(streamoff off) const;
+fpos&amp; <B>operator-</B>(streamoff off) const;</PRE>
+<UL>
+<P>Adds or subtracts <SAMP>off</SAMP> to or from an <B><I>fpos</I></B> object.</P>
+</UL>
+
+
+<A NAME="idx640"></A><PRE>bool <B>operator==</B>(const fpos&amp;) const;
+bool <B>operator!=</B>(const fpos&amp;) const;</PRE>
+<UL>
+<P>Compares two <B><I>fpos</I></B> objects for [in]equality.</P>
+</UL>
+
+<A NAME="sec9"><H3>Valid Operations</H3></A>
+<P>In the following,</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>P</SAMP> refers to type <SAMP>fpos&lt;stateT&gt;</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>p</SAMP> and <SAMP>q</SAMP> refer to a value of type <SAMP>fpos&lt;stateT&gt;</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>O</SAMP> refers to the offset type (<SAMP>streamoff</SAMP>, <SAMP>wstreamoff</SAMP>, <SAMP>long</SAMP> ...)</P></LI>
+<LI><P CLASS="LIST"><SAMP>o</SAMP> refers to a value of the offset type</P></LI>
+<LI><P CLASS="LIST"><SAMP>i</SAMP> refers to a value of type <SAMP>int</SAMP></P></LI>
+</UL>
+<P>Valid operations:</P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>P p( i );   </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Constructs from <SAMP>int</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>P p = i;  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Assigns from <SAMP>int</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>P( o )  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Converts from offset</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>O( p )  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Converts to offset</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>p == q  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Tests for equality</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>p != q  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Tests for inequality</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>q = p + o  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Adds offset</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>p += o  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Adds offset</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>q = p -o  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Subtracts offset</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>q -= o  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Subtracts offset</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>o = p - q  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns offset</P></TD></TR>
+</TABLE></P>
+<A NAME="sec10"><H3>See Also</H3></A>
+<P><A HREF="iosfwd-h.html">&lt;iosfwd&gt;</A>, <B><I><A HREF="char-traits.html">char_traits</A></I></B></P>
+<A NAME="sec11"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.4.3.  See also ISO/IEC 9899/AMD1:1995, Amendment 1 to ISO/IEC 9899:1990 C Integrity.</I></P>
+
+<BR>
+<HR>
+<A HREF="forwarditerators.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="front-insert-iterator.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

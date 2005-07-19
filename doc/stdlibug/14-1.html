@@ -1,0 +1,107 @@
+<HTML>
+<HEAD>
+<TITLE>Overview</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="14.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="14-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>14.1 Overview</H2>
+<A NAME="idx344"><!></A>
+<P>In this section we describe the generic algorithms in the Standard C++ Library that are specific to ordered collections. These algorithms are summarized in <A HREF="14-1.html#Table&nbsp;20">Table&nbsp;20</A>:</P>
+<H4><A NAME="Table&nbsp;20">Table&nbsp;20: Generic algorithms specific to ordered collections&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Algorithm</B>
+</td><td valign=top><B>Purpose</B>
+</td></tr>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Sorting algorithms</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>partial_sort()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Sorts only part of sequence</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>partial_sort_copy()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Partial sorts into copy</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>sort()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Rearranges sequence, places in order</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>stable_sort()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Sorts, retaining original order of equal elements</P>
+</td></tr>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Nth largest element algorithm</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>nth_element()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Locates nth largest element</P>
+</td></tr>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Binary search algorithms</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>binary_search()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Searches, returning a boolean value</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>equal_range()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Searches, returning both positions</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>lower_bound()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Searches, returning first position</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>upper_bound()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Searches, returning last position</P>
+</td></tr>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Merge ordered sequences algorithm</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>merge()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Combines two ordered sequences</P>
+</td></tr>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Set operations algoithms</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>includes()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Compares two sorted sequences and returns <SAMP>true</SAMP> if every element in the range [first2, last2) is contained in the range [first1, last1)</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>set_intersection()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Forms intersection of two sets</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>set_difference()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Forms difference of two sets</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>set_symmetric_difference()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Forms symmetric difference of two sets</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>set_union()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Forms union of two sets</P>
+</td></tr>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Heap operations algorithms</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>make_heap()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Turns a sequence into a heap</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>push_heap()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Adds a new value to the heap</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>pop_heap()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Removes largest value from the heap</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>sort_heap()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Turns heap into sorted collection</P>
+</td></tr>
+</TABLE>
+<P>Ordered collections can be created using the Standard C++ Library in a variety of ways. For example:</P>
+<UL>
+<LI><P CLASS="LIST">The containers <B><I><A HREF="../stdlibref/set.html">set</A></I></B>, <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B>, <B><I><A HREF="../stdlibref/map.html">map</A></I></B>, and <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B> are ordered collections by definition.</P></LI>
+<LI><P CLASS="LIST">A <B><I><A HREF="../stdlibref/list.html">list</A></I></B> can be ordered by invoking the <SAMP>std::sort()</SAMP> member function.</P></LI>
+<LI><P CLASS="LIST">A <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>, <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>, or ordinary C++ array can be ordered by using one of the sorting algorithms described in <A HREF="14-2.html">Section&nbsp;14.2</A>.</P></LI>
+</UL>
+<P>Like the generic algorithms described in <A HREF="13.html">Section&nbsp;13</A>, the algorithms described here are not specific to any particular container class. This means that they can be used with a wide variety of types. However, many of them do require the use of random-access <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s. For this reason they are most easily used with <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>s, <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>s, or ordinary arrays.</P>
+<P>Almost all the algorithms described in this section have two versions. The first version uses <SAMP>operator&lt;()</SAMP> for comparisons appropriate to the container element type. The second, and more general, version uses an explicit comparison function object, which we will write as <SAMP>Compare</SAMP>. This function object must be a binary predicate (see <A HREF="3-3.html">Section&nbsp;3.3</A>). Since this argument is optional, we will write it within square brackets in the description of the argument types.</P>
+<A NAME="idx345"><!></A>
+<P>A sequence is considered <I>ordered</I> if for every valid or <I>denotable</I> iterator <SAMP>i</SAMP> with a denotable successor <SAMP>j</SAMP>, the comparison <SAMP>Compare(*j, *i)</SAMP> is <SAMP>false</SAMP>. Note that this does not necessarily imply that <SAMP>Compare(*i, *j)</SAMP> is <SAMP>true</SAMP>. It is assumed that the relation imposed by <SAMP>Compare</SAMP> is transitive, and induces a total ordering on the values.</P>
+<P>In the descriptions that follow, two values <SAMP>x</SAMP> and <SAMP>y</SAMP> are said to be equivalent if both <SAMP>Compare(x, y)</SAMP> and <SAMP>Compare(y, x)</SAMP> are <SAMP>false</SAMP>. Note that this need not imply that <SAMP>x == y</SAMP>.</P>
+<A NAME="1411"><H3>14.1.1 Include Files</H3></A>
+<A NAME="idx346"><!></A>
+<P>As with the algorithms described in <A HREF="13.html">Chapter&nbsp;13</A>, before you can use any of these algorithms in a program you must include the <SAMP>algorithm</SAMP> header file:</P>
+
+<UL><PRE>
+#include &lt;algorithm&gt;
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="14.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="14-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

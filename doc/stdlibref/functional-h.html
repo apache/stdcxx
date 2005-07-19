@@ -1,0 +1,111 @@
+<HTML>
+<HEAD>
+<TITLE>&lt;functional&gt;</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="functionobjects.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="generate.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>&lt;functional&gt;</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>Header</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">See Also</A></LI>
+<LI><A HREF="#sec5">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>The header <SAMP>&lt;functional&gt;</SAMP> is part of the General utilities library of the Standard C++  Library. It defines a number of function objects, helper function templates, and function adapters that are important for the effective use of the library.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>namespace std {
+  template &lt;class Arg, class Result&gt; 
+  struct <SAMP><A HREF="unary-function.html">unary_function</A></SAMP>;
+  template &lt;class Arg1, class Arg2, class Result&gt; 
+  struct <SAMP><A HREF="binary-function.html">binary_function</A></SAMP>;
+
+  template &lt;class T&gt; struct <SAMP><A HREF="plus.html">plus</A></SAMP>;
+  template &lt;class T&gt; struct <SAMP><A HREF="minus.html">minus</A></SAMP>;
+  template &lt;class T&gt; struct <SAMP><A HREF="multiplies.html">multiplies</A></SAMP>;
+  template &lt;class T&gt; struct <SAMP><A HREF="divides.html">divides</A></SAMP>;
+  template &lt;class T&gt; struct <SAMP><A HREF="modulus.html">modulus</A></SAMP>;
+  template &lt;class T&gt; struct <SAMP><A HREF="negate.html">negate</A></SAMP>;
+
+  template &lt;class T&gt; struct <SAMP><A HREF="equal-to.html">equal_to</A></SAMP>;
+  template &lt;class T&gt; struct <SAMP><A HREF="not-equal-to.html">not_equal_to</A></SAMP>;
+  template &lt;class T&gt; struct <SAMP><A HREF="greater.html">greater</A></SAMP>;
+  template &lt;class T&gt; struct <SAMP><A HREF="less.html">less</A></SAMP>;
+  template &lt;class T&gt; struct <SAMP><A HREF="greater-equal.html">greater_equal</A></SAMP>;
+  template &lt;class T&gt; struct <SAMP><A HREF="less-equal.html">less_equal</A></SAMP>;
+
+  template &lt;class T&gt; struct <SAMP><A HREF="logical-and.html">logical_and</A></SAMP>;
+  template &lt;class T&gt; struct <SAMP><A HREF="logical-or.html">logical_or</A></SAMP>;
+  template &lt;class T&gt; struct <SAMP><A HREF="logical-not.html">logical_not</A></SAMP>;
+
+  template &lt;class Predicate&gt; struct <SAMP><A HREF="unary-negate.html">unary_negate</A></SAMP>;
+  template &lt;class Predicate&gt;
+  unary_negate&lt;Predicate&gt;  <SAMP><A HREF="not1.html">not1</A></SAMP>(const Predicate&amp;);
+  template &lt;class Predicate&gt; struct <SAMP><A HREF="binary-negate.html">binary_negate</A></SAMP>;
+  template &lt;class Predicate&gt;
+  binary_negate&lt;Predicate&gt; <SAMP><A HREF="not2.html">not2</A></SAMP>(const Predicate&amp;);
+
+  template &lt;class Operation&gt;  class <SAMP><A HREF="bind1st.html">binder1st</A></SAMP>;
+  template &lt;class Operation, class T&gt;
+  binder1st&lt;Operation&gt; <SAMP><A HREF="bind1st.html">bind1st</A></SAMP>(const Operation&amp;, const T&amp;);
+  template &lt;class Operation&gt; class <SAMP><A HREF="bind1st.html">binder2nd</A></SAMP>;
+  template &lt;class Operation, class T&gt;
+  binder2nd&lt;Operation&gt; <SAMP><A HREF="bind1st.html">bind2nd</A></SAMP>(const Operation&amp;, const T&amp;);
+
+  template &lt;class Arg, class Result&gt; 
+  class <SAMP><A HREF="pointer-to-unary-function.html">pointer_to_unary_function</A></SAMP>;
+  template &lt;class Arg, class Result&gt;
+  pointer_to_unary_function&lt;Arg, Result&gt; 
+  <SAMP><A HREF="ptr-fun.html">ptr_fun</A></SAMP>(Result (*)(Arg));
+  template &lt;class Arg1, class Arg2, class Result&gt;
+  class <SAMP><A HREF="pointer-to-binary-function.html">pointer_to_binary_function</A></SAMP>;
+  template &lt;class Arg1, class Arg2, class Result&gt;
+  pointer_to_binary_function&lt;Arg1, Arg2, Result&gt;
+  <SAMP><A HREF="ptr-fun.html">ptr_fun</A></SAMP>(Result (*)(Arg1, Arg2));
+
+  template&lt;class S, class T&gt; class <SAMP>mem_fun_t</SAMP>;
+  template&lt;class S, class T, class A&gt; class <SAMP>mem_fun1_t</SAMP>;
+  template&lt;class S, class T&gt;
+  mem_fun_t&lt;S, T&gt; <SAMP><A HREF="mem-fun.html">mem_fun</A></SAMP>(S (T::*)());
+  template&lt;class S, class T, class A&gt;
+  mem_fun1_t&lt;S, T, A&gt; mem_fun(S (T::*)(A));
+  template&lt;class S, class T&gt; class <SAMP>mem_fun_ref_t</SAMP>;
+  template&lt;class S, class T, class A&gt; class <SAMP>mem_fun1_ref_t</SAMP>;
+  template&lt;class S, class T&gt;
+  mem_fun_ref_t&lt;S, T&gt; <SAMP><A HREF="mem-fun.html">mem_fun_ref</A></SAMP>(S (T::*)());
+  template&lt;class S, class T, class A&gt;
+  mem_fun1_ref_t&lt;S, T, A&gt; mem_fun_ref(S (T::*)(A));
+
+  template &lt;class S, class T&gt; class const_mem_fun_t;
+  template &lt;class S, class T, class A&gt; class const_mem_fun1_t;
+  template &lt;class S, class T&gt;
+  const_mem_fun_t&lt;S, T&gt; mem_fun(S (T::*)() const);
+  template &lt;class S, class T, class A&gt;
+  const_mem_fun1_t&lt;S, T, A&gt; mem_fun(S (T::*)(A) const);
+  template &lt;class S, class T&gt; class const_mem_fun_ref_t;
+  template &lt;class S, class T, class A&gt; 
+  class const_mem_fun1_ref_t;
+  template &lt;class S, class T&gt;
+  const_mem_fun_ref_t&lt;S, T&gt; mem_fun_ref(S (T::*)() const);
+  template &lt;class S, class T, class A&gt;
+  const_mem_fun1_ref_t&lt;S, T, A&gt; mem_fun_ref(S (T::*)(A)
+                                const);
+}
+</PRE>
+<A NAME="sec4"><H3>See Also</H3></A>
+<P><B><I><A HREF="binary-function.html">binary_function</A></I></B>, <B><I><A HREF="unary-function.html">unary_function</A></I></B>, <B><I><A HREF="plus.html">plus</A></I></B>, <B><I><A HREF="minus.html">minus</A></I></B>, <B><I><A HREF="multiplies.html">multiplies</A></I></B>, <B><I><A HREF="divides.html">divides</A></I></B>, <B><I><A HREF="modulus.html">modulus</A></I></B>, <B><I><A HREF="negate.html">negate</A></I></B>, <B><I><A HREF="equal-to.html">equal_to</A></I></B>, <B><I><A HREF="not-equal-to.html">not_equal_to</A></I></B>, <B><I><A HREF="greater.html">greater</A></I></B>, <B><I><A HREF="less.html">less</A></I></B>, <B><I><A HREF="greater-equal.html">greater_equal</A></I></B>, <B><I><A HREF="less-equal.html">less_equal</A></I></B>, <B><I><A HREF="logical-and.html">logical_and</A></I></B>, <B><I><A HREF="logical-or.html">logical_or</A></I></B>, <B><I><A HREF="logical-not.html">logical_not</A></I></B>, <A HREF="negators.html">Negators</A>, <B><I><A HREF="unary-negate.html">unary_negate</A></I></B>, <SAMP><A HREF="not1.html">not1()</A></SAMP>, <B><I><A HREF="binary-negate.html">binary_negate</A></I></B>, <SAMP><A HREF="not2.html">not2()</A></SAMP>, <SAMP><A HREF="bind1st.html">bind1st()</A></SAMP><B><I></I></B>, <SAMP><A HREF="bind1st.html">bind2nd()</A></SAMP><B><I>, binder1st, binder2nd</I></B>, <B><I><A HREF="pointer-to-unary-function.html">pointer_to_unary_function</A></I></B>, <SAMP><A HREF="ptr-fun.html">ptr_fun()</A></SAMP>, <B><I><A HREF="pointer-to-binary-function.html">pointer_to_binary_function</A></I></B>, <B><I>mem_fun, mem_fun_ref</I></B></P>
+<A NAME="sec5"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 20.3</I></P>
+
+<BR>
+<HR>
+<A HREF="functionobjects.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="generate.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

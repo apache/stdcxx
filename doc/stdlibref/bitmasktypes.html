@@ -1,0 +1,40 @@
+<HTML>
+<HEAD>
+<TITLE>Bitmask Types</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="bind1st.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="bitset.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>Bitmask Types</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;Input/output<br></P><UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A <I>Bitmask type </I>is an integer type, including an enumerated type or an assignable, copy constructible, and equality comparable class type, for which the following bitwise operators are defined:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>T operator &amp; (T, T)</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>T operator | (T, T)</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>T operator ^ (T, T)</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>T operator ~ (T)</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>T&amp; operator &amp;= (T)</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>T&amp; operator |= (T)</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>T&amp; operator ^= (T)</SAMP></P></LI>
+</UL>
+<P>Distinct values of a bitmask type such that for any pair <SAMP>C</SAMP><SAMP><SUB>i</SUB></SAMP> and <SAMP>C</SAMP><SAMP><SUB>j</SUB></SAMP>, <SAMP>(C</SAMP><SAMP><SUB>i</SUB></SAMP><SAMP> &amp; C</SAMP><SAMP><SUB>i</SUB></SAMP><SAMP>) != T()</SAMP> and <SAMP>(C</SAMP><SAMP><SUB>i</SUB></SAMP><SAMP> &amp; C</SAMP><SAMP><SUB>j</SUB></SAMP><SAMP>) == T()</SAMP>, are elements of the bitmask type. Informally speaking, no two elements of a bitmask type have any overlapping bits. </P>
+<UL>
+<LI><P CLASS="LIST">To set a value <SAMP>Y</SAMP> in an object <SAMP>X</SAMP> of a bitmask type is to evaluate the expression: <SAMP>X = Y</SAMP>.</P></LI>
+<LI><P CLASS="LIST">To clear a value <SAMP>Y</SAMP> in an object <SAMP>X</SAMP> of a bitmask type is to evaluate the expression: <SAMP>X &amp;= ~Y.</SAMP></P></LI>
+<LI><P CLASS="LIST">To clear all bits of an object <SAMP>X</SAMP> of a bitmask type is to evaluate the expression: <SAMP>X ^= X</SAMP>.</P></LI>
+<LI><P CLASS="LIST">The value <SAMP>Y</SAMP> is set in the object <SAMP>X</SAMP> of a bitmask type <SAMP>T</SAMP> if and only if the expression <SAMP>(X &amp; Y) != T ()</SAMP> evaluates to true.</P></LI>
+</UL>
+<P>Note that since a bitmask type need not be implemented as an integer type, there may not be an implicit conversion from an integer type to a bitmask type. Specifically, assigning any integer to a bitmask type need not be well-formed and may cause compilation errors. In order to initialize an object <SAMP>X</SAMP> of a bitmask type <SAMP>T</SAMP> to have none of its bits set, the object should be initialized as follows: <SAMP>T X = T ()</SAMP> (not <SAMP>T X = 0</SAMP>).</P>
+<A NAME="sec3"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Library Introduction, Section </I>17.3.2.1.2.</P>
+
+<BR>
+<HR>
+<A HREF="bind1st.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="bitset.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,92 @@
+<HTML>
+<HEAD>
+<TITLE>Understanding Facet Types</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="25.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>25.1 Understanding Facet Types</H2>
+<A NAME="idx557"><!></A>
+<P>A <I>facet</I> is an object which can be stored in a locale and retrieved from the locale based on its type. Facets encapsulate data about cultural and language dependencies. They also contain services (functions) that use the encapsulated data to help you internationalize your programs.</P>
+<A NAME="idx558"><!></A>
+<P>The Standard C++ Library defines a number of facet classes, which we call <I>standard facets</I>. These facets were reviewed in the previous chapter; they are present in every locale. You can derive your own facet classes from the standard facets, to modify their behavior. You can also create entirely new facet classes, to handle aspects of internationalization that the standard facets don't cover. Both of these processes are described later in this chapter.</P>
+<A NAME="idx559"><!></A>
+<P>In talking about facet classes, we need to distinguish between <I>base facets</I> and <I>derived facets</I>. A <I>base facet</I> is a class with the following properties:</P>
+<UL>
+<LI><P CLASS="LIST">It is derived from class <SAMP>std::locale::facet</SAMP>.</P></LI>
+<LI><P CLASS="LIST">It contains a static data member named <SAMP>id</SAMP>, of type <SAMP>std::locale::id</SAMP>.</P></LI>
+</UL>
+<P>These properties make it possible to store the facet in a locale, and to retrieve it from the locale based on its type. A locale contains at most one facet of each base facet type.</P>
+<A NAME="idx560"><!></A>
+<P>A <I>derived facet</I> is a class that is derived from a base facet, but does not contain its own static <SAMP>std::locale::id</SAMP> member. Instead, it inherits this member from the base facet it derives from. Like any facet, a derived facet can be stored in a locale, but it occupies the same <I>slot</I> in the locale as its base facet, displacing any other facet that was in that slot. For example, the following skeletal code defines a mythical base facet and a facet derived from it, and shows some of the ways these mythical facets can be stored in and retrieved from locales:</P>
+
+<UL><PRE>
+class mythical: public std::locale::facet {                  //1
+  public:
+   static std::locale::id id;
+   ... // etc
+};
+
+std::locale::id mythical::id;
+
+class mythical_byname: public mythical {                     //2
+  public:
+    mythical_byname (char *name,/*etc*/); // Constructor
+    ... // etc
+};
+
+int main (void) {
+  std::locale loc0(std::locale::classic());                  //3
+  std::locale loc1(loc0,new mythical);                       //4
+  std::locale loc2(loc1,new mythical_byname("he_DO"));       //5
+  const mythical&amp; m2=std::use_facet&lt;mythical&gt;(loc2);         //6
+  const mythical&amp; m1=std::use_facet&lt;mythical&gt;(loc1);         //7
+  const mythical&amp; m0=std::use_facet&lt;mythical&gt;(loc0);         //8
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>An example of a base facet class, derived from<SAMP> std::locale::facet</SAMP> and containing a static <SAMP>std::locale::id</SAMP> member name <SAMP>id</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>A derived facet class.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>A copy of the classic locale. Like all locales, it contains many facets. The facets are kept in <I>slots</I> indexed by the set of possible base facet types. Thus there is one slot for the base facet type <SAMP>mythical</SAMP>. In the classic locale, this <SAMP>mythical</SAMP> slot is empty.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>A copy of <SAMP>loc0</SAMP>, the classic locale, with its <SAMP>mythical</SAMP> slot now occupied by a newly-created <SAMP>mythical</SAMP> facet.
+<TR VALIGN="top"><TD><SAMP>//5</SAMP></TD><TD>A copy of <SAMP>loc1</SAMP>, but with the <SAMP>mythical</SAMP> slot now occupied by a newly-created <SAMP>mythical_byname</SAMP> facet.
+<TR VALIGN="top"><TD><SAMP>//6</SAMP></TD><TD>This returns a reference to the <SAMP>mythical_byname</SAMP> facet constructed in <SAMP>//5</SAMP>. However, note that you no longer know that it is a <SAMP>mythical_byname</SAMP> facet (short of using RTTI, which is cheating in this context). All you know is that it is a <SAMP>mythical</SAMP> facet, because it came from the <SAMP>mythical</SAMP> slot in the locale. (The <SAMP>std::use_facet</SAMP> function template is described in more detail later in this chapter.)
+<TR VALIGN="top"><TD><SAMP>//7</SAMP></TD><TD>This returns a reference to the <SAMP>mythical</SAMP> facet constructed in step <SAMP>//4</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//8</SAMP></TD><TD>This causes a <SAMP>std::bad_cast</SAMP> exception to be thrown, because the <SAMP>mythical</SAMP> slot in <SAMP>loc0</SAMP> is empty. 
+</TABLE>
+<A NAME="idx561"><!></A>
+<P>The standard facets that come with the library are all defined as class templates. The first template parameter is always the character type the facet will operate on, which is usually <SAMP>char</SAMP> or <SAMP>wchar_t</SAMP>. Some of the facets have additional template parameters. As another example of the distinction between base facets and derived facets, here is a stripped-down version of the Standard facet template <SAMP>std::numpunct</SAMP>, which takes a single template parameter.</P>
+
+<UL><PRE>
+template &lt;class charT&gt;
+class numpunct: public std::locale::facet {
+  public:
+    static std::locale::id id;
+    ... // etc
+};
+
+template &lt;class charT&gt;
+class numpunct_byname: public numpunct&lt;charT&gt; {
+  ... // etc
+};
+</PRE></UL>
+<A NAME="idx562"><!></A>
+<P>Typically, these templates are instantiated on <SAMP>char</SAMP> and <SAMP>wchar_t</SAMP>, so the following are base facet types:</P>
+
+<UL><PRE>
+std::numpunct&lt;char&gt;
+std::numpunct&lt;wchar_t&gt;
+</PRE></UL>
+<A NAME="idx563"><!></A>
+<P>and the following are derived facet types:</P>
+
+<UL><PRE>
+std::numpunct_byname&lt;char&gt;
+std::numpunct_byname&lt;wchar_t&gt;
+</PRE></UL>
+<P>If your application created its own character type <SAMP>my_char_t</SAMP>, then <SAMP>std::numpunct&lt;my_char_t&gt;</SAMP> would be a base facet type and <SAMP>std::numpunct_byname&lt;my_char_t&gt;</SAMP> would be a derived facet type.</P>
+
+<BR>
+<HR>
+<A HREF="25.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

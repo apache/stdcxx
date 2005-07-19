@@ -1,0 +1,134 @@
+<HTML>
+<HEAD>
+<TITLE>generate(), generate_n()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="functional-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="get-temporary-buffer.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>generate(), generate_n()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that assigns each element in a range a value produced by repeated application of the given function object</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class ForwardIterator, class Generator&gt;
+  void generate(ForwardIterator start, ForwardIterator finish,
+                Generator gen);
+
+  template &lt;class OutputIterator, class Size, class Generator&gt;
+  void generate_n(OutputIterator start, Size n,
+                  Generator gen);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>A value-generator function returns a value each time it is invoked. The algorithms <SAMP>generate()</SAMP> and <SAMP><A HREF="generate.html">generate_n()</A></SAMP> assign each element in the sequence <SAMP>[start, finish)</SAMP> or <SAMP>[start, start + n) </SAMP>the return value of the generator function <SAMP>gen()</SAMP>. The function <SAMP>gen()</SAMP> takes no arguments. (<SAMP>gen()</SAMP> can be a function or a class with an <SAMP>operator()</SAMP> defined that takes no arguments.)</P>
+<P><SAMP><A HREF="generate.html">generate_n()</A></SAMP> assumes that all iterators in the range <SAMP>[start, start + n]</SAMP> are dereferenceable, unless <SAMP>start</SAMP> is an insert iterator.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>The <SAMP>generate()</SAMP> and <SAMP><A HREF="generate.html">generate_n()</A></SAMP> algorithms invoke <SAMP>gen()</SAMP> and assign its return value exactly <SAMP>finish - start</SAMP> (or <SAMP>n</SAMP>) times.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+// generate.cpp
+//
+
+#include &lt;algorithm&gt;    // for generate, generate_n
+#include &lt;iostream&gt;     // for cout, endl
+#include &lt;vector&gt;       // for vector
+
+
+
+// Value generator simply doubles the current value 
+// and returns it.
+template &lt;class T&gt;
+class generator
+{
+    T val_;
+public:
+    generator(const T &amp;val) : val_ (val) { }
+    T operator()() {
+        return val_ += val_;
+    }
+};
+
+
+int main ()
+{
+    // Typedef for convenience.
+    typedef std::vector&lt;short, 
+                        std::allocator&lt;short&gt; &gt; vector;
+
+    vector::value_type arr[4] = { 1, 2, 3, 4 };
+
+    // Set up two vectors.
+    vector v1(arr, arr + sizeof arr / sizeof *arr);
+    vector v2 = v1;
+
+    // Set up one empty vector.
+    vector v3;
+
+    // Create a generator function object.
+    generator&lt;vector::value_type&gt; gen(1);
+
+    // Generate values for all of v1.
+    std::generate(v1.begin(), v1.end(), gen);
+
+    // Generate values for first 3 of v2.
+    std::generate_n(v2.begin(), 3, gen);
+
+    // Use back_insert_iterator to generate 5 values for v3.
+    std::generate_n(std::back_inserter(v3), 5, gen);
+
+    // Copy all three to cout.
+    std::ostream_iterator&lt;vector::value_type, char,
+             std::char_traits&lt;char&gt; &gt; out(std::cout, " ");
+
+    std::copy(v1.begin(), v1.end(), out);
+    std::cout &lt;&lt; std::endl;
+
+    std::copy(v2.begin(), v2.end(), out);
+    std::cout &lt;&lt; std::endl;
+
+    std::copy(v3.begin(), v3.end(), out);
+    std::cout &lt;&lt; std::endl;
+
+    // Generate 3 values into cout.
+    std::generate_n(out, 3, gen);
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>2 4 8 16 
+2 4 8 4 
+2 4 8 16 32 
+2 4 8 
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><A HREF="functionobjects.html">Function Objects</A></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.2.6</I></P>
+
+<BR>
+<HR>
+<A HREF="functional-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="get-temporary-buffer.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

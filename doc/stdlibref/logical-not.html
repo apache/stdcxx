@@ -1,0 +1,63 @@
+<HTML>
+<HEAD>
+<TITLE>logical_not</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="logical-and.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="logical-or.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>logical_not</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">See Also</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A unary function object that returns <SAMP>true</SAMP> if its argument is <SAMP>false</SAMP></P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;functional&gt;
+
+namespace std {
+  template &lt;class T&gt;
+  struct logical_not;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P><B><I>logical_not</I></B> is a unary function object. Its <SAMP>operator()</SAMP> returns <SAMP>true</SAMP> if its argument is <SAMP>false</SAMP>. You can pass a <B><I>logical_not</I></B> object to any algorithm that requires a unary function. For example, the <SAMP><A HREF="replace-if.html">replace_if()</A></SAMP> algorithm replaces an element with another value if the result of a unary operation is <SAMP>true</SAMP>. <B><I>logical_not</I></B> is used in that algorithm in the following manner:</P>
+
+<UL><PRE>vector&lt;int&gt; vec1;
+.
+.
+.
+void replace_if(vec1.begin(), vec1.end(),
+                logical_not&lt;int&gt;(),1);
+</PRE></UL>
+<P>This call to <SAMP><A HREF="replace-if.html">replace_if()</A></SAMP> replaces all zeros in the <SAMP>vec1</SAMP> with <SAMP>1</SAMP>.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class T&gt;
+  struct logical_not : unary_function&lt;T, bool&gt; {
+    bool operator() (const T&amp;) const;
+  };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>See Also</H3></A>
+<P><A HREF="functionobjects.html">Function Objects</A>, <B><I><A HREF="unary-function.html">unary_function</A></I></B></P>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 20.3.4</I></P>
+
+<BR>
+<HR>
+<A HREF="logical-and.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="logical-or.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

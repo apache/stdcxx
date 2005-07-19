@@ -1,0 +1,28 @@
+<HTML>
+<HEAD>
+<TITLE>Boolean Vectors</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="5-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="5-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>5.3 Boolean Vectors</H2>
+<A NAME="idx95"><!></A>
+<A NAME="idx96"><!></A>
+<P>In the Standard C++ Library, <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>s of bit values (boolean 1/0 values) are handled as a special case, so that the values can be efficiently packed with several elements to a word. The operations for a boolean <B><I>vector</I></B>, <B><I>vector&lt;bool&gt;</I></B>, are a superset of those for an ordinary <B><I>vector</I></B>, only the implementation is more efficient.</P>
+<A NAME="idx97"><!></A>
+<P>One new member function added to the boolean <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> datatype is <SAMP>flip()</SAMP>. When invoked, this function inverts all the bits of the <B><I>vector</I></B>. Boolean <B><I>vector</I></B>s also return as reference an internal value that also supports the <SAMP>flip()</SAMP> member function:</P>
+
+<UL><PRE>
+std::vector&lt;bool&gt; bvec(27);
+bvec.flip();               // flip all values
+bvec[17].flip();           // flip bit 17
+</PRE></UL>
+<P>The <B><I><A HREF="../stdlibref/vector.html">vector&lt;bool&gt;</A></I></B> also supports an additional <SAMP>swap()</SAMP> member function that allows swapping the values indicated by a pair of references: </P>
+
+<UL><PRE>   
+bvec.swap(bvec [17], bvec [16]);
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="5-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="5-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

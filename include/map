@@ -1,0 +1,681 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * map - declarations for the Standard Library map class
+ *
+ * $Id: //stdlib/dev/include/map#21 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994
+ * Hewlett-Packard Company
+ *
+ * Permission to use, copy, modify, distribute and sell this software
+ * and its documentation for any purpose is hereby granted without fee,
+ * provided that the above copyright notice appear in all copies and
+ * that both that copyright notice and this permission notice appear
+ * in supporting documentation.  Hewlett-Packard Company makes no
+ * representations about the suitability of this software for any
+ * purpose.  It is provided "as is" without express or implied warranty.
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_MAP_INCLUDED
+#define _RWSTD_MAP_INCLUDED
+
+
+#include <rw/_allocator.h>   // for allocator
+#include <rw/_funcbase.h>    // for less
+#include <rw/_tree.h>        // for __rb_tree
+#include <rw/_defs.h>
+
+
+_RWSTD_NAMESPACE (__rw) { 
+
+
+// This is used in the implementation of map and multimap.
+template <class _TypeT, class _TypeU>
+struct __select1st : public _STD::unary_function<_TypeT, _TypeU>
+{
+    const _TypeU& operator () (const _TypeT& __x) const {
+        return __x.first;
+    }
+};
+
+
+}   // namespace __rw
+
+
+_RWSTD_NAMESPACE (std) { 
+
+// prevent comma from messing up macro argument expansion
+#define _RWSTD_MAP_ALLOCATOR(K, T)   allocator<pair<const K, T> >
+
+template <class _Key, class _TypeT,
+          class _Compare _RWSTD_COMPLEX_DEFAULT (less<_Key>), 
+          class _Allocator
+                _RWSTD_COMPLEX_DEFAULT (_RWSTD_MAP_ALLOCATOR (_Key, _TypeT)) >
+class map
+{
+public:
+
+    typedef _Key                                key_type;
+    typedef _TypeT                              mapped_type;
+    typedef pair<const key_type, mapped_type>   value_type;
+    typedef _Compare                            key_compare;
+    typedef _Allocator                          allocator_type;
+    
+private:
+    
+    typedef _RW::__rb_tree<key_type, value_type,
+                           _RW::__select1st<value_type, key_type>, 
+                           key_compare, allocator_type> _C_repT;
+    _C_repT _C_rep;
+
+public:
+
+    typedef _TYPENAME _C_repT::reference              reference;
+    typedef _TYPENAME _C_repT::const_reference        const_reference;
+    typedef _TYPENAME _C_repT::iterator               iterator;
+    typedef _TYPENAME _C_repT::const_iterator         const_iterator;
+    typedef _TYPENAME _C_repT::size_type              size_type;
+    typedef _TYPENAME _C_repT::difference_type        difference_type;
+    typedef _TYPENAME _C_repT::pointer                pointer;
+    typedef _TYPENAME _C_repT::const_pointer          const_pointer;
+    typedef _TYPENAME _C_repT::reverse_iterator       reverse_iterator;
+    typedef _TYPENAME _C_repT::const_reverse_iterator const_reverse_iterator;
+
+    struct value_compare: binary_function<value_type, value_type, bool> {
+        // explicitly specified template arg-list below
+        // to work around an MSVC 6.0 bug (PR #26908)
+        friend class map<_Key, _TypeT, _Compare, _Allocator>;
+
+        bool operator () (const value_type &__x, const value_type &__y) const {
+            return comp (__x.first, __y.first);
+        }
+
+    protected:
+
+        key_compare comp;
+
+        value_compare (key_compare __cmp) : comp (__cmp) { /* empty */ }
+    };
+
+    // 23.3.1.1, p1
+    _EXPLICIT
+    map (const key_compare &__cmp   = key_compare (),
+         const allocator_type &__alloc = allocator_type ()) 
+        : _C_rep (__cmp, __alloc) { }
+
+
+#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
+    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+
+    // 23.3.1.1, p3
+    template <class _InputIter>
+    map (_InputIter __first, _InputIter __last, 
+         const _Compare& __cmp = _Compare (),
+         const _Allocator& __alloc = _Allocator ())
+      : _C_rep (__first, __last, __cmp, __alloc, false) { }
+
+#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+
+    map (const value_type* __first, const value_type* __last, 
+         const key_compare &__cmp = key_compare (),
+         const allocator_type &__alloc = allocator_type ())
+      : _C_rep (__first, __last, __cmp, __alloc, false) { }
+
+    map (const_iterator __first, const_iterator __last, 
+         const key_compare &__cmp = key_compare (),
+         const allocator_type &__alloc = allocator_type ())
+      : _C_rep (__first, __last, __cmp, __alloc, false) { }
+
+#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+
+    map (const map &__rhs): _C_rep (__rhs._C_rep) { /* empty */ }
+
+    map& operator= (const map &__rhs) {
+        _C_rep = __rhs._C_rep; return *this; 
+    }
+
+    allocator_type get_allocator () const {
+        return _C_rep.get_allocator ();
+    }
+
+    iterator begin () {
+        return _C_rep.begin ();
+    }
+
+    const_iterator begin () const {
+        return _C_rep.begin ();
+    }
+
+    iterator end () {
+        return _C_rep.end ();
+    }
+
+    const_iterator end () const {
+        return _C_rep.end ();
+    }
+
+    reverse_iterator rbegin () {
+        return _C_rep.rbegin ();
+    }
+
+    const_reverse_iterator rbegin () const {
+        return _C_rep.rbegin ();
+    }
+
+    reverse_iterator rend () {
+        return _C_rep.rend ();
+    }
+
+    const_reverse_iterator rend () const {
+        return _C_rep.rend ();
+    }
+
+    bool empty () const {
+        return _C_rep.empty ();
+    }
+
+    size_type size () const {
+        return _C_rep.size ();
+    }
+
+    size_type max_size () const {
+        return _C_rep.max_size ();
+    }
+
+    mapped_type& operator[] (const key_type &__k) {
+        // note: temporary is necessary to avoid an xlC 5.0 bug (PR #25040)
+        iterator __i = insert (value_type (__k, mapped_type ())).first;
+        return (*__i).second;
+    }
+
+    pair<iterator, bool> insert (const value_type &__x) {
+        return _C_rep.insert (__x, false);
+    }
+
+    iterator insert (iterator __it, const value_type &__x) {
+        return _C_rep.insert (__it, __x, false);
+    }
+
+#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
+    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+
+    template<class _InputIter>
+    void insert (_InputIter __first, _InputIter __last) {
+        _C_rep.insert (__first, __last, false);
+    }
+
+#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+
+    void insert (const value_type* __first, const value_type* __last) {
+        _C_rep.insert (__first, __last, false);
+    }
+
+    void insert (const_iterator __first, const_iterator __last) {
+        _C_rep.insert (__first, __last, false);
+    }
+
+#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+
+    void erase (iterator __it) {
+        _C_rep.erase (__it);
+    }
+
+    size_type erase (const key_type& __x) {
+        return _C_rep.erase (__x);
+    }
+
+    void  erase (iterator __first, iterator __last) {
+        _C_rep.erase (__first,__last);
+    }
+    void swap (map &__x) {
+        _C_rep.swap (__x._C_rep);
+    }
+
+    void clear () {
+        erase (begin (),end ());
+    }
+
+    key_compare key_comp () const {
+        return _C_rep.key_comp ();
+    }
+
+    value_compare value_comp () const {
+        return value_compare (_C_rep.key_comp ());
+    }
+
+    iterator find (const key_type& __x) {
+        return _C_rep.find (__x);
+    }
+
+    const_iterator find (const key_type& __x) const {
+        return _C_rep.find (__x);
+    }
+
+    size_type count (const key_type& __x) const {
+        return _C_rep.count (__x);
+    }
+
+    iterator lower_bound (const key_type& __x) {
+        return _C_rep.lower_bound (__x);
+    }
+
+    iterator upper_bound (const key_type& __x) {
+        return _C_rep.upper_bound (__x);
+    }
+
+    const_iterator lower_bound (const key_type& __x) const {
+        return _C_rep.lower_bound (__x); 
+    }
+
+    const_iterator upper_bound (const key_type& __x) const {
+        return _C_rep.upper_bound (__x); 
+    }
+
+    pair<iterator, iterator> equal_range (const key_type& __x) {
+        return _C_rep.equal_range (__x);
+    }
+
+    pair<const_iterator, const_iterator>
+    equal_range (const key_type& __x) const {
+        return _C_rep.equal_range (__x);
+    }
+};
+
+
+template <class _Key, class _TypeT,
+          class _Compare _RWSTD_COMPLEX_DEFAULT (less<_Key>), 
+          class _Allocator
+                _RWSTD_COMPLEX_DEFAULT (_RWSTD_MAP_ALLOCATOR (_Key, _TypeT)) >
+class multimap
+{
+public:
+
+    typedef _Key                                key_type;
+    typedef _TypeT                              mapped_type;
+    typedef pair<const key_type, mapped_type>   value_type;
+    typedef _Compare                            key_compare;
+    typedef _Allocator                          allocator_type;
+
+private:
+    
+    typedef _RW::__rb_tree<key_type, value_type, 
+                           _RW::__select1st<value_type, key_type>, 
+                           key_compare, allocator_type> _C_repT;
+    _C_repT _C_rep;
+
+public:
+
+    typedef _TYPENAME _C_repT::reference              reference;
+    typedef _TYPENAME _C_repT::const_reference        const_reference;
+    typedef _TYPENAME _C_repT::iterator               iterator;
+    typedef _TYPENAME _C_repT::const_iterator         const_iterator; 
+    typedef _TYPENAME _C_repT::size_type              size_type;
+    typedef _TYPENAME _C_repT::difference_type        difference_type;
+    typedef _TYPENAME _C_repT::pointer                pointer;
+    typedef _TYPENAME _C_repT::const_pointer          const_pointer; 
+    typedef _TYPENAME _C_repT::reverse_iterator       reverse_iterator;
+    typedef _TYPENAME _C_repT::const_reverse_iterator const_reverse_iterator;
+
+    struct value_compare: binary_function<value_type, value_type, bool> {
+        // explicitly specified template arg-list below
+        // to work around an MSVC 6.0 bug (PR #26908)
+        friend class multimap<_Key, _TypeT, _Compare, _Allocator>;
+
+        bool operator () (const value_type &__x, const value_type &__y) const {
+            return comp (__x.first, __y.first);
+        }
+
+    protected:
+
+        key_compare comp;
+        value_compare (key_compare __cmp): comp (__cmp) { /* empty */ }
+    };
+
+    _EXPLICIT
+    multimap (const key_compare &__cmp = key_compare (),
+              const allocator_type &__alloc = allocator_type ())
+      : _C_rep (__cmp, __alloc) { }
+
+#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
+    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+
+    template<class _InputIter>
+    multimap (_InputIter __first, _InputIter __last, 
+              const _Compare& __cmp = _Compare (),
+              const _Allocator& __alloc = _Allocator ()) 
+      : _C_rep (__first, __last, __cmp, __alloc, true) { }
+
+#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+
+    multimap (const value_type* __first, const value_type* __last, 
+              const key_compare &__cmp = key_compare (),
+              const allocator_type &__alloc = allocator_type ())
+      : _C_rep (__first, __last, __cmp, __alloc, true) { }
+
+    multimap (const_iterator __first, const_iterator __last,
+              const key_compare &__cmp = key_compare (),
+              const allocator_type &__alloc = allocator_type ())
+      : _C_rep (__first, __last, __cmp, __alloc, true) { }
+
+#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+
+    multimap (const multimap &__rhs)
+        : _C_rep (__rhs._C_rep) { }
+
+    multimap& operator= (const multimap &__rhs) {
+        _C_rep = __rhs._C_rep; return *this; 
+    }
+
+    allocator_type get_allocator () const {
+        return _C_rep.get_allocator ();
+    }
+
+    iterator begin () {
+        return _C_rep.begin ();
+    }
+
+    const_iterator begin () const {
+        return _C_rep.begin ();
+    }
+
+    iterator end () {
+        return _C_rep.end ();
+    }
+
+    const_iterator end () const {
+        return _C_rep.end ();
+    }
+
+    reverse_iterator rbegin () {
+        return _C_rep.rbegin ();
+    }
+
+    const_reverse_iterator rbegin () const {
+        return _C_rep.rbegin ();
+    }
+
+    reverse_iterator rend () {
+        return _C_rep.rend ();
+    }
+
+    const_reverse_iterator rend () const {
+        return _C_rep.rend ();
+    }
+
+    bool empty () const {
+        return _C_rep.empty ();
+    }
+
+    size_type size () const {
+        return _C_rep.size ();
+    }
+
+    size_type max_size () const {
+        return _C_rep.max_size ();
+    }
+
+    iterator insert (const value_type& __x) {
+        return _C_rep.insert (__x, true).first;
+    }
+
+    iterator insert (iterator __it, const value_type& __x) {
+        return _C_rep.insert (__it, __x, true);
+    }
+
+#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
+    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+
+    template<class _InputIter>
+    void insert (_InputIter __first, _InputIter __last) {
+        _C_rep.insert (__first, __last, true);
+    }
+
+#else  // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+
+    void insert (const value_type* __first, const value_type* __last) {
+        _C_rep.insert (__first, __last, true);
+    }
+
+    void insert (const_iterator __first, const_iterator __last) {
+        _C_rep.insert (__first, __last, true);
+    }
+
+#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+
+    void erase (iterator __it) {
+        _C_rep.erase (__it);
+    }
+
+    size_type erase (const key_type& __x) {
+        return _C_rep.erase (__x);
+    }
+
+    void erase (iterator __first, iterator __last) {
+        _C_rep.erase (__first, __last);
+    }
+
+    void clear () {
+        erase (begin (),end ());
+    }
+
+    void swap (multimap &__x) {
+        _C_rep.swap (__x._C_rep);
+    }
+
+    key_compare  key_comp () const {
+        return _C_rep.key_comp ();
+    }
+
+    value_compare value_comp () const {
+        return value_compare (_C_rep.key_comp ());
+    }
+
+    iterator find (const key_type& __x) {
+        return _C_rep.find (__x);
+    }
+
+    const_iterator find (const key_type& __x) const {
+        return _C_rep.find (__x);
+    }
+
+    size_type count (const key_type& __x) const {
+        return _C_rep.count (__x);
+    }
+
+    iterator lower_bound (const key_type& __x) {
+        return _C_rep.lower_bound (__x);
+    }
+
+    iterator upper_bound (const key_type& __x) {
+        return _C_rep.upper_bound (__x);
+    }
+
+    const_iterator lower_bound (const key_type& __x) const {
+        return _C_rep.lower_bound (__x); 
+    }
+
+    const_iterator upper_bound (const key_type& __x) const {
+        return _C_rep.upper_bound (__x); 
+    }
+
+    pair<iterator, iterator>
+    equal_range (const key_type& __x) {
+        return _C_rep.equal_range (__x);
+    }
+
+    pair<const_iterator, const_iterator>
+    equal_range (const key_type& __x) const {
+        return _C_rep.equal_range (__x);
+    }
+};
+
+
+// 23.1, p5 - table 65
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline bool operator== (const map<_Key, _TypeT, _Compare, _Allocator> &__x,
+                        const map<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    return    __x.size () == __y.size ()
+           && equal (__x.begin (), __x.end (), __y.begin ());
+}
+
+
+// 23.1, p5 - table 65
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline bool operator< (const map<_Key, _TypeT, _Compare, _Allocator> &__x, 
+                       const map<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    return lexicographical_compare (__x.begin (), __x.end (),
+                                    __y.begin (), __y.end ());
+}
+
+
+// 23.1, p5 - table 65
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline bool operator!= (const map<_Key, _TypeT, _Compare, _Allocator> &__x, 
+                        const map<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    return !(__x == __y);
+}
+
+
+// 23.1, p5 - table 65
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline bool operator> (const map<_Key, _TypeT, _Compare, _Allocator> &__x, 
+                       const map<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    return __y < __x;
+}
+
+
+// 23.1, p5 - table 65
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline bool operator>= (const map<_Key, _TypeT, _Compare, _Allocator> &__x, 
+                        const map<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    return !(__x < __y);
+}
+
+
+// 23.1, p5 - table 65
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline bool operator<= (const map<_Key, _TypeT, _Compare, _Allocator> &__x, 
+                        const map<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    return !(__y <  __x);
+}
+
+
+#ifndef _RWSTD_NO_PART_SPEC_OVERLOAD
+
+// 23.3.1.4
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline void swap (map<_Key, _TypeT, _Compare, _Allocator> &__y, 
+                  map<_Key, _TypeT, _Compare, _Allocator> &__x)
+{
+    __x.swap (__y);
+}
+
+#endif   // _RWSTD_NO_PART_SPEC_OVERLOAD
+
+
+// 23.1, p5 - table 65
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline bool
+operator== (const multimap<_Key, _TypeT, _Compare, _Allocator> &__x, 
+            const multimap<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    return    __x.size () == __y.size ()
+           && equal (__x.begin (), __x.end (), __y.begin ());
+}
+
+
+// 23.1, p5 - table 65
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline bool
+operator< (const multimap<_Key, _TypeT, _Compare, _Allocator> &__x, 
+           const multimap<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    return lexicographical_compare (__x.begin (), __x.end (),
+                                    __y.begin (), __y.end ());
+}
+
+
+// 23.1, p5 - table 65
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline bool
+operator!= (const multimap<_Key, _TypeT, _Compare, _Allocator> &__x, 
+            const multimap<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    return !(__x == __y);
+}
+
+
+// 23.1, p5 - table 65
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline bool
+operator> (const multimap<_Key, _TypeT, _Compare, _Allocator> &__x, 
+           const multimap<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    return __y < __x;
+}
+
+
+// 23.1, p5 - table 65
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline bool
+operator>= (const multimap<_Key, _TypeT, _Compare, _Allocator> &__x, 
+            const multimap<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    return !(__x < __y);
+}
+
+
+// 23.1, p5 - table 65
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+inline bool
+operator<= (const multimap<_Key, _TypeT, _Compare, _Allocator> &__x, 
+            const multimap<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    return !(__y <  __x);
+}
+
+
+#ifndef _RWSTD_NO_PART_SPEC_OVERLOAD
+
+// 23.3.2.3
+template <class _Key, class _TypeT, class _Compare, class _Allocator>
+void swap (multimap<_Key, _TypeT, _Compare, _Allocator> &__x, 
+           multimap<_Key, _TypeT, _Compare, _Allocator> &__y)
+{
+    __x.swap (__y);
+}
+
+#endif   // _RWSTD_NO_PART_SPEC_OVERLOAD
+
+
+}   // namespace std
+
+
+#endif   // _RWSTD_MAP_INCLUDED

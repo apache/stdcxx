@@ -1,0 +1,48 @@
+<HTML>
+<HEAD>
+<TITLE>Negators and Binders</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="3-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="III.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>3.5 Negators and Binders</H2>
+<A NAME="idx55"><!></A>
+<P><I>Negators</I> and <I>binders</I> are function adaptors that are used to build new function objects out of existing function objects. Almost always, negators and binders are applied to functions as part of the process of building an argument list prior to invoking yet another function or generic algorithm.</P>
+<A NAME="idx56"><!></A>
+<P>The negators <B><I><A HREF="../stdlibref/not1.html">not1()</A></I></B> and <B><I><A HREF="../stdlibref/not2.html">not2()</A></I></B> take a unary and a binary predicate function object, respectively, and create a new function object that yields the complement of the original. For example, using the widget tester function object defined in <A HREF="3-2.html#322-1">Section&nbsp;3.2.2.1</A>, the function object</P>
+
+<UL><PRE>   
+std::not2(WidgetTester())
+</PRE></UL>
+<P>yields a binary predicate which takes exactly the same arguments as the widget tester. It is <SAMP>true</SAMP> when the corresponding widget tester is <SAMP>false</SAMP>, and <SAMP>false</SAMP> otherwise. Negators work only with function objects defined as subclasses of the class templates <B><I><A HREF="../stdlibref/unary-function.html">unary_function</A></I></B> and <B><I><A HREF="../stdlibref/binary-function.html">binary_function</A></I></B>, given earlier.</P>
+<P>A binder takes a two-argument function, and binds either the first or second argument to a specific value, thereby yielding a one-argument function. The type of the underlying function object must be a subclass of <B><I><A HREF="../stdlibref/binary-function.html">binary_function</A></I></B>. The binder <B><I><A HREF="../stdlibref/bind1st.html">bind1st()</A></I></B> binds the first argument, while the binder <B><I><A HREF="../stdlibref/bind1st.html">bind2nd()</A></I></B> binds the second.</P>
+<P>For example, the binder <B><I>bind2nd(greater&lt;int&gt;(), 5)</I></B> creates a function object that tests for being larger than 5. This could be used in the following, which yields an iterator representing the first value in a list larger than 5:</P>
+
+<UL><PRE>
+std::list&lt;int&gt;::iterator where =
+  std::find_if(aList.begin(), aList.end(),
+               std::bind2nd(std::greater&lt;int&gt;(), 5));
+</PRE></UL>
+<P>Combining a binder and a negator, we can create a function object that is <SAMP>true</SAMP> if the argument is divisible by 3, and <SAMP>false</SAMP> otherwise. This function can be used to remove all the multiples of 3 from a list. </P>
+
+<UL><PRE>
+std::list&lt;int&gt;::iterator where =
+  std::remove_if(aList.begin(), aList.end(),
+                 std::not1(std::bind2nd(std::modulus&lt;int&gt;(), 3)));
+</PRE></UL>
+<P>A binder is used to tie the widget number of a call to the binary function <SAMP>WidgetTester(),</SAMP> yielding a one-argument function that takes only a widget as argument. This is used to find the first widget that matches the given widget type:</P>
+
+<UL><PRE>
+std::list&lt;Widget&gt;::iterator wehave = 
+  std::find_if(on_hand.begin(), on_hand.end(), 
+               std::bind2nd(WidgetTester(), wid));
+</PRE></UL>
+<A NAME="idx57"><!></A>
+<BLOCKQUOTE><HR><B>
+NOTE -- The idea described here by the term binder is in other contexts often described by the term <I>curry</I>. It is named after the computer scientist Haskell P. Curry, who used the concept extensively in an influential book on the theory of computation in the 1930s. Curry himself attributed the idea to Moses Sch&ouml;nfinkel, leaving one to wonder why we don't instead refer to binders as Sch&ouml;nfinkels.
+</B><HR></BLOCKQUOTE>
+
+
+<BR>
+<HR>
+<A HREF="3-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="III.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,26 @@
+<HTML>
+<HEAD>
+<TITLE>Deriving a New Stream Type</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="38.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="38-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>38.1 Deriving a New Stream Type</H2>
+<A NAME="idx899"><!></A>
+<P>Sometimes it is useful to derive a stream type from the standard iostreams. This is the case when you want to add data members or functions, or modify the behavior of a stream's I/O operations.</P>
+<P>In <A HREF="36.html">Chapter&nbsp;36</A> we learned that additional data can be added to a stream object by using <SAMP>std::os_base::xalloc()</SAMP>, <SAMP>std::ios_base::iword()</SAMP>, and <SAMP>std::ios_base::pword()</SAMP>. However, this solution has a certain weakness in that only a pointer to the additional data can be stored and someone else has to worry about the actual memory.</P>
+<A NAME="idx900"><!></A>
+<P>This weakness can be overcome by deriving a new stream type that stores the additional data as a data member. Let's consider again the example of the <SAMP>date</SAMP> inserter and the <SAMP>setfmt</SAMP> manipulator from <A HREF="36-3.html">Section&nbsp;36.3</A>. Here let's derive a new stream that has an additional data member for storing the format string together with a corresponding member function for setting the date format specification. [This, of course, is only an example. You would probably never derive a new class for adding only one data member. However, it keeps the example simple and allows us to demonstrate the principle of deriving new stream classes.]</P>
+<P>Again, we confine the example to the inserter of the <SAMP>date</SAMP> object and omit the extractor. Instead of inserting into an output stream, as we did before, we now use a new type of stream called <SAMP>odatstream</SAMP>:</P>
+
+<UL><PRE>
+date today;
+odatstream ostr(std::cout);
+// ...
+ostr &lt;&lt; setfmt("%D") &lt;&lt; today;
+</PRE></UL>
+<P>In the next sections, we explore how we can implement such a derived stream type.</P>
+
+<BR>
+<HR>
+<A HREF="38.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="38-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

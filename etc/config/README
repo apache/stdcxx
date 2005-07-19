@@ -1,0 +1,1657 @@
+
+  $Id: //stdlib/dev/etc/stdlib/config/README#31 $
+
+                  Rogue Wave(R) C++ Standard Library
+                  ----------------------------------
+
+  0  Index
+  --------
+
+  Index ............................................................ 0
+  Contents ......................................................... 1
+  Requirements ..................................................... 2
+  Unpacking Instructions ........................................... 3
+  Directory Structure ...............................................4
+    Source Directory Structure ................................... 4.1
+    Library Files ................................................ 4.2
+    Library Utilities ............................................ 4.3
+    Locales ...................................................... 4.4
+    Test Suite Files ............................................. 4.5
+    Examples and Tutorials ....................................... 4.6
+    Build Directory Structure .................................... 4.7
+  Library Build Instructions ....................................... 5
+  Library Installation ............................................. 6
+  Test Suite Build Instructions .................................... 7
+  Library Configuration ............................................ 8
+    Header config.h .............................................. 8.1
+    Headers rw/_config.h and rw/_defs.h .......................... 8.2
+    Configuration Macros ......................................... 8.3
+      Platform Identification Macros ........................... 8.3.1
+      Compiler Configuration Macros ............................ 8.3.2
+      Runtime Library Configuration Macros ..................... 8.3.3
+      C Library Configuration Macros ........................... 8.3.4
+      Macros Controlling Strings ............................... 8.3.5
+      Macros Controlling Iostreams ............................. 8.3.6
+      Macros Controlling Locale ................................ 8.3.7
+      Macros Controlling Implementation Properties ............. 8.3.8
+      Other Configuration Macros ............................... 8.3.9
+      Macros Controlling Extensions ........................... 8.3.10
+  Library Oragnization ............................................. 9
+    Organization of Headers ...................................... 9.1 
+    Organization of Sources ...................................... 9.2
+  Platform Notes .................................................. 10
+    Apogee C++ .................................................. 10.1
+    Borland C++ ................................................. 10.2
+    Comeau C++ .................................................. 10.3
+    Compaq C++ .................................................. 10.4
+    EDG eccp .................................................... 10.5
+    GNU gcc ..................................................... 10.6
+    HP aCC ...................................................... 10.7
+    IBM VisualAge C++ ........................................... 10.8
+    Intel C++ ................................................... 10.9
+    KAI C++ .................................................... 10.10
+    Metrowerks CodeWarrior ..................................... 10.11
+    Microsoft MSVC ............................................. 10.12
+    SGI MIPSpro ................................................ 10.13
+    Siemens CDS++ .............................................. 10.14
+    SunPro ..................................................... 10.15
+
+
+  1  Contents
+  -----------
+
+  This  file   is  part  of   the  distribution  of  the   Rogue  Wave
+  implementation  of  the  C++  Standard  Library.   The  distribution
+  consists of this file and a compressed (gzipped) tar file containing
+  the header and source files comprising the Rogue Wave implementation
+  of the C++ Standard Library, the configuration mechanism required to
+  characterize the platform on which the library is to be built, and a
+  set of scripts and makefiles to build the library.
+
+  Optionally,  the  distribution  may  also  contain  the  Rogue  Wave
+  C++ Standard Library test suite, a set of examples demonstrating the
+  use of the library, plus scripts  and makefiles to build and run the
+  test suite and the examples.
+
+  The  audience  targeted by  this  document  is library  maintainers,
+  developers,  and those porting  the library  to new  platforms.  The
+  purpose  of the document  is to  describe in  detail the  process of
+  unpacking, configuring, building, and testing the library.
+
+
+  2  Requirements
+  ---------------
+
+  The following utilities are required in addition to the standard set
+  of POSIX  utilities in order to  unpack and build  the library, test
+  suite (*), and examples (*) on a UNIX system.
+
+  * Where available.
+
+  o  GNU gunzip
+  o  GNU make, version 3.70 or later (referred to as gmake here)
+  o  GNU gcc, version 2.95.2 or later, or
+  o  EDG eccp 2.42 or later, or
+  o  Comeau C++ 4.2.42 or later, or
+  o  HP aCC 3.13 or later for PA-RISC, or
+  o  HP aCC 5.36 or later for IPF, or
+  o  Intel C++ 7.0 or later for Linux/IA32 or IA64, or
+  o  Compaq C++ 6.2 or later for Tru64 UNIX, or
+  o  IBM VisualAge 5.0 or later for AIX 4.3 or later
+  o  SGI MIPSpro 7.3 or later for IRIX
+  o  SunPro 5.3 or later for SunOS 5.6 or later
+
+
+  3  Unpacking Instructions
+  -------------------------
+
+  To unpack the tarball, execute the following command:
+
+  $   gunzip -c stdlib-X.Y.Z-YYYYMMDD.tar.gz | tar -xf -
+
+  Above, X, Y, and Z are the major, minor, and micro version number of
+  the library,  respectively, and the  optional -YYYYMMDD part  is the
+  date of the snapshot. The date part of the file name will be missing
+  if the tarball is a final release rather than a snapshot. 
+
+
+  4  Source Directory Structure
+  -----------------------------
+
+  The infrastructure  described in  this document expects  that source
+  files  and any  support scripts  are organized  in a  directory tree
+  described below. If  the files are arranged otherwise  you will need
+  to move  them to  the expected directories  in order  to accommodate
+  this  requirement  and  use  the infrastructure.  The  shell  script
+  fixtree.sh that resides  in the config/ subdirectory can  be used to
+  create the required directory structure from the alternate structure
+  (not described here).
+
+      ${TOPDIR}/GNUmakefile       master makefile
+       +- etc/
+       |  +- config/GNUmakefile.* makefiles
+       |     |     /*.config      compiler config files
+       |     |     /fixtree.sh    directory tree configuration script
+       |     |     /makefile.*    common definitions and rules
+       |     |     /runall.sh     testsuite run script
+       |     +- nls/              locale definitions and charmaps
+       |     |  +-charmaps/*      character set description files
+       |     |  +-src/*           locale definition files
+       |     +- src/*             configuration sources and scripts
+       +- examples/               set of examples and tutorials
+       |  +- include/*.h          common example headers
+       |  +- manual/*.cpp         example sources
+       |  +- tutorial/*.cpp       tutorial sources
+       +- include/*               public library headers
+       |  +- ansi/*               C++ C library headers
+       |  +- loc/_*.{h,c,cc}      private locale headers
+       |  +- rw/_*.{h,c,cc}       other private library headers
+       +- src/*.cpp               library sources
+       +- util/*.{h,c,cc,cpp}     utility headers and sources
+       +- tests/                  test suite files
+       |  +- include/*.h          common test headers
+       |  +- */*.cpp              test suite sources
+       +- ../rwtest               test suite infrastructure
+             +- rw/
+             |  +- rwtest/*.h     test suite infrastructure headers
+             +- src/*.cpp         test suite infrastructure sources
+
+
+  4.1  Library Files
+  ------------------
+
+  The public interface to the library consists of the following header
+  files specified by the C++ International Standard:
+
+    +------------+------------+------------+------------+------------+
+    |<algorithm> |<iomanip>   |<list>      |<ostream>   |<streambuf> |
+    +------------+------------+------------+------------+------------+
+    |<bitset>    |<ios>       |<locale>    |<queue>     |<string>    |
+    +------------+------------+------------+------------+------------+
+    |<complex>   |<iosfwd>    |<map>       |<set>       |<typeinfo>  |
+    +------------+------------+------------+------------+------------+
+    |<deque>     |<iostream>  |<memory>    |<sstream>   |<utility>   |
+    +------------+------------+------------+------------+------------+
+    |<exception> |<istream>   |<new>       |<stack>     |<valarray>  |
+    +------------+------------+------------+------------+------------+
+    |<fstream>   |<iterator>  |<numeric>   |<stdexcept> |<vector>    |
+    +------------+------------+------------+------------+------------+
+    |<functional>|<limits>    |            |            |            |
+    +------------+------------+------------+------------+------------+
+
+  These   header  files  are   contained  in   the  ${TOPDIR}/include/
+  directory.  Some of them have  corresponding .cc and .c files in the
+  same directory.  Those are private files that contain definitions of
+  out of line template functions, member functions of class templates,
+  or static data members of class templates.
+
+  The  facilities  of the  Standard  C  library  are exposed  via  the
+  following  header files  (along with  their deprecated  forms, i.e.,
+  files having the same name except for the leading letter 'c' and the
+  .h suffix) contained in the ${TOPDIR}/include/ansi/ directory:
+
+    +------------+------------+------------+------------+------------+
+    |<cassert>   |<ciso646>   |<csetjmp>   |<cstdio>    |<ctime>     |
+    +------------+------------+------------+------------+------------+
+    |<cctype>    |<climits>   |<csignal>   |<cstdlib>   |<cwchar>    |
+    +------------+------------+------------+------------+------------+
+    |<cerrno>    |<clocale>   |<cstdarg>   |<cstring>   |<cwctype>   |
+    +------------+------------+------------+------------+------------+
+    |<cfloat>    |<cmath>     |<cstddef>   |            |            |
+    +------------+------------+------------+------------+------------+
+
+  Any  other  header  files  not  mandated by  the  C++  Standard  are
+  contained  in the include/rw/  or includ/loc  subdirectories.  Their
+  names start  with an underscore,  to prevent potential  clashes with
+  any user  headers, and end  in a .h  suffix.  Some of them  may have
+  corresponding .c and .cc files.
+
+  In  addition to  header  files, the  library  consists of  a set  of
+  private  source files.   Source  files may  have  a .cpp,  .s or  .S
+  extension  (for  C++  or  assembly  source,  respectively)  and  are
+  contained in the src/ subdirectory of the library source tree.
+
+
+  4.2  Library Utilities
+  ----------------------
+
+  Two utility programs  are provided in complete source  form with the
+  library sources:  locale and localedef. The header  and source files
+  for these utilities are  contained in the ${TOPDIR}/util/ directory.
+  The  localedef  utility  is   used  to  build  locales  from  locale
+  definition  files  and  character  set  description  files.  Locales
+  generated by the utility can be  read by the locale utility and used
+  by the Rogue Wave C++ Standard Library's localization library.
+
+
+  4.3  Locales
+  ------------
+
+  Locale  definition files  suitable for  processing by  the localedef
+  utility     are    provided     in    the     ${TOPDIR}/etc/nls/src/
+  directory. Character set description files that accompany the locale
+  definition   files  are   provided  in  the  ${TOPDIR}/etc/charmaps/
+  directory. These files are copies of those distributed with GNU libc
+  2.2.
+
+
+  4.4  Test Suite Files
+  ---------------------
+
+  The test  suite consists of a  set of two components:  a test driver
+  library, rwtest,  and a set of headers, in ${TOPDIR}/tests/include/,
+  and   many   source   files,   in   several   subdirectories   under
+  ${TOPDIR}/tests/. 
+
+  Each test program links with  the test driver library which contains
+  code  for command line  processing. When  run, tests  produce output
+  files which can be read  and analyzed by the run_all.sh script found
+  in the ${TOPDIR}/etc/config/ directory. The script presents the test
+  results  in a  tabular format.  For  more information  refer to  the
+  script's help output.
+
+
+  4.5  Examples and Tutorials
+  ---------------------------
+
+  A  set of  example  and tutorial  files  may be  provided under  the
+  ${TOPDIR}/examples/  directory,   in   subdirectories  manual/   and
+  tutorial/.   Most but  not  all example  programs  expect input  and
+  produce output. Sets  of input and output files  are provided in the
+  in/ and out/ subdirectories, respectively.
+
+
+  4.6  Build Directory Structure
+  ------------------------------
+
+  The  directory tree created  and partially  populated by  the master
+  makefile, ${TOPDIR}/GNUmakefile, has the following structure (the ->
+  symbol indicates  a symbolic link from  the file on the  left to the
+  one on the right):
+
+      ${BUILDDIR}/GNUmakefile  -> ${TOPDIR}/GNUmakefile
+       |       /makefile.in
+       |       /makefile.common-> ${TOPDIR}/makefile.common
+       |       /makefile.rules -> ${TOPDIR}/makefile.rules
+       |       /run            -> ${TOPDIR}/etc/config/runall.sh
+       +- bin/GNUmakefile      -> ${TOPDIR}/etc/config/GNUmakefile.bin
+       |     /*.{o,...}           binaries and temporary files
+       |     /.depend/*.d         dependencies
+       +- examples/GNUmakefile -> ${TOPDIR}/etc/config/GNUmakefile.exm
+       |          /run         -> ${TOPDIR}/etc/config/runall.sh
+       |          /*.{o,...}      binaries and temporary files
+       |          /.depend/*.d    dependencies
+       +- include/GNUmakefile  -> ${TOPDIR}/etc/config/GNUmakefile.cfg
+       |         /config.h        generated config header
+       |         /*.{o,...}       binaries and temporary files
+       |         /.depend/*.d     dependencies
+       +- lib/GNUmakefile      -> ${TOPDIR}/etc/config/GNUmakefile.lib
+       |     /*.{a,o,so,...}      binaries and temporary files
+       |     /.depend/*.d         dependencies
+       +- nls/*                -> binary locale files
+       +- rwtest/GNUmakefile.rwt->${TOPDIR}/etc/config/GNUmakefile.rwt
+       |     /*.{a,o,so,...}      binaries and temporary files
+       |     /.depend/*.d         dependencies
+       .
+       . ...test suite directories are optional...
+       .
+       +- plumhall/GNUmakefile -> ${TOPDIR}/etc/config/GNUmakefile.ph
+       |          /*.{d,o,...}    binaries and temporary files
+       +- tests/GNUmakefile    -> ${TOPDIR}/etc/config/GNUmakefile.tst
+               /*.{o,...}         binaries and temporary files
+               /.depend/*.d       dependencies
+
+
+  5  Library Build Instructions
+  -----------------------------
+
+  To build the library, test  suite (*), and examples (*), perform the
+  following steps: (* Where available.)
+
+  o  $ cd stdlib-X.Y.Z-YYYYMMDD/stdlib
+     $ ls   # this is ${TOPDIR}
+     GNUmakefile  etc  examples  include  src  tests
+
+     If your distribution  does not contain the test  suite and/or the
+     examples, the output will look like so:
+
+     $ ls   # this is ${TOPDIR}
+     GNUmakefile  etc  include  src
+
+  o  $ gmake BUILDDIR=<build-dir>         \
+             [   BUILDTYPE=<build-type>   \
+               | BUILDMODE=<build-mode> ] \
+             [ CONFIG=<config-file> ]
+
+     <build-dir> is the pathname of the build directory where you want
+                 to perform the build; the directory will be created
+                 (as will all its required subdirectories)
+                 this is a required argument
+
+     <build-type> is one of {
+                      8s, 8d, 11s, 11d, 12s, 12d, 15s, 15d,
+                      8S, 8D, 11S, 11D, 12S, 12D, 15S, 15D
+                  }
+
+                  The  numeric  part  of <build-type>  determines  the
+                  presence  or  absence   of  support  for  debugging,
+                  whether  optimization is or  isn't enabled,  and the
+                  thread safety level of the library, as follows:
+
+                  --  optimization enabled: even  numbers (i.e., 8 and
+                      12) 
+                  --  debugging enabled: odd numbers (i.e., 11 and 15)
+                  --  thread safe code: 12 and 15
+
+                  The  single  letter following  the  numeric part  of
+                  <build-type> determines whether an archive or shared
+                  library is  built, and whether  narrow (32-bit) code
+                  or wide (64-bit) code should be generated:
+
+                  --  s and S implies an archive library 
+                  --  d and D implies a shared library
+                  --  lowercase letter implies narrow (32-bit) code
+                  --  capital letter implies wide (64-bit) code
+
+                  The  <build-type>  argument  is optional.  When  not
+                  specified a build type of 11s is assumed.
+
+    <build-mode> is a comma-separated list of keywords describing how
+                 to build the library and the rest of the
+                 binaries. The following arguments are recognized:
+
+                 dcethreads - create a thread-safe library, use DCE
+                              threads
+                 debug - include debugging information
+                 optimized - optimized
+                 pthreads - create a thread safe library, use POSIX
+                            threads
+                 shared - create a shared library (archive is default)
+                 shared,archive - create an AIX shared archive
+                 threads - create a thread-safe library, use Solaris
+                           threads
+                 wide - generate wide (64-bit) code
+
+    Note that exactly one of BUILDTYPE and BUILDMODE must be defined.
+                   
+    <config-file> name (not pathname) of a config file containing
+                  compiler options; the available configuration files
+                  are:
+                  acc.config      - for HP aCC
+                  como.config     - for Comeau C++
+                  eccp.config     - for EDG eccp
+                  gcc.config      - for gcc
+                  icc.config      - for Intel C++ on Linux
+                  mipspro.config  - for SGI MIPSpro
+                  osf_cxx.config  - for Compaq C++
+                  reliant_cds.config - for Siemens CDS++
+                  sunpro.config   - for SunPro
+                  vacpp.config    - for IBM VisualAge C++ and XL C/C++
+                  this argument is optional, the default is gcc.config
+
+  o  Example:
+       $ gmake BUILDDIR=/tmp/g++-15d   \
+               BUILDTYPE=15d           \
+               CONFIG=gcc.config
+
+       or equivalently
+
+       $ gmake BUILDDIR=/tmp/g++-15d             \
+               BUILDMODE=debug,shared,pthreads   \
+               CONFIG=gcc.config
+
+     This command will create a build directory rooted at ${BUILDDIR},
+     run  the configuration  scripts, and  build a  thread-safe shared
+     library  with   debugging  information  included   and  debugging
+     facilities enabled.  If the build is successful, the library will
+     be    located   in   ${BUILDDIR}/lib/    and   will    be   named
+     libstd${BUILDTYPE}.so.X.Y.Z (libstd${BUILDTYPE}.a  if building an
+     archive).   A symbolic  link named  libstd${BUILDTYPE}.so  in the
+     same  directory  will also  be  created  pointing  to the  shared
+     library. Public library headers are in ${TOPDIR}/include/ and its
+     subdirectories,     the      generated     config.h     is     in
+     ${BUILDDIR}/include/.
+
+  o  To  change  preprocessor, compiler,  or  linker  options you  can
+     either set the make variables CPPOPTS, CXXOPTS, and LDOPTS on the
+     command  line  (recommended,  except   with  HP  aCC)  or  modify
+     ${BUILDDIR}/makefile.in.  The  second option is  recommended when
+     compiling  with HP  aCC (as  the compiler  looks  for environment
+     variables with the same names).
+
+  o  To reconfigure and/or rebuild the library (perhaps after changing
+     a preprocessor, compiler, or linker option), follow these steps:
+
+     $ cd ${BUILDDIR}
+     $ gmake -Cinclude [ config ]   # configure
+     $ gmake libstd                 # build the library
+     $ gmake util                   # build utilities
+     $ gmake exm                    # build examples
+     $ gmake tst                    # build tests
+     $ gmake locales                # build locale databases
+
+     Alternatively, you can cd  into the respective subdirectories and
+     just type gmake:
+
+     $ (cd ${BUILDDIR}/include && gmake)     # configure
+     $ (cd ${BUILDDIR}/lib && gmake)         # build the library
+     $ (cd ${BUILDDIR}/bin && gmake)         # build utilities
+     $ (cd ${BUILDDIR}/exm && gmake)         # build examples
+     $ (cd ${BUILDDIR}/tst && gmake)         # build tests
+     $ (cd ${BUILDDIR}/bin && gmake locales) # build locale databases
+
+     Parallel  builds  (gmake -j[N])  are  possible  in any  directory
+     except for ${BUILDDIR}/include/.
+
+     To remove intermediate files from the build directory, use one of
+     the following commands:
+
+     $ cd ${BUILDDIR}
+     $ gmake clean       # remove all object files
+     $ gmake dependclean # remove .d files (dependencies)
+     $ gmake realclean   # remove all temporary files
+
+
+  6  Library Installation
+  -----------------------
+
+  There  is no  automated  way  of installing  the  library binary  or
+  headers.   To   install,  simply   copy  the  library   binary  from
+  ${BUILDDIR}/lib/  into   the  directory   of   your  choice   (e.g.,
+  /usr/local/lib)  and   copy  the  library   headers  (including  any
+  implementation  .c and  .cc  files) from  ${TOPDIR}/include/ and its
+  subdirectories to  the directory of  your choice. Make sure  to also
+  copy  the  generated ${BUILDDIR}/include/config.h  into  one of  the
+  directories in your preprocessor's search path.
+
+  When  using   locale  databases,  also   copy  the  ${BUILDDIR}/nls/
+  directory to wherever appropriate.
+
+  For example,  to install the library binaries  (including the locale
+  databases)    in    /usr/local/lib/,   and   the    headers    under
+  /usr/local/include/ perform the following steps:
+
+  $ cp ${BUILDDIR}/lib/*.a    \
+       ${BUILDDIR}/lib/*.so   \
+       ${BUILDDIR}/lib/*.so.* \
+       /usr/local/lib
+  $ cp -R ${BUILDDIR}/nls /usr/local/lib
+  $ cp ${BUILDDIR}/include/config.h /usr/local/include
+  $ cp -R ${TOPDIR}/include/* /usr/local/include
+
+  When using the  installed library be sure to  define any macros also
+  defined on the  command line when building the  library.  These are:
+  _RWSTD_USE_CONFIG, and _RWSTDDEBUG; when using compilers that do not
+  provide  an option to  enable thread  safety or  to select  a thread
+  library,  the  following  macros   may  also  have  to  be  defined:
+  _RWSTD_POSIX_THREADS,   _RWSTD_SOLARIS_THREADS,  _RWSTD_DCE_THREADS,
+  and _RWSTDDEBUG.  Failing to do so,  or failing to  specify the same
+  compiler options that affect the binary compatibility of the library
+  leads to undefined behavior of the produced executables.
+
+
+  7  Test Suite Build Instructions
+  --------------------------------
+
+  When  available,  the test  suite  can  be  built by  following  the
+  following steps.
+
+  o  $ cd ${BUILDDIR}
+     $ gmake [ rwtestlib ][ tst ] [ exm ]
+
+     The rwtest library is a prerequisite for the test programs (gmake
+     rwtestlib).
+
+     From  ${BUILDDIR}, you  can proceed  to build  the tests  and the
+     examples, either individually  or all at the same  time.  You can
+     either  navigate   into  the  respective   subdirectories  (i.e.,
+     ${BUILDDIR}/tests/,  or ${BUILDDIR}/examples/)  and type  gmake [
+     target  ]  to  build  there   or  you  can  build  directly  from
+     ${BUILDDIR} by typing gmake tst or gmake exm.
+
+     The  library  sources  and  headers  are expected  to  reside  in
+     ${TOPDIR}/src/ and  ${TOPDIR}/include/, respectively, tests(*) in
+     ${TOPDIR}/tests/ and  examples(*) in ${TOPDIR}/examples/.  The .d
+     (dependencies) , .o (object) files and the executables are placed
+     in the respective subdirectories of ${BUILDDIR}.
+
+     * Where available. 
+
+     To run the tests(*) or examples(*), cd into ${BUILDDIR}/tests/ or
+     ${BUILDDIR}/examples/,  respectively, and  type  gmake run.   For
+     best results you should be using  bash and an xterm. To make sure
+     that you use  bash either set your SHELL  environment variable or
+     set  the SHELL  makefile  variable  on the  command  line to  the
+     pathname of bash on your system.
+
+     By default, the  output of gmake run is  formatted and colorized.
+     If your  terminal cannot deal  with the escape sequences  used to
+     produce colors you can make it monochrome by setting your RUNOPTS
+     make    variable   to    -m    on   the    command   line    (see
+     ${TOPDIR}/etc/config/runall.sh for other options).
+
+     * Where available. 
+
+
+  8  Library Configuration
+  ------------------------
+
+  8.1  config.h
+  -------------
+
+  The library  is configured (or reconfigured) for the platform (i.e.,
+  the compiler  and operating system) it  is to be  built by executing
+  the following command in the ${BUILDDIR}/include/ directory:
+
+  $ gmake config
+
+  This  command   generates  a  new   config.h  header  file   in  the
+  ${BUILDDIR}/include/  directory (replacing an  existing one  only if
+  the new  one differs) containing configuration  macros describing to
+  the library the properties of the platform.
+
+
+  8.2  rw/_config.h and rw/_defs.h
+  --------------------------------
+
+  The  generated config.h  header  is #included  by  a single  private
+  library header, ${TOPDIR}/include/rw/_config.h.  The purpose of this
+  header  is to provide  a central  place for  the maintainers  of the
+  project to  manually override  the configuration macros  #defined in
+  the automatically generated config.h (e.g., by #undefining them when
+  they  are  #defined  incorrectly  or  vice  versa)  based  on  their
+  knowledge of the platform. 
+
+  The  header is  divided into  three sets  of sections:  one  for the
+  hardware architecture, one for  each supported compiler, and one for
+  each  supported  operating  system.   Each section  may  #define  or
+  #undefine  object-like   configuration  macros.   As   a  matter  of
+  convention, function-like macros are not #defined in this header.
+
+  The ${TOPDIR}/rw/_config.h  header is #included by  a single library
+  header, ${TOPDIR}/include/rw/_defs.h. The  purpose of this header is
+  to #define convenience function-like  macros, typically based on the
+  value of  one or more  object-like configuration macros  #defined in
+  ${BUILDDIR}/include/config.h  and/or ${TOPDIR}/include/rw/_config.h,
+  that  can then be  easily used  in the  library headers  and sources
+  without   the  need   for  complicated,   hard-to-read  preprocessor
+  conditionals.  The idea is that all the complicated, unsightly logic
+  is tucked  away in  one central place  and the  rest of the  code is
+  clean, even if obfuscated by macros.
+
+  Every other library header, whether public or private, #includes the
+  ${TOPDIR}/include/rw/_defs.h header.
+
+
+  8.3  Configuration Macros
+  -------------------------
+
+  The library and  the testsuite make use of a  large number of macros
+  to adjust  their interface and  behavior to the capabilities  of the
+  compiler,  the underlying  C  libraries, and  the operating  system.
+  Many   of   the  macro   definitions   are   generated  during   the
+  autoconfiguration     of    the     library     and    placed     in
+  ${BUILDDIR}/include/config.h. Some (but  not necessarily all) of the
+  important macros  are described  here.  This list  is intended  as a
+  reference for maintainers or porters of the library.
+
+  The symbols  in square  brackets next to  the macros below  have the
+  following meaning:
+
+  - abi: Affects  the binary (ABI or functional)  compatibility of the
+    library. The macro must be consistently #defined to the same value
+    (or consistently #undefined) during the compilation of the library
+    as well while using it.
+
+  - auto: Automatically  determined and #defined  during configuration
+
+  - lib: Affects  library builds.  The macro is  not to be  set except
+    when building the library.
+
+  - over:  May be #defined  or overridden  on the  command line  or by
+    editing one  of the  two config headers  either when  building the
+    library or when using it (except for those marked lib).
+
+  In addition,  whenever a  macro with the  same root but  a different
+  suffix  appears in  the  description a  modified regular  expression
+  syntax has been used to abbreviate the list.
+
+
+  8.3.1  Platform Identification Macros
+  -------------------------------------
+
+  The configuration infrastructure #defines a number of macros some of
+  which can and should be used instead of similar such macros #defined
+  by some compilers.
+
+  o  _RWSTD_OS_<os-name>
+
+     The name of the macro depends on the name of the operating system
+     typically reported by the uname utility:
+
+     _RWSTD_OS_AIX:    AIX
+     _RWSTD_OS_HP_UX:  HP-UX
+     _RWSTD_OS_IRIX64: IRIX
+     _RWSTD_OS_LINUX:  Linux
+     _RWSTD_OS_OSF1:   Tru64 UNIX
+     _RWSTD_OS_SUNOS:  SunOS and Solaris
+
+  o  _RWSTD_OS_SYSNAME
+
+     This  macro expands  to a  string literal  with the  name  of the
+     operating system (the output of uname).
+
+  o  _RWSTD_OS_RELEASE
+
+     This  macro expands  to a  string literal  with the  name  of the
+     operating system release (the output of uname -r).
+
+  o  _RWSTD_OS_VERSION
+
+     This  macro expands  to a  string literal  with the  name  of the
+     operating system version (the output of uname -v).
+
+  o  _RWSTD_OS_MAJOR
+
+     This macro  expands to  the major operating  system version  as a
+     constant   integer   expressions   suitable   for  use   in   #if
+     preprocessing directives.
+
+  o  _RWSTD_OS_MINOR
+
+     This macro  expands to  the minor operating  system version  as a
+     constant   integer   expressions   suitable   for  use   in   #if
+     preprocessing directives.
+
+  o  _RWSTD_OS_MICRO
+
+     This macro  expands to  the micro operating  system version  as a
+     constant   integer   expressions   suitable   for  use   in   #if
+     preprocessing directives.
+
+
+  8.3.2  Compiler Configuration Macros
+  ------------------------------------
+
+  o  _RWSTD_NO_CONST_CAST [auto, over]
+  o  _RWSTD_NO_DYNAMIC_CAST [auto, over]
+  o  _RWSTD_NO_REINTERPRET_CAST [auto, over]
+  o  _RWSTD_NO_STATIC_CAST [auto, over]
+
+     #defined when  the respective cast  operator is not  available or
+     does  not  function   properly.   In  such  cases,  the  ordinary
+     (C-style) cast is used instead.
+
+  o  _RWSTD_NO_EXCEPTION_SPECIFICATION [auto]
+
+     #defined when  function exception specification  is not supported
+     or   not   functioning    properly.    All   function   exception
+     specifications in the source code are removed.
+
+  o  _RWSTD_NO_EXPORT [auto, over]
+
+     #defined when  the export keyword  is not supported  or  when the
+     export feature does not work as expected.
+
+  o  _RWSTD_NO_EXPORT_KEYWORD [auto, over]
+
+     #defined when the export keyword is not supported.
+
+  o  _RWSTD_NO_FUNCTION_TRY_BLOCK [auto]
+
+     #defined when the function try block syntax is not supported.
+
+  o  _RWSTD_NO_EXCEPTIONS [auto, lib]
+
+     #defined when exceptions are  not supported or disabled.  All try
+     keywords in the  source code are removed, catch  expands to while
+     (0) with the  assumption that an optimizing  compiler will remove
+     the block.
+
+  o  _RWSTD_NO_EXPLICIT_INSTANTIATION [abi, auto, lib]
+
+     #defined when explicit template instantiation isn't supported.
+
+  o  _RWSTD_NO_EXPLICIT_CTOR_INSTANTIATION [auto]
+
+     #defined when explicit template instantiation of constructors
+     isn't supported.
+
+  o  _RWSTD_NO_EXPLICIT_FUNC_INSTANTIATION [abi, auto, lib]
+
+     #defined when explicit function template instantiation isn't
+     supported.
+
+  o  _RWSTD_NO_EXPLICIT_INSTANTIATION_BEFORE_DEFINITION [auto, lib]
+
+     #defined when class templates cannot be explicitly instantiated
+     lexically  before the definitions of all their  members defined
+     outside their bodies.
+
+  o  _RWSTD_NO_EXPLICIT_INSTANTIATION_WITH_IMPLICIT_INCLUSION [auto]
+
+     #defined when explicit  template instantiation isn't supported in
+     conjunction  with the implicit  inclusion of  template definition
+     files (i.e., the .c or .cc files). 
+
+  o  _RWSTD_NO_EXPLICIT_MEMBER_INSTANTIATION [auto]
+
+     #defined when  the explicit instantiation of  member functions of
+     class templates isn't supported.
+
+  o  _RWSTD_NO_EXTERN_TEMPLATE [auto, over]
+
+     When #defined, the extern template C++ extension is not supported
+     by the compiler.
+
+  o  _RWSTD_NO_IMPLICIT_INSTANTIATION [auto]
+
+     #defined  when  the explicit  instantiation  of  a template  that
+     references   another   template   doesn't  cause   the   implicit
+     instantiation of the other template.
+
+  o  _RWSTD_NO_INSTANTIATE_DEFAULT_ARGS
+
+     #defined when  the explicit instantiation of  a function template
+     with a default argument causes the instantiation of the argument.
+
+  o  _RWSTD_NO_HONOR_STD
+
+     #defined when namespace std  is not completely honored. The macro
+     is typically only  #defined when using gcc versions  prior to 3.0
+     without the -fhonor-std compiler option.
+
+  o  _RWSTD_NO_ICONV_CONST_CHAR [auto]
+
+     #defined at  configuration time  according to the  declaration of
+     the POSIX function iconv().
+
+  o  _RWSTD_NO_INLINE_MEMBER_TEMPLATES [auto, lib, over]
+
+     #defined  at  configuration  time  for C++  implementations  that
+     reject member templates completely defined within the body of the
+     class or template of which they are a member.
+
+  o  _RWSTD_NO_INSTANTIATE_DEFAULT_ARGS [auto, over]
+
+     #defined  at  configuration  time  for C++  implementations  that
+     instantiate  default arguments of  function templates  (or member
+     functions  of   class  templates)  that  depend   on  a  template
+     parameter.
+
+  o  _RWSTD_NO_ISO_10646_WCHAR_T
+
+     #defined for libc implementations that do not represent values of
+     wchar_t  type in the  ISO 10646  encoding (essentially  UCS-4, or
+     UNICODE).
+
+  o  _RWSTD_NO_IMPLICIT_INCLUSION
+
+     #defined  for the  compilers that  use the  Borland instantiation
+     model. It  is also  defined in some  tests and  example programs
+     that  have  a  code  layout  which is  incompatible  with  using
+     implicit inclusion on AIX 5.1 with VisualAge for C++ 5.0.2.0. 
+
+  o  _RWSTD_NO_INSTANTIATE [abi, lib, over]
+
+     When  #defined the  library will  not explicitly  instantiate any
+     class or function templates.
+
+  o  _RWSTD_NO_LIB_EXCEPTIONS [auto, lib]
+
+     #defined  at configuration  time  when exceptions  throws from  a
+     library  cannot  be caught  in  a  program  that links  with  the
+     library.
+
+  o  _RWSTD_NO_LIST_NODE_BUFFER [abi, over]
+
+     #defined to disable node buffer management of the class template
+     std::list.
+
+  o  _RWSTD_NO_LONG_LONG [abi, auto]
+
+     #defined if the C99 type  long long is not supported or disabled,
+     or when _RWSTD_STRICT_ANSI is #defined.
+
+  o  _RWSTD_NO_MEMBER_EXPLICIT_INSTANTIATION [auto, over]
+
+     #defined when  explicit instantiation of member  templates is not
+      supported.
+
+  o  _RWSTD_NO_MEMBER_TEMPLATES [abi, auto]
+
+     #defined  when member  templates are  not supported.  The library
+     tries to  provide alternative solutions  wherever possible.  Some
+     loss of functionality is inevitable. 
+
+  o  _RWSTD_REENTRANT [abi, auto, lib]
+
+     #defined  for multi-thread  safe  build types  12[sd] and  15[sd]
+      either automatically,  when the library  detects the usage  of a
+      special compiler switch (e.g.  -mt on HP-UX and Sun/Solaris), or
+      through   the  compiler   configurations  files   in etc/config/
+      directory.
+
+  o  _RWSTD_NO_MUTABLE [auto, over]
+
+     #defined at  configuration time  for C++ implementations  that do
+     not recognize the word mutable as a valid keyword.
+
+  o  _RWSTD_NO_NAMESPACE [abi, auto, lib]
+
+     #defined  when namespaces  are  not supported  or disabled.   All
+     namespace-scope symbols defined in  the sources are introduced to
+     the global  namespace. All using declarations  and directives are
+     removed.
+
+  o  _RWSTD_NO_NATIVE_BOOL [abi, auto, lib]
+
+     #defined  for C++  implementations that  do not  treat bool  as a
+     distinct fundamental type (but perhaps provide a typedef).
+
+  o  _RWSTD_NO_NATIVE_WCHAR_T
+
+     #defined  for C++  implementations that do not treat wchar_t as a
+     distinct fundamental type (but perhaps provide a typedef).
+
+  o  _RWSTD_NO_NEW_HEADER [auto, over]
+
+     When  #defined,  files will  #include  the  deprecated C  library
+     header files  rather than  the "new" C++  C library  files (e.g.,
+     <string.h> rather than <cstring>). 
+
+  o  _RWSTD_NO_NEW_CLASS_TEMPLATE_SYNTAX
+  o  _RWSTD_NO_NEW_FUNC_TEMPLATE_SYNTAX
+  o  _RWSTD_NO_NEW_TEMPLATE_SYNTAX
+  o  _RWSTD_NO_NONCLASS_ARROW_RETURN
+  o  _RWSTD_NO_NONDEDUCED_CONTEXT
+  o  _RWSTD_NO_NONTYPE_ARGS
+  o  _RWSTD_NO_NONTYPE_ARGUMENT_DEDUCTION
+
+  o  _RWSTD_NO_PARTIAL_CLASS_SPEC [abi, auto]
+
+     #defined  when partial  specialization of  class  templates isn't
+     supported or isn't functional.
+
+  o  _RWSTD_NO_PART_SPEC_OVERLOAD
+
+  o  _RWSTD_NO_PRAGMA_INSTANTIATE [lib, over]
+
+     #defined when the #pragma instantiate directive isn't supported.
+
+  o  _RWSTD_NO_PRETTY_FUNCTION [auto, lib, over]
+
+     #defined  when  the  __PRETTY_FUNCTION__  special  identifier  (a
+     common extension) is not supported.
+
+  o  _RWSTD_NO_PTR_EXCEPTION_SPEC [auto, over]
+
+     #defined   when  declaring   function  pointers   with  exception
+     specification is not supported.
+
+  o  _RWSTD_NO_PTR_VALUE_TEMPLATE_OVERLOAD
+  o  _RWSTD_NO_REDUNDANT_DEFINITIONS
+
+  o  _RWSTD_NO_REDUNDANT_DEFINITIONS [over]
+
+     When  #defined,  public  library  headers will  #include  only  a
+     minimum set of  other library headers necessary in  order for the
+     definitions  of templates  contained therein  to  compile without
+     actually instantiating any of  them.  #defining the macro has the
+     potential to decrease compile times.
+
+  o  _RWSTD_NO_SETLOCALE_ENVIRONMENT [auto, lib]
+
+     #defined when the C locale is  not affected by the setting of the
+     LC_XXX environment variables.
+
+  o  _RWSTD_NO_SIMPLE_DEFAULT_TEMPLATES
+  o  _RWSTD_NO_SPECIALIZED_FRIEND
+  o  _RWSTD_NO_STATIC_CONST_MEMBER_INIT
+  o  _RWSTD_NO_STATIC_TEMPLATE_MEMBER_INIT
+
+  o  _RWSTD_NO_STATIC_MUTEX_INIT [abi, auto, lib, over]
+
+     #defined when  mutex objects with static  storage duration cannot
+     be statically initialized  (3.6.2 [basic.start.init]) but must be
+     initialized during dynamic initialization instead.  The macro has
+     an impact on thread-safety of the library.
+
+  o  _RWSTD_NO_TEMPLATE_DEFINITIONS [over]
+
+     When #defined, public library header files containing definitions
+     of iostream  and locale templates do not  explicitly #include the
+     corresponding implementation .cc  files. This option considerably
+     decreases compile times on platforms that do not support implicit
+     file  inclusion.    The  macro   has  no  effect   when  explicit
+     instantiation is  not supported.  The macro must  not be #defined
+     when  specializations other  than those  provided by  the library
+     binary are instantiated.
+
+  o  _RWSTD_NO_TEMPLATE_TEMPLATE [auto]
+
+     #defined when template template arguments aren't supported.
+
+  o  _RWSTD_NO_THROW_SPEC_ON_NEW
+
+     When #defined, overloads of  operators new and delete declared in
+     the  public library  header  <new> do  not  include the  required
+     exception specifications.
+
+  o  _RWSTD_NO_TYPENAME [auto]
+
+     #defined when they keyword typename isn't fully supported.
+
+  o  _RWSTD_NO_USING_LIBC_IN_STD
+  o  _RWSTD_NO_VECTOR_BOOL
+
+
+  8.3.3  Runtime Library Configuration Macros
+  -------------------------------------------
+
+  o  _RWSTD_NO_NEW_THROWS [auto]
+
+     When  #defined,  operator  new  doesn't throw  an  exception  but
+     instead returns 0 on failure. 
+
+  o  _RWSTD_NO_{GLOBAL,STD}_BAD_{ALLOC,CAST,EXCEPTION,TYPEID}
+  o  _RWSTD_NO_{GLOBAL,STD}_EXCEPTION
+  o  _RWSTD_NO_{GLOBAL,STD}_NOTHROW[_T]
+  o  _RWSTD_NO_{GLOBAL,STD}_SET_{NEW_HANDLER,TERMINATE,UNEXPECTED}
+  o  _RWSTD_NO_{GLOBAL,STD}_TERMINATE
+     [abi, auto, lib]
+
+     The macros above are  #defined at configuration time according to
+     which namespace (global or std) each type (or the object nothrow)
+     is defined in by the language runtime library.
+
+  o  _RWSTD_NO_{BAD_ALLOC,BAD_CAST,BAD_EXCEPTION,BAD_TYPEID}_{ASSIGNMENT,
+     COPY_CTOR,DEFAULT_CTOR,DTOR,WHAT} [abi, auto, lib]
+
+     Each  macro is  #defined when  the corresponding  member  of each
+     respective class is not defined in the language support library.
+
+  o  _RWSTD_NO_OPERATOR_{DELETE,NEW}[_ARRAY][{_NOTHROW,_PLACEMENT}]
+     [auto, over]
+
+     #defined  at  configuration  time  when  the  definition  of  the
+     corresponding operator  does not  appear in the  compiler support
+     library.   The library  will provide  the missing  definitions by
+     default.   If  any  definition  (except for  the  non-replaceable
+     placement  forms) needs to  be replaced, user code  should either
+     #undefine    the   corresponding    macro   first    or   #define
+     _RWSTD_NO_EXT_OPERATOR_NEW to disable all definitions provided by
+     the library.
+
+     The library is autoconfigured to  detect the level of support for
+     these  operators  provided by  the  compiler.  The  configuration
+     macros below  are #defined if and  only if the  functions are not
+     found  in   the  compiler  support   (a.k.a.   language  runtime)
+     library.  For  each  #defined  macro, the  C++  Standard  library
+     defines the corresponding function in header <new>.
+
+       [x]  _RWSTD_NO_OPERATOR_DELETE_ARRAY
+       [x]  _RWSTD_NO_OPERATOR_DELETE_ARRAY_NOTHROW
+       [ ]  _RWSTD_NO_OPERATOR_DELETE_ARRAY_PLACEMENT
+       [x]  _RWSTD_NO_OPERATOR_DELETE_NOTHROW
+       [ ]  _RWSTD_NO_OPERATOR_DELETE_PLACEMENT
+       [x]  _RWSTD_NO_OPERATOR_NEW_ARRAY
+       [x]  _RWSTD_NO_OPERATOR_NEW_ARRAY_NOTHROW
+       [ ]  _RWSTD_NO_OPERATOR_NEW_ARRAY_PLACEMENT
+       [x]  _RWSTD_NO_OPERATOR_NEW_NOTHROW
+       [ ]  _RWSTD_NO_OPERATOR_NEW_PLACEMENT
+
+     In  addition, however,  since the  functions  whose corresponding
+     config macros above are marked [x] must be replaceable, and since
+     it may  not be possible  to achieve the effect  of replaceability
+     without    compiler    support,    the   user-controlled    macro
+     _RWSTD_NO_EXT_OPERATOR_NEW  may be  manually #defined  to prevent
+     the library  from defining  the functions if  a program  needs to
+     replace them.
+
+     Finally,  the macro  _RWSTD_NO_PLACEMENT_DELETE  may be  #defined
+     (either by the library headers or, if not, by a program) if it is
+     necessary  to disable declarations  and definitions  of placement
+     forms of operator delete, e.g., due to a compiler limitation or a
+     bug.
+
+  o  _RWSTD_NO_PLACEMENT_DELETE [auto, over]
+
+     When #defined, placement forms of ::operator delete() will not be
+     declared (or defined) by the header <new>. Provided in case their
+     declarations cause problems in user code.
+
+  8.3.4  C Library Configuration Macros
+  -------------------------------------
+
+  o  _RWSTD_NO_LIBC_IN_STD [auto, over]
+
+     When #defined, the names defined by the C library are expected to
+     be found  in namespace  std.  Otherwise they  are expected  to be
+     defined only in the global namespace.
+
+  o  _RWSTD_NO_{CASSERT,CCTYPE,CERRNO,CFLOAT,CISO646,CLIMITS,CLOCALE,
+                CMATH,CSETJMP,CSIGNAL,CSTDARG,CSTDDEF,CSTDIO,CSTDLIB,
+                CSTRING,CTIME,CWCHAR,CWCTYPE} [auto]
+
+     #defined  when  the  respective   header  is  not  found  in  the
+     preprocessor search path.
+
+  o  _RWSTD_NO_${FUN}[_IN_LIBC] [auto]
+
+     #defined when  the extern "C" function ${FUN}  declaration is not
+     found  in the  expected C  header, or  if the  extern  "C" symbol
+     ${FUN} is not found in the libc binary.
+
+  o  _RWSTD_NO_{ABS,ACOS,ASIN,ATAN,ATAN2,CEIL,COS,COSH,EXP,FABS,FLOOR,
+                FMOD,FREXP,LDEXP,LOG,LOG10,MODF,POW,POW,SIN,SINH,SQRT,
+                TAN,TANH}{D,DBL,F,FLT,L,LDBL}[_IN_LIBM] [auto]
+
+     #defined  when  the respective  functions  are  not found  during
+     autoconfiguration in  the <math.h> header or in  the libm library
+     binary.   For  example,  when   the  function  extern  "C"  float
+     acosf(float) is  not declared in  <math.h> on a platform  but the
+     symbol extern "C" acosf is  found in the libm library binary, the
+     macro   _RWSTD_NO_ACOSF   will   be   #defined  but   the   macro
+     _RWSTD_NO_ACOSF_IN_LIBM will be #undef-ined.
+
+  o  _RWSTD_NO_PURE_C_HEADERS
+
+  o  _RWSTD_NO_WCSFTIME_WCHAR_T_FMAT [auto]
+
+
+  8.3.5  Macros Controlling Strings
+  ---------------------------------
+
+  o  _RWSTD_NO_STRING_MUTEX [abi, lib, over]
+
+     When #defined std::basic_string objects are not reference counted.
+  
+  o  _RWSTD_ONE_STRING_MUTEX [abi, lib, over]
+
+     When #defined std::basic_string  objects are reference counted. A
+     single per-process mutex object is used for thread safety.
+
+
+  8.3.6  Macros Controlling Iostreams
+  -----------------------------------
+
+  o  _RWSTD_NO_IOSTREAM_OBJECT_REFS [abi, auto, lib, over]
+
+     When   #defined  while   _RWSTD_NO_STATIC_IOSTREAM_INIT   is  not
+     #defined, the  eight standard  iostream objects (cout,  etc.) are
+     declared  in  <iostream> to  be  of  their  respective types  but
+     defined in the  library binary to be of an  unrelated POD type to
+     prevent their destruction  during program lifetime.  Since object
+     type isn't typically encoded in  its name and the declaration and
+     definition  isn't   ever  seen  by  the  compiler   in  the  same
+     translation unit this doesn't cause problems.
+
+  o  _RWSTD_NO_NATIVE_IO [lib, over]
+
+     #defined  to force  file streams  to use  the facilities  of libc
+     stdio as opposed to the POSIX I/O interface.
+
+  o  _RWSTD_DEFAULT_BUFSIZE [lib, over]
+
+     #defined to  the size of the  character buffer used by objects of
+     std::basic_filebuf<>, in characters. The default value is 512.
+
+  o  _RWSTD_PBACK_SIZE [lib, auto]
+
+     #defined  to  the size  of  the  basic_streambuf  putback area in
+     characters. The default value is 4.
+
+  o  _RWSTD_NO_REENTRANT_IO [abi, lib, over]
+
+     #defined when the iostream library should not be thread-safe.
+
+  o  _RWSTD_NO_REENTRANT_IO_DEFAULT [abi, lib, over]
+
+     #defined  when  the  standard  iostream  objects  should  not  be
+     thread-safe by default.
+
+  o  _RWSTD_NO_STATIC_IOSTREAM_INIT [abi, auto, lib, over]
+
+     When  #defined, the  eight standard  iostream  objects (std::cin,
+     std::cout,  etc.)  are   ordinary  objects  with  static  storage
+     duration  and  are   destroyed  during  program  lifetime  (which
+     violates 27.3, p2).
+
+
+  8.3.7  Macros Controlling Locale
+  --------------------------------
+
+  o  _RWSTD_NO_CAT_NAMES
+
+     When #defined, combined locale names  do not include the names of
+     locale categories. For example, on Solaris, combined locale names
+     consist of the  name of each category in  a fixed order separated
+     by slashes. On Linux, combined locale names, however, include the
+     name of each category followed by the equals sign followed by the
+     name  of  the locale,  with  the  categories  separated from  one
+     another by a semicolon. E.g., "LC_CTYPE=C;LC_TIME=en;..."
+
+  o  _RWSTD_NO_INITIAL_CAT_SEP [auto, lib]
+
+     #defined  at configuration  time in  environments  where combined
+     libc  locale  names do  not  begin  with  the character  used  to
+     separate the names of  individual locale categories. For example,
+     HP-UX 11.00 combined locale name has the  form "C C C en C C" but
+     on  Solaris, the  equivalent  name would  be "/C/C/C/en/C/C".  On
+     Solaris, then, the macro would be #defined.
+
+  o  _RWSTD_CAT_SEP
+
+     Expands to a character string that separates locale categories in
+     combined  locale names  (such as  " "  on AIX  and HP-UX,  "/" on
+     Solaris, or ";" on Linux).
+
+  o  _RWSTD_NO_CAT_EQ
+
+      When #defined, the names of locale categories in combined locale
+      names  are not  separated from  the name  of the  locale  by the
+      equals sign.
+
+  o  _RWSTD_NO_CONDENSED_NAME
+
+     Whend   #defined,  locale   names  always   include   all  locale
+     categories,  even if they  are all  the same.  This is  true, for
+     example, on HP-UX  when the name of the  "C" locale returned from
+     setlocale (LC_ALL, 0) is "C C C C  C C" and not just "C" as it is
+     on Solaris.
+
+  o  _RWSTD_LDBL_PRINTF_PREFIX [auto, lib]
+
+     #defined the the printf() format modifier as a string literal for
+     type  long double, when  supported. Typically,  the value  of the
+     macro is "L".
+
+  o  _RWSTD_NO_LDBL_PRINTF_PREFIX [auto, lib]
+
+     #defined when no printf() format modifier for type long double is
+     known.
+
+  o  _RWSTD_LLONG_PRINTF_PREFIX [auto]
+
+     #defined the the printf() format modifier as a string literal for
+     type long long, when supported. Typically, the value of the macro
+     is "ll".
+
+  o  _RWSTD_NO_LLONG_PRINTF_PREFIX [auto]
+
+     #defined when no  printf() format modifier for type  long long is
+     known.
+
+  o  _RWSTD_EXPORT        [auto]
+     _RWSTD_CLASS_EXPORT  [auto]
+     _RWSTD_MEMBER_EXPORT [auto]
+
+     These  three macros  control the  exporting of  symbols  from the
+     library; the  latter two are used in  selectively controlling the
+     exporting  of symbols  from  classes that  have member  templates
+     (e.g. locale class).
+
+  o  _RWSTD_NO_STRTOF_UFLOW   [auto, lib]
+     _RWSTD_NO_STRTOD_UFLOW
+     _RWSTD_NO_STRTOLD_UFLOW
+
+     Each of these macros is #defined when the corresponding C library
+     function fails to set errno (usually to ERANGE) on underflow.
+ 
+
+  8.3.8  Macros Controlling Implementation Properties
+  ---------------------------------------------------
+
+  o  _RWSTD_BOOL_SIZE [abi, auto, lib]
+     _RWSTD_CHAR_SIZE
+     _RWSTD_SHRT_SIZE
+     _RWSTD_INT_SIZE
+     _RWSTD_LONG_SIZE
+     _RWSTD_LLONG_SIZE
+     _RWSTD_FLT_SIZE
+     _RWSTD_DBL_SIZE
+     _RWSTD_LDBL_SIZE
+     _RWSTD_WCHAR_T_SIZE
+     _RWSTD_PTR_SIZE
+     _RWSTD_FUNPTR_SIZE   (function pointer)
+     _RWSTD_MEMPTR_SIZE   (member pointer)
+
+     Each of  the _RWSTD_<type>_SIZE macros above expands  to the size
+     of the respective  fundamental type (as retruned by  sizeof) as a
+     constant   integer   expressions   suitable   for  use   in   #if
+     preprocessing   directives.   If   no   such  type   exists   the
+     corresponding macros are not #defined.
+
+  o  _RWSTD_CHAR_BIT
+
+     Expands  to   the  value  of  CHAR_BIT  as   a  constant  integer
+     expressions suitable for use in #if preprocessing directives.
+
+  o  _RWSTD_BOOL_{MAX,MIN}   [abi, auto, lib]
+     _RWSTD_CHAR_{MAX,MIN}
+     _RWSTD_SCHAR_{MAX,MIN}  (int)
+     _RWSTD_UCHAR_{MAX,MIN}  (unsigned int)
+     _RWSTD_SHRT_{MAX,MIN}   (int)
+     _RWSTD_USHRT_{MAX,MIN}  (unsigned int)
+     _RWSTD_INT_{MAX,MIN}
+     _RWSTD_UINT_{MAX,MIN}
+     _RWSTD_LONG_{MAX,MIN}
+     _RWSTD_ULONG_{MAX,MIN}
+     _RWSTD_LLONG_{MAX,MIN}
+     _RWSTD_ULLONG_{MAX,MIN}
+     _RWSTD_WCHAR_T_{MAX,MIN}   (int or long)
+     _RWSTD_SIZE_{MAX,MIN}      (size_t)
+     _RWSTD_PTRDIFF_{MAX,MIN}   (ptrdiff_t)
+     _RWSTD_WINT_{MAX,MIN}      (wint_t)
+
+     Each of  the _RWSTD_<type>_{MAX,MIN} macros above  expands to the
+     maximum and minimum representable value in the respective integer
+     type as  a constant integer  expressions suitable for use  in #if
+     preprocessing  directives. Except  as  marked, the  type of  each
+     macro is the corresponding type promoted according to the integer
+     promotion rules.  If no such type exists the corresponding macros
+     are not #defined.
+
+  o  _RWSTD_INT8_T   [abi, auto, lib]
+     _RWSTD_UINT8_T
+     _RWSTD_INT16_T
+     _RWSTD_UINT16_T
+     _RWSTD_INT32_T
+     _RWSTD_UINT32_T
+     _RWSTD_INT64_T
+     _RWSTD_UINT64_T
+
+     Each of  the _RWSTD_INT<width>_T and  _RWSTD_UINT<width>_T macros
+     above expands  to the signed  and unsigned, respectively,  type T
+     for which (sizeof(T) * CHAR_BIT  == width) holds. If no such type
+     exists the macro is not #defined. Note that each macro can expand
+     to two or more tokens.
+
+  o  _RWSTD_{FLT,DBL,LDBL}_{INF,SNAN,QNAN}_BITS [auto, lib]
+
+     #defined at  configuration time to be the  byte representation of
+     infinity, signaling NaN and  quiet NaN, respectively.  The macros
+     are defined as brace-delimited arrays of chars.
+
+  o  _RWSTD_{FLT,DBL,LDBL}_HAS_DENORM [auto, lib]
+
+     #defined to 1 when the corresponding floating point type supports
+     denormalized values and to 0 otherwise.
+
+  o  _RWSTD_NO_DBL_TRAPS [auto, lib]
+
+     #defined  when  values  of  type double  implement  trapping  for
+      certain arithmetic operations (such division by zero).
+
+  o  _RWSTD_NO_IEC559 [auto, over]
+
+     #defined  at configuration  time  if it  is  determined that  the
+     environment  fails to  satisfy the  requirements of  the  IEC 559
+     standard.
+
+  o  _RWSTD_NO_IEEEFP_H
+
+  o  _RWSTD_NO_INFINITY [auto]
+
+     #defined  at  configuration time  for  environments  that do  not
+     support the concept of a floating point infinity.
+
+  o  _RWSTD_NO_INT_TRAPS [auto, lib]
+
+     #defined when  values of type int implement  trapping for certain
+      arithmetic operations (such division by zero).
+
+  o  _RWSTD_NO_NAN_TRAPS [auto, lib]
+
+     #defined when the value NaN (Not a Number) causes a hardware trap
+      when used in arithmetic expressions.
+
+  o  _RWSTD_NO_SIGNALING_NAN
+
+
+  8.3.9  Other Configuration Macros
+  ---------------------------------
+
+  o  _RWSTD_NO_OPTIMIZE_SPEED
+
+
+  8.3.10  Macros Controlling Extensions
+  -------------------------------------
+
+  The  following options  are  provided to  allow  to disable  various
+  library extensions. An extensions  is defined as a library interface
+  or its behavior that is left unspecified by the standard or, in some
+  rare  cases,  that is  specified  by  the  standard but  where  this
+  implementation differs from the specification.
+
+  In addition  to the  symbols in square  brackets defined  above, the
+  symbol pure denotes  an extension that is not  conflict with the C++
+  standard:
+
+  o  _RWSTD_NO_EXTENSIONS [over]
+  o  _RWSTD_STRICT_ANSI [over]
+
+     When #defined, most library  extensions are disabled by #defining
+     the  various  _RWSTD_NO_EXT_XXX  macros  documented  below.   The
+     _RWSTD_STRICT_ANSI macro is deprecated and should be avoided.
+
+  o  _RWSTD_NO_EXT_DEQUE_ASSIGN_IN_PLACE [over]
+  o  _RWSTD_NO_EXT_DEQUE_INSERT_IN_PLACE [over]
+  o  _RWSTD_NO_EXT_VECTOR_ASSIGN_IN_PLACE [over]
+  o  _RWSTD_NO_EXT_VECTOR_INSERT_IN_PLACE [over]
+
+     When  #defined,   the  multi-element  overloads   of  the  member
+     functions assign()  and insert()  defined by the  class templates
+     deque  and  vector  provide  the  basic  exception  guarantee  as
+     required by the C++ Standard. Otherwise, when (size() >= N) holds
+     for N being  the number elements being assigned  or inserted, and
+     value_type's  assignment operator or  iterator operations  do not
+     throw, the functions provide the nothrow exception guarantee.
+
+  o  _RWSTD_NO_EXT_FILEBUF [pure, over]
+
+     When    #defined,    extensions    to    the    class    template
+     std::basic_filebuf and the std::basic_fstream family of templates
+     are not available.
+
+  o  _RWSTD_EXT_DEEP_STRING_COPY [pure]
+
+     When  #defined,  the member  function  copy()  of class  template
+     basic_string which  returns a deep  copy of the string  object is
+     not declared.
+
+  o  _RWSTD_NO_EXT_FAILURE [lib, over, pure]
+
+     When #defined, disables  extensions to the std::ios_base::failure
+     class  (i.e., the classes  std::ios_base::badbit_set, eofbit_set,
+     and   failbit_set).   #defining  _RWSTD_STRICT_ANSI   causes  the
+     #definition of this macro as well.
+
+  o  _RWSTD_NO_EXT_BITSET_CTOR_CHAR_ARRAY [over, pure]
+
+     When #defined,  disable the  declarations of the  two std::bitset
+     constructor overloads  that take const char*  and const wchar_t*,
+     respectively,  as  their  first  argument. The  purpose  of  this
+     extension is to make it possible to construct std::bitset objects
+     from string literals without dynamic memory allocation.
+
+  o  _RWSTD_NO_EXT_BITSET_CTOR_STRING [over, pure]
+
+     When  #defined, disable  the declaration  of the  two std::bitset
+     constructor  overloads that  take  std::string and  std::wstring,
+     respectively,  as  their  first  argument. The  purpose  of  this
+     extension is to make it possible to construct std::bitset objects
+     from string literals.
+
+  o  _RWSTD_NO_EXT_BITSET_TO_STRING [over, pure]
+
+     When #defined,  disables the declarations of  the three overloads
+     of the  const member function  to_string() of the  class template
+     std::bitset specified in LWG issue 434:
+     http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#434
+
+  o  _RWSTD_NO_EXT_BIN_IO [over, pure]
+
+     When #defined,  disables support for  base 2 numerical  input and
+     output  in iostreams  and the  std::num_get<>  and std::num_put<>
+     facets, and  undefines the symbol  std::ios_base::bin.  #defining
+     _RWSTD_STRICT_ANSI causes the #definition of this macro as well.
+
+  o  _RWSTD_NO_EXT_IOS_SAFE_CONVERSION [over]
+
+     When #defined, the the  const member function operator void*() of
+     the  class   template  basic_ios  is   declared.  Otherwise,  the
+     resolution  of   the  Library   Working  Group's  issue   568  is
+     implemented instead. See
+     http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-active.html#468
+
+  o  _RWSTD_NO_EXT_OPERATOR_NEW [auto, over]
+
+     When #defined,  disables the replaceable  definitions provided in
+     <new> for missing global  operators new and delete, allowing them
+     to be defined by the user.
+
+  o  _RWSTD_NO_EXT_PORTABLE_RANDOM_SEQUENCE [lib, pure]
+
+     Whend  #defined,  the  random   number  generator  used  by  this
+     implementation  of  the C++  Standard  Library generates  integer
+     values  in the  full range  of the  type size_t.   Otherwise, the
+     generator is  restricted to the  range of unsigned  32-bit values
+     for data portability.
+
+  o  _RWSTD_NO_EXT_REENTRANT_IO [over, pure]
+
+     When #defined, disables support  for user-control of iostream and
+     streambuf     locking,      and     undefines     the     symbols
+     std::ios_base::nolock    and    std::ios_base::nolockbuf.    Only
+     relevant  in  thread-safe  builds.  #defining  _RWSTD_STRICT_ANSI
+     causes the #definition of this macro as well.
+
+  o  _RWSTD_NO_EXT_SETBASE
+
+     When  #defined,  the std::setbase  manipulator  accepts only  the
+     required  numeric  bases  (i.e.,  0,  8, 10,  16,  and  2  unless
+     _RWSTD_NO_EXT_BIN_IO is also #defined).
+
+  o  _RWSTD_NO_EXT_VOID_COUNT [over, pure]
+
+     When  #defined,  disables  the  non-conforming  versions  of  the
+     std::count()  and std::count_if()  algorithms that  take  four or
+     five arguments, respectively, and return void. The algorithms are
+     provided for  backward compatibility or on  platforms that cannot
+     handle partial  specialization of class templates.  The macro has
+     no effect if partial specialization is not supported.
+
+  o  _RWSTD_NO_EXT_VOID_DISTANCE [over, pure]
+
+     When  #defined,  disables   the  non-conforming  version  of  the
+     std::distance() algorithm that  takes three arguments and returns
+     void. The algorithm is  provided for backward compatibility or on
+     platforms  that  cannot handle  partial  specialization of  class
+     templates. The  macro has no effect if  partial specialization is
+     not supported.
+
+  o  _RWSTD_NO_REENTRANT_IO_DEFAULT [lib, over, pure]
+
+     When  #defined  in  thread-safe  builds,  all  newly  constructed
+     iostream objects (i.e., other  than the standard iostream objects
+     std::cin,   std::cout,   etc.)   are   created   with  the   bits
+     std::ios_base::lock  and  std::ios_base::lockbuf  set (i.e.,  the
+     same    object   will    be   safe    to   use    across   thread
+     boundaries). Otherwise,  the are created with the  bits set.  Has
+     no  effect  if   _RWSTD_NO_EXT_REENTRANT_IO  is  #defined  or  in
+     non-thread-safe builds.
+
+  o  _RWSTD_NO_EXT_CHAR_TRAITS_PRIMARY [over, pure]
+  o  _RWSTD_NO_EXT_CODECVT_PRIMARY [over, pure]
+  o  _RWSTD_NO_EXT_CTYPE_PRIMARY [over, pure]
+  o  _RWSTD_NO_EXT_COLLATE_PRIMARY [over, pure]
+  o  _RWSTD_NO_EXT_MONEYPUNCT_PRIMARY [over, pure]
+  o  _RWSTD_NO_EXT_NUMPUNCT_PRIMARY [over, pure]
+  o  _RWSTD_NO_EXT_TIME_GET_PRIMARY [over, pure]
+  o  _RWSTD_NO_EXT_TIME_PUT_PRIMARY [over, pure]
+  o  _RWSTD_NO_EXT_MESSAGES_PRIMARY [over, pure]
+
+     When  #defined,  the  correspondig  primary  template,  which  is
+     otherwise defined as an  extension of this implementation, is not
+     defined by the library.
+
+
+  9  Library Oragnization
+  -----------------------
+
+  The symbols declared  and defined by this implementation  of the C++
+  Standard Library  are organized  in a number  of public  and private
+  headers,  template  implementation  files,  C++  source  files,  and
+  assembly  files. The  purpose of  this  section is  to document  the
+  conventions  used  in the  organization  of  the  symbols and  their
+  declarations and definitions in the library files.
+
+
+  9.1  Organization of Headers
+  ----------------------------
+
+  Every library  header starts with a comment  containing the relative
+  pathname  of  the  file   with  respect  to  the  ${TOPDIR}/include/
+  directory  (such as  iostream  or rw/_config.h) along  with a  brief
+  description of the contents of the file and a copyright notice.
+
+  Below  the comment  is a  header #inclusion  guard that  pevents the
+  contents of the same header  file from being expanded more than once
+  in any translation unit from which the header might be included more
+  than once. The naming convention used for the guard is as follows:
+
+  #ifndef _RWSTD_<file-name>_INCLUDED
+  #define _RWSTD_<file-name>_INCLUDED
+  ... /* contents of the file*/
+  #endif   // _RWSTD_<file-name>_INCLUDED
+
+  Where  <file-name>  is the  relative  pathname  of  the header  with
+  slashes  replaced by  underscores (e.g,  _RWSTD_IOSTREAM_INCLUDE for
+  the    header    iostream    or   _RWSTD_RW_CONFIG_H_INCLUDED    for
+  rw/_config.h).
+
+  In order to minimize the size of translation units and the namespace
+  pollution caused by #including  library headers in programs (as well
+  as the library sources themselves) library headers #include only the
+  absolute  minimum of other  C++ Standard  library headers,  and only
+  those third party  (such as libc or OS)  headers that are absolutely
+  necessary and whose symbols  cannot be forward-declared. This set of
+  third party headers is at this point limited to <cstring>, <cwchar>,
+  and  <ctime>,  and the  appropriate  threads  header in  thread-safe
+  configurations.   Since no  other  headers are  #included, common  C
+  library  symbols such  as ptrdiff_t,  size_t, or  CHAR_MAX  that are
+  declared in  these headers  are determined at  library configuration
+  time  and  available  under  the  appropriate  configuration  macros
+  (_RWSTD_PTRDIFF_T,   _RWSTD_SIZE_T,  and  _RWSTD_CHAR_MAX   in  this
+  example). The  C++ Standard library headers always  use these macros
+  rather than their C library equivalents. In order to make sure these
+  macros are  always available every  library header must  contain the
+  #include <rw/_defs.h> directive.
+
+
+  9.2  Organization of Sources
+  ----------------------------
+
+  Every library source  file starts with a comment  containing name of
+  the file along with a brief  description of the contents of the file
+  and a copyright notice.
+
+  Below the  comment are any necessary  #include directives, including
+  #include <rw/_defs.h>.   Since namespace pollution is  not a concern
+  for  source  files, the  "deprecated"  C  library  headers (such  as
+  <stdio.h>) are always #included in  favor of the "new" C++ C library
+  equivalents  (i.e., <cstdio>) for  portability.  However,  since the
+  size of library  translation units has an effect on  the size of the
+  library itself as well as on  the size of executables linked with an
+  archive version of  the library, each source file  must include only
+  the bare minimum of the C++ Standard Library headers.
+
+  In order to minimize code bloat, library source files must take care
+  to instantiate only  the barest minimum of templates  defined by the
+  library.  No  source file  instantiates any public  templates unless
+  necessitated by the requirements  of the C++ Standard. For instance,
+  while it  isn't possible  to avoid instantiating  std::string (since
+  the type is  used in locale and iostreams),  instantiating any other
+  container is unnecessary and thus avoided.
+
+  In order to further minimize the  size of programs that link with an
+  archive version of the library each library source file defines only
+  the smallest set  of symbols that is to  the maximum possible extent
+  independent of those defined in any other library source file.
+
+
+  10  Platform Notes
+  ------------------
+
+    10.1  Apogee C++
+    ----------------
+
+    Port not maintained.
+
+    10.2  Borland C++
+    -----------------
+
+    Not ported.
+
+    10.3  Comeau C++
+    ----------------
+
+    Ported to Comeau C++ 4.2.42 or later on Solaris.
+
+    10.4  Compaq C++
+    ----------------
+
+    Ported to Compaq C++ 6.2 or later for Tru64 UNIX.
+
+    10.5  EDG eccp
+    --------------
+
+    Ported to eccp 2.45.2 through 3.6 on Linux and Solaris.
+
+    10.6  GNU gcc
+    -------------
+
+    Ported  to gcc  2.95.2 through  4.0.0  on a  variety of  operating
+    systems and architectures.
+
+    10.7  HP aCC
+    ------------
+
+    Ported to HP aCC 3.13 and later for PA-RISC, and 5.36 or later for
+    IPF.
+
+    10.8  IBM VisualAge C++
+    -----------------------
+
+    For  builds with  VisualAge for  C++ 5.0  and 6.0  there  are some
+    special  considerations  when   building  programs  that  use  the
+    implicit inclusion  mechanism (i.e.,  the -qtempinc mode  which is
+    active by default).
+
+    The mechanism imposes some restrictions on the way the source code
+    is structured: template declarations  have to be present in header
+    files  while  corresponding .c  source  files  must contain  these
+    templates'  implementations.    Source  code  otherwise  perfectly
+    correct, containing  template classes or  functions definitions or
+    definitions of  types used in  instantiations of templates  in cpp
+    files, will not be able to benefit from this feature.
+
+    10.9  Intel C++
+    ---------------
+
+    Ported to  Intel C++ 7.0 through  10.1 on Linux  and Windows (both
+    x86 and IA64). The infrastructure is not ported to Windows.
+
+    10.10  KAI C++
+    --------------
+
+    Port not maintained.
+
+    10.11  Metrowerks CodeWarrior
+    -----------------------------
+
+    Not ported.
+
+    10.12  Microsoft MSVC
+    --------------------
+
+    Library  ported  to  MSVC  6.0  through  7.1  on  Windows/x86  and
+    IA64. Infrastructure not ported.
+
+
+    10.13  SGI MIPSpro
+    ------------------
+
+    Ported to SGI MIPSpro 7.3 through 7.5 for IRIX 6.5.
+
+    10.14  Siemens CDS++
+    --------------------
+
+    Port not maintained.
+
+    10.15  SunPro
+    -------------
+
+    Ported to SunPro 5.3 through 5.7 on Solaris and Linux.

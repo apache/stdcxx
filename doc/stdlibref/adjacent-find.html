@@ -1,0 +1,113 @@
+<HTML>
+<HEAD>
+<TITLE>adjacent_find()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="adjacent-difference.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="advance.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>adjacent_find()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An algorithm that finds the first adjacent pair of equivalent elements in a sequence</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class ForwardIterator&gt;
+    ForwardIterator
+    adjacent_find(ForwardIterator start, 
+                  ForwardIterator finish);
+
+  template &lt;class ForwardIterator, class BinaryPredicate&gt;
+    ForwardIterator
+    adjacent_find(ForwardIterator start, <br>                  ForwardIterator finish,
+                  BinaryPredicate binary_pred);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>There are two variations of the <SAMP>adjacent_find()</SAMP> algorithm. The first finds equal adjacent elements in the sequence defined by iterators <SAMP>start</SAMP> and <SAMP>finish</SAMP> and returns an iterator <SAMP>i</SAMP> pointing to the first of the equal elements. The second variation lets you specify a binary function object to test for a condition. The algorithm returns an iterator <SAMP>i</SAMP> pointing to the first of the pair of elements that meet the conditions of the binary function. In other words, <SAMP>adjacent_find()</SAMP> returns the first iterator <SAMP>i</SAMP> where both <SAMP>i</SAMP> and <SAMP>i + 1</SAMP> are in the range <SAMP>[start, finish)</SAMP> that meets one of the following conditions:</P>
+<P><SAMP>*i == *(i + 1)</SAMP></P>
+<P>or</P>
+<P><SAMP>binary_pred(*i,*(i + 1)) == true</SAMP></P>
+<P>If <SAMP>adjacent_find()</SAMP> does not find a match, it returns <SAMP>finish</SAMP>.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P><SAMP>adjacent_find()</SAMP> performs exactly <SAMP>find(start,finish,value) - start</SAMP> applications of the corresponding predicate.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  find.cpp
+//
+
+#include &lt;vector&gt;      // for vector
+#include &lt;algorithm&gt;   // for adjacent_find, find
+#include &lt;functional&gt;  // for bind1st, equal_to
+#include &lt;iostream&gt;    // for cout, endl
+
+
+
+int main ()
+{
+    // Typedef for convenience.
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; Vector;
+
+    const Vector::value_type arr[] = { 0, 1, 2, 2, 3, 
+                                       4, 2, 2, 6, 7 };
+
+    // Set up a vector.
+    const Vector v1 (arr, arr + sizeof arr / sizeof *arr);
+
+    // Try find.
+    Vector::const_iterator it = std::find (v1.begin (), 
+                                           v1.end (), 3);
+
+    std::cout &lt;&lt; *it &lt;&lt; ' ';
+
+    // Try find_if.
+    it = std::find_if (v1.begin (), v1.end (),
+             std::bind1st (std::equal_to&lt;Vector::value_type&gt;(), 
+             3));
+
+    std::cout &lt;&lt; *it &lt;&lt; ' ';
+
+    // Try both adjacent_find variants.
+    it = std::adjacent_find (v1.begin (), v1.end ());
+
+    std::cout &lt;&lt; *it &lt;&lt; ' ';
+
+    it = std::adjacent_find (v1.begin (), v1.end (),
+                          std::equal_to&lt;Vector::value_type&gt;());
+
+    std::cout &lt;&lt; *it &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>3 3 2 2
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="find.html">find()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.1.5</I></P>
+
+<BR>
+<HR>
+<A HREF="adjacent-difference.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="advance.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

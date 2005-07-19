@@ -1,0 +1,148 @@
+<HTML>
+<HEAD>
+<TITLE>find_end()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="find.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="find-first-of.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>find_end()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that finds the last occurrence of a sub-sequence in a sequence</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class ForwardIterator1, class ForwardIterator2&gt;
+  ForwardIterator1 find_end(ForwardIterator1 start1, 
+                            ForwardIterator1 finish1,
+                            ForwardIterator2 start2, 
+                            ForwardIterator2 finish2);
+  template &lt;class Forward Iterator1, class ForwardIterator2, 
+            class BinaryPredicate&gt;
+  ForwardIterator1 find_end(ForwardIterator1 start1, 
+                            ForwardIterator1 finish1,
+                            ForwardIterator2 start2,
+                            ForwardIterator2 finish2,
+                            BinaryPredicate binary_pred);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>find_end()</SAMP> algorithm finds the last occurrence of a sub-sequence, indicated by <SAMP>[start2, finish2)</SAMP>, in a sequence, <SAMP>[start1,finish1)</SAMP>. The algorithm returns an iterator pointing to the first element of the found sub-sequence, or <SAMP>finish1</SAMP> if no match is found.</P>
+<P>More precisely, the <SAMP>find_end()</SAMP> algorithm returns the last iterator <SAMP>i</SAMP> in the range <SAMP>[start1, finish1 - (finish2-start2))</SAMP> such that for any non-negative integer <SAMP>n &lt; (finish2-start2)</SAMP>, the following   corresponding   conditions hold: </P>
+
+<UL><PRE>*(i+n)  ==  *(start2+n),    
+binary_pred(*(i+n),*(start2+n)) == true.
+</PRE></UL>
+<P>Or returns <SAMP>finish1</SAMP> if no such iterator is found.</P>
+<P>Two versions of the algorithm exist. The first uses the equality operator as the default binary predicate, and the second allows you to specify a binary predicate.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>At most <SAMP>(finish2-start2)*(finish1-start1-(finish2-start2)+1)</SAMP> applications of the corresponding predicate are done.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+// find_end.cpp
+//
+
+#include &lt;algorithm&gt;   // for find_first_of, find_end
+#include &lt;functional&gt;  // for equal_to
+#include &lt;iostream&gt;    // for cout, endl
+#include &lt;list&gt;        // for list
+
+
+int main ()
+{
+    typedef std::list&lt;int, std::allocator&lt;int&gt; &gt; list;
+
+    const list::value_type a1[] = { 
+        0, 1, 6, 5, 3, 2, 2, 6, 5, 7 
+    };
+    const list::value_type a2[] = { 
+        6, 5, 0, 0 
+    };
+
+    // Set up two sequences.
+    const list l1 (a1, a1 + sizeof a1 / sizeof *a1);
+    const list l2 (a2, a2 + 2);
+
+    // Try both find_first_of variants.
+    list::const_iterator it1 =
+        std::find_first_of(l1.begin(), l1.end(), 
+                           l2.begin(), l2.end());
+
+    list::const_iterator it2 =
+        std::find_first_of(l1.begin(), l1.end(),
+                           l2.begin(), l2.end(),
+                           std::equal_to&lt;list::value_type&gt;());
+
+    // Try both find_end variants.
+    list::const_iterator it3 =
+        std::find_end(l1.begin(), l1.end(), 
+                      l2.begin(), l2.end()); 
+
+    list::const_iterator it4 =
+        std::find_end(l1.begin(), l1.end(), 
+                      l2.begin(), l2.end(),
+                      std::equal_to&lt;list::value_type&gt;());
+
+    // Output results of find_first_of.
+    // Iterator now points to the first element that matches
+    // one of a set of values.
+
+    std::ostream_iterator&lt;list::value_type, char,
+            std::char_traits&lt;char&gt; &gt; out(std::cout, " " );
+
+    if(it3 == it4 &amp;&amp; it1 == it2) {
+
+        std::cout &lt;&lt; "For the sequences { ";
+        std::copy(l1.begin(), l1.end(), out);
+
+        std::cout &lt;&lt; "} and { ";
+        std::copy(l2.begin(), l2.end(), out);
+             
+        std::cout &lt;&lt; "} \nboth versions of "
+                  &lt;&lt; "find_first_of point to: "
+                  &lt;&lt; *it1 &lt;&lt; std::endl;
+
+        // Output results of find_end.
+        // Iterator now points to the first element of the last
+        // find subsequence.
+
+        std::cout &lt;&lt; "both versions of find_end point to: "
+                  &lt;&lt; *it3 &lt;&lt; std::endl;
+    }
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>For the sequences { 0 1 6 5 3 2 2 6 5 7 } and { 6 5 } 
+both versions of find_first_of point to: 6
+both versions of find_end point to: 6
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><A HREF="algorithms.html">Algorithms</A>, <SAMP><A HREF="find.html">find()</A></SAMP>, <SAMP><A HREF="find-if.html">find_if()</A></SAMP>, <SAMP><A HREF="adjacent-find.html">adjacent_find()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.1.3</I></P>
+
+<BR>
+<HR>
+<A HREF="find.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="find-first-of.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

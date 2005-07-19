@@ -1,0 +1,381 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * sstream - Declarations for the Standard Library basic streams
+ *
+ * $Id: //stdlib/dev/include/sstream#32 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_SSTREAM_INCLUDED
+#define _RWSTD_SSTREAM_INCLUDED
+
+#if __GNUG__ >= 3
+#  pragma GCC system_header
+#endif   // gcc >= 3
+
+#include <streambuf>
+
+#include <rw/_iosbase.h>
+#include <rw/_iosfwd.h>
+#include <rw/_defs.h>
+
+#ifndef _RWSTD_NO_REDUNDANT_DEFINITIONS
+#  include <istream>
+#  include <ostream>
+#endif   // _RWSTD_NO_REDUNDANT_DEFINITIONS
+
+
+
+_RWSTD_NAMESPACE (std) { 
+
+#ifndef _RWSTD_IOSFWD_INCLUDED
+
+_EXPORT
+template <class _CharT,
+          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>),
+          class _Alloc _RWSTD_COMPLEX_DEFAULT (allocator<_CharT>) >
+class basic_stringbuf;
+
+_EXPORT
+template <class _CharT,
+          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>),
+          class _Alloc _RWSTD_COMPLEX_DEFAULT (allocator<_CharT>) >
+class basic_istringstream;
+
+_EXPORT
+template <class _CharT,
+          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>),
+          class _Alloc _RWSTD_COMPLEX_DEFAULT (allocator<_CharT>) >
+class basic_ostringstream;
+
+_EXPORT
+template <class _CharT,
+          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>),
+          class _Alloc _RWSTD_COMPLEX_DEFAULT (allocator<_CharT>) >
+class basic_stringstream;
+
+typedef basic_stringbuf<char, char_traits<char>, allocator<char> >
+        stringbuf;
+typedef basic_istringstream<char, char_traits<char>, allocator<char> >
+        istringstream;
+typedef basic_ostringstream<char, char_traits<char>, allocator<char> >
+        ostringstream;
+typedef basic_stringstream<char, char_traits<char>, allocator<char> >
+        stringstream;
+
+#  ifndef _RWSTD_NO_WCHAR_T
+
+typedef basic_stringbuf<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
+        wstringbuf;
+typedef basic_istringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
+        wistringstream;
+typedef basic_ostringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
+        wostringstream;
+typedef basic_stringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
+        wstringstream;
+
+#  endif   // _RWSTD_NO_WCHAR_T
+#endif   // _RWSTD_IOSFWD_INCLUDED
+
+
+_EXPORT
+template <class _CharT, class _Traits, class _Allocator>
+class basic_stringbuf: public basic_streambuf<_CharT, _Traits>
+{
+    typedef basic_string<_CharT, _Traits, _Allocator> _C_string_type;
+
+public:
+
+    typedef _CharT                          char_type;
+    typedef _Traits                         traits_type;
+    typedef _Allocator                      allocator_type;   // lwg issue 251
+
+    typedef _TYPENAME traits_type::int_type int_type;
+    typedef _TYPENAME traits_type::pos_type pos_type;
+    typedef _TYPENAME traits_type::off_type off_type;
+
+    _EXPLICIT
+    basic_stringbuf (ios_base::openmode __mode = _RW::__rw_in_out)
+        : basic_streambuf<char_type, traits_type>(__mode) {
+        this->_C_own_buf (true);
+    }
+
+    _EXPLICIT
+    basic_stringbuf (const _C_string_type &__str, 
+                     ios_base::openmode = _RW::__rw_in_out);
+    
+    virtual ~basic_stringbuf ();
+    
+    _C_string_type str () const {
+        return _C_strlen () == 0 ? _C_string_type ()
+            : _C_string_type (this->_C_buffer, _C_strlen ());
+    }
+    
+    void str (const _C_string_type&);
+    
+protected:
+    
+    virtual streamsize showmanyc () {
+        return this->gptr () < this->egptr () ?
+            streamsize (this->egptr () - this->gptr ()) : 0;
+    }
+    
+    virtual int_type overflow (int_type = traits_type::eof ());
+
+    virtual int_type pbackfail (int_type = traits_type::eof ());
+
+    virtual int_type underflow ();
+    
+    virtual pos_type
+    seekoff (off_type, ios_base::seekdir, ios_base::openmode =
+             _RW::__rw_in_out);
+    
+    virtual pos_type
+    seekpos (pos_type, ios_base::openmode = _RW::__rw_in_out);
+
+    virtual basic_streambuf<char_type, traits_type>*
+    setbuf (char_type*, streamsize);
+
+    // non-standard convenience functions
+    streamsize _C_strlen () const {
+        return streamsize (this->_C_is_in () ? this->egptr () - this->eback ()
+                                             : this->epptr () - this->pbase ());
+    }
+
+private:
+
+    _RWSTD_STREAMSIZE _C_grow (_RWSTD_STREAMSIZE, _RWSTD_STREAMSIZE) const;
+};
+
+
+template <class _CharT, class _Traits, class _Allocator>
+inline basic_stringbuf<_CharT, _Traits, _Allocator>::~basic_stringbuf ()
+{
+    typedef _RWSTD_ALLOC_TYPE (allocator_type, char_type) _ValueAlloc;
+
+    if (this->_C_own_buf ())
+        _ValueAlloc ().deallocate (this->_C_buffer, this->_C_bufsize);
+}
+
+
+template <class _CharT, class _Traits, class _Allocator>
+inline _TYPENAME basic_stringbuf<_CharT, _Traits, _Allocator>::int_type
+basic_stringbuf<_CharT, _Traits, _Allocator>::underflow ()
+{
+    _RWSTD_ASSERT (this->_C_is_valid ());
+
+    if (this->gptr () < this->egptr ()) {
+
+        _RWSTD_ASSERT (0 != this->gptr ());
+
+        return traits_type::to_int_type (*this->gptr ());
+    }
+
+    return traits_type::eof ();
+}
+
+
+template <class _CharT, class _Traits, class _Allocator>
+inline _RWSTD_STREAMSIZE
+basic_stringbuf<_CharT, _Traits, _Allocator>::
+_C_grow (_RWSTD_STREAMSIZE __from, _RWSTD_STREAMSIZE __to) const
+{
+    const _RWSTD_STREAMSIZE __new_cap =
+        _RWSTD_NEW_CAPACITY (_C_string_type, (_C_string_type*)0, __from);
+
+    return __new_cap < __to ? __to : __new_cap;
+}
+
+
+template <class _CharT, class _Traits, class _Allocator>
+class basic_istringstream: public basic_istream<_CharT, _Traits>
+{
+    typedef basic_string<_CharT, _Traits, _Allocator> _C_string_type;
+
+public:
+    typedef _CharT                           char_type;
+    typedef _Traits                          traits_type;
+    typedef _Allocator                       allocator_type;
+
+    typedef _TYPENAME traits_type::int_type  int_type;
+    typedef _TYPENAME traits_type::pos_type  pos_type;
+    typedef _TYPENAME traits_type::off_type  off_type;
+  
+    _EXPLICIT
+    basic_istringstream (ios_base::openmode __mode = ios_base::in)
+        : basic_istream<char_type, traits_type>(rdbuf ()),
+          _C_sb (__mode | ios_base::in) { }
+
+    _EXPLICIT
+    basic_istringstream (const _C_string_type& __str, 
+                         ios_base::openmode __mode = ios_base::in)
+        : basic_istream<char_type, traits_type>(rdbuf ()),
+          _C_sb (__str, __mode | ios_base::in) { }
+
+    basic_stringbuf<char_type, traits_type, allocator_type> *rdbuf () const {
+        // necessary to help SunPro 5.0/T9
+        typedef basic_istringstream <char_type, traits_type, allocator_type>
+            _SelfT;
+        return &_RWSTD_CONST_CAST (_SelfT*, this)->_C_sb;
+    }
+
+    _C_string_type str () const {
+        return rdbuf ()->str ();
+    }
+
+    void str (const _C_string_type& __str) {
+        rdbuf ()->str (__str);
+    }
+
+private:
+
+    basic_stringbuf<char_type, traits_type, allocator_type> _C_sb;
+};
+
+
+template <class _CharT, class _Traits, class _Allocator>
+class basic_ostringstream: public basic_ostream<_CharT, _Traits>
+{
+    typedef basic_string<_CharT, _Traits, _Allocator> _C_string_type;
+
+public:
+
+    typedef _CharT                          char_type;
+    typedef _Traits                         traits_type;
+    typedef _Allocator                      allocator_type;
+
+    typedef _TYPENAME traits_type::int_type int_type;
+    typedef _TYPENAME traits_type::pos_type pos_type;
+    typedef _TYPENAME traits_type::off_type off_type;
+
+    // NOTE: the constructors pass the address of a yet uninitialized
+    //       data member to the constructor of the base class
+    _EXPLICIT
+    basic_ostringstream (ios_base::openmode __mode = ios_base::out)
+        : basic_ostream<char_type, traits_type> (rdbuf ()),
+          _C_sb (__mode | ios_base::out) { }
+        
+    _EXPLICIT
+    basic_ostringstream (const _C_string_type  &__str, 
+                         ios_base::openmode  __mode = ios_base::out)
+        : basic_ostream<char_type, traits_type>(rdbuf ()),
+          _C_sb (__str, __mode | ios_base::out) { }
+
+    basic_stringbuf<char_type, traits_type, allocator_type>* rdbuf () const {
+        // necessary to help SunPro 5.0/T9
+        typedef basic_ostringstream <char_type, traits_type, allocator_type>
+            _SelfT;
+        return &_RWSTD_CONST_CAST (_SelfT*, this)->_C_sb;
+    }
+
+    _C_string_type str () const {
+        return rdbuf ()->str ();
+    }
+
+    void str (const _C_string_type &__str) {
+        rdbuf ()->str (__str);
+    }
+
+private:
+
+    basic_stringbuf<char_type, traits_type, allocator_type> _C_sb;
+};
+
+
+template <class _CharT, class _Traits, class _Allocator>
+class basic_stringstream: public basic_iostream<_CharT, _Traits>
+{
+    typedef basic_string<_CharT, _Traits, _Allocator> _C_string_type;
+
+public:
+
+    typedef _CharT                          char_type;
+    typedef _Traits                         traits_type;
+    typedef _Allocator                      allocator_type;
+
+    typedef _TYPENAME traits_type::int_type int_type;
+    typedef _TYPENAME traits_type::pos_type pos_type;
+    typedef _TYPENAME traits_type::int_type off_type;
+
+    _EXPLICIT
+    basic_stringstream (ios_base::openmode __mode =
+                        ios_base::out | ios_base::in)
+        : basic_iostream<char_type, traits_type>(rdbuf ()),
+          _C_sb (__mode) { }
+
+    _EXPLICIT
+    basic_stringstream (const _C_string_type &__str, 
+                        ios_base::openmode __mode = 
+                        ios_base::out | ios_base::in)
+        : basic_iostream<char_type, traits_type>(rdbuf ()),
+          _C_sb (__str, __mode) { }
+
+    basic_stringbuf<char_type, traits_type, allocator_type> *rdbuf () const {
+        // necessary to help SunPro 5.0/T9
+        typedef basic_stringstream <char_type, traits_type, allocator_type>
+            _SelfT;
+        return &_RWSTD_CONST_CAST (_SelfT*, this)->_C_sb;
+    }
+
+    _C_string_type str () const {
+        return rdbuf ()->str ();
+    }
+
+    void str (const _C_string_type &__str) {
+        rdbuf ()->str (__str);
+    }
+
+private:
+
+    basic_stringbuf<char_type, traits_type, allocator_type> _C_sb;
+};
+
+}   // namespace std
+
+
+#if _RWSTD_DEFINE_TEMPLATE_FIRST (_BASIC_STRINGBUF)
+#  include <sstream.cc>
+#endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (_BASIC_STRINGBUF)
+
+
+_RWSTD_NAMESPACE (std) { 
+
+#if _RWSTD_INSTANTIATE (_BASIC_STRINGBUF, _CHAR)
+
+_RWSTD_INSTANTIATE_3 (class _RWSTD_EXPORT
+                      basic_stringbuf<char, char_traits<char>,
+                                      allocator<char> >);
+
+#endif   // _RWSTD_INSTANTIATE (_BASIC_STRINGBUF, _CHAR)
+
+#if _RWSTD_INSTANTIATE (_BASIC_STRINGBUF, _WCHAR_T)
+
+_RWSTD_INSTANTIATE_3 (class _RWSTD_EXPORT
+                      basic_stringbuf<wchar_t, char_traits<wchar_t>,
+                                      allocator<wchar_t> >);
+
+#endif   // _RWSTD_INSTANTIATE (_BASIC_STRINGBUF, _WCHAR_T)
+
+}   // namespace std
+
+
+#if _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_STRINGBUF)
+#  include <sstream.cc>
+#endif   // _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_STRINGBUF)
+
+
+#endif   // _RWSTD_SSTREAM_INCLUDED

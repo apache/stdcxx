@@ -1,0 +1,125 @@
+<HTML>
+<HEAD>
+<TITLE>inner_product()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="indirect-array.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="inplace-merge.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>inner_product()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-10.html">Numerics</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A generalized numeric operation that computes the inner product <SAMP>A X B</SAMP> of two ranges <SAMP>A</SAMP> and <SAMP>B</SAMP></P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;numeric&gt;
+
+namespace std {
+  template &lt;class InputIterator1, class InputIterator2,
+            class T&gt;
+  T inner_product(InputIterator1 start1, 
+                  InputIterator1 finish1,
+                  InputIterator2 start2, T init);
+  
+  template &lt;class InputIterator1, class InputIterator2,
+            class T,
+            class BinaryOperation1,
+            class BinaryOperation2&gt;
+  T inner_product(InputIterator1 start1, 
+                  InputIterator1 finish1,
+                  InputIterator2 start2, T init,
+                  BinaryOperation1 binary_op1,
+                  BinaryOperation2 binary_op2);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>There are two versions of <SAMP>inner_product()</SAMP>. The first computes an inner product using the default multiplication and addition operators, while the second allows you to specify binary operations to use in place of the default operations. </P>
+<P>The first version of the function initializes <SAMP>acc</SAMP> with <SAMP>init</SAMP> and then modifies it with:</P>
+<P><SAMP>acc = acc + ((*i1) * (*i2))</SAMP></P>
+<P>for every iterator <SAMP>i1</SAMP> in the range <SAMP>[start1, finish1)</SAMP> and iterator <SAMP>i2</SAMP> in the range <SAMP>[start2, start2 + (finish1 - start1))</SAMP>. The algorithm returns <SAMP>acc</SAMP>.</P>
+<P>The second version of the function initializes <SAMP>acc</SAMP> with <SAMP>init</SAMP>, then computes:</P>
+<P><SAMP>acc  =  binary_op1(acc, binary_op2(*i1,  *i2))</SAMP></P>
+<P>for every iterator <SAMP>i1</SAMP> in the range <SAMP>[start1, finish1)</SAMP> and iterator <SAMP>i2</SAMP> in the range <SAMP>[start2, start2 + (finish1  - start1))</SAMP>.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>The <SAMP>inner_product()</SAMP> algorithm computes exactly <SAMP>(finish1 - start1)</SAMP> applications of either:</P>
+<P><SAMP>acc + (*i1) * (*i2)</SAMP></P>
+<P> or </P>
+<P><SAMP>binary_op1(acc, binary_op2(*i1, *i2)).</SAMP></P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  inr_prod.cpp
+//
+
+#include &lt;algorithm&gt;     // for copy
+#include &lt;numeric&gt;       // for inner_product
+#include &lt;iostream&gt;      // for cout, endl
+#include &lt;list&gt;          // for list
+#include &lt;vector&gt;        // for vector
+#include &lt;functional&gt;    // for plus, minus
+
+
+
+int main ()
+{
+    typedef std::list&lt;int, std::allocator&lt;int&gt; &gt;   List;
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; Vector;
+    typedef std::ostream_iterator&lt;int, char, 
+                          std::char_traits&lt;char&gt; &gt; os_iter;
+
+    // Initialize a list and a vector using arrays of ints.
+    int a1[] = { 6, -3, -2 };
+    int a2[] = { -2, -3, -2 };
+
+    List   l (a1, a1 + sizeof a1 / sizeof *a1);
+    Vector v (a2, a2 + sizeof a2 / sizeof *a2);
+
+    // Calculate the inner product of the two sets of values.
+    List::value_type prod = std::inner_product (l.begin (), 
+                                      l.end (), v.begin (), 0);
+
+    // Calculate a wacky inner product using the same values.
+    List::value_type wacky =
+        std::inner_product (l.begin (), l.end (), v.begin (), 
+                            0, std::plus&lt;List::value_type&gt;(),
+                            std::minus&lt;List::value_type&gt;());
+    // Print the output.
+    std::cout &lt;&lt; "For the sets of numbers: { ";
+    std::copy (v.begin (), v.end (), os_iter (std::cout, " "));
+
+    std::cout &lt;&lt; "} and { ";
+    std::copy (l.begin (), l.end (), os_iter (std::cout, " "));
+
+    std::cout &lt;&lt; "}\nThe inner product is: " &lt;&lt; prod
+              &lt;&lt; "\nThe wacky result is:  " &lt;&lt; wacky
+              &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+For the sets of numbers: { -2 -3 -2 } and { 6 -3 -2 }
+The inner product is: 1
+The wacky result is:  8
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 26.4.2</I></P>
+
+<BR>
+<HR>
+<A HREF="indirect-array.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="inplace-merge.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,18 @@
+<HTML>
+<HEAD>
+<TITLE>The Character Type</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="45.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="45-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>45.1 The Character Type</H2>
+<A NAME="idx985"><!></A>
+<A NAME="idx986"><!></A>
+<P>You may already have used iostreams in the past -- the traditional iostreams. The  iostreams defined in the C++ standard library are mostly compatible, yet slightly different from what you know. The most apparent change is that the new iostream classes are templates, taking the type of the character as a template parameter.</P>
+<A NAME="idx987"><!></A>
+<P>The traditional iostreams were of limited use. They could handle only narrow character streams; in other words, they read files character by character, and worked internally with a buffer of narrow characters. They had problems with languages that have alphabets containing numbers of characters exceeding the number of possible values of type <SAMP>char</SAMP>. These alphabets are encoded as multibytes for storage on external devices like files, and represented as wide characters internally. They required a code conversion with each input and output.</P>
+<P>The new templatized iostreams can handle large alphabets. These iostreams can be instantiated for narrow characters of type <SAMP>char</SAMP>, and for wide characters of type <SAMP>wchar_t</SAMP>. In fact, you can instantiate iostream classes for any user-defined character type. <A HREF="41.html">Chapter&nbsp;41</A> describes in detail how this can be done.</P>
+
+<BR>
+<HR>
+<A HREF="45.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="45-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

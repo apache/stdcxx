@@ -1,0 +1,24 @@
+<HTML>
+<HEAD>
+<TITLE>Error Indication in Code Conversion Facets</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="40-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="40-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>40.4 Error Indication in Code Conversion Facets</H2>
+<A NAME="idx958"><!></A>
+<P>Since file stream buffers depend on their locale's code conversion facet, it is important to understand how they communicate. On writing to the external device, the file stream buffer hands over the content of its internal character buffer, partially or entirely, to the code conversion facet; that is, to its <SAMP>out()</SAMP> function. It expects to receive a converted character sequence that it can write to the external device. The reverse takes place, using the <SAMP>in()</SAMP> function, on reading from the external file.</P>
+<P>In order to make the file stream buffer and the code conversion facet work together effectively, it is necessary that the two main functions <SAMP>in()</SAMP> and <SAMP>out()</SAMP> indicate error situations the way the file stream buffer expects them to do it.</P>
+<A NAME="idx959"><!></A>
+<P>There are four possible return codes from the member functions <SAMP>in()</SAMP> and <SAMP>out()</SAMP>:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>std::codecvt_base::ok</SAMP>, which should obviously be returned when the conversion went fine.</P></LI>
+<LI><P CLASS="LIST"><SAMP>std::codecvt_base::partial</SAMP>, which should be returned when the code conversion reaches the end of the input sequence <SAMP>[from,from_end)</SAMP> before a new character can be created. The file stream buffer's reaction to <SAMP>partial</SAMP> is to provide more characters and call the code conversion facet again, in order to successfully complete the conversion.</P></LI>
+<P CLASS="LIST">(In our example of a conversion between ASCII and EBCDIC, we have no reason to ever return <SAMP>partial</SAMP>, because this is a conversion of single byte characters. Either a character can be recognized and converted, or the conversion fails; that is, error is returned. The <SAMP>partial</SAMP> return code only makes sense in wide-character and multibyte conversions.)</P>
+<LI><P CLASS="LIST"><SAMP>std::codecvt_base::error</SAMP>, which indicates a violation of the conversion rules; that is, the character sequence to be converted does not obey the expected rules and thus cannot be recognized and converted. In this situation, the file stream buffer stops doing anything, and the file stream eventually sets its state to <SAMP>badbit</SAMP> and throws an exception if appropriate.</P></LI>
+<LI><P CLASS="LIST"><SAMP>std::codecvt_base::noconv</SAMP>, which is returned if no conversion was needed.</P></LI>
+</UL>
+
+<BR>
+<HR>
+<A HREF="40-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="40-5.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

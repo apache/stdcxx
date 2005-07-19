@@ -1,0 +1,115 @@
+<HTML>
+<HEAD>
+<TITLE>equal()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="domain-error.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="equal-range.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>equal()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that compares two ranges of values for equality</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class InputIterator1, class InputIterator2&gt;
+  bool equal(InputIterator1 start1, InputIterator1 finish1,
+             InputIterator2 start2);
+
+ template &lt;class InputIterator1, class InputIterator2,
+           class BinaryPredicate&gt;
+ bool equal(InputIterator1 start1, InputIterator1 finish1,
+            InputIterator2 start2, BinaryPredicate
+            binary_pred);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>equal()</SAMP> algorithm does a pairwise comparison of all of the elements in one range with all of the elements in another range to see if they match. The first version of <SAMP>equal()</SAMP> uses <SAMP>operator==()</SAMP> as the comparison function, and the second version allows you to specify a binary predicate as the comparison function. The first version returns <SAMP>true</SAMP> if all of the corresponding elements are equal to each other. The second version of <SAMP>equal()</SAMP> returns <SAMP>true</SAMP> if for each pair of elements in the two ranges, the result of applying the binary predicate is true. In other words, <SAMP>equal()</SAMP> returns <SAMP>true</SAMP> if both of the following are true:</P>
+<UL>
+<LI><P CLASS="LIST">There are at least as many elements in the second range as in the first</P></LI>
+<LI><P CLASS="LIST">For every iterator <SAMP>i</SAMP> in the range <SAMP>[start1, finish1)</SAMP> the following corresponding conditions hold: </P></LI>
+<P CLASS="LIST"><SAMP>*i == *(start2 + (i - start1))</SAMP></P>
+<P CLASS="LIST">or</P>
+<P CLASS="LIST"><SAMP>binary_pred(*i, *(start2 + (i - start1))) == true</SAMP></P>
+</UL>
+<P>If one of these conditions is not true, <SAMP>equal()</SAMP> returns <SAMP>false</SAMP>.</P>
+<P>This algorithm assumes that all iterators in the range <SAMP>[start2, start2 + (finish1 - start1)]</SAMP> are dereferenceable.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P><SAMP>equal()</SAMP> performs at most <SAMP>finish1 - start1</SAMP> comparisons or applications of the predicate.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+// equal.cpp
+//
+
+#include &lt;algorithm&gt;    // equal
+#include &lt;functional&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+
+
+
+int main ()
+{
+    // Typedef for convenience.
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; vector;
+
+    typedef std::ostream_iterator &lt;vector::value_type, char,
+                             std::char_traits&lt;char&gt; &gt; os_iter;
+
+    const vector::value_type a1[] = { 1, 2, 3, 4 };
+    const vector::value_type a2[] = { 1, 2, 4, 3 };
+
+    // Set up two vectors.
+    const vector v1(a1, a1 + sizeof a1 / sizeof *a1);
+    const vector v2(a2, a2 + sizeof a2 / sizeof *a2);
+
+    // Check for equality.
+    bool same = std::equal(v1.begin(), v1.end(), 
+                           v2.begin());
+
+    same = same &amp;&amp; std::equal(v1.begin(), v1.end(), 
+             v2.begin(), std::equal_to&lt;vector::value_type&gt;());
+
+    // Output the sequences.
+    std::cout &lt;&lt; "{ ";
+    std::copy(v1.begin(), v1.end(), os_iter(std::cout, " "));
+
+    std::cout &lt;&lt; "} == { ";
+    std::copy(v2.begin(), v2.end(), os_iter(std::cout, " "));
+
+    // Output the result.
+    std::cout &lt;&lt; "} --&gt; " &lt;&lt; std::boolalpha 
+              &lt;&lt; same &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output
+</PRE></UL>
+<UL><PRE>{ 1 2 3 4 } == { 1 2 4 3 } --&gt; false
+
+</PRE></UL>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 25.1.8</I></P>
+
+<BR>
+<HR>
+<A HREF="domain-error.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="equal-range.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

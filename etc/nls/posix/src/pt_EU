@@ -1,0 +1,78 @@
+comment_char %
+escape_char  /
+%
+% Portuguese language locale for Europe
+% Source: CEN/ISSS Eurolocale workshop
+% Address: rue de Stassart, 36
+%          B-1050 Brussels
+% Contact: Keld Simonsen
+% Email: Keld.Simonsen@dkuug.dk
+% Tel: +45 - 33226543
+% Fax: +45 - 33256543
+% Language: pt
+% Territory: EU
+% Revision: 5.1
+% Date: 2000-01-04
+% Users: specific
+% Repertoiremap: mes-2,eulc
+% Charset: ISO-8859-1
+% Distribution and use is free, also
+% for commercial purposes.
+
+LC_COLLATE
+copy "_EU"
+END LC_COLLATE
+
+LC_CTYPE
+copy "_EU"
+END LC_CTYPE
+
+LC_NUMERIC
+copy "_EU"
+END LC_NUMERIC
+
+LC_MONETARY
+copy "_EU"
+END LC_MONETARY
+
+LC_TIME
+abday   "<d><o><m>";"<s><e><g>";/
+        "<t><e><r>";"<q><u><a>";/
+        "<q><u><i>";"<s><e><x>";/
+        "<s><a'><b>"
+day     "<d><o><m><i><n><g><o>";/
+        "<s><e><g><u><n><d><a>";/
+        "<t><e><r><c,><a>";/
+        "<q><u><a><r><t><a>";/
+        "<q><u><i><n><t><a>";/
+        "<s><e><x><t><a>";/
+        "<s><a'><b><a><d><o>"
+abmon   "<j><a><n>";"<f><e><v>";/
+        "<m><a><r>";"<a><b><r>";/
+        "<m><a><i>";"<j><u><n>";/
+        "<j><u><l>";"<a><g><o>";/
+        "<s><e><t>";"<o><u><t>";/
+        "<n><o><v>";"<d><e><z>"
+mon     "<j><a><n><e><i><r><o>";/
+        "<f><e><v><e><r><e><i><r><o>";/
+        "<m><a><r><c,><o>";/
+        "<a><b><r><i><l>";/
+        "<m><a><i><o>";/
+        "<j><u><n><h><o>";/
+        "<j><u><l><h><o>";/
+        "<a><g><o><s><t><o>";/
+        "<s><e><t><e><m><b><r><o>";/
+        "<o><u><t><u><b><r><o>";/
+        "<n><o><v><e><m><b><r><o>";/
+        "<d><e><z><e><m><b><r><o>"
+d_t_fmt   "<%><Y><-><%><m><-><%><d><SP><%><H><:><%><M><:><%><S>"
+d_fmt     "<%><Y><-><%><m><-><%><d>"
+t_fmt     "<%><H><:><%><M><:><%><S>"
+am_pm     "";""
+t_fmt_ampm  ""
+END LC_TIME
+
+LC_MESSAGES
+yesexpr "<<(><S><s><+><y><Y><o><O><j><J><)/>><.><*>"
+noexpr  "<<(><n><N><-><)/>><.><*>"
+END LC_MESSAGES

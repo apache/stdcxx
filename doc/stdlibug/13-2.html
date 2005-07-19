@@ -1,0 +1,255 @@
+<HTML>
+<HEAD>
+<TITLE>Initialization Algorithms</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="13-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>13.2 Initialization Algorithms</H2>
+<A NAME="idx252"><!></A>
+<A NAME="idx253"><!></A>
+<P>The first set of algorithms we cover are used chiefly, although not exclusively, to initialize a newly created sequence with certain values. The Standard C++ Library provides several initialization algorithms. The initialization algorithms all overwrite every element in a container. The difference between the algorithms is the source for the values used in initialization. The <SAMP>std::fill()</SAMP> algorithm repeats a single value, the <SAMP>std::copy()</SAMP> algorithm reads values from a second container, and the <SAMP>std::generate()</SAMP> algorithm invokes a function for each new value. In our discussion we provide examples of how to apply these algorithms, and suggest how to choose one algorithm over another.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- The sample programs described in the following sections are in the file alg1.cpp. We generally omit output statements from the descriptions of the programs provided here, although they are included in the compete versions.
+</B><HR></BLOCKQUOTE>
+<A NAME="1321"><H3>13.2.1 Fill a Sequence with An Initial Value</H3></A>
+<A NAME="idx254"><!></A>
+<P>The <SAMP>std::fill()</SAMP> and <SAMP>std::fill_n()</SAMP> algorithms are used to initialize or reinitialize a sequence with a fixed value. Their declarations are as follows:</P>
+
+<UL><PRE>
+namespace std {
+  void fill(ForwardIterator first,
+            ForwardIterator last, const T&amp;);
+  void fill_n(OutputIterator, Size, const T&amp;);
+}
+</PRE></UL>
+<A NAME="idx255"><!></A>
+<P>The example program illustrates several uses of the algorithm:</P>
+
+<A NAME="idx259"><!></A>
+<A NAME="idx258"><!></A>
+<A NAME="idx257"><!></A>
+<A NAME="idx256"><!></A>
+<UL><PRE>
+void fill_example ()
+// illustrates the use of the fill algorithm
+// see alg1.cpp for complete source code
+{
+   // example 1, fill an array with initial values
+   char buffer[100], *bufferp = buffer;
+   std::fill(bufferp, bufferp + 100, '\0');
+   std::fill_n(bufferp, 10, 'x');
+
+   // example 2, use fill_n to initialize a list
+   std::list&lt;string&gt; aList(5, "nothing");
+   std::fill_n(inserter(aList, aList.begin()), 10, "empty");
+
+   // example 3, use fill to overwrite values in list
+   std::fill(aList.begin(), aList.end(), "full");
+
+   // example 4, fill in a portion of a collection
+   std::vector&lt;int&gt; iVec(10);
+   std::generate(iVec.begin(), iVec.end(), iotaGen(1));
+   std::vector&lt;int&gt;::iterator&amp; seven = 
+         std::find(iVec.begin(), iVec.end(), 7);
+   std::fill(iVec.begin(), seven, 0);
+}
+</PRE></UL>
+<P>In example 1, an array of character values is declared. The <SAMP>std::fill()</SAMP> algorithm is invoked to initialize each location in this array with a null character value. The first 10 positions are then replaced with the character <SAMP>'x'</SAMP> by using the algorithm <SAMP>std::fill_n()</SAMP>. Note that the <SAMP>std::fill()</SAMP> algorithm requires both starting and past-end <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s as arguments, whereas the <SAMP>std::fill_n()</SAMP> algorithm uses a starting <B><I>iterator</I></B> and a count.</P>
+<A NAME="idx260"><!></A>
+<P>By applying an <I>insert iterator</I> (<A HREF="2-4.html">Section&nbsp;2.4</A>), example 2 illustrates how the <SAMP>std::fill_n()</SAMP> algorithm can be used to initialize a variable length container, such as a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. In this case the <B><I>list</I></B> initially contains five elements, all holding the text <SAMP>"nothing"</SAMP>. The call on <SAMP>std::fill_n()</SAMP> then inserts ten instances of the string <SAMP>"empty"</SAMP>. The resulting <B><I>list</I></B> contains fifteen elements.</P>
+<P>Examples 3 and 4 illustrate how <SAMP>std::fill()</SAMP> can be used to change the values in an existing container. In example 3 each of the fifteen elements in the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> created in example 2 is replaced by the string <SAMP>"full"</SAMP>. </P>
+<P>Example 4 overwrites only a portion of a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. Using the generic algorithm <SAMP>std::generate()</SAMP> and the function object <B><I>iotaGen</I></B> (see <A HREF="3-2.html">Section&nbsp;3.2</A> and <A HREF="13-2.html#1323">Section&nbsp;13.2.3</A>), a vector is initialized to the values <SAMP>1 2 3... 10</SAMP>. The <SAMP>std::find()</SAMP> algorithm (see <A HREF="13-3.html#1331">Section&nbsp;13.3.1</A>) is used to locate the position of the element 7, saving the location in an iterator appropriate for the <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> datatype. The<SAMP> std::fill()</SAMP> call then replaces all values up to, but not including, the <SAMP>7</SAMP> entry with the value <SAMP>0</SAMP>. The resulting vector has six zero fields, followed by the values <SAMP>7</SAMP>, <SAMP>8</SAMP>, <SAMP>9</SAMP> and <SAMP>10</SAMP>.</P>
+<P>The <SAMP>std::fill()</SAMP> and<SAMP> std::fill_n()</SAMP> algorithm can be used with all the container classes contained in the Standard C++ Library, although insert iterators must be used with ordered containers, such as <B><I><A HREF="../stdlibref/set.html">set</A></I></B>s.</P>
+<A NAME="1322"><H3>13.2.2 Copy One Sequence Into Another Sequence</H3></A>
+<A NAME="idx261"><!></A>
+<P>The algorithms <SAMP>std::copy()</SAMP> and <SAMP>std::copy_backward()</SAMP> are versatile functions that can be used for a number of different purposes, and are probably the most commonly executed algorithms in the Standard C++ Library. The declarations for these algorithms are as follows:</P>
+
+<UL><PRE>
+namespace std {
+  OutputIterator copy (InputIterator first, InputIterator last, 
+           OutputIterator result);
+
+  BidirectionalIterator copy_backward 
+     (BidirectionalIterator first, BidirectionalIterator last,
+      BidirectionalIterator result);
+}
+</PRE></UL>
+<A NAME="idx262"><!></A>
+<P>The result returned by the <SAMP>copy()</SAMP> function is a pointer to the end of the copied sequence.   However, the result of one <SAMP>copy()</SAMP> operation can be used as a starting iterator in a subsequent <SAMP>copy()</SAMP> to make a <I>catenation</I> of values.</P>
+<P>Uses of the copy algorithm include:</P>
+<UL>
+<LI><P CLASS="LIST">Duplicating an entire sequence by copying into a new sequence</P></LI>
+<LI><P CLASS="LIST">Creating sub-sequences of an existing sequence</P></LI>
+<LI><P CLASS="LIST">Adding elements into a sequence</P></LI>
+<LI><P CLASS="LIST">Copying a sequence from input or to output</P></LI>
+<LI><P CLASS="LIST">Converting a sequence from one form into another</P></LI>
+</UL>
+<A NAME="idx263"><!></A>
+<P>The uses of the copy algorithm are illustrated in the following sample program:</P>
+
+<A NAME="idx268"><!></A>
+<A NAME="idx267"><!></A>
+<A NAME="idx266"><!></A>
+<A NAME="idx265"><!></A>
+<A NAME="idx264"><!></A>
+<UL><PRE>
+void copy_example()
+// illustrates the use of the copy algorithm
+// see alg1.cpp for complete source code
+
+{
+   char *source = "reprise";
+   char *surpass = "surpass";
+   char buffer[120], *bufferp = buffer;
+
+   // example 1, a simple copy
+   std::copy(source, source + strlen(source) + 1, bufferp);
+
+   // example 2, self copies
+   std::copy(bufferp + 2, bufferp + strlen(buffer) + 1, bufferp);
+   int buflen = strlen(buffer) + 1;
+   std::copy_backward(bufferp, bufferp + buflen,
+                      bufferp + buflen + 3);
+   std::copy(surpass, surpass + 3, bufferp);
+
+   // example 3, copy to output
+   std::copy(bufferp, bufferp + strlen(buffer), 
+             std::ostream_iterator&lt;char,char&gt;(std::cout));
+   std::cout &lt;&lt; std::endl;
+
+
+   // example 4, use copy to convert type
+   std::list&lt;char&gt; char_list;
+   std::copy (bufferp, bufferp + strlen(buffer), 
+         std::inserter(char_list, char_list.end()));
+   char *big = "big ";
+   std::copy(big, big + 4, 
+        std::inserter(char_list, char_list.begin()));
+
+   char buffer2[120], *buffer2p = buffer2;
+   *std::copy(char_list.begin(), char_list.end(), buffer2p) = '\0';
+   std::cout &lt;&lt; buffer2 &lt;&lt; std::endl;
+}
+</PRE></UL>
+<P>In example 1, the first call on <SAMP>std::copy()</SAMP> simply copies the string pointed to by the variable <SAMP>source</SAMP> into a buffer, resulting in the buffer containing the text <SAMP>"reprise"</SAMP>. Note that the ending position for the copy is one past the terminating null character, thus ensuring the null character is included in the copy operation.</P>
+<P>The <SAMP>std::copy()</SAMP> operation is specifically designed to permit <I>self-copies</I>, which are copies of a sequence onto itself, as long as the destination <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> does not fall within the range formed by the source <B><I>iterator</I></B>s. This is illustrated by example 2. Here the copy begins at position 2 of the buffer and extends to the end, copying characters into the beginning of the buffer. This results in the buffer holding the value <SAMP>"prise"</SAMP>. </P>
+<P>The second half of example 2 illustrates the use of the <SAMP>std::copy_backward()</SAMP> algorithm. This function performs the same task as the <SAMP>std::copy()</SAMP> algorithm, but moves elements from the end of the sequence first, progressing to the front of the sequence. If you think of the argument as a string, characters are moved starting from the right and progressing to the left. In this case the result is that <SAMP>buffer</SAMP> is assigned the value <SAMP>"priprise"</SAMP>. The first three characters are then modified by another <SAMP>std::copy()</SAMP> operation to the values <SAMP>"sur"</SAMP>, resulting in <SAMP>buffer</SAMP> holding the value<SAMP> "surprise"</SAMP>.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- In the copy_backwards algorithm, note that it is the order of transfer that is backwards, not the elements themselves; the relative placement of moved values in the target is the same as in the source.
+</B><HR></BLOCKQUOTE>
+<P>Example 3 illustrates <SAMP>std::copy()</SAMP> being used to move values to an output stream (see <A HREF="2-3.html#232">Section&nbsp;2.3.2</A>). The target in this case is an <SAMP>ostream_iterator</SAMP> generated for the output stream <SAMP>std::cout</SAMP>. A similar mechanism can be used for input values. For example, a simple mechanism to copy every word in the input stream into a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> is the following call on <SAMP>copy()</SAMP>:</P>
+
+<UL><PRE>
+std::list&lt;std::string&gt; words;
+std::istream_iterator&lt;std::string, char&gt; in_stream(std::cin), eof;
+
+std::copy(in_stream, eof, std::inserter(words,
+                                        words.begin()));
+</PRE></UL>
+<P>This technique is used in the spell checking program described in <A HREF="8-3.html">Section&nbsp;8.3</A>.</P>
+<A NAME="idx269"><!></A>
+<P>Copy can also be used to convert from one type of stream to another. For example, the call in example 4 of the sample program copies the characters held in the buffer one by one into a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> of characters. The call on <SAMP>std::inserter()</SAMP> creates an insert iterator, used to insert values into the <B><I>list</I></B>. The first call on <SAMP>std::copy()</SAMP> places the string <SAMP>surprise</SAMP>, created in example 2, into the <B><I>list</I></B>. The second call on <SAMP>std::copy()</SAMP> inserts the values from the string <SAMP>"big "</SAMP> onto the front of the <B><I>list</I></B>, resulting in the <B><I>list</I></B> containing the characters <SAMP>big surprise</SAMP>. The final call on <SAMP>std::copy()</SAMP> illustrates the reverse process, copying characters from a <B><I>list</I></B> back into a character buffer.</P>
+<A NAME="1323"><H3>13.2.3 Initialize a Sequence with Generated Values</H3></A>
+<A NAME="idx270"><!></A>
+<P>A <I>generator</I> is a function that returns a series of values on successive invocations. Probably the generator you are most familiar with is a random number generator. However, generators can be constructed for a variety of different purposes, including initializing sequences.</P>
+<A NAME="idx271"><!></A>
+<P>Like <SAMP>std::fill()</SAMP> and <SAMP>std::fill_n()</SAMP>, the algorithms <SAMP>std::generate()</SAMP> and <SAMP>std::generate_n()</SAMP> are used to initialize or reinitialize a sequence. However, instead of a fixed argument, these algorithms draw their values from a generator. The declarations of these algorithms are as follows:</P>
+
+<UL><PRE>
+namespace std {
+  void generate(ForwardIterator, ForwardIterator, Generator);
+  void generate_n(OutputIterator, Size, Generator);
+}
+
+</PRE></UL>
+<A NAME="idx272"><!></A>
+<P>Our example program shows several uses of the generate algorithm to initialize a sequence:</P>
+
+<A NAME="idx274"><!></A>
+<A NAME="idx273"><!></A>
+<UL><PRE>
+string generateLabel () {
+   // generate a unique label string of the form L_ddd
+   // see alg1.cpp for complete source code
+   static int lastLabel = 0;
+   char labelBuffer[80];
+   std::ostrstream ost(labelBuffer, 80);
+   ost &lt;&lt; "L_" &lt;&lt; lastLabel++ &lt;&lt; '\0';
+   return std::string(labelBuffer);
+}
+
+void generate_example ()
+// illustrate the use of the generate and generate_n algorithms
+{
+   // example 1, generate a list of label values
+   std::list&lt;std::string&gt; labelList;
+   std::generate_n(std::inserter(labelList, labelList.begin()), 
+                                 4, generateLabel);
+
+   // example 2, generate an arithmetic progression
+   std::vector&lt;int&gt; iVec(10);
+   std::generate(iVec.begin(), iVec.end(), iotaGen(2));
+   std::generate_n(iVec.begin(), 5, iotaGen(7));
+   }
+}
+</PRE></UL>
+<A NAME="idx275"><!></A>
+<P>A generator can be constructed as a simple function that <I>remembers</I> information about its previous history in one or more static variables. An example is shown in the beginning of the example program, where the function <SAMP>generateLabel()</SAMP> is described. This function creates a sequence of unique string labels, such as might be needed by a compiler. Each invocation on the function <SAMP>generateLabel()</SAMP> results in a new string of the form <SAMP>L_ddd</SAMP>, each with a unique digit value. Because the variable named <SAMP>lastLabel</SAMP> is declared as <SAMP>static</SAMP>, its value is remembered from one invocation to the next. The first example of the sample  illustrates how this function might be used in combination with the <SAMP>std::generate_n()</SAMP> algorithm to initialize a list of four label values.</P>
+<A NAME="idx276"><!></A>
+<P>As we described in <A HREF="3.html">Chapter&nbsp;3</A>, a function is any object that will respond to the function call operator. Using this definition, classes can easily be constructed as functions. The class <B><I>iotaGen</I></B><I>,</I> is an example (see <A HREF="3-2.html">Section&nbsp;3.2</A>). The <B><I>iotaGen</I></B> function object creates a generator for an integer arithmetic sequence. In the second example in the sample program, this sequence is used to initialize a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> with the integer values 2 through 11. A call on <SAMP>std::generate_n()</SAMP> is then used to overwrite the first 5 positions of the <B><I>vector</I></B> with the values 7 through 11, resulting in the <B><I>vector</I></B> <SAMP>7 8 9 10 11 7 8 9 10 11</SAMP>.</P>
+<A NAME="1324"><H3>13.2.4 Swap Values from Two Parallel Ranges</H3></A>
+<A NAME="idx277"><!></A>
+<P>The template function <SAMP>std::swap()</SAMP> can be used to exchange the values of two objects of the same type. It has the following definition:</P>
+
+<UL><PRE>
+namespace std {
+  template &lt;class T&gt; void swap (T&amp; a, T&amp; b)
+  {
+     T temp(a);
+     a = b;
+     b = temp;
+  }
+}
+</PRE></UL>
+<A NAME="idx278"><!></A>
+<P>The function is generalized to <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s in the function named <SAMP>std::iter_swap().</SAMP> The algorithm <SAMP>std::swap_ranges()</SAMP> extends this to entire sequences. The values denoted by the first sequence are exchanged with the values denoted by a second, parallel sequence. The description of the <SAMP>std::swap_ranges()</SAMP> algorithm is as follows:</P>
+
+<UL><PRE>
+namespace std {
+  ForwardIterator swap_ranges 
+    (ForwardIterator first, ForwardIterator last, 
+     ForwardIterator first2);
+}
+</PRE></UL>
+<P>The second range is described only by a starting <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>. It is assumed but not verified that the second range has at least as many elements as the first range. </P>
+<BLOCKQUOTE><HR><B>
+NOTE -- A number of algorithms operate on two parallel sequences. In most cases, the second sequence is identified using only a starting iterator, not a starting and ending iterator pair. It is assumed, but never verified, that the second sequence is at least as large as the first. Errors will occur if this condition is not satisfied.
+</B><HR></BLOCKQUOTE>
+<P>In the example program, both <SAMP>std::swap()</SAMP> and <SAMP>std::iter_swap()</SAMP> are used separately and in combination:</P>
+
+<A NAME="idx279"><!></A>
+<UL><PRE>
+void swap_example () 
+// illustrates the use of the algorithm swap_ranges
+// see alg1.cpp for complete source code
+{
+   // first make two parallel sequences
+   int data[] = {12, 27, 14, 64}, *datap = data;
+   std::vector&lt;int&gt; aVec(4);
+   std::generate(aVec.begin(), aVec.end(), iotaGen(1));
+
+   // illustrate swap and iter_swap
+   std::swap(data[0], data[2]);
+   std::vector&lt;int&gt;::iterator last = aVec.end();
+   last--;
+   std::iter_swap(aVec.begin(), last);
+
+   // now swap the entire sequence
+   std::swap_ranges(aVec.begin(), aVec.end(), datap);
+}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="13-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,267 @@
+<HTML>
+<HEAD>
+<TITLE>cout</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="count.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="ctype.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>cout</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P><UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Formatting</A></LI>
+<LI><A HREF="#sec6">Description</A></LI>
+<LI><A HREF="#sec7">Default Values</A></LI>
+<LI><A HREF="#sec8">Warnings</A></LI>
+<LI><A HREF="#sec9">See Also</A></LI>
+<LI><A HREF="#sec10">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Predefined stream that controls output to a stream buffer associated with the object <SAMP>stdout</SAMP> declared in <SAMP>&lt;cstdio&gt;</SAMP></P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;iostream&gt;
+
+namespace std {
+  extern ostream cout;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The object <SAMP>cout</SAMP> controls output to a stream buffer associated with the object <SAMP>stdout</SAMP> declared in <SAMP>&lt;cstdio&gt;</SAMP>. By default the standard C and C++ streams are synchronized, but performance improvement can be achieved by using the <B><I><A HREF="ios-base.html">ios_base</A></I></B> member function <SAMP>synch_with_stdio</SAMP> to desynchronize them.</P>
+<P>After the object <SAMP>cin</SAMP> is initialized, <SAMP>cin.tie()</SAMP> returns <SAMP>&amp;cout</SAMP>, which implies that <SAMP>cin</SAMP> and <SAMP>cout</SAMP> are synchronized.</P>
+<A NAME="sec5"><H3>Formatting</H3></A>
+<P>The formatting is done through member functions or manipulators. </P>
+<H4><A NAME="Table&nbsp;16">Table&nbsp;16: Formatting functions and manipulators for cout</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Manipulators</B>
+</td>
+<td valign=top><B>Member functions</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>showpos</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::showpos) </SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noshowpos</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>unsetf(ios_base::showpos) </SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>showbase</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::showbase)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noshowbase</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>unsetf(ios_base::showbase)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>uppercase</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::uppercase)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>nouppercase</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>unsetf(ios_base::uppercase)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>showpoint</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::showpoint)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noshowpoint</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>unsetf(ios_base::showpoint)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>boolalpha</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::boolalpha)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noboolalpha</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>unsetf(ios_base::boolalpha) </SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>unitbuf</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::unitbuf)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>nounitbuf</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>unsetf(ios_base::unitbuf)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>internal</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::internal,</SAMP></P>
+<P CLASS="TABLE"><SAMP>ios_base::adjustfield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>left</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::left,</SAMP></P>
+<P CLASS="TABLE"><SAMP>ios_base::adjustfield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>right</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::right,</SAMP></P>
+<P CLASS="TABLE"><SAMP>ios_base::adjustfield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>dec</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::dec,</SAMP></P>
+<P CLASS="TABLE"><SAMP>ios_base::basefield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>hex</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::hex,</SAMP></P>
+<P CLASS="TABLE"><SAMP>ios_base::basefield) </SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>oct</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::oct,</SAMP></P>
+<P CLASS="TABLE"><SAMP>ios_base::basefield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fixed</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::fixed,</SAMP></P>
+<P CLASS="TABLE"><SAMP>ios_base::floatfield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>scientific</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::scientific,</SAMP></P>
+<P CLASS="TABLE"><SAMP>ios_base::floatfield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>resetiosflags</SAMP></P>
+<P CLASS="TABLE"><SAMP> (ios_base::fmtflags flag)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(0,flag)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setiosflags</SAMP></P>
+<P CLASS="TABLE"><SAMP>(ios_base::fmtflags  flag)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(flag)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setbase(int base)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">see above</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setfill(char_type c)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>fill(c)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setprecision(int n)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>precision(n) </SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setw(int n)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>width(n)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>endl</SAMP></P>
+</td>
+<td valign=top>&nbsp;
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ends</SAMP></P>
+</td>
+<td valign=top>&nbsp;
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>flush</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>flush( )</SAMP></P>
+</td>
+</tr>
+</TABLE>
+<A NAME="sec6"><H3>Description</H3></A>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>showpos</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Generates a + sign in non-negative generated numeric output.</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>showbase</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Generates a prefix indicating the numeric base of generated integer output</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>uppercase</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Replaces certain lowercase letters with their uppercase equivalents in generated output</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>showpoint</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Generates a decimal-point character unconditionally in generated floating-point output</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>boolalpha</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Inserts and extracts bool type in alphabetic format</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>unitbuf</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Flushes output after each output operation</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>internal</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Adds fill characters at a designated internal point in certain generated output. If no such point is designated, it's identical to <SAMP>right</SAMP>.</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>left</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Adds fill characters on the right (final positions) of certain generated output</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>right</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Adds fill characters on the left (initial positions) of certain generated output</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>dec</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Converts integer input or generates integer output in decimal base</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>hex</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Converts integer input or generates integer output in hexadecimal base</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>oct</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Converts integer input or generates integer output in octal base</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>fixed</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Generates floating-point output in fixed-point notation</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>scientific</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Generates floating-point output in scientific notation</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>resetiosflags(ios_base::fmtflags flag)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Resets the <SAMP>fmtflags</SAMP> field <SAMP>flag</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>setiosflags(ios_base::fmtflags flag)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Sets up the flag <SAMP>flag</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>setbase(int base)</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Converts integer input or generates integer output in base <SAMP>base</SAMP>. The parameter <SAMP>base</SAMP> can be 8, 10 or 16. </P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>setfill(char_type c)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Sets the character used to pad (fill) an output conversion to the specified field width</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>setprecision(int n)</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Sets the precision (number of digits after the decimal <SAMP>point) to generate on certain output conversions</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>setw(int n)</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Sets the field width (number of characters) to generate on certain output conversions</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>endl</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Inserts a newline character into the output sequence and flushes the output buffer</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>ends</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Inserts a null character into the output sequence</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>flush</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Flushes the output buffer</P></TD></TR>
+</TABLE></P>
+<A NAME="sec7"><H3>Default Values</H3></A>
+
+<UL><PRE>precision()            6
+width()                0
+fill()                 the space character
+flags()                skipws | dec
+getloc()               locale::locale()
+</PRE></UL>
+<A NAME="sec8"><H3>Warnings</H3></A>
+<P>Keep in mind that while the manipulator <SAMP>endl</SAMP> flushes the stream buffer, outputting the character <SAMP>'\n'</SAMP> is <I>not</I> guaranteed to flush the stream buffer. You should output the <SAMP>'\n'</SAMP> character without <SAMP>endl</SAMP> only if you do not need the buffer flushed. Note that outputting the <SAMP>'\n'</SAMP> character in such cases, and hence not forcing a buffer flush, may result in a performance improvement. It greatly improves performance when C and C++ streams are not synchronized.</P>
+<A NAME="sec9"><H3>See Also</H3></A>
+<P><B><I><A HREF="basic-ostream.html">basic_ostream</A></I></B>, <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B>, <B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B>, <B><I><A HREF="cin.html">cin</A></I></B>, <B><I><A HREF="cerr.html">cerr</A></I></B>, <B><I><A HREF="clog.html">clog</A></I></B>, <B><I><A HREF="wcin.html">wcin</A></I></B>, <B><I><A HREF="wcout.html">wcout</A></I></B>, <B><I><A HREF="wcerr.html">wcerr</A></I></B>, <B><I><A HREF="wclog.html">wclog</A></I></B></P>
+<A NAME="sec10"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.3.1</I></P>
+
+<BR>
+<HR>
+<A HREF="count.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="ctype.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

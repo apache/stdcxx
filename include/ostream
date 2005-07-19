@@ -1,0 +1,576 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * ostream - Declarations for the Standard Library ostream classes
+ *
+ * $Id: //stdlib/dev/include/ostream#76 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_OSTREAM_INCLUDED
+#define _RWSTD_OSTREAM_INCLUDED
+
+#if __GNUG__ >= 3
+#  pragma GCC system_header
+#endif   // gcc >= 3
+
+#ifndef _RWSTD_NO_REDUNDANT_DEFINITIONS
+#  include <rw/_ioiter.h>
+#  include <streambuf>
+#endif   // _RWSTD_NO_REDUNDANT_DEFINITIONS
+
+#include <loc/_num_get.h>
+#include <loc/_num_put.h>
+
+#include <rw/_basic_ios.h>
+#include <rw/_ioinsert.h>
+#include <rw/_defs.h>
+
+
+_RWSTD_NAMESPACE (__rw) { 
+
+_RWSTD_EXPORT int __rw_fflush (void*, int);
+
+}   // namespace __rw
+
+
+_RWSTD_NAMESPACE (std) { 
+
+_EXPORT
+template<class _CharT, class _Traits>
+class basic_ostream: virtual public basic_ios<_CharT, _Traits>
+{
+public:
+    typedef _CharT                             char_type;
+    typedef _Traits                            traits_type;
+    typedef _TYPENAME traits_type::int_type    int_type;
+    typedef _TYPENAME traits_type::pos_type    pos_type;
+    typedef _TYPENAME traits_type::off_type    off_type;
+      
+    typedef basic_ios<char_type, traits_type>  ios_type;
+
+    // 27.6.2.2, p1
+    _EXPLICIT basic_ostream (basic_streambuf<char_type, traits_type> *__sb) {
+        this->init (__sb);
+    }
+
+    // implements sentry ctor
+    basic_ostream& _C_opfx ();
+
+#ifdef _RWSTD_NO_NESTED_CLASS_ACCESS
+
+    // allow access to ios_type::_C_bufmutex() if the resolution
+    // of cwg issue 45 is not yet implemented
+    struct sentry;
+    friend struct sentry;
+
+#endif   // _RWSTD_NO_NESTED_CLASS_ACCESS
+
+    // 27.6.2.3
+    struct sentry: _RW::__rw_guard {
+
+        _EXPLICIT
+        sentry (basic_ostream<char_type, traits_type> &__strm)
+            : _RW::__rw_guard (__strm.rdbuf () ? __strm._C_bufmutex () : 0),
+              _C_strm (__strm), _C_ok (_C_strm._C_opfx ().good ()) { }
+
+        // 27.6.2.3, p4
+        ~sentry () {
+            if (   (   _C_strm.flags () & ios_base::unitbuf
+                    || _C_strm._C_is_sync ())
+                 && !_UNCAUGHT_EXCEPTION ()
+                 && _C_strm.rdbuf ()
+                 && -1 == _C_strm.rdbuf ()->pubsync ()) {
+
+                // prevent exceptions from propagating
+                _C_strm.setstate (ios_base::badbit | _RW::__rw_nothrow);
+            }    
+        }
+
+        operator bool () const {
+            return _C_ok;
+        }
+
+    private:
+
+        basic_ostream& _C_strm;   // stream guarded by sentry
+        bool           _C_ok;     // is stream okay?
+
+        sentry (const sentry&);           // (normally) not defined
+        void operator= (const sentry&);   // (normally) not defined
+    };
+
+    // 27.6.2.5 - Formatted output functions
+
+    // 27.6.2.5.3, p1
+    basic_ostream& operator<< (basic_ostream& (*__pf)(basic_ostream&)) {
+        return (*__pf)(*this);
+    }
+
+    // 27.6.2.5.3, p2
+    basic_ostream& operator<< (ios_base& (*__pf)(ios_base&)) {
+        return (*__pf)(*this), *this;
+    }
+
+    // 27.6.2.5.3, p4
+    basic_ostream& operator<< (ios_type& (*__pf)(ios_type&)) {
+        return (*__pf)(*this), *this;
+    }
+
+    // 27.6.2.5.2 - Arithmetic inserters
+
+#ifndef _RWSTD_NO_NATIVE_BOOL
+
+    basic_ostream& operator<< (bool __val) {
+        return _RW::__rw_insert (*this, __val);
+    }
+
+#endif   // _RWSTD_NO_NATIVE_BOOL
+
+    basic_ostream& operator<< (short);
+
+    basic_ostream& operator<< (unsigned short __val) {
+        return *this << _RWSTD_STATIC_CAST (unsigned long, __val);
+    }
+
+    basic_ostream& operator<< (int);
+
+    basic_ostream& operator<< (unsigned int __val) {
+        return *this << _RWSTD_STATIC_CAST (unsigned long, __val);
+    }
+
+    basic_ostream& operator<< (long __val) {
+        return _RW::__rw_insert (*this, __val);
+    }
+
+    basic_ostream& operator<< (unsigned long __val) {
+        return _RW::__rw_insert (*this, __val);
+    }
+
+    basic_ostream& operator<< (float __val) {
+        return *this << _RWSTD_STATIC_CAST (double, __val);
+    }
+
+    basic_ostream& operator<< (double __val) {
+        return _RW::__rw_insert (*this, __val);
+    }
+
+    basic_ostream& operator<< (long double __val) {
+        return _RW::__rw_insert (*this, __val);
+    }
+
+#ifdef _RWSTD_LONG_LONG
+
+    // extension
+    basic_ostream& operator<< (unsigned _RWSTD_LONG_LONG __val) {
+        return _RW::__rw_insert (*this, __val);
+    }
+
+    // extension
+    basic_ostream& operator<< (_RWSTD_LONG_LONG __val) {
+        return _RW::__rw_insert (*this, __val);
+    }
+
+#endif   // _RWSTD_LONG_LONG
+
+    basic_ostream& operator<< (const void *__val) {
+        return _RW::__rw_insert (*this, __val);
+    }
+
+    // 27.6.2.6 - Unformatted output functions
+
+    // 27.6.2.6, p2
+    basic_ostream& put (char_type __c) {
+        return _RW::__rw_insert (*this, &__c, 1, 0 /* width */);
+    }
+
+    // 27.6.2.6, p5
+    basic_ostream& write (const char_type *__s, streamsize __len) {
+        return _RW::__rw_insert (*this, __s, __len, 0 /* width */);
+    }
+
+    // 27.6.2.6.3, p6
+    basic_ostream&
+    operator<< (basic_streambuf<char_type, traits_type>*);
+
+    // 27.6.2.6, p7
+    basic_ostream& flush ();
+
+    // 27.6.2.4 - Seek members
+
+    // 27.6.2.4, p1
+    pos_type tellp ();
+
+    // 27.6.2.4, p2
+    basic_ostream& seekp (pos_type);
+
+    // 27.6.2.4, p4
+    basic_ostream& seekp (off_type, ios_base::seekdir);
+
+    // synchronize *this with stdio (stdout and stderr)?
+    bool _C_is_sync () const {
+        return    this->_C_sync_with_stdio
+               && this->flags () & _RWSTD_IOS_SYNC_STDIO;
+    }
+    
+    // pad output with fill chars, return number of chars written
+    streamsize _C_pad (streamsize);
+};
+
+
+#if defined (_MSC_VER) && _MSC_VER < 1310
+#  if _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _CHAR)
+
+// explicit instantiation followed by explicit specialization is illegal
+// according to 14.6.4.1, p7 but MSVC allows it (linker errors otherwise)
+
+_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+                      basic_ostream<char, char_traits<char> >);
+
+#  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _CHAR)
+
+#  if _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)
+
+_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+                      basic_ostream<wchar_t, char_traits<wchar_t> >);
+
+#  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)
+#endif   // defined (_MSC_VER) && _MSC_VER < 1310
+
+
+template<class _CharT, class _Traits>
+inline basic_ostream<_CharT, _Traits>&
+basic_ostream<_CharT, _Traits>::operator<< (short __val)
+{
+    const int __bf = this->flags () & this->basefield;
+
+    // make sure negative values format properly in non-decimal bases
+    // i.e., -1 must format as hex "ffff" when (sizeof (short) == 2),
+    // and not, for example, "ffffffff" in ILP32 (see lwg issue 117)
+    const long __lval = !__bf || this->dec == __bf ?
+        long (__val) : long (_RWSTD_STATIC_CAST (unsigned short, __val));
+
+    return _RW::__rw_insert (*this, __lval);
+}
+
+
+template<class _CharT, class _Traits>
+inline basic_ostream<_CharT, _Traits>&
+basic_ostream<_CharT, _Traits>::operator<< (int __val)
+{
+    const int __bf = this->flags () & this->basefield;
+
+    // make sure negative values format properly in non-decimal bases
+    // i.e., -1 must format as hex "ffffffff" when (sizeof (int) == 4),
+    // and not, for example "ffffffffffffffff" in LP64 (lwg issue 117)
+    const long __lval = !__bf || this->dec == __bf ?
+        long (__val) : long (_RWSTD_STATIC_CAST (unsigned int, __val));
+
+    return _RW::__rw_insert (*this, __lval);
+}
+
+
+template<class _CharT, class _Traits>
+inline basic_ostream<_CharT, _Traits>&
+basic_ostream<_CharT, _Traits>::_C_opfx ()
+{
+    basic_ostream* const __tie = this->tie ();
+
+    // flush tied stream only if its buffer is distinct from that
+    // of *this for greater efficiency and to to prevent a deadlock 
+    if (__tie && this->good () && __tie->rdbuf () != this->rdbuf ())
+        __tie->flush ();
+
+    if (_C_is_sync ())
+        _RW::__rw_fflush (_RWSTD_STATIC_CAST (ios_base*, this), 0);
+
+    return *this;
+}
+
+
+template<class _CharT, class _Traits>
+inline streamsize
+basic_ostream<_CharT, _Traits>::_C_pad (streamsize __len)
+{
+    const int_type  __eof  = traits_type::eof ();
+    const char_type __fill = this->fill ();
+
+    basic_streambuf<char_type, traits_type>* const __rdbuf = this->rdbuf ();
+
+    // note that `len' can be negative
+    for (streamsize __i = 0; __i < __len; ++__i) {
+        if (traits_type::eq_int_type (__rdbuf->sputc (__fill), __eof))
+            return __i;
+    }
+
+    return __len;
+}
+
+}   // namespace std
+
+
+#if _RWSTD_DEFINE_TEMPLATE_FIRST (_BASIC_OSTREAM)
+#  include <ostream.cc>
+#endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (_BASIC_OSTREAM)
+
+
+_RWSTD_NAMESPACE (std) {
+
+
+// 27.6.2.5.4 - Character inserter template functions
+
+template<class _CharT, class _Traits>
+inline basic_ostream<_CharT, _Traits>&
+operator<< (basic_ostream<_CharT, _Traits> &__strm, _CharT __c)
+{
+    _RW::__rw_insert (__strm, &__c, 1, __strm.width ()).width (0);
+    return __strm;
+}
+
+
+#ifndef _RWSTD_NO_OVERLOAD_OF_TEMPLATE_FUNCTION
+
+template<class _CharT, class _Traits>
+inline basic_ostream<_CharT, _Traits>&
+operator<< (basic_ostream<_CharT, _Traits> &__strm, char __c)
+{
+    _RW::__rw_insert (__strm, &__c, 1, __strm.width ()).width (0);
+    return __strm;
+}
+
+
+#  ifndef _RWSTD_NO_FUNC_PARTIAL_SPEC
+
+template <class _Traits>
+inline basic_ostream<char, _Traits>&
+operator<< (basic_ostream<char, _Traits> &__strm, char __c)
+{
+    _RW::__rw_insert (__strm, &__c, 1, __strm.width ()).width (0);
+    return __strm;
+}
+
+#  else   // if defined (_RWSTD_NO_FUNC_PARTIAL_SPEC)
+
+inline basic_ostream<char, char_traits<char> >&
+operator<< (basic_ostream<char, char_traits<char> > &__strm, char __c)
+{
+    _RW::__rw_insert (__strm, &__c, 1, __strm.width ()).width (0);
+    return __strm;
+}
+
+#  endif   // _RWSTD_NO_FUNC_PARTIAL_SPEC
+
+#endif   // _RWSTD_NO_OVERLOAD_OF_TEMPLATE_FUNCTION
+
+
+template<class _CharT, class _Traits>
+inline basic_ostream<_CharT, _Traits>&
+operator<< (basic_ostream<_CharT, _Traits> &__strm, const _CharT *__s)
+{
+    _RW::__rw_insert (__strm, __s, _Traits::length (__s),
+                      __strm.width ()).width (0);
+    return __strm;
+}
+
+
+#ifndef _RWSTD_NO_OVERLOAD_OF_TEMPLATE_FUNCTION
+
+template<class _CharT, class _Traits>
+inline basic_ostream<_CharT, _Traits>&
+operator<< (basic_ostream<_CharT, _Traits> &__strm, const char *__s)
+{
+    _RW::__rw_insert (__strm, __s, char_traits<char>::length (__s),
+                      __strm.width ()).width (0);
+    return __strm;
+}
+
+
+#  ifndef _RWSTD_NO_FUNC_PARTIAL_SPEC
+
+template <class _Traits>
+inline basic_ostream<char, _Traits>&
+operator<< (basic_ostream<char, _Traits> &__strm, const char *__s)
+{
+    _RW::__rw_insert (__strm, __s, char_traits<char>::length (__s),
+                      __strm.width ()).width (0);
+    return __strm;
+}
+
+#  else   // if defined (_RWSTD_NO_FUNC_PARTIAL_SPEC)
+
+inline basic_ostream<char, char_traits<char> >&
+operator<< (basic_ostream<char, char_traits<char> >& __strm, const char *__s)
+{
+    _RW::__rw_insert (__strm, __s, streamsize (char_traits<char>::length (__s)),
+                      __strm.width ()).width (0);
+    return __strm;
+}
+
+#  endif   // _RWSTD_NO_FUNC_PARTIAL_SPEC
+#endif   // _RWSTD_NO_OVERLOAD_OF_TEMPLATE_FUNCTION
+
+
+template <class _Traits>
+inline basic_ostream<char, _Traits>&
+operator<< (basic_ostream<char, _Traits> &__strm, unsigned char __c)
+{
+    return __strm << _RWSTD_STATIC_CAST (char, __c);
+}
+
+
+template <class _Traits>
+inline basic_ostream<char, _Traits>&
+operator<< (basic_ostream<char, _Traits> &__strm, signed char __c)
+{
+    return __strm << _RWSTD_STATIC_CAST (char, __c);
+}
+
+
+template <class _Traits>
+inline basic_ostream<char, _Traits>&
+operator<< (basic_ostream<char, _Traits> &__strm, const unsigned char *__s)
+{
+    return __strm << _RWSTD_REINTERPRET_CAST (const char*, __s);
+}
+
+
+template <class _Traits>
+inline basic_ostream<char, _Traits>&
+operator<< (basic_ostream<char, _Traits>& __strm, const signed char *__s)
+{
+    return __strm << _RWSTD_REINTERPRET_CAST (const char*, __s);
+}
+
+
+// 27.6.2.7, p1
+template<class _CharT, class _Traits>
+inline basic_ostream<_CharT, _Traits>&
+endl (basic_ostream<_CharT, _Traits>& __strm)
+{
+    return __strm.put (__strm.widen ('\n')).flush ();
+}
+
+
+// 27.6.2.7, p3
+template<class _CharT, class _Traits>
+inline basic_ostream<_CharT, _Traits>&
+ends (basic_ostream<_CharT, _Traits>& __strm)
+{
+    return __strm.put (_CharT ());
+}
+
+
+// 27.6.2.7, p5
+template<class _CharT, class _Traits>
+inline basic_ostream<_CharT, _Traits>&
+flush (basic_ostream<_CharT, _Traits>& __strm)
+{
+    return __strm.flush ();
+}
+ 
+
+// 21.3.7.9, p3 - defined here, declared inline in <string>
+template<class _CharT, class _Traits, class _Allocator>
+inline basic_ostream<_CharT, _Traits>&
+operator<< (basic_ostream<_CharT, _Traits>                  & __strm,
+            const basic_string<_CharT, _Traits, _Allocator> &__str)
+{
+    _RW::__rw_insert (__strm, __str.data (), __str.length (),
+                      __strm.width ()).width (0);
+    return __strm;
+}
+
+
+#if defined (_MSC_VER) && _MSC_VER < 1310
+
+// working around an MSVC bug that causes it to pick the member
+// operator<<(const void*) over the above if overloaded in user code
+
+_RWSTD_SPECIALIZED_FUNCTION
+inline ostream& endl (ostream& __strm)
+{
+    return __strm.put (__strm.widen ('\n')).flush ();
+}
+
+
+_RWSTD_SPECIALIZED_FUNCTION
+inline ostream& ends (ostream& __strm)
+{
+    return __strm.put (char ());
+}
+
+
+_RWSTD_SPECIALIZED_FUNCTION
+inline ostream& flush (ostream& __strm)
+{
+    return __strm.flush ();
+}
+
+
+#  ifndef _RWSTD_NO_WCHAR_T
+
+_RWSTD_SPECIALIZED_FUNCTION
+inline wostream& endl (wostream& __strm)
+{
+    return __strm.put (__strm.widen ('\n')).flush ();
+}
+
+
+_RWSTD_SPECIALIZED_FUNCTION
+inline wostream& ends (wostream& __strm)
+{
+    return __strm.put (char ());
+}
+
+
+_RWSTD_SPECIALIZED_FUNCTION
+inline wostream& flush (wostream& __strm)
+{
+    return __strm.flush ();
+}
+
+#  endif   // _RWSTD_NO_WCHAR_T
+
+#else   // if !defined (_MSC_VER) || _MSC_VER >= 1310
+
+// working around an MSVC bug (both 6.0 and 7.0) that may cause:
+// - warning C4660: template-class specialization is already instantiated
+// - many linker errors for (inline or otherwise) members of basic_ostream
+
+#  if _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _CHAR)
+
+_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+                      basic_ostream<char, char_traits<char> >);
+
+#  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _CHAR)
+
+#  if _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)
+
+_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+                      basic_ostream<wchar_t, char_traits<wchar_t> >);
+
+#  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)
+#endif   // !_MSC_VER || _MSC_VER >= 1310
+
+}   // namespace std
+
+
+#if _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_OSTREAM)
+#  include <ostream.cc>
+#endif   // _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_OSTREAM)
+
+
+#endif   // _RWSTD_OSTREAM_INCLUDED

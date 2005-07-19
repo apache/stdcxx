@@ -1,0 +1,232 @@
+<HTML>
+<HEAD>
+<TITLE>Algorithms</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="algorithm-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="allocator.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>Algorithms</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P><UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Algorithms by Mutating/Non-mutating Function</A></LI>
+<LI><A HREF="#sec6">Algorithms by Operation</A></LI>
+<LI><A HREF="#sec7">Algorithms by Category</A></LI>
+<LI><A HREF="#sec8">Complexity</A></LI>
+<LI><A HREF="#sec9">See Also</A></LI>
+<LI><A HREF="#sec10">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Generic algorithms for performing various operations on containers and sequences</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  // synopsis of the entry
+}
+</PRE>
+<P>The synopsis of each algorithm appears in its entry in this <I>Reference Guide.</I></P>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The Standard C++ Library allows you to apply generic algorithms to containers, and it supplies a set of these algorithms for searching, sorting, merging, transforming, scanning, and more. </P>
+<P>Each algorithm can be applied to a variety of containers, including those defined by a user of the library. The following design features make algorithms generic:</P>
+<UL>
+<LI><P CLASS="LIST">Generic algorithms access the collection through iterators</P></LI>
+<LI><P CLASS="LIST">Algorithms are templatized on iterator types</P></LI>
+<LI><P CLASS="LIST">Each algorithm is designed to require the least number of services from the iterators it uses</P></LI>
+</UL>
+<P>In addition to requiring certain iterator capabilities, algorithms may require a container to be in a specific state. For example, some algorithms can only work on previously sorted containers.</P>
+<P>Because most algorithms rely on iterators to gain access to data, they can be grouped according to the type of iterator they require, as is done in the <I>Algorithms by Iterator</I> section below. They can also be grouped according to the type of operation they perform.</P>
+<A NAME="sec5"><H3>Algorithms by Mutating/Non-mutating Function</H3></A>
+<P>The broadest categorization groups algorithms into two main types: mutating and non-mutating. Algorithms that mutate (alter) the contents of a container fall into the mutating group. All others are considered nonmutating. For example, both <SAMP><A HREF="fill.html">fill()</A></SAMP> and <SAMP><A HREF="sort.html">sort()</A></SAMP> are mutating algorithms, while <SAMP><A HREF="find.html">find()</A></SAMP> and <SAMP><A HREF="for-each.html">for_each()</A></SAMP> are nonmutating.</P>
+<P>Nonmutating operations</P>
+
+<UL><PRE><SAMP><A HREF="accumulate.html">accumulate()</A></SAMP>       <SAMP><A HREF="find-end.html">find_end()</A></SAMP>                 <SAMP><A HREF="max-element.html">max_element()</A></SAMP>
+<SAMP><A HREF="adjacent-find.html">adjacent_find()</A></SAMP>    <SAMP><A HREF="find-first-of.html">find_first_of()</A></SAMP>            <SAMP><A HREF="min.html">min()</A></SAMP>
+<SAMP><A HREF="binary-search.html">binary_search()</A></SAMP>    <SAMP><A HREF="find-if.html">find_if()</A></SAMP>                  <SAMP><A HREF="min-element.html">min_element()</A></SAMP>
+<SAMP><A HREF="count.html">count()</A></SAMP>            <SAMP><A HREF="for-each.html">for_each()</A></SAMP>                 <SAMP><A HREF="mismatch.html">mismatch()</A></SAMP> 
+<SAMP><A HREF="count.html">count_if()</A></SAMP>         <SAMP><A HREF="includes.html">includes()</A></SAMP>                 <SAMP><A HREF="search.html">search()</A></SAMP>
+<SAMP><A HREF="equal.html">equal()</A></SAMP>            <SAMP><A HREF="lexicographical-compare.html">lexicographical_compare()</A></SAMP>  <SAMP><A HREF="search.html">search_n()</A></SAMP>
+<SAMP><A HREF="equal-range.html">equal_range()</A></SAMP>      <SAMP><A HREF="lower-bound.html">lower_bound()</A></SAMP>              <SAMP><A HREF="upper-bound.html">upper_bound()</A></SAMP>
+<SAMP><A HREF="find.html">find()</A></SAMP>             <SAMP><A HREF="max.html">max()</A></SAMP>                      
+</PRE></UL>
+<P>Mutating operations</P>
+
+<UL><PRE><SAMP><A HREF="copy.html">copy()</A></SAMP>                   <SAMP><A HREF="remove-if.html">remove_if()</A></SAMP>
+<SAMP><A HREF="copy.html">copy_backward()</A></SAMP>          <SAMP><A HREF="replace.html">replace()</A></SAMP>
+<SAMP><A HREF="fill.html">fill()</A></SAMP>                   <SAMP><A HREF="replace-copy.html">replace_copy()</A></SAMP>
+<SAMP><A HREF="fill.html">fill_n()</A></SAMP>                 <SAMP><A HREF="replace-copy-if.html">replace_copy_if()</A></SAMP>
+<SAMP><A HREF="generate.html">generate()</A></SAMP>               <SAMP><A HREF="replace-if.html">replace_if()</A></SAMP>
+<SAMP><A HREF="generate.html">generate_n()</A></SAMP>             <SAMP><A HREF="reverse.html">reverse()</A></SAMP>
+<SAMP><A HREF="inplace-merge.html">inplace_merge()</A></SAMP>          <SAMP><A HREF="reverse-copy.html">reverse_copy()</A></SAMP>
+<SAMP><A HREF="iter-swap.html">iter_swap()</A></SAMP>              <SAMP><A HREF="rotate.html">rotate()</A></SAMP>
+<SAMP><A HREF="make-heap.html">make_heap()</A></SAMP>              <SAMP><A HREF="rotate.html">rotate_copy()</A></SAMP>
+<SAMP><A HREF="merge.html">merge()</A></SAMP>                  <SAMP><A HREF="set-difference.html">set_difference()</A></SAMP>
+<SAMP><A HREF="nth-element.html">nth_element()</A></SAMP>            <SAMP><A HREF="set-symmetric-difference.html">set_symmetric_difference()</A></SAMP>
+<SAMP><A HREF="next-permutation.html">next_permutation()</A></SAMP>       <SAMP><A HREF="set-intersection.html">set_intersection()</A></SAMP>
+<SAMP><A HREF="partial-sort.html">partial_sort()</A></SAMP>           <SAMP><A HREF="set-union.html">set_union()</A></SAMP>
+<SAMP><A HREF="partial-sort-copy.html">partial_sort_copy()</A></SAMP>      <SAMP><A HREF="sort.html">sort()</A></SAMP>
+<SAMP><A HREF="partition.html">partition()</A></SAMP>              <SAMP><A HREF="sort-heap.html">sort_heap()</A></SAMP>
+<SAMP><A HREF="prev-permutation.html">prev_permutation()</A></SAMP>       <SAMP><A HREF="stable-partition.html">stable_partition()</A></SAMP>
+<SAMP><A HREF="push-heap.html">push_heap()</A></SAMP>              <SAMP><A HREF="stable-sort.html">stable_sort()</A></SAMP>
+<SAMP><A HREF="pop-heap.html">pop_heap()</A></SAMP>               <SAMP><A HREF="swap.html">swap()</A></SAMP>
+<SAMP><A HREF="random-shuffle.html">random_shuffle()</A></SAMP>         <SAMP><A HREF="swap-ranges.html">swap_ranges()</A></SAMP>
+<SAMP><A HREF="remove.html">remove()</A></SAMP>                 <SAMP><A HREF="transform.html">transform()</A></SAMP>
+<SAMP><A HREF="remove-copy.html">remove_copy()</A></SAMP>            <SAMP><A HREF="unique.html">unique()</A></SAMP>
+<SAMP><A HREF="remove-copy-if.html">remove_copy_if()</A></SAMP>         <SAMP><A HREF="unique.html">unique_copy()</A></SAMP>
+</PRE></UL>
+<P>Note that the library has place and copy versions of many algorithms, such as <SAMP><A HREF="replace.html">replace()</A></SAMP> and <SAMP><A HREF="replace-copy.html">replace_copy()</A></SAMP>. The library also has versions of algorithms that allow the use of default comparators and comparators supplied by the user. Often these functions are overloaded, but in cases where overloading proved impractical or impossible, the names differ. For example, <SAMP>replace()</SAMP> uses equality to determine replacement, and <SAMP><A HREF="replace-if.html">replace_if()</A></SAMP>accesses a user-provided compare function.</P>
+<A NAME="sec6"><H3>Algorithms by Operation</H3></A>
+<P>We can further distinguish algorithms by the kind of operations they perform. The following lists categorize algorithms by their operations.</P>
+<P>Assigning operations</P>
+
+<UL><PRE><SAMP><A HREF="fill.html">fill()</A></SAMP>                          <SAMP><A HREF="generate.html">generate()</A></SAMP>
+<SAMP><A HREF="fill.html">fill_n()</A></SAMP>                        <SAMP><A HREF="generate.html">generate_n()</A></SAMP>
+</PRE></UL>
+<P>Search operations</P>
+
+<UL><PRE><SAMP><A HREF="adjacent-find.html">adjacent_find()</A></SAMP>                 <SAMP><A HREF="find-end.html">find_end()</A></SAMP>
+<SAMP><A HREF="count.html">count()</A></SAMP>                         <SAMP><A HREF="find-if.html">find_if()</A></SAMP>
+<SAMP><A HREF="count.html">count_if()</A></SAMP>                      <SAMP><A HREF="find-first-of.html">find_first_of()</A></SAMP>
+<SAMP><A HREF="find.html">find()</A></SAMP>                          <SAMP><A HREF="search.html">search()</A></SAMP>
+                                <SAMP><A HREF="search.html">search_n()</A></SAMP>
+</PRE></UL>
+<P>Binary search operations (elements must be sorted)</P>
+
+<UL><PRE><SAMP><A HREF="binary-search.html">binary_search()</A></SAMP>                 <SAMP><A HREF="lower-bound.html">lower_bound()</A></SAMP>
+<SAMP><A HREF="equal-range.html">equal_range()</A></SAMP>                   <SAMP><A HREF="upper-bound.html">upper_bound()</A></SAMP>
+</PRE></UL>
+<P>Compare operations</P>
+
+<UL><PRE><SAMP><A HREF="equal.html">equal()</A></SAMP>                         <SAMP><A HREF="mismatch.html">mismatch()</A></SAMP>
+<SAMP><A HREF="lexicographical-compare.html">lexicographical_compare()</A></SAMP>
+</PRE></UL>
+<P>Copy operations</P>
+
+<UL><PRE><SAMP><A HREF="copy.html">copy()</A></SAMP>                          <SAMP><A HREF="copy.html">copy_backward()</A></SAMP> 
+</PRE></UL>
+<P>Transforming operations</P>
+
+<UL><PRE><SAMP><A HREF="partition.html">partition()</A></SAMP>                     <SAMP><A HREF="reverse.html">reverse()</A></SAMP>
+<SAMP><A HREF="random-shuffle.html">random_shuffle()</A></SAMP>                <SAMP><A HREF="reverse-copy.html">reverse_copy()</A></SAMP>
+<SAMP><A HREF="replace.html">replace()</A></SAMP>                       <SAMP><A HREF="rotate.html">rotate()</A></SAMP>
+<SAMP><A HREF="replace-copy.html">replace_copy()</A></SAMP>                  <SAMP><A HREF="rotate.html">rotate_copy()</A></SAMP>
+<SAMP><A HREF="replace-copy-if.html">replace_copy_if()</A></SAMP>               <SAMP><A HREF="stable-partition.html">stable_partition()</A></SAMP>
+<SAMP><A HREF="replace-if.html">replace_if()</A></SAMP>                    <SAMP><A HREF="transform.html">transform()</A></SAMP>
+</PRE></UL>
+<P>Swap operations</P>
+
+<UL><PRE><SAMP><A HREF="swap.html">swap()</A></SAMP>                          <SAMP><A HREF="swap-ranges.html">swap_ranges()</A></SAMP>
+</PRE></UL>
+<P>Scanning operations</P>
+
+<UL><PRE><SAMP><A HREF="accumulate.html">accumulate()</A></SAMP>                    <SAMP><A HREF="for-each.html">for_each()</A></SAMP>
+</PRE></UL>
+<P>Remove operations</P>
+
+<UL><PRE><SAMP><A HREF="remove.html">remove()</A></SAMP>                        <SAMP><A HREF="remove-if.html">remove_if()</A></SAMP>
+<SAMP><A HREF="remove-copy.html">remove_copy()</A></SAMP>                   <SAMP><A HREF="unique.html">unique()</A></SAMP>
+<SAMP><A HREF="remove-copy-if.html">remove_copy_if()</A></SAMP>                <SAMP><A HREF="unique.html">unique_copy()</A></SAMP>
+</PRE></UL>
+<P>Sorting operations</P>
+
+<UL><PRE><SAMP><A HREF="nth-element.html">nth_element()</A></SAMP>                   <SAMP><A HREF="sort.html">sort()</A></SAMP>
+<SAMP><A HREF="partial-sort.html">partial_sort()</A></SAMP>                  <SAMP><A HREF="stable-sort.html">stable_sort()</A></SAMP>
+<SAMP><A HREF="partial-sort-copy.html">partial_sort_copy()</A></SAMP>
+</PRE></UL>
+<P>Merge operations (Elements must be sorted)</P>
+
+<UL><PRE><SAMP><A HREF="inplace-merge.html">inplace_merge()</A></SAMP>                 <SAMP><A HREF="merge.html">merge()</A></SAMP>
+</PRE></UL>
+<P>Set operations (Elements must be sorted)</P>
+
+<UL><PRE><SAMP><A HREF="includes.html">includes()</A></SAMP>                      <SAMP><A HREF="set-symmetric-difference.html">set_symmetric_difference()</A></SAMP>
+<SAMP><A HREF="set-difference.html">set_difference()</A></SAMP>                <SAMP><A HREF="set-union.html">set_union()</A></SAMP>
+<SAMP><A HREF="set-intersection.html">set_intersection()</A></SAMP>
+</PRE></UL>
+<P>Heap operations</P>
+
+<UL><PRE><SAMP><A HREF="make-heap.html">make_heap()</A></SAMP>                     <SAMP><A HREF="push-heap.html">push_heap()</A></SAMP>
+<SAMP><A HREF="pop-heap.html">pop_heap()</A></SAMP>                      <SAMP><A HREF="sort-heap.html">sort_heap()</A></SAMP>
+</PRE></UL>
+<P>Minimum and maximum</P>
+
+<UL><PRE><SAMP><A HREF="max.html">max()</A></SAMP>                            <SAMP><A HREF="min.html">min()</A></SAMP>
+<SAMP><A HREF="max-element.html">max_element()</A></SAMP>                    <SAMP><A HREF="min-element.html">min_element()</A></SAMP>
+</PRE></UL>
+<P>Permutation generators</P>
+<P><SAMP><A HREF="next-permutation.html">next_permutation()</A></SAMP>               <SAMP><A HREF="prev-permutation.html">prev_permutation()</A></SAMP></P>
+<A NAME="sec7"><H3>Algorithms by Category</H3></A>
+<P>Each algorithm requires certain kinds of iterators. For a description of the iterators and their capabilities, see the <A HREF="iterators.html">Iterators</A> entry in this manual. The following lists organize algorithms according to the types of iterators they require.</P>
+<P>Algorithms that use no iterators:</P>
+
+<UL><PRE><SAMP><A HREF="max.html">max()</A></SAMP>                  <SAMP><A HREF="min.html">min()</A></SAMP>                 <SAMP><A HREF="swap.html">swap()</A></SAMP>
+</PRE></UL>
+<P>Algorithms that require only input iterators:</P>
+
+<UL><PRE><SAMP><A HREF="accumulate.html">accumulate()</A></SAMP>           <SAMP><A HREF="find.html">find()</A></SAMP>
+<SAMP><A HREF="count.html">count()</A></SAMP>                <SAMP><A HREF="find-if.html">find_if()</A></SAMP>
+<SAMP><A HREF="count.html">count_if()</A></SAMP>             <SAMP><A HREF="includes.html">includes()</A></SAMP>
+<SAMP><A HREF="equal.html">equal()</A></SAMP>                <SAMP><A HREF="lexicographical-compare.html">lexicographical_compare()</A></SAMP>
+<SAMP><A HREF="for-each.html">for_each()</A></SAMP>             <SAMP><A HREF="mismatch.html">mismatch()</A></SAMP>
+</PRE></UL>
+<P>Algorithms that require only output iterators:</P>
+
+<UL><PRE><SAMP><A HREF="fill.html">fill_n()</A></SAMP>               <SAMP><A HREF="generate.html">generate_n()</A></SAMP>
+</PRE></UL>
+<P>Algorithms that read from input iterators and write to output iterators:</P>
+
+<UL><PRE><SAMP><A HREF="adjacent-difference.html">adjacent_difference()</A></SAMP> <SAMP><A HREF="replace-copy.html">replace_copy()</A></SAMP>           <SAMP><A HREF="set-union.html">set_union()</A></SAMP>
+<SAMP><A HREF="copy.html">copy()</A></SAMP>                <SAMP><A HREF="replace-copy-if.html">replace_copy_if()</A></SAMP>        <SAMP><A HREF="transform.html">transform()</A></SAMP>
+<SAMP><A HREF="merge.html">merge()</A></SAMP>               <SAMP>set_difference()         unique_copy()</SAMP>
+<SAMP><A HREF="remove-copy.html">remove_copy()</A></SAMP>         <SAMP><A HREF="set-intersection.html">set_intersection()</A></SAMP>
+<SAMP><A HREF="remove-copy-if.html">remove_copy_if()</A></SAMP>      <SAMP><A HREF="set-symmetric-difference.html">set_symmetric_difference()</A></SAMP>
+</PRE></UL>
+<P>Algorithms that require forward iterators:</P>
+
+<UL><PRE><SAMP><A HREF="adjacent-find.html">adjacent_find()</A></SAMP>       <SAMP><A HREF="iter-swap.html">iter_swap()</A></SAMP>             <SAMP><A HREF="replace-if.html">replace_if()</A></SAMP>
+<SAMP><A HREF="binary-search.html">binary_search()</A></SAMP>       <SAMP><A HREF="lower-bound.html">lower_bound()</A></SAMP>           <SAMP><A HREF="rotate.html">rotate()</A></SAMP>
+<SAMP><A HREF="equal-range.html">equal_range()</A></SAMP>         <SAMP><A HREF="max-element.html">max_element()</A></SAMP>           <SAMP><A HREF="search.html">search()</A></SAMP>
+<SAMP><A HREF="fill.html">fill()</A></SAMP>                <SAMP><A HREF="min-element.html">min_element()</A></SAMP>           <SAMP><A HREF="search.html">search_n()</A></SAMP>
+<SAMP><A HREF="find-end.html">find_end()</A></SAMP>            <SAMP><A HREF="remove.html">remove()</A></SAMP>                <SAMP><A HREF="swap-ranges.html">swap_ranges()</A></SAMP>
+<SAMP><A HREF="find-first-of.html">find_first_of()</A></SAMP>       <SAMP><A HREF="remove-if.html">remove_if()</A></SAMP>             <SAMP><A HREF="unique.html">unique()</A></SAMP>
+<SAMP><A HREF="generate.html">generate()</A></SAMP>            <SAMP><A HREF="replace.html">replace()</A></SAMP>               <SAMP><A HREF="upper-bound.html">upper_bound()</A></SAMP>
+</PRE></UL>
+<P>Algorithms that read from forward iterators and write to output iterators:</P>
+
+<UL><PRE><SAMP><A HREF="rotate.html">rotate_copy()</A></SAMP>
+</PRE></UL>
+<P>Algorithms that require bidirectional iterators</P>
+
+<UL><PRE><SAMP><A HREF="copy.html">copy_backward()</A></SAMP>      <SAMP><A HREF="partition.html">partition()</A></SAMP>
+<SAMP><A HREF="inplace-merge.html">inplace_merge()</A></SAMP>      <SAMP><A HREF="prev-permutation.html">prev_permutation()</A></SAMP>
+<SAMP><A HREF="next-permutation.html">next_permutation()</A></SAMP>   <SAMP><A HREF="reverse.html">reverse()</A></SAMP>
+</PRE></UL>
+<P>Algorithms that read from bidirectional iterators and write to output iterators:</P>
+
+<UL><PRE><SAMP><A HREF="reverse-copy.html">reverse_copy()</A></SAMP>
+</PRE></UL>
+<P>Algorithms that require random access iterators:</P>
+
+<UL><PRE><SAMP><A HREF="make-heap.html">make_heap()</A></SAMP>          <SAMP><A HREF="pop-heap.html">pop_heap()</A></SAMP>            <SAMP><A HREF="sort.html">sort()</A></SAMP>
+<SAMP><A HREF="nth-element.html">nth_element()</A></SAMP>        <SAMP><A HREF="push-heap.html">push_heap()</A></SAMP>           <SAMP><A HREF="sort-heap.html">sort_heap()</A></SAMP>
+<SAMP><A HREF="partial-sort.html">partial_sort()</A></SAMP>       <SAMP><A HREF="random-shuffle.html">random_shuffle()</A></SAMP>      <SAMP><A HREF="stable-sort.html">stable_sort()</A></SAMP>
+</PRE></UL>
+<P>Algorithms that read from input iterators and write to random access iterators:</P>
+
+<UL><PRE><SAMP><A HREF="partial-sort-copy.html">partial_sort_copy()</A></SAMP>
+</PRE></UL>
+<A NAME="sec8"><H3>Complexity</H3></A>
+<P>The complexity for each of these algorithms is given in the manual page for that algorithm.</P>
+<A NAME="sec9"><H3>See Also</H3></A>
+<P>Manual pages for each of the algorithms named in the lists above.</P>
+<A NAME="sec10"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25</I></P>
+
+<BR>
+<HR>
+<A HREF="algorithm-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="allocator.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

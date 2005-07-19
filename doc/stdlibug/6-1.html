@@ -1,0 +1,24 @@
+<HTML>
+<HEAD>
+<TITLE>The list Data Abstraction</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="6.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="6-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>6.1 The list Data Abstraction</H2>
+<A NAME="idx100"><!></A>
+<P>The <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> data structure is a container of relatively fixed size. While the Standard C++ Library provides facilities for dynamically changing the size of a vector, such operations are costly and should be used only rarely. Yet in many problems, the size of a collection may be difficult to predict in advance, or may vary widely during the course of execution. For cases that suggest an alternative data structure, we examine the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> datatype in this chapter. </P>
+<A NAME="idx101"><!></A>
+<P>A <B><I><A HREF="../stdlibref/list.html">list</A></I></B> corresponds to the intuitive idea of holding elements in a linear sequence that is not necessarily ordered. New values can be added to or removed from either the front or the back of the <B><I>list</I></B>. By using an iterator to denote a position, elements can also be added to or removed from the middle of a <B><I>list</I></B>. In all cases the insertion or removal operations are efficient; they are performed in a constant amount of time that is independent of the number of elements being maintained in the collection. </P>
+<P>A <B><I><A HREF="../stdlibref/list.html">list</A></I></B> is a linear structure. In general, elements of a <B><I>list</I></B> can only be accessed by a linear traversal of all values, not by subscript. </P>
+<A NAME="611"><H3>6.1.1 Include files</H3></A>
+<A NAME="idx102"><!></A>
+<P>Whenever you use a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>, you must include the <SAMP>list</SAMP> header file:</P>
+
+<UL><PRE>
+#include &lt;list&gt;
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="6.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="6-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

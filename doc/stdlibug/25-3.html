@@ -1,0 +1,56 @@
+<HTML>
+<HEAD>
+<TITLE>Accessing a Locale's Facets</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="25-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>25.3 Accessing a Locale's Facets</H2>
+<A NAME="idx571"><!></A>
+<P>A locale object is like a container or a map, to be more precise, but it is indexed by type at compile time. The indexing operator, therefore, is not the subscript operator <SAMP>operator[]()</SAMP>, but rather the template operator <SAMP>&lt;&gt;</SAMP>. Access to the facet objects of a locale object is via two member function templates, <SAMP>use_facet()</SAMP> and <SAMP>has_facet()</SAMP>:</P>
+
+<UL><PRE>
+template&lt;class Facet&gt; const Facet&amp;  use_facet(const locale&amp;);
+template&lt;class Facet&gt; bool          has_facet(const locale&amp;);
+</PRE></UL>
+<A NAME="idx572"><!></A>
+<P>The code below demonstrates how they are used. It is an example of the <SAMP>ctype</SAMP> facet's usage; all upper case letters of a string read from the standard input stream are converted to lower case letters and written to the standard output stream.</P>
+
+<UL><PRE>
+std::string in;
+std::cin &gt;&gt; in;
+if (std::has_facet&lt; ctype&lt;char&gt; &gt;(std::locale()))     //1
+{  
+  std::cout &lt;&lt; use_facet&lt;ctype&lt;char&gt; &gt;(std::locale()) //2
+               .tolower(in.begin(),in.end());         //3
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>In the call to <SAMP>has_facet&lt;...&gt;()</SAMP>, the template argument chooses a base facet class. If no facet of this type is present in a locale object, <SAMP>has_facet</SAMP> returns <SAMP>false</SAMP>. 
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The function template <SAMP>use_facet&lt;...&gt;()</SAMP> returns a reference to the locale's facet object of the specified base facet type. As locale objects are immutable, the reference stays valid throughout the lifetime of the locale object. If no facet of the specified type is present in the locale, <SAMP>use_facet</SAMP> throws a <SAMP>runtime_error</SAMP> exception.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>The facet object's member function <SAMP>tolower()</SAMP> is called. It has the functionality of the C function <SAMP>tolower()</SAMP>; it converts all upper case letters in the string into lower case letters.
+</TABLE>
+<P>In this example, the call to <SAMP>has_facet</SAMP> is actually unnecessary because <SAMP>ctype&lt;char&gt;</SAMP> is a standard facet. Every locale always contains a complete complement of the standard facets, so <SAMP>has_facet&lt;ctype&lt;char&gt; &gt;</SAMP> always returns <SAMP>true</SAMP>. However, a call to <SAMP>has_facet()</SAMP> can be useful when you are dealing with nonstandard facets, such as the <SAMP>mythical</SAMP> facet described earlier in this chapter, which may not be present in every locale.</P>
+<A NAME="idx573"><!></A>
+<P>When you are coding <SAMP>use_facet</SAMP> and <SAMP>has_facet</SAMP> calls, it is important that the facet type you specify as the template parameter is a base facet type, and not a derived facet type. The following is an error:</P>
+
+<UL><PRE>
+locale loc;
+const std::numpunct_byname&lt;char&gt;&amp; np =         // Error, use_facet 
+  use_facet&lt;std::numpunct_byname&lt;char&gt; &gt;(loc); // instantiated on 
+                                               // a non-base facet
+                                               // type
+</PRE></UL>
+<P>Depending on the facet type, and on your compiler, this will probably cause a compile-time error. If it does not, it may result in unpredictable runtime behavior. The <SAMP>use_facet</SAMP> call returns the facet that occupies the slot for the type <SAMP>std::numpunct_byname&lt;char&gt;</SAMP>. But in fact, as described earlier, this is the same as the slot for the base facet type, <SAMP>std::numpunct&lt;char&gt;</SAMP>. So the above code may cause <SAMP>np</SAMP> to be initialized to a reference to an object that is not, in fact, of type <SAMP>std::numpunct_byname&lt;char&gt;</SAMP>.</P>
+<P>To avoid errors like this, make sure that you only instantiate <SAMP>use_facet</SAMP> and <SAMP>has_facet</SAMP> on base facet types, that is, on facet types that contain a static <SAMP>locale::id</SAMP> member.</P>
+
+<UL><PRE>
+locale loc;
+const numpunct&lt;char&gt;&amp; np =                      // Correct
+      use_facet&lt;numpunct&lt;char&gt; &gt;(loc);
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="25-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

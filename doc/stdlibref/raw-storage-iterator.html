@@ -1,0 +1,118 @@
+<HTML>
+<HEAD>
+<TITLE>raw_storage_iterator</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="range-error.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="remove.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>raw_storage_iterator</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>raw_storage_iterator</I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="iterator.html">iterator</A></I></B> <HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Constructor</A></LI>
+<LI><A HREF="#sec7">Member Operators</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1128">operator*()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1129">operator++()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1127">operator=()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1126">raw_storage_iterator()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Enables iterator-based algorithms to store results in uninitialized memory.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;memory&gt;
+
+namespace std {
+  template &lt;class OutputIterator, class T&gt;
+  class raw_storage_iterator;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>Class <B><I>raw_storage_iterator</I></B> enables iterator-based algorithms to store their results in uninitialized memory. The template parameter <SAMP>OutputIterator</SAMP> is required to have its <SAMP>operator*</SAMP> return an object for which <SAMP>operator&amp; </SAMP>is both defined and returns a pointer to <SAMP>T</SAMP>. </P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class OutputIterator, class T&gt;
+  class raw_storage_iterator 
+    : public iterator &lt;output_iterator_tag,
+                       void,void,void,void&gt; {
+
+    public:
+      typedef OutputIterator iterator_type;
+
+      explicit raw_storage_iterator(OutputIterator);
+      raw_storage_iterator&lt;OutputIterator, T&gt;&amp; 
+      operator*();
+      raw_storage_iterator&lt;OutputIterator, T&gt;&amp; 
+      operator=(const T&amp;);
+      raw_storage_iterator&lt;OutputIterator, T&gt;&amp; 
+      operator++();
+      raw_storage_iterator&lt;OutputIterator, T&gt; 
+      operator++(int);
+   };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Constructor</H3></A>
+
+<A NAME="idx1126"></A><PRE><B>raw_storage_iterator</B> (iterator_type x);</PRE>
+<UL>
+<P>Initializes the iterator to point to the same value as <SAMP>x</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Member Operators</H3></A>
+
+<A NAME="idx1127"></A><PRE>raw_storage_iterator &lt;OutputIterator, T&gt;&amp;
+<B>operator=</B>(const T&amp; element);</PRE>
+<UL>
+<P>Constructs, using a placement <SAMP>operator new,</SAMP> an instance of <SAMP>T</SAMP>, initialized to the value <SAMP>element</SAMP>, at the location pointed to by the iterator.</P>
+</UL>
+
+
+<A NAME="idx1128"></A><PRE>raw_storage_iterator&lt;OutputIterator,T&gt;&amp; 
+<B>operator*</B>();</PRE>
+<UL>
+<P>Returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1129"></A><PRE>raw_storage_iterator&amp; 
+<B>operator++</B>();</PRE>
+<UL>
+<P>Pre-increment: advances the iterator and returns a reference to the updated iterator.</P>
+</UL>
+
+
+<A NAME="idx1130"></A><PRE>raw_storage_iterator
+<B>operator++</B>(int);</PRE>
+<UL>
+<P>Post-increment: advances the iterator and returns the old value of the iterator.</P>
+</UL>
+
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 20.4.2</I></P>
+<UL>
+</UL>
+
+
+<BR>
+<HR>
+<A HREF="range-error.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="remove.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

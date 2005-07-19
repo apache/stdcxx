@@ -1,0 +1,218 @@
+<HTML>
+<HEAD>
+<TITLE>localedef utility</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="localeutility.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="logic-error.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>localedef utility</H2><PRE><HR><B><I>Utility Program</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Options</A></LI>
+<LI><A HREF="#sec6">Operands</A></LI>
+<LI><A HREF="#sec7">Environment Variables</A></LI>
+<LI><A HREF="#sec8">Input</A></LI>
+<LI><A HREF="#sec9">Output</A></LI>
+<LI><A HREF="#sec10">Exit Status</A></LI>
+<LI><A HREF="#sec11">Examples</A></LI>
+<LI><A HREF="#sec12">See Also</A></LI>
+<LI><A HREF="#sec13">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx835">RWSTD_SRC_ROOT</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A utility program to define a localization environment. </P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>localedef [-c][-f <I>charmap</I>][-i <I>sourcefile</I>][-u <I>code_set_name</I>]         <I>name</I>
+</PRE>
+<P>Rogue Wave Extensions:</P>
+
+<PRE>
+localedef [-w][-w<I>N</I>][-f <I>charmap</I>][-i <I>sourcefile</I>][--help][--ucs]         <I>name</I>
+localedef -g [-m <I>locale_list</I>][-r <I>charmap_dir</I>][-s <I>source_dir</I>]         [-d <I>output_dir</I>]
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>localedef</SAMP> utility reads one or more locale definition files and character set description files and translates them into binary files suitable for interpretation by the Rogue Wave implementation of the C++ Standard library. The binary files produced by <SAMP>localedef</SAMP> are referred to in this document as <I>locale databases</I>. In particular, the localization library makes use of this information to implement its behavior. The behavior of the utility is affected by the environment variable <SAMP>${RWSTD_SRC_ROOT}</SAMP>.</P>
+<A NAME="sec5"><H3>Options</H3></A>
+<P><A HREF="localedefutility.html#Table&nbsp;25">Table&nbsp;25</A> illustrates options that conform to the requirements of the IEEE Std 1003.1-2001 (POSIX) standard. </P>
+<H4><A NAME="Table&nbsp;25">Table&nbsp;25: localedef option requirements of the IEEE Std. 1003.1-2001 (POSIX) standard&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Option</B>
+</td>
+<td valign=top><B>Meaning</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-c</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Create output regardless of warnings.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-f </SAMP><SAMP><I>charmap</I></SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Use <SAMP><I>charmap</I></SAMP> as the pathname of the character set description file.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-i </SAMP><SAMP><I>sourcefile</I></SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Use <SAMP><I>sourcefile</I></SAMP> as the pathname of the locale description file. If this option is not specified, <SAMP>localdef</SAMP> reads the locale definition from its standard input.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-u </SAMP><SAMP><I>code_set_name</I></SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Use <SAMP><I>code_set_name</I></SAMP> as the target mapping for character symbols and collating element symbols whose encoding values are defined in terms of the ISO/IEC 10646-1:2000 standard position constant values.</P>
+</td>
+</tr>
+</TABLE>
+<P><A HREF="localedefutility.html#Table&nbsp;26">Table&nbsp;26</A> illustrates options that are provided as extensions to the IEEE Std 1003.1-2001 (POSIX) standard.   </P>
+<H4><A NAME="Table&nbsp;26">Table&nbsp;26: localedef option extensions to the IEEE Std 1003.1-2001 (POSIX) standard&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Option</B>
+</td>
+<td valign=top><B>Meaning</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-w</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Disable all warnings.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-w</SAMP><SAMP><I>N</I></SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Disable warning number <SAMP><I>N</I></SAMP>, where <SAMP><I>N</I></SAMP> is a non-negative integer. The option can be repeated any number of times to disable multiple warnings.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-g</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Enter <SAMP><I>batch mode</I></SAMP>.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">-m <SAMP><I>locale_list</I></SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Use <SAMP><I>locale_list</I></SAMP> as the name of a file containing a list associating locale names with the names of encodings. This option is only allowed in batch mode.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-r</SAMP> <SAMP><I>charmap_dir</I></SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Use <SAMP><I>charmap_dir</I></SAMP> as the name of the directory under which <SAMP>localedef</SAMP> should look for character set description files. This option is only allowed in batch mode.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-r</SAMP> <SAMP><I>source_dir</I></SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Use <SAMP><I>source_dir</I></SAMP> as the name of the directory under which <SAMP>localedef</SAMP> should look for locale definition files. This option is only allowed in batch mode.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-d output_dir</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Use <SAMP><I>output_dir</I></SAMP> as the name of the directory under which <SAMP>localedef</SAMP> should place binary files produced in batch mode.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>--ucs</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Use the Universal Character Set (either UCS-4 or UCS-2) to encode characters of type <SAMP>wchar_t</SAMP>. This option may require character set description files in an extended format.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>--help</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Print a usage message to <SAMP>stdout</SAMP> and exit with <SAMP>0</SAMP> exit status.</P>
+</td>
+</tr>
+</TABLE>
+<A NAME="sec6"><H3>Operands</H3></A>
+<P>The following operands are accepted:</P>
+
+<UL><PRE><B><I>name</I></B>
+</PRE></UL>
+<UL>
+<P>The name of a locale database to produce. If <I>name</I> contains at least one slash character it is considered to be a pathname, and will be created under the directory tree specified. Otherwise, <I>name</I> is considered to be a filename and will be created in the current working directory.</P>
+</UL>
+
+<A NAME="sec7"><H3>Environment Variables</H3></A>
+
+<A NAME="idx835"></A><PRE><B>RWSTD_SRC_ROOT</B></PRE>
+<UL>
+<P>The pathname of the root of the directory tree containing character set description files and locale definition files. The character set description files are assumed to reside in <SAMP>${RWSTD_SRC_ROOT}/charmaps</SAMP>, the locale definition files in <SAMP>${RWSTD_SRC_ROOT}/src</SAMP>.</P>
+</UL>
+
+<A NAME="sec8"><H3>Input</H3></A>
+<P>Unless the <SAMP>-i</SAMP> option is used, <SAMP>localedef</SAMP> reads the locale definition from <SAMP>stdin</SAMP>. Otherwise, <SAMP>localedef</SAMP> reads the locale definition from the filename specified with the <SAMP>-i</SAMP> option. The utility also attempts to read files named by any copy directives that appear in the locale definition. <SAMP>localedef</SAMP> reads character set descriptions from the files specified with the <SAMP>-f</SAMP> option.</P>
+<P>The required format of the character set description file follows that described in section 6.4, Character Set Description File, of IEEE Std 1003.1-2001.</P>
+<P>The required format of the locale definition file follows that described in section 7.3, Locale Definition, of IEEE Std 1003.1-2001. </P>
+<P>Any files that conform to the required format can be used with <SAMP>localedef</SAMP> to produce binary locale database files suitable for use with the C++ Standard Library Module.</P>
+<P>A limited number of character set description files and locale definition files in the conforming format can be purchased from The Open Group. See   <SAMP>http://www.opengroup.org/pubs/catalog/lo.htm</SAMP>.</P>
+<P>Character set description files and locale definition files in an extended format can be obtained without charge from the JTC1/SC22/WG15 -- POSIX pages at <SAMP>ftp://dkuug.dk/i18n/WG15-collection/</SAMP>. These files are distributed with the Rogue Wave Standard C++ Library Module sources.</P>
+<P>Additionally, the <SAMP>localedef</SAMP> utility also accepts files in an extended format used by GNU C library, glibc 2<br><SAMP>(http://www.gnu.org/software/libc/libc.html)</SAMP>. The locale definition files that accompany glibc 2.2.5 are distributed with the Rogue Wave Standard C++ Library Module sources. </P>
+<P>Finally, <SAMP>localedef</SAMP> utility accepts files shipped with HP-UX 11.00 and later. The character set description files are installed in<br><SAMP>/usr/lib/nls/loc/charmaps</SAMP>, the locale definition files are in <br><SAMP>/usr/lib/nls/loc/src</SAMP>. These files are not distributed with the Rogue Wave Standard C++ Library Module sources.</P>
+<A NAME="sec9"><H3>Output</H3></A>
+<P>On success, <SAMP>localedef</SAMP> will create one or more files. If the <SAMP>name</SAMP> argument does not contain the slash character, files are created in the current working directory. Otherwise, the output files will be created in the directory specified by <SAMP>name</SAMP>. The following directory tree describes the organization of the output files:</P>
+
+<UL><PRE><I>encoding<br>name</I>/<br><I>name</I>/LC_COLLATE<br><I>name</I>/LC_CTYPE<br><I>name</I>/LC_MONETARY<br><I>name</I>/LC_NUMERIC<br><I>name</I>/LC_TIME<br><I>name</I>/LC_MESSAGES 
+</PRE></UL>
+<P>The name of the <SAMP><I>encoding</I></SAMP> file reflects the used character set definition as specified by the <SAMP>-f</SAMP> option. The name of the directory name corresponds to the name argument passed to <SAMP>localedef</SAMP>. Under the directory, <SAMP>localedef</SAMP> creates up to six files named <SAMP>LC_COLLATE</SAMP>, <SAMP>LC_CTYPE</SAMP>, etc., one for each section that appears in the locale definition.</P>
+<P>Any warning or error diagnostic messages produced by <SAMP>localedef</SAMP> are sent to <SAMP>stderr</SAMP>.</P>
+<A NAME="sec10"><H3>Exit Status</H3></A>
+<P>The <SAMP>localedef</SAMP> utility exits with the status codes listed in <A HREF="localedefutility.html#Table&nbsp;27">Table&nbsp;27</A>:  </P>
+<H4><A NAME="Table&nbsp;27">Table&nbsp;27: localedef exit status&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Exit Status</B>
+</td>
+<td valign=top><B>Meaning</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">No errors occurred and locale databases were successfully created.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>1</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Warnings occurred and locale databases were successfully created.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>2</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The locale specification exceeded implementation limits or the coded character set or sets used are not supported, and no locale databases were created.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&gt; 3</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Warnings or errors occurred and no locale databases were created.</P>
+</td>
+</tr>
+</TABLE>
+<A NAME="sec11"><H3>Examples</H3></A>
+<P>Please note that the examples in this section use Rogue Wave extensions to the <SAMP>localedef</SAMP> utility.</P>
+<P>The following command tries to create a locale database called <SAMP>german</SAMP> for the German locale <SAMP>de_DE</SAMP> using the ISO 8859-1 character set, and the locale definition file <SAMP>de_DE</SAMP>:</P>
+
+<UL><PRE>$ localedef -f nls/charmaps/ISO-8859-1 \
+    -i nls/src/de_DE german
+</PRE></UL>
+<P>Warnings normally prevent the successful creation of the output binary file. Since not all of the provided files are entirely clean of warnings, the following command forces <SAMP>localedef</SAMP> to produce output even in the presence of warnings. This command creates a locale database called <SAMP>french@euro</SAMP> for the French locale using the ISO 8859-15 character set, and the locale definition file <SAMP>fr_FR.euro</SAMP>:</P>
+
+<UL><PRE>$ localedef -c -f nls/charmaps/ISO-8859-15 \
+    -i nls/src/fr_FR.euro french@euro
+</PRE></UL>
+<P>This command may still produce a number of warnings, but assuming there are no errors, <SAMP>localedef</SAMP> will create a valid binary locale database. The command below makes use of the <SAMP>-w</SAMP> option to indiscriminately silence all warning messages. It creates a locale database called <SAMP>ja.euc</SAMP> in the <SAMP>/tmp </SAMP>directory from the Japanese locale definition file <SAMP>ja_JP</SAMP> using the <SAMP>EUC-JP</SAMP> encoding:</P>
+
+<UL><PRE>$ localedef -c -w -f nls/charmaps/EUC-JP \
+   -i nls/src/ja_JP /tmp/ja.euc
+</PRE></UL>
+<A NAME="sec12"><H3>See Also</H3></A>
+<P><A HREF="locale.html">locale</A> utility,<B> </B>class <B><I>locale</I></B></P>
+<A NAME="sec13"><H3>Standards Conformance</H3></A>
+<P><I>IEEE Std 1003.1-2001 -- The Open Group Base Specifications Issue 6</I></P>
+
+<BR>
+<HR>
+<A HREF="localeutility.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="logic-error.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

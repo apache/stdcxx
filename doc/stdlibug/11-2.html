@@ -1,0 +1,67 @@
+<HTML>
+<HEAD>
+<TITLE>The priority queue Operations</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="11-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="11-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>11.2 The priority queue Operations</H2>
+<A NAME="idx203"><!></A>
+<P>A specialization of the  <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B> class template  holds elements of type <SAMP>T</SAMP> and implements the five operations given in <A HREF="11-2.html#Table&nbsp;18">Table&nbsp;18</A>:</P>
+<H4><A NAME="Table&nbsp;18">Table&nbsp;18: priority_queue operations</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Function</B>
+</td><td valign=top><B>Implemented operation</B>
+</td></tr>
+<A NAME="idx204"><!></A>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>push(T)</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"> Adds a new value to the collection being maintained</P>
+</td></tr>
+<A NAME="idx205"><!></A>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>top()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"> Returns a reference to the smallest element in the collection</P>
+</td></tr>
+<A NAME="idx206"><!></A>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>pop()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"> Deletes the smallest element from the collection</P>
+</td></tr>
+<A NAME="idx207"><!></A>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>size()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"> Returns the number of elements in the collection</P>
+</td></tr>
+<A NAME="idx208"><!></A>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>empty()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"> Returns true if the collection is empty </P>
+</td></tr>
+</TABLE>
+<P>Elements of type <SAMP>T</SAMP> must be comparable to each other, either through the use of the default less-than operator, <SAMP>operator&lt;()</SAMP>, or through a comparison function passed either as a template argument or as an optional argument on the constructor. The latter form will be illustrated in the example program provided later in this chapter. As with all the containers in the Standard C++ Library, there are several constructors. The <I>default constructor</I> requires either no arguments or the optional comparison function. An <I>alternative constructor</I> takes two iterators and initializes the values in the container from the range the iterators define. An optional third argument can be used to define the comparison function.</P>
+<P>The <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B> datatype is built on top of a container class, which is the structure actually used to maintain the values in the collection. There are two containers in the Standard C++ Library that can be used to construct <B><I>priority_queues</I></B>: <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B><I>s</I> or <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B><I>s</I>. By default, a <B><I>priority_queue</I></B> will use <B><I>vector</I></B>.</P>
+<A NAME="1121"><H3>11.2.1 Declaration and Initialization of priority queue</H3></A>
+<A NAME="idx209"><!></A>
+<P>The following illustrates the declaration of several <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B>s:</P>
+
+<UL><PRE>
+// minimal case -- uses std::vector&lt;int&gt; and std::less&lt;int&gt;
+std::priority_queue&lt;int&gt; queue_one;
+
+std::priority_queue&lt;int, std::vector&lt;int&gt;, std::greater&lt;int&gt; &gt;
+      queue_two;
+
+std::priority_queue&lt;double, std::deque&lt;double&gt; &gt; 
+      queue_three(aList.begin(), aList.end());
+
+std::priority_queue&lt;myData, std::vector&lt;myData&gt; &gt; 
+      queue_four(myComparison);
+
+std::priority_queue&lt;myData, std::deque&lt;myData&gt; &gt; 
+      queue_five(aVector.begin(), aVector.end(), myComparison);
+</PRE></UL>
+<A NAME="idx210"><!></A>
+<P>When deciding whether to use a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> or <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> as the underlying container, consider the data which is to be stored.  The default, <B><I>vector</I></B>, performs quite well for most cases.  If the number of elements will vary, a <B><I>deque</I></B> will use less memory when the <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B> has few elements. A <B><I>vector</I></B> has less overhead, so may be more efficient in cases where the <B><I>priority_queue</I></B> will tend to remain at approximately the same size.  However, increasing the memory allocated to a <B><I>vector</I></B> may require copying the elements into newly allocated space.  Copying takes time, so a <B><I>vector</I></B> may be inefficient if the size of the <B><I>priority_queue</I></B> will tend to increase. These are, of course, generalized statements which may not apply to the problem at hand. In cases where performance or memory consumption is important, you should try both underlying containers and compare the results.</P>
+<P>Because the <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B> data structure does not itself know how to construct iterators, very few of the algorithms noted in <A HREF="13.html">Chapter&nbsp;13</A> can be used with <B><I>priority_queue</I></B>s. Instead of iterating over values, a typical algorithm that uses a <B><I>priority_queue</I></B> constructs a loop, which repeatedly pulls values from the structure (using the <SAMP>top()</SAMP> and <SAMP>pop()</SAMP> member functions) until the collection becomes empty (tested using the <SAMP>empty()</SAMP> member function). The example program described in <A HREF="11-3.html">Section&nbsp;11.3</A> illustrates this use.</P>
+<A NAME="idx211"><!></A>
+<P>A <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B> is implemented by internally building a data structure called a <I>heap. </I>Abstractly, a <I>heap</I> is a binary tree in which the value associated with every node is smaller than or equal to the value associated with either child node. Details of the algorithms used in manipulating<I> heaps</I> will not be discussed here, but can be found in most textbooks on data structures.</P>
+
+<BR>
+<HR>
+<A HREF="11-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="11-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

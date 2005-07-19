@@ -1,0 +1,20 @@
+<HTML>
+<HEAD>
+<TITLE>Binary and Text Mode</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="30-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="30-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>30.4 Binary and Text Mode</H2>
+<A NAME="idx764"><!></A>
+<A NAME="idx765"><!></A>
+<P>The representation of text files varies among operating systems. For example, the end of a line in a UNIX environment is represented by the <I>linefeed</I> character <SAMP>`\n'</SAMP>. On some other systems, such as Microsoft Windows, the end of the line consists of two characters, <I>carriage</I> <I>return</I> <SAMP>'\r'</SAMP> and <I>linefeed</I> <SAMP>'\n'</SAMP>. The end of the file differs as well on these two operating systems. Peculiarities on other operating systems are also conceivable.</P>
+<A NAME="idx766"><!></A>
+<P>To make programs more portable among operating systems, an automatic conversion can be done on input and output. The carriage return or linefeed sequence, for example, can be converted to a single <SAMP>`\n'</SAMP> character on input; the <SAMP>`\n'</SAMP> can be expanded to <SAMP>"\r\n"</SAMP> on output. This conversion mode is called <I>text mode</I>, as opposed to<I> binary mode</I>. In binary mode, no such conversions are performed.</P>
+<P>The mode flag <SAMP>std::ios_base::binary</SAMP> has the effect of opening a file in binary mode. This has the effect described above; in other words, all automatic conversions, such as converting <SAMP>"\r\n"</SAMP> to <SAMP>`\n',</SAMP> are suppressed. [Basically, the binary mode flag is passed on to the respective operating system's service function, which means that in principle all system-specific conversions are suppressed, not only the carriage return / linefeed handling.]</P>
+<P>If you must process a binary file, you should always set the <SAMP>binary</SAMP> mode flag, because most likely you do not want any kind of implicit, system-specific conversion performed.</P>
+<P>The effect of the binary open mode is frequently misunderstood. It does <I>not </I>put the inserters and extractors into a binary mode, and hence suppress the formatting they usually perform. Binary input and output is done solely by <SAMP>basic_istream&lt;&gt;::read()</SAMP> and <SAMP>basic_ostream&lt;&gt;::write()</SAMP>.</P>
+
+<BR>
+<HR>
+<A HREF="30-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="30-5.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

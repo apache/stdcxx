@@ -1,0 +1,624 @@
+<HTML>
+<HEAD>
+<TITLE>ctype</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="cout.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="ctype-byname.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>ctype</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR>          <IMG SRC="images/inherits.gif"> <B><I>ctype_base</I></B> 
+<B><I>ctype</I></B> ...
+          <IMG SRC="images/inherits.gif"> <B><I>locale::facet</I></B> <HR></PRE>
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Type</A></LI>
+<LI><A HREF="#sec8">Constructor</A></LI>
+<LI><A HREF="#sec9">Destructor</A></LI>
+<LI><A HREF="#sec10">Public Member Functions</A></LI>
+<LI><A HREF="#sec11">Facet ID</A></LI>
+<LI><A HREF="#sec12">Protected Member Functions</A></LI>
+<LI><A HREF="#sec13">Example</A></LI>
+<LI><A HREF="#sec14">See Also</A></LI>
+<LI><A HREF="#sec15">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx552">char_type</A><BR>
+<A HREF="#idx565">classic_table()</A><BR>
+<A HREF="#idx553">ctype()</A><BR>
+<A HREF="#idx566">do_is()</A><BR>
+<A HREF="#idx568">do_narrow()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx570">do_scan_is()</A><BR>
+<A HREF="#idx571">do_scan_not()</A><BR>
+<A HREF="#idx572">do_tolower()</A><BR>
+<A HREF="#idx574">do_toupper()</A><BR>
+<A HREF="#idx576">do_widen()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx564">id</A><BR>
+<A HREF="#idx555">is()</A><BR>
+<A HREF="#idx557">narrow()</A><BR>
+<A HREF="#idx558">scan_is()</A><BR>
+<A HREF="#idx559">scan_not()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx563">table()</A><BR>
+<A HREF="#idx560">tolower()</A><BR>
+<A HREF="#idx561">toupper()</A><BR>
+<A HREF="#idx562">widen()</A><BR>
+<A HREF="#idx554">~ctype()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A facet that includes character classification facilities.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  class ctype_base;
+  template &lt;class charT&gt; class ctype;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+
+<PRE>  template &lt;&gt; class ctype&lt;char&gt;; 
+  template &lt;&gt; class ctype&lt;wchar_t&gt;;
+</PRE>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The class template <B><I>ctype</I></B> is a facet that allows you to classify characters and perform simple conversions. <B><I>ctype</I></B> also converts upper to lower and lower to upper case, and converts between <SAMP>charT</SAMP> and <SAMP>char</SAMP>. <B><I>ctype</I></B> relies on <SAMP>ctype_base</SAMP> for a set of masks that classify the different kinds of characters. The masks are illustrated in <A HREF="ctype.html#Table&nbsp;17">Table&nbsp;17</A>.   </P>
+<H4><A NAME="Table&nbsp;17">Table&nbsp;17: Ctype masks provided by ctype_base</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Class</B>
+</td>
+<td valign=top><B>Description</B>
+</td>
+<td valign=top><B>Characters included in the classic C locale</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>alnum</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Characters classified as letters or digits.</P>
+</td>
+<td valign=top><P CLASS="TABLE">All of <SAMP>alpha</SAMP> and <SAMP>digit</SAMP>.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>alpha</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Characters classified as letters.</P>
+</td>
+<td valign=top><P CLASS="TABLE">All of <SAMP>lower</SAMP> and <SAMP>upper</SAMP>.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>cntrl</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Characters classified as control characters.</P>
+</td>
+<td valign=top><P CLASS="TABLE">None of <SAMP>alpha</SAMP> or <SAMP>print</SAMP>.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>digit</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Characters classified as decimal digits.</P>
+</td>
+<td valign=top><P CLASS="TABLE">The characters <SAMP>'0'</SAMP> through <SAMP>'9'</SAMP>.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>graph</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Characters classified as printable characters, excluding the space (<SAMP>' '</SAMP>).</P>
+</td>
+<td valign=top><P CLASS="TABLE">All of <SAMP>alpha</SAMP>, <SAMP>digit</SAMP>, and <SAMP>punct</SAMP>, and none of <SAMP>cntrl</SAMP>.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>lower</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Characters classified as lowercase letters.</P>
+</td>
+<td valign=top><P CLASS="TABLE">The characters <SAMP>'a'</SAMP> through <SAMP>'z'</SAMP>.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>print</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Characters classified as printable characters, including the space (<SAMP>' '</SAMP>).</P>
+</td>
+<td valign=top><P CLASS="TABLE">The space (<SAMP>' '</SAMP>), all of <SAMP>graph</SAMP>, and none of <SAMP>cntrl</SAMP>.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>punct</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Characters classified as punctuators.</P>
+</td>
+<td valign=top><P CLASS="TABLE">Neither the space (<SAMP>' '</SAMP>) character, nor any of <SAMP>alpha</SAMP>, <SAMP>digit</SAMP>, or <SAMP>cntrl</SAMP>.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>space</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Characters classified as whitespace.</P>
+</td>
+<td valign=top><P CLASS="TABLE">The space (<SAMP>' '</SAMP>), form-feed (<SAMP>'\f'</SAMP>), new line ('<SAMP>\n'</SAMP>), carriage return (<SAMP>'\r'</SAMP>), horizontal tab (<SAMP>'\t'</SAMP>), and vertical tab (<SAMP>'\v'</SAMP>) characters.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>upper</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Characters classified as uppercase letters.</P>
+</td>
+<td valign=top><P CLASS="TABLE">The characters <SAMP>'A'</SAMP> through <SAMP>'Z'</SAMP>.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>xdigit</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Characters classified as hexadecimal digits.</P>
+</td>
+<td valign=top><P CLASS="TABLE">The characters <SAMP>'A'</SAMP> through <SAMP>'F'</SAMP>, <SAMP>'a'</SAMP> through <SAMP>'f'</SAMP>, and all of <SAMP>digit</SAMP>.</P>
+</td>
+</tr>
+</TABLE>
+<P>The masks are passed to member functions of <B><I>ctype</I></B> to obtain the classifications of a character or range of characters.</P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  class ctype_base {
+  public:
+    typedef int mask;
+      static const mask alpha;
+      static const mask cntrl;
+      static const mask digit;
+      static const mask graph;
+      static const mask lower;
+      static const mask print;
+      static const mask punct;
+      static const mask space;
+      static const mask upper;
+      static const mask xdigit;
+      static const mask alnum = alpha | digit;
+};
+
+  template &lt;class charT&gt;
+  class ctype : public locale::facet, public ctype_base 
+  {
+    public:
+      typedef charT char_type;
+
+      explicit ctype(size_t refs = 0);
+
+      bool is(mask, char_type) const;
+
+      const char_type* 
+      is(const char_type*, const char_type*, mask*) const;
+
+      const char_type* 
+      scan_is(mask, const char_type*, const char_type*) const;
+
+      const char_type*
+      scan_not(mask, const char_type*, const char_type*) const;
+      
+      char_type toupper(char_type) const;
+
+      const char_type*
+      toupper(char_type*, const char_type*) const;
+
+      char_type tolower(char_type) const;
+
+      const char_type*
+      tolower(char_type*, const char_type*) const;
+      
+      char_type widen(char) const;
+
+      const char* 
+      widen(const char*, const char*, char_type*) const;
+
+      char narrow(char_type, char) const;
+
+      const char_type* 
+      narrow(const char_type*, const char_type*, char, char*)
+             const;
+
+      static locale::id id;
+
+    protected:
+      virtual ~ctype(); 
+
+      virtual bool  do_is(mask, char_type) const;
+
+      virtual const char_type* 
+      do_is(const char_type*, const char_type*, mask*) const;
+      virtual const char_type* 
+      do_scan_is(mask, const char_type*, const char_type*)
+                 const;
+
+      virtual const char_type*
+      do_scan_not(mask, const char_type*, const char_type*)
+                  const;
+
+      virtual char_type do_toupper(char_type) const;
+      
+      virtual const char_type* 
+      do_toupper(char_type*, const char_type*) const;
+
+      virtual char_type 
+      do_tolower(char_type) const;
+
+      virtual const char_type* 
+      do_tolower(char_type*, const char_type*) const;
+
+      virtual char_type 
+      do_widen(char) const;
+
+      virtual const char*  
+      do_widen(const char*, const char*, char_type*) const;
+
+      virtual char 
+      do_narrow(char_type, char) const;
+
+      virtual const char_type* 
+      do_narrow(const char_type*, const char_type*, char, char*)
+                const;
+};
+
+template &lt;&gt;
+  class ctype&lt;char&gt;: public locale::facet, public ctype_base
+  {
+    public:
+      typedef char char_type;
+
+      explicit ctype(const mask* tab = 0, bool del = false,
+                     size_t refs = 0);
+
+      bool is (mask, char_type) const;
+
+      const char_type*
+      is (const char_type*, const char_type*, mask*) const;
+
+      const char_type*
+      scan_is (mask, const char_type*, const char_type*) const;
+
+      const char_type*
+      scan_not (mask, const char_type*, const char_type*) const;
+
+      char_type toupper (char_type) const;
+
+      const char_type*
+      toupper (char_type*, const char_type*) const;
+
+      char_type tolower (char_type) const;
+
+      const char_type*
+      tolower (char_type*, const char_type*) const;
+
+      char_type widen (char) const;
+
+      const char*
+      widen (const char*, const char*, char_type*) const;
+
+      char narrow (char_type, char) const;
+
+      const char_type*
+      narrow (const char_type*, const char_type*, char, char*)
+              const;
+
+      static locale::id id;
+      static const size_t table_size = UCHAR_MAX;
+
+    protected:
+      const mask* table() const throw();
+
+      static const mask* classic_table() throw();
+      virtual ~ctype();
+
+      virtual bool do_is (mask, char_type) const;
+
+      virtual const char_type*
+      do_is (const char_type*, const char_type*, mask*) const;
+
+      virtual const char_type*
+      do_scan_is (mask, const char_type*, const char_type*)
+                  const;
+
+      virtual const char_type*
+      do_scan_not(mask, const char_type*, const char_type*) 
+                  const;
+
+      virtual char_type do_toupper (char_type) const;
+
+      virtual const char_type*
+      do_toupper (char_type*, const char_type*) const;
+
+      virtual char_type
+      do_tolower (char_type) const;
+
+      virtual const char_type*
+      do_tolower (char_type*, const char_type*) const;
+
+      virtual char_type
+      do_widen (char) const;
+
+      virtual const char*
+      do_widen (const char*, const char*, char_type*) const;
+
+      virtual char
+      do_narrow (char_type, char) const;
+
+      virtual const char_type*
+      do_narrow (const char_type*, const char_type*, char,
+                 char*) const;
+  };
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Type</H3></A>
+
+<A NAME="idx552"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>The type of the template argument.</P>
+</UL>
+
+<A NAME="sec8"><H3>Constructor</H3></A>
+
+<A NAME="idx553"></A><PRE>explicit <B>ctype</B>(size_t refs = 0) 
+explicit <B>ctype</B>(const mask* tab = 0, bool del = false, size_t
+               refs = 0);</PRE>
+<UL>
+<P>Constructs a <B><I>ctype</I></B> object. Calls <SAMP>locale::facet (refs)</SAMP>. </P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the <B><I>ctype</I></B> object's reference count. A <B><I>ctype</I></B> object <SAMP>f</SAMP> constructed with <SAMP>(refs == 0)</SAMP> that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. A <B><I>ctype</I></B> object constructed with <SAMP>(refs != 0)</SAMP> will not be destroyed by any locale objects in which it may have been installed.</P>
+<P>The constructor for the <SAMP>ctype&lt;char&gt;</SAMP> specialization takes two additional arguments: <SAMP>tab</SAMP> and <SAMP>del</SAMP>. If <SAMP>(tab == 0)</SAMP>, the effect of the constructor is the same as with <SAMP>(tab == classic_table())</SAMP>. Otherwise <SAMP>tab</SAMP> must point to the first element of an array of masks at least <SAMP>ctype&lt;char&gt;::table_size</SAMP> elements large. Each element of the table is a bitmap representing the properties of characters with values in the range <SAMP>[0, table_size)</SAMP>. The postcondition of the constructor is <SAMP>(table() == (tab ? tab : classic_table ()))</SAMP>. If <SAMP>(del == true)</SAMP> holds, the destructor will call <SAMP>delete[] table()</SAMP>. </P>
+</UL>
+
+<A NAME="sec9"><H3>Destructor</H3></A>
+
+<A NAME="idx554"></A><PRE>virtual <B>~ctype</B>();</PRE>
+<UL>
+<P>Destroys the facet. The <SAMP>ctype&lt;char&gt;</SAMP> specialization calls <SAMP>delete[] table()</SAMP> if the object was constructed with the first argument <SAMP>(tbl != 0)</SAMP> and the second argument <SAMP>(del == true)</SAMP>.</P>
+</UL>
+
+<A NAME="sec10"><H3>Public Member Functions</H3></A>
+<P>The public members of the <B><I>ctype</I></B> facet include an interface to protected members. Each public member function <SAMP>xxx()</SAMP> calls the corresponding protected virtual member function <SAMP>do_xxx()</SAMP>. For instance, the public <SAMP>widen()</SAMP> function calls its protected cousin <SAMP>do_widen()</SAMP>. The result of the call may be cached. Subsequent calls to the public function may return the cached result to avoid the expense of repeatedly calling the virtual function. The public interface to the protected virtual functions is provided in order to allow derived classes to override some but not necessarily all of the often overloaded virtual functions without hiding those overloads that are not overridden.</P>
+<P>When <SAMP>(static_cast&lt;unsigned char&gt;(c) &gt;= table_size)</SAMP>, member functions of the <SAMP>ctype&lt;char&gt;</SAMP> specialization do not use <SAMP>table()</SAMP> to perform the lookup of the character mask, but instead use an unspecified algorithm to obtain its value.</P>
+
+<A NAME="idx555"></A><PRE>
+bool         
+<B>is</B>(mask m, char_type c) const; </PRE>
+<UL>
+<P>The primary template returns <SAMP>do_is(m, c)</SAMP>. The <SAMP>ctype&lt;char&gt;</SAMP> specialization returns <SAMP>(table()[static_cast&lt;unsigned char&gt;(c)] &amp; m)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx556"></A><PRE>const char_type* 
+<B>is</B>(const char_type* low, 
+   const char_type* high, mask* vec) const;</PRE>
+<UL>
+<P>The primary template returns <SAMP>do_is(low, high, vec)</SAMP>. The <SAMP>ctype&lt;char&gt;</SAMP> specialization assigns <SAMP>table()[static_cast&lt;unsigned char&gt;(*p)] to vec[p - low]</SAMP> for all <SAMP>p</SAMP> in the range <SAMP>[low, high)</SAMP>, and returns <SAMP>high</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx557"></A><PRE>char
+<B>narrow</B>(char_type c, char dfault) const;
+const char_type* 
+<B>narrow</B>(const char_type* low, const char_type*, char dfault,
+       char* to) const; </PRE>
+<UL>
+<P>Returns <SAMP>do_narrow(c,dfault)</SAMP> and <SAMP>do_narrow(low,high,dfault,to)</SAMP>, respectively.</P>
+</UL>
+
+
+<A NAME="idx558"></A><PRE>const char_type* 
+<B>scan_is</B>(mask m, const char_type*, const char_type* high)
+        const; </PRE>
+<UL>
+<P>The primary template returns <SAMP>do_scan_is(m,low,high). </SAMP>The <SAMP>ctype&lt;char&gt;</SAMP> specialization returns the smallest <SAMP>p</SAMP> in the range <SAMP>[low, high)</SAMP> such that <SAMP>(table()[static_cast&lt;unsigned char&gt;(*p)] &amp; m) != 0</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx559"></A><PRE>const char_type* 
+<B>scan_not</B>(mask m, const char_type* low, const char_type* high)
+         const; </PRE>
+<UL>
+<P>The primary template returns <SAMP>do_scan_not(m,low,high)</SAMP>. The <SAMP>ctype&lt;char&gt;</SAMP> specialization returns the smallest <SAMP>p</SAMP> in the range <SAMP>[low, high)</SAMP> such that <SAMP>(table()[static_cast&lt;unsigned char&gt;(*p)] &amp; m) == 0</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx560"></A><PRE>char_type        
+<B>tolower</B>(char_type c) const;
+const char_type* 
+<B>tolower</B>(char_type* low, const char_type* high) const; </PRE>
+<UL>
+<P>Returns <SAMP>do_tolower(c)</SAMP> and <SAMP>do_tolower(low,high)</SAMP>, respectively.</P>
+</UL>
+
+
+<A NAME="idx561"></A><PRE>char_type        
+<B>toupper</B>(char_type c) const;
+const char_type* 
+<B>toupper</B>(char_type* low, const char_type* high) const; </PRE>
+<UL>
+<P>Returns <SAMP>do_toupper(c)</SAMP> and <SAMP>do_toupper(low,high)</SAMP>, respectively.</P>
+</UL>
+
+
+<A NAME="idx562"></A><PRE>char_type        
+<B>widen</B>(char c) const;
+const char*  
+<B>widen</B>(const char* low, const char* high, char_type* to) const; </PRE>
+<UL>
+<P>Returns <SAMP>do_widen(c)</SAMP> and <SAMP>do_widen(low,high,to)</SAMP>, respectively.</P>
+</UL>
+
+
+<A NAME="idx563"></A><PRE>const mask*
+<B>table</B>() const throw();</PRE>
+<UL>
+<P>This function is declared only the in the <SAMP>ctype&lt;char&gt;</SAMP> specialization. It returns the value of the first constructor argument, <SAMP>tbl</SAMP>, if it was nonzero, otherwise <SAMP>classic_table()</SAMP>. </P>
+</UL>
+
+<A NAME="sec11"><H3>Facet ID</H3></A>
+
+<A NAME="idx564"></A><PRE>static locale::id <B>id</B>;</PRE>
+<UL>
+<P>Unique identifier for this type of facet. </P>
+</UL>
+
+<A NAME="sec12"><H3>Protected Member Functions</H3></A>
+
+<A NAME="idx565"></A><PRE>static const mask*
+<B>classic_table</B>() throw();</PRE>
+<UL>
+<P>This static member function is declared only the in the <SAMP>ctype&lt;char&gt;</SAMP> specialization. It returns a pointer to the initial element of an array of at least <SAMP>table_size</SAMP> elements which represents the classifications of characters in the classic C locale.</P>
+</UL>
+
+
+<A NAME="idx566"></A><PRE>virtual bool         
+<B>do_is</B>(mask m, char_type c) const; </PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>c</SAMP> matches the classification indicated by the mask <SAMP>m</SAMP>, where <SAMP>m</SAMP> is one of the values available from <B><I>ctype_base</I></B>. For instance, the following call returns <SAMP>true</SAMP> since <SAMP>'</SAMP><SAMP>a</SAMP><SAMP>'</SAMP> is an alphabetic character: </P>
+
+<UL><PRE>   use_facet&lt;ctype&lt;char&gt; &gt;(locale::classic ())
+       .is (ctype_base::alpha, 'a');
+</PRE></UL>
+<P>See <B><I>ctype_base</I></B> for a description of the masks.</P>
+</UL>
+
+
+<A NAME="idx567"></A><PRE>virtual const char_type* 
+<B>do_is</B>(const char_type* low, const char_type* high,
+      mask* vec) const; </PRE>
+<UL>
+<P>Fills <SAMP>vec</SAMP> with values of type <SAMP>ctype_base::mask</SAMP>, one for each element the range of characters indicated by <SAMP>[low,high)</SAMP>. Returns <SAMP>high</SAMP>. See <B><I>ctype_base</I></B> for a description of the masks. For instance, after the following call, the first five entries in the array <SAMP>v</SAMP> would each contain the <SAMP>mask</SAMP> value:<SAMP> (alpha|lower|print|alnum|graph)</SAMP>:</P>
+
+<UL><PRE>const char a[] = "abcde";
+ctype_base::mask v[sizeof a];
+use_facet&lt;ctype&lt;char&gt; &gt;(locale::classic ())
+        .is (a + 0, a + sizeof a, v);
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx568"></A><PRE>
+virtual char
+<B>do_narrow</B>(char_type c, char dfault) const; </PRE>
+<UL>
+<P>Returns the appropriate <SAMP>char</SAMP> representation for <SAMP>c</SAMP>, if such exists. Otherwise, <SAMP>do_narrow()</SAMP> returns <SAMP>dfault</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx569"></A><PRE>virtual const char_type* 
+<B>do_narrow</B>(const char_type* low, const char_type* high,
+          char dfault, char* dest) const; </PRE>
+<UL>
+<P>Converts each character in the range <SAMP>[low,high)</SAMP> to its narrow representation, if possible. If the narrow representation is not available, or if the character is not valid, the character is converted to <SAMP>dfault</SAMP>. Returns <SAMP>high</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx570"></A><PRE>virtual const char_type* 
+<B>do_scan_is</B>(mask m, const char_type* low, const char_type*
+           high) const; </PRE>
+<UL>
+<P>Finds the first character in the range <SAMP>[low,high)</SAMP> that matches the classification indicated by the mask <SAMP>m</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx571"></A><PRE>virtual const char_type* 
+<B>do_scan_not</B>(mask m, const char_type* low, 
+            const charT* high) const;</PRE>
+<UL>
+<P>Finds the first character in the range <SAMP>[low,high)</SAMP> that does not match the classification indicated by the mask <SAMP>m</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx572"></A><PRE>virtual char_type        
+<B>do_tolower</B>(char_type c) const; </PRE>
+<UL>
+<P>Returns the lower case representation of <SAMP>c,</SAMP> if such exists. Otherwise, returns <SAMP>c</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx573"></A><PRE>virtual const char_type* 
+<B>do_tolower</B>(char_type* low, const char_type* high) const; </PRE>
+<UL>
+<P>Converts each character in the range <SAMP>[low,high)</SAMP> to its lower case representation, if such exists. If a lower case representation does not exist, or if the character is not valid, then the character is not changed. Returns <SAMP>high</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx574"></A><PRE>virtual char_type       
+<B>do_toupper</B>(char_type c) const; </PRE>
+<UL>
+<P>Returns the upper case representation of <SAMP>c,</SAMP> if such exists. Otherwise, returns <SAMP>c</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx575"></A><PRE>virtual const char_type* 
+<B>do_toupper</B>(char_type* low, const char_type* high) const; </PRE>
+<UL>
+<P>Converts each character in the range <SAMP>[low,high)</SAMP> to its upper case representation, if such exists. If an upper case representation does not exist, or if the character is not valid, the character is not changed. Returns <SAMP>high</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx576"></A><PRE>virtual char_type        
+<B>do_widen</B>(char c) const; </PRE>
+<UL>
+<P>Returns the appropriate <SAMP>char_type</SAMP> representation for <SAMP>c</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx577"></A><PRE>virtual const char*  
+<B>do_widen</B>(const char* low, const char* high, 
+         char_type* dest) const; </PRE>
+<UL>
+<P>Converts each character in the range <SAMP>[low,high)</SAMP> to its <SAMP>char_type</SAMP> representation. Returns <SAMP>high</SAMP>.</P>
+</UL>
+
+<A NAME="sec13"><H3>Example</H3></A>
+
+<UL><PRE>#include &lt;iostream&gt;   // for cout, endl
+#include &lt;locale&gt;     // for ctype
+
+#include &lt;examples.h&gt;
+
+int main ()
+{
+    std::locale loc;
+    char s [] = "blues Power";
+
+    // Get a reference to the ctype&lt;char&gt; facet.
+    const std::ctype&lt;char&gt;&amp; ct = std::use_facet&lt;std::ctype&lt;char&gt;
+       &gt;(loc);
+
+    // Check the classification of the 'a' character.
+    std::cout &lt;&lt; ct.is (std::ctype_base::alpha, 'a') &lt;&lt;
+       std::endl;
+    std::cout &lt;&lt; ct.is (std::ctype_base::punct, 'a') &lt;&lt;
+       std::endl;
+
+    // Scan for the first upper case character.
+    std::cout &lt;&lt; *ct.scan_is (std::ctype_base::upper,
+                              s, s + sizeof s / sizeof *s)
+              &lt;&lt; std::endl;
+
+    // Convert characters to upper case.
+    ct.toupper (s, s + sizeof s / sizeof *s);
+    std::cout &lt;&lt; s &lt;&lt; std::endl;
+  
+    return 0;
+}
+
+Program Output:
+1
+0
+P
+BLUES POWER
+</PRE></UL>
+<A NAME="sec14"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="collate.html">collate</A></I></B>, <B><I><A HREF="ctype-byname.html">ctype_byname</A></I></B></P>
+<A NAME="sec15"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.1.1</I></P>
+
+<BR>
+<HR>
+<A HREF="cout.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="ctype-byname.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

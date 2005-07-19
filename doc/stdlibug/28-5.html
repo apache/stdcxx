@@ -1,0 +1,81 @@
+<HTML>
+<HEAD>
+<TITLE>Formatted Input</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="28-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="29.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>28.5 Formatted Input</H2>
+<P>In principle, input and output operators behave symmetrically. There is only one important difference: for output you control the precise format of the inserted character sequence, while for input the format of an extracted character sequence is never exactly described. This is for practical reasons. You may want to extract the next floating point value from a stream, for example, without necessarily knowing its exact format. You want it whether it is signed or not, or in exponential notation with a small or capital E for the exponent, etc. Hence, extractors in general accept an item in any format permitted for its type.</P>
+<A NAME="idx720"><!></A>
+<P>Formatted input is handled as follows:</P>
+<OL>
+<LI><P CLASS="LIST">Unless explicitly specified otherwise, extractors automatically ignore all white space characters (blanks, tabulators, newlines) that precede the item to be extracted. [The classification of a character as white space depends on the character set used. The extractor takes the information from the locale's <SAMP>ctype</SAMP> facet.]</P></LI>
+<LI><P CLASS="LIST">When the first relevant character is found, they extract characters from the input stream until they find a separator; that is, a character that does not belong to the item. White space characters in particular are separators. </P></LI>
+<LI><P CLASS="LIST">The separator remains in the input stream and becomes the first character extracted in a subsequent extraction.</P></LI>
+</OL>
+<A NAME="idx721"><!></A>
+<P>Several format parameters, which control insertion, are irrelevant for extraction. The format parameter fill character, returned by <SAMP>std::ios::fill()</SAMP>, and the adjustment flags, <SAMP>std::ios_base::left</SAMP>, <SAMP>std::ios_base::right</SAMP>, and <SAMP>std::ios_base::internal</SAMP>, have no effect on extraction. The field width is relevant only for extraction of strings, and ignored otherwise.</P>
+<A NAME="idx722"><!></A>
+<A NAME="2851"><H3>28.5.1 Skipping Characters</H3></A>
+<A NAME="idx723"><!></A>
+<P>You can use the manipulator <SAMP>std::noskipws</SAMP> to switch off the automatic skipping of white space characters. For example, extracting white space characters may be necessary if you expect the input has a certain format, and you need to check for violations of the format requirements. This procedure is shown in the following code:</P>
+
+<UL><PRE>
+std::cin &gt;&gt; std::noskipws;
+char c;
+do { 
+  float fl;
+  std::cin &gt;&gt; fl &gt;&gt; c;             // extract number and separator
+  if (c == ',' || c == '\n')       // next char is ',' or newline ?
+    process(fl);                   // yes: use the number
+}
+while (std::cin &amp;&amp; c == ',');      // check whether stream is good
+if (c != '\n') error();            // no: error!
+</PRE></UL>
+<A NAME="idx724"><!></A>
+<P>If you must skip a sequence of characters other than white spaces, you can use the function <SAMP>std::istream::ignore()</SAMP>. The call:</P>
+
+<UL><PRE>
+basic_ifstream&lt;myChar,myTraits&gt; InputStream("file-name");
+InputStream.ignore(std::numeric_limits&lt;streamsize&gt;::max(),
+                   myChar('\n'));
+</PRE></UL>
+<P>or, for ordinary narrow characters of type <SAMP>char</SAMP>: </P>
+
+<UL><PRE>
+std::ifstream InputStream("file-name");
+InputStream.ignore(std::numeric_limits&lt;streamsize&gt;::max(),'\n');
+</PRE></UL>
+<P>ignores all characters until the end of the line. This example uses a stream object of type <SAMP>std::basic_ifstream&lt;myChar, myTraits&gt;</SAMP> that is not predefined by the library. File streams are described in <A HREF="27-4.html#2741-5">Section&nbsp;27.4.1.5</A>.</P>
+<A NAME="2852"><H3>28.5.2 Input of Strings</H3></A>
+<A NAME="idx725"><!></A>
+<P>When you extract strings or character arrays from an input stream, <SAMP>strm</SAMP>, characters are read until:</P>
+<UL>
+<LI><P CLASS="LIST">A white space character is found</P></LI>
+<LI><P CLASS="LIST">The end of the input is reached</P></LI>
+<LI><P CLASS="LIST">A certain number of characters is extracted, if <SAMP>strm.width() != 0</SAMP>; . In the case of a string, this number is the field width <SAMP>strm.width(). </SAMP>In the case of a character array, this number is <SAMP>strm.width()-1</SAMP>. The last position is reserved for the terminating NUL character.</P></LI>
+</UL>
+<P>Note that the field width is reset to <SAMP>0</SAMP> after the extraction of a string.</P>
+<P>There are subtle differences between extracting a character sequence into a character array and extracting it into a string object. For example:</P>
+
+<UL><PRE>
+char buf[SZ];
+std::cin &gt;&gt; buf;
+</PRE></UL>
+<P>is different from </P>
+
+<UL><PRE>
+std::string s;
+std::cin &gt;&gt; s;
+</PRE></UL>
+<P>Extraction into a string is safe, because strings automatically extend their capacity as necessary. You can extract as many characters as you want since the string always adjusts its size accordingly. Character arrays, on the other hand, have fixed size and cannot dynamically extend their capacity. If you extract more characters than the character array can take, the extractor writes beyond the end of the array. To prevent this, you must set the field width as follows each time you extract characters into a character array:</P>
+
+<UL><PRE>
+char buf[SZ];
+std::cin &gt;&gt; std::width(SZ) &gt;&gt; buf;
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="28-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="29.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

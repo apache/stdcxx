@@ -1,0 +1,355 @@
+<HTML>
+<HEAD>
+<TITLE>list Operations</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="6-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="6-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>6.2 list Operations</H2>
+<A NAME="idx103"><!></A>
+<P>In this section, each of the member functions provided by the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> datatype are described in more detail. These member functions provide the basic operations for <B><I>list</I></B>s. They can be greatly extended through the generic algorithms described in <A HREF="13.html">Chapter&nbsp;13</A>.</P>
+<A NAME="621"><H3>6.2.1 Declaration and Initialization of lists</H3></A>
+<P>A list may contain elements of a primitive language type, such as an <SAMP>int</SAMP> or <SAMP>double</SAMP>, a pointer type, or a user-defined type. A user-defined type <I>must</I> implement a copy constructor, as this constructor is used to initialize newly created elements.</P>
+<A NAME="idx104"><!></A>
+<P>There are a variety of ways to declare a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. In the simplest form, a <B><I>list</I></B> is declared by simply stating the type of element the <B><I>list</I></B> will maintain. A <B><I>list</I></B> declared in this fashion initially contains no elements:</P>
+
+<UL><PRE>
+std::list&lt;int&gt; list_one;
+std::list&lt;Widget*&gt; list_two;
+std::list&lt;Widget&gt; list_three;
+</PRE></UL>
+<BLOCKQUOTE><HR><B>
+NOTE -- If you declare a container as holding pointers, you are responsible for managing the memory for the objects pointed to. The container classes will not automatically free memory for these objects when an item is erased from the container.
+</B><HR></BLOCKQUOTE>
+<P>An alternative form of declaration creates a collection that initially contains some number of equal elements. The constructor takes two arguments, a <I>size</I> and an <I>initial value</I>. The second argument is optional if the contained type has a default constructor. If only the number of initial elements to be created is given, these values are initialized with the default constructor; otherwise the elements are initialized with the value of the second argument:</P>
+
+<UL><PRE>
+std::list&lt;int&gt; list_four (5);  // five elements, 
+                               // each initialized to zero
+
+std::list&lt;double&gt; list_five (4, 3.14);   // 4 values,
+                                         // each initially 3.14
+
+std::list&lt;Widget&gt; list_six (4);  // 4 elements, each created using
+                                  // default constructor for Widget
+
+std::list&lt;Widget&gt; list_six (3, Widget(7));  // 3 elements, each a
+                                            // copy of Widget(7)
+</PRE></UL>
+<P><B><I><A HREF="../stdlibref/list.html">list</A></I></B>s can also be initialized using elements from another collection, with a beginning and ending iterator pair. The arguments can be any form of iterator; thus collections can be initialized with values drawn from any of the container classes in the Standard C++ Library that support iterators.</P>
+
+<UL><PRE>
+std::list&lt;double&gt; list_seven(aVector.begin(), aVector.end());
+</PRE></UL>
+<P>The <SAMP>insert()</SAMP> operation can also be used to place values denoted by an iterator into a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> (<A HREF="6-2.html#623">Section&nbsp;6.2.3</A>). Insert iterators can be used to initialize a <B><I>list</I></B> with a sequence of values produced by a <I>generator</I> (<A HREF="13-2.html#1323">Section&nbsp;13.2.3</A>). This is illustrated by the following:</P>
+
+<UL><PRE>
+std::list&lt;int&gt; list_nine;
+
+// initialize list 1 2 3 ... 7
+
+std::generate_n(std::inserter(list_nine, list_nine.begin()),
+                7, iotaGen(1));
+</PRE></UL>
+<P>A <I>copy constructor</I> can be used to initialize a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> with values drawn from another <B><I>list</I></B>. The assignment operator performs the same actions. In both cases the assignment operator for the element type is used to copy each new value.</P>
+
+<UL><PRE>
+std::list&lt;int&gt; list_ten (list_nine);    // copy constructor
+std::list&lt;Widget&gt; list_eleven;
+std::list_eleven = list_six;        // values copied by assignment
+</PRE></UL>
+<A NAME="idx105"><!></A>
+<P>The <SAMP>assign()</SAMP> member function is similar to the assignment operator, but is more versatile and, in some cases, requires more arguments. Like an assignment, the existing values in the container are deleted, and replaced with the values specified by the arguments. If a destructor is provided for the container element type, it is invoked for the elements being removed. There are two forms of <SAMP>assign()</SAMP>:</P>
+<UL>
+<LI><P CLASS="LIST">The first form takes two iterator arguments that specify a sub-sequence of an existing container. The values from this sub-sequence then become the new elements in the receiver. </P></LI>
+<LI><P CLASS="LIST">The second form takes a count and an optional value of the container element type. After the call the container holds the number of elements specified by the count, which is equal to either the default value for the container type or the initial value specified. The initial value must be specified if the contained type does not have a default constructor.</P></LI>
+
+<UL><PRE>
+list_six.assign(list_ten.begin(), list_ten.end());
+list_four.assign(3, 7);  // three copies of value seven
+list_five.assign(12);    // twelve copies of value zero
+</PRE></UL>
+</UL>
+<A NAME="idx106"><!></A>
+<P>Finally, two <B><I><A HREF="../stdlibref/list.html">list</A></I></B>s can exchange their entire contents by means of the operation <SAMP>swap()</SAMP>. The argument container takes on the values of the receiver, while the receiver assumes those of the argument. A swap is very efficient, and should be used in preference to an explicit element-by-element transfer where appropriate.</P>
+
+<UL><PRE>
+list_ten.swap(list_nine);      // exchange lists nine and ten
+</PRE></UL>
+<A NAME="622"><H3>6.2.2 Type Definitions</H3></A>
+<A NAME="idx107"><!></A>
+<P>The class <B><I><A HREF="../stdlibref/list.html">list</A></I></B> includes a number of type definitions, most commonly used in declaration statements. For example, an iterator for a <B><I>list</I></B> of integers can be declared as follows:</P>
+
+<UL><PRE>
+std::list&lt;int&gt;::iterator location;
+</PRE></UL>
+<P>In addition to <SAMP>iterator</SAMP>, <B><I><A HREF="../stdlibref/list.html">list</A></I></B> defines the following types:</P>
+<H4><A NAME="Table&nbsp;11">Table&nbsp;11: Type definitions for class list</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Type</B>
+</td><td valign=top><B>Definition</B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>value_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">The type of the elements maintained by the list.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>const_iterator</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">An iterator that does not allow modification of the underlying sequence.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>reverse_iterator</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">An iterator that moves in a backward direction.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>const_reverse_iterator</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A combination constant and reverse iterator.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>reference</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A reference to an underlying element.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>const_reference</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A reference to an underlying element that will not permit the element to be modified.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>pointer</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A pointer to an underlying element</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>const_pointer</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A constant pointer to an underlying element.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>size_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">An unsigned integer type, used to refer to the size of containers.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>difference_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A signed integer type, used to describe distances between iterators.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>allocator_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">The allocator type used for all storage management by the list.</P>
+</td></tr>
+</TABLE>
+<A NAME="623"><H3>6.2.3 Placing Elements into a list</H3></A>
+<A NAME="idx108"><!></A>
+<P>Values can be inserted into a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> in a variety of ways. Elements are most commonly added to the front or back of a <B><I>list</I></B>. These tasks are provided by the <SAMP>push_front()</SAMP> and <SAMP>push_back()</SAMP> operations, respectively. These operations are efficient (constant time) for both types of containers:</P>
+
+<UL><PRE>
+list_seven.push_front(1.2);
+list_eleven.push_back(Widget(6));
+</PRE></UL>
+<A NAME="idx109"><!></A>
+<P>In <A HREF="6-2.html#621">Section&nbsp;6.2.1</A> we noted how values can be placed into a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> at a location denoted by an iterator with the aid of an insert iterator and the <SAMP>std::copy()</SAMP> or <SAMP>std::generate()</SAMP> generic algorithm. There is also a member function, named <SAMP>insert(),</SAMP> that avoids the need to construct the inserter. As we will describe shortly, the values returned by the iterator generating functions <SAMP>begin()</SAMP> and <SAMP>end()</SAMP> denote the beginning and end of a <B><I>list</I></B>, respectively. An insert using one of these is equivalent to <SAMP>push_front()</SAMP> or <SAMP>push_back()</SAMP>, respectively. If we specify only one iterator, the default element value is inserted:</P>
+
+<UL><PRE>
+// insert default type at beginning of list
+list_eleven.insert(list_eleven.begin());
+// insert widget 8 at end of list
+list_eleven.insert(list_eleven.end(), Widget(8));
+</PRE></UL>
+<P>An iterator can denote a location in the middle of a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. There are several ways to produce this iterator. For example, we can use the result of any of the searching operations described in <A HREF="13-3.html">Section&nbsp;13.3</A>, such as an invocation of the <SAMP>find()</SAMP> generic algorithm: </P>
+
+<UL><PRE>
+// find the location of the first occurrence of the 
+// value 5 in list
+std::list&lt;int&gt;::iterator location =
+  std::find(list_nine.begin(), list_nine.end(), 5);
+
+// and insert an 11 immediately before it
+location = list_nine.insert(location, 11);
+</PRE></UL>
+<P>Here the new value is inserted immediately <I>prior </I>to the location denoted by the iterator. The <SAMP>insert()</SAMP> operation itself returns an iterator denoting the location of the inserted value. This result value was ignored in the invocations shown above.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- Unlike a vector or deque, insertions or removals from the middle of a list will not invalidate references or pointers to other elements in the container. This property can be important if two or more iterators are being used to refer to the same container.
+</B><HR></BLOCKQUOTE>
+<P>It is also possible to insert a fixed number of copies of an argument value. This form of <SAMP>insert()</SAMP> does not yield the location of the values:</P>
+
+<UL><PRE>
+line_nine.insert(location, 5, 12);     // insert five twelves
+</PRE></UL>
+<P>Finally, an entire sequence denoted by an iterator pair can be inserted into a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. Again, no value is returned as a result of the <SAMP>insert().</SAMP></P>
+
+<UL><PRE>
+// insert entire contents of list_ten into list_nine
+list_nine.insert(location, list_ten.begin(), list_ten.end());
+</PRE></UL>
+<A NAME="623-1"><H4>6.2.3.1 Splicing</H4></A>
+<A NAME="idx110"><!></A>
+<P>There are several ways to <I>splice</I> one list into another. A splice differs from an insertion in that the item is simultaneously added to the receiver list and removed from the source list. For this reason, a splice can be performed efficiently, and should be used whenever appropriate. As with an insertion, the member function <SAMP>splice()</SAMP> uses an iterator to indicate the location in the receiver list where the splice should be made. The argument is either an entire <B><I><A HREF="../stdlibref/list.html">list</A></I></B>, a single element in a <B><I>list</I></B> (denoted by an iterator), or a sub-sequence of a <B><I>list</I></B> (denoted by a pair of iterators).</P>
+
+<UL><PRE>
+// splice the last element of list ten
+list_nine.splice(location, list_ten, list_ten.end()); 
+// splice all of list ten
+list_nine.splice(location,  list_ten);
+// splice list 9 back into list 10
+list_ten.splice(list_ten.begin(), list_nine, 
+                list_nine.begin(), location);
+</PRE></UL>
+<A NAME="idx111"><!></A>
+<P>Two ordered <B><I><A HREF="../stdlibref/list.html">list</A></I></B>s can be combined into one using the <SAMP>merge()</SAMP> operation. Values from the argument <B><I>list</I></B> are merged into the ordered <B><I>list</I></B>, leaving the argument <B><I>list</I></B> empty. The merge is stable; that is, elements retain their relative ordering from the original <B><I>list</I></B>s. As with the generic algorithm of the same name (<A HREF="14-5.html">Section&nbsp;14.5</A>), two forms are supported. The first form uses the <SAMP>operator&lt;()</SAMP> defined for the contained type. The second form uses the binary function supplied as argument to order values, but not all compilers suppor the second form. If the second form is desired and not supported, the more general generic algorithm can be used, although this is slightly less efficient:</P>
+
+<UL><PRE>
+// merge with explicit compare function
+list_eleven.merge(list_six, widgetCompare);
+// similar merge using the generic algorithm
+std::list&lt;Widget&gt; list_twelve;
+std::merge (list_eleven.begin(), list_eleven.end(), 
+            list_six.begin(), list_six.end(), 
+            inserter(list_twelve, list_twelve.begin()),
+            widgetCompare);
+list_eleven.swap(list_twelve);
+</PRE></UL>
+<A NAME="624"><H3>6.2.4 Removing Elements</H3></A>
+<P>Just as there are a number of different ways to insert an element into a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>, there are a variety of ways to remove values from a <B><I>list</I></B>. The most common operations used to remove a value are <SAMP>pop_front()</SAMP> or <SAMP>pop_back()</SAMP>, which delete the single element from the front or the back of the list, respectively. If a destructor is defined for the element type, it is invoked as the element is removed. These member functions simply remove the given element, and do not themselves yield a result. To retrieve the values before deletion, use the member functions<SAMP> front()</SAMP> or <SAMP>back()</SAMP>.</P>
+<A NAME="idx112"><!></A>
+<P>The <SAMP>erase()</SAMP> operation can be used to remove a value denoted by an iterator. For a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>, the argument iterator and any other iterators that denote the same location become invalid after the removal, but iterators denoting other locations are unaffected. We can also use <SAMP>erase()</SAMP> to remove an entire sub-sequence denoted by a pair of iterators. The values beginning at the initial iterator and up to, but not including, the final iterator are removed from the <B><I>list</I></B>. Erasing elements from the middle of a <B><I>list</I></B> is an efficient operation, unlike erasing elements from the middle of a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> or a <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>:</P>
+
+<UL><PRE>
+list_nine.erase (location);
+
+// erase values between the first occurrence of 5 
+// and the following occurrence of 7
+
+std::list&lt;int&gt;::iterator location = 
+       find(list_nine.begin(), list_nine.end(), 5);
+std::list&lt;int&gt;::iterator location2 = 
+       find(location, list_nine.end(), 7);
+list_nine.erase(location, location2);
+</PRE></UL>
+<A NAME="idx113"><!></A>
+<P>The <SAMP>remove()</SAMP> member function removes all occurrences of a given value from a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. A variation, <SAMP>remove_if()</SAMP>, removes all values that satisfy a given predicate. An alternative to either of these are the <SAMP>remove()</SAMP> or <SAMP>remove_if()</SAMP> generic algorithms (<A HREF="13-5.html#1351">Section&nbsp;13.5.1</A>). The generic algorithms do not reduce the size of the <B><I>list</I></B>; instead they move the elements to be retained to the front of the <B><I>list</I></B>, leave the remainder of the <B><I>list</I></B> unchanged, and return an iterator denoting the location of the first unmodified element. This value can be used in conjunction with the <SAMP>erase()</SAMP> member function to remove the remaining values.</P>
+
+<UL><PRE>
+list_nine.remove(4);                   // remove all fours
+list_nine.remove_if(divisibleByThree); // remove any div by 3
+
+// the following is equivalent to the above
+std::list&lt;int&gt;::iterator location3 = 
+  std::remove_if(list_nine.begin(), list_nine.end(), 
+                 divisibleByThree);
+list_nine.erase(location3, list_nine.end());
+</PRE></UL>
+<A NAME="idx114"><!></A>
+<P>The member function <SAMP>unique()</SAMP> erases duplicate elements from a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. To do this, the function iterates over the <B><I>list</I></B> and removes every element that is equal to the preceeding element. An alternative version takes a binary function and compares adjacent elements using the function, removing the second value in those situations where the function yields a true value. The more general <SAMP>unique()</SAMP> generic algorithm can also be used (<A HREF="13-5.html#1352">Section&nbsp;13.5.2</A>). In the following example, the binary function is the greater-than operator, which removes all elements smaller than a preceding element:</P>
+
+<UL><PRE>
+// remove first from consecutive equal elements
+list_nine.unique();
+
+// explicitly give comparison function
+list_nine.unique(greater&lt;int&gt;());
+
+// the following is equivalent to the above, using the
+// generic algorithm unique() rather than the list member
+// function
+
+std::list&lt;int&gt;::iterator location3 =
+       std::unique(list_nine.begin(), 
+                   list_nine.end(), greater&lt;int&gt;());
+list_nine.erase(location3, list_nine.end());
+</PRE></UL>
+<A NAME="625"><H3>6.2.5 Extent and Size-Changing Operations</H3></A>
+<A NAME="idx115"><!></A>
+<P>The member function <SAMP>size()</SAMP> returns the number of elements being held by a container. The member function <SAMP>empty()</SAMP> returns <SAMP>true</SAMP> if the container is empty, and is more efficient than comparing the <SAMP>size()</SAMP> against 0.</P>
+
+<UL><PRE>
+std::cout &lt;&lt; "Number of elements: "
+          &lt;&lt; list_nine.size () &lt;&lt; std::endl;
+
+if ( list_nine.empty() )
+   std::cout &lt;&lt; "list is empty " &lt;&lt; std::endl;
+else
+   std::cout &lt;&lt; "list is not empty " &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="idx116"><!></A>
+<P>The member function <SAMP>resize()</SAMP> changes the size of the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> to the value specified by the argument. Values are either added or erased from the end of the collection as necessary. An optional second argument can be used to provide the initial value for any new elements added to the collection:</P>
+
+<UL><PRE>
+// become size 12, adding values of 17 if necessary
+list_nine.resize(12, 17); 
+</PRE></UL>
+<A NAME="626"><H3>6.2.6 Access and Iteration</H3></A>
+<A NAME="idx117"><!></A>
+<P>The member functions <SAMP>front()</SAMP> and<SAMP> back()</SAMP> return, but do not remove, the first and last items in the container, respectively. A <B><I><A HREF="../stdlibref/list.html">list</A></I></B> does not provide random access. Access to elements other than the first and last elements is possible only by removing elements until the desired element becomes the front or back element, or by using iterators.</P>
+<P>There are three types of iterators that can be constructed for lists. The functions <SAMP>begin()</SAMP> and <SAMP>end()</SAMP> construct iterators that traverse the list in forward order. For the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> datatype, <SAMP>begin()</SAMP> and <SAMP>end()</SAMP> create bidirectional iterators. The alternative functions <SAMP>rbegin()</SAMP> and <SAMP>rend()</SAMP> construct iterators that traverse in reverse order, moving from the end of the <B><I>list</I></B> to the front.</P>
+<A NAME="627"><H3>6.2.7 Test for Inclusion</H3></A>
+<P>The <B><I><A HREF="../stdlibref/list.html">list</A></I></B> datatypes do not directly provide any method that can be used to determine if a specific value is contained in the collection. However, either of the generic algorithms <SAMP>std::find()</SAMP> or <SAMP>std::count()</SAMP> can be used for this purpose (<A HREF="13-3.html#1331">Section&nbsp;13.3.1</A> and <A HREF="13-6.html#1361">Section&nbsp;13.6.1</A>). For example, to test whether an integer list contains the element 17:</P>
+
+<UL><PRE>
+find(vec_five.begin(), vec_five.end(), 17);
+</PRE></UL>
+<P>If your compiler does not support partial specialization, then you must use the following interface instead:</P>
+
+<UL><PRE>
+// test for inclusion using count
+
+int num = 0;
+std::count(list_five.begin(), list_five.end(), 17, num);
+if (num &gt; 0)
+  std::cout &lt;&lt; "contains a 17" &lt;&lt; std::endl;
+else
+  std::cout &lt;&lt; "does not contain a 17" &lt;&lt; std::endl;
+
+// test for inclusion using find
+
+if (std::find(list_five.begin(), list_five.end(), 17) !=
+    list_five.end())
+  std::cout &lt;&lt; "contains a 17" &lt;&lt; std::endl;
+else
+  std::cout &lt;&lt; "does not contain a 17" &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="628"><H3>6.2.8 Sorting and Sorted list Operations</H3></A>
+<P>The member function <SAMP>sort()</SAMP> places elements into ascending order. If a comparison operator other than <SAMP>&lt;</SAMP> is desired, it can be supplied as an argument.</P>
+
+<UL><PRE>
+list_ten.sort();                  // order elements
+
+list_twelve.sort(widgetCompare);  // sort with widget compare
+                                  // function
+</PRE></UL>
+<P>Once a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> has been sorted, a number of the generic algorithms for ordered collections can be used with <B><I>list</I></B>s (<A HREF="14.html">Chapter&nbsp;14</A>).</P>
+<A NAME="629"><H3>6.2.9 Searching Operations</H3></A>
+<P>The various forms of searching functions described in <A HREF="13-3.html">Chapter&nbsp;13.3</A>, namely <SAMP>std::find()</SAMP>, <SAMP>std::find_if()</SAMP>, <SAMP>std::adjacent_find()</SAMP>, <SAMP>std::mismatch()</SAMP>, <SAMP>std::max_element()</SAMP>, <SAMP>std::min_element()</SAMP>, or <SAMP>std::search()</SAMP>, can be applied to <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. In all cases the result is an iterator, which can be dereferenced to discover the denoted element, or used as an argument in a subsequent operation.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- The searching algorithms in the Standard C++ Library always return the end of range iterator if no element matching the search condition is found. Unless the result is guaranteed to be valid, it is a good idea to check for the end of range condition.
+</B><HR></BLOCKQUOTE>
+<A NAME="6210"><H3>6.2.10 In-Place Transformations</H3></A>
+<P>A number of operations can be applied to <B><I><A HREF="../stdlibref/list.html">list</A></I></B>s in order to transform them in place. Some of these are provided as member functions. Others make use of some of the generic functions described in <A HREF="13.html">Chapter&nbsp;13</A>.</P>
+<A NAME="idx118"><!></A>
+<P>For a list, the member function <SAMP>reverse()</SAMP> reverses the order of elements in the list:</P>
+
+<UL><PRE>
+list_ten.reverse();              // elements are now reversed
+</PRE></UL>
+<P>The generic algorithm <SAMP>std::transform()</SAMP> can be used to modify every value in a container by simply using the same container as both input and result for the operation (<A HREF="13-7.html#1371">Section&nbsp;13.7.1</A>). For example, the following code increments each element of a list by one: </P>
+
+<UL><PRE>
+std::transform(list_ten.begin(), list_ten.end(), list_ten.begin(),
+               std::bind1st(std::plus&lt;int&gt;(), 1));
+</PRE></UL>
+<P>To construct the necessary unary function, the first argument of the binary integer addition function is bound to the value 1 using the <B><I><A HREF="../stdlibref/bind1st.html">bind1st</A></I></B> function adapter (<A HREF="3-5.html">Section&nbsp;3.5</A>). The version of <SAMP>std::transform()</SAMP> that manipulates two parallel sequences can also be used this way.</P>
+<P>Similarly, the functions <SAMP>std::replace()</SAMP> and <SAMP>std::replace_if()</SAMP> can be used to replace elements of a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> with specific values (<A HREF="13-4.html#1342">Section&nbsp;13.4.2</A>). Rotations and partitions can also be performed with <B><I>list</I></B>s (<A HREF="13-4.html#1343">Section&nbsp;13.4.3</A> and <A HREF="13-4.html#1344">Section&nbsp;13.4.4</A>):</P>
+
+<UL><PRE>
+// find the location of the value 5, and rotate around it
+
+std::list&lt;int&gt;::iterator location =
+  std::find(list_ten.begin(), list_ten.end(), 5);
+std::rotate(list_ten.begin(), location, list_ten.end());
+
+// now partition using values greater than 7 std::partition(list_ten.begin(), list_ten.end(), 
+          std::bind2nd(std::greater&lt;int&gt;(), 7));
+</PRE></UL>
+<P>The functions <SAMP>std::next_permutation()</SAMP> and <SAMP>std::prev_permutation()</SAMP> can be used to generate the next permutation (or previous permutation) of a collection of values (<A HREF="13-4.html#1345">Section&nbsp;13.4.5</A>):</P>
+
+<UL><PRE>
+std::next_permutation(list_ten.begin(), list_ten.end());
+</PRE></UL>
+<A NAME="6211"><H3>6.2.11 Other Operations</H3></A>
+<P>The algorithm <SAMP>std::for_each()</SAMP> applies a function to every element of a collection (<A HREF="13-8.html">Section&nbsp;13.8</A>). An illustration of this use is given in the radix sort example program in the section on the <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> data structure (<A HREF="7-3.html">Section&nbsp;7.3</A>).</P>
+<P>The <SAMP>std::accumulate()</SAMP> generic algorithm reduces a collection to a scalar value (<A HREF="13-6.html#1362">Chapter&nbsp;13.6.2</A>). This can be used, for example, to compute the sum of a list of numbers. A more unusual use of <SAMP>std::accumulate()</SAMP> is illustrated in the radix sort example from <A HREF="7-3.html">Section&nbsp;7.3</A>:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; "Sum of list is: " 
+          &lt;&lt; std::accumulate(list_ten.begin(),list_ten.end(),0)
+          &lt;&lt; std::endl;
+</PRE></UL>
+<P>Two <B><I><A HREF="../stdlibref/list.html">list</A></I></B>s can be compared against each other using the <SAMP>std::lexicographical_compare()</SAMP> algorithm (<A HREF="13-6.html#1365">Section&nbsp;13.6.5</A>). The <B><I>list</I></B>s are equal if they are the same size and all corresponding elements are equal. A <B><I>list</I></B> is less than another <B><I>list</I></B> if it is lexicographically smaller.</P>
+
+<BR>
+<HR>
+<A HREF="6-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="6-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

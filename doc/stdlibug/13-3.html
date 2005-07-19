@@ -1,0 +1,338 @@
+<HTML>
+<HEAD>
+<TITLE>Searching Operations</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="13-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>13.3 Searching Operations</H2>
+<A NAME="idx280"><!></A>
+<P>The next category of algorithms we describe are used to locate elements within a sequence that satisfy certain properties. Most commonly the result of a search is then used as an argument to a further operation, for example, <SAMP>std::copy()</SAMP> (<A HREF="13-2.html#1322">Section&nbsp;13.2.2</A>), <SAMP>std::partition()</SAMP> (<A HREF="13-4.html#1344">Section&nbsp;13.4.4</A>), or <SAMP>std::inplace_merge()</SAMP> (<A HREF="13-4.html#1346">Section&nbsp;13.4.6</A>.)</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- The example functions described in the following sections are in the file alg2.cpp.
+</B><HR></BLOCKQUOTE>
+<P>The searching routines described in this section return an iterator that identifies the first element that satisfies the search condition. It is common to store this value in an <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> variable, as follows:</P>
+
+<UL><PRE>
+std::list&lt;int&gt;::iterator where;
+where = std::find(aList.begin(), aList.end(), 7);
+</PRE></UL>
+<P>If you want to locate <I>all</I> the elements that satisfy the search conditions, you must write a loop. In that loop, the value yielded by a previous search is first advanced, since otherwise the value yielded by the previous search would once again be returned. The resulting value is then used as a starting point for the new search.   For example, the following loop from the <SAMP>std::adjacent_find()</SAMP> example program (<A HREF="13-3.html#1332">Section&nbsp;13.3.2</A>) will print the value of all repeated characters in a string argument:</P>
+
+<UL><PRE>
+while ((where = std::adjacent_find(where, stop)) != stop) {
+  std::cout &lt;&lt; "double " &lt;&lt; *where &lt;&lt; " in position " 
+            &lt;&lt; where - start &lt;&lt; std::endl;
+  ++where;
+}
+</PRE></UL>
+<BLOCKQUOTE><HR><B>
+NOTE -- The searching algorithms in the Standard C++ Library all return the end-of-sequence iterator if no value is found that matches the search condition. As it is generally illegal to dereference the end-of-sequence value, it is important to check for this condition before proceeding to use the result of a search.
+</B><HR></BLOCKQUOTE>
+<P>Many of the searching algorithms have an optional argument that can specify a function for comparing elements in place of the equality <SAMP>operator==()</SAMP> for the container element type. In the descriptions of the algorithms, we write these optional arguments inside square brackets to indicate they need not be specified if the standard equality operator is acceptable.</P>
+<A NAME="1331"><H3>13.3.1 Find an Element Satisfying a Condition</H3></A>
+<A NAME="idx281"><!></A>
+<P>There are two algorithms, <SAMP>std::find()</SAMP> and <SAMP>std::find_if()</SAMP>, that are used to find the first element that satisfies a condition. The declarations of these two algorithms are as follows:</P>
+
+<UL><PRE>
+namespace std {
+  InputIterator find_if(InputIterator first,
+                        InputIterator last, Predicate);
+
+  InputIterator find(InputIterator first, 
+                     InputIterator last, const T&amp;);
+}
+</PRE></UL>
+<P>The algorithm <SAMP>std::find_if()</SAMP> takes as argument a predicate function, which can be any function that returns a boolean value (see <A HREF="3-3.html">Section&nbsp;3.3</A>). <SAMP>std::find_if()</SAMP> returns a new <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> that designates the first element in the sequence that satisfies the predicate. The second argument, the past-the-end iterator, is returned if no element is found that matches the requirement. Because the resulting value is an <B><I>iterator</I></B>, the dereference operator <SAMP>*</SAMP> must be used to obtain the matching value. This is illustrated in the example program.</P>
+<P>The second form of the algorithm, <SAMP>std::find()</SAMP>, replaces the predicate function with a specific value, and returns the first element in the sequence that tests equal to this value, using <SAMP>operator==()</SAMP> for the given datatype.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- The algorithms find() and find_if() perform a linear sequential search through the associated structures. The set and map data structures, which are ordered, provide their own find() member functions, which are more efficient. Because of this, the generic find() algorithm should not be used with set and map.
+</B><HR></BLOCKQUOTE>
+<P>The following example program illustrates the use of <SAMP>std::find()</SAMP> and <SAMP>std::find_if()</SAMP>:</P>
+
+<A NAME="idx282"><!></A>
+<UL><PRE>
+void find_test ()
+// illustrates the use of the find algorithm
+// see alg2.cpp for complete source code
+{
+   int vintageYears[] = {1967, 1972, 1974, 1980, 1995};
+   int *start = vintageYears;
+   int *stop = start + 5;
+   int *where = std::find_if(start, stop, isLeapYear);
+
+   if (where != stop)
+      std::cout &lt;&lt; "first vintage leap year is "
+                &lt;&lt; *where &lt;&lt; std::endl;
+   else
+      std::cout &lt;&lt; "no vintage leap years" &lt;&lt; std::endl;
+
+   where = std::find(start, stop, 1995);
+
+   if (where != stop)
+      std::cout &lt;&lt; "1995 is position " &lt;&lt; where - start 
+                &lt;&lt; " in sequence" &lt;&lt; std::endl;
+   else
+      std::cout &lt;&lt; "1995 does not occur in sequence" &lt;&lt; std::endl;
+}
+</PRE></UL>
+<A NAME="1332"><H3>13.3.2 Find Consecutive Duplicate Elements</H3></A>
+<A NAME="idx283"><!></A>
+<P>The <SAMP>std::adjacent_find()</SAMP> algorithm is used to discover the first element in a sequence equal to the next immediately following element. For example, if a sequence contained the values<SAMP> 1 4 2 5 6 6 7 5</SAMP>, the algorithm would return an <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> corresponding to the first <SAMP>6</SAMP> value. If no value satisfying the condition is found, then the end-of-sequence iterator is returned. The declaration of the algorithm is as follows:</P>
+
+<UL><PRE>
+namespace std {
+  ForwardIterator adjacent_find (ForwardIterator first, 
+                                 ForwardIterator last
+                                 [, BinaryPredicate ] );
+}
+</PRE></UL>
+<P>The first two arguments specify the sequence to be examined. The optional third argument must be a <I>binary predicate</I>, a binary function returning a boolean value. If present, the binary function is used to test adjacent elements, otherwise the equality operator,  <SAMP>operator==(),</SAMP> is used.</P>
+<P>The example program searches a text string for adjacent letters. In the example text these are found in positions <SAMP>5</SAMP>, <SAMP>7</SAMP>, <SAMP>9</SAMP>, <SAMP>21</SAMP>, and <SAMP>37</SAMP>. The increment is necessary inside the loop in order to avoid the same position being discovered repeatedly.</P>
+
+<A NAME="idx284"><!></A>
+<UL><PRE>
+void adjacent_find_example ()
+// illustrates the use of the adjacent_find instruction
+// see alg2.cpp for complete source code
+{
+   char *text = "The bookkeeper carefully opened the door.";
+
+   char *start = text;
+   char *stop = text + strlen(text);
+   char *where = start;
+
+   std::cout &lt;&lt; "In the text: " &lt;&lt; text &lt;&lt; std::endl;
+   while ((where = std::adjacent_find(where, stop)) != stop) {
+      std::cout &lt;&lt; "double " &lt;&lt; *where 
+                &lt;&lt; " in position " &lt;&lt; where - start &lt;&lt; std::endl;
+      ++where;
+   }
+}
+</PRE></UL>
+<A NAME="1333"><H3>13.3.3 Find the First Occurrence of Any Value from a Sequence</H3></A>
+<A NAME="idx285"><!></A>
+<P>The algorithm <SAMP>std::find_first_of()</SAMP> is used to find the first occurrence of some element from one sequence that is also contained in another sequence: </P>
+
+<UL><PRE>
+namespace std {
+  ForwardIterator1 find_first_of 
+    (ForwardIterator1 first1, ForwardIterator1 last1,
+     ForwardIterator2 first2, ForwardIterator2 last2
+     [, BinaryPredicate pred ] );
+}
+</PRE></UL>
+<P>The algorithm returns a new <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> that designates the first element found in <SAMP>[first1,last1)</SAMP> that is also contained in <SAMP>[first2,last2)</SAMP>.   If no match is found, the second argument is returned. Because the resulting value is an <B><I>iterator</I></B>, the dereference operator <SAMP>*</SAMP> must be used to obtain the matching value. This is illustrated in the example program:</P>
+
+<A NAME="idx286"><!></A>
+<UL><PRE>
+void find_test ()
+// illustrates the use of the find algorithm
+// see alg2.cpp for complete source code
+{
+   int vintageYears[] = {1967, 1972, 1974, 1980, 1995};
+   int requestedYears[] = {1923, 1970, 1980, 1974 };
+   int *start = vintageYears;
+   int *stop = start + 5;
+   int *where = find_first_of(start, stop, requestedyears,
+                              requestedyears+4);
+
+   if (where != stop)
+      std::cout &lt;&lt; "first requested vintage year is "
+                &lt;&lt; *where &lt;&lt; std::endl;
+   else
+      std::cout &lt;&lt; "no requested vintage years" &lt;&lt; std::endl;
+
+}
+
+// The output would indicate 1974.
+</PRE></UL>
+<P>Note that this algorithm, unlike many that manipulate two sequences, uses a starting and ending <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> pair for both sequences, not just the first sequence.</P>
+<P>Like the algorithms <SAMP>std::equal()</SAMP> and <SAMP>std::mismatch()</SAMP>, an alternative version of <SAMP>std::find_first_of()</SAMP> takes an optional binary predicate that is used to compare elements from the two sequences. </P>
+<P>The <B><I><A HREF="../stdlibref/basic-string.html">basic_string</A></I></B> class provides its own versions of the <SAMP>find_first_of</SAMP> and <SAMP>find_end</SAMP> algorithms, including several convenience overloads of the basic pattern indicated here.</P>
+<A NAME="1334"><H3>13.3.4 Find a Sub-Sequence within a Sequence</H3></A>
+<A NAME="idx287"><!></A>
+<P>The algorithms <SAMP>std::search()</SAMP> and <SAMP>std::search_n()</SAMP> are used to locate the beginning of a particular sub-sequence within a larger sequence. The easiest example to understand is the problem of looking for a particular substring within a larger string, although the algorithm can be generalized to other uses. The arguments are assumed to have at least the capabilities of forward iterators.</P>
+
+<UL><PRE>
+namespace std {
+  ForwardIterator search 
+         (ForwardIterator first1, ForwardIterator last1, 
+          ForwardIterator first2, ForwardIterator last2 
+          [, BinaryPredicate ]);
+}
+</PRE></UL>
+<P>Suppose, for example, that we want to discover the location of the string <SAMP>"ration"</SAMP> in the string <SAMP>"dreams and aspirations"</SAMP>. The solution to this problem is shown in the example program. If no appropriate match is found, the value returned is the past-the-end iterator for the first sequence.</P>
+
+<A NAME="idx288"><!></A>
+<UL><PRE>
+void search_example ()
+// illustrate the use of the search algorithm
+// see alg2.cpp for complete source code
+{
+  char *base = "dreams and aspirations";
+  char *text = "ration";
+
+  char *where = std::search(base, base + std::strlen(base), 
+                            text, text + std::strlen(text));
+
+  if (*where != '\0')
+    std::cout &lt;&lt; "substring position: "
+              &lt;&lt; where - base &lt;&lt; std::endl;
+  else
+    std::cout &lt;&lt; "substring does not occur in text" &lt;&lt; std::endl;
+}
+</PRE></UL>
+<P>Note that this algorithm, unlike many that manipulate two sequences, uses a starting and ending <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> pair for both sequences, not just the first sequence.</P>
+<P>Like the algorithms <SAMP>std::equal()</SAMP> and <SAMP>std::mismatch()</SAMP>, an alternative version of <SAMP>std::search()</SAMP> takes an optional binary predicate that is used to compare elements from the two sequences.</P>
+<P>What determines the speed of the search? In the worst case, the number of comparisons performed by the algorithm <SAMP>std::search()</SAMP> is the product of the number of elements in the two sequences. Except in rare cases, however, this worst case behavior is highly unlikely.</P>
+<A NAME="1335"><H3>13.3.5 Find the Last Occurrence of a Sub-Sequence</H3></A>
+<A NAME="idx289"><!></A>
+<P>The algorithm <SAMP>std::find_end()</SAMP> is used to locate the beginning of the last occurrence of a particular sub-sequence within a larger sequence. The easiest example to understand is the problem of looking for a particular substring within a larger string, although the algorithm can be generalized to other uses. The arguments are assumed to have at least the capabilities of forward iterators.</P>
+
+<UL><PRE>
+namespace std {
+  ForwardIterator find_end 
+    (ForwardIterator first1, ForwardIterator last1, 
+     ForwardIterator first2, ForwardIterator last2 
+     [, BinaryPredicate ]);
+}
+</PRE></UL>
+<P>Suppose, for example, that we want to discover the location of the last occurrence of the string <SAMP>"le"</SAMP> in the string <SAMP>"The road less traveled"</SAMP>. The solution to this problem is shown in the example program. If no appropriate match is found, the value returned is the past-the-end iterator for the first sequence.</P>
+
+<A NAME="idx290"><!></A>
+<UL><PRE>
+void find_end_example ()
+// illustrate the use of the find_end algorithm
+// see alg2.cpp for complete source code
+{
+  char *base = "The road less traveled";
+  char *text = "le";
+
+  char *where = std::find(base, base + std::strlen(base), 
+                          text, text + std::strlen(text));
+
+  if (*where != '\0')
+    std::cout &lt;&lt; "substring position: "
+              &lt;&lt; where - base &lt;&lt; std::endl;
+  else
+    std::cout &lt;&lt; "substring does not occur in text" &lt;&lt; std::endl;
+}
+</PRE></UL>
+<P>Note that this algorithm, unlike many that manipulate two sequences, uses a starting and ending <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> pair for both sequences, not just the first sequence.</P>
+<P>Like the algorithms <SAMP>std::find_first_of()</SAMP> and <SAMP>std::search()</SAMP>, an alternative version of <SAMP>std::find_end()</SAMP> takes an optional binary predicate that is used to compare elements from the two sequences.</P>
+<P>What determines the speed of the search? As with <SAMP>std::search()</SAMP>, in the worst case, the number of comparisons performed by the algorithm <SAMP>std::find_end()</SAMP> is the product of the number of elements in the two sequences. </P>
+<A NAME="1336"><H3>13.3.6 Locate Maximum or Minimum Element</H3></A>
+<A NAME="idx291"><!></A>
+<P>The functions <SAMP>std::max()</SAMP> and <SAMP>std::min()</SAMP> can be used to find the maximum and minimum of a pair of values. These can optionally take a third argument that defines the comparison function to use in place of the less-than operator <SAMP>&lt;</SAMP>. The arguments are values, not <B><I><A HREF="../stdlibref/iterators.html">iterators</A></I></B>:</P>
+
+<UL><PRE>
+namespace std{
+  template &lt;class T&gt; 
+     const T&amp; max(const T&amp; a, const T&amp; b [, Compare ] );
+  template &lt;class T&gt; 
+     const T&amp; min(const T&amp; a, const T&amp; b [, Compare ] );
+}
+</PRE></UL>
+<A NAME="idx292"><!></A>
+<P>The maximum and minimum functions are generalized to entire sequences by the generic algorithms <SAMP>std::max_element()</SAMP> and <SAMP>std::min_element()</SAMP>. For these functions the arguments are input iterators.</P>
+
+<UL><PRE>
+namespace std {
+  ForwardIterator max_element (ForwardIterator first, 
+                               ForwardIterator last
+                               [, Compare ] );
+  ForwardIterator min_element (ForwardIterator first,
+                               ForwardIterator last
+                               [, Compare ] );
+}
+</PRE></UL>
+<P>These algorithms return an <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> that denotes the largest or smallest of the values in a sequence, respectively. Should more than one value satisfy the requirement, the result yielded is the first satisfactory value. Both algorithms can optionally take a third argument, which is the function to be used as the comparison operator in place of the default operator.</P>
+<P>The example program illustrates several uses of these algorithms. The function named <SAMP>split()</SAMP> that was used to divide a string into words in the <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> example is described in <A HREF="12-3.html">Section&nbsp;12.3</A>. The function <SAMP>randomInteger()</SAMP> is described in <A HREF="2-5.html">Section&nbsp;2.5</A>.</P>
+
+<A NAME="idx293"><!></A>
+<UL><PRE>
+void max_min_example()
+// illustrates use of max_element and min_element algorithms
+// see alg2.cpp for complete source code
+{
+  // make a vector of random numbers between 0 and 99
+  std::vector&lt;int&gt; numbers(25);
+  for (int i = 0; i &lt; 25; i++)
+    numbers[i] = randomInteger(100);
+
+  // print the maximum
+  std::vector&lt;int&gt;::iterator max = 
+    std::max_element(numbers.begin(), numbers.end());
+  std::cout &lt;&lt; "largest value was " &lt;&lt; * max &lt;&lt; std::endl;
+
+  // example using strings
+  std::string text = 
+    "It was the best of times, it was the worst of times.";
+  std::list&lt;std::string&gt; words;
+  std::split (text, " .,!:;", words);
+  std::cout &lt;&lt; "The smallest word is " 
+            &lt;&lt; *std::min_element(words.begin(), words.end())
+            &lt;&lt; " and the largest word is "
+            &lt;&lt; *std::max_element(words.begin(), words.end())
+            &lt;&lt; std::endl;
+}
+</PRE></UL>
+<P>The maximum and minimum algorithms can be used with all the datatypes provided by the Standard C++ Library. However, for the ordered datatypes <B><I><A HREF="../stdlibref/set.html">set</A></I></B> and <B><I><A HREF="../stdlibref/map.html">map</A></I></B>, the maximum or minimum values are more easily accessed as the first or last elements in the structure.</P>
+<A NAME="1337"><H3>13.3.7 Locate the First Mismatched Elements in Parallel Sequences</H3></A>
+<A NAME="idx294"><!></A>
+<P>The name <SAMP>std::mismatch()</SAMP> might lead you to think this algorithm is the inverse of the <SAMP>std::equal()</SAMP> algorithm, which determines if two sequences are equal (<A HREF="13-6.html#1364">Section&nbsp;13.6.4</A>). Instead, the <SAMP>std::mismatch()</SAMP> algorithm returns a <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B> of iterators that together indicate the first positions where two parallel sequences have differing elements. The structure <B><I>pair</I></B> is described in <A HREF="9-1.html">Section&nbsp;9.1</A> and <A HREF="9-2.html#921">Section&nbsp;9.2.1</A>. </P>
+<P>The second sequence is denoted only by a starting position, without an ending position. It is assumed, but not checked, that the second sequence contains at least as many elements as the first. The arguments and return type for <SAMP>mismatch()</SAMP> can be described as follows:</P>
+
+<UL><PRE>
+namespace std {
+  pair&lt;InputIterator, InputIterator&gt; mismatch 
+       (InputIterator first1, InputIterator last1, 
+        InputIterator first2 [, BinaryPredicate ] );
+}
+</PRE></UL>
+<P>The elements of the two sequences are examined in parallel, element by element. When a mismatch is found, that is, a point where the two sequences differ, then a <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B> containing <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s denoting the locations of the two differing elements is constructed and returned. If the first sequence is exhausted before discovering any mismatched elements, then the resulting <B><I>pair</I></B> contains the ending value for the first sequence, and the last value examined in the second sequence. The second sequence need not yet be exhausted.</P>
+<P>The example program illustrates the use of this procedure. The function <SAMP>std::mismatch_test()</SAMP> takes as arguments two <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> values. These are lexicographically compared and a message printed indicating their relative ordering. This is similar to the analysis performed by the <SAMP>std::lexicographic_compare()</SAMP> algorithm, although that function simply returns a boolean value. </P>
+<P>Because the <SAMP>std::mismatch()</SAMP> algorithm assumes the second sequence is at least as long as the first, a comparison of the two string lengths is performed first, and the arguments are reversed if the second string is shorter than the first. After the call on <SAMP>std::mismatch()</SAMP>, the elements of the resulting <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B> are separated into their component parts. These parts are then tested to determine the appropriate ordering.</P>
+
+<A NAME="idx295"><!></A>
+<UL><PRE>
+void mismatch_test (char *a, char *b)
+// illustrates the use of the mismatch algorithm
+// see alg2.cpp for complete source code
+{
+  std::pair&lt;char *, char *&gt; differPositions(0, 0);
+  char *aDiffPosition;
+  char *bDiffPosition;
+
+  if (std::strlen(a) &lt; std::strlen(b)) {
+    // make sure longer string is second
+    differPositions = std::mismatch(a, a + std::strlen(a), b);
+    aDiffPosition = differPositions.first;
+    bDiffPosition = differPositions.second;
+  }
+  else {
+    differPositions = std::mismatch(b, b + std::strlen(b), a);
+    // note following reverse ordering
+    aDiffPosition = differPositions.second;
+    bDiffPosition = differPositions.first;
+  }
+
+  // compare resulting values
+  std::cout &lt;&lt; "string " &lt;&lt; a;
+
+  if (*aDiffPosition == *bDiffPosition)
+    std::cout &lt;&lt; " is equal to ";
+  else if (*aDiffPosition &lt; *bDiffPosition)
+    std::cout &lt;&lt; " is less than ";
+  else
+    std::cout &lt;&lt; " is greater than ";
+
+  std::cout &lt;&lt; b &lt;&lt; std::endl;
+}
+</PRE></UL>
+<P>A second form of the <SAMP>std::mismatch()</SAMP> algorithm is similar to this one, except it accepts a binary predicate as a fourth argument. This binary function is used to compare elements in place of <SAMP>operator==()</SAMP>.</P>
+
+<BR>
+<HR>
+<A HREF="13-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

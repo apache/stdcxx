@@ -1,0 +1,622 @@
+<HTML>
+<HEAD>
+<TITLE>&lt;algorithm&gt;</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="advance.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="algorithms.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>&lt;algorithm&gt;</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Header</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">See Also</A></LI>
+<LI><A HREF="#sec5">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P> The header <SAMP>&lt;algorithm&gt;</SAMP> represents the Algorithms library of the Standard C++ Library.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>namespace std {
+  //  lib.alg.nonmodifying, nonmodifying sequence operations:
+  template&lt;class InputIterator, class Function&gt;
+  Function <SAMP><A HREF="for-each.html">for_each</A></SAMP>(InputIterator start, InputIterator finish,
+                    Function f);
+  
+  template&lt;class InputIterator, class T&gt;
+  InputIterator <SAMP><A HREF="find.html">find</A></SAMP>(InputIterator start,                      InputIterator finish,
+                     const T&amp; value);
+  
+  template&lt;class InputIterator, class Predicate&gt;
+  InputIterator <SAMP><A HREF="find-if.html">find_if</A></SAMP>(InputIterator start,
+                        InputIterator finish,
+                        Predicate pred);
+  
+  template&lt;class ForwardIterator1, class ForwardIterator2&gt;
+  ForwardIterator1
+  <SAMP><A HREF="find-end.html">find_end</A></SAMP>(ForwardIterator1 start1, ForwardIterator1 finish1,
+           ForwardIterator2 start2, ForwardIterator2 finish2);
+  
+  template&lt;class ForwardIterator1, class ForwardIterator2,
+           class BinaryPredicate&gt;
+  ForwardIterator1
+  find_end(ForwardIterator1 start1, ForwardIterator1 finish1,
+           ForwardIterator2 start2, ForwardIterator2 finish2,
+           BinaryPredicate binary_pred);
+  
+  template&lt;class ForwardIterator1, class ForwardIterator2&gt;
+  ForwardIterator1
+  <SAMP><A HREF="find-first-of.html">find_first_of</A></SAMP>(ForwardIterator1 start1,
+                ForwardIterator1 finish1,
+                ForwardIterator2 start2,
+                ForwardIterator2 finish2);
+  
+  template&lt;class ForwardIterator1, class ForwardIterator2,
+  class BinaryPredicate&gt;
+  ForwardIterator1
+  find_first_of(ForwardIterator1 start1,
+                ForwardIterator1 finish1,
+                ForwardIterator2 start2,
+                ForwardIterator2 finish2,
+                BinaryPredicate binary_pred);
+  
+  template&lt;class ForwardIterator&gt;
+  ForwardIterator <SAMP><A HREF="adjacent-find.html">adjacent_find</A></SAMP>(ForwardIterator start,
+                                ForwardIterator finish);
+  
+  template&lt;class ForwardIterator, class BinaryPredicate&gt;
+  ForwardIterator adjacent_find(ForwardIterator start,
+                                ForwardIterator finish,
+                                BinaryPredicate binary_pred);
+  
+  template&lt;class InputIterator, class T&gt;
+  typename iterator_traits&lt;InputIterator&gt;::difference_type
+  <SAMP><A HREF="count.html">count</A></SAMP>(InputIterator start, InputIterator finish, 
+        const T&amp; value);
+
+  template&lt;class InputIterator, class Predicate&gt;
+  typename iterator_traits&lt;InputIterator&gt;::difference_type
+  <SAMP><A HREF="count.html">count_if</A></SAMP>(InputIterator start, InputIterator finish, 
+           Predicate pred);
+  
+  template&lt;class InputIterator1, class InputIterator2&gt;
+  pair&lt;InputIterator1, InputIterator2&gt;
+  <SAMP><A HREF="mismatch.html">mismatch</A></SAMP>(InputIterator1 start1, InputIterator1 finish1,
+           InputIterator2 start2);
+  
+  template&lt;class InputIterator1, class InputIterator2, 
+           class BinaryPredicate&gt;
+  pair&lt;InputIterator1, InputIterator2&gt;
+  mismatch(InputIterator1 start1, InputIterator1 finish1,
+           InputIterator2 start2,             BinaryPredicate binary_pred);
+  
+  template&lt;class InputIterator1, class InputIterator2&gt;
+  bool <SAMP><A HREF="equal.html">equal</A></SAMP>(InputIterator1 start1, InputIterator1 finish1,
+             InputIterator2 start2);
+   
+  template&lt;class InputIterator1, class InputIterator2, 
+           class BinaryPredicate&gt;
+  bool equal(InputIterator1 start1, InputIterator1 finish1,
+             InputIterator2 start2,              BinaryPredicate binary_pred);
+  
+  template&lt;class ForwardIterator1, class ForwardIterator2&gt;
+  ForwardIterator1 <SAMP><A HREF="search.html">search</A></SAMP>(ForwardIterator1 start1,
+                          ForwardIterator1 finish1,
+                          ForwardIterator2 start2, 
+                          ForwardIterator2 finish2);
+  
+  template&lt;class ForwardIterator1, class ForwardIterator2,
+  class BinaryPredicate&gt;
+  ForwardIterator1 search(ForwardIterator1 start1,
+                          ForwardIterator1 finish1,
+                          ForwardIterator2 start2, 
+                          ForwardIterator2 finish2,
+                          BinaryPredicate binary_pred);
+  
+  template&lt;class ForwardIterator, class Size, class T&gt;
+  ForwardIterator  <SAMP><A HREF="search.html">search_n</A></SAMP>(ForwardIterator start,
+                            ForwardIterator finish,
+                            Size count, 
+                            const T&amp; value);
+  
+  template&lt;class ForwardIterator, class Size, class T, 
+           class BinaryPredicate&gt;
+  ForwardIterator1 search_n(ForwardIterator start,
+                            ForwardIterator finish,
+                            Size count, 
+                            const T&amp; value,
+                            BinaryPredicate binary_pred);
+  
+  //  lib.alg.modifying.operations, 
+  //  modifying sequence operations:
+  //  lib.alg.copy, copy:
+  template&lt;class InputIterator, class OutputIterator&gt;
+  OutputIterator <SAMP><A HREF="copy.html">copy</A></SAMP>(InputIterator start,                       InputIterator finish,
+                      OutputIterator result);
+  
+  template&lt;class BidirectionalIterator1, 
+           class BidirectionalIterator2&gt;
+  BidirectionalIterator2  
+  <SAMP><A HREF="copy.html">copy_backward</A></SAMP>(BidirectionalIterator1 start,
+                BidirectionalIterator1 finish,
+                BidirectionalIterator2 result);
+  
+  //  lib.alg.swap, swap:
+  template&lt;class T&gt; void <SAMP><A HREF="swap.html">swap</A></SAMP>(T&amp; a, T&amp; b);
+  
+  template&lt;class ForwardIterator1, class ForwardIterator2&gt;
+  ForwardIterator2 <SAMP><A HREF="swap-ranges.html">swap_ranges</A></SAMP>(ForwardIterator1 start1,
+                               ForwardIterator1 finish1,
+                               ForwardIterator2 start2);
+  
+  template&lt;class ForwardIterator1, class ForwardIterator2&gt;
+  void <SAMP><A HREF="iter-swap.html">iter_swap</A></SAMP>(ForwardIterator1 a, ForwardIterator2 b);
+  
+  template&lt;class InputIterator, class OutputIterator, 
+           class UnaryOperation&gt;
+  OutputIterator <SAMP><A HREF="transform.html">transform</A></SAMP>(InputIterator start, 
+                           InputIterator finish,
+                           OutputIterator result, 
+                           UnaryOperation op);
+  
+  template&lt;class InputIterator1, 
+           class InputIterator2, 
+           class OutputIterator,
+           class BinaryOperation&gt;
+  OutputIterator transform(InputIterator1 start1, 
+                           InputIterator1 finish1,
+                           InputIterator2 start2, 
+                           OutputIterator result,
+                           BinaryOperation binary_op);
+  
+  template&lt;class ForwardIterator, class T&gt;
+  void <SAMP><A HREF="replace.html">replace</A></SAMP>(ForwardIterator start, ForwardIterator finish,
+               const T&amp; old_value, const T&amp; new_value);
+  
+  template&lt;class ForwardIterator, class Predicate, class T&gt;
+  void <SAMP><A HREF="replace-if.html">replace_if</A></SAMP>(ForwardIterator start,                   ForwardIterator finish,
+                  Predicate pred, const T&amp; new_value);
+
+  template&lt;class InputIterator, class OutputIterator, class T&gt;
+  OutputIterator <SAMP><A HREF="replace-copy.html">replace_copy</A></SAMP>(InputIterator start, 
+                              InputIterator finish,
+                              OutputIterator result,
+                              const T&amp; old_value, 
+                              const T&amp; new_value);
+  
+  template&lt;class Iterator, class OutputIterator, 
+           class Predicate, class T&gt;
+  OutputIterator <SAMP><A HREF="replace-copy-if.html">replace_copy_if</A></SAMP>(Iterator start, 
+                                 Iterator finish,
+                                 OutputIterator result,
+                                 Predicate pred,
+                                 const T&amp; new_value);
+  
+  template&lt;class ForwardIterator, class T&gt;
+  void <SAMP><A HREF="fill.html">fill</A></SAMP>(ForwardIterator start, ForwardIterator finish, 
+            const T&amp; value);
+  
+  template&lt;class OutputIterator, class Size, class T&gt;
+  void <SAMP><A HREF="fill.html">fill_n</A></SAMP>(OutputIterator start, Size n, const T&amp; value);
+  
+  template&lt;class ForwardIterator, class Generator&gt;
+  void <SAMP><A HREF="generate.html">generate</A></SAMP>(ForwardIterator start, ForwardIterator finish,
+                Generator gen);
+  
+  template&lt;class OutputIterator, class Size, class Generator&gt;
+  void <SAMP><A HREF="generate.html">generate_n</A></SAMP>(OutputIterator start, Size n, 
+                  Generator gen);
+  
+  template&lt;class ForwardIterator, class T&gt;
+  ForwardIterator <SAMP><A HREF="remove.html">remove</A></SAMP>(ForwardIterator start, 
+                         ForwardIterator finish,
+                         const T&amp; value);
+  
+  template&lt;class ForwardIterator, class Predicate&gt;
+  ForwardIterator <SAMP><A HREF="remove-if.html">remove_if</A></SAMP>(ForwardIterator start,
+                            ForwardIterator finish,
+                            Predicate pred);
+  
+  template&lt;class InputIterator, class OutputIterator, class T&gt;
+  OutputIterator <SAMP><A HREF="remove-copy.html">remove_copy</A></SAMP>(InputIterator start, 
+                             InputIterator finish,
+                             OutputIterator result, 
+                             const T&amp; value);
+  
+  template&lt;class InputIterator, class OutputIterator, 
+           class Predicate&gt;
+  OutputIterator <SAMP><A HREF="remove-copy-if.html">remove_copy_if</A></SAMP>(InputIterator start,
+                                InputIterator finish,
+                                OutputIterator result, 
+                                Predicate pred);
+  
+  template&lt;class ForwardIterator&gt;
+  ForwardIterator <SAMP><A HREF="unique.html">unique</A></SAMP>(ForwardIterator start, 
+                         ForwardIterator finish);
+  
+  template&lt;class ForwardIterator, class BinaryPredicate&gt;
+  ForwardIterator unique(ForwardIterator start, 
+                         ForwardIterator finish,
+                         BinaryPredicate binary_pred);
+  
+  template&lt;class InputIterator, class OutputIterator&gt;
+  OutputIterator <SAMP><A HREF="unique.html">unique_copy</A></SAMP>(InputIterator start, 
+                             InputIterator finish,
+                             OutputIterator result);
+  
+  template&lt;class InputIterator, class OutputIterator, 
+           class BinaryPredicate&gt;
+  OutputIterator unique_copy(InputIterator start, 
+                             InputIterator finish,
+                             OutputIterator result,
+                             BinaryPredicate binary_pred);
+  
+  template&lt;class BidirectionalIterator&gt;
+  void <SAMP><A HREF="reverse.html">reverse</A></SAMP>(BidirectionalIterator start,
+               BidirectionalIterator finish);
+  
+  template&lt;class BidirectionalIterator, class OutputIterator&gt;
+  OutputIterator <SAMP><A HREF="reverse-copy.html">reverse_copy</A></SAMP>(BidirectionalIterator start,
+                              BidirectionalIterator finish,
+                              OutputIterator result);
+  
+  template&lt;class ForwardIterator&gt;
+  void <SAMP><A HREF="rotate.html">rotate</A></SAMP>(ForwardIterator start, ForwardIterator mid,
+              ForwardIterator finish);
+  
+
+  template&lt;class ForwardIterator, class OutputIterator&gt;
+  OutputIterator <SAMP><A HREF="rotate.html">rotate_copy</A></SAMP>(ForwardIterator start,
+                             ForwardIterator mid,
+                             ForwardIterator finish,
+                             OutputIterator result);
+  
+  template&lt;class RandomAccessIterator&gt;
+  void <SAMP><A HREF="random-shuffle.html">random_shuffle</A></SAMP>(RandomAccessIterator start,
+                      RandomAccessIterator finish);
+  
+  template&lt;class RandomAccessIterator, 
+           class RandomNumberGenerator&gt;
+  void random_shuffle(RandomAccessIterator start,
+                      RandomAccessIterator finish,
+                      RandomNumberGenerator&amp; rand);
+  
+  //  lib.alg.partitions, partitions:
+  template&lt;class BidirectionalIterator, class Predicate&gt;
+  BidirectionalIterator <SAMP><A HREF="partition.html">partition</A></SAMP>(BidirectionalIterator start,
+                                  BidirectionalIterator finish,
+                                  Predicate pred);
+  
+  template&lt;class BidirectionalIterator, class Predicate&gt;
+  BidirectionalIterator 
+  <SAMP><A HREF="stable-partition.html">stable_partition</A></SAMP>(BidirectionalIterator start,
+                   BidirectionalIterator finish,
+                   Predicate pred);
+  
+  //  lib.alg.sorting, sorting and related operations:
+  //  lib.alg.sort, sorting:
+  template&lt;class RandomAccessIterator&gt;
+  void <SAMP><A HREF="sort.html">sort</A></SAMP>(RandomAccessIterator start, 
+            RandomAccessIterator finish);
+  
+  template&lt;class RandomAccessIterator, class Compare&gt;
+  void sort(RandomAccessIterator start, 
+            RandomAccessIterator finish,
+            Compare comp);
+  
+  template&lt;class RandomAccessIterator&gt;
+  void <SAMP><A HREF="stable-sort.html">stable_sort</A></SAMP>(RandomAccessIterator start,
+                   RandomAccessIterator finish);
+  
+  template&lt;class RandomAccessIterator, class Compare&gt;
+  void stable_sort(RandomAccessIterator start,
+                   RandomAccessIterator finish,
+                   Compare comp);
+  
+  template&lt;class RandomAccessIterator&gt;
+  void <SAMP><A HREF="partial-sort.html">partial_sort</A></SAMP>(RandomAccessIterator start,
+                    RandomAccessIterator mid,
+                    RandomAccessIterator finish);
+  
+  template&lt;class RandomAccessIterator, class Compare&gt;
+  void partial_sort(RandomAccessIterator start,
+                    RandomAccessIterator mid,
+                    RandomAccessIterator finish, 
+                    Compare comp);
+  
+  template&lt;class InputIterator, class RandomAccessIterator&gt;
+  RandomAccessIterator <SAMP><A HREF="partial-sort-copy.html">partial_sort_copy</A></SAMP>(InputIterator start,
+                   InputIterator finish,
+                   RandomAccessIterator result_start,
+                   RandomAccessIterator result_finish);
+  
+  template&lt;class InputIterator, class RandomAccessIterator,
+           class Compare&gt;
+  RandomAccessIterator partial_sort_copy(InputIterator start,
+                   InputIterator finish,
+                   RandomAccessIterator result_start,
+                   RandomAccessIterator result_finish,
+                   Compare comp);
+  
+  template&lt;class RandomAccessIterator&gt;
+  void <SAMP><A HREF="nth-element.html">nth_element</A></SAMP>(RandomAccessIterator start,
+                   RandomAccessIterator nth,
+                   RandomAccessIterator finish);
+  
+  template&lt;class RandomAccessIterator, class Compare&gt;
+  void nth_element(RandomAccessIterator start,
+                   RandomAccessIterator nth,
+                   RandomAccessIterator finish, 
+                   Compare comp);
+  
+  //  lib.alg.binary.search, binary search:
+  template&lt;class ForwardIterator, class T&gt;
+  ForwardIterator <SAMP><A HREF="lower-bound.html">lower_bound</A></SAMP>(ForwardIterator start,
+                              ForwardIterator finish,
+                              const T&amp; value);
+  
+  template&lt;class ForwardIterator, class T, class Compare&gt;
+  ForwardIterator lower_bound(ForwardIterator start,
+                              ForwardIterator finish,
+                              const T&amp; value, 
+                              Compare comp);
+  
+  template&lt;class ForwardIterator, class T&gt;
+  ForwardIterator <SAMP><A HREF="upper-bound.html">upper_bound</A></SAMP>(ForwardIterator start,
+                              ForwardIterator finish,
+                              const T&amp; value);
+  
+  template&lt;class ForwardIterator, class T, class Compare&gt;
+  ForwardIterator upper_bound(ForwardIterator start,
+                              ForwardIterator finish,
+                              const T&amp; value, 
+                              Compare comp);
+  
+  template&lt;class ForwardIterator, class T&gt;
+  pair&lt;ForwardIterator, ForwardIterator&gt;
+  <SAMP><A HREF="equal-range.html">equal_range</A></SAMP>(ForwardIterator start, ForwardIterator finish,
+              const T&amp; value);
+  
+  template&lt;class ForwardIterator, class T, class Compare&gt;
+  pair&lt;ForwardIterator, ForwardIterator&gt;
+  equal_range(ForwardIterator start, ForwardIterator finish,
+              const T&amp; value, Compare comp);
+  
+  template&lt;class ForwardIterator, class T&gt;
+  bool <SAMP><A HREF="binary-search.html">binary_search</A></SAMP>(ForwardIterator start, 
+                     ForwardIterator finish,
+                     const T&amp; value);
+  
+  template&lt;class ForwardIterator, class T, class Compare&gt;
+  bool binary_search(ForwardIterator start, 
+                    ForwardIterator finish,
+                    const T&amp; value, 
+                    Compare comp);
+  
+  //  lib.alg.merge, merge:
+  template&lt;class InputIterator1, class InputIterator2, 
+           class OutputIterator&gt;
+  OutputIterator <SAMP><A HREF="merge.html">merge</A></SAMP>(InputIterator1 start1, 
+                       InputIterator1 finish1,
+                       InputIterator2 start2, 
+                       InputIterator2 finish2,
+                       OutputIterator result);
+  
+  template&lt;class InputIterator1, class InputIterator2,
+           class OutputIterator, class Compare&gt;
+  OutputIterator merge(InputIterator1 start1, 
+                       InputIterator1 finish1,
+                       InputIterator2 start2, 
+                       InputIterator2 finish2,
+                       OutputIterator result, 
+                       Compare comp);
+  
+  template&lt;class BidirectionalIterator&gt;
+  void <SAMP><A HREF="inplace-merge.html">inplace_merge</A></SAMP>(BidirectionalIterator start,
+                     BidirectionalIterator mid,
+                     BidirectionalIterator finish);
+  
+  template&lt;class BidirectionalIterator, class Compare&gt;
+  void inplace_merge(BidirectionalIterator start,
+                     BidirectionalIterator mid,
+                     BidirectionalIterator finish, 
+                     Compare comp);
+  
+  //  lib.alg.set.operations, set operations:
+  template&lt;class InputIterator1, class InputIterator2&gt;
+  bool <SAMP><A HREF="includes.html">includes</A></SAMP>(InputIterator1 start1, InputIterator1 finish1,
+                InputIterator2 start2, InputIterator2 finish2);
+  
+  template&lt;class InputIterator1, class InputIterator2, 
+           class Compare&gt;
+  bool includes(InputIterator1 start1, 
+                InputIterator1 finish1,
+                InputIterator2 start2, 
+                InputIterator2 finish2, 
+                Compare comp);
+  
+  template&lt;class InputIterator1, class InputIterator2, 
+           class OutputIterator&gt;
+  OutputIterator <SAMP><A HREF="set-union.html">set_union</A></SAMP>(InputIterator1 start1, 
+                           InputIterator1 finish1,
+                           InputIterator2 start2, 
+                           InputIterator2 finish2,
+                           OutputIterator result);
+  
+  template&lt;class InputIterator1, class InputIterator2, 
+           class OutputIterator, class Compare&gt;
+  OutputIterator set_union(InputIterator1 start1, 
+                           InputIterator1 finish1,
+                           InputIterator2 start2, 
+                           InputIterator2 finish2,
+                           OutputIterator result, 
+                           Compare comp);
+  
+  template&lt;class InputIterator1, class InputIterator2, 
+           class OutputIterator&gt;
+  OutputIterator <SAMP><A HREF="set-intersection.html">set_intersection</A></SAMP>(InputIterator1 start1,
+                                  InputIterator1 finish1,
+                                  InputIterator2 start2,
+                                  InputIterator2 finish2,
+                                  OutputIterator result);
+  
+  template&lt;class InputIterator1, class InputIterator2, 
+           class OutputIterator, class Compare&gt;
+  OutputIterator set_intersection(InputIterator1 start1,
+                                  InputIterator1 finish1,
+                                  InputIterator2 start2,
+                                  InputIterator2 finish2,
+                                  OutputIterator result, 
+                                  Compare comp);
+  
+  template&lt;class InputIterator1, class InputIterator2, 
+           class OutputIterator&gt;
+  OutputIterator <SAMP><A HREF="set-difference.html">set_difference</A></SAMP>(InputIterator1 start1,
+                                InputIterator1 finish1,
+                                InputIterator2 start2,
+                                InputIterator2 finish2,
+                                OutputIterator result);
+  
+  template&lt;class InputIterator1, class InputIterator2, 
+           class OutputIterator, class Compare&gt;
+  OutputIterator set_difference(InputIterator1 start1,
+                                InputIterator1 finish1,
+                                InputIterator2 start2,
+                                InputIterator2 finish2,
+                                OutputIterator result, 
+                                Compare comp);
+  
+  template&lt;class InputIterator1, class InputIterator2, 
+           class OutputIterator&gt;
+  OutputIterator <SAMP><A HREF="set-symmetric-difference.html">set_symmetric_difference</A></SAMP>(
+                         InputIterator1 start1, 
+                         InputIterator1 finish1,
+                         InputIterator2 start2,
+                         InputIterator2 finish2,
+                         OutputIterator result);
+  
+  template&lt;class InputIterator1, class InputIterator2, 
+           class OutputIterator, class Compare&gt;
+  OutputIterator set_symmetric_difference(
+                         InputIterator1 start1, 
+                         InputIterator1 finish1,
+                         InputIterator2 start2,
+                         InputIterator2 finish2,
+                         OutputIterator result,
+                         Compare comp);
+  
+  //  lib.alg.heap.operations, heap operations:
+  template&lt;class RandomAccessIterator&gt;
+  void <SAMP><A HREF="push-heap.html">push_heap</A></SAMP>(RandomAccessIterator start,
+                 RandomAccessIterator finish);
+  
+  template&lt;class RandomAccessIterator, class Compare&gt;
+  void push_heap(RandomAccessIterator start,
+                 RandomAccessIterator finish,
+                 Compare comp);
+  
+  template&lt;class RandomAccessIterator&gt;
+  void <SAMP><A HREF="pop-heap.html">pop_heap</A></SAMP>(RandomAccessIterator start, 
+                RandomAccessIterator finish);
+  
+  template&lt;class RandomAccessIterator, class Compare&gt;
+  void pop_heap(RandomAccessIterator start, 
+                RandomAccessIterator finish,
+                Compare comp);
+  
+  template&lt;class RandomAccessIterator&gt;
+  void <SAMP><A HREF="make-heap.html">make_heap</A></SAMP>(RandomAccessIterator start,
+                 RandomAccessIterator finish);
+  
+  template&lt;class RandomAccessIterator, class Compare&gt;
+  void make_heap(RandomAccessIterator start,
+                 RandomAccessIterator finish,
+                 Compare comp);
+  
+  template&lt;class RandomAccessIterator&gt;
+  void <SAMP><A HREF="sort-heap.html">sort_heap</A></SAMP>(RandomAccessIterator start,
+                 RandomAccessIterator finish);
+  
+  template&lt;class RandomAccessIterator, class Compare&gt;
+  void sort_heap(RandomAccessIterator start,
+                 RandomAccessIterator finish,
+                 Compare comp);
+  
+  //  lib.alg.min.max, minimum and maximum:
+  template&lt;class T&gt; const T&amp; <SAMP><A HREF="min.html">min</A></SAMP>(const T&amp; a, const T&amp; b);
+  
+  template&lt;class T, class Compare&gt;
+  const T&amp; min(const T&amp; a, const T&amp; b, Compare comp);
+  
+  template&lt;class T&gt; const T&amp; <SAMP><A HREF="max.html">max</A></SAMP>(const T&amp; a, const T&amp; b);
+  
+  template&lt;class T, class Compare&gt;
+  const T&amp; max(const T&amp; a, const T&amp; b, Compare comp);
+  
+  template&lt;class ForwardIterator&gt;
+  ForwardIterator <SAMP><A HREF="min-element.html">min_element</A></SAMP>(ForwardIterator start,
+                              ForwardIterator finish);
+  
+
+  template&lt;class ForwardIterator, class Compare&gt;
+  ForwardIterator min_element(ForwardIterator start,
+                              ForwardIterator finish,
+                              Compare comp);
+  
+  template&lt;class ForwardIterator&gt;
+  ForwardIterator <SAMP><A HREF="max-element.html">max_element</A></SAMP>(ForwardIterator start,
+                              ForwardIterator finish);
+  
+  template&lt;class ForwardIterator, class Compare&gt;
+  ForwardIterator max_element(ForwardIterator start,
+                              ForwardIterator finish,
+                              Compare comp);
+  
+  template&lt;class InputIterator1, class InputIterator2&gt;
+  bool <SAMP><A HREF="lexicographical-compare.html">lexicographical_compare</A></SAMP>(InputIterator1 start1,
+                               InputIterator1 finish1,
+                               InputIterator2 start2,
+                               InputIterator2 finish2);
+  
+  template&lt;class InputIterator1, class InputIterator2, 
+           class Compare&gt;
+  bool lexicographical_compare(InputIterator1 start1,
+                               InputIterator1 finish1,
+                               InputIterator2 start2,
+                               InputIterator2 finish2,
+                               Compare comp);
+  
+  //  lib.alg.permutation.generators, permutations
+  template&lt;class BidirectionalIterator&gt;
+  bool <SAMP><A HREF="next-permutation.html">next_permutation</A></SAMP>(BidirectionalIterator start,
+                        BidirectionalIterator finish);
+  
+  template&lt;class BidirectionalIterator, class Compare&gt;
+  bool next_permutation(BidirectionalIterator start,
+                        BidirectionalIterator finish, 
+                        Compare comp);
+  
+  template&lt;class BidirectionalIterator&gt;
+  bool <SAMP><A HREF="prev-permutation.html">prev_permutation</A></SAMP>(BidirectionalIterator start,
+                        BidirectionalIterator finish);
+  
+  template&lt;class BidirectionalIterator, class Compare&gt;
+  bool prev_permutation(BidirectionalIterator start,
+                        BidirectionalIterator finish, 
+                        Compare comp);
+}
+</PRE>
+<A NAME="sec4"><H3>See Also</H3></A>
+<P><A HREF="algorithms.html">Algorithms</A>, <SAMP><A HREF="for-each.html">for_each()</A></SAMP>, <SAMP><A HREF="find.html">find()</A></SAMP>, <SAMP><A HREF="find-if.html">find_if()</A></SAMP>, <SAMP><A HREF="find-end.html">find_end()</A></SAMP>, <SAMP><A HREF="find-first-of.html">find_first_of()</A></SAMP>, <SAMP><A HREF="adjacent-find.html">adjacent_find()</A></SAMP>, <SAMP><A HREF="count.html">count()</A></SAMP>, <SAMP><A HREF="count.html">count_if()</A></SAMP>, <SAMP><A HREF="mismatch.html">mismatch()</A></SAMP>, <SAMP><A HREF="equal.html">equal()</A></SAMP>, <SAMP><A HREF="search.html">search()</A></SAMP>, <SAMP><A HREF="search.html">search_n()</A></SAMP>, <SAMP><A HREF="copy.html">copy()</A></SAMP>, <SAMP><A HREF="copy.html">copy_backward()</A></SAMP>, <SAMP><A HREF="swap.html">swap()</A></SAMP>, <SAMP><A HREF="swap-ranges.html">swap_ranges()</A></SAMP>, <SAMP><A HREF="iter-swap.html">iter_swap()</A></SAMP>, <SAMP><A HREF="transform.html">transform()</A></SAMP>, <SAMP><A HREF="replace.html">replace()</A></SAMP>, <SAMP><A HREF="replace-if.html">replace_if()</A></SAMP>, <SAMP><A HREF="replace-copy.html">replace_copy()</A></SAMP>, <SAMP><A HREF="replace-copy-if.html">replace_copy_if()</A></SAMP>, <SAMP><A HREF="fill.html">fill()</A></SAMP>, <SAMP><A HREF="fill.html">fill_n()</A></SAMP>, <SAMP><A HREF="generate.html">generate()</A></SAMP>, <SAMP><A HREF="generate.html">generate_n()</A></SAMP>, <SAMP><A HREF="remove.html">remove()</A></SAMP>, <SAMP><A HREF="remove-if.html">remove_if()</A></SAMP>, <SAMP><A HREF="remove-copy.html">remove_copy()</A></SAMP>, <SAMP><A HREF="remove-copy-if.html">remove_copy_if()</A></SAMP>, <SAMP><A HREF="unique.html">unique()</A></SAMP>, <SAMP><A HREF="unique.html">unique_copy()</A></SAMP>, <SAMP><A HREF="reverse.html">reverse()</A></SAMP>, <SAMP><A HREF="reverse-copy.html">reverse_copy()</A></SAMP>, <SAMP><A HREF="rotate.html">rotate()</A></SAMP>, <SAMP><A HREF="rotate.html">rotate_copy()</A></SAMP>, <SAMP><A HREF="random-shuffle.html">random_shuffle()</A></SAMP>, <SAMP><A HREF="partition.html">partition()</A></SAMP>, <SAMP><A HREF="stable-partition.html">stable_partition()</A></SAMP>, <SAMP><A HREF="sort.html">sort()</A></SAMP>, <SAMP><A HREF="partial-sort.html">partial_sort()</A></SAMP>, <SAMP><A HREF="partial-sort-copy.html">partial_sort_copy()</A></SAMP>, <SAMP><A HREF="nth-element.html">nth_element()</A></SAMP>, <SAMP><A HREF="lower-bound.html">lower_bound()</A></SAMP>, <SAMP><A HREF="upper-bound.html">upper_bound()</A></SAMP>, <SAMP><A HREF="equal-range.html">equal_range()</A></SAMP>, <SAMP><A HREF="binary-search.html">binary_search()</A></SAMP>, <SAMP><A HREF="merge.html">merge()</A></SAMP>, <SAMP><A HREF="inplace-merge.html">inplace_merge()</A></SAMP>, <SAMP><A HREF="includes.html">includes()</A></SAMP>, <SAMP><A HREF="set-union.html">set_union()</A></SAMP>, <SAMP><A HREF="set-intersection.html">set_intersection()</A></SAMP>, <SAMP><A HREF="set-difference.html">set_difference()</A></SAMP>, <SAMP><A HREF="set-symmetric-difference.html">set_symmetric_difference()</A></SAMP>, <SAMP><A HREF="push-heap.html">push_heap()</A></SAMP>, <SAMP><A HREF="pop-heap.html">pop_heap()</A></SAMP>, <SAMP><A HREF="make-heap.html">make_heap()</A></SAMP>, <SAMP><A HREF="sort-heap.html">sort_heap()</A></SAMP>, <SAMP><A HREF="min.html">min()</A></SAMP>, <SAMP><A HREF="max.html">max()</A></SAMP>, <SAMP><A HREF="min-element.html">min_element()</A></SAMP>, <SAMP><A HREF="max-element.html">max_element()</A></SAMP>, <SAMP><A HREF="lexicographical-compare.html">lexicographical_compare()</A></SAMP>, <SAMP><A HREF="next-permutation.html">next_permutation()</A></SAMP>, <SAMP><A HREF="prev-permutation.html">prev_permutation()</A></SAMP></P>
+<A NAME="sec5"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++. Section 25</I></P>
+
+<BR>
+<HR>
+<A HREF="advance.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="algorithms.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

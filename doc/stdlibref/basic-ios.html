@@ -1,0 +1,388 @@
+<HTML>
+<HEAD>
+<TITLE>basic_ios</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="basic-ifstream.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-iostream.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>basic_ios</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P>
+
+<PRE><HR><B><I>basic_ios</I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="ios-base.html">ios_base</A></I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Nonmember Types</A></LI>
+<LI><A HREF="#sec8">Public Constructor</A></LI>
+<LI><A HREF="#sec9">Protected Constructor</A></LI>
+<LI><A HREF="#sec10">Destructor</A></LI>
+<LI><A HREF="#sec11">Public Member Functions</A></LI>
+<LI><A HREF="#sec12">See Also</A></LI>
+<LI><A HREF="#sec13">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx116">bad()</A><BR>
+<A HREF="#idx113">basic_ios()</A><BR>
+<A HREF="#idx106">char_type</A><BR>
+<A HREF="#idx117">clear()</A><BR>
+<A HREF="#idx118">copyfmt()</A><BR>
+<A HREF="#idx119">eof()</A><BR>
+<A HREF="#idx120">exceptions()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx122">fail()</A><BR>
+<A HREF="#idx123">fill()</A><BR>
+<A HREF="#idx125">good()</A><BR>
+<A HREF="#idx126">imbue()</A><BR>
+<A HREF="#idx127">init()</A><BR>
+<A HREF="#idx107">int_type</A><BR>
+<A HREF="#idx128">narrow()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx108">off_type</A><BR>
+<A HREF="#idx129">operator!()</A><BR>
+<A HREF="#idx109">pos_type</A><BR>
+<A HREF="#idx130">rdbuf()</A><BR>
+<A HREF="#idx132">rdstate()</A><BR>
+<A HREF="#idx133">setstate()</A><BR>
+<A HREF="#idx134">tie()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx110">traits_type</A><BR>
+<A HREF="#idx136">void*()</A><BR>
+<A HREF="#idx137">widen()</A><BR>
+<A HREF="#idx115">~basic_ios()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx111">ios</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx112">wios</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A base class that includes the common character-dependent functionality and state required by all streams</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;ios&gt;
+
+namespace std {
+  template&lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class basic_ios;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class <B><I>basic_ios</I></B> is a base class that includes the common character-dependent functionality and data members required by all streams. It maintains state information that reflects the integrity of the stream and stream buffer. It also maintains the link between the stream classes and the stream buffer classes via the <SAMP>rdbuf()</SAMP> member functions. Classes derived from <B><I>basic_ios</I></B> specialize operations for input and output.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  template&lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class basic_ios : public ios_base
+  { 
+     public:
+
+      typedef typename traits::char_type       char_type;
+      typedef traits                           traits_type;
+      typedef typename traits::int_type        int_type;
+      typedef typename traits::off_type        off_type;
+      typedef typename traits::pos_type        pos_type;
+    
+      operator void*() const;
+      bool operator!() const;
+
+      iostate rdstate() const;
+      void clear(iostate = goodbit);
+      void setstate(iostate state);
+      bool good() const;
+      bool eof() const;
+      bool fail() const;
+      bool bad() const;
+
+      void exceptions(iostate);
+      iostate exceptions() const;
+
+      explicit basic_ios(basic_streambuf&lt;charT, traits&gt;*);
+      virtual ~basic_ios();
+
+      basic_ostream&lt;charT, traits&gt;* tie() const;
+      basic_ostream&lt;charT, traits&gt;* tie(basic_ostream
+                                        &lt;charT, traits&gt;*);
+
+      basic_streambuf&lt;charT, traits&gt;* rdbuf()const;
+      basic_streambuf&lt;charT, traits&gt;* rdbuf(basic_streambuf
+                                            &lt;charT, traits&gt;*);
+
+      basic_ios&amp; copyfmt(const basic_ios&amp;);
+
+      char_type fill() const;       
+      char_type fill(char_type);
+         
+      locale imbue(const locale&amp;);
+
+      char narrow(char_type, char) const;
+      char_type widen(char) const;
+
+     protected:
+
+      basic_ios();                                  // undefined
+      void init(basic_streambuf&lt;charT, traits&gt;*);   // undefined
+};
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx106"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>The type <SAMP>char_type</SAMP> is a synonym for type <SAMP>traits::char_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx107"></A><PRE><B>int_type</B></PRE>
+<UL>
+<P>The type<SAMP> int_type</SAMP> is a synonym of type <SAMP>traits::in_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx108"></A><PRE><B>off_type</B></PRE>
+<UL>
+<P>The type <SAMP>off_type</SAMP> is a synonym of type <SAMP>traits::off_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx109"></A><PRE><B>pos_type</B></PRE>
+<UL>
+<P>The type <SAMP>pos_type</SAMP> is a synonym of type <SAMP>traits::pos_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx110"></A><PRE><B>traits_type</B></PRE>
+<UL>
+<P>The type <SAMP>traits_type</SAMP> is a synonym for the template parameter <SAMP>traits</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Nonmember Types</H3></A>
+
+<A NAME="idx111"></A><PRE><B>ios</B></PRE>
+<UL>
+<P>The type <SAMP>ios</SAMP> is a specialization of <B><I>basic_ios</I></B> on <SAMP>char</SAMP>:</P>
+<P><SAMP>typedef basic_ios&lt;char&gt; ios;</SAMP></P>
+</UL>
+
+
+<A NAME="idx112"></A><PRE><B>wios</B></PRE>
+<UL>
+<P>The type <SAMP>wios</SAMP> is a specialization of <B><I>basic_ios</I></B> on <SAMP>wchar_t</SAMP>:</P>
+<P><SAMP>typedef basic_ios&lt;wchar_t&gt; wios;</SAMP></P>
+</UL>
+
+<A NAME="sec8"><H3>Public Constructor</H3></A>
+
+<A NAME="idx113"></A><PRE>explicit <B>basic_ios</B>(basic_streambuf&lt;charT, traits&gt;* sb); </PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_ios</I></B>, assigning initial values to its member objects by calling <SAMP>init(sb)</SAMP>. If <SAMP>sb</SAMP> is a null pointer, the stream is placed in error state by setting its <SAMP>badbit</SAMP>. </P>
+</UL>
+
+<A NAME="sec9"><H3>Protected Constructor</H3></A>
+
+<A NAME="idx114"></A><PRE><B>basic_ios</B>();</PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_ios</I></B>, leaving its member objects uninitialized. The object must be initialized by calling the <SAMP>init</SAMP> member function before using it.</P>
+</UL>
+
+<A NAME="sec10"><H3>Destructor</H3></A>
+
+<A NAME="idx115"></A><PRE>virtual <B>~basic_ios</B>();</PRE>
+<UL>
+<P>Destroys an object of class <B><I>basic_ios</I></B>.</P>
+</UL>
+
+<A NAME="sec11"><H3>Public Member Functions</H3></A>
+
+<A NAME="idx116"></A><PRE>bool 
+<B>bad</B>() const; </PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>badbit</SAMP> is set in <SAMP>rdstate().</SAMP></P>
+</UL>
+
+
+<A NAME="idx117"></A><PRE>void 
+<B>clear</B>(iostate state = goodbit); </PRE>
+<UL>
+<P>If <SAMP>(state &amp; exceptions()) == 0</SAMP>, returns. Otherwise, the function throws an object of class <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>. After the call, returns <SAMP>state == rdstate()</SAMP> if <SAMP>rdbuf() !=0</SAMP>; otherwise, <SAMP>rdstate() == state|ios_base::badbit. </SAMP></P>
+</UL>
+
+
+<A NAME="idx118"></A><PRE>basic_ios&amp; 
+<B>copyfmt</B>(const basic_ios&amp; rhs); </PRE>
+<UL>
+<P>Assigns to the member objects of <SAMP>*this</SAMP> the corresponding member objects of <SAMP>rhs</SAMP>, except that:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>rdstate()</SAMP> and <SAMP>rdbuf()</SAMP> are left unchanged</P></LI>
+<LI><P CLASS="LIST"><SAMP>exceptions()</SAMP> is altered last by calling <SAMP>exceptions(rhs.exceptions())</SAMP> </P></LI>
+</UL>
+<P>Before copying any parts of <SAMP>rhs</SAMP>, calls each registered callback pair <SAMP>(fn, index)</SAMP> as <SAMP>(*fn)(erase_event,*this, index)</SAMP>. After all parts but <SAMP>exceptions()</SAMP> are replaced, calls each callback pair that was copied from <SAMP>rhs</SAMP> as <SAMP>(*fn)(copy_event,*this, index)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx119"></A><PRE>bool 
+<B>eof</B>() const; </PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>eofbit</SAMP> is set in <SAMP>rdstate().</SAMP></P>
+</UL>
+
+
+<A NAME="idx120"></A><PRE>iostate 
+<B>exceptions</B>() const; </PRE>
+<UL>
+<P>Returns a mask that determines what elements set in <SAMP>rdstate() </SAMP>cause exceptions to be thrown.</P>
+</UL>
+
+
+<A NAME="idx121"></A><PRE>void 
+<B>exceptions</B>(iostate except); </PRE>
+<UL>
+<P>Sets the exception mask to <SAMP>except</SAMP>, then calls <SAMP>clear(rdstate())</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx122"></A><PRE>bool 
+<B>fail</B>() const; </PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>failbit</SAMP> or <SAMP>badbit</SAMP> is set in <SAMP>rdstate().</SAMP></P>
+</UL>
+
+
+<A NAME="idx123"></A><PRE>char_type 
+<B>fill</B>() const; </PRE>
+<UL>
+<P>Returns the character used to pad (fill) an output conversion to the specified field width.</P>
+</UL>
+
+
+<A NAME="idx124"></A><PRE>char_type 
+<B>fill</B>(char_type fillch); </PRE>
+<UL>
+<P>Replaces the stream's fill character by <SAMP>fillch</SAMP> and returns its previous value. </P>
+</UL>
+
+
+<A NAME="idx125"></A><PRE>bool 
+<B>good</B>() const; </PRE>
+<UL>
+<P>Returns <SAMP>rdstate() == goodbit</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx126"></A><PRE>locale 
+<B>imbue</B>(const locale&amp; loc); </PRE>
+<UL>
+<P>Calls <SAMP>ios_base::imbue (loc)</SAMP>.  If <SAMP>rdbuf() != 0</SAMP>, calls<br><SAMP>rdbuf()-&gt;pubimbue(loc)</SAMP> and returns the previously saved value.</P>
+</UL>
+
+
+<A NAME="idx127"></A><PRE>void 
+<B>init</B>(basic_streambuf&lt;charT,traits&gt;* sb); </PRE>
+<UL>
+<P>Performs the following initialization:</P>
+
+<UL><PRE>rdbuf()      sb
+tie()        0
+rdstate()    goodbit if sb is not null otherwise badbit
+exceptions() goodbit
+flags()      skipws | dec
+width()      0
+precision()  6
+fill()       the space character
+getloc()     a copy of the locale returned by
+             locale::locale()
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx128"></A><PRE>char 
+<B>narrow</B>(charT c, char dfault) const; </PRE>
+<UL>
+<P>Returns: </P>
+<P><SAMP>use_facet&lt;ctype&lt;char_type&gt; &gt;(getloc()).narrow (c, dfault)</SAMP></P>
+</UL>
+
+
+<A NAME="idx129"></A><PRE>bool 
+<B>operator!</B>() const; </PRE>
+<UL>
+<P>Returns <SAMP>fail()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx130"></A><PRE>basic_streambuf&lt;charT,traits&gt;*  
+<B>rdbuf</B>() const; </PRE>
+<UL>
+<P>Returns a pointer to the stream buffer associated with the stream.</P>
+</UL>
+
+
+<A NAME="idx131"></A><PRE>basic_streambuf&lt;charT,traits&gt;*  
+<B>rdbuf</B>(basic_streambuf&lt;charT,traits&gt;* sb); </PRE>
+<UL>
+<P>Associates a stream buffer with the stream. All the input and output is directed to this stream buffer. If <SAMP>sb</SAMP> is a null pointer, the stream is placed in error state by setting <SAMP>badbit</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx132"></A><PRE>iostate 
+<B>rdstate</B>() const; </PRE>
+<UL>
+<P>Returns the control state of the stream.</P>
+</UL>
+
+
+<A NAME="idx133"></A><PRE>void 
+<B>setstate</B>(iostate state); </PRE>
+<UL>
+<P>Calls <SAMP>clear(rdstate() | state)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx134"></A><PRE>basic_ostream&lt;charT,traits&gt;* 
+<B>tie</B>() const; </PRE>
+<UL>
+<P>Returns an output sequence that is tied to (synchronized with) the sequence controlled by the stream buffer.</P>
+</UL>
+
+
+<A NAME="idx135"></A><PRE>basic_ostream&lt;charT,traits&gt;* 
+<B>tie</B>(basic_ostream&lt;charT,traits&gt;*  tiestr); </PRE>
+<UL>
+<P>Saves the <SAMP>tie()</SAMP> value, then replaces it by <SAMP>tiestr</SAMP> and returns the value previously saved.</P>
+</UL>
+
+
+<A NAME="idx136"></A><PRE>operator 
+<B>void*</B>() const; </PRE>
+<UL>
+<P>Returns:</P>
+<P><SAMP> fail() ? (void*)0 : (void*)1;</SAMP></P>
+</UL>
+
+
+<A NAME="idx137"></A><PRE>charT 
+<B>widen</B>(char c) const; </PRE>
+<UL>
+<P>Uses <SAMP>use_facet&lt; ctype&lt;char_type&gt; &gt;(getloc()).widen(c)</SAMP> to convert a narrow character to a wide character.</P>
+</UL>
+
+<A NAME="sec12"><H3>See Also</H3></A>
+<P><B><I><A HREF="ios-base.html">ios_base</A></I></B>, <B><I><A HREF="basic-istream.html">basic_istream</A></I></B>, <B><I><A HREF="basic-ostream.html">basic_ostream</A></I></B>, <B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B>, <B><I><A HREF="char-traits.html">char_traits</A></I></B></P>
+<A NAME="sec13"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.4.4</I></P>
+
+<BR>
+<HR>
+<A HREF="basic-ifstream.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-iostream.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

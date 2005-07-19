@@ -1,0 +1,166 @@
+<HTML>
+<HEAD>
+<TITLE>Iterators</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="iterator-traits.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="length-error.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>Iterators</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-8.html">Iterators</A></P><UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Description</A></LI>
+<LI><A HREF="#sec4">Key to Iterator Requirements</A></LI>
+<LI><A HREF="#sec5">Requirements for Input Iterators</A></LI>
+<LI><A HREF="#sec6">Requirements for Output Iterators</A></LI>
+<LI><A HREF="#sec7">Requirements for Forward Iterators</A></LI>
+<LI><A HREF="#sec8">Requirements for Bidirectional Iterators</A></LI>
+<LI><A HREF="#sec9">Requirements for Random Access Iterators</A></LI>
+<LI><A HREF="#sec10">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Pointer generalizations for traversal and modification of collections</P>
+<A NAME="sec3"><H3>Description</H3></A>
+<P>Iterators are a generalization of pointers that allow a C++ program to uniformly interact with different data structures. The illustration below displays the five iterator categories defined by the standard library, and shows their hierarchical relationship. Because standard library iterator categories are hierarchical, each category includes all the requirements of the categories above it.</P>
+<P><IMG SRC="images/stdlib1.gif" WIDTH=405 HEIGHT=489></P>
+<P>Because iterators are used to traverse and access containers, the nature of the container determines the type of iterator it generates. Also, because algorithms require specific iterator types as arguments, it is iterators that, for the most part, determine which standard library algorithms can be used with which standard library containers.</P>
+<P>To conform to the C++ standard, all container and sequence classes must include their own iterator types. Each iterator may be a class defined within the container or may be a simple pointer, whichever is appropriate.</P>
+<P>Containers and sequences must also include <SAMP>const</SAMP> iterators that point to the beginning and end of their collections. These may be accessed using the class members, <SAMP>begin()</SAMP> and <SAMP>end()</SAMP>.</P>
+<P>Because the semantics of iterators are a generalization of the semantics of C++ pointers, every function template that takes iterators also works using C++ pointers to contiguous memory sequences. For example, both of the following uses of the generic algorithm <SAMP><A HREF="count.html">count()</A></SAMP> are valid:</P>
+
+<UL><PRE>list&lt;int&gt; 1;
+count(1.begin(), 1.end());
+int buf[4]={1,2,3,4};
+count(buf, buf+4);
+</PRE></UL>
+<P>Iterators may be constant or mutable depending upon whether the result of the <SAMP>operator*() </SAMP>behaves as a reference or as a reference to a constant. Constant iterators cannot satisfy the requirements of an <SAMP>output_iterator</SAMP>.</P>
+<P>Every iterator type guarantees that there is an iterator value that points past the last element of a corresponding container. This value is called the <I>past-the-end value</I>. No guarantee is made that this value is dereferenceable.</P>
+<P>Every function included in an iterator is required to be realized in amortized constant time.</P>
+<A NAME="sec4"><H3>Key to Iterator Requirements</H3></A>
+<P>The following key pertains to the iterator requirements listed below: </P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a</SAMP> and <SAMP>b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>values of type <SAMP>X</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>n  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>value representing a distance between two iterators</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>u</SAMP>, <SAMP>Distance</SAMP>, <SAMP>tmp</SAMP>, and <SAMP>m  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>identifiers</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>value of type <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>t  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>value of type <SAMP>T</SAMP></P></TD></TR>
+</TABLE></P>
+<A NAME="sec5"><H3>Requirements for Input Iterators</H3></A>
+<P>The following expressions must be valid for input iterators:</P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u(a)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>copy constructor, <SAMP>u == a</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u = a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>assignment, <SAMP>u == a </SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a == b</SAMP>, <SAMP>a != b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to <SAMP>bool</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">a == b</SAMP> implies <SAMP>*a == *b</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a-&gt;m  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>equivalent to <SAMP>(*a).m</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>++r  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r++  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to const <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*r++  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns type <SAMP>T</SAMP></P></TD></TR>
+</TABLE></P>
+<P>For input iterators, <SAMP>a == b</SAMP> does not imply that<SAMP> ++a == ++b</SAMP>.</P>
+<P>Algorithms using input iterators should be single pass algorithms. They should not pass through the same iterator twice.</P>
+<P>The value of type <SAMP>T</SAMP> does not have to be an <SAMP>lvalue</SAMP>.</P>
+<A NAME="sec6"><H3>Requirements for Output Iterators</H3></A>
+<P>The following expressions must be valid for output iterators:</P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X(a)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>copy constructor, <SAMP>a == X(a)</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u(a)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>copy constructor, <SAMP>u == a</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u = a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>assignment, <SAMP>u == a</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*a = t  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>result is not used</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>++r  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r++  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to <SAMP>const</SAMP> <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*r++ = t  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>result is not used</P></TD></TR>
+</TABLE></P>
+<P>The only valid use for the <SAMP>operator* </SAMP>is on the left hand side of the assignment statement.</P>
+<P>Algorithms using output iterators should be single pass algorithms. They should not pass through the same iterator twice. </P>
+<A NAME="sec7"><H3>Requirements for Forward Iterators</H3></A>
+<P>The following expressions must be valid for forward iterators:</P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">u</SAMP> might have a singular value</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">X()</SAMP> might be singular</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X(a)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>copy constructor, <SAMP>a == X(a)</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u(a)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>copy constructor, <SAMP>u == a</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u = a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>assignment, <SAMP>u == a</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a == b</SAMP>, <SAMP>a != b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to <SAMP>bool</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to <SAMP>T&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a-&gt;m  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>equivalent to <SAMP>(*a).m</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>++r  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r++  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to <SAMP>const</SAMP> <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*r++  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>T&amp;</SAMP></P></TD></TR>
+</TABLE></P>
+<P>Forward iterators have the condition that <SAMP>a == b</SAMP> implies <SAMP>*a== *b</SAMP>.</P>
+<P>There are no restrictions on the number of passes an algorithm may make through the structure.</P>
+<A NAME="sec8"><H3>Requirements for Bidirectional Iterators</H3></A>
+<P>A bidirectional iterator must meet all the requirements for forward iterators. In addition, the following expressions must be valid:</P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>--r  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r--  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to <SAMP>const</SAMP> <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*r--  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>T</SAMP></P></TD></TR>
+</TABLE></P>
+<A NAME="sec9"><H3>Requirements for Random Access Iterators</H3></A>
+<P>A random access iterator must meet all the requirements for bidirectional iterators. In addition, the following expressions must be valid:</P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r += n  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Semantics of <SAMP>--r</SAMP> or <SAMP>++r n</SAMP> times depending on the&nbsp;sign&nbsp;of&nbsp;n</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a + n</SAMP>, <SAMP>n + a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns type <SAMP>X</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r -= n  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>X&amp;</SAMP>, behaves as <SAMP>r += -n</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a - n  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns type <SAMP>X</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>b - a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>distance</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a[n]  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">*(a+n)</SAMP>, return value convertible to <SAMP>T</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a &lt; b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>total ordering relation</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a &gt; b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>total ordering relation opposite to <SAMP>&lt;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a &lt;= b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">!(a &gt; b)</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a &gt;= b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">!(a &lt; b)</SAMP></P></TD></TR>
+</TABLE></P>
+<P>All relational operators return a value convertible to <SAMP>bool</SAMP>.</P>
+<A NAME="sec10"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 24</I></P>
+
+<BR>
+<HR>
+<A HREF="iterator-traits.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="length-error.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

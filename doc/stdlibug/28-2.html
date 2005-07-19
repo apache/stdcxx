@@ -1,0 +1,75 @@
+<HTML>
+<HEAD>
+<TITLE>Input and Output Operators</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="28-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="28-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>28.2 Input and Output Operators</H2>
+<A NAME="idx695"><!></A>
+<P>Now let's try to do some simple input and output to the predefined streams. The iostreams facility defines shift operators for formatted stream input and output. The output operator is the shift operator <SAMP>operator&lt;&lt;()</SAMP>, also called the <I>inserter:</I></P>
+
+<UL><PRE>
+std::cout &lt;&lt; "result: " &lt;&lt; x &lt;&lt; '\n';
+</PRE></UL>
+<A NAME="idx696"><!></A>
+<P>Input is done through another shift operator <SAMP>operator&gt;&gt;()</SAMP>, often referred to as the <I>extractor</I>:</P>
+
+<UL><PRE>
+std::cin &gt;&gt; x &gt;&gt; y;
+</PRE></UL>
+<P>Both operators are overloaded for all built-in types in C++, as well as for some of the types defined in the Standard C++ Library; for example, there are inserters and extractors for <SAMP>bool</SAMP>, <SAMP>char</SAMP>, <SAMP>int</SAMP>, <SAMP>long</SAMP>, <SAMP>float</SAMP>, <SAMP>double</SAMP>, <SAMP>string</SAMP>, etc. When you insert or extract a value to or from a stream, the C++ function overload resolution chooses the correct extractor operator, based on the value's type. This is what makes C++ iostreams type-safe and preferable to C stdio (see <A HREF="27.html">Chapter&nbsp;27</A>).</P>
+<A NAME="idx697"><!></A>
+<P>It is possible to print several units in one expression. For example:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; "result: " &lt;&lt; x;
+</PRE></UL>
+<P>is equivalent to:</P>
+
+<UL><PRE>
+std::operator&lt;&lt;(std::cout,"result: ").operator&lt;&lt;(x);
+</PRE></UL>
+<A NAME="idx698"><!></A>
+<P>This is possible because each shift operator returns a reference to the respective stream. Almost all shift operators for built-in types are member functions of their respective stream class. (The shift operators for the character types, such as <SAMP>char</SAMP> and <SAMP>wchar_t</SAMP>, are an exception to this rule; they are namespace-scope functions in the Standard C++ Library namespace <SAMP>::std</SAMP>.) These operators are defined according to the following patterns:</P>
+
+<UL><PRE>
+template&lt;class charT, class traits&gt;
+basic_istream&lt;charT, traits&gt;&amp; 
+basic_istream&lt;charT, traits&gt;::operator&gt;&gt;(type&amp; x)
+{
+  // read x
+  return *this;
+}
+</PRE></UL>
+<P>and: </P>
+
+<UL><PRE>
+template&lt;class charT, class traits&gt;
+basic_ostream&lt;charT, traits&gt;&amp;
+basic_ostream&lt;charT, traits&gt;::operator&lt;&lt;(type x)
+{
+  // write x
+  return *this;
+}
+</PRE></UL>
+<P>The notable exceptions are extractors and inserters for character types and pointers to such, which are defined as non-members.</P>
+<A NAME="idx699"><!></A>
+<P>Simple input and output of units as shown above is useful, yet not sufficient in many cases. For example, you may want to vary the way output is formatted, or input is parsed. Iostreams allow you to control the formatting features of its input and output operators in many ways. With the standard iostreams, you can specify:</P>
+<UL>
+<LI><P CLASS="LIST">The width of an output field and the adjustment of the output within this field</P></LI>
+<LI><P CLASS="LIST">The precision and format of floating point numbers, and whether or not the decimal point should always be included</P></LI>
+<LI><P CLASS="LIST">Whether you want to skip white spaces when reading from an input stream</P></LI>
+<LI><P CLASS="LIST">Whether integral values are displayed in decimal, octal or hexadecimal format</P></LI>
+</UL>
+<P>and many other formatting options. </P>
+<P>There are two mechanisms that have an impact on formatting:</P>
+<UL>
+<LI><P CLASS="LIST">Formatting control through a stream's format state</P></LI>
+<LI><P CLASS="LIST">Localization through a stream's locale</P></LI>
+</UL>
+<P>The stream's format state is the main means of format control, as we demonstrate in the next section.</P>
+
+<BR>
+<HR>
+<A HREF="28-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="28-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

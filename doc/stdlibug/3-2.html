@@ -1,0 +1,175 @@
+<HTML>
+<HEAD>
+<TITLE>Function Objects</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="3-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="3-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>3.2 Function Objects</H2>
+<A NAME="321"><H3>3.2.1 Definition</H3></A>
+<A NAME="idx44"><!></A>
+<P>A <I>function object</I> is an object to which the function call operator can be applied. Typically, it is a class that defines the function call operator (<SAMP>operator()()</SAMP>) as a member function. When a function object is used as a function, the function call operator is invoked whenever the function is called. Consider the following class definition:</P>
+
+<UL><PRE>
+class biggerThanThree 
+{
+   public:
+   bool operator()(int val) const
+   { return val &gt; 3; }
+};
+</PRE></UL>
+<P>If we create an instance of class <B><I>biggerThanThree</I></B>, every time we reference this object using the function call syntax, the function call operator member function is invoked. To generalize this class, we add a constructor and a constant data member, which is set by the constructor:</P>
+
+<UL><PRE>
+class biggerThan 
+{
+   public:
+      const int testValue;
+      biggerThan(int x) : testValue(x) { }
+
+      bool operator()(int val) const 
+      { return val &gt; testValue; }
+};
+</PRE></UL>
+<P>The result is a general <B><I>biggerthanX</I></B> function, where the value of X is determined when we create an instance of the class. We can do so, for example, as an argument to one of the generic functions that require a predicate. In this manner the following code finds the first value in a list that is larger than 12:</P>
+
+<UL><PRE>
+std::list&lt;int&gt;::iterator firstBig =
+   std::find_if(aList.begin(), aList.end(), biggerThan(12));
+</PRE></UL>
+<A NAME="322"><H3>3.2.2 Use</H3></A>
+<A NAME="idx45"><!></A>
+<P>There are a number of situations where it is convenient to substitute function objects in place of functions: to use an existing function object provided by the Standard C++ Library instead of a new function; to improve execution by using inline function calls; and to allow a function object to access or set state information that is held by an object. Let's deal with each of these in the next three sections.</P>
+<A NAME="322-1"><H4>3.2.2.1 To Employ Existing Standard C++ Library Function Objects</H4></A>
+<A NAME="idx46"><!></A>
+<P><A HREF="3-2.html#Table&nbsp;5">Table&nbsp;5</A> illustrates the function objects provided by the Standard C++ Library.</P>
+<H4><A NAME="Table&nbsp;5">Table&nbsp;5: Function objects provided by the Standard C++ Library&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<A NAME="idx47"><!></A>
+<tr><td valign=top><B>Function object</B>
+</td><td valign=top><B> Implemented operations</B>
+</td></tr>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Arithmetic functions</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>plus</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">addition <SAMP>x + y</SAMP> </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>minus</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">subtraction <SAMP>x - y</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>multiplies</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">multiplication <SAMP>x * y</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>divides</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">division <SAMP>x / y</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>modulus</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">remainder <SAMP>x % y</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>negate</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">negation <SAMP>- x</SAMP></P>
+</td></tr>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Comparison functions</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>equal_to</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">equality test <SAMP>x == y</SAMP> </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>not_equal_to</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">inequality test <SAMP>x != y</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>greater</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">greater-than comparison <SAMP>x &gt; y</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>less</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">less-than comparison<SAMP> x &lt; y</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>greater_equal</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">greater than or equal comparison <SAMP>x &gt;= y</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>less_equal</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">less than or equal comparison <SAMP>x &lt;= y</SAMP></P>
+</td></tr>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Logical functions</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>logical_and</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">logical conjunction <SAMP>x &amp;&amp; y</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>logical_or</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">logical disjunction <SAMP>x || y</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>logical_not</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">logical negation <SAMP>! x</SAMP></P>
+</td></tr>
+</TABLE>
+<P>Let's look at a couple of examples that show how these might be used. The first example uses <SAMP>std::plus&lt;int&gt;()</SAMP> to compute the by-element addition of two lists of integer values, placing the result back into the first list. This can be performed by the following code:</P>
+
+<UL><PRE>
+std::transform(listOne.begin(), listOne.end(), listTwo.begin(),
+               listOne.begin(), std::plus&lt;int&gt;() );
+</PRE></UL>
+<P>The second example negates every element in a vector of boolean values:</P>
+
+<UL><PRE>
+std::transform(aVec.begin(), aVec.end(), aVec.begin(),
+               std::logical_not&lt;bool&gt;() );
+</PRE></UL>
+<P>The base class templates used by the Standard C++ Library to define the functions in <A HREF="3-2.html#Table&nbsp;5">Table&nbsp;5</A> are also available for creating new unary and binary function objects. The class templates <B><I><A HREF="../stdlibref/unary-function.html">unary_function</A></I></B> and <B><I><A HREF="../stdlibref/binary-function.html">binary_function</A></I></B> are defined in the header <SAMP>&lt;functional&gt;</SAMP>.</P>
+<A NAME="idx48"><!></A>
+<P>The base classes are defined as follows:</P>
+
+<UL><PRE>
+namespace std {
+
+  template &lt;class Arg, class Result&gt;
+  struct unary_function
+  {
+    typedef Arg argument_type;
+    typedef Result result_type;
+  };
+
+  template &lt;class Arg1, class Arg2, class Result&gt;
+  struct binary_function
+  {
+    typedef Arg1 first_argument_type;
+    typedef Arg2 second_argument_type;
+    typedef Result result_type;
+  };
+}
+</PRE></UL>
+<P>An example of the use of these templates is found in <A HREF="6-3.html">Section&nbsp;6.3</A>. There we want to take a binary function of type <SAMP>Widget</SAMP> and an argument of type <SAMP>int</SAMP>, and compare the widget identification number against the integer value. A function to do this is written in the following manner:</P>
+
+<UL><PRE>
+struct WidgetTester : std::binary_function&lt;Widget, int, bool&gt;{
+   bool operator() (const Widget&amp; wid, int testid) const
+      { return wid.id == testid; }
+};
+</PRE></UL>
+<P>The importance of inheritance from one of the two base class templates becomes apparent when elementary function objects are composed to form complex expressions using negators and binders, which are explained in <A HREF="3-5.html">Section&nbsp;3.5</A>.</P>
+<A NAME="322-2"><H4>3.2.2.2 To Improve Execution</H4></A>
+<A NAME="idx49"><!></A>
+<P>A second reason to consider using function objects instead of functions is faster code. The difference between a function and an object of a class that defines the member <SAMP>operator()() </SAMP>is that functions are converted to pointers when passed as arguments to other functions, thus incurring the overhead of a function call even if they are declared inline. In many cases an invocation of a function object, as in the examples on <SAMP>std::transform()</SAMP> in <A HREF="3-2.html#322-1">Section&nbsp;3.2.2.1</A>, can be expanded in-line, eliminating the overhead of a function call.</P>
+<A NAME="322-3"><H4>3.2.2.3 To Access or Set State Information</H4></A>
+<A NAME="idx50"><!></A>
+<P>The third major reason to use a function object in place of a function is when each invocation of the function must remember some state set by earlier invocations. An example of this occurs in the creation of a generator, to be used with the generic algorithm <SAMP>std::generate().</SAMP> A <I>generator</I> is simply a function object that takes no arguments and returns a new (and possibly different) value each time it is invoked. The most commonly used form of generator is a <I>random number generator</I>, but there are other uses for the concept. A <I>sequence generator</I> simply returns the values of an increasing sequence of natural numbers (1, 2, 3, 4 and so on). We can call this object <B><I>iotaGen</I></B> after the similar operation in the programming language APL, and define it as follows:</P>
+
+<UL><PRE>
+class iotaGen 
+{
+public:
+  iotaGen (int start = 0) : current(start) { }
+  int operator() () { return current++; }
+private:
+  int current;
+};
+</PRE></UL>
+<P>An iota object maintains a current value, which can be set by the constructor, or defaults to zero. Each time the function-call operator is invoked, the current value is returned, and also incremented. Using this object, the following call on the Standard C++ Library function <SAMP>std::generate()</SAMP> initializes a vector of 20 elements with the values 1 through 20:</P>
+
+<UL><PRE>
+std::vector&lt;int&gt; aVec(20);
+std::generate(aVec.begin(), aVec.end(), iotaGen(1));
+</PRE></UL>
+<P>A more complex example of using a function object occurs in the radix sorting example program, which is given as an example of using the list datatype in <A HREF="6-3.html">Section&nbsp;6.3</A>. In this program references are initialized in the function object, so that during the sequence of invocations the function object can access and modify local values in the calling program.</P>
+
+<BR>
+<HR>
+<A HREF="3-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="3-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,27 @@
+<HTML>
+<HEAD>
+<TITLE>Localization Using the Stream's Locale</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="28-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="28-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>28.4 Localization Using the Stream's Locale</H2>
+<A NAME="idx718"><!></A>
+<A NAME="idx719"><!></A>
+<P>Associated with each stream is a locale object that impacts the parsing and formatting of numeric values, and determines the code conversion, if any, which takes place when transfering text between external and internal representation. This is how localization of software takes place. As discussed in <A HREF="23-2.html#2322">Section&nbsp;23.2.2</A>, the representation of numbers often depends on cultural conventions. In particular, the <I>decimal point</I> need not be a period, as in the following example:</P>
+
+<UL><PRE>
+std::cout.imbue(std::locale("De_DE"));    // the actual locale name
+                                          // may vary
+std::cout &lt;&lt; 1000000.50 &lt;&lt; std::endl; 
+</PRE></UL>
+<P>The output is:</P>
+
+<UL><PRE>
+1000000,50
+</PRE></UL>
+<P>Other cultural conventions, like the grouping of digits, are irrelevant. There is no formatting of numeric values that involves grouping. (The standard does not specify whether the grouping information that is contained in a stream's locale's <SAMP>numpunct</SAMP> facet should be ignored or taken into account. In any case, there are no manipulators that allow you to enable or disable grouping.)</P>
+
+<BR>
+<HR>
+<A HREF="28-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="28-5.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

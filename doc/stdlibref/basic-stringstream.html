@@ -1,0 +1,285 @@
+<HTML>
+<HEAD>
+<TITLE>basic_stringstream</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="basic-stringbuf.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="bidirectionaliterators.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>basic_stringstream</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P>
+
+<PRE><HR>                           <IMG SRC="images/inherits.gif"><B><I><A HREF="basic-ostream.html">basic_ostream</A></I></B><IMG SRC="images/inherits.gif">
+<B><I>basic_stringstream</I></B><IMG SRC="images/inherits.gif"><B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B>                 <B><I><A HREF="basic-ios.html">basic_ios</A></I></B><IMG SRC="images/inherits.gif"><B><I><A HREF="ios-base.html">ios_base</A></I></B>
+                           <IMG SRC="images/inherits.gif"><B><I><A HREF="basic-istream.html">basic_istream</A></I></B><IMG SRC="images/inherits.gif"><HR></PRE>
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Nonmember Types</A></LI>
+<LI><A HREF="#sec8">Constructors</A></LI>
+<LI><A HREF="#sec9">Destructor</A></LI>
+<LI><A HREF="#sec10">Member Functions</A></LI>
+<LI><A HREF="#sec11">Example</A></LI>
+<LI><A HREF="#sec12">See Also</A></LI>
+<LI><A HREF="#sec13">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx409">allocator_type</A><BR>
+<A HREF="#idx418">basic_stringstream()</A><BR>
+<A HREF="#idx410">char_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx411">int_type</A><BR>
+<A HREF="#idx412">off_type</A><BR>
+<A HREF="#idx413">pos_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx421">rdbuf()</A><BR>
+<A HREF="#idx422">str()</A><BR>
+<A HREF="#idx414">string_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx415">traits_type</A><BR>
+<A HREF="#idx420">~basic_stringstream()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx416">stringstream</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx417">wstringstream</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Class that supports writing and reading objects of specializations of the class template <B><I><A HREF="basic-string.html">basic_string</A></I></B> to and from an array in memory</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;sstream&gt; 
+
+namespace std {
+  template&lt;class charT, class traits = char_traits&lt;charT&gt;,
+           class Allocator = allocator&lt;charT&gt; &gt;
+  class basic_stringstream;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class template <B><I>basic_stringstream</I></B> reads and writes to an array in memory. It supports writing and reading objects of class <B><I><A HREF="basic-string.html">basic_string</A></I></B>, and uses a <B><I><A HREF="basic-stringbuf.html">basic_stringbuf</A></I></B> object to control the associated storage. It inherits from <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B> and therefore can use all the formatted and unformatted output and input functions.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template&lt;class charT, class traits = char_traits&lt;charT&gt;,
+           class Allocator = allocator&lt;charT&gt; &gt;
+  class basic_stringstream 
+  : public basic_iostream&lt;charT, traits&gt; {
+   public:
+    typedef traits traits_type;
+    typedef charT char_type;
+    typedef Allocator allocator_type; 
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::off_type off_type;
+
+    explicit 
+    basic_stringstream(ios_base::openmode = 
+                         ios_base::out | ios_base::in);
+
+    explicit 
+    basic_stringstream(const basic_string&lt;char_type,
+                         traits_type, allocator_type&gt;&amp;,
+                       ios_base::openmode = 
+                         ios_base::out | ios_base::in);
+
+    virtual ~basic_stringstream();
+
+    basic_stringbuf&lt;char_type, traits_type, allocator_type&gt; *
+    rdbuf() const; 
+    basic_string&lt;char_type, traits_type, allocator_type&gt; 
+    str() const; 
+    void 
+    str(const basic_string&lt;char_type, traits_type, allocator_type&gt;&amp;);
+  };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx409"></A><PRE><B>allocator_type </B></PRE>
+<UL>
+<P>The type <SAMP>allocator_type</SAMP> is a synonym for the template parameter <SAMP>Allocator</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx410"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>The type <SAMP>char_type</SAMP> is a synonym for the template parameter <SAMP>charT</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx411"></A><PRE><B>int_type</B></PRE>
+<UL>
+<P>The type <SAMP>int_type</SAMP> is a synonym of type <SAMP>traits::in_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx412"></A><PRE><B>off_type</B></PRE>
+<UL>
+<P>The type<SAMP> off_type</SAMP> is a synonym of type<SAMP> traits::off_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx413"></A><PRE><B>pos_type</B></PRE>
+<UL>
+<P>The type <SAMP>pos_type</SAMP> is a synonym of type <SAMP>traits::pos_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx414"></A><PRE><B>string_type</B></PRE>
+<UL>
+<P>The type <SAMP>string_type</SAMP> is an instantiation of class <B><I><A HREF="basic-string.html">basic_string</A></I></B> on type <SAMP>charT</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx415"></A><PRE><B>traits_type</B></PRE>
+<UL>
+<P>The type <SAMP>traits_type</SAMP> is a synonym for the template parameter <SAMP>traits</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Nonmember Types</H3></A>
+
+<A NAME="idx416"></A><PRE><B>stringstream</B></PRE>
+<UL>
+<P>The type <SAMP>stringstream</SAMP> is a specialization of class template <B><I>basic_stringstream</I></B> on type <SAMP>char</SAMP>:</P>
+<P><SAMP>typedef basic_stringstream&lt;char&gt; stringstream;</SAMP></P>
+</UL>
+
+
+<A NAME="idx417"></A><PRE><B>wstringstream</B></PRE>
+<UL>
+<P>The type <SAMP>wstringstream</SAMP> is a specialization of class template <B><I>basic_stringstream</I></B> on type <SAMP>wchar_t:</SAMP></P>
+<P><SAMP>typedef basic_stringstream&lt;wchar_t&gt; wstringstream;</SAMP></P>
+</UL>
+
+<A NAME="sec8"><H3>Constructors</H3></A>
+
+<A NAME="idx418"></A><PRE>explicit <B>basic_stringstream</B>(ios_base::openmode which =
+                   ios_base::in | ios_base::out); </PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_stringstream</I></B>, initializing the base class <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B> with the associated string buffer. This string buffer is initialized by calling the <B><I><A HREF="basic-stringbuf.html">basic_stringbuf</A></I></B> constructor <SAMP>basic_stringbuf&lt;charT,traits,Allocator&gt;(which)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx419"></A><PRE>explicit <B>basic_stringstream</B>(const basic_string&lt;char_type,
+                   traits_type, allocator_type&gt;&amp; str,
+                   ios_base::openmode which =
+                   ios_base::in | ios_base::out); </PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_stringstream</I></B>, initializing the base&nbsp;class <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B> with the associated string buffer. The string buffer is initialized by calling the <B><I><A HREF="basic-stringbuf.html">basic_stringbuf</A></I></B> constructor <SAMP>basic_stringbuf&lt;char_type, traits_type,                  allocator_type&gt;(str,which)</SAMP>.</P>
+</UL>
+
+<A NAME="sec9"><H3>Destructor</H3></A>
+
+<A NAME="idx420"></A><PRE>virtual <B>~basic_stringstream</B>();</PRE>
+<UL>
+<P>Destroys an object of class <B><I>basic_stringstream</I></B>.</P>
+</UL>
+
+<A NAME="sec10"><H3>Member Functions</H3></A>
+
+<A NAME="idx421"></A><PRE>basic_stringbuf&lt;char_type, traits_type, allocator_type&gt;* 
+<B>rdbuf</B>() const; </PRE>
+<UL>
+<P>Returns a pointer to the <B><I><A HREF="basic-stringbuf.html">basic_stringbuf</A></I></B> associated with the stream.</P>
+</UL>
+
+
+<A NAME="idx422"></A><PRE>basic_string&lt;char_type, traits_type, allocator_type&gt; 
+<B>str</B>() const; </PRE>
+<UL>
+<P>Returns <SAMP>rdbuf()-&gt;str()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx423"></A><PRE>void 
+<B>str</B>(const basic_string&lt;char_type, traits_type,
+                       allocator_type&gt;&amp; str); </PRE>
+<UL>
+<P>Calls <SAMP>rdbuf()-&gt;str(str)</SAMP>.</P>
+</UL>
+
+<A NAME="sec11"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  stringstream.cpp
+//
+
+#include &lt;iostream&gt;   // for wcout, endl
+#include &lt;sstream&gt;    // for wstringstream
+
+
+
+int main ()
+{
+    // create a bi-directional wstringstream object 
+    std::wstringstream inout;
+
+    // write out three lines to the stream
+    inout &lt;&lt; "Dieses ist die Geschichte eines Mannes.\n"
+          &lt;&lt; "C'est l'histoire d'un homme.\n"
+          &lt;&lt; "This is the story of a man." &lt;&lt; std::endl;
+
+    std::wstring line;
+
+    // extract the first line
+    std::getline (inout, line);
+
+    // output the first line to stdout
+    std::wcout &lt;&lt; "\nDeutsch:\n" &lt;&lt; line;
+
+    // extract the second line
+    std::getline (inout, line);
+
+    // output the second line to stdout
+    std::wcout &lt;&lt; "\nFran&ccedil;ais:\n" &lt;&lt; line;
+
+    // extract the third line
+    std::getline (inout, line);
+
+    // output the third line to stdout
+    std::wcout &lt;&lt; "\nEnglish:\n" &lt;&lt; line &lt;&lt; std::endl;
+ 
+    // output the contents of the stream object to stdout
+    std::wcout &lt;&lt; std::endl &lt;&lt; inout.str() &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE></PRE></UL>
+
+<UL><PRE>Deutsch:
+Dieses ist die Geschichte eines Mannes.
+Fran&ccedil;ais:
+C'est l'histoire d'un homme.
+English:
+This is the story of a man.
+
+Dieses ist die Geschichte eines Mannes.
+C'est l'histoire d'un homme.
+This is the story of a man.
+</PRE></UL>
+<A NAME="sec12"><H3>See Also</H3></A>
+<P><B><I><A HREF="char-traits.html">char_traits</A></I></B>, <B><I><A HREF="ios-base.html">ios_base</A></I></B>, <B><I><A HREF="basic-ios.html">basic_ios</A></I></B>, <B><I><A HREF="basic-stringbuf.html">basic_stringbuf</A></I></B>, <B><I><A HREF="basic-string.html">basic_string</A></I></B>, <B><I><A HREF="basic-istringstream.html">basic_istringstream</A></I></B>, <B><I><A HREF="basic-ostringstream.html">basic_ostringstream</A></I></B></P>
+<A NAME="sec13"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.7.4</I></P>
+
+<BR>
+<HR>
+<A HREF="basic-stringbuf.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="bidirectionaliterators.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,96 @@
+<HTML>
+<HEAD>
+<TITLE>Creating and Using Complex Numbers</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="20-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="20-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>20.2 Creating and Using Complex Numbers</H2>
+<P>In the following sections we describe the operations used to create and manipulate complex numbers.</P>
+<A NAME="2021"><H3>20.2.1 Declaring Complex Numbers</H3></A>
+<A NAME="idx434"><!></A>
+<P>The template argument is used to define the types associated with the real and imaginary fields. This argument must be one of the floating point number datatypes available in the C++ language, either <SAMP>float</SAMP>, <SAMP>double</SAMP>, or <SAMP>long</SAMP> <SAMP>double</SAMP>.</P>
+<P>There are several constructors associated with the class. A constructor with no arguments initializes both the real and imaginary fields to zero. A constructor with a single argument initializes the real field to the given value, and the imaginary value to zero. A constructor with two arguments initializes both real and imaginary fields. Finally, a copy constructor can be used to initialize a complex number with values derived from another complex number.</P>
+
+<UL><PRE>
+std::complex&lt;double&gt; com_one;              // value 0 + 0i
+std::complex&lt;double&gt; com_two(3.14);        // value 3.14 + 0i
+std::complex&lt;double&gt; com_three(1.5, 3.14)  // value 1.5 + 3.14i
+std::complex&lt;double&gt; com_four(com_two);    // value is also 3.14 + 0i
+</PRE></UL>
+<P>A complex number can be assigned the value of another complex number. Since the one-argument constructor is also used for a conversion operator, a complex number can also be assigned the value of a real number. The real field is changed to the right-hand side, while the imaginary field is set to zero:</P>
+
+<UL><PRE>
+com_one = com_three;                   // becomes 1.5 + 3.14i
+com_three = 2.17;                      // becomes 2.17 + 0i
+</PRE></UL>
+<A NAME="idx435"><!></A>
+<P>The function <SAMP>polar()</SAMP> can be used to construct a complex number with the given magnitude and phase angle:</P>
+
+<UL><PRE>
+com_four = std::polar(5.6, 1.8);
+</PRE></UL>
+<A NAME="idx436"><!></A>
+<P>The conjugate of a complex number is formed using the function <SAMP>conj()</SAMP>. If a complex number represents <SAMP>x + iy</SAMP>, then the conjugate is the value <SAMP>x-iy</SAMP>.</P>
+
+<UL><PRE>
+std::complex&lt;double&gt; com_five = std::conj(com_four);
+</PRE></UL>
+<A NAME="2022"><H3>20.2.2 Accessing Complex Number Values</H3></A>
+<A NAME="idx437"><!></A>
+<P>The member functions <SAMP>real()</SAMP> and <SAMP>imag()</SAMP> return the real and imaginary fields of a complex number, respectively. These functions can also be invoked as ordinary functions with complex number arguments.</P>
+
+<UL><PRE>
+// the following should be the same
+std::cout &lt;&lt; com_one.real() &lt;&lt; "+" &lt;&lt; com_one.imag()
+          &lt;&lt; "i" &lt;&lt; std::endl;
+std::cout &lt;&lt; std::real(com_one) &lt;&lt; "+" &lt;&lt; std::imag(com_one)
+          &lt;&lt; "i" &lt;&lt; std::endl;
+</PRE></UL>
+<BLOCKQUOTE><HR><B>
+NOTE -- With the exception of the member functions real() and imag(), most operations on complex numbers are performed using ordinary functions, not member functions.
+</B><HR></BLOCKQUOTE>
+<A NAME="2023"><H3>20.2.3 Arithmetic Operations</H3></A>
+<P>The arithmetic operators <SAMP>+</SAMP>,<SAMP> -</SAMP>,<SAMP> *</SAMP>, and <SAMP>/</SAMP> can be used to perform addition, subtraction, multiplication, and division of complex numbers. All four work either with two complex numbers, or with a complex number and a real value. Assignment operators are also defined for all four.</P>
+
+<UL><PRE>
+std::cout &lt;&lt; com_one + com_two &lt;&lt; std::endl;
+std::cout &lt;&lt; com_one - 3.14 &lt;&lt; std::endl;
+std::cout &lt;&lt; 2.75 * com_two &lt;&lt; std::endl;
+com_one += com_three / 2.0;
+</PRE></UL>
+<P>The unary operators <SAMP>+</SAMP> and <SAMP>-</SAMP> can also be applied to complex numbers.</P>
+<A NAME="2024"><H3>20.2.4 Comparing Complex Values</H3></A>
+<A NAME="idx438"><!></A>
+<P>Two complex numbers can be compared for equality or inequality, using  <SAMP>operator==()</SAMP> and <SAMP>operator!=(). </SAMP>Two values are equal if their corresponding fields are equal. Complex numbers do not have a natural ordering, and thus cannot be compared using any other relational operator.</P>
+<A NAME="2025"><H3>20.2.5 Stream Input and Output</H3></A>
+<A NAME="idx439"><!></A>
+<P>Complex numbers can be written to an output stream, or read from an input stream, using the normal stream I/O conventions. A value is written in parentheses, either as <SAMP>(u)</SAMP> or <SAMP>(u,v)</SAMP>, depending upon whether or not the imaginary value is zero. A value is read as a set of parentheses surrounding two numeric values.</P>
+<A NAME="2026"><H3>20.2.6 Norm and Absolute Value</H3></A>
+<A NAME="idx440"><!></A>
+<P>The function <SAMP>std::norm()</SAMP> returns the norm of the complex number. This is the sum of the squares of the real and imaginary parts. The function <SAMP>std::abs()</SAMP> returns the absolute value, which is the square root of the norm. Note that both are ordinary functions that take the complex value as an argument, not member functions.</P>
+
+<UL><PRE>
+std::cout &lt;&lt; std::norm(com_two) &lt;&lt; std::endl;
+std::cout &lt;&lt; std::abs(com_two)  &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="idx441"><!></A>
+<P>The directed phase angle of a complex number is yielded by the function <SAMP>std::arg()</SAMP>:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; com_four &lt;&lt; " in polar coordinates is "
+          &lt;&lt; std::arg(com_four) &lt;&lt; " and " &lt;&lt; std::norm(com_four)
+          &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="2027"><H3>20.2.7 Trigonometric Functions</H3></A>
+<A NAME="idx442"><!></A>
+<P>The trigonometric functions defined for floating point values have all been extended to complex number arguments. These functions are <SAMP>std::sin()</SAMP>, <SAMP>std::cos()</SAMP>, <SAMP>std::tan()</SAMP>, <SAMP>std::sinh()</SAMP>, <SAMP>std::cosh()</SAMP>, and <SAMP>std::tanh()</SAMP>. Each takes a single complex number as argument and returns a complex number as result. </P>
+<A NAME="2028"><H3>20.2.8 Transcendental Functions</H3></A>
+<A NAME="idx443"><!></A>
+<P>The transcendental functions<SAMP> std::exp()</SAMP>, <SAMP>std::log()</SAMP>, <SAMP>std::log10()</SAMP>, and <SAMP>std::sqrt()</SAMP> have been extended to complex arguments. Each takes a single complex number as argument, and returns a complex number as result.</P>
+<A NAME="idx444"><!></A>
+<P>The Standard C++ Library defines several variations of the exponential function <SAMP>std::pow()</SAMP>. Versions exist to raise a complex number to an integer power, to raise a complex number to a complex power or to a real power, or to raise a real value to a complex power.</P>
+
+<BR>
+<HR>
+<A HREF="20-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="20-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

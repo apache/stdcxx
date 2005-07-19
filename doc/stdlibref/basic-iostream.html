@@ -1,0 +1,79 @@
+<HTML>
+<HEAD>
+<TITLE>basic_iostream</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="basic-ios.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-istream.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>basic_iostream</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P>
+
+<PRE><HR>            <IMG SRC="images/inherits.gif"> <B><I><A HREF="basic-ostream.html">basic_ostream</A></I></B> <IMG SRC="images/inherits.gif">
+<B><I>basic_iostream</I></B>                         <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="ios-base.html">ios_base</A></I></B>
+            <IMG SRC="images/inherits.gif"> <B><I><A HREF="basic-istream.html">basic_istream</A></I></B>  <IMG SRC="images/inherits.gif"><HR></PRE>
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Constructor</A></LI>
+<LI><A HREF="#sec7">Example</A></LI>
+<LI><A HREF="#sec8">See Also</A></LI>
+<LI><A HREF="#sec9">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx138">basic_iostream()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Class that assists in formatting and interpreting sequences of characters controlled by a stream buffer</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;istream&gt;
+
+namespace std {
+  template&lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class basic_iostream;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class <B><I>basic_iostream</I></B> inherits a number of functions from classes <B><I><A HREF="basic-ostream.html">basic_ostream</A></I></B> and <B><I><A HREF="basic-istream.html">basic_istream</A></I></B>. They assist in formatting and interpreting sequences of characters controlled by a stream buffer. Two groups of functions share common properties, the formatted functions and the unformatted functions. </P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  template&lt;class charT, class traits&gt;
+  class basic_iostream 
+  : public basic_istream&lt;charT, traits&gt;,
+    public basic_ostream&lt;charT, traits&gt; 
+
+  {
+
+   public:
+
+    explicit basic_iostream(basic_streambuf&lt;charT, traits&gt; *sb);
+  };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Constructor</H3></A>
+
+<A NAME="idx138"></A><PRE>explicit <B>basic_iostream</B>(basic_streambuf&lt;charT, traits&gt; *sb);</PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_iostream</I></B>, assigning initial values to the base class by calling <SAMP>basic_istream&lt;charT, traits&gt;(sb)</SAMP> and <SAMP>basic_ostream&lt;charT, traits&gt;(sb)</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Example</H3></A>
+<P>See <B><I><A HREF="basic-istream.html">basic_istream</A></I></B> and <B><I><A HREF="basic-ostream.html">basic_ostream</A></I></B> examples.</P>
+<A NAME="sec8"><H3>See Also</H3></A>
+<P><B><I><A HREF="char-traits.html">char_traits</A></I></B>, <B><I><A HREF="ios-base.html">ios_base</A></I></B>, <B><I><A HREF="basic-ios.html">basic_ios</A></I></B>, <B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B>, <B><I><A HREF="basic-istream.html">basic_istream</A></I></B>, <B><I><A HREF="basic-ostream.html">basic_ostream</A></I></B></P>
+<A NAME="sec9"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.6.1.5</I></P>
+
+<BR>
+<HR>
+<A HREF="basic-ios.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-istream.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

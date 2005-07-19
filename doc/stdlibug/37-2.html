@@ -1,0 +1,41 @@
+<HTML>
+<HEAD>
+<TITLE>An Example</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="37-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="38.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>37.2 An Example</H2>
+<A NAME="idx897"><!></A>
+<A NAME="idx898"><!></A>
+<P>A program can register a callback function on a particular stream as follows:</P>
+
+<UL><PRE>
+// Callback function
+void show_event(std::ios_base::event e,
+                std::iosbase&amp; io, int index)
+{
+  if (e == std::ios_base::imbue_event)
+    std::cout &lt;&lt; "imbue called" &lt;&lt; std::endl;
+  else if (e == std::ios_base::erase_event)
+    std::cout &lt;&lt; "stream destroyed" &lt;&lt; std::endl;
+  else
+    std::cout &lt;&lt; "cpyfmt called" &lt;&lt; std::endl;
+}
+
+
+std::ostringstream s;
+s.register_callback(show_event,0);         //1
+s.imbue(std::locale::global());            //2
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The function <SAMP>show_event</SAMP> is now called with either <SAMP>std::ios_base::erase_event</SAMP>, <SAMP>std::ios_base::imbue_event</SAMP>, or <SAMP>std::ios_base::copyfmt_event</SAMP> as the first argument, depending on whether the destruction of the stream, the imbuing of a new locale, or a call to <SAMP>std::basic_ios&lt;&gt;::copyfmt()</SAMP> initiated the callback.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>This causes <SAMP>show_event</SAMP> to be called. The first argument is <SAMP>std::ios_base::imbue_event</SAMP>; the second argument is a reference to the stream where the event occurred, which is <SAMP>s</SAMP> in this case; and the third argument is always the index provided in the call to <SAMP>std::ios_base&lt;&gt;::register_callback()</SAMP>, which is <SAMP>0</SAMP> in this case.
+<BR><BR>If more than one function is registered, functions are called in the opposite order of registration. 
+</TABLE>
+<P>Please refer to <A HREF="26-9.html#2692">Section&nbsp;26.9.2</A> for an example using callback functions with a user-defined stream inserter.</P>
+
+<BR>
+<HR>
+<A HREF="37-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="38.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

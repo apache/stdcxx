@@ -1,0 +1,784 @@
+<HTML>
+<HEAD>
+<TITLE>list</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="list-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="locale-h.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>list</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-7.html">Containers</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Constructors</A></LI>
+<LI><A HREF="#sec7">Destructors</A></LI>
+<LI><A HREF="#sec8">Assignment Operators</A></LI>
+<LI><A HREF="#sec9">Allocators</A></LI>
+<LI><A HREF="#sec10">Iterators</A></LI>
+<LI><A HREF="#sec11">Member Functions</A></LI>
+<LI><A HREF="#sec12">Nonmember Operators</A></LI>
+<LI><A HREF="#sec13">Specialized Algorithms</A></LI>
+<LI><A HREF="#sec14">Example</A></LI>
+<LI><A HREF="#sec15">Warnings</A></LI>
+<LI><A HREF="#sec16">See Also</A></LI>
+<LI><A HREF="#sec17">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx769">assign()</A><BR>
+<A HREF="#idx771">back()</A><BR>
+<A HREF="#idx761">begin()</A><BR>
+<A HREF="#idx773">clear()</A><BR>
+<A HREF="#idx774">empty()</A><BR>
+<A HREF="#idx763">end()</A><BR>
+<A HREF="#idx775">erase()</A><BR>
+<A HREF="#idx777">front()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx760">get_allocator()</A><BR>
+<A HREF="#idx779">insert()</A><BR>
+<A HREF="#idx753">list()</A><BR>
+<A HREF="#idx782">max_size()</A><BR>
+<A HREF="#idx783">merge()</A><BR>
+<A HREF="#idx759">operator=()</A><BR>
+<A HREF="#idx785">pop_back()</A><BR>
+<A HREF="#idx786">pop_front()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx787">push_back()</A><BR>
+<A HREF="#idx788">push_front()</A><BR>
+<A HREF="#idx765">rbegin()</A><BR>
+<A HREF="#idx789">remove()</A><BR>
+<A HREF="#idx789">remove_if()</A><BR>
+<A HREF="#idx767">rend()</A><BR>
+<A HREF="#idx790">resize()</A><BR>
+<A HREF="#idx791">reverse()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx792">size()</A><BR>
+<A HREF="#idx793">sort()</A><BR>
+<A HREF="#idx795">splice()</A><BR>
+<A HREF="#idx798">swap()</A><BR>
+<A HREF="#idx799">unique()</A><BR>
+<A HREF="#idx758">~list()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx802">operator!=()</A><BR>
+<A HREF="#idx804">operator&gt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx806">operator&gt;=()</A><BR>
+<A HREF="#idx803">operator&lt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx805">operator&lt;=()</A><BR>
+<A HREF="#idx801">operator==()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A sequence that supports bidirectional iterators</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;list&gt;
+
+namespace std {
+  template &lt;class T, class Allocator = allocator&lt;T&gt; &gt;
+  class list;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P><B><I>list</I></B> is a type of sequence that supports bidirectional iterators. A <B><I>list</I></B> allows constant time insert and erase operations anywhere within the sequence, with storage management handled automatically. Constant time random access is not supported. </P>
+<P>Any type used for the template parameter <SAMP>T</SAMP> must include the following members. Here <SAMP>T</SAMP> is the type, <SAMP>t</SAMP> is a <SAMP>value</SAMP> of <SAMP>T</SAMP> and <SAMP>u</SAMP> is a <SAMP>const</SAMP> <SAMP>value</SAMP> of <SAMP>T</SAMP>. </P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">Copy constructors  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"><SAMP>T(t)</SAMP> and <SAMP>T(u)</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">Destructor  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"><SAMP>t.~T()</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">Address of  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"><SAMP>&amp;t</SAMP> and <SAMP>&amp;u</SAMP> yielding <SAMP>T*</SAMP> and <SAMP>const T*</SAMP> respectively</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">Assignment  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"><SAMP>t = a</SAMP> where <SAMP>a</SAMP> is a (possibly <SAMP>const</SAMP>) value of <SAMP>T</SAMP></P></TD></TR>
+</TABLE></P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class T, class Allocator = allocator&lt;T&gt; &gt;
+  class list {
+
+    public:
+
+      // typedefs
+      class iterator;
+      class const_iterator;
+      typedef typename
+           Allocator::reference reference;
+      typedef typename
+           Allocator::const_reference const_reference;
+      typedef typename
+           Allocator::size_type size_type;
+      typedef typename
+           Allocator::difference_type difference_type;
+      typedef T value_type;
+      typedef typename
+           Allocator::pointer pointer;
+      typedef typename
+           Allocator::const_pointer const_pointer;
+      typedef Allocator allocator_type;
+
+      typedef typename std::reverse_iterator&lt;iterator&gt;
+                         reverse_iterator;
+      typedef typename std::reverse_iterator&lt;const_iterator&gt;
+                         const_reverse_iterator;
+
+      // Construct/Copy/Destroy
+
+      explicit list (const Allocator&amp; = Allocator());
+      explicit list (size_type);
+      list(size_type, const T&amp;, const Allocator&amp; =
+         Allocator())
+      template &lt;class InputIterator&gt;
+      list(InputIterator, InputIterator, 
+           const Allocator&amp; = Allocator());
+      list(const list&lt;T, Allocator&gt;&amp; x);
+      ~list();
+      list&lt;T,Allocator&gt;&amp; operator= (const list&lt;T,Allocator&gt;&amp;);
+      template &lt;class InputIterator&gt;
+      void assign (InputIterator, InputIterator);
+      void assign (size_type n, const T&amp;);
+
+      allocator_type get allocator () const;
+
+     // Iterators
+
+     iterator begin ();
+     const_iterator begin () const;
+     iterator end ();
+     const_iterator end () const;
+     reverse_iterator rbegin ();
+     const_reverse_iterator rbegin () const;
+     reverse_iterator rend ();
+     const_reverse_iterator rend () const;
+
+     // Capacity
+
+     bool empty () const;
+     size_type size () const;
+     size_type max_size () const;
+     void resize (size_type, T);
+
+     // Element Access
+
+     reference front ();
+     const_reference front () const;
+     reference back ();
+     const_reference back () const;
+
+     // Modifiers
+
+     void push_front (const T&amp;);
+     void pop_front ();
+     void push_back (const T&amp;);
+     void pop_back ();
+
+     iterator insert (iterator, const T&amp;);
+     void insert (iterator, size_type, const T&amp;);
+     template &lt;class InputIterator&gt;
+     void insert (iterator, InputIterator, InputIterator);
+
+     iterator erase (iterator);
+     iterator erase (iterator, iterator);
+
+     void swap (list&lt;T, Allocator&gt;&amp;);
+     void clear ();
+
+     // Special mutative operations on list
+
+     void splice (iterator, list&lt;T, Allocator&gt;&amp;);
+     void splice (iterator, list&lt;T, Allocator&gt;&amp;, iterator);
+     void splice (iterator, list&lt;T, Allocator&gt;&amp;, iterator,
+                  iterator);
+
+     void remove (const T&amp;);
+     template &lt;class Predicate&gt;
+     void remove_if (Predicate);
+
+     void unique ();
+     template &lt;class BinaryPredicate&gt;
+     void unique (BinaryPredicate);
+
+     void merge (list&lt;T, Allocator&gt;&amp;);
+     template &lt;class Compare&gt;
+     void merge (list&lt;T, Allocator&gt;&amp;, Compare);
+
+     void sort ();
+     template &lt;class Compare&gt;
+     void sort (Compare);
+
+     void reverse();
+  };
+
+  // Nonmember List Operators
+
+  template &lt;class T, class Allocator&gt;
+  bool operator==(const list&lt;T, Allocator&gt;&amp;, 
+                  const list&lt;T, Allocator&gt;&amp;);
+
+  template &lt;class T, class Allocator&gt;
+  bool operator!=(const list&lt;T, Allocator&gt;&amp;, 
+                  const list&lt;T, Allocator&gt;&amp;);
+
+  template &lt;class T, class Allocator&gt;
+  bool operator&lt;(const list&lt;T, Allocator&gt;&amp;,
+                 const list&lt;T, Allocator&gt;&amp;);
+
+  template &lt;class T, class Allocator&gt;
+  bool operator&gt;(const list&lt;T, Allocator&gt;&amp;,
+                 const list&lt;T, Allocator&gt;&amp;);
+
+  template &lt;class T, class Allocator&gt;
+  bool operator&lt;=(const list&lt;T, Allocator&gt;&amp;,
+                  const list&lt;T, Allocator&gt;&amp;);
+
+  template &lt;class T, class Allocator&gt;
+  bool operator&gt;=(const list&lt;T, Allocator&gt;&amp;,
+                 const list&lt;T, Allocator&gt;&amp;);
+
+  // Specialized Algorithms
+
+  template &lt;class T, class Allocator&gt;
+  void swap(list&lt;T,Allocator&gt;&amp;, list&lt;T, Allocator&gt;&amp;);
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Constructors</H3></A>
+
+<A NAME="idx753"></A><PRE>explicit <B>list</B>(const Allocator&amp; alloc = Allocator());</PRE>
+<UL>
+<P>Creates a list of zero elements. The list uses the allocator <SAMP>alloc</SAMP> for all storage management.</P>
+</UL>
+
+
+<A NAME="idx754"></A><PRE>explicit <B>list</B>(size_type n);</PRE>
+<UL>
+<P>Creates a list of length <SAMP>n</SAMP>, containing <SAMP>n</SAMP> copies of the default value for type&nbsp;<SAMP>T</SAMP>. <SAMP>T</SAMP> must have a default constructor. The list uses the allocator <SAMP>Allocator()</SAMP> for all storage management. </P>
+</UL>
+
+
+<A NAME="idx755"></A><PRE><B>list</B>(size_type n, const T&amp; value, 
+      const Allocator&amp; alloc = Allocator());</PRE>
+<UL>
+<P>Creates a list of length <SAMP>n</SAMP>, containing <SAMP>n</SAMP> copies of <SAMP>value</SAMP>. The list uses the allocator <SAMP>alloc</SAMP> for all storage management. </P>
+</UL>
+
+
+<A NAME="idx756"></A><PRE>template &lt;class InputIterator&gt;
+<B>list</B>(InputIterator start, InputIterator finish,
+      const Allocator&amp; alloc = Allocator()); </PRE>
+<UL>
+<P>Creates a list of length <SAMP>finish - start</SAMP>, filled with all values obtained by dereferencing the <SAMP>InputIterators</SAMP> on the range<SAMP> [start, finish)</SAMP>. The list uses the allocator <SAMP>alloc</SAMP> for all storage management.</P>
+</UL>
+
+
+<A NAME="idx757"></A><PRE><B>list</B>(const list&lt;T, Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Creates a copy of <SAMP>x</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Destructors</H3></A>
+
+<A NAME="idx758"></A><PRE><B>~list</B>();</PRE>
+<UL>
+<P>Releases any allocated memory for this list.</P>
+</UL>
+
+<A NAME="sec8"><H3>Assignment Operators</H3></A>
+
+<A NAME="idx759"></A><PRE>list&lt;T, Allocator&gt;&amp; 
+<B>operator=</B>(const list&lt;T, Allocator&gt;&amp; x)</PRE>
+<UL>
+<P>Erases all elements in self, then inserts into self a copy of each element in <SAMP>x</SAMP>. Returns a reference to <SAMP>*this</SAMP>.</P>
+</UL>
+
+<A NAME="sec9"><H3>Allocators</H3></A>
+
+<A NAME="idx760"></A><PRE>allocator_type 
+<B>get_allocator</B>() const;</PRE>
+<UL>
+<P>Returns a copy of the allocator used by self for storage management.</P>
+</UL>
+
+<A NAME="sec10"><H3>Iterators</H3></A>
+
+<A NAME="idx761"></A><PRE>iterator 
+<B>begin</B>();</PRE>
+<UL>
+<P>Returns a bidirectional iterator that points to the first element.</P>
+</UL>
+
+
+<A NAME="idx762"></A><PRE>const_iterator 
+<B>begin</B>() const;</PRE>
+<UL>
+<P>Returns a constant bidirectional iterator that points to the first element.</P>
+</UL>
+
+
+<A NAME="idx763"></A><PRE>iterator 
+<B>end</B>();</PRE>
+<UL>
+<P>Returns a bidirectional iterator that points to the past-the-end value.</P>
+</UL>
+
+
+<A NAME="idx764"></A><PRE>const_iterator 
+<B>end</B>() const;</PRE>
+<UL>
+<P>Returns a constant bidirectional iterator that points to the past-the-end value.</P>
+</UL>
+
+
+<A NAME="idx765"></A><PRE>reverse_iterator 
+<B>rbegin</B>();</PRE>
+<UL>
+<P>Returns a bidirectional iterator that points to the past-the-end value.</P>
+</UL>
+
+
+<A NAME="idx766"></A><PRE>const_reverse_iterator
+<B>rbegin</B>() const;</PRE>
+<UL>
+<P>Returns a constant bidirectional iterator that points to the past-the-end value.</P>
+</UL>
+
+
+<A NAME="idx767"></A><PRE>reverse_iterator 
+<B>rend</B>();</PRE>
+<UL>
+<P>Returns a bidirectional iterator that points to the first element.</P>
+</UL>
+
+
+<A NAME="idx768"></A><PRE>const_reverse_iterator 
+<B>rend</B>() const;</PRE>
+<UL>
+<P>Returns a constant bidirectional iterator that points to the first element.</P>
+</UL>
+
+<A NAME="sec11"><H3>Member Functions</H3></A>
+
+<A NAME="idx769"></A><PRE>template &lt;class InputIterator&gt;
+void
+<B>assign</B>(InputIterator start, InputIterator finish);</PRE>
+<UL>
+<P>If <B><I>InputIterator</I></B> is an integral type, the function calls <SAMP>assign(size_type(start), value_type (finish))</SAMP>. Otherwise, the function replaces elements in <SAMP>*this</SAMP> with copies of those in the range <SAMP>[start, finish)</SAMP>. The function invalidates all iterators and references to elements in <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx770"></A><PRE>void
+<B>assign</B>(size_type n, const T&amp; t);</PRE>
+<UL>
+<P>Replaces elements in <SAMP>*this</SAMP> with <SAMP>n</SAMP> copies of <SAMP>t</SAMP>. The function invalidates all iterators and references to elements in <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx771"></A><PRE>reference 
+<B>back</B>();</PRE>
+<UL>
+<P>Returns a <SAMP>reference</SAMP> to the last element.</P>
+</UL>
+
+
+<A NAME="idx772"></A><PRE>const_reference 
+<B>back</B>() const;</PRE>
+<UL>
+<P>Returns a constant reference to the last element.</P>
+</UL>
+
+
+<A NAME="idx773"></A><PRE>void
+<B>clear</B>();</PRE>
+<UL>
+<P>Erases all elements from the list.</P>
+</UL>
+
+
+<A NAME="idx774"></A><PRE>bool 
+<B>empty</B>() const;</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the <SAMP>size</SAMP> is zero.</P>
+</UL>
+
+
+<A NAME="idx775"></A><PRE>iterator
+<B>erase</B>(iterator position);</PRE>
+<UL>
+<P>Removes the element pointed to by <SAMP>position</SAMP>. Returns an iterator pointing to the element following the deleted element, or <SAMP>end()</SAMP> if the deleted item was the last one in this list.</P>
+</UL>
+
+
+<A NAME="idx776"></A><PRE>iterator
+<B>erase</B>(iterator start, iterator finish);</PRE>
+<UL>
+<P>Removes the elements in the range <SAMP>[start, finish)</SAMP>. Returns an iterator pointing to the element following the element following the last deleted element, or <SAMP>end()</SAMP> if there were no elements after the deleted range.</P>
+</UL>
+
+
+<A NAME="idx777"></A><PRE>reference 
+<B>front</B>();</PRE>
+<UL>
+<P>Returns a reference to the first element.</P>
+</UL>
+
+
+<A NAME="idx778"></A><PRE>const_reference 
+<B>front</B>() const;</PRE>
+<UL>
+<P>Returns a constant reference to the first element.</P>
+</UL>
+
+
+<A NAME="idx779"></A><PRE>iterator 
+<B>insert</B>(iterator position, const T&amp; x);</PRE>
+<UL>
+<P>Inserts <SAMP>x</SAMP> before <SAMP>position</SAMP>. Returns an iterator that points to the inserted <SAMP>x</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx780"></A><PRE>void 
+<B>insert</B>(iterator position, size_type n, const T&amp; x);</PRE>
+<UL>
+<P>Inserts <SAMP>n</SAMP> copies of <SAMP>x</SAMP> before <SAMP>position</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx781"></A><PRE>template &lt;class InputIterator&gt;
+void 
+<B>insert</B>(iterator position, InputIterator start,
+        InputIterator finish);</PRE>
+<UL>
+<P>Inserts copies of the elements in the range <SAMP>[start, finish)</SAMP> before <SAMP>position</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx782"></A><PRE>size_type
+<B>max_size</B>() const;</PRE>
+<UL>
+<P>Returns<SAMP> size()</SAMP> of the largest possible list.</P>
+</UL>
+
+
+<A NAME="idx783"></A><PRE>void 
+<B>merge</B>(list&lt;T, Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Merges a sorted <SAMP>x</SAMP> with a sorted self using <SAMP>operator&lt;</SAMP>. For equal elements in the two lists, elements from self always precede the elements from <SAMP>x</SAMP>. The <SAMP>merge</SAMP> function leaves <SAMP>x</SAMP> empty.</P>
+</UL>
+
+
+<A NAME="idx784"></A><PRE>template &lt;class Compare&gt;
+void 
+<B>merge</B>(list&lt;T, Allocator&gt;&amp; x, Compare comp);</PRE>
+<UL>
+<P>Merges a sorted <SAMP>x</SAMP> with sorted self using a <B><I><A HREF="compare.html">compare</A></I></B> function object, <SAMP>comp</SAMP>. For identical elements in the two lists, elements from self always precede the elements from <SAMP>x</SAMP>. The <SAMP>merge</SAMP> function leaves <SAMP>x</SAMP> empty.</P>
+</UL>
+
+
+<A NAME="idx785"></A><PRE>void 
+<B>pop_back</B>();</PRE>
+<UL>
+<P>Removes the last element.</P>
+</UL>
+
+
+<A NAME="idx786"></A><PRE>void 
+<B>pop_front</B>();</PRE>
+<UL>
+<P>Removes the first element.</P>
+</UL>
+
+
+<A NAME="idx787"></A><PRE>void 
+<B>push_back</B>(const T&amp; x);</PRE>
+<UL>
+<P>Appends a copy of <SAMP>x</SAMP> to the end of the list.</P>
+</UL>
+
+
+<A NAME="idx788"></A><PRE>void
+<B>push_front</B>(const T&amp; x);</PRE>
+<UL>
+<P>Appends a copy of <SAMP>x</SAMP> to the front of the list.</P>
+</UL>
+
+
+<A NAME="idx789"></A><PRE>void 
+<B>remove</B>(const T&amp; value);
+template &lt;class Predicate&gt;
+void 
+<B>remove_if</B>(Predicate pred);</PRE>
+<UL>
+<P>Removes all elements in the list referenced by the list iterator <SAMP>i</SAMP> for which <SAMP>*i == value </SAMP>or<SAMP> pred(*i) == true</SAMP>, whichever is applicable. This is a stable operation. The relative order of list items that are not removed is preserved.</P>
+</UL>
+
+
+<A NAME="idx790"></A><PRE>void 
+<B>resize</B>(size_type sz, T c);</PRE>
+<UL>
+<P>Alters the size of self. If the new size ( <SAMP>sz</SAMP> ) is greater than the current size, <SAMP>sz </SAMP>- <SAMP>size() c</SAMP>'s are inserted at the end of the list. If the new size is smaller than the current capacity, then the list is truncated by erasing <SAMP>size() - sz</SAMP> elements off the end. Otherwise, no action is taken. </P>
+</UL>
+
+
+<A NAME="idx791"></A><PRE>void 
+<B>reverse</B>();</PRE>
+<UL>
+<P>Reverses the order of the elements.</P>
+</UL>
+
+
+<A NAME="idx792"></A><PRE>size_type 
+<B>size</B>() const;</PRE>
+<UL>
+<P>Returns the number of elements.</P>
+</UL>
+
+
+<A NAME="idx793"></A><PRE>void 
+<B>sort</B>();</PRE>
+<UL>
+<P>Sorts self according to the <SAMP>operator&lt;</SAMP>. <SAMP>sort</SAMP> maintains the relative order of equal elements.</P>
+</UL>
+
+
+<A NAME="idx794"></A><PRE>template &lt;class Compare&gt;
+void 
+<B>sort</B>(Compare comp);</PRE>
+<UL>
+<P>Sorts self according to a comparison function object, <SAMP>comp</SAMP>. This is also a stable sort.   </P>
+</UL>
+
+
+<A NAME="idx795"></A><PRE>void 
+<B>splice</B>(iterator position, list&lt;T, Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Inserts <SAMP>x </SAMP>before <SAMP>position</SAMP>, leaving <SAMP>x </SAMP>empty.</P>
+</UL>
+
+
+<A NAME="idx796"></A><PRE>void 
+<B>splice</B>(iterator position, list&lt;T, Allocator&gt;&amp; x, 
+        iterator i);</PRE>
+<UL>
+<P>Moves the elements pointed to by iterator <SAMP>i</SAMP> in <SAMP>x</SAMP> to self, inserting it before <SAMP>position</SAMP>. The element is removed from <SAMP>x</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx797"></A><PRE>void 
+<B>splice</B>(iterator position, list&lt;T, Allocator &gt;&amp; x,
+        iterator start, iterator finish);</PRE>
+<UL>
+<P>Moves the elements in the range <SAMP>[start, finish)</SAMP> in <SAMP>x</SAMP> to self, inserting them before <SAMP>position</SAMP>. The elements in the range <SAMP>[start, finish)</SAMP> are removed from <SAMP>x</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx798"></A><PRE>void
+<B>swap</B>(list &lt;T, Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Exchanges self with <SAMP>x</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx799"></A><PRE>void 
+<B>unique</B>();</PRE>
+<UL>
+<P>Erases copies of consecutive repeated elements leaving the first occurrence.</P>
+</UL>
+
+
+<A NAME="idx800"></A><PRE>template &lt;class BinaryPredicate&gt;
+void 
+<B>unique</B>(BinaryPredicate binary_pred);</PRE>
+<UL>
+<P>Erases consecutive elements matching a <SAMP>true</SAMP> condition of the <SAMP>binary_pred</SAMP>. The first occurrence is not removed.</P>
+</UL>
+
+<A NAME="sec12"><H3>Nonmember Operators</H3></A>
+
+<A NAME="idx801"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator==</B>(const list&lt;T, Allocator&gt;&amp; x,
+                 const list&lt;T, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>x</SAMP> is the same as <SAMP>y</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx802"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator!=</B>(const list&lt;T, Allocator&gt;&amp; x,
+                 const list&lt;T, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns !<SAMP>(x==y)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx803"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator&lt;</B>(const list&lt;T, Allocator&gt;&amp; x,
+                const list&lt;T,Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the sequence defined by the elements contained in <SAMP>x</SAMP> is lexicographically less than the sequence defined by the elements contained in <SAMP>y</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx804"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator&gt;</B>(const list&lt;T, Allocator&gt;&amp; x,
+                const list&lt;T,Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>y &lt; x</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx805"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator&lt;=</B>(const list&lt;T, Allocator&gt;&amp; x,
+                const list&lt;T,Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns !<SAMP>(y &lt; x)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx806"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator&gt;=</B>(const list&lt;T, Allocator&gt;&amp; x,
+                const list&lt;T,Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns !<SAMP>(x &lt; y)</SAMP>.</P>
+</UL>
+
+<A NAME="sec13"><H3>Specialized Algorithms</H3></A>
+
+<A NAME="idx807"></A><PRE>template &lt;class T, class Allocator&gt;
+void <B>swap</B>(list&lt;T, Allocator&gt;&amp; a, list&lt;T, Allocator&gt;&amp; b);</PRE>
+<UL>
+<P> Swaps the contents of <SAMP>a</SAMP> and <SAMP>b</SAMP>.</P>
+</UL>
+
+<A NAME="sec14"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  list.cpp
+//
+
+#include &lt;algorithm&gt;   // for find
+#include &lt;list&gt;        // for list
+#include &lt;string&gt;      // for string
+#include &lt;iostream&gt;    // for cout, endl
+
+
+
+// Print out a list of strings.
+inline std::ostream&amp;
+operator&lt;&lt; (std::ostream &amp;out,
+            const std::list&lt;std::string,
+            std::allocator&lt;std::string&gt; &gt; &amp;l)
+{
+    typedef std::ostream_iterator&lt;std::string, char,
+                                  std::char_traits&lt;char&gt; &gt;
+        ositer;
+
+    std::copy (l.begin (), l.end (), ositer (out," "));
+
+    return out;
+}
+
+
+int main ()
+{
+    typedef std::list&lt;std::string, 
+                      std::allocator&lt;std::string&gt; &gt; List;
+
+    // Create a list of critters.
+    List critters;
+
+    // Insert several critters.
+    critters.insert (critters.begin (), "antelope");
+    critters.insert (critters.begin (), "bear");
+    critters.insert (critters.begin (), "cat");
+
+    // Print out the list.
+    std::cout &lt;&lt; critters &lt;&lt; std::endl;
+
+    // Change cat to cougar.
+    *std::find (critters.begin (),critters.end (), "cat") 
+              = "cougar";
+    std::cout &lt;&lt; critters &lt;&lt; std::endl;
+
+    // Put a zebra at the beginning, an ocelot ahead of 
+    // antelope, and a rat at the end.
+    critters.push_front ("zebra");
+    critters.insert (std::find (critters.begin (), 
+                                critters.end (),
+                                "antelope"), "ocelot");
+    critters.push_back ("rat");
+    std::cout &lt;&lt; critters &lt;&lt; std::endl;
+
+    // Sort the list (Use list's sort function since the 
+    // generic algorithm requires a random access iterator 
+    // and list only provides bidirectional)
+    critters.sort ();
+    std::cout &lt;&lt; critters &lt;&lt; std::endl;
+
+    // Now let's erase half of the critters.
+    List::size_type half = critters.size () / 2;
+    for (List::size_type i = 0; i != half; ++i)
+        critters.erase (critters.begin ());
+
+    std::cout &lt;&lt; critters &lt;&lt; std::endl;
+  
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>cat bear antelope 
+cougar bear antelope 
+zebra cougar bear ocelot antelope rat 
+antelope bear cougar ocelot rat zebra 
+ocelot rat zebra 
+</PRE></UL>
+<A NAME="sec15"><H3>Warnings</H3></A>
+<P>Member function templates are used in all of the containers included in the Standard Template Library. For example, the constructor for <B><I>list</I></B> takes two templatized iterators:</P>
+
+<UL><PRE>template &lt;class InputIterator&gt;
+list (InputIterator, InputIterator, 
+      const Allocator&amp; = Allocator());
+</PRE></UL>
+<P><B><I>list</I></B> also has an <SAMP>insert()</SAMP> function of this type. These functions, when not restricted by compiler limitations, allow you to use any type of input iterator as arguments. For compilers that do not support this feature, substitute functions allow you to use an iterator obtained from the same type of container as the one you are constructing (or calling a member function on), or you can use a pointer to the type of element you have in the container.</P>
+<P>For example, if your compiler does not support member function templates, you can construct a <B><I>list</I></B> in the following two ways:</P>
+
+<UL><PRE>int intarray[10];
+list&lt;int&gt; first_list(intarray,intarray + 10);
+list&lt;int&gt; second_list(first_list.begin(),first_list.end());
+</PRE></UL>
+<P>You cannot construct a <B><I>list</I></B> this way:</P>
+
+<UL><PRE>list&lt;long&gt; long_list(first_list.begin(),first_list.end());
+</PRE></UL>
+<P>since the <SAMP>long_list</SAMP> and <SAMP>first_list</SAMP> are not the same type.</P>
+<P>Additionally, <B><I>list</I></B> includes a <SAMP>merge()</SAMP> function of this type. </P>
+
+<UL><PRE>template &lt;class Compare&gt; void merge (list&lt;T, Allocator&gt;&amp;,
+  Compare);
+</PRE></UL>
+<P>This function allows you to specify a <B><I><A HREF="compare.html">compare</A></I></B> function object to be used in merging two lists. In this case, a substitute function is not included with the merge that uses the <SAMP>operator&lt;</SAMP> as the default. Thus, if your compiler does not support member function templates, all list merges use <SAMP>operator&lt;</SAMP>.</P>
+<A NAME="sec16"><H3>See Also</H3></A>
+<P><B><I><A HREF="allocator.html">allocator</A></I></B>, <A HREF="containers.html">Containers</A>, <A HREF="iterators.html">Iterators</A></P>
+<A NAME="sec17"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 23.2.2</I></P>
+
+<BR>
+<HR>
+<A HREF="list-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="locale-h.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,64 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * iostream - iostream declarations
+ *
+ * $Id: //stdlib/dev/include/iostream#19 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_IOSTREAM_INCLUDED
+#define _RWSTD_IOSTREAM_INCLUDED
+
+#include <istream>
+#include <ostream>
+
+#include <rw/_defs.h>
+
+
+#ifndef _RWSTD_NO_STATIC_IOSTREAM_INIT
+
+_RWSTD_NAMESPACE (__rw) { 
+
+// static stream initializer object defined in every translation unit
+// that (directly or otherwise) #includes this header (except the one
+// that defines iostream objects to prevent undesirable dependencies)
+static _STD::ios_base::Init __rw_stream_initializer;
+
+}   // namespace __rw
+
+#endif   // _RWSTD_NO_STATIC_IOSTREAM_INIT
+
+
+_RWSTD_NAMESPACE (std) { 
+
+_RWSTD_EXPORT extern istream _RWSTD_IOSTREAM_OBJECT (cin);
+_RWSTD_EXPORT extern ostream _RWSTD_IOSTREAM_OBJECT (cout);
+_RWSTD_EXPORT extern ostream _RWSTD_IOSTREAM_OBJECT (cerr);
+_RWSTD_EXPORT extern ostream _RWSTD_IOSTREAM_OBJECT (clog);
+
+#ifndef _RWSTD_NO_WCHAR_T
+
+_RWSTD_EXPORT extern wistream _RWSTD_IOSTREAM_OBJECT (wcin);
+_RWSTD_EXPORT extern wostream _RWSTD_IOSTREAM_OBJECT (wcout);
+_RWSTD_EXPORT extern wostream _RWSTD_IOSTREAM_OBJECT (wcerr);
+_RWSTD_EXPORT extern wostream _RWSTD_IOSTREAM_OBJECT (wclog);
+
+#endif   // _RWSTD_NO_WCHAR_T
+
+}   // namespace std
+
+#endif   // _RWSTD_IOSTREAM_INCLUDED

@@ -1,0 +1,271 @@
+<HTML>
+<HEAD>
+<TITLE>auto_ptr</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="associativecontainers.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="back-insert-iterator.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>auto_ptr</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Struct auto_ptr_ref</A></LI>
+<LI><A HREF="#sec7">Typedef</A></LI>
+<LI><A HREF="#sec8">Constructors</A></LI>
+<LI><A HREF="#sec9">Destructors</A></LI>
+<LI><A HREF="#sec10">Operators</A></LI>
+<LI><A HREF="#sec11">Member Functions</A></LI>
+<LI><A HREF="#sec12">Example</A></LI>
+<LI><A HREF="#sec13">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx21">auto_ptr()</A><BR>
+<A HREF="#idx19">auto_ptr_ref</A><BR>
+<A HREF="#idx20">element_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx30">get()</A><BR>
+<A HREF="#idx29">operator auto_ptr&lt;Y&gt;()</A><BR>
+<A HREF="#idx28">operator auto_ptr_ref&lt;Y&gt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx26">operator*()</A><BR>
+<A HREF="#idx27">operator-&gt;()</A><BR>
+<A HREF="#idx25">operator=()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx31">release()</A><BR>
+<A HREF="#idx32">reset()</A><BR>
+<A HREF="#idx24">~auto_ptr()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A simple smart pointer class</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;memory&gt;
+
+namespace std {
+  template &lt;class X&gt; class auto_ptr;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class template specialization <B><I>auto_ptr</I></B> holds onto a pointer obtained via <SAMP>new()</SAMP> and then deletes that object when the <B><I>auto_ptr</I></B> object itself is destroyed. <B><I>auto_ptr</I></B> can be used to make calls to operator <SAMP>new()</SAMP> exception-safe. The <B><I>auto_ptr</I></B> class has semantics of strict ownership: an object may be safely pointed to by only one <B><I>auto_ptr</I></B>, so copying an <B><I>auto_ptr</I></B> copies the pointer and transfers ownership to the destination if the source had already had ownership. </P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class Y&gt; struct auto_ptr_ref {}; 
+  template &lt;class X&gt; class auto_ptr {
+     public: 
+       typedef X element_type; 
+
+       // construct/copy/destroy   
+       explicit auto_ptr (X* p = 0) throw(); 
+       auto_ptr(auto_ptr&lt;X&gt;&amp;) throw (); 
+       template &lt;class Y&gt; 
+       auto_ptr(auto_ptr&lt;Y&gt;&amp;) throw(); 
+       auto_ptr&lt;X&gt;&amp; operator=(auto_ptr&lt;X&gt;&amp;) throw(); 
+       template &lt;class Y&gt; 
+       auto_ptr&lt;X&gt;&amp; operator= (auto_ptr&lt;Y&gt;&amp;) throw(); 
+       ~auto_ptr() throw(); 
+
+       // members 
+       X&amp; operator* () const throw(); 
+       X* operator-&gt; () const throw(); 
+       X* get () const throw(); 
+       X* release() throw(); 
+       void reset(X* p = 0) throw(); 
+
+       // conversions
+       auto_ptr(auto_ptr_ref&lt;X&gt;) throw(); 
+       template &lt;class Y&gt; operator auto_ptr_ref&lt;Y&gt;() throw(); 
+       template &lt;class Y&gt; operator auto_ptr&lt;Y&gt;() throw(); 
+  };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Struct auto_ptr_ref</H3></A>
+
+<A NAME="idx19"></A><PRE>template &lt;class Y&gt;
+struct <B>auto_ptr_ref</B>;</PRE>
+<UL>
+<P>A namespace-scope struct template that holds a reference to an <B><I>auto_ptr</I></B>. An <B><I>auto_ptr_ref</I></B> can only be constructed within an <B><I>auto_ptr</I></B> using a reference to an <B><I>auto_ptr</I></B>. It prevents unsafe copying.</P>
+</UL>
+
+<A NAME="sec7"><H3>Typedef</H3></A>
+
+<A NAME="idx20"></A><PRE>typedef X <B>element_type</B>;</PRE>
+<UL>
+<P>The type of element pointed to by <B><I>auto_ptr</I></B>. </P>
+</UL>
+
+<A NAME="sec8"><H3>Constructors</H3></A>
+
+<A NAME="idx21"></A><PRE>explicit 
+<B>auto_ptr</B> (X* p = 0) throw();</PRE>
+<UL>
+<P>Constructs an object of class <B><I>auto_ptr&lt;X&gt;</I></B>, initializing the held pointer to&nbsp;<SAMP>p</SAMP>, and acquiring ownership of that pointer. <SAMP>p</SAMP> must point to an object of class <SAMP>X</SAMP>, a class derived from <SAMP>X</SAMP> for which <SAMP>delete p</SAMP> is defined and accessible, or <SAMP>p</SAMP> must be a null pointer.</P>
+</UL>
+
+
+<A NAME="idx22"></A><PRE><B>auto_ptr</B> (auto_ptr&lt;X&gt;&amp; a) throw();
+template &lt;class Y&gt;
+<B>auto_ptr</B> (auto_ptr&lt;Y&gt;&amp; a) throw();</PRE>
+<UL>
+<P>Constructs an object of class <B><I>auto_ptr&lt;X&gt;</I></B>, and copies the argument <SAMP>a</SAMP> to <SAMP>*this</SAMP>. If <SAMP>a</SAMP> owned the underlying pointer, then <SAMP>*this</SAMP> becomes the new owner of that pointer.</P>
+<P>For the constructor template, each specialization requires that a pointer to <SAMP>Y</SAMP> be implicitly convertible to pointer to <SAMP>element_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx23"></A><PRE><B>auto_ptr</B> (auto_ptr_ref&lt;X&gt; r) throw();</PRE>
+<UL>
+<P>Constructs an <B><I>auto_ptr</I></B> from an <B><I>auto_ptr_ref</I></B>.</P>
+</UL>
+
+<A NAME="sec9"><H3>Destructors</H3></A>
+
+<A NAME="idx24"></A><PRE><B>~auto_ptr</B> () throw();</PRE>
+<UL>
+<P>Deletes the underlying pointer.</P>
+</UL>
+
+<A NAME="sec10"><H3>Operators</H3></A>
+
+<A NAME="idx25"></A><PRE>auto_ptr&lt;X&gt;&amp; <B>operator=</B>(auto_ptr&lt;X&gt;&amp; a) throw();
+template &lt;class Y&gt;
+auto_ptr&lt;X&gt;&amp; <B>operator=</B>(auto_ptr&lt;Y&gt;&amp; a) throw();</PRE>
+<UL>
+<P>Copies the argument <SAMP>a</SAMP> to <SAMP>*this</SAMP>. If <SAMP>a</SAMP> owned the underlying pointer, then <SAMP>*this</SAMP> becomes the new owner of that pointer. If <SAMP>*this</SAMP> already owned a pointer, that pointer is deleted first. The argument <SAMP>a</SAMP> is reset to zero.</P>
+<P>For the function template, each specialization requires that a pointer to <SAMP>Y</SAMP> be implicitly convertible to pointer to <SAMP>element_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx26"></A><PRE>X&amp; 
+<B>operator*</B>() const throw();</PRE>
+<UL>
+<P>Returns a reference to the object to which the underlying pointer points.</P>
+</UL>
+
+
+<A NAME="idx27"></A><PRE>X* 
+<B>operator-&gt;</B>() const throw();</PRE>
+<UL>
+<P>Returns the underlying pointer.</P>
+</UL>
+
+
+<A NAME="idx28"></A><PRE>template &lt;class Y&gt;
+<B>operator auto_ptr_ref&lt;Y&gt;</B>() throw();</PRE>
+<UL>
+<P>Constructs an <B><I>auto_ptr_ref</I></B> from <SAMP>*this</SAMP> and returns it.</P>
+</UL>
+
+
+<A NAME="idx29"></A><PRE>template &lt;class Y&gt;
+<B>operator auto_ptr&lt;Y&gt;</B>() throw();</PRE>
+<UL>
+<P>Constructs a new <B><I>auto_ptr</I></B> using the underlying pointer held by <SAMP>*this</SAMP>. Calls <SAMP>release()</SAMP> on <SAMP>*this</SAMP>, so <SAMP>*this</SAMP> no longer possesses the pointer. Returns the new <B><I>auto_ptr</I></B>.</P>
+</UL>
+
+<A NAME="sec11"><H3>Member Functions</H3></A>
+
+<A NAME="idx30"></A><PRE>X*
+<B>get</B>() const throw();</PRE>
+<UL>
+<P>Returns the underlying pointer.</P>
+</UL>
+
+
+<A NAME="idx31"></A><PRE>X*
+<B>release</B>() throw();</PRE>
+<UL>
+<P>Releases ownership of the underlying pointer and returns that pointer. The <SAMP>*this</SAMP> object is left holding a null pointer.</P>
+</UL>
+
+
+<A NAME="idx32"></A><PRE>void
+<B>reset</B>(X* p = 0) throw();</PRE>
+<UL>
+<P>Sets the underlying pointer to <SAMP>p</SAMP>. If non-null, deletes the old underlying pointer.</P>
+</UL>
+
+<A NAME="sec12"><H3>Example</H3></A>
+
+<UL><PRE>//
+// auto_ptr.cpp
+//
+
+#include &lt;iostream&gt;   // for cout, endl
+#include &lt;memory&gt;     // for auto_ptr
+
+
+
+// A simple structure.
+class X
+{
+    int i_;
+
+public:
+
+    X (int i) : i_ (i) {
+        std::cout &lt;&lt; "X::X (" &lt;&lt; i_ &lt;&lt; ')' &lt;&lt; std::endl;
+    }
+
+    ~X () {
+        std::cout &lt;&lt; "X::~X [" &lt;&lt; i_ &lt;&lt; ']' &lt;&lt; std::endl;
+    }
+
+    int get () const { return i_; }
+};
+
+
+int main ()
+{
+    // a implicitly initialized to 0 (the null pointer)
+    std::auto_ptr&lt;X&gt; a;
+
+    // Establish a scope.
+    if (1) {
+        // b will hold a pointer to an X.
+        std::auto_ptr&lt;X&gt; b (new X (12345));
+
+        // a will now be the owner of 
+        // the underlying pointer.
+        a = b;
+    }
+
+    std::cout &lt;&lt; "b destroyed" &lt;&lt; std::endl;
+
+        // Output the value contained by 
+        // the underlying pointer.
+#ifndef _RWSTD_NO_NONCLASS_ARROW_RETURN
+        std::cout &lt;&lt; a-&gt;get () &lt;&lt; std::endl;
+#else
+        std::cout &lt;&lt; (*a).get () &lt;&lt; std::endl;
+#endif
+
+    // The pointer will be deleted when a is destroyed 
+    // on leaving scope.
+    return 0;
+}
+
+Program Output:
+</PRE></UL>
+<P>X::X (12345)</P>
+<P>b destroyed</P>
+<P>12345</P>
+<P>X::~X [12345]</P>
+<A NAME="sec13"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 20.4.5</I></P>
+
+<BR>
+<HR>
+<A HREF="associativecontainers.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="back-insert-iterator.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

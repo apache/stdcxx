@@ -1,0 +1,263 @@
+<HTML>
+<HEAD>
+<TITLE>set and multiset Operations</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="8-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="8-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>8.2 set and multiset Operations</H2>
+<A NAME="idx131"><!></A>
+<P>The member functions provided by the <B><I><A HREF="../stdlibref/set.html">set</A></I></B> and <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B> datatypes are described in the following sections. Note that while member functions provide basic operations, the utility of these data structures is greatly extended through the use of the generic algorithms described in <A HREF="IV.html">Part&nbsp;IV</A>.</P>
+<A NAME="821"><H3>8.2.1 Declaration and Initialization of set</H3></A>
+<A NAME="idx132"><!></A>
+<P>A <B><I><A HREF="../stdlibref/set.html">set</A></I></B> class template is specialized on the type of the elements it contains and the operator used to compare keys. The latter argument is optional and, if not provided, the less-than operator for the key type is assumed. The element type can be a primitive language type, such as <SAMP>int</SAMP> or <SAMP>double</SAMP>; a pointer type; or a user-defined type. The element type must be comparable with both the equality testing <SAMP>operator==()</SAMP> and the less-than comparison <SAMP>operator&lt;()</SAMP>.</P>
+<P>A <B><I><A HREF="../stdlibref/set.html">set</A></I></B> can be declared with no initial elements, or initialized from another container by providing a pair of iterators.</P>
+<P>Whether a set is declared with no initial elements or initialized from another container, an optional argument is an alternative comparison function; this value overrides the value provided by the template parameter. The comparison object must be of the type given in the template parameter.  If the comparison object needs non-default initialization, the object must be initialized and provided to the constructor for the container.</P>
+<P>Note that a specialization is created for each combination of template type parameters.  More specializations require more space.  If saving space is important and two closely-related comparisons are needed for the same type of container, design comparison objects which change behavior when they are initialized (for example, an object which can be initialized to sort in either ascending or descending order).  One template specialization can avoided for each additional behavior of the comparison object.  However, performance will likely suffer due to increased overhead for the comparison.</P>
+<P>The copy constructor can be used to form a new set that is a clone, or copy, of an existing set.</P>
+
+<UL><PRE>
+std::set&lt;int&gt; set_one;
+
+std::set&lt;int, std::greater&lt;int&gt; &gt; set_two;
+std::set&lt;int, std::greater&lt;int&gt; &gt; set_three(std::greater&lt;int&gt;());
+
+std::set&lt;gadget, std::less&lt;gadget&gt; &gt; gset;
+std::set&lt;gadget&gt; gset(std::less&lt;gadget&gt;());
+
+std::set&lt;int&gt; set_four (aList.begin(), aList.end());
+std::set&lt;int, std::greater&lt;int&gt; &gt; set_five 
+   (aList.begin(), aList.end(), std::greater&lt;int&gt;());
+
+std::set&lt;int&gt; set_six (set_four);              // copy constructor
+</PRE></UL>
+<A NAME="idx133"><!></A>
+<P>A set can be assigned to another set, and two sets can exchange their values using the <SAMP>swap()</SAMP> operation in a manner analogous to other Standard C++ Library containers.</P>
+
+<UL><PRE>
+set_one = set_five;
+set_six.swap(set_two);
+</PRE></UL>
+<A NAME="822"><H3>8.2.2 Type Definitions</H3></A>
+<A NAME="idx134"><!></A>
+<P>The classes <B><I><A HREF="../stdlibref/set.html">set</A></I></B> and <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B> include a number of type definitions, most commonly used in declaration statements. For example, an iterator for a <B><I>set</I></B> specialized on <SAMP>int</SAMP> can be declared in the following fashion:</P>
+
+<UL><PRE>
+std::set&lt;int&gt;::iterator location;
+</PRE></UL>
+<P>In addition to <SAMP>iterator</SAMP>, <B><I><A HREF="../stdlibref/set.html">set</A></I></B> and <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B> define the following types:</P>
+<H4><A NAME="Table&nbsp;13">Table&nbsp;13: Type definitions for the set and multiset class templates&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Type</B>
+</td><td valign=top><B>Definition</B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>value_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">The type of the elements maintained by the set.  Must satisfy the Assignable requirement.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>key_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">The type of the elements maintained by the set.  Must satisfy the Assignable requirement.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>key_compare</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A binary predicate (see <A HREF="3-3.html">Section&nbsp;3.3</A>) used to compare two values of <SAMP>value_type</SAMP>.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>const_iterator</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">An iterator that does not allow modification of the underlying sequence.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>reverse_iterator</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">An iterator that moves in a backward direction.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>const_reverse_iterator</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A reverse iterator that does not allow modification of the underlying sequence.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>reference</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A reference to an underlying element.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>const_reference</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A reference to an underlying element that will not permit modification.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>pointer</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A pointer to an underlying element</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>const_pointer</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A constant pointer to an underlying element.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>size_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">An unsigned integer type, used to refer to the size of containers.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>key_compare</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A binary predicate (see <A HREF="3-3.html">Section&nbsp;3.3</A>) used to compare two values of <SAMP>key_type</SAMP>.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>value_compare</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A binary predicate (see <A HREF="3-3.html">Section&nbsp;3.3</A>) used to compare two values of <SAMP>value_type</SAMP>.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>difference_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A signed integer type, used to describe the distance between iterators.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>allocator_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">An allocator used by the container or all storage management.</P>
+</td></tr>
+</TABLE>
+<A NAME="823"><H3>8.2.3 Insertion</H3></A>
+<A NAME="idx135"><!></A>
+<P>Unlike a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> or <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>, there is only one way to add a new element to a <B><I><A HREF="../stdlibref/set.html">set</A></I></B>. A value must be inserted into a <B><I>set</I></B> or a <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B> using the <SAMP>insert()</SAMP> member function. With a <B><I>multiset</I></B>, the function returns an iterator that denotes the value just inserted. Insert operations into a <B><I>set</I></B> return a <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B> of values, in which the first field contains an iterator, and the second field contains a boolean value that is <SAMP>true</SAMP> if the element was inserted, and false otherwise. </P>
+<P>The <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B> data structure is a tuple of values. The first value is accessed through the field name <SAMP>first</SAMP>, while the second is, naturally, named <SAMP>second</SAMP>. A function named <SAMP>std::make_pair()</SAMP> simplifies the task of producing an instance of class <B><I>pair</I></B>.</P>
+
+<UL><PRE>
+namespace std {
+
+  template &lt;class T1, class T2&gt;
+  struct pair {
+      T1 first;
+      T2 second;
+      pair(const T1&amp; x, const T2&amp; y) : first(x), second(y) { }
+  };
+
+
+  template &lt;class T1, class T2&gt;
+  inline pair&lt;T1, T2&gt; make_pair(const T1&amp; x, const T2&amp; y)
+     { return pair&lt;T1, T2&gt;(x, y); }
+
+}
+</PRE></UL>
+<BLOCKQUOTE><HR><B>
+NOTE -- If you want to use the pair datatype without using sets, you should include the <SAMP>&lt;utility&gt;</SAMP> header file.
+</B><HR></BLOCKQUOTE>
+<P>Recall that in a <B><I><A HREF="../stdlibref/set.html">set</A></I></B>, an element will not be inserted if it matches an element already contained in the collection.</P>
+
+<UL><PRE>
+set_one.insert(18);
+
+if (set_one.insert(18).second)
+   std::cout &lt;&lt; "element was inserted" &lt;&lt; std::endl;
+else
+   std::cout &lt;&lt; "element was not inserted" &lt;&lt; std::endl;
+</PRE></UL>
+<P>To determine whether two keys are equivalent, the comparison function for the <B><I><A HREF="../stdlibref/set.html">set</A></I></B> is used. Remember that the comparison function does not test equality, but instead returns a Boolean value indicating whether or not the keys are in order. The strategy used to determine equivalence is simple. Two keys are equivalent if the comparison function for the keys is <SAMP>false</SAMP> in both directions.  For example, if <SAMP>(key1&nbsp;&lt;&nbsp;key2)</SAMP> is <SAMP>false</SAMP>, and <SAMP>(key2&nbsp;&lt;&nbsp;key1)</SAMP> is also <SAMP>false</SAMP>, then <SAMP>key1</SAMP> and <SAMP>key2</SAMP> are equivalent.</P>
+<P>Insertions of several elements from another container can also be performed using two iterators which indicate a range:</P>
+
+<UL><PRE>
+set_one.insert(set_three.begin(), set_three.end());
+</PRE></UL>
+<P>No value is returned. If there are duplicate values in the range, the duplicates are ignored.</P>
+<A NAME="824"><H3>8.2.4 Removal of Elements from a set</H3></A>
+<A NAME="idx136"><!></A>
+<P>Values are removed from a <B><I><A HREF="../stdlibref/set.html">set</A></I></B> using the member function <SAMP>erase()</SAMP>. The argument can be either a specific value, an iterator that points to a single value, or a pair of iterators that indicate a range of values. When the first form is used on a <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B>, all arguments matching the argument value are removed, and the return value indicates the number of elements that have been erased:</P>
+
+<UL><PRE>
+// erase element equal to 4
+set_three.erase(4);
+
+// find and then erase element equal to 5
+std::set&lt;int&gt;::iterator five = set_three.find(5);
+set_three.erase(five);
+
+// erase all values between seven and eleven
+std::set&lt;int&gt;::iterator seven  = set_three.find(7);
+std::set&lt;int&gt;::iterator eleven = set_three.find(11);
+set_three.erase (seven, eleven);
+</PRE></UL>
+<P>If the underlying element type provides a destructor, then the destructor is invoked prior to removing the element from the collection.</P>
+<A NAME="825"><H3>8.2.5 Searching and Counting</H3></A>
+<A NAME="idx137"><!></A>
+<P>The member function <SAMP>size()</SAMP> yields the number of elements held by a container. The member function <SAMP>empty()</SAMP> returns a Boolean <SAMP>true</SAMP> value if the container is empty, and is generally faster than testing the size against zero.</P>
+<A NAME="idx138"><!></A>
+<P>The member function <SAMP>find()</SAMP> takes an element value, and returns an iterator denoting the location of the value in the <B><I><A HREF="../stdlibref/set.html">set</A></I></B> if it is present, or a value matching the end-of-set value yielded by the function <SAMP>end()</SAMP> if it is not. If a <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B> contains more than one matching element, the value returned can be any one of the possible matching elements.</P>
+
+<UL><PRE>
+std::set&lt;int&gt;::iterator five = set_three.find(5);
+if (five != set_three.end())
+    std::cout &lt;&lt; "set contains a five" &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="idx139"><!></A>
+<P>The member functions <SAMP>lower_bound()</SAMP> and <SAMP>upper_bound()</SAMP> are most useful with <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B>s, since with <B><I><A HREF="../stdlibref/set.html">set</A></I></B>s they simply mimic the function <SAMP>find()</SAMP>. The member function <SAMP>lower_bound()</SAMP> yields the first entry that matches the argument key, while the member function <SAMP>upper_bound()</SAMP> returns the first value past the last entry matching the argument. Finally, the member function <SAMP>equal_range()</SAMP> returns a <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B> of iterators holding the lower and upper bounds.</P>
+<A NAME="idx140"><!></A>
+<P>The member function <SAMP>count()</SAMP> returns the number of elements that match the argument. For a <B><I><A HREF="../stdlibref/set.html">set</A></I></B>, this value is either zero or one, whereas for a <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B> it can be any nonnegative value. Since a non-zero integer value is treated as true, the <SAMP>count()</SAMP> function can be used to test for inclusion of an element, if all that is desired is to determine whether or not the element is present in the set. The alternative, using <SAMP>find(),</SAMP> requires testing the result returned by <SAMP>find()</SAMP> against the end-of-collection iterator.</P>
+
+<UL><PRE>
+if (set_three.count(5))
+  std::cout &lt;&lt; "set contains a five" &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="826"><H3>8.2.6 Iterators</H3></A>
+<A NAME="idx141"><!></A>
+<P>The member functions <SAMP>begin()</SAMP> and <SAMP>end()</SAMP> produce iterators for both <B><I><A HREF="../stdlibref/set.html">set</A></I></B>s and <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B>s. The iterators produced by these functions are constant to ensure that the ordering relation for the <B><I>set</I></B> is not inadvertently or intentionally destroyed by assigning a new value to a <B><I>set</I></B> element. The iterators generate elements in sequence, ordered by the comparison operator provided when the <B><I>set</I></B> was declared. The member functions <SAMP>rbegin(</SAMP>) and <SAMP>rend(</SAMP>) produce iterators that yield the elements in reverse order. </P>
+<BLOCKQUOTE><HR><B>
+NOTE -- Unlike a vector or deque, the insertion or removal of values from a set does not invalidate iterators or references to other elements in the collection.
+</B><HR></BLOCKQUOTE>
+<A NAME="827"><H3>8.2.7 set Operations</H3></A>
+<A NAME="idx142"><!></A>
+<P>The traditional set operations for determining if one set is a subset of another, creating a union of two sets, finding the intersection between two sets, and finding the difference between two sets are not provided as member functions. Instead, these operations are implemented as generic algorithms that work with any ordered structure. These functions are described in more detail in <A HREF="14-6.html">Section&nbsp;14.6</A>. The following sections describe how these functions can be used with the <B><I><A HREF="../stdlibref/set.html">set</A></I></B> and <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B> container classes.</P>
+<A NAME="827-1"><H4>8.2.7.1 Subset test</H4></A>
+<A NAME="idx143"><!></A>
+<P>The function <SAMP>std::includes()</SAMP> can be used to determine if one <B><I><A HREF="../stdlibref/set.html">set</A></I></B> is a subset of another. The function returns true if and only if each distinct element in the second sorted range has a corresponding distinct element in the first sorted range to which it compares equal. The four arguments are a pair of iterators representing the (presumably) larger <B><I>set</I></B>, and a pair of iterators representing the (potentially) smaller <B><I>set</I></B>:</P>
+
+<UL><PRE>
+if (std::includes(set_one.begin(), set_one.end(),
+                  set_two.begin(), set_two.end()))
+  std::cout &lt;&lt; "set_two is a subset of set_one" &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="idx144"><!></A>
+<P>The less-than operator, <SAMP>operator&lt;()</SAMP>, is used for the comparison of elements, regardless of the comparison function used in the declaration of the container. Where this is inappropriate, an alternative version of the <SAMP>std::includes()</SAMP> function is provided. This form takes a fifth argument, which is the comparison function used to order the elements in the two sets.</P>
+<A NAME="827-2"><H4>8.2.7.2 Set Union or Intersection</H4></A>
+<A NAME="idx145"><!></A>
+<P>The function <SAMP>std::set_union()</SAMP> can be used to construct a union of two <B><I><A HREF="../stdlibref/set.html">set</A></I></B>s. The two <B><I>set</I></B>s are specified by iterator pairs, and the union is copied into an output iterator that is supplied as a fifth argument. To form the result as a <B><I>set</I></B>, an <I>insert iterator</I> must be used to form the output iterator (<A HREF="2-4.html">Section&nbsp;2.4</A>). If the desired outcome is a union of one <B><I>set</I></B> with another, then a temporary <B><I>set</I></B> can be constructed, and the results swapped with the argument <B><I>set</I></B> prior to deletion of the temporary <B><I>set</I></B>:</P>
+
+<UL><PRE>
+// union two sets, copying result into a vector
+std::vector&lt;int&gt; v_one(set_one.size() + set_two.size());
+
+std::set_union(set_one.begin(), set_one.end(), 
+               set_two.begin(), set_two.end(), v_one.begin());
+
+// form union in place
+std::set&lt;int&gt; temp_set;
+std::set_union(set_one.begin(), set_one.end(), 
+               set_two.begin(), set_two.end(), 
+               std::inserter(temp_set, temp_set.begin()));
+set_one.swap(temp_set);          // temp_set will be deleted
+</PRE></UL>
+<A NAME="idx146"><!></A>
+<P>The function <SAMP>std::set_intersection()</SAMP> is similar, and forms the intersection of the two <B><I><A HREF="../stdlibref/set.html">set</A></I></B>s or two  <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B>s.</P>
+<P>As with the <SAMP>std::includes()</SAMP> function, the less-than <SAMP>operator&lt;()</SAMP> is used to compare elements in the two argument <B><I><A HREF="../stdlibref/set.html">set</A></I></B>s, regardless of the operator provided in the declaration of the <B><I>set</I></B>s. Should this be inappropriate, alternative versions of both the <SAMP>std::set_union()</SAMP> or <SAMP>std::set_intersection()</SAMP> functions permit the comparison operator used to form the <B><I>set</I></B> to be given as a sixth argument.</P>
+<A NAME="idx147"><!></A>
+<P>The operation of taking the union of two <B><I><A HREF="../stdlibref/multiset.html">multiset</A></I></B>s should be distinguished from the operation of merging two <B><I><A HREF="../stdlibref/set.html">set</A></I></B>s. Imagine that one argument <B><I>set</I></B> contains three instances of the element 7, and the second <B><I>set</I></B> contains two instances of the same value. The union will contain only three such values, while the merge will contain five. To form the merge, the function <SAMP>std::merge()</SAMP> can be used (<A HREF="14-5.html">Section&nbsp;14.5</A>). The arguments to this function exactly match those of the <SAMP>std::set_union()</SAMP> function.</P>
+<A NAME="827-3"><H4>8.2.7.3 Set Difference</H4></A>
+<A NAME="idx148"><!></A>
+<P>There are two forms of <B><I><A HREF="../stdlibref/set.html">set</A></I></B> difference. A simple <B><I>set</I></B> difference represents the elements in the first <B><I>set</I></B> that are not contained in the second. A symmetric <B><I>set</I></B> difference is the union of the elements in the first <B><I>set</I></B> that are not contained in the second, with the elements in the second that are not contained in the first. These two values are constructed by the functions <SAMP>std::set_difference()</SAMP> and <SAMP>std::set_symmetric_difference()</SAMP>, respectively. The use of these functions is similar to the use of the <SAMP>std::set_union()</SAMP> function described earlier.</P>
+<A NAME="828"><H3>8.2.8 Other Generic Algorithms</H3></A>
+<A NAME="idx149"><!></A>
+<P>Because <B><I><A HREF="../stdlibref/set.html">set</A></I></B>s are ordered and have constant iterators, a number of the generic functions described in <A HREF="13.html">Chapter&nbsp;13</A> and <A HREF="14.html">Chapter&nbsp;14</A> are either not applicable to <B><I>set</I></B>s or not particularly useful. However, <A HREF="8-2.html#Table&nbsp;14">Table&nbsp;14</A> gives a few of the functions that can be used in conjunction with the <B><I>set</I></B> datatype.</P>
+<H4><A NAME="Table&nbsp;14">Table&nbsp;14: Generic algorithms useful for the set datatype</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Purpose</B>
+</td><td valign=top><B>Name</B>
+</td><td valign=top><B>Where to find</B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Copy one sequence into another </P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>copy()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><A HREF="13-2.html#1322">Section&nbsp;13.2.2</A></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Find an element that matches a condition </P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>find_if()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><A HREF="13-3.html#1331">Section&nbsp;13.3.1</A></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Find a sub-sequence within a set </P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>search()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><A HREF="13-3.html#1333">Section&nbsp;13.3.3</A></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Count number of elements that satisfy condition </P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>count_if()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><A HREF="13-6.html#1361">Section&nbsp;13.6.1</A></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Reduce set to a single value </P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>accumulate()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><A HREF="13-6.html#1362">Section&nbsp;13.6.2</A></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Execute function on each element </P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>for_each()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><A HREF="13-8.html">Section&nbsp;13.8</A></P>
+</td></tr>
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="8-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="8-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

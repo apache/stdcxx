@@ -1,0 +1,424 @@
+<HTML>
+<HEAD>
+<TITLE>Manipulators with Parameters</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="33-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="34.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>33.3 Manipulators with Parameters</H2>
+<P>Manipulators with parameters are more complex than those without because there are additional issues to consider. Before we explore these issues in detail and examine various techniques for implementing manipulators with parameters, let's take a look at one particular technique, the one that is used to implement standard manipulators such as <SAMP>std::setprecision(),</SAMP> <SAMP>std::setw()</SAMP>, etc.</P>
+<A NAME="3331"><H3>33.3.1 The Standard Manipulators</H3></A>
+<A NAME="idx810"><!></A>
+<P>The Rogue Wave implementation of the standard iostreams uses a certain technique for implementing most standard manipulators with parameters: the manipulator type <SAMP>manipT</SAMP> is a function pointer type; the manipulator object is the function pointed to; and the associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a non-member function. </P>
+<A NAME="idx811"><!></A>
+<P>The C++ standard informally refers to the manipulator type as <SAMP>smanip</SAMP>. The type itself is implementation-specified and may not be accessible to user code at all (i.e., it may be defined in some private namespace or called something entirely different); all you know is that it is returned by some of the standard manipulators. In the Rogue Wave implementation, the type referred to as <SAMP>smanip</SAMP> is a class template:</P>
+
+<UL><PRE>
+template&lt;class T&gt;
+class <I>smanip</I> {
+  public:
+    <I>smanip</I>(ios_base&amp; (*pf)(ios_base&amp;, T), T arg);
+};
+</PRE></UL>
+<P>A standard manipulator like <SAMP>std::setprecision()</SAMP> can be implemented as a non-member function returning an object of some implementation-specified type <SAMP><I>smanip</I></SAMP>:</P>
+
+<UL><PRE>
+<I>smanip</I>&lt;int&gt; setprecision(int n)
+{ 
+  return <I>smanip</I>&lt;int&gt;(sprec, n);
+}
+</PRE></UL>
+<P>The associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a private function, let's call it <SAMP><I>sprec</I></SAMP>:</P>
+
+<UL><PRE>
+ios_base&amp; <I>sprec</I>(ios_base&amp; str, int n)
+{
+  str.precision(n);
+  return str;
+}
+</PRE></UL>
+<A NAME="3332"><H3>33.3.2 The Principle of Manipulators with Parameters</H3></A>
+<P>The previous section gave an example of a technique for implementing a manipulator with one parameter: the technique used to implement the standard manipulators in iostreams. However, this is not the only way to implement a manipulator with parameters. In this section, we examine other techniques. Although all explanations are in terms of manipulators with one parameter, it is easy to extend the techniques to manipulators with several parameters.</P>
+<A NAME="idx812"><!></A>
+<P>Let's start right at the beginning: what is a manipulator with a parameter?</P>
+<A NAME="idx813"><!></A>
+<P>A manipulator with a parameter is an object that can be inserted into or extracted from a stream in an expression like:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; Manip(x);
+std::cin  &gt;&gt; Manip(x);
+</PRE></UL>
+<A NAME="idx814"><!></A>
+<P><SAMP>Manip(x)</SAMP> must be an object of type <SAMP>manipT</SAMP>, for which the shift operators are overloaded. Here's an example of the corresponding inserter:</P>
+
+<UL><PRE>
+template &lt;class charT, class Traits&gt;
+std::basic_ostream&lt;charT,Traits&gt;&amp;
+operator&lt;&lt; (std::basic_ostream&lt;charT,Traits&gt;&amp; ostr
+           ,const manipT&amp; manip)
+{  // call the associated function <I>fmanipT</I>, for example
+   (*manip.<I>fmanipT</I><SUB> </SUB>)(ostr,manip.arg<SUB>f</SUB>);
+   return os;
+}
+</PRE></UL>
+<P>With this inserter defined, the expression <SAMP>std::cout &lt;&lt; Manip(x);</SAMP> is equivalent to a call to the shift operator sketched above; that is, <SAMP>operator&lt;&lt;(std::cout, Manip(x))</SAMP>. Note that the name of the <SAMP>operator&lt;&lt;()</SAMP> does not need to be qualified with the name of any namespace. Since the operator will typically be defined in the same namespace as one of its arguments, it is in those namespaces that the operator definition will be sought to resolve the call.</P>
+<P>Assuming that a side effect is created by an associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP>, the manipulator must call the associated function with its respective argument(s). Hence it must store the associated function together with its argument(s) for a call from inside the shift operator. </P>
+<P>The associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>can be a static member or a namespace-scope function, or even a member function of type <SAMP>manipT</SAMP>, for example.</P>
+<A NAME="idx815"><!></A>
+<P>In the inserter above, we've assumed that the associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a static or a non-member function, and that it takes exactly one argument. Generally, the manipulator type <SAMP>manipT</SAMP> might look like this:</P>
+
+<UL><PRE>
+template &lt;class FctPtr, class Arg1, class Arg2, ...&gt;
+class manipT
+{
+ public:
+   manipT(FctPtr, Arg1, Arg2, ...);
+ private:
+   FctPtr fp_;
+   Arg1   arg1_;
+   Arg2   arg2_;
+};
+</PRE></UL>
+<P>Note that this is only a suggested manipulator, however. In principle, you can define the manipulator type in any way that makes the associated side effect function and its arguments available for a call from inside the respective shift operators for the manipulator type. We show other examples of such manipulator types later in this chapter; for instance, a manipulator type called smanip mentioned by the C++ standard. It is an implementation-defined function type returned by the standard manipulators. See the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A> for details.</P>
+<A NAME="idx816"><!></A>
+<P>Returning now to the example above, the manipulator object provided as an argument to the overloaded shift operator is obtained by <SAMP>Manip(x)</SAMP>, which has three possible solutions:</P>
+<OL>
+<A NAME="idx817"><!></A>
+<LI><P CLASS="LIST"><SAMP>Manip(x)</SAMP> is a function call. In this case, <SAMP>Manip</SAMP> would be the name of a function that takes an argument of type <SAMP>x</SAMP> and returns a manipulator object of type <SAMP>manipT</SAMP>; that is, <SAMP>Manip</SAMP> is a function with the following signature: </P></LI>
+
+<UL><PRE>
+manipT Manip (X x);
+</PRE></UL>
+<A NAME="idx818"><!></A>
+<LI><P CLASS="LIST"><SAMP>Manip(x)</SAMP> is a constructor call. In this case, <SAMP>Manip</SAMP> would be the name of a class with a constructor that takes an argument of type <SAMP>X</SAMP> and constructs a manipulator object of type <SAMP>Manip</SAMP>; that is, <SAMP>Manip</SAMP> and <SAMP>manipT</SAMP> would be identical:</P></LI>
+
+<UL><PRE>
+struct Manip {
+  Manip(X x);
+};
+</PRE></UL>
+<A NAME="idx819"><!></A>
+<LI><P CLASS="LIST"><SAMP>Manip(x)</SAMP> is a call to a function object. In this case, <SAMP>Manip</SAMP> would be an object of a class <SAMP>M</SAMP>, which defines a function call operator that takes an argument of type <SAMP>x</SAMP> and returns a manipulator object of type <SAMP>manipT</SAMP>:</P></LI>
+
+<UL><PRE>
+struct M {
+  manipT operator()(X x);
+} Manip;
+</PRE></UL>
+</OL>
+<A NAME="idx820"><!></A>
+<P>Solutions <B>1.)</B> and <B>2.)</B> are semantically different from solution <B>3.)</B>. In solution <B>1.)</B>, <SAMP>Manip</SAMP> is a function and therefore need not be created by the user. In solution <B>2.)</B>, <SAMP>Manip</SAMP> is a class name and an unnamed temporary object serves as manipulator object. In solution <B>3.)</B>, however, the manipulator object <SAMP>Manip</SAMP> must be explicitly created by the user. Hence the user has to write:</P>
+
+<UL><PRE>
+manipT Manip;
+
+std::cout &lt;&lt; Manip(x);
+</PRE></UL>
+<P>which is somewhat inconvenient because it forces the user to know an additional name, the manipulator type <SAMP>manipT</SAMP>, and to create the manipulator object <SAMP>Manip</SAMP>. An alternative could be to provide <SAMP>Manip</SAMP> as a static or a global object at the user's convenience, but this approach would introduce the well-known order-of-initialization problems for global and static objects. For these reasons, solution <B>3.)</B> is useful if the manipulator has <I>state</I>; that is, if it stores additional data like a manipulator, let's call it <SAMP>lineno</SAMP>, which provides the next line number each time it is inserted.</P>
+<A NAME="idx821"><!></A>
+<P>For any of the three solutions just discussed, there is also a choice of associated functions. The associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>can be either:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE"><B>a.</B></P>
+</td><td valign=top><P CLASS="TABLE">A static or a namespace-scope function;</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><B>b.</B></P>
+</td><td valign=top><P CLASS="TABLE">A static member function;</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><B>c.</B></P>
+</td><td valign=top><P CLASS="TABLE">A virtual member function.</P>
+</td></tr>
+</TABLE>
+<P>Among these choices, <B>b.)</B>, the use of a static member function, is the preferable in an object-oriented program because it permits encapsulation of the manipulator together with its associated function. This is particularly recommended if the manipulator has <I>state</I>, as in solution <B>3.)</B>, where the manipulator is a function object, and the associated function has to access the manipulator's state. Using <B>c.)</B>, a virtual member function, introduces the overhead of a virtual function call each time the manipulator is inserted or extracted. It is useful if the manipulator has state, and the state needs to be modified by the associated manipulator function. A static member function would only be able to access the manipulator's static data; a non-static member function, however, can access the object-specific data.</P>
+<A NAME="idx822"><!></A>
+<A NAME="3333"><H3>33.3.3 Examples of Manipulators with Parameters</H3></A>
+<A NAME="idx823"><!></A>
+<P>In this section, let's look at some examples of manipulators with parameters. The examples here are arbitrary combinations of solutions <B>1.)</B> to <B>3.)</B> for the manipulator type, with <B>a.)</B> to <B>c.) </B>for the associated function. We also use the standard manipulator <SAMP>std::setprecision()</SAMP> to demonstrate the various techniques.</P>
+<A NAME="idx824"><!></A>
+<P><B>Example 1: Function Pointer and Non-member Function.</B> This example combines <B>1.)</B> and <B>c.)</B>, and so:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>manipT</SAMP> is a function pointer type.</P></LI>
+<LI><P CLASS="LIST">The manipulator object is the function pointed to.</P></LI>
+<LI><P CLASS="LIST">The associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a non-member function. </P></LI>
+</UL>
+<A NAME="idx825"><!></A>
+<P>The Rogue Wave implementation of the standard iostreams uses this technique for implementing most standard manipulators with parameters. See <A HREF="28-3.html#2832">Section&nbsp;28.3.2</A> for reference.</P>
+<A NAME="idx826"><!></A>
+<P><B>Example 2: Unnamed Object and Static Member Function.</B> This example combines <B>2.)</B> and <B>b.)</B>, and thus:</P>
+<UL>
+<LI><P CLASS="LIST">The manipulator object <SAMP>Manip</SAMP> is an unnamed object.</P></LI>
+<LI><P CLASS="LIST">The manipulator type <SAMP>manipT</SAMP> is a class.</P></LI>
+<LI><P CLASS="LIST">The associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a static member function.</P></LI>
+</UL>
+<A NAME="idx827"><!></A>
+<P>The manipulator type <SAMP>manipT</SAMP> can be derived from the implementation-specific manipulator type <SAMP><I>smanip</I></SAMP> defined by iostreams. Here is an alternative implementation of a manipulator like <SAMP>setprecision()</SAMP>:</P>
+
+<UL><PRE>
+class setprecision : public <I>smanip</I>&lt;int&gt; {
+  public:
+    setprecision(int n) : <I>smanip</I>&lt;int&gt;(sprec_, n) { }
+  private:
+    static std::ios_base&amp; sprec_(std::ios_base&amp; str, int n)
+    {
+      str.precision(n);
+      return str;
+    }
+};
+</PRE></UL>
+<A NAME="idx828"><!></A>
+<P><B>Example 3: Unnamed Object and Virtual Member Function.</B> This example <B>2.)</B> and <B>c.)</B>, and therefore:</P>
+<UL>
+<LI><P CLASS="LIST">The manipulator object <SAMP>Manip</SAMP> is an unnamed object.</P></LI>
+<LI><P CLASS="LIST">The manipulator type <SAMP>manipT</SAMP> is a class.</P></LI>
+<LI><P CLASS="LIST">The associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a virtual member function of that class.</P></LI>
+</UL>
+<P>The idea here is that the associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a non-static member function of the manipulator type <SAMP>manipT</SAMP>. In such a model, the manipulator does not store a pointer to the associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP>, but defines the associated function as a pure virtual member function. Consequently, the manipulator type <SAMP>manipT</SAMP> is an abstract class, and concrete manipulator types are derived from this abstract manipulator type. They are required to implement the virtual member function that represents the associated function.</P>
+<A NAME="idx829"><!></A>
+<P>Clearly, we need a new manipulator type because the implementation-specific manipulator type <SAMP><I>smanip</I></SAMP> is implementation-defined. In the Rogue Wave Standard C++ Library, <SAMP><I>smanip</I></SAMP> has no virtual member functions, but stores a pointer to the associated function. Here is the abstract manipulator type we need:</P>
+
+<UL><PRE>
+template &lt;class Arg, class Ostream&gt;
+class virtsmanip
+{
+ public:
+   typedef Arg argument_type;
+   typedef Ostream ostream_type;
+   virtsmanip (Arg a) : arg_(a) { }
+ 
+ protected:
+   virtual Ostream&amp; fct_(Ostream&amp;,Arg) const = 0;
+   Arg arg_;
+ 
+   friend Ostream&amp;
+   operator&lt;&lt; (Ostream&amp; ostr,
+               const virtsmanip&lt;Arg,Ostream&gt;&amp; manip);
+};
+</PRE></UL>
+<A NAME="idx830"><!></A>
+<P>This type <SAMP>virtsmanip</SAMP> differs from the implementation-specific manipulator type <SAMP><I>smanip</I></SAMP> in several ways:</P>
+<UL>
+<LI><P CLASS="LIST">It defines the above-mentioned pure virtual member function <SAMP>fct_()</SAMP>.</P></LI>
+<LI><P CLASS="LIST">The argument <SAMP>arg_</SAMP> and the virtual function <SAMP>fct_()</SAMP> are protected members, and consequently the respective shift operator for the manipulator type has to be a friend function.</P></LI>
+<LI><P CLASS="LIST">It is a base class for output manipulators only.</P></LI>
+</UL>
+<P>The manipulator <SAMP><I>smanip</I></SAMP> expects a pointer to a function that takes a <SAMP>std::ios_base</SAMP> reference. In this way, a manipulator is always applicable to input <I>and</I> output streams, regardless of whether or not this is intended. With our new manipulator type <SAMP>virtsmanip,</SAMP> we can define manipulators that cannot inadvertently be applied to input streams.</P>
+<A NAME="idx831"><!></A>
+<P>Since we have a new manipulator type, we also need a new overloaded version of the manipulator inserter:</P>
+
+<UL><PRE>
+template &lt;class Arg, class Ostream&gt;
+Ostream&amp;
+operator&lt;&lt; (Ostream&amp; ostr, const virtsmanip&lt;Arg,Ostream&gt;&amp; manip)
+{
+  manip.fct_(ostr,manip.arg_);
+  return ostr;
+}
+</PRE></UL>
+<A NAME="idx832"><!></A>
+<P>After these preparations, we can now provide yet another alternative implementation of a manipulator like <SAMP>setprecision()</SAMP>. This time <SAMP>setprecision()</SAMP> is a manipulator for output streams only:</P>
+
+<UL><PRE>
+class setprecision : public virtsmanip&lt;int,
+   std::basic_ostream&lt;char&gt; &gt;
+{
+public:
+ setprecision(argument_type n)
+ : virtsmanip&lt;argument_type,ostream_type&gt;(n) { }
+ 
+protected:
+ ostream_type&amp; fct_(ostream_type&amp; str, argument_type n) const
+ {
+   str.precision(n);
+   return str;
+ }
+};
+</PRE></UL>
+<A NAME="idx833"><!></A>
+<P><B>Example 4: Function Object and Static Member Function</B>. The next example combines <B>3.)</B> and <B>b.)</B>, so here:</P>
+<UL>
+<LI><P CLASS="LIST">The manipulator object <SAMP>Manip</SAMP> is an object of a type <SAMP>M</SAMP> that defines the function call operator.</P></LI>
+<LI><P CLASS="LIST">The manipulator type <SAMP>manipT</SAMP> is a class type that is returned by the overloaded function call operator of class <SAMP>M</SAMP>.</P></LI>
+<LI><P CLASS="LIST">The associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a static member function of class <SAMP>M</SAMP>.</P></LI>
+</UL>
+<P>This solution, using a function object as a manipulator, is semantically different from the previous solution in that the manipulator object has <I>state</I>, that is, it can store data between subsequent uses.</P>
+<A NAME="idx834"><!></A>
+<P>Let us demonstrate this technique in terms of another example: an output manipulator that inserts a certain string that is maintained by the manipulator object. Such a manipulator could be used, for instance, to insert a prefix to each line:</P>
+
+<UL><PRE>
+Tag&lt;char&gt; change_mark("v1.2 &gt;&gt; ");
+
+while ( new_text )
+  ostr &lt;&lt; change_mark &lt;&lt; next_line;
+
+change_mark("");
+while ( old_text)
+  ostr &lt;&lt; change_mark &lt;&lt; next_line;
+</PRE></UL>
+<A NAME="idx835"><!></A>
+<P>We would like to derive the <SAMP>Tag</SAMP> manipulator here from the implementation-specific manipulator <SAMP><I>smanip</I></SAMP>. Unfortunately, <SAMP><I>smanip</I></SAMP> is restricted to associated functions that take a <SAMP>std::ios_base</SAMP> reference as a parameter. In our example, we want to insert the stored text to the stream, so we need the stream's inserter. However, <SAMP>std::ios_base</SAMP> does not have inserters or extractors. Consequently we need a new manipulator base type, similar to <SAMP><I>smanip</I></SAMP>, that allows associated functions that take a reference to an output stream:</P>
+
+<UL><PRE>
+template &lt;class Ostream, class Arg&gt;
+class osmanip {
+  public:
+    typedef Ostream ostream_type;
+    typedef Arg argument_type;
+ 
+    osmanip(Ostream&amp; (*pf)(Ostream&amp;, Arg), Arg arg)
+    : pf_(pf) , arg_(arg) { ; }
+ 
+  protected:
+    Ostream&amp;     (*pf_)(Ostream&amp;, Arg);
+    Arg          arg_;
+ 
+  friend Ostream&amp;
+    operator&lt;&lt; 
+    (Ostream&amp; ostr, const osmanip&lt;Ostream,Arg&gt;&amp; manip);
+};
+</PRE></UL>
+<A NAME="idx836"><!></A>
+<P>Then we need to define the inserter for the new manipulator type <SAMP>osmanip</SAMP>:</P>
+
+<UL><PRE>
+template &lt;class Ostream, class Arg&gt;
+Ostream&amp;
+operator&lt;&lt; (Ostream&amp; ostr,const osmanip&lt;Ostream,Arg&gt;&amp; manip)
+{
+   (*manip.pf_)(ostr,manip.arg_);
+   return ostr;
+}
+</PRE></UL>
+<A NAME="idx837"><!></A>
+<P>Now we define the function object type <SAMP>M</SAMP>, here called <SAMP>Tag</SAMP>:</P>
+
+<UL><PRE>
+template &lt;class  charT&gt;
+class Tag
+: public osmanip&lt;std::basic_ostream&lt;charT&gt;,
+                 std::basic_string&lt;charT&gt; &gt;
+{
+   // for notational convenience
+  typedef osmanip&lt;std::basic_ostream&lt;charT&gt;,
+                  std::basic_string&lt;charT&gt; &gt; base;
+public:
+  // bring members of a dependent base class into scope
+  typedef typename base::argument_type argument_type;
+  typedef typename base::ostream_type ostream_type;
+
+  Tag(argument_type a = "")
+  : osmanip&lt;ostream_type, std::basic_string&lt;charT&gt; &gt; (fct_, a)
+    { }
+
+  osmanip&lt;ostream_type,argument_type&gt;&amp;
+  operator()(argument_type a) {
+    arg_ = a;
+    return *this;
+  }
+
+private:
+  static ostream_type&amp; fct_(ostream_type&amp; str, argument_type a) {
+    return str &lt;&lt; a;
+  }
+};
+</PRE></UL>
+<P>Note that the semantics of this type of manipulator differ from the previous ones, and from the standard manipulator <SAMP>std::setprecision()</SAMP>. The manipulator object has to be explicitly created before it can be used, as shown in the example below:</P>
+
+<UL><PRE>
+Tag&lt;char&gt; change_mark("v1.2 &gt;&gt; ");
+
+while ( new_text )
+   ostr &lt;&lt; change_mark &lt;&lt; next_line;
+
+change_mark("");
+while ( old_text)
+   ostr &lt;&lt; change_mark &lt;&lt; next_line;
+</PRE></UL>
+<P>This kind of manipulator is more flexible. In the example above, you can see that the default text is set to <SAMP>"v1.2 &gt;&gt;"</SAMP> when the manipulator is created. Thereafter you can use the manipulator as a parameterless manipulator and it will remember this text. You can also use it as a manipulator taking an argument, and provide it with a different argument each time you insert it.</P>
+<A NAME="idx838"><!></A>
+<P><B>Example 5: Function Object and Virtual Member Function.</B> In the previous example, a static member function is used as the associated function. This has the slight disadvantage that the associated function cannot modify the manipulator's state. Should modification be necessary, you might consider using a virtual member function instead.</P>
+<A NAME="idx839"><!></A>
+<P>Our final example here is a manipulator that stores additional data, the previously mentioned <SAMP>lineno</SAMP> manipulator. It adds the next line number each time it is inserted:</P>
+
+<UL><PRE>
+LineNo lineno;
+while (!std::cout)
+{
+  std::cout &lt;&lt; lineno &lt;&lt; ...;
+}
+</PRE></UL>
+<P>The manipulator is implemented following the <B>3.)</B> and <B>b.) </B>pattern, that is:</P>
+<UL>
+<LI><P CLASS="LIST">The manipulator object <SAMP>Manip</SAMP> is an object of a type <SAMP>M</SAMP> that defines the function call operator.</P></LI>
+<LI><P CLASS="LIST">The manipulator type <SAMP>manipT</SAMP> is a class type that is returned by the overloaded function call operator of class <SAMP>M</SAMP>.</P></LI>
+<LI><P CLASS="LIST">The associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a virtual member function of class <SAMP>M</SAMP>.</P></LI>
+</UL>
+<P>The manipulator object contains a line number that is initialized when the manipulator object is constructed. Each time the <SAMP>lineno</SAMP> manipulator is inserted, the line number is incremented.</P>
+<P>For the manipulator base type, we use a slightly modified version of the manipulator type <SAMP>osmanip</SAMP> from Example 3. The changes are necessary because the associated function in this case may not be a constant member function:</P>
+
+<UL><PRE>
+template &lt;class Arg, class Ostream&gt;
+class virtsmanip
+{
+public:
+  typedef Arg argument_type;
+  typedef Ostream ostream_type;
+  virtsmanip (Arg a) : arg_(a) { }
+ 
+protected:
+  virtual Ostream&amp; fct_(Ostream&amp;,Arg) = 0;
+  Arg arg_;
+ 
+  friend Ostream&amp;
+  operator&lt;&lt; (Ostream&amp; ostr,
+              virtsmanip&lt;Arg,Ostream&gt;&amp; manip);
+};
+
+template &lt;class Arg,class Ostream&gt;
+Ostream&amp;
+operator&lt;&lt; (Ostream&amp; ostr,
+            virtsmanip&lt;Arg,Ostream&gt;&amp; manip)
+{
+  manip.fct_(ostr,manip.arg_);
+  return ostr;
+}
+</PRE></UL>
+<P>The line number manipulator could be implemented like this:</P>
+
+<UL><PRE>
+template &lt;class Ostream&gt;
+class LineNo
+ : public virtsmanip&lt;int,Ostream &gt;
+{
+  // for notational convenience
+  typedef virtsmanip&lt;int, std::basic_ostream&lt;charT&gt; &gt; base;
+
+public:
+  // bring members of a dependent base class into scope 
+  typedef typename base::argument_type argument_type;
+  typedef typename base::ostream_type ostream_type;
+
+  LineNo(argument_type n=0)
+  : virtsmanip&lt;argument_type, ostream_type&gt; (n)
+  { }
+ 
+  virtsmanip&lt;argument_type,ostream_type&gt;&amp;
+  operator()(argument_type arg) {
+    arg_ = arg;
+    return *this;
+  }
+
+protected:
+  argument_type lno_;
+  ostream_type&amp; fct_ (ostream_type&amp; str, argument_type n) {
+    lno_ = (n&gt;0) ? n : lno_;
+    str &lt;&lt; ++lno_;
+    arg_ = -1;
+    return str;
+  }
+};
+</PRE></UL>
+<A NAME="idx840"><!></A>
+<P>Using a virtual member function as the associated manipulator function introduces the overhead of a virtual function call each time the manipulator is inserted. If it is necessary that a manipulator update its state after each insertion, a static member function does not suffice. A non-member function that is a friend of the manipulator type might do the trick. However, in an object-oriented program, you are usually advised against non-member functions that modify private or protected data members of a class with whom they are friends.</P>
+
+<BR>
+<HR>
+<A HREF="33-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="34.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

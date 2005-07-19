@@ -1,0 +1,111 @@
+<HTML>
+<HEAD>
+<TITLE>Element and Subset Access</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="22-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="22-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>22.4 Element and Subset Access</H2>
+<A NAME="2241"><H3>22.4.1 Ordinary Index Operators</H3></A>
+<A NAME="idx462"><!></A>
+<P>Class <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> provides <SAMP>const</SAMP> and non-<SAMP>const</SAMP> versions of <SAMP>operator[](size_t)</SAMP>. The const version returns the value of the indicated index, while the non-const version returns a reference to the value.</P>
+<P>For example, continuing the example from <A HREF="22-2.html">Section&nbsp;22.2</A>:</P>
+
+<UL><PRE>
+v1[2] = 5;            // change the element at position 2 using
+                      // the non-const index operator
+</PRE></UL>
+<A NAME="2242"><H3>22.4.2 Subset Operators</H3></A>
+<A NAME="idx463"><!></A>
+<P>Along with the ordinary subscript operators, <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> provides four different subset operations. Each of these also has both <SAMP>const</SAMP> and non-<SAMP>const</SAMP> versions. The <SAMP>const</SAMP> version always returns a new <B><I>valarray</I></B> initialized with data appropriate to the subset operation. The non-<SAMP>const</SAMP> version returns an auxiliary array class that references directly the data in the original <B><I>valarray</I></B>. Thus each non-<SAMP>const</SAMP> version provides a view into the original array by which specific elements may be accessed. Note that an instance of any of these auxiliary classes can only be obtained from the operator. A program cannot instantiate one of these classes directly as they lack a public constructor.</P>
+<P>The four subset operations are the <SAMP>slice</SAMP> operation, the <SAMP>gslice</SAMP> operation, the <SAMP>mask</SAMP> operation, and the <SAMP>indirect</SAMP> operation. Both <SAMP>slice</SAMP> and <SAMP>gslice</SAMP> use a special auxiliary class to specify the intent of the operation.   These classes are called <B><I><A HREF="../stdlibref/slice.html">slice</A></I></B> and <B><I><A HREF="../stdlibref/gslice.html">gslice</A></I></B> respectively. </P>
+<A NAME="2242-1"><H4>22.4.2.1 The Slice Operation</H4></A>
+<A NAME="idx464"><!></A>
+<P>The <SAMP>slice</SAMP> operation provides a view into a <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> that is like the same operation defined in Basic Linear Algebra Subprograms (BLAS). A <I>slice</I> is defined by a starting index, a length, and a stride.   To call the <SAMP>slice</SAMP> subscript operator, a program passes a <B><I><A HREF="../stdlibref/slice.html">slice</A></I></B> object initialized with a constructor taking these three parameters: <SAMP>std::slice(size_t start, size_t length, size_t stride)</SAMP>.   The returned array consists only of length elements, starting with the element at the starting index and continuing with each element's stride steps after the previously selected one. The following example illustrates this process:</P>
+
+<UL><PRE>
+using std::slice;
+
+int a[9] = {1,2,3,4,5,6,7,8,9};
+valarray&lt;int&gt; all(a,9);                 //all = {1,2,3,4,5,6,7,8,9}
+valarray&lt;int&gt; odd = all[slice(0,5,2)];  //odd = {1,3,5,7,9}
+</PRE></UL>
+<P>In this example, the subscript operation actually returns a <B><I><A HREF="../stdlibref/slice-array.html">slice_array</A></I></B>. Class <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> contains conversion constructors for this class as well as the auxiliary classes returned by other subset operations. Note, however, that the reference semantics are lost in the conversion since odd is an entirely new array. Class <B><I>slice_array</I></B> and the other auxiliary classes exist only to help in the selection of a view and the creation of a new <B><I>valarray</I></B> based on that view.</P>
+<A NAME="2242-2"><H4>22.4.2.2 The gslice Operation</H4></A>
+<A NAME="idx465"><!></A>
+<P>The <SAMP>gslice</SAMP> operation differs from the <SAMP>slice</SAMP> in that it defines a set of strides and an associated set of lengths. This set of lengths and strides allows a program to treat a single-dimensional <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> as a multidimensional array and to pull multi-dimensional slices from that array. Note that the <SAMP>gslice</SAMP> subset operator takes a <SAMP>gslice</SAMP> argument and returns a <B><I><A HREF="../stdlibref/gslice-array.html">gslice_array</A></I></B> in the same manner that the <SAMP>slice</SAMP> operation takes a <B><I><A HREF="../stdlibref/slice.html">slice</A></I></B> and returns a <B><I><A HREF="../stdlibref/slice-array.html">slice_array</A></I></B>.</P>
+<P>Here is a simple example that uses <B><I><A HREF="../stdlibref/gslice.html">gslice</A></I></B>s to represent a three-dimensional array. In this example, the first three numbers form the top row of a two-dimensional array whose center and bottom rows are completed with the next six numbers. The next nine numbers represent the second or <I>middle</I> two-dimensional array, and the last nine the <I>back</I> two-dimensional array. Taken together they form a three- dimensional <I>cube</I>. See the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A> for an extended version of this example that uses additional <B><I>gslice</I></B>s to pull <B><I><A HREF="../stdlibref/slice.html">slice</A></I></B>s along several different axes of the three-dimensional cube defined by this first slice.</P>
+
+<UL><PRE>
+using std::gslice;
+using std::valarray;
+
+int a[27] =   {0,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,9,2,3,4,5,6,7,8,9,10};  
+size_t lengths[2] = {3,3};
+size_t strides[2] = {3,1};
+
+valarray&lt;int&gt;  v(a,27);                  // initial valarray 
+
+valarray&lt;size_t&gt; len(lengths,2);         // valarray of lengths
+
+valarray&lt;size_t&gt; stride(strides,2);      // valarray of strides
+
+valarray&lt;int&gt; v2(0,9);                   // valarray to hold the
+                                         // generalized slice
+
+v2 = (v[gslice(0,len,stride)]);          //  slice off the front  =
+                                         // {0,1,2,3,4,5,6,7,8}
+
+v2 = (v[gslice(9,len,stride)]);          // slice off the middle
+                                         //  = {1,2,3,4,5,6,7,8,9}
+
+                            Back two-dimensional array = 2  3  4
+                                                         5  6  7
+                                                         8  9  10 
+            Middle two-dimensional array = 1  2  3
+                                           4  5  6
+                                           7  8  9
+ Front two-dimensional array = 0  1  2  
+                               3  4  5  
+                               6  7  8  
+</PRE></UL>
+<A NAME="2242-3"><H4>22.4.2.3 Boolean Mask</H4></A>
+<A NAME="idx466"><!></A>
+<P>The third operation is a boolean <SAMP>mask</SAMP>, which selects certain elements of a <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> based on whether or not the corresponding element of a boolean <B><I>valarray</I></B> is set to <SAMP>true</SAMP>. The size of the boolean <B><I>valarray</I></B> must equal the size of the subscripted <B><I>valarray</I></B>. Like the <B><I><A HREF="../stdlibref/slice.html">slice</A></I></B> example, the following code snippet also selects all the odd numbers in <B><I>all</I></B>. Note that the operation actually returns a <B><I><A HREF="../stdlibref/mask-array.html">mask_array</A></I></B>.</P>
+
+<UL><PRE>
+int a[9] = {1,2,3,4,5,6,7,8,9};
+std::valarray&lt;int&gt; all(a,9);          // all = {1,2,3,4,5,6,7,8,9}
+
+bool b[9]= {true,false,true,false,true,false,true,false,true};
+std::valarray&lt;bool&gt; vb(b,9);
+std::valarray&lt;int&gt; odd2 = all[vb];    // odd2 = {1,3,5,7,9}
+</PRE></UL>
+<A NAME="2242-4"><H4>22.4.2.4 Indirect Operation</H4></A>
+<A NAME="idx467"><!></A>
+<P>Finally, the <SAMP>indirect</SAMP> operation selects elements of a <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> dependent on whether or not a given index is present in a <B><I>valarray</I></B> of <B><I>size_t</I></B>. For instance, if we use <B><I>valarray&lt;size_t&gt;()</I></B> as our subscripting argument, then we select <SAMP>0</SAMP> elements, returning a <B><I>valarray</I></B> or <B><I><A HREF="../stdlibref/indirect-array.html">indirect_array</A></I></B> (if the sub-scripted array is <SAMP>const</SAMP>) of <SAMP>0</SAMP> elements. On the other hand, if we use <B><I>valarray&lt;size_t&gt;(3,1)</I></B>, we select only the third element, thus returning a <B><I>valarray</I></B> or indirect array of <SAMP>1</SAMP> element. Once again, the following example selects all odd-valued elements from <B><I>all</I></B>:</P>
+
+<UL><PRE>
+int a[9] = {1,2,3,4,5,6,7,8,9};
+std::valarray&lt;int&gt; all(a,9);          // all = {1,2,3,4,5,6,7,8,9}
+
+std::size_t c[5] = {0,2,4,6,8};
+std::valarray&lt;size_t&gt; in(c,5);
+
+std::valarray&lt;int&gt; oddity = all[in];  // oddity = {1,3,5,7}
+</PRE></UL>
+<A NAME="idx468"><!></A>
+<P>Each of the auxiliary array classes, <B><I><A HREF="../stdlibref/slice-array.html">slice_array</A></I></B>, <B><I><A HREF="../stdlibref/gslice-array.html">gslice_array</A></I></B>, <B><I><A HREF="../stdlibref/mask-array.html">mask_array</A></I></B>, and <B><I><A HREF="../stdlibref/indirect-array.html">indirect_array</A></I></B>, has a set of arithmetic and logical computed assignment operators that when applied affect the selected elements in the original non-<SAMP>const</SAMP> array. In each case, these operators take a <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> as a parameter. Since the <B><I>valarray</I></B> itself contains conversion constructors for each of the auxiliary classes, these arithmetic and logical operators can be applied freely across <B><I>valarray</I></B> objects and auxiliary classes and between the auxiliary classes. Note, however, that reference semantics are lost in the conversion from auxiliary class to <B><I>valarray</I></B>. A <B><I>valarray</I></B> never references data in another <B><I>valarray</I></B>, reference-counting optimization notwithstanding.</P>
+<A NAME="2243"><H3>22.4.3 Unary Operators</H3></A>
+<A NAME="idx469"><!></A>
+<P>Class <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> provides four unary operations: <SAMP>operator+()</SAMP>, <SAMP>operator-()</SAMP>, <SAMP>operator~(),</SAMP> and <SAMP>operator!()</SAMP>. These operators are not available for types for which they are not defined. Each operator returns a new valarray with the result of applying the operation to each element of the original. For instance, the following negates all values in a <B><I>valarray</I></B>.</P>
+
+<UL><PRE>
+float a[4] = {1.0, -2.3, -4.5, 9.0};
+std::valarray&lt;float&gt; v(a,4);
+std::valarray&lt;float&gt; neg = -v;      // neg = {-1.0, 2.3, 4.5, -9.0}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="22-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="22-5.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

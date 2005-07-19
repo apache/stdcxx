@@ -1,0 +1,191 @@
+<HTML>
+<HEAD>
+<TITLE>replace()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="remove-if.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="replace-copy.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>replace()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An algorithm that substitutes elements in a collection with new values</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class ForwardIterator, class T&gt;
+  void replace(ForwardIterator start,
+               ForwardIterator finish,
+               const T&amp; old_value,
+               const T&amp; new_value);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>For the range <SAMP>[start, finish)</SAMP>, the <SAMP>replace()</SAMP> algorithm replaces elements referred to by iterator <SAMP>i</SAMP> with <SAMP>new_value</SAMP>, when the following condition holds: <SAMP>*i == old_value</SAMP>.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>Exactly <SAMP>finish - start</SAMP> comparisons or applications of the corresponding predicate are done.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  replace.cpp
+//
+
+#include &lt;algorithm&gt;    // for replace, replace_if, replace_copy, ...
+#include &lt;vector&gt;       // for vector
+#include &lt;iterator&gt;     // for ostream_iterator
+#include &lt;functional&gt;   // for not1, unary_function
+#include &lt;iostream&gt;     // for cout, endl
+
+
+
+struct is_prime: public std::unary_function&lt;short, bool&gt;
+{
+    bool operator() (const short&amp;) const;
+};
+
+
+bool is_prime::operator() (const short &amp;a) const
+{
+    // all primes smaller than 256
+    static const unsigned short primes[] = {
+        2, 3, 5, 7, 9, 11, 13, 15, 17, 19, 23, 25, 29, 31,
+        35, 37, 41, 43, 47, 49, 53, 59, 61, 67, 71, 73, 79,
+        83, 89, 97, 101, 103, 107, 109, 113, 121, 127, 131,
+        137, 139, 143, 149, 151, 157, 163, 167, 169, 173, 179, 
+        181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 
+        241, 251
+    };
+
+    const unsigned short *end = primes + sizeof primes / 
+                                         sizeof *primes;
+
+    // search primes for a divisor
+    for (const unsigned short *p = primes; p != end; ++p)
+        if (0 == a % *p)
+            return false;
+
+    return 0 != a;
+}
+
+
+int main ()
+{
+    typedef std::vector&lt;short, std::allocator&lt;short&gt; &gt; Vector;
+    typedef std::ostream_iterator&lt;short, char, 
+                                  std::char_traits&lt;char&gt; &gt;
+            Iter;
+
+    // Populate a vector with arbitrary values.
+    Vector v;
+    for (Vector::value_type n = 11111; n != 11211; ++n)
+        v.push_back (n);
+
+    // Print out original vector.
+    std::cout &lt;&lt; "Original sequence:\n    ";
+    std::copy (v.begin (), v.end (), Iter (std::cout, " "));
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    // Replace one number with another.
+    std::replace (v.begin (), v.end (), 11199, 11211);
+
+    // Print out the new vector.
+    std::cout &lt;&lt; "Sequence after replace:\n    ";
+    std::copy (v.begin (), v.end (), Iter (std::cout, " "));
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    // Replace all numbers that aren't primes with zeros.
+    std::replace_if (v.begin (), v.end (), 
+                     std::not1 (is_prime ()), 0);
+
+    // Print out the remaining vector.
+    std::cout &lt;&lt; "After replace_if:\n    ";
+    std::copy (v.begin (), v.end (), Iter (std::cout, " "));
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    // Replace zeros with ones.
+    std::cout &lt;&lt; "Sequence replace_copy-ed to cout:\n    ";
+    std::replace_copy (v.begin (), v.end (), 
+                       Iter (std::cout, " "), 0, 1);
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    // A simple example of replace_copy_if.
+    std::cout &lt;&lt; "Sequence replace_copy_if-ed to cout:\n    ";
+    std::replace_copy_if (v.begin (), v.end (), 
+                          Iter (std::cout, ""),
+                          is_prime (), 1);
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>Original sequence:
+    11111 11112 11113 11114 11115 11116 11117 11118 11119
+11120 11121 11122 11123 11124 11125 11126 11127 11128 11129
+11130 11131 11132 11133 11134 11135 11136 11137 11138 11139
+11140 11141 11142 11143 11144 11145 11146 11147 11148 11149
+11150 11151 11152 11153 11154 11155 11156 11157 11158 11159
+11160 11161 11162 11163 11164 11165 11166 11167 11168 11169
+11170 11171 11172 11173 11174 11175 11176 11177 11178 11179
+11180 11181 11182 11183 11184 11185 11186 11187 11188 11189
+11190 11191 11192 11193 11194 11195 11196 11197 11198 11199
+11200 11201 11202 11203 11204 11205 11206 11207 11208 11209
+11210 
+
+Sequence after replace:
+    11111 11112 11113 11114 11115 11116 11117 11118 11119
+11120 11121 11122 11123 11124 11125 11126 11127 11128 11129
+11130 11131 11132 11133 11134 11135 11136 11137 11138 11139
+11140 11141 11142 11143 11144 11145 11146 11147 11148 11149
+11150 11151 11152 11153 11154 11155 11156 11157 11158 11159
+11160 11161 11162 11163 11164 11165 11166 11167 11168 11169
+11170 11171 11172 11173 11174 11175 11176 11177 11178 11179
+11180 11181 11182 11183 11184 11185 11186 11187 11188 11189
+11190 11191 11192 11193 11194 11195 11196 11197 11198 11211
+11200 11201 11202 11203 11204 11205 11206 11207 11208 11209
+11210 
+
+After replace_if:
+    0 0 11113 0 0 0 11117 0 11119 0 0 0 0 0 0 0 0 0 0 0 11131
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 11149 0 0 0 0 0 0 0 0 0
+11159 0 11161 0 0 0 0 0 0 0 0 0 11171 0 11173 0 0 0 11177 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 11197 0 0 0 0 0 0 0 0 0 0 0
+0 0
+
+Sequence replace_copy-ed to cout:
+    1 1 11113 1 1 1 11117 1 11119 1 1 1 1 1 1 1 1 1 1 1 11131
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 11149 1 1 1 1 1 1 1 1 1
+11159 1 11161 1 1 1 1 1 1 1 1 1 11171 1 11173 1 1 1 11177 1 1
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 11197 1 1 1 1 1 1 1 1 1 1 1
+1 1
+
+Sequence replace_copy_if-ed to cout:
+    00100010100000000000100000000000000000100000000010100000000010
+10001000000000000000000010000000000000
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="replace-if.html">replace_if()</A></SAMP>, <SAMP><A HREF="replace-copy.html">replace_copy()</A></SAMP>, <SAMP><A HREF="replace-copy-if.html">replace_copy_if()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.2.4</I></P>
+
+<BR>
+<HR>
+<A HREF="remove-if.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="replace-copy.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,120 @@
+<HTML>
+<HEAD>
+<TITLE>Overview</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="22.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="22-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>22.1 Overview</H2>
+<P>The C++ language is often used in scientific and engineering work to perform long and difficult operations on arrays of numbers. While the language itself provides the flexibility and efficiency needed for these kind of calculations, the code can become very complex. Naturally, we can use the object-oriented features of the language to encapsulate this complexity, but classes designed to simplify numeric programming without sacrificing performance are notoriously difficult to code correctly. Fortunately, the Standard C++ Library now provides some relief in the form of the <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> class template. </P>
+<A NAME="idx453"><!></A>
+<P>This class template provides the necessary efficiency in the form of a single-dimensional array. Class <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> can be used to perform calculations directly on arrays in a single dimension, and to represent higher order arrays with a little more effort. An extended set of subscripting operators provides the basis for building matrices and other more sophisticated classes from the relatively simple and lean <B><I>valarray</I></B>.</P>
+<A NAME="2211"><H3>22.1.1 Performance Issues</H3></A>
+<A NAME="idx454"><!></A>
+<P>Since efficiency is such an important concern in numeric programming, the <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> class addresses performance in several ways. </P>
+<P>First of all, <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> is designed to give compilers maximum latitude in optimizing operations within the class. This is achieved primarily by avoiding any aliasing of elements within a <B><I>valarray</I></B>. This means that every element in a given <B><I>valarray</I></B> is located at its own unique memory address, exactly as it would be in an ordinary array. While this prevents a <B><I>valarray</I></B> implementation from using certain kinds of optimizations, such as aliasing all elements with default values to a single stored value, that loss is more than compensated by a competent optimizer's ability to streamline operations on the array. </P>
+<P>Secondly, the <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> class uses internal optimization templates to ensure that the most efficient method is used to copy data whenever possible. This optimization is possible in part because of the restriction on aliasing.</P>
+<P>Lastly, the <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> class imposes certain requirements on any type used with it. Most of these restrictions are not related to performance; they are simply necessary to allow generalized numeric operations. But one in particular, initialization semantics, exists at least in part to allow optimizations. A summary of these restrictions follows.</P>
+<A NAME="2212"><H3>22.1.2 Type Restrictions</H3></A>
+<A NAME="idx455"><!></A>
+<P>A <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> can be instantiated only on a type <SAMP>T</SAMP> meeting the following requirements:</P>
+<OL>
+<LI><P CLASS="LIST">A type <SAMP>T</SAMP> must not be an abstract class.</P></LI>
+<LI><P CLASS="LIST">A type <SAMP>T</SAMP> cannot be a reference type; that is, <SAMP>std::valarray&lt;int&amp;&gt;</SAMP> is not allowed.</P></LI>
+<LI><P CLASS="LIST">A type <SAMP>T</SAMP> must not be const or volatile qualified; in other words,<SAMP> std::valarray&lt;const&nbsp;int&gt;</SAMP> is not allowed.</P></LI>
+<LI><P CLASS="LIST">A type <SAMP>T</SAMP> must not overload unary <SAMP>operator&amp;</SAMP>.</P></LI>
+<LI><P CLASS="LIST">A type <SAMP>T</SAMP> must not throw exceptions.</P></LI>
+<LI><P CLASS="LIST">If a type <SAMP>T</SAMP> is a class it must have a public default constructor, a public copy constructor with the signature <SAMP>T::T(const T&amp;)</SAMP>, and a public destructor.</P></LI>
+<LI><P CLASS="LIST">If a type <SAMP>T</SAMP> is a class, it must have a public assignment operator with a signature matching one of the following: <SAMP>T&amp; T::operator=(const T&amp;) </SAMP>or  <SAMP>T&amp; T::operator=(T)</SAMP>.</P></LI>
+<LI><P CLASS="LIST">If a type <SAMP>T</SAMP> is a class, then its default constructor, copy constructor, and assignment operator must behave in such a way that there is no difference between default construction followed by assignment, and copy construction. Additionally, destruction of an object followed by copy construction must be equivalent to assignment. </P></LI>
+<P CLASS="LIST">Here is a summary of the necessary relationship between copy construction and assignment, where <SAMP>T</SAMP> is the type, <SAMP>t</SAMP> and <SAMP>v</SAMP> are instances of the type, and <SAMP>p</SAMP> is a pointer to an instance of the type:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE"><SAMP>T t(), t = v</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><I>is semantically equivalent to:</I></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>T t(v)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>new (p) T(), *p = v</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><I>is semantically equivalent to:</I></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>new (p) T(v)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>p-&gt;~T(), new (p) T(v)</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><I>is semantically equivalent to:</I></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>*p = v</SAMP></P>
+</td></tr>
+</TABLE>
+<P CLASS="LIST">This summary demonstrates that there is nothing subtle and clever happening in the process of copy construction or assignment. This consistency is particularly important for portability, since any implementation of <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> can expect that these operations have the described equivalency   even if a particular implementation may not care.</P>
+</OL>
+<A NAME="2212-1"><H4>22.1.2.1 A Class That Meets the Type Restrictions</H4></A>
+<A NAME="idx456"><!></A>
+<P>All the built-in numeric types, like <SAMP>int</SAMP>, <SAMP>long</SAMP>, <SAMP>float</SAMP>, and so on, clearly meet the type requirements for <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B>. Here is an example of a minimalist class that does, too. This class is simple enough that the compiler generated constructors, destructor, and assignment operator would actually suffice. As you can see, there is nothing very special needed here. Rather, it is the absence of something special that the requirements guard against.</P>
+
+<UL><PRE>
+class Num
+{
+  int val_;
+public:
+  Num() : val_(0) {}                 // public default constructor
+  Num(const Num&amp; n):val_(n.val()) {} // public copy constructor
+  ~Num() {}                          // public destructor
+  Num&amp; operator=(const Num&amp; n)       // public assignment
+  { 
+    val-_ = n.val(); 
+    return *this;
+  }
+
+  int val() const { return val_; }
+  int val(int v) 
+  {  
+    int tmp = val_; 
+    val_ = v; 
+    return tmp; 
+  }
+};
+</PRE></UL>
+<A NAME="2212-2"><H4>22.1.2.2 A Class That Doesn't Meet the Type Restrictions</H4></A>
+<A NAME="idx457"><!></A>
+<P>Now let's look at a small variation on the <B><I>Num</I></B> class that does not meet the type requirements for class <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B>. Depending on how this class is used, it may or may not be a problem in a <B><I>valarray</I></B>, but it most definitely violates the requirements since default construction followed by assignment may result in a different state than copy construction.</P>
+
+<UL><PRE>
+class Num
+{
+  bool assigned_;
+  int val_;
+public:
+  Num(): val_(0), assigned_(false) {} // public default constructor 
+  Num(const Num&amp; n)               // public copy constructor
+   : val_(n.val()), assigned_(n.assigned()) {}
+  ~Num() {}                            // public destructor
+  Num&amp; operator=(const Num&amp; n)         // public assignment
+  {
+    val_ = n.val(); 
+    assigned_ = true;         // Whoops, violates rule 8 if
+                              // n.assigned() == false.
+    return *this;
+  }
+
+  int val() const { return val_; }
+  int val(int v)
+  {
+    int tmp = val_;
+    val_ = v; 
+    return tmp;
+  }
+  bool assigned() const { return assigned; }
+};
+</PRE></UL>
+<A NAME="2213"><H3>22.1.3 Other Unique Features</H3></A>
+<P>It is important to note that operations not defined for a particular type are not available for a <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> of that type. For instance, if a type does not have ordering operations, as is the case with the standard <B><I><A HREF="../stdlibref/complex.html">complex</A></I></B> class template, then those ordering operands are not available in a <B><I>valarray</I></B> of that type.</P>
+<A NAME="idx458"><!></A>
+<P>Another important feature is that, along with the <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> class, the <B><I>valarray</I></B> header defines several auxiliary classes to support extended subset operations. These are <SAMP>slice</SAMP>, <SAMP>gslice</SAMP>, <SAMP>slice_array</SAMP>, <SAMP>gslice_array</SAMP>, <SAMP>indirect_array</SAMP>, and <SAMP>mask_array</SAMP>, which are explained in <A HREF="22-4.html#2242">Section&nbsp;22.4.2</A> and its subsections. For now we'll just note that <SAMP>slice</SAMP> and <SAMP>gslice</SAMP> are used to define the parameters of a BLAS-like slice, or a generalized slice into an array. The remainder of these auxiliary classes define the types returned by subset operations. None of these can be instantiated directly by a program since they lack public constructors.</P>
+<A NAME="2214"><H3>22.1.4 Header Files</H3></A>
+<A NAME="idx459"><!></A>
+<P>Programs that use <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B>s must include the <SAMP>valarray</SAMP> header file:</P>
+
+<UL><PRE>
+#include &lt;valarray&gt;
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="22.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="22-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

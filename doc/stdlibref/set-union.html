@@ -1,0 +1,117 @@
+<HTML>
+<HEAD>
+<TITLE>set_union()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="set-symmetric-difference.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="slice.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>set_union()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A basic set operation (algorithm) for constructing a sorted union</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class InputIterator1, class InputIterator2,
+            class OutputIterator&gt;
+  OutputIterator
+  set_union(InputIterator1 start1, InputIterator1 finish1,
+            InputIterator2 start2, InputIterator2 finish2,
+            OutputIterator result);
+
+  template &lt;class InputIterator1, class InputIterator2,
+            class OutputIterator, class Compare&gt;
+  OutputIterator
+  set_union(InputIterator1 start1, InputIterator1 finish1,
+            InputIterator2 start2, InputIterator2 finish2,
+            OutputIterator result, Compare comp);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>set_union()</SAMP> algorithm constructs a sorted union of the elements from the two ranges. It returns the end of the constructed range. <SAMP>set_union()</SAMP> is stable, which means that if an element is present in both ranges, the one from the first range is copied. The result of <SAMP>set_union()</SAMP> is undefined if the result range overlaps with either of the original ranges. Note that <SAMP>set_union()</SAMP> does not merge the two sorted sequences. If an element is present in both sequences, only the element from the first sequence is copied to <SAMP>result</SAMP>. (Use the <SAMP><A HREF="merge.html">merge()</A></SAMP> algorithm to create an ordered merge of two sorted sequences that contains all the elements from both sequences.)</P>
+<P><SAMP>set_union()</SAMP> assumes that the sequences are sorted using <SAMP>operator&lt;()</SAMP>, unless an alternative comparison function object (<SAMP>comp</SAMP>) is provided. </P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>At most <SAMP>((finish1 - start1) + (finish2 - start2)) * 2 -1</SAMP> comparisons are performed.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  set_unin.cpp
+//
+
+#include &lt;algorithm&gt;
+#include &lt;set&gt;
+#include &lt;iostream&gt;
+
+int main ()
+{
+    _USING (namespace std);
+
+    typedef set&lt;int, less&lt;int&gt;,allocator&lt;int&gt; &gt; Set;
+
+    // Initialize sets.
+
+    int a1[] = {2, 4, 6, 8, 10, 12};
+    int a2[] = {3, 5, 7, 8};
+
+    Set s1 (a1, a1 + sizeof a1 / sizeof *a1);
+    Set s2 (a2, a2 + sizeof a2 / sizeof *a2);
+    Set result;
+
+    // Create an insert_iterator for result.
+
+    insert_iterator&lt;Set&gt; res_ins (result, result.begin ());
+
+    // Compute union of two sets.
+
+    set_union (s2.begin (), s2.end (), 
+               s1.begin (), s1.end (), res_ins);
+
+    // Display result on standard output.
+
+    typedef ostream_iterator&lt;int, char, char_traits&lt;char&gt; &gt;
+            OSIter;
+
+    cout &lt;&lt; "The result of:" &lt;&lt; endl &lt;&lt; "{ ";
+    copy (s2.begin (),s2.end (), OSIter (cout," "));
+    cout &lt;&lt; "} union { ";
+    copy (s1.begin (),s1.end (), OSIter (cout," "));
+    cout &lt;&lt; "} =" &lt;&lt; endl &lt;&lt; "{ ";
+    copy (result.begin (),result.end (), OSIter (cout," "));
+    cout &lt;&lt; "}" &lt;&lt; endl &lt;&lt; endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>The result of:
+{ 3 5 7 8 } union { 2 4 6 8 10 12 } =
+{ 2 3 4 5 6 7 8 10 12 }
+
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="includes.html">includes()</A></SAMP>, <A HREF="iterators.html">Iterators</A>, <SAMP><A HREF="set-intersection.html">set_intersection()</A></SAMP>, <SAMP><A HREF="set-difference.html">set_difference()</A></SAMP>, <SAMP><A HREF="set-symmetric-difference.html">set_symmetric_difference()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.3.5.2</I></P>
+
+<BR>
+<HR>
+<A HREF="set-symmetric-difference.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="slice.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

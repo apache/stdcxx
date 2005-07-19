@@ -1,0 +1,33 @@
+<HTML>
+<HEAD>
+<TITLE>Example Program: Roots of a Polynomial</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="20-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="21.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>20.3 Example Program: Roots of a Polynomial</H2>
+<A NAME="idx445"><!></A>
+<BLOCKQUOTE><HR><B>
+NOTE -- This program is in the file complx.cpp.
+</B><HR></BLOCKQUOTE>
+<P>The roots of a polynomial <IMG SRC="images/stdlibug-SpecialClassesa.gif" WIDTH=128 HEIGHT=29>are given by the formula:</P>
+<P><IMG SRC="images/stdlibug-SpecialClasses2.gif" WIDTH=177 HEIGHT=71></P>
+<P>The following function takes as input three double precision numbers, and returns the complex roots as a pair of values.</P>
+
+<UL><PRE>
+typedef std::complex&lt;double&gt; dcomplex;
+
+std::pair&lt;dcomplex, dcomplex&gt; quadratic
+      (dcomplex a, dcomplex b, dcomplex c)
+// return the roots of a quadratic equation
+{
+   dcomplex root = std::sqrt(b * b - 4.0 * a * c);
+   a *= 2.0;
+   return std::make_pair( (-b + root)/a, 
+                          (-b - root)/a );
+}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="20-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="21.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

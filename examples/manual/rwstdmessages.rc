@@ -1,0 +1,8 @@
+#include <rwstdmessages.h>
+
+STRINGTABLE 
+BEGIN
+_RW_MSG_HELLO "Hello"
+_RW_MSG_GOODBYE "Goodbye"
+_RW_MSG_TREES "Cedar, Hemlock, and Noble Fir" 
+END

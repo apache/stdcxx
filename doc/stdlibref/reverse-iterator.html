@@ -1,0 +1,174 @@
+<HTML>
+<HEAD>
+<TITLE>reverse_iterator</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="reverse-copy.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="rotate.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>reverse_iterator</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-8.html">Iterators</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">Complexity</A></LI>
+<LI><A HREF="#sec8">See Also</A></LI>
+<LI><A HREF="#sec9">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An iterator adaptor that traverses a collection backwards.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;iterator&gt;
+
+namespace std {
+  template &lt;class Iterator&gt;
+  class <B>reverse_iterator</B>;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class template <B><I>reverse_iterator</I></B> adapts any random access iterator or <B><I>bidirectional_iterator</I></B> to facilitate the traversal of collections in the opposite direction. The fundamental relationship between a reverse iterator and its corresponding iterator <SAMP>i</SAMP> is established by the identity:</P>
+
+<UL><PRE>        
+&amp;*(reverse_iterator(i)) == &amp;*(i - 1);
+</PRE></UL>
+<P>This mapping is necessary because, while an iterator past the end of a sequence is still valid but not dereferenceable, there might not be a valid iterator before its beginning.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class Iterator&gt;
+  class reverse_iterator
+    : public iterator
+       &lt;typename iterator_traits&lt;iterator&gt;::iterator_category,
+       &lt;typename iterator_traits&lt;iterator&gt;::value_type,
+       &lt;typename iterator_traits&lt;iterator&gt;::difference_type,
+       &lt;typename iterator_traits&lt;iterator&gt;::pointer,
+       &lt;typename iterator_traits&lt;iterator&gt;::reference&gt;
+  {
+
+    public:
+      typedef Iterator iterator_type;
+
+      reverse_iterator();
+      explicit reverse_iterator(iterator_type);
+
+      iterator_type base();
+
+      reference operator*();
+
+      reverse_iterator&amp; operator++();
+      reverse_iterator  operator++(int);
+      reverse_iterator&amp; operator--();
+      reverse_iterator  operator--(int);
+
+      reverse_iterator  operator+  (difference_type) const;
+      reverse_iterator&amp; operator+= (difference_type);
+      reverse_iterator operator-   (difference_type) const;
+      reverse_iterator&amp; operator-= (difference_type);
+
+      reference operator[] (difference_type) const;
+  };
+
+  // Nonmember Operators
+
+  template &lt;class Iterator&gt; 
+  bool operator== (const reverse_iterator&lt;Iterator&gt;&amp;,
+                   const reverse_iterator&lt;Iterator&gt;&amp;);
+
+  template &lt;class Iterator&gt; 
+  bool operator!= (const reverse_iterator&lt;Iterator&gt;&amp;,
+                   const reverse_iterator&lt;Iterator&gt;&amp;);
+
+  template &lt;class Iterator&gt; 
+  bool operator&lt; (const reverse_iterator&lt;Iterator&gt;&amp;,
+                  const reverse_iterator&lt;Iterator&gt;&amp;);
+
+  template &lt;class Iterator&gt; 
+  bool operator&gt; (const reverse_iterator&lt;Iterator&gt;&amp;,
+                  const reverse_iterator&lt;Iterator&gt;&amp;);
+
+  template &lt;class Iterator&gt; 
+  bool operator&lt;= (const reverse_iterator&lt;Iterator&gt;&amp;,
+                   const reverse_iterator&lt;Iterator&gt;&amp;);
+
+  template &lt;class Iterator&gt; 
+  bool operator&gt;= (const reverse_iterator&lt;Iterator&gt;&amp;,
+                   const reverse_iterator&lt;Iterator&gt;&amp;);
+
+  template &lt;class Iterator&gt; 
+  typename reverse_iterator&lt;Iterator&gt;::difference_type
+  operator- (const reverse_iterator&lt;Iterator&gt;&amp;,
+             const reverse_iterator&lt;Iterator&gt;&amp;);
+
+  template &lt;class Iterator&gt; 
+  reverse_iterator&lt;Iterator&gt;
+  operator+ (
+      typename reverse_iterator&lt;Iterator&gt;::difference_type,
+      const reverse_iterator&lt;Iterator&gt;&amp;);
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  rev_itr.cpp
+//
+
+#include &lt;iostream&gt;   // for cout, endl
+#include &lt;vector&gt;     // for vector
+
+
+int main ()
+{
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; Vector;
+
+    // Initialize a vector using an array.
+    const Vector::value_type arr[] = { 3, 4, 7, 8 };
+    const Vector v (arr + 0, arr + sizeof arr / sizeof *arr);
+
+    // Output the original vector.
+    std::cout &lt;&lt; "Traversing vector with iterator: \n     ";
+    for (Vector::const_iterator i = v.begin (); 
+         i != v.end (); ++i)
+        std::cout &lt;&lt; *i &lt;&lt; " ";
+
+    // Output the vector backwards.
+    std::cout &lt;&lt; "\n\nSame vector, same loop, "
+              &lt;&lt; "reverse_iterator: \n     ";
+    for (Vector::const_reverse_iterator j (v.end ());
+         j != Vector::const_reverse_iterator (v.begin ());
+         ++j)
+        std::cout &lt;&lt; *j &lt;&lt; " ";
+
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>Traversing vector with iterator: 
+     3 4 7 8 
+
+Same vector, same loop, reverse_iterator: 
+     8 7 4 3 
+</PRE></UL>
+<A NAME="sec7"><H3>Complexity</H3></A>
+<P>All iterator operations are required to take at most amortized constant time.</P>
+<A NAME="sec8"><H3>See Also</H3></A>
+<P><A HREF="iterators.html">Iterators</A></P>
+<A NAME="sec9"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 24.4.1.1</I></P>
+
+<BR>
+<HR>
+<A HREF="reverse-copy.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="rotate.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,62 @@
+<HTML>
+<HEAD>
+<TITLE>less</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="length-error.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="less-equal.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>less</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">See Also</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A binary function object that returns <SAMP>true</SAMP> if its first argument is less than its second</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;functional&gt;
+
+namespace std {
+  template &lt;class T&gt;
+  struct less;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P><B><I>less</I></B> is a binary function object. Its <SAMP>operator()</SAMP> returns <SAMP>true</SAMP> if <SAMP>x</SAMP> is less than&nbsp;<SAMP>y</SAMP>. You can pass a <B><I>less</I></B> object to any algorithm that requires a binary function. For example, the <SAMP><A HREF="sort.html">sort()</A></SAMP> algorithm can accept a binary function as an alternate comparison object to sort a sequence. <B><I>less</I></B> would be used in that algorithm in the following manner:</P>
+
+<UL><PRE>
+vector&lt;int&gt; vec1;
+.
+.
+sort(vec1.begin(), vec1.end(), <B>less&lt;int&gt;</B>());
+</PRE></UL>
+<P>After this call to <SAMP><A HREF="sort.html">sort()</A></SAMP>, <SAMP>vec1</SAMP> is sorted in ascending order.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class T&gt;
+  struct less : binary_function&lt;T, T, bool&gt; {
+    bool operator() (const T&amp;, const T&amp;) const;
+  };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>See Also</H3></A>
+<P><B><I><A HREF="binary-function.html">binary_function</A></I></B>, <A HREF="functionobjects.html">Function Objects</A></P>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 20.3.3</I></P>
+
+<BR>
+<HR>
+<A HREF="length-error.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="less-equal.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

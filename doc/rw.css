@@ -1,0 +1,19 @@
+BODY { font-family: arial, helvetica, sans-serif; font-size: 10pt }
+H1   { font-family: arial, helvetica, sans-serif; font-size: 16pt; line-height: 100%; font-weight: bold; color: #003399 }
+H2   { font-family: arial, helvetica, sans-serif; font-size: 14pt; line-height: 100%; font-weight: bold; color: #003399 }
+H3   { font-family: arial, helvetica, sans-serif; font-size: 12pt; line-height: 200%; font-weight: bold; color: #003399 }
+H4   { font-family: arial, helvetica, sans-serif; font-size: 10pt; line-height: 100%; font-weight: bold }
+P    { font-family: arial, helvetica, sans-serif; font-size: 10pt }
+P.LIST { font-family: arial, helvetica, sans-serif; font-size: 10pt; line-height: 120% }
+P.TABLE { font-family: arial, helvetica, sans-serif; font-size: 10pt; line-height: 100% }
+TR   { font-family: arial, helvetica, sans-serif; font-size: 10pt }
+TR.LIST { font-family: arial, helvetica, sans-serif; font-size: 10pt; line-height: 0% }
+TD   { font-family: arial, helvetica, sans-serif; font-size: 10pt }
+TD.LIST { font-family: arial, helvetica, sans-serif; font-size: 10pt; line-height: 0% }
+UL   { font-family: arial, helvetica, sans-serif; font-size: 10pt }
+OL   { font-family: arial, helvetica, sans-serif; font-size: 10pt }
+LI   { font-family: arial, helvetica, sans-serif; font-size: 10pt }
+BLOCKQUOTE { font-family: arial, helvetica, sans-serif ; font-size: 10pt }
+PRE  { font-family: "courier new", monospace; font-size: 10pt; color: #990033 }
+SAMP { font-family: "courier new", monospace; font-size: 10pt; color: #990033 }
+CODE { font-family: "courier new", monospace; font-size: 10pt; color: #990033 }

@@ -1,0 +1,247 @@
+<HTML>
+<HEAD>
+<TITLE>collate, collate_byname</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="codecvt-byname.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="compare.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>collate, collate_byname</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR><B><I><A HREF="collate.html">collate_byname</A></I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="collate.html">collate</A></I></B> <IMG SRC="images/inherits.gif"> <B><I>locale::facet</I></B>         <HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Types</A></LI>
+<LI><A HREF="#sec8">Constructors</A></LI>
+<LI><A HREF="#sec9">Destructors</A></LI>
+<LI><A HREF="#sec10">Facet ID</A></LI>
+<LI><A HREF="#sec11">Public Member Functions</A></LI>
+<LI><A HREF="#sec12">Protected Member Functions</A></LI>
+<LI><A HREF="#sec13">Example</A></LI>
+<LI><A HREF="#sec14">See Also</A></LI>
+<LI><A HREF="#sec15">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx494">char_type</A><BR>
+<A HREF="#idx496">collate()</A><BR>
+<A HREF="#idx497">collate_byname()</A><BR>
+<A HREF="#idx500">compare()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx501">do_compare()</A><BR>
+<A HREF="#idx502">do_hash()</A><BR>
+<A HREF="#idx503">do_transform()</A><BR>
+<A HREF="#idx500">hash()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx499">id</A><BR>
+<A HREF="#idx495">string_type</A><BR>
+<A HREF="#idx500">transform()</A><BR>
+<A HREF="#idx498">~collate()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx498">~collate_byname()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A string collation, comparison, and hashing facet.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  template &lt;class charT&gt; class collate;
+  template &lt;class charT&gt; class collate_byname;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+
+<UL><PRE>template&lt;&gt; class collate&lt;char&gt;;
+template&lt;&gt; class collate&lt;wchar_t&gt;;
+template&lt;&gt; class collate_byname&lt;char&gt;;
+template&lt;&gt; class collate_byname&lt;wchar_t&gt;;
+</PRE></UL>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The <B><I><A HREF="collate.html">collate</A></I></B> and <B><I><A HREF="collate.html">collate_byname</A></I></B> facets allow for string collation, comparison, and hashing. Use the <B><I>collate</I></B> facet for the C locale, and use the <B><I>collate_byname</I></B> facet for named locales.</P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  template &lt;class charT&gt;
+  class collate : public locale::facet {
+  public:
+    typedef charT char_type;
+    typedef basic_string&lt;charT&gt; string_type;
+    explicit collate(size_t refs = 0);
+    int compare(const charT*, const charT*,
+                const charT*, const charT*) const;
+    string_type transform(const charT*, const charT*) const;
+    long hash(const charT*, const charT*) const;
+    static locale::id id;
+  protected:
+    virtual ~collate();  
+    virtual int do_compare(const charT*, const charT*,
+                           const charT*, const charT*) const;
+    virtual string_type do_transform(const charT*, 
+                                     const charT*) const;
+    virtual long do_hash (const charT*, const charT*) const;
+  };
+
+  template &lt;class charT&gt;
+  class collate_byname : public collate&lt;charT&gt; 
+  {
+   public:
+    typedef basic_string&lt;charT&gt; string_type;
+    explicit collate_byname(const char*, size_t = 0);
+   protected:
+    virtual ~collate_byname(); 
+    virtual int do_compare(const charT*, const charT*,
+                           const charT*, const charT*) const;
+    virtual string_type do_transform(const charT*, 
+                                     const charT*) const;
+    virtual long do_hash(const charT*, const charT*) const;
+  };
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Types</H3></A>
+
+<A NAME="idx494"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>Type of character the facet is instantiated on.</P>
+</UL>
+
+
+<A NAME="idx495"></A><PRE><B>string_type</B></PRE>
+<UL>
+<P>Type of character string returned by member functions.</P>
+</UL>
+
+<A NAME="sec8"><H3>Constructors</H3></A>
+
+<A NAME="idx496"></A><PRE>explicit <B>collate</B>(size_t refs = 0) </PRE>
+<UL>
+<P>Constructs a <B><I><A HREF="collate.html">collate</A></I></B> object. Calls <SAMP>locale::facet (refs)</SAMP>. </P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the object's reference count. A <B><I><A HREF="collate.html">collate</A></I></B> object <SAMP>f</SAMP> constructed with <SAMP>(refs == 0)</SAMP> that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. A <B><I>collate</I></B> object constructed with <SAMP>(refs != 0)</SAMP> will not be destroyed by any locale objects in which it may have been installed.</P>
+</UL>
+
+
+<A NAME="idx497"></A><PRE>explicit <B>collate_byname</B>(const char* name, size_t refs = 0); </PRE>
+<UL>
+<P>Constructs a <B><I><A HREF="collate.html">collate_byname</A></I></B> object for the locale given by name. Calls <SAMP>collate&lt;char_type&gt;::collate (refs)</SAMP>.</P>
+</UL>
+
+<A NAME="sec9"><H3>Destructors</H3></A>
+
+<A NAME="idx498"></A><PRE>virtual <B>~collate</B>(); 
+virtual <B>~collate_byname</B>();</PRE>
+<UL>
+<P>Destroys the facet.</P>
+</UL>
+
+<A NAME="sec10"><H3>Facet ID</H3></A>
+
+<A NAME="idx499"></A><PRE>static locale::id <B>id</B>; </PRE>
+<UL>
+<P>Unique identifier for this type of facet.</P>
+</UL>
+
+<A NAME="sec11"><H3>Public Member Functions</H3></A>
+<P>The public members of the <B><I><A HREF="collate.html">collate</A></I></B> facet include an interface to protected members. Each public member <SAMP>xxx()</SAMP> calls the corresponding virtual protected member <SAMP>do_xxx()</SAMP>. For instance, the public member function <SAMP>compare()</SAMP> calls its protected cousin, <SAMP>do_compare()</SAMP>.</P>
+
+<A NAME="idx500"></A><PRE>int 
+<B>compare</B>(const charT* low1, const charT* high1,
+        const charT* low2, const charT* high2) const; 
+long 
+<B>hash</B>(const charT* low, const charT* high) const; 
+string_type 
+<B>transform</B>(const charT* low, const charT* high) const; </PRE>
+<UL>
+<P>Each of these public member functions <SAMP>xxx()</SAMP> simply calls the corresponding protected <SAMP>do_xxx()</SAMP> function.</P>
+</UL>
+
+<A NAME="sec12"><H3>Protected Member Functions</H3></A>
+
+<A NAME="idx501"></A><PRE>virtual int    
+<B>do_compare</B>(const charT* low1, const charT* high1,
+           const charT* low2, const charT* high2) const; </PRE>
+<UL>
+<P>Returns <SAMP>1</SAMP> if the character string represented by the range <SAMP>[low1,high1)</SAMP> is greater than the character string represented by the range<SAMP> [low2,high2)</SAMP>, <SAMP>-1</SAMP> if the first string is less than the second, or <SAMP>0</SAMP> if the two are equal. The specializations, <B><I><A HREF="collate.html">collate&lt;char&gt;</A></I></B> and <B><I>collate&lt;wchar_t&gt;</I></B>, perform a lexicographical comparison.</P>
+<P>As an extension of this implementation, the <B><I><A HREF="collate.html">collate&lt;char&gt;</A></I></B> and <B><I><A HREF="collate.html">collate_byname&lt;char&gt;</A></I></B> facets recognize and correctly interpret sequences of multi-byte characters.</P>
+</UL>
+
+
+<A NAME="idx502"></A><PRE>virtual long   
+<B>do_hash</B>( const charT* low, const charT* high) const; </PRE>
+<UL>
+<P>Generates a hash value from a string defined by the range of characters <SAMP>[low,high)</SAMP>. Given two strings that compare equal (in other words, <SAMP>do_compare()</SAMP> returns <SAMP>0</SAMP>), <SAMP>do_hash()</SAMP> returns an integer value that is the same for both strings. For differing strings, the probability that the return value is equal is approximately:</P>
+<P><SAMP>1.0/numeric_limits&lt;unsigned long&gt;::max()</SAMP></P>
+<P>As an extension of this implementation, the <B><I><A HREF="collate.html">collate&lt;char&gt;</A></I></B> and <B><I><A HREF="collate.html">collate_byname&lt;char&gt;</A></I></B> facets recognize and correctly interpret sequences of multi-byte characters.</P>
+</UL>
+
+
+<A NAME="idx503"></A><PRE>virtual string_type 
+<B>do_transform</B>(const charT* low, const charT* high) const; </PRE>
+<UL>
+<P>Returns a string that yields the same result in a lexicographical comparison with another string returned from <SAMP>transform()</SAMP> as does the <SAMP>do_compare()</SAMP> function applied to the original strings. In other words, the result of applying a lexicographical comparison to two strings returned from <SAMP>transform()</SAMP> is the same as applying <SAMP>do_compare()</SAMP> to the original strings passed to <SAMP>transform()</SAMP>.</P>
+<P>As an extension of this implementation, the <B><I><A HREF="collate.html">collate&lt;char&gt;</A></I></B> and <B><I><A HREF="collate.html">collate_byname&lt;char&gt;</A></I></B> facets recognize and correctly interpret sequences of multi-byte characters.</P>
+</UL>
+
+<A NAME="sec13"><H3>Example</H3></A>
+
+<UL><PRE>//
+// collate.cpp
+//
+
+#include &lt;iostream&gt;   // for cout, endl
+#include &lt;locale&gt;     // for collate
+
+
+int main ()
+{
+    std::string s1 ("blue");
+    std::string s2 ("blues");
+
+    // Obtain a reference to the collate facet in
+    // the default locale imbued in cout.
+    const std::collate&lt;char&gt;&amp; co =
+      std::use_facet&lt;std::collate&lt;char&gt; &gt;(std::cout.getloc());
+
+    // Strings should collate equal.
+    std::cout &lt;&lt; co.compare (s1.begin (), s1.end (), 
+                             s2.begin (), s2.end () - 1)
+              &lt;&lt; std::endl;
+
+    // Strings should collate unequal.
+    std::cout &lt;&lt; co.compare (s1.begin (), s1.end (), 
+                             s2.begin (), s2.end ())
+              &lt;&lt; std::endl;
+
+    // Retrieve hash values for the two strings.
+    std::cout &lt;&lt; co.hash (s1.begin (), s1.end ()) &lt;&lt; std::endl;
+    std::cout &lt;&lt; co.hash (s2.begin (), s2.end ()) &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>0
+-1
+431029
+6896579
+</PRE></UL>
+<A NAME="sec14"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="ctype.html">ctype</A></I></B> </P>
+<A NAME="sec15"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.4</I></P>
+
+<BR>
+<HR>
+<A HREF="codecvt-byname.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="compare.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

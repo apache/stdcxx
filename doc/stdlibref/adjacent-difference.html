@@ -1,0 +1,132 @@
+<HTML>
+<HEAD>
+<TITLE>adjacent_difference()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="accumulate.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="adjacent-find.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>adjacent_difference()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-10.html">Numerics</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A generalized numeric operation that outputs a sequence of the differences between each adjacent pair of elements in a range</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;numeric&gt;
+
+namespace std {
+  template &lt;class InputIterator, class OutputIterator&gt;
+  OutputIterator adjacent_difference(InputIterator start,
+                                     InputIterator finish,
+                                     OutputIterator result);
+  template &lt;class InputIterator,
+            class OutputIterator,
+            class BinaryOperation&gt;
+  OutputIterator adjacent_difference(InputIterator start,
+                                     InputIterator finish,
+                                     OutputIterator result,
+                                     BinaryOperation bin_op);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P><SAMP>adjacent_difference()</SAMP> fills a sequence with the differences between successive elements in a container. The result is a sequence in which the first element is equal to the first element of the sequence being processed, and the remaining elements are equal to the calculated differences between adjacent elements. For instance, applying <SAMP>adjacent_difference()</SAMP> to {1,2,3,5} produces a result of {1,1,1,2}. </P>
+<P>By default, subtraction is used to compute the difference, but you can supply any binary operator. The binary operator is then applied to adjacent elements. For example, by supplying the plus (+) operator, the result of applying <SAMP>adjacent_difference()</SAMP> to {1,2,3,5} is the sequence {1,3,5,8}.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>This algorithm performs exactly <SAMP>(finish-start) - 1</SAMP> applications of the default operation (<SAMP>-</SAMP>) or <SAMP>binary_op</SAMP>. </P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  adj_diff.cpp
+//
+
+#include &lt;numeric&gt;       // for adjacent_difference
+#include &lt;vector&gt;        // for vector
+#include &lt;iostream&gt;      // for cout
+#include &lt;functional&gt;    // for multiplies
+
+
+int main ()
+{
+    // Typedefs for convenience.
+    typedef std::vector&lt;long, std::allocator&lt;long&gt; &gt; Vector;
+
+    typedef std::ostream_iterator &lt;Vector::value_type,
+                                   char,
+                                   std::char_traits&lt;char&gt; &gt;
+            os_iter;
+
+    // Initialize a Vector of ints from an array.
+    const Vector::value_type arr [] = {
+        1, 1, 2, 3, 5, 8, 13, 21, 34, 55
+    };
+
+    Vector v (arr + 0, arr + sizeof arr / sizeof *arr);
+
+    // Two vectors initialized to all zeros
+    // for storing results.
+    Vector diffs (v.size ()),
+           prods (v.size ());
+
+    // Calculate difference(s) using
+    // default operator (minus).
+    std::adjacent_difference (v.begin (), v.end (),
+                              diffs.begin ());
+
+    // Calculate difference (s) using the times operator.
+    std::adjacent_difference (v.begin (), v.end (),
+                     prods.begin (),
+                     std::multiplies&lt;Vector::value_type&gt; ());
+
+    // Create an ostream_iterator object (for convenience).
+    os_iter osit (std::cout, " ");
+
+    // Output the results.
+    std::cout &lt;&lt; "For the vector: " &lt;&lt; std::endl &lt;&lt; "     ";
+    std::copy (v.begin (), v.end (), osit);
+
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    std::cout &lt;&lt; "The differences between adjacent elements"
+              &lt;&lt; " are: " &lt;&lt; std::endl &lt;&lt; "    ";
+
+    std::copy (diffs.begin (), diffs.end (), osit);
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    std::cout &lt;&lt; "The products of adjacent elements are: "
+              &lt;&lt; std::endl &lt;&lt; "     ";
+
+    std::copy (prods.begin (), prods.end (), osit);
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+Program Output:
+For the vector: 
+     1 1 2 3 5 8 13 21 34 55 
+
+The differences between adjacent elements are: 
+    1 0 1 1 2 3 5 8 13 21 
+
+The products of adjacent elements are: 
+     1 1 2 6 15 40 104 273 714 1870 
+
+</PRE></UL>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 26.4.4</I></P>
+
+<BR>
+<HR>
+<A HREF="accumulate.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="adjacent-find.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

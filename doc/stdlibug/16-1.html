@@ -1,0 +1,27 @@
+<HTML>
+<HEAD>
+<TITLE>Extending the Standard C++ Library</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="16.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="16-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>16.1 Extending the Standard C++ Library</H2>
+<A NAME="idx391"><!></A>
+<A NAME="idx392"><!></A>
+<P>The adoption of the Standard C++ Library marks a very important development for users of the C++ programming language. Although the library is written in an OO language and provides plenty of objects, it also employs an entirely different paradigm. This other approach, called <I>generic programming</I>, provides a flexible way to apply generic algorithms to a wide variety of different data structures. The flexibility of C++ in combination with this synthesis of two advanced design paradigms results in an unusual and highly-extensible library.</P>
+<A NAME="idx393"><!></A>
+<P>The clearest example of this synthesis is the ability to extend the Standard C++ Library with user-defined containers and algorithms. This extension is possible because the definition of data structures has been separated from the definition of generic operations on those structures (<A HREF="1-2.html#122">Section&nbsp;1.2.2</A>). The library defines very specific parameters for these two broad groups, giving users some confidence that containers and algorithms from different sources will work together as long as they all meet the specifications of the standard. At the same time, containers encapsulate data and a limited range of operations on that data in classic OOP fashion.</P>
+<A NAME="idx394"><!></A>
+<P>Each standard container is categorized as one of two types: a <I>sequence</I> or an <I>associative container</I>. A user-defined container need not fit into either of these two groups since the standard also defines rudimentary requirements for a container, but the categorization can be very useful for determining which algorithms will work with a particular container and how efficiently those algorithms will work. In determining the category of a container, the most important characteristics are the <I>iterator category</I> and <I>element ordering</I>. (See the chapter on each container type, and the listing for each container and iterator in the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A>.)</P>
+<A NAME="idx395"><!></A>
+<P>Standard C++ Library algorithms can be grouped into categories using a number of different criteria. The most important of these are: </P>
+<UL>
+<LI><P CLASS="LIST"> whether or not the algorithm modifies the contents of a container</P></LI>
+<LI><P CLASS="LIST"> the type of iterator required by the algorithm</P></LI>
+<LI><P CLASS="LIST">whether or not the algorithm requires a container to be sorted. </P></LI>
+</UL>
+<P>An algorithm may also require further state conditions from any container it's applied to. For instance, all the standard <B><I><A HREF="../stdlibref/set.html">set</A></I></B> algorithms require not only that a container is in sorted order, but also that the order of elements is determined using the same compare function or object that will be used by the algorithm.</P>
+
+<BR>
+<HR>
+<A HREF="16.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="16-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

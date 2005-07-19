@@ -1,0 +1,696 @@
+<HTML>
+<HEAD>
+<TITLE>deque</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="deque-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="distance.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>deque</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-7.html">Containers</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Constructors</A></LI>
+<LI><A HREF="#sec7">Destructors</A></LI>
+<LI><A HREF="#sec8">Allocators</A></LI>
+<LI><A HREF="#sec9">Iterators</A></LI>
+<LI><A HREF="#sec10">Assignment Operators</A></LI>
+<LI><A HREF="#sec11">Reference Operators</A></LI>
+<LI><A HREF="#sec12">Member Functions</A></LI>
+<LI><A HREF="#sec13">Nonmember Functions</A></LI>
+<LI><A HREF="#sec14">Specialized Algorithms</A></LI>
+<LI><A HREF="#sec15">Example</A></LI>
+<LI><A HREF="#sec16">Warnings</A></LI>
+<LI><A HREF="#sec17">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx597">assign()</A><BR>
+<A HREF="#idx599">at()</A><BR>
+<A HREF="#idx601">back()</A><BR>
+<A HREF="#idx586">begin()</A><BR>
+<A HREF="#idx603">clear()</A><BR>
+<A HREF="#idx579">deque()</A><BR>
+<A HREF="#idx604">empty()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx588">end()</A><BR>
+<A HREF="#idx607">erase()</A><BR>
+<A HREF="#idx605">front()</A><BR>
+<A HREF="#idx585">get_allocator()</A><BR>
+<A HREF="#idx609">insert()</A><BR>
+<A HREF="#idx612">max_size()</A><BR>
+<A HREF="#idx594">operator=()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx595">operator[]()</A><BR>
+<A HREF="#idx613">pop_back()</A><BR>
+<A HREF="#idx614">pop_front()</A><BR>
+<A HREF="#idx615">push_back()</A><BR>
+<A HREF="#idx616">push_front()</A><BR>
+<A HREF="#idx590">rbegin()</A><BR>
+<A HREF="#idx592">rend()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx617">resize()</A><BR>
+<A HREF="#idx618">size()</A><BR>
+<A HREF="#idx619">swap()</A><BR>
+<A HREF="#idx584">~deque()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx621">operator!=()</A><BR>
+<A HREF="#idx623">operator&gt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx625">operator&gt;=()</A><BR>
+<A HREF="#idx622">operator&lt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx624">operator&lt;=()</A><BR>
+<A HREF="#idx620">operator==()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A sequence that supports random access iterators and efficient insertion/deletion at both beginning and end</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;deque&gt;
+
+namespace std {
+  template &lt;class T, class Allocator = allocator&lt;T&gt; &gt;
+  class deque;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P><B><I>deque</I></B> is a type of sequence that supports random access iterators. It supports constant time insert and erase operations at the beginning or the end of the container. Insertion and erase in the middle take linear time. Storage management is handled by the <SAMP>Allocator</SAMP> template parameter. </P>
+<P>Any type used for the template parameter <SAMP>T</SAMP> must include the following members. Here <SAMP>T</SAMP> is the <SAMP>type</SAMP>, <SAMP>t</SAMP> is a <SAMP>value</SAMP> of <SAMP>T</SAMP>, and <SAMP>u</SAMP> is a <SAMP>const</SAMP> <SAMP>value</SAMP> of <SAMP>T</SAMP>: </P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE"><SAMP>Copy constructors</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>T(t)</SAMP> and <SAMP>T(u)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>Destructor</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>t.~T()</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>Address of</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>&amp;t</SAMP> and <SAMP>&amp;u</SAMP> yielding <SAMP>T*</SAMP> and <SAMP>const T*</SAMP> respectively</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>Assignment</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>t = a</SAMP> where <SAMP>a</SAMP> is a (possibly <SAMP>const</SAMP>) value of <SAMP>T</SAMP></P>
+</td>
+</tr>
+</TABLE>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  template &lt;class T, class Allocator = allocator&lt;T&gt; &gt;
+  class deque {
+
+  public:
+
+    // Types
+
+    class iterator; 
+    class const_iterator;
+
+    typedef T value_type;
+    typedef Allocator allocator_type;
+    typedef typename Allocator::reference reference;
+    typedef typename Allocator::const_reference const_reference;
+    typedef typename Allocator::size_type size_type;
+    typedef typename Allocator::difference_type difference_type;
+    typedef typename Allocator::pointer pointer;
+    typedef typename Allocator::const_pointer 
+      const_pointer;
+    typedef typename std::reverse_iterator&lt;iterator&gt;
+      reverse_iterator;
+    typedef typename std::reverse_iterator&lt;const_iterator&gt;
+      const_reverse_iterator;
+
+    // Construct/Copy/Destroy
+
+    explicit deque(const Allocator&amp; = Allocator());
+    explicit deque(size_type);
+    deque(size_type, const T&amp; value, 
+           const Allocator&amp; = Allocator ());
+    deque(const deque&lt;T,Allocator&gt;&amp;);
+    template &lt;class InputIterator&gt;
+    deque(InputIterator, InputIterator, 
+          const Allocator&amp; = Allocator ());
+    ~deque ();
+    deque&lt;T,Allocator&gt;&amp; operator=(const deque&lt;T,Allocator&gt;&amp;);
+    template &lt;class InputIterator&gt;
+    void assign (InputIterator, InputIterator);
+    void assign (size_type, const T&amp;);
+    allocator_type get allocator () const;
+
+    // Iterators
+
+    iterator begin ();
+    const_iterator begin () const;
+    iterator end ();
+    const_iterator end () const;
+    reverse_iterator rbegin ();
+    const_reverse_iterator rbegin () const;
+    reverse_iterator rend ();
+    const_reverse_iterator rend () const;
+
+    // Capacity
+
+    size_type size() const;
+    size_type max_size() const;
+    void resize(size_type, T);
+    bool empty() const;
+
+   // Element access
+
+   reference operator[](size_type);
+   const_reference operator[](size_type) const;
+   reference at(size_type);
+   const_reference at(size_type) const;
+   reference front();
+   const_reference front() const;
+   reference back();
+   const_reference back() const;
+
+   // Modifiers
+
+     void push_front(const T&amp;);
+     void push_back(const T&amp;);
+     iterator insert(iterator, const T&amp;);
+     void insert(iterator, size_type, const T&amp;);
+     template &lt;class InputIterator&gt;
+     void insert(iterator, InputIterator, InputIterator);
+
+     void pop_front();
+     void pop_back();
+
+     iterator erase(iterator);
+     iterator erase(iterator, iterator);
+     void swap(deque&lt;T, Allocator&gt;&amp;);
+     void clear();
+  };
+
+  // Nonmember Operators
+
+  template &lt;class T, class Allocator&gt;
+  bool operator==(const deque&lt;T, Allocator&gt;&amp;, 
+                  const deque&lt;T, Allocator&gt;&amp;);
+
+  template &lt;class T, class Allocator&gt;
+  bool operator!=(const deque&lt;T, Allocator&gt;&amp;, 
+                  const deque&lt;T, Allocator&gt;&amp;);
+
+
+  template &lt;class T, class Allocator&gt;
+  bool operator&lt;(const deque&lt;T, Allocator&gt;&amp;, 
+                 const deque&lt;T, Allocator&gt;&amp;);
+
+  template &lt;class T, class Allocator&gt;
+  bool operator&gt;(const deque&lt;T, Allocator&gt;&amp;, 
+                 const deque&lt;T, Allocator&gt;&amp;);
+
+  template &lt;class T, class Allocator&gt;
+  bool operator&lt;=(const deque&lt;T, Allocator&gt;&amp;, 
+                  const deque&lt;T, Allocator&gt;&amp;);
+
+  template &lt;class T, class Allocator&gt;
+  bool operator&gt;=(const deque&lt;T, Allocator&gt;&amp;, 
+                  const deque&lt;T, Allocator&gt;&amp;);
+
+
+  // Specialized Algorithms
+
+  template &lt;class T, class Allocator&gt;
+  void swap(deque&lt;T, Allocator&gt;&amp;, deque&lt;T, Allocator&gt;&amp;);
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Constructors</H3></A>
+
+<A NAME="idx579"></A><PRE>explicit 
+<B>deque</B>(const Allocator&amp; alloc = Allocator());</PRE>
+<UL>
+<P>The default constructor. Creates a deque of zero elements. The deque uses the allocator <SAMP>alloc</SAMP> for all storage management.</P>
+</UL>
+
+
+<A NAME="idx580"></A><PRE>explicit 
+<B>deque</B>(size_type n);</PRE>
+<UL>
+<P>Creates a deque of length <SAMP>n</SAMP>, containing <SAMP>n</SAMP> copies of the default value for type&nbsp;<SAMP>T</SAMP>. <SAMP>T</SAMP> must have a default constructor. The deque uses the allocator <SAMP>Allocator()</SAMP> for all storage management. </P>
+</UL>
+
+
+<A NAME="idx581"></A><PRE><B>deque</B>(size_type n, const T&amp; value, 
+       const Allocator&amp; alloc = Allocator());</PRE>
+<UL>
+<P>Creates a deque of length <SAMP>n</SAMP>, containing <SAMP>n</SAMP> copies of <SAMP>value</SAMP>. The deque uses the allocator <SAMP>alloc</SAMP> for all storage management. </P>
+</UL>
+
+
+<A NAME="idx582"></A><PRE><B>deque</B>(const deque&lt;T, Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Creates a copy of <SAMP>x</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx583"></A><PRE>template &lt;class InputIterator&gt;
+<B>deque</B>(InputIterator start, InputIterator finish, 
+       const Allocator&amp; alloc = Allocator());</PRE>
+<UL>
+<P>Creates a deque of length <SAMP>finish - start</SAMP>, filled with all values obtained by dereferencing the <SAMP>InputIterators</SAMP> on the range <SAMP>[start, finish)</SAMP>. The deque uses the allocator <SAMP>alloc</SAMP> for all storage management. </P>
+</UL>
+
+<A NAME="sec7"><H3>Destructors</H3></A>
+
+<A NAME="idx584"></A><PRE><B>~deque</B>();</PRE>
+<UL>
+<P>Releases any allocated memory for self.</P>
+</UL>
+
+<A NAME="sec8"><H3>Allocators</H3></A>
+
+<A NAME="idx585"></A><PRE>allocator_type <B>get_allocator</B>() const;</PRE>
+<UL>
+<P>Returns a copy of the allocator used by self for storage management.</P>
+</UL>
+
+<A NAME="sec9"><H3>Iterators</H3></A>
+
+<A NAME="idx586"></A><PRE>iterator <B>begin</B>();</PRE>
+<UL>
+<P>Returns a random access iterator that points to the first element.</P>
+</UL>
+
+
+<A NAME="idx587"></A><PRE>const_iterator <B>begin</B>() const;</PRE>
+<UL>
+<P>Returns a constant random access iterator that points to the first element.</P>
+</UL>
+
+
+<A NAME="idx588"></A><PRE>iterator <B>end</B>();</PRE>
+<UL>
+<P>Returns a random access iterator that points to the past-the-end value.</P>
+</UL>
+
+
+<A NAME="idx589"></A><PRE>const_iterator <B>end</B>() const;</PRE>
+<UL>
+<P>Returns a constant random access iterator that points to the past-the-end value.</P>
+</UL>
+
+
+<A NAME="idx590"></A><PRE>reverse_iterator <B>rbegin</B>();</PRE>
+<UL>
+<P>Returns a random access <SAMP>reverse_iterator</SAMP> that points to the past-the-end value.</P>
+</UL>
+
+
+<A NAME="idx591"></A><PRE>const_reverse_iterator <B>rbegin</B>() const;</PRE>
+<UL>
+<P>Returns a constant random access reverse iterator that points to the past-the-end value.</P>
+</UL>
+
+
+<A NAME="idx592"></A><PRE>reverse_iterator <B>rend</B>();</PRE>
+<UL>
+<P>Returns a random access <SAMP>reverse_iterator</SAMP> that points to the first element.</P>
+</UL>
+
+
+<A NAME="idx593"></A><PRE>const_reverse_iterator <B>rend</B>() const;</PRE>
+<UL>
+<P>Returns a constant random access reverse iterator that points to the first element.</P>
+</UL>
+
+<A NAME="sec10"><H3>Assignment Operators</H3></A>
+
+<A NAME="idx594"></A><PRE>deque&lt;T, Allocator&gt;&amp; 
+<B>operator=</B>(const deque&lt;T, Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Erases all elements in self, then inserts into self a copy of each element in <SAMP>x</SAMP>. Returns a reference to self.</P>
+</UL>
+
+<A NAME="sec11"><H3>Reference Operators</H3></A>
+
+<A NAME="idx595"></A><PRE>reference <B>operator[]</B>(size_type n);</PRE>
+<UL>
+<P>Returns a <SAMP>reference</SAMP> to element <SAMP>n</SAMP> of self.   The result can be used as an lvalue. The index <SAMP>n</SAMP> must be between <SAMP>0</SAMP> and the <SAMP>size() - 1</SAMP>..</P>
+</UL>
+
+
+<A NAME="idx596"></A><PRE>const_reference <B>operator[]</B>(size_type n) const;</PRE>
+<UL>
+<P>Returns a constant reference to element <SAMP>n</SAMP> of self. The index <SAMP>n</SAMP> must be between <SAMP>0</SAMP> and the <SAMP>size() - 1</SAMP>.</P>
+</UL>
+
+<A NAME="sec12"><H3>Member Functions</H3></A>
+
+<A NAME="idx597"></A><PRE>template &lt;class InputIterator&gt;
+void
+<B>assign</B>(InputIterator start, InputIterator finish);</PRE>
+<UL>
+<P>If <B><I>InputIterator</I></B> is an integral type, the function calls <SAMP>assign(size_type(start), value_type (finish))</SAMP>. Otherwise, the function replaces elements in <SAMP>*this</SAMP> with copies of those in the range <SAMP>[start, finish)</SAMP>. The function invalidates all iterators and references to elements in <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx598"></A><PRE>void
+<B>assign</B>(size_type n, const T&amp; t);</PRE>
+<UL>
+<P>Replaces elements in <SAMP>*this</SAMP> with <SAMP>n</SAMP> copies of <SAMP>t</SAMP>. The function invalidates all iterators and references to elements in <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx599"></A><PRE>reference 
+<B>at</B>(size_type n);</PRE>
+<UL>
+<P>Returns a reference to element <SAMP>n</SAMP> of self. The result can be used as an lvalue. The index <SAMP>n</SAMP> must be between <SAMP>0</SAMP> and the<SAMP> size() - 1</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx600"></A><PRE>const_reference 
+<B>at</B>(size_type) const;</PRE>
+<UL>
+<P>Returns a constant reference to element <SAMP>n</SAMP> of self. The index <SAMP>n</SAMP> must be between <SAMP>0</SAMP> and the <SAMP>size() - 1</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx601"></A><PRE>reference 
+<B>back</B>();</PRE>
+<UL>
+<P>Returns a reference to the last element.</P>
+</UL>
+
+
+<A NAME="idx602"></A><PRE>const_reference 
+<B>back</B>() const;</PRE>
+<UL>
+<P>Returns a constant reference to the last element.</P>
+</UL>
+
+
+<A NAME="idx603"></A><PRE>void
+<B>clear</B>();</PRE>
+<UL>
+<P>Erases all elements from the self.</P>
+</UL>
+
+
+<A NAME="idx604"></A><PRE>bool 
+<B>empty</B>() const;</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the size of self is zero.</P>
+</UL>
+
+
+<A NAME="idx605"></A><PRE>reference 
+<B>front</B>();</PRE>
+<UL>
+<P>Returns a reference to the first element.</P>
+</UL>
+
+
+<A NAME="idx606"></A><PRE>const_reference 
+<B>front</B>() const;</PRE>
+<UL>
+<P>Returns a constant reference to the first element.</P>
+</UL>
+
+
+<A NAME="idx607"></A><PRE>iterator
+<B>erase</B>(iterator start, iterator finish);</PRE>
+<UL>
+<P>Deletes the elements in the range <SAMP>[start, finish)</SAMP>. Returns an iterator pointing to the element following the last deleted element, or <SAMP>end()</SAMP> if there were no elements after the deleted range.</P>
+</UL>
+
+
+<A NAME="idx608"></A><PRE>iterator
+<B>erase</B>(iterator position);</PRE>
+<UL>
+<P>Removes the element pointed to by <SAMP>position</SAMP>. Returns an iterator pointing to the element following the deleted element, or <SAMP>end()</SAMP> if there were no elements after the deleted range.</P>
+</UL>
+
+
+<A NAME="idx609"></A><PRE>iterator
+<B>insert</B>(iterator position, const_reference x);</PRE>
+<UL>
+<P>Requires that <SAMP>position</SAMP> be a valid iterator into <SAMP>*this</SAMP>. Inserts a copy of <SAMP>x</SAMP> into <SAMP>*this</SAMP> at <SAMP>position</SAMP>. Returns an iterator pointing to the inserted copy of <SAMP>x</SAMP>. The function invalidates all iterators into <SAMP>*this</SAMP>.</P>
+<P>Unless <SAMP>(position == begin() || position == end())</SAMP> holds, the function invalidates all references to elements in <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx610"></A><PRE>void
+<B>insert</B>(iterator position, size_type n, const_reference x);</PRE>
+<UL>
+<P>Requires that <SAMP>position</SAMP> be a valid iterator into <SAMP>*this</SAMP>. Inserts <SAMP>n</SAMP> copies of <SAMP>x</SAMP> into <SAMP>*this</SAMP> at <SAMP>position</SAMP>. The function invalidates all iterators into <SAMP>*this</SAMP>.</P>
+<P>Unless <SAMP>(position == begin() || position == end())</SAMP> holds, the function invalidates all references to elements in <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx611"></A><PRE>template &lt;class InputIterator&gt;
+void
+<B>insert</B>(iterator position, InputIterator start, InputIterator finish);</PRE>
+<UL>
+<P>Requires that <SAMP>position</SAMP> be a valid iterator into <SAMP>*this</SAMP>. If <B><I>InputIterator</I></B> is an integral type, the function calls <SAMP>insert(position, size_type(start), value_type (finish))</SAMP>. Otherwise the function inserts copies of elements in the range <SAMP>[start, finish)</SAMP> at <SAMP>position</SAMP>. The function invalidates all iterators into <SAMP>*this</SAMP>.</P>
+<P>Unless <SAMP>(position == begin() || position == end())</SAMP> holds, the function invalidates all references to elements in <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx612"></A><PRE>size_type 
+<B>max_size</B>() const;</PRE>
+<UL>
+<P>Returns <SAMP>size()</SAMP> of the largest possible deque.</P>
+</UL>
+
+
+<A NAME="idx613"></A><PRE>void 
+<B>pop_back</B>();</PRE>
+<UL>
+<P>Removes the last element. Note that this function does not return the element.</P>
+</UL>
+
+
+<A NAME="idx614"></A><PRE>void 
+<B>pop_front</B>();</PRE>
+<UL>
+<P>Removes the first element. Note that this function does not return the element.</P>
+</UL>
+
+
+<A NAME="idx615"></A><PRE>void
+<B>push_back</B>(const T&amp; x);</PRE>
+<UL>
+<P>Appends a copy of <SAMP>x</SAMP> to the end.</P>
+</UL>
+
+
+<A NAME="idx616"></A><PRE>void 
+<B>push_front</B>(const T&amp; x);</PRE>
+<UL>
+<P>Inserts a copy of <SAMP>x</SAMP> at the front.</P>
+</UL>
+
+
+<A NAME="idx617"></A><PRE>void 
+<B>resize</B>(size_type sz, T c);</PRE>
+<UL>
+<P>Alters the size of self. If the new size (<SAMP>sz</SAMP>) is greater than the current size, then <SAMP>sz-size()</SAMP> <SAMP>c</SAMP>'s are inserted at the end of the deque. If the new size is smaller than the current capacity, then the deque is truncated by erasing <SAMP>size()-sz</SAMP> elements off the end. Otherwise, no action is taken.</P>
+</UL>
+
+
+<A NAME="idx618"></A><PRE>size_type 
+<B>size</B>() const;</PRE>
+<UL>
+<P>Returns the number of elements.</P>
+</UL>
+
+
+<A NAME="idx619"></A><PRE>void 
+<B>swap</B>(deque&lt;T,Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Exchanges self with <SAMP>x</SAMP>.</P>
+</UL>
+
+<A NAME="sec13"><H3>Nonmember Functions</H3></A>
+
+<A NAME="idx620"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator==</B>(const deque&lt;T, Allocator&gt;&amp; x,
+                 const deque&lt;T, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Equality operator. Returns <SAMP>true</SAMP> if <SAMP>x</SAMP> is the same as <SAMP>y</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx621"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator!=</B>(const deque&lt;T, Allocator&gt;&amp; x,
+                 const deque&lt;T, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P> Returns <SAMP>true</SAMP> if <SAMP>x</SAMP> is not the same as <SAMP>y</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx622"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator&lt;</B>(const deque&lt;T, Allocator&gt;&amp; x,
+                const deque&lt;T, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the elements contained in <SAMP>x</SAMP> are lexicographically less than the elements contained in <SAMP>y</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx623"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator&gt;</B>(const deque&lt;T, Allocator&gt;&amp; x,
+                const deque&lt;T, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the elements contained in <SAMP>x</SAMP> are lexicographically greater than the elements contained in <SAMP>y</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx624"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator&lt;=</B>(const deque&lt;T, Allocator&gt;&amp; x,
+                const deque&lt;T, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the elements contained in <SAMP>x</SAMP> are lexicographically less than or equal to the elements contained in <SAMP>y</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx625"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator&gt;=</B>(const deque&lt;T, Allocator&gt;&amp; x,
+                const deque&lt;T, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the elements contained in <SAMP>x</SAMP> are lexicographically greater than or equal to the elements contained in <SAMP>y</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx626"></A><PRE>template &lt;class T, class Allocator&gt;
+bool <B>operator&lt;</B>(const deque&lt;T, Allocator&gt;&amp; x,
+                const deque&lt;T, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the elements contained in <SAMP>x</SAMP> are lexicographically less than the elements contained in <SAMP>y</SAMP>.</P>
+</UL>
+
+<A NAME="sec14"><H3>Specialized Algorithms</H3></A>
+
+<A NAME="idx627"></A><PRE>template &lt;class T, class Allocator&gt;
+void <B>swap</B>(deque&lt;T, Allocator&gt;&amp; a, deque&lt;T, Allocator&gt;&amp; b);</PRE>
+<UL>
+<P>Swaps the contents of <SAMP>a</SAMP> and <SAMP>b</SAMP>.</P>
+</UL>
+
+<A NAME="sec15"><H3>Example</H3></A>
+
+<UL><PRE>//
+// deque.cpp
+//
+
+#include &lt;deque&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+
+typedef std::deque&lt;std::string, 
+                   std::allocator&lt;std::string&gt; &gt; deque;
+
+static deque deck_of_cards; 
+static deque current_hand;
+
+
+void initialize_cards (deque &amp;cards)
+{
+    cards.push_front ("ace of spades");
+    cards.push_front ("king of spades");
+    cards.push_front ("queen of spades");
+    cards.push_front ("jack of spades");
+    cards.push_front ("ten of spades");
+    //
+    // etc.
+    //
+}
+
+
+template &lt;class It, class It2&gt; 
+void print_current_hand (It start, It2 end) 
+{
+    while (start &lt; end) 
+        std::cout &lt;&lt; *start++ &lt;&lt; std::endl;
+}
+
+
+template &lt;class It, class It2&gt;
+void deal_cards (It, It2 end)
+{
+    for (int i = 0; i &lt; 5; i++) {
+        current_hand.insert (current_hand.begin (), *end);
+        deck_of_cards.erase (end++);
+    }
+}
+
+
+void play_poker ()
+{
+    initialize_cards (deck_of_cards);
+    deal_cards (current_hand.begin (), 
+                deck_of_cards.begin ()); 
+}
+
+
+int main () 
+{
+    play_poker ();
+
+    print_current_hand (current_hand.begin (), 
+                        current_hand.end ());
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>ace of spades
+king of spades
+queen of spades
+jack of spades
+ten of spades
+</PRE></UL>
+<A NAME="sec16"><H3>Warnings</H3></A>
+<P>Member function templates are used in all the containers in the Standard Template Library. For example, the constructor for <B><I>deque</I></B> takes two templatized iterators: </P>
+
+<UL><PRE>
+ template &lt;class InputIterator&gt;
+ deque (InputIterator, InputIterator);
+</PRE></UL>
+<P><B><I>deque</I></B> also has an insert function of this type. These functions, when not restricted by compiler limitations, allow you to use any type of input iterator as arguments. For compilers that do not support this feature, substitute functions allow you to use an iterator obtained from the same type of container as the one you are constructing (or calling a member function on), or you can use a pointer to the type of element you have in the container. </P>
+<P>For example, if your compiler does not support member function templates you can construct a <B><I>deque</I></B> in the following two ways: </P>
+
+<UL><PRE>int intarray[10];
+deque&lt;int&gt; first_deque(intarray, intarray + 10);
+deque&lt;int&gt; second_deque(first_deque.begin(), 
+                        first_deque.end());
+</PRE></UL>
+<P>You cannot construct a <B><I>deque</I></B> this way:</P>
+
+<UL><PRE>deque&lt;long&gt; long_deque(first_deque.begin(), 
+                                  first_deque.end());
+</PRE></UL>
+<P>since the<SAMP> long_deque</SAMP> and <SAMP>first_deque</SAMP> are not the same type.</P>
+<A NAME="sec17"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++Section 23.2.1</I></P>
+
+<BR>
+<HR>
+<A HREF="deque-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="distance.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,18 @@
+<HTML>
+<HEAD>
+<TITLE>Overview</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="40.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="40-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>40.1 Overview</H2>
+<P>File stream buffers are responsible for the transport of characters to and from an external device. In some cases, the character encoding used internally by your program and externally on the device will differ. Hence the file stream buffer must convert characters from one encoding to another each time it reads from or writes to the external device. (<A HREF="23-3.html">Section&nbsp;23.3</A> gives a detailed discussion of character encodings and explains some typical code conversions. If you are not familiar with code conversions, we recommend that you read about them before delving into the details of implementing one in this section.)</P>
+<A NAME="idx945"><!></A>
+<P>A code conversion is not performed by the file stream buffer itself. This task is encapsulated in a code conversion facet. Each time the file stream buffer has to convert characters, it consults its locale's code conversion facet for the actual conversion. For this reason, file stream buffers and code conversion facets must work together closely, and the file stream buffer depends on its locale's code conversion facet.</P>
+<P>This clear separation of responsibilities enables you to change a file stream's behavior substantially, without touching the file stream class itself. All you must do is provide a special code conversion facet. In doing so, you turn an ordinary file stream into one that converts, say, EBCDIC files on a mainframe's file system into a stream of ASCII characters for internal processing.</P>
+<P>However, the task of implementing a code conversion facet requires a thorough understanding of the way file stream buffers and code conversion facets interact. In this section, we use two examples to explain the principles of this interaction. </P>
+<P>Before we move on to the examples, let's get an overview of the different kinds of code conversions. As we show later on, different types of code conversions require different kinds of implementations.</P>
+
+<BR>
+<HR>
+<A HREF="40.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="40-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

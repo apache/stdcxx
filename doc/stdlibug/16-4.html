@@ -1,0 +1,81 @@
+<HTML>
+<HEAD>
+<TITLE>Tips and Techniques for Building Algorithms</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="16-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="17.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>16.4 Tips and Techniques for Building Algorithms</H2>
+<A NAME="idx408"><!></A>
+<P>This section describes some techniques that use features of iterators to increase the flexibility and efficiency of your algorithms.</P>
+<A NAME="idx409"><!></A>
+<A NAME="1641"><H3>16.4.1 The iterator_traits Template</H3></A>
+<A NAME="idx410"><!></A>
+<P>Sometimes an algorithm that can be implemented most efficiently with a random access iterator can also work with less powerful iterators. The Standard C++ Library includes primitives that allow a single algorithm to provide several different implementations, depending upon the power of the iterator passed into it. The following example demonstrates the usual technique for setting up multiple versions of the same algorithm:</P>
+
+<UL><PRE>
+// Note, this requires that the iterators be derived from 
+// Standard base types, unless the iterators are simple pointers.
+
+namespace my_namespace {
+
+template &lt;class Iterator&gt;
+Iterator union(Iterator first1, Iterator last1,
+               Iterator first2, Iterator last2,
+               Iterator Result)
+{
+  return union_aux(first1,last1,first2,last2,Result,
+                   iterator_traits&lt;first1&gt;());
+}
+
+template &lt;class Iterator&gt;
+Iterator union_aux(Iterator first1, Iterator last1,
+                   Iterator first2, Iterator last2,
+                   Iterator Result, forward_iterator_tag)
+{
+  // General but less efficient implementation
+}
+
+template &lt;class Iterator&gt;
+Iterator union_aux(Iterator first1, Iterator last1,
+                   Iterator first2, Iterator last2,
+                   Iterator Result,
+                   random_access_iterator_tag)
+{
+  // More efficient implementation
+}
+
+} // End of my_namespace
+</PRE></UL>
+<P>The <SAMP>iterator_traits</SAMP> template provides typedefs for value, difference, pointer, reference, and category types that are based on the type used to instantiate the template. In the example above, we use <SAMP>iterator_traits::iterator_category</SAMP> to determine the capabilities of the iterator, and then use specializations to get the best available implementation of the algorithm. In order for <SAMP>iterator_traits</SAMP> to work, the iterator provided to the algorithm must be a simple pointer type or be derived from the iterator template, or it must itself define the types for <SAMP>value_type</SAMP>, <SAMP>difference_type</SAMP>, <SAMP>pointer</SAMP>, <SAMP>reference</SAMP>, and <SAMP>iterator_category</SAMP>. The <SAMP>iterator_category</SAMP> type must be one of the following: <SAMP>input_iterator_tag</SAMP>, <SAMP>output_iterator_tag</SAMP>, <SAMP>forward_iterator_tag</SAMP>, <SAMP>bidirectional_iterator_tag</SAMP>, or <SAMP>random_access_iterator_tag</SAMP>.</P>
+<P>Note that when you use the <SAMP>iterator_traits</SAMP> template, the default implementation of an algorithm should expect at most a forward iterator. This default version is used if the algorithm encounters an iterator that is not a simple pointer or derived from a basic standard iterator. Note that input and output iterators are less capable than forward iterators, but that the requirements of algorithms generally mandate read/write capabilities.</P>
+<P>Not also that <SAMP>iterator_traits</SAMP> only works with compilers that support partial specialization, since the specialization of <SAMP>iterator_traits</SAMP> for pointer types uses this feature. If your compiler doesn't support partial specialization, you can use the primitive <SAMP>__iterator_category()</SAMP>. Calling this function with an iterator argument returns the same tag you would get by using <SAMP>iterator_traits</SAMP>. For example, we could substitute the following line for the use of <SAMP>iterator_traits</SAMP> in the previous example:</P>
+
+<UL><PRE>
+return std::union_aux(first1,last1,first2,last2,Result,
+                  __iterator_category(first1));
+</PRE></UL>
+<P>Use <SAMP>iterator_traits::value_type</SAMP> and <SAMP>iterator_traits::difference_type</SAMP> to discover the type of value pointed to by an iterator, or the type that represents a distance between iterators. As with the category type, you must use the alternate functions <SAMP>__value_type()</SAMP> or <SAMP>__distance_type()</SAMP> when partial specialization is not available. Both of these functions take an iterator as an argument in just the same way as <SAMP>__iterator_category()</SAMP>.</P>
+<A NAME="idx411"><!></A>
+<A NAME="1642"><H3>16.4.2 The distance and advance Primitives</H3></A>
+<A NAME="idx412"><!></A>
+<P>The <SAMP>value_type</SAMP> primitive lets you determine the type of value pointed to by an iterator. Similarly, you can use the <SAMP>distance_type</SAMP> primitive to get a type that represents distances between iterators.</P>
+<A NAME="idx413"><!></A>
+<P>In order to efficiently find the distance between two iterators, regardless of their capabilities, you can use the <SAMP>distance</SAMP> primitive. The <SAMP>distance</SAMP> primitive uses the technique in <A HREF="16-4.html#1641">Section&nbsp;16.4.1</A> to send a calling program to one of four different implementations. This offers a considerable gain in efficiency, since an implementation for a forward iterator must step through the range defined by the two iterators:</P>
+
+<UL><PRE>
+Distance d = 0;
+while (start++ != end)
+  d++;
+</PRE></UL>
+<P>whereas an implementation for a random access iterator can simply subtract the start iterator from the end iterator:</P>
+
+<UL><PRE>
+Distance d = end - start;
+</PRE></UL>
+<A NAME="idx414"><!></A>
+<P>Similar gains are available with the <SAMP>advance</SAMP> primitive, which allows you to step forward or backward an arbitrary number of steps as efficiently as possible for a particular iterator.</P>
+
+<BR>
+<HR>
+<A HREF="16-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="17.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>
