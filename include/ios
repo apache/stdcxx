@@ -1,0 +1,217 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * ios - definition of the class template basic_ios
+ *
+ * $Id: //stdlib/dev/include/ios#30 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_IOS_INCLUDED
+#define _RWSTD_IOS_INCLUDED
+
+
+#include <iosfwd>            // required by 27.4
+
+#include <rw/_basic_ios.h>   // for basic_ios, ios_base
+#include <rw/_defs.h>
+
+
+_RWSTD_NAMESPACE (std) {
+
+
+// 27.4.1, p1
+typedef _RWSTD_STREAMOFF streamoff;
+
+// 27.4.1, p2
+typedef _RWSTD_STREAMSIZE streamsize;
+
+
+// 27.4.5.1 - fmtflags manipulators
+
+// 27.4.5.1, p25
+inline ios_base& unitbuf (ios_base &__strm)
+{
+    return __strm.setf (ios_base::unitbuf), __strm;
+}
+
+
+// 27.4.5.1, p27
+inline ios_base& nounitbuf (ios_base &__strm)
+{
+    return __strm.unsetf (ios_base::unitbuf), __strm;
+}
+
+
+// 27.4.5.1, p1
+inline ios_base& boolalpha (ios_base &__strm)
+{
+    return __strm.setf (ios_base::boolalpha), __strm;
+}
+
+
+// 27.4.5.1, p3
+inline ios_base& noboolalpha (ios_base &__strm)
+{
+    return __strm.unsetf (ios_base::boolalpha), __strm;
+}
+
+
+// 27.4.5.1, p5
+inline ios_base& showbase (ios_base &__strm)
+{
+    return __strm.setf (ios_base::showbase), __strm;
+}
+
+
+// 27.4.5.1, p7
+inline ios_base& noshowbase (ios_base &__strm)
+{
+    return __strm.unsetf (ios_base::showbase), __strm;
+}
+
+
+// 27.4.5.1, p9
+inline ios_base& showpoint (ios_base &__strm)
+{ 
+    return __strm.setf (ios_base::showpoint), __strm;
+}
+
+
+// 27.4.5.1, p11
+inline ios_base& noshowpoint (ios_base &__strm)
+{
+    return __strm.unsetf (ios_base::showpoint), __strm;
+}
+
+
+// 27.4.5.1, p13
+inline ios_base& showpos (ios_base &__strm)
+{
+    return __strm.setf (ios_base::showpos), __strm;
+}
+
+
+// 27.4.5.1, p15
+inline ios_base& noshowpos (ios_base &__strm)
+{
+    return __strm.unsetf (ios_base::showpos), __strm;
+}
+
+
+// 27.4.5.1, p17
+inline ios_base& skipws (ios_base &__strm)
+{
+    return __strm.setf (ios_base::skipws), __strm;
+}
+
+
+// 27.4.5.1, p19
+inline ios_base& noskipws (ios_base &__strm)
+{
+    return __strm.unsetf (ios_base::skipws), __strm;
+}
+
+
+// 27.4.5.1, p21
+inline ios_base& uppercase (ios_base &__strm)
+{
+    return __strm.setf (ios_base::uppercase), __strm;
+}
+
+
+// 27.4.5.1, p23
+inline ios_base& nouppercase (ios_base &__strm)
+{
+    return __strm.unsetf (ios_base::uppercase), __strm;
+}
+
+
+// 27.4.5.2 - adjustfield manipulators
+
+// 27.4.5.2, p1
+inline ios_base& internal (ios_base &__strm)
+{
+    return __strm.setf (ios_base::internal, ios_base::adjustfield), __strm;
+}
+
+
+// 27.4.5.2, p3
+inline ios_base& left (ios_base &__strm)
+{
+    return __strm.setf (ios_base::left, ios_base::adjustfield), __strm;
+}
+
+
+// 27.4.5.2, p5
+inline ios_base& right (ios_base &__strm)
+{
+    return __strm.setf (ios_base::right, ios_base::adjustfield), __strm;
+}
+
+
+// 27.4.5.3 - basefield manipulators
+
+// 27.4.5.3, p1
+inline ios_base& dec (ios_base &__strm)
+{
+    return __strm.setf (ios_base::dec, ios_base::basefield), __strm;
+}
+
+
+// 27.4.5.3, p3
+inline ios_base& hex (ios_base &__strm)
+{
+    return __strm.setf (ios_base::hex, ios_base::basefield), __strm;
+}
+
+
+// 27.4.5.3, p5
+inline ios_base& oct (ios_base &__strm)
+{
+    return __strm.setf (ios_base::oct, ios_base::basefield), __strm;
+}
+
+
+#ifndef _RWSTD_NO_EXT_BIN_IO
+
+// extension
+inline ios_base& bin (ios_base &__strm)
+{
+    return __strm.setf (ios_base::bin, ios_base::basefield), __strm;
+}
+
+#endif   // _RWSTD_NO_EXT_BIN_IO
+
+
+// 27.4.5.4 - floatfield manipulators
+
+// 27.4.5.4, p1
+inline ios_base& fixed (ios_base &__strm)
+{
+    return __strm.setf (ios_base::fixed, ios_base::floatfield), __strm;
+}
+
+
+// 27.4.5.4, p3
+inline ios_base& scientific (ios_base &__strm)
+{
+    return __strm.setf (ios_base::scientific, ios_base::floatfield), __strm;
+}
+
+}   // namespace std
+
+#endif   // _RWSTD_IOS_INCLUDED

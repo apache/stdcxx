@@ -1,0 +1,6 @@
+For the list: 3 4 5 6 7 8 
+
+When the iterator is initialized to l.begin (),
+it points to 3
+
+After advance (itr, 4), the iterator points to 7

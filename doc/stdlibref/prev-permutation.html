@@ -1,0 +1,159 @@
+<HTML>
+<HEAD>
+<TITLE>prev_permutation()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="predicates.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="priority-queue.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>prev_permutation()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An algorithm that generates successive permutations of a sequence based on an ordering function </P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std{
+  template &lt;class BidirectionalIterator&gt;
+  bool prev_permutation(BidirectionalIterator start,
+                        BidirectionalIterator finish);
+
+  template &lt;class BidirectionalIterator, class Compare&gt;
+  bool prev_permutation(BidirectionalIterator start, 
+                        BidirectionalIterator finish, 
+                        Compare comp);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The permutation-generating algorithms, <SAMP><A HREF="next-permutation.html">next_permutation()</A></SAMP> and <SAMP>prev_permutation()</SAMP>, assume that the set of all permutations of the elements in a sequence is lexicographically sorted with respect to <SAMP>operator&lt;()</SAMP> or the binary predicate <SAMP>comp</SAMP>. For example, if a sequence includes the integers 1 2 3, that sequence has six permutations. In order from first to last, they are: 1 2 3, 1 3 2, 2 1 3, 2 3 1, 3 1 2, and 3 2 1. </P>
+<P>The <SAMP>prev_permutation()</SAMP> algorithm takes a sequence defined by the range <SAMP>[start, finish)</SAMP> and transforms it into its previous permutation, if possible. If such a permutation does exist, the algorithm completes the transformation and returns <SAMP>true</SAMP>. If the permutation does not exist, <SAMP>prev_permutation()</SAMP> returns <SAMP>false</SAMP>, and transforms the permutation into its <I>last</I> permutation. <SAMP>prev_permutation()</SAMP> does the transformation according to the lexicographical ordering defined by either <SAMP>operator&lt;()</SAMP> (used in the first version of the algorithm) or the binary predicate <SAMP>comp</SAMP> (which is user-supplied in the second version of the algorithm). </P>
+<P>For example, if the sequence defined by <SAMP>[start, finish)</SAMP> contains the integers 1 2 3 (in that order), there is <I>not</I> a previous permutation.  Therefore, the algorithm transforms the sequence into its last permutation (3 2 1) and returns <SAMP>false</SAMP>.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>At most<SAMP> (finish - start)/2 </SAMP>swaps are performed.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  permute.cpp
+//
+
+#include &lt;algorithm&gt;  // for next_permutation, prev_permutation
+#include &lt;functional&gt; // for less
+#include &lt;iostream&gt;   // for cout, endl
+#include &lt;numeric&gt;    // for accumulate
+#include &lt;vector&gt;     // for vector
+
+
+int main ()
+{
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; IntVec;
+    typedef std::vector&lt;char, std::allocator&lt;char&gt; &gt; CharVec;
+
+    // Initialize a vector using an array of integers.
+    const IntVec::value_type  a1[] = { 0, 0, 0, 0, 1, 
+                                       0, 0, 0, 0, 0 };
+    const CharVec::value_type a2[] = "abcdefghji";
+
+    // Create the initial set and copies for permuting.
+    IntVec m1      (a1, a1 + sizeof a1 / sizeof *a1); 
+    IntVec prev_m1 (10);
+    IntVec next_m1 (10);
+
+    CharVec m2      (a2, a2 + sizeof a2 / sizeof *a2 - 1);
+    CharVec prev_m2 (10);
+    CharVec next_m2 (10);
+
+    std::copy (m1.begin (), m1.end (), prev_m1.begin ());
+    std::copy (m1.begin (), m1.end (), next_m1.begin ());
+    std::copy (m2.begin (), m2.end (), prev_m2.begin ());
+    std::copy (m2.begin (), m2.end (), next_m2.begin ());
+
+    // Create permutations.
+    typedef std::less&lt;IntVec::value_type&gt;  IntLess;
+    typedef std::less&lt;CharVec::value_type&gt; CharLess;
+
+    std::prev_permutation (prev_m1.begin (), prev_m1.end (), 
+                           IntLess ());
+    std::next_permutation (next_m1.begin (), next_m1.end (), 
+                           IntLess ());
+    std::prev_permutation (prev_m2.begin (), prev_m2.end (), 
+                           CharLess ());
+    std::next_permutation (next_m2.begin (), next_m2.end (), 
+                           CharLess ());
+
+    // Output results.
+
+    typedef std::ostream_iterator&lt;IntVec::value_type, char,
+                                  std::char_traits&lt;char&gt; &gt;
+        IntOSIter;
+
+    typedef std::ostream_iterator&lt;CharVec::value_type, char,
+                                  std::char_traits&lt;char&gt; &gt;
+        CharOSIter;
+
+    std::cout &lt;&lt; "Example 1: \n     Original values:      ";
+    std::copy (m1.begin (), m1.end (), 
+               IntOSIter (std::cout, " "));
+
+    std::cout &lt;&lt; "\n     Previous permutation: ";
+    std::copy (prev_m1.begin (), prev_m1.end (), 
+               IntOSIter (std::cout, " "));
+
+    std::cout &lt;&lt; "\n     Next Permutation:     ";
+    std::copy (next_m1.begin (), next_m1.end (), 
+               IntOSIter (std::cout, " "));
+
+    std::cout &lt;&lt; "\n\nExample 2: \n     ";
+              &lt;&lt; "Original values:      ";
+    std::copy (m2.begin (), m2.end (), 
+               CharOSIter (std::cout, " "));     
+
+    std::cout &lt;&lt; "\n     Previous Permutation: ";
+    std::copy (prev_m2.begin (), prev_m2.end (), 
+               CharOSIter (std::cout, " "));
+
+    std::cout &lt;&lt; "\n     Next Permutation:     ";
+    std::copy (next_m2.begin (), next_m2.end (), 
+               CharOSIter (std::cout, " "));  
+
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>Example 1: 
+     Original values:      0 0 0 0 1 0 0 0 0 0 
+     Previous permutation: 0 0 0 0 0 1 0 0 0 0 
+     Next Permutation:     0 0 0 1 0 0 0 0 0 0 
+
+Example 2: 
+     Original values:      a b c d e f g h j i 
+     Previous Permutation: a b c d e f g h i j 
+     Next Permutation:     a b c d e f g i h j 
+
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="next-permutation.html">next_permutation()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.3.9</I></P>
+
+<BR>
+<HR>
+<A HREF="predicates.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="priority-queue.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

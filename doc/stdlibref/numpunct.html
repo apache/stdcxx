@@ -1,0 +1,253 @@
+<HTML>
+<HEAD>
+<TITLE>numpunct, numpunct_byname</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="numeric-limits.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="operatordelete.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>numpunct, numpunct_byname</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR><B><I><A HREF="numpunct.html">numpunct_byname</A></I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="numpunct.html">numpunct</A></I></B> <IMG SRC="images/inherits.gif"> <B><I>locale::facet</I></B> <HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Types</A></LI>
+<LI><A HREF="#sec8">Constructors</A></LI>
+<LI><A HREF="#sec9">Facet ID</A></LI>
+<LI><A HREF="#sec10">Public Member Functions</A></LI>
+<LI><A HREF="#sec11">Protected Member Functions</A></LI>
+<LI><A HREF="#sec12">Example</A></LI>
+<LI><A HREF="#sec13">See Also</A></LI>
+<LI><A HREF="#sec14">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1041">char_type</A><BR>
+<A HREF="#idx1045">decimal_point()</A><BR>
+<A HREF="#idx1046">do_decimal_point()</A><BR>
+<A HREF="#idx1047">do_falsename()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1048">do_grouping()</A><BR>
+<A HREF="#idx1049">do_thousands_sep()</A><BR>
+<A HREF="#idx1047">do_truename()</A><BR>
+<A HREF="#idx1045">falsename()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1045">grouping()</A><BR>
+<A HREF="#idx1043">numpunct()</A><BR>
+<A HREF="#idx1044">numpunct_byname()</A><BR>
+<A HREF="#idx1042">string_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1045">thousands_sep()</A><BR>
+<A HREF="#idx1045">truename()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A numeric punctuation facet used by the <SAMP>num_get</SAMP> and <SAMP>num_get</SAMP> facets for formatting and parsing.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  template &lt;class charT&gt;  class numpunct;
+  template &lt;class charT&gt;  class numpunct_byname;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+
+<UL><PRE>template &lt;&gt; class numpunct&lt;char&gt;;
+template &lt;&gt; class numpunct&lt;wchar_t&gt;;
+template &lt;&gt; class numpunct_byname&lt;char&gt;;
+template &lt;&gt; class numpunct_byname&lt;wchar_t&gt;;
+</PRE></UL>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The <B><I><A HREF="numpunct.html">numpunct</A></I></B> facet specifies numeric punctuation associated with the C&nbsp;locale. The <B><I><A HREF="numpunct.html">numpunct_byname</A></I></B> facet is used with named locales.</P>
+<P>Both the <B><I><A HREF="num-put.html">num_put</A></I></B> and <B><I><A HREF="num-get.html">num_get</A></I></B> facets make use of this facet. </P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class charT&gt;
+  class numpunct : public locale::facet {
+
+    public:
+    typedef charT char_type;
+    typedef basic_string&lt;charT&gt; string_type;
+    explicit numpunct(size_t refs = 0);
+    char_type decimal_point() const;
+    char_type thousands_sep() const;
+    string grouping()  const;
+    string_type truename() const;
+    string_type   falsename() const;
+    static locale::id id;
+
+    protected:
+    virtual char_type do_decimal_point() const;
+    virtual char_type do_thousands_sep() const;
+    virtual string do_grouping() const;
+    virtual string_type do_truename() const;
+    virtual string_type do_falsename() const;
+  };
+
+  template &lt;class charT&gt;
+  class numpunct_byname : public numpunct&lt;charT&gt; {
+
+  public:
+  explicit numpunct_byname(const char*, size_t refs = 0);
+
+  };
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Types</H3></A>
+
+<A NAME="idx1041"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>The type of the template argument.</P>
+</UL>
+
+
+<A NAME="idx1042"></A><PRE><B>string_type</B></PRE>
+<UL>
+<P>Class template <B><I><A HREF="basic-string.html">basic_string</A></I></B> specialized on <SAMP>char_type</SAMP>.</P>
+</UL>
+
+<A NAME="sec8"><H3>Constructors</H3></A>
+
+<A NAME="idx1043"></A><PRE>explicit <B>numpunct</B>(size_t refs = 0); </PRE>
+<UL>
+<P>Constructs a <B><I><A HREF="numpunct.html">numpunct</A></I></B> object. Calls <SAMP>locale::facet (refs)</SAMP>. </P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the object's reference count. A <B><I><A HREF="numpunct.html">numpunct</A></I></B> object <SAMP>f</SAMP> constructed with <SAMP>(refs == 0)</SAMP> that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. A <B><I>numpunct</I></B> object constructed with <SAMP>(refs != 0)</SAMP> will not be destroyed by any locale objects in which it may have been installed.</P>
+</UL>
+
+
+<A NAME="idx1044"></A><PRE>explicit <B>numpunct_byname</B>(const char* name,
+         size_t refs = 0); </PRE>
+<UL>
+<P>Constructs a <B><I><A HREF="numpunct.html">numpunct_byname</A></I></B> object for the locale given by name. Calls <SAMP>numpunct&lt;char_type&gt;::numpunct (refs)</SAMP>.</P>
+</UL>
+
+<A NAME="sec9"><H3>Facet ID</H3></A>
+
+<PRE>static locale::id <B>id</B>;
+</PRE>
+<UL>
+<P>Unique identifier for this type of facet. </P>
+</UL>
+
+<A NAME="sec10"><H3>Public Member Functions</H3></A>
+<P>The public members of the <B><I><A HREF="numpunct.html">numpunct</A></I></B> facet include an interface to protected members. Each public member function <SAMP>xxx()</SAMP> calls a corresponding virtual protected member <SAMP>do_xxx()</SAMP>. For instance, the public function <SAMP>grouping()</SAMP> simply calls its protected cousin <SAMP>do_grouping()</SAMP>.</P>
+
+<A NAME="idx1045"></A><PRE>char_type    <B>decimal_point</B>()   const; 
+string_type  <B>falsename</B>()       const; 
+string       <B>grouping</B>()        const; 
+char_type    <B>thousands_sep</B>()   const; 
+string_type  <B>truename</B>()        const; </PRE>
+<UL>
+<P>Each of these public member functions <SAMP>xxx()</SAMP>returns the result of the corresponding virtual protected <SAMP>do_xxx()</SAMP> function. The result of the call my be cached. Subsequent calls to the function may return the cached result to avoid the expense of repeatedly calling the virtual function.</P>
+</UL>
+
+<A NAME="sec11"><H3>Protected Member Functions</H3></A>
+
+<A NAME="idx1046"></A><PRE>virtual char_type    
+<B>do_decimal_point</B>() const; </PRE>
+<UL>
+<P>Returns the decimal radix separator. In the C locale, the function returns the period `<SAMP>.</SAMP>' (and <SAMP>L</SAMP>'<SAMP>.</SAMP>').</P>
+</UL>
+
+
+<A NAME="idx1047"></A><PRE>virtual string_type  
+<B>do_falsename</B>() const;
+virtual string_type  
+<B>do_truename</B>() const;</PRE>
+<UL>
+<P>Returns a string representing <SAMP>true</SAMP> or <SAMP>false</SAMP>. In the C locale, the functions return "<SAMP>false</SAMP> " and "<SAMP>true</SAMP>", (and <SAMP>L</SAMP>"<SAMP>false</SAMP>" and <SAMP>L</SAMP>"<SAMP>true</SAMP>") respectively.</P>
+</UL>
+
+
+<A NAME="idx1048"></A><PRE>virtual string 
+<B>do_grouping</B>() const; </PRE>
+<UL>
+<P>Returns a string in which the numeric value of each character is used to represent the number of digits in a particular group, starting with the rightmost group. A group is a sequence of digits between two thousands separators, or between the decimal point and the first thousands separator. Each group at a position greater than or equal to the size of the string gets the same value as the last element in the string. If a value is less than or equal to zero, or equal to <SAMP>CHAR_MAX</SAMP>, then the size of that group is unlimited. In the C locale, the function returns an empty string, indicating no grouping.</P>
+</UL>
+
+
+<A NAME="idx1049"></A><PRE>virtual char_type    
+<B>do_thousands_sep</B>() const; </PRE>
+<UL>
+<P>Returns the digit group separator used to separate groups of digits in the integer part of numeric values. In the C locale, the function returns the comma `<SAMP>,</SAMP>' (and <SAMP>L</SAMP>'<SAMP>,</SAMP>').</P>
+</UL>
+
+<A NAME="sec12"><H3>Example</H3></A>
+
+<UL><PRE>#include &lt;iostream&gt;   // for cout, endl
+#include &lt;locale&gt;     // for locale, numpunct, use_facet
+#include &lt;stdexcept&gt;  // for runtime_error
+
+#include &lt;examples.h&gt;
+
+
+#if defined (_WIN32) || defined (_WIN64)
+#  define GERMAN_LOCALE "german_germany.1252"
+#elif defined (__osf__)
+#  define GERMAN_LOCALE "de_DE.88591"
+#elif defined (SNI)
+#  define GERMAN_LOCALE "De_DE.88591"
+#elif defined (_AIX)
+#  define GERMAN_LOCALE "de_DE.ISO8859-1"
+#elif defined (__linux__)
+#  define GERMAN_LOCALE "de_DE"
+#elif defined (__hpux)
+#  define GERMAN_LOCALE "de_DE.iso88591"
+#else 
+#  define GERMAN_LOCALE "de"
+#endif
+
+
+int main ()
+{
+    try {
+        // obtain a numpunct facet for the german locale
+        const std::numpunct&lt;char&gt; &amp;np =
+            std::use_facet&lt;std::numpunct&lt;char&gt; &gt;(std::locale (GERMAN_LOCALE));
+        
+        
+        std::cout &lt;&lt;   "Decimal point       = " &lt;&lt; np.decimal_point ()
+                  &lt;&lt; "\nThousands seperator = " &lt;&lt; np.thousands_sep ()
+                  &lt;&lt; "\nTrue name           = " &lt;&lt; np.truename ()
+                  &lt;&lt; "\nFalse name          = " &lt;&lt; np.falsename() &lt;&lt; std::endl; 
+    }
+    catch (std::runtime_error&amp; e) {
+        // a runtime_error will be thrown if the locale cannot be constructed
+        std::cout &lt;&lt; "Caught runtime_error:\n"; 
+        std::cout &lt;&lt; e.what() &lt;&lt; '\n';
+    }
+    catch (...) {
+        std::cout &lt;&lt; "Caught an unknown exception\n"; 
+    }
+    return 0;
+}
+
+Program Output:
+
+Decimal point       = ,
+Thousands seperator = .
+True name           = true
+False name          = false
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<A NAME="sec13"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="num-put.html">num_put</A></I></B>, <B><I><A HREF="num-get.html">num_get</A></I></B>, <B><I><A HREF="ctype.html">ctype</A></I></B></P>
+<A NAME="sec14"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.3.1</I></P>
+
+<BR>
+<HR>
+<A HREF="numeric-limits.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="operatordelete.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

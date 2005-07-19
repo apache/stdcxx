@@ -1,0 +1,4 @@
+Calculator example program, from Chapter 8
+Enter a legal RPN expression, end with p q (print and quit)
+-1
+End calculator program

@@ -1,0 +1,621 @@
+<HTML>
+<HEAD>
+<TITLE>multiset</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="multiplies.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="negate.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>multiset</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-7.html">Containers</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Constructors</A></LI>
+<LI><A HREF="#sec7">Destructors</A></LI>
+<LI><A HREF="#sec8">Assignment Operators</A></LI>
+<LI><A HREF="#sec9">Allocators</A></LI>
+<LI><A HREF="#sec10">Iterators</A></LI>
+<LI><A HREF="#sec11">Member Functions</A></LI>
+<LI><A HREF="#sec12">Nonmember Operators</A></LI>
+<LI><A HREF="#sec13">Specialized Algorithms</A></LI>
+<LI><A HREF="#sec14">Example</A></LI>
+<LI><A HREF="#sec15">Warnings</A></LI>
+<LI><A HREF="#sec16">See Also</A></LI>
+<LI><A HREF="#sec17">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx966">begin()</A><BR>
+<A HREF="#idx974">clear()</A><BR>
+<A HREF="#idx975">count()</A><BR>
+<A HREF="#idx976">empty()</A><BR>
+<A HREF="#idx968">end()</A><BR>
+<A HREF="#idx977">equal_range()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx978">erase()</A><BR>
+<A HREF="#idx981">find()</A><BR>
+<A HREF="#idx965">get_allocator()</A><BR>
+<A HREF="#idx982">insert()</A><BR>
+<A HREF="#idx984">key_comp()</A><BR>
+<A HREF="#idx985">lower_bound()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx986">max_size()</A><BR>
+<A HREF="#idx960">multiset()</A><BR>
+<A HREF="#idx964">operator=()</A><BR>
+<A HREF="#idx970">rbegin()</A><BR>
+<A HREF="#idx972">rend()</A><BR>
+<A HREF="#idx987">size()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx988">swap()</A><BR>
+<A HREF="#idx989">upper_bound()</A><BR>
+<A HREF="#idx990">value_comp()</A><BR>
+<A HREF="#idx963">~multiset()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx992">operator!=()</A><BR>
+<A HREF="#idx994">operator&gt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx996">operator&gt;=()</A><BR>
+<A HREF="#idx993">operator&lt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx995">operator&lt;=()</A><BR>
+<A HREF="#idx991">operator==()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An associative container that allows fast access to stored key values. Storage of duplicate keys is allowed. A <B><I>multiset</I></B> supports bidirectional iterators.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;set&gt;
+
+namespace std {
+  template &lt;class Key, class Compare = less&lt;Key&gt;,
+            class Allocator = allocator&lt;Key&gt; &gt; 
+  class multiset;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P><B><I>multiset</I></B> allows fast access to stored key values. The default operation for key comparison is the <SAMP>&lt;</SAMP> operator. Insertion of duplicate keys is allowed with a multiset. </P>
+<P><B><I>multiset</I></B> uses bidirectional iterators that point to a stored key. </P>
+<P>Any type used for the template parameter <SAMP>Key</SAMP> must include the following (where<SAMP> T</SAMP> is the <SAMP>type</SAMP>,<SAMP> t</SAMP> is a value of <SAMP>T</SAMP> and<SAMP> u</SAMP> is a <SAMP>const</SAMP> <SAMP>value</SAMP> of <SAMP>T</SAMP>): </P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">Copy constructors  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"><SAMP>T(t)</SAMP> and <SAMP>T(u)</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">Destructor  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"><SAMP>t.~T()</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">Address of  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"><SAMP>&amp;t</SAMP> and <SAMP>&amp;u</SAMP> yielding <SAMP>T*</SAMP> and <SAMP>const T*</SAMP> respectively</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">Assignment  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"><SAMP>t = a </SAMP>where <SAMP>a</SAMP> is a (possibly <SAMP>const</SAMP>) value of <SAMP>T</SAMP></P></TD></TR>
+</TABLE></P>
+<P>The <SAMP>type</SAMP> used for the <SAMP>Compare</SAMP> template parameter must satisfy the requirements for binary functions. </P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class Key, class Compare = less&lt;Key&gt;, 
+            class Allocator = allocator&lt;Key&gt; &gt;
+  class multiset {
+
+  public:
+
+    // typedefs
+    typedef Key key_type;
+    typedef Key value_type;
+    typedef Compare key_compare;
+    typedef Compare value_compare;
+    typedef Allocator allocator_type;
+    typedef typename
+            Allocator::reference reference;
+    typedef typename
+            Allocator::const_reference const_reference;
+    class iterator;
+    class const_iterator;
+    typedef typename
+           Allocator::size_type size_type;
+    typedef typename
+           Allocator::difference_type  difference_type;
+    typedef typename Allocator::pointer pointer;
+    typedef typename Allocator::const_pointer const_pointer;
+    typedef typename std::reverse_iterator&lt;iterator&gt;
+                          reverse_iterator;
+    typedef typename std::reverse_iterator&lt;const_iterator&gt;
+                          const_reverse_iterator;
+
+    // Construct/Copy/Destroy
+    explicit multiset(const Compare&amp; = Compare(),
+                      const Allocator&amp; = Allocator());
+    template &lt;class InputIterator&gt;
+    multiset(InputIterator, InputIterator,
+             const Compare&amp; = Compare(),
+             const Allocator&amp; = Allocator());
+    multiset(const multiset&lt;Key, Compare, Allocator&gt;&amp;);
+    ~multiset();
+    multiset&lt;Key, Compare, Allocator&gt;&amp; 
+            operator=(const multiset&lt;Key, 
+                       Compare, Allocator&gt;&amp;);
+
+    // Iterators
+    iterator begin();
+    const_iterator begin() const;
+    iterator end();
+    const_iterator end() const;
+    reverse_iterator rbegin();
+    const_reverse_iterator rbegin() const;
+    reverse_iterator rend();
+    const_reverse_iterator rend() const;
+
+    // Capacity
+    bool empty() const;
+    size_type size() const;
+    size_type max_size() const;
+
+    // Modifiers
+    iterator insert(const value_type&amp;);
+    iterator insert(iterator, const value_type&amp;);
+    template &lt;class InputIterator&gt;
+    void insert(InputIterator, InputIterator);
+
+    void erase(iterator);
+    size_type erase(const key_type&amp;);
+    void erase(iterator, iterator);
+    void swap(multiset&lt;Key, Compare, Allocator&gt;&amp;);
+    void clear();
+
+    // Observers
+    key_compare key_comp () const;
+    value_compare value_comp () const;
+
+    // Multiset operations
+    iterator find(const key_type&amp;) const;
+    size_type count(const key_type&amp;) const;
+    iterator lower_bound(const key_type&amp;) const;
+    iterator upper_bound(const key_type&amp;) const;
+    pair&lt;iterator, iterator&gt; equal_range 
+       (const key_type&amp;) const;
+   };
+
+  // Nonmember Operators
+  template &lt;class Key, class Compare, class Allocator&gt;
+  bool operator==
+    (const multiset&lt;Key, Compare, Allocator&gt;&amp;,
+     const multiset&lt;Key, Compare, Allocator&gt;&amp;);
+
+  template &lt;class Key, class Compare, class Allocator&gt;
+  bool operator!=
+    (const multiset&lt;Key, Compare, Allocator&gt;&amp;,
+     const multiset&lt;Key, Compare, Allocator&gt;&amp;);
+
+  template &lt;class Key, class Compare, class Allocator&gt;
+  bool operator&lt;
+    (const multiset&lt;Key, Compare, Allocator&gt;&amp;,
+     const multiset&lt;Key, Compare, Allocator&gt;&amp;);
+
+  template &lt;class Key, class Compare, class Allocator&gt;
+  bool operator&gt;
+    (const multiset&lt;Key, Compare, Allocator&gt;&amp;,
+     const multiset&lt;Key, Compare, Allocator&gt;&amp;);
+
+  template &lt;class Key, class Compare, class Allocator&gt;
+  bool operator&lt;=
+    (const multiset&lt;Key, Compare, Allocator&gt;&amp;,
+     const multiset&lt;Key, Compare, Allocator&gt;&amp;);
+
+  template &lt;class Key, class Compare, class Allocator&gt;
+  bool operator&gt;=
+    (const multiset&lt;Key, Compare, Allocator&gt;&amp;,
+     const multiset&lt;Key, Compare, Allocator&gt;&amp;);
+
+  // Specialized Algorithms
+
+  template &lt;class Key, class Compare, class Allocator&gt;
+  void swap(multiset&lt;Key, Compare, Allocator&gt;&amp;,
+            multiset&lt;Key, Compare, Allocator&gt;&amp;);
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Constructors</H3></A>
+
+<A NAME="idx960"></A><PRE>explicit <B>multiset</B>(const Compare&amp; comp = Compare(),
+                   const Allocator&amp; alloc = Allocator());</PRE>
+<UL>
+<P>Constructs an empty multiset that uses the optional relation <SAMP>comp</SAMP> to order keys, if it is supplied, and the allocator <SAMP>alloc</SAMP> for all storage management. </P>
+</UL>
+
+
+<A NAME="idx961"></A><PRE>template &lt;class InputIterator&gt;
+<B>multiset</B>(InputIterator start, InputIterator finish,
+          const Compare&amp; = Compare(),
+          const Allocator&amp; = Allocator());</PRE>
+<UL>
+<P>Constructs a multiset containing values in the range <SAMP>[start, finish).</SAMP></P>
+</UL>
+
+
+<A NAME="idx962"></A><PRE><B>multiset</B>(const multiset&lt;Key, Compare, Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Creates a new multiset by copying all key values from <SAMP>x</SAMP>. </P>
+</UL>
+
+<A NAME="sec7"><H3>Destructors</H3></A>
+
+<A NAME="idx963"></A><PRE><B>~multiset</B>();</PRE>
+<UL>
+<P>Releases any allocated memory for this multiset.</P>
+</UL>
+
+<A NAME="sec8"><H3>Assignment Operators</H3></A>
+
+<A NAME="idx964"></A><PRE>multiset&lt;Key, Compare, Allocator&gt;&amp; 
+<B>operator=</B>(const multiset&lt;Key, Compare, Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Replaces the contents of <SAMP>*this</SAMP> with a copy of the contents of <SAMP>x</SAMP>. </P>
+</UL>
+
+<A NAME="sec9"><H3>Allocators</H3></A>
+
+<A NAME="idx965"></A><PRE>allocator_type 
+<B>get_allocator</B>() const;</PRE>
+<UL>
+<P>Returns a copy of the allocator used by self for storage management.</P>
+</UL>
+
+<A NAME="sec10"><H3>Iterators</H3></A>
+
+<A NAME="idx966"></A><PRE>iterator 
+<B>begin</B>();</PRE>
+<UL>
+<P>Returns an <SAMP>iterator</SAMP> pointing to the first element stored in the multiset. "First" is defined by the multiset's comparison operator, <SAMP>Compare</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx967"></A><PRE>const_iterator 
+<B>begin</B>();</PRE>
+<UL>
+<P>Returns a <SAMP>const_iterator</SAMP> pointing to the first element stored in the multiset. </P>
+</UL>
+
+
+<A NAME="idx968"></A><PRE>iterator 
+<B>end</B>();</PRE>
+<UL>
+<P>Returns an <SAMP>iterator</SAMP> pointing to the last element stored in the multiset (in other words, the off-the-end value). </P>
+</UL>
+
+
+<A NAME="idx969"></A><PRE>const_iterator 
+<B>end</B>();</PRE>
+<UL>
+<P>Returns a <SAMP>const_iterator</SAMP> pointing to the last element stored in the multiset (in other words, the off-the-end value). </P>
+</UL>
+
+
+<A NAME="idx970"></A><PRE>reverse_iterator 
+<B>rbegin</B>();</PRE>
+<UL>
+<P>Returns a <SAMP>reverse_iterator</SAMP> pointing to the first element stored in the multiset. "First" is defined by the multiset's comparison operator, <SAMP>Compare</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx971"></A><PRE>const_reverse_iterator 
+<B>rbegin</B>();</PRE>
+<UL>
+<P>Returns a <SAMP>const_reverse_iterator</SAMP> pointing to the first element stored in the multiset. </P>
+</UL>
+
+
+<A NAME="idx972"></A><PRE>reverse_iterator 
+<B>rend</B>();</PRE>
+<UL>
+<P>Returns a <SAMP>reverse_iterator</SAMP> pointing to the last element stored in the multiset (in other words, the off-the-end value). </P>
+</UL>
+
+
+<A NAME="idx973"></A><PRE>const_reverse_iterator 
+<B>rend</B>();</PRE>
+<UL>
+<P>Returns a <SAMP>const_reverse_iterator</SAMP> pointing to the last element stored in the multiset (in other words, the off-the-end value). </P>
+</UL>
+
+<A NAME="sec11"><H3>Member Functions</H3></A>
+
+<A NAME="idx974"></A><PRE>void
+<B>clear</B>();</PRE>
+<UL>
+<P>Erases all elements from the self.</P>
+</UL>
+
+
+<A NAME="idx975"></A><PRE>size_type 
+<B>count</B>(const key_type&amp; x) const;</PRE>
+<UL>
+<P>Returns the number of elements in the multiset with the key value <SAMP>x</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx976"></A><PRE>bool 
+<B>empty</B>() const;</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the multiset is empty, <SAMP>false</SAMP> otherwise.</P>
+</UL>
+
+
+<A NAME="idx977"></A><PRE>pair&lt;iterator,iterator&gt; 
+<B>equal_range</B>(const key_type&amp; x)const;</PRE>
+<UL>
+<P>Returns the pair <SAMP>(lower_bound(x), upper_bound(x))</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx978"></A><PRE>size_type 
+<B>erase</B>(const key_type&amp; x);</PRE>
+<UL>
+<P>Deletes all elements with the key value <SAMP>x</SAMP> from the multiset, if any exist. Returns the number of deleted elements.</P>
+</UL>
+
+
+<A NAME="idx979"></A><PRE>void
+<B>erase</B>(iterator position);</PRE>
+<UL>
+<P>Deletes the multiset element pointed to by the iterator <SAMP>position</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx980"></A><PRE>void
+<B>erase</B>(iterator start, iterator finish);</PRE>
+<UL>
+<P>If the iterators <SAMP>start</SAMP> and <SAMP>finish</SAMP> point to the same multiset and last is reachable from first, all elements in the range <SAMP>[start, finish)</SAMP> are deleted from the multiset.</P>
+</UL>
+
+
+<A NAME="idx981"></A><PRE>iterator 
+<B>find</B>(const key_type&amp; x) const;</PRE>
+<UL>
+<P>Searches the multiset for a key value <SAMP>x</SAMP> and returns an iterator to that key if it is found. If such a value is not found, the iterator <SAMP>end()</SAMP> is returned. </P>
+</UL>
+
+
+<A NAME="idx982"></A><PRE>iterator 
+<B>insert</B>(const value_type&amp; x);
+iterator 
+<B>insert</B>(iterator position, const value_type&amp; x);</PRE>
+<UL>
+<P><SAMP>x</SAMP> is inserted into the multiset. A position may be supplied as a hint regarding where to do the insertion. If the insertion is done right after position, then it takes amortized constant time. Otherwise, it takes <SAMP>O(log N) </SAMP>time. </P>
+</UL>
+
+
+<A NAME="idx983"></A><PRE>template &lt;class InputIterator&gt;
+void 
+<B>insert</B>(InputIterator start, InputIterator finish);</PRE>
+<UL>
+<P>Copies of each element in the range <SAMP>[start, finish)</SAMP> are inserted into the multiset. This <SAMP>insert</SAMP> takes approximately <SAMP>O(N*log(size()+N))</SAMP> time. </P>
+</UL>
+
+
+<A NAME="idx984"></A><PRE>key_compare 
+<B>key_comp</B>() const;</PRE>
+<UL>
+<P>Returns a function object capable of comparing key values using the comparison operation, <SAMP>Compare</SAMP>, of the current multiset. </P>
+</UL>
+
+
+<A NAME="idx985"></A><PRE>iterator 
+<B>lower_bound</B>(const key_type&amp; x) const;</PRE>
+<UL>
+<P>Returns an iterator to the first element whose key is greater than or equal to <SAMP>x</SAMP>. If no such element exists, <SAMP>end()</SAMP> is returned. </P>
+</UL>
+
+
+<A NAME="idx986"></A><PRE>size_type 
+<B>max_size</B>() const;</PRE>
+<UL>
+<P>Returns the maximum possible size of the multiset <SAMP>size_type.</SAMP></P>
+</UL>
+
+
+<A NAME="idx987"></A><PRE>size_type
+<B>size</B>() const;</PRE>
+<UL>
+<P>Returns the number of elements in the multiset.</P>
+</UL>
+
+
+<A NAME="idx988"></A><PRE>void 
+<B>swap</B>(multiset&lt;Key, Compare, Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Swaps the contents of the multiset <SAMP>x</SAMP> with the current multiset, <SAMP>*this</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx989"></A><PRE>iterator 
+<B>upper_bound</B>(const key_type&amp; x) const;</PRE>
+<UL>
+<P>Returns an iterator to the first element whose key is smaller than or equal to <SAMP>x.</SAMP> If no such element exists, then <SAMP>end() </SAMP>is returned. </P>
+</UL>
+
+
+<A NAME="idx990"></A><PRE>value_compare 
+<B>value_comp</B>() const;</PRE>
+<UL>
+<P>Returns a function object capable of comparing key values using the comparison operation, <SAMP>Compare</SAMP>, of the current multiset.</P>
+</UL>
+
+<A NAME="sec12"><H3>Nonmember Operators</H3></A>
+
+<A NAME="idx991"></A><PRE>template &lt;class Key, class Compare, class Allocator&gt;
+<B>operator==</B>(const multiset&lt;Key, Compare, Allocator&gt;&amp; x,
+            const multiset&lt;Key, Compare, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if all elements in <SAMP>x</SAMP> are element-wise equal to all elements in <SAMP>y</SAMP>, using <SAMP>(T::operator==)</SAMP>. Otherwise it returns <SAMP>false</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx992"></A><PRE>template &lt;class Key, class Compare, class Allocator&gt;
+<B>operator!=</B>(const multiset&lt;Key, Compare, Allocator&gt;&amp; x,
+            const multiset&lt;Key, Compare, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>!(x==y)</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx993"></A><PRE>template &lt;class Key, class Compare, class Allocator&gt;
+<B>operator&lt;</B>(const multiset&lt;Key, Compare, Allocator&gt;&amp; x,
+           const multiset&lt;Key, Compare, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>x</SAMP> is lexicographically less than <SAMP>y</SAMP>. Otherwise, it returns <SAMP>false</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx994"></A><PRE>template &lt;class Key, class Compare, class Allocator&gt;
+<B>operator&gt;</B>(const multiset&lt;Key, Compare, Allocator&gt;&amp; x,
+           const multiset&lt;Key, Compare, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>y &lt; x</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx995"></A><PRE>template &lt;class Key, class Compare, class Allocator&gt;
+<B>operator&lt;=</B>(const multiset&lt;Key, Compare, Allocator&gt;&amp; x,
+           const multiset&lt;Key, Compare, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>!(y &lt; x)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx996"></A><PRE>template &lt;class Key, class Compare, class Allocator&gt;
+<B>operator&gt;=</B>(const multiset&lt;Key, Compare, Allocator&gt;&amp; x,
+           const multiset&lt;Key, Compare, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>!(x &lt; y)</SAMP>.</P>
+</UL>
+
+<A NAME="sec13"><H3>Specialized Algorithms</H3></A>
+
+<A NAME="idx997"></A><PRE>template &lt;class Key, class Compare, class Allocator&gt;
+void <B>swap</B>(multiset&lt;Key,Compare,Allocator&gt;&amp; a,
+          multiset&lt;Key,Compare,Allocator&gt;&amp;b);</PRE>
+<UL>
+<P>Swaps the contents of <SAMP>a</SAMP> and <SAMP>b</SAMP>.</P>
+</UL>
+
+<A NAME="sec14"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  multiset.cpp
+//
+
+#include &lt;algorithm&gt;   // for set_intersection, set_union
+#include &lt;iostream&gt;    // for cout, endl
+#include &lt;set&gt;         // for set
+
+
+typedef std::multiset&lt;int, std::less&lt;int&gt;, 
+                      std::allocator&lt;int&gt; &gt; set_type;
+
+inline std::ostream&amp; operator&lt;&lt; (std::ostream&amp; out, 
+                                 const set_type&amp; s)
+{
+    typedef std::ostream_iterator&lt;set_type::value_type, char,
+        std::char_traits&lt;char&gt; &gt; os_iter;
+
+    std::copy (s.begin (), s.end (), os_iter (std::cout, " "));
+
+    return out;
+}
+
+
+int main ()
+{
+    // Create a multiset of integers.
+    set_type  si;
+
+    for (set_type::value_type j = 0; j &lt; 2; j++) {
+        for (set_type::value_type i = 0; i &lt; 10; ++i)
+            // Insert values with a hint.
+            si.insert (si.begin (), i);
+    }
+
+    // Print out the multiset.
+    std::cout &lt;&lt; si &lt;&lt; std::endl;
+
+    // Make another multiset and an empty multiset.
+    set_type si2, result;
+    for (set_type::value_type i = 0; i &lt; 10; i++)
+        si2.insert (i + 5);
+
+    std::cout &lt;&lt; si2 &lt;&lt; std::endl;
+
+    // Try a couple of set algorithms.
+    std::set_union (si.begin (), si.end (), 
+                    si2.begin (), si2.end (),
+                    std::inserter (result, result.begin ()));
+
+    std::cout &lt;&lt; "Union:\n" &lt;&lt; result &lt;&lt; std::endl;
+
+    result.erase (result.begin (), result.end ());
+
+    std::set_intersection (si.begin (), si.end (), 
+                       si2.begin (), si2.end (),
+                       std::inserter(result, result.begin()));
+
+    std::cout &lt;&lt; "Intersection:\n" &lt;&lt; result &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9
+5 6 7 8 9 10 11 12 13 14
+Union:
+0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 10 11 12 13 14
+Intersection:
+5 6 7 8 9
+</PRE></UL>
+<A NAME="sec15"><H3>Warnings</H3></A>
+<P>Member function templates are used in all containers included in the Standard Template Library. For example, the constructor for <B><I>multiset</I></B> takes two templatized iterators: </P>
+
+<UL><PRE>template &lt;class InputIterator&gt;
+multiset (InputIterator, InputIterator,
+          const Compare&amp; = Compare(),
+          const Allocator&amp; = Allocator());
+</PRE></UL>
+<P><B><I>multiset</I></B> also has an <SAMP>insert</SAMP> function of this type. These functions, when not restricted by compiler limitations, allow you to use any type of input iterator as arguments. For compilers that do not support this feature, substitute functions allow you to use an iterator obtained from the same type of container as the one you are constructing (or calling a member function on). You can also use a pointer to the type of element you have in the container. </P>
+<P>For example, if your compiler does not support member function templates, you can construct a <B><I>multiset</I></B> in the following two ways: </P>
+
+<UL><PRE>int intarray[10];
+multiset&lt;int&gt; first_multiset(intarray, intarray +10);
+multiset&lt;int&gt; second_multiset(first_multiset.begin(),
+              first_multiset.end());
+</PRE></UL>
+<P>You cannot construct a <B><I>multiset</I></B> this way:</P>
+
+<UL><PRE>multiset&lt;long&gt;
+ long_multiset(first_multiset.begin(),first_multiset.end());
+</PRE></UL>
+<P>since the <SAMP>long_multiset</SAMP> and<SAMP> first_multiset </SAMP>are not the same type. </P>
+<P>If your compiler is does not support default template parameters, you must always supply the <SAMP>Compare</SAMP> template argument and the <SAMP>Allocator</SAMP> template argument. For instance, you must write:</P>
+<P><SAMP>multiset&lt;int, less&lt;int&gt;, allocator&lt;int&gt; &gt;</SAMP></P>
+<P>instead of:</P>
+<P><SAMP>multiset&lt;int&gt;</SAMP></P>
+<A NAME="sec16"><H3>See Also</H3></A>
+<P><B><I><A HREF="allocator.html">allocator</A></I></B>, <A HREF="containers.html">Containers</A>, <A HREF="iterators.html">Iterators</A>, <B><I><A HREF="set.html">set</A></I></B></P>
+<A NAME="sec17"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 23.3.4</I></P>
+
+<BR>
+<HR>
+<A HREF="multiplies.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="negate.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

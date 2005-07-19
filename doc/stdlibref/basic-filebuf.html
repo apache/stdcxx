@@ -1,0 +1,562 @@
+<HTML>
+<HEAD>
+<TITLE>basic_filebuf</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="bad-typeid.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-fstream.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>basic_filebuf</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P>
+
+<PRE><HR><B><I>basic_filebuf</I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Nonmember Types</A></LI>
+<LI><A HREF="#sec8">Constructors</A></LI>
+<LI><A HREF="#sec9">Destructors</A></LI>
+<LI><A HREF="#sec10">Member Functions</A></LI>
+<LI><A HREF="#sec11">Example</A></LI>
+<LI><A HREF="#sec12">See Also</A></LI>
+<LI><A HREF="#sec13">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx51">attach()</A><BR>
+<A HREF="#idx47">basic_filebuf()</A><BR>
+<A HREF="#idx40">char_type</A><BR>
+<A HREF="#idx52">close()</A><BR>
+<A HREF="#idx53">detach()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx41">int_type</A><BR>
+<A HREF="#idx54">is_open()</A><BR>
+<A HREF="#idx42">off_type</A><BR>
+<A HREF="#idx55">open()</A><BR>
+<A HREF="#idx58">overflow()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx59">pbackfail()</A><BR>
+<A HREF="#idx43">pos_type</A><BR>
+<A HREF="#idx60">seekoff()</A><BR>
+<A HREF="#idx61">seekpos()</A><BR>
+<A HREF="#idx62">setbuf()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx63">sync()</A><BR>
+<A HREF="#idx44">traits_type</A><BR>
+<A HREF="#idx64">underflow()</A><BR>
+<A HREF="#idx65">xsputn()</A><BR>
+<A HREF="#idx50">~basic_filebuf()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx45">filebuf</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx46">wfilebuf</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Class that associates the input or output sequence with a file</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;fstream&gt; 
+
+namespace std {
+  template&lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class basic_filebuf;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class template <B><I>basic_filebuf</I></B> is derived from <B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B>. It associates the input or output sequence with a file. Each object of type <B><I>basic_filebuf</I></B> controls two character sequences:</P>
+<UL>
+<LI><P CLASS="LIST">A character input sequence</P></LI>
+<LI><P CLASS="LIST">A character output sequence</P></LI>
+</UL>
+<P>The restrictions on reading and writing a sequence controlled by an object of class <B><I>basic_filebuf</I></B> are the same as for reading and writing with the Standard C library files.</P>
+<P>If the file is not open for reading, the input sequence cannot be read. If the file is not open for writing, the output sequence cannot be written. A joint file position is maintained for both the input and output sequences.</P>
+<P>A file has byte sequences, so the <B><I>basic_filebuf</I></B> class treats a file as the external source (or sink) byte sequence. In order to provide the contents of a file as wide character sequences, a wide-oriented file buffer called <B><I>wfilebuf</I></B> converts wide character sequences to multibyte character sequences (and vice versa) according to the current locale being used in the stream buffer. </P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template&lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class basic_filebuf : public basic_streambuf&lt;charT, traits&gt; 
+  {
+   public:
+
+    typedef traits                       traits_type;
+    typedef charT                        char_type;
+    typedef typename traits::int_type    int_type;
+    typedef typename traits::pos_type    pos_type;
+    typedef typename traits::off_type    off_type;
+
+    basic_filebuf();
+    
+    // extensions:  
+    basic_filebuf(int, char_type*, streamsize);
+    basic_filebuf(FILE*, char_type*, streamsize);
+
+    virtual ~basic_filebuf();
+
+    bool is_open() const;
+  
+
+    // extensions: 
+    basic_filebuf&lt;charT, traits&gt;* open(const char*,
+                                       ios_base::openmode,
+                                       long = 0666);
+    basic_filebuf&lt;charT, traits&gt;* open(int, char_type* = 0,
+                                       streamsize = /* default size */);
+    basic_filebuf&lt;charT, traits&gt;* open(FILE *, char_type*,
+                                       streamsize);
+    basic_filebuf&lt;charT, traits&gt;* attach(int);
+    int detach();
+
+    basic_filebuf&lt;charT, traits&gt;* close();
+
+   protected:
+
+    virtual int      showmanyc();
+    virtual int_type underflow();
+    virtual int_type overflow(int_type = traits::eof());
+    virtual int_type pbackfail(int_type = traits::eof());
+
+    virtual basic_streambuf&lt;charT,traits&gt;* 
+    setbuf(char_type*,streamsize);
+
+    virtual pos_type seekoff(off_type,
+                             ios_base::seekdir,
+                             ios_base::openmode =
+                             ios_base::in | ios_base::out);
+
+    virtual pos_type seekpos(pos_type,
+                             ios_base::openmode =
+                             ios_base::in | ios_base::out);
+    virtual int sync();
+    virtual streamsize xsputn(const char_type*, 
+                              streamsize);
+
+};
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx40"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>The type <SAMP>char_type</SAMP> is a synonym for the template parameter <SAMP>charT</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx41"></A><PRE><B>int_type</B></PRE>
+<UL>
+<P>The type <SAMP>int_type</SAMP> is a synonym of type <SAMP>traits::int_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx42"></A><PRE><B>off_type</B></PRE>
+<UL>
+<P>The type <SAMP>off_type</SAMP> is a synonym of type <SAMP>traits::off_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx43"></A><PRE><B>pos_type</B></PRE>
+<UL>
+<P>The type <SAMP>pos_type</SAMP> is a synonym of type <SAMP>traits::pos_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx44"></A><PRE><B>traits_type</B></PRE>
+<UL>
+<P>The type <SAMP>traits_type</SAMP> is a synonym for the template parameter <SAMP>traits</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Nonmember Types</H3></A>
+
+<A NAME="idx45"></A><PRE><B>filebuf</B></PRE>
+<UL>
+<P>The type <SAMP>filebuf</SAMP> is a specialization of class template <B><I>basic_filebuf</I></B> on type <SAMP>char</SAMP>:</P>
+<P><SAMP>typedef basic_filebuf&lt;char&gt; filebuf;</SAMP></P>
+</UL>
+
+
+<A NAME="idx46"></A><PRE><B>wfilebuf</B> </PRE>
+<UL>
+<P>The type <SAMP>wfilebuf</SAMP> is a specialization of class template <B><I>basic_filebuf</I></B> on type <SAMP>wchar_t</SAMP>:</P>
+<P><SAMP>typedef basic_filebuf&lt;wchar_t&gt; wfilebuf;</SAMP></P>
+</UL>
+
+<A NAME="sec8"><H3>Constructors</H3></A>
+
+<A NAME="idx47"></A><PRE><B>basic_filebuf</B>();</PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_filebuf</I></B>, initializing the base class with <SAMP>basic_streambuf&lt;charT,traits&gt;()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx48"></A><PRE><B>basic_filebuf</B>(int fd, char_type *buf = 0, 
+              streamsize n = /* default size */);</PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_filebuf</I></B>, initializing the base class with <SAMP>basic_streambuf&lt;charT,traits&gt;()</SAMP>. It then calls <SAMP>open(fd, buf, n)</SAMP>. </P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is not part of the C++ Standard, but is included here as an extension to manipulate pipes, sockets, or other UNIX devices that can be accessed through file descriptors. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions.
+</B><HR></BLOCKQUOTE>
+
+<A NAME="idx49"></A><PRE><B>basic_filebuf</B>(FILE *fp, char_type *buf = 0, 
+              streamsize n = /* default size */);</PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_filebuf</I></B>, initializing the base class with <SAMP>basic_streambuf&lt;charT,traits&gt;()</SAMP>. It then calls <SAMP>open(fp, buf, n)</SAMP>. </P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is not part of the C++ Standard, but is included here as an extension. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions.
+</B><HR></BLOCKQUOTE>
+<A NAME="sec9"><H3>Destructors</H3></A>
+
+<A NAME="idx50"></A><PRE>virtual <B>~basic_filebuf</B>();</PRE>
+<UL>
+<P>Calls <SAMP>close()</SAMP> and destroys the object. </P>
+</UL>
+
+<A NAME="sec10"><H3>Member Functions</H3></A>
+
+<A NAME="idx51"></A><PRE>basic_filebuf&lt;charT, traits&gt;*
+<B>attach</B>(int fd);</PRE>
+<UL>
+<P>Attaches the object to the open file descriptor <SAMP>fd</SAMP>. Unless <SAMP>detach()</SAMP> is called, the file descriptor will be closed during the next call to <SAMP>close()</SAMP> or at the time the object is destroyed. Returns <SAMP>this</SAMP> on success; otherwise returns <SAMP>0</SAMP> (for example, when <SAMP>is_open()</SAMP> returns <SAMP>true</SAMP> prior to the call).</P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- <B>This function is not part of the C++ Standard, but is provided as an extension of this implementation for compatibility with Classic Iostreams. See </B><A HREF="B.html">Appendix&nbsp;B</A><B> for a complete list of Rogue </B>Wave extensions.
+</B><HR></BLOCKQUOTE>
+
+<A NAME="idx52"></A><PRE>
+basic_filebuf&lt;charT,traits&gt;* 
+<B>close</B>();</PRE>
+<UL>
+<P>If <SAMP>is_open() == false</SAMP>, returns a null pointer. Otherwise, if a <SAMP>put</SAMP> area exists, calls <SAMP>overflow(traits_type::eof())</SAMP> to flush the contents of the buffer. If <SAMP>overflow()</SAMP> is the last virtual member function called on an object, among the functions <SAMP>underflow()</SAMP>, <SAMP>overflow()</SAMP>, <SAMP>seekoff()</SAMP>, and <SAMP>seekpos()</SAMP>, the <SAMP>close()</SAMP> function calls:</P>
+
+<UL><PRE>   use_facet&lt;codecvt  &lt;char_type, char,
+                       typename traits_type::state_type&gt; 
+                         &gt;(getloc()).unshift 
+</PRE></UL>
+<P>The call is made one or more times to determine a termination sequence. The <SAMP>close()</SAMP> function then inserts the characters of the termination sequence, calls <SAMP>overflow(traits_type::eof())</SAMP> again, and closes the file, just like a call to <SAMP>std::fclose</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx53"></A><PRE>int
+<B>detach</B>(); </PRE>
+<UL>
+<P>Flushes any pending output to the file associated with the object and, if the operation succeeds, disassociates the object from the underlying file descriptor or <SAMP>FILE*</SAMP> without closing the latter. Returns <SAMP>fd()</SAMP> on success. Returns <SAMP>-1</SAMP> on failure (for example, when the object was unable to flush the pending output).</P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- <B>This function is not part of the C++ Standard, but is provided as an extension of this implementation for compatibility with Classic </B><B><I>Iostreams</I></B><B>. See </B><A HREF="B.html">Appendix&nbsp;B</A><B> for a complete list of Rogue </B>Wave extensions.
+</B><HR></BLOCKQUOTE>
+
+<A NAME="idx54"></A><PRE>bool 
+<B>is_open</B>() const; </PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the associated file is open.</P>
+</UL>
+
+
+<A NAME="idx55"></A><PRE>basic_filebuf&lt;charT,traits&gt;* 
+<B>open</B>(const char* fname, ios_base::openmode mode, 
+     long protection = 0666); </PRE>
+<UL>
+<P>If <SAMP>is_open() == true</SAMP>, returns a null pointer. Otherwise, if <SAMP>(fname != 0)</SAMP> evaluates to <SAMP>true</SAMP>, opens the file whose name is stored in the NUL-terminated byte string <SAMP>fname</SAMP>. </P>
+<P>Otherwise, if  <SAMP>(fname == 0)</SAMP> evaluates to <SAMP>true</SAMP>, attempts to create a temporary file with a unique name (obtained, for example, by a call to <SAMP>std::tmpnam()</SAMP> or a similar function. ) The temporary file will be deleted on the first call to <SAMP>close()</SAMP> on the object or when the last file descriptor referring to the file is closed, whichever occurs last. Note that the file will be deleted by the operating system even if the program exits abnormally.</P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- The behavior of the function when <SAMP>(fname == 0)</SAMP> evaluates to true is not required by the C++ Standard, but is provided as an extension of this implementation. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions. 
+</B><HR></BLOCKQUOTE>
+<UL>
+<P>The file open modes are given by their C-equivalent descriptions (see the C function <SAMP>fopen()</SAMP>). They are:</P>
+
+<UL><PRE>in                      "r"
+in|binary               "rb"
+out                     "w"
+out|app                 "a"
+out|binary              "wb"
+out|binary|app          "ab"
+out|in                  "r+"
+out|in|app              "a+"
+out|in|binary           "r+b"
+out|in|binary|app       "a+b"
+trunc|out               "w"
+trunc|out|binary        "wb"
+trunc|out|in            "w+"
+trunc|out|in|binary     "w+b"
+
+</PRE></UL>
+<P>If <SAMP>open()</SAMP> succeeds and <SAMP>(mode &amp; ios_base::ate) != 0</SAMP>, it positions the file to the end, like a call to <SAMP>std::fseek(file, 0, SEEK_END))</SAMP>. If the <SAMP>open()</SAMP> function fails, it returns a null pointer.</P>
+<P>The third argument, <SAMP>protection</SAMP>, is used as the file permission. The <SAMP>protection</SAMP> argument determines the read/write/execute file permissions under UNIX. It is more limited under DOS, since files are always readable and do not have special execute permission. </P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- The protection argument does not appear in the C++ Standard, but is included here as an extension. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions.
+</B><HR></BLOCKQUOTE>
+
+<A NAME="idx56"></A><PRE>basic_filebuf&lt;charT,traits&gt;*
+<B>open</B>(int fd, char_type *buf = 0, 
+     streamsize n = /* default size */);</PRE>
+<UL>
+<P>Attaches the previously opened file, which is identified by its file descriptor, <SAMP>fd</SAMP>, to the <B><I>basic_filebuf</I></B> object. </P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is not part of the C++ Standard, but is included here as an extension in order to manipulate pipes, sockets, or other UNIX devices that can be accessed through file descriptors. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions.
+</B><HR></BLOCKQUOTE>
+
+<A NAME="idx57"></A><PRE>basic_filebuf&lt;charT,traits&gt;*
+<B>open</B>(FILE *fp, char_type *buf = 0, 
+     streamsize n = /* default size */);</PRE>
+<UL>
+<P>Returns <SAMP>open(fileno (fp), buf, n)</SAMP>, where <SAMP>fileno</SAMP> is a UNIX98 function declared in <SAMP>&lt;cstdio&gt;</SAMP>. </P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is not part of the C++ Standard, but is provided as a convenience extension. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions.
+</B><HR></BLOCKQUOTE>
+
+<A NAME="idx58"></A><PRE>int_type 
+<B>overflow</B>(int_type c = traits_type::eof()); </PRE>
+<UL>
+<P>If the output sequence has a <SAMP>put</SAMP> position available, and <SAMP>c</SAMP> is not<SAMP> traits_type::eof()</SAMP>, then writes <SAMP>c</SAMP> into it. If there is no position available, the function outputs the contents of the buffer to the associated file and writes <SAMP>c</SAMP> at the new current <SAMP>put</SAMP> position. If the operation fails, the function returns <SAMP>traits_type</SAMP><SAMP>::eof()</SAMP>; otherwise, it returns <SAMP>traits_type</SAMP><SAMP>::not_eof(c)</SAMP>. In a wide character file buffer, <SAMP>overflow()</SAMP> may convert the internal wide characters to their external multibyte representation by using the <SAMP>locale::codecvt</SAMP> facet located in the <B><I><A HREF="locale.html">locale</A></I></B> object imbued in the stream buffer. </P>
+</UL>
+
+
+<A NAME="idx59"></A><PRE>int_type 
+<B>pbackfail</B>(int_type c = traits_type::eof()); </PRE>
+<UL>
+<P>Puts back the character designated by <SAMP>c</SAMP> into the input sequence. If <SAMP>traits_type::eq_int_type(c,traits_type::eof())</SAMP> returns <SAMP>true</SAMP>, moves the input sequence one position backward. If the operation fails, the function returns <SAMP>traits_type::eof()</SAMP>. Otherwise, it returns <SAMP>traits::not_eof(c)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx60"></A><PRE>pos_type 
+<B>seekoff</B>(off_type off, ios_base::seekdir way,
+        ios_base::openmode which = ios_base::in |
+        ios_base::out); </PRE>
+<UL>
+<P>If the open mode is <SAMP>in|out</SAMP>, may alter the stream position of the input and the output sequence as follows: </P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST">If the open mode is <SAMP>in</SAMP>, may alter the stream position of only the input sequence </P></LI>
+<LI><P CLASS="LIST">If the open mode is <SAMP>out</SAMP>, may alter the stream position of only the output sequence </P></LI>
+</UL>
+<UL>
+<P>The new position is calculated by combining the two parameters <SAMP>off</SAMP>&nbsp;(displacement) and <SAMP>way</SAMP> (reference point). Note the following cases:</P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST">If the current position of the sequence is invalid before repositioning, the operation fails and the return value is: </P></LI>
+<P CLASS="LIST"><SAMP>pos_type(off_type(-1))</SAMP></P>
+<LI><P CLASS="LIST">If <SAMP>way != basic_ios::cur</SAMP> or <SAMP>off != 0</SAMP>, and the last operation was output, the function updates the output sequence and writes any unshift sequence. It then repositions the file, like a call to <SAMP>std::fseek(file, 0, whence)</SAMP>, and returns the current new position. </P></LI>
+</UL>
+<P>File buffers that use the <SAMP>locale::codecvt</SAMP> facet, and perform state dependent conversion, support seeking only to the beginning of the file, to the current position, or to a position previously obtained by a call to one of the iostreams seeking functions.</P>
+
+<A NAME="idx61"></A><PRE>
+pos_type 
+<B>seekpos</B>(pos_type sp,ios_base::openmode  
+          which = ios_base::in | ios_base::out); </PRE>
+<UL>
+<P>If the open mode is <SAMP>in|out</SAMP>, alters the stream position of both the input and the output sequence. If the open mode is <SAMP>in</SAMP>, alters the stream position of only the input sequence, and if it is <SAMP>out</SAMP>, alters the stream position of only the output sequence. If the current position of the sequence is invalid before repositioning, the operation fails and the return value is <SAMP>pos_type(off_type(-1))</SAMP>. Otherwise, the function returns the current new position. File buffers using <SAMP>locale::codecvt</SAMP> facet performing state dependent conversion <I>only </I>support seeking to the beginning of the file, to the current position, or to a position previously obtained by a call to one of the iostreams seeking functions.</P>
+</UL>
+
+
+<A NAME="idx62"></A><PRE>basic_filebuf&lt;charT,traits&gt;* 
+<B>setbuf</B>(char_type *s, streamsize n); </PRE>
+<UL>
+<P>The function first flushes the contents of the <SAMP>put</SAMP> area into the associated file, if necessary. Then:</P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST">If both <SAMP>s</SAMP> and <SAMP>n</SAMP> are <SAMP>0</SAMP>, the function places the object in an unbuffered mode, that is, <SAMP>pbase()</SAMP> and <SAMP>pptr()</SAMP> always return null and output to the file appears immediately.  </P></LI>
+<LI><P CLASS="LIST">If <SAMP>s</SAMP> is null and <SAMP>n</SAMP> is nonzero, the function allocates an internal character buffer of size <SAMP>n</SAMP> and takes ownership of the buffer. </P></LI>
+<LI><P CLASS="LIST">If <SAMP>s</SAMP> is non-null and <SAMP>n</SAMP> is nonzero, the function uses the provided buffer in place of its internal buffer. The caller is responsible for deallocating the provided buffer, or the function fails. </P></LI>
+</UL>
+<UL>
+<P>The function returns <SAMP>this</SAMP> on success and <SAMP>0</SAMP> on failure.</P>
+</UL>
+
+
+<A NAME="idx63"></A><PRE>int 
+<B>sync</B>();</PRE>
+<UL>
+<P>Synchronizes the contents of the external file, with its image maintained in memory by the file buffer. This is useful, for instance, when two threads of execution simultaneously manipulate the same file. If the function fails, it returns <SAMP>-1</SAMP>; otherwise, it returns <SAMP>0</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx64"></A><PRE>int_type 
+<B>underflow</B>();</PRE>
+<UL>
+<P>If the input sequence has a read position available, returns the contents of this position. Otherwise fills up the buffer by reading characters from the associated file, and if it succeeds, returns the contents of the new current position. The function returns <SAMP>traits_type::eof()</SAMP> to indicate failure. In wide characters file buffer, <SAMP>underflow</SAMP> may convert the external multibytes characters to their wide character representation by using the <SAMP>locale::codecvt</SAMP> facet located in the <B><I><A HREF="locale.html">locale</A></I></B> object imbued in the stream buffer. </P>
+</UL>
+
+
+<A NAME="idx65"></A><PRE>streamsize 
+<B>xsputn</B>(const char_type* s, streamsize n); </PRE>
+<UL>
+<P>Writes up to <SAMP>n</SAMP> characters to the output sequence. The characters written are obtained from successive elements of the array whose first element is designated by <SAMP>s</SAMP>. The function returns the number of characters written.</P>
+</UL>
+
+<A NAME="sec11"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  filebuf.cpp
+//
+ 
+#include &lt;iostream&gt;   // for cout, endl
+#include &lt;fstream&gt;    // for ifstream, ofstream
+
+#include &lt;stdio.h&gt;    // for tmpnam, remove
+
+
+int main ( )
+{
+    char filebuf [L_tmpnam];
+
+    // create a temporary filename
+    const char *fname = tmpnam (filebuf);
+
+    if (!fname)
+        return 1;
+
+    // create a read/write file-stream object on tiny char
+    // and attach it to the file "filebuf.out"
+    std::ofstream out (fname, std::ios::in | std::ios::out | 
+                              std::ios::trunc);
+
+    // tie the istream object to the ofstream object
+    std::istream in (out.rdbuf ());   
+
+    // output to out
+    out &lt;&lt; "Il errait comme un ame en peine";
+  
+    // seek to the beginning of the file
+    in.seekg (0);
+
+    // output in to the standard output
+    std::cout &lt;&lt; in.rdbuf () &lt;&lt; std::endl;
+
+    // close the file
+    out.close ();
+
+    // open the existing temporary file and truncate it
+    out.open (fname, std::ios::in | std::ios::out | 
+                     std::ios::trunc);
+
+    // set the buffer size
+    // buffer will be allocated internally 
+    // and deallocated in dtor
+    out.rdbuf ()-&gt;pubsetbuf (0, 4096);
+ 
+    // open this source code file
+    std::ifstream ins (__FILE__);
+
+    // output it to temporary file
+    out &lt;&lt; ins.rdbuf ();
+  
+    // seek to the beginning of the file
+    out.seekp (0);
+
+    // output the all file
+    std::cout &lt;&lt; out.rdbuf ();  
+  
+    // remove temporary file
+    remove (fname);
+
+    return 0;
+}
+
+
+Program Output:
+Il errait comme un ame en peine
+//
+//  filebuf.cpp
+//
+ 
+#include &lt;iostream&gt;   // for cout, endl
+#include &lt;fstream&gt;    // for ifstream, ofstream
+
+#include &lt;stdio.h&gt;    // for tmpnam, remove
+
+
+int main ( )
+{
+    char filebuf [L_tmpnam];
+
+    // create a temporary filename
+    const char *fname = tmpnam (filebuf);
+
+    if (!fname)
+        return 1;
+
+    // create a read/write file-stream object on tiny char
+    // and attach it to the file "filebuf.out"
+    std::ofstream out (fname, std::ios::in | std::ios::out | 
+                              std::ios::trunc);
+
+    // tie the istream object to the ofstream object
+    std::istream in (out.rdbuf ());   
+
+    // output to out
+    out &lt;&lt; "Il errait comme un ame en peine";
+  
+    // seek to the beginning of the file
+    in.seekg (0);
+
+    // output in to the standard output
+    std::cout &lt;&lt; in.rdbuf () &lt;&lt; std::endl;
+
+    // close the file
+    out.close ();
+
+    // open the existing temporary file and truncate it
+    out.open (fname, std::ios::in | std::ios::out | 
+                     std::ios::trunc);
+
+    // set the buffer size
+    // buffer will be allocated internally 
+    // and deallocated in dtor
+    out.rdbuf ()-&gt;pubsetbuf (0, 4096);
+ 
+    // open this source code file
+    std::ifstream ins (__FILE__);
+
+    // output it to temporary file
+    out &lt;&lt; ins.rdbuf ();
+  
+    // seek to the beginning of the file
+    out.seekp (0);
+
+    // output the all file
+    std::cout &lt;&lt; out.rdbuf ();  
+  
+    // remove temporary file
+    remove (fname);
+
+    return 0;
+}
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<A NAME="sec12"><H3>See Also</H3></A>
+<P><B><I><A HREF="char-traits.html">char_traits</A></I></B>, <B><I><A HREF="ios-base.html">ios_base</A></I></B>, <B><I><A HREF="basic-ios.html">basic_ios</A></I></B>, <B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B>, <B><I><A HREF="basic-ifstream.html">basic_ifstream</A></I></B>, <B><I><A HREF="basic-ofstream.html">basic_ofstream</A></I></B>, <B><I><A HREF="basic-fstream.html">basic_fstream</A></I></B></P>
+<A NAME="sec13"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.8.1.1</I></P>
+
+<BR>
+<HR>
+<A HREF="bad-typeid.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-fstream.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

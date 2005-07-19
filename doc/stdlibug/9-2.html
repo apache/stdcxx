@@ -1,0 +1,190 @@
+<HTML>
+<HEAD>
+<TITLE>map and multimap Operations</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="9-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="9-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>9.2 map and multimap Operations</H2>
+<P>This section describes the member functions provided by the <B><I><A HREF="../stdlibref/map.html">map</A></I></B> and <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B> class templates. While member functions provide basic operations, using generic algorithms on <B><I>map</I></B> and <B><I>multimap</I></B> containers provide even more flexibility.  Generic algorithms are described in <A HREF="IV.html">Part&nbsp;IV</A>.</P>
+<A NAME="921"><H3>9.2.1 Declaration and Initialization of map</H3></A>
+<P>The declaration of a <B><I><A HREF="../stdlibref/map.html">map</A></I></B> follows the pattern we have seen repeatedly in the Standard C++ Library. A <B><I>map</I></B> class template is specialized on the type of the keys, the type of the associated values, and an optional comparison operator to be used in comparing keys. If no comparison operator is provided, keys are compared with <SAMP>operator&lt;</SAMP> for the key type.</P>
+<A NAME="idx166"><!></A>
+<P>A <B><I><A HREF="../stdlibref/map.html">map</A></I></B> can be declared with no initial elements, or initialized from another container by providing a pair of iterators. In the latter case, the iterators must denote values of type <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B>; the first field in each pair is taken to be a key, while the second field is a value. A copy constructor also permits <B><I>map</I></B>s to be created as copies of other <B><I>map</I></B>s:</P>
+
+<UL><PRE>
+// map indexed by doubles containing strings
+std::map&lt;double, std::string, std::less&lt;double&gt; &gt; map_one;
+
+// map indexed by integers, containing integers   
+std::map&lt;int, int&gt; map_two(aContainer.begin(), aContainer.end());
+
+// create a new map, initializing it from map two
+std::map&lt;int, int&gt; map_three (map_two);   // copy constructor
+</PRE></UL>
+<A NAME="idx167"><!></A>
+<P>A <B><I><A HREF="../stdlibref/map.html">map</A></I></B> can be assigned to another <B><I>map</I></B>, and two <B><I>map</I></B>s can exchange their values using the <SAMP>swap()</SAMP> operation, like the other Standard C++ Library containers.</P>
+<A NAME="922"><H3>9.2.2 Type Definitions</H3></A>
+<A NAME="idx168"><!></A>
+<P>The class templates <B><I><A HREF="../stdlibref/map.html">map</A></I></B> and <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B> include a number of type definitions, most commonly used in declaration statements. For example, an iterator for a <B><I>map</I></B> of standard <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>s to <SAMP>int</SAMP>s can be declared as follows:</P>
+
+<UL><PRE>
+std::map&lt;std::string, int&gt;::iterator location;
+</PRE></UL>
+<P>In addition to <SAMP>iterator</SAMP>, <B><I><A HREF="../stdlibref/map.html">map</A></I></B> and <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B> define the following types:</P>
+<H4><A NAME="Table&nbsp;15">Table&nbsp;15: Type definitions for the classes map and multimap&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Type</B>
+</td><td valign=top><B>Definition</B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>key_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">The type of the keys used to index the map.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>value_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">The type held by the container, a key/value pair.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>mapped_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">The type associated with values.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>const_iterator</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">An iterator that does not allow modification of the underlying sequence.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>reverse_iterator</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">An iterator that moves in a backward direction.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>const_reverse_iterator</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A reverse iterator that does not allow modification of the underlying sequence.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>reference</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A reference to an underlying value.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>const_reference</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A reference to an underlying value that will not permit the element to be modified.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>pointer</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A pointer to an underlying element</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>const_pointer</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A constant pointer to an underlying element.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>size_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">An unsigned integer type, used to refer to the size of containers.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>key_compare</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A function object that can be used to compare two keys.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>value_compare</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A function object that can be used to compare two elements.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>difference_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A signed integer type, used to describe the distances between iterators.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>allocator_type</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">An allocator used by the container for all storage management.</P>
+</td></tr>
+</TABLE>
+<A NAME="923"><H3>9.2.3 Insertion and Access</H3></A>
+<A NAME="idx169"><!></A>
+<P>Values can be inserted into a <B><I><A HREF="../stdlibref/map.html">map</A></I></B> or a <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B> using the <SAMP>insert()</SAMP> operation. Note that the argument must be a key-value <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B>. This <B><I>pair</I></B> is often constructed using the datatype <SAMP>value_type</SAMP> associated with the map:</P>
+
+<UL><PRE>
+map_three.insert(std::map&lt;int,int&gt;::value_type(5, 7));
+</PRE></UL>
+<P>Insertions can also be performed using an iterator pair, for example, as generated by another <B><I><A HREF="../stdlibref/map.html">map</A></I></B>.</P>
+
+<UL><PRE>
+map_two.insert(map_three.begin(), map_three.end());
+</PRE></UL>
+<A NAME="idx170"><!></A>
+<P>With a <B><I><A HREF="../stdlibref/map.html">map</A></I></B>, but not a <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B>, values can be accessed and inserted using the subscript operator. Simply using a key as a subscript creates an entry--the default element is used as the associated value. Assigning to the result of the subscript changes the associated binding.</P>
+
+<UL><PRE>
+// show value of element indexed by 7
+std::cout &lt;&lt; "Index value 7 is " &lt;&lt; map_three[7] &lt;&lt; std::endl;
+
+// now change the value, and show the change
+map_three[7] = 5;
+std::cout &lt;&lt; "Index value 7 is " &lt;&lt; map_three[7] &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="924"><H3>9.2.4 Removal of Values</H3></A>
+<A NAME="idx171"><!></A>
+<P>Values can be removed from a <B><I><A HREF="../stdlibref/map.html">map</A></I></B> or a <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B> by naming the key value. In a <B><I>multimap</I></B>, the erasure removes all elements with the associated key. An element to be removed can also be denoted by an iterator, like the iterator yielded by a <SAMP>find()</SAMP> operation. A pair of iterators can be used to erase an entire range of elements:</P>
+
+<UL><PRE>
+std::map&lt;char, int&gt; map_one ;
+
+map_one['a'] = 0;
+map_one['b'] = 1;
+
+.
+.
+.
+
+map_one['z'] = 25;
+
+// erase the entry with 'd' as a key
+
+map_one.erase('d');
+
+
+// alternate way to erase a single entry
+
+// find the entry with 'f' as a key,
+// then erase it.
+
+std::map&lt;char,int&gt;::iterator f_pos = map_one.find('f');
+map_one.erase(f_pos);
+
+// erase a range of entries starting at the entry with
+// 'h' as a key, and stopping at the entry with 'n'
+// as a key.
+
+std::map&lt;char,int&gt;::iterator h_pos = map_one.find('h');
+std::map&lt;char,int&gt;::iterator n_pos = map_one.find('n');
+
+map_one.erase(h_pos, n_pos);
+
+</PRE></UL>
+<P>If the underlying element type provides a destructor, the destructor is invoked prior to removing the key and value pair from the collection.</P>
+<A NAME="925"><H3>9.2.5 Iterators</H3></A>
+<A NAME="idx172"><!></A>
+<P>The member functions <SAMP>begin()</SAMP> and <SAMP>end()</SAMP> produce bidirectional iterators for both <B><I><A HREF="../stdlibref/map.html">map</A></I></B>s and <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B>s. Dereferencing an iterator for either a <B><I>map</I></B> or a <B><I>multimap</I></B> yields a <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B> of key/value elements. The field names <SAMP>first</SAMP> and <SAMP>second</SAMP> can be applied to these values to access the individual fields. The first field is constant, and cannot be modified. The second field, however, can be used to change the value being held in association with a given key. Elements are generated in sequence, based on the ordering of the key fields.The member functions <SAMP>rbegin()</SAMP> and <SAMP>rend()</SAMP> produce iterators that yield the elements in reverse order.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- Unlike a vector or deque, the insertion or removal of elements from a map does not invalidate iterators which may be referencing other portions of the container.
+</B><HR></BLOCKQUOTE>
+<A NAME="926"><H3>9.2.6 Searching and Counting</H3></A>
+<A NAME="idx173"><!></A>
+<P>The member function <SAMP>size()</SAMP> yields the number of elements held by a container. The member function <SAMP>empty()</SAMP> returns a boolean <SAMP>true</SAMP> value if the container is empty, and is generally faster than testing the size against zero.</P>
+<A NAME="idx174"><!></A>
+<P>The member function <SAMP>find()</SAMP> takes a key argument, and returns an iterator denoting the associated key/value pair. For <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B>s, the first such value is returned. In both cases, the past-the-end iterator is returned if no such value is found:</P>
+
+<UL><PRE>
+if (map_one.find(4) != map_one.end())
+   std::cout &lt;&lt; "contains an element with the key 4"
+             &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="idx175"><!></A>
+<P>The member function <SAMP>lower_bound()</SAMP> yields the first entry that matches the argument key, while the member function <SAMP>upper_bound()</SAMP> returns the first value past the last entry matching the argument. Finally, the member function <SAMP>equal_range()</SAMP> returns a <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B> of iterators, holding the lower and upper bounds. An example showing the use of these procedures is presented later in this chapter. </P>
+<A NAME="idx176"><!></A>
+<P>The member function <SAMP>count()</SAMP> returns the number of elements that match the key value supplied as the argument. For a <B><I><A HREF="../stdlibref/map.html">map</A></I></B>, this value is always either zero or one, whereas for a <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B> it can be any nonnegative value. If you simply want to determine whether or not a collection contains an element indexed by a given key, using <SAMP>count()</SAMP> is often easier than using the <SAMP>find()</SAMP> function and testing the result against the end-of-sequence iterator:</P>
+
+<UL><PRE>
+if (map_one.count(4))
+   std::cout &lt;&lt; "contains an element with the key 4"
+             &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="927"><H3>9.2.7 Element Comparisons</H3></A>
+<A NAME="idx177"><!></A>
+<P>The member functions <SAMP>key_comp()</SAMP> and <SAMP>value_comp()</SAMP>, which take no arguments, return function objects that can be used to compare elements of the key or value types. Values used in these comparisons need not be contained in the collection, and neither function has any effect on the container.</P>
+
+<UL><PRE>
+if (map_two.key_comp()(i, j)) 
+  std::cout &lt;&lt; "element i sorts before j"
+            &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="928"><H3>9.2.8 Other map Operations</H3></A>
+<P>Because <B><I><A HREF="../stdlibref/map.html">map</A></I></B>s and <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B>s are ordered collections, and because the iterators for maps return <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B>s, many of the functions described in <A HREF="IV.html">Part&nbsp;IV</A> (Algorithms),  are meaningless or difficult to use. However, there are a few notable exceptions. The functions <SAMP>std::for_each()</SAMP>,  <SAMP>std::adjacent_find()</SAMP>, and <SAMP>std::accumulate()</SAMP> each have their own uses. In all cases it is important to remember that the functions supplied as arguments should take a key/value <B><I>pair</I></B> as arguments.</P>
+
+<BR>
+<HR>
+<A HREF="9-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="9-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

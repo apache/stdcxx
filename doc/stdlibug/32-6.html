@@ -1,0 +1,111 @@
+<HTML>
+<HEAD>
+<TITLE>Patterns for Extractors and Inserters of User-Defined Types</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="32-5.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="33.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>32.6 Patterns for Extractors and Inserters of User-Defined Types</H2>
+<A NAME="idx796"><!></A>
+<P>Here is the pattern for an extractor:</P>
+
+<UL><PRE>
+template&lt;class charT, class Traits&gt;
+std::basic_istream&lt;charT, Traits&gt;&amp; 
+operator&gt;&gt; (std::basic_istream&lt;charT,
+            Traits&gt;&amp; is, UserDefinedType&amp; x)
+{
+  std::ios_base::iostate err = 0;
+
+  // Create a sentry object (may set error bits or throw failure)
+  typename basic_istream&lt;charT, Traits&gt;::sentry ipfx(is);
+
+  try {
+
+    // Proceed with I/O only if sentry is okay.
+
+    if(ipfx) {
+      // Typically you access the stream's locale or buffer.
+      // Don't call other stream I/O functions.
+
+      // Add state bits to the err variable if necessary,
+      // for example:
+      // if (...) 
+      //    err |= std::ios_base::failbit;
+    }
+  }
+  catch(...) {
+    bool flag = false;
+    try { 
+      // set failbit (may throw failure)
+      is.setstate(std::ios_base::failbit);
+    }
+    catch(...) { flag = true; }
+
+    // Re-throw original exception (thrown from facet or buffer)
+    if (flag)
+      throw;
+  }
+
+  // As the last step, set error bits (may throw failure)
+  if (err)
+    is.setstate(err);
+
+  return is;
+}
+</PRE></UL>
+<A NAME="idx797"><!></A>
+<P>Similarly, the pattern for the inserter looks like this:</P>
+
+<UL><PRE>
+template&lt;class charT, class Traits&gt;
+std::basic_ostream&lt;charT, Traits&gt;&amp;
+operator&lt;&lt;(std::basic_ostream&lt;charT, Traits &gt;&amp; os,
+            const UserDefinedType&amp; x)
+{
+  std::ios_base::iostate err = 0;
+
+  // Create a sentry object (may set error bits or throw failure)
+  typename basic_ostream&lt;charT, Traits&gt;::sentry opfx(os);
+
+  try {
+    // Proceed with I/O only if sentry is okay
+    if (opfx) {
+      // Typically you access the stream's locale or buffer.
+      // Don't call other stream I/O functions
+
+      // Add state bits to the err variable if necessary,
+      // for example:
+      // if (...) 
+      //    err |= std::ios_base::failbit;
+
+      // Reset the field width after usage, that is,
+      // os.width(0);
+    }
+  } //try
+  catch(...) {
+    bool flag = false;
+    try { 
+      // set failbit (may throw failure)
+      os.setstate(std::ios_base::failbit);
+    }
+    catch(...) {
+      // Catch exception, do not rethrow
+      flag = true;
+    }
+    // Rethrow original exception (from facet or buffer)
+    if (flag)
+       throw;
+  }
+
+  // As the last step, set error bits (may throw failure)
+  if (err)
+    os.setstate(err);
+ 
+  return os;
+}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="32-5.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="33.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

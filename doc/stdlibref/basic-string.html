@@ -1,0 +1,1376 @@
+<HTML>
+<HEAD>
+<TITLE>basic_string</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="basic-streambuf.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-stringbuf.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>basic_string</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-5.html">Strings</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Constructors</A></LI>
+<LI><A HREF="#sec7">Destructors</A></LI>
+<LI><A HREF="#sec8">Operators</A></LI>
+<LI><A HREF="#sec9">Iterators</A></LI>
+<LI><A HREF="#sec10">Allocator</A></LI>
+<LI><A HREF="#sec11">Member Functions</A></LI>
+<LI><A HREF="#sec12">Nonmember Operators</A></LI>
+<LI><A HREF="#sec13">Nonmember Functions</A></LI>
+<LI><A HREF="#sec14">Example</A></LI>
+<LI><A HREF="#sec15">See Also</A></LI>
+<LI><A HREF="#sec16">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx338">append()</A><BR>
+<A HREF="#idx340">assign()</A><BR>
+<A HREF="#idx341">at()</A><BR>
+<A HREF="#idx320">basic_string()</A><BR>
+<A HREF="#idx333">begin()</A><BR>
+<A HREF="#idx342">capacity()</A><BR>
+<A HREF="#idx343">clear()</A><BR>
+<A HREF="#idx344">compare()</A><BR>
+<A HREF="#idx346">copy()</A><BR>
+<A HREF="#idx347">c_str()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx347">data()</A><BR>
+<A HREF="#idx348">empty()</A><BR>
+<A HREF="#idx334">end()</A><BR>
+<A HREF="#idx349">erase()</A><BR>
+<A HREF="#idx350">find()</A><BR>
+<A HREF="#idx352">find_first_not_of()</A><BR>
+<A HREF="#idx354">find_first_of()</A><BR>
+<A HREF="#idx356">find_last_not_of()</A><BR>
+<A HREF="#idx358">find_last_of()</A><BR>
+<A HREF="#idx337">get_allocator()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx360">insert()</A><BR>
+<A HREF="#idx362">length()</A><BR>
+<A HREF="#idx363">max_size()</A><BR>
+<A HREF="#idx332">operator+=()</A><BR>
+<A HREF="#idx328">operator=()</A><BR>
+<A HREF="#idx331">operator[]()</A><BR>
+<A HREF="#idx339">push_back()</A><BR>
+<A HREF="#idx335">rbegin()</A><BR>
+<A HREF="#idx336">rend()</A><BR>
+<A HREF="#idx366">replace()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx368">reserve()</A><BR>
+<A HREF="#idx369">resize()</A><BR>
+<A HREF="#idx364">rfind()</A><BR>
+<A HREF="#idx370">size()</A><BR>
+<A HREF="#idx371">substr()</A><BR>
+<A HREF="#idx372">swap()</A><BR>
+<A HREF="#idx327">~basic_string()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx390">getline()</A><BR>
+<A HREF="#idx377">operator!=()</A><BR>
+<A HREF="#idx388">operator&gt;&gt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx381">operator&gt;()</A><BR>
+<A HREF="#idx385">operator&gt;=()</A><BR>
+<A HREF="#idx389">operator&lt;&lt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx379">operator&lt;()</A><BR>
+<A HREF="#idx383">operator&lt;=()</A><BR>
+<A HREF="#idx373">operator+()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx375">operator==()</A><BR>
+<A HREF="#idx387">swap()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A templatized class for handling sequences of character-like entities. <B><I>string&nbsp;</I></B>and <B><I><A HREF="wstring.html">wstring</A></I></B> are specialized variations of <B><I>basic_string</I></B> for <SAMP>char</SAMP>s and <SAMP>wchar_t</SAMP>s, respectively.<SAMP>typedef basic_string &lt;char&gt; string;typedef basic_string &lt;wchar_t&gt; wstring;</SAMP></P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;string&gt;
+
+namespace std {
+  template &lt;class charT,
+            class traits = char_traits&lt;charT&gt;,
+            class Allocator = allocator&lt;charT&gt; &gt;
+  class basic_string;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>Class <B><I>basic_string</I></B> is a homogeneous collection of character-like entities that includes string functions such as <SAMP>compare()</SAMP>, <SAMP>append()</SAMP>, <SAMP>assign()</SAMP>, <SAMP>insert()</SAMP>, <SAMP>remove()</SAMP>, and <SAMP>replace()</SAMP>, along with various searches. The class also functions as an STL sequence container that provides random access iterators. This allows some of the generic algorithms to apply to strings.</P>
+<P>Any underlying character-like type may be used as long as an appropriate <B><I><A HREF="char-traits.html">char_traits</A></I></B> class is included or the default <B><I>traits</I></B> class is applicable. </P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  template &lt;class charT,
+            class traits = char_traits&lt;charT&gt;,
+            class Allocator = allocator&lt;charT&gt; &gt;
+  class basic_string {
+
+  public:
+
+  // Types
+
+  typedef traits traits_type;
+  typedef typename traits::char_type value_type;
+  typedef Allocator allocator_type;
+  typedef typename 
+          Allocator::size_type size_type;
+  typedef typename
+          Allocator::difference_type difference_type;
+  typedef typename 
+          Allocator::reference reference;
+  typedef typename
+          Allocator::const_reference const_reference;
+  typedef typename
+          Allocator::pointer pointer;
+  typedef typename
+          Allocator::const_pointer const_pointer;
+  typedef typename
+          Allocator::pointer iterator;
+  typedef typename 
+          Allocator::const_pointer const_iterator;
+  typedef std::reverse_iterator&lt;const_iterator&gt;
+                                   const_reverse_iterator;
+  typedef std::reverse_iterator&lt;iterator&gt; reverse_iterator;
+
+  static const size_type npos = -1;
+
+  // Constructors/Destructors
+
+  explicit basic_string(const Allocator&amp; = Allocator());
+  basic_string(const basic_string&lt;charT, traits, Allocator&gt;&amp;);
+  basic_string(const basic_string&amp;, size_type, 
+               size_type = npos, 
+               const Allocator&amp; a = Allocator());
+  basic_string(const charT*, size_type,
+               const Allocator&amp; = Allocator());
+  basic_string(const charT*, const Allocator&amp; = Allocator());
+  basic_string(size_type, charT,
+               const Allocator&amp; = Allocator());
+  template &lt;class InputIterator&gt;
+  basic_string(InputIterator, InputIterator,
+               const Allocator&amp; = Allocator());
+  ~basic_string();
+
+  // Assignment operators
+   
+   basic_string&amp; operator=(const basic_string&amp;);
+   basic_string&amp; operator=(const charT*);
+   basic_string&amp; operator=(charT);
+
+  // Iterators
+   
+   iterator       begin();
+   const_iterator begin() const;
+   iterator       end();
+   const_iterator end() const;
+
+   reverse_iterator       rbegin();
+   const_reverse_iterator rbegin() const;
+   reverse_iterator       rend();
+   const_reverse_iterator rend() const;
+
+  // Capacity
+
+     size_type       size() const;
+     size_type       length() const;
+     size_type       max_size() const;
+     void            resize(size_type, charT);
+     void            resize(size_type);
+     size_type       capacity() const;
+     void            reserve(size_type = 0);
+     void            clear();
+     bool            empty() const;
+
+  // Element access
+
+     const_reference operator[](size_type) const;
+     reference       operator[](size_type);
+     const_reference at(size_type) const;
+     reference       at(size_type);
+
+  // Modifiers
+
+     basic_string&amp; operator+=(const basic_string&amp;);
+     basic_string&amp; operator+=(const charT*);
+     basic_string&amp; operator+=(charT);
+   
+     basic_string&amp; append(const basic_string&amp;);
+     basic_string&amp; append(const basic_string&amp;,
+                        size_type, size_type);
+     basic_string&amp; append(const charT*, size_type);
+     basic_string&amp; append(const charT*);
+     basic_string&amp; append(size_type, charT);
+     
+     template&lt;class InputIterator&gt;
+     basic_string&amp; append(InputIterator, InputIterator);
+   
+     void push_back(charT);
+     basic_string&amp; assign(const basic_string&amp;);
+     basic_string&amp; assign(const basic_string&amp;,
+                          size_type, size_type);
+     basic_string&amp; assign(const charT*, size_type);
+     basic_string&amp; assign(const charT*);
+     basic_string&amp; assign(size_type, charT);
+     template&lt;class InputIterator&gt;
+     basic_string&amp; assign(InputIterator, InputIterator);
+   
+     basic_string&amp; insert(size_type, const basic_string&amp;);
+     basic_string&amp; insert(size_type, const basic_string&amp;,
+                          size_type, size_type);
+     basic_string&amp; insert(size_type, const charT*, size_type);
+     basic_string&amp; insert(size_type, const charT*);
+     basic_string&amp; insert(size_type, size_type, charT);
+     iterator insert(iterator, charT = charT());
+     void insert(iterator, size_type, charT);
+     template&lt;class InputIterator&gt;
+      void insert(iterator, InputIterator, InputIterator);
+
+     basic_string&amp; erase(size_type = 0, size_type= npos);
+     iterator erase(iterator);
+     iterator erase(iterator, iterator);
+
+     basic_string&amp; replace(size_type, size_type,
+                           const basic_string&amp;);
+     basic_string&amp; replace(size_type, size_type,
+                           const basic_string&amp;,
+                           size_type, size_type);
+     basic_string&amp; replace(size_type, size_type,
+                           const charT*, size_type);
+     basic_string&amp; replace(size_type, size_type,
+                           const charT*);
+     basic_string&amp; replace(size_type, size_type,
+                           size_type, charT);
+     basic_string&amp; replace(iterator, iterator,
+                           const basic_string&amp;);
+     basic_string&amp; replace(iterator, iterator,
+                           const charT*, size_type);
+     basic_string&amp; replace(iterator, iterator,
+                           const charT*);
+     basic_string&amp; replace(iterator, iterator,
+                           size_type, charT);
+     template&lt;class InputIterator&gt;
+      basic_string&amp; replace(iterator, iterator,
+                            InputIterator, InputIterator);
+
+     size_type copy(charT*, size_type, size_type = 0) const;
+     void swap(basic_string&lt;charT, traits, Allocator&gt;&amp;);
+
+  // String operations
+
+     const charT* c_str() const;
+     const charT* data() const;
+     allocator_type&amp; get_allocator() const;
+   
+     size_type find(const basic_string&amp;,
+                    size_type = 0) const;
+     size_type find(const charT*,
+                    size_type, size_type) const;
+     size_type find(const charT*, size_type = 0) const;
+     size_type find(charT, size_type = 0) const;
+     size_type rfind(const basic_string&amp;,
+                     size_type = npos) const;
+     size_type rfind(const charT*,
+                     size_type, size_type) const;
+     size_type rfind(const charT*,
+                     size_type = npos) const;
+     size_type rfind(charT, size_type = npos) const;
+
+     size_type find_first_of(const basic_string&amp;,
+                             size_type = 0) const;
+     size_type find_first_of(const charT*,
+                             size_type, size_type) const;
+     size_type find_first_of(const charT*,
+                             size_type = 0) const;
+     size_type find_first_of(charT, size_type = 0) const;
+
+     size_type find_last_of(const basic_string&amp;,
+                            size_type = npos) const;
+     size_type find_last_of(const charT*,
+                            size_type, size_type) const;
+     size_type find_last_of(const charT*, size_type = npos) const;
+     size_type find_last_of(charT, size_type = npos) const;
+
+     size_type find_first_not_of(const basic_string&amp;,
+                                 size_type = 0) const;
+     size_type find_first_not_of(const charT*,
+                                 size_type, size_type) const;
+     size_type find_first_not_of(const charT*, size_type = 0)
+               const;
+     size_type find_first_not_of(charT, size_type = 0) const;
+
+     size_type find_last_not_of(const basic_string&amp;,
+                                size_type = npos) const;
+     size_type find_last_not_of(const charT*,
+                                size_type, size_type) const;
+     size_type find_last_not_of(const charT*, 
+                                size_type = npos) const;
+     size_type find_last_not_of(charT, size_type = npos) const;
+
+     basic_string substr(size_type = 0, size_type = npos) const;
+     int compare(const basic_string&amp;) const;
+     int compare(size_type, size_type, const basic_string&amp;)
+         const;
+     int compare(size_type, size_type, const basic_string&amp;,
+                 size_type, size_type) const;
+     int compare(size_type, size_type, charT*) const;
+     int compare(charT*) const;
+     int compare(size_type, size_type, const charT*, size_type)
+         const;
+  };
+
+  // Nonmember Operators
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  basic_string operator+(const basic_string&amp;,
+                         const basic_string&amp;);
+  
+  template &lt;class charT, class traits, class Allocator&gt;
+  basic_string operator+(const charT*, const basic_string&amp;);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  basic_string operator+(charT, const basic_string&amp;);
+ 
+  template &lt;class charT, class traits, class Allocator&gt;
+  basic_string operator+(const basic_string&amp;, const charT*);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  basic_string operator+(const basic_string&amp;, charT);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator==(const basic_string&amp;, const basic_string&amp;);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator==(const charT*, const basic_string&amp;);
+
+  template &lt;class charT, class traits , class Allocator&gt;
+  bool operator==(const basic_string&amp;, const charT*);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator&lt;(const basic_string&amp;, const basic_string&amp;);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator&lt;(const charT*, const basic_string&amp;);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator&lt;(const basic_string&amp;, const charT*);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator!=(const basic_string&amp;, const basic_string&amp;);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator!=(const charT*, const basic_string&amp;);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator!=(const basic_string&amp;, const charT*);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator&gt;(const basic_string&amp;, const basic_string&amp;);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator&gt;(const charT*, const basic_string&amp;);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator&gt;(const basic_string&amp;, const charT*);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator&lt;=(const basic_string&amp;, const basic_string&amp;);
+ 
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator&lt;=(const charT*, const basic_string&amp;);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator&lt;=(const basic_string&amp;, const charT*);
+
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator&gt;=(const basic_string&amp;, const basic_string&amp;);
+ 
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator&gt;=(const charT*, const basic_string&amp;);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  bool operator&gt;= (const basic_string&amp;, const charT*);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  void swap(basic_string&lt;charT,traits,Allocator&gt;&amp; a, 
+            basic_string&lt;charT,traits,Allocator&gt;&amp; b);
+
+  template&lt;class charT, class traits, class Allocator&gt;
+  basic_istream&lt;charT, traits&gt;&amp; operator&gt;&gt;(istream&amp;,
+                                           basic_string&amp;);
+
+  template &lt;class charT, class traits, class Allocator&gt;
+  basic_ostream&lt;charT, traits&gt;&amp; operator&lt;&lt;(ostream&amp;, 
+                                           const basic_string&amp;);
+
+  template &lt;class Stream, class charT,class traits, class Allocator&gt;
+  basic_istream&lt;charT, traits&gt;&amp; 
+  getline(Stream&amp;, basic_string&amp;, charT);
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Constructors</H3></A>
+<P>In all cases, the <SAMP>Allocator</SAMP> parameter is used for storage management.</P>
+
+<A NAME="idx320"></A><PRE>
+explicit 
+<B>basic_string</B> (const Allocator&amp; a = Allocator());</PRE>
+<UL>
+<P>The default constructor. Creates a <B><I>basic_string</I></B> with the following effects:</P>
+</UL>
+
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>data()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>a non-null pointer that is copyable and can have <SAMP>0</SAMP> added to it</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>size()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">0</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>capacity()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>an unspecified value</P></TD></TR>
+</TABLE></P>
+
+<A NAME="idx321"></A><PRE>
+<B>basic_string</B> (const basic_string&lt;T, traits, 
+               Allocator&gt;&amp; str);</PRE>
+<UL>
+<P>Creates a string that is a copy of <SAMP>str</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx322"></A><PRE><B>basic_string</B> (const basic_string&amp; str, size_type pos,
+              size_type n= npos, const allocator&amp;
+              a=allocator());</PRE>
+<UL>
+<P>Creates a string of <SAMP>pos&lt;=size()</SAMP> and determines length <SAMP>rlen</SAMP> of the initial string value as the smaller of <SAMP>n</SAMP> and <SAMP>str.size() - pos</SAMP>. This has the following effects:</P>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>data()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>points to the first element of an allocated copy of <SAMP>rlen</SAMP> elements of the string controlled by <SAMP>str</SAMP> beginning at position <SAMP>pos</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>size()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">rlen</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>capacity()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>a value at least as large as <SAMP>size()</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>get_allocator()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">	str.get_allocator()</SAMP></P></TD></TR>
+</TABLE></UL>
+<P>An <B><I><A HREF="out-of-range.html">out_of_range</A></I></B> exception is thrown if <SAMP>pos</SAMP> <SAMP>&gt;</SAMP> <SAMP>str.size()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx323"></A><PRE><B>basic_string</B> (const charT* s, size_type n,
+              const Allocator&amp; a = Allocator());</PRE>
+<UL>
+<P>Creates a string that contains the first <SAMP>n</SAMP> characters of <SAMP>s</SAMP>. <SAMP>s</SAMP> must not be a <SAMP>NULL</SAMP> pointer. The effects of this constructor are:</P>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>data()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>points to the first element of an allocated copy of the array whose first element is pointed to by <SAMP>s</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>size()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">n</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>capacity()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>a value at least as large as <SAMP>size()</SAMP></P></TD></TR>
+</TABLE></UL>
+<P>A <B><I><A HREF="length-error.html">length_error</A></I></B> exception is thrown if <SAMP>n == npos.</SAMP></P>
+</UL>
+
+
+<A NAME="idx324"></A><PRE><B>basic_string</B> (const charT * s, 
+              const Allocator&amp; a = Allocator());</PRE>
+<UL>
+<P>Constructs a string containing all characters in <SAMP>s</SAMP> up to, but not including, a <SAMP>traits::eos()</SAMP> character. <SAMP>s</SAMP> must not be a null pointer. The effects of this constructor are:</P>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>data()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>points to the first element of an allocated copy of the array whose first element is pointed to by <SAMP>s</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>size()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">traits::length(s)</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>capacity()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>a value at least as large as <SAMP>size()</SAMP></P></TD></TR>
+</TABLE></UL>
+</UL>
+
+
+<A NAME="idx325"></A><PRE>
+<B>basic_string</B> (size_type n, charT c, 
+              const Allocator&amp; a = Allocator());</PRE>
+<UL>
+<P>Constructs a string containing <SAMP>n</SAMP> repetitions of <SAMP>c</SAMP>. A <B><I><A HREF="length-error.html">length_error</A></I></B> exception is thrown if <SAMP>n == npos</SAMP>. The effects of this constructor are:</P>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>data()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>points to the first element of an allocated array of <SAMP>n</SAMP> elements, each storing the initial value <SAMP>c</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>size()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">n</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>capacity()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>a value at least as large as <SAMP>size()</SAMP></P></TD></TR>
+</TABLE></UL>
+</UL>
+
+
+<A NAME="idx326"></A><PRE>
+template &lt;class InputIterator&gt;
+<B>basic_string</B> (InputIterator start, InputIterator finish,
+              const Allocator&amp; a = Allocator());</PRE>
+<UL>
+<P>Creates a <B><I>basic_string</I></B> of length <SAMP>finish - start</SAMP> filled with all values obtained by dereferencing the <SAMP>InputIterators</SAMP> on the range <SAMP>[start, finish)</SAMP>. The effects of this constructor are:</P>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>data()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>points to the first element of an allocated copy of the elements in the range <SAMP>[start,finish)</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>size()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>distance between <SAMP>start</SAMP> and <SAMP>finish</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>capacity()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>a value at least as large as <SAMP>size()</SAMP></P></TD></TR>
+</TABLE></UL>
+</UL>
+
+<A NAME="sec7"><H3>Destructors</H3></A>
+
+<A NAME="idx327"></A><PRE><B>~basic_string</B> ();</PRE>
+<UL>
+<P>Releases any allocated memory for this <B><I>basic_string</I></B>.</P>
+</UL>
+
+<A NAME="sec8"><H3>Operators</H3></A>
+
+<A NAME="idx328"></A><PRE>basic_string&amp;
+<B>operator=</B>(const basic_string&amp; str);</PRE>
+<UL>
+<P>Sets the contents of this string to be the same as <SAMP>str</SAMP>. The effects of <SAMP>operator=</SAMP> are:</P>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>data()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>points to the first element of an allocated copy of the array whose first element is pointed to by <SAMP>str.size()</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>size()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">str.size()</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>capacity()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>a value at least as large as <SAMP>size()</SAMP></P></TD></TR>
+</TABLE></UL>
+</UL>
+
+
+<A NAME="idx329"></A><PRE>
+basic_string&amp; 
+<B>operator=</B>(const charT * s);</PRE>
+<UL>
+<P>Sets the contents of this string to be the same as <SAMP>s</SAMP> up to, but not including, the <SAMP>traits::eos()</SAMP> character.</P>
+</UL>
+
+
+<A NAME="idx330"></A><PRE>basic_string&amp; 
+<B>operator=</B>(charT c);</PRE>
+<UL>
+<P>Sets the contents of this string to be equal to the single <SAMP>charT</SAMP> <SAMP>c</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx331"></A><PRE>const_reference 
+<B>operator[]</B>(size_type pos) const;
+reference 
+<B>operator[]</B>(size_type pos);</PRE>
+<UL>
+<P>If <SAMP>pos &lt; size()</SAMP>, returns the element at position <SAMP>pos</SAMP> in this string. If <SAMP>pos == size()</SAMP>, the <SAMP>const</SAMP> variation returns <SAMP>charT()</SAMP>, the behavior of the non-<SAMP>const</SAMP> variation is undefined. The reference returned by either variation is invalidated by any call to <SAMP>c_str()</SAMP>, <SAMP>data()</SAMP>, or any non-<SAMP>const</SAMP> member function for the object.</P>
+</UL>
+
+
+<A NAME="idx332"></A><PRE>basic_string&amp; 
+<B>operator+=</B>(const basic_string&amp; s);
+basic_string&amp; 
+<B>operator+=</B>(const charT* s);
+basic_string&amp; 
+<B>operator+=</B>(charT c);</PRE>
+<UL>
+<P>Concatenates a string onto the current contents of this string. The second member operator uses <SAMP>traits::length()</SAMP> to determine the number of elements from <SAMP>s</SAMP> to add. The third member operator adds the single character <SAMP>c</SAMP>. All return a reference to this string after completion.</P>
+</UL>
+
+<A NAME="sec9"><H3>Iterators</H3></A>
+
+<A NAME="idx333"></A><PRE>iterator <B>begin</B>();
+const_iterator <B>begin</B>() const;</PRE>
+<UL>
+<P>Returns an iterator initialized to the first element of the string.</P>
+</UL>
+
+
+<A NAME="idx334"></A><PRE>iterator <B>end</B>();
+const_iterator <B>end</B>() const;</PRE>
+<UL>
+<P>Returns an iterator initialized to the position after the last element of the string.</P>
+</UL>
+
+
+<A NAME="idx335"></A><PRE>reverse_iterator <B>rbegin</B>();
+const_reverse_iterator <B>rbegin</B>() const;</PRE>
+<UL>
+<P>Returns an iterator equivalent to <SAMP>reverse_iterator(end())</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx336"></A><PRE>reverse_iterator <B>rend</B>();
+const_reverse_iterator <B>rend</B>() const;</PRE>
+<UL>
+<P>Returns an iterator equivalent to <SAMP>reverse_iterator(begin())</SAMP>.</P>
+</UL>
+
+<A NAME="sec10"><H3>Allocator</H3></A>
+
+<A NAME="idx337"></A><PRE>allocator_type <B>get_allocator</B>() const;</PRE>
+<UL>
+<P>Returns a copy of the allocator used by self for storage management.</P>
+</UL>
+
+<A NAME="sec11"><H3>Member Functions</H3></A>
+
+<A NAME="idx338"></A><PRE>basic_string&amp; 
+<B>append</B>(const basic_string&amp; s, size_type pos, 
+        size_type npos);
+basic_string&amp;
+<B>append</B>(const basic_string&amp; s);
+basic_string&amp; 
+<B>append</B>(const charT* s, size_type n);
+basic_string&amp; 
+<B>append</B>(const charT* s);
+basic_string&amp; 
+<B>append</B>(size_type n, charT c );
+template&lt;class InputIterator&gt;
+basic_string&amp; 
+<B>append</B>(InputIterator start, InputIterator finish);</PRE>
+<UL>
+<P>Appends another string to the end of this string. </P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST">The first variation appends the lesser of <SAMP>n</SAMP> and <SAMP>s.size() - pos</SAMP> characters of <SAMP>s</SAMP>, beginning at position <SAMP>pos</SAMP>, to this string. It throws an <B><I><A HREF="out-of-range.html">out_of_range</A></I></B> exception if <SAMP>pos &gt; str.size()</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The second variation appends <SAMP>s</SAMP> as in <SAMP>append (s,0,npos)</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The third variation appends <SAMP>n</SAMP> characters of the array pointed to by <SAMP>s</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The fourth variation appends elements from the array pointed to by <SAMP>s</SAMP> up to, but not including, the null character specified by <SAMP>charT()</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The fifth variation appends <SAMP>n</SAMP> repetitions of <SAMP>c</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The final variation appends the elements specified in the range <SAMP>[start, finish)</SAMP>.</P></LI>
+</UL>
+<UL>
+<P>All functions throw a <B><I><A HREF="length-error.html">length_error</A></I></B> exception if the resulting lengths exceed <SAMP>max_size()</SAMP>. All return a reference to this string after completion.</P>
+</UL>
+
+
+<A NAME="idx339"></A><PRE>void 
+<B>push_back</B>(charT c);</PRE>
+<UL>
+<P>Equivalent to <SAMP>append(static_cast&lt;size_type&gt;(1), c)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx340"></A><PRE>basic_string&amp;
+<B>assign</B>(const basic_string&amp; s);
+basic_string&amp; 
+<B>assign</B>(const basic_string&amp; s,
+       size_type pos, size_type n);
+basic_string&amp; 
+<B>assign</B>(const charT* s, size_type n);
+basic_string&amp;
+<B>assign</B>(const charT* s);
+basic_string&amp;
+<B>assign</B>(size_type n, charT c );
+template&lt;class InputIterator&gt;
+basic_string&amp; 
+<B>assign</B>(InputIterator start, InputIterator finish);</PRE>
+<UL>
+<P>Replaces the value of this string with the value of another. All variations of the function assign values to this string. </P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST">The first variation assigns the lesser of <SAMP>n</SAMP> and <SAMP>s.size() - pos</SAMP> characters of <SAMP>s</SAMP>, beginning at position <SAMP>pos</SAMP>. It throws an <B><I><A HREF="out-of-range.html">out_of_range</A></I></B> exception if <SAMP>pos &gt; str.size()</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The second variation assigns <SAMP>s</SAMP> as if by <SAMP>assign(s,0,npos)</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The third variation assigns <SAMP>n</SAMP> characters of the array pointed to by <SAMP>s</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The fourth variation assigns elements from the array pointed to by <SAMP>s</SAMP> up to, but not including, the null character specified by <SAMP>charT()</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The fifth variation assigns one or <SAMP>n</SAMP> repetitions of <SAMP>c</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The final variation assigns the members specified by the range <SAMP>[start, finish)</SAMP>.</P></LI>
+</UL>
+<UL>
+<P>All functions throw a <B><I><A HREF="length-error.html">length_error</A></I></B> exception if the resulting lengths exceed <SAMP>max_size()</SAMP>. All return a reference to this string after completion.</P>
+</UL>
+
+
+<A NAME="idx341"></A><PRE>const_reference 
+<B>at</B>(size_type pos) const;
+reference 
+<B>at</B>(size_type pos);</PRE>
+<UL>
+<P>If <SAMP>pos &lt; size()</SAMP>, returns the element at position <SAMP>pos</SAMP> in this string. Otherwise, throws an <B><I><A HREF="out-of-range.html">out_of_range</A></I></B> exception.</P>
+</UL>
+
+
+<A NAME="idx342"></A><PRE>size_type 
+<B>capacity</B>() const;</PRE>
+<UL>
+<P>Returns the current storage capacity of the string. This is guaranteed to be at least as large as <SAMP>size()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx343"></A><PRE>void
+<B>clear</B>();</PRE>
+<UL>
+<P>Removes all elements in this string. </P>
+</UL>
+
+
+<A NAME="idx344"></A><PRE>int 
+<B>compare</B>(const basic_string&amp; str) const;</PRE>
+<UL>
+<P>Performs lexicographical comparison of elements controlled by <SAMP>*this</SAMP> against those controlled by <SAMP>str</SAMP>. Calls: </P>
+
+<UL><PRE>traits_type::compare(data(), 
+                     str.data(), 
+                     std::min(size(), str.size())
+</PRE></UL>
+<P>and returns the nonzero value if the function returns nonzero. Otherwise, returns: </P>
+
+<UL><PRE>&lt;0 if size() &lt; str.size()
+0  if size() == str.size()
+&gt;0 if size() &gt; str.size()
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx345"></A><PRE>
+int
+<B>compare</B>(size_type pos1, size_type n1, 
+        const basic_string&amp; str) const;
+int
+<B>compare</B>(size_type pos1, size_type n1, 
+        const basic_string&amp; str,
+        size_type pos2, size_type n2) const;
+int 
+<B>compare</B>(const char_type* s) const;
+int
+<B>compare</B>(size_type pos, size_type n1, 
+        const char_type* s) const;
+int
+<B>compare</B>(size_type pos, size_type n1, const char_type* s, 
+        size_type n2) const;</PRE>
+<UL>
+<P>Returns the result of a lexicographical comparison between elements of this string and a given comparison string. The members return, respectively:</P>
+
+<UL><PRE>basic_string(*this,pos1,n1).compare(str)
+basic_string(*this,pos1,n1).compare(basic_string 
+                                     (str, pos2, n2))
+*this.compare(basic_string(s))
+    basic_string(*this,pos,n1).compare(basic_string(s))
+basic_string(*this,pos,n1).compare(basic_string(s,n2))
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx346"></A><PRE>
+size_type 
+<B>copy</B>(charT* s, size_type n, size_type pos = 0) const;</PRE>
+<UL>
+<P>The lesser of <SAMP>n</SAMP> and <SAMP>size() - pos</SAMP> elements of this string, starting at position <SAMP>pos</SAMP>, are copied into the array pointed to by <SAMP>s</SAMP>. No terminating null is appended to <SAMP>s</SAMP>. An <B><I><A HREF="out-of-range.html">out_of_range</A></I></B> exception is thrown if <SAMP>pos &gt; size()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx347"></A><PRE>const charT* 
+<B>c_str</B>() const;
+const charT* 
+<B>data</B>() const;</PRE>
+<UL>
+<P>Returns a pointer to the initial element of an array whose first <SAMP>size()</SAMP> elements are copies of the elements in this string. For the <SAMP>c_str()</SAMP> function, a <SAMP>charT()</SAMP> element is appended to the end. The elements of the array may not be altered, and the returned pointer is only valid until a non-<SAMP>const</SAMP> member function of this string is called. If <SAMP>size()</SAMP> is zero, the <SAMP>data()</SAMP> function returns a non-<SAMP>NULL</SAMP> pointer.</P>
+</UL>
+
+
+<A NAME="idx348"></A><PRE>bool <B>empty</B>() const;</PRE>
+<UL>
+<P>Returns <SAMP>size() == 0</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx349"></A><PRE>basic_string&amp; 
+<B>erase</B>(size_type pos = 0, size_type n = npos);
+iterator 
+<B>erase</B>(iterator p);
+iterator 
+<B>erase</B>(iterator start, iterator finish);</PRE>
+<UL>
+<P>This function removes elements from the string, collapsing the remaining elements, as necessary, to remove any space left empty. Returns a reference to the string after completion.</P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST"> The first variation of the function removes the smaller of <SAMP>n</SAMP> and <SAMP>size() - pos</SAMP> starting at position <SAMP>pos</SAMP>. An <B><I><A HREF="out-of-range.html">out_of_range</A></I></B> exception is thrown if <SAMP>pos &gt; size()</SAMP>. </P></LI>
+<LI><P CLASS="LIST">For the second variation, <SAMP>p</SAMP> must be a valid iterator on the string, and the function removes the character referred to by <SAMP>p</SAMP>. The returned iterator refers to the element that preceded the first removed element, or <SAMP>end()</SAMP> if such an element does not exist.</P></LI>
+<LI><P CLASS="LIST">For the last variation, both <SAMP>start</SAMP> and <SAMP>finish</SAMP> must be valid iterators on the string, and the function removes the characters defined by the range <SAMP>[start, finish)</SAMP>. The returned iterator refers to the element that preceded the first removed element, or <SAMP>end()</SAMP> if such an element does not exist. </P></LI>
+</UL>
+
+<A NAME="idx350"></A><PRE>
+size_type 
+<B>find</B>(const basic_string&amp; str, size_type pos = 0) const;</PRE>
+<UL>
+<P>Searches for the first occurrence of the substring specified by <SAMP>str</SAMP> in this string, starting at position <SAMP>pos</SAMP>. If found, it returns the index of the first character of the matching substring. If not found, returns <SAMP>npos</SAMP>. Equality is defined by <SAMP>traits::eq()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx351"></A><PRE>size_type
+<B>find</B>(const charT* s, size_type pos, size_type n) const;
+size_type 
+<B>find</B>(const charT* s, size_type pos = 0) const;
+size_type 
+<B>find</B>(charT c, size_type pos = 0) const;</PRE>
+<UL>
+<P>Searches for the first sequence of characters in this string that match a specified string. The variations of this function return, respectively:</P>
+
+<UL><PRE>find(basic_string(s,n), pos)
+find(basic_string(s), pos)
+find(basic_string(1, c), pos)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx352"></A><PRE>size_type
+<B>find_first_not_of</B>(const basic_string&amp; str,
+                  size_type pos = 0) const;</PRE>
+<UL>
+<P>Searches for the first element of this string at or after position <SAMP>pos</SAMP> that is not equal to any element of <SAMP>str</SAMP>. If found, <SAMP>find_first_not_of()</SAMP> returns the index of the nonmatching character. If all the characters match, the function returns <SAMP>npos</SAMP>. Equality is defined by <SAMP>traits::eq()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx353"></A><PRE>size_type 
+<B>find_first_not_of</B> (const charT* s, 
+                   size_type pos, size_type n) const;
+size_type 
+<B>find_first_not_of</B> (const charT* s, 
+                   size_type pos = 0) const;
+size_type 
+<B>find_first_not_of</B>(charT c, size_type pos = 0) const;</PRE>
+<UL>
+<P>Searches for the first element in this string at or after position <SAMP>pos</SAMP> that is not equal to any element of a given set of characters. The members return, respectively:</P>
+
+<UL><PRE>find_first_not_of(basic_string(s,n), pos)
+find_first_not_of(basic_string(s), pos)
+find_first_not_of(basic_string(1, c), pos)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx354"></A><PRE>size_type
+<B>find_first_of</B>(const basic_string&amp; str,
+              size_type pos = 0) const;</PRE>
+<UL>
+<P>Searches for the first occurrence at or after position <SAMP>pos</SAMP> of any element of <SAMP>str</SAMP> in this string. If found, the index of this matching character is returned. If not found, <SAMP>npos</SAMP> is returned. Equality is defined by <SAMP>traits::eq()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx355"></A><PRE>size_type 
+<B>find_first_of</B>(const charT* s, size_type pos,
+              size_type n) const;
+size_type 
+<B>find_first_of</B>(const charT* s, size_type pos = 0) const;
+size_type
+<B>find_first_of</B>(charT c, size_type pos = 0) const;</PRE>
+<UL>
+<P>Searches for the first occurrence in this string of any element in a specified string. The <SAMP>find_first_of()</SAMP> variations return, respectively:</P>
+
+<UL><PRE>find_first_of(basic_string(s,n), pos)
+find_first_of(basic_string(s), pos)
+find_first_of(basic_string(1, c), pos)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx356"></A><PRE>size_type 
+<B>find_last_not_of</B>(const basic_string&amp; str,
+                 size_type pos = npos) const;</PRE>
+<UL>
+<P>Searches for the last element of this string at or before position <SAMP>pos</SAMP> that is not equal to any element of <SAMP>str</SAMP>. If <SAMP>find_last_not_of()</SAMP> finds a non-matching element, it returns the index of the character. If all the elements match, the function returns <SAMP>npos</SAMP>. Equality is defined by <SAMP>traits::eq()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx357"></A><PRE>size_type 
+<B>find_last_not_of</B>(const charT* s,
+                 size_type pos, size_type n) const;
+size_type 
+<B>find_last_not_of</B>(const charT* s, size_type pos = npos) const;
+size_type 
+<B>find_last_not_of</B>(charT c, size_type pos = npos) const;</PRE>
+<UL>
+<P>Searches for the last element in this string at or before position <SAMP>pos</SAMP> that is not equal to any element of a given set of characters. The members return, respectively:</P>
+
+<UL><PRE>find_last_not_of(basic_string(s,n), pos)
+find_last_not_of(basic_string(s), pos)
+find_last_not_of(basic_string(1, c), pos)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx358"></A><PRE>size_type 
+<B>find_last_of</B>(const basic_string&amp; str,
+             size_type pos = npos) const; </PRE>
+<UL>
+<P>Searches for the last occurrence of any element of <SAMP>str</SAMP> at or before position <SAMP>pos</SAMP> in this string. If found, <SAMP>find_last_of()</SAMP> returns the index of the matching character. If not found, <SAMP>find_last_of()</SAMP> returns <SAMP>npos</SAMP>. Equality is defined by <SAMP>traits::eq()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx359"></A><PRE>size_type
+<B>find_last_of</B>(const charT* s, size_type pos,
+             size_type n) const;
+size_type 
+<B>find_last_of</B>(const charT* s, size_type pos = npos) const;
+size_type 
+<B>find_last_of</B>(charT c, size_type pos = npos) const;</PRE>
+<UL>
+<P>Searches for the last occurrence in this string of any element in a specified string. The members return, respectively:</P>
+
+<UL><PRE>find_last_of(basic_string(s,n), pos)
+find_last_of(basic_string(s), pos)
+find_last_of(basic_string(1, c), pos)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx360"></A><PRE>basic_string&amp;
+<B>insert</B>(size_type pos1, const basic_string&amp; s);
+basic_string&amp; 
+<B>insert</B>(size_type pos, const basic_string&amp; s,
+       size_type pos2 = 0, size_type n = npos);
+basic_string&amp;
+<B>insert</B>(size_type pos, const charT* s, size_type n);
+basic_string&amp;
+<B>insert</B>(size_type pos, const charT* s);
+basic_string&amp; 
+<B>insert</B>(size_type pos, size_type n, charT c);</PRE>
+<UL>
+<P>Inserts additional elements at position <SAMP>pos</SAMP> in this string. All of the variants of this function throw an <B><I><A HREF="out-of-range.html">out_of_range</A></I></B> exception if <SAMP>pos &gt; size()</SAMP>. All variants also throw a <B><I><A HREF="length-error.html">length_error</A></I></B> if the resulting strings exceed <SAMP>max_size()</SAMP>. Elements of this string are moved apart as necessary to accommodate the inserted elements. All return a reference to this string after completion.</P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST">The second variation inserts the lesser of <SAMP>n</SAMP> and <SAMP>s.size() - pos2</SAMP> characters of <SAMP>s</SAMP>, beginning at position <SAMP>pos2</SAMP> in this string. This variation throws an <B><I><A HREF="out-of-range.html">out_of_range</A></I></B> exception if <SAMP>pos2 &gt; s.size()</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The third variation inserts <SAMP>n</SAMP> characters of the array pointed to by <SAMP>s</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The fourth variation inserts elements from the array pointed to by <SAMP>s</SAMP> up to, but not including, the null character specified by <SAMP>charT()</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The fifth variation inserts <SAMP>n</SAMP> repetitions of <SAMP>c</SAMP>.</P></LI>
+</UL>
+
+<A NAME="idx361"></A><PRE>
+iterator 
+<B>insert</B>(iterator p, charT);
+void 
+<B>insert</B>(iterator p, size_type n, charT c);
+template&lt;class InputIterator&gt;
+void
+<B>insert</B>(iterator p, InputIterator start, InputIterator finish);</PRE>
+<UL>
+<P>Inserts additional elements in this string immediately before the character referred to by <SAMP>p</SAMP>. All of these variations of <SAMP>insert()</SAMP> require that <SAMP>p</SAMP> is a valid iterator on this string. </P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST">The first variation inserts a copy of <SAMP>c</SAMP>, and returns an iterator that refers to the new character in this string. </P></LI>
+<LI><P CLASS="LIST">The second variation inserts <SAMP>n</SAMP> repetitions of <SAMP>c</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The third variation inserts characters in the range <SAMP>[start, finish)</SAMP>.</P></LI>
+</UL>
+
+<A NAME="idx362"></A><PRE>
+size_type 
+<B>length</B>() const;</PRE>
+<UL>
+<P>Returns the number of elements contained in this string.</P>
+</UL>
+
+
+<A NAME="idx363"></A><PRE>size_type 
+<B>max_size</B>() const;</PRE>
+<UL>
+<P>Returns the maximum possible size of the string.</P>
+</UL>
+
+
+<A NAME="idx364"></A><PRE>size_type 
+<B>rfind</B>(const basic_string&amp; str, size_type pos = npos) const;</PRE>
+<UL>
+<P>Searches for the last occurrence of the substring specified by <SAMP>str</SAMP> in the string, where the index of the first character of the substring is less than <SAMP>pos</SAMP>. If found, the index of the first character that matches substring is returned. If not found, <SAMP>npos</SAMP> is returned. Equality is defined by <SAMP>traits::eq()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx365"></A><PRE>size_type 
+<B>rfind</B>(const charT* s, size_type pos, size_type n) const;
+size_type 
+<B>rfind</B>(const charT* s, size_type pos = npos) const;
+size_type 
+<B>rfind</B>(charT c, size_type pos = npos) const;</PRE>
+<UL>
+<P>Searches for the last sequence of characters in this string matching a specified string. The <SAMP>rfind</SAMP> variations return, respectively:</P>
+
+<UL><PRE>rfind(basic_string(s,n), pos)
+rfind(basic_string(s), pos)
+rfind(basic_string(1, c), pos)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx366"></A><PRE>basic_string&amp;
+<B>replace</B>(size_type pos, size_type n1, const basic_string&amp; s);
+basic_string&amp; 
+<B>replace</B>(size_type pos1, size_type n1, 
+        const basic_string&amp; str,
+        size_type pos2, size_type n2);
+basic_string&amp; 
+<B>replace</B>(size_type pos, size_type n1, const charT* s,
+        size_type n2);
+basic_string&amp; 
+<B>replace</B>(size_type pos, size_type n1, const charT* s);
+basic_string&amp; 
+<B>replace</B>(size_type pos, size_type n1, size_type n2, charT c);</PRE>
+<UL>
+<P>The <SAMP>replace()</SAMP> function replaces selected elements of this string with an alternate set of elements. All of these variations insert the new elements in place of <SAMP>n1</SAMP> elements in this string, starting at position <SAMP>pos</SAMP>. They each throw an <B><I><A HREF="out-of-range.html">out_of_range</A></I></B> exception if <SAMP>pos1 &gt; size()</SAMP> and a <B><I><A HREF="length-error.html">length_error</A></I></B> exception if the resulting string size exceeds <SAMP>max_size()</SAMP>.</P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST">The second variation replaces elements of the original string with <SAMP>n2</SAMP> characters from string <SAMP>s</SAMP> starting at position <SAMP>pos2</SAMP>. It throws the <B><I><A HREF="out-of-range.html">out_of_range</A></I></B> exception if <SAMP>pos2 &gt; s.size()</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The third variation of the function replaces elements in the original string with <SAMP>n2</SAMP> elements from the array pointed to by <SAMP>s</SAMP>.</P></LI>
+<LI><P CLASS="LIST"> The fourth variation replaces elements in the string with elements from the array pointed to by <SAMP>s</SAMP>, up to, but not including, the null character specified by <SAMP>charT()</SAMP>.  </P></LI>
+<LI><P CLASS="LIST">The fifth variation replaces <SAMP>n</SAMP> elements with <SAMP>n2</SAMP> repetitions of character&nbsp;<SAMP>c</SAMP>.</P></LI>
+</UL>
+
+<A NAME="idx367"></A><PRE>
+basic_string&amp; 
+<B>replace</B>(iterator i1, iterator i2, 
+        const basic_string&amp; str);
+basic_string&amp; 
+<B>replace</B>(iterator i1, iterator i2, const charT* s,
+        size_type n);
+basic_string&amp; 
+<B>replace</B>(iterator i1, iterator i2, const charT* s);
+basic_string&amp; 
+<B>replace</B>(iterator i1, iterator i2, size_type n,
+        charT c);
+template&lt;class InputIterator&gt;
+basic_string&amp; 
+<B>replace</B>(iterator i1, iterator i2,
+        InputIterator j1, InputIterator j2);</PRE>
+<UL>
+<P>Replaces selected elements of this string with an alternative set of elements. All of these variations of <SAMP>replace</SAMP> require iterators <SAMP>i1</SAMP> and <SAMP>i2</SAMP> to be valid iterators on this string. The elements specified by the range <SAMP>[i1, i2)</SAMP> are replaced by the new elements.</P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST">The first variation replaces all members in <SAMP>str</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The second variation starts at position <SAMP>i1</SAMP>, and replaces the next <SAMP>n</SAMP> characters with <SAMP>n</SAMP> characters of the array pointed to by <SAMP>s</SAMP>. </P></LI>
+<LI><P CLASS="LIST">The third variation replaces string elements with elements from the array pointed to by <SAMP>s</SAMP> up to, but not including, a <SAMP>charT()</SAMP> character.</P></LI>
+<LI><P CLASS="LIST">The fourth variation replaces string elements with <SAMP>n</SAMP> repetitions of <SAMP>c</SAMP>.</P></LI>
+<LI><P CLASS="LIST">The last variation replaces string elements with the members specified in the range <SAMP>[j1, j2)</SAMP>.</P></LI>
+</UL>
+
+<A NAME="idx368"></A><PRE>
+void 
+<B>reserve</B>(size_type res_arg=0);</PRE>
+<UL>
+<P>Assures that the storage capacity is at least <SAMP>res_arg</SAMP>. Throws a <B><I><A HREF="length-error.html">length_error</A></I></B> exception if <SAMP>res_arg &gt; max_size()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx369"></A><PRE>void
+<B>resize</B>(size_type n, charT c);
+void
+<B>resize</B>(size_type n);</PRE>
+<UL>
+<P>Changes the capacity of this string to <SAMP>n</SAMP>. If the new capacity is smaller than the current size of the string, then the string is truncated. If the capacity is larger, then the string is padded with <SAMP>c</SAMP> characters. The latter <SAMP>resize()</SAMP> member pads the string with default characters specified by <SAMP>charT()</SAMP>. Throws a <B><I><A HREF="length-error.html">length_error</A></I></B> exception if <SAMP>n &gt; max_size()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx370"></A><PRE>size type
+<B>size</B>()const;</PRE>
+<UL>
+<P>Returns the number of elements contained in this string.</P>
+</UL>
+
+
+<A NAME="idx371"></A><PRE>basic_string 
+<B>substr</B>(size_type pos = 0, size_type n = npos) const;</PRE>
+<UL>
+<P>Returns a string composed of copies of the lesser of <SAMP>n</SAMP> and <SAMP>size() - pos</SAMP> characters in this string starting at index <SAMP>pos</SAMP>. Throws an <B><I><A HREF="out-of-range.html">out_of_range</A></I></B> exception if <SAMP>pos &gt; size()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx372"></A><PRE>void 
+<B>swap</B>(basic_string&amp; s);</PRE>
+<UL>
+<P>Swaps the contents of this string with the contents of <SAMP>s</SAMP>.</P>
+</UL>
+
+<A NAME="sec12"><H3>Nonmember Operators</H3></A>
+
+<A NAME="idx373"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+basic_string 
+<B>operator+</B>(const basic_string&amp; lhs, const basic_string&amp; rhs);</PRE>
+<UL>
+<P>Returns a string of length <SAMP>lhs.size() + rhs.size()</SAMP>, where the first <SAMP>lhs.size()</SAMP> elements are copies of the elements of <SAMP>lhs</SAMP>, and the next <SAMP>rhs.size()</SAMP> elements are copies of the elements of <SAMP>rhs</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx374"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+basic_string
+<B>operator+</B>(const charT* lhs, const basic_string&amp; rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+basic_string
+<B>operator+</B>(charT lhs, const basic_string&amp; rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+basic_string 
+<B>operator+</B>(const basic_string&amp; lhs, const charT* rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+basic_string 
+<B>operator+</B>(const basic_string&amp; lhs, charT rhs);</PRE>
+<UL>
+<P>Returns a string that represents the concatenation of two string-like entities. These functions return, respectively:</P>
+
+<UL><PRE>basic_string(lhs) + rhs
+basic_string(1, lhs) + rhs
+lhs + basic_string(rhs)
+lhs + basic_string(1, rhs)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx375"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator==</B>(const basic_string&amp; lhs, 
+           const basic_string&amp; rhs);</PRE>
+<UL>
+<P>Returns a boolean value of <SAMP>true</SAMP> if <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP> are equal, and <SAMP>false</SAMP> if they are not. Equality is defined by the <SAMP>compare()</SAMP> member function.</P>
+</UL>
+
+
+<A NAME="idx376"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+bool   
+<B>operator==</B>(const charT* lhs, const basic_string&amp; rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator==</B>(const basic_string&amp; lhs, const charT* rhs);</PRE>
+<UL>
+<P>Returns a boolean value indicating whether <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP> are equal. Equality is defined by the <SAMP>compare()</SAMP> member function. These functions return, respectively:</P>
+
+<UL><PRE>basic_string(lhs) == rhs
+lhs == basic_string(rhs)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx377"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator!=</B>(const basic_string&amp; lhs,
+           const basic_string&amp; rhs);</PRE>
+<UL>
+<P>Returns a boolean value representing the inequality of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Inequality is defined by the <SAMP>compare()</SAMP> member function.</P>
+</UL>
+
+
+<A NAME="idx378"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator!=</B>(const charT* lhs, const basic_string&amp; rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator!=</B>(const basic_string&amp; lhs, const charT* rhs);</PRE>
+<UL>
+<P>Returns a boolean value representing the inequality of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Inequality is defined by the <SAMP>compare()</SAMP> member function. The functions return, respectively:</P>
+
+<UL><PRE>basic_string(lhs) != rhs
+lhs != basic_string(rhs)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx379"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&lt;</B>(const basic_string&amp; lhs, const basic_string&amp; rhs);</PRE>
+<UL>
+<P>Returns a boolean value representing the lexicographical less-than relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Less-than is defined by the <SAMP>compare() </SAMP>member.</P>
+</UL>
+
+
+<A NAME="idx380"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&lt;</B>(const charT* lhs, const basic_string&amp; rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&lt;</B>(const basic_string&amp; lhs, const charT* rhs);</PRE>
+<UL>
+<P>Returns a boolean value representing the lexicographical less-than relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Less-than is defined by the<SAMP> compare() </SAMP>member function. These functions return, respectively:</P>
+
+<UL><PRE>basic_string(lhs) &lt; rhs
+lhs &lt; basic_string(rhs)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx381"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&gt;</B>(const basic_string&amp; lhs, const basic_string&amp; rhs);</PRE>
+<UL>
+<P>Returns a boolean value representing the lexicographical greater-than relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Greater-than is defined by the<SAMP> compare()</SAMP> member function.</P>
+</UL>
+
+
+<A NAME="idx382"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&gt;</B>(const charT* lhs, const basic_string&amp; rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&gt;</B>(const basic_string&amp; lhs, const charT* rhs);</PRE>
+<UL>
+<P>Returns a boolean value representing the lexicographical greater-than relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Greater-than is defined by the <SAMP>compare()</SAMP> member. The functions return, respectively:</P>
+
+<UL><PRE>basic_string(lhs) &gt; rhs
+lhs &gt; basic_string(rhs)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx383"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&lt;=</B>(const basic_string&amp; lhs,
+             const basic_string&amp; rhs);</PRE>
+<UL>
+<P>Returns a boolean value representing the lexicographical less-than-or-equal relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Less-than-or-equal is defined by the <SAMP>compare()</SAMP> member function.</P>
+</UL>
+
+
+<A NAME="idx384"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+bool   
+<B>operator&lt;=</B>(const charT* lhs, const basic_string&amp; rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&lt;=</B>(const basic_string&amp; lhs, const charT* rhs);</PRE>
+<UL>
+<P>Returns a boolean value representing the lexicographical less-than-or-equal relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Less-than-or-equal is defined by the <SAMP>compare()</SAMP> member function. These functions return, respectively:</P>
+
+<UL><PRE>basic_string(lhs) &lt;= rhs
+lhs &lt;= basic_string(rhs)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx385"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&gt;=</B>(const basic_string&amp; lhs, 
+           const basic_string&amp; rhs);</PRE>
+<UL>
+<P>Returns a boolean value representing the lexicographical greater-than-or-equal relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Greater-than-or-equal is defined by the <SAMP>compare()</SAMP> member function.</P>
+</UL>
+
+
+<A NAME="idx386"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&gt;=</B>(const charT* lhs, const basic_string&amp; rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&gt;=</B>(const basic_string&amp; lhs, const charT* rhs);</PRE>
+<UL>
+<P>Returns a boolean value representing the lexicographical greater-than-or-equal relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Greater-than-or-equal is defined by the <SAMP>compare()</SAMP> member. The functions return, respectively:</P>
+
+<UL><PRE>basic_string(lhs) &gt;= rhs
+lhs &gt;= basic_string(rhs)
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx387"></A><PRE>template &lt;class charT, class traits, class Allocator&gt;
+void <B>swap</B>(basic_string&lt;charT,traits,Allocator&gt;&amp; a, 
+          basic_string&lt;charT,traits,Allocator&gt;&amp; b); </PRE>
+<UL>
+<P>Swaps the contents of <SAMP>a</SAMP> and <SAMP>b</SAMP> by calling <SAMP>a</SAMP>'s swap function on <SAMP>b</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx388"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+basic_istream&lt;charT, traits&gt;&amp;
+<B>operator&gt;&gt;</B>(basic_istream&lt;charT, traits&gt;&amp; is, 
+           basic_string&amp; str);</PRE>
+<UL>
+<P>All elements read from the stream <SAMP>is</SAMP>, except the delimiter, are placed in <SAMP>str</SAMP>. After the read, the function returns <SAMP>is</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx389"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+basic_ostream&lt;charT, traits&gt;&amp;
+<B>operator&lt;&lt;</B>(basic_ostream &lt;charT, traits&gt;&amp; os, 
+           const&lt;charT, traits allocator&gt; str);</PRE>
+<UL>
+<P>Writes all elements of <SAMP>str</SAMP> to <SAMP>os</SAMP> in order from first to last. After the write, the function returns <SAMP>os</SAMP>.</P>
+</UL>
+
+<A NAME="sec13"><H3>Nonmember Functions</H3></A>
+
+<A NAME="idx390"></A><PRE>template &lt;class Stream, class charT, class traits,
+          class Allocator&gt;
+basic_istream&lt;charT, traits&gt;
+<B>getline</B>(basic_istream&lt;charT, traits&gt; is, 
+        &lt;charT, traits allocator&gt; str, charT delim);</PRE>
+<UL>
+<P>An unformatted input function that extracts characters from <SAMP>is</SAMP> into <SAMP>str</SAMP> until <SAMP>npos - 1</SAMP> characters are read, the end of the input sequence is reached, or the character read is <SAMP>delim</SAMP>.  </P>
+</UL>
+
+<A NAME="sec14"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  string.cpp
+//
+
+#include &lt;string&gt;
+#include &lt;iostream&gt;
+
+
+int main ()
+{
+#ifndef _RWSTD_NO_NAMESPACE
+  using namespace std;
+#endif
+
+  string test;
+
+  // Type in a string over five characters long.
+
+  while (test.empty() ||  test.size() &lt; 5)
+  {
+    cout &lt;&lt; "Type a string between 5 and 100 characters long. " 
+         &lt;&lt; endl;
+    cin &gt;&gt; test;
+  }
+
+  // Try operator[] access.
+
+  cout &lt;&lt; "Changing the third character from " &lt;&lt; test[2] 
+       &lt;&lt; " to * " &lt;&lt; endl;
+  test[2] = '*';
+  cout &lt;&lt; "now it's: " &lt;&lt; test &lt;&lt; endl &lt;&lt; endl;
+
+  // Try the insertion member function.
+
+  test.insert(test.size() / 2, "(the middle is here!)");
+  cout &lt;&lt; "Identifying the middle: " &lt;&lt; test &lt;&lt; endl &lt;&lt; endl;
+
+  // Try replacement.
+
+  test.replace(test.find("middle",0), 6, "center");
+  cout &lt;&lt; "I didn't like the word 'middle', so instead, "
+       &lt;&lt; "I'll say: " &lt;&lt; endl &lt;&lt; test &lt;&lt; endl; 
+
+  return 0;
+}
+
+
+Program output:
+</PRE></UL>
+<UL><PRE>Type a string between 5 and 100 characters long.
+roguewave
+Changing the third character from g to *
+now its: ro*uewave
+Identifying the middle: ro*u(the middle is here!)ewave
+I didn't like the word 'middle', so instead, I'll say:
+ro*u(the center is here!)ewave
+</PRE></UL>
+<A NAME="sec15"><H3>See Also</H3></A>
+<P><B><I><A HREF="allocator.html">allocator</A></I></B>, <B><I><A HREF="basic-string.html">string</A></I></B>, <B><I><A HREF="wstring.html">wstring</A></I></B></P>
+<A NAME="sec16"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 21.3</I></P>
+
+<BR>
+<HR>
+<A HREF="basic-streambuf.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-stringbuf.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

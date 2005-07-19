@@ -1,0 +1,71 @@
+<HTML>
+<HEAD>
+<TITLE>Explicit Synchronization</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="35-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="35-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>35.2 Explicit Synchronization</H2>
+<A NAME="idx871"><!></A>
+<A NAME="idx872"><!></A>
+<P>You can force the stream to empty its buffer into an output file, or to refill its buffer from an input file. This is done through the stream buffer's public member function <SAMP>pubsync()</SAMP>. Typically, you call <SAMP>pubsync()</SAMP> indirectly through functions of the stream layer. Input streams and output streams have different member functions that implicitly call <SAMP>pubsync()</SAMP>.</P>
+<A NAME="3521"><H3>35.2.1 Output Streams</H3></A>
+<A NAME="idx873"><!></A>
+<P>Output streams have a <SAMP>flush()</SAMP> function that writes the buffer content to the file. In case of failure, <SAMP>badbit</SAMP> is set or an exception thrown, depending on the exception mask.</P>
+
+<UL><PRE>
+std::ofstream ofstr("/tmp/fil");
+ofstr &lt;&lt; "Hello ";                                            //1
+ofstr &lt;&lt; "World!\n";
+ofstr.flush();                                                //2
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The attempt to extract anything from the file <SAMP>/tmp/fil</SAMP> after this insertion will probably fail, because the string <SAMP>"Hello"</SAMP> is buffered and not yet written to the external file.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>After the call to <SAMP>flush()</SAMP>, however, the file contains "<SAMP>Hello World!\n"</SAMP>.  (Incidentally, the call to <SAMP>ostr.flush()</SAMP> can be replaced by the <SAMP>std::flush</SAMP> manipulator; that is, <SAMP>ostr &lt;&lt; std::flush;</SAMP>)
+</TABLE>
+<P>Keep in mind that flushing is a time-consuming operation. The member function <SAMP>flush()</SAMP> not only writes the buffer content to the file; it may also reread the buffer in order to maintain the current file position. For the sake of performance, you should avoid inadvertent flushing, as when the <SAMP>std::endl</SAMP> manipulator calls <SAMP>flush()</SAMP> on inserting the end-of-line character. (See <A HREF="28-3.html#2832">Section&nbsp;28.3.2</A>.)</P>
+<A NAME="3522"><H3>35.2.2 Input Streams</H3></A>
+<A NAME="idx874"><!></A>
+<P>Input streams define the <SAMP>sync()</SAMP> member function. It forces the stream to access the external device and refill its buffer, beginning with the current file position. In the case of input streams, the behavior of <SAMP>sync()</SAMP> is implementation-defined, that is, not standardized. The traditional iostreams had a <SAMP>sync()</SAMP> function that did the expected synchronization, that is, refilling the buffer beginning with the current file position.</P>
+<A NAME="idx875"><!></A>
+<P>The example below demonstrates the principle theoretically. In real life, however, the two streams might belong to two separate processes. (For example, if two processes communcate through a shared file.) It should be noted that the exact behavior of the example below depends on the size of the internal buffers and other inherently implementation-specific parameters.</P>
+
+<UL><PRE>
+std::ofstream ofstr("/tmp/fil");
+std::ifstream ifstr("/tmp/fil");
+std::string s;
+
+ofstr &lt;&lt; "Hello ";
+std::ofstream::pos_type p = ofstr.tellp();
+ofstr &lt;&lt; "World!\n" &lt;&lt; std::flush;
+ifstr &gt;&gt; s;                                                   //1
+ 
+ofstr.seekp(p);
+ofstr &lt;&lt; "Peter!" &lt;&lt; std::flush;                              //2
+ifstr &gt;&gt; s;                                                   //3
+
+ofstr &lt;&lt; " Happy Birthday!\n" &lt;&lt; std::flush;                  //4
+ifstr &gt;&gt; s;                                                   //5
+
+ifstr.sync();                                                 //6
+ifstr &gt;&gt; s;
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Here the input stream extracts the first substring, <SAMP>"Hello"</SAMP>,  from the shared file. In doing so, the input stream fills its buffer. It reads as many characters from the external file as needed to fill the internal buffer. For this reason, the number of characters to be extracted from the file is implementation-specific; it depends on the size of the internal stream buffer. We will assume for the remainder of this discussion that the entire external sequence has been read into the internal buffer.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The output stream overwrites part of the file content. Now the file content and the content of the input stream's buffer are inconsistent. The file contains <SAMP>"Hello Peter!"</SAMP>; the contents of the input stream's buffer are unchanged and still contain <SAMP>"Hello World!"</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>This extraction takes the string <SAMP>"World!"</SAMP> from the buffer instead of yielding <SAMP>"Peter!"</SAMP>, which is the current file content. Since the file ends with a new line, the extractor terminates as soon as it encounters <SAMP>'\n'</SAMP> without setting <SAMP>eofbit</SAMP>. Had the the file not been new line terminated the extractor would have set <SAMP>eofbit</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>More characters are appended to the internal buffer and subsequently flushed to the the external file. The file now contains <SAMP>"Hello Peter! Happy Birthday!"</SAMP>. The input stream's buffer has not changed.
+<TR VALIGN="top"><TD><SAMP>//5</SAMP></TD><TD>This extraction yields <SAMP>"Happy"</SAMP>. The stream extractor first extracts the new line character that terminated input in 2. Since the default behavior is to skip all whitespace, the function proceeds extracting subsequent characters from the buffer. However, since the new line was the last character available in the internal buffer, the latter underflows and is refilled from the external sequence. The string <SAMP>"Happy Birthday!\n"</SAMP> is read in from the file and the first space-delimited substring is stored in <SAMP>s</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//6</SAMP></TD><TD>A call to <SAMP>sync()</SAMP> eventually forces the input stream to refill the buffer from the external device. The buffer tries to maintain the current position within the external device. After the synchronization, the input stream's buffer contains at the very least the initial substring <SAMP>" Birthday!\n"</SAMP>, and the next extraction yields <SAMP>"Birthday!"</SAMP>.
+<BR><BR>As the standard specifies the behavior of <SAMP>sync()</SAMP> as implementation-defined, you can alternatively try repositioning the input stream to the current position instead; for example, <SAMP>istr.seekg(std::ios_base::cur);</SAMP>.
+</TABLE>
+<A NAME="idx876"><!></A>
+<BLOCKQUOTE><HR><B>
+NOTE -- If you must synchronize several streams that share a file, it is advisable to call the sync() function after each output operation and before each input operation.
+</B><HR></BLOCKQUOTE>
+
+<BR>
+<HR>
+<A HREF="35-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="35-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,6 @@
+String 1 : blue
+String 2 : blues
+Strings "blue" and "blue" should compare equal      : equal
+Strings "blue" and "blues" should compare NOT equal : not equal
+Normalized hash value for "blue"  : 431029
+Normalized hash value for "blues" : 6896579

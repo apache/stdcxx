@@ -1,0 +1,95 @@
+<HTML>
+<HEAD>
+<TITLE>&lt;locale&gt;</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="list.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="locale.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>&lt;locale&gt;</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR><B><I>Header</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">See Also</A></LI>
+<LI><A HREF="#sec5">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>The header <SAMP>&lt;locale&gt;</SAMP> represents the Localization library of the Standard C++ Library. It defines the class <B><I><A HREF="locale.html">locale</A></I></B>, and a set of class and function templates for localization of software.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>namespace std {
+  class <SAMP><A HREF="locale.html">locale</A></SAMP>;
+  template &lt;class Facet&gt; const 
+           Facet&amp; <SAMP><A HREF="use-facet.html">use_facet</A></SAMP>(const locale&amp;);
+  template &lt;class Facet&gt; bool 
+           <SAMP><A HREF="has-facet.html">has_facet</A></SAMP>(const locale&amp;) throw();
+
+  template &lt;class charT&gt; bool <SAMP><A HREF="isspace.html">isspace</A></SAMP>(charT, const locale&amp;);
+  template &lt;class charT&gt; bool <SAMP><A HREF="isprint.html">isprint</A></SAMP>(charT, const locale&amp;);
+  template &lt;class charT&gt; bool <SAMP><A HREF="iscntrl.html">iscntrl</A></SAMP>(charT, const locale&amp;);
+  template &lt;class charT&gt; bool <SAMP><A HREF="isupper.html">isupper</A></SAMP>(charT, const locale&amp;);
+  template &lt;class charT&gt; bool <SAMP><A HREF="islower.html">islower</A></SAMP>(charT, const locale&amp;);
+  template &lt;class charT&gt; bool <SAMP><A HREF="isalpha.html">isalpha</A></SAMP>(charT, const locale&amp;);
+  template &lt;class charT&gt; bool <SAMP><A HREF="isdigit.html">isdigit</A></SAMP>(charT, const locale&amp;);
+  template &lt;class charT&gt; bool <SAMP><A HREF="ispunct.html">ispunct</A></SAMP>(charT, const locale&amp;);
+  template &lt;class charT&gt; bool <SAMP><A HREF="isxdigit.html">isxdigit</A></SAMP>(charT, const locale&amp;);
+  template &lt;class charT&gt; bool <SAMP><A HREF="isalnum.html">isalnum</A></SAMP>(charT, const locale&amp;);
+  template &lt;class charT&gt; bool <SAMP><A HREF="isgraph.html">isgraph</A></SAMP>(charT, const locale&amp;);
+  template &lt;class charT&gt; charT <SAMP><A HREF="toupper.html">toupper</A></SAMP>(charT, const locale&amp;);
+  template &lt;class charT&gt; charT <SAMP><A HREF="tolower.html">tolower</A></SAMP>(charT, const locale&amp;);
+
+  class ctype_base;
+  template &lt;class charT&gt; class <SAMP><A HREF="ctype.html">ctype</A></SAMP>;
+  template &lt;&gt; class <SAMP><A HREF="ctype.html">ctype&lt;char&gt;</A></SAMP>;
+  template &lt;class charT&gt; class <SAMP><A HREF="ctype-byname.html">ctype_byname</A></SAMP>;
+  template &lt;&gt; class ctype_byname&lt;char&gt;;
+  class codecvt_base;
+  template &lt;class internT, class externT, class stateT&gt;
+  class <SAMP><A HREF="codecvt.html">codecvt</A></SAMP>;
+  template &lt;class internT, class externT, class stateT&gt;
+  class <SAMP><A HREF="codecvt-byname.html">codecvt_byname</A></SAMP>;
+
+  template &lt;class charT, class InputIterator&gt;  class <SAMP><A HREF="num-get.html">num_get</A></SAMP>;
+  template &lt;class charT, class OutputIterator&gt; class <SAMP><A HREF="num-put.html">num_put</A></SAMP>;
+  template &lt;class charT&gt; class <SAMP><A HREF="numpunct.html">numpunct</A></SAMP>;
+  template &lt;class charT&gt; class <SAMP><A HREF="numpunct.html">numpunct_byname</A></SAMP>;
+
+  template &lt;class charT&gt; class <SAMP><A HREF="collate.html">collate</A></SAMP>;
+  template &lt;class charT&gt; class <SAMP><A HREF="collate.html">collate_byname</A></SAMP>;
+
+  class time_base;
+  template &lt;class charT, class InputIterator&gt;  
+  class <SAMP><A HREF="time-get.html">time_get</A></SAMP>;
+  template &lt;class charT, class InputIterator&gt;  
+  class <SAMP><A HREF="time-get-byname.html">time_get_byname</A></SAMP>;
+  template &lt;class charT, class OutputIterator&gt; class <SAMP><A HREF="time-put.html">time_put</A></SAMP>;
+  template &lt;class charT, class OutputIterator&gt; 
+  class <SAMP><A HREF="time-put-byname.html">time_put_byname</A></SAMP>;
+
+  class money_base;
+  template &lt;class charT, class InputIterator&gt;
+       class <SAMP><A HREF="money-get.html">money_get</A></SAMP>;
+  template &lt;class charT, class OutputIterator&gt;
+       class <SAMP><A HREF="money-put.html">money_put</A></SAMP>;
+  template &lt;class charT, bool Intl&gt; class <SAMP><A HREF="moneypunct.html">moneypunct</A></SAMP>;
+  template &lt;class charT, bool Intl&gt; class <SAMP><A HREF="moneypunct.html">moneypunct_byname</A></SAMP>;
+
+  class messages_base;
+  template &lt;class charT&gt; class <SAMP><A HREF="messages.html">messages</A></SAMP>;
+  template &lt;class charT&gt; class <SAMP><A HREF="messages.html">messages_byname</A></SAMP>;
+}
+</PRE>
+<A NAME="sec4"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <SAMP><A HREF="has-facet.html">has_facet()</A></SAMP>, <SAMP><A HREF="use-facet.html">use_facet()</A></SAMP>, <SAMP><A HREF="isspace.html">isspace()</A></SAMP>, <SAMP><A HREF="isprint.html">isprint()</A></SAMP>, <SAMP><A HREF="iscntrl.html">iscntrl()</A></SAMP>, <SAMP><A HREF="isupper.html">isupper()</A></SAMP>, <SAMP><A HREF="islower.html">islower()</A></SAMP>, <SAMP><A HREF="isalpha.html">isalpha()</A></SAMP>, <SAMP><A HREF="isdigit.html">isdigit()</A></SAMP>, <SAMP><A HREF="ispunct.html">ispunct()</A></SAMP>, <SAMP><A HREF="isxdigit.html">isxdigit()</A></SAMP>, <SAMP><A HREF="isalnum.html">isalnum()</A></SAMP>, <SAMP><A HREF="isgraph.html">isgraph()</A></SAMP>, <SAMP><A HREF="toupper.html">toupper()</A></SAMP>, <SAMP><A HREF="tolower.html">tolower()</A></SAMP>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="ctype.html">ctype</A></I></B>,  <B><I><A HREF="ctype-byname.html">ctype_byname</A></I></B>, <B><I><A HREF="num-get.html">num_get</A></I></B>, <B><I><A HREF="num-put.html">num_put</A></I></B>, <B><I><A HREF="numpunct.html">numpunct</A></I></B>, <B><I><A HREF="numpunct.html">numpunct_byname</A></I></B>, <B><I><A HREF="collate.html">collate</A></I></B>, <B><I><A HREF="collate.html">collate_byname</A></I></B>, <B><I><A HREF="time-get.html">time_get</A></I></B>, <B><I><A HREF="time-get-byname.html">time_get_byname</A></I></B>, <B><I><A HREF="time-put.html">time_put</A></I></B>, <B><I><A HREF="time-put-byname.html">time_put_byname</A></I></B>, <B><I><A HREF="money-get.html">money_get</A></I></B>, <B><I><A HREF="money-put.html">money_put</A></I></B>, <B><I><A HREF="moneypunct.html">moneypunct</A></I></B>, <B><I><A HREF="moneypunct.html">moneypunct_byname</A></I></B>, <B><I><A HREF="messages.html">messages</A></I></B>, <B><I><A HREF="messages.html">messages_byname</A></I></B></P>
+<A NAME="sec5"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 22.1</I></P>
+
+<BR>
+<HR>
+<A HREF="list.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="locale.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

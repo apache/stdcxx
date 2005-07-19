@@ -1,0 +1,116 @@
+<HTML>
+<HEAD>
+<TITLE>rotate(), rotate_copy()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="reverse-iterator.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="runtime-error.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>rotate(), rotate_copy()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An algorithm that rotates the given sequence left by swapping the segment that contains elements from <SAMP>start</SAMP> through <SAMP>mid-1</SAMP> with the segment that contains the elements from <SAMP>mid</SAMP> through <SAMP>finish</SAMP></P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class ForwardIterator&gt;
+  void rotate(ForwardIterator start,
+              ForwardIterator mid,
+              ForwardIterator finish);
+
+  template &lt;class ForwardIterator, class OutputIterator&gt;
+  OutputIterator rotate_copy(ForwardIterator start,
+                             ForwardIterator mid,
+                             ForwardIterator finish,
+                             OutputIterator result);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>rotate()</SAMP> algorithm takes three iterator arguments: <SAMP>start</SAMP>, which defines the beginning of a sequence; <SAMP>finish</SAMP>, which defines the end of the sequence; and <SAMP>mid</SAMP>, which defines a point within the sequence. <SAMP>rotate()</SAMP> swaps the segment that contains elements from <SAMP>start</SAMP> through <SAMP>mid-1</SAMP> with the segment that contains the elements from <SAMP>mid</SAMP> through <SAMP>finish</SAMP>. After <SAMP>rotate()</SAMP> has been applied, the element that was in position <SAMP>mid</SAMP>, is in position<SAMP> start</SAMP>, and the other elements in that segment are in the same order relative to each other. Similarly, the element that was in position <SAMP>start</SAMP> is now in position <SAMP>finish-mid +1</SAMP>. An example illustrates how <SAMP>rotate()</SAMP> works:</P>
+<P>Say that we have the sequence:</P>
+<P><SAMP>   2 4 6 8 1 3 5 </SAMP></P>
+<P>If we call <SAMP>rotate()</SAMP> with <SAMP>mid</SAMP> pointing to <SAMP>5</SAMP>, the two segments are</P>
+<P><SAMP>   2 4 6  8      and      1 3 5 </SAMP></P>
+<P>After we apply <SAMP>rotate()</SAMP>, the new sequence is:</P>
+<P><SAMP>   1 3 5 2 4 6 8</SAMP></P>
+<P>Note that the element that was in the fifth position is now in the first position, and the element that was in the first position is in position 4 (<SAMP>finish - start + 1</SAMP>, or 8 - 5 +1 =4).</P>
+<P>The formal description of this algorithms is: for each non-negative integer <SAMP>i&nbsp;&lt; (finish - start)</SAMP>, <SAMP>rotate()</SAMP> places the element from the position <SAMP>start + i</SAMP> into position <SAMP>start + (i + (finish - mid)) % (finish - start)</SAMP>.<SAMP> [start, mid)</SAMP> and <SAMP>[mid, finish)</SAMP> are valid ranges. </P>
+<P><SAMP><A HREF="rotate.html">rotate_copy()</A></SAMP> rotates the elements as described above, but instead of swapping elements within the same sequence, it copies the result of the rotation to a sequence specified by <SAMP>result</SAMP>. <SAMP>rotate_copy()</SAMP> copies the range <SAMP>[start, finish)</SAMP> to the range <SAMP>[result, result + (finish - start))</SAMP> such that for each non- negative integer <SAMP>i &lt; (finish - start)</SAMP> the following assignment takes place: </P>
+
+<UL><PRE>
+*(result + (i + (finish - mid)) % (finish - start)) = 
+  *(start + i).
+</PRE></UL>
+<P>The ranges <SAMP>[start, finish)</SAMP> and <SAMP>[result, result, + (finish - start)) </SAMP>may not overlap. </P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>For <SAMP>rotate()</SAMP>, at most <SAMP>finish - start </SAMP>swaps are performed.</P>
+<P>For <SAMP><A HREF="rotate.html">rotate_copy()</A></SAMP>, <SAMP>finish - start</SAMP> assignments are performed.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  rotate.cpp
+//
+
+#include &lt;algorithm&gt;   // for rotate
+#include &lt;iostream&gt;    // for cout, endl
+#include &lt;vector&gt;      // for vector
+
+
+int main ()
+{
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; Vector;
+
+    // Initialize a vector with an array of integers.
+    const Vector::value_type arr[] = { 1, 2, 3, 4, 5, 
+                                       6, 7, 8, 9, 10};
+    Vector v (arr + 0, arr + sizeof arr / sizeof *arr);
+
+    typedef std::ostream_iterator&lt;int, char,
+                                  std::char_traits&lt;char&gt; &gt;
+            Iter;
+
+    // Print out elements in original (sorted) order.
+    std::cout &lt;&lt; "Elements before rotate: \n     ";
+    std::copy (v.begin (), v.end (), Iter (std::cout, " "));
+
+    // Rotate the elements.
+    std::rotate (v.begin (), v.begin () + 4, v.end ());
+
+    // Print out the rotated elements.
+    std::cout &lt;&lt; "\n\nElements after rotate: \n     ";
+    std::copy (v.begin (), v.end (), Iter (std::cout, " "));
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>Elements before rotate: 
+     1 2 3 4 5 6 7 8 9 10 
+
+Elements after rotate: 
+     5 6 7 8 9 10 1 2 3 4 
+</PRE></UL>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.2.10</I></P>
+
+<BR>
+<HR>
+<A HREF="reverse-iterator.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="runtime-error.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

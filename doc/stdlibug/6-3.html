@@ -1,0 +1,115 @@
+<HTML>
+<HEAD>
+<TITLE>Example Program: An Inventory System</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="6-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="7.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>6.3 Example Program: An Inventory System</H2>
+<A NAME="idx119"><!></A>
+<A NAME="idx120"><!></A>
+<P>Let's use a simple inventory management system to illustrate the use of several <B><I><A HREF="../stdlibref/list.html">list</A></I></B> operations. Assume a business, named <I>WorldWideWidgetWorks</I>, requires a software system to manage their supply of widgets. </P>
+<BLOCKQUOTE><HR><B>
+NOTE -- The complete version of the widget works program is in file widwork.cpp.
+</B><HR></BLOCKQUOTE>
+<P>Widgets are simple devices, distinguished by different identification numbers:</P>
+
+<UL><PRE>
+class  Widget {
+public:
+  Widget(int a = 0) : id(a) { }
+  void operator=(const Widget&amp; rhs) { id = rhs.id; }
+  int id;
+  friend std::ostream&amp; operator&lt;&lt;
+    (std::ostream&amp; out, const Widget&amp; w)
+    { return out &lt;&lt; "Widget " &lt;&lt; w.id; }
+};
+
+bool operator== (const Widget&amp; lhs, const Widget&amp; rhs) {
+  return lhs.id == rhs.id;
+}
+
+bool operator&lt; (const Widget&amp; lhs, const Widget&amp; rhs) {
+  return lhs.id &lt; rhs.id;
+}
+</PRE></UL>
+<P>The state of the inventory is represented by two <B><I><A HREF="../stdlibref/list.html">list</A></I></B>s: a <B><I>list</I></B> of widgets represents the stock of widgets on hand, and a <B><I>list</I></B> of widget identification types represents the type of widgets that customers have backordered. </P>
+
+<UL><PRE>
+typedef std::list&lt;Widget, std::allocator&lt;Widget&gt; &gt; widgetList;
+typedef std::list&lt;int, std::allocator&lt;int&gt; &gt;       idList;
+</PRE></UL>
+<P>To handle our inventory we have two commands: <SAMP>order()</SAMP> processes orders, and <SAMP>receive()</SAMP> processes the shipment of a new widget.</P>
+
+<UL><PRE>
+class inventory {
+public:
+  void order (int wid);   // process order for widget type wid
+  void receive (int wid); // receive widget of type wid 
+                          // in shipment
+private:
+  widgetList on_hand;
+  idList     on_order;
+};
+</PRE></UL>
+<P>When a new widget arrives in shipment, we compare the widget identification number with the list of widget types on backorder. We use <SAMP>find()</SAMP> to search the backorder list, immediately shipping the widget if necessary. Otherwise it is added to the stock on hand:</P>
+
+<UL><PRE>
+void inventory::receive (int wid) {
+  std::cout &lt;&lt; "Received shipment of widget type "
+            &lt;&lt; wid &lt;&lt; std::endl;
+
+  idList::iterator weneed = 
+    find(on_order.begin(), on_order.end(), wid); 
+
+  if (weneed != on_order.end()) {
+    std::cout &lt;&lt; "Ship " &lt;&lt; Widget(wid) 
+              &lt;&lt; " to fill back order" &lt;&lt; std::endl;
+    on_order.erase(weneed);
+  }
+  else
+    on_hand.push_front(Widget(wid));
+}
+</PRE></UL>
+<A NAME="idx121"><!></A>
+<P>When a customer orders a new widget, we scan the list of widgets in stock to determine if the order can be processed immediately. We can use the standard algorithm <SAMP>std::find_if()</SAMP> to search the list. To do so, we need a binary function that takes as its argument a widget and determines whether the widget matches the type requested. We create this function by taking a general binary widget-testing function, and binding the second argument to the specific widget type. To use the function <SAMP>std::bind2nd()</SAMP>, however, requires that the binary function be an instance of the class <B><I><A HREF="../stdlibref/binary-function.html">binary_function</A></I></B>. The general widget-testing function is written as follows:</P>
+
+<UL><PRE>
+struct WidgetTester : std::binary_function&lt;Widget, int, bool&gt; {
+
+public:
+  bool operator()(const Widget&amp; wid, int testid) const
+  {
+    return wid.id == testid;
+  }
+
+};
+</PRE></UL>
+<P>The widget order function is then written as follows:</P>
+
+<UL><PRE>
+void inventory::order(int wid) {
+
+  std::cout &lt;&lt; "Received order for widget type " &lt;&lt; wid
+            &lt;&lt; std::endl;
+
+  widgetList::iterator wehave = 
+    std::find_if(on_hand.begin(), on_hand.end(),
+                 std::bind2nd(WidgetTester(), wid));
+
+    if (wehave != on_hand.end()) {
+      std::cout &lt;&lt; "Ship " &lt;&lt; *wehave &lt;&lt; std::endl;
+      on_hand.erase(wehave);
+   }
+   else {
+     std::cout &lt;&lt; "Back order widget of type "  &lt;&lt; wid
+               &lt;&lt; std::endl;
+     on_order.push_front(wid);
+   }
+
+}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="6-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="7.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

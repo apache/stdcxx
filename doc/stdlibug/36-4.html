@@ -1,0 +1,23 @@
+<HTML>
+<HEAD>
+<TITLE>Caveat</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="36-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="37.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>36.4 Caveat</H2>
+<P>Note that the solution suggested here has a pitfall.</P>
+<A NAME="idx895"><!></A>
+<P>The manipulator takes the format specification and stores it. The inserter retrieves it and uses it. In such a situation, the question arises: Who owns the format string? In other words, who is responsible for creating and deleting it and hence controlling its lifetime? Neither the manipulator nor the inserter can own it because they share it.</P>
+<P>We solved the problem by requiring the format specification to be created and deleted by the iostream user. Only a pointer to the format string is handed over to the manipulator, and only this pointer is stored through <SAMP>std::ios_base::pword()</SAMP>. Also, we do not copy the format string because it would not be clear who -- the manipulator or the inserter -- is responsible for deleting the copy. Hence the stream user has to monitor the format string's lifetime, and ensure that the format string is valid for as long as it is accessed by the inserter.</P>
+<P>This introduces a subtle lifetime problem in cases where the date format is a variable instead of a constant: the stream might be a static stream and hence live longer that the date format variable. This is a problem you always deal with when storing a pointer or reference to additional data instead of copying the data.</P>
+<P>However, this subtle problem does not impose an undue burden on the user of our <SAMP>setfmt</SAMP> manipulator. If a static character sequence is provided, as in:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; setfmt("%A, %B %d, %Y") &lt;&lt; today;
+</PRE></UL>
+<P>the <SAMP>setfmt</SAMP> manipulator can be used safely, even with iostream objects with static storage duration (for example, <SAMP>cout)</SAMP>.</P>
+
+<BR>
+<HR>
+<A HREF="36-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="37.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

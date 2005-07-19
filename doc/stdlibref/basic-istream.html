@@ -1,0 +1,748 @@
+<HTML>
+<HEAD>
+<TITLE>basic_istream</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="basic-iostream.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-istringstream.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>basic_istream</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P>
+
+<PRE><HR><B><I>basic_istream</I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="ios-base.html">ios_base</A></I></B>             <HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Nonmember Types</A></LI>
+<LI><A HREF="#sec8">Constructor</A></LI>
+<LI><A HREF="#sec9">Destructor</A></LI>
+<LI><A HREF="#sentry">Class sentry</A></LI>
+<LI><A HREF="#sec11">Formatted Input Functions</A></LI>
+<LI><A HREF="#sec12">Unformatted Input Functions</A></LI>
+<LI><A HREF="#sec13">Nonmember Formatted Input Functions</A></LI>
+<LI><A HREF="#sec14">Example</A></LI>
+<LI><A HREF="#sec15">See Also</A></LI>
+<LI><A HREF="#sec16">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx146">basic_istream()</A><BR>
+<A HREF="#idx150">bool()</A><BR>
+<A HREF="#idx139">char_type</A><BR>
+<A HREF="#idx166">gcount()</A><BR>
+<A HREF="#idx167">get()</A><BR>
+<A HREF="#idx173">getline()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx175">ignore()</A><BR>
+<A HREF="#idx140">int_type</A><BR>
+<A HREF="#idx141">off_type</A><BR>
+<A HREF="#idx151">operator&gt;&gt;()</A><BR>
+<A HREF="#idx176">peek()</A><BR>
+<A HREF="#idx142">pos_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx177">putback()</A><BR>
+<A HREF="#idx178">read()</A><BR>
+<A HREF="#idx179">readsome()</A><BR>
+<A HREF="#idx180">seekg()</A><BR>
+<A HREF="#idx148">sentry()</A><BR>
+<A HREF="#idx182">sync()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx183">tellg()</A><BR>
+<A HREF="#idx143">traits_type</A><BR>
+<A HREF="#idx184">unget()</A><BR>
+<A HREF="#idx147">~basic_istream()</A><BR>
+<A HREF="#idx149">~sentry()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx144">istream</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx185">operator&gt;&gt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx145">wistream</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx187">ws()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Class that assists in reading and interpreting sequences of characters controlled by a stream buffer</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;istream&gt;
+
+namespace std {
+  template&lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class basic_istream;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class <B><I>basic_istream</I></B> assists in reading and interpreting sequences of characters controlled by a stream buffer. Two groups of functions share common properties, the formatted functions and the unformatted functions. </P>
+<P>Both groups of functions obtain (or extract) input characters from <B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B>. They both begin by constructing an object of class <A HREF="basic-istream.html#sentry">basic_istream::sentry</A> and, if this object returns <SAMP>true</SAMP> when converted to <SAMP>bool</SAMP> after construction, the function obtains the requested input. The <SAMP>sentry</SAMP> object performs exception-safe initialization, such as controlling the status of the stream or locking it in a multithread environment. </P>
+<P>Some formatted input functions parse characters extracted from the input sequence, converting the result to a value of some scalar data type, and storing the converted value in an object of that scalar type. The conversion behavior depends directly on the locale object being imbued in the stream.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  template &lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class basic_istream : virtual public basic_ios&lt;charT,traits&gt;
+  {
+  public:
+    typedef charT                     char_type;
+    typedef typename traits::int_type int_type;
+    typedef typename traits::pos_type pos_type;
+    typedef typename traits::off_type off_type;
+    typedef traits                    traits_type;
+
+    explicit basic_istream(basic_streambuf&lt;char_type,
+                                           traits_type&gt;*);
+    virtual ~basic_istream();
+
+    class sentry;
+
+    basic_istream&amp; operator&gt;&gt;(basic_istream&amp;(*)(basic_istream&amp;))
+    basic_istream&amp; operator&gt;&gt;
+     (basic_ios&lt;char_type,traits_type&gt;&amp; (*)(basic_ios&lt;char_type,
+                                            traits_type&gt;&amp;))
+    basic_istream&amp; operator&gt;&gt;(ios_base&amp; (*pf)(ios_base&amp;))
+
+    basic_istream&amp; operator&gt;&gt;(bool&amp;);
+    basic_istream&amp; operator&gt;&gt;(short&amp;);
+    basic_istream&amp; operator&gt;&gt;(unsigned short&amp;);
+    basic_istream&amp; operator&gt;&gt;(int&amp;);
+    basic_istream&amp; operator&gt;&gt;(unsigned int&amp;);
+    basic_istream&amp; operator&gt;&gt;(long&amp;);
+    basic_istream&amp; operator&gt;&gt;(unsigned long&amp;);
+    basic_istream&amp; operator&gt;&gt;(float&amp;);
+    basic_istream&amp; operator&gt;&gt;(double&amp;);
+    basic_istream&amp; operator&gt;&gt;(long double&amp;);
+
+    basic_istream&amp; operator&gt;&gt;(void*&amp;);
+    basic_istream&amp; operator&gt;&gt;(basic_streambuf&lt;char_type,
+                                               traits_type&gt;*);
+
+    streamsize gcount() const;
+    int_type get();
+    basic_istream&amp; get(char_type&amp;);
+    basic_istream&amp; get(char_type*, streamsize);
+    basic_istream&amp; get(char_type*, streamsize, char_type);
+    basic_istream&amp; get(basic_streambuf&lt;char_type,traits&gt;&amp;);
+    basic_istream&amp; get(basic_streambuf&lt;char_type,traits&gt;&amp;,
+                       char_type);
+
+    basic_istream&amp; getline(char_type*, streamsize);
+    basic_istream&amp; getline(char_type*, streamsize, char_type);
+
+    basic_istream&amp; ignore(streamsize = 1, 
+                           int_type = traits::eof());
+    int_type peek();
+    basic_istream&amp; read(char_type*, streamsize);
+    streamsize readsome(char_type*, streamsize);
+
+    basic_istream&amp; putback(char_type);
+    basic_istream&amp; unget();
+    int sync();
+
+    pos_type tellg();
+    basic_istream&amp; seekg(pos_type);
+    basic_istream&amp; seekg(off_type, ios_base::seekdir);
+  };
+
+  template&lt;class charT, class traits&gt;
+  basic_istream&lt;charT,traits&gt;&amp;
+  operator&gt;&gt;(basic_istream&lt;charT traits&gt;&amp;, charT&amp;);
+  
+  template&lt;class traits&gt;
+  basic_istream&lt;char,traits&gt;&amp; 
+  operator&gt;&gt;(basic_istream&lt;char, traits&gt;&amp;, unsigned char&amp;);
+  
+  template&lt;class traits&gt;
+  basic_istream&lt;char,traits&gt;&amp;
+  operator&gt;&gt;(basic_istream&lt;char,traits&gt;&amp;, signed char&amp;);
+
+  template&lt;class charT, class traits&gt;
+  basic_istream&lt;charT,traits&gt;&amp;
+  operator&gt;&gt;(basic_istream&lt;charT,traits&gt;&amp;, charT*);
+  
+  template&lt;class traits&gt;
+  basic_istream&lt;char,traits&gt;&amp;
+  operator&gt;&gt;(basic_istream&lt;char,traits&gt;&amp;, unsigned char*);
+  
+  template&lt;class traits&gt;
+  basic_istream&lt;char,traits&gt;&amp;
+  operator&gt;&gt;(basic_istream&lt;char,traits&gt;&amp;, signed char*);
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx139"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>The type <SAMP>char_type</SAMP> is a synonym for the template parameter <SAMP>charT</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx140"></A><PRE><B>int_type</B></PRE>
+<UL>
+<P>The type<SAMP> int_type</SAMP> is a synonym of type<SAMP> traits::in_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx141"></A><PRE><B>off_type</B></PRE>
+<UL>
+<P>The type <SAMP>off_type</SAMP> is a synonym of type <SAMP>traits::off_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx142"></A><PRE><B>pos_type</B></PRE>
+<UL>
+<P>The type<SAMP> pos_type</SAMP> is a synonym of type<SAMP> traits::pos_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx143"></A><PRE><B>traits_type</B></PRE>
+<UL>
+<P>The type <SAMP>traits_type</SAMP> is a synonym for the template parameter <SAMP>traits</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Nonmember Types</H3></A>
+
+<A NAME="idx144"></A><PRE><B>istream</B></PRE>
+<UL>
+<P>The type <SAMP>istream</SAMP> is a specialization of class <B><I>basic_istream</I></B> on type <SAMP>char</SAMP>:</P>
+<P><SAMP>typedef basic_istream&lt;char&gt; istream;</SAMP></P>
+</UL>
+
+
+<A NAME="idx145"></A><PRE><B>wistream</B></PRE>
+<UL>
+<P>The type <SAMP>wistream</SAMP> is a specialization of class <B><I>basic_istream</I></B> on type <SAMP>wchar_t</SAMP>:</P>
+<P><SAMP>typedef basic_istream&lt;wchar_t&gt; wistream;</SAMP></P>
+</UL>
+
+<A NAME="sec8"><H3>Constructor</H3></A>
+
+<A NAME="idx146"></A><PRE>explicit <B>basic_istream</B>(basic_streambuf&lt;charT, traits&gt;* sb); </PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_istream</I></B>, assigning initial values to the base class by calling <SAMP>basic_ios::init(sb)</SAMP>.</P>
+</UL>
+
+<A NAME="sec9"><H3>Destructor</H3></A>
+
+<A NAME="idx147"></A><PRE>virtual <B>~basic_istream</B>();</PRE>
+<UL>
+<P>Destroys an object of class <B><I>basic_istream</I></B>.</P>
+</UL>
+
+<A NAME="sentry"><H3>Class sentry</H3></A>
+<P><B>Interface</B></P>
+
+<UL><PRE>
+namespace std { 
+  template &lt;class charT,class traits = char_traits&lt;charT&gt; &gt; 
+  class basic_istream&lt;charT,traits&gt;::sentry 
+  { 
+  public: 
+
+    explicit sentry(basic_istream&lt;charT,traits&gt;&amp;, bool = false);
+    ~sentry(); 
+    operator bool() const;
+
+  private: 
+    sentry(const sentry&amp;);            // undefined 
+    sentry&amp; operator=(const sentry&amp;); // undefined
+  };
+}
+</PRE></UL>
+<P><B>Constructor</B></P>
+
+<A NAME="idx148"></A><PRE>explicit <B>sentry</B>(basic_istream&lt;charT,traits&gt; &amp;is,
+                bool noskipws = 0); </PRE>
+<UL>
+<P>Prepares for formatted or unformatted input. If <SAMP>is.tie()</SAMP> does not return a null pointer, the function synchronizes the output sequence with any associated stream by calling <SAMP>is.tie()-&gt;flush()</SAMP>. If <SAMP>noskipws</SAMP> is zero and the <B><I><A HREF="ios-base.html">ios_base</A></I></B> member function <SAMP>flags() &amp; skipws</SAMP> is nonzero, the function extracts and discards each character as long as the next available input character is a white space character. If after any preparation is completed, <SAMP>is.good()</SAMP> returns <SAMP>true</SAMP>, the sentry conversion function operator <SAMP>bool()</SAMP> returns <SAMP>true</SAMP>. Otherwise it returns <SAMP>false</SAMP>. In a multithread environment, the sentry object constructor is responsible for locking the stream and the stream buffer associated with the stream.</P>
+</UL>
+
+<P><B>Destructor</B></P>
+
+<A NAME="idx149"></A><PRE><B>~sentry</B>();</PRE>
+<UL>
+<P>Destroys an object of class sentry. In a multithread environment, the sentry object destructor is responsible for unlocking the stream and the stream buffer associated with the stream.</P>
+</UL>
+
+<P><B>Operator</B></P>
+
+<A NAME="idx150"></A><PRE>operator <B>bool</B>();</PRE>
+<UL>
+<P>If after any preparation is completed, <SAMP>is.good()</SAMP> returns <SAMP>true</SAMP>, the sentry conversion function operator <SAMP>bool()</SAMP> returns <SAMP>true</SAMP>. Otherwise, it returns <SAMP>false</SAMP>.</P>
+</UL>
+
+<A NAME="sec11"><H3>Formatted Input Functions</H3></A>
+
+<A NAME="idx151"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(basic_istream&amp; (*pf)(basic_istream&amp;));</PRE>
+<UL>
+<P>Calls <SAMP>pf(*this)</SAMP>, then returns <SAMP>*this</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx152"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(basic_ios&lt;charT, traits&gt;&amp; (*pf)(basic_ios&lt;charT,
+                                           traits&gt;&amp;));</PRE>
+<UL>
+<P>Calls <SAMP>pf(*this)</SAMP>, then returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx153"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(ios_base&amp; (*pf)(ios_base&amp;));</PRE>
+<UL>
+<P>Calls <SAMP>pf(*this)</SAMP>, then returns <SAMP>*this</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx154"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(bool&amp; n);</PRE>
+<UL>
+<P>Converts a Boolean value, if one is available, and stores it in <SAMP>n</SAMP>. If the <B><I><A HREF="ios-base.html">ios_base</A></I></B> member function <SAMP>flag() &amp; ios_base::boolalpha</SAMP> is <SAMP>false</SAMP>, it tries to read an integer value, which must be <SAMP>0</SAMP> or <SAMP>1</SAMP>, if found. If the <SAMP>boolalpha</SAMP> flag is <SAMP>true</SAMP>, it reads characters until it determines whether the characters read are correct according to the <B><I><A HREF="locale.html">locale</A></I></B> function <SAMP>numpunct&lt;&gt;::truename()</SAMP> or <SAMP>numpunct&lt;&gt;::falsename()</SAMP>. If no match is found, it calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(failbit)</SAMP>, which may throw <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>.</P>
+</UL>
+
+
+<A NAME="idx155"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(short&amp; n);</PRE>
+<UL>
+<P>Converts a <SAMP>signed short</SAMP> integer, if one is available, and stores it in <SAMP>n</SAMP>, then returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx156"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(unsigned short&amp; n);</PRE>
+<UL>
+<P>Converts an <SAMP>unsigned short</SAMP> integer, if one is available, and stores it in&nbsp;<SAMP>n</SAMP>, then returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx157"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(int&amp; n);</PRE>
+<UL>
+<P>Converts a <SAMP>signed integer</SAMP>, if one is available, and stores it in <SAMP>n</SAMP>, then returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx158"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(unsigned int&amp; n);</PRE>
+<UL>
+<P>Converts an <SAMP>unsigned integer</SAMP>, if one is available, and stores it in <SAMP>n</SAMP>, then returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx159"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(long&amp; n);</PRE>
+<UL>
+<P>Converts a <SAMP>signed long</SAMP> integer, if one is available, and stores it in <SAMP>n</SAMP>, then returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx160"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(unsigned long&amp; n);</PRE>
+<UL>
+<P>Converts an <SAMP>unsigned long</SAMP> integer, if one is available, and stores it in <SAMP>n</SAMP>, then returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx161"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(float&amp; f);</PRE>
+<UL>
+<P>Converts a <SAMP>float</SAMP>, if one is available, and stores it in <SAMP>f</SAMP>, then returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx162"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(double&amp; f);</PRE>
+<UL>
+<P>Converts a <SAMP>double</SAMP>, if one is available, and stores it in <SAMP>f</SAMP>, then returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx163"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(long double&amp; f);</PRE>
+<UL>
+<P>Converts a <SAMP>long double</SAMP>, if one is available, and stores it in <SAMP>f</SAMP>, then returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx164"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(void*&amp; p);</PRE>
+<UL>
+<P>Extracts a <SAMP>void</SAMP> pointer, if one is available, and stores it in <SAMP>p</SAMP>, then returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx165"></A><PRE>basic_istream&amp; 
+<B>operator&gt;&gt;</B>(basic_streambuf&lt;charT, traits&gt;* sb);</PRE>
+<UL>
+<P>If <SAMP>sb</SAMP> is null, calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(badbit)</SAMP>, which may throw <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>. Otherwise, extracts characters from <SAMP>*this</SAMP> and inserts them in the output sequence controlled by <SAMP>sb</SAMP>. Characters are extracted and inserted until any of the following occurs:</P>
+<UL>
+<LI><P CLASS="LIST">an end-of-file on the input sequence</P></LI>
+<LI><P CLASS="LIST">a failure when inserting in the output sequence</P></LI>
+<LI><P CLASS="LIST">an exception</P></LI>
+</UL>
+<P>If the function stores no characters, it calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(failbit)</SAMP>, which may throw <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>. If failure is due to catching an exception thrown while extracting characters from <SAMP>sb</SAMP>, and <SAMP>failbit</SAMP> is on in <SAMP>exception()</SAMP>, the caught exception is rethrown. </P>
+</UL>
+
+<A NAME="sec12"><H3>Unformatted Input Functions</H3></A>
+
+<A NAME="idx166"></A><PRE>streamsize 
+<B>gcount</B>() const; </PRE>
+<UL>
+<P>Returns the number of characters extracted by the last unformatted input member function called.</P>
+</UL>
+
+
+<A NAME="idx167"></A><PRE>int_type 
+<B>get</B>();</PRE>
+<UL>
+<P>Extracts a character, if one is available. Otherwise, the function calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(failbit)</SAMP>, which may throw <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>. Returns the character extracted or returns <SAMP>traits::eof()</SAMP>, if none is available.</P>
+</UL>
+
+
+<A NAME="idx168"></A><PRE>basic_istream&amp; 
+<B>get</B>(char_type&amp; c);</PRE>
+<UL>
+<P>Extracts a character, if one is available, and assigns it to <SAMP>c</SAMP>. Otherwise, the function calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(failbit)</SAMP>, which may throw <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>.</P>
+</UL>
+
+
+<A NAME="idx169"></A><PRE>basic_istream&amp; 
+<B>get</B>(char_type* s, streamsize n, char_type delim);</PRE>
+<UL>
+<P>Extracts characters and stores them into successive locations of an array whose first element is designated by <SAMP>s</SAMP>. Characters are extracted and stored until any of the following occurs:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>n</SAMP>-1 characters are stored</P></LI>
+<LI><P CLASS="LIST">an end-of-file on the input sequence is reached</P></LI>
+<LI><P CLASS="LIST">the next available input character<SAMP> == delim</SAMP></P></LI>
+</UL>
+<P>If the function stores no characters, it calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(failbit)</SAMP>, which may throw <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>. If failure is due to catching an exception thrown while extracting characters from <SAMP>sb</SAMP> and <SAMP>failbit</SAMP> is on in <SAMP>exception()</SAMP>, the caught exception is rethrown.</P>
+</UL>
+
+
+<A NAME="idx170"></A><PRE>basic_istream&amp; 
+<B>get</B>(char_type* s, streamsize n);</PRE>
+<UL>
+<P>Calls <SAMP>get(s,n,widen('\n'))</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx171"></A><PRE>basic_istream&amp; 
+<B>get</B>(basic_streambuf&lt;char_type, traits_type&gt;&amp; sb, 
+    char_type delim);</PRE>
+<UL>
+<P>Extracts characters and inserts them into the output sequence controlled by <SAMP>sb</SAMP>. Characters are extracted and inserted until any of the following occurs: </P>
+<UL>
+<LI><P CLASS="LIST">an end-of-file on the input sequence </P></LI>
+<LI><P CLASS="LIST">a failure when inserting in the output sequence </P></LI>
+<LI><P CLASS="LIST">the next available input character <SAMP>== delim</SAMP>. </P></LI>
+<LI><P CLASS="LIST">an exception</P></LI>
+</UL>
+<P>If the function stores no characters, it calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(failbit)</SAMP>, which may throw <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>. If failure is due to catching an exception thrown while extracting characters from <SAMP>sb</SAMP>, and <SAMP>failbit</SAMP> is on in <SAMP>exception()</SAMP>, the caught exception is rethrown.</P>
+</UL>
+
+
+<A NAME="idx172"></A><PRE>basic_istream&amp; 
+<B>get</B>(basic_streambuf&lt;char_type, traits_type&gt;&amp; sb);</PRE>
+<UL>
+<P>Calls <SAMP>get(sb, widen ('\n'))</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx173"></A><PRE>basic_istream&amp; 
+<B>getline</B>(char_type* s, streamsize n, char_type delim);</PRE>
+<UL>
+<P>Extracts characters and stores them into successive locations of an array whose first element is designated by <SAMP>s</SAMP>. Characters are extracted and stored until any of the following occurs: </P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST">an end-of-file on the input sequence </P></LI>
+<LI><P CLASS="LIST">the next available input character <SAMP>== delim</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>n - 1</SAMP> characters are stored. In this case, the function calls <SAMP>setstate(failbit))</SAMP>. </P></LI>
+</UL>
+<UL>
+<P>The conditions are tested in the order shown so that the function can exactly fill the buffer without setting <SAMP>failbit</SAMP>. If the function stores no characters, it calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(failbit)</SAMP>, which may throw <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>. In any case, it stores a null character into the next successive location of the array.</P>
+</UL>
+
+
+<A NAME="idx174"></A><PRE>basic_istream&amp; 
+<B>getline</B>(char_type* s, streamsize n);</PRE>
+<UL>
+<P>Calls <SAMP>getline(s,n,widen('\n'))</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx175"></A><PRE>basic_istream&amp; 
+<B>ignore</B>(streamsize n = 1, int_type delim = traits_type::eof());</PRE>
+<UL>
+<P>Extracts characters and discards them. Characters are extracted until any of the following occurs:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>n</SAMP> characters are extracted.</P></LI>
+<LI><P CLASS="LIST">an end-of-file on the input sequence is reached</P></LI>
+<LI><P CLASS="LIST">the next available input character<SAMP> == delim</SAMP></P></LI>
+</UL>
+</UL>
+
+
+<A NAME="idx176"></A><PRE>int_type 
+<B>peek</B>();</PRE>
+<UL>
+<P>Returns <SAMP>traits::eof()</SAMP> if the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>good()</SAMP> returns <SAMP>false</SAMP>. Otherwise, returns the next available character. Does not increment the current <SAMP>get</SAMP> pointer.</P>
+</UL>
+
+
+<A NAME="idx177"></A><PRE>basic_istream&amp;  
+<B>putback</B>(char_type c);</PRE>
+<UL>
+<P>If <SAMP>rdbuf ()</SAMP> returns non-null, inserts <SAMP>c</SAMP> in the putback sequence by calling <SAMP>rdbuf()-&gt;sputbackc()</SAMP>. Otherwise, or if <SAMP>sputback()</SAMP> fails, calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(badbit)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx178"></A><PRE>basic_istream&amp; 
+<B>read</B>(char_type* s, streamsize n); </PRE>
+<UL>
+<P>Extracts characters and stores them into successive locations of an array whose first element is designated by <SAMP>s</SAMP>. Characters are extracted and stored until any of the following occurs:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>n</SAMP> characters are stored.</P></LI>
+<LI><P CLASS="LIST">An end-of-file on the input sequence is reached. In this case, the function calls <SAMP>setstate (failbit | eofbit)</SAMP>, which may throw <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>.</P></LI>
+</UL>
+</UL>
+
+
+<A NAME="idx179"></A><PRE>
+streamsize 
+<B>readsome</B>(char_type* s, streamsize n); </PRE>
+<UL>
+<P>Extracts characters and stores them into successive locations of an array whose first element is designated by <SAMP>s</SAMP>. If <SAMP>rdbuf()-&gt;in_avail() == -1</SAMP>, calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(eofbit)</SAMP>.</P>
+<UL>
+<LI><P CLASS="LIST">If <SAMP>rdbuf()-&gt;in_avail() == 0</SAMP>, extracts no characters</P></LI>
+<LI><P CLASS="LIST">If <SAMP>rdbuf()-&gt;in_avail() &gt; 0</SAMP>, extracts <br><SAMP>min(rdbuf()-&gt;in_avail(), n)</SAMP> </P></LI>
+</UL>
+<P>In any case the function returns the number of characters extracted. </P>
+</UL>
+
+
+<A NAME="idx180"></A><PRE>basic_istream&amp; 
+<B>seekg</B>(pos_type pos); </PRE>
+<UL>
+<P>If the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>fail()</SAMP> returns <SAMP>false</SAMP>, executes <SAMP>rdbuf()-&gt;pubseekpos(pos)</SAMP>, which positions the current pointer of the input sequence at the position designated by <SAMP>pos</SAMP>. If positioning fails, calls the <B><I>basic_ios</I></B> member function <SAMP>setstate(failbit)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx181"></A><PRE>istream_type&amp; 
+<B>seekg</B>(off_type&amp; off, ios_base::seekdir dir);</PRE>
+<UL>
+<P>If the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>fail()</SAMP> returns <SAMP>false</SAMP>, and executes <SAMP>rdbuf()-&gt;pubseekpos(off,dir)</SAMP>, which positions the current pointer of the input sequence at the position designated by <SAMP>off</SAMP> and <SAMP>dir</SAMP>. If positioning fails, calls the <B><I>basic_ios</I></B> member function <SAMP>setstate(failbit)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx182"></A><PRE>int 
+<B>sync</B>();</PRE>
+<UL>
+<P>If <SAMP>rdbuf()</SAMP> is a null pointer, returns <SAMP>-1</SAMP>. Otherwise, calls <SAMP>rdbuf()-&gt;pubsync()</SAMP>; if that function returns <SAMP>-1</SAMP>, calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(badbit)</SAMP> and returns <SAMP>-1</SAMP>. The purpose of this function is to synchronize the internal input buffer with the external sequence of characters.</P>
+</UL>
+
+
+<A NAME="idx183"></A><PRE>pos_type 
+<B>tellg</B>();</PRE>
+<UL>
+<P>If the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>fail()</SAMP> returns <SAMP>true</SAMP>, <SAMP>tellg()</SAMP> returns <SAMP>pos_type(off_type(-1))</SAMP> to indicate failure. Otherwise, it returns the current position of the input sequence by calling <SAMP>rdbuf()-&gt;pubseekoff(0,cur,in)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx184"></A><PRE>basic_istream&amp; 
+<B>unget</B>();</PRE>
+<UL>
+<P>If <SAMP>rdbuf()</SAMP> is not null, calls <SAMP>rdbuf()-&gt;sungetc()</SAMP>. If <SAMP>rdbuf()</SAMP> is null or if <SAMP>sungetc()</SAMP> returns <SAMP>traits::eof()</SAMP>, calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(badbit)</SAMP>. </P>
+</UL>
+
+<A NAME="sec13"><H3>Nonmember Formatted Input Functions</H3></A>
+
+<A NAME="idx185"></A><PRE>template&lt;class charT, class traits&gt;
+basic_istream&lt;charT, traits&gt;&amp;
+<B>operator&gt;&gt;</B>(basic_istream&lt;charT, traits&gt;&amp; is, charT&amp; c); 
+template&lt;class traits&gt;
+basic_istream&lt;char, traits&gt;&amp;
+<B>operator&gt;&gt;</B>(basic_istream&lt;char, traits&gt;&amp; is, unsigned char &amp;c);
+template&lt;class traits&gt;
+basic_istream&lt;char, traits&gt;&amp;
+<B>operator&gt;&gt;</B>(basic_istream&lt;char, traits&gt;&amp; is, signed char &amp;c)</PRE>
+<UL>
+<P>Extracts a character, if one is available, and stores it in <SAMP>c</SAMP>. Otherwise, calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(failbit)</SAMP>, which may throw <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>.</P>
+</UL>
+
+
+<A NAME="idx186"></A><PRE>template&lt;class charT, class traits&gt;
+basic_istream&lt;charT, traits&gt;&amp;
+<B>operator&gt;&gt;</B>(basic_istream&lt;charT, traits&gt;&amp; is, charT* s);
+template&lt;class traits&gt;
+basic_istream&lt;char, traits&gt;&amp;
+<B>operator&gt;&gt;</B>(basic_istream&lt;char, traits&gt;&amp; is, unsigned char *s);
+template&lt;class traits&gt;
+basic_istream&lt;char, traits&gt;&amp;
+<B>operator&gt;&gt;</B>(basic_istream&lt;char, traits&gt;&amp; is, signed char *s);</PRE>
+<UL>
+<P>Extracts characters and stores them into successive locations of an array whose first element is designated by <SAMP>s</SAMP>. If the <B><I><A HREF="ios-base.html">ios_base</A></I></B> member function <SAMP>is.width()</SAMP> is greater than zero, then <SAMP>is.width()</SAMP> is the maximum number of characters stored. Characters are extracted and stored until any of the following occurs:</P>
+<UL>
+<LI><P CLASS="LIST">if <SAMP>is.width()&gt;0</SAMP>,<SAMP> is.width()-1</SAMP> characters are extracted</P></LI>
+<LI><P CLASS="LIST">an end-of-file on the input sequence is reached</P></LI>
+<LI><P CLASS="LIST">the next available input character is a white space</P></LI>
+</UL>
+<P>If the function stores no characters, it calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(failbit)</SAMP>, which may throw <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>. In any case, it then stores a null character into the next successive location of the array and calls <SAMP>width(0)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx187"></A><PRE>template&lt;class charT, class traits&gt;
+basic_istream&lt;charT, traits&gt;&amp;
+<B>ws</B>(basic_istream&lt;charT, traits&gt;&amp; is); </PRE>
+<UL>
+<P>Skips any white space in the input sequence and returns <SAMP>is</SAMP>.</P>
+</UL>
+
+<A NAME="sec14"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  istream1.cpp
+//
+ 
+#include &lt;iostream&gt;   // for basic_istream, cout, endl, flush
+#include &lt;fstream&gt;    // for basic_ofstream
+#include &lt;stdio.h&gt;    // for tmpnam () and remove ()
+
+
+int main ( )
+{
+    // typedefs for convenience
+    typedef std::basic_istream&lt;char, std::char_traits&lt;char&gt; &gt;         Input;
+    typedef std::basic_ofstream&lt;Input::char_type, Input::traits_type&gt; Output;
+
+    Input::char_type s [200];
+
+    // create a temporary filename
+    const char *fname = tmpnam (0);
+
+    if (!fname)
+        return 1;
+  
+    // open a file for read and write operations 
+    Output out (fname, std::ios::in | std::ios::out | std::ios::trunc);
+
+    // tie the istream object to the ofstream filebuf 
+    Input in (out.rdbuf ());
+
+    float f = 3.14159;
+    int   i = 3;
+
+    // output to the file
+    out &lt;&lt; "He lifted his head and pondered.\n"
+        &lt;&lt; f &lt;&lt; std::endl &lt;&lt; i &lt;&lt; std::endl;
+  
+    // seek to the beginning of the file
+    in.seekg (0);
+  
+    f = i = 0;
+
+    // read from the file using formatted functions
+    in.getline (s, sizeof s);
+    in &gt;&gt; f &gt;&gt; i;
+
+    // seek to the beginning of the file
+    in.seekg (0, std::ios::beg);
+
+    // output the all file to the standard output
+    std::cout &lt;&lt; in.rdbuf ();
+
+    // seek to the beginning of the file
+    in.seekg (0);
+ 
+    // read the first line in the file
+    // "He lifted his head and pondered."
+    in.getline (s, sizeof s / 2);
+
+    std::cout &lt;&lt; s &lt;&lt; std::endl;
+
+    // read the second line in the file
+    in.getline (s, sizeof s / 2);
+
+    std::cout &lt;&lt; s &lt;&lt; std::endl;
+
+    // seek to the beginning of the file
+    in.seekg (0);
+
+    // read the first line in the file
+    // "He lifted his head and pondered."
+    in.get (s, sizeof s / 2);
+
+    // remove the newline character
+    in.ignore ();
+
+    std::cout &lt;&lt; s &lt;&lt; std::endl;
+
+    // read the second line in the file
+    // 3.14159
+    in.get (s, sizeof s / 2);
+
+    std::cout &lt;&lt; s &lt;&lt; std::endl;
+
+    // remove the newline character
+    in.ignore ();
+
+    // store the current file position   
+    const Input::pos_type position = in.tellg ();
+ 
+    out &lt;&lt; std::endl &lt;&lt; "replace the int" &lt;&lt; std::endl;
+
+    // move back to the previous saved position
+    in.seekg (position);   
+
+    // for convenience
+    const Input::int_type eof = Input::traits_type::eof ();
+
+    // output the remainder of the file
+    // this is equivalent to "std::cout &lt;&lt; in.rdbuf ();"
+    while (!Input::traits_type::eq_int_type (in.peek (), eof))
+        std::cout &lt;&lt; Input::traits_type::to_char_type (in.get ()); 
+ 
+    std::cout &lt;&lt; "\n\n\n" &lt;&lt; std::flush;
+
+    // remove temporary file
+    remove (fname);
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>He lifted his head and pondered.
+3.14159
+3
+He lifted his head and pondered.
+3.14159
+He lifted his head and pondered.
+3.14159
+
+replace the int
+
+
+
+</PRE></UL>
+<A NAME="sec15"><H3>See Also</H3></A>
+<P><B><I><A HREF="char-traits.html">char_traits</A></I></B>, <B><I><A HREF="ios-base.html">ios_base</A></I></B>, <B><I><A HREF="basic-ios.html">basic_ios</A></I></B>, <B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B>, <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B></P>
+<A NAME="sec16"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.6.1.1</I></P>
+
+<BR>
+<HR>
+<A HREF="basic-iostream.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-istringstream.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

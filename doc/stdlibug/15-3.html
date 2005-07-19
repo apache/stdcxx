@@ -1,0 +1,114 @@
+<HTML>
+<HEAD>
+<TITLE>Building Your Own Allocators</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="15-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="16.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>15.3 Building Your Own Allocators</H2>
+<A NAME="idx377"><!></A>
+<P>Defining your own <B><I><A HREF="../stdlibref/allocator.html">allocator</A></I></B> is a relatively simple process. The Standard C++ Library describes a particular interface, consisting of types and functions. An allocator that conforms to the standard must match the syntactic requirements for these member functions and types. The Standard C++ Library also specifies a portion of the semantics for the allocator type.</P>
+<A NAME="1531"><H3>15.3.1 Using the Standard Allocator Interface</H3></A>
+<A NAME="idx378"><!></A>
+<P>An <B><I><A HREF="../stdlibref/allocator.html">allocator</A></I></B> that conforms to the Standard C++ Library allocator specification must have the following interface. The example uses <SAMP>my_allocator</SAMP> as a place holder for your own allocator name:</P>
+
+<UL><PRE>
+template &lt;class T&gt;
+class my_allocator 
+{
+  typedef <I>unsigned integral type</I>    size_type; 
+  typedef <I>signed integral type</I>      difference_type;
+  typedef <I>pointer to T</I>              pointer;
+  typedef <I>const pointer to T</I>        const_pointer;
+  typedef T&amp;                        reference;
+  typedef const T&amp;                  const_reference;
+  typedef T                         value_type;
+
+  template &lt;class U&gt; 
+  struct rebind { typedef allocator&lt;U&gt; other; };
+};
+</PRE></UL>
+<P>The rebind member allows a container to construct an allocator for some arbitrary type out of the allocator type provided as a template parameter. For instance, the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> container gets an <B><I><A HREF="../stdlibref/allocator.html">allocator&lt;T&gt;</A></I></B> by default, but a <B><I>list</I></B> may well need to allocate <B><I>list_node</I></B>s as well as <B><I>T</I></B>'s. The container can construct an allocator for <B><I>list_node</I></B>s out of the allocator for <B><I>T</I></B>, which is the template parameter <B><I><A HREF="../stdlibref/allocator.html">Allocator</A></I></B> in this case, as follows:</P>
+
+<UL><PRE>
+Allocator::rebind&lt;list_node&gt;::other list_node_allocator;
+</PRE></UL>
+<A NAME="idx379"><!></A>
+<P>Here is a description of the member functions that an <B><I><A HREF="../stdlibref/allocator.html">allocator</A></I></B> class template must provide:</P>
+
+<A NAME="idx380"></A><PRE>
+<B>my_allocator</B>();
+template &lt;class U&gt;</PRE>
+<UL>
+</UL>
+
+
+<A NAME="idx381"></A><PRE><B>my_allocator</B>(const my_allocator&lt;U&gt;&amp;);
+template &lt;class U&gt;</PRE>
+<UL>
+<P>Constructors.</P>
+</UL>
+
+
+<A NAME="idx382"></A><PRE><B>~my_allocator</B>();</PRE>
+<UL>
+<P>Destructor.</P>
+</UL>
+
+
+<A NAME="idx383"></A><PRE><B>operator=</B>(const my_allocator&lt;U&gt;&amp;);</PRE>
+<UL>
+<P>Assignment operator.</P>
+</UL>
+
+
+<A NAME="idx384"></A><PRE><B>pointer address</B>(reference r) const;</PRE>
+<UL>
+<P>Returns the address of <SAMP>r</SAMP> as a <SAMP>pointer</SAMP> type. This function and the following function are used to convert references to pointers.</P>
+</UL>
+
+
+<A NAME="idx385"></A><PRE><B>const_pointer address</B>(const_reference r) const;</PRE>
+<UL>
+<P>Returns the address of <SAMP>r</SAMP> as a <SAMP>const_pointer</SAMP> type.</P>
+</UL>
+
+
+<A NAME="idx386"></A><PRE><B>pointer allocate</B>(size_type n, allocator&lt;U&gt;::const_pointer hint=0);</PRE>
+<UL>
+<P>Allocates storage for <SAMP>n</SAMP> values of<SAMP> T</SAMP>. Uses the value of <SAMP>hint</SAMP> to optimize storage placement, if possible.</P>
+</UL>
+
+
+<A NAME="idx387"></A><PRE>void 
+<B>deallocate</B>(pointer);</PRE>
+<UL>
+<P>Deallocates storage obtained by a call to <SAMP>allocate</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx388"></A><PRE>size_type 
+<B>max_size</B>();</PRE>
+<UL>
+<P>Returns the largest possible storage available through a call to <SAMP>allocate</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx389"></A><PRE>void 
+<B>construct</B>(pointer p, const_reference val);</PRE>
+<UL>
+<P>Constructs an object of type <SAMP>T</SAMP> at the location of <SAMP>p</SAMP>, using the value of <SAMP>val</SAMP> in the call to the constructor for <SAMP>T</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx390"></A><PRE>void 
+<B>destroy</B>(pointer p);</PRE>
+<UL>
+<P>Calls the destructor on the value pointed to by <SAMP>p</SAMP>.</P>
+</UL>
+
+<P>Additionally, user-defined allocators must be equality comparable: if <SAMP>a</SAMP> and <SAMP>b</SAMP> are instances of a user-defined allocator, then the expressions <SAMP>(a == b)</SAMP> and <SAMP>(a != b)</SAMP> must be well-formed.</P>
+
+<BR>
+<HR>
+<A HREF="15-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="16.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

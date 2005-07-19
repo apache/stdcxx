@@ -1,0 +1,111 @@
+<HTML>
+<HEAD>
+<TITLE>operator new</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="operatordelete.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="operators.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>operator new</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-2.html">Language support</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Global Functions</A></LI>
+<LI><A HREF="#sec6">Global Operators</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1054">new()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1053">set_new_handler()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Storage allocation functions implicitly called by the corresponding new expressions to allocate storage suitably aligned to construct any object of a given size</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;new&gt;
+
+namespace std {
+    class bad_alloc;
+    struct nothrow_t {};
+    extern const nothrow_t nothrow;
+    typedef void (*new_handler)();
+    new_handler set_new_handler new_handler) throw();
+}
+
+void* operator new(std::size_t) throw (std::bad_alloc);
+void* operator new(std::size_t, const std::nothrow_t&amp;) 
+        throw();
+void* operator new[](std::size_t) throw(std::bad_alloc);
+void* operator new[](std::size_t, const std::nothrow_t&amp;)
+        throw();
+void* operator new(std::size_t, void*) throw();
+void* operator new[](std::size_t, void*) throw();
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The library provides definitions for six overloads of the global operator <SAMP>new</SAMP>. The functions are implicitly called as the first step during the evaluation of the corresponding <SAMP>new</SAMP> expression to allocate storage suitably aligned to construct one or more objects (for the array versions of the operator) of any type. The functions indicate failure by either throwing an exception object of type <B><I><A HREF="bad-alloc.html">bad_alloc</A></I></B> or by returning the null pointer. Replacements for the replaceable forms of the functions should always paired with the replacements for the corresponding overload of operator <SAMP>delete</SAMP>.</P>
+<A NAME="sec5"><H3>Global Functions</H3></A>
+
+<A NAME="idx1053"></A><PRE>new_handler 
+<B>set_new_handler</B>(new_handler handler) throw(); </PRE>
+<UL>
+<P>Establishes handler as the current <I>new_handler</I>. The first time <SAMP>set_new_handler()</SAMP> is called, it returns the null pointer. Subsequent calls to <SAMP>set_new_handler()</SAMP> return the previous value of <I>new_handler</I>.</P>
+</UL>
+
+<A NAME="sec6"><H3>Global Operators</H3></A>
+
+<A NAME="idx1054"></A><PRE>void* operator <B>new</B>(std::size_t n) throw(std::bad_alloc); </PRE>
+<UL>
+<P>Allocation function implicitly called by a <SAMP>new</SAMP> expression to allocate <SAMP>n</SAMP> bytes of storage. The function attempts to allocate storage in a loop: if the allocation is successful, a pointer to the allocated memory is returned. Otherwise, if the last argument to <SAMP>std::set_new_handler()</SAMP> was not a null pointer, the function calls the current <I>new_handler</I>. Otherwise it throws an exception object of type <B><I><A HREF="bad-alloc.html">bad_alloc</A></I></B>. The loop terminates if the allocation is successful or the current <I>new_handler</I> doesn't return. A C++ program may replace this function.</P>
+</UL>
+
+
+<A NAME="idx1055"></A><PRE>void* operator <B>new</B>(std::size_t n, const std::nothrow_t&amp;) throw(); </PRE>
+<UL>
+<P>Allocation function similar to the one above, except that it indicates failure by returning a null pointer. A C++ program may replace this function.</P>
+</UL>
+
+
+<A NAME="idx1056"></A><PRE>void* operator <B>new</B>[](std::size_t n) throw(std::bad_alloc); </PRE>
+<UL>
+<P>Allocation function implicitly called by the array form of a <SAMP>new</SAMP> expression to allocate <SAMP>n</SAMP> bytes of storage. The function returns <SAMP>::operator new (n)</SAMP>. A C++ program may replace this function.</P>
+</UL>
+
+
+<A NAME="idx1057"></A><PRE>void* operator <B>new</B>[](std::size_t, const std::nothrow_t&amp;) throw(); </PRE>
+<UL>
+<P>Allocation function similar to the one above, except that it indicates failure by returning a null pointer. A C++ program may replace this function.</P>
+</UL>
+
+
+<A NAME="idx1058"></A><PRE>void* operator <B>new</B>(std::size_t, void *p) throw(); </PRE>
+<UL>
+<P>Allocation function implicitly called by the placement form of a <SAMP>new</SAMP> expression. Returns <SAMP>p</SAMP>. A C++ program may not replace this function.</P>
+</UL>
+
+
+<A NAME="idx1059"></A><PRE>void* operator <B>new</B>[](std::size_t, void *p) throw(); </PRE>
+<UL>
+<P>Allocation function implicitly called by the placement array form of a <SAMP>new</SAMP> expression. Returns <SAMP>p</SAMP>. A C++ program may not replace this function.</P>
+</UL>
+
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><B><I><A HREF="new-h.html">&lt;new&gt;</A></I></B>, <B><I><A HREF="bad-alloc.html">bad_alloc</A></I></B>, <B><I><A HREF="operatordelete.html">operator delete</A></I></B></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 18.4</I></P>
+
+<BR>
+<HR>
+<A HREF="operatordelete.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="operators.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

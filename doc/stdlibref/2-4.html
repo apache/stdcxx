@@ -1,0 +1,76 @@
+<HTML>
+<HEAD>
+<TITLE>General utilities library</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="2-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="2-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>2.4 General utilities library</H2>
+<P>Clause 20 of the Standard contains the General utilities library, <SAMP>lib.utilities</SAMP>. This library describes components used by other library elements, such as a predefined storage allocator for dynamic storage management. If you are reading this manual online, click the name of header file or entry to go to its description.</P>
+<H4><A NAME="Table&nbsp;3">Table&nbsp;3: General utilities library</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Header File</B>
+</td>
+<td valign=top colspan=2 rowspan=1><B>Corresponding Entries in this Reference</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;utility&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="pair.html">pair</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><A HREF="operators.html">Operators</A></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;functional&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="binary-function.html">binary_function</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="unary-function.html">unary_function</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="plus.html">plus</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="minus.html">minus</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="multiplies.html">multiplies</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="divides.html">divides</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="modulus.html">modulus</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="negate.html">negate</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="equal-to.html">equal_to</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="not-equal-to.html">not_equal_to</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="greater.html">greater</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="less.html">less</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="greater-equal.html">greater_equal</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="less-equal.html">less_equal</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="compare.html">compare</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="logical-and.html">logical_and</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="logical-or.html">logical_or</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="logical-not.html">logical_not</A></I></B></P>
+<P CLASS="TABLE"><A HREF="negators.html">Negators</A></P>
+<P CLASS="TABLE"><B><I><A HREF="unary-negate.html">unary_negate</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="binary-negate.html">binary_negate</A></I></B></P>
+<P CLASS="TABLE"><SAMP><A HREF="not1.html">not1()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="not2.html">not2()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="bind1st.html">bind1st()</A></SAMP>, <SAMP><A HREF="bind1st.html">bind2nd()</A></SAMP></P>
+<P CLASS="TABLE"><B><I><A HREF="bind1st.html">binder1st</A></I></B>, <B><I><A HREF="bind1st.html">binder2nd</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="pointer-to-unary-function.html">pointer_to_unary_function</A></I></B></P>
+<P CLASS="TABLE"><SAMP><A HREF="ptr-fun.html">ptr_fun()</A></SAMP></P>
+<P CLASS="TABLE"><B><I><A HREF="pointer-to-binary-function.html">pointer_to_binary_function</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="mem-fun.html">mem_fun</A></I></B>, <B><I><A HREF="mem-fun.html">mem_fun_ref</A></I></B></P>
+<P CLASS="TABLE"><A HREF="functionobjects.html">Function Objects</A></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;memory&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="allocator.html">allocator</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="raw-storage-iterator.html">raw_storage_iterator</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="auto-ptr.html">auto_ptr</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP><A HREF="get-temporary-buffer.html">get_temporary_buffer()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="return-temporary-buffer.html">return_temporary_buffer()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="uninitialized-copy.html">uninitialized_copy()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="uninitialized-fill.html">uninitialized_fill()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="uninitialized-fill-n.html">uninitialized_fill_n()</A></SAMP></P>
+</td>
+</tr>
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="2-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="2-5.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,211 @@
+<HTML>
+<HEAD>
+<TITLE>mask_array</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="map.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="max.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>mask_array</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-10.html">Numerics</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Constructors</A></LI>
+<LI><A HREF="#sec7">Assignment Operators</A></LI>
+<LI><A HREF="#sec8">Computed Assignment Operators</A></LI>
+<LI><A HREF="#sec9">Member Function</A></LI>
+<LI><A HREF="#sec10">Example</A></LI>
+<LI><A HREF="#sec11">See Also</A></LI>
+<LI><A HREF="#sec12">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx878">mask_array()</A><BR>
+<A HREF="#idx881">operator%=()</A><BR>
+<A HREF="#idx881">operator&amp;=()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx881">operator&gt;&gt;=()</A><BR>
+<A HREF="#idx881">operator&lt;&lt;=()</A><BR>
+<A HREF="#idx881">operator*=()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx881">operator+=()</A><BR>
+<A HREF="#idx881">operator-=()</A><BR>
+<A HREF="#idx881">operator/=()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx879">operator=()</A><BR>
+<A HREF="#idx881">operator^=()</A><BR>
+<A HREF="#idx881">operator|</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A numeric array class that gives a masked view of a <B><I><A HREF="valarray.html">valarray</A></I></B></P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;valarray&gt;
+
+namespace std {
+  template &lt;class T&gt;
+  class mask_array;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P><B><I>mask_array</I></B> gives a masked view into a <B><I><A HREF="valarray.html">valarray</A></I></B>.  A <B><I>mask_array</I></B> can only be produced by applying the mask subscript operator to a <B><I>valarray</I></B>. This subscript operator takes a <B><I>valarray&lt;bool&gt;</I></B> argument and produces a <B><I>mask_array</I></B>. Only the elements in the <B><I>valarray</I></B> whose corresponding elements in the <B><I>valarray&lt;bool&gt;</I></B> argument were <SAMP>true</SAMP> are selected by the <B><I>mask_array</I></B>. The elements in a <B><I>mask_array</I></B> are references to selected elements in the <B><I>valarray</I></B> (so changing an element in the <B><I>mask_array</I></B> really changes the corresponding element in the <B><I>valarray</I></B>). A <B><I>mask_array</I></B> does not itself hold any distinct elements. The template cannot be instantiated directly since all its constructors are private. However, you can copy a <B><I>mask_array</I></B> to a <B><I>valarray</I></B> using either the <B><I>valarray</I></B> copy constructor or the assignment operator. Reference semantics are lost at that point. </P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class T&gt; class mask_array {
+  public:
+
+    // types
+    typedef T value_type;
+
+    // destructor
+    ~mask_array();
+
+    // public assignment
+    void operator=(const valarray&lt;T&gt;&amp; array) const;
+    // computed assignment
+    void operator*=(const valarray&lt;T&gt;&amp; array) const;
+    void operator/=(const valarray&lt;T&gt;&amp; array) const;
+    void operator%=(const valarray&lt;T&gt;&amp; array) const;
+    void operator+=(const valarray&lt;T&gt;&amp; array) const;
+    void operator-=(const valarray&lt;T&gt;&amp; array) const;
+    void operator^=(const valarray&lt;T&gt;&amp; array) const;
+    void operator&amp;=(const valarray&lt;T&gt;&amp; array) const;
+    void operator|=(const valarray&lt;T&gt;&amp; array) const;
+    void operator&lt;&lt;=(const valarray&lt;T&gt;&amp; array) const;
+    void operator&gt;&gt;=(const valarray&lt;T&gt;&amp; array) const;
+ 
+    // other
+    void operator=(const T&amp;) const; 
+
+  private:
+    // constructors
+    mask_array();
+    mask_array(const mask_array&lt;T&gt;&amp;);
+    // operator=
+    mask_array&lt;T&gt;&amp; operator=(const mask_array&lt;T&gt;&amp; array);
+  };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Constructors</H3></A>
+
+<A NAME="idx878"></A><PRE><B>mask_array</B>();
+<B>mask_array</B>(const mask_array&amp;);</PRE>
+<UL>
+<P>All <B><I>mask_array</I></B> constructors are private and cannot be called directly. This prevents copy construction of <B><I>mask_array</I></B>s.</P>
+</UL>
+
+<A NAME="sec7"><H3>Assignment Operators</H3></A>
+
+<A NAME="idx879"></A><PRE>void <B>operator=</B>(const valarray&lt;T&gt;&amp; x) const;</PRE>
+<UL>
+<P>Assigns values from <SAMP>x </SAMP>to the selected elements of the <B><I><A HREF="valarray.html">valarray</A></I></B> that self refers to. Remember that a <B><I>mask_array</I></B> never holds any elements itself, it simply refers to selected elements in the <B><I>valarray</I></B> used to generate it.</P>
+</UL>
+
+
+<A NAME="idx880"></A><PRE>mask_array&lt;T&gt;&amp; 
+<B>operator=</B>(const mask_array&lt;T&gt;&amp; x);</PRE>
+<UL>
+<P>Private assignment operator. Cannot be called directly, thus preventing assignment between <B><I>mask_array</I></B>s.</P>
+</UL>
+
+<A NAME="sec8"><H3>Computed Assignment Operators</H3></A>
+
+<A NAME="idx881"></A><PRE>void <B>operator*=</B>(const valarray&lt;T&gt;&amp; val) const;
+void <B>operator/=</B>(const valarray&lt;T&gt;&amp; val) const;
+void <B>operator%=</B>(const valarray&lt;T&gt;&amp; val) const;
+void <B>operator+=</B>(const valarray&lt;T&gt;&amp; val) const;
+void <B>operator-=</B>(const valarray&lt;T&gt;&amp; val) const;
+void <B>operator^=</B>(const valarray&lt;T&gt;&amp; val) const;
+void <B>operator&amp;=</B>(const valarray&lt;T&gt;&amp; val) const;
+void <B>operator|</B><B>=</B>(const valarray&lt;T&gt;&amp; val) const;
+void <B>operator&lt;&lt;=</B>(const valarray&lt;T&gt;&amp; val) const;
+void <B>operator&gt;&gt;=</B>(const valarray&lt;T&gt;&amp; val) const;</PRE>
+<UL>
+<P>Applies the indicated operation using elements from <SAMP>val</SAMP> to the selected elements of the <B><I><A HREF="valarray.html">valarray</A></I></B> that self refers to. Remember that a <B><I>mask_array</I></B> never holds any elements itself; it simply refers to selected elements in the <B><I>valarray</I></B> used to generate it.</P>
+</UL>
+
+<A NAME="sec9"><H3>Member Function</H3></A>
+
+<A NAME="idx882"></A><PRE>void <B>operator=</B>(const T&amp; x) const;</PRE>
+<UL>
+<P>Assigns <SAMP>x</SAMP> to the selected elements of the <B><I><A HREF="valarray.html">valarray</A></I></B> that self refers to. </P>
+</UL>
+
+<A NAME="sec10"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  mask_array.cpp
+//
+
+#include &lt;valarray.h&gt;  // Includes valarray and
+                       // provides stream inserter.
+
+typedef std::valarray&lt;int&gt;    valarray_t;
+typedef std::valarray&lt;bool&gt;   maskarray_t;
+
+int main(void) {
+
+  // Create a valarray of ints.
+  valarray_t::value_type   ibuf[10] = {0,1,2,3,4,5,6,7,8,9};
+  valarray_t               vi(ibuf, 10);
+
+  // Create a valarray of bools for a mask.
+  maskarray_t::value_type  mbuf[10] = {1,0,1,1,1,0,0,1,1,0};
+  maskarray_t              mask(mbuf,10);
+
+  // Print out the valarray&lt;int&gt;.
+  std::cout &lt;&lt; "original valarray&lt;int&gt; vi\n\n" &lt;&lt; vi &lt;&lt; "\n\n";
+
+  // Print out the valarray&lt;bool&gt;.
+  std::cout &lt;&lt; "original valarray&lt;bool&gt; mask\n\n" &lt;&lt; mask 
+            &lt;&lt; "\n\n";
+  
+  // Print a mask array.
+  std::cout &lt;&lt; "vi[mask]\n\n" &lt;&lt; vi[mask] &lt;&lt; "\n\n";
+  
+  // Double the values of the masked array and print out.
+  vi[mask] += static_cast&lt;valarray_t&gt; (vi[mask]);
+  std::cout &lt;&lt; "vi[mask] += vi[mask]\n\n" &lt;&lt; vi &lt;&lt; std::endl;
+
+  return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>original valarray&lt;int&gt; vi
+
+[0,1,2,3,4,5,6,7,8,9]
+
+original valarray&lt;bool&gt; mask
+
+[1,0,1,1,1,0,0,1,1,0]
+
+vi[mask]
+
+[0,2,3,4,7,8]
+
+vi[mask] += vi[mask]
+
+[0,1,4,6,8,5,6,14,16,9]
+</PRE></UL>
+<A NAME="sec11"><H3>See Also</H3></A>
+<P><B><I><A HREF="slice.html">slice</A></I></B>, <B><I><A HREF="slice-array.html">slice_array</A></I></B>, <B><I><A HREF="valarray.html">valarray</A></I></B>, <B><I><A HREF="gslice.html">gslice</A></I></B>, <B><I><A HREF="gslice-array.html">gslice_array</A></I></B>, <B><I><A HREF="indirect-array.html">indirect_array</A></I></B></P>
+<A NAME="sec12"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 26.3.8</I></P>
+
+<BR>
+<HR>
+<A HREF="map.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="max.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

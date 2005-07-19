@@ -1,0 +1,54 @@
+<HTML>
+<HEAD>
+<TITLE>The Standard Iostreams</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="27.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="27-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>27.1 The Standard Iostreams</H2>
+<A NAME="idx614"><!></A>
+<P>The Standard C++ Library includes templates for data stream input/output. Before the current ANSI/ISO standard, most C++ compilers were delivered with a class library commonly known as the <I>iostreams </I>library. In this manual, we refer to this library as the <I>traditional iostreams</I>, in contrast to the<I> standard iostreams</I> that are now part of the ANSI/ISO Standard C++ Library. The standard iostreams are to some extent compatible with the traditional iostreams, in that the overall architecture and the most commonly used interfaces are retained. <A HREF="45.html">Chapter&nbsp;45</A> describes the incompatibilities in greater detail.</P>
+<A NAME="idx615"><!></A>
+<P>We can compare the standard iostreams not only with the traditional C++ iostreams library, but also with the I/O support in the Standard C Library. Many former C programmers still prefer the input/output functions offered by the C library, often referred to as <I>C stdio</I>. Their familiarity with the C library is justification enough for using the C stdio instead of C++ iostreams, but there are other reasons as well. For example, calls to the C functions <SAMP>printf()</SAMP> and <SAMP>scanf()</SAMP> are admittedly more concise with C stdio. However, C stdio has drawbacks, too, such as type insecurity and inability to extend consistently for user-defined classes. We'll discuss these in more detail in the following sections.</P>
+<A NAME="idx616"><!></A>
+<A NAME="2711"><H3>27.1.1 Type Safety</H3></A>
+<A NAME="idx617"><!></A>
+<P>Let us compare a call to stdio functions with the use of standard iostreams. The stdio call reads as follows:</P>
+
+<UL><PRE>
+int i = 25;
+char name[50] = "Janakiraman";
+fprintf(stdout, "%d %s", i, name);
+</PRE></UL>
+<P>It correctly prints: <SAMP>25 Janakiraman</SAMP>.</P>
+<P>But what if we inadvertently switch the arguments to <SAMP>fprintf()</SAMP>? The error is detected no sooner than run time. Anything can happen, from peculiar output to a system crash. This is not the case with the standard iostreams:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; i &lt;&lt; ' ' &lt;&lt; name &lt;&lt; '\n';
+</PRE></UL>
+<P>Since there are overloaded versions of the shift operator <SAMP>operator&lt;&lt;()</SAMP>, the right operator is always called. The expression <SAMP>std::cout &lt;&lt; i </SAMP>calls <SAMP>std::ostream::operator&lt;&lt;(int)</SAMP>, and <SAMP>std::cout &lt;&lt; name</SAMP> calls <SAMP>std::ostream::operator&lt;&lt; (std::ostream&amp;, const char*)</SAMP>. Hence, the standard iostreams are typesafe.</P>
+<A NAME="idx618"><!></A>
+<A NAME="2712"><H3>27.1.2 Extensibility to New Types</H3></A>
+<A NAME="idx619"><!></A>
+<P>Another advantage of the standard iostreams is that user-defined types can be made to fit in seamlessly. Consider a type <SAMP>Pair</SAMP> that we want to print:</P>
+
+<UL><PRE>
+struct Pair { int x; string y; }
+</PRE></UL>
+<P>All we need to do is overload <SAMP>operator&lt;&lt;()</SAMP> for this new type <SAMP>Pair,</SAMP> and we can output pairs this way:</P>
+
+<UL><PRE>
+Pair p = { 5, "May" };
+std::cout &lt;&lt; p;
+</PRE></UL>
+<P>The corresponding <SAMP>operator&lt;&lt;()</SAMP> can be implemented as:</P>
+
+<UL><PRE>
+std::ostream&amp;
+operator&lt;&lt;(std::ostream&amp; o, const Pair&amp; p)
+{ return o &lt;&lt; p.x &lt;&lt; ' ' &lt;&lt; p.y; }
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="27.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="27-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

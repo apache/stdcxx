@@ -1,0 +1,29 @@
+#define _RWSTD_NO_INCLUDES
+#include <rw/_error.h>
+
+STRINGTABLE
+BEGIN
+_RWSTD_ERROR_BAD_CAST         "%s: %s: bad cast"
+_RWSTD_ERROR_LOGIC_ERROR      "%s: %s: logic error"
+_RWSTD_ERROR_DOMAIN_ERROR     "%s: %s: out of memory"
+_RWSTD_ERROR_INVALID_ARGUMENT "%s: %s: bad cast"
+_RWSTD_ERROR_LENGTH_ERROR     "%s: %s: length error"
+_RWSTD_ERROR_OUT_OF_RANGE     "%s: %s: argument value %u out of range [0, %u)"
+_RWSTD_ERROR_RUNTIME_ERROR    "%s: %s: runtime error"
+_RWSTD_ERROR_RANGE_ERROR      "%s: %s: range error: invalid range [%d, %d)"
+_RWSTD_ERROR_OVERFLOW_ERROR   "%s: %s: overflow error"
+_RWSTD_ERROR_UNDERFLOW_ERROR  "%s: %s: underflow error"
+
+_RWSTD_ERROR_FAILBIT_SET      "%s: stream object has set ios::failbit"
+_RWSTD_ERROR_BADBIT_SET       "%s: stream object has set ios::badbit"
+_RWSTD_ERROR_EOFBIT_SET       "%s: stream object has set ios::eofbit"
+_RWSTD_ERROR_IOSTATE_BIT_SET  "%s: stream object has set %s"
+
+_RWSTD_ERROR_FACET_NOT_FOUND  "%s: %s: facet %u not found in %s locale"
+_RWSTD_ERROR_LOCALE_BAD_NAME  "%s: %s: bad locale name: %s"
+_RWSTD_ERROR_LOCALE_ERROR_NAME "%s: %s: failed to construct locale name"
+_RWSTD_ERROR_CODECVT          "%s: %s: conversion failed"
+
+_RWSTD_ERROR_BAD_POINTER      "%s: %s: invalid pointer %p"
+_RWSTD_ERROR_TRANSFORM        "%s: %s: transformation failed"
+END

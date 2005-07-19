@@ -1,0 +1,86 @@
+<HTML>
+<HEAD>
+<TITLE>Function Adaptors</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="3-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="3-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>3.4 Function Adaptors</H2>
+<A NAME="341"><H3>3.4.1 Definition</H3></A>
+<A NAME="idx52"><!></A>
+<P>A <I>function adaptor</I> is an instance of a class that adapts a namespace-scope or member function so that the function can be used as a function object. A function adaptor may also be used to alter the behavior of a function or function object, as shown in <A HREF="3-5.html">Section&nbsp;3.5</A>. Each function adaptor defined by the Standard C++ Library provides a constructor that takes a namespace-scope or member function. The adaptor also defines a function call operator that forwards its call to that associated global or member function.</P>
+<A NAME="342"><H3>3.4.2 Adapting Non-member or Static Member Functions</H3></A>
+<A NAME="idx53"><!></A>
+<P>The <B><I><A HREF="../stdlibref/pointer-to-unary-function.html">pointer_to_unary_function</A></I></B> and <B><I><A HREF="../stdlibref/pointer-to-binary-function.html">pointer_to_binary_function</A></I></B> templates adapt namespace-scope or static member functions of one or two arguments. These adaptors can be applied directly, or the <B><I><A HREF="../stdlibref/ptr-fun.html">ptr_fun</A></I></B> function template can be used to construct the appropriate adaptor automatically without explicitly specifying the template arguments. For instance, a simple <SAMP>times3</SAMP> function can be adapted and applied to a vector of integers as follows:</P>
+
+<UL><PRE>
+int times3(int x) 
+{
+  return 3*x;
+}
+
+int a[] = {1,2,3,4,5};
+std::vector&lt;int&gt; v(a,a+5), v2;
+
+std::transform(v.begin(),v.end(),v2.begin(),std::ptr_fun(times3));
+</PRE></UL>
+<P>Alternatively, the adaptor could have been applied, and the new, adapted function object passed to the vector:</P>
+
+<UL><PRE>
+std::pointer_to_unary_function&lt;int,int&gt; pf(times3);
+std::transform(v.begin(),v.end(),v2.begin(),pf);
+</PRE></UL>
+<P>This example points out the advantage of allowing the compiler to deduce the types needed by <B><I><A HREF="../stdlibref/pointer-to-unary-function.html">pointer_to_unary_function</A></I></B> through the use of <SAMP>ptr_fun</SAMP>. </P>
+<A NAME="343"><H3>3.4.3 Adapting Member Functions</H3></A>
+<A NAME="idx54"><!></A>
+<P>The <B><I><A HREF="../stdlibref/mem-fun.html">mem_fun</A></I></B> family of templates adapts member functions. For instance, to sort each list in a given set of lists, <B><I>mem_fun</I></B> can be used to apply the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> sort member function to each element in the set:</P>
+
+<UL><PRE>
+std::set&lt;list&lt;int&gt;* &gt; s;
+
+// Initialize the set with lists
+...
+// Sort each list in the set.
+std::for_each(s.begin(), s.end(),
+              std::mem_fun(&amp;std::list&lt;int&gt;::sort));
+
+// Now each list in the set is sorted
+</PRE></UL>
+<P>Using <B><I><A HREF="../stdlibref/mem-fun.html">mem_fun</A></I></B> is necessary because the generic sort algorithm requires random access iterators and thus cannot be used on a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. It is also the simplest way to access any polymorphic characteristics of an object held in a standard container. For instance, a virtual draw function might be invoked on a collection of objects that are all part of the canonical <SAMP>shape</SAMP> hierarchy like this:</P>
+
+<UL><PRE>
+// shape hierarchy
+class shape {
+   virtual void draw() const;
+};
+
+class circle : public shape {
+   virtual void draw() const;
+};
+
+class square : public shape {
+   virtual void draw() const;
+};
+
+//  Assemble a vector of shapes
+const circle c;
+const square s;
+std::vector&lt;shape*&gt; v;
+v.push_back(&amp;s);
+v.push_back(&amp;c);
+
+// Call draw on each one
+std::for_each(v.begin(), v.end(), std::mem_fun(&amp;shape::draw));
+</PRE></UL>
+<P>Each member function adaptor comes with an associated function template for convenience. The class template is the actual adaptor, while the function simplifies the use of the template by constructing instances of that class on the fly. For&nbsp;instance, in the previous example, a user could construct a <B><I>const _mem_fun_t</I></B>, and pass that to the <SAMP>std::for_each()</SAMP> algorithm:</P>
+
+<UL><PRE>
+const_mem_fun_t&lt;shape&gt; mf(&amp;shape::draw);
+std::for_each(v.begin(), v.end(), mf);
+</PRE></UL>
+<P>Here again the <B><I><A HREF="../stdlibref/mem-fun.html">mem_fun</A></I></B> function template simplifies the use of the <B><I>const_mem_fun_t</I></B> adaptor by allowing the compiler to deduce the type needed by <B><I>const_mem_fun_t</I></B>. The fact that a const version of the function adaptor is needed (since the shapes are const) is obvious when the convenience function template is used.</P>
+<P>The Standard C++ Library provides member function adaptors for functions with zero arguments as above and with one argument. Adaptors for member functions that operate on object references as opposed to object pointers such as those shown in the examples above are provided (<B><I>mem_fun_ref_t</I></B>), as are those that operate on pointers and references to const objects, respectively (<B><I>const_mem_fun_t</I></B>, <B><I>const_mem_fun_ref_t</I></B>). All of these adaptors can be easily extended to member functions with more arguments. </P>
+
+<BR>
+<HR>
+<A HREF="3-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="3-5.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

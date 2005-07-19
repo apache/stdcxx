@@ -1,0 +1,84 @@
+<HTML>
+<HEAD>
+<TITLE>heap Operations</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="14-6.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="V.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>14.7 heap Operations</H2>
+<A NAME="idx366"><!></A>
+<P>A <I>heap</I> is a binary tree in which every node is larger than the values associated with either child. A heap and a binary tree, for that matter, can be very efficiently stored in a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>, by placing the children of node<SAMP> i</SAMP> in positions <SAMP>2 * i + 1</SAMP> and <SAMP>2 * i + 2</SAMP>.</P>
+<P>Using this encoding, the largest value in the heap is always located in the initial position, and can therefore be very efficiently retrieved. In addition, efficient logarithmic algorithms exist that permit a new element to be added to a heap and the largest element removed from a heap. For these reasons, a heap is a natural representation for the <B><I>priority queue</I></B> datatype, described in <A HREF="11.html">Chapter&nbsp;11</A>.</P>
+<P>The default operator is the less-than operator <SAMP>&lt;</SAMP> appropriate to the element type. If desired, an alternative operator can be specified. For example, by using the greater-than operator <SAMP>&gt;</SAMP>, one can construct a heap that locates the smallest element in the first location, instead of the largest.</P>
+<A NAME="idx367"><!></A>
+<P>The algorithm <SAMP>std::make_heap()</SAMP> takes a range, specified by random access <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s, and converts it into a heap. The number of steps required is a linear function of the number of elements in the range.</P>
+
+<UL><PRE>
+namespace std {
+  void make_heap(RandomAccessIterator first,
+                 RandomAccessIterator last [, Compare ]);
+}
+</PRE></UL>
+<A NAME="idx368"><!></A>
+<P>To add a new element to a heap, insert it at the end of a range using the <SAMP>std::push_back()</SAMP> member function of a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> or <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>, for example, and invoke the algorithm <SAMP>std::push_heap()</SAMP>. The <SAMP>std::push_heap()</SAMP> algorithm restores the heap property, performing at most a logarithmic number of operations.</P>
+
+<UL><PRE>
+namespace std {
+  void push_heap(RandomAccessIterator first, 
+                 RandomAccessIterator last [, Compare ]);
+}
+</PRE></UL>
+<A NAME="idx369"><!></A>
+<P>The algorithm <SAMP>std::pop_heap()</SAMP> swaps the first and final elements in a range, and restores to a heap the collection without the final element. The largest value of the original collection is therefore still available as the last element in the range. It can be accessed using the <SAMP>back()</SAMP> member function in a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>, for example, and removed using the <SAMP>pop_back()</SAMP> member function. At the same time, the remainder of the collection continues to have the heap property. The <SAMP>std::pop_heap()</SAMP> algorithm performs at most a logarithmic number of operations.</P>
+
+<UL><PRE>
+namespace std {
+  void pop_heap(RandomAccessIterator first, 
+                RandomAccessIterator last [, Compare ]);
+}
+</PRE></UL>
+<A NAME="idx370"><!></A>
+<P>Finally, the algorithm <SAMP>std::sort_heap()</SAMP> converts a heap into an ordered or <I>sorted</I> collection. Note that a sorted collection is still a heap, although the reverse is not the case. </P>
+<BLOCKQUOTE><HR><B>
+NOTE -- An ordered collection is a heap, but a heap need not necessarily be an ordered collection. In fact, a heap can be constructed in a sequence much more quickly than the sequence can be sorted.
+</B><HR></BLOCKQUOTE>
+<P>The sort is performed using approximately <SAMP>N log N</SAMP> operations, where <SAMP>N</SAMP> represents the number of elements in the range. The <SAMP>std::sort_heap()</SAMP> algorithm is not stable. Equal elements are not guaranteed to retain their relative pre-sort order.</P>
+
+<UL><PRE>
+namespace std {
+  void sort_heap(RandomAccessIterator first, 
+                 RandomAccessIterator last [, Compare ]);
+}
+</PRE></UL>
+<P>Here is an example program that illustrates the use of these functions:</P>
+
+<A NAME="idx371"><!></A>
+<UL><PRE>
+void heap_example()
+// illustrates the use of the heap algorithms
+// see alg7.cpp for complete source code
+
+{
+  // make a heap of 15 random integers
+  std::vector&lt;int&gt; aVec(15);
+  std::generate(aVec.begin(), aVec.end(), randomValue);
+  std::make_heap(aVec.begin(), aVec.end());
+  std::cout &lt;&lt; "Largest value " &lt;&lt; aVec.front() &lt;&lt; std::endl;
+
+  // remove largest and reheap
+  std::pop_heap(aVec.begin(), aVec.end());
+  aVec.pop_back();
+
+  // add a 97 to the heap
+  aVec.push_back (97);
+  std::push_heap(aVec.begin(), aVec.end());
+
+  // finally, make into a sorted collection
+  std::sort_heap(aVec.begin(), aVec.end());
+}
+</PRE></UL>
+
+
+<BR>
+<HR>
+<A HREF="14-6.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="V.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

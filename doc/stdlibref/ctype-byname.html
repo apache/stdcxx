@@ -1,0 +1,82 @@
+<HTML>
+<HEAD>
+<TITLE>ctype_byname</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="ctype.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="deque-h.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>ctype_byname</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR>                      <IMG SRC="images/inherits.gif"> <B><I>ctype_base</I></B> 
+<B><I>ctype_byname</I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="ctype.html">ctype</A></I></B> 
+                      <IMG SRC="images/inherits.gif"> <B><I>locale::facet</I></B> <HR></PRE>
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Constructors</A></LI>
+<LI><A HREF="#sec8">See Also</A></LI>
+<LI><A HREF="#sec9">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx578">ctype_byname()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A facet that includes character classification facilities based on the named locales</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  template &lt;class charT&gt; class ctype_byname;
+  template &lt;&gt; class ctype_byname&lt;char&gt;;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+
+<UL><PRE>namespace std {
+template &lt;&gt; class ctype_byname&lt;char&gt;;
+template &lt;&gt; class ctype_byname&lt;wchar_t&gt;;
+}
+</PRE></UL>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The <B><I>ctype_byname</I></B> template and <B><I>ctype_byname&lt;char&gt;</I></B> specialization include the same functions as the <B><I><A HREF="ctype.html">ctype</A></I></B> template, but specific to a particular named locale. For a description of the member functions of <B><I>ctype_byname</I></B>, see the entry for <B><I>ctype</I></B>. Only the constructor is described here.</P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  template &lt;class charT&gt;
+  class ctype_byname : public ctype&lt;charT&gt; {
+  public:
+    explicit ctype_byname(const char*, size_t = 0);
+    };
+  class ctype_byname&lt;char&gt; : public ctype&lt;char&gt; {
+  public:
+    explicit ctype_byname(const char*, size_t = 0);
+    };
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Constructors</H3></A>
+
+<A NAME="idx578"></A><PRE>explicit <B>ctype_byname</B>(const char* name, size_t refs = 0); </PRE>
+<UL>
+<P>Constructs a <B><I>ctype_byname</I></B> object for the locale given by name. Calls <SAMP>ctype&lt;char_type&gt;::ctype (refs)</SAMP>.</P>
+</UL>
+
+<A NAME="sec8"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="collate.html">collate</A></I></B>, <B><I><A HREF="ctype.html">ctype</A></I></B></P>
+<A NAME="sec9"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.1.2</I></P>
+
+<BR>
+<HR>
+<A HREF="ctype.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="deque-h.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

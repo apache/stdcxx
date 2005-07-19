@@ -1,0 +1,105 @@
+<HTML>
+<HEAD>
+<TITLE>Random Access Iterators</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="queue.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="random-shuffle.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>Random Access Iterators</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-8.html">Iterators</A></P><UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Description</A></LI>
+<LI><A HREF="#sec4">Key to Iterator Requirements</A></LI>
+<LI><A HREF="#sec5">Requirements for Random Access Iterators</A></LI>
+<LI><A HREF="#sec6">See Also</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An iterator that reads, writes, and allows random access to a container</P>
+<A NAME="sec3"><H3>Description</H3></A>
+<BLOCKQUOTE><HR><B>
+NOTE -- For a complete discussion of iterators, see the <B><I><A HREF="iterators.html">Iterators</A></I></B> section of this reference.
+</B><HR></BLOCKQUOTE>
+<P>Iterators are a generalization of pointers that allow a C++ program to uniformly interact with different data structures. Random access iterators can read, write, and allow random access to the containers they serve. These iterators satisfy the requirements listed below.</P>
+<A NAME="sec4"><H3>Key to Iterator Requirements</H3></A>
+<P>The following key pertains to the iterator requirements listed below: </P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a and b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>values of type <SAMP>X</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>n  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>value of <SAMP>distance</SAMP> type</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>u, Distance, tmp and m  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>identifiers</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>value of type <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>t  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>value of type <SAMP>T</SAMP></P></TD></TR>
+</TABLE></P>
+<A NAME="sec5"><H3>Requirements for Random Access Iterators</H3></A>
+<P>The following expressions must be valid for random access iterators:</P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">u</SAMP> might have a singular value</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">X()</SAMP> might be singular</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X(a)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>copy constructor, <SAMP>a == X(a)</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u(a)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>copy constructor, <SAMP>u == a</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u = a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>assignment, <SAMP>u == a</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a == b, a != b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to <SAMP>bool</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r = a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>assignment, <SAMP>r == a</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to <SAMP>T&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a-&gt;m  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>equivalent to <SAMP>(*a).m</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>++r  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r++  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to const <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*r++  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>T&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>--r  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r--  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to const <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*r--  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>T&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r += n  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Semantics of <SAMP>--r</SAMP> or <SAMP>++r n</SAMP> times depending on the&nbsp;sign&nbsp;of&nbsp;<SAMP>n</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a + n, n + a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns type <SAMP>X</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r -= n  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>X&amp;</SAMP>, behaves as <SAMP>r += -n</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a - n  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns type <SAMP>X</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>b - a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>distance</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a[n]  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">*(a+n)</SAMP>, return value convertible to <SAMP>T</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a &lt; b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>total ordering relation</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a &gt; b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>total ordering relation opposite to <SAMP>&lt;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a &lt;= b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">!(a &lt; b)</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a &gt;= b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">!(a &gt; b)</SAMP></P></TD></TR>
+</TABLE></P>
+<P>Like forward iterators, random access iterators have the condition that <SAMP>a&nbsp;==&nbsp;b</SAMP> implies <SAMP>*a == *b</SAMP>.</P>
+<P>There are no restrictions on the number of passes an algorithm may make through the structure.</P>
+<P>All relational operators return a value convertible to <SAMP>bool</SAMP>.</P>
+<A NAME="sec6"><H3>See Also</H3></A>
+<P><A HREF="iterators.html">Iterators</A>, <A HREF="forwarditerators.html">Forward Iterators</A>, <A HREF="bidirectionaliterators.html">Bidirectional Iterators</A></P>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 24.1.5</I></P>
+
+<BR>
+<HR>
+<A HREF="queue.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="random-shuffle.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

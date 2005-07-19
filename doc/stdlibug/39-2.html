@@ -1,0 +1,173 @@
+<HTML>
+<HEAD>
+<TITLE>Deriving New Stream Buffer Classes</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="39-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="39-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>39.2 Deriving New Stream Buffer Classes</H2>
+<A NAME="idx937"><!></A>
+<A NAME="idx938"><!></A>
+<P>Deriving a new stream buffer class is not commonly necessary, but it can be extraordinarily useful when specialized behavior is needed. For example, consider a log book stream that starts writing at the beginning after reaching a certain size, so that the log file does not grow infinitely. In order to implement this new class, we first need to derive a new stream buffer type. The easiest way to do this is to derive from <B><I><A HREF="../stdlibref/basic-filebuf.html">basic_filebuf</A></I></B>, and then reimplement one of the protected virtual functions:</P>
+
+<UL><PRE>
+#include &lt;fstream&gt;
+
+template &lt;class charT, class traits = std::char_traits&lt;charT&gt; &gt;
+class logbuffer: public std::basic_filebuf&lt;charT, traits&gt;
+{
+    std::streamsize max_size;
+    std::streamsize cur_size;
+
+public:
+    typedef charT                          char_type;      //1
+    typedef traits                         traits_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::off_type off_type;
+    typedef typename traits_type::pos_type pos_type;
+
+    logbuffer(std::streamsize sz)                          //2
+        : max_size (sz), cur_size (0) { }
+
+protected:
+    int_type overflow (int_type c = traits_type::eof ());  //3
+};
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>All derived streams should have these types defined, even though they are inherited from the base, to make referring to them easy.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>This constructor takes a size parameter that we'll use to limit the size of the log file.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>The protected virtual function <SAMP>overflow(int_type)</SAMP> is called whenever a stream attempts to write to the stream buffer when the <I>put</I> area is full. We re-implement the function in order to reset the file pointer to the beginning whenever the file gets too large.
+</TABLE>
+<A NAME="idx939"><!></A>
+<P>The <SAMP>overflow()</SAMP> member function is implemented as follows:</P>
+
+<UL><PRE>
+template &lt;class charT, class traits&gt;
+typename logbuffer&lt;charT, traits&gt;::int_type
+logbuffer&lt;charT, traits&gt;::
+overflow (typename logbuffer&lt;charT, traits&gt;::int_type c)
+{
+    if (cur_size &gt; max_size)
+        return traits_type::not_eof (c);                     //1
+
+    std::streamsize len = this-&gt;pptr () - this-&gt;pbase ();    //2
+    std::streamsize rem = cur_size + len - max_size;         //3
+
+    std::basic_string&lt;charT, traits&gt; saved;
+
+    if (rem &gt; 0) {                                           //4
+        this-&gt;pbump (-rem);
+
+        saved.assign (this-&gt;pptr (), rem);
+        if (!traits_type::eq_int_type (c, traits_type::eof ()))
+            saved += c;
+
+        len = max_size - cur_size;
+        c = traits_type::eof ();
+    }
+
+    const int_type ret = std::basic_filebuf&lt;charT,
+      traits&gt;::overflow (c);                                 //5
+
+    cur_size += len;                                         //5
+
+    if (cur_size == max_size) {                              //6
+        cur_size = max_size + 1;
+        this-&gt;pubseekoff (0, std::ios_base::beg);
+        cur_size = 0;
+    }
+
+    if (saved.size ())
+        this-&gt;xsputn (saved.data (), saved.size ());         //7
+
+    return ret;
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The conditional expression  <SAMP>cur_size &gt; max_size</SAMP> guards against infinite recursion that might occur from <SAMP>overflow()</SAMP> being called recursively from some other method, such as <SAMP>pubseekoff()</SAMP> in code block <SAMP>//6</SAMP> below.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Compute the size <SAMP>len</SAMP> of the pending output sequence.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Determine whether the pending output sequence will exceed <SAMP>max_size</SAMP>, the maximum size of the file. If the computed value of <SAMP>rem</SAMP> is greater than zero, <SAMP>max_size</SAMP> has been reached, and <SAMP>rem</SAMP> represents the number of characters which, if output, would exceed the maximum size of the file.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>If <SAMP>rem</SAMP> is greater than zero, temporarily remove <SAMP>rem</SAMP> characters from the end of the pending output sequence so that when the sequence is output the total length output so far will be equivalent to <SAMP>max_size</SAMP>. Save the characters removed from the pending output sequence in <SAMP>saved</SAMP>. Also, reset the size of <SAMP>len</SAMP> to correctly represent the number of characters remaining in the pending output sequence.
+<TR VALIGN="top"><TD><SAMP>//5</SAMP></TD><TD>Call the overridden function <SAMP>overflow()</SAMP> to write out the pending output sequence, which is now guaranteed not to make the total number of characters output exceed <SAMP>max_size</SAMP>. Then adjust <SAMP>cur_size</SAMP> to reflect the total number of characters output so far.
+<TR VALIGN="top"><TD><SAMP>//6</SAMP></TD><TD>If number of characters output so far is equal to <SAMP>max_size</SAMP>, a condition usually created in code block <SAMP>//4</SAMP> above when an overflow condition is detected, temporarily invalidate <SAMP>cur_size</SAMP> by setting it to a value greater than its valid maximum value to prevent infinite recursion. Then seek to the beginning of the output log so that any future output will start overwriting it from the beginning.
+<TR VALIGN="top"><TD><SAMP>//7</SAMP></TD><TD>If <SAMP>saved</SAMP> contains data because of an overflow condition, write the overflow data to the pending output sequence.
+</TABLE>
+<A NAME="idx940"><!></A>
+<P>In order to use this new <B><I>logbuf</I></B> class template, we do not necessarily need a new <B><I>logstream</I></B> class template. But it might come in handy in some cases so we provide a definition for one just in case:</P>
+
+<UL><PRE>
+template &lt;class charT, class traits = std::char_traits&lt;charT&gt; &gt;
+class logstream: public std::basic_iostream&lt;charT, traits&gt;
+{
+    logbuffer&lt;charT, traits&gt; buf;                        //1
+
+public:
+    typedef charT                          char_type;    //2
+    typedef traits                         traits_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::off_type off_type;
+    typedef typename traits_type::pos_type pos_type;
+
+    logstream(std::streamsize, const char*);             //3
+    logbuffer&lt;charT, traits&gt; *rdbuf () const {           //4
+        return (logbuffer&lt;charT, traits&gt;*)&amp;buf;
+    }
+};
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>This private member provides us with a <B><I>logbuffer</I></B> object.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Again, we want to define the standard set of types.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>This constructor creates a stream with the given maximum size and the given file name.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>The <SAMP>const</SAMP> member function <SAMP>rdbuf()</SAMP> returns a non-<SAMP>const</SAMP> pointer to the <SAMP>logbuffer</SAMP> data member.
+</TABLE>
+<A NAME="idx941"><!></A>
+<P>Finally, we implement our new log stream class as shown here:</P>
+
+<UL><PRE>
+template &lt;class charT, class traits&gt;
+logstream&lt;charT, traits&gt;::logstream (std::streamsize sz,
+  const char* file)
+    : std::basic_iostream&lt;charT, traits&gt;(&amp;buf), buf (sz)
+{
+    this-&gt;init (&amp;buf);                                //1
+    if (!buf.open (file, std::ios_base::out))         //2
+        this-&gt;setstate (std::ios_base::failbit);
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The <SAMP>ios_base::init()</SAMP> member function initializes the base class. In part the initialization consists of installing a pointer to the <B><I>logbuffer</I></B> in the <B><I><A HREF="../stdlibref/ios-base.html">ios_base</A></I></B> so base classes have access to the buffer.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Open the file for writing.
+</TABLE>
+<A NAME="idx942"><!></A>
+<P>We can use this new log buffer class as follows:</P>
+
+<UL><PRE>
+int main ()
+{
+    logstream&lt;char&gt; log (256, "test.log");         //1
+
+    char buf [33];                                 //2
+    log.rdbuf ()-&gt;pubsetbuf (buf, sizeof buf);     //2
+
+    for (int i = 0; i &lt; 150; i++) {                //3
+        log &lt;&lt; '[' &lt;&lt; i &lt;&lt; ']';
+    }
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Construct a logstream object, setting the maximum size of its output sequence (that is, the maximum size of the <SAMP>test.log</SAMP> file) to 256 bytes. 
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Create a character array <SAMP>buf</SAMP> of 33 characters, and set the internal character buffer maintained by the log's buffer to <SAMP>buf</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Write the integers <SAMP>0</SAMP> through <SAMP>149</SAMP> enclosed in brackets to the log stream object.
+<BR><BR>The total output exceeds 256 characters, yet the file created by the example would not exceed 256 characters. If you opened the file, you would see:
+<BR><BR><SAMP>24][125][126][127][128][129][130][131][132][133][134] [135][136][137][138][139][140][141][142][143][144][14 5][146][147][148][149]8][99][100][101][102][103][104] [105][106][107][108][109][110][111][112][113][114][11 5][116][117][118][119][120][121][122][123][1</SAMP>
+<BR><BR>Note that the last complete number at the end of the file is <SAMP>123</SAMP>, and that the next number, <SAMP>124</SAMP>, is split between the end of the file (<SAMP>[1</SAMP>) and the beginning of the file (<SAMP>24]</SAMP>). This demonstrates that the output wrapped from the end of the file back to the beginning, overwriting the earlier output. The last number output, <SAMP>149</SAMP>, overwrote the output for number <SAMP>98</SAMP>, leaving only the last digit.
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="39-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="39-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

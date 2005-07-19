@@ -1,0 +1,78 @@
+comment_char %
+escape_char  /
+%
+% Greek language locale for Europe
+% Source: CEN/ISSS Eurolocale workshop
+% Address: rue de Stassart, 36
+%          B-1050 Brussels
+% Contact: Keld Simonsen
+% Email: Keld.Simonsen@dkuug.dk
+% Tel: +45 - 33226543
+% Fax: +45 - 33256543
+% Language: el
+% Territory: EU
+% Revision: 5.1
+% Date: 2000-01-04
+% Users: specific
+% Repertoiremap: mes-2,eulc
+% Charset: ISO-8859-7
+% Distribution and use is free, also
+% for commercial purposes.
+
+LC_COLLATE
+copy "_EU"
+END LC_COLLATE
+
+LC_CTYPE
+copy "_EU"
+END LC_CTYPE
+
+LC_MESSAGES
+yesexpr "<<(><n*><N*><+><j><J><y><Y><o><O><)/>><.><*>"
+noexpr  "<<(><o*><O*><-><n><N><)/>><.><*>" 
+END LC_MESSAGES
+
+LC_NUMERIC
+copy "_EU"
+END LC_NUMERIC
+
+LC_MONETARY
+copy "_EU"
+END LC_MONETARY
+
+LC_TIME
+abday   "<K*><u*><r*><.>";"<D*><e*><u*><.>";/
+        "<T*><r*><i%><.>";"<T*><e*><t*><.>";/
+        "<P*><e*><m*><.>";"<P*><a*><r*><.>";/
+        "<S*><a*><b*><.>"
+day     "<K*><u*><r*><i*><a*><k*><y%>";/
+        "<D*><e*><u*><t*><e%><r*><a*>";/
+        "<T*><r*><i%><t*><y*>";/
+        "<T*><e*><t*><a%><r*><t*><y*>";/
+        "<P*><e%><m*><p*><t*><y*>";/
+        "<P*><a*><r*><a*><s*><k*><e*><u*><y%>";/
+        "<S*><a%><b*><b*><a*><t*><o*>"
+abmon   "<I*><a*><n*><.>";"<F*><e*><b*><.>";/
+        "<M*><a*><r*><.>";"<A*><p*><r*><.>";/
+        "<M*><a*><i3><.>";"<I*><o*><u*><n*>";/
+        "<I*><o*><u*><l*>";"<A*><u*><g*><.>";/
+        "<S*><e*><p*><.>";"<O*><k*><t*><.>";/
+        "<N*><o*><e*><.>";"<D*><e*><k*><.>"
+mon     "<I*><a*><n*><o*><u*><a*><r*><i%><o*><u*>";/
+        "<F*><e*><b*><r*><o*><u*><a*><r*><i%><o*><u*>";/
+        "<M*><a*><r*><t*><i%><o*><u*>";/
+        "<A*><p*><r*><i*><l*><i%><o*><u*>";/
+        "<M*><a*><i3><o*><u*>";/
+        "<I*><o*><u*><n*><i%><o*><u*>";/
+        "<I*><o*><u*><l*><i%><o*><u*>";/
+        "<A*><u*><g*><o*><u%><s*><t*><o*><u*>";/
+        "<S*><e*><p*><t*><e*><m*><b*><r*><i%><o*><u*>";/
+        "<O*><k*><t*><w*><b*><r*><i%><o*><u*>";/
+        "<N*><o*><e*><m*><b*><r*><i%><o*><u*>";/
+        "<D*><e*><k*><e*><m*><b*><r*><i%><o*><u*>"
+d_t_fmt   "<%><Y><-><%><m><-><%><d><SP><%><H><:><%><M><:><%><S>"
+d_fmt     "<%><Y><-><%><m><-><%><d>"
+t_fmt     "<%><H><:><%><M><:><%><S>"
+am_pm     "";""
+t_fmt_ampm  ""
+END LC_TIME

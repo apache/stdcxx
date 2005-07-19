@@ -1,0 +1,59 @@
+<HTML>
+<HEAD>
+<TITLE>Copies of the Stream Buffer</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="34-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="35.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>34.4 Copies of the Stream Buffer</H2>
+<A NAME="idx866"><!></A>
+<A NAME="idx867"><!></A>
+<P>The previous section showed how you can read the content of a file in its entirety by using the <SAMP>rdbuf()</SAMP> member function. Let us now explore a variation of that example. Imagine another file containing some sort of header information that needs to be analyzed before we start appending the file. Instead of writing the current file content to the standard output stream, we want to process the content before we start adding to it. The easiest way to put the entire file content into a memory location for further processing is by creating a string stream and inserting the file's stream buffer into the string stream:</P>
+
+<UL><PRE>
+  std::fstream fil("/tmp/inout");
+  std::stringstream header_stream;                            //1
+  header_stream &lt;&lt; fil.rdbuf();                               //2
+
+  // process the header, for example
+  std::string word;
+  header_stream &gt;&gt; word;                                      //3
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The easiest way to put the entire file content into a memory location for further processing is by creating a string stream, and
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Inserting the file's stream buffer into the string stream.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>We now have the usual facilities of an input stream for reading and analyzing the header information; that is, <SAMP>operator&gt;&gt;()</SAMP>, <SAMP>read()</SAMP>, <SAMP>get()</SAMP>, and so on.
+</TABLE>
+<P>In cases where this procedure is insufficient, you should create a string that contains the header information and process the header by means of the string operations <SAMP>find()</SAMP>, <SAMP>compare()</SAMP>, etc.</P>
+
+<UL><PRE>
+  std::fstream fil("/tmp/inout");
+  header_stream &lt;&lt; fil.rdbuf();
+  std::string header_string = header_stream.str();
+
+  // process the header, for example
+  std::string::size_type pos = header_string.rfind('.');
+</PRE></UL>
+<P>If the header contains binary data instead of text, even a string will probably not suffice. Here you would want to see the header as a plain byte sequence, that is, an ordinary <SAMP>char*</SAMP> buffer. But note that a code conversion might already have been performed, depending on the locale attached to the file stream. In cases where you want to process binary data, you must ensure that the attached locale has a non-converting code conversion facet:</P>
+
+<UL><PRE>
+  std::fstream fil("/tmp/inout");
+  header_stream &lt;&lt; fil.rdbuf();
+  std::string header_string = header_stream.str();
+  const char* header_char_ptr = header_string.data();
+
+  // process the header, for example
+  int idx;
+  std::memcpy((char*) &amp;idx,header_char_ptr,sizeof(int));
+</PRE></UL>
+<P>A note on efficiency: if the header information is extensive, you must consider the number of copy operations performed in the previous example. <A HREF="34-4.html#Figure&nbsp;34">Figure&nbsp;34</A> shows how these copies are made:</P>
+<A NAME="idx868"><!></A>
+<H4><A NAME="Figure&nbsp;34">Figure&nbsp;34: Copies of the file content</A></H4>
+
+<P><IMG SRC="images/iofig19.gif" WIDTH=564 HEIGHT=463></P>
+<P>The content of the file is copied into the string stream's buffer when the pointer obtained through <SAMP>rdbuf()</SAMP> is inserted to the string stream. A second copy is created when the string stream's function <SAMP>str()</SAMP> is called. The call to the string's function <SAMP>data()</SAMP> does not create yet another copy, but returns a pointer to the string's internal data.</P>
+
+<BR>
+<HR>
+<A HREF="34-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="35.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

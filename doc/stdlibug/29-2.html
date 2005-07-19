@@ -1,0 +1,61 @@
+<HTML>
+<HEAD>
+<TITLE>Checking the Stream State</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="29-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="29-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>29.2 Checking the Stream State</H2>
+<A NAME="idx733"><!></A>
+<A NAME="idx734"><!></A>
+<P>Let's first examine how you can check for errors using the stream state. Each steram class template inherits several member functions from the <SAMP>basic_ios</SAMP> template for this purpose, which are summarized with their effects in <A HREF="29-2.html#Table&nbsp;31">Table&nbsp;31</A>:</P>
+<A NAME="idx735"><!></A>
+<H4><A NAME="Table&nbsp;31">Table&nbsp;31: Stream member functions for error checking&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B><B><I><A HREF="../stdlibref/ios-base.html">ios_base</A></I></B> member function</B>
+</td><td valign=top><B><B>Effect</B></B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool good()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if no error flag is set, <SAMP>false</SAMP> otherwise</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool eof()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if <SAMP>eofbit</SAMP> is set, <SAMP>false</SAMP> otherwise</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool fail()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if <SAMP>failbit</SAMP> or <SAMP>badbit</SAMP> is set, <SAMP>false</SAMP> otherwise</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool bad()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if <SAMP>badbit</SAMP> is set, <SAMP>false</SAMP> otherwise</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool operator!()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>fail()</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>operator void*()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Null pointer if <SAMP>fail()</SAMP> and non-null value otherwise</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>iostate rdstate()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Value of stream state</P>
+</td></tr>
+</TABLE>
+<P>It is a good idea to check the stream state in some central place, for example:</P>
+
+<UL><PRE>
+if (!std::cout) error();
+</PRE></UL>
+<P>The state of <SAMP>cout</SAMP> is examined with <SAMP>operator!()</SAMP>, which returns <SAMP>true</SAMP> if the stream state indicates that an error occurred.</P>
+<P>An ostream can also appear in a boolean position to be tested as follows:</P>
+
+<UL><PRE>
+if (std::cout &lt;&lt; x) // okay!
+</PRE></UL>
+<P>The magic here is the <SAMP>operator void*()</SAMP>, which returns a nonzero value when the stream state is nonzero.</P>
+<P>Finally, the explicit member functions can also be used:</P>
+
+<UL><PRE>
+if ((std::cout &lt;&lt; x).good()) // okay!;
+</PRE></UL>
+<P>Note that there is a difference between <SAMP>good()</SAMP> and <SAMP>operator!()</SAMP>. The function <SAMP>good()</SAMP> takes all flags into account; <SAMP>operator!()</SAMP> and <SAMP>fail()</SAMP> ignore <SAMP>eofbit</SAMP>.</P>
+
+<BR>
+<HR>
+<A HREF="29-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="29-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

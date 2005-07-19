@@ -1,0 +1,68 @@
+<HTML>
+<HEAD>
+<TITLE>not_equal_to</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="not2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="nth-element.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>not_equal_to</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">See Also</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A binary function object that returns <SAMP>true</SAMP> if its first argument is not equal to its second argument</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;functional&gt;
+
+namespace std {
+  template &lt;class T&gt;
+  struct not_equal_to;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P><B><I>not_equal_to</I></B> is a binary function object. Its <SAMP>operator()</SAMP> returns <SAMP>true</SAMP> if <SAMP>x</SAMP> is not equal to <SAMP>y</SAMP>. You can pass a <B><I>not_equal_to</I></B> object to any algorithm that requires a binary function. For example, the <SAMP><A HREF="find-if.html">find_if()</A></SAMP> algorithm finds the first occurrence of any value from one sequence in another sequence as determined by applying a binary comparision operation. <B><I>not_equal_to</I></B> would be used in that algorithm in the following manner:</P>
+
+<UL><PRE>vector&lt;int&gt; vec1;
+vector&lt;int&gt; vec2;
+
+vector&lt;int&gt;::iterator iter1;
+.
+.
+.
+iter1 = find_if(vec1.begin(), vec1.end(),
+                vec2.begin(), vec2.end(), <B>not_equal_to</B>&lt;int&gt;());
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<P>After this call to <SAMP><A HREF="find-if.html">find_if()</A></SAMP>, <SAMP>iter1</SAMP> points to the first element in <SAMP>vec1</SAMP> for which <SAMP>not_equal_to(vec1[n],vec2[n])</SAMP> returned <SAMP>true</SAMP>, or, if there were no matches, <SAMP>iter1</SAMP> points to <SAMP>vec2.end()</SAMP>.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class T&gt;
+  struct not_equal_to : binary_function&lt;T, T, bool&gt; {
+    bool operator()(const T&amp;, const T&amp;) const;
+  };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>See Also</H3></A>
+<P><B><I><A HREF="binary-function.html">binary_function</A></I></B>, <A HREF="functionobjects.html">Function Objects</A></P>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 20.3.3</I></P>
+
+
+<BR>
+<HR>
+<A HREF="not2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="nth-element.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

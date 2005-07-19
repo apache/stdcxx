@@ -1,0 +1,122 @@
+<HTML>
+<HEAD>
+<TITLE>transform()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="toupper.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="typeinfo-h.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>transform()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that applies an operation to a range of values in a collection and stores the result</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class InputIterator, class OutputIterator,
+            class UnaryOperation&gt;
+  OutputIterator 
+  transform(InputIterator start, InputIterator finish,
+            OutputIterator result, UnaryOperation op);
+
+  template &lt;class InputIterator1, class InputIterator2,
+            class OutputIterator, class BinaryOperation&gt;
+  OutputIterator 
+  transform(InputIterator1 start1, InputIterator1 finish1,
+            InputIterator2 start2, OutputIterator result,
+            BinaryOperation binary_op);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>transform()</SAMP> algorithm has two forms. The first form applies unary operation <SAMP>op</SAMP> to each element of the range <SAMP>[start, finish)</SAMP>, and assigns the result to the element pointed to by the output iterator <SAMP>result</SAMP>. For example, this version of <SAMP>transform()</SAMP> could be used to square each element in a <B><I><A HREF="vector.html">vector</A></I></B>. If the output iterator (<SAMP>result</SAMP>) is the same as the input iterator used to traverse the range, <SAMP>transform()</SAMP> performs its transformation in place.</P>
+<P>The second form of <SAMP>transform()</SAMP> applies a binary operation, <SAMP>binary_op</SAMP>, to corresponding elements in the range <SAMP>[start1, finish1)</SAMP> and the range that begins at <SAMP>start2</SAMP>, and assigns the result to the element pointed to by <SAMP>result</SAMP>.   For example, <SAMP>transform()</SAMP> can be used to add corresponding elements in two sequences, and store the set of sums in a third. The algorithm assumes, but does not check, that the second sequence has at least as many elements as the first sequence. Note that the output iterator <SAMP>result</SAMP> can be a third sequence, or either of the two input sequences.</P>
+<P>Formally, <SAMP>transform()</SAMP> assigns through every iterator <SAMP>i</SAMP> in the range <SAMP>[result, result + (finish1 - start1))</SAMP> a new corresponding value equal&nbsp; to:</P>
+<P><SAMP>op(*(start1 + (i - result))</SAMP></P>
+<P>or: </P>
+<P><SAMP>binary_op(*(start1 + (i - result), *(start2 + (i - result)))</SAMP></P>
+<P><SAMP>transform()</SAMP> returns <SAMP>result + (finish1 - start1)</SAMP>.   <SAMP>op</SAMP> and <SAMP>binary_op</SAMP> must not have any side effects. <SAMP>result</SAMP> may be equal to <SAMP>start</SAMP> in case of unary transform, or to <SAMP>start1</SAMP> or <SAMP>start2</SAMP> in case of binary transform. </P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>Exactly <SAMP>finish1 - start1 </SAMP>applications of <SAMP>op</SAMP> or <SAMP>binary_op </SAMP>are performed. </P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  trnsform.cpp
+//
+
+#include &lt;algorithm&gt;    // for transform
+#include &lt;functional&gt;   // for multiplies
+#include &lt;deque&gt;        // for deque
+#include &lt;iostream&gt;     // for cout, endl
+#include &lt;iomanip&gt;      // for setw
+
+
+int main ()
+{
+    typedef std::deque&lt;int, std::allocator&lt;int&gt; &gt; Deque;
+
+    // Initialize a deque with an array of integers.
+    const Deque::value_type a [] = { 99, 264, 126, 330, 132 };
+    const Deque::value_type b [] = { 280, 105, 220, 84, 210 };
+
+    Deque d1 (a, a + sizeof a / sizeof *a);
+    Deque d2 (b, b + sizeof b / sizeof *b);
+
+    // Print the original values.
+    std::cout &lt;&lt; "The following pairs of numbers: \n     ";
+    Deque::iterator i1;
+    for (i1 = d1.begin(); i1 != d1.end(); ++i1)
+        std::cout &lt;&lt; std::setw (6) &lt;&lt; *i1 &lt;&lt; " ";
+
+    std::cout &lt;&lt; "\n     ";
+    for (i1 = d2.begin(); i1 != d2.end(); ++i1)
+        std::cout &lt;&lt; std::setw (6) &lt;&lt; *i1 &lt;&lt; " ";
+
+    // transform the numbers in one sequence to 
+    // their factorials and store the results in 
+    // another sequence
+    std::transform (d1.begin (), d1.end (), 
+                    d2.begin (), d1.begin (),
+                    std::multiplies&lt;int&gt;());
+
+    // Display the results.
+    std::cout &lt;&lt; "\n\nHave the products: \n     ";
+    for (i1 = d1.begin (); i1 != d1.end (); ++i1)
+        std::cout &lt;&lt; std::setw (6) &lt;&lt; *i1 &lt;&lt; " ";
+
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>The following pairs of numbers: 
+         99    264    126    330    132 
+        280    105    220     84    210 
+
+Have the products: 
+      27720  27720  27720  27720  27720 
+</PRE></UL>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.2.3</I></P>
+
+<BR>
+<HR>
+<A HREF="toupper.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="typeinfo-h.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

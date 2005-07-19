@@ -1,0 +1,684 @@
+<HTML>
+<HEAD>
+<TITLE>time_put</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="time-get-byname.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="time-put-byname.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>time_put</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR>                                                                                                <B><I>time_put</I></B>   <IMG SRC="images/inherits.gif">   <B><I>locale::facet</I></B> <HR></PRE>
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Types</A></LI>
+<LI><A HREF="#sec8">Constructor</A></LI>
+<LI><A HREF="#sec9">Destructor</A></LI>
+<LI><A HREF="#sec10">Facet ID</A></LI>
+<LI><A HREF="#sec11">Public Member Functions</A></LI>
+<LI><A HREF="#sec12">Protected Member Functions</A></LI>
+<LI><A HREF="#sec13">Example</A></LI>
+<LI><A HREF="#sec14">See Also</A></LI>
+<LI><A HREF="#sec15">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1243">char_type</A><BR>
+<A HREF="#idx1250">do_put()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1247">id</A><BR>
+<A HREF="#idx1244">iter_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1248">put()</A><BR>
+<A HREF="#idx1245">time_put()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1246">~time_put()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A time formatting facet for output</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  template &lt;class charT, class OutputIterator = 
+              ostreambuf_iterator&lt;charT&gt; &gt;
+  class time_put;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+
+<UL><PRE>template &lt;&gt; class time_put&lt;char&gt;;
+template &lt;&gt; class time_put&lt;wchar_t&gt;;
+</PRE></UL>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The <B><I>time_put</I></B> facet includes facilities for formatted output of date/time values. The <SAMP>put()</SAMP> member functions format a <SAMP>struct tm</SAMP> that represents a date/time into a character string representation.</P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class charT, class OutputIterator =    
+            ostreambuf_iterator&lt;charT&gt; &gt;
+  class time_put : public locale::facet {
+  
+  public:
+    typedef charT char_type;
+    typedef OutputIterator iter_type;
+    explicit time_put(size_t = 0);
+    iter_type put(iter_type, ios_base&amp;, 
+                  char_type, const tm*,
+                  const charT*, const charT*) const;
+    iter_type put(iter_type, ios_base&amp;, char_type,
+                  const tm*, char, char = 0) const;
+    static locale::id id;
+
+  protected:
+    virtual iter_type do_put(iter_type, ios_base&amp;, 
+                             char_type, const tm*,
+                             char, char) const;
+  }; 
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Types</H3></A>
+
+<A NAME="idx1243"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>The type of the first template argument.</P>
+</UL>
+
+
+<A NAME="idx1244"></A><PRE><B>iter_type</B></PRE>
+<UL>
+<P>The type of the second template argument.</P>
+</UL>
+
+<A NAME="sec8"><H3>Constructor</H3></A>
+
+<A NAME="idx1245"></A><PRE>explicit <B>time_put</B>(size_t refs = 0); </PRE>
+<UL>
+<P>Constructs a <B><I>time_put</I></B> object. Calls <SAMP>locale::facet (refs)</SAMP>. </P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the <B><I>time_put</I></B> object's reference count. A <B><I>time_put</I></B> object <SAMP>f</SAMP> constructed with (<SAMP>refs == 0</SAMP>) that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. A <B><I>time_put</I></B> object constructed with (<SAMP>refs != 0</SAMP>) will not be destroyed by any locale objects in which it may have been installed.</P>
+</UL>
+
+<A NAME="sec9"><H3>Destructor</H3></A>
+
+<A NAME="idx1246"></A><PRE>virtual <B>~time_put</B>(); </PRE>
+<UL>
+<P>Destroys the facet.</P>
+</UL>
+
+<A NAME="sec10"><H3>Facet ID</H3></A>
+
+<A NAME="idx1247"></A><PRE>static locale::id <B>id</B>;</PRE>
+<UL>
+<P>Unique identifier for this type of facet. </P>
+</UL>
+
+<A NAME="sec11"><H3>Public Member Functions</H3></A>
+
+<A NAME="idx1248"></A><PRE>iter_type 
+<B>put</B>(iter_type s, ios_base&amp; f, 
+    char_type fill, const tm* tmb,
+    const char_type* pattern, const char_type* pat_end) const; </PRE>
+<UL>
+<P>Formats the contents of the object pointed to by <SAMP>tmb</SAMP> into the output sequence beginning with <SAMP>s</SAMP>. The format of the output sequence is determined by the string of format specifiers and modifiers contained in the range <SAMP>[pattern,pat_end)</SAMP>. These specifiers and modifiers are from the same set as those used by the <SAMP>strftime</SAMP> function and are applied in exactly the same way. See <A HREF="time-put.html#Table&nbsp;36">Table&nbsp;36</A> for a description of <SAMP>strftime</SAMP> formatting characters.</P>
+<P>The <SAMP>f</SAMP> argument is used to determine the justification and the width of the output sequence.</P>
+<P>The <SAMP>fill</SAMP> argument is used for any padding.</P>
+<P>Returns an iterator pointing one past the last character written.</P>
+</UL>
+
+
+<A NAME="idx1249"></A><PRE>iter_type 
+<B>put</B>(iter_type s, ios_base&amp; f, char_type fill,
+    const tm* tmb, char format, char modifier = 0) const;</PRE>
+<UL>
+<P>Calls the protected virtual function <SAMP>do_put(s,f,fill,tmb,format,modifier)</SAMP>.</P>
+</UL>
+
+<A NAME="sec12"><H3>Protected Member Functions</H3></A>
+
+<A NAME="idx1250"></A><PRE>iter_type 
+<B>do_put</B>(iter_type s, ios_base&amp; f, char_type fill,
+    const tm* tmb, char format, char modifier = 0) const; </PRE>
+<UL>
+<P>Formats the contents of the object pointed to by the <SAMP>tmb</SAMP> into the output sequence beginning with <SAMP>s</SAMP>. The output sequence is formatted according the specifier <SAMP>format</SAMP> and modifier <SAMP>modifier</SAMP>. These values are interpreted in the same way as the <SAMP>strftime</SAMP> function interprets its format specifiers and modifiers flags. See the table below for a description of recognized formatting characters.</P>
+<P>The <SAMP>f</SAMP> argument is used to determine the justification and the width of the output sequence.</P>
+<P>The <SAMP>fill</SAMP> argument is used for any padding.</P>
+<P>Returns an iterator pointing one past the last character written.</P>
+<P><A HREF="time-put.html#Table&nbsp;36">Table&nbsp;36</A> illustrates the recognized formatting characters of <SAMP>strftime</SAMP>. The values in the table are for February 29, 1984 at 14:34:56 (MST).</P>
+<H4><A NAME="Table&nbsp;36">Table&nbsp;36: Recognized formatting characters. Struct tm members used to produce the format are noted [in brackets].&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Format character</B>
+</td>
+<td valign=top><B>Meaning</B>
+</td>
+<td valign=top><B>C locale value</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>a</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Abbreviated weekday name. In the C locale, the first three characters of<SAMP> %A. [tm_wday]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>Wed</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>A</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Full weekday name.<SAMP> [tm_wday]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>Wednesday</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>b</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Abbreviated month name. In the C locale, the first three characters of<SAMP> %B. [tm_mon]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>Feb</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>B</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Full month name.<SAMP> [tm_mon] </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>February</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>c</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Date and time. In the C Locale, equivalent to<SAMP> %a %b %e %H %M %S %Y </SAMP>May use any or all members. </P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>Wed Feb 29 14:34:56 1984</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>C</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The year divided by 100 and truncated to an integer. <SAMP>[00,99][tm_year]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>84</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>d</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Day of the month. <SAMP>[01,31][tm_mday]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>29</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>D</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Equivalent to <SAMP>%m/%d/%y [tm_mon, tm_mday, tm_year]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>02/29/84</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>e</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The day of the month <SAMP>[1,31] </SAMP>with single digits preceded by a space. <SAMP>[tm_mday]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>29</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>F</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Equivalent to <SAMP>%Y-%m-%d</SAMP> (the ISO 8601:2000 standard date format). <SAMP>[tm_year, tm_mon, tm_mday]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>1984-02-29</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>g</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The last 2 digits of the ISO 8601:2000 standard week-based year <SAMP>[00,99]</SAMP>. <SAMP>[tm_year, tm_wday, tm_yday]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>84</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>G</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The ISO 8601:2000 standard week-based year. <SAMP>[tm_year, tm_wday, tm_yday]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>1984</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>h</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Equivalent to <SAMP>%b</SAMP>. <SAMP>[tm_mon]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>Feb</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>H</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Hour of the 24-hour day.<SAMP>[00,23]</SAMP>. <SAMP>[tm_hour] </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>14</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>i</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Hour of the 12-hour day [1,12]. Single digits preceded by a blank. [tm_hour]
+<SUP>1</SUP></LITERAL></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>" 2"</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>I</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Hour of the 12-hour day<SAMP> [01,12]</SAMP>. <SAMP>[tm_hour]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>02</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>j</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Day of the year <SAMP>[001,366]</SAMP>. <SAMP>[tm_yday]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>60</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>k</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Hour of the 24-hour day <SAMP>[0,23]</SAMP>. Single digits preceded by a blank. <SAMP>[tm_hour]</SAMP><SUP>1</SUP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>14</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>m</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Month of the year <SAMP>[01,12]</SAMP>. <SAMP>[tm_mon]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>02</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>M</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Minutes after the hour <SAMP>[00,59]</SAMP>. <SAMP>[tm_min]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>34</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>n</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The <SAMP>&lt;newline&gt;</SAMP> character from the Portable Character Set.</P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>\n</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>p</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">AM/PM indicator, if any. In the C locale, one of "AM", and "PM". <SAMP>[tm_hour]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>PM</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>r</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Time using a.m. and p.m. notation. In the C locale, equivalent to <SAMP>%I:%M %S %p</SAMP>. <SAMP>[tm_hour, tm_min, tm_sec]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>02:34:56 PM</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>R</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Time in 24-hour notation <SAMP>(%H:%M)</SAMP>. <SAMP>[tm_hour, tm_min]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>14:34</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>S</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Seconds after the minute. <SAMP>[tm_sec]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>56</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>t</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The <SAMP>&lt;tab&gt;</SAMP> character from the Portable Character Set.</P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>\t</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>T</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Time <SAMP>(%H:%M:%S)</SAMP>. <SAMP>[tm_hour, tm_min, tm_sec]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>14:34:56</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>u</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Weekday as a decimal number, with <SAMP>1</SAMP> for Monday <SAMP>[1,7]. [tm_wday]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>3</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>U</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Sunday-based week of the year <SAMP>[00,53]</SAMP>. <SAMP>[tm_year, tm_wday, tm_yday]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>09</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>V</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO 8601:2000 standard (Monday-based) week number of the year <SAMP>[01,53]</SAMP>. <SAMP>[tm_year, tm_wday, tm_yday]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>09</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>w</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Day of the week, with <SAMP>0 </SAMP>for Sunday <SAMP>[0,6]</SAMP>.</P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>3</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>W</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Monday-based week of the year <SAMP>[00,53]</SAMP>. <SAMP>[tm_year, tm_wday, tm_yday]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>09</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>x</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Date. In the C locale, equivalent to <SAMP>%m/%d/%y</SAMP>. [may use any or all members]</P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>02/29/1984</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>X</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Time. In the C locale, equivalent to <SAMP>%T</SAMP>. [may use any or all members]</P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>14:34:56</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>y</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Last 2 digits of the year <SAMP>[00,99]</SAMP>. <SAMP>[tm_year]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>84</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>Y</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Year. <SAMP>[tm_year]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>1984</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>z</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The offset from UTC in the ISO 8601:2000 standard format (<SAMP>+hhmm </SAMP>or <SAMP>-hhmm)</SAMP>, or by no characters if no time zone is determinable. If <SAMP>tm_isdst</SAMP> is zero, the standard time offset is used; otherwise if <SAMP>tm_isdst</SAMP> is greater than zero, the daylight savings time offset is used; otherwise, no characters are returned.<SAMP> [tm_isdst]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>e.g., -0700</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>Z</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Time zone name (implementation-defined). <SAMP>[tm_isdst]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>e.g. MST</SAMP></P>
+</td>
+</tr>
+</TABLE>
+<OL><LI>This format is an extension to the IEEE Std 1003.1 standard provided by this implementation.
+</LI></OL>
+ </PARA>
+<P><A HREF="time-put.html#Table&nbsp;37">Table&nbsp;37</A> illustrates the recgonized modified formatting characters and their corresponding meaning.</P>
+<H4><A NAME="Table&nbsp;37">Table&nbsp;37: Recognized modified formatting characters&nbsp;.</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Format string</B>
+</td>
+<td valign=top><B>Meaning</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%Ec</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The locale's alternative appropriate date and time representation.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%EC</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The name of the base year (period) in the locale's alternative representation.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%Ex</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The locale's alternative date representation.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%EX</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The locale's alternative time representation.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%Ey</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The offset from <SAMP>%EC</SAMP> (year only) in the locale's alternative representation.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%EY</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The full alternative year representation.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%Od</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The day of the month, using the locale's alternative numeric symbols, filled if necessary with leading zeros if there is any alternative symbol for zero; otherwise, with leading spaces.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%Oe</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The day of the month, using the locale's alternative numeric symbols, filled if necessary with leading spaces.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%OH</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The hour of the 24-hour day using the locale's alternative numeric symbols.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%OI</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The hour of the 12-hour day using the locale's alternative numeric symbols.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%Om</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The month using the locale's alternative numeric symbols.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%OM</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The minutes using the locale's alternative numeric symbols.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%OS</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The seconds using the locale's alternative numeric symbols.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%Ou</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The Monday-based weekday as a number in the locale's alternative representation.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%OU</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The Sunday-based week number of the year (as in <SAMP>%U)</SAMP> using the locale's alternative numeric symbols.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%OV</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The Monday-based week number of the year (as in <SAMP>%V</SAMP>) using the locale's alternative numeric symbols.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%Ow</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The Sunday-based number of the weekday using the locale's alternative numeric symbols. </P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%OW</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The Monday-based week number of the year using the locale's alternative numeric symbols.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>%Oy</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Replaced by the year (offset from <SAMP>%C</SAMP>) using the locale's alternative numeric symbols.</P>
+</td>
+</tr>
+</TABLE>
+</UL>
+
+<P>In the C locale, the <SAMP>'E'</SAMP> and <SAMP>'O'</SAMP> modifiers are ignored.</P>
+<P>The behavior of the functions is undefined if the modifier is other than <SAMP>'\0'</SAMP>, <SAMP>'E'</SAMP> and <SAMP>'O'</SAMP>, or if the format character is other than those specified in <A HREF="time-put.html#Table&nbsp;36">Table&nbsp;36</A> above.</P>
+<P>For example, if the set of a locale's alternative numeric symbols consists of { <SAMP>""</SAMP>, <SAMP>"</SAMP><SAMP>1st</SAMP><SAMP>"</SAMP>, <SAMP>"</SAMP><SAMP>2nd</SAMP><SAMP>"</SAMP>,  <SAMP>"</SAMP><SAMP>3rd</SAMP><SAMP>"</SAMP>, ... , <SAMP>"</SAMP><SAMP>31st</SAMP><SAMP>"</SAMP>} then the date Wednesday, February 29, 1984 will be formatted using <SAMP>"</SAMP><SAMP>%Od</SAMP><SAMP>"</SAMP> as <SAMP>"</SAMP><SAMP>29th</SAMP><SAMP>"</SAMP>.</P>
+<A NAME="sec13"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  timeput.cpp
+//
+
+#include &lt;ctime&gt;      // for struct tm
+#include &lt;iostream&gt;   // for cout, endl
+#include &lt;locale&gt;     // for locale, time_put
+
+int main ()
+{
+    // zero-out all members (including any non-standard
+    // ones) std::tm t = std::tm ();
+    // assign individual members being careful to
+    // avoid relying on the implementation-defined
+    // layout of the struct
+    t.tm_sec   = 56;   // seconds
+    t.tm_min   = 34;   // minutes
+    t.tm_hour  = 14;   // hours (i.e., 2 PM)
+    t.tm_mday  = 29;   // day of month
+    t.tm_mon   =  1;   // month (Feb)
+    t.tm_year  = 84;   // years since 1900
+                      // (i.e., 1984)
+    t.tm_yday  = 59;   // day of the year
+    t.tm_wday  =  3;   // day of the week (Wednesday)
+    t.tm_isdst =  0;   // Daylight Saving Time
+
+    const char* const fmt[] = {
+      "%a", "%A", "%b", "%B", "%c", "%C", "%d", "%D",
+      "%e", "%F", "%g", "%G", "%h", "%H", "%I", "%j",
+      "%k", "%l", "%m", "%M", "%n", "%p", "%r", "%R",
+      "%S", "%t", "%T", "%u", "%U", "%V", "%w", "%W", "%x",
+      "%X", "%y", "%Y", "%z", "%Z", "%%", "%Ec", "%EC", "%Ex",
+      "%EX", "%Ey", "%EY", "%Od", "%Oe", "%OH", "%OI", "%Om",
+      "%OM", "%OS", "%Ou", "%OU", "%OV", "%Ow", "%OW", "%Oy"         
+    };
+
+    // retrieve the time_put facet installed in cout
+    const std::time_put&lt;char&gt; &amp;tput =
+        std::use_facet&lt;std::time_put&lt;char&gt; &gt;(std::cout.getloc ());
+
+    // print out the value of t formatted according to each
+    // of the format/ specifiers defined above 
+    for (std::size_t i = 0; i != sizeof fmt / sizeof *fmt; ++i) {
+        std::cout &lt;&lt; "   \"" &lt;&lt; fmt [i] &lt;&lt; "\"   \"";
+
+        if ('n' == fmt [i][1])
+            std::cout &lt;&lt; "\\n";
+        else if ('t' == fmt [i][1])
+            std::cout &lt;&lt; "\\t";
+        else
+            tput.put (std::ostreambuf_iterator&lt;char&gt;(std::cout.rdbuf ()),
+                      std::cout, '\0', &amp;t, fmt [i],
+                      fmt [i] + std::char_traits&lt;char&gt;::length (fmt [i]));
+
+        std::cout &lt;&lt; "\"\n";
+    }
+
+    return 0;
+}
+
+
+</PRE></UL>
+<P><SAMP>Program Output:</SAMP></P>
+<P>With the <SAMP>TZ</SAMP> environment variable defined to a value equivalent to <SAMP>PST8PDT</SAMP>, the output of the program will be as follows:</P>
+
+<UL><PRE>     "%a" "Wed"
+     "%A" "Wednesday"
+     "%b" "Feb"
+     "%B" "February"
+     "%c" "Wed Feb 29 14:34:56 1984"
+     "%C" "19"
+     "%d" "29"
+     "%D" "02/29/84"
+     "%e" "29"
+     "%F" "1984-02-29"
+     "%g" "84"
+     "%G" "1984"
+     "%h" "Feb"
+     "%H" "14"
+     "%I" "02"
+     "%j" "060"
+     "%k" "14"
+     "%l" " 2"
+     "%m" "02"
+     "%M" "34"
+     "%n" "\n"
+     "%p" "PM"
+     "%r" "02:34:56 PM"
+     "%R" "14:34"
+     "%S" "56"
+     "%t" "\t"
+     "%T" "14:34:56"
+     "%u" "3"
+     "%U" "09"
+     "%V" "09"
+     "%w" "3"
+     "%W" "09"
+     "%x" "02/29/84"
+     "%X" "14:34:56"
+     "%y" "84"
+     "%Y" "1984"
+     "%z" "+0700"
+     "%Z" "MST"
+     "%%" "%"
+     "%Ec" "Wed Feb 29 14:34:56 1984"
+     "%EC" "19"
+     "%Ex" "02/29/84"
+     "%EX" "14:34:56"
+     "%Ey" "84"
+     "%EY" "1984"
+     "%Od" "29"
+     "%Oe" "29"
+     "%OH" "14"
+     "%OI" "02"
+     "%Om" "02"
+     "%OM" "34"
+     "%OS" "56"
+     "%Ou" "3"
+     "%OU" "09"
+     "%OV" "09"
+     "%Ow" "3"
+     "%OW" "09"
+     "%Oy" "84"
+</PRE></UL>
+<A NAME="sec14"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="time-get.html">time_get</A></I></B></P>
+<A NAME="sec15"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.2.5.3</I></P>
+<P><I>ISO/IEC 9899:1999 -- Programming Language C, Section 7.23.3.5, paragraph 3</I></P>
+<P><I>IEEE Std 1003.1-2001 -- The Open Group Base Specifications Issue 6, </I>strftime</P>
+<P><I>ISO 8601:2000 -- Data elements and interchange formats -- Information interchange  --  Representation of dates and times</I></P>
+<P><I>IEEE Std 1003.1-2001 -- </I><I>The Open Group Base Specifications Issue 6, Character Set</I></P>
+
+<BR>
+<HR>
+<A HREF="time-get-byname.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="time-put-byname.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

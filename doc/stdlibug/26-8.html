@@ -1,0 +1,28 @@
+<HTML>
+<HEAD>
+<TITLE>Formatting Phone Numbers</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="26-7.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="26-9.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>26.8 Formatting Phone Numbers</H2>
+<P>As mentioned earlier, the virtual function in the base class facet <SAMP>do_put()</SAMP> must be overridden in derived classes to actually implement locale dependent formatting of phone numbers. In the example below, we show <SAMP>do_put()</SAMP> (see <SAMP>//1</SAMP>) being overridden in the derived facet class US_phone_put to implement formatting phone numbers in the US style. This overridden version will be called by the base class's <SAMP>put() </SAMP>member function</P>
+
+<UL><PRE>
+class US_phone_put: public phone_put {
+  ...
+protected:
+  ...
+  // perform formatting in the US style 
+  virtual string_type do_put(string_type cntryName,     //1
+                             string_type areaCode,
+                             string_type extension) const {
+        ...    
+    }
+};
+</PRE></UL>
+<P>For the sake of brevity, we spare you here the details of the actual implementation of the formatting in <SAMP>do_put()</SAMP>.</P>
+
+<BR>
+<HR>
+<A HREF="26-7.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="26-9.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

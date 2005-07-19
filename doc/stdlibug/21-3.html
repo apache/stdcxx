@@ -1,0 +1,170 @@
+<HTML>
+<HEAD>
+<TITLE>numeric_limits Members</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="21-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="22.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>21.3 numeric_limits Members</H2>
+<A NAME="idx450"><!></A>
+<P>Since a number of the members in the <SAMP>numeric_limits</SAMP> template specializations are meaningful only for floating point specializations, it is useful to separate the description of the members into <I>common </I>fields and <I>floating-point specific</I> fields.</P>
+<A NAME="2131"><H3>21.3.1 Members Common to All Types</H3></A>
+<A NAME="idx451"><!></A>
+<P><A HREF="21-3.html#Table&nbsp;22">Table&nbsp;22</A> summarizes the information available through the <B><I><A HREF="../stdlibref/numeric-limits.html">numeric_limits</A></I></B> static data members and functions.</P>
+<H4><A NAME="Table&nbsp;22">Table&nbsp;22: Information available through numeric_limits&lt;T&gt; </A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Type</B>
+</td><td valign=top><B>Name</B>
+</td><td valign=top><B>Meaning </B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>is_specialized</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if a specialization exists, <SAMP>false</SAMP> otherwise </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>T</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>min()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Smallest finite value<br>Corresponding constant: <SAMP>XXX_MIN</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>T</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>max()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Largest finite value<br>Corresponding constant: <SAMP>XXX_MAX</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>int</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>radix</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">The base of the representation</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>int</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>digits</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Number of <SAMP>radix</SAMP> digits that can be represented without change</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>int</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>digits10</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Number of base-10 digits that can be represented without change</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>is_signed</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if the type is signed</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>is_integer</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if the type is integer</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>is_exact</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if the representation is exact</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>is_bounded</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if representation is finite</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>is_modulo</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if adding two positive values of type T can yield a result less than either value</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>traps</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if trapping is implemented for the type</P>
+</td></tr>
+</TABLE>
+<P>In the table above, the <SAMP>XXX</SAMP> prefix is replaced with <SAMP>CHAR</SAMP>, <SAMP>SCHAR</SAMP>, <SAMP>UCHAR</SAMP>, <SAMP>SHRT</SAMP>, <SAMP>USHRT</SAMP>, <SAMP>INT</SAMP>, <SAMP>UINT</SAMP>, <SAMP>LONG</SAMP>, and <SAMP>ULONG</SAMP>, respectively, for the corresponding values of types <SAMP>char</SAMP>, <SAMP>signed char</SAMP>, <SAMP>unsigned char</SAMP>, <SAMP>short</SAMP>, <SAMP>unsigned short</SAMP>, <SAMP>int</SAMP>, <SAMP>unsigned</SAMP>, <SAMP>long</SAMP>, and <SAMP>unsigned long</SAMP>, as appropriate. These manifest constants are defined in the header <SAMP>&lt;climits&gt;</SAMP>. </P>
+<P><SAMP>radix</SAMP> represents the internal base for the representation. For example, most machines use a base 2 radix for integer data values; however, some may also support a representation, such as BCD, that uses a different base. The <SAMP>digits</SAMP> member then represents the number of such <SAMP>radix</SAMP> values that can be held in a value. For an integer type, this would be the number of non-sign bits in the representation.</P>
+<P>All fundamental types are bounded. However, an implementation might choose to include, for example, an infinite precision integer type that would not be bounded.</P>
+<P>A type is <I>modulo</I> if the value resulting from the addition of two positive values can <I>wrap around</I>, that is, be smaller than either argument. The fundamental unsigned integer types are all modulo.  Signed integer types are usually modulo. The fundamental floating point types typically are not modulo.</P>
+<A NAME="2132"><H3>21.3.2 Members Specific to Floating Point Values</H3></A>
+<A NAME="idx452"><!></A>
+<P>The members described in <A HREF="21-3.html#Table&nbsp;23">Table&nbsp;23</A> are either specific to floating point values, or have a meaning slightly different for floating point values than the one described earlier for non-floating datatypes.</P>
+<H4><A NAME="Table&nbsp;23">Table&nbsp;23: Members specific to floating point values&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Type</B>
+</td><td valign=top><B>Name</B>
+</td><td valign=top><B>Meaning</B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>T</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>min()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Minimum positive normalized value<br>Corresponding constant: <SAMP>XXX_MIN</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>int</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>digits</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Number of digits in the mantissa<br>Corresponding constant: <SAMP>XXX_MANT_DIG</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>int</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>radix</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Base (or radix) of the exponent representation<br>Corresponding constant: <SAMP>FLT_RADIX</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>T</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>epsilon()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Difference between 1 and the least representable value greater than 1<br>Corresponding constant: <SAMP>XXX_EPSILON</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>T</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>round_error()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">A measurement of the rounding error</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>int</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>min_exponent</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Minimum negative exponent<br>Corresponding constant: <SAMP>XXX_MIN_EXP</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>int</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>min_exponent10</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Minimum value such that 10 raised to that power is in range<br>Corresponding constant: <SAMP>XXX_MIN_10_EXP</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>int</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>max_exponent</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Maximum positive exponent<br>Corresponding constant: <SAMP>XXX_MAX_EXP</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>int</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>max_exponent10</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Maximum value such that 10 raised to that power is in range<br>Corresponding constant: <SAMP>XXX_MAX_10_EXP</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>has_infinity</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if the type has a representation of positive infinity</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>T</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>infinity()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Representation of infinity, if available<br>Corresponding constant: <SAMP>INFINITY</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>has_quiet_NaN</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if there is a representation of a Quiet \Q\QNot a Number"</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>T</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>quiet_NaN()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Representation of Quiet NaN, if available<br>Corresponding constant: <SAMP>NAN</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>has_signaling_NaN</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if there is a representation for a Signaling NaN</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>T</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>signaling_NaN()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Representation of Signaling NaN, if available</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>has_denorm</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if the representation allows denormalized values</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>T</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>denorm_min()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Minimum positive denormalized value </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>is_iec559</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if representation adheres to IEC 559 standard.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bool</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>tinyness_before</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>true</SAMP> if <SAMP>tinyness</SAMP> is detected before rounding</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>float_round_style</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>round_style</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Rounding style for type<br>Corresponding constant: <SAMP>FLT_ROUNDS</SAMP></P>
+</td></tr>
+</TABLE>
+<P>In the table above, the <SAMP>XXX</SAMP> prefix is replaced with <SAMP>FLT</SAMP>, <SAMP>DBL</SAMP>, and <SAMP>LDBL</SAMP>, respectively, for the corresponding values of types <SAMP>float</SAMP>, <SAMP>double</SAMP>, and <SAMP>long double</SAMP>. These manifest constants are defined in the header <SAMP>&lt;cfloat&gt;</SAMP>.</P>
+<P>A <SAMP>NaN</SAMP> is a <I>Not a Number</I>. It is a set of representable values that nevertheless do not correspond to any numeric quantity. Many numeric algorithms manipulate such values. NANs are typically returned by numeric algorithms to indicate a result that is outside of the domain of the data type. For instance, the operations <SAMP>0.0/0.0</SAMP> or <SAMP>0 * std::numeric_limits&lt;double&gt;::infinity()</SAMP> yield NAN or <SAMP>std::numeric_limits&lt;double&gt;::quiet_NaN()</SAMP>. NANs come in two flavors: quiet and signaling. A quiet NAN can be safely used in computations without the danger of triggering an exception. A signaling NAN can be copied, assigned, and compared without causing an exception; however, using it in an arithmetic expression triggers a hardware exception. A unique property of all NANs is that they do not compare equal to any number, including another NAN.</P>
+<P>The IEC 559 standard is a standard approved by the International Electrotechnical Commission. It is the same as the IEEE standard 754. The standard precisely specifies the representation, many properties, and relationships of the fundamental floating point types. </P>
+<P>The value returned by the member function <SAMP>round_style()</SAMP> is one of the following: <SAMP>round_indeterminate</SAMP>, <SAMP>round_toward_zero</SAMP>, <SAMP>round_to_nearest</SAMP>, <SAMP>round_toward_infinity</SAMP>, or <SAMP>round_toward_neg_infinity</SAMP>.</P>
+
+<BR>
+<HR>
+<A HREF="21-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="22.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

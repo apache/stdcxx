@@ -1,0 +1,66 @@
+<HTML>
+<HEAD>
+<TITLE>Class basic_streambuf: the Sequence Abstraction</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="39.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="39-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>39.1 Class basic_streambuf: the Sequence Abstraction</H2>
+<A NAME="idx919"><!></A>
+<A NAME="idx920"><!></A>
+<P>Stream buffers provide the transport and character code conversion capabilities of the Standard C++ Library iostreams. A stream buffer serves as a source and/or sink for the formatting layer represented by the streams themselves. The buffer in turn sends characters on to a file or stores them directly in a string, memory array, or some other destination; it also receives characters from strings, memory arrays, and files. A stream buffer need not handle both input and output, however; it may specialize in read operations or write operations. A stream buffer might also alter or manipulate data in some appropriate way, as we'll see in <A HREF="39-2.html">Section&nbsp;39.2</A> when we derive a new stream buffer class.</P>
+<A NAME="3911"><H3>39.1.1 The streambuf Hierarchy</H3></A>
+<A NAME="idx921"><!></A>
+<P>As with streams, stream buffers are organized in an inheritance hierarchy, albeit a much simpler one. To refresh your memory, <A HREF="39-1.html#Figure&nbsp;36">Figure&nbsp;36</A> below repeats the inheritance hierarchy given previously in <A HREF="27-4.html#Figure&nbsp;26">Figure&nbsp;26</A>:</P>
+<A NAME="idx922"><!></A>
+<H4><A NAME="Figure&nbsp;36">Figure&nbsp;36: The streambuf class hierarchy</A></H4>
+
+<P><IMG SRC="images/stdlibug-IOStreams20.gif" WIDTH=545 HEIGHT=195></P>
+<A NAME="idx923"><!></A>
+<P><B><I><A HREF="../stdlibref/basic-streambuf.html">basic_streambuf</A></I></B> provides the base abstraction for a one-dimensional character array with theoretically unlimited capacity. All other stream buffers derive from this class template. <B><I>basic_streambuf</I></B> also defines the basic interface between streams and stream buffers. Much of this interface delegates implementation to a set of protected virtual functions that allow derived classes to determine how things actually work. While these functions in <B><I>basic_streambuf</I></B> all have default behavior, a <B><I>basic_streambuf</I></B> object is not itself useful for a transport layer, since it doesn't provide a public constructor. Instead, a more specific kind of stream buffer is derived from the <B><I>basic_streambuf</I></B> base.</P>
+<A NAME="idx924"><!></A>
+<P>As shown in the inheritance hierarchy, the iostreams facility defines three different derived stream buffers. These three are used respectively for controlling input/output to files, strings, and character arrays in memory:</P>
+<UL>
+<A NAME="idx925"><!></A>
+<LI><P CLASS="LIST"> <B><I><A HREF="../stdlibref/basic-filebuf.html">basic_filebuf</A></I></B> provides a transport layer for interfacing streams with files. </P></LI>
+<A NAME="idx926"><!></A>
+<LI><P CLASS="LIST"><B><I><A HREF="../stdlibref/basic-stringbuf.html">basic_stringbuf</A></I></B> provides a transport layer for interacting directly with strings in memory.</P></LI>
+<A NAME="idx927"><!></A>
+<LI><P CLASS="LIST"> <B><I><A HREF="../stdlibref/strstreambuf.html">strstreambuf</A></I></B> allows writing to and reading from character arrays.</P></LI>
+</UL>
+<P>Each of these derived stream buffers implements behavior specific to its task, and extends the <B><I><A HREF="../stdlibref/basic-streambuf.html">streambuf</A></I></B> interface to accommodate the specific needs of its source/destination. For instance, <B><I><A HREF="../stdlibref/basic-filebuf.html">basic_filebuf</A></I></B> defines <SAMP>open()</SAMP> and <SAMP>close()</SAMP> member functions for performing those operations on an underlying file, and <B><I><A HREF="../stdlibref/basic-stringbuf.html">basic_stringbuf</A></I></B> defines a <SAMP>str()</SAMP> member function that returns a copy of the underlying string. </P>
+<A NAME="idx928"><!></A>
+<P>Every stream buffer implements a character array in memory that represents a <I>portion</I> of the data passing through the stream--the portion that is currently buffered. The buffer maintains both a<I> put</I> area, which contains buffered characters written to the stream, and a<I> get </I>area, which contains buffered characters available for reading. Either of these may be empty, depending on the type of stream (that is, read or write only), or the stream state (for example, at the end of a file).</P>
+<A NAME="idx929"><!></A>
+<P>When the <I>put</I> area becomes full and a pending operation would cause it to overflow, the characters in that area are written out using the protected virtual function <SAMP>overflow()</SAMP>. When the <I>get</I> area is emptied, a new set of characters is read in using the protected virtual function <SAMP>underflow()</SAMP>. In this way the actual reading and writing of characters is delegated to a derived class as necessary.   For example, a <B><I><A HREF="../stdlibref/basic-filebuf.html">basic_filebuf</A></I></B> has an implementation of overflow that writes characters out to a file, while a <B><I><A HREF="../stdlibref/basic-stringbuf.html">basic_stringbuf</A></I></B> simply copies characters into a string whenever overflow is called. </P>
+<A NAME="idx930"><!></A>
+<P>Seeking operations and the <I>sync operation</I> are handled in the same way. The sync operation ensures that the state of the stream buffer and the underlying source/sink are synchronized.</P>
+<A NAME="idx931"><!></A>
+<A NAME="3912"><H3>39.1.2 The streambuf Interface</H3></A>
+<A NAME="idx932"><!></A>
+<P><B><I><A HREF="../stdlibref/basic-streambuf.html">basic_streambuf</A></I></B> defines a public interface for reading, writing, seeking, querying, and localization. Most of the public functions that define this interface actually delegate to protected virtual functions so that specific behavior is implemented by derived classes. The <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A> contains detailed descriptions of all of these functions. Meanwhile, the public interface, and the way in which functions delegate to virtual functions, is described below:</P>
+<A NAME="idx933"><!></A>
+<P><B><I>For reading:</I></B></P>
+<P>The <SAMP>in_avail()</SAMP> member function returns the number of characters currently in the buffer that are available for reading, or an estimate of the number of characters available in the underlying source if the buffer is currently empty. If an estimate cannot be obtained, as may be the case with the standard iostream object <SAMP>std::cin</SAMP>, then this function returns<SAMP> -1</SAMP>.</P>
+<P>The <SAMP>snextc()</SAMP> member function moves the current position forward in the buffer one character and returns the character it now points to, or returns <SAMP>std::char_traits&lt;&gt;::eof</SAMP> if at end of file.</P>
+<P>The <SAMP>sbumpc()</SAMP> member function returns the character currently pointed to in the buffer, then increments the current position by one.</P>
+<P>The <SAMP>sgetc()</SAMP> member function returns the character at the current position. This function does not change the current position.</P>
+<P>The <SAMP>sgetn(char_type* s, streamsize n)</SAMP> member function copies up to <SAMP>n</SAMP> characters from the buffer to the character array pointed to by <SAMP>s</SAMP>. This function delegates to the protected virtual function <SAMP>xsgetn()</SAMP>.</P>
+<P>Note that the last four functions all use the protected virtual function <SAMP>underflow()</SAMP> to fetch new characters if none is currently available in the buffer.</P>
+<P>The <SAMP>sungetc</SAMP> and <SAMP>dsputbackc(char_type)</SAMP> member functions both move the current pointer back one step if possible. If it's not possible to back up, say, because we're at the beginning of a buffer attached to <SAMP>stdin</SAMP>, then both functions return the result of calling the protected virtual function <SAMP>pbackfail()</SAMP>. The function <SAMP>sputback</SAMP> also returns <SAMP>pbackfail()</SAMP> if the previous character in the buffer does not match the function's argument.</P>
+<A NAME="idx934"><!></A>
+<P><B><I>For writing:</I></B></P>
+<P>The <SAMP>sputc(char_type c)</SAMP> copies the character <SAMP>c</SAMP> into the buffer at the current position and increments the position. The protected virtual function <SAMP>overflow(c)</SAMP> is called if the <SAMP>write</SAMP> area is full.</P>
+<P>The <SAMP>sputn(const char_type* s, streamsize n)</SAMP> member function delegates to the protected virtual function <SAMP>xsputn()</SAMP>. The effect is to copy up to <SAMP>n</SAMP> characters from <SAMP>s</SAMP> into the <I>put</I> area of the buffer and increment the write position that many times.</P>
+<A NAME="idx935"><!></A>
+<P><B><I>For positioning:</I></B></P>
+<P>The <SAMP>pubseekoff()</SAMP> and <SAMP>pubseekpos()</SAMP> delegate to their respective virtual functions, <SAMP>seekoff()</SAMP> and <SAMP>seekpos()</SAMP>. The behavior of these is highly dependent on the type of derived stream buffer and the type of code conversion needed. See <A HREF="30-5.html">Section&nbsp;30.5</A> on file positioning for a description of these functions with regard to <SAMP>basic_filebuf</SAMP>.</P>
+<A NAME="idx936"><!></A>
+<P><B><I>For locales:</I></B></P>
+<P>The <SAMP>pubimbue(const locale&amp;)</SAMP> and <SAMP>getloc()</SAMP> member functions set and get the character code conversion properties for a stream buffer; <SAMP>pubimbue()</SAMP> actually delegates to the protected virtual function <SAMP>imbue()</SAMP>. <SAMP>pubimbue()</SAMP> returns the previous locale for the stream buffer, the same locale that would have been returned by <SAMP>getloc()</SAMP> before a call to <SAMP>pubimbue()</SAMP>.</P>
+<P>Finally, <B><I><A HREF="../stdlibref/basic-streambuf.html">basic_streambuf</A></I></B> provides a function for setting its internal character buffer and another for synchronizing the buffer and the underlying source or sink. Function <SAMP>pubsetbuf(char_type*,streamsize)</SAMP> delegates to the protected virtual function <SAMP>setbuf()</SAMP>, and <SAMP>pubsync()</SAMP> delegates to the protected virtual function <SAMP>sync()</SAMP>.</P>
+<P>In <A HREF="39-2.html">Section&nbsp;39.2</A> we show how to create a new kind of stream buffer by deriving from one of the existing stream buffer classes. We re-implement one of the protected virtual functions declared by <B><I><A HREF="../stdlibref/basic-streambuf.html">basic_streambuf</A></I></B> in order to modify the behavior of a <B><I><A HREF="../stdlibref/basic-filebuf.html">basic_filebuf</A></I></B>.</P>
+
+<BR>
+<HR>
+<A HREF="39.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="39-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

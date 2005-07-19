@@ -1,0 +1,134 @@
+<HTML>
+<HEAD>
+<TITLE>nth_element()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="not-equal-to.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="num-get.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>nth_element()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An algorithm that rearranges a collection so that all elements lower in sorted order than the <SAMP>nth</SAMP> element come before it, and all elements higher in sorted order than the <SAMP>nth</SAMP> element come after it</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class RandomAccessIterator&gt;
+  void nth_element(RandomAccessIterator start,
+                   RandomAccessIterator nth,
+                   RandomAccessIterator finish);
+
+  template &lt;class RandomAccessIterator, class Compare&gt;
+  void nth_element(RandomAccessIterator start,
+                   RandomAccessIterator nth,
+                   RandomAccessIterator finish,
+                   Compare comp);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>nth_element()</SAMP> algorithm rearranges a collection according to either  <SAMP>operator&lt;()</SAMP> or the function object <SAMP>comp</SAMP>. After the algorithm is applied, the follwoing hold:</P>
+<UL>
+<LI><P CLASS="LIST">The element that would be in the <SAMP>nth</SAMP> position if the sequence were completely sorted is in the <SAMP>nth</SAMP> position</P></LI>
+<LI><P CLASS="LIST">All elements prior to the <SAMP>nth</SAMP> position would also precede that position in an ordered sequence</P></LI>
+<LI><P CLASS="LIST">All elements following the <SAMP>nth</SAMP> position would also follow that position in an ordered sequence</P></LI>
+</UL>
+<P>That is, for any iterator <SAMP>i</SAMP> in the range <SAMP>[start, nth)</SAMP> and any iterator <SAMP>j</SAMP> in the range <SAMP>[nth, finish)</SAMP>, it holds that <SAMP>!(*i &gt; *j)</SAMP> or <SAMP>comp(*i, *j) == false</SAMP>. </P>
+<P>Note that the elements that precede or follow the <SAMP>nth</SAMP> position are not necessarily sorted relative to each other. The <SAMP>nth_element()</SAMP> algorithm does<I> not </I>sort the entire collection.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>The algorithm is linear, on average, where <SAMP>N</SAMP> is the size of the range <SAMP>[start, finish)</SAMP>.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  nthelem.cpp
+//
+ 
+#include &lt;algorithm&gt;   // for swap
+#include &lt;vector&gt;      // for vector
+#include &lt;iostream&gt;    // for cout, endl
+
+
+
+template&lt;class RandomAccessIterator&gt;
+void quik_sort (RandomAccessIterator start, RandomAccessIterator end)
+{
+    size_t dist = end - start;
+
+    // Stop condition for recursion.
+    if (dist &gt; 2) {
+        // Use nth_element to do all the work for quik_sort.
+        std::nth_element (start, start + (dist / 2), end);
+
+        // Recursive calls to each remaining unsorted portion.
+        quik_sort (start, start + (dist / 2 - 1));
+        quik_sort (start + (dist / 2 + 1), end);
+    }
+
+    if (2 == dist &amp;&amp; *(end - 1) &lt; *start)
+        std::swap (start, end);
+}
+
+
+int main ()
+{
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; Vector;
+
+    // Initialize a vector using an array of integers.
+    Vector::value_type arr[] = { 37, 12,  2, -5, 14, 
+                                  1,  0, -1, 14, 32 };
+
+    Vector v (arr + 0, arr + sizeof arr / sizeof *arr);
+
+    // Print the initial vector.
+    std::cout &lt;&lt; "The unsorted values are: \n     ";
+
+    for (Vector::iterator i = v.begin (); i != v.end (); ++i)
+        std::cout &lt;&lt; *i &lt;&lt; ", ";
+
+    std::cout &lt;&lt; "\n\n";
+
+    // Use the new sort algorithm.
+    quik_sort (v.begin (), v.end ());
+
+    // Output the sorted vector.
+    std::cout &lt;&lt; "The sorted values are: \n     ";
+    for (Vector::iterator i = v.begin (); i != v.end (); ++i)
+        std::cout &lt;&lt; *i &lt;&lt; ", ";
+
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+The unsorted values are: 
+     37, 12, 2, -5, 14, 1, 0, -1, 14, 32, 
+
+The sorted values are: 
+     -5, -1, 0, 1, 2, 12, 14, 14, 32, 37, 
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><A HREF="algorithms.html">Algorithms</A></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.3.2</I></P>
+
+<BR>
+<HR>
+<A HREF="not-equal-to.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="num-get.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

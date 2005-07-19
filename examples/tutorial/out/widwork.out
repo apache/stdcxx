@@ -1,0 +1,13 @@
+Widget Works test program
+Received shipment of widget type 1
+Received shipment of widget type 2
+Received shipment of widget type 3
+Received order for widget type 2
+Ship Widget 2
+Received order for widget type 2
+Back order widget of type 2
+Received order for widget type 3
+Ship Widget 3
+Received shipment of widget type 2
+Ship Widget 2 to fill back order
+End of widget words test program

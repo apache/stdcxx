@@ -1,0 +1,73 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * csignal - C++ Standard library interface to the ANSI C header signal.h
+ *
+ * $Id: //stdlib/dev/include/ansi/csignal#15 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#include <rw/_defs.h>
+
+#ifndef _RWSTD_NO_PURE_C_HEADERS
+#  include <ansi/_csignal.h>
+#else
+
+#ifndef _RWSTD_NO_DEPRECATED_C_HEADERS
+
+#ifndef _RWSTD_NAMESPACE_STD_OPEN
+#define _RWSTD_NAMESPACE_STD_OPEN 10
+
+_RWSTD_NAMESPACE (std) { 
+
+#endif   // _RWSTD_NAMESPACE_STD_OPEN
+
+
+#include _RWSTD_ANSI_C_SIGNAL_H
+
+
+#if _RWSTD_NAMESPACE_STD_OPEN == 10
+#  undef _RWSTD_NAMESPACE_STD_OPEN
+
+}   // namespace std
+
+#endif   // _RWSTD_NAMESPACE_STD_OPEN == 10
+
+#else   // if defined (_RWSTD_NO_DEPRECATED_C_HEADERS)
+
+#ifndef _RWSTD_CSIGNAL_INCLUDED
+#define _RWSTD_CSIGNAL_INCLUDED
+
+#include _RWSTD_ANSI_C_SIGNAL_H
+
+#if !defined (_RWSTD_NO_NAMESPACE) && !defined (_RWSTD_NO_HONOR_STD) && \
+    !defined (_RWSTD_NO_USING_LIBC_IN_STD)
+
+namespace std {
+
+    using ::sig_atomic_t;
+    using ::raise;
+    using ::signal;
+
+}   // std
+
+#endif   // !_RWSTD_NO_NAMESPACE && !_RWSTD_NO_HONOR_STD && !_RWSTD_NO_USING_LIBC_IN_STD
+
+#endif   // _RWSTD_CSIGNAL_INCLUDED
+
+#endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
+
+#endif   // _RWSTD_NO_PURE_C_HEADERS

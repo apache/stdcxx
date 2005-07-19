@@ -1,0 +1,225 @@
+<HTML>
+<HEAD>
+<TITLE>money_get</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="modulus.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="moneypunct.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>money_get</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR><B><I>money_get</I></B> <IMG SRC="images/inherits.gif"> <B><I>locale::facet</I></B>  <HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Types</A></LI>
+<LI><A HREF="#sec8">Constructor</A></LI>
+<LI><A HREF="#sec9">Static Members</A></LI>
+<LI><A HREF="#sec10">Public Member Functions</A></LI>
+<LI><A HREF="#sec11">Protected Member Functions</A></LI>
+<LI><A HREF="#sec12">Example</A></LI>
+<LI><A HREF="#sec13">See Also</A></LI>
+<LI><A HREF="#sec14">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx891">char_type</A><BR>
+<A HREF="#idx897">do_get()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx896">get()</A><BR>
+<A HREF="#idx895">id</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx892">iter_type</A><BR>
+<A HREF="#idx894">money_get()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx893">string_type</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A monetary parsing facet.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  template &lt;class charT,
+            class InputIterator = istreambuf_iterator&lt;charT&gt; &gt;
+  class money_get;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+<P>The primary template can be implicitly or explicitly specialized on any character type that satisfies the requirements on the type of the character used by iostream class templates, and on any iterator type that satisfies the requirements of Output Iterator.</P>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The <B><I>money_get</I></B> facet includes facilities for parsing sequences of characters and interpreting them as monetary values. The facet is not used by any other Standard C++ Library components.</P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class charT,
+            class InputIterator = istreambuf_iterator&lt;charT&gt; &gt;
+  class money_get : public locale::facet 
+  {
+  public:
+    typedef charT               char_type;
+    typedef InputIterator       iter_type;
+    typedef basic_string&lt;charT&gt; string_type;
+    
+    explicit money_get(size_t = 0);
+    
+    iter_type get(iter_type, iter_type, bool, ios_base&amp;,
+                  ios_base::iostate&amp;, long double&amp;) const;
+    iter_type get(iter_type, iter_type, bool, ios_base&amp;,
+                  ios_base::iostate&amp;, string_type&amp;) const;
+    static locale::id id;
+  
+  protected:
+    virtual iter_type do_get(iter_type, iter_type, 
+                             bool, ios_base&amp;,
+                             ios_base::iostate&amp;, 
+                             long double&amp;) const;
+    virtual iter_type do_get(iter_type, iter_type, 
+                             bool, ios_base&amp;,
+                             ios_base::iostate&amp;, 
+                             string_type&amp;) const;
+  }; 
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Types</H3></A>
+
+<A NAME="idx891"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>Type of the first template argument.</P>
+</UL>
+
+
+<A NAME="idx892"></A><PRE><B>iter_type</B></PRE>
+<UL>
+<P>Type of the second template argument.</P>
+</UL>
+
+
+<A NAME="idx893"></A><PRE><B>string_type</B></PRE>
+<UL>
+<P>The type of <SAMP>basic_string</SAMP> specialized on <SAMP>char_type</SAMP>.</P>
+</UL>
+
+<A NAME="sec8"><H3>Constructor</H3></A>
+
+<A NAME="idx894"></A><PRE>explicit <B>money_get</B>(size_t refs = 0) </PRE>
+<UL>
+<P>Constructs a <B><I>money_get</I></B> object. Calls <SAMP>locale::facet (refs)</SAMP>. </P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the <B><I>money_get</I></B> object's reference count. A <B><I>money_get</I></B> object <SAMP>f</SAMP> constructed with <SAMP>(refs == 0)</SAMP> that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by  calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. A <B><I>money_get</I></B> object constructed with <SAMP>(refs != 0)</SAMP> will not be destroyed by any locale objects in which it may have been installed.</P>
+</UL>
+
+<A NAME="sec9"><H3>Static Members</H3></A>
+
+<A NAME="idx895"></A><PRE>static locale::id <B>id</B>; </PRE>
+<UL>
+<P>Unique identifier for this type of facet.</P>
+</UL>
+
+<A NAME="sec10"><H3>Public Member Functions</H3></A>
+<P>The public members of the <B><I>money_get</I></B> facet include an interface to protected members. Each public member <SAMP>get()</SAMP> calls the corresponding protected virtual protected member <SAMP>do_get()</SAMP>.</P>
+
+<A NAME="idx896"></A><PRE>iter_type 
+<B>get</B>(iter_type s, iter_type end, bool intl, ios_base&amp; f,
+    ios_base::iostate&amp; err, long double&amp; units) const;
+iter_type 
+<B>get</B>(iter_type s, iter_type end, bool intl, ios_base&amp; f,
+    ios_base::iostate&amp; err, string_type&amp; digits) const; </PRE>
+<UL>
+<P>Each of these two overloads of the public member function <SAMP>get()</SAMP> calls the corresponding protected virtual <SAMP>do_get()</SAMP> function.</P>
+</UL>
+
+<A NAME="sec11"><H3>Protected Member Functions</H3></A>
+
+<A NAME="idx897"></A><PRE>virtual iter_type 
+<B>do_get</B>(iter_type s, iter_type end,
+       bool intl, ios_base&amp; io,
+       ios_base::iostate&amp; err, 
+       long double&amp; units) const;
+virtual iter_type 
+<B>do_get</B>(iter_type s, iter_type end, 
+       bool intl, ios_base&amp; io,
+       ios_base::iostate&amp; err, 
+       string_type&amp; digits) const; </PRE>
+<UL>
+<P>Reads a sequence of characters <SAMP>[s,end)</SAMP>, and attempts to extract a monetary value. On success, the integral part of the extracted value is stored in <SAMP>units</SAMP> or <SAMP>digits</SAMP>, respectively,  either as a <SAMP>long double</SAMP> value, or as a sequence of digits, without modifying <SAMP>err</SAMP>; otherwise <SAMP>units</SAMP> and <SAMP>digits</SAMP> is left unchanged and <SAMP>ios_base::failbit</SAMP> is set in <SAMP>err</SAMP>.   The functions return an iterator pointing just past the last extracted character.</P>
+</UL>
+
+<P>The <SAMP>io</SAMP> argument is used to obtain a reference to the <SAMP>moneypunct&lt;char_type, intl&gt;</SAMP> facet installed in the object's locale and containing locale-specific punctuation data (the format of the monetary value, the currency symbol, the negative and positive signs, the number of significant digits after the decimal point, the grouping, the thousands separator, and the decimal point), to obtain a reference to the <SAMP>ctype&lt;char_type&gt;</SAMP> facet installed in the same locale needed to interpret the parsed characters, and to determine whether the currency symbol is optional or required. If the functions reach the end of the input sequence while attempting to extract additional characters, they set <SAMP>ios_base::eofbit</SAMP> in <SAMP>err</SAMP>. </P>
+<P>The functions use the result of <SAMP>use_facet&lt;moneypunct&lt;char_type, intl&gt;</SAMP> <SAMP>&gt;(io.getloc()).neg_format()</SAMP> to parse all sequences. Where <SAMP>money_base::none</SAMP> or <SAMP>money_base::space</SAMP> appears in the format, any optional whitespace characters, as determined by <SAMP>isspace(c, io.getloc ())</SAMP>, are extracted from the input sequence after the required space, if any. Trailing whitespace is never extracted, even when followed by the currency symbol, unless the latter is required (see below). Where <SAMP>money_base::sign</SAMP> appears in the format, the first character (if any) of either the negative sign or the positive sign, as determined by <SAMP>use_facet&lt;moneypunct&lt;char_type, intl&gt; &gt;(io.getloc()).negative_sign()</SAMP> and <SAMP>positive_sign()</SAMP>, respectively, is required. Any remaining characters of the sign are extracted only after all other components of the format, including any whitespace, have been successfully extracted. If the first character of the positive sign is equal to the first character of the negative sign, or if both are empty, the extracted value is assumed to be positive. Where <SAMP>money_base::value</SAMP> appears in the format, a sequence of digits, as determined by <SAMP>isdigit(c, io.getloc())</SAMP>, optionally iterspersed with thousands separators (see below), is extracted. If <SAMP>(use_facet&lt;moneypunct&lt;char_type, intl&gt; &gt;(io.getloc()).frac_digits() &gt; 0)</SAMP> is true the sequence of digits may be immediately followed by the decimal point and, optionally, by additional digits (no thousands separators are allowed); in that case the extracted value is multiplied by <SAMP>10</SAMP> to the power of <SAMP>fd</SAMP>, where <SAMP>fd</SAMP> is the number of fractional digits, and truncated to an integer before storing. </P>
+<P>If <SAMP>(io.flags () &amp; ios_base::showbase)</SAMP> is non-zero, the currency symbol is required; otherwise the currency symbol is optional and is only extracted from the input sequence if other components of the monetary value are necessary to complete it. </P>
+<P>If <SAMP>use_facet&lt;moneypunct&lt;char_type, intl&gt; &gt;(io.getloc()).grouping()</SAMP> returns a non-empty string, the positions of any characters found in the input sequence prior to the character returned by <SAMP>use_facet&lt;moneypunct&lt;char_type, intl&gt; &gt;(io.getloc()).decimal_point()</SAMP>, if any, which match that returned by <SAMP>use_facet&lt;moneypunct&lt;char_type&gt; &gt;(io.getloc()).thousands_sep()</SAMP> are checked for consistency with the grouping string. The functions indicate inconsistencies in the placement of thousands speratators by setting <SAMP>ios_base::failbit</SAMP> in <SAMP>err</SAMP>. If the grouping is empty, the first thousands separator terminates input.</P>
+<A NAME="sec12"><H3>Example</H3></A>
+
+<UL><PRE>#include &lt;locale&gt;     // for locale, money_get, use_facet
+#include &lt;sstream&gt;    // for istringstream
+#include &lt;iostream&gt;   // for cout, endl
+#include &lt;iterator&gt;   // for istreambuf_iterator
+
+#include &lt;examples.h&gt;
+
+
+int main ()
+{
+    typedef std::istreambuf_iterator&lt;char,
+            std::char_traits&lt;char&gt; &gt; Iter;
+  
+    const std::string buffer ("$100.02");
+    std::string dest;
+    long double ldest;
+    std::ios_base::iostate state;
+    Iter end;
+
+    // Retrieve the money_get facet from the global locale.
+    const std::money_get&lt;char, Iter&gt; &amp;mgf =
+        std::use_facet&lt;std::money_get&lt;char, Iter&gt; &gt;(std::locale
+             ());
+
+    {
+        // Build an istringstream from the buffer and construct
+        // a beginning iterator on it.
+        std::istringstream ins (buffer);
+        Iter begin (ins);
+
+        // Get a string representation of the monetary value
+        mgf.get (begin, end, false, ins, state, dest);
+    }
+    {
+        // Build another istringstream from the buffer, etc.
+        // so we have an iterator pointing to the beginning
+        std::istringstream ins (buffer);
+        Iter begin (ins);
+
+        // Get a a long double representation of the monetary
+           value
+        mgf.get (begin, end, false, ins, state, ldest);
+    }
+
+    std::cout &lt;&lt; buffer &lt;&lt; " --&gt; "
+              &lt;&lt; dest &lt;&lt; " --&gt; " &lt;&lt; ldest &lt;&lt; std::endl;
+
+    // return 0 on success, non-zero on failure
+    return !(std::ios_base::eofbit == state);
+}
+
+Program Output:
+$100.02 --&gt; 10002 --&gt; 10002
+</PRE></UL>
+<A NAME="sec13"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="money-put.html">money_put</A></I></B>, <B><I><A HREF="moneypunct.html">moneypunct</A></I></B></P>
+<A NAME="sec14"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.6.1</I></P>
+
+<BR>
+<HR>
+<A HREF="modulus.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="moneypunct.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

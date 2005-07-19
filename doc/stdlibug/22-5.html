@@ -1,0 +1,22 @@
+<HTML>
+<HEAD>
+<TITLE>Computed Assignment Operators</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="22-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="22-6.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>22.5 Computed Assignment Operators</H2>
+<A NAME="idx470"><!></A>
+<P>Class <B><I><A HREF="../stdlibref/valarray.html">valarray</A></I></B> offers two different versions of the following operators: <SAMP>operator*=()</SAMP>, <SAMP>operator/=()</SAMP>, <SAMP>operator%=()</SAMP>, <SAMP>operator+=()</SAMP>, <SAMP>operator-=()</SAMP>, <SAMP>operator^=()</SAMP>, <SAMP>operator&amp;=()</SAMP>, <SAMP>operator|=()</SAMP>, <SAMP>operator&lt;&lt;=()</SAMP>, and <SAMP>operator&gt;&gt;=()</SAMP>.   In each case, one version takes a <B><I>valarray</I></B> reference and the second takes a <SAMP>T&amp;</SAMP>. The first version of each operation applies its operation to the corresponding elements of self and the <B><I>valarray</I></B> argument. The second version applies the operation to all elements of self using the <SAMP>T&amp;</SAMP> argument. For example:</P>
+
+<UL><PRE>
+
+std::valarray&lt;long&gt; v1(1,3);                     // v1 = {1,1,1}
+std::valarray&lt;long&gt; v2(2,3);                     // v2 = {2,2,2}
+v1 += v2;                                        // v1 = {3,3,3}
+v2 += 2;                                         // v2 = {4,4,4}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="22-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="22-6.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

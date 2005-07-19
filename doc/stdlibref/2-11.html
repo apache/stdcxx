@@ -1,0 +1,135 @@
+<HTML>
+<HEAD>
+<TITLE>Input/output library</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="2-10.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="II.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>2.11 Input/output library</H2>
+<P>Clause 27 of the Standard contains the Input/output library, <SAMP>lib.input.output</SAMP>. This library describes components for program input and output. If you are reading this manual online, click the name of header file or entry to go to its description.</P>
+<H4><A NAME="Table&nbsp;10">Table&nbsp;10: Input/output library</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Header File</B>
+</td>
+<td valign=top colspan=3 rowspan=1><B>Corresponding Entries in this Reference</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;iosfwd&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="char-traits.html">char_traits</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="fpos.html">fpos</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-ios.html">basic_ios</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-istream.html">basic_istream</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="basic-ostream.html">basic_ostream</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-stringbuf.html">basic_stringbuf</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-istringstream.html">basic_istringstream</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-ostringstream.html">basic_ostringstream</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-ifstream.html">basic_ifstream</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-ofstream.html">basic_ofstream</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="ostreambuf-iterator.html">ostreambuf_iterator</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="istreambuf-iterator.html">istreambuf_iterator</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-stringstream.html">basic_stringstream</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-fstream.html">basic_fstream</A></I></B></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;iostream&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="cin.html">cin</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="cout.html">cout</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="cerr.html">cerr</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="clog.html">clog</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="wcin.html">wcin</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="wcout.html">wcout</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="wcerr.html">wcerr</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="wclog.html">wclog</A></I></B></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;ios&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="fpos.html">fpos</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="ios-base.html">ios_base</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="basic-ios.html">basic_ios</A></I></B></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;streambuf&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B></P>
+</td>
+<td valign=top>&nbsp;
+</td>
+<td valign=top>&nbsp;
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;istream&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="basic-istream.html">basic_istream</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B></P>
+</td>
+<td valign=top>&nbsp;
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;ostream&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="basic-ostream.html">basic_ostream</A></I></B></P>
+</td>
+<td valign=top>&nbsp;
+</td>
+<td valign=top>&nbsp;
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;iomanip&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="ios-base.html">ios_base</A></I></B></P>
+</td>
+<td valign=top>&nbsp;
+</td>
+<td valign=top>&nbsp;
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;sstream&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="basic-stringbuf.html">basic_stringbuf</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-istringstream.html">basic_istringstream</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="basic-ostringstream.html">basic_ostringstream</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="basic-stringstream.html">basic_stringstream</A></I></B></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;fstream&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="basic-ifstream.html">basic_ifstream</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="basic-ofstream.html">basic_ofstream</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="basic-fstream.html">basic_fstream</A></I></B></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;strstream&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="strstreambuf.html">strstreambuf</A></I></B></P>
+<P CLASS="TABLE"><B><I><A HREF="istrstream.html">istrstream</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="ostrstream.html">ostrstream</A></I></B></P>
+</td>
+<td valign=top><P CLASS="TABLE"><B><I><A HREF="strstream.html">strstream</A></I></B></P>
+</td>
+</tr>
+</TABLE>
+
+
+<BR>
+<HR>
+<A HREF="2-10.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="II.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

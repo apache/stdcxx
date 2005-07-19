@@ -1,0 +1,22 @@
+Concordance sample program, from Chapter 7
+Enter text, then end-of-file:
+
+all: 3
+and: 1 2 4
+borogroves: 3
+brillig: 1
+did: 2
+gimble: 2
+gyre: 2
+in: 2
+mimsy: 3
+mome: 4
+outgrabe: 4
+raths: 4
+slithy: 1
+the: 1 2 3 4
+toves: 1
+twas: 1
+wabe: 2
+were: 3
+End of concordance sample program

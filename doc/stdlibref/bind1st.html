@@ -1,0 +1,165 @@
+<HTML>
+<HEAD>
+<TITLE>bind1st(), bind2nd(), binder1st, binder2nd</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="binary-search.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="bitmasktypes.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>bind1st(), bind2nd(), binder1st, binder2nd</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Templatized utilities to bind values to function objects</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;functional&gt;
+
+namespace std {
+  template &lt;class Operation&gt;
+  class binder1st;
+  
+  template &lt;class Operation, class T&gt;
+  binder1st&lt;Operation&gt; bind1st(const Operation&amp;, const T&amp;);
+
+  template &lt;class Operation&gt;
+  class binder2nd ;
+
+  template &lt;class Operation, class T&gt;
+  binder2nd&lt;Operation&gt; bind2nd(const Operation&amp;, const T&amp;);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>Because so many functions included in the Standard C++ Library take other functions as arguments, the library includes classes that let you build new function objects out of old ones. Both <SAMP><A HREF="bind1st.html">bind1st()</A></SAMP> and <SAMP><A HREF="bind1st.html">bind2nd()</A></SAMP> are functions that take as arguments a binary function object <SAMP>f</SAMP> and a value <SAMP>x,</SAMP> and return, respectively, classes <B><I><A HREF="bind1st.html">binder1st</A></I></B> and <B><I><A HREF="bind1st.html">binder2nd</A></I></B>. The underlying function object must be a subclass of <B><I><A HREF="binary-function.html">binary_function</A></I></B>.</P>
+<P>Class <B><I><A HREF="bind1st.html">binder1st</A></I></B> binds the value to the first argument of the binary function, and <B><I><A HREF="bind1st.html">binder2nd</A></I></B> does the same thing for the second argument of the function. The resulting classes can be used in place of a unary predicate in other function calls.</P>
+<P>For example, you could use the <SAMP><A HREF="count.html">count_if()</A></SAMP> algorithm to count all elements in a <B><I><A HREF="vector.html">vector</A></I></B> that are less than or equal to 7, using the following:</P>
+
+<UL><PRE>
+vector&lt;int&gt; v;<br>int littleNums;<br>
+count_if(v.begin, v.end, bind1st(greater&lt;int&gt;(),7),
+         littleNums)
+</PRE></UL>
+<P>This function adds one to <SAMP>littleNums</SAMP> each time the element is greater than&nbsp;7.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  // Class binder1st 
+  template &lt;class Operation&gt;
+  class binder1st
+     : public unary_function&lt;typename 
+                             Operation::second_argument_type,
+                             typename Operation::result_type&gt;
+  {
+  public:
+
+     binder1st(const Operation&amp;,
+               const typename Operation::first_argument_type&amp;);
+     
+     typename Operation::result_type 
+     operator() (const typename
+                 Operation::second_argument_type&amp;) const;
+  };
+
+  // Class binder2nd 
+  template &lt;class Operation&gt;
+  class binder2nd
+     : public unary_function&lt;typename 
+                         Operation::first_argument_type, 
+                         typename Operation::result_type&gt;
+  {
+  public:
+
+     binder2nd(const Operation&amp;,
+               const typename Operation::second_argument_type&amp;);
+     typename Operation::result_type 
+     operator()(const typename 
+                Operation::first_argument_type&amp;) const;
+  };
+
+  // Creator bind1st
+  template &lt;class Operation, class T&gt;
+  binder1st&lt;Operation&gt; bind1st(const Operation&amp;, const T&amp;);
+
+  // Creator bind2nd 
+  template&lt;class Operation, class T&gt;
+  binder2nd &lt;Operation&gt; bind2nd(const Operation&amp;, const T&amp;);
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+// binders.cpp
+//
+
+#include &lt;algorithm&gt;   // for find_if
+#include &lt;functional&gt;  // for equal_to, bind1st, bind2nd
+#include &lt;iostream&gt;    // for cout, endl
+#include &lt;vector&gt;      // for vector
+
+
+
+int main ()
+{
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; vector;
+    typedef std::equal_to&lt;vector::value_type&gt;      equal_to;
+
+    const vector::value_type arr [] = { 1, 2, 3, 4 };
+
+    // Set up a vector.
+    vector v1 (arr + 0, arr + sizeof arr / sizeof *arr);
+
+    // Create an 'equal to 3' unary predicate by binding 3 to
+    // the equal_to binary predicate.
+    std::binder1st&lt;equal_to&gt; equal_to_3 = 
+                                  bind1st (equal_to (), 3);
+
+    // Now use this new predicate in a call to find_if.
+    vector::iterator it1 = std::find_if (v1.begin (), 
+                                         v1.end (),
+                                         equal_to_3);
+
+    // Even better, construct the new predicate on the fly.
+    vector::iterator it2 =
+        std::find_if (v1.begin (), v1.end (),
+                      std::bind1st (equal_to (), 3)); 
+
+    // And now the same thing using bind2nd.
+    // Same result since equal_to is commutative.
+    vector::iterator it3 =
+        std::find_if (v1.begin (), v1.end (),
+                      std::bind2nd (equal_to (), 3)); 
+
+    // Output results.
+    std::cout &lt;&lt; *it1 &lt;&lt; " " &lt;&lt; *it2 &lt;&lt; " " 
+              &lt;&lt; *it3 &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+3 3 3
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><A HREF="functionobjects.html">Function Objects</A></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 20.3.6</I></P>
+
+<BR>
+<HR>
+<A HREF="binary-search.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="bitmasktypes.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

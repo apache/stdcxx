@@ -1,0 +1,28 @@
+<HTML>
+<HEAD>
+<TITLE>Choosing a Base Class</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="38-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="38-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>38.2 Choosing a Base Class</H2>
+<A NAME="idx901"><!></A>
+<A NAME="idx902"><!></A>
+<P>The first question is: Which of the standard stream classes shall be the base class? The answer fully depends on the kind of addition or modification you want to make. In our case, we want to add formatting information, which depends on the stream's character type since the format string is a sequence of narrow characters. As we show later on, the format string must be expanded into a sequence of the stream's character type for use with the stream's locale. Consequently, a good choice for a base class is a specialization of <SAMP>std::basic_iostream</SAMP>, and since we want the format string to impact only output operations, the best choice is <SAMP>std::basic_ostream</SAMP>. </P>
+<P>In general, you choose a base class by looking at the kind of addition or modification you want to make and comparing it with the characteristics of the stream classes.</P>
+<UL>
+<LI><P CLASS="LIST">Choose the class <SAMP>std::ios_base</SAMP> if you add information and services that do not depend on the stream's character type.</P></LI>
+<LI><P CLASS="LIST">Choose the class template <SAMP>std::basic_ios</SAMP> (or a specialization thereof) if the added information does depend on the character type, or requires other information not available in <SAMP>ios_base</SAMP>, such as the stream buffer.</P></LI>
+<LI><P CLASS="LIST">Derive from the stream class templates <SAMP>std::basic_istream</SAMP>, <SAMP>std::basic_ostream</SAMP>, or <SAMP>std::basic_iostream</SAMP> if you want to add or change the input and output operations.</P></LI>
+<LI><P CLASS="LIST">Derive from the stream class templates <SAMP>std::basic_{i,o}fstream</SAMP>, or <SAMP>std::basic_{i,o}stringstream </SAMP>(or a specialization of one of these class templates) if you want to add or modify behavior that is file- or string-related, such as the way a file is opened.</P></LI>
+</UL>
+<P>Derivations from <SAMP>std::basic_istream</SAMP>, <SAMP>std::basic_ostream</SAMP>, or <SAMP>std::basic_iostream</SAMP> are the most common cases, because you typically want to modify or add input and output operations. </P>
+<P>If you derive from <SAMP>std::ios_base</SAMP> or <SAMP>std::basic_ios,</SAMP> you do not inherit any input and output operations; you do this if you really want to reimplement all of them or intend to implement a completely different kind of input or output operation, such as unformatted binary input and output.</P>
+<P>Derivations from file or string streams such as <SAMP>basic_{i,o}fstream</SAMP> or <SAMP>basic_{i,o}stringstream </SAMP>are equally rare, because they make sense only if file- or string-related data or services must be added or modified.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- Choose basic_istream, basic_ostream, or basic_iostream as a base class when deriving new stream classes, unless you have good reason not to do so.
+</B><HR></BLOCKQUOTE>
+
+<BR>
+<HR>
+<A HREF="38-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="38-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

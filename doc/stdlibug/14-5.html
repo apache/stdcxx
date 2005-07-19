@@ -1,0 +1,59 @@
+<HTML>
+<HEAD>
+<TITLE>Merge Ordered Sequences</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="14-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="14-6.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>14.5 Merge Ordered Sequences</H2>
+<A NAME="idx360"><!></A>
+<P>The algorithm <SAMP>std::merge()</SAMP> combines two ordered sequences to form a new ordered sequence. The size of the result is the sum of the sizes of the two argument sequences. This should be contrasted with the <SAMP>std::set_union()</SAMP> operation, which eliminates elements that are duplicated in both sets. The <SAMP>std::set_union()</SAMP> function is described later in this chapter.</P>
+<P>The merge operation is stable. This means, for equal elements in the two ranges, not only is the relative ordering of values from each range preserved, but the values from the first range always precede the elements from the second. The two ranges are described by a pair of <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s, whereas the result is defined by a single output <B><I>iterator</I></B>. The arguments are shown in the following declaration:</P>
+
+<UL><PRE>
+namespace std {
+  OutputIterator merge
+     (InputIterator first1, InputIterator last1,
+      InputIterator first2, InputIterator last2,
+      OutputIterator result [, Compare ]);
+}
+</PRE></UL>
+<P>The example program illustrates a simple merge, the use of a merge with an inserter, and the use of a merge with an output stream <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>.</P>
+
+<A NAME="idx361"><!></A>
+<UL><PRE>
+void merge_example()
+// illustrates the use of the merge algorithm
+// see alg7.cpp for complete source code
+
+{
+  // make a list and vector of 10 random integers
+  std::vector&lt;int&gt; aVec(10);
+  std::list&lt;int&gt; aList(10, 0);
+  std::generate(aVec.begin(), aVec.end(), randomValue);
+  std::sort(aVec.begin(), aVec.end());
+  std::generate_n(aList.begin(), 10, randomValue);
+  aList.sort();
+
+  // merge into a vector
+  std::vector&lt;int&gt; vResult(aVec.size() + aList.size());
+  std::merge(aVec.begin(), aVec.end(), 
+             aList.begin(), aList.end(), vResult.begin());
+
+  // merge into a list
+  std::list&lt;int&gt; lResult;
+  std::merge(aVec.begin(), aVec.end(), aList.begin(), 
+             aList.end(), inserter(lResult, lResult.begin()));
+
+  // merge into the output
+  std::merge(aVec.begin(), aVec.end(), aList.begin(), aList.end(),
+             std::ostream_iterator&lt;int,char&gt; (std::cout, " "));
+  std::cout &lt;&lt; std::endl;
+}
+</PRE></UL>
+<A NAME="idx362"><!></A>
+<P>The algorithm <SAMP>std::inplace_merge()</SAMP> (<A HREF="13-4.html#1346">Section&nbsp;13.4.6</A>) can be used to merge two sections of a single sequence into one sequence.</P>
+
+<BR>
+<HR>
+<A HREF="14-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="14-6.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

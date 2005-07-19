@@ -1,0 +1,93 @@
+<HTML>
+<HEAD>
+<TITLE>Manipulators without Parameters</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="33-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="33-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>33.2 Manipulators without Parameters</H2>
+<A NAME="idx802"><!></A>
+<P>Manipulators that do not have any parameters, like <SAMP>endl</SAMP>, are the simplest form of manipulator. The manipulator type <SAMP>manipT</SAMP> is a function pointer type, the manipulator <SAMP>Manip</SAMP> is the function pointer, and the associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP>()</SAMP> is the function pointed to.</P>
+<A NAME="idx803"><!></A>
+<P>In iostreams, the following function pointer types serve as manipulators:</P>
+
+<UL><PRE>
+(1) std::ios_base&amp;        (*)(std::ios_base&amp;)
+(2) std::basic_ios&lt;&gt;&amp;     (*)(std::basic_ios&lt;&gt;&amp;)
+(3) std::basic_istream&lt;&gt;&amp; (*)(std::basic_istream&lt;&gt;&amp;)
+(4) std::basic_ostream&lt;&gt;&amp; (*)(std::basic_ostream&lt;&gt;&amp;)
+</PRE></UL>
+<P>The signature of a manipulator function is not limited to the examples above. If you have created your own stream types, you will certainly want to use additional signatures as manipulators.</P>
+<A NAME="idx804"><!></A>
+<P>For the four manipulator types listed above, the stream classes already offer the required overloaded inserters and member functions. For input streams, extractors take the following form:</P>
+
+<UL><PRE>
+template&lt;class charT, class traits&gt;
+std::basic_istream&lt;charT, traits&gt;&amp;
+std::basic_istream&lt;charT, traits&gt;::operator&gt;&gt;
+(<I>input_stream_type</I>&amp; (*pf)(<I>input_stream_type</I>&amp;) )
+{  return (*pf)(*this); }
+</PRE></UL>
+<P>where the type of the argument <SAMP>pf</SAMP> is one of types (1) -- (3).</P>
+<A NAME="idx805"><!></A>
+<P>Similarly, for output streams we have:</P>
+
+<UL><PRE>
+template&lt;class charT, class traits&gt;
+std::basic_ostream&lt;charT, traits&gt;&amp;
+std::basic_ostream&lt;charT, traits&gt;::operator&lt;&lt;
+(<I>output_stream_type</I>&amp; (*pf)(<I>output_stream_type</I>&amp;))
+{  return (*pf)(*this);  }
+</PRE></UL>
+<P>where the type of the argument <SAMP>pf</SAMP> is one of the types (1), (2), or (4).</P>
+<A NAME="3321"><H3>33.2.1 Examples of Manipulators without Parameters</H3></A>
+<A NAME="idx806"><!></A>
+<P>Let's look at the manipulator <SAMP>endl</SAMP> as an example of a manipulator without parameters. The manipulator <SAMP>endl</SAMP>, which can be applied solely to output streams, is a pointer to the following function of type (4):</P>
+
+<UL><PRE>
+template&lt;class charT, class traits&gt;
+std::basic_ostream&lt;charT, traits&gt;&amp;
+std::endl(std::basic_ostream&lt;charT, traits&gt;&amp; os)
+{
+  return os.put(os.widen('\n')).flush();
+}
+</PRE></UL>
+<P>Hence an expression like: </P>
+
+<UL><PRE>
+std::cout &lt;&lt; std::endl; 
+</PRE></UL>
+<P>results in a call to the inserter:</P>
+
+<UL><PRE>
+std::ostream&amp; std::ostream::operator&lt;&lt;(std::ostream&amp;
+   (*pf)(std::ostream&amp;))
+</PRE></UL>
+<P>with<SAMP> std::endl</SAMP> as the actual argument for <SAMP>pf</SAMP>. In other words, <SAMP>std::cout &lt;&lt; std::endl;</SAMP> is equivalent to <SAMP>std::cout.operator&lt;&lt;(std::endl)</SAMP>. That is, inserting <SAMP>endl </SAMP>into a stream is really inserting the address of the template specialization <SAMP>std::endl&lt;char, std::char_traits&lt;char&gt; &gt;</SAMP> into the stream object <SAMP>std::cout</SAMP>. Inserting <SAMP>endl</SAMP> into the standard wide character stream object <SAMP>std::wcout</SAMP> inserts the address of the specialization of the same template on <SAMP>wchar_t</SAMP>, or <SAMP>std::endl&lt;wchar_t, std::char_traits&lt;wchar_t&gt; &gt;</SAMP>. Thanks to template argument deduction one need not bother to specify the actual template arguments.</P>
+<A NAME="idx807"><!></A>
+<P>Here is another manipulator, <SAMP>std::boolalpha</SAMP>, that can be applied to input <I>and</I> output streams. The manipulator <SAMP>boolalpha</SAMP> is a pointer to a function of type (1), since all it needs to access is the state encapsulated in the <SAMP>ios_base</SAMP> part of the stream object:</P>
+
+<UL><PRE>
+std::ios_base&amp; boolalpha(std::ios_base&amp; strm)
+{
+  strm.setf(std::ios_base::boolalpha);
+ 
+  return strm;
+}
+</PRE></UL>
+<A NAME="idx808"><!></A>
+<BLOCKQUOTE><HR><B>
+NOTE --  Every function that takes a reference to an <SAMP>ios_base</SAMP>, a <SAMP>basic_ios</SAMP>, a <SAMP>basic_ostream</SAMP>, or a <SAMP>basic_istream</SAMP>, and returns a reference to the same stream, can be used as a parameter-less manipulator.
+</B><HR></BLOCKQUOTE>
+<A NAME="3322"><H3>33.2.2 A Remark on the Manipulator endl</H3></A>
+<A NAME="idx809"><!></A>
+<P>The manipulator<SAMP> std::endl</SAMP> is often used for inserting the end-of-line character into a stream. However, <SAMP>endl</SAMP> does additionally flush the output stream, as you can see from the implementation of <SAMP>endl</SAMP> shown above. Flushing a stream, a relatively time-consuming operation that decreases performance, is unnecessary in most common situations. In the standard example:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; "Hello world" &lt;&lt; std::endl;
+</PRE></UL>
+<P>flushing is not necessary because the standard output stream <SAMP>cout</SAMP> is flushed automatically during program termination. Since no flush is required, the intent is probably to insert the end-of-line character. If you consider typing <SAMP>'\n'</SAMP> more trouble than typing <SAMP>endl</SAMP>, you can easily add a simple manipulator <SAMP>nl</SAMP> that inserts the end-of-line character, but refrains from flushing the stream.</P>
+
+<BR>
+<HR>
+<A HREF="33-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="33-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,174 @@
+<HTML>
+<HEAD>
+<TITLE>ostream_iterator</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="ostream-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="ostreambuf-iterator.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>ostream_iterator</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-8.html">Iterators</A></P>
+
+<PRE><HR><B><I>ostream_iterator</I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="iterator.html">iterator</A></I></B> <HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Constructors</A></LI>
+<LI><A HREF="#sec8">Operators</A></LI>
+<LI><A HREF="#sec9">Example</A></LI>
+<LI><A HREF="#sec10">See Also</A></LI>
+<LI><A HREF="#sec11">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1060">char_type</A><BR>
+<A HREF="#idx1067">operator*()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1067">operator++()</A><BR>
+<A HREF="#idx1066">operator=()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1063">ostream_iterator()</A><BR>
+<A HREF="#idx1062">ostream_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1061">traits_type</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Stream iterators allow for use of iterators with ostreams and istreams. They allow generic algorithms to be used directly on streams.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;ostream&gt;
+
+namespace std {
+  template &lt;class T, class charT, 
+            class traits = char_traits&lt;charT&gt; &gt;
+  class ostream_iterator;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>Stream iterators use the standard iterator interface for input and output streams.</P>
+<P>The class template <B><I>ostream_iterator</I></B> writes elements to an output stream. If you use the constructor that has a second argument, then that string is written after every element (the string must be null-terminated). Since an ostream iterator is an output iterator, it is not possible to dereference values through the iterator. You can only assign to it.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class T, class charT = char, 
+            class traits = char_traits&lt;charT&gt; &gt;
+  class ostream_iterator:  
+    public iterator&lt;output_iterator_tag,void,void,void,void&gt; 
+  {
+    public:
+    typedef T value_type;
+    typedef charT char_type;
+    typedef traits traits_type;
+    typedef basic_ostream&lt;charT,traits&gt; ostream_type;
+
+    ostream_iterator(ostream_type&amp;);
+    ostream_iterator(ostream_type&amp;, const char_type*); 
+    ostream_iterator(const ostream_iterator&amp;);
+
+    ostream_iterator&amp; operator=(const T&amp;);
+    ostream_iterator&amp; operator*() const;
+    ostream_iterator&amp; operator++();
+    ostream_iterator  operator++(int);
+  };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx1060"></A><PRE><B>char_type</B>; </PRE>
+<UL>
+<P>Type of character the stream is built on.</P>
+</UL>
+
+
+<A NAME="idx1061"></A><PRE><B>traits_type</B>; </PRE>
+<UL>
+<P>Traits used to build the stream.</P>
+</UL>
+
+
+<A NAME="idx1062"></A><PRE><B>ostream_type</B>; </PRE>
+<UL>
+<P>Type of stream this iterator is constructed on.</P>
+</UL>
+
+<A NAME="sec7"><H3>Constructors</H3></A>
+
+<A NAME="idx1063"></A><PRE><B>ostream_iterator</B> (ostream_type&amp; s);</PRE>
+<UL>
+<P>Constructs an <B><I>ostream_iterator</I></B> on the given stream.</P>
+</UL>
+
+
+<A NAME="idx1064"></A><PRE><B>ostream_iterator</B> (ostream_type&amp; s, 
+                  const char_type* delimiter);</PRE>
+<UL>
+<P>Constructs an <B><I>ostream_iterator</I></B> on the given stream. The null terminated string <SAMP>delimiter</SAMP> is written to the stream after every element.</P>
+</UL>
+
+
+<A NAME="idx1065"></A><PRE><B>ostream_iterator</B> (const ostream_iterator&amp; x);</PRE>
+<UL>
+<P> Copy constructor.</P>
+</UL>
+
+<A NAME="sec8"><H3>Operators</H3></A>
+
+<A NAME="idx1066"></A><PRE>const T&amp; <br><B>operator= </B>(const T&amp; value);</PRE>
+<UL>
+<P> Insert <SAMP>value</SAMP> into the associated output stream <SAMP>x</SAMP> by calling <SAMP>x &lt;&lt; value</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1067"></A><PRE>const T&amp; ostream_iterator&amp; 
+<B>operator*</B> ();
+ostream_iterator&amp;  
+<B>operator++</B>();
+ostream_iterator
+<B>operator++ </B>(int);</PRE>
+<UL>
+<P>These operators do nothing. They simply allow the iterator to be used in common constructs.</P>
+</UL>
+
+<A NAME="sec9"><H3>Example</H3></A>
+
+<UL><PRE> #include &lt;iterator&gt;
+ #include &lt;numeric&gt;
+ #include &lt;deque&gt;
+ #include &lt;iostream&gt;
+ using namespace std;
+
+ int main ()
+ {
+   //
+   // Initialize a vector using an array.
+   //
+   int arr[4] = { 3,4,7,8 };
+   int total=0;
+   deque&lt;int&gt; d(arr+0, arr+4);
+   //
+   // stream the whole vector and a sum to cout
+   //
+   copy(d.begin(),d.end()-1,
+        <B>ostream_iterator</B>&lt;int,char&gt;(cout," + "));
+   cout &lt;&lt; *(d.end()-1) &lt;&lt; " = " &lt;&lt;
+        accumulate(d.begin(),d.end(),total) &lt;&lt; endl;
+   return 0;
+ }
+</PRE></UL>
+<A NAME="sec10"><H3>See Also</H3></A>
+<P><B><I><A HREF="istream-iterator.html">istream_iterator</A></I></B>, <A HREF="iterators.html">Iterators</A></P>
+<A NAME="sec11"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 24.5.2</I></P>
+
+<BR>
+<HR>
+<A HREF="ostream-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="ostreambuf-iterator.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

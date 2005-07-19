@@ -1,0 +1,330 @@
+<HTML>
+<HEAD>
+<TITLE>codecvt_byname</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="codecvt.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="collate.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>codecvt_byname</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR>                              ... <IMG SRC="images/inherits.gif"> <B><I>codecvt_base</I></B> 
+<B><I>codecvt_byname</I></B> <IMG SRC="images/inherits.gif"> <B><I>code_cvt</I></B> ... 
+                              ... <IMG SRC="images/inherits.gif"> <B><I>locale::facet</I></B> <HR></PRE>
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Constructors</A></LI>
+<LI><A HREF="#sec8">Protected Members</A></LI>
+<LI><A HREF="#sec9">Example</A></LI>
+<LI><A HREF="#sec10">See Also</A></LI>
+<LI><A HREF="#sec11">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx490">codecvt_byname()</A><BR>
+<A HREF="#idx491">do_always_noconv()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx492">do_in()</A><BR>
+<A HREF="#idx492">do_out()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx493">do_unshift()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A facet that performs conversions between named and unnamed encodings and character sets.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  template &lt;class internT, class externT, class stateT&gt; 
+  class codecvt_byname;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+
+<UL><PRE>template&lt;&gt; class codecvt_byname&lt;wchar_t, char, mbstate_t&gt;;
+</PRE></UL>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The <B><I>codecvt_byname</I></B> template includes the same functionality as the <B><I><A HREF="codecvt.html">codecvt</A></I></B> template, but specific to a particular named locale. For a description of the member functions of <B><I>codecvt_byname</I></B>, see the entry for <B><I>codecvt</I></B>.</P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  template &lt;class internT, class externT, class stateT&gt;
+  class codecvt_byname : 
+    public codecvt&lt;internT, externT, stateT&gt;
+  {
+  public:
+    typedef internT  intern_type;
+    typedef externT  extern_type;
+    typedef stateT   state_type;
+
+    explicit codecvt_byname(const char*, size_t refs = 0);
+
+  protected:
+    virtual ~codecvt_byname(); 
+    virtual codecvt_base::result do_out(state_type&amp;,
+                                        const intern_type*, 
+                                        const intern_type*, 
+                                        const intern_type*&amp;,
+                                        extern_type*, 
+                                        extern_type*,
+                                        extern_type*&amp;) const;
+    virtual codecvt_base::result do_in(state_type&amp;,
+                                       const extern_type*, 
+                                         const extern_type*, 
+                                         const extern_type*&amp;,
+                                         intern_type*, 
+                                         intern_type*,
+                                         intern_type*&amp;) const;
+    virtual codecvt_base::result do_unshift(state_type&amp;,
+                                            extern_type*, 
+                                            extern_type*,
+                                            extern_type*&amp;) const;
+
+    virtual bool do_always_noconv() const throw();
+    virtual int do_max_length() const throw();
+    virtual int do_encoding() const throw();
+  };
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Constructors</H3></A>
+
+<A NAME="idx490"></A><PRE>explicit <B>codecvt_byname</B>(const char* name, size_t refs = 0); </PRE>
+<P>Constructs a <B><I>codecvt_byname</I></B> object. Calls <SAMP>codecvt::codecvt(refs)</SAMP>.</P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the object's reference count. A <B><I>codecvt_byname</I></B> object <SAMP>f</SAMP> constructed with <SAMP>(refs == 0)</SAMP> that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. A <B><I>codecvt_byname</I></B> object constructed with <SAMP>(refs != 0)</SAMP> will not be destroyed by any locale objects in which it may have been installed.</P>
+<P>The primary template behaves identically to <B><I><A HREF="codecvt.html">codecvt</A></I></B> facet. Details particular to <SAMP>codecvt_byname&lt;wchar_t, char, mbstate_t&gt;</SAMP>:</P>
+<P>The format of the name argument recognized by the <B><I>codecvt_byname</I></B> facet is a superset of the formats recognized by the locale constructors that accept a locale name as an argument. The extended format is as follows:</P>
+<P><SAMP>language[_territory][.codeset[@modifiers]] | codeset[@modifiers] | special_name</SAMP></P>
+<P>Where:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>language</SAMP> is a 2 letter code specified by ISO 639-2.</P></LI>
+<LI><P CLASS="LIST"><SAMP>territory</SAMP> is a 2 or 3 letter code specified by ISO 3166. </P></LI>
+<LI><P CLASS="LIST"><SAMP>codeset</SAMP> is the name of the character set assigned by IANA .</P></LI>
+<LI><P CLASS="LIST"><SAMP>modifiers</SAMP> is a set of optional codes.</P></LI>
+<LI><P CLASS="LIST"><SAMP>special_name</SAMP> is a name denoting a locale in a readable format, for example, <SAMP>"german"</SAMP>, <SAMP>"french"</SAMP>, <SAMP>"dutch"</SAMP>, etc.</P></LI>
+<LI><P CLASS="LIST">A name in the format <SAMP>language_territory.codeset</SAMP>, for example, de_DE.ISO-8859-1, fr_FR.ISO-8859-1, etc., with the <SAMP>language</SAMP>, <SAMP>territory</SAMP> and <SAMP>codeset</SAMP> components being optional, designates a facet object that performs conversions between external encoding, as specified by the name of the codeset (for example, ISO-8859-15) and the internal representation of <SAMP>wchar_t</SAMP>. The internal representation of each external character matches the encoding of the character used by the <SAMP>mbtowc()</SAMP> C library function on that platform for the given locale, if such a locale exists, otherwise <SAMP>UCS-4</SAMP> or <SAMP>UCS-2</SAMP>. </P></LI>
+<LI><P CLASS="LIST">A name in the format <SAMP>language_territory.codeset@euro</SAMP>, for example, de_DE.ISO-8859-15@euro, with the territory and codeset components being optional (for example, <SAMP>de_DE@euro</SAMP> or just <SAMP>de@euro</SAMP>), designates a facet object that performs conversions between external encoding as specified by the name of the codeset (for example, ISO-8859-15) and the internal representation of <SAMP>wchar_t</SAMP>. The internal representation matches the encoding used by the <SAMP>mbstowcs()</SAMP> C library function on that platform for the given locale, if such a locale exists, otherwise <SAMP>UCS-4</SAMP> or <SAMP>UCS-2</SAMP>. The common <SAMP>@euro</SAMP> modifier specifies that the locale database uses european Euro as currency and in general adheres to the standards of the European Community. </P></LI>
+<LI><P CLASS="LIST">A name in the format <SAMP>language_territory.codeset@UCS</SAMP>, for example, <SAMP>js_JP.EUC-JP@UCS</SAMP>, with the language, territory, and codeset components being optional (for example, <SAMP>ja@UCS</SAMP>, <SAMP>ja_JP@UCS</SAMP>, or just <SAMP>EUC-JP@UCS</SAMP>), designates a facet object that performs conversions between external encoding as specified by the name of the codeset (e.g., <SAMP>EUC-JP</SAMP>) and the Universal Character Set (UCS) representation of <SAMP>wchar_t</SAMP>, which may be <SAMP>UCS-4</SAMP> or <SAMP>UCS-2</SAMP>, depending on the size of <SAMP>wchar_t</SAMP>). The <SAMP>@UCS-4</SAMP> modifier, recognized in environments where <SAMP>(sizeof (wchar_t) == 4)</SAMP> is <SAMP>true</SAMP>, instructs the facet to use <SAMP>UCS-4</SAMP> as the internal encoding. The <SAMP>@UCS-2</SAMP> modifier is recognized with analogous meaning for <SAMP>UCS-2</SAMP>. Portable code should use the <SAMP>@UCS</SAMP> modifier rather than making assumptions about the size of <SAMP>wchar_t</SAMP>. </P></LI>
+<LI><P CLASS="LIST">A special name such as <SAMP>german</SAMP>, or <SAMP>french</SAMP>, that may be used as an alias for a canonical locale name. Such names may be provided as a convenience on some platforms and usually refer to the most common canonical locale provided by the platform. For example, <SAMP>german</SAMP> may be the equivalent of de_DE.ISO-8859-1, or <SAMP>french</SAMP> may be the equivalent of fr_FR.ISO-8859-15, and so on. Portable code should not rely on these names. </P></LI>
+</UL>
+<P>If the <SAMP>codeset</SAMP> component is provided, the <SAMP>language</SAMP> and <SAMP>territory</SAMP> components are optional and allowed only for compatibility with the format of locale names accepted by the class locale constructors, as the facet only makes use of the codeset and encoding information.</P>
+<P><A HREF="codecvt-byname.html#Table&nbsp;15">Table&nbsp;15</A> lists the names of some of the supported common codesets. The names match those assigned by IANA (see <SAMP>http://www.iana.org/assignments/character-sets</SAMP>). For a complete list of supported codesets, see the contents of the <SAMP>nls/charmaps/</SAMP> directory in the distribution of the Rogue Wave Standard C++ Library Module.   </P>
+<H4><A NAME="Table&nbsp;15">Table&nbsp;15: Supported common codesets</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Name</B>
+</td>
+<td valign=top><B>Description</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ANSI_X3.4-1968</P>
+</td>
+<td valign=top><P CLASS="TABLE">A 7-bit coded character set (ASCII).</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">BIG5</P>
+</td>
+<td valign=top><P CLASS="TABLE">A character set used to represent Chinese text in Taiwan.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">EBCDIC</P>
+</td>
+<td valign=top><P CLASS="TABLE">Extended Binary Coded Decimal Interchange Code. An 8-bit coded character set for information interchange between IBM computers.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">EUC-JP</P>
+</td>
+<td valign=top><P CLASS="TABLE">A multibyte encoding of the ANSI_X3.4-1968, JIS_X0201, JIS_X0208-1983, JIS_X0212-1990 character sets used to encode Japanese text.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">EUC-KR</P>
+</td>
+<td valign=top><P CLASS="TABLE">A multibyte encoding of ANSI_X3.4-1968, KSC5601-1987 used to encode Korean text.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">EUC-TW</P>
+</td>
+<td valign=top><P CLASS="TABLE">A multibyte encoding of CNS 11643-1992, planes 1 through 16, used to encode Taiwanese text.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">GB2312</P>
+</td>
+<td valign=top><P CLASS="TABLE">A character set used to represent Chinese text in China, encoded with the EUC encoding,</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ISO-646</P>
+</td>
+<td valign=top><P CLASS="TABLE">A 7-bit coded character set for information interchange (identical to ASCII).</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ISO-2022</P>
+</td>
+<td valign=top><P CLASS="TABLE">Character code structure and extension techniques used for switching between code sets in 7-bit and 8-bit environments.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ISO-2022-JP</P>
+</td>
+<td valign=top><P CLASS="TABLE">A stateful multibyte shift encoding encompassing the ANSI_X3.4-1968 and EUC-JP encodings.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ISO-2022-JP-2</P>
+</td>
+<td valign=top><P CLASS="TABLE">A stateful multibyte shift encoding encompassing the ANSI_X3.4-1968, EUC-JP, EUC-KR, GB2312, ISO-8859-1 and ISO-8859-7 encodings.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+<td valign=top><P CLASS="TABLE">A fixed-width, single-byte coded character set, also known as Latin 1, used by most West European languages such as French (<SAMP>fr</SAMP>), Spanish (<SAMP>es</SAMP>), Catalan (<SAMP>ca</SAMP>), Basque (<SAMP>eu</SAMP>), Portuguese (<SAMP>pt</SAMP>), Italian (<SAMP>it</SAMP>), Albanian (<SAMP>sq</SAMP>), Rhaeto-Romanic (<SAMP>rm</SAMP>), Dutch (<SAMP>nl</SAMP>), German (<SAMP>de</SAMP>), Danish (<SAMP>da</SAMP>), Swedish (<SAMP>sv</SAMP>), Norwegian (<SAMP>no</SAMP>), Finnish (<SAMP>fi</SAMP>), Faroese (<SAMP>fo</SAMP>), Icelandic (<SAMP>is</SAMP>), Irish (<SAMP>ga</SAMP>), Scottish (<SAMP>gd</SAMP>), and English (<SAMP>en</SAMP>), as well as Afrikaans (<SAMP>af</SAMP>) and Swahili (<SAMP>sw</SAMP>).</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ISO-8859-2</P>
+</td>
+<td valign=top><P CLASS="TABLE">A fixed-width, single-byte coded character set, also known as Latin 2, used by Central and Eastern European languages such as Czech (<SAMP>cs</SAMP>), Hungarian (<SAMP>hu</SAMP>), Polish (<SAMP>pl</SAMP>), Romanian (<SAMP>ro</SAMP>), Croatian (<SAMP>hr</SAMP>), Slovak (<SAMP>sk</SAMP>), Slovenian (<SAMP>sl</SAMP>), and Serbian (<SAMP>sr</SAMP>).</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ISO-8859-4</P>
+</td>
+<td valign=top><P CLASS="TABLE">A fixed-width, single-byte coded character set, also known as Latin 4, used by Estonian (<SAMP>et</SAMP>), the Baltic languages Latvian (<SAMP>lv</SAMP>, Lettish) and Lithuanian (<SAMP>lt</SAMP>), Greenlandic (<SAMP>kl</SAMP>), and Lappish.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ISO-8859-5</P>
+</td>
+<td valign=top><P CLASS="TABLE">A fixed-width, single-byte coded character set, used to encode Cyrillic alphabets used by Bulgarian (<SAMP>bg</SAMP>), Byelorussian (<SAMP>be</SAMP>), Macedonian (<SAMP>mk</SAMP>), Russian (<SAMP>ru</SAMP>), Serbian (<SAMP>sr</SAMP>) and Ukrainian (<SAMP>uk</SAMP>).</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+<td valign=top><P CLASS="TABLE">A fixed-width, single-byte coded character set, used to encode Arabic alphabets.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ISO-8859-7</P>
+</td>
+<td valign=top><P CLASS="TABLE">A fixed-width, single-byte coded character set, used to encode Greek alphabets.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ISO-8859-8</P>
+</td>
+<td valign=top><P CLASS="TABLE">A fixed-width, single-byte coded character set, used to encode Hebrew alphabets used by used by Hebrew (<SAMP>iw</SAMP>) and Yiddish (<SAMP>ji</SAMP>).</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+<td valign=top><P CLASS="TABLE">An update to Latin 1 that includes the Euro currency symbol.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">Shift_JIS</P>
+</td>
+<td valign=top><P CLASS="TABLE">A stateless multibyte shift encoding used to encode Japanese character sets.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE">UTF-8</P>
+</td>
+<td valign=top><P CLASS="TABLE">A multibyte encoding used to encode the Universal Character Set (also referred to as UNICODE).</P>
+</td>
+</tr>
+</TABLE>
+<BLOCKQUOTE><HR><B>
+NOTE -- The behavior of the facet member functions relies on the availability of locale database files produced by the Rogue Wave localedef utility from the <I>character set description files</I> shipped with the Rogue Wave implementation of the Standard C++ Library Module (or their equivalents). In particular, the functionality for ISO-2022-JP is dependent on the ANSI_X3.4-1968 and EUC-JP encodings, while ISO-2022-JP-2 is dependent on ANSI_X3.4-1968, EUC-JP, EUC-KR, GB2312, ISO-8859-1 and ISO-8859-7 encodings. The appropriate databases are produced automatically whenever a locale that uses such an encoding is built. For example, the codecvt encoding database for EUC-JP is built whenever the Japanese locale ja_JP.EUC-JP is built. It is also possible to create the databases by providing a dummy (empty) locale definition file and process it with the character set description file corresponding to the desired codecvt database. The facet's member functions indicate an error by returning codecvt_base::error if the database required to perform a given conversion is not found. 
+</B><HR></BLOCKQUOTE>
+<A NAME="sec8"><H3>Protected Members</H3></A>
+
+<A NAME="idx491"></A><PRE>virtual bool
+<B>do_always_noconv</B>() const throw();</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if no conversion is required and <SAMP>false</SAMP> otherwise. The primary template <B><I>codecvt_byname</I></B> delegates to base class (<B><I><A HREF="codecvt.html">codecvt</A></I></B>). The <SAMP>codecvt_byname&lt;wchar_t, char, mbstate_t&gt;</SAMP> specialization returns <SAMP>false</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx492"></A><PRE>virtual codecvt_base::result
+<B>do_in</B>(state_type&amp; state,
+      const extern_type *from,
+      const extern_type *from_end,
+      const extern_type*&amp; from_next,
+      intern_type *to, intern_type *to_limit,
+      intern_type*&amp; to_next) const;
+
+virtual codecvt_base::result
+<B>do_out</B>(state_type&amp; state,
+       const intern_type *from,
+       const intern_type *from_end,
+       const intern_type*&amp; from_next,
+       extern_type *to, extern_type *to_limit,
+       extern_type*&amp; to_next) const;</PRE>
+<UL>
+<P>For preconditions and return values, see <B><I><A HREF="codecvt.html">codecvt</A></I></B>.</P>
+<P><SAMP>codecvt_byname&lt;wchar_t, char, mbstate_t&gt;</SAMP> specialization:</P>
+<P>The <SAMP>state</SAMP> object stores the state of the conversion in between successive calls to the functions for stateful conversions (for example, ISO-2022, ISO-2022-JP, etc.). The behavior of the functions is undefined if the state object has not been properly initialized. It is the responsibility of the user of the <SAMP>codecvt_byname</SAMP> object to initialize the state object (by setting all its bits to <SAMP>0</SAMP>) whenever starting a new conversion. When called with a properly initialized state argument, the function may allocate resources such as file descriptors and/or storage. In order to release any resources allocated by the facet, the calling program must call <SAMP>do_unshift()</SAMP> or otherwise allow the facet to return the conversion state to its initial shift state (all bits set to <SAMP>0</SAMP>) prior to disposing of the <SAMP>state</SAMP> object. The size of the <SAMP>mbstate_t</SAMP> type on a particular platform determines the maximum possible number of simultaneous conversions.</P>
+<P>Conversions between different external codesets involving two separate facet objects, each of which uses UCS as the internal <SAMP>wchar_t</SAMP> representation are possible. Note that such conversions will fail with an error if the functions encounter a UCS character which cannot be encoded in the destination encoding.</P>
+<P>After an error, the condition of the <SAMP>state</SAMP> object is unspecified; the object should be reset to its initial shift state (by setting all its bits to <SAMP>0</SAMP>) before reuse. </P>
+</UL>
+
+
+<A NAME="idx493"></A><PRE>virtual result
+<B>do_unshift</B>(state_type&amp; state, extern_type *to, extern_type *to_limit, extern_type* &amp;to_next) const;</PRE>
+<UL>
+<P>In order to release any resources allocated by the facet, the calling program must call <SAMP>do_unshift()</SAMP> or otherwise return the conversion state to its initial shift state (all its bits set to <SAMP>0</SAMP>) prior to disposing of the <SAMP>state</SAMP> object.</P>
+<P><SAMP>codecvt_byname&lt;wchar_t,char,mbstate_t&gt;</SAMP> specialization: </P>
+<P>See <SAMP>do_in()</SAMP> and <SAMP>do_out()</SAMP> for <SAMP>state</SAMP> parameter details.</P>
+<P>For preconditions and return values, see <SAMP>codecvt</SAMP>. </P>
+</UL>
+
+<A NAME="sec9"><H3>Example</H3></A>
+<P>Suppose a program needs to convert a text file named <SAMP>input.euc-jp</SAMP>, encoded in the <SAMP>EUC-JP</SAMP> encoding, to another text file, named <SAMP>output.utf-8</SAMP>, encoded in <SAMP>UTF-8</SAMP>. The following steps will enable the program to do so with the <SAMP>codecvt_byname&lt;wchar_t, char, mbstate_t&gt;</SAMP> specialization of the facet.</P>
+<OL>
+<LI><P CLASS="LIST">Using the <SAMP>localedef</SAMP> utility, create a binary codecvt database file from the <SAMP>EUC-JP</SAMP> character set description definition file and an empty locale definition:</P></LI>
+
+<UL><PRE>$ echo | localedef -c -f nls/charmaps/EUC-JP dummy-euc 
+</PRE></UL>
+<LI><P CLASS="LIST">Optionally, using the <SAMP>localedef</SAMP> utility, create a binary codecvt database file from the UTF-8 character set description file and an empty locale definition:<br><SAMP>$ echo | localedef -c -f nls/charmaps/UTF-8 dummy-utf<br></SAMP>This step is optional since UCS and UTF conversions can be performed entirely algorithmically, albeit without validating the source characters. </P></LI>
+<LI><P CLASS="LIST">The commands above will create the conversion databases named <SAMP>EUC-JP</SAMP> and <SAMP>UTF-8</SAMP> and two empty directories named <SAMP>dummy-euc</SAMP> and <SAMP>dummy-utf</SAMP> in the current working directory. The empty directories can be removed. </P></LI>
+<LI><P CLASS="LIST">Create two <SAMP>codecvt_byname&lt;wchar_t, char, mbstate_t&gt;</SAMP> objects, one for each encoding, and install each in an arbitrary valid locale object:</P></LI>
+
+<UL><PRE>typedef std::codecvt_byname&lt;wchar_t, char, std::mbstate_t&gt; Cvt;
+const std::locale euc (std::locale ("C"), new Cvt ("EUC-JP@UCS"));
+const std::locale utf (std::locale ("C"), new Cvt ("UTF")); 
+</PRE></UL>
+<LI><P CLASS="LIST">Imbue each locale object in a wide character file stream or file buffer object:<SAMP>std::wcin.imbue (euc);<br>std::wcout.imbue (utf);<br></SAMP>It is not important whether the locales are imbued in the stream objects as shown above or the stream buffer objects associated with the streams as shown below, as long as the stream buffers are of the <SAMP>std::basic_filebuf&lt;wchar_t&gt; </SAMP>type, or derivatives thereof:</P></LI>
+
+<UL><PRE>std::wcin.rdbuf ()-&gt;imbue (euc);
+std::wcout.rdbuf ()-&gt;imbue (utf); 
+</PRE></UL>
+<LI><P CLASS="LIST">Copy the input stream into the output stream: </P></LI>
+
+<UL><PRE>std::wcout &lt;&lt; std::wcin.rdbuf (); 
+</PRE></UL>
+<LI><P CLASS="LIST">Compile the program into the executable, say <SAMP>euc2utf</SAMP>, and run it, redirecting its <SAMP>stdin</SAMP> from the source text file <SAMP>input.euc-jp</SAMP>, and its <SAMP>stdout</SAMP> to the destination text file <SAMP>output.utf-8</SAMP>: <br><SAMP>RWSTD_LOCALE_ROOT=. cat input.euc-jp | ./euc2utf &gt;<br>      output.utf-8<br></SAMP>It is important to set the <SAMP>${RWSTD_LOCALE_ROOT}</SAMP> environment variable in order for the facet to find the locale databases created above. </P></LI>
+</OL>
+<P>A complete example program with the functionality described above might look like this:</P>
+
+<UL><PRE>
+#include &lt;iostream&gt;
+#include &lt;locale&gt;
+
+int main ()
+{
+typedef std::codecvt_byname&lt;wchar_t, char, std::mbstate_t&gt; Cvt;
+
+std::wcin.imbue (std::locale (std::locale ("C"), new Cvt ("EUC-JP@UCS")));
+std::wcout.imbue (std::locale (std::locale ("C"), new Cvt ("UTF-8")));
+
+std::wcout &lt;&lt; std::wcin.rdbuf ();
+
+return !(std::wcin.good () &amp;&amp; std::wcout.good ());
+}
+</PRE></UL>
+<A NAME="sec10"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="codecvt.html">codecvt</A></I></B>, <SAMP>localedef</SAMP> utility</P>
+<A NAME="sec11"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.1.6</I></P>
+
+<BR>
+<HR>
+<A HREF="codecvt.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="collate.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

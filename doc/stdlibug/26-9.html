@@ -1,0 +1,129 @@
+<HTML>
+<HEAD>
+<TITLE>Improving the Inserter Function</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="26-8.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="VIII.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>26.9 Improving the Inserter Function</H2>
+<A NAME="idx603"><!></A>
+<P>Let's turn here to improving our inserter function. Consider that the country code table might be huge, and access to a country code might turn out to be a time-consuming operation. We can optimize the inserter function's performance by caching the country code table, so that we can access it directly and thus reduce performance overhead. </P>
+<A NAME="idx604"><!></A>
+<A NAME="2691"><H3>26.9.1 Primitive Caching</H3></A>
+<A NAME="idx605"><!></A>
+<P>The code below does some primitive caching. It takes the phone facet object from the stream's locale object and copies the country code table into a static variable.</P>
+
+<UL><PRE>
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const PhoneNumber&amp; pn)
+{
+  std::locale loc = os.getloc();
+  const phone_put&amp; ppFacet = std::use_facet&lt;phone_put&gt; (loc);
+
+  // primitive caching
+  static CodeMap cachedCodes = *(ppFacet.getCodes());
+
+  // some sophisticated output using the cached codes
+  ...
+  return (os);
+}
+</PRE></UL>
+<P>Now consider that the locale object imbued on a stream might change, but the cached static country code table does not. The cache is filled once, and all changes to the stream's locale object have no effect on this inserter function's cache. That's probably not what we want. What we do need is some kind of notification each time a new locale object is imbued, so that we can update the cache.</P>
+<A NAME="idx606"><!></A>
+<A NAME="2692"><H3>26.9.2 Registration of a Callback Function</H3></A>
+<A NAME="idx607"><!></A>
+<P>In the following example, notification is provided by a callback function. The iostreams allow registration of callback functions. Class <B><I><A HREF="../stdlibref/ios-base.html">std::ios_base</A></I></B> declares:</P>
+
+<UL><PRE>
+enum event { erase_event, imbue_event, copyfmt_event };  //1
+typedef void (*event_callback) (event, ios_base&amp;, int index);
+void register_callback(event_callback fn, int index);    //2
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Registered callback functions are called for three events:
+<UL>
+<LI><P CLASS="LIST">Destruction of a stream </P></LI>
+<LI><P CLASS="LIST">Imbuing a new locale</P></LI>
+<LI><P CLASS="LIST">Copying the stream state.</P></LI>
+</UL>
+<A NAME="idx608"><!></A>
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The <SAMP>register_callback()</SAMP> function registers a callback function and an index to the stream's <SAMP>parray</SAMP>. During calls to <SAMP>imbue()</SAMP>, <SAMP>copyfmt()</SAMP>, or <SAMP>~ios_base()</SAMP>, the function <SAMP>fn</SAMP><SAMP> </SAMP>is called with argument <SAMP>index</SAMP>. Functions registered are called when an event occurs, in opposite order of registration.
+<A NAME="idx609"><!></A>
+The <SAMP>parray</SAMP> is an array member defined in class <B><I><A HREF="../stdlibref/ios-base.html">std::ios_base</A></I></B>. One can obtain an index to this array via <SAMP>xalloc()</SAMP>, and access the array via <SAMP>pword(index)</SAMP> or <SAMP>iword(index)</SAMP>, as shown in <A HREF="26-9.html#Figure&nbsp;16">Figure&nbsp;16</A>:
+<A NAME="idx610"><!></A>
+<H4><A NAME="Figure&nbsp;16">Figure&nbsp;16: The array parray</A></H4>
+
+<P><IMG SRC="images/locfig17.gif" WIDTH=638 HEIGHT=336></P>
+</TABLE>
+<A NAME="idx611"><!></A>
+<P>In order to install a callback function that updates our cache, we implement a class that retrieves an index to <SAMP>parray</SAMP> and creates the cache, then registers the callback function in its constructor. The procedure is shown in the following code:</P>
+
+<UL><PRE>
+class CallbackRegistrar {
+  public:
+    CallbackRegistrar(std::ostream&amp; os,
+                      std::ios::event_callback fct,
+                      CodeMap* cachedCodes)
+    {
+      int index = os.xalloc();                             //1
+      os.pword(index) = cachedCodes;                       //2
+      os.register_callback(fct,index);                     //3
+    }
+};
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>An index to the array is obtained via <SAMP>xalloc()</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The pointer to the code table is stored in the array via<SAMP> pword()</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>The callback function and the index are registered.
+</TABLE>
+<A NAME="idx612"><!></A>
+<P>The actual callback function will later have access to the cache via the index to <SAMP>parray</SAMP>. At this point, we still need a callback function that updates the cache each time the stream's locale is replaced. Such a callback function could look like this:</P>
+
+<UL><PRE>
+void cacheCodesCallback(std::ios_base::event callbackEvent,
+                        std::ios_base&amp; stream, int cacheIndex)
+{
+  if (callbackEvent == std::ios::imbue_event) {             //1
+    const phone_put&amp; ppFacet = 
+      std::use_facet&lt;phone_put&gt; (stream.getloc);            //2
+    phone_put::CodeMap* cachedCodes =
+      (phone_put::CodeMap*) stream.pword(cacheIndex);       //3
+
+    *cachedCodes = *ppFacet.getCodes();
+  }
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Check whether the event was a change of the imbued locale,
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>retrieve the phone number facet from the stream's locale, and
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>store the country code table in the cache. The cache is accessible via the stream's <SAMP>parray</SAMP>.
+</TABLE>
+<A NAME="2693"><H3>26.9.3 Improving the Inserter</H3></A>
+<A NAME="idx613"><!></A>
+<P>We now have everything we need to improve our inserter. It registers a callback function that updates the cache whenever necessary. Registration is done only once, by declaring a static variable of class <SAMP>CallbackRegistrar</SAMP>.</P>
+
+<UL><PRE>
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const phoneNumber&amp; pn)
+{
+ static phone_put::CodeMap codes =
+    *(std::use_facet&lt;phone_put&gt;(os.getloc()).getCodes());     //1
+
+ static CallbackRegistrar
+     registrar(os,cacheCountryCodes,&amp;codes);                  //2
+
+  // some sophisticated output using the cached codes
+  ...
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The current country code table is cached.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The callback function <SAMP>cacheCodesCallback()</SAMP> is registered.
+</TABLE>
+
+
+<BR>
+<HR>
+<A HREF="26-8.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="VIII.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

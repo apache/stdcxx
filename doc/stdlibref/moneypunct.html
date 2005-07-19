@@ -1,0 +1,367 @@
+<HTML>
+<HEAD>
+<TITLE>moneypunct, moneypunct_byname</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="money-get.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="money-put.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>moneypunct, moneypunct_byname</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR>                               <IMG SRC="images/inherits.gif"> <B><I>locale::facet</I></B> 
+<B><I><A HREF="moneypunct.html">moneypunct_byname</A></I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="moneypunct.html">moneypunct</A></I></B> 
+                               <IMG SRC="images/inherits.gif"> <B><I>money_base</I></B> <HR></PRE>
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Types</A></LI>
+<LI><A HREF="#sec8">Constructors</A></LI>
+<LI><A HREF="#sec9">Static Members</A></LI>
+<LI><A HREF="#sec10">Public Member Functions</A></LI>
+<LI><A HREF="#sec11">Protected Member Functions</A></LI>
+<LI><A HREF="#sec12">Example</A></LI>
+<LI><A HREF="#sec13">See Also</A></LI>
+<LI><A HREF="#sec14">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx898">char_type</A><BR>
+<A HREF="#idx904">curr_symbol()</A><BR>
+<A HREF="#idx904">decimal_point()</A><BR>
+<A HREF="#idx905">do_curr_symbol()</A><BR>
+<A HREF="#idx906">do_decimal_point()</A><BR>
+<A HREF="#idx907">do_frac_digits()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx908">do_grouping()</A><BR>
+<A HREF="#idx909">do_negative_sign()</A><BR>
+<A HREF="#idx910">do_neg_format()</A><BR>
+<A HREF="#idx911">do_positive_sign()</A><BR>
+<A HREF="#idx910">do_pos_format()</A><BR>
+<A HREF="#idx912">do_thousands_sep()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx904">frac_digits()</A><BR>
+<A HREF="#idx904">grouping()</A><BR>
+<A HREF="#idx902">id</A><BR>
+<A HREF="#idx903">Intl</A><BR>
+<A HREF="#idx900">moneypunct()</A><BR>
+<A HREF="#idx901">moneypunct_byname()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx904">negative_sign()</A><BR>
+<A HREF="#idx904">neg_format()</A><BR>
+<A HREF="#idx904">positive_sign()</A><BR>
+<A HREF="#idx904">pos_format()</A><BR>
+<A HREF="#idx899">string_type</A><BR>
+<A HREF="#idx904">thousands_sep()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Monetary punctuation facets</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  class money_base;
+  template &lt;class charT, bool International = false&gt;
+  class moneypunct;
+  template &lt;class charT, bool International = false&gt;
+  class moneypunct_byname;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+
+<UL><PRE>template&lt;&gt; class moneypunct&lt;char, false&gt;;
+template&lt;&gt; class moneypunct&lt;char, true&gt;;
+template&lt;&gt; class moneypunct&lt;wchar_t, false&gt;;
+template&lt;&gt; class moneypunct&lt;wchar_t, true&gt;;
+
+template&lt;&gt; class moneypunct_byname&lt;char, false&gt;;
+template&lt;&gt; class moneypunct_byname&lt;char, true&gt;;
+template&lt;&gt; class moneypunct_byname&lt;wchar_t, false&gt;;
+template&lt;&gt; class moneypunct_byname&lt;wchar_t, true&gt;;
+</PRE></UL>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The <B><I><A HREF="moneypunct.html">moneypunct</A></I></B> facets include formatting specifications and punctuation character for monetary values. The <B><I>moneypunct</I></B> facet is used with the C locale, while the <B><I><A HREF="moneypunct.html">moneypunct_byname</A></I></B> facet is used with named locales.   </P>
+<P>The facet is used by <B><I><A HREF="money-put.html">money_put</A></I></B> for outputting formatted representations of monetary values and by <B><I><A HREF="money-get.html">money_get</A></I></B> for reading these strings back in. </P>
+<P><B><I>money_base</I></B> defines a structure, <SAMP>pattern</SAMP>, that specifies the order of syntactic elements in a monetary value and enumeration values representing those elements. The <SAMP>pattern</SAMP> struct includes a simple array of characters, <SAMP>field</SAMP>. Each index in <SAMP>field</SAMP> is taken up by an enumeration value indicating the location of a syntactic element. The enumeration values are described below:</P>
+<H4><A NAME="Table&nbsp;28">Table&nbsp;28: Enumeration values of field indexes in the money_base pattern struct</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Format Flag</B>
+</td>
+<td valign=top><B>Value</B>
+</td>
+<td valign=top><B>Meaning</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>none</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">0</P>
+</td>
+<td valign=top><P CLASS="TABLE">No grouping separator.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>space</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">1</P>
+</td>
+<td valign=top><P CLASS="TABLE">Use space for grouping separator.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>symbol</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">2</P>
+</td>
+<td valign=top><P CLASS="TABLE">Currency symbol.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>sign</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">3</P>
+</td>
+<td valign=top><P CLASS="TABLE">Sign of monetary value.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>value</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">4</P>
+</td>
+<td valign=top><P CLASS="TABLE">The monetary value itself.</P>
+</td>
+</tr>
+</TABLE>
+<P>The <SAMP>do_pos_format()</SAMP> and <SAMP>do_neg_format()</SAMP> member functions of <B><I><A HREF="moneypunct.html">moneypunct</A></I></B> both return values of the <SAMP>pattern</SAMP> type. See the description of these functions for further elaboration.</P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  class money_base {
+  public:
+    enum part { none, space, symbol, sign, value };
+    struct pattern { char field[4]; };
+  };
+
+  template &lt;class charT, bool International = false&gt;
+  class moneypunct : public locale::facet, public money_base 
+  {
+  public:
+    typedef charT char_type;
+    typedef basic_string&lt;charT&gt; string_type;
+    explicit moneypunct(size_t = 0);
+    charT        decimal_point() const;
+    charT        thousands_sep() const;
+    string       grouping()      const;
+    string_type  curr_symbol()   const;
+    string_type  positive_sign() const;
+    string_type  negative_sign() const;
+    int          frac_digits()   const;
+    pattern      pos_format()    const;
+    pattern      neg_format()    const;
+    static locale::id id;
+    static const bool intl = International;
+  }; 
+
+  template &lt;class charT, bool Intl = false&gt;
+  class moneypunct_byname : public moneypunct&lt;charT, Intl&gt; 
+  {
+  public:
+    explicit moneypunct_byname(const char*, size_t = 0);
+
+    };
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Types</H3></A>
+
+<A NAME="idx898"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>Type of the first template argument.</P>
+</UL>
+
+
+<A NAME="idx899"></A><PRE><B>string_type</B></PRE>
+<UL>
+<P>Type of <SAMP>basic_string</SAMP> specialized on <SAMP>char_type</SAMP>, whose values are returned by some member functions.</P>
+</UL>
+
+<A NAME="sec8"><H3>Constructors</H3></A>
+
+<A NAME="idx900"></A><PRE>explicit <B>moneypunct</B>(size_t refs = 0) </PRE>
+<UL>
+<P>Constructs a <B><I><A HREF="moneypunct.html">moneypunct</A></I></B> object. Calls <SAMP>locale::facet (refs)</SAMP>. </P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the object's reference count. A <B><I><A HREF="moneypunct.html">moneypunct</A></I></B> object <SAMP>f</SAMP> constructed with <SAMP>(refs == 0)</SAMP> that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by  calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. A <B><I>moneypunct</I></B> object constructed with <SAMP>(refs != 0)</SAMP> will not be destroyed by any locale objects in which it may have been installed.</P>
+</UL>
+
+
+<A NAME="idx901"></A><PRE>explicit <B>moneypunct_byname</B>(const char* name, 
+                             size_t refs = 0); </PRE>
+<UL>
+<P>Constructs a <B><I><A HREF="moneypunct.html">moneypunct_byname</A></I></B> facet. Calls <SAMP>moneypunct (refs)</SAMP>.</P>
+</UL>
+
+<A NAME="sec9"><H3>Static Members</H3></A>
+
+<A NAME="idx902"></A><PRE>static locale::id <B>id</B>;</PRE>
+<UL>
+<P>Unique identifier for this type of facet. </P>
+</UL>
+
+
+<A NAME="idx903"></A><PRE>static const bool intl = <B>Intl</B>; </PRE>
+<UL>
+<P><SAMP>true</SAMP> for international representation, <SAMP>false</SAMP> otherwise.</P>
+</UL>
+
+<A NAME="sec10"><H3>Public Member Functions</H3></A>
+<P>The public members of the <B><I><A HREF="moneypunct.html">moneypunct</A></I></B> and <B><I><A HREF="moneypunct.html">moneypunct_byname</A></I></B> facets include an interface to protected members. Each public member function <SAMP>xxx()</SAMP> calls the corresponding protected virtual protected member function <SAMP>do_xxx()</SAMP>. For instance, the public member function <SAMP>decimal_point()</SAMP> function calls its protected cousin <SAMP>do_decimal_point()</SAMP>.</P>
+
+<A NAME="idx904"></A><PRE>string_type  <B>curr_symbol</B>()   const; 
+charT        <B>decimal_point</B>() const; 
+int          <B>frac_digits</B>()   const; 
+string       <B>grouping</B>()      const; 
+pattern      <B>neg_format</B>()    const; 
+string_type  <B>negative_sign</B>() const; 
+pattern      <B>pos_format</B>()    const; 
+string_type  <B>positive_sign</B>() const; 
+charT        <B>thousands_sep</B>() const; </PRE>
+<UL>
+<P>Each public member function <SAMP>xxx()</SAMP> calls the corresponding protected <SAMP>do_xxx()</SAMP> function. The result of the call may be cached. Subsequent calls to the public function may return the cached result to avoid the expense of repeatedly calling the virtual function.</P>
+</UL>
+
+<A NAME="sec11"><H3>Protected Member Functions</H3></A>
+
+<A NAME="idx905"></A><PRE>virtual string_type 
+<B>do_curr_symbol</B>() const; </PRE>
+<UL>
+<P>Returns a string to use as the currency symbol. In the C locale, the function returns the empty string. In named locales, the returned international string (in other words, when <SAMP>intl == true</SAMP>) typically conforms to the ISO 4217 standard. For example, the standard specifies that the US currency symbol for the Dollar is USD, and that the Japanese currency symbol for the Yen is JPY.</P>
+</UL>
+
+
+<A NAME="idx906"></A><PRE>virtual charT
+<B>do_decimal_point</B>() const; </PRE>
+<UL>
+<P>Returns the radix separator to use if fractional digits are allowed. See <SAMP>do_frac_digits()</SAMP>. In the C locale, the function returns the period (<SAMP>'</SAMP><SAMP>.</SAMP><SAMP>'</SAMP> and <SAMP>L</SAMP><SAMP>'</SAMP><SAMP>.</SAMP><SAMP>'</SAMP>).</P>
+</UL>
+
+
+<A NAME="idx907"></A><PRE>virtual int
+<B>do_frac_digits</B>() const; </PRE>
+<UL>
+<P>Returns the number of digits in the fractional part of the monetary representation. In the C locale, the function returns <SAMP>0</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx908"></A><PRE>virtual string
+<B>do_grouping</B>() const; </PRE>
+<UL>
+<P>Returns a string in which the numeric value of each character is used as an integer value to represent the number of digits in a particular grouping, starting with the rightmost group. A group is simply a sequence of digits between two adjacent thousands separators, or between the decimal point and the first thousands separator. Each group at a position greater than or equal to the size of the string gets the same value as the last element in the string. If a value is less than or equal to zero, or equal to <SAMP>CHAR_MAX</SAMP>, then the size of that group is unlimited. In the C locale, the function returns the empty string, indicating no grouping.</P>
+</UL>
+
+
+<A NAME="idx909"></A><PRE>virtual string_type 
+<B>do_negative_sign</B>() const; </PRE>
+<UL>
+<P>A string to use as the negative sign. The first character of this string is placed in the position indicated by the format pattern. See <SAMP>do_neg_format()</SAMP>. The rest of the characters, if any, are placed after all other parts of the monetary value. In the C locale, the function returns the empty string. </P>
+</UL>
+
+
+<A NAME="idx910"></A><PRE>virtual pattern 
+<B>do_neg_format</B>() const; 
+virtual pattern 
+<B>do_pos_format</B>() const; </PRE>
+<UL>
+<P>Returns a pattern object specifying the location of the various syntactic elements in a monetary representation. The enumeration values <SAMP>symbol</SAMP>, <SAMP>sign</SAMP>, and <SAMP>value</SAMP> appear exactly once in this pattern, with the remaining location taken by either <SAMP>none</SAMP> or <SAMP>space</SAMP>. <SAMP>none</SAMP> never occupies the first position in the pattern and <SAMP>space</SAMP> never occupies the first or the last position. Beyond these restrictions, elements may appear in any order. In the C locale, the functions return <SAMP>{symbol, sign, none, value}</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx911"></A><PRE>virtual string_type 
+<B>do_positive_sign</B>() const; </PRE>
+<UL>
+<P>A string to use as the positive sign for a monetary value. The first character of this string is placed in the position indicated by the format pattern. See <SAMP>do_pos_format()</SAMP>. The rest of the characters, if any, are placed after all other parts of the monetary value. In the C locale, the function returns the empty string.</P>
+</UL>
+
+
+<A NAME="idx912"></A><PRE>virtual charT
+<B>do_thousands_sep</B>() const; </PRE>
+<UL>
+<P>Returns the grouping separator. See <SAMP>do_grouping()</SAMP>. In the C locale, the function returns the comma (<SAMP>'</SAMP><SAMP>,</SAMP><SAMP>'</SAMP> and <SAMP>L</SAMP><SAMP>'</SAMP><SAMP>,</SAMP><SAMP>'</SAMP>).</P>
+</UL>
+
+<A NAME="sec12"><H3>Example</H3></A>
+
+<UL><PRE>#include &lt;locale&gt;     // for locale
+#include &lt;iostream&gt;   // for cout, endl
+#include &lt;limits&gt;     // for numeric_limits
+
+#include &lt;examples.h&gt;
+
+
+int main ()
+{
+    // Get a moneypunct facet from the global ("C") locale
+    const std::moneypunct&lt;char, false&gt; &amp;mp = 
+        std::use_facet&lt;std::moneypunct&lt;char, false&gt;
+        &gt;(std::locale ());
+    
+    // expected values (see 7.11 of C99):
+    //     Decimal point        = ''
+    //     Thousands seperator  = ''
+    //     Negative Sign        = ""
+    //     Digits after decimal = CHAR_MAX
+
+    // check to make sure the character returned from
+       decimal_point () and 
+    // thousands_sep() are null characters so that the nulls are
+       not printed.
+    if ('\0' == mp.decimal_point ())
+        std::cout &lt;&lt; "Decimal point        = ''";
+    else 
+        std::cout &lt;&lt; "Decimal point        = '" &lt;&lt;
+        mp.decimal_point () &lt;&lt; "'";
+
+    if ('\0' == mp.thousands_sep ())
+        std::cout &lt;&lt; "\nThousands seperator  = ''";
+    else
+        std::cout &lt;&lt; "\nThousands seperator  = '" &lt;&lt;
+        mp.thousands_sep () &lt;&lt; "'";
+
+    std::cout &lt;&lt; "\nCurrency symbol      = \"" &lt;&lt; mp.curr_symbol
+        () &lt;&lt; "\""
+              &lt;&lt; "\nNegative Sign        = \"" &lt;&lt;
+              mp.negative_sign () &lt;&lt; "\"";
+
+    // since the value of CHAR_MAX depends on the signedness of
+       char,
+    // if mp.frac_digits() equals CHAR_MAX print the string
+       "CHAR_MAX",
+    // otherwise print the actual value
+
+    if (std::numeric_limits&lt;char&gt;::max () == mp.frac_digits ())
+        std::cout &lt;&lt; "\nDigits after decimal = CHAR_MAX\n";
+    else
+        std::cout &lt;&lt; "\nDigits after decimal = " &lt;&lt;
+        mp.frac_digits () &lt;&lt; '\n';
+    
+    return 0;
+}
+
+Program Output:
+Decimal point        = ''
+Thousands seperator  = ''
+Currency symbol      = ""
+Negative Sign        = ""
+Digits after decimal = CHAR_MAX
+</PRE></UL>
+<A NAME="sec13"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="money-put.html">money_put</A></I></B>, <B><I><A HREF="money-get.html">money_get</A></I></B></P>
+<A NAME="sec14"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.6.3</I></P>
+
+<BR>
+<HR>
+<A HREF="money-get.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="money-put.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

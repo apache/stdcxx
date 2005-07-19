@@ -1,0 +1,251 @@
+<HTML>
+<HEAD>
+<TITLE>istream_iterator</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="istream-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="istreambuf-iterator.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>istream_iterator</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-8.html">Iterators</A></P>
+
+<PRE><HR><B><I>istream_iterator</I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="iterator.html">iterator</A></I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Constructors</A></LI>
+<LI><A HREF="#sec8">Operators</A></LI>
+<LI><A HREF="#sec9">Nonmember Operators</A></LI>
+<LI><A HREF="#sec10">Example</A></LI>
+<LI><A HREF="#sec11">See Also</A></LI>
+<LI><A HREF="#sec12">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx717">char_type</A><BR>
+<A HREF="#idx720">istream_iterator()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx719">istream_type</A><BR>
+<A HREF="#idx723">operator*()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx725">operator++()</A><BR>
+<A HREF="#idx724">operator-&gt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx718">traits_type</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx727">operator!=()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx726">operator==()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A stream iterator that has iterator capabilities for istreams. This iterator allows generic algorithms to be used directly on streams.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;iterator&gt;
+
+namespace std {
+  template &lt;class T, class charT, 
+            class traits = char_traits&lt;charT&gt;, 
+            class Distance = ptrdiff_t&gt;
+  class istream_iterator : 
+          public iterator&lt;input_iterator_tag, T, 
+                          Distance, const T*, const T&amp;&gt;;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>Stream iterators are the standard iterator interface for input and output streams.</P>
+<P>The class template  <B><I>istream_iterator</I></B> reads elements from an input stream using <SAMP>operator &gt;&gt;()</SAMP>. A value of type <SAMP>T</SAMP> is retrieved and stored when the iterator is constructed and each time <SAMP>operator++()</SAMP> is called. The iterator is equal to the end-of-stream iterator value if the end-of-file is reached. You can use the constructor with no arguments to create an end-of-stream iterator. The only valid use of this iterator is to compare to other iterators when checking for end of file. Do not attempt to dereference the end-of-stream iterator; it plays the same role as the past-the-end iterator of the <SAMP>end()</SAMP> function of containers. Since an <B><I>istream_iterator</I></B> is an input iterator, you cannot assign to the value returned by dereferencing the iterator. This also means that <B><I>istream_iterators</I></B> can only be used for single pass algorithms.</P>
+<P>Since a new value is read every time the<SAMP> operator++()</SAMP> is used on an <B><I>istream_iterator</I></B>, that operation is not equality-preserving. This means that <SAMP>i == j </SAMP>does <I>not </I>mean that <SAMP>++i == ++j</SAMP> (although two end-of-stream iterators are always equal).</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  template &lt;class T, class charT, 
+            class traits = char_traits&lt;charT&gt;,
+            class Distance = ptrdiff_t&gt;
+  class istream_iterator : 
+           public iterator&lt;input_iterator_tag, T, Distance,
+                           const T*, const T&amp;&gt;
+  {
+
+    public:
+      typedef T value_type;
+      typedef charT char_type;
+      typedef traits traits_type;
+      typedef basic_istream&lt;charT,traits&gt; istream_type;
+
+      istream_iterator();
+      istream_iterator(istream_type&amp;);
+      istream_iterator(const stream_iterator&amp;);
+
+      const T&amp; operator*() const;
+      const T* operator-&gt;() const;
+      istream_iterator&amp; operator++();
+      istream_iterator  operator++(int);
+  };
+
+  // Nonmember Operators
+
+  template &lt;class T, class charT, class traits,class Distance&gt;
+  bool operator==(const istream_iterator&lt;T,charT,traits,Distance&gt;&amp;,
+          const istream_iterator&lt;T,charT,traits,Distance&gt;&amp;);
+
+  template &lt;class T, class charT, class traits,class Distance&gt;
+  bool operator!=(const istream_iterator&lt;T,charT,traits,Distance&gt;&amp;,
+          const istream_iterator&lt;T,charT,traits,Distance&gt;&amp;);
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx717"></A><PRE><B>char_type</B>; </PRE>
+<UL>
+<P>Type of character the stream is built on.</P>
+</UL>
+
+
+<A NAME="idx718"></A><PRE><B>traits_type</B>; </PRE>
+<UL>
+<P>Traits used to build the stream.</P>
+</UL>
+
+
+<A NAME="idx719"></A><PRE><B>istream_type</B>; </PRE>
+<UL>
+<P>Type of stream this iterator is constructed on.</P>
+</UL>
+
+<A NAME="sec7"><H3>Constructors</H3></A>
+
+<A NAME="idx720"></A><PRE><B>istream_iterator</B>();</PRE>
+<UL>
+<P>Constructs an end-of-stream iterator. This iterator can be used to compare against an end-of-stream condition. Use it to provide end iterators to algorithms.</P>
+</UL>
+
+
+<A NAME="idx721"></A><PRE><B>istream_iterator</B>(istream_type&amp; s);</PRE>
+<UL>
+<P>Constructs an <B><I>istream_iterator</I></B> on the given stream.</P>
+</UL>
+
+
+<A NAME="idx722"></A><PRE><B>istream_iterator</B>(const istream_iterator&amp; x);</PRE>
+<UL>
+<P>Copy constructor.</P>
+</UL>
+
+<A NAME="sec8"><H3>Operators</H3></A>
+
+<A NAME="idx723"></A><PRE>const T&amp; 
+<B>operator*</B>() const;</PRE>
+<UL>
+<P>Returns the current value stored by the iterator.</P>
+</UL>
+
+
+<A NAME="idx724"></A><PRE>const T*
+<B>operator-&gt;</B>() const;</PRE>
+<UL>
+<P>Returns a pointer to the current value stored by the iterator.</P>
+</UL>
+
+
+<A NAME="idx725"></A><PRE>istream_iterator&amp; <B>operator++</B>()
+istream_iterator <B>operator++</B>(int)</PRE>
+<UL>
+<P>Retrieves the next element from the input stream. </P>
+</UL>
+
+<A NAME="sec9"><H3>Nonmember Operators</H3></A>
+
+<A NAME="idx726"></A><PRE>template &lt;class T, class charT, class traits, class Distance&gt; 
+bool 
+<B>operator==</B>(const istream_iterator&lt;T,charT,traits,
+            Distance&gt;&amp; x,
+            const
+            istream_iterator&lt;T,charT,traits,Distance&gt;&amp; y)</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>x</SAMP> and <SAMP>y</SAMP> both refer to the same stream or are both past-the-end.</P>
+</UL>
+
+
+<A NAME="idx727"></A><PRE>template &lt;class T, class charT, class traits, class Distance&gt; 
+bool 
+<B>operator!=</B>(const istream_iterator&lt;T,charT,traits,Distance&gt;&amp; x,
+           const istream_iterator&lt;T,charT,traits,Distance&gt;&amp; y)</PRE>
+<UL>
+<P>Returns <SAMP>!(x == y)</SAMP>.</P>
+</UL>
+
+<A NAME="sec10"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  io_iter.cpp
+//
+
+#include &lt;algorithm&gt;  // for copy
+#include &lt;iostream&gt;   // for cin, cout, endl
+#include &lt;iterator&gt;   // for stream_iterators, inserter
+#include &lt;vector&gt;     // for vector
+#include &lt;numeric&gt;    // for accumulate
+
+
+int main ()
+{
+    // Typedefs for convenience.
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt;    Vector;
+
+    typedef std::istream_iterator&lt;Vector::value_type,
+                         char, std::char_traits&lt;char&gt;, 
+                         ptrdiff_t&gt;                   is_iter;
+
+    typedef std::ostream_iterator&lt;Vector::value_type, char, 
+                         std::char_traits&lt;char&gt; &gt;     os_iter;
+
+    Vector v;
+
+    Vector::value_type sum = 0;
+
+    // Collect values from cin until end of file
+    // Note use of default constructor to get ending iterator
+    std::cout &lt;&lt; "Enter a sequence of integers (eof to quit): ";
+    std::copy (is_iter (std::cin), is_iter (), 
+               std::inserter (v, v.begin ()));
+
+    // Stream the whole vector and the sum to cout.
+    std::copy (v.begin (), v.end () -1,
+               os_iter (std::cout, " + "));
+
+    if (v.size ())
+        std::cout &lt;&lt; v.back () &lt;&lt; " = "
+                  &lt;&lt; std::accumulate (v.begin (), v.end (), sum)
+                  &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>Enter a sequence of integers (eof to quit): 1 + 1 + 2 + 3 + 5 +
+8 + 13 + 21 + 45 + 66 + 111 + 177 = 453
+</PRE></UL>
+<A NAME="sec11"><H3>See Also</H3></A>
+<P><A HREF="iterators.html">Iterators</A>, <B><I><A HREF="ostream-iterator.html">ostream_iterator</A></I></B></P>
+<A NAME="sec12"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 24.5.1</I></P>
+
+<BR>
+<HR>
+<A HREF="istream-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="istreambuf-iterator.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

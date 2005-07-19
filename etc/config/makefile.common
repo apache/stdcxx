@@ -1,0 +1,190 @@
+# -*- Makefile -*-
+#
+# $Id: //stdlib/dev/etc/stdlib/config/makefile.common#23 $
+#
+# common makefile definitions shared by all GNUmakefile.*
+#
+##############################################################################
+
+SHELL        = /bin/sh 
+
+# specify path to find to avoid problems with example named 'find'
+FIND         = /usr/bin/find
+
+# provide a value if it isn't already set by make
+ifeq ($(CURDIR),)
+CURDIR       = $(shell pwd)
+endif
+
+INCLUDES     = -I$(BUILDDIR)/include -I$(TOPDIR)/include
+
+# SRCDIRS must be defined in GNUmakefile that includes this file
+ifeq ($(ONE_REPOSITORY),)
+
+  # traverse all subdirectories and get the names of all regular files
+  ALL_FILES = $(shell $(FIND) $(SRCDIRS) -type f -print)
+
+  ifneq ($(CXX_REPOSITORY),)
+
+    # compose the name of the template instantiation repository from
+    # the name of the test and a unique suffix (so that each test has
+    # its own and same names with different definitions do not cause
+    # conflicts) and append it to the name of the compiler and linker
+    #
+    # e.g., Compaq C++ where this will expand to something like
+    #     -ptr foo.ti
+    # or IBM VisualAge where it will be along the lines of
+    #    --qtempinc=foo.ti
+    # or
+    #    --qtemplateregistry=foo.ti
+    #
+    repository_name = $(shell basename $(*F) 2>/dev/null).ti
+
+    # add CPPFLAGS to LDFLAGS for compilers that implement implicit
+    # inclusion but don't remember (save) the preprocessor flags used
+    # during compilation
+    # (e.g., IBM VisualAge)
+    LDFLAGS += $(CPPFLAGS)
+
+  else   # ifeq ($(CXX_REPOSITORY),)
+    ifeq ($(CXX),CC)
+      ifeq ($(findstring SunOS,$(PLATFORM)),SunOS)
+        # set SUNWS_CACHE_NAME to the basename of the file being compiled
+        # followed by .ti, to override the default template repository,
+        # SunWS_cache
+        tmp := $(CXX)
+        CXX =
+        CXX += SUNWS_CACHE_NAME=$(*F).ti
+        CXX += $(tmp)
+
+        tmp := $(LD)
+        LD   =
+        LD  += SUNWS_CACHE_NAME=$(*F).ti
+        LD  += $(tmp)
+      endif   # SunOS
+    endif   # SunPro
+  endif # neq ($(CXX_REPOSITORY),)
+else   # ifneq ($(ONE_REPOSITORY),)
+
+  ifneq ($(CXX_REPOSITORY),)
+    repository_name = repository.ti
+  endif
+
+  # ignore subdirectories when building a library
+  ALL_FILES := $(shell echo $(SRCDIRS)/*.cpp)
+
+  # do not use assembly source files containing atomic ops
+  # with EDG's eccp or with AIX xlC
+  ifneq ($(CXX),eccp)
+    ifeq ($(findstring xlC,$(CXX)),)
+
+      ifeq ($(CXX),aCC)
+        # with HP aCC use atomic.s instead of atomic.S
+        ATOMIC_S += $(shell echo $(SRCDIRS)/atomic.s)
+        AS_EXT    = s
+      else
+        # testing for platform is not the best solution here
+        # but it will have to do
+        ifeq (IRIX64,$(findstring IRIX64,$(PLATFORM)))
+          ATOMIC_S += $(shell echo $(SRCDIRS)/atomic.s)
+          AS_EXT    = s
+        else
+          ATOMIC_S += $(shell echo $(SRCDIRS)/atomic.S)
+          AS_EXT    = S
+        endif   # IRIX
+      endif   # HP aCC
+    endif   # not IBM VisualAge
+  endif   # not EDG eccp
+
+  ifneq ($(ATOMIC_S),)
+    ALL_FILES += $(shell [ -r $(ATOMIC_S) ] && echo $(ATOMIC_S))
+  endif
+endif
+
+ifneq ($(repository_name),)
+  ifeq ($(findstring =,$(CXX_REPOSITORY)),=)
+      # no space between '=' and the name of the repository
+      CXXFLAGS += $(CXX_REPOSITORY)$(repository_name)
+      LDFLAGS  += $(CXX_REPOSITORY)$(repository_name)
+  else    # ifeq ($(repository_name),)
+      # insert a space between the option and the name of the repository
+      CXXFLAGS += $(CXX_REPOSITORY) $(repository_name)
+      LDFLAGS  += $(CXX_REPOSITORY) $(repository_name)
+  endif
+endif   # ifeq ($(repository_name),)
+
+CPPFLAGS    += $(INCLUDES)
+CXXFLAGS    += $(WARNFLAGS)
+
+VPATH        = $(shell $(FIND) $(SRCDIRS) -type d -print)
+
+SRCS         = $(notdir $(filter %.cpp %.s %.S,$(ALL_FILES)))
+SRCS        := $(sort $(filter-out $(OMIT_SRCS),$(SRCS)))
+
+OBJS         = $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRCS)))
+OBJS        += $(patsubst %.s,%.o,$(filter %.s,$(SRCS)))
+OBJS        += $(patsubst %.S,%.o,$(filter %.S,$(SRCS)))
+OBJS        := $(sort $(OBJS))
+
+# message files - text files used to generate a catalog - see gencat(1)
+MSGFILES     = $(filter %.msg,$(ALL_FILES))
+
+
+ifeq ($(TARGET),)
+# generate binaries or scripts (in constrained environments)
+ifeq ($(NO_A_DOT_OUT),)
+TARGET       = $(patsubst %.o,%,$(OBJS))
+else
+TARGET       = $(patsubst %.o,%.sh,$(OBJS))
+endif
+endif #ifneq ($(TARGET),)
+
+# link with the produced library and the math library
+# (take care not to try to link the library with itself)
+ifeq ($(findstring $(LIBNAME),$(TARGET)),)
+  LDFLAGS  += -L$(LIBDIR) -l$(LIBBASE)
+  LDLIBS   += -lm
+endif  # ifneq ($(LIBNAME),$findstring ($(LIBNAME),$(TARGET)))
+
+
+# file to write log of the build to
+LOGFILE     = /dev/null
+
+# if LOGFILE is being created, tee command output into it
+# IMPORTANT: $(TEEOPTS) must be last on the command line
+ifneq ($(LOGFILE),/dev/null)
+TEEOPTS      = 2>&1 | tee -a $(LOGFILE)
+endif
+
+# determine the name of the results file against which to compute regressions
+REGRESS_FILE = $(shell                                       \
+    if [ -z "$(REGRESS)" ] ; then                            \
+        ls -tr1 ../$(REPORTFILE)* 2> /dev/null | tail -1 ;   \
+    elif [ -f $(REGRESS) ] ; then                            \
+        echo "$(REGRESS)" ;                                  \
+    else                                                     \
+        echo "$(TOPDIR)/results/$(REPORTFILE)" ;             \
+    fi)
+
+ifeq ($(REGRESS_FILE),)
+REGRESS_FILE = "$(TOPDIR)/results/$(REPORTFILE)"
+endif
+
+# set the RUNTARGET variable to command line args if $RUN isn't set
+ifeq ($(RUN),)
+RUNTARGET   = $(filter-out run_all runall run,$(MAKECMDGOALS))
+else
+RUNTARGET   = $(RUN)
+endif
+
+ifeq ($(RUNTARGET),)
+RUNTARGET    = $(shell echo ./$(TARGET) | sed "s/ / .\//g")
+endif
+
+
+# append command line options to standard flags
+CPPFLAGS   += $(CPPOPTS)
+CXXFLAGS   += $(CXXOPTS)
+LDFLAGS    += $(LDOPTS)
+ARFLAGS    += $(AROPTS)
+RUNFLAGS   += $(RUNOPTS)

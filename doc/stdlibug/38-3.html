@@ -1,0 +1,95 @@
+<HTML>
+<HEAD>
+<TITLE>Construction and Initialization</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="38-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="38-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>38.3 Construction and Initialization</H2>
+<A NAME="idx903"><!></A>
+<P>All standard stream templates are derived from <SAMP>std::basic_ios</SAMP>. In C++, a virtual base class is initialized by its most derived class; that is, our new <SAMP>odatstream</SAMP> class is responsible for initialization of its base <SAMP>std::basic_ios</SAMP>. Now <SAMP>basic_ios</SAMP> has only one public constructor, which takes a pointer to a stream buffer. This is because  <SAMP>basic_ios</SAMP> contains a pointer to the stream buffer, which has to be initialized when a <SAMP>basic_ios</SAMP> subobject is constructed. Consequently, we must figure out how to provide a stream buffer to our base class. Let's consider two options:</P>
+<UL>
+<LI><P CLASS="LIST">Derivation from file stream or string stream classes; that is, class <br><SAMP>std::{i,o}fstream</SAMP> or class <SAMP>std::{i,o}stringstream</SAMP>, and </P></LI>
+<LI><P CLASS="LIST">Derivation from <SAMP>std::basic_{i,o}stream</SAMP>. </P></LI>
+</UL>
+<A NAME="3831"><H3>38.3.1 Derivation from File Stream or String Stream Classes std::{i,o}fstream or std::{i,o}stringstream</H3></A>
+<A NAME="idx904"><!></A>
+<P>The file and string stream classes contain a stream buffer data member and already monitor the initialization of their virtual base initialization by providing the pointer to their own stream buffer. If we derive from one of these classes, we do not provide another stream buffer pointer because it would be overwritten by the file or string stream's constructor anyway. (Remember that virtual base classes are constructed before non-virtual base classes regardless of where they appear in the hierarchy.) Consider:</P>
+
+<UL><PRE>
+template &lt;class charT, class Traits=std::char_traits&lt;charT&gt; &gt;
+class MyOfstream : public std::basic_ofstream&lt;charT,Traits&gt; {
+  public:
+    MyOfstream(const char* name) 
+      : std::basic_ios&lt;charT,Traits&gt;(<I>...streambufptr...</I>),
+       std::basic_ofstream&lt;charT,Traits&gt;(name) {}
+     // ...
+};
+</PRE></UL>
+<P>The order of initialization would be:</P>
+<OL>
+<LI><P CLASS="LIST"><SAMP>std::ios_base()</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>std::basic_ios (std::basic_streambuf*)</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>std::basic_ostream (const char*)</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>std::basic_ofstream (const char*)</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>MyOfstream (const char*)</SAMP></P></LI>
+</OL>
+<P>In other words, the constructor of <SAMP>basic_ofstream</SAMP> overwrites the stream buffer pointer set by the constructor of <SAMP>basic_ios</SAMP>.</P>
+<P>To avoid this dilemma, class <SAMP>basic_ios</SAMP> has a protected default constructor in addition to its public constructor. This default constructor, which requires a stream buffer pointer, doesn't do anything. Instead, there is a protected initialization function <SAMP>std::basic_ios&lt;&gt;::init()</SAMP> that can be called by any class derived from <SAMP>std::basic_ios&lt;&gt;</SAMP>. With this function, initialization of the <SAMP>std::basic_ios&lt;&gt;</SAMP> base class is handled by the stream class that actually provides the stream buffer -- in our example, <SAMP>std::basic_ofstream&lt;&gt;</SAMP>. It calls the protected <SAMP>init()</SAMP> function:</P>
+
+<UL><PRE>
+template &lt;class charT, class Traits=std::char_traits&lt;charT&gt; &gt;
+class MyOfstream : public std::basic_ofstream&lt;charT,Traits&gt; {
+ public:
+   MyOfstream(const char* name) 
+   : std::basic_ofstream&lt;charT,Traits&gt;(name) {}
+   // ...
+};
+</PRE></UL>
+<P>The order of initialization is:</P>
+<OL>
+<LI><P CLASS="LIST"><SAMP>std::ios_base()</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>std::basic_ios()</SAMP></P></LI>
+<LI><P CLASS="LIST">std::basic_ostream (const char*)<br>calls std::basic_ios::init(basic_streambuf*)</P></LI>
+<LI><P CLASS="LIST"><SAMP>std::basic_ofstream (const char*)</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>MyOfstream (const char*)</SAMP></P></LI>
+</OL>
+<A NAME="idx905"><!></A>
+<A NAME="3832"><H3>38.3.2 Derivation from the Stream Classes  std::basic_{i,o}stream</H3></A>
+<A NAME="idx906"><!></A>
+<P>The scheme for deriving from the stream classes is slightly different in that you must always provide a pointer to a stream buffer. This is because the stream classes do not contain a stream buffer, as the file or string stream classes do. For example, a class derived from an output stream could look like this:</P>
+
+<UL><PRE>
+template &lt;class charT, class Traits = std::char_traits&lt;charT&gt; &gt;
+class MyOstream : public std::basic_ostream&lt;charT,Traits&gt; {
+  public:
+    MyOstream(std::basic_streambuf&lt;charT,Traits&gt;* sb) 
+    : std::basic_ostream&lt;charT,Traits&gt;(sb) {}
+    // ...
+};
+</PRE></UL>
+<A NAME="idx907"><!></A>
+<P>There are several ways to provide the stream buffer required for constructing such a stream:</P>
+<UL>
+<LI><P CLASS="LIST"><B>Create the stream buffer independently, before the stream is created.</B> Here is a simple example in which a file buffer is created as a separate object and used by the derived stream:</P></LI>
+
+<UL><PRE>
+std::filebuf strbuf;
+strbuf.open("/tmp/xxx");
+MyOstream&lt;char&gt; mostr(&amp;strbuf);
+mostr &lt;&lt; "Hello world\n";
+</PRE></UL>
+<LI><P CLASS="LIST"><B>Take the stream buffer from another stream.</B> In the example below, the stream buffer is "borrowed" from the standard error stream <SAMP>std::cerr</SAMP>:</P></LI>
+
+<UL><PRE>
+MyOstream&lt;char,std::char_traits&lt;char&gt; &gt;
+  mostr(std::cerr.rdbuf());
+mostr &lt;&lt; "Hello world\n";
+</PRE></UL>
+<P CLASS="LIST">Remember that the stream buffer is now shared between <SAMP>mostr</SAMP> and <SAMP>cerr</SAMP> (see <A HREF="34-3.html">Section&nbsp;34.3</A> for details).</P>
+<LI><P CLASS="LIST"><B>Contain the stream buffer in the derived stream, either as a data member or inherited</B><I>.</I> It is typically preferred when a new stream buffer type is used along with the new stream type.</P></LI>
+</UL>
+
+<BR>
+<HR>
+<A HREF="38-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="38-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

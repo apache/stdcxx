@@ -1,0 +1,108 @@
+<HTML>
+<HEAD>
+<TITLE>Sorting Algorithms</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="14-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="14-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>14.2 Sorting Algorithms</H2>
+<BLOCKQUOTE><HR><B>
+NOTE -- The example programs described in the following sections have been combined and are included in the file alg7.cpp. As in Chapter13, we generally omit output statements from the descriptions of the programs provided here, although they are included in the complete versions.
+</B><HR></BLOCKQUOTE>
+<A NAME="idx347"><!></A>
+<P>The Standard C++ Library provides two fundamental sorting algorithms, described as follows:</P>
+
+<UL><PRE>
+namespace std {
+  void sort(RandomAccessIterator first, 
+            RandomAccessIterator last [, Compare ] );
+
+  void stable_sort(RandomAccessIterator first, 
+                   RandomAccessIterator last [, Compare ] );
+}
+</PRE></UL>
+<A NAME="idx348"><!></A>
+<P>The <SAMP>std::sort()</SAMP> algorithm is slightly faster, but it does not guarantee that equal elements in the original sequence retain their relative orderings in the final result. If order is important, the <SAMP>std::stable_sort()</SAMP> version should be used.</P>
+<P>Because these algorithms require random access <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s, they can be used only with <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>s, <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>s, and ordinary C pointers. Note, however, that the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> container provides its own <SAMP>sort()</SAMP> member function.</P>
+<P>The comparison operator can be explicitly provided when the default operator <SAMP>&lt;</SAMP> is not appropriate. This is used in the example program to sort a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> into descending, rather than ascending order. An alternative technique for sorting an entire collection in the inverse direction is to describe the sequence using reverse <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- Another sorting algorithm is provided by the heap operations described in <A HREF="14-7.html">Section&nbsp;14.7</A>.
+</B><HR></BLOCKQUOTE>
+<P>The following example program illustrates the <SAMP>std::sort()</SAMP> algorithm being applied to a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>, and the <SAMP>std::sort()</SAMP> algorithm with an explicit comparison operator being used with a <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>.</P>
+
+<A NAME="idx349"><!></A>
+<UL><PRE>
+void sort_example() 
+// illustrates the use of the sort algorithm
+// see alg7.cpp for complete source code
+{
+  // fill both a vector and a deque
+  // with random integers
+  std::vector&lt;int&gt; aVec(15);
+  std::deque&lt;int&gt; aDec(15);
+  std::generate(aVec.begin(), aVec.end(), randomValue);
+  std::generate(aDec.begin(), aDec.end(), randomValue);
+  
+  // sort the vector ascending
+  std::sort(aVec.begin(), aVec.end());
+  
+  // sort the deque descending
+  std::sort(aDec.begin(), aDec.end(), greater&lt;int&gt;() );
+
+  // alternative way to sort descending
+  std::sort(aVec.rbegin(), aVec.rend());
+}
+</PRE></UL>
+<A NAME="1421"><H3>14.2.1 Partial Sort</H3></A>
+<A NAME="idx350"><!></A>
+<P>The generic algorithm <SAMP>std::partial_sort()</SAMP> sorts only a portion of a sequence. In the first version of the algorithm, three iterators are used to describe the beginning, middle, and end of a sequence. If <SAMP>n</SAMP> represents the number of elements between the start and middle, then the smallest <SAMP>n</SAMP> elements are moved into this range in order. The remaining elements are moved into the second region. The order of the elements in this second region is undefined.</P>
+
+<UL><PRE>
+namespace std {
+  void partial_sort(RandomAccessIterator first, 
+                    RandomAccessIterator middle, 
+                    RandomAccessIterator last 
+                    [ , Compare ]);
+}
+</PRE></UL>
+<P>A second version of the algorithm leaves the input unchanged. The output area is described by a pair of random access <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s. If <SAMP>n</SAMP> represents the size of this area, the smallest <SAMP>n</SAMP> elements in the input are moved into the output in order. If <SAMP>n</SAMP> is larger than the input, the entire input is sorted and placed in the first <SAMP>n</SAMP> locations in the output. In either case, the end of the output sequence is returned as the result of the operation.</P>
+
+<UL><PRE>
+namespace std {
+  RandomAccessIterator partial_sort_copy 
+     (InputIterator first, InputIterator last, 
+      RandomAccessIterator result_first, 
+      RandomAccessIterator result_last [, Compare ] );
+}
+</PRE></UL>
+<A NAME="idx351"><!></A>
+<P>Because the input to this version of the algorithm is specified only as a pair of input iterators, the <SAMP>std::partial_sort_copy()</SAMP> algorithm can be used with any of the containers in the Standard C++ Library. In the example program, it is used with a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>:</P>
+
+<A NAME="idx352"><!></A>
+<UL><PRE>
+void partial_sort_example() 
+// illustrates the use of the partial sort algorithm
+// see alg7.cpp for complete source code
+{
+  // make a vector of 15 random integers
+  std::vector&lt;int&gt; aVec(15);
+  std::generate(aVec.begin(), aVec.end(), randomValue);
+
+  // partial sort the first seven positions
+  std::partial_sort(aVec.begin(), aVec.begin() + 7, aVec.end());
+
+  // make a list of random integers
+  std::list&lt;int&gt; aList(15, 0);
+  std::generate(aList.begin(), aList.end(), randomValue);
+   
+  // sort only the first seven elements
+  std::vector&lt;int&gt; start(7);
+  std::partial_sort_copy(aList.begin(), aList.end(),
+                         start.begin(), start.end(), 
+                         std::greater&lt;int&gt;());
+}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="14-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="14-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

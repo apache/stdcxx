@@ -1,0 +1,2 @@
+std::has_facet<std::ctype<char> >(std::cout.getloc ()) = true
+std::has_facet<MyFacet>(std::cout.getloc ()) = false

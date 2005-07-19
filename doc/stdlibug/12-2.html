@@ -1,0 +1,183 @@
+<HTML>
+<HEAD>
+<TITLE>string Operations</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="12-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="12-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>12.2 string Operations</H2>
+<P>In the following sections, we'll examine the Standard C++ Library operations used to create and manipulate <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>s.</P>
+<A NAME="1221"><H3>12.2.1 Declaration and Initialization of string</H3></A>
+<A NAME="idx221"><!></A>
+<P>The simplest form of declaration for a <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> simply names a new variable, or names a variable along with the initial value for the <B><I>string</I></B>. This form was used extensively in the example graph program given in <A HREF="9-3.html#932">Section&nbsp;9.3.2</A>. A copy constructor also permits a <B><I>string</I></B> to be declared that takes its value from a previously defined <B><I>string</I></B>:</P>
+
+<UL><PRE>
+std::string s1;
+std::string s2("a string");
+std::string s3 = "initial value";
+std::string s4(s3);
+</PRE></UL>
+<P>In these simple cases the capacity is initially exactly the same as the number of characters being stored. An alternative constructor lets you set the capacity and initialize the <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> with repeated copies of a single character value:</P>
+
+<UL><PRE>
+std::string s7(10, '\n');          // holds ten newline characters
+</PRE></UL>
+<P>Finally, like all the container classes in the Standard C++ Library, a <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> can be initialized using a pair of <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s. The sequence denoted by the <B><I>iterator</I></B>s must have the appropriate type of elements.</P>
+
+<UL><PRE>
+string s8 (aList.begin(), aList.end());
+</PRE></UL>
+<A NAME="1222"><H3>12.2.2 Resetting Size and Capacity</H3></A>
+<A NAME="idx222"><!></A>
+<P>As with the <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> datatype, the member function <SAMP>size()</SAMP>  yields the current size of a <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>, and the current capacity is returned by <SAMP>capacity()</SAMP>. The latter can be changed by a call on the <SAMP>reserve()</SAMP> member function, which adjusts the capacity if necessary so that the string can hold at least as many elements as specified by the argument. The member function <SAMP>max_size()</SAMP> returns the maximum string size that can be allocated:   </P>
+
+<UL><PRE>
+std::cout &lt;&lt; s6.size() &lt;&lt; std::endl;
+std::cout &lt;&lt; s6.capacity() &lt;&lt; std::endl;
+s6.reserve(200);                    // change capacity to 200
+std::cout &lt;&lt; s6.capacity() &lt;&lt; std::endl;
+std::cout &lt;&lt; s6.max_size() &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="idx223"><!></A>
+<P>The member function <SAMP>length()</SAMP> is simply a synonym for <SAMP>size()</SAMP>. The member function <SAMP>resize()</SAMP> changes the size of a string, either truncating characters from the end or inserting new characters. The optional second argument for <SAMP>resize()</SAMP> can be used to specify the character inserted into the newly created character positions.</P>
+
+<UL><PRE>
+s7.resize(15, '\t');                   // add tab characters at end
+std::cout &lt;&lt; s7.length() &lt;&lt; std::endl; // size should now be 15
+</PRE></UL>
+<A NAME="idx224"><!></A>
+<P>The member function <SAMP>empty()</SAMP> returns <SAMP>true</SAMP> if the string contains no characters, and is generally faster than testing the length against a zero constant.</P>
+
+<UL><PRE>
+if (s1.empty()) 
+   std::cout &lt;&lt; "string is empty" &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="1223"><H3>12.2.3 Assignment, Append, and Swap</H3></A>
+<A NAME="idx225"><!></A>
+<P>A string variable can be assigned the value of either another string, a literal C-style character array, or an individual character:</P>
+
+<UL><PRE>
+s1 = s2;
+s2 = "a new value";
+s3 = 'x';
+</PRE></UL>
+<A NAME="idx226"><!></A>
+<P>The operator <SAMP>+=</SAMP> can also be used with any of these three forms of argument, and specifies that the value on the right-hand side should be <I>appended </I>to the end of the current string value.</P>
+
+<UL><PRE>
+s3 += "yz";                   // s3 is now xyz
+</PRE></UL>
+<A NAME="idx227"><!></A>
+<P>The more general <SAMP>assign()</SAMP> and <SAMP>append()</SAMP> member functions let you specify a subset of the right-hand side to be assigned to or appended to the receiver. Two arguments, <SAMP>pos</SAMP> and <SAMP>n</SAMP>, indicate that the <SAMP>n</SAMP> values following position <SAMP>pos</SAMP> should be assigned or appended:</P>
+
+<UL><PRE>
+s4.assign(s2, 0, 3);         // assign first three characters
+s4.append(s5, 2, 3);         // append characters 2, 3 and 4
+</PRE></UL>
+<P>The addition<SAMP> operator+()</SAMP> is used to form the catenation of two strings. The <SAMP>operator+()</SAMP> creates a copy of the left argument, then appends the right argument to this value:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; (s2 + s3) &lt;&lt; std::endl;  // output catenation of
+                                      // s2 and s3
+</PRE></UL>
+<A NAME="idx228"><!></A>
+<P>As with all the containers in the Standard C++ Library, the contents of two <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>s can be exchanged using the <SAMP>swap()</SAMP> member function:</P>
+
+<UL><PRE>
+s5.swap(s4);                 // exchange s4 and s5
+</PRE></UL>
+<A NAME="1224"><H3>12.2.4 Character Access</H3></A>
+<A NAME="idx229"><!></A>
+<P>An individual character from a string can be accessed or assigned using <SAMP>operator[]</SAMP>. The member function <SAMP>at()</SAMP> is almost a synonym for this operation, except that an <SAMP>out_of_range</SAMP> exception is thrown if the requested location is greater than or equal to <SAMP>size()</SAMP>.</P>
+
+<UL><PRE>
+std::cout &lt;&lt; s4[2] &lt;&lt; std::endl;        // output position 2 of s4
+s4[2] = 'x';                            // change position 2
+std::cout &lt;&lt; s4.at(2) &lt;&lt; std::endl;     // output updated value
+</PRE></UL>
+<A NAME="idx230"><!></A>
+<P>The member function<SAMP> c_str()</SAMP> returns a pointer to a null-terminated character array, whose elements are the same as those contained in the <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>. This lets you use <B><I>string</I></B>s with functions that require a pointer to a conventional C-style character array. The resulting pointer is declared as constant, which means that you cannot use <SAMP>c_str()</SAMP> to modify the string. In addition, the value returned by <SAMP>c_str()</SAMP> might not be valid after any operation that may cause reallocation, such as <SAMP>append()</SAMP> or <SAMP>insert()</SAMP>. The member function <SAMP>data()</SAMP> returns a pointer to the underlying character buffer.  Note that the buffer returned by <SAMP>data()</SAMP> is not null-terminated, and must not be used with functions that expect null-terminated sequences.</P>
+
+<UL><PRE>
+char d[256];
+std::strcpy(d, s4.c_str());                // copy s4 into array d
+</PRE></UL>
+<A NAME="1225"><H3>12.2.5 Iterators</H3></A>
+<A NAME="idx231"><!></A>
+<P>The member functions <SAMP>begin()</SAMP> and <SAMP>end()</SAMP> return beginning and ending random-access <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s for the string. The values denoted by the <B><I>iterator</I></B>s are individual string elements. The functions <SAMP>rbegin()</SAMP> and <SAMP>rend()</SAMP> return backwards <B><I>iterator</I></B>s.</P>
+<A NAME="1226"><H3>12.2.6 Insertion, Removal, and Replacement</H3></A>
+<A NAME="idx232"><!></A>
+<P>The <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> member functions <SAMP>insert()</SAMP> and <SAMP>erase()</SAMP> are similar to the <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> functions <SAMP>insert()</SAMP> and <SAMP>erase()</SAMP>. Like the vector versions, they can take <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s as arguments, and specify the insertion or removal of the ranges specified by the arguments.   The function <SAMP>replace()</SAMP> is a combination of erase and insert, in effect replacing the specified range with new values.</P>
+
+<UL><PRE>
+s2.insert(s2.begin()+2, aList.begin(), aList.end());
+s2.erase(s2.begin()+3, s2.begin()+5);
+s2.replace(s2.begin()+3, s2.begin()+6, s3.begin(), s3.end());
+</PRE></UL>
+<BLOCKQUOTE><HR><B>
+NOTE -- Note that the contents of an iterator are not guaranteed to be valid after any operation that might force a reallocation of the internal string buffer, such as an append or an insertion.
+</B><HR></BLOCKQUOTE>
+<P>The functions above also have non-iterator implementations. The <SAMP>insert()</SAMP> member function takes as argument a position and a <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>, and inserts the <B><I>string</I></B> into the given position. The erase function takes two integer arguments, a position and a length, and removes the characters specified. The replace function takes two similar integer arguments, as well as a string and an optional length, and replaces the indicated range with the string or with an initial portion of a string, if the length has been explicitly specified.</P>
+
+<UL><PRE>
+s3.insert(3, "abc");       // insert abc after position 3
+s3.erase(4, 2);            // remove positions 4 and 5
+s3.replace(4, 2, "pqr");   // replace positions 4 and 5 with pqr
+</PRE></UL>
+<A NAME="1227"><H3>12.2.7 Copy and Substring</H3></A>
+<A NAME="idx233"><!></A>
+<P>The member function <SAMP>copy()</SAMP> generates a substring and copies this substring to the <SAMP>char*</SAMP> target given as the first argument. The range of values for the substring is specified by either a length, or by a length and starting position.  If only a length is provided, copying begins at the start of the string:</P>
+
+<UL><PRE>
+std::string s1("0123456789");
+
+char buf[11] = "----------";
+
+s1.copy(buf,3,5);  // copy 3 characters from s1 into buf,
+                   // starting after position 5
+
+// buf now contains 567-------
+
+s1.copy(buf,5);    // copy the first 5 characters of s1 into buf
+
+// buf now contains 01234-----
+
+</PRE></UL>
+<A NAME="idx234"><!></A>
+<P>The member function <SAMP>substr()</SAMP> returns a <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> that represents a portion of the current <B><I>string</I></B>. The range is specified by either an initial position, or a position and a length:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; s1.substr(3) &lt;&lt; std::endl;      // output 3 to end
+
+std::cout &lt;&lt; s1.substr(3,2) &lt;&lt; std::endl;    // output positions 3
+                                             // and 4
+</PRE></UL>
+<A NAME="idx235"><!></A>
+<A NAME="1228"><H3>12.2.8 string Comparisons</H3></A>
+<A NAME="idx236"><!></A>
+<P>The member function <SAMP>compare()</SAMP> is used to perform a lexical comparison between the receiver and an argument string. Optional arguments permit the specification of a different starting position, or a starting position and length of the argument string. See <A HREF="13-6.html#1365">Section&nbsp;13.6.5</A> for a description of lexicographical ordering. The function returns a negative value if the receiver is lexically smaller than the argument, a zero value if they are equal, and a positive value if the receiver is larger than the argument.</P>
+<P>The relational and equality operators, <SAMP>operator&lt;()</SAMP>,<SAMP> operator&lt;=()</SAMP>,<SAMP> operator==()</SAMP>,<SAMP> operator!=()</SAMP>,<SAMP> operator&gt;=()</SAMP>, and  <SAMP>operator&gt;()</SAMP>, are all defined using the comparison member function. Comparisons can be made either between two strings, or between strings and ordinary C-style character literals.</P>
+<P>Having explained the functionality of <SAMP>compare()</SAMP>, we should note that users seldom invoke this member function directly. Instead, comparisons of strings are usually performed using the conventional comparison operators, which in turn make use of the function <SAMP>compare()</SAMP>.</P>
+<A NAME="idx237"><!></A>
+<A NAME="1229"><H3>12.2.9 Searching Operations</H3></A>
+<A NAME="idx238"><!></A>
+<P>The member function <SAMP>find()</SAMP> determines the first occurrence of the argument string in the current string. An optional integer argument lets you specify the starting position for the search. (Remember that string index positions begin at zero.) If the function can locate such a match, it returns the starting index of the match in the current string. Otherwise, it returns a value out of the range of the set of legal subscripts for the string. The function <SAMP>rfind()</SAMP> is similar, but scans the string from the end, moving backwards.</P>
+
+<UL><PRE>
+s1 = "mississippi";
+std::cout &lt;&lt; s1.find("ss") &lt;&lt; std::endl;    // returns 2
+std::cout &lt;&lt; s1.find("ss", 3) &lt;&lt; std::endl; // returns 5
+std::cout &lt;&lt; s1.rfind("ss") &lt;&lt; std::endl;   // returns 5
+std::cout &lt;&lt; s1.rfind("ss", 4) &lt;&lt; std::endl;// returns 2
+</PRE></UL>
+<A NAME="idx239"><!></A>
+<P>The functions <SAMP>find_first_of()</SAMP>, <SAMP>find_last_of()</SAMP>, <SAMP>find_first_not_of()</SAMP>, and <SAMP>find_last_not_of()</SAMP> treat the argument string as a set of characters. As with many of the other functions, one or two optional integer arguments can be used to specify a subset of the current string. These functions find the first or last character that is either present or absent from the argument set.   The position of the given character, if located, is returned. If no such character exists, a value out of the range of any legal subscript is returned.</P>
+
+<UL><PRE>
+i = s2.find_first_of("aeiou");           // find first vowel
+j = s2.find_first_not_of("aeiou", i);    // next non-vowel
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="12-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="12-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

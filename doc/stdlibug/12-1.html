@@ -1,0 +1,36 @@
+<HTML>
+<HEAD>
+<TITLE>The string Abstraction</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="12.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="12-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>12.1 The string Abstraction</H2>
+<A NAME="idx218"><!></A>
+<P>A <I>string</I> is basically a sequence of characters that can be indexed. In fact, although a <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> is not declared as a subclass of <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>, almost all the <B><I>vector</I></B> operators discussed in <A HREF="5.html">Chapter&nbsp;5</A> can be applied to <B><I>string</I></B> values. Indeed, a string qualifies as a <B><I>sequence</I></B> container type. However, a <B><I>string</I></B> is also a much more abstract quantity. In addition to simple <B><I>vector</I></B> operators, the <B><I>string</I></B> datatype provides a number of useful and powerful high level operations.</P>
+<A NAME="idx219"><!></A>
+<P>In the Standard C++ Library, a <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> is actually a template class, named <B><I><A HREF="../stdlibref/basic-string.html">basic_string</A></I></B>. The template argument represents the type of character that will be held by the <B><I>string</I></B> container. By defining strings in this fashion, the Standard C++ Library not only provides facilities for manipulating sequences of 8-bit characters, but also for manipulating other types of character-like sequences, such as 16-bit wide characters. The datatypes <B><I>string</I></B> and <B><I><A HREF="../stdlibref/wstring.html">wstring</A></I></B> (for wide string) are simply typedefs of <B><I>basic_string</I></B>, defined as follows:</P>
+
+<UL><PRE>
+typedef std::basic_string&lt;char, std::char_traits&lt;char&gt;,
+                          std::allocator&lt;char&gt; &gt; std::string;
+
+typedef std::basic_string&lt;wchar_t, std::char_traits&lt;wchar_t&gt;,
+                          std::allocator&lt;wchar_t&gt; &gt; std::wstring;
+</PRE></UL>
+<BLOCKQUOTE><HR><B>
+NOTE -- In the remainder of this chapter, we refer to the string datatype, but all the operations we introduce are equally applicable to wide strings.
+</B><HR></BLOCKQUOTE>
+<P>As we have already noted, a <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> is similar in many ways to a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> of characters. Like the <B><I>vector</I></B> datatype, a <B><I>string</I></B> is associated with two sizes. The first represents the <I>number of characters</I> currently being stored in the string; the second is the capacity, the <I>maximum number of characters</I> that can potentially be stored in a <B><I>string</I></B> without reallocation of a new internal buffer. </P>
+<P>As in the <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> datatype, the capacity of a <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> is a dynamic quantity. When <B><I>string</I></B> operations cause the number of characters being stored in a <B><I>string</I></B> value to exceed the capacity of the <B><I>string</I></B>, a new internal buffer is allocated and initialized with the <B><I>string</I></B> values, and the capacity of the <B><I>string</I></B> is increased. All this occurs behind the scenes, requiring no interaction with the programmer.</P>
+<A NAME="1211"><H3>12.1.1 Include Files</H3></A>
+<A NAME="idx220"><!></A>
+<P>Programs that use <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>s must include the <SAMP>string</SAMP> header file:</P>
+
+<UL><PRE>
+#include &lt;string&gt;
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="12.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="12-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

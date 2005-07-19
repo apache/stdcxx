@@ -1,0 +1,127 @@
+<HTML>
+<HEAD>
+<TITLE>unique(), unique_copy()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="uninitialized-fill-n.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="upper-bound.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>unique(), unique_copy()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An algorithm that removes consecutive duplicates from a range of values and places the resulting unique values into the result</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template&lt;class ForwardIterator&gt;
+  ForwardIterator
+  unique(ForwardIterator start, ForwardIterator finish);
+
+  template&lt;class ForwardIterator, class BinaryPredicate&gt;
+  ForwardIterator
+  unique(ForwardIterator start, ForwardIterator finish,
+         BinaryPredicate binary_pred);
+
+  template&lt;class InputIterator, class OutputIterator&gt;
+  OutputIterator
+  unique_copy(InputIterator start, InputIterator finish,
+              OutputIterator result);
+
+  template &lt;class InputIterator, class OutputIterator,
+            class BinaryPredicate&gt;
+  OutputIterator
+  unique_copy(InputIterator start, InputIterator finish,
+              OutputIterator result,
+              BinaryPredicate binary_pred);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>unique()</SAMP> algorithm moves through a sequence and eliminates all but the first element from every consecutive group of equal elements. There are two versions of the algorithm -- one that tests for equality and a second that tests adjacent elements against a binary predicate. An element is unique if it does not meet the corresponding condition listed here:</P>
+<P><SAMP>*i  ==  *(i  -  1)  </SAMP></P>
+<P>or </P>
+<P><SAMP>binary_pred(*i, *(i - 1)) == true. </SAMP></P>
+<P>If an element is unique, it is copied to the front of the sequence, overwriting the existing elements. Once all unique elements have been identified. The remainder of the sequence is left unchanged, and <SAMP>unique()</SAMP> returns the end of the resulting range. </P>
+<P>The <SAMP><A HREF="unique.html">unique_copy()</A></SAMP> algorithm copies the first element from every consecutive group of equal elements to an output iterator. The <SAMP>unique_copy()</SAMP> algorithm also has two versions -- one that tests for equality and a second that tests adjacent elements against a binary predicate.</P>
+<P><SAMP><A HREF="unique.html">unique_copy()</A></SAMP> returns the end of the resulting range. </P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>For <SAMP><A HREF="unique.html">unique_copy()</A></SAMP>, exactly <SAMP>(finish - start) - 1</SAMP> applications of the corresponding predicate are performed.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  unique.cpp
+//
+
+#include &lt;algorithm&gt;
+#include &lt;vector&gt;
+#include &lt;iostream&gt;
+
+typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt;
+        vector_t;
+typedef std::insert_iterator&lt;vector_t &gt;
+        v_iter_t;
+typedef std::ostream_iterator&lt;int, char,
+                              std::char_traits&lt;char&gt; &gt;
+        os_iter_t;
+
+int main () {
+
+    // Initialize two vectors.
+    int a1[20] = {4, 5, 5, 9, -1, -1, -1, 3, 7, 5, 
+                  5, 5, 6, 7,  7,  7,  4, 2, 1, 1};
+
+    vector_t v(a1+0, a1+20), result;
+
+    // Create an insert_iterator for results.
+    v_iter_t ins (result, result.begin ());
+
+    // Demonstrate includes.
+    std::cout &lt;&lt; "The vector: " &lt;&lt; std::endl &lt;&lt; "    ";
+
+    std::copy (v.begin (), v.end (), 
+               os_iter_t (std::cout, " "));
+
+    // Find the unique elements.
+    std::unique_copy(v.begin(), v.end(), ins);
+
+    // Display the results.
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl
+              &lt;&lt; "Has the following unique elements:"
+              &lt;&lt; std::endl &lt;&lt; "     ";
+
+    std::copy (result.begin (), result.end (), 
+               os_iter_t (std::cout, " "));
+    std::cout &lt;&lt; std::endl;
+    
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>The vector: 
+    4 5 5 9 -1 -1 -1 3 7 5 5 5 6 7 7 7 4 2 1 1 
+
+Has the following unique elements:
+     4 5 9 -1 3 7 5 6 7 4 2 1 
+</PRE></UL>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.2.8</I></P>
+
+<BR>
+<HR>
+<A HREF="uninitialized-fill-n.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="upper-bound.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

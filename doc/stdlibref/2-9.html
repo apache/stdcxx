@@ -1,0 +1,86 @@
+<HTML>
+<HEAD>
+<TITLE>Algorithms library</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="2-8.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="2-10.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>2.9 Algorithms library</H2>
+<P> Clause 25 of the Standard contains the Algorithms library, <SAMP>lib.algorithms</SAMP>. This library describes components for performing algorithmic operations on containers and other sequences. If you are reading this manual online, click the name of header file or entry to go to its description. </P>
+<H4><A NAME="Table&nbsp;8">Table&nbsp;8: Algorithms library</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Header File</B>
+</td>
+<td valign=top colspan=2 rowspan=1><B>Corresponding Entries in this Reference</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&lt;algorithm&gt;</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><A HREF="algorithms.html">Algorithms</A></P>
+<P CLASS="TABLE"><SAMP><A HREF="for-each.html">for_each()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="find.html">find()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="find-if.html">find_if()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="find-end.html">find_end()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="find-first-of.html">find_first_of()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="adjacent-find.html">adjacent_find()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="count.html">count()</A></SAMP>, <SAMP><A HREF="count.html">count_if()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="mismatch.html">mismatch()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="equal.html">equal()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="search.html">search()</A></SAMP>, <SAMP><A HREF="search.html">search_n()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="copy.html">copy()</A></SAMP>, <SAMP><A HREF="copy.html">copy_backward()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="swap.html">swap()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="swap-ranges.html">swap_ranges()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="iter-swap.html">iter_swap()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="transform.html">transform()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="replace.html">replace()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="replace-if.html">replace_if()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="replace-copy.html">replace_copy()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="replace-copy-if.html">replace_copy_if()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="fill.html">fill()</A></SAMP>, <SAMP><A HREF="fill.html">fill_n()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="generate.html">generate()</A></SAMP>, <SAMP><A HREF="generate.html">generate_n()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="remove.html">remove()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="remove-if.html">remove_if()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="remove-copy.html">remove_copy()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="remove-copy-if.html">remove_copy_if()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="unique.html">unique()</A></SAMP>, <SAMP><A HREF="unique.html">unique_copy()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="reverse.html">reverse()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="reverse-copy.html">reverse_copy()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="rotate.html">rotate()</A></SAMP>, <SAMP><A HREF="rotate.html">rotate_copy()</A></SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP><A HREF="random-shuffle.html">random_shuffle()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="partition.html">partition()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="stable-partition.html">stable_partition()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="sort.html">sort()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="stable-sort.html">stable_sort()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="partial-sort.html">partial_sort()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="partial-sort-copy.html">partial_sort_copy()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="nth-element.html">nth_element()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="lower-bound.html">lower_bound()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="upper-bound.html">upper_bound()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="equal-range.html">equal_range()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="binary-search.html">binary_search()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="merge.html">merge()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="inplace-merge.html">inplace_merge()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="includes.html">includes()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="set-union.html">set_union()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="set-intersection.html">set_intersection()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="set-difference.html">set_difference()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="set-symmetric-difference.html">set_symmetric_difference()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="push-heap.html">push_heap()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="pop-heap.html">pop_heap()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="make-heap.html">make_heap()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="sort-heap.html">sort_heap()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="min.html">min()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="max.html">max()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="min-element.html">min_element()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="max-element.html">max_element()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="lexicographical-compare.html">lexicographical_compare()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="next-permutation.html">next_permutation()</A></SAMP></P>
+<P CLASS="TABLE"><SAMP><A HREF="prev-permutation.html">prev_permutation()</A></SAMP></P>
+</td>
+</tr>
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="2-8.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="2-10.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

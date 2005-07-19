@@ -1,0 +1,124 @@
+<HTML>
+<HEAD>
+<TITLE>&lt;complex&gt;</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="compare.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="complex.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>&lt;complex&gt;</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-10.html">Numerics</A></P>
+
+<PRE><HR><B><I>Header</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">See Also</A></LI>
+<LI><A HREF="#sec5">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>The header <SAMP>&lt;complex&gt;</SAMP> is part of the Numerics library of the Standard C++ Library. It defines the class template <B><I><A HREF="complex.html">complex</A></I></B>, the specializations of the class template <B><I>complex</I></B> on types <SAMP>float</SAMP>, <SAMP>double</SAMP>, and <SAMP>long double</SAMP>, and a number of functions for representing and manipulating complex numbers.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>namespace std {
+  template&lt;class T&gt; class <SAMP><A HREF="complex.html">complex</A></SAMP>;
+  template&lt;&gt; class complex&lt;float&gt;;
+  template&lt;&gt; class complex&lt;double&gt;;
+  template&lt;&gt; class complex&lt;long double&gt;;
+
+  template&lt;class T&gt;
+  complex&lt;T&gt; operator+(const complex&lt;T&gt;&amp;, const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; operator+(const complex&lt;T&gt;&amp;,
+                                         const T&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; operator+(const T&amp;, 
+                                         const complex&lt;T&gt;&amp;);
+
+  template&lt;class T&gt; complex&lt;T&gt;
+  operator-(const complex&lt;T&gt;&amp;, const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; operator-(const complex&lt;T&gt;&amp;,
+                                       const T&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; operator-(const T&amp;, 
+                                         const complex&lt;T&gt;&amp;);
+
+  template&lt;class T&gt; complex&lt;T&gt;
+  operator*(const complex&lt;T&gt;&amp;, const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; operator*(const complex&lt;T&gt;&amp;,
+                                         const T&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; operator*(const T&amp;, 
+                                         const complex&lt;T&gt;&amp;);
+
+  template&lt;class T&gt; complex&lt;T&gt;
+  operator/(const complex&lt;T&gt;&amp;, const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; operator/(const complex&lt;T&gt;&amp;,
+                                         const T&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; operator/(const T&amp;, 
+                                         const complex&lt;T&gt;&amp;);
+
+  template&lt;class T&gt; complex&lt;T&gt; operator+(const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; operator-(const complex&lt;T&gt;&amp;);
+
+  template&lt;class T&gt; bool
+  operator==(const complex&lt;T&gt;&amp;, const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; bool operator==(const complex&lt;T&gt;&amp;, 
+                                    const T&amp;);
+  template&lt;class T&gt; bool operator==(const T&amp;, 
+                                    const complex&lt;T&gt;&amp;);
+
+  template&lt;class T&gt; bool operator!=(const complex&lt;T&gt;&amp;, 
+                                    const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; bool operator!=(const complex&lt;T&gt;&amp;, 
+                                    const T&amp;);
+  template&lt;class T&gt; bool operator!=(const T&amp;, 
+                                    const complex&lt;T&gt;&amp;);
+
+  template&lt;class T, class charT, class traits&gt;
+  basic_istream&lt;charT, traits&gt;&amp;
+  operator&gt;&gt;(basic_istream&lt;charT, traits&gt;&amp;, complex&lt;T&gt;&amp;);
+
+  template&lt;class T, class charT, class traits&gt;
+  basic_ostream&lt;charT, traits&gt;&amp;
+  operator&lt;&lt;(basic_ostream&lt;charT, traits&gt;&amp;,
+             const complex&lt;T&gt;&amp;);
+
+  template&lt;class T&gt; T real(const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; T imag(const complex&lt;T&gt;&amp;);
+
+  template&lt;class T&gt; T abs(const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; T arg(const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; T norm(const complex&lt;T&gt;&amp;);
+
+  template&lt;class T&gt; complex&lt;T&gt; conj(const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; polar(const T&amp;, const T&amp;);
+
+  template&lt;class T&gt; complex&lt;T&gt; cos  (const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; cosh (const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; exp  (const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; log  (const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; log10(const complex&lt;T&gt;&amp;);
+
+  template&lt;class T&gt; complex&lt;T&gt; pow(const complex&lt;T&gt;&amp;, int);
+  template&lt;class T&gt; complex&lt;T&gt; pow(const complex&lt;T&gt;&amp;,
+                                   const T&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; pow(const complex&lt;T&gt;&amp;,
+                                   const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; pow(const T&amp;, 
+                                   const complex&lt;T&gt;&amp;);
+
+  template&lt;class T&gt; complex&lt;T&gt; sin  (const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; sinh (const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; sqrt (const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; tan  (const complex&lt;T&gt;&amp;);
+  template&lt;class T&gt; complex&lt;T&gt; tanh (const complex&lt;T&gt;&amp;);
+}
+</PRE>
+<A NAME="sec4"><H3>See Also</H3></A>
+<P><B><I><A HREF="complex.html">complex</A></I></B></P>
+<A NAME="sec5"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 26.2</I></P>
+
+<BR>
+<HR>
+<A HREF="compare.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="complex.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

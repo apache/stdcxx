@@ -1,0 +1,74 @@
+<HTML>
+<HEAD>
+<TITLE>Facet Lifetimes</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="25-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>25.2 Facet Lifetimes</H2>
+<A NAME="idx564"><!></A>
+<P>In the <SAMP>mythical</SAMP> example in the previous section, we created two facet objects with operator <SAMP>new</SAMP> and incorporated them into locales, but we never deleted the facets with operator <SAMP>delete</SAMP>. This is poor coding for most objects, but for facet objects it is correct. Once a facet has been incorporated into a locale, the locale system takes over responsibility for deleting the facet when it is no longer needed, that is, when all locales that contain references to it have been destroyed.</P>
+<A NAME="idx565"><!></A>
+<P>This is a useful feature. For example, consider the following fragment:</P>
+
+<UL><PRE>
+using namespace std;
+
+cout.imbue(locale(locale(),new numpunct_byname&lt;char&gt;("de_DE")));
+     |     |      |        |
+    (4)   (3)    (1)      (2)
+</PRE></UL>
+<P>What's happening here is fairly complex, so let's trace it out step by step: </P>
+<OL>
+<LI><P CLASS="LIST">We create a temporary locale object that is a copy of the current global locale.</P></LI>
+<LI><P CLASS="LIST">We create a <SAMP>std::numpunct</SAMP> facet for a German locale.</P></LI>
+<LI><P CLASS="LIST">We create another temporary locale which is a copy of the one created in <SAMP>(1)</SAMP>, but with its <SAMP>std::numpunct</SAMP> facet replaced by the facet created in <SAMP>(2)</SAMP>. </P></LI>
+<LI><P CLASS="LIST">Using locale's copy constructor, we pass this locale by value to <SAMP>std::cout.imbue</SAMP>, which saves a copy of it in the stream object.</P></LI>
+</OL>
+<A NAME="idx566"><!></A>
+<P>At the end of this operation, all the temporary objects are quietly destroyed, but a reference to the new <SAMP>std::numpunct</SAMP> facet remains behind in the locale object inside <SAMP>std::cout</SAMP>. Other functions can retrieve this object using <SAMP>std::cout.getloc()</SAMP>, and make copies of it and its facets. All in all, it would be a burden on an application to have to keep track of all this, in order to determine when it is safe to delete the <SAMP>std::numpunct_byname</SAMP> object. We can be grateful that the locale system takes care of this chore.</P>
+<A NAME="idx567"><!></A>
+<P>It is possible, but not recommended, to override this default behavior. The constructors of all the standard facets, and the constructor of the base class <SAMP>std::locale::facet</SAMP>, all take an integer parameter named <SAMP>refs</SAMP>, which defaults to <SAMP>0</SAMP> when you don't specify it. This is the usual case. If you specify it as <SAMP>1</SAMP> or some other positive integer, the locale system does not delete the facet.</P>
+<A NAME="idx568"><!></A>
+<P>This is necessary for facet objects that can't have the <SAMP>delete</SAMP> operator applied to them, for instance, because they were created on the stack or as static objects. To discourage you from creating facets this way, all the standard facets have protected destructors. The following code causes a compilation error:</P>
+
+<UL><PRE>
+static std::numpunct&lt;char&gt; my_static_np(1);   // Error: no public
+                                              // destructor
+
+int main () {
+  std::numpunct_byname&lt;char&gt; my_np("de_DE",1);  // Error: no public
+                                                // destructor
+  ...
+}
+
+</PRE></UL>
+<A NAME="idx569"><!></A>
+<P>You can circumvent this protection by deriving a class with a public destructor from the standard facet. This may seem reasonable if you are going to use it only as a stand-alone object, and do not plan to incorporate it into any locale. For example, the following code lets you retrieve some data from the standard <SAMP>std::numpunct&lt;char&gt;</SAMP> facet without the overhead of <SAMP>new/delete</SAMP>:</P>
+
+<UL><PRE>
+class my_numpunct: public std::numpunct&lt;char&gt; { };
+int main() {
+  my_numpunct np;
+  std::cout &lt;&lt; np.truename() &lt;&lt; " or " &lt;&lt; np.falsename()
+            &lt;&lt; '?' &lt;&lt; std::endl;
+  ...
+}
+</PRE></UL>
+<P>However, the following code accomplishes the same thing even faster, because <SAMP>use_facet</SAMP> is very fast compared to the cost of calling most facets' constructors:</P>
+
+<UL><PRE>
+int main() {
+  const std::numpunct&lt;char&gt;&amp; np=
+      std::use_facet&lt;numpunct&lt;char&gt; &gt;(std::locale::classic());
+  std::cout &lt;&lt; np.truename() &lt;&lt; " or " &lt;&lt; np.falsename()
+            &lt;&lt; '?' &lt;&lt; std::endl;
+  ...
+}
+</PRE></UL>
+<A NAME="idx570"><!></A>
+<P>In short, while it is possible to create facet objects on the stack, there is rarely a reason to do so. It is probably better to adapt a consistent policy of always creating facet objects with operator <SAMP>new</SAMP>. If you incorporate the facet into a locale, you do not need to delete it, and indeed, deleting it would be an error. If you never incorporate it into any locale, you should delete it when you are finished with it. Instead of creating and deleting a stand-alone facet in this case, however, it is usually possible (and faster) to accomplish the same thing by retrieving a reference to an existing facet from some locale.</P>
+
+<BR>
+<HR>
+<A HREF="25-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

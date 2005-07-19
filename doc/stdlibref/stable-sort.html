@@ -1,0 +1,156 @@
+<HTML>
+<HEAD>
+<TITLE>stable_sort()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="stable-partition.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="stack-h.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>stable_sort()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Generic algorithm for sorting collections of entities</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class RandomAccessIterator&gt;
+  void stable_sort(RandomAccessIterator start, 
+                   RandomAccessIterator finish);
+
+  template &lt;class RandomAccessIterator, class Compare&gt;
+  void stable_sort(RandomAccessIterator start,
+                   RandomAccessIterator finish, Compare comp);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>stable_sort()</SAMP> algorithm sorts the elements in the range <SAMP>[start, finish)</SAMP> in ascending order. The first version of the algorithm uses <SAMP>operator&lt;()</SAMP> for the sort. The second version uses the function object <SAMP>comp.</SAMP></P>
+<P>The <SAMP>stable_sort()</SAMP> algorithm is considered stable because the relative order of equivalent elements is maintained. </P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P><SAMP>stable_sort()</SAMP> does approximately <SAMP>N * (log(N))2</SAMP> comparisons, where <SAMP>N</SAMP> equals <SAMP>finish - start</SAMP>. The algorithm calls <SAMP>std::get_temporary_buffer&lt;&gt;()</SAMP> to obtain extra memory. If enough extra memory is available, it does at most <SAMP>N * log(N)</SAMP> comparisons (i.e., the same as <SAMP><A HREF="sort.html">sort()</A></SAMP>).</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  sort.cpp
+//
+
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;functional&gt;
+#include &lt;iostream&gt;
+
+
+struct associate
+{
+    int num;
+    char chr;
+    associate (int n, char c) : num (n), chr (c){};
+    associate () : num (0), chr ('\0'){};
+};
+
+
+inline bool operator&lt; (const associate &amp;x, const associate &amp;y)
+{
+    return x.num &lt; y.num;
+}
+
+
+inline std::ostream&amp; operator&lt;&lt; (std::ostream &amp;s, 
+                                 const associate &amp;x)
+{
+    return s &lt;&lt; '&lt;' &lt;&lt; x.num &lt;&lt; ';' &lt;&lt; x.chr &lt;&lt; '&gt;';
+}
+
+
+int main ()
+{
+    const associate arr [20] = {
+        associate (-4, ' '), associate (16, ' '),
+        associate (17, ' '), associate (-3, 's'),
+        associate (14, ' '), associate (-6, ' '),
+        associate (-1, ' '), associate (-3, 't'),
+        associate (23, ' '), associate (-3, 'a'),
+        associate (-2, ' '), associate (-7, ' '),
+        associate (-3, 'b'), associate (-8, ' '),
+        associate (11, ' '), associate (-3, 'l'),
+        associate (15, ' '), associate (-5, ' '),
+        associate (-3, 'e'), associate (15, ' ')};
+
+    typedef std::vector&lt;associate, std::allocator&lt;associate&gt; &gt; 
+            Vector;
+
+    // Set up vectors.
+    Vector v (arr, arr + sizeof arr / sizeof *arr);
+    Vector v1 (sizeof arr / sizeof *arr);
+    Vector v2 (sizeof arr / sizeof *arr);
+
+    // Copy original vector to vectors #1 and #2.
+    std::copy (v.begin (), v.end (), v1.begin ());
+    std::copy (v.begin (), v.end (), v2.begin ());
+
+    // Sort vector #1.
+    std::sort (v1.begin (), v1.end ());
+
+    // Stable sort vector #2.
+    std::stable_sort (v2.begin (), v2.end ());
+
+    // Display the results.
+    std::cout &lt;&lt; "Original    sort      stable_sort"
+              &lt;&lt; std::endl;
+    for (Vector::iterator i = v.begin (), j = v1.begin (),
+                          k = v2.begin ();
+         i != v.end (); i++, j++, k++)
+        std::cout &lt;&lt; *i &lt;&lt; "     " &lt;&lt; *j &lt;&lt; "     "
+                  &lt;&lt; *k &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>Original    sort      stable_sort
+&lt;-4; &gt;     &lt;-8; &gt;     &lt;-8; &gt;
+&lt;16; &gt;     &lt;-7; &gt;     &lt;-7; &gt;
+&lt;17; &gt;     &lt;-6; &gt;     &lt;-6; &gt;
+&lt;-3;s&gt;     &lt;-5; &gt;     &lt;-5; &gt;
+&lt;14; &gt;     &lt;-4; &gt;     &lt;-4; &gt;
+&lt;-6; &gt;     &lt;-3;e&gt;     &lt;-3;s&gt;
+&lt;-1; &gt;     &lt;-3;s&gt;     &lt;-3;t&gt;
+&lt;-3;t&gt;     &lt;-3;l&gt;     &lt;-3;a&gt;
+&lt;23; &gt;     &lt;-3;t&gt;     &lt;-3;b&gt;
+&lt;-3;a&gt;     &lt;-3;b&gt;     &lt;-3;l&gt;
+&lt;-2; &gt;     &lt;-3;a&gt;     &lt;-3;e&gt;
+&lt;-7; &gt;     &lt;-2; &gt;     &lt;-2; &gt;
+&lt;-3;b&gt;     &lt;-1; &gt;     &lt;-1; &gt;
+&lt;-8; &gt;     &lt;11; &gt;     &lt;11; &gt;
+&lt;11; &gt;     &lt;14; &gt;     &lt;14; &gt;
+&lt;-3;l&gt;     &lt;15; &gt;     &lt;15; &gt;
+&lt;15; &gt;     &lt;15; &gt;     &lt;15; &gt;
+&lt;-5; &gt;     &lt;16; &gt;     &lt;16; &gt;
+&lt;-3;e&gt;     &lt;17; &gt;     &lt;17; &gt;
+&lt;15; &gt;     &lt;23; &gt;     &lt;23; &gt;
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="sort.html">sort()</A></SAMP>, <SAMP><A HREF="partial-sort.html">partial_sort()</A></SAMP>, <SAMP><A HREF="partial-sort-copy.html">partial_sort_copy()</A></SAMP>, <SAMP><A HREF="get-temporary-buffer.html">get_temporary_buffer()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.3.1.2</I></P>
+
+<BR>
+<HR>
+<A HREF="stable-partition.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="stack-h.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

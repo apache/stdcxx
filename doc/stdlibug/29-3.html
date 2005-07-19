@@ -1,0 +1,41 @@
+<HTML>
+<HEAD>
+<TITLE>Catching Exceptions</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="29-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="30.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>29.3 Catching Exceptions</H2>
+<A NAME="idx736"><!></A>
+<A NAME="idx737"><!></A>
+<P>By default a stream does not throw any exceptions. You must explicitly activate an exception because a stream contains an<I> exception mask</I>. Each flag in this mask corresponds to one of the error flags. For example, once the <SAMP>badbit</SAMP> flag is set in the exception mask, an exception is thrown each time the <SAMP>badbit</SAMP> flag is set in the stream state.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- An example of using an exception mask is provided by the streams layer, which catches <SAMP>bad_alloc</SAMP> exceptions thrown during allocation of its internal resources, <SAMP>iword</SAMP> and <SAMP>pword</SAMP><B>. </B>It then sets<B> </B><SAMP>badbit</SAMP> or <SAMP>failbit</SAMP><B>. </B>An exception would be thrown only if the corresponding bit in the exception mask is set. The exception thrown is<B> </B><SAMP>ios_base::failure</SAMP><B>.</B>
+</B><HR></BLOCKQUOTE>
+<A NAME="idx738"><!></A>
+<P>The following code demonstrates how to activate an exception on an input stream object <SAMP>in</SAMP>:</P>
+
+<UL><PRE>
+extern std::istream&amp; in;
+try {
+  in.exceptions(std::ios_base::badbit   |
+                std::ios_base::failbit);                       //1
+  in &gt;&gt; x;
+  // do lots of other stream i/o
+}
+catch(std::ios_base::failure&amp; exc) {                            //2
+  std::cerr &lt;&lt; exc.what() &lt;&lt; std::endl; 
+  throw;
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>In calling the <SAMP>exceptions()</SAMP> function, you indicate what flags in the stream's state shall cause an exception to be thrown. [Each change of either the stream state or the exception mask can result in an exception being thrown. This is because the functions <SAMP>setstate()</SAMP> and <SAMP>exception()</SAMP> raise an exception in case the exception mask requires it.]
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Objects thrown by the stream's operations are of types derived from <SAMP>std::ios_base::failure</SAMP>. Hence this catch clause catches all stream exceptions in principle. We qualify this generalization because a stream might fail to catch certain exceptions like <SAMP>std::bad_alloc</SAMP>, for example, so that exceptions other than <SAMP>std::ios_base::failure</SAMP> might be raised. That's how exception handling in C++ works: you never know what exceptions will be raised.
+</TABLE>
+<A NAME="idx739"><!></A>
+<P>Generally, it is a good idea to activate the <SAMP>badbit</SAMP> exception and suppress the <SAMP>eofbit</SAMP> and <SAMP>failbit</SAMP> exceptions, because the latter do not represent exceptional states. A <SAMP>badbit</SAMP> situation, however, is likely to be a serious error condition similar to the memory shortage indicated by a <SAMP>bad_alloc</SAMP> exception. Unless you want to suppress exceptions thrown by iostreams altogether, we would recommend that you switch on the <SAMP>badbit</SAMP> exception and turn off <SAMP>eofbit</SAMP> and <SAMP>failbit</SAMP>.</P>
+
+<BR>
+<HR>
+<A HREF="29-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="30.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

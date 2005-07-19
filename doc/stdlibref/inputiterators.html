@@ -1,0 +1,71 @@
+<HTML>
+<HEAD>
+<TITLE>Input Iterators</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="inplace-merge.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="insertiterators.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>Input Iterators</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-8.html">Iterators</A></P><UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Description</A></LI>
+<LI><A HREF="#sec4">Key to Iterator Requirements</A></LI>
+<LI><A HREF="#sec5">Requirements for Input Iterators</A></LI>
+<LI><A HREF="#sec6">See Also</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A read-only, forward moving iterator</P>
+<A NAME="sec3"><H3>Description</H3></A>
+<BLOCKQUOTE><HR><B>
+NOTE -- For a complete discussion of iterators, see the <B><I><A HREF="iterators.html">Iterators</A></I></B> section of this reference.
+</B><HR></BLOCKQUOTE>
+<P>Iterators are a generalization of pointers that allow a C++ program to uniformly interact with different data structures. Input iterators are read-only, forward moving iterators that satisfy the requirements listed below.</P>
+<A NAME="sec4"><H3>Key to Iterator Requirements</H3></A>
+<P>The following key pertains to the iterator requirement descriptions listed below: </P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a and b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>values of type <SAMP>X</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>n  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>value representing a <SAMP>distance</SAMP> between two iterators</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>u, Distance, tmp and m  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>identifiers</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>value of type <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>t  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>value of type <SAMP>T</SAMP></P></TD></TR>
+</TABLE></P>
+<A NAME="sec5"><H3>Requirements for Input Iterators</H3></A>
+<P>The following expressions must be valid for input iterators:</P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u(a)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>copy constructor, <SAMP>u == a</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X u = a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>assignment, <SAMP>u == a</SAMP> </P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a == b, a != b  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to <SAMP>bool</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*a  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">a == b</SAMP> implies <SAMP>*a == *b</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>++r  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>r++  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>return value convertible to const <SAMP>X&amp;</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>*r++  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns type <SAMP>T</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>a -&gt; m  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>returns <SAMP>(*a).m</SAMP></P></TD></TR>
+</TABLE></P>
+<P>For input iterators, <SAMP>a == b</SAMP> does not imply that<SAMP> ++a == ++b</SAMP>.</P>
+<P>Algorithms using input iterators should be single pass algorithms. That is, they should not pass through the same iterator twice.</P>
+<P>The value of type <SAMP>T</SAMP> does not have to be an <SAMP>lvalue</SAMP>.</P>
+<A NAME="sec6"><H3>See Also</H3></A>
+<P><A HREF="iterators.html">Iterators</A>, <A HREF="outputiterators.html">Output Iterators</A></P>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 24.1.1</I></P>
+
+<BR>
+<HR>
+<A HREF="inplace-merge.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="insertiterators.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

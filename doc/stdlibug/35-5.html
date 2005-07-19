@@ -1,0 +1,20 @@
+<HTML>
+<HEAD>
+<TITLE>Synchronizing the Standard Iostream Objects</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="35-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="35-6.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>35.5 Synchronizing the Standard Iostream Objects</H2>
+<A NAME="idx882"><!></A>
+<A NAME="idx883"><!></A>
+<P>The predefined Standard Iostream objects <SAMP>std::cin</SAMP>, <SAMP>std::cout</SAMP>, <SAMP>std::cerr</SAMP>, and <SAMP>std::clog</SAMP> , and their wide character counterparts, <SAMP>std::wcin</SAMP>, <SAMP>std::wcout</SAMP>, <SAMP>std::wcerr</SAMP>, and <SAMP>std::wclog</SAMP>, are examples of synchronized streams:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>std::cin</SAMP> is tied to <SAMP>std::cout</SAMP>; that is, before each input operation on <SAMP>std::cin</SAMP>, the output stream <SAMP>std::cout</SAMP> is forced to flush its buffer.</P></LI>
+<LI><P CLASS="LIST"><SAMP>std::cerr</SAMP> is synchronized using the <SAMP>std::ios_base::unitbuf</SAMP> format flag; that is, after each output to <SAMP>std::cerr</SAMP>, its buffer is flushed.</P></LI>
+<LI><P CLASS="LIST"><SAMP>std::clog</SAMP> is connected to the same output channel and thus behaves like <SAMP>std::cerr</SAMP>, except that it is not synchronized with any of the other standard streams; that is, it does not have the <SAMP>std::ios_base::unitbuf</SAMP> flag set.</P></LI>
+</UL>
+
+<BR>
+<HR>
+<A HREF="35-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="35-6.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,449 @@
+<HTML>
+<HEAD>
+<TITLE>codecvt</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="clog.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="codecvt-byname.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>codecvt</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR>          ... <IMG SRC="images/inherits.gif"> <B><I>codecvt_base</I></B> 
+<B><I>codecvt</I></B> ... 
+          ... <IMG SRC="images/inherits.gif"> <B><I>locale::facet</I></B> <HR></PRE>
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Types</A></LI>
+<LI><A HREF="#sec8">Constructor</A></LI>
+<LI><A HREF="#sec9">Facet ID locale::id</A></LI>
+<LI><A HREF="#sec10">Public Member Functions</A></LI>
+<LI><A HREF="#sec11">Protected Member Functions</A></LI>
+<LI><A HREF="#sec12">Example</A></LI>
+<LI><A HREF="#sec13">See Also</A></LI>
+<LI><A HREF="#sec14">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx482">always_noconv()</A><BR>
+<A HREF="#idx480">codecvt()</A><BR>
+<A HREF="#idx483">do_always_noconv()</A><BR>
+<A HREF="#idx484">do_encoding()</A><BR>
+<A HREF="#idx485">do_in()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx486">do_length()</A><BR>
+<A HREF="#idx487">do_max_length()</A><BR>
+<A HREF="#idx485">do_out()</A><BR>
+<A HREF="#idx489">do_unshift()</A><BR>
+<A HREF="#idx482">encoding()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx478">extern_type</A><BR>
+<A HREF="#idx481">id</A><BR>
+<A HREF="#idx482">in()</A><BR>
+<A HREF="#idx477">intern_type</A><BR>
+<A HREF="#idx482">length()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx482">max_length()</A><BR>
+<A HREF="#idx482">out()</A><BR>
+<A HREF="#idx479">state_type</A><BR>
+<A HREF="#idx482">unshift()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A code conversion facet</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  class codecvt_base;
+  template &lt;class internT, class externT, class stateT&gt;
+  class codecvt;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+
+<UL><PRE>template&lt;&gt; class codecvt&lt;char, char, mbstate_t&gt;;
+template&lt;&gt; class codecvt&lt;wchar_t, char, mbstate_t&gt;;
+</PRE></UL>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The <B><I>codecvt</I></B> class template provides code conversion facilities. The implementation of <B><I>codecvt&lt;char, char, mbstate_t&gt;</I></B> performs no conversions. The <B><I>codecvt&lt;wchar_t, char, mbstate_t&gt;</I></B> specialization performs a widening/narrowing during in/out operations. This qualifies as a conversion according to the standard, even though the value of the character remains unchanged).</P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  class codecvt_base {
+  public:
+    enum result { ok, partial, error, noconv };
+  };
+
+  template &lt;class internT, class externT, class stateT&gt;
+  class codecvt : public locale::facet, public codecvt_base {
+  public:
+    typedef internT  intern_type;
+    typedef externT  extern_type;
+    typedef stateT   state_type;
+
+    explicit codecvt(size_t = 0)
+    result out(state_type&amp;, const intern_type*, 
+               const intern_type*, const intern_type*&amp;,
+               extern_type*, extern_type*, extern_type*&amp;) const;
+    result unshift(state_type&amp;, extern_type*, extern_type*, extern*&amp;) const;
+    result in(state_type&amp;, const extern_type*, 
+              const extern_type*, const extern_type*&amp;,
+              intern_type*, intern_type*, intern_type*&amp;) const;
+
+    int encoding() const throw();
+    bool always_noconv() const throw();
+
+    int length(state_type&amp;, const extern_type*, 
+               const extern_type*, size_t) const;
+
+    int max_length() const throw();
+    static locale::id id;
+
+  protected:
+    virtual ~codecvt();
+    virtual result do_out(state_type&amp;,
+                          const intern_type*, 
+                          const intern_type*, 
+                          const intern_type*&amp;,
+                          extern_type*, extern_type*,
+                          extern_type*&amp;) const;
+    virtual result do_in(state_type&amp;,
+                         const extern_type*, 
+                         const extern_type*, 
+                         const extern_type*&amp;,
+                         intern_type*, intern_type*,
+                         intern_type*&amp;) const;
+    virtual result do_unshift(state_type&amp;,
+                              extern_type*, extern_type*, 
+                              extern_type*&amp;) const;
+
+    virtual int do_encoding() const throw();
+    virtual bool do_always_noconv() const throw();
+    virtual int do_length(state_type&amp;, const extern_type*, 
+                          const extern_type*,
+                          size_t) const;
+
+    virtual int do_max_length() const throw();
+  };
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Types</H3></A>
+
+<A NAME="idx477"></A><PRE><B>intern_type</B></PRE>
+<UL>
+<P>Type used for internal representation of a character value.</P>
+</UL>
+
+
+<A NAME="idx478"></A><PRE><B>extern_type</B></PRE>
+<UL>
+<P>Type used for internal representation of a character value.</P>
+</UL>
+
+
+<A NAME="idx479"></A><PRE><B>state_type</B></PRE>
+<UL>
+<P>Type of the third template argument.</P>
+</UL>
+
+<A NAME="sec8"><H3>Constructor</H3></A>
+
+<A NAME="idx480"></A><PRE>explicit <B>codecvt</B>(size_t refs = 0) </PRE>
+<UL>
+<P>Constructs a <B><I>codecvt</I></B> object. Calls <SAMP>locale::facet (refs)</SAMP>. </P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the object's reference count. A <B><I>codecvt</I></B> object <SAMP>f</SAMP> constructed with <SAMP>(refs == 0)</SAMP> that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. A <B><I>codecvt</I></B> object constructed with <SAMP>(refs != 0)</SAMP> will not be destroyed by any locale objects into which it may have been installed.</P>
+</UL>
+
+<A NAME="sec9"><H3>Facet ID locale::id</H3></A>
+
+<A NAME="idx481"></A><PRE>static locale::id <B>id</B>; </PRE>
+<UL>
+<P>Unique identifier for this type of facet.</P>
+</UL>
+
+<A NAME="sec10"><H3>Public Member Functions</H3></A>
+<P>The public members of the <B><I>codecvt</I></B> facet include an interface to protected members. Each public member <SAMP>xxx()</SAMP> has a corresponding virtual protected member <SAMP>do_xxx()</SAMP>. All work is delegated to these protected members.   For instance, the public <SAMP>length()</SAMP> function simply calls its protected cousin <SAMP>do_length()</SAMP>.</P>
+
+<A NAME="idx482"></A><PRE>
+bool 
+<B>always_noconv</B>() const throw();
+int
+<B>encoding</B>() const throw();
+result 
+<B>in</B>(state_type&amp; state, const extern_type *from, 
+   const extern_type *from_end, const extern_type*&amp; from_next,
+   intern_type *to, intern_type *to_limit, intern_type*&amp; to_next) const; 
+int 
+<B>length</B>(state_type&amp; state, const extern_type *from, 
+       const extern_type *end, size_t max) const; 
+int 
+<B>max_length</B>() const  throw();
+result 
+<B>out</B>(state_type&amp; state, const intern_type *from, 
+    const intern_type *from_end, const intern_type*&amp; from_next,
+    extern_type *to, extern_type *to_limit, extern_type*&amp; to_next)
+    const; 
+result 
+<B>unshift</B>(state_type&amp; state, extern_type *to, extern_type *to_limit, 
+        extern_type*&amp; to) const;</PRE>
+<UL>
+<P>Each of these public member functions <SAMP>xxx</SAMP> simply calls the corresponding protected virtual <SAMP>do_xxx</SAMP> function.</P>
+</UL>
+
+<A NAME="sec11"><H3>Protected Member Functions</H3></A>
+
+<A NAME="idx483"></A><PRE>virtual bool 
+<B>do_always_noconv</B>() const throw();</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if no conversion is required. This is the case if <SAMP>do_in</SAMP> and <SAMP>do_out</SAMP> return <SAMP>noconv</SAMP> for all valid arguments. The specialization <B><I>codecvt&lt;char,char,mbstate_t&gt;</I></B> returns <SAMP>true</SAMP>, while all other specializations return <SAMP>false</SAMP> (widening/narrowing is considered to be conversion).</P>
+</UL>
+
+
+<A NAME="idx484"></A><PRE>virtual int 
+<B>do_encoding</B>() const  throw();</PRE>
+<UL>
+<P>Returns one of the following</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>-1</SAMP>, if the external representation of a character uses a stateful encoding</P></LI>
+<LI><P CLASS="LIST">a constant number representing the maximum width in <SAMP>extern_type</SAMP> elements used to represent a character in a fixed-width encoding</P></LI>
+<LI><P CLASS="LIST"><SAMP>0</SAMP>, if the external representation of the characters in the character set uses a variable size encoding</P></LI>
+</UL>
+</UL>
+
+
+<A NAME="idx485"></A><PRE>
+virtual result 
+<B>do_in</B>(state_type&amp; state,
+      const extern_type *from, 
+      const extern_type *from_end, 
+      const extern_type*&amp; from_next,
+      intern_type *to, intern_type *to_limit,
+      intern_type*&amp; to_next) const; 
+virtual result 
+<B>do_out</B>(state_type&amp; state,
+       const intern_type *from, 
+       const intern_type *from_end, 
+       const intern_type*&amp; from_next,
+       extern_type *to, extern_type *to_limit,
+       extern_type*&amp; to_next) const; </PRE>
+<UL>
+<P>Both functions take characters in the range of <SAMP>[from,from_end)</SAMP>, apply an appropriate conversion, and place the resulting characters in the buffer starting at <SAMP>to</SAMP>. Each function converts at most <SAMP>from_end-from</SAMP> source characters, and stores no more than <SAMP>to_limit-to</SAMP> characters of the destination type. Both <SAMP>do_out</SAMP> and <SAMP>do_in</SAMP> stop if they find a character they cannot convert. In any case, <SAMP>from_next</SAMP> and <SAMP>to_next</SAMP> are always left pointing to the next character beyond the last one successfully converted.</P>
+<P>Functions <SAMP>do_out</SAMP> and <SAMP>do_in</SAMP> must be called under the following preconditions:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>from &lt;= from_end</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>to &lt;= to_end</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>state</SAMP> is either initialized to the beginning of a sequence or equal to the result of the previous conversion on the sequence.</P></LI>
+</UL>
+<P>In the case where no conversion is required, <SAMP>from_next</SAMP> is set to <SAMP>from</SAMP> and <SAMP>to_next</SAMP> is set to <SAMP>to</SAMP>. In all cases, regardless of return value, <SAMP>next</SAMP> pointers are set to point to one character past the last character that is successfully converted.</P>
+<P><SAMP>do_out</SAMP> and<SAMP> do_in</SAMP> return one of the following:</P>
+<H4><A NAME="Table&nbsp;13">Table&nbsp;13: Return values of do_out and do_in&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Return Value</B>
+</td>
+<td valign=top><B>Meaning</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ok</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Successfully completed the conversion of all complete characters in the source range.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>partial</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The characters in the source range would, after conversions, require space greater than that available in the destination range.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>error</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Encountered either a sequence of elements in the source range forming a valid source character that could not be converted to a destination character, or a sequence of elements in the source range that could not possibly form a valid source character.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noconv</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>intern_type</SAMP> and <SAMP>extern_type</SAMP> are the same type, and input sequence is identical to converted sequence.</P>
+</td>
+</tr>
+</TABLE>
+<P>If no conversion is required, <SAMP>from_next</SAMP> is set to <SAMP>from</SAMP> and <SAMP>to_next</SAMP> is set to <SAMP>to</SAMP>.  When conversion occurs, <SAMP>from_next</SAMP> is set to the element after the last complete character successfully converted.</P>
+</UL>
+
+
+<A NAME="idx486"></A><PRE>virtual int 
+<B>do_length</B>(state_type&amp; state, const extern_type *from,
+          const extern_type *end, size_t max) const; </PRE>
+<UL>
+<P>Determines and returns <SAMP>n</SAMP>, where <SAMP>n</SAMP> is the number of elements of <SAMP>extern_type</SAMP> in the source range <SAMP>[from,end)</SAMP> that can be converted to <SAMP>max</SAMP> or fewer characters of <SAMP>intern_type</SAMP>, as if by a call to <SAMP>in(state, from, from_end, from_next, to, to_end, to_next)</SAMP> where <SAMP>(to_end==to + max)</SAMP>.</P>
+<P>Sets the value of <SAMP>state</SAMP> to correspond to the shift state of the sequence starting at <SAMP>(from + n)</SAMP>.  </P>
+<P>Function <SAMP>do_length</SAMP> must be called under the following preconditions:</P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST"><SAMP>state</SAMP> is either initialized to the beginning of a sequence or equal to the result of the previous conversion on the sequence. </P></LI>
+<LI><P CLASS="LIST"><SAMP>(from &lt;= end)</SAMP> is well-defined and true. </P></LI>
+</UL>
+
+<A NAME="idx487"></A><PRE>
+virtual int 
+<B>do_max_length</B>() const throw();</PRE>
+<UL>
+<P>Returns the maximum value that <SAMP>do_length()</SAMP> can return for any valid combination of its first three arguments, with the fourth argument (<SAMP>max</SAMP>) set to <SAMP>1</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx488"></A><PRE>virtual result 
+<B>do_out</B>(state_type&amp; state,
+       const intern_type *from, 
+       const intern_type *from_end, 
+       const intern_type*&amp; from_next,
+       extern_type *to, extern_type *to_limit,
+       extern_type*&amp; to_next) const; </PRE>
+<UL>
+<P>See <SAMP>do_in</SAMP> above.</P>
+</UL>
+
+
+<A NAME="idx489"></A><PRE>virtual result
+<B>do_unshift</B>(state_type&amp; state, extern_type *to, extern_type *to_limit,
+           extern_type*&amp; to_next) const;</PRE>
+<UL>
+<P>Determines the sequence of <SAMP>extern_type</SAMP> elements that should be appended to a sequence whose state is given by <SAMP>state</SAMP>, in order to terminate the sequence; that is, to return it to the default or initial or unshifted state. Stores the terminating sequence starting at <SAMP>to</SAMP>, proceeding no farther than <SAMP>to_limit</SAMP>. Sets <SAMP>to_next</SAMP> to point past the last <SAMP>extern_type</SAMP> element stored. The specializations <B><I>codecvt&lt;wchar_t, char, mbstate_t&gt;</I></B> and <B><I>codecvt&lt;char, char, mbstate_t&gt;</I></B> store no characters. </P>
+<P><SAMP>do_unshift</SAMP> must be called under the following preconditions:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>to &lt;= to_limit</SAMP></P></LI>
+</UL>
+<P>The return value from <SAMP>do_unshift</SAMP> is as shown in <A HREF="codecvt.html#Table&nbsp;14">Table&nbsp;14</A>:</P>
+<H4><A NAME="Table&nbsp;14">Table&nbsp;14: Return values of do_unshift</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Return Value</B>
+</td>
+<td valign=top><B>Meaning</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ok</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Terminating sequence was stored successfully.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>partial</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">More space is needed in the destination buffer to store the shift sequence.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>error</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The state is invalid.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noconv</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">No terminating sequence is needed for this state.</P>
+</td>
+</tr>
+</TABLE>
+</UL>
+
+<A NAME="sec12"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  codecvt.cpp
+//
+ 
+#include &lt;iostream&gt;
+
+#include &lt;codecvte.h&gt;
+
+
+int main ()
+{
+    // not used, must be supplied to facet
+    std::mbstate_t state;
+
+    // three strings to use as buffers
+    std::string 
+         ins ("\xfc \xcc \xcd \x61 \xe1 \xd9 \xc6 \xe6 \xf5");
+    std::string ins2 (ins.size (), '.');
+    std::string 
+         outs (ins.size () / ex_codecvt ().encoding (), '.');
+
+    // Print initial contents of buffers
+    std::cout &lt;&lt; "Before:\n"
+              &lt;&lt; ins &lt;&lt; std::endl
+              &lt;&lt; ins2 &lt;&lt; std::endl
+              &lt;&lt; outs &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    // Create a user defined codecvt facet
+    // This facet converts from ISO Latin Alphabet No. 1 
+    // (ISO 8859-1) to  U.S. ASCII code page 437.
+
+    // Replace the default codecvt&lt;char, char, mbstate_t&gt;.
+    std::locale loc (std::cout.getloc (), new ex_codecvt);
+
+    // Retrieve the facet from the locale.
+    typedef std::codecvt&lt;char, char, std::mbstate_t&gt; CodeCvt;
+    const CodeCvt&amp; cdcvt = std::use_facet&lt;CodeCvt&gt;(loc);
+
+    // unused, must be provided to codecvt&lt;&gt;::in/out
+    const char *const_out_next = 0;
+    const char *const_in_next  = 0;
+          char *in_next        = 0;
+          char *out_next       = 0;
+
+    // convert the buffer
+    cdcvt.in (state, ins.c_str(), ins.c_str() + ins.length(), 
+              const_in_next, &amp;outs[0], &amp;outs[0] + 
+              outs.length(), out_next);
+  
+    std::cout &lt;&lt; "After in:\n"
+              &lt;&lt; ins &lt;&lt; std::endl
+              &lt;&lt; ins2 &lt;&lt; std::endl
+              &lt;&lt; outs &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    // Finally, convert back to the original codeset
+
+    cdcvt.out (state, outs.c_str(), outs.c_str() + 
+               outs.length(), const_out_next, &amp;ins[0], 
+               &amp;ins[0] + ins.length(), in_next);
+  
+    std::cout &lt;&lt; "After out:\n"
+              &lt;&lt; ins &lt;&lt; std::endl
+              &lt;&lt; ins2 &lt;&lt; std::endl
+              &lt;&lt; outs &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>Before:
+&uuml; &Igrave; &Iacute; a &aacute; &Ugrave; &AElig; &aelig; &otilde;
+.................
+.................
+
+After in:
+&uuml; &Igrave; &Iacute; a &aacute; &Ugrave; &AElig; &aelig; &otilde;
+.................
+ I I a &nbsp; U ' ` o
+
+After out:
+&uuml; I I &atilde; &aacute; U &AElig; &aelig; &otilde;
+.................
+ I I a &nbsp; U ' ` o
+</PRE></UL>
+<A NAME="sec13"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="codecvt-byname.html">codecvt_byname</A></I></B></P>
+<A NAME="sec14"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.1.5</I></P>
+
+<BR>
+<HR>
+<A HREF="clog.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="codecvt-byname.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

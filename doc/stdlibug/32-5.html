@@ -1,0 +1,171 @@
+<HTML>
+<HEAD>
+<TITLE>More Improved Extractors and Inserters</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="32-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="32-6.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>32.5 More Improved Extractors and Inserters</H2>
+<A NAME="idx790"><!></A>
+<A NAME="idx791"><!></A>
+<P>Insertion and extraction still do not fit seamlessly into the iostream framework. The inserters and extractors for built-in types can be controlled through formatting flags that our operators thus far ignore. Our operators don't observe a field width while inserting, or skip whitespaces while extracting, and so on.</P>
+<P>They don't care about error indication either. So what if the extracted date is February 31? So what if the insertion fails because the underlying buffer can't access the external device for some obscure reason? So what if a facet throws an exception? We should certainly set some state bits in the respective stream's state and throw or rethrow exceptions, if the exception mask says so.</P>
+<A NAME="idx792"><!></A>
+<P>However, the more general question here is: What are inserters and extractors supposed to do? Some recommendations follow.</P>
+<P><B><I>Regarding </I></B><B>format flags</B><B><I>, inserters and extractors should:</I></B></P>
+<UL>
+<LI><P CLASS="LIST">Create a sentry object right at the beginning of every inserter and extractor. In its constructor and destructor, the sentry performs certain standard tasks, like skipping white characters, flushing tied streams, etc. See the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A> for a detailed explanation.</P></LI>
+<LI><P CLASS="LIST">Reset the width after each usage.</P></LI>
+</UL>
+<P><B><I>Regarding </I></B><B>state bits</B><B><I>, inserters and extractors should:</I></B></P>
+<UL>
+<LI><P CLASS="LIST">Set <SAMP>badbit</SAMP> for all problems with the stream buffer.</P></LI>
+<LI><P CLASS="LIST">Set <SAMP>failbit</SAMP> if the formatting or parsing itself fails.</P></LI>
+<LI><P CLASS="LIST">Set <SAMP>eofbit</SAMP> when the end of the input sequence is reached.</P></LI>
+</UL>
+<P><B><I>Regarding the </I></B><B>exception mask</B><B><I>, inserters and extractors should:</I></B></P>
+<UL>
+<LI><P CLASS="LIST">Use the <SAMP>setstate()</SAMP> member function for setting the stream's error state. It automatically throws the <SAMP>std::ios_base::failure</SAMP> exception according to the exceptions switch in the stream's exception mask.</P></LI>
+<LI><P CLASS="LIST">Catch exceptions thrown during the parsing or formatting, set <SAMP>failbit </SAMP>or <SAMP>badbit</SAMP>, and rethrow the <I>original</I> exception.</P></LI>
+</UL>
+<P><B><I>Regarding </I></B><B>locales</B><B><I>, inserters and extractors should:</I></B></P>
+<UL>
+<LI><P CLASS="LIST">Use the stream's locale, not the stream buffer's locale. The stream buffer's locale is supposed to be used solely for code conversion.</P></LI>
+</UL>
+<P><B><I>Regarding the </I></B><B>stream buffer</B><B><I>:</I></B></P>
+<UL>
+<LI><P CLASS="LIST">If you use a sentry object in your extractor or inserter, you should not call any functions from the formatting layer. This might cause a deadlock in a thread-safe library, since the sentry object locks the stream buffer associated with the stream object through the stream buffer's <I>mutex</I> (mutually exclusive lock). A nested call to one of the stream's member functions would again create a sentry object, which would wait for the same mutually exclusive lock and, voil&agrave;, you have deadlock. Use the stream buffer's functions instead. They do not use the mutex, and are more efficient anyway.</P></LI>
+</UL>
+<BLOCKQUOTE><HR><B>
+NOTE -- Do not call the stream's input or output functions after creating a sentry object in your inserter or extractor. Use the stream buffer's functions instead.
+</B><HR></BLOCKQUOTE>
+<A NAME="3251"><H3>32.5.1 Applying the Recommendations to the Example</H3></A>
+<A NAME="idx793"><!></A>
+<P>Let us now go back and apply the recommendations to the extractor and inserter for class <SAMP>date</SAMP> in the example we are constructing. Here is an improved version of the extractor:</P>
+
+<UL><PRE>
+template&lt;class charT, class Traits&gt;
+std::basic_istream&lt;charT, Traits&gt;&amp; 
+operator &gt;&gt; (std::basic_istream&lt;charT, Traits &gt;&amp; is, date&amp; dat)
+{
+  std::ios_base::iostate err = 0;                             //1
+
+  try {                                                       //2
+
+    typename std::basic_istream&lt;charT,
+                                Traits&gt;::sentry ipfx(is);     //3
+
+    if(ipfx) {                                                //4
+      std::use_facet&lt;std::time_get&lt;charT,Traits&gt; &gt;
+        (is.getloc())
+        .get_date(is,
+                  std::istreambuf_iterator&lt;charT,Traits&gt;(),
+                  is, err, &amp;dat.tm_date);                     //5
+      if (!dat)
+        err |= std::ios_base::failbit;                        //6
+    }
+  }
+  catch(...) {                                                //7
+    bool flag = false;
+    try {
+      is.setstate(std::ios_base::failbit);                    //8
+    }
+    catch(...) {
+      flag = true;                                            //9
+    }
+    if (flag)
+      throw;                                                  //10
+  }
+
+  if (err)
+    is.setstate(err);                                         //11
+
+  return is;
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The variable <SAMP>err</SAMP> keeps track of errors as they occur. In this example, it is handed over to the <SAMP>time_get</SAMP> facet, which sets the respective state bits.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>All operations inside an extractor or inserter should be inside a try-block, so that the respective error states could be set correctly before the exception is actually thrown.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Here we define the sentry object that does all the preliminary work, like skipping leading white spaces.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>We check whether the preliminaries were done successfully. Class <SAMP>sentry</SAMP> defines a conversion to <SAMP>bool</SAMP> that returns <SAMP>true</SAMP> if the sentry constructor completed successfully, and <SAMP>false</SAMP> otherwise.
+<TR VALIGN="top"><TD><SAMP>//5</SAMP></TD><TD>This is the call to the time parsing facet of the stream's locale, as in the primitive version of the extractor.
+<TR VALIGN="top"><TD><SAMP>//6</SAMP></TD><TD>Let's assume our date class allows us to check whether the date is semantically valid; for example, it would detect wrong dates like February 30. Extracting an invalid date should be treated as a failure, so we set the <SAMP>failbit</SAMP>. 
+<TR VALIGN="top"><TD><SAMP>//7</SAMP></TD><TD>Note that in this case it is not advisable to set the <SAMP>failbit</SAMP> through the stream's <SAMP>setstate()</SAMP> function, because <SAMP>setstate()</SAMP> also raises exceptions if they are switched on in the stream's exception mask. We don't want to throw an exception at this point, so we add the <SAMP>failbit</SAMP> to the state variable <SAMP>err</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//8</SAMP></TD><TD>Here we catch all exceptions that might have been thrown so far. The intent is to set the stream's error state before the exception terminates the extractor, and to rethrow the original exception.
+<TR VALIGN="top"><TD><SAMP>//9</SAMP></TD><TD>Now we eventually set the stream's error state through its <SAMP>setstate()</SAMP> function. This call might throw an <SAMP>std::ios_base::failure</SAMP> exception according to the stream's exception mask. 
+<TR VALIGN="top"><TD><SAMP>//10</SAMP></TD><TD>We catch this exception because we want the original exception thrown rather than the <SAMP>ios_base::failure</SAMP> in all cases.
+<TR VALIGN="top"><TD><SAMP>//11</SAMP></TD><TD>We rethrow the original exception. If there was no exception raised so far, we set the stream's error state through its <SAMP>setstate()</SAMP> function. 
+</TABLE>
+<A NAME="idx794"><!></A>
+<P>The inserter is implemented using the same pattern:</P>
+
+<UL><PRE>
+template&lt;class charT, class Traits&gt;
+std::basic_ostream&lt;charT, Traits&gt;&amp; 
+operator &lt;&lt; (std::basic_ostream&lt;charT, Traits &gt;&amp; os,
+             const date&amp; dat)
+{
+  std::ios_base::iostate err = 0;
+
+  try {
+    typename std::basic_ostream&lt;charT, Traits&gt;::sentry opfx(os);
+
+    if(opfx) {
+      const char patt[3] = "%x";
+      charT fmt[3];
+      std::use_facet&lt;std::ctype&lt;charT&gt; &gt;(os.getloc())
+           .widen(patt, patt+2, fmt);                         //1
+      typedef std::time_put&lt;charT,
+                            ostreambuf_iterator&lt;charT,Traits&gt; &gt;
+             time_put;
+      if (std::use_facet&lt;time_put&gt;(os.getloc())
+          .put(os,os,os.fill(),&amp;dat.tm_date,fmt,(fmt+2))      //2
+          .failed())                                          //3
+        err = std::ios_base::badbit;                          //4
+
+      os.width(0);                                            //5
+    }
+  }
+  catch(...) {
+    bool flag = false;
+    try {
+      os.setstate(std::ios_base::failbit);
+    }
+    catch(...) {
+       flag = true;
+    }
+    if (flag)
+      throw;
+  }
+
+  if (err)
+    os.setstate(err);
+
+  return os;
+}
+</PRE></UL>
+<P>The inserter and the extractor have only a few minor differences:</P>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>We prefer to use the other<SAMP> put()</SAMP> function of the locale's <SAMP>time_put</SAMP> facet. It is more flexible and allows us to specify a sequence of format specifiers instead of just one. We declare a character array that contains the sequence of format specifiers and <I>widen</I> it to wide characters, if necessary.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Here we provide the format specifiers to the <SAMP>time_put</SAMP> facet's <SAMP>put()</SAMP> function.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>The <SAMP>put()</SAMP> function returns an iterator pointing immediately after the last character produced. We check the success of the previous output by calling the streambuf iterator's <SAMP>failed()</SAMP> function.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>If the output failed then the stream is presumably broken, and we set <SAMP>badbit</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//5</SAMP></TD><TD>Here we reset the field width, because the facet's <SAMP>put()</SAMP> function uses the stream's format settings and adjusts the output according to the respective field width. The rule is that the field width shall be reset after each usage.
+</TABLE>
+<A NAME="3252"><H3>32.5.2 An Afterthought</H3></A>
+<A NAME="idx795"><!></A>
+<P>Why is it seemingly so complicated to implement an inserter or extractor? Why doesn't the first simple approach suffice?</P>
+<P>The simple extractors and inserters in our first approach do suffice in many cases, when the user-defined type consists mostly of data members of built-in types, and runtime efficiency or atomicity of output is not a great concern.</P>
+<P>Working directly with the stream buffer may be necessary:</P>
+<UL>
+<LI><P CLASS="LIST">To improve runtime speed</P></LI>
+<LI><P CLASS="LIST">To guarantee atomic operations on a stream which may be shared among threads</P></LI>
+</UL>
+<P>In these cases, you use fast, low-level services. You must decide whether or not to add format control, error handling, and so on, depending on the needs of your application.  If you need these capabilities, you must provide them yourself.  You must provide a sentry, and be careful to avoid deadlock by only calling functions on the stream buffer itself.</P>
+<P>Working with the stream buffer directly need not be as complicated as it seems.  The next section contains patterns that provide outlines for you to fill in.  The patterns include error-handling, and guarantee atomicity thanks to the single sentry object they create.</P>
+
+<BR>
+<HR>
+<A HREF="32-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="32-6.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

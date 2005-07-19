@@ -1,0 +1,110 @@
+<HTML>
+<HEAD>
+<TITLE>ptr_fun()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="priority-queue.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="push-heap.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>ptr_fun()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Example</A></LI>
+<LI><A HREF="#sec6">See Also</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A function adaptor that creates a function object from a pointer to a function </P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;functional&gt;
+
+namespace std {
+  template&lt;class Arg, class Result&gt;
+  pointer_to_unary_function&lt;Arg, Result&gt;
+  ptr_fun(Result (*f)(Arg));
+
+  template&lt;class Arg1, class Arg2, class Result&gt;
+  pointer_to_binary_function&lt;Arg1, Arg2, Result&gt;
+  ptr_fun(Result (*x)(Arg1, Arg2));
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <B><I><A HREF="pointer-to-unary-function.html">pointer_to_unary_function</A></I></B> and <B><I><A HREF="pointer-to-binary-function.html">pointer_to_binary_function</A></I></B> classes encapsulate pointers to functions, and use <SAMP>operator()</SAMP> so that the resulting object serves as a function object for the function.</P>
+<P>The <SAMP>ptr_fun()</SAMP> function is overloaded to create instances of <B><I><A HREF="pointer-to-unary-function.html">pointer_to_unary_function</A></I></B> or <B><I><A HREF="pointer-to-binary-function.html">pointer_to_binary_function</A></I></B> when included with the appropriate pointer to a function. </P>
+<A NAME="sec5"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  pnt2fnct.cpp
+//
+
+#include &lt;algorithm&gt;    // for copy, transform
+#include &lt;functional&gt;   // for ptr_fun
+#include &lt;iostream&gt;     // cout, endl
+#include &lt;iterator&gt;     // for ostream_iterator
+#include &lt;deque&gt;        // for deque
+#include &lt;vector&gt;       // for vector
+
+
+int factorial (int x)
+{
+    return x &gt; 1 ? x * factorial (x - 1) : x;
+}
+
+
+int main ()
+{
+    typedef std::deque&lt;int, std::allocator&lt;int&gt; &gt;  Deque;
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; Vector;
+    typedef std::ostream_iterator&lt;int, char, 
+                                  std::char_traits&lt;char&gt; &gt;
+            Iter;
+
+    // Initialize a deque with an array of integers.
+    const Deque::value_type a[] = { 1, 2, 3, 4, 5, 6, 7 };
+    Deque d (a + 0, a + sizeof a / sizeof *a);
+
+    // Create an empty vector to store the factorials.
+    Vector v (Vector::size_type (7));
+
+    // Compute factorials of the contents of 'd' and 
+    // store results in 'v'.
+    std::transform (d.begin (), d.end (), v.begin (),
+                    std::ptr_fun (factorial));
+
+    // Print the results.
+    std::cout &lt;&lt; "The following numbers: \n     ";
+    std::copy (d.begin (), d.end (), Iter (std::cout," "));
+
+    std::cout &lt;&lt; "\n\nHave the factorials: \n     ";
+    std::copy (v.begin (), v.end (), Iter (std::cout, " "));
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>The following numbers: 
+     1 2 3 4 5 6 7 
+
+Have the factorials: 
+     1 2 6 24 120 720 5040 
+</PRE></UL>
+<A NAME="sec6"><H3>See Also</H3></A>
+<P><A HREF="functionobjects.html">Function Objects</A>, <B><I><A HREF="pointer-to-binary-function.html">pointer_to_binary_function</A></I></B>, <B><I><A HREF="pointer-to-unary-function.html">pointer_to_unary_function</A></I></B>, <B><I><A HREF="mem-fun.html">mem_fun</A></I></B></P>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 20.3.7</I></P>
+
+<BR>
+<HR>
+<A HREF="priority-queue.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="push-heap.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

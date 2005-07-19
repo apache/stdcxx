@@ -1,0 +1,212 @@
+<HTML>
+<HEAD>
+<TITLE>istrstream</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="istreambuf-iterator.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="isupper.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>istrstream</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P>
+
+<PRE><HR><B><I>istrstream</I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="basic-istream.html">basic_istream</A></I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="ios-base.html">ios_base</A></I></B> <HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Constructors</A></LI>
+<LI><A HREF="#sec8">Destructors</A></LI>
+<LI><A HREF="#sec9">Member Functions</A></LI>
+<LI><A HREF="#sec10">Example</A></LI>
+<LI><A HREF="#sec11">See Also</A></LI>
+<LI><A HREF="#sec12">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx743">char_type</A><BR>
+<A HREF="#idx744">int_type</A><BR>
+<A HREF="#idx748">istrstream()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx745">off_type</A><BR>
+<A HREF="#idx746">pos_type</A><BR>
+<A HREF="#idx752">rdbuf()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx751">str()</A><BR>
+<A HREF="#idx747">traits_type</A><BR>
+<A HREF="#idx750">~istrstream()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Class that reads characters from an array in memory</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;strstream&gt;
+
+namespace std {
+  class istrstream;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class <B><I>istrstream</I></B> reads characters from an array in memory. It uses a private <B><I><A HREF="strstreambuf.html">strstreambuf</A></I></B> object to control the associated array object. It inherits from <B><I><A HREF="basic-istream.html">basic_istream</A></I></B> and therefore can use all the formatted and unformatted input functions. </P>
+<BLOCKQUOTE><HR><B>
+NOTE -- This is a deprecated feature and might not be available in future versions.
+</B><HR></BLOCKQUOTE>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  class istrstream : public basic_istream&lt;char&gt; {
+
+    public:
+
+      typedef char                            char_type;
+      typedef char_traits&lt;char_type&gt;          traits_type;
+      typedef typename traits_type::int_type  int_type;
+      typedef typename traits_type::pos_type  pos_type;
+      typedef typename traits_type::off_type  off_type;
+
+      explicit istrstream(const char *s);
+      istrstream(const char *s, streamsize n);
+      explicit istrstream(char *s);
+      istrstream(char *s, streamsize n);
+
+      virtual ~istrstream();
+
+      strstreambuf *rdbuf() const;
+      char *str();
+
+    };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx743"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>The type <SAMP>char_type</SAMP> is a synonym of type <SAMP>char</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx744"></A><PRE><B>int_type</B></PRE>
+<UL>
+<P>The type <SAMP>int_type</SAMP> is a synonym of type <SAMP>traits_type::in_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx745"></A><PRE><B>off_type</B></PRE>
+<UL>
+<P>The type <SAMP>off_type</SAMP> is a synonym of type <SAMP>traits_type::off_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx746"></A><PRE><B>pos_type</B></PRE>
+<UL>
+<P>The type <SAMP>pos_type</SAMP> is a synonym of type <SAMP>traits_type::pos_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx747"></A><PRE><B>traits_type</B></PRE>
+<UL>
+<P>The type <SAMP>traits_type</SAMP> is a synonym of type <SAMP>char_traits&lt;char&gt;</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Constructors</H3></A>
+
+<A NAME="idx748"></A><PRE>explicit <B>istrstream</B>(const char* s);
+explicit <B>istrstream</B>(char* s); </PRE>
+<UL>
+<P>Constructs an object of class <B><I>istrstream</I></B>, initializing the base class <B><I><A HREF="basic-istream.html">basic_istream</A></I></B> with the associated <B><I><A HREF="strstreambuf.html">strstreambuf</A></I></B> object. The <B><I>strstreambuf</I></B> object is initialized by calling <SAMP>strstreambuf(s,0)</SAMP>, where <SAMP>s</SAMP> designates the first element of an NTBS (null terminated byte string). </P>
+</UL>
+
+
+<A NAME="idx749"></A><PRE>explicit <B>istrstream</B>(const char* s, streamsize n);
+explicit <B>istrstream</B>(char* s, streamsize n); </PRE>
+<UL>
+<P>Constructs an object of class <B><I>istrstream</I></B>, initializing the base class <B><I><A HREF="basic-istream.html">basic_istream</A></I></B> with the associated <B><I><A HREF="strstreambuf.html">strstreambuf</A></I></B> object. The <B><I>strstreambuf</I></B> object is initialized by calling <SAMP>strstreambuf(s,n)</SAMP>, where <SAMP>s</SAMP> designates the first element of an array whose length is <SAMP>n</SAMP> elements and <SAMP>n</SAMP> is greater than zero. </P>
+</UL>
+
+<A NAME="sec8"><H3>Destructors</H3></A>
+
+<A NAME="idx750"></A><PRE>virtual <B>~istrstream</B>();</PRE>
+<UL>
+<P>Destroys an object of class <SAMP>istrstream</SAMP>. </P>
+</UL>
+
+<A NAME="sec9"><H3>Member Functions</H3></A>
+
+<A NAME="idx751"></A><PRE>char* 
+<B>str</B>();</PRE>
+<UL>
+<P>Calls <SAMP>rdbuf()-&gt;str()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx752"></A><PRE>strstreambuf* 
+<B>rdbuf</B>() const; </PRE>
+<UL>
+<P>Returns a pointer to the private <B><I><A HREF="strstreambuf.html">strstreambuf</A></I></B> object associated with the stream.</P>
+</UL>
+
+<A NAME="sec10"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  istrstream.cpp
+//
+
+#include &lt;iostream&gt;    // for cout
+#include &lt;strstream&gt;   // for strstream
+
+
+
+int main ()
+{
+    // create two constant istrstream objects and initialize their
+    // underlying strstreambufs with string literals; the objects
+    // do not create copies of the literals but use them directly
+    // for efficiency
+    std::istrstream a ("Ce n'est pas l'homme qui prend la mer, ");
+    std::istrstream b ("c'est la mer qui prend l'homme.");
+
+    // create a dynamic strstream object
+    std::strstream out;
+
+    // output the contents of the streams into out
+    out &lt;&lt; a.rdbuf () &lt;&lt; b.str () &lt;&lt; '\n';
+  
+    // output the contents of out to standard output
+    std::cout &lt;&lt; out.rdbuf () &lt;&lt; '\n';
+  
+    // output the contents of the stream objects to standard output
+    std::cout &lt;&lt; a.str () &lt;&lt; '\n' &lt;&lt; b.rdbuf () &lt;&lt; '\n';
+
+    // the dtors of a and b will not release any storage
+    // since the objects did not allocate any
+
+    // the dtor of out will release allocated storage since
+    // neither freeze() nor str() was called on the object
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>Ce n'est pas l'homme qui prend la mer, c'est la mer qui prend l'homme.
+
+Ce n'est pas l'homme qui prend la mer, 
+c'est la mer qui prend l'homme.
+</PRE></UL>
+<A NAME="sec11"><H3>See Also</H3></A>
+<P><B><I><A HREF="char-traits.html">char_traits</A></I></B>, <B><I><A HREF="ios-base.html">ios_base</A></I></B>, <B><I><A HREF="basic-ios.html">basic_ios</A></I></B>, <B><I><A HREF="strstreambuf.html">strstreambuf</A></I></B>, <B><I><A HREF="ostrstream.html">ostrstream</A></I></B>, <B><I><A HREF="strstream.html">strstream</A></I></B></P>
+<A NAME="sec12"><H3>Standards Conformance</H3></A>
+<P><I>Deprecated.  See ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, </I>Annex D Compatibility features Section D.7.2</P>
+
+<BR>
+<HR>
+<A HREF="istreambuf-iterator.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="isupper.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

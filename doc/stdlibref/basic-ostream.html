@@ -1,0 +1,822 @@
+<HTML>
+<HEAD>
+<TITLE>basic_ostream</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="basic-ofstream.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-ostringstream.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>basic_ostream</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P>
+
+<PRE><HR><B><I>basic_ostream</I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="ios-base.html">ios_base</A></I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Nonmember Types</A></LI>
+<LI><A HREF="#sec8">Constructor</A></LI>
+<LI><A HREF="#sec9">Destructor</A></LI>
+<LI><A HREF="#sentry">Class sentry</A></LI>
+<LI><A HREF="#sec11">Formatted Output Functions: Inserters</A></LI>
+<LI><A HREF="#sec12">Unformatted Output Functions</A></LI>
+<LI><A HREF="#sec13">Nonmember Functions</A></LI>
+<LI><A HREF="#sec14">Formatting</A></LI>
+<LI><A HREF="#sec15">Example</A></LI>
+<LI><A HREF="#sec16">See Also</A></LI>
+<LI><A HREF="#sec17">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx228">basic_ostream()</A><BR>
+<A HREF="#idx232">bool()</A><BR>
+<A HREF="#idx221">char_type</A><BR>
+<A HREF="#idx248">flush()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx222">int_type</A><BR>
+<A HREF="#idx223">off_type</A><BR>
+<A HREF="#idx233">operator&lt;&lt;()</A><BR>
+<A HREF="#idx224">pos_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx249">put()</A><BR>
+<A HREF="#idx250">seekp()</A><BR>
+<A HREF="#idx230">sentry()</A><BR>
+<A HREF="#idx252">tellp()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx225">traits_type</A><BR>
+<A HREF="#idx253">write()</A><BR>
+<A HREF="#idx229">~basic_ostream()</A><BR>
+<A HREF="#idx231">~sentry()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx254">endl()</A><BR>
+<A HREF="#idx255">ends()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx256">flush()</A><BR>
+<A HREF="#idx257">operator&lt;&lt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx226">ostream</A><BR>
+<A HREF="#idx227">wostream</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Class that assists in formatting and writing output to sequences controlled by a stream buffer</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;ostream&gt; 
+
+namespace std {
+  template&lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class basic_ostream;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class <B><I>basic_ostream</I></B> assists in formatting and writing output to sequences of characters controlled by a stream buffer. Two groups of functions share common properties, the formatted functions and the unformatted functions. </P>
+<P>Both groups of functions insert output characters to <B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B>. They both begin by constructing an object of class <A HREF="basic-ostream.html#sentry">basic_ostream::sentry</A> and, if this object is in good state after construction, the function tries to perform the requested output. The sentry object performs exception-safe initialization, such as controlling the status of the stream or locking it in a multithread environment. </P>
+<P>Some formatted output functions generate the requested output by converting a value from some scalar to text form and inserting the converted text in the output sequence. The conversion behavior is directly depend on the locale object being imbued in the stream.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  template &lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class basic_ostream : virtual public basic_ios&lt;charT,traits&gt;
+  {
+   public:
+    typedef charT                     char_type;
+    typedef typename traits::int_type int_type;
+    typedef typename traits::pos_type pos_type;
+    typedef typename traits::off_type off_type;
+    typedef traits                    traits_type;
+
+    explicit 
+    basic_ostream(basic_streambuf&lt;char_type,traits&gt;* sb);
+    virtual ~basic_ostream();
+
+    class sentry;
+
+    basic_ostream&amp; operator&lt;&lt;
+      (basic_ostream&amp; (*pf)(basic_ostream&amp;));
+    basic_ostream&amp; operator&lt;&lt;
+      (basic_ios&lt;charT,traits&gt;&amp; (*pf)(basic_ios&lt;charT,traits&gt;&amp;));
+    basic_ostream&amp; operator&lt;&lt;
+      (ios_base&amp; (*pf)(ios_base&amp;));
+
+    basic_ostream&amp; operator&lt;&lt;(bool n);
+    basic_ostream&amp; operator&lt;&lt;(short n);
+    basic_ostream&amp; operator&lt;&lt;(unsigned short n);
+    basic_ostream&amp; operator&lt;&lt;(int n);
+    basic_ostream&amp; operator&lt;&lt;(unsigned int n);
+    basic_ostream&amp; operator&lt;&lt;(long n);
+    basic_ostream&amp; operator&lt;&lt;(unsigned long n);
+    basic_ostream&amp; operator&lt;&lt;(float f);
+    basic_ostream&amp; operator&lt;&lt;(double f);
+    basic_ostream&amp; operator&lt;&lt;(long double f);
+
+    basic_ostream&amp; operator&lt;&lt;(const void* p);
+    basic_ostream&amp; operator&lt;&lt;
+      (basic_streambuf&lt;char_type,traits&gt;* sb);
+
+    basic_ostream&amp; put(char_type c);
+    basic_ostream&amp; write(const char_type* s, streamsize n);
+
+    basic_ostream&amp; flush();
+
+    pos_type tellp();
+    basic_ostream&amp; seekp(pos_type);
+    basic_ostream&amp; seekp(off_type, ios_base::seekdir);
+  };
+
+  template&lt;class charT, class traits&gt;
+  basic_ostream&lt;charT,traits&gt;&amp; 
+  operator&lt;&lt;(basic_ostream&lt;charT,traits&gt;&amp;, charT);
+           
+  template&lt;class charT, class traits&gt;
+  basic_ostream&lt;charT,traits&gt;&amp; 
+  operator&lt;&lt;(basic_ostream&lt;charT,traits&gt;&amp;, char);
+           
+  template&lt;class traits&gt;
+  basic_ostream&lt;char,traits&gt;&amp;
+  operator&lt;&lt;(basic_ostream&lt;char,traits&gt;&amp;, char);
+           
+  template&lt;class traits&gt;
+  basic_ostream&lt;char,traits&gt;&amp;
+  operator&lt;&lt;(basic_ostream&lt;char,traits&gt;&amp;, signed char);
+          
+  template&lt;class traits&gt;
+  basic_ostream&lt;char,traits&gt;&amp;
+  operator&lt;&lt;(basic_ostream&lt;char,traits&gt;&amp;, unsigned char)
+
+  template&lt;class charT, class traits&gt;
+  basic_ostream&lt;charT,traits&gt;&amp;
+  operator&lt;&lt;(basic_ostream&lt;charT,traits&gt;&amp;, const charT*);
+  template&lt;class charT, class traits&gt;
+  basic_ostream&lt;charT,traits&gt;&amp;
+  operator&lt;&lt;(basic_ostream&lt;charT,traits&gt;&amp;, const char*);
+           
+  template&lt;class traits&gt;
+  basic_ostream&lt;char,traits&gt;&amp;
+  operator&lt;&lt;(basic_ostream&lt;char,traits&gt;&amp;, const char*);
+           
+  template&lt;class traits&gt;
+  basic_ostream&lt;char,traits&gt;&amp;
+  operator&lt;&lt;(basic_ostream&lt;char,traits&gt;&amp;, const signed char*);
+           
+  template&lt;class traits&gt;
+  basic_ostream&lt;char,traits&gt;&amp;
+  operator&lt;&lt;(basic_ostream&lt;char,traits&gt;&amp;, const unsigned char*);
+  }
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx221"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>The type <SAMP>char_type</SAMP> is a synonym for the template parameter <SAMP>charT</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx222"></A><PRE><B>int_type</B></PRE>
+<UL>
+<P>The type <SAMP>int_type</SAMP> is a synonym of type <SAMP>traits::in_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx223"></A><PRE><B>off_type</B></PRE>
+<UL>
+<P>The type <SAMP>off_type</SAMP> is a synonym of type <SAMP>traits::off_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx224"></A><PRE><B>pos_type</B></PRE>
+<UL>
+<P>The type <SAMP>pos_type</SAMP> is a synonym of type <SAMP>traits::pos_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx225"></A><PRE><B>traits_type</B></PRE>
+<UL>
+<P>The type <SAMP>traits_type</SAMP> is a synonym for the template parameter <SAMP>traits</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Nonmember Types</H3></A>
+
+<A NAME="idx226"></A><PRE><B>ostream</B></PRE>
+<UL>
+<P>The type <SAMP>ostream</SAMP> is a specialization of class <B><I>basic_ostream</I></B> on type&nbsp;<SAMP>char</SAMP>:</P>
+<P><SAMP>typedef basic_ostream&lt;char&gt; ostream;</SAMP></P>
+</UL>
+
+
+<A NAME="idx227"></A><PRE><B>wostream</B></PRE>
+<UL>
+<P>The type <SAMP>wostream</SAMP> is a specialization of class <B><I>basic_ostream</I></B> on type&nbsp;<SAMP>wchar_t</SAMP>:</P>
+<P><SAMP>typedef basic_ostream&lt;wchar_t&gt; wostream;</SAMP></P>
+</UL>
+
+<A NAME="sec8"><H3>Constructor</H3></A>
+
+<A NAME="idx228"></A><PRE>explicit <B>basic_ostream</B>(basic_streambuf&lt;charT, traits&gt;* sb); </PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_ostream</I></B>, assigning initial values to the base class by calling:</P>
+<P> <SAMP>basic_ios&lt;charT,traits&gt;::init(sb)</SAMP>;</P>
+</UL>
+
+<A NAME="sec9"><H3>Destructor</H3></A>
+
+<A NAME="idx229"></A><PRE>virtual <B>~basic_ostream</B>();</PRE>
+<UL>
+<P>Destroys an object of class <B><I>basic_ostream</I></B>.</P>
+</UL>
+
+<A NAME="sentry"><H3>Class sentry</H3></A>
+<P><B>Interface</B></P>
+
+<UL><PRE>namespace std {  
+  template &lt;class charT,class traits = char_traits&lt;charT&gt; &gt; 
+  class basic_ostream&lt;charT,traits&gt;::sentry 
+  { 
+    public: 
+    explicit sentry(basic_ostream&lt;charT,traits&gt;&amp; os); 
+    ~sentry(); 
+    operator bool() const; 
+    
+    private: 
+    sentry(const sentry&amp;); // undefined 
+    sentry&amp; operator=(const sentry&amp;); // undefined 
+  }; 
+}
+</PRE></UL>
+<P><B>Constructor</B></P>
+
+<A NAME="idx230"></A><PRE>explicit <B>sentry</B>(basic_ostream&lt;charT,traits&gt;&amp; os);</PRE>
+<UL>
+<P>Prepares for formatted or unformatted output. If <SAMP>os.tie()</SAMP> is not a null pointer, the function synchronizes the output sequence with any associated stream. If after any preparation is completed, the <SAMP>os.good()</SAMP> is <SAMP>true</SAMP>, the sentry conversion function operator <SAMP>bool()</SAMP> returns <SAMP>true</SAMP>. Otherwise, it returns <SAMP>false</SAMP>. In a multithread environment, the sentry object constructor is responsible for locking the stream and the stream buffer associated with the stream.</P>
+</UL>
+
+<P><B>Destructor</B></P>
+
+<A NAME="idx231"></A><PRE><B>~sentry</B>();</PRE>
+<UL>
+<P>Destroys an object of class <SAMP>sentry</SAMP>. If the <B><I><A HREF="ios-base.html">ios_base</A></I></B> member function <SAMP>flags() &amp; unitbuf == true</SAMP>, then flushes the buffer. In a multithread environment, the sentry object destructor is responsible for unlocking the stream and the stream buffer associated with the stream.</P>
+</UL>
+
+<P><B>Operator</B></P>
+
+<A NAME="idx232"></A><PRE>operator <B>bool</B>();</PRE>
+<UL>
+<P>If after any preparation is completed, the <B><I><A HREF="ios-base.html">ios_base</A></I></B> member function <SAMP>good()</SAMP> is <SAMP>true</SAMP>, the sentry conversion function operator <SAMP>bool()</SAMP> returns <SAMP>true</SAMP>, else it returns <SAMP>false</SAMP>.</P>
+</UL>
+
+<A NAME="sec11"><H3>Formatted Output Functions: Inserters</H3></A>
+<P>Formatted output functions start by constructing an object of class sentry. If this object returns <SAMP>true</SAMP> when converted to a value of type <SAMP>bool</SAMP>, the function attempts to produce the requested output. If the generation fails, the function calls <SAMP>setstate(ios::failbit)</SAMP>, which might throw an exception. If an exception is thrown during output, <SAMP>ios::badbit</SAMP> is set in the stream object's error state without causing an <SAMP>ios::failure</SAMP> to be thrown. </P>
+<P>If <SAMP>(exceptions()&amp;badbit) != 0</SAMP>, the exception is rethrown. The sentry object is destroyed before the function exits. If no exception is thrown, the result of the formatted output function is <SAMP>*this</SAMP>.</P>
+
+<A NAME="idx233"></A><PRE>
+basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(basic_ostream&amp; (*pf)(basic_ostream&amp;));</PRE>
+<UL>
+<P>Calls <SAMP>pf(*this)</SAMP>, then returns <SAMP>*this</SAMP>. See, for example, the function signature <SAMP>endl(basic_ostream&amp;)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx234"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(basic_ios&lt;char_type, traits_type&gt;&amp;
+             (*pf)(basic_ios&lt;char_type, traits_type&gt;&amp;));</PRE>
+<UL>
+<P>Calls <SAMP>pf(*this)</SAMP>, then returns <SAMP>*this</SAMP>. </P>
+</UL>
+
+
+<A NAME="idx235"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(ios_base&amp; (*pf) (ios_base&amp;));</PRE>
+<UL>
+<P>Calls <SAMP>pf(*this)</SAMP>, then returns <SAMP>*this</SAMP>. For example, see the function signature <SAMP>dec(ios_base&amp;)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx236"></A><PRE>basic_ostream&amp;  
+<B>operator&lt;&lt;</B>(bool n); </PRE>
+<UL>
+<P>Converts the boolean value <SAMP>n</SAMP> and outputs it into the <B><I>basic_ostream</I></B> object's buffer. If the <B><I><A HREF="ios-base.html">ios_base</A></I></B> member function <SAMP>flag() &amp; ios_base::boolalpha</SAMP> is <SAMP>false</SAMP>, it tries to write an integer value, which must be <SAMP>0</SAMP> or <SAMP>1</SAMP>. If the <SAMP>boolalpha</SAMP> flag is <SAMP>true</SAMP>, it writes characters according to the locale function <SAMP>numpunct&lt;&gt;::truename()</SAMP> or <SAMP>numpunct&lt;&gt;::falsename()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx237"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(short n); </PRE>
+<UL>
+<P>Converts the <SAMP>signed short</SAMP> integer <SAMP>n</SAMP>, outputs it into the stream buffer, and returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx238"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(unsigned short n); </PRE>
+<UL>
+<P>Converts the <SAMP>unsigned short</SAMP> integer <SAMP>n</SAMP>, outputs it into the stream buffer, and returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx239"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(int n); </PRE>
+<UL>
+<P>Converts the<SAMP> signed integer n</SAMP>, outputs it into the stream buffer, and returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx240"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(unsigned int n); </PRE>
+<UL>
+<P>Converts the <SAMP>unsigned integer n</SAMP>, outputs it into the stream buffer, and returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx241"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(long n); </PRE>
+<UL>
+<P>Converts the <SAMP>signed long</SAMP> integer <SAMP>n</SAMP>, outputs it into the stream buffer, and returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx242"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(unsigned long n); </PRE>
+<UL>
+<P>Converts the <SAMP>unsigned long</SAMP> integer n, outputs it into the stream buffer, and returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx243"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(float f); </PRE>
+<UL>
+<P>Converts the <SAMP>float f</SAMP>, outputs it into the stream buffer, and returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx244"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(double f); </PRE>
+<UL>
+<P>Converts the <SAMP>double f</SAMP>, outputs it into the stream buffer, and returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx245"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(long double f); </PRE>
+<UL>
+<P>Converts the <SAMP>long double f</SAMP>, outputs it into the stream buffer, and returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx246"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>( const void *p); </PRE>
+<UL>
+<P>Converts the <SAMP>pointer p</SAMP>, outputs it into the stream buffer, and returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx247"></A><PRE>basic_ostream&amp; 
+<B>operator&lt;&lt;</B>(basic_streambuf&lt;charT,traits&gt; *sb); </PRE>
+<UL>
+<P>If <SAMP>sb</SAMP> is null, calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(badbit)</SAMP>. Otherwise, gets characters from <SAMP>sb</SAMP> and inserts them into the stream buffer until any of the following occurs:</P>
+<UL>
+<LI><P CLASS="LIST">an end-of-file on the input sequence</P></LI>
+<LI><P CLASS="LIST">a failure when inserting into the output sequence</P></LI>
+<LI><P CLASS="LIST">an exception while getting a character from <SAMP>sb</SAMP></P></LI>
+</UL>
+<P>If the function inserts no characters, or if it stops because an exception is thrown while extracting a character, it calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(failbit)</SAMP>. If an exception is thrown while extracting a character, it is rethrown. </P>
+</UL>
+
+<A NAME="sec12"><H3>Unformatted Output Functions</H3></A>
+
+<A NAME="idx248"></A><PRE>basic_ostream&amp; 
+<B>flush</B>();</PRE>
+<UL>
+<P>If <SAMP>rdbuf()</SAMP> is not a null pointer, calls <SAMP>rdbuf()-&gt;pubsync()</SAMP> and returns <SAMP>*this</SAMP>. If that function returns <SAMP>-1</SAMP>, calls <SAMP>setstate(badbit)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx249"></A><PRE>basic_ostream&amp; 
+<B>put</B>(char_type c); </PRE>
+<UL>
+<P>Inserts the character <SAMP>c</SAMP>. If the operation fails, calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(badbit)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx250"></A><PRE>basic_ostream&amp; 
+<B>seekp</B>(pos_type pos); </PRE>
+<UL>
+<P>If the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>fail()</SAMP> returns <SAMP>false</SAMP>, executes <SAMP>rdbuf()-&gt;pubseekpos(pos)</SAMP>, which positions the current pointer of the output sequence at the position designated by <SAMP>pos</SAMP>. If positioning fails, calls the <B><I>basic_ios</I></B> member function <SAMP>setstate(failbit)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx251"></A><PRE>basic_ostream&amp; 
+<B>seekp</B>(off_type off, ios_base::seekdir dir);</PRE>
+<UL>
+<P>If the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>fail()</SAMP> returns <SAMP>false</SAMP>, executes <SAMP>rdbuf()-&gt;pubseekpos(off,dir)</SAMP>, which positions the current pointer of the output sequence at the position designated by <SAMP>off</SAMP> and <SAMP>dir</SAMP>. If positioning fails, calls the <B><I>basic_ios</I></B> member function <SAMP>setstate(failbit)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx252"></A><PRE>pos_type 
+<B>tellp</B>();</PRE>
+<UL>
+<P>If the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>fail()</SAMP> returns <SAMP>true</SAMP>, <SAMP>tellp()</SAMP> returns <SAMP>pos_type(off_type(-1))</SAMP> to indicate failure. Otherwise it returns the current position of the output sequence by calling <SAMP>rdbuf()-&gt; pubseekoff(0,cur, out)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx253"></A><PRE>basic_ostream&amp; 
+<B>write</B>(const char_type* s, streamsize n); </PRE>
+<UL>
+<P>Obtains characters to insert from successive locations of an array whose first element is designated by <SAMP>s</SAMP>. Characters are inserted until either of the following occurs:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>n</SAMP> characters are inserted</P></LI>
+<LI><P CLASS="LIST">inserting into the output sequence fails</P></LI>
+</UL>
+<P>In the second case, the function calls the <B><I><A HREF="basic-ios.html">basic_ios</A></I></B> member function <SAMP>setstate(badbit)</SAMP>. The function returns <SAMP>*this</SAMP>. </P>
+</UL>
+
+<A NAME="sec13"><H3>Nonmember Functions</H3></A>
+
+<A NAME="idx254"></A><PRE>template&lt;class charT, class traits&gt;
+basic_ostream&lt;charT, traits&gt;&amp;
+<B>endl</B>(basic_ostream&lt;charT, traits&gt;&amp; os); </PRE>
+<UL>
+<P>Outputs a <SAMP>newline</SAMP> character by calling <SAMP>os.put(os.widen ('\n'))</SAMP>,  flushes the buffer, and returns <SAMP>os</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx255"></A><PRE>template&lt;class charT, class traits&gt;
+basic_ostream&lt;charT, traits&gt;&amp;
+<B>ends</B>(basic_ostream&lt;charT, traits&gt;&amp; os); </PRE>
+<UL>
+<P>Inserts a null character, <SAMP>charT()</SAMP>, into the output sequence, then returns&nbsp;<SAMP>os</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx256"></A><PRE>template&lt;class charT, class traits&gt;
+basic_ostream&lt;charT, traits&gt;&amp;
+<B>flush</B>(basic_ostream&lt;charT, traits&gt;&amp; os); </PRE>
+<UL>
+<P>Flushes the buffer, then returns <SAMP>os</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx257"></A><PRE>template&lt;class charT, class traits&gt;
+basic_ostream&lt;charT, traits&gt;&amp;
+<B>operator&lt;&lt;</B>(basic_ostream&lt;charT, traits&gt;&amp; os, charT c);
+template&lt;class charT, class traits&gt;
+basic_ostream&lt;charT, traits&gt;&amp;
+<B>operator&lt;&lt;</B>(basic_ostream&lt;charT, traits&gt;&amp; os, char c);
+template&lt;class traits&gt;
+basic_ostream&lt;char, traits&gt;&amp;
+<B>operator&lt;&lt;</B>(basic_ostream&lt;char, traits&gt;&amp; os, char c);
+template&lt;class traits&gt;
+basic_ostream&lt;char, traits&gt;&amp;
+<B>operator&lt;&lt;</B>(basic_ostream&lt;char, traits&gt;&amp; os, signed char c);
+template&lt;class traits&gt;
+basic_ostream&lt;char, traits&gt;&amp;
+<B>operator&lt;&lt;</B>(basic_ostream&lt;char, traits&gt;&amp; os, unsigned char c);</PRE>
+<UL>
+<P>Outputs the character <SAMP>c</SAMP> and any required padding into the <B><I>basic_ostream</I></B> object's buffer. If the type of <SAMP>c</SAMP> is <SAMP>char</SAMP> and it doesn't match <SAMP>char_type</SAMP>, the function calls <SAMP>os.widen (c)</SAMP> before inserting the character. Before returning, the function calls <SAMP>os.width (0)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx258"></A><PRE>template&lt;class charT, class traits&gt;
+basic_ostream&lt;charT, traits&gt;&amp;
+<B>operator&lt;&lt;</B>(basic_ostream&lt;charT, traits&gt;&amp; os, const charT* s);
+template&lt;class charT, class traits&gt;<br>basic_ostream&lt;charT, traits&gt;&amp;<br><B>operator&lt;&lt;</B>(basic_ostream&lt;charT, traits&gt;&amp; os, const char* s); 
+template&lt;class traits&gt;
+basic_ostream&lt;char, traits&gt;&amp;
+<B>operator&lt;&lt;</B>(basic_ostream&lt;char, traits&gt;&amp; os, const char* s);
+template&lt;class traits&gt;
+basic_ostream&lt;char, traits&gt;&amp;
+<B>operator&lt;&lt;</B>(basic_ostream&lt;char, traits&gt;&amp; os, unsigned char* s);
+template&lt;class traits&gt;
+basic_ostream&lt;char, traits&gt;&amp;
+<B>operator&lt;&lt;</B>(basic_ostream&lt;char, traits&gt;&amp; os, signed char* s);</PRE>
+<UL>
+<P>After constructing a sentry object the function inserts <SAMP>traits::length(s)</SAMP> characters starting at <SAMP>s</SAMP> plus any required padding into <SAMP>os</SAMP>. Characters starting at <SAMP>s</SAMP> are widened by calling <SAMP>os.widen (*s)</SAMP>. Before returning, the function calls <SAMP>os.width (0)</SAMP>.</P>
+</UL>
+
+<A NAME="sec14"><H3>Formatting</H3></A>
+<P>The formatting is done through member functions or manipulators. </P>
+<H4><A NAME="Table&nbsp;11">Table&nbsp;11: Formatting manipulators and functions for basic_ostream&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Manipulators</B>
+</td>
+<td valign=top><B>Member Functions</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>showpos</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::showpos)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noshowpos</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>unsetf(ios_base::showpos)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>showbase</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::showbase)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noshowbase</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>unsetf(ios_base::showbase)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>uppercase</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::uppercase)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>nouppercase</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>unsetf(ios_base::uppercase)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>showpoint</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::showpoint)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noshowpoint</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>unsetf(ios_base::showpoint)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>boolalpha</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::boolalpha)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noboolalpha</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>unsetf(ios_base::boolalpha) </SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>unitbuf</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::unitbuf)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>nounitbuf</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>unsetf(ios_base::unitbuf)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>internal</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::internal,<br>  ios_base::adjustfield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>left</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::left,<br>  ios_base::adjustfield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>right</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::right,<br>  ios_base::adjustfield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>dec</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::dec,<br>  ios_base::basefield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>hex</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::hex,<br>  ios_base::basefield) </SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>oct</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::oct,<br>  ios_base::basefield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fixed</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::fixed,<br>  ios_base::floatfield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>scientific</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(ios_base::scientific,<br>  ios_base::floatfield)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>resetiosflags</SAMP></P>
+<P CLASS="TABLE"><SAMP> (ios_base::fmtflags flag)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(0,flag)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setiosflags</SAMP></P>
+<P CLASS="TABLE"><SAMP> (ios_base::fmtflags flag)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>setf(flag)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setbase(int base) </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">see above </P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setfill(char_type c)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>fill(c)</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setprecision(int n)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>precision(n) </SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setw(int n)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>width(n)</SAMP></P>
+</td>
+</tr>
+</TABLE>
+<P>The meaning of the manipulators is as follows:</P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>showpos</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Generates a <SAMP>+</SAMP> sign in nonnegative generated numeric output</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>showbase</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Generates a prefix indicating the numeric base of generated integer output</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>uppercase</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Replaces certain lowercase letters with their uppercase equivalents in generated output</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>showpoint</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Generates a decimal-point character unconditionally in generated floating-point output</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>boolalpha</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Inserts and extracts the <SAMP>bool</SAMP> type in alphabetic format</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>unitbuf</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Flushes output after each output operation</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>internal</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Adds fill characters at a designated internal point in certain generated output. If no such point is designated, it's identical to <SAMP>right</SAMP>.</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>left</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Adds fill characters on the right (final positions) of certain generated output</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>right</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Adds fill characters on the left (initial positions) of certain generated output</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>dec</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Converts integer input or generates integer output in decimal base</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>hex</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Converts integer input or generates integer output in hexadecimal base</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>oct</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Converts integer input or generates integer output in octal base</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>fixed</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Generates floating-point output in fixed-point notation</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>scientific</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Generates floating-point output in scientific notation</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>resetiosflags(ios_base::fmtflags flag)</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Resets the <SAMP>fmtflags</SAMP> field <SAMP>flag</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>setiosflags(ios_base::fmtflags flag)</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Sets up the flag <SAMP>flag</SAMP>.</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>setbase(int base)</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Converts integer input or generates integer output in base <SAMP>base</SAMP>. The parameter <SAMP>base</SAMP> can be 8, 10 or 16. </P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>setfill(char_type c)</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Sets the character used to pad (fill) an output conversion to the specified field width</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>setprecision(int n)</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Sets the precision (number of digits after the decimal point) to generate on certain output conversions</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>setw(int n)</SAMP>  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">Sets the field width (number of characters) to generate on certain output conversions</P></TD></TR>
+</TABLE></P>
+<A NAME="sec15"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  ostream1.cpp
+//
+
+#include &lt;iostream&gt;   // for cout, endl, hex, oct
+#include &lt;sstream&gt;    // for istringstream
+#include &lt;iomanip&gt;    // for setfill, setprecision, setw
+
+
+int main ( )
+{
+    // create a read/write stringbuf object on tiny char
+    // and attach it to an istringstream object
+    std::istringstream in (std::ios::in | std::ios::out);
+      
+    // tie the ostream object to the istringstream object
+    std::ostream out (in.rdbuf ());
+
+    out &lt;&lt; "test beginning !" &lt;&lt; std::endl;
+
+    // output an int value in hexadecimal
+    const int i = 22;
+    out &lt;&lt; std::hex &lt;&lt; i &lt;&lt; std::endl; 
+
+    // set the field width to 10, the padding character 
+    // to '@' and output i in octal notation
+    out &lt;&lt; std::setw (10) &lt;&lt; std::oct 
+        &lt;&lt; std::setfill ('@') &lt;&lt; i &lt;&lt; std::endl;
+
+    // output a float with precision set to 2 digits 
+    // after the separator
+    const float f = 3.14159123;
+    out &lt;&lt; std::setprecision (3) &lt;&lt; f &lt;&lt; std::endl;
+
+    const char s[] = "Why, one can hear the grass growing!";
+
+    // output the 17 first characters of s
+    out.write (s, 17);
+
+    // output a newline character
+    out.put ('\n');
+
+    // output s 
+    out &lt;&lt; s &lt;&lt; std::endl;   
+
+    // output the entire contents of the buffer 
+    // to standard output
+    std::cout &lt;&lt; in.rdbuf();
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>test beginning !
+16
+@@@@@@@@26
+3.14
+Why, one can hear
+Why, one can hear the grass growing!
+
+
+
+</PRE></UL>
+<UL><PRE>//
+//  ostream2.cpp
+//
+ 
+#include &lt;iostream&gt;   // for wcout, endl
+#include &lt;sstream&gt;    // for wistringstream
+
+
+
+int main ()
+{
+    const float f = 3.14159;
+
+    const wchar_t s[] = { 'K', 'e', 'n', 'a', 'v', 
+                          'o', ' ', '!', '\0' };
+
+    // create a read/write stringbuf object on wide char
+    // and attach it to an wistringstream object
+    std::wistringstream in (std::wios::in | std::wios::out);
+      
+    // tie the wostream object to the wistringstream object
+    std::wostream out (in.rdbuf ());
+
+    out &lt;&lt; L"test beginning !" &lt;&lt; std::endl;
+    out.setf (std::wios::fixed, std::wios::floatfield);
+
+    // output f in fixed format
+    out &lt;&lt; f &lt;&lt; std::endl; 
+
+    // store the current put-pointer position  
+    std::wostream::pos_type pos = out.tellp ();
+
+    // output s 
+    out &lt;&lt; s &lt;&lt; std::endl;
+
+    // output the all buffer to standard output
+    std::wcout &lt;&lt; in.rdbuf () &lt;&lt; std::endl;
+
+    // position the get-pointer
+    in.seekg (pos);
+
+    // output s
+    std::wcout &lt;&lt; in.rdbuf () &lt;&lt; std::endl;         
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>test beginning !
+3.141593
+Kenavo !
+
+Kenavo !
+
+</PRE></UL>
+<A NAME="sec16"><H3>See Also</H3></A>
+<P><B><I><A HREF="char-traits.html">char_traits</A></I></B>, <B><I><A HREF="ios-base.html">ios_base</A></I></B>, <B><I><A HREF="basic-ios.html">basic_ios</A></I></B>, <B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B>, <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B></P>
+<A NAME="sec17"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.6.2.1</I></P>
+
+<BR>
+<HR>
+<A HREF="basic-ofstream.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-ostringstream.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

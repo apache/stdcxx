@@ -1,0 +1,193 @@
+<HTML>
+<HEAD>
+<TITLE>Containers</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="complex.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="copy.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>Containers</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-7.html">Containers</A></P><UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Description</A></LI>
+<LI><A HREF="#sec4">Container Requirements</A></LI>
+<LI><A HREF="#sec5">Reversible Containers</A></LI>
+<LI><A HREF="#sec6">Sequences</A></LI>
+<LI><A HREF="#sec7">Associative Containers</A></LI>
+<LI><A HREF="#sec8">See Also</A></LI>
+<LI><A HREF="#sec9">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A standard template library (STL) collection</P>
+<A NAME="sec3"><H3>Description</H3></A>
+<P>Within the Standard Template Library, collection classes are often described as containers. A container stores a collection of other objects and includes basic functions that support the use of generic algorithms. Containers come in two types: sequences and associative containers. They are further distinguished by the type of iterator they support.</P>
+<P>A <I>sequence</I> supports a linear arrangement of single elements. <B><I><A HREF="vector.html">vector</A></I></B>, <B><I><A HREF="list.html">list</A></I></B>, <B><I><A HREF="deque.html">deque</A></I></B>, <B><I><A HREF="bitset.html">bitset</A></I></B>, and <B><I><A HREF="basic-string.html">string</A></I></B> fall into this category. <I>Associative containers</I> map values onto keys, which allows for retrieval of the values based on the keys. The STL includes the <B><I><A HREF="map.html">map</A></I></B>, <B><I><A HREF="multimap.html">multimap</A></I></B>, <B><I><A HREF="set.html">set</A></I></B>, and <B><I><A HREF="multiset.html">multiset</A></I></B> associative containers. <B><I>map</I></B> and <B><I>multimap</I></B> store the value and the key separately, and allow for fast retrieval of the value, based upon fast retrieval of the key. <B><I>set</I></B> and <B><I>multiset</I></B> store only keys allowing fast retrieval of the key itself.</P>
+<A NAME="sec4"><H3>Container Requirements</H3></A>
+<P>Containers within the STL must meet the following requirements. The requirements for containers are:</P>
+<UL>
+<LI><P CLASS="LIST">A container allocates all storage for the objects it holds.</P></LI>
+<LI><P CLASS="LIST">A container <SAMP>X</SAMP> of objects of type <SAMP>T</SAMP> includes the following types:</P></LI>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::value_type  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>A <SAMP>T</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::reference   </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">lvalue</SAMP> of <SAMP>T</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::const_reference  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST">const lvalue</SAMP> of <SAMP>T</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::iterator  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>An iterator type pointing to <SAMP>T</SAMP>. <SAMP>X::iterator</SAMP> cannot be an output iterator</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::const_iterator  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>An iterator type pointing to const <SAMP>T</SAMP>. <SAMP>X::iterator</SAMP> cannot be an output iterator</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::difference_type  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>A signed integral type (must be the same as the distance type for <SAMP>X::iterator</SAMP> and <SAMP>X::const_iterator</SAMP>)</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::size_type  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>An unsigned integral type representing any non-negative value of <SAMP>difference_type</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::allocator_type  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Type of allocator used to obtain storage for elements stored in the container</P></TD></TR>
+</TABLE></UL>
+<LI><P CLASS="LIST">A container includes a default constructor, a copy constructor, an assignment operator, and a full complement of comparison operators (==, !=, &lt;, &gt;, &lt;=, &gt;=).</P></LI>
+<LI><P CLASS="LIST">A container includes the following member functions:</P></LI>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>begin()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns an <SAMP>iterator</SAMP> or a <SAMP>const_iterator</SAMP> pointing to the first element in the collection</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>end()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns an iterator or a const_iterator pointing just beyond the last element in the collection</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>swap(container)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Swaps elements between this container and the swap's argument</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>clear()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Deletes all the elements in the container</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>size()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns the number of elements in the collection as a <SAMP>size_type</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>max_size()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns the largest possible number of elements for this type of container as a <SAMP>size_type</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>empty()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns <SAMP>true</SAMP> if the container is empty, <SAMP>false</SAMP> otherwise</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>get_allocator()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns the allocator used by this container</P></TD></TR>
+</TABLE></UL>
+</UL>
+<A NAME="sec5"><H3>Reversible Containers</H3></A>
+<P>A container may be reversible. Essentially, a reversible container includes a reverse iterator that allows traversal of the collection in a direction opposite that of the default iterator. A reversible container must meet the following requirements in addition to those listed above:</P>
+<UL>
+<LI><P CLASS="LIST">A reversible container includes the following types:</P></LI>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::reverse_iterator  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>An iterator type pointing to <SAMP>T</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::const_reverse_iterator  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>An iterator type pointing to <SAMP>const T</SAMP></P></TD></TR>
+</TABLE></UL>
+<LI><P CLASS="LIST">A reversible container includes the following member functions:</P></LI>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>rbegin()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns a <SAMP>reverse_iterator</SAMP> or a <SAMP>const_reverse_iterator</SAMP> pointing past the end of the collection</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>rend()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns a <SAMP>reverse_iterator</SAMP> or a <SAMP>const_reverse_iterator</SAMP> pointing to the first element in the collection</P></TD></TR>
+</TABLE></UL>
+</UL>
+<A NAME="sec6"><H3>Sequences</H3></A>
+<P>In addition to the requirements for containers, the following requirements hold for sequences:</P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>iterator</SAMP> and <SAMP>const_iterator</SAMP> must be forward iterators, bidirectional iterators or random access iterators.</P></LI>
+<LI><P CLASS="LIST">A sequence includes the following constructors:</P></LI>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X(n, t)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Constructs a container with <SAMP>n</SAMP> copies of <SAMP>t</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X(i, j)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Constructs a container with elements from the range <SAMP>[i,j)</SAMP></P></TD></TR>
+</TABLE></UL>
+<LI><P CLASS="LIST">A sequence includes the following member functions:</P></LI>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>insert(p,t)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Inserts the element <SAMP>t</SAMP> in front of the position identified by the iterator <SAMP>p</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>insert(p,n,t)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Inserts <SAMP>n</SAMP> copies of <SAMP>t</SAMP> in front of the position identified by the iterator <SAMP>p</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>insert(p,i,j)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Inserts elements from the range <SAMP>[i,j)</SAMP> in front of the position identified by the iterator <SAMP>p</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>erase(q)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Erases the element pointed to by the iterator <SAMP>q</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>erase(q1,q2)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Erases the elements in the range <SAMP>[q1,q2)</SAMP></P></TD></TR>
+</TABLE></UL>
+<LI><P CLASS="LIST">A sequence may also include the following member functions if they can be implemented with constant time complexity.</P></LI>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>front()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns the element pointed to by <SAMP>begin()</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>back()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns the element pointed to by  <SAMP>end() - 1</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>push_front(x)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Inserts the element <SAMP>x</SAMP> at <SAMP>begin()</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>push_back(x)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Inserts the element <SAMP>x</SAMP> at <SAMP>end()</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>pop_front()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Erases the element at <SAMP>begin()</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>pop_back()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Erases the element at <SAMP>end() - 1</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>operator[](n)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns the element at <SAMP>a.begin() + n</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>at(n)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns the element at <SAMP>a.begin() + n</SAMP>; throws <B><I><A HREF="out-of-range.html">out_of_range</A></I></B> if <SAMP>n</SAMP> is invalid</P></TD></TR>
+</TABLE></UL>
+</UL>
+<A NAME="sec7"><H3>Associative Containers</H3></A>
+<P>In addition to the requirements for a container, the following requirements hold for associative containers:</P>
+<UL>
+<LI><P CLASS="LIST">For an associative container <SAMP>iterator</SAMP> and <SAMP>const_iterator</SAMP> must be bidirectional iterators. Associative containers are inherently sorted. Their iterators proceed through the container in the non-descending order of keys (where non-descending order is defined by the comparison object that was used to construct the container).</P></LI>
+<LI><P CLASS="LIST">An associative container includes the following types:</P></LI>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::key_type  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>the type of the <SAMP>Key</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::key_compare  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>the type of the comparison to use to put the keys in order</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X::value_compare  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>the type of the comparison used on values</P></TD></TR>
+</TABLE></UL>
+<LI><P CLASS="LIST">The default constructor and copy constructor for associative containers use the template parameter comparison class.</P></LI>
+<LI><P CLASS="LIST">An associative container includes the following additional constructors:</P></LI>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X(c)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Constructs an empty container using <SAMP>c</SAMP> as the comparison object</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X(i,j,c)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Constructs a container with elements from the range <SAMP>[i,j)</SAMP> and the comparison object <SAMP>c</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>X(i, j)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Constructs a container with elements from the range [i,j) using the template parameter comparison object</P></TD></TR>
+</TABLE></UL>
+<LI><P CLASS="LIST">An associative container includes the following member functions:</P></LI>
+<UL><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>key_comp()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns the comparison object used in constructing the associative container</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>value_comp()  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns the value comparison object used in constructing the associative container</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>insert(t)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>If the container does <I>not</I> support redundant key values, then this function only inserts <SAMP>t</SAMP> if there is no key present that is equal to the key of <SAMP>t</SAMP>. If the container <I>does</I> support redundant keys, then this function always inserts the element <SAMP>t</SAMP>. Returns a <SAMP>pair&lt;iterator,bool&gt;</SAMP>. The <SAMP>bool</SAMP> component of the returned pair indicates the success or failure of the operation and the <SAMP>iterator</SAMP> component points to the element with key equal to key of <SAMP>t</SAMP>.</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>insert(p,t)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>If the container does NOT support redundant key values, then this function only inserts <SAMP>t</SAMP> if there is no key present that is equal to the key of <SAMP>t</SAMP>. If the container DOES support redundant keys, then this function always inserts the element <SAMP>t</SAMP>. The iterator <SAMP>p</SAMP> serves as a hint of where to start searching, allowing for some optimization of the insertion. It does not restrict the algorithm from inserting ahead of that location if necessary.</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>insert(i,j)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Inserts elements from the range <SAMP>[i,j). </SAMP>A prerequisite is that <SAMP>i</SAMP> and <SAMP>j</SAMP> cannot be iterators into the container.</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>erase(k)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Erases all elements with key equal to <SAMP>k</SAMP>. Returns number of erased elements.</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>erase(q)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Erases the element pointed to by <SAMP>q</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>erase(q1,q2)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Erases the elements in the range <SAMP>[q1,q2)</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>find(k)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns an iterator pointing to an element with key equal to <SAMP>k</SAMP> or <SAMP>end()</SAMP>, if such an element is not found</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>count(k)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns the number of elements with key equal to <SAMP>k</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>lower_bound(k)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns an iterator pointing to the first element with a key greater than or equal to <SAMP>k</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>upper_bound(k)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns an iterator pointing to the first element with a key greater than <SAMP>k</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST"><SAMP>equal_range(k)  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"></SAMP>Returns a pair of iterators such that the first element of the pair is equivalent to <SAMP>lower_bound(k)</SAMP> and the second element equivalent to <SAMP>upper_bound(k)</SAMP></P></TD></TR>
+</TABLE></UL>
+</UL>
+<A NAME="sec8"><H3>See Also</H3></A>
+<P><B><I><A HREF="bitset.html">bitset</A></I></B>, <B><I><A HREF="deque.html">deque</A></I></B>, <B><I><A HREF="list.html">list</A></I></B>, <B><I><A HREF="map.html">map</A></I></B>, <B><I><A HREF="multimap.html">multimap</A></I></B>, <B><I><A HREF="multiset.html">multiset</A></I></B>, <B><I><A HREF="priority-queue.html">priority_queue</A></I></B>, <B><I><A HREF="queue.html">queue</A></I></B>, <B><I><A HREF="set.html">set</A></I></B>, <B><I><A HREF="stack.html">stack</A></I></B>, <B><I><A HREF="vector.html">vector</A></I></B></P>
+<A NAME="sec9"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 23</I></P>
+
+<BR>
+<HR>
+<A HREF="complex.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="copy.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

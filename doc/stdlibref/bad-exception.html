@@ -1,0 +1,52 @@
+<HTML>
+<HEAD>
+<TITLE>bad_exception</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="bad-cast.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="bad-typeid.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>bad_exception</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-2.html">Language support</A></P>
+
+<PRE><HR><B><I>bad_exception</I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="exception.html">exception</A></I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">See Also</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An exception class</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;exception&gt;
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>An object of class <B><I>bad_exception</I></B> is thrown to replace an exception that does not meet a function's throw specification. The class is derived from <B><I><A HREF="exception.html">exception</A></I></B>.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+      class bad_exception : public exception {
+      public:
+        bad_exception() throw();
+        bad_exception(const bad_exception&amp;) throw();
+        bad_exception&amp; operator=(const bad_exception&amp;) throw();
+        virtual ~bad_exception() throw();
+        virtual const char* what() const throw();
+      };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>See Also</H3></A>
+<P><A HREF="exceptions.html">Exceptions</A>, <B><I><A HREF="bad-alloc.html">bad_alloc</A></I></B>, <B><I><A HREF="bad-cast.html">bad_cast</A></I></B>, <B><I><A HREF="bad-typeid.html">bad_typeid</A></I></B>, <B><I><A HREF="domain-error.html">domain_error</A></I></B>, <B><I><A HREF="exception.html">exception</A></I></B>, <B><I><A HREF="invalid-argument.html">invalid_argument</A></I></B>, <B><I><A HREF="ios-base.html#failure">ios_base::failure</A></I></B>, <B><I><A HREF="length-error.html">length_error</A></I></B>, <B><I><A HREF="logic-error.html">logic_error</A></I></B>, <B><I><A HREF="out-of-range.html">out_of_range</A></I></B>, <B><I><A HREF="overflow-error.html">overflow_error</A></I></B>, <B><I><A HREF="range-error.html">range_error</A></I></B>, <B><I><A HREF="runtime-error.html">runtime_error</A></I></B>, <B><I><A HREF="underflow-error.html">underflow_error</A></I></B></P>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 18.6.2.1</I></P>
+
+<BR>
+<HR>
+<A HREF="bad-cast.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="bad-typeid.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

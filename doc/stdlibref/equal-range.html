@@ -1,0 +1,112 @@
+<HTML>
+<HEAD>
+<TITLE>equal_range()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="equal.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="equal-to.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>equal_range()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that finds the largest subrange in a range of values into which a given value can be inserted without violating the ordering of the values</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class ForwardIterator, class T&gt;
+  pair&lt;ForwardIterator, ForwardIterator&gt;
+  equal_range(ForwardIterator start, ForwardIterator finish,
+              const T&amp; value);
+
+  template &lt;class ForwardIterator, class T, class Compare&gt;
+  pair&lt;ForwardIterator, ForwardIterator&gt;
+  equal_range(ForwardIterator start, ForwardIterator finish,
+              const T&amp; value, Compare comp);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>equal_range()</SAMP> algorithm performs a binary search on an ordered range to determine where the element <SAMP>value</SAMP> can be inserted without violating the range's ordering. The library includes two versions of the algorithm. The first version uses <SAMP>operator&lt;()</SAMP> to search for the valid insertion range, and assumes that the sequence was sorted using the same ordering. The second version allows you to specify a function object of type <SAMP>Compare</SAMP>, and assumes that <SAMP>Compare</SAMP> was the function used to sort the sequence. The function object must be a binary predicate. </P>
+<P><SAMP>equal_range()</SAMP> returns a pair of iterators, <SAMP>i</SAMP> and <SAMP>j</SAMP>, that define a range containing elements equivalent to <SAMP>value</SAMP>, in other words, the first and last valid insertion points for <SAMP>value</SAMP>. If <SAMP>value</SAMP> is not an element in the container, <SAMP>i</SAMP> and <SAMP>j</SAMP> are equal. Otherwise, <SAMP>i</SAMP> points to the first element not "less" than <SAMP>value</SAMP>, and <SAMP>j</SAMP> points to the first element greater than value. In the second version, the ordering is defined by the comparison object. Formally, <SAMP>equal_range()</SAMP> returns a sub-range <SAMP>[i, j)</SAMP> such that <SAMP>value</SAMP> can be inserted at any iterator <SAMP>k</SAMP> within the range without violating the ordering. Depending upon the version of the algorithm used, <SAMP>k</SAMP> must satisfy one of the following conditions: </P>
+<P><SAMP>!(*k &lt;  value)  &amp;&amp;  !(value  &lt;  *k)</SAMP></P>
+<P> or </P>
+<P><SAMP>comp(*k,value) == false &amp;&amp; comp(value, *k) == false</SAMP></P>
+<P>The range <SAMP>[start,finish)</SAMP> is assumed to be sorted. Type <SAMP>T</SAMP> must be LessThanComparable.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P><SAMP>equal_range()</SAMP> performs at most <SAMP>2 * log(finish - start) + 1</SAMP> comparisons.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+// eqlrange.cpp
+//
+
+#include &lt;algorithm&gt;
+#include &lt;functional&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+
+
+
+int main ()
+{
+    // Typedef for convenience.
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; vector;
+
+    vector::value_type arr[] = {
+        0, 1, 2, 2, 3, 4, 2, 2, 2, 6, 7 
+    };
+
+    // Set up a vector.
+    vector v1 (arr, arr + sizeof arr / sizeof *arr);
+
+    // Try equal_range variants.
+    std::pair&lt;vector::iterator, vector::iterator&gt; p1 =
+        std::equal_range (v1.begin (), v1.end (), 3);
+
+    std::pair&lt;vector::iterator, vector::iterator&gt; p2 =
+        std::equal_range (v1.begin (), v1.end (), 2,
+                     std::less&lt;vector::value_type&gt; ()); 
+
+    // Output results.
+    std::cout &lt;&lt; "\nThe equal range for 3 is: "
+              &lt;&lt; "(" &lt;&lt; *p1.first &lt;&lt; " , " 
+              &lt;&lt; *p1.second &lt;&lt; ")" &lt;&lt; std::endl;
+
+    std::cout &lt;&lt; "\nThe equal range for 2 is: "
+              &lt;&lt; "(" &lt;&lt; *p2.first &lt;&lt; " , " 
+              &lt;&lt; *p2.second &lt;&lt; ")" &lt;&lt; std::endl; 
+
+    return 0;
+}
+
+
+Program Output
+</PRE></UL>
+<UL><PRE>
+The equal range for 3 is: (3 , 4)
+
+The equal range for 2 is: (2 , 3)
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><B><I><A HREF="binary-function.html">binary_function</A></I></B>, <SAMP><A HREF="lower-bound.html">lower_bound()</A></SAMP>, <SAMP><A HREF="upper-bound.html">upper_bound()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.3.3.3</I></P>
+
+<BR>
+<HR>
+<A HREF="equal.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="equal-to.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

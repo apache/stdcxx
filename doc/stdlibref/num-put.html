@@ -1,0 +1,526 @@
+<HTML>
+<HEAD>
+<TITLE>num_put</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="num-get.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="numeric-h.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>num_put</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR><B><I>num_put</I></B> <IMG SRC="images/inherits.gif"> <B><I>locale::facet</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Types</A></LI>
+<LI><A HREF="#sec8">Constructors</A></LI>
+<LI><A HREF="#sec9">Facet ID</A></LI>
+<LI><A HREF="#sec10">Public Member Functions</A></LI>
+<LI><A HREF="#sec11">Protected Member Functions</A></LI>
+<LI><A HREF="#sec12">Example</A></LI>
+<LI><A HREF="#sec13">See Also</A></LI>
+<LI><A HREF="#sec14">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1005">char_type</A><BR>
+<A HREF="#idx1010">do_put()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1008">id</A><BR>
+<A HREF="#idx1006">iter_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1007">num_put()</A><BR>
+<A HREF="#idx1009">put()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A numeric formatting facet </P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  template &lt;class charT, class OutputIterator&gt; class num_put;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+<P>The primary template can be implicitly or explicitly specialized on any character type that satisfies the requirements on the type of the character used by iostream class templates, and on any iterator type that satisfies the requirements of Output Iterator.</P>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The <B><I>num_put</I></B> facet includes facilities for formatted output of numeric values. <B><I><A HREF="basic-ostream.html">basic_ostream</A></I></B> and all other output-oriented streams use this facet to implement formatted numeric output.</P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class charT, class OutputIterator =
+    ostreambuf_iterator&lt;charT&gt; &gt;
+  class num_put : public locale::facet {
+
+    public:
+    typedef charT            char_type;
+    typedef OutputIterator   iter_type;
+    explicit num_put(size_t = 0);
+
+    iter_type put(iter_type, ios_base&amp;, char_type, bool)
+              const;
+    iter_type put(iter_type, ios_base&amp;, char_type, long)
+              const;
+    iter_type put(iter_type, ios_base&amp;, char_type,
+                  unsigned long) const;
+    iter_type put(iter_type, ios_base&amp;, char_type,
+                  double) const;
+    iter_type put(iter_type, ios_base&amp;, char_type,
+                  long double) const;
+    iter_type put(iter_type, ios_base&amp;, char_type, 
+                  const void* v) const; 
+
+    static locale::id id;
+
+    protected:
+    virtual iter_type do_put(iter_type, ios_base&amp;, char_type,
+                             bool) const;
+    virtual iter_type do_put(iter_type, ios_base&amp;, char_type,
+                             long) const;
+    virtual iter_type do_put(iter_type, ios_base&amp;, char_type,
+                             unsigned long) const;
+   virtual iter_type do_put(iter_type, ios_base&amp;, char_type,
+                             double) const;
+   virtual iter_type do_put(iter_type, ios_base&amp;, char_type,
+                             long double) const;
+   virtual iter_type do_put(iter_type, ios_base&amp;, char_type,
+                            const void*&amp;) const; 
+  };
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Types</H3></A>
+
+<A NAME="idx1005"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>Type of character upon which the facet is instantiated.</P>
+</UL>
+
+
+<A NAME="idx1006"></A><PRE><B>iter_type</B></PRE>
+<UL>
+<P>Type of iterator used to scan the character buffer.</P>
+</UL>
+
+<A NAME="sec8"><H3>Constructors</H3></A>
+
+<A NAME="idx1007"></A><PRE>explicit <B>num_put</B>(size_t refs = 0) </PRE>
+<UL>
+<P>Constructs a <B><I>num_put</I></B> object. Calls <SAMP>locale::facet (refs)</SAMP>. </P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the <B><I>num_put</I></B> object's reference count. A <B><I>num_put</I></B> object <SAMP>f</SAMP> constructed with <SAMP>(refs == 0)</SAMP> that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. A <B><I>num_put</I></B> object constructed with <SAMP>(refs != 0)</SAMP> will not be destroyed by any locale objects in which it may have been installed.</P>
+</UL>
+
+<A NAME="sec9"><H3>Facet ID</H3></A>
+
+<A NAME="idx1008"></A><PRE>static locale::id <B>id</B>;</PRE>
+<UL>
+<P>Unique identifier for this type of facet. </P>
+</UL>
+
+<A NAME="sec10"><H3>Public Member Functions</H3></A>
+<P>The public members of the <B><I>num_put</I></B> facet include an interface to protected members. Each public member function <SAMP>put()</SAMP> calls the corresponding protected virtual protected member <SAMP>do_put()</SAMP>. </P>
+
+<A NAME="idx1009"></A><PRE>iter_type 
+<B>put</B>(iter_type s, ios_base&amp; io, char_type fill, bool v)
+    const; 
+iter_type 
+<B>put</B>(iter_type s, ios_base&amp; io, char_type fill, long v)
+    const; 
+iter_type 
+<B>put</B>(iter_type s, ios_base&amp; io, char_type fill,
+    unsigned long v) const; 
+iter_type 
+<B>put</B>(iter_type s, ios_base&amp; io, char_type fill, double v)
+    const; 
+iter_type
+<B>put</B>(iter_type s, ios_base&amp; io, char_type fill, 
+    long double v) const; 
+iter_type 
+<B>put</B>(iter_type s, ios_base&amp; io, char_type fill, 
+    const void* v) const;</PRE>
+<UL>
+<P>Each of the six overloads of the <SAMP>put()</SAMP> function simply call the corresponding <SAMP>do_put()</SAMP> function.</P>
+</UL>
+
+<A NAME="sec11"><H3>Protected Member Functions</H3></A>
+
+<A NAME="idx1010"></A><PRE>virtual iter_type 
+<B>do_put</B>(iter_type s, ios_base&amp; io, 
+       char_type fill, bool v) const; 
+virtual iter_type 
+<B>do_put</B>(iter_type s, ios_base&amp; io, 
+       char_type fill, long v) const; 
+virtual iter_type 
+<B>do_put</B>(iter_type s, ios_base&amp; io, 
+       char_type fill,unsigned long) const; 
+virtual iter_type 
+<B>do_put</B>(iter_type s, ios_base&amp; io, 
+       char_type fill, double v) const; 
+virtual iter_type 
+<B>do_put</B>(iter_type s, ios_base&amp; io, 
+       char_type fill,long double v) const; 
+virtual iter_type 
+<B>do_put</B>(iter_type s, ios_base&amp; io, 
+       char_type fill,const void* v) const;</PRE>
+<UL>
+<P>The six overloads of the <SAMP>do_put()</SAMP> member function all take a value <SAMP>v</SAMP> of the respective type and output a formatted character string representing that value into the output sequence starting at <SAMP>s</SAMP>. </P>
+<P>The <SAMP>io</SAMP> argument is used to obtain formatting parameters such that justification, field width, numeric base, and grouping, and the <SAMP>fill</SAMP> argument determines the character to use in padding.</P>
+<P>The functions use the <SAMP>numpunct&lt;char_type&gt;</SAMP> facet installed in the locale object imbued in <SAMP>io</SAMP> to determine the grouping and the thousands separator to be used, if any.</P>
+<P>The following table shows how the various flags obtained by the functions from <SAMP>io </SAMP>by calling <SAMP>io.flags()</SAMP> are interpreted to format the values.</P>
+<P>The setting of the <SAMP>ios_base::adjustfield</SAMP> bits along with the value of <SAMP>io.width()</SAMP> determine the justification of output. If the return value of <SAMP>io.width()</SAMP>, <SAMP>w</SAMP>, is greater than the number of characters, <SAMP>n</SAMP>, that would otherwise be produced,  <SAMP>(w - n)</SAMP> copies of the <SAMP>fill</SAMP> character will be inserted at the position denoted `<SAMP>*</SAMP>' in <A HREF="num-put.html#Table&nbsp;29">Table&nbsp;29</A>.</P>
+<H4><A NAME="Table&nbsp;29">Table&nbsp;29: ios_base::adjustfield formats&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>adjustfield</B>
+</td>
+<td valign=top><B>Format</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>internal</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>-***</SAMP><SAMP><I>####</I></SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>left</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>-</SAMP><SAMP><I>###</I></SAMP><SAMP>****</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>right</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>****-</SAMP><SAMP><I>###</I></SAMP></P>
+</td>
+</tr>
+</TABLE>
+<P>For integral types, the setting of the <SAMP>ios_base::basefield</SAMP> bits determines the base in which the numbers will be represented. For octal and hexadecimal output, the <SAMP>ios_base::showbase</SAMP> bit determines whether the `<SAMP>0</SAMP>' or "<SAMP>0x</SAMP>" prefix will be output before the sequence of octal or hexadecimal digits.</P>
+<P>The <SAMP>ios_base::uppercase</SAMP> bit determines whether uppercase or lowercase of alphabetic characters will be used in the output.</P>
+<P>The <SAMP>ios_base::showpos</SAMP> bit determines whether the plus sign (`<SAMP>+</SAMP>') will precede positive values. Negative values output in base 10 are always preceded by the minus sign (`<SAMP>-</SAMP>'). See <A HREF="num-put.html#Table&nbsp;30">Table&nbsp;30</A> for details.</P>
+<H4><A NAME="Table&nbsp;30">Table&nbsp;30: os_base::basefield formats&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>basefield</B>
+</td>
+<td valign=top><B></B>
+</td>
+<td valign=top><B>uppercase</B>
+</td>
+<td valign=top><B>showbase</B>
+</td>
+<td valign=top><B>showpos</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>dddd</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>dddd</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>dddd</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>dddd</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bin(*)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>bbbb</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>bbbb</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>bbbb</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>bbbb</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>oct</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>oooo</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>oooo</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>oooo</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>oooo</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>dec</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>dddd</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>dddd</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>dddd</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>+ddd</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>hex</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>hhhh</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>HHHH</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>0xhh</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>0xhh</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>other(*)</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>####</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>####</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>####</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>####</SAMP></P>
+</td>
+</tr>
+</TABLE>
+<P> (<SAMP>*</SAMP>) denotes an extension of this implementation. Output in base 1 (roman numerals for integral numbers 1 through 4999), and base 2 through 36 is supported. Use the <SAMP>setbase()</SAMP> manipulator declared in <SAMP>&lt;iomanip&gt;</SAMP> to set base other than 2, 8, 10, and 16.</P>
+<P>For floating point types, the setting of the <SAMP>ios_base::floatfield</SAMP> bits determines the format of the output as shown in <A HREF="num-put.html#Table&nbsp;31">Table&nbsp;31</A>.</P>
+<H4><A NAME="Table&nbsp;31">Table&nbsp;31: ios_base::floatfield formats</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>floatfield</B>
+</td>
+<td valign=top><B></B>
+</td>
+<td valign=top><B>uppercase</B>
+</td>
+<td valign=top><B>showpos</B>
+</td>
+<td valign=top><B>showpoint</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>d[.d|.de]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>d[.d|.dE]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>+d[.d|.dE]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>+d.[d|de]</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fixed</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>d[.ddd]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>d[.ddd]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>+d[.ddd]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>d.[ddd]</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>scientific</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>d.de</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>d.dE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>+d.de</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>d.de</SAMP></P>
+</td>
+</tr>
+</TABLE>
+<P>For floating point types, the value of <SAMP>io.precision()</SAMP> determines the number of digits after the decimal point.</P>
+<P>As an extension of this implementation, when the <SAMP>(io.flags () &amp; ios_base::fixed)</SAMP> is non-zero, and <SAMP>(io.precision() &lt; 0)</SAMP> is <SAMP>true</SAMP>, the negative precision value, <SAMP>prec</SAMP>, will result in the decimal point character being moved (or inserted in the case of integers) by <SAMP>prec</SAMP> positions to the left of the least significant integral digit. For example, with <SAMP>(io.precision() == -3)</SAMP>, the integer value <SAMP>1234</SAMP> will produce <SAMP>1.234</SAMP> on output, the floating point value <SAMP>1234.5678</SAMP> will produce <SAMP>1.235</SAMP>. If the magnitude of <SAMP>prec</SAMP> is larger than the number of digits in the integer part of the value, the decimal point will be immediately preceded by a single digit <SAMP>0</SAMP> and followed by as many zeros as necessary so that there are exactly <SAMP>-prec</SAMP> digits after the decimal point. For example, the value <SAMP>12</SAMP> will produce <SAMP>0.012</SAMP> on output.</P>
+<P><A HREF="num-put.html#Table&nbsp;32">Table&nbsp;32</A> provides a legend for <A HREF="num-put.html#Table&nbsp;29">Table&nbsp;29</A>, <A HREF="num-put.html#Table&nbsp;30">Table&nbsp;30</A> and <A HREF="num-put.html#Table&nbsp;31">Table&nbsp;31</A>.</P>
+<H4><A NAME="Table&nbsp;32">Table&nbsp;32: Legend for Table 1, Table 2 and Table 3</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Letter</B>
+</td>
+<td valign=top><B>Description</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>+</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Sign: one of <SAMP>{ +, - }</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Sign: one of <SAMP>{ +, - }</SAMP>, with the <SAMP>+</SAMP> sign being optional for non-negative values</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>.</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Decimal point as determined by<SAMP> numpunct&lt;char_type&gt;::decimal_point() </SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>*</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">The fill character.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>#</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Any digit </P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>b</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Binary digit(<SAMP>*</SAMP>): one of <SAMP>{ 0, 1 }</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Octal digit: one of <SAMP>{ &lt;binary digit&gt;, 2, 3, 4, 5, 6, 7 }</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>d</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Decimal digit: one of <SAMP>{ &lt;octal digit&gt;, 8, 9 }</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>h</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Hexadecimal digit: one of <SAMP>{ &lt;decimal digit&gt;, a, b, c, d, e, f }</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>H</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Uppercase hex digit: one of <SAMP>{ &lt;decimal digit&gt;, A, B, C, D, E, F } </SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>e</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Floating point exponent in the format <SAMP>e-dd[d[d]]</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>E</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Uppercase floating point exponent in the format<SAMP> E-dd[d[d]] </SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>[]</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Brackets enclose optional components </P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>()</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Parentheses enclose groups of one or more components </P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>|</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Vertical bar separates two possible alternatives </P>
+</td>
+</tr>
+</TABLE>
+<P> (<SAMP>*</SAMP>) denotes an extension of this implementation.</P>
+</UL>
+
+<A NAME="sec12"><H3>Example</H3></A>
+
+<UL><PRE>#include &lt;iostream&gt;   // for cout, endl
+#include &lt;iterator&gt;   // for ostreambuf_iterator
+#include &lt;locale&gt;     // for time_put
+
+#include &lt;examples.h&gt;
+
+// custom numeric punctuation facet
+struct Punct: std::numpunct&lt;char&gt;
+{
+    char do_decimal_point () const {
+        return ';';
+    }
+
+    string_type do_truename () const {
+        return "numeric formatting";
+    }
+
+    char do_thousands_sep () const {
+        return ':';
+    }
+
+    std::string do_grouping () const {
+        return "\1\2\3";
+    }
+};
+
+int main ()
+{
+    // construct a custom punctuation facet
+    std::numpunct&lt;char&gt; *punct = new Punct;
+
+    // construct a locale containing the custom facet
+    const std::locale loc (std::cout.getloc (), punct);
+
+    // imbue combined locale in cout
+    std::cout.imbue (loc);
+
+    // retrieve the standard numeric formatting facet
+    const std::num_put&lt;char&gt; &amp;nput =
+        std::use_facet&lt;std::num_put&lt;char&gt; &gt;(std::cout.getloc ());
+ 
+    // obtain a stream buffer iterator operating on cout's buffer
+    std::ostreambuf_iterator&lt;char&gt; it = std::cout.rdbuf ();
+
+    // write out bool values as strings
+    std::cout.setf (std::ios::boolalpha);
+    *nput.put (it, std::cout, ' ', true) = '\n';
+
+    // set the field width and justification for the next operation
+    std::cout.width (18);
+    std::cout.setf (std::ios::fixed | std::ios::right);
+
+    const double Pi = 3.14159265358979323846;
+
+    // truncate Pi to an integer and write it out, padded on the left with periods
+    *nput.put (it, std::cout, '.', long (Pi)) = '\n';
+
+    // write out a number in hex notation using capital letters
+    std::cerr.width (13);
+    std::cerr.setf (std::ios::right | std::ios::uppercase);
+    std::cerr.setf (std::ios::hex, std::ios::basefield);
+    *nput.put (it, std::cerr, ' ', 3735928559UL) = '\n';
+
+    std::cout.width (18);
+    std::cout.setf (std::ios::internal, std::ios::adjustfield);
+    std::cout.setf (std::ios::showpos);
+    
+    // write Pi out padded after the sign with spaces
+    *nput.put (it, std::cout, ' ', Pi) = '\n';
+
+    // write Pi out again, multiplied by a large number (to see grouping)
+    *nput.put (it, std::cout, ' ', Pi * 1000000) = '\n';
+
+    // and again, in scientific notation
+    std::cout.precision (11);
+    std::cout.setf (std::ios::scientific, std::ios::floatfield);
+    *nput.put (it, std::cout, ' ', Pi * 1000000) = '\n';
+
+    return 0;
+}
+
+
+Program Output:
+numeric formatting
+.................3
+     DEADBEEF
++         3;141593
++3:141:59:2;653590
++3;14159265359e+06
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<A NAME="sec13"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="num-get.html">num_get</A></I></B>, <B><I><A HREF="numpunct.html">numpunct</A></I></B>, <B><I><A HREF="ctype.html">ctype</A></I></B></P>
+<A NAME="sec14"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.2.2</I></P>
+
+<BR>
+<HR>
+<A HREF="num-get.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="numeric-h.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

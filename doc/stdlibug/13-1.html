@@ -1,0 +1,172 @@
+<HTML>
+<HEAD>
+<TITLE>Overview</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="13.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>13.1 Overview</H2>
+<A NAME="idx242"><!></A>
+<P>In this chapter and in <A HREF="14.html">Chapter&nbsp;14</A> we examine and illustrate each of the generic algorithms provided by the Standard C++ Library. The names and a short description of each of the algorithms in this chapter are given in <A HREF="13-1.html#Table&nbsp;19">Table&nbsp;19</A>. We have divided the algorithms into several categories, based on how they are typically used. This division differs from the categories used in the Standard C++ Library definition, which is based upon whether or not the algorithms modify their arguments.</P>
+<H4><A NAME="Table&nbsp;19">Table&nbsp;19: Generic algorithms of the Standard C++ Library&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Algorithm</B>
+</td><td valign=top><B>Purpose</B>
+</td></tr>
+<A NAME="idx243"><!></A>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Algorithms initializing a sequence</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>copy()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Copies a sequence into another sequence</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>copy_backward()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Copies a sequence into another sequence</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fill()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Fills a sequence with an initial value</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fill_n()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Fills n positions with an initial value</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>generate()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Initializes a sequence using a generator</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>generate_n()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Initializes n positions using a generator </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>swap()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Exchanges values</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>swap_ranges()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Swaps values from two parallel sequences </P>
+</td></tr>
+<A NAME="idx244"><!></A>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Searching algorithms</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>adjacent_find()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Finds consecutive duplicate elements </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>find()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Finds an element matching the argument </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>find_end()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Finds the last occurrence of a sub-sequence in a sequence</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>find_first_of()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Finds the first occurrence of one member of a sequence in another sequence</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>find_if()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Finds an element satisfying a condition </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>max_element()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Finds the maximum value in a sequence </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>min_element()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Finds the minimum value in a sequence </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>mismatch()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Finds first mismatch in parallel sequences</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>search()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Matches a sub-sequence within a sequence </P>
+</td></tr>
+<A NAME="idx245"><!></A>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Algorithms for in-place transformations</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>inplace_merge()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Merges two adjacent sequences into one </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>next_permutation()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Generates permutations in sequence </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>partition()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Partitions elements into two groups </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>permutation()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Generates successive permutations of a sequence based on an ordering function</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>prev_permutation()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Generates permutations in reverse sequence </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>random_shuffle()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Randomly rearranges elements in a sequence</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>replace()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Replaces specific values with new value </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>replace_if()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Replaces elements matching predicate</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>reverse()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Reverses the elements in a sequence </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>rotate()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Rotates elements in a sequence around a point </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>stable_partition()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Partitions preserving original ordering </P>
+</td></tr>
+<A NAME="idx246"><!></A>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Removal algorithms </I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>remove()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Removes elements that match condition</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>unique()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Removes all but first of duplicate values in sequences</P>
+</td></tr>
+<A NAME="idx247"><!></A>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Scalar-producing algorithms</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>accumulate()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Reduces sequence to a scalar value </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>count()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Counts number of elements matching value </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>count_if()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Counts elements matching predicate</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>equal()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Checks two sequences for equality </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>inner_product()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Gives inner product of two parallel sequences</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>lexicographical_compare()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Compares two sequences</P>
+</td></tr>
+<A NAME="idx248"><!></A>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"><B><I>Sequence-generating algorithms</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>adjacent_difference()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Generates sequence of adjacent differences</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>partial_sum()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Generates sequence of partial sums </P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>transform()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Transforms each element</P>
+</td></tr>
+<A NAME="idx249"><!></A>
+<tr><td valign=top colspan=2 rowspan=1><P CLASS="TABLE"> <B><I>Miscellaneous operations </I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>for_each()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Applies a function to each element of a collection </P>
+</td></tr>
+</TABLE>
+<P>In this chapter, we illustrate the use of each algorithm with a series of short examples. Many of the algorithms are also used in the sample programs provided in the chapters on the various container classes. These cross references have been noted where appropriate.</P>
+<A NAME="idx250"><!></A>
+<P>All the short example programs described in this section are contained in a number of files, named <SAMP>alg1.cpp</SAMP> through <SAMP>alg6.cpp</SAMP>. In the files, the example programs are augmented with output statements describing the test programs and illustrating the results of executing the algorithms. So as not to confuse the reader with unnecessary detail, we have generally omitted these output statements from the descriptions here. If you wish to see the test programs complete with output statements, you can compile and execute the test files. The expected output from these programs is also included in the distribution.</P>
+<A NAME="1311"><H3>13.1.1 Include Files</H3></A>
+<A NAME="idx251"><!></A>
+<P>To use any of the generic algorithms, you must first include the appropriate header file. The majority of the functions are defined in the header file <SAMP>algorithm</SAMP>. The functions <SAMP>std::accumulate()</SAMP>, <SAMP>std::inner_product()</SAMP>, <SAMP>std::partial_sum()</SAMP>, and <SAMP>std::adjacent_difference()</SAMP> are defined in the header file <SAMP>numeric</SAMP>.</P>
+
+<UL><PRE>
+#include &lt;algorithm&gt;
+#include &lt;numeric&gt;
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="13.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

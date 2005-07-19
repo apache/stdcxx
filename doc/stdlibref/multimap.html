@@ -1,0 +1,685 @@
+<HTML>
+<HEAD>
+<TITLE>multimap</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="money-put.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="multiplies.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>multimap</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-7.html">Containers</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Constructors</A></LI>
+<LI><A HREF="#sec7">Assignment Operators</A></LI>
+<LI><A HREF="#sec8">Allocators</A></LI>
+<LI><A HREF="#sec9">Iterators</A></LI>
+<LI><A HREF="#sec10">Member Functions</A></LI>
+<LI><A HREF="#sec11">Nonmember Operators</A></LI>
+<LI><A HREF="#sec12">Specialized Algorithms</A></LI>
+<LI><A HREF="#sec13">Example</A></LI>
+<LI><A HREF="#sec14">Warnings</A></LI>
+<LI><A HREF="#sec15">See Also</A></LI>
+<LI><A HREF="#sec16">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx925">begin()</A><BR>
+<A HREF="#idx933">clear()</A><BR>
+<A HREF="#idx934">count()</A><BR>
+<A HREF="#idx935">empty()</A><BR>
+<A HREF="#idx927">end()</A><BR>
+<A HREF="#idx936">equal_range()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx937">erase()</A><BR>
+<A HREF="#idx940">find()</A><BR>
+<A HREF="#idx924">get_allocator()</A><BR>
+<A HREF="#idx942">insert()</A><BR>
+<A HREF="#idx944">key_comp()</A><BR>
+<A HREF="#idx945">lower_bound()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx947">max_size()</A><BR>
+<A HREF="#idx920">multimap()</A><BR>
+<A HREF="#idx923">operator=()</A><BR>
+<A HREF="#idx929">rbegin()</A><BR>
+<A HREF="#idx931">rend()</A><BR>
+<A HREF="#idx948">size()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx949">swap()</A><BR>
+<A HREF="#idx950">upper_bound()</A><BR>
+<A HREF="#idx952">value_comp()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx954">operator!=()</A><BR>
+<A HREF="#idx956">operator&gt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx958">operator&gt;=()</A><BR>
+<A HREF="#idx955">operator&lt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx957">operator&lt;=()</A><BR>
+<A HREF="#idx953">operator==()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An associative container that gives access to non-key values using keys. <B><I>multimap</I></B> keys are not required to be unique. A <B><I>multimap</I></B> supports bidirectional iterators.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;map&gt;
+
+namespace std {
+  template &lt;class Key, class T, class Compare = less&lt;Key&gt;,
+            class Allocator = allocator&lt;pair&lt;const Key, T&gt; &gt; &gt;
+  class multimap;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P><B><I>multimap</I></B> gives fast access to stored values of type <SAMP>T </SAMP>that are indexed by keys of type <SAMP>Key</SAMP>. The default operation for key comparison is the <SAMP>&lt;</SAMP> operator. Unlike <B><I><A HREF="map.html">map</A></I></B>, <B><I>multimap</I></B> allows insertion of duplicate keys. </P>
+<P><B><I>multimap</I></B> uses bidirectional iterators that point to an instance of <SAMP>pair&lt;const Key x, T y&gt;</SAMP> where <SAMP>x</SAMP> is the key and <SAMP>y</SAMP> is the stored value associated with that key.   The definition of <B><I>multimap</I></B> includes a <SAMP>typedef</SAMP> to this pair called <SAMP>value_type</SAMP>. </P>
+<P>The types used for both the template parameters <SAMP>Key</SAMP> and <SAMP>T</SAMP> must include the following (where <SAMP>T</SAMP> is the <SAMP>type</SAMP>, <SAMP>t</SAMP> is a value of <SAMP>T</SAMP> and <SAMP>u</SAMP> is a <SAMP>const</SAMP> <SAMP>value</SAMP> of <SAMP>T</SAMP>): </P>
+<P><TABLE CELLPADDING=3 BORDER=0>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">Copy constructors  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"><SAMP>T(t)</SAMP> and <SAMP>T(u)</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">Destructor  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"><SAMP>t.~T()</SAMP></P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">Address of  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"><SAMP>&amp;t</SAMP> and <SAMP>&amp;u</SAMP> yielding <SAMP>T*</SAMP> and <SAMP>const T*</SAMP> respectively</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">Assignment  </P></TD>
+<TD CLASS="LIST"><P CLASS="LIST"><SAMP>t = a</SAMP> where <SAMP>a</SAMP> is a (possibly <SAMP>const</SAMP>) value of <SAMP>T</SAMP></P></TD></TR>
+</TABLE></P>
+<P>The type used for the <SAMP>Compare</SAMP> template parameter must satisfy the requirements for binary functions.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class Key, class T, class Compare = less&lt;Key&gt;,
+            class Allocator = allocator&lt;pair&lt;const Key, T&gt; &gt; &gt;
+  class multimap {
+
+    public:
+
+      // types
+      typedef Key key_type;
+      typedef T mapped_type;
+      typedef pair&lt;const Key, T&gt; value_type;
+      typedef Compare key_compare;
+      typedef Allocator allocator_type;
+
+      typedef typename
+           Allocator::reference  reference;
+      typedef typename
+           Allocator::const_reference  const_reference;
+      class iterator;
+      class const_iterator;
+      typedef typename
+           Allocator::size_type  size_type;
+      typedef typename
+           Allocator::difference_type  difference_type;
+      typedef typename Allocator::pointer pointer;
+      typedef typename Allocator::const_pointer const_pointer;
+      typedef typename std::reverse_iterator&lt;iterator&gt;
+                         reverse_iterator;
+      typedef typename std::reverse_iterator&lt;const_iterator&gt;
+                         const_reverse_iterator;
+
+  class value_compare
+      : public binary_function&lt;value_type, value_type, bool&gt; 
+  {
+    friend class multimap&lt;Key, T, Compare, Allocator&gt;;
+
+    protected :
+      Compare comp;
+      value_compare(Compare C) : comp(c) {}
+    public :
+      bool operator()(const value_type&amp;, 
+                      const value_type&amp;) const;
+  };
+
+  // Construct/Copy/Destroy
+  explicit multimap(const Compare&amp; = Compare(), 
+                     const Allocator&amp; = Allocator());
+  template &lt;class InputIterator&gt;
+  multimap(InputIterator, InputIterator,
+           const Compare&amp; = Compare(),
+           const Allocator&amp; = Allocator());
+  multimap(const multimap&lt;Key, T, Compare, Allocator&gt;&amp;);
+  multimap operator=
+       (const multimap&lt;Key, T, Compare, Allocator&gt;&amp;);
+  allocator_type get_allocator()const;
+
+  // Iterators
+  iterator begin();
+  const_iterator begin() const;
+  iterator end();
+  const_iterator end() const;
+  reverse_iterator rbegin();
+  const_reverse_iterator rbegin() const;
+  reverse_iterator rend();
+  const_reverse_iterator rend() const;
+
+  // Capacity
+  bool empty() const;
+  size_type size() const;
+  size_type max_size() const;
+
+  // Modifiers
+  iterator insert(const value_type&amp;);
+  iterator insert(iterator, const value_type&amp;);
+  template &lt;class InputIterator&gt;
+  void insert(InputIterator, InputIterator);
+
+  void erase(iterator);
+  size_type erase(const key_type&amp;);
+  void erase(iterator, iterator);
+  void swap(multimap&lt;Key, T, Compare, Allocator&gt;&amp;);
+  void clear();
+
+  // Observers
+  key_compare key_comp() const;
+  value_compare value_comp() const;
+
+  // Multimap operations
+  iterator find(const key_type&amp;);
+  const_iterator find(const key_type&amp;) const;
+  size_type count(const key_type&amp;) const;
+
+  iterator lower_bound(const key_type&amp;);
+  const_iterator lower_bound(const key_type&amp;) const;
+  iterator upper_bound(const key_type&amp;);
+  const_iterator upper_bound(const key_type&amp;) const;
+  pair&lt;iterator, iterator&gt; equal_range (const key_type&amp;);
+  pair&lt;const_iterator, const_iterator&gt; 
+  equal_range(const key_type&amp;) const;
+  };
+
+  // Nonmember Operators
+  template &lt;class Key, class T, class Compare, 
+            class Allocator&gt;
+  bool operator== (const multimap&lt;Key, T, Compare,
+                   Allocator&gt;&amp;,
+                   const multimap&lt;Key, T, Compare,
+                   Allocator&gt;&amp;);
+
+  template &lt;class Key, class T, class Compare, 
+           class Allocator&gt;
+  bool operator!=(const multimap&lt;Key, T, Compare,
+                 Allocator&gt;&amp;,
+                 const multimap&lt;Key, T, Compare,
+                 Allocator&gt;&amp;);
+
+  template &lt;class Key, class T, class Compare, 
+            class Allocator&gt;
+  bool operator&lt; (const multimap&lt;Key, T, Compare,
+                  Allocator&gt;&amp;,
+                  const multimap&lt;Key, T, Compare,
+                  Allocator&gt;&amp;);
+
+  template &lt;class Key, class T, class Compare, 
+            class Allocator&gt;
+  bool operator&gt;(const multimap&lt;Key, T, Compare,
+                 Allocator&gt;&amp;,
+                 const multimap&lt;Key, T, Compare,
+                 Allocator&gt;&amp;);
+
+  template &lt;class Key, class T, class Compare, 
+          class Allocator&gt;
+  bool operator&lt;=(const multimap&lt;Key, T, Compare,
+                 Allocator&gt;&amp;,
+                 const multimap&lt;Key, T, Compare,
+                 Allocator&gt;&amp;);
+
+  template &lt;class Key, class T, class Compare, 
+           class Allocator&gt;
+  bool operator&gt;=(const multimap&lt;Key, T, Compare,
+                 Allocator&gt;&amp;,
+                 const multimap&lt;Key, T, Compare,
+                 Allocator&gt;&amp;);
+
+  // Specialized Algorithms
+  template &lt;class Key, class T, class Compare, 
+            class Allocator&gt;
+  void swap(multimap&lt;Key, T, Compare, Allocator&gt;&amp;,
+            multimap&lt;Key, T, Compare, Allocator&gt;&amp;;
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Constructors</H3></A>
+
+<A NAME="idx920"></A><PRE>explicit <B>multimap</B>(const Compare&amp; comp = Compare(),
+                  const Allocator&amp; alloc = Allocator());</PRE>
+<UL>
+<P>Constructs an empty multimap that uses the optional relation <SAMP>comp</SAMP> to order keys and the allocator <SAMP>alloc</SAMP> for all storage management.</P>
+</UL>
+
+
+<A NAME="idx921"></A><PRE>template &lt;class InputIterator&gt;
+<B>multimap</B>(InputIterator start,
+          InputIterator finish,
+          const Compare&amp; comp = Compare()
+          const Allocator&amp; alloc = Allocator());</PRE>
+<UL>
+<P>Constructs a multimap containing values in the range <SAMP>[start, finish)</SAMP>.   Creation of the new multimap is only guaranteed to succeed if the iterators <SAMP>start</SAMP> and <SAMP>finish</SAMP> return values of type<SAMP> pair&lt;class Key, class T&gt;.</SAMP></P>
+</UL>
+
+
+<A NAME="idx922"></A><PRE><B>multimap</B>(const multimap&lt;Key, T, Compare, Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Creates a new multimap by copying all pairs of <SAMP>key</SAMP> and <SAMP>value</SAMP> from <SAMP>x</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Assignment Operators</H3></A>
+
+<A NAME="idx923"></A><PRE>multimap&lt;Key, T, Compare, Allocator&gt;&amp; 
+<B>operator=</B>(const multimap&lt;Key, T, Compare, Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Replaces the contents of <SAMP>*this</SAMP> with a copy of the multimap<SAMP> x</SAMP>.</P>
+</UL>
+
+<A NAME="sec8"><H3>Allocators</H3></A>
+
+<A NAME="idx924"></A><PRE>allocator_type 
+<B>get_allocator</B>() const;</PRE>
+<UL>
+<P>Returns a copy of the allocator used by self for storage management.</P>
+</UL>
+
+<A NAME="sec9"><H3>Iterators</H3></A>
+
+<A NAME="idx925"></A><PRE>iterator 
+<B>begin</B>();</PRE>
+<UL>
+<P>Returns a bidirectional <SAMP>iterator</SAMP> pointing to the first element stored in the multimap. "First" is defined by the multimap's comparison operator, <SAMP>Compare</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx926"></A><PRE>const_iterator 
+<B>begin</B>() const;</PRE>
+<UL>
+<P>Returns a<SAMP> const_iterator</SAMP> pointing to the first element stored in the multimap. "First" is defined by the multimap's comparison operator, <SAMP>Compare</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx927"></A><PRE>iterator 
+<B>end</B>();</PRE>
+<UL>
+<P>Returns a bidirectional <SAMP>iterator</SAMP> pointing to the last element stored in the multimap (in other words, the off-the-end value).</P>
+</UL>
+
+
+<A NAME="idx928"></A><PRE>const_iterator 
+<B>end</B>() const;</PRE>
+<UL>
+<P>Returns a <SAMP>const_iterator</SAMP> pointing to the last element stored in the multimap.</P>
+</UL>
+
+
+<A NAME="idx929"></A><PRE>reverse_iterator 
+<B>rbegin</B>();</PRE>
+<UL>
+<P>Returns a <SAMP>reverse_iterator</SAMP> pointing to the first element stored in the multimap. "First" is defined by the multimap's comparison operator, <SAMP>Compare</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx930"></A><PRE>const_reverse_iterator 
+<B>rbegin</B>() const;</PRE>
+<UL>
+<P>Returns a <SAMP>const_reverse_iterator</SAMP> pointing to the first element stored in the multimap.</P>
+</UL>
+
+
+<A NAME="idx931"></A><PRE>reverse_iterator 
+<B>rend</B>();</PRE>
+<UL>
+<P>Returns a <SAMP>reverse_iterator</SAMP> pointing to the last element stored in the multimap (in other words, the off-the-end value).</P>
+</UL>
+
+
+<A NAME="idx932"></A><PRE>const_reverse_iterator 
+<B>rend</B>() const;</PRE>
+<UL>
+<P>Returns a <SAMP>const_reverse_iterator</SAMP> pointing to the last element stored in the multimap.</P>
+</UL>
+
+<A NAME="sec10"><H3>Member Functions</H3></A>
+
+<A NAME="idx933"></A><PRE>void
+<B>clear</B>();</PRE>
+<UL>
+<P>Erases all elements from the self.</P>
+</UL>
+
+
+<A NAME="idx934"></A><PRE>size_type 
+<B>count</B>(const key_type&amp; x) const;</PRE>
+<UL>
+<P>Returns the number of elements in the multimap with the key value <SAMP>x</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx935"></A><PRE>bool 
+<B>empty</B>() const;</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the multimap is empty, <SAMP>false</SAMP> otherwise.</P>
+</UL>
+
+
+<A NAME="idx936"></A><PRE>pair&lt;iterator,iterator&gt; 
+<B>equal_range</B>(const key_type&amp; x);
+pair&lt;const_iterator,const_iterator&gt; 
+<B>equal_range</B>(const key_type&amp; x) const;</PRE>
+<UL>
+<P>Returns the pair<SAMP> (lower_bound(x), upper_bound(x))</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx937"></A><PRE>void
+<B>erase</B>(iterator start, iterator finish);</PRE>
+<UL>
+<P>If the iterators <SAMP>start</SAMP> and <SAMP>finish</SAMP> point to the same multimap and <SAMP>finish</SAMP> is reachable from <SAMP>start</SAMP>, all elements in the range <SAMP>[start, finish)</SAMP> are deleted from the multimap.</P>
+</UL>
+
+
+<A NAME="idx938"></A><PRE>void
+<B>erase</B>(iterator position);</PRE>
+<UL>
+<P>Deletes the multimap element pointed to by the iterator <SAMP>position</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx939"></A><PRE>size_type 
+<B>erase</B>(const key_type&amp; x);</PRE>
+<UL>
+<P>Deletes the elements with the key value <SAMP>x</SAMP> from the multimap, if any exist. Returns the number of deleted elements, or <SAMP>0</SAMP> otherwise. </P>
+</UL>
+
+
+<A NAME="idx940"></A><PRE>iterator 
+<B>find</B>(const key_type&amp; x);</PRE>
+<UL>
+<P>Searches the multimap for a pair with the key value <SAMP>x</SAMP> and returns an <SAMP>iterator</SAMP> to that pair if it is found. If such a pair is not found the value <SAMP>end() </SAMP>is returned.</P>
+</UL>
+
+
+<A NAME="idx941"></A><PRE>const_iterator 
+<B>find</B>(const key_type&amp; x) const;</PRE>
+<UL>
+<P>Same as find above but returns a <SAMP>const_iterator</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx942"></A><PRE>iterator 
+<B>insert</B>(const value_type&amp; x);
+iterator 
+<B>insert</B>(iterator position, const value_type&amp; x);</PRE>
+<UL>
+<P><SAMP>x</SAMP> is inserted into the multimap. A position may be supplied as a hint regarding where to do the insertion. If the insertion is done right after <SAMP>position</SAMP>, then it takes amortized constant time. Otherwise it takes <SAMP>O(log N)</SAMP> time.</P>
+</UL>
+
+
+<A NAME="idx943"></A><PRE>template &lt;class InputIterator&gt;
+void 
+<B>insert</B>(InputIterator start, InputIterator finish);</PRE>
+<UL>
+<P>Copies of each element in the range <SAMP>[start, finish)</SAMP> are inserted into the multimap. The iterators <SAMP>start</SAMP> and <SAMP>finish</SAMP> must return values of type <SAMP>pair&lt;T1,T2&gt;</SAMP>. This operation takes approximately <SAMP>O(N*log(size()+N))</SAMP> time.</P>
+</UL>
+
+
+<A NAME="idx944"></A><PRE>key_compare 
+<B>key_comp</B>() const;</PRE>
+<UL>
+<P>Returns a function object capable of comparing key values using the comparison operation, <SAMP>Compare</SAMP>, of the current multimap.</P>
+</UL>
+
+
+<A NAME="idx945"></A><PRE>iterator 
+<B>lower_bound</B>(const key_type&amp; x);</PRE>
+<UL>
+<P>Returns an <SAMP>iterator</SAMP> to the first multimap element whose key is greater than or equal to <SAMP>x</SAMP>. If no such element exists, then <SAMP>end()</SAMP> is returned.</P>
+</UL>
+
+
+<A NAME="idx946"></A><PRE>const_iterator 
+<B>lower_bound</B>(const key_type&amp; x) const;</PRE>
+<UL>
+<P>Same as <SAMP>lower_bound</SAMP> above but returns a <SAMP>const_iterator.</SAMP></P>
+</UL>
+
+
+<A NAME="idx947"></A><PRE>size_type 
+<B>max_size</B>() const;</PRE>
+<UL>
+<P>Returns the maximum possible size of the multimap.</P>
+</UL>
+
+
+<A NAME="idx948"></A><PRE>size_type 
+<B>size</B>() const;</PRE>
+<UL>
+<P>Returns the number of elements in the multimap.</P>
+</UL>
+
+
+<A NAME="idx949"></A><PRE>void 
+<B>swap</B>(multimap&lt;Key, T, Compare, Allocator&gt;&amp; x);</PRE>
+<UL>
+<P>Swaps the contents of the multimap <SAMP>x </SAMP>with the current multimap, <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx950"></A><PRE>iterator
+<B>upper_bound</B>(const key_type&amp; x);</PRE>
+<UL>
+<P>Returns an <SAMP>iterator</SAMP> to the first element whose key is less than or equal to <SAMP>x</SAMP>. If no such element exists, then <SAMP>end()</SAMP> is returned.</P>
+</UL>
+
+
+<A NAME="idx951"></A><PRE>const_iterator 
+<B>upper_bound</B>(const key_type&amp; x) const;</PRE>
+<UL>
+<P>Same as <SAMP>upper_bound</SAMP> above but returns a <SAMP>const_iterator</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx952"></A><PRE>value_compare 
+<B>value_comp</B>() const;</PRE>
+<UL>
+<P>Returns a function object capable of comparing <SAMP>value_types</SAMP> (<SAMP>key,value</SAMP> pairs) using the comparison operation, <SAMP>Compare</SAMP>, of the current multimap.</P>
+</UL>
+
+<A NAME="sec11"><H3>Nonmember Operators</H3></A>
+
+<A NAME="idx953"></A><PRE>bool 
+<B>operator==</B>(const multimap&lt;Key, T, Compare, Allocator&gt;&amp; x,
+           const multimap&lt;Key, T, Compare, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if all elements in <SAMP>x</SAMP> are element-wise equal to all elements in <SAMP>y</SAMP>, using<SAMP> (T::operator==). </SAMP>Otherwise it returns <SAMP>false</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx954"></A><PRE>bool 
+<B>operator!=</B>(const multimap&lt;Key, T, Compare, Allocator&gt;&amp; x,
+           const multimap&lt;Key, T, Compare, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>!(x==y)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx955"></A><PRE>bool 
+<B>operator&lt;</B>(const multimap&lt;Key, T, Compare, Allocator&gt;&amp; x,
+           const multimap&lt;Key, T, Compare, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>x</SAMP> is lexicographically less than <SAMP>y</SAMP>. Otherwise, it returns <SAMP>false</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx956"></A><PRE>bool 
+<B>operator&gt;</B>(const multimap&lt;Key, T, Compare, Allocator&gt;&amp; x,
+           const multimap&lt;Key, T, Compare, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>y &lt; x</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx957"></A><PRE>bool 
+<B>operator&lt;=</B>(const multimap&lt;Key, T, Compare, Allocator&gt;&amp; x,
+           const multimap&lt;Key, T, Compare, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>!(y &lt; x)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx958"></A><PRE>bool 
+<B>operator&gt;=</B>(const multimap&lt;Key, T, Compare, Allocator&gt;&amp; x,
+           const multimap&lt;Key, T, Compare, Allocator&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>!(x &lt; y)</SAMP>.</P>
+</UL>
+
+<A NAME="sec12"><H3>Specialized Algorithms</H3></A>
+
+<A NAME="idx959"></A><PRE>template&lt;class Key, class T, class Compare, class Allocator&gt;
+void <B>swap</B>(multimap&lt;Key, T, Compare, Allocator&gt;&amp; a,
+           multimap&lt;Key, T, Compare, Allocator&gt;&amp; b);</PRE>
+<UL>
+<P>Swaps the contents of <SAMP>a</SAMP> and <SAMP>b</SAMP>.</P>
+</UL>
+
+<A NAME="sec13"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  multimap.cpp
+//
+
+#include &lt;iostream&gt;
+#include &lt;map&gt;
+#include &lt;string&gt;
+
+
+typedef std::multimap&lt;int, std::string, std::less&lt;int&gt;,
+                      std::allocator&lt;std::pair&lt;const int, 
+                                               std::string&gt; &gt; &gt;
+        months_type;
+
+
+// Print out a multimap.
+inline std::ostream&amp;
+operator&lt;&lt; (std::ostream &amp;out, const months_type &amp;m)
+{
+    for (months_type::const_iterator it = m.begin (); 
+         it != m.end (); ++it)
+        std::cout &lt;&lt; (*it).second &lt;&lt; " has " &lt;&lt; (*it).first 
+                  &lt;&lt; " days\n";
+
+    return out;
+}
+
+
+int main ()
+{
+    // Create a multimap of months and the number of days 
+    // in the month.
+    months_type months;
+
+    typedef months_type::value_type value_type;
+
+    // Put the months in the multimap with the number of days
+    // as the not necessarily unique key. 
+    months.insert (value_type (31, std::string ("January")));
+    months.insert (value_type (28, std::string ("February")));
+    months.insert (value_type (31, std::string ("March")));
+    months.insert (value_type (30, std::string ("April")));
+    months.insert (value_type (31, std::string ("May")));
+    months.insert (value_type (30, std::string ("June")));
+    months.insert (value_type (31, std::string ("July")));
+    months.insert (value_type (31, std::string ("August")));
+    months.insert (value_type (30, std::string ("September")));
+    months.insert (value_type (31, std::string ("October")));
+    months.insert (value_type (30, std::string ("November")));
+    months.insert (value_type (31, std::string ("December")));
+
+    // Print out the months.
+    std::cout &lt;&lt; "All months of the year\n" &lt;&lt; months 
+              &lt;&lt; std::endl;
+
+    // Find all months with 30 days.
+    std::pair&lt;months_type::iterator, months_type::iterator&gt; p 
+            = months.equal_range (30);
+
+    // Print out the 30 day months.
+    std::cout &lt;&lt; "\nMonths with 30 days\n";
+
+    for ( ; p.first != p.second; ++p.first)
+        std::cout &lt;&lt; (*p.first).second &lt;&lt; '\n';
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>All months of the year
+February has 28 days
+April has 30 days
+June has 30 days
+September has 30 days
+November has 30 days
+January has 31 days
+March has 31 days
+May has 31 days
+July has 31 days
+August has 31 days
+October has 31 days
+December has 31 days
+
+
+Months with 30 days
+April
+June
+September
+November
+</PRE></UL>
+<A NAME="sec14"><H3>Warnings</H3></A>
+<P>Member function templates are used in all containers included in the Standard Template Library. For example, the constructor for <B><I>multimap</I></B> takes two templatized iterators:</P>
+
+<UL><PRE>template &lt;class InputIterator&gt;
+multimap (InputIterator, InputIterator, 
+          const Compare&amp; = Compare(),
+          const Allocator&amp; = Allocator());
+</PRE></UL>
+<P><B><I>multimap</I></B> also has an <SAMP>insert</SAMP> function of this type. These functions, when not restricted by compiler limitations, allow you to use any type of input iterator as arguments. For compilers that do not support this feature, substitute functions allow you to use an iterator obtained from the same type of container as the one you are constructing (or calling a member function on), or you can use a pointer to the type of element you have in the container.</P>
+<P>For example, if your compiler does not support member function templates, you can construct a <B><I>multimap</I></B> in the following two ways: </P>
+
+<UL><PRE>multimap&lt;int,int&gt;::value_type intarray[10];
+multimap&lt;int,int&gt; first_map(intarry, intarray + 10);
+multimap&lt;int,int&gt; second_multimap(first_multimap.begin(),
+                  first_multimap.end());
+</PRE></UL>
+<P>You cannot construct a <B><I>multimap</I></B> this way:</P>
+
+<UL><PRE>multimap&lt;long,long&gt;
+ long_multimap(first_multimap.begin(),first_multimap.end());
+</PRE></UL>
+<P>since the <SAMP>long_multimap</SAMP> and <SAMP>first_multimap </SAMP>are not the same type.</P>
+<P>If your compiler does not support default template parameters, you must always supply the <SAMP>Compare</SAMP> template argument and the <SAMP>Allocator</SAMP> template argument. For instance, you must write:</P>
+<P><SAMP>multimap&lt;int, int, less&lt;int&gt;, allocator&lt;int&gt; &gt;</SAMP></P>
+<P>instead of:</P>
+<P><SAMP>multimap&lt;int, int&gt;</SAMP></P>
+<A NAME="sec15"><H3>See Also</H3></A>
+<P><B><I><A HREF="allocator.html">allocator</A></I></B>, <A HREF="containers.html">Containers</A>, <A HREF="iterators.html">Iterators</A>, <B><I><A HREF="map.html">map</A></I></B></P>
+<A NAME="sec16"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 23.3.1</I></P>
+
+<BR>
+<HR>
+<A HREF="money-put.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="multiplies.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

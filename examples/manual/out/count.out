@@ -1,0 +1,4 @@
+sequence: { 1 2 3 4 5 5 7 8 9 10 }
+number of fives: 2
+number of sixes: 0
+number of values less than 8: 7

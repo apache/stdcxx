@@ -1,0 +1,136 @@
+<HTML>
+<HEAD>
+<TITLE>&lt;iosfwd&gt;</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="ios-base--failure.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="iostream-h.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>&lt;iosfwd&gt;</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P>
+
+<PRE><HR><B><I>Header</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">See Also</A></LI>
+<LI><A HREF="#sec5">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>The header <SAMP>&lt;iosfwd&gt;</SAMP> is part of the Input/output library of the Standard C++ Library. It declares all essential iostream class templates and defines aliases for specializations of these templates on types <SAMP>char</SAMP> and <SAMP>wchar_t</SAMP>.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;iosfwd&gt;
+
+namespace std {
+  // forward declare the traits class
+  template&lt;class charT&gt; struct <SAMP><A HREF="char-traits.html">char_traits</A></SAMP>;
+
+  // forward declare the positioning class
+  template&lt;class stateT&gt; class <SAMP><A HREF="fpos.html">fpos</A></SAMP>;
+
+  // forward declare the state class
+  class mbstate_t;
+
+  // forward declare the allocator class
+  template&lt;class T&gt; class <SAMP><A HREF="allocator.html">allocator</A></SAMP>;
+
+  // forward declare the iostreams class templates
+  template&lt;class charT,class traits=char_traits&lt;charT&gt; &gt; 
+  class <SAMP><A HREF="basic-ios.html">basic_ios</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt; &gt; 
+  class <SAMP><A HREF="basic-streambuf.html">basic_streambuf</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt; &gt; 
+  class <SAMP><A HREF="basic-istream.html">basic_istream</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt; &gt; 
+  class <SAMP><A HREF="basic-ostream.html">basic_ostream</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt;,
+           class Allocator = allocator&lt;charT&gt; &gt;
+  class <SAMP><A HREF="basic-stringbuf.html">basic_stringbuf</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt;,
+           class Allocator = allocator&lt;charT&gt; &gt; 
+  class <SAMP><A HREF="basic-istringstream.html">basic_istringstream</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt;,
+           class Allocator = allocator&lt;charT&gt; &gt;
+  class <SAMP><A HREF="basic-ostringstream.html">basic_ostringstream</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt; &gt; 
+  class <SAMP><A HREF="basic-filebuf.html">basic_filebuf</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt; &gt; 
+  class <SAMP><A HREF="basic-ifstream.html">basic_ifstream</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt; &gt; 
+  class <SAMP><A HREF="basic-ofstream.html">basic_ofstream</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt; &gt; 
+  class <SAMP><A HREF="ostreambuf-iterator.html">ostreambuf_iterator</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt; &gt; 
+  class <SAMP><A HREF="istreambuf-iterator.html">istreambuf_iterator</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt; &gt; 
+  class <SAMP><A HREF="basic-iostream.html">basic_iostream</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt;,
+           class Allocator = allocator&lt;charT&gt; &gt;
+  class <SAMP><A HREF="basic-stringstream.html">basic_stringstream</A></SAMP>;
+
+  template&lt;class charT,class traits=char_traits&lt;charT&gt; &gt; 
+  class <SAMP><A HREF="basic-fstream.html">basic_fstream</A></SAMP>;
+
+  // specializations on tiny characters
+  typedef basic_ios&lt;char&gt;              ios;
+  typedef basic_streambuf&lt;char&gt;        streambuf;
+  typedef basic_istream&lt;char&gt;          istream;
+  typedef basic_ostream&lt;char&gt;          ostream;
+  typedef basic_stringbuf&lt;char&gt;        stringbuf;
+  typedef basic_istringstream&lt;char&gt;    istringstream;
+  typedef basic_ostringstream&lt;char&gt;    ostringstream;
+  typedef basic_filebuf&lt;char&gt;          filebuf;
+  typedef basic_ifstream&lt;char&gt;         ifstream;
+  typedef basic_ofstream&lt;char&gt;         ofstream;
+  typedef basic_iostream&lt;char&gt;         iostream;
+  typedef basic_stringstream&lt;char&gt;     stringstream;
+  typedef basic_fstream&lt;char&gt;          fstream;
+
+  // specializations on wide characters
+  typedef basic_ios&lt;wchar_t&gt;           wios;
+  typedef basic_streambuf&lt;wchar_t&gt;     wstreambuf;
+  typedef basic_istream&lt;wchar_t&gt;       wistream;
+  typedef basic_ostream&lt;wchar_t&gt;       wostream;
+  typedef basic_stringbuf&lt;wchar_t&gt;     wstringbuf;
+  typedef basic_istringstream&lt;wchar_t&gt; wistringstream;
+  typedef basic_ostringstream&lt;wchar_t&gt; wostringstream;
+  typedef basic_filebuf&lt;wchar_t&gt;       wfilebuf;
+  typedef basic_ifstream&lt;wchar_t&gt;      wifstream;
+  typedef basic_ofstream&lt;wchar_t&gt;      wofstream;
+  typedef basic_iostream&lt;wchar_t&gt;      wiostream;
+  typedef basic_stringstream&lt;wchar_t&gt;  wstringstream;
+  typedef basic_fstream&lt;wchar_t&gt;       wfstream;
+
+  // positional types used by char_traits
+  typedef fpos&lt;mbstate_t&gt; streampos;
+  typedef fpos&lt;mbstate_t&gt; wstreampos;
+
+  typedef long streamoff;
+  typedef long wstreamoff;
+}
+</PRE>
+<A NAME="sec4"><H3>See Also</H3></A>
+<P><B><I><A HREF="fpos.html">fpos</A></I></B>, <B><I><A HREF="char-traits.html">char_traits</A></I></B>, <B><I><A HREF="basic-ios.html">basic_ios</A></I></B>, <B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B>, <B><I><A HREF="basic-istream.html">basic_istream</A></I></B>, <B><I><A HREF="basic-ostream.html">basic_ostream</A></I></B>, <B><I><A HREF="basic-iostream.html">basic_iostream</A></I></B>, <B><I><A HREF="basic-stringbuf.html">basic_stringbuf</A></I></B>, <B><I><A HREF="basic-istringstream.html">basic_istringstream</A></I></B>, <B><I><A HREF="basic-ostringstream.html">basic_ostringstream</A></I></B>, <B><I><A HREF="basic-stringstream.html">basic_stringstream</A></I></B>, <B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B>, <B><I><A HREF="basic-ifstream.html">basic_ifstream</A></I></B>, <B><I><A HREF="basic-ofstream.html">basic_ofstream</A></I></B>, <B><I><A HREF="basic-fstream.html">basic_fstream</A></I></B>, <B><I><A HREF="istreambuf-iterator.html">istreambuf_iterator</A></I></B>, <B><I><A HREF="ostreambuf-iterator.html">ostreambuf_iterator</A></I></B></P>
+<A NAME="sec5"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.2</I></P>
+
+<BR>
+<HR>
+<A HREF="ios-base--failure.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="iostream-h.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

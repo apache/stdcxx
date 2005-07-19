@@ -1,0 +1,81 @@
+<HTML>
+<HEAD>
+<TITLE>The bitset Abstraction</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="8-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="9.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>8.4 The bitset Abstraction</H2>
+<A NAME="idx151"><!></A>
+<P>A <B><I><A HREF="../stdlibref/bitset.html">bitset</A></I></B> is really a cross between a <B><I><A HREF="../stdlibref/set.html">set</A></I></B> and a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>. Like the vector specialization <B><I>vector&lt;bool&gt;</I></B>, a <B><I>bitset</I></B> represents a sequence of binary (0/1 bit) values. However, set operations can be performed on bitsets using the logical bit-wise operators. The class <B><I>bitset</I></B> does not provide any iterators for accessing elements.</P>
+<A NAME="841"><H3>8.4.1 Include Files</H3></A>
+<A NAME="idx152"><!></A>
+<P>The <B><I><A HREF="../stdlibref/bitset.html">bitset</A></I></B> header file must appear in all programs that use the bitset datatype:</P>
+
+<UL><PRE>
+#include &lt;bitset&gt;
+</PRE></UL>
+<A NAME="842"><H3>8.4.2 Declaration and Initialization of bitset</H3></A>
+<A NAME="idx153"><!></A>
+<P>A <B><I><A HREF="../stdlibref/bitset.html">bitset</A></I></B> is a template class abstraction. However, the template argument is not a type, but an integer value. The value represents the number of bits the set contains.</P>
+
+<UL><PRE>
+std::bitset&lt;126&gt; bset_one;        // create a set of 126 bits
+</PRE></UL>
+<P>An alternative technique permits the size of the set to be specified as an argument to the constructor. The actual size will be the smaller of the value used as the template argument and the constructor argument.   This technique is useful when a program contains two or more bit vectors of differing sizes. Consistently using the larger size for the template argument means that only one set of methods for the class is generated. The actual size, however, is determined by the constructor.</P>
+
+<UL><PRE>
+std::bitset&lt;126&gt; bset_two(100);   // this set has only 100 bits
+</PRE></UL>
+<P>A third form of constructor takes as argument a string of 0 and 1 characters. A <B><I><A HREF="../stdlibref/bitset.html">bitset</A></I></B> is created that has holds as many elements as there are characters in the string, and is initialized with the values from the string.</P>
+
+<UL><PRE>
+std::bitset&lt;126&gt; small_set("10101010");   // this set has 8 bits
+</PRE></UL>
+<A NAME="843"><H3>8.4.3 Accessing and Testing Elements</H3></A>
+<A NAME="idx154"><!></A>
+<P>An individual bit in the <B><I><A HREF="../stdlibref/bitset.html">bitset</A></I></B> can be accessed using the subscript operation. Whether the bit is one or not can be determined using the member function<SAMP> test()</SAMP>. Whether any bit in the bitset is <I>on</I> is tested using the member function <SAMP>any()</SAMP>, which yields a boolean value. The inverse of <SAMP>any()</SAMP> is returned by the member function <SAMP>none()</SAMP>:</P>
+
+<UL><PRE>
+bset_one[3] = 1;
+if (bset_one.test(4))
+  std::cout &lt;&lt; "bit position 4 is set" &lt;&lt; std::endl;
+if (bset_one.any())
+  std::cout &lt;&lt; "some bit position is set" &lt;&lt; std::endl;
+if (bset_one.none())
+  std::cout &lt;&lt; "no bit position is set" &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="idx155"><!></A>
+<P>The function <SAMP>set()</SAMP> can be used to set a specific bit. The function <SAMP>bset_one.set(I)</SAMP> is equivalent to <SAMP>bset_one[I] = true</SAMP>. Invoking the function without any arguments sets all bit positions to true. The function <SAMP>reset()</SAMP> is similar, and sets the indicated position to false, or all positions to false if invoked with no argument. The function <SAMP>flip()</SAMP> flips either the indicated position, or all positions if no argument is provided. The function <SAMP>flip()</SAMP> is also provided as a member function for the individual bit references.</P>
+
+<UL><PRE>
+bset_one.flip();         // flip the entire set
+bset_one.flip(12);       // flip only bit 12
+bset_one[12].flip();     // reflip bit 12
+</PRE></UL>
+<P>The member function <SAMP>size()</SAMP> returns the number of bits in the bitset, while the member function <SAMP>count()</SAMP> yields the number of bits that are set.</P>
+<A NAME="844"><H3>8.4.4 set Operations</H3></A>
+<A NAME="idx156"><!></A>
+<P> The set operations on <B><I><A HREF="../stdlibref/bitset.html">bitset</A></I></B>s are implemented using the bit-wise operators, analogous to the way the same operators act on integer arguments.</P>
+<A NAME="idx157"><!></A>
+<P>The <I>negation</I> operator <SAMP>operator~()</SAMP> applied to a <B><I><A HREF="../stdlibref/bitset.html">bitset</A></I></B> returns a new <B><I>bitset</I></B> containing the inverse of the elements in the argument set.</P>
+<A NAME="idx158"><!></A>
+<P>The intersection of two <B><I><A HREF="../stdlibref/bitset.html">bitset</A></I></B>s is formed using the <I>and </I>operator  <SAMP>operator&amp;()</SAMP>. The assignment form of the operator can also be used. In the assignment form, the target becomes the disjunction of the two sets:</P>
+
+<UL><PRE>   
+bset_three = bset_two &amp; bset_four;
+bset_five &amp;= bset_three;
+</PRE></UL>
+<A NAME="idx159"><!></A>
+<P>The union of two sets is formed in a similar manner using the <I>or</I> operator, <SAMP>operator|()</SAMP>. The <I>exclusive-or</I> is formed using the bit-wise exclusive or operator, <SAMP>operator^()</SAMP>.</P>
+<A NAME="idx160"><!></A>
+<P>The left and right shift operators, <SAMP>operator&lt;&lt;()</SAMP> and <SAMP>operator&gt;&gt;()</SAMP>, can be used to shift a <B><I><A HREF="../stdlibref/bitset.html">bitset</A></I></B> left or right as they are used on integer arguments. If a bit is shifted left by an integer value <SAMP>n</SAMP>, then the new bit position <SAMP>I</SAMP> is the value of the former <SAMP>I-n</SAMP>. Zeros are shifted into the new positions.</P>
+<A NAME="845"><H3>8.4.5 Conversions</H3></A>
+<A NAME="idx161"><!></A>
+<P>The member function <SAMP>to_ulong()</SAMP> converts a <B><I><A HREF="../stdlibref/bitset.html">bitset</A></I></B> into an <SAMP>unsigned long</SAMP>. A <SAMP>std::out_of_range</SAMP> exception is thrown if this function is called on a <B><I>bitset</I></B> containing more elements than can fit into an <SAMP>unsigned long</SAMP>.</P>
+<A NAME="idx162"><!></A>
+<P>The member function <SAMP>to_string()</SAMP> converts a <B><I><A HREF="../stdlibref/bitset.html">bitset</A></I></B> into an object of type <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>. The string has as one character for each bit in the bitset. Each zero bit corresponds to the character <SAMP>0</SAMP>, while each one bit is represented by the character <SAMP>1</SAMP>.</P>
+
+<BR>
+<HR>
+<A HREF="8-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="9.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

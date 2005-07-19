@@ -1,0 +1,119 @@
+<HTML>
+<HEAD>
+<TITLE>includes()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="heapoperations.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="indirect-array.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>includes()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An algorithm that returns true if every element in one sorted sequence is contained in another sorted sequence</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class InputIterator1, class InputIterator2&gt;
+  bool includes(InputIterator1 start1, InputIterator1 finish1,
+                InputIterator2 start2, 
+                InputIterator2 finish2);
+
+  template &lt;class InputIterator1, class InputIterator2, 
+           class Compare&gt;
+  bool includes(InputIterator1 start1, InputIterator1 finish1,
+                InputIterator2 start2, 
+                InputIterator2 finish2, Compare comp);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>includes()</SAMP> algorithm compares two sorted sequences and returns <SAMP>true</SAMP> if every element in the range <SAMP>[start2, finish2)</SAMP> is contained in the range <SAMP>[start1, finish1)</SAMP>. It returns <SAMP>false</SAMP> otherwise. <SAMP>includes()</SAMP> assumes that the sequences are sorted using <SAMP>operator&lt;()</SAMP>, or using the predicate <SAMP>comp</SAMP>.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>At most <SAMP>((finish1 - start1) + (finish2 - start2)) * 2 - 1</SAMP> comparisons are performed.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  includes.cpp
+//
+
+#include &lt;algorithm&gt;   // for includes
+#include &lt;iostream&gt;    // for cout, endl
+#include &lt;set&gt;         // for set
+
+
+
+int main ()
+{
+    // Typedefs for convenience.
+    typedef std::set&lt;int, std::less&lt;int&gt;, std::allocator&lt;int&gt; &gt;       
+            Set;
+    typedef std::ostream_iterator&lt;int, char, 
+                                  std::char_traits&lt;char&gt; &gt; 
+             os_iter;
+
+    int a1[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    int a2[] = { 2, 4, 6, 8, 10, 12 };
+    int a3[] = { 3, 5, 7, 8 };
+
+    // Initialize three sets.
+    Set all   (a1, a1 + sizeof a1 / sizeof *a1);
+    Set even  (a2, a2 + sizeof a2 / sizeof *a2);
+    Set other (a3, a3 + sizeof a3 / sizeof *a3);
+
+    // Demonstrate includes.
+    std::cout &lt;&lt; "The set: ";
+    std::copy (all.begin (), all.end (), 
+               os_iter (std::cout, " "));
+
+    bool answer = std::includes (all.begin (), all.end (), 
+                                 other.begin (), other.end ());
+
+    std::cout &lt;&lt; std::endl 
+              &lt;&lt; (answer ? "INCLUDES " : "DOES NOT INCLUDE ");
+    std::copy (other.begin (), other.end (), 
+               os_iter (std::cout, " "));
+
+    answer = std::includes (all.begin (), all.end (),
+                            even.begin (), even.end ());
+
+    std::cout &lt;&lt; ", and" &lt;&lt; std::endl
+              &lt;&lt; (answer ? "INCLUDES" : "DOES NOT INCLUDE ");
+
+    std::copy (even.begin (), even.end (), 
+               os_iter (std::cout, " "));
+
+    std::cout &lt;&lt; std::endl &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+The set: 1 2 3 4 5 6 7 8 9 10 
+INCLUDES 3 5 7 8 , and
+DOES NOT INCLUDE 2 4 6 8 10 12 
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="set-union.html">set_union()</A></SAMP>, <SAMP><A HREF="set-intersection.html">set_intersection()</A></SAMP>, <SAMP><A HREF="set-difference.html">set_difference()</A></SAMP>, <SAMP><A HREF="set-symmetric-difference.html">set_symmetric_difference()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.3.5.1</I></P>
+
+<BR>
+<HR>
+<A HREF="heapoperations.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="indirect-array.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

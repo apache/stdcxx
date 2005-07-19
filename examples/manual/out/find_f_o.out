@@ -1,0 +1,2 @@
+For the vectors { 0 1 2 2 3 4 2 2 6 7 } and { 6 4 }
+both versions of find_first_of point to: 4

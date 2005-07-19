@@ -1,0 +1,226 @@
+# -*- Makefile -*-
+#
+# $Id: //stdlib/dev/etc/stdlib/config/makefile.rules#33 $
+#
+# common makefile rules shared by all GNUmakefile.*
+# 
+# Running tests:
+# --------------
+# $ make [run | runall | run_all] [target] [target]... ; 
+#   runs the tests specified on the command line   
+# OR
+# $ make [run | runall | run_all] ; 
+#       runs all the tests producing a complete report
+# 
+# 
+##############################################################################
+
+clean: cleantarget
+	rm -rf a.out core *.o *.i *.ii *.ti *.sh *.sta *.out  \
+        *$(LIBSUFFIX) $(CATFILE)                              \
+        tempinc cxx_repository SunWS_cache 2>/dev/null
+
+cleantarget:
+	rm -f $(TARGET)
+
+# ifneq ($(LOGFILE),/dev/null)
+#   rm -rf $(LOGFILE)
+# endif
+
+listtarget:
+	@echo $(TARGET)
+
+listsrc:
+	@echo $(SRCS)
+
+listobj:
+	@echo $(OBJS)
+
+listfiles:
+	@echo $(SRCDIRS)
+	@echo $(ALL_FILES)
+
+listvpath:
+	@echo $(VPATH)
+
+listruntarget:
+	@echo $(RUNTARGET)
+
+
+# create a catalog from text message files - see gencat(1)
+$(CATFILE): $(MSGFILES)
+	@echo "gencat $@ $^" >> $(LOGFILE)
+	gencat $@ $^ $(TEEOPTS)
+
+
+##############################################################################
+#  COMMON RULES
+##############################################################################
+
+#empty rule for .cc files so they won't be separately compiled
+%: %.cc ; 
+
+# compile and link in one or two steps
+ifeq ($(NO_DOT_O),)
+
+%.o: %.$(AS_EXT)
+	@echo  "$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $<" >> $(LOGFILE)
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $< $(TEEOPTS)
+
+%.o: %.cpp
+	@echo "$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $<" >> $(LOGFILE)
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $< $(TEEOPTS)
+
+%: %.o
+	@echo "$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS)" >> $(LOGFILE)
+	$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS) $(TEEOPTS) 
+
+else
+
+# compile and link in one step to eliminate the space overhead of .o files
+%:  %.cpp
+	@echo "$(CXX) $< -o $@ $(CPPFLAGS) $(CXXFLAGS) " \
+              "$(LDFLAGS) $(LDLIBS)" >>$(LOGFILE)
+	$(CXX) $< -o $@ $(CPPFLAGS) $(CXXFLAGS) \
+               $(LDFLAGS) $(LDLIBS) $(TEEOPTS)
+
+endif   # eq ($(NO_DOT_O),)
+
+
+# produce a .out file by running the executable
+%.out: %
+	@(LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(LIBDIR);                  \
+          export LD_LIBRARY_PATH PATH;                                  \
+          ./run $(RUNFLAGS) -r $(REGRESS_FILE) ./$< )
+
+# create a script that when run first builds the executable and then runs it
+# done to save even more space than `NO_DOT_O' on constrained systems
+%.sh: %.cpp
+	@(echo "generating $@..." ;                                         \
+        echo "#!$(SHELL)" > $@ ;                                            \
+        a_dot_out="$(PWD)/$(basename $@)."'$$''$$' ;                        \
+        tmp="$(CXX) $< -o $$a_dot_out $(CPPFLAGS) $(CXXFLAGS) "             \
+                    "$(LDFLAGS) $(LDLIBS)" ;                                \
+        tmp="$$tmp $(TEEOPTS) && $$a_dot_out "'$$''*'" && rm $$a_dot_out" ; \
+        echo >> $@ ; echo "$$tmp" >> $@ ;                                   \
+        chmod +x $@)
+
+# run all tests, collect exit status and report statistics, tee report to
+# a report file, replace last report if same; regressions are computed with
+# respect to the most recent report; the variable RUN can be set to contain
+# a list of executables to run without generating a report (set to ALL to
+# run all executables)
+# hung or runaway processes are killed after a customizable timeout period
+#
+# PlumHall specific:
+# for all "top level" tests that failed to build, find and build all
+# subtests (the little tests the main test consists of)
+run runall run_all:
+	@(LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(LIBDIR);                    \
+        PATH=$$PATH:.;                                                    \
+        TOPDIR=$(TOPDIR);                                                 \
+        export LD_LIBRARY_PATH PATH TOPDIR;                               \
+        report=../$(REPORTFILE)-`date +%m.%d.%y-%H:%M`;                   \
+        if [ -z "$(RUNTARGET)" ];  then                                   \
+            trap "rm $$report" 2 ;                                        \
+            ./run $(RUNFLAGS) -r $(REGRESS_FILE) | tee $$report;          \
+            diff $(REGRESS_FILE) $$report > /dev/null 2>&1                \
+                  && rm $(REGRESS_FILE);                                  \
+        else                                                              \
+            ./run $(RUNFLAGS) -r $(REGRESS_FILE) $(RUNTARGET);            \
+        fi ;                                                              \
+        exit 0)
+
+# include the automatically generated dependencies unless "make clean"
+ifneq ($(MAKECMDGOALS),clean)
+  ifneq ($(MAKECMDGOALS),realclean)
+    ifneq ($(MAKECMDGOALS),dependclean)
+      ifneq ($(SRCS),)
+
+        -include $(patsubst %.cpp,$(DEPENDDIR)/%.d,$(filter %.cpp,$(SRCS)))
+
+        ifneq ($(filter %.s,$(SRCS)),)
+          -include $(patsubst %.s,$(DEPENDDIR)/%.d,$(filter %.s,$(SRCS)))
+        endif
+
+        ifneq ($(filter %.S,$(SRCS)),)
+          -include $(patsubst %.S,$(DEPENDDIR)/%.d,$(filter %.S,$(SRCS)))
+        endif
+      endif   # neq ($(SRCS),)
+    endif   # neq ($(MAKECMDGOALS),dependclean)
+  endif   # neq ($(MAKECMDGOALS),realclean)
+endif   # neq ($(MAKECMDGOALS),clean)
+
+
+ifneq ($(DEPENDFLAGS),)
+
+# generate dependencies only if they don't yet exist, removing anything
+# not under $(TOPDIR) or $(BUILDDIR) (e.g., system headers) from the list
+# this is done by splitting up dependencies using tr so that there is just
+# one per line and then replacing the values of $(TOPDIR) and $(BUILDDIR)
+# with the actual make variable names themselves
+# move IBM xlC generated .u files to the respective .d files
+
+define makedep
+    -@(if [ ! -f $@ ] ; then                                                 \
+           if [ ! -d $(DEPENDDIR) ]; then                                    \
+               mkdir -p $(DEPENDDIR);                                        \
+           fi;                                                               \
+           echo "generating dependencies for"                                \
+                `echo $< | sed "s:$(TOPDIR):$$""(TOPDIR):"` ;                \
+                                                                             \
+           stripexp="s:/$$::;s:[^/]*$$::";                                   \
+           RWTSRCDIR=`echo $(TOPDIR) | sed "$$stripexp"`rwtest;              \
+                                                                             \
+           sedexp1="s:\([^ :]\)\(  */\):\1 \\\@\2:" ;                        \
+           sedexp2="/:[^/]*$$/p;                                             \
+                   s:$$RWTSRCDIR:$$""(TOPDIR)/\.\./rwtest:gp;                \
+                   s:$(TOPDIR):$$""(TOPDIR):gp;                              \
+                   s:$(BUILDDIR):$$""(BUILDDIR):gp" ;                        \
+                                                                             \
+           echo "$(CXX) $(DEPENDFLAGS) $(CPPFLAGS) $(CXXFLAGS) $<"           \
+                >>$(LOGFILE) ;                                               \
+           $(CXX) $(DEPENDFLAGS) $(CPPFLAGS) $(CXXFLAGS) $<                  \
+               | sed "$$sedexp1" | tr "@" "\n" | sed -n "$$sedexp2" >$@ ;    \
+           if [ ! -s $@ ]; then                                              \
+               depfile=$*.u;                                                 \
+               [ ! -s $$depfile ] && depfile=`basename $*.d`;                \
+               if [ -s $$depfile ] ; then                                    \
+                  sed "$$sedexp1" $$depfile | tr "@" "\n"                    \
+                                            | sed -n "$$sedexp2" > $@ ;      \
+               fi;                                                           \
+               rm -f $$depfile ;                                             \
+           fi ;                                                              \
+           rm -f $*.i ;                                                      \
+      fi)
+endef
+
+$(DEPENDDIR)/%.d: %.cpp
+	$(makedep)
+
+$(DEPENDDIR)/%.d: %.$(AS_EXT)
+	$(makedep)
+
+else
+
+$(DEPENDDIR)/%.d:
+
+endif   # neq ($(DEPENDFLAGS),)
+
+
+# force the regeneration of all dependencies
+#  by removing them
+dependclean:
+	rm -f $(DEPENDDIR)/*.d; 
+	@echo "dependencies will be regenerated at the next invocation of make"
+
+# print ordinary make variables and their values (requires GNU make 3.80)
+printvars:
+	@$(foreach V,$(sort $(.VARIABLES)), \
+	    $(if $(filter-out environment% default automatic, $(origin $V)), \
+	         $(warning $V=$($V) ($(value $V)))))
+
+
+.PHONY: all c_headers clean dependclean realclean config configure listtarget \
+       listruntarget listsrc listobj listvpath listsubtests printvars \
+       run run_all runall

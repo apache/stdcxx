@@ -1,0 +1,35 @@
+<HTML>
+<HEAD>
+<TITLE>Iterator Operations</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="2-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>2.5 Iterator Operations</H2>
+<A NAME="idx41"><!></A>
+<P>The Standard C++ Library provides two functions that can be used to manipulate iterators. The function <SAMP>std::advance()</SAMP> takes an iterator and a numeric value as argument, and modifies the iterator by moving the given amount.</P>
+
+<UL><PRE>
+namespace std {
+  template &lt;class InputIterator, class Distance&gt;
+  void advance(InputIterator&amp; iter, Distance&amp; n);
+}
+</PRE></UL>
+<P>For random access iterators this is the same as <SAMP>iter + n;</SAMP> however, the function is useful because it is designed to operate with all forms of iterators. For forward iterators the numeric distance must be positive, whereas for bidirectional or random access iterators the value can be either positive or negative. The operation is efficient (constant time) only for random access iterators. In all other cases, it is implemented as a loop that invokes either <SAMP>operator++()</SAMP> or <SAMP>operator--()</SAMP> on the iterator, and therefore takes time proportional to the distance traveled. The <SAMP>std::advance()</SAMP> function does not check to ensure the validity of the operations on the underlying iterator.</P>
+<A NAME="idx42"><!></A>
+<P>The second function, <SAMP>std::distance()</SAMP>, returns the number of iterator operations necessary to move from one element in a sequence to another. The description of this function is as follows:</P>
+
+<UL><PRE>
+namespace std {
+  template &lt;class InputIterator&gt;
+  Distance distance(InputIterator first, InputIterator last);
+}
+</PRE></UL>
+<P>The result returned is the number of times that <SAMP>first</SAMP> must be incremented or decremented in order for <SAMP>(first == last)</SAMP> to equal<SAMP> true</SAMP>.  The function requires that <SAMP>last</SAMP> be reachable from <SAMP>first</SAMP>.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- The above definition of distance assumes that your compiler supports partial specialization. If it does not, then you must use the following alternate definition:<br>template &lt;class InputIterator, class Distance&gt;<br>void distance(InputIterator first, InputIterator last, Distance&amp; n); 
+</B><HR></BLOCKQUOTE>
+
+<BR>
+<HR>
+<A HREF="2-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

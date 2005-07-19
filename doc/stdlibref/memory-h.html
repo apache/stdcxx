@@ -1,0 +1,65 @@
+<HTML>
+<HEAD>
+<TITLE>&lt;memory&gt;</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="mem-fun.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="merge.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>&lt;memory&gt;</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>Header</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">See Also</A></LI>
+<LI><A HREF="#sec5">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>The header <SAMP>&lt;memory&gt;</SAMP> is part of the General utilities library of the Standard C++ Library. It defines the class template <B><I><A HREF="allocator.html">allocator</A></I></B>; the specialization of <B><I>allocator</I></B> on <SAMP>void</SAMP>; the equality and inequality operators specialized for <B><I>allocator</I></B>; the class templates <B><I><A HREF="auto-ptr.html">auto_ptr</A></I></B>, auto_ptr_ref, and <B><I><A HREF="raw-storage-iterator.html">raw_storage_iterator</A></I></B>; and the function templates <SAMP><A HREF="get-temporary-buffer.html">get_temporary_buffer()</A></SAMP>, <SAMP><A HREF="return-temporary-buffer.html">return_temporary_buffer()</A></SAMP>, <SAMP><A HREF="uninitialized-copy.html">uninitialized_copy()</A></SAMP>, <SAMP><A HREF="uninitialized-fill.html">uninitialized_fill()</A></SAMP>, and <SAMP><A HREF="uninitialized-fill-n.html">uninitialized_fill_n()</A></SAMP>.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>namespace std {
+  template &lt;class T&gt; class <SAMP><A HREF="allocator.html">allocator</A></SAMP>;
+  template &lt;&gt; class allocator&lt;void&gt;;
+  template &lt;class T, class U&gt;
+  bool operator==(const allocator&lt;T&gt;&amp;, 
+                  const allocator&lt;U&gt;&amp;) throw();
+  template &lt;class T, class U&gt;
+  bool operator!=(const allocator&lt;T&gt;&amp;, 
+                  const allocator&lt;U&gt;&amp;) throw();
+
+  template &lt;class OutputIterator, class T&gt; 
+  class <SAMP><A HREF="raw-storage-iterator.html">raw_storage_iterator</A></SAMP>;
+
+  template &lt;class T&gt;
+  pair&lt;T*, ptrdiff_t&gt; <SAMP><A HREF="get-temporary-buffer.html">get_temporary_buffer</A></SAMP>(ptrdiff_t);
+  template &lt;class T&gt;
+  void <SAMP><A HREF="return-temporary-buffer.html">return_temporary_buffer</A></SAMP>(T*);
+
+  template &lt;class InputIterator, class ForwardIterator&gt;
+  ForwardIterator
+  <SAMP><A HREF="uninitialized-copy.html">uninitialized_copy</A></SAMP>(InputIterator, InputIterator, 
+                     ForwardIterator result);
+  template &lt;class ForwardIterator, class T&gt;
+  void <SAMP><A HREF="uninitialized-fill.html">uninitialized_fill</A></SAMP>(ForwardIterator, ForwardIterator, 
+                         const T&amp;);
+  template &lt;class ForwardIterator, class Size, class T&gt;
+  void <SAMP><A HREF="uninitialized-fill-n.html">uninitialized_fill_n</A></SAMP>(ForwardIterator, Size n, 
+                            const T&amp;);
+
+  template&lt;class X&gt; class <SAMP><A HREF="auto-ptr.html">auto_ptr</A></SAMP>;
+}
+</PRE>
+<A NAME="sec4"><H3>See Also</H3></A>
+<P><B><I><A HREF="allocator.html">allocator</A></I></B>, <B><I><A HREF="raw-storage-iterator.html">raw_storage_iterator</A></I></B>, <SAMP><A HREF="get-temporary-buffer.html">get_temporary_buffer()</A></SAMP>, <SAMP><A HREF="return-temporary-buffer.html">return_temporary_buffer()</A></SAMP>, <SAMP><A HREF="uninitialized-copy.html">uninitialized_copy()</A></SAMP>, <SAMP><A HREF="uninitialized-fill.html">uninitialized_fill()</A></SAMP>, <SAMP><A HREF="uninitialized-fill-n.html">uninitialized_fill_n()</A></SAMP>, <B><I><A HREF="auto-ptr.html">auto_ptr</A></I></B></P>
+<A NAME="sec5"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 20.4</I></P>
+
+<BR>
+<HR>
+<A HREF="mem-fun.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="merge.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

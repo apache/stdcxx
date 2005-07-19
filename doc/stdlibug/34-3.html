@@ -1,0 +1,123 @@
+<HTML>
+<HEAD>
+<TITLE>Sharing a Stream Buffer Among Streams</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="34-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="34-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>34.3 Sharing a Stream Buffer Among Streams</H2>
+<P>Despite the previous caveats, there are situations where sharing a stream buffer among streams is useful and intended. Let us focus on these in this section.</P>
+<A NAME="3431"><H3>34.3.1 Several Format Settings for the Same Stream</H3></A>
+<A NAME="idx854"><!></A>
+<P>Imagine you need different formatting for different kinds of output to the same stream. Instead of switching the format settings between the different kinds of output, you can arrange for two separate streams to share a stream buffer. The streams would have different format settings, but write output to the same stream buffer. Here is an example:</P>
+
+<UL><PRE>
+std::ofstream file1("/tmp/x");
+std::ostream file2(file1.rdbuf());                            //1
+
+file1.setf(std::ios_base::fixed, std::ios_base::floatfield);  //2
+file1.precision(5);
+file2.setf(std::ios_base::scientific, std::ios_base::floatfield);
+file2.precision(3);
+
+file1 &lt;&lt; std::setw(10) &lt;&lt; 47.11 &lt;&lt; '\n';                      //3
+file2 &lt;&lt; std::setw(10) &lt;&lt; 47.11 &lt;&lt; '\n';                      //4
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The stream buffer of <SAMP>file1</SAMP> is replaced by the stream buffer of <SAMP>file2</SAMP>. Afterwards, both streams share the buffer.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Create different format settings for both files.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>The output here is: <SAMP>47.11000</SAMP>
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>The output here is: <SAMP>4.711e+01</SAMP>
+</TABLE>
+<P>Note that <SAMP>file2</SAMP> in the example above has to be an output stream rather than an output file stream. This is because file streams do not allow you to switch the file stream buffer.</P>
+<A NAME="3432"><H3>34.3.2 Several Locales for the Same Stream</H3></A>
+<A NAME="idx855"><!></A>
+<P>Similarly, you can use separate streams that share a stream buffer in order to avoid locale switches. This is useful when you must insert multilingual text into the same stream. Here is an example:</P>
+
+<UL><PRE>
+  std::ostringstream file1;
+  std::ostream file2(file1.rdbuf());
+
+  file1.imbue(std::locale("De_DE"));  // actual locale names depend
+  file2.imbue(std::locale("En_US"));  //   on the platform
+
+  file1 &lt;&lt; 47.11 &lt;&lt; '\t';
+  file2 &lt;&lt; 47.11 &lt;&lt; '\n';
+
+  std::cout &lt;&lt; file1.str() &lt;&lt; std::endl;                      //1
+
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The output is:<SAMP>   47,11   47.11</SAMP>
+</TABLE>
+<P>Again, there is a little snag.  In <A HREF="34-3.html#Figure&nbsp;31">Figure&nbsp;31</A>, note that a stream buffer has a locale object of its own, in addition to the stream's locale object. </P>
+<A NAME="idx856"><!></A>
+<H4><A NAME="Figure&nbsp;31">Figure&nbsp;31: Locale objects and shared stream buffers</A></H4>
+
+<P><IMG SRC="images/iofig16.gif" WIDTH=573 HEIGHT=378></P>
+<P><A HREF="27-4.html#2744">Section&nbsp;27.4.4</A> explained the role of those two locale objects. To recap, the stream delegates the handling of numeric entities to its locale's numeric facets. The stream buffer uses its locale's code conversion facet for character-wise transformation between the buffer content and characters transported to and from the external device.</P>
+<P>Usually the stream's locale and the stream buffer's locale are identical. However, when you share a stream buffer between two streams with different locales, you must decide which locale the stream buffer will use.</P>
+<A NAME="idx857"><!></A>
+<P>You can set the stream buffer's locale by calling the <SAMP>std::streambuf::pubimbue()</SAMP> member function as follows:</P>
+
+<UL><PRE>
+file1.imbue(std::locale("De_DE"));
+file2.imbue(std::locale("En_US"));
+file1.rdbuf()-&gt;pubimbue(std::locale("De_DE"));
+</PRE></UL>
+<A NAME="3433"><H3>34.3.3 Input and Output to the Same Stream</H3></A>
+<A NAME="idx858"><!></A>
+<P>You can also use a shared stream buffer in order to have read <I>and</I> write access to a stream:</P>
+
+<UL><PRE>
+filebuf fbuf;                                                 //1
+  fbuf.open("/tmp/inout",std::ios_base::in | 
+                         std::ios_base::out);                 //2
+  std::istream in(&amp;fbuf);                                     //3
+  std::ostream out(&amp;fbuf);                                    //4
+
+  std::cout &lt;&lt; in.rdbuf();                                    //5
+  out &lt;&lt; "..." &lt;&lt; '\n' ;                                      //6
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Create a file buffer.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Connect the file buffer to a file. Note that you must open the file in input and output mode if you want to read <I>and</I> write to it.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Create an input stream that works with the file buffer <SAMP>fbuf</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>Create an output stream that also uses the file buffer <SAMP>fbuf</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//5</SAMP></TD><TD>Read the entire content of the file and insert it into the standard output stream. Afterwards the file position is at the end of the file.
+<A NAME="idx859"><!></A>
+<BR><BR>The most efficient way to read a file's entire content is through the <SAMP>rdbuf()</SAMP> member function, which returns a pointer to the underlying stream buffer object. There is an inserter available that takes a stream buffer pointer, so you can insert the buffer's content into another stream.
+<TR VALIGN="top"><TD><SAMP>//6</SAMP></TD><TD>Write output to the file. As the current file position is the end of the file, all output is inserted at the end.
+</TABLE>
+<A NAME="idx860"><!></A>
+<P>Naturally, it is easier and less error-prone to use bidirectional streams when you must read and write to a file. The bidirectional equivalent to the example above would be:</P>
+
+<UL><PRE>
+std::fstream of("/tmp/inout");
+std::cout &lt;&lt; of.rdbuf();
+of &lt;&lt; "..." &lt;&lt; '\n' ; 
+</PRE></UL>
+<P>Notice that there is a difference between the solutions that you can see by comparing <A HREF="34-3.html#Figure&nbsp;32">Figure&nbsp;32</A> and <A HREF="34-3.html#Figure&nbsp;33">Figure&nbsp;33</A>. An input and an output stream that share a stream buffer, as shown in <A HREF="34-3.html#Figure&nbsp;32">Figure&nbsp;32</A>, can still have separate format settings, different locales, different exception masks, and so on. </P>
+<A NAME="idx861"><!></A>
+<H4><A NAME="Figure&nbsp;32">Figure&nbsp;32: An input and an output stream sharing a stream buffer</A></H4>
+
+<P><IMG SRC="images/iofig17.gif" WIDTH=572 HEIGHT=479></P>
+<A NAME="idx862"><!></A>
+<P>In contrast, the bidirectional stream shown in <A HREF="34-3.html#Figure&nbsp;33">Figure&nbsp;33</A> can have only one format setting, one locale, and so on: </P>
+<A NAME="idx863"><!></A>
+<H4><A NAME="Figure&nbsp;33">Figure&nbsp;33: A bidirectional stream</A></H4>
+
+<P><IMG SRC="images/iofig18.gif" WIDTH=457 HEIGHT=531></P>
+<A NAME="idx864"><!></A>
+<P>It seems clear that you cannot have different settings for input and output operations when you use a bidirectional stream. Still, it is advisable to use bidirectional file or string streams if you need to read and write to a file or string, instead of creating an input and an output stream that share a stream buffer. The bidirectional stream is easier to declare, and you need not worry about the stream buffer object's lifetime.</P>
+<A NAME="idx865"><!></A>
+<BLOCKQUOTE><HR><B>
+NOTE -- It's better to use one bidirectional file or string stream for reading and writing to a file or string, rather than two streams that share a stream buffer. 
+</B><HR></BLOCKQUOTE>
+
+<BR>
+<HR>
+<A HREF="34-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="34-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

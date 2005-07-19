@@ -1,0 +1,106 @@
+<HTML>
+<HEAD>
+<TITLE>iterator_traits</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="iterator.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="iterators.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>iterator_traits</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-8.html">Iterators</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Tag Types</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Returns basic information about an iterator.</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;iterator&gt;
+
+namespace std { 
+  template &lt;class Iterator&gt;
+  struct <B>iterator_traits</B>;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class template <B><I>iterator_traits</I></B> and its specializations allow algorithms to access information about a particular iterator in a uniform way. The template requires either an iterator with a basic interface consisting of the types <SAMP>value_type</SAMP>, <SAMP>difference_type</SAMP>, <SAMP>pointer</SAMP>, <SAMP>reference</SAMP>, and <SAMP>iterator_category</SAMP>, or it requires a specialization for the iterator. The library includes partial specializations to handle all pointer types.</P>
+<P><B><I>iterator_traits</I></B> are used within algorithms to create local variables of either the type pointed to by the iterator or of the iterator's distance type. The traits also improve the efficiency of algorithms by making use of knowledge about basic iterator categories provided by the <SAMP>iterator_category</SAMP> member. An algorithm can use this "tag" to select the most efficient implementation an iterator is capable of handling without sacrificing the ability to work with a wide range of iterator types. For instance, both the <SAMP><A HREF="advance.html">advance()</A></SAMP> and <SAMP><A HREF="distance.html">distance()</A></SAMP> primitives use <SAMP>iterator_category</SAMP> to maximize their efficiency by using the tag to select from one of several different auxiliary functions. The <SAMP>iterator_category</SAMP> must therefore be one of the iterator tags included by the library.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>template &lt;class Iterator&gt;
+struct iterator_traits
+{
+   typedef typename Iterator::value_type value_type;
+   typedef typename Iterator::difference_type difference_type;
+   typedef typename Iterator::pointer pointer;
+   typedef typename Iterator::reference reference;
+   typedef typename Iterator::iterator_category
+                              iterator_category;
+};
+
+// Specializations for pointers
+template &lt;class T&gt;
+struct iterator_traits&lt;T*&gt;
+{
+   typedef T value_type;
+   typedef ptrdiff_t difference_type;
+   typedef value_type* pointer;
+   typedef value_type&amp; reference;
+   typedef random_access_iterator_tag iterator_category;
+};
+</PRE></UL>
+<A NAME="sec6"><H3>Tag Types</H3></A>
+
+<UL><PRE>struct input_iterator_tag {};
+struct output_iterator_tag {};
+struct forward_iterator_tag: input_iterator_tag {};
+struct bidirectional_iterator_tag: forward_iterator_tag {};
+struct random_access_iterator_tag: 
+                     bidirectional_iterator_tag {};
+</PRE></UL>
+<P><SAMP>iterator_traits&lt;&gt;::iterator_category</SAMP> is typically used like this:</P>
+
+<UL><PRE>template &lt;class Iterator&gt;
+void foo(Iterator start, Iterator finish)
+{   
+  foo(begin,end,
+        iterator_traits&lt;Iterator&gt;::iterator_category);
+}
+
+template &lt;class Iterator&gt;
+void foo(Iterator start, Iterator finish,
+           input_iterator_tag&gt;
+{
+  // Most general implementation
+}
+
+template &lt;class Iterator&gt;
+void foo(Iterator start, Iterator finish,
+           bidirectional_iterator_tag&gt;
+{
+  // Implementation takes advantage of bi-directional
+  // capability of the iterators
+}
+
+...etc.
+</PRE></UL>
+<P>See the <B><I><A HREF="iterator.html">iterator</A></I></B> section for a description of iterators and the capabilities associated with each type of iterator tag.</P>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP>__value_type()</SAMP>, <SAMP><A HREF="--distance-type.html">__distance_type()</A></SAMP>, <SAMP><A HREF="--iterator-category.html">__iterator_category()</A></SAMP>, <SAMP><A HREF="distance.html">distance()</A></SAMP>, <SAMP><A HREF="advance.html">advance()</A></SAMP>, <B><I><A HREF="iterator.html">iterator</A></I></B></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 24.3.1</I></P>
+
+<BR>
+<HR>
+<A HREF="iterator.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="iterators.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

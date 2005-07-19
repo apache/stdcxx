@@ -1,0 +1,25 @@
+<HTML>
+<HEAD>
+<TITLE>The priority queue Data Abstraction</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="11.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="11-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>11.1 The priority queue Data Abstraction</H2>
+<A NAME="idx200"><!></A>
+<P>A <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B> is a data structure useful in problems where you need to rapidly and repeatedly find and remove the largest element from a collection of values. An everyday example of a priority queue is the <I>to do</I> list of tasks waiting to be performed that most of us maintain to keep ourselves organized. Some jobs, such as <I>clean desktop</I>, are not imperative and can be postponed arbitrarily. Other tasks, such as <I>finish report by Monday</I> or <I>buy flowers for anniversary</I>, are time-crucial and must be addressed more rapidly. Thus, we sort the tasks waiting to be accomplished in order of their importance, or perhaps based on a combination of their critical importance, their long term benefit, and the fun we will have doing them, and choose the most pressing.</P>
+<P>A more computer-related example of a priority queue is the list of pending processes maintained by an operating system, where the value associated with each element is the priority of the job. For example, it may be necessary to respond rapidly to a key pressed at a terminal before the data is lost when the next key is pressed. On the other hand, the process of copying a listing to a queue of output waiting to be handled by a printer is something that can be postponed for a short period, as long as it is handled eventually. By maintaining processes in a priority queue, those jobs with urgent priority are executed prior to any jobs with less urgent requirements.</P>
+<A NAME="idx201"><!></A>
+<P>Simulation programs use a priority queue of <I>future events</I>. The simulation maintains a virtual <I>clock</I>, and each event has an associated time when the event will take place. In such a collection, the element with the smallest time value is the next event that should be simulated. These are only a few instances of the types of problems for which a <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B> is a useful tool. You probably have encountered others, or you soon will.</P>
+<P>Some developers may feel the term priority <I>queue</I> is a misnomer. The data structure is not a <B><I><A HREF="../stdlibref/queue.html">queue</A></I></B> in the sense that we used the term in <A HREF="10.html">Chapter&nbsp;10</A>, since it does not return elements in a strict first-in, first-out sequence. Nevertheless, the name is now firmly associated with this particular datatype.</P>
+<A NAME="1111"><H3>11.1.1 Include Files</H3></A>
+<A NAME="idx202"><!></A>
+<P>Programs that use the priority queue data abstraction should include the <SAMP>queue</SAMP> header file:</P>
+
+<UL><PRE>
+#include &lt;queue&gt;
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="11.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="11-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,48 @@
+<HTML>
+<HEAD>
+<TITLE>Selecting a Container</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="4-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="4-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>4.2 Selecting a Container</H2>
+<A NAME="idx60"><!></A>
+<P>Given ten Standard C++ Library containers, which type of container is best suited for solving a particular problem? Sometimes the answer is obvious, but other times there can be several viable alternatives. For the difficult cases, you may want to compare the actual execution timings using different containers to determine the best alternative. For most other cases, these simple criteria can help you decide:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE"><B><I>How will values be accessed?</I></B></P>
+</td><td valign=top><P CLASS="TABLE">If random access is important, then a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> or a <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> should be used. If sequential access is sufficient, then one of the other structures may be suitable.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><B><I>Is the order in which values are maintained in the collection important?</I></B></P>
+</td><td valign=top><P CLASS="TABLE">There are a number of different ways values can be sequenced. If a strict ordering is important throughout the life of the container, then the <B><I><A HREF="../stdlibref/set.html">set</A></I></B> data structure is an obvious choice, as insertions into a set are automatically placed in order. </P>
+<P CLASS="TABLE">If this ordering is important only at one point--for example, at the end of a long series of insertions--then it is generally more efficient to place the values into a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> or <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>, and sort the resulting structure at the appropriate time.</P>
+<P CLASS="TABLE">If the order that values are held in the structure is related to the order of insertion, then a <B><I><A HREF="../stdlibref/stack.html">stack</A></I></B>, <B><I><A HREF="../stdlibref/queue.html">queue</A></I></B>, or <B><I><A HREF="../stdlibref/list.html">list</A></I></B> may be the best choice.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><B><I>Will the size of the structure vary widely over the course of execution?</I></B></P>
+</td><td valign=top><P CLASS="TABLE">If so, a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> or <B><I><A HREF="../stdlibref/set.html">set</A></I></B> might be the best choice. A <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> or <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> will continue to maintain a large buffer even after elements have been removed from the collection. Conversely, if the size of the collection remains relatively fixed, than a <B><I>vector</I></B> or <B><I>deque</I></B> will use less memory than a list or set holding the same number of elements.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><B><I>Is it possible to estimate the size of the collection?</I></B></P>
+</td><td valign=top><P CLASS="TABLE">The <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> data structure provides a way to pre-allocate a block of memory of a given size, using the <SAMP>reserve()</SAMP> member function. This ability is not provided by the other containers.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><B><I>Is testing to see whether a value is contained in the collection a frequent operation?</I></B></P>
+</td><td valign=top><P CLASS="TABLE">If so, then the <B><I><A HREF="../stdlibref/set.html">set</A></I></B> or <B><I><A HREF="../stdlibref/map.html">map</A></I></B> containers would be a good choice. Testing to see whether a value is contained in a set or map can be performed in a very small number of steps, logarithmic in the size of the container, whereas testing to see if a value is contained in one of the other types of collections might require comparing the value against every element stored in the container.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><B><I>Is the collection indexed? That is, can the collection be viewed as a series of key/value pairs?</I></B></P>
+</td><td valign=top><P CLASS="TABLE">If the keys are integers between 0 and some upper limit, a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> or <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> should be used. On the other hand, if the key values are some other ordered datatype--like character, string, or user-defined type--the <B><I><A HREF="../stdlibref/map.html">map</A></I></B> container can be used.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><B><I>Can values be related to each other?</I></B></P>
+</td><td valign=top><P CLASS="TABLE">If the values cannot be ordered using the relational less-than operator, they cannot be stored in a <B><I><A HREF="../stdlibref/set.html">set</A></I></B> or a <B><I><A HREF="../stdlibref/map.html">map</A></I></B>.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><B><I>Is finding and removing the largest value from the collection a frequent operation?</I></B></P>
+</td><td valign=top><P CLASS="TABLE">If the answer is yes, the <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B> is the best data structure to use.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><B><I>At what positions are values inserted into or removed from the structure?</I></B></P>
+</td><td valign=top><P CLASS="TABLE">If values are inserted into or removed from the middle, then a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> is the best choice. If values are inserted only at the beginning, a <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> or a <B><I>list</I></B> is the preferred choice. If values are inserted and removed only at the end, a <B><I><A HREF="../stdlibref/stack.html">stack</A></I></B> may be a logical choice.</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><B><I>Is the merging of two or more sequences into one a frequent operation?</I></B></P>
+</td><td valign=top><P CLASS="TABLE">If so, a <B><I><A HREF="../stdlibref/set.html">set</A></I></B> or a <B><I><A HREF="../stdlibref/list.html">list</A></I></B> would seem to be the best choice, depending whether the collection is maintained in order. Merging two sets is a very efficient operation. If the collections are not ordered, but the efficient <SAMP>splice()</SAMP> member function from class list can be used, then the list datatype is to be preferred, since this operation is not provided in the other containers.</P>
+</td></tr>
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="4-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="4-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

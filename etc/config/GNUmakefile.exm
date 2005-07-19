@@ -1,0 +1,45 @@
+# -*- Makefile -*-
+#
+# $Id: //stdlib/dev/etc/stdlib/config/GNUmakefile.exm#33 $
+#
+# makefile to build the C++ Standard library examples
+#
+##############################################################################
+
+include  ../makefile.in
+
+EXMDIR       = $(TOPDIR)/examples
+
+SRCDIRS      = $(EXMDIR)
+
+# do not compile these sources...
+OMIT_SRCS   += rwstdmessages.cpp
+
+# override setting from makefile.in (examples only)
+CATFILE      = rwstdmessages.cat
+
+include ../makefile.common
+
+INCLUDES    += -I$(EXMDIR)/include
+
+RUNFLAGS    += -x $(EXMDIR)
+
+##############################################################################
+#  TARGETS
+##############################################################################
+
+.SUFFIXES:
+
+all:  $(TARGET) $(CATFILE)
+
+# dependency on main library
+$(TARGET): $(LIBDIR)/$(LIBNAME)
+
+$(LIBDIR)/$(LIBNAME):
+	@$(MAKE) -C $(LIBDIR) 
+
+# do any directory specific cleanup using the realclean target
+realclean: dependclean clean
+	rm -f *.out
+
+include ../makefile.rules

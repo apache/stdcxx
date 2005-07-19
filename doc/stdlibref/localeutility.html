@@ -1,0 +1,247 @@
+<HTML>
+<HEAD>
+<TITLE>locale utility</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="locale.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="localedefutility.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>locale utility</H2><PRE><HR><B><I>Utility Program</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Options</A></LI>
+<LI><A HREF="#sec6">Operands</A></LI>
+<LI><A HREF="#sec7">Environment Variables</A></LI>
+<LI><A HREF="#sec8">Input</A></LI>
+<LI><A HREF="#sec9">Output</A></LI>
+<LI><A HREF="#sec10">Exit Status</A></LI>
+<LI><A HREF="#sec11">Examples</A></LI>
+<LI><A HREF="#sec12">See also</A></LI>
+<LI><A HREF="#sec13">Standard Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx825">LANG</A><BR>
+<A HREF="#idx826">LC_ALL</A><BR>
+<A HREF="#idx827">LC_COLLATE</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx828">LC_CTYPE</A><BR>
+<A HREF="#idx829">LC_MESSAGES</A><BR>
+<A HREF="#idx830">LC_MONETARY</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx831">LC_NUMERIC</A><BR>
+<A HREF="#idx832">LC_TIME</A><BR>
+<A HREF="#idx833">RWSTD_LOCALE_ROOT</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx834">RWSTD_SRC_ROOT</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A utility program to read locale databases produced by <SAMP>localedef</SAMP>. </P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>locale [-a|-m]
+locale [-c][-k] name...
+</PRE>
+<P>Rogue Wave Extensions:</P>
+
+<PRE>
+locale [-c][-h][-k][-l][-w][-wN][--help] name...
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>locale</SAMP> utility reads a locale database produced by the <SAMP>localedef</SAMP> utility and writes out information about the current locale environment or about all public locales to <SAMP>stdout</SAMP>. The current locale environment is determined by the setting of environment variables <SAMP>LANG</SAMP>, <SAMP>LC_ALL</SAMP>, <SAMP>LC_COLLATE</SAMP>, <SAMP>LC_CTYPE</SAMP>, <SAMP>LC_NUMERIC</SAMP>, <SAMP>LC_MONETARY</SAMP>, <SAMP>LC_TIME</SAMP>, and <SAMP>LC_MESSAGES</SAMP>. When invoked without operands, <SAMP>locale</SAMP> writes out the setting of locale environment variables. When invoked with arguments, it writes out values assigned to the keywords in locale categories. The behavior of the utility is affected by the environment variables <SAMP>${RWSTD_LOCALE_ROOT}</SAMP> and <SAMP>${RWSTD_SRC_ROOT}</SAMP>. </P>
+<A NAME="sec5"><H3>Options</H3></A>
+<P><A HREF="localeutility.html#Table&nbsp;22">Table&nbsp;22</A> lists the options that conform to the requirements of the IEEE Std. 1003.1-2001 (POSIX) standard.   </P>
+<H4><A NAME="Table&nbsp;22">Table&nbsp;22: locale utility option requirements of the IEEE Std. 1003.1-2001 (POSIX) standard&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Option</B>
+</td>
+<td valign=top><B>Meaning</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-a</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Write out information about all public locales, including the C and POSIX locales.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-c</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Write out the names of specified locale categories. The option improves readability when more than one locale category is specified.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-k</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Write out the values of the specified keywords.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-m</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Write out the names of available charmaps.</P>
+</td>
+</tr>
+</TABLE>
+<P><A HREF="localeutility.html#Table&nbsp;23">Table&nbsp;23</A> lists the options provided as extensions to the IEEE Std. 1003.1-2001 (POSIX) standard.   </P>
+<H4><A NAME="Table&nbsp;23">Table&nbsp;23: locale utility option requirements of the IEEE Std. 1003.1-2001 (POSIX) standard&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Option</B>
+</td>
+<td valign=top><B>Meaning</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-w</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Disable all warnings.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-w</SAMP><SAMP><I>N</I></SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Disable warning number <SAMP><I>N</I></SAMP>. The option can be repeated any number of times to disable multiple warnings.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>--help</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Print a usage message to <SAMP>stdout</SAMP> and exit with <SAMP>0</SAMP> exit status.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>-h</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Use the character set description file associated with the locale database to write out symbolic character names rather than the character values.</P>
+</td>
+</tr>
+</TABLE>
+<A NAME="sec6"><H3>Operands</H3></A>
+<P>The following operands are accepted:</P>
+
+<UL><PRE><B><I>name</I></B>
+</PRE></UL>
+<UL>
+<P>The name of a locale category, or the reserved keyword <SAMP>charmap</SAMP>. The set of recognized locale categories is <SAMP>LC_COLLATE</SAMP>, <SAMP>LC_CTYPE</SAMP>, <SAMP>LC_MONETARY</SAMP>, <SAMP>LC_NUMERIC</SAMP>, <SAMP>LC_TIME</SAMP>, and <SAMP>LC_MESSAGES</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Environment Variables</H3></A>
+
+<A NAME="idx825"></A><PRE><B>LANG</B></PRE>
+<UL>
+<P>Specifies the default value to be used for all unset or empty locale environment variables.</P>
+</UL>
+
+
+<A NAME="idx826"></A><PRE><B>LC_ALL</B></PRE>
+<UL>
+<P>When set, overrides the settings of all locale environment variables.</P>
+</UL>
+
+
+<A NAME="idx827"></A><PRE><B>LC_COLLATE</B></PRE>
+<UL>
+<P>Specifies the name of the locale to be used for the <SAMP>LC_COLLATE</SAMP> locale category. When the name contains the slash character, it is taken as the pathname of the locale database to be used for that category.</P>
+</UL>
+
+
+<A NAME="idx828"></A><PRE><B>LC_CTYPE</B></PRE>
+<UL>
+<P>Specifies the name of the locale to be used for the <SAMP>LC_CTYPE</SAMP> locale category. When the name contains the slash character, it is taken as the pathname of the locale database to be used for that category.</P>
+</UL>
+
+
+<A NAME="idx829"></A><PRE><B>LC_MESSAGES</B></PRE>
+<UL>
+<P>Specifies the name of the locale to be used for the <SAMP>LC_MESSAGES</SAMP> locale category. When the name contains the slash character, it is taken as the pathname of the locale database to be used for that category.</P>
+</UL>
+
+
+<A NAME="idx830"></A><PRE><B>LC_MONETARY</B></PRE>
+<UL>
+<P>Specifies the name of the locale to be used for the <SAMP>LC_MONETARY</SAMP> locale category. When the name contains the slash character, it is taken as the pathname of the locale database to be used for that category.</P>
+</UL>
+
+
+<A NAME="idx831"></A><PRE><B>LC_NUMERIC</B></PRE>
+<UL>
+<P>Specifies the name of the locale to be used for the <SAMP>LC_NUMERIC</SAMP> locale category. When the name contains the slash character, it is taken as the pathname of the locale database to be used for that category.</P>
+</UL>
+
+
+<A NAME="idx832"></A><PRE><B>LC_TIME</B></PRE>
+<UL>
+<P>Specifies the name of the locale to be used for the <SAMP>LC_TIME</SAMP> locale category. When the name contains the slash character, it is taken as the pathname of the locale database to be used for that category.</P>
+</UL>
+
+
+<A NAME="idx833"></A><PRE><B>RWSTD_LOCALE_ROOT</B></PRE>
+<UL>
+<P>The pathname of the root of the directory tree containing locale databases produced by <SAMP>localedef</SAMP>. The value of this environment variable is used when the <SAMP>-m</SAMP> option is specified, or unless the locale environment variables contain the slash character.</P>
+</UL>
+
+
+<A NAME="idx834"></A><PRE><B>RWSTD_SRC_ROOT</B></PRE>
+<UL>
+<P>The pathname of the root of the directory tree containing character set description files and locale definition files. The character set description files are assumed to reside in <SAMP>${RWSTD_SRC_ROOT}/charmaps</SAMP>, the locale definition files in <SAMP>${RWSTD_SRC_ROOT}/src</SAMP>. The value of this environment variable is used when the <SAMP>-h</SAMP> option is specified.</P>
+</UL>
+
+<A NAME="sec8"><H3>Input</H3></A>
+<P><SAMP>locale</SAMP> reads one or more locale database files according to the settings of locale environment variables.</P>
+<A NAME="sec9"><H3>Output</H3></A>
+<P>On success, and unless extended options are specified, the format of output produced by <SAMP>locale</SAMP> to <SAMP>stdout</SAMP> follows the requirements of IEEE Std 1003.1-2001 on the <SAMP>locale</SAMP> utility.</P>
+<P>When invoked without any operands, <SAMP>locale</SAMP> writes to <SAMP>stdout</SAMP> the settings of all locale environment variables, starting with <SAMP>LANG</SAMP> first. Values of variables overridden by <SAMP>LANG</SAMP> are quoted in double-quotes.</P>
+<P>When invoked with the <SAMP>-a</SAMP> option, <SAMP>locale</SAMP> writes to <SAMP>stdout</SAMP> the names of all public locales found in the directory specified by the <SAMP>${RWSTD_LOCALE_ROOT}</SAMP> variable, or the current working directory if the variable is unset or empty.</P>
+<P>When invoked with the <SAMP>-c</SAMP> option, <SAMP>locale</SAMP> writes to <SAMP>stdout</SAMP> the name of each specified locale category; otherwise the names of categories are omitted. Refer to  the Environment Variables section of this entry for a list of recognized locale categories.</P>
+<P>When invoked with the <SAMP>-k</SAMP> option, <SAMP>locale</SAMP> writes to <SAMP>stdout</SAMP> the names and values of the specified keywords; otherwise only the values of the specified keywords are written.</P>
+<P>When invoked with the <SAMP>-m</SAMP> option, <SAMP>locale</SAMP> writes to <SAMP>stdout</SAMP> the names of all available charmaps.</P>
+<P>Any warning or error diagnostic messages produced by <SAMP>localedef</SAMP> are sent to <SAMP>stderr</SAMP>.</P>
+<A NAME="sec10"><H3>Exit Status</H3></A>
+<P><A HREF="localeutility.html#Table&nbsp;24">Table&nbsp;24</A> illustrates the <SAMP>locale</SAMP> utility exits with the corresponding status. </P>
+<H4><A NAME="Table&nbsp;24">Table&nbsp;24: locale utility exit status&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Exit Status</B>
+</td>
+<td valign=top><B>Meaning</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">No errors occurred and output was successfully produced.</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&gt; 0</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">An error occurred that prevented locale from successfully producing output.</P>
+</td>
+</tr>
+</TABLE>
+<A NAME="sec11"><H3>Examples</H3></A>
+<P>The first of the following two commands, <SAMP>localedef</SAMP>, will create a locale database named <SAMP>french@euro</SAMP> in the directory <SAMP>/tmp</SAMP>. The second, <SAMP>locale</SAMP>, will write to <SAMP>stdout</SAMP> the names and values of the keywords for the <SAMP>LC_TIME</SAMP> locale category for the just created locale database. Since <SAMP>-c</SAMP> is specified, <SAMP>locale</SAMP> also writes out the name of the category. Please note that the following example uses Rogue Wave extensions to the <SAMP>locale</SAMP> utility.</P>
+
+<UL><PRE>
+$ localedef -c -f -w nls/charmaps/ISO-8859-15 \<br>   -i nls/src fr_FR.euro/tmp/french@euro
+$ LC_TIME=/tmp/french@euro locale -ck LC_TIME
+LC_TIME
+abday="dim";"lun";"mar";"mer";"jeu";"ven";"sam"
+day="dimanche";"lundi";"mardi";"mercredi";"jeudi";"vendredi";<br>   "samedi"
+abmon="jan";"f&eacute;v";"mar";"avr";"mai";"jun";"jui";"ao&ucirc;";"sep";<br>   "oct";"nov";"d&eacute;c"
+mon="janvier";"f&eacute;vrier";"mars";"avril";"mai";"juin";"juillet";<br>   "ao&ucirc;t";"septembre";"octobre";"novembre";"d&eacute;cembre"
+am_pm="";""
+d_t_fmt="%a %d %b %Y %T %Z"
+d_fmt="%d.%m.%Y"
+t_fmt="%T"
+t_fmt_ampm=""
+era=era_d_t_fmt=""
+era_d_fmt=""
+era_t_fmt=""
+alt_digits=""
+END LC_TIME
+</PRE></UL>
+<A NAME="sec12"><H3>See also</H3></A>
+<P>localedef utility</P>
+<A NAME="sec13"><H3>Standard Conformance</H3></A>
+<P><I>IEEE Std. 1003.1-2001 -- The Open Group Base Specifications Issue 6</I></P>
+
+<BR>
+<HR>
+<A HREF="locale.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="localedefutility.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

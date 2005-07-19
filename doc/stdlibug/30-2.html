@@ -1,0 +1,117 @@
+<HTML>
+<HEAD>
+<TITLE>Working with File Streams</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="30-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="30-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>30.2 Working with File Streams</H2>
+<A NAME="3021"><H3>30.2.1 Creating and Opening File Stream Objects</H3></A>
+<A NAME="idx743"><!></A>
+<P>There are two ways to create a file stream: you can create an empty file stream, open a file, and connect it to the stream later on; or you can open the file and connect it to a stream at construction time. These two procedures are demonstrated in the two following examples, respectively:</P>
+
+<UL><PRE>
+int main(int argc, char *argv[]) {
+  std::ifstream file;                                         //1
+  // ...
+  file.open(argv[1]);                                         //2
+  if (!file) // error: unable to open file for input
+</PRE></UL>
+<A NAME="idx744"><!></A>
+<P>or:</P>
+
+<UL><PRE>
+int main(int argc, char *argv[]) {
+  std::ifstream file(argv[1]);                                //3
+  if (!file) // error: unable to open file for input
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>A file stream is created that is not connected to any file. Any operation on the file stream fails.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Here a file is opened and connected to the file stream. If the file cannot be opened, <SAMP>std::ios_base::failbit</SAMP> is set; otherwise, the file stream is now ready for use.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Here the file is both opened and connected to the stream.
+</TABLE>
+<BLOCKQUOTE><HR><B>
+NOTE -- The traditional iostreams supported a constructor, taking a file descriptor, that allowed connection of a file stream to an already open file. This is not available in the standard iostreams. However, the Rogue Wave implementation of the standard iostreams provides a corresponding extension. See Appendix B of the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A> for more information.
+</B><HR></BLOCKQUOTE>
+<A NAME="3022"><H3>30.2.2 Checking a File Stream's Status</H3></A>
+<A NAME="idx745"><!></A>
+<P>Generally you can check whether the attempt to open a file was successful by examining the stream state afterwards; <SAMP>failbit</SAMP> is set in case of failure.</P>
+<A NAME="idx746"><!></A>
+<P>There is also a member function called <SAMP>is_open()</SAMP> that indicates whether a file stream is connected to an open file. This function does <I>not</I> mean that a previous call to <SAMP>open()</SAMP> was successful. To understand the subtle difference, consider the case of a file stream that is already connected to a file. Any subsequent call to <SAMP>open()</SAMP> fails, but <SAMP>is_open()</SAMP> still returns <SAMP>true</SAMP>, as shown in the following code:</P>
+
+<A NAME="idx747"><!></A>
+<UL><PRE>
+int main(int argc, char* argv[])
+{
+  if (argc &gt; 2) {  
+    std::ofstream file;                                      //1
+    file.open(argv[1]);
+    // ...
+    file.open(argv[2]);                                      //2
+    if (file.fail())                                         //3
+    {  // open failed  }
+    if (file.is_open())                                      //4
+    {  // connected to an open file  }
+  }
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Open a file and connect the file stream to it.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Any subsequent open on this stream fails.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Hence the <SAMP>failbit</SAMP> is set.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>However, <SAMP>is_open()</SAMP> still returns <SAMP>true</SAMP>, because the file stream still is connected to an open file.
+</TABLE>
+<A NAME="idx748"><!></A>
+<A NAME="3023"><H3>30.2.3 Closing a File Stream</H3></A>
+<A NAME="idx749"><!></A>
+<P>In the example above, it would be advisable to close the file stream before you try to connect it to another file. This is done implicitly by the file streams destructor in the following code:</P>
+
+<UL><PRE>
+
+int main(int argc, char* argv[])
+{
+  if (argc &gt; 2) {
+    ofstream file(argv[2]);
+    // ...
+  }                                                           //1
+  if (argc &gt; 1) {
+    ofstream file(argv[1]);
+    // ...
+  }
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Here the file stream <SAMP>file</SAMP> goes out of scope and the file it is connected to is closed automatically.
+</TABLE>
+<P>You can explicitly close the connected file. The file stream is then empty, until it is reconnected to another file:</P>
+
+<UL><PRE>
+int main(int argc, char* argv[])
+{
+  std::ifstream f;                                           //1
+  for (int i=1; i&lt;argc; ++i) {
+    f.open(argv[i]);                                         //2
+    if (f) {                                                 //3
+      // ...                                                 //4
+      f.close();                                             //5
+    }
+    else
+      std::cerr &lt;&lt; "file " &lt;&lt; argv[i] &lt;&lt; " cannot be opened.\n";
+  }
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>An empty file stream is created.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>A file is opened and connected to the file stream.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Here we check whether the file was successfully opened. If the file could not be opened, the <SAMP>failbit</SAMP> would be set.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>Now the file stream is usable, and the file's content can be read and processed.
+<TR VALIGN="top"><TD><SAMP>//5</SAMP></TD><TD>Close the file again. The file stream is empty again.
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="30-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="30-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

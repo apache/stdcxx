@@ -1,0 +1,105 @@
+<HTML>
+<HEAD>
+<TITLE>Building on the Standard Containers</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="16-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="16-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>16.2 Building on the Standard Containers</H2>
+<A NAME="idx396"><!></A>
+<P>Let's examine a few of the ways you can use existing Standard C++ Library containers to create your own containers. For example, say you want to implement a <B><I><A HREF="../stdlibref/set.html">set</A></I></B> container that enforces unique values that are not inherently sorted. You also want a group of algorithms to operate on that <B><I>set</I></B>. The container is certainly a <I>sequence</I> but not an a<I>ssociative container</I>, since an associative container is sorted by definition. The algorithms will presumably work on other sequences, assuming those sequences provide appropriate iterator types, since the iterator required by a set of algorithms determines the range of containers those algorithms can be applied to. The algorithms will be universally available if they require only forward iterators. On the other hand, they'll be most restrictive if they require random access iterators.</P>
+<A NAME="idx397"><!></A>
+<P>Simple implementations of this <B><I><A HREF="../stdlibref/set.html">set</A></I></B> container could make use of existing Standard C++ Library containers for much of their mechanics. Three possible ways of achieving this code reuse are:</P>
+<UL>
+<LI><P CLASS="LIST">inheritance</P></LI>
+<LI><P CLASS="LIST">generic inheritance</P></LI>
+<LI><P CLASS="LIST">generic composition.</P></LI>
+</UL>
+<P>Let's take a look at each of these approaches in the next sections.</P>
+<A NAME="idx398"><!></A>
+<A NAME="1621"><H3>16.2.1 Inheritance</H3></A>
+<A NAME="idx399"><!></A>
+<P>As you recall, <I>inheritance</I> is the powerful feature of object-oriented programming that allows objects to derive attributes and behavior from other objects. To create your own container, you could derive from an existing Standard C++ container, then override certain functions to get the desired behavior. One approach would be to derive from the <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> container, as shown here:</P>
+
+<UL><PRE>
+#include &lt;vector&gt;
+
+// note the use of a namespace to avoid conflicts with standard 
+// or global names
+
+namespace my_namespace {
+
+  template &lt;class T, class Allocator = std::allocator&gt;
+  class set : public std::vector&lt;T,Allocator&gt; {
+  public:
+    // override functions such as insert
+    iterator insert(iterator position, const T&amp; x)
+    {
+      if (find(begin(),end(),x) == end())
+        return std::vector&lt;T,Allocator&gt;::insert(position,x);
+      else
+        return end(); // This value already present!
+    }
+    ...
+  };
+} // End of my_namespace
+</PRE></UL>
+<A NAME="idx400"><!></A>
+<A NAME="1622"><H3>16.2.2 Generic Inheritance</H3></A>
+<A NAME="idx401"><!></A>
+<P>A second approach to creating your own container is to create a <I>generic adaptor</I>, rather than specifying <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>. You do this by providing the underlying container through a template parameter:</P>
+
+<UL><PRE>
+namespace my_namespace {
+
+  template &lt;class T, class Container = std::vector&lt;T&gt; &gt;
+  class set : public Container {
+  public:
+    // Provide typedefs (iterator only for illustration)
+    typedef  typename Container::iterator iterator;
+
+    // override functions such as insert
+    iterator insert(iterator position, const T&amp; x) {
+      if (find(begin(),end(),x) == end())
+        return Container::insert(position,x);
+      else
+       return end();  // This value already present!
+    }
+    ...
+  };
+} // End of my_namespace
+</PRE></UL>
+<P>If you use generic inheritance through an adaptor, the adaptor and users of the adaptor cannot expect more than default capabilities and behavior from any container used to instantiate it. If the adaptor or its users expect functionality beyond what is required of a basic container, the documentation must specify precisely what is expected.</P>
+<A NAME="1623"><H3>16.2.3 Generic Composition</H3></A>
+<A NAME="idx402"><!></A>
+<P>The third approach to building your own container uses <I>composition</I> rather than inheritance. You can see the spirit of this approach in the Standard C++ Library adaptors <B><I><A HREF="../stdlibref/queue.html">queue</A></I></B>, <B><I>priority queue</I></B>, and <B><I><A HREF="../stdlibref/stack.html">stack</A></I></B>. When you use generic composition, you have to implement all of the desired interface. This option is most useful when you want to limit the behavior of an adaptor by providing only a subset of the interface provided by the container.</P>
+
+<UL><PRE>
+namespace my_namespace {
+
+  template &lt;class T, class Container = std::vector&lt;T&gt; &gt;
+  class set 
+  {
+  protected:
+    Container c;
+  public:
+    // Provide needed typedefs 
+    typedef typename Container::iterator iterator;
+
+    // provide all necessary functions such as insert
+    iterator insert(iterator position, const T&amp; x)
+    {
+      if (find(c.begin(),c.end(),x) == c.end())
+        return c.insert(position,x);
+      else
+        return c.end();  // This value already present!
+    }
+    ...
+  };
+} // End of my_namespace
+</PRE></UL>
+<P>The advantages of adapting existing containers are numerous. For instance, you get to reuse the implementation and the specifications of the container that you're adapting.</P>
+
+<BR>
+<HR>
+<A HREF="16-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="16-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

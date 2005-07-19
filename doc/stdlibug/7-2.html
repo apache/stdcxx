@@ -1,0 +1,19 @@
+<HTML>
+<HEAD>
+<TITLE>deque Operations</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="7-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="7-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>7.2 deque Operations</H2>
+<A NAME="idx124"><!></A>
+<P>A <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> is declared the same way as a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>, and includes within the class the same type definitions as <B><I>vector</I></B>. The <SAMP>begin()</SAMP> and <SAMP>end()</SAMP> member functions return random access iterators, rather than the bidirectional iterators returned for <B><I><A HREF="../stdlibref/list.html">list</A></I></B>s. </P>
+<P>An insertion  --  either <SAMP>insert()</SAMP>, <SAMP>push_front()</SAMP>, or <SAMP>push_back()</SAMP> --  can potentially invalidate all outstanding iterators and references to elements in the <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>.  As with the <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> datatype, this is a much more restrictive condition than insertions into a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>.</P>
+<P>If the underlying element type provides a destructor, the destructor is invoked when a value is erased from a <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>.</P>
+<P>Since the <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B> datatype provides random access iterators, all the generic algorithms that operate with <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>s can also be used with <B><I>deque</I></B>s.</P>
+<P>A <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> holds elements in a single large block of memory. A <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>, on the other hand, uses a number of smaller blocks. This may be important on systems that restrict the size of memory blocks, as it permits a <B><I>deque</I></B> to hold many more elements than a <B><I>vector</I></B>.</P>
+<P>As values are inserted, the index associated with any particular element in the collection changes. For example, if a value is inserted into position 3, the value formerly indexed by 3 is now found at index location 4; the value formerly at 4 is now found at index location 5, and so on.</P>
+
+<BR>
+<HR>
+<A HREF="7-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="7-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

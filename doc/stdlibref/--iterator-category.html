@@ -1,0 +1,81 @@
+<HTML>
+<HEAD>
+<TITLE>__iterator_category()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="--distance-type.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="IV.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>__iterator_category()</H2><PRE><HR><B><I>Does not inherit</I></B> <HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Tag Types</A></LI>
+<LI><A HREF="#sec6">See Also</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An iterator primitive that determines the category to which an iterator belongs. </P>
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is now obsolete. It is retained here to support compilers that do not include partial specialization, but will be dropped in a subsequent release.
+</B><HR></BLOCKQUOTE>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;iterator&gt;
+template &lt;class Category, class T, class Distance, 
+          class Pointer, class Reference&gt;
+inline Category 
+         __iterator_category(const iterator&lt;Category,
+                                 T, Distance, Pointer,
+                                 Reference&gt;&amp;);
+template &lt;class T&gt;
+inline random_access_iterator_tag __iterator_category(const T*);
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>__iterator_category()</SAMP> family of function templates allows you to determine the category to which any iterator belongs. The first function takes an iterator of a specific type and returns the tag for that type. The last takes a&nbsp;<SAMP>T*</SAMP> and returns <SAMP>random_access_iterator_tag</SAMP>.</P>
+<A NAME="sec5"><H3>Tag Types</H3></A>
+
+<UL><PRE>input_iterator_tag
+output_iterator_tag
+forward_iterator_tag
+bidirectional_iterator_tag
+random_access_iterator_tag
+</PRE></UL>
+<P>The <SAMP>__iterator_category()</SAMP> function is particularly useful for improving the efficiency of algorithms. An algorithm can use this function to select the most efficient implementation an iterator is capable of handling without sacrificing the ability to work with a wide range of iterator types. For instance, both the <SAMP>advance()</SAMP>  and <SAMP>distance()</SAMP>  primitives use <SAMP>__iterator_category()</SAMP> to maximize their efficiency by using the tag returned from <SAMP>__iterator_category()</SAMP> to select from one of several different auxiliary functions. Because this is a compile time selection, use of this primitive incurs no significant runtime overhead.</P>
+<P><SAMP>__iterator_category()</SAMP> is typically used like this:</P>
+
+<UL><PRE>
+template &lt;class Iterator&gt;
+void foo(Iterator start, Iterator finish)
+{
+  __foo(begin,end,__iterator_category(start));
+}
+
+template &lt;class Iterator&gt;
+void __foo(Iterator start, Iterator finish,
+           input_iterator_tag&gt;
+{
+  // Most general implementation
+}
+
+template &lt;class Iterator&gt;
+void __foo(Iterator start, Iterator finish,
+           bidirectional_iterator_tag&gt;
+{
+  // Implementation takes advantage of bi-directional
+  // capability of the iterators
+}
+
+...etc.
+</PRE></UL>
+<P>See the <B><I><A HREF="iterator.html">iterator</A></I></B> section for a description of iterators and the capabilities associated with each type of iterator tag.</P>
+<A NAME="sec6"><H3>See Also</H3></A>
+<P>Other iterator primitives:  <SAMP><A HREF="--distance-type.html">__distance_type()</A></SAMP>, <SAMP><A HREF="distance.html">distance()</A></SAMP>, <SAMP><A HREF="advance.html">advance()</A></SAMP>, <B><I><A HREF="iterator.html">iterator</A></I></B></P>
+
+
+<BR>
+<HR>
+<A HREF="--distance-type.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="IV.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

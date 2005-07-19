@@ -1,0 +1,27 @@
+<HTML>
+<HEAD>
+<TITLE>An Example</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="42-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="43.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>42.3 An Example</H2>
+<A NAME="idx975"><!></A>
+<P>An example of when you would want to imbue a new locale on a stream might be the case where a file has a header that requires a different code conversion facet. The following code imbues the JIS to UNICODE conversion facet from <A HREF="40.html">Chapter&nbsp;40</A> onto a stream, reads a single line, then imbues the default locale to continue processing the file:</P>
+
+<UL><PRE>
+std::wstring header;
+std::wstring body;
+typedef std::basic_ifstream&lt;wchar_t,JIS_char_traits&gt; JIS_ifstream;
+JIS_fstream in("special.txt");
+UnicodeJISConversion&lt;wchar_t,char,JISstate_t&gt; cvtfac;
+std::locale cvtloc(std::locale(),&amp;cvtfac);
+in.rdbuf()-&gt;pubimbue(cvtloc);
+std::getline(in,header);
+in.rdbuf()-&gt;pubimbue(std::locale());
+in &gt;&gt; body;
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="42-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="43.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

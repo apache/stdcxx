@@ -1,0 +1,31 @@
+<HTML>
+<HEAD>
+<TITLE>Error Indication by Stream Iterators</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="43-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="43-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>43.3 Error Indication by Stream Iterators</H2>
+<A NAME="idx978"><!></A>
+<P>The <B><I><A HREF="../stdlibref/basic-istream.html">istream</A></I></B> and <B><I><A HREF="../stdlibref/basic-ostream.html">ostream</A></I></B> iterators by themselves have no means of indicating the success or failure of an operation. The stream being operated on should be probed for<SAMP> good()</SAMP>, <SAMP>eof()</SAMP>, <SAMP>fail()</SAMP>, or <SAMP>bad()</SAMP> conditions. This is convenient, as stream state can be checked for exception conditions that were set in <B><I><A HREF="../stdlibref/basic-ios.html">basic_ios</A></I></B> (using the member function <SAMP>exceptions(iostate)</SAMP>) after each input or output operation.</P>
+
+<UL><PRE>
+void print()
+{
+   std::ostream_iterator&lt;int, char, char_traits&lt;char&gt; &gt; os(cout);
+
+   try {
+      std::cout.exceptions (std::ios::failbit | std::ios::badbit);
+      *os = 3;  //output `3'
+      os++;  // receive next output
+   }
+   catch(std::ios_base::failure&amp; emsg) {
+      std::cerr&lt;&lt;emsg.what();
+   }
+}
+</PRE></UL>
+<P>Since stream buffers do not retain information about the success or failure of operations, <B><I><A HREF="../stdlibref/basic-streambuf.html">streambuf</A></I></B> iterators provide a member function, <SAMP>failed()</SAMP>, to indicate success or failure in a preceding operation on the stream buffer. </P>
+
+<BR>
+<HR>
+<A HREF="43-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="43-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

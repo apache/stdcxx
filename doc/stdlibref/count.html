@@ -1,0 +1,112 @@
+<HTML>
+<HEAD>
+<TITLE>count(), count_if()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="copy.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="cout.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>count(), count_if()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">Warnings</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that counts the number of elements in a range that satisfy a given condition</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template&lt;class InputIterator, class T&gt;
+  typename iterator_traits&lt;InputIterator&gt;::difference_type
+  count(InputIterator start, InputIterator finish, 
+        const T&amp; value);
+  
+  template &lt;class InputIterator, class T, class Size&gt;
+  void count(InputIterator start, InputIterator finish,
+             const T&amp; value, Size&amp; n);
+  
+  template&lt;class InputIterator, class Predicate&gt;
+  typename iterator_traits&lt;InputIterator&gt;::difference_type
+  count_if(InputIterator start, InputIterator finish, 
+           Predicate pred);
+  
+  template &lt;class InputIterator, class Predicate, class Size&gt;
+  void count_if(InputIterator start, InputIterator finish,
+                Predicate pred, Size&amp; n);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<BLOCKQUOTE><HR><B>
+NOTE -- The second versions of the count() and count_if() functions are not part of the C++ Standard, but are included here as extensions for compatibility purposes. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions.
+</B><HR></BLOCKQUOTE>
+<P>The <SAMP>count()</SAMP> algorithm compares <SAMP>value</SAMP> to elements in the sequence defined by iterators <SAMP>start</SAMP> and <SAMP>finish</SAMP>. The first version of <SAMP>count()</SAMP> returns the number of matches. The second version, which is provided for backwards compatibility or as an alternative to the first in case the template <B><I><A HREF="iterator-traits.html">iterator_traits</A></I></B> isn't provided, increments a counting value <SAMP>n</SAMP> each time it finds a match. In other words, <SAMP>count()</SAMP> returns (or adds to <SAMP>n</SAMP>) the number of iterators <SAMP>i</SAMP> in the range <SAMP>[start, finish)</SAMP> for which the following condition holds:</P>
+<P><SAMP>*i == value</SAMP></P>
+<P>Type <SAMP>T</SAMP> must be <SAMP>EqualityComparable</SAMP>.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>The <SAMP><A HREF="count.html">count_if()</A></SAMP> algorithm lets you specify a predicate, and returns the number of times an element in the sequence satisfies the predicate (or increments <SAMP>n</SAMP> that number of times). That is, <SAMP>count_if()</SAMP> returns (or adds to <SAMP>n</SAMP>) the number of iterators <SAMP>i</SAMP> in the range <SAMP>[start, finish)</SAMP> for which the following condition holds: </P>
+<P><SAMP>pred(*i) == true.</SAMP></P>
+<P>Both <SAMP>count()</SAMP> and <SAMP><A HREF="count.html">count_if()</A></SAMP> perform exactly <SAMP>finish - start</SAMP> applications of the corresponding predicate.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+// count.cpp
+//
+
+#include &lt;algorithm&gt;    // for count, count_if
+#include &lt;functional&gt;   // bind2nd, less
+#include &lt;iostream&gt;     // for cout, endl
+#include &lt;vector&gt;       // for vector
+ 
+
+
+int main ()
+{
+    // Typedef for convenience.
+    typedef std::vector&lt;short, std::allocator&lt;short&gt; &gt; vector;
+
+    const vector::value_type a [] = { 
+      1, 2, 3, 4, 5, 5, 7, 8, 9, 10 
+    };
+    vector::size_type i = 0, j = 0, k = 0;
+
+    // Set up a vector.
+    const vector v (a + 0, a + 10);
+
+    std::count (v.begin (), v.end (), 5, i);   // Count fives 
+    std::count (v.begin (), v.end (), 6, j);   // Count sixes 
+
+    // Count all elements less than 8.
+    std::count_if (v.begin(), v.end(),
+      std::bind2nd(std::less&lt;vector::value_type&gt;(), 8), k);
+
+    std::cout &lt;&lt; i &lt;&lt; " " &lt;&lt; j &lt;&lt; " " &lt;&lt; k &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>2 0 7
+</PRE></UL>
+<A NAME="sec7"><H3>Warnings</H3></A>
+<P>If your compiler does not support partial specialization, the first version of both <SAMP>count()</SAMP> and <SAMP><A HREF="count.html">count_if()</A></SAMP>, the version that returns the count, is not available.</P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.1.6</I></P>
+
+<BR>
+<HR>
+<A HREF="copy.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="cout.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

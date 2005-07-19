@@ -1,0 +1,10 @@
+Graph example program  - find shortest path in a directed graph.
+Find the shortest path from : Pierre
+  Distance to: Pendleton:2
+  Distance to: Pensacola:19
+  Distance to: Peoria:10
+  Distance to: Phoenix:6
+  Distance to: Pierre:0
+  Distance to: Pittsburgh:15
+  Distance to: Pueblo:9
+End of graph example program

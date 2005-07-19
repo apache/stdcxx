@@ -1,0 +1,1880 @@
+<HTML>
+<HEAD>
+<TITLE>locale</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="locale-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="localeutility.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>locale</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Constructors</A></LI>
+<LI><A HREF="#sec8">Destructors</A></LI>
+<LI><A HREF="#sec9">Public Member Operators</A></LI>
+<LI><A HREF="#sec10">Public Member Functions</A></LI>
+<LI><A HREF="#sec11">Static Public Member Functions</A></LI>
+<LI><A HREF="#sec12">Included Locales</A></LI>
+<LI><A HREF="#sec13">Example</A></LI>
+<LI><A HREF="#sec14">See Also</A></LI>
+<LI><A HREF="#sec15">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx808">category</A><BR>
+<A HREF="#idx823">classic()</A><BR>
+<A HREF="#idx809">facet</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx824">global()</A><BR>
+<A HREF="#idx810">id</A><BR>
+<A HREF="#idx811">locale()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx822">name()</A><BR>
+<A HREF="#idx820">operator!=()</A><BR>
+<A HREF="#idx821">operator()()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx818">operator=()</A><BR>
+<A HREF="#idx819">operator==()</A><BR>
+<A HREF="#idx817">~locale()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A class that serves as a container for a set of polymorphic objects called facets that facilitate internationalization and localization. </P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt; 
+
+namespace std {
+  class locale;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>Class <B><I>locale</I></B> provides facilities for the creation and management of a set of objects called facets, indexed by their type, each of which addresses one particular area of internationalization and localization. The default <B><I>locale</I></B> object is based on the semantics of the classic C locale. Locale objects can be constructed with semantics of named locales, from parts of two other locale objects, or to include facet objects of user defined types.</P>
+<P>Objects of class <B><I>locale</I></B> have the following important characteristics: </P>
+<UL>
+<LI><P CLASS="LIST">Locale objects are immutable. The lifetime of a reference to a facet object obtained from a locale object extends to the point of the call to the assignment operator on the object, if no such call is made, the lifetime of the reference to the facet equals the lifetime of the locale object.</P></LI>
+<LI><P CLASS="LIST">In the instance that a facet is constructed with <SAMP>refs &gt; 0</SAMP>, the lifetime of the facet is not determined by the locale object.</P></LI>
+<LI><P CLASS="LIST">Successive calls to the same member function of a locale object, or any other objects it contains, with the same arguments, including the implicit <SAMP>this</SAMP> argument, always return the same result. This allows a calling program to cache the results of a call for greater efficiency.   </P></LI>
+<LI><P CLASS="LIST">Only a locale object constructed from a name string, or from parts of two named locale objects, has a name. All other locale objects are unnamed. An unnamed locale object is equal only to itself.</P></LI>
+</UL>
+<P>In this implementation, a locale object will have a name if it contains no facet objects constructed by user code, and if for each of the six standard categories of facets described below, all facet objects within each category logically belong to the same locale.</P>
+<P>A program can determine whether a facet of a particular type is contained in a locale object by using the <SAMP>has_facet()</SAMP> function template, and the program can obtain a reference to that facet object with the <SAMP>use_facet()</SAMP> function template. These are not member functions, but instead take a locale object as an argument and a type of facet as a template parameter.</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  class locale 
+  {
+  public:
+    
+    class facet;
+    class id;
+    
+    typedef int category;
+    
+    static const category none; 
+    static const category collate;
+    static const category ctype; 
+    static const category monetary; 
+    static const category numeric; 
+    static const category time; 
+    static const category messages; 
+    static const category all = collate | ctype | monetary |
+                                  numeric | time | messages;
+  
+    locale() throw();
+    locale(const locale&amp;) throw();
+    explicit locale(const char*);
+    locale(const locale&amp;, const char*, category);
+    template &lt;class Facet&gt; 
+    locale(const locale&amp;, Facet*);
+    locale(const locale&amp;, const locale&amp;, category);
+    ~locale() throw(); 
+    const locale&amp; operator=(const locale&amp;) throw();
+    template &lt;class Facet&gt; 
+    locale combine(const locale&amp;) const;
+  
+    string name() const;
+    bool operator==(const locale&amp;) const;
+    bool operator!=(const locale&amp;) const;
+    template &lt;class charT, class Traits, class Allocator&gt;
+    bool operator()(const basic_string&lt;charT,Traits,
+                                       Allocator&gt;&amp;,
+                    const basic_string&lt;charT,Traits,
+                                       Allocator&gt;&amp;) const;
+  
+    static locale global(const locale&amp;);
+    static const locale&amp; classic();
+    };
+
+    class locale::facet {
+      protected:
+        explicit facet(size_t refs = 0);
+        virtual ~facet();
+
+      private:
+        facet(const facet&amp;);          // not defined
+        void operator=(const facet&amp;); // not defined
+    };
+
+    class locale::id {
+      public:
+        id();
+      private:
+        void operator=(const id&amp;); // not defined
+        id(const id&amp;);             // not defined
+    };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx808"></A><PRE><B>category</B></PRE>
+<UL>
+<P>Each standard facet falls into one of six categories. These are: <SAMP>collate</SAMP>,<SAMP> ctype</SAMP>, <SAMP>monetary</SAMP>, <SAMP>numeric</SAMP>, <SAMP>time</SAMP>, and <SAMP>messages</SAMP>. In addition, the category <SAMP>all</SAMP> represents a set that includes all of the six categories. The <SAMP>none</SAMP> category represents the empty set of categories. Bitwise operations may be applied to combine or screen these categories. For instance, <SAMP>all</SAMP> is defined as:</P>
+<P> <SAMP>(collate | ctype | monetary | numeric | time | messages)</SAMP></P>
+<P><A HREF="locale.html#Table&nbsp;20">Table&nbsp;20</A> lists the standard facet types belonging to each category. </P>
+<H4><A NAME="Table&nbsp;20">Table&nbsp;20: Standard facet types&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Category</B>
+</td>
+<td valign=top><B>Constant</B>
+</td>
+<td valign=top><B>Standard Facet Type</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>collate</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>LC_COLLATE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>collate&lt;charT&gt;, collate_byname&lt;charT&gt;</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ctype</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>LC_CTYPE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>codecvt&lt;IntT, ExtT, stateT&gt;, codecvt_byname&lt;IntT, ExtT, stateT&gt;, ctype&lt;charT&gt;, ctype_byname&lt;charT&gt;</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>monetary</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>LC_MONETARY</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>moneypunct&lt;charT, bool&gt;, moneypunct_byname&lt;charT, bool&gt;, money_get&lt;C, InputIterator&gt;, money_put&lt;C, OutputIterator&gt;</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>numeric</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>LC_NUMERIC</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>numpunct&lt;charT&gt;, numpunct_byname&lt;charT&gt;, num_get&lt;C, InputIterator&gt;, num_put&lt;C, OutputIterator&gt;</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>time</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>LC_TIME</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>time_get&lt;charT, InputIterator&gt;, time_put&lt;charT, OutputIterator&gt;, time_get_byname&lt;charT, InputIterator&gt;, time_put_byname&lt;charT, OutputIterator&gt;</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>messages</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>LC_MESSAGES</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>messages&lt;charT&gt;, messages_byname&lt;charT&gt;</SAMP></P>
+</td>
+</tr>
+</TABLE>
+<P><B><I>locale</I></B> member functions that take a category argument accept the eight constants above, values obtained by OR-ing two or more of the constants above, or one of the <SAMP>LC_XXX</SAMP> constants defined in <SAMP>&lt;clocale&gt;</SAMP> (for example, <SAMP>LC_CTYPE</SAMP>).</P>
+</UL>
+
+
+<A NAME="idx809"></A><PRE><B>facet</B></PRE>
+<UL>
+<P>Base class for all facets. This class exists primarily to allow for reference counting services to derived classes. All facet types, whether standard or user-defined, must derive from it, either directly or indirectly by deriving from another facet type that derives from it.</P>
+<P>Specializations of the standard facet types listed in the table below are provided as follows:</P>
+</UL>
+
+<UL>
+<LI><P CLASS="LIST">Where the template parameter <SAMP>charT</SAMP> or <SAMP>IntT</SAMP> appears in a type, specializations on <SAMP>char</SAMP> and <SAMP>wchar_t</SAMP> are provided. </P></LI>
+<LI><P CLASS="LIST">Where the template parameter <SAMP>ExtT</SAMP> appears in a type, the specialization on <SAMP>char</SAMP> is provided. </P></LI>
+<LI><P CLASS="LIST">Where the template parameter <SAMP>stateT</SAMP> appears in a type, the specialization on <SAMP>mbstate_t</SAMP> is provided. </P></LI>
+<LI><P CLASS="LIST">Where the template parameter <SAMP>bool</SAMP> appears in a type, specializations on <SAMP>false</SAMP> and <SAMP>true</SAMP> are provided. </P></LI>
+<LI><P CLASS="LIST">Where the template parameter <SAMP>InputIterator</SAMP> or <SAMP>OutputIterator</SAMP> appears in a type, specializations on any type that satisfies the requirements of <SAMP>InputIterator</SAMP> or <SAMP>OutputIterator</SAMP>, respectively, are provided. </P></LI>
+<LI><P CLASS="LIST">Where the template parameter <SAMP>C</SAMP> appears in a type, specializations on any type on which iostream templates may be instantiated are provided. </P></LI>
+</UL>
+<UL>
+<P>The protected constructor</P>
+<P><SAMP>explicit facet(size_t refs = 0);</SAMP></P>
+<P>constructs a <SAMP>facet</SAMP> sub-object. </P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the object's reference count. </P>
+<P>An object <SAMP>f</SAMP> of a class derived from <SAMP>facet</SAMP> constructed with <SAMP>(refs == 0)</SAMP> that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. </P>
+<P>A facet object constructed with <SAMP>(refs != 0)</SAMP> will not be destroyed by any locale objects in which it may have been installed. </P>
+<P>Copy construction and assignment of this class are not allowed.</P>
+</UL>
+
+
+<A NAME="idx810"></A><PRE><B>id</B></PRE>
+<UL>
+<P>Type used to index facets in the <B><I>locale</I></B> container. Every facet type must contain an accessible static member of this type. The member uniquely identifies the type of facet to the locale object in which it may be installed.</P>
+<P>Copy construction and assignment of this type are not allowed. </P>
+</UL>
+
+<A NAME="sec7"><H3>Constructors</H3></A>
+
+<A NAME="idx811"></A><PRE><B>locale</B>() throw();</PRE>
+<UL>
+<P>Constructs a default <B><I>locale</I></B> object as a snapshot of the global locale object. This object is a copy of the last argument passed to<SAMP> locale::global()</SAMP>, or, if that function has not been called, a copy of the object representing the classic C locale returned from <SAMP>locale::classic()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx812"></A><PRE><B>locale</B>(const locale&amp; other) throw();</PRE>
+<UL>
+<P>Constructs a copy of the locale argument <SAMP>other</SAMP>. Constructing a copy of a locale object is an inexpensive operation involving only incrementing a reference count of the source object.</P>
+</UL>
+
+
+<A NAME="idx813"></A><PRE>explicit <B>locale</B>(const char* name); </PRE>
+<UL>
+<P>Constructs a <B><I>locale</I></B> object using the locale name given by <SAMP>name.</SAMP> Throws a <B><I><A HREF="runtime-error.html">runtime_error</A></I></B> exception if <SAMP>name</SAMP> is not a valid locale name or if it is <SAMP>0</SAMP>. Valid locale names are "<SAMP>C</SAMP>", "<SAMP>POSIX</SAMP>", "", and a set of values accepted by the C library function <SAMP>setlocale()</SAMP> declared in <SAMP>&lt;clocale&gt;</SAMP>, including combined locale names. Additionally, the name can be a simple canonical name referring to a locale file created by the <SAMP>localedef</SAMP> utility and found in the directory specified by the environment variable <SAMP>${RWSTD_LOCALE_ROOT}</SAMP>. Finally, the name can refer to a locale object constructed by combining facet categories from two or more distinct locale objects. </P>
+<P>The format of a simple canonical locale name is as follows:</P>
+<P><SAMP>language[_territory][.codeset][@modifiers]</SAMP></P>
+<P><SAMP>language</SAMP> - 2 letter code specified by ISO 639-2 <br><SAMP>territory</SAMP> - 2 or 3 letter code specified by ISO 3166 <br><SAMP>codeset</SAMP> - name of the character set assigned by IANA <br><SAMP>modifiers</SAMP> - a set of optional codes</P>
+<P>The format of a combined locale name is as follows:</P>
+<P><SAMP>LC_COLLATE=a[;LC_CTYPE=b[;LC_MONETARY=c[;LC_NUMERIC=d[;LC_TIME=e[;LC_MESSAGES=f]]]]]</SAMP></P>
+<P>The letters <SAMP>a</SAMP>, <SAMP>b</SAMP>, <SAMP>c</SAMP>, <SAMP>d</SAMP>, <SAMP>e</SAMP>, and <SAMP>f</SAMP> above stand for arbitrary simple locale names. The <SAMP>LC_XXX=</SAMP> part in the name above is optional; if missing, the simple locale names are assumed to be in the order given above. If the <SAMP>LC_XXX=</SAMP> part is provided, the components separated by semicolons may appear in any order. When fewer than six components of the name are specified, the remaining components are taken as if <SAMP>LC_XXX=C</SAMP>, in other words, the classic C locale, were specified for the missing categories.</P>
+<P>The names "<SAMP>C</SAMP>" and "<SAMP>POSIX</SAMP>" both refer to the classic C locale. The resulting locale object is equal to <SAMP>locale(setlocale(LC_ALL, "C"))</SAMP>.</P>
+<P>When <SAMP>name</SAMP> is the empty string <SAMP>("")</SAMP>, the resulting locale object is equal to <SAMP>locale(setlocale(LC_ALL, ""))</SAMP>, which means that the resulting locale is determined by the values of the <SAMP>LANG</SAMP> and <SAMP>LC_XXX</SAMP> environment variables.</P>
+</UL>
+
+
+<A NAME="idx814"></A><PRE><B>locale</B>(const locale&amp; other, const char* name,
+       category cat); </PRE>
+<UL>
+<P>Constructs a <B><I>locale</I></B> object that is a copy of <SAMP>other</SAMP>, except for the facets that are in the category specified by <SAMP>cat</SAMP>, which are obtained from the named locale identified by <SAMP>name</SAMP>. The format of <SAMP>name</SAMP> is described above. Throws a <B><I><A HREF="runtime-error.html">runtime_error</A></I></B> exception if <SAMP>name</SAMP> is not a valid locale name or if it is <SAMP>0</SAMP>. </P>
+<P>The resulting <B><I>locale</I></B> object has a name only if <SAMP>other</SAMP> has a name, or if <SAMP>(cat == locale::all)</SAMP> is <SAMP>true</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx815"></A><PRE>template &lt;class Facet&gt; 
+<B>locale</B>(const locale&amp; other, Facet* f); </PRE>
+<UL>
+<P>Constructs a <B><I>locale</I></B> object that is a copy of <SAMP>other</SAMP>, except for the facet object of type <SAMP>Facet</SAMP>. If <SAMP>(f != 0)</SAMP>, <SAMP>f</SAMP> is used to supply the missing facet. Otherwise, the resulting object is a copy of <SAMP>other</SAMP>. </P>
+<P>Except when <SAMP>(f == 0)</SAMP>, the resulting <B><I>locale</I></B> object does not have a name.</P>
+</UL>
+
+
+<A NAME="idx816"></A><PRE><B>locale</B>(const locale&amp; other, const locale&amp; one, 
+       category cat); </PRE>
+<UL>
+<P>Constructs a <B><I>locale</I></B> object that is a copy of <SAMP>other</SAMP>, except for facet objects that belong to the category specified by <SAMP>cat</SAMP>. These remaining facets are obtained from the locale argument <SAMP>one</SAMP>.</P>
+<P>If <SAMP>(cat == locale::all)</SAMP>, the resulting object is a copy of <SAMP>one</SAMP>. If <SAMP>(cat == locale::none)</SAMP>, the resulting object is a copy of <SAMP>other</SAMP>. Otherwise, the resulting <B><I>locale</I></B> has a name only if both <SAMP>other</SAMP> and <SAMP>one</SAMP> have names.</P>
+</UL>
+
+<A NAME="sec8"><H3>Destructors</H3></A>
+
+<A NAME="idx817"></A><PRE><B>~locale</B>();</PRE>
+<UL>
+<P>Destroys the <B><I>locale</I></B> object including any facet objects installed in it whose decremented reference count is <SAMP>0</SAMP>.</P>
+</UL>
+
+<A NAME="sec9"><H3>Public Member Operators</H3></A>
+
+<A NAME="idx818"></A><PRE>const locale&amp; 
+<B>operator=</B>(const locale&amp; other) throw();</PRE>
+<UL>
+<P>Replaces <SAMP>*this</SAMP> with a copy of <SAMP>other</SAMP>. Returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx819"></A><PRE>bool 
+<B>operator==</B>(const locale&amp; other) const; </PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if both <SAMP>other</SAMP> and <SAMP>*this</SAMP> are the same object, if one is a copy of another, or if both have the same name. Otherwise, returns <SAMP>false</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx820"></A><PRE>bool 
+<B>operator!=</B>(const locale&amp; other) const; </PRE>
+<UL>
+<P>Returns <SAMP>!(*this == other)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx821"></A><PRE>template &lt;class charT, class Traits, class Allocator&gt;
+bool 
+<B>operator()</B>(const basic_string&lt;charT, Traits, Allocator&gt;&amp; s1,
+           const basic_string&lt;charT, Traits, Allocator&gt;&amp; s2)
+           const;</PRE>
+<UL>
+<P>This operator allows a <B><I>locale</I></B> object to be used as a comparison function object for comparing two strings. Returns the result of comparing the two strings using the <SAMP>compare()</SAMP> member function of the <B><I><A HREF="collate.html">collate&lt;charT&gt;</A></I></B> facet contained in <SAMP>*this</SAMP>. Specifically, this function returns the following:</P>
+
+<UL><PRE>     use_facet&lt; collate&lt;charT&gt; &gt;(*this).compare(s1.data(),
+     s1.data()+s1.size(), s2.data(),
+     s2.data()+s2.size()) &lt; 0;
+</PRE></UL>
+<P>This allows a <B><I>locale</I></B> object to be used with standard algorithms, such as <SAMP>sort()</SAMP>, for localized comparison of strings.</P>
+</UL>
+
+<A NAME="sec10"><H3>Public Member Functions</H3></A>
+
+<PRE>template &lt;class Facet&gt; 
+locale <B>combine</B>(const locale&amp; other) const; 
+</PRE>
+<UL>
+<P>Returns a locale object that is a copy of <SAMP>*this</SAMP>, except for the facet of type <SAMP>Facet</SAMP>, which is taken from <SAMP>other</SAMP>. If <SAMP>has_facet&lt;Facet&gt;</SAMP></P>
+<P><SAMP>(other)</SAMP> is <SAMP>false</SAMP>, throws <B><I><A HREF="runtime-error.html">runtime_error</A></I></B>.</P>
+<P>Except when <SAMP>(*this == other)</SAMP>, the returned locale does not have a name.</P>
+</UL>
+
+
+<A NAME="idx822"></A><PRE>string 
+<B>name</B>() const; </PRE>
+<UL>
+<P>Returns the name of this locale, if it has one; otherwise returns the string&nbsp;<SAMP>"*"</SAMP>. Locale names referring to named combined locale objects have a format suitable for the second argument to the C <SAMP>setlocale()</SAMP> function declared in <SAMP>&lt;clocale&gt;</SAMP>. In particular, <SAMP>(locale(s) == locale(setlocale(LC_ALL, locale(s).name().c_str())))</SAMP> is guaranteed to hold for any value of <SAMP>s</SAMP> for which <SAMP>(setlocale(LC_ALL, s) != 0)</SAMP> holds.</P>
+</UL>
+
+<A NAME="sec11"><H3>Static Public Member Functions</H3></A>
+
+<A NAME="idx823"></A><PRE>static const locale&amp; 
+<B>classic</B>();</PRE>
+<UL>
+<P>Returns a reference to a locale object with the semantics of the classic C locale. The lifetime of the returned reference exceeds that of any other object in a program.</P>
+</UL>
+
+
+<A NAME="idx824"></A><PRE>static locale 
+<B>global</B>(const locale&amp; loc); </PRE>
+<UL>
+<P>Assigns <SAMP>loc</SAMP> to the global locale object. This causes future uses of the default constructor for <B><I>locale</I></B> to return a copy of <SAMP>loc</SAMP>. If <SAMP>loc</SAMP> has a name, this function has the further effect of calling:</P>
+<P> <SAMP>setlocale(LC_ALL,loc.name().c_str());</SAMP></P>
+<P>Returns the previous value of <SAMP>locale()</SAMP>.</P>
+</UL>
+
+<A NAME="sec12"><H3>Included Locales</H3></A>
+<P><A HREF="locale.html#Table&nbsp;21">Table&nbsp;21</A> lists the locale definition files that correspond with the the locales of the Standard C++ Library Module. The names conform to ISO 639:1998, the <I>Code for the Representation of Names of Languages</I>, and ISO 3166, the <I>Country Names and Codes</I>. The Default Codeset gives the name of the codeset or the encoding the locales are designed to be encoded in. The names follow those outlined by IANA in its <I>Assigned Character Set Names</I>. In addition to the listed codeset, each locale can be encoded in UTF-8, and may be able to use other encodings as well.   </P>
+<H4><A NAME="Table&nbsp;21">Table&nbsp;21: Locale definition files&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Locale Name</B>
+</td>
+<td valign=top><B>Language</B>
+</td>
+<td valign=top><B>Country</B>
+</td>
+<td valign=top><B>Default Codeset</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>af_ZA  </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Afrikaans</P>
+</td>
+<td valign=top><P CLASS="TABLE">South Africa</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_AE  </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic  </P>
+</td>
+<td valign=top><P CLASS="TABLE">United Arab Emirates </P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_BH</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Bahrain     </P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_DZ</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic  </P>
+</td>
+<td valign=top><P CLASS="TABLE">Algeria</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_EG</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Egypt    </P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_IN </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic      </P>
+</td>
+<td valign=top><P CLASS="TABLE">India  </P>
+</td>
+<td valign=top><P CLASS="TABLE">UTF-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_IQ   </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Iraq </P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_JO</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic </P>
+</td>
+<td valign=top><P CLASS="TABLE">Jordan</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_KW</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Kuwait</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_LB</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Lebanon</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_LY</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Libya</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_MA </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Morocco</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_OM</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Oman</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_QA </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Qatar</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_SA </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Saudi Arabia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_SY  </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Syria</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_SD  </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Sudan</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_TN </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Tunisia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ar_YE    </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Arabic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Yemen</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-6</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>be_BY </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Byelorussian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Byelorussia</P>
+</td>
+<td valign=top><P CLASS="TABLE">CP1251</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bg_BG   </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Bulgarian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Bulgaria</P>
+</td>
+<td valign=top><P CLASS="TABLE">CP1251</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>br_FR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Breton</P>
+</td>
+<td valign=top><P CLASS="TABLE">France</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>bs_BA</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Bosnian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Bosnia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-2</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ca_ES</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Catalan</P>
+</td>
+<td valign=top><P CLASS="TABLE">Spain</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ca_ES@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Catalan</P>
+</td>
+<td valign=top><P CLASS="TABLE">Spain</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>cs_CZ</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Czech</P>
+</td>
+<td valign=top><P CLASS="TABLE">Czech Republic</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-2</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>cy_GB</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Welsh</P>
+</td>
+<td valign=top><P CLASS="TABLE">Great Britain</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-14</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>da_DK</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Danish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Denmark</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>de_AT</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">German</P>
+</td>
+<td valign=top><P CLASS="TABLE">Austria</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>de_AT@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">German</P>
+</td>
+<td valign=top><P CLASS="TABLE">Austria</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>de_BE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">German</P>
+</td>
+<td valign=top><P CLASS="TABLE">Belgium</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>de_BE@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">German</P>
+</td>
+<td valign=top><P CLASS="TABLE">Belgium</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>de_CH</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">German</P>
+</td>
+<td valign=top><P CLASS="TABLE">Switzerland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>de_DE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">German</P>
+</td>
+<td valign=top><P CLASS="TABLE">Germany</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>de_DE@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">German</P>
+</td>
+<td valign=top><P CLASS="TABLE">Germany</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>de_LU</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">German</P>
+</td>
+<td valign=top><P CLASS="TABLE">Luxembourg</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>de_LU@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">German</P>
+</td>
+<td valign=top><P CLASS="TABLE">Luxembourg</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>el_GR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Greek</P>
+</td>
+<td valign=top><P CLASS="TABLE">Greece</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-7</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_AU</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">Australia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_BW</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">Botswana</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_CA</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">Canada</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_DK</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">Denmark</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_GB</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">Great Britain</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_HK</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">Hong Kong   </P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_IE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">Ireland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_IE@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">Ireland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_IN</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">India</P>
+</td>
+<td valign=top><P CLASS="TABLE">UTF-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_NZ</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">New Zealand </P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_PH</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">Philippines</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_SG</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">Singapore</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_US</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">USA</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_ZA</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">South Africa</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>en_ZW </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">English</P>
+</td>
+<td valign=top><P CLASS="TABLE">Zimbabwe</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_AR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Argentina</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_BO</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Bolivia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_CL</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Chile</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_CO</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Colombia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_CR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Costa Rica</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_DO</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Dominican Republic</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_EC</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Ecuador</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_ES</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Spain</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_ES@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Spain</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_GT</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Guatemala</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_HN</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Honduras</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_MX</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Mexico</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_NI   </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Nicaragua</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_PA</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Panama</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_PE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Peru</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_PR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Puerto Rico</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_PY</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Paraguay</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_SV</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">El Salvador</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_US</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">USA</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_UY</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Uruguay</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>es_VE </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Spanish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Venezuela</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>et_EE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Estonian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Estonia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>eu_ES</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Basque</P>
+</td>
+<td valign=top><P CLASS="TABLE">Spain</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>eu_ES@euro </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Basque</P>
+</td>
+<td valign=top><P CLASS="TABLE">Spain</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fa_IR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Farsi</P>
+</td>
+<td valign=top><P CLASS="TABLE">Iran</P>
+</td>
+<td valign=top><P CLASS="TABLE">UTF-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fi_FI</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Finnish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Finland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fi_FI@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Finnish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Finland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fo_FO </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Faroese</P>
+</td>
+<td valign=top><P CLASS="TABLE">Faroe</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fr_BE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">French</P>
+</td>
+<td valign=top><P CLASS="TABLE">Belgium</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fr_BE@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">French</P>
+</td>
+<td valign=top><P CLASS="TABLE">Belgium</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fr_CA</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">French</P>
+</td>
+<td valign=top><P CLASS="TABLE">Canada</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fr_CH</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">French</P>
+</td>
+<td valign=top><P CLASS="TABLE">Switzerland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fr_FR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">French</P>
+</td>
+<td valign=top><P CLASS="TABLE">France</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fr_FR@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">French</P>
+</td>
+<td valign=top><P CLASS="TABLE">France</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fr_LU</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">French</P>
+</td>
+<td valign=top><P CLASS="TABLE">Luxembourg</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fr_LU@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">French</P>
+</td>
+<td valign=top><P CLASS="TABLE">Luxembourg</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ga_IE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Irish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Ireland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ga_IE@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Irish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Ireland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>gl_ES</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Galician</P>
+</td>
+<td valign=top><P CLASS="TABLE">Spain</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>gl_ES@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Galician</P>
+</td>
+<td valign=top><P CLASS="TABLE">Spain</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>gv_GB </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Gaelic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Great Britain </P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>he_IL</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Hebrew</P>
+</td>
+<td valign=top><P CLASS="TABLE">Israel</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>hi_IN</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Hindu</P>
+</td>
+<td valign=top><P CLASS="TABLE">India</P>
+</td>
+<td valign=top><P CLASS="TABLE">UTF-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>hr_HR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Croatian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Croatia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-2</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>hu_HU</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Hungarian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Hungary</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-2</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>id_ID</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Indonesian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Indonesia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>is_IS</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Icelandic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Iceland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>it_CH </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Italian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Switzerland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>it_IT</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Italian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Italy</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>it_IT@euro </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Italian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Italy</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>iw_IL</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Hebrew</P>
+</td>
+<td valign=top><P CLASS="TABLE">Israel</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ja_JP</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Japanese</P>
+</td>
+<td valign=top><P CLASS="TABLE">Japan</P>
+</td>
+<td valign=top><P CLASS="TABLE">EUC-JP</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ja_JP</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Japanese</P>
+</td>
+<td valign=top><P CLASS="TABLE">Japan</P>
+</td>
+<td valign=top><P CLASS="TABLE">UTF-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ja_JP</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Japanese</P>
+</td>
+<td valign=top><P CLASS="TABLE">Japan</P>
+</td>
+<td valign=top><P CLASS="TABLE">Shift_JIS</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ka_GE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Georgian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Georgia</P>
+</td>
+<td valign=top><P CLASS="TABLE">GEORGIAN-PS</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>kl_GL</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Greenlandic</P>
+</td>
+<td valign=top><P CLASS="TABLE">Greenland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ko_KR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Korean</P>
+</td>
+<td valign=top><P CLASS="TABLE">Korea</P>
+</td>
+<td valign=top><P CLASS="TABLE">EUC-KR</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ko_KR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Korean</P>
+</td>
+<td valign=top><P CLASS="TABLE">Korea</P>
+</td>
+<td valign=top><P CLASS="TABLE">UTF-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>kw_GB</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Cornish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Great Britain   </P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>lt_LT</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Lithuanian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Lithuania</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-13</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>lv_LV</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Latvian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Latvia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-13</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>mi_NZ  </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Maori</P>
+</td>
+<td valign=top><P CLASS="TABLE">New Zealand</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-13</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>mk_MK</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Macedonian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Macedonia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-5</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>mr_IN</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Marathi</P>
+</td>
+<td valign=top><P CLASS="TABLE">India</P>
+</td>
+<td valign=top><P CLASS="TABLE">UTF-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ms_MY</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Malay</P>
+</td>
+<td valign=top><P CLASS="TABLE">Malaysia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>mt_MT</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Maltese</P>
+</td>
+<td valign=top><P CLASS="TABLE">Malta</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-3</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>nl_BE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Dutch</P>
+</td>
+<td valign=top><P CLASS="TABLE">Belgium</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>nl_BE@euro </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Dutch</P>
+</td>
+<td valign=top><P CLASS="TABLE">Belgium</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>nl_NL</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Dutch</P>
+</td>
+<td valign=top><P CLASS="TABLE">Netherlands</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>nl_NL@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Dutch</P>
+</td>
+<td valign=top><P CLASS="TABLE">Netherlands</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>nn_NO</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Nynorsk</P>
+</td>
+<td valign=top><P CLASS="TABLE">Norway</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>no_NO</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Norwegian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Norway</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>oc_FR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Occitan</P>
+</td>
+<td valign=top><P CLASS="TABLE">France</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>pl_PL </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Polish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Poland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-2</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>pt_BR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Portuguese</P>
+</td>
+<td valign=top><P CLASS="TABLE">Brazil</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>pt_PT</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Portuguese</P>
+</td>
+<td valign=top><P CLASS="TABLE">Portugal</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>pt_PT@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Portuguese</P>
+</td>
+<td valign=top><P CLASS="TABLE">Portugal</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ro_RO</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Romanian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Romania</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-2</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ru_RU</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Russian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Russia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-5</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ru_RU </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Russian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Russia</P>
+</td>
+<td valign=top><P CLASS="TABLE">KOI8-R</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ru_UA</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Russian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Ukraine</P>
+</td>
+<td valign=top><P CLASS="TABLE">KOI8-U</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>sk_SK</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Slovak</P>
+</td>
+<td valign=top><P CLASS="TABLE">Slovakia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-2</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>sl_SI</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Slovenian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Slovenia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-2</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>sq_AL</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Albanian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Albania</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>sr_YU</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Serbian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Yugoslavia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-2</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>sr_YU@cyrillic</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Serbian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Yugoslavia</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-5</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>sv_FI   </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Swedish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Finland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>sv_FI@euro</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Swedish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Finland</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-15</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>sv_SE</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Swedish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Sweden</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ta_IN</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Tamil</P>
+</td>
+<td valign=top><P CLASS="TABLE">India</P>
+</td>
+<td valign=top><P CLASS="TABLE">UTF-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>te_IN</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Telgu</P>
+</td>
+<td valign=top><P CLASS="TABLE">India</P>
+</td>
+<td valign=top><P CLASS="TABLE">UTF-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>tg_TJ</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Tadjik</P>
+</td>
+<td valign=top><P CLASS="TABLE">Tadjikistan</P>
+</td>
+<td valign=top><P CLASS="TABLE">KOI8-T</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>th_TH</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Thai</P>
+</td>
+<td valign=top><P CLASS="TABLE">Thailand</P>
+</td>
+<td valign=top><P CLASS="TABLE">TIS-620</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>tl_PH </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Tagalog</P>
+</td>
+<td valign=top><P CLASS="TABLE">Philippines</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>tr_TR</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Turkish</P>
+</td>
+<td valign=top><P CLASS="TABLE">Turkey</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-9</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>uk_UA</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Ukrainian</P>
+</td>
+<td valign=top><P CLASS="TABLE">Ukraine</P>
+</td>
+<td valign=top><P CLASS="TABLE">KOI8-U</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ur_PK</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Urdu</P>
+</td>
+<td valign=top><P CLASS="TABLE">Pakistan</P>
+</td>
+<td valign=top><P CLASS="TABLE">UTF-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>uz_UZ</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Uzbek</P>
+</td>
+<td valign=top><P CLASS="TABLE">Uzbekistan</P>
+</td>
+<td valign=top><P CLASS="TABLE">ISO-8859-1</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>vi_VN</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Vietnamese</P>
+</td>
+<td valign=top><P CLASS="TABLE">Vietnam</P>
+</td>
+<td valign=top><P CLASS="TABLE">UTF-8</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>yi_US  </SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Yiddish</P>
+</td>
+<td valign=top><P CLASS="TABLE">USA</P>
+</td>
+<td valign=top><P CLASS="TABLE">CP1255</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>zh_CN</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Chinese</P>
+</td>
+<td valign=top><P CLASS="TABLE">China</P>
+</td>
+<td valign=top><P CLASS="TABLE">GB2312</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>zh_CN</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Chinese</P>
+</td>
+<td valign=top><P CLASS="TABLE">China</P>
+</td>
+<td valign=top><P CLASS="TABLE">GB18030</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>zh_CN</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Chinese</P>
+</td>
+<td valign=top><P CLASS="TABLE">China</P>
+</td>
+<td valign=top><P CLASS="TABLE">GBK</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>zh_HK</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Chinese</P>
+</td>
+<td valign=top><P CLASS="TABLE">China</P>
+</td>
+<td valign=top><P CLASS="TABLE">BIG5-HKSCS</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>zh_TW</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Chinese</P>
+</td>
+<td valign=top><P CLASS="TABLE">China</P>
+</td>
+<td valign=top><P CLASS="TABLE">BIG5</P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>zh_TW</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE">Chinese</P>
+</td>
+<td valign=top><P CLASS="TABLE">China</P>
+</td>
+<td valign=top><P CLASS="TABLE">EUC-TW</P>
+</td>
+</tr>
+</TABLE>
+<A NAME="sec13"><H3>Example</H3></A>
+
+<UL><PRE>#include &lt;algorithm&gt;   // for copy, sort
+#include &lt;iostream&gt;    // for cout
+#include &lt;iterator&gt;    // for ostream_iterator
+#include &lt;string&gt;      // for string
+#include &lt;vector&gt;      // for vector
+
+#include &lt;codecvte.h&gt;
+#include &lt;examples.h&gt;
+
+int main ()
+{
+    std::locale loc;  // Default locale
+
+    // Construct new locale using default locale plus
+    // user defined codecvt facet
+    // This facet converts from ISO Latin 
+    // Alphabet No. 1 (ISO 8859-1) to 
+    // U.S. ASCII code page 437
+    // This facet replaces the default for
+    // codecvt&lt;char,char,mbstate_t&gt;
+    std::locale my_loc (loc, new ex_codecvt);
+
+    // imbue modified locale onto cout
+    std::locale old = std::cout.imbue (my_loc);
+    std::cout &lt;&lt; "A \x93 jolly time was had by all" &lt;&lt;
+            std::endl;
+
+    std::cout.imbue (old);
+    std::cout &lt;&lt; "A jolly time was had by all" &lt;&lt; std::endl;
+
+    // Create a vector of strings 
+    std::vector&lt;std::string, std::allocator&lt;std::string&gt; &gt; v;
+    v.insert (v.begin(), "antelope");
+    v.insert (v.begin(), "bison");
+    v.insert (v.begin(), "elk");
+
+    typedef std::ostream_iterator&lt;std::string, char,
+            std::char_traits&lt;char&gt; &gt;
+        Iter;
+
+    std::copy (v.begin (), v.end (), Iter (std::cout, " "));
+    std::cout &lt;&lt; std::endl;
+
+    // Sort the strings using the locale as a comparitor
+    std::sort (v.begin (), v.end (), loc);
+
+    std::copy (v.begin (), v.end (), Iter (std::cout," "));
+
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+&Aring; &ocirc; j&otilde;lly time w&atilde;s h&atilde;d by &atilde;ll
+A jolly time was had by all
+elk bison antelope 
+antelope bison elk
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<A NAME="sec14"><H3>See Also</H3></A>
+<P><A HREF="facets.html">Facets</A>, <SAMP><A HREF="has-facet.html">has_facet()</A></SAMP>, <SAMP><A HREF="use-facet.html">use_facet()</A></SAMP>, <SAMP>localedef</SAMP>, and specific facet reference sections: <B><I><A HREF="collate.html">collate</A></I></B>, <B><I><A HREF="collate.html">collate_byname</A></I></B>, <B><I><A HREF="ctype.html">ctype</A></I></B>, <B><I><A HREF="codecvt.html">codecvt</A></I></B>, <B><I><A HREF="ctype-byname.html">ctype_byname</A></I></B>, <B><I><A HREF="codecvt-byname.html">codecvt_byname</A></I></B>, <B><I><A HREF="moneypunct.html">moneypunct</A></I></B>, <B><I><A HREF="moneypunct.html">moneypunct_byname</A></I></B>, <B><I><A HREF="money-put.html">money_put</A></I></B>, <B><I><A HREF="money-get.html">money_get</A></I></B>, <B><I><A HREF="numpunct.html">numpunct</A></I></B>, <B><I><A HREF="numpunct.html">numpunct_byname</A></I></B>, <B><I><A HREF="num-put.html">num_put</A></I></B>, <B><I><A HREF="num-get.html">num_get</A></I></B>, <B><I><A HREF="time-put.html">time_put</A></I></B>, <B><I><A HREF="time-put-byname.html">time_put_byname</A></I></B>, <B><I><A HREF="time-get.html">time_get</A></I></B>, <B><I><A HREF="time-get-byname.html">time_get_byname</A></I></B>, <B><I><A HREF="messages.html">messages</A></I></B>, <B><I><A HREF="messages.html">messages_byname</A></I></B></P>
+<A NAME="sec15"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.1.1</I></P>
+
+<BR>
+<HR>
+<A HREF="locale-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="localeutility.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

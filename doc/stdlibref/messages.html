@@ -1,0 +1,258 @@
+<HTML>
+<HEAD>
+<TITLE>messages, messages_byname</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="merge.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="min.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>messages, messages_byname</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR>                           <IMG SRC="images/inherits.gif"> <B><I>messages_base</I></B> 
+<B><I><A HREF="messages.html">messages_byname</A></I></B> <IMG SRC="images/inherits.gif"> <B><I><A HREF="messages.html">messages</A></I></B> 
+                           <IMG SRC="images/inherits.gif"> <B><I>locale::facet</I></B><HR></PRE>
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Types</A></LI>
+<LI><A HREF="#sec8">Constructors</A></LI>
+<LI><A HREF="#sec9">Facet ID</A></LI>
+<LI><A HREF="#sec10">Public Member Functions</A></LI>
+<LI><A HREF="#sec11">Protected Member Functions</A></LI>
+<LI><A HREF="#sec12">Example</A></LI>
+<LI><A HREF="#sec13">See Also</A></LI>
+<LI><A HREF="#sec14">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx883">char_type</A><BR>
+<A HREF="#idx887">close()</A><BR>
+<A HREF="#idx888">do_close()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx889">do_get()</A><BR>
+<A HREF="#idx890">do_open()</A><BR>
+<A HREF="#idx887">get()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx885">messages()</A><BR>
+<A HREF="#idx886">messages_byname()</A><BR>
+<A HREF="#idx887">open()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx884">string_type</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Messaging facets </P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  class messages_base;
+  template &lt;class charT&gt; 
+  class messages;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+
+<UL><PRE>template &lt;&gt; class messages&lt;char&gt;;
+template &lt;&gt; class messages&lt;wchar_t&gt;;
+template &lt;&gt; class messages_byname&lt;char&gt;;
+template &lt;&gt; class messages_byname&lt;wchar_t&gt;;
+</PRE></UL>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The class <B><I><A HREF="messages.html">messages</A></I></B> gives access to a localized messaging facility. The <B><I>messages</I></B> facet is used with the C locale, while the <B><I><A HREF="messages.html">messages_byname</A></I></B> facet is used with named locales.</P>
+<P>The <B><I>messages_base</I></B> class includes a catalog type for use by the derived <B><I><A HREF="messages.html">messages</A></I></B> and <B><I><A HREF="messages.html">messages_byname</A></I></B> classes.</P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  class messages_base {
+  public:
+    typedef int catalog;
+  };
+
+  template &lt;class charT&gt;
+  class messages : public locale::facet, public messages_base 
+  {
+  public:
+    typedef charT char_type;
+    typedef basic_string&lt;char_type&gt;, char_traits&lt;char_type&gt;,
+        allocator&lt;char_type&gt; string_type;
+    explicit messages(size_t = 0);
+    catalog open(const basic_string&lt;char&gt;&amp;, const locale&amp;)
+        const;
+    string_type get(catalog, int, int,
+                    const string_type&amp;) const;
+    void    close(catalog) const;
+    static locale::id id;
+
+  protected:
+    virtual catalog do_open(const basic_string&lt;char&gt;&amp;, 
+                            const locale&amp;) const;
+    virtual string_type do_get(catalog, int, int,
+                               const string_type&amp;) const;
+    virtual void do_close(catalog) const;
+  }; 
+
+  class messages_byname : public messages&lt;charT&gt; 
+  {
+  public:
+    explicit messages_byname(const char*, size_t = 0);
+  protected:
+  virtual catalog do_open(const basic_string&lt;char&gt;&amp;, 
+                            const locale&amp;) const;
+  virtual string_type do_get(catalog, int, int,
+                             const string_type&amp;) const;
+    virtual void  do_close(catalog) const;
+  };
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Types</H3></A>
+
+<A NAME="idx883"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>Type of the first template argument.</P>
+</UL>
+
+
+<A NAME="idx884"></A><PRE><B>string_type</B></PRE>
+<UL>
+<P>Type of <SAMP>basic_string</SAMP> specialized on <SAMP>char_type</SAMP>.</P>
+</UL>
+
+<A NAME="sec8"><H3>Constructors</H3></A>
+
+<A NAME="idx885"></A><PRE>explicit <B>messages</B>(size_t refs = 0) </PRE>
+<UL>
+<P>Constructs a <B><I><A HREF="messages.html">messages</A></I></B> object. Calls <SAMP>locale::facet (refs)</SAMP>. </P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the object's reference count. A <B><I><A HREF="messages.html">messages</A></I></B> object <SAMP>f</SAMP> constructed with <SAMP>(refs == 0)</SAMP> that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. A <B><I>messages</I></B> object constructed with <SAMP>(refs != 0)</SAMP> will not be destroyed by any locale objects in which it may have been installed.</P>
+</UL>
+
+
+<A NAME="idx886"></A><PRE>explicit <B>messages_byname</B>(const char* name, 
+                         size_t refs = 0); </PRE>
+<UL>
+<P>Constructs a <B><I><A HREF="messages.html">messages_byname</A></I></B> object for the locale given by name. Calls <SAMP>messages&lt;char_type&gt;::messages (refs)</SAMP>.</P>
+</UL>
+
+<A NAME="sec9"><H3>Facet ID</H3></A>
+
+<PRE>static locale::id <B>id</B>;
+</PRE>
+<UL>
+<P>Unique identifier for this type of facet. </P>
+</UL>
+
+<A NAME="sec10"><H3>Public Member Functions</H3></A>
+<P>The public members of the messages facet include an interface to protected members. Each public member function <SAMP>xxx()</SAMP> calls the corresponding protected virtual member <SAMP>do_xxx()</SAMP>. For instance, the public member function <SAMP>open()</SAMP> function calls its protected cousin <SAMP>do_open()</SAMP>.</P>
+
+<A NAME="idx887"></A><PRE>
+void
+<B>close</B>(catalog c) const; 
+string_type 
+<B>get</B>(catalog c, int set, int msgid, 
+    const string_type&amp; dfault) const; 
+catalog 
+<B>open</B>(const basic_string&lt;char&gt;&amp; fn, const locale&amp;) const; </PRE>
+<UL>
+<P>Each of these public member functions <SAMP>xxx</SAMP> simply calls the corresponding protected <SAMP>do_xxx()</SAMP> function.</P>
+</UL>
+
+<A NAME="sec11"><H3>Protected Member Functions</H3></A>
+
+<A NAME="idx888"></A><PRE>virtual void    
+<B>do_close</B>(catalog cat) const; </PRE>
+<UL>
+<P>Closes the catalog. The <SAMP>cat</SAMP> argument must be obtained by a call to&nbsp;<SAMP>open()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx889"></A><PRE>virtual string_type 
+<B>do_get</B>(catalog cat, int set, int msgid, 
+       const string_type&amp; dfault) const; </PRE>
+<UL>
+<P>Retrieves a specific message. Returns the message identified by <SAMP>cat</SAMP>, <SAMP>set</SAMP>, <SAMP>msgid</SAMP>, and <SAMP>dfault</SAMP>. <SAMP>cat</SAMP> must be obtained by a previous call to <SAMP>open()</SAMP>. This function must not be called with a <SAMP>cat</SAMP> that has had <SAMP>close()</SAMP> called on it after the last call to <SAMP>open()</SAMP>; that is, the catalog must be open and not yet closed.</P>
+</UL>
+
+
+<A NAME="idx890"></A><PRE>virtual catalog
+<B>do_open</B>(const basic_string&lt;char&gt;&amp; name, const locale &amp;loc)
+        const;</PRE>
+<UL>
+<P>Opens a message catalog with the given name. The <SAMP>loc</SAMP> argument is used to obtain a reference to the <SAMP>codecvt&lt;char_type, char, mbstate_t&gt;</SAMP> facet to perform any necessary codeset conversion from the multibyte text in the catalog to the appropriate representation used by the internal character type, <SAMP>char_type</SAMP>. On success, returns a catalog identifier that can be passed to the <SAMP>get()</SAMP> function in order to access specific messages. If the provided catalog name does not refer to an existing valid catalog, the function returns <SAMP>-1</SAMP>.</P>
+</UL>
+
+<A NAME="sec12"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  messages.cpp
+//
+
+#include &lt;string&gt;
+#include &lt;locale&gt;
+#include &lt;iostream&gt;
+
+#include &lt;rwstdmessages.h&gt;
+
+#ifndef _WIN32
+#  define CAT_NAME   "./rwstdmessages.cat"
+#else
+#  define CAT_NAME   "rwstdmessages.dll"
+#endif
+
+
+int main ()
+{
+    std::locale loc;
+
+    // Get a reference to the messages&lt;char&gt; facet
+    const std::messages&lt;char&gt;&amp; msgs =
+        std::use_facet &lt;std::messages&lt;char&gt; &gt;(loc);
+
+    // Open a catalog and try to grab
+    // both some valid messages, and an invalid message
+    const std::string def  = "Message Not Found";
+
+    std::messages&lt;char&gt;::catalog cat = msgs.open (CAT_NAME,
+                                                  loc);
+
+    if (cat != std::messages&lt;char&gt;::catalog (-1)) {
+        std::cout &lt;&lt; msgs.get (cat, 1, _RW_MSG_HELLO, def)   
+             &lt;&lt; '\n' &lt;&lt; msgs.get (cat, 1, _RW_MSG_GOODBYE, def)
+             &lt;&lt; '\n' &lt;&lt; msgs.get (cat, 1, _RW_MSG_NOGOOD, def)
+             &lt;&lt; '\n' &lt;&lt; msgs.get (cat, 2, _RW_MSG_TREES, def)
+             &lt;&lt; '\n';
+
+        msgs.close (cat);
+    }
+    else
+        std::cerr &lt;&lt; "Unable to open message catalog"
+                  &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>Hello
+Goodbye
+Message Not Found
+Cedar, Hemlock, and Noble Fir
+
+</PRE></UL>
+<A NAME="sec13"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A></P>
+<A NAME="sec14"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.7</I></P>
+
+<BR>
+<HR>
+<A HREF="merge.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="min.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

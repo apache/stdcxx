@@ -1,0 +1,140 @@
+<HTML>
+<HEAD>
+<TITLE>&lt;iterator&gt;</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="iter-swap.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="iterator.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>&lt;iterator&gt;</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-8.html">Iterators</A></P>
+
+<PRE><HR><B><I>Header</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">See Also</A></LI>
+<LI><A HREF="#sec5">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>The header <SAMP>&lt;iterator&gt;</SAMP> represents the Iterators library of the Standard C++  Library. It defines: </P>
+<UL>
+<LI><P CLASS="LIST">the class template <B><I><A HREF="iterator-traits.html">iterator_traits</A></I></B> and two partial specializations of <B><I>iterator_traits</I></B> on pointers and const pointers</P></LI>
+<LI><P CLASS="LIST">the classes input_iterator_tag, output_iterator_tag, forward_iterator_tag, bidirectional_iterator_tag and random_access_iterator_tag </P></LI>
+<LI><P CLASS="LIST">the class templates <B><I><A HREF="reverse-iterator.html">reverse_iterator</A></I></B>, <B><I><A HREF="back-insert-iterator.html">back_insert_iterator</A></I></B>, <B><I><A HREF="front-insert-iterator.html">front_insert_iterator</A></I></B>, <B><I><A HREF="insert-iterator.html">insert_iterator</A></I></B>, <B><I><A HREF="istream-iterator.html">istream_iterator</A></I></B>, <B><I>ostream_isterator</I></B>, <B><I><A HREF="istreambuf-iterator.html">istreambuf_iterator</A></I></B>, and <B><I><A HREF="ostreambuf-iterator.html">ostreambuf_iterator</A></I></B></P></LI>
+<LI><P CLASS="LIST">the helper function templates <SAMP><A HREF="advance.html">advance()</A></SAMP>, <SAMP><A HREF="distance.html">distance()</A></SAMP>, <SAMP><A HREF="back-insert-iterator.html">back_inserter()</A></SAMP>, <SAMP><A HREF="front-insert-iterator.html">front_inserter()</A></SAMP>, <SAMP><A HREF="insert-iterator.html">inserter()</A></SAMP></P></LI>
+<LI><P CLASS="LIST">a set of relational operators that C++ programs may use to perform equality and inequality tests on specializations of <B><I><A HREF="reverse-iterator.html">reverse_iterator</A></I></B></P></LI>
+<LI><P CLASS="LIST">the equality and inequality operators specialized for <B><I><A HREF="istream-iterator.html">istream_iterator</A></I></B> and <B><I><A HREF="istreambuf-iterator.html">istreambuf_iterator</A></I></B></P></LI>
+</UL>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>namespace std {
+  template&lt;class Iterator&gt; struct <SAMP><A HREF="iterator-traits.html">iterator_traits</A></SAMP>;
+  template&lt;class T&gt; struct iterator_traits&lt;T*&gt;;
+  template&lt;class T&gt; struct iterator_traits&lt;const T*&gt;;
+
+  template&lt;class Category, class T,
+           class Distance = ptrdiff_t,
+           class Pointer = T*, class Reference = T&amp;&gt;
+  struct <SAMP><A HREF="iterator.html">iterator</A></SAMP>;
+
+  struct <SAMP>input_iterator_tag</SAMP> {};
+  struct <SAMP>output_iterator_tag</SAMP> {};
+  struct <SAMP>forward_iterator_tag</SAMP>: input_iterator_tag {};
+  struct <SAMP>bidirectional_iterator_tag</SAMP> : forward_iterator_tag {};
+  struct <SAMP>random_access_iterator_tag</SAMP> :
+                bidirectional_iterator_tag {};
+
+  template &lt;class InputIterator, class Distance&gt;
+  void <SAMP><A HREF="advance.html">advance</A></SAMP>(InputIterator&amp; i, Distance n);
+  template &lt;class InputIterator&gt;
+  typename iterator_traits&lt;InputIterator&gt;::difference_type
+  <SAMP><A HREF="distance.html">distance</A></SAMP>(InputIterator start, InputIterator finish);
+
+  template &lt;class Iterator&gt; 
+  class <SAMP><A HREF="reverse-iterator.html">reverse_iterator</A></SAMP>;
+
+  template &lt;class Iterator&gt;
+  bool operator==(const reverse_iterator&lt;Iterator&gt;&amp;, 
+                  const reverse_iterator&lt;Iterator&gt;&amp;);
+  template &lt;class Iterator&gt;
+  bool operator&lt;(const reverse_iterator&lt;Iterator&gt;&amp;, 
+                 const reverse_iterator&lt;Iterator&gt;&amp;);
+  template &lt;class Iterator&gt;
+  bool operator!=(const reverse_iterator&lt;Iterator&gt;&amp;, 
+                  const reverse_iterator&lt;Iterator&gt;&amp;);
+  template &lt;class Iterator&gt;
+  bool operator&gt;(const reverse_iterator&lt;Iterator&gt;&amp;, 
+                 const reverse_iterator&lt;Iterator&gt;&amp;);
+  template &lt;class Iterator&gt;
+  bool operator&gt;=(const reverse_iterator&lt;Iterator&gt;&amp;, 
+                  const reverse_iterator&lt;Iterator&gt;&amp;);
+  template &lt;class Iterator&gt;
+  bool operator&lt;=(const reverse_iterator&lt;Iterator&gt;&amp;, 
+                  const reverse_iterator&lt;Iterator&gt;&amp;);
+
+  template &lt;class Iterator&gt;
+  typename reverse_iterator&lt;Iterator&gt;::difference_type
+  operator-(const reverse_iterator&lt;Iterator&gt;&amp;, 
+            const reverse_iterator&lt;Iterator&gt;&amp;);
+  template &lt;class Iterator&gt;
+  reverse_iterator&lt;Iterator&gt;
+  operator+(typename
+            reverse_iterator&lt;Iterator&gt;::difference_type,
+            const reverse_iterator&lt;Iterator&gt;&amp;);
+
+  template &lt;class Container&gt; class <SAMP><A HREF="back-insert-iterator.html">back_insert_iterator</A></SAMP>;
+  template &lt;class Container&gt;
+  back_insert_iterator&lt;Container&gt; <SAMP><A HREF="back-insert-iterator.html">back_inserter</A></SAMP>(Container&amp;);
+
+  template &lt;class Container&gt; class <SAMP><A HREF="front-insert-iterator.html">front_insert_iterator</A></SAMP>;
+  template &lt;class Container&gt;
+  front_insert_iterator&lt;Container&gt; <SAMP><A HREF="front-insert-iterator.html">front_inserter</A></SAMP>(Container&amp;);
+
+  template &lt;class Container&gt; class <SAMP><A HREF="insert-iterator.html">insert_iterator</A></SAMP>;
+  template &lt;class Container, class Iterator&gt;
+  insert_iterator&lt;Container&gt; <SAMP><A HREF="insert-iterator.html">inserter</A></SAMP>(Container&amp;, Iterator);
+
+  template &lt;class T, class charT = char,
+            class traits = char_traits&lt;charT&gt;,
+            class Distance = ptrdiff_t&gt;
+  class <SAMP><A HREF="istream-iterator.html">istream_iterator</A></SAMP>;
+  template &lt;class T, class charT, class traits, 
+            class Distance&gt;
+  bool operator==(const istream_iterator&lt;T, charT, traits,
+                  Distance&gt;&amp;, const istream_iterator&lt;T, charT,
+                  traits, Distance&gt;&amp;);
+  template &lt;class T, class charT, class traits, 
+            class Distance&gt;
+  bool operator!=(const istream_iterator&lt;T, charT, traits,
+                  Distance&gt;&amp;, const istream_iterator&lt;T, 
+                  charT, traits, Distance&gt;&amp;);
+
+  template &lt;class T, class charT = char, 
+            class traits = char_traits&lt;charT&gt; &gt;
+  class <SAMP><A HREF="ostream-iterator.html">ostream_iterator</A></SAMP>;
+
+  template&lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class istreambuf_iterator;
+  template &lt;class charT, class traits&gt;
+  bool operator==(const istreambuf_iterator&lt;charT, traits&gt;&amp;, 
+                  const istreambuf_iterator&lt;charT, traits&gt;&amp;);
+  template &lt;class charT, class traits&gt;
+  bool operator!=(const istreambuf_iterator&lt;charT, traits&gt;&amp;, 
+                  const istreambuf_iterator&lt;charT, traits&gt;&amp;);
+
+  template &lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class <SAMP><A HREF="ostreambuf-iterator.html">ostreambuf_iterator</A></SAMP>;
+}
+</PRE>
+<A NAME="sec4"><H3>See Also</H3></A>
+<P><B><I><A HREF="iterator-traits.html">iterator_traits</A></I></B>, <B><I><A HREF="iterator.html">iterator</A></I></B>, <SAMP><A HREF="advance.html">advance()</A></SAMP>, <SAMP><A HREF="distance.html">distance()</A></SAMP>, <B><I><A HREF="reverse-iterator.html">reverse_iterator</A></I></B>, <B><I><A HREF="back-insert-iterator.html">back_insert_iterator</A></I></B>, <SAMP><A HREF="back-insert-iterator.html">back_inserter()</A></SAMP>, <B><I><A HREF="front-insert-iterator.html">front_insert_iterator</A></I></B>, <SAMP><A HREF="front-insert-iterator.html">front_inserter()</A></SAMP>, <B><I><A HREF="insert-iterator.html">insert_iterator</A></I></B>, <SAMP><A HREF="insert-iterator.html">inserter()</A></SAMP>, <B><I><A HREF="istream-iterator.html">istream_iterator</A></I></B>, <B><I><A HREF="ostream-iterator.html">ostream_iterator</A></I></B>, <B><I><A HREF="istreambuf-iterator.html">istreambuf_iterator</A></I></B>, <B><I><A HREF="ostreambuf-iterator.html">ostreambuf_iterator</A></I></B>, <A HREF="bidirectionaliterators.html">Bidirectional Iterators</A>, <A HREF="inputiterators.html">Input Iterators</A>, <A HREF="insertiterators.html">Insert Iterators</A>, Iterators, <A HREF="outputiterators.html">Output Iterators</A>, <A HREF="randomaccessiterators.html">Random Access Iterators</A>, <A HREF="streamiterators.html">Stream Iterators</A></P>
+<A NAME="sec5"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 24</I></P>
+
+<BR>
+<HR>
+<A HREF="iter-swap.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="iterator.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

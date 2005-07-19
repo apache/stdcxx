@@ -1,0 +1,116 @@
+<HTML>
+<HEAD>
+<TITLE>fill(), fill_n()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="facets.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="find.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>fill(), fill_n()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that assigns the same value to the elements in a given range</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class ForwardIterator, class T&gt;
+   void fill(ForwardIterator start, ForwardIterator finish,
+             const T&amp; value);
+
+  template &lt;class OutputIterator, class Size, class T&gt;
+  void fill_n(OutputIterator start, Size n, const T&amp; value);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>fill()</SAMP> and <SAMP><A HREF="fill.html">fill_n()</A></SAMP> algorithms are used to assign a value to the elements in a sequence. <SAMP>fill()</SAMP> assigns the value to all the elements designated by iterators in the range <SAMP>[start, finish)</SAMP>.</P>
+<P>The <SAMP><A HREF="fill.html">fill_n()</A></SAMP> algorithm assigns the value to all the elements designated by iterators in the range <SAMP>[start, start + n)</SAMP>. <SAMP>fill_n()</SAMP> assumes that all iterators in the range <SAMP>[start, start + n)</SAMP> are dereferenceable, unless <SAMP>start</SAMP> is an insert iterator.</P>
+<P>Type <SAMP>T</SAMP> must be Assignable, and <SAMP>Size</SAMP> must be convertible to an integral type.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P><SAMP>fill()</SAMP> makes exactly <SAMP>finish - start</SAMP> assignments, and <SAMP><A HREF="fill.html">fill_n()</A></SAMP> makes exactly <SAMP>n</SAMP> assignments.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+// fill.cpp
+//
+
+#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;  
+
+
+
+int main ()
+{
+    // Typedef for convenience.
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; vector;
+
+    const vector::value_type arr[] = { 1, 2, 3, 4 };
+
+    // Set up two vectors.
+    vector v1(arr, arr + sizeof arr / sizeof *arr);
+    vector v2(v1.begin (), v1.end ());
+
+    // Set up one empty vector.
+    vector v3;
+
+    // Fill all of v1 with 9.
+    std::fill(v1.begin (), v1.end (), 9);
+
+    // Fill first 3 of v2 with 7.
+    std::fill_n(v2.begin (), 3, 7);
+
+    // Use insert iterator to fill v3 with 5 11's.
+    std::fill_n(std::back_inserter (v3), 5, 11);
+
+    // Copy all three to cout.
+    std::ostream_iterator&lt;vector::value_type, char,
+             std::char_traits&lt;char&gt; &gt; out(std::cout, " ");
+
+    std::copy(v1.begin (), v1.end (), out);
+    std::cout &lt;&lt; std::endl;
+
+    std::copy(v2.begin (), v2.end (), out);
+    std::cout &lt;&lt; std::endl;
+
+    std::copy(v3.begin (), v3.end (), out);
+    std::cout &lt;&lt; std::endl;
+
+    // Fill cout with 3 5's.
+    std::fill_n(out, 3, 5);
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output
+</PRE></UL>
+<UL><PRE>9 9 9 9 
+7 7 7 4 
+11 11 11 11 11 
+5 5 5 
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><A HREF="algorithms.html">Algorithms</A></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.2.5</I></P>
+
+<BR>
+<HR>
+<A HREF="facets.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="find.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,110 @@
+<HTML>
+<HEAD>
+<TITLE>random_shuffle()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="randomaccessiterators.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="range-error.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>random_shuffle()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that randomly shuffles elements of a collection</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class RandomAccessIterator&gt;
+  void random_shuffle(RandomAccessIterator start,
+                      RandomAccessIterator finish);
+
+  template &lt;class RandomAccessIterator,
+            class RandomNumberGenerator&gt;
+  void random_shuffle(RandomAccessIterator start,
+                      RandomAccessIterator finish,
+                      RandomNumberGenerator&amp; rand);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>random_shuffle()</SAMP> algorithm shuffles the elements in the range <SAMP>[start, finish)</SAMP> with uniform distribution. <SAMP>random_shuffle()</SAMP> can take a particular random number generating function object <SAMP>rand</SAMP> (where <SAMP>rand</SAMP> takes a positive argument <SAMP>n</SAMP> of type convertible from <SAMP>std::iterator_traits&lt;RandomAccessIterator&gt;::difference_type</SAMP>) and returns a randomly chosen value between <SAMP>0 </SAMP>and<SAMP> n - 1</SAMP>. </P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P>In the <SAMP>random_shuffle()</SAMP> algorithm, <SAMP>(finish - start) - 1 </SAMP>swaps are done.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  rndshufl.cpp
+//
+
+#include &lt;algorithm&gt;   // for random_shuffle
+#include &lt;iostream&gt;    // for cout, endl
+#include &lt;iterator&gt;    // for ostream_iterator
+#include &lt;string&gt;      // for string
+
+
+
+int main ()
+{
+    // Create a string of doubles (unusual? maybe, 
+    // but why not...)
+    typedef std::basic_string&lt;double, 
+                              std::char_traits&lt;double&gt;,
+                              std::allocator&lt;double&gt; &gt;
+            Bizarre;
+
+    // Initialize a Bizarre with an array of values.
+    const Bizarre::value_type a[] = { 1, 2, 3, 4, 5, 
+                                      6, 7, 8, 9, 10 };
+
+    Bizarre b (a + 0, a + sizeof a / sizeof *a);
+
+    typedef std::ostream_iterator&lt;double, char, 
+                                  std::char_traits&lt;char&gt; &gt;
+            Iter;
+
+    // Suppress decimal point in output.
+    std::cout.precision (0);
+
+    // Print out elements in original (sorted) order.
+    std::cout &lt;&lt; "Elements before random_shuffle: \n     ";
+    std::copy (b.begin (), b.end (), Iter (std::cout," "));
+
+    // Mix them up with random_shuffle.
+    std::random_shuffle (b.begin (), b.end ());
+
+    // Print out the mixed up elements.
+    std::cout &lt;&lt; "\n\nElements after random_shuffle: \n     ";
+    std::copy (b.begin (), b.end (), Iter (std::cout, " "));
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>Elements before random_shuffle: 
+     1 2 3 4 5 6 7 8 9 10 
+
+Elements after random_shuffle: 
+     9 8 7 6 2 3 1 4 5 10 
+</PRE></UL>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 25.2.11</I></P>
+
+<BR>
+<HR>
+<A HREF="randomaccessiterators.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="range-error.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

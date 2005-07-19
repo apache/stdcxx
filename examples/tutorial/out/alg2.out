@@ -1,0 +1,23 @@
+STL generic algorithms -- Searching Algorithms
+Test of algorithm find
+first vintage leap year is 1972
+1995 is position 4 in sequence
+Test of algorithm find adjacent
+In the text The bookkeeper carefully opened the door
+double o in position 5
+double k in position 7
+double e in position 9
+double l in position 21
+double o in position 37
+Test of algorithm search
+substring begins in position 4
+Test of max and min algorithms 
+largest value was 93
+smallest value was 11
+The smallest word is best and the largest word is worst
+string goody is equal to goody
+string good is less than goody
+string goody is greater than good
+string good is greater than fred
+string fred is less than good
+End of search algorithms test program

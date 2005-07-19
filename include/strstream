@@ -1,0 +1,272 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * strstream - Declarations for the Standard Library string stream classes
+ *
+ * $Id: //stdlib/dev/include/strstream#20 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_STRSTREAM_INCLUDED
+#define _RWSTD_STRSTREAM_INCLUDED
+
+#include <streambuf>
+#include <istream>
+#include <ostream>
+
+#include <rw/_defs.h>
+
+#ifdef _RWSTD_NO_DEPRECATED
+#  error deprecated header included
+#endif
+
+
+_RWSTD_NAMESPACE (std) { 
+  
+
+// D.7.1
+class _RWSTD_EXPORT strstreambuf
+    : public basic_streambuf<char, char_traits<char> >
+{
+    typedef basic_streambuf<char, char_traits<char> > _Base;
+
+    void _C_init (streamsize, const void*, streamsize, const void*,
+                  void* (*)(_RWSTD_SIZE_T), void (*)(void*), int);
+public:
+
+    // D.7.1.1, p1
+    _EXPLICIT
+    strstreambuf (streamsize __alsize = 0)
+        : _Base () {
+        _C_init (__alsize, 0, 0, 0, 0, 0, _C_dynamic);
+    }
+      
+    // D.7.1.1, p2
+    strstreambuf (void* (*__palloc)(_RWSTD_SIZE_T), void (*__pfree)(void *))
+        : _Base () {
+        _C_init (0, 0, 0, 0, __palloc, __pfree, _C_dynamic);
+    }
+
+    // D.7.1.1, p3
+    strstreambuf (char_type *__gnext, streamsize __n, char_type *__pbeg = 0)
+        : _Base () {
+        _C_init (0, __gnext, __n, __pbeg, 0, 0, 0);
+    }
+
+    // D.7.1.1, p3
+    strstreambuf (unsigned char *__gnext, streamsize __n,
+                  unsigned char *__pbeg = 0)
+        : _Base () {
+        _C_init (0, __gnext, __n, __pbeg, 0, 0, 0);
+    }
+
+    // D.7.1.1, p3
+    strstreambuf (signed char *__gnext, streamsize __n,
+                  signed char *__pbeg = 0)
+        : _Base () {
+        _C_init (0, __gnext, __n, __pbeg, 0, 0, 0);
+    }
+
+    // D.7.1.1, p7
+    strstreambuf (const char_type *__gnext, streamsize __n)
+        : _Base () {
+        _C_init (0, __gnext, __n, 0, 0, 0, _C_constant);
+    }
+
+    // D.7.1.1, p7
+    strstreambuf (const unsigned char *__gnext, streamsize __n)
+        : _Base () {
+        _C_init (0, __gnext, __n, 0, 0, 0, _C_constant);
+    }
+
+    // D.7.1.1, p7
+    strstreambuf (const signed char *__gnext, streamsize __n)
+        : _Base () {
+        _C_init (0, __gnext, __n, 0, 0, 0, _C_constant);
+    }
+      
+    // D.7.1.1, p8
+    virtual ~strstreambuf ();
+
+    // D.7.1.2, p1
+    void freeze (bool __f = true) {
+        if (__f)
+            _C_state |= _C_frozen;
+        else
+            _C_state &= ~_C_frozen;
+    }
+      
+    // D.7.1.2, p2
+    char_type* str () {
+        freeze ();
+        return eback ();
+    }
+      
+    // D.7.1.2, p4
+    int pcount () const {
+        return int (pptr () - pbase ());
+    }
+
+protected:
+
+    // D.7.1.3, p1
+    virtual int_type
+    overflow (int_type = traits_type::eof ());
+
+    // D.7.1.3, p6
+    virtual int_type
+    pbackfail (int_type = traits_type::eof ());
+
+    // D.7.1.3, p9
+    virtual int_type
+    underflow ();
+
+    // D.7.1.3, p12
+    virtual pos_type
+    seekoff (off_type, ios_base::seekdir,
+             ios_base::openmode = ios_base::in | ios_base::out);
+
+    // D.7.1.3, p15
+    virtual pos_type
+    seekpos (pos_type, ios_base::openmode = ios_base::in | ios_base::out);
+
+    // D.7.1.3, p19
+    virtual basic_streambuf<char, char_traits<char> >*
+    setbuf (char_type*, streamsize);
+
+private:
+
+    streamsize    _C_alsize;
+    void       *(*_C_palloc)(_RWSTD_SIZE_T);
+    void        (*_C_pfree)(void*);
+};
+
+
+// D.7.2
+class _RWSTD_EXPORT istrstream
+    : public basic_istream<char, char_traits<char> >
+{
+    typedef basic_istream<char, char_traits<char> > _Base;
+
+public:
+
+    // D.7.2.2, p1
+    strstreambuf* rdbuf() const {
+        return _RWSTD_CONST_CAST (strstreambuf*, &_C_sb);
+    }
+
+    // D.7.2.1, p1, and p2
+    _EXPLICIT
+    istrstream (const char_type *__s, streamsize __n = 0)
+        : _Base (rdbuf ()), _C_sb (__s, __n) { }
+
+    _EXPLICIT
+    istrstream (char_type *__s, streamsize __n = 0)
+        : _Base (rdbuf ()), _C_sb (__s, __n) { }
+
+    // D.7.2.2, p2
+    char_type* str () {
+        return rdbuf ()->str ();
+    }
+
+private:
+
+    strstreambuf _C_sb;
+};
+
+
+class _RWSTD_EXPORT ostrstream
+    : public basic_ostream<char, char_traits<char> >
+{
+    typedef basic_ostream<char, char_traits<char> > _Base;
+public:
+  
+    strstreambuf* rdbuf() const {
+        return _RWSTD_CONST_CAST (strstreambuf*, &_C_sb);
+    }
+
+    ostrstream (): _Base (rdbuf ()) { }
+
+    ostrstream (char_type *__s, int __n,
+                ios_base::openmode __mode = ios_base::out)
+        : _Base (rdbuf ()),
+          _C_sb (__s, streamsize (__n),
+                __mode & (ios_base::app | ios_base::ate) ?
+                 __s + traits_type::length (__s) : __s)
+        { }
+
+    void freeze (bool __freezefl = true) {
+        rdbuf ()->freeze (__freezefl);
+    }
+    
+    char_type *str () {
+        return rdbuf ()->str();
+    }
+    
+    int pcount() const {
+        return rdbuf ()->pcount();
+    }
+
+private:
+
+    strstreambuf _C_sb;
+};
+
+
+// D.7.3
+class _RWSTD_EXPORT strstream
+    : public basic_iostream<char, char_traits<char> >
+{
+    typedef basic_iostream<char, char_traits<char> > _Base;
+
+public:
+  
+    strstreambuf* rdbuf() const {
+        return _RWSTD_CONST_CAST (strstreambuf*, &_C_sb);
+    }
+
+    strstream (): _Base (rdbuf ()), _C_sb () { }
+
+    strstream (char_type *__s, int __n,
+               ios_base::openmode __mode = ios_base::out | ios_base::in)
+        : _Base (rdbuf ()),
+        _C_sb (__s, streamsize (__n),
+               __mode & (ios_base::app | ios_base::ate) ?
+               __s + traits_type::length (__s) : __s)
+          { }
+
+    void freeze (bool __freezefl = true) {
+        rdbuf ()->freeze (__freezefl);
+    }
+
+    int pcount() const {
+        return rdbuf ()->pcount();
+    }
+      
+    char_type *str() {
+        return rdbuf ()->str();
+    }
+
+private:
+
+    strstreambuf _C_sb;
+};
+
+
+}   // namespace std
+
+
+#endif   //_RWSTD_STRSTREAM_INCLUDED

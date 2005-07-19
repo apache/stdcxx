@@ -1,0 +1,39 @@
+<HTML>
+<HEAD>
+<TITLE>About File Streams</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="30.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="30-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>30.1 About File Streams</H2>
+<A NAME="idx740"><!></A>
+<P>File streams allow input and output to files. Unlike the C stdio functions for file I/O, however, file streams follow the idiom which Stroustrup puts forth on page 366 of <I>The C++ Programming Language, 3rd Edition</I>: "Resource acquisition is initialization." In other words, file streams provide an advantage in that you can open a file on construction of a stream, and the file is closed automatically on destruction of the stream. Consider the following code:</P>
+
+<UL><PRE>
+void use_file(const char* fileName)
+{
+  FILE* f = fopen("fileName", "w");
+  // use file
+  fclose(f);
+}
+</PRE></UL>
+<P>If an exception is thrown while the file is in use here, the file is never closed. With a file stream, however, the file is closed whenever the file stream goes out of scope, as in the following example:</P>
+
+<UL><PRE>
+void use_file(const char* fileName)
+{
+  std::ofstream f("fileName");
+  // use file
+}
+</PRE></UL>
+<P>Here the file is closed even if an exception occurs during use of the open file.</P>
+<A NAME="idx741"><!></A>
+<P>There are three class templates that implement file streams: <B><I><A HREF="../stdlibref/basic-ifstream.html">basic_ifstream</A></I></B>, <B><I><A HREF="../stdlibref/basic-ofstream.html">basic_ofstream</A></I></B>, and <B><I><A HREF="../stdlibref/basic-fstream.html">basic_fstream</A></I></B>. These templates are derived from the stream base class template <B><I><A HREF="../stdlibref/basic-ios.html">basic_ios</A></I></B>. Therefore, they inherit all the functions for formatted input and output described in <A HREF="28.html">Chapter&nbsp;28</A>, as well as the stream state. They also have functions for opening and closing files, and a constructor that allows opening a file and connecting it to the stream. For convenience, there are the typedefs <SAMP>std::ifstream</SAMP>, <SAMP>std::ofstream</SAMP>, and <SAMP>std::fstream</SAMP>, with <SAMP>std::wifstream</SAMP>, <SAMP>std::wofstream</SAMP>, and <SAMP>std::wfstream</SAMP> for the respective narrow and wide character file streams.</P>
+<P>The buffering is implemented by a specialized stream buffer class template, <B><I><A HREF="../stdlibref/basic-filebuf.html">basic_filebuf</A></I></B>.</P>
+<A NAME="idx742"><!></A>
+<A NAME="3011"><H3>30.1.1 Code Conversion in Wide Character Streams</H3></A>
+<P>In a large character set environment, a file is assumed to contain multibyte characters. To provide the contents of a such a file as a wide character sequence for internal processing, <SAMP>wifstream</SAMP> and <SAMP>wofstream</SAMP> perform corresponding conversions. The actual conversion is delegated to the file buffer, which relays the task to the imbued locale's code conversion facet.</P>
+
+<BR>
+<HR>
+<A HREF="30.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="30-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

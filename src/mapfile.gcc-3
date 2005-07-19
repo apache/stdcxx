@@ -1,0 +1,12 @@
+#
+# $Id: //stdlib/dev/source/stdlib/mapfile.gcc-3#3 $
+#
+
+RWSTD.3.1.2
+{
+global:
+    *;
+
+local:
+    *;
+};

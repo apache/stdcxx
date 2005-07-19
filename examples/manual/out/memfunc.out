@@ -1,0 +1,21 @@
+City        Type        Population (millions)
+----------- ----------- ---------------------
+Calcutta    Megapolis    12.0
+Tokyo       Megapolis    26.8
+Delhi       Megapolis    10.0
+Bombay      Megapolis    15.0
+Cairo       Metropolis   12.0
+New York    Metropolis    7.5
+Los Angeles Metropolis    3.7
+Jakarta     Metropolis    8.2
+
+After sorting...
+
+Tokyo       Megapolis    26.8
+Bombay      Megapolis    15.0
+Calcutta    Megapolis    12.0
+Cairo       Metropolis   12.0
+Delhi       Megapolis    10.0
+Jakarta     Metropolis    8.2
+New York    Metropolis    7.5
+Los Angeles Metropolis    3.7

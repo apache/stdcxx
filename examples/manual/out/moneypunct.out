@@ -1,0 +1,7 @@
+Punctuator             C++   C99
+Decimal point        = '.'   "."
+Thousands separator  = ','   ""
+Currency symbol      = ""    ""
+Negative Sign        = ""    ""
+Positive Sign        = ""    ""
+Digits after decimal = 0    CHAR_MAX

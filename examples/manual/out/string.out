@@ -1,0 +1,8 @@
+Type a string between 5 and 100 characters long. 
+Changing the third character from a to * 
+now its: am*naplanacanalpanama
+
+Identifying the middle: am*naplana(the middle is here!)canalpanama
+
+I didn't like the word 'middle', so instead, I'll say: 
+am*naplana(the center is here!)canalpanama

@@ -1,0 +1,110 @@
+<HTML>
+<HEAD>
+<TITLE>binary_search()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="binary-negate.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="bind1st.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>binary_search()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that performs a binary search for a value</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class ForwardIterator, class T&gt;
+  bool
+  binary_search(ForwardIterator start, ForwardIterator finish,
+                const T&amp; value);
+  template &lt;class ForwardIterator, class T, class Compare&gt;
+  bool
+  binary_search(ForwardIterator start, ForwardIterator finish,
+                const T&amp; value, Compare comp);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>binary_search()</SAMP> algorithm, like the related algorithms <SAMP><A HREF="equal-range.html">equal_range()</A></SAMP>, <SAMP><A HREF="lower-bound.html">lower_bound()</A></SAMP>, and <SAMP><A HREF="upper-bound.html">upper_bound()</A></SAMP>, performs a binary search on a range of ordered values. All binary search algorithms have two variations. The first variation uses the <SAMP>operator&lt;</SAMP> to perform the comparison, and assumes that the sequence has been sorted using that operator. The second variation allows you to specify a function object of type <SAMP>Compare</SAMP>, which it assumes was the function used to sort the sequence. The function object must be a binary predicate. </P>
+<P>The <SAMP>binary_search()</SAMP> algorithm returns <SAMP>true</SAMP> if a sequence contains an element equivalent to the argument <SAMP>value</SAMP>. The first variation of <SAMP>binary_search()</SAMP> returns <SAMP>true</SAMP> if the sequence contains at least one element that is equal to the search value. The second variation of the <SAMP>binary_search()</SAMP> algorithm returns <SAMP>true</SAMP> if the sequence contains at least one element that satisfies the conditions of the comparison function. Formally, <SAMP>binary_search()</SAMP> returns <SAMP>true</SAMP> if there is an iterator <SAMP>i</SAMP> in the range <SAMP>[start, finish)</SAMP> that satisfies the corresponding conditions:</P>
+<P><SAMP>!(*i &lt; value) &amp;&amp; !(value &lt; *i) </SAMP></P>
+<P>or </P>
+<P><SAMP>comp(*i, value) == false &amp;&amp; comp(value, *i) == false</SAMP></P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P><SAMP>binary_search()</SAMP> performs at most <SAMP>log(finish - start) + 2 </SAMP>comparisons.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+// b_search.cpp
+//
+
+#include &lt;algorithm&gt;    // for copy, sort
+#include &lt;deque&gt;        // for deque
+#include &lt;functional&gt;   // for less
+#include &lt;iostream&gt;     // for cout, endl, ostream_iterator
+
+
+
+int main ()
+{
+    // Typedefs for convenience.
+    typedef std::deque&lt;short, std::allocator&lt;short&gt; &gt; deque;
+
+    typedef std::ostream_iterator&lt;deque::value_type, char,
+                           std::char_traits&lt;char&gt; &gt; os_iter;
+
+    const deque::value_type arr[] = { 
+      0, 1, 2, 2, 3, 4, 2, 2, 6, 7 
+    };
+
+    // Populate and sort the container.
+    deque d (arr + 0, arr + sizeof arr / sizeof *arr);
+    std::sort (d.begin (), d.end ());
+
+    // Try binary_search variants.
+    bool b1 = std::binary_search (d.begin (), d.end (), 3);
+    bool b2 = std::binary_search (d.begin (), d.end (), 11,
+                                  std::less&lt;int&gt;());
+
+    // Output results.
+    std::cout &lt;&lt; "Container contents: ";
+    std::copy (d.begin (), d.end (), 
+               os_iter (std::cout, " "));
+
+    std::cout &lt;&lt; "\nThe number 3 was " 
+              &lt;&lt; ("NOT found" + b1 * 4);
+
+    std::cout &lt;&lt; "\nThe number 11 was "
+              &lt;&lt; ("NOT found" + b2 * 4) &lt;&lt; std::endl;
+
+    return 0;
+}
+
+Program Output:
+Container contents: 0 1 2 2 2 2 3 4 6 7 
+The number 3 was found
+The number 11 was NOT found
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="equal-range.html">equal_range()</A></SAMP>, <SAMP><A HREF="lower-bound.html">lower_bound()</A></SAMP>, <SAMP><A HREF="upper-bound.html">upper_bound()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.3.3.4</I></P>
+
+<BR>
+<HR>
+<A HREF="binary-negate.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="bind1st.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

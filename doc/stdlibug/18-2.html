@@ -1,0 +1,30 @@
+<HTML>
+<HEAD>
+<TITLE>The Standard Exception Hierarchy</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="18-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="18-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>18.2 The Standard Exception Hierarchy</H2>
+<A NAME="idx424"><!></A>
+<P>The Standard C++ Library implements the two-category error model described in <A HREF="18-1.html">Section&nbsp;18.1</A> with a set of classes. These classes, which are defined in the <SAMP>stdexcept</SAMP> header file, can be used to catch exceptions thrown by the library and to throw exceptions from your own code.</P>
+<P>The exception handling classes are related through inheritance. The inheritance hierarchy looks like this:</P>
+
+<A NAME="idx425"><!></A>
+<UL><PRE><B><I><A HREF="../stdlibref/exception.html">exception</A></I></B>
+   <B><I><A HREF="../stdlibref/logic-error.html">logic_error</A></I></B>
+      <B><I><A HREF="../stdlibref/domain-error.html">domain_error</A></I></B>
+      <B><I><A HREF="../stdlibref/invalid-argument.html">invalid_argument</A></I></B>
+      <B><I><A HREF="../stdlibref/length-error.html">length_error</A></I></B>
+      <B><I><A HREF="../stdlibref/out-of-range.html">out_of_range</A></I></B>
+   <B><I><A HREF="../stdlibref/runtime-error.html">runtime_error</A></I></B>
+      <B><I><A HREF="../stdlibref/range-error.html">range_error</A></I></B>
+      <B><I><A HREF="../stdlibref/overflow-error.html">overflow_error</A></I></B> 
+      <B><I><A HREF="../stdlibref/underflow-error.html">underflow_error</A></I></B> 
+</PRE></UL>
+<A NAME="idx426"><!></A>
+<P>Classes <B><I><A HREF="../stdlibref/logic-error.html">logic_error</A></I></B> and <B><I><A HREF="../stdlibref/runtime-error.html">runtime_error</A></I></B> inherit from class <B><I><A HREF="../stdlibref/exception.html">exception</A></I></B>. All other exception handling classes inherit from either <B><I>logic_error</I></B> or <B><I>runtime_error</I></B>.</P>
+
+<BR>
+<HR>
+<A HREF="18-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="18-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

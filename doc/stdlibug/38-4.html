@@ -1,0 +1,203 @@
+<HTML>
+<HEAD>
+<TITLE>The Example</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="38-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="38-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>38.4 The Example</H2>
+<A NAME="idx908"><!></A>
+<P>Let's return now to our example, in which we are creating a new stream template by derivation.</P>
+<A NAME="3841"><H3>38.4.1 The Derived Stream Template</H3></A>
+<A NAME="idx909"><!></A>
+<P>Let us derive a new stream type <SAMP>odatstream</SAMP> that has an additional data member <SAMP>fmt_</SAMP> for storing a date format string, together with a corresponding member function <SAMP>fmt()</SAMP> for setting the date format specification. </P>
+
+<UL><PRE>
+template &lt;class charT, class Traits=std::char_traits&lt;charT&gt; &gt;
+class odatstream : public std::basic_ostream &lt;charT,Traits&gt;
+{
+public:
+  odatstream(std::basic_ostream&lt;charT,Traits&gt;&amp; ostr,
+             const char* fmt = "%x")                            //1
+    : std::basic_ostream&lt;charT,Traits&gt;(ostr.rdbuf())
+  {
+    fmt_=new charT[std::strlen(fmt)];
+    std::use_facet&lt;std::ctype&lt;charT&gt; &gt;(ostr.getloc()).
+      widen(fmt, fmt+std::strlen(fmt), fmt_);                   //2
+  }
+ 
+  std::basic_ostream&lt;charT,Traits&gt;&amp; fmt(const char* f)          //3
+  {
+    delete[] fmt_;
+    fmt_=new charT[std::strlen(f)];
+    std::use_facet&lt;std::ctype&lt;charT&gt; &gt;(os.getloc()).
+      widen(f, f+std::strlen(f), fmt_);
+    return *this;
+  }
+ 
+  charT const* fmt() const                                      //4
+  {
+    charT * p = new charT[Traits::length(fmt_)];
+    Traits::copy(p,fmt_,Traits::length(fmt_));
+    return p;
+  }
+  ~odatstream() {                                               //5
+    delete[] fmt_; }
+ 
+
+private:
+  charT* fmt_;                                                  //6
+
+template &lt;class charT, class Traits&gt;                            //7
+ friend std::basic_ostream&lt;charT, Traits&gt; &amp;
+ operator &lt;&lt; (std::basic_ostream&lt;charT, Traits &gt;&amp; os,
+   const date&amp; dat);
+};
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>A date output stream borrows the stream buffer of an already existing output stream, so that the two streams share the stream buffer.
+<BR><BR>The constructor also takes an optional argument, the date format string. This is always a sequence of narrow characters.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The format string is widened or translated into the stream's character type <SAMP>charT</SAMP>. This is because the format string is provided to the time facet of the stream's locale, which expects an array of characters of type <SAMP>charT</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>This version of function <SAMP>fmt()</SAMP> allows you to set the format string.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>This version of function <SAMP>fmt()</SAMP> returns the current format string setting.
+<TR VALIGN="top"><TD><SAMP>//5</SAMP></TD><TD>The date stream class needs a destructor that deletes the format string.
+<TR VALIGN="top"><TD><SAMP>//6</SAMP></TD><TD>A pointer to the date format specification is stored as a private data member <SAMP>fmt_</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//7</SAMP></TD><TD>The inserter for dates must access the date format specification. For this reason, we make it a friend of class <SAMP>odatstream</SAMP>.
+</TABLE>
+<A NAME="3842"><H3>38.4.2 The Date Inserter</H3></A>
+<A NAME="idx910"><!></A>
+<P>We would like to be able to insert <SAMP>date</SAMP> objects into all kinds of output streams. Whenever the output stream is a date output stream of type <SAMP>odatstream</SAMP>, we would also like to take advantage of its ability to carry additional information for formatting date output. How can this be achieved?</P>
+<P>It would be ideal if the inserter for <SAMP>date</SAMP> objects were a virtual member function of all output stream classes that we could implement differently for different types of output streams. For example, when a date object is inserted into an <SAMP>odatstream,</SAMP> the formatting would use the available date formatting string; when inserted into an arbitrary output stream, default formatting would be performed. Unfortunately, we cannot modify the existing output stream classes, since they are part of a library you will not want to modify.</P>
+<P>This kind of problem is typically solved using dynamic casts. Since the stream classes have a virtual destructor, inherited from class <SAMP>std::basic_ios</SAMP>, we can use dynamic casts to achieve the desired virtual behavior.</P>
+<BLOCKQUOTE><HR><B>
+NOTE -- For a more detailed discussion of the problem and its solution, see Section 14.2, p. 306ff, of Bjarne Stroustrup, <B><I>The Design and Evolution of C++</I></B>, Addison-Wesley 1994.
+</B><HR></BLOCKQUOTE>
+<A NAME="idx911"><!></A>
+<P>Here is the implementation of the date inserter:</P>
+
+<UL><PRE>
+template &lt;class charT, class Traits&gt;
+std::basic_ostream&lt;charT, Traits&gt; &amp;
+operator &lt;&lt; (std::basic_ostream&lt;charT, Traits &gt;&amp; os,
+    const date&amp; dat)
+{
+  std::ios_base::iostate err = std::ios_base::goodbit;
+
+  try {
+    typename std::basic_ostream&lt;charT,
+                                Traits&gt;::sentry opfx(os);
+
+    if (opfx) {
+      charT buf[3];
+      const charT *fmt = buf;
+
+      odatstream&lt;charT, Traits&gt; *p =
+        dynamic_cast&lt;odatstream&lt;charT, Traits&gt;*&gt;(&amp;os);     //1
+
+      if (p)
+        fmt = p-&gt;fmt_;                                     //2
+      else {                                               //3
+        char patt[3] = "%x";
+        std::use_facet&lt;ctype&lt;charT&gt; &gt;(os.getloc ())
+          .widen (patt, patt + 3, buf);
+      }
+
+      typedef std::ostreambuf_iterator&lt;charT, Traits&gt;
+        Iterator;
+      typedef std::time_put&lt;charT, Iterator&gt; TimePut;
+
+      if (std::use_facet&lt;TimePut&gt;(os.getloc())
+          .put (os, os, os.fill (), &amp;dat.tm_date_,
+                fmt, fmt + Traits::length (fmt)).failed())
+        err = ios_base::badbit;
+      os.width (0);
+    }
+  }
+  catch (...) {
+    bool flag = false;
+    try {
+      os.setstate (std::ios_base::failbit);
+    }
+    catch (std::ios_base::failure) {
+      flag = true;
+    }
+    if (flag)
+      throw;
+  }
+  if (err)
+    os.setstate(err);
+
+  return os;
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Use <SAMP>dynamic_cast&lt;&gt;()</SAMP> to determine whether the stream object <SAMP>os</SAMP> is of the expected type.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>If <SAMP>os</SAMP> is of the <SAMP>odatstream</SAMP> type (or publicly derived from it), use the <SAMP>fmt_</SAMP> member.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Otherwise, use the <SAMP>"%x"</SAMP> format specifier.
+</TABLE>
+<A NAME="3843"><H3>38.4.3 The Manipulator</H3></A>
+<A NAME="idx912"><!></A>
+<P>The date output stream has a member function for setting the format specification. Analogous to the standard stream format functions, we would like to provide a manipulator for setting the format specification. This manipulator affects only output streams. Therefore, we must define a manipulator base class for output stream manipulators, <SAMP>osmanip</SAMP>, along with the necessary inserter for this manipulator. We do this in the code below. See <A HREF="33-3.html#3333">Section&nbsp;33.3.3</A> for a detailed discussion of the technique we are using here:</P>
+
+<UL><PRE>
+template &lt;class Ostream, class Arg&gt;
+class osmanip {
+  public:
+    osmanip(Ostream&amp; (*pf)(Ostream&amp;, Arg), Arg arg)
+    : pf_(pf) , arg_(arg) { ; }
+
+  protected:
+    Ostream&amp;     (*pf_)(Ostream&amp;, Arg);
+    Arg          arg_;
+    friend Ostream&amp; operator&lt;&lt; (Ostream&amp; ostr,
+      const osmanip &amp;manip) {
+        return (*manip.pf_)(os, manip.arg_);
+    }
+};
+</PRE></UL>
+<A NAME="idx913"><!></A>
+<P> After these preliminaries, we can now implement the <SAMP>setfmt</SAMP> manipulator itself:</P>
+
+<UL><PRE>
+template &lt;class charT, class Traits&gt;
+inline std::basic_ostream&lt;charT,Traits&gt;&amp;
+sfmt(std::basic_ostream&lt;charT,Traits&gt;&amp; os, const char* f)    //1
+{
+  odatstream&lt;charT,Traits&gt;* p =
+    dynamic_cast&lt;odatstream&lt;charT,Traits&gt;*&gt;(&amp;os);            //2
+
+  if (p)
+    p-&gt;fmt(f);                                               //3
+
+  return os;                                                 //4
+}
+
+template &lt;class charT,class Traits&gt;
+inline osmanip&lt;std::basic_ostream&lt;charT,Traits&gt;,const char*&gt;
+setfmt(const char* fmt)                                     //5
+{
+  return osmanip&lt;std::basic_ostream&lt;charT,Traits&gt;,
+      const char*&gt;(sfmt,fmt);
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The function <SAMP>sfmt()</SAMP> is the function associated with the <SAMP>setfmt</SAMP> manipulator. Its task is to take a format specification and hand it over to the stream. This happens only if the stream is a date output stream; otherwise, nothing is done.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>We determine the stream's type through a dynamic cast.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>In case the stream actually is a date output stream, we store the format specification by calling the stream's <SAMP>fmt()</SAMP> function.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>Otherwise, do nothing.
+<TR VALIGN="top"><TD><SAMP>//5</SAMP></TD><TD>The manipulator itself is a function that creates an output manipulator object.  Since neither of its template arguments can be deduced, they need to be explicitly specified.
+</TABLE>
+<A NAME="idx914"><!></A>
+<A NAME="3844"><H3>38.4.4 A Remark on Performance</H3></A>
+<A NAME="idx915"><!></A>
+<P>The solution suggested in <A HREF="38-4.html#3843">Section&nbsp;38.4.3</A> uses dynamic casts and exception handling to implement the date inserter and the date format manipulator. Although this technique is elegant and makes proper use of the C++ language, it might introduce some degradation in runtime performance due to the use RTTI (Run-Time Type Identification).</P>
+<A NAME="idx916"><!></A>
+<P>If optimal performance is important, you can choose an alternative approach: in the proposed solution that uses dynamic casts, extend the date inserter for arbitrary output streams <SAMP>basic_ostream&lt;charT,Traits&gt;&amp; operator&lt;&lt; (basic_ostream &lt;charT,Traits&gt;&amp;, const date&amp;)</SAMP> so that it formats dates differently, depending on the type of output stream. Alternatively, you can leave the existing date inserter for output streams unchanged and implement an additional date inserter that works for output <I>date</I> streams only; its signature would be <SAMP>odatstream&lt;charT,Traits&gt;&amp; operator&lt;&lt; (odatstream&lt;charT,Traits&gt;&amp;, const date&amp;)</SAMP>. Also, you would have two manipulator functions, one for arbitrary output streams and one for output date streams only, that is, <SAMP>basic_ostream&lt;charT,Traits&gt;&amp; sfmt(basic_ostream&lt;charT,Traits&gt;&amp;, const char*)</SAMP> and <SAMP>odatstream&lt;charT,Traits&gt;&amp; sfmt <br>(odatstream&lt;charT,Traits&gt;&amp;, const char*)</SAMP>. In each of the functions for date streams, you would replace those operations that are specific for output <I>date</I> streams.</P>
+<P>This technique has the drawback of duplicating most of the inserter's code, which in turn might introduce maintenance problems. The advantage is that the runtime performance is unlikely to be adversely affected.</P>
+
+<BR>
+<HR>
+<A HREF="38-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="38-5.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,81 @@
+<HTML>
+<HEAD>
+<TITLE>The C Locale</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="24.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="24-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>24.1 The C Locale</H2>
+<A NAME="idx506"><!></A>
+<P>All the culture and language dependencies discussed in the previous section need to be represented in an operating system. This information is usually represented in a kind of language table, called a <I>locale</I>.</P>
+<A NAME="idx507"><!></A>
+<P>The X/Open consortium has standardized a variety of services for Native Language Support (NLS<I>)</I> in the programming language C. This standard is commonly known as XPG4. Internationalization services as well as localization support are included in X/Open's <I>Native Language Support</I>. The description below is based on this standard.</P>
+<A NAME="idx508"><!></A>
+<P>According to XPG4, the C locale is composed of several <I>categories</I>, which are given in <A HREF="24-1.html#Table&nbsp;24">Table&nbsp;24</A>.</P>
+<A NAME="idx509"><!></A>
+<H4><A NAME="Table&nbsp;24">Table&nbsp;24: Categories of the C locale&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Category</B>
+</td><td valign=top><B>Content</B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>LC_NUMERIC</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Rules and symbols for numbers</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>LC_TIME</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Values for date and time information</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>LC_MONETARY</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Rules and symbols for monetary information</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>LC_CTYPE</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Character classification and case conversion</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>LC_COLLATE</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Collation sequence</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>LC_MESSAGES</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Formats and values of messages</P>
+</td></tr>
+</TABLE>
+<A NAME="idx510"><!></A>
+<P>The external representation of a C locale is usually a <I>file</I> in UNIX. Other operating systems may use other representations. The external representation is transformed into an internal memory representation by calling the function <SAMP>setlocale()</SAMP>, as shown in <A HREF="24-1.html#Figure&nbsp;4">Figure&nbsp;4</A>:</P>
+<H4><A NAME="Figure&nbsp;4">Figure&nbsp;4: Transformation of a C locale from external to internal representation</A></H4>
+
+<P><IMG SRC="images/locfig4.gif" WIDTH=583 HEIGHT=302></P>
+<P>Inside a program, the C locale is represented by one or more global data structures. The C library provides a set of functions that use information from those global data structures to adapt their behavior to local conventions. Examples of these functions and the information they cover are listed in <A HREF="24-1.html#Table&nbsp;25">Table&nbsp;25</A>:</P>
+<A NAME="idx511"><!></A>
+<H4><A NAME="Table&nbsp;25">Table&nbsp;25: C locale functions and the information they cover&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>C Locale Function</B>
+</td><td valign=top><B>Information Covered</B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setlocale()</SAMP>, ...</P>
+</td><td valign=top><P CLASS="TABLE">Locale initialization and </P>
+<P CLASS="TABLE">language information</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>isalpha()</SAMP>, <SAMP>isupper()</SAMP>, <SAMP>isdigit()</SAMP>, ...</P>
+</td><td valign=top><P CLASS="TABLE">Character classification</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>strftime()</SAMP>, ...</P>
+</td><td valign=top><P CLASS="TABLE">Date and time functions</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>strfmon()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Monetary functions</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>printf(), scanf()</SAMP>, ...</P>
+</td><td valign=top><P CLASS="TABLE">Number parsing and formatting</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>strcoll()</SAMP>, <SAMP>wcscoll()</SAMP>, ...</P>
+</td><td valign=top><P CLASS="TABLE">String collation</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>mblen()</SAMP>, <SAMP>mbtowc()</SAMP>, <SAMP>wctomb()</SAMP>, ...</P>
+</td><td valign=top><P CLASS="TABLE">Multibyte functions</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>catopen()</SAMP>, <SAMP>catgets()</SAMP>, <SAMP>catclose()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Message retrieval</P>
+</td></tr>
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="24.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="24-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,48 @@
+<HTML>
+<HEAD>
+<TITLE>Connecting iostream and streambuf Objects</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="39-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="40.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>39.3 Connecting iostream and streambuf Objects</H2>
+<A NAME="idx943"><!></A>
+<P>In <A HREF="38-3.html#3832">Section&nbsp;38.3.2</A> we saw how to derive a new <B><I>stream</I></B> class. In <A HREF="39-2.html">Section&nbsp;39.2</A> we saw how to derive a <B><I><A HREF="../stdlibref/basic-streambuf.html">streambuf</A></I></B> class, and an example of how to connect the two. In this section, we'll look a little more closely at the ways the two can be connected together safely.</P>
+<P> This connection can be attempted in two different ways:</P>
+<UL>
+<LI><P CLASS="LIST">By deriving from a descendent of <B><I><A HREF="../stdlibref/basic-ios.html">ios</A></I></B> which does not contain a <B><I><A HREF="../stdlibref/basic-streambuf.html">streambuf</A></I></B>, such as <B><I><A HREF="../stdlibref/basic-istream.html">istream</A></I></B> or <B><I><A HREF="../stdlibref/basic-ostream.html">ostream</A></I></B> object, and providing it with an external <B><I>streambuf</I></B> which is itself a derived type.</P></LI>
+<LI><P CLASS="LIST">By deriving from a descendent of <B><I><A HREF="../stdlibref/basic-ios.html">ios</A></I></B> which contains a <B><I><A HREF="../stdlibref/basic-streambuf.html">streambuf</A></I></B>, such as a <B><I><A HREF="../stdlibref/basic-ifstream.html">ifstream</A></I></B> or <B><I><A HREF="../stdlibref/basic-ofstream.html">ofstream</A></I></B> object.</P></LI>
+</UL>
+<A NAME="idx944"><!></A>
+<P>In the first case where the stream object does not contain a buffer object, the C++ standard mandates that no parent class constructors or destructors (<B><I><A HREF="../stdlibref/basic-ios.html">ios</A></I></B>, <B><I><A HREF="../stdlibref/basic-istream.html">istream</A></I></B>, or <B><I><A HREF="../stdlibref/basic-ostream.html">ostream</A></I></B>) access the stream buffer. This restriction is important, since a derivation such as the following is otherwise unsafe:</P>
+
+<UL><PRE>
+class DerivedStreamBuf : public std::streambuf {
+  // ...
+};
+
+class DerivedOutputStream : public std::ostream {
+  public:
+    DerivedOutputStream():
+      std::ios(0), std::ostream(&amp;dsb) {}        //1
+    // ...
+  private:
+    DerivedStreamBuf dsb;
+    // ...
+};
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The <B><I>DerivedOutputStream</I></B> constructor calls its parent constructors in the following order:
+</TABLE>
+<OL>
+<LI><P CLASS="LIST"><SAMP>ios::ios()</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>ios_base::ios_base()</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>ostream::osteram(&amp;dsb)</SAMP></P></LI>
+<LI><P CLASS="LIST"><SAMP>DerivedStreamBuf::DerivedStreamBuf()</SAMP></P></LI>
+</OL>
+<P>Looking at this order, we can see that <B><I><A HREF="../stdlibref/basic-ios.html">ios</A></I></B> and <B><I><A HREF="../stdlibref/basic-ostream.html">ostream</A></I></B> were constructed before the <B><I>DerivedStreamBuf()</I></B> constructor was executed. Therefore the pointer <SAMP>(&amp;dsb)</SAMP> passed through the <B><I>ostream</I></B> constructor points to as-yet uninitialized memory, and accessing it could be catastrophic. In the case where the derived <B><I>stream</I></B> contains a buffer object, only the descendent that defines the buffer can access it during construction or destruction. In both cases, explicitly preventing access to the stream buffer by the base class during the construction and destruction phases prevents undefined behavior.</P>
+
+<BR>
+<HR>
+<A HREF="39-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="40.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

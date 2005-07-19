@@ -1,0 +1,558 @@
+<HTML>
+<HEAD>
+<TITLE>basic_streambuf</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="basic-ostringstream.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-string.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>basic_streambuf</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-11.html">Input/output</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Nonmember Types</A></LI>
+<LI><A HREF="#sec8">Constructor</A></LI>
+<LI><A HREF="#sec9">Destructor</A></LI>
+<LI><A HREF="#sec10">Public Member Functions</A></LI>
+<LI><A HREF="#sec11">Protected Member Functions</A></LI>
+<LI><A HREF="#sec12">See Also</A></LI>
+<LI><A HREF="#sec13">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx281">basic_streambuf()</A><BR>
+<A HREF="#idx274">char_type</A><BR>
+<A HREF="#idx298">eback()</A><BR>
+<A HREF="#idx299">egptr()</A><BR>
+<A HREF="#idx300">epptr()</A><BR>
+<A HREF="#idx301">gbump()</A><BR>
+<A HREF="#idx283">getloc()</A><BR>
+<A HREF="#idx302">gptr()</A><BR>
+<A HREF="#idx303">imbue()</A><BR>
+<A HREF="#idx275">int_type</A><BR>
+<A HREF="#idx284">in_avail()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx276">off_type</A><BR>
+<A HREF="#idx304">overflow()</A><BR>
+<A HREF="#idx305">pbackfail()</A><BR>
+<A HREF="#idx306">pbase()</A><BR>
+<A HREF="#idx307">pbump()</A><BR>
+<A HREF="#idx277">pos_type</A><BR>
+<A HREF="#idx308">pptr()</A><BR>
+<A HREF="#idx285">pubimbue()</A><BR>
+<A HREF="#idx286">pubseekoff()</A><BR>
+<A HREF="#idx287">pubseekpos()</A><BR>
+<A HREF="#idx288">pubsetbuf()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx289">pubsync()</A><BR>
+<A HREF="#idx290">sbumpc()</A><BR>
+<A HREF="#idx309">seekoff()</A><BR>
+<A HREF="#idx310">seekpos()</A><BR>
+<A HREF="#idx311">setbuf()</A><BR>
+<A HREF="#idx312">setg()</A><BR>
+<A HREF="#idx313">setp()</A><BR>
+<A HREF="#idx291">sgetc()</A><BR>
+<A HREF="#idx292">sgetn()</A><BR>
+<A HREF="#idx314">showmanyc()</A><BR>
+<A HREF="#idx293">snextc()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx294">sputbackc()</A><BR>
+<A HREF="#idx295">sputc()</A><BR>
+<A HREF="#idx296">sputn()</A><BR>
+<A HREF="#idx297">sungetc()</A><BR>
+<A HREF="#idx315">sync()</A><BR>
+<A HREF="#idx278">traits_type</A><BR>
+<A HREF="#idx317">uflow()</A><BR>
+<A HREF="#idx316">underflow()</A><BR>
+<A HREF="#idx318">xsgetn()</A><BR>
+<A HREF="#idx319">xsputn()</A><BR>
+<A HREF="#idx282">~basic_streambuf()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx279">streambuf</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx280">wstreambuf</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Abstract base class for deriving various stream buffers to facilitate control of character sequences</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;streambuf&gt;
+
+namespace std {
+  template&lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class basic_streambuf;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The class template <B><I>basic_streambuf</I></B> serves as an abstract base class for deriving various stream buffers to facilitate control of character sequences such as:</P>
+<UL>
+<LI><P CLASS="LIST">a character input sequence</P></LI>
+<LI><P CLASS="LIST">a character output sequence</P></LI>
+</UL>
+<P>Each sequence is associated with three pointers (as described below), which, if non-null, all point into the same <SAMP>charT</SAMP> array object. The array object represents, at any moment, a segment of characters from the sequence. Operations performed on a sequence alter the values pointed to by these pointers, perform reads and writes directly to or from associated sequences, and alter the stream position and conversion state as needed to maintain this segment to sequence relationship. The three pointers are:</P>
+<UL>
+<LI><P CLASS="LIST">the beginning pointer, or lowest element address in the array</P></LI>
+<LI><P CLASS="LIST">the next pointer, or next element address that is a current candidate for reading or writing</P></LI>
+<LI><P CLASS="LIST">the end pointer, or first element address beyond the end of the array</P></LI>
+</UL>
+<P>Stream buffers can impose various constraints on the sequences they control, including:</P>
+<UL>
+<LI><P CLASS="LIST">The controlled input sequence may be unreadable.</P></LI>
+<LI><P CLASS="LIST">The controlled output sequence may be unwriteable.</P></LI>
+<LI><P CLASS="LIST">The controlled sequences can be associated with the contents of other representations for character sequences, such as external files.</P></LI>
+<LI><P CLASS="LIST">The controlled sequences can impose limitations on how the program can read characters from a sequence, write characters to a sequence, put characters back into an input sequence, or alter the stream position.</P></LI>
+</UL>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template&lt;class charT, class traits = char_traits&lt;charT&gt; &gt;
+  class basic_streambuf 
+  {
+
+   public:
+     
+   typedef charT char_type;
+   typedef traits traits_type;
+
+   typedef typename traits::int_type int_type;
+   typedef typename traits::pos_type pos_type;
+   typedef typename traits::off_type off_type;
+
+   virtual ~basic_streambuf();
+
+   locale pubimbue(const locale&amp; loc);
+   locale getloc() const; 
+
+   basic_streambuf *
+   pubsetbuf(char_type *s, streamsize n);
+
+   pos_type pubseekoff(off_type off, ios_base::seekdir way,
+                       ios_base::openmode =
+                       ios_base::in | ios_base::out);
+
+   pos_type pubseekpos(pos_type, ios_base::openmode =
+                       ios_base::in | ios_base::out);
+
+   int pubsync();
+ 
+   streamsize in_avail();
+   int_type snextc();
+   int_type sbumpc();
+   int_type sgetc();
+   streamsize sgetn(char_type *, streamsize);
+
+   int_type sputbackc(char_type);
+   int sungetc();
+
+   int_type sputc(char_type);
+   streamsize sputn(const char_type *, streamsize);
+
+  protected:
+
+   basic_streambuf();
+     
+   char_type *eback() const;
+   char_type *gptr()  const;
+   char_type *egptr() const;
+
+   void gbump(int n);
+   void setg(char_type *gbeg_arg,char_type *gnext_arg,
+             char_type *gend_arg);
+
+   char_type *pbase() const;
+   char_type *pptr() const;
+   char_type *epptr() const;
+   void pbump(int n);
+   void setp(char_type *,char_type *);
+
+   virtual void imbue(const locale&amp; loc);
+
+   virtual basic_streambuf*
+   setbuf(char_type*, streamsize);
+
+   virtual pos_type seekoff(off_type,
+                            ios_base::seekdir,
+                            ios_base::openmode = 
+                            ios_base::in | ios_base::out);
+
+   virtual pos_type seekpos(pos_type,
+                            ios_base::openmode = 
+                            ios_base::in | ios_base::out);
+   virtual int sync();
+
+   virtual int showmanyc();
+   virtual streamsize xsgetn(char_type *, streamsize);
+
+   virtual int_type underflow();
+   virtual int_type uflow();
+
+   virtual int_type pbackfail(int_type = traits::eof());
+   virtual streamsize xsputn(const char_type *, 
+                             streamsize);
+   virtual int_type overflow(int_type = traits::eof());
+ 
+  };
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx274"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>The type <SAMP>char_type</SAMP> is a synonym for the template parameter <SAMP>charT</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx275"></A><PRE><B>int_type</B></PRE>
+<UL>
+<P>The type <SAMP>int_type</SAMP> is a synonym of type <SAMP>traits_type::in_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx276"></A><PRE><B>off_type</B></PRE>
+<UL>
+<P>The type<SAMP> off_type</SAMP> is a synonym of type <SAMP>traits_type::off_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx277"></A><PRE><B>pos_type</B></PRE>
+<UL>
+<P>The type <SAMP>pos_type</SAMP> is a synonym of type <SAMP>traits_type::pos_type</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx278"></A><PRE><B>traits_type</B></PRE>
+<UL>
+<P>The type <SAMP>traits_type</SAMP> is a synonym for the template parameter <SAMP>traits</SAMP>.</P>
+</UL>
+
+<A NAME="sec7"><H3>Nonmember Types</H3></A>
+
+<A NAME="idx279"></A><PRE><B>streambuf</B></PRE>
+<UL>
+<P>The type <SAMP>streambuf</SAMP> is a specialization of class template <B><I>basic_streambuf</I></B> on type <SAMP>char</SAMP>:</P>
+<P><SAMP>typedef basic_streambuf&lt;char&gt; streambuf;</SAMP></P>
+</UL>
+
+
+<A NAME="idx280"></A><PRE><B>wstreambuf</B></PRE>
+<UL>
+<P>The type <SAMP>wstreambuf</SAMP> is a specialization of class template <B><I>basic_streambuf</I></B> on type <SAMP>wchar_t</SAMP>:</P>
+<P><SAMP>typedef basic_streambuf&lt;wchar_t&gt; wstreambuf;</SAMP></P>
+</UL>
+
+<A NAME="sec8"><H3>Constructor</H3></A>
+
+<A NAME="idx281"></A><PRE><B>basic_streambuf</B>();</PRE>
+<UL>
+<P>Constructs an object of class <B><I>basic_streambuf</I></B>. Initializes all its pointer member objects to null pointers. The <SAMP>getloc()</SAMP> member function returns the value of <SAMP>locale::locale()</SAMP> when called on a newly constructed object.</P>
+</UL>
+
+<A NAME="sec9"><H3>Destructor</H3></A>
+
+<A NAME="idx282"></A><PRE>virtual <B>~basic_streambuf</B>();</PRE>
+<UL>
+<P>Destroys an object of class <B><I>basic_streambuf</I></B>.</P>
+</UL>
+
+<A NAME="sec10"><H3>Public Member Functions</H3></A>
+
+<A NAME="idx283"></A><PRE>locale 
+<B>getloc</B>() const; </PRE>
+<UL>
+<P>If <SAMP>pubimbue()</SAMP> has ever been called, returns the last value of <SAMP>loc</SAMP> supplied. Otherwise, returns the default (global) locale <SAMP>locale::locale()</SAMP> in effect at the time of construction.</P>
+</UL>
+
+
+<A NAME="idx284"></A><PRE>streamsize 
+<B>in_avail</B>();</PRE>
+<UL>
+<P>If a read position is available, returns the number of available characters in the input sequence. Otherwise, calls the protected function <SAMP>showmanyc()</SAMP> .</P>
+</UL>
+
+
+<A NAME="idx285"></A><PRE>locale 
+<B>pubimbue</B>(const locale&amp; loc); </PRE>
+<UL>
+<P>Calls the protected function <SAMP>imbue(loc)</SAMP> and returns its result.</P>
+</UL>
+
+
+<A NAME="idx286"></A><PRE>pos_type 
+<B>pubseekoff</B>(off_type off, ios_base::seekdir way,
+           ios_base::openmode which =
+           ios_base::in | ios_base::out); </PRE>
+<UL>
+<P>Calls the protected function <SAMP>seekoff(off, way, which)</SAMP> and returns its result.</P>
+</UL>
+
+
+<A NAME="idx287"></A><PRE>pos_type 
+<B>pubseekpos</B>(pos_type sp, ios_base::openmode which=
+           ios_base::in | ios_base::out ); </PRE>
+<UL>
+<P>Calls the protected function <SAMP>seekpos(sp,which)</SAMP> and returns its result.</P>
+</UL>
+
+
+<A NAME="idx288"></A><PRE>basic_streambuf* 
+<B>pubsetbuf</B>(char_type* s,streamsize n); </PRE>
+<UL>
+<P>Calls the protected function <SAMP>setbuf(s,n)</SAMP> and returns its result. </P>
+</UL>
+
+
+<A NAME="idx289"></A><PRE>int 
+<B>pubsync</B>();</PRE>
+<UL>
+<P>Calls the protected function <SAMP>sync()</SAMP> and returns its result.</P>
+</UL>
+
+
+<A NAME="idx290"></A><PRE>int_type 
+<B>sbumpc</B>();</PRE>
+<UL>
+<P>If the input sequence read position is not available, calls the function&nbsp;<SAMP>uflow()</SAMP> and returns its result. Otherwise, it returns <SAMP>traits_type::to_int_type(*gptr())</SAMP>  and increments the next&nbsp;pointer for the input sequence.</P>
+</UL>
+
+
+<A NAME="idx291"></A><PRE>int_type 
+<B>sgetc</B>();</PRE>
+<UL>
+<P>If the input sequence read position is not available, calls the protected function <SAMP>underflow()</SAMP> and returns its result. Otherwise, it returns<SAMP> traits_type::to_int_type(*gptr())</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx292"></A><PRE>streamsize 
+<B>sgetn</B>(char_type* s, streamsize n); </PRE>
+<UL>
+<P>Calls the protected function <SAMP>xsgetn(s,n)</SAMP> and returns its result.</P>
+</UL>
+
+
+<A NAME="idx293"></A><PRE>int_type 
+<B>snextc</B>();</PRE>
+<UL>
+<P>Calls the function <SAMP>sbumpc()</SAMP> and if it returns <SAMP>traits_type::eof()</SAMP>, returns <SAMP>traits_type::eof()</SAMP>. Otherwise, it calls the function <SAMP>traits_type::to_int_type(*gptr())</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx294"></A><PRE>int_type 
+<B>sputbackc</B>(char_type c); </PRE>
+<UL>
+<P>If the input sequence putback position is not available or if <SAMP>traits_type::eq(c,gptr() [-1])</SAMP> returns <SAMP>false</SAMP>, calls the protected function <SAMP>pbackfail(c)</SAMP>. Otherwise, it decrements the next pointer for the input sequence and returns <SAMP>traits_type::to_int_type (*gptr())</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx295"></A><PRE>int_type 
+<B>sputc</B>(char_type c);</PRE>
+<UL>
+<P>If the output sequence write position is not available, calls the protected function <SAMP>overflow(traits_type::to_int_type(c))</SAMP> and returns its result. Otherwise, it stores <SAMP>c</SAMP> at the next pointer for the output sequence, increments the pointer, and returns <SAMP>traits_type::to_int_type (*gptr())</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx296"></A><PRE>streamsize 
+<B>sputn</B>(const char_type* s, streamsize n); </PRE>
+<UL>
+<P>Calls the protected function <SAMP>xsputn(s,n)</SAMP> and returns its result.</P>
+</UL>
+
+
+<A NAME="idx297"></A><PRE>int_type 
+<B>sungetc</B>();</PRE>
+<UL>
+<P>If the input sequence putback position is not available, calls the protected&nbsp;function <SAMP>pbackfail()</SAMP> and returns its result. Otherwise, decrements the next pointer for the input sequence and returns <SAMP>traits_type::to_int_type(*gptr())</SAMP>.</P>
+</UL>
+
+<A NAME="sec11"><H3>Protected Member Functions</H3></A>
+
+<A NAME="idx298"></A><PRE>char_type* 
+<B>eback</B>() const; </PRE>
+<UL>
+<P>Returns the beginning pointer for the input sequence.</P>
+</UL>
+
+
+<A NAME="idx299"></A><PRE>char_type* 
+<B>egptr</B>() const; </PRE>
+<UL>
+<P>Returns the end pointer for the input sequence.</P>
+</UL>
+
+
+<A NAME="idx300"></A><PRE>char_type* 
+<B>epptr</B>() const; </PRE>
+<UL>
+<P>Returns the end pointer for the output sequence.</P>
+</UL>
+
+
+<A NAME="idx301"></A><PRE>void 
+<B>gbump</B>(int n); </PRE>
+<UL>
+<P>Advances the next pointer for the input sequence by <SAMP>n</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx302"></A><PRE>char_type* 
+<B>gptr</B>() const; </PRE>
+<UL>
+<P>Returns the next pointer for the input sequence.</P>
+</UL>
+
+
+<A NAME="idx303"></A><PRE>void 
+<B>imbue</B>(const locale&amp;);</PRE>
+<UL>
+<P>Changes any translations based on locale. The default behavior is to do nothing. This function has to be overloaded in the classes derived from <B><I>basic_streambuf</I></B>. The purpose of this function is to allow the derived class to be informed of changes in locale at the time they occur. The new imbued locale object is only used by the stream buffer; it does not affect the stream itself.</P>
+</UL>
+
+
+<A NAME="idx304"></A><PRE>int_type 
+<B>overflow</B>(int_type c = traits::eof() ); </PRE>
+<UL>
+<P>The member functions <SAMP>sputc()</SAMP> and <SAMP>sputn()</SAMP> call this function when not enough room can be found in the <SAMP>put</SAMP> buffer to accommodate the argument character sequence. The function returns <SAMP>traits::eof()</SAMP> if it fails to make more room available or if it fails to empty the buffer by writing the characters to their output device.</P>
+</UL>
+
+
+<A NAME="idx305"></A><PRE>int_type 
+<B>pbackfail</B>(int_type c = traits::eof()); </PRE>
+<UL>
+<P>This function is to be called only when: </P>
+<UL>
+<LI><P CLASS="LIST"><SAMP>gptr()</SAMP> is null </P></LI>
+<LI><P CLASS="LIST"><SAMP>gptr() == eback()</SAMP>, or </P></LI>
+<LI><P CLASS="LIST"><SAMP>traits_type::eq(*gptr(),traits::to_char_type(c))</SAMP> returns <SAMP>false</SAMP>. </P></LI>
+</UL>
+<P>If <SAMP>c</SAMP> is equal to <SAMP>traits_type::eof()</SAMP>,  <SAMP>gptr()</SAMP> is moved back one position. Otherwise, <SAMP>c</SAMP> is prepended. The function returns <SAMP>traits::eof()</SAMP> to indicate failure.</P>
+</UL>
+
+
+<A NAME="idx306"></A><PRE>char_type* 
+<B>pbase</B>() const; </PRE>
+<UL>
+<P>Returns the beginning pointer for the output sequence.</P>
+</UL>
+
+
+<A NAME="idx307"></A><PRE>void 
+<B>pbump</B>(int n); </PRE>
+<UL>
+<P>Advances the next pointer for the output sequence by <SAMP>n</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx308"></A><PRE>char_type* 
+<B>pptr</B>() const; </PRE>
+<UL>
+<P>Returns the next pointer for the output sequence.</P>
+</UL>
+
+
+<A NAME="idx309"></A><PRE>pos_type 
+<B>seekoff</B>(off_type off, ios_base::seekdir way,
+        ios_base::openmode which =
+        ios_base::in | ios_base::out ); </PRE>
+<UL>
+<P>Alters the stream positions within one or more of the controlled sequences in a way that is defined separately for each class derived from <B><I>basic_streambuf</I></B>. The default behavior is to return an object of type pos_type that stores an invalid stream position.</P>
+</UL>
+
+
+<A NAME="idx310"></A><PRE>pos_type 
+<B>seekpos</B>(pos_type sp, ios_base::openmode which=
+        ios_base::in | ios_base::out ); </PRE>
+<UL>
+<P>Alters the stream positions within one or more of the controlled sequences in a way that is defined separately for each class derived from <B><I>basic_streambuf</I></B>. The default behavior is to return an object of class pos_type that stores an invalid stream position.</P>
+</UL>
+
+
+<A NAME="idx311"></A><PRE>basic_streambuf* 
+<B>setbuf</B>(char_type* s, streamsize n); </PRE>
+<UL>
+<P>Performs an operation that is defined separately for each class derived from <B><I>basic_streambuf</I></B>. The purpose of this function is to allow users to provide their own buffer or to resize the current buffer.</P>
+</UL>
+
+
+<A NAME="idx312"></A><PRE>void 
+<B>setg</B>(char_type* gbeg, char_type* gnext, char_type* gend); </PRE>
+<UL>
+<P>Sets up a private member for the following to be <SAMP>true</SAMP>:</P>
+<P><SAMP>eback() == gbeg</SAMP>, <SAMP>gptr() == gnext, and egptr() == gend</SAMP></P>
+</UL>
+
+
+<A NAME="idx313"></A><PRE>void 
+<B>setp</B>(char_type* pbeg, char_type* pend); </PRE>
+<UL>
+<P>Sets up a private member for the following to be <SAMP>true</SAMP>:</P>
+
+<UL><PRE>   pbase() == pbeg, pptr() == pbeg and epptr() == pend
+</PRE></UL>
+</UL>
+
+
+<A NAME="idx314"></A><PRE>streamsize 
+<B>showmanyc</B>();</PRE>
+<UL>
+<P>Returns the number of characters available in the internal buffer, or returns <SAMP>-1</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx315"></A><PRE>int 
+<B>sync</B>();</PRE>
+<UL>
+<P>Synchronizes the controlled sequences with the internal buffer, in a way that is defined separately for each class derived from <B><I>basic_streambuf</I></B>. The default behavior is to do nothing. On failure, the return value is <SAMP>-1</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx316"></A><PRE>int_type 
+<B>underflow</B>();</PRE>
+<UL>
+<P>The public members of <B><I>basic_streambuf</I></B> call this function only if <SAMP>gptr() </SAMP>is null or <SAMP>gptr() &gt;= egptr()</SAMP>. This function returns the character pointed to by <SAMP>gptr()</SAMP>, if <SAMP>gptr()</SAMP> is not null and if <SAMP>gptr() &lt; egptr()</SAMP>. Otherwise, the function tries to read characters into the buffer. If it fails, it returns <SAMP>traits_type::eof()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx317"></A><PRE>int_type 
+<B>uflow</B>();</PRE>
+<UL>
+<P>Calls <SAMP>underflow()</SAMP> and if <SAMP>underflow()</SAMP> returns <SAMP>traits_type::eof()</SAMP>, returns <SAMP>traits_type::eof()</SAMP>. Otherwise, does <SAMP>gbump(1)</SAMP> and returns the value of <SAMP>*gptr()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx318"></A><PRE>streamsize 
+<B>xsgetn</B>(char_type* s, streamsize n); </PRE>
+<UL>
+<P>Assigns up to <SAMP>n</SAMP> characters to successive elements of the array whose first element is designated by <SAMP>s</SAMP>. The characters are read from the input sequence. Assigning stops when either <SAMP>n</SAMP> characters have been assigned or a call to <SAMP>sbumpc()</SAMP> would return <SAMP>traits_type::eof()</SAMP>. The function returns the number of characters read.</P>
+</UL>
+
+
+<A NAME="idx319"></A><PRE>streamsize 
+<B>xsputn</B>(const char_type* s, streamsize n); </PRE>
+<UL>
+<P>Writes up to <SAMP>n</SAMP> characters to the output sequence. The characters written are obtained from successive elements of the array whose first element is designated by <SAMP>s</SAMP>. Writing stops when either <SAMP>n</SAMP> characters have been written, or a call to <SAMP>sputc()</SAMP> would return <SAMP>traits_type::eof()</SAMP>. The function returns the number of characters written.</P>
+</UL>
+
+<A NAME="sec12"><H3>See Also</H3></A>
+<P><B><I><A HREF="char-traits.html">char_traits</A></I></B>, <B><I><A HREF="basic-filebuf.html">basic_filebuf</A></I></B>, <B><I><A HREF="basic-stringbuf.html">basic_stringbuf</A></I></B>, <B><I><A HREF="strstreambuf.html">strstreambuf</A></I></B></P>
+<A NAME="sec13"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems --Programming Language C++, Section 27.5.2</I></P>
+
+<BR>
+<HR>
+<A HREF="basic-ostringstream.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="basic-string.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,16 @@
+Telephone Directory sample program
+Allen:6348723
+Brenda:5436546
+Fred:7435423
+Samantha:6342343
+Listing for prefix 634
+Allen:6348723
+Samantha:6342343
+end of prefix listing
+Display by prefix
+5436546:Brenda
+6342343:Samantha
+6348723:Allen
+7435423:Fred
+end display by prefix
+End of telephone directory sample program

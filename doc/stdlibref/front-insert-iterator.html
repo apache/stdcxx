@@ -1,0 +1,214 @@
+<HTML>
+<HEAD>
+<TITLE>front_insert_iterator, front_inserter()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="fpos.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="fstream-h.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>front_insert_iterator, front_inserter()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-8.html">Iterators</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Member Types</A></LI>
+<LI><A HREF="#sec7">Constructors</A></LI>
+<LI><A HREF="#sec8">Operators</A></LI>
+<LI><A HREF="#sec9">Nonmember Functions</A></LI>
+<LI><A HREF="#sec10">Example</A></LI>
+<LI><A HREF="#sec11">See Also</A></LI>
+<LI><A HREF="#sec12">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx641">container_type</A><BR>
+<A HREF="#idx642">front_insert_iterator()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx644">operator*()</A><BR>
+<A HREF="#idx645">operator++()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx643">operator=()</A><BR>
+</TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx646">front_inserter()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>An output iterator used to insert items at the beginning of a collection</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;iterator&gt;
+
+namespace std {
+  template &lt;class Container&gt;
+  class front_insert_iterator;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>Insert iterators let you<I> insert</I> new elements into a collection rather than copy a new element's value over the value of an existing element. The class template <B><I><A HREF="front-insert-iterator.html">front_insert_iterator</A></I></B> is used to insert items at the beginning of a collection. The convenience function template <SAMP><A HREF="front-insert-iterator.html">front_inserter()</A></SAMP> creates an instance of a <B><I>front_insert_iterator</I></B> for a particular collection type. A <B><I>front_insert_iterator</I></B> can be used with any container that defines the <SAMP>push_front()</SAMP> member function, specifically the sequences <B><I><A HREF="deque.html">deque</A></I></B> and <B><I><A HREF="list.html">list</A></I></B>, but not with associative containers (e.g., <B><I><A HREF="map.html">map</A></I></B> or <B><I><A HREF="set.html">set</A></I></B>).</P>
+<P>Note that a <B><I><A HREF="front-insert-iterator.html">front_insert_iterator</A></I></B> makes each element that it inserts the new front of the container. This has the effect of reversing the order of the inserted elements. For example, if you use a <B><I>front_insert_iterator</I></B> to insert "1" then "2" then "3" onto the front of container <SAMP>exmpl</SAMP>, you find, after the three insertions, that the first three elements of <SAMP>exmpl</SAMP> are "3 2 1".</P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+  template &lt;class Container&gt;
+  class front_insert_iterator : public
+         iterator&lt;output_iterator_tag,void,void,void,void&gt; {
+   
+  protected: 
+     Container* container;
+  public:
+     typedef Container container_type;
+     explicit front_insert_iterator(container_tyep&amp;);
+     front_insert_iterator&amp;
+     operator=(typename container_type::const_reference&amp;);
+     front_insert_iterator&amp; operator*();
+     front_insert_iterator&amp; operator++();
+     front_insert_iterator operator++(int);
+  };
+
+  template &lt;class Container&gt;
+  front_insert_iterator&lt;Container&gt; 
+                        front_inserter(Container&amp;);
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Member Types</H3></A>
+
+<A NAME="idx641"></A><PRE><B>container_type</B></PRE>
+<UL>
+<P>The type of container acted on by this iterator.</P>
+</UL>
+
+<A NAME="sec7"><H3>Constructors</H3></A>
+
+<A NAME="idx642"></A><PRE>explicit
+<B>front_insert_iterator</B>(container_type&amp; x);</PRE>
+<UL>
+<P>Creates an instance of a <B><I><A HREF="front-insert-iterator.html">front_insert_iterator</A></I></B> associated with container <SAMP>x.</SAMP></P>
+</UL>
+
+<A NAME="sec8"><H3>Operators</H3></A>
+
+<A NAME="idx643"></A><PRE>front_insert_iterator&lt;Container&gt;&amp;
+<B>operator=</B>(typename container_type::constant_reference &amp;value);</PRE>
+<UL>
+<P>Inserts a copy of <SAMP>value</SAMP> at the front of the container by calling <SAMP>container-&gt;push_front (value)</SAMP>, and returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx644"></A><PRE>front_insert_iterator&amp; 
+<B>operator*</B>();</PRE>
+<UL>
+<P>Returns <SAMP>*this</SAMP> (the iterator itself).</P>
+</UL>
+
+
+<A NAME="idx645"></A><PRE>front_insert_iterator&amp; 
+<B>operator++</B>();
+front_insert_iterator 
+<B>operator++</B>(int);</PRE>
+<UL>
+<P>Increments the insert iterator and returns <SAMP>*this</SAMP>.</P>
+</UL>
+
+<A NAME="sec9"><H3>Nonmember Functions</H3></A>
+
+<A NAME="idx646"></A><PRE>template &lt;class Container&gt;
+front_insert_iterator&lt;Container&gt;
+<B>front_inserter</B>(Container&amp; x)</PRE>
+<UL>
+<P>Returns a <B><I><A HREF="front-insert-iterator.html">front_insert_iterator</A></I></B> that inserts elements at the beginning of container <SAMP>x</SAMP>.</P>
+</UL>
+
+<A NAME="sec10"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  ins_itr.cpp
+//
+
+#include &lt;algorithm&gt;   // for copy
+#include &lt;iostream&gt;    // for cout, endl
+#include &lt;iterator&gt;    // for ostream_iterator, xxx_inserter
+#include &lt;deque&gt;       // for deque
+
+int main ()
+{
+    // Typedefs for convenience.
+    typedef std::deque&lt;int, std::allocator&lt;int&gt; &gt;   Deque;
+    typedef std::ostream_iterator&lt;int, char, 
+                           std::char_traits&lt;char&gt; &gt; os_iter;
+
+    // Initialize a deque using an array.
+    Deque::value_type arr[] = { 3, 4, 7, 8 };
+    Deque d (arr, arr + sizeof arr / sizeof *arr);
+
+    // Output the original deque.
+    std::cout &lt;&lt; "Start with a deque: \n     ";
+    std::copy (d.begin (), d.end (), os_iter (std::cout, " "));
+
+    // Insert into the middle.
+    std::insert_iterator&lt;Deque&gt; ins (d, d.begin () + 2);
+    *ins = 5;
+    *ins = 6;
+
+    // Output the new deque.
+    std::cout &lt;&lt; "\n\nUse an insert_iterator: \n     ";
+    std::copy (d.begin (), d.end (), os_iter (std::cout, " "));
+
+    // A deque of four 1s.
+    Deque d2 (4, 1);
+
+    // Insert d2 at front of d.
+    std::copy (d2.begin (), d2.end (), 
+               std::front_inserter (d));
+
+    // Output the new deque.
+    std::cout &lt;&lt; "\n\nUse a front_inserter: \n     ";
+    std::copy (d.begin (), d.end (), os_iter (std::cout, " "));
+
+    // Insert d2 at back of d.
+    std::copy (d2.begin (), d2.end (), std::back_inserter (d));
+
+    // Output the new deque.
+    std::cout &lt;&lt; "\n\nUse a back_inserter: \n     ";
+    std::copy (d.begin (), d.end (), os_iter (std::cout, " "));
+
+    std::cout &lt;&lt; std::endl;
+   
+    return 0;
+}
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>Start with a deque: 
+     3 4 7 8 
+
+Use an insert_iterator: 
+     3 4 5 6 7 8 
+
+Use a front_inserter: 
+     1 1 1 1 3 4 5 6 7 8 
+
+Use a back_inserter: 
+     1 1 1 1 3 4 5 6 7 8 1 1 1 1 
+</PRE></UL>
+<A NAME="sec11"><H3>See Also</H3></A>
+<P><A HREF="insertiterators.html">Insert Iterators</A></P>
+<A NAME="sec12"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 24.4.2.3</I></P>
+
+<BR>
+<HR>
+<A HREF="fpos.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="fstream-h.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

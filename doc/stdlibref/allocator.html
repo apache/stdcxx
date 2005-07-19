@@ -1,0 +1,246 @@
+<HTML>
+<HEAD>
+<TITLE>allocator</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="algorithms.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="associativecontainers.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>allocator</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Types</A></LI>
+<LI><A HREF="#sec8">Constructors</A></LI>
+<LI><A HREF="#sec9">Destructors</A></LI>
+<LI><A HREF="#sec10">Member Functions</A></LI>
+<LI><A HREF="#sec11">See Also</A></LI>
+<LI><A HREF="#sec12">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx12">address()</A><BR>
+<A HREF="#idx14">allocate()</A><BR>
+<A HREF="#idx9">allocator()</A><BR>
+<A HREF="#idx17">construct()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx4">const_pointer</A><BR>
+<A HREF="#idx6">const_reference</A><BR>
+<A HREF="#idx15">deallocate()</A><BR>
+<A HREF="#idx18">destroy()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx2">difference_type</A><BR>
+<A HREF="#idx16">max_size()</A><BR>
+<A HREF="#idx3">pointer</A><BR>
+<A HREF="#idx5">reference</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1">size_type</A><BR>
+<A HREF="#idx8">template &lt;class U&gt; struct rebind;</A><BR>
+<A HREF="#idx7">value_type</A><BR>
+<A HREF="#idx11">~allocator()</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>The default allocator object for storage management in Standard C++ Library containers</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;memory&gt;
+
+namespace std {
+  template &lt;class T&gt;
+  class allocator;
+}
+
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+
+<UL><PRE>namespace std {
+  template &lt;&gt; class allocator&lt;void&gt;;
+}
+</PRE></UL>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>Containers in the Standard C++ Library allow you to control storage management through the use of allocator objects. Each container class has an allocator template parameter specifying the type of allocator to be used. Every constructor, except the copy constructor, has an allocator parameter, allowing you to pass in a specific allocator. A container uses that allocator for all storage management. </P>
+<P>The library has a default allocator, called allocator. This allocator uses the global <SAMP>new()</SAMP> and <SAMP>delete()</SAMP> operators. By default, all containers use this allocator. You can also design your own allocator, but if you do so it must have an appropriate interface.</P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class T&gt;
+  class allocator {
+    typedef size_t            size_type;
+    typedef ptrdiff_t         difference_type;
+    typedef T*                pointer;
+    typedef const T*          const_pointer;
+    typedef T&amp;                reference;
+    typedef const T&amp;          const_reference;
+    typedef T                 value_type;
+
+    template &lt;class U&gt; struct rebind {
+      typedef allocator&lt;U&gt; other;
+    };
+    allocator () throw();
+    allocator (const allocator&amp;) throw ();
+    template &lt;class U&gt; 
+    allocator(const allocator&lt;U&gt;&amp;) throw();
+    template &lt;class U&gt; 
+    allocator&amp; operator=(const allocator&lt;U&gt;&amp;) throw();
+    ~allocator () throw();
+    pointer address(reference) const;
+    const_pointer address(const_reference) const;
+    pointer allocate (size_type,
+      typename allocator&lt;void&gt;::const_pointer = 0);
+    void deallocate(pointer p, size_type n); 
+    size_type max_size() const throw();
+    void construct(pointer, const T&amp;);
+    void destroy(pointer);
+  };
+  
+  // globals
+  template &lt;class T, class U&gt;
+  bool operator==(const allocator&lt;T&gt;&amp;, 
+                  const allocator&lt;U&gt;&amp;) throw();
+  template &lt;class T, class U&gt;
+  bool operator!=(const allocator&lt;T&gt;&amp;, 
+                  const allocator&lt;U&gt;&amp;) throw();
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Types</H3></A>
+
+<A NAME="idx1"></A><PRE><B>size_type</B></PRE>
+<UL>
+<P>Type used to hold the size of an allocated block of storage.</P>
+</UL>
+
+
+<A NAME="idx2"></A><PRE><B>difference_type</B></PRE>
+<UL>
+<P>Type used to hold values representing distances between storage addresses.</P>
+</UL>
+
+
+<A NAME="idx3"></A><PRE><B>pointer</B></PRE>
+<UL>
+<P>Type of pointer returned by allocator.</P>
+</UL>
+
+
+<A NAME="idx4"></A><PRE><B>const_pointer</B></PRE>
+<UL>
+<P><SAMP>Const</SAMP> version of <SAMP>pointer</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx5"></A><PRE><B>reference</B></PRE>
+<UL>
+<P>Type of reference to allocated objects.</P>
+</UL>
+
+
+<A NAME="idx6"></A><PRE><B>const_reference</B></PRE>
+<UL>
+<P><SAMP>Const</SAMP> version of <SAMP>reference</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx7"></A><PRE><B>value_type</B></PRE>
+<UL>
+<P>Type of allocated object.</P>
+</UL>
+
+
+<A NAME="idx8"></A><PRE><B>template &lt;class U&gt; struct rebind;</B></PRE>
+<UL>
+<P>Converts an <B><I>allocator</I></B> templatized on one type to an <B><I>allocator</I></B> templatized on another type. This struct contains a single type member: </P>
+<P><SAMP>typedef allocator&lt;U&gt; other</SAMP></P>
+</UL>
+
+<A NAME="sec8"><H3>Constructors</H3></A>
+
+<A NAME="idx9"></A><PRE><B>allocator</B>()</PRE>
+<UL>
+<P>Default constructor.</P>
+</UL>
+
+
+<A NAME="idx10"></A><PRE>template &lt;class U&gt; 
+<B>allocator</B>(const allocator&lt;U&gt;&amp;) </PRE>
+<UL>
+<P>Copy constructor.</P>
+</UL>
+
+<A NAME="sec9"><H3>Destructors</H3></A>
+
+<A NAME="idx11"></A><PRE><B>~allocator</B>()</PRE>
+<UL>
+<P>Destructor.</P>
+</UL>
+
+<A NAME="sec10"><H3>Member Functions</H3></A>
+
+<A NAME="idx12"></A><PRE>pointer
+<B>address</B>(reference x) const;</PRE>
+<UL>
+<P>Returns the address of the reference <SAMP>x</SAMP> as a pointer.</P>
+</UL>
+
+
+<A NAME="idx13"></A><PRE>const_pointer 
+<B>address</B>(const_reference x) const;</PRE>
+<UL>
+<P>Returns the address of the reference <SAMP>x</SAMP> as a <SAMP>const_pointer</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx14"></A><PRE>pointer 
+<B>allocate</B>(size_type n, 
+         typename allocator&lt;void&gt;::const_pointer p = 0)</PRE>
+<UL>
+<P>Allocates storage. Returns a pointer to the first element in a block of storage <SAMP>n*sizeof(T)</SAMP> bytes in size. The block is aligned appropriately for objects of type <SAMP>T</SAMP>. Throws the exception <B><I><A HREF="bad-alloc.html">bad_alloc</A></I></B> if the storage is unavailable. This function uses operator <SAMP>new(size_t)</SAMP>. The second parameter <SAMP>p</SAMP> can be used by an allocator to localize memory allocation, but the default allocator does not use it.</P>
+</UL>
+
+
+<A NAME="idx15"></A><PRE>void 
+<B>deallocate</B>(pointer p, size_type n)</PRE>
+<UL>
+<P>Deallocates the storage obtained by a call to <SAMP>allocate()</SAMP> with arguments <SAMP>n</SAMP> and <SAMP>p</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx16"></A><PRE>size_type 
+<B>max_size</B>() const;</PRE>
+<UL>
+<P>Returns the largest size for which a call to <SAMP>allocate()</SAMP> might succeed.</P>
+</UL>
+
+
+<A NAME="idx17"></A><PRE>void 
+<B>construct</B>(pointer p, const T&amp; val);</PRE>
+<UL>
+<P>Constructs an object of type <SAMP>T2</SAMP> with the initial value of <SAMP>val</SAMP> at the location specified by <SAMP>p</SAMP>. This function calls the <SAMP>placement new()</SAMP> operator.</P>
+</UL>
+
+
+<A NAME="idx18"></A><PRE>void 
+<B>destroy</B>(pointer p)</PRE>
+<UL>
+<P>Calls the destructor on the object pointed to by <SAMP>p</SAMP>, but does not delete.</P>
+</UL>
+
+<A NAME="sec11"><H3>See Also</H3></A>
+<P><A HREF="containers.html">Containers</A></P>
+<A NAME="sec12"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 20.4.1</I></P>
+
+<BR>
+<HR>
+<A HREF="algorithms.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="associativecontainers.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

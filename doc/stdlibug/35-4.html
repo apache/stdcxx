@@ -1,0 +1,35 @@
+<HTML>
+<HEAD>
+<TITLE>Implicit Synchronization by Tying Streams</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="35-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="35-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>35.4 Implicit Synchronization by Tying Streams</H2>
+<A NAME="idx880"><!></A>
+<A NAME="idx881"><!></A>
+<P>Another mechanism for automatic synchronization in certain cases is tying a stream to an output stream, as demonstrated in the code below. All input or output operations flush the tied stream's buffer before they perform the actual operation.</P>
+
+<UL><PRE>
+std::ofstream ostr("/tmp/fil");
+std::ifstream istr("/tmp/fil");
+std::ostream* old_tie = istr.tie(&amp;ostr);                      //1
+
+while (some_condition) {
+  ostr &lt;&lt; "... some output ...";
+  std::string s;
+  while (istr &gt;&gt; s)                                           //2
+     // process input ;
+}
+istr.tie(old_tie);                                            //3
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The input stream <SAMP>istr</SAMP> is tied to the output stream <SAMP>ostr</SAMP>. The <SAMP>tie()</SAMP> member function returns a pointer to the previously tied output stream, or <SAMP>0</SAMP> if no output stream is tied.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Before any input is done, the tied output stream's buffer is flushed so that the result of previous output operations to <SAMP>ostr</SAMP> is available in the external file <SAMP>/tmp/fil</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>The previous tie is restored.
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="35-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="35-5.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,132 @@
+<HTML>
+<HEAD>
+<TITLE>Creating Your Own Containers</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="16-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="16-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>16.3 Creating Your Own Containers</H2>
+<A NAME="idx403"><!></A>
+<P>All of the options that build on existing Standard C++ Library containers incur a certain amount of overhead. When performance demands are critical, or the container requirements very specific, there may be no choice but to implement a container from scratch. </P>
+<A NAME="idx404"><!></A>
+<P>When building from scratch, there are three sets of design requirements that you must meet:</P>
+<UL>
+<LI><P CLASS="LIST">container interface requirements</P></LI>
+<LI><P CLASS="LIST">allocator interface requirements</P></LI>
+<LI><P CLASS="LIST">iterator requirements.</P></LI>
+</UL>
+<P>We'll talk about each of these in the next sections.</P>
+<A NAME="1631"><H3>16.3.1 Meeting the Container Requirements</H3></A>
+<A NAME="idx405"><!></A>
+<P>The Standard C++ Library defines general interface requirements for containers, and specific requirements for specialized containers. When you create a container, the first part of your task is making sure that the basic interface requirements for a container are met. In addition, if your container will be a sequence or an associative container, you need to provide all additional pieces specified for those categories. For anything but the simplest container, this is definitely not a task for the faint of heart.</P>
+<P>It's very important to meet the requirements so that users of the container will know exactly what capabilities to expect without having to read the code directly. Review the sections on individual containers for information about the container requirements. </P>
+<A NAME="1632"><H3>16.3.2 Meeting the Allocator Interface Requirements</H3></A>
+<A NAME="idx406"><!></A>
+<P>A user-defined container makes use of the allocator interface for all storage management. An exception to this is a container that exists in a completely self-contained environment where there is no need for substitute allocators.</P>
+<P>The basic interface of an <B><I><A HREF="../stdlibref/allocator.html">allocator</A></I></B> class consists of a set of typedefs, a pair of allocation functions, <SAMP>allocate()</SAMP> and <SAMP>deallocate()</SAMP>, and a pair of construction/destruction members, <SAMP>construct()</SAMP> and <SAMP>destroy()</SAMP>. The typedefs are used by a container to determine the look of pointers, references, sizes, and differences<I>,</I> where a <I>difference</I> means a distance between two pointers. The functions are used to do the actual management of data storage.</P>
+<P>To use the allocator interface, a container must meet the following three requirements:</P>
+<UL>
+<LI><P CLASS="LIST">A container needs to have a set of typedefs that look like the following:</P></LI>
+
+<UL><PRE>
+       typedef Allocator                           allocator_type;
+       typedef typename Allocator::size_type       size_type;
+       typedef typename Allocator::difference_type difference_type;
+       typedef typename Allocator::reference       reference;
+       typedef typename Allocator::const_reference const_reference;
+       typedef <I>implementation_defined</I>                   iterator;
+       typedef <I>implementation_defined</I>                   iterator;
+</PRE></UL>
+<LI><P CLASS="LIST">A container also needs to have an <SAMP>Allocator</SAMP> member that contains a copy of the allocator argument provided by the constructors:</P></LI>
+<P CLASS="LIST"><SAMP>protected:<br>  Allocator the_allocator;</SAMP></P>
+<LI><P CLASS="LIST">A container needs to use that <SAMP>Allocator</SAMP> member for all storage management.   For instance, our <B><I><A HREF="../stdlibref/set.html">set</A></I></B> container might have a naive implementation that simply allocates a large buffer and then constructs values on that buffer. Note that this not a very efficient mechanism, but it serves as a simple example. We're also going to avoid the issue of <SAMP>Allocator::allocate()</SAMP> throwing an exception, in the interest of brevity.</P></LI>
+</UL>
+<P>An abbreviated version of the <B><I><A HREF="../stdlibref/set.html">set</A></I></B> class appears below. The class interface shows the required typedefs and the <SAMP>Allocator</SAMP> member for this class:</P>
+
+<UL><PRE>
+#include &lt;memory&gt;
+
+namespace my_namespace {
+
+  template &lt;class T, class Allocator = std::allocator&lt;T&gt; &gt;
+  class set
+  {
+  public:
+    // typedefs and allocator member as  above
+    typedef Allocator allocator_type;
+    typedef typename Allocator::size_type size_type;
+    typedef typename Allocator::difference_type  
+                                difference_type;
+    typedef typename Allocator::reference reference;
+    typedef typename Allocator::const_reference 
+                                const_reference;
+
+    // Our iterator will be a simple pointer
+    typedef Allocator::pointer iterator;
+    typedef Allocator::const_pointer iterator;
+
+  protected:
+    Allocator the_allocator;  // copy of the allocator
+
+  private:
+    size_type buffer_size;
+    iterator buffer_start;
+    iterator current_end;
+    iterator end_of_buffer;
+
+  public:
+    // A constructor that initializes the set using a range
+    // from some other container or array
+    template &lt;class Iterator&gt;
+    set(Iterator start, Iterator finish,
+        Allocator alloc = Allocator());
+
+    iterator begin() { return buffer_start; }
+    iterator end() { return current_end; } 
+  };
+</PRE></UL>
+<P>Given this class interface, here's a definition of a possible constructor that uses the allocator. The numbered comments following this code briefly describe the allocator's role. For a more thorough treatment of allocators, see <A HREF="15.html">Chapter&nbsp;15</A> and the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A> entry for allocators.</P>
+
+<UL><PRE>
+  template &lt;class T, class Allocator&gt;
+  template &lt;class Iterator&gt;
+  set&lt;T,Allocator&gt;::set(Iterator start, Iterator finish,
+      Allocator alloc) 
+    : buffer_size(finish-start + DEFAULT_CUSHION),
+      buffer_start(0), 
+      current_end(0), end_of_buffer(0)
+  {
+    // Copy the argument to our internal object
+    the_allocator = alloc;                               // 1
+
+    // Create an initial buffer
+    buffer_start = the_allocator.allocate(buffer_size);  // 2
+    end_of_buffer = buffer_start + buffer_size;
+
+    // Construct new values from iterator range on the buffer
+    for (current_end = buffer_start;
+         start != finish;
+         current_end++, start++)
+      the_allocator.construct(current_end,*start);      // 3
+
+    // Now let's remove duplicates using a standard algorithm
+    std::unique(begin(),end());
+  }
+} // End of my_namespace
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>The allocator parameter is copied into a protected member of the container.   This private copy can then be used for all subsequent storage management. 
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>An initial buffer is allocated using the allocator's allocate function.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>The contents of the buffer are initialized using the values from the iterator range supplied to the constructor by the <SAMP>start</SAMP> and <SAMP>finish</SAMP> parameters. The <SAMP>construct</SAMP> function constructs an object at a particular location. In this case the location is at an index in the container's buffer.
+</TABLE>
+<A NAME="1633"><H3>16.3.3 Iterator Requirements</H3></A>
+<A NAME="idx407"><!></A>
+<P>Every container must define an iterator type. Iterators allow algorithms to iterate over the container's contents. Although iterators can range from simple to very complex, it is not the complexity but the<I> iterator category</I> that most affects an algorithm. The iterator category describes capabilities of the iterator, such as which direction it can traverse. <A HREF="16-4.html">Section&nbsp;16.4</A> and the iterator entries in the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A> provide additional information about iterator categories.</P>
+<P>The example in <A HREF="16-3.html#1632">Section&nbsp;16.3.2</A> shows the implementation of a container that uses a simple pointer. A simple pointer is actually an example of the most powerful type of iterator: the <I>random access iterator</I>. If an iterator supports random access, we can add to or subtract from it as easily as we can increment it.</P>
+<P>Some iterators have much less capability. For example, consider an iterator attached to a singly-linked <I>list</I>. Since each node in the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> has links leading forward only, a naive iterator can advance through the container in only one direction. An iterator with this limitation falls into the category of forward iterator. </P>
+<P>Certain member functions such as <SAMP>begin()</SAMP> and <SAMP>end()</SAMP> produce iterators for a container. A container's description should always describe the category of iterator that its member functions produce. That way, a user of the container can see immediately which algorithms can operate successfully on the container.</P>
+
+<BR>
+<HR>
+<A HREF="16-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="16-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,18 @@
+STL generic algorithms -- initialization algorithms
+Illustrate fill function
+xxxxxxxxxx
+empty empty empty empty empty empty empty empty empty empty 
+full full full full full full full full full full 
+00000078910
+Illustrate copy function
+surprise
+big surprise
+Illustrate generate algorithm
+L_0 L_1 L_2 L_3 
+7 8 9 10 11 7 8 9 10 11 
+Illustrate swap_ranges algorithm
+14 27 12 64 
+4 2 3 1 
+4 2 3 1 
+14 27 12 64 
+End of initialization tests

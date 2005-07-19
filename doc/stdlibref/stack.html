@@ -1,0 +1,311 @@
+<HTML>
+<HEAD>
+<TITLE>stack</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="stack-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="stdexcept-h.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>stack</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-7.html">Containers</A></P>
+
+<PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Interface</A></LI>
+<LI><A HREF="#sec6">Constructors</A></LI>
+<LI><A HREF="#sec7">Member Functions</A></LI>
+<LI><A HREF="#sec8">Nonmember Operators</A></LI>
+<LI><A HREF="#sec9">Example</A></LI>
+<LI><A HREF="#sec10">See Also</A></LI>
+<LI><A HREF="#sec11">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1182">empty()</A><BR>
+<A HREF="#idx1183">pop()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1184">push()</A><BR>
+<A HREF="#idx1185">size()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1181">stack()</A><BR>
+<A HREF="#idx1186">top()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+<H4>Non-Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx1189">operator!=()</A><BR>
+<A HREF="#idx1191">operator&gt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1193">operator&gt;=()</A><BR>
+<A HREF="#idx1190">operator&lt;()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx1192">operator&lt;=()</A><BR>
+<A HREF="#idx1188">operator==()</A><BR>
+</TD>
+<TD VALIGN=top></TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A container adapter that behaves like a stack (last in, first out)</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;stack&gt;
+
+namespace std {
+  template &lt;class T, class Container = deque&lt;T&gt; &gt;
+  class stack;
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <B><I>stack</I></B> container adapter causes a container to behave like a last- in, first-out&nbsp;(LIFO) stack. The last item put (<I>pushed</I>) onto the stack is the first item removed (<I>popped off</I>). The stack can adapt any container that includes the operations <SAMP>back()</SAMP>, <SAMP>push_back()</SAMP>, and <SAMP>pop_back()</SAMP>. In particular, <B><I><A HREF="deque.html">deque</A></I></B>, <B><I><A HREF="list.html">list</A></I></B>, and <B><I><A HREF="vector.html">vector</A></I></B> can be used. </P>
+<A NAME="sec5"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class T, class Container = deque&lt;T&gt; &gt;
+  class stack {
+  
+  public:
+  
+  // Typedefs
+  typedef typename Container::value_type value_type;
+  typedef typename Container::size_type size_type;
+  typedef Container container_type;
+
+  // Constructor
+  explicit stack(const Container&amp; = Container());
+
+  // Accessors
+  bool empty() const;
+  size_type size() const;
+  value_type&amp; top();
+  const value_type&amp; top() const;
+  void push(const value_type&amp;);
+  void pop();
+  };
+
+  // Nonmember Operators
+  template &lt;class T, class Container&gt;
+  bool operator==(const stack&lt;T, Container&gt;&amp;, 
+                  const stack&lt;T, Container&gt;&amp;);
+  
+  template &lt;class T, class Container&gt;
+  bool operator!=(const stack&lt;T, Container&gt;&amp;, 
+                  const stack&lt;T, Container&gt;&amp;);
+
+  template &lt;class T, class Container&gt;
+  bool operator&lt;(const stack&lt;T, Container&gt;&amp;, 
+                 const stack&lt;T, Container&gt;&amp;);
+
+  template &lt;class T, class Container&gt;
+  bool operator&gt;(const stack&lt;T, Container&gt;&amp;, 
+                 const stack&lt;T, Container&gt;&amp;);
+
+  template &lt;class T, class Container&gt;
+  bool operator&lt;=(const stack&lt;T, Container&gt;&amp;, 
+                  const stack&lt;T, Container&gt;&amp;);
+
+  template &lt;class T, class Container&gt;
+  bool operator&gt;=(const stack&lt;T, Container&gt;&amp;, 
+                  const stack&lt;T, Container&gt;&amp;);
+}
+</PRE></UL>
+<A NAME="sec6"><H3>Constructors</H3></A>
+
+<A NAME="idx1181"></A><PRE>explicit
+<B>stack</B>(const Container&amp; = Container());</PRE>
+<UL>
+<P>Constructs an empty stack.</P>
+</UL>
+
+<A NAME="sec7"><H3>Member Functions</H3></A>
+
+<A NAME="idx1182"></A><PRE>bool 
+<B>empty</B>() const;</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the stack is empty, otherwise <SAMP>false</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1183"></A><PRE>void 
+<B>pop</B>();</PRE>
+<UL>
+<P>Removes the item at the top of the stack.</P>
+</UL>
+
+
+<A NAME="idx1184"></A><PRE>void 
+<B>push</B>(const value_type&amp; x);</PRE>
+<UL>
+<P>Pushes <SAMP>x</SAMP> onto the stack.</P>
+</UL>
+
+
+<A NAME="idx1185"></A><PRE>size_type 
+<B>size</B>() const;</PRE>
+<UL>
+<P>Returns the number of elements on the stack.</P>
+</UL>
+
+
+<A NAME="idx1186"></A><PRE>value_type&amp; 
+<B>top</B>();</PRE>
+<UL>
+<P>Returns a reference to the item at the top of the stack.</P>
+</UL>
+
+
+<A NAME="idx1187"></A><PRE>const value_type&amp; 
+<B>top</B>() const;</PRE>
+<UL>
+<P>Returns a constant reference to the item at the top of the stack as a <SAMP>const value_type</SAMP>.</P>
+</UL>
+
+<A NAME="sec8"><H3>Nonmember Operators</H3></A>
+
+<A NAME="idx1188"></A><PRE>template &lt;class T, class Container&gt;
+bool <B>operator==</B>(const stack&lt;T, Container&gt;&amp; x,
+                 const stack&lt;T, Container&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if <SAMP>x</SAMP> is the same as <SAMP>y</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1189"></A><PRE>template &lt;class T, class Container&gt;
+bool <B>operator!=</B>(const stack&lt;T, Container&gt;&amp; x,
+                 const stack&lt;T, Container&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>!(x==y)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1190"></A><PRE>template &lt;class T, class Container&gt;
+bool <B>operator&lt;</B>(const stack&lt;T, Container&gt;&amp; x,
+                const stack&lt;T, Container&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>true</SAMP> if the stack defined by the elements contained in <SAMP>x</SAMP> is lexicographically less than the stack defined by the elements of <SAMP>y</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1191"></A><PRE>template &lt;class T, class Container&gt;
+bool <B>operator&gt;</B>(const stack&lt;T, Container&gt;&amp; x,
+                const stack&lt;T, Container&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>y &lt; x</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1192"></A><PRE>template &lt;class T, class Container&gt;
+bool <B>operator&lt;=</B>(const stack&lt;T, Container&gt;&amp; x,
+                 const stack&lt;T, Container&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>!(y &lt; x)</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx1193"></A><PRE>template &lt;class T, class Container&gt;
+bool <B>operator&gt;=</B>(const stack&lt;T, Container&gt;&amp; x,
+                 const stack&lt;T, Container&gt;&amp; y);</PRE>
+<UL>
+<P>Returns <SAMP>!(x &lt; y)</SAMP>.</P>
+</UL>
+
+<A NAME="sec9"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  stack.cpp
+//
+
+#include &lt;stack&gt;
+#include &lt;vector&gt;
+#include &lt;deque&gt;
+#include &lt;string&gt;
+#include &lt;iostream&gt;
+
+int main ()
+{
+#ifndef _RWSTD_NO_NAMESPACE
+  using namespace std;
+#endif
+
+
+  // Make a stack using a vector container.
+
+  stack&lt;int,vector&lt;int,allocator&lt;int&gt; &gt; &gt; s;
+
+  // Push a couple of values on the stack.
+
+  s.push(1);
+  s.push(2);
+  cout &lt;&lt; s.top() &lt;&lt; endl;
+
+  // Now pop them off.
+
+  s.pop();
+  cout &lt;&lt; s.top() &lt;&lt; endl;
+  s.pop();
+
+  // Make a stack of strings using a deque.
+
+  stack&lt;string,deque&lt;string,allocator&lt;string&gt; &gt; &gt; ss;
+
+  // Push a bunch of strings on then pop them off.
+
+  int i;
+  for (i = 0; i &lt; 10; i++)
+  {
+    ss.push(string(i+1,'a'));
+    cout &lt;&lt; ss.top() &lt;&lt; endl;
+  }
+  for (i = 0; i &lt; 10; i++)
+  {
+    cout &lt;&lt; ss.top() &lt;&lt; endl;
+    ss.pop();
+  }
+
+  return 0;
+}
+
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>2
+1
+a
+aa
+aaa
+aaaa
+aaaaa
+aaaaaa
+aaaaaaa
+aaaaaaaa
+aaaaaaaaa
+aaaaaaaaaa
+aaaaaaaaaa
+aaaaaaaaa
+aaaaaaaa
+aaaaaaa
+aaaaaa
+aaaaa
+aaaa
+aaa
+aa
+a
+</PRE></UL>
+<A NAME="sec10"><H3>See Also</H3></A>
+<P><B><I><A HREF="allocator.html">allocator</A></I></B>, <A HREF="containers.html">Containers</A>, <B><I><A HREF="deque.html">deque</A></I></B>, <B><I><A HREF="list.html">list</A></I></B>, <B><I><A HREF="vector.html">vector</A></I></B></P>
+<A NAME="sec11"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 23.2.3.3</I></P>
+
+<BR>
+<HR>
+<A HREF="stack-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="stdexcept-h.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

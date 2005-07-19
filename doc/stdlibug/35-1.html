@@ -1,0 +1,20 @@
+<HTML>
+<HEAD>
+<TITLE>Sharing Files Among Streams</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="35.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="35-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>35.1 Sharing Files Among Streams</H2>
+<A NAME="idx869"><!></A>
+<P>In the previous chapter, we saw how streams can share stream buffers. In this chapter, we show that streams can also share files, as when streams in different processes exchange data through a file.</P>
+<P><A HREF="35-1.html#Figure&nbsp;35">Figure&nbsp;35</A> illustrates how streams share files:</P>
+<A NAME="idx870"><!></A>
+<H4><A NAME="Figure&nbsp;35">Figure&nbsp;35: Streams sharing a file</A></H4>
+
+<P><IMG SRC="images/iofig20.gif" WIDTH=544 HEIGHT=417></P>
+<P>Because streams use a buffer, the content of the file might be different from the content of the buffer that is supposed to reflect the file's content. When data is extracted through a file stream, a certain part of the file's content is read into the buffer; subsequent extractions access the buffer instead of the file. Once the file content is modified, the buffer content becomes obsolete. Similarly, when data is written through a file stream, the output is stored in the buffer and not written to the file. The file is accessed only when the buffer is full. For this reason, output from one stream is not immediately available to the other stream.</P>
+
+<BR>
+<HR>
+<A HREF="35.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="35-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

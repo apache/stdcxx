@@ -1,0 +1,102 @@
+<HTML>
+<HEAD>
+<TITLE>Using a Stream's Facet</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="25-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>25.4 Using a Stream's Facet</H2>
+<A NAME="idx574"><!></A>
+<A NAME="idx575"><!></A>
+<P>Here is a more advanced example that uses a <SAMP>std::time_put</SAMP> facet to print a date. Let us assume we have a date and want to print it this way:</P>
+
+<UL><PRE>
+struct std::tm aDate;                                       //1
+
+std::memset(aDate,0,sizeof aDate);                          //2
+aDate.tm_year = 1989;
+aDate.tm_mon = 9;
+aDate.tm_mday = 1;
+
+std::cout.imbue(std::locale("De_CH"));                      //3
+std::cout &lt;&lt; aDate;                                         //4
+
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>A date object is created. It is of type <SAMP>std::tm</SAMP>, which is the time structure defined in <SAMP>&lt;ctime&gt;</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The date object is initialized with a particular date, September 1, 1989.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Let's assume our program is supposed to run in a German-speaking canton of Switzerland. Hence, we imbue the standard output stream with a German-Swiss locale.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>The date is printed in German to the standard output stream.
+</TABLE>
+<P>The output is: <SAMP>1. September 1989</SAMP></P>
+<A NAME="idx576"><!></A>
+<P>As there is no <SAMP>operator&lt;&lt;()</SAMP> defined in the Standard C++ Library for the time structure <SAMP>tm</SAMP> from the C library, we must provide this inserter ourselves. The following code suggests a way this can be done. If you are not familiar with iostreams, please refer to the iostreams part of this <I>User's </I><I>Guide</I>. </P>
+<P>To keep it simple, the handling of exceptions thrown during the formatting is omitted.</P>
+
+<UL><PRE>
+template&lt;class charT, class traits&gt;
+std::basic_ostream&lt;charT, traits&gt;&amp;
+operator&lt;&lt;(std::basic_ostream&lt;charT,traits&gt;&amp; os,
+           const std::tm&amp; date)                            //1
+{
+  std::locale loc = os.getloc();                           //2
+  typedef std::ostreambuf_iterator&lt;charT,traits&gt;
+          outIter_t;                                       //3
+  const std::time_put&lt;charT,outIter_t&gt;&amp; fac                //4
+      = std::use_facet&lt;std::time_put&lt;charT,
+                                     outIter_t&gt; &gt;(loc);    //5
+  fac.put(os,os,os.fill(),&amp;date,'x');                      //6
+  return os;
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>This is a typical signature of a stream inserter; it takes a reference to an output stream and a constant reference to the object to be printed, and returns a reference to the same stream.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The stream's locale object is obtained via the stream's member function <SAMP>getloc()</SAMP>. This is the locale object where we expect to find a time-formatting facet object.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>We define a type for an output iterator to a stream buffer. 
+Time-formatting facet objects write the formatted output via an iterator into an output container (see the sections on containers and iterators in the <I>Standard C++ Library</I> <I>User's Guide</I>). In principle, this can be an arbitrary container that has an output iterator, such as a string or a C++ array. 
+Here we want the time-formatting facet object to bypass the stream's formatting layer and write directly to the output stream's underlying stream buffer. Therefore, the output container shall be a stream buffer.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>We define a variable that will hold a reference to the locale object's <SAMP>std::time_put</SAMP> facet object. The time formatting facet class <SAMP>std::time_put</SAMP> has two template parameters:
+<UL>
+<LI><P CLASS="LIST">The <I>first</I> template parameter is the character type used for output. Here we provide the stream's character type as the template argument.</P></LI>
+<LI><P CLASS="LIST">The <I>second</I> template parameter is the output iterator type. Here we provide the stream buffer iterator type <SAMP>outIter_t</SAMP> that we had defined as before.</P></LI>
+</UL>
+<TR VALIGN="top"><TD><SAMP>//5</SAMP></TD><TD>Here we get the time-formatting facet object from the stream's locale via <SAMP>std::use_facet()</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//6</SAMP></TD><TD>The facet object's formatting service <SAMP>put()</SAMP> is called. Let us see what arguments it takes. Here is the function's interface:</P>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<TR><TD VALIGN="top"><P><SAMP>iter_type put</SAMP></P>
+</TD><TD VALIGN="top"><P><SAMP>(iter_type</SAMP></P>
+</TD><TD VALIGN="top"><P><SAMP>(a)</SAMP></P>
+</TD></TR>
+<TR><TD VALIGN="top">&nbsp;</TD><TD VALIGN="top"><P><SAMP>,ios_base&amp;</SAMP></P>
+</TD><TD VALIGN="top"><P><SAMP>(b)</SAMP></P>
+</TD></TR>
+<TR><TD VALIGN="top">&nbsp;</TD><TD VALIGN="top"><P><SAMP>,char_type</SAMP></P>
+</TD><TD VALIGN="top"><P><SAMP>(c)</SAMP></P>
+</TD></TR>
+<TR><TD VALIGN="top">&nbsp;</TD><TD VALIGN="top"><P><SAMP>,const tm*</SAMP></P>
+</TD><TD VALIGN="top"><P><SAMP>(d)</SAMP></P>
+</TD></TR>
+<TR><TD VALIGN="top">&nbsp;</TD><TD VALIGN="top"><P><SAMP>,char)</SAMP></P>
+</TD><TD VALIGN="top"><P><SAMP>(e)</SAMP></P>
+</TD></TR>
+</TABLE>
+
+The types <SAMP>iter_type</SAMP> and <SAMP>char_type</SAMP> stand for the types that were provided as template arguments when the facet class was instantiated. In this case, they are <B><I><A HREF="../stdlibref/ostreambuf-iterator.html">std::ostreambuf_iterator&lt;&gt;</A></I></B> and <SAMP>charT</SAMP>, where <SAMP>charT</SAMP> and <SAMP>traits</SAMP> are the respective streams template arguments.
+Here is the actual call:
+<SAMP>nextpos = fac.put(os,os,os.fill(),&amp;date,'x');</SAMP>
+Now let's see what the arguments mean:
+<TABLE CELLPADDING=3>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">a.</P></TD><TD CLASS="LIST"><P CLASS="LIST">The first parameter is supposed to be an output iterator. We provide an iterator to the stream's underlying stream buffer. The reference <SAMP>os</SAMP> to the output stream is converted to an output iterator, because output stream buffer iterators have a constructor taking an output stream, that is, <B><I>basic_ostream&lt;&gt;&amp;</I></B>.</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">b.</P></TD><TD CLASS="LIST"><P CLASS="LIST">The second parameter is of type <B><I><A HREF="../stdlibref/ios-base.html">ios_base</A></I></B><SAMP>&amp;</SAMP>, which is one of the stream base classes. The class <B><I>ios_base</I></B> contains data for format control (see the section on iostreams for details). The facet object uses this formatting information. We provide the output stream's <B><I>ios_base</I></B> part here, using the automatic cast from a reference to an output stream, to a reference to its base class.</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">c.</P></TD><TD CLASS="LIST"><P CLASS="LIST">The third parameter is the fill character. It is used when the output has to be adjusted and blank characters have to be filled in. We provide the stream's fill character, which one can get by calling the stream's <SAMP>fill()</SAMP> function.</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">d.</P></TD><TD CLASS="LIST"><P CLASS="LIST">The fourth parameter is a pointer to a time structure <SAMP>std::tm</SAMP> defined in <SAMP>&lt;ctime&gt;</SAMP>.</P></TD></TR>
+<TR CLASS="LIST"><TD VALIGN="top" CLASS="LIST"><P CLASS="LIST">e.</P></TD><TD CLASS="LIST"><P CLASS="LIST">The fifth parameter is a format character as in the C function <SAMP>std::strftime()</SAMP>; the <SAMP>x</SAMP> stands for the locale's appropriate date representation.</P></TD></TR>
+</TABLE>
+The value returned is an output iterator that points to the position immediately after the last inserted character. 
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="25-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-5.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

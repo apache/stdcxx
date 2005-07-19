@@ -1,0 +1,914 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * list - list declarations for the Standard Library
+ *
+ * $Id: //stdlib/dev/include/list#43 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994
+ * Hewlett-Packard Company
+ *
+ * Permission to use, copy, modify, distribute and sell this software
+ * and its documentation for any purpose is hereby granted without fee,
+ * provided that the above copyright notice appear in all copies and
+ * that both that copyright notice and this permission notice appear
+ * in supporting documentation.  Hewlett-Packard Company makes no
+ * representations about the suitability of this software for any
+ * purpose.  It is provided "as is" without express or implied warranty.
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_LIST_INCLUDED
+#define _RWSTD_LIST_INCLUDED
+
+
+#include <memory>
+
+#include <rw/_algobase.h>
+#include <rw/_iterator.h>
+#include <rw/_select.h>
+#include <rw/_defs.h>
+#include <rw/_error.h>
+
+
+_RWSTD_NAMESPACE (std) { 
+
+template <class _TypeT>
+struct __rw_list_node
+{
+    __rw_list_node*  _C_next;   // pointer to next node
+    __rw_list_node*  _C_prev;   // pointer to previous node
+    _TypeT           _C_data;   // client data
+}; 
+
+
+
+template <class _TypeT, class _DiffT, class _Pointer, class _Reference>
+class __rw_list_iter
+    : public iterator <bidirectional_iterator_tag,
+                       _TypeT, _DiffT, _Pointer, _Reference>
+{
+    typedef iterator <bidirectional_iterator_tag,
+                     _TypeT, _DiffT, _Pointer, _Reference>
+              _C_iter_base;
+
+public:
+
+    typedef _TYPENAME _C_iter_base::value_type      value_type;
+    typedef _TYPENAME _C_iter_base::difference_type difference_type;
+    typedef _TYPENAME _C_iter_base::pointer         pointer;
+    typedef _TYPENAME _C_iter_base::reference       reference;
+
+    // const_pointer and const_reference must be explicity typedef'ed to
+    // const value_type* and const value_type& since we don't know if
+    // _Pointer and _Reference are const types (they aren't if this isn't
+    // a const iterator)
+    typedef const value_type*                       const_pointer; 
+    typedef const value_type&                       const_reference; 
+
+    typedef bidirectional_iterator_tag              iterator_category;
+
+    typedef __rw_list_iter <value_type, difference_type,
+                            value_type*, value_type&>      _C_mutable_iter;
+
+    typedef  __rw_list_node<value_type>*                   _C_link_type;
+    
+    __rw_list_iter () { }
+
+    __rw_list_iter (const _C_link_type& __rhs)
+        : _C_node (__rhs) { }
+
+    // no copy ctor other than the one below defined; will use
+    // a compiler generated one if __rw_list_iter != _C_mutable_iter
+    __rw_list_iter (const _C_mutable_iter &__rhs)
+        : _C_node (__rhs._C_node) { }
+
+    __rw_list_iter& operator++ () {
+        _C_node = (_C_link_type)((*_C_node)._C_next); 
+        return *this;
+    }
+    
+    __rw_list_iter& operator-- () {
+        _C_node = (_C_link_type)((*_C_node)._C_prev);
+        return *this;
+    }
+    
+    __rw_list_iter operator++ (int) {
+        __rw_list_iter __tmp = *this;
+        return ++*this, __tmp;
+    }
+    
+    __rw_list_iter operator-- (int) {
+        __rw_list_iter __tmp = *this;
+        return --*this, __tmp;
+    }
+    
+    reference operator* () const {
+        return (*_C_node)._C_data;
+    }
+
+    _RWSTD_OPERATOR_ARROW (pointer operator-> () const);
+    
+    difference_type operator- (const __rw_list_iter&) const {
+        return 0;
+    }
+
+    bool operator== (const __rw_list_iter& __iter) const {
+        return _C_node == __iter._C_node;
+    }
+
+    bool operator!= (const __rw_list_iter& __iter) const {
+        return !(*this == __iter);
+    }
+
+// private:
+
+    _C_link_type _C_node;
+};
+
+
+#undef _ITER_NODE
+#define _ITER_NODE(it)   (_ITER_BASE (it)._C_node)
+
+        
+template <class _TypeT, class _DiffT, class _Ptr1, class _Ref1,
+                                      class _Ptr2, class _Ref2>
+inline bool
+operator== (const __rw_list_iter<_TypeT, _DiffT, _Ptr1, _Ref1> &__x,
+            const __rw_list_iter<_TypeT, _DiffT, _Ptr2, _Ref2> &__y)
+
+{
+    return __x._C_node == __y._C_node;
+}
+
+
+template <class _TypeT, class _DiffT, class _Ptr1, class _Ref1,
+                                      class _Ptr2, class _Ref2>
+inline bool
+operator!= (const __rw_list_iter<_TypeT, _DiffT, _Ptr1, _Ref1> &__x,
+            const __rw_list_iter<_TypeT, _DiffT, _Ptr2, _Ref2> &__y)
+{
+    return !(__x == __y);
+}
+
+
+_EXPORT
+template <class _TypeT, 
+          class _Allocator _RWSTD_COMPLEX_DEFAULT (allocator<_TypeT>) >
+class list : private _Allocator
+{
+public:
+
+    typedef _TypeT                                    value_type;
+    typedef _Allocator                                allocator_type;
+    typedef _TYPENAME allocator_type::reference       reference;
+    typedef _TYPENAME allocator_type::const_reference const_reference;
+    typedef _TYPENAME allocator_type::size_type       size_type;
+    typedef _TYPENAME allocator_type::difference_type difference_type;
+    typedef _TYPENAME allocator_type::pointer         pointer;
+    typedef _TYPENAME allocator_type::const_pointer   const_pointer;
+    typedef __rw_list_node<value_type>                _C_list_node;
+    typedef _C_list_node*                             _C_link_type;
+
+    typedef _RWSTD_REBIND (allocator_type, _C_list_node)   _C_node_alloc_type;
+    typedef _RWSTD_ALLOC_TYPE (allocator_type, value_type) _C_value_alloc_type;
+
+
+    typedef __rw_list_iter<value_type, difference_type, pointer, reference>
+    _C_list_iter; 
+
+    typedef __rw_list_iter<value_type, difference_type, const_pointer,
+                           const_reference>
+    _C_list_citer;
+
+
+#ifndef _RWSTD_NO_DEBUG_ITER
+
+    typedef _RW::__rw_debug_iter <list,_C_list_iter, _C_list_iter>
+    iterator;
+    
+    typedef _RW::__rw_debug_iter <list,_C_list_citer, _C_list_iter>
+    const_iterator;
+    
+
+    iterator _C_make_iter (const _C_link_type &__node) {
+        return iterator (*this, _C_list_iter (__node));
+    }
+
+    const_iterator _C_make_iter (const _C_link_type &__node) const {
+        return const_iterator (*this, _C_list_citer (__node));
+    }
+
+#else   // if defined (_RWSTD_NO_DEBUG_ITER)
+
+    typedef _C_list_iter         iterator;
+    typedef _C_list_citer        const_iterator;
+
+    iterator _C_make_iter (const _C_link_type &__node) {
+        return iterator (__node);
+    }
+
+    const_iterator _C_make_iter (const _C_link_type &__node) const {
+        return const_iterator (__node);
+    }
+
+#endif   // _RWSTD_NO_DEBUG_ITER
+
+
+#if !defined (_RWSTD_NO_CLASS_PARTIAL_SPEC) 
+
+    typedef _STD::reverse_iterator<const_iterator> const_reverse_iterator;
+    typedef _STD::reverse_iterator<iterator>       reverse_iterator;
+
+#else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
+
+  typedef std::reverse_iterator<const_iterator, 
+        bidirectional_iterator_tag, value_type, 
+        const_reference, const_pointer, difference_type>
+    const_reverse_iterator;
+
+    typedef std::reverse_iterator<iterator, 
+        bidirectional_iterator_tag, value_type, 
+        reference, pointer, difference_type>
+    reverse_iterator;
+
+#endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC
+
+protected:
+
+#ifndef _RWSTD_NO_LIST_NODE_BUFFER
+
+    // Node buffer data structure
+    struct _C_nodebuf {
+        typedef _RWSTD_REBIND (allocator_type, _C_nodebuf) _C_alloc_type;
+        typedef _TYPENAME _C_alloc_type::pointer           _C_pointer;
+
+        _C_pointer   _C_next_buf;
+        size_type    _C_bufsize;
+        _C_link_type _C_buffer;
+    };
+
+    typedef _TYPENAME _C_nodebuf::_C_alloc_type _C_buf_alloc_type;
+    typedef _TYPENAME _C_nodebuf::_C_pointer    _C_buf_pointer;
+
+    void _C_add_buffer (bool);
+    void _C_free_buffers ();
+
+    _C_buf_pointer _C_buflist;
+    _C_link_type   _C_free_list;
+
+#endif   // _RWSTD_USE_LIST_NODE_BUFFER
+
+
+    _C_link_type        _C_next_avail;
+    _C_link_type        _C_last;
+    _C_link_type        _C_node;
+    size_type           _C_length;
+
+
+
+// Macros used later in node buffer management
+#if !defined (_RWSTD_NO_LIST_NODE_BUFFER)
+
+#  define _RWSTD_NODE_BUFFER_INIT(blist,flist)                   \
+        _C_buflist (blist), _C_free_list (flist),
+
+#  define _RWSTD_NODE_LIST_FREE()                                \
+        _C_free_buffers ()
+
+#  define _RWSTD_NODE_LIST_SWAP(other)                           \
+        _STD::swap (_C_buflist, other._C_buflist);               \
+        _STD::swap (_C_free_list, other._C_free_list)              
+
+#  define _RWSTD_LIST_INSERT_RANGE(b,e,v)                        \
+        _TRY {                                                   \
+            insert (b, e, v);                                    \
+        } _CATCH (...) {                                         \
+            _RWSTD_NODE_LIST_FREE();                             \
+            _RETHROW;                                            \
+        } typedef void __dummy_t
+
+    _C_link_type _C_get_node (bool __is_empty = false) {
+        if (_C_free_list) {
+            _C_link_type __tmp = _C_free_list;
+            _C_free_list = _C_free_list->_C_next;
+            return __tmp;
+        }
+        if (_C_next_avail == _C_last)
+            _C_add_buffer (__is_empty);
+        return _C_next_avail++;
+    }
+
+    void _C_put_node (_C_link_type __link) {
+        __link->_C_next = _C_free_list;
+        _C_free_list = __link;
+    }
+
+#else // defined (_RWSTD_NO_LIST_NODE_BUFFER)
+
+#  define _RWSTD_NODE_BUFFER_INIT(ignore0,ignore1)
+#  define _RWSTD_NODE_LIST_FREE()
+#  define _RWSTD_NODE_LIST_SWAP(ignore)
+
+#  define _RWSTD_LIST_INSERT_RANGE(b,e,v)                             \
+        insert (b,e,v)
+
+    _C_link_type _C_get_node (bool = false) {
+        return _C_node_alloc_type (*this).allocate (1, (void*)_C_last);
+    }
+
+    void _C_put_node (_C_link_type __link) {
+        _C_node_alloc_type (*this).deallocate (__link, 1);
+    }
+
+#endif // _RWSTD_NO_LIST_NODE_BUFFER
+
+    // here and only here is _C_node initialized
+    void _C_init(bool __is_list_empty = false) {
+        _C_node = _C_get_node (__is_list_empty);
+
+        (*_C_node)._C_next = _C_node;
+        (*_C_node)._C_prev = _C_node; 
+    }
+    
+    void _C_init (size_type __n, const value_type& __val) {
+        _C_init();
+        _RWSTD_LIST_INSERT_RANGE (begin (), __n, __val);
+    }
+
+public:
+
+    _EXPLICIT
+    list (const allocator_type& __alloc = allocator_type ())
+        : allocator_type (__alloc), _RWSTD_NODE_BUFFER_INIT(0,0)
+          _C_next_avail (0), _C_last (0), _C_node (0), _C_length (0) {
+        _C_init (true);
+    }
+    
+    _EXPLICIT
+    list (size_type             __n, 
+          const_reference       __x     = value_type (),
+          const allocator_type &__alloc = allocator_type ())
+        : allocator_type (__alloc), _RWSTD_NODE_BUFFER_INIT(0,0)
+          _C_next_avail (0), _C_last (0), _C_node (0), _C_length (0) {
+        _C_init (__n, __x);
+    }
+
+#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
+    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+
+    template<class _InputIterator>
+    void _C_init (_InputIterator __first, _InputIterator __last, void*) {
+        _RWSTD_ASSERT_RANGE (__first, __last);
+        _C_init();
+        _RWSTD_LIST_INSERT_RANGE (begin (), __first, __last);
+    }
+
+    template<class _InputIterator>
+    void _C_init (_InputIterator __first, _InputIterator __last, int) {
+        _RWSTD_ASSERT_RANGE (__first, __last);
+        _C_init (__first, __last);
+    }
+
+    template<class _InputIterator>
+    list (_InputIterator __first, _InputIterator __last, 
+          const allocator_type& __alloc = allocator_type ())
+        : allocator_type (__alloc), _RWSTD_NODE_BUFFER_INIT(0,0)
+          _C_next_avail (0), _C_last (0), _C_node (0), _C_length (0) {
+        _RWSTD_ASSERT_RANGE (__first, __last);
+        _C_init (__first, __last, _RWSTD_DISPATCH (_InputIterator));
+    }
+
+#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+
+    list (const_iterator __first, const_iterator __last, 
+          const allocator_type& __alloc = allocator_type ())
+        : allocator_type (__alloc), _RWSTD_NODE_BUFFER_INIT(0,0)
+          _C_next_avail (0), _C_last (0), _C_node (0), _C_length (0) {
+        _RWSTD_ASSERT_RANGE (__first, __last);
+        _C_init();
+        _RWSTD_LIST_INSERT_RANGE (begin (), __first, __last);
+    }
+
+    list (const_pointer __first, const_pointer __last, 
+          const allocator_type& __alloc = allocator_type ())
+        : allocator_type (__alloc), _RWSTD_NODE_BUFFER_INIT(0,0)
+          _C_next_avail (0), _C_last (0), _C_node (0), _C_length (0) {
+        _RWSTD_ASSERT_RANGE (__first, __last);
+        _C_init();
+        _RWSTD_LIST_INSERT_RANGE (begin (), __first, __last);
+    }
+
+#endif // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    list (const list &__rhs)
+        : allocator_type(__rhs.get_allocator()), _RWSTD_NODE_BUFFER_INIT(0,0) 
+          _C_next_avail (0), _C_last (0), _C_node (0), _C_length (0) {
+        _C_init();
+        _RWSTD_LIST_INSERT_RANGE (begin (), __rhs.begin (), __rhs.end ());
+    }
+
+    ~list ();
+
+    list& operator= (const list&);   
+
+#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)  \
+    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+
+    template<class _InputIterator>
+    void assign (_InputIterator __first, _InputIterator __last) {
+        _RWSTD_ASSERT_RANGE (__first, __last);
+
+        clear ();
+        _C_insert (begin (), __first, __last,
+                   _RWSTD_DISPATCH (_InputIterator));
+    }
+
+    void assign (size_type __n, const_reference __val) {
+        clear ();
+        insert (begin (), __n, __val);
+    }
+
+#else
+    
+    void assign (const_iterator __first, const_iterator __last) {
+        _RWSTD_ASSERT_RANGE (__first, __last);
+
+        clear ();
+        insert (begin (), __first, __last);
+    }
+
+    void assign (const_pointer __first, const_pointer __last) {
+        _RWSTD_ASSERT_RANGE (__first, __last);
+
+        clear ();
+        insert (begin (), __first, __last);
+    }
+
+    void assign (size_type __n, const_reference __val) {
+        clear ();
+        insert (begin (), __n, __val);
+    }
+
+#endif // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    allocator_type get_allocator () const {
+        return *this;
+    }
+
+    iterator begin () {
+        return _C_make_iter ((*_C_node)._C_next);
+    }
+
+    const_iterator begin () const {
+        return _C_make_iter ((*_C_node)._C_next);
+    }
+
+    iterator end () {
+        return _C_make_iter (_C_node);
+    }
+
+    const_iterator end () const {
+        return _C_make_iter (_C_node);
+    }
+
+    reverse_iterator rbegin () { 
+        return reverse_iterator (end ());
+    }
+
+    const_reverse_iterator rbegin () const { 
+        return const_reverse_iterator (end ());
+    }
+
+    reverse_iterator rend () { 
+        return reverse_iterator (begin ());
+    }
+
+    const_reverse_iterator rend () const {
+        return const_reverse_iterator (begin ());
+    }
+
+    bool empty () const {
+        return 0 == size ();
+    }
+
+    size_type size () const {
+        return _C_length;
+    }
+
+    size_type max_size () const {
+        return _C_node_alloc_type (*this).max_size ();
+    }
+
+    void resize (size_type, value_type);
+
+    void resize (size_type __n) {
+        resize (__n, value_type ());
+    }
+
+    reference front () {
+        _RWSTD_ASSERT (!empty ());
+        return *begin ();
+    }
+
+    const_reference front () const {
+        _RWSTD_ASSERT (!empty ());
+        return *begin ();
+    }
+
+    reference back () {
+        _RWSTD_ASSERT (!empty ());
+        return *--end ();
+    }
+
+    const_reference back () const {
+        _RWSTD_ASSERT (!empty ());
+        return *--end ();
+    }
+
+    void push_front (const_reference __x) {
+        insert (begin (), __x);
+        _RWSTD_ASSERT (!empty ());
+    }
+
+    void push_back  (const_reference __x) {
+        insert (end (), __x);
+        _RWSTD_ASSERT (!empty ());
+    }
+    
+    void pop_front () {
+        _RWSTD_ASSERT (!empty ());
+        erase (begin ());
+    }
+
+    void pop_back () {
+        _RWSTD_ASSERT (!empty ());
+        erase (--end ());
+    }
+
+    iterator insert (iterator __it, const_reference __x);
+
+#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)  \
+    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+
+    // handles bidirectional iterators
+    template <class _InputIterator>
+    void _C_insert (const iterator &__it,
+                    _InputIterator __first, _InputIterator __last, 
+                    bidirectional_iterator_tag) {
+        _RWSTD_ASSERT_RANGE (begin (), __it);
+        _RWSTD_ASSERT_RANGE (__first, __last);
+
+        for ( ; !(__first == __last); ++__first)
+            insert (__it, *__first); 
+    }
+
+    // handles input iterators
+    template <class _InputIterator>
+    void _C_insert (iterator __it,
+                    _InputIterator __first, _InputIterator __last, 
+                    input_iterator_tag) {
+        _RWSTD_ASSERT_RANGE (begin (), __it);
+        _RWSTD_ASSERT_RANGE (__first, __last);
+
+        for ( ; !(__first == __last); ++__first, ++__it)
+            __it = insert (__it, *__first); 
+    }
+ 
+    // handles nonintegral types
+    template<class _InputIterator>
+    void _C_insert (const iterator &__it,
+                    _InputIterator  __first, _InputIterator __last, void*) {
+
+        _C_insert (__it, __first, __last, 
+		   _RWSTD_ITERATOR_CATEGORY (_InputIterator, __first));
+    }
+
+    // handles integral types
+    template<class _InputIterator>
+    void _C_insert (const iterator &__it, 
+                    _InputIterator  __first, _InputIterator __last, int) {
+        _C_insert (__it, size_type (__first), const_reference (__last));
+    }
+
+    template<class _InputIterator>
+    void insert (iterator __it, 
+                 _InputIterator __first, _InputIterator __last) {
+
+        _RWSTD_ASSERT_RANGE (begin (), __it);
+        _RWSTD_ASSERT_RANGE (__first, __last);
+
+        // calling insert on a list specialized on an integral type
+        // may lead to ambiguities if the actual function arguments do not
+        // exactly match those of the non-templatized function (below)
+        // the dispatch mechanism determines whether the arguments
+        // really are iterators or whether they are just integral types
+        // and calls the appropriate implementation function
+        _C_insert  (__it, __first, __last, _RWSTD_DISPATCH (_InputIterator));
+    }
+
+    void insert (iterator __it, size_type __n, const_reference __val) {
+        _RWSTD_ASSERT_RANGE (begin (), __it);
+
+        _C_insert (__it, __n, __val);
+    }
+
+#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+
+    void insert (iterator __it, size_type __n, const_reference __x) {
+        _RWSTD_ASSERT_RANGE (begin (), __it);
+
+        _C_insert (__it, __n, __x);
+    }
+
+    void insert (iterator __it, const_pointer __first, const_pointer __last) {
+        _RWSTD_ASSERT_RANGE (begin (), __it);
+        _RWSTD_ASSERT_RANGE (__first, __last);
+
+        for (; !(__first == __last); ++__first)
+            insert (__it, *__first);
+    }
+
+    void insert (iterator __it,
+                 const_iterator __first, const_iterator __last) {
+        _RWSTD_ASSERT_RANGE (begin (), __it);
+        _RWSTD_ASSERT_RANGE (__first, __last);
+
+        for (; !(__first == __last); ++__first)
+            insert (__it, *__first);
+    }
+
+#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    iterator erase (iterator);
+
+    iterator erase (iterator, iterator);
+
+    void swap (list&);
+
+    void clear () {
+        erase (begin (), end ());
+    }
+
+protected:
+    
+    void _C_transfer (iterator, iterator, iterator, list&);
+
+    void _C_advance (iterator &__it, difference_type __n,
+                     const iterator &__end) {
+        while (__n-- && !(__it == __end))
+            ++__it;
+    }
+      
+    // uses transfer_node to merge in list by transfering nodes to list
+    void _C_adjacent_merge (iterator, iterator, iterator);
+
+#ifndef _RWSTD_NO_MEMBER_TEMPLATES
+
+    // uses transfer_node to merge in list by transfering nodes to list
+    template<class _Compare>
+    void _C_adjacent_merge (iterator, iterator, iterator, _Compare);
+
+#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
+
+    void _C_adjacent_merge (iterator, iterator, iterator,
+                           bool (*)(const_reference, const_reference));
+
+#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+      
+    void _C_insert (iterator __it, size_type __n, const_reference __x) {
+        _RWSTD_ASSERT_RANGE (begin (), __it);
+
+        while (__n--)
+            insert (__it, __x);
+    }
+
+public:
+
+    // 23.2.2.4, p4
+    void splice (iterator, list&);
+
+    // 23.2.2.4, p7
+    void splice (iterator, list&, iterator);
+
+    // 23.2.2.4, p11
+    void splice (iterator, list&, iterator, iterator);
+
+    void remove (const_reference);
+
+    void unique ();
+
+    void merge (list&);
+
+    void reverse ();
+
+    void sort ();
+
+#ifndef _RWSTD_NO_MEMBER_TEMPLATES
+
+    template<class _Predicate>
+    void remove_if (_Predicate);
+
+    template<class _BinaryPredicate>
+    void unique (_BinaryPredicate);
+
+    template<class _Compare>
+    void merge (list &__x, _Compare);
+
+    template<class _Compare>
+    void sort (_Compare);
+
+#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
+
+    void remove_if (bool (*)(const_reference));
+
+    void unique (bool (*)(const_reference, const_reference));
+
+    void merge (list &__x, bool (*)(const_reference, const_reference));
+
+    void sort (bool (*)(const_reference, const_reference));
+
+#endif // _RWSTD_NO_MEMBER_TEMPLATES
+
+};
+
+
+template <class _TypeT, class _Allocator>
+inline bool
+operator== (const list<_TypeT, _Allocator>& __x, 
+            const list<_TypeT, _Allocator>& __y)
+{
+    return    __x.size () == __y.size ()
+           && equal (__x.begin (), __x.end (), __y.begin ());
+}
+
+
+template <class _TypeT, class _Allocator>
+inline bool
+operator< (const list<_TypeT, _Allocator>& __x, 
+           const list<_TypeT, _Allocator>& __y)
+{
+    return lexicographical_compare (__x.begin (), __x.end (), 
+                                    __y.begin (), __y.end ());
+}
+
+
+template <class _TypeT, class _Allocator>
+inline bool
+operator!= (const list<_TypeT, _Allocator>& __x, 
+            const list<_TypeT, _Allocator>& __y)
+{
+    return !(__x == __y);
+}
+
+
+template <class _TypeT, class _Allocator>
+inline bool
+operator<= (const list<_TypeT, _Allocator>& __x, 
+            const list<_TypeT, _Allocator>& __y)
+{
+    return !(__y < __x);
+}
+
+
+template <class _TypeT, class _Allocator>
+inline bool
+operator> (const list<_TypeT, _Allocator>& __x, 
+            const list<_TypeT, _Allocator>& __y)
+{
+    return __y < __x;
+}
+
+
+template <class _TypeT, class _Allocator>
+inline bool
+operator>= (const list<_TypeT, _Allocator>& __x, 
+            const list<_TypeT, _Allocator>& __y)
+{
+    return !(__x < __y);
+}
+
+
+#ifndef _RWSTD_NO_PART_SPEC_OVERLOAD
+
+template <class _TypeT, class _Allocator>
+inline void swap (list<_TypeT, _Allocator>& __x, 
+                  list<_TypeT, _Allocator>& __y)
+{
+    __x.swap (__y);
+}
+
+#endif   // _RWSTD_NO_PART_SPEC_OVERLOAD
+
+
+template <class _TypeT, class _Allocator>
+inline _TYPENAME list<_TypeT, _Allocator>::iterator 
+list<_TypeT, _Allocator>::insert (iterator __it, const_reference __x)
+{
+    _RWSTD_ASSERT_RANGE (begin (), __it);
+
+    // create temporary allocator for non-conforming compilers
+    //  which need to use allocator_interface
+    _C_link_type __tmp = _C_get_node (false);
+
+    _TRY {
+        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
+                            construct (_RWSTD_VALUE_ALLOC
+                                       (_C_value_alloc_type, *this,
+                                        address ((*__tmp)._C_data)), __x));
+    }
+    _CATCH (...) {
+        _C_put_node (__tmp);
+        _RETHROW;
+    }
+
+    (*__tmp)._C_next = _ITER_NODE (__it);
+    (*__tmp)._C_prev = (*_ITER_NODE (__it))._C_prev;
+
+    (*(_C_link_type ((*_ITER_NODE (__it))._C_prev)))._C_next = __tmp;
+
+    (*_ITER_NODE (__it))._C_prev = __tmp;
+
+    ++_C_length;
+
+    return _C_make_iter (__tmp);
+}
+
+
+template <class _TypeT, class _Allocator>
+inline _TYPENAME list<_TypeT, _Allocator>::iterator 
+list<_TypeT, _Allocator>::erase (iterator __it)
+{
+    _RWSTD_ASSERT_RANGE (begin (), __it);
+
+    if (__it == end ())
+        return end ();
+
+    iterator __tmp =
+        _C_make_iter (_C_link_type ((*_ITER_NODE (__it))._C_next));
+
+    (*(_C_link_type ((*_ITER_NODE (__it))._C_prev)))._C_next =
+        (*_ITER_NODE (__it))._C_next;
+    (*(_C_link_type ((*_ITER_NODE (__it))._C_next)))._C_prev =
+        (*_ITER_NODE (__it))._C_prev;
+
+    --_C_length;
+
+    _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
+                        destroy (_RWSTD_VALUE_ALLOC (_C_value_alloc_type,
+                            *this, address ((*_ITER_NODE (__it))._C_data))));
+    _C_put_node (_ITER_NODE (__it));
+
+    return __tmp;
+}
+
+
+template <class _TypeT, class _Allocator>
+inline void
+list<_TypeT, _Allocator>::swap (list &__x)
+{
+    if (get_allocator () == __x.get_allocator ()) {
+        _STD::swap (_C_node, __x._C_node); 
+        _STD::swap (_C_length, __x._C_length);
+
+        _RWSTD_NODE_LIST_SWAP(__x);
+
+        _STD::swap (_C_next_avail, __x._C_next_avail);
+        _STD::swap (_C_last, __x._C_last);
+    }
+    else {
+        list &__tmp = *this;
+        *this = __x;
+        __x = __tmp;
+    }
+}
+
+}   // namespace std
+
+
+#ifdef _RWSTD_NO_IMPLICIT_INCLUSION
+#  include <list.cc>
+#endif
+
+
+#ifndef _RWSTD_NO_STL_SPECIALIZATION
+#  include "list_spec.h"
+#endif   // _RWSTD_NO_STL_SPECIALIZATION
+
+
+#endif   //_RWSTD_LIST_INCLUDED

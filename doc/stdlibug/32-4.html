@@ -1,0 +1,73 @@
+<HTML>
+<HEAD>
+<TITLE>Improved Extractors and Inserters</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="32-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="32-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>32.4 Improved Extractors and Inserters</H2>
+<A NAME="idx784"><!></A>
+<P>The format of dates depends on local and cultural conventions. Naturally, we want our extractor and inserter to parse and format the date according to such conventions. To add this functionality to them, we use the time facet contained in the respective stream's locale as follows:</P>
+
+<UL><PRE>
+template&lt;class charT, class Traits&gt;
+std::basic_istream&lt;charT, Traits&gt;&amp;
+operator &gt;&gt; (std::basic_istream&lt;charT, Traits &gt;&amp; is, date&amp; dat)
+{
+ std::ios_base::iostate err = 0;
+ 
+ std::use_facet&lt;std::time_get&lt;charT,Traits&gt; &gt;                 //1
+   (is.getloc())
+   .get_date(is, std::istreambuf_iterator&lt;charT,Traits&gt;(),    //2
+             is, err, &amp;dat.tm_date);                          //3
+
+ return is;
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<A NAME="idx785"><!></A>
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Use the <SAMP>std::time_get</SAMP> facet of the input stream's locale to handle parsing of dates according to cultural conventions defined by the locale. The locale in question is obtained through the stream's <SAMP>getloc()</SAMP> member function. Its <SAMP>std::time_get</SAMP> facet is accessed through a call to the function template <SAMP>std::use_facet&lt;...&gt;()</SAMP>. The type argument to the <SAMP>use_facet()</SAMP> function template is the facet type. (See the chapter on internationalization for more details on locales and facets.).
+<A NAME="idx786"><!></A>
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The facet's member function <SAMP>get_date()</SAMP> is called. It takes a number of arguments, including:
+<BR><BR><I>A range of input iterators. </I>For the sake of performance and efficiency, facets directly operate on a stream's buffer. They access the stream buffer through stream buffer iterators. (See <A HREF="43.html">Chapter&nbsp;43, "Stream&nbsp;Iterators."</A>) Following the philosophy of iterators in the Standard C++ Library, we must provide a range of iterators. The range extends from the iterator pointing to the first character to be accessed, to the character past the last character to be accessed (the <I>past-the-end-position</I>). 
+<BR><BR>The beginning of the input sequence is provided as a reference to the stream. The <SAMP>std::istreambuf_iterator</SAMP> class template has a constructor taking a reference to an input stream. Therefore, the reference to the stream is automatically converted into an <SAMP>istreambuf_iterator</SAMP> that points to the current position in the stream. As end of the input sequence, an end-of-stream iterator is provided. It is created by the default constructor of <SAMP>istreambuf_iterator</SAMP>. With these two stream buffer iterators, the input is parsed from the current position in the input stream until a date or an invalid character is found, or the end of the input stream is reached. 
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>The other parameters are:
+<BR><BR><I>Formatting flags. </I>A reference to the <SAMP>ios_base</SAMP> part of the stream object is provided here, so that the facet can use the stream's formatting information through the stream's members <SAMP>flags()</SAMP>, <SAMP>precision()</SAMP>, and <SAMP>width()</SAMP>.
+<BR><BR><I>An iostream state</I>. It is used for reporting errors while parsing the date.
+<BR><BR><I>A pointer to a time object</I>. It must be a pointer to an object of type <SAMP>std::tm</SAMP>, which is the time structure defined by the C library. Our date class maintains such a time structure, so we hand over a pointer to the respective data member <SAMP>tm_date</SAMP>.
+</TABLE>
+<A NAME="idx787"><!></A>
+<P>The inserter is built analogously:</P>
+
+<UL><PRE>
+template&lt;class charT, class Traits&gt;
+std::basic_ostream&lt;charT, Traits&gt;&amp; operator &lt;&lt;
+ (std::basic_ostream&lt;charT, Traits &gt;&amp; os, const date&amp; dat)
+{
+ std::use_facet
+  &lt;std::time_put&lt;charT,ostreambuf_iterator&lt;charT,Traits&gt; &gt; &gt; //1
+   os.getloc())
+   .put(os,os,os.fill(),&amp;dat.tm_date,'x');                    //2
+ return os;
+}
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<A NAME="idx788"><!></A>
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Here we use the <SAMP>time_put</SAMP> facet of the stream's locale to handle formatting of dates.
+<A NAME="idx789"><!></A>
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The facet's <SAMP>put()</SAMP> function takes the following arguments:
+<BR><BR><I>An output iterator</I>. We use the automatic conversion from a reference to an object of type <SAMP>ostreambuf_iterator&lt;charT,Traits&gt;</SAMP>. This way the output is inserted into the output stream, starting at the current write position.
+<BR><BR><I>The formatting flags</I>. Again we provide a reference to the <SAMP>ios_base</SAMP> part of the stream to be used by the facet for retrieving the stream's formatting information.
+<BR><BR><I>The fill character</I>. We would use the stream's fill character here. Naturally, we could use any other fill character; however, the stream's settings are normally preferred.
+<BR><BR><I>A pointer to a time structure</I>. This structure is filled with the result of the parsing.
+<BR><BR><I>A format specifier</I>. This can be a character, like <SAMP>'x'</SAMP> in our example here, or alternatively, a character sequence containing format specifiers, each consisting of a <SAMP>%</SAMP> followed by a character. An example of such a format specifier string is <SAMP>"%A, %B %d, %Y"</SAMP>. It has the same effect as the format specifiers for the <SAMP>strftime()</SAMP> function in the C library; it produces a date like: <SAMP>Tuesday, June 11, 1996</SAMP>. We don't use a format specifier string here, but simply the character <SAMP>'x'</SAMP>, which specifies that the locale's appropriate date representation shall be used.
+</TABLE>
+<P>Note how these versions of the inserter and extractor differ from previous simple versions: we no longer rely on existing inserters and extractors for built-in types, as we did when we used <SAMP>operator&lt;&lt;(int)</SAMP> to insert the <SAMP>date</SAMP> object's data members individually. Instead, we use a low-level service like the <SAMP>time</SAMP> facet's <SAMP>get_date()</SAMP> service. The consequence is that we give away all the functionality that high-level services like the inserters and extractors already provide, such as format control, error handling, etc.</P>
+<P>The same happens if you decide to access the stream's buffer directly, perhaps for optimizing your program's runtime efficiency. The stream buffer's services, too, are low-level services that leave to you the tasks of format control, error handling, etc.</P>
+<P>In the following sections, we explain how you can improve and complete your inserter or extractor if it directly uses low-level components like locales or stream buffers.</P>
+
+<BR>
+<HR>
+<A HREF="32-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="32-5.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

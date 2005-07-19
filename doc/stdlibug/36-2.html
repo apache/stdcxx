@@ -1,0 +1,29 @@
+<HTML>
+<HEAD>
+<TITLE>An Example: Storing a Date Format String</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="36-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="36-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>36.2 An Example: Storing a Date Format String</H2>
+<P>Consider the inserter and extractor we defined for a date class in <A HREF="32-3.html">Section&nbsp;32.3</A>. The input and output operations were internationalized and relayed the task of date formatting and parsing to the stream object's locale. Here, however, the rules for formatting and parsing were fixed, making them much more restricted than the features available in the Standard C Library, for example. </P>
+<A NAME="idx887"><!></A>
+<P>In the Standard C Library, you can specify format strings, similar to those for <SAMP>printf()</SAMP> and <SAMP>scanf()</SAMP>, that describe the rules for parsing and formatting dates. (See the POSIX functions <SAMP>strftime()</SAMP>, <SAMP>strptime()</SAMP>, and <SAMP>wcsftime()</SAMP> for reference.) For example, the format string <SAMP>"%A, %B %d, %Y"</SAMP> stands for the rule that a date must consist of the name of the weekday, the name of the month, the day of the month, and the year -- as in Friday, July 12, 1996 in the C or POSIX locales. </P>
+<A NAME="idx888"><!></A>
+<P>Now imagine you want to improve the input and output operations for the date class by allowing specification of such format strings. How can you do this? Other format information is stored in the stream object's format state; consequently, you may want to store the format string for dates somewhere in the stream as well. And indeed, you can.</P>
+<P>Each stream object maintains two dynamically sized arrays:  an array of elements of type <SAMP>long</SAMP>, and an array of elements of type<SAMP> void*</SAMP>.  The arrays are exposed via two members of the <SAMP>std::ios_base</SAMP> class.  The memory occupied by the arrays (but not necessarily the memory the <SAMP>void*</SAMP> elements point to) is managed by the stream objects.  It is allocated and reallocated as needed and deallocated when each object is destroyed.</P>
+<P>You can use the arrays to store in a stream object whatever additional information you might need. In our example, we would want to store the format string.</P>
+<A NAME="idx889"><!></A>
+<P>The functions that allow access to the arrays are  <SAMP>std::ios_base::iword()</SAMP> and <SAMP>std::ios_base::pword()</SAMP>. Both functions take an index to an array element and return a reference to the respective element.</P>
+
+<A NAME="idx890"><!></A>
+<UL><PRE>
+int std::ios_base::xalloc();
+long&amp; std::ios_base::iword (int index);
+void*&amp; std::ios_base::pword (int index);
+</PRE></UL>
+<P>The static member function <SAMP>std::ios_base::xalloc()</SAMP> returns a unique index that can be used in subsequent calls to <SAMP>iword()</SAMP> and <SAMP>pword()</SAMP>.  Note that since the functions may need to grow the internal array to accomodate the index, using indices with large magnitude will lead to large amounts of memory being allocated.</P>
+
+<BR>
+<HR>
+<A HREF="36-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="36-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

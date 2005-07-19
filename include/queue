@@ -1,0 +1,254 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * queue - declarations of the C++ Standard Library queue
+ *         and priority_queue class templates
+ *
+ * $Id: //stdlib/dev/include/queue#20 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994
+ * Hewlett-Packard Company
+ *
+ * Permission to use, copy, modify, distribute and sell this software
+ * and its documentation for any purpose is hereby granted without fee,
+ * provided that the above copyright notice appear in all copies and
+ * that both that copyright notice and this permission notice appear
+ * in supporting documentation.  Hewlett-Packard Company makes no
+ * representations about the suitability of this software for any
+ * purpose.  It is provided "as is" without express or implied warranty.
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_QUEUE_INCLUDED
+#define _RWSTD_QUEUE_INCLUDED
+
+#include <deque>
+#include <functional>
+#include <vector>
+
+#include <rw/_heap.h>
+#include <rw/_defs.h>
+
+
+_RWSTD_NAMESPACE (std) {
+
+template <class _TypeT,
+          class _Container _RWSTD_COMPLEX_DEFAULT (deque<_TypeT>) >
+class queue;
+
+template <class _TypeT, class _Container>
+inline bool operator== (const queue<_TypeT, _Container>&,
+                        const queue<_TypeT, _Container>&);
+
+template <class _TypeT, class _Container>
+inline bool operator< (const queue<_TypeT, _Container>&,
+                       const queue<_TypeT, _Container>&);
+
+template <class _TypeT, class _Container>
+class queue
+{
+    friend bool _RWSTD_SPECIALIZED_FRIEND (operator==)
+        (const queue&, const queue&);
+
+    friend bool _RWSTD_SPECIALIZED_FRIEND (operator<)
+        (const queue&, const queue&);
+
+public:
+
+    typedef _Container                                container_type;
+    typedef _TYPENAME container_type::value_type      value_type;
+    typedef _TYPENAME container_type::size_type       size_type;
+    // lwg issue 307: additional typedefs
+    typedef _TYPENAME container_type::reference       reference;
+    typedef _TYPENAME container_type::const_reference const_reference;
+
+protected:
+
+    container_type c;
+
+public:
+
+    _EXPLICIT
+    queue (const container_type &__c = container_type ())
+        : c (__c) { }
+
+    bool empty () const {
+        return c.empty ();
+    }
+
+    size_type size () const {
+        return c.size ();
+    }
+
+    // lwg issue 307: return reference instead of value_type&
+    reference front () {
+        return c.front ();
+    }
+
+    // lwg issue 307: return const_reference instead of const value_type&
+    const_reference front () const {
+        return c.front ();
+    }
+
+    // lwg issue 307: return reference instead of value_type&
+    reference back () {
+        return c.back ();
+    }
+
+    // lwg issue 307: return const_reference instead of const value_type&
+    const_reference back () const {
+        return c.back ();
+    }
+
+    void push (const value_type &__x) {
+        c.push_back (__x);
+    }
+
+    void pop () {
+        c.pop_front ();
+    }
+};
+
+template <class _TypeT, class _Container>
+inline bool operator== (const queue<_TypeT, _Container> &__x,
+                        const queue<_TypeT, _Container> &__y)
+{
+    return __x.c == __y.c;
+}
+
+template <class _TypeT, class _Container>
+inline bool operator< (const queue<_TypeT, _Container> &__x,
+                       const queue<_TypeT, _Container> &__y)
+{
+    return __x.c < __y.c;
+}
+
+template <class _TypeT, class _Container>
+inline bool operator!= (const queue<_TypeT, _Container> &__x,
+                        const queue<_TypeT, _Container> &__y)
+{
+    return !(__x == __y);
+}
+
+template <class _TypeT, class _Container>
+inline bool operator> (const queue<_TypeT, _Container> &__x,
+                       const queue<_TypeT, _Container> &__y)
+{
+    return __y < __x;
+}
+
+template <class _TypeT, class _Container>
+inline bool operator>= (const queue<_TypeT, _Container> &__x,
+                        const queue<_TypeT, _Container> &__y)
+{
+    return !(__x < __y);
+}
+
+template <class _TypeT, class _Container>
+inline bool operator<= (const queue<_TypeT, _Container> &__x,
+                        const queue<_TypeT, _Container> &__y)
+{
+    return !(__y <  __x);
+}
+
+
+#ifndef _RWSTD_NO_COMPLEX_DEFAULT_TEMPLATES
+
+template<class _TypeT,
+         class _Container = vector<_TypeT>,
+         class _Compare = less<_TYPENAME _Container::value_type> >
+#else   // if defined (_RWSTD_NO_COMPLEX_DEFAULT_TEMPLATES)
+template <class _TypeT, class _Container, class _Compare>
+#endif   // _RWSTD_NO_COMPLEX_DEFAULT_TEMPLATES
+class priority_queue
+{
+public:
+
+    typedef _Container                                container_type;
+    typedef _TYPENAME container_type::value_type      value_type;
+    typedef _TYPENAME container_type::size_type       size_type;
+    // lwg issue 307: additional typedefs
+    typedef _TYPENAME container_type::reference       reference;
+    typedef _TYPENAME container_type::const_reference const_reference;
+
+protected:
+
+    container_type c;
+    _Compare       comp;
+
+public:
+
+    _EXPLICIT
+    priority_queue (const _Compare       &__cmp = _Compare (),
+                    const container_type &__c   = container_type ())
+        : c (__c), comp (__cmp) {
+            _STD::make_heap (c.begin (), c.end (), comp);
+    }
+
+#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    template <class _InputIter>
+    priority_queue (_InputIter __first, _InputIter __last,
+                    const _Compare   &__cmp = _Compare (),
+                    const _Container &__c   = container_type ())
+        : c (__c), comp (__cmp)  {
+            c.insert (c.end (), __first, __last);
+            _STD::make_heap (c.begin (), c.end (), comp);
+        }
+
+#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+
+    priority_queue (_TYPENAME _Container::const_iterator __first,
+                    _TYPENAME _Container::const_iterator __last,
+                    const _Compare   &__cmp = _Compare (),
+                    const _Container &__c   = container_type ())
+        : c (__c), comp (__cmp) {
+            c.insert (c.end (), __first, __last);
+            _STD::make_heap (c.begin (), c.end (), comp);
+        }
+
+#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    bool empty () const {
+        return c.empty ();
+    }
+
+    size_type size () const {
+        return c.size ();
+    }
+
+    const_reference top () const {
+        return c.front ();
+    }
+
+    void push (const value_type &__x) {
+        c.push_back (__x);
+        _STD::push_heap (c.begin (), c.end (), comp);
+    }
+
+    void pop () {
+        _STD::pop_heap (c.begin (), c.end (), comp);
+        c.pop_back ();
+    }
+};
+
+
+}   // namespace std
+
+
+#endif   // _RWSTD_QUEUE_INCLUDED

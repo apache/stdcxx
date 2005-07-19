@@ -1,0 +1,466 @@
+<HTML>
+<HEAD>
+<TITLE>Format Control Using the Stream's Format State</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="28-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="28-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>28.3 Format Control Using the Stream's Format State</H2>
+<A NAME="idx700"><!></A>
+<A NAME="idx701"><!></A>
+<A NAME="2831"><H3>28.3.1 Format Parameters</H3></A>
+<A NAME="idx702"><!></A>
+<P>Associated with each stream are a number of <I>format state variables </I>that control the details of formatting and parsing. Format state variables are classes inherited from a stream's base class, either <B><I><A HREF="../stdlibref/ios-base.html">ios_base</A></I></B> or the class template <B><I><A HREF="../stdlibref/basic-ios.html">basic_ios</A></I></B>. There are two kinds of format parameters: those that can have an arbitrary value, and those that can have only a few different values.</P>
+<A NAME="2831-1"><H4>28.3.1.1 Parameters That Can Have an Arbitrary Value</H4></A>
+<A NAME="idx703"><!></A>
+<P>The value is stored as a private data member in one of the base classes, and set and retrieved through public member functions inherited from that base class. There are three such parameters, described in <A HREF="28-3.html#Table&nbsp;27">Table&nbsp;27</A>:</P>
+<A NAME="idx704"><!></A>
+<H4><A NAME="Table&nbsp;27">Table&nbsp;27: Format parameters with arbitrary values</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B><B>Access function</B></B>
+</td><td valign=top><B><B>Defined in </B></B>
+<B><B>base class</B></B>
+</td><td valign=top><B><B>Effect</B></B>
+</td><td valign=top><B><B>Default</B></B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>width()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><B><I><A HREF="../stdlibref/ios-base.html">ios_base</A></I></B></P>
+</td><td valign=top><P CLASS="TABLE">Minimal field width</P>
+</td><td valign=top><P CLASS="TABLE">0</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>precision()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><B><I><A HREF="../stdlibref/ios-base.html">ios_base</A></I></B></P>
+</td><td valign=top><P CLASS="TABLE">Precision of floating point values</P>
+</td><td valign=top><P CLASS="TABLE">6</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fill()</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><B><I><A HREF="../stdlibref/basic-ios.html">basic_ios</A></I></B></P>
+</td><td valign=top><P CLASS="TABLE">Fill character for padding</P>
+</td><td valign=top><P CLASS="TABLE">The space character</P>
+</td></tr>
+</TABLE>
+<A NAME="2831-2"><H4>28.3.1.2 Parameters That Can Have Only a Few Different Values</H4></A>
+<A NAME="idx705"><!></A>
+<P>Typically, these would have just two or three different values. These parameters are represented by one or more bits in a data member of type <SAMP>std::iosbase::fmtflags</SAMP> in class <B><I><A HREF="../stdlibref/ios-base.html">ios_base</A></I></B>. These are usually called <I>format flags</I>. You can set format flags using the <SAMP>setf()</SAMP> function in class <B><I>ios_base</I></B>, clear them using <SAMP>unsetf()</SAMP>, and retrieve them through the <SAMP>flags()</SAMP> function.</P>
+<A NAME="idx706"><!></A>
+<P>Some format flags are grouped because they are mutually exclusive; for example, output within an output field can be adjusted to the left or to the right, or to an internally specified adjustment. One and only one of the corresponding three format flags, <SAMP>left</SAMP>, <SAMP>right</SAMP>, or <SAMP>internal</SAMP>, can be set. (Iostreams does not prevent you from setting other invalid combinations of these flags, however.) If you want to set one of these bits to <SAMP>1</SAMP>, you need to set the other two to <SAMP>0</SAMP>. To make this easier, there are <I>bit groups</I> whose main function is to reset all bits in one group. The bit group for adjustment is <SAMP>adjustfield</SAMP>, defined as <SAMP>left | right | internal</SAMP>. </P>
+<P><A HREF="28-3.html#Table&nbsp;28">Table&nbsp;28</A> gives an overview of all format flags and their effects on input and output operators. (For details on how the format flags affect input and output operations, see the <I>Standard C++ Library Module Reference Guide</I> entry for <B><I><A HREF="../stdlibref/ios-base.html">ios_base</A></I></B>.) The first column below<I>, format flag</I>, lists the flag names; for example, <SAMP>showpos</SAMP> stands for <SAMP>std::ios_base::showpos</SAMP>. The<I> group</I> column lists the name of the group for flags that are mutually exclusive. The third column gives a brief description of the effect of setting the flag. The <I>stdio</I> column refers to format characters used by the C functions <SAMP>scanf()</SAMP> or <SAMP>printf()</SAMP> that have the same or similar effect. The last column, <I>default</I>, lists the setting that is used if you do not explicitly set the flag.</P>
+<A NAME="idx707"><!></A>
+<H4><A NAME="Table&nbsp;28">Table&nbsp;28: Flags and their effects on operators&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B><B>Format flag</B></B>
+</td><td valign=top><B><B>Group</B></B>
+</td><td valign=top><B><B>Effect</B></B>
+</td><td valign=top><B><B>stdio </B></B>
+</td><td valign=top><B>Default</B>
+</td></tr>
+<tr><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE"><SAMP>adjustfield</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Adds fill characters to certain generated output for adjustment:</P>
+</td><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE"><SAMP>left</SAMP></P>
+<P CLASS="TABLE">(no bits  set)</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>left</SAMP></P>
+</td><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE">left</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>-</SAMP></P>
+</td><td valign=top>&nbsp;
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>right</SAMP></P>
+</td><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE">right</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P>
+</td><td valign=top>&nbsp;
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>internal</SAMP></P>
+</td><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE">Adds fill characters at designated internal point</P>
+</td><td valign=top><P CLASS="TABLE">none</P>
+</td><td valign=top>&nbsp;
+</td></tr>
+<tr><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE"><SAMP>basefield</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Converts integer input or generates integer output in:</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>%i</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>dec</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>dec</SAMP></P>
+</td><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE">decimal base</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>%d,%u</SAMP></P>
+</td><td valign=top>&nbsp;
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>oct</SAMP></P>
+</td><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE">octal base</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>%o,%O</SAMP></P>
+</td><td valign=top>&nbsp;
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>hex</SAMP></P>
+</td><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE">hexadecimal base</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>%x,%X</SAMP></P>
+</td><td valign=top>&nbsp;
+</td></tr>
+<tr><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE"><SAMP>floatfield</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Generates floating point output:</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>%g,%G</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>fixed</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fixed</SAMP></P>
+</td><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE">in fixed-point notation</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>%f</SAMP></P>
+</td><td valign=top>&nbsp;
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>scientific</SAMP></P>
+</td><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE">in scientific notation</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>%e,%E</SAMP></P>
+</td><td valign=top>&nbsp;
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>boolalpha</SAMP></P>
+</td><td valign=top colspan=1 rowspan=7>&nbsp;
+</td><td valign=top><P CLASS="TABLE">Inserts and extracts <SAMP>bool</SAMP> values in alphabetic format</P>
+</td><td valign=top>&nbsp;
+</td><td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>showpos</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Generates a <SAMP>+</SAMP> sign in non-negative generated numeric output</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>+</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>showpoint</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Always generates a decimal-point in generated floating-point output</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>.n</SAMP></P>
+<P CLASS="TABLE">(n indicates number of decimals)</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>showbase</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Generates a prefix indicating the numeric base of a generated integer output</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>#</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>skipws</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Skips leading white space before certain input operations</P>
+</td><td valign=top><P CLASS="TABLE">none</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>1</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>unitbuf</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Flushes output after each formatting operation</P>
+</td><td valign=top><P CLASS="TABLE">none</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>uppercase</SAMP> </P>
+</td><td valign=top><P CLASS="TABLE">Replaces certain lowercase letters with their uppercase equivalents in generated output</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>%X</SAMP></P>
+<P CLASS="TABLE"><SAMP>%E</SAMP></P>
+<P CLASS="TABLE"><SAMP>%G</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P>
+</td></tr>
+</TABLE>
+<A NAME="idx708"><!></A>
+<P>The effect of setting a format parameter is usually permanent; that is, the parameter setting is in effect until the setting is explicitly changed. The only exception to this rule is the field width. The width is automatically reset to its default value, <SAMP>0</SAMP>, after each input or output operation that uses the field width. Here is an example:</P>
+
+<UL><PRE>
+int i; char* s[11];
+std::cin  &gt;&gt; setw(10) &gt;&gt; i &gt;&gt; s;                              //1
+std::cout &lt;&lt; setw(10) &lt;&lt; i &lt;&lt; s;                              //2
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Extracting an integer is independent of the specified field width. The extractor for integers always reads as many digits as belong to the integer. As extraction of integers does not use the field width setting, the field width of <SAMP>10</SAMP> is still in effect when a character sequence is subsequently extracted. At most 10 characters are extracted in this case. After the extraction, the field width is reset to <SAMP>0</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The inserter for integers uses the specified field width and fills the field with padding characters if necessary. After the insertion, it resets the field width to <SAMP>0</SAMP>. Hence, the subsequent insertion of the string does not fill the field with padding characters for a string with less than 10 characters.
+</TABLE>
+<BLOCKQUOTE><HR><B>
+NOTE -- With the exception of the field width, all format parameter settings are permanent. The field width parameter is reset after each use.
+</B><HR></BLOCKQUOTE>
+<A NAME="idx709"><!></A>
+<P>The following code sample shows how you can control formatting by using some of the parameters:</P>
+
+<UL><PRE>
+#include &lt;iostream&gt;
+
+// ...
+std::ios_base::fmtflags original_flags = std::cout.flags();   //1
+std::cout&lt;&lt; 812&lt;&lt;'|';
+std::cout.setf(std::ios_base::left,
+               std::ios_base::adjustfield);                   //2
+std::cout.width(10);                                          //3
+std::cout &lt;&lt; 813 &lt;&lt; 815 &lt;&lt; '\n';
+std::cout.unsetf(ios_base::adjustfield);                      //4
+std::cout.precision(2);
+std::cout.setf(std::ios_base::uppercase |
+      std::ios_base::scientific);                             //5
+std::cout &lt;&lt; 831.0 &lt;&lt; ` ` &lt;&lt; 8e2;
+std::cout.flags(original_flags);                              //6
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Store the current format flag setting, in order to restore it later on.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Change the adjustment from the default setting <SAMP>right</SAMP> to <SAMP>left</SAMP>.
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Set the field width from its default <SAMP>0</SAMP> to <SAMP>10</SAMP>. A field width of <SAMP>0</SAMP> means that no padding characters are inserted, and this is the default behavior of all insertions.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>Clear the adjustment flags.
+<TR VALIGN="top"><TD><SAMP>//5</SAMP></TD><TD>Change the precision for floating-point values from its default <SAMP>6</SAMP> to <SAMP>2</SAMP>, and set yet another couple of format flags that affect floating-point values.
+<TR VALIGN="top"><TD><SAMP>//6</SAMP></TD><TD>Restore the original flags.
+</TABLE>
+<P>The output is:</P>
+
+<UL><PRE>
+812|813       815
+8.31E+02 8.00E+02
+</PRE></UL>
+<A NAME="idx710"><!></A>
+<A NAME="2832"><H3>28.3.2 Manipulators</H3></A>
+<A NAME="idx711"><!></A>
+<P>Format control requires calling a stream's member functions. Each such call interrupts the respective shift expression. But what if you need to change formats within a shift expression? This is possible in iostreams. In the preceding example, instead of writing:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; 812 &lt;&lt; '|';
+std::cout.setf(std::ios_base::left, std::ios_base::adjustfield);
+std::cout.width(10);
+std::cout &lt;&lt; 813 &lt;&lt; 815 &lt;&lt; '\n';
+</PRE></UL>
+<P>you can write:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; 812 &lt;&lt; '|' &lt;&lt; std::left &lt;&lt; std::setw(10) &lt;&lt; 813 &lt;&lt; 815
+          &lt;&lt; std::endl;
+</PRE></UL>
+<A NAME="idx712"><!></A>
+<P>In this example, objects like <SAMP>left</SAMP>, <SAMP>setw</SAMP>, and <SAMP>endl</SAMP> are called <I>manipulators</I>. There are overloaded versions of the insertion and extraction operators for manipulators, so that manipulators can be extracted from or inserted into a stream together with other objects that have the shift operators defined. (<A HREF="28-3.html#2832">Section&nbsp;28.3.2</A> explains in greater detail how manipulators work and how you can implement your own manipulators.)</P>
+<A NAME="idx713"><!></A>
+<P>The effect of a manipulator need not be an actual input to or output from the stream. Most manipulators set just one of the above described format flags, or do some other kind of stream manipulation. For example, an expression like:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; std::left;
+</PRE></UL>
+<P>is equivalent to: </P>
+
+<UL><PRE>
+std::cout.setf (std::ios_base::left, std::ios_base::adjustfield);
+</PRE></UL>
+<P>Nothing is inserted into the stream. The only effect is that the format flag for adjusting the output to the left is set.</P>
+<A NAME="idx714"><!></A>
+<P>On the other hand, the manipulator <SAMP>std::endl</SAMP> inserts the newline character to the stream, and flushes to the underlying stream buffer. The expression:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; std::endl; 
+</PRE></UL>
+<P>is equivalent to: </P>
+
+<UL><PRE>
+(std::cout &lt;&lt; '\n').flush();
+</PRE></UL>
+<A NAME="idx715"><!></A>
+<P>Some manipulators take arguments, like <SAMP>std::setw(int)</SAMP>. The<SAMP> setw </SAMP>manipulator sets the field width. The expression:</P>
+
+<UL><PRE>
+std::cout &lt;&lt; std::setw(10);
+</PRE></UL>
+<P>is equivalent to: </P>
+
+<UL><PRE>
+std::cout.width(10);
+</PRE></UL>
+<P>In general, you can think of a manipulator as an object you can insert into or extract from a stream, in order to manipulate that stream. Some manipulators can be applied only to output streams, others only to input streams. Most manipulators change format bits only in one of the stream base classes, <B><I><A HREF="../stdlibref/ios-base.html">ios_base</A></I></B> or <B><I><A HREF="../stdlibref/basic-ios.html">basic_ios</A></I></B>. These can be applied to input and output streams.</P>
+<P><A HREF="28-3.html#Table&nbsp;29">Table&nbsp;29</A> gives an overview of all manipulators defined by iostreams. The first column, <B>Manipulator</B>, lists its name. All manipulators are defined in the namespace <SAMP>::std</SAMP>. The second column, <B>Use</B>, indicates whether the manipulator is intended to be used with istreams (<SAMP>i</SAMP>), ostreams (<SAMP>o</SAMP>), or both (<SAMP>io</SAMP>). The third column, <B>Effect</B>, summarizes the effect of the manipulator. The last column, <B>Equivalent</B>, lists the corresponding call to the stream's member function.</P>
+<A NAME="idx716"><!></A>
+<P>Note that the second column indicates only the <I>intended</I> use of a manipulator. In many cases, it is possible to apply an output manipulator to an input stream, and vice versa. Generally, this kind of non-intended manipulation is harmless in that it has no effect. For instance, if you apply the output manipulator <SAMP>showpoint</SAMP> to an input stream, the manipulation is simply ignored. However, if you use an output manipulator on a bidirectional stream during input, the manipulation does not affect current input operations, but subsequent output operations.</P>
+<A NAME="idx717"><!></A>
+<H4><A NAME="Table&nbsp;29">Table&nbsp;29: Manipulators&nbsp;</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B><B>Manipulator</B></B>
+</td><td valign=top><B><B>Use</B></B>
+</td><td valign=top><B><B>Effect</B></B>
+</td><td valign=top><B><B>Equivalent</B></B>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>boolalpha</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Puts <SAMP>bool</SAMP> values in alphabetic format</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io.setf(ios_base::boolalpha)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>dec</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Converts integers to/from decimal notation</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io.setf(ios_base::dec,</SAMP></P>
+<P CLASS="TABLE"><SAMP>  ios_base::basefield)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>endl</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Inserts newline and flushes buffer</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.put(o.widen('\n'));</SAMP></P>
+<P CLASS="TABLE"><SAMP>  o.flush()</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ends</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Inserts end of string character</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.put(o.widen('\0'))</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>fixed</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Puts floating point values in fixed-point notation</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.setf(ios_base::fixed,</SAMP></P>
+<P CLASS="TABLE"><SAMP>  ios_base::floatfield)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>flush</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Flushes stream buffer</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.flush()</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>hex</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Converts integers to/from hexadecimal notation</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io.setf(ios_base::hex,</SAMP></P>
+<P CLASS="TABLE"><SAMP>  ios_base::basefield)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>internal</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Adds fill characters at a designated internal point</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.setf(ios_base::internal,</SAMP></P>
+<P CLASS="TABLE"><SAMP>  ios_base::adjustfield)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>left</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Adds fill characters for adjustment to the left</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.setf(ios_base::left,</SAMP></P>
+<P CLASS="TABLE"><SAMP>  ios_base::adjustfield)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noboolalpha</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Resets the above</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io.unsetf(ios_base::boolalpha)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noshowbase</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Resets the above</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.unsetf (ios_base::showbase)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noshowpoint</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Resets the above</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.unsetf (ios_base::showpoint)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noshowpos</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Resets the above</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.unsetf (ios_base::showpos)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>noskipws</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>i</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Resets the above</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>i.unsetf(ios_base::skipws)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>nounitbuf</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Resets the above</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.unsetf(ios_base::unitbuf)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>nouppercase</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Resets the above</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.unsetf (ios_base::uppercase)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>oct</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Converts to/from octal notation</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io.setf(ios_base::oct,</SAMP></P>
+<P CLASS="TABLE"><SAMP>  ios_base::basefield)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>resetiosflags</SAMP></P>
+<P CLASS="TABLE"><SAMP>  (ios_base::fmt</SAMP></P>
+<P CLASS="TABLE"><SAMP>  flags mask)</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Clears <B><I><A HREF="../stdlibref/basic-ios.html">ios</A></I></B> flags</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io.setf((ios_base::fmtflags)</SAMP></P>
+<P CLASS="TABLE"><SAMP>  0, mask)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>right</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Adds fill characters for adjustment to the right</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.setf(ios_base::right,</SAMP></P>
+<P CLASS="TABLE"><SAMP>  ios_base::adjustfield)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>scientific</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Puts floating point values in scientific notation</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.setf(ios_base::scientific,</SAMP></P>
+<P CLASS="TABLE"><SAMP>  ios_base::floatfield)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setbase</SAMP></P>
+<P CLASS="TABLE"><SAMP> (int base)</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Sets base for integer notation (base = 8, 10, 16)</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io.setf (base ==</SAMP></P>
+<P CLASS="TABLE"><SAMP> 8?ios_base::oct: base == 10 </SAMP></P>
+<P CLASS="TABLE"><SAMP>? ios_base::dec : base == 16 </SAMP></P>
+<P CLASS="TABLE"><SAMP>? ios_base::hex :</SAMP></P>
+<P CLASS="TABLE"><SAMP> ios_base::fmtflags(0),</SAMP></P>
+<P CLASS="TABLE"><SAMP> ios_base::basefield)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setfill</SAMP></P>
+<P CLASS="TABLE"><SAMP> (char_type c)</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Sets fill character for padding</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io.fill(c)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setiosflags</SAMP></P>
+<P CLASS="TABLE"><SAMP>  (ios_base::fmt</SAMP></P>
+<P CLASS="TABLE"><SAMP>  flags mask)</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Sets <B><I><A HREF="../stdlibref/basic-ios.html">ios</A></I></B> flags</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io.setf(mask)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setprecision</SAMP></P>
+<P CLASS="TABLE"><SAMP>  (int n)</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Sets precision of floating point values</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io.precision(n)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>setw(int n)</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Sets minimal field width</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>io.width(n)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>showbase</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Generates a prefix indicating the numeric base of an integer</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.setf(ios_base::showbase)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>showpoint</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Always generates a decimal-point for floating-point values</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.setf(ios_base::showpoint)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>showpos</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Generates a <SAMP>+</SAMP> sign for non-negative numeric values</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.setf(ios_base::showpos)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>skipws</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>i</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Skips leading white space </P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>i.setf(ios_base::skipws)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>unitbuf</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Flushes output after each formatting operation</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.setf(ios_base::unitbuf)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>uppercase</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Replaces certain lowercase letters with their uppercase equivalents</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>o.setf(ios_base::uppercase)</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ws</SAMP></P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>i</SAMP></P>
+</td><td valign=top><P CLASS="TABLE">Skips white spaces</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>i.ws()</SAMP></P>
+</td></tr>
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="28-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="28-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

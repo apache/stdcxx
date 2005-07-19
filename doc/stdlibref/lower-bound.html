@@ -1,0 +1,109 @@
+<HTML>
+<HEAD>
+<TITLE>lower_bound()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="logical-or.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="make-heap.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>lower_bound()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-9.html">Algorithms</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">See Also</A></LI>
+<LI><A HREF="#sec8">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>Algorithm that determines the first valid position for an element in a sorted container</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;algorithm&gt;
+
+namespace std {
+  template &lt;class ForwardIterator, class T&gt;
+  ForwardIterator lower_bound(ForwardIterator start,
+                              ForwardIterator finish,
+                              const T&amp; value);
+
+ template &lt;class ForwardIterator, class T, class Compare&gt;
+ ForwardIterator lower_bound(ForwardIterator start,
+                             ForwardIterator finish,
+                             const T&amp; value,
+                             Compare comp);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>lower_bound()</SAMP> algorithm compares a supplied <SAMP>value</SAMP> to elements in a sorted sequence and returns the first position in the container at which  <SAMP>value</SAMP> can be inserted without violating the container's ordering. There are two versions of the algorithm. The first uses <SAMP>operator&lt;()</SAMP> to perform the comparison, and assumes that the sequence has been sorted using that operator. The second version lets you include a function object of type <SAMP>Compare</SAMP>, and assumes that <SAMP>comp</SAMP> is the function used to sort the sequence. The function object must be a binary predicate. </P>
+<P>The return value of <SAMP>lower_bound()</SAMP> is the iterator for the first element in the container that is<I> greater than or equal to</I> <SAMP>value</SAMP>, or, when the comparison operator is used, the first element that does not satisfy the comparison function. Formally, the algorithm returns an iterator <SAMP>i</SAMP> in the range <SAMP>[start, finish)</SAMP> such that for any iterator <SAMP>j</SAMP> in the range <SAMP>[start, i)</SAMP> the following corresponding conditions hold: </P>
+<P><SAMP>*j  &lt;  value</SAMP></P>
+<P>or</P>
+<P><SAMP>comp(*j, value) == true</SAMP></P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P><SAMP>lower_bound()</SAMP> performs at most <SAMP>log(finish - start) + 1</SAMP> comparisons.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+//  ul_bound.cpp
+//
+
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;functional&gt;
+#include &lt;iostream&gt;
+
+int main ()
+{
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; Vector;
+    typedef Vector::const_iterator                 Iterator;
+
+    const int a[] = { 0, 1, 2, 2, 3, 4, 5, 5, 5, 6, 7 };
+
+    // Set up a vector.
+    const Vector v (a, a + sizeof a / sizeof *a);
+
+    // Try lower_bound variants.
+    Iterator it1 = std::lower_bound (v.begin (),v.end (), 3);
+    Iterator it2 = std::lower_bound (v.begin (),v.end (), 2,
+                                     std::less&lt;int&gt;());
+
+    // Try upper_bound variants.
+    Iterator it3 = std::upper_bound (v.begin (), v.end (), 3);
+    Iterator it4 = std::upper_bound (v.begin (), v.end (), 2,
+                                     std::less&lt;int&gt;());
+
+    std::cout &lt;&lt; "\n\nThe upper and lower bounds of 3: ( "
+              &lt;&lt; *it1 &lt;&lt; " , " &lt;&lt; *it3
+              &lt;&lt; " ]\n\n\nThe upper and lower bounds of 2: ( "
+              &lt;&lt; *it2 &lt;&lt; " , " &lt;&lt; *it4 &lt;&lt; " ]\n";
+
+    return 0;
+}
+
+
+
+Program Output:
+</PRE></UL>
+<UL><PRE>
+
+The upper and lower bounds of 3: ( 3 , 4 ]
+
+
+The upper and lower bounds of 2: ( 2 , 3 ]
+</PRE></UL>
+<A NAME="sec7"><H3>See Also</H3></A>
+<P><SAMP><A HREF="upper-bound.html">upper_bound()</A></SAMP>, <SAMP><A HREF="equal-range.html">equal_range()</A></SAMP></P>
+<A NAME="sec8"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 25.3.3.1</I></P>
+
+<BR>
+<HR>
+<A HREF="logical-or.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="make-heap.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

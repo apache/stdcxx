@@ -1,0 +1,91 @@
+# -*- Makefile -*-
+#
+# $Id: //stdlib/dev/etc/stdlib/config/GNUmakefile.lib#35 $
+#
+# makefile to build the C++ Standard library
+#
+##############################################################################
+
+
+include ../makefile.in
+
+
+TARGET       = $(LIBDIR)/$(LIBNAME)
+SRCDIRS      = $(TOPDIR)/src
+
+# do not compile these sources...
+OMIT_SRCS   += rwstderr.cpp
+
+# include common variables setting for all makefiles
+ONE_REPOSITORY = 1
+include ../makefile.common
+
+CATFILE      = rwstderr.cat
+MSGFILES     = rwstderr.msg
+
+CXXFLAGS    += $(PICFLAGS)
+LDFLAGS     += $(LDSOFLAGS) $(MAPFLAGS)
+
+# OBJS += $(shell [ -d ./cxx_repository/ ] && echo ./cxx_repository/*.o)
+
+# For AIX 5.1 xlC 5.0.2.0
+ifneq ($(DEFAULT_SHROBJ),)
+  SOBJS=$(DEFAULT_SHROBJ)
+else
+  SOBJS=$(OBJS)
+endif
+
+# CXXPRELINK - command for compilers that use template
+#              instantiation models that require a prelink stage
+ifneq ($(PRELINKFLAGS),)
+CXXPRELINK   = $(CXX) $(CPPFLAGS) $(LDFLAGS) $(PRELINKFLAGS) $(OBJS)
+endif   # ($(PRELINKFLAGS),)
+
+##############################################################################
+#  TARGETS
+##############################################################################
+
+# Cancel implicit rules
+.SUFFIXES:
+
+all:  $(TARGET) $(CATFILE)
+
+# do any directory specific cleanup using the realclean target
+realclean: dependclean clean
+
+# build an archive or shared library (repository included for DEC cxx 6.2)
+ifeq ($(findstring shared,$(BUILDMODE)),shared)
+
+  # determione whether we're bulding a .so-type shared library
+  # with VisualAge or a shared archive
+  xlC_lib_suffix = $(findstring xlC,$(CXX))$(LIBSUFFIX)
+
+  ifeq ($(xlC_lib_suffix),xlC.a)
+  # IBM VisualAge first "preprocesses" .o's with -qmkshrobj
+  # and then uses `ar' to create a shared library
+$(TARGET): $(OBJS)
+	@echo "$(CXXPRELINK) -o $(LIBBASE).o" >> $(LOGFILE)
+	$(CXXPRELINK) -o $(LIBBASE).o $(TEEOPTS)
+	@echo "$(AR) $(ARFLAGS) $(LIBNAME) $(LIBBASE).o" >> $(LOGFILE)
+	$(AR) $(ARFLAGS) $(LIBNAME) $(LIBBASE).o $(TEEOPTS)
+  else
+$(TARGET): $(OBJS) $(MAPFILE)
+	@echo "$(LD) $(OBJS) $(LDFLAGS) -o $@.$(LIBVER)" >> $(LOGFILE)
+	$(LD) $(OBJS) $(LDFLAGS) -o $@.$(LIBVER) $(TEEOPTS)
+	@echo "ln -sf $@.$(LIBVER) $@" >> $(LOGFILE)
+	rm -f $@
+	ln -s $@.$(LIBVER) $@
+  endif   # eq ($(CXX),xlC)
+
+else
+
+$(TARGET): $(OBJS)
+	@echo "$(CXXPRELINK)" >> $(LOGFILE)
+	$(CXXPRELINK) $(TEEOPTS)
+	@echo "$(AR) $(ARFLAGS) $(LIBNAME) $(SOBJS)" >> $(LOGFILE)
+	$(AR) $(ARFLAGS) $(LIBNAME) $(SOBJS) $(TEEOPTS)
+
+endif   # ($(findstring shared,$(BUILDMODE)),shared)
+
+# Common rules used by all Makefiles
+include ../makefile.rules

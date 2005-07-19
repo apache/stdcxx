@@ -1,0 +1,346 @@
+<HTML>
+<HEAD>
+<TITLE>In-Place Transformations</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="13-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>13.4 In-Place Transformations</H2>
+<A NAME="idx296"><!></A>
+<P>The next category of algorithms that we examine is used to modify and transform sequences without moving them from their original storage locations. </P>
+<BLOCKQUOTE><HR><B>
+NOTE -- The example functions described in the following sections can be found in the file alg3.cpp.
+</B><HR></BLOCKQUOTE>
+<P>A few of these routines, such as <SAMP>std::replace()</SAMP>, include a <I>copy</I> version as well as the original in-place transformation algorithms. For the others, should it be necessary to preserve the original, a copy of the sequence should be created before the transformations are applied. For example, the following code illustrates how one can place the reversal of one <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> into another newly allocated <B><I>vector</I></B>:</P>
+
+<UL><PRE>
+std::vector&lt;int&gt; newVec(aVec.size());
+std::copy(aVec.begin(), aVec.end(), newVec.begin());// first copy
+std::reverse(newVec.begin(), newVec.end());         // then reverse
+</PRE></UL>
+<P>Many of the algorithms described as sequence generating operations, such as<SAMP> std::transform()</SAMP> or <SAMP>std::partial_sum()</SAMP>, can also modify a value in place by simply using the same iterator as both input and output specification (see <A HREF="13-7.html#1371">Section&nbsp;13.7.1</A> and <A HREF="13-7.html#1372">Section&nbsp;13.7.2</A>).</P>
+<A NAME="1341"><H3>13.4.1 Reverse Elements in a Sequence</H3></A>
+<A NAME="idx297"><!></A>
+<P>The algorithm <SAMP>std::reverse()</SAMP> reverses the elements in a sequence so that the last element becomes the new first, and the first element the new last. The arguments are assumed to be bidirectional iterators, and no value is returned.</P>
+
+<UL><PRE>
+namespace std {
+  void reverse (BidirectionalIterator first,
+                BidirectionalIterator last);
+}
+</PRE></UL>
+<A NAME="idx298"><!></A>
+<P>The example program illustrates two uses of this algorithm. In example 1, an array of character values is reversed. The algorithm <SAMP>std::reverse()</SAMP> can also be used with <B><I><A HREF="../stdlibref/list.html">list</A></I></B> values, as shown in example 2. In this example, a <B><I>list</I></B> is initialized with the values <SAMP>2</SAMP> to <SAMP>11</SAMP> in increasing order. (This is accomplished using the <B><I>iotaGen</I></B> function object introduced in <A HREF="3-2.html#322-3">Section&nbsp;3.2.2.3</A>). The <B><I>list</I></B> is then reversed, which results in the list holding the values <SAMP>11</SAMP> to <SAMP>2</SAMP> in decreasing order. Note, however, that the <B><I>list</I></B> data structure also provides its own <SAMP>std::reverse()</SAMP> member function.</P>
+
+<A NAME="idx299"><!></A>
+<UL><PRE>
+void reverse_example()
+// illustrates the use of the reverse algorithm
+// see alg3.cpp for complete source code
+{
+  // example 1, reversing a string
+  char *text = "Rats live on no evil star";
+  std::reverse(text, text + strlen(text));
+  std::cout &lt;&lt; text &lt;&lt; std::endl;
+
+  // example 2, reversing a list
+  std::list&lt;int&gt; iList;
+  std::generate_n(std::inserter(iList, iList.begin()), 
+                  10, iotaGen(2));
+  std::reverse(iList.begin(), iList.end());
+}
+</PRE></UL>
+<A NAME="1342"><H3>13.4.2 Replace Certain Elements With Fixed Value</H3></A>
+<A NAME="idx300"><!></A>
+<P>The algorithms <SAMP>std::replace()</SAMP> and <SAMP>std::replace_if()</SAMP> are used to replace occurrences of certain elements with a new value. For both algorithms, the new value is the same, no matter how many replacements are performed. Using the algorithm <SAMP>std::replace()</SAMP>, all occurrences of a particular test value are replaced with the new value. In the case of <SAMP>std::replace_if()</SAMP>, all elements that satisfy a predicate function are replaced by a new value. The <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> arguments must be forward iterators.</P>
+<A NAME="idx301"><!></A>
+<P>The algorithms <SAMP>std::replace_copy()</SAMP> and <SAMP>std::replace_copy_if()</SAMP> are similar to <SAMP>std::replace()</SAMP> and <SAMP>std::replace_if()</SAMP>, however, they leave the original sequence intact and place the revised values into a new sequence, which may be a different type.</P>
+
+<UL><PRE>
+namespace std {
+  void replace(ForwardIterator first, ForwardIterator last, 
+               const T&amp;, const T&amp;);
+
+  void replace_if(ForwardIterator first, ForwardIterator last, 
+                  Predicate, const T&amp;);
+
+  OutputIterator replace_copy(InputIterator, InputIterator, 
+                              OutputIterator, const T&amp;, const T&amp;);
+
+  OutputIterator replace_copy(InputIterator, InputIterator, 
+                              OutputIterator, Predicate, 
+                              const T&amp;);
+}
+</PRE></UL>
+<P>In the example program, a vector is initially assigned the values <SAMP>0 1 2 3 4 5 4 3 2 1 0</SAMP>. A call on <SAMP>std::replace()</SAMP> replaces the value <SAMP>3</SAMP> with the value <SAMP>7</SAMP>, resulting in the vector <SAMP>0 1 2 7 4 5 4 7 2 1 0</SAMP>. The invocation of <SAMP>std::replace_if()</SAMP> replaces all even numbers with the value <SAMP>9</SAMP>, resulting in the vector <SAMP>9 1 9 7 9 5 9 7 9 1 9</SAMP>.</P>
+
+<A NAME="idx302"><!></A>
+<UL><PRE>
+void replace_example()
+// illustrates the use of the replace algorithm
+// see alg3.cpp for complete source code
+{
+   // make vector 0 1 2 3 4 5 4 3 2 1 0
+   std::vector&lt;int&gt; numbers(11);
+   for (int i = 0; i &lt; 11; i++)
+      numbers[i] = i &lt; 5 ? i : 10 - i;
+
+   // replace 3 by 7
+   std::replace(numbers.begin(), numbers.end(), 3, 7);
+
+
+   // replace even numbers by 9
+   std::replace_if(numbers.begin(), numbers.end(), isEven, 9);
+
+   // illustrate copy versions of replace
+   int aList[] = {2, 1, 4, 3, 2, 5};
+   int bList[6], cList[6], j;
+   std::replace_copy(aList, aList+6, &amp;bList[0], 2, 7);
+   std::replace_copy_if(bList, bList+6, &amp;cList[0],
+                   std::bind2nd(greater&lt;int&gt;(), 3), 8);
+}
+</PRE></UL>
+<P>The example program also illustrates the use of the <SAMP>std::replace_copy()</SAMP> algorithms. First, an array containing the values <SAMP>2 1 4 3 2 5</SAMP> is created. This is modified by replacing the <SAMP>2</SAMP> values with <SAMP>7</SAMP>, resulting in the array <SAMP>7 1 4 3 7 5</SAMP>. Next, all values larger than <SAMP>3</SAMP> are replaced with the value <SAMP>8</SAMP>, resulting in the array values <SAMP>8 1 8 3 8 8</SAMP>. In the latter case the <SAMP>std::bind2nd()</SAMP> adaptor is used to modify the binary greater-than function by binding the second argument to the constant value <SAMP>3</SAMP>, thereby creating the unary function<SAMP> x &gt; 3</SAMP>.</P>
+<A NAME="1343"><H3>13.4.3 Rotate Elements Around a Midpoint</H3></A>
+<A NAME="idx303"><!></A>
+<P>A <I>rotation</I> of a sequence divides the sequence into two sections and swaps the order of the sections, while maintaining the order of elements within each section. Suppose, for example, that we have the values <SAMP>1</SAMP> to <SAMP>10</SAMP> in sequence:</P>
+<P><SAMP>1 2 3 4 5 6 7 8 9 10</SAMP></P>
+<P>If we were to rotate around the element <SAMP>7</SAMP>, the values <SAMP>7</SAMP> to <SAMP>10</SAMP> would be moved to the beginning, while the elements <SAMP>1</SAMP> to <SAMP>6</SAMP> would be moved to the end. This would result in the following sequence:</P>
+<P><SAMP>7 8 9 10 1 2 3 4 5 6</SAMP> </P>
+<A NAME="idx304"><!></A>
+<P>When you invoke the algorithm <SAMP>std::rotate()</SAMP>, the starting point, midpoint, and past-the-end location are all denoted by forward iterators:</P>
+
+<UL><PRE>
+namespace std{
+void rotate (ForwardIterator first, ForwardIterator middle, 
+             ForwardIterator last);
+}
+</PRE></UL>
+<P>The <I>prefix</I> portion, the set of elements following the start and not including the midpoint, is swapped with the <I>suffix</I>, the set of elements between the midpoint and the past-the-end location. Note, as in the previous example, that these two segments need not be the same length.</P>
+
+<A NAME="idx305"><!></A>
+<UL><PRE>
+void rotate_example() 
+// illustrates the use of the rotate algorithm
+// see alg3.cpp for complete source code
+{
+  // create the list 1 2 3 ... 10
+  std::list&lt;int&gt; iList;
+  std::generate_n(std::inserter(iList, iList.begin()), 10,
+                  iotaGen(1));
+
+  // find the location of the seven
+  std::list&lt;int&gt;::iterator&amp; middle = 
+    std::find(iList.begin(), iList.end(), 7);
+
+  // now rotate around that location
+  std::rotate(iList.begin(), middle, iList.end());
+
+  // rotate again around the same location
+  std::list&lt;int&gt; cList;
+  std::rotate_copy(iList.begin(), middle, iList.end(),
+  std::inserter(cList, cList.begin()));
+}
+</PRE></UL>
+<P>The example program first creates a list of the integers in order from <SAMP>1</SAMP> to <SAMP>10</SAMP>. Next, the <SAMP>std::find()</SAMP> algorithm (<A HREF="13-3.html#1331">Section&nbsp;13.3.1</A>) is used to find the location of the element <SAMP>7</SAMP>. This is used as the midpoint for the rotation.</P>
+<P>A second form of <SAMP>std::rotate()</SAMP> copies the elements into a new sequence, rather than rotating the values in place. This is also shown in the example program, which once again rotates around the middle position that now contains a <SAMP>3</SAMP>. The resulting list is <SAMP>3 4 5 6 7 8 9 10 1 2</SAMP>. The values held in <SAMP>iList</SAMP> remain unchanged.</P>
+<A NAME="1344"><H3>13.4.4 Partition a Sequence into Two Groups</H3></A>
+<A NAME="idx306"><!></A>
+<P>A <I>partition </I>is formed by moving all the elements that satisfy a predicate to one end of a sequence, and all the elements that fail to satisfy the predicate to the other end. Partitioning elements is a fundamental step in certain sorting algorithms, such as <SAMP>quicksort</SAMP>.</P>
+
+<UL><PRE>
+namespace std {
+  BidirectionalIterator partition 
+     (BidirectionalIterator, BidirectionalIterator, Predicate);
+
+  BidirectionalIterator stable_partition 
+     (BidirectionalIterator, BidirectionalIterator, Predicate);
+}
+</PRE></UL>
+<A NAME="idx307"><!></A>
+<P>There are two forms of partition supported in the Standard C++ Library. The first, provided by the algorithm <SAMP>std::partition()</SAMP>, guarantees only that the elements are divided into two groups. The result value is an <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> that describes the final midpoint between the two groups; it is one past the end of the first group. </P>
+<P>In the example program, the initial <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> contains the values <SAMP>1</SAMP> to <SAMP>10</SAMP> in order. The partition moves the even elements to the front, and the odd elements to the end. This results in the <B><I>vector</I></B> holding the values <SAMP>10 2 8 4 6 5 7 3 9 1</SAMP>, and the midpoint <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> pointing to the element <SAMP>5</SAMP>.</P>
+
+<A NAME="idx308"><!></A>
+<UL><PRE>
+void partition_example()
+// illustrates the use of the partition algorithm
+// see alg3.cpp for complete source code
+{
+  // first make the vector 1 2 3 ... 10
+  std::vector&lt;int&gt; numbers(10);
+  std::generate(numbers.begin(), numbers.end(), iotaGen(1));
+
+  // now put the even values low, odd high
+  std::vector&lt;int&gt;::iterator result = 
+    std::partition(numbers.begin(), numbers.end(), isEven);
+  std::cout &lt;&lt; "middle location "
+            &lt;&lt; result - numbers.begin() &lt;&lt; std::endl;
+
+  // now do a stable partition
+  std::generate(numbers.begin(), numbers.end(), iotaGen(1));
+  std::stable_partition(numbers.begin(), numbers.end(), isEven);
+}
+</PRE></UL>
+<A NAME="idx309"><!></A>
+<P>The relative order of the elements within a partition in the resulting <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> may not be the same as the values in the original <B><I>vector</I></B>. For example, the value <SAMP>4</SAMP> preceded the element <SAMP>8</SAMP> in the original, but may follow the element <SAMP>8</SAMP> in the result. A second version of partition, named <SAMP>std::stable_partition()</SAMP>, guarantees the ordering of the resulting values. For the input shown in the example, the stable partition would result in the sequence <SAMP>2 4 6 8 10 1 3 5 7 9</SAMP>. The <SAMP>std::stable_partition()</SAMP> algorithm is slightly slower and uses more memory than the <SAMP>std::partition()</SAMP> algorithm, so when the order of elements is not important you should use <SAMP>std::partition()</SAMP>.</P>
+<P>While there is a unique <SAMP>std::stable_ partition()</SAMP> for any sequence, the <SAMP>std::partition()</SAMP> algorithm can return any number of values. For example, the following are all legal partitions of the sample problem:</P>
+
+<UL><PRE> 2 4 6 8 10 1 3 5 7 9
+ 10 8 6 4 2 5 7 9 3 1
+ 2 6 4 8 10 3 5 7 9 1
+ 6 4 2 10 8 5 3 7 9 1
+</PRE></UL>
+<A NAME="1345"><H3>13.4.5 Generate Permutations in Sequence</H3></A>
+<A NAME="idx310"><!></A>
+<P>A <I>permutation</I> is a rearrangement of values. If values such as integers, characters, or words can be compared against each other, then it is possible to systematically construct all permutations of a sequence. For example, there are two permutations of two values, six permutations of three values, and 24 permutations of four values. </P>
+<P>The permutation generating algorithms have the following definition:</P>
+
+<UL><PRE>
+namespace std {
+  bool next_permutation(BidirectionalIterator first,
+                        BidirectionalIterator last 
+                        [, Compare ] );
+
+  bool prev_permutation(BidirectionalIterator first,
+                        BidirectionalIterator last
+                        [, Compare ] );
+}
+</PRE></UL>
+<A NAME="idx311"><!></A>
+<P>The second example in the sample program illustrates the same idea, using pointers to character arrays instead of integers. In this case, a different comparison function must be supplied, since the default operator would simply compare pointer addresses. </P>
+
+<A NAME="idx312"><!></A>
+<UL><PRE>
+bool nameCompare (char *a, char *b) { return strcmp(a, b) &lt;= 0; }
+
+void permutation_example()
+
+// illustrates the use of the next_permutation algorithm
+// see alg3.cpp for complete source code
+
+{
+  // example 1
+
+  int start [] = { 1, 2, 3 };
+  
+  do {
+    std::copy(start, start + 3, ostrm_iter_type (std::cout, " "));
+    std::cout &lt;&lt; std::endl;
+  } while  (std::next_permutation (start, start + 3));
+
+  // example 2
+
+  const char alpha[] = "Alpha";
+  const char beta[]  = "Beta";
+  const char gamma[] = "Gamma";
+  
+  const char* names[] = { alpha, beta, gamma };
+  
+  typedef std::ostream_iterator&lt;const char*, char,
+                                std::char_traits&lt;char&gt; &gt; Iter;
+    
+  do {
+    std::copy (names, names + 3, Iter (std::cout, " "));
+    std::cout &lt;&lt; std::endl;
+  } while (std::next_permutation (names, names + 3, nameCompare));
+
+  // example 3
+
+  char word[] = "bela";
+    
+  do
+    std::cout &lt;&lt; word &lt;&lt; ' ';
+  while (std::prev_permutation (word,  &amp;word[4]));
+  
+  std::cout &lt;&lt; std::endl;   
+}
+</PRE></UL>
+<P>Example 3 in the sample program illustrates the use of the reverse permutation algorithm, which generates values in reverse sequence. This example also begins in the middle of a sequence, rather than at the beginning. The remaining permutations of the word <I>bela</I> are: <SAMP>beal</SAMP>, <SAMP>bale</SAMP>, <SAMP>bael</SAMP>, <SAMP>aleb</SAMP>, <SAMP>albe</SAMP>, <SAMP>aelb</SAMP>, <SAMP>aebl</SAMP>, <SAMP>able</SAMP>, and <SAMP>abel.</SAMP></P>
+<P>Permutations can also be ordered so that the smallest permutation lists values smallest to largest, and the largest sequence lists values largest to smallest. For example, consider the permutations of the integers <SAMP>1 2 3</SAMP>. Taken in order, the six permutations of these values are:</P>
+<UL><P><SAMP>123</SAMP></P></UL>
+<UL><P><SAMP>132</SAMP></P></UL>
+<UL><P><SAMP>213</SAMP></P></UL>
+<UL><P><SAMP>231</SAMP></P></UL>
+<UL><P><SAMP>312</SAMP></P></UL>
+<UL><P><SAMP>321</SAMP></P></UL>
+<P>Notice that in the first permutation the values are all ascending, while in the last permutation they are all descending.</P>
+<A NAME="1346"><H3>13.4.6 Merge Two Adjacent Sequences into One</H3></A>
+<A NAME="idx313"><!></A>
+<P>A <I>merge</I> takes two ordered sequences and combines them into a single ordered sequence, interleaving elements from each collection as necessary to generate the new list. The <SAMP>inplace_merge()</SAMP> algorithm assumes a sequence is divided into two adjacent sections, each of which is ordered. The merge combines the two sections into one, moving elements as necessary. The alternative <SAMP>merge()</SAMP> algorithm (<A HREF="6-2.html#623-1">Section&nbsp;6.2.3.1</A> and <A HREF="14-5.html">Section&nbsp;14.5</A>) can be used to merge two separate sequences into one. </P>
+<P>The arguments to <SAMP>inplace_merge()</SAMP> must be bidirectional iterators.</P>
+
+<UL><PRE>
+namespace std {
+  void inplace_merge (BidirectionalIterator first, 
+                      BidirectionalIterator middle,
+                      BidirectionalIterator last 
+                      [, BinaryFunction ] );
+}
+</PRE></UL>
+<P>The example program illustrates the use of the <SAMP>inplace_merge()</SAMP> algorithm with a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> and with a <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. The sequence <SAMP>0 2 4 6 8 1 3 5 7 9</SAMP> is placed into a <B><I>vector</I></B>. A <SAMP>find()</SAMP> call (<A HREF="13-3.html#1331">Section&nbsp;13.3.1</A>) is used to locate the beginning of the odd number sequence. The two calls on <SAMP>inplace_merge()</SAMP> then combine the two sequences into one.</P>
+
+<A NAME="idx314"><!></A>
+<UL><PRE>
+void inplace_merge_example()
+// illustrate the use of the inplace_merge algorithm
+// see alg3.cpp for complete source code
+{
+  // first generate the sequence 0 2 4 6 8 1 3 5 7 9
+  std::vector&lt;int&gt; numbers(10);
+  for (int i = 0; i &lt; 10; i++)
+    numbers[i] = i &lt; 5 ? 2 * i : 2 * (i - 5) + 1;
+
+  // then find the middle location
+  std::vector&lt;int&gt;::iterator midvec = 
+    std::find(numbers.begin(), numbers.end(), 1);
+
+  // copy them into a list
+  std::list&lt;int&gt; numList;
+  std::copy(numbers.begin(), numbers.end(),
+            std::inserter (numList, numList.begin()));
+  std::list&lt;int&gt;::iterator midList = 
+    std::find(numList.begin(), numList.end, 1);
+
+  // now merge the lists into one
+  std::inplace_merge(numbers.begin(), midvec, numbers.end());
+  std::inplace_merge(numList.begin(), midList, numList.end());
+}
+</PRE></UL>
+<A NAME="1347"><H3>13.4.7 Randomly Rearrange Elements in a Sequence</H3></A>
+<A NAME="idx315"><!></A>
+<P>The algorithm <SAMP>std::random_shuffle()</SAMP> randomly rearranges the elements in a sequence. Exactly <SAMP>n</SAMP> swaps are performed, where <SAMP>n</SAMP> represents the number of elements in the sequence. Of course, the results are unpredictable. Because the arguments must be random access <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s, this algorithm can only be used with <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>s, <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>s, or ordinary pointers; it cannot be used with <B><I><A HREF="../stdlibref/list.html">list</A></I></B>s, <B><I><A HREF="../stdlibref/set.html">set</A></I></B>s, or <B><I><A HREF="../stdlibref/map.html">map</A></I></B>s.</P>
+
+<UL><PRE>
+namespace std {
+  void random_shuffle(RandomAccessIterator first, 
+                      RandomAccessIterator last 
+                      [, Generator ] );
+}
+</PRE></UL>
+<P>An alternative version of the algorithm uses the optional third argument. This value must be a random number generator. This generator must take as an argument a positive value <SAMP>m</SAMP> and return a value between <SAMP>0</SAMP> and <SAMP>m-1</SAMP>. As with the <SAMP>std::generate()</SAMP> algorithm, this random number function can be any type of object that responds to the function invocation operator.</P>
+
+<A NAME="idx316"><!></A>
+<UL><PRE>
+void random_shuffle_example()
+// illustrates the use of the random_shuffle algorithm
+// see alg3.cpp fr complete source code
+{
+  // first make the vector containing 1 2 3 ... 10
+  std::vector&lt;int&gt; numbers;
+  std::generate(numbers.begin(), numbers.end(), iotaGen(1));
+
+  // then randomly shuffle the elements
+  std::random_shuffle(numbers.begin(), numbers.end());
+
+  // do it again, with explicit random number generator
+  struct RandomInteger {
+      operator() (int m) { return rand() % m; }
+  } random;
+  std::random_shuffle(numbers.begin(), numbers.end(), random);
+}
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="13-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-5.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

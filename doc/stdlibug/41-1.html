@@ -1,0 +1,27 @@
+<HTML>
+<HEAD>
+<TITLE>User-Defined Character Types</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="41.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="41-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>41.1 User-Defined Character Types</H2>
+<A NAME="idx965"><!></A>
+<P>One of the fundamental differences between the new, templated iostreams and the traditional iostreams is the ability of the new iostreams to accommodate user-defined character types. It's now possible to use the C++ iostreams interface with arbitrary character-like types, as well as with ordinary <SAMP>char</SAMP>s. </P>
+<P>Of course, this flexibility comes at a price. Any user-defined character type must satisfy certain requirements. The type really must act like an ordinary <SAMP>char</SAMP> in most circumstances. In addition, several classes must be defined to support the type in the iostreams environment.</P>
+<A NAME="4111"><H3>41.1.1 Requirements for User-Defined Character Types</H3></A>
+<A NAME="idx966"><!></A>
+<P>In general, user-defined character types must meet the requirements of a POD type:</P>
+
+<UL><PRE>
+struct Echar
+{
+  char c;
+  char i;
+};
+
+</PRE></UL>
+
+<BR>
+<HR>
+<A HREF="41.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="41-2.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

@@ -1,0 +1,36 @@
+<HTML>
+<HEAD>
+<TITLE>Declaration and Initialization of Autopointers</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="19-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="20.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>19.2 Declaration and Initialization of Autopointers</H2>
+<A NAME="idx431"><!></A>
+<P>You attach an <B><I><A HREF="../stdlibref/auto-ptr.html">auto_ptr</A></I></B> object to a pointer either by using one of the constructors for <B><I>auto_ptr</I></B>, by assigning one <B><I>auto_ptr</I></B> object to another, or by using the reset member function. Only one <B><I>auto_ptr</I></B> owns a particular pointer at any one time, except for the null pointer, which all <B><I>auto_ptr</I></B>s own by default. Any use of the <B><I>auto_ptr</I></B> copy constructor or assignment operator transfers ownership from one <B><I>auto_ptr</I></B> object to another. For instance, suppose we create an <B><I>auto_ptr</I></B> <SAMP>a</SAMP> like this:</P>
+
+<UL><PRE>
+std::auto_ptr&lt;std::string&gt; a(new std::string);
+</PRE></UL>
+<P>The <B><I><A HREF="../stdlibref/auto-ptr.html">auto_ptr</A></I></B> object <SAMP>a</SAMP> now owns the newly created pointer. When <SAMP>a</SAMP> is destroyed, such as when it goes out of scope, the pointer is deleted. But if we initialize <SAMP>b</SAMP> with the value of <SAMP>a</SAMP>:</P>
+
+<UL><PRE>
+std::auto_ptr&lt;std::string&gt; b = a;
+</PRE></UL>
+<P><SAMP>b</SAMP> now owns the pointer. Use of the copy constructor or the assignment operator causes <SAMP>a</SAMP> to release ownership of the pointer. Now if <SAMP>a</SAMP> goes out of scope the pointer is not affected. However, the pointer <I>is</I> deleted when <SAMP>b</SAMP> goes out of scope.</P>
+<BLOCKQUOTE><HR><B>
+NOTE --    The standard container templates cannot be specialized on <B><I><A HREF="../stdlibref/auto-ptr.html">auto_ptr</A></I></B> objects.  Copying or assigning from an <B><I>auto_ptr</I></B> object transfers ownership of the contained pointer, which changes the source object.  Therefore, <B><I>auto_ptr</I></B> objects do not meet the Assignable and CopyConstructible requirements of standard containers. See <A HREF="4.html">Chapter&nbsp;4</A> for container requirements.
+</B><HR></BLOCKQUOTE>
+<P>The use of <SAMP>new</SAMP> within the constructor for <SAMP>a</SAMP> may seem a little odd. Normally we avoid constructs like this since it puts the responsibility for deletion on a different entity than the one responsible for allocation. In this case, however, the sole responsibility of the <B><I><A HREF="../stdlibref/auto-ptr.html">auto_ptr</A></I></B> is to manage the deletion. This syntax is actually preferable since it prevents us from accidentally deleting the pointer ourselves. or initializing another <B><I>auto_ptr</I></B> object with it.</P>
+<P>Use <SAMP>operator*()</SAMP>, <SAMP>operator-&gt;()</SAMP> or the member function <SAMP>get()</SAMP> to access the pointer held by an <B><I><A HREF="../stdlibref/auto-ptr.html">auto_ptr</A></I></B>. For instance, we can use any of the three following statements to assign <SAMP>"What's up Doc"</SAMP> to the string now pointed to by the <B><I>auto_ptr</I></B> <SAMP>b</SAMP>:</P>
+
+<UL><PRE>
+*b = "What's up Doc";
+*(b.get()) = "What's up Doc";
+ b-&gt;assign("What's up Doc");
+</PRE></UL>
+<P>Class <B><I><A HREF="../stdlibref/auto-ptr.html">auto_ptr</A></I></B> also provides a release member function that releases ownership of a pointer. Any <B><I>auto_ptr</I></B> that does not own a specific pointer is assumed to contain the null pointer, so calling release on an <B><I>auto_ptr</I></B> will set the contained pointer to zero. In the example above, when <SAMP>a</SAMP> is copied to <SAMP>b</SAMP>, the pointer held by <SAMP>a</SAMP> is released and set to the null pointer.</P>
+
+<BR>
+<HR>
+<A HREF="19-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="20.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

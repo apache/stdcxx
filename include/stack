@@ -1,0 +1,158 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * stack - Declaration of the C++ Standard Library stack class template
+ *
+ * $Id: //stdlib/dev/include/stack#13 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994
+ * Hewlett-Packard Company
+ *
+ * Permission to use, copy, modify, distribute and sell this software
+ * and its documentation for any purpose is hereby granted without fee,
+ * provided that the above copyright notice appear in all copies and
+ * that both that copyright notice and this permission notice appear
+ * in supporting documentation.  Hewlett-Packard Company makes no
+ * representations about the suitability of this software for any
+ * purpose.  It is provided "as is" without express or implied warranty.
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_STACK_INCLUDED
+#define _RWSTD_STACK_INCLUDED
+
+#include <deque>
+#include <rw/_defs.h>
+
+
+_RWSTD_NAMESPACE (std) { 
+
+
+template <class _TypeT,
+          class _Container _RWSTD_COMPLEX_DEFAULT (deque<_TypeT>) > 
+class stack;
+
+
+template <class _TypeT, class _Container>
+inline bool operator==(const stack<_TypeT, _Container>&, 
+                       const stack<_TypeT, _Container>&);
+
+template <class _TypeT, class _Container>
+inline bool operator<(const stack<_TypeT, _Container>&, 
+                      const stack<_TypeT, _Container>&);
+
+template <class _TypeT, class _Container>
+class stack
+{
+    friend bool _RWSTD_SPECIALIZED_FRIEND (operator==)
+        (const stack&, const stack&);
+
+    friend bool _RWSTD_SPECIALIZED_FRIEND (operator<)
+        (const stack&, const stack&);
+
+public:
+    
+    typedef _Container                                container_type;
+    typedef _TYPENAME container_type::value_type      value_type;
+    typedef _TYPENAME container_type::size_type       size_type;
+    // lwg issue 307: additional typedefs
+    typedef _TYPENAME container_type::reference       reference;
+    typedef _TYPENAME container_type::const_reference const_reference;
+
+protected:
+    
+    container_type c;
+
+public:
+
+    _EXPLICIT
+    stack (const container_type &__c = container_type ()) 
+        : c (__c) { }
+
+    bool empty () const {
+        return c.empty ();
+    }
+
+    size_type size () const {
+        return c.size ();
+    }
+
+    reference top () {
+        return c.back ();
+    }
+
+    const_reference top () const {
+        return c.back ();
+    }
+
+    void push (const value_type &__x) {
+        c.push_back (__x);
+    }
+
+    void pop () {
+        c.pop_back ();
+    }
+};
+
+
+template <class _TypeT, class _Container>
+inline bool operator== (const stack<_TypeT, _Container> &__x, 
+                        const stack<_TypeT, _Container> &__y)
+{
+    return __x.c == __y.c;
+}
+
+template <class _TypeT, class _Container>
+inline bool operator< (const stack<_TypeT, _Container> &__x, 
+                       const stack<_TypeT, _Container> &__y)
+{
+    return __x.c < __y.c;
+}
+
+template <class _TypeT, class _Container>
+inline bool operator!= (const stack<_TypeT, _Container> &__x, 
+                        const stack<_TypeT, _Container> &__y)
+{
+    return !(__x == __y);
+}
+
+template <class _TypeT, class _Container>
+inline bool operator> (const stack<_TypeT, _Container> &__x, 
+                       const stack<_TypeT, _Container> &__y)
+{
+    return __y < __x;
+}
+
+template <class _TypeT, class _Container>
+inline bool operator>= (const stack<_TypeT, _Container> &__x, 
+                        const stack<_TypeT, _Container> &__y)
+{
+    return !(__x < __y);
+}
+
+template <class _TypeT, class _Container>
+inline bool operator<= (const stack<_TypeT, _Container> &__x, 
+                        const stack<_TypeT, _Container> &__y)
+{
+    return !(__y <  __x);
+}
+
+
+}   // namespace std
+
+#endif   // _RWSTD_STACK_INCLUDED

@@ -1,0 +1,521 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * <limits> - definitions of the numeric_limits template and specializations
+ *
+ * $Id: //stdlib/dev/include/limits#43 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#include <rw/_defs.h>
+
+
+// quiet NAN (QNAN) supported?
+#ifndef _RWSTD_NO_QUIET_NAN
+#  define _RWSTD_HAS_QUIET_NAN true
+#else   // if defined (_RWSTD_NO_QUIET_NAN)
+#  define _RWSTD_HAS_QUIET_NAN false
+#endif   // _RWSTD_NO_QUIET_NAN
+
+
+// do math operations (such as 0.0/0.0) trap?
+#ifndef _RWSTD_NO_DBL_TRAPS
+#  define _RWSTD_FLT_TRAPS  true
+#  define _RWSTD_DBL_TRAPS  true
+#  define _RWSTD_LDBL_TRAPS true
+#else   // if defined (_RWSTD_NO_DBL_TRAPS)
+   // invalid operations return QNAN
+#  define _RWSTD_FLT_TRAPS  false
+#  define _RWSTD_DBL_TRAPS  false
+#  define _RWSTD_LDBL_TRAPS false
+#endif   // _RWSTD_NO_DBL_TRAPS
+
+
+#ifndef _RWSTD_HAS_DENORM_LOSS
+#  define _RWSTD_HAS_DENORM_LOSS false
+#endif   // _RWSTD_HAS_DENORM_LOSS
+
+
+#ifndef _RWSTD_HAS_INFINITY
+#  define _RWSTD_HAS_INFINITY    true
+#endif
+
+
+#ifndef _RWSTD_IS_IEC559
+   // assume conforming environment unless autodetected otherwise
+   // or unless overridden in <rw/_config.h>
+#  define _RWSTD_IS_IEC559   true
+#endif   // _RWSTD_IS_IEC559
+
+
+_RWSTD_NAMESPACE (__rw) { 
+
+_RWSTD_EXPORT extern const float       __rw_flt_infinity;
+_RWSTD_EXPORT extern const double      __rw_dbl_infinity;
+
+#define _RWSTD_FLT_INFINITY            _RW::__rw_flt_infinity
+#define _RWSTD_DBL_INFINITY            _RW::__rw_dbl_infinity
+
+_RWSTD_EXPORT extern const float       __rw_flt_qNaN;
+_RWSTD_EXPORT extern const double      __rw_dbl_qNaN;
+
+#define _RWSTD_FLT_QNAN                _RW::__rw_flt_qNaN
+#define _RWSTD_DBL_QNAN                _RW::__rw_dbl_qNaN
+
+_RWSTD_EXPORT extern const float       __rw_flt_denorm_min;
+_RWSTD_EXPORT extern const double      __rw_dbl_denorm_min;
+
+#define _RWSTD_FLT_DENORM_MIN          _RW::__rw_flt_denorm_min
+#define _RWSTD_DBL_DENORM_MIN          _RW::__rw_dbl_denorm_min
+
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+_RWSTD_EXPORT extern const long double __rw_ldbl_infinity;
+_RWSTD_EXPORT extern const long double __rw_ldbl_qNaN;
+_RWSTD_EXPORT extern const long double __rw_ldbl_denorm_min;
+
+#  define _RWSTD_LDBL_INFINITY         _RW::__rw_ldbl_infinity
+#  define _RWSTD_LDBL_QNAN             _RW::__rw_ldbl_qNaN
+#  define _RWSTD_LDBL_DENORM_MIN       _RW::__rw_ldbl_denorm_min
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+}   // namespace __rw
+
+
+// signaling NAN
+#if defined (FLT_SNAN) && defined (DBL_SNAN) && defined (LDBL_SNAN)  // DEC osf
+#  define _RWSTD_FLT_SNAN    FLT_SNAN
+#  define _RWSTD_DBL_SNAN    DBL_SNAN
+#  define _RWSTD_LDBL_SNAN   LDBL_SNAN
+#else
+
+_RWSTD_NAMESPACE (__rw) { 
+
+_RWSTD_EXPORT extern const float       __rw_flt_sNaN;
+_RWSTD_EXPORT extern const double      __rw_dbl_sNaN;
+
+#  define _RWSTD_FLT_SNAN              _RW::__rw_flt_sNaN
+#  define _RWSTD_DBL_SNAN              _RW::__rw_dbl_sNaN
+
+#  ifndef _RWSTD_NO_LONG_DOUBLE
+
+_RWSTD_EXPORT extern const long double __rw_ldbl_sNaN;
+
+#    define _RWSTD_LDBL_SNAN           _RW::__rw_ldbl_sNaN
+
+#  endif   // _RWSTD_NO_LONG_DOUBLE
+
+}   // namespace __rw
+
+#endif   // FLT_SNAN && DBL_SNAN && LDBL_SNAN
+
+
+#ifndef _RWSTD_NO_SIGNALING_NAN
+#  define _RWSTD_HAS_SIG_NAN true
+#else
+#  define _RWSTD_HAS_SIG_NAN false
+#endif   // _RWSTD_NO_SIGNALING_NAN
+
+
+#undef _RWSTD_CLASS_BEGIN
+#undef _RWSTD_CLASS_END
+#undef _RWSTD_TYPEDEF
+#undef _RWSTD_STATIC
+#undef _RWSTD_STATIC_FUN
+
+
+#ifndef _RWSTD_DEFINE_EXPORTS
+
+// declarations - expanded in every translation unit
+// that #includes <limits>
+
+#  define _RWSTD_CLASS_BEGIN(name)                            \
+   _RWSTD_SPECIALIZED_CLASS struct _RWSTD_EXPORT name {
+#  define _RWSTD_CLASS_END              };
+#  define _RWSTD_TYPEDEF(def)           typedef def;
+#  define _RWSTD_STATIC(ignore, type, name, value)            \
+          _RWSTD_STATIC_CONST (type, name = value)
+#  define _RWSTD_STATIC_FUN(type, name, value)                \
+          static type name () _THROWS (()) { return value; }
+
+#else   // defined (_RWSTD_DEFINE_EXPORTS)
+
+// definitions - expanded in a single translation unit that defines
+// static const data members outside of each numeric_limits<> specialization
+
+#  define _RWSTD_CLASS_BEGIN(ignore)
+#  define _RWSTD_CLASS_END
+#  define _RWSTD_TYPEDEF(ignore)
+#  define _RWSTD_STATIC(limtype, type, name, value)           \
+     _RWSTD_DEFINE_STATIC_CONST (const type numeric_limits<limtype>::name)
+#  define _RWSTD_STATIC_FUN(ign1, ign2, ign3)
+
+#endif   // _RWSTD_DEFINE_EXPORTS
+
+
+// 18.2.1.2, p6 - 7
+#define _RWSTD_DIGITS(type, min, max) \
+  (1 == (max) ? 1 : (_RWSTD_CHAR_BIT * int (sizeof (type)) - ((min) != 0)))
+
+// 18.2.1.2, p9
+#define _RWSTD_DIGITS10(digits)   (((digits) * 301) / 1000)
+
+
+#undef _RWSTD_LIMITS_BODY
+
+#define _RWSTD_LIMITS_BODY(type, cpfx)                                      \
+    _RWSTD_STATIC (type, bool, is_specialized, true);                       \
+                                                                            \
+    _RWSTD_STATIC_FUN (type, (min), (type)(cpfx##_MIN))                     \
+    _RWSTD_STATIC_FUN (type, (max), (type)(cpfx##_MAX))                     \
+                                                                            \
+    _RWSTD_STATIC (type, bool, is_signed,  cpfx##_MIN != 0);                \
+    _RWSTD_STATIC (type, bool, is_integer, true);                           \
+    _RWSTD_STATIC (type, bool, is_exact,   true);                           \
+                                                                            \
+    _RWSTD_STATIC (type, int, digits,                                       \
+                   _RWSTD_DIGITS (type, cpfx##_MIN, cpfx##_MAX));           \
+                                                                            \
+    /* spelled out to work around a bug in IBM xlC 5.0 */                   \
+    _RWSTD_STATIC (type, int, digits10,                                     \
+                   _RWSTD_DIGITS10 (_RWSTD_DIGITS (type, cpfx##_MIN,        \
+                                                         cpfx##_MAX)));     \
+                                                                            \
+    _RWSTD_STATIC (type, int, radix, 2);                                    \
+                                                                            \
+    _RWSTD_STATIC_FUN (type, epsilon,     0)                                \
+    _RWSTD_STATIC_FUN (type, round_error, 0)                                \
+                                                                            \
+    _RWSTD_STATIC (type, int, min_exponent,   0);                           \
+    _RWSTD_STATIC (type, int, min_exponent10, 0);                           \
+    _RWSTD_STATIC (type, int, max_exponent,   0);                           \
+    _RWSTD_STATIC (type, int, max_exponent10, 0);                           \
+                                                                            \
+    _RWSTD_STATIC (type, bool, has_infinity,             false);            \
+    _RWSTD_STATIC (type, bool, has_quiet_NaN,            false);            \
+    _RWSTD_STATIC (type, bool, has_signaling_NaN,        false);            \
+    _RWSTD_STATIC (type, float_denorm_style, has_denorm, denorm_absent);    \
+    _RWSTD_STATIC (type, bool, has_denorm_loss,          false);            \
+                                                                            \
+    _RWSTD_STATIC_FUN (type, infinity,      0)                              \
+    _RWSTD_STATIC_FUN (type, quiet_NaN,     0)                              \
+    _RWSTD_STATIC_FUN (type, signaling_NaN, 0)                              \
+    _RWSTD_STATIC_FUN (type, denorm_min,    0)                              \
+                                                                            \
+    _RWSTD_STATIC (type, bool, is_iec559,  false);                          \
+    _RWSTD_STATIC (type, bool, is_bounded, true);                           \
+    _RWSTD_STATIC (type, bool, is_modulo,  1 != cpfx##_MAX);                \
+                                                                            \
+    _RWSTD_STATIC (type, bool, traps,           false);                     \
+    _RWSTD_STATIC (type, bool, tinyness_before, false);                     \
+    _RWSTD_STATIC (type, float_round_style, round_style, round_toward_zero);
+
+
+#undef _RWSTD_SPECIALIZE_LIMITS
+
+#define _RWSTD_SPECIALIZE_LIMITS(type, cpfx)  \
+_RWSTD_CLASS_BEGIN (numeric_limits<type>)     \
+    _RWSTD_LIMITS_BODY (type, cpfx)           \
+_RWSTD_CLASS_END
+
+
+#ifndef _RWSTD_LIMITS_TEMPLATE_DEFINED
+#define _RWSTD_LIMITS_TEMPLATE_DEFINED
+
+
+_RWSTD_NAMESPACE (std) { 
+
+
+enum float_round_style
+{
+    round_indeterminate       = -1,
+    round_toward_zero         =  0,
+    round_to_nearest          =  1,
+    round_toward_infinity     =  2,
+    round_toward_neg_infinity =  3
+};
+
+#define _RWSTD_ROUND_STYLE                                  \
+       0 == _RWSTD_FLT_ROUNDS ? round_toward_zero           \
+    :  1 == _RWSTD_FLT_ROUNDS ? round_to_nearest            \
+    :  2 == _RWSTD_FLT_ROUNDS ? round_toward_infinity       \
+    :  3 == _RWSTD_FLT_ROUNDS ? round_toward_neg_infinity   \
+    :  round_indeterminate
+
+
+enum float_denorm_style
+{
+    denorm_indeterminate = -1,
+    denorm_absent        =  0,
+    denorm_present       =  1
+};
+
+template <class _TypeT>
+struct numeric_limits
+{
+    // static consts below must be initialized in class so that
+    // they can be used where const expressions are required (such
+    // as in template parameters)
+
+    _RWSTD_STATIC_CONST (bool, is_specialized = false);
+
+    static _TypeT (min)() _THROWS (()) { return _TypeT (); }
+    static _TypeT (max)() _THROWS (()) { return _TypeT (); }
+
+    _RWSTD_STATIC_CONST (int, digits   = 0);
+    _RWSTD_STATIC_CONST (int, digits10 = 0);
+
+    _RWSTD_STATIC_CONST (bool, is_signed  = false);
+    _RWSTD_STATIC_CONST (bool, is_integer = false);
+    _RWSTD_STATIC_CONST (bool, is_exact   = false);
+
+    _RWSTD_STATIC_CONST (int, radix = 0);
+
+    static _TypeT epsilon () _THROWS (())     { return _TypeT (); }
+    static _TypeT round_error () _THROWS (()) { return _TypeT (); }
+
+    _RWSTD_STATIC_CONST (int, min_exponent   = 0);
+    _RWSTD_STATIC_CONST (int, min_exponent10 = 0);
+    _RWSTD_STATIC_CONST (int, max_exponent   = 0);
+    _RWSTD_STATIC_CONST (int, max_exponent10 = 0);
+
+    _RWSTD_STATIC_CONST (bool, has_infinity             = false);
+    _RWSTD_STATIC_CONST (bool, has_quiet_NaN            = false);
+    _RWSTD_STATIC_CONST (bool, has_signaling_NaN        = false);
+    _RWSTD_STATIC_CONST (float_denorm_style, has_denorm = denorm_absent);
+    _RWSTD_STATIC_CONST (bool, has_denorm_loss          = false);
+
+    static _TypeT infinity () _THROWS (())      { return _TypeT (); }
+    static _TypeT quiet_NaN () _THROWS (())     { return _TypeT (); }
+    static _TypeT signaling_NaN () _THROWS (()) { return _TypeT (); }
+    static _TypeT denorm_min () _THROWS (())    { return _TypeT (); }
+
+    _RWSTD_STATIC_CONST (bool, is_iec559        = false);
+    _RWSTD_STATIC_CONST (bool, is_bounded       = false);
+    _RWSTD_STATIC_CONST (bool, is_modulo        = false);
+    _RWSTD_STATIC_CONST (bool, traps            = false);
+    _RWSTD_STATIC_CONST (bool, tinyness_before  = false);
+    _RWSTD_STATIC_CONST (float_round_style, round_style = round_toward_zero);
+};
+
+
+}   // namespace std
+
+
+#endif   // _RWSTD_LIMITS_TEMPLATE_DEFINED
+
+
+#ifndef _RWSTD_LIMITS_INCLUDED
+#define _RWSTD_LIMITS_INCLUDED
+
+
+_RWSTD_NAMESPACE (std) { 
+
+
+_RWSTD_CLASS_BEGIN (numeric_limits<float>)
+
+    _RWSTD_STATIC (float, bool, is_specialized, true);
+
+    _RWSTD_STATIC_FUN (float, (min), _RWSTD_FLT_MIN)
+    _RWSTD_STATIC_FUN (float, (max), _RWSTD_FLT_MAX)
+
+    _RWSTD_STATIC (float, int, digits,   _RWSTD_FLT_MANT_DIG);
+    _RWSTD_STATIC (float, int, digits10, _RWSTD_FLT_DIG);
+
+    _RWSTD_STATIC (float, bool, is_signed,  true);
+    _RWSTD_STATIC (float, bool, is_integer, false);
+    _RWSTD_STATIC (float, bool, is_exact,   false);
+    _RWSTD_STATIC (float, int,  radix,      _RWSTD_FLT_RADIX);
+
+    _RWSTD_STATIC_FUN (float, epsilon,     _RWSTD_FLT_EPSILON)
+    _RWSTD_STATIC_FUN (float, round_error, 0.5f)
+
+    _RWSTD_STATIC (float, int, min_exponent,   _RWSTD_FLT_MIN_EXP);
+    _RWSTD_STATIC (float, int, min_exponent10, _RWSTD_FLT_MIN_10_EXP);
+    _RWSTD_STATIC (float, int, max_exponent,   _RWSTD_FLT_MAX_EXP);
+    _RWSTD_STATIC (float, int, max_exponent10, _RWSTD_FLT_MAX_10_EXP);
+
+    _RWSTD_STATIC (float, bool, has_infinity,      _RWSTD_HAS_INFINITY);
+    _RWSTD_STATIC (float, bool, has_quiet_NaN,     _RWSTD_HAS_QUIET_NAN);
+    _RWSTD_STATIC (float, bool, has_signaling_NaN, _RWSTD_HAS_SIG_NAN);
+    _RWSTD_STATIC (float, float_denorm_style, has_denorm,
+                   float_denorm_style (_RWSTD_FLT_HAS_DENORM));
+    _RWSTD_STATIC (float, bool, has_denorm_loss, _RWSTD_HAS_DENORM_LOSS);
+
+    _RWSTD_STATIC_FUN (float, infinity,      _RWSTD_FLT_INFINITY)
+    _RWSTD_STATIC_FUN (float, quiet_NaN,     _RWSTD_FLT_QNAN)
+    _RWSTD_STATIC_FUN (float, signaling_NaN, _RWSTD_FLT_SNAN)
+    _RWSTD_STATIC_FUN (float, denorm_min,    _RWSTD_FLT_DENORM_MIN)
+
+    _RWSTD_STATIC (float, bool, is_iec559,  _RWSTD_IS_IEC559);
+    _RWSTD_STATIC (float, bool, is_bounded, true);
+    _RWSTD_STATIC (float, bool, is_modulo,  false);
+
+    _RWSTD_STATIC (float, bool, traps, _RWSTD_FLT_TRAPS);
+    _RWSTD_STATIC (float, bool, tinyness_before, false);
+
+    _RWSTD_STATIC (float, float_round_style, round_style, _RWSTD_ROUND_STYLE);
+
+_RWSTD_CLASS_END   // numeric_limits<float>
+
+
+_RWSTD_CLASS_BEGIN (numeric_limits<double>)
+
+    _RWSTD_STATIC (double, bool, is_specialized, true);
+
+    _RWSTD_STATIC_FUN (double, (min), _RWSTD_DBL_MIN)
+    _RWSTD_STATIC_FUN (double, (max), _RWSTD_DBL_MAX)
+
+    _RWSTD_STATIC (double, int, digits,   _RWSTD_DBL_MANT_DIG);
+    _RWSTD_STATIC (double, int, digits10, _RWSTD_DBL_DIG);
+
+    _RWSTD_STATIC (double, bool, is_signed,  true);
+    _RWSTD_STATIC (double, bool, is_integer, false);
+    _RWSTD_STATIC (double, bool, is_exact,   false);
+    _RWSTD_STATIC (double, int,  radix,      _RWSTD_FLT_RADIX);
+
+    _RWSTD_STATIC_FUN (double, epsilon,     _RWSTD_DBL_EPSILON)
+    _RWSTD_STATIC_FUN (double, round_error, 0.5)
+
+    _RWSTD_STATIC (double, int, min_exponent,   _RWSTD_DBL_MIN_EXP);
+    _RWSTD_STATIC (double, int, min_exponent10, _RWSTD_DBL_MIN_10_EXP);
+    _RWSTD_STATIC (double, int, max_exponent,   _RWSTD_DBL_MAX_EXP);
+    _RWSTD_STATIC (double, int, max_exponent10, _RWSTD_DBL_MAX_10_EXP);
+
+    _RWSTD_STATIC (double, bool, has_infinity,      _RWSTD_HAS_INFINITY);
+    _RWSTD_STATIC (double, bool, has_quiet_NaN,     _RWSTD_HAS_QUIET_NAN);
+    _RWSTD_STATIC (double, bool, has_signaling_NaN, _RWSTD_HAS_SIG_NAN);
+    _RWSTD_STATIC (double, float_denorm_style, has_denorm,
+                   float_denorm_style (_RWSTD_DBL_HAS_DENORM));
+    _RWSTD_STATIC (double, bool, has_denorm_loss,   _RWSTD_HAS_DENORM_LOSS);
+
+    _RWSTD_STATIC_FUN (double, infinity,      _RWSTD_DBL_INFINITY)
+    _RWSTD_STATIC_FUN (double, quiet_NaN,     _RWSTD_DBL_QNAN)
+    _RWSTD_STATIC_FUN (double, signaling_NaN, _RWSTD_DBL_SNAN)
+    _RWSTD_STATIC_FUN (double, denorm_min,    _RWSTD_DBL_DENORM_MIN)
+
+    _RWSTD_STATIC (double, bool, is_iec559,  _RWSTD_IS_IEC559);
+    _RWSTD_STATIC (double, bool, is_bounded, true);
+    _RWSTD_STATIC (double, bool, is_modulo,  false);
+
+    _RWSTD_STATIC (double, bool, traps, _RWSTD_DBL_TRAPS);
+    _RWSTD_STATIC (double, bool, tinyness_before, false);
+
+    _RWSTD_STATIC (double, float_round_style, round_style, _RWSTD_ROUND_STYLE);
+
+_RWSTD_CLASS_END   // numeric_limits<double>
+
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+_RWSTD_CLASS_BEGIN (numeric_limits<long double>)
+
+    _RWSTD_STATIC (long double, bool, is_specialized, true);
+
+    _RWSTD_STATIC_FUN (long double, (min), _RWSTD_LDBL_MIN) 
+    _RWSTD_STATIC_FUN (long double, (max), _RWSTD_LDBL_MAX) 
+
+    _RWSTD_STATIC (long double, int, digits,   _RWSTD_LDBL_MANT_DIG);
+    _RWSTD_STATIC (long double, int, digits10, _RWSTD_LDBL_DIG);
+
+    _RWSTD_STATIC (long double, bool, is_signed,  true);
+    _RWSTD_STATIC (long double, bool, is_integer, false);
+    _RWSTD_STATIC (long double, bool, is_exact,   false);
+    _RWSTD_STATIC (long double, int,  radix,      _RWSTD_FLT_RADIX);
+
+    _RWSTD_STATIC_FUN (long double, epsilon,     _RWSTD_LDBL_EPSILON) 
+    _RWSTD_STATIC_FUN (long double, round_error, 0.5L) 
+
+    _RWSTD_STATIC (long double, int, min_exponent,   _RWSTD_LDBL_MIN_EXP);
+    _RWSTD_STATIC (long double, int, min_exponent10, _RWSTD_LDBL_MIN_10_EXP);
+    _RWSTD_STATIC (long double, int, max_exponent,   _RWSTD_LDBL_MAX_EXP);
+    _RWSTD_STATIC (long double, int, max_exponent10, _RWSTD_LDBL_MAX_10_EXP);
+
+    _RWSTD_STATIC (long double, bool, has_infinity,      _RWSTD_HAS_INFINITY);
+    _RWSTD_STATIC (long double, bool, has_quiet_NaN,     _RWSTD_HAS_QUIET_NAN);
+    _RWSTD_STATIC (long double, bool, has_signaling_NaN, _RWSTD_HAS_SIG_NAN);
+    _RWSTD_STATIC (long double, float_denorm_style, has_denorm,
+                   float_denorm_style (_RWSTD_LDBL_HAS_DENORM));
+    _RWSTD_STATIC (long double, bool, has_denorm_loss, _RWSTD_HAS_DENORM_LOSS);
+
+    _RWSTD_STATIC_FUN (long double, infinity,      _RWSTD_LDBL_INFINITY)
+    _RWSTD_STATIC_FUN (long double, quiet_NaN,     _RWSTD_LDBL_QNAN)
+    _RWSTD_STATIC_FUN (long double, signaling_NaN, _RWSTD_LDBL_SNAN)
+    _RWSTD_STATIC_FUN (long double, denorm_min,    _RWSTD_LDBL_DENORM_MIN)
+
+    _RWSTD_STATIC (long double, bool, is_iec559,  _RWSTD_IS_IEC559);
+    _RWSTD_STATIC (long double, bool, is_bounded, true);
+    _RWSTD_STATIC (long double, bool, is_modulo,  false);
+
+    _RWSTD_STATIC (long double, bool, traps, _RWSTD_LDBL_TRAPS);
+    _RWSTD_STATIC (long double, bool, tinyness_before, false);
+
+    _RWSTD_STATIC (long double, float_round_style, round_style,
+                   _RWSTD_ROUND_STYLE);
+
+_RWSTD_CLASS_END    // numeric_limits<long double>
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+
+// define numeric_limits<> integral specializations
+_RWSTD_SPECIALIZE_LIMITS (char,              _RWSTD_CHAR)
+_RWSTD_SPECIALIZE_LIMITS (unsigned char,     _RWSTD_UCHAR)
+_RWSTD_SPECIALIZE_LIMITS (signed char,       _RWSTD_SCHAR)
+_RWSTD_SPECIALIZE_LIMITS (short int,         _RWSTD_SHRT)
+_RWSTD_SPECIALIZE_LIMITS (unsigned short,    _RWSTD_USHRT)
+_RWSTD_SPECIALIZE_LIMITS (int,               _RWSTD_INT)
+_RWSTD_SPECIALIZE_LIMITS (unsigned int,      _RWSTD_UINT)
+_RWSTD_SPECIALIZE_LIMITS (long int,          _RWSTD_LONG)
+_RWSTD_SPECIALIZE_LIMITS (unsigned long int, _RWSTD_ULONG)
+
+
+#ifndef _RWSTD_NO_WCHAR_T
+#  ifndef _RWSTD_NO_NATIVE_WCHAR_T
+
+_RWSTD_SPECIALIZE_LIMITS (wchar_t, _RWSTD_WCHAR_T)
+
+#  endif   // _RWSTD_NO_NATIVE_WCHAR_T
+#endif   // _RWSTD_NO_WCHAR_T
+
+
+#ifndef _RWSTD_NO_BOOL
+#  ifndef _RWSTD_NO_NATIVE_BOOL
+
+_RWSTD_SPECIALIZE_LIMITS (bool, _RWSTD_BOOL)
+
+#  endif   // _RWSTD_NO_NATIVE_BOOL
+#endif   // _RWSTD_NO_BOOL
+
+
+#ifdef _RWSTD_LONG_LONG
+
+_RWSTD_SPECIALIZE_LIMITS (_RWSTD_LONG_LONG, _RWSTD_LLONG)
+_RWSTD_SPECIALIZE_LIMITS (unsigned _RWSTD_LONG_LONG, _RWSTD_ULLONG)
+
+#endif   // _RWSTD_LONG_LONG
+
+
+}   // namespace std
+
+
+#ifdef _RWSTD_NO_IMPLICIT_INCLUSION
+#  include <limits.cc>
+#endif
+
+#endif   // _RWSTD_LIMITS_INCLUDED

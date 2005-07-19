@@ -1,0 +1,105 @@
+<HTML>
+<HEAD>
+<TITLE>accumulate()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="II.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="adjacent-difference.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>accumulate()</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-10.html">Numerics</A></P>
+
+<PRE><HR><B><I>Function</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">Complexity</A></LI>
+<LI><A HREF="#sec6">Example</A></LI>
+<LI><A HREF="#sec7">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A generalized numeric operation that accumulates all elements within a range into a single value</P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;numeric&gt;
+
+namespace std {
+  template &lt;class InputIterator, class T&gt;
+  T accumulate(InputIterator start,
+               InputIterator finish,
+               T init);
+
+  template &lt;class InputIterator,
+            class T,
+            class BinaryOperation&gt;
+  T accumulate(InputIterator start,
+               InputIterator finish,
+               T init,
+               BinaryOperation binary_op);
+}
+</PRE>
+<A NAME="sec4"><H3>Description</H3></A>
+<P><SAMP>accumulate()</SAMP> applies a binary operation to <SAMP>init</SAMP> and each value in the range <SAMP>[start,finish)</SAMP>. The result of each operation is returned in <SAMP>init</SAMP>. This process aggregates the result of performing the operation on every element of the sequence into a single value.</P>
+<P>The accumulator <SAMP>acc</SAMP> is initialized with the value <SAMP>init </SAMP>and modified with <SAMP>acc = acc + *i</SAMP> or <SAMP>acc = binary_op(acc, *i)</SAMP> for each interator <SAMP>i</SAMP>, in order, in the range <SAMP>[start, finish)</SAMP>.</P>
+<A NAME="sec5"><H3>Complexity</H3></A>
+<P><SAMP>accumulate()</SAMP> performs exactly <SAMP>finish-start</SAMP> applications of the binary operation, <SAMP>operator+ </SAMP>by default.</P>
+<A NAME="sec6"><H3>Example</H3></A>
+
+<UL><PRE>//
+// accum.cpp
+//
+
+#include &lt;numeric&gt;    // for accumulate
+#include &lt;vector&gt;     // for vector
+#include &lt;functional&gt; // for multiplies
+#include &lt;iostream&gt;   // for cout
+
+
+int main ()
+{
+    // Typedef for convenience.
+    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; vector;
+
+    // Initialize a vector using an array of integers.
+    const vector::value_type arr[] = 
+      { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    vector v1 (arr, arr + sizeof arr / sizeof *arr);
+
+    // Accumulate sums and products.
+    vector::value_type sum =
+        std::accumulate (v1.begin (), v1.end (), 0);
+
+    vector::value_type prod =
+        std::accumulate (v1.begin (), v1.end (), 1,
+                         std::multiplies&lt;vector::value_type&gt;());
+
+    // Output the results.
+    std::cout &lt;&lt; "For the series: ";
+    for (vector::iterator i = v1.begin (); i != v1.end (); ++i)
+        std::cout &lt;&lt; *i &lt;&lt; " ";
+
+    std::cout &lt;&lt; "where N = " &lt;&lt; v1.size ()
+              &lt;&lt; "\nThe sum = (N * N + N) / 2 = " &lt;&lt; sum
+              &lt;&lt; "\nThe product = N! = " &lt;&lt; prod &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+
+For the series: 1 2 3 4 5 6 7 8 9 10 where N = 10
+The sum = (N * N + N) / 2 = 55
+The product = N! = 3628800
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<A NAME="sec7"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 26.4.1</I></P>
+
+<BR>
+<HR>
+<A HREF="II.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="adjacent-difference.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

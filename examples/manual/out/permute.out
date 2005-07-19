@@ -1,0 +1,10 @@
+Example 1: 
+     Original values:      0 0 0 0 1 0 0 0 0 0 
+     Previous permutation: 0 0 0 0 0 1 0 0 0 0 
+     Next Permutation:     0 0 0 1 0 0 0 0 0 0 
+
+Example 2: 
+     Original values:      a b c d e f g h j i 
+     Previous Permutation: a b c d e f g h i j 
+     Next Permutation:     a b c d e f g i h j 
+

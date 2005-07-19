@@ -1,0 +1,59 @@
+<HTML>
+<HEAD>
+<TITLE>__distance_type()</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="III.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="--iterator-category.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>__distance_type()</H2><PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Description</A></LI>
+<LI><A HREF="#sec5">See Also</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A function that determines the type of distance used by an iterator. </P>
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is now obsolete. It is retained here to<br>support compilers that do not include partial specialization, but<br>will be dropped in a subsequent release.
+</B><HR></BLOCKQUOTE>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<UL><PRE>#include &lt;iterator&gt;
+template &lt;class Category, class T, class Distance, 
+          class Pointer, class Reference&gt;
+inline Distance* 
+       __distance_type(const iterator&lt;Category, T,
+                         Distance, Pointer, Reference&gt;&amp;);
+template &lt;class T&gt;
+inline ptrdiff_t* __distance_type(const T*);
+</PRE></UL>
+<A NAME="sec4"><H3>Description</H3></A>
+<P>The <SAMP>__distance_type()</SAMP> family of function templates returns a pointer to a value that is of the same type as that used to represent a distance between two iterators. The first of these takes an iterator of a particular type and returns a pointer to a default value of the <B><I>difference_type</I></B> for that iterator. The <SAMP>T*</SAMP> form of the function returns <SAMP>ptrdiff_t*</SAMP>.</P>
+<P>Generic algorithms use this function to create local variables of the correct type. The <SAMP>__distance_type()</SAMP> functions are typically used like this:</P>
+
+<UL><PRE>template &lt;class Iterator&gt;
+void foo(Iterator start, Iterator finish)
+{
+  __foo(begin,end,__distance_type(first));
+}
+
+template &lt;class Iterator, class Distance&gt;
+void __foo(Iterator start, Iterator finish, Distance*&gt;
+{
+  Distance d = Distance();
+  distance(start,finish,d);
+  ...
+}
+</PRE></UL>
+<P>The auxiliary function template allows the algorithm to extract a distance type from the first iterator and then use that type to perform some useful work.</P>
+<A NAME="sec5"><H3>See Also</H3></A>
+<P>Other iterator primitives:  <SAMP><A HREF="--iterator-category.html">__iterator_category()</A></SAMP>, <SAMP><A HREF="distance.html">distance()</A></SAMP>, <SAMP><A HREF="advance.html">advance()</A></SAMP></P>
+
+<BR>
+<HR>
+<A HREF="III.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="--iterator-category.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

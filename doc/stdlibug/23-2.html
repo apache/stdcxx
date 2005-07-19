@@ -1,0 +1,199 @@
+<HTML>
+<HEAD>
+<TITLE>Localizing Cultural Conventions</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="23-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="23-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>23.2 Localizing Cultural Conventions</H2>
+<P>The need for localizing software arises from differences in cultural conventions. These differences involve: language itself; representation of numbers and currency; display of time and date; and ordering and classification of characters and strings.</P>
+<A NAME="2321"><H3>23.2.1 Language</H3></A>
+<A NAME="idx476"><!></A>
+<P>Of course, <I>language</I> itself varies from country to country, and even within a country. Your program may require output messages in English, Deutsche, Fran<SAMP>&ccedil;</SAMP>ais, Italiano, or any number of languages commonly used in the world today.</P>
+<A NAME="idx477"><!></A>
+<P>Languages may also differ in the <I>alphabet</I> they use. Examples of different languages with their respective alphabets are given below:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE">American English:</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>a-z</SAMP>, <SAMP>A-Z</SAMP>, and punctuation</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">German:</P>
+</td><td valign=top><P CLASS="TABLE"><SAMP>a-z</SAMP>, <SAMP>A-Z</SAMP>, punctuation, and <SAMP>&auml;&ouml;&uuml; &Auml;&ouml;&Uuml; &#223;</SAMP></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Greek:</P>
+</td><td valign=top><P CLASS="TABLE"><IMG SRC="images/alpha.gif">-<IMG SRC="images/omega.gif">, <IMG SRC="images/capalpha.gif">-<IMG SRC="images/capomega.gif">, and punctuation</P>
+</td></tr>
+</TABLE>
+<A NAME="2322"><H3>23.2.2 Numbers</H3></A>
+<A NAME="idx478"><!></A>
+<P>The representation of <I>numbers </I>depends on local customs, which vary from country to country. For example, consider the <I>radix character</I>, the symbol used to separate the integer portion of a number from the fractional portion. In American English, this character is a period; in much of Europe, it is a comma. Conversely, the thousands separator that separates numbers larger than three digits is a comma in American English, and a period in much of Europe.</P>
+<P>The convention for grouping digits also varies. In American English, digits are grouped by threes, but there are many other possibilities. In the example below, the same number is written as it would be locally in three different countries:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE">1,000,000.55</P>
+</td><td valign=top><P CLASS="TABLE">US</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">1.000.000,55</P>
+</td><td valign=top><P CLASS="TABLE">Germany</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">10,00,000.55</P>
+</td><td valign=top><P CLASS="TABLE">Nepal</P>
+</td></tr>
+</TABLE>
+<A NAME="idx479"><!></A>
+<A NAME="2323"><H3>23.2.3 Currency</H3></A>
+<A NAME="idx480"><!></A>
+<P>We are all aware that countries use different currencies. However, not everyone realizes the many different ways we can represent units of currency. For example, the symbol for a currency can vary. Here are two different ways of representing the same amount in US dollars:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE">$24.99</P>
+</td><td valign=top><P CLASS="TABLE">US</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">USD 24.99</P>
+</td><td valign=top><P CLASS="TABLE">International currency symbol for the US</P>
+</td></tr>
+</TABLE>
+<P>The placement of the currency symbol varies for different currencies, too, appearing before, after, or even within the numeric value:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE">&#165; 155</P>
+</td><td valign=top><P CLASS="TABLE">Japan</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">13,50 DM</P>
+</td><td valign=top><P CLASS="TABLE">Germany</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>&#163;</SAMP>14 19s. 6d.</P>
+</td><td valign=top><P CLASS="TABLE">England before decimalization</P>
+</td></tr>
+</TABLE>
+<P>The format of negative currency values differs:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE">&ouml;S 1,1</P>
+</td><td valign=top><P CLASS="TABLE">-&ouml;S 1,1</P>
+</td><td valign=top><P CLASS="TABLE">Austria</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">1,1 DM</P>
+</td><td valign=top><P CLASS="TABLE">-1,1 DM</P>
+</td><td valign=top><P CLASS="TABLE">Germany</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">SFr. 1.1</P>
+</td><td valign=top><P CLASS="TABLE">SFr.-1.1</P>
+</td><td valign=top><P CLASS="TABLE">Switzerland</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">HK$1.1</P>
+</td><td valign=top><P CLASS="TABLE">(HK$1.1)</P>
+</td><td valign=top><P CLASS="TABLE">Hong Kong</P>
+</td></tr>
+</TABLE>
+<A NAME="idx481"><!></A>
+<A NAME="2324"><H3>23.2.4 Time and Date</H3></A>
+<A NAME="idx482"><!></A>
+<P>Local conventions also determine how<I> time </I>and<I> date </I>are displayed. Some countries use a 24-hour clock; others use a 12-hour clock. Names and abbreviations for days of the week and months of the year vary by language.</P>
+<P>Customs dictate the ordering of the year, month, and day, as well as the separating delimiters for their numeric representation. To designate years, some regions use seasonal, astronomical, or historical criteria, instead of the Western Gregorian calendar system. For example, the official Japanese calendar is based on the year of reign of the current Emperor.</P>
+<P>The following example shows short and long representations of the same date in different countries: </P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE">10/29/96</P>
+</td><td valign=top><P CLASS="TABLE">Tuesday, October 29, 1996</P>
+</td><td valign=top><P CLASS="TABLE">US</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">1996. 10. 29.</P>
+</td><td valign=top><P CLASS="TABLE">1996. okt&oacute;ber 29.</P>
+</td><td valign=top><P CLASS="TABLE">Hungary</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">29/10/96</P>
+</td><td valign=top><P CLASS="TABLE">marted&igrave; 29 ottobre 1996</P>
+</td><td valign=top><P CLASS="TABLE">Italy</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">29/10/1996</P>
+</td><td valign=top><P CLASS="TABLE"><IMG SRC="images/captau.gif"><IMG SRC="images/rho.gif"><IMG SRC="images/iota.gif"><IMG SRC="images/tau.gif"><IMG SRC="images/eta.gif">, 29 <IMG SRC="images/capomicr.gif"><IMG SRC="images/kappa.gif"><IMG SRC="images/tau.gif"><IMG SRC="images/omega.gif"><IMG SRC="images/beta.gif"><IMG SRC="images/rho.gif"><IMG SRC="images/iota.gif"><IMG SRC="images/omicron.gif"><IMG SRC="images/upsilon.gif"> 1996</P>
+</td><td valign=top><P CLASS="TABLE">Greece</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">29.10.96</P>
+</td><td valign=top><P CLASS="TABLE">Dienstag, 29. Oktober 1996</P>
+</td><td valign=top><P CLASS="TABLE">Germany</P>
+</td></tr>
+</TABLE>
+<P>The following example shows different representations of the same time:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE">4:55 pm</P>
+</td><td valign=top><P CLASS="TABLE">US time</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">16:55 Uhr</P>
+</td><td valign=top><P CLASS="TABLE">German time</P>
+</td></tr>
+</TABLE>
+<P>And the following example shows different representations of the same time:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE">11:45:15</P>
+</td><td valign=top><P CLASS="TABLE">Digital representation, US</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">11:45:15 &#181;&#181;</P>
+</td><td valign=top><P CLASS="TABLE">Digital representation, Greece</P>
+</td></tr>
+</TABLE>
+<A NAME="idx483"><!></A>
+<A NAME="2325"><H3>23.2.5 Ordering</H3></A>
+<A NAME="idx484"><!></A>
+<P>Languages may vary regarding <I>collating sequence</I>; that is, their rules for ordering or sorting characters or strings. The following example compares the same list of words ordered alphabetically by different collating sequences:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE"><B><I>Sorted by ASCII rules:</I></B></P>
+</td><td valign=top><P CLASS="TABLE"><B><I>Sorted by German rules:</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Airplane</P>
+</td><td valign=top><P CLASS="TABLE">Airplane</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Zebra</P>
+</td><td valign=top><P CLASS="TABLE">&auml;hnlich</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">bird</P>
+</td><td valign=top><P CLASS="TABLE">bird</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">car</P>
+</td><td valign=top><P CLASS="TABLE">car</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">&auml;hnlich</P>
+</td><td valign=top><P CLASS="TABLE">Zebra</P>
+</td></tr>
+</TABLE>
+<P>The ASCII collation orders elements according to the numeric value of bytes, which does not meet the requirements of English language dictionary sorting. This is because lexicographical order sorts <SAMP>a</SAMP> after <SAMP>A</SAMP> and before <SAMP>B</SAMP>, whereas ASCII-based order sorts <SAMP>a</SAMP> after the entire set of uppercase letters.</P>
+<P>The German alphabet sorts <SAMP>&auml;</SAMP> before <SAMP><B>b</B></SAMP>, whereas the ASCII order sorts an umlaut after all other letters.</P>
+<P>In addition to specifying the ordering of individual characters, some languages specify that certain groups of characters should be clustered and treated as a single character. The following example shows the difference this can make in an ordering:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE"><B><I>Sorted by ASCII rules:</I></B></P>
+</td><td valign=top><P CLASS="TABLE"><B><I>Sorted by Spanish rules:</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">chaleco</P>
+</td><td valign=top><P CLASS="TABLE">cuna</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">cuna</P>
+</td><td valign=top><P CLASS="TABLE">chaleco</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">d&iacute;a</P>
+</td><td valign=top><P CLASS="TABLE">d&iacute;a</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">llava</P>
+</td><td valign=top><P CLASS="TABLE">loro</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">loro</P>
+</td><td valign=top><P CLASS="TABLE">llava</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">ma&iacute;z</P>
+</td><td valign=top><P CLASS="TABLE">ma&iacute;z</P>
+</td></tr>
+</TABLE>
+<P>The word <SAMP>llava</SAMP> is sorted after <SAMP>loro</SAMP> and before <SAMP>ma&iacute;z</SAMP>, because in Spanish <SAMP>ll</SAMP> is a digraph, i.e., it is treated as a single character that is sorted after <SAMP>l</SAMP> and before <SAMP>m</SAMP>. Similarly, the digraph <SAMP>ch</SAMP> in Spanish is treated as a single character to be sorted after <SAMP>c</SAMP>, but before <SAMP>d</SAMP>. Two characters that are paired and treated as a single character are referred to as a <I>two-to-one</I> <I>character code pair</I>.</P>
+<P>In other cases, one character is treated as if it were actually two characters. The German single character <SAMP>&#223;</SAMP>, called the <I>sharp s</I>, is treated as <SAMP>ss</SAMP>. This treatment makes a difference in the ordering, as shown in the example below:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE"><B><I>Sorted by ASCII rules:</I></B></P>
+</td><td valign=top><P CLASS="TABLE"><B><I>Sorted by German rules:</I></B></P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Rosselenker</P>
+</td><td valign=top><P CLASS="TABLE">Rosselenker</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Rostbratwurst</P>
+</td><td valign=top><P CLASS="TABLE">Ro&#223;haar</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Ro&#223;haar</P>
+</td><td valign=top><P CLASS="TABLE">Rostbratwurst</P>
+</td></tr>
+</TABLE>
+
+<BR>
+<HR>
+<A HREF="23-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="23-3.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

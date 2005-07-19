@@ -1,0 +1,239 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * cstdlib - C++ Standard library interface to the ANSI C header stdlib.h
+ *
+ * $Id: //stdlib/dev/include/ansi/cstdlib#21 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#include <rw/_defs.h>
+
+#ifndef _RWSTD_NO_PURE_C_HEADERS
+#  include <ansi/_cstdlib.h>
+#else
+
+#ifndef _RWSTD_NO_DEPRECATED_C_HEADERS
+
+#ifndef _RWSTD_NAMESPACE_STD_OPEN
+#define _RWSTD_NAMESPACE_STD_OPEN 15
+
+_RWSTD_NAMESPACE (std) { 
+
+#endif   // _RWSTD_NAMESPACE_STD_OPEN
+
+
+#include _RWSTD_ANSI_C_STDLIB_H
+
+#ifndef _RWSTD_CSTDLIB_INCLUDED
+#define _RWSTD_CSTDLIB_INCLUDED
+
+
+#ifdef _RWSTD_NO_ABS_LONG
+
+inline long abs (long __x)
+{
+    return __x < 0L ? -__x : __x;
+}
+
+#endif   // _RWSTD_NO_ABS_LONG
+
+#ifndef _RWSTD_NO_LDIV
+
+inline ldiv_t div (long __x, long __y)
+{
+    return ldiv (__x, __y);
+}
+
+#endif   // _RWSTD_NO_LDIV
+
+
+#endif   // _RWSTD_CSTDLIB_INCLUDED
+
+
+#if _RWSTD_NAMESPACE_STD_OPEN == 15
+#  undef _RWSTD_NAMESPACE_STD_OPEN
+
+}   // namespace std
+
+#endif   // _RWSTD_NAMESPACE_STD_OPEN == 15
+
+#else   // if defined (_RWSTD_NO_DEPRECATED_C_HEADERS)
+
+#ifndef _RWSTD_CSTDLIB_INCLUDED
+#define _RWSTD_CSTDLIB_INCLUDED
+
+#include _RWSTD_ANSI_C_STDLIB_H
+
+#undef ldiv
+
+#if !defined (_RWSTD_NO_NAMESPACE) && !defined (_RWSTD_NO_HONOR_STD) && \
+    !defined (_RWSTD_NO_USING_LIBC_IN_STD)
+
+namespace std {
+
+
+#ifdef _RWSTD_NO_ABS_UINT
+
+inline unsigned abs (unsigned __x)
+{
+    return __x;
+}
+
+#endif   // _RWSTD_NO_ABS_UINT
+
+#ifdef _RWSTD_NO_ABS_LONG
+
+inline long abs (long __x)
+{
+    return __x < 0L ? -__x : __x;
+}
+
+#endif   // _RWSTD_NO_ABS_LONG
+
+#ifdef _RWSTD_NO_ABS_ULONG
+
+inline unsigned long abs (unsigned long __x)
+{
+    return __x;
+}
+
+#endif   // _RWSTD_NO_ABS_ULONG
+
+#ifdef _RWSTD_LONG_LONG
+#  ifdef _RWSTD_NO_ABS_LLONG
+
+inline _RWSTD_LONG_LONG abs (_RWSTD_LONG_LONG __x)
+{
+    return __x < (_RWSTD_LONG_LONG)0 ? -__x : __x;
+}
+
+#  endif   // _RWSTD_NO_ABS_LLONG
+
+#  ifdef _RWSTD_NO_ABS_ULLONG
+
+inline unsigned _RWSTD_LONG_LONG abs (unsigned _RWSTD_LONG_LONG __x)
+{
+    return __x;
+}
+
+#  endif   // _RWSTD_NO_ABS_ULLONG
+#endif   // _RWSTD_LONG_LONG
+
+#ifndef _RWSTD_NO_LDIV
+
+    inline ldiv_t div (long __x, long __y)
+    {
+        return ldiv (__x, __y);
+    }
+
+#endif   // _RWSTD_NO_LDIV
+
+#ifndef _RWSTD_NO_EXTERN_C_COMPATIBILITY
+#  ifndef _RWSTD_NO_EXTERN_C_OVERLOAD
+
+    extern "C" {
+        typedef int (*__rw_compar_t)(const void*, const void*);
+    }
+
+    extern "C++" {
+
+    // 25.4, p3
+    inline void*
+    bsearch (const void *__key, const void *__base, size_t __n, size_t __size,
+             int (*__cmp)(const void*, const void*))
+    {
+        return ::bsearch (__key, __base, __n, __size,
+                          _RWSTD_REINTERPRET_CAST (__rw_compar_t, __cmp));
+    }
+
+    // 25.4, p4
+    inline void
+    qsort (void *__base, size_t __n, size_t __size,
+           int (*__cmp)(const void*, const void*))
+    {
+        return ::qsort (__base, __n, __size,
+                        _RWSTD_REINTERPRET_CAST (__rw_compar_t, __cmp));
+    }
+
+    }   // extern "C++"
+
+#  endif   // _RWSTD_NO_EXTERN_C_OVERLOAD
+#endif   // _RWSTD_NO_EXTERN_C_COMPATIBILITY
+    
+    // using statements must come after the overloads.
+    // working around MSVC6 PR# 27677
+    using ::size_t;
+    using ::div_t;
+
+#ifndef _RWSTD_NO_LDIV
+    using ::ldiv_t;
+#endif   // _RWSTD_NO_LDIV
+
+    using ::abort;
+
+#if defined (_RWSTD_NO_ABS) || defined (__hpux)
+
+    // working around a quirk in HP-UX <stdlib.h> and <math.h>
+
+    inline int abs (int __x)
+    {
+        return __x < 0 ? -__x : __x;
+    }
+
+#else
+    using ::abs;
+#endif   // _RWSTD_NO_ABS
+
+    using ::atexit;
+    using ::atof;
+    using ::atoi;
+    using ::atol;
+    using ::bsearch;
+    using ::calloc;
+    using ::div;
+    using ::exit;
+    using ::free;
+    using ::getenv;
+    using ::labs;
+    using ::ldiv;
+    using ::malloc;
+    using ::mblen;
+    using ::mbstowcs;
+
+#ifndef _RWSTD_NO_MBTOWC
+    using ::mbtowc;
+#endif   // _RWSTD_NO_MBTOWC
+
+    using ::qsort;
+    using ::rand;
+    using ::realloc;
+    using ::srand;
+    using ::strtod;
+    using ::strtol;
+    using ::strtoul;
+    using ::system;
+    using ::wcstombs;
+    using ::wctomb;
+}   // std
+
+#endif   // !_RWSTD_NO_NAMESPACE && !_RWSTD_NO_HONOR_STD && !_RWSTD_NO_USING_LIBC_IN_STD
+
+#endif   // _RWSTD_CSTDLIB_INCLUDED
+
+#endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
+
+#endif   // _RWSTD_NO_PURE_C_HEADERS

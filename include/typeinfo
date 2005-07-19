@@ -1,0 +1,238 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * typeinfo - declarations for the C++ Standard Library RTTI support
+ *
+ * $Id: //stdlib/dev/include/typeinfo#46 $
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_TYPEINFO_INCLUDED
+#define _RWSTD_TYPEINFO_INCLUDED
+
+#include <exception>
+#include <rw/_defs.h>
+
+
+#if    !defined (_RWSTD_NO_STD_BAD_TYPEID)   \
+    || !defined (_RWSTD_NO_RUNTIME_IN_STD)   \
+    ||  2 == __GNUG__ && !defined (_RWSTD_NO_HONOR_STD)
+
+// define type_info et al in namespace std iff they are found to be
+// defined in namespace std in the compiler's language support library
+// or if they are not found to be defined in either namespace std or
+// in the global namespace
+
+_RWSTD_NAMESPACE (std) {
+
+#endif   // !NO_BAD_TYPEID || !RUNTIME_IN_STD ...
+
+
+#ifndef _RWSTD_NO_NAMESPACE
+#  if defined (__EDG__) || defined (__sgi) && !defined (__INTEL_COMPILER)
+      // let edg (or its derivative) know about type_info
+      // do not use with Intel C++ on Linux or Windows
+#    pragma define_type_info
+#  endif   // __EDG__ ...
+#endif   // _RWSTD_NO_NAMESPACE
+
+
+// 18.5.1
+class type_info
+{
+public:
+    // individual members rather than the entire class exported
+    // to prevent compiler errors (see PR #25603); this prevents
+    // type_info virtuals from being overriden
+
+    _RWSTD_EXPORT virtual ~type_info ();
+    
+    _RWSTD_EXPORT bool before (const type_info&) const;
+
+    _RWSTD_EXPORT const char* name () const;
+
+    _RWSTD_EXPORT bool operator== (const type_info&) const;
+
+    _RWSTD_EXPORT bool operator!= (const type_info&) const;
+
+protected:
+
+    // prevent g++ warnings about private ctor and no friends
+    explicit type_info (const char*);
+
+private:
+
+#ifdef __HP_aCC
+
+    const char *_C_name;
+
+#  ifndef _HP_IA64ABI
+
+    void       *_C_baseClassTable;
+    unsigned    _C_hashValue;
+
+#  endif   // _HP_IA64ABI
+
+#elif defined (__INTEL_COMPILER) && !defined (_MSC_VER)
+
+    const char *_C_name;
+
+#elif defined (__GNUG__)
+
+    const char *_C_name;   // mangled name
+
+#elif defined (_MSC_VER)
+
+    void *_C_data;
+    char  _C_name [1];
+
+#elif defined (__SUNPRO_CC)
+
+    const void *_C_data;
+
+#elif defined (__IBMCPP__)
+
+#  ifdef _RWSTD_OS_LINUX
+
+    char *_C_name;   // mangled name (same as gcc libsupc++)
+
+#  else   // not Linux
+
+    char *_C_type_name;   // human readable name
+    char *_C_name;        // mangled name
+
+#  endif   // 
+
+#else   // DEC cxx, SGI MIPSpro, SNI CDS++, and other EDG derivatives
+
+    // no data
+
+#endif
+
+    type_info& operator= (const type_info&);   // undefined
+    type_info (const type_info&);              // undefined
+};
+
+
+#if    !defined (_RWSTD_NO_STD_BAD_TYPEID)   \
+    || !defined (_RWSTD_NO_RUNTIME_IN_STD)   \
+    ||  2 == __GNUG__ && !defined (_RWSTD_NO_HONOR_STD)
+
+}   // namespace std
+
+#else
+#  ifndef _RWSTD_NO_NAMESPACE
+
+namespace std {
+
+using ::type_info;
+
+}   // namespace std
+
+#  endif   // _RWSTD_NO_NAMESPACE
+#endif   // !NO_BAD_TYPEID || !RUNTIME_IN_STD ...
+
+
+#if !defined (_RWSTD_NO_STD_BAD_CAST) || !defined (_RWSTD_NO_RUNTIME_IN_STD)
+
+_RWSTD_NAMESPACE (std) { 
+
+#endif   // !NO_BAD_CAST || !RUNTIME_IN_STD
+
+
+// 18.5.2
+class _RWSTD_EXPORT bad_cast: public _STD::exception
+{
+public:
+    // 18.5.2, p2
+    bad_cast () _THROWS (());
+
+    // 18.5.2, p4
+    bad_cast (const bad_cast&) _THROWS (());
+
+    // 18.5.2, p4
+    bad_cast& operator= (const bad_cast&) _THROWS (());
+
+    virtual ~bad_cast() _THROWS (());
+
+    // 18.5.2, p5
+    virtual const char* what () const _THROWS (());
+};
+
+#if !defined (_RWSTD_NO_STD_BAD_CAST) || !defined (_RWSTD_NO_RUNTIME_IN_STD)
+
+}   // namespace std
+
+#else
+#  ifndef _RWSTD_NO_NAMESPACE
+
+namespace std {
+
+using ::bad_cast;
+
+}   // namespace std
+
+#  endif   // _RWSTD_NO_NAMESPACE
+
+#endif   // !NO_BAD_CAST || !RUNTIME_IN_STD
+
+
+#if !defined (_RWSTD_NO_STD_BAD_TYPEID) || !defined (_RWSTD_NO_RUNTIME_IN_STD)
+
+_RWSTD_NAMESPACE (std) {
+
+#endif   // !NO_TYPEID || !RUNTIME_IN_STD
+
+
+// 18.5.3
+class _RWSTD_EXPORT bad_typeid: public _STD::exception
+{
+public:
+    // 18.5.3, p2
+    bad_typeid () _THROWS (());
+
+    // 18.5.3, p4
+    bad_typeid (const bad_typeid &__rhs) _THROWS (());
+
+    virtual ~bad_typeid () _THROWS (());
+
+    // 18.5.3, p4
+    bad_typeid& operator= (const bad_typeid &__rhs) _THROWS (());
+
+    // 18.5.3, p5
+    virtual const char* what () const _THROWS (());
+};
+
+
+#if !defined (_RWSTD_NO_STD_BAD_TYPEID) || !defined (_RWSTD_NO_RUNTIME_IN_STD)
+
+}   // namespace std
+
+#else
+#  ifndef _RWSTD_NO_NAMESPACE
+
+namespace std {
+
+using ::bad_typeid;
+
+}   // namespace std
+
+#  endif   // _RWSTD_NO_NAMESPACE
+#endif   // !NO_TYPEID || !RUNTIME_IN_STD
+
+
+
+#endif   // _RWSTD_TYPEINFO_INCLUDED

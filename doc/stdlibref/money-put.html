@@ -1,0 +1,210 @@
+<HTML>
+<HEAD>
+<TITLE>money_put</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="moneypunct.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="multimap.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>money_put</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P>
+
+<PRE><HR><B><I>money_put</I></B> <IMG SRC="images/inherits.gif"> <B><I>locale::facet</I></B>  <HR></PRE>
+
+<UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Synopsis</A></LI>
+<LI><A HREF="#sec4">Specializations</A></LI>
+<LI><A HREF="#sec5">Description</A></LI>
+<LI><A HREF="#sec6">Interface</A></LI>
+<LI><A HREF="#sec7">Member Types</A></LI>
+<LI><A HREF="#sec8">Constructors</A></LI>
+<LI><A HREF="#sec9">Static Members</A></LI>
+<LI><A HREF="#sec10">Public Member Functions</A></LI>
+<LI><A HREF="#sec11">Protected Member Functions</A></LI>
+<LI><A HREF="#sec12">Example</A></LI>
+<LI><A HREF="#sec13">See Also</A></LI>
+<LI><A HREF="#sec14">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+<H4>Members</H4>
+<UL><TABLE CELLPADDING=3>
+<TR><TD VALIGN=top>
+<A HREF="#idx913">char_type</A><BR>
+<A HREF="#idx919">do_put()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx917">id</A><BR>
+<A HREF="#idx914">iter_type</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx916">money_put()</A><BR>
+<A HREF="#idx918">put()</A><BR>
+</TD>
+<TD VALIGN=top><A HREF="#idx915">string_type</A><BR>
+</TD></TR>
+</TABLE></UL>
+
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A monetary formatting facet </P>
+<A NAME="sec3"><H3>Synopsis</H3></A>
+
+<PRE>#include &lt;locale&gt;
+
+namespace std {
+  template &lt;class charT,
+           class OutputIterator = ostreambuf_iterator&lt;charT&gt; &gt;
+  class money_put;
+}
+</PRE>
+<A NAME="sec4"><H3>Specializations</H3></A>
+<P>The primary template can be implicitly or explicitly specialized on any character type that satisfies the requirements on the type of the character used by iostream class templates, and on any iterator type that satisfies the requirements of Output Iterator.</P>
+<A NAME="sec5"><H3>Description</H3></A>
+<P>The <B><I>money_put</I></B> facet includes facilities for formatted output of monetary values. </P>
+<A NAME="sec6"><H3>Interface</H3></A>
+
+<UL><PRE>namespace std {
+
+  template &lt;class charT, 
+           class OutputIterator = ostreambuf_iterator&lt;charT&gt; &gt;
+  class money_put : public locale::facet 
+  {
+   public:
+    typedef charT               char_type;
+    typedef OutputIterator      iter_type;
+    typedef basic_string&lt;charT&gt; string_type;
+    explicit money_put(size_t = 0);
+    iter_type put(iter_type, bool, ios_base&amp;, char_type,
+                  long double) const;
+    iter_type put(iter_type, bool, ios_base&amp;, char_type,
+                  const string_type&amp;) const;
+    static locale::id id;
+  
+  protected:
+    virtual iter_type  do_put(iter_type, bool, ios_base&amp;, 
+                              char_type, long double) const;
+    virtual iter_type do_put(iter_type, bool, ios_base&amp;, 
+                             char_type, const string_type&amp;)
+                             const;
+  }; 
+}
+</PRE></UL>
+<A NAME="sec7"><H3>Member Types</H3></A>
+
+<A NAME="idx913"></A><PRE><B>char_type</B></PRE>
+<UL>
+<P>Type of the  first template argument.</P>
+</UL>
+
+
+<A NAME="idx914"></A><PRE><B>iter_type</B></PRE>
+<UL>
+<P>Type of the second template argument.</P>
+</UL>
+
+
+<A NAME="idx915"></A><PRE><B>string_type</B></PRE>
+<UL>
+<P>Type of <SAMP>basic_string</SAMP> specialized on <SAMP>char_type</SAMP>.</P>
+</UL>
+
+<A NAME="sec8"><H3>Constructors</H3></A>
+
+<A NAME="idx916"></A><PRE>explicit <B>money_put</B>(size_t refs = 0) </PRE>
+<UL>
+<P>Constructs a <B><I>money_put</I></B> object. Calls <SAMP>locale::facet (refs)</SAMP>. </P>
+<P>The <SAMP>refs</SAMP> argument is set to the initial value of the object's reference count. A <B><I>money_put</I></B> object <SAMP>f</SAMP> constructed with <SAMP>(refs == 0)</SAMP> that is installed in one or more locale objects will be destroyed and the storage it occupies will be deallocated when the last locale object containing the facet is destroyed, as if by  calling <SAMP>delete static_cast&lt;locale::facet*&gt;(&amp;f)</SAMP>. A <B><I>money_put</I></B> object constructed with <SAMP>(refs != 0)</SAMP> will not be destroyed by any locale objects in which it may have been installed.</P>
+</UL>
+
+<A NAME="sec9"><H3>Static Members</H3></A>
+
+<A NAME="idx917"></A><PRE>static locale::id <B>id</B>; </PRE>
+<UL>
+<P>Unique identifier for this type of facet.</P>
+</UL>
+
+<A NAME="sec10"><H3>Public Member Functions</H3></A>
+<P>The public members of the <B><I>money_put</I></B> facet include an interface to protected members. Each public member <SAMP>put()</SAMP> calls the corresponding virtual protected member <SAMP>do_put()</SAMP>.</P>
+
+<A NAME="idx918"></A><PRE>iter_type 
+<B>put</B>(iter_type s, bool intl, ios_base&amp; io, char_type fill,
+    long double units) const;
+iter_type 
+<B>put</B>(iter_type s, bool intl, ios_base&amp; io, char_type fill,
+    const string_type&amp; digits) const; </PRE>
+<UL>
+<P>Each of these two overloads of the public member function <SAMP>put()</SAMP> calls the corresponding protected virtual function <SAMP>do_put()</SAMP>.</P>
+</UL>
+
+<A NAME="sec11"><H3>Protected Member Functions</H3></A>
+
+<A NAME="idx919"></A><PRE>virtual iter_type 
+<B>do_put</B>(iter_type s, bool intl, ios_base&amp; io, char_type fill, 
+       long double units) const; 
+virtual iter_type 
+<B>do_put</B>(iter_type s, bool intl, ios_base&amp; io, char_type fill, 
+       const string_type&amp; digits) const; </PRE>
+<UL>
+<P>The functions format the integral part of the monetary value in units, or the initial sequence of digits optionally preceded by the minus sign, <SAMP>'-'</SAMP>, in digits, respectively, according to the format specified by the formatting flags set in io and the <SAMP>moneypunct&lt;char_type, intl&gt;</SAMP> facet installed in the locale imbued in <SAMP>io</SAMP>, using the <SAMP>fill</SAMP> argument for padding as appropriate, and inserts it into the output sequence starting at <SAMP>s</SAMP>. Just before they return an iterator pointing one past the last character written, the functions call <SAMP>io.width(0)</SAMP>. </P>
+<P>The functions obtain a reference, <SAMP>punct</SAMP>, to the <SAMP>moneypunct&lt;char_type, intl&gt;</SAMP> facet installed in the locale object imbued in <SAMP>io</SAMP> to determine the format of the produced sequence as if by calling <SAMP>use_facet&lt;moneypunct&lt;char_type, intl&gt; &gt;(io.getloc())</SAMP>. </P>
+<P>Similarly, the functions obtain a reference, <SAMP>ctype</SAMP>, to the <SAMP>ctype&lt;char_type&gt;</SAMP> facet installed in the locale object imbued in <SAMP>io</SAMP> to determine the wide versions of the characters inserted into the output sequence as if by calling <SAMP>use_facet&lt;ctype&lt;char_type&gt; &gt;(io.getloc())</SAMP>. </P>
+<P>The functions use the result of <SAMP>punct.pos_format()</SAMP> to format positive monetary values, and the result of <SAMP>neg_format()</SAMP> to format negative values. </P>
+<P>Where <SAMP>money_base::none</SAMP> appears in the format, and if <SAMP>((io.flags() &amp; ios_base::adjustfield) == ios_base::internal)</SAMP>, and if <SAMP>io.width()</SAMP>, <SAMP>w</SAMP>, is a value greater than the number of characters that would have otherwise been inserted without any padding, the functions insert a sufficient number of copies of the <SAMP>fill</SAMP> character to make the total number of inserted characters equal to <SAMP>w</SAMP>. </P>
+<P>Where <SAMP>money_base::sign</SAMP> appears in the format, the first character of <SAMP>punct.negative_sign()</SAMP>, if the monetary value units is negative or if <SAMP>('-' == ctype.narrow (digits[0], '\0'))</SAMP> is <SAMP>true</SAMP>, or <SAMP>positive_sign()</SAMP>. Otherwise, it is inserted into the output sequence. No character is inserted if the respective sign string is empty. </P>
+<P>Where <SAMP>money_base::space</SAMP> appears in the format, a single space character returned from <SAMP>ctp.widen (' ')</SAMP> is inserted into the output sequence, followed by zero or more copies of the <SAMP>fill</SAMP> character according to the same rules as for <SAMP>money_base::none</SAMP>. </P>
+<P>Where <SAMP>money_base::symbol</SAMP> appears in the format, if <SAMP>(io.flags() &amp; ios_base::showbase)</SAMP> is non-zero, the string returned from <SAMP>punct.curr_symbol()</SAMP> is inserted into the output sequence. </P>
+<P>Where <SAMP>money_base::value</SAMP> appears in the format, a sequence of digits representing the absolute value, <SAMP>v</SAMP>, of the integral portion of the monetary value is inserted into the output sequence. If <SAMP>(fd &gt; 0)</SAMP> is <SAMP>true</SAMP> for the value <SAMP>fd</SAMP> equal to <SAMP>punct.frac_digits()</SAMP>, the character returned from <SAMP>punct.decimal_point()</SAMP> is inserted into the sequence so that it is followed by exactly <SAMP>fd</SAMP> digits of <SAMP>v</SAMP>, possibly preceded by the appropriate number of zeros as returned from <SAMP>ctype.widen('0')</SAMP>. If <SAMP>punct.grouping()</SAMP> returns a non-empty string, groups of inserted digits will be separated by the character returned from <SAMP>punct.thousands_sep()</SAMP> as appropriate. </P>
+<P>If <SAMP>io.width()</SAMP>, <SAMP>w</SAMP>, is a value greater than the number of characters that would have otherwise been inserted without any padding, then for the result, <SAMP>adj</SAMP>, of the expression<SAMP>(io.flags() &amp; ios_base::adjustfield)</SAMP>, if <SAMP>(adj == ios_base::left)</SAMP> is <SAMP>false</SAMP>, the functions insert a sufficient number of copies of the <SAMP>fill</SAMP> character before inserting any other characters into the ouptut sequence to make the total number of inserted characters equal to <SAMP>w</SAMP>; otherwise, if <SAMP>(adj != ios_base::internal)</SAMP> is <SAMP>true</SAMP>, the functions returns the same number of copies of <SAMP>fill</SAMP> after all other characters have been inserted.</P>
+</UL>
+
+<A NAME="sec12"><H3>Example</H3></A>
+
+<UL><PRE>#include &lt;locale&gt;     // for locale, money_put, use_facet
+#include &lt;iostream&gt;   // for cout, endl
+#include &lt;iterator&gt;   // for ostreambuf_iterator
+#include &lt;string&gt;     // for string
+
+#include &lt;examples.h&gt;
+
+
+int main ()
+{
+    typedef std::ostreambuf_iterator&lt;char,
+        std::char_traits&lt;char&gt; &gt; Iter;
+  
+    const std::string buffer ("10002");
+    const long double ldval = 10002; 
+
+    // Construct a ostreambuf_iterator on cout
+    Iter begin (std::cout);
+
+    // Get a money put facet
+    const std::money_put&lt;char, Iter&gt; &amp;mp =
+        std::use_facet&lt;std::money_put&lt;char, Iter&gt; &gt;(std::locale
+        ());
+
+    // Put out the string representation of the monetary value
+    std::cout &lt;&lt; buffer &lt;&lt; " --&gt; ";
+    mp.put (begin, false, std::cout, ' ', buffer);
+
+    // Put out the long double representation of the monetary value
+    std::cout &lt;&lt; std::endl &lt;&lt; ldval &lt;&lt; " --&gt; ";
+    mp.put (begin, false, std::cout, ' ', ldval);
+
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+
+
+Program Output:
+10002 --&gt; 10002
+10002 --&gt; 10002
+</PRE></UL>
+<UL><PRE></PRE></UL>
+<A NAME="sec13"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="money-get.html">money_get</A></I></B>, <B><I><A HREF="moneypunct.html">moneypunct</A></I></B></P>
+<A NAME="sec14"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.6.2</I></P>
+
+<BR>
+<HR>
+<A HREF="moneypunct.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="multimap.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

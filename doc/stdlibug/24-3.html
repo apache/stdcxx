@@ -1,0 +1,127 @@
+<HTML>
+<HEAD>
+<TITLE>Differences between the C Locale and the C++ Locales</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="24-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="24-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>24.3 Differences between the C Locale and the C++ Locales</H2>
+<A NAME="idx527"><!></A>
+<P>As we have seen so far, the C locale and the C++ locale offer similar services. However, the semantics of the C++ locale are different from the semantics of the C locale:</P>
+<UL>
+<LI><P CLASS="LIST">The <I>Standard C locale </I>is a global resource: there is only one locale for the entire application. This makes it hard to build an application that has to handle several locales at a time.</P></LI>
+<LI><P CLASS="LIST">The <I>Standard C++ locale</I> is a class. Numerous instances of the standard  <B><I><A HREF="../stdlibref/locale.html">locale</A></I></B> class can be created at will, so you can have as many locale objects as you need. </P></LI>
+</UL>
+<P>To explore this difference in further detail, let us see how locales are typically used.</P>
+<A NAME="2431"><H3>24.3.1 Common Uses of the C locale</H3></A>
+<A NAME="idx528"><!></A>
+<P>The C locale is commonly used as a default locale, a native locale, or in multiple locale applications.</P>
+<A NAME="idx529"><!></A>
+<P><B>Default locale. </B>As a developer, you may never require internationalization features, and thus you may never call <SAMP>std::setlocale()</SAMP>. If you can safely assume that users of your applications are accommodated by the classic US English ASCII behavior, you have no need for localization. Without even knowing it, you always use the default locale, which is the US English ASCII locale.</P>
+<A NAME="idx530"><!></A>
+<P><B>Native locale. </B>If you do plan on localizing your program, the appropriate strategy may be to retrieve the native locale once at the beginning of your program, and never, ever change this setting again. This way your application adapts itself to one particular locale, and uses this throughout its entire runtime. Users of such applications can explicitly set their favorite locale before starting the application. On UNIX systems, they do this by setting environment variables such as <SAMP>LANG</SAMP>; other operating systems may use other methods.</P>
+<P>In your program, you can specify that you want to use the user's preferred native locale by calling <SAMP>std::setlocale("")</SAMP> at startup, passing an empty string as the locale name.  The empty string tells <SAMP>setlocale</SAMP> to use the locale specified by the user in the environment.</P>
+<A NAME="idx531"><!></A>
+<P><B>Multiple locales. </B>It may well happen that you do have to work with multiple locales. For example, to implement an application for Switzerland, you might want to output messages in Italian, French, and German. As the C locale is a global data structure, you must switch locales several times.</P>
+<P>Let's look at an example of an application that works with multiple locales. Imagine an application that prints invoices to be sent to customers all over the world. Of course, the invoices must be printed in the customer's native language, so the application must write output in multiple languages. Prices to be included in the invoice are taken from a single price list. If we assume that the application is used by a US company, the price list is in US English.</P>
+<P>The application reads input (the product price list) in US English, and writes output (the invoice) in the customer's native language, say German. Since there is only one global locale in C that affects both input and output, the global locale must change between input and output operations. Before a price is read from the English price list, the locale must be switched from the German locale used for printing the invoice to a US English locale. Before inserting the price into the invoice, the global locale must be switched back to the German locale. To read the next input from the price list, the locale must be switched back to English, and so forth. <A HREF="24-3.html#Figure&nbsp;6">Figure&nbsp;6</A> summarizes this activity.</P>
+<A NAME="idx532"><!></A>
+<H4><A NAME="Figure&nbsp;6">Figure&nbsp;6: Multiple locales in C</A></H4>
+
+<P><IMG SRC="images/locfig6.gif" WIDTH=526 HEIGHT=270></P>
+<A NAME="idx533"><!></A>
+<P>Here is the C code that corresponds to the previous example:</P>
+
+<UL><PRE>
+double price;
+char buf[SZ];
+while ( ... )     // processing the German invoice
+{
+   std::setlocale(LC_ALL, "En_US");
+   std::fscanf(priceFile,"%lf",&amp;price);
+   // convert $ to DM according to the current exchange rate
+   std::setlocale(LC_ALL,"De_DE");
+   std::strfmon(buf,SZ,"%n",price);
+   std::fprintf(invoiceFile,"%s",buf);
+}
+</PRE></UL>
+<A NAME="idx534"><!></A>
+<P>Using C++ locale objects dramatically simplifies the task of communicating between multiple locales. The iostreams in the Standard C++ Library are internationalized so that streams can be imbued with separate locale objects. For example, the input stream can be imbued with an English locale object, and the output stream can be imbued with a German locale object. In this way, switching locales becomes unnecessary, as demonstrated in <A HREF="24-3.html#Figure&nbsp;7">Figure&nbsp;7</A>:</P>
+<A NAME="idx535"><!></A>
+<H4><A NAME="Figure&nbsp;7">Figure&nbsp;7: Multiple locales in C++</A></H4>
+
+<P><IMG SRC="images/locfig7.gif" WIDTH=618 HEIGHT=377></P>
+<A NAME="idx536"><!></A>
+<P>Here is the C++ code corresponding to the previous example:</P>
+
+<UL><PRE>
+priceFile.imbue(std::locale("En_US"));
+invoiceFile.imbue(std::locale("De_DE"));
+moneytype price;
+while ( ... )  // processing the German invoice
+{
+   priceFile &gt;&gt; price;
+   // convert $ to DM according to the current exchange rate
+   invoiceFile &lt;&lt; price;
+}
+</PRE></UL>
+<P>This example assumes that you have created a class, <B><I>moneytype</I></B>, to represent monetary values, and that you have written iostream insertion <SAMP>&lt;&lt;</SAMP> and extraction <SAMP>&gt;&gt;</SAMP> operators for the class. Further, it assumes that these operators format and parse values using the <SAMP>std::money_put</SAMP> and <SAMP>std::money_get</SAMP> facets of the locales imbued on the streams they are operating on. See <A HREF="26.html">Chapter&nbsp;26</A> for a complete example of this technique using phone numbers rather than monetary values. The <B><I>moneytype</I></B> class is not part of the Standard C++ Library.</P>
+<P>Because the examples given above are brief, switching locales might look like a minor inconvenience. However, it is a major problem once code conversions are involved.</P>
+<A NAME="idx537"><!></A>
+<P>To underscore the point, let us revisit the JIS encoding scheme using the shift sequence described in <A HREF="23-3.html#Figure&nbsp;2">Figure&nbsp;2</A>, which is repeated for convenience here as <A HREF="24-3.html#Figure&nbsp;8">Figure&nbsp;8</A>. As you remember, you must maintain a <I>shift state</I> with these encodings while parsing a character sequence:</P>
+<A NAME="idx538"><!></A>
+<H4><A NAME="Figure&nbsp;8">Figure&nbsp;8: The Japanese text from <A HREF="23-3.html#Figure&nbsp;2">Figure&nbsp;2</A> encoded in JIS</A></H4>
+
+<P><IMG SRC="images/locfig8.gif" WIDTH=702 HEIGHT=224></P>
+<P>Suppose you are parsing input from a multibyte file which contains text that is encoded in JIS, as shown in <A HREF="24-3.html#Figure&nbsp;9">Figure&nbsp;9</A>. While you parse this file, you have to keep track of the current shift state so you know how to interpret the characters you read, and how to transform them into the appropriate internal wide character representation.</P>
+<A NAME="idx539"><!></A>
+<H4><A NAME="Figure&nbsp;9">Figure&nbsp;9: Parsing input from a multibyte file using the global C locale</A></H4>
+
+<P><IMG SRC="images/locfig9.gif" WIDTH=742 HEIGHT=379></P>
+<A NAME="idx540"><!></A>
+<P>The global C locale can be switched during parsing; for example, from a locale object specifying the input to be in JIS encoding, to a locale object using EUC encoding instead. The current shift state becomes invalid each time the locale is switched, and you have to carefully maintain the shift state in an application that switches locales.</P>
+<P>As long as the locale switches are intentional, this problem can presumably be solved. However, in multithreaded environments, the global C locale may impose a severe problem, as it can be switched inadvertently by another otherwise unrelated thread of execution. For this reason, internationalizing a C program for a multithreaded environment is difficult.</P>
+<P>If you use C++ locales, on the other hand, the problem simply goes away. You can imbue each stream with a separate locale object, making inadvertent switches impossible. Let us now see how C++ locales are intended to be used.</P>
+<A NAME="2432"><H3>24.3.2 Common Uses of C++ Locales</H3></A>
+<A NAME="idx541"><!></A>
+<P>The C++ locale is commonly used as a default locale, with multiple locales, and as a global locale.</P>
+<A NAME="idx542"><!></A>
+<P><B>Classic locale.</B> If you are not involved with internationalizing programs, you won't need C++ locales any more than you need C locales. If you can safely assume that users of your applications are accommodated by classic US English ASCII behavior, you do not require localization features. For you, the Standard C++ Library provides a predefined locale object, <SAMP>std::locale::classic()</SAMP>, that represents the US English ASCII locale. </P>
+<A NAME="idx543"><!></A>
+<P><B>Native locale.</B> We use the term <I>native locale</I> to describe the locale that has been chosen as the preferred locale by the user or system administrator. On UNIX systems, this is usually done by setting environment variables such as <SAMP>LANG</SAMP>. You can create a C++ locale object for the native locale by calling the constructor <SAMP>std::locale("")</SAMP>, that&nbsp;is, by requesting a named locale using an empty string as the name. The empty string tells the system to get the locale name from the environment, in the same way as the C library function <SAMP>std::setlocale("")</SAMP>.</P>
+<A NAME="idx544"><!></A>
+<P><B>Named locales</B>. As implied above, a locale can have a name. The name of the classic locale is <SAMP>"C"</SAMP>. Unfortunately, the names of other locales are very much platform dependent. Consult your system documentation to determine what locales are installed and how they are named on your system.  If you attempt to create a locale using a name that is not valid for your system, the constructor throws a <SAMP>runtime_error</SAMP> exception.</P>
+<A NAME="idx545"><!></A>
+<P><B>Multiple locales.</B> Working with many different locales becomes easy when you use C++ locales. Switching locales, as you did in C, is no longer necessary in C++. You can imbue each stream with a different locale object. You can pass locale objects around and use them in multiple places.</P>
+<A NAME="idx546"><!></A>
+<P><B>Global locale.</B> There is a global locale in C++, as there is in C. Initially, the global locale is the classic locale described above. You can change the global locale  by calling <SAMP>std::locale::global()</SAMP>. </P>
+<A NAME="idx547"><!></A>
+<P>You can create snapshots of the current global locale by calling the default constructor for a locale, <SAMP>std::locale::locale()</SAMP>. Snapshots are immutable locale objects and are not affected by any subsequent changes to the global locale. </P>
+<P>Internationalized components like iostreams use the global locale as a default. If you do not explicitly imbue a stream with a particular locale, it is imbued by default with a snapshot of whatever locale was global at the time the stream was created.</P>
+<A NAME="idx548"><!></A>
+<P>Using the global C++ locale, you can work much as you did in C. You activate the native locale once at program start -- in other words, you make it global -- and use snapshots of it thereafter for all tasks that are locale-dependent. The following code demonstrates this procedure:</P>
+
+<UL><PRE>
+std::locale::global(std::locale(""));                         //1
+...
+std::string t = print_date(today, std::locale());             //2
+...
+std::locale::global(std::locale("Fr_CH"));                    //3
+...
+std::cout &lt;&lt; something;                                       //4
+</PRE></UL>
+<TABLE CELLPADDING="3">
+
+<TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>Make the native locale global.
+<TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>Use snapshots of the global locale whenever you need a locale object. Assume that <SAMP>print_date()</SAMP> is a function that formats dates. You would provide the function with a snapshot of the global locale in order to do the formatting. 
+<TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Switch the global locale; make a French locale global.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>Note that in this example, the standard stream <SAMP>cout</SAMP> is still imbued with the classic locale, because that was the global locale at program startup when <SAMP>std::cout</SAMP> was created. Changing the global locale does not change the locales of pre-existing streams. If you want to imbue the new global locale on <SAMP>cout</SAMP>, you should call <SAMP>std::cout.imbue(locale())</SAMP> after calling <SAMP>std::locale::global()</SAMP>.
+</TABLE>
+<A NAME="2433"><H3>24.3.3 The Relationship between the C Locale and the C++ Locale</H3></A>
+<A NAME="idx549"><!></A>
+<P>The C locale and the C++ locales are mostly independent. However, if a C++ locale object has a name, making it global via <SAMP>std::locale::global()</SAMP> causes the C locale to change through a call to <SAMP>std::setlocale()</SAMP>. When this happens, locale-sensitive C functions called from within a C++ program use the changed C locale.</P>
+<P>There is no way to affect the C++ locale from within a C program.</P>
+
+<BR>
+<HR>
+<A HREF="24-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="24-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

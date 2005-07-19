@@ -1,0 +1,130 @@
+<HTML>
+<HEAD>
+<TITLE>Character Encodings for Localizing Alphabets</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="23-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="23-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<H2>23.3 Character Encodings for Localizing Alphabets</H2>
+<A NAME="idx485"><!></A>
+<P>We know that different languages can have different alphabets. The first step in localizing an alphabet is to find a way to represent, or <I>encode</I>, all its characters. In general, alphabets may have different <I>character encodings</I>.</P>
+<A NAME="idx486"><!></A>
+<P>The <I>7-bit ASCII codeset </I>is the traditional code on UNIX systems.</P>
+<A NAME="idx487"><!></A>
+<P>The<I> 8-bit codesets </I>permit the processing of many Eastern and Western European, Middle Eastern, and Asian Languages. Some are strictly extensions of the 7-bit ASCII codeset; these include the 7-bit ASCII codes and additionally support 128-character codes beyond those of ASCII. Such extensions meet the needs of Western European users. To support languages that have completely different alphabets, such as Arabic and Greek, larger 8-bit codesets have been designed.</P>
+<A NAME="idx488"><!></A>
+<P><I>Multibyte character codes </I>are required for alphabets of more than 256 characters, such as kanji, which consists of Japanese ideographs based on Chinese characters. Kanji has tens of thousands of characters, each of which is represented by two bytes. To ensure backward compatibility with ASCII, a multibyte codeset is a superset of the ASCII codeset and consists of a mixture of one- and two-byte characters.</P>
+<P>For such languages, several encoding schemes have been defined. These encoding schemes provide a set of rules for parsing a byte stream into a group of coded characters.</P>
+<A NAME="2331"><H3>23.3.1 Multibyte Encodings</H3></A>
+<A NAME="idx489"><!></A>
+<P>Handling multibyte character encodings is a challenging task. It involves parsing multibyte character sequences, and in many cases requires conversions between multibyte characters and wide characters.</P>
+<P>Understanding multibyte encoding schemes is easier when explained by means of a typical example. One of the earliest and probably biggest markets for multibyte character support is in Japan. Therefore, the following examples are based on encoding schemes for Japanese text processing.</P>
+<A NAME="idx490"><!></A>
+<P>In Japan, a single text message can be composed of characters from four different writing systems. <I>Kanji</I> has tens of thousands of characters, which are represented by pictures. <I>Hiragana</I> and <I>katakana</I> are syllabaries, each containing about 80 sounds, which are also represented as ideographs. The <I>Roman</I> characters include some 95 letters, digits, and punctuation marks. </P>
+<A NAME="idx491"><!></A>
+<P><A HREF="23-3.html#Figure&nbsp;1">Figure&nbsp;1</A> gives an example of an encoded Japanese sentence composed of these four writing systems:</P>
+<A NAME="idx492"><!></A>
+<H4><A NAME="Figure&nbsp;1">Figure&nbsp;1: A Japanese sentence mixing four writing systems</A></H4>
+
+<P><IMG SRC="images/locfig1.gif" WIDTH=688 HEIGHT=166></P>
+<P>The sentence means:  "Encoding methods such as JIS can support texts that mix Japanese and English."</P>
+<P>A number of Japanese character sets are common:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE">JIS C 6226-1978</P>
+</td><td valign=top><P CLASS="TABLE">JIS X 0208-1983</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">JIS X 0208-1990</P>
+</td><td valign=top><P CLASS="TABLE">JIS X 0212-1990</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">JIS-ROMAN</P>
+</td><td valign=top><P CLASS="TABLE">ASCII</P>
+</td></tr>
+</TABLE>
+<P>There is no universally recognized multibyte encoding scheme for Japanese. Instead, we deal with the three common multibyte encoding schemes defined below:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE">JIS (Japanese Industrial Standard)</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Shift-JIS</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">EUC (Extended UNIX Code)</P>
+</td></tr>
+</TABLE>
+<A NAME="idx493"><!></A>
+<A NAME="2331-1"><H4>23.3.1.1 JIS Encoding</H4></A>
+<A NAME="idx494"><!></A>
+<P>The <I>JIS</I><B>, </B>or<B> </B><I>Japanese Industrial Standard</I><B>, </B>supports a number of standard Japanese character sets, some requiring one byte, others two. Escape sequences are required to shift between one- and two-byte modes.</P>
+<A NAME="idx495"><!></A>
+<P><I>Escape sequences</I>, also referred to as<I> shift sequences</I>, are sequences of <I>control</I> <I>characters</I>. Control characters do not belong to any of the alphabets. They are artificial characters that do not have a visual representation. However, they are part of the encoding scheme, where they serve as separators between different character sets, and indicate a switch in the way a character sequence is interpreted. The use of the shift sequence is demonstrated in <A HREF="23-3.html#Figure&nbsp;2">Figure&nbsp;2</A>.</P>
+<A NAME="idx496"><!></A>
+<H4><A NAME="Figure&nbsp;2">Figure&nbsp;2: An example of a Japanese text encoded in JIS</A></H4>
+
+<P><IMG SRC="images/locfig2.gif" WIDTH=719 HEIGHT=221></P>
+<A NAME="idx497"><!></A>
+<P>For encoding schemes containing shift sequences, like JIS, it is necessary to maintain a <I>shift state </I>while parsing a character sequence. In the example above, we are in some initial shift state at the start of the sequence. Here it is ASCII. Therefore, characters are assumed to be one-byte ASCII codes until the shift sequence <SAMP>&lt;ESC&gt;$B</SAMP> is seen. This switches us to two-byte mode, as defined by JIS X 0208-1983. The shift sequence <SAMP>&lt;ESC&gt;(B</SAMP> then switches us back to ASCII mode.</P>
+<P>Encoding schemes that use shift state are not very efficient for internal storage or processing. Sometimes shift sequences require up to six bytes. Frequent switching between character sets in a file of strings could cause the number of bytes used in shift sequences to exceed the number of bytes used to represent the actual data!</P>
+<P>Encodings containing shift sequences are used primarily as an external code, which allows information interchange between a program and the outside world.</P>
+<A NAME="idx498"><!></A>
+<A NAME="2331-2"><H4>23.3.1.2 Shift-JIS Encoding</H4></A>
+<P>Despite its name, Shift-JIS has nothing to do with shift sequences and states. In this encoding scheme, each byte is inspected to see if it is a one-byte character or the first byte of a two-byte character. This is determined by reserving a set of byte values for certain purposes. For example:</P>
+<UL>
+<LI><P CLASS="LIST">Any byte having a value in the range 0x21-7E is assumed to be a one-byte ASCII/JIS Roman character.</P></LI>
+<LI><P CLASS="LIST">Any byte having a value in the range 0xA1-DF is assumed to be a one-byte half-width katakana character.</P></LI>
+<LI><P CLASS="LIST">Any byte having a value in the range 0x81-9F or 0xE0-EF is assumed to be the first byte of a two-byte character from the set JIS X 0208-1990. The second byte must have a value in the range 0x40-7E or 0x80-FC.</P></LI>
+</UL>
+<P>While this encoding is more compact than JIS, it cannot represent as many characters as JIS. In fact, Shift-JIS cannot represent any characters in the supplemental character set JIS X 0212-1990, which contains more than 6,000 characters.</P>
+<A NAME="idx499"><!></A>
+<A NAME="2331-3"><H4>23.3.1.3 EUC Encoding</H4></A>
+<A NAME="idx500"><!></A>
+<P>Extended UNIX Code (EUC) is not peculiar to Japanese encoding. It was developed as a method for handling multiple character sets, Japanese or otherwise, within a single text stream.</P>
+<P>The EUC encoding is much more extensible than Shift-JIS since it allows for characters containing more than two bytes. The encoding scheme used for Japanese characters is as follows:</P>
+<UL>
+<LI><P CLASS="LIST">Any byte having a value in the range 0x21-7E is assumed to be a one-byte ASCII/JIS Roman character.</P></LI>
+<LI><P CLASS="LIST">Any byte having a value in the range 0xA1-FE is assumed to be the first byte of a two-byte character from the set JIS X0208-1990. The second byte must also have a value in that range.</P></LI>
+<LI><P CLASS="LIST">Any byte having the value 0x8E is assumed to be followed by a second byte with a value in the range 0xA1-DF, which represents a half-width katakana character.</P></LI>
+<LI><P CLASS="LIST">Any byte having the value 0x8F is assumed to be followed by two more bytes with values in the range 0xA1-FE, which together represent a character from the set JIS X0212-1990.</P></LI>
+</UL>
+<P>The last two cases involve a prefix byte with values 0x8E and 0x8F, respectively. These bytes are somewhat like shift sequences in that they introduce a change in subsequent byte interpretation. However, unlike the shift sequences in JIS which introduce a sequence, these prefix bytes must precede <I>every</I> multibyte character, not just the first in a sequence. For this reason, each multibyte character encoded in this manner stands alone and EUC is not considered to involve shift states.</P>
+<A NAME="2331-4"><H4>23.3.1.4 Uses of the Three Multibyte Encodings</H4></A>
+<A NAME="idx501"><!></A>
+<P>The three multibyte encodings just described are typically used in separate areas:</P>
+<UL>
+<LI><P CLASS="LIST">JIS is the primary encoding method used for electronic transmission such as email because it uses only 7 bits of each byte. This is required because some network paths strip the eighth bit from characters. Escape sequences are used to switch between one- and two-byte modes, as well as between different character sets.</P></LI>
+<LI><P CLASS="LIST">Shift-JIS was invented by Microsoft and is used on MS-DOS-based machines. Each byte is inspected to see if it is a one-byte character or the first byte of a two-byte character. Shift-JIS does not support as many characters as JIS and EUC do.</P></LI>
+<LI><P CLASS="LIST">EUC encoding is implemented as the internal code for most UNIX-based platforms. It allows for characters containing more than two bytes, and is much more extensible that Shift-JIS. EUC is a general method for handling multiple character sets. It is not peculiar to Japanese encoding.</P></LI>
+</UL>
+<A NAME="2332"><H3>23.3.2 Wide Characters</H3></A>
+<A NAME="idx502"><!></A>
+<P>Multibyte encoding provides an efficient way to move characters around outside programs, and between programs and the outside world. Once inside a program, however, it is easier and more efficient to deal with characters that have the same size and format. We call these <I>wide</I> <I>characters</I>.</P>
+<P>Here is an example that illustrates how wide characters make text processing inside a program easier. Consider a filename string containing a directory path with adjacent names separated by a slash, such as <SAMP>/CC/include/locale.h</SAMP>. To find the actual filename in a single-byte character string, we can start at the back of the string. When we find the first separator, we know where the filename starts. If the string contains multibyte characters, we scan from the front so we don't inspect bytes out of context. If the string contains wide characters, however, we can treat it like a single-byte character and scan from the back.</P>
+<P>Conceptually, you can think of wide character sets as being extended ASCII or EBCDIC; each unique character is assigned a distinct value. Since they are used as the counterpart to a multibyte encoding, wide character sets must allow representation of all characters that can be represented in a multibyte encoding as wide characters. As multibyte encodings support thousands of characters, wide characters are usually larger that one byte -- typically two or four bytes. All characters in a wide character set are of equal size. The size of a wide character is not universally fixed, although this depends on the particular wide character set.</P>
+<P>There are many wide character standards, including those shown below:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE">ISO 10646.UCS-2</P>
+</td><td valign=top><P CLASS="TABLE">16-bit characters</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">ISO 10646.UCS-4</P>
+</td><td valign=top><P CLASS="TABLE">32-bit characters</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE">Unicode</P>
+</td><td valign=top><P CLASS="TABLE">16-bit characters</P>
+</td></tr>
+</TABLE>
+<P>The programming language C++ supports wide characters; their native type in C++ is called <SAMP>wchar_t</SAMP>. The syntax for wide character constants and wide character strings is similar to that for ordinary, narrow character constants and strings:</P>
+<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><P CLASS="TABLE"><SAMP>L'a'</SAMP> is a wide character constant, and</P>
+</td></tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>L"abc"</SAMP> is a wide character string.</P>
+</td></tr>
+</TABLE>
+<A NAME="idx503"><!></A>
+<A NAME="2333"><H3>23.3.3 Conversion between Multibyte and Wide Characters</H3></A>
+<P>Since wide characters are usually used for internal representation of characters in a program, and multibyte encodings are used for external representation, converting multibytes to wide characters is a common task during input/output operations. Input to and output from a file is a typical example. The file usually contains multibyte characters. When you read such a file, you convert these multibyte characters into wide characters that you store in an internal wide character buffer for further processing. When you write to a multibyte file, you have to convert the wide characters held internally into multibytes for storage on a external file. <A HREF="23-3.html#Figure&nbsp;3">Figure&nbsp;3</A> demonstrates how this conversion during file input is done:</P>
+<A NAME="idx504"><!></A>
+<H4><A NAME="Figure&nbsp;3">Figure&nbsp;3: Conversion from a multibyte to a wide character encoding</A></H4>
+
+<P><IMG SRC="images/locfig3.gif" WIDTH=502 HEIGHT=277></P>
+<P>The conversion from a multibyte sequence into a wide character sequence requires expansion of one-byte characters into two- or four-byte wide characters. Escape sequences are eliminated. Multibytes that consist of two or more bytes are translated into their wide character equivalents.</P>
+
+<BR>
+<HR>
+<A HREF="23-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="23-4.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>

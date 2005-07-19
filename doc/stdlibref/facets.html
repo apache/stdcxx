@@ -1,0 +1,68 @@
+<HTML>
+<HEAD>
+<TITLE>Facets</TITLE>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<A HREF="exceptions.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="fill.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<H2>Facets</H2>
+<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-6.html">Localization</A></P><UL>
+<LI><A HREF="#sec1">Local Index</A></LI>
+<LI><A HREF="#sec2">Summary</A></LI>
+<LI><A HREF="#sec3">Description</A></LI>
+<LI><A HREF="#sec4">See Also</A></LI>
+<LI><A HREF="#sec5">Standards Conformance</A></LI>
+</UL>
+<A NAME="sec1"><H3>Local Index</H3></A>
+No Entries
+<A NAME="sec2"><H3>Summary</H3></A>
+<P>A family of classes used to encapsulate categories of locale functionality </P>
+<A NAME="sec3"><H3>Description</H3></A>
+<P>The Standard C++ Localization library includes a locale interface that contains a collection of diverse facets. Each facet has localization facilities for some specific area, such as character classification or numeric formatting. Each facet also falls into one or more broad categories. These categories are defined in the <B><I><A HREF="locale.html">locale</A></I></B> class, and the standard facets fit into these categories as follows.</P>
+<H4><A NAME="Table&nbsp;18">Table&nbsp;18: Categories and facets of the locale class</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr><td valign=top><B>Category</B>
+</td>
+<td valign=top><B>Facets</B>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>collate</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>collate, collate_byname</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>ctype</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>ctype, codecvt, ctype_byname, codecvt_byname</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>monetary</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>moneypunct, moneypunct_byname, money_put, money_get</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>numeric</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>numpunct, numpunct_byname, num_put, num_get</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>time</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>time_put, time_put_byname, time_get, time_get_byname</SAMP></P>
+</td>
+</tr>
+<tr><td valign=top><P CLASS="TABLE"><SAMP>messages</SAMP></P>
+</td>
+<td valign=top><P CLASS="TABLE"><SAMP>messages, messages_byname</SAMP></P>
+</td>
+</tr>
+</TABLE>
+<P>A facet must satisfy two properties. First, it must be derived from the base class <SAMP>locale::facet</SAMP>, either directly or indirectly (for example, <SAMP>facet -&gt; ctype&lt;char&gt; -&gt; my_ctype</SAMP>). Second, it must contain a member of type <SAMP>locale::id</SAMP>. This ensures that the <B><I><A HREF="locale.html">locale</A></I></B> class can manage its collection of facets properly.</P>
+<A NAME="sec4"><H3>See Also</H3></A>
+<P><B><I><A HREF="locale.html">locale</A></I></B>, <B><I><A HREF="collate.html">collate</A></I></B>, <B><I><A HREF="collate.html">collate_byname</A></I></B>, <B><I><A HREF="ctype.html">ctype</A></I></B>, <B><I><A HREF="codecvt.html">codecvt</A></I></B>, <B><I><A HREF="ctype-byname.html">ctype_byname</A></I></B>, <B><I><A HREF="codecvt-byname.html">codecvt_byname</A></I></B>, <B><I><A HREF="moneypunct.html">moneypunct</A></I></B>, <B><I><A HREF="moneypunct.html">moneypunct_byname</A></I></B>, <B><I><A HREF="money-put.html">money_put</A></I></B>, <B><I><A HREF="money-get.html">money_get</A></I></B>, <B><I><A HREF="numpunct.html">numpunct</A></I></B>, <B><I><A HREF="numpunct.html">numpunct_byname</A></I></B>, <B><I><A HREF="num-put.html">num_put</A></I></B>, <B><I><A HREF="num-get.html">num_get</A></I></B>, <B><I><A HREF="time-put.html">time_put</A></I></B>, <B><I><A HREF="time-put-byname.html">time_put_byname</A></I></B>, <B><I><A HREF="time-get.html">time_get</A></I></B>, <B><I><A HREF="time-get-byname.html">time_get_byname</A></I></B>, <B><I><A HREF="messages.html">messages</A></I></B>, <B><I><A HREF="messages.html">messages_byname</A></I></B></P>
+<A NAME="sec5"><H3>Standards Conformance</H3></A>
+<P><I>ISO/IEC 14882:1998 -- International Standard for Information Systems -- Programming Language C++, Section 22.2.8</I></P>
+
+<BR>
+<HR>
+<A HREF="exceptions.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="fill.html"><IMG SRC="images/bnext.gif" WIDTH=20 HEIGHT=21 ALT="Next file" BORDER=O></A></BODY>
+</HTML>
