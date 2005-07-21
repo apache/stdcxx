@@ -69,6 +69,10 @@ int main ()
     const char *s;
     unsigned long num;
 
+#if !defined (SYS_NMLN)
+#  define SYS_NMLN   128
+#endif   // SYS_NMLN
+
     char str [SYS_NMLN * 2];
 
     for (num = 0; (str [num] = uts.release [num]); ++num);
@@ -101,11 +105,58 @@ int main ()
 
     printf ("#define _RWSTD_OS_MICRO %lu\n", num);
 
-#else
+#else   // if defined (_WIN{32,64})
 
-    return 1;
+    OSVERSIONINFO osinfo;
+    osinfo.dwOSVersionInfoSize = sizeof osinfo;
 
-#endif
+    const BOOL success = GetVersionEx (&osinfo);
+
+    printf ("#define _RWSTD_OS_WINDOWS\n");
+    printf ("#define _RWSTD_OS_SYSNAME \"WINDOWS\"\n");
+
+    if (!success)
+        return 0;
+
+    printf ("#define _RWSTD_OS_MAJOR %lu\n", osinfo.dwMajorVersion);
+    printf ("#define _RWSTD_OS_MINOR %lu\n", osinfo.dwMinorVersion);
+    printf ("#define _RWSTD_OS_MICRO %lu /* build number */\n",
+            osinfo.dwBuildNumber);
+
+    const char *flavor = 0;
+
+    if (4 == osinfo.dwMajorVersion) {
+        switch (osinfo.dwMinorVersion) {
+        case 0:
+            if (VER_PLATFORM_WIN32_NT == osinfo.dwPlatformId)
+                flavor = "NT";
+            else
+                flavor = "95";
+            break;
+                
+        case 10: flavor = "98"; break;
+        case 90: flavor = "ME"; break;
+        }
+    }
+    else if (5 == osinfo.dwMajorVersion) {
+        switch (osinfo.dwMinorVersion) {
+        case 0: flavor = "2000"; break;
+        case 1: flavor = "XP"; break;
+        case 2: flavor = "2003"; break;
+        }
+    }
+
+    if (flavor) {
+        printf ("#define _RWSTD_OS_RELEASE \"Windows %s\"\n", flavor);
+        printf ("#define _RWSTD_OS_WINDOWS_%s\n", flavor);
+    }
+    else {
+        printf ("#define _RWSTD_OS_RELEASE \"\"\n");
+    }
+
+    printf ("#define _RWSTD_OS_VERSION \"%s\"\n", osinfo.szCSDVersion);
+
+#endif   // _WIN{32,64}
 
     return 0;
 }
