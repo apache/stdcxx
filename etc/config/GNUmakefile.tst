@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: //stdlib/dev/etc/stdlib/config/GNUmakefile.tst#60 $
+# $Id$
 #
 ##############################################################################
 #
@@ -8,7 +8,7 @@
 #
 #   $ make
 #
-#   To make all tests uder $(TOPDIR)/tests. Will generate a .d file
+#   To make all tests uder $(TOPDIR)/test. Will generate a .d file
 #   an place in the directory $(DEPENDDIR) for every source file.
 #
 #   $ make [ tagets ] run | runall | run_all
@@ -24,19 +24,18 @@
 #   $ make SRCS="...sources..." [ run | runall | run_all ]
 #
 #   Same as above, but considerably faster since SRCS doesn't have to be
-#   found in $(TOPDIR)/tests, and only the necessary .d files are included.
+#   found in $(TOPDIR)/test, and only the necessary .d files are included.
 #
 ##############################################################################
 
 include ../makefile.in
 
-# tests & rwtest library directories
-RWTESTDIR    = $(TOPDIR)/../rwtest
-TESTDIR      = $(TOPDIR)/tests
+# tests & test library directories
+TESTDIR      = $(TOPDIR)/test
 SRCDIRS      = $(TESTDIR)
 
 # get the test suite subdirectories
-SUBDIRS = $(shell cd $(TESTDIR) && echo *)
+SUBDIRS      = $(shell cd $(TESTDIR) && echo *)
 
 # do not compile these sources
 OMIT_SRCS   += $(shell cd $(TESTDIR)/src && echo *.cpp) 22_locale.cpp
@@ -46,16 +45,16 @@ CATFILE      = rwstdmessages.cat
 
 include ../makefile.common
 
-# RW test library 
-RWTLIBBASE   = rwtest$(BUILDTYPE)
-RWTLIBNAME   = lib$(RWTLIBBASE).a
+# test library 
+TESTLIBBASE   = rwtest$(BUILDTYPE)
+TESTLIBNAME   = lib$(TESTLIBBASE).a
 
 # Add to include dirs and link flags:
-INCLUDES    += -I$(RWTESTDIR) -I$(RWTESTDIR)/include -I$(TESTDIR)/include
-LDFLAGS     := -L$(BUILDDIR)/rwtest -l$(RWTLIBBASE) $(LDFLAGS)
+INCLUDES    += -I$(TESTDIR)/include
+LDFLAGS     := -L$(BUILDDIR)/rwtest -l$(TESTLIBBASE) $(LDFLAGS)
 
 # VPATH to look for sources in (appended dir for test.cpp)
-VPATH       += $(RWTESTDIR)/src $(TESTDIR)/src
+VPATH       += $(TESTDIR)/src
 
 # compile-only tests generated in the cwd
 COMPILE_SRCS = $(shell ls *.cpp 2>/dev/null)
@@ -73,12 +72,12 @@ RUNFLAGS    += -X "-C $(CXX)-$(CCVER)"
 
 all: $(TARGET)
 
-$(TARGET): $(LIBDIR)/$(LIBNAME) $(BUILDDIR)/rwtest/$(RWTLIBNAME)
+$(TARGET): $(LIBDIR)/$(LIBNAME) $(BUILDDIR)/rwtest/$(TESTLIBNAME)
 
 $(LIBDIR)/$(LIBNAME):
 	@$(MAKE) -C $(LIBDIR) MAKEOVERRIDES= 
 
-$(BUILDDIR)/rwtest/$(RWTLIBNAME):
+$(BUILDDIR)/rwtest/$(TESTLIBNAME):
 	@$(MAKE) -C $(BUILDDIR)/rwtest MAKEOVERRIDES=
 
 # do any directory specific cleanup using the realclean target

@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: //stdlib/dev/etc/stdlib/config/GNUmakefile.rwt#17 $
+# $Id$
 #
 ##############################################################################
 #
@@ -18,11 +18,10 @@ include ../makefile.in
 
 # The place where the sources are looked for;
 # used in the variables setup in makefile.common
-RWTESTDIR    = $(TOPDIR)/../rwtest
-TESTDIR      = $(TOPDIR)/tests
-SRCDIRS      = $(RWTESTDIR)/src
+TESTDIR      = $(TOPDIR)/test
+SRCDIRS      = $(TESTDIR)/src
 
-TARGET       = $(RWTESTDIR)/$(RWTESTLIB)
+TARGET       = $(TESTDIR)/$(TESTLIB)
 
 # include common variables setting for all makefiles
 ONE_REPOSITORY = 1
@@ -32,19 +31,17 @@ include ../makefile.common
 LIBSUFFIX    = .a
 
 # Target library to be built
-RWTESTLIB    = librwtest$(BUILDTYPE)$(LIBSUFFIX)
+TESTLIB      = librwtest$(BUILDTYPE)$(LIBSUFFIX)
 
 # Additional include directories: 
-INCLUDES    += -I$(RWTESTDIR) -I$(RWTESTDIR)/include -I$(TESTDIR)/include
+INCLUDES    += -I$(TESTDIR)/include
 
 # VPATH to look for sources in (appended dir for test.cpp)
-VPATH       += $(RWTESTDIR)/src $(TESTDIR)/src
+VPATH       += $(TESTDIR)/src
 
-# Sources and corresponding objects for the rw test library
-RWTESTSRCS   = $(notdir $(shell echo $(RWTESTDIR)/src/*.cpp)) \
-               $(notdir $(shell echo $(TESTDIR)/src/*.cpp))
-
-RWTESTOBJS   = $(patsubst %.cpp,%.o,$(RWTESTSRCS))
+# sources and corresponding objects for the test driver library
+TESTSRCS     = $(notdir $(shell echo $(TESTDIR)/src/*.cpp))
+TESTOBJS     = $(patsubst %.cpp,%.o,$(TESTSRCS))
 
 RUNFLAGS    += -X "-C $(CXX)-$(CCVER)" 
 
@@ -52,45 +49,45 @@ RUNFLAGS    += -X "-C $(CXX)-$(CCVER)"
 ifneq ($(DEFAULT_SHROBJ),)
 SOBJS        = $(DEFAULT_SHROBJ)
 else
-SOBJS        = $(RWTESTOBJS)
+SOBJS        = $(TESTOBJS)
 endif
 
 
 # CXXPRELINK - command for compilers that use template
 # instantiation models that require a prelink stage
 ifneq ($(PRELINKFLAGS),)
-CXXPRELINK = $(CXX) $(CPPFLAGS) $(PRELINKFLAGS) $(RWTESTOBJS) $(LDFLAGS)
+CXXPRELINK = $(CXX) $(CPPFLAGS) $(PRELINKFLAGS) $(TESTOBJS) $(LDFLAGS)
 endif   # ($(PRELINKFLAGS),)
 
 ##############################################################################
 #  TARGETS
 ##############################################################################
 
-all:  $(LIBDIR)/$(LIBNAME) $(RWTESTLIB)
+all:  $(LIBDIR)/$(LIBNAME) $(TESTLIB)
 
 $(LIBDIR)/$(LIBNAME):
 	@$(MAKE) -C $(LIBDIR)
 
 # do any directory specific cleanup using the realclean target
 realclean: clean dependclean
-	rm -f $(RWTESTLIB)
+	rm -f $(TESTLIB)
 
 
 # For the time being the rules are identical until we 
 # decide to build a shared library for rw test lib.
 ifeq ($(findstring shared,$(BUILDMODE)),shared)
-$(RWTESTLIB): $(RWTESTOBJS)
+$(TESTLIB): $(TESTOBJS)
 	@echo "$(CXXPRELINK)" >> $(LOGFILE)
 	$(CXXPRELINK) $(TEEOPTS)
-	@echo "$(AR) $(ARFLAGS) $(RWTESTLIB) $(SOBJS)" >> $(LOGFILE)
-	$(AR) $(ARFLAGS) $(RWTESTLIB) $(SOBJS)
+	@echo "$(AR) $(ARFLAGS) $(TESTLIB) $(SOBJS)" >> $(LOGFILE)
+	$(AR) $(ARFLAGS) $(TESTLIB) $(SOBJS)
 
 else
-$(RWTESTLIB): $(RWTESTOBJS)
+$(TESTLIB): $(TESTOBJS)
 	@echo "$(CXXPRELINK)" >> $(LOGFILE)
 	$(CXXPRELINK) $(TEEOPTS)
-	@echo "$(AR) $(ARFLAGS) $(RWTESTLIB) $(SOBJS)" >> $(LOGFILE)
-	$(AR) $(ARFLAGS) $(RWTESTLIB) $(SOBJS)
+	@echo "$(AR) $(ARFLAGS) $(TESTLIB) $(SOBJS)" >> $(LOGFILE)
+	$(AR) $(ARFLAGS) $(TESTLIB) $(SOBJS)
 
 endif # ($(findstring shared,$(BUILDMODE)),shared)
 
