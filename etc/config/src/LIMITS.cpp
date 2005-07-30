@@ -16,9 +16,10 @@
 #ifndef _RWSTD_NO_FLOAT_H
 #  include <float.h>
 
-#  if defined (__EDG__) && defined (__linux__)
+#  if defined (__EDG__) && defined (__linux__) && !defined (__INTEL_COMPILER)
 
-     // gcc on Linux #defines these using its own propriterary __extension__
+     // prevent the propriterary gcc __extension__ from
+     // throwing the vanilla EDG demo for a loop
 #    undef LDBL_EPSILON
 #    undef LDBL_MIN
 #    undef LDBL_MAX
@@ -27,7 +28,7 @@
 #    define LDBL_EPSILON 1.0842021724855044e-19L
 #    define LDBL_MIN     3.3621031431120935e-4932L
 #    define LDBL_MAX     1.1897314953572317e+4932L
-#  endif   // defined (__EDG__) && defined (__linux__)
+#  endif   // __EDG__ && __linux__ && !__INTEL_COMPILER
 
 #endif   // _RWSTD_NO_FLOAT_H
 

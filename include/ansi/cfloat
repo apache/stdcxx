@@ -3,7 +3,7 @@
  *
  * cfloat - C++ Standard library interface to the ANSI C header float.h
  *
- * $Id: //stdlib/dev/include/ansi/cfloat#14 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -57,7 +57,7 @@ _RWSTD_NAMESPACE (std) {
 
 #endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
 
-#  if defined (__EDG__) && defined (__linux__)
+#  if defined (__EDG__) && defined (__linux__) && !defined (__INTEL_COMPILER)
 
      // avoid relying on dubious gcc extensions
 #    undef LDBL_MIN
@@ -65,6 +65,6 @@ _RWSTD_NAMESPACE (std) {
 #    define LDBL_MIN _RWSTD_LDBL_MIN
 #    define LDBL_MAX _RWSTD_LDBL_MAX
 
-#  endif   // __EDG__ && __linux__
+#  endif   // __EDG__ && __linux__ && !__INTEL_COMPILER
 
 #endif   // _RWSTD_NO_PURE_C_HEADERS
