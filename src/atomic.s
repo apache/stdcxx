@@ -2,7 +2,7 @@
  *
  * atomic.s
  *
- * $Id: //stdlib/dev/source/stdlib/atomic.s#11 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -24,8 +24,12 @@
 #  include "atomic-i86.s"
 #endif
 
-#if defined (__ia64)
-#  include "atomic-ia64.s"
+#if defined (__ia64) || defined (__ia64__)
+#  if defined (_LP64) || defined (__LP64__)
+#    include "atomic-ia64.s"
+#  else
+#    include "atomic-ia64-32.s"
+#  endif
 #endif
 
 #if defined (__parisc)
