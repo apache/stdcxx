@@ -121,12 +121,17 @@
 
   To unpack the tarball, execute the following command:
 
-  $   gunzip -c stdlib-X.Y.Z-YYYYMMDD.tar.gz | tar -xf -
+  $ gunzip -c stdcxx-incubating-X.Y.Z-YYYYMMDD.tar.gz | tar -xf -
 
   Above, X, Y, and Z are the major, minor, and micro version number of
   the library,  respectively, and the  optional -YYYYMMDD part  is the
   date of the snapshot. The date part of the file name will be missing
-  if the tarball is a final release rather than a snapshot. 
+  if the tarball is a final release rather than a snapshot.
+
+  The  script  above will  expand  the  tarball  and create  a  single
+  directory named stdcxx-X.Y.Z-YYYYMMDD/  (with the date part possibly
+  missing). This  directory is referred to a  ${TOPDIR} throughout the
+  rest of this document.
 
 
   4  Source Directory Structure
@@ -244,7 +249,7 @@
   Locale  definition files  suitable for  processing by  the localedef
   utility     are    provided     in    the     ${TOPDIR}/etc/nls/src/
   directory. Character set description files that accompany the locale
-  definition   files  are   provided  in  the  ${TOPDIR}/etc/charmaps/
+  definition  files are  provided  in the  ${TOPDIR}/etc/nls/charmaps/
   directory. These files are copies of those distributed with GNU libc
   2.2.
 
@@ -322,7 +327,7 @@
   To build the library, test  suite (*), and examples (*), perform the
   following steps: (* Where available.)
 
-  o  $ cd stdlib-X.Y.Z-YYYYMMDD/stdlib
+  o  $ cd stdcxx-X.Y.Z-YYYYMMDD/
      $ ls   # this is ${TOPDIR}
      GNUmakefile  etc  examples  include  src  tests
 
