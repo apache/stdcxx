@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_config.h#178 $
+ * $Id$
  *
  ***************************************************************************
  * 
@@ -33,7 +33,7 @@
 
 /*** library version numbers and ids **************************************/
 
-#define _RWSTD_VER 0x04010000
+#define _RWSTD_VER 0x04010200
 //                    | | | |
 //                   MMmmuupp
 //                    | | | |
@@ -43,7 +43,7 @@
 //                    +--------- MM = major release number
 
 // library version string (patch number included only if non-zero)
-#define _RWSTD_VER_STR   "4.1.0"
+#define _RWSTD_VER_STR   "4.1.2"
 
 // library version numbers
 #define _RWSTD_VER_MAJOR ((_RWSTD_VER >> 24) & 0xff)
