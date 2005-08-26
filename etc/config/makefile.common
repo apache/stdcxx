@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: //stdlib/dev/etc/stdlib/config/makefile.common#23 $
+# $Id$
 #
 # common makefile definitions shared by all GNUmakefile.*
 #
@@ -22,7 +22,8 @@ INCLUDES     = -I$(BUILDDIR)/include -I$(TOPDIR)/include
 ifeq ($(ONE_REPOSITORY),)
 
   # traverse all subdirectories and get the names of all regular files
-  ALL_FILES = $(shell $(FIND) $(SRCDIRS) -type f -print)
+  # avoiding any hidden subdirectories
+  ALL_FILES = $(shell $(FIND) $(SRCDIRS) -type f -o -name ".*" -prune)
 
   ifneq ($(CXX_REPOSITORY),)
 
