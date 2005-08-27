@@ -57,7 +57,7 @@ LDFLAGS     := -L$(BUILDDIR)/rwtest -l$(TESTLIBBASE) $(LDFLAGS)
 VPATH       += $(TESTDIR)/src
 
 # compile-only tests generated in the cwd
-COMPILE_SRCS = $(shell ls *.cpp 2>/dev/null)
+COMPILE_SRCS = $(shell echo *.cpp 2>/dev/null)
 COMPILE_OBJS = $(patsubst %.cpp,%.o,$(COMPILE_SRCS))
 
 # Targets to be built
@@ -84,7 +84,7 @@ $(BUILDDIR)/rwtest/$(TESTLIBNAME):
 realclean: clean dependclean
 	rm -f _*.cpp
 
-# build all tests in the given subdirectory (subsection of teh standard)
+# build all tests in the given subdirectory (subsection of the standard)
 $(SUBDIRS):
 	$(MAKE) SRCS="`cd $(TESTDIR)/$@/ && echo *.cpp`"
 
