@@ -60,6 +60,8 @@ public:
 
 #endif   // _RWSTD_NO_EXCEPTION_DEFAULT_CTOR
 
+    // check to see if the class dtor is defined
+    // in the compiler's language support library
     virtual ~exception ();   // not defined here
 };
 
@@ -79,17 +81,18 @@ int main (int argc, char *argv[])
 {
     (void)&argv;
 
-    // try to prevent the compiler from optimizing the dtor call away
-    std::exception *ptr;
+    // use dynamic allocation to prevent the compiler
+    // from optimizing the dtor call away
+    std::exception *ptr = 0;
 
-    if (1 < argc)
+    if (2 < argc)
         ptr = new Derived;
-    else
+    else if (1 < argc)
         ptr = new std::exception;
 
     delete ptr;
 
-    return !(1 < argc ? 1 == dtor : 0 == dtor);
+    return !(2 < argc ? 1 == dtor : 0 == dtor);
 }
 
 Derived::~Derived () { ++dtor; }
