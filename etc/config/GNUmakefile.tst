@@ -8,7 +8,7 @@
 #
 #   $ make
 #
-#   To make all tests uder $(TOPDIR)/test. Will generate a .d file
+#   To make all tests uder $(TOPDIR)/tests. Will generate a .d file
 #   an place in the directory $(DEPENDDIR) for every source file.
 #
 #   $ make [ tagets ] run | runall | run_all
@@ -31,7 +31,7 @@
 include ../makefile.in
 
 # tests & test library directories
-TESTDIR      = $(TOPDIR)/test
+TESTDIR      = $(TOPDIR)/tests
 SRCDIRS      = $(TESTDIR)
 
 # get the test suite subdirectories

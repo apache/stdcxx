@@ -18,7 +18,7 @@ include ../makefile.in
 
 # The place where the sources are looked for;
 # used in the variables setup in makefile.common
-TESTDIR      = $(TOPDIR)/test
+TESTDIR      = $(TOPDIR)/tests
 SRCDIRS      = $(TESTDIR)/src
 
 TARGET       = $(TESTDIR)/$(TESTLIB)
