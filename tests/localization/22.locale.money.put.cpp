@@ -176,7 +176,8 @@ set_pattern (const char *format)
         case '\3': case '-': pat.field [i] = std::money_base::sign; break;
         case '\4': case '1': pat.field [i] = std::money_base::value; break;
         default:
-            _RWSTD_ASSERT (!!"bad format specifier");
+            rw_error (0, __FILE__, __LINE__,
+                      "test error: bad format specifier: '%c'", format [i]);
         }
     }
 

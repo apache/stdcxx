@@ -695,3 +695,87 @@ rw_strncmp (const wchar_t* str1,
 }
 
 #endif   // _RWSTD_NO_WCHAR_T
+
+
+// floating point comparison helpers based on
+// http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm
+
+_TEST_EXPORT int
+rw_fltcmp (float x, float y)
+{
+#if _RWSTD_SHRT_SIZE == _RWSTD_INT_SIZE
+    typedef short IntT;
+    const IntT imin = _RWSTD_SHRT_MIN;
+#elif _RWSTD_FLT_SIZE == _RWSTD_INT_SIZE
+    typedef int IntT;
+    const IntT imin = _RWSTD_INT_MIN;
+#elif _RWSTD_FLT_SIZE == _RWSTD_LONG_SIZE
+    typedef long IntT;
+    const IntT imin = _RWSTD_LONG_MIN;
+#elif _RWSTD_FLT_SIZE == _RWSTD_LLONG_SIZE
+    typedef _RWSTD_LONG_LONG IntT;
+    const IntT imin = _RWSTD_LLONG_MIN;
+#else
+    // ???
+#  error no integral type of the same size as float exists
+#endif
+
+    // make both arguments lexicographically ordered as twos-complement ints
+    IntT x_int = *(IntT*)&x;
+    if (x_int < 0)
+        x_int = imin - x_int;
+
+    IntT y_int = *(IntT*)&y;
+    if (y_int < 0)
+        y_int = imin - y_int;
+
+    const IntT int_diff = x_int - y_int;
+
+    return int_diff;
+}
+
+
+_TEST_EXPORT int
+rw_dblcmp (double x, double y)
+{
+#if _RWSTD_DBL_SIZE == _RWSTD_INT_SIZE
+    typedef int IntT;
+    const IntT imin = _RWSTD_INT_MIN;
+#elif _RWSTD_DBL_SIZE == _RWSTD_LONG_SIZE
+    typedef long IntT;
+    const IntT imin = _RWSTD_LONG_MIN;
+#elif _RWSTD_DBL_SIZE == _RWSTD_LLONG_SIZE
+    typedef _RWSTD_LONG_LONG IntT;
+    const IntT imin = _RWSTD_LLONG_MIN;
+#else
+    // ???
+#  error no integral type of the same size as double exists
+#endif
+
+    IntT x_int = *(IntT*)&x;
+    if (x_int < 0)
+        x_int = imin - x_int;
+
+    IntT y_int = *(IntT*)&y;
+    if (y_int < 0)
+        y_int = imin - y_int;
+
+    const IntT int_diff = x_int - y_int;
+
+    return int_diff;
+}
+
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+_TEST_EXPORT int
+rw_ldblcmp (long double x, long double y)
+{
+    if (sizeof (long double) == sizeof (double))
+        return rw_dblcmp (double (x), double (y));
+
+    // FIXME: implement reliable comparison for 128-bit long doubles
+    return rw_dblcmp (double (x), double (y));
+}
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
