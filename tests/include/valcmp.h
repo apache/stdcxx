@@ -79,4 +79,37 @@ rw_strncmp (const wchar_t*, const wchar_t*,
 
 #endif   // _RWSTD_NO_WCHAR_T
 
+/**
+ * Compares two floating point numbers for equality.
+ *
+ * @param x  The left hand side of the comparison.
+ * @param y  The right hand side of the comparison.
+ *
+ * @return  Returns a negative value, 0, or a positive value, depending
+ *          on whether the first number is less than, equal to, or greater
+ *          than the second array. The magnitude of the returned value
+ *          represents the number of distinct values representable in
+ *          the type between the two arguments.
+ */
+_TEST_EXPORT int
+rw_fltcmp (float x, float y);
+
+
+/**
+ * @see rw_fltcmp.
+ */
+_TEST_EXPORT int
+rw_dblcmp (double x, double y);
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+/**
+ * @see rw_fltcmp.
+ */
+_TEST_EXPORT int
+rw_ldblcmp (long double x, long double y);
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+
 #endif   // RW_VALCMP_H_INCLUDED
