@@ -1,8 +1,8 @@
 /***************************************************************************
  *
- * money_get.cpp
+ * locale.money.put.cpp - tests exercising the std::money_get facet
  *
- * $Id: //stdlib/dev/tests/stdlib/locale/money_get.cpp#25 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -22,8 +22,7 @@
 #include <ios>
 #include <locale>
 
-#include <climits>   // for INT_MAX
-#include <cstdio>    // for sprintf()
+#include <cstdio>    // for sscanf()
 #include <cstdlib>   // for mbstowcs(), wcstombs()
 #include <cstring>   // for strcat(), strlen()
 
@@ -40,9 +39,6 @@
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
 /**************************************************************************/
-
-// set to non-zero value when grouping shouldn't be exercised
-static int no_grouping;
 
 // set to non-zero value when the basic_string overloads
 // of moneY-put::put() shouldn't be exercised
@@ -284,12 +280,20 @@ const wchar_t* widen (wchar_t *dst, const char *src)
 
 
 template <class charT>
-void do_test (charT which, const char *cname, const char *tname, int lineno,
-              LongDouble val,
-              const char *str, int consumed = -1,
-              int flags = 0, int err_expect = -1, int frac_digits = 0,
-              const char *fmat = 0, const char *cursym = 0,
-              const char *grouping = "", bool intl = false)
+void do_test (charT       which,   // which overload to exercise
+              const char *cname,   // the name of the charT type
+              const char *tname,   // the name of the floating point type
+              int         lineno,  // line number
+              LongDouble  val,     // the expected extracted value
+              const char *str,     // the sequence to extract from
+              int         consumed = -1,   // expected number extractions
+              int         flags = 0,       // initial ios flags
+              int         err_expect = -1, // expected final state
+              int         frac_digits = 0, // fractional digits
+              const char *fmat = 0,        // money_base::pattern
+              const char *cursym = 0,      // currency symbol
+              const char *grouping = "",   // grouping string
+              bool intl = false)           // international?
 {
     if (!rw_enabled (lineno)) {
         rw_note (0, __FILE__, __LINE__, "test on line %d disabled", lineno);
@@ -297,6 +301,7 @@ void do_test (charT which, const char *cname, const char *tname, int lineno,
     }
 
     if (!fmat) {
+        // if fmat isn't set, use the default pattern
         static const std::money_base::pattern pat = { {
             std::money_base::symbol, std::money_base::sign,
             std::money_base::none,   std::money_base::value
@@ -432,7 +437,6 @@ void do_test (charT which, const char *cname, const char *tname, int lineno,
         }
     }
 }
-
 
 /**************************************************************************/
 
@@ -937,7 +941,6 @@ void test_memfun (charT opt, const char *cname, const char *tname)
 
 /**************************************************************************/
 
-
 template <class charT>
 void
 test_long_double (charT, const char *cname)
@@ -949,9 +952,7 @@ test_long_double (charT, const char *cname)
         rw_note (0, __FILE__, __LINE__, "long double test disabled");
 }
 
-
 /**************************************************************************/
-
 
 template <class charT>
 void
@@ -966,7 +967,6 @@ test_string (charT, const char *cname)
 }
 
 /**************************************************************************/
-
 
 static int
 run_test (int, char*[])
@@ -1008,7 +1008,6 @@ run_test (int, char*[])
     return 0;
 }
 
-
 /**************************************************************************/
 
 int main (int argc, char* argv [])
@@ -1016,6 +1015,6 @@ int main (int argc, char* argv [])
     return rw_test (argc, argv, __FILE__,
                     "lib.locale.money.get",
                     0 /* no comment */, run_test,
-                    "|-no-grouping# |-no-basic_string#",
-                    &no_grouping, &no_basic_string);
+                    "|-no-basic_string#",
+                    &no_basic_string);
 }
