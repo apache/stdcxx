@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 # 
-# $Id: //stdlib/dev/etc/stdlib/config/GNUmakefile#61 $
+# $Id$
 #
 # main makefile to build and test the C++ Standard library
 #
@@ -49,16 +49,19 @@
 #
 # Nonstandard variables:
 #
-#   BUILDDIR  - the root of the build directory tree
+#   BUILDDIR  - (optional) the root of the build directory tree,
+#               the default value is $(TOPDIR)/build
 #
-#   BUILDTAG  - an optional string appended to a report filename
+#   BUILDTAG  - (optional) a string appended to a report filename
+#               the default value is empty
 #
-#   BUILDTYPE - one of
+#   BUILDTYPE - (optional) one of
 #                   8s, 8d, 11s, 11d, 12s, 12d, 15s, 15d,
 #                   8S, 8D, 11S, 11D, 12S, 12D, 15S, 15D
 #               where the capitalized forms are wide forms of the others
+#               the default value is 11s
 #
-#   BUILDMODE - a comma separated list of at most one of each of
+#   BUILDMODE - (optional) a comma separated list of at most one of each of
 #                  debug, optimized, shared
 #                  threads, pthreads, dcethreads, wide
 #               where
@@ -69,6 +72,7 @@
 #               *  pthreads uses POSIX threads for thread safety
 #               *  dcethreads uses DCE threads for thread safety
 #               *  wide uses wide (typically 64-bit) memory model
+#               the default value is debug (same as 11s)
 #
 #   CATFILE   - name of library catalog file to be generated - see gencat(1)
 #
@@ -114,33 +118,70 @@
 #
 ##############################################################################
 
-SHELL       = /bin/sh
+SHELL = /bin/sh
 
 # Set the value of OSNAME here
 OSNAME = $(shell uname)
 
 # provide a value if it isn't already set by (an older version of) make
 ifeq ($(CURDIR),)
-CURDIR       = $(shell pwd)
+  CURDIR = $(shell pwd)
 endif
 
-# value of BUILDDIR is overridden when passed on command line
-BUILDDIR    = $(CURDIR)
 
-ifeq ($(TOPDIR),$(BUILDDIR))
-BUILDDIR    = $(TOPDIR)/build
+-include ./makefile.in
+
+
+# buildpath must not be defined
+ifneq ($(buildpath),)
+  $(error "buildpath not empty ('$(buildpath)')")
 endif
 
-INCDIR      = $(BUILDDIR)/include
-LIBDIR      = $(BUILDDIR)/lib
-EXMDIR      = $(BUILDDIR)/examples
-TSTDIR      = $(BUILDDIR)/tests
-PHTSTDIR    = $(BUILDDIR)/plumhall
-MAKEDIRS    = $(BUILDDIR)           \
+
+# check to see if BUILDDIR is defined
+ifeq ($(BUILDDIR),)
+  # the default value is $(TOPDIR)/build
+  buildpath = $(CURDIR)/build
+else
+  # see if BUILDDIR is an absolute pathname
+  ifeq ($(filter /%,$(BUILDDIR)),)
+    # ...if not, prepend the name of CURDIR
+    buildpath = $(CURDIR)/$(BUILDDIR)
+  else
+    # ...otherwise, make sure it doesn't refer to TOPDIR
+    ifeq ($(BUILDDIR),$(TOPDIR))
+      $(error "BUILDDIR ('$(BUILDDIR)') is same as TOPDIR ('$(TOPDIR)')")
+    endif
+    buildpath = $(BUILDDIR)
+  endif   # ifneq ($(filter /%,$(BUILDDIR)),)
+endif   # ifneq ($(BUILDDIR),)
+
+
+ifeq ($(filter /%,$(buildpath)),)
+  # buildpath must be an absolute pathname
+  $(error "buildpath=$(buildpath): not an absolute pathname")
+endif
+
+ifeq ($(buildpath),$(TOPDIR))
+  # buildpath must be distinct from TOPDIR
+  $(error "buildpath=$(buildpath): not distinct from TOPDIR=$(TOPDIR)")
+endif
+
+
+MAKEFILE_IN = $(buildpath)/makefile.in
+-include $(MAKEFILE_IN)
+
+
+INCDIR      = $(buildpath)/include
+LIBDIR      = $(buildpath)/lib
+EXMDIR      = $(buildpath)/examples
+TSTDIR      = $(buildpath)/tests
+PHTSTDIR    = $(buildpath)/plumhall
+MAKEDIRS    = $(buildpath)           \
               $(LIBDIR)             \
-              $(BUILDDIR)/rwtest    \
-              $(BUILDDIR)/bin       \
-              $(BUILDDIR)/nls       \
+              $(buildpath)/rwtest    \
+              $(buildpath)/bin       \
+              $(buildpath)/nls       \
               $(TSTDIR)             \
               $(PHTSTDIR)           \
               $(EXMDIR)             \
@@ -162,105 +203,107 @@ endif
 endif
 
 # file to write log of the build to
-LOGFILE     = /dev/null
+LOGFILE = /dev/null
 
 # convert a relative pathname to an absolute one
 ifneq ($(shell echo $(LOGFILE) | sed -n "s/^ *\/.*/\//p"),/)
-LOGFILE    := $(BUILDDIR)/$(LOGFILE)
+LOGFILE    := $(buildpath)/$(LOGFILE)
 endif
 
 # shared and static library suffix defaults (can be overridden in config file)
 SHARED_SUFFIX = .so
 STATIC_SUFFIX = .a
 
-ifneq ($(BUILDTYPE),)
-ifneq ($(BUILDMODE),)
-  ERROR_MSG := $(error Use either BUILDTYPE or BUILDMODE, not both)
-endif
-endif
-
-# include the makefile.in if it exists 
-MAKEFILE_IN = $(BUILDDIR)/makefile.in
-
--include $(MAKEFILE_IN)
-
 # When BUILDTYPE is set, then decode its value
 ifeq ($(BUILDTYPE),8s)
-BUILDMODE   = optimized
+  bmode = optimized
 endif   # ifeq ($(BUILDTYPE),8s)
 
 ifeq ($(BUILDTYPE),8S)
-BUILDMODE   = optimized,wide
+  bmode = optimized,wide
 endif   # ifeq ($(BUILDTYPE),8s)
 
 ifeq ($(BUILDTYPE),8d)
-BUILDMODE   = shared,optimized
+  bmode = shared,optimized
 endif   # ifeq ($(BUILDTYPE),8d)
 
 ifeq ($(BUILDTYPE),8D)
-BUILDMODE   = shared,optimized,wide
+  bmode = shared,optimized,wide
 endif   # ifeq ($(BUILDTYPE),8d)
 
 ifeq ($(BUILDTYPE),11s)
-BUILDMODE   = debug
+  bmode = debug
 endif   # ifeq ($(BUILDTYPE),11s)
 
 ifeq ($(BUILDTYPE),11S)
-BUILDMODE   = debug,wide
+  bmode = debug,wide
 endif   # ifeq ($(BUILDTYPE),11s)
 
 # 11d - single-thread, debug, shared
 ifeq ($(BUILDTYPE),11d)
-BUILDMODE   = debug,shared
+  bmode = debug,shared
 endif   # ifeq ($(BUILDTYPE),11d)
 
 ifeq ($(BUILDTYPE),11D)
-BUILDMODE   = debug,shared,wide
+  bmode = debug,shared,wide
 endif   # ifeq ($(BUILDTYPE),11d)
 
 # 12s - multi-thread, optimized, static
 ifeq ($(BUILDTYPE),12s)
-BUILDMODE   = pthreads,optimized
+  bmode = pthreads,optimized
 endif   # ifeq ($(BUILDTYPE),12s)
 
 ifeq ($(BUILDTYPE),12S)
-BUILDMODE   = pthreads,optimized,wide
+  bmode = pthreads,optimized,wide
 endif   # ifeq ($(BUILDTYPE),12s)
 
 # 12d - multi-thread, optimized, shared
 ifeq ($(BUILDTYPE),12d)
-BUILDMODE   = pthreads,shared,optimized
+  bmode = pthreads,shared,optimized
 endif   # ifeq ($(BUILDTYPE),12d)
 
 ifeq ($(BUILDTYPE),12D)
-BUILDMODE   = pthreads,shared,optimized,wide
+  bmode = pthreads,shared,optimized,wide
 endif   # ifeq ($(BUILDTYPE),12d)
 
 # 15s - multi-thread, debug, static
 ifeq ($(BUILDTYPE),15s)
-BUILDMODE   = debug,pthreads
+  bmode = debug,pthreads
 endif   # ifeq ($(BUILDTYPE),15s)
 
 ifeq ($(BUILDTYPE),15S)
-BUILDMODE   = debug,pthreads,wide
+  bmode = debug,pthreads,wide
 endif   # ifeq ($(BUILDTYPE),15s)
 
 # 15d - multi-thread, debug, shared
 ifeq ($(BUILDTYPE),15d)
-BUILDMODE   = debug,pthreads,shared
+  bmode = debug,pthreads,shared
 endif   # ifeq ($(BUILDTYPE),15d)
 
 ifeq ($(BUILDTYPE),15D)
-BUILDMODE   = debug,pthreads,shared,wide
+  bmode = debug,pthreads,shared,wide
 endif   # ifeq ($(BUILDTYPE),15d)
+
+ifeq ($(TOPDIR),)
+  ifneq ($(BUILDTYPE),)
+    ifneq ($(BUILDMODE),)
+      $(error "at most one of BUILDMODE and BUILDTYPE may be defined")
+    else
+      BUILDMODE=$(bmode)
+    endif
+  endif
+endif
+
 
 # include the configure file if make is being invoked
 # in the source directory; after makefile.in is created
 # the configure file will not be included because TOPDIR
 # will be defined in makefile.in
 ifeq ($(TOPDIR),)
-include etc/config/$(CONFIG)
-TOPDIR      = $(CURDIR)
+  TOPDIR     = $(CURDIR)
+  configpath = etc/config/$(CONFIG)
+  configfile = $(TOPDIR)/$(configpath)
+  include $(configfile)
 endif # TOPDIR
 
 ETCDIR      = $(TOPDIR)/etc/config
@@ -274,9 +317,9 @@ ETCDIR      = $(TOPDIR)/etc/config
 ifeq ($(CURDIR),$(TOPDIR))
 
 ifeq ($(findstring debug,$(BUILDMODE)),debug)
-ifeq ($(findstring optimized,$(BUILDMODE)),optimized)
-  ERROR_MSG := $(error Cannot have both debug and optimized options)
-endif
+  ifeq ($(findstring optimized,$(BUILDMODE)),optimized)
+    $(error "cannot have both debug and optimized options")
+  endif
 endif
 
 # unless $(LD) is set, use the same command to link as to compile
@@ -320,7 +363,7 @@ ifeq ($(findstring pthreads,$(BUILDMODE)),pthreads)
 else
   ifeq ($(findstring dcethreads,$(BUILDMODE)),dcethreads)
     ifneq ($(OSNAME),OSF1)
-      ERROR_MSG := $(error DCE threads not suported on this platform)
+      $(error "DCE threads not suported on this platform")
     endif
 
     CPPFLAGS  += $(MULTI_CPPFLAGS_DCE)
@@ -328,7 +371,7 @@ else
   else
     ifeq ($(findstring threads,$(BUILDMODE)),threads)
       ifneq ($(OSNAME),SunOS)
-        ERROR_MSG := $(error Solaris threads not suported on this platform)
+        $(error "Solaris threads not suported on this platform")
       endif
 
       CPPFLAGS  +=  $(MULTI_CPPFLAGS_SOLARIS)
@@ -387,10 +430,12 @@ endif  # ifeq ($(CURDIR),$(TOPDIR))
 # TARGETS
 ##############################################################################
 
-ifeq ($(CURDIR),$(TOPDIR))
+ifeq ($(CURDIR),$(TOPDIR)) ###################################################
+
+# invoked from $(TOPDIR)
 
 ifeq ($(DEPENDDIR),)
-DEPENDDIR=.depend
+  DEPENDDIR=.depend
 endif
 
 # obtain library version number from the macro _RWSTD_VER
@@ -401,121 +446,126 @@ LIBVER     = $(shell awk '/^.define _RWSTD_VER / { major = substr ($$3, 3, 2); m
 
 all: builddir config libstd 
 
-# create $(BUILDDIR) and $(MAKEFILE_IN)
-$(MAKEFILE_IN):
-	@(echo "creating BUILDDIR=$(BUILDDIR)" ;                           \
-          mkdir -p $(MAKEDIRS) || {                                        \
-              echo "unable to create build directory" ;                    \
-              exit 1 ;                                                     \
-          } ;                                                              \
-      echo "generating $(MAKEFILE_IN)..." ;                                \
-      echo "TOPDIR     = $(TOPDIR)"                   >> $(MAKEFILE_IN) ;  \
-      echo "BUILDDIR   = $(BUILDDIR)"                 >> $(MAKEFILE_IN) ;  \
-      echo "BUILDTYPE  = $(BUILDTYPE)"                >> $(MAKEFILE_IN) ;  \
-      echo "BUILDMODE  = $(BUILDMODE)"                >> $(MAKEFILE_IN) ;  \
-      echo "CXX        = $(CXX)"                      >> $(MAKEFILE_IN) ;  \
-      echo "CXXFLAGS   = $(CXXFLAGS)"                 >> $(MAKEFILE_IN) ;  \
-      echo "PRELINKFLAGS = $(PRELINKFLAGS)"           >> $(MAKEFILE_IN) ;  \
-      echo "PICFLAGS   = $(PICFLAGS)"                 >> $(MAKEFILE_IN) ;  \
-      echo "CPPFLAGS   = $(CPPFLAGS)"                 >> $(MAKEFILE_IN) ;  \
-      echo "WARNFLAGS  = $(WARNFLAGS)"                >> $(MAKEFILE_IN) ;  \
-      echo "DEPENDFLAGS = $(DEPENDFLAGS)"             >> $(MAKEFILE_IN) ;  \
-      echo "LD         = $(LD)"                       >> $(MAKEFILE_IN) ;  \
-      echo "LDFLAGS    = $(LDFLAGS)"                  >> $(MAKEFILE_IN) ;  \
-      echo "LDLIBS     = $(LDLIBS)"                   >> $(MAKEFILE_IN) ;  \
-      echo "LDSOFLAGS  = $(LDSOFLAGS)"                >> $(MAKEFILE_IN) ;  \
-      echo "MAPFILE    = $(MAPFILE)"                  >> $(MAKEFILE_IN) ;  \
-      echo "RUNFLAGS   = -t 180"                      >> $(MAKEFILE_IN) ;  \
-      echo "LIBDIR     = $(LIBDIR)"                   >> $(MAKEFILE_IN) ;  \
-      echo "DEPENDDIR  = $(DEPENDDIR)"                >> $(MAKEFILE_IN) ;  \
-      echo "PHDIR      = $(PHDIR)"                    >> $(MAKEFILE_IN) ;  \
-      echo "PHWARNFLAGS = $(PHWARNFLAGS)"             >> $(MAKEFILE_IN) ;  \
-      echo "LIBSUFFIX  = $(LIBSUFFIX)"                >> $(MAKEFILE_IN) ;  \
-      echo "LIBBASE    = $(LIBBASE)"                  >> $(MAKEFILE_IN) ;  \
-      echo "LIBVER     = $(LIBVER)"                   >> $(MAKEFILE_IN) ;  \
-      echo "LIBNAME    = lib$$""(LIBBASE)$$""(LIBSUFFIX)"                  \
-                                                      >> $(MAKEFILE_IN) ;  \
-      echo "AR         = $(AR)"                       >> $(MAKEFILE_IN) ;  \
-      echo "ARFLAGS    = $(ARFLAGS)"                  >> $(MAKEFILE_IN) ;  \
-      echo "CCVER      = $(CCVER)"                    >> $(MAKEFILE_IN) ;  \
-      echo "SHARED     = $(SHARED)"                   >> $(MAKEFILE_IN) ;  \
-      echo "CATFILE    = $(CATFILE)"                  >> $(MAKEFILE_IN) ;  \
-      echo "OMIT_EXM_SRCS = $(OMIT_EXM_SRCS)"         >> $(MAKEFILE_IN) ;  \
-      echo "OMIT_TST_SRCS = $(OMIT_TST_SRCS)"         >> $(MAKEFILE_IN) ;  \
-      echo "BUILDTAG   = $(BUILDTAG)"                 >> $(MAKEFILE_IN) ;  \
-      echo "PLATFORM   = $(PLATFORM)"                 >> $(MAKEFILE_IN) ;  \
-      echo "REPORTFILE = $(REPORTFILE)$$""(BUILDTAG)" >> $(MAKEFILE_IN) ;  \
-      echo "DEFAULT_SHROBJ = $(DEFAULT_SHROBJ)"       >> $(MAKEFILE_IN) ;  \
-	  echo "CXX_REPOSITORY = $(CXX_REPOSITORY)"	  >> $(MAKEFILE_IN))
+# create $(buildpath) and $(MAKEFILE_IN)
+$(MAKEFILE_IN): $(configfile)
+	@(echo "creating BUILDDIR=$(buildpath)";                            \
+          mkdir -p $(MAKEDIRS) || {                                         \
+              echo "unable to create build directory";                      \
+              exit 1;                                                       \
+          };                                                                \
+         echo "generating $(MAKEFILE_IN) from $(configfile)"                \
+      && echo "TOPDIR     = $(TOPDIR)"                   >> $(MAKEFILE_IN)  \
+      && echo "BUILDDIR   = $(buildpath)"                >> $(MAKEFILE_IN)  \
+      && echo "CONFIG     = $$""(TOPDIR)""/$(configpath)"                   \
+                                                         >> $(MAKEFILE_IN)  \
+      && echo "BUILDTYPE  = $(BUILDTYPE)"                >> $(MAKEFILE_IN)  \
+      && echo "BUILDMODE  = $(BUILDMODE)"                >> $(MAKEFILE_IN)  \
+      && echo "CXX        = $(CXX)"                      >> $(MAKEFILE_IN)  \
+      && echo "CXXFLAGS   = $(CXXFLAGS)"                 >> $(MAKEFILE_IN)  \
+      && echo "PRELINKFLAGS = $(PRELINKFLAGS)"           >> $(MAKEFILE_IN)  \
+      && echo "PICFLAGS   = $(PICFLAGS)"                 >> $(MAKEFILE_IN)  \
+      && echo "CPPFLAGS   = $(CPPFLAGS)"                 >> $(MAKEFILE_IN)  \
+      && echo "WARNFLAGS  = $(WARNFLAGS)"                >> $(MAKEFILE_IN)  \
+      && echo "DEPENDFLAGS = $(DEPENDFLAGS)"             >> $(MAKEFILE_IN)  \
+      && echo "LD         = $(LD)"                       >> $(MAKEFILE_IN)  \
+      && echo "LDFLAGS    = $(LDFLAGS)"                  >> $(MAKEFILE_IN)  \
+      && echo "LDLIBS     = $(LDLIBS)"                   >> $(MAKEFILE_IN)  \
+      && echo "LDSOFLAGS  = $(LDSOFLAGS)"                >> $(MAKEFILE_IN)  \
+      && echo "MAPFILE    = $(MAPFILE)"                  >> $(MAKEFILE_IN)  \
+      && echo "RUNFLAGS   = -t 180"                      >> $(MAKEFILE_IN)  \
+      && echo "LIBDIR     = $(LIBDIR)"                   >> $(MAKEFILE_IN)  \
+      && echo "DEPENDDIR  = $(DEPENDDIR)"                >> $(MAKEFILE_IN)  \
+      && echo "PHDIR      = $(PHDIR)"                    >> $(MAKEFILE_IN)  \
+      && echo "PHWARNFLAGS = $(PHWARNFLAGS)"             >> $(MAKEFILE_IN)  \
+      && echo "LIBSUFFIX  = $(LIBSUFFIX)"                >> $(MAKEFILE_IN)  \
+      && echo "LIBBASE    = $(LIBBASE)"                  >> $(MAKEFILE_IN)  \
+      && echo "LIBVER     = $(LIBVER)"                   >> $(MAKEFILE_IN)  \
+      && echo "LIBNAME    = lib$$""(LIBBASE)$$""(LIBSUFFIX)"                \
+                                                         >> $(MAKEFILE_IN)  \
+      && echo "AR         = $(AR)"                       >> $(MAKEFILE_IN)  \
+      && echo "ARFLAGS    = $(ARFLAGS)"                  >> $(MAKEFILE_IN)  \
+      && echo "CCVER      = $(CCVER)"                    >> $(MAKEFILE_IN)  \
+      && echo "SHARED     = $(SHARED)"                   >> $(MAKEFILE_IN)  \
+      && echo "CATFILE    = $(CATFILE)"                  >> $(MAKEFILE_IN)  \
+      && echo "OMIT_EXM_SRCS = $(OMIT_EXM_SRCS)"         >> $(MAKEFILE_IN)  \
+      && echo "OMIT_TST_SRCS = $(OMIT_TST_SRCS)"         >> $(MAKEFILE_IN)  \
+      && echo "BUILDTAG   = $(BUILDTAG)"                 >> $(MAKEFILE_IN)  \
+      && echo "PLATFORM   = $(PLATFORM)"                 >> $(MAKEFILE_IN)  \
+      && echo "REPORTFILE = $(REPORTFILE)$$""(BUILDTAG)" >> $(MAKEFILE_IN)  \
+      && echo "DEFAULT_SHROBJ = $(DEFAULT_SHROBJ)"       >> $(MAKEFILE_IN)  \
+      && echo "CXX_REPOSITORY = $(CXX_REPOSITORY)"	 >> $(MAKEFILE_IN));
 
 # link makefiles and scripts
 builddir: $(MAKEFILE_IN)
-	@(ln -sf $(TOPDIR)/GNUmakefile     $(BUILDDIR);                     \
-      ln -sf $(ETCDIR)/GNUmakefile.cfg     $(BUILDDIR)/include/GNUmakefile; \
-      ln -sf $(ETCDIR)/GNUmakefile.lib     $(LIBDIR)/GNUmakefile;           \
-      ln -sf $(ETCDIR)/GNUmakefile.rwt     $(BUILDDIR)/rwtest/GNUmakefile;  \
-      ln -sf $(ETCDIR)/GNUmakefile.exm     $(EXMDIR)/GNUmakefile;           \
-      ln -sf $(ETCDIR)/GNUmakefile.tst     $(TSTDIR)/GNUmakefile;           \
-      ln -sf $(ETCDIR)/GNUmakefile.ph      $(PHTSTDIR)/GNUmakefile;         \
-      ln -sf $(ETCDIR)/GNUmakefile.bin     $(BUILDDIR)/bin/GNUmakefile;     \
-      ln -sf $(ETCDIR)/makefile.common     $(BUILDDIR);                     \
-      ln -sf $(ETCDIR)/makefile.rules      $(BUILDDIR);                     \
-      ln -sf $(ETCDIR)/configure.sh        $(BUILDDIR)/include/configure;   \
-      ln -sf $(ETCDIR)/runall.sh           $(BUILDDIR)/run;                 \
-      ln -sf $(ETCDIR)/runall.sh           $(BUILDDIR)/bin/run;             \
-      ln -sf $(ETCDIR)/run_locale_utils.sh $(BUILDDIR)/bin/run_locale_utils.sh;\
-      ln -sf $(ETCDIR)/runall.sh           $(TSTDIR)/run;                   \
-      ln -sf $(ETCDIR)/runall.sh           $(PHTSTDIR)/run;                 \
+	@(ln -sf $(TOPDIR)/GNUmakefile     $(buildpath);                     \
+      ln -sf $(ETCDIR)/GNUmakefile.cfg     $(buildpath)/include/GNUmakefile; \
+      ln -sf $(ETCDIR)/GNUmakefile.lib     $(LIBDIR)/GNUmakefile;            \
+      ln -sf $(ETCDIR)/GNUmakefile.rwt     $(buildpath)/rwtest/GNUmakefile;  \
+      ln -sf $(ETCDIR)/GNUmakefile.exm     $(EXMDIR)/GNUmakefile;            \
+      ln -sf $(ETCDIR)/GNUmakefile.tst     $(TSTDIR)/GNUmakefile;            \
+      ln -sf $(ETCDIR)/GNUmakefile.ph      $(PHTSTDIR)/GNUmakefile;          \
+      ln -sf $(ETCDIR)/GNUmakefile.bin     $(buildpath)/bin/GNUmakefile;     \
+      ln -sf $(ETCDIR)/makefile.common     $(buildpath);                     \
+      ln -sf $(ETCDIR)/makefile.rules      $(buildpath);                     \
+      ln -sf $(ETCDIR)/configure.sh        $(buildpath)/include/configure;   \
+      ln -sf $(ETCDIR)/runall.sh           $(buildpath)/run;                 \
+      ln -sf $(ETCDIR)/runall.sh           $(buildpath)/bin/run;             \
+      ln -sf $(ETCDIR)/run_locale_utils.sh                                   \
+             $(buildpath)/bin/run_locale_utils.sh;                           \
+      ln -sf $(ETCDIR)/runall.sh           $(TSTDIR)/run;                    \
+      ln -sf $(ETCDIR)/runall.sh           $(PHTSTDIR)/run;                  \
       ln -sf $(ETCDIR)/runall.sh           $(EXMDIR)/run)
-
-post:
-	@$(MAKE) builddir
-	@$(MAKE) -C$(BUILDDIR) $@
 
 
 # cd from TOPDIR to BUILDDIR and post from there
+post:
+	$(MAKE) builddir
+	$(MAKE) -C$(buildpath) $@
+
+
+# prevent trying to make makefile.in when $(BUILDDIR) is
+# not defined and -include $(BUILDDIR)/makefile.in fails
+makefile.in:
+
+
 .DEFAULT:
-	@$(MAKE) -C$(BUILDDIR) $@
+	$(MAKE) -C$(buildpath) BUILDDIR=$(buildpath)
 
 
-else   # ifneq ($(CURDIR),$(TOPDIR))
+else   # ifneq ($(CURDIR),$(TOPDIR)) #########################################
 
 # invoked from $(BUILDDIR)...
 
-all: config libstd locutils rwtestlib tst exm $(PHDTSTDIR)
+all: config libstd util rwtestlib tst exm $(PHDTSTDIR)
 
 # configure (create config.h)
 config:
-	@$(MAKE) -C include
+	@$(MAKE) -C$(BUILDDIR)/include
 
 # build utilities, ignore errors
 util:
-	@$(MAKE) -C $(BUILDDIR)/bin
+	@$(MAKE) -C$(BUILDDIR)/bin
 
 # build library, errors are fatal
 libstd:
-	@$(MAKE) -C $(LIBDIR)
-
-# locale utilities
-bin:
-	@$(MAKE) -C $(BUILDDIR)/bin
+	@$(MAKE) -C$(LIBDIR)
 
 # build rw test library
 rwtestlib:
-	@$(MAKE) -C $(BUILDDIR)/rwtest
+	@$(MAKE) -C$(BUILDDIR)/rwtest
 
 # build tests, ignore failures
 tst: libstd rwtestlib
-	-@$(MAKE) -C $(TSTDIR)
+	-@$(MAKE) -C$(TSTDIR)
 
 # build plumhall tests, ignore failures
 phtst: libstd
-	-@$(MAKE) -C $(PHTSTDIR)
+	-@$(MAKE) -C$(PHTSTDIR)
 
 
 # make examples, ignore failures
 exm: libstd
-	-@$(MAKE) -C $(EXMDIR)
+	-@$(MAKE) -C$(EXMDIR)
 
 
 # run all tests and examples, generate result file and post it in a revison
