@@ -8,13 +8,15 @@
 #
 # Usage:
 #
-#   When invoked from $TOPDIR will create $BUILDDIR, makefile.in, configure
-#   and create a configuration header file, config.h, build the library,
-#   tests and examples, run them and try to post collected results to
-#   a revision control system (Perforce):
+#   Invoke from $TOPDIR to create the build directory tree, $BUILDDIR
+#   configure and build the library, example programs, utility programs
+#   testsuite driver, and the testsuite.
 #
-#   $ make BUILDTYPE=<build-type> BUILDDIR=<build-dir> CONFIG=<config-file>
-#           PHDIR=<plumhall-testsuite-source-dir>
+#   $ make [ BUILDTYPE=<build-type> ] \
+#          [ BUILDDIR=<build-dir> ] \
+#          [ CONFIG=<config-file> ] \
+#          [ PHDIR=<plumhall-testsuite-source-dir> ]
+#          [ <targets> ]
 #
 #   From $BUILDDIR/include to [re]configure or just run one or more tests:
 #
@@ -29,11 +31,6 @@
 #   built executables, and (by default, unless DRYRUN is non-empty)
 #   post results in Perforce:
 #
-#   $ make post [ DRYRUN=1 ]
-#
-#   From $BUILDDIR/tests or $BUILDDIR/examples to run the executables
-#   and create a report file (unless RUN is non-empty):
-#
 #   $ make run | runall | run_all [ RUN=<executables> | ALL ]
 #
 #   For every invocation of make the variables CPPOPTS, CXXOPTS, LDOPTS,
@@ -43,8 +40,27 @@
 #   The variable MAKE can be set to contain any additional make arguments
 #   to be passed to recursive invokations of make (e.g., make -j).
 #
-#   The variable SHELL can be set to replace the default shell, /bin/sh.
+#   The variable SHELL can be defined to override the default shell, /bin/sh.
 #
+##############################################################################
+#
+# Targets:
+#
+#   builddir  - creates the build directory (BUILDDIR) and makefile.in
+#
+#   config    - performs configuration tests and creates the configuration
+#               header, $(BUILDDIR)/include/config.h
+#
+#   libstd    - builds the library
+#
+#   rwtestlib - builds the testsuite driver
+#
+#   testsuite - builds the testsuite
+#
+#   exm       - builds the example programs
+#
+#   util      - builds the utility programs
+# 
 ##############################################################################
 #
 # Nonstandard variables:
@@ -187,104 +203,152 @@ MAKEDIRS    = $(buildpath)           \
               $(EXMDIR)             \
               $(INCDIR)
 
-# try to determine configuration (unless specified on the command line)
-ifeq ($(CONFIG),)
-ifeq ($(shell g++ -v >/dev/null 2>&1 && echo $$?),0)
-CONFIG      = gcc.config
-else
-ifeq ($(shell aCC -V >/dev/null 2>&1 && echo $$?),0)
-CONFIG      = hpux_acc.config
-else
-ifeq ($(shell xlC -qversion >/dev/null 2>&1 && echo $$?),0)
-CONFIG      = aix_xlc.config
-endif
-endif
-endif
-endif
-
 # file to write log of the build to
 LOGFILE = /dev/null
 
 # convert a relative pathname to an absolute one
 ifneq ($(shell echo $(LOGFILE) | sed -n "s/^ *\/.*/\//p"),/)
-LOGFILE    := $(buildpath)/$(LOGFILE)
+  LOGFILE := $(buildpath)/$(LOGFILE)
 endif
 
-# shared and static library suffix defaults (can be overridden in config file)
-SHARED_SUFFIX = .so
-STATIC_SUFFIX = .a
-
-# When BUILDTYPE is set, then decode its value
-ifeq ($(BUILDTYPE),8s)
-  bmode = optimized
-endif   # ifeq ($(BUILDTYPE),8s)
-
-ifeq ($(BUILDTYPE),8S)
-  bmode = optimized,wide
-endif   # ifeq ($(BUILDTYPE),8s)
-
-ifeq ($(BUILDTYPE),8d)
-  bmode = shared,optimized
-endif   # ifeq ($(BUILDTYPE),8d)
-
-ifeq ($(BUILDTYPE),8D)
-  bmode = shared,optimized,wide
-endif   # ifeq ($(BUILDTYPE),8d)
-
-ifeq ($(BUILDTYPE),11s)
-  bmode = debug
-endif   # ifeq ($(BUILDTYPE),11s)
-
-ifeq ($(BUILDTYPE),11S)
-  bmode = debug,wide
-endif   # ifeq ($(BUILDTYPE),11s)
-
-# 11d - single-thread, debug, shared
-ifeq ($(BUILDTYPE),11d)
-  bmode = debug,shared
-endif   # ifeq ($(BUILDTYPE),11d)
-
-ifeq ($(BUILDTYPE),11D)
-  bmode = debug,shared,wide
-endif   # ifeq ($(BUILDTYPE),11d)
-
-# 12s - multi-thread, optimized, static
-ifeq ($(BUILDTYPE),12s)
-  bmode = pthreads,optimized
-endif   # ifeq ($(BUILDTYPE),12s)
-
-ifeq ($(BUILDTYPE),12S)
-  bmode = pthreads,optimized,wide
-endif   # ifeq ($(BUILDTYPE),12s)
-
-# 12d - multi-thread, optimized, shared
-ifeq ($(BUILDTYPE),12d)
-  bmode = pthreads,shared,optimized
-endif   # ifeq ($(BUILDTYPE),12d)
-
-ifeq ($(BUILDTYPE),12D)
-  bmode = pthreads,shared,optimized,wide
-endif   # ifeq ($(BUILDTYPE),12d)
-
-# 15s - multi-thread, debug, static
-ifeq ($(BUILDTYPE),15s)
-  bmode = debug,pthreads
-endif   # ifeq ($(BUILDTYPE),15s)
-
-ifeq ($(BUILDTYPE),15S)
-  bmode = debug,pthreads,wide
-endif   # ifeq ($(BUILDTYPE),15s)
-
-# 15d - multi-thread, debug, shared
-ifeq ($(BUILDTYPE),15d)
-  bmode = debug,pthreads,shared
-endif   # ifeq ($(BUILDTYPE),15d)
-
-ifeq ($(BUILDTYPE),15D)
-  bmode = debug,pthreads,shared,wide
-endif   # ifeq ($(BUILDTYPE),15d)
 
 ifeq ($(TOPDIR),)
+  # this is the first invocation of make in TOPDIR
+  in_topdir = 1
+else
+  ifeq ($(TOPDIR),$(CURDIR))
+    # this is a recursive invocation of make in TOPDIR
+    in_topdir = 1
+  endif
+endif
+
+
+ifeq ($(in_topdir),1)
+
+  ############################################################################
+  # THIS BLOCK IS EVALUATED ONLY WHEN MAKE IS INVOKED IN TOPDIR
+  ############################################################################
+
+  # try to determine configuration (unless specified on the command line)
+  ifeq ($(CONFIG),)
+    ifeq ($(shell g++ -v >/dev/null 2>&1 && echo $$?),0)
+      # use gcc on every OS by default
+      CONFIG = gcc.config
+    else
+      ifeq ($(OSNAME),AIX)
+        # check for VisualAge on AIX
+        ifeq ($(shell xlC -qversion >/dev/null 2>&1 && echo $$?),0)
+          CONFIG = vacpp.config
+        endif
+      else
+        ifeq ($(OSNAME),HP-UX)
+          # check for aCC on HP-UX
+          ifeq ($(shell aCC -V >/dev/null 2>&1 && echo $$?),0)
+            CONFIG = acc.config
+          endif
+        else
+          ifeq ($(OSNAME),IRIX64)
+            # check for MIPSpro on IRIX
+            ifeq ($(shell CC -v >/dev/null 2>&1 && echo $$?),0)
+              CONFIG = mipspro.config
+            endif
+          else
+            ifeq ($(OSNAME),OSF1)
+              # check for Compaq C++ on Tru64 UNIX
+              ifeq ($(shell cxx -V >/dev/null 2>&1; echo $$?),0)
+                CONFIG = osf_cxx.config
+              endif
+            else
+              ifeq ($(OSNAME),SunOS)
+                # check for SunPro on Solaris
+                ifeq ($(shell CC -V >/dev/null 2>&1 && echo $$?),0)
+                  CONFIG = sunpro.config
+                endif
+              endif   # SunOS
+            endif   # OSF1
+          endif   # IRIX64
+        endif   # HP-UX
+      endif   # AIX
+    endif   # gcc
+
+    $(warning "CONFIG not specified, using $(CONFIG)")
+
+  endif   # ifeq ($(CONFIG),)
+
+  ifeq ($(CONFIG),)
+    $(error "CONFIG not defined")
+  endif
+
+  # decode the BUILDTYPE value and set BUILDMODE correspondingly
+  ifeq ($(BUILDTYPE),8s)
+    bmode = optimized
+  endif   # ifeq ($(BUILDTYPE),8s)
+
+  ifeq ($(BUILDTYPE),8S)
+    bmode = optimized,wide
+  endif   # ifeq ($(BUILDTYPE),8s)
+
+  ifeq ($(BUILDTYPE),8d)
+    bmode = shared,optimized
+  endif   # ifeq ($(BUILDTYPE),8d)
+
+  ifeq ($(BUILDTYPE),8D)
+    bmode = shared,optimized,wide
+  endif   # ifeq ($(BUILDTYPE),8d)
+
+  ifeq ($(BUILDTYPE),11s)
+    bmode = debug
+  endif   # ifeq ($(BUILDTYPE),11s)
+
+  ifeq ($(BUILDTYPE),11S)
+    bmode = debug,wide
+  endif   # ifeq ($(BUILDTYPE),11s)
+
+  # 11d - single-thread, debug, shared
+  ifeq ($(BUILDTYPE),11d)
+    bmode = debug,shared
+  endif   # ifeq ($(BUILDTYPE),11d)
+
+  ifeq ($(BUILDTYPE),11D)
+    bmode = debug,shared,wide
+  endif   # ifeq ($(BUILDTYPE),11d)
+
+  # 12s - multi-thread, optimized, static
+  ifeq ($(BUILDTYPE),12s)
+    bmode = pthreads,optimized
+  endif   # ifeq ($(BUILDTYPE),12s)
+
+  ifeq ($(BUILDTYPE),12S)
+    bmode = pthreads,optimized,wide
+  endif   # ifeq ($(BUILDTYPE),12s)
+
+  # 12d - multi-thread, optimized, shared
+  ifeq ($(BUILDTYPE),12d)
+    bmode = pthreads,shared,optimized
+  endif   # ifeq ($(BUILDTYPE),12d)
+
+  ifeq ($(BUILDTYPE),12D)
+    bmode = pthreads,shared,optimized,wide
+  endif   # ifeq ($(BUILDTYPE),12d)
+
+  # 15s - multi-thread, debug, static
+  ifeq ($(BUILDTYPE),15s)
+    bmode = debug,pthreads
+  endif   # ifeq ($(BUILDTYPE),15s)
+
+  ifeq ($(BUILDTYPE),15S)
+    bmode = debug,pthreads,wide
+  endif   # ifeq ($(BUILDTYPE),15s)
+
+  # 15d - multi-thread, debug, shared
+  ifeq ($(BUILDTYPE),15d)
+    bmode = debug,pthreads,shared
+  endif   # ifeq ($(BUILDTYPE),15d)
+
+  ifeq ($(BUILDTYPE),15D)
+    bmode = debug,pthreads,shared,wide
+  endif   # ifeq ($(BUILDTYPE),15d)
+
   ifneq ($(BUILDTYPE),)
     ifneq ($(BUILDMODE),)
       $(error "at most one of BUILDMODE and BUILDTYPE may be defined")
@@ -292,235 +356,229 @@ ifeq ($(TOPDIR),)
       BUILDMODE=$(bmode)
     endif
   endif
-endif
 
+  TOPDIR = $(CURDIR)
 
-# include the configure file if make is being invoked
-# in the source directory; after makefile.in is created
-# the configure file will not be included because TOPDIR
-# will be defined in makefile.in
-ifeq ($(TOPDIR),)
-  TOPDIR     = $(CURDIR)
-  configpath = etc/config/$(CONFIG)
-  configfile = $(TOPDIR)/$(configpath)
-  include $(configfile)
-endif # TOPDIR
-
-ETCDIR      = $(TOPDIR)/etc/config
-
-##############################################################################
-# THE FOLLOWING SECTION IS ONLY INCLUDED IF MAKE IS BEING EXECUTED
-# IN THE SOURCE DIRECTORY (AS OPPOSED TO THE BUILD DIRECTORY)
-##############################################################################
-
-
-ifeq ($(CURDIR),$(TOPDIR))
-
-ifeq ($(findstring debug,$(BUILDMODE)),debug)
-  ifeq ($(findstring optimized,$(BUILDMODE)),optimized)
-    $(error "cannot have both debug and optimized options")
-  endif
-endif
-
-# unless $(LD) is set, use the same command to link as to compile
-ifeq ($(LD),ld)
-LD = $(CXX)
-endif
-
-# debug/optimized
-ifeq ($(findstring debug,$(BUILDMODE)),debug)
-  CXXFLAGS  += $(DEBUG_CXXFLAGS)
-  CPPFLAGS  += -D_RWSTDDEBUG $(DEBUG_CPPFLAGS)
-else
-  # TODO - check the number, check if the compiler supports it
-  ifeq ($(findstring optimized,$(BUILDMODE)),optimized)
-    CXXFLAGS  += $(OPTMZ_CXXFLAGS)
-    CPPFLAGS  += $(OPTMZ_CPPFLAGS)
-  endif
-endif
-
-## shared/archive
-ifeq ($(findstring shared,$(BUILDMODE)),shared)
-  CXXFLAGS  += $(SHARED_CXXFLAGS)
-  CPPFLAGS  += $(SHARED_CPPFLAGS)
-  LDFLAGS   += $(SHARED_LDFLAGS)
-  LIBSUFFIX  = $(SHARED_SUFFIX)
-else
-  CXXFLAGS  += $(STATIC_CXXFLAGS)
-  CPPFLAGS  += $(STATIC_CPPFLAGS)
-  LDFLAGS   += $(STATIC_LDFLAGS)
-  LIBSUFFIX  = $(STATIC_SUFFIX)
-
-  # not applicable to non-shared builds
-  PICFLAGS   =
-  LDSOFLAGS  =
-endif
-
-## POSIX, Ssolaris, DCE threads
-ifeq ($(findstring pthreads,$(BUILDMODE)),pthreads)
-  CPPFLAGS  += $(MULTI_CPPFLAGS_POSIX)
-  LDFLAGS   += $(MULTI_LDFLAGS_POSIX)
-else
-  ifeq ($(findstring dcethreads,$(BUILDMODE)),dcethreads)
-    ifneq ($(OSNAME),OSF1)
-      $(error "DCE threads not suported on this platform")
+  ifeq ($(filter /%,$(CONFIG)),)
+    ifeq ($(filter %/%,$(CONFIG)),)
+      configpath = $(TOPDIR)/etc/config/$(CONFIG)
+    else
+      configpath = $(TOPDIR)/$(CONFIG)
     endif
-
-    CPPFLAGS  += $(MULTI_CPPFLAGS_DCE)
-    LDFLAGS   += $(MULTI_LDFLAGS_DCE)
   else
-    ifeq ($(findstring threads,$(BUILDMODE)),threads)
-      ifneq ($(OSNAME),SunOS)
-        $(error "Solaris threads not suported on this platform")
+    configpath = $(CONFIG)
+  endif
+
+  include $(configpath)
+
+  ETCDIR = $(TOPDIR)/etc/config
+
+  ifeq ($(findstring debug,$(BUILDMODE)),debug)
+    ifeq ($(findstring optimized,$(BUILDMODE)),optimized)
+      $(error "cannot have both debug and optimized options")
+    endif
+  endif
+
+  # unless $(LD) is set, use the same command to link as to compile
+  ifeq ($(LD),ld)
+    LD = $(CXX)
+  endif
+
+  # debug/optimized
+  ifeq ($(findstring debug,$(BUILDMODE)),debug)
+    CXXFLAGS += $(DEBUG_CXXFLAGS)
+    CPPFLAGS += -D_RWSTDDEBUG $(DEBUG_CPPFLAGS)
+  else
+    # TODO - check the number, check if the compiler supports it
+    ifeq ($(findstring optimized,$(BUILDMODE)),optimized)
+      CXXFLAGS  += $(OPTMZ_CXXFLAGS)
+      CPPFLAGS  += $(OPTMZ_CPPFLAGS)
+    endif
+  endif
+
+  # shared and static library suffix defaults
+  # (may be overridden in config file)
+  SHARED_SUFFIX = .so
+  STATIC_SUFFIX = .a
+
+  # shared/archive
+  ifeq ($(findstring shared,$(BUILDMODE)),shared)
+    CXXFLAGS  += $(SHARED_CXXFLAGS)
+    CPPFLAGS  += $(SHARED_CPPFLAGS)
+    LDFLAGS   += $(SHARED_LDFLAGS)
+    LIBSUFFIX  = $(SHARED_SUFFIX)
+  else
+    CXXFLAGS  += $(STATIC_CXXFLAGS)
+    CPPFLAGS  += $(STATIC_CPPFLAGS)
+    LDFLAGS   += $(STATIC_LDFLAGS)
+    LIBSUFFIX  = $(STATIC_SUFFIX)
+
+    # not applicable to non-shared builds
+    PICFLAGS   =
+    LDSOFLAGS  =
+  endif
+
+  # POSIX, Solaris, DCE threads
+  ifeq ($(findstring pthreads,$(BUILDMODE)),pthreads)
+    CPPFLAGS += $(MULTI_CPPFLAGS_POSIX)
+    LDFLAGS  += $(MULTI_LDFLAGS_POSIX)
+  else
+    ifeq ($(findstring dcethreads,$(BUILDMODE)),dcethreads)
+      ifneq ($(OSNAME),OSF1)
+        $(error "DCE threads not suported on this platform")
       endif
 
-      CPPFLAGS  +=  $(MULTI_CPPFLAGS_SOLARIS)
-      LDFLAGS   +=  $(MULTI_LDFLAGS_SOLARIS)
+      CPPFLAGS += $(MULTI_CPPFLAGS_DCE)
+      LDFLAGS  += $(MULTI_LDFLAGS_DCE)
     else
-      CPPFLAGS  += $(SINGL_CPPFLAGS)
-      LDFLAGS   += $(SINGL_LDFLAGS)
+      ifeq ($(findstring threads,$(BUILDMODE)),threads)
+        ifneq ($(OSNAME),SunOS)
+          $(error "Solaris threads not suported on this platform")
+        endif
+
+        CPPFLAGS +=  $(MULTI_CPPFLAGS_SOLARIS)
+        LDFLAGS  +=  $(MULTI_LDFLAGS_SOLARIS)
+      else
+        CPPFLAGS += $(SINGL_CPPFLAGS)
+        LDFLAGS   += $(SINGL_LDFLAGS)
+      endif
     endif
   endif
-endif
 
-# wide (typically 64-bit) mode
-ifeq ($(findstring wide,$(BUILDMODE)),wide)
-  CXXFLAGS    += $(WIDE_CXXFLAGS)
-  LDFLAGS     += $(WIDE_LDFLAGS)
-  LDSOFLAGS   += $(WIDE_LDSOFLAGS)
-  ARFLAGS     += $(WIDE_ARFLAGS)
-endif
+  # wide (typically 64-bit) mode
+  ifeq ($(findstring wide,$(BUILDMODE)),wide)
+    CXXFLAGS  += $(WIDE_CXXFLAGS)
+    LDFLAGS   += $(WIDE_LDFLAGS)
+    LDSOFLAGS += $(WIDE_LDSOFLAGS)
+    ARFLAGS   += $(WIDE_ARFLAGS)
+  endif
 
-# platform is determined as {OS-name}-{OS-version}-{hardware}
-PLATFORM   = $(shell uname -srm | sed "s/[ \/]/-/g")
+  # platform is determined as {OS-name}-{OS-version}-{hardware}
+  PLATFORM = $(shell uname -srm | sed "s/[ \/]/-/g")
 
-ifeq ($(OSNAME),SunOS)
-  # Sun recommends to use uname -p rather than the POSIX uname -m
-  PLATFORM  := $(shell uname -srp | sed "s/[ \/]/-/g")
-else
-  ifeq ($(OSNAME),AIX)
-    PLATFORM  := $(shell uname -srv | awk '{ print $$1 "-" $$3 "." $$2 }')
+  ifeq ($(OSNAME),SunOS)
+    # Sun recommends to use uname -p rather than the POSIX uname -m
+    PLATFORM := $(shell uname -srp | sed "s/[ \/]/-/g")
   else
-    ifeq ($(findstring CYGWIN,$(OSNAME)),CYGWIN)
+    ifeq ($(OSNAME),AIX)
+      PLATFORM := $(shell uname -srv | awk '{ print $$1 "-" $$3 "." $$2 }')
+    else
+      ifeq ($(findstring CYGWIN,$(OSNAME)),CYGWIN)
         PLATFORM := $(shell uname -sm | sed "s/[ \/]/-/g")
+      endif
     endif
   endif
-endif
 
-# harmonize all the different Intel IA32 chips
-PLATFORM  := $(subst i486,i86,$(PLATFORM))
-PLATFORM  := $(subst i586,i86,$(PLATFORM))
-PLATFORM  := $(subst i686,i86,$(PLATFORM))
+  # harmonize all the different Intel IA32 chips
+  PLATFORM := $(subst i486,i86,$(PLATFORM))
+  PLATFORM := $(subst i586,i86,$(PLATFORM))
+  PLATFORM := $(subst i686,i86,$(PLATFORM))
+  PLATFORM := $(shell echo $(PLATFORM) | tr "[:upper:]" "[:lower:]")
 
-REPORTFILE = $(CXX)-$(CCVER)-$(PLATFORM)-$(BUILDTYPE)
+  REPORTFILE = $(CXX)-$(CCVER)-$(PLATFORM)-$(BUILDTYPE)
 
-# name of the library w/o the prefix and suffix
-# suitable for use by the linker after the -l option
-LIBBASE     = std$(BUILDTYPE)
+  # name of the library w/o the prefix and suffix
+  # suitable for use by the linker after the -l option
+  LIBBASE = std$(BUILDTYPE)
 
-# full library filename (including suffix)
-LIBNAME     = lib$(LIBBASE)$(LIBSUFFIX)
+  # full library filename (including suffix)
+  LIBNAME = lib$(LIBBASE)$(LIBSUFFIX)
 
-# add to enable config.h (alternate config mechanism)
-CPPFLAGS += -D_RWSTD_USE_CONFIG
+  # add to enable config.h (alternate config mechanism)
+  CPPFLAGS += -D_RWSTD_USE_CONFIG
 
-endif  # ifeq ($(CURDIR),$(TOPDIR))
+  ifeq ($(DEPENDDIR),)
+    DEPENDDIR=.depend
+  endif
 
-##############################################################################
-# TARGETS
-##############################################################################
+  # obtain library version number from the macro _RWSTD_VER
+  # #defined in the rw/_config.h library header
+  LIBVER = $(shell awk '/^.define _RWSTD_VER / { major = substr ($$3, 3, 2); minor = substr ($$3, 5, 2); micro = substr ($$3, 7, 2); print (major + 0) "." (minor + 0) "." (micro + 0) }' $(TOPDIR)/include/rw/_config.h)
 
-ifeq ($(CURDIR),$(TOPDIR)) ###################################################
+### TARGETS ##################################################################
 
-# invoked from $(TOPDIR)
+all: libstd
 
-ifeq ($(DEPENDDIR),)
-  DEPENDDIR=.depend
-endif
+# make-builddir function: creates the build directory tree
+# defined as a single shell command to avoid executing each command
+# in a separate subshell
+define make-builddir
+    [ "$(buildpath)" = "" -o -x $(buildpath) ] && exit 0;                    \
+    echo "creating BUILDDIR=$(buildpath)";                                   \
+    mkdir -p $(MAKEDIRS);                                                    \
+    [ $$? -ne 0 ] && {                                                       \
+        echo "unable to create build directory";                             \
+        exit 1;                                                              \
+    };                                                                       \
+    ln -sf $(TOPDIR)/GNUmakefile         $(buildpath);                       \
+    ln -sf $(ETCDIR)/GNUmakefile.cfg     $(buildpath)/include/GNUmakefile;   \
+    ln -sf $(ETCDIR)/GNUmakefile.lib     $(LIBDIR)/GNUmakefile;              \
+    ln -sf $(ETCDIR)/GNUmakefile.rwt     $(buildpath)/rwtest/GNUmakefile;    \
+    ln -sf $(ETCDIR)/GNUmakefile.exm     $(EXMDIR)/GNUmakefile;              \
+    ln -sf $(ETCDIR)/GNUmakefile.tst     $(TSTDIR)/GNUmakefile;              \
+    ln -sf $(ETCDIR)/GNUmakefile.ph      $(PHTSTDIR)/GNUmakefile;            \
+    ln -sf $(ETCDIR)/GNUmakefile.bin     $(buildpath)/bin/GNUmakefile;       \
+    ln -sf $(ETCDIR)/makefile.common     $(buildpath);                       \
+    ln -sf $(ETCDIR)/makefile.rules      $(buildpath);                       \
+    ln -sf $(ETCDIR)/configure.sh        $(buildpath)/include/configure;     \
+    ln -sf $(ETCDIR)/runall.sh           $(buildpath)/run;                   \
+    ln -sf $(ETCDIR)/runall.sh           $(buildpath)/bin/run;               \
+    ln -sf $(ETCDIR)/run_locale_utils.sh                                     \
+           $(buildpath)/bin/run_locale_utils.sh;                             \
+    ln -sf $(ETCDIR)/runall.sh           $(TSTDIR)/run;                      \
+    ln -sf $(ETCDIR)/runall.sh           $(PHTSTDIR)/run;                    \
+    ln -sf $(ETCDIR)/runall.sh           $(EXMDIR)/run
+endef   # make-builddir
 
-# obtain library version number from the macro _RWSTD_VER
-# #defined in the rw/_config.h library header
-LIBVER     = $(shell awk '/^.define _RWSTD_VER / { major = substr ($$3, 3, 2); minor = substr ($$3, 5, 2); micro = substr ($$3, 7, 2); print (major + 0) "." (minor + 0) "." (micro + 0) }' $(TOPDIR)/include/rw/_config.h)
 
-# invoked from $(TOPDIR)...
-
-all: builddir config libstd 
-
-# create $(buildpath) and $(MAKEFILE_IN)
-$(MAKEFILE_IN): $(configfile)
-	@(echo "creating BUILDDIR=$(buildpath)";                            \
-          mkdir -p $(MAKEDIRS) || {                                         \
-              echo "unable to create build directory";                      \
-              exit 1;                                                       \
-          };                                                                \
-         echo "generating $(MAKEFILE_IN) from $(configfile)"                \
-      && echo "TOPDIR     = $(TOPDIR)"                   >> $(MAKEFILE_IN)  \
-      && echo "BUILDDIR   = $(buildpath)"                >> $(MAKEFILE_IN)  \
-      && echo "CONFIG     = $$""(TOPDIR)""/$(configpath)"                   \
+# create $(MAKEFILE_IN)
+$(MAKEFILE_IN): $(configpath)
+	@(   $(make-builddir);                                              \
+             echo "generating $(MAKEFILE_IN) from $(configpath)"            \
+          && echo "TOPDIR     = $(TOPDIR)"               >> $(MAKEFILE_IN)  \
+          && echo "BUILDDIR   = $(buildpath)"            >> $(MAKEFILE_IN)  \
+          && echo "CONFIG     = $(configpath)"           >> $(MAKEFILE_IN)  \
+          && echo "BUILDTYPE  = $(BUILDTYPE)"            >> $(MAKEFILE_IN)  \
+          && echo "BUILDMODE  = $(BUILDMODE)"            >> $(MAKEFILE_IN)  \
+          && echo "CXX        = $(CXX)"                  >> $(MAKEFILE_IN)  \
+          && echo "CXXFLAGS   = $(CXXFLAGS)"             >> $(MAKEFILE_IN)  \
+          && echo "PRELINKFLAGS = $(PRELINKFLAGS)"       >> $(MAKEFILE_IN)  \
+          && echo "PICFLAGS   = $(PICFLAGS)"             >> $(MAKEFILE_IN)  \
+          && echo "CPPFLAGS   = $(CPPFLAGS)"             >> $(MAKEFILE_IN)  \
+          && echo "WARNFLAGS  = $(WARNFLAGS)"            >> $(MAKEFILE_IN)  \
+          && echo "DEPENDFLAGS = $(DEPENDFLAGS)"         >> $(MAKEFILE_IN)  \
+          && echo "LD         = $(LD)"                   >> $(MAKEFILE_IN)  \
+          && echo "LDFLAGS    = $(LDFLAGS)"              >> $(MAKEFILE_IN)  \
+          && echo "LDLIBS     = $(LDLIBS)"               >> $(MAKEFILE_IN)  \
+          && echo "LDSOFLAGS  = $(LDSOFLAGS)"            >> $(MAKEFILE_IN)  \
+          && echo "MAPFILE    = $(MAPFILE)"              >> $(MAKEFILE_IN)  \
+          && echo "RUNFLAGS   = -t 180"                  >> $(MAKEFILE_IN)  \
+          && echo "LIBDIR     = $(LIBDIR)"               >> $(MAKEFILE_IN)  \
+          && echo "DEPENDDIR  = $(DEPENDDIR)"            >> $(MAKEFILE_IN)  \
+          && echo "PHDIR      = $(PHDIR)"                >> $(MAKEFILE_IN)  \
+          && echo "PHWARNFLAGS = $(PHWARNFLAGS)"         >> $(MAKEFILE_IN)  \
+          && echo "LIBSUFFIX  = $(LIBSUFFIX)"            >> $(MAKEFILE_IN)  \
+          && echo "LIBBASE    = $(LIBBASE)"              >> $(MAKEFILE_IN)  \
+          && echo "LIBVER     = $(LIBVER)"               >> $(MAKEFILE_IN)  \
+          && echo "LIBNAME    = lib$$""(LIBBASE)$$""(LIBSUFFIX)"            \
                                                          >> $(MAKEFILE_IN)  \
-      && echo "BUILDTYPE  = $(BUILDTYPE)"                >> $(MAKEFILE_IN)  \
-      && echo "BUILDMODE  = $(BUILDMODE)"                >> $(MAKEFILE_IN)  \
-      && echo "CXX        = $(CXX)"                      >> $(MAKEFILE_IN)  \
-      && echo "CXXFLAGS   = $(CXXFLAGS)"                 >> $(MAKEFILE_IN)  \
-      && echo "PRELINKFLAGS = $(PRELINKFLAGS)"           >> $(MAKEFILE_IN)  \
-      && echo "PICFLAGS   = $(PICFLAGS)"                 >> $(MAKEFILE_IN)  \
-      && echo "CPPFLAGS   = $(CPPFLAGS)"                 >> $(MAKEFILE_IN)  \
-      && echo "WARNFLAGS  = $(WARNFLAGS)"                >> $(MAKEFILE_IN)  \
-      && echo "DEPENDFLAGS = $(DEPENDFLAGS)"             >> $(MAKEFILE_IN)  \
-      && echo "LD         = $(LD)"                       >> $(MAKEFILE_IN)  \
-      && echo "LDFLAGS    = $(LDFLAGS)"                  >> $(MAKEFILE_IN)  \
-      && echo "LDLIBS     = $(LDLIBS)"                   >> $(MAKEFILE_IN)  \
-      && echo "LDSOFLAGS  = $(LDSOFLAGS)"                >> $(MAKEFILE_IN)  \
-      && echo "MAPFILE    = $(MAPFILE)"                  >> $(MAKEFILE_IN)  \
-      && echo "RUNFLAGS   = -t 180"                      >> $(MAKEFILE_IN)  \
-      && echo "LIBDIR     = $(LIBDIR)"                   >> $(MAKEFILE_IN)  \
-      && echo "DEPENDDIR  = $(DEPENDDIR)"                >> $(MAKEFILE_IN)  \
-      && echo "PHDIR      = $(PHDIR)"                    >> $(MAKEFILE_IN)  \
-      && echo "PHWARNFLAGS = $(PHWARNFLAGS)"             >> $(MAKEFILE_IN)  \
-      && echo "LIBSUFFIX  = $(LIBSUFFIX)"                >> $(MAKEFILE_IN)  \
-      && echo "LIBBASE    = $(LIBBASE)"                  >> $(MAKEFILE_IN)  \
-      && echo "LIBVER     = $(LIBVER)"                   >> $(MAKEFILE_IN)  \
-      && echo "LIBNAME    = lib$$""(LIBBASE)$$""(LIBSUFFIX)"                \
+          && echo "AR         = $(AR)"                   >> $(MAKEFILE_IN)  \
+          && echo "ARFLAGS    = $(ARFLAGS)"              >> $(MAKEFILE_IN)  \
+          && echo "CCVER      = $(CCVER)"                >> $(MAKEFILE_IN)  \
+          && echo "SHARED     = $(SHARED)"               >> $(MAKEFILE_IN)  \
+          && echo "CATFILE    = $(CATFILE)"              >> $(MAKEFILE_IN)  \
+          && echo "OMIT_EXM_SRCS = $(OMIT_EXM_SRCS)"     >> $(MAKEFILE_IN)  \
+          && echo "OMIT_TST_SRCS = $(OMIT_TST_SRCS)"     >> $(MAKEFILE_IN)  \
+          && echo "BUILDTAG   = $(BUILDTAG)"             >> $(MAKEFILE_IN)  \
+          && echo "PLATFORM   = $(PLATFORM)"             >> $(MAKEFILE_IN)  \
+          && echo "REPORTFILE = $(REPORTFILE)$$""(BUILDTAG)"                \
                                                          >> $(MAKEFILE_IN)  \
-      && echo "AR         = $(AR)"                       >> $(MAKEFILE_IN)  \
-      && echo "ARFLAGS    = $(ARFLAGS)"                  >> $(MAKEFILE_IN)  \
-      && echo "CCVER      = $(CCVER)"                    >> $(MAKEFILE_IN)  \
-      && echo "SHARED     = $(SHARED)"                   >> $(MAKEFILE_IN)  \
-      && echo "CATFILE    = $(CATFILE)"                  >> $(MAKEFILE_IN)  \
-      && echo "OMIT_EXM_SRCS = $(OMIT_EXM_SRCS)"         >> $(MAKEFILE_IN)  \
-      && echo "OMIT_TST_SRCS = $(OMIT_TST_SRCS)"         >> $(MAKEFILE_IN)  \
-      && echo "BUILDTAG   = $(BUILDTAG)"                 >> $(MAKEFILE_IN)  \
-      && echo "PLATFORM   = $(PLATFORM)"                 >> $(MAKEFILE_IN)  \
-      && echo "REPORTFILE = $(REPORTFILE)$$""(BUILDTAG)" >> $(MAKEFILE_IN)  \
-      && echo "DEFAULT_SHROBJ = $(DEFAULT_SHROBJ)"       >> $(MAKEFILE_IN)  \
-      && echo "CXX_REPOSITORY = $(CXX_REPOSITORY)"	 >> $(MAKEFILE_IN));
+          && echo "DEFAULT_SHROBJ = $(DEFAULT_SHROBJ)"   >> $(MAKEFILE_IN)  \
+          && echo "CXX_REPOSITORY = $(CXX_REPOSITORY)"	 >> $(MAKEFILE_IN));
 
-# link makefiles and scripts
+# creates the build directory tree and generates makefile.in
 builddir: $(MAKEFILE_IN)
-	@(ln -sf $(TOPDIR)/GNUmakefile     $(buildpath);                     \
-      ln -sf $(ETCDIR)/GNUmakefile.cfg     $(buildpath)/include/GNUmakefile; \
-      ln -sf $(ETCDIR)/GNUmakefile.lib     $(LIBDIR)/GNUmakefile;            \
-      ln -sf $(ETCDIR)/GNUmakefile.rwt     $(buildpath)/rwtest/GNUmakefile;  \
-      ln -sf $(ETCDIR)/GNUmakefile.exm     $(EXMDIR)/GNUmakefile;            \
-      ln -sf $(ETCDIR)/GNUmakefile.tst     $(TSTDIR)/GNUmakefile;            \
-      ln -sf $(ETCDIR)/GNUmakefile.ph      $(PHTSTDIR)/GNUmakefile;          \
-      ln -sf $(ETCDIR)/GNUmakefile.bin     $(buildpath)/bin/GNUmakefile;     \
-      ln -sf $(ETCDIR)/makefile.common     $(buildpath);                     \
-      ln -sf $(ETCDIR)/makefile.rules      $(buildpath);                     \
-      ln -sf $(ETCDIR)/configure.sh        $(buildpath)/include/configure;   \
-      ln -sf $(ETCDIR)/runall.sh           $(buildpath)/run;                 \
-      ln -sf $(ETCDIR)/runall.sh           $(buildpath)/bin/run;             \
-      ln -sf $(ETCDIR)/run_locale_utils.sh                                   \
-             $(buildpath)/bin/run_locale_utils.sh;                           \
-      ln -sf $(ETCDIR)/runall.sh           $(TSTDIR)/run;                    \
-      ln -sf $(ETCDIR)/runall.sh           $(PHTSTDIR)/run;                  \
-      ln -sf $(ETCDIR)/runall.sh           $(EXMDIR)/run)
-
-
-# cd from TOPDIR to BUILDDIR and post from there
-post:
-	$(MAKE) builddir
-	$(MAKE) -C$(buildpath) $@
+	@echo "build directory created: BUILDDIR=$(BUILDDIR)"
 
 
 # prevent trying to make makefile.in when $(BUILDDIR) is
@@ -529,12 +587,15 @@ makefile.in:
 
 
 .DEFAULT:
-	$(MAKE) -C$(buildpath) BUILDDIR=$(buildpath)
+	@$(MAKE) -C$(buildpath) $(MAKEFLAGS) $(MAKECMDGOALS) \
+                 BUILDDIR=$(buildpath)
 
 
-else   # ifneq ($(CURDIR),$(TOPDIR)) #########################################
+else   # ifneq ($(in_topdir),1) ##############################################
 
-# invoked from $(BUILDDIR)...
+  ############################################################################
+  # THIS BLOCK IS EVALUATED ONLY WHEN MAKE IS INVOKED IN BUILDDIR
+  ############################################################################
 
 all: config libstd util rwtestlib tst exm $(PHDTSTDIR)
 
@@ -542,26 +603,25 @@ all: config libstd util rwtestlib tst exm $(PHDTSTDIR)
 config:
 	@$(MAKE) -C$(BUILDDIR)/include
 
-# build utilities, ignore errors
+# build utilities
 util:
 	@$(MAKE) -C$(BUILDDIR)/bin
 
-# build library, errors are fatal
+# build library
 libstd:
 	@$(MAKE) -C$(LIBDIR)
 
-# build rw test library
+# build the test library
 rwtestlib:
 	@$(MAKE) -C$(BUILDDIR)/rwtest
 
 # build tests, ignore failures
-tst: libstd rwtestlib
+testsuite: libstd rwtestlib
 	-@$(MAKE) -C$(TSTDIR)
 
 # build plumhall tests, ignore failures
 phtst: libstd
 	-@$(MAKE) -C$(PHTSTDIR)
-
 
 # make examples, ignore failures
 exm: libstd
