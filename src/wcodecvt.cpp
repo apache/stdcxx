@@ -2,7 +2,7 @@
  *
  * wcodecvt.cpp - definition of codecvt<wchar_t, char, mbstate_t> members
  *
- * $Id: //stdlib/dev/source/stdlib/wcodecvt.cpp#23 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -832,12 +832,27 @@ __rw_libstd_do_out (const wchar_t             *from,
         }
 
         if (flags & __rw_strict) {
+
             // in strict mode check wide character for validity
             // (i.e., diagnose surrogate pairs as illegal)
-            if (   wchar_t (0xd800) <= *from_next
-                && wchar_t (0xdfff) >= *from_next
-                || wchar_t (0xfffe) <= *from_next
-                && wchar_t (0xffff) >= *from_next) {
+
+#  if _RWSTD_WCHAR_T_SIZE == _RWSTD_CHAR_SIZE
+            typedef unsigned char WIntT;
+#  elif _RWSTD_WCHAR_T_SIZE == _RWSTD_SHRT_SIZE
+            typedef unsigned short WIntT;
+#  elif _RWSTD_WCHAR_T_SIZE ==_RWSTD_INT_SIZE
+            typedef unsigned int WIntT;
+#  elif _RWSTD_WCHAR_T_SIZE ==_RWSTD_LLONG_SIZE
+            typedef unsigned _RWSTD_LONG_LONG WIntT;
+#  else
+            typedef unsigned long WIntT;
+#  endif
+
+            // convert wchar_t to an unsigned integer safe for comaprison
+            const unsigned long wi = _RWSTD_STATIC_CAST (WIntT, *from_next);
+
+            if (   WIntT (0xd800U) <= wi && wi <= WIntT (0xdfffU)
+                || WIntT (0xfffeU) <= wi && wi <= WIntT (0xffffU)) {
                 res = _V3_LOCALE::codecvt_base::error;
                 break;
             }
