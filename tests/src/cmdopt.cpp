@@ -17,14 +17,17 @@
  * 
  **************************************************************************/
 
+// expand _TEST_EXPORT macros
+#define _RWSTD_TEST_SRC
+
 #include <cmdopt.h>
 
-#include <assert.h>
-#include <errno.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <assert.h>   // for assert
+#include <errno.h>    // for errno
+#include <stdarg.h>   // for va_arg, ...
+#include <stdio.h>    // for fprintf
+#include <stdlib.h>   // for atexit, free, malloc
+#include <string.h>   // for memcpy, strcpy, strcmp, ...
 
 #ifndef EINVAL
 #  define EINVAL   22   /* e.g., HP-UX, Linux, Solaris */
@@ -46,10 +49,9 @@ struct cmdopts_t
     size_t         maxcalls_;       // how many times option can be invoked
     size_t         ncalls_;         // how many times it has been invoked
 
-    bool           arg_ : 1;        // option takes an argument?
-    bool           inv_ : 1;        // callback invocation inverted
-    bool           envseen_ : 1;    // environment option already processed
-
+    unsigned       arg_ : 1;        // option takes an argument?
+    unsigned       inv_ : 1;        // callback invocation inverted
+    unsigned       envseen_ : 1;    // environment option already processed
 };
 
 
@@ -61,24 +63,6 @@ static size_t ndefopts;
 static cmdopts_t cmdoptbuf [32];
 static cmdopts_t *cmdopts = cmdoptbuf;
 static size_t optbufsize = sizeof cmdoptbuf / sizeof *cmdoptbuf;
-
-enum {
-    rw_bool, rw_char, rw_uchar, rw_schar, rw_ushrt, rw_shrt,
-    rw_uint, rw_int, rw_ulong, rw_long, rw_ullong, rw_llong,
-    rw_flt, rw_dbl, rw_ldbl, rw_wchar, rw_pvoid
-};
-
-static int rw_disabled_types = 0;
-static int rw_enabled_types  = 0;
-
-struct linerange_t {
-    int first;
-    int last;
-};
-
-static size_t nlineranges;
-static linerange_t *lineranges;
-static size_t rangebufsize;
 
 /**************************************************************************/
 
@@ -116,11 +100,14 @@ rw_print_help (int argc, char *argv[])
 
     for (size_t i = 0; i != ncmdopts; ++i) {
 
+        // get a pointer to the name of the long option, if any
+        const char* const lopt =
+            cmdopts [i].lopt_ ? cmdopts [i].lopt_ : cmdopts [i].loptbuf_;
+
         if (opthelp && *opthelp) {
 
             if (   cmdopts [i].sopt_ == opthelp [0] && '\0' == opthelp [1]
-                || cmdopts [i].lopt_
-                && 0 == strcmp (cmdopts [i].lopt_ + 1, opthelp)) {
+                || *lopt && 0 == strcmp (lopt + 1, opthelp)) {
 
                 // remember that we found the option whose (short
                 // or long) name we're to give help on; after printing
@@ -140,17 +127,17 @@ rw_print_help (int argc, char *argv[])
         if (cmdopts [i].sopt_) {
             printf ("-%c", cmdopts [i].sopt_);
 
-            if (cmdopts [i].lopt_)
+            if (lopt)
                 printf (" | ");
         }
 
         const char *pfx = "";
         const char *sfx = pfx;
 
-        if (cmdopts [i].lopt_) {
-            printf ("-%s", cmdopts [i].lopt_);
+        if (lopt) {
+            printf ("-%s", lopt);
             if (   cmdopts [i].arg_
-                && '=' != cmdopts [i].lopt_ [strlen (cmdopts [i].lopt_) - 1]) {
+                && '=' != lopt [strlen (lopt) - 1]) {
                 pfx = " [ ";
                 sfx = " ]";
             }
@@ -197,6 +184,7 @@ rw_print_help (int argc, char *argv[])
     return 0;
 }
 
+/**************************************************************************/
 
 static int
 rw_set_ignenv (int argc, char *argv[])
@@ -222,278 +210,64 @@ rw_set_ignenv (int argc, char *argv[])
     return 0;
 }
 
-static int rw_enable_type (int bit, bool enable)
+extern "C" {
+
+static void
+rw_clear_opts ()
 {
-    const int set_mask = 1 << bit;
+    // reset all options, deallocating dynamically allocated storage
 
-    if (enable)
-        rw_enabled_types |= set_mask;
-    else
-        rw_disabled_types |= set_mask;
+    for (size_t i = 0; i != ncmdopts; ++i) {
 
-    return 0;
+        // free any storage allocated for the option name
+        free (cmdopts [i].lopt_);
+    }
+
+    if (cmdopts != cmdoptbuf) {
+        // free the storage allocated for all the options
+        free (cmdopts);
+    }
+
+    // reset the options pointer to point at the statically
+    // allocated buffer and the count back to 0
+    ncmdopts   = 0;
+    cmdopts    = cmdoptbuf;
+    optbufsize = sizeof cmdoptbuf / sizeof *cmdoptbuf;
 }
 
-#define DEFINE_HANDLERS(T)                               \
-        static int rw_no_ ## T (int, char *[]) {         \
-            return rw_enable_type (rw_ ## T, false);     \
-        }                                                \
-        static int rw_en_ ## T (int, char *[]) {         \
-            return rw_enable_type (rw_ ## T, true);      \
-        }                                                \
-        typedef void unused_type /* allow a semicolon */
-
-
-DEFINE_HANDLERS (bool);
-DEFINE_HANDLERS (char);
-DEFINE_HANDLERS (schar);
-DEFINE_HANDLERS (uchar);
-DEFINE_HANDLERS (shrt);
-DEFINE_HANDLERS (ushrt);
-DEFINE_HANDLERS (int);
-DEFINE_HANDLERS (uint);
-DEFINE_HANDLERS (long);
-DEFINE_HANDLERS (ulong);
-DEFINE_HANDLERS (llong);
-DEFINE_HANDLERS (ullong);
-DEFINE_HANDLERS (flt);
-DEFINE_HANDLERS (dbl);
-DEFINE_HANDLERS (ldbl);
-DEFINE_HANDLERS (wchar);
-DEFINE_HANDLERS (pvoid);
-
-static int
-rw_enable_lines (int first, int last, bool enable)
-{
-    if (nlineranges == rangebufsize) {
-        const size_t newbufsize = 2 * nlineranges + 1;
-            
-        linerange_t* const newranges =
-            (linerange_t*)malloc (newbufsize * sizeof (linerange_t));
-
-        if (0 == newranges) {
-            abort ();
-        }
-
-        memcpy (newranges, lineranges, nlineranges * sizeof (linerange_t));
-
-        free (lineranges);
-
-        lineranges   = newranges;
-        rangebufsize = newbufsize;
-    }
-
-    if (enable) {
-        lineranges [nlineranges].first = first;
-        lineranges [nlineranges].last  = last;
-    }
-    else {
-        lineranges [nlineranges].first = -first;
-        lineranges [nlineranges].last  = -last;
-    }
-
-    ++nlineranges;
-
-    return 0;
 }
 
-
-static int
-rw_enable_line (int argc, char *argv[], bool enable)
+static void
+rw_set_myopts ()
 {
-    if (1 == argc && argv && 0 == argv [0]) {
+    static int cleanup_handler_registered;
 
-        static const char helpstr[] = {
-            "Enables or disables the lines specified by <arg>.\n"
-            "The syntax of <arg> is as follows: \n"
-            "<arg>   ::= <range> [ , <range> ]\n"
-            "<range> ::= [ - ] <number> | <number> - [ <number> ]\n"
-        };
-
-        argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
-
-        return 0;
+    if (0 == cleanup_handler_registered) {
+        atexit (rw_clear_opts);
+        cleanup_handler_registered = 1;
     }
 
-    char *parg = strchr (argv [0], '=');
-    assert (0 != parg);
-
-    const char* const argbeg = ++parg;
-
-    // the lower bound of a range of lines to be enabled or disabled
-    // negative values are not valid and denote an implicit lower bound
-    // of 1 (such as in "-3" which is a shorthand for "1-3")
-    long first = -1;
-
-    for ( ; '\0' != *parg ; ) {
-
-        printf ("%s (%ld)\n", parg, first);
-
-        // skip any leading whitespace
-        for ( ; ' ' == *parg; ++parg);
-
-        if ('-' == *parg) {
-            if (first < 0) {
-                first = 0;
-                ++parg;
-            }
-            else {
-                fprintf (stderr,
-                         "invalid character '%c' at position %d: \"%s\"\n",
-                         *parg, int (parg - argbeg), argv [0]);
-                return 2;
-            }
-        }
-
-        // parse a numeric argument
-        char *end;
-        long line = strtol (parg, &end, 0);
-
-        // skip any trailing whitespace
-        for ( ; ' ' == *end; ++end);
-
-        if (end == parg || '-' != *end && ',' != *end && '\0' != *end) {
-            fprintf (stderr,
-                     "invalid character '%c' at position %d: \"%s\"\n",
-                     *end, int (parg - argbeg), argv [0]);
-            return 2;
-        }
-
-        if (0 <= first) {
-            if (line < 0) {
-                fprintf (stderr,
-                         "invalid value %ld at position %d: \"%s\"\n",
-                         line, int (parg - argbeg), argv [0]);
-                return 2;
-            }
-
-            ++line;
-
-            if ((',' == *end || '-' == *end) && end [1])
-                ++end;
-        }
-        else if (',' == *end) {
-            first = line++;
-            if ('\0' == end [1]) {
-                fprintf (stderr,
-                         "invalid character '%c' at position %d: \"%s\"\n",
-                         *end, int (parg - argbeg), argv [0]);
-                return 2;
-            }
-
-            ++end;
-        }
-        else if ('-' == *end) {
-            first = line;
-            while (' ' == *++end);
-            if ('\0' == *end) {
-                line = _RWSTD_INT_MAX;
-            }
-            else if  (',' == *end) {
-                line = _RWSTD_INT_MAX;
-                ++end;
-            }
-            else
-                line = -1;
-        }
-        else if ('\0' == *end) {
-            first = line++;
-        }
-        else {
-            fprintf (stderr,
-                     "invalid character '%c' at position %d: \"%s\"\n",
-                     *end, int (parg - argbeg), argv [0]);
-            return 2;
-        }
-
-        parg = end;
-
-        if (0 <= first && first < line) {
-            printf ("  [%ld, %ld)\n", first, line);
-            rw_enable_lines (first, line, enable);
-            first = -1;
-        }
-    }
-
-    for (size_t i = 0; i != nlineranges; ++i) {
-        printf ("[%d, %d)\n", lineranges [i].first, lineranges [i].last);
-    }
-
-    return 0;
-}
-
-static int rw_en_line (int argc, char *argv[])
-{
-    return rw_enable_line (argc, argv, true);
-}
-
-static int rw_no_line (int argc, char *argv[])
-{
-    return rw_enable_line (argc, argv, false);
-}
-
-static void rw_set_myopts ()
-{
     if (0 != ncmdopts)
         return;
 
-    static bool recursive;
+    static int recursive;
 
     if (recursive)
         return;
 
-    recursive = true;
+    ++recursive;
 
     rw_setopts ("|-help: "   // argument optional
-                "|-ignenv "
-                // options to disable fundamental types
-                "|-no-bool |-no-char |-no-schar |-no-uchar "
-                "|-no-shrt |-no-ushrt "
-                "|-no-int |-no-uint "
-                "|-no-long |-no-ulong "
-                "|-no-llong |-no-ullong "
-                "|-no-flt |-no-dbl |-no-ldbl "
-                "|-no-wchar |-no-pvoid "
-                // option to disable ranges of lines
-                "|-no-line= "
-                // options to enable fundamental types
-                "|-enable-bool |-enable-char |-enable-schar |-enable-uchar "
-                "|-enable-shrt |-enable-ushrt "
-                "|-enable-int |-enable-uint "
-                "|-enable-long |-enable-ulong "
-                "|-enable-llong |-enable-ullong "
-                "|-enable-flt |-enable-dbl |-enable-ldbl "
-                "|-enable-wchar |-enable-pvoid "
-                // option to enable ranges of lines
-                "|-enable-line= ",
-                //
+                "|-ignenv ",
                 rw_print_help,
-                rw_set_ignenv,
-                // handlers to disable fundamental types
-                rw_no_bool, rw_no_char, rw_no_schar, rw_no_uchar,
-                rw_no_shrt, rw_no_ushrt,
-                rw_no_int, rw_no_uint,
-                rw_no_long, rw_no_ulong,
-                rw_no_llong, rw_no_ullong,
-                rw_no_flt, rw_no_dbl, rw_no_ldbl,
-                rw_no_wchar, rw_no_pvoid,
-                rw_no_line,
-                // handlers to enable fundamental types
-                rw_en_bool, rw_en_char, rw_en_schar, rw_en_uchar,
-                rw_en_shrt, rw_en_ushrt,
-                rw_en_int, rw_en_uint,
-                rw_en_long, rw_en_ulong,
-                rw_en_llong, rw_en_ullong,
-                rw_en_flt, rw_en_dbl, rw_en_ldbl,
-                rw_en_wchar, rw_en_pvoid,
-                rw_en_line,
-                (optcallback_t*)0);
+                rw_set_ignenv);
 
     ndefopts = ncmdopts;
 
-    recursive = false;
+    recursive = 0;
 }
 
+/**************************************************************************/
 
 //////////////////////////////////////////////////////////////////////
 // syntax of the option description string:
@@ -503,27 +277,14 @@ static void rw_set_myopts ()
 //      ::= '|' <lopt>
 // sopt ::= char
 // lopt ::= char char*
-// char ::= any character other than a space (' '), bar ('|'),
-//          colon (':') and the equals sign ('=')
+// char ::= A-Z a-z _ 0-9
 
 _TEST_EXPORT int
 rw_vsetopts (const char *opts, va_list va)
 {
     if (0 == opts) {
 
-        // reset to 0
-
-        for (size_t i = 0; i != ncmdopts; ++i) {
-            if (cmdopts [i].lopt_ != cmdopts [i].loptbuf_)
-                free (cmdopts [i].lopt_);
-        }
-
-        if (cmdopts != cmdoptbuf)
-            free (cmdopts);
-
-        cmdopts  = cmdoptbuf;
-        ncmdopts = 0;
-
+        rw_clear_opts ();
         return 0;
     }
 
@@ -548,6 +309,8 @@ rw_vsetopts (const char *opts, va_list va)
                 (cmdopts_t*)malloc (newbufsize * sizeof (cmdopts_t));
 
             if (0 == newopts) {
+                fprintf (stderr, "%s%d: failed to allocate memory\n",
+                         __FILE__, __LINE__);
                 abort ();
             }
 
@@ -560,6 +323,7 @@ rw_vsetopts (const char *opts, va_list va)
             optbufsize = newbufsize;
         }
 
+        // clear the next option info
         memset (cmdopts + ncmdopts, 0, sizeof *cmdopts);
 
         if ('|' != *next)
@@ -575,13 +339,17 @@ rw_vsetopts (const char *opts, va_list va)
             // becomes the last character of the option name
             const size_t optlen = size_t (end - next) + ('=' == *end);
 
-            if (optlen < sizeof cmdopts [ncmdopts].loptbuf_)
-                cmdopts [ncmdopts].lopt_ = cmdopts [ncmdopts].loptbuf_;
-            else
-                cmdopts [ncmdopts].lopt_ = (char*)malloc (optlen + 1);
+            char *lopt = 0;
 
-            memcpy (cmdopts [ncmdopts].lopt_, next, optlen);
-            cmdopts [ncmdopts].lopt_ [optlen] = '\0';
+            if (optlen < sizeof cmdopts [ncmdopts].loptbuf_)
+                lopt = cmdopts [ncmdopts].loptbuf_;
+            else {
+                lopt = (char*)malloc (optlen + 1);
+                cmdopts [ncmdopts].lopt_ = lopt;
+            }
+
+            memcpy (lopt, next, optlen);
+            lopt [optlen] = '\0';
 
             next = end;
         }
@@ -591,7 +359,7 @@ rw_vsetopts (const char *opts, va_list va)
         // ones will be ignored by default
         cmdopts [ncmdopts].maxcalls_ = 1;
 
-        bool arg_is_callback = true;
+        int arg_is_callback = true;
 
         if (':' == *next || '=' == *next) {
             // ':' : argument optional
@@ -651,9 +419,12 @@ rw_vsetopts (const char *opts, va_list va)
             && 0 == cmdopts [ncmdopts].callback_
             && 0 == cmdopts [ncmdopts].pcntr_) {
 
-            if (cmdopts [ncmdopts].lopt_)
-                fprintf (stderr, "null handler for option -%s\n",
-                         cmdopts [ncmdopts].lopt_);
+            // get a pointer to the long option name
+            const char* const lopt = cmdopts [ncmdopts].lopt_
+                ? cmdopts [ncmdopts].lopt_ : cmdopts [ncmdopts].loptbuf_;
+
+            if (*lopt)
+                fprintf (stderr, "null handler for option -%s\n", lopt);
             else
                 fprintf (stderr, "null handler for option -%c\n",
                          cmdopts [ncmdopts].sopt_);
@@ -665,6 +436,7 @@ rw_vsetopts (const char *opts, va_list va)
     return int (ncmdopts - ndefopts);
 }
 
+/**************************************************************************/
 
 _TEST_EXPORT int
 rw_setopts (const char *opts, ...)
@@ -676,16 +448,17 @@ rw_setopts (const char *opts, ...)
     return result;
 }
 
+/**************************************************************************/
 
 _TEST_EXPORT int
 rw_runopts (int argc, char *argv[])
 {
     rw_set_myopts ();
 
-    static bool recursive = false;
+    static int recursive = false;
 
     // ignore options set in the environment?
-    bool ignenv = recursive;
+    int ignenv = recursive;
 
     // return status
     int status = 0;
@@ -714,7 +487,7 @@ rw_runopts (int argc, char *argv[])
             break;
         }
 
-        bool found = false;
+        int found = false;
 
         // look up each command line option (i.e., a string that starts
         // with a dash ('-')) and invoke the callback associated with it
@@ -736,11 +509,15 @@ rw_runopts (int argc, char *argv[])
                 const size_t optlen =
                     eq ? size_t (eq - optname + 1) : strlen (optname);
 
+                // get a pointer to the (possibly empty) name
+                // of the long option
+                const char* const lopt = cmdopts [j].lopt_ ? 
+                    cmdopts [j].lopt_ : cmdopts [j].loptbuf_;
+
                 // try to match the long option first, and only if it
                 // doesn't match try the short single-character option
-                if (   cmdopts [j].lopt_
-                    && optlen == strlen (cmdopts [j].lopt_)
-                    && 0 == memcmp (optname, cmdopts [j].lopt_, optlen)
+                if (   optlen == strlen (lopt)
+                    && 0 == memcmp (optname, lopt, optlen)
                     || cmdopts [j].sopt_
                     && optname [0] == cmdopts [j].sopt_
                     && (1 == optlen || cmdopts [j].arg_)) {
@@ -855,6 +632,7 @@ rw_runopts (int argc, char *argv[])
     return status;
 }
 
+/**************************************************************************/
 
 _TEST_EXPORT int
 rw_runopts (const char *str)
@@ -944,110 +722,4 @@ rw_runopts (const char *str)
         free (pbuf);
 
     return status;
-
-}
-
-
-_TEST_EXPORT int
-rw_enabled (const char *name)
-{
-    int enabled = -1;
-
-    static const struct {
-        int bit;
-        const char *name;
-    } types[] = {
-        { rw_bool, "bool" },
-
-        { rw_char, "char" },
-
-        { rw_schar, "schar" },
-        { rw_schar, "signed char" },
-        { rw_uchar, "uchar" },
-        { rw_uchar, "unsigned char" },
-
-        { rw_shrt, "shrt" },
-        { rw_shrt, "short" },
-        { rw_shrt, "signed short" },
-        { rw_ushrt, "ushrt" },
-        { rw_ushrt, "unsigned short" },
-
-        { rw_int, "int" },
-        { rw_int, "signed int" },
-        { rw_uint, "uint" },
-        { rw_uint, "unsigned int" },
-
-        { rw_long, "long" },
-        { rw_long, "signed long" },
-        { rw_ulong, "ulong" },
-        { rw_ulong, "unsigned long" },
-
-        { rw_llong, "llong" },
-        { rw_llong, "long long" },
-        { rw_llong, "signed long long" },
-        { rw_ullong, "ullong" },
-        { rw_ullong, "unsigned long long" },
-
-        { rw_flt, "flt" },
-        { rw_flt, "float" },
-
-        { rw_dbl, "dbl" },
-        { rw_dbl, "double" },
-
-        { rw_ldbl, "ldbl" },
-        { rw_ldbl, "long double" },
-
-        { rw_wchar, "wchar" },
-        { rw_wchar, "wchar_t" },
-
-        { rw_pvoid, "pvoid" },
-        { rw_pvoid, "void*" }
-    };
-
-    for (size_t i = 0; i != sizeof types / sizeof *types; ++i) {
-        if (0 == strcmp (types [i].name, name)) {
-            const int mask = 1 << types [i].bit;
-
-            enabled = !(rw_disabled_types & mask);
-
-            if (rw_enabled_types)
-                enabled = enabled && (rw_enabled_types & mask);
-
-            break;
-        }
-    }
-
-    return enabled;
-}
-
-
-_TEST_EXPORT int
-rw_enabled (int line)
-{
-    int nenabled = 0;
-    int ndisabled = 0;
-
-    int line_enabled = -1;
-
-    for (size_t i = 0; i != nlineranges; ++i) {
-
-        const int first = lineranges [i].first;
-        const int last  = lineranges [i].last;
-
-        if (first < 0) {
-            line = -line;
-            ++ndisabled;
-        }
-        else {
-            ++nenabled;
-        }
-
-        if (lineranges [i].first <= line && line < lineranges [i].last)
-            line_enabled = 0 < line;
-    }
-
-    if (nenabled && -1 == line_enabled)
-        line_enabled = 0;
-
-    return line_enabled;
 }

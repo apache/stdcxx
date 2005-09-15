@@ -128,7 +128,7 @@ _TEST_EXPORT int
 rw_assert (int, const char*, int, const char*, ...);
 
 /**
- * Records and optionally issues a diagnostic of severity 6.
+ * Records and optionally issues a diagnostic of severity 5.
  *
  * @see #rw_fatal
  */
@@ -136,7 +136,7 @@ _TEST_EXPORT int
 rw_warn (int, const char*, int, const char*, ...);
 
 /**
- * Records and optionally issues a diagnostic of severity 5.
+ * Records and optionally issues a diagnostic of severity 2.
  *
  * @see #rw_fatal
  */
@@ -144,28 +144,11 @@ _TEST_EXPORT int
 rw_note (int, const char*, int, const char*, ...);
 
 /**
- * Records and optionally issues a diagnostic of severity 4.
- *
- * @see #rw_fatal
- */
-_TEST_EXPORT int
-rw_info (int, const char*, int, const char*, ...);
-
-/**
- * Records and optionally issues a diagnostic of severity 2.
- *
- * @see #rw_fatal
- */
-_TEST_EXPORT int
-rw_debug (int, const char*, int, const char*, ...);
-
-/**
  * Records and optionally issues a diagnostic of severity 1.
  *
  * @see #rw_fatal
  */
 _TEST_EXPORT int
-rw_trace (int, const char*, int, const char*, ...);
-
+rw_info (int, const char*, int, const char*, ...);
 
 #endif   // RW_DRIVER_H_INCLUDED

@@ -19,12 +19,16 @@
  *
  **************************************************************************/
 
-
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
+#include "opt_diags.h"
+#include "opt_lines.h"
+#include "opt_trace.h"
+#include "opt_types.h"
+
 #include <cmdopt.h>    // for rw_setopts()
-#include <printf.h>    // for rw_sprintfa()
+#include <printf.h>    // for rw_snprintfa()
 
 #include <assert.h>    // for assert
 #include <setjmp.h>    // for longjmp, setjmp, ...
@@ -307,111 +311,13 @@ rw_vasnprintf (char**, size_t*, const char*, va_list);
 
 /************************************************************************/
 
-enum diag_t {
-    diag_trace_0 =  0,   // trace statements of inactive diagnostics
-    diag_trace_1 =  1,   // active trace statements (lots of noise)
-    diag_debug   =  2,   // debugging statements (less noise)
-    diag_info    =  3,   // informational messages (e.g., indicating progress)
-    diag_note    =  4,   // noteworthy events
-    diag_warn    =  5,   // warnings
-    diag_assert  =  6,   // assertions
-    diag_error   =  8,   // test logic errors (do not terminate the test)
-    diag_fatal   =  9,   // fatal errors (the first will terminate the test)
-
-    N_DIAG_TYPES = diag_fatal + 1,
-
-    diag_default_mask =
-      (1 << diag_info)
-    | (1 << diag_note)
-    | (1 << diag_warn)
-    | (1 << diag_assert)
-    | (1 << diag_error)
-    | (1 << diag_fatal)
-};
-
-#define ESC "\x1b"
-#define ESC_CODE(fg, bg, attr)   ESC "[" fg bg attr "m"
-
-// ANSI VT100 terminal codes:
-#define AT_OFF   "0;"   // all attributes off
-#define AT_BLD   "1;"   // bright/bold
-#define AT_DIM   "2;"   // dim
-// #define AT_???   "3;"   // ???
-#define AT_UND   "4;"   // underscore
-#define AT_BLI   "5;"   // blink
-// #define AT_???   "6;"   // ???
-#define AT_RVS   "7;"   // reverse video
-#define AT_HID   "8;"   // hidden
-
-#define FG_BLK   "30;"   // foreground black
-#define FG_RED   "31;"   // foreground red
-#define FG_GRN   "32;"   // foreground green
-#define FG_YLW   "33;"   // foreground yellow
-#define FG_BLU   "34;"   // foreground blue
-#define FG_MAG   "35;"   // foreground magenta
-#define FG_CYN   "36;"   // foreground cyan
-#define FG_WHT   "37;"   // foreground white
-
-#define BG_BLK   "40;"   // background black
-#define BG_RED   "41;"   // background red
-#define BG_GRN   "42;"   // background green
-#define BG_YLW   "43;"   // background yellow
-#define BG_BLU   "44;"   // background blue
-#define BG_MAG   "45;"   // background magenta
-#define BG_CYN   "46;"   // background cyan
-#define BG_WHT   "47;"   // background white
-
-
-struct esc_text_t {
-    char esc  [16];
-    char text [16];
-};
-
-static esc_text_t diag_msgs[] = {
-    { ESC_CODE (FG_CYN, "", AT_DIM),     "ITRACE" },
-    { ESC_CODE (FG_BLU, "", ""),         "TRACE" },
-    { ESC_CODE (FG_GRN, "", AT_BLI),     "DEBUG" },
-    { ESC_CODE ("", "", ""),             "INFO" },
-    { ESC_CODE (FG_BLU, BG_YLW, AT_BLI), "NOTE" },
-    { ESC_CODE (FG_MAG, "", ""),         "WARNING" },
-    { ESC_CODE (FG_RED, "", AT_UND),     "ASSERTION" },
-    { ESC_CODE ("", "", ""),             "UNUSED" },   // unused
-    { ESC_CODE (FG_WHT, BG_RED, AT_BLD), "ERROR" },
-    { ESC_CODE (FG_YLW, BG_RED, AT_BLD), "FATAL" }
-};
-
-static const esc_text_t vt100_colors[] = {
-    { FG_BLK, "black" },
-    { FG_RED, "red" },
-    { FG_GRN, "green" },
-    { FG_YLW, "yellow" },
-    { FG_BLU, "blue" },
-    { FG_MAG, "magenta" },
-    { FG_CYN, "cyan" },
-    { FG_WHT, "white" } 
-};
-
-static const esc_text_t vt100_attribs[] = {
-    { AT_OFF, "off" },
-    { AT_BLD, "bold" },
-    { AT_DIM, "dim" },
-    { AT_UND, "underscore" },
-    { AT_BLI, "blink" },
-    { AT_RVS, "reverse" },
-    { AT_HID, "hidden" }
-};
-
-static char escape_end[] = ESC "[30;30;0m";
-
 // array to store the number of each type of diagnostic
-static int ndiags [N_DIAG_TYPES][2] /* = { { failed, attempted }, ... }*/;
+static int
+ndiags [N_DIAG_TYPES][2] /* = { { total, active }, ... }*/;
 
 static FILE *ftestout;
 
 static jmp_buf test_env;
-
-// diagnostics enabled by defaults
-static int trace_mask = diag_default_mask;
 
 // set to 1 after the driver has been initialized
 static int driver_initialized = 0;
@@ -435,25 +341,25 @@ static char diag_pattern [80];
 #endif
 
 /// option: use of stdout disabled
-static int opt_no_stdout = 0;
+static int _rw_opt_no_stdout = 0;
 
 // option: verbose diagnostic output
-static int opt_verbose = 0;
+static int _rw_opt_verbose = 0;
 
 // option: use CSV format (comma separated values)
-static int opt_csv = 0;
+static int _rw_opt_csv = 0;
 
 // option: use RWTest compatibility format
-static int opt_compat = 0;
+static int _rw_opt_compat = 0;
 
 static char clause_id [80];
 
 /************************************************************************/
 
-#define CHECK_INIT(init, func)   rw_check_init (init, __LINE__, func)
+#define CHECK_INIT(init, func)   _rw_check_init (init, __LINE__, func)
 
 static inline void
-rw_check_init (bool init, int line, const char *func)
+_rw_check_init (bool init, int line, const char *func)
 {
     if (init && !driver_initialized) {
         fprintf (stderr, "%s:%d: %s: test driver already initialized\n",
@@ -476,7 +382,7 @@ rw_check_init (bool init, int line, const char *func)
 /************************************************************************/
 
 static int
-rw_set_verbose (int argc, char *argv[])
+_rw_setopt_verbose (int argc, char *argv[])
 {
     if (1 == argc && argv && 0 == argv [0]) {
         static const char helpstr[] = {
@@ -488,14 +394,14 @@ rw_set_verbose (int argc, char *argv[])
         return 0;
     }
 
-    opt_verbose = 1;
+    _rw_opt_verbose = 1;
     return 0;
 }
 
 /************************************************************************/
 
 static int
-rw_set_csv (int argc, char *argv[])
+_rw_setopt_csv (int argc, char *argv[])
 {
     if (1 == argc && argv && 0 == argv [0]) {
         static const char helpstr[] = {
@@ -507,14 +413,14 @@ rw_set_csv (int argc, char *argv[])
         return 0;
     }
 
-    opt_csv = 1;
+    _rw_opt_csv = 1;
     return 0;
 }
 
 /************************************************************************/
 
 static int
-rw_set_compat (int argc, char *argv[])
+_rw_setopt_compat (int argc, char *argv[])
 {
     if (1 == argc && argv && 0 == argv [0]) {
         static const char helpstr[] = {
@@ -526,14 +432,14 @@ rw_set_compat (int argc, char *argv[])
         return 0;
     }
 
-    opt_compat = 1;
+    _rw_opt_compat = 1;
     return 0;
 }
 
 /************************************************************************/
 
 static int
-rw_set_stdout (int argc, char *argv[])
+_rw_setopt_stdout (int argc, char *argv[])
 {
     if (1 == argc && argv && 0 == argv [0]) {
         static const char helpstr[] = {
@@ -551,398 +457,14 @@ rw_set_stdout (int argc, char *argv[])
         return 0;
     }
     
-    opt_no_stdout = 1;
+    _rw_opt_no_stdout = 1;
     return 0;
 }
 
 /************************************************************************/
 
 static int
-match_name (const esc_text_t *text, size_t nelems,
-            const char *first, const char *last)
-{
-    assert (0 != text);
-    assert (0 != first);
-    assert (first <= last);
-
-    const size_t len = size_t (last - first);
-
-    if (0 == len)
-        return int (nelems);
-
-    for (size_t i = 0; i != nelems; ++i) {
-        if (   0 == strncmp (text [i].text, first, len)
-            && '\0' == text [i].text [len])
-            return int (i);
-    }
-
-    return -1;
-}
-
-
-static int
-rw_set_diags (int argc, char *argv[])
-{
-    if (1 == argc && argv && 0 == argv [0]) {
-        static const char helpstr[] = {
-            "Sets the colors and names of the diagnostic messages issued by\n"
-            "the program.\n"
-            "There are 10 different types of diagnostic messages, each with\n"
-            "a unique severity level between 0 (the lowest) and 9. Each\n"
-            "diagnostic message can either be active or inactive. Each\n"
-            "message can have a name of up to 15 characters associated with\n"
-            "it, foreground color, background color, and a video attribute.\n"
-            "These parameters are controlled by the argument to this option.\n"
-            "\nThe syntax of <arg> is as follows:\n"
-            "<arg>        ::= <color-list>\n"
-            "<color-list> ::= <color-txt> [ ,<color-list> ]\n"
-            "<color-text> ::= <sev>:[<color>][:[<color>][:[<attr>][:[<text>]]]]"
-            "\n<sev>        ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9\n"
-            "<color>      ::=   black | red | green | yellow\n"
-            "                 | blue | magenta | cyan | white\n"
-            "<attr>       ::=   off | bold | dim | underscore\n"
-            "                 | blink | reverse | hidden\n"
-            "<text>       ::= A-Z a-z 0-9 _\n\n"
-            "The first <color> component specifies the foreground color\n"
-            "while the second (optional) <color> component specifies\n"
-            "the background color for the diagnostic of the severity <sev>.\n"
-            "Empty arguments are permitted and denote the default system\n"
-            "color set for the terminal.\n"
-        };
-
-        argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
-
-        return 0;
-    }
-
-    char *parg = strchr (argv [0], '=');
-
-    if (0 == parg || '\0' == parg [1]) {
-        fprintf (stderr, "%s:%d: missing argument in %s\n",
-                 __FILE__, __LINE__, argv [0]);
-        return 1;
-    }
-
-    ++parg;
-
-    // argument syntax:
-    //
-    // <sev-color-list> := <sev-color-text> [ ,<sev-color-list> ]
-    // <sev-color-text> := <sev>:[<color>][:[<color>][:[<attr>][:[<text>]]]]
-    // <sev>            := 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-    // <color>          :=   black | red | green | yellow
-    //                     | blue | magenta | cyan | white
-    // <attr>           :=   off | bold | dim | underscore
-    //                     | blink | reverse | hidden
-    // <text>           := A-Z a-z 0-9 _
-
-
-    int ret = 0;
-
-    while (*parg) {
-
-        int severity = -1;
-        int fgcol    = -1;
-        int bgcol    = -1;
-        int attr     = -1;
-
-        char diag_text [sizeof diag_msgs [0].text];
-        *diag_text = '\0';
-
-        if ('0' <= *parg && *parg <= '9') {
-            severity = *parg++ - '0';
-        }
-        else {
-            // digit expected
-            fprintf (stderr, "%s:%d: digit expected at position %d: %s\n",
-                 __FILE__, __LINE__, int (parg - argv [0]), argv [0]);
-
-            ret = 1;
-            break;
-        }
-
-        if (':' == *parg) {
-            ++parg;
-        }
-        else {
-            // colon expected
-            fprintf (stderr, "%s:%d: colon expected at position %d: %s\n",
-                 __FILE__, __LINE__, int (parg - argv [0]), argv [0]);
-
-            ret = 1;
-            break;
-        }
-
-        char *end = strpbrk (parg, ":,");
-        if (0 == end)
-            end = parg + strlen (parg);
-
-        fgcol = match_name (vt100_colors, 8, parg, end);
-        if (fgcol < 0 || 8 < fgcol) {
-            // invalid color
-            fprintf (stderr, "%s:%d: unknown color at position %d: %s\n",
-                 __FILE__, __LINE__, int (parg - argv [0]), argv [0]);
-
-            ret = 1;
-            break;
-        }
-
-        if (':' == *end || '\0' == *end) {
-            parg = end + (0 != *end);
-            end  = strpbrk (parg, ":,");
-            if (0 == end)
-                end = parg + strlen (parg);
-
-            bgcol = match_name (vt100_colors, 8, parg, end);
-
-            if (bgcol < 0 || 8 < bgcol) {
-                // invalid color
-                fprintf (stderr, "%s:%d: unknown color at position %d: %s\n",
-                         __FILE__, __LINE__, int (parg - argv [0]), argv [0]);
-
-                ret = 1;
-                break;
-            }
-
-            if (':' == *end || '\0' == *end) {
-                parg = end + ('\0' != *end);
-                end  = strpbrk (parg, ":,");
-                if (0 == end)
-                    end = parg + strlen (parg);
-
-                attr = match_name (vt100_attribs, 8, parg, end);
-                if (attr < 0 || 8 < attr) {
-                    // invalid attribute
-                    fprintf (stderr,
-                             "%s:%d: unknown attribute at position %d: %s\n",
-                             __FILE__, __LINE__, int (parg - argv [0]),
-                             argv [0]);
-
-                    ret = 1;
-                    break;
-                }
-
-                if (':' == *end || '\0' == *end) {
-                    parg = end + (0 != *end);
-                    end  = strpbrk (parg, ":,");
-                    if (0 == end)
-                        end = parg + strlen (parg);
-
-                    size_t len = size_t (end - parg);
-
-                    if (sizeof diag_msgs [severity].text < len) {
-                        
-                        // name too long
-                        fprintf (stderr,
-                                 "%s:%d: name too long at position %d: %s\n",
-                                 __FILE__, __LINE__, int (parg - argv [0]),
-                                 argv [0]);
-
-                        len = sizeof diag_msgs [severity].text;
-                    }
-
-                    memcpy (diag_text, parg, len);
-                    diag_text [len] = '\0';
-                }
-            }
-        }
-
-        strcpy (diag_msgs [severity].esc, ESC "[");
-
-        if (fgcol < 8)
-            strcat (diag_msgs [severity].esc, vt100_colors [fgcol].esc);
-
-        if (bgcol < 8) {
-            strcat (diag_msgs [severity].esc, vt100_colors [bgcol].esc);
-
-            const size_t bgdiginx = strlen (diag_msgs [severity].esc) - 3;
-
-            assert ('3' == diag_msgs [severity].esc [bgdiginx]);
-            diag_msgs [severity].esc [bgdiginx] = '4';
-        }
-
-        if (attr < 8)
-            strcat (diag_msgs [severity].esc, vt100_attribs [attr].esc);
-
-        if (diag_msgs [severity].esc [2])
-            strcat (diag_msgs [severity].esc, "m");
-        else
-            diag_msgs [severity].esc [0] = '\0';
-
-        if (*diag_text)
-            strcpy (diag_msgs [severity].text, diag_text);
-
-        parg = end + ('\0' != *end);
-    }
-
-    return ret;
-}
-
-/************************************************************************/
-
-static int
-rw_set_trace_mask (int argc, char *argv[])
-{
-    if (1 == argc && argv && 0 == argv [0]) {
-        static const char helpstr[] = {
-            "Specifies the severity of diagnostic messages to be issued when\n"
-            "active. By default, diagnostics with severity of 3 and and above\n"
-            "are issued, all others are suppressed. The severity of an inactive"
-            "\ndiagnostic is always zero, regardless of what the severity would"
-            "\nbe if it were active.\n\n"
-            "The syntax of <arg> is as follows:\n"
-            "<arg>   ::= <range> [ , <range> ]\n"
-            "<range> ::= [ - ] <digit> | <digit> - [ <digit> ]\n"
-            "<digit> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9\n"
-            "\n"
-            "The default names of the diagnostic messages arranged in order\n"
-            "of increasing severity are as follows:\n"
-            "ITRACE, TRACE, DEBUG, INFO, NOTE, WARNING, ASSERTION, UNUSED,\n"
-            "ERROR, and FATAL.\n"
-            "The name of each inactive diagnostic is preceded by the name\n"
-            "of the severity-0 diagnostic (ITRACE_ by default). The severity\n"
-            "of an inactive diagnostic is always zero, regardless of what\n"
-            "the severity would be if it were active.\n"
-        };
-
-        argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
-
-        return 0;
-    }
-
-    char *parg = strchr (argv [0], '=');
-
-    if (0 == parg) {
-        trace_mask = -1;
-        return 0;
-    }
-        
-    int new_mask = 0;
-
-    const char* const argbeg = ++parg;
-
-    // the lower bound of a range of severities to be enabled or disabled
-    // negative values are not valid and denote an implicit lower bound
-    // of 1 (such as in "-3" which is a shorthand for "1-3")
-    long first = -1;
-
-    for ( ; '\0' != *parg ; ) {
-
-        // skip any leading whitespace
-        for ( ; ' ' == *parg; ++parg);
-
-        if ('-' == *parg) {
-            if (first < 0) {
-                first = 0;
-                ++parg;
-            }
-            else {
-                fprintf (stderr,
-                         "invalid character '%c' at position %d: \"%s\"\n",
-                         *parg, int (parg - argbeg), argv [0]);
-                return 2;
-            }
-        }
-
-        // parse a numeric argument
-        char *end;
-        long severity = strtol (parg, &end, 0);
-
-        // skip any trailing whitespace
-        for ( ; ' ' == *end; ++end);
-
-        if (end == parg || '-' != *end && ',' != *end && '\0' != *end) {
-            fprintf (stderr,
-                     "invalid character '%c' at position %d: \"%s\"\n",
-                     *end, int (parg - argbeg), argv [0]);
-            return 2;
-        }
-
-        if (0 <= first) {
-            if (severity < 0 || N_DIAG_TYPES < severity) {
-                fprintf (stderr,
-                         "invalid value %ld at position %d: \"%s\"\n",
-                         severity, int (parg - argbeg), argv [0]);
-                return 2;
-            }
-
-            ++severity;
-
-            if ((',' == *end || '-' == *end) && end [1])
-                ++end;
-        }
-        else if (',' == *end) {
-            first = severity++;
-            if ('\0' == end [1]) {
-                fprintf (stderr,
-                         "invalid character '%c' at position %d: \"%s\"\n",
-                         *end, int (parg - argbeg), argv [0]);
-                return 2;
-            }
-
-            ++end;
-        }
-        else if ('-' == *end) {
-            first = severity;
-            while (' ' == *++end);
-            if ('\0' == *end) {
-                severity = N_DIAG_TYPES;
-            }
-            else if  (',' == *end) {
-                severity = N_DIAG_TYPES;
-                ++end;
-            }
-            else
-                severity = -1;
-        }
-        else if ('\0' == *end) {
-            first = severity++;
-        }
-        else {
-            fprintf (stderr,
-                     "invalid character '%c' at position %d: \"%s\"\n",
-                     *end, int (parg - argbeg), argv [0]);
-            return 2;
-        }
-
-        parg = end;
-
-        if (0 <= first && first < severity) {
-            for (int i = first; i != severity; ++i)
-                new_mask |= 1 << i;
-            severity = -1;
-        }
-    }
-
-    trace_mask = new_mask;
-
-    return 0;
-}
-
-/************************************************************************/
-
-static int
-rw_set_trace (int argc, char *argv[])
-{
-    if (1 == argc && argv && 0 == argv [0]) {
-        static const char helpstr[] = {
-            "Specifies that diagnostic messages of all severities be issued\n"
-            "regardless of whether they are active or not. See the --severity\n"
-            "option for details.\n"
-        };
-
-        argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
-
-        return 0;
-    }
-
-    return rw_set_trace_mask (argc, argv);
-}
-
-/************************************************************************/
-
-static int
-rw_set_output_file (int argc, char *argv[])
+_rw_setopt_output_file (int argc, char *argv[])
 {
     if (1 == argc && argv && 0 == argv [0]) {
         static const char helpstr[] = {
@@ -982,8 +504,6 @@ rw_set_output_file (int argc, char *argv[])
     return !(ftestout != 0);
 }
 
-/************************************************************************/
-
 _TEST_EXPORT int
 rw_vsetopts (const char *opts, va_list va);
 
@@ -1005,23 +525,26 @@ rw_vtest (int argc, char **argv,
         return 1;
     }
 
-    if (3 > rw_setopts ("|-no-stdout "
-                        "|-diags= "      // argument required
-                        "|-trace "
-                        "|-severity= "   // argument required
-                        "|-csv "
-                        "|-compat "
-                        "o|-output:"     // argument optional
-                        "v|-verbose",
-                        rw_set_stdout,
-                        rw_set_diags,
-                        rw_set_trace,
-                        rw_set_trace_mask,
-                        rw_set_csv,
-                        rw_set_compat,
-                        rw_set_output_file,
-                        rw_set_verbose,
-                        0)) {
+    const int nopts =
+        rw_setopts ("|-no-stdout "
+                    "|-diags= "      // argument required
+                    "|-trace "
+                    "|-severity= "   // argument required
+                    "|-csv "
+                    "|-compat "
+                    "o|-output:"     // argument optional
+                    "v|-verbose",
+                    _rw_setopt_stdout,
+                    _rw_setopt_diags,
+                    _rw_setopt_trace,
+                    _rw_setopt_trace_mask,
+                    _rw_setopt_csv,
+                    _rw_setopt_compat,
+                    _rw_setopt_output_file,
+                    _rw_setopt_verbose,
+                    0);
+
+    if (3 > nopts) {
         fprintf (stderr, "%s:%d: rw_setopts() failed\n", __FILE__, __LINE__);
         abort ();
         return 1;
@@ -1030,12 +553,16 @@ rw_vtest (int argc, char **argv,
 #ifndef _RWSTD_USE_CONFIG
 
     // enable RWTest compatibility mode
-    rw_set_compat (0, 0);
+    _rw_setopt_compat (0, 0);
 
     // disable output to stdout
-    rw_set_stdout (0, 0);
+    _rw_setopt_stdout (0, 0);
 
 #endif   // _RWSTD_USE_CONFIG
+
+    _rw_setopts_types ();
+
+    _rw_setopts_lines ();
 
     int status = rw_runopts (argc, argv);
 
@@ -1044,7 +571,7 @@ rw_vtest (int argc, char **argv,
 
     if (0 == ftestout) {
 
-        if (opt_no_stdout && file_name) {
+        if (_rw_opt_no_stdout && file_name) {
             char fname [256];
 
             const char* const slash = strrchr (file_name, _RWSTD_PATH_SEP);
@@ -1096,15 +623,19 @@ rw_vtest (int argc, char **argv,
 
     driver_finished = 1;
 
+    static const char tblrow[] =
+        "+-----------------------+--------+--------+--------+";
+
     fprintf (ftestout,
-             "# +-----------------------+--------+--------+--------+\n"
+             "# %s\n"
              "# | DIAGNOSTIC            | ACTIVE |  TOTAL |   PASS |\n"
-             "# +-----------------------+--------+--------+--------+\n");
+             "# %s\n",
+             tblrow, tblrow);
 
     int nlines = 0;
 
     for (int i = 0; i != N_DIAG_TYPES; ++i) {
-        if (ndiags [i][0] || trace_mask & (diag_debug | diag_trace_1)) {
+        if (ndiags [i][0] || !(_rw_diag_mask & (1 << diag_trace))) {
 
             // print out details for any non-zero totals
             // or for all totals when debugging or tracing
@@ -1119,7 +650,7 @@ rw_vtest (int argc, char **argv,
 
             fprintf (ftestout,
                      "# | (S%d) %-*s | %6d | %6d | %5ld%% |\n",
-                     i, sizeof diag_msgs [i].text, diag_msgs [i].text,
+                     i, int (sizeof diag_msgs [i].code), diag_msgs [i].code,
                      ndiags [i][1], ndiags [i][0], pct);
         }
     }
@@ -1127,10 +658,9 @@ rw_vtest (int argc, char **argv,
     if (0 == nlines)
         fprintf (ftestout, "# no diagnostics\n");
 
-    fprintf (ftestout,
-             "# +-----------------------+--------+--------+--------+\n");
+    fprintf (ftestout, "# %s\n", tblrow);
 
-    if (opt_compat) {
+    if (_rw_opt_compat) {
 
         // TO DO: get rid of this
 
@@ -1141,9 +671,9 @@ rw_vtest (int argc, char **argv,
                  "## Warnings = %d\n"
                  "## Assertions = %d\n"
                  "## FailedAssertions = %d\n",
-                 ndiags [diag_warn][1],
+                 ndiags [diag_warn][1] + ndiags [diag_xwarn][1],
                  ndiags [diag_assert][0],
-                 ndiags [diag_assert][1]);
+                 ndiags [diag_assert][1] + ndiags [diag_xassert][1]);
     }
 
     fclose (ftestout);
@@ -1186,7 +716,7 @@ rw_test (int argc, char **argv,
 // buffer, otherwise the original value of buf and leaves *pbufsize
 // unchanged
 static char*
-rw_escape (char *buf, size_t bufsize, char esc)
+_rw_escape (char *buf, size_t bufsize, char esc)
 {
     // handle null buffer
     if (0 == buf)
@@ -1266,35 +796,66 @@ rw_escape (char *buf, size_t bufsize, char esc)
 /************************************************************************/
 
 static void
-rw_vdiag (diag_t diag, int severity, const char *file, int line,
-          const char *fmt, va_list va)
+_rw_vdiag (diag_t diag, int severity, const char *file, int line,
+           const char *fmt, va_list va)
 {
-    CHECK_INIT (true, "rw_vdiag()");
+    CHECK_INIT (true, "_rw_vdiag()");
 
-    // normalize the severity
-    if (diag)
+    if (0 == fmt)
+        fmt = "";
+
+    // check if the diagnostic is expected
+    const int expected = 0 != _rw_expected (line);
+
+    if (expected) {
+        if (severity) {
+            // if the diagnostic is expected to be active,
+            // adjust its type and severity
+            if (diag_assert == diag)
+                diag = diag_xassert;
+            else if (diag_warn == diag)
+                diag = diag_xwarn;
+
+            severity = diag * severity;
+        }
+        else {
+            // if the diagnostic is expected to be active but isn't,
+            // adjust its type to an unexpectdly inactive one
+            if (diag_assert == diag || diag_warn == diag)
+                diag = diag_expect;
+
+            severity = diag;
+        }
+    }
+    else if (diag) {
+        // normalize the severity
         severity = diag * severity;
+    }
 
     if (severity < 0)
         severity = 0;
     else if (N_DIAG_TYPES <= severity)
         severity = N_DIAG_TYPES - 1;
 
-    // increment the appropriate diagnostic counter
+    // increment the diagnostic counter
     ++ndiags [diag][0];
 
-    if (severity)
-        ++ndiags [diag][1];
+    if (severity) {
 
-    if ((1 << severity) & trace_mask) {
+        ++ndiags [diag][1];
+    }
+
+    if (0 == ((1 << severity) & _rw_diag_mask)) {
 
         assert (0 != fmt);
+
+        static char fmterr[] = "*** formatting error ***";
 
         char *usrbuf = 0;
         const int nchars = rw_vasnprintf (&usrbuf, 0, fmt, va);
 
-        if (nchars < 0)
-            usrbuf = _RWSTD_CONST_CAST (char*, "*error formatting string*");
+        if (nchars < 0 || 0 == usrbuf)
+            usrbuf = fmterr;
 
         // compute the number of newline characters in the text
         int nlines = 0;
@@ -1315,13 +876,15 @@ rw_vdiag (diag_t diag, int severity, const char *file, int line,
 #endif   // _RWSTD_NO_ISATTY
 
         const char* const diagstr[] = {
-            tty ? diag_msgs [severity].esc : "",
-            *diag_msgs [severity].text ? diag_msgs [severity].text : "UNKNOWN",
-            tty && *diag_msgs [severity].esc ? escape_end : ""
+            tty ? diag_msgs [severity].esc_pfx : "",
+            *diag_msgs [severity].code ? diag_msgs [severity].code : "UNKNOWN",
+            tty ? diag_msgs [severity].esc_sfx : "",
+            _rw_opt_verbose && *diag_msgs [severity].desc ?
+            diag_msgs [severity].desc : 0
         };
 
         const char* const traced_diag =
-            0 == severity && diag_msgs [diag].text ? diag_msgs [diag].text : 0;
+            0 == severity && diag_msgs [diag].code ? diag_msgs [diag].code : 0;
 
         const char* const slash = file ? strrchr (file, _RWSTD_PATH_SEP) : 0;
         if (slash)
@@ -1329,7 +892,7 @@ rw_vdiag (diag_t diag, int severity, const char *file, int line,
 
         char *mybuf = 0;
 
-        if (opt_csv) {
+        if (_rw_opt_csv) {
 
             // format all fields as comma separated values (CSV):
             // -- a field containing the quote character, the comma,
@@ -1341,7 +904,7 @@ rw_vdiag (diag_t diag, int severity, const char *file, int line,
 
             // escape all double quotes by prepending the double
             // quote character to each according to the CSV format
-            char* const newbuf = rw_escape (usrbuf, 0, '"');
+            char* const newbuf = _rw_escape (usrbuf, 0, '"');
             if (newbuf != usrbuf) {
                 free (usrbuf);
                 usrbuf = newbuf;
@@ -1363,28 +926,35 @@ rw_vdiag (diag_t diag, int severity, const char *file, int line,
                              line,
                              usrbuf);
         }
-        else if (opt_verbose) {
+        else {
 
             nlines += 2 + ('\0' != *clause_id) + (0 != file) + (0 < line);
 
             mybuf =
-                rw_sprintfa ("# %s%s"                    // diagnostic
-                             "%{?}_%s%{;}%s "            // traced diagnostic
-                             "(S%d) "                    // severity
+                rw_sprintfa ("# %s"                      // escape prefix
+                             "%s"                        // diagnostic
+                             "%{?}_%s%{;}"               // traced diagnostic
+                             "%s "                       // escape suffix
+                             "(S%d)"                     // severity
+                             "%{?}, %s%{;} "             // description
                              "(%d lines):\n"             // number of lines
                              "# TEXT: %s\n"              // user text
                              "%{?}# CLAUSE: %s\n%{;}"    // clause if not empty
                              "%{?}# FILE: %s\n%{;}"      // file if not null
                              "%{?}# LINE: %d\n%{;}",     // line if positive
-                             diagstr [0], diagstr [1],
-                             0 != traced_diag, traced_diag, diagstr [2],
+                             diagstr [0],
+                             diagstr [1],
+                             0 != traced_diag, traced_diag,
+                             diagstr [2],
                              severity,
+                             0 != diagstr [3], diagstr [3],
                              nlines,
                              usrbuf,
                              '\0' != *clause_id, clause_id,
                              0 != file, file,
                              0 < line, line);
         }
+#if 0
         else {
 
             mybuf =
@@ -1409,11 +979,15 @@ rw_vdiag (diag_t diag, int severity, const char *file, int line,
                              0 < line, line,
                              usrbuf);
         }
+#endif   // 0/1
 
         fprintf (ftestout, "%s\n", mybuf);
 
-        free (mybuf);
-        free (usrbuf);
+        if (mybuf != fmterr)
+            free (mybuf);
+
+        if (usrbuf != fmterr)
+            free (usrbuf);
     }
 
     if (diag_fatal == diag && severity) {
@@ -1432,7 +1006,7 @@ rw_fatal (int success, const char *file, int line, const char *fmt, ...)
     va_list va;
     va_start (va, fmt);
 
-    rw_vdiag (diag_fatal, 0 == success, file, line, fmt, va);
+    _rw_vdiag (diag_fatal, 0 == success, file, line, fmt, va);
 
     va_end (va);
 
@@ -1449,7 +1023,7 @@ rw_error (int success, const char *file, int line, const char *fmt, ...)
     va_list va;
     va_start (va, fmt);
 
-    rw_vdiag (diag_error, 0 == success, file, line, fmt, va);
+    _rw_vdiag (diag_error, 0 == success, file, line, fmt, va);
 
     va_end (va);
 
@@ -1466,7 +1040,7 @@ rw_assert (int success, const char *file, int line, const char *fmt, ...)
     va_list va;
     va_start (va, fmt);
 
-    rw_vdiag (diag_assert, 0 == success, file, line, fmt, va);
+    _rw_vdiag (diag_assert, 0 == success, file, line, fmt, va);
 
     va_end (va);
 
@@ -1483,7 +1057,7 @@ rw_warn (int success, const char *file, int line, const char *fmt, ...)
     va_list va;
     va_start (va, fmt);
 
-    rw_vdiag (diag_warn, 0 == success, file, line, fmt, va);
+    _rw_vdiag (diag_warn, 0 == success, file, line, fmt, va);
 
     va_end (va);
 
@@ -1500,7 +1074,7 @@ rw_note (int success, const char *file, int line, const char *fmt, ...)
     va_list va;
     va_start (va, fmt);
 
-    rw_vdiag (diag_note, 0 == success, file, line, fmt, va);
+    _rw_vdiag (diag_note, 0 == success, file, line, fmt, va);
 
     va_end (va);
 
@@ -1517,41 +1091,7 @@ rw_info (int success, const char *file, int line, const char *fmt, ...)
     va_list va;
     va_start (va, fmt);
 
-    rw_vdiag (diag_info, 0 == success, file, line, fmt, va);
-
-    va_end (va);
-
-    return success;
-}
-
-/************************************************************************/
-
-_TEST_EXPORT int
-rw_debug (int success, const char *file, int line, const char *fmt, ...)
-{
-    CHECK_INIT (true, "rw_debug()");
-
-    va_list va;
-    va_start (va, fmt);
-
-    rw_vdiag (diag_debug, 0 == success, file, line, fmt, va);
-
-    va_end (va);
-
-    return success;
-}
-
-/************************************************************************/
-
-_TEST_EXPORT int
-rw_trace (int success, const char *file, int line, const char *fmt, ...)
-{
-    CHECK_INIT (true, "rw_trace()");
-
-    va_list va;
-    va_start (va, fmt);
-
-    rw_vdiag (diag_trace_1, 0 == success, file, line, fmt, va);
+    _rw_vdiag (diag_info, 0 == success, file, line, fmt, va);
 
     va_end (va);
 
