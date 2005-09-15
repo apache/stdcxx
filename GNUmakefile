@@ -230,38 +230,43 @@ ifeq ($(in_topdir),1)
   ############################################################################
 
   # try to determine configuration (unless specified on the command line)
+  # invoke $(SHELL) from within the $(shell) function to silence shell
+  # any error messages when the compiler isn't found
   ifeq ($(CONFIG),)
-    ifeq ($(shell g++ -v >/dev/null 2>&1 && echo $$?),0)
+    ifeq ($(shell $(SHELL) -c "g++ -v" >/dev/null 2>&1 \
+                  && echo $$?),0)
       # use gcc on every OS by default
       CONFIG = gcc.config
     else
       ifeq ($(OSNAME),AIX)
         # check for VisualAge on AIX
-        ifeq ($(shell xlC -qversion >/dev/null 2>&1 && echo $$?),0)
+        ifeq ($(shell $(SHELL) -c "xlC -qversion" >/dev/null 2>&1 \
+                      && echo $$?),0)
           CONFIG = vacpp.config
         endif
       else
         ifeq ($(OSNAME),HP-UX)
           # check for aCC on HP-UX
-          ifeq ($(shell aCC -V >/dev/null 2>&1 && echo $$?),0)
+          ifeq ($(shell $(SHELL) -c "aCC -V" >/dev/null 2>&1 && echo $$?),0)
             CONFIG = acc.config
           endif
         else
           ifeq ($(OSNAME),IRIX64)
             # check for MIPSpro on IRIX
-            ifeq ($(shell CC -v >/dev/null 2>&1 && echo $$?),0)
+            ifeq ($(shell $(SHELL) -c "CC -v" >/dev/null 2>&1 && echo $$?),0)
               CONFIG = mipspro.config
             endif
           else
             ifeq ($(OSNAME),OSF1)
               # check for Compaq C++ on Tru64 UNIX
-              ifeq ($(shell cxx -V >/dev/null 2>&1; echo $$?),0)
+              ifeq ($(shell $(SHELL) -c "cxx -V" >/dev/null 2>&1; echo $$?),0)
                 CONFIG = osf_cxx.config
               endif
             else
               ifeq ($(OSNAME),SunOS)
                 # check for SunPro on Solaris
-                ifeq ($(shell CC -V >/dev/null 2>&1 && echo $$?),0)
+                ifeq ($(shell $(SHELL) -c "CC -V" >/dev/null 2>&1 \
+                              && echo $$?),0)
                   CONFIG = sunpro.config
                 endif
               endif   # SunOS
@@ -349,15 +354,19 @@ ifeq ($(in_topdir),1)
     bmode = debug,pthreads,shared,wide
   endif   # ifeq ($(BUILDTYPE),15d)
 
-  ifneq ($(BUILDTYPE),)
-    ifneq ($(BUILDMODE),)
-      $(error "at most one of BUILDMODE and BUILDTYPE may be defined")
-    else
-      BUILDMODE=$(bmode)
+  ifeq ($(TOPDIR),)
+    # during the first (non-recursive) invocation only,
+    # check to make sure at most one of BUILDTYPE and BUILDMODE
+    # is defined
+    ifneq ($(BUILDTYPE),)
+      ifneq ($(BUILDMODE),)
+        $(error "at most one of BUILDMODE and BUILDTYPE may be defined")
+      else
+        BUILDMODE=$(bmode)
+      endif
     endif
+    TOPDIR = $(CURDIR)
   endif
-
-  TOPDIR = $(CURDIR)
 
   ifeq ($(filter /%,$(CONFIG)),)
     ifeq ($(filter %/%,$(CONFIG)),)
