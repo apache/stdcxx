@@ -33,7 +33,7 @@
 
 /*** library version numbers and ids **************************************/
 
-#define _RWSTD_VER 0x04010200
+#define _RWSTD_VER 0x04010300
 //                    | | | |
 //                   MMmmuupp
 //                    | | | |
@@ -43,7 +43,7 @@
 //                    +--------- MM = major release number
 
 // library version string (patch number included only if non-zero)
-#define _RWSTD_VER_STR   "4.1.2"
+#define _RWSTD_VER_STR   "4.1.3"
 
 // library version numbers
 #define _RWSTD_VER_MAJOR ((_RWSTD_VER >> 24) & 0xff)
@@ -384,8 +384,6 @@
 #  ifdef __CYGWIN__
      // use our own C++ libc headers
 #    undef _RWSTD_NO_NEW_HEADER
-     // disable long long handling (no libc support yet)
-#    define _RWSTD_NO_LONG_LONG
      // libc is wrapped in namespaces std
 #    undef _RWSTD_NO_LIBC_IN_STD
      // deprecated C++ libc headers don't introduce names into namespace std
