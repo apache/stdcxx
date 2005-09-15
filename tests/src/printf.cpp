@@ -613,9 +613,9 @@ rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
             assert (0 != ptr);
 
             *ptr = len;
-#else
-            assert (!"%Ln not implemented")
-#endif
+#else   // if !defined (_RWSTD_LONG_LONG)
+            assert (!"%Ln not implemented");
+#endif   // _RWSTD_LONG_LONG
         }
         else if (spec.mod_l) {
             long* const ptr = (long*)spec.param.ptr;
@@ -1172,9 +1172,9 @@ rw_fmtinteger (FmtSpec *pspec, size_t paramno,
             else {
 #ifdef _RWSTD_LONG_LONG
                 len = rw_fmtllong (spec, pbuf, pbufsize, spec.param.diff);
-#else
+#else   // if !defined (_RWSTD_LONG_LONG)
                 assert (!"%td, %ti: 64-bit types not supported");
-#endif
+#endif   // _RWSTD_LONG_LONG
             }
         }
         else if (1 == spec.iwidth) {
@@ -1992,12 +1992,13 @@ int rw_quotechar (char *buf, charT wc, int noesc)
 {
 #if _RWSTD_WCHAR_T_MIN < 0
 
-    // wchar_t is signed
+    // wchar_t is signed, convert its value to unsigned long
+    // without widening (i.e., treat it as an unsigned type)
 
 #  if _RWSTD_WCHAR_T_MIN == _RWSTD_SHRT_MIN
-    const unsigned short wi = (unsigned short)wc;
+    const unsigned long wi = (unsigned short)wc;
 #  elif _RWSTD_WCHAR_T_MIN ==_RWSTD_INT_MIN
-    const unsigned int wi = (unsigned int)wc;
+    const unsigned long wi = (unsigned int)wc;
 #  elif _RWSTD_WCHAR_T_MIN == _RWSTD_LONG_MIN
     const unsigned long wi = (unsigned long)wc;
 #  endif
@@ -2005,14 +2006,7 @@ int rw_quotechar (char *buf, charT wc, int noesc)
 #else   // if _RWSTD_WCHAR_T_MIN >= 0
 
     // wchar_t is unsigned
-
-#  if _RWSTD_WCHAR_T_MIN == _RWSTD_USHRT_MIN
-    const unsigned short wi = (unsigned short)wc;
-#  elif _RWSTD_WCHAR_T_MIN == _RWSTD_UINT_MIN
-    const unsigned int wi = (unsigned int)wc;
-#  elif _RWSTD_WCHAR_T_MIN == _RWSTD_ULONG_MIN
     const unsigned long wi = (unsigned long)wc;
-#  endif
 
 #endif   // _RWSTD_WCHAR_T_MIN < 0
 
@@ -2051,10 +2045,10 @@ int rw_quotechar (char *buf, charT wc, int noesc)
             else {
 
                 const int width =
-                      wi > 0xfffffffU ? 8 : wi > 0xffffffU ? 7
-                    : wi > 0xfffffU   ? 6 : wi > 0xffffU   ? 5
-                    : wi > 0xfffU     ? 4 : wi > 0xffU     ? 3
-                    : wi > 0xfU       ? 2 : 2;
+                      wi > 0xfffffffUL ? 8 : wi > 0xffffffUL ? 7
+                    : wi > 0xfffffUL   ? 6 : wi > 0xffffUL   ? 5
+                    : wi > 0xfffUL     ? 4 : wi > 0xffUL     ? 3
+                    : wi > 0xfUL       ? 2 : 2;
 
                 len = 1 + sprintf (buf + 1, "x%0*lx", width, (unsigned long)wi);
             }
@@ -2695,6 +2689,8 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
     assert (0 != pva);
     assert (0 != pspec);
 
+    _RWSTD_UNUSED (fmt);
+
     FmtSpec &spec = pspec [paramno];
 
     // the length of the sequence appended to the buffer to return
@@ -2888,7 +2884,7 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
             assert (0 != ptr);
 
             *ptr = (_RWSTD_LONG_LONG)(nbytes);
-#else
+#else   // if !defined (_RWSTD_LONG_LONG)
             assert (!"%{Ln} not implemented");
 #endif   // _RWSTD_LONG_LONG
         }
