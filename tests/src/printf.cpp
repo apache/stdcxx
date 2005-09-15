@@ -21,6 +21,7 @@
 
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
+
 #include <printf.h>
 
 #include <assert.h>
@@ -121,6 +122,7 @@ struct FmtSpec
     unsigned fl_zero   : 1;
 
     // optional modifiers
+    unsigned mod_A     : 1;    // extension (Arrays)
     unsigned mod_h     : 1;
     unsigned mod_hh    : 1;
     unsigned mod_l     : 1;
@@ -356,6 +358,14 @@ rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
 
     // extract an optional modifier
     switch (*fmt) {
+    case 'A':
+        if (ext) {
+            ++fmt;
+            pspec->mod_A = true;
+            break;
+        }
+        // fall thru
+
     case 'h':
         if ('h' == fmt [1]) {
             ++fmt;
@@ -1357,9 +1367,14 @@ rw_fmtfloating (const FmtSpec &spec,
         strcpy (pf, _RWSTD_LDBL_PRINTF_PREFIX);
         for ( ; *pf; ++pf);
     }
+    else if (spec.mod_A && _RWSTD_LDBL_SIZE == spec.width) {
+        strcpy (pf, _RWSTD_LDBL_PRINTF_PREFIX);
+        for ( ; *pf; ++pf);
+    }
 
-    if (0 <= spec.width)
+    if (!spec.mod_A && 0 <= spec.width) {
         pf += sprintf (pf, "%i", spec.width);
+    }
 
     if (0 <= spec.prec)
         pf += sprintf (pf, ".%i", spec.prec);
@@ -1372,9 +1387,24 @@ rw_fmtfloating (const FmtSpec &spec,
 
     // this might make the buffer almost 5KB
     char buffer [_RWSTD_LDBL_MAX_10_EXP + _RWSTD_LDBL_DIG + 3];
-    int len;
+    int len = -1;
 
-    if (spec.mod_L)
+    if (spec.mod_A) {
+
+        if (_RWSTD_FLT_SIZE == spec.width) {
+            len = sprintf (buffer, fmt, *(const float*)pval);
+        }
+        else if (_RWSTD_DBL_SIZE == spec.width) {
+            len = sprintf (buffer, fmt, *(const double*)pval);
+        }
+        else if (_RWSTD_LDBL_SIZE == spec.width) {
+            len = sprintf (buffer, fmt, *(const long double*)pval);
+        }
+        else {
+            assert (!"unknown floating point size");
+        }
+    }
+    else if (spec.mod_L)
         len = sprintf (buffer, fmt, *(const long double*)pval);
     else
         len = sprintf (buffer, fmt, *(const double*)pval);
@@ -1396,7 +1426,7 @@ rw_fmtfloating (const FmtSpec &spec,
 #endif   // _MSC_VER
 
 
-    if (0 == rw_bufcat (pbuf, pbufsize, buffer, size_t (len)))
+    if (-1 < len && 0 == rw_bufcat (pbuf, pbufsize, buffer, size_t (len)))
         return -1;
 
     return len;
@@ -2069,8 +2099,11 @@ int rw_quotestr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
         return int (strlen (*pbuf) - buflen);
     }
 
-    if (_RWSTD_SIZE_MAX == nchars)
-        nchars = std::char_traits<charT>::length (wstr);
+    if (_RWSTD_SIZE_MAX == nchars) {
+        // compute the length of the NUL-terminate string
+        nchars = 0;
+        for (const charT *pc = wstr; *pc; ++pc, ++nchars);
+    }
 
     char *next = rw_bufcat (pbuf, pbufsize, 0, (nchars + 1) * 12 + 3);
     const char* const bufend = next;
@@ -2080,16 +2113,22 @@ int rw_quotestr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
 
     if (0 == nchars) {
         if (noesc) {
+
+#if 0   // width handling disabled (width used for array formatting)
             for (int w = 0; w < spec.width; ++w)
                 *next++ = ' ';
+#endif   // 0/1
+
         }
         else {
-            if (1 < sizeof (charT))
+            if (_RWSTD_WCHAR_T_SIZE == sizeof (charT))
                 *next++ = 'L';
 
             *next++ = '"';
+#if 0   // width handling disabled (width used for array formatting)
             for (int w = 0; w < spec.width; ++w)
-                *next++ = ' ';
+                 *next++ = ' ';
+#endif   // 0/1
             *next++ = '"';
         }
         *next++ = '\0';
@@ -2143,12 +2182,10 @@ int rw_quotestr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
 
             if (last_repeat < 0) {
                 // opening quote
-                if (1 == sizeof (charT))
-                    *s++ = '\"';
-                else {
+                if (_RWSTD_WCHAR_T_SIZE == sizeof (charT)) {
                     *s++ = 'L';
-                    *s++ = '\"';
                 }
+                *s++ = '\"';
             }
             else if (last_repeat > 0) {
                 *s++ = ',';
@@ -2658,16 +2695,7 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
     assert (0 != pva);
     assert (0 != pspec);
 
-    const unsigned cond_valid = pspec [paramno].cond;
-    const unsigned cond_true  = pspec [paramno].cond_true;
-
-    rw_fmtspec (pspec + paramno, true, fmt, pva);
-
     FmtSpec &spec = pspec [paramno];
-
-    // restore bits overwritten above
-    spec.cond      = cond_valid;
-    spec.cond_true = cond_true;
 
     // the length of the sequence appended to the buffer to return
     // to the caller, or a negative value (such as -1) on error
@@ -2712,8 +2740,41 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         }
         break;
 
-    case 'c':   // %{c}, %{Lc}, %{lc}
-        if (spec.mod_L) {   // locale category or LC_XXX constant
+    case 'c':   // %{c}, %{Ac}, %{Lc}, %{lc}
+        if (spec.mod_A) {
+            if (-1 == spec.width || 1 == spec.width) {
+                spec.param.ptr = PARAM (_RWSTD_UINT8_T*, ptr);
+                const _RWSTD_UINT8_T* const array =
+                    (_RWSTD_UINT8_T*)spec.param.ptr;
+                len = rw_quotestr (spec, pbuf, pbufsize, array,
+                                   _RWSTD_SIZE_MAX, 0);
+            }
+            else if (2 == spec.width) {
+                spec.param.ptr = PARAM (_RWSTD_UINT16_T*, ptr);
+                const _RWSTD_UINT16_T* const array =
+                    (_RWSTD_UINT16_T*)spec.param.ptr;
+                len = rw_quotestr (spec, pbuf, pbufsize, array,
+                                   _RWSTD_SIZE_MAX, 0);
+            }
+            else if (4 == spec.width) {
+                spec.param.ptr = PARAM (_RWSTD_UINT32_T*, ptr);
+                const _RWSTD_UINT32_T* const array =
+                    (_RWSTD_UINT32_T*)spec.param.ptr;
+                len = rw_quotestr (spec, pbuf, pbufsize, array,
+                                   _RWSTD_SIZE_MAX, 0);
+            }
+            else if (8 == spec.width) {
+                spec.param.ptr = PARAM (_RWSTD_UINT64_T*, ptr);
+                const _RWSTD_UINT64_T* const array =
+                    (_RWSTD_UINT64_T*)spec.param.ptr;
+                len = rw_quotestr (spec, pbuf, pbufsize, array,
+                                   _RWSTD_SIZE_MAX, 0);
+            }
+            else {
+                assert (!"%{Ac} not implemented for this character size");
+            }
+        }
+        else if (spec.mod_L) {   // locale category or LC_XXX constant
             spec.param.i = PARAM (int, i);
             len = rw_fmtlc (spec, pbuf, pbufsize, spec.param.i);
         }
@@ -2727,14 +2788,22 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         }
         break;
 
-    case 'e':   // %{e}
-        if (spec.mod_I) {   // ios::copyfmt_event
+    case 'e':   // %{e}, %{Ae}
+        if (spec.mod_A) {   // array of floating point values
+            spec.param.ptr = PARAM (void*, ptr);
+            len = rw_fmtfloating (spec, pbuf, pbufsize, spec.param.ptr);
+        }
+        else if (spec.mod_I) {   // ios::copyfmt_event
             spec.param.i = PARAM (int, i);
             len = rw_fmtevent (spec, pbuf, pbufsize, spec.param.i);
         }
         break;
 
-    case 'f':   // %{f}, %{If}
+    case 'f':   // %{f}, %{Af}, %{If}
+        if (spec.mod_A) {   // array of floating point values
+            spec.param.ptr = PARAM (void*, ptr);
+            len = rw_fmtfloating (spec, pbuf, pbufsize, spec.param.ptr);
+        }
         if (spec.mod_I) {   // ios::fmtflags
             spec.param.i = PARAM (int, i);
             len = rw_fmtflags (spec, pbuf, pbufsize, spec.param.i);
@@ -2744,6 +2813,15 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
             len = rw_fmtfunptr (spec, pbuf, pbufsize, spec.param.funptr);
         }
         break;
+
+    case 'g':   // %{g}, %{Ag}
+        if (spec.mod_A) {   // array of floating point values
+            spec.param.ptr = PARAM (void*, ptr);
+            len = rw_fmtfloating (spec, pbuf, pbufsize, spec.param.ptr);
+        }
+        else {
+            assert (!"%{g} not implemented");
+        }
 
     case 'd':   // %{Id}
     case 'i':   // %{Ii}
