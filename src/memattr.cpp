@@ -3,7 +3,7 @@
  * memattr.cpp - source for C++ Standard Library helper functions
  *               to determine the attributes of regions of memory
  *
- * $Id: //stdlib/dev/source/stdlib/memattr.cpp#6 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -25,6 +25,11 @@
 #include <errno.h>    // for errno
 #include <string.h>   // for memchr
 
+#ifdef __CYGWIN__
+   // use the Windows API on Cygwin
+#  define _WIN32
+#endif
+
 #if !defined (_WIN32) && !defined (_WIN64)
 #  ifdef __SUNPRO_CC
      // working around SunOS bug #568
@@ -33,6 +38,12 @@
 #  include <unistd.h>     // for sysconf
 #  include <sys/mman.h>   // for mincore
 #  include <sys/types.h>
+
+#  ifndef _SC_PAGE_SIZE
+     // fall back on the alternative
+#    define _SC_PAGE_SIZE _SC_PAGESIZE
+#  endif
+
 #else
 #  include <windows.h>    // for everything (ugh)
 #endif   // _WIN{32,64}
@@ -139,11 +150,15 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
     LPVOID const ptr = _RWSTD_CONST_CAST (LPVOID, addr);
 
     if (_RWSTD_SIZE_MAX == nbytes) {
+
+        // treat the address as a pointer to a NUL-terminated string
         if (IsBadStringPtr (_RWSTD_STATIC_CAST (LPCSTR, ptr), nbytes))
             return -1;
 
+        // compute the length of the string
         nbytes = strlen (_RWSTD_STATIC_CAST (const char*, addr));
 
+        // disable read checking below (since it was done above)
         attr &= ~_RWSTD_PROT_READ;
     }
 
