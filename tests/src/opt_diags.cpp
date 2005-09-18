@@ -6,28 +6,16 @@
  *
  ************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx, Inc. All Rights Reserved.
- * 
- * This computer software  is owned by Quovadx, Inc.  and is protected by
- * U.S.  copyright laws  and other  laws and  by  international treaties.
- * This computer  software is furnished  by Quovadx, Inc., pursuant  to a
- * written license  agreement and may  be used, copied,  transmitted, and
- * stored only in accordance with the terms of such license agreement and
- * with  the inclusion  of  the above  copyright  notice.  This  computer
- * software or any other copies  thereof may not be provided or otherwise
- * made available to any other person.
- * 
- * 
- * U.S. Government Restricted Rights.
- * 
- * This computer software: (a) was developed at private expense and is in
- * all respects the proprietary information of Quovadx, Inc.; (b) was not
- * developed with  government funds;  (c) is a  trade secret  of Quovadx,
- * Inc. for all purposes of the  Freedom of Information Act; and (d) is a
- * commercial item  and thus, pursuant  to Section 12.212 of  the Federal
- * Acquisition  Regulations (FAR) and  DFAR Supplement  Section 227.7202,
- * Government's use,  duplication or disclosure of  the computer software
- * is subject to the restrictions set forth by Quovadx, Inc.
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
  *
  **************************************************************************/
 
@@ -132,26 +120,28 @@ esc_text_t diag_msgs[] = {
 
 static const esc_text_t
 _rw_vt100_colors[] = {
-    { FG_BLK, "black" },
-    { FG_RED, "red" },
-    { FG_GRN, "green" },
-    { FG_YLW, "yellow" },
-    { FG_BLU, "blue" },
-    { FG_MAG, "magenta" },
-    { FG_CYN, "cyan" },
-    { FG_WHT, "white" } 
+    // prefix suffix   code       description
+    { FG_BLK, ESC_END, "black",   "" },
+    { FG_RED, ESC_END, "red",     "" },
+    { FG_GRN, ESC_END, "green",   "" },
+    { FG_YLW, ESC_END, "yellow",  "" },
+    { FG_BLU, ESC_END, "blue",    "" },
+    { FG_MAG, ESC_END, "magenta", "" },
+    { FG_CYN, ESC_END, "cyan",    "" },
+    { FG_WHT, ESC_END, "white",   "" } 
 };
 
 
 static const esc_text_t
 _rw_vt100_attribs[] = {
-    { AT_OFF, "off" },
-    { AT_BLD, "bold" },
-    { AT_DIM, "dim" },
-    { AT_UND, "underscore" },
-    { AT_BLI, "blink" },
-    { AT_RVS, "reverse" },
-    { AT_HID, "hidden" }
+    // prefix suffix   code          description
+    { AT_OFF, ESC_END, "off",        "" },
+    { AT_BLD, ESC_END, "bold",       "" },
+    { AT_DIM, ESC_END, "dim",        "" },
+    { AT_UND, ESC_END, "underscore", "" },
+    { AT_BLI, ESC_END, "blink",      "" },
+    { AT_RVS, ESC_END, "reverse",    "" },
+    { AT_HID, ESC_END, "hidden",     "" }
 };
 
 
@@ -194,7 +184,7 @@ _rw_setopt_diags (int argc, char *argv[])
             "\nThe syntax of <arg> is as follows:\n"
             "<arg>        ::= <color-list>\n"
             "<color-list> ::= <color-txt> [ ,<color-list> ]\n"
-            "<color-text> ::= <sev>:[<color>][:[<color>][:[<attr>][:[<text>]]]]"
+            "<color-txt>  ::= <sev>:[<color>][:[<color>][:[<attr>][:[<text>]]]]"
             "\n<sev>        ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9\n"
             "<color>      ::=   black | red | green | yellow\n"
             "                 | blue | magenta | cyan | white\n"
@@ -253,7 +243,7 @@ _rw_setopt_diags (int argc, char *argv[])
         else {
             // digit expected
             fprintf (stderr, "%s:%d: digit expected at position %d: %s\n",
-                 __FILE__, __LINE__, int (parg - argv [0]), argv [0]);
+                     __FILE__, __LINE__, int (parg - argv [0]), argv [0]);
 
             ret = 1;
             break;
@@ -265,7 +255,7 @@ _rw_setopt_diags (int argc, char *argv[])
         else {
             // colon expected
             fprintf (stderr, "%s:%d: colon expected at position %d: %s\n",
-                 __FILE__, __LINE__, int (parg - argv [0]), argv [0]);
+                     __FILE__, __LINE__, int (parg - argv [0]), argv [0]);
 
             ret = 1;
             break;
@@ -279,7 +269,7 @@ _rw_setopt_diags (int argc, char *argv[])
         if (fgcol < 0 || 8 < fgcol) {
             // invalid color
             fprintf (stderr, "%s:%d: unknown color at position %d: %s\n",
-                 __FILE__, __LINE__, int (parg - argv [0]), argv [0]);
+                     __FILE__, __LINE__, int (parg - argv [0]), argv [0]);
 
             ret = 1;
             break;
@@ -336,7 +326,7 @@ _rw_setopt_diags (int argc, char *argv[])
                                  __FILE__, __LINE__, int (parg - argv [0]),
                                  argv [0]);
 
-                        len = sizeof diag_msgs [sev].code;
+                        len = strlen (diag_msgs [sev].code);
                     }
 
                     memcpy (diag_code, parg, len);
@@ -347,10 +337,10 @@ _rw_setopt_diags (int argc, char *argv[])
 
         strcpy (diag_msgs [sev].esc_pfx, ESC "[");
 
-        if (fgcol < 8)
+        if (-1 < fgcol && fgcol < 8)
             strcat (diag_msgs [sev].esc_pfx, _rw_vt100_colors [fgcol].esc_pfx);
 
-        if (bgcol < 8) {
+        if (-1 < bgcol && bgcol < 8) {
             strcat (diag_msgs [sev].esc_pfx, _rw_vt100_colors [bgcol].esc_pfx);
 
             const size_t bgdiginx = strlen (diag_msgs [sev].esc_pfx) - 3;
@@ -359,7 +349,7 @@ _rw_setopt_diags (int argc, char *argv[])
             diag_msgs [sev].esc_pfx [bgdiginx] = '4';
         }
 
-        if (attr < 8)
+        if (-1 < attr && attr < 8)
             strcat (diag_msgs [sev].esc_pfx, _rw_vt100_attribs [attr].esc_pfx);
 
         if (diag_msgs [sev].esc_pfx [2]) {
