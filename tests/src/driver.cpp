@@ -340,17 +340,8 @@ static int driver_finished = 0;
 static char diag_pattern [80];
 #endif
 
-/// option: use of stdout disabled
-static int _rw_opt_no_stdout = 0;
-
-// option: verbose diagnostic output
-static int _rw_opt_verbose = 0;
-
 // option: use CSV format (comma separated values)
 static int _rw_opt_csv = 0;
-
-// option: use RWTest compatibility format
-static int _rw_opt_compat = 0;
 
 static char clause_id [80];
 
@@ -382,9 +373,81 @@ _rw_check_init (bool init, int line, const char *func)
 /************************************************************************/
 
 static int
-_rw_setopt_verbose (int argc, char *argv[])
+_rw_opt_brief (int argc, char *argv[])
 {
+    static int opt_brief;
+
+    if (0 == argc) {
+        // query mode: return the value of the option
+        return opt_brief;
+    }
+
     if (1 == argc && argv && 0 == argv [0]) {
+        // help mode: set argv[0] to the text of the help message
+
+        static const char helpstr[] = {
+            "Enables brief mode.\n"
+        };
+
+        argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
+
+        return 0;
+    }
+
+    // set mode: enable the option
+    opt_brief = 1;
+
+    return 0;
+}
+
+/************************************************************************/
+
+static int
+_rw_opt_quiet (int argc, char *argv[])
+{
+    static int opt_quiet;
+
+    if (0 == argc) {
+        // query mode: return the value of the option
+        return opt_quiet;
+    }
+
+    if (1 == argc && argv && 0 == argv [0]) {
+        // help mode: set argv[0] to the text of the help message
+
+        static const char helpstr[] = {
+            "Enables quiet mode.\n"
+            "In quiet mode only diagnostics with severity 7 and above are "
+            "issued."
+        };
+
+        argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
+
+        return 0;
+    }
+
+    // set mode: enable the option
+    _rw_diag_mask = ~((1 << 7) | (1 << 8) | (1 << 9));
+    opt_quiet     = 1;
+
+    return 0;
+}
+
+/************************************************************************/
+
+static int
+_rw_opt_verbose (int argc, char *argv[])
+{
+    static int opt_verbose;
+
+    if (0 == argc) {
+        // query mode: return the value of the option
+        return opt_verbose;
+    }
+
+    if (1 == argc && argv && 0 == argv [0]) {
+        // help mode: set argv[0] to the text of the help message
+
         static const char helpstr[] = {
             "Enables verbose mode.\n"
         };
@@ -394,7 +457,9 @@ _rw_setopt_verbose (int argc, char *argv[])
         return 0;
     }
 
-    _rw_opt_verbose = 1;
+    // set mode: enable the option
+    opt_verbose = 1;
+
     return 0;
 }
 
@@ -420,11 +485,20 @@ _rw_setopt_csv (int argc, char *argv[])
 /************************************************************************/
 
 static int
-_rw_setopt_compat (int argc, char *argv[])
+_rw_opt_compat (int argc, char *argv[])
 {
+    static int opt_compat;
+
+    if (0 == argc) {
+        // query mode: return the value of the option
+        return opt_compat;
+    }
+
     if (1 == argc && argv && 0 == argv [0]) {
+        // help mode: set argv[0] to the text of the help message
+
         static const char helpstr[] = {
-            "Enables RWTest compatiblity mode.\n"
+            "Enables RWTest-format compatibility mode.\n"
         };
 
         argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
@@ -432,16 +506,27 @@ _rw_setopt_compat (int argc, char *argv[])
         return 0;
     }
 
-    _rw_opt_compat = 1;
+    // set mode: enable the option
+    opt_compat = 1;
+
     return 0;
 }
 
 /************************************************************************/
 
 static int
-_rw_setopt_stdout (int argc, char *argv[])
+_rw_opt_no_stdout (int argc, char *argv[])
 {
+    static int opt_no_stdout;
+
+    if (0 == argc) {
+        // query mode: return the value of the option
+        return opt_no_stdout;
+    }
+
     if (1 == argc && argv && 0 == argv [0]) {
+        // help mode: set argv[0] to the text of the help message
+
         static const char helpstr[] = {
             "Prevents the program from using stdandard output for diagnostic\n"
             "messages. Instead, the driver will create a log file with a name\n"
@@ -457,7 +542,9 @@ _rw_setopt_stdout (int argc, char *argv[])
         return 0;
     }
     
-    _rw_opt_no_stdout = 1;
+    // set mode: enable the option
+    opt_no_stdout = 1;
+
     return 0;
 }
 
@@ -504,8 +591,33 @@ _rw_setopt_output_file (int argc, char *argv[])
     return !(ftestout != 0);
 }
 
+/************************************************************************/
+
 _TEST_EXPORT int
 rw_vsetopts (const char *opts, va_list va);
+
+/************************************************************************/
+
+static int
+_rw_use_color ()
+{
+#ifndef _RWSTD_NO_ISATTY
+
+    // is output sent to a terminal?
+    // if so, assume a vt100 compatible terminal for now
+    static const int tty = isatty (fileno (ftestout));
+
+#else   // if defined (_RWSTD_NO_ISATTY)
+
+    // FIXME: deal with a missing isatty() and Windows
+    static const int tty = 0;
+
+#endif   // _RWSTD_NO_ISATTY
+
+    return 0 != tty;
+}
+
+/************************************************************************/
 
 _TEST_EXPORT int
 rw_vtest (int argc, char **argv,
@@ -533,15 +645,19 @@ rw_vtest (int argc, char **argv,
                     "|-csv "
                     "|-compat "
                     "o|-output:"     // argument optional
+                    "b|-brief "
+                    "q|-quiet "
                     "v|-verbose",
-                    _rw_setopt_stdout,
+                    _rw_opt_no_stdout,
                     _rw_setopt_diags,
                     _rw_setopt_trace,
                     _rw_setopt_trace_mask,
                     _rw_setopt_csv,
-                    _rw_setopt_compat,
+                    _rw_opt_compat,
                     _rw_setopt_output_file,
-                    _rw_setopt_verbose,
+                    _rw_opt_brief,
+                    _rw_opt_quiet,
+                    _rw_opt_verbose,
                     0);
 
     if (3 > nopts) {
@@ -552,11 +668,11 @@ rw_vtest (int argc, char **argv,
 
 #ifndef _RWSTD_USE_CONFIG
 
-    // enable RWTest compatibility mode
-    _rw_setopt_compat (0, 0);
+    // enable RWTest-format compatibility mode
+    _rw_opt_compat (1, 0);
 
     // disable output to stdout
-    _rw_setopt_stdout (0, 0);
+    _rw_opt_no_stdout (1, 0);
 
 #endif   // _RWSTD_USE_CONFIG
 
@@ -571,7 +687,7 @@ rw_vtest (int argc, char **argv,
 
     if (0 == ftestout) {
 
-        if (_rw_opt_no_stdout && file_name) {
+        if (_rw_opt_no_stdout (0, 0) && file_name) {
             char fname [256];
 
             const char* const slash = strrchr (file_name, _RWSTD_PATH_SEP);
@@ -628,7 +744,7 @@ rw_vtest (int argc, char **argv,
 
     fprintf (ftestout,
              "# %s\n"
-             "# | DIAGNOSTIC            | ACTIVE |  TOTAL |   PASS |\n"
+             "# | DIAGNOSTIC            | ACTIVE |  TOTAL |INACTIVE|\n"
              "# %s\n",
              tblrow, tblrow);
 
@@ -648,10 +764,20 @@ rw_vtest (int argc, char **argv,
 
             const long pct = den ? num / den : 0;
 
+            const char* pfx = "";
+            const char* sfx = "";
+
+            static int use_color = _rw_use_color ();
+
+            if (use_color) {
+                pfx = ndiags [i][1] ? diag_msgs [i].esc_pfx : "";
+                sfx = ndiags [i][1] ? diag_msgs [i].esc_sfx : "";
+            }
+
             fprintf (ftestout,
-                     "# | (S%d) %-*s | %6d | %6d | %5ld%% |\n",
+                     "# | (S%d) %-*s |%s %6d %s| %6d | %5ld%% |\n",
                      i, int (sizeof diag_msgs [i].code), diag_msgs [i].code,
-                     ndiags [i][1], ndiags [i][0], pct);
+                     pfx, ndiags [i][1], sfx, ndiags [i][0], pct);
         }
     }
 
@@ -660,7 +786,7 @@ rw_vtest (int argc, char **argv,
 
     fprintf (ftestout, "# %s\n", tblrow);
 
-    if (_rw_opt_compat) {
+    if (_rw_opt_compat (0, 0)) {
 
         // TO DO: get rid of this
 
@@ -796,13 +922,151 @@ _rw_escape (char *buf, size_t bufsize, char esc)
 /************************************************************************/
 
 static void
+_rw_vissue_diag (diag_t diag, int severity, const char *file, int line,
+                 const char *fmt, va_list va)
+{
+    CHECK_INIT (true, "_rw_vissue_diag()");
+
+    if (0 == fmt)
+        fmt = "";
+
+    static char fmterr[] = "*** formatting error ***";
+
+    char *usrbuf = 0;
+    const int nchars = rw_vasnprintf (&usrbuf, 0, fmt, va);
+
+    if (nchars < 0 || 0 == usrbuf)
+        usrbuf = fmterr;
+
+    // compute the number of newline characters in the text
+    int nlines = 0;
+    for (const char *nl = usrbuf; (nl = strchr (nl, '\n')); ++nl)
+        ++nlines;
+
+    static const int use_color = _rw_use_color ();
+
+    const char* const diagstr[] = {
+        use_color ? diag_msgs [severity].esc_pfx : "",
+        *diag_msgs [severity].code ? diag_msgs [severity].code : "UNKNOWN",
+        use_color  ? diag_msgs [severity].esc_sfx : "",
+        _rw_opt_verbose (0, 0) && *diag_msgs [severity].desc ?
+        diag_msgs [severity].desc : 0
+    };
+
+    const char* const traced_diag =
+        0 == severity && diag_msgs [diag].code ? diag_msgs [diag].code : 0;
+
+    const char* const slash = file ? strrchr (file, _RWSTD_PATH_SEP) : 0;
+    if (slash)
+        file = slash + 1;
+
+    char *mybuf = 0;
+
+    if (_rw_opt_csv) {
+
+        // format all fields as comma separated values (CSV):
+        // -- a field containing the quote character, the comma,
+        //    or the newline or linefeed character must be enclosed
+        //    in a pair of double quotes
+        // -- every occurrence of the double quote character in a field
+        //    must be escaped by prepening another double quote character
+        //    to it
+
+        // escape all double quotes by prepending the double
+        // quote character to each according to the CSV format
+        char* const newbuf = _rw_escape (usrbuf, 0, '"');
+        if (newbuf != usrbuf) {
+            free (usrbuf);
+            usrbuf = newbuf;
+        }
+
+        mybuf =
+            rw_sprintfa ("%d, "                      // severity
+                         "\"%s%s"                    // diagnostic
+                         "%{?}_%s%{;}%s\", "         // traced diagnostic
+                         "\"%s\", "                  // clause
+                         "\"%s\", "                  // file
+                         "%d, "                      // line
+                         "\"%s\"",                   // user text
+                         severity,
+                         diagstr [0], diagstr [1],
+                         0 != traced_diag, traced_diag, diagstr [2],
+                         clause_id,
+                         0 != file ? file : "",
+                         line,
+                         usrbuf);
+    }
+    else {
+
+        nlines += 2 + ('\0' != *clause_id) + (0 != file) + (0 < line);
+
+        mybuf =
+            rw_sprintfa ("# %s"                      // escape prefix
+                         "%s"                        // diagnostic
+                         "%{?}_%s%{;}"               // traced diagnostic
+                         "%s "                       // escape suffix
+                         "(S%d)"                     // severity
+                         "%{?}, %s%{;} "             // description
+                         "(%d lines):\n"             // number of lines
+                         "# TEXT: %s\n"              // user text
+                         "%{?}# CLAUSE: %s\n%{;}"    // clause if not empty
+                         "%{?}# FILE: %s\n%{;}"      // file if not null
+                         "%{?}# LINE: %d\n%{;}",     // line if positive
+                         diagstr [0],
+                         diagstr [1],
+                         0 != traced_diag, traced_diag,
+                         diagstr [2],
+                         severity,
+                         0 != diagstr [3], diagstr [3],
+                         nlines,
+                         usrbuf,
+                         '\0' != *clause_id, clause_id,
+                         0 != file, file,
+                         0 < line, line);
+    }
+#if 0   // disabled
+    else {
+
+        mybuf =
+            rw_sprintfa ("# %s%s"                 // diagnostic
+                         "%{?}_%s%{;}%s "         // traced diagnostic
+                         "(S%d): "                // severity
+                         "%{?}[%s] %{;}"          // clause if not empty
+                         "%{?}(%d lines): %{;}"   // number of lines if > 1
+                         "%{?}%s:"                // if (file) then file
+                         "%{?}%d:%{;} "           //   if (0 < line) line
+                         "%{:}"                   // else
+                         "%{?}line %d: %{;}"      //   if (0 < line) line
+                         "%{;}"                   // endif
+                         "%s",                    // user text
+                         diagstr [0], diagstr [1],
+                         0 != traced_diag, traced_diag, diagstr [2],
+                         severity,
+                         '\0' != *clause_id, clause_id,
+                         1 < nlines, nlines,
+                         0 != file, file,
+                         0 < line, line,
+                         0 < line, line,
+                         usrbuf);
+    }
+#endif   // 0/1
+
+    fprintf (ftestout, "%s\n", mybuf);
+
+    if (mybuf != fmterr)
+        free (mybuf);
+
+    if (usrbuf != fmterr)
+        free (usrbuf);
+}
+
+/************************************************************************/
+
+static void
 _rw_vdiag (diag_t diag, int severity, const char *file, int line,
            const char *fmt, va_list va)
 {
     CHECK_INIT (true, "_rw_vdiag()");
-
-    if (0 == fmt)
-        fmt = "";
 
     // check if the diagnostic is expected
     const int expected = 0 != _rw_expected (line);
@@ -845,149 +1109,11 @@ _rw_vdiag (diag_t diag, int severity, const char *file, int line,
         ++ndiags [diag][1];
     }
 
-    if (0 == ((1 << severity) & _rw_diag_mask)) {
+    const int sevbit = (1 << severity);
 
-        assert (0 != fmt);
-
-        static char fmterr[] = "*** formatting error ***";
-
-        char *usrbuf = 0;
-        const int nchars = rw_vasnprintf (&usrbuf, 0, fmt, va);
-
-        if (nchars < 0 || 0 == usrbuf)
-            usrbuf = fmterr;
-
-        // compute the number of newline characters in the text
-        int nlines = 0;
-        for (const char *nl = usrbuf; (nl = strchr (nl, '\n')); ++nl)
-            ++nlines;
-
-#ifndef _RWSTD_NO_ISATTY
-
-        // is output sent to a terminal?
-        // if so, assume a vt100 compatible terminal for now
-        static const int tty = isatty (fileno (ftestout));
-
-#else   // if defined (_RWSTD_NO_ISATTY)
-
-        // FIXME: deal with a missing isatty() and Windows
-        static const int tty = 0;
-
-#endif   // _RWSTD_NO_ISATTY
-
-        const char* const diagstr[] = {
-            tty ? diag_msgs [severity].esc_pfx : "",
-            *diag_msgs [severity].code ? diag_msgs [severity].code : "UNKNOWN",
-            tty ? diag_msgs [severity].esc_sfx : "",
-            _rw_opt_verbose && *diag_msgs [severity].desc ?
-            diag_msgs [severity].desc : 0
-        };
-
-        const char* const traced_diag =
-            0 == severity && diag_msgs [diag].code ? diag_msgs [diag].code : 0;
-
-        const char* const slash = file ? strrchr (file, _RWSTD_PATH_SEP) : 0;
-        if (slash)
-            file = slash + 1;
-
-        char *mybuf = 0;
-
-        if (_rw_opt_csv) {
-
-            // format all fields as comma separated values (CSV):
-            // -- a field containing the quote character, the comma,
-            //    or the newline or linefeed character must be enclosed
-            //    in a pair of double quotes
-            // -- every occurrence of the double quote character in a field
-            //    must be escaped by prepening another double quote character
-            //    to it
-
-            // escape all double quotes by prepending the double
-            // quote character to each according to the CSV format
-            char* const newbuf = _rw_escape (usrbuf, 0, '"');
-            if (newbuf != usrbuf) {
-                free (usrbuf);
-                usrbuf = newbuf;
-            }
-
-            mybuf =
-                rw_sprintfa ("%d, "                      // severity
-                             "\"%s%s"                    // diagnostic
-                             "%{?}_%s%{;}%s\", "         // traced diagnostic
-                             "\"%s\", "                  // clause
-                             "\"%s\", "                  // file
-                             "%d, "                      // line
-                             "\"%s\"",                   // user text
-                             severity,
-                             diagstr [0], diagstr [1],
-                             0 != traced_diag, traced_diag, diagstr [2],
-                             clause_id,
-                             0 != file ? file : "",
-                             line,
-                             usrbuf);
-        }
-        else {
-
-            nlines += 2 + ('\0' != *clause_id) + (0 != file) + (0 < line);
-
-            mybuf =
-                rw_sprintfa ("# %s"                      // escape prefix
-                             "%s"                        // diagnostic
-                             "%{?}_%s%{;}"               // traced diagnostic
-                             "%s "                       // escape suffix
-                             "(S%d)"                     // severity
-                             "%{?}, %s%{;} "             // description
-                             "(%d lines):\n"             // number of lines
-                             "# TEXT: %s\n"              // user text
-                             "%{?}# CLAUSE: %s\n%{;}"    // clause if not empty
-                             "%{?}# FILE: %s\n%{;}"      // file if not null
-                             "%{?}# LINE: %d\n%{;}",     // line if positive
-                             diagstr [0],
-                             diagstr [1],
-                             0 != traced_diag, traced_diag,
-                             diagstr [2],
-                             severity,
-                             0 != diagstr [3], diagstr [3],
-                             nlines,
-                             usrbuf,
-                             '\0' != *clause_id, clause_id,
-                             0 != file, file,
-                             0 < line, line);
-        }
-#if 0
-        else {
-
-            mybuf =
-                rw_sprintfa ("# %s%s"                 // diagnostic
-                             "%{?}_%s%{;}%s "         // traced diagnostic
-                             "(S%d): "                // severity
-                             "%{?}[%s] %{;}"          // clause if not empty
-                             "%{?}(%d lines): %{;}"   // number of lines if > 1
-                             "%{?}%s:"                // if (file) then file
-                             "%{?}%d:%{;} "           //   if (0 < line) line
-                             "%{:}"                   // else
-                             "%{?}line %d: %{;}"      //   if (0 < line) line
-                             "%{;}"                   // endif
-                             "%s",                    // user text
-                             diagstr [0], diagstr [1],
-                             0 != traced_diag, traced_diag, diagstr [2],
-                             severity,
-                             '\0' != *clause_id, clause_id,
-                             1 < nlines, nlines,
-                             0 != file, file,
-                             0 < line, line,
-                             0 < line, line,
-                             usrbuf);
-        }
-#endif   // 0/1
-
-        fprintf (ftestout, "%s\n", mybuf);
-
-        if (mybuf != fmterr)
-            free (mybuf);
-
-        if (usrbuf != fmterr)
-            free (usrbuf);
+    if (0 == (sevbit & _rw_diag_mask)) {
+        // issue the diagnostic
+        _rw_vissue_diag (diag, severity, file, line, fmt, va);
     }
 
     if (diag_fatal == diag && severity) {
