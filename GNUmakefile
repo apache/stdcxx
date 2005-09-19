@@ -393,6 +393,12 @@ ifeq ($(in_topdir),1)
     LD = $(CXX)
   endif
 
+  ifeq ($(AS_EXT),)
+    # assume the .S extension for assembly files by default,
+    # unless specified otherwise in the config file
+    AS_EXT = ".S"
+  endif
+
   # debug/optimized
   ifeq ($(findstring debug,$(BUILDMODE)),debug)
     CXXFLAGS += $(DEBUG_CXXFLAGS)
@@ -556,6 +562,7 @@ $(MAKEFILE_IN): $(configpath)
           && echo "CPPFLAGS   = $(CPPFLAGS)"             >> $(MAKEFILE_IN)  \
           && echo "WARNFLAGS  = $(WARNFLAGS)"            >> $(MAKEFILE_IN)  \
           && echo "DEPENDFLAGS = $(DEPENDFLAGS)"         >> $(MAKEFILE_IN)  \
+          && echo "AS_EXT     = $(AS_EXT)"               >> $(MAKEFILE_IN)  \
           && echo "LD         = $(LD)"                   >> $(MAKEFILE_IN)  \
           && echo "LDFLAGS    = $(LDFLAGS)"              >> $(MAKEFILE_IN)  \
           && echo "LDLIBS     = $(LDLIBS)"               >> $(MAKEFILE_IN)  \

@@ -21,29 +21,25 @@
 
 
 #if defined (__i386__)
-#  include "atomic-i86.s"
+#  include "i86/atomic.s"
 #endif
 
-#if defined (__ia64) || defined (__ia64__)
-#  if defined (_LP64) || defined (__LP64__)
-#    include "atomic-ia64.s"
-#  else
-#    include "atomic-ia64-32.s"
-#  endif
+#if defined (__ia64)
+#  include "ia64/atomic.s"
 #endif
 
 #if defined (__parisc)
 #  if defined (__LP64__)
-#    include "atomic-pa2-64.s"
+#    include "parisc/atomic-64.s"
 #  else
-#    include "atomic-pa2.s"
+#    include "parisc/atomic.s"
 #  endif
 #endif 
 
 #if defined (__sparc)
 #  if defined (__sparcv9)
-#    include "atomic-sparc64.s"
+#    include "sparc/atomic-64.s"
 #  else
-#    include "atomic-sparc.s"
+#    include "sparc/atomic.s"
 #  endif
 #endif 

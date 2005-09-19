@@ -1,6 +1,6 @@
 /*****************************************************************************
  *
- * $Id: //stdlib/dev/source/stdlib/atomic-pa2.s#10 $
+ * $Id$
  *
  * Routines for atomic increment and decrement of int32_t values
  *
