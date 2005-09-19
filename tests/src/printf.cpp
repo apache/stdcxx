@@ -21,14 +21,14 @@
 
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
-
 #include <printf.h>
 
-#include <assert.h>
-#include <errno.h>
-#include <float.h>
+#include <assert.h>   // for assert
+#include <errno.h>    // for errno, errno constants
+#include <float.h>    // for floating point macros
 #include <locale.h>
-#include <stdarg.h>
+#include <signal.h>   // for signal constant
+#include <stdarg.h>   // for va_list, va_start, ...
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,6 +109,9 @@ rw_fmtevent (const FmtSpec&, char**, size_t*, int);
 
 static int
 rw_fmtmonpat (const FmtSpec&, char**, size_t*, const char [4]);
+
+static int
+rw_fmtsignal (const FmtSpec&, char**, size_t*, int);
 
 /********************************************************************/
 
@@ -693,6 +696,9 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
     // save the initial value of `pbuf'
     char* const pbuf_save = *pbuf;
+
+    if (*pbuf)
+        **pbuf = '\0';
 
     // local buffer for a small number of conversion specifiers
     // will grow dynamically if their number exceeds its capacity
@@ -1987,6 +1993,206 @@ rw_fmterrno (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
 
 /********************************************************************/
 
+static int
+rw_fmtsignal (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
+{
+    static const struct {
+        int         val;
+        const char* str;
+    } names[] = {
+
+#undef SIGNAL
+#define SIGNAL(val)   { val, #val }
+
+#ifdef SIGABRT
+        SIGNAL (SIGABRT),
+#endif   // SIGABRT
+#ifdef SIGALRM
+        SIGNAL (SIGALRM),
+#endif   // SIGALRM
+#ifdef SIGBUS
+        SIGNAL (SIGBUS),
+#endif   // SIGBUS
+#ifdef SIGCANCEL
+        SIGNAL (SIGCANCEL),
+#endif   // SIGCANCEL
+#ifdef SIGCHLD
+        SIGNAL (SIGCHLD),
+#endif   // SIGCHLD
+#ifdef SIGCKPT
+        SIGNAL (SIGCKPT),
+#endif   // SIGCKPT
+#ifdef SIGCLD
+        SIGNAL (SIGCLD),
+#endif   // SIGCLD
+#ifdef SIGCONT
+        SIGNAL (SIGCONT),
+#endif   // SIGCONT
+#ifdef SIGDIL
+        SIGNAL (SIGDIL),
+#endif   // SIGDIL
+#ifdef SIGEMT
+        SIGNAL (SIGEMT),
+#endif   // SIGEMT
+#ifdef SIGFPE
+        SIGNAL (SIGFPE),
+#endif   // SIGFPE
+#ifdef SIGFREEZE
+        SIGNAL (SIGFREEZE),
+#endif   // SIGFREEZE
+#ifdef SIGGFAULT
+        SIGNAL (SIGGFAULT),
+#endif   // SIGGFAULT
+#ifdef SIGHUP
+        SIGNAL (SIGHUP),
+#endif   // SIGHUP
+#ifdef SIGILL
+        SIGNAL (SIGILL),
+#endif   // SIGILL
+#ifdef SIGINFO
+        SIGNAL (SIGINFO),
+#endif   // SIGINFO
+#ifdef SIGINT
+        SIGNAL (SIGINT),
+#endif   // SIGINT
+#ifdef SIGIO
+        SIGNAL (SIGIO),
+#endif   // SIGIO
+#ifdef SIGIOT
+        SIGNAL (SIGIOT),
+#endif   // SIGIOT
+#ifdef SIGK32
+        SIGNAL (SIGK32),
+#endif   // SIGK32
+#ifdef SIGKILL
+        SIGNAL (SIGKILL),
+#endif   // SIGKILL
+#ifdef SIGLOST
+        SIGNAL (SIGLOST),
+#endif   // SIGLOST
+#ifdef SIGLWP
+        SIGNAL (SIGLWP),
+#endif   // SIGLWP
+#ifdef SIGPIPE
+        SIGNAL (SIGPIPE),
+#endif   // SIGPIPE
+#ifdef SIGPOLL
+        SIGNAL (SIGPOLL),
+#endif   // SIGPOLL
+#ifdef SIGPROF
+        SIGNAL (SIGPROF),
+#endif   // SIGPROF
+#ifdef SIGPTINTR
+        SIGNAL (SIGPTINTR),
+#endif   // SIGPTINTR
+#ifdef SIGPTRESCHED
+        SIGNAL (SIGPTRESCHED),
+#endif   // SIGPTRESCHED
+#ifdef SIGPWR
+        SIGNAL (SIGPWR),
+#endif   // SIGPWR
+#ifdef SIGQUIT
+        SIGNAL (SIGQUIT),
+#endif   // SIGQUIT
+#ifdef SIGRESTART
+        SIGNAL (SIGRESTART),
+#endif   // SIGRESTART
+#ifdef SIGRESV
+        SIGNAL (SIGRESV),
+#endif   // SIGRESV
+#ifdef SIGSEGV
+        SIGNAL (SIGSEGV),
+#endif   // SIGSEGV
+#ifdef SIGSTKFLT
+        SIGNAL (SIGSTKFLT),
+#endif   // SIGSTKFLT
+#ifdef SIGSTOP
+        SIGNAL (SIGSTOP),
+#endif   // SIGSTOP
+#ifdef SIGSYS
+        SIGNAL (SIGSYS),
+#endif   // SIGSYS
+#ifdef SIGTERM
+        SIGNAL (SIGTERM),
+#endif   // SIGTERM
+#ifdef SIGTHAW
+        SIGNAL (SIGTHAW),
+#endif   // SIGTHAW
+#ifdef SIGTRAP
+        SIGNAL (SIGTRAP),
+#endif   // SIGTRAP
+#ifdef SIGTSTP
+        SIGNAL (SIGTSTP),
+#endif   // SIGTSTP
+#ifdef SIGTTIN
+        SIGNAL (SIGTTIN),
+#endif   // SIGTTIN
+#ifdef SIGTTOU
+        SIGNAL (SIGTTOU),
+#endif   // SIGTTOU
+#ifdef SIGUNUSED
+        SIGNAL (SIGUNUSED),
+#endif   // SIGUNUSED
+#ifdef SIGURG
+        SIGNAL (SIGURG),
+#endif   // SIGURG
+#ifdef SIGUSR1
+        SIGNAL (SIGUSR1),
+#endif   // SIGUSR1
+#ifdef SIGUSR2
+        SIGNAL (SIGUSR2),
+#endif   // SIGUSR2
+#ifdef SIGVTALRM
+        SIGNAL (SIGVTALRM),
+#endif   // SIGVTALRM
+#ifdef SIGWAITING
+        SIGNAL (SIGWAITING),
+#endif   // SIGWAITING
+#ifdef SIGWINCH
+        SIGNAL (SIGWINCH),
+#endif   // SIGWINCH
+#ifdef SIGWINDOW
+        SIGNAL (SIGWINDOW),
+#endif   // SIGWINDOW
+#ifdef SIGXCPU
+        SIGNAL (SIGXCPU),
+#endif   // SIGXCPU
+#ifdef SIGXFSZ
+        SIGNAL (SIGXFSZ),
+#endif   // SIGXFSZ
+#ifdef SIGXRES
+        SIGNAL (SIGXRES),
+#endif   // SIGXRES
+        { -1, 0 }
+    };
+
+    char buffer [64];
+    const char *name = 0;
+
+    for (size_t i = 0; i != sizeof names / sizeof *names; ++i) {
+        if (names [i].val == val) {
+            name = names [i].str;
+            break;
+        }
+    }
+
+    int len;
+
+    if (0 == name) {
+        len = sprintf (buffer, "SIG#%d", val);
+        name = buffer;
+    }
+    else
+        len = int (strlen (name));
+
+    if (0 == rw_bufcat (pbuf, pbufsize, name, size_t (len)))
+        return -1;
+
+    return len;
+}
+
+/********************************************************************/
+
 template <class charT>
 int rw_quotechar (char *buf, charT wc, int noesc)
 {
@@ -2833,6 +3039,10 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         len = rw_fmtinteger (pspec, paramno, pbuf, pbufsize, pva);
         break;
 
+    case 'K':   // %{K} -- signal
+        spec.param.i = PARAM (int, i);
+        len = rw_fmtsignal (spec, pbuf, pbufsize, spec.param.i);
+        break;
 
     case 'm':   // %{m} -- errno
         len = rw_fmterrno (spec, pbuf, pbufsize, errno);
@@ -2983,7 +3193,7 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
 /********************************************************************/
 
 _TEST_EXPORT int
-rw_ansprintf (char **pbuf, size_t *pbufsize, const char *fmt, ...)
+rw_asnprintf (char **pbuf, size_t *pbufsize, const char *fmt, ...)
 {
     assert (0 == pbuf || 0 == *pbuf || pbufsize);
 
