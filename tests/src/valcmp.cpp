@@ -28,12 +28,13 @@
 #include <stdlib.h>   // for abort
 #include <string.h>   // for memcmp
 
+/**************************************************************************/
 
 typedef unsigned char UChar;
 
 
 static const UChar
-rw_upper [] = {
+_rw_upper [] = {
 
 #if 'A' == 0x41
 
@@ -114,7 +115,7 @@ rw_upper [] = {
 
 // returns 1 iff all size bytes of the object pointed to by buf are 0
 static int
-rw_iszero (const void *buf, _RWSTD_SIZE_T size)
+_rw_iszero (const void *buf, _RWSTD_SIZE_T size)
 {
     for (_RWSTD_SIZE_T i = 0; i != size; ++i)
         if (_RWSTD_STATIC_CAST (const UChar*, buf)[i])
@@ -126,16 +127,16 @@ rw_iszero (const void *buf, _RWSTD_SIZE_T size)
 
 // compares two objects of equal size
 static int
-rw_cmpx (const void *buf1,
-         const void *buf2,
-         _RWSTD_SIZE_T nelems,
-         _RWSTD_SIZE_T size,
-         int           flags = 0)
+_rw_cmpx (const void *buf1,
+          const void *buf2,
+          _RWSTD_SIZE_T nelems,
+          _RWSTD_SIZE_T size,
+          int           flags = 0)
 {
     const UChar *p1 = _RWSTD_STATIC_CAST (const UChar*, buf1);
     const UChar *p2 = _RWSTD_STATIC_CAST (const UChar*, buf2);
 
-    int ret;
+    int ret = 0;
 
     for ( ; nelems; p1 += size, p2 += size, --nelems) {
 
@@ -143,8 +144,8 @@ rw_cmpx (const void *buf1,
 
         if (flags & CMP_NULTERM) {
 
-            const int zero1 = rw_iszero (p1, size);
-            const int zero2 = rw_iszero (p2, size);
+            const int zero1 = _rw_iszero (p1, size);
+            const int zero2 = _rw_iszero (p2, size);
 
             if (zero1 || zero2) {
                 ret = zero1 - zero2;
@@ -175,10 +176,10 @@ rw_cmpx (const void *buf1,
 
 // compares two byte arrays
 static int
-rw_cmp1 (const void *buf1,
-         const void *buf2,
-         _RWSTD_SIZE_T nelems,
-         int           flags = 0)
+_rw_cmp1 (const void *buf1,
+          const void *buf2,
+          _RWSTD_SIZE_T nelems,
+          int           flags = 0)
 {
 #ifdef _RWSTD_UINT8_T
 
@@ -223,8 +224,8 @@ rw_cmp1 (const void *buf1,
 
         if (ui1 != ui2) {
             if (flags & CMP_NOCASE) {
-                if (rw_upper [ui1] != rw_upper [ui2]) {
-                    ret = rw_upper [ui1] < rw_upper [ui2] ? -1 : +1;
+                if (_rw_upper [ui1] != _rw_upper [ui2]) {
+                    ret = _rw_upper [ui1] < _rw_upper [ui2] ? -1 : +1;
                     break;
                 }
             }
@@ -250,10 +251,10 @@ rw_cmp1 (const void *buf1,
 
 // compares two arrays of objects each 16 bits in size
 static int
-rw_cmp2 (const void *buf1,
-         const void *buf2,
-         _RWSTD_SIZE_T nelems,
-         int           flags = 0)
+_rw_cmp2 (const void *buf1,
+          const void *buf2,
+          _RWSTD_SIZE_T nelems,
+          int           flags = 0)
 {
 #ifdef _RWSTD_UINT16_T
 
@@ -289,8 +290,8 @@ rw_cmp2 (const void *buf1,
                     ret = ui1 < ui2 ? -1 : +1;
                     break;
                 }
-                else if (rw_upper [ui1] != rw_upper [ui2]) {
-                    ret = rw_upper [ui1] < rw_upper [ui2] ? -1 : +1;
+                else if (_rw_upper [ui1] != _rw_upper [ui2]) {
+                    ret = _rw_upper [ui1] < _rw_upper [ui2] ? -1 : +1;
                     break;
                 }
             }
@@ -309,7 +310,7 @@ rw_cmp2 (const void *buf1,
 
 #else   // if !defined (_RWSTD_UINT16_T)
 
-    return rw_cmpx (buf1, buf2, nelems, 2, flags);
+    return _rw_cmpx (buf1, buf2, nelems, 2, flags);
 
 #endif   // _RWSTD_UINT16_T
 }
@@ -317,10 +318,10 @@ rw_cmp2 (const void *buf1,
 
 // compares two arrays of objects each 32 bits in size
 static int
-rw_cmp4 (const void *buf1,
-         const void *buf2,
-         _RWSTD_SIZE_T nelems,
-         int           flags = 0)
+_rw_cmp4 (const void *buf1,
+          const void *buf2,
+          _RWSTD_SIZE_T nelems,
+          int           flags = 0)
 {
 #ifdef _RWSTD_UINT32_T
 
@@ -356,8 +357,8 @@ rw_cmp4 (const void *buf1,
                     ret = ui1 < ui2 ? -1 : +1;
                     break;
                 }
-                else if (rw_upper [ui1] != rw_upper [ui2]) {
-                    ret = rw_upper [ui1] < rw_upper [ui2] ? -1 : +1;
+                else if (_rw_upper [ui1] != _rw_upper [ui2]) {
+                    ret = _rw_upper [ui1] < _rw_upper [ui2] ? -1 : +1;
                     break;
                 }
             }
@@ -376,7 +377,7 @@ rw_cmp4 (const void *buf1,
 
 #else   // if !defined (_RWSTD_UINT32_T)
 
-    return rw_cmpx (buf1, buf2, nelems, 4, flags);
+    return _rw_cmpx (buf1, buf2, nelems, 4, flags);
 
 #endif   // _RWSTD_UINT32_T
 }
@@ -384,10 +385,10 @@ rw_cmp4 (const void *buf1,
 
 // compares two arrays of objects each 64 bits in size
 static int
-rw_cmp8 (const void *buf1,
-         const void *buf2,
-         _RWSTD_SIZE_T nelems,
-         int           flags = 0)
+_rw_cmp8 (const void *buf1,
+          const void *buf2,
+          _RWSTD_SIZE_T nelems,
+          int           flags = 0)
 {
 #ifdef _RWSTD_UINT64_T
 
@@ -423,8 +424,8 @@ rw_cmp8 (const void *buf1,
                     ret = ui1 < ui2 ? -1 : +1;
                     break;
                 }
-                else if (rw_upper [ui1] != rw_upper [ui2]) {
-                    ret = rw_upper [ui1] < rw_upper [ui2] ? -1 : +1;
+                else if (_rw_upper [ui1] != _rw_upper [ui2]) {
+                    ret = _rw_upper [ui1] < _rw_upper [ui2] ? -1 : +1;
                     break;
                 }
             }
@@ -443,7 +444,7 @@ rw_cmp8 (const void *buf1,
 
 #else   // if !defined (_RWSTD_UINT64_T)
 
-    return rw_cmpx (buf1, buf2, nelems, 8, flags);
+    return _rw_cmpx (buf1, buf2, nelems, 8, flags);
 
 #endif   // _RWSTD_UINT64_T
 }
@@ -451,12 +452,12 @@ rw_cmp8 (const void *buf1,
 
 // compares two arrays of objects of unequal size
 static int
-rw_cmpxx (const void*   buf1,
-          const void*   buf2,
-          _RWSTD_SIZE_T nelems,
-          _RWSTD_SIZE_T size1,
-          _RWSTD_SIZE_T size2,
-          int           flags)
+_rw_cmpxx (const void*   buf1,
+           const void*   buf2,
+           _RWSTD_SIZE_T nelems,
+           _RWSTD_SIZE_T size1,
+           _RWSTD_SIZE_T size2,
+           int           flags)
 {
     int ret = 0;
     int inx = 0;
@@ -528,7 +529,8 @@ rw_cmpxx (const void*   buf1,
         default:
             fprintf (stderr,
                      "%s:%d: comparison of objects %u and %u bytes in size "
-                     "not implemented\n", __FILE__, __LINE__, size1, size2);
+                     "not implemented\n", __FILE__, __LINE__,
+                     unsigned (size1), unsigned (size2));
             abort ();
         }
 
@@ -585,7 +587,8 @@ rw_cmpxx (const void*   buf1,
         default:
             fprintf (stderr,
                      "%s:%d: comparison of objects %u and %u bytes in size "
-                     "not implemented\n", __FILE__, __LINE__, size1, size2);
+                     "not implemented\n", __FILE__, __LINE__,
+                     unsigned (size1), unsigned (size2));
             abort ();
         }
 
@@ -608,8 +611,8 @@ rw_cmpxx (const void*   buf1,
                     ret = ui1 < ui2 ? -1 : +1;
                     break;
                 }
-                else if (rw_upper [ui1] != rw_upper [ui2]) {
-                    ret = rw_upper [ui1] < rw_upper [ui2] ? -1 : +1;
+                else if (_rw_upper [ui1] != _rw_upper [ui2]) {
+                    ret = _rw_upper [ui1] < _rw_upper [ui2] ? -1 : +1;
                     break;
                 }
             }
@@ -639,16 +642,16 @@ rw_valcmp (const void*   buf1,
     if (size1 == size2) {
 
         switch (size1) {
-        case 1: return rw_cmp1 (buf1, buf2, nelems, flags);
-        case 2: return rw_cmp2 (buf1, buf2, nelems, flags);
-        case 4: return rw_cmp4 (buf1, buf2, nelems, flags);
-        case 8: return rw_cmp8 (buf1, buf2, nelems, flags);
+        case 1: return _rw_cmp1 (buf1, buf2, nelems, flags);
+        case 2: return _rw_cmp2 (buf1, buf2, nelems, flags);
+        case 4: return _rw_cmp4 (buf1, buf2, nelems, flags);
+        case 8: return _rw_cmp8 (buf1, buf2, nelems, flags);
         }
 
-        return rw_cmpx (buf1, buf2, nelems, size1, flags);
+        return _rw_cmpx (buf1, buf2, nelems, size1, flags);
     }
 
-    return rw_cmpxx (buf1, buf2, nelems, size1, size2, flags);
+    return _rw_cmpxx (buf1, buf2, nelems, size1, size2, flags);
 }
 
 
@@ -720,6 +723,9 @@ rw_fltcmp (float x, float y)
 #  error no integral type of the same size as float exists
 #endif
 
+    if (x == y)
+        return 0;
+
     // make both arguments lexicographically ordered as twos-complement ints
     IntT x_int = *(IntT*)&x;
     if (x_int < 0)
@@ -752,6 +758,9 @@ rw_dblcmp (double x, double y)
 #  error no integral type of the same size as double exists
 #endif
 
+    if (x == y)
+        return 0;
+
     IntT x_int = *(IntT*)&x;
     if (x_int < 0)
         x_int = imin - x_int;
@@ -774,8 +783,11 @@ rw_ldblcmp (long double x, long double y)
     if (sizeof (long double) == sizeof (double))
         return rw_dblcmp (double (x), double (y));
 
-    // FIXME: implement reliable comparison for 128-bit long doubles
-    return rw_dblcmp (double (x), double (y));
+    if (x == y)
+        return 0;
+
+    // FIXME: use integer math as in the functions above
+    return memcmp (&x, &y, sizeof x);
 }
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
