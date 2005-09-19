@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //stdlib/dev/etc/stdlib/config/src/libc_decl.sh#38 $
+# $Id$
 #
 ##############################################################################
 #
@@ -19,6 +19,16 @@
 
 output=/dev/tty
 logfile=/dev/tty
+
+OSNAME=`uname -s`
+
+if [ $OSNAME = "SunOS" -a -x /usr/xpg4/bin/basename ]; then
+    # use the POSIX basename rather than the one in /usr/bin
+    # to avoid interpreting the suffix in a special way
+    basename=/usr/xpg4/bin/basename
+else
+    basename=basename
+fi
 
 [ ! -d "$TMPDIR" ] && TMPDIR=/tmp
 
@@ -66,7 +76,6 @@ LDFLAGS="$LDFLAGS $LDLIBS"
 
 capitalize='sed y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'
 
-
 ##############################################################################
 # determine whether each header exists and its full pathname
 
@@ -74,7 +83,7 @@ no_new_headers=0
 
 for h in $hdrs ; do
 
-    hdr_base=`basename $h .h`
+    hdr_base=`${basename} $h \.h`
     hdr=$h
 
     if [ "$hdr_base" = "$h" ] ; then
