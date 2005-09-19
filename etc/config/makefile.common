@@ -22,8 +22,7 @@ INCLUDES     = -I$(BUILDDIR)/include -I$(TOPDIR)/include
 ifeq ($(ONE_REPOSITORY),)
 
   # traverse all subdirectories and get the names of all regular files
-  # avoiding any hidden subdirectories
-  ALL_FILES = $(shell $(FIND) $(SRCDIRS) -type f -o -name ".*" -prune)
+  ALL_FILES = $(shell $(FIND) $(SRCDIRS) -type f -print)
 
   ifneq ($(CXX_REPOSITORY),)
 
@@ -74,31 +73,13 @@ else   # ifneq ($(ONE_REPOSITORY),)
   # ignore subdirectories when building a library
   ALL_FILES := $(shell echo $(SRCDIRS)/*.cpp)
 
-  # do not use assembly source files containing atomic ops
-  # with EDG's eccp or with AIX xlC
-  ifneq ($(CXX),eccp)
-    ifeq ($(findstring xlC,$(CXX)),)
-
-      ifeq ($(CXX),aCC)
-        # with HP aCC use atomic.s instead of atomic.S
-        ATOMIC_S += $(shell echo $(SRCDIRS)/atomic.s)
-        AS_EXT    = s
-      else
-        # testing for platform is not the best solution here
-        # but it will have to do
-        ifeq (IRIX64,$(findstring IRIX64,$(PLATFORM)))
-          ATOMIC_S += $(shell echo $(SRCDIRS)/atomic.s)
-          AS_EXT    = s
-        else
-          ATOMIC_S += $(shell echo $(SRCDIRS)/atomic.S)
-          AS_EXT    = S
-        endif   # IRIX
-      endif   # HP aCC
-    endif   # not IBM VisualAge
-  endif   # not EDG eccp
-
-  ifneq ($(ATOMIC_S),)
-    ALL_FILES += $(shell [ -r $(ATOMIC_S) ] && echo $(ATOMIC_S))
+  # if the assembly file extension is non-empty and not the dot,
+  # add all files with that extension to the list of files to
+  # compile
+  ifneq ($(AS_EXT),"")
+    ifneq ($(AS_EXT),".")   # special value -- ignore atomic
+     ALL_FILES += $(shell echo $(SRCDIRS)/*$(AS_EXT))	
+    endif
   endif
 endif
 

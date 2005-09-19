@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: //stdlib/dev/etc/stdlib/config/makefile.rules#33 $
+# $Id$
 #
 # common makefile rules shared by all GNUmakefile.*
 # 
@@ -63,9 +63,15 @@ $(CATFILE): $(MSGFILES)
 # compile and link in one or two steps
 ifeq ($(NO_DOT_O),)
 
-%.o: %.$(AS_EXT)
+  ifneq ($(AS_EXT),)
+    ifneq ($(AS_EXT),".")
+
+%.o: %$(AS_EXT)
 	@echo  "$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $<" >> $(LOGFILE)
 	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $< $(TEEOPTS)
+
+    endif   # ifneq ($(AS_EXT),".")
+  endif   # ifneq ($(AS_EXT),)
 
 %.o: %.cpp
 	@echo "$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $<" >> $(LOGFILE)
