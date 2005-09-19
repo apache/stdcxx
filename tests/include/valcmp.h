@@ -28,6 +28,7 @@
 #define CMP_NULTERM   1   /* the first 0 terminates processing */
 #define CMP_RETOFF    2   /* return offset of the first mismatch */
 #define CMP_NOCASE    4   /* case-insensitive character comparison */
+#define CMP_FP        8   /* safe floating pointing comparison */
 
 
 _TEST_EXPORT int
@@ -59,6 +60,8 @@ rw_valcmp (const T*      buf1,
 }
 
 
+/**************************************************************************/
+
 _TEST_EXPORT int
 rw_strncmp (const char*, const char*,
             _RWSTD_SIZE_T = _RWSTD_SIZE_MAX, int = CMP_NULTERM);
@@ -79,6 +82,7 @@ rw_strncmp (const wchar_t*, const wchar_t*,
 
 #endif   // _RWSTD_NO_WCHAR_T
 
+
 /**
  * Compares two floating point numbers for equality.
  *
@@ -87,9 +91,9 @@ rw_strncmp (const wchar_t*, const wchar_t*,
  *
  * @return  Returns a negative value, 0, or a positive value, depending
  *          on whether the first number is less than, equal to, or greater
- *          than the second array. The magnitude of the returned value
- *          represents the number of distinct values representable in
- *          the type between the two arguments.
+ *          than the second number. The magnitude of the returned value
+ *          indicates the number of distinct values representable in
+ *          the type of the number between the two arguments.
  */
 _TEST_EXPORT int
 rw_fltcmp (float x, float y);
@@ -111,5 +115,48 @@ rw_ldblcmp (long double x, long double y);
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
+/**************************************************************************/
+
+/**
+ * Compares two values of the same type for equality.
+ *
+ * @param x  The left hand side of the comparison.
+ * @param y  The right hand side of the comparison.
+ *
+ * @return  Returns 1 if the the values are the same, 0 otherwise.
+ */
+template <class T>
+inline int rw_equal (T x, T y)
+{
+    return x == y;
+}
+
+/**
+ * @see rw_equal.
+ */
+inline int rw_equal (float x, float y)
+{
+    return 0 == rw_fltcmp (x, y);
+}
+
+/**
+ * @see rw_equal.
+ */
+inline int rw_equal (double x, double y)
+{
+    return 0 == rw_dblcmp (x, y);
+}
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+/**
+ * @see rw_equal.
+ */
+inline int rw_equal (long double x, long double y)
+{
+    return 0 == rw_ldblcmp (x, y);
+}
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
 
 #endif   // RW_VALCMP_H_INCLUDED
