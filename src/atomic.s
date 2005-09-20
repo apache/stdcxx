@@ -24,8 +24,12 @@
 #  include "i86/atomic.s"
 #endif
 
-#if defined (__ia64)
-#  include "ia64/atomic.s"
+#if defined (__ia64) || defined (__ia64__)
+#  if defined (_LP64) || defined (__LP64__)
+#    include "ia64/atomic-64.s"
+#  else
+#    include "ia64/atomic.s"
+#  endif
 #endif
 
 #if defined (__parisc)
