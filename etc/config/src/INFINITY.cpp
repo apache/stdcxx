@@ -766,13 +766,26 @@ int main ()
     printf ("// computed infinities and NANs for a %s endian architecture\n",
             e == big_endian ? "big" : "little");
 
-#else
+    const int flt_has_denorm = 0.0f != f_den.val;
+    const int dbl_has_denorm = 0.0  != d_den.val;
+
+#  ifndef _RWSTD_NO_LONG_DOUBLE
+
+    const int ldbl_has_denorm = 0.0L != l_den.val;
+
+#  endif   // _RWSTD_NO_LONG_DOUBLE
+
+#else   // if !defined (_RWSTD_NO_DBL_TRAPS)
 
     printf ("// IEEE 754 infinities and NANs for a %s endian architecture\n"
             "// (values not computed due to floating exception trapping)\n",
             e == big_endian ? "big" : "little");
 
-#endif
+    const int flt_has_denorm  = 1;
+    const int dbl_has_denorm  = 1;
+    const int ldbl_has_denorm = 1;
+
+#endif   // _RWSTD_NO_DBL_TRAPS
 
     flt_bits f_inf  = flt_infinity ();
     flt_bits f_qnan = flt_qnan ();
@@ -784,7 +797,7 @@ int main ()
     print ("#define _RWSTD_FLT_SNAN_BITS ", &f_snan, sizeof f_snan);
     print ("#define _RWSTD_FLT_DENORM_MIN_BITS ", &f_den, sizeof f_den);
 
-    printf ("#define _RWSTD_FLT_HAS_DENORM  %d\n", f_den.val ? 1 : 0);
+    printf ("#define _RWSTD_FLT_HAS_DENORM  %d\n", flt_has_denorm);
 
     dbl_bits d_inf  = dbl_infinity ();
     dbl_bits d_qnan = dbl_qnan ();
@@ -796,7 +809,7 @@ int main ()
     print ("#define _RWSTD_DBL_SNAN_BITS ", &d_snan, sizeof d_snan);
     print ("#define _RWSTD_DBL_DENORM_MIN_BITS ", &d_den, sizeof d_den);
 
-    printf ("#define _RWSTD_DBL_HAS_DENORM  %d\n", d_den.val ? 1 : 0);
+    printf ("#define _RWSTD_DBL_HAS_DENORM  %d\n", dbl_has_denorm);
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
 
@@ -810,7 +823,7 @@ int main ()
     print ("#define _RWSTD_LDBL_SNAN_BITS ", &l_snan, sizeof l_snan);
     print ("#define _RWSTD_LDBL_DENORM_MIN_BITS ", &l_den, sizeof l_den);
 
-    printf ("#define _RWSTD_LDBL_HAS_DENORM  %d\n", l_den.val ? 1 : 0);
+    printf ("#define _RWSTD_LDBL_HAS_DENORM  %d\n", ldbl_has_denorm);
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
