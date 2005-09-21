@@ -59,4 +59,49 @@
 #endif   // _RWSTD_NO_FOR_INIT_SCOPE
 
 
+// _RWSTD_PRI{d,i,o,u,x}MAX: macros corresponding to those described
+// in 7.8.1 of C99; each of them expands to a character string literal
+// containing a conversion specifier, possibly modified by a length 
+// modifier, suitable for use within the format argument of a formatted
+// input/output function when converting the corresponding integer type
+#if _RWSTD_LONG_SIZE < _RWSTD_LLONG_SIZE
+   // using LLONG_SIZE instead of ULLONG_MAX in the preprocessor
+   // conditional above to work around a gcc 3.2 bug (PR #28595)
+#  define _RWSTD_PRIdMAX   _RWSTD_LLONG_PRINTF_PREFIX "d"
+#  define _RWSTD_PRIiMAX   _RWSTD_LLONG_PRINTF_PREFIX "i"
+#  define _RWSTD_PRIoMAX   _RWSTD_LLONG_PRINTF_PREFIX "o"
+#  define _RWSTD_PRIuMAX   _RWSTD_LLONG_PRINTF_PREFIX "u"
+#  define _RWSTD_PRIxMAX   _RWSTD_LLONG_PRINTF_PREFIX "x"
+#elif _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
+#  define _RWSTD_PRIdMAX   "ld"
+#  define _RWSTD_PRIiMAX   "li"
+#  define _RWSTD_PRIoMAX   "lo"
+#  define _RWSTD_PRIuMAX   "lu"
+#  define _RWSTD_PRIxMAX   "lx"
+#else
+#  define _RWSTD_PRIdMAX   "d"
+#  define _RWSTD_PRIiMAX   "i"
+#  define _RWSTD_PRIoMAX   "o"
+#  define _RWSTD_PRIuMAX   "u"
+#  define _RWSTD_PRIxMAX   "x"
+#endif
+
+
+// _RWSTD_PRIz: expands to a conversion specifier corresponding
+// to "%z" (i.e., C99 size_t specifier)
+#if _RWSTD_SIZE_MAX == _RWSTD_UINT_MAX
+   // sizeof (size_t) == sizeof (unsigned int)
+#  define _RWSTD_PRIz   ""
+#elif _RWSTD_SIZE_MAX == _RWSTD_ULONG_MAX
+   // sizeof (size_t) == sizeof (unsigned long)
+#  define _RWSTD_PRIz   "l"
+#elif _RWSTD_SIZE_MAX == _RWSTD_ULLONG_MAX
+   // sizeof (size_t) == sizeof (unsigned long long)
+#  define _RWSTD_PRIz   _RWSTD_LLONG_PRINTF_PREFIX ""
+#else
+  // assume sizeof (size_t) == sizeof (unsigned)
+#  define _RWSTD_PRIz   ""
+#endif
+
+
 #endif   // RW_TESTDEFS_H_INCLUDED
