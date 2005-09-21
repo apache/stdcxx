@@ -70,15 +70,18 @@ else   # ifneq ($(ONE_REPOSITORY),)
     repository_name = repository.ti
   endif
 
-  # ignore subdirectories when building a library
-  ALL_FILES := $(shell echo $(SRCDIRS)/*.cpp)
+  # traverse the list of source directories (SRCDIRS) and put together
+  # a list of .cpp files in each, ignoring any subdirectories
+  ALL_FILES := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))
 
   # if the assembly file extension is non-empty and not the dot,
   # add all files with that extension to the list of files to
   # compile
   ifneq ($(AS_EXT),"")
     ifneq ($(AS_EXT),".")   # special value -- ignore atomic
-     ALL_FILES += $(shell echo $(SRCDIRS)/*$(AS_EXT))	
+      # traverse the list of source directories (SRCDIRS) and put together
+      # a list of assembly source files in each, ignoring any subdirectories
+      ALL_FILES += $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*$(AS_EXT)))
     endif
   endif
 endif
