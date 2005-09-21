@@ -18,10 +18,11 @@ include ../makefile.in
 
 # The place where the sources are looked for;
 # used in the variables setup in makefile.common
+RWTESTDIR    = $(TOPDIR)/../rwtest
 TESTDIR      = $(TOPDIR)/tests
-SRCDIRS      = $(TESTDIR)/src
+SRCDIRS      = $(RWTESTDIR)/src $(TOPDIR)/tests/src
 
-TARGET       = $(TESTDIR)/$(TESTLIB)
+TARGET       = $(RWTESTDIR)/$(RWTESTLIB)
 
 # include common variables setting for all makefiles
 ONE_REPOSITORY = 1
@@ -31,63 +32,55 @@ include ../makefile.common
 LIBSUFFIX    = .a
 
 # Target library to be built
-TESTLIB      = librwtest$(BUILDTYPE)$(LIBSUFFIX)
+RWTESTLIB    = librwtest$(BUILDTYPE)$(LIBSUFFIX)
 
 # Additional include directories: 
-INCLUDES    += -I$(TESTDIR)/include
+INCLUDES    += -I$(RWTESTDIR) -I$(TESTDIR)/include
 
 # VPATH to look for sources in (appended dir for test.cpp)
-VPATH       += $(TESTDIR)/src
-
-# sources and corresponding objects for the test driver library
-TESTSRCS     = $(notdir $(shell echo $(TESTDIR)/src/*.cpp))
-TESTOBJS     = $(patsubst %.cpp,%.o,$(TESTSRCS))
-
-RUNFLAGS    += -X "-C $(CXX)-$(CCVER)" 
+VPATH       += $(RWTESTDIR)/src $(TESTDIR)/src
 
 # For xlC 5.0.2.0
 ifneq ($(DEFAULT_SHROBJ),)
-SOBJS        = $(DEFAULT_SHROBJ)
+  SOBJS = $(DEFAULT_SHROBJ)
 else
-SOBJS        = $(TESTOBJS)
+  SOBJS = $(OBJS)
 endif
 
 
 # CXXPRELINK - command for compilers that use template
 # instantiation models that require a prelink stage
 ifneq ($(PRELINKFLAGS),)
-CXXPRELINK = $(CXX) $(CPPFLAGS) $(PRELINKFLAGS) $(TESTOBJS) $(LDFLAGS)
+CXXPRELINK = $(CXX) $(CPPFLAGS) $(PRELINKFLAGS) $(OBJS) $(LDFLAGS)
 endif   # ($(PRELINKFLAGS),)
 
 ##############################################################################
 #  TARGETS
 ##############################################################################
 
-all:  $(LIBDIR)/$(LIBNAME) $(TESTLIB)
+all:  $(RWTESTLIB)
 
-$(LIBDIR)/$(LIBNAME):
-	@$(MAKE) -C $(LIBDIR)
 
 # do any directory specific cleanup using the realclean target
 realclean: clean dependclean
-	rm -f $(TESTLIB)
+	rm -f $(RWTESTLIB)
 
 
 # For the time being the rules are identical until we 
 # decide to build a shared library for rw test lib.
 ifeq ($(findstring shared,$(BUILDMODE)),shared)
-$(TESTLIB): $(TESTOBJS)
+$(RWTESTLIB): $(OBJS)
 	@echo "$(CXXPRELINK)" >> $(LOGFILE)
 	$(CXXPRELINK) $(TEEOPTS)
-	@echo "$(AR) $(ARFLAGS) $(TESTLIB) $(SOBJS)" >> $(LOGFILE)
-	$(AR) $(ARFLAGS) $(TESTLIB) $(SOBJS)
+	@echo "$(AR) $(ARFLAGS) $(RWTESTLIB) $(SOBJS)" >> $(LOGFILE)
+	$(AR) $(ARFLAGS) $(RWTESTLIB) $(SOBJS)
 
 else
-$(TESTLIB): $(TESTOBJS)
+$(RWTESTLIB): $(OBJS)
 	@echo "$(CXXPRELINK)" >> $(LOGFILE)
 	$(CXXPRELINK) $(TEEOPTS)
-	@echo "$(AR) $(ARFLAGS) $(TESTLIB) $(SOBJS)" >> $(LOGFILE)
-	$(AR) $(ARFLAGS) $(TESTLIB) $(SOBJS)
+	@echo "$(AR) $(ARFLAGS) $(RWTESTLIB) $(SOBJS)" >> $(LOGFILE)
+	$(AR) $(ARFLAGS) $(RWTESTLIB) $(SOBJS)
 
 endif # ($(findstring shared,$(BUILDMODE)),shared)
 
