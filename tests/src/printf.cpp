@@ -21,6 +21,7 @@
 
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
+#include <testdefs.h>
 #include <printf.h>
 
 #include <assert.h>   // for assert
@@ -574,7 +575,7 @@ rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
         break;
     }
 
-    case 'm': {   // extension
+    case 'm': {   // %m (popular extension)
         spec.param.i = errno;
         len = rw_fmterrno (spec, pbuf, pbufsize, spec.param.i);
         break;
@@ -3045,7 +3046,10 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         break;
 
     case 'm':   // %{m} -- errno
-        len = rw_fmterrno (spec, pbuf, pbufsize, errno);
+        if (-1 == spec.width)
+            len = rw_fmterrno (spec, pbuf, pbufsize, errno);
+        else
+            len = rw_fmterrno (spec, pbuf, pbufsize, spec.width);
         break;
 
     case 'M':   // %{M}, %{LM}
