@@ -761,6 +761,26 @@ int main ()
 
 #endif   // _RWSTD_USE_CONFIG
 
+    const flt_bits f_inf  = flt_infinity ();
+    const flt_bits f_qnan = flt_qnan ();
+    const flt_bits f_snan = flt_snan ();
+    const flt_bits f_den  = flt_denorm_min ();
+
+    const dbl_bits d_inf  = dbl_infinity ();
+    const dbl_bits d_qnan = dbl_qnan ();
+    const dbl_bits d_snan = dbl_snan ();
+    const dbl_bits d_den  = dbl_denorm_min ();
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+    const ldbl_bits l_inf  = ldbl_infinity ();
+    const ldbl_bits l_qnan = ldbl_qnan ();
+    const ldbl_bits l_snan = ldbl_snan ();
+    const ldbl_bits l_den  = ldbl_denorm_min ();
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+
 #ifdef _RWSTD_NO_DBL_TRAPS
 
     printf ("// computed infinities and NANs for a %s endian architecture\n",
@@ -787,22 +807,12 @@ int main ()
 
 #endif   // _RWSTD_NO_DBL_TRAPS
 
-    flt_bits f_inf  = flt_infinity ();
-    flt_bits f_qnan = flt_qnan ();
-    flt_bits f_snan = flt_snan ();
-    flt_bits f_den  = flt_denorm_min ();
-
     print ("#define _RWSTD_FLT_INF_BITS ", &f_inf, sizeof f_inf);
     print ("#define _RWSTD_FLT_QNAN_BITS ", &f_qnan, sizeof f_qnan);
     print ("#define _RWSTD_FLT_SNAN_BITS ", &f_snan, sizeof f_snan);
     print ("#define _RWSTD_FLT_DENORM_MIN_BITS ", &f_den, sizeof f_den);
 
     printf ("#define _RWSTD_FLT_HAS_DENORM  %d\n", flt_has_denorm);
-
-    dbl_bits d_inf  = dbl_infinity ();
-    dbl_bits d_qnan = dbl_qnan ();
-    dbl_bits d_snan = dbl_snan ();
-    dbl_bits d_den  = dbl_denorm_min ();
 
     print ("#define _RWSTD_DBL_INF_BITS ", &d_inf, sizeof d_inf);
     print ("#define _RWSTD_DBL_QNAN_BITS ", &d_qnan, sizeof d_qnan);
@@ -812,11 +822,6 @@ int main ()
     printf ("#define _RWSTD_DBL_HAS_DENORM  %d\n", dbl_has_denorm);
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
-
-    ldbl_bits l_inf  = ldbl_infinity ();
-    ldbl_bits l_qnan = ldbl_qnan ();
-    ldbl_bits l_snan = ldbl_snan ();
-    ldbl_bits l_den  = ldbl_denorm_min ();
 
     print ("#define _RWSTD_LDBL_INF_BITS ", &l_inf, sizeof l_inf);
     print ("#define _RWSTD_LDBL_QNAN_BITS ", &l_qnan, sizeof l_qnan);
