@@ -777,6 +777,8 @@ rw_dblcmp (double x, double y)
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
 
+#  define Abs(x) ((x) < 0 ? -(x) : (x))
+
 _TEST_EXPORT int
 rw_ldblcmp (long double x, long double y)
 {
@@ -787,7 +789,21 @@ rw_ldblcmp (long double x, long double y)
         return 0;
 
     // FIXME: use integer math as in the functions above
-    return memcmp (&x, &y, sizeof x);
+
+    const long double diff = x - y;
+
+    // check absolute error
+    if (Abs (diff) < _RWSTD_LDBL_EPSILON)
+        return 0;
+
+    // check relative error
+    const long double relerr =
+        Abs (x) < Abs (y) ? Abs (diff / y) : Abs (diff / x);
+
+    if (relerr <= 0.0000001L)
+        return 0;
+
+    return x < y ? -1 : +1;
 }
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
