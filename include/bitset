@@ -3,7 +3,7 @@
  *
  * <bitset> - definition of the bitset template
  *
- * $Id: //stdlib/dev/include/bitset#70 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -593,7 +593,8 @@ bitset<_Size>::to_ulong () const
 
 
 #if    !defined (_RWSTD_NO_MEMBER_TEMPLATES) \
-    && !defined (_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE)
+    && !defined (_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE) \
+    && !defined (_RWSTD_NO_MEMBER_TEMPLATE_OVERLOAD)
 
 // 23.3.5.2, p33
 template <_RWSTD_SIZE_T _Size>
@@ -611,7 +612,7 @@ to_string (_CharT __b0 /* = '0' */, _CharT __b1 /* = '1' */) const
     return __s;
 }
 
-#else   // _RWSTD_NO_MEMBER_TEMPLATES || _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
+#else   // _NO_MEMBER_TEMPLATES || _NO_TEMPLATE_ON_RETURN_TYPE ...
 
 // 23.3.5.2, p33
 template <_RWSTD_SIZE_T _Size>
@@ -628,7 +629,7 @@ to_string (char __b0 /* = '0' */, char __b1 /* = '1' */) const
     return __s;
 }
 
-#endif   // !_RWSTD_NO_MEMBER_TEMPLATES && !_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
+#endif   // !_NO_MEMBER_TEMPLATES && !_NO_TEMPLATE_ON_RETURN_TYPE ...
 
 
 // 23.3.5.3, p1
