@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: //stdlib/dev/etc/stdlib/config/GNUmakefile.bin#27 $
+# $Id$
 #
 # makefile to build the C++ Standard library utility programs
 #
@@ -8,14 +8,14 @@
 
 include ../makefile.in
 
-SRCDIRS      = $(TOPDIR)/util
+SRCDIRS = $(TOPDIR)/src/util
 
 # include common variables setting for all makefiles
 ONE_REPOSITORY = 1
 include ../makefile.common
 
-INCLUDES    += -I$(TOPDIR)/include/loc
-TARGET       = localedef locale
+INCLUDES += -I$(TOPDIR)/include/loc
+TARGET    = localedef locale
 
 # locale sources and related 
 NLSDIR = $(TOPDIR)/etc/nls
@@ -28,9 +28,9 @@ VPATH += $(LOCDIR)
 # list of locales  to be built; first compose a  full name from gen_list
 # in the form of <locale name>.<codeset> then move the modifier @euro at
 # the end of the name
-LOCALE_LIST = $(shell cat $(NLSDIR)/gen_list |                               \
-                      sed -e s:"^\([^ ]*\) *\([^ ]*\)":"\1\.\2":g            \
-                      -e s:"\([^.]*\)\(.euro\)\([^ ]*\)":"\1\3@euro":g       \
+LOCALE_LIST := $(shell cat $(NLSDIR)/gen_list |                              \
+                       sed -e s:"^\([^ ]*\) *\([^ ]*\)":"\1\.\2":g           \
+                           -e s:"\([^.]*\)\(.euro\)\([^ ]*\)":"\1\3@euro":g  \
                       -e s:"\([^.]*\)\(.cyrillic\)\([^ ]*\)":"\1\3@cyrillic":g)
 
 ## Filter from RUNTARGET only the scripts

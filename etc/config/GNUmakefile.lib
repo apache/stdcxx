@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: //stdlib/dev/etc/stdlib/config/GNUmakefile.lib#35 $
+# $Id$
 #
 # makefile to build the C++ Standard library
 #

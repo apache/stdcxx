@@ -24,47 +24,49 @@
 #   $ make SRCS="...sources..." [ run | runall | run_all ]
 #
 #   Same as above, but considerably faster since SRCS doesn't have to be
-#   found in $(TOPDIR)/test, and only the necessary .d files are included.
+#   found in $(TOPDIR)/tests, and only the necessary .d files are included.
 #
 ##############################################################################
 
 include ../makefile.in
 
-# tests & test library directories
-TESTDIR      = $(TOPDIR)/tests
-SRCDIRS      = $(TESTDIR)
+# tests & rwtest library directories
+RWTESTDIR = $(TOPDIR)/../rwtest
+TESTDIR   = $(TOPDIR)/tests
 
-# get the test suite subdirectories
-SUBDIRS      = $(shell cd $(TESTDIR) && echo *)
+# get the test suite subdirectories minus those known
+# not to contain any source (i.e., .cpp) files
+SRCDIRS := $(filter-out $(TESTDIR)/docs    \
+                        $(TESTDIR)/etc     \
+                        $(TESTDIR)/include \
+                        $(TESTDIR)/src     \
+                        %.C %.c %.cc %.cpp \
+                        %.h %.hpp,         \
+                        $(wildcard $(TESTDIR)/*))
 
 # do not compile these sources
-OMIT_SRCS   += $(shell cd $(TESTDIR)/src && echo *.cpp) 22_locale.cpp
+# OMIT_SRCS   += $(shell cd $(TESTDIR)/src && echo *.cpp) 22_locale.cpp
+OMIT_SRCS += $(notdir $(wildcard $(TESTDIR)/src/*.cpp)) 22_locale.cpp
 
 # override setting from makefile.in (tests only)
-CATFILE      = rwstdmessages.cat
+CATFILE = rwstdmessages.cat
 
 include ../makefile.common
 
-# test library 
-TESTLIBBASE   = rwtest$(BUILDTYPE)
-TESTLIBNAME   = lib$(TESTLIBBASE).a
+# RW test library 
+RWTLIBBASE   = rwtest$(BUILDTYPE)
+RWTLIBNAME   = lib$(RWTLIBBASE).a
 
 # Add to include dirs and link flags:
-INCLUDES    += -I$(TESTDIR)/include
-LDFLAGS     := -L$(BUILDDIR)/rwtest -l$(TESTLIBBASE) $(LDFLAGS)
+INCLUDES    += -I$(RWTESTDIR) -I$(RWTESTDIR)/include -I$(TESTDIR)/include
+LDFLAGS     := -L$(BUILDDIR)/rwtest -l$(RWTLIBBASE) $(LDFLAGS)
 
-# VPATH to look for sources in (appended dir for test.cpp)
-VPATH       += $(TESTDIR)/src
+# targets to be built: object files for sources in the source directories
+TARGET := $(patsubst %.cpp,%,$(SRCS))
+# add to targets objects for any sources in the current working directory
+TARGET += $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
-# compile-only tests generated in the cwd
-COMPILE_SRCS = $(shell echo *.cpp 2>/dev/null)
-COMPILE_OBJS = $(patsubst %.cpp,%.o,$(COMPILE_SRCS))
-
-# Targets to be built
-TARGET	     = $(patsubst %.cpp,%,$(SRCS))
-TARGET      += $(COMPILE_OBJS)
-
-RUNFLAGS    += -X "-C $(CXX)-$(CCVER)" 
+RUNFLAGS += -X "-C $(CXX)-$(CCVER)" 
 
 ##############################################################################
 #  TARGETS
@@ -72,12 +74,12 @@ RUNFLAGS    += -X "-C $(CXX)-$(CCVER)"
 
 all: $(TARGET)
 
-$(TARGET): $(LIBDIR)/$(LIBNAME) $(BUILDDIR)/rwtest/$(TESTLIBNAME)
+$(TARGET): $(LIBDIR)/$(LIBNAME) $(BUILDDIR)/rwtest/$(RWTLIBNAME)
 
 $(LIBDIR)/$(LIBNAME):
 	@$(MAKE) -C $(LIBDIR) MAKEOVERRIDES= 
 
-$(BUILDDIR)/rwtest/$(TESTLIBNAME):
+$(BUILDDIR)/rwtest/$(RWTLIBNAME):
 	@$(MAKE) -C $(BUILDDIR)/rwtest MAKEOVERRIDES=
 
 # do any directory specific cleanup using the realclean target
@@ -85,7 +87,7 @@ realclean: clean dependclean
 	rm -f _*.cpp
 
 # build all tests in the given subdirectory (subsection of the standard)
-$(SUBDIRS):
+$(SRCDIRS):
 	$(MAKE) SRCS="`cd $(TESTDIR)/$@/ && echo *.cpp`"
 
 
@@ -104,7 +106,7 @@ gentest:
           done ;                                                        \
           echo ; )
 
-.PHONY: $(SUBDIRS) rwtest
+.PHONY: $(SRCDIRS) rwtest
 
 # Common rules for all Makefile_s
 include ../makefile.rules
