@@ -2,7 +2,7 @@
  *
  * time_put.cpp
  *
- * $Id: //stdlib/dev/source/stdlib/time_put.cpp#84 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -124,19 +124,19 @@ __rw_get_timepunct (const _RW::__rw_facet*, int,
 
 template <class _CharT>
 _CharT* __rw_put_time (const __rw_facet*, _CharT*, _RWSTD_SIZE_T,
-                       _STD::ios_base&, _CharT, const ::tm*,
+                       _STD::ios_base&, _CharT, const tm*,
                        char, char, int, int);
 
 _RWSTD_SPECIALIZED_FUNCTION
 char* __rw_put_time (const __rw_facet*, char*, _RWSTD_SIZE_T,
-                     _STD::ios_base&, char, const ::tm*,
+                     _STD::ios_base&, char, const tm*,
                      char, char, int, int);
 
 #ifndef _RWSTD_NO_WCHAR_T
 
 _RWSTD_SPECIALIZED_FUNCTION
 wchar_t* __rw_put_time (const __rw_facet*, wchar_t*, _RWSTD_SIZE_T,
-                        _STD::ios_base&, wchar_t, const ::tm*,
+                        _STD::ios_base&, wchar_t, const tm*,
                         char, char, int, int);
 
 #endif   // _RWSTD_NO_WCHAR_T
@@ -149,7 +149,8 @@ wchar_t* __rw_put_time (const __rw_facet*, wchar_t*, _RWSTD_SIZE_T,
 
 // compute the format string corresponding to the "%x" format specifier
 // in the current locale (set by setlocale (LC_ALL, ...))
-static _RWSTD_SIZE_T __rw_get_date_fmat (char *fmt)
+static _RWSTD_SIZE_T
+__rw_get_date_fmat (char *fmt)
 {
     tm t;
 
@@ -182,16 +183,16 @@ static _RWSTD_SIZE_T __rw_get_date_fmat (char *fmt)
     for (char *ptmp = tmp; *ptmp; ) {
 
         // store all whitespace as part of format
-        for (; (::isspace)(*ptmp); ++ptmp)
+        for (; (isspace)(*ptmp); ++ptmp)
             *pfmt++ = *ptmp;
 
         const char *begin = ptmp;
 
         // skip over all non-digit characters
-        for (; *ptmp && !(::isdigit)(*ptmp); ++ptmp) {
-            if ((::ispunct)(*ptmp) || (::isspace)(*ptmp)) {
+        for (; *ptmp && !(isdigit)(*ptmp); ++ptmp) {
+            if ((ispunct)(*ptmp) || (isspace)(*ptmp)) {
                 // store all punctuators as part of format
-                for ( ; (::ispunct)(*ptmp) || (::isspace)(*ptmp); ++ptmp)
+                for ( ; (ispunct)(*ptmp) || (isspace)(*ptmp); ++ptmp)
                     *pfmt++ = *ptmp;
                 break;
             }
@@ -243,9 +244,9 @@ static _RWSTD_SIZE_T __rw_get_date_fmat (char *fmt)
             }
         }
 
-        if ((::isdigit)(*ptmp)) {
+        if ((isdigit)(*ptmp)) {
 
-            for (begin = ptmp; (::isdigit)(*ptmp); ++ptmp);
+            for (begin = ptmp; (isdigit)(*ptmp); ++ptmp);
 
             *pfmt++ = '%';
             if (ptmp - begin == 1) {
@@ -285,18 +286,19 @@ static _RWSTD_SIZE_T __rw_get_date_fmat (char *fmt)
 
 // compute the format string corresponding to the "%X" format specifier
 // in the current locale (set by setlocale (LC_ALL, ...))
-static _RWSTD_SIZE_T __rw_get_time_fmat (char *fmt)
+static _RWSTD_SIZE_T
+__rw_get_time_fmat (char *fmt)
 {
-    ::tm t;
+    tm t;
 
-    ::memset (&t, 0, sizeof t);
+    memset (&t, 0, sizeof t);
 
     t.tm_sec = 3; t.tm_min = 4; t.tm_hour = 21;   // "9 PM" or "21"
 
     char tmp [256];
 
     tmp [0] = '\0';
-    ::strftime (tmp, sizeof tmp, "%X", &t);
+    strftime (tmp, sizeof tmp, "%X", &t);
 
     char *pfmt = fmt;
 
@@ -306,16 +308,16 @@ static _RWSTD_SIZE_T __rw_get_time_fmat (char *fmt)
 
     for (char *ptmp = tmp; *ptmp; ) {
 
-        for (; (::isspace)(*ptmp); ++ptmp)
+        for (; (isspace)(*ptmp); ++ptmp)
             *pfmt++ = *ptmp;
 
         const char *begin = ptmp;
 
-        for (; *ptmp && !(::isdigit)(*ptmp); ++ptmp) {
-            if (   (::ispunct)(*ptmp)
-                || (::isspace)(*ptmp)) {
-                for (;    (::ispunct)(*ptmp)
-                       || (::isspace)(*ptmp); ++ptmp)
+        for (; *ptmp && !(isdigit)(*ptmp); ++ptmp) {
+            if (   (ispunct)(*ptmp)
+                || (isspace)(*ptmp)) {
+                for (;    (ispunct)(*ptmp)
+                       || (isspace)(*ptmp); ++ptmp)
                     *pfmt++ = *ptmp;
                 break;
             }
@@ -327,8 +329,8 @@ static _RWSTD_SIZE_T __rw_get_time_fmat (char *fmt)
 
         if (len > 1) {
             if (0 == pm_len) {
-                ::strftime (pm, sizeof pm, "%p", &t);
-                pm_len = ::strlen (pm);
+                strftime (pm, sizeof pm, "%p", &t);
+                pm_len = strlen (pm);
             }
 
             if (   pm_len <= len
@@ -343,9 +345,9 @@ static _RWSTD_SIZE_T __rw_get_time_fmat (char *fmt)
             }
         }
 
-        if ((::isdigit)(*ptmp)) {
+        if ((isdigit)(*ptmp)) {
 
-            for (begin = ptmp; (::isdigit)(*ptmp); ++ptmp);
+            for (begin = ptmp; (isdigit)(*ptmp); ++ptmp);
 
             *pfmt++ = '%';
 
@@ -1455,8 +1457,8 @@ __rw_get_timepunct (const __rw_facet *pfacet,
 
 
 static char*
-__rw_put_time (const __rw_facet *pfacet, char *buf, _RWSTD_SIZE_T bufsize,
-               _STD::ios_base &flags, char fill, const ::tm *tmb,
+__rw_fmt_time (const __rw_facet *pfacet, char *buf, _RWSTD_SIZE_T bufsize,
+               _STD::ios_base &flags, char fill, const tm *tmb,
                const char *pat)
 {
     _RWSTD_ASSERT (0 != tmb);
@@ -1593,8 +1595,8 @@ __rw_put_time (const __rw_facet *pfacet, char *buf, _RWSTD_SIZE_T bufsize,
 #ifndef _RWSTD_NO_WCHAR_T
 
 static wchar_t*
-__rw_put_time (const __rw_facet *pfacet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
-               _STD::ios_base &flags, wchar_t fill, const ::tm *tmb,
+__rw_fmt_time (const __rw_facet *pfacet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
+               _STD::ios_base &flags, wchar_t fill, const tm *tmb,
                const wchar_t *wpat)
 {
     _RWSTD_ASSERT (0 != tmb);
@@ -1710,8 +1712,9 @@ __rw_put_time (const __rw_facet *pfacet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
             }
 
             if (char (-1) != fmt) {
-                wchar_t *end = __rw_put_time (pfacet, wbuf, bufsize, flags, fill,
-                                              tmb, fmt, fmtmod, width, prec);
+                wchar_t* const end =
+                    __rw_put_time (pfacet, wbuf, bufsize, flags, fill,
+                                   tmb, fmt, fmtmod, width, prec);
 
                 if (!end)
                     return 0;
@@ -1731,7 +1734,8 @@ __rw_put_time (const __rw_facet *pfacet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
 
 
 // returns true iff `y' is a leap year
-static inline bool __rw_isleap (int y)
+static inline bool
+__rw_isleap (int y)
 {
     return y % 4 == 0 && (y % 100 != 0 || y % 400 == 0);
 }
@@ -1739,7 +1743,8 @@ static inline bool __rw_isleap (int y)
 
 // returns the ISO 8601 week number from the given date
 // sets `year' to the ISO 8601 year number for that date
-static int __rw_iso_week (int& year, int yday, int wday)
+static int
+__rw_iso_week (int& year, int yday, int wday)
 {
     // adjust the week day - tm struct uses a 0-based weekday number
     // starting with Sunday, while ISO 8601 week starts with Monday
@@ -1783,7 +1788,7 @@ static int __rw_iso_week (int& year, int yday, int wday)
 // corresponding to the date pointed to by `tmb', or 0 if no
 // such era exists
 static const __rw_time_t::era_t*
-__rw_get_era (const __rw_time_t *ptime, const ::tm *tmb)
+__rw_get_era (const __rw_time_t *ptime, const tm *tmb)
 {
     _RWSTD_ASSERT (0 != tmb);
 
@@ -2017,7 +2022,7 @@ __rw_get_zone_name (__rw_time_put_data&, const char*, int)
 static void
 __rw_get_time_put_data (__rw_time_put_data &tpd,
                         const __rw_facet   *facet,
-                        const tm *tmb,
+                        const tm           *tmb,
                         char fmt, char mod, bool wide)
 {
     _RWSTD_ASSERT (0 != facet);
@@ -2566,9 +2571,10 @@ __rw_get_time_put_data (__rw_time_put_data &tpd,
 
 
 _RWSTD_SPECIALIZED_FUNCTION
-char* __rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
-                     _STD::ios_base &flags, char fill, const ::tm *tmb,
-                     char fmt, char mod, int width, int prec)
+char*
+__rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
+               _STD::ios_base &flags, char fill, const tm *tmb,
+               char fmt, char mod, int width, int prec)
 {
     _RWSTD_ASSERT (0 != facet);
 
@@ -2632,7 +2638,7 @@ char* __rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
             const char* const fmtstr =
                 _RWSTD_STATIC_CAST (const char*, tpd.fmt);
 
-            return __rw_put_time (facet, buf, bufsize, flags,
+            return __rw_fmt_time (facet, buf, bufsize, flags,
                                   fill, tmb, fmtstr);
         }
 
@@ -2670,7 +2676,7 @@ char* __rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
 _RWSTD_SPECIALIZED_FUNCTION
 wchar_t*
 __rw_put_time (const __rw_facet *facet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
-               _STD::ios_base &flags, wchar_t fill, const ::tm *tmb,
+               _STD::ios_base &flags, wchar_t fill, const tm *tmb,
                char fmt, char mod, int width, int prec)
 {
     _RWSTD_ASSERT (0 != facet);
@@ -2719,13 +2725,13 @@ __rw_put_time (const __rw_facet *facet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
 
         const wchar_t *fmtstr = 'z' == fmt ? L"%+*.*d" : L"%*.*d";
 
-        res = ::swprintf (wbuf, 
+        res = swprintf (wbuf, 
 #ifndef _MSC_VER
-                          bufsize,
+                        bufsize,
 #endif
-                          fmtstr,
-                          width < 0 ? tpd.width : width,
-                          prec < 0 ? tpd.prec : prec, tpd.val);
+                        fmtstr,
+                        width < 0 ? tpd.width : width,
+                        prec < 0 ? tpd.prec : prec, tpd.val);
 
 #else   // if defined (_RWSTD_NO_SWPRINTF)
 
@@ -2760,7 +2766,7 @@ __rw_put_time (const __rw_facet *facet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
             const wchar_t* const wfmt =
                 _RWSTD_STATIC_CAST (const wchar_t*, tpd.fmt);
 
-            return __rw_put_time (facet, wbuf, bufsize, flags, fill, tmb, wfmt);
+            return __rw_fmt_time (facet, wbuf, bufsize, flags, fill, tmb, wfmt);
         }
 
         if (tpd.str) {
