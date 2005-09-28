@@ -122,24 +122,21 @@ _RWSTD_SIZE_T
 __rw_get_timepunct (const _RW::__rw_facet*, int,
                     const void*[], const _RWSTD_SIZE_T []);
 
-template <class _CharT>
-_CharT* __rw_put_time (const __rw_facet*, _CharT*, _RWSTD_SIZE_T,
-                       _STD::ios_base&, _CharT, const tm*,
-                       char, char, int, int);
+static char*
+__rw_put_time (const __rw_facet*, char*, _RWSTD_SIZE_T,
+               _STD::ios_base&, char, const tm*,
+               char, char, int, int);
 
-_RWSTD_SPECIALIZED_FUNCTION
-char* __rw_put_time (const __rw_facet*, char*, _RWSTD_SIZE_T,
-                     _STD::ios_base&, char, const tm*,
-                     char, char, int, int);
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-_RWSTD_SPECIALIZED_FUNCTION
-wchar_t* __rw_put_time (const __rw_facet*, wchar_t*, _RWSTD_SIZE_T,
-                        _STD::ios_base&, wchar_t, const tm*,
-                        char, char, int, int);
+static wchar_t*
+__rw_put_time (const __rw_facet*, wchar_t*, _RWSTD_SIZE_T,
+               _STD::ios_base&, wchar_t, const tm*,
+               char, char, int, int);
 
 #endif   // _RWSTD_NO_WCHAR_T
+
 
 /***************************************************************************/
 
@@ -2022,7 +2019,7 @@ __rw_get_zone_name (__rw_time_put_data&, const char*, int)
 static void
 __rw_get_time_put_data (__rw_time_put_data &tpd,
                         const __rw_facet   *facet,
-                        const tm           *tmb,
+                        const tm *tmb,
                         char fmt, char mod, bool wide)
 {
     _RWSTD_ASSERT (0 != facet);
@@ -2570,8 +2567,7 @@ __rw_get_time_put_data (__rw_time_put_data &tpd,
 }
 
 
-_RWSTD_SPECIALIZED_FUNCTION
-char*
+static char*
 __rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
                _STD::ios_base &flags, char fill, const tm *tmb,
                char fmt, char mod, int width, int prec)
@@ -2673,8 +2669,7 @@ __rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-_RWSTD_SPECIALIZED_FUNCTION
-wchar_t*
+static wchar_t*
 __rw_put_time (const __rw_facet *facet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
                _STD::ios_base &flags, wchar_t fill, const tm *tmb,
                char fmt, char mod, int width, int prec)
