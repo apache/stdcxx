@@ -136,12 +136,12 @@
 
 SHELL = /bin/sh
 
-# Set the value of OSNAME here
-OSNAME = $(shell uname)
+# define the value of OSNAME first so that it can be used in *.config files
+OSNAME := $(shell uname)
 
 # provide a value if it isn't already set by (an older version of) make
 ifeq ($(CURDIR),)
-  CURDIR = $(shell pwd)
+  CURDIR := $(shell pwd)
 endif
 
 
@@ -469,7 +469,7 @@ ifeq ($(in_topdir),1)
   endif
 
   # platform is determined as {OS-name}-{OS-version}-{hardware}
-  PLATFORM = $(shell uname -srm | sed "s/[ \/]/-/g")
+  PLATFORM := $(shell uname -srm | sed "s/[ \/]/-/g")
 
   ifeq ($(OSNAME),SunOS)
     # Sun recommends to use uname -p rather than the POSIX uname -m
@@ -508,7 +508,7 @@ ifeq ($(in_topdir),1)
 
   # obtain library version number from the macro _RWSTD_VER
   # #defined in the rw/_config.h library header
-  LIBVER = $(shell awk '/^.define _RWSTD_VER / { major = substr ($$3, 3, 2); minor = substr ($$3, 5, 2); micro = substr ($$3, 7, 2); print (major + 0) "." (minor + 0) "." (micro + 0) }' $(TOPDIR)/include/rw/_config.h)
+  LIBVER := $(shell awk '/^.define _RWSTD_VER / { major = substr ($$3, 3, 2); minor = substr ($$3, 5, 2); micro = substr ($$3, 7, 2); print (major + 0) "." (minor + 0) "." (micro + 0) }' $(TOPDIR)/include/rw/_config.h)
 
 ### TARGETS ##################################################################
 

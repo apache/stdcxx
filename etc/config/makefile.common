@@ -13,7 +13,7 @@ FIND         = /usr/bin/find
 
 # provide a value if it isn't already set by make
 ifeq ($(CURDIR),)
-CURDIR       = $(shell pwd)
+  CURDIR := $(shell pwd)
 endif
 
 INCLUDES     = -I$(BUILDDIR)/include -I$(TOPDIR)/include
@@ -22,7 +22,7 @@ INCLUDES     = -I$(BUILDDIR)/include -I$(TOPDIR)/include
 ifeq ($(ONE_REPOSITORY),)
 
   # traverse all subdirectories and get the names of all regular files
-  ALL_FILES = $(shell $(FIND) $(SRCDIRS) -type f -print)
+  ALL_FILES := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))
 
   ifneq ($(CXX_REPOSITORY),)
 
@@ -101,12 +101,12 @@ endif   # ifeq ($(repository_name),)
 CPPFLAGS    += $(INCLUDES)
 CXXFLAGS    += $(WARNFLAGS)
 
-VPATH        = $(shell $(FIND) $(SRCDIRS) -type d -print)
+VPATH       := $(SRCDIRS)
 
-SRCS         = $(notdir $(filter %.cpp %.s %.S,$(ALL_FILES)))
+SRCS        := $(notdir $(filter %.cpp %.s %.S,$(ALL_FILES)))
 SRCS        := $(sort $(filter-out $(OMIT_SRCS),$(SRCS)))
 
-OBJS         = $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRCS)))
+OBJS        := $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRCS)))
 OBJS        += $(patsubst %.s,%.o,$(filter %.s,$(SRCS)))
 OBJS        += $(patsubst %.S,%.o,$(filter %.S,$(SRCS)))
 OBJS        := $(sort $(OBJS))
@@ -116,33 +116,33 @@ MSGFILES     = $(filter %.msg,$(ALL_FILES))
 
 
 ifeq ($(TARGET),)
-# generate binaries or scripts (in constrained environments)
-ifeq ($(NO_A_DOT_OUT),)
-TARGET       = $(patsubst %.o,%,$(OBJS))
-else
-TARGET       = $(patsubst %.o,%.sh,$(OBJS))
-endif
+  # generate binaries or scripts (in constrained environments)
+  ifeq ($(NO_A_DOT_OUT),)
+    TARGET := $(patsubst %.o,%,$(OBJS))
+  else
+    TARGET := $(patsubst %.o,%.sh,$(OBJS))
+  endif
 endif #ifneq ($(TARGET),)
 
 # link with the produced library and the math library
 # (take care not to try to link the library with itself)
 ifeq ($(findstring $(LIBNAME),$(TARGET)),)
-  LDFLAGS  += -L$(LIBDIR) -l$(LIBBASE)
-  LDLIBS   += -lm
+  LDFLAGS += -L$(LIBDIR) -l$(LIBBASE)
+  LDLIBS  += -lm
 endif  # ifneq ($(LIBNAME),$findstring ($(LIBNAME),$(TARGET)))
 
 
 # file to write log of the build to
-LOGFILE     = /dev/null
+LOGFILE = /dev/null
 
 # if LOGFILE is being created, tee command output into it
 # IMPORTANT: $(TEEOPTS) must be last on the command line
 ifneq ($(LOGFILE),/dev/null)
-TEEOPTS      = 2>&1 | tee -a $(LOGFILE)
+  TEEOPTS = 2>&1 | tee -a $(LOGFILE)
 endif
 
 # determine the name of the results file against which to compute regressions
-REGRESS_FILE = $(shell                                       \
+REGRESS_FILE := $(shell                                      \
     if [ -z "$(REGRESS)" ] ; then                            \
         ls -tr1 ../$(REPORTFILE)* 2> /dev/null | tail -1 ;   \
     elif [ -f $(REGRESS) ] ; then                            \
@@ -152,18 +152,18 @@ REGRESS_FILE = $(shell                                       \
     fi)
 
 ifeq ($(REGRESS_FILE),)
-REGRESS_FILE = "$(TOPDIR)/results/$(REPORTFILE)"
+  REGRESS_FILE = "$(TOPDIR)/results/$(REPORTFILE)"
 endif
 
 # set the RUNTARGET variable to command line args if $RUN isn't set
 ifeq ($(RUN),)
-RUNTARGET   = $(filter-out run_all runall run,$(MAKECMDGOALS))
+  RUNTARGET := $(filter-out run_all runall run,$(MAKECMDGOALS))
 else
-RUNTARGET   = $(RUN)
+  RUNTARGET := $(RUN)
 endif
 
 ifeq ($(RUNTARGET),)
-RUNTARGET    = $(shell echo ./$(TARGET) | sed "s/ / .\//g")
+  RUNTARGET := $(shell echo ./$(TARGET) | sed "s/ / .\//g")
 endif
 
 
