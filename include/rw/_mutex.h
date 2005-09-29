@@ -1,6 +1,7 @@
 /***************************************************************************
  *
- * _mutex.h - Definitions of classes and inline functions providing MT safety
+ * _mutex.h - definitions of classes and inline functions
+ *            for thread safety and atomic operations
  *
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
@@ -644,89 +645,90 @@ _RWSTD_NAMESPACE (__rw) {
 // modify their argument and return its original value (__ATOMIC_XXX_LONG
 // is misnamed -- it actually operates on an int, not a long)
 
-inline
-int __rw_atomic_preincrement (int &__x, bool)
+inline int
+__rw_atomic_preincrement (int &__x, bool)
 {
     return 1 + __ATOMIC_INCREMENT_LONG (&__x);
 }
 
 
-inline
-unsigned __rw_atomic_preincrement (unsigned &__x, bool)
+inline unsigned
+__rw_atomic_preincrement (unsigned &__x, bool)
 {
     return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x),
                                      false);
 }
 
 
-inline
-long __rw_atomic_preincrement (long &__x, bool)
+inline long
+__rw_atomic_preincrement (long &__x, bool)
 {
     return 1 + __ATOMIC_INCREMENT_QUAD (&__x);
 }
 
 
-inline
-unsigned long __rw_atomic_preincrement (unsigned long &__x, bool)
+inline unsigned long
+__rw_atomic_preincrement (unsigned long &__x, bool)
 {
     return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (long&, __x),
                                      false);
 }
 
 
-inline
-int __rw_atomic_predecrement (int &__x, bool)
+inline int
+__rw_atomic_predecrement (int &__x, bool)
 {
     return __ATOMIC_DECREMENT_LONG (&__x) - 1;
 }
 
-inline
-unsigned __rw_atomic_predecrement (unsigned &__x, bool)
+
+inline unsigned
+__rw_atomic_predecrement (unsigned &__x, bool)
 {
     return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (int&, __x),
                                      false);
 }
 
 
-inline
-long __rw_atomic_predecrement (long &__x, bool)
+inline long
+__rw_atomic_predecrement (long &__x, bool)
 {
     return __ATOMIC_DECREMENT_QUAD (&__x) - 1;
 }
 
 
-inline
-unsigned long __rw_atomic_predecrement (unsigned long &__x, bool)
+inline unsigned long
+__rw_atomic_predecrement (unsigned long &__x, bool)
 {
     return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (long&, __x),
                                      false);
 }
 
 
-inline
-int __rw_atomic_exchange (int &__x, int __y, bool)
+inline int
+__rw_atomic_exchange (int &__x, int __y, bool)
 {
     return __ATOMIC_EXCH_LONG (&__x, __y);
 }
 
 
-inline
-unsigned __rw_atomic_exchange (unsigned &__x, unsigned __y, bool)
+inline unsigned
+__rw_atomic_exchange (unsigned &__x, unsigned __y, bool)
 {
     return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (unsigned&, __x),
                                  _RWSTD_STATIC_CAST (int, __y), false);
 }
 
 
-inline
-long __rw_atomic_exchange (long &__x, long __y, bool)
+inline long
+__rw_atomic_exchange (long &__x, long __y, bool)
 {
     return __ATOMIC_EXCH_QUAD (&__x, __y);
 }
 
 
-inline
-unsigned long __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
+inline unsigned long
+__rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
 {
     return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (long&, __x),
                                  _RWSTD_STATIC_CAST (long, __y), false);
@@ -744,129 +746,119 @@ extern "C" {
 // exchange returns the original value, and add returns the incremented
 // value
 
-#  if defined (_LP64)
-
-long __rw_atomic_xchg (long*, long);
-long __rw_atomic_add (long*, long);
 int  __rw_atomic_xchg32 (int*, int);
 int  __rw_atomic_add32 (int*, int);
 
-#  else   // if !defined (_LP64)
+#  if defined (_LP64)
 
-int __rw_atomic_xchg32 (int*, int);
-int __rw_atomic_add32 (int*, int);
+long __rw_atomic_xchg64 (long*, long);
+long __rw_atomic_add64 (long*, long);
 
-
-inline long __rw_atomic_xchg (long* __x, long __y)
-{
-    _RWSTD_COMPILE_ASSERT (sizeof (int) == sizeof (long));
-
-    return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST(int*, __x),
-                               _RWSTD_STATIC_CAST (int, __y));
-}
-
-
-inline long __rw_atomic_add (long* __x, long __y)
-{
-    _RWSTD_COMPILE_ASSERT (sizeof (int) == sizeof (long));
-
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, __x),
-                              _RWSTD_STATIC_CAST (int, __y));
-}
-
-#  endif   // _LP64
+#  endif   // !_LP64
 
 }   // extern "C"
 
 
-inline int __rw_atomic_preincrement (int &__x, bool)
+inline int
+__rw_atomic_preincrement (int &__x, bool)
 {
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
     return __rw_atomic_add32 (&__x, 1);
 }
 
 
-inline unsigned __rw_atomic_preincrement (unsigned &__x, bool)
+inline unsigned
+__rw_atomic_preincrement (unsigned &__x, bool)
 {
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                     false);
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned));
+    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), 1);
 }
 
 
-inline long __rw_atomic_preincrement (long &__x, bool)
+inline int
+__rw_atomic_predecrement (int &__x, bool)
 {
-    return __rw_atomic_add (&__x, 1);
-}
-
-
-inline unsigned long __rw_atomic_preincrement (unsigned long &__x, bool)
-{
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-inline int __rw_atomic_predecrement (int &__x, bool)
-{
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
     return __rw_atomic_add32 (&__x, -1);
 }
 
 
-inline unsigned __rw_atomic_predecrement (unsigned &__x, bool)
+inline unsigned
+__rw_atomic_predecrement (unsigned &__x, bool)
 {
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                     false);
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned));
+    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), -1);
 }
 
 
-inline long __rw_atomic_predecrement (long &__x, bool)
+inline int
+__rw_atomic_exchange (int &__x, int __y, bool)
 {
-    return __rw_atomic_add (&__x, -1);
-}
-
-
-inline unsigned long __rw_atomic_predecrement (unsigned long &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-
-#    if _RWSTD_LLONG_SIZE == _RWSTD_LONG_SIZE
-
-
-#    endif   // _RWSTD_LLONG_SIZE == _RWSTD_LONG_SIZE
-
-
-inline int __rw_atomic_exchange (int &__x, int __y, bool)
-{
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
     return __rw_atomic_xchg32 (&__x, __y);
 }
 
 
-inline unsigned __rw_atomic_exchange (unsigned &__x, unsigned __y, bool)
+inline unsigned
+__rw_atomic_exchange (unsigned &__x, unsigned __y, bool)
 {
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                 _RWSTD_STATIC_CAST (int, __y), false);
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned));
+    return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (int*, &__x),
+                               _RWSTD_STATIC_CAST (int, __y));
+}
+
+#  if _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
+
+inline long
+__rw_atomic_preincrement (long &__x, bool)
+{
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
+    return __rw_atomic_add64 (&__x, 1);
 }
 
 
-inline long __rw_atomic_exchange (long &__x, long __y, bool)
+inline unsigned long
+__rw_atomic_preincrement (unsigned long &__x, bool)
 {
-    return __rw_atomic_xchg (&__x, __y);
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned long));
+    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (long*, &__x), 1);
 }
 
 
-inline
-unsigned long __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
+
+inline long
+__rw_atomic_predecrement (long &__x, bool)
 {
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                 _RWSTD_STATIC_CAST (long, __y), false);
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
+    return __rw_atomic_add64 (&__x, -1);
 }
 
 
-#    if _RWSTD_LLONG_SIZE == _RWSTD_LONG_SIZE
+inline unsigned long
+__rw_atomic_predecrement (unsigned long &__x, bool)
+{
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned long));
+    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (long*, &__x), -1);
+}
 
 
-#    endif   // _RWSTD_LLONG_SIZE == _RWSTD_LONG_SIZE
+inline long
+__rw_atomic_exchange (long &__x, long __y, bool)
+{
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
+    return __rw_atomic_xchg64 (&__x, __y);
+}
+
+
+inline unsigned long
+__rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
+{
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned long));
+    return __rw_atomic_xchg64 (_RWSTD_REINTERPRET_CAST (long*, &__x),
+                               _RWSTD_STATIC_CAST (long, __y));
+}
+
+#  endif   // _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
 
 /********************** AIX **************************************/
 
@@ -879,68 +871,36 @@ unsigned long __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
 
 _RWSTD_NAMESPACE (__rw) {
 
-inline
-int __rw_atomic_preincrement (int &__x, bool)
+inline int
+__rw_atomic_preincrement (int &__x, bool)
 {
     return fetch_and_add (&__x, 1) + 1;
 }
 
 
-inline
-unsigned __rw_atomic_preincrement (unsigned &__x, bool)
+inline unsigned
+__rw_atomic_preincrement (unsigned &__x, bool)
 {
-  
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST(int&, __x),
-                                     false);
+    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x));
 }
 
 
-inline
-long __rw_atomic_preincrement (long &__x, bool)
-{
-    return fetch_and_addlp (&__x, 1) + 1;
-}
-
-
-inline
-unsigned long __rw_atomic_preincrement (unsigned long &__x, bool)
-{
-  return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                   false);
-}
-
-
-inline
-int __rw_atomic_predecrement (int &__x, bool)
+inline int
+__rw_atomic_predecrement (int &__x, bool)
 {
     return fetch_and_add(&__x,-1) - 1;
 }
 
-inline
-unsigned __rw_atomic_predecrement (unsigned &__x, bool)
+inline unsigned
+__rw_atomic_predecrement (unsigned &__x, bool)
 {
     return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (int&, __x),
                                      false);
 }
 
 
-inline
-long __rw_atomic_predecrement (long &__x, bool)
-{
-    return fetch_and_addlp (&__x, -1) - 1;
-}
-
-
-inline
-unsigned long __rw_atomic_predecrement (unsigned long &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-
-inline
-int __rw_atomic_exchange (int &__x, int __y, bool)
+inline int
+__rw_atomic_exchange (int &__x, int __y, bool)
 {
     int __tmp;
 
@@ -952,16 +912,46 @@ int __rw_atomic_exchange (int &__x, int __y, bool)
 }
 
 
-inline
-unsigned __rw_atomic_exchange (unsigned &__x, unsigned __y, bool)
+inline unsigned
+__rw_atomic_exchange (unsigned &__x, unsigned __y, bool)
 {
     return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (int&, __x),
                                  _RWSTD_STATIC_CAST (int, __y), false);
 }
 
 
-inline
-long __rw_atomic_exchange (long &__x, long __y, bool)
+#  if _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
+
+inline long
+__rw_atomic_preincrement (long &__x, bool)
+{
+    return fetch_and_addlp (&__x, 1) + 1;
+}
+
+
+inline unsigned long
+__rw_atomic_preincrement (unsigned long &__x, bool)
+{
+  return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (long&, __x),
+                                   false);
+}
+
+inline long
+__rw_atomic_predecrement (long &__x, bool)
+{
+    return fetch_and_addlp (&__x, -1) - 1;
+}
+
+
+inline unsigned long
+__rw_atomic_predecrement (unsigned long &__x, bool)
+{
+    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (long&, __x),
+                                     false);
+}
+
+inline long
+__rw_atomic_exchange (long &__x, long __y, bool)
 {
     long __tmp;
 
@@ -973,12 +963,15 @@ long __rw_atomic_exchange (long &__x, long __y, bool)
 }
 
 
-inline
-unsigned long __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
+inline unsigned long
+__rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
 {
     return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (long&, __x),
                                  _RWSTD_STATIC_CAST (long, __y), false);
 }
+
+#  endif   // _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
+
 
 /********************** SGI **************************************/
 
@@ -992,145 +985,157 @@ unsigned long __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
 _RWSTD_NAMESPACE (__rw) {
 
 
-inline
-unsigned long __rw_atomic_preincrement (unsigned long &__x, bool)
-{
-    return __add_then_test (&__x, 1);
-}
-
-
-inline
-unsigned __rw_atomic_preincrement (unsigned &__x, bool)
+inline unsigned
+__rw_atomic_preincrement (unsigned &__x, bool)
 {
     return __add_then_test32 (&__x, 1);
 }
 
 
-inline
-int __rw_atomic_preincrement (int &__x, bool)
+inline int
+__rw_atomic_preincrement (int &__x, bool)
 {
     return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (unsigned int&,__x),false);
 }
 
 
-inline
-long __rw_atomic_preincrement (long &__x, bool)
-{
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST(unsigned long&, __x),
-                                     false);
-}
-
-
-inline
-unsigned __rw_atomic_predecrement (unsigned &__x, bool)
+inline unsigned
+__rw_atomic_predecrement (unsigned &__x, bool)
 {
     return __add_then_test32 (&__x, -1);
 }
 
 
-inline
-unsigned long __rw_atomic_predecrement (unsigned long &__x, bool)
-{
-    return __add_then_test (&__x, -1);
-}
-
-
-inline
-int __rw_atomic_predecrement (int &__x, bool)
+inline int
+__rw_atomic_predecrement (int &__x, bool)
 {
     return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (unsigned &, __x),
                                      false);
 }
 
 
-
-inline
-long __rw_atomic_predecrement (long &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (unsigned long&, __x),
-                                     false);
-}
-
-
-inline
-unsigned long __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
-{
-    return __test_and_set (&__x, __y);
-}
-
-
-inline
-unsigned __rw_atomic_exchange (unsigned &__x, unsigned __y, bool)
+inline unsigned
+__rw_atomic_exchange (unsigned &__x, unsigned __y, bool)
 {
     return __test_and_set32 (&__x, __y);
 }
 
 
-inline
-int __rw_atomic_exchange (int &__x, int __y, bool)
+inline int
+__rw_atomic_exchange (int &__x, int __y, bool)
 {
     return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (unsigned int&, __x),
                                  _RWSTD_STATIC_CAST (unsigned int, __y), false);
 }
 
 
-inline
-long __rw_atomic_exchange (long &__x, long __y, bool)
+#  if _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
+
+inline unsigned long
+__rw_atomic_preincrement (unsigned long &__x, bool)
+{
+    return __add_then_test (&__x, 1);
+}
+
+
+inline long
+__rw_atomic_preincrement (long &__x, bool)
+{
+    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST(unsigned long&,
+                                                             __x),
+                                     false);
+}
+
+inline unsigned long
+__rw_atomic_predecrement (unsigned long &__x, bool)
+{
+    return __add_then_test (&__x, -1);
+}
+
+
+inline long
+__rw_atomic_predecrement (long &__x, bool)
+{
+    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (unsigned long&,
+                                                              __x),
+                                     false);
+}
+
+
+inline unsigned long
+__rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
+{
+    return __test_and_set (&__x, __y);
+}
+
+
+inline long
+__rw_atomic_exchange (long &__x, long __y, bool)
 {
     return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (unsigned long&, __x),
-                                 _RWSTD_STATIC_CAST (unsigned long, __y), false);
+                                 _RWSTD_STATIC_CAST (unsigned long, __y),
+                                 false);
 }
+
+#  endif   // _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
 
 /********************** PA-RISC 2.0 ************************************/
 
 #elif defined (_PA_RISC2_0) && !defined (_RWSTD_NO_ATOMIC_OPERATIONS)
 
-// defined in assembler file "atomic-pa2.s"
-// Special constraint: The value of both the argument
-// and the result must not be zero
-extern "C" int __rw_atomic_incr32 (int*);
-extern "C" int __rw_atomic_decr32 (int*);
-extern "C" int __rw_atomic_xchg32 (int*, int);
+extern "C" {
 
-inline
-int __rw_string_atomic_preincrement (int &__x, bool)
+// special constraint: the value of both the argument and the result
+// must not be zero
+
+int __rw_atomic_incr32 (int*);
+int __rw_atomic_decr32 (int*);
+int __rw_atomic_xchg32 (int*, int);
+
+}   // extern "C"
+
+
+inline int
+__rw_string_atomic_preincrement (int &__x, bool)
 {
     return  __rw_atomic_incr32 (&__x);
 }
 
 
-inline
-unsigned __rw_string_atomic_preincrement (unsigned &__x, bool)
+inline unsigned
+__rw_string_atomic_preincrement (unsigned &__x, bool)
 {
   
     return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST(int&, __x),
                                      false);
 }
 
-inline
-int __rw_string_atomic_predecrement (int &__x, bool)
+
+inline int
+__rw_string_atomic_predecrement (int &__x, bool)
 {
     return  __rw_atomic_decr32 (&__x);
 }
 
 
-inline
-unsigned __rw_string_atomic_predecrement (unsigned &__x, bool)
+inline unsigned
+__rw_string_atomic_predecrement (unsigned &__x, bool)
 {
   
     return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST(int&, __x),
                                      false);
 }
 
-inline
-int __rw_string_atomic_exchange (int &__x, int __y, bool)
+
+inline int
+__rw_string_atomic_exchange (int &__x, int __y, bool)
 {
     return __rw_atomic_xchg32 (&__x, __y);
 }
 
 
-inline
-unsigned __rw_string_atomic_exchange (unsigned &__x, unsigned __y, bool)
+inline unsigned
+__rw_string_atomic_exchange (unsigned &__x, unsigned __y, bool)
 {
     return __rw_string_atomic_exchange (_RWSTD_REINTERPRET_CAST(int&, __x),
                                         _RWSTD_STATIC_CAST(int,__y),
@@ -1147,11 +1152,11 @@ extern "C" {
 
 char __rw_atomic_add8 (char*, int);
 short __rw_atomic_add16 (short*, short);
-int __rw_atomic_add (int*, int);
+int __rw_atomic_add32 (int*, int);
 
 char __rw_atomic_xchg8 (char*, char);
 short __rw_atomic_xchg16 (short*, short);
-int __rw_atomic_xchg (int*, int);
+int __rw_atomic_xchg32 (int*, int);
 
 }   // extern "C"
 
@@ -1199,14 +1204,16 @@ __rw_atomic_preincrement (unsigned short &__x, bool)
 inline int
 __rw_atomic_preincrement (int &__x, bool)
 {
-    return __rw_atomic_add (&__x, 1);
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
+    return __rw_atomic_add32 (&__x, 1);
 }
 
 
 inline unsigned int
 __rw_atomic_preincrement (unsigned int &__x, bool)
 {
-    return __rw_atomic_add (_RWSTD_REINTERPRET_CAST (int*, &__x), 1);
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
+    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), 1);
 }
 
 
@@ -1214,17 +1221,15 @@ inline long
 __rw_atomic_preincrement (long &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (sizeof (long) == sizeof (int));
-
-    return __rw_atomic_add (_RWSTD_REINTERPRET_CAST (int*, &__x), 1);
+    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), 1);
 }
 
 
 inline unsigned long
 __rw_atomic_preincrement (unsigned long &__x, bool)
 {
-    _RWSTD_COMPILE_ASSERT (sizeof (unsigned long) == sizeof (int));
-
-    return __rw_atomic_add (_RWSTD_REINTERPRET_CAST (int*, &__x), 1);
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned long));
+    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), 1);
 }
 
 
@@ -1271,30 +1276,32 @@ __rw_atomic_predecrement (unsigned short &__x, bool)
 inline int
 __rw_atomic_predecrement (int &__x, bool)
 {
-    return __rw_atomic_add (&__x, -1);
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
+    return __rw_atomic_add32 (&__x, -1);
 }
 
 
 inline unsigned int
 __rw_atomic_predecrement (unsigned int &__x, bool)
 {
-    return __rw_atomic_add (_RWSTD_REINTERPRET_CAST (int*, &__x), -1);
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
+    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), -1);
 }
 
 
 inline long
 __rw_atomic_predecrement (long &__x, bool)
 {
-    _RWSTD_COMPILE_ASSERT (sizeof (long) == sizeof (int));
-    return __rw_atomic_add (_RWSTD_REINTERPRET_CAST (int*, &__x), -1);
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (long));
+    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), -1);
 }
 
 
 inline unsigned long
 __rw_atomic_predecrement (unsigned long &__x, bool)
 {
-    _RWSTD_COMPILE_ASSERT (sizeof (unsigned long) == sizeof (int));
-    return __rw_atomic_add (_RWSTD_REINTERPRET_CAST (int*, &__x), -1);
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned long));
+    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), -1);
 }
 
 
@@ -1344,33 +1351,35 @@ __rw_atomic_exchange (unsigned short &__x, unsigned short __y, bool)
 inline int
 __rw_atomic_exchange (int &__x, int __y, bool)
 {
-    return __rw_atomic_xchg (&__x, __y);
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
+    return __rw_atomic_xchg32 (&__x, __y);
 }
 
 
 inline unsigned int
 __rw_atomic_exchange (unsigned int &__x, unsigned int __y, bool)
 {
-    return __rw_atomic_xchg (_RWSTD_REINTERPRET_CAST (int*, &__x),
-                             _RWSTD_STATIC_CAST (int, __y));
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
+    return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (int*, &__x),
+                               _RWSTD_STATIC_CAST (int, __y));
 }
 
 
 inline long
 __rw_atomic_exchange (long &__x, long __y, bool)
 {
-    _RWSTD_COMPILE_ASSERT (sizeof (long) == sizeof (int));
-    return __rw_atomic_xchg (_RWSTD_REINTERPRET_CAST (int*, &__x),
-                             _RWSTD_STATIC_CAST (int, __y));
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (long));
+    return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (int*, &__x),
+                               _RWSTD_STATIC_CAST (int, __y));
 }
 
 
 inline unsigned long
 __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
 {
-    _RWSTD_COMPILE_ASSERT (sizeof (unsigned long) == sizeof (int));
-    return __rw_atomic_xchg (_RWSTD_REINTERPRET_CAST (int*, &__x),
-                             _RWSTD_STATIC_CAST (int, __y));
+    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned long));
+    return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (int*, &__x),
+                               _RWSTD_STATIC_CAST (int, __y));
 }
 
 /********************** WIN 32/64 ************************************/
@@ -1383,224 +1392,53 @@ __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
 // InterlockedExchange atomically sets the value pointed to by the first
 // argument to that of the second argument and returns the original value
 
-inline
-long __rw_atomic_preincrement (long &__x, bool)
+inline int
+__rw_atomic_preincrement (int &__x, bool)
 {
-    return InterlockedIncrement (&__x);
+    _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
+    return InterlockedIncrement (_RWSTD_REINTERPRET_CAST (long*, __x));
 }
 
 
-inline
-unsigned long __rw_atomic_preincrement (unsigned long &__x, bool)
+inline unsigned int
+__rw_atomic_preincrement (unsigned int &__x, bool)
 {
     return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (long&, __x),
                                      false);
 }
 
 
-inline
-int __rw_atomic_preincrement (int &__x, bool)
+inline int
+__rw_atomic_predecrement (int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
+    return InterlockedDecrement (_RWSTD_REINTERPRET_CAST (long*, __x));
+}
 
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (long&, __x),
+
+inline unsigned int
+__rw_atomic_predecrement (unsigned int &__x, bool)
+{
+    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (int&, __x),
                                      false);
 }
 
 
-inline
-unsigned int __rw_atomic_preincrement (unsigned int &__x, bool)
+inline int
+__rw_atomic_exchange (int &__x, int __y, bool)
 {
     _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
-
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
+    return InterlockedExchange (_RWSTD_REINTERPRET_CAST (long*, __x),
+                                _RWSTD_STATIC_CAST (long, __y));
 }
 
 
-inline
-long __rw_atomic_predecrement (long &__x, bool)
+inline unsigned int
+__rw_atomic_exchange (unsigned int &__x, unsigned int __y, bool)
 {
-    return InterlockedDecrement (&__x);
+    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (int&, __x),
+                                 _RWSTD_STATIC_CAST (int, __y), false);
 }
-
-
-inline
-unsigned long __rw_atomic_predecrement (unsigned long &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-
-inline
-int __rw_atomic_predecrement (int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
-
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-
-inline
-unsigned int __rw_atomic_predecrement (unsigned int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
-
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-
-inline
-long __rw_atomic_exchange (long &__x, long __y, bool)
-{
-    return InterlockedExchange (&__x, __y);
-}
-
-
-inline
-unsigned long __rw_atomic_exchange (unsigned long &__x, unsigned long __y,
-                                    bool)
-{
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                 _RWSTD_STATIC_CAST (long, __y), false);
-}
-
-
-inline
-int __rw_atomic_exchange (int &__x, int __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
-
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                 _RWSTD_STATIC_CAST (long, __y), false);
-}
-
-
-inline
-unsigned int __rw_atomic_exchange (unsigned int &__x, unsigned int __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
-
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                 _RWSTD_STATIC_CAST (long, __y), false);
-}
-
-
-inline
-long __rw_atomic_preincrement (long &__x, __rw_mutex_base &__mutex)
-{
-    _RWSTD_UNUSED (__mutex);
-
-    return __rw_atomic_preincrement (__x, false);
-}
-
-
-inline
-unsigned long __rw_atomic_preincrement (unsigned long   &__x,
-                                        __rw_mutex_base &__mutex)
-{
-    _RWSTD_UNUSED (__mutex);
-
-    return __rw_atomic_preincrement (__x, false);
-}
-
-
-inline
-int __rw_atomic_preincrement (int &__x, __rw_mutex_base &__mutex)
-{
-    _RWSTD_UNUSED (__mutex);
-
-    return __rw_atomic_preincrement (__x, false);
-}
-
-
-inline
-unsigned int __rw_atomic_preincrement (unsigned int    &__x,
-                                       __rw_mutex_base &__mutex)
-{
-    _RWSTD_UNUSED (__mutex);
-
-    return __rw_atomic_preincrement (__x, false);
-}
-
-
-inline
-long __rw_atomic_predecrement (long &__x, __rw_mutex_base &__mutex)
-{
-    _RWSTD_UNUSED (__mutex);
-
-    return __rw_atomic_predecrement (__x, false);
-}
-
-
-inline
-unsigned long __rw_atomic_predecrement (unsigned long   &__x,
-                                        __rw_mutex_base &__mutex)
-{
-    _RWSTD_UNUSED (__mutex);
-
-    return __rw_atomic_predecrement (__x, false);
-}
-
-
-inline
-int __rw_atomic_predecrement (int &__x, __rw_mutex_base &__mutex)
-{
-    _RWSTD_UNUSED (__mutex);
-
-    return __rw_atomic_predecrement (__x, false);
-}
-
-
-inline
-unsigned int __rw_atomic_predecrement (unsigned int    &__x,
-                                       __rw_mutex_base &__mutex)
-{
-    _RWSTD_UNUSED (__mutex);
-
-    return __rw_atomic_predecrement (__x, false);
-}
-
-inline
-long __rw_atomic_exchange (long &__x, long __y, __rw_mutex_base &__mutex)
-{
-    _RWSTD_UNUSED (__mutex);
-
-    return __rw_atomic_exchange (__x, __y, false);
-}
-
-
-inline
-unsigned long __rw_atomic_exchange (unsigned long &__x, unsigned long __y,
-                                    __rw_mutex_base &__mutex)
-{
-    _RWSTD_UNUSED (__mutex);
-
-    return __rw_atomic_exchange (__x, __y, false);
-}
-
-
-inline
-int __rw_atomic_exchange (int &__x, int __y, __rw_mutex_base &__mutex)
-{
-    _RWSTD_UNUSED (__mutex);
-
-    return __rw_atomic_exchange (__x, __y, false);
-}
-
-
-inline
-unsigned int __rw_atomic_exchange (unsigned int &__x, unsigned int __y,
-                                   __rw_mutex_base &__mutex)
-{
-    _RWSTD_UNUSED (__mutex);
-
-    return __rw_atomic_exchange (__x, __y, false);
-}
-
 
 /********************** IA64 ******************************************/
 
@@ -1627,7 +1465,8 @@ __rw_atomic_preincrement (char &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (1 == sizeof (char));
 
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x), +1);
+    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
+                             +1);
 }
 
 
@@ -1636,7 +1475,8 @@ __rw_atomic_preincrement (signed char &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (1 == sizeof (signed char));
 
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x), +1);
+    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
+                             +1);
 }
 
 
@@ -1645,7 +1485,8 @@ __rw_atomic_preincrement (unsigned char &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (1 == sizeof (unsigned char));
 
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x), +1);
+    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
+                             +1);
 }
 
 
@@ -1654,7 +1495,8 @@ __rw_atomic_preincrement (short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
 
-    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x), +1);
+    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
+                              +1);
 }
 
 
@@ -1663,7 +1505,8 @@ __rw_atomic_preincrement (unsigned short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
 
-    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x), +1);
+    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
+                              +1);
 }
 
 
@@ -1672,7 +1515,8 @@ __rw_atomic_preincrement (int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
 
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x), +1);
+    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
+                              +1);
 }
 
 
@@ -1681,37 +1525,20 @@ __rw_atomic_preincrement (unsigned int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
 
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x), +1);
+    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
+                              +1);
 }
 
 
-#if 4 == _RWSTD_LONG_SIZE
-
-inline long
-__rw_atomic_preincrement (long &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (long));
-
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x), +1);
-}
-
-
-inline unsigned long
-__rw_atomic_preincrement (unsigned long &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned long));
-
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x), +1);
-}
-
-#else   // if 4 != _RWSTD_LONG_SIZE
+#if 4 < _RWSTD_LONG_SIZE
 
 inline long
 __rw_atomic_preincrement (long &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
 
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x), +1);
+    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
+                              +1);
 }
 
 
@@ -1720,7 +1547,8 @@ __rw_atomic_preincrement (unsigned long &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned long));
 
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x), +1);
+    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
+                              +1);
 }
 
 #endif   // _RWSTD_LONG_SIZE
@@ -1731,7 +1559,8 @@ __rw_atomic_predecrement (char &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (1 == sizeof (char));
 
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x), -1);
+    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
+                             -1);
 }
 
 
@@ -1740,7 +1569,8 @@ __rw_atomic_predecrement (signed char &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (1 == sizeof (signed char));
 
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x), -1);
+    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
+                             -1);
 }
 
 
@@ -1749,7 +1579,8 @@ __rw_atomic_predecrement (unsigned char &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (1 == sizeof (unsigned char));
 
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x), -1);
+    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
+                             -1);
 }
 
 
@@ -1758,7 +1589,8 @@ __rw_atomic_predecrement (short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
 
-    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x), -1);
+    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
+                              -1);
 }
 
 
@@ -1767,7 +1599,8 @@ __rw_atomic_predecrement (unsigned short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
 
-    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x), -1);
+    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
+                              -1);
 }
 
 
@@ -1776,7 +1609,8 @@ __rw_atomic_predecrement (int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
 
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x), -1);
+    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
+                              -1);
 }
 
 
@@ -1785,37 +1619,20 @@ __rw_atomic_predecrement (unsigned int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
 
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x), -1);
+    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
+                              -1);
 }
 
 
-#if 4 == _RWSTD_LONG_SIZE
-
-inline long
-__rw_atomic_predecrement (long &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (long));
-
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x), -1);
-}
-
-
-inline unsigned long
-__rw_atomic_predecrement (unsigned long &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned long));
-
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x), -1);
-}
-
-#else   // if 4 != _RWSTD_LONG_SIZE
+#if 4 < _RWSTD_LONG_SIZE
 
 inline long
 __rw_atomic_predecrement (long &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
 
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x), -1);
+    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
+                              -1);
 }
 
 
@@ -1824,7 +1641,8 @@ __rw_atomic_predecrement (unsigned long &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
 
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x), -1);
+    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
+                              -1);
 }
 
 #endif   // _RWSTD_LONG_SIZE
@@ -1899,28 +1717,7 @@ __rw_atomic_exchange (unsigned int &__x, unsigned int __y, bool)
 }
 
 
-#  if _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
-
-inline long
-__rw_atomic_exchange (long &__x, long __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (long));
-
-    return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
-                               _RWSTD_STATIC_CAST (_RWSTD_INT32_T, __y));
-}
-
-
-inline unsigned long
-__rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned long));
-
-    return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
-                               _RWSTD_STATIC_CAST (_RWSTD_INT32_T, __y));
-}
-
-#  else   // if _RWSTD_LONG_SIZE != _RWSTD_INT_SIZE
+#  if 4 < _RWSTD_LONG_SIZE
 
 inline long
 __rw_atomic_exchange (long &__x, long __y, bool)
@@ -1943,74 +1740,60 @@ __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
 
 #  endif   // _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
 
-#  ifdef _RWSTD_LONG_LONG
-#    if _RWSTD_LLONG_SIZE != _RWSTD_LONG_SIZE
-
-inline _RWSTD_LONG_LONG
-__rw_atomic_preincrement (_RWSTD_LONG_LONG &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (_RWSTD_LONG_LONG));
-
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                              +1);
-}
-
-
-inline unsigned _RWSTD_LONG_LONG
-__rw_atomic_preincrement (unsigned _RWSTD_LONG_LONG &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned _RWSTD_LONG_LONG));
-
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                              +1);
-}
-
-
-inline _RWSTD_LONG_LONG
-__rw_atomic_predecrement (_RWSTD_LONG_LONG &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (_RWSTD_LONG_LONG));
-
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                              -1);
-}
-
-
-inline unsigned _RWSTD_LONG_LONG
-__rw_atomic_predecrement (unsigned _RWSTD_LONG_LONG &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned _RWSTD_LONG_LONG));
-
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                              -1);
-}
-
-
-inline _RWSTD_LONG_LONG
-__rw_atomic_exchange (_RWSTD_LONG_LONG &__x, _RWSTD_LONG_LONG __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (_RWSTD_LONG_LONG));
-
-    return __rw_atomic_xchg64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                               _RWSTD_STATIC_CAST (_RWSTD_INT64_T, __y));
-}
-
-
-inline unsigned _RWSTD_LONG_LONG
-__rw_atomic_exchange (unsigned _RWSTD_LONG_LONG &__x,
-                      unsigned _RWSTD_LONG_LONG __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned _RWSTD_LONG_LONG));
-
-    return __rw_atomic_xchg64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                               _RWSTD_STATIC_CAST (_RWSTD_INT64_T, __y));
-}
-
-#    endif   // _RWSTD_LLONG_SIZE != _RWSTD_LONG_SIZE
-#  endif   // _RWSTD_LONG_LONG
-
 #endif   // IA64
 
+/********************** generic long functions ************************/
+
+#if _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
+
+inline long
+__rw_atomic_preincrement (long &__x, bool)
+{
+    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x),
+                                     false);
+}
+
+inline unsigned long
+__rw_atomic_preincrement (unsigned long &__x, bool)
+{
+    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x),
+                                     false);
+}
+
+inline long
+__rw_atomic_predecrement (long &__x, bool)
+{
+    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (int&, __x),
+                                     false);
+}
+
+inline unsigned long
+__rw_atomic_predecrement (unsigned long &__x, bool)
+{
+    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (int&, __x),
+                                     false);
+}
+
+inline long
+__rw_atomic_exchange (long &__x, long __y, bool)
+{
+    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (int&, __x),
+                                 _RWSTD_STATIC_CAST (int, __y),
+                                 false);
+}
+
+inline unsigned long
+__rw_atomic_exchange (unsigned long &__x,
+                      unsigned long __y, bool)
+{
+    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (int&, __x),
+                                 _RWSTD_STATIC_CAST (int, __y),
+                                 false);
+}
+
+#endif   // _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
+
+/********************** generic long long functions *******************/
 
 #ifdef _RWSTD_LONG_LONG
 #  if _RWSTD_LLONG_SIZE == _RWSTD_LONG_SIZE

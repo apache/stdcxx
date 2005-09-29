@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * atomic-i86.s
+ * atomic.s
  *
  * $Id$
  *
@@ -55,15 +55,15 @@ __rw_atomic_xchg16:                /* ; short (short *x, short y)     */
 
 
 /***************************************************************************
- * extern "C" int __rw_atomic_xchg (int *x, int y);
+ * extern "C" int __rw_atomic_xchg32 (int *x, int y);
  *
  * Atomically assigns the 32-bit value y to *x and returns
  * the original (before assignment) 32-bit value of *x.
  **************************************************************************/
 
-    .globl __rw_atomic_xchg
-    .type __rw_atomic_xchg, @function
-__rw_atomic_xchg:                  /* ; int (int *x, int y)           */
+    .globl __rw_atomic_xchg32
+    .type __rw_atomic_xchg32, @function
+__rw_atomic_xchg32:                /* ; int (int *x, int y)           */
     movl          4(%esp), %ecx    /* ; %ecx = x                      */
     movl          8(%esp), %eax    /* ; %eax = y                      */
     xchgl         %eax, (%ecx)     /* ; %eax <-> (%ecx)               */
@@ -117,15 +117,15 @@ __rw_atomic_add16:                 /* ; long (long *dst, long inc)    */
 
 
 /***************************************************************************
- * extern "C" int __rw_atomic_add (int *x, int y);
+ * extern "C" int __rw_atomic_add32 (int *x, int y);
  *
  * Atomically increments the 32-bit value *x by y and returns
  * the new (after increment) 32-bit value of *x.
  **************************************************************************/
 
-    .globl __rw_atomic_add
-    .type __rw_atomic_add, @function
-__rw_atomic_add:                   /* ; long (long *dst, long inc)    */
+    .globl __rw_atomic_add32
+    .type __rw_atomic_add32, @function
+__rw_atomic_add32:                 /* ; long (long *dst, long inc)    */
     movl           4(%esp), %ecx   /* ; %ecx = dst                    */
     movl           8(%esp), %edx   /* ; %edx = inc                    */
     movl           %edx, %eax      /* ; */
