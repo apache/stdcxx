@@ -443,10 +443,12 @@
 
      $ cd ${BUILDDIR}
      $ gmake -Cinclude [ config ]   # configure
-     $ gmake libstd                 # build the library
-     $ gmake util                   # build utilities
-     $ gmake exm                    # build examples
-     $ gmake tst                    # build tests
+     $ gmake config                 # same
+     $ gmake lib                    # build the library
+     $ gmake examples               # build examples
+     $ gmake util                   # build utility programs
+     $ gmake rwtest                 # build the test driver
+     $ gmake tests                  # build tests
      $ gmake locales                # build locale databases
 
      Alternatively, you can cd  into the respective subdirectories and
@@ -455,8 +457,8 @@
      $ (cd ${BUILDDIR}/include && gmake)     # configure
      $ (cd ${BUILDDIR}/lib && gmake)         # build the library
      $ (cd ${BUILDDIR}/bin && gmake)         # build utilities
-     $ (cd ${BUILDDIR}/exm && gmake)         # build examples
-     $ (cd ${BUILDDIR}/tst && gmake)         # build tests
+     $ (cd ${BUILDDIR}/examples && gmake)    # build examples
+     $ (cd ${BUILDDIR}/tests && gmake)       # build tests
      $ (cd ${BUILDDIR}/bin && gmake locales) # build locale databases
 
      Parallel  builds  (gmake -j[N])  are  possible  in any  directory
@@ -516,17 +518,17 @@
   following steps.
 
   o  $ cd ${BUILDDIR}
-     $ gmake [ rwtestlib ][ tst ] [ exm ]
+     $ gmake [ rwtest ][ tests ] [ examples ]
 
      The rwtest library is a prerequisite for the test programs (gmake
-     rwtestlib).
+     rwtest).
 
      From  ${BUILDDIR}, you  can proceed  to build  the tests  and the
      examples, either individually  or all at the same  time.  You can
      either  navigate   into  the  respective   subdirectories  (i.e.,
      ${BUILDDIR}/tests/,  or ${BUILDDIR}/examples/)  and type  gmake [
      target  ]  to  build  there   or  you  can  build  directly  from
-     ${BUILDDIR} by typing gmake tst or gmake exm.
+     ${BUILDDIR} by typing gmake tests or gmake examples.
 
      The  library  sources  and  headers  are expected  to  reside  in
      ${TOPDIR}/src/ and  ${TOPDIR}/include/, respectively, tests(*) in
