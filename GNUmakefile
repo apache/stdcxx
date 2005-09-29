@@ -25,7 +25,7 @@
 #   From $TOPDIR or $BUILDDIR to configure if necessary and build the lib,
 #   tests, plumhall testsuite, and examples:
 #
-#   $ make [ libstd ] [ rwtest ] [ tst ] [ phtst ] [ exm ]
+#   $ make [ lib ] [ bin ] [ rwtest ] [ tests ] [ phtst ] [ examples ]
 #
 #   From $TOPDIR or $BUILDDIR to build the lib, tests, and examples, run the
 #   built executables, and (by default, unless DRYRUN is non-empty)
@@ -53,11 +53,11 @@
 #
 #   libstd    - builds the library
 #
-#   rwtestlib - builds the testsuite driver
+#   rwtest    - builds the testsuite driver
 #
-#   testsuite - builds the testsuite
+#   tests     - builds the testsuite
 #
-#   exm       - builds the example programs
+#   examples  - builds the example programs
 #
 #   util      - builds the utility programs
 # 
@@ -613,7 +613,7 @@ else   # ifneq ($(in_topdir),1) ##############################################
   # THIS BLOCK IS EVALUATED ONLY WHEN MAKE IS INVOKED IN BUILDDIR
   ############################################################################
 
-all: config libstd util rwtestlib tst exm $(PHDTSTDIR)
+all: config lib examples util rwtest tests $(PHDTSTDIR)
 
 # configure (create config.h)
 config:
@@ -624,23 +624,23 @@ util:
 	@$(MAKE) -C$(BUILDDIR)/bin
 
 # build library
-libstd:
+lib:
 	@$(MAKE) -C$(LIBDIR)
 
 # build the test library
-rwtestlib:
+rwtest:
 	@$(MAKE) -C$(BUILDDIR)/rwtest
 
 # build tests, ignore failures
-testsuite: libstd rwtestlib
+tests:
 	-@$(MAKE) -C$(TSTDIR)
 
-# build plumhall tests, ignore failures
-phtst: libstd
+# build the Plum Hall test suite, ignore failures
+phtst:
 	-@$(MAKE) -C$(PHTSTDIR)
 
 # make examples, ignore failures
-exm: libstd
+examples:
 	-@$(MAKE) -C$(EXMDIR)
 
 
@@ -676,7 +676,7 @@ post:
           $(MAKE) LOGFILE=$$log lib ;                                         \
           ts2=`date +%T`;                                                     \
           date >> $$log ;                                                     \
-          $(MAKE) -k LOGFILE=$$log bin tst exm ;                              \
+          $(MAKE) -k LOGFILE=$$log bin tests examples ;                       \
           echo >> $$log ; date >> $$log ; echo >> $$log ;                     \
           [ ! -d post ] && mkdir post;                                        \
           last=$(TOPDIR)/etc/results/$(REPORTFILE) ;                          \
@@ -714,4 +714,4 @@ post:
 endif   # ($(CURDIR),$(TOPDIR))
 
 
-.PHONY: all builddir libstd rwtest bin tst phtst exm post
+.PHONY: all builddir lib rwtest bin tests phtst examples post
