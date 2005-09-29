@@ -40,28 +40,28 @@ __rw_atomic_xchg32:           ! (int *x: %o0, int y: %o1)
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! extern "C" int __rw_atomic_xchg (long *x, long y);
+! extern "C" int __rw_atomic_xchg64 (long *x, long y);
 !
 ! Atomically assigns the 64-bit value value y to *x and returns
 ! the original (before assignment) 64-bit value of *x.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    .type __rw_atomic_xchg, #function
-    .global __rw_atomic_xchg
+    .type __rw_atomic_xchg64, #function
+    .global __rw_atomic_xchg64
 
-__rw_atomic_xchg:             ! (long *x: %o0, long y: %o1)
-    mov     %o1, %o3          ! %o3 <- y
-.__rw_retry_xchg:
-    ldx     [%o0], %o2        ! %o2 <- *x
-    casx    [%o0], %o2, %o3   ! atomic operation:
-                              !   if [%o0] == %o2, [%o0] <-> %o3
-                              !   else %o3 <- [%o0]
-    cmp     %o2, %o3          ! if swap succeeded, both %o2 and %o3
-                              !   contain the original value of *x
-    bne,a   .__rw_retry_xchg  ! otherwise goto retry
-    mov     %o1, %o3          ! %o3 <- y
+__rw_atomic_xchg64:            ! (long *x: %o0, long y: %o1)
+    mov     %o1, %o3           ! %o3 <- y
+.__rw_retry_xchg64:
+    ldx     [%o0], %o2         ! %o2 <- *x
+    casx    [%o0], %o2, %o3    ! atomic operation:
+                               !   if [%o0] == %o2, [%o0] <-> %o3
+                               !   else %o3 <- [%o0]
+    cmp     %o2, %o3           ! if swap succeeded, both %o2 and %o3
+                               !   contain the original value of *x
+    bne,a   .__rw_retry_xchg64 ! otherwise goto retry
+    mov     %o1, %o3           ! %o3 <- y
     retl
-    mov     %o3, %o0          ! return result (old value)
+    mov     %o3, %o0           ! return result (old value)
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -75,7 +75,7 @@ __rw_atomic_xchg:             ! (long *x: %o0, long y: %o1)
     .global __rw_atomic_add32
 
 __rw_atomic_add32:            ! (int *x: %o0, int y: %o1)
-.__rw_retry:
+.__rw_retry_add32:
     ld      [%o0], %o2        ! load *x into %o2
     add     %o2, %o1, %o3     ! %o3 = %o1 + %o2
     cas     [%o0], %o2, %o3   ! atomic operation:
@@ -83,7 +83,7 @@ __rw_atomic_add32:            ! (int *x: %o0, int y: %o1)
                               !   else copy [%o0] into %o3
     cmp     %o2, %o3          ! if swap succeeded %o2 and %o3 are
                               !   both the old value
-    bne     .__rw_retry       ! otherwise retry
+    bne     .__rw_retry_add32 ! otherwise retry
     nop
     add     %o3, %o1, %o0     ! return result (new value)
     retl                     
@@ -91,17 +91,17 @@ __rw_atomic_add32:            ! (int *x: %o0, int y: %o1)
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! extern "C" int __rw_atomic_add (long *x, long y);
+! extern "C" int __rw_atomic_add64 (long *x, long y);
 !
 ! Atomically increments the 64-bit value value *x by y and returns
 ! the new (after increment) 64-bit value of *x.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    .type __rw_atomic_add, #function
-    .global __rw_atomic_add
+    .type __rw_atomic_add64, #function
+    .global __rw_atomic_add64
 
-__rw_atomic_add:              ! (long *x: %o0, long y: %o1)
-.__rw_retry_add:
+__rw_atomic_add64:            ! (long *x: %o0, long y: %o1)
+.__rw_retry_add64:
     ldx     [%o0], %o2        ! load *x into %o2
     add     %o2, %o1, %o3     ! %o3 = %o1 + %o2
     casx    [%o0], %o2, %o3   ! atomic operation:
@@ -109,7 +109,7 @@ __rw_atomic_add:              ! (long *x: %o0, long y: %o1)
                               !   else copy [%o0] into %o3
     cmp     %o2, %o3          ! if swap succeeded %o2 and %o3 are
                               !   both the old value
-    bne     .__rw_retry_add   ! otherwise retry
+    bne     .__rw_retry_add64 ! otherwise retry
     nop
     add     %o3, %o1, %o0     ! return result (new value)
     retl                     
