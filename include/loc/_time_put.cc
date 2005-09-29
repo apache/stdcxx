@@ -2,7 +2,7 @@
  *
  * _time_put.cc - definition of std::time_put members
  *
- * $Id: //stdlib/dev/include/loc/_time_put.cc#21 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -27,28 +27,19 @@
 _RWSTD_NAMESPACE (__rw) {
 
 
-template <class _CharT>
-_CharT* __rw_put_time (const __rw_facet*, _CharT*, _RWSTD_SIZE_T,
-                       _STD::ios_base&, _CharT, const _RWSTD_C::tm*,
-                       char, char, int, int)
-{
-    _RWSTD_ASSERT (!"not implemented");
-
-    return 0;
-}
-
-
-_RWSTD_SPECIALIZED_FUNCTION
-char* __rw_put_time (const __rw_facet*, char*, _RWSTD_SIZE_T,
-                     _STD::ios_base&, char, const _RWSTD_C::tm*,
-                     char, char, int, int);
+// defined in time_put.cpp
+_RWSTD_EXPORT char*
+__rw_put_time (const __rw_facet*, char*, _RWSTD_SIZE_T,
+               _STD::ios_base&, char, const _RWSTD_C::tm*,
+               char, char, int, int);
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-_RWSTD_SPECIALIZED_FUNCTION
-wchar_t* __rw_put_time (const __rw_facet*, wchar_t*, _RWSTD_SIZE_T,
-                        _STD::ios_base&, wchar_t, const _RWSTD_C::tm*,
-                        char, char, int, int);
+// defined in time_put.cpp
+_RWSTD_EXPORT wchar_t*
+__rw_put_time (const __rw_facet*, wchar_t*, _RWSTD_SIZE_T,
+               _STD::ios_base&, wchar_t, const _RWSTD_C::tm*,
+               char, char, int, int);
 
 #endif   // _RWSTD_NO_WCHAR_T
 

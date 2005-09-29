@@ -122,7 +122,8 @@ _RWSTD_SIZE_T
 __rw_get_timepunct (const _RW::__rw_facet*, int,
                     const void*[], const _RWSTD_SIZE_T []);
 
-static char*
+// also declared in _time_put.cc
+_RWSTD_EXPORT char*
 __rw_put_time (const __rw_facet*, char*, _RWSTD_SIZE_T,
                _STD::ios_base&, char, const tm*,
                char, char, int, int);
@@ -130,7 +131,8 @@ __rw_put_time (const __rw_facet*, char*, _RWSTD_SIZE_T,
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-static wchar_t*
+// also declared in _time_put.cc
+_RWSTD_EXPORT wchar_t*
 __rw_put_time (const __rw_facet*, wchar_t*, _RWSTD_SIZE_T,
                _STD::ios_base&, wchar_t, const tm*,
                char, char, int, int);
@@ -2567,7 +2569,7 @@ __rw_get_time_put_data (__rw_time_put_data &tpd,
 }
 
 
-static char*
+_RWSTD_EXPORT char*
 __rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
                _STD::ios_base &flags, char fill, const tm *tmb,
                char fmt, char mod, int width, int prec)
@@ -2669,7 +2671,7 @@ __rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-static wchar_t*
+_RWSTD_EXPORT wchar_t*
 __rw_put_time (const __rw_facet *facet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
                _STD::ios_base &flags, wchar_t fill, const tm *tmb,
                char fmt, char mod, int width, int prec)
