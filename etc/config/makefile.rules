@@ -57,9 +57,6 @@ $(CATFILE): $(MSGFILES)
 #  COMMON RULES
 ##############################################################################
 
-#empty rule for .cc files so they won't be separately compiled
-%: %.cc ; 
-
 # compile and link in one or two steps
 ifeq ($(NO_DOT_O),)
 
@@ -137,25 +134,26 @@ run runall run_all:
         fi ;                                                              \
         exit 0)
 
-# include the automatically generated dependencies unless "make clean"
-ifneq ($(MAKECMDGOALS),clean)
-  ifneq ($(MAKECMDGOALS),realclean)
-    ifneq ($(MAKECMDGOALS),dependclean)
-      ifneq ($(SRCS),)
+# include the automatically generated dependencies unless "clean"
+# or similar is one of the targets
+ifeq ($(findstring clean,$(MAKECMDGOALS)),)
 
-        -include $(patsubst %.cpp,$(DEPENDDIR)/%.d,$(filter %.cpp,$(SRCS)))
+  ifeq ($(MAKECMDGOALS),)
+    # include all dependencies (can be slow when there are a lot of them)
+    DEPS := $(patsubst %.cpp,$(DEPENDDIR)/%.d,$(filter %.cpp,$(SRCS)))
+    DEPS += $(patsubst %$(AS_EXT),$(DEPENDDIR)/%.d,$(filter %$(AS_EXT),$(SRCS)))
+  else
+    # as a (potentially significant) optimization, include
+    # only the dependencies for the explicitly specified goals
+    DEPS := $(addprefix $(DEPENDDIR)/,$(basename $(MAKECMDGOALS)))
+    DEPS := $(addsuffix .d,$(DEPS))
+  endif
 
-        ifneq ($(filter %.s,$(SRCS)),)
-          -include $(patsubst %.s,$(DEPENDDIR)/%.d,$(filter %.s,$(SRCS)))
-        endif
+  # (try to) include the dependency file(s), failing gracefully
+  # if they don't exist (e.g., in the case of a .PHONY goal)
+  -include $(DEPS)
 
-        ifneq ($(filter %.S,$(SRCS)),)
-          -include $(patsubst %.S,$(DEPENDDIR)/%.d,$(filter %.S,$(SRCS)))
-        endif
-      endif   # neq ($(SRCS),)
-    endif   # neq ($(MAKECMDGOALS),dependclean)
-  endif   # neq ($(MAKECMDGOALS),realclean)
-endif   # neq ($(MAKECMDGOALS),clean)
+endif   # eq ($(findstring clean,$(MAKECMDGOALS)),)
 
 
 ifneq ($(DEPENDFLAGS),)
@@ -201,21 +199,17 @@ define makedep
       fi)
 endef
 
-$(DEPENDDIR)/%.d: %.cpp
+$(DEPENDDIR)/%.d: %.cpp %.$(AS_EXT)
 	$(makedep)
 
-$(DEPENDDIR)/%.d: %.$(AS_EXT)
-	$(makedep)
-
-else
+else   # ifeq ($(DEPENDFLAGS),)
 
 $(DEPENDDIR)/%.d:
 
 endif   # neq ($(DEPENDFLAGS),)
 
 
-# force the regeneration of all dependencies
-#  by removing them
+# force the regeneration of all dependencies by removing them
 dependclean:
 	rm -f $(DEPENDDIR)/*.d; 
 	@echo "dependencies will be regenerated at the next invocation of make"
@@ -227,6 +221,12 @@ printvars:
 	         $(warning $V=$($V) ($(value $V)))))
 
 
+# define a set of phony targets that make should make unconditionally
+# regardless of whether files with the same name exist and their
+# timestamps
 .PHONY: all c_headers clean dependclean realclean config configure listtarget \
        listruntarget listsrc listobj listvpath listsubtests printvars \
        run run_all runall
+
+# override the default set of suffixes with our own
+.SUFFIXES: .a .cpp .d .o .$(AS_EXT)
