@@ -881,7 +881,8 @@ __rw_atomic_preincrement (int &__x, bool)
 inline unsigned
 __rw_atomic_preincrement (unsigned &__x, bool)
 {
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x));
+    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x),
+                                     false);
 }
 
 
@@ -890,6 +891,7 @@ __rw_atomic_predecrement (int &__x, bool)
 {
     return fetch_and_add(&__x,-1) - 1;
 }
+
 
 inline unsigned
 __rw_atomic_predecrement (unsigned &__x, bool)
@@ -936,6 +938,7 @@ __rw_atomic_preincrement (unsigned long &__x, bool)
                                    false);
 }
 
+
 inline long
 __rw_atomic_predecrement (long &__x, bool)
 {
@@ -949,6 +952,7 @@ __rw_atomic_predecrement (unsigned long &__x, bool)
     return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (long&, __x),
                                      false);
 }
+
 
 inline long
 __rw_atomic_exchange (long &__x, long __y, bool)
