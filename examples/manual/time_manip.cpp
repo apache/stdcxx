@@ -104,6 +104,7 @@ get_time (std::tm *tmb, const charT *fmt)
 
 
 // manipulator for the insertion of std::tm values
+template <class charT>
 inline std::__rw_smanip<time_put_manip<charT>, const charT*>
 put_time (const std::tm *tmb, const charT *fmt)
 {
