@@ -21,10 +21,10 @@
  * 
  **************************************************************************/
 
-#include <ctime>
-#include <iomanip>
-#include <iostream>
-#include <locale>
+#include <ctime>      // for localtime(), time()
+#include <iomanip>    // for __rw_smanip
+#include <iostream>   // for cout
+#include <locale>     // for time_get, time_put
 
 #include <examples.h>
 
@@ -35,7 +35,7 @@ struct time_get_manip
 {
     std::tm *tmb_;
 
-    time_get_manip (std::tm *tmb)
+    explicit time_get_manip (std::tm *tmb)
         : tmb_ (tmb) { }
 
     template <class Traits>
@@ -52,11 +52,10 @@ struct time_get_manip
 
         // extract the time from the stream using an extension
         // of this implementation
-        const Iter end =
-            tg.get (Iter (strm.rdbuf ()), Iter (), strm, err, tmb_,
-                    fmt, fmtend);
+        tg.get (Iter (strm.rdbuf ()), Iter (), strm, err, tmb_, fmt, fmtend);
 
-        strm.setstate (err);
+        if (std::ios_base::goodbit != err)
+            strm.setstate (err);
     }
 };
 
@@ -67,7 +66,7 @@ struct time_put_manip
 {
     const std::tm *tmb_;
 
-    time_put_manip (const std::tm *tmb)
+    explicit time_put_manip (const std::tm *tmb)
         : tmb_ (tmb) { }
 
     template <class Traits>
@@ -80,9 +79,8 @@ struct time_put_manip
         const charT* const fmtend = fmt + Traits::length (fmt);
 
         const TimePut &tp = std::use_facet<TimePut>(strm.getloc ());
-        const Iter end =
-            tp.put (Iter (strm.rdbuf ()), strm, strm.fill (), tmb_,
-                    fmt, fmtend);
+        const Iter end = tp.put (Iter (strm.rdbuf ()), strm, strm.fill (),
+                                 tmb_, fmt, fmtend);
 
         if (end.failed ())
             strm.setstate (std::ios_base::badbit);
@@ -96,10 +94,13 @@ inline std::__rw_smanip<time_get_manip<charT>, const charT*>
 get_time (std::tm *tmb, const charT *fmt)
 {
     // return an object of the manipulator implementation type
-    // which will store the function arguments until its function
+    // that will store the function arguments until its function
     // call operator is invoked by the extraction operator for
     // std::__rw_smanip
-    return std::__rw_smanip<time_get_manip<charT>, const charT*>(tmb, fmt);
+    typedef time_get_manip<charT>                   GetTime;
+    typedef std::__rw_smanip<GetTime, const charT*> Manip;
+
+    return Manip (GetTime (tmb), fmt);
 }
 
 
@@ -109,10 +110,13 @@ inline std::__rw_smanip<time_put_manip<charT>, const charT*>
 put_time (const std::tm *tmb, const charT *fmt)
 {
     // return an object of the manipulator implementation type
-    // which will store the function arguments until its function
+    // that will store the function arguments until its function
     // call operator is invoked by the insertion operator for
     // std::__rw_smanip
-    return std::__rw_smanip<time_put_manip<charT>, const charT*>(tmb, fmt);
+    typedef time_put_manip<charT>                   PutTime;
+    typedef std::__rw_smanip<PutTime, const charT*> Manip;
+
+    return Manip (PutTime (tmb), fmt);
 }
 
 
@@ -122,25 +126,31 @@ int main (int argc, char *argv[])
     // the extration format specifier string
     const char* const get_fmt = argc < 2 ? "%c" : argv [1];
 
-    // the seconf optional command line argument specifies
+    // the second optional command line argument specifies
     // the insertion format specifier string
     const char* const put_fmt = argc < 3 ? "%c" : argv [2];
 
     // obtain the local time
-    const std::time_t t = time (0);
+    const std::time_t t = std::time (0);
     std::tm* const tmb = std::localtime (&t);
 
     // set cout's locale to the one specified in the environment
     std::cout.imbue (std::locale (""));
 
-    // output the local time using the specified format
+    // output the local time using the specified output format
     std::cout << put_time (tmb, put_fmt) << '\n';
 
     // input time in the specified input format using the "C" locale
     std::cin >> get_time (tmb, get_fmt);
 
-    // output the extracted time using the output format
-    std::cout << put_time (tmb, put_fmt) << '\n';
+    // on success output the extracted time using the specified
+    // output format; otherwise output an error message
+    if (std::cin.good ())
+        std::cout << put_time (tmb, put_fmt) << '\n';
+    else {
+        std::cerr << "get_time (std::tm*, \"" << get_fmt << "\") failed\n";
+        return 1;
+    }
 
     return 0;
 }
