@@ -2,7 +2,7 @@
  *
  * _money_put.cc - definition of std::num_put members
  *
- * $Id: //stdlib/dev/include/loc/_money_put.cc#27 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -58,12 +58,15 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
     const bool __num  = 0 != (__opts & _C_ldbl);
 
     typedef moneypunct<_CharT, false> _Punct0;
-    typedef moneypunct<_CharT, true> _Punct1;
+    typedef moneypunct<_CharT, true>  _Punct1;
 
-    const _Punct0 &__pun = __intl ? 
-        _RWSTD_REINTERPRET_CAST (const _Punct0&,
-                                 _V3_USE_FACET (_Punct1, __flags.getloc ()))
-        : _V3_USE_FACET (_Punct0, __flags.getloc ());
+    const _Punct0* __pun0;
+    const _Punct1* __pun1;
+
+    if (__intl)
+        __pun1 = &_V3_USE_FACET (_Punct1, __flags.getloc ());
+    else
+        __pun0 = &_V3_USE_FACET (_Punct0, __flags.getloc ());
 
     const ctype<_CharT> &__ctp =
         _V3_USE_FACET (ctype<_CharT>,__flags.getloc ());
@@ -72,14 +75,26 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
     string_type         __sign;   // negative or positive sign
 
     if ('-' == __ctp.narrow (*__s, '\0')) {
-        __fmat = __pun.neg_format ();
-        __sign = __pun.negative_sign ();
+        if (__intl) {
+            __fmat = __pun1->neg_format ();
+            __sign = __pun1->negative_sign ();
+        }
+        else {
+            __fmat = __pun0->neg_format ();
+            __sign = __pun0->negative_sign ();
+        }
         ++__s;
         --__n;
     }
     else {
-        __fmat = __pun.pos_format ();
-        __sign = __pun.positive_sign ();
+        if (__intl) {
+            __fmat = __pun1->pos_format ();
+            __sign = __pun1->positive_sign ();
+        }
+        else {
+            __fmat = __pun0->pos_format ();
+            __sign = __pun0->positive_sign ();
+        }
         if ('+' == __ctp.narrow (*__s, '\0')) {
             ++__s;
             --__n;
@@ -88,7 +103,8 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
 
     // optional currency sumbol
     const string_type __curr = (__flags.flags () & _RWSTD_IOS_SHOWBASE) ?
-        __pun.curr_symbol () : string_type ();
+          __intl ? __pun1->curr_symbol () : __pun0->curr_symbol ()
+        : string_type ();
 
     // size of fractional and integral parts, respectively, to output
     long __dint = long (__n - __fd);
@@ -166,7 +182,8 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
                 *__it = __zero;
                 ++__it;
 
-                *__it = __pun.decimal_point ();
+                *__it = __intl ?
+                    __pun1->decimal_point () : __pun0->decimal_point ();
                 ++__it;
 
                 // insert leading fractional zeros
@@ -191,14 +208,16 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
                     _RWSTD_ASSERT (0 != __groups);
 
                     if (*__groups && __grplen == _UChar (*__groups)) {
-                        *__it    = __pun.thousands_sep ();
+                        *__it = __intl ? __pun1->thousands_sep ()
+                                       : __pun0->thousands_sep ();
                         __grplen = 0;
                         ++__groups;
                         ++__it;
                     }
                 }
                 else if (0 == __dint) {
-                    *__it = __pun.decimal_point ();
+                    *__it = __intl ? __pun1->decimal_point ()
+                                   : __pun0->decimal_point ();
                     ++__it;
                 }
 
@@ -210,8 +229,16 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
                     // decimal point in case a setlocale() call made by
                     // the program changed the default '.' to ','
                 case '.':
-                case ',': *__it = __pun.decimal_point (); break;
-                case ';': *__it = __pun.thousands_sep (); break;
+                case ',':
+                    *__it = __intl ? __pun1->decimal_point ()
+                                   : __pun0->decimal_point ();
+                    break;
+
+                case ';':
+                    *__it = __intl ? __pun1->thousands_sep ()
+                                   : __pun0->thousands_sep ();
+                    break;
+
                 default:  *__it = *__s;
                 }
             }
@@ -242,32 +269,40 @@ money_put<_CharT, _OutputIter>::
 do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
         long double __val) const
 {
-    typedef moneypunct<_CharT, false> _Punct0;
-    typedef moneypunct<_CharT, true>  _Punct1;
+    int __fd;
+    string __grouping;
 
-    const _Punct0 &__pun = __intl ? 
-        _RWSTD_REINTERPRET_CAST (const _Punct0&,
-            _V3_USE_FACET(_Punct1,__flags.getloc ()))
-      : _V3_USE_FACET(_Punct0,__flags.getloc ());
+    if (__intl) {
+        typedef moneypunct<_CharT, true> _Punct;
+        const _Punct &__pun = _V3_USE_FACET (_Punct, __flags.getloc ());
+
+        __fd       = __pun.frac_digits ();
+        __grouping = __pun.grouping ();
+    }
+    else {
+        typedef moneypunct<_CharT, false> _Punct;
+        const _Punct &__pun = _V3_USE_FACET (_Punct, __flags.getloc ());
+
+        __fd       = __pun.frac_digits ();
+        __grouping = __pun.grouping ();
+    }
 
     char       __buf [304];
     char_type __wbuf [sizeof __buf];
 
     char *__pbuf = __buf;
 
-    const _RWSTD_STREAMSIZE __fd =
-        _RWSTD_STATIC_CAST (_RWSTD_STREAMSIZE, __pun.frac_digits ());
-
     // format a floating point number in fixed precision into narrow buffer
     // will insert thousands_sep placeholders (';') accroding to grouping
     const _RWSTD_SIZE_T __n =
         _RW::__rw_put_num (&__pbuf, sizeof __buf, _RWSTD_IOS_FIXED,
-                           _C_ldouble | _C_ptr, -__fd,
-                           &__val, __pun.grouping ().c_str ());
+                           _C_ldouble | _C_ptr,
+                           _RWSTD_STATIC_CAST (_RWSTD_STREAMSIZE, -__fd),
+                           &__val, __grouping.c_str ());
 
     // widen narrow buffer (necessary even if char_type == char)
     const ctype<_CharT> &__ctp =
-        _V3_USE_FACET(ctype<_CharT>,__flags.getloc ());
+        _V3_USE_FACET (ctype<_CharT>, __flags.getloc ());
 
     __ctp.widen (__buf, __buf + __n, __wbuf);
 
@@ -284,18 +319,27 @@ money_put<_CharT, _OutputIter>::
 do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
         const string_type &__str) const
 {
-    typedef moneypunct<_CharT, false> _Punct0;
-    typedef moneypunct<_CharT, true>  _Punct1;
+    // fractional part does not undergo grouping and will be removed
+    int __fd;
 
-    const _Punct0 &__pun = __intl ? 
-        _RWSTD_REINTERPRET_CAST (const _Punct0&,
-                                 _V3_USE_FACET (_Punct1, __flags.getloc ()))
-        : _V3_USE_FACET (_Punct0, __flags.getloc ());
+    string __grouping;
 
-    // fractional part does not undergo grouping, remove it
-    const int __fd = __pun.frac_digits ();
+    if (__intl) {
+        typedef moneypunct<_CharT, true> _Punct;
 
-    const string __grouping = __pun.grouping ();
+        const _Punct &__pun = _V3_USE_FACET (_Punct, __flags.getloc ());
+
+        __fd       = __pun.frac_digits ();
+        __grouping = __pun.grouping ();
+    }
+    else {
+        typedef moneypunct<_CharT, false> _Punct;
+
+        const _Punct &__pun = _V3_USE_FACET (_Punct, __flags.getloc ());
+
+        __fd       = __pun.frac_digits ();
+        __grouping = __pun.grouping ();
+    }
 
     _RWSTD_SIZE_T  __ngroups = 1;          // always at least one group
     _RWSTD_SIZE_T  __strdigs = 0;          // number of digits in `str'
@@ -335,7 +379,7 @@ do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
 
         __ngroups =
             _RW::__rw_put_groups (&__pbuf, __groups - __pbuf, sizeof __buf,
-                                  0, __pun.grouping ().c_str ());
+                                  0, __grouping.c_str ());
         __pbuf [__ngroups] = '\0';
         __groups           = __pbuf;
     }
