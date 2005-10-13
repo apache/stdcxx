@@ -3,7 +3,7 @@
  *
  * cwchar - C++ Standard library interface to the ANSI C header wchar.h
  *
- * $Id: //stdlib/dev/include/ansi/cwchar#48 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -619,7 +619,7 @@ namespace std {
 
     inline wchar_t* wmemcpy (wchar_t *__dst, const wchar_t *__src, size_t __n)
     {
-        for (wchar_t *__d = __dst; __n--; ++__d)
+        for (wchar_t *__d = __dst; __n--; ++__d, ++__src)
             *__d = *__src;
 
         return __dst;
