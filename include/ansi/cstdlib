@@ -3,7 +3,7 @@
  *
  * cstdlib - C++ Standard library interface to the ANSI C header stdlib.h
  *
- * $Id: //stdlib/dev/include/ansi/cstdlib#21 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -51,14 +51,16 @@ inline long abs (long __x)
 
 #endif   // _RWSTD_NO_ABS_LONG
 
-#ifndef _RWSTD_NO_LDIV
+#ifdef _RWSTD_NO_DIV_LONG
+#  ifndef _RWSTD_NO_LDIV
 
 inline ldiv_t div (long __x, long __y)
 {
     return ldiv (__x, __y);
 }
 
-#endif   // _RWSTD_NO_LDIV
+#  endif   // _RWSTD_NO_LDIV
+#endif   // _RWSTD_NO_DIV_LONG
 
 
 #endif   // _RWSTD_CSTDLIB_INCLUDED
@@ -133,14 +135,16 @@ inline unsigned _RWSTD_LONG_LONG abs (unsigned _RWSTD_LONG_LONG __x)
 #  endif   // _RWSTD_NO_ABS_ULLONG
 #endif   // _RWSTD_LONG_LONG
 
-#ifndef _RWSTD_NO_LDIV
+#ifdef _RWSTD_NO_DIV_LONG
+#  ifndef _RWSTD_NO_LDIV
 
     inline ldiv_t div (long __x, long __y)
     {
         return ldiv (__x, __y);
     }
 
-#endif   // _RWSTD_NO_LDIV
+#  endif   // _RWSTD_NO_LDIV
+#endif   // _RWSTD_NO_DIV_LONG
 
 #ifndef _RWSTD_NO_EXTERN_C_COMPATIBILITY
 #  ifndef _RWSTD_NO_EXTERN_C_OVERLOAD
