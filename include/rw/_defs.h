@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_defs.h#139 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -54,13 +54,13 @@
 #  define _RWSTD_CSETJMP   <csetjmp>
 #  define _RWSTD_CSIGNAL   <csignal>
 
-#  if defined (__EDG__) && !defined (__DECCXX)
-      // HACK: fool the vanilla front end into actually #including
-      // the file (it normally doesn't and treats cstdarg specially)
+#  ifdef _RWSTD_EDG_ECCP
+      // HACK: fool the vanilla EDG front-end into actually #including
+      // the file (it normally doesn't and treats <cstdarg> specially)
 #     define _RWSTD_CSTDARG <ansi/cstdarg>
-#  else
+#  else   // if !defined (_RWSTD_EDG_ECCP)
 #     define _RWSTD_CSTDARG <cstdarg>
-#  endif
+#  endif   // _RWSTD_EDG_ECCP
 
 #  define _RWSTD_CSTDDEF   <cstddef>
 #  define _RWSTD_CSTDIO    <cstdio>
@@ -1070,6 +1070,9 @@
          _TYPENAME _STD::iterator_traits< iterT >::iterator_category ()
 #  endif
 
+#  define _RWSTD_REVERSE_ITERATOR(iterT, ign1, ign2, ign3) \
+       _STD::reverse_iterator<iterT>
+
 #else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
 
 #  define _RWSTD_VALUE_TYPE(iterT) __value_type ((iterT*)0)
@@ -1081,6 +1084,10 @@
    // may not exist or be accessible (e.g., istream_iterator<>)
 #  define _RWSTD_ITERATOR_CATEGORY(ignore, iter) \
        _STD::__iterator_category (iter)
+
+#  define _RWSTD_REVERSE_ITERATOR(iterT, Ref, Ptr, Tag)         \
+       _STD::reverse_iterator<iterT, _STD::Tag, value_type,     \
+                              Ref, Ptr, difference_type>
 
 #endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC
 
