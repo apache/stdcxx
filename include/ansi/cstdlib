@@ -189,18 +189,26 @@ inline unsigned _RWSTD_LONG_LONG abs (unsigned _RWSTD_LONG_LONG __x)
 
     using ::abort;
 
-#if defined (_RWSTD_NO_ABS) || defined (__hpux)
+#if (defined (_RWSTD_NO_ABS) || defined (__hpux)) && defined (_RWSTD_NO_ABS_INT)
 
     // working around a quirk in HP-UX <stdlib.h> and <math.h>
 
-    inline int abs (int __x)
-    {
-        return __x < 0 ? -__x : __x;
-    }
+}   // namespace std
 
-#else
+extern "C" {
+
+inline int abs (int __x)
+{
+    return __x < 0 ? -__x : __x;
+}
+
+}   // extern "C"
+
+namespace std {
+
+#endif   // (_RWSTD_NO_ABS || __hpux) && _RWSTD_NO_ABS_INT
+
     using ::abs;
-#endif   // _RWSTD_NO_ABS
 
     using ::atexit;
     using ::atof;
@@ -232,7 +240,8 @@ inline unsigned _RWSTD_LONG_LONG abs (unsigned _RWSTD_LONG_LONG __x)
     using ::system;
     using ::wcstombs;
     using ::wctomb;
-}   // std
+
+}   // namespace std
 
 #endif   // !_RWSTD_NO_NAMESPACE && !_RWSTD_NO_HONOR_STD && !_RWSTD_NO_USING_LIBC_IN_STD
 
