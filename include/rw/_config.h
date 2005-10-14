@@ -267,7 +267,7 @@
 
 #endif // __DECCXX
 
-/*** EDG eccp ********************************************************/
+/*** EDG eccp (this is the vanilla EDG front end) **********************/
 
 // NOTE: the __EDG__ macro is #defined by most edg-based compilers
 
@@ -275,6 +275,11 @@
     && !defined (__DECCXX)              \
     && !defined (__INTEL_COMPILER)      \
     && !defined (_SGI_COMPILER_VERSION)
+
+   // identify the EDG eccp standalone front-end in order to help avoid
+   // confusing it with compilers such as Compaq C++, Intel C++, or SGI
+   // MIPSpro, that use the front-end and (sometimes) #define __EDG__
+#  define _RWSTD_EDG_ECCP
 
 #  if defined (_RWSTD_REENTRANT) && !defined (_RWSTD_POSIX_THREADS)
 #    define _RWSTD_POSIX_THREADS
@@ -902,14 +907,6 @@ typedef unsigned short wchar_t;
 #endif   // NO_COLLAPSE_TEMPLATE_STATICS || NO_STATIC_TEMPLATE_MEMBER_INIT
 
 /********************** Environment *********************************/
-
-// Most (but not all) non-unix systems convert new line to carriage
-// return + line feed on output:
-
-#if defined (__OS2__) || defined (_WIN32) || defined (_WIN64)
-#  define _RWSTD_CRLF_CONVENTION
-#endif
-
 
 // define wherever atomic instructions are provided
 // affects the size of string reference (i.e., is binary incompatible)

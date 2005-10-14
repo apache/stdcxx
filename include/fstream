@@ -3,7 +3,7 @@
  *
  * fstream -- declarations of the C++ Standard Library file stream classes
  *
- * $Id: //stdlib/dev/include/fstream#39 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -286,20 +286,24 @@ _C_crlf_extern_count (const char* __start, const char* __finish) const
 
     off_type __n = 0;
 
-#ifdef _RWSTD_CRLF_CONVENTION
+#if defined (_RWSTD_NEWLINE_CR_LF) || defined (_RWSTD_NEWLINE_LF_CR)
 
+    // compute the number of newline characters in the external representation
     if (!(this->_C_state & ios_base::binary)) {
-        while (__start != __finish)
-            if (char_traits<char>::eq ('\n', *__start++))
-                ++__n;
+        typedef char_traits<char> _CTraits;
+
+        while ((__start = _CTraits::find (__start, __finish - __start, '\n'))) {
+            ++__start;
+            ++__n;
+        }
     }
 
-#else   // if !defined (_RWSTD_CRLF_CONVENTION)
+#else   // if !defined (_RWSTD_NEWLINE_CR_LF) || ...
 
     _RWSTD_UNUSED (__start);
     _RWSTD_UNUSED (__finish);
 
-#endif   // _RWSTD_CRLF_CONVENTION
+#endif   // _RWSTD_NEWLINE_CR_LF
 
     return __n;
 }
@@ -315,21 +319,25 @@ _C_crlf_intern_count (const char_type* __start,
 
     off_type __n = 0;
 
-#ifdef _RWSTD_CRLF_CONVENTION
+#if defined (_RWSTD_NEWLINE_CR_LF) || defined (_RWSTD_NEWLINE_LF_CR)
 
+    // compute the number of newline characters in the internal representation
     if (!(this->_C_state & ios_base::binary)) {
-        const char_type __eol = _USE_FACET (ctype<char_type>,
-                                            this->getloc ()).widen ('\n');
-        while (__start != __finish)
-            if (traits_type::eq (__eol, *__start++))
-                ++__n;
+        const char_type __nl =
+            _USE_FACET (ctype<char_type>, this->getloc ()).widen ('\n');
+
+        while ((__start = _Traits::find (__start, __finish - __start, __nl))) {
+            ++__start;
+            ++__n;
+        }
     }
-#else   // if !defined (_RWSTD_CRLF_CONVENTION)
+
+#else   // if !defined (_RWSTD_NEWLINE_CR_LF) || ...
 
     _RWSTD_UNUSED (__start);
     _RWSTD_UNUSED (__finish);
 
-#endif   // _RWSTD_CRLF_CONVENTION
+#endif   // _RWSTD_NEWLINE_CR_LF
 
     return __n;
 }
