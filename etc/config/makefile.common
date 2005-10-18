@@ -18,11 +18,27 @@ endif
 
 INCLUDES     = -I$(BUILDDIR)/include -I$(TOPDIR)/include
 
+ALL_FILES := "*"
+
+ifneq ($(AS_EXT),"")
+  ifneq ($(AS_EXT),".")   # special value -- ignore atomic
+
+    # if the assembly file extension is non-empty and not the dot,
+    # add all files with that extension to the list of files to
+    # compile
+    ALL_FILES := $(foreach dir,$(SRCDIRS),\
+                     $(wildcard $(dir)/*.cpp $(dir)/*.msg $(dir)/*$(AS_EXT)))
+  endif
+endif
+
+ifeq ($(ALL_FILES),"*")
+  # traverse all subdirectories and get the names of all source files
+  ALL_FILES := $(foreach dir,$(SRCDIRS), $(wildcard $(dir)/*.cpp $(dir)/*.msg))
+endif
+
+
 # SRCDIRS must be defined in GNUmakefile that includes this file
 ifeq ($(ONE_REPOSITORY),)
-
-  # traverse all subdirectories and get the names of all regular files
-  ALL_FILES := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))
 
   ifneq ($(CXX_REPOSITORY),)
 
@@ -69,21 +85,6 @@ else   # ifneq ($(ONE_REPOSITORY),)
   ifneq ($(CXX_REPOSITORY),)
     repository_name = repository.ti
   endif
-
-  # traverse the list of source directories (SRCDIRS) and put together
-  # a list of .cpp files in each, ignoring any subdirectories
-  ALL_FILES := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))
-
-  # if the assembly file extension is non-empty and not the dot,
-  # add all files with that extension to the list of files to
-  # compile
-  ifneq ($(AS_EXT),"")
-    ifneq ($(AS_EXT),".")   # special value -- ignore atomic
-      # traverse the list of source directories (SRCDIRS) and put together
-      # a list of assembly source files in each, ignoring any subdirectories
-      ALL_FILES += $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*$(AS_EXT)))
-    endif
-  endif
 endif
 
 ifneq ($(repository_name),)
@@ -103,12 +104,11 @@ CXXFLAGS    += $(WARNFLAGS)
 
 VPATH       := $(SRCDIRS)
 
-SRCS        := $(notdir $(filter %.cpp %.s %.S,$(ALL_FILES)))
+SRCS        := $(notdir $(filter %.cpp %$(AS_EXT),$(ALL_FILES)))
 SRCS        := $(sort $(filter-out $(OMIT_SRCS),$(SRCS)))
 
 OBJS        := $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRCS)))
-OBJS        += $(patsubst %.s,%.o,$(filter %.s,$(SRCS)))
-OBJS        += $(patsubst %.S,%.o,$(filter %.S,$(SRCS)))
+OBJS        += $(patsubst %$(AS_EXT),%.o,$(filter %$(AS_EXT),$(SRCS)))
 OBJS        := $(sort $(OBJS))
 
 # message files - text files used to generate a catalog - see gencat(1)
