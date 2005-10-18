@@ -23,10 +23,6 @@ clean: cleantarget
 cleantarget:
 	rm -f $(TARGET)
 
-# ifneq ($(LOGFILE),/dev/null)
-#   rm -rf $(LOGFILE)
-# endif
-
 listtarget:
 	@echo $(TARGET)
 
@@ -49,52 +45,47 @@ listruntarget:
 
 # create a catalog from text message files - see gencat(1)
 $(CATFILE): $(MSGFILES)
-	@echo "gencat $@ $^" >> $(LOGFILE)
-	gencat $@ $^ $(TEEOPTS)
+	gencat $@ $^
 
 
 ##############################################################################
 #  COMMON RULES
 ##############################################################################
 
-# compile and link in one or two steps
 ifeq ($(NO_DOT_O),)
+
+# compile and link in two separate steps
 
   ifneq ($(AS_EXT),)
     ifneq ($(AS_EXT),".")
 
 %.o: %$(AS_EXT)
-	@echo  "$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $<" >> $(LOGFILE)
-	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $< $(TEEOPTS)
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $<
 
     endif   # ifneq ($(AS_EXT),".")
   endif   # ifneq ($(AS_EXT),)
 
 %.o: %.cpp
-	@echo "$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $<" >> $(LOGFILE)
-	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $< $(TEEOPTS)
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $<
 
 %: %.o
-	@echo "$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS)" >> $(LOGFILE)
-	$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS) $(TEEOPTS) 
+	$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS)
+
+# disable compilation and linking in the same step
+# %: %.cpp
 
 else
 
 # compile and link in one step to eliminate the space overhead of .o files
-%:  %.cpp
-	@echo "$(CXX) $< -o $@ $(CPPFLAGS) $(CXXFLAGS) " \
-              "$(LDFLAGS) $(LDLIBS)" >>$(LOGFILE)
-	$(CXX) $< -o $@ $(CPPFLAGS) $(CXXFLAGS) \
-               $(LDFLAGS) $(LDLIBS) $(TEEOPTS)
+%: %.cpp
+	$(CXX) $< -o $@ $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS)
 
 endif   # eq ($(NO_DOT_O),)
 
 
 # produce a .out file by running the executable
 %.out: %
-	@(LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(LIBDIR);                  \
-          export LD_LIBRARY_PATH PATH;                                  \
-          ./run $(RUNFLAGS) -r $(REGRESS_FILE) ./$< )
+	LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(LIBDIR) ./$< >$@ 2>&1
 
 # create a script that when run first builds the executable and then runs it
 # done to save even more space than `NO_DOT_O' on constrained systems
@@ -104,7 +95,7 @@ endif   # eq ($(NO_DOT_O),)
         a_dot_out="$(PWD)/$(basename $@)."'$$''$$' ;                        \
         tmp="$(CXX) $< -o $$a_dot_out $(CPPFLAGS) $(CXXFLAGS) "             \
                     "$(LDFLAGS) $(LDLIBS)" ;                                \
-        tmp="$$tmp $(TEEOPTS) && $$a_dot_out "'$$''*'" && rm $$a_dot_out" ; \
+        tmp="$$tmp && $$a_dot_out "'$$''*'" && rm $$a_dot_out" ;            \
         echo >> $@ ; echo "$$tmp" >> $@ ;                                   \
         chmod +x $@)
 
@@ -182,8 +173,6 @@ define makedep
                    s:$(TOPDIR):$$""(TOPDIR):gp;                              \
                    s:$(BUILDDIR):$$""(BUILDDIR):gp" ;                        \
                                                                              \
-           echo "$(CXX) $(DEPENDFLAGS) $(CPPFLAGS) $(CXXFLAGS) $<"           \
-                >>$(LOGFILE) ;                                               \
            $(CXX) $(DEPENDFLAGS) $(CPPFLAGS) $(CXXFLAGS) $<                  \
                | sed "$$sedexp1" | tr "@" "\n" | sed -n "$$sedexp2" >$@ ;    \
            if [ ! -s $@ ]; then                                              \
@@ -199,8 +188,14 @@ define makedep
       fi)
 endef
 
-$(DEPENDDIR)/%.d: %.cpp %.$(AS_EXT)
+# rule to make dependencies for C++ source files
+$(DEPENDDIR)/%.d: %.cpp
 	$(makedep)
+
+# rule to make dependencies for assembly files
+$(DEPENDDIR)/%.d: %$(AS_EXT)
+	$(makedep)
+
 
 else   # ifeq ($(DEPENDFLAGS),)
 
