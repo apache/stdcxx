@@ -2,7 +2,7 @@
  *
  * deque.cc - Non-iniline definitions for the Standard Library deque class
  *
- * $Id: //stdlib/dev/include/deque.cc#32 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -19,16 +19,28 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright (c) 1994-2005 Quovadx, Inc. All Rights Reserved.
+ * 
+ * This computer software  is owned by Quovadx, Inc.  and is protected by
+ * U.S.  copyright laws  and other  laws and  by  international treaties.
+ * This computer  software is furnished  by Quovadx, Inc., pursuant  to a
+ * written license  agreement and may  be used, copied,  transmitted, and
+ * stored only in accordance with the terms of such license agreement and
+ * with  the inclusion  of  the above  copyright  notice.  This  computer
+ * software or any other copies  thereof may not be provided or otherwise
+ * made available to any other person.
+ * 
+ * 
+ * U.S. Government Restricted Rights.
+ * 
+ * This computer software: (a) was developed at private expense and is in
+ * all respects the proprietary information of Quovadx, Inc.; (b) was not
+ * developed with  government funds;  (c) is a  trade secret  of Quovadx,
+ * Inc. for all purposes of the  Freedom of Information Act; and (d) is a
+ * commercial item  and thus, pursuant  to Section 12.212 of  the Federal
+ * Acquisition  Regulations (FAR) and  DFAR Supplement  Section 227.7202,
+ * Government's use,  duplication or disclosure of  the computer software
+ * is subject to the restrictions set forth by Quovadx, Inc.
  * 
  **************************************************************************/
 
@@ -367,12 +379,15 @@ _C_assign_n (size_type __n, const_reference __x)
 
     const iterator __end = end ();
 
-    for (iterator __it = begin (); __it != __end; ++__it, --__n) {
+    // avoid using the name __i or __it below so as not to trigger
+    // a (bogus) gcc 2.95.2 -Wshadow warning: declaration of `__i'
+    // shadows previous local
+    for (iterator __ix = begin (); __ix != __end; ++__ix, --__n) {
         if (size_type () == __n) {
-            erase (__it, __end);
+            erase (__ix, __end);
             return;
         }
-        *__it = __x;
+        *__ix = __x;
     }
 
     insert (__end, __n, __x);
@@ -501,12 +516,15 @@ __rw_assign_range (deque<_TypeT, _Allocator> *__self,
 
     const iterator __end = __self->end ();
 
-    for (iterator __it = __self->begin (); __it != __end; ++__it, ++__first) {
+    // avoid using the name __i or __it below so as not to trigger
+    // a (bogus) gcc 2.95.2 -Wshadow warning: declaration of `__i'
+    // shadows previous local
+    for (iterator __ix = __self->begin (); __ix != __end; ++__ix, ++__first) {
         if (__first == __last) {
-            __self->erase (__it, __end);
+            __self->erase (__ix, __end);
             return;
         }
-        *__it = *__first;
+        *__ix = *__first;
     }
 
     __self->insert (__end, __first, __last);
