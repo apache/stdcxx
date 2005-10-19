@@ -9,16 +9,28 @@
  *
  ***************************************************************************
  * 
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright (c) 1994-2005 Quovadx, Inc. All Rights Reserved.
+ * 
+ * This computer software  is owned by Quovadx, Inc.  and is protected by
+ * U.S.  copyright laws  and other  laws and  by  international treaties.
+ * This computer  software is furnished  by Quovadx, Inc., pursuant  to a
+ * written license  agreement and may  be used, copied,  transmitted, and
+ * stored only in accordance with the terms of such license agreement and
+ * with  the inclusion  of  the above  copyright  notice.  This  computer
+ * software or any other copies  thereof may not be provided or otherwise
+ * made available to any other person.
+ * 
+ * 
+ * U.S. Government Restricted Rights.
+ * 
+ * This computer software: (a) was developed at private expense and is in
+ * all respects the proprietary information of Quovadx, Inc.; (b) was not
+ * developed with  government funds;  (c) is a  trade secret  of Quovadx,
+ * Inc. for all purposes of the  Freedom of Information Act; and (d) is a
+ * commercial item  and thus, pursuant  to Section 12.212 of  the Federal
+ * Acquisition  Regulations (FAR) and  DFAR Supplement  Section 227.7202,
+ * Government's use,  duplication or disclosure of  the computer software
+ * is subject to the restrictions set forth by Quovadx, Inc.
  * 
  **************************************************************************/
 
@@ -339,6 +351,15 @@
 #    define _RWSTD_NO_PLACEMENT_DELETE
 #  endif   // !_RWSTD_STRICT_ANSI
 
+#  if __GNUG__ < 3
+     // gcc 2.x doesn't understand the extern template syntax
+     // but only issues a warning: ANSI C++ forbids the use
+     // of `extern' on explicit instantiations
+#    ifndef _RWSTD_NO_EXTERN_TEMPLATE
+#      define _RWSTD_NO_EXTERN_TEMPLATE
+#    endif   // _RWSTD_NO_EXTERN_TEMPLATE
+#  endif   // gcc 2.x
+
 #  if __GNUG__ <= 2 && __GNUC_MINOR__ < 97 && defined (_RWSTD_NO_HONOR_STD)
      // standard iostream objects are declared as objects of their respective
      // types by defined as POD's to prevent their destruction during program
@@ -536,23 +557,24 @@
    // if _SGI_COMPILER_VERSION is not #defined, assume MIPSpro
    // unless __GNUG__ is #defined
 #  if defined (_SGI_COMPILER_VERSION) || !defined (__GNUG__)
+#    define _RWSTD_SGI_MIPSPRO
 
-#  ifndef _RWSTD_NO_PURE_C_HEADERS
-#    define _RWSTD_NO_PURE_C_HEADERS
-#  endif   // _RWSTD_NO_PURE_C_HEADERS
+#    ifndef _RWSTD_NO_PURE_C_HEADERS
+#      define _RWSTD_NO_PURE_C_HEADERS
+#    endif   // _RWSTD_NO_PURE_C_HEADERS
 
-#  if defined _RWSTD_NO_NEW_HEADER
-#    undef _RWSTD_NO_NEW_HEADER
-#  endif   // _RWSTD_NO_NEW_HEADER
+#    if defined _RWSTD_NO_NEW_HEADER
+#      undef _RWSTD_NO_NEW_HEADER
+#    endif   // _RWSTD_NO_NEW_HEADER
 
-// our <cxxx> libc headers put the libc functions in namespace std
-#  ifdef _RWSTD_NO_LIBC_IN_STD
-#    undef _RWSTD_NO_LIBC_IN_STD
-#  endif   // _RWSTD_NO_LIBC_IN_STD
+     // our <cxxx> libc headers put the libc functions in namespace std
+#    ifdef _RWSTD_NO_LIBC_IN_STD
+#      undef _RWSTD_NO_LIBC_IN_STD
+#    endif   // _RWSTD_NO_LIBC_IN_STD
 
-#  ifndef _RWSTD_NO_DEPRECATED_C_HEADERS
-#    define _RWSTD_NO_DEPRECATED_C_HEADERS
-#  endif
+#    ifndef _RWSTD_NO_DEPRECATED_C_HEADERS
+#      define _RWSTD_NO_DEPRECATED_C_HEADERS
+#    endif
 
 #    define _RWSTD_NO_PLACEMENT_DELETE
 #    //  The comptest sets compile instantiate when it shouldn't.
@@ -560,9 +582,9 @@
 #    if defined (_RWSTD_NO_IMPLICIT_INCLUSION)
 #      undef _RWSTD_NO_IMPLICIT_INCLUSION
 #    endif
-#  endif
+#  endif   // _SGI_COMPILER_VERSION || !__GNUG__
 
-#endif
+#endif   // _RWSTD_OS_IRIX64
 
 /*** MSVC (and Intel C++/Win{32,64}) ********************************/
 
