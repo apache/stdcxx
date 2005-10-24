@@ -77,7 +77,12 @@ virtual bad_alloc::~bad_alloc () { }
 
 int main (int argc, char *argv[])
 {
-    (void)argv;
+    // avoid executing the body of main unless explicitly requested
+    // by specifying at least one command line argument (this foils
+    // aggressive optimizers from eliminating the code)
+    (void)&argv;
+    if (argc < 2)
+        return 0;
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -114,16 +119,9 @@ int main (int argc, char *argv[])
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    // prevent the code from actually being called but do it so
-    // that the optimizer can't actually figure it out and eliminate
-    // the function
-    if (argc > 256) {
-        std::bad_alloc a;
-        std::bad_alloc b (a);
-
-        (void)&a;
-        (void)&b;
-    }
+    std::bad_alloc a;
+    std::bad_alloc b (a);
+    (void)&b;
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 

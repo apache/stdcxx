@@ -54,21 +54,24 @@ public:
 
 int main (int argc, char *argv[])
 {
+    // avoid executing the body of main unless explicitly requested
+    // by specifying at least one command line argument (this foils
+    // aggressive optimizers from eliminating the code)
+    (void)&argv;
+    if (argc < 2)
+        return 0;
+
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    if (argc > 1)
-        throw std::bad_alloc ();
-
-#else   // if defined (_RWSTD_NO_EXCEPTIONS)
-
-    // prevent foo from actually being called but do it so that
-    // the optimizer can't actually figure it out and eliminate
-    // the function
-    if (argc > 1)
-        return argv [0] == new std::bad_alloc ();
-
-#endif   // _RWSTD_NO_EXCEPTIONS
+    throw std::bad_alloc ();
 
     // link only test
     return 0;
+
+#else   // if defined (_RWSTD_NO_EXCEPTIONS)
+
+    return argv [0] == new std::bad_alloc ();
+
+#endif   // _RWSTD_NO_EXCEPTIONS
+
 }

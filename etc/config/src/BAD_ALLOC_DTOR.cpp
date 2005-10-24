@@ -79,10 +79,15 @@ struct Derived: std::bad_alloc
 
 int main (int argc, char *argv[])
 {
+    // avoid executing the body of main unless explicitly requested
+    // by specifying at least one command line argument (this foils
+    // aggressive optimizers from eliminating the code)
     (void)&argv;
+    if (argc < 2)
+        return 0;
 
     // try to prevent the compiler from optimizing the dtor call away
-    std::bad_alloc *ptr = argc > 1 ? new Derived : new std::bad_alloc;
+    std::bad_alloc *ptr = argc > 2 ? new Derived : new std::bad_alloc;
 
     delete ptr;
 
