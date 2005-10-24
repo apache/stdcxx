@@ -65,14 +65,16 @@ struct Derived: std::exception
 
 int main (int argc, char *argv[])
 {
-    // prevent foo from actually being called but do it so that
-    // the optimizer can't actually figure it out and eliminate
-    // the function
-    if (argc > 1) {
-        Derived *p = new Derived ();
+    // avoid executing the body of main unless explicitly requested
+    // by specifying at least one command line argument (this foils
+    // aggressive optimizers from eliminating the code)
+    (void)&argv;
+    if (argc < 2)
+        return 0;
 
-	result = result != p->dflt_;
-    }
+    Derived *p = new Derived ();
+
+    result = result != p->dflt_;
 
     // link only test
     return result;

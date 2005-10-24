@@ -88,39 +88,36 @@ struct Derived: std::exception
 
 int main (int argc, char *argv[])
 {
+    // avoid executing the body of main unless explicitly requested
+    // by specifying at least one command line argument (this foils
+    // aggressive optimizers from eliminating the code)
     (void)&argv;
+    if (argc < 2)
+        return 0;
 
-    // prevent the code from actually being called but do it so
-    // that the optimizer can't actually figure it out and eliminate
-    // the function
-    if (argc > 1) {
-        Derived d0;
-        Derived d1 (d0);
-        std::exception e (d0);
+    Derived d0;
+    Derived d1 (d0);
+    std::exception e (d0);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-        try {
-            // prevent aggressive optimizers such as Intel C++
-            // from optimizing away the call to the copy ctor
-            if (argc > 4)
-                throw d1;
-            if (argc > 3)
-                throw d0;
-            if (argc > 2)
-                throw e;
-        }
-        catch (Derived d) {
-            return !(2 == copy);
-        }
-        catch (std::exception e) {
-            return !(1 == copy);
-        }
-#endif
-
+    try {
+        // prevent aggressive optimizers such as Intel C++
+        // from optimizing away the call to the copy ctor
+        if (argc > 4)
+            throw d1;
+        if (argc > 3)
+            throw d0;
+        if (argc > 2)
+            throw e;
     }
-    else
-	copy = 1;
+    catch (Derived d) {
+        return !(2 == copy);
+    }
+    catch (std::exception e) {
+        return !(1 == copy);
+    }
+#endif
 
     // link only test
     return !(1 == copy);

@@ -71,17 +71,15 @@ bad_alloc::~bad_alloc () { }
 
 int main (int argc, char *argv[])
 {
+    // avoid executing the body of main unless explicitly requested
+    // by specifying at least one command line argument (this foils
+    // aggressive optimizers from eliminating the code)
     (void)&argv;
+    if (argc < 2)
+        return 0;
 
-    // prevent foo from actually being called but do it so that
-    // the optimizer can't actually figure it out and eliminate
-    // the function
-    if (argc > 256) {
-        std::bad_alloc e;
-
-        return !e.what ();
-    }
+    std::bad_alloc e;
 
     // link only test
-    return 0;
+    return !e.what ();
 }

@@ -77,16 +77,18 @@ public:
 
 int main (int argc, char *argv[])
 {
-    // prevent the code from actually being executed but do it so
-    // that the optimizer can't actually figure it out and eliminate
-    // the function
-    if (argc > 256) {
-        std::bad_typeid a;
-        std::bad_typeid b (a);
+    // avoid executing the body of main unless explicitly requested
+    // by specifying at least one command line argument (this foils
+    // aggressive optimizers from eliminating the code)
+    (void)&argv;
+    if (argc < 2)
+        return 0;
 
-        (void)&a;
-        (void)&b;
-    }
+    std::bad_typeid a;
+    std::bad_typeid b (a);
+
+    (void)&a;
+    (void)&b;
 
     // link only test
     return 0;

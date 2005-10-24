@@ -75,15 +75,15 @@ public:
 
 int main (int argc, char *argv[])
 {
-    // prevent foo from actually being called but do it so that
-    // the optimizer can't actually figure it out and eliminate
-    // the function
-    if (argc > 256) {
-	std::bad_cast bc;
+    // avoid executing the body of main unless explicitly requested
+    // by specifying at least one command line argument (this foils
+    // aggressive optimizers from eliminating the code)
+    (void)&argv;
+    if (argc < 2)
+        return 0;
 
-	return !bc.what ();
-    }
+    std::bad_cast bc;
 
     // link only test
-    return 0;
+    return !bc.what ();
 }
