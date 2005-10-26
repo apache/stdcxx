@@ -51,11 +51,11 @@ int main ()
 
 #endif   // _RWSTD_USE_CONFIG
 
-    check_div ((int)0, "INT");
-    check_div ((long)0, "LONG");
+    check_div ((int)1, "INT");
+    check_div ((long)1, "LONG");
 
 #if defined (LONG_LONG)
-    check_div ((LONG_LONG)0, "LLONG");
+    check_div ((LONG_LONG)1, "LLONG");
 #endif   // LONG_LONG
 
     return 0;
