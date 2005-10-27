@@ -61,11 +61,16 @@ struct type_info
 }   // namespace std
 
 
-void foo (void *p)
-{
-    delete (std::type_info*)p;
-}
+struct B0: virtual std::type_info { };
+struct B1: virtual std::type_info { };
 
+struct Derived: B0, B1
+{
+    virtual ~Derived ();
+};
+
+
+int dtor;
 
 int main (int argc, char *argv[])
 {
@@ -76,8 +81,20 @@ int main (int argc, char *argv[])
     if (argc < 2)
         return 0;
 
-    foo (argv [argc]);
+    // try to prevent the compiler from optimizing the dtor call away
+    std::type_info *ptr;
 
-    // link only test 
-    return 0;
+    if (1 < argc)
+        ptr = (std::type_info*)argv[2];
+    else
+        ptr = (Derived*)argv[1];
+
+    // this will most like crash if evaluated but under normal
+    // conditions the function should never reach this far
+    delete ptr;
+
+    return !(1 < argc ? 1 == dtor : 0 == dtor);
 }
+
+
+Derived::~Derived () { ++dtor; }

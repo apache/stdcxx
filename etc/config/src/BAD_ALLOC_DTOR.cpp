@@ -1,5 +1,13 @@
 // checking for bad_alloc dtor
 
+// NOTE: this file is #included from the following tests,
+//       each of which #defines bad_alloc to the name of
+//       the corresponding exception class:
+//   BAD_CAST_DTOR.cpp
+//   BAD_EXCEPTION_DTOR.cpp
+//   BAD_TYPEID_DTOR.cpp
+//   EXCEPTION_DTOR.cpp
+
 #if defined (_RWSTD_USE_CONFIG)
 #  include "config.h"
 #endif
@@ -14,14 +22,10 @@ void terminate ()
 {
     static int *ip;
 
-loop:
-
-    while ((ip [0] = ip [1])) {  // force a SIGSEGV
+    if ((ip [0] = ip [1])) {  // force a SIGSEGV
         ++ip;
-        terminate ();            // recurse infinitely
+        terminate ();         // recurse infinitely
     }
-
-    goto loop;
 }
 
 }
@@ -30,10 +34,10 @@ loop:
 #endif   // _RWSTD_NO_HONOR_STD
 
 
-#ifndef _RWSTD_NO_STD_BAD_ALLOC
+#ifndef _RWSTD_NO_STD_EXCEPTION
 #  define NAMESPACE(name)   namespace name
 #else
-#  ifndef _RWSTD_NO_GLOBAL_BAD_ALLOC
+#  ifndef _RWSTD_NO_GLOBAL_EXCEPTION
 #    define NAMESPACE(ignore)   extern "C++"
 #    define std                 /* empty */
 #  else
@@ -43,8 +47,15 @@ loop:
 #      define NAMESPACE(ignore)   extern "C++"
 #      define std                 /* empty */
 #    endif   // _RWSTD_NO_RUNTIME_IN_STD
-#  endif   // _RWSTD_NO_GLOBAL_BAD_ALLOC
-#endif   // _RWSTD_NO_STD_BAD_ALLOC
+#  endif   // _RWSTD_NO_GLOBAL_EXCEPTION
+#endif   // _RWSTD_NO_STD_EXCEPTION
+
+
+#if !defined (bad_alloc)
+#  ifdef _RWSTD_NO_BAD_ALLOC_DEFAULT_CTOR
+#    define NO_DEFAULT_CTOR
+#  endif   // _RWSTD_NO_BAD_ALLOC_DEFAULT_CTOR
+#endif
 
 
 NAMESPACE (std) {
@@ -53,16 +64,16 @@ class bad_alloc
 {
 public:
 
-#ifndef _RWSTD_NO_BAD_ALLOC_DEFAULT_CTOR
+#  if !defined (NO_DEFAULT_CTOR)
 
     // defined in the language support library
     bad_alloc ();
 
-#else   // if defined (_RWSTD_NO_BAD_ALLOC_DEFAULT_CTOR)
+#  else   // if defined (NO_DEFAULT_CTOR)
 
     bad_alloc () { }
 
-#endif   // _RWSTD_NO_BAD_ALLOC_DEFAULT_CTOR
+#  endif   // NO_DEFAULT_CTOR
 
     virtual ~bad_alloc ();   // not defined here
 };
@@ -71,12 +82,22 @@ public:
 }   // namespace std
 
 
-struct Derived: std::bad_alloc
+// use virtual inheritance here to prevent aggressive optimizers
+// (like VisualAge C++) from optimizing the base class dtor away
+struct B0: virtual std::bad_alloc { };
+struct B1: virtual std::bad_alloc { };
+
+struct Derived: B0, B1
 {
     virtual ~Derived ();
 };
 
 
+int dtor;
+
+// other tests that #include this file #define main to a function
+// with a different name (such as test_bad_cast_dtor) and call it
+// from their main()
 int main (int argc, char *argv[])
 {
     // avoid executing the body of main unless explicitly requested
@@ -87,12 +108,17 @@ int main (int argc, char *argv[])
         return 0;
 
     // try to prevent the compiler from optimizing the dtor call away
-    std::bad_alloc *ptr = argc > 2 ? new Derived : new std::bad_alloc;
+    std::bad_alloc *ptr;
+
+    if (1 < argc)
+        ptr = new Derived;
+    else
+        ptr = new std::bad_alloc;
 
     delete ptr;
 
-    // link only test 
-    return 0;
+    return !(1 < argc ? 1 == dtor : 0 == dtor);
 }
 
-Derived::~Derived () { }
+
+Derived::~Derived () { ++dtor; }
