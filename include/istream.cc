@@ -670,6 +670,12 @@ getline (char_type *__s, streamsize __n, char_type __delim)
     _RWSTD_ASSERT (!__n || __s);
     _RWSTD_ASSERT (0 != this->rdbuf ());
 
+    if (0 < __n) {
+        // lwg issue 243: store the NUL character before
+        // constructing the sentry object in case it throws
+        traits_type::assign (__s [0], char_type ());
+    }
+
     const sentry __ipfx (*this, true /* noskipws */);
 
     ios_base::iostate __err = ios_base::goodbit;
@@ -770,9 +776,9 @@ getline (char_type *__s, streamsize __n, char_type __delim)
         }
     }
 
-    traits_type::assign (__s [__n < 0 ? 0 : __n], char_type ());
-
-    if (!_C_gcount)
+    if (0 < _C_gcount)
+        traits_type::assign (__s [_C_gcount + 1], char_type ());
+    else
         __err |= ios_base::failbit;
 
     if (__err)
