@@ -2,7 +2,7 @@
  *
  * istream.cc - istream definitions
  *
- * $Id: //stdlib/dev/include/istream.cc#48 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -577,9 +577,15 @@ get (char_type *__s, streamsize __n, char_type __delim)
 {
     _RWSTD_ASSERT (0 != this->rdbuf ());
 
-    ios_base::iostate __err = ios_base::goodbit;
+    if (0 < __n) {
+        // lwg issue 243: store the NUL character before
+        // constructing the sentry object in case it throws
+        traits_type::assign (__s [0], char_type ());
+    }
 
     const sentry __ipfx (*this, true /* noskipws */);
+
+    ios_base::iostate __err = ios_base::goodbit;
 
     if (__ipfx) {
 
