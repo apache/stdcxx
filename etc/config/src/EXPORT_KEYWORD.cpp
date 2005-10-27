@@ -1,7 +1,11 @@
 // checking for the export keyword
 
-export template <class T>
-T foo (T t)
+
+// NOTE: test EXPORT.cpp links with EXPORT_KEYOWRD.o and expects
+// to find a definition of the function template below there
+export
+template <class T>
+T exported_function_template (T t)
 {
-    return T () + t;
+    return t;
 }
