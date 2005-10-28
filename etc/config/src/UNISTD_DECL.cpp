@@ -14,15 +14,21 @@
 #  include <unistd.h>
 #endif   // _WIN32 || _WIN64
 
+// Windows defines the equivalent SSIZE_T in the platform SDK
+// as the signed equivalent of size_t which is defined as long
+// on WIN32 and long long/__int64 on WIN64
+#if defined (_WIN64)
+#  define ssize_t __int64
+#elif defined (_WIN32)
+#  define ssize_t long
+#endif
+
 #ifndef STDIN_FILENO
 #  define STDIN_FILENO    0
 #  define STDOUT_FILENO   1
 #  define STDERR_FILENO   2
 #endif   // STDIN_FILENO
 
-#if defined (_RWSTD_NO_SSIZE_T)
-#  define ssize_t long
-#endif
 
 static void print_macros ()
 {
@@ -81,13 +87,33 @@ const char* ssize_t_name (long)               { return "long"; }
 const char* ssize_t_name (unsigned long)      { return "unsigned long"; }
 
 #ifndef _RWSTD_NO_LONG_LONG
+#  define LONG_LONG   long long
+#elif defined (_WIN32) || defined (_WIN64)
+#  define LONG_LONG   __int64
+#endif   // _RWSTD_NO_LONG_LONG, _WIN{32,64}
 
-const char* off_t_name (long long)            { return "long long"; }
 
-const char* ssize_t_name (long long)          { return "long long"; }
-const char* ssize_t_name (unsigned long long) { return "unsigned long long"; }
+#if defined (LONG_LONG)
 
-#endif   // _RWSTD_NO_LONG_LONG
+#  define STRSTR(x)   #x
+#  define STR(x)      STRSTR (x)
+
+const char* off_t_name (LONG_LONG)
+{
+    return STR (LONG_LONG);
+}
+
+const char* ssize_t_name (LONG_LONG)
+{
+    return STR (LONG_ LONG);
+}
+
+const char* ssize_t_name (unsigned LONG_LONG)
+{
+    return STR (unsigned LONG_LONG);
+}
+
+#endif   // LONG_LONG
 
 
 int main ()
