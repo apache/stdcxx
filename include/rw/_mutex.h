@@ -1352,7 +1352,7 @@ inline int
 __rw_atomic_preincrement (int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
-    return InterlockedIncrement (_RWSTD_REINTERPRET_CAST (long*, __x));
+    return InterlockedIncrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
 }
 
 
@@ -1368,7 +1368,7 @@ inline int
 __rw_atomic_predecrement (int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
-    return InterlockedDecrement (_RWSTD_REINTERPRET_CAST (long*, __x));
+    return InterlockedDecrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
 }
 
 
@@ -1384,7 +1384,7 @@ inline int
 __rw_atomic_exchange (int &__x, int __y, bool)
 {
     _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
-    return InterlockedExchange (_RWSTD_REINTERPRET_CAST (long*, __x),
+    return InterlockedExchange (_RWSTD_REINTERPRET_CAST (long*, &__x),
                                 _RWSTD_STATIC_CAST (long, __y));
 }
 
