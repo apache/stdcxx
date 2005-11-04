@@ -2,7 +2,7 @@
  *
  * ostream1.cpp - ostream example
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/ostream1.cpp#15 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -52,24 +52,32 @@ int main ()
 
 #if INT_MAX < LONG_MAX
 
-    // sizeof (long) > sizeof (int) or there is no type wider than long
+    // sizeof (int) < sizeof (long) or there is no type wider than long
     typedef long          Int64;
     typedef unsigned long UInt64;
 
-#else
+#elif LONG_MAX < LLONG_MAX
 
-    // sizeof (long long) > sizeof (long) and sizeof (long) == sizeof (int)
+    // sizeof (long) < sizeof (long long) and sizeof (long) == sizeof (int)
     typedef long long          Int64;
     typedef unsigned long long UInt64;
 
-#endif
+#else
+    // no 64-bit wide integer found
+#  define NO_INT64
+#endif   // INT_MAX < LONG_MAX < LLONG_MAX
+
+#ifndef NO_INT64
 
     // assuming a 2's complement representation, compute LLONG_MIN,
-    // LLONG_MAX, and ULLONG_MAX (the C99 macros may not be #defined)
+    // LLONG_MAX, and ULLONG_MAX (the C99 macros are not part of
+    // C++ '98 or C++ '03 and may not be #defined)
     const Int64  i64_min = (UInt64 (-1) >> 1) + 1;
     const Int64  i64_max = UInt64 (-1) >> 1;
 
     const UInt64 u64_max = UInt64 (-1);
+
+#endif   // NO_INT64
 
     // output the '0' and "0x" prefix to indicate values in octal
     // and hexadecimal notation
@@ -110,6 +118,7 @@ int main ()
         << std::oct << std::setw (12) << u32_max << ' '
         << std::hex << u32_max << '\n';
 
+#ifndef NO_INT64
 
     out << "int64_t min  = "
         << std::dec << std::setw (20) << i64_min << ' '
@@ -126,6 +135,7 @@ int main ()
         << std::oct << std::setw (23) << u64_max << ' '
         << std::hex << u64_max << '\n';
 
+#endif   // NO_INT64
 
     const char sep[] = "----------------------------------------";
 
