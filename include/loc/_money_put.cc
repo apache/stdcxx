@@ -63,10 +63,14 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
     const _Punct0* __pun0;
     const _Punct1* __pun1;
 
-    if (__intl)
+    if (__intl) {
+        __pun0 = 0;
         __pun1 = &_V3_USE_FACET (_Punct1, __flags.getloc ());
-    else
+    }
+    else {
         __pun0 = &_V3_USE_FACET (_Punct0, __flags.getloc ());
+        __pun1 = 0;
+    }
 
     const ctype<_CharT> &__ctp =
         _V3_USE_FACET (ctype<_CharT>,__flags.getloc ());
