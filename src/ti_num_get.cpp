@@ -2,7 +2,7 @@
  *
  * ti_num_get.cpp - explicit instantiation directives for num_get<char>
  *
- * $Id: //stdlib/dev/source/stdlib/ti_num_get.cpp#10 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -41,5 +41,5 @@
 #define TARGS_C   <char, _RWSTD_ISTREAMBUF_ITER (char) >
 
 _RWSTD_SPECIALIZE_FACET_ID (num_get, TARGS_C);
-_RWSTD_DEFINE_FACET_FACTORY (_RWSTD_EXPORT, num_get, TARGS_C, num_get);
+_RWSTD_DEFINE_FACET_FACTORY (extern _RWSTD_EXPORT, num_get, TARGS_C, num_get);
 _RWSTD_SPECIALIZE_USE_FACET (num_get);

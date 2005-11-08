@@ -2,7 +2,7 @@
  *
  * ti_num_put.cpp - explicit instantiation directives for num_put<char>
  *
- * $Id: //stdlib/dev/source/stdlib/ti_num_put.cpp#8 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -39,5 +39,5 @@
 #define TARGS_C   <char, _RWSTD_OSTREAMBUF_ITER (char) >
 
 _RWSTD_SPECIALIZE_FACET_ID (num_put, TARGS_C);
-_RWSTD_DEFINE_FACET_FACTORY (_RWSTD_EXPORT, num_put, TARGS_C, num_put);
+_RWSTD_DEFINE_FACET_FACTORY (extern _RWSTD_EXPORT, num_put, TARGS_C, num_put);
 _RWSTD_SPECIALIZE_USE_FACET (num_put);

@@ -2,7 +2,7 @@
  *
  * ti_numpunct.cpp - explicit instantiation directives for numpunct<char>
  *
- * $Id: //stdlib/dev/source/stdlib/ti_numpunct.cpp#10 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -39,5 +39,5 @@
 
 
 _RWSTD_SPECIALIZE_FACET_ID (numpunct, <char>);
-_RWSTD_DEFINE_FACET_FACTORY (_RWSTD_EXPORT, numpunct, <char>, numpunct);
+_RWSTD_DEFINE_FACET_FACTORY (extern _RWSTD_EXPORT, numpunct, <char>, numpunct);
 _RWSTD_SPECIALIZE_USE_FACET (numpunct);
