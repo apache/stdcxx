@@ -1409,6 +1409,13 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #endif   // NO_STD_UNCAUGHT_EXCEPTION && NO_GLOBAL_UNCAUGHT_EXCEPTION
 
 
+#ifdef _RWSTD_NO_EXTERN_TEMPLATE_BEFORE_DEFINITION
+#  ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION_BEFORE_DEFINITION
+#    define _RWSTD_NO_EXPLICIT_INSTANTIATION_BEFORE_DEFINITION
+#  endif   // _RWSTD_NO_EXPLICIT_INSTANTIATION_BEFORE_DEFINITION
+#endif   // _RWSTD_NO_EXTERN_TEMPLATE_BEFORE_DEFINITION
+
+
 // allows for efficient compilation of the library sources without
 // support for implicit inclusion: only specializations explicitly
 // instantiated in the library are available
@@ -1419,11 +1426,15 @@ __rw_assert_fail (const char*, const char*, int, const char*)
         ||  defined (_RWSTD_NO_INSTANTIATE))
 
 #  ifndef _RWSTD_LIB_SRC
+     // this block is active when using (as opposed to compiling)
+     // the library headers and sources
+
 #    define _RWSTD_DEFINE_TEMPLATE(name)   !_RWSTD_NO ## name ## _DEFINITION
-     // when implicit inclusion is not enabled, determines whether explicit
-     // instantiation directives for library templates can appear lexically
-     // before their complete definition (i.e., before the .cc file that
-     // corresponds to each header) has been #included
+     // when implicit inclusion is not enabled, determines whether extern
+     // template declarations for the corresponding explicit instantiation
+     // directives for library templates may appear lexically before their
+     // complete definitions (i.e., before the .cc file that corresponds
+     // to each header) has been #included
 #    ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION_BEFORE_DEFINITION
        // note that the _FIRST() and _LAST() macros cannot be #defined
        // in terms of the generic macro above because the name argument
