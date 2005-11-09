@@ -83,15 +83,17 @@ DEFINE_VA_LIST_HELPER (void*);
 const char* get_va_list_type_name (...) { return 0; }
 
 
-
-int main ()
+void get_type_names (int dummy, ...)
 {
-    clock_t   clk  = 0;   // arithmetic type
-    fpos_t    pos;        // object type
-    ptrdiff_t diff = 0;   // signed integral type
-    size_t    size = 0;   // unsigned integral type
-    time_t    tim  = 0;   // arithmetic type
-    va_list   va;         // object type
+    clock_t   clk  = 0;           // arithmetic type
+    fpos_t    pos  = fpos_t ();   // object type
+    ptrdiff_t diff = 0;           // signed integral type
+    size_t    size = 0;           // unsigned integral type
+    time_t    tim  = 0;           // arithmetic type
+    va_list   va;                 // object type
+
+    // initialize va to prevent an MSVC 8 debug assertion
+    va_start (va, dummy);
 
 #if !defined (_RWSTD_USE_CONFIG)
 
@@ -192,6 +194,12 @@ int main ()
                 "/* may be an aggregate */\n");
         printf ("#define _RWSTD_FPOS_T_SIZE %u\n", sizeof pos);
     }
+}
+
+
+int main ()
+{
+    get_type_names (0);
 
     return 0;
 }
