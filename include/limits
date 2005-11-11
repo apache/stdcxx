@@ -3,7 +3,7 @@
  *
  * <limits> - definitions of the numeric_limits template and specializations
  *
- * $Id: //stdlib/dev/include/limits#43 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -31,7 +31,14 @@
 #endif   // _RWSTD_NO_QUIET_NAN
 
 
-// do math operations (such as 0.0/0.0) trap?
+// does integer arithmetic trap?
+#ifndef _RWSTD_NO_INT_TRAPS
+#  define _RWSTD_INT_TRAPS true
+#else   // if defined (_RWSTD_NO_INT_TRAPS)
+#  define _RWSTD_INT_TRAPS false
+#endif   // _RWSTD_NO_INT_TRAPS
+
+// does floating point arithmetic (such as 0.0/0.0) trap?
 #ifndef _RWSTD_NO_DBL_TRAPS
 #  define _RWSTD_FLT_TRAPS  true
 #  define _RWSTD_DBL_TRAPS  true
@@ -221,7 +228,7 @@ _RWSTD_EXPORT extern const long double __rw_ldbl_sNaN;
     _RWSTD_STATIC (type, bool, is_bounded, true);                           \
     _RWSTD_STATIC (type, bool, is_modulo,  1 != cpfx##_MAX);                \
                                                                             \
-    _RWSTD_STATIC (type, bool, traps,           false);                     \
+    _RWSTD_STATIC (type, bool, traps,           _RWSTD_INT_TRAPS);          \
     _RWSTD_STATIC (type, bool, tinyness_before, false);                     \
     _RWSTD_STATIC (type, float_round_style, round_style, round_toward_zero);
 

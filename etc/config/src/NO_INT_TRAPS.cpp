@@ -4,27 +4,23 @@
 #  include "config.h"
 #endif   // _RWSTD_USE_CONFIG
 
-int int_get_zero ();
+int get_int ();
 
-int main ()
+int main (int argc, char*[])
 {
-    int int_zero = int_get_zero ();
-    int int_one  = int_get_zero () + 1;
-    int int_two  = int_get_zero () + 2;
+    int int_zero = get_int ();
+    int int_one  = get_int ();
 
-    int x = int_one;
-
-    while (int_zero < x)
-        x *= int_two;
+    int result = int_one / int_zero;
 
     // NEGATIVE test: successful exit status indicates a failure
-    return 0;
+    return argc < 2 ? 0 : result;
 }
 
 // foil optimizers
-int int_get_zero ()
-{
-    static int value = 0;
+volatile int int_value = 0;
 
-    return value;
+int get_int ()
+{
+    return int_value++;
 }
