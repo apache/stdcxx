@@ -4,6 +4,15 @@
 #  include "config.h"
 #endif   // _RWSTD_USE_CONFIG
 
+#if (defined (_WIN32) || defined (_WIN64)) && !defined (__CYGWIN__)
+#  define TRY             __try
+#  define EXCEPT(expr)    __except (expr)
+#else   // not Windows
+#  define TRY               if (1)
+#  define EXCEPT(ignore)    else if (0)
+#endif   // _WIN{32,64}
+
+
 int get_int ();
 
 int main (int argc, char*[])
@@ -11,7 +20,14 @@ int main (int argc, char*[])
     int int_zero = get_int ();
     int int_one  = get_int ();
 
-    int result = int_one / int_zero;
+    int result;
+
+    TRY {
+        result = int_one / int_zero;
+    }
+    EXCEPT (1) {
+        return 1;
+    }
 
     // NEGATIVE test: successful exit status indicates a failure
     return argc < 2 ? 0 : result;
