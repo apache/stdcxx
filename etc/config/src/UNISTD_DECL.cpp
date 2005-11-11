@@ -23,7 +23,7 @@
 #  define ssize_t long
 #endif
 
-#ifndef STDIN_FILENO
+#if !defined (STDIN_FILENO)
 #  define STDIN_FILENO    0
 #  define STDOUT_FILENO   1
 #  define STDERR_FILENO   2
@@ -47,7 +47,7 @@ static void print_macros ()
         MACRO (O_WRONLY),
         MACRO (O_RDWR),
 
-#ifdef O_ACCMODE
+#if defined (O_ACCMODE)
         // fcntl(2) file access mask
         MACRO (O_ACCMODE),
 #endif  // O_ACCMODE
@@ -62,10 +62,10 @@ static void print_macros ()
         MACRO (SEEK_CUR),
         MACRO (SEEK_END)
 
-#ifdef F_GETFL
+#if defined (F_GETFL)
         // fcntl(2) cmd argument
         , MACRO (F_GETFL)
-#endif
+#endif   // F_GETFL
     };
 
     for (unsigned i = 0; i != sizeof macros / sizeof *macros; ++i)
@@ -118,7 +118,7 @@ const char* ssize_t_name (unsigned LONG_LONG)
 
 int main ()
 {
-#ifndef _RWSTD_USE_CONFIG
+#if !defined (_RWSTD_USE_CONFIG)
 
     printf ("/**/\n#undef _RWSTD_UNISTD_DECL\n");
 
