@@ -2,7 +2,7 @@
  *
  * stringstream.cpp - stringstream example.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/stringstream.cpp#12 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -19,7 +19,7 @@
  * 
  **************************************************************************/
 
-#include <iostream>   // for wcout, endl
+#include <iostream>   // for wcout
 #include <sstream>    // for wstringstream
 
 #include <examples.h>
@@ -33,7 +33,7 @@ int main ()
     // write out three lines to the stream
     inout << "Dieses ist die Geschichte eines Mannes.\n"
           << "C'est l'histoire d'un homme.\n"
-          << "This is the story of a man." << std::endl;
+          << "This is the story of a man.\n";
 
     std::wstring line;
 
@@ -53,10 +53,10 @@ int main ()
     std::getline (inout, line);
 
     // output the third line to stdout
-    std::wcout << "\nEnglish:\n" << line << std::endl;
+    std::wcout << "\nEnglish:\n" << line << "\n\n";
  
     // output the contents of the stream object to stdout
-    std::wcout << std::endl << inout.str() << std::endl;
+    std::wcout << inout.str () << '\n';
 
     return 0;
 }
