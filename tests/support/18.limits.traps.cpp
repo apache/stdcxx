@@ -22,7 +22,7 @@
 #include <limits>
 
 #include <csetjmp>   // for longjmp, setjmp
-#include <csignal>   // for SIGFPE, SIGTRAP, signal
+#include <csignal>   // for SIGFPE, signal
 
 #include <driver.h>
 
@@ -37,41 +37,39 @@ void handle_fpe (int)
     std::longjmp (jmp_env, 1);
 }
 
-void handle_trap (int)
-{
-    std::longjmp (jmp_env, 1);
-}
-
 }   // extern "C"
 
 /**************************************************************************/
 
+#ifdef _MSC_VER
+   // silence useless MSVC warnings:
+   // 4800: 'int' : forcing value to bool 'true' or 'false'
+   // 4804: '/' : unsafe use of type 'bool' in operation
+#  pragma warning (disable: 4800 4804)
+
+   // use Structured Exception Handling to detect arithmetic exceptions
+#  define TRY           __try
+#  define EXCEPT(arg)   __except (arg)
+#else
+#  define TRY              if (1)
+#  define EXCEPT(ignore)   else if (0)
+#endif   // _MSC_VER
+
+
 template <class numT>
-numT test_traps (numT, const char *tname, int lineno, bool floating)
+numT test_traps (numT, const char *tname, int lineno, bool)
 {
     const bool traps = std::numeric_limits<numT>::traps;
-
-    _RWSTD_UNUSED (floating);
 
 #ifdef SIGFPE
     std::signal (SIGFPE, handle_fpe);
 #else   // if !defined (SIGFPE)
-    if (!rw_warn (!traps || !floating, 0, lineno,
+    if (!rw_warn (!traps, 0, lineno,
                   "SIGFPE not #defined and numeric_limits<%s>::traps == true, "
                   "cannot test", tname)) {
         return numT ();
     }
 #endif   // SIGFPE
-
-#ifdef SIGTRAP
-    std::signal (SIGTRAP, handle_trap);
-#else   // if !defined (SIGTRAP)
-    if (!rw_warn (!traps || floating, 0, lineno,
-                  "SIGTRAP not #defined and numeric_limits<%s>::traps == true, "
-                  "cannot test", tname)) {
-        return numT ();
-    }
-#endif   // SIGTRAP
 
     numT result = numT ();
 
@@ -88,7 +86,12 @@ numT test_traps (numT, const char *tname, int lineno, bool floating)
         trapped = true;
     }
     else {
-        result = one / zero;
+        TRY {
+            result = one / zero;
+        }
+        EXCEPT (1) {
+            trapped = true;
+        }
     }
 
     rw_assert (trapped == traps, 0, lineno,
