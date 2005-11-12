@@ -2,7 +2,7 @@
  *
  * limits.traps.cpp - test exercising std::numeric_limits::traps
  *
- * $Id: //stdlib/dev/tests/stdlib/support/limits_traps.cpp#1 $
+ * $Id$
  *
  ***************************************************************************
  *
