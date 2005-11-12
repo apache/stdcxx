@@ -741,6 +741,9 @@ rw_fltcmp (float x, float y)
 }
 
 
+#define Abs(x) ((x) < 0 ? -(x) : (x))
+
+
 _TEST_EXPORT int
 rw_dblcmp (double x, double y)
 {
@@ -753,10 +756,31 @@ rw_dblcmp (double x, double y)
 #elif _RWSTD_DBL_SIZE == _RWSTD_LLONG_SIZE
     typedef _RWSTD_LONG_LONG IntT;
     const IntT imin = _RWSTD_LLONG_MIN;
-#else
-    // ???
-#  error no integral type of the same size as double exists
 #endif
+
+#if _RWSTD_LLONG_SIZE < _RWSTD_DBL_SIZE
+
+    if (x == y)
+        return 0;
+
+    // FIXME: use integer math as in the functions above
+
+    const double diff = x - y;
+
+    // check absolute error
+    if (Abs (diff) < _RWSTD_DBL_EPSILON)
+        return 0;
+
+    // check relative error
+    const double relerr =
+        Abs (x) < Abs (y) ? Abs (diff / y) : Abs (diff / x);
+
+    if (relerr <= 0.0000001)
+        return 0;
+
+    return x < y ? -1 : +1;
+
+#else   // if !(_RWSTD_LLONG_SIZE < _RWSTD_DBL_SIZE)
 
     if (x == y)
         return 0;
@@ -772,12 +796,13 @@ rw_dblcmp (double x, double y)
     const IntT int_diff = x_int - y_int;
 
     return int_diff;
+
+#endif   // _RWSTD_LLONG_SIZE < _RWSTD_DBL_SIZE
+
 }
 
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
-
-#  define Abs(x) ((x) < 0 ? -(x) : (x))
 
 _TEST_EXPORT int
 rw_ldblcmp (long double x, long double y)
