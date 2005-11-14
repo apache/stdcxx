@@ -36,9 +36,14 @@
 #include <string.h>
 #include <wchar.h>
 
-#ifndef _WIN32
+#if defined (_WIN32) || defined (_WIN64)
+   // define macros to enable Win98 + WinNT support in <windows.h>
+#  define _WIN32_WINNT 0x0410
+#  define WINVER       0x400
+#  include <windows.h>   // for IsDebuggerPresent()
+#else
 #  include <dlfcn.h>
-#endif
+#endif   // _WIN{32,64}
 
 #include <ios>
 #include <iostream>
@@ -55,64 +60,75 @@ _RWSTD_EXPORT _RWSTD_SSIZE_T
 
 /********************************************************************/
 
+static const union {
+    int           ival;
+    unsigned char bytes [sizeof (int)];
+} _rw_one = { 1 };
+
+static const int
+_rw_big_endian = '\0' == _rw_one.bytes [0];
+
+
+/********************************************************************/
+
 struct FmtSpec;
 
 static int
-rw_fmtlong (const FmtSpec&, char**, size_t*, long);
+_rw_fmtlong (const FmtSpec&, char**, size_t*, long);
 
 #ifdef _RWSTD_LONG_LONG
 
 static int
-rw_fmtllong (const FmtSpec&, char**, size_t*, _RWSTD_LONG_LONG);
+_rw_fmtllong (const FmtSpec&, char**, size_t*, _RWSTD_LONG_LONG);
 
 #endif   // _RWSTD_LONG_LONG
 
 static int
-rw_fmtinteger (FmtSpec*, size_t, char**, size_t*, va_list*);
+_rw_fmtinteger (FmtSpec*, size_t, char**, size_t*, va_list*);
 
 static int
-rw_fmtfloating (const FmtSpec&, char**, size_t*, const void*);
+_rw_fmtfloating (const FmtSpec&, char**, size_t*, const void*);
 
 _RWSTD_INTERNAL int
-rw_fmtptr (const FmtSpec&, char**, size_t*, const void*);
+_rw_fmtptr (const FmtSpec&, char**, size_t*, const void*);
 
 typedef void (*funptr_t)();
 
 static int
-rw_fmtfunptr (const FmtSpec&, char**, size_t*, funptr_t);
+_rw_fmtfunptr (const FmtSpec&, char**, size_t*, funptr_t);
 
 struct DummyStruct;
 typedef void (DummyStruct::*memptr_t)() const;
 
 static int
-rw_fmtmemptr (const FmtSpec&, char**, size_t*, memptr_t);
+_rw_fmtmemptr (const FmtSpec&, char**, size_t*, memptr_t);
 
 static int
-rw_fmtstr (const FmtSpec&, char**, size_t*, const char*, size_t);
+_rw_fmtstr (const FmtSpec&, char**, size_t*, const char*, size_t);
 
 static int
-rw_fmtchr (const FmtSpec&, char**, size_t*, int);
+_rw_fmtchr (const FmtSpec&, char**, size_t*, int);
 
 static int
-rw_fmtwchr (const FmtSpec&, char**, size_t*, wint_t);
+_rw_fmtwchr (const FmtSpec&, char**, size_t*, wint_t);
 
 static int
-rw_fmtwstr (const FmtSpec&, char**, size_t*, const wchar_t*, size_t);
+_rw_fmtwstr (const FmtSpec&, char**, size_t*, const wchar_t*, size_t);
 
 static int
-rw_fmterrno (const FmtSpec&, char**, size_t*, int);
+_rw_fmterrno (const FmtSpec&, char**, size_t*, int);
 
 static int
-rw_fmtopenmode (const FmtSpec&, char**, size_t*, int);
+_rw_fmtopenmode (const FmtSpec&, char**, size_t*, int);
 
 static int
-rw_fmtevent (const FmtSpec&, char**, size_t*, int);
+_rw_fmtevent (const FmtSpec&, char**, size_t*, int);
 
 static int
-rw_fmtmonpat (const FmtSpec&, char**, size_t*, const char [4]);
+_rw_fmtmonpat (const FmtSpec&, char**, size_t*, const char [4]);
 
 static int
-rw_fmtsignal (const FmtSpec&, char**, size_t*, int);
+_rw_fmtsignal (const FmtSpec&, char**, size_t*, int);
 
 /********************************************************************/
 
@@ -127,14 +143,14 @@ struct FmtSpec
 
     // optional modifiers
     unsigned mod_A     : 1;    // extension (Arrays)
-    unsigned mod_h     : 1;
-    unsigned mod_hh    : 1;
-    unsigned mod_l     : 1;
-    unsigned mod_ll    : 1;
-    unsigned mod_j     : 1;
-    unsigned mod_z     : 1;
-    unsigned mod_t     : 1;
-    unsigned mod_L     : 1;
+    unsigned mod_h     : 1;    // short modifier
+    unsigned mod_hh    : 1;    // char modifier
+    unsigned mod_l     : 1;    // long modifier
+    unsigned mod_ll    : 1;    // long long modifier
+    unsigned mod_j     : 1;    // intmax_t modifier
+    unsigned mod_z     : 1;    // size_t modifier
+    unsigned mod_t     : 1;    // ptrdiff_t modifier
+    unsigned mod_L     : 1;    // long double modifier
     unsigned mod_I     : 1;    // extension
 
     unsigned cond       : 1;   // have an if/else clause
@@ -230,7 +246,7 @@ struct FmtSpec
 */
 
 static int
-rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
+_rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
 {
     assert (0 != pspec);
     assert (0 != fmt);
@@ -434,7 +450,7 @@ rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
 /********************************************************************/
 
 _RWSTD_INTERNAL char*
-rw_bufcat (char **pbuf, size_t *pbufsize, const char *str, size_t len)
+_rw_bufcat (char **pbuf, size_t *pbufsize, const char *str, size_t len)
 {
     assert (0 != pbuf);
     assert (0 != pbufsize);
@@ -485,8 +501,8 @@ extern int
 /********************************************************************/
 
 static int
-rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
-                   char **pbuf, size_t *pbufsize, va_list *pva)
+_rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
+                    char **pbuf, size_t *pbufsize, va_list *pva)
 {
     _RWSTD_UNUSED (paramno);
 
@@ -507,7 +523,7 @@ rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
     case 'x':
     case 'X':
     case 'u':
-        len = rw_fmtinteger (pspec, paramno, pbuf, pbufsize, pva);
+        len = _rw_fmtinteger (pspec, paramno, pbuf, pbufsize, pva);
         break;
 
     case 'e':
@@ -518,11 +534,11 @@ rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
     case 'G':
         if (spec.mod_L) {
             spec.param.ldbl = PARAM (long double, ldbl);
-            len = rw_fmtfloating (spec, pbuf, pbufsize, &spec.param.ldbl);
+            len = _rw_fmtfloating (spec, pbuf, pbufsize, &spec.param.ldbl);
         }
         else {
             spec.param.dbl = PARAM (double, dbl);
-            len = rw_fmtfloating (spec, pbuf, pbufsize, &spec.param.dbl);
+            len = _rw_fmtfloating (spec, pbuf, pbufsize, &spec.param.dbl);
         }
         break;
 
@@ -545,11 +561,11 @@ rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
         // character.
         if (spec.mod_l) {
             spec.param.wi = PARAM (wint_t, wi);
-            len = rw_fmtwchr (spec, pbuf, pbufsize, spec.param.wi);
+            len = _rw_fmtwchr (spec, pbuf, pbufsize, spec.param.wi);
         }
         else {
             spec.param.i = PARAM (int, i);
-            len = rw_fmtchr (spec, pbuf, pbufsize, spec.param.i);
+            len = _rw_fmtchr (spec, pbuf, pbufsize, spec.param.i);
         }
         break;
 
@@ -557,12 +573,12 @@ rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
         if (spec.mod_l) {
             spec.param.ptr = PARAM (wchar_t*, ptr);
             const wchar_t* const str = (wchar_t*)spec.param.ptr;
-            len = rw_fmtwstr (spec, pbuf, pbufsize, str, _RWSTD_SIZE_MAX);
+            len = _rw_fmtwstr (spec, pbuf, pbufsize, str, _RWSTD_SIZE_MAX);
         }
         else {
             spec.param.ptr = PARAM (char*, ptr);
             const char* const str = (char*)spec.param.ptr;
-            len = rw_fmtstr (spec, pbuf, pbufsize, str, _RWSTD_SIZE_MAX);
+            len = _rw_fmtstr (spec, pbuf, pbufsize, str, _RWSTD_SIZE_MAX);
         }
         break;
 
@@ -571,13 +587,13 @@ rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
         // is converted to a sequence of printing characters, in an
         // implementation-defined manner.
         spec.param.ptr = PARAM (char*, ptr);
-        len = rw_fmtptr (spec, pbuf, pbufsize, spec.param.ptr);
+        len = _rw_fmtptr (spec, pbuf, pbufsize, spec.param.ptr);
         break;
     }
 
     case 'm': {   // %m (popular extension)
         spec.param.i = errno;
-        len = rw_fmterrno (spec, pbuf, pbufsize, spec.param.i);
+        len = _rw_fmterrno (spec, pbuf, pbufsize, spec.param.i);
         break;
     }
 
@@ -672,9 +688,9 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
 #else   // if !defined (va_copy)
 
-#  if defined (__GNUG__)
+#  if 2 < __GNUG__
 
-    // use the gcc builtin when the va_copy macro is not defined
+    // use the gcc 3.x builtin when the va_copy macro is not defined
     // (e.g., with gcc -ansi or Intel C++ icc -ansi or -strict_ansi)
     va_list vacpy;
     __builtin_va_copy (vacpy, varg);
@@ -685,7 +701,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
     // use varg (in)directly and assume it's safe (e.g., HP aCC on PA)
     pva = &varg;
 
-#  endif   // __GNUG__
+#  endif   // 2 < __GNUG__
 
 #endif   // va_copy
 
@@ -728,7 +744,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
         size_t nchars = pcnt ? pcnt - fmt : strlen (fc);
 
-        next = rw_bufcat (pbuf, pbufsize, fmt, nchars);
+        next = _rw_bufcat (pbuf, pbufsize, fmt, nchars);
         if (0 == next)
             goto fail;
 
@@ -742,7 +758,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
         if ('%' == *fc) {
             // handle "%%"
-            next = rw_bufcat (pbuf, pbufsize, "%", 1);
+            next = _rw_bufcat (pbuf, pbufsize, "%", 1);
             if (0 == next)
                 goto fail;
 
@@ -781,7 +797,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
             // initiaze the current format specification, setting
             // all unused bits to 0
             const int speclen =
-                rw_fmtspec (pspec + paramno, true, fc, pva);
+                _rw_fmtspec (pspec + paramno, true, fc, pva);
 
             _RWSTD_UNUSED (speclen);
 
@@ -886,12 +902,12 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
         }
         else {
             const int speclen =
-                rw_fmtspec (pspec + paramno, false, fc, pva);
+                _rw_fmtspec (pspec + paramno, false, fc, pva);
 
             if (speclen) {
 
                 const int len =
-                    rw_vasnprintf_c99 (pspec, paramno, pbuf, pbufsize, pva);
+                    _rw_vasnprintf_c99 (pspec, paramno, pbuf, pbufsize, pva);
 
                 if (-1 == len)
                     goto fail;
@@ -900,7 +916,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
                 if (-1 == pspec [paramno].paramno)
                     ++paramno;
 
-                next = rw_bufcat (pbuf, pbufsize, 0, size_t (len));
+                next = _rw_bufcat (pbuf, pbufsize, 0, size_t (len));
                 if (0 == next)
                     goto fail;
 
@@ -908,7 +924,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
                 fc   += speclen;
             }
             else {
-                next = rw_bufcat (pbuf, pbufsize, "%", 1);
+                next = _rw_bufcat (pbuf, pbufsize, "%", 1);
                 if (0 == next)
                     goto fail;
             }
@@ -948,13 +964,13 @@ fail: // function failed
 
 /********************************************************************/
 
-static const char rw_digits[] = {
+static const char _rw_digits[] = {
     "0123456789abcdefghijklmnopqrstuvwxyz"
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 };
 
 static int
-rw_fmtlong (const FmtSpec &spec, char **pbuf, size_t *pbufsize, long val)
+_rw_fmtlong (const FmtSpec &spec, char **pbuf, size_t *pbufsize, long val)
 {
     char buffer [130];   // big enough for a 128-bit long in base 2
     char *end = buffer;
@@ -990,7 +1006,7 @@ rw_fmtlong (const FmtSpec &spec, char **pbuf, size_t *pbufsize, long val)
     }
 
     do {
-        *end++ = rw_digits [upoff + uval % base];
+        *end++ = _rw_digits [upoff + uval % base];
     } while (uval /= base);
 
     int size = int (end - buffer);
@@ -1037,7 +1053,7 @@ rw_fmtlong (const FmtSpec &spec, char **pbuf, size_t *pbufsize, long val)
     newspec.prec = -1;
 
     // handle justification by formatting the resulting string
-    return rw_fmtstr (newspec, pbuf, pbufsize, buffer, size_t (size));
+    return _rw_fmtstr (newspec, pbuf, pbufsize, buffer, size_t (size));
 }
 
 /********************************************************************/
@@ -1045,7 +1061,7 @@ rw_fmtlong (const FmtSpec &spec, char **pbuf, size_t *pbufsize, long val)
 #ifdef _RWSTD_LONG_LONG
 
 static int
-rw_fmtllong (const FmtSpec &spec,
+_rw_fmtllong (const FmtSpec &spec,
              char **pbuf, size_t *pbufsize, _RWSTD_LONG_LONG val)
 {
     char buffer [130];   // big enough for a 128-bit long long in base 2
@@ -1082,7 +1098,7 @@ rw_fmtllong (const FmtSpec &spec,
     }
 
     do {
-        *end++ = rw_digits [upoff + uval % base];
+        *end++ = _rw_digits [upoff + uval % base];
     } while (uval /= base);
 
     if (pfx) {
@@ -1124,7 +1140,7 @@ rw_fmtllong (const FmtSpec &spec,
     }
 
     // handle justification by formatting the resulting string
-    return rw_fmtstr (spec, pbuf, pbufsize, buffer, size);
+    return _rw_fmtstr (spec, pbuf, pbufsize, buffer, size);
 }
 
 #endif   // _RWSTD_LONG_LONG
@@ -1132,7 +1148,7 @@ rw_fmtllong (const FmtSpec &spec,
 /********************************************************************/
 
 static int
-rw_fmtinteger (FmtSpec *pspec, size_t paramno,
+_rw_fmtinteger (FmtSpec *pspec, size_t paramno,
                char **pbuf, size_t *pbufsize, va_list *pva)
 {
     int len = -1;
@@ -1146,26 +1162,26 @@ rw_fmtinteger (FmtSpec *pspec, size_t paramno,
             // promoted signed char argument
             spec.param.i = PARAM (int, i);
             const signed char val = spec.param.i;
-            len = rw_fmtlong (spec, pbuf, pbufsize, long (val));
+            len = _rw_fmtlong (spec, pbuf, pbufsize, long (val));
         }
         else if (spec.mod_h) {
             // promoted signed short argument
             spec.param.i = PARAM (int, i);
             const short val = spec.param.i;
-            len = rw_fmtlong (spec, pbuf, pbufsize, long (val));
+            len = _rw_fmtlong (spec, pbuf, pbufsize, long (val));
         }
         else if (spec.mod_l) {   // %li
             spec.param.lng = PARAM (long, lng);
-            len = rw_fmtlong (spec, pbuf, pbufsize, spec.param.lng);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, spec.param.lng);
         }
         else if (spec.mod_ll) {   // %lli
 
 #ifdef _RWSTD_LONG_LONG
             spec.param.llong = PARAM (_RWSTD_LONG_LONG, llong);
-            len = rw_fmtllong (spec, pbuf, pbufsize, spec.param.llong);
+            len = _rw_fmtllong (spec, pbuf, pbufsize, spec.param.llong);
 #elif 8 == _RWSTD_LONG_SIZE
             spec.param.llong = PARAM (long, lnng);
-            len = rw_fmtlong (spec, pbuf, pbufsize, spec.param.llong);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, spec.param.llong);
 #else
             assert (!"%lld, %lli: long long not supported");
 
@@ -1174,11 +1190,11 @@ rw_fmtinteger (FmtSpec *pspec, size_t paramno,
         else if (spec.mod_t) {
             spec.param.diff = PARAM (ptrdiff_t, diff);
             if (sizeof (ptrdiff_t) == sizeof (long)) {
-                len = rw_fmtlong (spec, pbuf, pbufsize, spec.param.diff);
+                len = _rw_fmtlong (spec, pbuf, pbufsize, spec.param.diff);
             }
             else {
 #ifdef _RWSTD_LONG_LONG
-                len = rw_fmtllong (spec, pbuf, pbufsize, spec.param.diff);
+                len = _rw_fmtllong (spec, pbuf, pbufsize, spec.param.diff);
 #else   // if !defined (_RWSTD_LONG_LONG)
                 assert (!"%td, %ti: 64-bit types not supported");
 #endif   // _RWSTD_LONG_LONG
@@ -1187,17 +1203,17 @@ rw_fmtinteger (FmtSpec *pspec, size_t paramno,
         else if (1 == spec.iwidth) {
             spec.param.i = PARAM (int, i);
             const _RWSTD_INT8_T val = spec.param.i;
-            len = rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
         }
         else if (2 == spec.iwidth) {
             spec.param.i = PARAM (int, i);
             const _RWSTD_INT16_T val = spec.param.i;
-            len = rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
         }
         else if (3 == spec.iwidth) {
             spec.param.i32 = PARAM (_RWSTD_INT32_T, i32);
             const long val = long (spec.param.i32);
-            len = rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
         }
         else if (4 == spec.iwidth) {
 
@@ -1209,17 +1225,17 @@ rw_fmtinteger (FmtSpec *pspec, size_t paramno,
 
 #if 8 == _RWSTD_LONG_SIZE
             const long val = spec.param.i64;
-            len = rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
 #elif defined (_RWSTD_LONG_LONG)
             const _RWSTD_LONG_LONG val = spec.param.i64;
-            len = rw_fmtllong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtllong (spec, pbuf, pbufsize, val);
 #else
             assert (!"%I64d, %I64i: 64-bit types not supported");
 #endif
         }
         else {   // %i
             spec.param.i = PARAM (int, i);
-            len = rw_fmtlong (spec, pbuf, pbufsize, long (spec.param.i));
+            len = _rw_fmtlong (spec, pbuf, pbufsize, long (spec.param.i));
         }
         break;
 
@@ -1242,23 +1258,23 @@ rw_fmtinteger (FmtSpec *pspec, size_t paramno,
             // promoted unsigned char argument
             spec.param.i = PARAM (unsigned, i);
             const unsigned char val = spec.param.i;
-            len = rw_fmtlong (spec, pbuf, pbufsize, (unsigned long)val);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, (unsigned long)val);
         }
         else if (spec.mod_h) {
             // promoted unsigned short argument
             spec.param.i = PARAM (unsigned, i);
             const unsigned short val = spec.param.i;
-            len = rw_fmtlong (spec, pbuf, pbufsize, (unsigned long)val);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, (unsigned long)val);
         }
         else if (spec.mod_ll) {
 #ifdef _RWSTD_LONG_LONG
             spec.param.llong = PARAM (unsigned _RWSTD_LONG_LONG, llong);
             const unsigned _RWSTD_LONG_LONG val = spec.param.llong;
-            len = rw_fmtllong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtllong (spec, pbuf, pbufsize, val);
 #elif 8 == _RWSTD_LONG_SIZE
             spec.param.lng = PARAM (unsigned long, lng);
             const unsigned long val = spec.param.lng;
-            len = rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
 #else
             assert (!"long long not supported");
 #endif   // _RWSTD_LONG_LONG
@@ -1267,16 +1283,16 @@ rw_fmtinteger (FmtSpec *pspec, size_t paramno,
         else if (spec.mod_l) {
             spec.param.lng = PARAM (unsigned long, lng);
             const unsigned long val = spec.param.lng;
-            len = rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
         }
         else if (spec.mod_t) {
             spec.param.lng = PARAM (size_t, size);
             if (sizeof (size_t) == sizeof (unsigned long)) {
-                len = rw_fmtlong (spec, pbuf, pbufsize, spec.param.size);
+                len = _rw_fmtlong (spec, pbuf, pbufsize, spec.param.size);
             }
             else {
 #ifdef _RWSTD_LONG_LONG
-                len = rw_fmtllong (spec, pbuf, pbufsize, spec.param.size);
+                len = _rw_fmtllong (spec, pbuf, pbufsize, spec.param.size);
 #else   // if defined (_RWSTD_LONG_LONG)
                 assert (!"%to, %tu, %tx: 64-bit types not implemented");
 #endif   // _RWSTD_LONG_LONG
@@ -1285,17 +1301,17 @@ rw_fmtinteger (FmtSpec *pspec, size_t paramno,
         else if (1 == spec.iwidth) {
             spec.param.i = PARAM (int, i);
             const _RWSTD_UINT8_T val = spec.param.i;
-            len = rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
         }
         else if (2 == spec.iwidth) {
             spec.param.i = PARAM (int, i);
             const long val = (unsigned short)spec.param.i;
-            len = rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
         }
         else if (3 == spec.iwidth) {
             spec.param.i32 = PARAM (_RWSTD_INT32_T, i32);
             const long val = long (unsigned (spec.param.i));
-            len = rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
         }
         else if (4 == spec.iwidth) {
 #ifdef _RWSTD_INT64_T
@@ -1306,10 +1322,10 @@ rw_fmtinteger (FmtSpec *pspec, size_t paramno,
 
 #if 8 == _RWSTD_LONG_SIZE
             const unsigned long val = spec.param.i64;
-            len = rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
 #elif defined (_RWSTD_LONG_LONG)
             const unsigned _RWSTD_LONG_LONG val = spec.param.i64;
-            len = rw_fmtllong (spec, pbuf, pbufsize, val);
+            len = _rw_fmtllong (spec, pbuf, pbufsize, val);
 #else
             assert (!"%I64o, %I64u, %I64x: 64-bit types not supported");
 #endif
@@ -1317,7 +1333,7 @@ rw_fmtinteger (FmtSpec *pspec, size_t paramno,
         else {
             spec.param.i = PARAM (unsigned, i);
             const unsigned val = spec.param.i;
-            len = rw_fmtlong (spec, pbuf, pbufsize, long (val));
+            len = _rw_fmtlong (spec, pbuf, pbufsize, long (val));
         }
         
         break;
@@ -1329,7 +1345,7 @@ rw_fmtinteger (FmtSpec *pspec, size_t paramno,
 /********************************************************************/
 
 static int
-rw_fmtfloating (const FmtSpec &spec,
+_rw_fmtfloating (const FmtSpec &spec,
                 char **pbuf, size_t *pbufsize, const void *pval)
 {
     char fmt [128];
@@ -1433,7 +1449,7 @@ rw_fmtfloating (const FmtSpec &spec,
 #endif   // _MSC_VER
 
 
-    if (-1 < len && 0 == rw_bufcat (pbuf, pbufsize, buffer, size_t (len)))
+    if (-1 < len && 0 == _rw_bufcat (pbuf, pbufsize, buffer, size_t (len)))
         return -1;
 
     return len;
@@ -1441,47 +1457,79 @@ rw_fmtfloating (const FmtSpec &spec,
 
 /********************************************************************/
 
-_RWSTD_INTERNAL int
-rw_fmtptr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
-           const void *val)
+// formats a data, function, or class member pointer as follows
+//     0x<hex-long-0>[:<hex-long-1>[:...[:<hex-long-N>]]]
+// where N is the size of the pointer in long ints
+
+
+static int
+_rw_fmtpointer (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
+                const void *pptr, size_t nelems)
 {
     FmtSpec newspec (spec);
 
-    // format data pointers in hexadecimal
+    // always format data pointers in hexadecimal
     newspec.base = 16;
 
     // set the number of digits
-    newspec.prec = _RWSTD_PTR_SIZE * 2;
+    newspec.prec = _RWSTD_LONG_SIZE * 2;
+
+    const union {
+        const void          *ptr;
+        const unsigned long *lptr;
+    } uptr = { pptr };
 
     int len = 0;
 
-    // always use the "0x" prefix for pointers, even when null
-    if (spec.fl_pound && 0 == val) {
-        if (0 == rw_bufcat (pbuf, pbufsize, "0x", len = 2))
+    if (newspec.fl_pound) {
+        // prepend the 0x prefix even to null pointers
+        if (0 == _rw_bufcat (pbuf, pbufsize, "0x", len = 2)) {
             return -1;
+        }
+
+        // reset the pound flag to prevent the integer formatter
+        // from inserting it again
+        newspec.fl_pound  = 0;
     }
 
-#if _RWSTD_LONG_SIZE <= _RWSTD_PTR_SIZE
+    for (size_t i = 0; i != nelems; ++i) {
+        const size_t inx = _rw_big_endian ? nelems - i - 1 : i;
 
-    return len + rw_fmtlong (newspec, pbuf, pbufsize, (long)val);
+        len += _rw_fmtlong (newspec, pbuf, pbufsize, uptr.lptr [inx]);
 
-#elif _RWSTD_LLONG_SIZE <= _RWSTD_PTR_SIZE
+        if (len < 0) {
+            break;
+        }
 
-    return len + rw_fmtlong (newspec, pbuf, pbufsize, (_RWSTD_LONG_LONG)val);
+        // separate pointer components with colons
+        int n = 0;
+        if (i + 1 < nelems) {
+            if (0 == _rw_bufcat (pbuf, pbufsize, ":", n = 1)) {
+                len = -1;
+                break;
+            }
+        }
 
-#else
+        len += n;
+    }
 
-    assert (!"pointer formatting not implemented");
-    return -1;
+    return len;
+}
 
-#endif
+/********************************************************************/
 
+_RWSTD_INTERNAL int
+_rw_fmtptr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
+            const void *val)
+{
+    return _rw_fmtpointer (spec, pbuf, pbufsize, &val,
+                           sizeof val / sizeof (long));
 }
 
 /********************************************************************/
 
 static int
-rw_fmtfunptr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
+_rw_fmtfunptr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
               funptr_t val)
 {
     if (spec.mod_l) {
@@ -1516,71 +1564,30 @@ rw_fmtfunptr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
             FmtSpec newspec (spec);
             newspec.mod_l = false;
 
-            return rw_fmtstr (newspec, pbuf, pbufsize, buffer, size_t (len));
+            return _rw_fmtstr (newspec, pbuf, pbufsize, buffer, size_t (len));
         }
 
 #endif   // _RWSTD_OS_SUNOS
 #endif   // 0/1
     }
 
-#if _RWSTD_FUNPTR_SIZE == _RWSTD_PTR_SIZE
-
-    const union {
-        funptr_t fptr;
-        void    *vptr;
-    } uval = { val };
-
-    return rw_fmtptr (spec, pbuf, pbufsize, uval.vptr);
-    
-#else
-
-    assert (!"function pointer formatting not implemented");
-    return -1;
-
-#endif
-
+    return _rw_fmtpointer (spec, pbuf, pbufsize, &val,
+                           sizeof val / sizeof (long));
 }
 
 /********************************************************************/
 
 static int
-rw_fmtmemptr (const FmtSpec &spec,
-              char **pbuf, size_t *pbufsize, memptr_t val)
+_rw_fmtmemptr (const FmtSpec &spec, char **pbuf, size_t *pbufsize, memptr_t val)
 {
-    FmtSpec newspec (spec);
-
-    newspec.base = 16;
-
-    const union {
-        memptr_t         mpval;
-#ifdef _RWSTD_LONG_LONG
-        _RWSTD_LONG_LONG llval;
-#endif   // _RWSTD_LONG_LONG
-        long             lval;
-    } uval = { val };
-        
-#if _RWSTD_LONG_SIZE <= _RWSTD_MEMPTR_SIZE
-
-    return rw_fmtlong (spec, pbuf, pbufsize, uval.lval);
-
-#elif _RWSTD_LLONG_SIZE <= _RWSTD_MEMPTR_SIZE
-
-    return rw_fmtlong (spec, pbuf, pbufsize, uval.llval);
-
-#else
-
-    _RWSTD_UNUSED (newspec);
-    assert (!"member pointer formatting not implemented");
-    return -1;
-
-#endif
-
+    return _rw_fmtpointer (spec, pbuf, pbufsize, &val,
+                           sizeof val / sizeof (long));
 }
 
 /********************************************************************/
 
 static int
-rw_fmterrno (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
+_rw_fmterrno (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
 {
     static const struct {
         int         val;
@@ -1977,7 +1984,7 @@ rw_fmterrno (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
         else
             len = int (strlen (name));
 
-        if (0 == rw_bufcat (pbuf, pbufsize, name, size_t (len)))
+        if (0 == _rw_bufcat (pbuf, pbufsize, name, size_t (len)))
             return -1;
 
         return len;
@@ -1986,7 +1993,7 @@ rw_fmterrno (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
     const char* const str = strerror (val);
     const size_t len = strlen (str);
 
-    if (0 == rw_bufcat (pbuf, pbufsize, str, len))
+    if (0 == _rw_bufcat (pbuf, pbufsize, str, len))
         return -1;
 
     return int (len);
@@ -1995,7 +2002,7 @@ rw_fmterrno (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
 /********************************************************************/
 
 static int
-rw_fmtsignal (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
+_rw_fmtsignal (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
 {
     static const struct {
         int         val;
@@ -2186,7 +2193,7 @@ rw_fmtsignal (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
     else
         len = int (strlen (name));
 
-    if (0 == rw_bufcat (pbuf, pbufsize, name, size_t (len)))
+    if (0 == _rw_bufcat (pbuf, pbufsize, name, size_t (len)))
         return -1;
 
     return len;
@@ -2287,14 +2294,14 @@ int rw_quotestr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
 
         const size_t buflen = *pbuf ? strlen (*pbuf) : 0;
 
-        if (0 == rw_bufcat (pbuf, pbufsize, "(invalid address ", 18))
+        if (0 == _rw_bufcat (pbuf, pbufsize, "(invalid address ", 18))
             return -1;
 
         FmtSpec newspec (spec);
         newspec.fl_pound = 1;
-        if (-1 == ::rw_fmtptr (newspec, pbuf, pbufsize, wstr))
+        if (-1 == ::_rw_fmtptr (newspec, pbuf, pbufsize, wstr))
             return -1;
-        if (0 == rw_bufcat (pbuf, pbufsize, ")", 2))
+        if (0 == _rw_bufcat (pbuf, pbufsize, ")", 2))
             return -1;
 
         return int (strlen (*pbuf) - buflen);
@@ -2306,7 +2313,7 @@ int rw_quotestr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
         for (const charT *pc = wstr; *pc; ++pc, ++nchars);
     }
 
-    char *next = rw_bufcat (pbuf, pbufsize, 0, (nchars + 1) * 12 + 3);
+    char *next = _rw_bufcat (pbuf, pbufsize, 0, (nchars + 1) * 12 + 3);
     const char* const bufend = next;
 
     if (0 == next)
@@ -2432,7 +2439,7 @@ int rw_quotestr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
 /********************************************************************/
 
 static int
-rw_fmtchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
+_rw_fmtchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
 {
     typedef unsigned char UChar;
     const UChar uc = UChar (val);
@@ -2447,13 +2454,13 @@ rw_fmtchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
 
     FmtSpec newspec (spec);
     newspec.fl_pound = 0;
-    return rw_fmtstr (newspec, pbuf, pbufsize, buffer, size_t (len));
+    return _rw_fmtstr (newspec, pbuf, pbufsize, buffer, size_t (len));
 }
 
 /********************************************************************/
 
 static int
-rw_fmtwchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize, wint_t val)
+_rw_fmtwchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize, wint_t val)
 {
     const wchar_t wc = wchar_t (val);
 
@@ -2468,13 +2475,13 @@ rw_fmtwchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize, wint_t val)
 
     FmtSpec newspec (spec);
     newspec.fl_pound = 0;
-    return rw_fmtstr (newspec, pbuf, pbufsize, buffer, size_t (len));
+    return _rw_fmtstr (newspec, pbuf, pbufsize, buffer, size_t (len));
 }
 
 /********************************************************************/
 
 static int
-rw_fmtstr (const FmtSpec &spec,
+_rw_fmtstr (const FmtSpec &spec,
            char **pbuf, size_t *pbufsize, const char *str, size_t len)
 {
     if (spec.fl_pound)
@@ -2487,16 +2494,16 @@ rw_fmtstr (const FmtSpec &spec,
 
         const size_t buflen = *pbuf ? strlen (*pbuf) : 0;
 
-        if (0 == rw_bufcat (pbuf, pbufsize, "(invalid address ", 18))
+        if (0 == _rw_bufcat (pbuf, pbufsize, "(invalid address ", 18))
             return -1;
 
         FmtSpec newspec (spec);
         newspec.fl_pound = 1;
 
-        if (-1 == rw_fmtptr (newspec, pbuf, pbufsize, str))
+        if (-1 == _rw_fmtptr (newspec, pbuf, pbufsize, str))
             return -1;
 
-        if (0 == rw_bufcat (pbuf, pbufsize, ")", 2))
+        if (0 == _rw_bufcat (pbuf, pbufsize, ")", 2))
             return -1;
 
         return int (strlen (*pbuf) - buflen);
@@ -2523,7 +2530,7 @@ rw_fmtstr (const FmtSpec &spec,
     const size_t pad = len < width ? width - len : 0;
 
     // [re]allocate enough space in the buffer
-    if (0 == rw_bufcat (pbuf, pbufsize, 0, pad + len))
+    if (0 == _rw_bufcat (pbuf, pbufsize, 0, pad + len))
         return -1;
 
     assert (0 != *pbuf);
@@ -2550,7 +2557,7 @@ rw_fmtstr (const FmtSpec &spec,
 /********************************************************************/
 
 static int
-rw_fmtwstr (const FmtSpec &spec,
+_rw_fmtwstr (const FmtSpec &spec,
             char **pbuf, size_t *pbufsize, const wchar_t *wstr, size_t len)
 {
     return rw_quotestr (spec, pbuf, pbufsize, wstr, len, 1);
@@ -2628,7 +2635,7 @@ rw_bmpfmt (const FmtSpec&, char **pbuf, size_t *pbufsize,
     // verify that buffer wasn't overflowed
     assert (buffersize <= sizeof buffer);
 
-    if (0 == rw_bufcat (pbuf, pbufsize, buffer, buffersize))
+    if (0 == _rw_bufcat (pbuf, pbufsize, buffer, buffersize))
         return -1;
 
     return int (buffersize);
@@ -2727,7 +2734,7 @@ rw_fmtiostate (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int bits)
 /********************************************************************/
 
 static int
-rw_fmtopenmode (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int bits)
+_rw_fmtopenmode (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int bits)
 {
     static const Bitnames names [] = {
 
@@ -2771,7 +2778,7 @@ rw_fmtopenmode (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int bits)
 /********************************************************************/
 
 static int
-rw_fmtevent (const FmtSpec&, char **pbuf, size_t *pbufsize, int event)
+_rw_fmtevent (const FmtSpec&, char **pbuf, size_t *pbufsize, int event)
 {
     const char* str =
           std::ios::copyfmt_event == event ? "copyfmt_event"
@@ -2788,7 +2795,7 @@ rw_fmtevent (const FmtSpec&, char **pbuf, size_t *pbufsize, int event)
 
     const size_t len = strlen (str);
 
-    if (0 == rw_bufcat (pbuf, pbufsize, str, len))
+    if (0 == _rw_bufcat (pbuf, pbufsize, str, len))
         return -1;
 
     return int (len);
@@ -2818,7 +2825,7 @@ rw_fmtlc (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
     if (str) {
         const std::size_t len = strlen (str);
 
-        if (0 == rw_bufcat (pbuf, pbufsize, str, len))
+        if (0 == _rw_bufcat (pbuf, pbufsize, str, len))
             return -1;
 
         return int (len);
@@ -2843,7 +2850,7 @@ rw_fmtlc (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
 /********************************************************************/
 
 static int
-rw_fmtmonpat (const FmtSpec&,
+_rw_fmtmonpat (const FmtSpec&,
               char **pbuf, size_t *pbufsize, const char pat [4])
 {
     char buffer [80];
@@ -2880,7 +2887,7 @@ rw_fmtmonpat (const FmtSpec&,
 
     const size_t len = strlen (buffer);
 
-    if (0 == rw_bufcat (pbuf, pbufsize, buffer, len))
+    if (0 == _rw_bufcat (pbuf, pbufsize, buffer, len))
         return -1;
 
     return int (len);
@@ -2966,6 +2973,9 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
                 len = rw_quotestr (spec, pbuf, pbufsize, array,
                                    _RWSTD_SIZE_MAX, 0);
             }
+
+#ifdef _RWSTD_UINT64_T
+
             else if (8 == spec.width) {
                 spec.param.ptr = PARAM (_RWSTD_UINT64_T*, ptr);
                 const _RWSTD_UINT64_T* const array =
@@ -2973,6 +2983,9 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
                 len = rw_quotestr (spec, pbuf, pbufsize, array,
                                    _RWSTD_SIZE_MAX, 0);
             }
+
+#endif   // _RWSTD_UINT64_T
+
             else {
                 assert (!"%{Ac} not implemented for this character size");
             }
@@ -2983,29 +2996,29 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         }
         else if (spec.mod_l) {   // wchar_t
             spec.param.wi = PARAM (wint_t, i);
-            return rw_fmtwchr (spec, pbuf, pbufsize, spec.param.wi);
+            return _rw_fmtwchr (spec, pbuf, pbufsize, spec.param.wi);
         }
         else {   // char
             spec.param.i = PARAM (int, i);
-            return rw_fmtchr (spec, pbuf, pbufsize, spec.param.i);
+            return _rw_fmtchr (spec, pbuf, pbufsize, spec.param.i);
         }
         break;
 
     case 'e':   // %{e}, %{Ae}
         if (spec.mod_A) {   // array of floating point values
             spec.param.ptr = PARAM (void*, ptr);
-            len = rw_fmtfloating (spec, pbuf, pbufsize, spec.param.ptr);
+            len = _rw_fmtfloating (spec, pbuf, pbufsize, spec.param.ptr);
         }
         else if (spec.mod_I) {   // ios::copyfmt_event
             spec.param.i = PARAM (int, i);
-            len = rw_fmtevent (spec, pbuf, pbufsize, spec.param.i);
+            len = _rw_fmtevent (spec, pbuf, pbufsize, spec.param.i);
         }
         break;
 
     case 'f':   // %{f}, %{Af}, %{If}
         if (spec.mod_A) {   // array of floating point values
             spec.param.ptr = PARAM (void*, ptr);
-            len = rw_fmtfloating (spec, pbuf, pbufsize, spec.param.ptr);
+            len = _rw_fmtfloating (spec, pbuf, pbufsize, spec.param.ptr);
         }
         if (spec.mod_I) {   // ios::fmtflags
             spec.param.i = PARAM (int, i);
@@ -3013,14 +3026,14 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         }
         else {   // function pointer
             spec.param.funptr = PARAM (funptr_t, funptr);
-            len = rw_fmtfunptr (spec, pbuf, pbufsize, spec.param.funptr);
+            len = _rw_fmtfunptr (spec, pbuf, pbufsize, spec.param.funptr);
         }
         break;
 
     case 'g':   // %{g}, %{Ag}
         if (spec.mod_A) {   // array of floating point values
             spec.param.ptr = PARAM (void*, ptr);
-            len = rw_fmtfloating (spec, pbuf, pbufsize, spec.param.ptr);
+            len = _rw_fmtfloating (spec, pbuf, pbufsize, spec.param.ptr);
         }
         else {
             assert (!"%{g} not implemented");
@@ -3031,35 +3044,35 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
     case 'o':   // %{Io}
         if (spec.mod_I) {   // ios::openmode
             spec.param.i = PARAM (int, i);
-            len = rw_fmtopenmode (spec, pbuf, pbufsize, spec.param.i);
+            len = _rw_fmtopenmode (spec, pbuf, pbufsize, spec.param.i);
             break;
         }
     case 'x':   // %{x}
     case 'X':   // %{X}
     case 'u':   // %{u}
-        len = rw_fmtinteger (pspec, paramno, pbuf, pbufsize, pva);
+        len = _rw_fmtinteger (pspec, paramno, pbuf, pbufsize, pva);
         break;
 
     case 'K':   // %{K} -- signal
         spec.param.i = PARAM (int, i);
-        len = rw_fmtsignal (spec, pbuf, pbufsize, spec.param.i);
+        len = _rw_fmtsignal (spec, pbuf, pbufsize, spec.param.i);
         break;
 
     case 'm':   // %{m} -- errno
         if (-1 == spec.width)
-            len = rw_fmterrno (spec, pbuf, pbufsize, errno);
+            len = _rw_fmterrno (spec, pbuf, pbufsize, errno);
         else
-            len = rw_fmterrno (spec, pbuf, pbufsize, spec.width);
+            len = _rw_fmterrno (spec, pbuf, pbufsize, spec.width);
         break;
 
     case 'M':   // %{M}, %{LM}
         if (spec.mod_L) {   // money_base::pattern
             spec.param.ptr = PARAM (char*, ptr);
-            len = rw_fmtmonpat (spec, pbuf, pbufsize, (char*)spec.param.ptr);
+            len = _rw_fmtmonpat (spec, pbuf, pbufsize, (char*)spec.param.ptr);
         }
         else {   // member pointer
             spec.param.memptr = PARAM (memptr_t, memptr);
-            len = rw_fmtmemptr (spec, pbuf, pbufsize, spec.param.memptr);
+            len = _rw_fmtmemptr (spec, pbuf, pbufsize, spec.param.memptr);
         }
         break;
 
@@ -3152,7 +3165,7 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
             const wchar_t* const wstr = pstr->data ();
             const std::wstring::size_type size = pstr->size ();
 
-            len = rw_fmtwstr (spec, pbuf, pbufsize, wstr, size);
+            len = _rw_fmtwstr (spec, pbuf, pbufsize, wstr, size);
         }
         else {   // std::string
             spec.param.ptr = PARAM (std::string*, ptr);
@@ -3161,7 +3174,7 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
             const char* const str = pstr->data ();
             const std::string::size_type size = pstr->size ();
 
-            len = rw_fmtstr (spec, pbuf, pbufsize, str, size);
+            len = _rw_fmtstr (spec, pbuf, pbufsize, str, size);
         }
         break;
 
@@ -3175,7 +3188,7 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
 
             len = int (strlen (val));
 
-            if (0 == rw_bufcat (pbuf, pbufsize, val, size_t (len)))
+            if (0 == _rw_bufcat (pbuf, pbufsize, val, size_t (len)))
                 return -1;
 
             free (spec.strarg);
@@ -3301,9 +3314,10 @@ rw_stdout = _RWSTD_REINTERPRET_CAST (rw_file*, stdout);
 /* _TEST_EXPORT */ rw_file* const
 rw_stderr = _RWSTD_REINTERPRET_CAST (rw_file*, stderr);
 
+/********************************************************************/
 
-_TEST_EXPORT int
-rw_fprintf (rw_file *file, const char *fmt, ...)
+static int
+_rw_vfprintf (rw_file *file, const char *fmt, va_list va)
 {
     assert (0 != file);
 
@@ -3312,16 +3326,23 @@ rw_fprintf (rw_file *file, const char *fmt, ...)
     char* buf = buffer;
     size_t bufsize = sizeof buffer;
 
-    va_list va;
-    va_start (va, fmt);
-
     const int nchars = rw_vasnprintf (&buf, &bufsize, fmt, va);
-
-    va_end (va);
 
     const int nwrote = 0 < nchars ?
           fwrite (buf, 1, nchars, _RWSTD_REINTERPRET_CAST (FILE*, file))
         : nchars;
+
+#ifdef _MSC_VER
+
+    // IsDebuggerPresent() depends on the macros _WIN32_WINNT and WINVER
+    // being appropriately #defined prior to the #inclusion of <windows.h>
+    if (IsDebuggerPresent ()) {
+
+        // write string to the attached debugger (if any)
+        OutputDebugString (buf);
+    }
+
+#endif   // _MSC_VER
 
     if (buf != buffer)
         free (buf);
@@ -3332,24 +3353,29 @@ rw_fprintf (rw_file *file, const char *fmt, ...)
 /********************************************************************/
 
 _TEST_EXPORT int
-rw_printf (const char *fmt, ...)
+rw_fprintf (rw_file *file, const char *fmt, ...)
 {
-    char buffer [256];
-
-    char* buf = buffer;
-    size_t bufsize = sizeof buffer;
-
     va_list va;
     va_start (va, fmt);
 
-    const int nchars = rw_vasnprintf (&buf, &bufsize, fmt, va);
+    const int nchars = _rw_vfprintf (file, fmt, va);
 
     va_end (va);
 
-    const int nwrote = 0 < nchars ? fwrite (buf, 1, nchars, stdout) : nchars;
+    return nchars;
+}
 
-    if (buf != buffer)
-        free (buf);
+/********************************************************************/
 
-    return nwrote;
+_TEST_EXPORT int
+rw_printf (const char *fmt, ...)
+{
+    va_list va;
+    va_start (va, fmt);
+
+    const int nchars = _rw_vfprintf (rw_stdout, fmt, va);
+
+    va_end (va);
+
+    return nchars;
 }
