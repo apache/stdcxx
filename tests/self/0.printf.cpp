@@ -1,8 +1,8 @@
 /************************************************************************
  *
- * printf.cpp - test exercising the rw_printf family of functions
+ * 0.printf.cpp - test exercising the rw_printf family of functions
  *
- * $Id: //stdlib/dev/tests/stdlib/test/snprintfa.cpp#15 $
+ * $Id$
  *
  ************************************************************************
  *
@@ -44,9 +44,7 @@
 int exit_status /* = 0 */;
 
 static void
-do_test (int line,
-         const char *fmt, long a1, long a2, long a3,
-         const char *expect, char *result)
+do_test (int line, const char *fmt, const char *expect, char *result)
 {
     const char* quotes = "\"\"";
 
@@ -61,18 +59,17 @@ do_test (int line,
 
         if (cmp) {
             exit_status = 2;
-            fprintf (stderr, "line %d: rw_sprintf(%x%s%c, %ld, %ld, %ld) "
-                     "== \"%s\", got \"%s\"\n",
-                     line, quotes [0], fmt, quotes [1],
-                     a1, a2, a3, expect, result);
+            fprintf (stderr,
+                     "Assertion failed on line %d: "
+                     "rw_sprintf(%c%s%c, ...) == \"%s\", got \"%s\"\n",
+                     line, quotes [0], fmt, quotes [1], expect, result);
         }
     }
     else if (result) {
         exit_status = 2;
-        fprintf (stderr, "line %d: rw_sprintf(%x%s%c, %ld, %ld, %ld) "
-                 "== (null), got \"%s\"\n",
-                 line, quotes [0], fmt, quotes [1],
-                 a1, a2, a3, result);
+        fprintf (stderr, "Assertion failed on line %d: "
+                 "rw_sprintf(%c%s%c, ...) == (null), got \"%s\"\n",
+                 line, quotes [0], fmt, quotes [1], result);
     }
     else /* if (!result && !expect) */ {
     }
@@ -83,8 +80,7 @@ do_test (int line,
 
 #undef TEST
 #define TEST(fmt, a1, a2, a3, expect)                               \
-    do_test (__LINE__, fmt, (long)a1, (long)a2, (long)a3, expect,   \
-             rw_sprintfa (fmt, a1, a2, a3))
+    do_test (__LINE__, fmt, expect, rw_sprintfa (fmt, a1, a2, a3))
 
 #undef TEST_SPEC
 #define TEST_SPEC(pfx, a1, a2, a3, expect)                              \
@@ -101,7 +97,8 @@ do_test (int line,
         if (result) {                                                   \
            exit_status = 2;                                             \
            fprintf (stderr,                                             \
-                    "line %d: rw_sprintf(\"%s\", %ld, %ld, %ld) "       \
+                    "Assertion failed on line %d: "                     \
+                    "rw_sprintf(\"%s\", %ld, %ld, %ld) "                \
                     "== \"%s\", got \"%s\"\n",                          \
                     __LINE__, fmt,                                      \
                     (long)a1, (long)a2, (long)a3, buf, s0);             \
@@ -319,7 +316,7 @@ void test_string ()
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "\"%ls\": wide character string");
 
-    fprintf (stderr, "%s\n", "\"%ls\" not being exercised");
+    fprintf (stderr, "Warning: %s\n", "\"%ls\" not exercised");
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{#s}\": quoted character string");
@@ -363,12 +360,12 @@ void test_basic_string ()
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{S}\": std::string");
 
-    fprintf (stderr, "%s\n", "\"%{S}\" not being exercised");
+    fprintf (stderr, "Warning: %s\n", "\"%{S}\" not exercised");
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{lS}\": std::wstring");
 
-    fprintf (stderr, "%s\n", "%{lS}\" not being exercised");
+    fprintf (stderr, "Warning: %s\n", "%{lS}\" not exercised");
 }
 
 /***********************************************************************/
@@ -824,27 +821,27 @@ void test_floating ()
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "\"%E\": scientific floating point notation");
 
-    fprintf (stderr, "%s\n", "\"%E\" not being exercised");
+    fprintf (stderr, "Warning: %s\n", "\"%E\" not exercised");
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "\"%f\": fixed floating point notation");
 
-    fprintf (stderr, "%s\n", "\"%f\" not being exercised");
+    fprintf (stderr, "Warning: %s\n", "\"%f\" not exercised");
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "\"%F\": fixed floating point notation");
 
-    fprintf (stderr, "%s\n", "\"%F\" not being exercised");
+    fprintf (stderr, "Warning: %s\n", "\"%F\" not exercised");
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "\"%g\": value-dependent floating point notation");
 
-    fprintf (stderr, "%s\n", "\"%g\" not being exercised");
+    fprintf (stderr, "Warning: %s\n", "\"%g\" not exercised");
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "\"%G\": value-dependent floating point notation");
 
-    fprintf (stderr, "%s\n", "\"%G\" not being exercised");
+    fprintf (stderr, "Warning: %s\n", "\"%G\" not exercised");
 }
 
 /***********************************************************************/
@@ -948,7 +945,130 @@ void test_memptr ()
 {
     printf ("%s\n", "extension: \"%{M}\": member pointer");
 
-    fprintf (stderr, "%s\n", "\"%{M} not being exercised");
+    struct MyClass { };
+    typedef void (MyClass::*memptr_t)();
+
+    union {
+        memptr_t mptr;
+        long lval [sizeof (memptr_t) / sizeof (long) + 1];
+    } uval;
+
+    if (sizeof (memptr_t) <= sizeof (long)) {
+
+#if 4 == _RWSTD_LONG_SIZE
+
+        uval.lval [0] = 0UL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000");
+
+        uval.lval [0] = 1UL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "00000001");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000001");
+
+        uval.lval [0] = 0xffffffffUL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "ffffffff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0xffffffff");
+
+#elif 8 == _RWSTD_LONG_SIZE
+
+        uval.lval [0] = 0UL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000000");
+
+        uval.lval [0] = 1UL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000001");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000001");
+
+        uval.lval [0] = 0xffffffffUL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000ffffffff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000ffffffff");
+
+#else
+
+    fprintf (stderr, "Warning: %s\n", "\"%{M}\" not exercised");
+
+#endif
+
+    }
+    else if (sizeof (memptr_t) == 2 * sizeof (long)) {
+
+        static const union {
+            unsigned int  ival;
+            unsigned char bytes [sizeof (int)];
+        } u = { 1U };
+
+        static size_t big_endian = size_t (0 == u.bytes [0]);
+
+        const size_t lo_inx = size_t (1 - big_endian);
+        const size_t hi_inx = size_t (big_endian);
+
+#if 4 == _RWSTD_LONG_SIZE
+
+        uval.lval [hi_inx] = 0UL;
+
+        uval.lval [lo_inx] = 0UL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000:00000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000:00000000");
+
+        uval.lval [lo_inx] = 1UL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000:00000001");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000:00000001");
+
+        uval.lval [lo_inx] = 0xffffffffUL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000:ffffffff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000:ffffffff");
+
+        uval.lval [hi_inx] = 0xdeadbeefUL;
+        
+        uval.lval [lo_inx] = 0UL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef:00000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef:00000000");
+
+        uval.lval [lo_inx] = 0x1aUL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef:0000001a");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef:0000001a");
+
+        uval.lval [lo_inx] = 0x0fff1fffUL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef:0fff1fff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef:0fff1fff");
+
+#elif 8 == _RWSTD_LONG_SIZE
+
+        uval.lval [hi_inx] = 0UL;
+
+        uval.lval [lo_inx] = 0UL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000000:0000000000000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000000:0000000000000000");
+
+        uval.lval [lo_inx] = 1UL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000000:0000000000000001");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000000:0000000000000001");
+
+        uval.lval [lo_inx] = 0xffffffffUL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000000:00000000ffffffff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000000:00000000ffffffff");
+
+        uval.lval [hi_inx] = 0x0123456789abcdefUL;
+        
+        uval.lval [lo_inx] = 0UL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef:0000000000000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef:0000000000000000");
+
+        uval.lval [lo_inx] = 0x1aUL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef:000000000000001a");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef:000000000000001a");
+
+        uval.lval [lo_inx] = 0x0fff1fffUL;
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef:000000000fff1fff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef:000000000fff1fff");
+
+#else
+
+    fprintf (stderr, "Warning: %s\n", "\"%{M}\" not exercised");
+
+#endif
+
+    }
 }
 
 /***********************************************************************/
@@ -1026,6 +1146,8 @@ void test_width_specific_int ()
 
     printf ("%s\n", "extension: \"%{I64d}\": 64-bit decimal integers");
 
+#ifndef _RWSTD_NO_LONG_LONG
+
     TEST ("%{I64d}",           0LL, 0, 0, "0");
     TEST ("%{I64d}",           1LL, 0, 0, "1");
     TEST ("%{I64d}",           2LL, 0, 0, "2");
@@ -1034,6 +1156,13 @@ void test_width_specific_int ()
     TEST ("%{I64d}",       32768LL, 0, 0, "32768");
     TEST ("%{I64d}",  2147483647LL, 0, 0, "2147483647");
     TEST ("%{I64d}",  2147483648LL, 0, 0, "2147483648");
+
+#else   // if defined (_RWSTD_NO_LONG_LONG)
+
+    fprintf (stderr, "Warning: %s\n", "\"%{I64d}\" not exercised "
+             "(no long long support)");
+
+#endif   // _RWSTD_NO_LONG_LONG
 }
 
 /***********************************************************************/
@@ -1042,7 +1171,7 @@ void test_envvar ()
 {
     printf ("%s\n", "extension: \"%{$string}\": environment variable");
 
-    fprintf (stderr, "%s\n", "\"%{$string} not being exercised");
+    fprintf (stderr, "Warning: %s\n", "\"%{$string} not exercised");
 }
 
 /***********************************************************************/
@@ -1071,24 +1200,45 @@ void test_errno ()
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{#m}\": errno");
 
-    errno = 0;
+    int ntests = 0;
 
 #ifdef EDOM
+
+    ++ntests;
+
     errno = EDOM;
-    TEST ("%{#m}", EDOM, 0, 0, "EDOM");
+    TEST ("%{#m}", 0, 0, 0, "EDOM");
+
+    errno = 0;
+    TEST ("%{#*m}", EDOM, 0, 0, "EDOM");
+
 #endif   // EDOM
 
 #ifdef ERANGE
+
+    ++ntests;
+
     errno = ERANGE;
-    TEST ("%{#m}", ERANGE, 0, 0, "ERANGE");
+    TEST ("%{#m}", 0, 0, 0, "ERANGE");
+
+    errno = 0;
+    TEST ("%{#*m}", ERANGE, 0, 0, "ERANGE");
+
 #endif   // ERANGE
 
 #ifdef EILSEQ
+
+    ++ntests;
+
     errno = EILSEQ;
-    TEST ("%{#m}", EILSEQ, 0, 0, "EILSEQ");
+    TEST ("%{#m}", 0, 0, 0, "EILSEQ");
+
+    errno = 0;
+    TEST ("%{#*m}", EILSEQ, 0, 0, "EILSEQ");
+
 #endif   // EILSEQ
 
-    if (errno == 0)
+    if (0 == ntests)
         fprintf (stderr, "%s\n", "%{#m}: could not test");
 
     errno = 0;
@@ -1101,7 +1251,7 @@ void test_tm ()
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{tm}\": struct tm");
 
-    fprintf (stderr, "%s\n", "%{tm} not being exercised");
+    fprintf (stderr, "Warning: %s\n", "%{tm} not exercised");
 }
 
 /***********************************************************************/
