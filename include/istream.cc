@@ -664,16 +664,25 @@ get (char_type *__s, streamsize __n, char_type __delim)
 template<class _CharT, class _Traits>
 basic_istream<_CharT, _Traits>&
 basic_istream<_CharT, _Traits>::
-getline (char_type *__s, streamsize __n, char_type __delim)
+getline (char_type *__line, streamsize __size, char_type __delim)
 {
-    _RWSTD_ASSERT (__n >= 0);
-    _RWSTD_ASSERT (!__n || __s);
+    _RWSTD_ASSERT (__size >= 0);
+    _RWSTD_ASSERT (!__size || __line);
     _RWSTD_ASSERT (0 != this->rdbuf ());
 
-    if (0 < __n) {
+    char_type __dummy;
+
+    if (0 < __size) {
         // lwg issue 243: store the NUL character before
         // constructing the sentry object in case it throws
-        traits_type::assign (__s [0], char_type ());
+        traits_type::assign (__line [0], char_type ());
+    }
+    else {
+        // use a dummy buffer to avoid having to check size
+        // again below, and prevent undefined behavior when
+        // size is negative
+        __line = &__dummy;
+        __size = 0;
     }
 
     const sentry __ipfx (*this, true /* noskipws */);
@@ -695,8 +704,8 @@ getline (char_type *__s, streamsize __n, char_type __delim)
                 // compute the lesser of the number of characters in the
                 // stream buffer and the size of the destination buffer
                 streamsize __navail = __egptr - __gptr;
-                if (__n < __navail)
-                    __navail = __n;
+                if (__size < __navail)
+                    __navail = __size;
 
                 if (__navail) {
 
@@ -706,16 +715,16 @@ getline (char_type *__s, streamsize __n, char_type __delim)
 
                     if (__pdel) {
                         __navail = __pdel - __gptr + 1;
-                        __n     -= __navail - 1;
+                        __size  -= __navail - 1;
                     }
-                    else if (__n == __navail)
-                        __n -= --__navail;
+                    else if (__size == __navail)
+                        __size -= --__navail;
                     else
-                        __n -= __navail;
+                        __size -= __navail;
 
                     // copy including delimiter, if any
                     // (delimiter will be overwritten below)
-                    traits_type::copy (__s + _C_gcount, __gptr, __navail);
+                    traits_type::copy (__line + _C_gcount, __gptr, __navail);
 
                     _C_gcount += __navail;
 
@@ -723,13 +732,14 @@ getline (char_type *__s, streamsize __n, char_type __delim)
                     __rdbuf->gbump (__navail);
 
                     if (__pdel) {
-                        __n = _C_gcount - 1;
+                        traits_type::assign (__line [_C_gcount - 1],
+                                             char_type ());
                         break;
                     }
 
-                    if (2 > __n && __egptr - __gptr != __navail) {
+                    if (2 > __size && __egptr - __gptr != __navail) {
+                        traits_type::assign (__line [_C_gcount], char_type ());
                         __err = ios_base::failbit;
-                        __n   = _C_gcount;
                         break;
                     }
                 }
@@ -740,26 +750,27 @@ getline (char_type *__s, streamsize __n, char_type __delim)
                     const int_type __c = __rdbuf->sgetc ();
 
                     if (traits_type::eq_int_type (__c, traits_type::eof ())) {
+                        traits_type::assign (__line [_C_gcount], char_type ());
                         __err = ios_base::eofbit;
-                        __n   = _C_gcount;
                         break;
                     }
 
                     const char_type __ch = traits_type::to_char_type (__c);
                     if (traits_type::eq (__ch, __delim)) {
+                        traits_type::assign (__line [_C_gcount], char_type ());
                         __rdbuf->sbumpc ();
-                        __n = _C_gcount++;
+                        _C_gcount++;
                         break;
                     }
 
-                    if (2 > __n) {
+                    if (2 > __size) {
+                        traits_type::assign (__line [_C_gcount], char_type ());
                         __err = ios_base::failbit;
-                        __n   = _C_gcount;
                         break;
                     }
 
-                    traits_type::assign (__s [_C_gcount], __ch);
-                    --__n;
+                    traits_type::assign (__line [_C_gcount], __ch);
+                    --__size;
 
                     __rdbuf->sbumpc ();
 
@@ -776,9 +787,7 @@ getline (char_type *__s, streamsize __n, char_type __delim)
         }
     }
 
-    if (0 < _C_gcount)
-        traits_type::assign (__s [_C_gcount + 1], char_type ());
-    else
+    if (0 == _C_gcount)
         __err |= ios_base::failbit;
 
     if (__err)
