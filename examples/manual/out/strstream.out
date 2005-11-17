@@ -1,11 +1,15 @@
+Full text, 104 characters:
+  Dieses ist die Geschichte eines Mannes.
+  C'est l'histoire d'un homme.
+  This is the story of a man.
 
-Deutsch:
-Dieses ist die Geschichte eines Mannes.
-Francais:
-C'est l'histoire d'un homme.
-English:
-This is the story of a man.
+Line 1, 42 characters:
+  Dieses ist die Geschichte eines Mannes.
+Line 2, 31 characters:
+  C'est l'histoire d'un homme.
+Line 3, 30 characters:
+  This is the story of a man.
+Line 4, 1 character (no newline):
+  '\0'
 
-Dieses ist die Geschichte eines Mannes.
-C'est l'histoire d'un homme.
-This is the story of a man.
+Extracted 104 characters.

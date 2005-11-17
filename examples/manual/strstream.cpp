@@ -2,7 +2,7 @@
  *
  * strstream.cpp - strstream example.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/strstream.cpp#12 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -30,34 +30,43 @@ int main ()
     // create a bi-directional strstream object 
     std::strstream inout;
 
-    // write out three lines to the stream
-    inout << "Dieses ist die Geschichte eines Mannes.\n"
-          << "C'est l'histoire d'un homme.\n"
-          << "This is the story of a man."
+    // write three complete lines of text to the stream
+    inout << "  Dieses ist die Geschichte eines Mannes.\n"
+          << "  C'est l'histoire d'un homme.\n"
+          << "  This is the story of a man.\n"
           << std::ends;
 
     char line [80];
 
-    // extract the first line
-    inout.getline (line, sizeof line);
+    // output the entire contents of the stream object to stdout
+    std::cout << "Full text, " << inout.pcount ()
+              << " characters:\n" << inout.str ();
 
-    // output the first line to stdout
-    std::cout << "\nDeutsch:\n" << line;
+    // keep track of the number of characters extracted by getline
+    int gcount = 0;
 
-    // extract the second line
-    inout.getline (line, sizeof line);
+    // extract lines from the stream, one at a time
+    for (int i = 1; inout.getline (line, sizeof line); ++i) {
 
-    // output the second line to stdout
-    std::cout << "\nFrancais:\n" << line;
+        // increment the number of extracted characters
+        gcount += inout.gcount ();
 
-    // extract the third line
-    inout.getline (line, sizeof line);
+        // write out the line number and its length
+        std::cout << "\nLine " << i << ", " << inout.gcount ();
 
-    // output the third line to stdout
-    std::cout << "\nEnglish:\n" << line;
+        if ('\0' == *line) {
+            // incomplete line (missing newline character)
+            std::cout << " character (no newline):\n"
+                      << "  '\\0'\n";
+        }
+        else {
+            // output the line to stdout
+            std::cout << " characters:\n" << line;
+        }
+    }
+
+    // write out the total number of extracted characters
+    std::cout << "\nExtracted " << gcount << " characters.\n";
  
-    // output the contents of the stream object to stdout
-    std::cout << "\n\n" << inout.str () << '\n';
-
     return 0;
 }
