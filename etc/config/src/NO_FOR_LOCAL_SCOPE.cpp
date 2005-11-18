@@ -9,8 +9,10 @@ int foo (int n)
     for (int i = 0; i != n; ++i)
         result += i;
 
-    for (int i = 0; i != n; ++i)
-        result += i * i;
+    // check to see if i is still in scope here
+    // if so, the test will compile succesfully
+    // indicating a failure
+    result *= i;
 
     return result;
 }
