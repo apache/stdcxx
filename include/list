@@ -3,7 +3,7 @@
  *
  * list - list declarations for the Standard Library
  *
- * $Id: //stdlib/dev/include/list#43 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -303,14 +303,14 @@ protected:
             _RETHROW;                                            \
         } typedef void __dummy_t
 
-    _C_link_type _C_get_node (bool __is_empty = false) {
+    _C_link_type _C_get_node (bool __empty_list = false) {
         if (_C_free_list) {
             _C_link_type __tmp = _C_free_list;
             _C_free_list = _C_free_list->_C_next;
             return __tmp;
         }
         if (_C_next_avail == _C_last)
-            _C_add_buffer (__is_empty);
+            _C_add_buffer (__empty_list);
         return _C_next_avail++;
     }
 
@@ -339,8 +339,8 @@ protected:
 #endif // _RWSTD_NO_LIST_NODE_BUFFER
 
     // here and only here is _C_node initialized
-    void _C_init(bool __is_list_empty = false) {
-        _C_node = _C_get_node (__is_list_empty);
+    void _C_init (bool __empty_list = false) {
+        _C_node = _C_get_node (__empty_list);
 
         (*_C_node)._C_next = _C_node;
         (*_C_node)._C_prev = _C_node; 
