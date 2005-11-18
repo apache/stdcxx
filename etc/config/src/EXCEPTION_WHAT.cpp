@@ -4,86 +4,13 @@
 #  include "config.h"
 #endif
 
-
-#ifndef _RWSTD_NO_HONOR_STD
-#  ifdef _RWSTD_NO_STD_TERMINATE
-
-namespace std {
-
-void terminate ()
-{
-    static int *ip;
-
-    *ip++ = 0;      // force a SIGSEGV
-    terminate ();   // recurse infinitely
-}
-
-}
-
-#  endif   // _RWSTD_NO_STD_TERMINATE
-#endif   // _RWSTD_NO_HONOR_STD
-
-
-#ifndef _RWSTD_NO_STD_EXCEPTION
-#  define NAMESPACE(name)   namespace name
-#else
-#  ifndef _RWSTD_NO_GLOBAL_EXCEPTION
-#    define NAMESPACE(ignore)   extern "C++"
-#    define std                 /* empty */
-#  else
-#    ifndef _RWSTD_NO_RUNTIME_IN_STD
-#      define NAMESPACE(name)   namespace name
-#    else
-#      define NAMESPACE(ignore)   extern "C++"
-#      define std                 /* empty */
-#    endif   // _RWSTD_NO_RUNTIME_IN_STD
-#  endif   // _RWSTD_NO_GLOBAL_EXCEPTION
-#endif   // _RWSTD_NO_STD_EXCEPTION
-
-
-NAMESPACE (std) {
-
-class exception
-{
-public:
-
-#ifndef _RWSTD_NO_EXCEPTION_DEFAULT_CTOR
-
-    exception ();
-
-#else
-
-    exception () { }
-
-#endif   // _RWSTD_NO_EXCEPTION_DEFAULT_CTOR
-
-#ifndef _RWSTD_NO_EXCEPTION_DTOR
-
-    virtual ~exception ();
-
-#else
-
-    virtual ~exception () { }
-
-#endif   // _RWSTD_NO_EXCEPTION_DEFAULT_CTOR
-
-    virtual const char* what () const;
-};
-
-}   // namespace std
-
+#define TEST_WHAT
+#define bad_alloc exception
+#define main      test_exception_what
+#include "BAD_ALLOC_ASSIGNMENT.cpp"
+#undef main
 
 int main (int argc, char *argv[])
 {
-    // avoid executing the body of main unless explicitly requested
-    // by specifying at least one command line argument (this foils
-    // aggressive optimizers from eliminating the code)
-    (void)&argv;
-    if (argc < 2)
-        return 0;
-
-    std::exception e;
-
-    // link only test
-    return !e.what ();
+    return test_exception_what (argc, argv);
 }

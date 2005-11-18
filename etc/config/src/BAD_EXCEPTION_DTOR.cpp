@@ -4,13 +4,10 @@
 #  include "config.h"
 #endif
 
-#ifdef _RWSTD_NO_BAD_EXCEPTION_DEFAULT_CTOR
-#  define NO_DEFAULT_CTOR
-#endif   // _RWSTD_NO_BAD_EXCEPTION_DEFAULT_CTOR
-
+#define TEST_DTOR
 #define bad_alloc bad_exception
 #define main      test_bad_exception_dtor
-#include "BAD_ALLOC_DTOR.cpp"
+#include "BAD_ALLOC_ASSIGNMENT.cpp"
 #undef main
 
 int main (int argc, char *argv[])
