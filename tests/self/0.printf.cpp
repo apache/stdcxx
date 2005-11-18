@@ -25,6 +25,7 @@
 #include <float.h>
 #include <limits.h>
 #include <locale.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1246,6 +1247,22 @@ void test_errno ()
 
 /***********************************************************************/
 
+void test_signal ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%K\": signal name");
+
+    TEST ("%{K}", SIGABRT, 0, 0, "SIGABRT");
+    TEST ("%{K}", SIGFPE,  0, 0, "SIGFPE");
+    TEST ("%{K}", SIGILL,  0, 0, "SIGILL");
+    TEST ("%{K}", SIGINT,  0, 0, "SIGINT");
+    TEST ("%{K}", SIGSEGV, 0, 0, "SIGSEGV");
+    TEST ("%{K}", SIGTERM, 0, 0, "SIGTERM");
+    TEST ("%{K}", 12345,   0, 0, "SIG#12345");
+}
+
+/***********************************************************************/
+
 void test_tm ()
 {
     //////////////////////////////////////////////////////////////////
@@ -1412,6 +1429,8 @@ int main ()
     test_funptr ();
     test_memptr ();
     test_errno ();
+    test_signal ();
+
     test_basic_string ();
 
     test_tm ();
