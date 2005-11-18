@@ -25,79 +25,95 @@
 #include <any.h>
 
 #include <printf.h>   // for rw_sprintfa()
-#include <stdlib.h>      // for free()
+#include <stdlib.h>   // for free()
+#include <string.h>   // for memset()
 
 
 #ifndef _RWSTD_NO_BOOL
 
 rw_any_t::rw_any_t (bool value)
-    : val_ (), str_ (0), tid_ (t_bool)
+    : str_ (0), tid_ (t_bool)
 {
+    // using memset instead of default-initialization in the ctor
+    // initializer list here and in all other ctors to work around
+    // a SunPro -xarch=v9 bug (PR #28328) that causes the following:
+    // Warning (Anachronism): Assigning int to __BIT_BLAST_16_16.
+    // Error: Cannot cast from int to __BIT_BLAST_16_16
+    
+    memset (&val_, 0, sizeof val_);
     val_.bool_ = value;
 }
 
 #endif   // _RWSTD_NO_BOOL
 
-
 rw_any_t::rw_any_t (char value)
-    : val_ (), str_ (0), tid_ (t_char)
+    : str_ (0), tid_ (t_char)
 {
+    memset (&val_, 0, sizeof val_);
     val_.char_ = value;
 }
 
 
 rw_any_t::rw_any_t (signed char value)
-    : val_ (), str_ (0), tid_ (t_schar)
+    : str_ (0), tid_ (t_schar)
 {
+    memset (&val_, 0, sizeof val_);
     val_.schar_ = value;
 }
 
 
 rw_any_t::rw_any_t (unsigned char value)
-    : val_ (), str_ (0), tid_ (t_uchar)
+    : str_ (0), tid_ (t_uchar)
 {
+    memset (&val_, 0, sizeof val_);
     val_.uchar_ = value;
 }
 
 
 rw_any_t::rw_any_t (signed short value)
-    : val_ (), str_ (0), tid_ (t_sshrt)
+    : str_ (0), tid_ (t_sshrt)
 {
+    memset (&val_, 0, sizeof val_);
     val_.sshrt_ = value;
 }
 
 
 rw_any_t::rw_any_t (unsigned short value)
-    : val_ (), str_ (0), tid_ (t_ushrt)
+    : str_ (0), tid_ (t_ushrt)
 {
+    memset (&val_, 0, sizeof val_);
     val_.ushrt_ = value;
 }
 
 
 rw_any_t::rw_any_t (signed int value)
-    : val_ (), str_ (0), tid_ (t_sint)
+    : str_ (0), tid_ (t_sint)
 {
+    memset (&val_, 0, sizeof val_);
     val_.sint_ = value;
 }
 
 
 rw_any_t::rw_any_t (unsigned int value)
-    : val_ (), str_ (0), tid_ (t_uint)
+    : str_ (0), tid_ (t_uint)
 {
+    memset (&val_, 0, sizeof val_);
     val_.uint_ = value;
 }
 
 
 rw_any_t::rw_any_t (signed long value)
-    : val_ (), str_ (0), tid_ (t_slong)
+    : str_ (0), tid_ (t_slong)
 {
+    memset (&val_, 0, sizeof val_);
     val_.slong_ = value;
 }
 
 
 rw_any_t::rw_any_t (unsigned long value)
-    : val_ (), str_ (0), tid_ (t_ulong)
+    : str_ (0), tid_ (t_ulong)
 {
+    memset (&val_, 0, sizeof val_);
     val_.ulong_ = value;
 }
 
@@ -105,15 +121,17 @@ rw_any_t::rw_any_t (unsigned long value)
 #ifdef _RWSTD_LONG_LONG
 
 rw_any_t::rw_any_t (signed _RWSTD_LONG_LONG value)
-    : val_ (), str_ (0), tid_ (t_sllong)
+    : str_ (0), tid_ (t_sllong)
 {
+    memset (&val_, 0, sizeof val_);
     val_.sllong_ = value;
 }
 
 
 rw_any_t::rw_any_t (unsigned _RWSTD_LONG_LONG value)
-    : val_ (), str_ (0), tid_ (t_ullong)
+    : str_ (0), tid_ (t_ullong)
 {
+    memset (&val_, 0, sizeof val_);
     val_.ullong_ = value;
 }
 
@@ -121,36 +139,45 @@ rw_any_t::rw_any_t (unsigned _RWSTD_LONG_LONG value)
 
 
 rw_any_t::rw_any_t (float value)
-    : val_ (), str_ (0), tid_ (t_flt)
+    : str_ (0), tid_ (t_flt)
 {
+    memset (&val_, 0, sizeof val_);
     val_.flt_ = value;
 }
 
 
 rw_any_t::rw_any_t (double value)
-    : val_ (), str_ (0), tid_ (t_dbl)
+    : str_ (0), tid_ (t_dbl)
 {
+    memset (&val_, 0, sizeof val_);
     val_.dbl_ = value;
 }
 
 
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
 rw_any_t::rw_any_t (long double value)
-    : val_ (), str_ (0), tid_ (t_ldbl)
+    : str_ (0), tid_ (t_ldbl)
 {
+    memset (&val_, 0, sizeof val_);
     val_.ldbl_ = value;
 }
 
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
 
 rw_any_t::rw_any_t (const void* value)
-    : val_ (), str_ (0), tid_ (t_pvoid)
+    : str_ (0), tid_ (t_pvoid)
 {
+    memset (&val_, 0, sizeof val_);
     val_.pvoid_ = value;
 }
 
 
 rw_any_t::rw_any_t (const char* value)
-    : val_ (), str_ (0), tid_ (t_str)
+    : str_ (0), tid_ (t_str)
 {
+    memset (&val_, 0, sizeof val_);
     val_.pvoid_ = value;
 }
 
@@ -158,8 +185,9 @@ rw_any_t::rw_any_t (const char* value)
 #ifndef _RWSTD_NO_NATIVE_WCHAR_T
 
 rw_any_t::rw_any_t (wchar_t value)
-    : val_ (), str_ (0), tid_ (t_wchar)
+    : str_ (0), tid_ (t_wchar)
 {
+    memset (&val_, 0, sizeof val_);
     val_.wchar_ = value;
 }
 
@@ -169,8 +197,9 @@ rw_any_t::rw_any_t (wchar_t value)
 #ifndef _RWSTD_NO_WCHAR_T
 
 rw_any_t::rw_any_t (const wchar_t* value)
-    : val_ (), str_ (0), tid_ (t_wstr)
+    : str_ (0), tid_ (t_wstr)
 {
+    memset (&val_, 0, sizeof val_);
     val_.pvoid_ = value;
 }
 
@@ -201,7 +230,8 @@ rw_any_t::~rw_any_t ()
     // free string allocated by tostr() (via a call to sprintfa())
     free (str_);
 
-    val_ = uval_t ();
+    memset (&val_, 0, sizeof val_);
+
     str_ = 0;
     tid_ = type_id_t ();
 }
@@ -213,14 +243,16 @@ rw_any_t::type_name () const
     static const char* const names[] = {
         "<no type>",
         "bool", "signed char", "unsigned char", "char",
-        "signed short", "unsigned short", "signed int", "unsigned int",
-        "signed long", "unsigned long",
-        "signed long long", "unsigned long long",
+        "short", "unsigned short", "int", "unsigned int",
+        "long", "unsigned long",
+        "long long", "unsigned long long",
         "float", "double", "long double",
         "wchar_t", "void*",
         "const char*", "const wchar_t*"
     };
 
+    // the liftime of the returned string must extend
+    // to the end of the program
     return names [tid_];
 }
 
@@ -233,6 +265,9 @@ rw_any_t::tostr (const char *fmt /* = 0 */)
     str_ = 0;
 
     switch (tid_) {
+    case t_none:
+        return 0;
+
     case t_bool:
         return val_.bool_ ? "true" : "false";
 
