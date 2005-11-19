@@ -45,13 +45,16 @@
 int exit_status /* = 0 */;
 
 static void
-do_test (int line, const char *fmt, const char *expect, char *result)
+do_test (int         line,     // line number of the test case
+         const char *fmt,      // format string
+         const char *expect,   // expected output or 0 on error
+         const char *result)   // actual result (0 on error)
 {
-    const char* quotes = "\"\"";
+    const char* q_fmt = "\"\"";
 
     if (0 == fmt) {
-        fmt    = "null";
-        quotes = "()";
+        fmt   = "null";
+        q_fmt = "()";
     }
 
     if (result && expect) {
@@ -63,19 +66,36 @@ do_test (int line, const char *fmt, const char *expect, char *result)
             fprintf (stderr,
                      "Assertion failed on line %d: "
                      "rw_sprintf(%c%s%c, ...) == \"%s\", got \"%s\"\n",
-                     line, quotes [0], fmt, quotes [1], expect, result);
+                     line, q_fmt [0], fmt, q_fmt [1], expect, result);
         }
     }
-    else if (result) {
+    else if (result || expect) {
         exit_status = 2;
+
+        const char* q_expect = "\"\"";
+        const char* q_result = "\"\"";
+
+        if (0 == expect) {
+            expect   = "null";
+            q_expect = "()";
+        }
+
+        if (0 == result) {
+            result   = "null";
+            q_result = "()";
+        }
+
         fprintf (stderr, "Assertion failed on line %d: "
-                 "rw_sprintf(%c%s%c, ...) == (null), got \"%s\"\n",
-                 line, quotes [0], fmt, quotes [1], result);
+                 "rw_sprintf(%c%s%c, ...) == %c%s%c got %c%s%c\n",
+                 line, q_fmt [0], fmt, q_fmt [1],
+                 q_expect [0], expect, q_expect [1],
+                 q_result [0], result, q_result [1]);
     }
     else /* if (!result && !expect) */ {
+        _RWSTD_ASSERT (!result && !expect);
     }
 
-    free (result);
+    free ((char*)result);
 }
 
 
@@ -1281,6 +1301,7 @@ void test_paramno ()
     TEST ("%c %1$c",         'a', 0,   0, "a a");
     TEST ("%c %1$c %1$c",    'b', 0,   0, "b b b");
     TEST ("%c %1$c %c %2$c", 'c', 'd', 0, "c c d d");
+    TEST ("%c %c %1$c %1$c", 'e', 'f', 0, "e f e e");
 
     TEST ("%s %1$s",    "b",   0, 0, "b b");
     TEST ("%s %1$s",    "cd",  0, 0, "cd cd");
@@ -1314,6 +1335,10 @@ void test_paramno ()
     TEST ("[%s|%1$6.3s]", "xyz", 0, 0, "[xyz|   xyz]");
 
     TEST ("[%s|%1$6.3s]", "xyz", 0, 0, "[xyz|   xyz]");
+
+    TEST ("[foo=%s, bar=%s|foo=%1$s, bar=%2$s]",
+          "abc", "def", 0,
+          "[foo=abc, bar=def|foo=abc, bar=def]");
 
     TEST ("%i %1$i", 1, 0, 0, "1 1");
     TEST ("%i %1$i", 1, 0, 0, "1 1");
