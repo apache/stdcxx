@@ -44,8 +44,9 @@ SRCDIRS := $(filter-out $(TESTDIR)/docs    \
                         %.h %.hpp,         \
                         $(wildcard $(TESTDIR)/*))
 
+SRCDIRNAMES := $(notdir $(SRCDIRS))
+
 # do not compile these sources
-# OMIT_SRCS   += $(shell cd $(TESTDIR)/src && echo *.cpp) 22_locale.cpp
 OMIT_SRCS += $(notdir $(wildcard $(TESTDIR)/src/*.cpp)) 22_locale.cpp
 
 # override setting from makefile.in (tests only)
@@ -87,7 +88,7 @@ realclean: clean dependclean
 	rm -f _*.cpp
 
 # build all tests in the given subdirectory (subsection of the standard)
-$(SRCDIRS):
+$(notdir $(SRCDIRNAMES)):
 	$(MAKE) SRCS="`cd $(TESTDIR)/$@/ && echo *.cpp`"
 
 
@@ -106,7 +107,7 @@ gentest:
           done ;                                                        \
           echo ; )
 
-.PHONY: $(SRCDIRS) rwtest
+.PHONY: $(SRCDIRNAMES) rwtest
 
 # Common rules for all Makefile_s
 include ../makefile.rules
