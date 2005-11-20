@@ -204,6 +204,17 @@ $(DEPENDDIR)/%.d:
 endif   # neq ($(DEPENDFLAGS),)
 
 
+# disable implicit rules from trying to compile .c and .cc files
+# under the include/ directory (e.g., istream.c to istream) due
+# to being listed as dependencies of .cpp files
+%: %.c
+
+%.o: %.c
+
+%: %.cc
+
+%.o: %.cc
+
 # force the regeneration of all dependencies by removing them
 dependclean:
 	rm -f $(DEPENDDIR)/*.d; 
@@ -224,4 +235,5 @@ printvars:
        run run_all runall
 
 # override the default set of suffixes with our own
-.SUFFIXES: .a .cpp .d .o .$(AS_EXT)
+.SUFFIXES: .a .c .cc .cpp .d .o .$(AS_EXT)
+
