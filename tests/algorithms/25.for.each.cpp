@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * for_each.cpp - test exercising 25.1.1 [lib.alg.foreach]
+ * 25.for_each.cpp - test exercising 25.1.1 [lib.alg.foreach]
  *
  * $Id$
  *
@@ -20,7 +20,7 @@
  **************************************************************************/
 
 #include <algorithm>     // for for_each
-#include <cstddef>       // for ptrdiff_t
+#include <cstddef>       // for size_t
 
 #include <alg_test.h>
 #include <driver.h>      // for rw_test(), ...
