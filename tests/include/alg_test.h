@@ -809,9 +809,9 @@ struct ConstFwdIter: FwdIter<T>
     ConstFwdIter (): Base () { }
 
     ConstFwdIter (const value_type *cur,
-                  const value_type *,
+                  const value_type *begin,
                   const value_type *end)
-        : Base (_RWSTD_CONST_CAST (value_type*, cur), end) { }
+        : Base (_RWSTD_CONST_CAST (value_type*, cur), begin, end) { }
 
     const value_type& operator* () const {
         return Base::operator* ();
