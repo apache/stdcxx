@@ -20,7 +20,6 @@
  **************************************************************************/
 
 #include <algorithm>     // for for_each
-#include <functional>    // for negate, unary_function
 #include <cstddef>       // for ptrdiff_t
 
 #include <alg_test.h>
@@ -28,110 +27,144 @@
 
 /**************************************************************************/
 
-_RWSTD_NAMESPACE (std) { 
-
-// disable explicit instantiation for compilers (like MSVC)
-// that can't handle it
-#ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION
-
-template
-func<base<> >
-for_each (InputIter<base<> >, InputIter<base<> >, func<base<> >);
-
-#endif // _RWSTD_NO_EXPLICIT_INSTANTIATION
-
-}   // namespace std
-
-// working around aCC error 708: A definition of a namespace declaration
-// must be written in directly in the namespace (unqualified) or in an
-// enclosing namespace (qualified).
-_RWSTD_NAMESPACE (std) { 
-
-_RWSTD_SPECIALIZED_CLASS
-struct negate<X>: unary_function<X, X>
+struct FunctionBase
 {
-    void operator() (argument_type &x) {
-        x.val_ = -x.val_;
+    static std::size_t  funcalls_;
+    static int          sum_;
+    bool                is_const_;
+
+    FunctionBase (bool is_const)
+        : is_const_ (is_const) {
+        funcalls_ = 0;
+        sum_      = 0;
     }
+
+private:
+    void operator= (FunctionBase&);   // not assignable
 };
 
-}   // namespace std
+std::size_t FunctionBase::funcalls_;
+int         FunctionBase::sum_;
+
+
+struct ConstFunction: FunctionBase
+{
+    // dummy arguments provided to prevent the class
+    // from being default constructible
+    ConstFunction (int, int): FunctionBase (true) { }
+
+    void operator() (X val)  /* not const */ {
+        ++funcalls_;
+        sum_ += val.val_;
+    }
+
+    static const char* name () { return "ConstFunction"; }
+};
+
+
+struct MutableFunction: FunctionBase
+{
+    // dummy arguments provided to prevent the class
+    // from being default constructible
+    MutableFunction (int, int): FunctionBase (false) { }
+
+    void operator() (X &val) /* not const */ {
+        ++funcalls_;
+        val.val_ = -val.val_;
+    }
+
+    static const char* name () { return "MutableFunction"; }
+};
+
 
 // exercises std::for_each()
-template <class ForwardIterator, class T>
-void test_for_each (std::size_t N, ForwardIterator, T*)
+template <class InputIterator, class T, class Function>
+void test_for_each (std::size_t N, InputIterator dummy, T*, Function*)
 {
-    static const char* const itname = type_name (ForwardIterator (), (T*)0);
+    static const char* const itname = type_name (dummy, (T*)0);
+    static const char* const fnname = Function::name ();
 
-    rw_info (0, 0, 0, "std::for_each (%s, %s, Function)", itname, itname);
+    rw_info (0, 0, 0, "std::for_each (%s, %1$s, %s)", itname, fnname);
 
     // generate sequential values for each default constructed X
     X::gen_ = gen_seq;
 
-    // use ::operator new() to prevent default initialization
-    X* const buf = _RWSTD_STATIC_CAST (X*, ::operator new (N * sizeof (X)));
+    X *buf = new X [N];
 
-    std::size_t i;
+    const int first_val = buf [0].val_;
 
-    for (i = 0; i != N; ++i) {
+    for (std::size_t i = 0; i != N; ++i) {
 
-        X* const buf_end = buf + i + 1;
+        X* const buf_end = buf + i;
 
-        // default-construct a new X at the end of the list
-        X* new_x = new (buf + i) X ();
+        const InputIterator first =
+            make_iter (buf, buf, buf_end, dummy);
 
-        // exercise 25.1.1 - std::for_each()
-        std::size_t last_n_op_assign = X::n_total_op_assign_;
+        const InputIterator last =
+            make_iter (buf_end, buf_end, buf_end, dummy);
 
-        const ForwardIterator first =
-            make_iter (buf, buf, buf_end, ForwardIterator ());
+        // create a const function object and zero out all its counters
+        const Function fun (0, 0);
 
-        const ForwardIterator last =
-            make_iter (buf_end, buf_end, buf_end, ForwardIterator ());
+        std::for_each (first, last, fun);
 
-        std::for_each (first, last, std::negate<X>());
+        // compute the sum of elements in the sequence and check each
+        // element's value against the expected one
+        int sum = 0;
 
-        int success = 0;
+        for (std::size_t j = 0; j != i; ++j) {
 
-        // verify 25.1.1, p2
-        std::ptrdiff_t j;
+            int expect;
 
-        for (j = 0; j != std::ptrdiff_t (i); ++j ) {
-            switch (j % 2) {
-            case 0:
-                success = new_x->val_ != -j;
-                rw_assert (success, 0, __LINE__,
-                           "%d. std::for_each () correctness: %td != %td",
-                           j + 1, new_x->val_, -j);
-                break;
-            case 1:
-                success = new_x->val_ != j;
-                rw_assert (success, 0, __LINE__,
-                           "%d. std::for_each () correctness: %td != %td",
-                           j + 1, new_x->val_, j);
+            if (fun.is_const_) {
+                // const function object doesn't modify the subject
+                // sequence; the expected value of the element is
+                // the same as the original value
+                expect = first_val + int (j);
+            }
+            else {
+                // non-const function object negates each argument
+                expect = -(first_val + int (j));
+            }
+
+            // compute the sum (computed by the const function object)
+            sum += buf [j].val_;
+
+            // assert the element value as the same as the expected value
+            rw_assert (expect == buf [j].val_, 0, __LINE__,
+                       "for_each (%s, %1$s, %s); element [%zu] == %d, got %d",
+                       itname, fnname, j, expect, buf [j].val_);
+
+            if (expect != buf [j].val_) {
+                // break out of both loops on failure
+                i = N;
                 break;
             }
+
+            // restore the original value of the element
+            buf [j].val_ = first_val + int (j);
         }
-        
-        // verify 25.1.1, p3
-        success = X::n_total_op_assign_ - last_n_op_assign <= i + 1;
 
-        rw_assert (success, 0, __LINE__,
-                   "%d. std::for_each () complexity: %zu <= %zu",
-                   X::n_total_op_assign_, i + 1);
+        // assert that for_each invoked the function object's operator()
+        // exactly as many times as necessary and required
+        rw_assert (i == fun.funcalls_, 0, __LINE__,
+                   "for_each (%s, %1$s, %s); expected %zu invocations of "
+                   "Function::operator(), got %zu", itname, fnname,
+                   i, fun.funcalls_);
 
-        // break out of the loop if assertion fails
-        if (!success)
-            break;
+        if (fun.is_const_) {
+            rw_assert (sum == fun.sum_, 0, __LINE__,
+                       "for_each (%s, %1$s, %s); sum of %zu elements == %d, "
+                       "got %d", itname, fnname, sum, fun.sum_);
+        }
     }
 
-    rw_assert (N == i, 0, __LINE__, "passed %zu of %zu iterations", i, N);
-
-    ::operator delete (buf);
+    delete[] (buf);
 }
 
 /**************************************************************************/
 
+static int rw_opt_no_input_iter;   // --no-InputIterator
 static int rw_opt_no_fwd_iter;     // --no-ForwardIterator
 static int rw_opt_no_bidir_iter;   // --no-BidirectionalIterator
 static int rw_opt_no_rnd_iter;     // --no-RandomAccessIterator
@@ -140,32 +173,45 @@ static int rw_opt_no_rnd_iter;     // --no-RandomAccessIterator
 static int
 run_test (int, char*[])
 {
-    static const std::size_t N = 1024;
+    static const std::size_t N = 32;
 
     rw_info (0, 0, 0,
-             "template <class ForwardIterator, class Function> "
-             "Function "
-             "std::for_each (ForwardIterator, ForwardIterator, Function)");
+             "template <class %s, class %s> "
+             "%2$s std::for_each (%1$s, %1$s, %2$s)",
+             "InputIterator", "Function");
+
+    if (rw_opt_no_input_iter) {
+        rw_note (0, __FILE__, __LINE__, "InputIterator test disabled");
+    }
+    else {
+        test_for_each (N, InputIter<X>(0, 0, 0), (X*)0, (ConstFunction*)0);
+    }
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
-        test_for_each (N, FwdIter<X>(), (X*)0);
+        test_for_each (N, ConstFwdIter<X>(), (X*)0, (ConstFunction*)0);
+        test_for_each (N, FwdIter<X>(), (X*)0, (ConstFunction*)0);
+        test_for_each (N, FwdIter<X>(), (X*)0, (MutableFunction*)0);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        test_for_each (N, BidirIter<X>(), (X*)0);
+        test_for_each (N, ConstBidirIter<X>(), (X*)0, (ConstFunction*)0);
+        test_for_each (N, BidirIter<X>(), (X*)0, (ConstFunction*)0);
+        test_for_each (N, BidirIter<X>(), (X*)0, (MutableFunction*)0);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
     }
     else {
-        test_for_each (N, RandomAccessIter<X>(), (X*)0);
+        test_for_each (N, ConstRandomAccessIter<X>(), (X*)0, (ConstFunction*)0);
+        test_for_each (N, RandomAccessIter<X>(), (X*)0, (ConstFunction*)0);
+        test_for_each (N, RandomAccessIter<X>(), (X*)0, (MutableFunction*)0);
     }
 
     return 0;
@@ -178,9 +224,11 @@ int main (int argc, char *argv[])
     return rw_test (argc, argv, __FILE__,
                     "lib.alg.foreach",
                     0 /* no comment */, run_test,
+                    "|-no-InputIterator#"
                     "|-no-ForwardIterator#"
                     "|-no-BidirectionalIterator#"
                     "|-no-RandomAccessIterator#",
+                    &rw_opt_no_input_iter,
                     &rw_opt_no_fwd_iter,
                     &rw_opt_no_bidir_iter,
                     &rw_opt_no_rnd_iter);
