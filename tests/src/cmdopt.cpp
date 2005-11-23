@@ -41,7 +41,10 @@ struct cmdopts_t
 {
     char           loptbuf_ [32];   // buffer for long option name
     optcallback_t *callback_;       // function to call to process option
-    int           *pcntr_;          // counter to increment for each occurrence
+
+    // counter to increment for each occurrence of an option
+    // or to set to the numeric argument (when specified)
+    int           *pcntr_;
 
     char          *lopt_;           // long option name
     char           sopt_;           // short option name
@@ -148,8 +151,8 @@ rw_print_help (int argc, char *argv[])
         if (_RWSTD_SIZE_MAX == cmdopts [i].maxcalls_)
             printf (" (each occurrence evaluated)\n");
         else if (1 < cmdopts [i].maxcalls_)
-            printf (" (at most %lu occurrences evaluated)\n",
-                    cmdopts [i].maxcalls_);
+            printf (" (at most %u occurrences evaluated)\n",
+                    unsigned (cmdopts [i].maxcalls_));
         else
             printf (" (only the first occurrence evaluated)\n");
 
@@ -361,23 +364,25 @@ rw_vsetopts (const char *opts, va_list va)
 
         int arg_is_callback = true;
 
-        if (':' == *next || '=' == *next) {
-            // ':' : argument optional
-            // '=' : argument required
-            cmdopts [ncmdopts].arg_ = true;
-            ++next;
-        }
-        else if ('#' == *next) {
+        if ('#' == *next) {
             // insead of a pointer to a callback, the argument
             // is a pointer to an int counter that is to be
             // incremented for each occurrence of the option
-            // during processing
+            // during processing; when the option is immediately
+            // followed by the equals sign ('=') and a numeric
+            // argument the value of the argument will be stored
             arg_is_callback = false;
             ++next;
             
             // an unlimited number of occurrences of the option
             // are allowed and will be counted
             cmdopts [ncmdopts].maxcalls_ = _RWSTD_SIZE_MAX;
+        }
+        else if (':' == *next || '=' == *next) {
+            // ':' : argument optional
+            // '=' : argument required
+            cmdopts [ncmdopts].arg_ = true;
+            ++next;
         }
 
         if ('@' == *next) {
@@ -411,7 +416,9 @@ rw_vsetopts (const char *opts, va_list va)
         }
         else {
             // retrieve the address of the int counter where to keep
-            // track of the number of occurrences of the option
+            // track of the number of occurrences of the option, or
+            // where to store the value of the numeric argument of
+            // the option
             cmdopts [ncmdopts].pcntr_ = va_arg (va, int*);
         }
 
@@ -487,6 +494,15 @@ rw_runopts (int argc, char *argv[])
             break;
         }
 
+        // the name of the option without the leading dash
+        const char* const optname = argv [i] + 1;
+
+        // look for the first equals sign
+        const char* const eq = strchr (optname, '=');
+
+        // compute the length of the option including the equals sign (if any)
+        const size_t optlen = eq ? size_t (eq - optname + 1) : strlen (optname);
+
         int found = false;
 
         // look up each command line option (i.e., a string that starts
@@ -498,16 +514,8 @@ rw_runopts (int argc, char *argv[])
 
             if ('-' == argv [i][0]) {
 
-                // the name of the option without the leading dash
-                const char* const optname = argv [i] + 1;
-
-                // look for the first equals sign
-                const char* const eq = strchr (optname, '=');
-
-                // compute the length of the ooption including the equals
-                // sign (if any)
-                const size_t optlen =
-                    eq ? size_t (eq - optname + 1) : strlen (optname);
+                const size_t cmplen =
+                    eq && cmdopts [j].pcntr_ ? optlen - 1 : optlen;
 
                 // get a pointer to the (possibly empty) name
                 // of the long option
@@ -516,8 +524,8 @@ rw_runopts (int argc, char *argv[])
 
                 // try to match the long option first, and only if it
                 // doesn't match try the short single-character option
-                if (   optlen == strlen (lopt)
-                    && 0 == memcmp (optname, lopt, optlen)
+                if (   cmplen == strlen (lopt)
+                    && 0 == memcmp (optname, lopt, cmplen)
                     || cmdopts [j].sopt_
                     && optname [0] == cmdopts [j].sopt_
                     && (1 == optlen || cmdopts [j].arg_)) {
@@ -546,6 +554,39 @@ rw_runopts (int argc, char *argv[])
                             // when the command line argument matched
                             // the option,  invoke the callback function
                             status = cmdopts [j].callback_ (argc - i, argv + i);
+                        }
+                    }
+                    else if (eq) {
+                        assert (0 != cmdopts [j].pcntr_);
+
+                        // obtain the numeric argument
+                        char *end = 0;
+                        const long optval = strtol (eq + 1, &end, 0);
+
+                        if (end && '\0' != *end) {
+                            fprintf (stderr, "expected numeric argument: %s\n",
+                                     optname);
+                            ignenv = true;
+                            errno  = EINVAL;
+                            status = 1;
+                        }
+
+#if _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
+
+                        else if (   optval < _RWSTD_INT_MIN
+                                 || _RWSTD_INT_MAX < optval) {
+                            fprintf (stderr, "numeric argument %ld out of range"
+                                     " [%d, %d]: %s\n", optval,
+                                     _RWSTD_INT_MIN, _RWSTD_INT_MAX, optname);
+                            ignenv = true;
+                            errno  = EINVAL;
+                            status = 1;
+                        }
+
+#endif   // _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
+
+                        else {
+                            *cmdopts [j].pcntr_ = optval;
                         }
                     }
                     else {
