@@ -84,7 +84,7 @@
 
 #  define _RWSTD_CASSERT   <assert.h>
 #  define _RWSTD_CCTYPE    <ctype.h>
-#  define _RWSTD_CERRNO    <errno.h>
+#  define _RWSTD_CERRNO    "errno.h"
 #  define _RWSTD_CFLOAT    <float.h>
 #  define _RWSTD_CISO646   <iso646.h>
 #  define _RWSTD_CLIMITS   <limits.h>
@@ -131,7 +131,9 @@
 #    define _RWSTD_ANSI_C_CTYPE_H <../include/crt/ctype.h>
 #  endif
 #  if !defined (_RWSTD_NO_ERRNO_H) && !defined (_RWSTD_ANSI_C_ERRNO_H)
-#    define _RWSTD_ANSI_C_ERRNO_H <../include/crt/errno.h>
+     // pathname quoted in order to prevent the errno macro
+     // from expanding in the include directive
+#    define _RWSTD_ANSI_C_ERRNO_H "../include/crt/errno.h"
 #  endif
 #  if !defined (_RWSTD_NO_FLOAT_H) && !defined (_RWSTD_ANSI_C_FLOAT_H)
 #    define _RWSTD_ANSI_C_FLOAT_H <../include/crt/float.h>
@@ -197,7 +199,9 @@
 #  undef _RWSTD_ANSI_C_CTYPE_H
 #  define _RWSTD_ANSI_C_CTYPE_H <../include/ctype.h>
 #  undef _RWSTD_ANSI_C_ERRNO_H
-#  define _RWSTD_ANSI_C_ERRNO_H <../include/errno.h>
+   // pathname quoted in order to prevent the errno macro
+   // from expanding in the include directive
+#  define _RWSTD_ANSI_C_ERRNO_H "../include/errno.h"
 #  undef _RWSTD_ANSI_C_FLOAT_H
 #  define _RWSTD_ANSI_C_FLOAT_H <../include/float.h>
 #  undef _RWSTD_ANSI_C_ISO646_H
@@ -249,7 +253,9 @@
 #    define _RWSTD_ANSI_C_CTYPE_H </usr/include/ctype.h>
 #  endif
 #  if !defined (_RWSTD_NO_ERRNO_H) && !defined (_RWSTD_ANSI_C_ERRNO_H)
-#    define _RWSTD_ANSI_C_ERRNO_H </usr/include/errno.h>
+     // pathname quoted in order to prevent the errno macro
+     // from expanding in the include directive
+#    define _RWSTD_ANSI_C_ERRNO_H "/usr/include/errno.h"
 #  endif
 #  if !defined (_RWSTD_NO_FLOAT_H) && !defined (_RWSTD_ANSI_C_FLOAT_H)
 #    define _RWSTD_ANSI_C_FLOAT_H </usr/include/float.h>
@@ -317,7 +323,9 @@
 #    define _RWSTD_ANSI_C_CTYPE_H <../include/ctype.h>
 #  endif
 #  if !defined (_RWSTD_NO_ERRNO_H) && !defined (_RWSTD_ANSI_C_ERRNO_H)
-#    define _RWSTD_ANSI_C_ERRNO_H <../include/errno.h>
+     // pathname quoted in order to prevent the errno macro
+     // from expanding in the include directive
+#    define _RWSTD_ANSI_C_ERRNO_H "../include/errno.h"
 #  endif
 #  if !defined (_RWSTD_NO_FLOAT_H) && !defined (_RWSTD_ANSI_C_FLOAT_H)
 #    define _RWSTD_ANSI_C_FLOAT_H <../include/float.h>

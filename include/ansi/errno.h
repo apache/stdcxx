@@ -2,7 +2,7 @@
  *
  * errno.h
  *
- * $Id: //stdlib/dev/include/ansi/errno.h#16 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -45,14 +45,9 @@ using std::errno;
 
 #else
 
-#  if !defined (errno) || !defined (EDOM) || !defined (ERANGE) || !defined (EAGAIN)
-
-     // Preventing errno from being expanded in case it has been
-     // defined by a previous inclusion of stdlib.h header
-#    undef errno
-
+#  if    !defined (errno) \
+      || !defined (EDOM) || !defined (ERANGE) || !defined (EAGAIN)
 #    include _RWSTD_ANSI_C_ERRNO_H
-#  endif   // errno
+#  endif   // errno ...
 
 #endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
-
