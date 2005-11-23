@@ -3,7 +3,7 @@
  *
  * cerrno - C++ Standard library interface to the ANSI C header errno.h
  *
- * $Id: //stdlib/dev/include/ansi/cerrno#16 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -51,8 +51,8 @@ _RWSTD_NAMESPACE (std) {
 #ifndef _RWSTD_CERRNO_INCLUDED
 #define _RWSTD_CERRNO_INCLUDED
 
-#if !defined (errno) || !defined (EDOM) || !defined (ERANGE) || !defined (EAGAIN)
-#  undef errno
+#if    !defined (errno) \
+    || !defined (EDOM) || !defined (ERANGE) || !defined (EAGAIN)
 #  include _RWSTD_ANSI_C_ERRNO_H
 #endif   // errno ...
 
