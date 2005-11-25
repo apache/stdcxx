@@ -1,0 +1,363 @@
+<?xml version="1.0" ?>
+<package>
+    <comment>
+    PrimalCode wizard generated file.
+    </comment>
+    <job id="generate" prompt="no">
+        <?job error="false" debug="false" ?>
+        <runtime>
+            <description>
+Generates solution file for a specified environment
+            </description>
+            <named helpstring="Name of the solution" name="CONFIG" 
+                required="true" type="string"/>
+            <named helpstring="Top directory of stdlib sources tree" 
+                name="TOPDIR" required="false" type="string"/>
+            <named helpstring="Output directory for modules" 
+                name="BUILDDIR" required="true" type="string"/>
+            <example>cscript generate.wsf /TOPDIR:"C:\stdcxx" 
+                /BUILDDIR:"C:\stdcxx\build" /CONFIG:VC71
+            </example>
+            <usage>
+Usage: cscript generate.wsf /CONFIG:@CONFIG 
+/BUILDDIR:@BUILDDIR [/TOPDIR:@TOPDIR] 
+[/BUILDTYPE:@BUILDTYPE] [/BUILDONLY:@BUILDONLY]
+where
+@CONFIG is VC71,
+@TOPDIR - stdcxx main directory,
+@BUILDDIR - output directory for a build.
+            </usage>
+        </runtime>
+        <object id="fso" progid="Scripting.FileSystemObject"/>
+        <object id="WshShell" progid="WScript.Shell"/>
+        <script language="JScript" src="config.js"/>
+        <script language="JScript" src="msvc-config_classes.js"/>
+        <script language="JScript" src="data.js"/>
+        <script language="JScript" src="msvc-config.js"/>
+        <script language="JScript" src="utilities.js"/>
+        <script language="JScript" src="generate.js"/>
+        <script id="generate" language="JScript">
+<![CDATA[
+//
+// Solution generation script for Stdcxx library
+//
+
+// constants
+var scriptDir = getParentFolder(WScript.ScriptFullName);
+var srcDir = getParentFolder(getParentFolder(getParentFolder(scriptDir)));
+var outDir = srcDir;
+var logFile = "slngen.log";
+var logStream = null;
+var currentCfg = "";
+var buildType = "11d";
+var buildOnly = "";
+
+var binDir = "\\bin";
+var includeDir= "\\include";
+var examplesDir = "\\examples";
+var rwtestDir = "\\rwtest";
+var libsrcDir = "\\src";
+var libDir = "\\lib";
+var testsDir = "\\tests";
+var winconfigDir = "\\etc\\config\\windows";
+var etcDir = "\\etc";
+var configDir = "\\etc\\config";
+
+var tempBuildBatchName = "buildsol.bat";
+
+var description = new generate; // run
+
+function generate()
+{
+    WScript.Echo("Solution generation script");
+    WScript.Echo("Checking arguments...");
+    
+    readAndCheckArguments();
+    createBuildDirs();
+    
+    if (srcDir[srcDir.length - 1] != "\\")
+        srcDir += "\\";
+            
+    if (outDir[outDir.length - 1] != "\\")
+        outDir += "\\";
+    
+    WScript.Echo("Checking consistence...");
+    logFile = currentCfg + logFile;
+    var logStream = fso.CreateTextFile(outDir + logFile, true, false);
+
+    // get solution template
+    var solution = getSolution(currentCfg);
+    if (!solution)
+    {
+            WScript.StdErr.WriteLine(
+                "Generate: Solution with the name "
+                + currentCfg + " not found");
+            
+            logStream.WriteLine("Solution with the name "
+                + currentCfg + " not found");
+        
+            logStream.Close();
+            WScript.Quit(2);
+    }
+    
+    //ensure that it supports generation
+    if (!solution.generateSolution)
+    {
+            WScript.StdErr.WriteLine(
+                "Generate: Solution with the name "
+                + solution + " does not support IDE project generation");
+                
+            logStream.WriteLine("Solution with the name "
+                + solution + " does not support IDE project generation");
+                
+            logStream.Close();
+            WScript.Quit(2);        
+    }
+    
+    WScript.Echo("Creating projects...");
+   
+    //make solution structure
+    var fullSolution = 
+        fillSolutionTemplate(solution, srcDir, outDir, logStream);
+    
+    //save solution
+    WScript.Echo("Writing projects on disk...");
+    fullSolution.generateSolution(srcDir, outDir, logStream, true);
+
+    generateBuildBatch(srcDir, outDir, currentCfg, fullSolution);
+    generateUpdateBatch(srcDir, outDir, currentCfg);
+    
+    logStream.WriteLine("Solution created");
+    logStream.Close();
+    
+    WScript.Echo("Solution was generated successfully. See " + outDir + 
+        currentCfg + "slngen.log" + " for details.");
+        
+    WScript.Quit(0);
+}
+
+function readAndCheckArguments()
+{
+    if (!WScript.Arguments.Named.Exists("CONFIG"))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Missing required argument.");
+        WScript.Arguments.ShowUsage();
+        WScript.Quit(2);
+    }
+    
+    if (!WScript.Arguments.Named.Exists("BUILDDIR"))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Missing required argument BUILDDIR.");
+        WScript.Arguments.ShowUsage();
+        WScript.Quit(2);
+    }
+    
+    currentCfg = WScript.Arguments.Named("CONFIG");
+    
+    if (WScript.Arguments.Named.Exists("TOPDIR"))
+    {
+        srcDir = WScript.Arguments.Named("TOPDIR");
+    }
+    else
+    {
+        // try to deduce it
+        var myDir = WScript.ScriptFullName;
+        var dirIndex = myDir.indexOf(winconfigDir);
+        if (-1 == dirIndex)
+        {
+            WScript.StdErr.WriteLine(
+                "Generate: Missing required argument TOPDIR.");
+            WScript.Arguments.ShowUsage();
+            WScript.Quit(2);
+        }
+        
+        srcDir = myDir.substr(0, dirIndex);
+    }
+   
+    if (srcDir != "")
+    {
+        if (!fso.FolderExists(srcDir))
+        {
+            WScript.StdErr.WriteLine(
+                "Generate: Unable to read sources folder "
+                + srcDir);
+            WScript.Quit(2);
+        }
+        
+        outDir = srcDir;
+    }
+    
+    if (WScript.Arguments.Named.Exists("BUILDDIR"))
+    {
+        outDir = WScript.Arguments.Named("BUILDDIR");
+    }
+}
+
+function createBuildDirs()
+{
+    try
+    {
+        var builddir = outDir;
+        var topdir = srcDir;
+        
+        if (! fso.FolderExists(builddir))
+            fso.CreateFolder(builddir); 
+            
+        if (! fso.FolderExists(builddir + includeDir))
+            fso.CreateFolder(builddir + includeDir);    
+            
+        if (! fso.FolderExists(builddir + examplesDir))
+            fso.CreateFolder(builddir + examplesDir);
+            
+        if (! fso.FolderExists(builddir + testsDir))
+            fso.CreateFolder(builddir + testsDir);
+            
+        if (! fso.FolderExists(builddir + libsrcDir))
+            fso.CreateFolder(builddir + libsrcDir);
+            
+        if (! fso.FolderExists(builddir + libDir))
+            fso.CreateFolder(builddir + libDir);
+            
+        if (! fso.FolderExists(builddir + etcDir))
+            fso.CreateFolder(builddir + etcDir);
+            
+        if (! fso.FolderExists(builddir + configDir))
+            fso.CreateFolder(builddir + configDir);
+            
+        if (! fso.FolderExists(builddir + winconfigDir))
+            fso.CreateFolder(builddir + winconfigDir);
+            
+        fso.CopyFile(topdir + winconfigDir + "\\*.*", 
+            builddir + winconfigDir);
+        
+        WScript.Echo("Building directory tree created");
+    }
+    catch(e)
+    {
+        WScript.StdErr.WriteLine("RunGem: Fatal error: Failed to"
+            + " open folder " + builddir);
+        WScript.Quit(3);
+    }
+}
+
+function generateBuildBatch(sourcesDir, buildDir, curCfg, curSol)
+{
+    try
+    {
+        var buildBatchFileName = buildDir + "build.bat";
+        var buildBatchFile = fso.CreateTextFile(buildBatchFileName);
+        
+        buildBatchFile.WriteLine("@echo off");        
+        buildBatchFile.WriteLine("set ERRORLEVEL=0");
+        buildBatchFile.WriteLine("");
+        
+        buildBatchFile.WriteLine("set topdir=" + sourcesDir);
+        buildBatchFile.WriteLine("set builddir=" + buildDir);
+        buildBatchFile.WriteLine("set config=" + curCfg);
+        buildBatchFile.WriteLine("set scriptdir=etc\\config\\windows");
+        buildBatchFile.WriteLine("set makelog=makelog.wsf");
+        buildBatchFile.WriteLine("set cfg=");
+        buildBatchFile.WriteLine("set cfgbrief=");
+        buildBatchFile.WriteLine("");
+        
+        buildBatchFile.WriteLine(":cfgloop");
+        buildBatchFile.WriteLine("if \"%1\"==\"\" goto continue");
+        buildBatchFile.WriteLine("");
+        
+        for (i in configsShortToLong)
+        {
+            var lcfg = configsShortToLong[i];
+            if (! lcfg)
+                continue;
+                
+            if (! curSol.configurations[lcfg])
+                continue;
+
+            buildBatchFile.WriteLine("if \"%1\"==\"" + i + "\" ("); 
+            buildBatchFile.WriteLine("set cfg=" + lcfg);
+            buildBatchFile.WriteLine("set cfgbrief=" + i);
+            buildBatchFile.WriteLine(")");
+            buildBatchFile.WriteLine("");
+        }
+        
+        buildBatchFile.WriteLine("");
+        buildBatchFile.WriteLine("if \"%cfg%\"==\"\" (");
+        buildBatchFile.WriteLine("echo Unknown configuration to build");
+        buildBatchFile.WriteLine("set ERRORLEVEL=1");
+        buildBatchFile.WriteLine("goto nextcfg");
+        buildBatchFile.WriteLine(")");
+        buildBatchFile.WriteLine("");
+        
+        buildBatchFile.WriteLine("devenv \"%builddir%\\%config%.sln\"" 
+            + " /build \"%cfg%\"");
+            
+        buildBatchFile.WriteLine("");
+        buildBatchFile.WriteLine("cscript /nologo "
+            + "\"%topdir%%scriptdir%\\%makelog%\""
+            + " /BUILDDIR:\"%builddir%\" /BUILDTYPE:%cfgbrief%");
+        buildBatchFile.WriteLine("");
+        
+        buildBatchFile.WriteLine(":nextcfg");
+        buildBatchFile.WriteLine("shift");
+        buildBatchFile.WriteLine("goto cfgloop");
+        buildBatchFile.WriteLine("");
+        
+        buildBatchFile.WriteLine(":continue");
+        buildBatchFile.WriteLine("echo build complete");
+        buildBatchFile.WriteLine("");
+        
+        buildBatchFile.Close();
+        return 1;
+    }
+    catch(e)
+    {
+        WScript.Echo("error creating the build batch file");
+        return 0;
+    }
+}
+
+function generateUpdateBatch(sourcesDir, buildDir, curCfg)
+{
+    try
+    {
+        var updateBatchFileName = buildDir + "update.bat";
+        var updateBatchFile = fso.CreateTextFile(updateBatchFileName);
+        
+        updateBatchFile.WriteLine("@echo off");        
+        updateBatchFile.WriteLine("set ERRORLEVEL=0");
+        updateBatchFile.WriteLine("");
+        
+        updateBatchFile.WriteLine("set topdir=" + sourcesDir);
+        updateBatchFile.WriteLine("set builddir=" + buildDir);
+        updateBatchFile.WriteLine("set config=" + curCfg);
+        updateBatchFile.WriteLine("set scriptdir=etc\\config\\windows");
+        updateBatchFile.WriteLine("set cupdate=update.wsf");
+        updateBatchFile.WriteLine("");
+                  
+        updateBatchFile.WriteLine("");
+        updateBatchFile.WriteLine("cscript /nologo "
+            + "\"%topdir%%scriptdir%\\%cupdate%\""
+            + " /TOPDIR:\"%topdir%\""
+            + " /BUILDDIR:\"%builddir%\" /CONFIG:%config%");
+        updateBatchFile.WriteLine("");
+        
+        updateBatchFile.WriteLine("echo update complete");
+        updateBatchFile.WriteLine("");
+        
+        updateBatchFile.Close();
+        return 1;
+    }
+    catch(e)
+    {
+        WScript.Echo("error creating the update batch file");
+        return 0;
+    }
+}
+
+]]>
+        </script>
+    </job>
+</package>
+
