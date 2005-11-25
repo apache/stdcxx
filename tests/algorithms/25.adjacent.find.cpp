@@ -27,33 +27,13 @@
 
 /**************************************************************************/
 
-_RWSTD_NAMESPACE (std) {
-
-#ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION
-
-template
-FwdIter<eq_comp<base<> > >
-adjacent_find (FwdIter<eq_comp<base<> > >, FwdIter<eq_comp<base<> > >);
-
-template
-FwdIter<eq_comp<base<> > >
-adjacent_find (FwdIter<eq_comp<base<> > >, FwdIter<eq_comp<base<> > >, 
-               binary_predicate<eq_comp<base<> > >);
-
-#endif // _RWSTD_NO_EXPLICIT_INSTANTIATION
-
-}   // namespace std
-
-
-/**************************************************************************/
-
-typedef unsigned char UChar;
-
 // used to initialize an array of objects of type X
 static const char *xinit_begin;
 
 int xinit ()
 {
+    typedef unsigned char UChar;
+
     static const char *cur = 0;
 
     if (!cur || !*cur)
@@ -64,33 +44,36 @@ int xinit ()
 
 
 // exercises std::adjacent_find()
-template <class Iterator, class T>
-void do_test (int line, const char *src, 
-              std::size_t resoff,
-              Iterator, const T*)
+template <class ForwardIterator, class T>
+void do_test (int         line,     // line number of test case
+              const char *src,      // source sequence
+              std::size_t resoff,   // offset of result
+              ForwardIterator    dummy_iter,
+              const T*)
 {
-    static const char* const itname = type_name (Iterator (), (T*)0);
+    static const char* const itname = type_name (dummy_iter, (T*)0);
 
     const std::size_t nsrc = std::strlen (src);
 
     if (std::size_t (-1) == resoff)
         resoff = nsrc;
 
+    // have the X default ctor initialize objects from `src'
     xinit_begin = src;
-    X::gen_ = xinit;
+    X::gen_     = xinit;
 
     X* const xsrc = new X [nsrc];
 
-    const Iterator first =
-        make_iter (xsrc, xsrc, xsrc + nsrc, Iterator ());
+    const ForwardIterator first =
+        make_iter (xsrc, xsrc, xsrc + nsrc, dummy_iter);
 
-    const Iterator last =
-        make_iter (xsrc + nsrc, xsrc, xsrc + nsrc, Iterator ());
+    const ForwardIterator last =
+        make_iter (xsrc + nsrc, xsrc, xsrc + nsrc, dummy_iter);
 
     // compute the number of invocations of the predicate
     std::size_t n_total_pred = X::n_total_op_eq_;
 
-    const Iterator res = std::adjacent_find (first, last);
+    const ForwardIterator res = std::adjacent_find (first, last);
 
     // silence a bogus EDG eccp remark #550-D:
     // variable "res" was set but never used
@@ -135,16 +118,20 @@ void do_test (int line, const char *src,
 
 /**************************************************************************/
 
-template <class Iterator, class T>
-void run_tests (Iterator it, const T*)
+template <class ForwardIterator, class T>
+void run_tests (ForwardIterator dummy_iter, const T*)
 {
-    static const char* const itname = type_name (Iterator (), (T*)0);
+    static const char* const itname = type_name (dummy_iter, (T*)0);
 
-    rw_info (0, 0, 0, "std::adjacent_find (%s, %s)", itname, itname);
+    rw_info (0, 0, 0, "std::adjacent_find (%s, %1$s)", itname);
     
 #define TEST(src, off) \
-    do_test (__LINE__, src, std::size_t (off), it, (X*)0)
+    do_test (__LINE__, src, std::size_t (off), dummy_iter, (X*)0)
 
+    //    +------------------ subject sequence
+    //    |               +-- offset of returned iterator,
+    //    |               |   -1 denotes the end of sequence
+    //    v               v
     TEST ("",            -1);
     TEST ("a",           -1);
     TEST ("ab",          -1);
@@ -192,8 +179,9 @@ static int
 run_test (int, char*[])
 {
     rw_info (0, 0, 0, 
-             "template <class ForwardIterator> "
-             "std::adjacent_find (ForwardIterator, ForwardIterator)");
+             "template <class %s> "
+             "%1$s std::adjacent_find (%1$s, %1$s)",
+             "ForwardIterator");
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
@@ -216,6 +204,11 @@ run_test (int, char*[])
         run_tests (RandomAccessIter<X>(), (X*)0);
     }
 
+    rw_warn (0, 0, 0, 
+             "template <class %s, class %s> "
+             "%1$s std::adjacent_find (%1$s, %1$s, %2$s) not exercised",
+             "ForwardIterator", "BinaryPredicate");
+                
     return 0;
 }
 
