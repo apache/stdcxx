@@ -1,0 +1,241 @@
+<?xml version="1.0" ?>
+<package>
+    <comment>
+    PrimalCode wizard generated file.
+    </comment>
+    <job id="runexamples" prompt="no">
+        <?job error="false" debug="false" ?>
+        <runtime>
+            <description>
+Gathers logs and makes the build summary log.
+            </description>
+            <named helpstring="The build directory" name="BUILDDIR" 
+                required="true" type="string"/>         
+            <named helpstring="The build type" name="BUILDTYPE" 
+                required="true" type="string"/>
+            <example>
+        cscript makebuildlog.wsf /BUILDDIR"C:\stdcxx\build" /BUILDTYPE:11d
+            </example>
+            <usage>
+Usage: cscript makebuildlog.wsf /BUILDDIR:@BUILDDIR /BUILDTYPE:@BUILDTYPE 
+where
+@BUILDDIR is the build directory,
+@BUILDTYPE is the build type (11d, 11s, etc).
+            </usage>
+        </runtime>
+        <object id="fso" progid="Scripting.FileSystemObject"/>
+        <object id="WshShell" progid="WScript.Shell"/>
+        <script language="JScript" src="config.js"/>
+        <script language="JScript" src="utilities.js"/>
+        <script language="JScript" src="summary.js"/>
+        <script id="makelog" language="JScript">
+<![CDATA[
+//
+// Summary build log maker script
+//
+
+var buildDir = ""; // path to the root directory containing executables
+var buildType = ""      // the buid type (11d, 11s, etc)
+
+var buildlogFile = "BuildLog.htm";
+var summaryFileName = "Summary.htm";
+var htmFolderName = "temphtm";
+var buildSummaryPrefix = "vc71-";
+
+var libBuildDir = "src";
+var examplesBuildDir = "examples";
+var testsBuildDir = "tests";
+var rwtestBuildDir = "tests\\src";
+    
+var description = new makelog; // run
+
+function makelog()
+{
+    readAndCheckArguments();
+    
+    // check for build failures
+    var sumTempFileNameEx = buildDir + "\\" + examplesBuildDir + "\\" +
+        buildType + "\\" + summaryFileName;
+    
+    checkForFailures(buildDir + "\\" + examplesBuildDir, buildType,
+        buildlogFile, sumTempFileNameEx, htmFolderName, false);
+    
+    var sumTempFileNameTst = buildDir + "\\" + testsBuildDir + "\\" +
+        buildType + "\\" + summaryFileName;
+        
+    checkForFailures(buildDir + "\\" + testsBuildDir, buildType,
+        buildlogFile, sumTempFileNameTst, htmFolderName, false);
+        
+    // make build summary log file
+    var fSum = makeSummaryLog(buildDir, buildSummaryPrefix, buildType);
+    var logPath = getSummaryLogPath(buildDir, buildSummaryPrefix, buildType);
+    
+    // read information about library
+    var libInfo = new ItemBuildInfo(".stdlib");
+    getLibraryBuildInfo(buildDir + "\\" + libBuildDir, buildType, libInfo);
+        
+    // and test driver
+    var rwtestInfo = new ItemBuildInfo(".rwtest");
+    getTestDriverBuildInfo(buildDir + "\\" + rwtestBuildDir, 
+        buildType, rwtestInfo);
+        
+    // save headers for library and test driver
+    saveSummaryHeaderLib(fSum, libInfo, hdrLibrary);
+    saveSummaryHeaderTestDriver(fSum, rwtestInfo, hdrTestDriver);
+    
+    // save headers for examples and tests
+    saveSummaryHeaderMulti(fSum, buildDir + "\\" + examplesBuildDir, 
+        buildType, hdrExamples);
+    saveSummaryHeaderMulti(fSum, buildDir + "\\" + testsBuildDir, 
+        buildType, hdrTests);
+
+    // save build summary for library and test driver       
+    saveBuildSummarySingle(fSum, libInfo, hdrLibrary);
+    saveBuildSummarySingle(fSum, rwtestInfo, hdrTestDriver);
+    
+    // save build summary for examples and tests
+    saveBuildSummaryMulti(fSum, buildDir + "\\" + examplesBuildDir, 
+        buildType);
+    saveBuildSummaryMulti(fSum, buildDir + "\\" + testsBuildDir, 
+        buildType);
+        
+    closeSummaryLog(fSum);
+    
+    deleteTemporaryFiles();
+    
+    WScript.Echo("Summary log was generated in " + logPath);
+    
+    WScript.Quit(0);
+}
+
+function readAndCheckArguments()
+{
+    if (!WScript.Arguments.Named.Exists("BUILDDIR"))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Missing required argument BUILDDIR.");
+        WScript.Arguments.ShowUsage();
+        WScript.Quit(2);
+    }
+    
+    buildDir =  WScript.Arguments.Named("BUILDDIR");
+    
+    if (WScript.Arguments.Named.Exists("BUILDTYPE"))
+        buildType = WScript.Arguments.Named("BUILDTYPE");
+    else
+        buildType = "11d";
+        
+    /*
+    if (!WScript.Arguments.Named.Exists("BUILDTYPE"))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Missing required argument BUILDTYPE.");
+        WScript.Arguments.ShowUsage();
+        WScript.Quit(2);
+    }
+    */
+    
+    if (! fso.FolderExists(buildDir))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Could not find directory " + buildDir);
+            
+        WScript.Quit(3);
+    }
+}
+
+function getLibraryBuildInfo(libDir, bType, libInfo)
+{
+    var logDir = libDir + "\\" + bType;
+    if (! fso.FolderExists(logDir))
+        return;
+        
+    var blogFilePath = logDir + "\\" + buildlogFile;
+    if (! fso.FileExists(blogFilePath))
+        return;
+        
+    var blogFile = fso.OpenTextFile(blogFilePath);
+    var blogData = blogFile.ReadAll();
+    
+    var posTmp = getCommandLinesInfo(libInfo, blogData, 0);
+    posTmp = getCompilationInfo(libInfo, blogData, posTmp);
+    posTmp = getBuildSummaryInfo(libInfo, blogData, posTmp);
+}
+
+function getTestDriverBuildInfo(rwTestDir, bType, rwtestInfo)
+{
+    var logDir = rwTestDir + "\\" + bType;
+    if (! fso.FolderExists(logDir))
+        return;
+        
+    var blogFilePath = logDir + "\\" + buildlogFile;
+    if (! fso.FileExists(blogFilePath))
+        return;
+        
+    var blogFile = fso.OpenTextFile(blogFilePath);
+    var blogData = blogFile.ReadAll();
+    
+    var posTmp = getCommandLinesInfo(rwtestInfo, blogData, 0);
+    posTmp = getCompilationInfo(rwtestInfo, blogData, posTmp);
+    posTmp = getBuildSummaryInfo(rwtestInfo, blogData, posTmp);
+}
+
+function deleteTemporaryFiles()
+{
+    // delete temphtm folders
+    deleteTempFolders(buildDir + "\\" + examplesBuildDir, 
+        buildType, htmFolderName);
+        
+    deleteTempFolders(buildDir + "\\" + testsBuildDir, 
+        buildType, htmFolderName);
+    
+    // delete Summary.htm files
+    var sumTempFileNameEx = buildDir + "\\" + examplesBuildDir + "\\" +
+        buildType + "\\" + summaryFileName;
+        
+    if (fso.FileExists(sumTempFileNameEx))
+        fso.DeleteFile(sumTempFileNameEx);
+        
+    var sumTempFileNameTst = buildDir + "\\" + testsBuildDir + "\\" +
+        buildType + "\\" + summaryFileName;
+        
+    if (fso.FileExists(sumTempFileNameTst))
+        fso.DeleteFile(sumTempFileNameTst);
+}
+
+function deleteTempFolders(startDir, bType, tempName)
+{
+    var startFolder = fso.GetFolder(startDir);
+    if (! startFolder)
+        return;
+        
+    var enumHtmSubFolders = new Enumerator(startFolder.SubFolders);
+    for (; !enumHtmSubFolders.atEnd(); enumHtmSubFolders.moveNext())
+    {
+        var htmFName = enumHtmSubFolders.item().Name;
+        var htmParent = enumHtmSubFolders.item().ParentFolder.Name;
+        
+        if (htmFName == tempName && htmParent == bType)
+        {
+            try
+            {
+                fso.DeleteFolder(enumHtmSubFolders.item().Path);
+            }
+            catch(e)
+            {
+                WScript.StdErr.Write("Could not delete temporary folder " + 
+                    enumHtmSubFolders.item().Path);
+            }
+        }
+        else
+        {
+            deleteTempFolders(startDir + "\\" + htmFName, 
+                bType, tempName);
+        }
+    }
+}
+
+]]>
+        </script>
+    </job>
+</package>

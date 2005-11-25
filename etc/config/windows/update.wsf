@@ -1,0 +1,261 @@
+<?xml version="1.0" ?>
+<package>
+    <comment>
+    PrimalCode wizard generated file.
+    </comment>
+    <job id="doexe" prompt="no">
+        <?job error="false" debug="false" ?>
+        <runtime>
+            <description>
+Solution update script.
+            </description>
+            <named helpstring="Name of the solution" name="CONFIG" 
+                required="true" type="string"/>
+            <named helpstring="Top directory of stdlib sources tree" 
+                name="TOPDIR" required="false" type="string"/>
+            <named helpstring="Output directory for modules" 
+                name="BUILDDIR" required="true" type="string"/>
+            <example>cscript update.wsf /TOPDIR:"C:\stdcxx" 
+                /BUILDDIR:"C:\stdcxx\build" /CONFIG:VC71
+            </example>
+            <usage>
+Usage: cscript update.wsf /CONFIG:@CONFIG 
+/BUILDDIR:@BUILDDIR [/TOPDIR:@TOPDIR] [BUILDTYPE:@BUILDTYPE]
+where
+@CONFIG is VC71,
+@TOPDIR - stdcxx main directory,
+@BUILDDIR - output directory for a build.
+            </usage>
+        </runtime>
+        <object id="fso" progid="Scripting.FileSystemObject"/>
+        <object id="WshShell" progid="WScript.Shell"/>
+        <script language="JScript" src="config.js"/>
+        <script language="JScript" src="msvc-config_classes.js"/>
+        <script language="JScript" src="data.js"/>
+        <script language="JScript" src="msvc-config.js"/>
+        <script language="JScript" src="utilities.js"/>
+        <script language="JScript" src="generate.js"/>
+        <script id="update" language="JScript">
+<![CDATA[
+//
+// Solution update script.
+//
+
+// constants
+var scriptDir = getParentFolder(WScript.ScriptFullName);
+var srcDir = getParentFolder(getParentFolder(getParentFolder(scriptDir)));
+var outDir = srcDir;
+var logFile = "slnupd.log";
+var logStream = null;
+var currentCfg = "";
+
+var winconfigDir = "\\etc\\config\\windows";
+
+var buildType = "";
+var tempBuildBatchName = "buildsol.bat";
+
+var description = new update; // run
+
+function update()
+{
+    WScript.Echo("Solution update script");
+    WScript.Echo("Checking arguments...");
+    
+    readAndCheckArguments();
+    
+    if (srcDir[srcDir.length - 1] != "\\")
+        srcDir += "\\";
+            
+    if (outDir[outDir.length - 1] != "\\")
+        outDir += "\\";
+        
+    WScript.Echo("Checking consistence...");
+    var logStream;
+    if (fso.FileExists(outDir + currentCfg + logFile))
+    {
+        logStream = fso.OpenTextFile(outDir + currentCfg + logFile, 8);
+    }
+    else
+    {
+        logStream = fso.CreateTextFile(outDir + currentCfg + logFile, 
+            true, false);
+    }
+
+    // get solution template
+    var solution = getSolution(currentCfg);
+    if (!solution)
+    {
+            WScript.StdErr.WriteLine(
+                "Generate: Solution with the name "
+                + currentCfg + " not found");
+            
+            logStream.WriteLine("Solution with the name "
+                + currentCfg + " not found");
+        
+            logStream.Close();
+            WScript.Quit(2);
+    }
+    
+    //ensure that it supports generation
+    if (!solution.generateSolution)
+    {
+            WScript.StdErr.WriteLine(
+                "Generate: Solution with the name "
+                + solution + " does not support IDE project generation");
+                
+            logStream.WriteLine("Solution with the name "
+                + solution + " does not support IDE project generation");
+                
+            logStream.Close();
+            WScript.Quit(2);        
+    }
+    
+    //read existing solution file
+    WScript.Echo("Reading solution...");
+    var slnFileName = outDir + "\\" + currentCfg + ".sln";
+    var prjInfo = readSolutionGUIDs(slnFileName);
+    
+    WScript.Echo("Checking projects...");
+    //make solution structure
+    var fullSolution = fillSolutionTemplateLight(solution, prjInfo, 
+            srcDir, outDir, logStream);
+    
+    WScript.Echo("Updating solution...");
+    var modProjects = updateSolution(fullSolution, prjInfo, 
+        srcDir, outDir, logStream);
+        
+    //save solution
+    WScript.Echo("Writing modified projects on disk...");
+    saveModifiedProjects(modProjects, srcDir, outDir, logStream);
+    
+    logStream.WriteLine("Solution updated");
+    logStream.Close();
+    
+    WScript.Echo("Solution was updated successfully. See " 
+                + outDir + currentCfg + "slnupd.log" + " for details.");
+    WScript.Quit(0);
+}
+
+
+function readAndCheckArguments()
+{
+    if (!WScript.Arguments.Named.Exists("CONFIG"))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Missing required argument.");
+        WScript.Arguments.ShowUsage();
+        WScript.Quit(2);
+    }
+    
+    if (!WScript.Arguments.Named.Exists("BUILDDIR"))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Missing required argument BUILDDIR.");
+        WScript.Arguments.ShowUsage();
+        WScript.Quit(2);
+    }
+    
+    currentCfg = WScript.Arguments.Named("CONFIG");
+    
+    if (WScript.Arguments.Named.Exists("TOPDIR"))
+    {
+        srcDir = WScript.Arguments.Named("TOPDIR");
+    }
+    else
+    {
+        // try to deduce it
+        var myDir = WScript.ScriptFullName;
+        var dirIndex = myDir.indexOf(winconfigDir);
+        if (-1 == dirIndex)
+        {
+            WScript.StdErr.WriteLine(
+                "Generate: Missing required argument TOPDIR.");
+            WScript.Arguments.ShowUsage();
+            WScript.Quit(2);
+        }
+        
+        srcDir = myDir.substr(0, dirIndex);
+    }
+    
+    if (srcDir != "")
+    {
+        if (!fso.FolderExists(srcDir))
+        {
+            WScript.StdErr.WriteLine(
+                "Update: Unable to read sources folder "
+                + srcDir);
+            WScript.Quit(2);
+        }
+        
+        outDir = srcDir;
+    }
+    
+    if (WScript.Arguments.Named.Exists("BUILDDIR"))
+    {
+        outDir = WScript.Arguments.Named("BUILDDIR");
+    }
+    
+    if (outDir != "")
+    {
+        if (!fso.FolderExists(outDir))
+        {
+            WScript.StdErr.WriteLine(
+                "Update: Unable to read destination folder "
+                + srcDir);
+            WScript.Quit(2);
+        }
+    }
+    
+    var slnFileName = outDir + "\\" + currentCfg + ".sln";
+    if (! fso.FileExists(slnFileName))
+    {
+        WScript.StdErr.WriteLine(
+            "Update: Unable to read the solution "
+                + slnFileName);
+        WScript.Quit(2);
+    }
+}
+
+function updateSolution(fullSolution, prjInfo, srcDir, outDir, logStream)
+{
+    // set right guids and collect new projects
+    var rgModProjects = new Array();
+    for (var i in fullSolution.projects)
+    {
+        var solPrj = fullSolution.projects[i];
+        if (! solPrj || ! solPrj.name)
+            continue;
+            
+        var oldProject = prjInfo[solPrj.name];
+        if (! oldProject) // new one
+        {
+            rgModProjects.push(solPrj);
+            continue;
+        }
+        
+        solPrj.id = oldProject.id;
+    }
+    
+    // save solution without saving projects
+    fullSolution.generateSolution(srcDir, outDir, logStream, false);
+    
+    return rgModProjects;
+}
+
+function saveModifiedProjects(modProjects, srcDir, outDir, logStream)
+{
+    for(var i = 0; i < modProjects.length; i++)
+    {
+        WScript.Echo("saving " + modProjects[i].name + "...");
+        logStream.WriteLine("saving " + modProjects[i].name);
+        
+        generateVCPROJ(modProjects[i], srcDir, outDir);
+        
+        logStream.WriteLine(modProjects[i].name + " saved");
+    }
+}
+
+]]>
+        </script>
+    </job>
+</package>

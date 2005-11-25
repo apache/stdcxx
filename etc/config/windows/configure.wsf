@@ -1,0 +1,976 @@
+<?xml version="1.0" ?><!-- -*- SGML -*- -->
+<package>
+    <comment>
+    PrimalCode wizard generated file.
+    </comment>
+    <job id="configure" prompt="no">
+        <?job error="false" debug="false" ?>
+        <runtime>
+            <description>
+Run configuration tests and produces config.h file.
+            </description>
+            <named helpstring="Name of the solution" name="SolutionName" 
+                required="true" type="string"/>
+            <named helpstring="Name of the configuration" 
+                name="ConfigurationName" required="true" type="string"/>
+            <named helpstring="Output directory" name="OutDir" 
+                required="false" type="string"/>
+            <named helpstring="Output file" name="OutFile" 
+                required="false" type="string"/>
+            <named helpstring="Test sources directory" name="SrcDir" 
+                required="false" type="string"/>
+            <named helpstring="Log file name" name="LogFile" 
+                required="false" type="string"/>
+            <example>cscript configure.wsf /SolutionName:VC71 
+                /ConfigurationName:"Release Static"
+            </example>
+            <usage>
+Usage: cscript configure.wsf /SolutionName:@Solution 
+/ConfigurationName:@Configuration [/OutDir:@OutDir] [/OutFile:@OutFile] 
+[/SrcDir:@SrcDir] [/LogFile:@LogFile],
+where
+@Solution is VC71,
+@Configuration = 11s Debug Static | 11d Debug Dll , etc
+@OutDir - output directory (default: script_directory\tests),
+@OutFile - output file name (default: config.h),
+@SrcDir - test sources directory (default: script_directory\..\src),
+@LogFile - log file name (default: config.log).
+            </usage>
+        </runtime>
+        <object id="fso" progid="Scripting.FileSystemObject"/>
+        <object id="WshShell" progid="WScript.Shell"/>
+        <script language="JScript" src="config.js"/>
+        <script language="JScript" src="msvc-config_classes.js"/>
+        <script language="JScript" src="data.js"/>
+        <script language="JScript" src="msvc-config.js"/>
+        <script language="JScript" src="utilities.js"/>
+        <script id="configure" language="JScript">
+<![CDATA[
+//
+// Configuration script for Stdcxx library
+//
+
+// constants
+var scriptDir = getParentFolder(WScript.ScriptFullName);
+var slnDir = getParentFolder(getParentFolder(getParentFolder(scriptDir)));
+var stageDir = scriptDir + "\\tests";
+var configTargerDir = slnDir +  "\\include";
+var configFileName = "config.h";
+var configFile = configTargerDir + "\\" + configFileName;
+var stageFile = stageDir + "\\" + configFileName;
+var srcDir = slnDir + "\\etc\\config\\src";
+var includeDir = slnDir + "\\include";
+var logFileName = "config.log";
+var runWindowMode = 7;
+var timeOut = 30000; // 30 sec
+
+var isShared = true;
+
+var description = new configure; // run
+
+function configure()
+{
+    if (!WScript.Arguments.Named.Exists("SolutionName")
+        || !WScript.Arguments.Named.Exists("ConfigurationName"))
+    {
+        WScript.StdErr.WriteLine(
+            "Configure: Fatal error: Missing required argument.");
+        WScript.Arguments.ShowUsage();
+        WScript.Quit(2);
+    }
+
+    if (WScript.Arguments.Named.Exists("LogFile"))
+    {
+        logFileName = WScript.Arguments.Named("LogFile");
+    }
+    // check that log file is writable
+    if (!touchFile(logFileName))
+    {
+        WScript.StdErr.WriteLine(
+            "Configure: Fatal error: Unable to create log file "
+            + logFileName);
+        WScript.Quit(2);
+    }
+    
+    try
+    {
+        // configure activeCompiler, activeLinker and activeLibrarian options
+        setCompileEnvironment(WScript.Arguments.Named("SolutionName")                           
+                            , WScript.Arguments.Named("ConfigurationName")
+                            , projectConfigureName, logFileName);
+    }
+    catch (e)
+    {
+        WScript.StdErr.WriteLine(
+            "Configure: Fatal error: \
+                Invalid SolutionName or ConfigurationName.");
+        WScript.Quit(2);
+    }
+
+    if  (WScript.Arguments.Named.Exists("SrcDir"))
+    {
+        srcDir = WScript.Arguments.Named("SrcDir");
+        if (!fso.FolderExists(srcDir))
+        {
+            WScript.StdErr.WriteLine(
+                "Configure: Fatal error: Unable to read sources folder "
+                + srcDir);
+            WScript.Quit(2);
+        }
+        
+    }
+        
+    if  (WScript.Arguments.Named.Exists("IncludeDir"))
+    {
+        includeDir = WScript.Arguments.Named("IncludeDir");
+        if (!fso.FolderExists(includeDir))
+        {
+            WScript.StdErr.WriteLine(
+                "Configure: Fatal error: Unable to read includes folder "
+                + includeDir);
+            WScript.Quit(2);
+        }
+    }
+    
+
+    if  (WScript.Arguments.Named.Exists("OutFile"))
+    {
+        configFile = WScript.Arguments.Named("OutFile");
+    }
+    
+    // check that config file is writable
+    if (!touchFile(configFile))
+    {
+        WScript.StdErr.WriteLine(
+            "Configure: Fatal error: Unable to create output file "
+            + configFile);
+        WScript.Quit(2);
+    }
+    
+    if (WScript.Arguments.Named.Exists("OutDir"))
+    {
+        stageDir = WScript.Arguments.Named("OutDir") + "\\tests";
+        stageFile = stageDir + "\\" + configFileName;
+    }
+    
+    // clean Tests folder
+    if (fso.FolderExists(stageDir))
+    {
+        try
+        {
+            fso.DeleteFolder(stageDir, true);
+        }
+        catch (e)
+        {
+            WScript.StdErr.WriteLine(
+                "Configure: Fatal error: Unable to delete folder "
+                + stageDir);
+            WScript.Quit(3);
+        }
+    }
+    
+    try
+    {
+        fso.CreateFolder(stageDir);
+    }
+    catch (e)
+    {
+        WScript.StdErr.WriteLine(
+            "Configure: Fatal error: Unable to create stage folder "
+             + stageDir);
+        WScript.Quit(2);
+    }
+
+    removeFile(logFileName);
+    removeFile(stageFile);
+    removeFile(configFile + ".bak");
+    
+    // save previous file
+    if (fso.FileExists(configFile))
+    {
+        fso.MoveFile(configFile, configFile + ".bak");
+    }
+
+    var msg =  "for " + WScript.Arguments.Named("SolutionName")
+                + " - " + WScript.Arguments.Named("ConfigurationName");
+    WScript.Echo("Configuring " + msg);
+    
+    appendLineToOutFile("// Configured " + msg);
+    
+    activeCompiler.includeDirectories.add(stageDir);
+    activeCompiler.includeDirectories.add(slnDir + "\\include");
+    activeCompiler.includeDirectories.add(includeDir);
+        
+    activeCompiler.outputDirectory = stageDir;
+    activeLinker.outputDirectory = stageDir;
+    activeCompiler.intermDirectory = stageDir;
+    activeLinker.intermDirectory = stageDir;
+    if (activeLibrarian)
+    {
+        activeLibrarian.outputDirectory = stageDir;
+        activeLibrarian.intermDirectory = stageDir;
+        isShared = false;
+    }
+    else
+    {
+        activeCompiler.defines.add("_RWSHARED");
+        activeCompiler.defines.add("_RWBUILD_std");
+    }
+    
+    // sanity check
+    checkSanity();
+        
+    // check architecture
+    checkArchitecture();
+        
+    // headers and functions check
+    checkHeaders();
+
+    // compile .lib.cpp s
+    compileLibs();
+    
+    // compile, link and run .cpp's (if possible)
+    runExeTests();
+    
+    fso.MoveFile(stageFile , configFile);
+    WScript.Quit(0);
+}
+
+// performs compiler and linker sanity checks
+function checkSanity()
+{
+    var objName = stageDir + "\\sanity.obj";
+    removeFile(objName);
+    var srcName = stageDir + "\\sanity.cpp";
+    writeTextFile(srcName, "int main () { return 0; }\r\n");
+    WScript.StdOut.Write("Checking if compiler is sane... ");
+    var ret = compileFiles(srcName);
+    if (ret == 0)
+    {
+        WScript.StdOut.WriteLine("  ok");
+    }
+    else
+    {
+        WScript.StdErr.WriteLine(
+            "Configure: Fatal error: Compiler failed sanity check");
+        WScript.Quit(1);
+    }
+    
+    var exeName = "sanity.exe";
+    var exeFullName = stageDir + "\\" + exeName;
+    removeFile(exeFullName);
+    WScript.StdOut.Write("Checking if linker is sane... "); 
+    ret = linkFiles(objName, exeName);
+    if (ret == 0)
+    {
+        WScript.StdOut.WriteLine("  ok");
+    }
+    else
+    {
+        WScript.StdErr.WriteLine(
+            "Configure: Fatal error: Linker failed sanity check");
+        WScript.Quit(1);
+    }
+    
+    WScript.StdOut.Write("Checking if run environment is sane... ");
+    ret = WshShell.Run(exeFullName, runWindowMode, true);
+    if (ret == 0)
+    {
+        WScript.StdOut.WriteLine("  ok");
+    }
+    else
+    {
+        WScript.StdErr.WriteLine(
+            "Configure: Fatal error: \
+                Runtime environment failed sanity check");
+        WScript.Quit(1);
+    }
+}
+
+// removes file if it exists
+function removeFile(fileName)
+{
+    if (fso.FileExists(fileName))
+    {
+        fso.DeleteFile(fileName, true);
+    }
+}
+
+// writes text into a file
+function writeTextFile(fileName, fileContent)
+{
+    var stream = fso.CreateTextFile(fileName, true, false);
+    stream.Write(fileContent);
+    stream.Close();
+}
+
+// perform architecture check
+function checkArchitecture()
+{
+    //TODO: This test seems to be useless
+    WScript.StdOut.Write("Checking system architecture");
+    var types = new Array("int", "long", "long long", "void*");
+    var srcFile = stageDir + "\\arch.cpp";
+    var objFile = stageDir + "\\arch.obj";
+    var exeFile = "arch.exe";
+    var exeFullName = stageDir + "\\" + exeFile;
+    var sizes = "";
+    for (i in types)
+    {
+        var ret2;
+        removeFile(exeFullName);
+        removeFile(objFile);
+        removeFile(srcFile);
+        writeTextFile(srcFile
+            , "int main () { return sizeof (" + types[i] + "); }\r\n");
+        var ret = compileFiles(srcFile);
+        if (ret == 0)
+        {
+            ret = linkFiles(objFile, exeFile);
+            if (ret == 0)
+            {
+                ret2 = WshShell.Run(exeFullName, runWindowMode, true);
+            }
+        }
+        if (ret == 0)
+        {
+            sizes += new String(ret2);
+        }
+        else
+        {
+            sizes += "-";
+        }
+    }
+    var rxLP32 = /24?4/;
+    var rxILP32 = /44?4/;
+    var rxILP64 = /88?8/;
+    var rxLLP64 = /4488/;
+    var rxLP64 = /48?8/;
+    var arch;
+    if (rxLP32.test(sizes))
+    {
+        arch = "LP32";
+    }
+    else if (rxILP32.test(sizes))
+    {
+        arch = "ILP32";
+    }
+    else if (rxILP64.test(sizes))
+    {
+        arch = "ILP64";
+    }
+    else if (rxLLP64.test(sizes))
+    {
+        arch = "LLP64";
+    }
+    else if (rxLP64.test(sizes))
+    {
+        arch = "LP64";
+    }
+    else
+    {
+        arch = sizes;
+    }
+    // there is no known big endian architectures on Windows
+    WScript.StdOut.WriteLine("\t" + arch + " little endian");
+}
+
+// perform headers presence check
+function checkHeaders()
+{
+    var hdrs = "assert ctype errno float iso646 limits locale math setjmp";
+    hdrs += " signal stdarg stddef stdio stdlib string time wchar wctype";
+    hdrs += " new typeinfo";
+    hdrs += " ieeefp.h pthread.h";  
+    var headers = hdrs.split(" ");
+
+    WScript.StdOut.WriteLine("Checking for headers... ");
+
+    var noNewHeaders = false;
+    for (i in headers)
+    {
+        var h = headers[i];
+        var hdr_base = basename(h, "\\.h");
+        var hdr = h;
+        
+        if (hdr_base == h) // if header does not have .h
+        {
+            // check for C++ C library headers first
+            if (h != "new" && h != "typeinfo")
+            {
+                hdr = "c" + h;
+            }           
+            WScript.StdOut.Write("Checking for <" + hdr + ">... ");
+            var defstring = "_RWSTD_NO_" + hdr.toUpperCase();
+            if (checkHeader(hdr) == 0)
+            {
+                WScript.StdOut.WriteLine("  ok");
+                appendLineToOutFile("// #define " + defstring);
+            }
+            else
+            {
+                WScript.StdOut.WriteLine("\tno (" + defstring +")");
+                appendLineToOutFile("#define " + defstring);
+            // <ciso646> is a bogus header, ignore if missing
+            if (hdr != "ciso646")
+            {
+                noNewHeaders = true;
+            }
+        }
+    }
+    // check for (deprecated C++) C library headers
+    // or for any headers specified with the .h suffix
+    hdr = hdr_base + ".h";
+        WScript.StdOut.Write("Checking for <" + hdr + ">... ");
+    var sym = hdr_base.toUpperCase();
+    var defstring = "_RWSTD_NO_" + sym + "_H";
+    if (checkHeader(hdr) == 0)
+    {
+        var text = readTextFile(stageDir + "\\hdrcheck.i");
+        var rxInternalHdrName = 
+            new RegExp("^[^\"]* (\".*[/\\\\]" + hdr_base + "\\.h\")", "im");
+        var matches = rxInternalHdrName.exec(text);
+
+        // handle headers implemented internally by some compilers
+        // (such as <stdarg.h> with the vanilla EDG eccp)           
+        var path = hdr;
+        if (matches != null)
+        {
+            path = matches[1];
+        }
+        WScript.StdOut.WriteLine("  ok (" + path + ")");
+        if (hdr_base == h)
+        {
+            appendLineToOutFile("#define _RWSTD_ANSI_C_" + 
+                sym + "_H " + path);                
+        }
+        //TODO: it looks like original script has a problem with 
+        // dependencies here however it looks like it simply drops 
+        // unresolved dependencies
+        // else
+        // {
+        appendLineToOutFile("// #define " + defstring + 
+            " /* " + path + " */");
+        // }
+    }
+    else
+    {
+        WScript.StdOut.WriteLine("\tno (" + defstring +")");
+        appendLineToOutFile("#define " + defstring);
+    }
+}
+
+    // determine the support for namespaces
+    WScript.StdOut.Write("Checking for namespaces");
+    var noNamespaces = false;
+    var ret = compileFiles(srcDir + "\\NAMESPACE.CPP");
+    if (ret == 0)
+    {
+        WScript.StdOut.WriteLine("  ok");
+        appendLineToOutFile("// #define _RWSTD_NO_NAMESPACE");
+    }
+    else
+    {
+        WScript.StdOut.WriteLine("\tno (_RWSTD_NO_NAMESPACE)");
+        appendLineToOutFile("#define _RWSTD_NO_NAMESPACE");
+        noNamespaces = true;
+    }
+    
+    // determine wheteher each function is declared/defined
+    // create a test source file template into which each iteration below
+    // substitutes the header name, function name, and function arguments
+    var srcFile = scriptDir + "\\fun_present_check.cpp";
+    var objFile = stageDir + "\\fun_present_check.obj";
+    var exeFile = "fun_present_check.exe";
+    var exeFullName = stageDir + "\\" + exeFile;
+    
+    var funs;
+    var lib;
+    for (i in headers)
+    {
+        var hdr_base = headers[i];
+        switch (hdr_base)
+        {
+        case "math":
+            var c90_funs = "acos(0.0) asin(0.0) atan(0.0) atan2(0.0,0.0)";
+            c90_funs += " ceil(0.0) cos(0.0) cosh(0.0) exp(0.0) fabs(0.0)";
+            c90_funs += 
+                " floor(0.0) fmod(0.0,0.0) frexp(0.0,0) ldexp(0.0,0)";
+            c90_funs += " log(0.0) log10(0.0) modf(0.0,0) pow(0.0,0.0)";
+            c90_funs += " sin(0.0) sinh(0.0) sqrt(0.0) tan(0.0) tanh(0.0)";
+            c90_funs += " acosf asinf atanf atan2f ceilf cosf coshf expf";
+            c90_funs += " fabsf floorf fmodf frexpf ldexpf logf log10f";
+            c90_funs += " modff powf sinf sinhf sqrtf tanf tanhf acosl";
+            c90_funs += " asinl atanl atan2l ceill cosl coshl expl fabsl";
+            c90_funs += " floorl fmodl frexpl ldexpl logl log10l modfl";
+            c90_funs += " powl sinl sinhl sqrtl tanl tanhl";
+            c90_funs = c90_funs.split(" ");
+            
+            // ignore C99 functions for now
+            // var c99_funs = 
+            //  "cbrtf copysignf erfcf erff expm1f exp2f fdimf";
+            // c99_funs += " fmaf fmaxf fminf hypotf ilogbf lgammaf logbf";
+            // c99_funs += 
+            //  " log1pf log2f llrintf lrintf lroundf llroundf nanf";
+            // c99_funs += " nearbyintf nextafterf nexttowardf remainderf";
+            // c99_funs += " remquof rintf roundf scalbnf scalblnf tgammaf";
+            // c99_funs += " cbrt copysign erf erfc expm1 exp2 fdim fma";
+            // c99_funs += " fmax fmin hypot ilogb lgamma logb log1p log2";
+            // c99_funs += 
+            //  " llrint lrint lround llround nan nearbyint nextafter";
+            // c99_funs += " nexttoward remainder remquo rint round scalbn";
+            // c99_funs += 
+            //  " scalbln tgamma cbrtl copysignl erfcl erfl expm1l";
+            // c99_funs += 
+            //  " exp2l fdiml fmal fmaxl fminl hypotl ilogbl lgammal";
+            // c99_funs += 
+            //  " logbl log1pl log2l llrintl lrintl lroundl llroundl nanl";
+            // c99_funs += " nearbyintl nextafterl nexttowardl remainderl";
+            // c99_funs += " remquol rintl roundl scalbnl scalblnl tgammal";
+            // c99_funs = c99_funs.split(" ");
+            
+            funs = c90_funs;
+            // that seems to be useless on Windows since there is no libm
+            lib = "m";
+            break;
+        case "stdio":           
+            var c90_funs = 
+                "clearerr fclose feof ferror fflush fgetc fgetpos";
+            c90_funs += " fgets fopen fprintf fputc fputs fread freopen";
+            c90_funs += " fscanf fseek fsetpos ftell fwrite getc getchar";
+            c90_funs += " gets perror printf putc putchar puts remove";
+            c90_funs += " rename rewind scanf setbuf setvbuf sprintf";
+            c90_funs += " sscanf tmpfile tmpnam ungetc vfprintf vprintf";
+            c90_funs += " vsprintf";
+            c90_funs =c90_funs.split(" ");
+            
+            var c99_funs = "snprintf vsnprintf".split(" ");
+            var posix_funs = "fileno".split(" ");
+            funs = c90_funs.concat(c99_funs, posix_funs);
+            lib = "c";
+            break;
+        case "stdlib":
+            var c90_funs = 
+                "abort abs atexit atof atoi atol atoll bsearch calloc";
+            c90_funs += " div exit free getenv labs ldiv llabs lldiv malloc";
+            c90_funs += " mblen mbstowcs mbtowc qsort rand realloc srand";
+            c90_funs += " strtod strtol strtoul system wcstombs wctomb";
+            c90_funs = c90_funs.split(" ");
+            
+            var c99_funs = "strtof strtold strtoll strtoull".split(" ");
+            var posix_funs = "mkstemp".split(" ");
+            funs = c90_funs.concat(c99_funs, posix_funs);
+            lib = "c";
+            break;
+            case "string":
+            funs = 
+                "memchr((char*)0,0,0) memcmp memcpy memmove memset strcat";
+            funs += 
+         " strchr((char*)0,0) strcmp strcoll strcpy strcspn strerror strlen";
+            funs += " strncat strncmp strncpy strpbrk((char*)0,(char*)0)";
+            funs += " strrchr((char*)0,0) strspn strstr((char*)0,(char*)0)";
+            funs += " strtok strxfrm";
+            funs = funs.split(" ");
+            lib = "c";
+            break;
+            case "wchar":
+            funs = 
+                "btowc fgetwc fgetws fputwc fputws fwide fwprintf fwscanf";
+            funs += " getwc getwchar mbrlen mbrtowc mbsinit mbsrtowcs putwc";
+            funs += " putwchar swprintf swscanf ungetwc vfwprintf vswprintf";
+            funs += " vwprintf vwscanf wcrtomb wcscat wcschr((wchar_t*)0,0)";
+            funs += " wcscmp wcscoll wcscpy wcscspn wcsftime wcslen wcsncat";
+            funs += " wcsncmp wcsncpy wcspbrk((wchar_t*)0,(wchar_t*)0)";
+            funs += " wcsrchr((wchar_t*)0,0) wcsrtombs wcsspn";
+            funs += 
+             " wcsstr((wchar_t*)0,(wchar_t*)0) wcstod wcstod wcstof wcstok";
+            funs += 
+                " wcstol wcstold wcstoll wcstombs wcstoul wcstoull wcsxfrm";
+            funs += " wctob wctomb wmemchr((wchar_t*)0,0,0) wmemcmp wmemcpy";
+            funs += " wmemmove wmemset wprintf wscanf";
+            funs = funs.split(" ");         
+            lib = "c";
+            break;
+            case "wctype":
+            // 7.15 of ISO/IEC 9899:1990/Amendment 1:1995
+            funs += "iswalpha iswalnum iswcntrl iswdigit iswgraph iswlower";
+            funs += " iswprint iswpunct iswspace iswupper iswxdigit wctype";
+            funs += " iswctype towlower towupper wctrans towctrans";
+            funs = funs.split(" ");
+            lib = "c";
+        default:
+            continue;
+        }
+        
+        var useCHeader = false;
+        for (j in funs)
+        {
+            var fun = funs[j];
+            // determine whether the tested function is followed by
+            // a function argument list; if so, call it, otherwise
+            // take its address         
+            var take_addr = 1;
+            var funname = fun;
+            var paramsIndx = fun.indexOf("(");
+            if (paramsIndx != -1)
+            {
+                take_addr = 0;
+                funname = fun.substr(0, paramsIndx);
+            }
+
+            // starting with acosf(), look in <math.h> rather than <cmath>
+            if (fun == "acosf")
+            {
+                useCHeader = true;
+            }
+
+            var std = "";
+        
+            // determine which form of the header to #include
+            var hdrname = hdr_base + ".h";
+            if (!useCHeader && !noNewHeaders)
+            {
+                hdrname = "c" + hdr_base;
+                if (!noNamespaces)
+                {
+                    std = "std::";
+                }
+            }
+
+            removeFile(exeFullName);
+            removeFile(objFile);        
+            WScript.StdOut.Write("Checking for " + std + funname + "() in "
+                                     + hdrname + "... ");
+            var sym = "_RWSTD_NO_" + funname.toUpperCase();
+            var defines = new Array("CHECK_DECL", "HDRNAME=<" + hdrname + ">"
+                                , "FUNNAME=" + funname
+                                , "FUN=" + fun, "TAKE_ADDR=" + take_addr);
+            if (noNamespaces)
+            {
+                defines.push("NONAMESPACE");
+            }
+            var ret = compileFiles(srcFile, defines);
+            if (ret == 0)
+            {
+                ret = linkFiles(objFile, exeFile);
+            }
+            if (ret == 0)
+            {
+                WScript.StdOut.WriteLine("  ok");
+                appendLineToOutFile("// #define " + sym);
+            }
+            else
+            {
+                // if a symbol isn't declared in the header,
+                // see if it maybe exists in the library
+                WScript.StdOut.WriteLine("\tno");
+                appendLineToOutFile("#define " + sym);
+                // that is quite strange because there is no LIBM on Windows?
+                sym = sym + "_IN_LIB" + lib.toUpperCase();
+
+                removeFile(exeFullName);
+                removeFile(objFile);
+                WScript.StdOut.Write("Checking for extern \"C\" "
+                                        + funname + "() in libc... ");
+                ret = compileFiles(srcFile, "FUNNAME=" + funname);
+                if (ret == 0)
+                {
+                    ret = linkFiles(objFile, exeFile);
+                }
+                if (ret == 0)
+                {
+                    WScript.StdOut.WriteLine("  ok");
+                    appendLineToOutFile("// #define " + sym);
+                }
+                else
+                {
+                    WScript.StdOut.WriteLine("  no");
+                    appendLineToOutFile("#define " + sym);
+                }
+            }
+        }
+    }
+    //TODO: there are also some <cmath> related stuff in 
+    //the libc_decl.sh but it is unreachable.
+}
+
+// removes extension from fileName if it is present
+function basename(fileName, extension)
+{
+    var rx = new RegExp(extension + "$", "i");
+    return fileName.replace(rx, "");
+}
+
+// check for presense of the header
+function checkHeader(header)
+{   
+    var srcFile = stageDir + "\\hdrcheck.cpp";
+    var preprocFile = stageDir + "\\hdrcheck.i";
+    removeFile(preprocFile);
+    removeFile(srcFile);
+    writeTextFile(srcFile, "#include <" + header + ">\r\n");
+    return preprocessFile(srcFile, preprocFile);
+}
+
+// appends text line to the stage file (config.h.tmp)
+function appendLineToOutFile(line)
+{
+    var stream = fso.OpenTextFile(stageFile, 8, true, 0);
+    stream.WriteLine(line);
+    stream.Close();
+}
+
+// reads text file into a string
+function readTextFile(fileName)
+{
+    var stream = fso.OpenTextFile(fileName, 1, false, 0);
+    var text = stream.ReadAll();
+    stream.Close();
+    return text;
+}
+
+//compiles all libraries (.lib.cpp files)
+function compileLibs()
+{
+    var folder = fso.GetFolder(srcDir);
+    var fc = new Enumerator(folder.Files);
+    for (; !fc.atEnd(); fc.moveNext())
+    {
+        var file = fc.item();
+        if (!(/\.lib\.cpp$/i).test(file.Name))
+        {
+             continue; //not a library file
+        }
+        var outLibName = file.Name.replace(/\.cpp/i, 
+            isShared ? ".dll" : ".lib");
+        if (makeLibrary(srcDir + "\\" + file.Name, stageDir
+                        , outLibName, isShared) != 0)
+        {
+            WScript.StdErr.WriteLine(
+                "Configure: Fatal error: Failed to build library " 
+                    + outLibName);
+            WScript.Quit(1);
+        }
+    }
+}
+
+// gets description from text if present
+function getDescription(text)
+{
+    // description shall be the first line in format "// description"
+    var idx = text.indexOf("\r");
+    if (idx == -1)
+    {
+        idx = text.indexOf("\n");
+        if (idx == -1)
+        {
+            idx = text.length;
+        }
+    }
+    var firstLine = text.substr(0, idx);
+    var results = /\/\/\s*(.*)/.exec(firstLine);
+    if (results == null)
+    {
+        return "";
+    }
+    return results[1];
+}
+
+// compiles, links and runs (if possible) all .cpp (except .lib.cpp files)
+function runExeTests()
+{
+    // first determine all files to be processed
+    var folder = fso.GetFolder(srcDir);
+    var fc = new Enumerator(folder.Files);
+    var srcs = new Array();
+    for (; !fc.atEnd(); fc.moveNext())
+    {
+        var file = fc.item();
+        if (!/(?!.*\.lib\.cpp)\.cpp$/.test(file.Name))
+        {
+             continue; // not an "exe" cpp file
+        }
+        srcs.push(file.Name); // save file name for processing
+    }
+
+    // WScript.StdOut.WriteLine("Running tests " + srcs.join(" "));
+    
+    // first dependency of a file on _RWSTD_ variables will be checked
+    // if undefined variable will be found file will be postponed 
+    // for the next iteration
+    // iterations will continue until there will be no postponed files
+    // or circular dependency will be found (on some step all files
+    // will be postponed)
+    var configText = readTextFile(stageFile); // cache config contents
+    do
+    {
+        var postponed = new Array();
+        for (i in srcs)
+        {
+            var test = srcs[i];
+            var srcFile = srcDir + "\\" + test;
+            var srcText = readTextFile(srcFile);
+            if (!checkDependencies(srcText, configText))
+            {
+                // undefined dependencies found. test shall be postponed
+                postponed.push(test);
+                continue;
+            }
+            var descText = getDescription(srcText);
+            if (descText && descText != "")
+                WScript.StdOut.Write(descText + "... ");
+                
+            var symbol = "#define _RWSTD_";
+            var outSymbol = "_RWSTD_";
+            var base = basename(test, "\\.cpp");
+            var negate = !(/^NO_/.test(base));
+            if (negate)
+            {
+                symbol += "NO_";
+                outSymbol += "NO_";
+            }
+            symbol += base;
+            outSymbol += base;
+            
+            var textResult = ""; // text output of a test
+            // compile file
+            var result = compileFiles(srcFile);
+            if (result == 0 && /\s*main\s*\(/.test(srcText))            
+            {
+                // main function present. file is runnable
+                // get library and object dependencies
+                var fileBase = stageDir + "\\" + base;
+                var modules =  fileBase + ".obj";
+                var ldopts = 
+                    (/^[^A-Z_a-z0-9]*LDOPTS\s*=\s*(.*)$/m).exec(srcText);
+                if (ldopts != null)
+                {
+                    // remove first "./" and replace $(LIBSUFFIX) with .lib
+                    modules += " " + ldopts[1].replace(/^\.\//, 
+                        activeCompiler.outputDirectory + 
+                        "\\").replace(/\$\(LIBSUFFIX\)/, ".lib");
+                }
+                var exeFile = base + ".exe";
+                var fullExeName = fileBase + ".exe";
+                result = linkFiles(modules, exeFile);
+                if (result == 0) // can execute
+                {
+                    var exec = WshShell.Exec(fullExeName);
+                    var time = 0;
+                    while (exec.Status == 0)
+                    {
+                        WScript.Sleep(100); // wait for completion
+                        time += 100;
+                        if (time > timeOut)
+                        {
+                            WScript.StdErr.WriteLine(
+                                "Configure: Fatal error: Test " + test
+                                 + " failed to complete in " + timeOut / 1000
+                                 + " seconds");
+                            WScript.Quit(3);
+                        }
+                    }
+                    result = exec.ExitCode;
+                    textResult = exec.StdOut.ReadAll();
+                }
+            }
+            // append symbol result
+            // !((result == 0 && !negate) || (result != 0 && negate))
+            if (!((result == 0) ^ negate))
+            {
+                symbol = "// " + symbol;
+            }
+            appendLineToOutFile(symbol);
+            if (descText && descText != "")
+                WScript.StdOut.WriteLine("  ok " + outSymbol);
+                
+            // append text results if present
+            if (textResult.length != 0)
+            {
+                appendLineToOutFile(textResult);
+            }
+            // update cache since config file is changed
+            configText = readTextFile(stageFile);
+        }
+
+        if (postponed.length == srcs.length) // circular dependency
+        {
+            WScript.StdErr.Write(
+                "Configure: Fatal error: Circular dependencies found");
+            WScript.StdErr.WriteLine(" in the following tests:");
+            WScript.StdErr.WriteLine(postponed.join(" "));
+            for (i in postponed)
+            {
+                var test = postponed[i];
+                WScript.StdErr.Write("File: " + test + "\t");
+                var srcFile = srcDir + "\\" + test;
+                var srcText = readTextFile(srcFile);
+                checkDependencies(srcText, configText, true);               
+            }
+            WScript.Quit(1);
+        }
+        srcs = postponed;
+    }
+    while (srcs.length != 0);
+}
+
+// located dependencies (symbols _RWSTD_XXX and _RWSTD_NO_XXX) in a text
+// and checks that they are already defined (present in the config file text)
+function checkDependencies(srcText, configText, dumpUnresolved)
+{
+    var deps = srcText.match(/^\s*#\s*ifn?def\s+_RWSTD_(?!USE_CONFIG)\S+/gm);
+    if (deps == null) // no dependencies
+    {
+        return true;
+    }       
+
+    for (i = 0; i < deps.length; ++i)
+    {
+        var dep = /_RWSTD_(?:NO_)?(\S+)/.exec(deps[i])[1];
+        // remove _IN_LIBC | _IN_LIBM from dependency string
+        dep = dep.replace(/_IN_LIB[CM]/, "");
+        if ((/\.lib$/i).test(dep)) // skip libraries
+        {
+            continue;
+        }
+        var rx = new RegExp("_RWSTD_NO_" + dep);
+        if (!rx.test(configText))
+        {
+            if (dumpUnresolved)
+            {
+                WScript.StdErr.WriteLine("unresolved dependency: " + dep);
+            }
+            return false;
+        }
+    }
+    return true;
+}
+
+// check that file is writable
+function touchFile(fileName)
+{   
+    try
+    {
+        if (fso.FileExists(fileName))
+        {
+            var stream = fso.OpenTextFile(fileName, 8,  false, 0);
+            stream.Close();
+        }
+        else
+        {
+            var stream = fso.CreateTextFile(fileName, false, false);
+            stream.Close();
+            fso.DeleteFile(fileName);
+        }
+    }
+    catch (e)
+    {
+        return false;
+    }
+    return true;
+}
+]]>
+        </script>
+    </job>
+</package>
+

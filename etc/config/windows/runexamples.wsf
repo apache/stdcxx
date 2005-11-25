@@ -1,0 +1,536 @@
+<?xml version="1.0" ?>
+<package>
+    <comment>
+    PrimalCode wizard generated file.
+    </comment>
+    <job id="runexamples" prompt="no">
+        <?job error="false" debug="false" ?>
+        <runtime>
+            <description>
+runs examples and checks results.
+            </description>
+            <named helpstring="The root directory with executables" 
+                name="EXEDIR" required="true" type="string"/>
+            <named helpstring="The root directory with .in and .out files" 
+                name="INOUTDIR" required="true" type="string"/>
+            <named helpstring="The build type" name="BUILDTYPE" 
+                required="true" type="string"/>
+            <named helpstring="The log file" name="LOGFILE" 
+                required="false" type="string"/>
+            <example>
+            cscript runexamples.wsf /EXEDIR:"C:\stdcxx\build" 
+            /INOUTDIR:"C:\stdcxx\build" /BUILDTYPE:11d
+            </example>
+            <usage>
+Usage: cscript runexamples.wsf /EXEDIR:@EXEDIR /INOUTDIR:@INOUTDIR 
+/BUILDTYPE:@BUILDTYPE [/LOGFILE:@LOGFILE]
+where
+@EXEDIR is the root directory with executables ro be run and checked,
+@TOPDIR is the root directory with .in and .out files 
+required by executables,
+@BUILDTYPE is the build type (11d, 11s, etc).
+@LOGFILE is the log file name.
+            </usage>
+        </runtime>
+        <object id="fso" progid="Scripting.FileSystemObject"/>
+        <object id="WshShell" progid="WScript.Shell"/>
+        <script language="JScript" src="config.js"/>
+        <script language="JScript" src="utilities.js"/>
+        <script language="JScript" src="summary.js"/>
+        <script id="exrunner" language="JScript">
+<![CDATA[
+//
+// Examples running script for stdcxx library
+//
+
+var examplesDir = ""; // path to the root directory containing executables
+var inoutDir = "";    // path to the root directory 
+    // containing the .in and .out files
+var buildType = ""      // the buid type (11d, 11s, etc)
+var logFileName = ""; // the log file name
+var logFileDefault = "runexamples.log"; // the default log file name
+
+var varIn = "in";
+var varOut = "out";
+
+var exRun = 0;
+var exRunSucceeded = 0;
+var exRunFailed = 0;
+var exRunTimedOut = 0;
+var exBadCode = 0;
+
+var runTimeout = 10000; //30000
+var runSleepStep = 100;
+
+var buildlogFile = "BuildLog.htm";
+var summaryFileName = "Summary.htm";
+var htmFolderName = "temphtm";
+    
+var description = new runexamples; // run
+
+function runexamples()
+{
+    readAndCheckArguments();
+    
+    var buildOutDir = examplesDir + "\\" + buildType;
+    if (! fso.FolderExists(buildOutDir))
+        fso.CreateFolder(buildOutDir);
+        
+    var fLog = fso.CreateTextFile(examplesDir + "\\" + logFileName);
+    var fSummary = fso.CreateTextFile(buildOutDir + "\\" + summaryFileName);
+    
+    runAllExamples(examplesDir, inoutDir, fLog, fSummary);
+    
+    WScript.Echo("Total run " + exRun + "; " + exRunSucceeded 
+        + " succeeded, " 
+        +  exRunFailed + " failed, " + exRunTimedOut 
+        + " failed because of timeout, " + exBadCode 
+        + " exited with non-zero code");
+        
+    fLog.WriteLine("Total run " + exRun + "; " + exRunSucceeded 
+        + " succeeded, " 
+        +  exRunFailed + " failed, " + exRunTimedOut 
+        + " failed because of timeout, " + exBadCode
+        + " exited with non-zero code");
+        
+    fLog.Close();
+    fSummary.Close();
+    
+    WScript.Quit(0);
+}
+
+function readAndCheckArguments()
+{
+    if (!WScript.Arguments.Named.Exists("EXEDIR"))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Missing required argument EXEDIR.");
+        WScript.Arguments.ShowUsage();
+        WScript.Quit(2);
+    }
+    
+    if (!WScript.Arguments.Named.Exists("INOUTDIR"))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Missing required argument INOUTDIR.");
+        WScript.Arguments.ShowUsage();
+        WScript.Quit(2);
+    }
+    
+    if (!WScript.Arguments.Named.Exists("BUILDTYPE"))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Missing required argument BUILDTYPE.");
+        WScript.Arguments.ShowUsage();
+        WScript.Quit(2);
+    }
+    
+    examplesDir =  WScript.Arguments.Named("EXEDIR");
+    inoutDir =  WScript.Arguments.Named("INOUTDIR");
+    buildType = WScript.Arguments.Named("BUILDTYPE");
+    
+    if (WScript.Arguments.Named.Exists("LOGFILE"))
+        logFileName = WScript.Arguments.Named("LOGFILE");
+    else
+        logFileName = logFileDefault;
+    
+    if (! fso.FolderExists(examplesDir))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Could not find directory " + examplesDir);
+            
+        WScript.Quit(3);
+    }
+    
+    if (! fso.FolderExists(inoutDir))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Could not find directory " + inoutDir);
+            
+        WScript.Quit(3);
+    }
+}
+
+function runAllExamples(exeDir, srcDir, fileLog, fileSummary)
+{
+    var exeFolder = fso.GetFolder(exeDir);
+    if (! exeFolder)
+        return;
+        
+    var enumExeSubFolders = new Enumerator(exeFolder.SubFolders);
+    for (; !enumExeSubFolders.atEnd(); enumExeSubFolders.moveNext())
+    {
+        var exeFolderName = enumExeSubFolders.item().Name;
+        
+        var newSrc = srcDir;
+        if (exeFolderName != buildType)
+            newSrc += "\\" + exeFolderName;
+            
+        runAllExamples(exeDir + "\\" + exeFolderName, 
+            newSrc, fileLog, fileSummary);
+    }
+    
+    if (exeFolder.Name != buildType)
+        return;
+    
+    var rx = new RegExp("^.+\\.(?:exe)$", "i");
+    var enumExeFiles = new Enumerator(exeFolder.Files);
+    for (; !enumExeFiles.atEnd(); enumExeFiles.moveNext())
+    {
+        var exeFileName = enumExeFiles.item().Name;
+        if (! rx.test(exeFileName))
+            continue;
+            
+        var htmDir = exeDir + "\\" + htmFolderName;
+        if (! fso.FolderExists(htmDir))
+            fso.CreateFolder(htmDir);
+            
+        var itemInfo = 
+            new ItemBuildInfo(getPureFileName(exeFileName, "exe"));
+            
+        var inData = readInFile(srcDir, exeFileName);
+                
+        var outData = readOutFile(srcDir, exeFileName);
+            
+        // run example
+        var runCmd = exeDir + "\\" + exeFileName;
+        WScript.Echo("running1 " + exeFileName);
+        fileLog.WriteLine("running " + exeFileName);
+            
+        exRun++;
+        
+        if (inData != "" || outData != "")
+            runWithChecks(runCmd, itemInfo, inData, outData, fileLog);
+        else
+            runNoChecks(runCmd, exeFileName, itemInfo, fileLog); 
+            
+        readBuildLog(exeDir, itemInfo);
+        saveBuildInfo(itemInfo, htmDir, "htm"); 
+        saveBuildSummary(itemInfo, fileSummary);
+    }
+}
+
+
+function runNoChecks(cmd, exeFileName, itemInfo, fileLog)
+{
+    var scriptPath = WScript.ScriptFullName;
+    var pathIndex = scriptPath.lastIndexOf(WScript.ScriptName);
+    scriptPath = scriptPath.substr(0, pathIndex);
+        
+    var tempFileName = makeTempFile();
+    var runCmdTimeOut = 7000;
+    
+    var runCmd = "cscript /nologo \"" + scriptPath + "runexe.wsf" + "\"" +
+        " /RUNCMD:\"" + cmd + " < NUL: " + "\"" + 
+        " /OUTFILE:\"" + tempFileName + "\"";
+    
+    var tStartDate = new Date();
+    var tStartTime = tStartDate.getTime();
+    
+    var timeOutOccurred = false;
+    var oExec = WshShell.Exec(runCmd);
+    while (oExec.Status == 0)
+    {   
+        WScript.Sleep(500);
+        
+        var tCurDate = new Date();
+        var tCurTime = tCurDate.getTime();
+        if (tCurTime - tStartTime > runCmdTimeOut)
+        {
+            timeOutOccurred = true;
+            //WScript.Echo("its time to terminate");
+            try
+            {
+                inspectProcesses(exeFileName, true);
+                //WScript.Echo(exeFileName + " terminated");
+                oExec.Terminate();
+                //WScript.Echo("terminated");
+            }
+            catch(e)
+            {
+                WScript.Echo("error during termination");
+            }
+            
+            break;
+        }
+    }
+    
+    if (timeOutOccurred == true)
+        itemInfo.exitCode = 5;
+    else
+        itemInfo.exitCode = oExec.ExitCode;
+        
+    itemInfo.runDiff = "";
+    itemInfo.runOutput = "";
+    
+    //WScript.Echo("run script finished with code " + itemInfo.exitCode);
+    
+    var tFinishDate = new Date();
+    var tFinishTime = tFinishDate.getTime();
+    
+    //WScript.Echo("time difference is " + (tFinishTime - tStartTime));
+    
+    try
+    {   
+        var tempFile = fso.OpenTextFile(tempFileName, 1);
+        
+        var exeOutput = "";
+        if (! tempFile.AtEndOfStream)
+          exeOutput = tempFile.ReadAll();
+            
+        itemInfo.runOutput = exeOutput;
+        //WScript.Echo(itemInfo.runOutput);
+        
+        tempFile.Close();
+        fso.DeleteFile(tempFileName);
+    }
+    catch(e)
+    {
+        WScript.Echo("Could not delete temporary file " + tempFileName);
+    }
+      
+    if (itemInfo.exitCode != 0)
+        exBadCode++;
+  
+    exRunSucceeded++;
+  
+    WScript.Echo("example succeeded! Exit code " + itemInfo.exitCode);
+    fileLog.WriteLine(itemInfo.name + " completed successfully, exit code "
+        + itemInfo.exitCode);
+   
+    WScript.Echo("   ");
+    fileLog.WriteLine(" ");
+}
+
+
+function inspectProcesses(exeName, bKill)
+{
+    var e = new Enumerator(GetObject("winmgmts:").InstancesOf("Win32_process"))
+    
+    for (; !e.atEnd(); e.moveNext())
+    {
+        var Process = e.item();
+        //WScript.echo (Process.Name + "\t" + Process.processid)
+        
+        if (Process.Name == exeName)
+        {
+            if (true == bKill)
+            {
+                //WScript.Echo("find process to be killed: " + exeName);
+                Process.Terminate();
+            }
+        }
+    }
+}
+
+
+/*
+function runNoChecks(cmd, itemInfo, fileLog)
+{
+    // make no input
+    cmd += " < NUL:";
+    
+    var oExec = WshShell.Exec(cmd);
+    if (! oExec)
+    {
+        WScript.Echo(itemInfo.name + " failed to run");
+        return;
+    }
+    
+    var exeOutput = "";
+    var sleeping = 0;
+    while (oExec.Status == 0)
+    {
+        WScript.Sleep(runSleepStep);
+        sleeping += runSleepStep;
+            
+        if (sleeping >= runTimeout)
+        {                       
+            exRunTimedOut++;
+            oExec.Terminate();
+                
+            WScript.Echo("terminated because of timeout");
+            WScript.Echo("   ");
+                
+            fileLog.WriteLine(cmd + " terminated because of timeout");
+            fileLog.WriteLine(" ");
+                
+            itemInfo.exitCode = 5;
+            
+            return;
+        }
+    }
+  
+    var exeOutput = "";
+    if (sleeping < runTimeout)
+        exeOutput += oExec.StdOut.ReadAll();
+        
+    WScript.Echo(exeOutput);
+      
+    if (oExec.ExitCode != 0)
+        exBadCode++;
+      
+    exRunSucceeded++;
+      
+    itemInfo.runOutput = exeOutput;
+    itemInfo.exitCode = oExec.ExitCode;
+    itemInfo.runDiff = "";
+      
+    WScript.Echo("example succeeded! Exit code " + oExec.ExitCode);
+    fileLog.WriteLine(itemInfo.name + " completed successfully, exit code "
+        + oExec.ExitCode);
+       
+    WScript.Echo("   ");
+    fileLog.WriteLine(" ");
+}
+*/
+
+function runWithChecks(cmd, itemInfo, inData, outData, fileLog)
+{
+    if (inData == "")
+        cmd += " < NUL:";
+    
+    var oExec = WshShell.Exec(cmd);
+    if (! oExec)
+    {
+        WScript.Echo(itemInfo.name + " failed to run");
+        return;
+    }
+            
+    if (inData != "")
+    {
+        WScript.Sleep(runSleepStep * 10);
+        oExec.StdIn.Write(inData + "\n" + String.fromCharCode(26) );
+    }
+        
+    var exeOutput = "";
+    var sleeping = 0;
+    while (oExec.Status == 0)
+    {
+        WScript.Sleep(runSleepStep);
+        sleeping += runSleepStep;
+        
+        if (sleeping >= runTimeout)
+        {                       
+            exRunTimedOut++;
+            oExec.Terminate();
+            
+            WScript.Echo("terminated because of timeout");
+            WScript.Echo("   ");
+            
+            fileLog.WriteLine(itemInfo.name + 
+                " terminated because of timeout");
+                
+            fileLog.WriteLine(" ");
+            
+            itemInfo.exitCode = 3;
+        
+            return;
+        }
+    }
+            
+    if (sleeping < runTimeout)
+        exeOutput += oExec.StdOut.ReadAll();
+    
+    var errText = oExec.StdErr.ReadAll();
+    if (errText != "")
+        WScript.Echo(errText);
+    
+    if (oExec.ExitCode != 0)
+        exBadCode++;
+    
+    itemInfo.runOutput = exeOutput;
+    itemInfo.exitCode = oExec.ExitCode;
+    itemInfo.runReqOutput = outData;
+  
+    if (exeOutput == outData)
+    {
+        itemInfo.runDiff = "";
+    
+        exRunSucceeded++;
+        WScript.Echo("example succeeded! Exit code " + oExec.ExitCode);
+        fileLog.WriteLine(itemInfo.name + 
+            " completed successfully, exit code " +
+            oExec.ExitCode);
+    }
+    else
+    {
+        WScript.Echo("example output differs from the expected");
+        getDifferencesInfo(itemInfo);
+    
+        exRunFailed++;
+        WScript.Echo("example failed! Exit code " + oExec.ExitCode);
+        fileLog.WriteLine(itemInfo.name + 
+            " completed with errors, exit code " +
+            oExec.ExitCode);
+    }
+    
+    WScript.Echo("   ");
+    fileLog.WriteLine(" ");
+}
+
+function readAllFromFile(srcDir, exeFileName, nameSuffix)
+{   
+    if (! fso.FolderExists(srcDir))
+        return "";
+        
+    var pureName = getPureFileName(exeFileName, "exe");
+        
+    var someDir = srcDir + "\\" + nameSuffix;
+    if (! fso.FolderExists(someDir))
+        return "";
+        
+    var someFileName = someDir + "\\" + pureName + "." + nameSuffix;
+    if (! fso.FileExists(someFileName))
+        return "";
+        
+    var someFile = fso.OpenTextFile(someFileName);
+    if (! someFile)
+        return "";
+        
+    return (someFile.ReadAll());
+}
+
+function readInFile(srcDir, exeFileName)
+{
+    return readAllFromFile(srcDir, exeFileName, varIn);
+}
+
+function readOutFile(srcDir, exeFileName)
+{
+    var outData = readAllFromFile(srcDir, exeFileName, varOut);
+    
+    var eolStr = String.fromCharCode(13) + String.fromCharCode(10);
+    var idxEOL = outData.indexOf(eolStr);
+    var outBegin = (idxEOL != -1) ? outData.substr(0, idxEOL) : outData;
+    var rgWords = outBegin.split(" ");
+    if (rgWords[0] != "link")
+        return outData;
+    
+    // try to open file using the link
+    var linkedFileName = srcDir + "\\" + varOut + "\\" + rgWords[1];
+    if (! fso.FileExists(linkedFileName))
+        return outData;
+            
+    var linkedFile = fso.OpenTextFile(linkedFileName);
+    if (! linkedFile)
+        return "";
+            
+    return (linkedFile.ReadAll());
+}
+
+function getPureFileName(fileName, fileExtension)
+{   
+    var pureName = fileName;
+    var indexTmp = fileName.lastIndexOf("." + fileExtension);
+    if (indexTmp != -1)
+        pureName = fileName.substr(0, indexTmp);
+        
+    return pureName;
+}
+
+
+]]>
+        </script>
+    </job>
+</package>
