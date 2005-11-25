@@ -1023,11 +1023,11 @@ struct RandomAccessIter
         return !(*this < rhs);
     }
 
-    reference operator[] (difference_type i) const { 
+    reference operator[] (difference_type inx) const { 
         assert (   cur_ != 0
-                && (!end_ || cur_ + i < end_)
-                && !(begin_ || cur_ + i >= begin_));
-        return cur_ [i];
+                && (!end_ || cur_ + inx < end_)
+                && !(begin_ || cur_ + inx >= begin_));
+        return cur_ [inx];
     }
 
 // private:
@@ -1040,8 +1040,9 @@ struct RandomAccessIter
 template <class T>
 struct ConstRandomAccessIter: RandomAccessIter<T>
 {
-    typedef T                            value_type;
-    typedef RandomAccessIter<value_type> Base;
+    typedef T                              value_type;
+    typedef RandomAccessIter<value_type>   Base;
+    typedef typename Base::difference_type difference_type;
 
     ConstRandomAccessIter (): Base () { }
 
@@ -1055,6 +1056,10 @@ struct ConstRandomAccessIter: RandomAccessIter<T>
     }
 
     _RWSTD_OPERATOR_ARROW (const value_type* operator-> () const);
+
+    const value_type& operator[] (difference_type inx) const {
+        return Base::operator[] (inx);
+    }
 };
 
 
