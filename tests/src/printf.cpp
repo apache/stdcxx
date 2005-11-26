@@ -2184,19 +2184,12 @@ _rw_fmtsignal (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
         }
     }
 
-    int len;
-
     if (0 == name) {
-        len = sprintf (buffer, "SIG#%d", val);
+        sprintf (buffer, "SIG#%d", val);
         name = buffer;
     }
-    else
-        len = int (strlen (name));
 
-    if (0 == _rw_bufcat (pbuf, pbufsize, name, size_t (len)))
-        return -1;
-
-    return len;
+    return _rw_fmtstr (spec, pbuf, pbufsize, name, _RWSTD_SIZE_MAX);
 }
 
 /********************************************************************/
@@ -3328,9 +3321,17 @@ _rw_vfprintf (rw_file *file, const char *fmt, va_list va)
 
     const int nchars = rw_vasnprintf (&buf, &bufsize, fmt, va);
 
+    // FIXME: implement this in terms of POSIX write()
+    //        for async-signal safety
+    FILE* const stdio_file = _RWSTD_REINTERPRET_CAST (FILE*, file);
+
     const int nwrote = 0 < nchars ?
-          fwrite (buf, 1, nchars, _RWSTD_REINTERPRET_CAST (FILE*, file))
-        : nchars;
+        fwrite (buf, 1, nchars, stdio_file) : nchars;
+
+    // flush in case stderr isn't line-buffered (e.g., when
+    // it's determined not to refer to a terminal device,
+    // for example after it has been redirected to a file)
+    fflush (stdio_file);
 
 #ifdef _MSC_VER
 
