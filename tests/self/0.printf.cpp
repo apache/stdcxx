@@ -1279,6 +1279,14 @@ void test_signal ()
     TEST ("%{K}", SIGSEGV, 0, 0, "SIGSEGV");
     TEST ("%{K}", SIGTERM, 0, 0, "SIGTERM");
     TEST ("%{K}", 12345,   0, 0, "SIG#12345");
+
+    TEST ("[%{10K}]",    SIGABRT, 0, 0, "[   SIGABRT]");
+    TEST ("[%{+10K}]",   SIGFPE,  0, 0, "[    SIGFPE]");
+    TEST ("[%{-10K}]",   SIGILL,  0, 0, "[SIGILL    ]");
+    TEST ("[%{.3K}]",    SIGINT,  0, 0, "[SIG]");
+    TEST ("[%{10.3K}]",  SIGSEGV, 0, 0, "[       SIG]");
+    TEST ("[%{+10.3K}]", SIGTERM, 0, 0, "[       SIG]");
+    TEST ("[%{-10.3K}]", 12345,   0, 0, "[SIG       ]");
 }
 
 /***********************************************************************/
