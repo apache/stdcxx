@@ -2,7 +2,7 @@
  *
  * string.cc - Definitions for the Standard Library string classes
  *
- * $Id: //stdlib/dev/include/string.cc#63 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -218,7 +218,8 @@ basic_string<_CharT, _Traits, _Allocator>&
 basic_string<_CharT, _Traits, _Allocator>::
 operator= (const basic_string &__rhs)
 {
-    if (__rhs._C_pref ()->_C_get_ref () > 0) {
+    if (size_type (0) < size_type (__rhs._C_pref ()->_C_get_ref ())) {
+        // `rhs' has reference counting enabled
         __rhs._C_pref ()->_C_inc_ref ();
         _C_unlink (__rhs._C_data);
     }
@@ -356,7 +357,7 @@ replace (size_type __pos1, size_type __n1, const_pointer __s, size_type __n2)
 
         // check for shared representation, insufficient capacity,
         // and overlapping regions
-        if (   _C_pref ()->_C_get_ref () > 1
+        if (   size_type (1) < size_type (_C_pref ()->_C_get_ref ())
             || capacity () < __size1
             || __s >= data () && __s < data () + __size0) {
 
@@ -427,7 +428,8 @@ replace (size_type __pos, size_type __n, size_type __n2, value_type __c)
         const size_type __rem = __size0 - __xlen - __pos;
 
         // check for shared representation, insufficient capacity
-        if (_C_pref ()->_C_get_ref () > 1 || capacity () < __size1) {
+        if (   capacity () < __size1
+            || size_type (1) < size_type (_C_pref ()->_C_get_ref ())) {
 
             // need to allocate a new reference
             const size_type __cap = _C_grow (__size0, __size1);
@@ -621,7 +623,8 @@ __replace_aux (iterator __first1, iterator __last1,
       size_type __d = 0;
       size_type __rem = __s.size() - __xlen - __pos; // length of bit at the end
       // Check for shared representation, insufficient capacity, 
-      if ( (__s._C_pref()->_C_get_ref () > 1) || (__s.capacity() < __len))
+      if (   __s.capacity() < __len
+          || size_type (1) < size_type (__s._C_pref()->_C_get_ref ()))
       {
         // Need to allocate a new reference.
           const size_type __cap = __s._C_grow (__s.size (), __len);

@@ -937,7 +937,7 @@ inline basic_string<_CharT, _Traits, _Allocator>::
 basic_string (const basic_string<_CharT, _Traits, _Allocator> &__s)
     : allocator_type (__s.get_allocator ())
 {
-    if (__s._C_pref ()->_C_get_ref () > 0) {
+    if (size_type (0) < size_type (__s._C_pref ()->_C_get_ref ())) {
         _C_data = __s._C_data;
         _C_pref ()->_C_inc_ref ();
     }
@@ -956,7 +956,7 @@ inline _TYPENAME basic_string<_CharT, _Traits, _Allocator>::iterator
 basic_string<_CharT, _Traits, _Allocator>::
 begin ()
 {
-    if (_C_pref ()->_C_get_ref () > 1)
+    if (size_type (1) < size_type (_C_pref ()->_C_get_ref ()))
         _C_clone (size ());
 
     // not thread safe: there is exactly one body pointed to by
@@ -1180,7 +1180,8 @@ append (const basic_string &__str)
 {
     const size_type __size = size () + __str.size ();
 
-    if (__size > capacity () || _C_pref ()->_C_get_ref () > 1)
+    if (   capacity () < __size
+        || size_type (1) < size_type (_C_pref ()->_C_get_ref ()))
         return append (__str, size_type (), __str.size ());
 
     traits_type::copy (_C_data + size (), __str.data (), __str.size () + 1);
