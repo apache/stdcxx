@@ -215,6 +215,8 @@ endif   # neq ($(DEPENDFLAGS),)
 
 %.o: %.cc
 
+%: %.h
+
 # force the regeneration of all dependencies by removing them
 dependclean:
 	rm -f $(DEPENDDIR)/*.d; 
@@ -235,5 +237,5 @@ printvars:
        run run_all runall
 
 # override the default set of suffixes with our own
-.SUFFIXES: .a .c .cc .cpp .d .o .$(AS_EXT)
+.SUFFIXES: .a .c .cc .cpp .d .h .o .$(AS_EXT)
 
