@@ -3,7 +3,7 @@
     <comment>
     PrimalCode wizard generated file.
     </comment>
-    <job id="runexamples" prompt="no">
+    <job id="makelog" prompt="no">
         <?job error="false" debug="false" ?>
         <runtime>
             <description>
