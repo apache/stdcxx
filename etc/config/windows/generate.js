@@ -561,7 +561,7 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
                     
                     tool.command =
                         "cscript /nologo " +
-                        "..\\etc\\config\\windows\\runexamples.wsf";
+                        "..\\etc\\config\\windows\\runall.wsf";
                     
                     tool.command += 
                         " /INOUTDIR:\"" + srcDir + "examples" + "\"";
@@ -589,7 +589,7 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
                     
                     tool.command =
                         "cscript /nologo " + 
-                        "..\\etc\\config\\windows\\runexamples.wsf";                        
+                        "..\\etc\\config\\windows\\runall.wsf";                        
                     
                     tool.command += 
                         " /INOUTDIR:\"" + srcDir + "tests" + "\"";
