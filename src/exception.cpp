@@ -1,8 +1,8 @@
  /***************************************************************************
  *
- * stdexcept.cpp - Source for the Standard Library exception classes
+ * exception.cpp - sources of the C++ Standard Library exception classes
  *
- * $Id: //stdlib/dev/source/stdlib/exception.cpp#5 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -99,7 +99,21 @@ set_unexpected (_STD::unexpected_handler) _THROWS (());
 
 void unexpected ()  _RWSTD_GNUC_ATTRIBUTE ((__noreturn__));
 
-bool uncaught_exception () _THROWS (());
+#if 1300 <= _MSC_VER
+   // MSVC 7 and 8 reliably define __uncaught_exception
+   // uncaught_exception() only seems to be defined by some compiler
+   // magic that requires the compiler's native C++ Standard library
+   // headers
+#  undef _RWSTD_NO_GLOBAL_UNCAUGHT_EXCEPTION
+#  define UNCAUGHT_EXCEPTION   __uncaught_exception
+#endif   // MSVC >= 7.0
+
+#ifndef UNCAUGHT_EXCEPTION
+#  define UNCAUGHT_EXCEPTION   uncaught_exception
+#endif   // UNCAUGHT_EXCEPTION
+
+_RWSTD_DLLIMPORT bool UNCAUGHT_EXCEPTION () _THROWS (());
+
 
 _RWSTD_NAMESPACE (std) { 
 
@@ -216,7 +230,7 @@ _RWSTD_EXPORT bool uncaught_exception () _THROWS (())
 {
 #    ifndef _RWSTD_NO_GLOBAL_UNCAUGHT_EXCEPTION
 
-    return ::uncaught_exception ();
+    return ::UNCAUGHT_EXCEPTION ();
 
 #    else   // if defined (_RWSTD_NO_GLOBAL_UNCAUGHT_EXCEPTION)
 
