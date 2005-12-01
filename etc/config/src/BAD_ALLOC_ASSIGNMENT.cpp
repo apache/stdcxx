@@ -34,8 +34,9 @@
 #endif
 
 
-#ifndef _RWSTD_NO_HONOR_STD
-#  ifdef _RWSTD_NO_STD_TERMINATE
+#if 2 == GNUG__
+#  ifndef _RWSTD_NO_HONOR_STD
+#    ifdef _RWSTD_NO_STD_TERMINATE
 
 namespace std {
 
@@ -57,8 +58,9 @@ terminate_loop:
 
 }
 
-#  endif   // _RWSTD_NO_STD_TERMINATE
-#endif   // _RWSTD_NO_HONOR_STD
+#    endif   // _RWSTD_NO_STD_TERMINATE
+#  endif   // _RWSTD_NO_HONOR_STD
+#endif   // gcc 2.x
 
 
 #ifndef _RWSTD_NO_RUNTIME_IN_STD
