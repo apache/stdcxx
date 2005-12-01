@@ -11,8 +11,9 @@
 #endif   // _RWSTD_NO_SETRLIMIT
 
 
-#ifndef _RWSTD_NO_HONOR_STD
-#  ifdef _RWSTD_NO_STD_TERMINATE
+#if 2 == __GNUG__
+#  ifndef _RWSTD_NO_HONOR_STD
+#    ifdef _RWSTD_NO_STD_TERMINATE
 
 namespace std {
 
@@ -32,8 +33,9 @@ loop:
 
 }   // namespace std
 
-#  endif   // _RWSTD_NO_STD_TERMINATE
-#endif   // _RWSTD_NO_HONOR_STD
+#    endif   // _RWSTD_NO_STD_TERMINATE
+#  endif   // _RWSTD_NO_HONOR_STD
+#endif   // gcc 2.x
 
 
 #if (defined (_WIN32) || defined (_WIN64)) && !defined (__CYGWIN__)
@@ -63,7 +65,7 @@ void nodbg () { }
 int main ()
 {
 #if !defined (_RWSTD_USE_CONFIG)
-    printf ("#undef _RWSTD_NO_NEW_THROWS\n");
+    printf ("/**/\n#undef _RWSTD_NO_NEW_THROWS\n");
 #endif
 
     nodbg ();
@@ -101,10 +103,11 @@ int main ()
     p = (void*)1;
 
     try {
-        for (unsigned long n = 1U << sizeof (long) * 8 - 1;
-             p && 0 != n; n = n | (n >> 1)) {
+        const size_t size = (size_t)1 << (sizeof (size_t) * 8 - 1);
+
+        for (int i = 0; i != 256; ++i) {
             // try to allocate a huge amount of memory
-            p = ::operator new (n);
+            p = ::operator new (size);
             // do not delete
         }
     }
@@ -112,5 +115,7 @@ int main ()
         return 0;
     }
 
-    return 1;
+    printf ("#define _RWSTD_NO_NEW_THROWS\n");
+
+    return 0;
 }
