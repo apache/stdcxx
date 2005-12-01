@@ -460,10 +460,13 @@ _rw_bufcat (char **pbuf, size_t *pbufsize, const char *str, size_t len)
 
     if (bufree <= len || !*pbuf) {
 
-        size_t newbufsize = *pbufsize * 2;
+        // for guard block
+        static const char deadbeef[] = "\xde\xad\xbe\xef";
 
-        if (newbufsize <= buflen + len)
-            newbufsize = 2 * (buflen + len + 1);
+        size_t newbufsize = *pbufsize * 2 + 4;
+
+        if (newbufsize <= buflen + len + 4)
+            newbufsize = 2 * (buflen + len + 1) + 4;
 
         char* const newbuf = (char*)malloc (newbufsize);
 
@@ -472,10 +475,18 @@ _rw_bufcat (char **pbuf, size_t *pbufsize, const char *str, size_t len)
             return 0;
 
         memcpy (newbuf, *pbuf, buflen);
-        free (*pbuf);
+
+        // append a guard block to the end of the buffer
+        memcpy (newbuf + newbufsize - 4, deadbeef, 4);
+
+        if (*pbuf) {
+            // verify that we didn't write past the end of the buffer
+            assert (0 == memcmp (*pbuf + *pbufsize, deadbeef, 4));
+            free (*pbuf);
+        }
 
         *pbuf     = newbuf;
-        *pbufsize = newbufsize;
+        *pbufsize = newbufsize - 4;
 
         (*pbuf)[buflen] = '\0';
     }
@@ -3314,10 +3325,8 @@ _rw_vfprintf (rw_file *file, const char *fmt, va_list va)
 {
     assert (0 != file);
 
-    char buffer [256];
-
-    char* buf = buffer;
-    size_t bufsize = sizeof buffer;
+    char* buf = 0;
+    size_t bufsize = 0;
 
     const int nchars = rw_vasnprintf (&buf, &bufsize, fmt, va);
 
@@ -3345,8 +3354,7 @@ _rw_vfprintf (rw_file *file, const char *fmt, va_list va)
 
 #endif   // _MSC_VER
 
-    if (buf != buffer)
-        free (buf);
+    free (buf);
 
     return nwrote;
 }
