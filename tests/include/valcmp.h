@@ -62,6 +62,23 @@ rw_valcmp (const T*      buf1,
 
 /**************************************************************************/
 
+// compares up to a maximum number of characters from the two strings
+// posisbly including any embedded NULs (when the cmp_nul bit is set)
+// and returns -1, 0, or +1 if the first string compares less, equal,
+// or greater, respectively, than the second string, or the offset+1
+// of the first mismatched character (when the cmp_off bit is set)
+// or 0 otherwise
+//
+// rw_strncmp(s1, s2) is equivalent to a call to strcmp(s1, s2) when
+// the type of s1 and s2 is char*, wcscmp(s1, s2) when the type is
+// wchar_t*
+//
+// rw_strncmp(s1, s2, n) with (n != ~0U) is equivalent to a call to
+// strncmp(s1, s2, n) or wcsncmp(s1, s2, n), respectively
+//
+// rw_strncmp(s1, s2, n, cmp_nul) with (n != ~0U) is equivalent to
+// a call to memcmp(s1, s2, n) or wmemcmp(s1, s2, n), respectively
+
 _TEST_EXPORT int
 rw_strncmp (const char*, const char*,
             _RWSTD_SIZE_T = _RWSTD_SIZE_MAX, int = CMP_NULTERM);
