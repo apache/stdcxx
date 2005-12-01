@@ -49,7 +49,7 @@ int main ()
 {
 #if !defined (_RWSTD_USE_CONFIG)
 
-    printf ("\n#undef _RWSTD_NO_UNAME /**/\n");
+    printf ("/**/\n#undef _RWSTD_NO_UNAME\n");
 
 #endif   // _RWSTD_USE_CONFIG
 
