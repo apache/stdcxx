@@ -240,8 +240,9 @@ ifeq ($(in_topdir),1)
     else
       ifeq ($(OSNAME),AIX)
         # check for VisualAge on AIX
-        ifeq ($(shell $(SHELL) -c "xlC -qversion" >/dev/null 2>&1 \
-                      && echo $$?),0)
+        # avoid comparing the exit status to 0 since VAC++ return 249...
+        ifneq ($(shell $(SHELL) -c "xlC -qversion" >/dev/null 2>&1; \
+                       echo $$?),127)
           CONFIG = vacpp.config
         endif
       else
@@ -276,7 +277,11 @@ ifeq ($(in_topdir),1)
       endif   # AIX
     endif   # gcc
 
-    $(warning "CONFIG not specified, using $(CONFIG)")
+    ifeq ($(CONFIG),)
+      $(error "could not find a config file for this system: $(OSNAME)")
+    else
+      $(warning "CONFIG not specified, using $(CONFIG)")
+    endif
 
   endif   # ifeq ($(CONFIG),)
 
@@ -567,9 +572,11 @@ $(MAKEFILE_IN): $(configpath)
           && echo "LDFLAGS    = $(LDFLAGS)"              >> $(MAKEFILE_IN)  \
           && echo "LDLIBS     = $(LDLIBS)"               >> $(MAKEFILE_IN)  \
           && echo "LDSOFLAGS  = $(LDSOFLAGS)"            >> $(MAKEFILE_IN)  \
-          && echo "MAPFILE    = $(MAPFILE)"              >> $(MAKEFILE_IN)  \
+          && echo "MAPFLAGS   = $(MAPFLAGS)"             >> $(MAKEFILE_IN)  \
+          && [ "$(MAPFILE)" = "" ]                                          \
+          || echo "MAPFILE    = $$""(TOPDIR)/$(MAPFILE)" >> $(MAKEFILE_IN)  \
           && echo "RUNFLAGS   = -t 180"                  >> $(MAKEFILE_IN)  \
-          && echo "LIBDIR     = $(LIBDIR)"               >> $(MAKEFILE_IN)  \
+          && echo "LIBDIR     = $$""(BUILDDIR)/lib"      >> $(MAKEFILE_IN)  \
           && echo "DEPENDDIR  = $(DEPENDDIR)"            >> $(MAKEFILE_IN)  \
           && echo "PHDIR      = $(PHDIR)"                >> $(MAKEFILE_IN)  \
           && echo "PHWARNFLAGS = $(PHWARNFLAGS)"         >> $(MAKEFILE_IN)  \
@@ -633,7 +640,7 @@ rwtest:
 
 # build tests, ignore failures
 tests:
-	-@$(MAKE) -C$(TSTDIR)
+	-$(MAKE) -C$(TSTDIR)
 
 # build the Plum Hall test suite, ignore failures
 phtst:
@@ -704,12 +711,12 @@ post:
 
 # try each submakefile
 .DEFAULT:
-	-@$(MAKE) -C $(LIBDIR) $@
-	-@$(MAKE) -C $(BUILDDIR)/rwtest $@
-	-@$(MAKE) -C $(BUILDDIR)/bin $@
-	-@$(MAKE) -C $(TSTDIR) $@
-	-@$(MAKE) -C $(PHTSTDIR) $@
-	-@$(MAKE) -C $(EXMDIR) $@
+	-@$(MAKE) -C$(LIBDIR) $@
+	-@$(MAKE) -C$(BUILDDIR)/rwtest $@
+	-@$(MAKE) -C$(BUILDDIR)/bin $@
+	-@$(MAKE) -C$(TSTDIR) $@
+	-@$(MAKE) -C$(PHTSTDIR) $@
+	-@$(MAKE) -C$(EXMDIR) $@
 
 endif   # ($(CURDIR),$(TOPDIR))
 
