@@ -2,7 +2,7 @@
  *
  * collate.cpp - specializations of collate facet
  *
- * $Id: //stdlib/dev/source/stdlib/collate.cpp#75 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -453,7 +453,11 @@ __rw_strnxfrm (const char *src, _RWSTD_SIZE_T nchars)
             src    += (last - src) + 1;
         }
 
-        const _RWSTD_SIZE_T dst_size = strxfrm (0, psrc, 0);
+        // provide a destination buffer to strxfrm() in case
+        // it's buggy (such as MSVC's) and tries to write to
+        // the buffer even if it's 0
+        char just_in_case_buf [8];
+        const _RWSTD_SIZE_T dst_size = strxfrm (just_in_case_buf, psrc, 0);
 
         // check for strxfrm() errors
         if (0 == (dst_size << 1))
@@ -470,12 +474,12 @@ __rw_strnxfrm (const char *src, _RWSTD_SIZE_T nchars)
         _RWSTD_SIZE_T xfrm_size =
             strxfrm (&res [0] + res_size, psrc, dst_size + 1);
 
-#ifdef _MSC_VER
+#if defined _MSC_VER && _MSC_VER < 1400
         // compute the correct value that should have been returned from
         // strxfrm() after the transformation has completed (MSVC strxfrm()
         // returns a bogus result; see PR #29935)
         xfrm_size = strlen (&res [0] + res_size);
-#endif   // MSVC
+#endif   // MSVC < 8.0
 
         // increment the size of the result string by the number
         // of transformed characters excluding the terminating NUL
@@ -545,7 +549,11 @@ __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
             src    += (last - src) + 1;
         }
 
-        const _RWSTD_SIZE_T dst_size = wcsxfrm (0, psrc, 0);
+        // provide a destination buffer to strxfrm() in case
+        // it's buggy (such as MSVC's) and tries to write to
+        // the buffer even if it's 0
+        wchar_t just_in_case_buf [8];
+        const _RWSTD_SIZE_T dst_size = wcsxfrm (just_in_case_buf, psrc, 0);
 
         // check for wcsxfrm() errors
         if (0 == (dst_size << 1))
@@ -562,12 +570,12 @@ __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
         _RWSTD_SIZE_T xfrm_size =
             wcsxfrm (&res [0] + res_size, psrc, dst_size + 1);
 
-#ifdef _MSC_VER
+#if defined _MSC_VER && _MSC_VER < 1400
         // compute the correct value that should have been returned from
         // strxfrm() after the transformation has completed (MSVC strxfrm()
         // returns a bogus result; see PR #29935)
         xfrm_size = Traits::length (&res [0] + res_size);
-#endif   // MSVC
+#endif   // MSVC < 8.0
 
         // increment the size of the result string by the number
         // of transformed characters excluding the terminating NUL
