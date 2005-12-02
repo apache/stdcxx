@@ -20,6 +20,7 @@
  **************************************************************************/
 
 #include <algorithm>   // for adjacent_find
+#include <functional>  // for equal_to
 #include <cstddef>     // for size_t
 
 #include <alg_test.h>
@@ -49,7 +50,8 @@ void do_test (int         line,     // line number of test case
               const char *src,      // source sequence
               std::size_t resoff,   // offset of result
               ForwardIterator    dummy_iter,
-              const T*)
+              const T*,
+              const char* predicate)
 {
     static const char* const itname = type_name (dummy_iter, (T*)0);
 
@@ -73,7 +75,9 @@ void do_test (int         line,     // line number of test case
     // compute the number of invocations of the predicate
     std::size_t n_total_pred = X::n_total_op_eq_;
 
-    const ForwardIterator res = std::adjacent_find (first, last);
+    const ForwardIterator res =
+        predicate ? std::adjacent_find (first, last, std::equal_to<X>())
+                  : std::adjacent_find (first, last);
 
     // silence a bogus EDG eccp remark #550-D:
     // variable "res" was set but never used
@@ -111,22 +115,24 @@ void do_test (int         line,     // line number of test case
     success = std::size_t (n_expect_pred) == n_total_pred;
     rw_assert (success, 0, line, 
                "line %d: adjacent_find<%s>(\"%s\", ...) "
-               "invoked operator==() %zu times, expected %td",
+               "invoked %s %zu times, expected %td",
                __LINE__, itname, src,
+               predicate ? predicate : "operator==()", 
                n_total_pred, n_expect_pred);
 }
 
 /**************************************************************************/
 
 template <class ForwardIterator, class T>
-void run_tests (ForwardIterator dummy_iter, const T*)
+void run_tests (ForwardIterator dummy_iter, const T*, const char* predicate)
 {
     static const char* const itname = type_name (dummy_iter, (T*)0);
 
-    rw_info (0, 0, 0, "std::adjacent_find (%s, %1$s)", itname);
+    rw_info (0, 0, 0, "std::adjacent_find (%s, %1$s%{?}, %s%{;})", 
+             itname, 0 != predicate, predicate);
     
 #define TEST(src, off) \
-    do_test (__LINE__, src, std::size_t (off), dummy_iter, (X*)0)
+    do_test (__LINE__, src, std::size_t (off), dummy_iter, (X*)0, predicate)
 
     //    +------------------ subject sequence
     //    |               +-- offset of returned iterator,
@@ -171,43 +177,55 @@ void run_tests (ForwardIterator dummy_iter, const T*)
 
 /**************************************************************************/
 
-static int rw_opt_no_fwd_iter;     // --no-ForwardIterator
-static int rw_opt_no_bidir_iter;   // --no-BidirectionalIterator
-static int rw_opt_no_rnd_iter;     // --no-RandomAccessIterator
+/* extern */ int rw_opt_no_fwd_iter;     // --no-ForwardIterator
+/* extern */ int rw_opt_no_bidir_iter;   // --no-BidirectionalIterator
+/* extern */ int rw_opt_no_rnd_iter;     // --no-RandomAccessIterator
+/* extern */ int rw_opt_no_predicate;    // --no-Predicate
 
-static int
-run_test (int, char*[])
+static 
+void test_adjacent_find (const char* predicate)
 {
     rw_info (0, 0, 0, 
-             "template <class %s> "
-             "%1$s std::adjacent_find (%1$s, %1$s)",
-             "ForwardIterator");
+             "template <class %s%{?}, class %s%{;}> "
+             "%1$s std::adjacent_find (%1$s, %1$s%{?}, %2$s%{;})",
+             "ForwardIterator",
+             0 != predicate, "BinaryPredicate", 0 != predicate);
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
-        run_tests (FwdIter<X>(), (X*)0);
+        run_tests (FwdIter<X>(), (X*)0, predicate);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        run_tests (BidirIter<X>(), (X*)0);
+        run_tests (BidirIter<X>(), (X*)0, predicate);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
     }
     else {
-        run_tests (RandomAccessIter<X>(), (X*)0);
+        run_tests (RandomAccessIter<X>(), (X*)0, predicate);
     }
+}
 
-    rw_warn (0, 0, 0, 
-             "template <class %s, class %s> "
-             "%1$s std::adjacent_find (%1$s, %1$s, %2$s) not exercised",
-             "ForwardIterator", "BinaryPredicate");
+/**************************************************************************/
+
+static int
+run_test (int, char*[])
+{
+    test_adjacent_find (0);
+
+    if (rw_opt_no_predicate) {
+        rw_note (0, __FILE__, __LINE__, "Predicate test disabled");
+    }
+    else {
+        test_adjacent_find ("std::equal_to<X>");
+    }
                 
     return 0;
 }
@@ -221,8 +239,10 @@ int main (int argc, char *argv[])
                     0 /* no comment */, run_test,
                     "|-no-ForwardIterator#"
                     "|-no-BidirectionalIterator#"
-                    "|-no-RandomAccessIterator#",
+                    "|-no-RandomAccessIterator#"
+                    "|-no-Predicate#",
                     &rw_opt_no_fwd_iter,
                     &rw_opt_no_bidir_iter,
-                    &rw_opt_no_rnd_iter);
+                    &rw_opt_no_rnd_iter,
+                    &rw_opt_no_predicate);
 }
