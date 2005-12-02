@@ -24,7 +24,7 @@ CATFILE      = rwstderr.cat
 MSGFILES     = rwstderr.msg
 
 CXXFLAGS    += $(PICFLAGS)
-LDFLAGS     += $(LDSOFLAGS) $(MAPFLAGS)
+LDFLAGS     += $(LDSOFLAGS) $(MAPFLAGS) $(MAPFILE)
 
 # OBJS += $(shell [ -d ./cxx_repository/ ] && echo ./cxx_repository/*.o)
 
