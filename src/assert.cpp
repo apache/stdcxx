@@ -2,7 +2,7 @@
  *
  * assert.cpp - definition of debugging assertion functions
  *
- * $Id: //stdlib/dev/source/stdlib/assert.cpp#7 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -51,27 +51,24 @@ __rw_stack_trace (int fd)
     backtrace_symbols_fd (array, size, fd);
 }
 
-}
+}   // namespace __rw
 
 #  define STACK_TRACE()   _RW::__rw_stack_trace (2)
 
-#elif defined (_RWSTD_OS_SUNOS) \
+#elif    defined (_RWSTD_OS_SUNOS) \
       && (5 < _RWSTD_OS_MAJOR || 5 == _RWSTD_OS_MAJOR && 8 < _RWSTD_OS_MINOR)
 
-   // only Solaris 9 and better defines printstack()
+// only Solaris 9 and better defines printstack() (in <ucontext.h>)
+// declare the function here instead of including the header to avoid
+// having to #define enabling macros (i.e., __EXTENSIONS__) and deal
+// with the breakage when using a strict compiler such as EDG eccp
+// with the long long extension (used in some system headers) disabled
+extern "C" int printstack (int);
 
-#  ifndef _RWSTD_NO_PURE_LIBC_HEADERS
-#    ifndef __EXTENSIONS__
-       // needed to bring in the definitions of sigset_t and stack_t
-       // when using pure libc headers
-#      define __EXTENSIONS__
-#    endif   // __EXTENSIONS__
-#  endif   // _RWSTD_NO_PURE_LIBC_HEADERS
+#    define STACK_TRACE()   printstack (2)
+#endif
 
-#  include <ucontext.h>
-
-#  define STACK_TRACE()   printstack (2)
-#else
+#ifndef STACK_TRACE
 #  define STACK_TRACE()   (void)0
 #endif   // __HP_aCC
 
