@@ -27,9 +27,7 @@
 #include <rw/_defs.h>
 
 
-#if    !defined (_RWSTD_NO_STD_BAD_TYPEID)   \
-    || !defined (_RWSTD_NO_RUNTIME_IN_STD)   \
-    ||  2 == __GNUG__ && !defined (_RWSTD_NO_HONOR_STD)
+#ifndef _RWSTD_NO_STD_TYPE_INFO
 
 // define type_info et al in namespace std iff they are found to be
 // defined in namespace std in the compiler's language support library
@@ -38,7 +36,7 @@
 
 _RWSTD_NAMESPACE (std) {
 
-#endif   // !NO_BAD_TYPEID || !RUNTIME_IN_STD ...
+#endif   // _RWSTD_NO_STD_TYPE_INFO
 
 
 #ifndef _RWSTD_NO_NAMESPACE
@@ -128,13 +126,11 @@ private:
 };
 
 
-#if    !defined (_RWSTD_NO_STD_BAD_TYPEID)   \
-    || !defined (_RWSTD_NO_RUNTIME_IN_STD)   \
-    ||  2 == __GNUG__ && !defined (_RWSTD_NO_HONOR_STD)
+#ifndef _RWSTD_NO_STD_TYPE_INFO
 
 }   // namespace std
 
-#else
+#else   // if defined (_RWSTD_NO_STD_TYPE_INFO)
 #  ifndef _RWSTD_NO_NAMESPACE
 
 namespace std {
@@ -144,14 +140,14 @@ using ::type_info;
 }   // namespace std
 
 #  endif   // _RWSTD_NO_NAMESPACE
-#endif   // !NO_BAD_TYPEID || !RUNTIME_IN_STD ...
+#endif   // _RWSTD_NO_STD_TYPE_INFO
 
 
-#if !defined (_RWSTD_NO_STD_BAD_CAST) || !defined (_RWSTD_NO_RUNTIME_IN_STD)
+#ifndef _RWSTD_NO_STD_BAD_CAST
 
 _RWSTD_NAMESPACE (std) { 
 
-#endif   // !NO_BAD_CAST || !RUNTIME_IN_STD
+#endif   // _RWSTD_NO_STD_BAD_CAST
 
 
 // 18.5.2
@@ -173,11 +169,11 @@ public:
     virtual const char* what () const _THROWS (());
 };
 
-#if !defined (_RWSTD_NO_STD_BAD_CAST) || !defined (_RWSTD_NO_RUNTIME_IN_STD)
+#ifndef _RWSTD_NO_STD_BAD_CAST
 
 }   // namespace std
 
-#else
+#else   // if defined (_RWSTD_NO_STD_BAD_CAST)
 #  ifndef _RWSTD_NO_NAMESPACE
 
 namespace std {
@@ -187,15 +183,14 @@ using ::bad_cast;
 }   // namespace std
 
 #  endif   // _RWSTD_NO_NAMESPACE
+#endif   // _RWSTD_NO_STD_BAD_CAST
 
-#endif   // !NO_BAD_CAST || !RUNTIME_IN_STD
 
-
-#if !defined (_RWSTD_NO_STD_BAD_TYPEID) || !defined (_RWSTD_NO_RUNTIME_IN_STD)
+#ifndef _RWSTD_NO_STD_BAD_TYPEID
 
 _RWSTD_NAMESPACE (std) {
 
-#endif   // !NO_TYPEID || !RUNTIME_IN_STD
+#endif   // _RWSTD_NO_BAD_NO_TYPEID
 
 
 // 18.5.3
@@ -218,11 +213,11 @@ public:
 };
 
 
-#if !defined (_RWSTD_NO_STD_BAD_TYPEID) || !defined (_RWSTD_NO_RUNTIME_IN_STD)
+#ifndef _RWSTD_NO_STD_BAD_TYPEID
 
 }   // namespace std
 
-#else
+#else   // if defined (_RWSTD_NO_STD_BAD_TYPEID)
 #  ifndef _RWSTD_NO_NAMESPACE
 
 namespace std {
@@ -232,7 +227,7 @@ using ::bad_typeid;
 }   // namespace std
 
 #  endif   // _RWSTD_NO_NAMESPACE
-#endif   // !NO_TYPEID || !RUNTIME_IN_STD
+#endif   // _RWSTD_NO_STD_BAD_TYPEID
 
 
 
