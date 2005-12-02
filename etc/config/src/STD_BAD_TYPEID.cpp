@@ -23,8 +23,9 @@ class bad_typeid { };
 #endif   // _RWSTD_NO_TYPEINFO
 
 
-#ifndef _RWSTD_NO_HONOR_STD
-#  ifdef _RWSTD_NO_STD_TERMINATE
+#if 2 == __GNUG__
+#  ifndef _RWSTD_NO_HONOR_STD
+#    ifdef _RWSTD_NO_STD_TERMINATE
 
 namespace std {
 
@@ -40,8 +41,9 @@ void terminate ()
 
 }   // namespace std
 
-#  endif   // _RWSTD_NO_STD_TERMINATE
-#endif   // _RWSTD_NO_HONOR_STD
+#    endif   // _RWSTD_NO_STD_TERMINATE
+#  endif   // _RWSTD_NO_HONOR_STD
+#endif   // gcc 2.x
 
 
 // force a failure if namespace std isn't honored
