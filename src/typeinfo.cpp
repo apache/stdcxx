@@ -349,11 +349,11 @@ const char* bad_cast::what () const _THROWS (())
 //**************************************************************************
 // class bad_typeid members
 
-#  ifndef _RWSTD_NO_STD_BAD_CAST
+#  ifndef _RWSTD_NO_STD_BAD_TYPEID
 
 _RWSTD_NAMESPACE (std) {
 
-#  endif   // _RWSTD_NO_STD_BAD_CAST
+#  endif   // _RWSTD_NO_STD_BAD_TYPEID
 
 #  ifdef _RWSTD_NO_BAD_TYPEID_DEFAULT_CTOR
 
@@ -404,10 +404,10 @@ const char* bad_typeid::what () const _THROWS (())
 
 #  endif   // _RWSTD_NO_BAD_TYPEID_WHAT
 
-#  ifndef _RWSTD_NO_STD_BAD_CAST
+#  ifndef _RWSTD_NO_STD_BAD_TYPEID
 
 }   // namespace std
 
-#  endif   // _RWSTD_NO_STD_BAD_CAST
+#  endif   // _RWSTD_NO_STD_BAD_TYPEID
 
 #endif   // _RWSTD_TYPEINFO_INCLUDED
