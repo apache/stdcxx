@@ -128,8 +128,11 @@ void do_test (int               line,     // line number of test case
                __LINE__, it1name, it2name, src, fseq,
                resoff, res.cur_ - first1.cur_);
 
-    if (!success)
+    if (!success) {
+        delete[] tsrc;
+        delete[] tfseq;
         return;
+    }
 
     if (res.cur_ != last1.cur_) {
         std::size_t j = 0;
@@ -145,8 +148,11 @@ void do_test (int               line,     // line number of test case
                    __LINE__, it1name, it2name, src, fseq,
                    fseq[j], (res.cur_ + j)->val_, j);
 
-        if (!success)
+        if (!success) {
+            delete[] tsrc;
+            delete[] tfseq;
             return;
+        }
     }
 
     success =
@@ -157,6 +163,9 @@ void do_test (int               line,     // line number of test case
                __LINE__, it1name, it2name, src, fseq,
                predicate ? predicate : "comparison operator", 
                T::n_total_op_eq_, nfseq * (nsrc - nfseq + 1));
+
+    delete[] tsrc;
+    delete[] tfseq;
 }
 
 /**************************************************************************/
@@ -196,7 +205,7 @@ void run_tests (const ForwardIterator1& dummy_iter1,
     TEST ("ababcdefghij",  "ab",  2);
     TEST ("abcbcdefghij",  "bc",  3);
     TEST ("abcdcdefghij",  "cd",  4);
-    TEST ("abcdedefghij",  "dE",  5);
+    TEST ("abcdedefghij",  "de",  5);
     TEST ("abcdefefghij",  "ef",  6);
     TEST ("abcdefgfghij",  "fg",  7);
     TEST ("abcdefghghij",  "gh",  8);
