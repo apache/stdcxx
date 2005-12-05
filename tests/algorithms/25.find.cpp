@@ -187,14 +187,19 @@ void test_find (InputIterator dummy_iter, const T*, const Predicate* pred)
                dummy_iter, (X*)0, pred)
 
     //    +------------------ subject sequence
-    //    |               +--- offset of the element to find (-1 for none)
+    //    |               +--- offset of the value to find (-1 for none)
+    //    |               |    also the offset of the returned iterator
     //    |               |
     //    |               |
     //    v               v
     TEST ("",            -1);
     TEST ("a",            0);
+    TEST ("aa",           0);
     TEST ("ab",           1);
+    TEST ("aaa",          0);
+    TEST ("abb",          1);
     TEST ("abc",          2);
+    TEST ("abcc",         2);
     TEST ("abcd",         3);
     TEST ("abcde",        4);
     TEST ("abcdef",       5);
