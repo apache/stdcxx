@@ -3,7 +3,7 @@
  *
  * numeric - Declarations for the Standard Library algorithms
  *
- * $Id: //stdlib/dev/include/numeric#18 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -93,10 +93,10 @@ inline _OutputIter
 __partial_sum (_InputIter __first, _InputIter __last, _OutputIter __res,
                _TypeT*)
 {
-    _TypeT __value = *__first;
+    _TypeT __val = *__first;
     while (++__first != __last) {
-        __value = __value + *__first;
-        *++__res = __value;
+        __val = __val + *__first;
+        *++__res = __val;
     }
     return ++__res;
 }
@@ -120,10 +120,10 @@ inline _OutputIter __partial_sum (_InputIter __first, _InputIter __last,
                                   _OutputIter __res, _TypeT*,
                                   _BinaryOperation __oper)
 {
-    _TypeT __value = *__first;
+    _TypeT __val = *__first;
     while (++__first != __last) {
-        __value = __oper(__value, *__first);
-        *++__res = __value;
+        __val = __oper (__val, *__first);
+        *++__res = __val;
     }
     return ++__res;
 }
@@ -145,11 +145,11 @@ inline _OutputIter
 __adjacent_difference (_InputIter __first, _InputIter __last, _OutputIter __res,
                        _TypeT*)
 {
-    _TypeT __value = *__first;
+    _TypeT __val = *__first;
     while (++__first != __last) {
         _TypeT __tmp = *__first;
-        *++__res = __tmp - __value;
-        __value = __tmp;
+        *++__res = __tmp - __val;
+        __val = __tmp;
     }
     return ++__res;
 }
@@ -173,11 +173,11 @@ inline _OutputIter
 __adjacent_difference (_InputIter __first, _InputIter __last, 
                        _OutputIter __res, _TypeT*, _BinaryOperation __oper)
 {
-    _TypeT __value = *__first;
+    _TypeT __val = *__first;
     while (++__first != __last) {
         _TypeT __tmp = *__first;
-        *++__res = __oper(__tmp, __value);
-        __value = __tmp;
+        *++__res = __oper (__tmp, __val);
+        __val = __tmp;
     }
     return ++__res;
 }
