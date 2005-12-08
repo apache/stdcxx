@@ -627,13 +627,19 @@ swap (vector &__other)
     }
     else {   // not exception-safe
 
-        // avoid passing the whole objects to other vecto member
-        // functions in case they are implemented in terms of
-        // swap(); use iterators instead
+        // avoid passing the whole object to other vector member
+        // functions (i.e., assign()) in case they are implemented
+        // in terms of swap(); use iterators instead
 
-        vector __tmp (begin (), end ());
-        assign (__other.begin (), __other.end ());
-        __other.assign (__tmp.begin (), __tmp.end ());
+        vector __tmp (__other.get_allocator ());
+
+        // assert that the copy of the allocator compares equal
+        // to the original (otherwise the swap() below will cause
+        // a recursive call)
+        _RWSTD_ASSERT (__tmp.get_allocator () == __other.get_allocator ());
+
+        __tmp.assign (begin (), end ());
+        __other.swap (__tmp);
     }
 }
 
