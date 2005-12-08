@@ -6,7 +6,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_algobase.h#25 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -115,10 +115,14 @@ inline void fill (_FwdIter __first, _FwdIter __last, const _TypeT& __value)
 
 
 template <class _OutputIter, class _Size, class _TypeT>
-inline void fill_n (_OutputIter __first, _Size __n, const _TypeT& __value)
+inline void fill_n (_OutputIter __first, _Size __n, const _TypeT &__val)
 {
-    for (;__n > 0;--__n, ++__first)
-        *__first = __value;
+    // Size must be convertible to integral type but need not itself be one
+    // Complexity:
+    // Exactly n if n is positive, or 0 otherwise, assignments.
+    // (see lwg issue 426 for the complexity when n is not positive)
+    for (_RWSTD_PTRDIFF_T __inx = __n; 0 < __inx; --__inx, ++__first)
+        *__first = __val;
 }
 
 
