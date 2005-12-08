@@ -105,12 +105,12 @@ copy_backward (_BidirIter1 __first, _BidirIter1 __last, _BidirIter2 __res)
 
 // 25.2.5
 template <class _FwdIter, class _TypeT>
-inline void fill (_FwdIter __first, _FwdIter __last, const _TypeT& __value)
+inline void fill (_FwdIter __first, _FwdIter __last, const _TypeT &__val)
 {
     _RWSTD_ASSERT_RANGE (__first, __last);
 
     for ( ; !(__first == __last); ++__first)
-        *__first = __value;
+        *__first = __val;
 }
 
 

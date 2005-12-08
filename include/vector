@@ -3,7 +3,7 @@
  *
  * vector - declarations for the Standard Library vector class
  *
- * $Id: //stdlib/dev/include/vector#65 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -1078,12 +1078,12 @@ public:
     //  algorithms.
     //
   
-    void _C_fill (iterator __first, iterator __last, const bool& __value) {
-        while (__first != __last) *__first++ = __value;
+    void _C_fill (iterator __first, iterator __last, bool __val) {
+        while (__first != __last) *__first++ = __val;
     }
 
-    void _C_fill_n (iterator __first, size_type __n, const bool& __value) {
-        while (__n-- > 0) *__first++ = __value;
+    void _C_fill_n (iterator __first, size_type __n, bool __val) {
+        while (__n-- > 0) *__first++ = __val;
     }
 
 #ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
@@ -1163,13 +1163,13 @@ public:
     // working around a SunPro 5.3 bug (see PR #25962)
     _EXPLICIT
 #endif   // SunPro > 5.3
-    vector (size_type __n, bool __value = bool(), 
+    vector (size_type __n, bool __val = bool (), 
        const _Allocator&  __alloc = allocator_type ())
         : allocator_type (__alloc), _C_bufend(0) {
       _C_init(__n); 
       unsigned int * __first = _C_begin._C_p;
       size_type __m = (__n + _RWSTD_WORD_BIT - 1)/_RWSTD_WORD_BIT;
-      while (__m-- > 0) *__first++ = __value ? ~0 : 0;
+      while (__m-- > 0) *__first++ = __val ? ~0 : 0;
     }
 
     vector (const _C_self &__x)
