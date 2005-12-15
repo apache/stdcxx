@@ -115,9 +115,9 @@ _rw_upper [] = {
 
 // returns 1 iff all size bytes of the object pointed to by buf are 0
 static int
-_rw_iszero (const void *buf, _RWSTD_SIZE_T size)
+_rw_iszero (const void *buf, size_t size)
 {
-    for (_RWSTD_SIZE_T i = 0; i != size; ++i)
+    for (size_t i = 0; i != size; ++i)
         if (_RWSTD_STATIC_CAST (const UChar*, buf)[i])
             return 0;
 
@@ -129,9 +129,9 @@ _rw_iszero (const void *buf, _RWSTD_SIZE_T size)
 static int
 _rw_cmpx (const void *buf1,
           const void *buf2,
-          _RWSTD_SIZE_T nelems,
-          _RWSTD_SIZE_T size,
-          int           flags = 0)
+          size_t      nelems,
+          size_t      size,
+          int         flags = 0)
 {
     const UChar *p1 = _RWSTD_STATIC_CAST (const UChar*, buf1);
     const UChar *p2 = _RWSTD_STATIC_CAST (const UChar*, buf2);
@@ -178,8 +178,8 @@ _rw_cmpx (const void *buf1,
 static int
 _rw_cmp1 (const void *buf1,
           const void *buf2,
-          _RWSTD_SIZE_T nelems,
-          int           flags = 0)
+          size_t      nelems,
+          int         flags = 0)
 {
 #ifdef _RWSTD_UINT8_T
 
@@ -198,13 +198,13 @@ _rw_cmp1 (const void *buf1,
         return ret < 0 ? -1 : ret ? +1 : 0;
     }
 
-    int ret = 0;
-    int inx = 0;
+    size_t inx = 0;
+    int    ret = 0;
 
     const UI8T *pi1 = _RWSTD_STATIC_CAST (const UI8T*, buf1);
     const UI8T *pi2 = _RWSTD_STATIC_CAST (const UI8T*, buf2);
 
-    for (; nelems; ++pi1, ++pi2, --nelems, ++inx) {
+    for (; inx < nelems; ++pi1, ++pi2, ++inx) {
 
         const UI8T ui1 = *pi1;
         const UI8T ui2 = *pi2;
@@ -237,7 +237,7 @@ _rw_cmp1 (const void *buf1,
     }
 
     if (CMP_RETOFF & flags) {
-        ret = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, inx) < nelems ? inx : -1;
+        ret = ret ? int (inx) : -1;
     }
             
     return ret;
@@ -253,20 +253,20 @@ _rw_cmp1 (const void *buf1,
 static int
 _rw_cmp2 (const void *buf1,
           const void *buf2,
-          _RWSTD_SIZE_T nelems,
-          int           flags = 0)
+          size_t      nelems,
+          int         flags = 0)
 {
 #ifdef _RWSTD_UINT16_T
 
     typedef _RWSTD_UINT16_T UI16T;
 
-    int ret = 0;
-    int inx = 0;
+    size_t inx = 0;
+    int    ret = 0;
 
     const UI16T *pi1 = _RWSTD_STATIC_CAST (const UI16T*, buf1);
     const UI16T *pi2 = _RWSTD_STATIC_CAST (const UI16T*, buf2);
 
-    for (; nelems; ++pi1, ++pi2, --nelems) {
+    for (; inx < nelems; ++pi1, ++pi2, ++inx) {
 
         const UI16T ui1 = *pi1;
         const UI16T ui2 = *pi2;
@@ -303,7 +303,7 @@ _rw_cmp2 (const void *buf1,
     }
 
     if (CMP_RETOFF & flags) {
-        ret = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, inx) < nelems ? inx : -1;
+        ret = ret ? int (inx) : -1;
     }
             
     return ret;
@@ -320,20 +320,20 @@ _rw_cmp2 (const void *buf1,
 static int
 _rw_cmp4 (const void *buf1,
           const void *buf2,
-          _RWSTD_SIZE_T nelems,
-          int           flags = 0)
+          size_t      nelems,
+          int         flags = 0)
 {
 #ifdef _RWSTD_UINT32_T
 
     typedef _RWSTD_UINT32_T UI32T;
 
-    int ret = 0;
-    int inx = 0;
+    size_t inx = 0;
+    int    ret = 0;
 
     const UI32T *pi1 = _RWSTD_STATIC_CAST (const UI32T*, buf1);
     const UI32T *pi2 = _RWSTD_STATIC_CAST (const UI32T*, buf2);
 
-    for (; nelems; ++pi1, ++pi2, --nelems) {
+    for (; inx < nelems; ++pi1, ++pi2, ++inx) {
 
         const UI32T ui1 = *pi1;
         const UI32T ui2 = *pi2;
@@ -370,7 +370,7 @@ _rw_cmp4 (const void *buf1,
     }
 
     if (CMP_RETOFF & flags) {
-        ret = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, inx) < nelems ? inx : -1;
+        ret = ret ? int (inx) : -1;
     }
             
     return ret;
@@ -387,20 +387,20 @@ _rw_cmp4 (const void *buf1,
 static int
 _rw_cmp8 (const void *buf1,
           const void *buf2,
-          _RWSTD_SIZE_T nelems,
-          int           flags = 0)
+          size_t      nelems,
+          int         flags = 0)
 {
 #ifdef _RWSTD_UINT64_T
 
     typedef _RWSTD_UINT64_T UI64T;
 
-    int ret = 0;
-    int inx = 0;
+    size_t inx = 0;
+    int    ret = 0;
 
     const UI64T *pi1 = _RWSTD_STATIC_CAST (const UI64T*, buf1);
     const UI64T *pi2 = _RWSTD_STATIC_CAST (const UI64T*, buf2);
 
-    for (; nelems; ++pi1, ++pi2, --nelems) {
+    for (; nelems; ++pi1, ++pi2, ++inx) {
 
         const UI64T ui1 = *pi1;
         const UI64T ui2 = *pi2;
@@ -437,7 +437,7 @@ _rw_cmp8 (const void *buf1,
     }
 
     if (CMP_RETOFF & flags) {
-        ret = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, inx) < nelems ? inx : -1;
+        ret = ret ? int (inx) : -1;
     }
             
     return ret;
@@ -452,17 +452,17 @@ _rw_cmp8 (const void *buf1,
 
 // compares two arrays of objects of unequal size
 static int
-_rw_cmpxx (const void*   buf1,
-           const void*   buf2,
-           _RWSTD_SIZE_T nelems,
-           _RWSTD_SIZE_T size1,
-           _RWSTD_SIZE_T size2,
-           int           flags)
+_rw_cmpxx (const void* buf1,
+           const void* buf2,
+           size_t      nelems,
+           size_t      size1,
+           size_t      size2,
+           int         flags)
 {
-    int ret = 0;
-    int inx = 0;
+    size_t inx = 0;
+    int    ret = 0;
 
-    for (; nelems; --nelems, ++inx) {
+    for (; inx < nelems; ++inx) {
 
 #ifdef _RWSTD_UINT64_T
 
@@ -471,8 +471,8 @@ _rw_cmpxx (const void*   buf1,
 
 #else   // if !defined (_RWSTD_UINT64_T)
 
-        _RWSTD_SIZE_T ui1;
-        _RWSTD_SIZE_T ui2;
+        size_t ui1;
+        size_t ui2;
 
 #endif   // _RWSTD_UINT64_T
 
@@ -624,7 +624,7 @@ _rw_cmpxx (const void*   buf1,
     }
 
     if (CMP_RETOFF & flags) {
-        ret = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, inx) < nelems ? inx : -1;
+        ret = ret ? int (inx) : -1;
     }
 
     return ret;
@@ -632,12 +632,12 @@ _rw_cmpxx (const void*   buf1,
 
 
 _TEST_EXPORT int
-rw_valcmp (const void*   buf1,
-           const void*   buf2,
-           _RWSTD_SIZE_T nelems,
-           _RWSTD_SIZE_T size1,
-           _RWSTD_SIZE_T size2,
-           int           flags /* = 0 */)
+rw_valcmp (const void* buf1,
+           const void* buf2,
+           size_t      nelems,
+           size_t      size1,
+           size_t      size2,
+           int         flags /* = 0 */)
 {
     if (size1 == size2) {
 
@@ -656,10 +656,10 @@ rw_valcmp (const void*   buf1,
 
 
 _TEST_EXPORT int
-rw_strncmp (const char*   str1,
-            const char*   str2,
-            _RWSTD_SIZE_T nelems /* = _RWSTD_SIZE_MAX */,
-           int            flags /* = CMP_NULTERM */)
+rw_strncmp (const char* str1,
+            const char* str2,
+            size_t      nelems /* = _RWSTD_SIZE_MAX */,
+           int          flags /* = CMP_NULTERM */)
 {
     return rw_valcmp (str1, str2, nelems, 1, 1, flags);
 }
@@ -670,7 +670,7 @@ rw_strncmp (const char*   str1,
 _TEST_EXPORT int
 rw_strncmp (const char*    str1,
             const wchar_t* str2,
-            _RWSTD_SIZE_T  nelems /* = _RWSTD_SIZE_MAX */,
+            size_t         nelems /* = _RWSTD_SIZE_MAX */,
            int             flags /* = CMP_NULTERM */)
 {
     return rw_valcmp (str1, str2, nelems, 1, sizeof (wchar_t), flags);
@@ -680,8 +680,8 @@ rw_strncmp (const char*    str1,
 _TEST_EXPORT int
 rw_strncmp (const wchar_t* str1,
             const char*    str2,
-            _RWSTD_SIZE_T  nelems /* = _RWSTD_SIZE_MAX */,
-            int             flags /* = CMP_NULTERM */)
+            size_t         nelems /* = _RWSTD_SIZE_MAX */,
+            int            flags /* = CMP_NULTERM */)
 {
     return rw_valcmp (str1, str2, nelems, sizeof (wchar_t), 1, flags);
 }
@@ -690,7 +690,7 @@ rw_strncmp (const wchar_t* str1,
 _TEST_EXPORT int
 rw_strncmp (const wchar_t* str1,
             const wchar_t* str2,
-            _RWSTD_SIZE_T  nelems /* = _RWSTD_SIZE_MAX */,
+            size_t         nelems /* = _RWSTD_SIZE_MAX */,
            int             flags /* = CMP_NULTERM */)
 {
     return rw_valcmp (str1, str2, nelems,
