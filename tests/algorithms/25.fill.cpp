@@ -27,13 +27,33 @@
 
 /**************************************************************************/
 
+_RWSTD_NAMESPACE (std) { 
+
+#ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION
+
+template
+void
+fill (FwdIter<assign<base<> > >, FwdIter<assign<base<> > >,
+      const assign<base<> >&);
+
+template
+void
+fill_n (OutputIter<assign<base<> > >, Size<int>,
+        const assign<base<> >&);
+
+#endif // _RWSTD_NO_EXPLICIT_INSTANTIATION
+
+}   // namespace std
+
+/**************************************************************************/
+
 // exercises std::fill()
 template <class ForwardIterator, class T>
 void test_fill (std::size_t            N,
-                const ForwardIterator& fill_iter,
+                const ForwardIterator &dummy_iter,
                 const T*)
 {
-    static const char* const itname = type_name (fill_iter, (T*) 0);
+    static const char* const itname = type_name (dummy_iter, (T*)0);
     static const char* const tname  = "X";
 
     rw_info (0, 0, 0, "void std::fill (%s, %1$s, const %s&)", itname, tname);
@@ -41,69 +61,65 @@ void test_fill (std::size_t            N,
     // generate sequential values for each default constructed T
     T::gen_ = gen_seq;
 
-    // use ::operator new() to prevent default initialization
-    T *buf = _RWSTD_STATIC_CAST (T*, ::operator new (N * sizeof (T)));
-
-    // default-construct the first T at buf[0]
-    new (buf) T ();
+    T* const buf = new T [N];
 
     for (std::size_t i = 0; i < N; ++i) {
-        // default-construct a new X at the end of buf
-        T* const new_t = new (buf + i) T ();
 
-        // exercise 25.2.5 - std::fill<> ()
-        std::size_t last_n_op_assign = T::n_total_op_assign_;
-
-        T* const buf_end = buf + i + 1;
+        T* const buf_end = buf + i;
 
         const ForwardIterator begin =
-            make_iter (buf, buf, buf_end, fill_iter);
+            make_iter (buf, buf, buf_end, dummy_iter);
 
         const ForwardIterator end =
-            make_iter (buf_end, buf_end, buf_end, fill_iter);
+            make_iter (buf_end, buf_end, buf_end, dummy_iter);
 
-        std::fill (begin, end, *new_t);
+        const T value;
+
+        // the number of invocations of the assignment operator
+        std::size_t n_op_assign  = T::n_total_op_assign_;
+
+        std::fill (begin, end, value);
+
+        // compute the number of invocations of the assignment operator
+        // by the algorithm
+        n_op_assign  = T::n_total_op_assign_ - n_op_assign;
+
+        bool success = true;
 
         // verify 25.2.5, p2
-        bool success;
         std::size_t j = 0;
-        for ( ; j != i + 1; ++j) {
-            success = buf[j].val_ == new_t->val_;
-            if (!success)
-                break;
+        for ( ; success && j != i; ++j) {
+            success = buf [j].val_ == value.val_;
         }
 
-        rw_assert (success, 0, __LINE__, 
-                   "%zu. fill (%s, %1$s, const %s&): buf[%zu]: %d != %d",
-                   i + 1, itname, tname, j, buf[j].val_, new_t->val_);
-
-        if (!success)
+        if (!rw_assert (success, 0, __LINE__, 
+                        "%zu. fill (%s, %2$s, const %s&): buf [%zu]: %d != %d",
+                        i, itname, tname, j, buf [j].val_, value.val_))
             break;
 
-        // verify 25.2.5, p3
-        success = T::n_total_op_assign_ - last_n_op_assign == i + 1;
-        rw_assert (success, 0, __LINE__,
-                   "%zu. fill (%s, %1$s, const %s&) complexity: "
-                   "%zu != %zu", i + 1, itname, tname,
-                   T::n_total_op_assign_ - last_n_op_assign, i + 1);
-
-        if (!success)
+        // verify the complexity requirements:
+        //   Exactly last - first assignments.
+        if (!rw_assert (n_op_assign == i, 0, __LINE__,
+                        "%zu. fill (%s, %2$s, const %s&) expected "
+                        "%zu invocations of %2$s::operator=(); got %zu",
+                        i, itname, tname, i, n_op_assign))
             break;
     }
 
-    ::operator delete (buf);
+    delete[] buf;
 }
 
 /**************************************************************************/
 
 // exercises std::fill_n()
-template <class OutputIterator, class T>
-void test_fill_n (std::size_t         N,
-                  const OutputIterator& fill_iter,
+template <class OutputIterator, class Size, class T>
+void test_fill_n (std::size_t           N,
+                  const OutputIterator &dummy_iter,
+                  const Size*,
                   const T*)
 {
-    static const char* const itname = type_name (fill_iter, (T*) 0);
-    static const char* const szname = "std::size_t";
+    static const char* const itname = type_name (dummy_iter, (T*)0);
+    static const char* const szname = "Size<int>";
     static const char* const tname  = "X";
 
     rw_info (0, 0, 0, "void std::fill_n (%s, %s, const %s&)",
@@ -112,60 +128,60 @@ void test_fill_n (std::size_t         N,
     // generate sequential values for each default constructed T
     T::gen_ = gen_seq;
 
-    // use ::operator new() to prevent default initialization
-    T *buf = _RWSTD_STATIC_CAST (T*, ::operator new (N * sizeof (T)));
-
-    // default-construct the first T at buf[0]
-    new (buf) T ();
+    T* const buf = new T [N];
 
     for (std::size_t i = 0; i < N; ++i) {
-        // default-construct a new X at the end of buf
-        T* const new_t = new (buf + i) T ();
 
-        // exercise 25.2.5 - std::fill<> ()
-        std::size_t last_n_op_assign = T::n_total_op_assign_;
-
-        T* const buf_end = buf + i + 1;
+        T* const buf_end = buf + i;
 
         const OutputIterator begin =
-            make_iter (buf, buf, buf_end, fill_iter);
+            make_iter (buf, buf, buf_end, dummy_iter);
 
-        std::fill_n (begin, i, *new_t);
+        const Size n (i, 0 /* dummy */);
+        const T    value;
+
+        // the number of invocations of the assignment operator
+        std::size_t n_op_assign  = T::n_total_op_assign_;
+
+        std::fill_n (begin, n, value);
+
+        // compute the number of invocations of the assignment operator
+        n_op_assign = T::n_total_op_assign_ - n_op_assign;
 
         bool success = true;
 
         // verify 25.2.5, p2
         std::size_t j = 0;
-        for ( ; j != i; ++j) {
-            success = buf[j].val_ == new_t->val_;
-            if (!success)
-                break;
+        for ( ; success && j != i; ++j) {
+            success = buf [j].val_ == value.val_;
         }
 
         rw_assert (success, 0, __LINE__, 
-                   "%zu. fill_n (%s, %s, const %s&): buf[%zu]: %d != %d",
-                   i + 1, itname, szname, tname, j, buf[j].val_, new_t->val_);
+                   "%zu. fill_n (%s, %s, const %s&): buf [%zu]: %d != %d",
+                   i, itname, szname, tname, j, buf [j].val_, value.val_);
 
         if (!success)
             break;
 
-        success = T::n_total_op_assign_ - last_n_op_assign == i;
+        success = n_op_assign == i;
         rw_assert (success, 0, __LINE__,
                    "%zu. fill_n (%s, %s, const %s&) complexity: "
-                   "%zu != %zu", i + 1, itname, szname, tname,
-                   T::n_total_op_assign_ - last_n_op_assign, i);
+                   "%zu != %zu", i, itname, szname, tname,
+                   n_op_assign, i);
 
         if (!success)
             break;
     }
 
-    ::operator delete (buf);
+    delete[] buf;
 }
 
 
 /**************************************************************************/
 
 /* extern */ int rw_opt_nloops = 32;     // --nloops
+/* extern */ int rw_opt_no_fill;         // --no-fill
+/* extern */ int rw_opt_no_fill_n;       // --no-fill_n
 /* extern */ int rw_opt_no_output_iter;  // --no-OutputIterator
 /* extern */ int rw_opt_no_fwd_iter;     // --no-ForwardIterator
 /* extern */ int rw_opt_no_bidir_iter;   // --no-BidirectionalIterator
@@ -215,28 +231,28 @@ test_fill_n (const std::size_t N)
         rw_note (0, __FILE__, __LINE__, "OutputIterator test disabled");
     }
     else {
-        test_fill_n (N, OutputIter<X>(0, 0, 0), (X*)0);
+        test_fill_n (N, OutputIter<X>(0, 0, 0), (Size<int>*)0, (X*)0);
     }
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
-        test_fill_n (N, FwdIter<X>(), (X*)0);
+        test_fill_n (N, FwdIter<X>(), (Size<int>*)0, (X*)0);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        test_fill_n (N, BidirIter<X>(), (X*)0);
+        test_fill_n (N, BidirIter<X>(), (Size<int>*)0, (X*)0);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
     }
     else {
-        test_fill_n (N, RandomAccessIter<X>(), (X*)0);
+        test_fill_n (N, RandomAccessIter<X>(), (Size<int>*)0, (X*)0);
     }
 }
 
@@ -252,9 +268,19 @@ run_test (int, char*[])
 
     const std::size_t N = std::size_t (rw_opt_nloops);
 
-    test_fill (N);
+    if (rw_opt_no_fill) {
+        rw_note (0, __FILE__, __LINE__, "std::fill test disabled");
+    }
+    else {
+        test_fill (N);
+    }
 
-    test_fill_n (N);
+    if (rw_opt_no_fill_n) {
+        rw_note (0, __FILE__, __LINE__, "std::fill_n test disabled");
+    }
+    else {
+        test_fill_n (N);
+    }
 
     return 0;
 }
@@ -267,11 +293,15 @@ int main (int argc, char *argv[])
                     "lib.alg.fill",
                     0 /* no comment */, run_test,
                     "|-nloops# "
+                    "|-no-fill# "
+                    "|-no-fill_n# "
                     "|-no-OutputIterator# "
                     "|-no-ForwardIterator# "
                     "|-no-BidirectionalIterator# "
                     "|-no-RandomAccessIterator#",
                     &rw_opt_nloops,
+                    &rw_opt_no_fill,
+                    &rw_opt_no_fill_n,
                     &rw_opt_no_output_iter,
                     &rw_opt_no_fwd_iter,
                     &rw_opt_no_bidir_iter,
