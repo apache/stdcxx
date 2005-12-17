@@ -59,23 +59,6 @@ struct Generator<X>
     }
 };
 
-
-// Size template argument to generate_n()
-struct Size
-{
-    // dummy argument provided to prevent Size from being constructible
-    // by conversion from size_t
-    Size (int val, int /* dummy */ )
-        : val_ (val) { /* empty */ }
-
-    // Size must be convertible to an integral type
-    operator int () const { return val_; }
-
-private:
-
-    int val_;
-};
-
 /**************************************************************************/
 
 _RWSTD_NAMESPACE (std) { 
@@ -175,7 +158,7 @@ void test_generate_n (std::size_t            N,
                       const T*)
 {
     static const char* const itname  = type_name (gen_iter, (T*) 0);
-    static const char* const szname  = "Size";
+    static const char* const szname  = "Size<int>";
     static const char* const genname = "Generator";
 
     rw_info (0, 0, 0, 
@@ -195,13 +178,13 @@ void test_generate_n (std::size_t            N,
         const ForwardIterator begin =
             make_iter (buf, buf, buf_end, gen_iter);
 
-        const Size sz (i, 0);
+        const Size n (i, 0);
         const Generator<T> gen (0, 0);
 
         // store the value of the next element
         const int last_val = Generator<T>(0, 0)().val_;
 
-        std::generate_n (begin, sz, gen);
+        std::generate_n (begin, n, gen);
 
         bool success = true;
 
@@ -285,28 +268,28 @@ test_generate_n (const std::size_t N)
         rw_note (0, __FILE__, __LINE__, "OutputIterator test disabled");
     }
     else {
-        test_generate_n (N, OutputIter<X>(0, 0, 0), (Size*)0, (X*)0);
+        test_generate_n (N, OutputIter<X>(0, 0, 0), (Size<int>*)0, (X*)0);
     }
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
-        test_generate_n (N, FwdIter<X>(), (Size*)0, (X*)0);
+        test_generate_n (N, FwdIter<X>(), (Size<int>*)0, (X*)0);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        test_generate_n (N, BidirIter<X>(), (Size*)0, (X*)0);
+        test_generate_n (N, BidirIter<X>(), (Size<int>*)0, (X*)0);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
     }
     else {
-        test_generate_n (N, RandomAccessIter<X>(), (Size*)0, (X*)0);
+        test_generate_n (N, RandomAccessIter<X>(), (Size<int>*)0, (X*)0);
     }
 }
 
