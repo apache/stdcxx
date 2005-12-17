@@ -19,15 +19,14 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_ALG_TEST_H_INCLUDED
-#define _RWSTD_ALG_TEST_H_INCLUDED
+#ifndef RW_ALG_TEST_H_INCLUDED
+#define RW_ALG_TEST_H_INCLUDED
 
-#include <iterator>
+#include <cassert>          // for assert()
 
-#include <cassert>   // for assert()
+#include <rw/_iterbase.h>   // for iterator
 
 #include <testdefs.h>
-#include <rw/_defs.h>
 
 
 // objects of class X maintain a count of their instances in existence,
@@ -489,6 +488,26 @@ struct DummyBase { };
 #  define ITER_BASE(Cat, T, Dist, Ptr, Ref) \
           std::iterator<Cat, T, Dist, Ptr, Ref >
 #endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC
+
+
+// Size template argument to fill_n(), generate_n(), and search_n()
+template <class IntegralT>
+struct Size
+{
+    // dummy argument provided to prevent Size from being constructible
+    // by conversion from IntegralT
+    Size (IntegralT val, int /* dummy */ )
+        : val_ (val) { /* empty */ }
+
+    // Size must be convertible to an integral type
+    operator IntegralT () const { return val_; }
+
+private:
+
+    void operator= (const Size&);   // not Assignable
+
+    IntegralT val_;
+};
 
 
 // satisfies the requirements in 24.1.1 [lib.input.iterators]
@@ -1232,4 +1251,4 @@ inline const char* type_name (ConstRandomAccessIter<T>, const T*)
 
 
 
-#endif   // _RWSTD_ALG_TEST_H_INCLUDED
+#endif   // RW_ALG_TEST_H_INCLUDED
