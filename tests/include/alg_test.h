@@ -22,12 +22,9 @@
 #ifndef RW_ALG_TEST_H_INCLUDED
 #define RW_ALG_TEST_H_INCLUDED
 
-#include <cassert>          // for assert()
-
 #include <rw/_iterbase.h>   // for iterator
 
 #include <testdefs.h>
-
 
 // objects of class X maintain a count of their instances in existence,
 // the number of defaut and copy ctor calls, assignment operators, and
@@ -134,12 +131,12 @@ struct _TEST_EXPORT X
 
     // construct an array of objects of type X each initialized
     // from the corresponding element of the character array
-    static X* from_char (const char*, _RWSTD_SIZE_T = ~0UL);
+    static X* from_char (const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
     // returns -1 when less, 0 when same, or +1 when the array
     // of X objects is greater than the character string
-    static int compare (const X*, const char*, _RWSTD_SIZE_T = ~0UL);
-    static int compare (const char*, const X*, _RWSTD_SIZE_T = ~0UL);
+    static int compare (const X*, const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+    static int compare (const char*, const X*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
     // returns -1 when less, 0 when same, or +1 when the first
     // array of X objects is greater than the second array
@@ -553,12 +550,12 @@ struct InputIter: ITER_BASE (std::input_iterator_tag, T, int, T*, T&)
 
     InputIter (const InputIter &rhs)
         : ptr_ (rhs.ptr_), cur_ (rhs.cur_) {
-        assert (0 != ptr_);
+        RW_ASSERT (0 != ptr_);
         ++ptr_->ref_;
     }
 
     ~InputIter () {
-        assert (0 != ptr_);
+        RW_ASSERT (0 != ptr_);
 
         if (0 == --ptr_->ref_)   // decrement the reference count
             delete ptr_;
@@ -567,15 +564,15 @@ struct InputIter: ITER_BASE (std::input_iterator_tag, T, int, T*, T&)
     }
 
     InputIter& operator= (const InputIter &rhs) {
-        assert (rhs == rhs);   // assert `rhs' is valid
+        RW_ASSERT (rhs == rhs);   // assert `rhs' is valid
 
-        assert (0 != ptr_);
+        RW_ASSERT (0 != ptr_);
         if (0 == --ptr_->ref_)
             delete ptr_;
 
         ptr_ = rhs.ptr_;
 
-        assert (0 != ptr_);
+        RW_ASSERT (0 != ptr_);
         ++ptr_->ref_;
 
         cur_ = rhs.cur_;
@@ -588,11 +585,11 @@ struct InputIter: ITER_BASE (std::input_iterator_tag, T, int, T*, T&)
         // i.e., that no copy of *this or `rhs' has been incremented
         // and that no copy passed through this value of the iterator
 
-        assert (0 != ptr_);
-        assert (cur_ == ptr_->cur_);
+        RW_ASSERT (0 != ptr_);
+        RW_ASSERT (cur_ == ptr_->cur_);
 
-        assert (0 != rhs.ptr_);
-        assert (rhs.cur_ == rhs.ptr_->cur_);
+        RW_ASSERT (0 != rhs.ptr_);
+        RW_ASSERT (rhs.cur_ == rhs.ptr_->cur_);
 
         return cur_ == rhs.cur_;
     }
@@ -605,16 +602,16 @@ struct InputIter: ITER_BASE (std::input_iterator_tag, T, int, T*, T&)
     // not to impose the CopyConstructible requirement on T
     // and to disallow constructs like *InputIter<T>() = T()
     const value_type& operator* () const {
-        assert (*this == *this);      // assert *this is valid
-        assert (cur_ < ptr_->end_);   // assert *this is dereferenceable
+        RW_ASSERT (*this == *this);      // assert *this is valid
+        RW_ASSERT (cur_ < ptr_->end_);   // assert *this is dereferenceable
         return *cur_;
     }
 
     _RWSTD_OPERATOR_ARROW (const value_type* operator-> () const);
 
     InputIter& operator++ () {
-        assert (*this == *this);      // assert *this is valid
-        assert (cur_ < ptr_->end_);   // assert *this is not past the end
+        RW_ASSERT (*this == *this);      // assert *this is valid
+        RW_ASSERT (cur_ < ptr_->end_);   // assert *this is not past the end
 
         ptr_->cur_ = ++cur_;
 
@@ -676,16 +673,16 @@ struct OutputIter: ITER_BASE (std::output_iterator_tag, T, int, T*, T&)
 
     public:
         void operator= (const value_type &rhs) {
-            assert (0 != ptr_);
+            RW_ASSERT (0 != ptr_);
 
             // verify that the iterator is in the valid range
-            assert (ptr_->cur_ >= ptr_->begin_ && ptr_->cur_ <= ptr_->end_);
+            RW_ASSERT (ptr_->cur_ >= ptr_->begin_ && ptr_->cur_ <= ptr_->end_);
 
             // verify that the assignment point is the same as the current
             // position `cur' within the sequence or immediately before it
             // (in order to allow the expression: *it++ = val)
-            assert (   ptr_->assign_ == ptr_->cur_
-                    || ptr_->assign_ + 1 == ptr_->cur_);
+            RW_ASSERT (   ptr_->assign_ == ptr_->cur_
+                       || ptr_->assign_ + 1 == ptr_->cur_);
 
             // assign and increment the assignment point
             *ptr_->assign_++ = rhs;
@@ -729,8 +726,8 @@ struct OutputIter: ITER_BASE (std::output_iterator_tag, T, int, T*, T&)
     // return a proxy in order to detect multiple assignments
     // through the iterator (disallowed by 24.1.2, p2))
     Proxy operator* () const {
-        assert (0 != ptr_);
-        assert (ptr_->assign_ && ptr_->assign_ != ptr_->end_);
+        RW_ASSERT (0 != ptr_);
+        RW_ASSERT (ptr_->assign_ && ptr_->assign_ != ptr_->end_);
 
         return Proxy (ptr_);
     }
@@ -738,8 +735,8 @@ struct OutputIter: ITER_BASE (std::output_iterator_tag, T, int, T*, T&)
     _RWSTD_OPERATOR_ARROW (pointer operator-> () const);
 
     OutputIter& operator++ () {
-        assert (cur_ == ptr_->cur_);
-        assert (ptr_->cur_ >= ptr_->begin_ && ptr_->cur_ < ptr_->end_);
+        RW_ASSERT (cur_ == ptr_->cur_);
+        RW_ASSERT (ptr_->cur_ >= ptr_->begin_ && ptr_->cur_ < ptr_->end_);
         cur_ = ++ptr_->cur_;
         return *this;
     }
@@ -788,7 +785,7 @@ struct FwdIter: ITER_BASE (std::forward_iterator_tag, T, int, T*, T&)
     }
 
     bool operator== (const FwdIter &rhs) const {
-        assert (cur_ != 0);
+        RW_ASSERT (cur_ != 0);
         return cur_ == rhs.cur_;
     }
 
@@ -797,14 +794,14 @@ struct FwdIter: ITER_BASE (std::forward_iterator_tag, T, int, T*, T&)
     }
 
     reference operator* () const {
-        assert (cur_ != 0 && cur_ != end_);
+        RW_ASSERT (cur_ != 0 && cur_ != end_);
         return *cur_;
     }
 
     _RWSTD_OPERATOR_ARROW (pointer operator-> () const);
 
     FwdIter& operator++ () {
-        assert (cur_ != 0 && cur_ != end_);
+        RW_ASSERT (cur_ != 0 && cur_ != end_);
         return ++cur_, *this;
     }
 
@@ -871,7 +868,7 @@ struct BidirIter: ITER_BASE (std::bidirectional_iterator_tag, T, int, T*, T&)
     }
 
     bool operator== (const BidirIter &rhs) const {
-        assert (cur_ != 0 && rhs.cur_ != 0);
+        RW_ASSERT (cur_ != 0 && rhs.cur_ != 0);
         return cur_ == rhs.cur_;
     }
 
@@ -880,14 +877,14 @@ struct BidirIter: ITER_BASE (std::bidirectional_iterator_tag, T, int, T*, T&)
     }
 
     reference operator* () const {
-        assert (cur_ != 0 && cur_ != end_);
+        RW_ASSERT (cur_ != 0 && cur_ != end_);
         return *cur_;
     }
 
     _RWSTD_OPERATOR_ARROW (pointer operator-> () const);
 
     BidirIter& operator++ () {
-        assert (cur_ != 0 && cur_ != end_);
+        RW_ASSERT (cur_ != 0 && cur_ != end_);
         return ++cur_, *this;
     }
 
@@ -897,7 +894,7 @@ struct BidirIter: ITER_BASE (std::bidirectional_iterator_tag, T, int, T*, T&)
     }
 
     BidirIter& operator-- () {
-        assert (cur_ != 0 && cur_ != begin_);
+        RW_ASSERT (cur_ != 0 && cur_ != begin_);
         return --cur_, *this;
     }
 
@@ -967,14 +964,14 @@ struct RandomAccessIter
     }
 
     reference operator* () const {
-        assert (cur_ != 0 && cur_ != end_);
+        RW_ASSERT (cur_ != 0 && cur_ != end_);
         return *cur_;
     }
 
     _RWSTD_OPERATOR_ARROW (pointer operator-> () const);
 
     RandomAccessIter& operator++ () {
-        assert (cur_ != 0 && cur_ != end_);
+        RW_ASSERT (cur_ != 0 && cur_ != end_);
         return ++cur_, *this;
     }
 
@@ -984,7 +981,7 @@ struct RandomAccessIter
     }
 
     RandomAccessIter& operator-- () {
-        assert (cur_ != 0 && cur_ != begin_);
+        RW_ASSERT (cur_ != 0 && cur_ != begin_);
         return --cur_, *this;
     }
 
@@ -994,9 +991,9 @@ struct RandomAccessIter
     }
 
     RandomAccessIter& operator+= (difference_type n) {
-        assert (   cur_ != 0
-                && (!end_ || cur_ + n <= end_)
-                && (!begin_ || cur_ + n >= begin_));
+        RW_ASSERT (   cur_ != 0
+                   && (!end_ || cur_ + n <= end_)
+                   && (!begin_ || cur_ + n >= begin_));
         return cur_ += n, *this;
     }
     RandomAccessIter& operator-= (difference_type n) {
@@ -1012,12 +1009,12 @@ struct RandomAccessIter
     }
 
     difference_type operator- (const RandomAccessIter &rhs) const { 
-        assert (cur_ != 0 && rhs.cur_ != 0);
+        RW_ASSERT (cur_ != 0 && rhs.cur_ != 0);
         return cur_ - rhs.cur_;
     }
 
     bool operator== (const RandomAccessIter &rhs) const {
-        assert (cur_ != 0 && rhs.cur_ != 0);
+        RW_ASSERT (cur_ != 0 && rhs.cur_ != 0);
         return cur_ == rhs.cur_;
     }
 
@@ -1026,7 +1023,7 @@ struct RandomAccessIter
     }
 
     bool operator< (const RandomAccessIter &rhs) const {
-        assert (cur_ != 0 && rhs.cur_ != 0);
+        RW_ASSERT (cur_ != 0 && rhs.cur_ != 0);
         return cur_ < rhs.cur_;
     };
 
@@ -1043,9 +1040,9 @@ struct RandomAccessIter
     }
 
     reference operator[] (difference_type inx) const { 
-        assert (   cur_ != 0
-                && (!end_ || cur_ + inx < end_)
-                && !(begin_ || cur_ + inx >= begin_));
+        RW_ASSERT (   cur_ != 0
+                   && (!end_ || cur_ + inx < end_)
+                   && !(begin_ || cur_ + inx >= begin_));
         return cur_ [inx];
     }
 
