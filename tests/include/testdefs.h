@@ -44,19 +44,10 @@
 #  define typename /* ignore */
 #endif   // _RWSTD_NO_TYPENAME && !typename
 
-
-#ifndef _RWSTD_NO_FOR_INIT_SCOPE
-#  if defined (__GNUG__) && __GNUG__ < 3
-#    define _RWSTD_NO_FOR_INIT_SCOPE
-#  endif   // gcc < 3.0
-#  if defined (_MSC_VER) && _MSC_VER < 1300
-#    define _RWSTD_NO_FOR_INIT_SCOPE
-#  endif   // MSVC < 7.0
-#endif   // _RWSTD_NO_FOR_INIT_SCOPE
-
-#ifdef _RWSTD_NO_FOR_INIT_SCOPE
-#  define for   if (0) ; else for
-#endif   // _RWSTD_NO_FOR_INIT_SCOPE
+// give the for-init-variable a local scope
+#ifdef _RWSTD_NO_FOR_LOCAL_SCOPE
+#  define for   if (0); else for
+#endif   // _RWSTD_NO_FOR_LOCAL_SCOPE
 
 
 // _RWSTD_PRI{d,i,o,u,x}MAX: macros corresponding to those described
@@ -102,6 +93,28 @@
   // assume sizeof (size_t) == sizeof (unsigned)
 #  define _RWSTD_PRIz   ""
 #endif
+
+
+// test assertion
+#ifndef _RWSTD_NO_PRETTY_FUNCTION
+   // gcc, HP aCC, and Intel C++ all support __PRETTY_FUNCTION__
+#  define RW_ASSERT(expr)                                                \
+   ((expr) ? (void)0 : _RW::__rw_assert_fail (#expr, __FILE__, __LINE__, \
+                                              __PRETTY_FUNCTION__))
+#elif !defined (_RWSTD_NO_FUNC)
+   // C99 specifies the __func__ special identifier
+#  define RW_ASSERT(expr)                                                \
+   ((expr) ? (void)0 : _RW::__rw_assert_fail (#expr, __FILE__, __LINE__, \
+                                              __func__))
+#elif defined (__FUNCSIG__)
+   // MSVC macro
+#  define RW_ASSERT(expr)                                                \
+   ((expr) ? (void)0 : _RW::__rw_assert_fail (#expr, __FILE__, __LINE__, \
+                                              __FUNCSIG__))
+#else   // if _RWSTD_NO_PRETTY_FUNCTION && _RWSTD_NO_FUNC
+#  define RW_ASSERT(expr)   \
+   ((expr) ? (void)0 : _RW::__rw_assert_fail (#expr, __FILE__, __LINE__, 0))
+#endif   // _RWSTD_NO_PRETTY_FUNCTION, _RWSTD_NO_FUNC
 
 
 #endif   // RW_TESTDEFS_H_INCLUDED
