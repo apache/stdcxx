@@ -219,6 +219,8 @@ void test_generate_n (std::size_t            N,
 /**************************************************************************/
 
 /* extern */ int rw_opt_nloops = 32;     // --nloops
+/* extern */ int rw_opt_no_generate;     // --no-generate
+/* extern */ int rw_opt_no_generate_n;   // --no-generate_n
 /* extern */ int rw_opt_no_output_iter;  // --no-OutputIterator
 /* extern */ int rw_opt_no_fwd_iter;     // --no-ForwardIterator
 /* extern */ int rw_opt_no_bidir_iter;   // --no-BidirectionalIterator
@@ -305,9 +307,19 @@ run_test (int, char*[])
 
     const std::size_t N = std::size_t (rw_opt_nloops);
 
-    test_generate (N);
+    if (rw_opt_no_generate) {
+        rw_note (0, __FILE__, __LINE__, "std::generate test disabled");
+    }
+    else {
+        test_generate (N);
+    }
 
-    test_generate_n (N);
+    if (rw_opt_no_generate_n) {
+        rw_note (0, __FILE__, __LINE__, "std::generate_n test disabled");
+    }
+    else {
+        test_generate_n (N);
+    }
 
     return 0;
 }
@@ -320,11 +332,15 @@ int main (int argc, char *argv[])
                     "lib.alg.generate",
                     0 /* no comment */, run_test,
                     "|-nloops# "
+                    "|-no-generate# "
+                    "|-no-generate_n# "
                     "|-no-OutputIterator# "
                     "|-no-ForwardIterator# "
                     "|-no-BidirectionalIterator# "
                     "|-no-RandomAccessIterator#",
                     &rw_opt_nloops,
+                    &rw_opt_no_generate,
+                    &rw_opt_no_generate_n,
                     &rw_opt_no_output_iter,
                     &rw_opt_no_fwd_iter,
                     &rw_opt_no_bidir_iter,
