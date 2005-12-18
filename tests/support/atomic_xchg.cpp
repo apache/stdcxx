@@ -316,16 +316,6 @@ void run_test (intT, thr_args_base::tag_t tag)
 static int
 run_test (int, char**)
 {
-    // check that the number of threads is valid
-    rw_fatal (-1 < rw_opt_nthreads && rw_opt_nthreads < MAX_THREADS, 0, 0,
-              "number of threads must be in the range [0, %d), got %d",
-              MAX_THREADS, rw_opt_nthreads);
-
-    // check that the number of loops is non-negative
-    rw_fatal (-1 < rw_opt_nloops, 0, 0,
-              "number of loops must be non-negative, got %d",
-              rw_opt_nloops);
-
     // exercise atomic exchange
     run_test ((char)0, thr_args_base::Char);
     run_test ((signed char)0, thr_args_base::SChar);
@@ -358,8 +348,8 @@ int main (int argc, char *argv[])
     return rw_test (argc, argv, __FILE__,
                     0 /* no clause */,
                     0 /* no comment */, run_test,
-                    "|-nloops# "
-                    "|-nthreads#",
+                    "|-nloops#0 "        // must be non-negative
+                    "|-nthreads#0-32",   // must be between 0 and 32
                     &rw_opt_nloops,
                     &rw_opt_nthreads);
 }
