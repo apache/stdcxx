@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * $Id$
+ * $Id$ 
  *
  ************************************************************************
  *
@@ -23,6 +23,7 @@
 #include <cmdopt.h>
 
 #include <assert.h>   // for assert
+#include <ctype.h>    // isdigit(), isspace()
 #include <errno.h>    // for errno
 #include <stdarg.h>   // for va_arg, ...
 #include <stdio.h>    // for fprintf
@@ -49,8 +50,10 @@ struct cmdopts_t
     char          *lopt_;           // long option name
     char           sopt_;           // short option name
 
-    size_t         maxcalls_;       // how many times option can be invoked
-    size_t         ncalls_;         // how many times it has been invoked
+    int            minval_;         // minimum value of a numerical argument
+    int            maxval_;         // maximum value of a numerical argument
+    size_t         maxcount_;       // how many times option can be invoked
+    size_t         count_;          // how many times it has been invoked
 
     unsigned       arg_ : 1;        // option takes an argument?
     unsigned       inv_ : 1;        // callback invocation inverted
@@ -148,11 +151,11 @@ rw_print_help (int argc, char *argv[])
 
         printf ("%s%s%s", pfx, cmdopts [i].arg_ ? "<arg>" : "", sfx);
 
-        if (_RWSTD_SIZE_MAX == cmdopts [i].maxcalls_)
+        if (_RWSTD_SIZE_MAX == cmdopts [i].maxcount_)
             printf (" (each occurrence evaluated)\n");
-        else if (1 < cmdopts [i].maxcalls_)
+        else if (1 < cmdopts [i].maxcount_)
             printf (" (at most %u occurrences evaluated)\n",
-                    unsigned (cmdopts [i].maxcalls_));
+                    unsigned (cmdopts [i].maxcount_));
         else
             printf (" (only the first occurrence evaluated)\n");
 
@@ -272,16 +275,6 @@ rw_set_myopts ()
 
 /**************************************************************************/
 
-//////////////////////////////////////////////////////////////////////
-// syntax of the option description string:
-//
-// opts ::= opt [ ':' | '=' | '#' ] [ @N | @* | '!' ] [ opts ]
-// opt  ::= <sopt> [ '|' <lopt>]
-//      ::= '|' <lopt>
-// sopt ::= char
-// lopt ::= char char*
-// char ::= A-Z a-z _ 0-9
-
 _TEST_EXPORT int
 rw_vsetopts (const char *opts, va_list va)
 {
@@ -297,7 +290,7 @@ rw_vsetopts (const char *opts, va_list va)
 
     for ( ; ; ++ncmdopts) {
 
-        while (' ' == *next)
+        while (isspace (*next))
             ++next;
 
         if ('\0' == *next) {
@@ -360,23 +353,102 @@ rw_vsetopts (const char *opts, va_list va)
         // only the first occurrence of each command line option
         // causes an invocation of the callback, all subsequent
         // ones will be ignored by default
-        cmdopts [ncmdopts].maxcalls_ = 1;
+        cmdopts [ncmdopts].maxcount_ = 1;
 
         int arg_is_callback = true;
 
         if ('#' == *next) {
-            // insead of a pointer to a callback, the argument
-            // is a pointer to an int counter that is to be
-            // incremented for each occurrence of the option
-            // during processing; when the option is immediately
-            // followed by the equals sign ('=') and a numeric
-            // argument the value of the argument will be stored
+            // insead of a pointer to a callback, the argument is a pointer
+            // to an int counter that is to be incremented for each occurrence
+            // of the option during processing
+            // when the option is immediately followed by the equals sign ('=')
+            // and a numeric argument, the value of the argument will be stored
+            // instead
             arg_is_callback = false;
             ++next;
-            
+
+            if ('+' == *next || '-' == *next || isdigit (*next)) {
+
+                char *end = 0;
+                const long minval = strtol (next, &end, 10);
+
+#if _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
+                // validate
+                if (minval < _RWSTD_INT_MIN || _RWSTD_INT_MAX < minval) {
+                    fprintf (stderr,
+                             "lower bound %ld out of range [%d, %d]: "
+                             "%s\n", minval, _RWSTD_INT_MIN, _RWSTD_INT_MAX,
+                             next);
+                    return -1;
+                }
+#endif   // INT_SIZE < LONG_SIZE
+
+                next = end;
+
+                cmdopts [ncmdopts].minval_ = minval;
+
+                if ('-' == *next) {
+                    ++next;
+
+                    if (   '+' == *next
+                        || minval < 0 && '-' == *next
+                        || isdigit (*next)) {
+                        const long maxval = strtol (next, &end, 10);
+
+#if _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
+                        // validate
+                        if (   maxval < _RWSTD_INT_MIN
+                            || _RWSTD_INT_MAX < maxval) {
+
+                            fprintf (stderr,
+                                     "upper bound %ld out of range [%ld, %d]: "
+                                     "%s\n", maxval, minval, _RWSTD_INT_MAX,
+                                     next);
+                            return -1;
+                        }
+#endif   // INT_SIZE < LONG_SIZE
+
+                        if (maxval < minval) {
+                            // invalid range (upper bound < lower bound
+                            fprintf (stderr,
+                                     "invalid range [%ld, %ld]: %s\n",
+                                     minval, maxval, next);
+                            return -1;
+                        }
+
+                        next = end;
+                        cmdopts [ncmdopts].maxval_ = int (maxval);
+                    }
+                    else {
+                        // syntax error in range
+                        fprintf (stderr,
+                                 "syntax error in range specification: %s\n",
+                                 next);
+                        return -1;
+                    }
+                }
+                else if (*next && !isspace (*next)) {
+                    // syntax error in numeric argument
+                    fprintf (stderr,
+                             "syntax error numeric argument: %s\n",
+                             next);
+                    return -1;
+                }
+                else {
+                    // no upper bound on the value of the option argument
+                    cmdopts [ncmdopts].maxval_ = _RWSTD_INT_MAX;
+                }
+
+            }
+            else {
+                // no minimum/maximum value for this option is set
+                cmdopts [ncmdopts].minval_ = _RWSTD_INT_MIN;
+                cmdopts [ncmdopts].maxval_ = _RWSTD_INT_MAX;
+            }
+
             // an unlimited number of occurrences of the option
             // are allowed and will be counted
-            cmdopts [ncmdopts].maxcalls_ = _RWSTD_SIZE_MAX;
+            cmdopts [ncmdopts].maxcount_ = _RWSTD_SIZE_MAX;
         }
         else if (':' == *next || '=' == *next) {
             // ':' : argument optional
@@ -392,13 +464,13 @@ rw_vsetopts (const char *opts, va_list va)
             // at most how many occurrences of an option can be processed?
             if ('*' == *next) {
                 // unlimited
-                cmdopts [ncmdopts].maxcalls_ = _RWSTD_SIZE_MAX;
+                cmdopts [ncmdopts].maxcount_ = _RWSTD_SIZE_MAX;
                 ++next;
             }
             else {
                 // at most this many
                 char *end;
-                cmdopts [ncmdopts].maxcalls_ = strtoul (next, &end, 10);
+                cmdopts [ncmdopts].maxcount_ = strtoul (next, &end, 10);
                 next = end;
             }
         }
@@ -541,12 +613,12 @@ rw_runopts (int argc, char *argv[])
                     // set on the command line to override those set in the
                     // environment)
 
-                    if (cmdopts [j].ncalls_ && recursive)
+                    if (cmdopts [j].count_ && recursive)
                         continue;
 
                     // if the option has been evaluated the maximum number
                     // of times, avoid evaluating it and continue processing
-                    if (cmdopts [j].maxcalls_ <= cmdopts [j].ncalls_)
+                    if (cmdopts [j].maxcount_ <= cmdopts [j].count_)
                         continue;
 
                     if (cmdopts [j].callback_) {
@@ -585,6 +657,18 @@ rw_runopts (int argc, char *argv[])
 
 #endif   // _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
 
+                        else if (   optval < long (cmdopts [j].minval_)
+                                 || cmdopts [j].maxval_ < optval) {
+
+                            // numeric argument out of range
+                            fprintf (stderr, "numeric argument %ld out of range"
+                                     " [%d, %d]: %s\n", optval,
+                                     cmdopts [j].minval_,
+                                     cmdopts [j].maxval_, optname);
+                            ignenv = true;
+                            errno  = EINVAL;
+                            status = 1;
+                        }
                         else {
                             *cmdopts [j].pcntr_ = optval;
                         }
@@ -594,7 +678,7 @@ rw_runopts (int argc, char *argv[])
                         ++*cmdopts [j].pcntr_;
                     }
 
-                    ++cmdopts [j].ncalls_;
+                    ++cmdopts [j].count_;
 
                     if (recursive)
                         cmdopts [j].envseen_ = true;
@@ -656,7 +740,7 @@ rw_runopts (int argc, char *argv[])
     // has been processed
     for (size_t j = 0; j != ncmdopts; ++j) {
 
-        if (cmdopts [j].inv_ && 0 == cmdopts [j].ncalls_ && 0 == status) {
+        if (cmdopts [j].inv_ && 0 == cmdopts [j].count_ && 0 == status) {
 
             if (cmdopts [j].callback_)
                 status = cmdopts [j].callback_ (0, 0);
@@ -666,7 +750,7 @@ rw_runopts (int argc, char *argv[])
             }
         }
 
-        cmdopts [j].ncalls_  = 0;
+        cmdopts [j].count_   = 0;
         cmdopts [j].envseen_ = false;
     }
 
@@ -715,13 +799,13 @@ rw_runopts (const char *str)
             continue;
 
         // split up unquoted space-separated arguments
-        if (argc == 0 || ' ' == *s) {
+        if (argc == 0 || isspace (*s)) {
             if (argc > 0) 
                 *s = 0;
 
             // skip over leading spaces
-            if (argc > 0 || ' ' == *s)
-                while (' ' == *++s);
+            if (argc > 0 || isspace (*s))
+                while (isspace (*++s));
 
             if (*s) {
                 if (argc == argv_size) {
