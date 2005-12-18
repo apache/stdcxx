@@ -300,10 +300,7 @@ test_generate_n (const std::size_t N)
 static int
 run_test (int, char*[])
 {
-    // check that the number of loops is non-negative
-    rw_fatal (-1 < rw_opt_nloops, 0, 0,
-              "number of loops must be non-negative, got %d",
-              rw_opt_nloops);
+    RW_ASSERT (0 <= rw_opt_nloops);
 
     const std::size_t N = std::size_t (rw_opt_nloops);
 
@@ -331,7 +328,7 @@ int main (int argc, char *argv[])
     return rw_test (argc, argv, __FILE__,
                     "lib.alg.generate",
                     0 /* no comment */, run_test,
-                    "|-nloops# "
+                    "|-nloops#0 "   // argument must be non-negative
                     "|-no-generate# "
                     "|-no-generate_n# "
                     "|-no-OutputIterator# "
