@@ -31,7 +31,7 @@
 
 /**************************************************************************/
 
-#define MAX_THREADS      36
+#define MAX_THREADS      32
 #define MAX_LOOPS    100000
 
 const char to_append [MAX_THREADS + 1] = {
@@ -102,16 +102,6 @@ thread_func (void *arg)
 static int
 run_test (int, char**)
 {
-    // check that the number of threads is non-negative
-    rw_fatal (-1 < rw_opt_nthreads, 0, 0,
-              "number of threads must be non-negative. got %d",
-              rw_opt_nthreads);
-
-    // check that the number of loops is non-negative
-    rw_fatal (-1 < rw_opt_nloops, 0, 0,
-              "number of loops must be non-negative. got %d",
-              rw_opt_nloops);
-
     rw_info (0, 0, 0, "running %d thread%{?}s%{;}, %zu iteration%{?}s%{;} each",
              rw_opt_nthreads, 1 != rw_opt_nthreads,
              rw_opt_nloops, 1 != rw_opt_nloops);
@@ -143,8 +133,8 @@ int main (int argc, char *argv[])
     return rw_test (argc, argv, __FILE__,
                     "lib.string.push_back",
                     "thread safety", run_test,
-                    "|-nloops# "
-                    "|-nthreads# ",
+                    "|-nloops#0 "        // must be non-negative
+                    "|-nthreads#0-32",   // must be between 0 and 32
                     &rw_opt_nloops,
                     &rw_opt_nthreads);
 }

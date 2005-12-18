@@ -20,7 +20,7 @@
  **************************************************************************/
 
 #include <algorithm>     // for for_each
-#include <cstddef>       // for size_t
+#include <cstddef>       // for ptrdiff_t
 
 #include <alg_test.h>
 #include <driver.h>      // for rw_test(), ...
@@ -164,6 +164,7 @@ void test_for_each (std::size_t N, InputIterator dummy, T*, Function*)
 
 /**************************************************************************/
 
+static int rw_opt_nloops = 32;     // --nloops=#
 static int rw_opt_no_input_iter;   // --no-InputIterator
 static int rw_opt_no_fwd_iter;     // --no-ForwardIterator
 static int rw_opt_no_bidir_iter;   // --no-BidirectionalIterator
@@ -173,7 +174,7 @@ static int rw_opt_no_rnd_iter;     // --no-RandomAccessIterator
 static int
 run_test (int, char*[])
 {
-    static const std::size_t N = 32;
+    const std::size_t N = std::size_t (rw_opt_nloops);
 
     rw_info (0, 0, 0,
              "template <class %s, class %s> "
@@ -224,10 +225,12 @@ int main (int argc, char *argv[])
     return rw_test (argc, argv, __FILE__,
                     "lib.alg.foreach",
                     0 /* no comment */, run_test,
-                    "|-no-InputIterator#"
-                    "|-no-ForwardIterator#"
-                    "|-no-BidirectionalIterator#"
+                    "|-nloops#0 "   // must be non-negative
+                    "|-no-InputIterator# "
+                    "|-no-ForwardIterator# "
+                    "|-no-BidirectionalIterator# "
                     "|-no-RandomAccessIterator#",
+                    &rw_opt_nloops,
                     &rw_opt_no_input_iter,
                     &rw_opt_no_fwd_iter,
                     &rw_opt_no_bidir_iter,
