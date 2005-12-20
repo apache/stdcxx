@@ -4,7 +4,6 @@
 #  include "config.h"
 #endif   // _RWSTD_USE_CONFIG
 
-#include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,45 +43,6 @@ DEFINE_TYPE_HELPER (unsigned __int64);
 const char* get_type_name (...) { return 0; }
 
 
-// determine the underlying pointer type of a typedef
-#define DEFINE_VA_LIST_HELPER(T)                            \
-    const char* get_va_list_type_name (T) { return # T; }   \
-    typedef void unused_type
-
-DEFINE_VA_LIST_HELPER (char*);
-DEFINE_VA_LIST_HELPER (short*);
-DEFINE_VA_LIST_HELPER (unsigned short*);
-DEFINE_VA_LIST_HELPER (int*);
-DEFINE_VA_LIST_HELPER (unsigned int*);
-DEFINE_VA_LIST_HELPER (long*);
-DEFINE_VA_LIST_HELPER (unsigned long*);
-
-#ifndef _RWSTD_NO_LONG_LONG
-
-DEFINE_VA_LIST_HELPER (long long*);
-DEFINE_VA_LIST_HELPER (unsigned long long*);
-
-#elif defined (_MSC_VER)
-
-DEFINE_VA_LIST_HELPER (__int64*);
-DEFINE_VA_LIST_HELPER (unsigned __int64*);
-
-#endif   // _RWSTD_NO_LONG_LONG, _MSC_VER
-
-DEFINE_VA_LIST_HELPER (float*);
-DEFINE_VA_LIST_HELPER (double*);
-
-#ifndef _RWSTD_NO_LONG_DOUBLE
-
-DEFINE_VA_LIST_HELPER (long double*);
-
-#endif   // _RWSTD_NO_LONG_DOUBLE
-
-DEFINE_VA_LIST_HELPER (void*);
-
-const char* get_va_list_type_name (...) { return 0; }
-
-
 void get_type_names (int dummy, ...)
 {
     clock_t   clk  = 0;           // arithmetic type
@@ -90,10 +50,6 @@ void get_type_names (int dummy, ...)
     ptrdiff_t diff = 0;           // signed integral type
     size_t    size = 0;           // unsigned integral type
     time_t    tim  = 0;           // arithmetic type
-    va_list   va;                 // object type
-
-    // initialize va to prevent an MSVC 8 debug assertion
-    va_start (va, dummy);
 
 #if !defined (_RWSTD_USE_CONFIG)
 
@@ -105,15 +61,6 @@ void get_type_names (int dummy, ...)
     printf ("#define _RWSTD_PTRDIFF_T %s\n", get_type_name (diff));
     printf ("#define _RWSTD_SIZE_T %s\n", get_type_name (size));
     printf ("#define _RWSTD_TIME_T %s\n", get_type_name (tim));
-
-    if (get_va_list_type_name (va))
-        printf ("#define _RWSTD_VA_LIST %s\n", get_va_list_type_name (va));
-    else {
-        printf ("#define _RWSTD_NO_NATIVE_VA_LIST "
-                "/* may be an aggregate */\n");
-        printf ("#define _RWSTD_VA_LIST_SIZE %u\n", sizeof va);
-    }
-        
 
 #if defined (CLOCKS_PER_SEC)
     printf ("#define _RWSTD_CLOCKS_PER_SEC %d\n", CLOCKS_PER_SEC);
