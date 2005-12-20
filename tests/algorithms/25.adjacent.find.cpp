@@ -19,9 +19,9 @@
  * 
  **************************************************************************/
 
-#include <algorithm>   // for adjacent_find
+#include <algorithm>   // for adjacent_find()
 #include <functional>  // for equal_to
-#include <cstddef>     // for size_t
+#include <cstring>     // for size_t, strlen()
 
 #include <alg_test.h>
 #include <driver.h>

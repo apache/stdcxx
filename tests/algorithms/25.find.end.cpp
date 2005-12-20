@@ -19,12 +19,12 @@
  * 
  **************************************************************************/
 
-#include <algorithm>    // for find_end
+#include <algorithm>    // for find_end()
 #include <functional>   // for equal_to
-#include <cstddef>      // for size_t
+#include <cstring>      // for size_t, strlen()
 
 #include <alg_test.h>   
-#include <driver.h>     // for rw_test
+#include <driver.h>     // for rw_test()
 
 /**************************************************************************/
 
