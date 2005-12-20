@@ -20,7 +20,7 @@
  **************************************************************************/
 
 #include <algorithm>    // for find()
-#include <cstddef>      // for size_t
+#include <cstring>      // for size_t, strlen()
 
 #include <alg_test.h>   
 #include <driver.h>     // for rw_test()
