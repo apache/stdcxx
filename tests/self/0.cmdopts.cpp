@@ -25,8 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 
-// global buffer containing the names of all all callbacks along with
-// their arguments called in response to each invocation to rw_runopts()
+// global buffer containing the names of all callbacks (along with
+// their arguments) called in response to each invocation to rw_runopts()
 static char argstr [4096];
 
 // the maximum number of callbacks to be invoked by a single call
@@ -44,6 +44,8 @@ static int exit_status;
 
 // the current line number
 static int current_line;
+
+/**************************************************************************/
 
 // prints its arguments in a human-readable form to buf
 static int
@@ -91,6 +93,7 @@ pargs (char *buf, const char *funcname, int argc, char *argv [])
     return retvals [ncalls];
 }
 
+/**************************************************************************/
 
 static int
 callback_imp (const char *cbname, int argc, char *argv[])
@@ -122,6 +125,7 @@ err (int argc, char *argv[])
     return callback_imp ("ERR", argc, argv);
 }
 
+/**************************************************************************/
 
 typedef int (cbfun_t)(int, char*[]);
 
@@ -131,6 +135,7 @@ static int opt_counts [4];
 static const union {
     int     *pint;
     cbfun_t *pfun;
+    int      ival;
 } cntptrs [] = {
     { opt_counts + 0 },
     { opt_counts + 1 },
@@ -138,6 +143,7 @@ static const union {
     { opt_counts + 3 }
 };
 
+/**************************************************************************/
 
 static void
 test_opts (const char *expect,
@@ -237,6 +243,7 @@ test_opts (const char *expect,
     }
 }
 
+/**************************************************************************/
 
 static char**
 mkargv (const char *s0,
@@ -267,9 +274,12 @@ mkargv (const char *s0,
     return argv;
 }
                               
+/**************************************************************************/
 
-int main ()
-{
+
+
+// convenience macros for brevity
+
 #define A mkargv
 #define B bar
 #define F foo
@@ -278,42 +288,51 @@ int main ()
 #define C1 cntptrs [1].pfun
 #define C2 cntptrs [2].pfun
 #define C3 cntptrs [3].pfun
+#define N(n)  make_arg (n)
 #define T (current_line = __LINE__), test_opts
 
-    // +--------- expected resul string formatted by callbacks
-    // |   +----- expected rw_runopts() return value
-    // |   |  +-- rw_runopts() second argument (argv)
-    // |   |  |
-    // |   |  |             +---------- expected rw_setopts() result
-    // |   |  |             |  +------- rw_setopts() first argument
-    // |   |  |             |  |    +-- rw_setopts() callbacks...
-    // |   |  |             |  |    |
-    // V   V  V             V  V    V
-    T ("", 0, A (""),       0, "",  0);
-    T ("", 0, A ("a"),      0, "",  0);
-    T ("", 0, A ("a", "b"), 0, "",  0);
-    T ("", 0, A ("a", "b"), 0, "",  0);
+/**************************************************************************/
 
-    T ("", 0, A (""),       1, "f", F);
-    T ("", 0, A ("a"),      1, "f", F);
-    T ("", 0, A ("a", "b"), 1, "f", F);
-    T ("", 0, A ("a", "b"), 1, "f", F);
-    T ("", 0, A ("a", "f"), 1, "f", F);
-    T ("", 0, A ("f", "f"), 1, "f", F);
+static void
+test_unknown_options ()
+{
+    // +--------- expected result string (formatted by callbacks)
+    // |   +----- expected value returned from rw_runopts()
+    // |   |  +-- second argument to rw_runopts() (argv)
+    // |   |  |
+    // |   |  |       +---------- expected rw_setopts() result
+    // |   |  |       |  +------- rw_setopts() first argument
+    // |   |  |       |  |    +-- rw_setopts() callbacks...
+    // |   |  |       |  |    |
+    // V   V  V       V  V    V
+    T ("", 0, A (""), 0, "",  0);
 
     // exercise setting up the "unknown option" handler
     T ("",  0, A (""),  1, "-",     0);
     T ("",  0, A (""),  1, "-",     E);
 
-    // exercise the "unknown option" handler
-    T ("ERR(1,{\"-x\"})",  0, A ("-x"),  2, "- f", E, F);
+    // exercise invoking the "unknown option" handler
+    T ("ERR(1,{\"-x\"})",  0, A ("-x"),     2, "- f", E, F);
+    T ("ERR(2,{\"-x\",\"-y\"});"
+       "foo(1,{\"-y\"})",  0, A ("-x","-y"),  2, "- y", E, F);
 
-    // exercise short and/or long options
-    T ("foo(1,{\"-a\"})",  0, A ("-a"),  1, "a",    F);
-    T ("foo(1,{\"--a\"})", 0, A ("--a"), 1, "|-a",  F);
-    T ("foo(1,{\"-a\"})",  0, A ("-a"),  1, "a|-a", F);
-    T ("foo(1,{\"--a\"})", 0, A ("--a"), 1, "a|-a", F);
+    retvals [0] = 1;
+    T ("ERR(2,{\"-x\",\"-y\"})", 1, A ("-x","-y"),  2, "- y", E, F);
 
+    retvals [0] = 0;
+    retvals [1] = 2;
+    T ("foo(2,{\"-x\",\"-y\"});"
+       "ERR(1,{\"-y\"})",  2, A ("-x","-y"),  2, "- x", E, F);
+    T ("foo(3,{\"-x\",\"-y\",\"-x\"});"
+       "ERR(2,{\"-y\",\"-x\"})",  2, A ("-x","-y", "-x"),  2, "- x", E, F);
+    retvals [1] = 0;
+}
+
+/**************************************************************************/
+
+static void
+test_counted_options ()
+{
     // exercise options with a counter instead of a callback
     T ("#1",   0, A ("-b"),              1, "b#",     C0);
     T ("#1",   0, A ("--cc"),            1, "|-cc#",  C0);
@@ -322,6 +341,56 @@ int main ()
     T ("#3",   0, A ("-e", "-e", "-e"),  1, "e#",     C0);
     T ("#1,2", 0, A ("-f", "-g", "-g"),  2, "f# g#",  C0, C1);
 
+    // exercise counted options with a numerical argument
+    T ("#0",      0, A ("--n=0"),           1, "|-n#",     C0);
+    T ("#1",      0, A ("--n=1"),           1, "|-n#",     C0);
+    T ("#1",      0, A ("--n=+1"),          1, "|-n#",     C0);
+    T ("#-1",     0, A ("--n=-1"),          1, "|-n#",     C0);
+    T ("#2",      0, A ("--n=+2"),          1, "|-n#",     C0);
+    T ("#-2",     0, A ("--n=-2"),          1, "|-n#",     C0);
+    T ("#12345",  0, A ("--n=+12345"),      1, "|-n#",     C0);
+    T ("#-12346", 0, A ("--n=-12346"),      1, "|-n#",     C0);
+
+    // exercise counted options with a restricted numerical argument
+    T ("#0",      0, A ("--n=0"),           1, "|-n#0",     C0);
+    T ("#1",      0, A ("--n=1"),           1, "|-n#0",     C0);
+    T ("#1",      0, A ("--n=1"),           1, "|-n#1",     C0);
+    T ("#2",      0, A ("--n=2"),           1, "|-n#1",     C0);
+    T ("#1",      0, A ("--n=+1"),          1, "|-n#+1",    C0);
+    T ("#-1",     0, A ("--n=-1"),          1, "|-n#-1",    C0);
+    T ("#0",      0, A ("--n=0"),           1, "|-n#-1",    C0);
+    T ("#1",      0, A ("--n=1"),           1, "|-n#-1",    C0);
+    T ("#123",    0, A ("--n=+123"),        1, "|-n#+123",  C0);
+    T ("#124",    0, A ("--n=+124"),        1, "|-n#+123",  C0);
+    T ("#-125",   0, A ("--n=-125"),        1, "|-n#-125",  C0);
+    T ("#-126",   0, A ("--n=-126"),        1, "|-n#-127",  C0);
+
+    T ("#0",      0, A ("--n=0"),           1, "|-n#0-1",   C0);
+    T ("#1",      0, A ("--n=1"),           1, "|-n#0-1",   C0);
+
+    T ("#0",      0, A ("--n=0"),           1, "|-n#-1-0",  C0);
+
+    // same as above but with an out of range argument
+    T ("",        1, A ("--n=1"),           1, "|-n#-1-0",  C0);
+    T ("",        1, A ("--n=-1"),          1, "|-n#0",     C0);
+    T ("",        1, A ("--n=0"),           1, "|-n#1",     C0);
+    T ("",        1, A ("--n=1"),           1, "|-n#2",     C0);
+    T ("",        1, A ("--n=+2"),          1, "|-n#+3",    C0);
+
+    T ("",        1, A ("--n=-1"),          1, "|-n#0-1",    C0);
+    T ("",        1, A ("--n=+2"),          1, "|-n#0-1",    C0);
+    T ("",        1, A ("--n=-11"),         1, "|-n#-10--5", C0);
+    T ("",        1, A ("--n=-4"),          1, "|-n#-10--5", C0);
+    T ("",        1, A ("--n=-11"),         1, "|-n#-1-1",   C0);
+    T ("",        1, A ("--n=-1"),          1, "|-n#0-32",   C0);
+    T ("",        1, A ("--n=33"),          1, "|-n#0-32",   C0);
+}
+
+/**************************************************************************/
+
+static void
+test_optional_argument ()
+{
     // exercise an option with an optional argument
     T ("foo(1,{\"-a\"})",       0, A ("-a"),      1, "a:", F);
     T ("foo(1,{\"-a\"})",       0, A ("-a"),      1, "a:", F);
@@ -340,6 +409,19 @@ int main ()
        "bar(1,{\"-b\"})",
        0, A ("-a", "x", "-b"), 2, "a: b", F, B);
 
+    // exercise optional restricted numeric argument
+    T ("foo(2,{\"-n\",\"0\"})",    0, A ("-n", "0"),    1, "n:0",    F);
+    T ("foo(2,{\"-n\",\"+1\"})",   0, A ("-n", "+1"),   1, "n:1",    F);
+    T ("foo(2,{\"-n\",\"+2\"})",   0, A ("-n", "+2"),   1, "n:+2",   F);
+    T ("foo(2,{\"-n\",\"\\-2\"})", 0, A ("-n", "\\-2"), 1, "n:-3",   F);
+    T ("foo(2,{\"-n\",\"\\-0\"})", 0, A ("-n", "\\-0"), 1, "n:-3-0", F);
+}
+
+/**************************************************************************/
+
+static void
+test_required_argument ()
+{
     // exercise the processing of an option with a required argument
 
     // the equals sign missing
@@ -359,20 +441,25 @@ int main ()
     T ("foo(1,{\"--h=3:4\"})",   0, A ("--h=3:4"),   1, "|-h=",   F);
     T ("foo(1,{\"--i=\"j\"\"})", 0, A ("--i=\"j\""), 1, "|-i=",   F);
 
-    // exercise callback errors
-    retvals [0] = 1;
-    T ("foo(2,{\"-a\",\"-b\"})",
-       retvals [0], A ("-a", "-b"), 2, "a b", F, B);
+    // exercise restricted numeric argument
+    T ("foo(1,{\"--a=1\"})",     0, A ("--a=1"),     1, "|-a=0",   F);
+    T ("foo(1,{\"--a=1\"})",     0, A ("--a=1"),     1, "|-a=1",   F);
+    T ("foo(1,{\"--a=2\"})",     0, A ("--a=2"),     1, "|-a=2",   F);
+    T ("foo(1,{\"--a=3\"})",     0, A ("--a=3"),     1, "|-a=3-4", F);
+    T ("foo(1,{\"--a=5\"})",     0, A ("--a=5"),     1, "|-a=4-5", F);
 
-    retvals [0] = 0;
-    retvals [1] = 2;
+    T ("",                       1, A ("--a=1"),     1, "|-a=2",    F);
+    T ("",                       1, A ("--a=2"),     1, "|-a=0-1",  F);
+    T ("",                       1, A ("--a=-1"),    1, "|-a=1-2",  F);
+    T ("",                       1, A ("--a=+123"),  1, "|-a=+2-3", F);
 
-    T ("foo(3,{\"-a\",\"-b\",\"-c\"});"
-       "bar(2,{\"-b\",\"-c\"})",
-       retvals [1], A ("-a", "-b", "-c"), 3, "a b c", F, B, E);
+}
 
-    retvals [1] = 0;
+/**************************************************************************/
 
+static void
+test_repeated_options ()
+{
     // exercise repeated options
     // only the first occurrence of each command line option
     // causes an invocation of the callback, all subsequent
@@ -417,6 +504,68 @@ int main ()
 
     T ("foo(1,{\"-k\"});"
        "foo(0,{})", 0, A ("-k"),       2, "k l!",  F, F);
+}
+
+/**************************************************************************/
+
+int main ()
+{
+    // +--------- expected result string (formatted by callbacks)
+    // |   +----- expected value returned from rw_runopts()
+    // |   |  +-- second argument to rw_runopts() (argv)
+    // |   |  |
+    // |   |  |             +---------- expected rw_setopts() result
+    // |   |  |             |  +------- rw_setopts() first argument
+    // |   |  |             |  |    +-- rw_setopts() callbacks...
+    // |   |  |             |  |    |
+    // V   V  V             V  V    V
+    T ("", 0, A (""),       0, "",  0);
+    T ("", 0, A ("a"),      0, "",  0);
+    T ("", 0, A ("a", "b"), 0, "",  0);
+    T ("", 0, A ("a", "b"), 0, "",  0);
+
+    T ("", 0, A (""),       1, "f", F);
+    T ("", 0, A ("a"),      1, "f", F);
+    T ("", 0, A ("a", "b"), 1, "f", F);
+    T ("", 0, A ("a", "b"), 1, "f", F);
+    T ("", 0, A ("a", "f"), 1, "f", F);
+    T ("", 0, A ("f", "f"), 1, "f", F);
+
+    // exercise short and/or long options
+    T ("foo(1,{\"-a\"})",  0, A ("-a"),  1, "a",    F);
+    T ("foo(1,{\"--a\"})", 0, A ("--a"), 1, "|-a",  F);
+    T ("foo(1,{\"-a\"})",  0, A ("-a"),  1, "a|-a", F);
+    T ("foo(1,{\"--a\"})", 0, A ("--a"), 1, "a|-a", F);
+
+    // exercise the handling of unknown options
+    test_unknown_options ();
+
+    // exercise the handling of options with a counter
+    // instead of a callback handler
+    test_counted_options ();
+
+    // exercise the handling of options with an optional argument
+    test_optional_argument ();
+
+    // exercise the handling of options with a required argument
+    test_required_argument ();
+
+    // exercise the handling of repeated occurrences of the same option
+    test_repeated_options ();
+
+    // exercise callback errors
+    retvals [0] = 1;
+    T ("foo(2,{\"-a\",\"-b\"})",
+       retvals [0], A ("-a", "-b"), 2, "a b", F, B);
+
+    retvals [0] = 0;
+    retvals [1] = 2;
+
+    T ("foo(3,{\"-a\",\"-b\",\"-c\"});"
+       "bar(2,{\"-b\",\"-c\"})",
+       retvals [1], A ("-a", "-b", "-c"), 3, "a b c", F, B, E);
+
+    retvals [1] = 0;
 
     return exit_status;
 }
