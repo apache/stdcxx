@@ -1,7 +1,7 @@
 /***************************************************************************
  *
- * exceptions_mt.cpp - test exercising the thread safety
- *                     of C++ Standard Library exception classes
+ * 19.exceptions.mt.cpp - test exercising the thread safety of
+ *                        the C++ Standard Library exception classes
  *
  * $Id$
  *
@@ -349,7 +349,8 @@ int main (int argc, char *argv[])
                     "lib.std.exceptions",
                     "thread safety", run_test,
                     "|-nloops#0 "        // must be non-negative
-                    "|-nthreads#0-32",   // must be between 0 and 32
+                    "|-nthreads#0-*",    // must be in [0, MAX_THREADS]
                     &rw_opt_nloops,
+                    int (MAX_THREADS),
                     &rw_opt_nthreads);
 }
