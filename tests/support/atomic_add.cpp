@@ -365,9 +365,11 @@ int main (int argc, char *argv[])
 {
     return rw_test (argc, argv, __FILE__,
                     0 /* no clause */,
-                    0 /* no comment */, run_test,
+                    0 /* no comment */,
+                    run_test,
                     "|-nloops#0 "        // must be non-negative
-                    "|-nthreads#0-32",   // must be between 0 and 32
+                    "|-nthreads#0-*" ,   // must be in [0, MAX_THREADS]
                     &rw_opt_nloops,
+                    int (MAX_THREADS),
                     &rw_opt_nthreads);
 }
