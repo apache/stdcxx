@@ -21,7 +21,7 @@ Run configuration tests and produces config.h file.
                 required="false" type="string"/>
             <named helpstring="Log file name" name="LogFile" 
                 required="false" type="string"/>
-            <example>cscript configure.wsf /SolutionName:VC71 
+            <example>cscript configure.wsf /SolutionName:msvc-7.1 
                 /ConfigurationName:"Release Static"
             </example>
             <usage>
@@ -29,7 +29,7 @@ Usage: cscript configure.wsf /SolutionName:@Solution
 /ConfigurationName:@Configuration [/OutDir:@OutDir] [/OutFile:@OutFile] 
 [/SrcDir:@SrcDir] [/LogFile:@LogFile],
 where
-@Solution is VC71,
+@Solution is msvc-7.1 or icc-9.0,
 @Configuration = 11s Debug Static | 11d Debug Dll , etc
 @OutDir - output directory (default: script_directory\tests),
 @OutFile - output file name (default: config.h),
@@ -41,8 +41,10 @@ where
         <object id="WshShell" progid="WScript.Shell"/>
         <script language="JScript" src="config.js"/>
         <script language="JScript" src="msvc-config_classes.js"/>
+        <script language="JScript" src="icc-config_classes.js"/>
         <script language="JScript" src="data.js"/>
         <script language="JScript" src="msvc-config.js"/>
+        <script language="JScript" src="icc-config.js"/>
         <script language="JScript" src="utilities.js"/>
         <script id="configure" language="JScript">
 <![CDATA[
@@ -217,20 +219,37 @@ function configure()
         activeCompiler.defines.add("_RWBUILD_std");
     }
     
+    var logFileNameURI = "file://" + logFileName.replace(/\\/mg, "/");
+    
     // sanity check
-    checkSanity();
+    if (0 == checkSanity())
+    {
+        WScript.StdErr.WriteLine(
+            "You may see log here: " + logFileNameURI);
+        WScript.Quit(1);
+    }
         
     // check architecture
     checkArchitecture();
         
     // headers and functions check
-    checkHeaders();
+    checkHeaders(WScript.Arguments.Named("SolutionName"));
 
     // compile .lib.cpp s
-    compileLibs();
+    if (0 == compileLibs())
+    {
+        WScript.StdErr.WriteLine(
+            "You may see log here: " + logFileNameURI);
+        WScript.Quit(1);
+    }
     
     // compile, link and run .cpp's (if possible)
-    runExeTests();
+    if (0 == runExeTests())
+    {
+        WScript.StdErr.WriteLine(
+            "You may see log here: " + logFileNameURI);
+        WScript.Quit(1);
+    }
     
     fso.MoveFile(stageFile , configFile);
     WScript.Quit(0);
@@ -253,7 +272,7 @@ function checkSanity()
     {
         WScript.StdErr.WriteLine(
             "Configure: Fatal error: Compiler failed sanity check");
-        WScript.Quit(1);
+        return 0;
     }
     
     var exeName = "sanity.exe";
@@ -269,7 +288,7 @@ function checkSanity()
     {
         WScript.StdErr.WriteLine(
             "Configure: Fatal error: Linker failed sanity check");
-        WScript.Quit(1);
+        return 0;
     }
     
     WScript.StdOut.Write("Checking if run environment is sane... ");
@@ -283,8 +302,10 @@ function checkSanity()
         WScript.StdErr.WriteLine(
             "Configure: Fatal error: \
                 Runtime environment failed sanity check");
-        WScript.Quit(1);
+        return 0;
     }
+    
+    return 1;
 }
 
 // removes file if it exists
@@ -376,8 +397,13 @@ function checkArchitecture()
 }
 
 // perform headers presence check
-function checkHeaders()
+function checkHeaders(currentCfg)
 {
+    // for some strange reasons Intel C++ 9.0 Compiler
+    // crashes when '*' symbol presents in compiler defines
+    // or do another strange things
+    var useStarInDefines = (currentCfg != icc90SolutionName);
+    
     var hdrs = "assert ctype errno float iso646 limits locale math setjmp";
     hdrs += " signal stdarg stddef stdio stdlib string time wchar wctype";
     hdrs += " new typeinfo";
@@ -488,6 +514,7 @@ function checkHeaders()
     var lib;
     for (i in headers)
     {
+        var fun_params = "";
         var hdr_base = headers[i];
         switch (hdr_base)
         {
@@ -564,29 +591,50 @@ function checkHeaders()
             break;
             case "string":
             funs = 
-                "memchr((char*)0,0,0) memcmp memcpy memmove memset strcat";
+                useStarInDefines ? "memchr((char*)0,0,0)" : "memchr(0,0,0)";
+            funs += " memcmp memcpy memmove memset strcat";
             funs += 
-         " strchr((char*)0,0) strcmp strcoll strcpy strcspn strerror strlen";
-            funs += " strncat strncmp strncpy strpbrk((char*)0,(char*)0)";
-            funs += " strrchr((char*)0,0) strspn strstr((char*)0,(char*)0)";
+                useStarInDefines ? " strchr((char*)0,0)" : " strchr(0,0)";
+            funs += 
+                " strcmp strcoll strcpy strcspn strerror strlen";
+            funs += " strncat strncmp strncpy"
+            funs += useStarInDefines ? 
+                " strpbrk((char*)0,(char*)0)" : " strpbrk(0,0)";
+            funs += 
+                useStarInDefines ? " strrchr((char*)0,0)" : " strrchr(0,0)";
+            funs += " strspn"
+            funs += useStarInDefines ? 
+                " strstr((char*)0,(char*)0)" : " strstr(0,0)";
             funs += " strtok strxfrm";
             funs = funs.split(" ");
             lib = "c";
             break;
-            case "wchar":
+        case "wchar":
+            fun_params = "wchar_t t[] = {'a'}";
             funs = 
                 "btowc fgetwc fgetws fputwc fputws fwide fwprintf fwscanf";
             funs += " getwc getwchar mbrlen mbrtowc mbsinit mbsrtowcs putwc";
             funs += " putwchar swprintf swscanf ungetwc vfwprintf vswprintf";
-            funs += " vwprintf vwscanf wcrtomb wcscat wcschr((wchar_t*)0,0)";
-            funs += " wcscmp wcscoll wcscpy wcscspn wcsftime wcslen wcsncat";
-            funs += " wcsncmp wcsncpy wcspbrk((wchar_t*)0,(wchar_t*)0)";
-            funs += " wcsrchr((wchar_t*)0,0) wcsrtombs wcsspn";
+            funs += " vwprintf vwscanf wcrtomb wcscat"
             funs += 
-             " wcsstr((wchar_t*)0,(wchar_t*)0) wcstod wcstod wcstof wcstok";
+             useStarInDefines ? " wcschr((wchar_t*)0,0)" : " wcschr(t,0)";
+            funs += " wcscmp wcscoll wcscpy wcscspn wcsftime wcslen wcsncat";
+            funs += " wcsncmp wcsncpy"
+            funs += useStarInDefines ? 
+                " wcspbrk((wchar_t*)0,(wchar_t*)0)" : " wcspbrk(t,0)";
+            funs += useStarInDefines ? 
+                " wcsrchr((wchar_t*)0,0)" : " wcsrchr(t,0)";
+            funs += " wcsrtombs wcsspn";
+            funs += useStarInDefines ? 
+                " wcsstr((wchar_t*)0,(wchar_t*)0)" : " wcsstr(t,0)";
+            funs += 
+             " wcstod wcstod wcstof wcstok";
             funs += 
                 " wcstol wcstold wcstoll wcstombs wcstoul wcstoull wcsxfrm";
-            funs += " wctob wctomb wmemchr((wchar_t*)0,0,0) wmemcmp wmemcpy";
+            funs += " wctob wctomb"
+            funs += useStarInDefines ? 
+                " wmemchr((wchar_t*)0,0,0)" : " wmemchr(t,0,0)";
+            funs += " wmemcmp wmemcpy";
             funs += " wmemmove wmemset wprintf wscanf";
             funs = funs.split(" ");         
             lib = "c";
@@ -648,6 +696,10 @@ function checkHeaders()
             if (noNamespaces)
             {
                 defines.push("NONAMESPACE");
+            }
+            if (paramsIndx != -1 && fun_params != "")
+            {
+                defines.push("FUN_PARAMS=" + fun_params);
             }
             var ret = compileFiles(srcFile, defines);
             if (ret == 0)
@@ -749,9 +801,11 @@ function compileLibs()
             WScript.StdErr.WriteLine(
                 "Configure: Fatal error: Failed to build library " 
                     + outLibName);
-            WScript.Quit(1);
+            return 0;
         }
     }
+    
+    return 1;
 }
 
 // gets description from text if present
@@ -867,7 +921,7 @@ function runExeTests()
                                 "Configure: Fatal error: Test " + test
                                  + " failed to complete in " + timeOut / 1000
                                  + " seconds");
-                            WScript.Quit(3);
+                            return 0;
                         }
                     }
                     result = exec.ExitCode;
@@ -907,11 +961,13 @@ function runExeTests()
                 var srcText = readTextFile(srcFile);
                 checkDependencies(srcText, configText, true);               
             }
-            WScript.Quit(1);
+            return 0;
         }
         srcs = postponed;
     }
     while (srcs.length != 0);
+    
+    return 1;
 }
 
 // located dependencies (symbols _RWSTD_XXX and _RWSTD_NO_XXX) in a text

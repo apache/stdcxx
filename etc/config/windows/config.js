@@ -300,6 +300,7 @@ function Linker()
     this.base = Tool;
     this.base(linkerToolName);
     this.libraries = new Collection();
+    this.libdirs = new Collection();
 }
 
 // Linker class methods

@@ -13,14 +13,18 @@ Gathers logs and makes the build summary log.
                 required="true" type="string"/>         
             <named helpstring="The build type" name="BUILDTYPE" 
                 required="true" type="string"/>
+            <named helpstring="The configuration" name="CONFIG" 
+                required="true" type="string"/>
             <example>
-        cscript makebuildlog.wsf /BUILDDIR"C:\stdcxx\build" /BUILDTYPE:11d
+cscript makelog.wsf /BUILDDIR"C:\stdcxx\build" /BUILDTYPE:11d /CONFIG:msvc-7.1
             </example>
             <usage>
-Usage: cscript makebuildlog.wsf /BUILDDIR:@BUILDDIR /BUILDTYPE:@BUILDTYPE 
+Usage: cscript makebuildlog.wsf /BUILDDIR:@BUILDDIR 
+/BUILDTYPE:@BUILDTYPE /CONFIG:@CONFIG
 where
 @BUILDDIR is the build directory,
 @BUILDTYPE is the build type (11d, 11s, etc).
+@CONFIG is the configuration (msvc-7.1, icc-9.0, etc).
             </usage>
         </runtime>
         <object id="fso" progid="Scripting.FileSystemObject"/>
@@ -34,13 +38,15 @@ where
 // Summary build log maker script
 //
 
-var buildDir = ""; // path to the root directory containing executables
-var buildType = ""      // the buid type (11d, 11s, etc)
+var buildDir = "";      // path to the root directory containing executables
+var buildDirBase = "";  // path to the root directory containing executables
+var buildType = "";     // the buid type (11d, 11s, etc)
+var buildCfg = "";      // the build configuration (MSVC-7.1, ICC-9.0, etc)
 
 var buildlogFile = "BuildLog.htm";
 var summaryFileName = "Summary.htm";
 var htmFolderName = "temphtm";
-var buildSummaryPrefix = "vc71-";
+var buildSummaryPrefix = "msvc-7.1-";
 
 var libBuildDir = "src";
 var examplesBuildDir = "examples";
@@ -67,8 +73,9 @@ function makelog()
         buildlogFile, sumTempFileNameTst, htmFolderName, false);
         
     // make build summary log file
-    var fSum = makeSummaryLog(buildDir, buildSummaryPrefix, buildType);
-    var logPath = getSummaryLogPath(buildDir, buildSummaryPrefix, buildType);
+    var fSum = makeSummaryLog(buildDirBase, buildSummaryPrefix, buildType);
+    var logPath = getSummaryLogPath(buildDirBase, 
+        buildSummaryPrefix, buildType);
     
     // read information about library
     var libInfo = new ItemBuildInfo(".stdlib");
@@ -103,7 +110,8 @@ function makelog()
     
     deleteTemporaryFiles();
     
-    WScript.Echo("Summary log was generated in " + logPath);
+    var resLogPath = logPath.replace(/\\/mg, "/");  
+    WScript.Echo("Summary log was generated in file://" + resLogPath);
     
     WScript.Quit(0);
 }
@@ -119,21 +127,24 @@ function readAndCheckArguments()
     }
     
     buildDir =  WScript.Arguments.Named("BUILDDIR");
+    buildDirBase = buildDir;
+    
+    if (!WScript.Arguments.Named.Exists("CONFIG"))
+    {
+        WScript.StdErr.WriteLine(
+            "Generate: Missing required argument CONFIG.");
+        WScript.Arguments.ShowUsage();
+        WScript.Quit(2);
+    }
+    
+    buildCfg =  WScript.Arguments.Named("CONFIG");
+    buildSummaryPrefix = buildCfg + "-";
+    buildDir = buildDir + "\\" + buildCfg;
     
     if (WScript.Arguments.Named.Exists("BUILDTYPE"))
         buildType = WScript.Arguments.Named("BUILDTYPE");
     else
         buildType = "11d";
-        
-    /*
-    if (!WScript.Arguments.Named.Exists("BUILDTYPE"))
-    {
-        WScript.StdErr.WriteLine(
-            "Generate: Missing required argument BUILDTYPE.");
-        WScript.Arguments.ShowUsage();
-        WScript.Quit(2);
-    }
-    */
     
     if (! fso.FolderExists(buildDir))
     {
@@ -145,7 +156,7 @@ function readAndCheckArguments()
 }
 
 function getLibraryBuildInfo(libDir, bType, libInfo)
-{
+{   
     var logDir = libDir + "\\" + bType;
     if (! fso.FolderExists(logDir))
         return;
