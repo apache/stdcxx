@@ -35,6 +35,8 @@ var logFile = null;
 var runExamplesLog = "runexamples.log";
 var runTestsLog = "runtests.log";
 
+var iccConversionUtility = "ICProjConvert90.exe";
+
 function fillProjectsFromFolders(result, solution, srcDir, 
                     projectTemplateName, projectNamePrefix, projectFolder, 
                     includeOffset, excludedFolders, excludedFiles,
@@ -335,6 +337,7 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
 
     var result = solution.shallowClone();
     result.generateSolution = solution.generateSolution;
+    result.checkEnvironment = solution.checkEnvironment;
     // clone build configurations
     result.configurations = solution.configurations.clone();
     
@@ -394,7 +397,7 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
                         cfgProjectSrcFolder);
                     project.sourceFiles.add(filter.name, filter);
                     
-                    filter = createIncludesFilter(srcDir, 
+                    filter = createExcludedIncludesFilter(srcDir, 
                         cfgProjectIncludeFolder);                        
                     project.sourceFiles.add(filter.name, filter);
                 
@@ -403,7 +406,7 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
                 case projectStdLibName:
                     project.folder = stdlibProjectFolder;
                     
-                    var filter = createSourcesFilter(srcDir + "\\"
+                    var filter = createCppSourcesFilter(srcDir + "\\"
                         + stdlibProjectFolder, stdlibSrcFolder);
                     project.sourceFiles.add(filter.name, filter);
                     
@@ -420,7 +423,7 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
                 case projectRwTestName:
                 
                     project.folder = rwtestProjectFolder;
-                    var filter = createSourcesFilter(srcDir + "\\"
+                    var filter = createCppSourcesFilter(srcDir + "\\"
                         + rwtestProjectFolder, rwtestSrcFolder);
                     project.sourceFiles.add(filter.name, filter);
                     
@@ -495,7 +498,7 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
                     tool.dependencies = configureDependencies;
                     newCfg.tools.add(tool.name, tool);
                     // add a fake linker to suppress dependency on output
-                    tool = new FakeLinkerVC();
+                    tool = getFakeLinker(solution.name);
                     newCfg.tools.add(tool.name, tool);
                     
                     newCfg.outputDir = "include\\" + newCfg.outputDir;
@@ -575,7 +578,7 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
                                                     
                     newCfg.tools.add(tool.name, tool);
                     // add a fake linker to suppress dependency on output
-                    tool = new FakeLinkerVC();
+                    tool = getFakeLinker(solution.name);
                     newCfg.tools.add(tool.name, tool);
                 
                     platform.configurations.add(newCfg.name, newCfg);
@@ -603,7 +606,7 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
                                                     
                     newCfg.tools.add(tool.name, tool);
                     // add a fake linker to suppress dependency on output
-                    tool = new FakeLinkerVC();
+                    tool = getFakeLinker(solution.name);
                     newCfg.tools.add(tool.name, tool);
                 
                     platform.configurations.add(newCfg.name, newCfg);
@@ -618,8 +621,8 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
         }
     }
     
-    WScript.Echo("Library amd configure projects are created");
-    logFile.WriteLine("Library amd configure projects are created");
+    WScript.Echo("Library and configure projects are created");
+    logFile.WriteLine("Library and configure projects are created");
     
     logFile.WriteLine("Creating examples");
     WScript.Echo("Creating examples...");
@@ -655,6 +658,14 @@ function createSourcesFilter(projectDir, offsetDir)
     return filter;
 }
 
+function createCppSourcesFilter(projectDir, offsetDir)
+{
+    var filter = createFilter(projectDir, offsetDir, 
+        "Source Files", "cpp;cxx;s", /^.+\.cc|.+\.c$/i);
+    filter.id = "{4FC737F1-C7A5-4376-A066-2A32D752A2FF}";
+    return filter;
+}
+
 function createIncludesFilter(projectDir, offsetDir)
 {
     var filter = createFilter(projectDir, offsetDir, 
@@ -673,6 +684,14 @@ function createExcludedSourcesFilter(projectDir, offsetDir)
     var filter = createFilter(projectDir, offsetDir, 
         "Source Files", "cpp;c;cxx;s;cc", /^.+\.cc|.+\.c|.+\.cpp|.+\.cxx$/i);
     filter.id = "{4FC737F1-C7A5-4376-A066-2A32D752A2FF}";
+    return filter;
+}
+
+function createExcludedIncludesFilter(projectDir, offsetDir)
+{
+    var filter = createFilter(projectDir, offsetDir, 
+        "Header Files", "h;hpp;hxx", /^.+\.cc|.+\.c|.+\.hpp|.+\.hxx$/i);
+    filter.id = "{93995380-89BD-4b04-88EB-625FBE52EBFB}";
     return filter;
 }
 
@@ -832,6 +851,17 @@ function makeDependencies(srcDir)
 }
 
 
+function getFakeLinker(solutionName)
+{
+    if (solutionName == vc71SolutionName)
+        return new FakeLinkerVC();
+        
+    if (solutionName == icc90SolutionName)
+        return new FakeLinkerICC();
+        
+    return new FakeLinkerVC();
+}
+
 // creates real solution based on the template
 function fillSolutionTemplateLight(solution, oldProjects, srcDir, outDir, logStream)
 {
@@ -853,6 +883,7 @@ function fillSolutionTemplateLight(solution, oldProjects, srcDir, outDir, logStr
 
     var result = solution.shallowClone();
     result.generateSolution = solution.generateSolution;
+    result.checkEnvironment = solution.checkEnvironment;
     // clone build configurations
     result.configurations = solution.configurations.clone();
     
@@ -967,6 +998,13 @@ function fillSolutionTemplateLight(solution, oldProjects, srcDir, outDir, logStr
                         tool.outputFile = 
                             removeLeadingDot(projectStdLibName) + 
                             newCfg.outputDir + ".dll";
+                    }
+                    else
+                    {
+                        var tool = newCfg.tools[librarianToolName];
+                        tool.outputFile = 
+                            removeLeadingDot(projectStdLibName) +
+                            newCfg.outputDir + ".lib";
                     }
                 }
                 
@@ -1130,16 +1168,17 @@ function generateVCPROJ(project, srcDir, outDir)
     vcproj.Close();
 }
 
-function generateSolutionVC(srcDir, outDir, logStream, genVCPROJs)
+function generateSolutionVCImpl (solution, srcDir, outDir, 
+                                 logStream, genVCPROJs)
 {
-    var slnFileName = outDir + "\\" + this.name + ".sln";
+    var slnFileName = outDir + "\\" + solution.name + ".sln";
     var sln = fso.CreateTextFile(slnFileName, true, false);
     // header
     sln.WriteLine(
         "Microsoft Visual Studio Solution File, Format Version 8.00");
-    for (i in this.projects)
+    for (i in solution.projects)
     {
-        var project = this.projects[i];
+        var project = solution.projects[i];
         if (project.name) //really a project
         {
             if (true == genVCPROJs)
@@ -1154,9 +1193,11 @@ function generateSolutionVC(srcDir, outDir, logStream, genVCPROJs)
             sln.Write("\"" + project.name + "\"");
             var projectPath = project.folder.length > 0 ?
                 outDir + project.folder + "\\" : outDir + "";
+            var projectRelPath = project.folder.length > 0 ?
+                removeLeadingSymbol(project.folder, "\\") + "\\" : "";
             var projectSrcPath = project.folder.length > 0 ?
                 srcDir + project.folder + "\\" : srcDir + "";
-            var projectFile = projectPath + 
+            var projectFile = projectRelPath + 
                 removeLeadingDot(project.name) + ".vcproj";
             sln.Write(", \"" + projectFile + "\"");
             sln.WriteLine(", \"" + project.id + "\"");
@@ -1166,7 +1207,7 @@ function generateSolutionVC(srcDir, outDir, logStream, genVCPROJs)
                 "\tProjectSection(ProjectDependencies) = postProject");
             for (j in project.dependencies)
             {
-                var depProject = this.projects[j];
+                var depProject = solution.projects[j];
                 if (depProject.name)
                 {
                     sln.WriteLine("\t\t" + depProject.id
@@ -1188,9 +1229,9 @@ function generateSolutionVC(srcDir, outDir, logStream, genVCPROJs)
     sln.WriteLine("Global");
     // solution configurations
     sln.WriteLine("\tGlobalSection(SolutionConfiguration) = preSolution");
-    for (j in this.configurations)
+    for (j in solution.configurations)
     {
-        var slnCfg = this.configurations[j];
+        var slnCfg = solution.configurations[j];
         if (slnCfg.name)
         {           
             sln.WriteLine("\t\t" + slnCfg.name + " = " + slnCfg.name);
@@ -1199,9 +1240,9 @@ function generateSolutionVC(srcDir, outDir, logStream, genVCPROJs)
     sln.WriteLine("\tEndGlobalSection");
     // project configurations
     sln.WriteLine("\tGlobalSection(ProjectConfiguration) = postSolution");
-    for (j in this.configurations)
+    for (j in solution.configurations)
     {
-        var slnCfg = this.configurations[j];
+        var slnCfg = solution.configurations[j];
         if (slnCfg.name)
         {
             for (k in slnCfg.projectConfigurations)
@@ -1209,7 +1250,7 @@ function generateSolutionVC(srcDir, outDir, logStream, genVCPROJs)
                 var projectCfg = slnCfg.projectConfigurations[k];
                 if (projectCfg.projectName)
                 {
-                    var project = this.projects[projectCfg.projectName];
+                    var project = solution.projects[projectCfg.projectName];
                     if (!project)
                     {
                         WScript.StdErr.WriteLine(
@@ -1310,6 +1351,170 @@ function writeSourcesVC(sourceFiles, vcproj, prefix, project, outDir)
     }
 }
 
+function generateSolutionVC(srcDir, outDir, logStream, genVCPROJs)
+{
+    generateSolutionVCImpl(this, srcDir, outDir, logStream, genVCPROJs);
+}
+
+
+function checkEnvironmentVC(logStream)
+{
+    try
+    {
+        var testGUID = createUUID();
+        if (testGUID == "")
+        {
+            WScript.Echo("Error: uuidgen failed.");
+            logStream.WriteLine("Error: uuidgen failed.");
+            return false;
+        }
+    }
+    catch(e)
+    {
+        WScript.Echo("Error: cannot find the uuidgen utility.");
+        logStream.WriteLine("Error: cannot find the uuidgen utility.");
+        return false;
+    }
+    
+    return true;
+}
+
+////////////////////////////////////////////////////////////////////
+// ICC 
+function setProjectAdditionalDependencies(solution, outDir, prj)
+{
+    if (!prj || !solution)
+        return;
+        
+    for (dep in prj.dependencies)
+    {
+        var depPrj = solution.projects[dep];
+        if (! depPrj.name || ! depPrj.platforms)
+            continue;
+
+        if (depPrj.name != projectStdLibName && 
+            depPrj.name != projectRwTestName)
+                continue;
+               
+        for (j in prj.platforms)
+        {
+            var platform = prj.platforms[j];
+            var depPlatform = depPrj.platforms[j];
+
+            if (!platform.configurations || !depPlatform.configurations)
+                continue;
+                    
+            for (k in platform.configurations)
+            {
+                var cfg = platform.configurations[k];
+                var depCfg = depPlatform.configurations[k];
+                if (!cfg.tools || !depCfg.tools)
+                    continue;
+
+                var lnkTool = cfg.tools[linkerToolName];
+                if (! lnkTool)
+                    continue;
+                    
+                var depLnkTool = depCfg.tools[linkerToolName];
+                var depLibTool = depCfg.tools[librarianToolName];
+                                  
+                if (depLnkTool && depLnkTool.outputFile)
+                {
+                    var addlib = depLnkTool.outputFile;
+                    var idxDll = addlib.lastIndexOf(".dll");
+                    if (-1 != idxDll)
+                        addlib = addlib.substr(0, idxDll);
+                    addlib += ".lib";
+                        
+                    lnkTool.libraries.add(addlib);
+                    lnkTool.libdirs.add(outDir + depPrj.folder + 
+                        "\\" + depCfg.outputDir);
+                }
+                else if (depLibTool && depLibTool.outputFile)
+                {                        
+                    var addlib = depLibTool.outputFile;
+                    lnkTool.libraries.add(addlib);
+                    lnkTool.libdirs.add(outDir + depPrj.folder + 
+                        "\\" + depCfg.outputDir);
+                }
+            }
+        }
+    }
+}
+
+function setAdditionalDependencies(solution, outDir)
+{
+    for (i in solution.projects)
+    {
+        var prj = solution.projects[i];
+        if (! prj.platforms || ! prj.dependencies)
+            continue;
+            
+        setProjectAdditionalDependencies(solution, outDir, prj);
+    }
+}
+
+function convertSolution(outDir, solName, toICC)
+{   
+    var slnICFileName = outDir + "\\" + solName + ".sln";
+    convertSolutionImpl(slnICFileName, toICC, null);
+}
+
+function generateSolutionICC(srcDir, outDir, logStream, genICPROJs)
+{
+    if (false == genICPROJs)
+    {
+        generateSolutionVCImpl(this, srcDir, outDir, logStream, genICPROJs);
+        return;
+    }
+            
+    setAdditionalDependencies(this, outDir);
+    
+    generateSolutionVCImpl(this, srcDir, outDir, logStream, genICPROJs);
+    
+    var slnICFileName = outDir + "\\" + this.name + ".sln";
+    convertSolutionImpl(slnICFileName, true, logStream);
+}
+
+function checkEnvironmentICC(logStream)
+{
+    try
+    {
+        var testGUID = createUUID();
+        if (testGUID == "")
+        {
+            WScript.Echo("Error: uuidgen failed.");
+            logStream.WriteLine("Error: uuidgen failed.");
+            return false;
+        }
+    }
+    catch(e1)
+    {
+        WScript.Echo("Error: cannot find the uuidgen utility.");
+        logStream.WriteLine("Error: cannot find the uuidgen utility.");
+        return false;
+    }
+    
+    try
+    {
+        var cmdICConvTest = iccConversionUtility + " /?";
+        var ret = WshShell.Run(cmdICConvTest, 7, true);
+    }
+    catch(e2)
+    {
+        logStream.WriteLine(
+            iccConversionUtility + " conversion utility not found");
+        
+        WScript.Echo("Error: " + 
+            iccConversionUtility + " conversion utility not found");
+            
+        return false;
+    }
+    
+    return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////
 function readSolutionGUIDs(solFileName)
 {
     if (! fso.FileExists(solFileName))
@@ -1356,5 +1561,10 @@ function readProjectSolLine(solLine)
 }
 
 
-var solutionVC71 = getSolution("VC71");
+var solutionVC71 = getSolution(vc71SolutionName);
 solutionVC71.generateSolution = generateSolutionVC;
+solutionVC71.checkEnvironment = checkEnvironmentVC;
+
+var solutionICC90 = getSolution(icc90SolutionName);
+solutionICC90.generateSolution = generateSolutionICC;
+solutionICC90.checkEnvironment = checkEnvironmentICC;

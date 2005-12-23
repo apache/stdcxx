@@ -16,14 +16,14 @@ Generates solution file for a specified environment
             <named helpstring="Output directory for modules" 
                 name="BUILDDIR" required="true" type="string"/>
             <example>cscript generate.wsf /TOPDIR:"C:\stdcxx" 
-                /BUILDDIR:"C:\stdcxx\build" /CONFIG:VC71
+                /BUILDDIR:"C:\stdcxx\build" /CONFIG:msvc-7.1
             </example>
             <usage>
 Usage: cscript generate.wsf /CONFIG:@CONFIG 
 /BUILDDIR:@BUILDDIR [/TOPDIR:@TOPDIR] 
 [/BUILDTYPE:@BUILDTYPE] [/BUILDONLY:@BUILDONLY]
 where
-@CONFIG is VC71,
+@CONFIG is msvc-7.1 or icc-9.0,
 @TOPDIR - stdcxx main directory,
 @BUILDDIR - output directory for a build.
             </usage>
@@ -32,6 +32,7 @@ where
         <object id="WshShell" progid="WScript.Shell"/>
         <script language="JScript" src="config.js"/>
         <script language="JScript" src="msvc-config_classes.js"/>
+        <script language="JScript" src="icc-config_classes.js"/>
         <script language="JScript" src="data.js"/>
         <script language="JScript" src="msvc-config.js"/>
         <script language="JScript" src="utilities.js"/>
@@ -46,6 +47,7 @@ where
 var scriptDir = getParentFolder(WScript.ScriptFullName);
 var srcDir = getParentFolder(getParentFolder(getParentFolder(scriptDir)));
 var outDir = srcDir;
+var outDirBase = outDir;
 var logFile = "slngen.log";
 var logStream = null;
 var currentCfg = "";
@@ -63,8 +65,6 @@ var winconfigDir = "\\etc\\config\\windows";
 var etcDir = "\\etc";
 var configDir = "\\etc\\config";
 
-var tempBuildBatchName = "buildsol.bat";
-
 var description = new generate; // run
 
 function generate()
@@ -74,6 +74,9 @@ function generate()
     
     readAndCheckArguments();
     createBuildDirs();
+    
+    outDirBase = outDir;
+    outDir += "\\" + currentCfg;
     
     if (srcDir[srcDir.length - 1] != "\\")
         srcDir += "\\";
@@ -105,13 +108,27 @@ function generate()
     {
             WScript.StdErr.WriteLine(
                 "Generate: Solution with the name "
-                + solution + " does not support IDE project generation");
+                + solution.name + " does not support IDE project generation");
                 
             logStream.WriteLine("Solution with the name "
-                + solution + " does not support IDE project generation");
+                + solution.name + " does not support IDE project generation");
                 
             logStream.Close();
             WScript.Quit(2);        
+    }
+    
+    if (!solution.checkEnvironment(logStream))
+    {
+            WScript.StdErr.WriteLine(
+                "Generate: Environment for the " + solution.name + 
+                " solution generation is not configured");
+                
+            logStream.WriteLine(
+                "Generate: Environment for the " + solution.name + 
+                " solution generation is not configured");
+                
+            logStream.Close();
+            WScript.Quit(2);   
     }
     
     WScript.Echo("Creating projects...");
@@ -124,14 +141,17 @@ function generate()
     WScript.Echo("Writing projects on disk...");
     fullSolution.generateSolution(srcDir, outDir, logStream, true);
 
-    generateBuildBatch(srcDir, outDir, currentCfg, fullSolution);
-    generateUpdateBatch(srcDir, outDir, currentCfg);
+    generateBuildBatch(srcDir, outDirBase, fullSolution);
+    generateUpdateBatch(srcDir, outDirBase);
     
     logStream.WriteLine("Solution created");
     logStream.Close();
     
-    WScript.Echo("Solution was generated successfully. See " + outDir + 
-        currentCfg + "slngen.log" + " for details.");
+    var logPath = outDir + currentCfg + "slngen.log";
+    var resLogPath = "file://" + logPath.replace(/\\/mg, "/");
+    
+    WScript.Echo("Solution was generated successfully. See " + 
+        resLogPath + " for details.");
         
     WScript.Quit(0);
 }
@@ -205,6 +225,11 @@ function createBuildDirs()
         if (! fso.FolderExists(builddir))
             fso.CreateFolder(builddir); 
             
+        builddir += "\\" + currentCfg;
+        
+        if (! fso.FolderExists(builddir))
+            fso.CreateFolder(builddir); 
+            
         if (! fso.FolderExists(builddir + includeDir))
             fso.CreateFolder(builddir + includeDir);    
             
@@ -236,17 +261,20 @@ function createBuildDirs()
     }
     catch(e)
     {
-        WScript.StdErr.WriteLine("RunGem: Fatal error: Failed to"
+        WScript.StdErr.WriteLine("Generate: Fatal error: Failed to"
             + " open folder " + builddir);
         WScript.Quit(3);
     }
 }
 
-function generateBuildBatch(sourcesDir, buildDir, curCfg, curSol)
+function generateBuildBatch(sourcesDir, buildDir, curSol)
 {
     try
     {
-        var buildBatchFileName = buildDir + "build.bat";
+        var buildBatchFileName = buildDir + "\\" + "build.bat";
+        if (fso.FileExists(buildBatchFileName))
+            return 1;
+            
         var buildBatchFile = fso.CreateTextFile(buildBatchFileName);
         
         buildBatchFile.WriteLine("@echo off");        
@@ -255,11 +283,23 @@ function generateBuildBatch(sourcesDir, buildDir, curCfg, curSol)
         
         buildBatchFile.WriteLine("set topdir=" + sourcesDir);
         buildBatchFile.WriteLine("set builddir=" + buildDir);
-        buildBatchFile.WriteLine("set config=" + curCfg);
         buildBatchFile.WriteLine("set scriptdir=etc\\config\\windows");
         buildBatchFile.WriteLine("set makelog=makelog.wsf");
         buildBatchFile.WriteLine("set cfg=");
         buildBatchFile.WriteLine("set cfgbrief=");
+        buildBatchFile.WriteLine("set useenv=");
+        buildBatchFile.WriteLine("");
+        
+        buildBatchFile.WriteLine("set config=%1");
+        buildBatchFile.WriteLine("");
+        
+        buildBatchFile.WriteLine(
+            "if \"%1\"==\"" + icc90SolutionName + "\" ("); 
+        buildBatchFile.WriteLine("set useenv=/useenv");
+        buildBatchFile.WriteLine(")");
+        buildBatchFile.WriteLine("");
+            
+        buildBatchFile.WriteLine("shift");
         buildBatchFile.WriteLine("");
         
         buildBatchFile.WriteLine(":cfgloop");
@@ -290,13 +330,14 @@ function generateBuildBatch(sourcesDir, buildDir, curCfg, curSol)
         buildBatchFile.WriteLine(")");
         buildBatchFile.WriteLine("");
         
-        buildBatchFile.WriteLine("devenv \"%builddir%\\%config%.sln\"" 
-            + " /build \"%cfg%\"");
+        buildBatchFile.WriteLine("devenv \"%builddir%\\%config%\\%config%.sln\"" 
+            + " %useenv% /build \"%cfg%\"");
             
         buildBatchFile.WriteLine("");
         buildBatchFile.WriteLine("cscript /nologo "
             + "\"%topdir%%scriptdir%\\%makelog%\""
-            + " /BUILDDIR:\"%builddir%\" /BUILDTYPE:%cfgbrief%");
+            + " /BUILDDIR:\"%builddir%\" /BUILDTYPE:%cfgbrief%"
+            + " /CONFIG:%config%");
         buildBatchFile.WriteLine("");
         
         buildBatchFile.WriteLine(":nextcfg");
@@ -318,11 +359,14 @@ function generateBuildBatch(sourcesDir, buildDir, curCfg, curSol)
     }
 }
 
-function generateUpdateBatch(sourcesDir, buildDir, curCfg)
+function generateUpdateBatch(sourcesDir, buildDir)
 {
     try
     {
-        var updateBatchFileName = buildDir + "update.bat";
+        var updateBatchFileName = buildDir + "\\" + "update.bat";
+        if (fso.FileExists(updateBatchFileName))
+            return 1;
+            
         var updateBatchFile = fso.CreateTextFile(updateBatchFileName);
         
         updateBatchFile.WriteLine("@echo off");        
@@ -331,16 +375,18 @@ function generateUpdateBatch(sourcesDir, buildDir, curCfg)
         
         updateBatchFile.WriteLine("set topdir=" + sourcesDir);
         updateBatchFile.WriteLine("set builddir=" + buildDir);
-        updateBatchFile.WriteLine("set config=" + curCfg);
         updateBatchFile.WriteLine("set scriptdir=etc\\config\\windows");
         updateBatchFile.WriteLine("set cupdate=update.wsf");
+        updateBatchFile.WriteLine("");
+        
+        updateBatchFile.WriteLine("set config=%1");
         updateBatchFile.WriteLine("");
                   
         updateBatchFile.WriteLine("");
         updateBatchFile.WriteLine("cscript /nologo "
             + "\"%topdir%%scriptdir%\\%cupdate%\""
             + " /TOPDIR:\"%topdir%\""
-            + " /BUILDDIR:\"%builddir%\" /CONFIG:%config%");
+            + " /BUILDDIR:\"%builddir%\\%config%\" /CONFIG:%config%");
         updateBatchFile.WriteLine("");
         
         updateBatchFile.WriteLine("echo update complete");

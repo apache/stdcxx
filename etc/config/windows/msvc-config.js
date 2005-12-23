@@ -27,17 +27,34 @@ var varCmdCopyIn = "$$copy_in";
 var varCmdCopyOut = "$$copy_out";
 var varCmdCopyDll = "$$copy_dll";
 
+////////////////////////////////////////////////////////////////////
+// solutions
+
+// VC71 solution configuration
+
 //clone generic solution
 var solutionVC71 = solution.clone();
-solutionVC71.name = "VC71";
-configureToolsVC71();
+solutionVC71.name = vc71SolutionName;
 configurations.add(solutionVC71.name, solutionVC71);
 
+// configure the solution
+configureToolsVC71();
 
-function configureToolsVC71Configure(
+// ICC solution configuration
+
+//clone VC71 solution
+var solutionICC90 = solutionVC71.clone();
+solutionICC90.name = icc90SolutionName;
+configurations.add(solutionICC90.name, solutionICC90);
+
+////////////////////////////////////////////////////////////////////
+// implementation
+
+function configureToolsConfigure (solutionName,
             compilerDebug, compilerRelease, 
             linkerDebug, linkerRelease, 
-            librarianTool, customTool)
+            librarianTool, customTool, 
+            postBuildTool)
 {
     var compilerDebugConfigure = compilerDebug.clone();
     var compilerReleaseConfigure = compilerRelease.clone();
@@ -49,7 +66,15 @@ function configureToolsVC71Configure(
     compilerDebugConfigure.pdbName = "MSVC.pdb";
     compilerReleaseConfigure.pdbName = "MSVC.pdb";
     
-    var configureProj = solutionVC71.projects.get(projectConfigureName);
+    if (solutionName == icc90SolutionName)
+    {
+        compilerDebugConfigure.pdbName = "ICC.pdb";
+        compilerReleaseConfigure.pdbName = "ICC.pdb";
+    }
+    
+    //var configureProj = solutionVC71.projects.get(projectConfigureName);
+    var solutionCfg = getSolution(solutionName);
+    var configureProj = solutionCfg.projects.get(projectConfigureName);
     var platform = configureProj.platforms.get(platformWin32Name);
     
     // debug static
@@ -145,17 +170,19 @@ function configureToolsVC71Configure(
     configuration.tools.add(customBuildToolName, customConfigure);
 }
 
-function configureToolsVC71Examples(
+function configureToolsExamples( solutionName,
             compilerDebug, compilerRelease, 
             linkerDebug, linkerRelease, 
-            librarianTool, customTool)
+            librarianTool, customTool,
+            postBuildTool)
 {
     var compilerDebugExamples = compilerDebug.clone();
     var compilerReleaseExamples = compilerRelease.clone();
     var linkerDebugExamples = linkerDebug.clone();
     var linkerReleaseExamples = linkerRelease.clone();
     
-    var postExamplesDll = new PostBuildVC();
+    //var postExamplesDll = new PostBuildVC();
+    var postExamplesDll = postBuildTool.clone();
     postExamplesDll.commands.add(varCmdCopyDll, varCmdCopyDll);
     
     compilerDebugExamples.includeDirectories.add(samplesBaseIncludeDir);
@@ -166,7 +193,9 @@ function configureToolsVC71Examples(
     compilerReleaseExamples.includeDirectories.add(samplesIncludeDir);
     compilerReleaseExamples.includeDirectories.add(samplesBaseAnsiIncludeDir);
     
-    var examplesProj = solutionVC71.projects.get(projectExamplesName);
+    //var examplesProj = solutionVC71.projects.get(projectExamplesName);
+    var solutionCfg = getSolution(solutionName);
+    var examplesProj = solutionCfg.projects.get(projectExamplesName);
     var platform = examplesProj.platforms.get(platformWin32Name);
   
     // debug static
@@ -279,17 +308,19 @@ function configureToolsVC71Examples(
 }
 
 
-function configureToolsVC71Tests(
+function configureToolsTests( solutionName,
             compilerDebug, compilerRelease, 
             linkerDebug, linkerRelease, 
-            librarianTool, customTool)
+            librarianTool, customTool,
+            postBuildTool)
 {
     var compilerDebugTests = compilerDebug.clone();
     var compilerReleaseTests = compilerRelease.clone();
     var linkerDebugTests = linkerDebug.clone();
     var linkerReleaseTests = linkerRelease.clone();
     
-    var postTestsDll = new PostBuildVC();
+    //var postTestsDll = new PostBuildVC();
+    var postTestsDll = postBuildTool.clone();
     postTestsDll.commands.add(varCmdCopyDll, varCmdCopyDll);
     
     compilerDebugTests.includeDirectories.add(testsBaseIncludeDir);
@@ -300,7 +331,9 @@ function configureToolsVC71Tests(
     compilerReleaseTests.includeDirectories.add(testsIncludeDir);
     compilerReleaseTests.includeDirectories.add(testsBaseAnsiIncludeDir);
     
-    var testsProj = solutionVC71.projects.get(projectTestsName);
+    //var testsProj = solutionVC71.projects.get(projectTestsName);
+    var solutionCfg = getSolution(solutionName);
+    var testsProj = solutionCfg.projects.get(projectTestsName);
     var platform = testsProj.platforms.get(platformWin32Name);
   
     // debug static
@@ -417,10 +450,11 @@ function configureToolsVC71Tests(
 }
 
 
-function configureToolsVC71RwTest(
+function configureToolsRwTest( solutionName,
             compilerDebug, compilerRelease, 
             linkerDebug, linkerRelease, 
-            librarianTool, customTool)
+            librarianTool, customTool,
+            postBuildTool)
 {
     var compilerDebugRwTest = compilerDebug.clone();
     var compilerReleaseRwTest = compilerRelease.clone();
@@ -434,7 +468,9 @@ function configureToolsVC71RwTest(
     compilerReleaseRwTest.includeDirectories.add(includeSecondParentDir);
     compilerReleaseRwTest.includeDirectories.add(includeSecondParentAnsiDir);
     
-    var rwTestProj = solutionVC71.projects.get(projectRwTestName);
+    //var rwTestProj = solutionVC71.projects.get(projectRwTestName);
+    var solutionCfg = getSolution(solutionName);
+    var rwTestProj = solutionCfg.projects.get(projectRwTestName);
     var platform = rwTestProj.platforms.get(platformWin32Name);
     
     librarianRwTest.outputFile = rwTestProj.name + ".lib";
@@ -537,14 +573,17 @@ function configureToolsVC71RwTest(
 }
 
 
-function configureToolsVC71RunExamples(
+function configureToolsRunExamples( solutionName,
             compilerDebug, compilerRelease, 
             linkerDebug, linkerRelease, 
-            librarianTool, customTool)
+            librarianTool, customTool,
+            postBuildTool)
 {
     var customRunEx = customTool.clone();
     
-    var runExProj = solutionVC71.projects.get(projectRunExamplesName);
+    //var runExProj = solutionVC71.projects.get(projectRunExamplesName);
+    var solutionCfg = getSolution(solutionName);
+    var runExProj = solutionCfg.projects.get(projectRunExamplesName);
     var platform = runExProj.platforms.get(platformWin32Name);
   
     // debug static
@@ -589,14 +628,17 @@ function configureToolsVC71RunExamples(
 }
 
 
-function configureToolsVC71RunTests(
+function configureToolsRunTests( solutionName,
             compilerDebug, compilerRelease, 
             linkerDebug, linkerRelease, 
-            librarianTool, customTool)
+            librarianTool, customTool,
+            postBuildTool)
 {
     var customRunEx = customTool.clone();
     
-    var runTestsProj = solutionVC71.projects.get(projectRunTestsName);
+    //var runTestsProj = solutionVC71.projects.get(projectRunTestsName);
+    var solutionCfg = getSolution(solutionName);
+    var runTestsProj = solutionCfg.projects.get(projectRunTestsName);
     var platform = runTestsProj.platforms.get(platformWin32Name);
   
     // debug static
@@ -647,7 +689,7 @@ function configureToolsVC71()
     var compilerVCRelease = new CompilerVC(compilerWin32);
     
     var compilerVCDebug = compilerVCRelease.clone();
-    compilerVCDebug.isDebug =true;
+    compilerVCDebug.isDebug = true;
     
     compilerVCRelease.optimization = "Size";
     compilerVCRelease.debugInfoFormat = "PDB";
@@ -671,24 +713,33 @@ function configureToolsVC71()
     // VC custom
     var customVC = new CustomBuildVC();
     
+    // VC post build
+    var postVC = new PostBuildVC();
+    
     // configure projects tools
-    configureToolsVC71Configure(compilerVC71Debug, compilerVC71Release,
-        linkerVCDebug, linkerVCRelease, librarianVC, customVC);
+    configureToolsConfigure(vc71SolutionName, compilerVC71Debug, 
+        compilerVC71Release, linkerVCDebug, linkerVCRelease, 
+        librarianVC, customVC, postVC);
         
-    configureToolsVC71Examples(compilerVC71Debug, compilerVC71Release,
-        linkerVCDebug, linkerVCRelease, librarianVC, customVC);
+    configureToolsExamples(vc71SolutionName, compilerVC71Debug, 
+        compilerVC71Release, linkerVCDebug, linkerVCRelease, 
+        librarianVC, customVC, postVC);
 
-    configureToolsVC71Tests(compilerVC71Debug, compilerVC71Release,
-        linkerVCDebug, linkerVCRelease, librarianVC, customVC);
+    configureToolsTests(vc71SolutionName, compilerVC71Debug, 
+        compilerVC71Release, linkerVCDebug, linkerVCRelease, 
+        librarianVC, customVC, postVC);
         
-    configureToolsVC71RwTest(compilerVC71Debug, compilerVC71Release,
-        linkerVCDebug, linkerVCRelease, librarianVC, customVC);
+    configureToolsRwTest(vc71SolutionName, compilerVC71Debug, 
+        compilerVC71Release, linkerVCDebug, linkerVCRelease, 
+        librarianVC, customVC, postVC);
         
-    configureToolsVC71RunExamples(compilerVC71Debug, compilerVC71Release,
-        linkerVCDebug, linkerVCRelease, librarianVC, customVC);
+    configureToolsRunExamples(vc71SolutionName, compilerVC71Debug, 
+        compilerVC71Release, linkerVCDebug, linkerVCRelease, 
+        librarianVC, customVC, postVC);
         
-    configureToolsVC71RunTests(compilerVC71Debug, compilerVC71Release,
-        linkerVCDebug, linkerVCRelease, librarianVC, customVC);
+    configureToolsRunTests(vc71SolutionName, compilerVC71Debug, 
+        compilerVC71Release, linkerVCDebug, linkerVCRelease, 
+        librarianVC, customVC, postVC);
 }
 
 

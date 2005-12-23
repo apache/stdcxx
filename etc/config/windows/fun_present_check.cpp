@@ -46,6 +46,9 @@ int main (int argc, char**)
     (void)&argc;
 
     // call the function using the supplied arguments
+    #ifdef FUN_PARAMS
+        FUN_PARAMS;
+    #endif
     (void)FUN;
 
     return 0;

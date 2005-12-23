@@ -194,7 +194,7 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary)
             
         // run example
         var runCmd = exeDir + "\\" + exeFileName;
-        WScript.Echo("running1 " + exeFileName);
+        WScript.Echo("running " + exeFileName);
         fileLog.WriteLine("running " + exeFileName);
             
         exRun++;

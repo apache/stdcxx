@@ -84,9 +84,14 @@ function getBuildSummaryInfo(itemInfo, blogData, posStart)
     
     // skip first line in the summary as not needed at all
     var posPrjName = summaryData.indexOf(buildlogFile);
-    posPrjName = summaryData.indexOf("\r\n", posPrjName);
+    var posPrjTmp = posPrjName;
+    posPrjName = summaryData.indexOf(String.fromCharCode(10), posPrjTmp);
     if (-1 == posPrjName)
-        return posStart + summaryData.length;
+    {
+        posPrjName = summaryData.indexOf("\r\n", posPrjTmp);
+        if (-1 == posPrjName)
+            return posStart + summaryData.length;
+    }
         
     var prjSummary = summaryData.substr(posPrjName);
     
@@ -111,12 +116,38 @@ function getBuildSummaryInfo(itemInfo, blogData, posStart)
     return posStart + summaryData.length;
 }
 
+function extractTextBlockData(blogData, posTextBlock)
+{
+    var nextTableBlock = blogData.indexOf("<table", posTextBlock);
+    
+    var textData = "";
+    if (nextTableBlock > 0)
+    {
+        textData = 
+            blogData.substr(posTextBlock, nextTableBlock - posTextBlock);
+    }
+    else
+    {
+        textData = blogData.substr(posTextBlock);
+    }
+    
+    var posPreTag = textData.indexOf("<pre", 0);
+    if (-1 == posPreTag)
+        textData = "<pre>" + textData + "</pre>";
+        
+    return textData;
+}
 
 function extractTableData(blogData, posStart)
 {
     var posMainTable = blogData.indexOf("<table", posStart);
     if (-1 == posMainTable)
         return "";
+        
+    // check that we have data in table form
+    var posFirstCloseTable = blogData.indexOf("</table>", posStart);
+    if (-1 != posFirstCloseTable && posMainTable - posFirstCloseTable > 20)
+        return extractTextBlockData(blogData, posFirstCloseTable + 8);
         
     // lookup for the main table close tag 
     var posCloseTag = posMainTable;
@@ -325,18 +356,18 @@ function makeLinkFromString(linkString)
 
 function getSummaryLogPath(buildDir, buildSummaryPrefix, buildType)
 {
-    var outDir = buildDir + "\\" + buildType;
-    return outDir + "\\" + buildSummaryPrefix + buildType + ".htm";
+    var outDir = buildDir;
+    return outDir + "\\" + buildSummaryPrefix + buildType + ".html";
 }
 
 function makeSummaryLog(buildDir, buildSummaryPrefix, buildType)
 {
-    var outDir = buildDir + "\\" + buildType;
+    var outDir = buildDir;
     if (! fso.FolderExists(outDir))
         fso.CreateFolder(outDir);
         
     var oFolder = fso.GetFolder(outDir);
-    var sumFileName = buildSummaryPrefix + buildType + ".htm";
+    var sumFileName = buildSummaryPrefix + buildType + ".html";
     var fSum = oFolder.CreateTextFile(sumFileName);
     
     fSum.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");

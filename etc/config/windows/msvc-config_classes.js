@@ -515,6 +515,36 @@ function writeSolutionSettingsLinkerVC(vcproj, outDir)
 {
     vcproj.WriteLine("\t\t\t<Tool")
     vcproj.WriteLine("\t\t\t\tName=\"VCLinkerTool\"");
+    
+    // additional libraries, if any
+    var addlibsArray = new Array();
+    for (al in this.libraries)
+    {
+        if (!this.libraries[al])
+        {
+            addlibsArray.push(al);
+        }
+    }
+    if (addlibsArray.length > 0)
+    {
+        vcproj.WriteLine("\t\t\t\tAdditionalDependencies=\""
+                        + xmlencode(addlibsArray.join(" ")) + "\"");
+    }
+    
+    var addlibdirsArray = new Array();
+    for (ald in this.libdirs)
+    {
+        if (!this.libdirs[ald])
+        {
+            addlibdirsArray.push(ald);
+        }
+    }
+    if (addlibdirsArray.length > 0)
+    {
+        vcproj.WriteLine("\t\t\t\tAdditionalLibraryDirectories=\""
+                        + xmlencode(addlibdirsArray.join(";")) + "\"");
+    }
+    
     var inc = "0";
     switch (this.incremental.toUpperCase())
     {

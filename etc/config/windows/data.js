@@ -829,3 +829,14 @@ function getSolution(name)
     return configurations.get(name);
 }
 
+////////////////////////////////////////////////////////////////////////
+// solution names
+
+// VC71 solution 
+var vc71SolutionName = "msvc-7.1";
+
+// ICC90 solution 
+var icc90SolutionName = "icc-9.0";
+
+// ICC90 configuration solution
+var icc90CfgSolutionName = icc90SolutionName + "_config";

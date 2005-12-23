@@ -16,13 +16,13 @@ Solution update script.
             <named helpstring="Output directory for modules" 
                 name="BUILDDIR" required="true" type="string"/>
             <example>cscript update.wsf /TOPDIR:"C:\stdcxx" 
-                /BUILDDIR:"C:\stdcxx\build" /CONFIG:VC71
+                /BUILDDIR:"C:\stdcxx\build" /CONFIG:msvc-7.1
             </example>
             <usage>
 Usage: cscript update.wsf /CONFIG:@CONFIG 
 /BUILDDIR:@BUILDDIR [/TOPDIR:@TOPDIR] [BUILDTYPE:@BUILDTYPE]
 where
-@CONFIG is VC71,
+@CONFIG is msvc-7.1 or icc-9.0,
 @TOPDIR - stdcxx main directory,
 @BUILDDIR - output directory for a build.
             </usage>
@@ -52,7 +52,6 @@ var currentCfg = "";
 var winconfigDir = "\\etc\\config\\windows";
 
 var buildType = "";
-var tempBuildBatchName = "buildsol.bat";
 
 var description = new update; // run
 
@@ -71,13 +70,13 @@ function update()
         
     WScript.Echo("Checking consistence...");
     var logStream;
-    if (fso.FileExists(outDir + currentCfg + logFile))
+    if (fso.FileExists(outDir + logFile))
     {
-        logStream = fso.OpenTextFile(outDir + currentCfg + logFile, 8);
+        logStream = fso.OpenTextFile(outDir + logFile, 8);
     }
     else
     {
-        logStream = fso.CreateTextFile(outDir + currentCfg + logFile, 
+        logStream = fso.CreateTextFile(outDir + logFile, 
             true, false);
     }
 
@@ -101,14 +100,31 @@ function update()
     {
             WScript.StdErr.WriteLine(
                 "Generate: Solution with the name "
-                + solution + " does not support IDE project generation");
+                + solution.name + " does not support IDE project generation");
                 
             logStream.WriteLine("Solution with the name "
-                + solution + " does not support IDE project generation");
+                + solution.name + " does not support IDE project generation");
                 
             logStream.Close();
             WScript.Quit(2);        
     }
+    
+    if (!solution.checkEnvironment(logStream))
+    {
+            WScript.StdErr.WriteLine(
+                "Generate: Environment for the " + solution.name + 
+                " solution generation is not configured");
+                
+            logStream.WriteLine(
+                "Generate: Environment for the " + solution.name + 
+                " solution generation is not configured");
+                
+            logStream.Close();
+            WScript.Quit(2);   
+    }
+    
+    if (icc90SolutionName == currentCfg)
+        convertSolution(outDir, currentCfg, false);
     
     //read existing solution file
     WScript.Echo("Reading solution...");
@@ -125,14 +141,23 @@ function update()
         srcDir, outDir, logStream);
         
     //save solution
+    if (icc90SolutionName == currentCfg)
+        setProjectDependencies(fullSolution, modProjects);
+    
     WScript.Echo("Writing modified projects on disk...");
     saveModifiedProjects(modProjects, srcDir, outDir, logStream);
+    
+    if (icc90SolutionName == currentCfg)
+        convertSolution(outDir, currentCfg, true);
     
     logStream.WriteLine("Solution updated");
     logStream.Close();
     
+    var logPath = outDir + currentCfg + "slnupd.log";
+    var resLogPath = "file://" + logPath.replace(/\\/mg, "/");
+    
     WScript.Echo("Solution was updated successfully. See " 
-                + outDir + currentCfg + "slnupd.log" + " for details.");
+                + resLogPath + " for details.");
     WScript.Quit(0);
 }
 
@@ -201,7 +226,7 @@ function readAndCheckArguments()
         {
             WScript.StdErr.WriteLine(
                 "Update: Unable to read destination folder "
-                + srcDir);
+                + outDir);
             WScript.Quit(2);
         }
     }
@@ -252,6 +277,15 @@ function saveModifiedProjects(modProjects, srcDir, outDir, logStream)
         generateVCPROJ(modProjects[i], srcDir, outDir);
         
         logStream.WriteLine(modProjects[i].name + " saved");
+    }
+}
+
+function setProjectDependencies(fullSolution, modProjects)
+{
+    for(var i = 0; i < modProjects.length; i++)
+    {      
+        setProjectAdditionalDependencies(fullSolution, 
+            outDir, modProjects[i]);
     }
 }
 

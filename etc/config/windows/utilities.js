@@ -127,6 +127,16 @@ function encodeHTML(srcString)
     return res;
 }
 
+function removeLeadingSymbol(dotName, symbol)
+{
+    var index = dotName.indexOf(symbol);
+    if (0 != index)
+        return dotName;
+        
+    var resName = dotName.substr(symbol.length);
+    return resName;
+}
+
 function removeLeadingDot(dotName)
 {
     var index = dotName.indexOf(".");
@@ -135,6 +145,43 @@ function removeLeadingDot(dotName)
         
     var resName = dotName.substr(1);
     return resName;
+}
+
+// icc specific - solution conversion
+function convertSolutionImpl(slnFileName, toICC, logStream)
+{   
+    var convertKey = toICC == true ? "/IC" : "/VC";
+    var cmdICConvert = iccConversionUtility + " \"" + slnFileName + 
+        "\" " + convertKey;
+    
+    var convertKeyFriendly = toICC == true ? "ICC" : "MSVC";
+    WScript.Echo("Converting solution to " + convertKeyFriendly + 
+            ". This may take several minutes.");
+    
+    var res = -1;
+    try
+    {
+        if (logStream)
+            logStream.WriteLine("Converting " + cmdICConvert);
+            
+        res = WshShell.Run(cmdICConvert, 7, true);
+        if (0 != res)
+            WScript.Echo("Conversion finished with code " + res);
+            
+        if (logStream)
+            logStream.WriteLine("Conversion to " + convertKeyFriendly + 
+                " finished with code " + res);
+    }
+    catch(e)
+    {
+        WScript.Echo("Conversion failed");
+        if (logStream)
+            logStream.WriteLine("Conversion failed");
+            
+        return -1;
+    }
+    
+    return res;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -149,7 +196,12 @@ var logFileName = "config.log";
 function setCompileEnvironment(solutionName, configurationName
                                 , projectName, logFile)
 {
+    // obtain the solution. Check that there is no specail solution
+    // for configure script
     var solution = configurations.get(solutionName);
+    if (null != configurations.get(solutionName + "_config"))
+        solution = configurations.get(solutionName + "_config");
+        
     var solutionconfig = solution.configurations.get(configurationName);
     var projectConfig = 
         solutionconfig.projectConfigurations.get(projectName);
