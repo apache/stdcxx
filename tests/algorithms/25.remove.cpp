@@ -25,8 +25,8 @@
 #include <cstring>      // for strlen()
 
 #include <alg_test.h>
-#include <driver.h>      // for rw_test()
-#include <printf.h>      // for rw_asnprintf()
+#include <driver.h>     // for rw_test()
+#include <printf.h>     // for rw_asnprintf()
 
 /**************************************************************************/
 
@@ -89,23 +89,13 @@ public:
         char* tmp = 0;
 
         for (const T *cur = first; cur != last; ++cur) {
-            if (use_id) {
-               rw_asnprintf (&tmp, &buf_sz, 
-                             "%s%s%d:%{lc}%s",
-                             res,
-                             cur - first == pos ? ">" : "",
-                             cur->id_,
-                             cur->val_,
-                             cur - first == pos ? "<" : "");
-            }
-            else {
-                rw_asnprintf (&tmp, &buf_sz, 
-                              "%s%s%{lc}%s",
-                              res,
-                              cur - first == pos ? ">" : "",
-                              cur->val_,
-                              cur - first == pos ? "<" : "");
-            }
+            rw_asnprintf (&tmp, &buf_sz, 
+                          "%s%{?}>%{;}%{?}%d:%{;}%{lc}%{?}<%{;}",
+                          res,
+                          cur - first == pos,    // '>'
+                          use_id, cur->id_,      // "<id>:"
+                          cur->val_,             // <val>
+                          cur - first == pos);   // '<'
 
             if (res != &nul_char)
                 std::free (res);
