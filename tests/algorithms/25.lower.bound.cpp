@@ -35,13 +35,27 @@
 
 /**************************************************************************/
 
-struct Y: X { };
+// distinct and not Less-Than-Comparable with class X (except as
+// defined below) to detect unwarranted assumptions made by the
+// implementation of the algorithms
+struct Y
+{
+    X xval_;
+
+    // not Default-Constructible
+    Y (int /* dummy */, int /*dummy */): xval_ () { }
+
+    // CopyConstructible
+    Y (const Y &rhs): xval_ (rhs.xval_) { }
+
+private:
+
+    void operator=(Y&);   // not Assignable
+};
 
 inline bool operator< (const X &lhs, const Y &rhs)
 {
-    // cast the right-hand-side operand to its base
-    // before invoking the base class operator
-    return lhs < (X&)rhs;
+    return lhs < rhs.xval_;
 }
 
 /**************************************************************************/
@@ -66,7 +80,7 @@ struct LessThan
     // convertible to bool to detect incorrect assumptions
     ConvertibleToBool operator() (const X &lhs, const Y &rhs) {
         ++funcalls_;
-        return ConvertibleToBool (lhs < rhs);
+        return ConvertibleToBool (lhs < rhs.xval_);
     }
 
 private:
@@ -100,8 +114,10 @@ void test_lower_bound (int                    line,
     const ForwardIterator last  (xsrc + nsrc, xsrc + nsrc, xsrc + nsrc);
 
     // construct the object to pass to the algorithm
-    Y value;
-    value.val_ = val_char;
+    // the type of the object is distinct from the iterator's value_type
+    // to detect unwarranted assumptions made by the implementation
+    Y value (0, 0 /* dummy arguments */);
+    value.xval_.val_ = val_char;
 
     // construct the Compare function object to pass to the algorithm
     // when `predicate' is true
