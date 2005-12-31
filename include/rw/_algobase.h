@@ -128,9 +128,24 @@ inline void fill_n (_OutputIter __first, _Size __n, const _TypeT &__val)
 
 }   // namespace std
 
-_RWSTD_NAMESPACE (__rw) { 
+_RWSTD_NAMESPACE (__rw) {
 
-// `less than' qusi-function object - used by algorithms for code reuse
+#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+// `less than' function object - used by non-predicate forms
+// of algorithms to invoke the predicate forms for code reuse
+struct __rw_lt
+{
+    template <class _TypeT, class _TypeU>
+    bool operator() (_TypeT &__lhs, _TypeU &__rhs) const {
+        return __lhs < __rhs;
+    }
+};
+
+#  define _RWSTD_LESS(ignore) _RW::__rw_lt ()
+
+#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+
 template <class _TypeT>
 struct __rw_lt
 {
@@ -139,15 +154,15 @@ struct __rw_lt
     }
 };
 
-#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
+#  ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
 
-#  define _RWSTD_LESS(iterT) \
-     _RW::__rw_lt<_TYPENAME _STD::iterator_traits< iterT >::value_type>()
+#    define _RWSTD_LESS(iterT) \
+       _RW::__rw_lt<_TYPENAME _STD::iterator_traits< iterT >::value_type>()
 
-#else   // if defined (_RWSTD_NO_PARTIAL_CLASS_SPEC)
+#  else   // if defined (_RWSTD_NO_PARTIAL_CLASS_SPEC)
 
-#  define _RWSTD_LESS(iterT) \
-     _RW::__rw_make_lt (_RWSTD_VALUE_TYPE (iterT))
+#    define _RWSTD_LESS(iterT) \
+       _RW::__rw_make_lt (_RWSTD_VALUE_TYPE (iterT))
 
 template <class _TypeT>
 __rw_lt<_TypeT> __rw_make_lt (const _TypeT*)
@@ -155,7 +170,8 @@ __rw_lt<_TypeT> __rw_make_lt (const _TypeT*)
     return __rw_lt<_TypeT>();
 }
 
-#endif   // _RWSTD_NO_PARTIAL_CLASS_SPEC
+#  endif   // _RWSTD_NO_PARTIAL_CLASS_SPEC
+#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
 
 // swaps values of 2 (possibly distinct) types
