@@ -92,6 +92,10 @@ _rw_fmtfloating (const FmtSpec&, char**, size_t*, const void*);
 _RWSTD_INTERNAL int
 _rw_fmtptr (const FmtSpec&, char**, size_t*, const void*);
 
+// format an invalid address
+_RWSTD_INTERNAL int
+_rw_fmtbadaddr (const FmtSpec&, char**, size_t*, const void*);
+
 typedef void (*funptr_t)();
 
 static int
@@ -115,18 +119,26 @@ _rw_fmtwchr (const FmtSpec&, char**, size_t*, wint_t);
 static int
 _rw_fmtwstr (const FmtSpec&, char**, size_t*, const wchar_t*, size_t);
 
+// format errno value/name
 static int
 _rw_fmterrno (const FmtSpec&, char**, size_t*, int);
 
+// format struct tm
+static int
+_rw_fmttm (const FmtSpec&, char**, size_t*, const tm*);
+
+// format ios_base::openmode
 static int
 _rw_fmtopenmode (const FmtSpec&, char**, size_t*, int);
 
+// format ios_base::event
 static int
 _rw_fmtevent (const FmtSpec&, char**, size_t*, int);
 
 static int
 _rw_fmtmonpat (const FmtSpec&, char**, size_t*, const char [4]);
 
+// format a signal value/name
 static int
 _rw_fmtsignal (const FmtSpec&, char**, size_t*, int);
 
@@ -248,9 +260,9 @@ struct FmtSpec
 static int
 _rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
 {
-    assert (0 != pspec);
-    assert (0 != fmt);
-    assert (0 != pva);
+    RW_ASSERT (0 != pspec);
+    RW_ASSERT (0 != fmt);
+    RW_ASSERT (0 != pva);
 
     memset (pspec, 0, sizeof *pspec);
 
@@ -376,8 +388,13 @@ _rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
         }
     }
 
-    // extract an optional modifier
-    switch (*fmt) {
+    // extract an optional modifier but avoid misinterpreting
+    // a formatting specifier as a modifier when extensions
+    // are enabled; e.g., treat the 't' in %{t} as a specifier
+    // and not a modifier for a non-existent specifier
+    const char mod = !ext || '}' != fmt [1] ? *fmt : '\0';
+
+    switch (mod) {
     case 'A':
         if (ext) {
             ++fmt;
@@ -387,29 +404,46 @@ _rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
         // fall thru
 
     case 'h':
-        if ('h' == fmt [1]) {
-            ++fmt;
+        if ('h' == fmt [1] && '}' != fmt [2]) {
             pspec->mod_hh = true;
+            fmt += 2;
         }
-        else
+        else if ('}' != fmt [1]) {
             pspec->mod_h = true;
-        ++fmt;
+            ++fmt;
+        }
         break;
 
     case 'l':
-        if ('l' == fmt [1]) {
-            ++fmt;
+        if ('l' == fmt [1] && '}' != fmt [2]) {
             pspec->mod_ll = true;
+            fmt += 2;
         }
-        else
+        else if ('}' != fmt [1]) {
             pspec->mod_l = true;
+            ++fmt;
+        }
+        break;
+
+    case 'j':
+        pspec->mod_j = true;
         ++fmt;
         break;
 
-    case 'j': pspec->mod_j = true; ++fmt; break;
-    case 'z': pspec->mod_z = true; ++fmt; break;
-    case 't': pspec->mod_t = true; ++fmt; break;
-    case 'L': pspec->mod_L = true; ++fmt; break;
+    case 'z':
+        pspec->mod_z = true;
+        ++fmt;
+        break;
+
+    case 't':
+        pspec->mod_t = true;
+        ++fmt;
+        break;
+
+    case 'L':
+        pspec->mod_L = true;
+        ++fmt;
+        break;
 
     case 'I':
         if (ext) {
@@ -452,8 +486,8 @@ _rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
 _RWSTD_INTERNAL char*
 _rw_bufcat (char **pbuf, size_t *pbufsize, const char *str, size_t len)
 {
-    assert (0 != pbuf);
-    assert (0 != pbufsize);
+    RW_ASSERT (0 != pbuf);
+    RW_ASSERT (0 != pbufsize);
 
           size_t buflen = *pbuf ? strlen (*pbuf) : 0;
     const size_t bufree = *pbuf ? *pbufsize - buflen : 0;
@@ -481,7 +515,7 @@ _rw_bufcat (char **pbuf, size_t *pbufsize, const char *str, size_t len)
 
         if (*pbuf) {
             // verify that we didn't write past the end of the buffer
-            assert (0 == memcmp (*pbuf + *pbufsize, deadbeef, 4));
+            RW_ASSERT (0 == memcmp (*pbuf + *pbufsize, deadbeef, 4));
             free (*pbuf);
         }
 
@@ -517,7 +551,7 @@ _rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
 {
     _RWSTD_UNUSED (paramno);
 
-    _RWSTD_ASSERT (0 != pspec);
+    RW_ASSERT (0 != pspec);
 
     int len = -1;
 
@@ -554,11 +588,11 @@ _rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
         break;
 
     case 'a':
-        assert (!"%a not implemented");
+        RW_ASSERT (!"%a not implemented");
         break;
 
     case 'A':
-        assert (!"%A not implemented");
+        RW_ASSERT (!"%A not implemented");
         break;
 
     case 'c':
@@ -616,8 +650,8 @@ _rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
         // any flags, a field width, or a precision, the behavior is
         // undefined.
 
-        assert (0 != pbuf);
-        assert (0 != *pbuf);
+        RW_ASSERT (0 != pbuf);
+        RW_ASSERT (0 != *pbuf);
 
         len = int (strlen (*pbuf));
 
@@ -626,14 +660,14 @@ _rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
         if (spec.mod_hh) {
             unsigned char* const ptr = (unsigned char*)spec.param.ptr;
 
-            assert (0 != ptr);
+            RW_ASSERT (0 != ptr);
 
             *ptr = len;
         }
         else if (spec.mod_h) {
             short* const ptr = (short*)spec.param.ptr;
 
-            assert (0 != ptr);
+            RW_ASSERT (0 != ptr);
 
             *ptr = len;
         }
@@ -641,31 +675,31 @@ _rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
 #ifdef _RWSTD_LONG_LONG
             _RWSTD_LONG_LONG* const ptr = (_RWSTD_LONG_LONG*)spec.param.ptr;
 
-            assert (0 != ptr);
+            RW_ASSERT (0 != ptr);
 
             *ptr = len;
 #else   // if !defined (_RWSTD_LONG_LONG)
-            assert (!"%Ln not implemented");
+            RW_ASSERT (!"%Ln not implemented");
 #endif   // _RWSTD_LONG_LONG
         }
         else if (spec.mod_l) {
             long* const ptr = (long*)spec.param.ptr;
 
-            assert (0 != ptr);
+            RW_ASSERT (0 != ptr);
 
             *ptr = len;
         }
         else if (spec.mod_t) {
             ptrdiff_t* const ptr = (ptrdiff_t*)spec.param.ptr;
 
-            assert (0 != ptr);
+            RW_ASSERT (0 != ptr);
 
             *ptr = ptrdiff_t (unsigned (len));
         }
         else {
             int* const ptr = (int*)spec.param.ptr;
 
-            assert (0 != ptr);
+            RW_ASSERT (0 != ptr);
 
             *ptr = len;
         }
@@ -720,7 +754,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 #define varg  DONT_TOUCH_ME
 #define vacpy DONT_TOUCH_ME
 
-    assert (0 != pbuf);
+    RW_ASSERT (0 != pbuf);
 
     // save the initial value of `pbuf'
     char* const pbuf_save = *pbuf;
@@ -759,8 +793,8 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
         if (0 == next)
             goto fail;
 
-        assert (0 != *pbuf);
-        assert (0 != *pbufsize);
+        RW_ASSERT (0 != *pbuf);
+        RW_ASSERT (0 != *pbufsize);
 
         if (0 == pcnt)
             break;
@@ -793,7 +827,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
         if ('{' == *fc) {
             const char* const endbrace = strchr (++fc, '}');
 
-            assert (0 != endbrace);
+            RW_ASSERT (0 != endbrace);
 
             const size_t fmtlen = endbrace - fc;
 
@@ -803,7 +837,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
             // compute the length of the buffer so far
             const size_t buflen = next - *pbuf;
 
-            assert (0 != rw_vasnprintf_cb);
+            RW_ASSERT (0 != rw_vasnprintf_cb);
 
             // initiaze the current format specification, setting
             // all unused bits to 0
@@ -842,22 +876,22 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
             if (len < 0)
                 goto fail;
 
-            assert (size_t (len) < *pbufsize);
-            assert (strlen (*pbuf) < *pbufsize);
+            RW_ASSERT (size_t (len) < *pbufsize);
+            RW_ASSERT (strlen (*pbuf) < *pbufsize);
 
             const size_t offinx = nextoff - 1;
 
             if (pspec [paramno].cond_end && pspec [paramno].cond_begin) {
                 // change from an if to an else clause
 
-                assert (0 < nextoff);
-                assert (0 == len);
+                RW_ASSERT (0 < nextoff);
+                RW_ASSERT (0 == len);
 
                 if (pspec [paramno].cond_true) {
                     // change from an inactive if to an active else
                     // (same as the end of an inactive clause)
 
-                    assert (0 <= backtrack [offinx]);
+                    RW_ASSERT (0 <= backtrack [offinx]);
 
                     // set the length so as to backtrack to the position
                     // saved on the top of the backtrack stack 
@@ -868,7 +902,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
                 }
                 else {
                     // change from an active if to an inactive else
-                    assert (backtrack [offinx] < 0);
+                    RW_ASSERT (backtrack [offinx] < 0);
 
                     // save the current length of the buffer
                     // as the new backtrack offset
@@ -892,7 +926,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
                 if (!pspec [paramno].cond_true) {
                     // the end of an inactive clause
 
-                    assert (backtrack [offinx] <= int (buflen));
+                    RW_ASSERT (backtrack [offinx] <= int (buflen));
 
                     // set the length so as to backtrack to the position
                     // saved on the top of the backtrack stack 
@@ -903,7 +937,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
                 --nextoff;
             }
 
-            assert (len + buflen < *pbufsize);
+            RW_ASSERT (len + buflen < *pbufsize);
 
             // adjust the next pointer to point to the terminating
             // NUL in the (possibly reallocated) buffer
@@ -1127,7 +1161,7 @@ _rw_fmtllong (const FmtSpec &spec,
     else
         sign = '\0';
 
-    assert (buffer < end);
+    RW_ASSERT (buffer < end);
     size_t size = size_t (end - buffer);
 
     // FIXME: prevent buffer overrun
@@ -1141,7 +1175,7 @@ _rw_fmtllong (const FmtSpec &spec,
 
     *end = '\0';
 
-    assert (buffer < end);
+    RW_ASSERT (buffer < end);
     size = size_t (end - buffer);
 
     for (char *pc = buffer; pc < end; ++pc) {
@@ -1194,7 +1228,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
             spec.param.llong = PARAM (long, lnng);
             len = _rw_fmtlong (spec, pbuf, pbufsize, spec.param.llong);
 #else
-            assert (!"%lld, %lli: long long not supported");
+            RW_ASSERT (!"%lld, %lli: long long not supported");
 
 #endif   // _RWSTD_LONG_LONG
         }
@@ -1207,7 +1241,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
 #ifdef _RWSTD_LONG_LONG
                 len = _rw_fmtllong (spec, pbuf, pbufsize, spec.param.diff);
 #else   // if !defined (_RWSTD_LONG_LONG)
-                assert (!"%td, %ti: 64-bit types not supported");
+                RW_ASSERT (!"%td, %ti: 64-bit types not supported");
 #endif   // _RWSTD_LONG_LONG
             }
         }
@@ -1231,7 +1265,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
 #ifdef _RWSTD_INT64_T
             spec.param.i64 = PARAM (_RWSTD_INT64_T, i64);
 #else   // if !defined (_RWSTD_INT64_T)
-            assert (!"%I64d, %I64i: 64-bit types not supported");
+            RW_ASSERT (!"%I64d, %I64i: 64-bit types not supported");
 #endif   // _RWSTD_INT64_T
 
 #if 8 == _RWSTD_LONG_SIZE
@@ -1241,7 +1275,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
             const _RWSTD_LONG_LONG val = spec.param.i64;
             len = _rw_fmtllong (spec, pbuf, pbufsize, val);
 #else
-            assert (!"%I64d, %I64i: 64-bit types not supported");
+            RW_ASSERT (!"%I64d, %I64i: 64-bit types not supported");
 #endif
         }
         else {   // %i
@@ -1251,7 +1285,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
         break;
 
     case 'o':
-        assert (-1 == spec.base);
+        RW_ASSERT (-1 == spec.base);
         spec.base = 8;
         // fall thru
 
@@ -1287,7 +1321,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
             const unsigned long val = spec.param.lng;
             len = _rw_fmtlong (spec, pbuf, pbufsize, val);
 #else
-            assert (!"long long not supported");
+            RW_ASSERT (!"long long not supported");
 #endif   // _RWSTD_LONG_LONG
 
         }
@@ -1305,7 +1339,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
 #ifdef _RWSTD_LONG_LONG
                 len = _rw_fmtllong (spec, pbuf, pbufsize, spec.param.size);
 #else   // if defined (_RWSTD_LONG_LONG)
-                assert (!"%to, %tu, %tx: 64-bit types not implemented");
+                RW_ASSERT (!"%to, %tu, %tx: 64-bit types not implemented");
 #endif   // _RWSTD_LONG_LONG
             }
         }
@@ -1328,7 +1362,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
 #ifdef _RWSTD_INT64_T
             spec.param.i64 = PARAM (_RWSTD_INT64_T, i64);
 #else   // if defined 9_RWSTD_INT64_T)
-            assert (!"%I64o, %I64u, %I64x: 64-bit types not supported");
+            RW_ASSERT (!"%I64o, %I64u, %I64x: 64-bit types not supported");
 #endif   // _RWSTD_INT64_T
 
 #if 8 == _RWSTD_LONG_SIZE
@@ -1338,7 +1372,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
             const unsigned _RWSTD_LONG_LONG val = spec.param.i64;
             len = _rw_fmtllong (spec, pbuf, pbufsize, val);
 #else
-            assert (!"%I64o, %I64u, %I64x: 64-bit types not supported");
+            RW_ASSERT (!"%I64o, %I64u, %I64x: 64-bit types not supported");
 #endif
         }
         else {
@@ -1417,7 +1451,7 @@ _rw_fmtfloating (const FmtSpec &spec,
     *pf   = '\0';
 
     // verify that the format buffer hasn't overflowed
-    assert (size_t (pf - fmt) + 1 < sizeof fmt);
+    RW_ASSERT (size_t (pf - fmt) + 1 < sizeof fmt);
 
     // this might make the buffer almost 5KB
     char buffer [_RWSTD_LDBL_MAX_10_EXP + _RWSTD_LDBL_DIG + 3];
@@ -1435,7 +1469,7 @@ _rw_fmtfloating (const FmtSpec &spec,
             len = sprintf (buffer, fmt, *(const long double*)pval);
         }
         else {
-            assert (!"unknown floating point size");
+            RW_ASSERT (!"unknown floating point size");
         }
     }
     else if (spec.mod_L)
@@ -1443,7 +1477,7 @@ _rw_fmtfloating (const FmtSpec &spec,
     else
         len = sprintf (buffer, fmt, *(const double*)pval);
 
-    assert (size_t (len) < sizeof buffer);
+    RW_ASSERT (size_t (len) < sizeof buffer);
 
 #ifdef _MSC_VER
 
@@ -1535,6 +1569,29 @@ _rw_fmtptr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
 {
     return _rw_fmtpointer (spec, pbuf, pbufsize, &val,
                            sizeof val / sizeof (long));
+}
+
+/********************************************************************/
+
+_RWSTD_INTERNAL int
+_rw_fmtbadaddr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
+                const void *addr)
+{
+    const size_t buflen = *pbuf ? strlen (*pbuf) : 0;
+
+    if (0 == _rw_bufcat (pbuf, pbufsize, "(invalid address ", 18))
+        return -1;
+
+    FmtSpec newspec (spec);
+    newspec.fl_pound = 1;
+
+    if (-1 == _rw_fmtptr (newspec, pbuf, pbufsize, addr))
+        return -1;
+
+    if (0 == _rw_bufcat (pbuf, pbufsize, ")", 2))
+        return -1;
+
+    return int (strlen (*pbuf) - buflen);
 }
 
 /********************************************************************/
@@ -2013,6 +2070,146 @@ _rw_fmterrno (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
 /********************************************************************/
 
 static int
+_rw_fmttm (const FmtSpec &spec, char **pbuf, size_t *pbufsize, const tm *tmb)
+{
+    if (0 == tmb) {
+        return _rw_fmtstr (spec, pbuf, pbufsize, "(null)", _RWSTD_SIZE_MAX);
+    }
+
+    if (0 > _RW::__rw_memattr (tmb, sizeof *tmb, 0)) {
+        return _rw_fmtbadaddr (spec, pbuf, pbufsize, tmb);
+    }
+
+    static const char* const months[] = {
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+
+    static const char* const wdays[] = {
+        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+    };
+
+    char vbuf [1024];   // verbose format
+
+    int verbose = spec.fl_pound;
+    int invalid = 0;
+
+    if (   tmb->tm_sec  < 0 ||  60 < tmb->tm_sec
+        || tmb->tm_min  < 0 ||  59 < tmb->tm_min
+        || tmb->tm_hour < 0 ||  23 < tmb->tm_hour
+        || tmb->tm_wday < 0 ||   6 < tmb->tm_wday
+        || tmb->tm_mday < 1 ||  31 < tmb->tm_mday
+        || _RWSTD_INT_MAX - 1900 < tmb->tm_year
+        || tmb->tm_mon  < 0 ||  11 < tmb->tm_mon
+        || tmb->tm_yday < 0 || 365 < tmb->tm_yday) {
+        invalid = 1;
+        verbose = 1;
+    }
+
+    if (!invalid) {
+        strcpy (vbuf, wdays [tmb->tm_wday]);
+        strcat (vbuf, " ");
+        strcat (vbuf, months [tmb->tm_mon]);
+        strcat (vbuf, " ");
+
+        sprintf (vbuf + strlen (vbuf), "%2d %02d:%02d:%02d ",
+                 tmb->tm_mday, tmb->tm_hour, tmb->tm_min, tmb->tm_sec);
+
+        if (tmb->tm_isdst)
+            strcat (vbuf, "DST ");
+
+        if (tmb->tm_year < -1899) {
+            sprintf (vbuf + strlen (vbuf), "%d BC",
+                     -(tmb->tm_year + 1899));
+        }
+        else {
+            sprintf (vbuf + strlen (vbuf), "%d",
+                     tmb->tm_year + 1900);
+        }
+    }
+
+    if (verbose) {
+        static const char comma[] = ", ";
+        const char *sep = "";
+
+        strcpy (vbuf, "{ ");
+
+        if (tmb->tm_sec) {
+            sprintf (vbuf + strlen (vbuf), "%stm_sec=%d", sep, tmb->tm_sec);
+            if (tmb->tm_sec < 0 || 60 < tmb->tm_sec)
+                strcat (vbuf, " [0,60]");
+            sep = comma;
+        }
+            
+        if (tmb->tm_min) {
+            sprintf (vbuf + strlen (vbuf), "%stm_min=%d", sep, tmb->tm_min);
+            if (tmb->tm_min < 0 || 59 < tmb->tm_min)
+                strcat (vbuf, " [0,59]");
+            sep = comma;
+        }
+
+        if (tmb->tm_hour) {
+            sprintf (vbuf + strlen (vbuf), "%stm_hour=%d", sep, tmb->tm_hour);
+            if (tmb->tm_hour < 0 || 23 < tmb->tm_hour)
+                strcat (vbuf, " [0,23]");
+            sep = comma;
+        }
+
+        sprintf (vbuf + strlen (vbuf), "%stm_mday=%d", sep, tmb->tm_mday);
+        if (tmb->tm_mday < 1 || 31 < tmb->tm_mday)
+            strcat (vbuf, " [1,31]");
+        sep = comma;
+
+        if (tmb->tm_mon) {
+            sprintf (vbuf + strlen (vbuf), "%stm_mon=%d", sep, tmb->tm_mon);
+            if (tmb->tm_mon < 0 || 11 < tmb->tm_mon)
+                strcat (vbuf, " [0,11]");
+            else {
+                sprintf (vbuf + strlen (vbuf), " %s",
+                         months [unsigned (tmb->tm_mon) % 7]);
+            }
+        }
+
+        if (tmb->tm_year) {
+            sprintf (vbuf + strlen (vbuf), "%stm_year=%d", sep, tmb->tm_year);
+            if (_RWSTD_INT_MAX - 1900 < tmb->tm_year)
+                sprintf (vbuf + strlen (vbuf), " [%d,%d]",
+                         _RWSTD_INT_MIN, _RWSTD_INT_MAX - 1900);
+        }
+
+        if (tmb->tm_wday) {
+            sprintf (vbuf + strlen (vbuf), "%stm_wday=%d", sep, tmb->tm_wday);
+            if (tmb->tm_wday < 0 || 6 < tmb->tm_wday)
+                strcat (vbuf, " [0,6]");
+            else {
+                sprintf (vbuf + strlen (vbuf), " %s",
+                         wdays [unsigned (tmb->tm_wday) % 7]);
+            }
+        }
+
+        if (tmb->tm_yday) {
+            sprintf (vbuf + strlen (vbuf), "%stm_yday=%d", sep, tmb->tm_yday);
+            if (tmb->tm_yday < 0 || 365 < tmb->tm_yday)
+                strcat (vbuf, " [0,365]");
+        }
+
+        if (tmb->tm_isdst)
+            sprintf (vbuf + strlen (vbuf), "%stm_isdst=%d", sep, tmb->tm_isdst);
+
+        strcat (vbuf, " }");
+    }
+
+    const size_t len = strlen (vbuf);
+
+    if (0 == _rw_bufcat (pbuf, pbufsize, vbuf, len))
+        return -1;
+
+    return int (len);
+}
+
+/********************************************************************/
+
+static int
 _rw_fmtsignal (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
 {
     static const struct {
@@ -2286,7 +2483,7 @@ template <class charT>
 int rw_quotestr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
                  const charT *wstr, size_t nchars, int noesc)
 {
-    assert (0 != pbuf);
+    RW_ASSERT (0 != pbuf);
 
     if (!wstr) {
         static const charT null[] = { '(', 'n', 'u', 'l', 'l', ')', '\0' };
@@ -2295,20 +2492,7 @@ int rw_quotestr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
     }
 
     if (0 > _RW::__rw_memattr (wstr, _RWSTD_SIZE_MAX, 0)) {
-
-        const size_t buflen = *pbuf ? strlen (*pbuf) : 0;
-
-        if (0 == _rw_bufcat (pbuf, pbufsize, "(invalid address ", 18))
-            return -1;
-
-        FmtSpec newspec (spec);
-        newspec.fl_pound = 1;
-        if (-1 == ::_rw_fmtptr (newspec, pbuf, pbufsize, wstr))
-            return -1;
-        if (0 == _rw_bufcat (pbuf, pbufsize, ")", 2))
-            return -1;
-
-        return int (strlen (*pbuf) - buflen);
+        return _rw_fmtbadaddr (spec, pbuf, pbufsize, wstr);
     }
 
     if (_RWSTD_SIZE_MAX == nchars) {
@@ -2495,22 +2679,7 @@ _rw_fmtstr (const FmtSpec &spec,
         str = "(null)";
 
     if (0 > _RW::__rw_memattr (str, _RWSTD_SIZE_MAX, 0)) {
-
-        const size_t buflen = *pbuf ? strlen (*pbuf) : 0;
-
-        if (0 == _rw_bufcat (pbuf, pbufsize, "(invalid address ", 18))
-            return -1;
-
-        FmtSpec newspec (spec);
-        newspec.fl_pound = 1;
-
-        if (-1 == _rw_fmtptr (newspec, pbuf, pbufsize, str))
-            return -1;
-
-        if (0 == _rw_bufcat (pbuf, pbufsize, ")", 2))
-            return -1;
-
-        return int (strlen (*pbuf) - buflen);
+        return _rw_fmtbadaddr (spec, pbuf, pbufsize, str);
     }
 
     if (_RWSTD_SIZE_MAX == len)
@@ -2537,7 +2706,7 @@ _rw_fmtstr (const FmtSpec &spec,
     if (0 == _rw_bufcat (pbuf, pbufsize, 0, pad + len))
         return -1;
 
-    assert (0 != *pbuf);
+    RW_ASSERT (0 != *pbuf);
     char *next = *pbuf + strlen (*pbuf);
 
     if (!spec.fl_minus) {
@@ -2582,7 +2751,7 @@ static int
 rw_bmpfmt (const FmtSpec&, char **pbuf, size_t *pbufsize,
            const Bitnames bmap[], size_t size, int bits)
 {
-    assert (0 != pbuf);
+    RW_ASSERT (0 != pbuf);
 
     char buffer [1024];
     *buffer = '\0';
@@ -2620,12 +2789,12 @@ rw_bmpfmt (const FmtSpec&, char **pbuf, size_t *pbufsize,
         buffersize = strlen (buffer) + 1;
 
         // verify that buffer wasn't overflowed
-        assert (buffersize <= sizeof buffer);
+        RW_ASSERT (buffersize <= sizeof buffer);
 
         char bitstr [32];
         const int n = sprintf (bitstr, "%#x | ", bits);
 
-        assert (0 < n);
+        RW_ASSERT (0 < n);
 
         memmove (buffer + n, buffer, buffersize);
         memcpy (buffer, bitstr, size_t (n));
@@ -2637,7 +2806,7 @@ rw_bmpfmt (const FmtSpec&, char **pbuf, size_t *pbufsize,
     }
 
     // verify that buffer wasn't overflowed
-    assert (buffersize <= sizeof buffer);
+    RW_ASSERT (buffersize <= sizeof buffer);
 
     if (0 == _rw_bufcat (pbuf, pbufsize, buffer, buffersize))
         return -1;
@@ -2904,8 +3073,8 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
                    char **pbuf, size_t *pbufsize,
                    const char *fmt, va_list *pva)
 {
-    assert (0 != pva);
-    assert (0 != pspec);
+    RW_ASSERT (0 != pva);
+    RW_ASSERT (0 != pspec);
 
     _RWSTD_UNUSED (fmt);
 
@@ -2991,7 +3160,7 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
 #endif   // _RWSTD_UINT64_T
 
             else {
-                assert (!"%{Ac} not implemented for this character size");
+                RW_ASSERT (!"%{Ac} not implemented for this character size");
             }
         }
         else if (spec.mod_L) {   // locale category or LC_XXX constant
@@ -3040,7 +3209,7 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
             len = _rw_fmtfloating (spec, pbuf, pbufsize, spec.param.ptr);
         }
         else {
-            assert (!"%{g} not implemented");
+            RW_ASSERT (!"%{g} not implemented");
         }
 
     case 'd':   // %{Id}
@@ -3087,8 +3256,8 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         // the conversion specification includes any flags, a field
         // width, or a precision, the behavior is undefined.
 
-        assert (0 != pbuf);
-        assert (0 != *pbuf);
+        RW_ASSERT (0 != pbuf);
+        RW_ASSERT (0 != *pbuf);
 
         const size_t nbytes = pbufsize ? *pbufsize : 0;
 
@@ -3097,14 +3266,14 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         if (spec.mod_hh) {
             unsigned char* const ptr = (unsigned char*)spec.param.ptr;
 
-            assert (0 != ptr);
+            RW_ASSERT (0 != ptr);
 
             *ptr = (unsigned char)nbytes;
         }
         else if (spec.mod_h) {
             short* const ptr = (short*)spec.param.ptr;
 
-            assert (0 != ptr);
+            RW_ASSERT (0 != ptr);
 
             *ptr = short (nbytes);
         }
@@ -3112,31 +3281,31 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
 #ifdef _RWSTD_LONG_LONG
             _RWSTD_LONG_LONG* const ptr = (_RWSTD_LONG_LONG*)spec.param.ptr;
 
-            assert (0 != ptr);
+            RW_ASSERT (0 != ptr);
 
             *ptr = (_RWSTD_LONG_LONG)(nbytes);
 #else   // if !defined (_RWSTD_LONG_LONG)
-            assert (!"%{Ln} not implemented");
+            RW_ASSERT (!"%{Ln} not implemented");
 #endif   // _RWSTD_LONG_LONG
         }
         else if (spec.mod_l) {
             long* const ptr = (long*)spec.param.ptr;
 
-            assert (0 != ptr);
+            RW_ASSERT (0 != ptr);
 
             *ptr = long (nbytes);
         }
         else if (spec.mod_t) {
             ptrdiff_t* const ptr = (ptrdiff_t*)spec.param.ptr;
 
-            assert (0 != ptr);
+            RW_ASSERT (0 != ptr);
 
             *ptr = ptrdiff_t (nbytes);
         }
         else {
             int* const ptr = (int*)spec.param.ptr;
 
-            assert (0 != ptr);
+            RW_ASSERT (0 != ptr);
 
             *ptr = int (nbytes);
         }
@@ -3182,6 +3351,17 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         }
         break;
 
+    case 't': {   // %{t}
+        spec.param.ptr = PARAM (tm*, ptr);
+
+        const tm* const tmb = (tm*)spec.param.ptr;
+
+        len = _rw_fmttm (spec, pbuf, pbufsize, tmb);
+
+        break;
+    }
+        
+
     default:
         if (spec.strarg) {
             // environment variable
@@ -3198,7 +3378,7 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
             free (spec.strarg);
         }
         else {
-            assert (!"not implemented");
+            RW_ASSERT (!"not implemented");
         }
     }
 
@@ -3216,7 +3396,7 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
 _TEST_EXPORT int
 rw_asnprintf (char **pbuf, size_t *pbufsize, const char *fmt, ...)
 {
-    assert (0 == pbuf || 0 == *pbuf || pbufsize);
+    RW_ASSERT (0 == pbuf || 0 == *pbuf || pbufsize);
 
     va_list va;
     va_start (va, fmt);
@@ -3243,7 +3423,7 @@ rw_asnprintf (char **pbuf, size_t *pbufsize, const char *fmt, ...)
     // verify that the length of the fomatted buffer is less than
     // its size (this test is unreliable if there are any embedded
     // NULs in the output)
-    assert (nchars < 0 || strlen (*pbuf) < *pbufsize);
+    RW_ASSERT (nchars < 0 || strlen (*pbuf) < *pbufsize);
 
     if (pbuf == &buf) {
         // free the character buffer if pbuf was initially 0
@@ -3271,7 +3451,7 @@ rw_snprintfa (char *buf, size_t bufsize, const char* fmt, ...)
     // verify that the length of the fomatted buffer is less than
     // its size (this test is unreliable if there are any embedded
     // NULs in the output)
-    assert (nchars < 0 || strlen (buf) < bufsize);
+    RW_ASSERT (nchars < 0 || strlen (buf) < bufsize);
 
     _RWSTD_UNUSED (nchars);
 
@@ -3296,7 +3476,7 @@ rw_sprintfa (const char *fmt, ...)
     // verify that the length of the fomatted buffer is less than
     // its size (this test is unreliable if there are any embedded
     // NULs in the output)
-    assert (nchars < 0 || strlen (buf) < bufsize);
+    RW_ASSERT (nchars < 0 || strlen (buf) < bufsize);
 
     _RWSTD_UNUSED (nchars);
 
@@ -3323,7 +3503,7 @@ rw_stderr = _RWSTD_REINTERPRET_CAST (rw_file*, stderr);
 static int
 _rw_vfprintf (rw_file *file, const char *fmt, va_list va)
 {
-    assert (0 != file);
+    RW_ASSERT (0 != file);
 
     char* buf = 0;
     size_t bufsize = 0;
