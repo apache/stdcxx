@@ -53,9 +53,10 @@ private:
     void operator=(Y&);   // not Assignable
 };
 
-inline bool operator< (const X &lhs, const Y &rhs)
+inline conv_to_bool
+operator< (const X &lhs, const Y &rhs)
 {
-    return lhs < rhs.xval_;
+    return conv_to_bool::make (lhs < rhs.xval_);
 }
 
 /**************************************************************************/
@@ -69,18 +70,11 @@ struct LessThan
         funcalls_ = 0;
     }
 
-    class ConvertibleToBool {
-        bool result_;
-    public:
-        ConvertibleToBool (bool res): result_ (res) { /* empty */ }
-        operator bool() const { return result_; }
-    };
-
     // return a type other than bool but one that is implicitly
     // convertible to bool to detect incorrect assumptions
-    ConvertibleToBool operator() (const X &lhs, const Y &rhs) {
+    conv_to_bool operator() (const X &lhs, const Y &rhs) {
         ++funcalls_;
-        return ConvertibleToBool (lhs < rhs.xval_);
+        return conv_to_bool::make (lhs < rhs.xval_);
     }
 
 private:
@@ -131,6 +125,10 @@ void test_lower_bound (int                    line,
     const ForwardIterator result = predicate
         ? std::lower_bound (first, last, value, comp)
         : std::lower_bound (first, last, value);
+
+    // silence bogus EDG eccp 3.6 remark #550-D:
+    // variable was set but never used
+    _RWSTD_UNUSED (result);
 
     // verify correctness
     const std::size_t off = std::size_t (result.cur_ - xsrc);
