@@ -260,20 +260,28 @@ inline bool is_sorted_gt (InputIterator first, InputIterator last)
 
 // type used to exercise that algorithms do not apply operators
 // to function objects the latter are not required to define
-struct conv_to_bool {
-
+struct conv_to_bool
+{
     static conv_to_bool make (bool val) {
-        conv_to_bool tmp;
-        tmp.val_ = val;
-        return tmp;
+        return conv_to_bool (val);
     }
 
-    operator bool () const {
-        return val_;
+    // unique pointer not compatible with any other
+    typedef bool conv_to_bool::*UniquePtr;
+
+    // strictly convertible to a Boolean value testable
+    // in the controlling expression of the if statement
+    // as required in 25, p7
+    operator UniquePtr () const {
+        return val_ ? &conv_to_bool::val_ : UniquePtr (0);
     }
 
 private:
-    void operator!() const;                  // not defined
+    // not (publicly) Default-Constructible
+    conv_to_bool (bool val): val_ (val) { }
+
+    void operator= (conv_to_bool);   // not Assignable
+    void operator!() const;          // not defined
 
     bool val_;
 };
