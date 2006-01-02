@@ -1291,12 +1291,150 @@ void test_signal ()
 
 /***********************************************************************/
 
+static const tm*
+make_tm (int sec = 0,            // [0,60]
+         int min = 0,            // [0,59]
+         int hour = 0,           // [0,23]
+         int mday = 1,           // [1,31]
+         int mon = 0,            // [0,11]
+         int year = 0,           // Gregorian year - 1900
+         int wday = 0,           // [0,6]; 0 = Sunday
+         int yday = 0,           // [0,365]
+         int isdst = 0,          // < 0, 0, > 0
+         long gmtoff = 0,        // offset from GMT in seconds,
+         const char *zone = 0)   // timezone name
+{
+    static tm tmp = tm ();
+
+    if (sec < 0) {
+        // get the current local time
+        time_t t = time (0);
+        tm *tmb = localtime (&t);
+        return tmb ? tmb : &tmp;
+    }
+    else if (INT_MAX == sec) {
+        // return 0 to exercise extensions
+        return 0;
+    }
+
+    // use arguments to initialize struct
+    tmp.tm_sec   = sec;
+    tmp.tm_min   = min;
+    tmp.tm_hour  = hour;
+    tmp.tm_mday  = mday;
+    tmp.tm_mon   = mon;
+    tmp.tm_year  = year;
+    tmp.tm_wday  = wday;
+    tmp.tm_yday  = yday;
+    tmp.tm_isdst = isdst;
+
+#if defined (__linux__) && defined (_RWSTD_NO_PURE_C_HEADERS)
+
+    // support for glibc extension:
+
+    // GNU glibc uses gmtoff and zone instead of timezone and
+    // tzname when computing/formatting time zone information
+    // 
+    // http://www.gnu.org/manual/glibc-2.2.3/html_node/libc_425.html#SEC434
+
+#  ifndef __USE_BSD
+
+    tmp.__tm_gmtoff = gmtoff;
+    tmp.__tm_zone   = zone;
+
+#  else   // if defined (__USE_BSD)
+
+    tmp.tm_gmtoff = gmtoff;
+    tmp.tm_zone   = zone;
+
+#  endif   // __USE_BSD
+
+#else
+
+    _RWSTD_UNUSED (gmtoff);
+    _RWSTD_UNUSED (zone);
+
+#endif   // __linux__ && _RWSTD_NO_PURE_C_HEADERS
+
+    return &tmp;
+}
+
+
 void test_tm ()
 {
     //////////////////////////////////////////////////////////////////
-    printf ("%s\n", "extension: \"%{tm}\": struct tm");
+    printf ("%s\n", "extension: \"%{t}\": struct tm");
 
-    fprintf (stderr, "Warning: %s\n", "%{tm} not exercised");
+#define TM   make_tm
+
+    TEST ("%{t}",        0, 0, 0, "(null)");
+#if 4 == _RWSTD_PTR_SIZE
+    TEST ("%{t}", (void*)1, 0, 0, "(invalid address 0x00000001)");
+#else
+    TEST ("%{t}", (void*)1, 0, 0, "(invalid address 0x0000000000000001)");
+#endif
+
+    // exercise human readable format
+    TEST ("%{t}", TM (),                      0, 0, "Sun Jan  1 00:00:00 1900");
+    TEST ("%{t}", TM (1),                     0, 0, "Sun Jan  1 00:00:01 1900");
+    TEST ("%{t}", TM (2, 3),                  0, 0, "Sun Jan  1 00:03:02 1900");
+    TEST ("%{t}", TM (3, 4, 5),               0, 0, "Sun Jan  1 05:04:03 1900");
+    TEST ("%{t}", TM (4, 5, 6, 7),            0, 0, "Sun Jan  7 06:05:04 1900");
+    TEST ("%{t}", TM (5, 6, 7, 8,  9),        0, 0, "Sun Oct  8 07:06:05 1900");
+    TEST ("%{t}", TM (6, 7, 8, 9, 10, 11),    0, 0, "Sun Nov  9 08:07:06 1911");
+
+    TEST ("%{t}", TM (7, 7, 8, 1,  1, 12, 1), 0, 0, "Mon Feb  1 08:07:07 1912");
+    TEST ("%{t}", TM (8, 7, 8, 2,  2, 23, 2), 0, 0, "Tue Mar  2 08:07:08 1923");
+    TEST ("%{t}", TM (9, 7, 8, 3,  3, 34, 3), 0, 0, "Wed Apr  3 08:07:09 1934");
+    TEST ("%{t}", TM (0, 7, 8, 4,  4, 45, 4), 0, 0, "Thu May  4 08:07:00 1945");
+    TEST ("%{t}", TM (1, 7, 8, 5,  5, 56, 5), 0, 0, "Fri Jun  5 08:07:01 1956");
+    TEST ("%{t}", TM (2, 7, 8, 6,  6, -1, 6), 0, 0, "Sat Jul  6 08:07:02 1899");
+    TEST ("%{t}", TM (3, 7, 8, 7,  7, -1899), 0, 0, "Sun Aug  7 08:07:03 1");
+    TEST ("%{t}", TM (3, 7, 8, 7,  7, -1900), 0, 0, "Sun Aug  7 08:07:03 1 BC");
+    TEST ("%{t}", TM (3, 7, 8, 7,  7, -1901), 0, 0, "Sun Aug  7 08:07:03 2 BC");
+
+    TEST ("%{t}", TM (56, 34, 12, 1, 0, 0, 0, 0, 1), 0, 0,
+          "Sun Jan  1 12:34:56 DST 1900");
+
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{#t}\": verbose struct tm");
+
+    // exercise verbose struct tm format (members with 0 value omitted)
+    TEST ("%{#t}", TM (),                 0, 0, "{ tm_mday=1 }");
+    TEST ("%{#t}", TM (60),               0, 0, "{ tm_sec=60, tm_mday=1 }");
+    TEST ("%{#t}", TM ( 0, 59),           0, 0, "{ tm_min=59, tm_mday=1 }");
+    TEST ("%{#t}", TM ( 0,  0, 23),       0, 0, "{ tm_hour=23, tm_mday=1 }");
+    TEST ("%{#t}", TM ( 0,  0,  0, 2),    0, 0, "{ tm_mday=2 }");
+    TEST ("%{#t}", TM ( 0,  0,  0, 3, 1), 0, 0, "{ tm_mday=3, tm_mon=1 Feb }");
+
+    // exercise invalid values of tm members (verbose format implied)
+    TEST ("%{t}", TM (61),            0, 0, "{ tm_sec=61 [0,60], tm_mday=1 }");
+    TEST ("%{t}", TM ( 0, 60),        0, 0, "{ tm_min=60 [0,59], tm_mday=1 }");
+    TEST ("%{t}", TM ( 0,  0, 24),    0, 0, "{ tm_hour=24 [0,23], tm_mday=1 }");
+
+    TEST ("%{t}", TM ( 0, 0, 0,  0), 0, 0, "{ tm_mday=0 [1,31] }");
+    TEST ("%{t}", TM ( 0, 0, 0, 32), 0, 0, "{ tm_mday=32 [1,31] }");
+
+    TEST ("%{t}", TM ( 0, 0, 0, 1, 12), 0, 0,
+          "{ tm_mday=1, tm_mon=12 [0,11] }");
+    TEST ("%{t}", TM (0, 0, 0, 1, 0, 0, -1), 0, 0,
+          "{ tm_mday=1, tm_wday=-1 [0,6] }");
+    TEST ("%{t}", TM (0, 0, 0, 1, 0, 0, 0, 366), 0, 0,
+          "{ tm_mday=1, tm_yday=366 [0,365] }");
+
+#if 4 == _RWSTD_INT_SIZE
+
+    // exercise integer overflow in tm_year arithmetic
+    TEST ("%{t}", TM (0, 0, 0, 1, 0, INT_MAX), 0, 0,
+          "{ tm_mday=1, tm_year=2147483647 [-2147483648,2147481747] }");
+
+#elif 8 == _RWSTD_INT_SIZE
+
+    TEST ("%{t}", TM (0, 0, 0, 1, 0, INT_MAX), 0, 0,
+          "{ tm_mday=1, tm_year=9223372036854775807 "
+          "[-9223372036854775808,9223372036854773907] }");
+
+#endif   // _RWSTD_INT_SIZE
 }
 
 /***********************************************************************/
