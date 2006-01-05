@@ -34,7 +34,6 @@
 
 #include <rw/_defs.h>
 
-#include _RWSTD_CSTRING
 
 #ifdef _RWSTD_REENTRANT
 
