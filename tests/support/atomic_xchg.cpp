@@ -231,7 +231,6 @@ template <class intT>
 void run_test (intT, thr_args_base::tag_t tag)
 {
     static const char* const tname = rw_any_t (intT ()).type_name ();
-    static const char* const fun   = "__rw_atomic_exchange";
 
     if (!rw_enabled (tname)) {
         rw_note (0, 0, 0, "%s test disabled", tname);
@@ -239,6 +238,8 @@ void run_test (intT, thr_args_base::tag_t tag)
     }
 
 #ifdef _RWSTD_REENTRANT
+
+    static const char* const fun = "__rw_atomic_exchange";
 
     rw_info (0, 0, 0, "__rw::%s (%s&, %2$s): %d iterations in %d threads",
              fun, tname, rw_opt_nloops, rw_opt_nthreads);
@@ -305,7 +306,6 @@ void run_test (intT, thr_args_base::tag_t tag)
 
 #else   // if !defined (_RWSTD_REENTRANT)
 
-    _RWSTD_UNUSED (t);
     _RWSTD_UNUSED (tag);
 
 #endif   // _RWSTD_REENTRANT

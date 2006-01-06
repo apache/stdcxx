@@ -209,17 +209,17 @@ void run_test (intT, thr_args_base::tag_t tag, int inc)
 {
     static const char* const tname = rw_any_t (intT ()).type_name ();
 
-    static const char* const fun =
-          inc < 0 ? "__rw_atomic_predecrement"
-        : inc > 0 ? ":__rw_atomic_preincrement"
-        : "__rw_atomic_pre{in,de}crement";
-
     if (!rw_enabled (tname)) {
         rw_note (0, 0, 0, "%s test disabled", tname);
         return;
     }
 
 #if defined (_RWSTD_REENTRANT)
+
+    static const char* const fun =
+          inc < 0 ? "__rw_atomic_predecrement"
+        : inc > 0 ? ":__rw_atomic_preincrement"
+        : "__rw_atomic_pre{in,de}crement";
 
     rw_info (0, 0, 0, "__rw::%s (%s&): %d iterations in %d threads",
              fun, tname, rw_opt_nloops, rw_opt_nthreads);
@@ -280,7 +280,6 @@ void run_test (intT, thr_args_base::tag_t tag, int inc)
 
 #else   // if !defined (_RWSTD_REENTRANT)
 
-    _RWSTD_UNUSED (t);
     _RWSTD_UNUSED (tag);
     _RWSTD_UNUSED (inc);
 
