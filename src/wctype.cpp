@@ -2,7 +2,7 @@
  *
  * wctype.cpp - source for the C++ Standard Library ctype<wchar_t> facets
  *
- * $Id: //stdlib/dev/source/stdlib/wctype.cpp#16 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -29,8 +29,13 @@
 #include <ctype.h>
 #include <limits.h>
 #include <locale.h>
-#include <wctype.h>
-#include <string.h>  // memset()
+
+#ifndef _RWSTD_NO_WCHAR_H
+#  include <wchar.h>   // for wctob()
+#endif   // _RWSTD_NO_WCHAR_H
+
+#include <wctype.h>   // for iswspace(), ...
+#include <string.h>   // for memset()
 
 #include <loc/_ctype.h>
 #include <loc/_locale.h>
