@@ -20,21 +20,20 @@
  *
  **************************************************************************/
 
-#include <string>
+#include <string>       // for string
 
-#include <cassert>      // for assert
-#include <cstdio>       // for puts
+#include <cstdio>       // for putc(), puts(), ...
 
-#include <driver.h>     // for rw_test
-#include <rwthread.h>   // for rw_thread_pool
-#include <valcmp.h>     // for rw_equal
+#include <driver.h>     // for rw_test()
+#include <rwthread.h>   // for rw_thread_pool()
+#include <valcmp.h>     // for rw_strncmp()
 
 /**************************************************************************/
 
 #define MAX_THREADS      32
 #define MAX_LOOPS    100000
 
-const char to_append [MAX_THREADS + 1] = {
+const char to_append [] = {
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 };
 
@@ -56,6 +55,8 @@ thread_func (void *arg)
     // compute an index unique to this thread
     const std::size_t thr_inx = std::size_t (pthread->threadno) % MAX_THREADS;
 
+    RW_ASSERT (thr_inx < sizeof to_append);
+
     // compute the expected strings unique to this thread
     const std::string expect0 = shared0 + to_append [thr_inx];
     const std::string expect1 = shared1 + to_append [thr_inx];
@@ -68,7 +69,7 @@ thread_func (void *arg)
     const char* const expect1_data = expect1.data ();
     const std::size_t expect1_len  = expect1.length ();
 
-    for (size_t i = 0; i != std::size_t (rw_opt_nloops); ++i) {
+    for (std::size_t i = 0; i != std::size_t (rw_opt_nloops); ++i) {
 
         // create copies of global strings
         std::string local0 (shared0);
@@ -79,15 +80,16 @@ thread_func (void *arg)
         local1.push_back (to_append [thr_inx]);
 
         // verify that the local copies have the expected length
-        assert (expect0_len == local0.length ());
-        assert (expect1_len == local1.length ());
+        RW_ASSERT (expect0_len == local0.length ());
+        RW_ASSERT (expect1_len == local1.length ());
 
         // verify that the local copies have the expected data
-        assert (0 == rw_strncmp (expect0_data, local0.data ()));
-        assert (0 == rw_strncmp (expect1_data, local1.data ()));
+        RW_ASSERT (0 == rw_strncmp (expect0_data, local0.data ()));
+        RW_ASSERT (0 == rw_strncmp (expect1_data, local1.data ()));
       
         if (60 < rw_opt_nloops && 0 == i % (rw_opt_nloops / 60)) {
-            std::putc (to_append [thr_inx], stdout);
+            // parentheses used to thwart macro expansion
+            (std::putc)(to_append [thr_inx], stdout);
             std::fflush (stdout);
         }
     }
