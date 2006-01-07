@@ -2,7 +2,7 @@
  *
  * locale_core.cpp - definitions of core members of class std::locale
  *
- * $Id: //stdlib/dev/source/stdlib/locale_core.cpp#8 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -35,7 +35,7 @@
 
 #include "locale_body.h"
 
-#include <stdlib.h>     // for getenv()
+#include <stdlib.h>     // for getenv(), size_t
 #include <string.h>     // for strchr()
 #include <sys/stat.h>   // for stat()
 
@@ -85,7 +85,7 @@ locale::_C_get_std_facet (facet::_C_facet_type  type,
 {
     _RWSTD_ASSERT (0 != _C_body);
 
-    const _RWSTD_SIZE_T inx = type / 2;
+    const size_t inx = size_t (type / 2);
 
     // for standard facets, the index also identifies the facet's type
     // (including its specialization, but excluding whether its an ordinary
@@ -136,7 +136,7 @@ locale::_C_get_std_facet (facet::_C_facet_type  type,
         const int facet_cat = _RW::__rw_get_cat (inx + 1);
 
         // determine the locale name of the given category
-        _RWSTD_SIZE_T i = 0;
+        size_t i = 0;
         for (; i != sizeof _RW::__rw_cats / sizeof *_RW::__rw_cats; ++i) {
             if (_RW::__rw_cats [i].cat == facet_cat) {
                 locname.assign (nm, next - nm);
