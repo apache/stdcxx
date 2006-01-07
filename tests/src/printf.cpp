@@ -24,7 +24,6 @@
 #include <testdefs.h>
 #include <printf.h>
 
-#include <assert.h>   // for assert
 #include <errno.h>    // for errno, errno constants
 #include <float.h>    // for floating point macros
 #include <locale.h>
@@ -154,7 +153,7 @@ struct FmtSpec
     unsigned fl_zero   : 1;
 
     // optional modifiers
-    unsigned mod_A     : 1;    // extension (Arrays)
+    unsigned mod_A     : 1;    // extension: arrays
     unsigned mod_h     : 1;    // short modifier
     unsigned mod_hh    : 1;    // char modifier
     unsigned mod_l     : 1;    // long modifier
@@ -562,6 +561,7 @@ _rw_vasnprintf_c99 (FmtSpec *pspec, size_t paramno,
 
     switch (spec.cvtspec) {
 
+    case 'b':   // extension: bool
     case 'd':
     case 'i':
     case 'o':
@@ -1201,6 +1201,13 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
     FmtSpec &spec = pspec [paramno];
 
     switch (spec.cvtspec) {
+    case 'b': // extension: int argument formatted as bool
+        spec.param.i = PARAM (int, i);
+        len = _rw_fmtstr (spec, pbuf, pbufsize,
+                          spec.param.i ? "true" : "false",
+                          _RWSTD_SIZE_MAX);
+        break;
+        
     case 'd':
     case 'i':
         if (spec.mod_hh) {
