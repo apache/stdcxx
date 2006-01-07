@@ -21,10 +21,11 @@
 
 #include <limits>
 
-#include <csetjmp>   // for longjmp, setjmp
-#include <csignal>   // for SIGFPE, signal
+#include <csetjmp>    // for longjmp, setjmp
+#include <csignal>    // for SIGFPE, signal
 
-#include <driver.h>
+#include <any.h>      // for rw_any_t
+#include <driver.h>   // for rw_test(), ...
 
 /**************************************************************************/
 
@@ -57,8 +58,12 @@ void handle_fpe (int)
 
 
 template <class numT>
-numT test_traps (numT, const char *tname, int lineno, bool)
+numT test_traps (numT, int lineno, bool)
 {
+    static const char* const tname = rw_any_t (numT ()).type_name ();
+
+    rw_info (0, 0, 0, "std::numeric_limits<%s>::traps", tname);
+
     const bool traps = std::numeric_limits<numT>::traps;
 
 #ifdef SIGFPE
@@ -95,11 +100,8 @@ numT test_traps (numT, const char *tname, int lineno, bool)
     }
 
     rw_assert (trapped == traps, 0, lineno,
-               "numeric_limits<%s>::traps == %s, got %s",
-               tname,
-               trapped ? "true" : "false",
-               traps ? "true" : "false");
-
+               "numeric_limits<%s>::traps == %b, got %b",
+               tname,  trapped, traps);
 
     return result;
 }
@@ -109,7 +111,7 @@ numT test_traps (numT, const char *tname, int lineno, bool)
 static int
 run_test (int, char*[])
 {
-#define TEST(T, floating)   test_traps ((T)0, #T, __LINE__, floating)
+#define TEST(T, floating)   test_traps ((T)0, __LINE__, floating)
 
 #ifndef _RWSTD_NO_NATIVE_BOOL
     TEST (bool, false);
@@ -127,8 +129,8 @@ run_test (int, char*[])
     TEST (unsigned long, false);
 
 #ifndef _RWSTD_NO_LONG_LONG
-    TEST (long long, false);
-    TEST (unsigned long long, false);
+    TEST (_RWSTD_LONG_LONG, false);
+    TEST (unsigned _RWSTD_LONG_LONG, false);
 #endif   // _RWSTD_NO_LONG_LONG
 
 #ifndef _RWSTD_NO_NATIVE_WCHAR_T
