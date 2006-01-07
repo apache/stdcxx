@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
 #include <wchar.h>
 
 #include <ios>
@@ -781,6 +782,27 @@ void test_hex (char spec)
 
 /***********************************************************************/
 
+void test_bool ()
+{
+    printf ("%s\n", "extension: \"%b\": bool");
+
+    TEST ("%b", false, 0, 0, "false");
+    TEST ("%b", true,  0, 0, "true");
+
+    TEST ("%b", '\0',    0, 0, "false");
+    TEST ("%b", '\x01',  0, 0, "true");
+    TEST ("%b", '\x80',  0, 0, "true");
+    TEST ("%b", '\xff',  0, 0, "true");
+
+    TEST ("%b",  0, 0, 0, "false");
+    TEST ("%b", -1, 0, 0, "true");
+    TEST ("%b", +1, 0, 0, "true");
+    TEST ("%b", -2, 0, 0, "true");
+    TEST ("%b", +2, 0, 0, "true");
+}
+
+/***********************************************************************/
+
 void test_integer ()
 {
     test_dec ('d');
@@ -791,6 +813,8 @@ void test_integer ()
 
     test_hex ('x');
     test_hex ('X');
+
+    test_bool ();
 }
 
 /***********************************************************************/
