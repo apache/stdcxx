@@ -77,12 +77,22 @@ void get_type_names (int dummy, ...)
 #if defined (EOF)
     printf ("#define _RWSTD_EOF %d\n", EOF);
 #else
+    // define _RWSTD_EOF to the usual value even if WEOF is not #defined
+    // to avoid having to #ifdef around wchar_t code that needs the macro
+    printf ("#define _RWSTD_EOF %d\n", -1);
+    // also #define _RWSTD_NO_EOF to make it possible to determine
+    // whether EOF is or isn't defined in libc headers
     printf ("#define _RWSTD_NO_EOF\n");
 #endif   // EOF
 
 #if defined (WEOF)
     printf ("#define _RWSTD_WEOF %d\n", WEOF);
 #else
+    // define _RWSTD_WEOF to the usual value even if WEOF is not #defined
+    // to avoid having to #ifdef around wchar_t code that needs the macro
+    printf ("#define _RWSTD_WEOF %d   /* best guess */\n", -1);
+    // also #define _RWSTD_NO_WEOF to make it possible to determine
+    // whether WEOF is or isn't defined in libc headers
     printf ("#define _RWSTD_NO_WEOF\n");
 #endif   // WEOF
 
