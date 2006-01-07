@@ -20,7 +20,6 @@
  **************************************************************************/
 
 #include <algorithm>   // for adjacent_find()
-#include <functional>  // for equal_to
 #include <cstring>     // for size_t, strlen()
 
 #include <alg_test.h>
@@ -43,15 +42,47 @@ int xinit ()
     return UChar (*cur++);
 }
 
+/**************************************************************************/
+
+template <class T, class U>
+struct EqualityPredicate
+{
+    static std::size_t funcalls_;
+
+    // dummy arguments provided to prevent the class
+    // from being default constructible
+    EqualityPredicate (T* /* dummy */, U* /* dummy */) {
+        funcalls_ = 0;
+    }
+
+    // return a type other than bool but one that is implicitly
+    // convertible to bool to detect incorrect assumptions
+    class ConvertibleToBool {
+        bool result_;
+    public:
+        ConvertibleToBool (bool res): result_ (res) { /* empty */ }
+        operator bool() const { return result_; }
+    };
+
+    ConvertibleToBool operator() (const T &x, const U &y) /* non-const */ {
+        ++funcalls_;
+        return x == y;
+    }
+};
+
+template <class T, class U>
+std::size_t EqualityPredicate<T, U>::funcalls_;
+
+/**************************************************************************/
 
 // exercises std::adjacent_find()
 template <class ForwardIterator, class T>
-void do_test (int         line,     // line number of test case
-              const char *src,      // source sequence
-              std::size_t resoff,   // offset of result
-              ForwardIterator    dummy_iter,
+void do_test (int             line,     // line number of test case
+              const char     *src,      // source sequence
+              std::size_t     resoff,   // offset of result
+              ForwardIterator dummy_iter,
               const T*,
-              const char* predicate)
+              const char*     predname)
 {
     static const char* const itname = type_name (dummy_iter, (T*)0);
 
@@ -72,18 +103,24 @@ void do_test (int         line,     // line number of test case
     const ForwardIterator last =
         make_iter (xsrc + nsrc, xsrc, xsrc + nsrc, dummy_iter);
 
-    // compute the number of invocations of the predicate
-    std::size_t n_total_pred = X::n_total_op_eq_;
+    // reset predicate counters
+    X::n_total_op_eq_                  = 0;
+    EqualityPredicate<T, T>::funcalls_ = 0;
 
-    const ForwardIterator res =
-        predicate ? std::adjacent_find (first, last, std::equal_to<X>())
-                  : std::adjacent_find (first, last);
+    // construct a predicate object
+    const EqualityPredicate<T, T> pred (0, 0);
+
+    const ForwardIterator res = predname ?
+          std::adjacent_find (first, last, pred)
+        : std::adjacent_find (first, last);
 
     // silence a bogus EDG eccp remark #550-D:
     // variable "res" was set but never used
     _RWSTD_UNUSED (res);
 
-    n_total_pred = X::n_total_op_eq_ - n_total_pred;
+    const std::size_t n_total_pred = predname ?
+          EqualityPredicate<T, T>::funcalls_
+        : X::n_total_op_eq_;
 
     // verify that the returned iterator is set as expected
     int success = res.cur_ == first.cur_ + resoff;
@@ -117,22 +154,22 @@ void do_test (int         line,     // line number of test case
                "line %d: adjacent_find<%s>(\"%s\", ...) "
                "invoked %s %zu times, expected %td",
                __LINE__, itname, src,
-               predicate ? predicate : "operator==()", 
+               predname ? predname : "operator==()", 
                n_total_pred, n_expect_pred);
 }
 
 /**************************************************************************/
 
 template <class ForwardIterator, class T>
-void run_tests (ForwardIterator dummy_iter, const T*, const char* predicate)
+void run_tests (ForwardIterator dummy_iter, const T*, const char* predname)
 {
     static const char* const itname = type_name (dummy_iter, (T*)0);
 
     rw_info (0, 0, 0, "std::adjacent_find (%s, %1$s%{?}, %s%{;})", 
-             itname, 0 != predicate, predicate);
+             itname, 0 != predname, predname);
     
 #define TEST(src, off) \
-    do_test (__LINE__, src, std::size_t (off), dummy_iter, (X*)0, predicate)
+    do_test (__LINE__, src, std::size_t (off), dummy_iter, (X*)0, predname)
 
     //    +------------------ subject sequence
     //    |               +-- offset of returned iterator,
@@ -183,33 +220,33 @@ void run_tests (ForwardIterator dummy_iter, const T*, const char* predicate)
 /* extern */ int rw_opt_no_predicate;    // --no-Predicate
 
 static 
-void test_adjacent_find (const char* predicate)
+void test_adjacent_find (const char* predname)
 {
     rw_info (0, 0, 0, 
              "template <class %s%{?}, class %s%{;}> "
              "%1$s std::adjacent_find (%1$s, %1$s%{?}, %2$s%{;})",
              "ForwardIterator",
-             0 != predicate, "BinaryPredicate", 0 != predicate);
+             0 != predname, "BinaryPredicate", 0 != predname);
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
-        run_tests (FwdIter<X>(), (X*)0, predicate);
+        run_tests (FwdIter<X>(), (X*)0, predname);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        run_tests (BidirIter<X>(), (X*)0, predicate);
+        run_tests (BidirIter<X>(), (X*)0, predname);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
     }
     else {
-        run_tests (RandomAccessIter<X>(), (X*)0, predicate);
+        run_tests (RandomAccessIter<X>(), (X*)0, predname);
     }
 }
 
@@ -224,7 +261,7 @@ run_test (int, char*[])
         rw_note (0, __FILE__, __LINE__, "Predicate test disabled");
     }
     else {
-        test_adjacent_find ("std::equal_to<X>");
+        test_adjacent_find ("EqualityPredicate<X, X>");
     }
                 
     return 0;
