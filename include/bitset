@@ -354,7 +354,7 @@ public:
     // 23.3.5.2, p17
     bitset& reset () _THROWS (()) {
         return 1 == _C_nelems ? (void)(_C_bits [0] = 0)
-            : (void)memset (_C_bits, 0, sizeof (_C_bits)), *this;
+            : (void)_RWSTD_MEMSET (_C_bits, 0, sizeof (_C_bits)), *this;
     }
 
     // 23.3.5.2, p19
@@ -514,7 +514,7 @@ bitset<_Size>::set () _THROWS (())
     if (_C_nelems == 1)
         _C_bits [0] = _RWSTD_SIZE_MAX;
     else
-        memset (_C_bits, -1, sizeof _C_bits);
+        _RWSTD_MEMSET (_C_bits, -1, sizeof _C_bits);
 
     _C_bits [_C_nelems - !!_C_nelems] >>=
         (_C_elembits - _Size % _C_elembits) % _C_elembits;
