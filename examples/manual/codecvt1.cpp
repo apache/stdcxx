@@ -2,7 +2,7 @@
  *
  * codecvt1.cpp - Example program of codecvt facet. 
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/codecvt1.cpp#9 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -19,7 +19,6 @@
  * 
  **************************************************************************/
 
-
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -27,6 +26,7 @@
 #include <locale>
 #include <numeric>
 
+#include <cstring>      // for memcmp(), ptrdiff_t
 #include <examples.h>
 
 
