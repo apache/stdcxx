@@ -440,17 +440,22 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
     __rw_time_t *pun = _RWSTD_REINTERPRET_CAST (__rw_time_t*, pbuf);
 
     // zero out all members
-    _RWSTD_C::memset (pun, 0, sizeof *pun);
+    memset (pun, 0, sizeof *pun);
 
-    // reserve offset 0 for the empty string (both narrow and wide)
+    // advance buffer pointer past the end of the structure
     pbuf += sizeof *pun;
-    *pbuf = L'\0';
 
 #ifndef _RWSTD_NO_WCHAR_T
+
+    // reserve offset 0 for the empty string (both narrow and wide)
+    *_RWSTD_REINTERPRET_CAST (wchar_t*, pbuf) = L'\0';
 
     _RWSTD_SIZE_T off = sizeof (wchar_t);
 
 #else   // if defined (_RWSTD_NO_WCHAR_T)
+
+    // reserve offset 0 for the empty string
+    *pbuf = '\0';
 
     _RWSTD_SIZE_T off = sizeof (char);
 
@@ -468,7 +473,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 #  define OFF(T, m)   offsetof (T, m)
 #else
 #  define OFF(T, m)   ((char*)&((T*)0)->m - (char*)0)
-#endif   // __IBMCPP__
+#endif   // _RWSTD_NO_OFFSETOF
 
 
 #undef ENTRY
@@ -574,7 +579,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
         _RWSTD_ASSERT (0 != str);
 
-        _RWSTD_SIZE_T size = 1 + _RWSTD_C::strlen (str);
+        _RWSTD_SIZE_T size = 1 + strlen (str);
 
         // estimate the size required to accommodate both
         // the narrow and the wide char representations
@@ -2651,7 +2656,7 @@ __rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
             _RWSTD_ASSERT (bufsize >= res);
         }
         else {
-            char fmtstr [3] = { '%', fmt, '\0' };
+            char fmtstr [4] = { '%', fmt, '\0', '\0' };
 
             if (mod) {
                 fmtstr [1] = mod;
@@ -2780,13 +2785,13 @@ __rw_put_time (const __rw_facet *facet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
 
 #if !defined (_RWSTD_NO_WCSFTIME_WCHAR_T_FMAT) && !defined (_RWSTD_NO_WCSFTIME)
 
-            wchar_t fmtstr [3] = { '%', fmt, '\0' };
+            wchar_t fmtstr [4] = { L'%', fmt, L'\0', L'\0' };
 
 #else   // if _RWSTD_NO_WCSFTIME_WCHAR_T_FMAT || _RWSTD_NO_WCSFTIME
 
             // work around incorrect wcsftime() declarations some
             // platforms
-            char fmtstr [3] = { '%', fmt, '\0' };
+            char fmtstr [4] = { '%', fmt, '\0', '\0' };
 
 #endif   // !_RWSTD_NO_WCSFTIME_WCHAR_T_FMAT && !_RWSTD_NO_WCSFTIME
 
@@ -2800,7 +2805,7 @@ __rw_put_time (const __rw_facet *facet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
             // use wcsftime() for locale-independent formatting
             res = wcsftime (wbuf, bufsize, fmtstr, tmb);
 
-            _RWSTD_ASSERT (bufsize > res);
+            _RWSTD_ASSERT (res < bufsize);
 
 #else   // if defined (_RWSTD_NO_WCSFTIME)
 
