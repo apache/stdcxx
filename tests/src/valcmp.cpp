@@ -795,7 +795,10 @@ rw_dblcmp (double x, double y)
 
     const IntT int_diff = x_int - y_int;
 
-    return int_diff;
+    // cast a possibly wider type to int to avoid compiler warnings
+    // this should be safe since the function should not be used to
+    // compare numbers that are that far apart
+    return int (int_diff);
 
 #endif   // _RWSTD_LLONG_SIZE < _RWSTD_DBL_SIZE
 
