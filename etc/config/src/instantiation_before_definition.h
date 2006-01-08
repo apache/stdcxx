@@ -1,6 +1,11 @@
 #ifndef INSTANTIATION_BEFORE_DEFINITION_INCLUDED
 #define INSTANTIATION_BEFORE_DEFINITION_INCLUDED
 
+// NOTE: do not #include config.h here and avoid relying
+// the config infrastructure automatically establishing
+// dependencies on other config tests (headers are not
+// scanned for such dependencies)
+
 template <class T>
 T instantiated_before_defined (T);
 
@@ -33,7 +38,12 @@ template struct InstantiatedBeforeDefined<int>;
 #    pragma GCC system_header
 #  endif   // gcc >= 3
 
+#  ifndef SPECIALIZE_FUNCTION_TEMPLATE
 extern template int instantiated_before_defined (int);
+#  else   // if defined (SPECIALIZE_FUNCTION_TEMPLATE)
+template<> int instantiated_before_defined (int);
+#  endif   // SPECIALIZE_FUNCTION_TEMPLATE
+
 extern template struct InstantiatedBeforeDefined<int>;
 
 #endif   // INSTANTIATE_TEMPLATE, EXTERN_TEMPLATE
