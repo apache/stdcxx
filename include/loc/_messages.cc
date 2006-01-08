@@ -2,7 +2,7 @@
  *
  * _messages.cc - definition of std::messages members
  *
- * $Id: //stdlib/dev/include/loc/_messages.cc#24 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -52,18 +52,20 @@ messages<_CharT>::do_get (messages_base::catalog __cat,
             return _RWSTD_REINTERPRET_CAST (const _CharT*, __text);
         }
 
-        const _RWSTD_SIZE_T __src_length = strlen (__text);
+        typedef char_traits<char> CharTraits;
+
+        const _RWSTD_SIZE_T __src_len = CharTraits::length (__text);
         const char* const __src_first = __text;
-        const char* const __src_last  = __text + __src_length;
+        const char* const __src_last  = __text + __src_len;
         const char*       __src_next  = __src_first;
 
         // allocate a [wide] string large enough to hold at least
         // as many internal characters as there are bytes in the
         // multibyte characater message
-        string_type __result_str ((const _CharT*)0, __src_length);
+        string_type __result_str ((const _CharT*)0, __src_len);
 
         _CharT* const __dst_first = &__result_str [0];
-        _CharT* const __dst_last  = __dst_first + __src_length;
+        _CharT* const __dst_last  = __dst_first + __src_len;
         _CharT*       __dst_next  = __dst_first;
 
         state_type __state = state_type ();
@@ -92,7 +94,7 @@ messages<_CharT>::do_get (messages_base::catalog __cat,
                 const _Ctype& __ctp =
                     _V3_USE_FACET (_Ctype, _RW::__rw_get_locale (__cat));
 
-                for (_RWSTD_SIZE_T __i = 0; __i != __src_length; ++__i)
+                for (_RWSTD_SIZE_T __i = 0; __i != __src_len; ++__i)
                     __dst_first [__i] = __ctp.widen (__text [__i]);
 
                 return __result_str;

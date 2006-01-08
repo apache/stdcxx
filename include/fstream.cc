@@ -3,7 +3,7 @@
  *
  * fstream.cc - Definition for the Standard Library file streams
  *
- * $Id: //stdlib/dev/include/fstream.cc#54 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -261,8 +261,10 @@ underflow ()
                     // compute the length of partially converted sequence
                     __n -= __from_next - __xbuf;
 
+                    typedef char_traits<char> CharTraits;
+
                     // copy the sequence to beginning of xbuf
-                    memmove (__xbuf, __from_next, __n);
+                    CharTraits::move (__xbuf, __from_next, __n);
 
                     // will append external chars to end of the sequence
                     __from_base = __xbuf + __n;
