@@ -2,7 +2,7 @@
  *
  * bitset - definitions of out-of-line bitset members
  *
- * $Id: //stdlib/dev/include/bitset.cc#44 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -54,7 +54,7 @@ void __rw_bitset (unsigned long *__bits, _RWSTD_SIZE_T __maxbits,
     const _RWSTD_SIZE_T __nbytes =
         (__maxbits + sizeof *__bits * _RWSTD_CHAR_BIT - 1) / _RWSTD_CHAR_BIT;
 
-    _RWSTD_C::memset (__bits, 0, __nbytes);
+    _RWSTD_MEMSET (__bits, 0, __nbytes);
 
     // set all bits but also check any extra characters as required
     for (_RWSTD_SIZE_T __i = 0; __i != __nchars; ++__i) {
