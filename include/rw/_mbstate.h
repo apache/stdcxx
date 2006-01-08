@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_mbstate.h#11 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -85,17 +85,45 @@ _USING (::mbstate_t);
 #  endif   // _MBSTATE_T
 
 #elif !defined (_RWSTD_NO_MBSTATE_T)
-#  include _RWSTD_CWCHAR
 
-#  ifndef _RWSTD_NO_USING_LIBC_IN_STD
+#  if defined (_RWSTD_OS_SUNOS)
+
+#    ifndef _MBSTATET_H
+#      define _MBSTATET_H
+
+extern "C" {
+
+// avoid namespace pollution on Solaris
+typedef struct __mbstate_t {
+
+#      ifdef _LP64
+    long __filler [4];
+#      else
+    int __filler [6];
+#      endif   // _LP64
+} __mbstate_t;
+
+}   // extern "C"
+
+#    endif   // _MBSTATET_H
+
+#    ifndef _RWSTD_NO_USING_LIBC_IN_STD
 
 namespace std {
 
-using ::mbstate_t;
+typedef __mbstate_t mbstate_t;
 
 }   // namespace std
 
-#  endif   // _RWSTD_NO_USING_LIBC_IN_STD
+#    else   // if defined (_RWSTD_NO_USING_LIBC_IN_STD)
+
+typedef __mbstate_t mbstate_t;
+
+#    endif   // _RWSTD_NO_USING_LIBC_IN_STD
+
+#  else   // if !defined (_RWSTD_OS_SUNOS)
+#    include _RWSTD_CWCHAR
+#  endif   // _RWSTD_OS_SUNOS
 
 #elif !defined (_RWSTD_MBSTATE_T_DEFINED)
 
