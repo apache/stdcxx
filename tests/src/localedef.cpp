@@ -16,13 +16,21 @@
  * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
  * for the specific language governing permissions  and limitations under
  * the License.
- *
+ * 
  **************************************************************************/
 
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
-#include <localedef.h>
+
+#ifdef _RWSTD_USE_CONFIG
+   // FIXME: use one style of #include paths consistently throughout
+   // the whole test suite (this form prevents #including the HP-UX
+   // /usr/include/localedef.h header)
+#  include "../include/localedef.h"
+#else
+#  include <localedef.h>
+#endif
 
 #include <environ.h>    // for rw_putenv()
 #include <file.h>       // for SHELL_RM_RF, rw_tmpnam
@@ -292,7 +300,7 @@ rw_set_locale_root ()
     char envvar [sizeof LOCALE_ROOT_ENVAR + sizeof rw_locale_root] =
         LOCALE_ROOT_ENVAR "=";
 
-    std::strcat (envvar, locale_root);
+    strcat (envvar, locale_root);
 
     // remove temporary file if mkstemp() rw_tmpnam() called mkstemp()
     if (rw_system (SHELL_RM_RF " %s", locale_root)) {
@@ -326,9 +334,9 @@ rw_locales (int loc_cat, const char* grep_exp)
 {
     static char* slocname = 0;
 
-    static int size       = 0;         // the number of elements in the array
-    static int total_size = 5120;      // the size of the array
-    static int last_cat   = loc_cat;   // last category
+    static size_t size       = 0;         // the number of elements in the array
+    static size_t total_size = 5120;      // the size of the array
+    static int    last_cat   = loc_cat;   // last category
 
     // allocate first time through
     if (!slocname) {
@@ -410,7 +418,7 @@ rw_locales (int loc_cat, const char* grep_exp)
 #endif   // _RWSTD_OS_SUNOS
 
             // if our buffer is full then dynamically allocate a new one
-            if ((size += (strlen (linebuf) + 1)) > total_size) {
+            if (total_size < (size += (strlen (linebuf) + 1))) {
                 total_size += 5120;
 
                 char* tmp =
