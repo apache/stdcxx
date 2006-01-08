@@ -1,11 +1,11 @@
 /***************************************************************************
  *
- * rw_locale.cpp - implementation of the std::locale and __rw_locale class
+ * locale_body.cpp - implementation of the std::locale and __rw_locale class
  *
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/source/stdlib/locale_body.cpp#8 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -520,7 +520,7 @@ __rw_locale::__rw_locale (const char *name)
         // note that `name' may not be the same as `_C_name' at this point
     }
     else {
-        const _RWSTD_SIZE_T namelen = std::strlen (name) + 1;
+        const _RWSTD_SIZE_T namelen = strlen (name) + 1;
 
         // assume name is well-formed and valid (checked by caller)
         char* const tmp = namelen < sizeof _C_namebuf
@@ -1111,7 +1111,7 @@ bool __rw_locale::_C_is_managed (int cat) const
                     loclen = next - locname;
                 else {
                     loclen = strlen (locname);
-                    next = next = "";
+                    next   = "";
                 }
             }
 
