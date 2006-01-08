@@ -16,6 +16,13 @@
 #  define INCLUDE_CC_FILE
 #endif   // _RWSTD_NO_IMPLICIT_INCLUSION
 
+#ifdef _RWSTD_NO_EXTERN_FUNCTION_TEMPLATE
+   // tell "instantiation_before_definition.h" to use explicit
+   // function template specialization instead of the extern
+   // template extension
+#  define SPECIALIZE_FUNCTION_TEMPLATE
+#endif   // _RWSTD_NO_EXTERN_FUNCTION_TEMPLATE
+
 #define EXTERN_TEMPLATE
 #include "instantiation_before_definition.h"
 
