@@ -1,11 +1,11 @@
 /***************************************************************************
  *
- * _traits.h - Declarations for char_traits 
+ * _traits.h - definition of the char_traits class template
  *
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_traits.h#48 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -28,12 +28,156 @@
 #include <rw/_iosfwd.h>
 #include <rw/_defs.h>
 
-#include _RWSTD_CSTRING   // for memcmp(), memcpy(), ...
-#include _RWSTD_CWCHAR    // for mbstate_t, wmemcmp(), ...
+#if defined (_RWSTDDEBUG) || defined (_RWSTD_EDG_ECCP)
 
-#ifdef _RWSTD_NO_MBSTATE_T
+// avoid including <cstring> and <cwchar> in debug mode or when using
+// the vanilla EDG eccp (i.e., in strict conformance mode) to prevent
+// namespace pollutiuon
+
 #  include <rw/_mbstate.h>
-#endif   // _RWSTD_NO_MBSTATE_T
+
+_RWSTD_NAMESPACE (__rw) {
+
+_RWSTD_EXPORT void* __rw_memcpy (void*, const void*, _RWSTD_SIZE_T);
+_RWSTD_EXPORT void* __rw_memmove (void*, const void*, _RWSTD_SIZE_T);
+_RWSTD_EXPORT const void* __rw_memchr (const void*, int, _RWSTD_SIZE_T);
+_RWSTD_EXPORT void* __rw_memset (void*, int, _RWSTD_SIZE_T);
+_RWSTD_EXPORT int __rw_memcmp (const void*, const void*, _RWSTD_SIZE_T);
+_RWSTD_EXPORT _RWSTD_SIZE_T __rw_strlen (const char*);
+
+#  ifndef _RWSTD_NO_WCHAR_T
+
+_RWSTD_EXPORT wchar_t* __rw_wmemcpy (wchar_t*, const wchar_t*, _RWSTD_SIZE_T);
+_RWSTD_EXPORT wchar_t* __rw_wmemmove (wchar_t*, const wchar_t*, _RWSTD_SIZE_T);
+_RWSTD_EXPORT const wchar_t*
+__rw_wmemchr (const wchar_t*, wchar_t, _RWSTD_SIZE_T);
+_RWSTD_EXPORT wchar_t* __rw_wmemset (wchar_t*, wchar_t, _RWSTD_SIZE_T);
+_RWSTD_EXPORT int __rw_wmemcmp (const wchar_t*, const wchar_t*, _RWSTD_SIZE_T);
+_RWSTD_EXPORT _RWSTD_SIZE_T __rw_wcslen (const wchar_t*);
+
+#  endif   // _RWSTD_NO_WCHAR_T
+
+}   // namespace __rw
+
+#  define _RWSTD_MEMCPY    _RW::__rw_memcpy
+#  define _RWSTD_MEMCMP    _RW::__rw_memcmp
+#  define _RWSTD_MEMCHR    _RW::__rw_memchr
+#  define _RWSTD_MEMMOVE   _RW::__rw_memmove
+#  define _RWSTD_MEMSET    _RW::__rw_memset
+#  define _RWSTD_STRLEN    _RW::__rw_strlen
+
+#  define _RWSTD_WMEMCPY   _RW::__rw_wmemcpy
+#  define _RWSTD_WMEMCMP   _RW::__rw_wmemcmp
+#  define _RWSTD_WMEMCHR   _RW::__rw_wmemchr
+#  define _RWSTD_WMEMMOVE  _RW::__rw_wmemmove
+#  define _RWSTD_WMEMSET   _RW::__rw_wmemset
+#  define _RWSTD_WCSLEN    _RW::__rw_wcslen
+#else   // if !defined (_RWSTDDEBUG) && !defined (_RWSTD_EDG_ECCP)
+#  include _RWSTD_CSTRING   // for memcmp(), ...
+#  include _RWSTD_CWCHAR    // for mbstate_t, wmemcmp(), ...
+
+#  ifdef _RWSTD_NO_MBSTATE_T
+#    include <rw/_mbstate.h>
+#  endif   // _RWSTD_NO_MBSTATE_T
+
+#  define _RWSTD_MEMCPY    memcpy
+#  define _RWSTD_MEMCMP    memcmp
+#  define _RWSTD_MEMMOVE   memmove
+#  define _RWSTD_MEMSET    memset
+#  define _RWSTD_STRLEN    strlen
+#  define _RWSTD_MEMCHR    memchr
+
+#  ifndef _RWSTD_NO_WMEMCPY
+#    define _RWSTD_WMEMCPY   wmemcpy
+#  elif !defined (_RWSTD_NO_WCHAR_T)
+
+_RWSTD_NAMESPACE (__rw) {
+
+_RWSTD_EXPORT wchar_t*
+__rw_wmemcpy (wchar_t*, const wchar_t*, _RWSTD_SIZE_T);
+
+
+}   // namespace __rw
+
+#    define _RWSTD_WMEMCPY   _RW::__rw_wmemcpy
+#  endif   // _RWSTD_NO_WMEMCPY
+
+#  ifndef _RWSTD_NO_WMEMCMP
+#    define _RWSTD_WMEMCMP   wmemcmp
+#  elif !defined (_RWSTD_NO_WCHAR_T)
+
+_RWSTD_NAMESPACE (__rw) {
+
+_RWSTD_EXPORT int
+__rw_wmemcmp (const wchar_t*, const wchar_t*, _RWSTD_SIZE_T);
+
+
+}   // namespace __rw
+
+#    define _RWSTD_WMEMCPY   _RW::__rw_wmemcmp
+#  endif   // _RWSTD_NO_WMEMCMP
+
+#  ifndef _RWSTD_NO_WMEMMOVE
+#    define _RWSTD_WMEMMOVE  wmemmove
+#  elif !defined (_RWSTD_NO_WCHAR_T)
+
+_RWSTD_NAMESPACE (__rw) {
+
+_RWSTD_EXPORT wchar_t*
+__rw_wmemmove (wchar_t*, const wchar_t*, _RWSTD_SIZE_T);
+
+
+}   // namespace __rw
+
+#    define _RWSTD_WMEMMOVE   _RW::__rw_wmemmove
+#  endif   // _RWSTD_NO_WMEMMOVE
+
+#  ifndef _RWSTD_NO_WMEMSET
+#    define _RWSTD_WMEMSET   wmemset
+#  elif !defined (_RWSTD_NO_WCHAR_T)
+
+_RWSTD_NAMESPACE (__rw) {
+
+_RWSTD_EXPORT wchar_t*
+__rw_wmemset (wchar_t*, wchar_t, _RWSTD_SIZE_T);
+
+
+}   // namespace __rw
+
+#    define _RWSTD_WMEMSET   _RW::__rw_wmemset
+#  endif   // _RWSTD_NO_WMEMSET
+
+#  ifndef _RWSTD_NO_WCSLEN
+#    define _RWSTD_WCSLEN    wcslen
+#  elif !defined (_RWSTD_NO_WCHAR_T)
+
+_RWSTD_NAMESPACE (__rw) {
+
+_RWSTD_EXPORT _RWSTD_SIZE_T
+__rw_wcslen (const wchar_t*);
+
+
+}   // namespace __rw
+
+#    define _RWSTD_WCSLEN   _RW::__rw_wcslen
+#  endif   // _RWSTD_NO_WCSLEN
+
+#  ifndef _RWSTD_NO_WMEMCHR
+#    define _RWSTD_WMEMCHR   wmemchr
+#  elif !defined (_RWSTD_NO_WCHAR_T)
+
+_RWSTD_NAMESPACE (__rw) {
+
+_RWSTD_EXPORT const wchar_t*
+__rw_wmemchr (const wchar_t*, wchar_t, _RWSTD_SIZE_T);
+
+
+}   // namespace __rw
+
+#    define _RWSTD_WMEMCHR   _RW::__rw_wmemchr
+#  endif   // _RWSTD_NO_WMEMCHR
+
+#endif   // !_RWSTDDEBUG && !(vanilla EDG eccp demo)
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -66,7 +210,7 @@ public:
 
     fpos (_RWSTD_STREAMOFF __off = 0)
         : _C_pos (__off) {
-        memset (&_C_state, 0, sizeof _C_state);
+        _RWSTD_MEMSET (&_C_state, 0, sizeof _C_state);
     }
 
     fpos (_RWSTD_STREAMOFF __off, const state_type &__state)
@@ -126,11 +270,11 @@ struct char_traits;
 template <class  _CharT> 
 struct char_traits
 {
-    typedef _CharT                   char_type;
-    typedef int                      int_type;
-    typedef _RWSTD_STREAMOFF         off_type;
-    typedef mbstate_t                state_type;
-    typedef fpos<state_type>         pos_type;
+    typedef _CharT           char_type;
+    typedef int              int_type;
+    typedef _RWSTD_STREAMOFF off_type;
+    typedef mbstate_t        state_type;
+    typedef fpos<state_type> pos_type;
 
     static int_type eof () {
         return -1;
@@ -148,8 +292,8 @@ struct char_traits
         return __c1 < __c2;
     }
 
-    static int compare (const char_type* __s1, const char_type* __s2,
-                        _RWSTD_SIZE_T __n) {
+    static int
+    compare (const char_type* __s1, const char_type* __s2, _RWSTD_SIZE_T __n) {
         for (_RWSTD_SIZE_T __i = 0; __i != __n; ++__i) {
             if (!eq (__s1[__i], __s2[__i])) {
                 return lt (__s1[__i], __s2[__i]) ? -1 : 1;
@@ -166,38 +310,31 @@ struct char_traits
     }
  
     static const char_type* 
-    find (const char_type* __s, _RWSTD_SIZE_T __n, const char_type& __a) {
-        while (__n-- > 0 && !eq (*__s, __a) )
+    find (const char_type* __s, _RWSTD_SIZE_T __n, const char_type& __c) {
+        while (__n-- > 0 && !eq (*__s, __c) )
             ++__s;
-        return  eq (*__s, __a) ? __s : 0;
+        return  eq (*__s, __c) ? __s : 0;
     }
 
-    static char_type* move (char_type* __s1, const char_type* __s2,
-                            _RWSTD_SIZE_T __n) {
-        if (__s1 < __s2)
-            copy (__s1, __s2, __n);
-        else if (__s1 > __s2) {
-            __s1 += __n;
-            __s2 += __n;
-            while (__n--)
-                assign (*--__s1, *--__s2);
-        }
+    static char_type*
+    move (char_type* __s1, const char_type* __s2, _RWSTD_SIZE_T __n) {
+        _RWSTD_MEMMOVE (__s1, __s2, __n * sizeof (char_type));
         return __s1;
     }
 
     static char_type*
     copy (char_type *__dst, const char_type *__src, _RWSTD_SIZE_T __n) {
-        memcpy (_RWSTD_STATIC_CAST (void*, __dst),
-                _RWSTD_STATIC_CAST (const void*, __src),
-                __n * sizeof (char_type));
+        _RWSTD_MEMCPY (_RWSTD_STATIC_CAST (void*, __dst),
+                       _RWSTD_STATIC_CAST (const void*, __src),
+                       __n * sizeof (char_type));
         return __dst;
     }
 
     static char_type*
-    assign (char_type* __s, _RWSTD_SIZE_T __n, char_type __a) {
+    assign (char_type* __s, _RWSTD_SIZE_T __n, char_type __c) {
         char_type* __tmp = __s;
         while (__n-- > 0) 
-            assign (*__tmp++, __a);
+            assign (*__tmp++, __c);
         return __s;
     }
 
@@ -227,11 +364,11 @@ struct char_traits
 _RWSTD_SPECIALIZED_CLASS  
 struct char_traits<char> 
 {
-    typedef char                      char_type;
-    typedef _RWSTD_INT_T              int_type;
-    typedef _RWSTD_STREAMOFF          off_type; 
-    typedef mbstate_t                 state_type;
-    typedef fpos<state_type>          pos_type;
+    typedef char             char_type;
+    typedef _RWSTD_INT_T     int_type;
+    typedef _RWSTD_STREAMOFF off_type; 
+    typedef mbstate_t        state_type;
+    typedef fpos<state_type> pos_type;
 
     static int_type eof () {
         return int_type (_RWSTD_EOF);
@@ -249,56 +386,39 @@ struct char_traits<char>
         return __c1 < __c2;
     }
 
-    static int compare (const char_type* __s1, const char_type* __s2,
-                        _RWSTD_SIZE_T __n) {
-        return memcmp (__s1, __s2, __n);
+    static int
+    compare (const char_type* __s1, const char_type* __s2, _RWSTD_SIZE_T __n) {
+        return _RWSTD_MEMCMP (__s1, __s2, __n);
     }
 
     static const char_type*
-    find (const char_type* __s, _RWSTD_SIZE_T __n, const char_type& __a) {
+    find (const char_type* __s, _RWSTD_SIZE_T __n, const char_type& __c) {
         // cast to const void* used to get around a gcc 2.95 bug
         // that prevents a static_cast from void* --> const T*
         // (only occurs if memchr() isn't overloaded on const)
         return _RWSTD_STATIC_CAST (const char_type*,
-                                   (const void*)memchr (__s, __a, __n));
+                                   (const void*)_RWSTD_MEMCHR (__s, __c, __n));
     }
 
     static _RWSTD_SIZE_T length (const char_type *__s) {
-        _RWSTD_ASSERT (0 != __s);
-        return strlen (__s);
+        return _RWSTD_STRLEN (__s);
     }
 
     static char_type*
     move (char_type* __s1, const char_type* __s2, _RWSTD_SIZE_T __n) {
-
-#ifndef _RWSTD_NO_MEMMOVE
-        memmove (__s1, __s2, __n);
-#else   // if defined (_RWSTD_NO_MEMMOVE)
-        if (__s1 < __s2) {
-            while (__n--)
-                assign (*__s1++, *__s2++);
-        }
-        else {
-            __s1 += __n;
-            __s2 += __n;
-            while (__n--)
-                assign (*--__s1, *--__s2);
-        }
-#endif   // _RWSTD_NO_MEMMOVE
-
+        _RWSTD_MEMMOVE (__s1, __s2, __n);
         return __s1;
     }
 
     static char_type*
     copy (char_type *__dst, const char_type *__src, _RWSTD_SIZE_T __n) {
-        _RWSTD_ASSERT (!__n || __dst && __src);
-        memcpy (__dst, __src, __n); 
+        _RWSTD_MEMCPY (__dst, __src, __n);
         return __dst;
     }
 
     static char_type*
-    assign (char_type* __s, _RWSTD_SIZE_T __n, char_type __a) {
-        memset (__s, __a, __n);
+    assign (char_type* __s, _RWSTD_SIZE_T __n, char_type __c) {
+        _RWSTD_MEMSET (__s, __c, __n);
         return __s;
     }
 
@@ -327,11 +447,11 @@ struct char_traits<char>
 _RWSTD_SPECIALIZED_CLASS  
 struct char_traits<wchar_t> 
 {
-    typedef wchar_t                   char_type;
-    typedef _RWSTD_WINT_T             int_type;
-    typedef _RWSTD_STREAMOFF          off_type;
-    typedef mbstate_t                 state_type;
-    typedef fpos<state_type>          pos_type;
+    typedef wchar_t          char_type;
+    typedef _RWSTD_WINT_T    int_type;
+    typedef _RWSTD_STREAMOFF off_type;
+    typedef mbstate_t        state_type;
+    typedef fpos<state_type> pos_type;
 
     static int_type eof () {
         return int_type (_RWSTD_WEOF);
@@ -349,85 +469,39 @@ struct char_traits<wchar_t>
         return __c1 < __c2;
     }
 
-    static int compare (const char_type* __s1, const char_type* __s2,
-                        _RWSTD_SIZE_T __n) {
-#ifndef _RWSTD_NO_WMEMCMP
-        return wmemcmp (__s1, __s2, __n);
-#else
-        for (_RWSTD_SIZE_T __i = 0; __i != __n; ++__i) {
-            if (!eq (__s1[__i], __s2[__i])) {
-                return lt (__s1[__i], __s2[__i]) ? -1 : 1;
-            }
-        }
-        return 0;
-#endif   // _RWSTD_NO_WMEMCMP
+    static int
+    compare (const char_type* __s1, const char_type* __s2, _RWSTD_SIZE_T __n) {
+        return _RWSTD_WMEMCMP (__s1, __s2, __n);
     }
 
     static _RWSTD_SIZE_T length (const char_type *__s) {
-
-        _RWSTD_ASSERT (0 != __s);
-
-#ifndef _RWSTD_NO_WCSLEN
         // [harmless] cast necessary on CygWin
-        return wcslen (_RWSTD_CONST_CAST (char_type*, __s));
-#else
-        _RWSTD_SIZE_T __len = 0;
-        while (!eq (*__s++, char_type ()))
-            ++__len;
-        return __len;
-#endif   // _RWSTD_NO_WCSLEN
+        return _RWSTD_WCSLEN (_RWSTD_CONST_CAST (char_type*, __s));
     }
       
     static const char_type*
-    find (const char_type* __s, _RWSTD_SIZE_T __n, const char_type& __a) {
-
-#ifndef _RWSTD_NO_WMEMCHR
+    find (const char_type* __s, _RWSTD_SIZE_T __n, const char_type& __c) {
         // const cast in case of a const-incorrect wmemchr()
         return _RWSTD_STATIC_CAST (const char_type*,
-                   wmemchr (_RWSTD_CONST_CAST (char_type*, __s), __a, __n));
-#else
-        while (__n-- > 0 && !eq (*__s, __a))
-            ++__s;
-        return  eq (*__s, __a) ? __s : 0;
-#endif   // _RWSTD_NO_WMEMCHR
+                   _RWSTD_WMEMCHR (_RWSTD_CONST_CAST (char_type*, __s),
+                                   __c, __n));
     }
 
     static char_type*
     copy (char_type *__dst, const char_type *__src, _RWSTD_SIZE_T __n) {
-        memcpy (__dst, __src, __n * sizeof (char_type));
+        _RWSTD_WMEMCPY (__dst, __src, __n);
         return __dst;
     }
       
     static char_type*
     move (char_type* __s1, const char_type* __s2, _RWSTD_SIZE_T __n) {
-
-#ifndef _RWSTD_NO_WMEMMOVE
-        wmemmove (__s1, __s2, __n);
-#else
-        if (__s1 < __s2) {
-            while (__n--)
-                assign (*__s1++, *__s2++);
-        }
-        else {
-            __s1 += __n;
-            __s2 += __n;
-            while (__n--)
-                assign (*--__s1, *--__s2);
-        }
-#endif   // _RWSTD_NO_WMEMMOVE
-
+        _RWSTD_WMEMMOVE (__s1, __s2, __n);
         return __s1;
     }
 
     static char_type*
-    assign (char_type* __s, _RWSTD_SIZE_T __n, char_type __a) {
-#ifndef _RWSTD_NO_WMEMSET
-        wmemset (__s, __a, __n);
-#else
-        char_type* __tmp = __s;
-        while (__n-- > 0) 
-            assign (*__tmp++, __a);
-#endif   // _RWSTD_NO_WMEMSET
+    assign (char_type* __s, _RWSTD_SIZE_T __n, char_type __c) {
+        _RWSTD_WMEMSET (__s, __c, __n);
         return __s;
     }
 
