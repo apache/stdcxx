@@ -35,15 +35,21 @@
      // working around SunOS bug #568
 #    include <time.h>
 #  endif
-#  include <unistd.h>     // for sysconf
-#  include <sys/mman.h>   // for mincore
+#  include <unistd.h>     // for getpagesize(), sysconf()
+#  include <sys/mman.h>   // for mincore()
 #  include <sys/types.h>
 
 #  ifndef _SC_PAGE_SIZE
-     // fall back on the alternative
-#    define _SC_PAGE_SIZE _SC_PAGESIZE
-#  endif
-
+     // fall back on the alternative macro if it exists,
+     // or use getpagesize() otherwise
+#    ifndef _SC_PAGESIZE
+#      define GETPAGESIZE()   getpagesize ()
+#    else
+#      define GETPAGESIZE()   sysconf (_SC_PAGESIZE)
+#    endif
+#  else
+#      define GETPAGESIZE()   sysconf (_SC_PAGE_SIZE)
+#  endif   // _SC_PAGE_SIZE
 #else
 #  include <windows.h>    // for everything (ugh)
 #endif   // _WIN{32,64}
@@ -83,8 +89,10 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
 
 #if !defined (_WIN32) && !defined (_WIN64)
 
+    const int errno_save = errno;
+
     // determine the system page size in bytes
-    static const _RWSTD_SIZE_T pgsz = size_t (sysconf (_SC_PAGE_SIZE));
+    static const _RWSTD_SIZE_T pgsz = size_t (GETPAGESIZE ());
 
     // compute the address of the beginning of the page
     // to which the address `addr' belongs
@@ -108,16 +116,28 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
 
         // on Solaris use mincore() instead of madvise() since
         // the latter is unreliable
-        if (-1 == mincore (next, 1, &dummy) && ENOMEM == errno)
-            return next == page ? -1 : DIST (next, addr);
+        if (-1 == mincore (next, 1, &dummy)) {
+
+            const int err = errno;
+            errno = errno_save;
+
+            if (ENOMEM == err)
+                return next == page ? -1 : DIST (next, addr);
+        }
 
 #  elif !defined (_RWSTD_NO_MADVISE)
 
         // on HP-UX, Linux, use madvise() as opposed to mincore()
         // since the latter fails for address ranges that aren't
         // backed by a file (such as stack variables)
-        if (-1 == madvise (next, 1, MADV_WILLNEED) && ENOMEM == errno)
-            return next == page ? -1 : DIST (next, addr);
+        if (-1 == madvise (next, 1, MADV_WILLNEED)) {
+
+            const int err = errno;
+            errno = errno_save;
+
+            if (ENOMEM == err)
+                return next == page ? -1 : DIST (next, addr);
+        }
 
 #  endif
 
