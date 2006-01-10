@@ -377,6 +377,123 @@ void test_string ()
 
 /***********************************************************************/
 
+void test_array ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{Ac}\": quoted character array");
+
+    // exercise the formatting of arrays of characters of arbitrary width
+    // (i.e., single-byte narrow, 2-byte, 4-byte (usually wchar_t's), and
+    // 8-byte characters
+    TEST ("%{Ac}", "",    0, 0, "\"\"");
+    TEST ("%{Ac}", "a",   0, 0, "\"a\"");
+    TEST ("%{Ac}", "ab",  0, 0, "\"ab\"");
+    TEST ("%{Ac}", "abc", 0, 0, "\"abc\"");
+
+    TEST ("%{1Ac}", "",    0, 0, "\"\"");
+    TEST ("%{1Ac}", "a",   0, 0, "\"a\"");
+    TEST ("%{1Ac}", "ab",  0, 0, "\"ab\"");
+    TEST ("%{1Ac}", "abc", 0, 0, "\"abc\"");
+
+    //       +---- width: character width in bytes
+    //       | +-- precision: number of elements in array
+    //       | |
+    //       v v
+    TEST ("%{1.0Ac}", "",    0, 0, "\"\"");
+    TEST ("%{1.1Ac}", "",    0, 0, "\"\\0\"");
+
+    TEST ("%{1.0Ac}", "a",   0, 0, "\"\"");
+    TEST ("%{1.1Ac}", "a",   0, 0, "\"a\"");
+    TEST ("%{1.2Ac}", "a",   0, 0, "\"a\\0\"");
+
+    TEST ("%{1.0Ac}", "ab",  0, 0, "\"\"");
+    TEST ("%{1.1Ac}", "ab",  0, 0, "\"a\"");
+    TEST ("%{1.2Ac}", "ab",  0, 0, "\"ab\"");
+    TEST ("%{1.3Ac}", "ab",  0, 0, "\"ab\\0\"");
+
+    TEST ("%{1.*Ac}", 7,    "ab\0cdef", 0, "\"ab\\0cdef\"");
+    TEST ("%{*.7Ac}", 1,    "abc\0def", 0, "\"abc\\0def\"");
+    TEST ("%{*.*Ac}", 1, 7, "abcd\0ef",    "\"abcd\\0ef\"");
+
+#ifndef _RWSTD_NO_WCHAR_T
+    const unsigned wchar_size = sizeof (wchar_t);
+#else   // if defined (_RWSTD_NO_WCHAR_T)
+    const unsigned wchar_size = 0;
+#endif   // _RWSTD_NO_WCHAR_T
+
+    if (2 == wchar_size) {
+        TEST ("%{2Ac}", L"",    0, 0, "L\"\"");
+        TEST ("%{2Ac}", L"a",   0, 0, "L\"a\"");
+        TEST ("%{2Ac}", L"ab",  0, 0, "L\"ab\"");
+        TEST ("%{2Ac}", L"abc", 0, 0, "L\"abc\"");
+
+        TEST ("%{2.0Ac}", L"",    0, 0, "L\"\"");
+        TEST ("%{2.1Ac}", L"",    0, 0, "L\"\0\"");
+
+        TEST ("%{2.0Ac}", L"a",   0, 0, "L\"\"");
+        TEST ("%{2.1Ac}", L"a",   0, 0, "L\"a\"");
+        TEST ("%{2.2Ac}", L"a",   0, 0, "L\"a\\0\"");
+
+        TEST ("%{2.0Ac}", L"ab",  0, 0, "L\"\"");
+        TEST ("%{2.1Ac}", L"ab",  0, 0, "L\"a\"");
+        TEST ("%{2.2Ac}", L"ab",  0, 0, "L\"ab\"");
+        TEST ("%{2.3Ac}", L"ab",  0, 0, "L\"ab\\0\"");
+
+        TEST ("%{2.0Ac}", L"abc", 0, 0, "L\"\"");
+        TEST ("%{2.1Ac}", L"abc", 0, 0, "L\"a\"");
+        TEST ("%{2.2Ac}", L"abc", 0, 0, "L\"ab\"");
+        TEST ("%{2.3Ac}", L"abc", 0, 0, "L\"abc\"");
+        TEST ("%{2.4Ac}", L"abc", 0, 0, "L\"abc\\0\"");
+
+        TEST ("%{2.*Ac}", 7,    L"ab\0cdef", 0, "L\"ab\\0cdef\"");
+        TEST ("%{*.7Ac}", 2,    L"abc\0def", 0, "L\"abc\\0def\"");
+        TEST ("%{*.*Ac}", 2, 7, L"abcd\0ef",    "L\"abcd\\0ef\"");
+    }
+
+    if (sizeof (short) != wchar_size) {
+        const short s_ []    = { '\0' };
+        const short s_a []   = { 'a', '\0' };
+        const short s_ab []  = { 'a', 'b', '\0' };
+        const short s_abc [] = { 'a', 'b', 'c', '\0' };
+            
+        TEST ("%{2Ac}", s_,    0, 0, "\"\"");
+        TEST ("%{2Ac}", s_a,   0, 0, "\"a\"");
+        TEST ("%{2Ac}", s_ab,  0, 0, "\"ab\"");
+        TEST ("%{2Ac}", s_abc, 0, 0, "\"abc\"");
+    }
+
+    if (4 == wchar_size) {
+        TEST ("%{4Ac}", L"",    0, 0, "L\"\"");
+        TEST ("%{4Ac}", L"a",   0, 0, "L\"a\"");
+        TEST ("%{4Ac}", L"ab",  0, 0, "L\"ab\"");
+        TEST ("%{4Ac}", L"abc", 0, 0, "L\"abc\"");
+
+        TEST ("%{4.0Ac}", L"",    0, 0, "L\"\"");
+        TEST ("%{4.1Ac}", L"",    0, 0, "L\"\\0\"");
+
+        TEST ("%{4.0Ac}", L"a",   0, 0, "L\"\"");
+        TEST ("%{4.1Ac}", L"a",   0, 0, "L\"a\"");
+        TEST ("%{4.2Ac}", L"a",   0, 0, "L\"a\\0\"");
+
+        TEST ("%{4.0Ac}", L"ab",  0, 0, "L\"\"");
+        TEST ("%{4.1Ac}", L"ab",  0, 0, "L\"a\"");
+        TEST ("%{4.2Ac}", L"ab",  0, 0, "L\"ab\"");
+        TEST ("%{4.3Ac}", L"ab",  0, 0, "L\"ab\\0\"");
+
+        TEST ("%{4.0Ac}", L"abc", 0, 0, "L\"\"");
+        TEST ("%{4.1Ac}", L"abc", 0, 0, "L\"a\"");
+        TEST ("%{4.2Ac}", L"abc", 0, 0, "L\"ab\"");
+        TEST ("%{4.3Ac}", L"abc", 0, 0, "L\"abc\"");
+        TEST ("%{4.4Ac}", L"abc", 0, 0, "L\"abc\\0\"");
+
+        TEST ("%{4.*Ac}", 7,    L"ab\0cdef", 0, "L\"ab\\0cdef\"");
+        TEST ("%{*.7Ac}", 4,    L"abc\0def", 0, "L\"abc\\0def\"");
+        TEST ("%{*.*Ac}", 4, 7, L"abcd\0ef",    "L\"abcd\\0ef\"");
+    }
+}
+
+/***********************************************************************/
+
 void test_basic_string ()
 {
     //////////////////////////////////////////////////////////////////
@@ -1616,6 +1733,7 @@ int main ()
 
     test_character ();
     test_string ();
+    test_array ();
     test_integer ();
     test_floating ();
     test_pointer ();
