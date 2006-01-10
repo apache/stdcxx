@@ -3132,26 +3132,34 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
 
     case 'c':   // %{c}, %{Ac}, %{Lc}, %{lc}
         if (spec.mod_A) {
+            // array formatting: width determines the width of each
+            // array element, precision the number of elements (when
+            // negative the array is taken to extend up to but not
+            // including the first NUL (0) element
             if (-1 == spec.width || 1 == spec.width) {
                 spec.param.ptr = PARAM (_RWSTD_UINT8_T*, ptr);
                 const _RWSTD_UINT8_T* const array =
                     (_RWSTD_UINT8_T*)spec.param.ptr;
+                // note that when no precision is specified in the format
+                // string (e.g., "%{Ac}") its value will be -1 and the
+                // function will format all characters up to but excluding
+                // the terminating NUL
                 len = rw_quotestr (spec, pbuf, pbufsize, array,
-                                   _RWSTD_SIZE_MAX, 0);
+                                   spec.prec, 0);
             }
             else if (2 == spec.width) {
                 spec.param.ptr = PARAM (_RWSTD_UINT16_T*, ptr);
                 const _RWSTD_UINT16_T* const array =
                     (_RWSTD_UINT16_T*)spec.param.ptr;
                 len = rw_quotestr (spec, pbuf, pbufsize, array,
-                                   _RWSTD_SIZE_MAX, 0);
+                                   spec.prec, 0);
             }
             else if (4 == spec.width) {
                 spec.param.ptr = PARAM (_RWSTD_UINT32_T*, ptr);
                 const _RWSTD_UINT32_T* const array =
                     (_RWSTD_UINT32_T*)spec.param.ptr;
                 len = rw_quotestr (spec, pbuf, pbufsize, array,
-                                   _RWSTD_SIZE_MAX, 0);
+                                   spec.prec, 0);
             }
 
 #ifdef _RWSTD_UINT64_T
@@ -3161,7 +3169,7 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
                 const _RWSTD_UINT64_T* const array =
                     (_RWSTD_UINT64_T*)spec.param.ptr;
                 len = rw_quotestr (spec, pbuf, pbufsize, array,
-                                   _RWSTD_SIZE_MAX, 0);
+                                   spec.prec, 0);
             }
 
 #endif   // _RWSTD_UINT64_T
