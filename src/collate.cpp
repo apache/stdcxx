@@ -38,8 +38,12 @@
 #include <limits>     // for numeric_limits
 
 #include <limits.h>
+#include <stdlib.h>   // for wcstombs()
 #include <string.h>   // for memchr(), memcpy()
-#include <wchar.h>    // for wcsxfrm(), wmemcmp()
+
+#ifndef _RWSTD_NO_WCHAR_H
+#  include <wchar.h>    // for wcscoll(), wcsxfrm(), wmemcmp()
+#endif   // _RWSTD_NO_WCHAR_H
 
 #include <loc/_collate.h>
 #include <loc/_locale.h>
@@ -48,6 +52,55 @@
 #include "locale_body.h"
 #include "podarray.h"
 #include "setlocale.h"
+
+
+#if defined (_RWSTD_NO_WCSCOLL) && !defined (_RWSTD_NO_WCSCOLL_IN_LIBC)
+
+extern "C" {
+
+// declare if not declared in the system header(s)
+int wcscoll (const wchar_t*, const wchar_t*) _LIBC_THROWS ();
+
+#  undef _RWSTD_NO_WCSCOLL
+
+}   // extern "C"
+
+#endif   // _RWSTD_NO_WCSCOLL && !_RWSTD_NO_WCSCOLL_IN_LIBC
+
+
+#ifdef _RWSTD_NO_WCSXFRM
+#  ifndef _RWSTD_NO_WCSXFRM_IN_LIBC
+
+extern "C" {
+
+// declare if not declared in the system header(s)
+_RWSTD_SIZE_T wcsxfrm (wchar_t*, const wchar_t*, _RWSTD_SIZE_T) _LIBC_THROWS ();
+
+#    define _RWSTD_WCSXFRM   wcsxfrm
+#    undef _RWSTD_NO_WCSXFRM
+
+}   // extern "C"
+
+#  else
+#    define _RWSTD_WCSXFRM   _RW::__rw_wcsxfrm
+#  endif   // _RWSTD_NO_WCSXFRM_IN_LIBC
+#else
+#    define _RWSTD_WCSXFRM   wcsxfrm
+#endif   // _RWSTD_NO_WCSXFRM
+
+
+#if defined (_RWSTD_NO_WCSTOMBS) && !defined (_RWSTD_NO_WCSTOMBS_IN_LIBC)
+
+extern "C" {
+
+// declare if not declared in the system header(s)
+_RWSTD_SIZE_T wcstombs (char*, const wchar_t*, _RWSTD_SIZE_T) _LIBC_THROWS ();
+
+#  undef _RWSTD_NO_WCSTOMBS
+
+}   // extern "C"
+
+#endif   // _RWSTD_NO_WCSTOMBS && !_RWSTD_NO_WCSTOMBS_IN_LIBC
 
 
 // for convenience
@@ -498,6 +551,99 @@ __rw_strnxfrm (const char *src, _RWSTD_SIZE_T nchars)
 
 #ifndef _RWSTD_NO_WCHAR_T
 
+#  ifdef _RWSTD_NO_WCSXFRM
+
+// implements wcsxfrm() using wcstombs() and strxfrm() on platforms
+// such as some versions of BSD where the function isn't defined in
+// the C Standard Library
+static _RWSTD_SIZE_T
+__rw_wcsxfrm (wchar_t *dst, const wchar_t *src, _RWSTD_SIZE_T dstsize)
+{
+    // src must be non-null
+    _RWSTD_ASSERT (0 != src);
+
+    // dst is permitted to be null only when (dstsize == 0)
+    _RWSTD_ASSERT (0 == dstsize || dst);
+
+#    ifndef _RWSTD_NO_WCSTOMBS
+
+    // convert wide string to a multibyte string before tranforming it
+    // using strxfrm() and widening the result into the destination buffer
+
+    const _RWSTD_SIZE_T srclen = _RWSTD_WCSLEN (src);
+
+    // compute the size of the temporary nearrow buffer where to narrow
+    // the source wide string to
+    const _RWSTD_SIZE_T needbytes =
+        (dstsize ? dstsize : srclen) * MB_LEN_MAX;
+
+    char narrow_buf [256];
+    char* const nbuf =
+        sizeof narrow_buf < needbytes ? new char [needbytes + 1] : narrow_buf;
+
+    _RWSTD_SIZE_T result;
+
+    const _RWSTD_SIZE_T nmbchars = wcstombs (nbuf, src, needbytes);
+
+    if (_RWSTD_SIZE_MAX == nmbchars)
+        result = _RWSTD_SIZE_MAX;
+    else {
+        // allocate a small buffer 8 times the size of the multibyte
+        // buffer (where 8 is a guess at the maximum number of bytes
+        // needed to transform the longest multibyte character)
+        char xfrm_buf [sizeof narrow_buf * 8];
+        const _RWSTD_SIZE_T xbufsize = sizeof xfrm_buf;
+        const _RWSTD_SIZE_T xbufneed = needbytes * 8;
+
+        // allocate a larger buffer if the small statically buffer
+        // isn't big enough
+        char* const xbuf =
+            xbufsize < xbufneed ? new char [xbufneed + 1] : xfrm_buf;
+
+        // transform the multibyte character string into the narrow
+        // buffer, storing the returned value
+        result = strxfrm (xbuf, nbuf, xbufneed);
+
+        if (_RWSTD_SIZE_MAX != result && dstsize) {
+            // widen the bytes (not characters) of the transformed string
+            // if the transformation was successful and the size of the
+            // destination buffer is non-zero
+
+            if (result < dstsize)
+                dstsize = result;
+
+            for (_RWSTD_SIZE_T i = 0; i != dstsize; ++i)
+                dst [i] = wchar_t (UChar (xbuf [i]));
+        }
+
+        // free the transformation buffer if dynamically allocated
+        if (xbuf != xfrm_buf)
+            delete[] xbuf;
+    }
+
+    // free the multibyte buffer if dynamically allocated
+    if (nbuf != narrow_buf)
+        delete[] nbuf;
+
+    return result;
+
+#    else   // if defined (_RWSTD_NO_WCSTOMBS)
+
+    _RWSTD_UNUSED (dst);
+    _RWSTD_UNUSED (src);
+    _RWSTD_UNUSED (dstsize);
+
+    // fail when there is no way to convert a wchar_t array
+    // to a multibyte string
+    return _RWSTD_SIZE_MAX;
+
+#    endif   // _RWSTD_NO_WCSTOMBS
+
+}
+
+#  endif   // _RWSTD_NO_WCSXFRM
+
+
 // same as wcsxfrm() except that it takes the number of characters
 // in an array that may contain embedded NULs; these are inserted
 // into the transformed string
@@ -505,8 +651,6 @@ static _STD::wstring
 __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
 {
     _STD::wstring res;
-
-#ifndef _RWSTD_NO_WCSXFRM
 
     wchar_t buf [256];
     wchar_t *pbuf = buf;
@@ -553,10 +697,12 @@ __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
         // it's buggy (such as MSVC's) and tries to write to
         // the buffer even if it's 0
         wchar_t just_in_case_buf [8];
-        const _RWSTD_SIZE_T dst_size = wcsxfrm (just_in_case_buf, psrc, 0);
+
+        const _RWSTD_SIZE_T dst_size =
+            _RWSTD_WCSXFRM (just_in_case_buf, psrc, 0);
 
         // check for wcsxfrm() errors
-        if (0 == (dst_size << 1))
+        if (_RWSTD_SIZE_MAX == dst_size)
             return _STD::wstring ();
 
         _RWSTD_SIZE_T res_size = res.size ();
@@ -568,14 +714,14 @@ __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
 
         // transfor the source string up to the terminating NUL
         _RWSTD_SIZE_T xfrm_size =
-            wcsxfrm (&res [0] + res_size, psrc, dst_size + 1);
+            _RWSTD_WCSXFRM (&res [0] + res_size, psrc, dst_size + 1);
 
-#if defined _MSC_VER && _MSC_VER < 1400
+#  if defined _MSC_VER && _MSC_VER < 1400
         // compute the correct value that should have been returned from
         // strxfrm() after the transformation has completed (MSVC strxfrm()
         // returns a bogus result; see PR #29935)
         xfrm_size = Traits::length (&res [0] + res_size);
-#endif   // MSVC < 8.0
+#  endif   // MSVC < 8.0
 
         // increment the size of the result string by the number
         // of transformed characters excluding the terminating NUL
@@ -587,8 +733,6 @@ __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
 
     if (pbuf != buf)
         delete[] pbuf;
-
-#endif   // _RWSTD_NO_WCSXFRM
 
     return res;
 }
@@ -880,40 +1024,55 @@ do_compare (const wchar_t* low1, const wchar_t* high1,
         const string_type s1 = do_transform (low1, high1);
         const string_type s2 = do_transform (low2, high2);
 
-        // FIXME: not optomized,
+        // FIXME: optimize
         return s1.compare (s2);
     }
-    else {
-        _RW::__rw_setlocale clocale (this->_C_name, _RWSTD_LC_COLLATE);
+
+#ifndef _RWSTD_NO_WCSCOLL
+
+    // use the system C library to compare the strings
+
+    _RW::__rw_setlocale clocale (this->_C_name, _RWSTD_LC_COLLATE);
     
-        const _RWSTD_SIZE_T len1 = high1 - low1;
-        const _RWSTD_SIZE_T len2 = high2 - low2;
-        const _RWSTD_SIZE_T len  = len1 + len2;
+    const _RWSTD_SIZE_T len1 = high1 - low1;
+    const _RWSTD_SIZE_T len2 = high2 - low2;
+    const _RWSTD_SIZE_T len  = len1 + len2;
 
-        // small local buffer
-        wchar_t buffer [256];
+    // small local buffer
+    wchar_t local_buffer [256];
+    const _RWSTD_SIZE_T bufsize = sizeof local_buffer / sizeof *local_buffer;
 
-        // allocate only if local buffer is too small
-        wchar_t *buf = len + 2 >= sizeof buffer 
-            ? new wchar_t [len + 2] : buffer;
+    // allocate only if local buffer is too small
+    wchar_t* const wbuf =
+        len + 2 >= bufsize ? new wchar_t [len + 2] : local_buffer;
 
-        // copy and null-terminate first sequence
-        char_traits<wchar_t>::copy (buf, low1, len1);
-        buf [len1] = '\0';
+    // copy and null-terminate first sequence
+    char_traits<wchar_t>::copy (wbuf, low1, len1);
+    wbuf [len1] = '\0';
 
-        // append and null-terminate first sequence
-        char_traits<wchar_t>::copy (buf + len1 + 1, low2, len2);
-        buf [len1 + 1 + len2] = '\0';
+    // append and null-terminate first sequence
+    char_traits<wchar_t>::copy (wbuf + len1 + 1, low2, len2);
+    wbuf [len1 + 1 + len2] = '\0';
 
-        // compare sequences
-        int result = wcscoll (buf, buf + len1 + 1);
+    // compare sequences using wcscoll()
+    const int result = wcscoll (wbuf, wbuf + len1 + 1);
 
-        // deallocate only if allocated
-        if (buf != buffer)
-            delete[] buf;
+    // deallocate only if allocated
+    if (wbuf != local_buffer)
+        delete[] wbuf;
 
-        return result ? result > 0 ? 1 : -1 : 0;
-    }
+    return result ? result > 0 ? 1 : -1 : 0;
+
+#else   // if defined (_RWSTD_NO_WCSCOLL)
+
+    // transform strings first and compare the transformed results
+    const string_type s1 = do_transform (low1, high1);
+    const string_type s2 = do_transform (low2, high2);
+
+    return s1.compare (s2);
+
+#endif   // _RWSTD_NO_WCSCOLL
+
 }
 
 
