@@ -2,7 +2,7 @@
  *
  * codecvt.cpp - definition of codecvt<char, char, mbstate_t> members
  *
- * $Id: //stdlib/dev/source/stdlib/codecvt.cpp#122 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -61,7 +61,7 @@ _USING (std::va_list);
 
 _RWSTD_NAMESPACE (__rw) {
 
-static inline int __rw_mbsinit (const _RWSTD_C::mbstate_t *ps)
+static inline int __rw_mbsinit (const _RWSTD_MBSTATE_T *ps)
 {
 #ifndef _RWSTD_NO_MBSINIT
 
@@ -70,7 +70,7 @@ static inline int __rw_mbsinit (const _RWSTD_C::mbstate_t *ps)
 #else   // if defined (_RWSTD_NO_MBSINIT)
 
     // commented out to work around an HP aCC 1.21 bug
-    /* static */ const _RWSTD_C::mbstate_t state = _RWSTD_C::mbstate_t ();
+    /* static */ const _RWSTD_MBSTATE_T state = _RWSTD_MBSTATE_T ();
     return !ps || 0 == memcmp (ps, &state, sizeof state);
 
 #endif   // _RWSTD_NO_MBSINIT
@@ -84,17 +84,17 @@ static inline int __rw_mbsinit (const _RWSTD_C::mbstate_t *ps)
 _RWSTD_NAMESPACE (_V3_LOCALE) {
 
 
-_RW::__rw_facet_id codecvt<char, char, mbstate_t>::id;
+_RW::__rw_facet_id codecvt<char, char, _RWSTD_MBSTATE_T>::id;
 
 
-/* virtual */ codecvt<char, char, mbstate_t>::~codecvt ()
+/* virtual */ codecvt<char, char, _RWSTD_MBSTATE_T>::~codecvt ()
 {
     // no-op
 }
 
 
 /* virtual */ codecvt_base::result
-codecvt<char, char, mbstate_t>::
+codecvt<char, char, _RWSTD_MBSTATE_T>::
 do_out (state_type         &state,
         const intern_type  *from,
         const intern_type  *from_end,
@@ -150,7 +150,7 @@ do_out (state_type         &state,
 
 
 /* virtual */ codecvt_base::result
-codecvt<char, char, mbstate_t>::
+codecvt<char, char, _RWSTD_MBSTATE_T>::
 do_in (state_type         &state,
        const extern_type  *from,
        const extern_type  *from_end,
@@ -165,7 +165,7 @@ do_in (state_type         &state,
     _RWSTD_ASSERT (from && from_end || !from && !from_end);
     _RWSTD_ASSERT (to && to_end || !to && !to_end);
 
-    typedef codecvt<char, char, mbstate_t> This;
+    typedef codecvt<char, char, _RWSTD_MBSTATE_T> This;
 
     // call do_out() above (avoid calling overridden do_out(), if any)
     return This::do_out (state,
@@ -175,7 +175,7 @@ do_in (state_type         &state,
 
 
 /* virtual */ codecvt_base::result
-codecvt<char, char, mbstate_t>::
+codecvt<char, char, _RWSTD_MBSTATE_T>::
 do_unshift (state_type   &state,
             extern_type  *to,
             extern_type  *to_end,
@@ -198,7 +198,7 @@ do_unshift (state_type   &state,
 
 
 /* virtual */ int 
-codecvt<char, char, mbstate_t>::
+codecvt<char, char, _RWSTD_MBSTATE_T>::
 do_encoding () const _THROWS (())
 {
     return 1;   // 1 external char converts to a single internal char
@@ -206,7 +206,7 @@ do_encoding () const _THROWS (())
 
 
 /* virtual */ bool
-codecvt<char, char, mbstate_t>::
+codecvt<char, char, _RWSTD_MBSTATE_T>::
 do_always_noconv () const _THROWS (())
 {
     return true;   // conversion never necessary
@@ -215,7 +215,7 @@ do_always_noconv () const _THROWS (())
 
 // signature follows lwg issue 75
 /* virtual */ int
-codecvt<char, char, mbstate_t>::
+codecvt<char, char, _RWSTD_MBSTATE_T>::
 do_length (state_type        &state,
            const extern_type *from,
            const extern_type *from_end,
@@ -240,7 +240,7 @@ do_length (state_type        &state,
 
 
 /* virtual */ int
-codecvt<char, char, mbstate_t>::
+codecvt<char, char, _RWSTD_MBSTATE_T>::
 do_max_length () const _THROWS (())
 {
     return 1;   // 22.2.1.5.2, p11
@@ -249,7 +249,7 @@ do_max_length () const _THROWS (())
 
 }   // namespace _V3_LOCALE
 
-#define TARGS_C   <char, char, _RWSTD_C::mbstate_t>
+#define TARGS_C   <char, char, _RWSTD_MBSTATE_T>
 
 _RWSTD_DEFINE_FACET_FACTORY (static, codecvt, TARGS_C, codecvt);
 _RWSTD_SPECIALIZE_USE_FACET (codecvt);

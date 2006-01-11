@@ -26,15 +26,15 @@
 #define _RWSTD_TRAITS_H_INCLUDED
 
 #include <rw/_iosfwd.h>
+#include <rw/_mbstate.h>   // for _RWSTD_MBSTATE_T
 #include <rw/_defs.h>
+
 
 #if defined (_RWSTDDEBUG) || defined (_RWSTD_EDG_ECCP)
 
 // avoid including <cstring> and <cwchar> in debug mode or when using
 // the vanilla EDG eccp (i.e., in strict conformance mode) to prevent
 // namespace pollutiuon
-
-#  include <rw/_mbstate.h>
 
 _RWSTD_NAMESPACE (__rw) {
 
@@ -74,11 +74,7 @@ _RWSTD_EXPORT _RWSTD_SIZE_T __rw_wcslen (const wchar_t*);
 #  define _RWSTD_WCSLEN    _RW::__rw_wcslen
 #else   // if !defined (_RWSTDDEBUG) && !defined (_RWSTD_EDG_ECCP)
 #  include _RWSTD_CSTRING   // for memcmp(), ...
-#  include _RWSTD_CWCHAR    // for mbstate_t, wmemcmp(), ...
-
-#  ifdef _RWSTD_NO_MBSTATE_T
-#    include <rw/_mbstate.h>
-#  endif   // _RWSTD_NO_MBSTATE_T
+#  include _RWSTD_CWCHAR    // wmemcmp(), ...
 
 #  define _RWSTD_MEMCPY    memcpy
 #  define _RWSTD_MEMCMP    memcmp
@@ -273,7 +269,7 @@ struct char_traits
     typedef _CharT           char_type;
     typedef int              int_type;
     typedef _RWSTD_STREAMOFF off_type;
-    typedef mbstate_t        state_type;
+    typedef _RWSTD_MBSTATE_T state_type;
     typedef fpos<state_type> pos_type;
 
     static int_type eof () {
@@ -367,7 +363,7 @@ struct char_traits<char>
     typedef char             char_type;
     typedef _RWSTD_INT_T     int_type;
     typedef _RWSTD_STREAMOFF off_type; 
-    typedef mbstate_t        state_type;
+    typedef _RWSTD_MBSTATE_T state_type;
     typedef fpos<state_type> pos_type;
 
     static int_type eof () {
@@ -450,7 +446,7 @@ struct char_traits<wchar_t>
     typedef wchar_t          char_type;
     typedef _RWSTD_WINT_T    int_type;
     typedef _RWSTD_STREAMOFF off_type;
-    typedef mbstate_t        state_type;
+    typedef _RWSTD_MBSTATE_T state_type;
     typedef fpos<state_type> pos_type;
 
     static int_type eof () {

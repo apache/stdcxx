@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/source/stdlib/iso2022.h#4 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -25,6 +25,8 @@
 #ifndef _RWSTD_LOC_ISO2022_H_INCLUDED
 #define _RWSTD_LOC_ISO2022_H_INCLUDED
 
+
+#include <rw/_mbstate.h>   // for _RWSTD_MBSTATE_T
 #include <rw/_defs.h>
 
 
@@ -46,21 +48,21 @@ int __rw_encoding_from_name (const char*);
 
 // Conversions for ISO-2022-JP
 _V3_LOCALE::codecvt_base::result
-__rw_iso2022jp_do_in (_RWSTD_C::mbstate_t&,
+__rw_iso2022jp_do_in (_RWSTD_MBSTATE_T&,
                       const char*&, const char*,
                       wchar_t*&, wchar_t*);
 
 _V3_LOCALE::codecvt_base::result
-__rw_iso2022jp_do_out (_RWSTD_C::mbstate_t&,
+__rw_iso2022jp_do_out (_RWSTD_MBSTATE_T&,
                        const wchar_t*&, const wchar_t*,
                        char*&, char*);
 
 _V3_LOCALE::codecvt_base::result 
-__rw_iso2022jp_do_unshift (_RWSTD_C::mbstate_t&, char*&, char*);
+__rw_iso2022jp_do_unshift (_RWSTD_MBSTATE_T&, char*&, char*);
 
 int  __rw_iso2022jp_do_encoding ();
  
-_RWSTD_SIZE_T __rw_iso2022jp_do_length (_RWSTD_C::mbstate_t&, const char*, 
+_RWSTD_SIZE_T __rw_iso2022jp_do_length (_RWSTD_MBSTATE_T&, const char*, 
                                         const char*, _RWSTD_SIZE_T);
 
 _RWSTD_SIZE_T __rw_iso2022jp_do_max_length ();
@@ -70,21 +72,21 @@ bool __rw_iso2022_do_always_noconv ();
 
 // Conversions for ISO-2022-JP-2
 _V3_LOCALE::codecvt_base::result
-__rw_iso2022jp2_do_in (_RWSTD_C::mbstate_t&,
+__rw_iso2022jp2_do_in (_RWSTD_MBSTATE_T&,
                        const char*&, const char*,
                        wchar_t*&, wchar_t*);
 
 _V3_LOCALE::codecvt_base::result
-__rw_iso2022jp2_do_out (_RWSTD_C::mbstate_t&,
+__rw_iso2022jp2_do_out (_RWSTD_MBSTATE_T&,
                        const wchar_t*&, const wchar_t*,
                        char*&, char*);
 
 _V3_LOCALE::codecvt_base::result 
-__rw_iso2022jp2_do_unshift (_RWSTD_C::mbstate_t&, char*&, char*);
+__rw_iso2022jp2_do_unshift (_RWSTD_MBSTATE_T&, char*&, char*);
 
 int  __rw_iso2022jp2_do_encoding  ();
 
-_RWSTD_SIZE_T __rw_iso2022jp2_do_length (_RWSTD_C::mbstate_t&, const char*, 
+_RWSTD_SIZE_T __rw_iso2022jp2_do_length (_RWSTD_MBSTATE_T&, const char*, 
                                          const char*, _RWSTD_SIZE_T);
 
 _RWSTD_SIZE_T __rw_iso2022jp2_do_max_length ();
