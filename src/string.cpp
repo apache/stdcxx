@@ -106,7 +106,7 @@ wchar_t* wmemmove (wchar_t*, const wchar_t*, _RWSTD_SIZE_T) _LIBC_THROWS ();
 
 #  if defined (_RWSTD_NO_WMEMCHR) && !defined (_RWSTD_NO_WMEMCHR_IN_LIBC)
 
-wchar_t* memchr (const wchar_t*, wchar_t, _RWSTD_SIZE_T) _LIBC_THROWS ();
+wchar_t* wmemchr (const wchar_t*, wchar_t, _RWSTD_SIZE_T) _LIBC_THROWS ();
 
 #    undef _RWSTD_NO_WMEMCHR
 #  endif   // _RWSTD_NO_WMEMCHR && !_RWSTD_NO_WMEMCHR_IN_LIBC
