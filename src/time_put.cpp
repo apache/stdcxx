@@ -54,7 +54,9 @@
 #    endif   // LC_MESSAGES
 #  endif   // _RWSTD_NO_PURE_C_HEADERS
 
-#  include <langinfo.h>             // for nl_langinfo()
+#  ifndef _RWSTD_NO_NL_LANGINFO
+#    include <langinfo.h>             // for nl_langinfo()
+#  endif
 #else   // if defined (_MSC_VER)
 #  ifdef _WIN64
      // shut up MSVC/Win64 complaints about possible loss of data
