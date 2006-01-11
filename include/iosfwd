@@ -3,7 +3,7 @@
  *
  * iosfwd - forward declarations for the iostreams
  *
- * $Id: //stdlib/dev/include/iosfwd#32 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -25,31 +25,7 @@
 
 #include <rw/_defs.h>
 #include <rw/_iosfwd.h>
-
-#ifndef _RWSTD_NO_MBSTATE_T
-
-#  if defined (__GNUG__) && __GNUG__ < 3 &&__GNUC_MINOR__ < 96
-     // <cstring> included to work around a g++ 2.95.2 bug
-#    include _RWSTD_CSTRING
-#  endif
-
-   // get mbstate_t (and wchar_t for MSVC 6.0)
-#  include _RWSTD_CWCHAR   
-
-#  if defined (_RWSTD_NO_LIBC_IN_STD)
-
-_RWSTD_NAMESPACE (std) { 
-
-// bring global mbstate_t into namespace std if it's not there yet
-_USING (::mbstate_t);
-
-}   // namespace std
-
-#  endif   // _RWSTD_NO_LIBC_IN_STD
-
-#else   // if defined (_RWSTD_NO_MBSTATE_T)
-#  include <rw/_mbstate.h>
-#endif // _RWSTD_NO_MBSTATE_T 
+#include <rw/_mbstate.h>   // for _RWSTD_MBSTATE_T
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -238,8 +214,8 @@ class fpos;
 
 // 27.2, p9 - identical to std::fpos<char_traits<char>::state_type>
 //            and std::fpos<char_traits<wchar_t>::state_type>, respectively
-typedef fpos<mbstate_t> streampos;
-typedef fpos<mbstate_t> wstreampos;
+typedef fpos<_RWSTD_MBSTATE_T> streampos;
+typedef fpos<_RWSTD_MBSTATE_T> wstreampos;
 
 }   // namespace std
 

@@ -29,7 +29,13 @@
 #include <rw/_defs.h>
 
 
-#if defined (__hpux)
+/*** AIX ******************************************************************/
+#if defined (_RWSTD_OS_AIX)
+
+#  define _RWSTD_MBSTATE_T   char*
+
+/*** HP-UX ****************************************************************/
+#elif defined (_RWSTD_OS_HP_UX)
 
 #  ifndef _MBSTATE_T
 #    define _MBSTATE_T
@@ -59,9 +65,10 @@ typedef struct {
 
 }   // namespace std
 
-#    else
+#      define _RWSTD_MBSTATE_T   _STD::mbstate_t
+#    else   // if !(HP aCC -AA)
 
-#define _RWSTD_NO_MBSTATE_T_IN_STD
+#      define _RWSTD_NO_STD_MBSTATE_T
 
 _RWSTD_NAMESPACE (std) {
 
@@ -69,11 +76,12 @@ _USING (::mbstate_t);
 
 }   // namespace std
 
+#      define _RWSTD_MBSTATE_T   mbstate_t
 #    endif   // HP aCC -AA
 #  else   // if defined (_MBSTATE_T)
      // /usr/include/sys/_mbstate_t.h #included and mbstate_t defined
 #    ifndef _NAMESPACE_STD
-#      define _RWSTD_NO_MBSTATE_T_IN_STD
+#      define _RWSTD_NO_STD_MBSTATE_T
 
 _RWSTD_NAMESPACE (std) {
 
@@ -81,12 +89,46 @@ _USING (::mbstate_t);
 
 }   // namespace std
 
+#      define _RWSTD_MBSTATE_T   mbstate_t
 #    endif   // _NAMESPACE_STD
 #  endif   // _MBSTATE_T
 
+/*** IRIX64 ***************************************************************/
+#elif defined (_RWSTD_OS_IRIX64)
+
+#  define _RWSTD_MBSTATE_T char
+
+/*** MSVC 6.0 - 8.0 *******************************************************/
+#elif defined (_MSC_VER)
+
+#  define _RWSTD_MBSTATE_T int
+
+/*** not HP-UX that has a mbstate_t ***************************************/
 #elif !defined (_RWSTD_NO_MBSTATE_T)
 
-#  if defined (_RWSTD_OS_SUNOS)
+#  if defined (_RWSTD_OS_LINUX)
+
+     // define __mbstate_t at file scope (see /usr/include/wchar.h)
+#    ifndef __mbstate_t_defined
+#      define __mbstate_t_defined 1
+
+extern "C" {
+
+typedef struct {
+    int __count;
+    union {
+        _RWSTD_WINT_T __wch;
+        char          __wchb [4];
+    } __value;
+} __mbstate_t;
+
+}   // extern "C"
+
+#    endif   // __mbstate_t_defined
+
+#    define _RWSTD_MBSTATE_T __mbstate_t
+
+#  elif defined (_RWSTD_OS_SUNOS)
 
 #    ifndef _MBSTATET_H
 #      define _MBSTATET_H
@@ -107,24 +149,13 @@ typedef struct __mbstate_t {
 
 #    endif   // _MBSTATET_H
 
-#    ifndef _RWSTD_NO_USING_LIBC_IN_STD
-
-namespace std {
-
-typedef __mbstate_t mbstate_t;
-
-}   // namespace std
-
-#    else   // if defined (_RWSTD_NO_USING_LIBC_IN_STD)
-
-typedef __mbstate_t mbstate_t;
-
-#    endif   // _RWSTD_NO_USING_LIBC_IN_STD
+#    define _RWSTD_MBSTATE_T __mbstate_t
 
 #  else   // if !defined (_RWSTD_OS_SUNOS)
 #    include _RWSTD_CWCHAR
 #  endif   // _RWSTD_OS_SUNOS
 
+/*** not HP-UX that does not define mbstate_t *****************************/
 #elif !defined (_RWSTD_MBSTATE_T_DEFINED)
 
 #  define _RWSTD_MBSTATE_T_DEFINED
@@ -156,21 +187,7 @@ struct __mbstate_t
 
 #      endif  // _MBSTATET_H
 #    endif   // _WCHAR_IMPL_H
-
-#    ifndef _RWSTD_NO_USING_LIBC_IN_STD
-
-_RWSTD_NAMESPACE (std) {
-
-#    endif   // _RWSTD_NO_USING_LIBC_IN_STD
-
-typedef __mbstate_t mbstate_t;
-
-#    ifndef _RWSTD_NO_USING_LIBC_IN_STD
-
-}   // namespace std
-
-#    endif   // _RWSTD_NO_USING_LIBC_IN_STD
-
+#    define _RWSTD_MBSTATE_T __mbstate_t
 #  else   // any other OS
 
 #    ifndef _RWSTD_NO_USING_LIBC_IN_STD

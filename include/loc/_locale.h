@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/loc/_locale.h#63 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -397,7 +397,7 @@ _RWSTD_EXPORT __rw_facet* __rw_ct_num_put (_RWSTD_SIZE_T, const char*);
 #define _OutIter(T)   _STD::ostreambuf_iterator< T, _STD::char_traits<T > >
 
 // convenience typedefs to allow them to be used as macro arguments
-typedef _STD::codecvt<char, char, _RWSTD_C::mbstate_t> __rw_codecvt_c;
+typedef _STD::codecvt<char, char, _RWSTD_MBSTATE_T>    __rw_codecvt_c;
 typedef _Facet (moneypunct, char, false)               __rw_mpunct_c_0;
 typedef _Facet (moneypunct, char, true)                __rw_mpunct_c_1;
 typedef _Facet (money_get, char, _InIter (char))       __rw_mget_c;
@@ -464,7 +464,7 @@ _RWSTD_OVERLOAD_GET_FACET (_STD::messages<char>);
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-typedef _STD::codecvt<wchar_t, char, _RWSTD_C::mbstate_t> __rw_codecvt_w;
+typedef _STD::codecvt<wchar_t, char, _RWSTD_MBSTATE_T>    __rw_codecvt_w;
 typedef _Facet (moneypunct, wchar_t, false)               __rw_mpunct_w_0;
 typedef _Facet (moneypunct, wchar_t, true)                __rw_mpunct_w_1;
 typedef _Facet (money_get, wchar_t, _InIter (wchar_t))    __rw_mget_w;

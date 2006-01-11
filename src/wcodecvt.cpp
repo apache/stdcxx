@@ -23,8 +23,6 @@
 
 #include <rw/_defs.h>
 
-#ifndef _RWSTD_NO_V3_LOCALE
-
 
 // working around a Compaq C++ bug (see PR #26778)
 #if __DECCXX_VER >= 60300000 && __DECCXX_VER < 60400000
@@ -61,9 +59,6 @@ _USING (std::va_list);
 #include "use_facet.h"
 
 
-typedef _RWSTD_C::mbstate_t MBStateT;
-
-
 // declare mbrlen() if it's not declared in the system headers
 // but is known to be defined in the libc binary
 #if defined (_RWSTD_NO_MBRLEN) && !defined (_RWSTD_NO_MBRLEN_IN_LIBC)
@@ -71,7 +66,7 @@ typedef _RWSTD_C::mbstate_t MBStateT;
 #  undef _RWSTD_NO_MBRLEN
 
 extern "C" _RWSTD_SIZE_T
-mbrlen (const char*, _RWSTD_SIZE_T, MBStateT*) _LIBC_THROWS();
+mbrlen (const char*, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*) _LIBC_THROWS();
 
 #endif   // _RWSTD_NO_MBRLEN && !_RWSTD_NO_MBRLEN_IN_LIBC
 
@@ -95,7 +90,8 @@ mblen (const char*, _RWSTD_SIZE_T) _LIBC_THROWS();
 #  undef _RWSTD_NO_WCSRTOMBS
 
 extern "C" _RWSTD_SIZE_T
-wcsrtombs (char*, const wchar_t**, _RWSTD_SIZE_T, MBStateT*) _LIBC_THROWS();
+wcsrtombs (char*, const wchar_t**,
+           _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*) _LIBC_THROWS();
 
 #endif   // _RWSTD_NO_WCSRTOMBS && !_RWSTD_NO_WCSRTOMBS_IN_LIBC
 
@@ -107,7 +103,7 @@ wcsrtombs (char*, const wchar_t**, _RWSTD_SIZE_T, MBStateT*) _LIBC_THROWS();
 #  undef _RWSTD_NO_WCRTOMB
 
 extern "C" _RWSTD_SIZE_T
-wcrtomb (char*, wchar_t, _RWSTD_SIZE_T, MBStateT*) _LIBC_THROWS();
+wcrtomb (char*, wchar_t, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*) _LIBC_THROWS();
 
 #endif   // _RWSTD_NO_WCRTOMB && !_RWSTD_NO_WCRTOMB_IN_LIBC
 
@@ -194,7 +190,7 @@ enum {
 
 _RWSTD_NAMESPACE (__rw) {
 
-static inline int __rw_mbsinit (const MBStateT *psrc)
+static inline int __rw_mbsinit (const _RWSTD_MBSTATE_T *psrc)
 {
 #ifndef _RWSTD_NO_MBSINIT
 
@@ -203,7 +199,7 @@ static inline int __rw_mbsinit (const MBStateT *psrc)
 #else   // if defined (_RWSTD_NO_MBSINIT)
 
     // commented out to work around an HP aCC 1.21 bug
-    /* static */ const MBStateT state = MBStateT ();
+    /* static */ const _RWSTD_MBSTATE_T state = _RWSTD_MBSTATE_T ();
     return !psrc || 0 == memcmp (psrc, &state, sizeof state);
 
 #endif   // _RWSTD_NO_MBSINIT
@@ -223,9 +219,9 @@ static inline int __rw_mbsinit (const MBStateT *psrc)
 // by `str' is the NUL character and `emax' is non-zero, the function
 // returns 1
 static inline _RWSTD_SIZE_T
-__rw_libc_mbrlen (MBStateT      &state,
-                  const char    *str,
-                  _RWSTD_SIZE_T  emax)
+__rw_libc_mbrlen (_RWSTD_MBSTATE_T &state,
+                  const char       *str,
+                  _RWSTD_SIZE_T     emax)
 {
     _RWSTD_ASSERT (0 != str);
 
@@ -295,21 +291,21 @@ __rw_xlit (const _RW::__rw_codecvt_t* impl,
 //  This returns two result codes:  error and ok. The partial error result
 //  is not  returned because there  is no way  to know whether or  not the
 //  input sequence contains any more valid characters.
-static _V3_LOCALE::codecvt_base::result
-__rw_libc_do_in (MBStateT    &state,
-                 const char  *from, 
-                 const char  *from_end,
-                 const char* &from_next,
-                 wchar_t     *to, 
-                 wchar_t     *to_limit,
-                 wchar_t*    &to_next)
+static _STD::codecvt_base::result
+__rw_libc_do_in (_RWSTD_MBSTATE_T &state,
+                 const char       *from, 
+                 const char       *from_end,
+                 const char*      &from_next,
+                 wchar_t          *to, 
+                 wchar_t          *to_limit,
+                 wchar_t*         &to_next)
 {
     _RWSTD_ASSERT (from <= from_end);
     _RWSTD_ASSERT (to <= to_limit);
 
-    _V3_LOCALE::codecvt_base::result res = _V3_LOCALE::codecvt_base::ok;
+    _STD::codecvt_base::result res = _STD::codecvt_base::ok;
 
-    MBStateT save_state = state;   // saved state before conversion
+    _RWSTD_MBSTATE_T save_state = state;   // saved state before conversion
 
     _RWSTD_SIZE_T src_len = from_end - from;   // source length
     _RWSTD_SIZE_T dst_len = to_limit - to;       // destination length
@@ -341,7 +337,7 @@ __rw_libc_do_in (MBStateT    &state,
 
             // error; -1 result comes only from an illegal sequence
             if (_RWSTD_SIZE_MAX == tmp) {
-                res = _V3_LOCALE::codecvt_base::error;
+                res = _STD::codecvt_base::error;
                 break;
             }
  
@@ -388,25 +384,25 @@ __rw_libc_do_in (MBStateT    &state,
     // if the conversion has exhausted all space in the destination
     // range AND there are more COMPLETE characters in the source
     // range then we have a "partial" conversion
-    if (res == _V3_LOCALE::codecvt_base::ok && src_len && !dst_len) {
-        MBStateT tmp_state = state;
+    if (res == _STD::codecvt_base::ok && src_len && !dst_len) {
+        _RWSTD_MBSTATE_T tmp_state = state;
         _RWSTD_SIZE_T tmp = __rw_libc_mbrlen (tmp_state, psrc, src_len);
         if (tmp < (_RWSTD_SIZE_T)(-2))
-            res = _V3_LOCALE::codecvt_base::partial;
+            res = _STD::codecvt_base::partial;
     }
 
     return res;
 }
 
 
-static _V3_LOCALE::codecvt_base::result
-__rw_libc_do_out (MBStateT       &state,
-                  const wchar_t  *from, 
-                  const wchar_t  *from_end,
-                  const wchar_t* &from_next,
-                  char           *to, 
-                  char           *to_limit,
-                  char*          &to_next)
+static _STD::codecvt_base::result
+__rw_libc_do_out (_RWSTD_MBSTATE_T &state,
+                  const wchar_t    *from, 
+                  const wchar_t    *from_end,
+                  const wchar_t*   &from_next,
+                  char             *to, 
+                  char             *to_limit,
+                  char*            &to_next)
 {
     _RWSTD_ASSERT (from <= from_end);
     _RWSTD_ASSERT (to <= to_limit);
@@ -430,7 +426,7 @@ __rw_libc_do_out (MBStateT       &state,
     const _RWSTD_SIZE_T mb_cur_max = (_RWSTD_SIZE_T)MB_CUR_MAX;
 
     // the result of conversion
-    _V3_LOCALE::codecvt_base::result res = _V3_LOCALE::codecvt_base::ok;
+    _STD::codecvt_base::result res = _STD::codecvt_base::ok;
 
     // the size of the available space in the destination range
     _RWSTD_SIZE_T dst_free = 0;
@@ -449,7 +445,7 @@ __rw_libc_do_out (MBStateT       &state,
         dst_free = to_limit - to_next;
         if (0 == dst_free) {
             // out of space, return partial as per Table 53
-            res = _V3_LOCALE::codecvt_base::partial;
+            res = _STD::codecvt_base::partial;
             break;
         }
 
@@ -507,7 +503,7 @@ __rw_libc_do_out (MBStateT       &state,
         else if (src) {
             // not enough space in the destination range
             // to convert even a single source character
-            res       = _V3_LOCALE::codecvt_base::partial;
+            res       = _STD::codecvt_base::partial;
             from_next = src;
             break;
         }
@@ -575,7 +571,7 @@ __rw_libc_do_out (MBStateT       &state,
 
             // -1 is returned as an indication of an illegal sequence
             if (_RWSTD_SIZE_MAX == dst_len) {
-                res = _V3_LOCALE::codecvt_base::error;
+                res = _STD::codecvt_base::error;
                 break;
             }
  
@@ -593,7 +589,7 @@ __rw_libc_do_out (MBStateT       &state,
                     // the source character converted to a multibyte
                     // character whose length in bytes is greater than
                     // the available space in the destination sequence
-                    res = _V3_LOCALE::codecvt_base::partial;
+                    res = _STD::codecvt_base::partial;
                     break;
                 } 
 
@@ -617,29 +613,29 @@ __rw_libc_do_out (MBStateT       &state,
 }
 
 
-static _V3_LOCALE::codecvt_base::result
-__rw_libc_do_unshift (MBStateT& state, char*& to_next, char* to_limit)
+static _STD::codecvt_base::result
+__rw_libc_do_unshift (_RWSTD_MBSTATE_T& state, char*& to_next, char* to_limit)
 {
     // save current state
-    const MBStateT tmp_state = state;
+    const _RWSTD_MBSTATE_T tmp_state = state;
 
     // use libc locale to obtain the shift sequence
     char tmp [_RWSTD_MB_LEN_MAX];
     _RWSTD_SIZE_T ret = _RWSTD_WCRTOMB (tmp, wchar_t (0), &state);
 
     if (_RWSTD_SIZE_MAX == ret)
-        return  _V3_LOCALE::codecvt_base::error;
+        return  _STD::codecvt_base::error;
 
     if (ret > (_RWSTD_SIZE_T)(to_limit - to_next)) {
         // restore the state and return partial
         state = tmp_state;
-        return _V3_LOCALE::codecvt_base::partial;
+        return _STD::codecvt_base::partial;
     }
 
     // copy the shift sequence
     memcpy (to_next, tmp, ret);
     to_next += ret;
-    return _V3_LOCALE::codecvt_base::ok;
+    return _STD::codecvt_base::ok;
 }
 
 
@@ -702,7 +698,7 @@ __rw_utf8validate (const char* from, _RWSTD_SIZE_T nbytes)
 }
 
 
-static _V3_LOCALE::codecvt_base::result
+static _STD::codecvt_base::result
 __rw_libstd_do_in (const char                *from_end,
                    const char               *&from_next,
                    wchar_t                   *to_limit,
@@ -718,17 +714,17 @@ __rw_libstd_do_in (const char                *from_end,
     const bool use_ucs    = 0 != UCS_TYPE (flags);
     const bool strict_utf = 0 != (flags & __rw_strict);
 
-    _V3_LOCALE::codecvt_base::result res;
+    _STD::codecvt_base::result res;
     
     for (const unsigned* const tab = impl ? impl->n_to_w_tab () : 0; ; ) {
 
         if (from_next == from_end) {
-            res = _V3_LOCALE::codecvt_base::ok;
+            res = _STD::codecvt_base::ok;
             break;
         }
 
         if (to_next == to_limit) {
-            res = _V3_LOCALE::codecvt_base::partial;
+            res = _STD::codecvt_base::partial;
             break;
         }
 
@@ -747,14 +743,14 @@ __rw_libstd_do_in (const char                *from_end,
             if (_RWSTD_UINT_MAX == off) {
                 // the source sequence forms neither a valid multibyte
                 // character, nor is it an initial subsequence of one
-                res = _V3_LOCALE::codecvt_base::error;
+                res = _STD::codecvt_base::error;
                 break;
             }
 
             if (from == from_next) {
                 // the source sequence forms an incomplete initial
                 // subsequence of a valid multibyte character
-                res = _V3_LOCALE::codecvt_base::partial;
+                res = _STD::codecvt_base::partial;
                 break;
             }
 
@@ -781,14 +777,14 @@ __rw_libstd_do_in (const char                *from_end,
             if (!from) {
                 // the source sequence forms neither a valid UTF-8
                 // character, nor is it an initial subsequence of one
-                res = _V3_LOCALE::codecvt_base::error;
+                res = _STD::codecvt_base::error;
                 break;
             }
 
             if (from_next == from) {
                 // the source sequence forms an incomplete initial
                 // subsequence of a valid UTF-8 character
-                res = _V3_LOCALE::codecvt_base::partial;
+                res = _STD::codecvt_base::partial;
                 break;
             }
 
@@ -803,7 +799,7 @@ __rw_libstd_do_in (const char                *from_end,
 }
 
 
-static _V3_LOCALE::codecvt_base::result
+static _STD::codecvt_base::result
 __rw_libstd_do_out (const wchar_t             *from,
                     const wchar_t             *from_end,
                     const wchar_t            *&from_next,
@@ -814,7 +810,7 @@ __rw_libstd_do_out (const wchar_t             *from,
                     const _RW::__rw_codecvt_t *impl)
 {
     // final result of the transformation
-    _V3_LOCALE::codecvt_base::result res = _V3_LOCALE::codecvt_base::ok;
+    _STD::codecvt_base::result res = _STD::codecvt_base::ok;
 
     const bool use_ucs = IS_UCS (flags);
 
@@ -827,7 +823,7 @@ __rw_libstd_do_out (const wchar_t             *from,
     for (from_next = from, to_next = to; from_next != from_end; ++from_next) {
 
         if (to_next == to_limit) {
-            res = _V3_LOCALE::codecvt_base::partial;
+            res = _STD::codecvt_base::partial;
             break;
         }
 
@@ -853,7 +849,7 @@ __rw_libstd_do_out (const wchar_t             *from,
 
             if (   WIntT (0xd800U) <= wi && wi <= WIntT (0xdfffU)
                 || WIntT (0xfffeU) <= wi && wi <= WIntT (0xffffU)) {
-                res = _V3_LOCALE::codecvt_base::error;
+                res = _STD::codecvt_base::error;
                 break;
             }
         }
@@ -877,20 +873,20 @@ __rw_libstd_do_out (const wchar_t             *from,
                 // try transliteration
                 off = __rw_xlit (impl, utfbuf, utf8_len);
                 if (0 == off) {
-                    res = _V3_LOCALE::codecvt_base::error;
+                    res = _STD::codecvt_base::error;
                     break;
                 }
             }
 
             if (_RWSTD_UINT_MAX == off) {
                 // the sequence does not form a valid character
-                res = _V3_LOCALE::codecvt_base::error;
+                res = _STD::codecvt_base::error;
                 break;
             }
 
             if (utf == utfbuf) {
                 // the next multibyte character position was incomplete
-                res = _V3_LOCALE::codecvt_base::ok;
+                res = _STD::codecvt_base::ok;
                 break;
             }
 
@@ -900,7 +896,7 @@ __rw_libstd_do_out (const wchar_t             *from,
             // check that there's enough space in the destination sequence
             utf8_len = *utf ? strlen (utf) : 1;
             if (bytes_avail < utf8_len) {
-                res = _V3_LOCALE::codecvt_base::partial;
+                res = _STD::codecvt_base::partial;
                 break;
             }
 
@@ -918,7 +914,7 @@ __rw_libstd_do_out (const wchar_t             *from,
                 utf8_len = __rw_itoutf8 (*from_next, utfbuf);
 
                 if (bytes_avail < utf8_len) {
-                    res = _V3_LOCALE::codecvt_base::partial;
+                    res = _STD::codecvt_base::partial;
                     break;
                 }
 
@@ -938,10 +934,10 @@ __rw_libstd_do_out (const wchar_t             *from,
 
 // implements do_length() on top of libc mbrlen()
 static _RWSTD_SIZE_T 
-__rw_libc_do_length (MBStateT      &state,
-                     const char    *from,
-                     const char    *from_end,
-                     _RWSTD_SIZE_T  imax)
+__rw_libc_do_length (_RWSTD_MBSTATE_T &state,
+                     const char       *from,
+                     const char       *from_end,
+                     _RWSTD_SIZE_T     imax)
 {
     const char* const from_begin = from;
 
@@ -1100,10 +1096,10 @@ __rw_libstd_do_length (const char*                from,
 _RWSTD_NAMESPACE (_V3_LOCALE) {
         
 
-_RW::__rw_facet_id codecvt<wchar_t, char, mbstate_t>::id;
+_RW::__rw_facet_id codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::id;
 
 
-/* explicit */ codecvt<wchar_t, char, mbstate_t>::
+/* explicit */ codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
 codecvt (_RWSTD_SIZE_T __ref /* = 0 */)
     : _RW::__rw_facet (__ref)
 {
@@ -1112,7 +1108,7 @@ codecvt (_RWSTD_SIZE_T __ref /* = 0 */)
 
 
 /* virtual */ codecvt_base::result
-codecvt<wchar_t, char, mbstate_t>::
+codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_out (state_type         &state,
         const intern_type  *from,
         const intern_type  *from_end,
@@ -1159,7 +1155,7 @@ do_out (state_type         &state,
 
 
 /* virtual */ codecvt_base::result
-codecvt<wchar_t, char, mbstate_t>::
+codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_in (state_type         &state,
        const extern_type  *from,
        const extern_type  *from_end,
@@ -1198,7 +1194,7 @@ do_in (state_type         &state,
 
 
 /* virtual */ codecvt_base::result
-codecvt<wchar_t, char, mbstate_t>::
+codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_unshift (state_type   &state,
             extern_type  *to,
             extern_type  *to_end,
@@ -1224,7 +1220,7 @@ do_unshift (state_type   &state,
 
 
 /* virtual */ int
-codecvt<wchar_t, char, mbstate_t>::
+codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_length (state_type        &state,
            const extern_type *from,
            const extern_type *from_end,
@@ -1249,9 +1245,9 @@ do_length (state_type        &state,
 
 
 // codecvt_byname <wchar,char> specialization
-codecvt_byname<wchar_t, char, mbstate_t>:: 
+codecvt_byname<wchar_t, char, _RWSTD_MBSTATE_T>:: 
 codecvt_byname (const char *name, _RWSTD_SIZE_T ref)
-    : codecvt<wchar_t, char, mbstate_t>(ref)
+    : codecvt<wchar_t, char, _RWSTD_MBSTATE_T>(ref)
 {
     _C_flags = _RW::__rw_encoding_from_name (name);
 
@@ -1379,7 +1375,7 @@ codecvt_byname (const char *name, _RWSTD_SIZE_T ref)
 
 
 /* virtual */ codecvt_base::result
-codecvt_byname<wchar_t, char, mbstate_t>::
+codecvt_byname<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_in (state_type&         state,
        const extern_type*  from, 
        const extern_type*  from_end,
@@ -1465,7 +1461,7 @@ do_in (state_type&         state,
 
 
 /* virtual */ codecvt_base::result
-codecvt_byname<wchar_t, char, mbstate_t>::
+codecvt_byname<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_out (state_type         &state, 
         const intern_type  *from, 
         const intern_type  *from_end, 
@@ -1547,7 +1543,7 @@ do_out (state_type         &state,
 
 
 /* virtual */ codecvt_base::result
-codecvt_byname<wchar_t, char, mbstate_t>::
+codecvt_byname<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_unshift (state_type&   state, 
             extern_type*  to, 
             extern_type*  to_limit, 
@@ -1611,7 +1607,7 @@ do_unshift (state_type&   state,
 
 
 /* virtual */ int
-codecvt_byname<wchar_t, char, mbstate_t>::
+codecvt_byname<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_length (state_type&        state, 
            const extern_type *from, 
            const extern_type *from_end, 
@@ -1677,7 +1673,7 @@ do_length (state_type&        state,
 
 
 /* virtual */ int
-codecvt_byname<wchar_t, char, mbstate_t>::
+codecvt_byname<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_encoding () const _THROWS (())
 {
 
@@ -1750,7 +1746,7 @@ do_encoding () const _THROWS (())
 
 
 /* virtual */ int
-codecvt_byname<wchar_t, char, mbstate_t>::
+codecvt_byname<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_max_length () const _THROWS (())
 {
     // returns the max value do_length (s, from, from_end, 1) can return
@@ -1800,13 +1796,11 @@ do_max_length () const _THROWS (())
 }   // namespace _V3_LOCALE
 
 
-#  ifndef _RWSTD_NO_WCHAR_T
+#ifndef _RWSTD_NO_WCHAR_T
 
-#    define TARGS_W   <wchar_t, char, MBStateT>
+#  define TARGS_W   <wchar_t, char, _RWSTD_MBSTATE_T>
 
 _RWSTD_DEFINE_FACET_FACTORY (static, codecvt, TARGS_W, wcodecvt);
 _RWSTD_SPECIALIZE_USE_FACET (wcodecvt);
 
-#  endif   // _RWSTD_NO_WCHAR_T
-
-#endif   // _RWSTD_NO_V3_LOCALE
+#endif   // _RWSTD_NO_WCHAR_T

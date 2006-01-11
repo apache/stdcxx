@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/loc/_codecvt.h#47 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -26,34 +26,9 @@
 #define _RWSTD_LOC_CODECVT_H_INCLUDED
 
 
-#include <loc/_facet.h>
 #include <rw/_defs.h>
-
-
-#ifndef _RWSTD_NO_MBSTATE_T
-
-#  if defined (__GNUG__) && __GNUG__ < 3 &&__GNUC_MINOR__ < 96
-     // <cstring> included to work around a g++ 2.95.2 bug
-#    include _RWSTD_CSTRING
-#  endif
-
-   // get mbstate_t (and wchar_t for MSVC 6.0)
-#  include _RWSTD_CWCHAR   
-
-#  if defined (_RWSTD_NO_LIBC_IN_STD)
-
-_RWSTD_NAMESPACE (std) { 
-
-// bring global mbstate_t into namespace std if it's not there yet
-_USING (::mbstate_t);
-
-}   // namespace std
-
-#  endif   // _RWSTD_NO_LIBC_IN_STD
-
-#else   // if defined (_RWSTD_NO_MBSTATE_T)
-#  include <rw/_mbstate.h>
-#endif // _RWSTD_NO_MBSTATE_T 
+#include <loc/_facet.h>
+#include <rw/_mbstate.h>   // for _RWSTD_MBSTATE_T
 
 
 _RWSTD_NAMESPACE (__rw) { 
@@ -194,15 +169,15 @@ public:
 // 22.2.1.5, p3 - performs no conversion
 
 _RWSTD_SPECIALIZED_CLASS
-class _RWSTD_EXPORT codecvt<char, char, mbstate_t>
+class _RWSTD_EXPORT codecvt<char, char, _RWSTD_MBSTATE_T>
     : public _RW::__rw_facet,
       public codecvt_base
 {
 public:
 
-    typedef char      extern_type;   
-    typedef char      intern_type;
-    typedef mbstate_t state_type;
+    typedef char             extern_type;   
+    typedef char             intern_type;
+    typedef _RWSTD_MBSTATE_T state_type;
 
     _EXPLICIT codecvt (_RWSTD_SIZE_T __refs = 0)
         : _RW::__rw_facet (__refs), _C_always_noconv (-1) { }
@@ -286,14 +261,14 @@ private:
 
 
 inline bool
-codecvt<char, char, mbstate_t>::
+codecvt<char, char, _RWSTD_MBSTATE_T>::
 always_noconv () const _THROWS (())
 {
     // optimize away repeated calls to the virtual function
     if (_C_always_noconv < 0) {
 
         // typedef works around an HP aCC x.38 bug (PR #25832)
-        typedef codecvt<char, char, mbstate_t> _CodeCvt;
+        typedef codecvt<char, char, _RWSTD_MBSTATE_T> _CodeCvt;
 
         _CodeCvt *__self = _RWSTD_CONST_CAST (_CodeCvt*, this);
 
@@ -310,15 +285,15 @@ always_noconv () const _THROWS (())
 // of the native character set (i.e., widens and narrows)
 
 _RWSTD_SPECIALIZED_CLASS
-class _RWSTD_EXPORT codecvt<wchar_t, char, mbstate_t>
+class _RWSTD_EXPORT codecvt<wchar_t, char, _RWSTD_MBSTATE_T>
     : public _RW::__rw_facet,
       public codecvt_base
 {
 public:
 
-    typedef wchar_t   intern_type;
-    typedef char      extern_type;
-    typedef mbstate_t state_type;
+    typedef wchar_t          intern_type;
+    typedef char             extern_type;
+    typedef _RWSTD_MBSTATE_T state_type;
 
 protected:
 
@@ -430,8 +405,8 @@ public:
 #ifndef _RWSTD_NO_WCHAR_T
 
 _RWSTD_SPECIALIZED_CLASS
-class _RWSTD_EXPORT codecvt_byname<wchar_t, char, mbstate_t>
-    : public codecvt<wchar_t, char, mbstate_t>
+class _RWSTD_EXPORT codecvt_byname<wchar_t, char, _RWSTD_MBSTATE_T>
+    : public codecvt<wchar_t, char, _RWSTD_MBSTATE_T>
 {
     char _C_namebuf [32];
 

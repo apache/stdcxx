@@ -2,7 +2,7 @@
  *
  * rw_iso2022.cpp
  *
- * $Id: //stdlib/dev/source/stdlib/iso2022.cpp#41 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -431,7 +431,7 @@ int __rw_allocate_state ()
 // argument represents an initial shift state
 static inline
 void __rw_deallocate_state (__rw_iso2022_state_t &iso_state,
-                            _RWSTD_C::mbstate_t  &state,
+                            _RWSTD_MBSTATE_T     &state,
                             bool                  initial_only)
 {
     _RWSTD_MT_CLASS_GUARD (__rw_iso2022_state_t);
@@ -456,7 +456,7 @@ void __rw_deallocate_state (__rw_iso2022_state_t &iso_state,
 
 
 static __rw_iso2022_state_t*
-__rw_get_iso2022_state (_RWSTD_C::mbstate_t& state, int enc)
+__rw_get_iso2022_state (_RWSTD_MBSTATE_T& state, int enc)
 {
     __rw_iso2022_state_t* pstate = 0;
 
@@ -1588,7 +1588,7 @@ __rw_ucs4_to_interm (  const wchar_t*& from,
 
 // does the conversion of one character to internal representation
 static _V3_LOCALE::codecvt_base::result
-__rw_iso2022_to_ucs4 (_RWSTD_C::mbstate_t&  state,
+__rw_iso2022_to_ucs4 (_RWSTD_MBSTATE_T&     state,
                       __rw_iso2022_state_t* iso_state,
                       const char*&          from,
                       const char*           from_end,
@@ -1689,11 +1689,11 @@ __rw_iso2022_to_ucs4 (_RWSTD_C::mbstate_t&  state,
 
 // Conversion from ISO-2022-JP to UCS-4
 _V3_LOCALE::codecvt_base::result
-__rw_iso2022jp_do_in (_RWSTD_C::mbstate_t& state,
-                      const char*&         from,
-                      const char*          from_end,
-                      wchar_t*&            to,
-                      wchar_t*             to_end)
+__rw_iso2022jp_do_in (_RWSTD_MBSTATE_T& state,
+                      const char*&      from,
+                      const char*       from_end,
+                      wchar_t*&         to,
+                      wchar_t*          to_end)
 {
     // the iso2022 state
     __rw_iso2022_state_t* iso_state =
@@ -1734,11 +1734,11 @@ __rw_iso2022jp_do_in (_RWSTD_C::mbstate_t& state,
 
 // Conversion from UCS-4 to ISO-2022-JP
 _V3_LOCALE::codecvt_base::result
-__rw_iso2022jp_do_out (_RWSTD_C::mbstate_t& state,
-                       const wchar_t*&      from,
-                       const wchar_t*       from_end,
-                       char*&               to,
-                       char*                to_end)
+__rw_iso2022jp_do_out (_RWSTD_MBSTATE_T& state,
+                       const wchar_t*&   from,
+                       const wchar_t*    from_end,
+                       char*&            to,
+                       char*             to_end)
 {
     // the iso2022 state
     __rw_iso2022_state_t* iso_state =
@@ -1811,7 +1811,7 @@ __rw_iso2022jp_do_out (_RWSTD_C::mbstate_t& state,
 
 
 _V3_LOCALE::codecvt_base::result
-__rw_iso2022jp_do_unshift (_RWSTD_C::mbstate_t& state,
+__rw_iso2022jp_do_unshift (_RWSTD_MBSTATE_T& state,
                            char*& to, char* to_end)
 {
     _V3_LOCALE::codecvt_base::result res =
@@ -1840,7 +1840,7 @@ __rw_iso2022jp_do_unshift (_RWSTD_C::mbstate_t& state,
 
 
 _RWSTD_SIZE_T
-__rw_iso2022jp_do_length (_RWSTD_C::mbstate_t& state,
+__rw_iso2022jp_do_length (_RWSTD_MBSTATE_T& state,
                           const char* from, const char* from_end,
                           _RWSTD_SIZE_T max)
 {
@@ -1905,11 +1905,11 @@ bool __rw_iso2022jp_do_always_noconv ()
 
 // Conversion from ISO-2022-JP to UCS-4
 _V3_LOCALE::codecvt_base::result
-__rw_iso2022jp2_do_in (_RWSTD_C::mbstate_t& state,
-                       const char*&         from,
-                       const char*          from_end,
-                       wchar_t*&            to,
-                       wchar_t*             to_end)
+__rw_iso2022jp2_do_in (_RWSTD_MBSTATE_T& state,
+                       const char*&      from,
+                       const char*       from_end,
+                       wchar_t*&         to,
+                       wchar_t*          to_end)
 {
     // the iso2022 state
     __rw_iso2022_state_t* iso_state =
@@ -1951,11 +1951,11 @@ __rw_iso2022jp2_do_in (_RWSTD_C::mbstate_t& state,
 
 // Conversion from UCS-4 to ISO-2022-JP-2
 _V3_LOCALE::codecvt_base::result
-__rw_iso2022jp2_do_out (_RWSTD_C::mbstate_t& state,
-                       const wchar_t*&      from,
-                       const wchar_t*       from_end,
-                       char*&               to,
-                       char*                to_end)
+__rw_iso2022jp2_do_out (_RWSTD_MBSTATE_T& state,
+                       const wchar_t*&    from,
+                       const wchar_t*     from_end,
+                       char*&             to,
+                       char*              to_end)
 {
     // the iso2022 state
     __rw_iso2022_state_t* iso_state =
@@ -2052,7 +2052,7 @@ __rw_iso2022jp2_do_out (_RWSTD_C::mbstate_t& state,
 
 
 _V3_LOCALE::codecvt_base::result
-__rw_iso2022jp2_do_unshift (_RWSTD_C::mbstate_t& state,
+__rw_iso2022jp2_do_unshift (_RWSTD_MBSTATE_T& state,
                             char*& to, char* to_end)
 {
     return __rw_iso2022jp_do_unshift (state, to, to_end);
@@ -2060,7 +2060,7 @@ __rw_iso2022jp2_do_unshift (_RWSTD_C::mbstate_t& state,
 
 
 _RWSTD_SIZE_T
-__rw_iso2022jp2_do_length (_RWSTD_C::mbstate_t& state,
+__rw_iso2022jp2_do_length (_RWSTD_MBSTATE_T& state,
                            const char* from, const char* from_end,
                            _RWSTD_SIZE_T max)
 {

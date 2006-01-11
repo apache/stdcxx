@@ -38,7 +38,7 @@ messages<_CharT>::do_get (messages_base::catalog __cat,
     const char* const __text = _RW::__rw_get_message (__cat, __set, __msgid);
  
     if (__text) {
-        typedef _V3_LOCALE::codecvt<_CharT, char, _RWSTD_C::mbstate_t>
+        typedef _V3_LOCALE::codecvt<_CharT, char, _RWSTD_MBSTATE_T>
             _CodeCvt;
 
         typedef _TYPENAME _CodeCvt::state_type state_type;
