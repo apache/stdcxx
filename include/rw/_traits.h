@@ -110,7 +110,7 @@ __rw_wmemcmp (const wchar_t*, const wchar_t*, _RWSTD_SIZE_T);
 
 }   // namespace __rw
 
-#    define _RWSTD_WMEMCPY   _RW::__rw_wmemcmp
+#    define _RWSTD_WMEMCMP   _RW::__rw_wmemcmp
 #  endif   // _RWSTD_NO_WMEMCMP
 
 #  ifndef _RWSTD_NO_WMEMMOVE
