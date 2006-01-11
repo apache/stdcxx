@@ -100,11 +100,11 @@ namespace std {
     typedef _RWSTD_SIZE_T size_t;
 #endif   // _RWSTD_NO_SIZE_T
 
-#ifdef _RWSTD_NO_MBSTATE_T_IN_STD
+#ifdef _RWSTD_NO_STD_MBSTATE_T
 
 using ::mbstate_t;
 
-#endif   // _RWSTD_NO_MBSTATE_T_IN_STD
+#endif   // _RWSTD_NO_STD_MBSTATE_T
 
 #ifndef _RWSTD_NO_WINT_T
     using ::wint_t;
