@@ -27,6 +27,7 @@
 #include <numeric>
 
 #include <cstring>      // for memcmp(), ptrdiff_t
+#include <cwchar>       // for mbstate_t
 #include <examples.h>
 
 
