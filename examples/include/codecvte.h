@@ -2,7 +2,7 @@
  *
  * codecvte.h - Example of user defined codecvt facet. 
  *
- * $Id: //stdlib/dev/examples/stdlib/include/codecvte.h#13 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -21,10 +21,9 @@
 
 #ifndef CODECVTE_H_INCLUDED
  
-#include <locale>
-#include <strstream>
-#include <functional>
-#include <algorithm>
+#include <algorithm>    // for min()
+#include <locale>       // for codecvt
+#include <cwchar>       // for mbstate_t, size_t
 
 #include <examples.h>
 
@@ -41,10 +40,11 @@ class ex_codecvt : public std::codecvt<char, char, std::mbstate_t>
     static const char table_[RWSTD_TABLE_SIZE][3];
                            
 protected:
-    virtual result do_in (std::mbstate_t&,
-                          const char* from, const char* from_end,
-                          const char*& from_next,
-                          char* to, char* to_limit, char*& to_next) const {  
+    virtual result
+    do_in (std::mbstate_t&,
+           const char* from, const char* from_end,
+           const char*& from_next,
+           char* to, char* to_limit, char*& to_next) const {  
         bool match;
 
         std::size_t i = (std::min)(to_limit - to, from_end - from);
@@ -68,10 +68,11 @@ protected:
         return ok;
     }
 
-    virtual result do_out (std::mbstate_t&,
-                           const char* from, const char* from_end,
-                           const char*& from_next,
-                           char* to, char* to_limit, char*& to_next) const {
+    virtual result
+    do_out (std::mbstate_t&,
+            const char* from, const char* from_end,
+            const char*& from_next,
+            char* to, char* to_limit, char*& to_next) const {
         bool match;
 
         std::size_t i     = (std::min)(to_limit - to, from_end - from);
