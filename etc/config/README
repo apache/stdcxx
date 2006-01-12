@@ -1609,19 +1609,22 @@
     10.5  EDG eccp
     --------------
 
-    Ported to eccp 2.45.2 through 3.6 on Linux and Solaris.
+    Ported  to the  EDG  eccp demo  2.45.2  through 3.6  on Linux  and
+    Solaris.
 
     10.6  GNU gcc
     -------------
 
     Ported  to gcc  2.95.2 through  4.0.0  on a  variety of  operating
-    systems and architectures.
+    systems   and   architectures,   including   HP-UX,   Linux,   and
+    Solaris. The  library has not been  ported to Apple  Darwin and is
+    known to fail to build.
 
-    10.7  HP aCC
+    10.7 HP aCC
     ------------
 
-    Ported to HP aCC 3.13 and later for PA-RISC, and 5.36 or later for
-    IPF.
+    Ported to HP  aCC 3.13 and later for PA-RISC,  and 5.36 and later,
+    and 6.0 and later for IPF.
 
     10.8  IBM VisualAge C++
     -----------------------
@@ -1642,8 +1645,8 @@
     10.9  Intel C++
     ---------------
 
-    Ported to  Intel C++ 7.0 through  10.1 on Linux  and Windows (both
-    x86 and IA64). The infrastructure is not ported to Windows.
+    Ported to  Intel C++ 7.0 through  9.0 on Linux  and Windows (x86,
+    IA64, and EM64T).
 
     10.10  KAI C++
     --------------
@@ -1658,8 +1661,7 @@
     10.12  Microsoft MSVC
     --------------------
 
-    Library  ported  to  MSVC  6.0  through  7.1  on  Windows/x86  and
-    IA64. Infrastructure not ported.
+    Pported to MSVC 6.0 through 8.0 on Windows (x86, IA64, and EM64T).
 
 
     10.13  SGI MIPSpro
@@ -1675,4 +1677,5 @@
     10.15  SunPro
     -------------
 
-    Ported to SunPro 5.3 through 5.7 on Solaris and Linux.
+    Ported to SunPro  5.3 through 5.7 on Solaris  and Linux (SPARC and
+    x86_64). 
