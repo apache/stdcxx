@@ -3,7 +3,7 @@
  *
  * cwchar - C++ Standard library interface to the ANSI C header wchar.h
  *
- * $Id: //stdlib/dev/include/ansi/_cwchar.h#22 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -24,11 +24,11 @@
 #define _RWSTD_CWCHAR_H_INCLUDED
 
 
-#include <rw/_mbstate.h>
+#include <rw/_mbstate.h>   // for _RWSTD_MBSTATE_T
 #include <rw/_defs.h>
 
 
-_RWSTD_NAMESPACE (std) { 
+_RWSTD_NAMESPACE (std) {
 
 
 #ifndef NULL
@@ -42,6 +42,9 @@ typedef unsigned long size_t;
 #endif   // _RWSTD_SIZE_T
 
 extern "C" {
+
+// _RWSTD_MBSTATE_T is defined in <rw/_mbstate.h>
+typedef _RWSTD_MBSTATE_T mbstate_t;
 
 struct tm;
 
@@ -63,6 +66,7 @@ typedef _RWSTD_WINT_T wint_t;
 typedef int wint_t;
 #endif   // _RWSTD_NO_WINT_T
 
+// declared, not defined (FILE need not be a complete type)
 struct FILE;
 
 int fwprintf (FILE*, const wchar_t*, ...);

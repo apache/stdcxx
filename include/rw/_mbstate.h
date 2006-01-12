@@ -29,13 +29,20 @@
 #include <rw/_defs.h>
 
 
-/*** AIX ******************************************************************/
 #if defined (_RWSTD_OS_AIX)
+/*** AIX ******************************************************************/
 
-#  define _RWSTD_MBSTATE_T   char*
+_RWSTD_NAMESPACE (__rw) {
 
-/*** HP-UX ****************************************************************/
+// introduce typedef to avoid const qualification issues
+typedef char* __rw_mbstate_t;
+
+#  define _RWSTD_MBSTATE_T   _RW::__rw_mbstate_t
+
+}   // namespace __rw
+
 #elif defined (_RWSTD_OS_HP_UX)
+/*** HP-UX ****************************************************************/
 
 #  ifndef _MBSTATE_T
 #    define _MBSTATE_T
@@ -93,20 +100,21 @@ _USING (::mbstate_t);
 #    endif   // _NAMESPACE_STD
 #  endif   // _MBSTATE_T
 
-/*** IRIX64 ***************************************************************/
 #elif defined (_RWSTD_OS_IRIX64)
+/*** IRIX64 ***************************************************************/
 
 #  define _RWSTD_MBSTATE_T char
 
-/*** MSVC 6.0 - 8.0 *******************************************************/
 #elif defined (_MSC_VER)
+/*** MSVC 6.0 - 8.0 *******************************************************/
 
 #  define _RWSTD_MBSTATE_T int
 
-/*** not HP-UX that has a mbstate_t ***************************************/
 #elif !defined (_RWSTD_NO_MBSTATE_T)
+/*** not HP-UX that has a mbstate_t ***************************************/
 
 #  if defined (_RWSTD_OS_LINUX)
+/*** Linux/glibc **********************************************************/
 
      // define __mbstate_t at file scope (see /usr/include/wchar.h)
 #    ifndef __mbstate_t_defined
@@ -129,6 +137,7 @@ typedef struct {
 #    define _RWSTD_MBSTATE_T __mbstate_t
 
 #  elif defined (_RWSTD_OS_SUNOS)
+/*** Solaris 7 and beyond *************************************************/
 
 #    ifndef _MBSTATET_H
 #      define _MBSTATET_H
@@ -151,8 +160,19 @@ typedef struct __mbstate_t {
 
 #    define _RWSTD_MBSTATE_T __mbstate_t
 
+#  elif defined (_RWSTD_OS_DARWIN)
+/*** Apple Darwin/OS X ****************************************************/
+
+     // include a system header for __mbstate_t
+#    include <machine/_types.h>
+#    define _RWSTD_MBSTATE_T   __mbstate_t
+
 #  else   // if !defined (_RWSTD_OS_SUNOS)
+/*** generic OS ***********************************************************/
+     
 #    include _RWSTD_CWCHAR
+#    define _RWSTD_MBSTATE_T   _RWSTD_C::mbstate_t
+
 #  endif   // _RWSTD_OS_SUNOS
 
 /*** not HP-UX that does not define mbstate_t *****************************/
@@ -160,7 +180,8 @@ typedef struct __mbstate_t {
 
 #  define _RWSTD_MBSTATE_T_DEFINED
 
-#  if defined (_RWSTD_OS_SUNOS)   // SunOS 5.6
+/*** SunOS 5.6 and prior **************************************************/
+#  if defined (_RWSTD_OS_SUNOS)
 
 // Solaris 6 does not define mbstate_t; the definition of
 // the struct below is taken from <wchar_impl.h> on Solaris 7
