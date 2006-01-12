@@ -145,7 +145,7 @@ void test_generate (std::size_t N,
             break;
     }
 
-    delete (buf);
+    delete[] (buf);
 }
 
 /**************************************************************************/
@@ -213,7 +213,7 @@ void test_generate_n (std::size_t            N,
             break;
     }
 
-    ::operator delete (buf);
+    delete[] (buf);
 }
 
 /**************************************************************************/
