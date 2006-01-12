@@ -2,7 +2,7 @@
  *
  * printf.h - declarations of the rw_printf family of functions
  *
- * $Id:$
+ * $Id$
  *
  ************************************************************************
  *
@@ -127,22 +127,30 @@ rw_snprintfa (char *buf, _RWSTD_SIZE_T bufsize, const char* fmt, ...);
  *        %{?}         if clause (extracts an int)
  *        %{:}         else clause
  *        %{;}         end of if/else clause
+ *
+ *        %{Ac}        quoted array of narrow characters
+ *        %{*Ac}       quoted array of characters of width '*' each
+ *                     where '*' is an int argument extracted from
+ *                     the argument list
  *        %{#s}        quoted narrow character string
  *        %{#ls}       quoted wide character string
  *        %{$envvar}   value of an environment variable envvar
  *        %{f}         function pointer
+ *        %{K}         signal name (such as "SIGABRT")
  *        %{M}         member pointer
- *        %{#m}        name of the errno constant (such as EINVAL)
+ *        %{#m}        name of the errno constant (such as "EINVAL")
  *        %{n}         buffer size
  *        %{S}         pointer to std::string
  *        %{lS}        pointer to std::wstring
  *        %{tm}        pointer to struct tm
- *        %{InJ}       where n is one of { 8, 16, 32, 64 } and J { d, o, x, X }
+ *        %{InJ}       where n is one of { 8, 16, 32, 64 }
+ *                     and J is one of { d, o, x, X }
  *
  * @return  On success, returns the number of characters formatted into
  *          the buffer, otherwise -1.
  */
 _TEST_EXPORT int
 rw_asnprintf (char** pbuf, _RWSTD_SIZE_T *pbufsize, const char *fmt, ...);
+
 
 #endif   // RW_PRINTF_H_INCLUDED
