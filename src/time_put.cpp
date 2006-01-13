@@ -1923,9 +1923,11 @@ struct __rw_time_put_data
 };
 
 
-static void
+static int
 __rw_get_zone (__rw_time_put_data &tpd, const char *var, int isdst)
 {
+    _RWSTD_ASSERT (0 != var);
+
     // TZ format:
     //     :characters
     // or
@@ -1999,20 +2001,65 @@ __rw_get_zone (__rw_time_put_data &tpd, const char *var, int isdst)
     else
         goto use_tzset;
 
-    return;
+    return 0;   // success
 
 use_tzset:
 
+    // the lock cannot prevent another thread from calling tzset()
+    // directly (or one of the other functions in the #else block)
+    // for "stronger" thread-safety it might be better to take the
+    // #else branch below and use gmtime_r() there (that would
+    // only be safe if mktime() were thread-safe)
     _RWSTD_MT_STATIC_GUARD (__rw_time_put_data);
+
+#ifndef _RWSTD_NO_TIMEZONE
 
     // set the POSIX `timezone' and `daylight' extern variables
     tzset ();
 
+    // tzet() sets timezone to the difference, in seconds, between
+    // Coordinated Universal Time (UTC) and local standard time
     tpd.val = timezone / 60;
+
+#else   // if defined (_RWSTD_NO_TIMEZONE)
+
+    tpd.val = 0;
+
+    // calculate the difference the hard way
+    static const time_t tgm = 0;
+
+    const tm* const tmp = gmtime (&tgm);
+
+    if (tmp) {
+        tm tmgm = *tmp;
+
+        const time_t tlocal = mktime (&tmgm);
+
+        if (time_t (-1) != tlocal) {
+
+            const double diff = difftime (tlocal, tgm);
+
+            tpd.val = int (diff / 60);
+        }
+        else {
+            // FIXME: indicate the nature of the error to the caller somehow
+            return -1;
+        }
+    }
+    else {
+        // FIXME: indicate the nature of the error to the caller somehow
+        return -1;
+    }
+
+#endif   // _RWSTD_NO_TIMEZONE
+
+    // set the value to the difference in the HH:MM "format"
     tpd.val = 100 * (tpd.val / 60) + tpd.val % 60;
 
     if (daylight && isdst)
         tpd.val += (tpd.val < 0 ? -100 : 100) * isdst;
+
+    return 0;   // success
 }
 
 
@@ -2037,6 +2084,12 @@ __rw_get_time_put_data (__rw_time_put_data &tpd,
     _RWSTD_ASSERT (   0 != tmb
                    || 'c' == fmt || 'r' == fmt || 'x' == fmt || 'X' == fmt);
 
+    static const union {
+#ifndef _RWSTD_NO_WCHAR_T
+        wchar_t wide_data [1];
+#endif   // _RWSTD_NO_WCHAR_T
+        char data [4];
+    } null_fmt = { 0 };
 
     const __rw_time_t *ptime =
         _RWSTD_STATIC_CAST (const __rw_time_t*, facet->_C_data ());
@@ -2500,7 +2553,7 @@ __rw_get_time_put_data (__rw_time_put_data &tpd,
         if (tmb->tm_isdst < 0) {
             // force no output
             tpd.val = _RWSTD_INT_MIN;
-            tpd.fmt = L"";
+            tpd.fmt = null_fmt.data;
             break;
         }
 
@@ -2547,16 +2600,22 @@ __rw_get_time_put_data (__rw_time_put_data &tpd,
 
             const char* const var = getenv ("TZ");
 
-            if (!var || !*var)
+            if (!var || !*var || __rw_get_zone (tpd, var, tmb->tm_isdst)) {
+                // force no output on error
+                tpd.val = _RWSTD_INT_MIN;
+                tpd.fmt = null_fmt.data;
                 break;
-
-            __rw_get_zone (tpd, var, tmb->tm_isdst);
+            }
         }
         else {
             const char* const var = getenv ("TZ");
 
-            if (!var || !*var)
+            if (!var || !*var) {
+                // force no output
+                tpd.val = _RWSTD_INT_MIN;
+                tpd.fmt = null_fmt.data;
                 break;
+            }
 
             __rw_get_zone_name (tpd, var, tmb->tm_isdst);
         }
