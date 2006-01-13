@@ -19,14 +19,15 @@
  * 
  **************************************************************************/
 
-#include <ios>       // for basic_ios
-#include <locale>    // for locale, time_put
+#include <ios>           // for basic_ios
+#include <locale>        // for locale, time_put
 
-#include <climits>   // for INT_MAX, INT_MIN
-#include <cstdio>    // for fprintf(), ...
-#include <cstdlib>   // for mbstowcs(), wcstombs()
-#include <cstring>   // for memcpy(), strlen()
-#include <ctime>
+#include <climits>       // for INT_MAX, INT_MIN
+#include <cstdio>        // for fprintf(), ...
+#include <cstdlib>       // for mbstowcs(), wcstombs()
+#include <cstring>       // for memcpy(), strlen()
+#include <ctime>         // for tm
+#include <cwchar>        // for wcsftime(), wcslen()
 
 #include <driver.h>      // for rw_test(), ...
 #include <environ.h>     // for rw_putenv()
@@ -249,11 +250,11 @@ void do_test (int             lineno,  // line number containing tests
 
         rw_assert (!str || ok , __FILE__, lineno,
                    "line %d. time_put<%s>::do_put (%{t}, ..., %#c) ==>"
-                   " %{#*s}, expected %#s%{?} (strftime format %#s)%{;}, "
+                   " %{*Ac}, expected %{*Ac}%{?} (strftime format %#s)%{;}, "
                    "flags = %{If}",
                    __LINE__, tname, tmb, pat [1],
-                   int (sizeof *buf), buf, result, str && '%' == str [0], str,
-                   flags);
+                   int (sizeof *buf), buf, int (sizeof *result), result,
+                   str && '%' == str [0], str, flags);
     }
     else if (patend - pat == 3 && '%' == pat [0]) {
 
@@ -265,11 +266,11 @@ void do_test (int             lineno,  // line number containing tests
 
         rw_assert (!str || ok , __FILE__, lineno,
                    "line %d. time_put<%s>::do_put (%{t}, ..., %#c, %#c) ==>"
-                   " %{#*s}, expected %#s%{?} (strftime format %#s)%{;}, "
+                   " %{*Ac}, expected %{*Ac}%{?} (strftime format %#s)%{;}, "
                    "flags = %{If}",
                    __LINE__, tname, tmb, pat [1], pat [2],
-                   int (sizeof *buf), buf, result, str && '%' == str [0], str,
-                   flags);
+                   int (sizeof *buf), buf, int (sizeof *result), result,
+                   str && '%' == str [0], str, flags);
     }
 
     sb.pubsetp (buf, buf + sizeof buf / sizeof *buf);
@@ -281,11 +282,11 @@ void do_test (int             lineno,  // line number containing tests
 
     rw_assert (!str || success , __FILE__, lineno,
                "line %d. time_put<%s>::do_put (%{t}, ..., %#s) ==>"
-               " %{#*s}, expected %#s%{?} (strftime format %#s)%{;}, "
+               " %{*Ac}, expected %{*Ac}%{?} (strftime format %#s)%{;}, "
                "flags = %{If}",
                __LINE__, tname, tmb, pat,
-               int (sizeof *buf), buf, result, str && '%' == str [0], str,
-               flags);
+               int (sizeof *buf), buf, int (sizeof *result), result,
+               str && '%' == str [0], str, flags);
 }
 
 /**************************************************************************/
@@ -1344,6 +1345,12 @@ void test_POSIX (charT, const char *tname)
     // strings for the std and, optionally, dst parts of the variable
     // (they're not used for anything except the name(s) assigned to
     // the tznames global variable by tzset())
+
+    // unset TZ -- expect no output
+    rw_putenv ("TZ=");
+    TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "");
+    TEST (T (0, 0, 0, 1, 0, 0, 0, 0, +1), "%z", 0, 0, ' ', "");
+    TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1), "%z", 0, 0, ' ', "");
 
     // set TZ to GMT (UTC) plus zero hours, no DST
     rw_putenv ("TZ=std0");
