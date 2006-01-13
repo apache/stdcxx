@@ -198,8 +198,11 @@ static inline int __rw_mbsinit (const _RWSTD_MBSTATE_T *psrc)
 
 #else   // if defined (_RWSTD_NO_MBSINIT)
 
+    // _RWSTD_MBSTATE_T macro might expand to char* (on AIX)
+    typedef _RWSTD_MBSTATE_T StateT;
+
     // commented out to work around an HP aCC 1.21 bug
-    /* static */ const _RWSTD_MBSTATE_T state = _RWSTD_MBSTATE_T ();
+    /* static */ const StateT state = StateT ();
     return !psrc || 0 == memcmp (psrc, &state, sizeof state);
 
 #endif   // _RWSTD_NO_MBSINIT
