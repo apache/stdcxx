@@ -59,18 +59,20 @@ _USING (std::va_list);
 #include "use_facet.h"
 
 
+// _RWSTD_MBSTATE_T macro might expand to char* (on AIX)
+typedef _RWSTD_MBSTATE_T StateT;
+
+
 _RWSTD_NAMESPACE (__rw) {
 
-static inline int __rw_mbsinit (const _RWSTD_MBSTATE_T *ps)
+static inline int
+__rw_mbsinit (const StateT *ps)
 {
 #ifndef _RWSTD_NO_MBSINIT
 
     return ::mbsinit (ps);
 
 #else   // if defined (_RWSTD_NO_MBSINIT)
-
-    // _RWSTD_MBSTATE_T macro might expand to char* (on AIX)
-    typedef _RWSTD_MBSTATE_T StateT;
 
     // commented out to work around an HP aCC 1.21 bug
     /* static */ const StateT state = StateT ();
