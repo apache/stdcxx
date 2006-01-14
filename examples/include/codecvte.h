@@ -21,7 +21,6 @@
 
 #ifndef CODECVTE_H_INCLUDED
  
-#include <algorithm>    // for min()
 #include <locale>       // for codecvt
 #include <cwchar>       // for mbstate_t, size_t
 
@@ -31,68 +30,79 @@
 #define RWSTD_TABLE_SIZE 59
  
 // This facet performs a conversion from  Latin Alphabet No. 1 
-// (ISO 8859-1) to U.S.  ASCII code page 437.  Some conversions are one
-// way (from ISO to ASCII, but not back again) because this ASCII 
+// (ISO 8859-1) to U.S.  ASCII code page 437.  Some conversions are
+// one way (from ISO to ASCII, but not back again) because this ASCII 
 // code page has no equivilent to the ISO character.
 
-class ex_codecvt : public std::codecvt<char, char, std::mbstate_t>
+class ex_codecvt: public std::codecvt<char, char, std::mbstate_t>
 {
     static const char table_[RWSTD_TABLE_SIZE][3];
                            
 protected:
+
     virtual result
     do_in (std::mbstate_t&,
-           const char* from, const char* from_end,
-           const char*& from_next,
-           char* to, char* to_limit, char*& to_next) const {  
-        bool match;
+           const char*  from,
+           const char*  from_end,
+           const char* &from_next,
+           char*        to,
+           char*        to_limit,
+           char*       &to_next) const {
 
-        std::size_t i = (std::min)(to_limit - to, from_end - from);
+        const std::size_t from_size = std::size_t (from_end - from);
+        const std::size_t to_size   = std::size_t (to_limit - to);
+        
+        std::size_t i = from_size < to_size ? from_size : to_size;
+
         from_next = from;
         to_next   = to;
-        for (std::size_t j = 0; j < i; j++) {
-            match = false;
-            for (int k = 0; k < RWSTD_TABLE_SIZE; k++) {  
+
+        for (std::size_t j = 0; j < i; ++j, ++from_next, ++to_next) {
+
+            *to_next = *from_next;
+
+            for (int k = 0; k < RWSTD_TABLE_SIZE; ++k) {  
                 if (   *from_next >= table_[k][0]
                     && *from_next <= table_[k][1]) {
                     *to_next = table_[k][2];
-                    match    = true;
                     break;
                 }
             }
-            if (!match)
-                *to_next = *from_next;
-            from_next++;
-            to_next++;
         }
+
         return ok;
     }
 
     virtual result
     do_out (std::mbstate_t&,
-            const char* from, const char* from_end,
-            const char*& from_next,
-            char* to, char* to_limit, char*& to_next) const {
-        bool match;
+            const char*  from,
+            const char*  from_end,
+            const char* &from_next,
+            char*        to,
+            char*        to_limit,
+            char*       &to_next) const {
 
-        std::size_t i     = (std::min)(to_limit - to, from_end - from);
+        const std::size_t from_size = std::size_t (from_end - from);
+        const std::size_t to_size   = std::size_t (to_limit - to);
+        
+        std::size_t i = from_size < to_size ? from_size : to_size;
+
         from_next = from;
         to_next   = to;
-        for (std::size_t j = 0; j < i; j++) {
-            match = false;
-            for (std::size_t k = 0; k < RWSTD_TABLE_SIZE; k++) {  
+
+        for (std::size_t j = 0; j < i; ++j, ++from_next, ++to_next) {
+
+            *to_next = *from_next;
+
+            for (std::size_t k = 0; k < RWSTD_TABLE_SIZE; ++k) {  
                 if (   *from_next == table_[k][2]
                     && table_[k][0] == table_[k][1]) {
                     *to_next = table_[k][1];
-                    match    = true;
                     break;
                 }
             }
-            if (!match)
-                *to_next = *from_next;
-            from_next++;
-            to_next++;
         }
+
         return ok;
     }
 
