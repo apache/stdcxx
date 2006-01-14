@@ -188,18 +188,20 @@ enum {
     ((!(impl) || ((x) & __rw_use_libc)) && !(UCS_TYPE (x) || UTF_TYPE (x)))
 
 
+// _RWSTD_MBSTATE_T macro might expand to char* (on AIX)
+typedef _RWSTD_MBSTATE_T StateT;
+
+
 _RWSTD_NAMESPACE (__rw) {
 
-static inline int __rw_mbsinit (const _RWSTD_MBSTATE_T *psrc)
+static inline int
+__rw_mbsinit (const StateT *psrc)
 {
 #ifndef _RWSTD_NO_MBSINIT
 
     return mbsinit (psrc);
 
 #else   // if defined (_RWSTD_NO_MBSINIT)
-
-    // _RWSTD_MBSTATE_T macro might expand to char* (on AIX)
-    typedef _RWSTD_MBSTATE_T StateT;
 
     // commented out to work around an HP aCC 1.21 bug
     /* static */ const StateT state = StateT ();
@@ -620,7 +622,7 @@ static _STD::codecvt_base::result
 __rw_libc_do_unshift (_RWSTD_MBSTATE_T& state, char*& to_next, char* to_limit)
 {
     // save current state
-    const _RWSTD_MBSTATE_T tmp_state = state;
+    _RWSTD_MBSTATE_T tmp_state = state;
 
     // use libc locale to obtain the shift sequence
     char tmp [_RWSTD_MB_LEN_MAX];
@@ -872,7 +874,10 @@ __rw_libstd_do_out (const wchar_t             *from,
             const char* utf = utfbuf;
             unsigned    off = __rw_mbtowco (tbl, utf, utf + utf8_len);
 
-            if (0 && _RWSTD_UINT_MAX == off) {
+            // FIXME: block below has been disabled but is being compiled
+            // to avoid syntax regressions; it might produce "unreachable
+            // code" warnings with some compilers
+            if (0 /* disbled */ && _RWSTD_UINT_MAX == off) {
                 // try transliteration
                 off = __rw_xlit (impl, utfbuf, utf8_len);
                 if (0 == off) {
