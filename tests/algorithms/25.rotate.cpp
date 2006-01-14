@@ -25,7 +25,7 @@
 
 #include <alg_test.h>
 #include <driver.h>     // for rw_test()
-#include <snprintfa.h>  // for rw_asnprintf()
+#include <printf.h>     // for rw_asnprintf()
 
 _RWSTD_NAMESPACE (std) { 
 
