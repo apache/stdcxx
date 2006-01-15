@@ -40,6 +40,10 @@
 #endif   // archive/shared library
 
 
+#if defined (_RWSTD_NO_NAMESPACE) && !defined std
+#  define std   /* empty */
+#endif   // _RWSTD_NO_NAMESPACE && !std
+
 #if defined (_RWSTD_NO_TYPENAME) && !defined (typename)
 #  define typename /* ignore */
 #endif   // _RWSTD_NO_TYPENAME && !typename
