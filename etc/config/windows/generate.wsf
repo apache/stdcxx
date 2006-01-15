@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" ?><!-- -*- SGML -*- -->
 <package>
     <comment>
     PrimalCode wizard generated file.
@@ -25,10 +25,11 @@ Usage: cscript generate.wsf /CONFIG:@CONFIG
 /BUILDDIR:@BUILDDIR [/TOPDIR:@TOPDIR] 
 [/BUILDTYPE:@BUILDTYPE] [/BUILDONLY:@BUILDONLY] [/COPYDLL:@COPYDLL]
 where
-@CONFIG is msvc-7.1 or icc-9.0,
-@TOPDIR - stdcxx main directory,
-@BUILDDIR - output directory for a build.
-@COPYDLL - if yes the library dll will be copied to executables folder
+@CONFIG is one of { msvc-7.1, msvc-8.0, icc-9.0 },
+@TOPDIR is the root of the stdcxx source tree,
+@BUILDDIR is the root of the build directory,
+@COPYDLL is one of { yes, no }; when yes, the stdcxx DLL will be copied
+into each directory containing an executable program built by the solution
             </usage>
         </runtime>
         <object id="fso" progid="Scripting.FileSystemObject"/>
