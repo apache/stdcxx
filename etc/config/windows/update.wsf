@@ -132,6 +132,12 @@ function update()
     var prjInfo = readSolutionGUIDs(slnFileName);
     
     WScript.Echo("Checking projects...");
+    if (! prjInfo)
+    {
+        WScript.Echo("error: project guids failed to read");
+        WScript.Quit(1);
+    }
+    
     //make solution structure
     var fullSolution = fillSolutionTemplateLight(solution, prjInfo, 
             srcDir, outDir, logStream);
@@ -145,7 +151,8 @@ function update()
         setProjectDependencies(fullSolution, modProjects);
     
     WScript.Echo("Writing modified projects on disk...");
-    saveModifiedProjects(modProjects, srcDir, outDir, logStream);
+    saveModifiedProjects(modProjects, srcDir, outDir, logStream, 
+        fullSolution.version);
     
     if (icc90SolutionName == currentCfg)
         convertSolution(outDir, currentCfg, true);
@@ -267,14 +274,14 @@ function updateSolution(fullSolution, prjInfo, srcDir, outDir, logStream)
     return rgModProjects;
 }
 
-function saveModifiedProjects(modProjects, srcDir, outDir, logStream)
+function saveModifiedProjects(modProjects, srcDir, outDir, logStream, version)
 {
     for(var i = 0; i < modProjects.length; i++)
     {
         WScript.Echo("saving " + modProjects[i].name + "...");
         logStream.WriteLine("saving " + modProjects[i].name);
         
-        generateVCPROJ(modProjects[i], srcDir, outDir);
+        generateVCPROJ(modProjects[i], srcDir, outDir, version);
         
         logStream.WriteLine(modProjects[i].name + " saved");
     }

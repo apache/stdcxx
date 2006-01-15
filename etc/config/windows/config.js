@@ -93,6 +93,8 @@ function Solution(name)
     this.name = String(name);
     this.configurations = new Collection();
     this.projects = new Collection();
+    this.version = "7.10";
+    this.formatVersion = "8.00";
 }
 
 // perform shallow cloning of a solution

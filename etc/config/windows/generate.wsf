@@ -15,17 +15,20 @@ Generates solution file for a specified environment
                 name="TOPDIR" required="false" type="string"/>
             <named helpstring="Output directory for modules" 
                 name="BUILDDIR" required="true" type="string"/>
+            <named helpstring="Copy dll to exe option" 
+                name="COPYDLL" required="false" type="string"/>
             <example>cscript generate.wsf /TOPDIR:"C:\stdcxx" 
                 /BUILDDIR:"C:\stdcxx\build" /CONFIG:msvc-7.1
             </example>
             <usage>
 Usage: cscript generate.wsf /CONFIG:@CONFIG 
 /BUILDDIR:@BUILDDIR [/TOPDIR:@TOPDIR] 
-[/BUILDTYPE:@BUILDTYPE] [/BUILDONLY:@BUILDONLY]
+[/BUILDTYPE:@BUILDTYPE] [/BUILDONLY:@BUILDONLY] [/COPYDLL:@COPYDLL]
 where
 @CONFIG is msvc-7.1 or icc-9.0,
 @TOPDIR - stdcxx main directory,
 @BUILDDIR - output directory for a build.
+@COPYDLL - if yes the library dll will be copied to executables folder
             </usage>
         </runtime>
         <object id="fso" progid="Scripting.FileSystemObject"/>
@@ -53,6 +56,7 @@ var logStream = null;
 var currentCfg = "";
 var buildType = "11d";
 var buildOnly = "";
+var copyDll = false;
 
 var binDir = "\\bin";
 var includeDir= "\\include";
@@ -212,6 +216,15 @@ function readAndCheckArguments()
     if (WScript.Arguments.Named.Exists("BUILDDIR"))
     {
         outDir = WScript.Arguments.Named("BUILDDIR");
+    }
+    
+    if (WScript.Arguments.Named.Exists("COPYDLL"))
+    {
+        var copyOption = WScript.Arguments.Named("COPYDLL");
+        copyOption = copyOption.toLowerCase();
+        
+        if (copyOption == "yes" || copyOption == "y")
+            copyDll = true;
     }
 }
 

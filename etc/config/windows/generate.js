@@ -25,7 +25,6 @@ var testsProjectsPrefix = "test_";
 var testsProjectFolder = "tests";
 
 var defineRWSHARED = "_RWSHARED";
-var defineRWBUILD = "_RWBUILD_std";
 
 var samplesDir = "examples";
 var testsDir = "tests";
@@ -170,18 +169,25 @@ function fillProjectsFromFolders(result, solution, srcDir,
                     var postBuildTool = config.tools[postBuildToolName];
                     if (postBuildTool)
                     {
-                        var libPlatform = libPrj.platforms[platform.name];
-                        var libConfig = 
-                            libPlatform.configurations[config.name];
-                        var dllName = 
-                            libConfig.tools[linkerToolName].outputFile;
-                        var cmdCopyDll = "copy /Y " + includeOffset + 
-                            "..\\lib" + "\\" + dllName + " $(OutDir)\\" + 
-                            dllName;
-                            
-                        postBuildTool.commands.func_remove(varCmdCopyDll);
-                        postBuildTool.commands.add(
-                            varCmdCopyDll, cmdCopyDll);
+                        if (true == copyDll)
+                        {
+                            var libPlatform = libPrj.platforms[platform.name];
+                            var libConfig = 
+                                libPlatform.configurations[config.name];
+                            var dllName = 
+                                libConfig.tools[linkerToolName].outputFile;
+                            var cmdCopyDll = "copy /Y " + includeOffset + 
+                                "..\\lib" + "\\" + dllName + " $(OutDir)\\" + 
+                                dllName;
+                                
+                            postBuildTool.commands.func_remove(varCmdCopyDll);
+                            postBuildTool.commands.add(
+                                varCmdCopyDll, cmdCopyDll);
+                        }
+                        else
+                        {
+                            config.tools.func_remove(postBuildToolName);
+                        }
                     }
                     
                     config.tools.func_remove(compilerToolName);
@@ -338,6 +344,8 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
     var result = solution.shallowClone();
     result.generateSolution = solution.generateSolution;
     result.checkEnvironment = solution.checkEnvironment;
+    result.version = solution.version;
+    result.formatVersion = solution.formatVersion;
     // clone build configurations
     result.configurations = solution.configurations.clone();
     
@@ -560,6 +568,7 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
                     var newCfg = oldCfg.shallowClone();
                     newCfg.type = configTypeDll;                                        
                     var tool = oldCfg.tools[customBuildToolName].clone();
+                    var toolMark = oldCfg.tools[postBuildToolName];
                     tool.output = newCfg.outputDir + "\\" + runExamplesLog;
                     
                     tool.command =
@@ -573,8 +582,23 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
                     tool.command += 
                         " /BUILDTYPE:\"" + newCfg.outputDir + "\"";
                     tool.command += 
+                        " /CONFIG:\"" + result.name + "\"";
+                    tool.command += 
                         " /LOGFILE:\"" + newCfg.outputDir + "\\" 
-                        + runExamplesLog;
+                        + runExamplesLog + "\"";
+                        
+                    if (toolMark)
+                    {
+                        // pass true if it is neccessary to copy dll manually
+                        if (copyDll)
+                            tool.command += " /COPYDLL:false";
+                        else
+                        {
+                            tool.command += " /COPYDLL:true";
+                            tool.command +=  
+                                " /LIBDIR:\"" + outDir + "lib\\" + "\"";
+                        }
+                    }
                                                     
                     newCfg.tools.add(tool.name, tool);
                     // add a fake linker to suppress dependency on output
@@ -588,6 +612,7 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
                     var newCfg = oldCfg.shallowClone();
                     newCfg.type = configTypeDll;                                        
                     var tool = oldCfg.tools[customBuildToolName].clone();
+                    var toolMark = oldCfg.tools[postBuildToolName];
                     tool.output = newCfg.outputDir + "\\" + runTestsLog;
                     
                     tool.command =
@@ -601,8 +626,23 @@ function fillSolutionTemplate(solution, srcDir, outDir, logStream)
                     tool.command += 
                         " /BUILDTYPE:\"" + newCfg.outputDir + "\"";
                     tool.command += 
+                        " /CONFIG:\"" + result.name + "\"";
+                    tool.command += 
                         " /LOGFILE:\"" + newCfg.outputDir + "\\" 
-                        + runTestsLog;
+                        + runTestsLog + "\"";
+                        
+                    if (toolMark)
+                    {
+                        // pass true if it is neccessary to copy dll manually
+                        if (copyDll)
+                            tool.command += " /COPYDLL:false";
+                        else
+                        {
+                            tool.command += " /COPYDLL:true";
+                            tool.command +=  
+                                " /LIBDIR:\"" + outDir + "lib\\" + "\"";
+                        }
+                    }
                                                     
                     newCfg.tools.add(tool.name, tool);
                     // add a fake linker to suppress dependency on output
@@ -884,6 +924,8 @@ function fillSolutionTemplateLight(solution, oldProjects, srcDir, outDir, logStr
     var result = solution.shallowClone();
     result.generateSolution = solution.generateSolution;
     result.checkEnvironment = solution.checkEnvironment;
+    result.version = solution.version;
+    result.formatVersion = solution.formatVersion;
     // clone build configurations
     result.configurations = solution.configurations.clone();
     
@@ -933,12 +975,14 @@ function fillSolutionTemplateLight(solution, oldProjects, srcDir, outDir, logStr
             {                
                 project = solution.projects[templateProjName].shallowClone();
                 project.name = projName;
-                
+                    
                 var oldProject = oldProjects[projName];
                 if (! oldProject)
+                {
                     project.id = createUUID();
+                }
                 else
-                    project.id = oldProject.id;
+                    project.id = oldProject.id;                    
                 
                 // add files
                 switch (projName)
@@ -1044,7 +1088,7 @@ function fillSolutionTemplateLight(solution, oldProjects, srcDir, outDir, logStr
 }
 
 // generates solution for the VC
-function generateVCPROJ(project, srcDir, outDir)
+function generateVCPROJ(project, srcDir, outDir, version)
 {
     var projectPath = project.folder.length > 0 ?
         outDir + project.folder + "\\" : outDir + "";
@@ -1064,7 +1108,7 @@ function generateVCPROJ(project, srcDir, outDir)
         "<?xml version=\"1.0\" encoding=\"windows-1252\"?>");
     vcproj.WriteLine("<VisualStudioProject");
     vcproj.WriteLine("\tProjectType=\"Visual C++\"");
-    vcproj.WriteLine("\tVersion=\"7.10\"");
+    vcproj.WriteLine("\tVersion=\"" + version + "\"");
     vcproj.WriteLine("\tName=\"" + project.name + "\"");
     vcproj.WriteLine("\tProjectGUID=\"" + project.id +"\"");
     vcproj.WriteLine("\tRootNamespace=\"" + project.name + "\"");
@@ -1175,7 +1219,8 @@ function generateSolutionVCImpl (solution, srcDir, outDir,
     var sln = fso.CreateTextFile(slnFileName, true, false);
     // header
     sln.WriteLine(
-        "Microsoft Visual Studio Solution File, Format Version 8.00");
+        "Microsoft Visual Studio Solution File, Format Version " + 
+        solution.formatVersion); //8.00");
     for (i in solution.projects)
     {
         var project = solution.projects[i];
@@ -1220,7 +1265,7 @@ function generateSolutionVCImpl (solution, srcDir, outDir,
             
             if (true == genVCPROJs)
             {
-                generateVCPROJ(project, srcDir, outDir);
+                generateVCPROJ(project, srcDir, outDir, solution.version);
                 logStream.WriteLine(project.name + " saved");
             }
         }
@@ -1523,7 +1568,9 @@ function readSolutionGUIDs(solFileName)
     var solFile = fso.OpenTextFile(solFileName);
     var solLine = solFile.ReadLine();
     if (solLine != 
-        "Microsoft Visual Studio Solution File, Format Version 8.00")
+            "Microsoft Visual Studio Solution File, Format Version 8.00" &&
+        solLine != 
+            "Microsoft Visual Studio Solution File, Format Version 9.00")
     {
         solFile.Close();
         return null;
@@ -1564,6 +1611,10 @@ function readProjectSolLine(solLine)
 var solutionVC71 = getSolution(vc71SolutionName);
 solutionVC71.generateSolution = generateSolutionVC;
 solutionVC71.checkEnvironment = checkEnvironmentVC;
+
+var solutionVC80 = getSolution(vc80SolutionName);
+solutionVC80.generateSolution = generateSolutionVC;
+solutionVC80.checkEnvironment = checkEnvironmentVC;
 
 var solutionICC90 = getSolution(icc90SolutionName);
 solutionICC90.generateSolution = generateSolutionICC;
