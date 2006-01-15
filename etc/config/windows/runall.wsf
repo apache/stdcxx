@@ -17,19 +17,26 @@ runs examples and checks results.
                 required="true" type="string"/>
             <named helpstring="The log file" name="LOGFILE" 
                 required="false" type="string"/>
+            <named helpstring="The copy lib dll to exe option" name="COPYDLL" 
+                required="false" type="string"/>
+            <named helpstring="The lib dll folder" name="LIBDIR" 
+                required="false" type="string"/>
             <example>
             cscript runexamples.wsf /EXEDIR:"C:\stdcxx\build" 
             /INOUTDIR:"C:\stdcxx\build" /BUILDTYPE:11d
             </example>
             <usage>
 Usage: cscript runexamples.wsf /EXEDIR:@EXEDIR /INOUTDIR:@INOUTDIR 
-/BUILDTYPE:@BUILDTYPE [/LOGFILE:@LOGFILE]
+/BUILDTYPE:@BUILDTYPE 
+[/LOGFILE:@LOGFILE] [/COPYDLL:@COPYDLL] [/LIBDIR:@LIBDIR]
 where
 @EXEDIR is the root directory with executables ro be run and checked,
 @TOPDIR is the root directory with .in and .out files 
 required by executables,
 @BUILDTYPE is the build type (11d, 11s, etc).
 @LOGFILE is the log file name.
+@COPYDLL is the option for copy dll to executables
+@LIBDIR is the library dll folder (specify when COPYDLL is true)
             </usage>
         </runtime>
         <object id="fso" progid="Scripting.FileSystemObject"/>
@@ -47,8 +54,11 @@ var examplesDir = ""; // path to the root directory containing executables
 var inoutDir = "";    // path to the root directory 
     // containing the .in and .out files
 var buildType = ""      // the buid type (11d, 11s, etc)
+var currentCfg = "msvc-7.1" // the configuration
 var logFileName = ""; // the log file name
 var logFileDefault = "runexamples.log"; // the default log file name
+var copyDll = false;
+var libdllFolder = "";
 
 var varIn = "in";
 var varOut = "out";
@@ -65,6 +75,7 @@ var runSleepStep = 100;
 var buildlogFile = "BuildLog.htm";
 var summaryFileName = "Summary.htm";
 var htmFolderName = "temphtm";
+var libFileName = "stdlib";
     
 var description = new runexamples; // run
 
@@ -129,10 +140,23 @@ function readAndCheckArguments()
     inoutDir =  WScript.Arguments.Named("INOUTDIR");
     buildType = WScript.Arguments.Named("BUILDTYPE");
     
+    if (WScript.Arguments.Named.Exists("CONFIG"))
+        currentCfg = WScript.Arguments.Named("CONFIG");
+    
     if (WScript.Arguments.Named.Exists("LOGFILE"))
         logFileName = WScript.Arguments.Named("LOGFILE");
     else
         logFileName = logFileDefault;
+        
+    if (WScript.Arguments.Named.Exists("COPYDLL"))
+    {
+        var copyOption = WScript.Arguments.Named("COPYDLL");
+        if ("true" == copyOption)
+            copyDll = true;
+    }
+    
+    if (WScript.Arguments.Named.Exists("LIBDIR"))
+        libdllFolder = WScript.Arguments.Named("LIBDIR");
     
     if (! fso.FolderExists(examplesDir))
     {
@@ -173,10 +197,22 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary)
     if (exeFolder.Name != buildType)
         return;
     
+    var dllCopied = false;
     var rx = new RegExp("^.+\\.(?:exe)$", "i");
     var enumExeFiles = new Enumerator(exeFolder.Files);
     for (; !enumExeFiles.atEnd(); enumExeFiles.moveNext())
     {
+        // temporary copy the dll to the executable
+        if (copyDll && !dllCopied)
+        {
+            var dllName = libFileName + buildType + ".dll";
+            var copyDllCmd = "cmd /c \"copy /Y " + libdllFolder + dllName +
+                             " " + exeDir + "\\" + dllName + "\"";
+                             
+            WshShell.Run(copyDllCmd, 7, true);
+            dllCopied = true;
+        }
+         
         var exeFileName = enumExeFiles.item().Name;
         if (! rx.test(exeFileName))
             continue;
@@ -204,9 +240,24 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary)
         else
             runNoChecks(runCmd, exeFileName, itemInfo, fileLog); 
             
-        readBuildLog(exeDir, itemInfo);
+        var unicodeLog = currentCfg == "msvc-8.0" ? true : false;
+        readBuildLog(exeDir, itemInfo, unicodeLog);
         saveBuildInfo(itemInfo, htmDir, "htm"); 
         saveBuildSummary(itemInfo, fileSummary);
+    }
+    
+    // delete the dll if it was copied
+    if (copyDll && dllCopied)
+    {
+        try
+        {
+            fso.DeleteFile(exeFolder.Path + "\\" + dllName);
+        }
+        catch(e)  // do nothing
+        {
+            fileLog.WriteLine("error: could not delete temporary file" + 
+                exeFolder.Path + "\\" + dllName);
+        }
     }
 }
 

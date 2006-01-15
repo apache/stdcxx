@@ -21,7 +21,7 @@ var hdrTests = "Test Summary";
 ////////////////////////////////////////////////////////////////////
 // read BuildLog.htm  
 
-function readBuildLog(exeDir, itemInfo)
+function readBuildLog(exeDir, itemInfo, useUnicode)
 {
     if (! fso.FolderExists(exeDir))
         return;
@@ -35,7 +35,8 @@ function readBuildLog(exeDir, itemInfo)
     if (! fso.FileExists(blogFilePath))
         return;
         
-    var blogFile = fso.OpenTextFile(blogFilePath);
+    var uniMode = (true == useUnicode) ? -1 : 0;
+    var blogFile = fso.OpenTextFile(blogFilePath, 1, false, uniMode);
     var blogData = blogFile.ReadAll();
     
     var posTmp = getCommandLinesInfo(itemInfo, blogData, 0);
@@ -52,7 +53,7 @@ function getCommandLinesInfo(itemInfo, blogData, posStart)
     var posCmdLines = blogData.indexOf(cmdLineTag, posStart);
     if (-1 == posCmdLines)
         return posStart;
-        
+            
     // extract table in the command lines block 
     itemInfo.buildCmdLog = extractTableData(blogData, posCmdLines);
     return posStart + itemInfo.buildCmdLog.length;
@@ -177,7 +178,7 @@ function extractTableData(blogData, posStart)
     // add them here
     var indexClose = tableData.lastIndexOf("</table>");
     tableData = tableData.substr(0, indexClose) + "</td></tr></table>";
-        
+    
     return tableData;
 }
 
@@ -598,7 +599,8 @@ function closeSummaryLog(fSum)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-function checkForFailures(testDir, bType, logHtm, sumHtm, htmTempDir, seeHtm)
+function checkForFailures(testDir, bType, logHtm, sumHtm, htmTempDir, 
+            seeHtm, useUnicode)
 {
     var testFolder = fso.GetFolder(testDir);
     if (! testFolder)
@@ -613,7 +615,7 @@ function checkForFailures(testDir, bType, logHtm, sumHtm, htmTempDir, seeHtm)
     {
         var htmFName = enumHtmSubFolders.item().Name;
         checkForFailures(testDir + "\\" + htmFName, bType,
-            logHtm, sumHtm, htmTempDir, seeHtmHere);
+            logHtm, sumHtm, htmTempDir, seeHtmHere, useUnicode);
     }
  
     if (false == seeHtmHere)
@@ -632,8 +634,10 @@ function checkForFailures(testDir, bType, logHtm, sumHtm, htmTempDir, seeHtm)
             
         var testInfo = new ItemBuildInfo(testFolder.Name);
         
+        var uniMode = (true == useUnicode) ? -1 : 0;
         var blogFile = 
-            fso.OpenTextFile(testFolder.Path + "\\" + htmFileName);
+            fso.OpenTextFile(testFolder.Path + "\\" + htmFileName, 
+                             1, false, uniMode);
         var blogData = blogFile.ReadAll();
     
         var posTmp = getCommandLinesInfo(testInfo, blogData, 0);

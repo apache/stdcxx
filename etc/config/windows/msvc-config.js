@@ -40,6 +40,16 @@ configurations.add(solutionVC71.name, solutionVC71);
 // configure the solution
 configureToolsVC71();
 
+// VC80 solution configuration
+var solutionVC80 = solution.clone();
+solutionVC80.name = vc80SolutionName;
+solutionVC80.version = "8.00";
+solutionVC80.formatVersion = "9.00";
+configurations.add(solutionVC80.name, solutionVC80);
+
+// configure the solution
+configureToolsVC80();
+
 // ICC solution configuration
 
 //clone VC71 solution
@@ -72,7 +82,6 @@ function configureToolsConfigure (solutionName,
         compilerReleaseConfigure.pdbName = "ICC.pdb";
     }
     
-    //var configureProj = solutionVC71.projects.get(projectConfigureName);
     var solutionCfg = getSolution(solutionName);
     var configureProj = solutionCfg.projects.get(projectConfigureName);
     var platform = configureProj.platforms.get(platformWin32Name);
@@ -181,7 +190,6 @@ function configureToolsExamples( solutionName,
     var linkerDebugExamples = linkerDebug.clone();
     var linkerReleaseExamples = linkerRelease.clone();
     
-    //var postExamplesDll = new PostBuildVC();
     var postExamplesDll = postBuildTool.clone();
     postExamplesDll.commands.add(varCmdCopyDll, varCmdCopyDll);
     
@@ -193,7 +201,6 @@ function configureToolsExamples( solutionName,
     compilerReleaseExamples.includeDirectories.add(samplesIncludeDir);
     compilerReleaseExamples.includeDirectories.add(samplesBaseAnsiIncludeDir);
     
-    //var examplesProj = solutionVC71.projects.get(projectExamplesName);
     var solutionCfg = getSolution(solutionName);
     var examplesProj = solutionCfg.projects.get(projectExamplesName);
     var platform = examplesProj.platforms.get(platformWin32Name);
@@ -319,7 +326,6 @@ function configureToolsTests( solutionName,
     var linkerDebugTests = linkerDebug.clone();
     var linkerReleaseTests = linkerRelease.clone();
     
-    //var postTestsDll = new PostBuildVC();
     var postTestsDll = postBuildTool.clone();
     postTestsDll.commands.add(varCmdCopyDll, varCmdCopyDll);
     
@@ -331,7 +337,6 @@ function configureToolsTests( solutionName,
     compilerReleaseTests.includeDirectories.add(testsIncludeDir);
     compilerReleaseTests.includeDirectories.add(testsBaseAnsiIncludeDir);
     
-    //var testsProj = solutionVC71.projects.get(projectTestsName);
     var solutionCfg = getSolution(solutionName);
     var testsProj = solutionCfg.projects.get(projectTestsName);
     var platform = testsProj.platforms.get(platformWin32Name);
@@ -468,7 +473,6 @@ function configureToolsRwTest( solutionName,
     compilerReleaseRwTest.includeDirectories.add(includeSecondParentDir);
     compilerReleaseRwTest.includeDirectories.add(includeSecondParentAnsiDir);
     
-    //var rwTestProj = solutionVC71.projects.get(projectRwTestName);
     var solutionCfg = getSolution(solutionName);
     var rwTestProj = solutionCfg.projects.get(projectRwTestName);
     var platform = rwTestProj.platforms.get(platformWin32Name);
@@ -581,7 +585,6 @@ function configureToolsRunExamples( solutionName,
 {
     var customRunEx = customTool.clone();
     
-    //var runExProj = solutionVC71.projects.get(projectRunExamplesName);
     var solutionCfg = getSolution(solutionName);
     var runExProj = solutionCfg.projects.get(projectRunExamplesName);
     var platform = runExProj.platforms.get(platformWin32Name);
@@ -607,24 +610,32 @@ function configureToolsRunExamples( solutionName,
     configuration.tools.add(customBuildToolName, customMTReleaseStaticRunEx);   
     
     // debug dll
+    var postTestsDebugDll = postBuildTool.clone();
     var customDebugDllRunEx = customRunEx.clone();
     var configuration = platform.configurations.get(confDebugDllName);
     configuration.tools.add(customBuildToolName, customDebugDllRunEx);  
+    configuration.tools.add(postBuildToolName, customDebugDllRunEx);  
     
     // release dll
+    var postTestsReleaseDll = postBuildTool.clone();
     var customReleaseDllRunEx = customRunEx.clone();
     var configuration = platform.configurations.get(confReleaseDllName);
-    configuration.tools.add(customBuildToolName, customReleaseDllRunEx);    
+    configuration.tools.add(customBuildToolName, customReleaseDllRunEx); 
+    configuration.tools.add(postBuildToolName, postTestsReleaseDll);     
     
     // multi-threaded debug dll
+    var postTestsDebugMTDll = postBuildTool.clone();
     var customMTDebugDllRunEx = customRunEx.clone();
     var configuration = platform.configurations.get(confMTDebugDllName);
-    configuration.tools.add(customBuildToolName, customMTDebugDllRunEx);    
+    configuration.tools.add(customBuildToolName, customMTDebugDllRunEx);
+    configuration.tools.add(postBuildToolName, postTestsDebugMTDll);      
     
     // multi-threaded release dll
+    var postTestsReleaseMTDll = postBuildTool.clone();
     var customMTReleaseDllRunEx = customRunEx.clone();
     var configuration = platform.configurations.get(confMTReleaseDllName);
-    configuration.tools.add(customBuildToolName, customMTReleaseDllRunEx);  
+    configuration.tools.add(customBuildToolName, customMTReleaseDllRunEx); 
+    configuration.tools.add(postBuildToolName, postTestsReleaseMTDll);  
 }
 
 
@@ -636,7 +647,6 @@ function configureToolsRunTests( solutionName,
 {
     var customRunEx = customTool.clone();
     
-    //var runTestsProj = solutionVC71.projects.get(projectRunTestsName);
     var solutionCfg = getSolution(solutionName);
     var runTestsProj = solutionCfg.projects.get(projectRunTestsName);
     var platform = runTestsProj.platforms.get(platformWin32Name);
@@ -662,24 +672,32 @@ function configureToolsRunTests( solutionName,
     configuration.tools.add(customBuildToolName, customMTReleaseStaticRunEx);   
     
     // debug dll
+    var postTestsDebugDll = postBuildTool.clone();
     var customDebugDllRunEx = customRunEx.clone();
     var configuration = platform.configurations.get(confDebugDllName);
     configuration.tools.add(customBuildToolName, customDebugDllRunEx);  
+    configuration.tools.add(postBuildToolName, postTestsDebugDll);  
     
     // release dll
+    var postTestsReleaseDll = postBuildTool.clone();
     var customReleaseDllRunEx = customRunEx.clone();
     var configuration = platform.configurations.get(confReleaseDllName);
-    configuration.tools.add(customBuildToolName, customReleaseDllRunEx);    
+    configuration.tools.add(customBuildToolName, customReleaseDllRunEx);  
+    configuration.tools.add(postBuildToolName, postTestsReleaseDll);  
     
     // multi-threaded debug dll
+    var postTestsDebugMTDll = postBuildTool.clone();
     var customMTDebugDllRunEx = customRunEx.clone();
     var configuration = platform.configurations.get(confMTDebugDllName);
-    configuration.tools.add(customBuildToolName, customMTDebugDllRunEx);    
+    configuration.tools.add(customBuildToolName, customMTDebugDllRunEx);
+    configuration.tools.add(postBuildToolName, postTestsDebugMTDll);    
     
     // multi-threaded release dll
+    var postTestsReleaseMTDll = postBuildTool.clone();
     var customMTReleaseDllRunEx = customRunEx.clone();
     var configuration = platform.configurations.get(confMTReleaseDllName);
-    configuration.tools.add(customBuildToolName, customMTReleaseDllRunEx);  
+    configuration.tools.add(customBuildToolName, customMTReleaseDllRunEx); 
+    configuration.tools.add(postBuildToolName, postTestsReleaseMTDll); 
 }
 
 
@@ -743,4 +761,66 @@ function configureToolsVC71()
 }
 
 
+
+function configureToolsVC80()
+{
+    // VC compilers
+    var compilerVCRelease = new CompilerVC(compilerWin32);
+    
+    var compilerVCDebug = compilerVCRelease.clone();
+    compilerVCDebug.isDebug = true;
+    
+    compilerVCRelease.optimization = "Size";
+    compilerVCRelease.debugInfoFormat = "PDB";
+    
+    compilerVCDebug.debugInfoFormat = "PDB";
+    
+    var compilerVC80Release = new CompilerVC80(compilerVCRelease);
+    var compilerVC80Debug = new CompilerVC80(compilerVCDebug);
+    
+    compilerVC80Release.defines.add("_CRT_SECURE_NO_DEPRECATE");
+    compilerVC80Debug.defines.add("_CRT_SECURE_NO_DEPRECATE");
+    
+    // VC linkers
+    var linkerVCDebug = new LinkerVC(linker);
+    linkerVCDebug.subsystem = "Console";
+    linkerVCDebug.incremental = "No";
+    var linkerVCRelease = linkerVCDebug.clone();
+    linkerVCRelease.optimizeRefs = "Remove";
+    linkerVCRelease.comdatFolding = "Remove";
+
+    // VC librarian
+    var librarianVC = new LibrarianVC(librarian);
+    
+    // VC custom
+    var customVC = new CustomBuildVC();
+    
+    // VC post build
+    var postVC = new PostBuildVC();
+    
+    // configure projects tools
+    configureToolsConfigure(vc80SolutionName, compilerVC80Debug, 
+        compilerVC80Release, linkerVCDebug, linkerVCRelease, 
+        librarianVC, customVC, postVC);
+        
+    configureToolsExamples(vc80SolutionName, compilerVC80Debug, 
+        compilerVC80Release, linkerVCDebug, linkerVCRelease, 
+        librarianVC, customVC, postVC);
+
+    configureToolsTests(vc80SolutionName, compilerVC80Debug, 
+        compilerVC80Release, linkerVCDebug, linkerVCRelease, 
+        librarianVC, customVC, postVC);
+        
+    configureToolsRwTest(vc80SolutionName, compilerVC80Debug, 
+        compilerVC80Release, linkerVCDebug, linkerVCRelease, 
+        librarianVC, customVC, postVC);
+        
+    configureToolsRunExamples(vc80SolutionName, compilerVC80Debug, 
+        compilerVC80Release, linkerVCDebug, linkerVCRelease, 
+        librarianVC, customVC, postVC);
+        
+    configureToolsRunTests(vc80SolutionName, compilerVC80Debug, 
+        compilerVC80Release, linkerVCDebug, linkerVCRelease, 
+        librarianVC, customVC, postVC);
+}
 

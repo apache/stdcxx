@@ -676,9 +676,11 @@ function checkHeaders(currentCfg)
         
             // determine which form of the header to #include
             var hdrname = hdr_base + ".h";
+            var hdrname2 = hdr_base + ".h";
             if (!useCHeader && !noNewHeaders)
             {
                 hdrname = "c" + hdr_base;
+                hdrname2 = "<c" + hdr_base + ">";
                 if (!noNamespaces)
                 {
                     std = "std::";
@@ -688,7 +690,7 @@ function checkHeaders(currentCfg)
             removeFile(exeFullName);
             removeFile(objFile);        
             WScript.StdOut.Write("Checking for " + std + funname + "() in "
-                                     + hdrname + "... ");
+                                     + hdrname2 + "... ");
             var sym = "_RWSTD_NO_" + funname.toUpperCase();
             var defines = new Array("CHECK_DECL", "HDRNAME=<" + hdrname + ">"
                                 , "FUNNAME=" + funname
@@ -715,7 +717,7 @@ function checkHeaders(currentCfg)
             {
                 // if a symbol isn't declared in the header,
                 // see if it maybe exists in the library
-                WScript.StdOut.WriteLine("\tno");
+                WScript.StdOut.WriteLine("\tno\t" + sym);
                 appendLineToOutFile("#define " + sym);
                 // that is quite strange because there is no LIBM on Windows?
                 sym = sym + "_IN_LIB" + lib.toUpperCase();
@@ -736,8 +738,8 @@ function checkHeaders(currentCfg)
                 }
                 else
                 {
-                    WScript.StdOut.WriteLine("  no");
                     appendLineToOutFile("#define " + sym);
+                    WScript.StdOut.WriteLine("  no\t\t" + sym);
                 }
             }
         }
@@ -933,6 +935,7 @@ function runExeTests()
             if (!((result == 0) ^ negate))
             {
                 symbol = "// " + symbol;
+                outSymbol = "";
             }
             appendLineToOutFile(symbol);
             if (descText && descText != "")

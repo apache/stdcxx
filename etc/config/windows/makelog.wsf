@@ -48,6 +48,8 @@ var summaryFileName = "Summary.htm";
 var htmFolderName = "temphtm";
 var buildSummaryPrefix = "msvc-7.1-";
 
+var buildLogUnicode = 0;
+
 var libBuildDir = "src";
 var examplesBuildDir = "examples";
 var testsBuildDir = "tests";
@@ -63,14 +65,15 @@ function makelog()
     var sumTempFileNameEx = buildDir + "\\" + examplesBuildDir + "\\" +
         buildType + "\\" + summaryFileName;
     
+    var useUnicode = (buildCfg == "msvc-8.0") ? true : false;
     checkForFailures(buildDir + "\\" + examplesBuildDir, buildType,
-        buildlogFile, sumTempFileNameEx, htmFolderName, false);
+        buildlogFile, sumTempFileNameEx, htmFolderName, false, useUnicode);
     
     var sumTempFileNameTst = buildDir + "\\" + testsBuildDir + "\\" +
         buildType + "\\" + summaryFileName;
         
     checkForFailures(buildDir + "\\" + testsBuildDir, buildType,
-        buildlogFile, sumTempFileNameTst, htmFolderName, false);
+        buildlogFile, sumTempFileNameTst, htmFolderName, false, useUnicode);
         
     // make build summary log file
     var fSum = makeSummaryLog(buildDirBase, buildSummaryPrefix, buildType);
@@ -80,7 +83,7 @@ function makelog()
     // read information about library
     var libInfo = new ItemBuildInfo(".stdlib");
     getLibraryBuildInfo(buildDir + "\\" + libBuildDir, buildType, libInfo);
-        
+    
     // and test driver
     var rwtestInfo = new ItemBuildInfo(".rwtest");
     getTestDriverBuildInfo(buildDir + "\\" + rwtestBuildDir, 
@@ -153,6 +156,9 @@ function readAndCheckArguments()
             
         WScript.Quit(3);
     }
+    
+    if (buildCfg == "msvc-8.0")
+        buildLogUnicode = -1;
 }
 
 function getLibraryBuildInfo(libDir, bType, libInfo)
@@ -165,7 +171,7 @@ function getLibraryBuildInfo(libDir, bType, libInfo)
     if (! fso.FileExists(blogFilePath))
         return;
         
-    var blogFile = fso.OpenTextFile(blogFilePath);
+    var blogFile = fso.OpenTextFile(blogFilePath, 1, false, buildLogUnicode);
     var blogData = blogFile.ReadAll();
     
     var posTmp = getCommandLinesInfo(libInfo, blogData, 0);
@@ -183,7 +189,7 @@ function getTestDriverBuildInfo(rwTestDir, bType, rwtestInfo)
     if (! fso.FileExists(blogFilePath))
         return;
         
-    var blogFile = fso.OpenTextFile(blogFilePath);
+    var blogFile = fso.OpenTextFile(blogFilePath, 1, false, buildLogUnicode);
     var blogData = blogFile.ReadAll();
     
     var posTmp = getCommandLinesInfo(rwtestInfo, blogData, 0);

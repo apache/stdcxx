@@ -847,3 +847,323 @@ CompilerVC71.prototype.getPreprocessCommandLine =
     getPreprocessCommandLineCompilerVC;
 CompilerVC71.prototype.writeSolutionSettings =
                         writeSolutionSettingsCompilerVC;
+                        
+                        
+//------------------------------------------------
+// CompilerVC80 class
+//------------------------------------------------
+
+function getCommandLineCompilerVC80()
+{
+    var cmdLine = "cl /c";
+    // nologo
+    if (this.nologo)
+    {
+        cmdLine += " /nologo";
+    }
+    // defines
+    cmdLine += buildOptionsVC(this.defines, "/D ");
+    // includes
+    cmdLine += buildOptionsVC(this.includeDirectories, "/I");
+    // warnings
+    cmdLine += " /W" + this.warningsLevel;
+    // exceptions
+    if (this.exceptions)
+    {
+        cmdLine += " /EHa";
+    }
+    // runtime
+    switch (this.runtime.toUpperCase())
+    {
+    case "MULTI":
+        cmdLine += " /MT";
+        break;
+    case "MULTIDEBUG":
+        cmdLine += " /MTd";
+        break;
+    case "MULTIDLL":
+        cmdLine += " /MD";
+        break;
+    case "MULTIDEBUGDLL":
+        cmdLine += " /MDd";
+        break;
+    case "SINGLE":
+        cmdLine += " /MT";
+        break;
+    default: // SingleDebug
+        cmdLine += " /MTd";
+    }
+    // minimalRebuild
+    if (this.minimalRebuild)
+    {
+        cmdLine += " /Gm";
+    }
+    switch (this.optimization.toUpperCase())
+    {
+    case "FULL":
+        cmdLine += " /Ox";
+        break;
+    case "SPEED":
+        cmdLine += " /O2";
+        break;
+    case "SIZE":
+        cmdLine += " /O1";
+        break;
+    default: // Diasbled
+        cmdLine += " /Od";
+    }
+    /*
+    // outfolder
+    var outDir = this.getOutputDir() + "\\";
+    if (outDir.length > 0)
+    {
+        cmdLine += " /Fo\"" + outDir + "\\\"";
+    }
+    */
+    // outfolder
+    var outDir = this.getIntermDir() + "\\";
+    if (outDir.length > 0)
+    {
+        cmdLine += " /Fo\"" + outDir + "\\\"";
+    }
+    // pch
+    var usePCH = true;
+    switch (this.precompiledHeader.toUpperCase())
+    {
+    case "USE":
+        cmdLine += " /Yu";
+        break;
+    case "AUTO":
+        cmdLine += " /YX";
+        break;
+    case "CREATE":
+        cmdLine += " /Yc";
+        break;
+    default:
+        usePCH = false;
+    }
+    if (usePCH)
+    {
+        if (this.pchBuildFrom.length > 0)
+        {
+            cmdLine += "\"" + this.pchBuildFrom + "\"";
+        }
+        else
+        {
+            cmdLine += "\"stdafx.h\"";
+        }
+        if (this.pchName.length > 0)
+        {
+            cmdLine += " /Fp\"" + outFir + this.pchName + "\"";
+        }
+    }
+    // pdb
+    var usePDB = true;
+    switch (this.debugInfoFormat.toUpperCase())
+    {
+    case "C7":
+        cmdLine += " /Z7";
+        break;
+    case "LINESONLY":
+        cmdLine += " /Zd";
+        break;
+    case "PDB":
+        cmdLine += " /Zi";
+        break;
+    case "EDITCONTINUE":
+        cmdLine += " /ZI";
+        break;
+    default:
+        usePDB = false;
+    }
+    if (usePDB && this.pdbName.length > 0)
+    {
+        cmdLine += " /Fd\"" + outDir + this.pdbName + "\"";
+    }
+    // output
+    if (this.outputFile.length > 0)
+    {
+        cmdLine += " /Fe\"" + outDir + this.outputFile + "\"";
+    }
+    // inputs
+    cmdLine += buildOptionsVC(this.inputFiles, "");
+    return cmdLine;
+}
+
+function writeSolutionSettingsCompilerVC80(vcproj, outDir)
+{
+    vcproj.WriteLine("\t\t\t<Tool")
+    vcproj.WriteLine("\t\t\t\tName=\"VCCLCompilerTool\"");
+    var opt = 0;
+    switch (this.optimization.toUpperCase())
+    {
+    case "SIZE":
+        opt = 1;
+        break;
+    case "SPEED":
+        opt = 2;
+        break;
+    case "FULL":
+        opt = 3;
+        break;
+    default:
+        // leave 0 (Disabled)
+    }
+    vcproj.WriteLine("\t\t\t\tOptimization=\"" + opt + "\"");
+    var includesArray = new Array();
+    for (i in this.includeDirectories)
+    {
+        if (!this.includeDirectories[i])
+        {
+            var findex = i.indexOf(varSign);
+            if (findex == 0)
+                includesArray.push(i.substr(varSign.length));
+            else
+                includesArray.push(outDir + i);
+        }
+    }
+    vcproj.WriteLine("\t\t\t\tAdditionalIncludeDirectories=\""
+                        + xmlencode(includesArray.join(";")) + "\"");
+    
+    var defsArray = new Array();
+    for (i in this.defines)
+    {
+        if (!this.defines[i])
+        {
+            defsArray.push(i);
+        }
+    }
+    vcproj.WriteLine("\t\t\t\tPreprocessorDefinitions=\""
+                    + xmlencode(defsArray.join(";")) + "\"");
+    vcproj.WriteLine("\t\t\t\tMinimalRebuild=\""
+                    + this.minimalRebuild.toString().toUpperCase() + "\"");
+    vcproj.WriteLine("\t\t\t\tExceptionHandling=\""
+                    + this.exceptions.toString().toUpperCase() + "\"");
+                        
+    //TODO: customize following 2 lines later
+    //vcproj.WriteLine("\t\t\t\tBasicRuntimeChecks=\"3\"");
+    vcproj.WriteLine("\t\t\t\tDetect64BitPortabilityProblems=\"FALSE\"");
+    
+    vcproj.WriteLine("\t\t\t\tSuppressStartupBanner=\""
+                        + this.nologo.toString().toUpperCase() + "\"");
+    
+    var runtime = "0";
+    switch (this.runtime.toUpperCase())
+    {
+        case "SINGLEDEBUG":
+            runtime = "1";
+            break;
+        case "SINGLE":
+            runtime = "0";
+            break;
+        case "MULTIDEBUGDLL":
+            runtime = "3";
+            break;
+        case "MULTIDLL":
+            runtime = "2";
+            break;
+        case "MULTIDEBUG":
+            runtime = "1";
+            break;
+        default:
+            // Multi, 0
+    }
+    vcproj.WriteLine("\t\t\t\tRuntimeLibrary=\"" + runtime + "\"");
+    if (this.pchBuildFrom.length > 0)
+    {
+        vcproj.WriteLine("\t\t\t\tPrecompiledHeaderThrough=\""
+                            + xmlencode(this.pchBuildFrom) + "\"");
+    }
+    if (this.pchName.length > 0)
+    {
+        vcproj.WriteLine("\t\t\t\tPrecompiledHeaderFile=\""
+                            + xmlencode(this.pchName) + "\"");
+    }
+    var usePh = "0";
+    switch (this.precompiledHeader.toUpperCase())
+    {
+    case "USE":
+        usePh = "3";
+        break;
+    case "AUTO":
+        usePh = "2";
+        break;
+    case "CREATE":
+        usePh = "1";
+        break;
+    default:
+        // No, 0        
+    }
+    vcproj.WriteLine("\t\t\t\tUsePrecompiledHeader=\"" + usePh + "\"");
+    
+    if (this.pdbName.length > 0)
+    {
+        vcproj.WriteLine("\t\t\t\tProgramDataBaseFileName=\""
+            + xmlencode(this.getIntermDir() + "\\" + this.pdbName) + "\"");
+    }
+    
+    vcproj.WriteLine("\t\t\t\tWarningLevel=\""
+                        + this.warningsLevel + "\"");
+    var diFormat = "0";
+    switch (this.debugInfoFormat.toUpperCase())
+    {
+        case "C7":
+            diFormat = "1";
+            break;
+        case "LINESONLY":
+            diFormat = "2";
+            break;
+        case "PDB":
+            diFormat = "3";
+            break;
+        case "EDITCONTINUE":
+            diFormat = "4";
+            break;
+        default:
+            // Disabled, 0
+    }   
+    vcproj.WriteLine("\t\t\t\tObjectFile=\""
+        + xmlencode(this.getIntermDir() + "\\" + this.outputFile) + "\"");
+
+    vcproj.WriteLine(
+        "\t\t\t\tDebugInformationFormat=\"" + diFormat + "\"/>");   
+}
+
+// VC 8.0 compiler options
+// todo: add these options
+// basicRuntimeChecks
+// detect64BitProblems = true | false
+
+// .ctor from base compiler
+function CompilerVC80(compilerVC)
+{
+    if (!compilerVC)
+    {
+        compilerVC = new CompilerVC();
+    }   
+    compilerVC.cloneTo(this);
+    //TODO: add
+    // basicRuntimeChecks
+    // detect64BitProblems = true | false
+    
+    this.cloneTo = genericCloneTo;
+    this.clone = genericClone;  
+    this.getOutputDir = getOutputDir;
+    this.getIntermDir = getIntermDir;
+    //TODO: change this line when new options will be added
+    this.getCommandLine = getCommandLineCompilerVC80;
+    this.getPreprocessCommandLine = getPreprocessCommandLineCompilerVC;
+    
+}
+
+//compilerVC class methods
+CompilerVC80.prototype.cloneTo = genericCloneTo;
+CompilerVC80.prototype.clone = genericClone;
+CompilerVC80.prototype.getOutputDir = getOutputDir;
+CompilerVC80.prototype.getIntermDir = getIntermDir;
+//TODO: change this line when new options will be added
+CompilerVC80.prototype.getCommandLine = getCommandLineCompilerVC80;
+CompilerVC80.prototype.getPreprocessCommandLine =
+    getPreprocessCommandLineCompilerVC;
+CompilerVC80.prototype.writeSolutionSettings =
+                        writeSolutionSettingsCompilerVC80;

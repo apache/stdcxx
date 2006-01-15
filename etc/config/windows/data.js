@@ -835,6 +835,9 @@ function getSolution(name)
 // VC71 solution 
 var vc71SolutionName = "msvc-7.1";
 
+// VC80 solution 
+var vc80SolutionName = "msvc-8.0";
+
 // ICC90 solution 
 var icc90SolutionName = "icc-9.0";
 
