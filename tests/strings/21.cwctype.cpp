@@ -112,6 +112,85 @@ const char* const cwctype_macros [] = {
 
 /**************************************************************************/
 
+#ifndef _RWSTD_NO_NAMESPACE
+
+// check types
+
+namespace Fallback {
+    typedef char wint_t [1234];
+    typedef char wctrans_t [1235];
+    typedef char wctype_t [1236];
+}    // Namespace Fallback
+
+namespace std {
+
+// define test functions in namespace std to detect the presece
+// or absence of the required types
+
+bool wint_t_defined ()
+{
+    using namespace Fallback;
+
+    return sizeof (wint_t) != sizeof (Fallback::wint_t);
+}
+
+bool wctrans_t_defined ()
+{
+    using namespace Fallback;
+
+    return sizeof (wctrans_t) != sizeof (Fallback::wctrans_t);
+}
+
+bool wctype_t_defined ()
+{
+    using namespace Fallback;
+    return sizeof (wctype_t) != sizeof (Fallback::wctype_t);
+}
+
+}   // namespace std
+
+const char std_name[] = "std";
+
+static void
+test_types ()
+{
+    rw_info (0, 0, 0,
+             "types %s::wint_t, %1$s::wctrans_t, and %1$s::wctype_t",
+             std_name);
+
+    rw_assert (std::wint_t_defined (), 0, 0,
+               "$s::wint_t not defined", std_name);
+
+    // TO DO: exercise wint_t requirements
+
+    rw_assert (std::wctrans_t_defined (), 0, 0,
+               "%s::wctrans_t not defined", std_name);
+
+    // TO DO: exercise wctrans_t requirements (must be a scalar type)
+
+    rw_assert (std::wctype_t_defined (), 0, 0,
+               "%s::wctype_t not defined", std_name);
+
+    // TO DO: exercise wctype_t requirements (must be a scalar type)
+}
+
+#else   // if defined (_RWSTD_NO_NAMESPACE)
+
+const char std_name[] = "";
+
+static void
+test_types ()
+{
+    rw_info (0, 0, 0,
+             "types %s::wint_t, %1s::wctrans_t, and %1s::wctype_t", std_name);
+
+    rw_note (0, 0, 0, "_RWSTD_NO_NAMESPACE defined, cannot test");
+}
+
+#endif   // _RWSTD_NO_NAMESPACE
+
+/**************************************************************************/
+
 // define function template overloads for the <cctype> functions with
 // the same name to detect whether the C versions are declared or not
 #define TEST_FUNCTION(name)                                             \
@@ -657,30 +736,32 @@ run_test (int, char**)
     rw_assert (weof_defined, 0, 0, "macro WEOF unexpectedly not #defined");
 
     //////////////////////////////////////////////////////////////////
-    rw_warn (0, 0, 0, "types wctrans_t and wctype_t not exercised");
+    test_types ();
 
     //////////////////////////////////////////////////////////////////
     // verify that each function is defined
-#define TEST(function)                                                  \
-    do {                                                                \
-        rw_info (0, 0, 0, "%s(std::wint_t) definition", #function);     \
-        function (std::wint_t (function_called = 1));                   \
-        rw_assert (1 == function_called, 0, __LINE__,                   \
-                   "%s (std::wint_t) not defined", #function);          \
+#define TEST(function)                                          \
+    do {                                                        \
+        rw_info (0, 0, 0, "%s::%s (%s::wint_t) definition",     \
+                 std_name, #function, std_name);                \
+        std::function (std::wint_t (function_called = 1));      \
+        rw_assert (1 == function_called, 0, __LINE__,           \
+                   "%s::%s (%s::wint_t) not defined",           \
+                   std_name, #function, std_name);              \
     } while (0)
 
-    TEST (std::iswalnum);
-    TEST (std::iswalpha);
-    TEST (std::iswcntrl);
-    TEST (std::iswdigit);
-    TEST (std::iswgraph);
-    TEST (std::iswlower);
-    TEST (std::iswprint);
-    TEST (std::iswpunct);
-    TEST (std::iswupper);
-    TEST (std::iswxdigit);
-    TEST (std::towlower);
-    TEST (std::towupper);
+    TEST (iswalnum);
+    TEST (iswalpha);
+    TEST (iswcntrl);
+    TEST (iswdigit);
+    TEST (iswgraph);
+    TEST (iswlower);
+    TEST (iswprint);
+    TEST (iswpunct);
+    TEST (iswupper);
+    TEST (iswxdigit);
+    TEST (towlower);
+    TEST (towupper);
 
     //////////////////////////////////////////////////////////////////
     if (rw_opt_no_behavior)
