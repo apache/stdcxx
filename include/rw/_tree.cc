@@ -2,7 +2,7 @@
  *
  * _tree.cc - Non-inline tree definitions for the Standard Library
  *
- * $Id: //stdlib/dev/include/rw/_tree.cc#22 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -812,7 +812,7 @@ erase (iterator __first, iterator __last)
         // return end()
         __tmp = end ();
     } else
-        for (__tmp = end (); __first != __last; __tmp = erase (__first++));
+        for (__tmp = end (); !(__first == __last); __tmp = erase (__first++));
 
     return __tmp;
 }
