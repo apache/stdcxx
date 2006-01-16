@@ -54,6 +54,8 @@ _USING (std::va_list);
 #include <loc/_locale.h>
 #include <loc/_localedef.h>
 
+#include <rw/_traits.h>   // for _RWSTD_WCSLEN()
+
 #include "iso2022.h"
 #include "setlocale.h"
 #include "use_facet.h"
@@ -520,7 +522,7 @@ __rw_libc_do_out (_RWSTD_MBSTATE_T &state,
         // compute the length of the source subsequence up to
         // and including the NUL and advance the source next
         // pointer just past it
-        const _RWSTD_SIZE_T nul_off = wcslen (from_next);
+        const _RWSTD_SIZE_T nul_off = _RWSTD_WCSLEN (from_next);
 
         from_next += nul_off;
 
