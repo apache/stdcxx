@@ -108,7 +108,7 @@ erase (iterator __it)
     // `it' must be a dereferenceable iterator into `*this'
 
     _RWSTD_ASSERT_RANGE (begin (), __it);
-    _RWSTD_ASSERT (__it != end ());
+    _RWSTD_ASSERT (!(__it == end ()));
     _RWSTD_ASSERT (_C_is_valid (0 /* valid and non-empty */));
 
     const iterator __next = ++iterator (__it);
@@ -370,7 +370,7 @@ _C_assign_n (size_type __n, const_reference __x)
     // avoid using the name __i or __it below so as not to trigger
     // a (bogus) gcc 2.95.2 -Wshadow warning: declaration of `__i'
     // shadows previous local
-    for (iterator __ix = begin (); __ix != __end; ++__ix, --__n) {
+    for (iterator __ix = begin (); !(__ix == __end); ++__ix, --__n) {
         if (size_type () == __n) {
             erase (__ix, __end);
             return;
@@ -507,7 +507,8 @@ __rw_assign_range (deque<_TypeT, _Allocator> *__self,
     // avoid using the name __i or __it below so as not to trigger
     // a (bogus) gcc 2.95.2 -Wshadow warning: declaration of `__i'
     // shadows previous local
-    for (iterator __ix = __self->begin (); __ix != __end; ++__ix, ++__first) {
+    for (iterator __ix = __self->begin (); !(__ix == __end);
+         ++__ix, ++__first) {
         if (__first == __last) {
             __self->erase (__ix, __end);
             return;
@@ -564,7 +565,7 @@ __rw_insert_range (deque<_TypeT, _Allocator> *__self, _DequeIter __it,
     // insert one element at a time to prevent a loss of data
     // from the input sequence in the case of an exception
 
-    for ( ; __first != __last; ++__it, ++__first)
+    for ( ; !(__first == __last); ++__it, ++__first)
         __it = __self->insert (__it, *__first); 
 
 #else   // if defined (_RWSTD_NO_EXT_DEQUE_INSERT_IN_PLACE)
