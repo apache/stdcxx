@@ -137,8 +137,11 @@ _RWSTD_NAMESPACE (__rw) {
 struct __rw_lt
 {
     template <class _TypeT, class _TypeU>
-    bool operator() (_TypeT &__lhs, _TypeU &__rhs) const {
-        return __lhs < __rhs;
+    bool operator() (const _TypeT &__lhs, const _TypeU &__rhs) const {
+        // cast away constness in case operator<
+        // takes a non-const argument
+        return   _RWSTD_CONST_CAST (_TypeT&, __lhs)
+               < _RWSTD_CONST_CAST (_TypeU&, __rhs);
     }
 };
 
