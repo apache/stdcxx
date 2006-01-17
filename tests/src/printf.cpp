@@ -24,6 +24,7 @@
 #include <testdefs.h>
 #include <printf.h>
 
+#include <ctype.h>    // for isalpha(), ...
 #include <errno.h>    // for errno, errno constants
 #include <float.h>    // for floating point macros
 #include <locale.h>
@@ -33,7 +34,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <wchar.h>
+
+#ifndef _RWSTD_NO_WCHAR_H
+#  include <wchar.h>
+#endif   // _RWSTD_NO_WCHAR_H
+
+#ifndef _RWSTD_NO_WCTYPE_H
+#  include <wctype.h>   // for iswalpha(), ...
+#endif   // _RWSTD_NO_WCTYPE_H
 
 #if defined (_WIN32) || defined (_WIN64)
    // define macros to enable Win98 + WinNT support in <windows.h>
@@ -122,6 +130,10 @@ _rw_fmtwstr (const FmtSpec&, char**, size_t*, const wchar_t*, size_t);
 static int
 _rw_fmterrno (const FmtSpec&, char**, size_t*, int);
 
+// format a character mask (alpha|alnum|...|xdigit)
+static int
+_rw_fmtmask (const FmtSpec&, char**, size_t*, int);
+
 // format struct tm
 static int
 _rw_fmttm (const FmtSpec&, char**, size_t*, const tm*);
@@ -181,7 +193,7 @@ struct FmtSpec
     // extension: optional parameter number
     long paramno;
 
-    // optional width and precision
+    // optional field width and precision
     int width;
     int prec;
 
@@ -275,6 +287,9 @@ _rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
 
     if (ext) {
         if ('$' == *fmt) {
+
+            // %{$<string>}: introduces the name of an environment
+            // variable (or some other string)
 
             ++fmt;
 
@@ -1082,8 +1097,8 @@ _rw_fmtlong (const FmtSpec &spec, char **pbuf, size_t *pbufsize, long val)
         end = buffer;
     }
 
-    *end = '\0';
-
+    // not NUL-terminated
+    RW_ASSERT (buffer < end);
     size = int (end - buffer);
 
     for (char *pc = buffer; pc < end; ++pc) {
@@ -1173,8 +1188,7 @@ _rw_fmtllong (const FmtSpec &spec,
     if (sign)
         *end++ = sign;
 
-    *end = '\0';
-
+    // not NUL-terminated
     RW_ASSERT (buffer < end);
     size = size_t (end - buffer);
 
@@ -1192,9 +1206,32 @@ _rw_fmtllong (const FmtSpec &spec,
 
 /********************************************************************/
 
+template <class IntT>
+inline int
+rw_fmtinteger (const FmtSpec &spec, char **pbuf, size_t *pbufsize, IntT val)
+{
+#ifdef _RWSTD_LONG_LONG
+
+    typedef _RWSTD_LONG_LONG LLong;
+
+    const int len = sizeof (val) <= sizeof (long) ?
+          _rw_fmtlong (spec, pbuf, pbufsize, long (val))
+        : _rw_fmtllong (spec, pbuf, pbufsize, LLong (val));
+
+#else   // if !defined (_RWSTD_LONG_LONG)
+
+    const int len = _rw_fmtlong (spec, pbuf, pbufsize, long (val));
+
+#endif   // _RWSTD_LONG_LONG
+
+    return len;
+}
+
+/********************************************************************/
+
 static int
 _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
-               char **pbuf, size_t *pbufsize, va_list *pva)
+                char **pbuf, size_t *pbufsize, va_list *pva)
 {
     int len = -1;
 
@@ -1214,26 +1251,26 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
             // promoted signed char argument
             spec.param.i = PARAM (int, i);
             const signed char val = spec.param.i;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, long (val));
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
         }
         else if (spec.mod_h) {
             // promoted signed short argument
             spec.param.i = PARAM (int, i);
             const short val = spec.param.i;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, long (val));
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
         }
         else if (spec.mod_l) {   // %li
             spec.param.lng = PARAM (long, lng);
-            len = _rw_fmtlong (spec, pbuf, pbufsize, spec.param.lng);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, spec.param.lng);
         }
         else if (spec.mod_ll) {   // %lli
 
 #ifdef _RWSTD_LONG_LONG
             spec.param.llong = PARAM (_RWSTD_LONG_LONG, llong);
-            len = _rw_fmtllong (spec, pbuf, pbufsize, spec.param.llong);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, spec.param.llong);
 #elif 8 == _RWSTD_LONG_SIZE
-            spec.param.llong = PARAM (long, lnng);
-            len = _rw_fmtlong (spec, pbuf, pbufsize, spec.param.llong);
+            spec.param.lng = PARAM (long, lng);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, spec.param.lng);
 #else
             RW_ASSERT (!"%lld, %lli: long long not supported");
 
@@ -1241,31 +1278,22 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
         }
         else if (spec.mod_t) {
             spec.param.diff = PARAM (ptrdiff_t, diff);
-            if (sizeof (ptrdiff_t) == sizeof (long)) {
-                len = _rw_fmtlong (spec, pbuf, pbufsize, spec.param.diff);
-            }
-            else {
-#ifdef _RWSTD_LONG_LONG
-                len = _rw_fmtllong (spec, pbuf, pbufsize, spec.param.diff);
-#else   // if !defined (_RWSTD_LONG_LONG)
-                RW_ASSERT (!"%td, %ti: 64-bit types not supported");
-#endif   // _RWSTD_LONG_LONG
-            }
+            len = rw_fmtinteger (spec, pbuf, pbufsize, spec.param.diff);
         }
         else if (1 == spec.iwidth) {
             spec.param.i = PARAM (int, i);
             const _RWSTD_INT8_T val = spec.param.i;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
         }
         else if (2 == spec.iwidth) {
             spec.param.i = PARAM (int, i);
             const _RWSTD_INT16_T val = spec.param.i;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
         }
         else if (3 == spec.iwidth) {
             spec.param.i32 = PARAM (_RWSTD_INT32_T, i32);
             const long val = long (spec.param.i32);
-            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
         }
         else if (4 == spec.iwidth) {
 
@@ -1277,17 +1305,17 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
 
 #if 8 == _RWSTD_LONG_SIZE
             const long val = spec.param.i64;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
 #elif defined (_RWSTD_LONG_LONG)
             const _RWSTD_LONG_LONG val = spec.param.i64;
-            len = _rw_fmtllong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
 #else
             RW_ASSERT (!"%I64d, %I64i: 64-bit types not supported");
 #endif
         }
         else {   // %i
             spec.param.i = PARAM (int, i);
-            len = _rw_fmtlong (spec, pbuf, pbufsize, long (spec.param.i));
+            len = rw_fmtinteger (spec, pbuf, pbufsize, spec.param.i);
         }
         break;
 
@@ -1310,23 +1338,23 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
             // promoted unsigned char argument
             spec.param.i = PARAM (unsigned, i);
             const unsigned char val = spec.param.i;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, (unsigned long)val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
         }
         else if (spec.mod_h) {
             // promoted unsigned short argument
             spec.param.i = PARAM (unsigned, i);
             const unsigned short val = spec.param.i;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, (unsigned long)val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
         }
         else if (spec.mod_ll) {
 #ifdef _RWSTD_LONG_LONG
             spec.param.llong = PARAM (unsigned _RWSTD_LONG_LONG, llong);
             const unsigned _RWSTD_LONG_LONG val = spec.param.llong;
-            len = _rw_fmtllong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
 #elif 8 == _RWSTD_LONG_SIZE
             spec.param.lng = PARAM (unsigned long, lng);
             const unsigned long val = spec.param.lng;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
 #else
             RW_ASSERT (!"long long not supported");
 #endif   // _RWSTD_LONG_LONG
@@ -1335,35 +1363,26 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
         else if (spec.mod_l) {
             spec.param.lng = PARAM (unsigned long, lng);
             const unsigned long val = spec.param.lng;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
         }
         else if (spec.mod_t) {
-            spec.param.lng = PARAM (size_t, size);
-            if (sizeof (size_t) == sizeof (unsigned long)) {
-                len = _rw_fmtlong (spec, pbuf, pbufsize, spec.param.size);
-            }
-            else {
-#ifdef _RWSTD_LONG_LONG
-                len = _rw_fmtllong (spec, pbuf, pbufsize, spec.param.size);
-#else   // if defined (_RWSTD_LONG_LONG)
-                RW_ASSERT (!"%to, %tu, %tx: 64-bit types not implemented");
-#endif   // _RWSTD_LONG_LONG
-            }
+            spec.param.size = PARAM (size_t, size);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, spec.param.size);
         }
         else if (1 == spec.iwidth) {
             spec.param.i = PARAM (int, i);
             const _RWSTD_UINT8_T val = spec.param.i;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
         }
         else if (2 == spec.iwidth) {
             spec.param.i = PARAM (int, i);
             const long val = (unsigned short)spec.param.i;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
         }
         else if (3 == spec.iwidth) {
             spec.param.i32 = PARAM (_RWSTD_INT32_T, i32);
             const long val = long (unsigned (spec.param.i));
-            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
         }
         else if (4 == spec.iwidth) {
 #ifdef _RWSTD_INT64_T
@@ -1374,10 +1393,10 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
 
 #if 8 == _RWSTD_LONG_SIZE
             const unsigned long val = spec.param.i64;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
 #elif defined (_RWSTD_LONG_LONG)
             const unsigned _RWSTD_LONG_LONG val = spec.param.i64;
-            len = _rw_fmtllong (spec, pbuf, pbufsize, val);
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
 #else
             RW_ASSERT (!"%I64o, %I64u, %I64x: 64-bit types not supported");
 #endif
@@ -1385,7 +1404,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno,
         else {
             spec.param.i = PARAM (unsigned, i);
             const unsigned val = spec.param.i;
-            len = _rw_fmtlong (spec, pbuf, pbufsize, long (val));
+            len = rw_fmtinteger (spec, pbuf, pbufsize, val);
         }
         
         break;
@@ -1585,6 +1604,9 @@ _rw_fmtbadaddr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
                 const void *addr)
 {
     const size_t buflen = *pbuf ? strlen (*pbuf) : 0;
+
+    if (0 == addr)
+        return _rw_bufcat (pbuf, pbufsize, "(null)", 6) ? 6 : -1;
 
     if (0 == _rw_bufcat (pbuf, pbufsize, "(invalid address ", 18))
         return -1;
@@ -2077,13 +2099,101 @@ _rw_fmterrno (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
 /********************************************************************/
 
 static int
-_rw_fmttm (const FmtSpec &spec, char **pbuf, size_t *pbufsize, const tm *tmb)
+_rw_fmtmask (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int c)
 {
-    if (0 == tmb) {
-        return _rw_fmtstr (spec, pbuf, pbufsize, "(null)", _RWSTD_SIZE_MAX);
+    enum {
+        bit_alnum  = 1,
+        bit_alpha  = 1 << 1,
+        bit_cntrl  = 1 << 2,
+        bit_digit  = 1 << 3,
+        bit_graph  = 1 << 4,
+        bit_lower  = 1 << 5,
+        bit_print  = 1 << 6,
+        bit_punct  = 1 << 7,
+        bit_space  = 1 << 8,
+        bit_upper  = 1 << 9,
+        bit_xdigit = 1 << 10
+    };
+
+    int mask = 0;
+
+    if (spec.mod_l) {
+
+#ifndef _RWSTD_NO_WCHAR_H
+
+        mask |= iswalnum (c) ? bit_alnum : 0;
+        mask |= iswalpha (c) ? bit_alpha : 0;
+        mask |= iswcntrl (c) ? bit_cntrl : 0;
+        mask |= iswdigit (c) ? bit_digit : 0;
+        mask |= iswgraph (c) ? bit_graph : 0;
+        mask |= iswlower (c) ? bit_lower : 0;
+        mask |= iswprint (c) ? bit_print : 0;
+        mask |= iswpunct (c) ? bit_punct : 0;
+        mask |= iswspace (c) ? bit_space : 0;
+        mask |= iswupper (c) ? bit_upper : 0;
+        mask |= iswxdigit (c) ? bit_xdigit : 0;
+
+#endif   // _RWSTD_NO_WCHAR_H
+
+    }
+    else {
+        typedef unsigned char UChar;
+
+        const UChar uc = c;
+
+        mask |= isalnum (uc) ? bit_alnum : 0;
+        mask |= isalpha (uc) ? bit_alpha : 0;
+        mask |= iscntrl (uc) ? bit_cntrl : 0;
+        mask |= isdigit (uc) ? bit_digit : 0;
+        mask |= isgraph (uc) ? bit_graph : 0;
+        mask |= islower (uc) ? bit_lower : 0;
+        mask |= isprint (uc) ? bit_print : 0;
+        mask |= ispunct (uc) ? bit_punct : 0;
+        mask |= isspace (uc) ? bit_space : 0;
+        mask |= isupper (uc) ? bit_upper : 0;
+        mask |= isxdigit (uc) ? bit_xdigit : 0;
     }
 
-    if (0 > _RW::__rw_memattr (tmb, sizeof *tmb, 0)) {
+    char mask_str [80];
+    char *str = mask_str;
+
+    str [0] = '\0';
+
+#define APPEND(bit)                             \
+    if (mask & bit_ ## bit)                     \
+        strcat (strcat (str, #bit), "|");       \
+    else (void)0
+
+    APPEND (alnum);
+    APPEND (alpha);
+    APPEND (cntrl);
+    APPEND (digit);
+    APPEND (graph);
+    APPEND (lower);
+    APPEND (print);
+    APPEND (punct);
+    APPEND (space);
+    APPEND (upper);
+    APPEND (xdigit);
+
+    if (str == mask_str)
+        *str = '\0';
+    else
+        str [-1] = '\0';
+
+    const size_t len = strlen (str);
+    if (0 == _rw_bufcat (pbuf, pbufsize, str, len))
+        return -1;
+
+    return int (len);
+}
+
+/********************************************************************/
+
+static int
+_rw_fmttm (const FmtSpec &spec, char **pbuf, size_t *pbufsize, const tm *tmb)
+{
+    if (0 == tmb || 0 > _RW::__rw_memattr (tmb, sizeof *tmb, 0)) {
         return _rw_fmtbadaddr (spec, pbuf, pbufsize, tmb);
     }
 
@@ -2486,36 +2596,48 @@ int rw_quotechar (char *buf, charT wc, int noesc)
 }
 
 
-template <class charT>
-int rw_quotestr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
-                 const charT *wstr, size_t nchars, int noesc)
+enum {
+    A_ESC   = 1,        // use escape sequences
+    A_CHAR  = 1 << 1,   // format each element as a char
+    A_WCHAR = 1 << 2    // format each element as a wchar_t
+};
+
+template <class elemT>
+int rw_fmtarray (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
+                 const elemT *array,   // pointer to first element
+                 size_t       nelems,  // number of elements
+                 int          flags)
 {
     RW_ASSERT (0 != pbuf);
 
-    if (!wstr) {
-        static const charT null[] = { '(', 'n', 'u', 'l', 'l', ')', '\0' };
-        wstr   = null;
-        nchars = sizeof null / sizeof *null - 1;
-    }
+    if (0 == array || 0 > _RW::__rw_memattr (array, _RWSTD_SIZE_MAX, 0))
+        return _rw_fmtbadaddr (spec, pbuf, pbufsize, array);
 
-    if (0 > _RW::__rw_memattr (wstr, _RWSTD_SIZE_MAX, 0)) {
-        return _rw_fmtbadaddr (spec, pbuf, pbufsize, wstr);
-    }
-
-    if (_RWSTD_SIZE_MAX == nchars) {
+    if (_RWSTD_SIZE_MAX == nelems) {
         // compute the length of the NUL-terminate string
-        nchars = 0;
-        for (const charT *pc = wstr; *pc; ++pc, ++nchars);
+        nelems = 0;
+        for (const elemT *pc = array; *pc; ++pc, ++nelems);
     }
 
-    char *next = _rw_bufcat (pbuf, pbufsize, 0, (nchars + 1) * 12 + 3);
+    // separator string to insert between numerical elements
+    const char* const sep = flags & (A_CHAR | A_WCHAR) ?
+        "" : spec.strarg ? spec.strarg : ",";
+
+    // length of the separator string
+    const size_t seplen = strlen (sep);
+
+    // compute the size of the buffer to preallocate
+    const size_t bufsize = (nelems + 1) * (65 + seplen) + 3;
+
+    // preallocate a buffer large enough for the formatted array
+    char *next = _rw_bufcat (pbuf, pbufsize, 0, bufsize);
     const char* const bufend = next;
 
     if (0 == next)
         return -1;
 
-    if (0 == nchars) {
-        if (noesc) {
+    if (0 == nelems) {
+        if (!(flags & A_ESC)) {
 
 #if 0   // width handling disabled (width used for array formatting)
             for (int w = 0; w < spec.width; ++w)
@@ -2524,7 +2646,7 @@ int rw_quotestr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
 
         }
         else {
-            if (_RWSTD_WCHAR_T_SIZE == sizeof (charT))
+            if (_RWSTD_WCHAR_T_SIZE == sizeof (elemT))
                 *next++ = 'L';
 
             *next++ = '"';
@@ -2540,84 +2662,150 @@ int rw_quotestr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
 
     char *s = next;
 
-    const charT *last = wstr;
+    const elemT *last = array;
 
     bool any_repeats = false;
-    long last_repeat = noesc ? 0L : -1L;
+    long last_repeat = flags & A_ESC ? -1L : 0L;
 
-    char chstr [16];
+    // large enough for a 64-bit integer in binary notation
+    char elemstr [65];
 
-    const ptrdiff_t N = ptrdiff_t (noesc ? 0 : 20);
+    const ptrdiff_t N = ptrdiff_t (flags & A_ESC ? 20 : 0);
 
-    for (const charT *pwc = last + 1; ; ++pwc) {
+    for (const elemT *pelem = last + 1; ; ++pelem) {
 
-        if (*pwc == *last && size_t (pwc - wstr) < nchars) {
-            // if the last processed character repeats, continue
-            // until a different character is encountered
+        if (*pelem == *last && size_t (pelem - array) < nelems) {
+            // if the last processed element repeats, continue
+            // until a different element is encountered
             continue;
         }
 
-        if (N > 1 && pwc - last > N) {
+        if (N > 1 && pelem - last > N) {
 
-            // if the last processed character repeats N or more
+            // if the last processed element repeats N or more
             // times, format the repeat count instead of all the
-            // repeated occurrences of the character to conserve
+            // repeated occurrences of the element to conserve
             // space and make the string more readable
 
-            const long repeat = pwc - last;
+            const long repeat = pelem - last;
 
-            rw_quotechar (chstr, *last, noesc);
+            if (flags & (A_CHAR | A_WCHAR)) {
+                // format element into elemstr as a character
+                rw_quotechar (elemstr, *last, !(flags & A_ESC));
 
-            s += sprintf (s, "%s'%s' <repeats %ld times>",
-                            -1 == last_repeat ? ""
-                          :  0 == last_repeat ? "\", " : ", ",
-                          chstr, repeat);
+                s += sprintf (s, "%s'%s' <repeats %ld times>",
+                                -1 == last_repeat ? ""
+                              :  0 == last_repeat ? "\", " : ", ",
+                              elemstr, repeat);
+            }
+            else {
+                // format element into elemstr as an integer
+                char *localbuf = elemstr;
+                size_t localbufsize = sizeof elemstr;
 
-            last = pwc;
+                *localbuf = '\0';
+                const int intlen =
+                    rw_fmtinteger (spec, &localbuf, &localbufsize, *last);
+
+                // no error should happen
+                RW_ASSERT (0 < intlen);
+
+                localbuf [intlen] = '\0';
+
+                // verify that rw_fmtinteger didn't try to reallocate
+                RW_ASSERT (localbuf == elemstr);
+
+                s += sprintf (s, "%s%s <repeats %ld times>%s",
+                              last_repeat < 1 ? "" : sep, elemstr, repeat, sep);
+            }
+
+            last = pelem;
 
             any_repeats = true;
             last_repeat = repeat;
         }
         else {
-            // otherwise (if the last processed character repeats
-            // fewer than N times) format the character that many
+            // otherwise (if the last processed element repeats
+            // fewer than N times) format the element that many
             // times
 
             if (last_repeat < 0) {
-                // opening quote
-                if (_RWSTD_WCHAR_T_SIZE == sizeof (charT)) {
-                    *s++ = 'L';
+                if (flags & (A_CHAR | A_WCHAR)) {
+                    // insert an opening quote (preceded by the 'L'
+                    // prefix for wchar_t arrays)
+                    if (_RWSTD_WCHAR_T_SIZE == sizeof (elemT)) {
+                        *s++ = 'L';
+                    }
+                    *s++ = '\"';
                 }
-                *s++ = '\"';
             }
             else if (last_repeat > 0) {
-                *s++ = ',';
-                *s++ = ' ';
-                *s++ = '\"';
+                if (flags & (A_CHAR | A_WCHAR)) {
+                    // append a comma after a preceding "<repeats N times>"
+                    *s++ = ',';
+                    *s++ = ' ';
+                    // append an opening quote for character arrays
+                    *s++ = '\"';
+                }
             }
 
-            rw_quotechar (chstr, *last, noesc);
+            if (flags & (A_CHAR | A_WCHAR)) {
+                // format element into elemstr as a character
+                rw_quotechar (elemstr, *last, !(flags & A_ESC));
+            }
+            else {
+                // format element into elemstr as an integer
+                char *localbuf = elemstr;
+                size_t localbufsize = sizeof elemstr;
 
-            while (last != pwc) {
-                s += sprintf (s, "%s", chstr);
-                ++last;
+                *localbuf = '\0';
+                const int intlen =
+                    rw_fmtinteger (spec, &localbuf, &localbufsize, *last);
+
+                // no error should happen
+                RW_ASSERT (0 < intlen);
+
+                localbuf [intlen] = '\0';
+
+                // verify that rw_fmtinteger didn't try to reallocate
+                RW_ASSERT (localbuf == elemstr);
+            }
+
+            const size_t elemlen = strlen (elemstr);
+
+            for ( ; last != pelem; ++last) {
+                memcpy (s, elemstr, elemlen);
+                s += elemlen;
+                memcpy (s, sep, seplen + 1);
+                s += seplen;
             }
 
             last_repeat = 0;
 
-            if (size_t (pwc - wstr) == nchars) {
-                if (!noesc)
+            if (size_t (pelem - array) == nelems) {
+                if (flags & (A_CHAR | A_WCHAR) && flags & A_ESC)
                     *s++ = '\"';
+
+                // eliminate the last separator
+                s -= seplen;
                 *s = '\0';
+
                 break;
             }
         }
 
-        if (size_t (pwc - wstr) == nchars)
+        if (size_t (pelem - array) == nelems) {
+            // eliminate the last separator
+            s -= seplen;
+            *s = '\0';
+
             break;
+        }
     }
 
     if (any_repeats) {
+        // enclose the whole thing in curly braces if any repeated elements
+        // have been formatted using the "... <repeats N times>" syntax
         const size_t len = strlen (next);
         memmove (next + 2, next, len);
         next [0] = '{';
@@ -2629,6 +2817,79 @@ int rw_quotestr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
     }
 
     return int (s - bufend);
+}
+
+/********************************************************************/
+
+static int
+_rw_fmtarray (FmtSpec *pspec, size_t paramno,
+              char **pbuf, size_t *pbufsize, va_list *pva)
+{
+    RW_ASSERT (0 != pspec);
+
+    FmtSpec &spec = pspec [paramno];
+
+    // save width and set to unspecified (i.e., 1)
+    const int width = spec.width;
+    spec.width = -1;
+
+    const int flags = 'c' == spec.cvtspec ?
+        A_CHAR | A_ESC : spec.fl_pound ? A_ESC : 0;
+
+    // to format an array of integers using the 0 or 0x/0X prefix
+    // both the pound and the zero flags must be set; clear the pound
+    // flag unless zero is also set
+    const unsigned pound = spec.fl_pound;
+    if (0 == spec.fl_zero)
+        spec.fl_pound = 0;
+
+    const size_t nelems = spec.prec;
+    spec.prec = -1;
+
+    int len = -1;
+
+    // array formatting: width determines the width of each array element,
+    // precision the number of elements (when negative the array is taken
+    // to extend up to but not including the first 0 element)
+    if (-1 == width || 1 == width) {
+        spec.param.ptr = PARAM (_RWSTD_UINT8_T*, ptr);
+        const _RWSTD_UINT8_T* const array = (_RWSTD_UINT8_T*)spec.param.ptr;
+        // note that when no precision is specified in the format string
+        // (e.g., "%{Ac}") its value will be -1 and the function will format
+        // all elements up to but excluding the terminating 0
+        len = rw_fmtarray (spec, pbuf, pbufsize, array, nelems, flags);
+    }
+    else if (2 == width) {
+        spec.param.ptr = PARAM (_RWSTD_UINT16_T*, ptr);
+        const _RWSTD_UINT16_T* const array = (_RWSTD_UINT16_T*)spec.param.ptr;
+        len = rw_fmtarray (spec, pbuf, pbufsize, array, nelems, flags);
+    }
+    else if (4 == width) {
+        spec.param.ptr = PARAM (_RWSTD_UINT32_T*, ptr);
+        const _RWSTD_UINT32_T* const array = (_RWSTD_UINT32_T*)spec.param.ptr;
+        len = rw_fmtarray (spec, pbuf, pbufsize, array, nelems, flags);
+    }
+
+#ifdef _RWSTD_UINT64_T
+
+    else if (8 == width) {
+        spec.param.ptr = PARAM (_RWSTD_UINT64_T*, ptr);
+        const _RWSTD_UINT64_T* const array = (_RWSTD_UINT64_T*)spec.param.ptr;
+        len = rw_fmtarray (spec, pbuf, pbufsize, array, nelems, flags);
+    }
+
+#endif   // _RWSTD_UINT64_T
+
+    else {
+        RW_ASSERT (!"%{Ac} not implemented for this character size");
+    }
+
+    // restore modified members
+    spec.fl_pound = pound;
+    spec.prec     = int (nelems);
+    spec.width    = width;
+
+    return len;
 }
 
 /********************************************************************/
@@ -2680,14 +2941,10 @@ _rw_fmtstr (const FmtSpec &spec,
            char **pbuf, size_t *pbufsize, const char *str, size_t len)
 {
     if (spec.fl_pound)
-        return rw_quotestr (spec, pbuf, pbufsize, str, len, 0);
+        return rw_fmtarray (spec, pbuf, pbufsize, str, len, A_CHAR | A_ESC);
 
-    if (0 == str)
-        str = "(null)";
-
-    if (0 > _RW::__rw_memattr (str, _RWSTD_SIZE_MAX, 0)) {
+    if (0 == str || 0 > _RW::__rw_memattr (str, _RWSTD_SIZE_MAX, 0))
         return _rw_fmtbadaddr (spec, pbuf, pbufsize, str);
-    }
 
     if (_RWSTD_SIZE_MAX == len)
         len = strlen (str);
@@ -2740,7 +2997,7 @@ static int
 _rw_fmtwstr (const FmtSpec &spec,
             char **pbuf, size_t *pbufsize, const wchar_t *wstr, size_t len)
 {
-    return rw_quotestr (spec, pbuf, pbufsize, wstr, len, 1);
+    return rw_fmtarray (spec, pbuf, pbufsize, wstr, len, A_WCHAR | A_ESC);
 }
 
 /********************************************************************/
@@ -3114,7 +3371,7 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         else {
             // misplaced "%{:}"?
             static const char str[] = "%{:}";
-            len = rw_quotestr (spec, pbuf, pbufsize, str, _RWSTD_SIZE_MAX, 0);
+            len = _rw_fmtstr (spec, pbuf, pbufsize, str, _RWSTD_SIZE_MAX);
         }
         break;
 
@@ -3126,57 +3383,13 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         else {
             // misplaced "%{;}"?
             static const char str[] = "%{;}";
-            len = rw_quotestr (spec, pbuf, pbufsize, str, _RWSTD_SIZE_MAX, 0);
+            len = _rw_fmtstr (spec, pbuf, pbufsize, str, _RWSTD_SIZE_MAX);
         }
         break;
 
     case 'c':   // %{c}, %{Ac}, %{Lc}, %{lc}
-        if (spec.mod_A) {
-            // array formatting: width determines the width of each
-            // array element, precision the number of elements (when
-            // negative the array is taken to extend up to but not
-            // including the first NUL (0) element
-            if (-1 == spec.width || 1 == spec.width) {
-                spec.param.ptr = PARAM (_RWSTD_UINT8_T*, ptr);
-                const _RWSTD_UINT8_T* const array =
-                    (_RWSTD_UINT8_T*)spec.param.ptr;
-                // note that when no precision is specified in the format
-                // string (e.g., "%{Ac}") its value will be -1 and the
-                // function will format all characters up to but excluding
-                // the terminating NUL
-                len = rw_quotestr (spec, pbuf, pbufsize, array,
-                                   spec.prec, 0);
-            }
-            else if (2 == spec.width) {
-                spec.param.ptr = PARAM (_RWSTD_UINT16_T*, ptr);
-                const _RWSTD_UINT16_T* const array =
-                    (_RWSTD_UINT16_T*)spec.param.ptr;
-                len = rw_quotestr (spec, pbuf, pbufsize, array,
-                                   spec.prec, 0);
-            }
-            else if (4 == spec.width) {
-                spec.param.ptr = PARAM (_RWSTD_UINT32_T*, ptr);
-                const _RWSTD_UINT32_T* const array =
-                    (_RWSTD_UINT32_T*)spec.param.ptr;
-                len = rw_quotestr (spec, pbuf, pbufsize, array,
-                                   spec.prec, 0);
-            }
-
-#ifdef _RWSTD_UINT64_T
-
-            else if (8 == spec.width) {
-                spec.param.ptr = PARAM (_RWSTD_UINT64_T*, ptr);
-                const _RWSTD_UINT64_T* const array =
-                    (_RWSTD_UINT64_T*)spec.param.ptr;
-                len = rw_quotestr (spec, pbuf, pbufsize, array,
-                                   spec.prec, 0);
-            }
-
-#endif   // _RWSTD_UINT64_T
-
-            else {
-                RW_ASSERT (!"%{Ac} not implemented for this character size");
-            }
+        if (spec.mod_A) {   // array of characters
+            len = _rw_fmtarray (pspec, paramno, pbuf, pbufsize, pva);
         }
         else if (spec.mod_L) {   // locale category or LC_XXX constant
             spec.param.i = PARAM (int, i);
@@ -3226,19 +3439,41 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         else {
             RW_ASSERT (!"%{g} not implemented");
         }
+        break;
 
     case 'd':   // %{Id}
     case 'i':   // %{Ii}
+        if (-1 == spec.base)
+            spec.base = 10;
+        // fall through
+
     case 'o':   // %{Io}
         if (spec.mod_I) {   // ios::openmode
             spec.param.i = PARAM (int, i);
             len = _rw_fmtopenmode (spec, pbuf, pbufsize, spec.param.i);
             break;
         }
-    case 'x':   // %{x}
-    case 'X':   // %{X}
-    case 'u':   // %{u}
-        len = _rw_fmtinteger (pspec, paramno, pbuf, pbufsize, pva);
+        if (-1 == spec.base)
+            spec.base = 8;
+        // fall through
+
+    case 'x':   // %{x}, %{Ax}
+    case 'X':   // %{X}, %{AX}
+        if (-1 == spec.base)
+            spec.base = 16;
+        // fall through
+
+    case 'u':   // %{u}, %{Au}
+        if (spec.mod_A) {   // array
+            if (-1 == spec.base)
+                spec.base = 10;
+            len = _rw_fmtarray (pspec, paramno, pbuf, pbufsize, pva);
+        }
+        else {
+            // reset base set above
+            spec.base = -1;
+            len = _rw_fmtinteger (pspec, paramno, pbuf, pbufsize, pva);
+        }
         break;
 
     case 'K':   // %{K} -- signal
@@ -3336,12 +3571,14 @@ libstd_vasnprintf (FmtSpec *pspec, size_t paramno,
         else if (spec.mod_l) {   // wchar_t*
             spec.param.ptr = PARAM (wchar_t*, ptr);
             const wchar_t* const wstr = (wchar_t*)spec.param.ptr;
-            len = rw_quotestr (spec, pbuf, pbufsize, wstr, _RWSTD_SIZE_MAX, 0);
+            len = rw_fmtarray (spec, pbuf, pbufsize, wstr, _RWSTD_SIZE_MAX,
+                               A_WCHAR | A_ESC);
         }
         else {   // char*
             spec.param.ptr = PARAM (char*, ptr);
             const char* const str = (char*)spec.param.ptr;
-            len = rw_quotestr (spec, pbuf, pbufsize, str, _RWSTD_SIZE_MAX, 0);
+            len = rw_fmtarray (spec, pbuf, pbufsize, str, _RWSTD_SIZE_MAX,
+                               A_CHAR | A_ESC);
         }
         break;
 
