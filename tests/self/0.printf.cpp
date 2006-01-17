@@ -377,7 +377,7 @@ void test_string ()
 
 /***********************************************************************/
 
-void test_array ()
+void test_chararray ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{Ac}\": quoted character array");
@@ -932,6 +932,184 @@ void test_integer ()
     test_hex ('X');
 
     test_bool ();
+}
+
+/***********************************************************************/
+
+void* make_array (int width,   // element width in bytes
+                  int a0 = 0, int a1 = 0, int a2 = 0, int a3 = 0,
+                  int a4 = 0, int a5 = 0, int a6 = 0, int a7 = 0,
+                  int a8 = 0, int a9 = 0, int a10 = 0, int a11 = 0,
+                  int a12 = 0, int a13 = 0, int a14 = 0, int a15 = 0)
+{
+    RW_ASSERT (8 == width || 4 == width || 2 == width || 1 == width);
+
+    static union {
+#ifdef _RWSTD_INT64_T
+        _RWSTD_INT64_T i64;
+#else
+        _RWSTD_INT32_T i64;
+#endif   // _RWSTD_INT64_T
+        _RWSTD_INT32_T i32;
+        _RWSTD_INT16_T i16;
+        _RWSTD_INT8_T  i8;
+    } array [17];
+
+    union {
+#ifdef _RWSTD_INT64_T
+        _RWSTD_INT64_T* pi64;
+#else
+        _RWSTD_INT32_T* pi64;
+#endif   // _RWSTD_INT64_T
+        _RWSTD_INT32_T* pi32;
+        _RWSTD_INT16_T* pi16;
+        _RWSTD_INT8_T*  pi8;
+    } ptr = { &array [0].i64 };
+
+#define ADD_ELEMENT(n)                                  \
+    switch (width) {                                    \
+    case 8 /* bytes */: *ptr.pi64++ = a##n; break;      \
+    case 4 /* bytes */: *ptr.pi32++ = a##n; break;      \
+    case 2 /* bytes */: *ptr.pi16++ = a##n; break;      \
+    case 1 /* byte  */: *ptr.pi8++  = a##n; break;      \
+    } (void)0
+
+    ADD_ELEMENT ( 0); ADD_ELEMENT ( 1); ADD_ELEMENT ( 2); ADD_ELEMENT ( 3);
+    ADD_ELEMENT ( 4); ADD_ELEMENT ( 5); ADD_ELEMENT ( 6); ADD_ELEMENT ( 7);
+    ADD_ELEMENT ( 8); ADD_ELEMENT ( 9); ADD_ELEMENT (10); ADD_ELEMENT (11);
+    ADD_ELEMENT (12); ADD_ELEMENT (13); ADD_ELEMENT (14); ADD_ELEMENT (15);
+
+    // zero-terminate
+    const int a16 = 0;
+    ADD_ELEMENT (16);
+
+    return array;
+}
+
+void test_intarray ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{Ao}\": array of octal integers");
+
+#define AR   make_array
+
+    // null 1, 2, 4, and 8-byte integer arrays
+    TEST ("%{1Ao}", 0, 0, 0, "(null)");
+    TEST ("%{2Ao}", 0, 0, 0, "(null)");
+    TEST ("%{4Ao}", 0, 0, 0, "(null)");
+    TEST ("%{8Ao}", 0, 0, 0, "(null)");
+
+    // 2-byte integer arrays
+    TEST ("%{2Ao}",   AR (2, 0),             0, 0, "");
+    TEST ("%{2Ao}",   AR (2, 1, 2),          0, 0, "1,2");
+    TEST ("%{2Ao}",   AR (2, 2, 3, 4),       0, 0, "2,3,4");
+    TEST ("%{2Ao}",   AR (2, 3, 4, 5, 6),    0, 0, "3,4,5,6");
+    TEST ("%{2Ao}",   AR (2, 4, 5, 6, 7, 8), 0, 0, "4,5,6,7,10");
+
+    TEST ("%{*Ao}",   2, AR (2, 4, 5, 6, 7, 8), 0, "4,5,6,7,10");
+    TEST ("%{*.*Ao}", 2, 2, AR (2, 4, 0, 6, 0, 8), "4,0");
+    TEST ("%{*.*Ao}", 2, 3, AR (2, 4, 0, 6, 0, 8), "4,0,6");
+    TEST ("%{*.*Ao}", 2, 4, AR (2, 4, 0, 6, 0, 8), "4,0,6,0");
+    TEST ("%{*.*Ao}", 2, 5, AR (2, 4, 0, 6, 0, 8), "4,0,6,0,10");
+
+    // the pound flag alone has no affect on the '0' prefix
+    TEST ("%{#2Ao}",  AR (2, 5, 6, 7, 8, 9), 0, 0, "5,6,7,10,11");
+    // zero and pound flags add the '0' prefix
+    TEST ("%{0#2Ao}", AR (2, 6, 7, 8, 9, 10), 0, 0, "06,07,010,011,012");
+
+    _RWSTD_INT8_T array8 [] = {
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 /* terminate */
+    };
+
+    _RWSTD_INT16_T array16 [] = {
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 /* terminate */
+    };
+
+    _RWSTD_INT32_T array32 [] = {
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 /* terminate */
+    };
+
+#ifdef _RWSTD_INT64_T
+
+    _RWSTD_INT64_T array64 [] = {
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 /* terminate */
+    };
+
+   // set array element at index inx to value val
+#  define SET_ELEM(inx, val)                    \
+      RW_ASSERT (unsigned (inx) < array_size);  \
+      array8  [inx] = val; array16 [inx] = val; \
+      array32 [inx] = val; array64 [inx] = val; \
+      array_str [inx * 2] = '0' + val
+
+#else   // if !defined (_RWSTD_INT64_T)
+
+   // set array element at index inx to value val
+#  define SET_ELEM(inx, val)                    \
+      RW_ASSERT (unsigned (inx) < array_size);  \
+      array8  [inx] = val; array16 [inx] = val; \
+      array32 [inx] = val;                      \
+      array_str [inx * 2] = '0' + val
+
+#endif   // _RWSTD_INT64_T
+
+    const unsigned array_size = sizeof array16 / sizeof *array16;
+
+    char array_str [2 * array_size] = {
+        "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,"
+        "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
+    };
+
+    TEST ("%{1Ao}",  array8, 0, 0, array_str);
+    TEST ("%{#1Ao}", array8, 0, 0, "{ 1 <repeats 32 times> }");
+
+    TEST ("%{2Ao}",  array16, 0, 0, array_str);
+    TEST ("%{#2Ao}", array16, 0, 0, "{ 1 <repeats 32 times> }");
+
+    TEST ("%{4Ao}",  array32, 0, 0, array_str);
+    TEST ("%{#4Ao}", array32, 0, 0, "{ 1 <repeats 32 times> }");
+
+    SET_ELEM (1, 2);
+
+    TEST ("%{2Ao}",  array16, 0, 0, array_str);
+    TEST ("%{#2Ao}", array16, 0, 0, "{ 1,2,1 <repeats 30 times> }");
+
+    SET_ELEM ( 1, 1);
+    SET_ELEM (30, 2);
+
+    TEST ("%{2Ao}",  array16, 0, 0, array_str);
+    TEST ("%{#2Ao}", array16, 0, 0, "{ 1 <repeats 30 times>,2,1 }");
+
+    SET_ELEM (30, 1);
+    SET_ELEM (31, 2);
+
+    TEST ("%{2Ao}",  array16, 0, 0, array_str);
+    TEST ("%{#2Ao}", array16, 0, 0, "{ 1 <repeats 31 times>,2 }");
+
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{Ad}\": array of decimal integers");
+
+    TEST ("%{4Ad}",   AR (4, 0),                  0, 0, "");
+    TEST ("%{4Ad}",   AR (4, 20, 31),             0, 0, "20,31");
+    TEST ("%{4Ad}",   AR (4, 21, 32, 43),         0, 0, "21,32,43");
+    TEST ("%{4Ad}",   AR (4, 22, 33, 44, 55),     0, 0, "22,33,44,55");
+    TEST ("%{4Ad}",   AR (4, 23, 34, 45, 56, 67), 0, 0, "23,34,45,56,67");
+
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{Ax}\": array of hexadecimal integers");
+
+    TEST ("%{4Ax}",   AR (4, 0),                      0, 0, "");
+    TEST ("%{4Ax}",   AR (4, 0xa, 0xb),               0, 0, "a,b");
+    TEST ("%{4Ax}",   AR (4, 0xb, 0xc, 0xd),          0, 0, "b,c,d");
+    TEST ("%{4Ax}",   AR (4, 0xc, 0xd, 0xe, 0xf),     0, 0, "c,d,e,f");
+    TEST ("%{4Ax}",   AR (4, 0xc9, 0xda, 0xeb, 0xfc), 0, 0, "c9,da,eb,fc");
+
+    TEST ("%{#4Ax}",  AR (4, 0xd, 0xe, 0xa, 0xd), 0, 0, "d,e,a,d");
+    TEST ("%{0#4Ax}", AR (4, 0xb, 0xe, 0xe, 0xf), 0, 0, "0xb,0xe,0xe,0xf");
 }
 
 /***********************************************************************/
@@ -1733,8 +1911,11 @@ int main ()
 
     test_character ();
     test_string ();
-    test_array ();
+    test_chararray ();
+
     test_integer ();
+    test_intarray ();
+
     test_floating ();
     test_pointer ();
 
