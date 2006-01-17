@@ -29,71 +29,83 @@
 const char* const cwctype_macros [] = {
 
 #ifdef iswalnum
+#  undef iswalnum
     "iswalnum",
 #else
     "",
 #endif
 
 #ifdef iswalpha
+#  undef iswalpha
     "iswalpha",
 #else
     "",
 #endif
 
 #ifdef iswcntrl
+#  undef iswcntrl
     "iswcntrl",
 #else
     "",
 #endif
 
 #ifdef iswctype
+#  undef iswctype
     "iswctype",
 #else
     "",
 #endif
 
 #ifdef iswdigit
+#  undef iswdigit
     "iswdigit",
 #else
     "",
 #endif
 
 #ifdef iswgraph
+#  undef iswgraph
     "iswgraph",
 #else
     "",
 #endif
 
 #ifdef iswlower
+#  undef iswlower
     "iswlower",
 #else
     "",
 
 #ifdef iswprint
+#  undef iswprint
     "iswprint",
 #else
     "",
 #endif
 
 #ifdef iswpunct
+#  undef iswpunct
     "iswpunct",
 #else
     "",
 #endif
 
 #ifdef iswspace
+#  undef iswspace
     "iswspace",
 #else
     "",
 #endif
 
 #ifdef iswupper
+#  undef iswupper
     "iswupper",
 #else
     "",
 #endif
 
 #ifdef iswxdigit
+#  undef iswxdigit
     "iswxdigit",
 #else
     "",
@@ -102,30 +114,35 @@ const char* const cwctype_macros [] = {
 #endif
 
 #ifdef tolower
+#  undef tolower
     "tolower",
 #else
     "",
 #endif
 
 #ifdef toupper
+#  undef toupper
     "toupper",
 #else
     "",
 #endif
 
 #ifdef towctrans
+#  undef towctrans
     "towctrans",
 #else
     "",
 #endif
 
 #ifdef wctrans
+#  undef wctrans
     "wctrans",
 #else
     "",
 #endif
 
 #ifdef wctype
+#  undef wctype
     "wctype",
 #else
     "",
@@ -236,13 +253,40 @@ test_types ()
 
 /**************************************************************************/
 
+enum {
+    // character classification/function missing bits
+    bit_alnum  = 1,       bit_iswalnum  = bit_alnum,
+    bit_alpha  = 1 << 1,  bit_iswalpha  = bit_alpha,
+    bit_cntrl  = 1 << 2,  bit_iswcntrl  = bit_cntrl,
+    bit_digit  = 1 << 3,  bit_iswdigit  = bit_digit,
+    bit_graph  = 1 << 4,  bit_iswgraph  = bit_graph,
+    bit_lower  = 1 << 5,  bit_iswlower  = bit_lower,
+    bit_print  = 1 << 6,  bit_iswprint  = bit_print,
+    bit_punct  = 1 << 7,  bit_iswpunct  = bit_punct,
+    bit_space  = 1 << 8,  bit_iswspace  = bit_space,
+    bit_upper  = 1 << 9,  bit_iswupper  = bit_upper,
+    bit_xdigit = 1 << 10, bit_iswxdigit = bit_xdigit,
+
+    // function missing bits
+    bit_towctrans = 1 << 11,
+    bit_towlower  = 1 << 12,
+    bit_towupper  = 1 << 13,
+    bit_iswctype  = 1 << 14,
+    bit_wctrans   = 1 << 16,
+    bit_wctype    = 1 << 17
+};
+
+// each bit is set to 1 if and only if the corresponding function
+// is determined to be missing (not declared) in <cwctype>
+/* extern */ int missing_set;
+
 // define function template overloads for the <cctype> functions with
 // the same name to detect whether the C versions are declared or not
-#define TEST_FUNCTION(name)                                             \
-    template <class T> int name (T) { function_called = 0; return 0; }  \
-    typedef void rw_unused_typedef
-
-int function_called;
+#define TEST_FUNCTION(name)                     \
+    template <class T> int name (T) {           \
+        missing_set |= bit_ ## name;            \
+        return -1;                              \
+    } typedef void rw_unused_typedef
 
 _RWSTD_NAMESPACE (std) {
 
@@ -259,33 +303,18 @@ TEST_FUNCTION (iswupper);
 TEST_FUNCTION (iswxdigit);
 TEST_FUNCTION (towlower);
 TEST_FUNCTION (towupper);
-TEST_FUNCTION (wctype);
 TEST_FUNCTION (wctrans);
+TEST_FUNCTION (wctype);
 
 template <class T, class U>
-int iswctype (T, U) { function_called = 0; return 0; }
+int iswctype (T, U) { missing_set |= bit_iswctype; return -1; }
 
 template <class T, class U>
-int towctrans (T, U) { function_called = 0; return 0; }
+int towctrans (T, U) { missing_set |= bit_towctrans; return -1; }
 
 }   // namespace std
 
 /**************************************************************************/
-
-enum {
-    bit_alnum  = 1,
-    bit_alpha  = 1 << 1,
-    bit_cntrl  = 1 << 2,
-    bit_digit  = 1 << 3,
-    bit_graph  = 1 << 4,
-    bit_lower  = 1 << 5,
-    bit_print  = 1 << 6,
-    bit_punct  = 1 << 7,
-    bit_space  = 1 << 8,
-    bit_upper  = 1 << 9,
-    bit_xdigit = 1 << 10
-};
-
 
 static char*
 get_bitmask (int mask, char *str)
@@ -722,23 +751,6 @@ char_mask [256] = {
 
 };
 
-// set to true if and only if the corresponding function
-// is determined to be declared in <cwctype>
-static bool iswalnum_declared;
-static bool iswalpha_declared;
-static bool iswcntrl_declared;
-static bool iswdigit_declared;
-static bool iswgraph_declared;
-static bool iswlower_declared;
-static bool iswprint_declared;
-static bool iswpunct_declared;
-static bool iswspace_declared;
-static bool iswupper_declared;
-static bool iswxdigit_declared;
-static bool towlower_declared;
-static bool towupper_declared;
-
-
 static void
 test_behavior ()
 {
@@ -757,11 +769,11 @@ test_behavior ()
 // and exercise its return value; avoid testing functions that are
 // not found to be declared in the header to prevent unnecessary
 // noise
-#define SET_MASK_BIT(bitno)                                     \
-    if (isw ## bitno ## _declared)                               \
-        mask |= std::isw ## bitno (c) ? bit_ ## bitno : 0;      \
-    else                                                        \
-        mask |= char_mask [i] & bit_ ## bitno
+#define SET_MASK_BIT(bitno)                                  \
+    if (bit_ ## bitno & missing_set)                         \
+        mask |= char_mask [i] & bit_ ## bitno;               \
+    else                                                     \
+        mask |= std::isw ## bitno (c) ? bit_ ## bitno : 0;   \
 
         SET_MASK_BIT (alnum);
         SET_MASK_BIT (alpha);
@@ -821,15 +833,14 @@ run_test (int, char**)
     //////////////////////////////////////////////////////////////////
     // verify that each function is defined
 
-#define TEST(function)                                          \
-    do {                                                        \
-        rw_info (0, 0, 0, "%s::%s (%s::wint_t) definition",     \
-                 std_name, #function, std_name);                \
-        std::function (test_wint_t (function_called = 1));      \
-        function ## _declared = 1 == function_called;           \
-        rw_assert (function ## _declared, 0, __LINE__,          \
-                   "%s::%s (%s::wint_t) not defined",           \
-                   std_name, #function, std_name);              \
+#define TEST(function)                                                  \
+    do {                                                                \
+        rw_info (0, 0, 0, "%s::%s (%s::wint_t) definition",             \
+                 std_name, #function, std_name);                        \
+        const int result = std::function (test_wint_t ('a'));           \
+        rw_assert (-1 != result && !(missing_set & bit_ ## function),   \
+                   0, __LINE__, "%s::%s (%s::wint_t) not defined",      \
+                   std_name, #function, std_name);                      \
     } while (0)
 
     TEST (iswalnum);
@@ -850,11 +861,9 @@ run_test (int, char**)
     rw_info (0, 0, 0,
              "%s::wctype (const char*) definition", std_name);
 
-    function_called = 1;
+    int result = std::wctype ("");
 
-    std::wctype ("");
-
-    rw_assert (1 == function_called, 0, __LINE__,
+    rw_assert (-1 != result && !(missing_set & bit_wctype), 0, __LINE__,
                "%s::wctype (const char*) not defined", std_name);
 
 
@@ -863,14 +872,12 @@ run_test (int, char**)
              "%s::iswctype (%1$s::wint_t, %1$s::wctype_t) definition",
              std_name);
 
-    function_called = 1;
-
     const test_wint_t wc = 0;
     const test_wctype_t desc = 0;
     
-    std::iswctype (wc, desc);
+    result = std::iswctype (wc, desc);
 
-    rw_assert (1 == function_called, 0, __LINE__,
+    rw_assert (-1 != result && !(missing_set & bit_iswctype), 0, __LINE__,
                "%s::iswctype (%1$s::wint_t, %1$s::wctype_t) not defined",
                std_name);
 
@@ -878,11 +885,9 @@ run_test (int, char**)
     rw_info (0, 0, 0,
              "%s::wctrans (const char*) definition", std_name);
 
-    function_called = 1;
+    result = std::wctrans ("");
 
-    std::wctrans ("");
-
-    rw_assert (1 == function_called, 0, __LINE__,
+    rw_assert (-1 != result && !(missing_set & bit_wctrans), 0, __LINE__,
                "%s::wctrans (const char*) not defined", std_name);
 
     //////////////////////////////////////////////////////////////////
