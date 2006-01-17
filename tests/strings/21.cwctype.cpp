@@ -46,6 +46,12 @@ const char* const cwctype_macros [] = {
     "",
 #endif
 
+#ifdef iswctype
+    "iswctype",
+#else
+    "",
+#endif
+
 #ifdef iswdigit
     "iswdigit",
 #else
@@ -107,6 +113,24 @@ const char* const cwctype_macros [] = {
     "",
 #endif
 
+#ifdef towctrans
+    "towctrans",
+#else
+    "",
+#endif
+
+#ifdef wctrans
+    "wctrans",
+#else
+    "",
+#endif
+
+#ifdef wctype
+    "wctype",
+#else
+    "",
+#endif
+
     0
 };
 
@@ -117,9 +141,34 @@ const char* const cwctype_macros [] = {
 // check types
 
 namespace Fallback {
-    typedef char wint_t [1234];
-    typedef char wctrans_t [1235];
-    typedef char wctype_t [1236];
+
+struct wint_t {
+    int i_;
+    char dummy_ [256];   // make sure we're bigger than the real thing
+
+    // this (fake) wint_t emulates a scalar type
+    wint_t (int i): i_ (i) { }
+    operator int () const { return i_; }
+};
+
+struct wctype_t {
+    int i_;
+    char dummy_ [256];   // make sure we're bigger than the real thing
+
+    // this (fake) wctype_t emulates a scalar type
+    wctype_t (int i): i_ (i) { }
+    operator int () const { return i_; }
+};
+
+struct wctrans_t {
+    int i_;
+    char dummy_ [256];   // make sure we're bigger than the real thing
+
+    // this (fake) wctrans_t emulates a scalar type
+    wctrans_t (int i): i_ (i) { }
+    operator int () const { return i_; }
+};
+
 }    // Namespace Fallback
 
 namespace std {
@@ -127,27 +176,23 @@ namespace std {
 // define test functions in namespace std to detect the presece
 // or absence of the required types
 
-bool wint_t_defined ()
-{
-    using namespace Fallback;
+namespace Nested {
 
-    return sizeof (wint_t) != sizeof (Fallback::wint_t);
-}
+using namespace Fallback;
 
-bool wctrans_t_defined ()
-{
-    using namespace Fallback;
+// each test_xxx_t typedef aliases std::xxx_t if the corresponding
+// type is defined in namespace std, or Fallback::xxx_t otherwise
+typedef wint_t    test_wint_t;
+typedef wctrans_t test_wctrans_t;
+typedef wctype_t  test_wctype_t;
 
-    return sizeof (wctrans_t) != sizeof (Fallback::wctrans_t);
-}
-
-bool wctype_t_defined ()
-{
-    using namespace Fallback;
-    return sizeof (wctype_t) != sizeof (Fallback::wctype_t);
-}
+}   // namespace Nested
 
 }   // namespace std
+
+typedef std::Nested::test_wint_t    test_wint_t;
+typedef std::Nested::test_wctrans_t test_wctrans_t;
+typedef std::Nested::test_wctype_t  test_wctype_t;
 
 const char std_name[] = "std";
 
@@ -158,17 +203,17 @@ test_types ()
              "types %s::wint_t, %1$s::wctrans_t, and %1$s::wctype_t",
              std_name);
 
-    rw_assert (std::wint_t_defined (), 0, 0,
-               "$s::wint_t not defined", std_name);
+    rw_assert (sizeof (test_wint_t) != sizeof (Fallback::wint_t), 0, 0,
+               "%s::wint_t not defined", std_name);
 
     // TO DO: exercise wint_t requirements
 
-    rw_assert (std::wctrans_t_defined (), 0, 0,
+    rw_assert (sizeof (test_wctrans_t) != sizeof (Fallback::wctrans_t), 0, 0,
                "%s::wctrans_t not defined", std_name);
 
     // TO DO: exercise wctrans_t requirements (must be a scalar type)
 
-    rw_assert (std::wctype_t_defined (), 0, 0,
+    rw_assert (sizeof (test_wctype_t) != sizeof (Fallback::wctype_t), 0, 0,
                "%s::wctype_t not defined", std_name);
 
     // TO DO: exercise wctype_t requirements (must be a scalar type)
@@ -206,6 +251,7 @@ TEST_FUNCTION (iswalpha);
 TEST_FUNCTION (iswcntrl);
 TEST_FUNCTION (iswdigit);
 TEST_FUNCTION (iswgraph);
+TEST_FUNCTION (iswlower);
 TEST_FUNCTION (iswprint);
 TEST_FUNCTION (iswpunct);
 TEST_FUNCTION (iswspace);
@@ -213,6 +259,14 @@ TEST_FUNCTION (iswupper);
 TEST_FUNCTION (iswxdigit);
 TEST_FUNCTION (towlower);
 TEST_FUNCTION (towupper);
+TEST_FUNCTION (wctype);
+TEST_FUNCTION (wctrans);
+
+template <class T, class U>
+int iswctype (T, U) { function_called = 0; return 0; }
+
+template <class T, class U>
+int towctrans (T, U) { function_called = 0; return 0; }
 
 }   // namespace std
 
@@ -668,6 +722,22 @@ char_mask [256] = {
 
 };
 
+// set to true if and only if the corresponding function
+// is determined to be declared in <cwctype>
+static bool iswalnum_declared;
+static bool iswalpha_declared;
+static bool iswcntrl_declared;
+static bool iswdigit_declared;
+static bool iswgraph_declared;
+static bool iswlower_declared;
+static bool iswprint_declared;
+static bool iswpunct_declared;
+static bool iswspace_declared;
+static bool iswupper_declared;
+static bool iswxdigit_declared;
+static bool towlower_declared;
+static bool towupper_declared;
+
 
 static void
 test_behavior ()
@@ -679,21 +749,31 @@ test_behavior ()
 
     for (int i = 0; i != 256; ++i) {
 
-        const std::wint_t c = i;
+        const test_wint_t c = i;
 
         int mask = 0;
 
-        mask |= std::iswalnum (c) ? bit_alnum : 0;
-        mask |= std::iswalpha (c) ? bit_alpha : 0;
-        mask |= std::iswcntrl (c) ? bit_cntrl : 0;
-        mask |= std::iswdigit (c) ? bit_digit : 0;
-        mask |= std::iswgraph (c) ? bit_graph : 0;
-        mask |= std::iswlower (c) ? bit_lower : 0;
-        mask |= std::iswprint (c) ? bit_print : 0;
-        mask |= std::iswpunct (c) ? bit_punct : 0;
-        mask |= std::iswspace (c) ? bit_space : 0;
-        mask |= std::iswupper (c) ? bit_upper : 0;
-        mask |= std::iswxdigit (c) ? bit_xdigit : 0;
+// invoke each function that is found to be declared in the header
+// and exercise its return value; avoid testing functions that are
+// not found to be declared in the header to prevent unnecessary
+// noise
+#define SET_MASK_BIT(bitno)                                     \
+    if (isw ## bitno ## _declared)                               \
+        mask |= std::isw ## bitno (c) ? bit_ ## bitno : 0;      \
+    else                                                        \
+        mask |= char_mask [i] & bit_ ## bitno
+
+        SET_MASK_BIT (alnum);
+        SET_MASK_BIT (alpha);
+        SET_MASK_BIT (cntrl);
+        SET_MASK_BIT (digit);
+        SET_MASK_BIT (graph);
+        SET_MASK_BIT (lower);
+        SET_MASK_BIT (print);
+        SET_MASK_BIT (punct);
+        SET_MASK_BIT (space);
+        SET_MASK_BIT (upper);
+        SET_MASK_BIT (xdigit);
 
         const int extra_bits   = mask & ~char_mask [i];
         const int missing_bits = ~mask & char_mask [i];
@@ -701,7 +781,7 @@ test_behavior ()
         rw_assert (mask == char_mask [i], 0, 0,
                    "%#c mask%{?} missing bits %s (%#x)%{;}"
                    "%{?} extra bits %s (%#x)%{;}",
-                   c,
+                   i,
                    missing_bits,
                    get_bitmask (missing_bits, missing_str), missing_bits,
                    extra_bits,
@@ -740,12 +820,14 @@ run_test (int, char**)
 
     //////////////////////////////////////////////////////////////////
     // verify that each function is defined
+
 #define TEST(function)                                          \
     do {                                                        \
         rw_info (0, 0, 0, "%s::%s (%s::wint_t) definition",     \
                  std_name, #function, std_name);                \
-        std::function (std::wint_t (function_called = 1));      \
-        rw_assert (1 == function_called, 0, __LINE__,           \
+        std::function (test_wint_t (function_called = 1));      \
+        function ## _declared = 1 == function_called;           \
+        rw_assert (function ## _declared, 0, __LINE__,          \
                    "%s::%s (%s::wint_t) not defined",           \
                    std_name, #function, std_name);              \
     } while (0)
@@ -757,11 +839,51 @@ run_test (int, char**)
     TEST (iswgraph);
     TEST (iswlower);
     TEST (iswprint);
+    TEST (iswspace);
     TEST (iswpunct);
     TEST (iswupper);
     TEST (iswxdigit);
     TEST (towlower);
     TEST (towupper);
+
+    // exercise std::wctype(const char*)
+    rw_info (0, 0, 0,
+             "%s::wctype (const char*) definition", std_name);
+
+    function_called = 1;
+
+    std::wctype ("");
+
+    rw_assert (1 == function_called, 0, __LINE__,
+               "%s::wctype (const char*) not defined", std_name);
+
+
+    // exercise std::iswctype(std::wint_t, std::wctype_t)
+    rw_info (0, 0, 0,
+             "%s::iswctype (%1$s::wint_t, %1$s::wctype_t) definition",
+             std_name);
+
+    function_called = 1;
+
+    const test_wint_t wc = 0;
+    const test_wctype_t desc = 0;
+    
+    std::iswctype (wc, desc);
+
+    rw_assert (1 == function_called, 0, __LINE__,
+               "%s::iswctype (%1$s::wint_t, %1$s::wctype_t) not defined",
+               std_name);
+
+    // exercise std::wctrans(const char*)
+    rw_info (0, 0, 0,
+             "%s::wctrans (const char*) definition", std_name);
+
+    function_called = 1;
+
+    std::wctrans ("");
+
+    rw_assert (1 == function_called, 0, __LINE__,
+               "%s::wctrans (const char*) not defined", std_name);
 
     //////////////////////////////////////////////////////////////////
     if (rw_opt_no_behavior)
