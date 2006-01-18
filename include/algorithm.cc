@@ -2,7 +2,7 @@
  *
  * algorithm.cc - Non-inline definitions for the Standard Library algorithms
  *
- * $Id: //stdlib/dev/include/algorithm.cc#42 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -296,12 +296,14 @@ _FwdIter __search_n (_FwdIter __first, _FwdIter __last,
 
     const _Dist __dist = _DISTANCE (__first, __last, _Dist);
 
-    if (__dist < __count || __count <= 0)
+    const _RWSTD_PTRDIFF_T __int_count = __count;
+
+    if (__dist < __int_count || __int_count <= 0)
         return __last;
 
-    _Dist __span    = __dist - __count;
-    _Size     __matches = 0;
-    _FwdIter  __current = __first;
+    _Dist __span       = __dist - __int_count;
+    _Dist __matches    = 0;
+    _FwdIter __current = __first;
 
     while (!(__current == __last)) {
         if (__pred (*__current, __val) == false) {
