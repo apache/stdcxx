@@ -40,7 +40,7 @@ _USING (std::va_list);
 #include <wchar.h>
 #include <limits.h>
 #include <locale.h>
-#include <stdlib.h>   // for MB_CUR_MAX, mblen()
+#include <stdlib.h>   // for MB_CUR_MAX, mblen(), mbtowc()
 #include <string.h>   // for memcmp()
 #include <errno.h>
 
@@ -83,6 +83,18 @@ extern "C" _RWSTD_SIZE_T
 mblen (const char*, _RWSTD_SIZE_T) _LIBC_THROWS();
 
 #endif   // _RWSTD_NO_MBLEN && !_RWSTD_NO_MBLEN_IN_LIBC
+
+
+// declare mbtowc() if it's not declared in the system headers
+// but is known to be defined in the libc binary
+#if defined (_RWSTD_NO_MBTOWC) && !defined (_RWSTD_NO_MBTOWC_IN_LIBC)
+
+#  undef _RWSTD_NO_MBTOWC
+
+extern "C" int
+mbtowc (wchar_t*, const char*, _RWSTD_SIZE_T) _LIBC_THROWS();
+
+#endif   // _RWSTD_NO_MBTOWC && !_RWSTD_NO_MBTOWC_IN_LIBC
 
 
 // declare wcsrtombs() if it's not declared in the system headers
@@ -247,6 +259,8 @@ __rw_libc_mbrlen (_RWSTD_MBSTATE_T &state,
     return mblen (str, emax);
 
 #else   // if defined (_RWSTD_NO_MBLEN)
+
+    _RWSTD_UNUSED (state);
 
     // this is bogus but it's the best we can do given the absence
     // of libc support for this functionality (more likely than not,
@@ -1269,7 +1283,7 @@ codecvt_byname (const char *name, _RWSTD_SIZE_T ref)
     if (_RW::stateless == (_C_flags & 0xf)) {
         const _RW::__rw_setlocale clocale (_C_name, LC_CTYPE);
 
-        _C_flags =mbtowc (0, 0, 0) ? _RW::stateful : _RW::stateless;
+        _C_flags = mbtowc (0, 0, 0) ? _RW::stateful : _RW::stateless;
     }
 
 #endif   // 0/1
@@ -1423,13 +1437,17 @@ do_in (state_type&         state,
             // use libc locale
             const _RW::__rw_setlocale clocale (_C_name, LC_CTYPE);
 
+#ifndef _RWSTD_NO_MBTOWC
+
             // verify that either the encoding is stateful
             // or the state is in its initial shift state
             const bool mbstate_valid =
                mbtowc (0, 0, 0) || _RW::__rw_mbsinit (&state);
-            _RWSTD_ASSERT (mbstate_valid);
 
+            _RWSTD_ASSERT (mbstate_valid);
             _RWSTD_UNUSED (mbstate_valid);
+
+#endif   // _RWSTD_NO_MBTOWC
 
             res = _RW::__rw_libc_do_in (state, 
                                         from, from_end, from_next,
@@ -1508,14 +1526,17 @@ do_out (state_type         &state,
             // use libc locale
             const _RW::__rw_setlocale clocale (_C_name, LC_CTYPE);
 
+#ifndef _RWSTD_NO_MBTOWC
+
             // verify that either the encoding is stateful
             // or the state is in its initial shift state
             const bool mbstate_valid =
                mbtowc (0, 0, 0) || _RW::__rw_mbsinit (&state);
-            _RWSTD_ASSERT (mbstate_valid);
 
+            _RWSTD_ASSERT (mbstate_valid);
             _RWSTD_UNUSED (mbstate_valid);
 
+#endif   // _RWSTD_NO_MBTOWC
             
             res = _RW::__rw_libc_do_out (state, from, from_end, from_next,
                                          to, to_limit, to_next);
@@ -1579,7 +1600,7 @@ do_unshift (state_type&   state,
 
             const _RW::__rw_setlocale clocale (_C_name, LC_CTYPE);
             
-            if (::mbtowc (0, 0, 0) == 0) {
+            if (mbtowc (0, 0, 0) == 0) {
                 // verify that the state is in its initial shift state
                 const int mbstate_valid = _RW::__rw_mbsinit (&state);
                 _RWSTD_ASSERT (mbstate_valid);
@@ -1644,13 +1665,17 @@ do_length (state_type&        state,
             // use libc locale
             const _RW::__rw_setlocale clocale (this->_C_name, LC_CTYPE);
 
+#ifndef _RWSTD_NO_MBTOWC
+
             // verify that either the encoding is stateful
             // or the state is in its initial shift state
             const bool mbstate_valid =
                 mbtowc (0, 0, 0) || _RW::__rw_mbsinit (&state);
-            _RWSTD_ASSERT (mbstate_valid);
 
+            _RWSTD_ASSERT (mbstate_valid);
             _RWSTD_UNUSED (mbstate_valid);
+
+#endif   // _RWSTD_NO_MBTOWC
 
             len = _RW::__rw_libc_do_length (state, from, from_end, cmax);
         }
