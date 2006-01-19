@@ -157,7 +157,7 @@ __rw_memcpy (void *dst, const void *src, _RWSTD_SIZE_T nbytes)
 
     const char* csrc = _RWSTD_STATIC_CAST (const char*, src);
 
-    for (char *tmp = _RWSTD_STATIC_CAST (char*, dst); nbytes; ++tmp, --nbytes)
+    for (char *tmp = _RWSTD_STATIC_CAST (char*, dst); nbytes; --nbytes)
         *tmp++ = *csrc++;
 
     return dst;
@@ -215,7 +215,7 @@ __rw_memchr (const void *src, int c, _RWSTD_SIZE_T nbytes)
     while (nbytes-- > 0 && int (*csrc) != c)
         ++csrc;
 
-    return *csrc == c ? csrc : 0;
+    return int (*csrc) == c ? csrc : 0;
 
 #endif   // _RWSTD_NO_MEMCHR
 
@@ -254,15 +254,16 @@ __rw_memcmp (const void *s1, const void *s2, _RWSTD_SIZE_T nbytes)
 
 #else   // if defined (_RWSTD_NO_MEMCMP)
 
-    const char* const cs1 = _RWSTD_STATIC_CAST (const char*, s1);
-    const char* const cs2 = _RWSTD_STATIC_CAST (const char*, s2);
+    typedef unsigned char UChar;
 
-    for (_RWSTD_SIZE_T i = 0; i != nbytes; ++i) {
-        if (cs1 [i] != cs2 [i])
-            return cs1 [i] < cs2 [i] ? -1 : 1;
-    }
+    const UChar* cs1 = _RWSTD_STATIC_CAST (const UChar*, s1);
+    const UChar* cs2 = _RWSTD_STATIC_CAST (const UChar*, s2);
 
-    return 0;
+    int result = 0;
+
+    for ( ; nbytes && !(result = *cs1 - *cs2); ++cs1, ++cs2, --nbytes);
+
+    return result;
 
 #endif   // _RWSTD_NO_MEMCMP
 
@@ -278,12 +279,11 @@ __rw_strlen (const char *str)
 
 #else   // if defined (_RWSTD_NO_STRLEN)
 
-    _RWSTD_SIZE_T nbytes = 0;
+    const char* const begin = str;
 
-    while (str++)
-        ++nbytes;
+    for (; *str; ++str);
 
-    return nbytes;
+    return size_t (str - begin);
     
 #endif   // _RWSTD_NO_STRLEN
 
@@ -303,7 +303,7 @@ __rw_wmemcpy (wchar_t *dst, const wchar_t *src, _RWSTD_SIZE_T nwchars)
 
 #else   // if defined (_RWSTD_NO_WMEMCPY)
 
-    for (wchar_t *tmp = dst; nwchars; ++tmp, --nwchars)
+    for (wchar_t *tmp = dst; nwchars; --nwchars)
         *tmp++ = *src++;
 
     return dst;
@@ -393,12 +393,11 @@ __rw_wmemcmp (const wchar_t *s1, const wchar_t *s2, _RWSTD_SIZE_T nwchars)
 
 #else   // if defined (_RWSTD_NO_WMEMCMP)
 
-    for (_RWSTD_SIZE_T i = 0; i != nwchars; ++i) {
-        if (s1 [i] != s2 [i])
-            return s1 [i] < s2 [i] ? -1 : 1;
-    }
+    int result = 0;
 
-    return 0;
+    for ( ; nwchars && !(result = *s1 - *s2); ++s1, ++s2, --nwchars);
+
+    return result;
 
 #endif   // _RWSTD_NO_WMEMCMP
 
@@ -416,12 +415,11 @@ __rw_wcslen (const wchar_t *wstr)
 
 #else   // if defined (_RWSTD_NO_WCSLEN)
 
-    _RWSTD_SIZE_T nwchars = 0;
+    const wchar_t* const begin = wstr;
 
-    while (wstr++)
-        ++nwchars;
+    for (; *wstr; ++wstr);
 
-    return nwchars;
+    return size_t (wstr - begin);
 
 #endif   // _RWSTD_NO_WCSLEN
 
