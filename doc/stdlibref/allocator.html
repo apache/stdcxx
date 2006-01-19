@@ -3,9 +3,9 @@
 <TITLE>allocator</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="algorithms.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="associativecontainers.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<A HREF="algorithms.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="associativecontainers.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library Reference Guide</B></DIV>
 <H2>allocator</H2>
-<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+<P><B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
 
 <PRE><HR><B><I>Does not inherit</I></B><HR></PRE>
 
@@ -50,7 +50,7 @@
 </TABLE></UL>
 
 <A NAME="sec2"><H3>Summary</H3></A>
-<P>The default allocator object for storage management in Standard C++ Library containers</P>
+<P>The default allocator object for storage management in C++ Standard Library containers</P>
 <A NAME="sec3"><H3>Synopsis</H3></A>
 
 <PRE>#include &lt;memory&gt;
@@ -68,7 +68,7 @@ namespace std {
 }
 </PRE></UL>
 <A NAME="sec5"><H3>Description</H3></A>
-<P>Containers in the Standard C++ Library allow you to control storage management through the use of allocator objects. Each container class has an allocator template parameter specifying the type of allocator to be used. Every constructor, except the copy constructor, has an allocator parameter, allowing you to pass in a specific allocator. A container uses that allocator for all storage management. </P>
+<P>Containers in the C++ Standard Library allow you to control storage management through the use of allocator objects. Each container class has an allocator template parameter specifying the type of allocator to be used. Every constructor, except the copy constructor, has an allocator parameter, allowing you to pass in a specific allocator. A container uses that allocator for all storage management. </P>
 <P>The library has a default allocator, called allocator. This allocator uses the global <SAMP>new()</SAMP> and <SAMP>delete()</SAMP> operators. By default, all containers use this allocator. You can also design your own allocator, but if you do so it must have an appropriate interface.</P>
 <A NAME="sec6"><H3>Interface</H3></A>
 

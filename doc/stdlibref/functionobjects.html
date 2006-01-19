@@ -3,9 +3,9 @@
 <TITLE>Function Objects</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="fstream-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="functional-h.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<A HREF="fstream-h.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="functional-h.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library Reference Guide</B></DIV>
 <H2>Function Objects</H2>
-<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P><UL>
+<P><B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P><UL>
 <LI><A HREF="#sec1">Local Index</A></LI>
 <LI><A HREF="#sec2">Summary</A></LI>
 <LI><A HREF="#sec3">Synopsis</A></LI>
@@ -24,11 +24,11 @@ No Entries
 <PRE>#include &lt;functional&gt;
 </PRE>
 <A NAME="sec4"><H3>Description</H3></A>
-<P>Function objects are objects with an <SAMP>operator()</SAMP> defined. They are important for the effective use of the standard library's generic algorithms, because the interface for each algorithmic template can accept either an object with an <SAMP>operator()</SAMP> defined, or a pointer to a function. The Standard C++ Library includes both a standard set of function objects, and a pair of classes that you can use as the base for creating your own function objects.</P>
+<P>Function objects are objects with an <SAMP>operator()</SAMP> defined. They are important for the effective use of the standard library's generic algorithms, because the interface for each algorithmic template can accept either an object with an <SAMP>operator()</SAMP> defined, or a pointer to a function. The C++ Standard Library includes both a standard set of function objects, and a pair of classes that you can use as the base for creating your own function objects.</P>
 <P>Function objects that take one argument are called <I>unary function objects</I>. Unary function objects must include the typedefs <SAMP>argument_type</SAMP> and <SAMP>result_type</SAMP>. Similarly, function objects that take two arguments are called <I>binary function objects</I> and, as such, must include the typedefs <SAMP>first_argument_type</SAMP>, <SAMP>second_argument_type</SAMP>, and <SAMP>result_type</SAMP>. </P>
 <P>The classes <B><I><A HREF="unary-function.html">unary_function</A></I></B> and <B><I><A HREF="binary-function.html">binary_function</A></I></B> make the task of creating templatized function objects easier. The necessary typedefs for a unary or binary function object are included by inheriting from the appropriate function object class.</P>
-<P>The function objects in the Standard C++ Library are listed below, together with a brief description of their operation. This Reference Guide also includes an alphabetic entry for each function.</P>
-<H4><A NAME="Table&nbsp;19">Table&nbsp;19: Standard C++ Library function objects and their operations</A></H4>
+<P>The function objects in the C++ Standard Library are listed below, together with a brief description of their operation. This Reference Guide also includes an alphabetic entry for each function.</P>
+<H4><A NAME="Table&nbsp;19">Table&nbsp;19: C++ Standard Library function objects and their operations</A></H4>
 <TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
 <tr><td valign=top><B>Name </B>
 </td>

@@ -3,11 +3,11 @@
 <TITLE>map and multimap Operations</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="9-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="9-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="9-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="9-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>9.2 map and multimap Operations</H2>
 <P>This section describes the member functions provided by the <B><I><A HREF="../stdlibref/map.html">map</A></I></B> and <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B> class templates. While member functions provide basic operations, using generic algorithms on <B><I>map</I></B> and <B><I>multimap</I></B> containers provide even more flexibility.  Generic algorithms are described in <A HREF="IV.html">Part&nbsp;IV</A>.</P>
 <A NAME="921"><H3>9.2.1 Declaration and Initialization of map</H3></A>
-<P>The declaration of a <B><I><A HREF="../stdlibref/map.html">map</A></I></B> follows the pattern we have seen repeatedly in the Standard C++ Library. A <B><I>map</I></B> class template is specialized on the type of the keys, the type of the associated values, and an optional comparison operator to be used in comparing keys. If no comparison operator is provided, keys are compared with <SAMP>operator&lt;</SAMP> for the key type.</P>
+<P>The declaration of a <B><I><A HREF="../stdlibref/map.html">map</A></I></B> follows the pattern we have seen repeatedly in the C++ Standard Library. A <B><I>map</I></B> class template is specialized on the type of the keys, the type of the associated values, and an optional comparison operator to be used in comparing keys. If no comparison operator is provided, keys are compared with <SAMP>operator&lt;</SAMP> for the key type.</P>
 <A NAME="idx166"><!></A>
 <P>A <B><I><A HREF="../stdlibref/map.html">map</A></I></B> can be declared with no initial elements, or initialized from another container by providing a pair of iterators. In the latter case, the iterators must denote values of type <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B>; the first field in each pair is taken to be a key, while the second field is a value. A copy constructor also permits <B><I>map</I></B>s to be created as copies of other <B><I>map</I></B>s:</P>
 
@@ -22,7 +22,7 @@ std::map&lt;int, int&gt; map_two(aContainer.begin(), aContainer.end());
 std::map&lt;int, int&gt; map_three (map_two);   // copy constructor
 </PRE></UL>
 <A NAME="idx167"><!></A>
-<P>A <B><I><A HREF="../stdlibref/map.html">map</A></I></B> can be assigned to another <B><I>map</I></B>, and two <B><I>map</I></B>s can exchange their values using the <SAMP>swap()</SAMP> operation, like the other Standard C++ Library containers.</P>
+<P>A <B><I><A HREF="../stdlibref/map.html">map</A></I></B> can be assigned to another <B><I>map</I></B>, and two <B><I>map</I></B>s can exchange their values using the <SAMP>swap()</SAMP> operation, like the other C++ Standard Library containers.</P>
 <A NAME="922"><H3>9.2.2 Type Definitions</H3></A>
 <A NAME="idx168"><!></A>
 <P>The class templates <B><I><A HREF="../stdlibref/map.html">map</A></I></B> and <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B> include a number of type definitions, most commonly used in declaration statements. For example, an iterator for a <B><I>map</I></B> of standard <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>s to <SAMP>int</SAMP>s can be declared as follows:</P>

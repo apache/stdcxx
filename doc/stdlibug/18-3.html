@@ -3,10 +3,10 @@
 <TITLE>Using Exceptions</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="18-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="18-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="18-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="18-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>18.3 Using Exceptions</H2>
 <A NAME="idx427"><!></A>
-<P>All exceptions thrown explicitly by any element of the Standard C++ Library are guaranteed to be part of the library's exception hierarchy. Please review the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A> entries for these classes to determine which functions throw which exceptions. You can then choose to catch particular exceptions, or catch any that might be thrown by specifying the base class exception. </P>
+<P>All exceptions thrown explicitly by any element of the C++ Standard Library are guaranteed to be part of the library's exception hierarchy. Please review the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A> entries for these classes to determine which functions throw which exceptions. You can then choose to catch particular exceptions, or catch any that might be thrown by specifying the base class exception. </P>
 <P>For instance, if you are going to call the <SAMP>insert</SAMP> function on <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> with a position value that could at some point be invalid, you should use code like this:</P>
 
 <UL><PRE>
@@ -48,7 +48,7 @@ class bad_packet_error : public std::runtime_error
 if (bad_packet())
    throw bad_packet_error("Packet size incorrect");
 </PRE></UL>
-<P>This section has demonstrated how the Standard C++ Library exception classes provide you with a basic error model. From this foundation, you can build the right error detection and reporting methods required for your particular application.</P>
+<P>This section has demonstrated how the C++ Standard Library exception classes provide you with a basic error model. From this foundation, you can build the right error detection and reporting methods required for your particular application.</P>
 
 <BR>
 <HR>

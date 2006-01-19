@@ -3,9 +3,9 @@
 <TITLE>bind1st(), bind2nd(), binder1st, binder2nd</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="binary-search.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="bitmasktypes.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library Reference Guide</B></DIV>
+<A HREF="binary-search.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="bitmasktypes.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library Reference Guide</B></DIV>
 <H2>bind1st(), bind2nd(), binder1st, binder2nd</H2>
-<P><B>Module:</B>&nbsp;&nbsp;Standard C++ Library&nbsp;&nbsp;&nbsp;<B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
+<P><B>Library:</B>&nbsp;&nbsp;<A HREF="2-4.html">General utilities</A></P>
 
 <PRE><HR><B><I>Function</I></B><HR></PRE>
 
@@ -42,7 +42,7 @@ namespace std {
 }
 </PRE>
 <A NAME="sec4"><H3>Description</H3></A>
-<P>Because so many functions included in the Standard C++ Library take other functions as arguments, the library includes classes that let you build new function objects out of old ones. Both <SAMP><A HREF="bind1st.html">bind1st()</A></SAMP> and <SAMP><A HREF="bind1st.html">bind2nd()</A></SAMP> are functions that take as arguments a binary function object <SAMP>f</SAMP> and a value <SAMP>x,</SAMP> and return, respectively, classes <B><I><A HREF="bind1st.html">binder1st</A></I></B> and <B><I><A HREF="bind1st.html">binder2nd</A></I></B>. The underlying function object must be a subclass of <B><I><A HREF="binary-function.html">binary_function</A></I></B>.</P>
+<P>Because so many functions included in the C++ Standard Library take other functions as arguments, the library includes classes that let you build new function objects out of old ones. Both <SAMP><A HREF="bind1st.html">bind1st()</A></SAMP> and <SAMP><A HREF="bind1st.html">bind2nd()</A></SAMP> are functions that take as arguments a binary function object <SAMP>f</SAMP> and a value <SAMP>x,</SAMP> and return, respectively, classes <B><I><A HREF="bind1st.html">binder1st</A></I></B> and <B><I><A HREF="bind1st.html">binder2nd</A></I></B>. The underlying function object must be a subclass of <B><I><A HREF="binary-function.html">binary_function</A></I></B>.</P>
 <P>Class <B><I><A HREF="bind1st.html">binder1st</A></I></B> binds the value to the first argument of the binary function, and <B><I><A HREF="bind1st.html">binder2nd</A></I></B> does the same thing for the second argument of the function. The resulting classes can be used in place of a unary predicate in other function calls.</P>
 <P>For example, you could use the <SAMP><A HREF="count.html">count_if()</A></SAMP> algorithm to count all elements in a <B><I><A HREF="vector.html">vector</A></I></B> that are less than or equal to 7, using the following:</P>
 

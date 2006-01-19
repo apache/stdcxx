@@ -3,7 +3,7 @@
 <TITLE>vector Operations</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="5-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="5-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="5-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="5-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>5.2 vector Operations</H2>
 <A NAME="idx73"><!></A>
 <P>In this section, each of the member functions provided by the <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> datatype is described in more detail. These member functions provide the basic operations for <B><I>vector</I></B>s. They can be greatly extended through the generic algorithms described in <A HREF="13.html">Chapter&nbsp;13</A>.</P>
@@ -19,7 +19,7 @@ REMEMBER -- Elements that are held by a vector must define a copy constructor. A
 std::vector&lt;int&gt; vec_one(10,0);
 </PRE></UL>
 <P>If the type has a default constructor, as it does in this case, then the second argument can be omitted.</P>
-<P>For <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>s as well as other Standard C++ Library containers, an allocator type can also be provided as an additional template parameter:</P>
+<P>For <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B>s as well as other C++ Standard Library containers, an allocator type can also be provided as an additional template parameter:</P>
 
 <UL><PRE>
 std::vector&lt;int,allocator&lt;int&gt; &gt;
@@ -34,7 +34,7 @@ std::vector&lt;int&gt; vec_two(5, 3);       // initialization by
 std::vector&lt;int&gt; vec_three;           // no elements
 std::vector&lt;int&gt; vec_four(vec_two);   // copy constructor
 </PRE></UL>
-<P>A <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> can also be initialized using elements from another collection, by means of a beginning and ending iterator pair. The arguments can be any form of iterator; thus collections can be initialized with values drawn from any of the container classes in the Standard C++ Library that support iterators. </P>
+<P>A <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> can also be initialized using elements from another collection, by means of a beginning and ending iterator pair. The arguments can be any form of iterator; thus collections can be initialized with values drawn from any of the container classes in the C++ Standard Library that support iterators. </P>
 
 <UL><PRE>
 std::vector&lt;int&gt; vec_five(aList.begin(), aList.end());

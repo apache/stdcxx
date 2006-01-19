@@ -3,7 +3,7 @@
 <TITLE>In-Place Transformations</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="13-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="13-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>13.4 In-Place Transformations</H2>
 <A NAME="idx296"><!></A>
 <P>The next category of algorithms that we examine is used to modify and transform sequences without moving them from their original storage locations. </P>
@@ -157,7 +157,7 @@ namespace std {
 }
 </PRE></UL>
 <A NAME="idx307"><!></A>
-<P>There are two forms of partition supported in the Standard C++ Library. The first, provided by the algorithm <SAMP>std::partition()</SAMP>, guarantees only that the elements are divided into two groups. The result value is an <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> that describes the final midpoint between the two groups; it is one past the end of the first group. </P>
+<P>There are two forms of partition supported in the C++ Standard Library. The first, provided by the algorithm <SAMP>std::partition()</SAMP>, guarantees only that the elements are divided into two groups. The result value is an <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> that describes the final midpoint between the two groups; it is one past the end of the first group. </P>
 <P>In the example program, the initial <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> contains the values <SAMP>1</SAMP> to <SAMP>10</SAMP> in order. The partition moves the even elements to the front, and the odd elements to the end. This results in the <B><I>vector</I></B> holding the values <SAMP>10 2 8 4 6 5 7 3 9 1</SAMP>, and the midpoint <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B> pointing to the element <SAMP>5</SAMP>.</P>
 
 <A NAME="idx308"><!></A>

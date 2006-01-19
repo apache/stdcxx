@@ -3,10 +3,10 @@
 <TITLE>Introduction to Iterators</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="2-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="2-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>2.1 Introduction to Iterators</H2>
 <A NAME="idx11"><!></A>
-<P>The concept of iterators is fundamental to using the container classes and the associated algorithms provided by the Standard C++ Library. An <I>iterator</I> is a pointer-like object used to cycle through all the elements stored in a container. Because different algorithms need to traverse containers in a variety of fashions, there are different forms of iterators. Each container class in the Standard C++ Library can generate an iterator with functionality appropriate to the storage technique used in implementing the container. It is the category of iterators required as arguments that chiefly distinguishes which algorithms in the Standard C++ Library can be used with which container classes. </P>
+<P>The concept of iterators is fundamental to using the container classes and the associated algorithms provided by the C++ Standard Library. An <I>iterator</I> is a pointer-like object used to cycle through all the elements stored in a container. Because different algorithms need to traverse containers in a variety of fashions, there are different forms of iterators. Each container class in the C++ Standard Library can generate an iterator with functionality appropriate to the storage technique used in implementing the container. It is the category of iterators required as arguments that chiefly distinguishes which algorithms in the C++ Standard Library can be used with which container classes. </P>
 <A NAME="idx12"><!></A>
 <P>Just as pointers can be used in a variety of ways in traditional programming, iterators can be used for a number of different purposes. An iterator can be used to denote a specific value, just as a pointer can be used to reference a specific memory location. A <I>pair</I> of iterators can be used to define a <I>range</I> or sequence of values held in a container, just as two pointers can be used to describe a contiguous region of memory. With iterators, however, the values being described may be only logically rather than physically in sequence because they are derived from the same container, and the second follows the first in the order in which the elements are maintained by the container.</P>
 <A NAME="idx13"><!></A>
@@ -19,7 +19,7 @@
 <BLOCKQUOTE><HR><B>
 NOTE -- Whenever two iterators are used to describe a range, it is assumed that the second iterator is reachable from the first, but this is not verified. Errors can occur if this expectation is not satisfied.
 </B><HR></BLOCKQUOTE>
-<P>In the remainder of this chapter, we describe the different forms of iterators used by the Standard C++ Library, as well as various other iterator-related functions.</P>
+<P>In the remainder of this chapter, we describe the different forms of iterators used by the C++ Standard Library, as well as various other iterator-related functions.</P>
 
 <BR>
 <HR>

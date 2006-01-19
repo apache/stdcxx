@@ -3,7 +3,7 @@
 <TITLE>Example Program: Event-Driven Simulation</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="11-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="12.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="11-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="12.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>11.3 Example Program: Event-Driven Simulation</H2>
 <A NAME="idx212"><!></A>
 <A NAME="idx213"><!></A>
@@ -28,7 +28,7 @@ public:
 </PRE></UL>
 <A NAME="idx214"><!></A>
 <P>The simulation queue needs to maintain a collection of different types of events, sometimes called a <I>heterogeneous</I> collection. Each different form of event is represented by a subclass of class <B><I>event</I></B>, but not all <B><I>event</I></B>s have the same exact type. For this reason the collection must store <I>pointers</I> to <B><I>event</I></B>s, instead of the events themselves.  Since the containers maintain pointers to values, not the values themselves, the programmer is responsible for managing the memory for the objects being manipulated.</P>
-<P>Since comparison of pointers cannot be specialized on the basis of the pointer types, we must instead define a new comparison function for pointers to events. In the Standard C++ Library we do this by defining a new structure whose sole purpose is to define the function invocation <SAMP>operator()()</SAMP> in the appropriate fashion.   Since in this particular example we want to use the <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B> to return the smallest element each time, rather than the largest, the order of the comparison is reversed, as follows:</P>
+<P>Since comparison of pointers cannot be specialized on the basis of the pointer types, we must instead define a new comparison function for pointers to events. In the C++ Standard Library we do this by defining a new structure whose sole purpose is to define the function invocation <SAMP>operator()()</SAMP> in the appropriate fashion.   Since in this particular example we want to use the <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B> to return the smallest element each time, rather than the largest, the order of the comparison is reversed, as follows:</P>
 
 <UL><PRE>
 struct eventComparison {

@@ -3,7 +3,7 @@
 <TITLE>list Operations</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="6-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="6-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="6-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="6-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>6.2 list Operations</H2>
 <A NAME="idx103"><!></A>
 <P>In this section, each of the member functions provided by the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> datatype are described in more detail. These member functions provide the basic operations for <B><I>list</I></B>s. They can be greatly extended through the generic algorithms described in <A HREF="13.html">Chapter&nbsp;13</A>.</P>
@@ -35,7 +35,7 @@ std::list&lt;Widget&gt; list_six (4);  // 4 elements, each created using
 std::list&lt;Widget&gt; list_six (3, Widget(7));  // 3 elements, each a
                                             // copy of Widget(7)
 </PRE></UL>
-<P><B><I><A HREF="../stdlibref/list.html">list</A></I></B>s can also be initialized using elements from another collection, with a beginning and ending iterator pair. The arguments can be any form of iterator; thus collections can be initialized with values drawn from any of the container classes in the Standard C++ Library that support iterators.</P>
+<P><B><I><A HREF="../stdlibref/list.html">list</A></I></B>s can also be initialized using elements from another collection, with a beginning and ending iterator pair. The arguments can be any form of iterator; thus collections can be initialized with values drawn from any of the container classes in the C++ Standard Library that support iterators.</P>
 
 <UL><PRE>
 std::list&lt;double&gt; list_seven(aVector.begin(), aVector.end());
@@ -304,7 +304,7 @@ list_twelve.sort(widgetCompare);  // sort with widget compare
 <A NAME="629"><H3>6.2.9 Searching Operations</H3></A>
 <P>The various forms of searching functions described in <A HREF="13-3.html">Chapter&nbsp;13.3</A>, namely <SAMP>std::find()</SAMP>, <SAMP>std::find_if()</SAMP>, <SAMP>std::adjacent_find()</SAMP>, <SAMP>std::mismatch()</SAMP>, <SAMP>std::max_element()</SAMP>, <SAMP>std::min_element()</SAMP>, or <SAMP>std::search()</SAMP>, can be applied to <B><I><A HREF="../stdlibref/list.html">list</A></I></B>. In all cases the result is an iterator, which can be dereferenced to discover the denoted element, or used as an argument in a subsequent operation.</P>
 <BLOCKQUOTE><HR><B>
-NOTE -- The searching algorithms in the Standard C++ Library always return the end of range iterator if no element matching the search condition is found. Unless the result is guaranteed to be valid, it is a good idea to check for the end of range condition.
+NOTE -- The searching algorithms in the C++ Standard Library always return the end of range iterator if no element matching the search condition is found. Unless the result is guaranteed to be valid, it is a good idea to check for the end of range condition.
 </B><HR></BLOCKQUOTE>
 <A NAME="6210"><H3>6.2.10 In-Place Transformations</H3></A>
 <P>A number of operations can be applied to <B><I><A HREF="../stdlibref/list.html">list</A></I></B>s in order to transform them in place. Some of these are provided as member functions. Others make use of some of the generic functions described in <A HREF="13.html">Chapter&nbsp;13</A>.</P>

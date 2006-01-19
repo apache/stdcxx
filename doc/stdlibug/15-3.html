@@ -3,13 +3,13 @@
 <TITLE>Building Your Own Allocators</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="15-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="16.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="15-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="16.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>15.3 Building Your Own Allocators</H2>
 <A NAME="idx377"><!></A>
-<P>Defining your own <B><I><A HREF="../stdlibref/allocator.html">allocator</A></I></B> is a relatively simple process. The Standard C++ Library describes a particular interface, consisting of types and functions. An allocator that conforms to the standard must match the syntactic requirements for these member functions and types. The Standard C++ Library also specifies a portion of the semantics for the allocator type.</P>
+<P>Defining your own <B><I><A HREF="../stdlibref/allocator.html">allocator</A></I></B> is a relatively simple process. The C++ Standard Library describes a particular interface, consisting of types and functions. An allocator that conforms to the standard must match the syntactic requirements for these member functions and types. The C++ Standard Library also specifies a portion of the semantics for the allocator type.</P>
 <A NAME="1531"><H3>15.3.1 Using the Standard Allocator Interface</H3></A>
 <A NAME="idx378"><!></A>
-<P>An <B><I><A HREF="../stdlibref/allocator.html">allocator</A></I></B> that conforms to the Standard C++ Library allocator specification must have the following interface. The example uses <SAMP>my_allocator</SAMP> as a place holder for your own allocator name:</P>
+<P>An <B><I><A HREF="../stdlibref/allocator.html">allocator</A></I></B> that conforms to the C++ Standard Library allocator specification must have the following interface. The example uses <SAMP>my_allocator</SAMP> as a place holder for your own allocator name:</P>
 
 <UL><PRE>
 template &lt;class T&gt;

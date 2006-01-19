@@ -3,9 +3,9 @@
 <TITLE>string Operations</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="12-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="12-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="12-1.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="12-3.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>12.2 string Operations</H2>
-<P>In the following sections, we'll examine the Standard C++ Library operations used to create and manipulate <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>s.</P>
+<P>In the following sections, we'll examine the C++ Standard Library operations used to create and manipulate <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>s.</P>
 <A NAME="1221"><H3>12.2.1 Declaration and Initialization of string</H3></A>
 <A NAME="idx221"><!></A>
 <P>The simplest form of declaration for a <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> simply names a new variable, or names a variable along with the initial value for the <B><I>string</I></B>. This form was used extensively in the example graph program given in <A HREF="9-3.html#932">Section&nbsp;9.3.2</A>. A copy constructor also permits a <B><I>string</I></B> to be declared that takes its value from a previously defined <B><I>string</I></B>:</P>
@@ -21,7 +21,7 @@ std::string s4(s3);
 <UL><PRE>
 std::string s7(10, '\n');          // holds ten newline characters
 </PRE></UL>
-<P>Finally, like all the container classes in the Standard C++ Library, a <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> can be initialized using a pair of <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s. The sequence denoted by the <B><I>iterator</I></B>s must have the appropriate type of elements.</P>
+<P>Finally, like all the container classes in the C++ Standard Library, a <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B> can be initialized using a pair of <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>s. The sequence denoted by the <B><I>iterator</I></B>s must have the appropriate type of elements.</P>
 
 <UL><PRE>
 string s8 (aList.begin(), aList.end());
@@ -80,7 +80,7 @@ std::cout &lt;&lt; (s2 + s3) &lt;&lt; std::endl;  // output catenation of
                                       // s2 and s3
 </PRE></UL>
 <A NAME="idx228"><!></A>
-<P>As with all the containers in the Standard C++ Library, the contents of two <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>s can be exchanged using the <SAMP>swap()</SAMP> member function:</P>
+<P>As with all the containers in the C++ Standard Library, the contents of two <B><I><A HREF="../stdlibref/basic-string.html">string</A></I></B>s can be exchanged using the <SAMP>swap()</SAMP> member function:</P>
 
 <UL><PRE>
 s5.swap(s4);                 // exchange s4 and s5

@@ -3,7 +3,7 @@
 <TITLE>Manipulators with Parameters</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="33-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="34.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="33-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="34.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>33.3 Manipulators with Parameters</H2>
 <P>Manipulators with parameters are more complex than those without because there are additional issues to consider. Before we explore these issues in detail and examine various techniques for implementing manipulators with parameters, let's take a look at one particular technique, the one that is used to implement standard manipulators such as <SAMP>std::setprecision(),</SAMP> <SAMP>std::setw()</SAMP>, etc.</P>
 <A NAME="3331"><H3>33.3.1 The Standard Manipulators</H3></A>
@@ -78,7 +78,7 @@ class manipT
    Arg2   arg2_;
 };
 </PRE></UL>
-<P>Note that this is only a suggested manipulator, however. In principle, you can define the manipulator type in any way that makes the associated side effect function and its arguments available for a call from inside the respective shift operators for the manipulator type. We show other examples of such manipulator types later in this chapter; for instance, a manipulator type called smanip mentioned by the C++ standard. It is an implementation-defined function type returned by the standard manipulators. See the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A> for details.</P>
+<P>Note that this is only a suggested manipulator, however. In principle, you can define the manipulator type in any way that makes the associated side effect function and its arguments available for a call from inside the respective shift operators for the manipulator type. We show other examples of such manipulator types later in this chapter; for instance, a manipulator type called smanip mentioned by the C++ standard. It is an implementation-defined function type returned by the standard manipulators. See the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A> for details.</P>
 <A NAME="idx816"><!></A>
 <P>Returning now to the example above, the manipulator object provided as an argument to the overloaded shift operator is obtained by <SAMP>Manip(x)</SAMP>, which has three possible solutions:</P>
 <OL>
@@ -172,7 +172,7 @@ class setprecision : public <I>smanip</I>&lt;int&gt; {
 </UL>
 <P>The idea here is that the associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a non-static member function of the manipulator type <SAMP>manipT</SAMP>. In such a model, the manipulator does not store a pointer to the associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP>, but defines the associated function as a pure virtual member function. Consequently, the manipulator type <SAMP>manipT</SAMP> is an abstract class, and concrete manipulator types are derived from this abstract manipulator type. They are required to implement the virtual member function that represents the associated function.</P>
 <A NAME="idx829"><!></A>
-<P>Clearly, we need a new manipulator type because the implementation-specific manipulator type <SAMP><I>smanip</I></SAMP> is implementation-defined. In the Rogue Wave Standard C++ Library, <SAMP><I>smanip</I></SAMP> has no virtual member functions, but stores a pointer to the associated function. Here is the abstract manipulator type we need:</P>
+<P>Clearly, we need a new manipulator type because the implementation-specific manipulator type <SAMP><I>smanip</I></SAMP> is implementation-defined. In the Rogue Wave C++ Standard Library, <SAMP><I>smanip</I></SAMP> has no virtual member functions, but stores a pointer to the associated function. Here is the abstract manipulator type we need:</P>
 
 <UL><PRE>
 template &lt;class Arg, class Ostream&gt;
