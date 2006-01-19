@@ -155,8 +155,10 @@ __rw_memcpy (void *dst, const void *src, _RWSTD_SIZE_T nbytes)
 
 #else   // if defined (_RWSTD_NO_MEMCPY)
 
-    for (char *tmp = dst; nbytes; ++tmp, --nbytes)
-        *tmp++ = *src++;
+    const char* csrc = _RWSTD_STATIC_CAST (const char*, src);
+
+    for (char *tmp = _RWSTD_STATIC_CAST (char*, dst); nbytes; ++tmp, --nbytes)
+        *tmp++ = *csrc++;
 
     return dst;
 
@@ -176,16 +178,19 @@ __rw_memmove (void *dst, const void *src, _RWSTD_SIZE_T nbytes)
 
 #else   // if _RWSTD_NO_MEMMOVE
 
-    if (dst < src) {
+    char* cdst = _RWSTD_STATIC_CAST (char*, dst);
+    const char* csrc = _RWSTD_STATIC_CAST (const char*, src);
+
+    if (cdst < csrc) {
         while (nbytes--)
-            *dst++ = *src++;
+            *cdst++ = *csrc++;
     }
     else {
-        dst += nchars;
-        src += nchars;
-        while (nchars--)
-            *--dst = *--src;
+        for (cdst += nbytes, csrc += nbytes; nbytes--; )
+            *--cdst = *--csrc;
     }
+
+    return dst;
 
 #endif   // _RWSTD_NO_MEMMOVE
 
@@ -205,10 +210,12 @@ __rw_memchr (const void *src, int c, _RWSTD_SIZE_T nbytes)
 
     typedef unsigned char UChar;
 
-    while (nbytes-- > 0 && int (UChar (*src)) != c)
-        ++src;
+    const UChar* csrc = _RWSTD_STATIC_CAST (const UChar*, src);
 
-    return *src == c ? src : 0;
+    while (nbytes-- > 0 && int (*csrc) != c)
+        ++csrc;
+
+    return *csrc == c ? csrc : 0;
 
 #endif   // _RWSTD_NO_MEMCHR
 
@@ -226,7 +233,7 @@ __rw_memset (void *dst, int c, _RWSTD_SIZE_T nbytes)
 
 #else   // if defined (_RWSTD_NO_MEMSET)
 
-    for (char *tmp = dst; nbytes; ++tmp, --nbytes)
+    for (char *tmp = _RWSTD_STATIC_CAST (char*, dst); nbytes; ++tmp, --nbytes)
         *tmp = c;
 
     return dst;
@@ -247,9 +254,12 @@ __rw_memcmp (const void *s1, const void *s2, _RWSTD_SIZE_T nbytes)
 
 #else   // if defined (_RWSTD_NO_MEMCMP)
 
+    const char* const cs1 = _RWSTD_STATIC_CAST (const char*, s1);
+    const char* const cs2 = _RWSTD_STATIC_CAST (const char*, s2);
+
     for (_RWSTD_SIZE_T i = 0; i != nbytes; ++i) {
-        if (s1 [i] != s2 [i])
-            return s1 [i] < s2 [i] ? -1 : 1;
+        if (cs1 [i] != cs2 [i])
+            return cs1 [i] < cs2 [i] ? -1 : 1;
     }
 
     return 0;
@@ -319,11 +329,11 @@ __rw_wmemmove (wchar_t *dst, const wchar_t *src, _RWSTD_SIZE_T nwchars)
             *dst++ = *src++;
     }
     else {
-        dst += nwchars;
-        src += nwchars;
-        while (nwchars--)
+        for (dst += nwchars, src += nwchars; nwchars--; )
             *--dst = *--src;
     }
+
+    return dst;
 
 #endif   // _RWSTD_NO_WMEMMOVE
 
