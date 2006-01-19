@@ -184,7 +184,7 @@ extern "C"
 // take the address of the function in a way
 // that foils even clever optimizers
 
-union {
+union funptr_type {
     funptr_t      pf;
     unsigned long ul;
 } funptri;
