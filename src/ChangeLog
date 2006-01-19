@@ -1,0 +1,351 @@
+2006-01-19  Martin Sebor  <sebor@roguewave.com>
+
+	* ChangeLog: Generated and added.
+
+2006-01-19  Martin Sebor  <sebor@roguewave.com>
+
+        * string.cpp [_RWSTD_NO_MEMCPY] (__rw_memcpy): Corrected logic
+        errors in conditionally compiled code.
+        [_RWSTD_NO_MEMCHR] (__rw_memchr): Same.
+        [_RWSTD_NO_MEMCMP] (__rw_memcmp): Same.
+        [_RWSTD_NO_STRLEN] (__rw_strlen): Same(!) 
+        [_RWSTD_NO_WMEMCPY] (__rw_wmemcpy): Same.
+        [_RWSTD_NO_WMEMCHR] (__rw_wmemchr): Same.
+        [_RWSTD_NO_WMEMCMP] (__rw_wmemcmp): Same.
+        [_RWSTD_NO_WSTRLEN] (__rw_wcslen): Same.
+
+2006-01-19  Martin Sebor  <sebor@roguewave.com>
+
+        * string.cpp [_RWSTD_NO_MEMCPY] (__rw_memcpy): Explicitly cast void*
+        to char* before doing any arithmetic on the value.
+        (__rw_memchr): Same.
+        (__rw_memset): Same.
+        (__rw_memcmp): Same.
+        (__rw_memmove): Same. Added a missing return statement.
+        [_RWSTD_NO_WMEMMOVE] (__rw_wmemmove): Added a missing return statement.
+
+2006-01-19  Martin Sebor  <sebor@roguewave.com>
+
+        * wcodecvt.cpp [_RWSTD_NO_MBTOWC] (mbtowc): Declared when not
+        declared in <stdlib.h> but known to be defined in the libc binary.
+        (do_in, do_out, do_length): Guarded references to mbtowc() with
+        _RWSTD_NO_MBTOWC.
+        [_RWSTD_NO_MBRLEN && _RWSTD_NO_MBLEN] (__rw_libc_mbrlen): Silenced
+        an unused variable warning.
+        (do_unshift): Removed an unnecessary scope resolution operator
+        from a call to mbtowc().
+
+2006-01-16  Martin Sebor  <sebor@roguewave.com>
+
+        STDCXX-104
+        * wcodecvt.cpp (__rw_libc_do_out): Used the _RWSTD_WCSLEN() macro
+        instead of invoking wcslen() directly.
+
+2006-01-14  Martin Sebor  <sebor@roguewave.com>
+
+        * codecvt.cpp (StateT): Moved convenience typedef from __rw_mbsinit
+        to file scope and used it to declare the function's formal argument.
+
+2006-01-14  Martin Sebor  <sebor@roguewave.com>
+
+        * wcodecvt.cpp (StateT): New convenience typedef.
+        (__rw_libstd_do_out): Documented the purpose of dead code
+        and unreachable warnings.
+
+2006-01-12  Martin Sebor  <sebor@roguewave.com>
+
+        * codecvt.cpp: Removed assumptions about _RWSTD_MBSTATE_T being
+        a simple type (not really necessary after r368468 but it doesn't
+        hurt to be extra safe).
+        * wcodecvt.cpp: Same.
+
+2006-01-12  Martin Sebor  <sebor@roguewave.com>
+
+        STDCXX-108
+        * TIMEZONE.cpp: New test to determine whether the POSIX timezone
+        variable is declared in <time.h>.
+        * time_put.cpp (__rw_get_zone): Changed to return 0 instead of void
+        on success (and non-zero on error) and handled _RWSTD_NO_TIMEZONE.
+        (__rw_get_time_put_data): Handled __rw_get_zone failure.
+
+2006-01-11  Andrew Black <ablack@roguewave.com>
+
+	STDCXX-103
+	* time_put.cpp [_RWSTD_NO_NL_LANGINFO] (<langinfo.h>): Guarded
+        against inclusion when the header is detected to be missing at
+        configuration time.
+        * _defs.h [_RWSTD_NO_WCHAR_H] (_RWSTD_ANSI_C_WCHAR_H): Defined
+        to <rw/_defs.h> when the header is absent on a platform.
+
+2006-01-10  Martin Sebor  <sebor@roguewave.com>
+
+	* _mbstate.h (_RWSTD_MBSTATE_T): New macro for std::mbstate_t,
+	::mbstate_t, the internal ::__mbstate_t (on Linux and Solaris),
+	char* on AIX, char on IRIX, and int for MSVC.
+	* iosfwd (_mbstate.h, _RWSTD_MBSTATE_T): Unconditionally included
+	and used the macro instead of referring to mbstate_t directly.
+	* _codecvt.h: Same.
+	* _locale.h: Same.
+	* _messages.cc: Same.
+	* _traits.h: Same.
+	* codecvt.cpp: Same.
+	* iso2022.cpp: Same.
+	* iso2022.h: Same.
+	* wcodecvt.cpp: Same.
+
+2006-01-10  Martin Sebor  <sebor@roguewave.com>
+
+	* string.cpp [_RWSTD_NO_WMEMCHR] (wmemchr): Corrected a typo
+	in function name.
+
+2006-01-09  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-104
+	* collate.cpp (wsccoll, wcsxfrm, wcstombs): Declared when the functions
+	are known to be defined in the libc binary but not declared in the libc
+	headers.
+	(__rw_wcsxfrm): New. Just like wcsxfrm but implemented in terms of
+	mbstowcs and strxfrm when wcxfrm is not implemented by the system's
+	libc.
+	(_RWSTD_WCSXFRM): New macro expands to wcsxfrm or __rw_wcsxfrm.
+	(__rw_wcsnxfrm): Used _RWSTD_WCSXFRM.
+	[_RWSTD_NO_WCSCOLL] (collate_byname::do_compare): Implemented in terms
+	of do_transform when there is no support for wcscoll in libc.
+
+2006-01-09  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-106
+	* memattr.cpp (__rw_memattr): Used getpagesize(3) instead of sysconf(3)
+	when neither _SC_PAGE_SIZE or _SC_PAGESIZE is #defined in <unistd.h>
+	(e.g., on BSD UNIX).
+	Restored errno to its original value if it got clobbered by one of the
+	called functions.
+
+2006-01-07  Martin Sebor  <sebor@roguewave.com>
+
+	* time_put.cpp (__rw_get_timepunct): Removed unnecessary qualification
+	from references to libc functions. Inserted a wide NUL character, not
+	just a narrow one, at the beggining of the __rw_time_t structure.
+	(__rw_put_time): NUL-terminated format string before passing it to
+	strftime and wcsftime.
+
+2006-01-07  Martin Sebor  <sebor@roguewave.com>
+
+	* locale_body.cpp (__rw_locale): Removed a stray std:: qualification
+	from a call to strlen().
+	(_C_is_managed): Eliminated a gcc -Wextra warning: operation may be
+	undefined.
+
+2006-01-07  Martin Sebor  <sebor@roguewave.com>
+
+	* string.cpp: New file with defitions of string helpers.
+
+2006-01-07  Martin Sebor  <sebor@roguewave.com>
+
+	* locale_core.cpp (_C_get_std_facet): Used size_t instead of the
+	_RWSTD_SIZE_T macro and explicitly cast the result of an expression
+	to the type to silence the asinine HP aCC +DD64 Warning (suggestion)
+	887: # Type 'int' is smaller than type 'unsigned long', unwanted
+	widening in value may result.
+
+2006-01-05  Martin Sebor  <sebor@roguewave.com>
+
+	* wctype.cpp (wchar.h): Included for wctomb().
+
+2005-12-06  Martin Sebor  <sebor@roguewave.com>
+
+	* mapfile.gcc: Exported additional symbols.
+
+2005-12-05  Martin Sebor  <sebor@roguewave.com>
+
+	* typeinfo.cpp: Corrected preprocessor guards around definitions
+	of class bad_typeid member functions.
+
+2005-12-02  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-81
+	* assert.cpp: On Solaris 8 and beyond, declared the printstack function
+	instead of #including <ucontext.h>, the system header in which it is
+	declared, in order to avoid having to #define enabling macros (i.e.,
+	__EXTENSIONS__) and deal with the breakage when using a strict compiler
+	such as EDG eccp with the long long extension (used in some system other
+	headers) disabled.
+
+2005-12-02  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-73
+	* typeinfo: Used guard macros appropriate for each class instead
+	of fudging it based on what appears to work in most cases (except
+	for MSVC 8).
+	* typeinfo.cpp: Same. Also indented preprocessor conditionals for
+	readability.
+
+2005-12-01  Martin Sebor  <sebor@roguewave.com>
+
+	* collate.cpp (__rw_strnxfrm): As a workaround for STDCXX-68 and
+	STDCXX-69, provided dummy destination buffers instead of passing
+	in 0 when calling strxfrm and wcsxfrm with the last argument of
+	0 in case the functions are buggy (such as those implemented by
+	MSVC) and try to write to the buffer anyway.
+	(__rw_wcsnxfrm): Same.
+
+2005-12-01  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-80
+	* GNUmakefile: Wrote the definition of the MAPFLAGS variable to
+	makefile.in. Wrote out the definition of MAPFILE using/relative
+	to TOPDIR, and the definition of LIBDIR relative to BUILDDIR.
+	* GNUmakefile.lib: Appended MAPFILE to LDFLAGS, after MAPFLAGS.
+	* gcc.config: Defined MAPFLAGS on Solaris and defined MAPFILE
+	as a relative pathname WRT TOPDIR.
+	* mapfile.gcc-3: Renamed...
+	* mapfile.gcc: ...to this file (used with gcc 3 and beyond) and
+	populated it with exported symbols.
+
+2005-11-30  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-76
+	* exception.cpp: (uncaught_exception): With MSVC 7 and better, used
+	__uncaught_exception() to implement std::uncaught_exception() instead
+	of relying on the global symbol.
+
+2005-11-08  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-64
+	* ti_num_get.cpp: Silenced HP aCC warning 933: Null macro argument.
+	* ti_num_put.cpp: Same.
+	* ti_numpunct.cpp: Same.
+
+2005-09-29  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-22
+	* _time_put.cc (__rw_put_time): Changed to an ordinary function.
+	* time_put.cpp (__rw_put_time): Changed linkage from internal to
+	external.
+
+2005-09-28  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-43
+	* i86/atomic.s (__rw_atomic_add): renamed to __rw_atomic_add32.
+	(__rw_atomic_xchg): renamed to __rw_atomic_xchg32.
+	* sparc/atomic-64.s: Ditto.
+	* _mutex.h: Simplified by factoring out common code from platform
+	specific blocks to a single platform-independent block (wherever
+	possible).
+	(__rw_atomic_add): renamed to __rw_atomic_add32.
+	(__rw_atomic_xchg): renamed to __rw_atomic_xchg32.
+
+2005-09-28  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-22
+	* time_put.cpp (__rw_put_time): Changed from a function template
+	and its two specializations to overloads of an ordinary function
+	to prevent an SGI MIPSpro 7.41 ICE.
+
+2005-09-28  Martin Sebor  <sebor@roguewave.com>
+
+	* time_put.cpp: Removed unnecessary scope resolution operators from
+	global names.
+	(__rw_put_time): Renamed the 6-argument overloads taking a character
+	pointer as the last argument to __rw_fmt_time in order to distinguish
+	them from the 12-argument function template and its specializations.
+
+2005-09-19  Martin Sebor  <sebor@roguewave.com>
+
+	* atomic.s: Included the correct IA64 implementation files, along
+	the lines of rev 230382 (inadvertently reverted in rev 290311).
+
+2005-09-19  Martin Sebor  <sebor@roguewave.com>
+
+	* atomic-ia64-32.s: Renamed...
+	* ia64/atomic.s: ...to this.
+
+2005-09-19  Martin Sebor  <sebor@roguewave.com>
+
+	* ia64/atomic.s: Renamed...
+	* ia64/atomic-64.s: ...to this for consistency with the other
+	assembly files.
+
+2005-09-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-14 (part 2)
+	* atomic.S: Renamed...
+	* atomic-cxx.S: ...to this.
+
+2005-09-19  Martin Sebor  <sebor@roguewave.com>
+
+	* atomic-64.s: Changed the name of the included file to correspond
+	to its new location (see rev 290311).
+
+2005-09-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-14 (part 1)
+	* src/atomic-i86.s: Renamed to...
+	* src/i86/atomic.s: ...this.
+	* src/atomic-ia64.s: Renamed to...
+	* src/ia64/atomic.s: ...this.
+	* src/atomic-pa2.s: Renamed to...
+	* src/parisc/atomic.s:  ...this.
+	* src/atomic-pa2-64.s: Renamed to...
+	* src/parisc/atomic-64.s: ...this.
+	* src/atomic-sparc.s: Renamed to...
+	* src/sparc/atomic.s: ...this.
+	* src/atomic-sparc64.s Renamed to...
+	* src/sparc/atomic-64.s: ...this.
+	* src/atomic.s: Changed the names of included files according
+	to the above.
+	* GNUmakefile: Introduced the AS_EXT variable and set it to.S by
+	default (unless already defined in the .config file).
+	* makefile.common: Replaced platform-specific hackery with a more
+	general handling of assembly files.
+	* makefile.rules: Introduced the AS_EXT variable into the %.o: %.s
+	suffix rule and guarded the whole thing against expanding when AS_EXT
+	is not defined or valid.
+	* acc.config: Defined AS_EXT to .s.
+	* mipspro.config: Same.
+	* vacpp.config: Defined AS_EXT to an invalid value on AIX to prevent
+	the assembly of .{S,s} files (Linux will use the default extension
+	defined in GNUmakefile).
+	* eccp.config: Defined AS_EXT to an invalid value to disable the
+	processing of assembly files until a solution to invoke the system
+	assembler is implemented.
+
+2005-09-15  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-21
+	* wcodecvt.cpp (__rw_libstd_do_out): Converted each character
+	to unsigned long before comparing its value against the surrogate
+	pair ranges in order to silence gcc warning on Cygwin (where
+	sizeof(wchar_t) == 2): comparison is always true due to limited
+	range of data type.
+
+2005-09-15  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-19
+	* memattr.cpp: #defined _SC_PAGE_SIZE to _SC_PAGESIZE when the former
+	is not #defined (such as Cygwin).
+
+	STDCXX-20
+	* memattr.cpp: #defined _WIN32 when __CYGWIN__ is #defined to take
+	advantage of the Windows Memory Management API and to work aound
+	the lack of madvise().
+
+2005-08-04  Nicole  Willson  <willson@roguewave.com>
+	    Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-11:
+	* include/rw/_mutex.h (__rw_atomic_preincrement,
+	__rw_atomic_predecrement, __rw_atomic_exhange): Added
+	long long overloads for 32-bit IA64.
+	* src/atomic.s: Conditionally #included atomic-ia64-32.s.
+	* src/atomic-ia64-32.s: New. Same as atomic-ia64.s except
+	for 32-bit mode.
+
+2005-07-26  Martin Sebor  <sebor@roguewave.com>
+
+	Set the svn:keywords property and enabled the expansion
+	of the Id keyword.
+
+2005-07-18  Martin Sebor  <sebor@roguewave.com>
+
+	Initial import of the Rogue Wave C++ Standard library 4.1.2.
