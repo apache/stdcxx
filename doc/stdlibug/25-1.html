@@ -3,12 +3,12 @@
 <TITLE>Understanding Facet Types</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="25.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="25.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>25.1 Understanding Facet Types</H2>
 <A NAME="idx557"><!></A>
 <P>A <I>facet</I> is an object which can be stored in a locale and retrieved from the locale based on its type. Facets encapsulate data about cultural and language dependencies. They also contain services (functions) that use the encapsulated data to help you internationalize your programs.</P>
 <A NAME="idx558"><!></A>
-<P>The Standard C++ Library defines a number of facet classes, which we call <I>standard facets</I>. These facets were reviewed in the previous chapter; they are present in every locale. You can derive your own facet classes from the standard facets, to modify their behavior. You can also create entirely new facet classes, to handle aspects of internationalization that the standard facets don't cover. Both of these processes are described later in this chapter.</P>
+<P>The C++ Standard Library defines a number of facet classes, which we call <I>standard facets</I>. These facets were reviewed in the previous chapter; they are present in every locale. You can derive your own facet classes from the standard facets, to modify their behavior. You can also create entirely new facet classes, to handle aspects of internationalization that the standard facets don't cover. Both of these processes are described later in this chapter.</P>
 <A NAME="idx559"><!></A>
 <P>In talking about facet classes, we need to distinguish between <I>base facets</I> and <I>derived facets</I>. A <I>base facet</I> is a class with the following properties:</P>
 <UL>

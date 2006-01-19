@@ -3,10 +3,10 @@
 <TITLE>Functions</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="3-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="3-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>3.1 Functions</H2>
 <A NAME="idx43"><!></A>
-<P>A number of algorithms provided in the Standard C++ Library accept functions as arguments. A simple example is the algorithm <SAMP>std::for_each()</SAMP>, which invokes a function, passed as an argument, on each value held in a container. For example, the following code fragment applies the <SAMP>printElement()</SAMP> function to produce output describing each element in a list of integer values:</P>
+<P>A number of algorithms provided in the C++ Standard Library accept functions as arguments. A simple example is the algorithm <SAMP>std::for_each()</SAMP>, which invokes a function, passed as an argument, on each value held in a container. For example, the following code fragment applies the <SAMP>printElement()</SAMP> function to produce output describing each element in a list of integer values:</P>
 
 <UL><PRE>
 void printElement(int value)
@@ -21,7 +21,7 @@ int main()
    std::for_each(aList.begin(), aList.end(), printElement);
 }
 </PRE></UL>
-<P><I>Binary functions</I> take two arguments, and are often applied to values from two different sequences. For example, suppose we have a list of strings and a list of integers. For each element in the first list we wish to replicate the string the number of times given by the corresponding value in the second list. We can perform this easily using the function <SAMP>std::transform()</SAMP> from the Standard C++ Library. First, we define a binary function with the desired characteristics:</P>
+<P><I>Binary functions</I> take two arguments, and are often applied to values from two different sequences. For example, suppose we have a list of strings and a list of integers. For each element in the first list we wish to replicate the string the number of times given by the corresponding value in the second list. We can perform this easily using the function <SAMP>std::transform()</SAMP> from the C++ Standard Library. First, we define a binary function with the desired characteristics:</P>
 
 <UL><PRE>
 std::string stringRepeat(const std::string&amp; base, int number)

@@ -3,7 +3,7 @@
 <TITLE>Example Programs</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="9-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="10.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="9-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="10.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>9.3 Example Programs</H2>
 <P>In this section, we present three example programs that illustrate the use of <B><I><A HREF="../stdlibref/map.html">map</A></I></B>s and <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B>s. These examples deal with a telephone database, graphs, and a concordance.</P>
 <A NAME="931"><H3>9.3.1 Example: A Telephone Database</H3></A>
@@ -69,7 +69,7 @@ void telephoneDirectory::displayPrefix (int pfx) {
 }
 
 </PRE></UL>
-<P>For the predicate to this operation, we require a boolean function that takes only a single argument, the <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B> representing a database entry, and tells us whether or not it is in the given prefix. There is no obvious candidate function, and in any case the test prefix is not being passed as an argument to the comparison function. The solution to this problem is to employ a common Standard C++ Library technique: define the predicate function as an instance of a class, and store the test predicate as an instance variable in the class, initialized when the class is constructed. The desired function is defined as the function call operator for the class:</P>
+<P>For the predicate to this operation, we require a boolean function that takes only a single argument, the <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B> representing a database entry, and tells us whether or not it is in the given prefix. There is no obvious candidate function, and in any case the test prefix is not being passed as an argument to the comparison function. The solution to this problem is to employ a common C++ Standard Library technique: define the predicate function as an instance of a class, and store the test predicate as an instance variable in the class, initialized when the class is constructed. The desired function is defined as the function call operator for the class:</P>
 
 <UL><PRE>
 long prefix (const entry_type&amp; entry) {

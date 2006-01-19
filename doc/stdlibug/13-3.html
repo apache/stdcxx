@@ -3,7 +3,7 @@
 <TITLE>Searching Operations</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="13-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="13-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="13-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>13.3 Searching Operations</H2>
 <A NAME="idx280"><!></A>
 <P>The next category of algorithms we describe are used to locate elements within a sequence that satisfy certain properties. Most commonly the result of a search is then used as an argument to a further operation, for example, <SAMP>std::copy()</SAMP> (<A HREF="13-2.html#1322">Section&nbsp;13.2.2</A>), <SAMP>std::partition()</SAMP> (<A HREF="13-4.html#1344">Section&nbsp;13.4.4</A>), or <SAMP>std::inplace_merge()</SAMP> (<A HREF="13-4.html#1346">Section&nbsp;13.4.6</A>.)</P>
@@ -26,7 +26,7 @@ while ((where = std::adjacent_find(where, stop)) != stop) {
 }
 </PRE></UL>
 <BLOCKQUOTE><HR><B>
-NOTE -- The searching algorithms in the Standard C++ Library all return the end-of-sequence iterator if no value is found that matches the search condition. As it is generally illegal to dereference the end-of-sequence value, it is important to check for this condition before proceeding to use the result of a search.
+NOTE -- The searching algorithms in the C++ Standard Library all return the end-of-sequence iterator if no value is found that matches the search condition. As it is generally illegal to dereference the end-of-sequence value, it is important to check for this condition before proceeding to use the result of a search.
 </B><HR></BLOCKQUOTE>
 <P>Many of the searching algorithms have an optional argument that can specify a function for comparing elements in place of the equality <SAMP>operator==()</SAMP> for the container element type. In the descriptions of the algorithms, we write these optional arguments inside square brackets to indicate they need not be specified if the standard equality operator is acceptable.</P>
 <A NAME="1331"><H3>13.3.1 Find an Element Satisfying a Condition</H3></A>
@@ -277,7 +277,7 @@ void max_min_example()
             &lt;&lt; std::endl;
 }
 </PRE></UL>
-<P>The maximum and minimum algorithms can be used with all the datatypes provided by the Standard C++ Library. However, for the ordered datatypes <B><I><A HREF="../stdlibref/set.html">set</A></I></B> and <B><I><A HREF="../stdlibref/map.html">map</A></I></B>, the maximum or minimum values are more easily accessed as the first or last elements in the structure.</P>
+<P>The maximum and minimum algorithms can be used with all the datatypes provided by the C++ Standard Library. However, for the ordered datatypes <B><I><A HREF="../stdlibref/set.html">set</A></I></B> and <B><I><A HREF="../stdlibref/map.html">map</A></I></B>, the maximum or minimum values are more easily accessed as the first or last elements in the structure.</P>
 <A NAME="1337"><H3>13.3.7 Locate the First Mismatched Elements in Parallel Sequences</H3></A>
 <A NAME="idx294"><!></A>
 <P>The name <SAMP>std::mismatch()</SAMP> might lead you to think this algorithm is the inverse of the <SAMP>std::equal()</SAMP> algorithm, which determines if two sequences are equal (<A HREF="13-6.html#1364">Section&nbsp;13.6.4</A>). Instead, the <SAMP>std::mismatch()</SAMP> algorithm returns a <B><I><A HREF="../stdlibref/pair.html">pair</A></I></B> of iterators that together indicate the first positions where two parallel sequences have differing elements. The structure <B><I>pair</I></B> is described in <A HREF="9-1.html">Section&nbsp;9.1</A> and <A HREF="9-2.html#921">Section&nbsp;9.2.1</A>. </P>

@@ -3,7 +3,7 @@
 <TITLE>The Internal Structure of the Iostreams Layers</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="27-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="28.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="27-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="28.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>27.4 The Internal Structure of the Iostreams Layers</H2>
 <A NAME="idx641"><!></A>
 <P>As explained earlier, the standard iostreams have two layers, one for formatting, and another for code conversion and transport of characters to and from the external device. For convenience, let's repeat here as <A HREF="27-4.html#Figure&nbsp;22">Figure&nbsp;22</A> the same illustration of the iostreams layers given as <A HREF="27-2.html#Figure&nbsp;20">Figure&nbsp;20</A>:</P>
@@ -20,7 +20,7 @@
 
 <P><IMG SRC="images/stdlibug-IOStreams7.gif" WIDTH=592 HEIGHT=499></P>
 <A NAME="idx645"><!></A>
-<P>You may notice that the classes <B><I><A HREF="../stdlibref/strstream.html">strstream</A></I></B>, <B><I><A HREF="../stdlibref/istrstream.html">istrstream</A></I></B>, and <B><I><A HREF="../stdlibref/ostrstream.html">ostrstream</A></I></B> are not included in this diagram, even though we describe them in the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A>. Sometimes called <I>deprecated features</I> in the standard, these classes are provided solely for the sake of compatibility with the traditional iostreams, and will not be supported in future versions of the standard iostreams. </P>
+<P>You may notice that the classes <B><I><A HREF="../stdlibref/strstream.html">strstream</A></I></B>, <B><I><A HREF="../stdlibref/istrstream.html">istrstream</A></I></B>, and <B><I><A HREF="../stdlibref/ostrstream.html">ostrstream</A></I></B> are not included in this diagram, even though we describe them in the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A>. Sometimes called <I>deprecated features</I> in the standard, these classes are provided solely for the sake of compatibility with the traditional iostreams, and will not be supported in future versions of the standard iostreams. </P>
 <P>In the next sections, we discuss in more detail the components and characteristics of the components that are included in the class hierarchy given in <A HREF="27-4.html#Figure&nbsp;23">Figure&nbsp;23</A>.</P>
 <A NAME="idx646"><!></A>
 <A NAME="2741-1"><H4>27.4.1.1 Iostreams Base Class ios_base</H4></A>
@@ -42,7 +42,7 @@ basic_ios;
 </PRE></UL>
 <A NAME="idx649"><!></A>
 <P>The class holds a pointer to the stream buffer, which contains the underlying character buffer and state information that reflects the integrity of the stream buffer. Note that <B><I><A HREF="../stdlibref/basic-ios.html">basic_ios&lt;&gt;</A></I></B> is a class template taking two parameters, the type of character handled by the stream, and the <I>character traits</I>.</P>
-<P>The type of character can be type <SAMP>char</SAMP> for single-byte characters, or type <SAMP>wchar_t</SAMP> for wide characters, or any other user-defined character type. There are instantiations for <SAMP>char</SAMP> and <SAMP>wchar_t</SAMP> provided by the Standard C++ Library.</P>
+<P>The type of character can be type <SAMP>char</SAMP> for single-byte characters, or type <SAMP>wchar_t</SAMP> for wide characters, or any other user-defined character type. There are instantiations for <SAMP>char</SAMP> and <SAMP>wchar_t</SAMP> provided by the C++ Standard Library.</P>
 <P>For convenience, there are typedefs for these specializations:</P>
 <P><SAMP>typedef basic_ios&lt;char&gt; </SAMP><SAMP><B>ios</B></SAMP><SAMP>;</SAMP></P>
 <P>and</P>
@@ -63,9 +63,9 @@ basic_ios;
 <A NAME="idx656"><!></A>
 <LI><P CLASS="LIST"><B>The equality of two characters</B>. For an exotic user-defined character type, the equality of two characters might mean something different from just bit-wise equality. Here you can define it.</P></LI>
 </UL>
-<P>A complete list of character traits is given in the <I>Standard C++ Library Module Reference Guide</I> entry for <SAMP>char_traits</SAMP>.</P>
+<P>A complete list of character traits is given in the <I>C++ Standard Library Module Reference Guide</I> entry for <SAMP>char_traits</SAMP>.</P>
 <P>There are specializations defined for type <SAMP>char</SAMP> and <SAMP>wchar_t</SAMP>. In general, this class template is not meant to be explicitly instantiated for a user-defined character type. You should always define class template specializations.</P>
-<P>Fortunately, the Standard C++ Library is designed to make the most common cases the easiest. The traits template parameter has a sensible default value, so usually you need not bother with character traits at all.</P>
+<P>Fortunately, the C++ Standard Library is designed to make the most common cases the easiest. The traits template parameter has a sensible default value, so usually you need not bother with character traits at all.</P>
 <A NAME="idx657"><!></A>
 <A NAME="2741-4"><H4>27.4.1.4 The Input and Output Streams</H4></A>
 <P>The three stream class templates for input and output are:</P>

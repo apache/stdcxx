@@ -3,7 +3,7 @@
 <TITLE>Modifying a Standard Facet's Behavior</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="25-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-6.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="25-4.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-6.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>25.5 Modifying a Standard Facet's Behavior</H2>
 <A NAME="idx577"><!></A>
 <P>At times you may need to replace a facet object in a locale by another kind of facet object. In the following example, let us derive from one of the standard facet classes, <B><I><A HREF="../stdlibref/numpunct.html">numpunct</A></I></B>, and create a locale object in which the standard <SAMP>std::numpunct</SAMP> facet object is replaced by an instance of our new, derived facet class. </P>
@@ -78,7 +78,7 @@ class change_bool_names
 <TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The new facet is derived from the <SAMP>std::numpunct_byname&lt;charT&gt;</SAMP> facet.
 <BR><BR>The byname facets read the respective locale information from the external representation of a C locale. The name provided to construct a byname<I> </I>facet is the name of a locale, as you would use it in a call to <SAMP>setlocale()</SAMP>.
 <TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>A constructor is provided that takes a locale name and the new values we want to display for the alpha versions of <SAMP>true</SAMP> and <SAMP>false</SAMP>. The fourth parameter, <SAMP>refs</SAMP>, controls the facet's lifetime, as described in an earlier section.
-<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>The virtual member functions <SAMP>do_truename()</SAMP> and <SAMP>do_falsename()</SAMP> are reimplemented. They are called by the public member functions <SAMP>truename()</SAMP> and <SAMP>falsename()</SAMP>. See the <A HREF="../stdlibref/noframes.html"><I>Standard C++ Library Module Reference Guide</I></A> for further details.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>The virtual member functions <SAMP>do_truename()</SAMP> and <SAMP>do_falsename()</SAMP> are reimplemented. They are called by the public member functions <SAMP>truename()</SAMP> and <SAMP>falsename()</SAMP>. See the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A> for further details.
 </TABLE>
 <P>Now let's create a German locale in which the <SAMP>std::numpunct&lt;char&gt;</SAMP> facet has been replaced by an object of our new derived facet type, as shown in <A HREF="25-5.html#Figure&nbsp;11">Figure&nbsp;11</A>:</P>
 <A NAME="idx580"><!></A>

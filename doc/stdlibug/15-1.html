@@ -3,7 +3,7 @@
 <TITLE>Overview</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="15.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="15-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="15.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="15-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>15.1 Overview</H2>
 <A NAME="idx372"><!></A>
 <P>The Standard C++ allocator interface encapsulates the types and functions needed to manage the storage of data in a generic way. The interface provides:</P>
@@ -16,7 +16,7 @@
 </UL>
 <A NAME="idx373"><!></A>
 <P>This allocator interface wraps the mechanism for managing data storage, and separates this mechanism from the classes and functions used to maintain associations between data elements. This eliminates the need to rewrite containers and algorithms to suit different storage mechanisms. The interface lets you encapsulate all the storage mechanism details in an allocator, then provide that allocator to an existing container when appropriate.</P>
-<P>The Standard C++ Library provides a default allocator class, <B><I><A HREF="../stdlibref/allocator.html">allocator</A></I></B>, that implements this interface using the standard <SAMP>new</SAMP> and <SAMP>delete</SAMP> operators for all storage management. </P>
+<P>The C++ Standard Library provides a default allocator class, <B><I><A HREF="../stdlibref/allocator.html">allocator</A></I></B>, that implements this interface using the standard <SAMP>new</SAMP> and <SAMP>delete</SAMP> operators for all storage management. </P>
 <A NAME="idx374"><!></A>
 <P>This chapter briefly describes how to use <B><I><A HREF="../stdlibref/allocator.html">allocator</A></I></B>s with existing containers, then discusses what you need to consider when designing your own <B><I>allocator</I></B>s. <A HREF="16.html">Chapter&nbsp;16</A> describes what you must consider when designing containers that use <B><I>allocator</I></B>s.</P>
 

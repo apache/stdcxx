@@ -3,7 +3,7 @@
 <TITLE>Using a Stream's Facet</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="25-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="25-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="25-5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>25.4 Using a Stream's Facet</H2>
 <A NAME="idx574"><!></A>
 <A NAME="idx575"><!></A>
@@ -30,7 +30,7 @@ std::cout &lt;&lt; aDate;                                         //4
 </TABLE>
 <P>The output is: <SAMP>1. September 1989</SAMP></P>
 <A NAME="idx576"><!></A>
-<P>As there is no <SAMP>operator&lt;&lt;()</SAMP> defined in the Standard C++ Library for the time structure <SAMP>tm</SAMP> from the C library, we must provide this inserter ourselves. The following code suggests a way this can be done. If you are not familiar with iostreams, please refer to the iostreams part of this <I>User's </I><I>Guide</I>. </P>
+<P>As there is no <SAMP>operator&lt;&lt;()</SAMP> defined in the C++ Standard Library for the time structure <SAMP>tm</SAMP> from the C library, we must provide this inserter ourselves. The following code suggests a way this can be done. If you are not familiar with iostreams, please refer to the iostreams part of this <I>User's </I><I>Guide</I>. </P>
 <P>To keep it simple, the handling of exceptions thrown during the formatting is omitted.</P>
 
 <UL><PRE>
@@ -54,7 +54,7 @@ operator&lt;&lt;(std::basic_ostream&lt;charT,traits&gt;&amp; os,
 <TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>This is a typical signature of a stream inserter; it takes a reference to an output stream and a constant reference to the object to be printed, and returns a reference to the same stream.
 <TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The stream's locale object is obtained via the stream's member function <SAMP>getloc()</SAMP>. This is the locale object where we expect to find a time-formatting facet object.
 <TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>We define a type for an output iterator to a stream buffer. 
-Time-formatting facet objects write the formatted output via an iterator into an output container (see the sections on containers and iterators in the <I>Standard C++ Library</I> <I>User's Guide</I>). In principle, this can be an arbitrary container that has an output iterator, such as a string or a C++ array. 
+Time-formatting facet objects write the formatted output via an iterator into an output container (see the sections on containers and iterators in the <I>C++ Standard Library</I> <I>User's Guide</I>). In principle, this can be an arbitrary container that has an output iterator, such as a string or a C++ array. 
 Here we want the time-formatting facet object to bypass the stream's formatting layer and write directly to the output stream's underlying stream buffer. Therefore, the output container shall be a stream buffer.
 <TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>We define a variable that will hold a reference to the locale object's <SAMP>std::time_put</SAMP> facet object. The time formatting facet class <SAMP>std::time_put</SAMP> has two template parameters:
 <UL>

@@ -3,7 +3,7 @@
 <TITLE>Differences between the C Locale and the C++ Locales</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="24-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="24-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
+<A HREF="24-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="24-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>24.3 Differences between the C Locale and the C++ Locales</H2>
 <A NAME="idx527"><!></A>
 <P>As we have seen so far, the C locale and the C++ locale offer similar services. However, the semantics of the C++ locale are different from the semantics of the C locale:</P>
@@ -45,7 +45,7 @@ while ( ... )     // processing the German invoice
 }
 </PRE></UL>
 <A NAME="idx534"><!></A>
-<P>Using C++ locale objects dramatically simplifies the task of communicating between multiple locales. The iostreams in the Standard C++ Library are internationalized so that streams can be imbued with separate locale objects. For example, the input stream can be imbued with an English locale object, and the output stream can be imbued with a German locale object. In this way, switching locales becomes unnecessary, as demonstrated in <A HREF="24-3.html#Figure&nbsp;7">Figure&nbsp;7</A>:</P>
+<P>Using C++ locale objects dramatically simplifies the task of communicating between multiple locales. The iostreams in the C++ Standard Library are internationalized so that streams can be imbued with separate locale objects. For example, the input stream can be imbued with an English locale object, and the output stream can be imbued with a German locale object. In this way, switching locales becomes unnecessary, as demonstrated in <A HREF="24-3.html#Figure&nbsp;7">Figure&nbsp;7</A>:</P>
 <A NAME="idx535"><!></A>
 <H4><A NAME="Figure&nbsp;7">Figure&nbsp;7: Multiple locales in C++</A></H4>
 
@@ -64,7 +64,7 @@ while ( ... )  // processing the German invoice
    invoiceFile &lt;&lt; price;
 }
 </PRE></UL>
-<P>This example assumes that you have created a class, <B><I>moneytype</I></B>, to represent monetary values, and that you have written iostream insertion <SAMP>&lt;&lt;</SAMP> and extraction <SAMP>&gt;&gt;</SAMP> operators for the class. Further, it assumes that these operators format and parse values using the <SAMP>std::money_put</SAMP> and <SAMP>std::money_get</SAMP> facets of the locales imbued on the streams they are operating on. See <A HREF="26.html">Chapter&nbsp;26</A> for a complete example of this technique using phone numbers rather than monetary values. The <B><I>moneytype</I></B> class is not part of the Standard C++ Library.</P>
+<P>This example assumes that you have created a class, <B><I>moneytype</I></B>, to represent monetary values, and that you have written iostream insertion <SAMP>&lt;&lt;</SAMP> and extraction <SAMP>&gt;&gt;</SAMP> operators for the class. Further, it assumes that these operators format and parse values using the <SAMP>std::money_put</SAMP> and <SAMP>std::money_get</SAMP> facets of the locales imbued on the streams they are operating on. See <A HREF="26.html">Chapter&nbsp;26</A> for a complete example of this technique using phone numbers rather than monetary values. The <B><I>moneytype</I></B> class is not part of the C++ Standard Library.</P>
 <P>Because the examples given above are brief, switching locales might look like a minor inconvenience. However, it is a major problem once code conversions are involved.</P>
 <A NAME="idx537"><!></A>
 <P>To underscore the point, let us revisit the JIS encoding scheme using the shift sequence described in <A HREF="23-3.html#Figure&nbsp;2">Figure&nbsp;2</A>, which is repeated for convenience here as <A HREF="24-3.html#Figure&nbsp;8">Figure&nbsp;8</A>. As you remember, you must maintain a <I>shift state</I> with these encodings while parsing a character sequence:</P>
@@ -85,7 +85,7 @@ while ( ... )  // processing the German invoice
 <A NAME="idx541"><!></A>
 <P>The C++ locale is commonly used as a default locale, with multiple locales, and as a global locale.</P>
 <A NAME="idx542"><!></A>
-<P><B>Classic locale.</B> If you are not involved with internationalizing programs, you won't need C++ locales any more than you need C locales. If you can safely assume that users of your applications are accommodated by classic US English ASCII behavior, you do not require localization features. For you, the Standard C++ Library provides a predefined locale object, <SAMP>std::locale::classic()</SAMP>, that represents the US English ASCII locale. </P>
+<P><B>Classic locale.</B> If you are not involved with internationalizing programs, you won't need C++ locales any more than you need C locales. If you can safely assume that users of your applications are accommodated by classic US English ASCII behavior, you do not require localization features. For you, the C++ Standard Library provides a predefined locale object, <SAMP>std::locale::classic()</SAMP>, that represents the US English ASCII locale. </P>
 <A NAME="idx543"><!></A>
 <P><B>Native locale.</B> We use the term <I>native locale</I> to describe the locale that has been chosen as the preferred locale by the user or system administrator. On UNIX systems, this is usually done by setting environment variables such as <SAMP>LANG</SAMP>. You can create a C++ locale object for the native locale by calling the constructor <SAMP>std::locale("")</SAMP>, that&nbsp;is, by requesting a named locale using an empty string as the name. The empty string tells the system to get the locale name from the environment, in the same way as the C library function <SAMP>std::setlocale("")</SAMP>.</P>
 <A NAME="idx544"><!></A>

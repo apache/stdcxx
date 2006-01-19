@@ -1,16 +1,16 @@
 <HTML>
 <HEAD>
-<TITLE>Container Types Not Found in the Standard C++ Library</TITLE>
+<TITLE>Container Types Not Found in the C++ Standard Library</TITLE>
 <LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
-<A HREF="4-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Rogue Wave C++ Standard Library User's Guide</B></DIV>
-<H2>4.4 Container Types Not Found in the Standard C++ Library</H2>
+<A HREF="4-3.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="5.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
+<H2>4.4 Container Types Not Found in the C++ Standard Library</H2>
 <A NAME="idx63"><!></A>
-<P>The Standard C++ Library provides the containers used in the solution of most programming problems. However, there are a number of classic container types that are not included. In most cases, this is because the provided containers can be easily adapted to a wide variety of uses, including the uses traditionally provided by the omitted containers. <A HREF="4-4.html#Table&nbsp;8">Table&nbsp;8</A> lists the container types that are not contained in the library, and the simple substitution.</P>
-<H4><A NAME="Table&nbsp;8">Table&nbsp;8: Container types not given in the Standard C++ Library&nbsp;</A></H4>
+<P>The C++ Standard Library provides the containers used in the solution of most programming problems. However, there are a number of classic container types that are not included. In most cases, this is because the provided containers can be easily adapted to a wide variety of uses, including the uses traditionally provided by the omitted containers. <A HREF="4-4.html#Table&nbsp;8">Table&nbsp;8</A> lists the container types that are not contained in the library, and the simple substitution.</P>
+<H4><A NAME="Table&nbsp;8">Table&nbsp;8: Container types not given in the C++ Standard Library&nbsp;</A></H4>
 <TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
 <tr><td valign=top><B>Container type NOT given</B>
-</td><td valign=top><B>Standard C++ Library substitution</B>
+</td><td valign=top><B>C++ Standard Library substitution</B>
 </td></tr>
 <A NAME="idx64"><!></A>
 <tr><td valign=top><P CLASS="TABLE">tree </P>
@@ -31,12 +31,12 @@
 </td></tr>
 <A NAME="idx69"><!></A>
 <tr><td valign=top><P CLASS="TABLE">hash table </P>
-</td><td valign=top><P CLASS="TABLE">A hash table provides amortized constant time access, and insertion and removal of elements, by converting access and removal operations into indexing operations. In the Standard C++ Library, a hash table can be easily constructed as a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> (or <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>) that holds <B><I><A HREF="../stdlibref/list.html">list</A></I></B>s (or even <B><I><A HREF="../stdlibref/set.html">set</A></I></B>s) as elements. A similar structure is described in the radix sort sample problem discussed in <A HREF="7-3.html">Section&nbsp;7.3</A>, although this example does not include invoking a hash function to convert a value into an index.</P>
+</td><td valign=top><P CLASS="TABLE">A hash table provides amortized constant time access, and insertion and removal of elements, by converting access and removal operations into indexing operations. In the C++ Standard Library, a hash table can be easily constructed as a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> (or <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>) that holds <B><I><A HREF="../stdlibref/list.html">list</A></I></B>s (or even <B><I><A HREF="../stdlibref/set.html">set</A></I></B>s) as elements. A similar structure is described in the radix sort sample problem discussed in <A HREF="7-3.html">Section&nbsp;7.3</A>, although this example does not include invoking a hash function to convert a value into an index.</P>
 <P CLASS="TABLE"><B><I><A HREF="../stdlibref/map.html">map</A></I></B>s and <B><I><A HREF="../stdlibref/multimap.html">multimap</A></I></B>s provide features similar to a hash table's, but inserts and searches are performed in log(N) time, with N being the size of the <B><I>map</I></B> or <B><I>multimap</I></B>.</P>
 </td></tr>
 <A NAME="idx70"><!></A>
 <tr><td valign=top><P CLASS="TABLE">some <B><I><A HREF="../stdlibref/set.html">set</A></I></B> functionality</P>
-</td><td valign=top><P CLASS="TABLE">In the Standard C++ Library, the <B><I><A HREF="../stdlibref/set.html">set</A></I></B> datatype is specifically ordered, and <B><I>set</I></B> operations (union, intersection, and so on) cannot be performed on collections of unordered values (for example, a set of complex numbers). A <B><I><A HREF="../stdlibref/list.html">list</A></I></B> can be used as a substitute, although it is still necessary to write special set operation functions, as the generic algorithms cannot be used with <B><I>list</I></B>s. </P>
+</td><td valign=top><P CLASS="TABLE">In the C++ Standard Library, the <B><I><A HREF="../stdlibref/set.html">set</A></I></B> datatype is specifically ordered, and <B><I>set</I></B> operations (union, intersection, and so on) cannot be performed on collections of unordered values (for example, a set of complex numbers). A <B><I><A HREF="../stdlibref/list.html">list</A></I></B> can be used as a substitute, although it is still necessary to write special set operation functions, as the generic algorithms cannot be used with <B><I>list</I></B>s. </P>
 </td></tr>
 </TABLE>
 
