@@ -1901,6 +1901,12 @@ void test_conditional ()
     TEST (cond3, 1, 0, 1, "01679");
     TEST (cond3, 1, 1, 0, "0124579");
     TEST (cond3, 1, 1, 1, "0123579");
+
+    // exercise conditionals with positional parameters
+    TEST ("A%{?}B%{:}C%{;}%1$d",  0, 0, 0, "AC0");
+    TEST ("A%{?}B%{:}C%{;}%1$d",  1, 0, 0, "AB1");
+    TEST ("A%{?}B%{:}C%{;}%1$d",  2, 0, 0, "AB2");
+    TEST ("A%{?}B%{:}C%{;}%1$d", -1, 0, 0, "AB-1");
 }
 
 /***********************************************************************/
