@@ -153,6 +153,17 @@ _rw_fmtmonpat (const FmtSpec&, char**, size_t*, const char [4]);
 static int
 _rw_fmtsignal (const FmtSpec&, char**, size_t*, int);
 
+// format an extension
+static int
+_rw_vasnprintf_ext (FmtSpec*, size_t, char**, size_t*, const char*, va_list*);
+
+/********************************************************************/
+
+typedef int _rw_usr_cb_t (char**, size_t*, const char*, ...);
+
+static _rw_usr_cb_t* _rw_usr_fun [32];
+static size_t        _rw_usr_inx;
+
 /********************************************************************/
 
 struct FmtSpec
@@ -254,10 +265,10 @@ struct FmtSpec
     union {
         ldbl_t    ldbl_;
         llong_t   llong_;
-        int64_t   i64_;
+        i64_t     i64_;
         ptr_t     ptr_;
         long_t    long_;
-        int32_t   i32_;
+        i32_t     i32_;
         int_t     int_;
         diff_t    diff_;
         size_t    size_;
@@ -578,15 +589,6 @@ _rw_bufcat (char **pbuf, size_t *pbufsize, const char *str, size_t len)
 
 /********************************************************************/
 
-// rw_asnprintf_cb is called to format a character string according
-// to the single format specifier `fmt' to the end of the provided
-// buffer `*pbuf'; the function can reallocate the buffer
-// returns the number of characters appended to the buffer
-extern int
-(*rw_vasnprintf_cb)(FmtSpec*, size_t, char**, size_t*, const char*, va_list*);
-
-/********************************************************************/
-
 static int
 _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
                     size_t   paramno,    // index of current parameter
@@ -806,8 +808,22 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
     // save the initial value of `pbuf'
     char* const pbuf_save = *pbuf;
 
-    if (*pbuf)
-        **pbuf = '\0';
+    // set to the initial length of the string in the buffer
+    // when appending to the buffer
+    size_t append_offset = 0;
+
+    if (*pbuf) {
+        if (   '\0' == fmt [0] && '%' == fmt [0] || '{' == fmt [1]
+            && '+' == fmt [2] && '}' == fmt [3]) {
+            // when the format string begins with the special %{+}
+            // directive append to the buffer instead of writing
+            // over it
+            fmt += 4;
+            append_offset = strlen (*pbuf);
+        }
+        else
+            **pbuf = '\0';
+    }
 
     // local buffer for a small number of conversion specifiers
     // will grow dynamically if their number exceeds its capacity
@@ -878,13 +894,14 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
             const size_t fmtlen = endbrace - fc;
 
+            // FIXME: handle specifier strings that are longer
+            RW_ASSERT (fmtlen < sizeof fmtspec);
+
             memcpy (fmtspec, fc, fmtlen);
             fmtspec [fmtlen] = '\0';
 
             // compute the length of the buffer so far
             const size_t buflen = next - *pbuf;
-
-            RW_ASSERT (0 != rw_vasnprintf_cb);
 
             // initiaze the current format specification, setting
             // all unused bits to 0
@@ -915,8 +932,8 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
             // the if/else clause)
 
             int len =
-                rw_vasnprintf_cb (pspec, paramno, pbuf, pbufsize,
-                                  fmtspec, pva);
+                _rw_vasnprintf_ext (pspec, paramno, pbuf, pbufsize,
+                                    fmtspec, pva);
 
             // the callback returns a negative value on error
             if (len < 0)
@@ -986,6 +1003,10 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
                 // pop it off the top of the stack
                 --nextoff;
             }
+            else {
+                // store the value of the argument extracted from the list
+                ++paramno;
+            }
 
             RW_ASSERT (len + buflen < *pbufsize);
 
@@ -1033,7 +1054,8 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
     if (pspec != specbuf)
         free (pspec);
 
-    return int (next - *pbuf);
+    // return the number of characters appended to the buffer
+    return int ((next - *pbuf) - append_offset);
 
 fail: // function failed
 
@@ -3377,7 +3399,7 @@ _rw_fmtmonpat (const FmtSpec&,
 /********************************************************************/
 
 static int
-_rw_vasnprintf_cxx (FmtSpec    *pspec,
+_rw_vasnprintf_ext (FmtSpec    *pspec,
                     size_t      paramno,
                     char*      *pbuf,
                     size_t     *pbufsize,
@@ -3387,15 +3409,68 @@ _rw_vasnprintf_cxx (FmtSpec    *pspec,
     RW_ASSERT (0 != pva);
     RW_ASSERT (0 != pspec);
 
-    _RWSTD_UNUSED (fmt);
-
+    // for convenience
     FmtSpec &spec = pspec [paramno];
 
     // the length of the sequence appended to the buffer to return
     // to the caller, or a negative value (such as -1) on error
     int len = -1;
 
+    for (size_t i = _rw_usr_inx; i-- && _rw_usr_fun [i]; ) {
+
+        // process the stack of user-defined formatting functions
+        // top to bottom
+
+        if (_rw_usr_fun [i]) {
+            // user-defined extension?
+            if (0 < spec.paramno) {
+                // pass the address of the paramno argument
+                len = (_rw_usr_fun [i])(pbuf, pbufsize, fmt,
+                                        &pspec [spec.paramno - 1].param);
+            }
+            else {
+                // pass the address of the variable argument list
+                // followed by the address of the current parameter
+                len = (_rw_usr_fun [i])(pbuf, pbufsize, fmt, pva,
+                                        &spec.param);
+            }
+
+            // special value indicating that the user-defined function
+            // decided not to process the format string and is passing
+            // control back to us
+            if (_RWSTD_INT_MIN != len)
+                return len;
+        }
+    }
+
+    len = -1;
+
     switch (spec.cvtspec) {
+
+    case '!':   // %{!}, %{+!}, %{-!}
+        // set a user-defined formatting function
+        if (spec.fl_plus) {
+            // push a new user-defined handler on top of the stack
+            spec.param.funptr_          = PARAM (funptr_);
+            _rw_usr_fun [_rw_usr_inx++] = (_rw_usr_cb_t*)spec.param.funptr_;
+        }
+        if (spec.fl_minus) {
+            // pop the stack of user-defined handlers
+            if (_rw_usr_inx)
+                --_rw_usr_inx;
+        }
+
+        if (!spec.fl_plus && !spec.fl_minus) {
+            // replace the top of the stack of user-defined handlers
+            if (0 == _rw_usr_inx)
+                ++_rw_usr_inx;
+
+            spec.param.funptr_            = PARAM (funptr_);
+            _rw_usr_fun [_rw_usr_inx - 1] = (_rw_usr_cb_t*)spec.param.funptr_;
+        }
+
+        len = 0;
+        break;
 
     case '?':   // %{?}
         // beginning of an if clause
@@ -3470,7 +3545,7 @@ _rw_vasnprintf_cxx (FmtSpec    *pspec,
             spec.param.ptr_ = PARAM (ptr_);
             len = _rw_fmtfloating (spec, pbuf, pbufsize, spec.param.ptr_);
         }
-        if (spec.mod == spec.mod_ext_I) {   // ios::fmtflags
+        else if (spec.mod == spec.mod_ext_I) {   // ios::fmtflags
             spec.param.int_ = PARAM (int_);
             len = rw_fmtflags (spec, pbuf, pbufsize, spec.param.int_);
         }
@@ -3679,18 +3754,17 @@ _rw_vasnprintf_cxx (FmtSpec    *pspec,
             free (spec.strarg);
         }
         else {
-            RW_ASSERT (!"not implemented");
+            char text [80];
+            len = sprintf (text, "*** %%{%.*s}: not implemented ***",
+                           sizeof fmt - 40, fmt);
+
+            if (0 == _rw_bufcat (pbuf, pbufsize, text, size_t (len)))
+                return -1;
         }
     }
 
     return len;
 }
-
-/********************************************************************/
-
-/* extern */ int
-(*rw_vasnprintf_cb)(FmtSpec*, size_t, char**, size_t*, const char*, va_list*)
-    = _rw_vasnprintf_cxx;
 
 /********************************************************************/
 
