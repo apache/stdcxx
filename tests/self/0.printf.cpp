@@ -21,22 +21,16 @@
 
 #include <printf.h>
 
-#include <errno.h>
-#include <float.h>
-#include <limits.h>
-#include <locale.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <time.h>
-#include <wchar.h>
+#include <ctype.h>     // for isdigit()
+#include <errno.h>     // for EXXX, errno
+#include <limits.h>    // for INT_MAX, ...
+#include <signal.h>    // for SIGABRT, ...
+#include <stdio.h>     // for printf(), ...
+#include <stdlib.h>    // for free(), size_t
+#include <string.h>    // for strcpy()
+#include <stdarg.h>    // for va_arg, ...
+#include <time.h>      // for struct tm
 
-#include <ios>
-#include <iostream>
-#include <locale>
-#include <string>
 
 // disable tests for function name in "%{lF}"
 #define _RWSTD_NO_SPRINFA_FUNNAME
@@ -1911,6 +1905,187 @@ void test_conditional ()
 
 /***********************************************************************/
 
+static int
+user_fun_va (const char *fun_name,   // name of calling function
+             char      **pbuf,       // pointer to a buffer
+             size_t     *pbufsize,   // pointer to buffer size
+             const char *fmt,        // format string
+             va_list     va)         // argument list
+{
+    if (0 == pbuf) {
+        fprintf (stderr, "pbuf: unexpected null argument #1");
+        exit_status = 1;
+        return -1;
+    }
+
+    if (0 == pbufsize) {
+        fprintf (stderr, "pbufsize: unexpected null argument #2");
+        exit_status = 1;
+        return -1;
+    }
+
+    if (0 == fmt) {
+        fprintf (stderr, "fmt: unexpected null argument #3");
+        exit_status = 1;
+        return -1;
+    }
+
+    if (   0 == strcmp ("!", fmt)
+        || 0 == strcmp ("+!", fmt)
+        || 0 == strcmp ("-!", fmt)) {
+        // special value indicating to the caller that we're
+        // returning control to it and letting it to handle
+        // the directive to set/push/pop a user-defined
+        // formatting function 
+        return _RWSTD_INT_MIN;
+    }
+
+    const size_t funlen = strlen (fun_name);
+
+    int arg = -1;
+
+    if (isdigit (*fmt)) {
+        // process positional parameter
+        char* end = 0;
+        arg = strtol (fmt, &end, 10);
+        if ('$' != *end)
+            arg = -1;
+        else if (memcmp (fun_name, end + 1, funlen) || ':' != end [funlen + 1])
+            arg = _RWSTD_INT_MIN;
+    }
+    else if (memcmp (fun_name, fmt, funlen) || ':' != fmt [funlen])
+        arg = _RWSTD_INT_MIN;
+
+    if (_RWSTD_INT_MIN == arg) {
+        // if the format directive (beyond the positional parameter, if
+        // present) doesn't match the name of the user-defined function,
+        // return to the caller for further processing
+        return arg;
+    }
+
+    if (-1 < arg) {
+        // extract the address of the positional argument from the list
+        // (assume its type is int for simplicity -- there is no easy way
+        // to verify compatibility with the actual type of the argument
+        // without having access to the argument's original  directive)
+        const int* const parg = va_arg (va, int*);
+
+        RW_ASSERT (0 != parg);
+
+        arg = *parg;
+    }
+    else {
+        // extract the address of the caller's variable argument list
+        va_list *pva = va_arg (va, va_list*);
+
+        RW_ASSERT (0 != pva);
+
+        // extract an integer value from rw_snprintfa's variable argument
+        // list pass through to us by the caller 
+        arg = va_arg (*pva, int);
+
+        // extract the address where to store the extracted argument
+        int* const pparam = va_arg (va, int*);
+
+        RW_ASSERT (0 != pparam);
+
+        // store the extracted argument
+        *pparam = arg;
+    }
+
+    // compute the length of the buffer formatted so far
+    const size_t buflen_0 = *pbuf ? strlen (*pbuf) : 0;
+
+    // invoke rw_asnprintf() recursively to format our arguments
+    // and append the result to the end of the buffer; pass the
+    // value returned from rw_asnprintf() (i.e., the number of
+    // bytes appended) back to the caller
+    const int n = rw_asnprintf (pbuf, pbufsize,
+                                "%{+}<%s:'%s',%d>", fun_name, fmt, arg);
+
+    // compute the new length of the buffer
+    const size_t buflen_1 = *pbuf ? strlen (*pbuf) : 0;
+
+    // assert that the function really appended as many characters
+    // as it said it did (assumes no NULs embedded in the output)
+    // and that it didn't write past the end of the buffer
+    RW_ASSERT (n < 0 || buflen_1 == buflen_0 + n);
+    RW_ASSERT (buflen_1 < *pbufsize);
+
+    return n;
+}
+
+
+static int
+user_fun_f (char **pbuf, size_t *pbufsize, const char *fmt, ...)
+{
+    va_list va;
+    va_start (va, fmt);
+
+    const int result = user_fun_va ("f", pbuf, pbufsize, fmt, va);
+
+    va_end (va);
+
+    return result;
+}
+
+static int
+user_fun_g (char **pbuf, size_t *pbufsize, const char *fmt, ...)
+{
+    va_list va;
+    va_start (va, fmt);
+
+    const int result = user_fun_va ("g", pbuf, pbufsize, fmt, va);
+
+    va_end (va);
+
+    return result;
+}
+
+
+void test_user_defined_formatting ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{!}\" user-defined formatting function");
+
+    // set the user-defined function that overrides the default
+    TEST ("%{!}",   &user_fun_f, 0, 0, "");
+    TEST ("%{d}",      0, 0, 0, "0");
+    TEST ("%{f:d}",    0, 0, 0, "<f:'f:d',0>");
+    TEST ("%{x}",     10, 0, 0, "a");
+    TEST ("%{f:foo}",  1, 0, 0, "<f:'f:foo',1>");
+    TEST ("%{f:bar}", -1, 0, 0, "<f:'f:bar',-1>");
+
+    // exercise positional parameters
+    TEST ("%d%{1$f:foo}",           11, 0, 0, "11<f:'1$f:foo',11>");
+    TEST ("%{f:d}%{1$f:bar}",       12, 0, 0, "<f:'f:d',12><f:'1$f:bar',12>");
+    TEST ("%i%{1$f:foo}%{1$f:bar}", 13, 0, 0,
+          "13<f:'1$f:foo',13><f:'1$f:bar',13>");
+
+    // push another user-defined function on the stack
+    TEST ("%{+!}",          &user_fun_g, 0, 0, "");
+    TEST ("%{f:x}",          0, 0, 0, "<f:'f:x',0>");
+    TEST ("%{g:y}",          1, 0, 0, "<g:'g:y',1>");
+    TEST ("%{i}",            2, 0, 0, "2");
+    TEST ("%{f:a}%b%{g:c}",  3, 4, 5, "<f:'f:a',3>true<g:'g:c',5>");
+
+    // disable all user-defined processing
+    TEST ("%{!}",  0, 0, 0, "");
+    TEST ("%{d}",  3, 0, 0, "3");
+    TEST ("%{i}", -5, 0, 0, "-5");
+
+    // pop the top of the stack and re-enable user-defined processing
+    TEST ("%{-!}",  0, 0, 0, "");
+    TEST ("%{f:x}", 1, 0, 0, "<f:'f:x',1>");
+    TEST ("%{f:y}", 2, 0, 0, "<f:'f:y',2>");
+
+    // reset the user-defined formatting function
+    TEST ("%{!}",      0, 0, 0, "");
+    TEST ("%{d}",    123, 0, 0, "123");
+}
+
+/***********************************************************************/
+
 int main ()
 {
     test_percent ();
@@ -1940,6 +2115,8 @@ int main ()
     test_width_specific_int ();
 
     test_conditional ();
+
+    test_user_defined_formatting ();
 
     return exit_status;
 }
