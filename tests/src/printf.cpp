@@ -118,10 +118,10 @@ static int
 _rw_fmtstr (const FmtSpec&, char**, size_t*, const char*, size_t);
 
 static int
-_rw_fmtchr (const FmtSpec&, char**, size_t*, int);
+_rw_fmtchr (const FmtSpec&, char**, size_t*, int, int);
 
 static int
-_rw_fmtwchr (const FmtSpec&, char**, size_t*, wint_t);
+_rw_fmtwchr (const FmtSpec&, char**, size_t*, wint_t, int);
 
 static int
 _rw_fmtwstr (const FmtSpec&, char**, size_t*, const wchar_t*, size_t);
@@ -654,12 +654,14 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
         // the lc conversion specification and the second a null wide
         // character.
         if (spec.mod == spec.mod_l) {
+            // wint_t argument formatted as wchar_t (no escapes)
             spec.param.wint_ = PARAM (wint_);
-            len = _rw_fmtwchr (spec, pbuf, pbufsize, spec.param.wint_);
+            len = _rw_fmtwchr (spec, pbuf, pbufsize, spec.param.wint_, 1);
         }
         else {
+            // int argument formatted as char (no escapes)
             spec.param.int_ = PARAM (int_);
-            len = _rw_fmtchr (spec, pbuf, pbufsize, spec.param.int_);
+            len = _rw_fmtchr (spec, pbuf, pbufsize, spec.param.int_, 1);
         }
         break;
 
@@ -2960,14 +2962,17 @@ _rw_fmtarray (FmtSpec *pspec,
 
 /********************************************************************/
 
+// implements %c and %{c} (narrow character formatting, both without
+// and with escape sequences, respectively)
 static int
-_rw_fmtchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
+_rw_fmtchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
+            int val, int noesc)
 {
     typedef unsigned char UChar;
     const UChar uc = UChar (val);
 
     char buffer [8];
-    int len = rw_quotechar (buffer + spec.fl_pound, uc, !spec.fl_pound);
+    int len = rw_quotechar (buffer + spec.fl_pound, uc, noesc);
     if (spec.fl_pound) {
         buffer [0] = buffer [len + 1] = '\'';
         buffer [len + 2] = '\0';
@@ -2981,13 +2986,16 @@ _rw_fmtchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int val)
 
 /********************************************************************/
 
+// implements %lc and %{lc} (wide character formatting, both without
+// and with escape sequences, respectively)
 static int
-_rw_fmtwchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize, wint_t val)
+_rw_fmtwchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
+             wint_t val, int noesc)
 {
     const wchar_t wc = wchar_t (val);
 
     char buffer [16];
-    int len = rw_quotechar (buffer + 2 * spec.fl_pound, wc, !spec.fl_pound);
+    int len = rw_quotechar (buffer + 2 * spec.fl_pound, wc, noesc);
     if (spec.fl_pound) {
         buffer [0] = 'L';
         buffer [1] = buffer [len + 2] = '\'';
@@ -3519,13 +3527,19 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
             spec.param.int_ = PARAM (int_);
             len = rw_fmtlc (spec, pbuf, pbufsize, spec.param.int_);
         }
-        else if (spec.mod == spec.mod_l) {   // wchar_t
+        else if (spec.mod == spec.mod_l) {
+            // wint_t argument formatted as wchar_t with non-printable
+            // characters represented using traditional C escape
+            // sequences
             spec.param.wint_ = PARAM (wint_);
-            return _rw_fmtwchr (spec, pbuf, pbufsize, spec.param.wint_);
+            return _rw_fmtwchr (spec, pbuf, pbufsize, spec.param.wint_, 0);
         }
-        else {   // char
+        else {
+            // int argument formatted as char with non-printable
+            // characters represented using traditional C escape
+            // sequences
             spec.param.int_ = PARAM (int_);
-            return _rw_fmtchr (spec, pbuf, pbufsize, spec.param.int_);
+            return _rw_fmtchr (spec, pbuf, pbufsize, spec.param.int_, 0);
         }
         break;
 

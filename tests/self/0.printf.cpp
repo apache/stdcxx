@@ -37,7 +37,9 @@
 
 /***********************************************************************/
 
-int exit_status /* = 0 */;
+int ntests;      // number of tests performed
+int nfailures;   // number of failures
+
 
 static void
 do_test (int         line,     // line number of the test case
@@ -45,6 +47,8 @@ do_test (int         line,     // line number of the test case
          const char *expect,   // expected output or 0 on error
          const char *result)   // actual result (0 on error)
 {
+    ++ntests;
+
     const char* q_fmt = "\"\"";
 
     if (0 == fmt) {
@@ -57,7 +61,7 @@ do_test (int         line,     // line number of the test case
         const int cmp = memcmp (expect, result, strlen (expect) + 1);
 
         if (cmp) {
-            exit_status = 2;
+            ++nfailures;
             fprintf (stderr,
                      "Assertion failed on line %d: "
                      "rw_sprintf(%c%s%c, ...) == \"%s\", got \"%s\"\n",
@@ -65,7 +69,7 @@ do_test (int         line,     // line number of the test case
         }
     }
     else if (result || expect) {
-        exit_status = 2;
+        ++nfailures;
 
         const char* q_expect = "\"\"";
         const char* q_result = "\"\"";
@@ -101,6 +105,7 @@ do_test (int         line,     // line number of the test case
 #undef TEST_SPEC
 #define TEST_SPEC(pfx, a1, a2, a3, expect)                              \
     do {                                                                \
+        ++ntests;                                                       \
         char fmt [64];                                                  \
         sprintf (fmt, "%s%c", pfx, spec);                               \
         char* const s0 = rw_sprintfa (fmt, a1, a2, a3);                 \
@@ -111,7 +116,7 @@ do_test (int         line,     // line number of the test case
             strcpy (buf, (expect) ? (expect) : "");                     \
         const int result = memcmp (buf, s0, strlen (buf) + 1);          \
         if (result) {                                                   \
-           exit_status = 2;                                             \
+           ++nfailures;                                                 \
            fprintf (stderr,                                             \
                     "Assertion failed on line %d: "                     \
                     "rw_sprintf(\"%s\", %ld, %ld, %ld) "                \
@@ -204,20 +209,22 @@ void test_character ()
     TEST_SPEC ("%#",  'a', 0,  0, "'a'");
 
     //////////////////////////////////////////////////////////////////
-    printf ("%s\n", "extension: \"%{c}\": quoted character");
+    printf ("%s\n", "extension: \"%{c}\": escaped character");
 
-    TEST ("%{c}", '\0',   0, 0, "\0");
-    TEST ("%{c}", '\2',   0, 0, "\2");
-    TEST ("%{c}", '\a',   0, 0, "\a");
-    TEST ("%{c}", '\n',   0, 0, "\n");
-    TEST ("%{c}", '\r',   0, 0, "\r");
-    TEST ("%{c}", '\t',   0, 0, "\t");
+    TEST ("%{c}", '\0',   0, 0, "\\0");
+    TEST ("%{c}", '\2',   0, 0, "\\x02");
+    TEST ("%{c}", '\a',   0, 0, "\\a");
+    TEST ("%{c}", '\n',   0, 0, "\\n");
+    TEST ("%{c}", '\r',   0, 0, "\\r");
+    TEST ("%{c}", '\t',   0, 0, "\\t");
     TEST ("%{c}", '0',    0, 0, "0");
     TEST ("%{c}", '2',    0, 0, "2");
     TEST ("%{c}", 'A',    0, 0, "A");
     TEST ("%{c}", 'Z',    0, 0, "Z");
-    TEST ("%{c}", '\xff', 0, 0, "\xff");
+    TEST ("%{c}", '\xff', 0, 0, "\\xff");
 
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{#c}\": quoted escaped character");
     TEST ("%{#c}", '\0',   0, 0, "'\\0'");
     TEST ("%{#c}", '\3',   0, 0, "'\\x03'");
     TEST ("%{#c}", '\a',   0, 0, "'\\a'");
@@ -244,21 +251,25 @@ void test_character ()
     TEST_SPEC ("%", L'Z',    0, 0, "Z");
 
     //////////////////////////////////////////////////////////////////
-    printf ("%s\n", "extension: \"%{lc}\": quoted wide character");
+    printf ("%s\n", "extension: \"%{lc}\": escaped wide character");
 
-    TEST ("%{lc}", L'\0',   0, 0, "\0");
-    TEST ("%{lc}", L'\a',   0, 0, "\a");
-    TEST ("%{lc}", L'\n',   0, 0, "\n");
-    TEST ("%{lc}", L'\r',   0, 0, "\r");
-    TEST ("%{lc}", L'\t',   0, 0, "\t");
+    TEST ("%{lc}", L'\0',   0, 0, "\\0");
+    TEST ("%{lc}", L'\4',   0, 0, "\\x04");
+    TEST ("%{lc}", L'\a',   0, 0, "\\a");
+    TEST ("%{lc}", L'\n',   0, 0, "\\n");
+    TEST ("%{lc}", L'\r',   0, 0, "\\r");
+    TEST ("%{lc}", L'\t',   0, 0, "\\t");
     TEST ("%{lc}", L'0',    0, 0, "0");
     TEST ("%{lc}", L'1',    0, 0, "1");
     TEST ("%{lc}", L'A',    0, 0, "A");
     TEST ("%{lc}", L'Z',    0, 0, "Z");
-    TEST ("%{lc}", L'\xff', 0, 0, "\xff");
+    TEST ("%{lc}", L'\xff', 0, 0, "\\xff");
+
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{#lc}\": quoted escaped wide character");
 
     TEST ("%{#lc}", L'\0',   0, 0, "L'\\0'");
-    TEST ("%{#lc}", L'\1',   0, 0, "L'\\x01'");
+    TEST ("%{#lc}", L'\5',   0, 0, "L'\\x05'");
     TEST ("%{#lc}", L'\a',   0, 0, "L'\\a'");
     TEST ("%{#lc}", L'\n',   0, 0, "L'\\n'");
     TEST ("%{#lc}", L'\r',   0, 0, "L'\\r'");
@@ -1534,11 +1545,11 @@ void test_errno ()
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{#m}\": errno");
 
-    int ntests = 0;
+    int count = 0;
 
 #ifdef EDOM
 
-    ++ntests;
+    ++count;
 
     errno = EDOM;
     TEST ("%{#m}", 0, 0, 0, "EDOM");
@@ -1550,7 +1561,7 @@ void test_errno ()
 
 #ifdef ERANGE
 
-    ++ntests;
+    ++count;
 
     errno = ERANGE;
     TEST ("%{#m}", 0, 0, 0, "ERANGE");
@@ -1562,7 +1573,7 @@ void test_errno ()
 
 #ifdef EILSEQ
 
-    ++ntests;
+    ++count;
 
     errno = EILSEQ;
     TEST ("%{#m}", 0, 0, 0, "EILSEQ");
@@ -1572,7 +1583,7 @@ void test_errno ()
 
 #endif   // EILSEQ
 
-    if (0 == ntests)
+    if (0 == count)
         fprintf (stderr, "%s\n", "%{#m}: could not test");
 
     errno = 0;
@@ -1914,19 +1925,19 @@ user_fun_va (const char *fun_name,   // name of calling function
 {
     if (0 == pbuf) {
         fprintf (stderr, "pbuf: unexpected null argument #1");
-        exit_status = 1;
+        ++nfailures;
         return -1;
     }
 
     if (0 == pbufsize) {
         fprintf (stderr, "pbufsize: unexpected null argument #2");
-        exit_status = 1;
+        ++nfailures;
         return -1;
     }
 
     if (0 == fmt) {
         fprintf (stderr, "fmt: unexpected null argument #3");
-        exit_status = 1;
+        ++nfailures;
         return -1;
     }
 
@@ -2118,5 +2129,13 @@ int main ()
 
     test_user_defined_formatting ();
 
-    return exit_status;
+    if (nfailures) {
+        fprintf (stderr, "\nFailed %d out of %d assertions.\n",
+                 nfailures, ntests);
+        return 1;
+    }
+
+    printf ("\nPassed all %d assertions.\n", ntests);
+
+    return 0;
 }
