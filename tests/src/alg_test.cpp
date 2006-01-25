@@ -1,6 +1,6 @@
 /************************************************************************
  *
- * alg_test.cpp - definitions of class X members
+ * alg_test.cpp - definitions of testsuite helpers
  *
  * $Id$
  *
@@ -16,27 +16,19 @@
  * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
  * for the specific language governing permissions  and limitations under
  * the License.
- *
+ * 
  **************************************************************************/
 
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
-#include <stddef.h>     // for size_t
-#include <stdlib.h>     // for rand()
-#include <string.h>     // for strlen()
-#include <ctype.h>      // for toupper()
+#include <ctype.h>      // for isdigit(), toupper()
+#include <stdarg.h>     // for va_arg, va_list, ...
+#include <stdlib.h>     // for rand(), strtol()
+#include <string.h>     // for size_t, strlen()
 
 #include <alg_test.h>
-
-
-#ifdef _RWSTDDEBUG
-   // use own assertion mechanism for better diagnostic output
-#  undef assert
-#  define assert(expr) _RWSTD_ASSERT(expr)
-#else
-#  include <assert.h>     // for assert()
-#endif   // _RWSTDDEBUG
+#include <printf.h>
 
 
 /* static */ size_t X::count_;
@@ -67,10 +59,20 @@
 /* static */ size_t X::op_lt_throw_count_     = size_t (-1);
 
 
+static int
+_rw_fmtxarray (char**, size_t*, const char*, ...);
+
+
 X::X ()
     : id_ (++id_gen_), origin_ (id_), src_id_ (id_), val_ (0),
       n_copy_ctor_ (0), n_op_assign_ (0), n_op_eq_ (0), n_op_lt_ (0)
 {
+    // push a new formatter function on top of the stack
+    // of user-defined formatting callbacks invoked by
+    // rw_printf() at al to process extended directives
+    static int format_init = rw_printf ("%{+!}", _rw_fmtxarray);
+    _RWSTD_UNUSED (format_init);
+
     // increment the total number of invocations of the default ctor
     // (do so even if the function throws an exception below)
     ++n_total_def_ctor_;
@@ -100,7 +102,7 @@ X::X (const X &rhs)
       n_copy_ctor_ (0), n_op_assign_ (0), n_op_eq_ (0), n_op_lt_ (0)
 {
     // verify id validity
-    assert (rhs.id_ && rhs.id_ < id_gen_);
+    RW_ASSERT (rhs.id_ && rhs.id_ < id_gen_);
 
     // increment the number of times `rhs' has been copied
     // (do so even if the function throws an exception below)
@@ -130,7 +132,7 @@ X::X (const X &rhs)
 X::~X ()
 {
     // verify id validity
-    assert (id_ && id_ <= id_gen_);
+    RW_ASSERT (id_ && id_ <= id_gen_);
 
     // increment the total number of invocations of the dtor
     // (do so even if the function throws an exception below)
@@ -160,9 +162,9 @@ X&
 X::operator= (const X &rhs)
 {
     // verify id validity and uniqueness
-    assert (id_ && id_ <= id_gen_);
-    assert (rhs.id_ && rhs.id_ <= id_gen_);
-    assert (this == &rhs || id_ != rhs.id_);
+    RW_ASSERT (id_ && id_ <= id_gen_);
+    RW_ASSERT (rhs.id_ && rhs.id_ <= id_gen_);
+    RW_ASSERT (this == &rhs || id_ != rhs.id_);
 
     // increment the total number of invocations of the operator
     // (do so even if the function throws an exception below)
@@ -200,9 +202,9 @@ bool
 X::operator== (const X &rhs) const
 {
     // verify id validity and uniqueness
-    assert (id_ && id_ <= id_gen_);
-    assert (rhs.id_ && rhs.id_ <= id_gen_);
-    assert (this == &rhs || id_ != rhs.id_);
+    RW_ASSERT (id_ && id_ <= id_gen_);
+    RW_ASSERT (rhs.id_ && rhs.id_ <= id_gen_);
+    RW_ASSERT (this == &rhs || id_ != rhs.id_);
 
     // increment the number of times each distinct object
     // has been used as the argument to operator==
@@ -237,9 +239,9 @@ bool
 X::operator< (const X &rhs) const
 {
     // verify id validity and uniqueness
-    assert (id_ && id_ <= id_gen_);
-    assert (rhs.id_ && rhs.id_ <= id_gen_);
-    assert (this == &rhs || id_ != rhs.id_);
+    RW_ASSERT (id_ && id_ <= id_gen_);
+    RW_ASSERT (rhs.id_ && rhs.id_ <= id_gen_);
+    RW_ASSERT (this == &rhs || id_ != rhs.id_);
 
     // increment the number of times each distinct object
     // has been used as the argument to operator<
@@ -277,7 +279,7 @@ is_count (size_t n_copy_ctor,
           size_t n_op_lt) const
 {
     // verify id validity
-    assert (id_ && id_ <= id_gen_);
+    RW_ASSERT (id_ && id_ <= id_gen_);
 
     return    (size_t (-1) == n_copy_ctor || n_copy_ctor_ == n_copy_ctor)
            && (size_t (-1) == n_op_assign || n_op_assign_ == n_op_assign)
@@ -542,4 +544,150 @@ _TEST_EXPORT int gen_subseq ()
 _TEST_EXPORT int gen_rnd ()
 {
     return rand ();
+}
+
+
+static int
+_rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
+{
+    RW_ASSERT (0 != pbuf);
+    RW_ASSERT (0 != pbufsize);
+    RW_ASSERT (0 != fmt);
+
+    va_list* pva      =  0;
+    bool     fl_pound =  false;
+    int      nelems   = -1;
+    int      paramno  = -1;
+    int      cursor   = -1;
+
+    // directive syntax:
+    // "X=" [ '#' ] [ '*' | <n> ] [ '.' [ '*' | <n> ] ]
+
+
+    if ('X' != fmt [0] || '=' != fmt [1])
+        return _RWSTD_INT_MIN;
+
+    fmt += 2;
+
+    if ('#' == *fmt) {
+        fl_pound = true;
+        ++fmt;
+    }
+
+    if ('*' == *fmt) {
+        // process width
+        pva = va_arg (va, va_list*);
+
+        RW_ASSERT (0 != pva);
+
+        // extract the width from rw_snprintfa's variable argument
+        // list pass through to us by the caller
+        nelems = va_arg (*pva, int);
+        ++fmt;
+    }
+    else if (isdigit (*fmt)) {
+        // process positional parameter or width
+        char* end = 0;
+        const int arg = strtol (fmt, &end, 10);
+        if ('$' == *end)
+            paramno = arg;
+        else
+            nelems = arg;
+
+        fmt = end;
+    }
+
+    if ('.' == *fmt) {
+        // process precision (cursor)
+        if ('*' == *++fmt) {
+            if (0 == pva)
+                pva = va_arg (va, va_list*);
+
+            RW_ASSERT (0 != pva);
+
+            // extract the width from rw_snprintfa's variable argument
+            // list pass through to us by the caller
+            cursor = va_arg (*pva, int);
+            ++fmt;
+        }
+        else if (isdigit (*fmt)) {
+            char* end = 0;
+            cursor = strtol (fmt, &end, 10);
+
+            fmt = end;
+        }
+    }
+
+    RW_ASSERT ('\0' == *fmt);
+
+    // extract the address of the caller's variable argument list
+    if (0 == pva)
+        pva = va_arg (va, va_list*);
+
+    RW_ASSERT (0 != pva);
+
+    // extract a pointer to X from rw_snprintfa's variable argument
+    // list pass through to us by the caller 
+    const X* const xbeg = va_arg (*pva, X*);
+
+    // extract the address where to store the extracted argument
+    // for use by any subsequent positional paramaters
+    const X** const pparam = va_arg (va, const X**);
+
+    RW_ASSERT (0 != pparam);
+
+    // store the extracted argument
+    *pparam = xbeg;
+
+    // compute the length of the buffer formatted so far
+    const size_t buflen_0 = *pbuf ? strlen (*pbuf) : 0;
+
+    int nbytes = 0;
+
+    //////////////////////////////////////////////////////////////////
+    // invoke rw_asnprintf() recursively to format our arguments
+    // and append the result to the end of the buffer; pass the
+    // value returned from rw_asnprintf() (i.e., the number of
+    // bytes appended) back to the caller
+
+    for (const X *px = xbeg; px != xbeg + nelems; ++px) {
+        const int n =
+            rw_asnprintf (pbuf, pbufsize,
+                          "%{+}%{?}>%{;}%{?}%d:%{;}%{lc}%{?}<%{;}",
+                          px - xbeg == cursor,     // '>'
+                          fl_pound, px->id_,       // "<id>:"
+                          px->val_,                // <val>
+                          px - xbeg == cursor);    // '<'
+        if (n < 0)
+            return n;
+
+        nbytes += n;
+    }
+
+    //////////////////////////////////////////////////////////////////
+
+    // compute the new length of the buffer
+    const size_t buflen_1 = *pbuf ? strlen (*pbuf) : 0;
+
+    // assert that the function really appended as many characters
+    // as it said it did (assumes no NULs embedded in the output)
+    // and that it didn't write past the end of the buffer
+    RW_ASSERT (buflen_1 == buflen_0 + nbytes);
+    RW_ASSERT (buflen_1 < *pbufsize);
+
+    return nbytes;
+}
+
+
+static int
+_rw_fmtxarray (char **pbuf, size_t *pbufsize, const char *fmt, ...)
+{
+    va_list va;
+    va_start (va, fmt);
+
+    const int nbytes = _rw_fmtxarrayv (pbuf, pbufsize, fmt, va);
+
+    va_end (va);
+
+    return nbytes;
 }
