@@ -3878,36 +3878,45 @@ rw_stderr = _RWSTD_REINTERPRET_CAST (rw_file*, stderr);
 static int
 _rw_vfprintf (rw_file *file, const char *fmt, va_list va)
 {
-    RW_ASSERT (0 != file);
-
     char* buf = 0;
     size_t bufsize = 0;
 
     const int nchars = rw_vasnprintf (&buf, &bufsize, fmt, va);
 
-    // FIXME: implement this in terms of POSIX write()
-    //        for async-signal safety
-    FILE* const stdio_file = _RWSTD_REINTERPRET_CAST (FILE*, file);
+    int nwrote = nchars;
 
-    const int nwrote = 0 < nchars ?
-        fwrite (buf, 1, nchars, stdio_file) : nchars;
+    if (0 < nchars) {
 
-    // flush in case stderr isn't line-buffered (e.g., when
-    // it's determined not to refer to a terminal device,
-    // for example after it has been redirected to a file)
-    fflush (stdio_file);
+        // avoid formatting when there's nothing to output
+
+        if (file) {
+            // allow null file argument
+
+            // FIXME: implement this in terms of POSIX write()
+            //        for async-signal safety
+            FILE* const stdio_file = _RWSTD_REINTERPRET_CAST (FILE*, file);
+
+            nwrote = fwrite (buf, 1, nchars, stdio_file);
+
+            // flush in case stderr isn't line-buffered (e.g., when
+            // it's determined not to refer to a terminal device,
+            // for example after it has been redirected to a file)
+            fflush (stdio_file);
+        }
 
 #ifdef _MSC_VER
 
-    // IsDebuggerPresent() depends on the macros _WIN32_WINNT and WINVER
-    // being appropriately #defined prior to the #inclusion of <windows.h>
-    if (IsDebuggerPresent ()) {
+        // IsDebuggerPresent() depends on the macros _WIN32_WINNT and WINVER
+        // being appropriately #defined prior to the #inclusion of <windows.h>
+        if (IsDebuggerPresent ()) {
 
-        // write string to the attached debugger (if any)
-        OutputDebugString (buf);
-    }
+            // write string to the attached debugger (if any)
+            OutputDebugString (buf);
+        }
 
 #endif   // _MSC_VER
+
+    }
 
     free (buf);
 
