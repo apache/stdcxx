@@ -20,12 +20,11 @@
  **************************************************************************/
 
 #include <algorithm>    // for rotate, rotate_copy
-#include <cstring>      // for strlen
-#include <cstdlib>      // for size_t, free
+#include <cstring>      // for size_t, strlen()
 
 #include <alg_test.h>
 #include <driver.h>     // for rw_test()
-#include <printf.h>     // for rw_asnprintf()
+
 
 _RWSTD_NAMESPACE (std) { 
 
@@ -71,62 +70,6 @@ const char* type_name (NoIterator, const X*)
     return 0;
 }
 
-
-typedef unsigned char UChar;
-
-/**************************************************************************/
-
-const char nul_char = '\0';
-
-template <class T>
-class ToString
-{
-public:
-    ToString (const T *first, const T *last, int pos, bool use_id = false) 
-            : str_ (0) {
-
-        std::size_t buf_sz = 0;
-
-        if (first > last) {
-            rw_asnprintf (&str_, &buf_sz, "%s", "bad range");
-            return;
-        }
-
-        char* res = (char*)&nul_char;
-        char* tmp = 0;
-
-        for (const T *cur = first; cur != last; ++cur) {
-            rw_asnprintf (&tmp, &buf_sz, 
-                          "%s%{?}>%{;}%{?}%d:%{;}%{lc}%{?}<%{;}",
-                          res,
-                          cur - first == pos,    // '>'
-                          use_id, cur->id_,      // "<id>:"
-                          cur->val_,             // <val>
-                          cur - first == pos);   // '<'
-
-            if (res != &nul_char)
-                std::free (res);
-
-            res = tmp;
-            tmp = 0;
-        }
-
-        str_ = res;
-    }
-
-    ~ToString () {
-        if (str_ != &nul_char)
-            std::free (str_);
-    }
-
-    operator const char* () const {
-        return str_;
-    }
-
-private:
-
-    char* str_;
-};
 
 /**************************************************************************/
 
@@ -210,17 +153,19 @@ void test_rotate (int line,
     for ( ; i != nsrc; ++i) {
 
         xpos = (i + (nsrc - midnsrc)) % nsrc;
+
+        typedef unsigned char UChar;
+
         success = UChar (src [i]) == xsrc [xpos].val_;
         if (!success)
             break;
     }
 
     rw_assert (success, 0, line,
-               "line %d: %s<%s>(\"%s\", %zu, ...) ==> %s; "
-               "unexpected element value %c at %zu",
+               "line %d: %s<%s>(\"%s\", %zu, ...) ==> "
+               "\"%{X=*.*}\"; unexpected element value %#c at %zu",
                __LINE__, fname, itname, src, midnsrc,
-               (const char*) ToString<T> (xsrc, xsrc + nsrc, i),
-               xsrc [xpos].val_, i);
+               int (nsrc), int (i), xsrc, xsrc [xpos].val_, i);
 
     success = iter_swap_calls <= nsrc;
     rw_assert (success, 0, line,
@@ -264,10 +209,9 @@ void test_rotate (int line,
     // verify that the returned iterator is set as expected
     bool success = end.cur_ == result.cur_ + nsrc;
     rw_assert (success, 0, line,
-               "line %d: %s<%s, %s>(\"%s\", %zu, ...) == %p, "
-               "got %p", __LINE__, fname, 
-               it1name, it2name, src, midnsrc,
-               first.cur_ + nsrc, end.cur_);
+               "line %d: %s<%s, %s>(\"%s\", %zu, ...) == result + %zu, got %td",
+               __LINE__, fname, it1name, it2name, src, midnsrc,
+               nsrc, end.cur_ - xdst);
 
     // verify that the sequence was correctly rotated
     std::size_t i = 0;
@@ -275,17 +219,19 @@ void test_rotate (int line,
     for ( ; i != nsrc; ++i) {
 
         xpos = (i + (nsrc - midnsrc)) % nsrc;
+
+        typedef unsigned char UChar;
+
         success = UChar (src [i]) == xdst [xpos].val_;
         if (!success)
             break;
     }
 
     rw_assert (success, 0, line,
-               "line %d: %s<%s, %s>(\"%s\", %zu, ...) ==> %s "
-               "unexpected element value %c at %zu",
+               "line %d: %s<%s, %s>(\"%s\", %zu, ...) ==> "
+               "\"%{X=*.*}\"; unexpected element value %#c at %zu",
                __LINE__, fname, it1name, it2name, src, midnsrc,
-               (const char*) ToString<T> (xsrc, xsrc + nsrc, i),
-               xdst [xpos].val_, i);
+               int (nsrc), int (i), xsrc, xdst [xpos].val_, i);
 
     success = T::n_total_op_assign_ - last_n_op_assign == nsrc;
     rw_assert (success, 0, line,

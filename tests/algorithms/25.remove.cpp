@@ -20,13 +20,10 @@
  **************************************************************************/
 
 #include <algorithm>    // for remove(), remove_copy(), ...
-#include <cstdarg>      // va_list
-#include <cstdlib>      // for free(), size_t
 #include <cstring>      // for strlen()
 
 #include <alg_test.h>
-#include <driver.h>     // for rw_test()
-#include <printf.h>     // for rw_asnprintf()
+#include <driver.h>      // for rw_test()
 
 /**************************************************************************/
 
@@ -65,61 +62,6 @@ remove_copy_if (InputIter<eq_comp<assign<base<> > > >,
 #endif // _RWSTD_NO_EXPLICIT_INSTANTIATION
 
 }   // namespace std
-
-/**************************************************************************/
-
-const char nul_char = '\0';
-
-
-template <class T>
-class ToString
-{
-public:
-    ToString (const T *first, const T *last, int pos, bool use_id = false) 
-            : str_ (0) {
-
-        std::size_t buf_sz = 0;
-
-        if (first > last) {
-            rw_asnprintf (&str_, &buf_sz, "%s", "bad range");
-            return;
-        }
-
-        char* res = (char*)&nul_char;
-        char* tmp = 0;
-
-        for (const T *cur = first; cur != last; ++cur) {
-            rw_asnprintf (&tmp, &buf_sz, 
-                          "%s%{?}>%{;}%{?}%d:%{;}%{lc}%{?}<%{;}",
-                          res,
-                          cur - first == pos,    // '>'
-                          use_id, cur->id_,      // "<id>:"
-                          cur->val_,             // <val>
-                          cur - first == pos);   // '<'
-
-            if (res != &nul_char)
-                std::free (res);
-
-            res = tmp;
-            tmp = 0;
-        }
-
-        str_ = res;
-    }
-
-    ~ToString () {
-        if (str_ != &nul_char)
-            std::free (str_);
-    }
-
-    operator const char* () const {
-        return str_;
-    }
-
-private:
-
-    char* str_;
-};
 
 /**************************************************************************/
 
@@ -200,7 +142,7 @@ void test_remove (int line,
     const std::size_t nsrc = std::strlen (src);
 
     // construct a sequence of `nsrc' elements to pass to remove
-    T* const xsrc = T::from_char (src, nsrc);
+    T* const xsrc = T::from_char (src, nsrc + 1);
 
     // construct an element to remove
     T to_remove;
@@ -218,7 +160,7 @@ void test_remove (int line,
         make_iter (xsrc + nsrc, xsrc, xsrc + nsrc, Iterator ());
 
     // zero out predicate counters
-    T::n_total_op_eq_          = 0;
+    T::n_total_op_eq_ = 0;
 
     // call remove() or remove_if()
     const Iterator end = tag.use_predicate
@@ -232,9 +174,9 @@ void test_remove (int line,
     // verify that the returned iterator is set as expected
     bool success = end.cur_ == first.cur_ + (nsrc - nrem);
     rw_assert (success, 0, line, 
-               "line %d: %s<%s>(\"%s\", ..., '%c') == %p, "
-               "got %p", __LINE__, fname, itname, src, val,
-               first.cur_ + (nsrc - nrem), end.cur_);
+               "line %d: %s<%s>(\"%s\", ..., %#c) == first + %zu, got %zd",
+               __LINE__, fname, itname, src, val,
+               nsrc - nrem, end.cur_ - xsrc);
 
     // verify that the value to be removed does not appear
     // anywhere in the range [first, end) : p 25.2.7.2
@@ -246,11 +188,10 @@ void test_remove (int line,
     }
 
     rw_assert (success, 0, line,
-               "line %d: %s<%s>(\"%s\", ..., '%c') ==> \"%s\"; "
-               "expected element value '%c'",
+               "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
+               "\"%{X=*.*}\"; expected element value %#c",
                __LINE__, fname, itname, src, val,
-               (const char*) ToString<T>(xsrc, xsrc + nsrc, i),  
-               UChar (src [i]));
+               int (nsrc), int (i), xsrc, src [i]);
 
     // verify that the algorithm is stable: the relative order of the elements
     // that are not removed remains unchanged : p 25.2.7.4
@@ -262,10 +203,10 @@ void test_remove (int line,
     }
 
     rw_assert (success, 0, line, 
-               "line %d: %s<%s>(\"%s\", ..., '%c') ==> \"%s\"; "
-               "unstable at offset %d element ids: %d and %d",
+               "line %d: %s<%s>(\"%s\", ..., %#c) ==> \"%{X=#*.*}\"; "
+               "unstable at offset %zu element ids: %d and %d",
                __LINE__, fname, itname, src, val,
-               (const char*) ToString<T>(xsrc, xsrc + nsrc, i - 1, true), 
+               int (nsrc), int (i - 1), xsrc,
                i - 1, xsrc [i - 1].id_, xsrc [i].id_);
 
     // verify that the values of elements in the range [end, last)
@@ -278,23 +219,22 @@ void test_remove (int line,
     }
 
     rw_assert (success, 0, line, 
-               "line %d: %s<%s>(\"%s\", ..., '%c') ==> \"%s\"; "
-               "expected element value '%c'",
+               "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
+               "\"%{X=*.*}\"; expected element value %#c",
                __LINE__, fname, itname, src, val,
-               (const char*) ToString<T>(xsrc, xsrc + nsrc, i), 
-               UChar (val));
+               int (nsrc), int (i), xsrc, val);
 
     // verify the number of applications of the predicate: p 25.2.7.5
     if (tag.use_predicate) {
         rw_assert (pred.funcalls_ == nsrc, 0, line,
-                   "line %d: %s<%s>(\"%s\", ..., '%c') called "
+                   "line %d: %s<%s>(\"%s\", ..., %#c) called "
                    "Predicate::operator() %zu times, %zu expected",
                    __LINE__, fname, itname, src, val,
                    pred.funcalls_, nsrc);
     }
     else {
         rw_assert (T::n_total_op_eq_ == nsrc, 0, line,
-                   "line %d: %s<%s>(\"%s\", ..., '%c') called "
+                   "line %d: %s<%s>(\"%s\", ..., %#c) called "
                    "T::operator< %zu times, %zu expected",
                    __LINE__, fname, itname, src, val,
                    T::n_total_op_eq_, nsrc);
@@ -327,9 +267,7 @@ void test_remove (int line,
     const Predicate pred (to_remove, 0);
 
     const Iterator first = make_iter (xsrc, xsrc, xsrc + nsrc, it);
-
     const Iterator last = make_iter (xsrc + nsrc, xsrc, xsrc + nsrc, it);
-
     const OutputIterator result = make_iter (xdst, xdst, xdst + nsrc, dummy);
 
     // zero out predicate counters
@@ -346,9 +284,8 @@ void test_remove (int line,
     // verify that the returned iterator is set as expected p 25.2.7.8
     bool success = end.cur_ == result.cur_ + (nsrc - nrem);
     rw_assert (success, 0, line, 
-               "line %d: %s<%s>(\"%s\", ..., '%c') == %p, "
-               "got %p", __LINE__, fname, itname, src, val,
-               first.cur_ + (nsrc - nrem), end.cur_);
+               "line %d: %s<%s>(\"%s\", ..., %#c) == first + %zu, got %zd",
+               __LINE__, fname, itname, src, val, nsrc - nrem, end.cur_ - xsrc);
 
     // verify that the value to be removed does not appear anywhere
     // in the range [result, end)
@@ -360,11 +297,11 @@ void test_remove (int line,
     }
 
     rw_assert (success, 0, line,
-               "line %d: %s<%s>(\"%s\", ..., '%c') ==> \"%s\"; "
-               "expected element value '%c'",
+               "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
+               "\"%{X=*.*}\"; expected element value %#c",
                __LINE__, fname, itname, src, val,
-               (const char*) ToString<T>(xdst, xdst + nsrc - nrem, i), 
-               UChar (src [i]));
+               int (nsrc - nrem), int (i), xdst,
+               src [i]);
 
     // verify that the algorithm is stable: the relative order of the elements
     // that are not removed remains unchanged : p 25.2.7.10
@@ -376,23 +313,23 @@ void test_remove (int line,
     }
 
     rw_assert (success, 0, line, 
-               "line %d: %s<%s>(\"%s\", ..., '%c') ==> \"%s\"; "
-               "unstable at offset %d: element ids: %d and %d",
+               "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
+               "\"%{X=#*.*}\"; unstable at offset %zu: element ids: %d and %d",
                __LINE__, fname, itname, src, val,
-               (const char*)ToString<T>(xdst, xdst + nsrc - nrem, i-1, true),
+               int (nsrc - nrem), int (i - 1), xdst,
                i - 1, xdst [i - 1].id_, xdst [i].id_);
 
     // verify the number of applications of the predicate p 25.2.7.9
     if (tag.use_predicate) {
         rw_assert (pred.funcalls_ == nsrc, 0, line,
-                   "line %d: %s<%s>(\"%s\", ..., '%c') called "
+                   "line %d: %s<%s>(\"%s\", ..., %#c) called "
                    "Predicate::operator() %zu times, %zu expected",
                    __LINE__, fname, itname, src, val,
                    pred.funcalls_, nsrc);
     }
     else {
         rw_assert (T::n_total_op_eq_ == nsrc, 0, line,
-                   "line %d: %s<%s>(\"%s\", ..., '%c') called "
+                   "line %d: %s<%s>(\"%s\", ..., %#c) called "
                    "T::operator< %zu times, %zu expected",
                    __LINE__, fname, itname, src, val,
                    T::n_total_op_eq_, nsrc);
@@ -415,16 +352,16 @@ void test_remove (Iterator1 it1, Iterator2 it2,
 
     if (tag.fname_inx) {  // remove_copy(), remove_copy_if()
          rw_info (0, 0, 0,
-                  "std::%s (%s, %s, %s, %s)",
+                  "std::%s (%s, %2$s, %s, %s)",
                   tag.use_predicate ? "remove_copy_if" : "remove_copy",
-                  it1name, it1name, it2name,
+                  it1name, it2name,
                   tag.use_predicate ? "UnaryPredicate" : "const T&");
     }
     else {   // remove, remove_if()
          rw_info (0, 0, 0,
-                  "std::%s (%s, %s, %s)",
+                  "std::%s (%s, %2$s, %s)",
                   tag.use_predicate ? "remove_if" : "remove",
-                  it1name, it1name,
+                  it1name,
                   tag.use_predicate ? "UnaryPredicate" : "const T&");
     }
 
@@ -482,11 +419,11 @@ template <class T, class Predicate, class Tag>
 void test_remove (const T*, const Predicate* pred, Tag tag)
 {
     rw_info (0, 0, 0,  
-            "template <class ForwardIterator, class T> "
-            "std::%s (ForwardIterator, ForwardIterator, "
-            "%s)", 
-            tag.use_predicate ? "remove_if" : "remove",
-            tag.use_predicate ? "Predicate" : "const T&");
+             "template <class %s, class T> "
+             "std::%s (%1$s, %1$s, %s)",
+             "ForwardIterator",
+             tag.use_predicate ? "remove_if" : "remove",
+             tag.use_predicate ? "Predicate" : "const T&");
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
@@ -621,7 +558,7 @@ void test_remove_copy (const T* )
     const RemoveCopyTag remove_copy_if_tag = { true };
 
     if (rw_opt_no_remove_copy) {
-        rw_note (0, __FILE__, __LINE__,  "std::remove_copy test disabled");
+        rw_note (0, __FILE__, __LINE__, "std::remove_copy test disabled");
     }
     else {
         const EqualityPredicate<T>* const pred = (EqualityPredicate<T>*) 0;
@@ -629,7 +566,7 @@ void test_remove_copy (const T* )
     }
 
     if (rw_opt_no_remove_copy_if) {
-        rw_note (0, __FILE__, __LINE__,  "std::remove_copy_if test disabled");
+        rw_note (0, __FILE__, __LINE__, "std::remove_copy_if test disabled");
     }
     else {
         const EqualityPredicate<T>* const pred = (EqualityPredicate<T>*) 1;

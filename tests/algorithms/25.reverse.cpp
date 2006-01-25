@@ -20,12 +20,10 @@
  **************************************************************************/
 
 #include <algorithm>    // for reverse, reverse_copy
-#include <cstring>      // for strlen
-#include <cstdlib>      // for size_t, free
+#include <cstring>      // for size_t, strlen()
 
 #include <alg_test.h>
 #include <driver.h>     // for rw_test()
-#include <printf.h>     // for rw_asnprintf()
 
 /**************************************************************************/
 
@@ -69,63 +67,6 @@ const char* type_name (NoIterator, const X*)
 {
     return 0;
 }
-
-
-typedef unsigned char UChar;
-
-/**************************************************************************/
-
-const char nul_char = '\0';
-
-template <class T>
-class ToString
-{
-public:
-    ToString (const T *first, const T *last, int pos, bool use_id = false) 
-            : str_ (0) {
-
-        std::size_t buf_sz = 0;
-
-        if (first > last) {
-            rw_asnprintf (&str_, &buf_sz, "%s", "bad range");
-            return;
-        }
-
-        char* res = (char*)&nul_char;
-        char* tmp = 0;
-
-        for (const T *cur = first; cur != last; ++cur) {
-            rw_asnprintf (&tmp, &buf_sz, 
-                          "%s%{?}>%{;}%{?}%d:%{;}%{lc}%{?}<%{;}",
-                          res,
-                          cur - first == pos,    // '>'
-                          use_id, cur->id_,      // "<id>:"
-                          cur->val_,             // <val>
-                          cur - first == pos);   // '<'
-
-            if (res != &nul_char)
-                std::free (res);
-
-            res = tmp;
-            tmp = 0;
-        }
-
-        str_ = res;
-    }
-
-    ~ToString () {
-        if (str_ != &nul_char)
-            std::free (str_);
-    }
-
-    operator const char* () const {
-        return str_;
-    }
-
-private:
-
-    char* str_;
-};
 
 /**************************************************************************/
 
@@ -193,22 +134,24 @@ void test_reverse (int line,
     // done by swapping elements i.e., not simply by copying them over
     for ( ; i != nsrc; ++i) {
 
+        typedef unsigned char UChar;
+
         success = UChar (src [i]) == xsrc [nsrc - i - 1].val_;
         if (!success)
             break;
     }
 
     rw_assert (success, 0, line,
-               "line %d: %s<%s>(%s, ...) ==> %s; "
-               "unexpected element value %c at %zu",
+               "line %d: %s<%s>(\"%s\", ...) ==> "
+               "\"%{X=*.*}\"; unexpected element value %#c at offset %zu",
                __LINE__, fname, itname, src,
-               (const char*)ToString<T>(xsrc, xsrc + nsrc, i),
+               int (nsrc), int (i), xsrc,
                xsrc [nsrc - i - 1].val_, i);
 
     const std::size_t iter_swap_expect = nsrc / 2;
     success = iter_swap_calls == iter_swap_expect;
     rw_assert (success, 0, line,
-               "line %d: %s<%s>(%s, ...); called iter_swap() "
+               "line %d: %s<%s>(\"%s\", ...); called iter_swap() "
                "%zu times, %zu expected",
                __LINE__, fname, itname, src,
                iter_swap_calls, iter_swap_expect);
@@ -245,13 +188,14 @@ void test_reverse (int line,
     // verify that the returned iterator is set as expected
     bool success = end.cur_ == result.cur_ + nsrc;
     rw_assert (success, 0, line,
-               "line %d: %s<%s>(\"%s\", ...) == %p, "
-               "got %p", __LINE__, fname, itname, src,
-               first.cur_ + nsrc, end.cur_);
+               "line %d: %s<%s>(\"%s\", ...) == result + %zu, got %td",
+               __LINE__, fname, itname, src, nsrc, end.cur_ - xdst);
 
     // verify that the sequence was correctly reversed
     std::size_t i = 0;
     for ( ; i != nsrc; ++i) {
+
+        typedef unsigned char UChar;
 
         success = UChar (src [i]) == xdst [nsrc - i - 1].val_;
         if (!success)
@@ -259,15 +203,15 @@ void test_reverse (int line,
     }
 
     rw_assert (success, 0, line,
-               "line %d: %s<%s>(%s, ...) ==> %s "
-               "unexpected element value %c at %zu",
+               "line %d: %s<%s>(\"%s\", ...) ==> "
+               "\"%{X=*.*}\"; unexpected element value %#c at offset %zu",
                __LINE__, fname, itname, src,
-               (const char*) ToString<T> (xsrc, xsrc + nsrc, i),
+               int (nsrc), int (i), xsrc,
                xdst [nsrc - i - 1].val_, i);
 
     success = T::n_total_op_assign_ - last_n_op_assign == nsrc;
     rw_assert (success, 0, line,
-               "line %d: %s<%s>(%s, ...); called operator=() "
+               "line %d: %s<%s>(\"%s\", ...); called operator=() "
                "%zu times, %zu expected",
                __LINE__, fname, itname, src,
                T::n_total_op_assign_ - last_n_op_assign, nsrc);
