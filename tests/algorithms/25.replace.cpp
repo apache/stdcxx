@@ -20,12 +20,10 @@
  **************************************************************************/
 
 #include <algorithm>     // for replace(), replace_copy()
-#include <cstring>       // for strlen()
-#include <cstdlib>       // for free(), size_t
+#include <cstring>       // for size_t, strlen()
 
 #include <alg_test.h>
 #include <driver.h>      // for rw_test()
-#include <printf.h>      // for rw_asnprintf()
 
 /**************************************************************************/
 
@@ -91,62 +89,6 @@ const char* type_name (NoIterator, const X*)
 {
     return 0;
 }
-
-typedef unsigned char UChar;
-
-/**************************************************************************/
-
-const char nul_char = '\0';
-
-template <class T>
-class ToString
-{
-public:
-    ToString (const T *first, const T *last, int pos, bool use_id = false) 
-            : str_ (0) {
-
-        std::size_t buf_sz = 0;
-
-        if (first > last) {
-            rw_asnprintf (&str_, &buf_sz, "%s", "bad range");
-            return;
-        }
-
-        char* res = (char*)&nul_char;
-        char* tmp = 0;
-
-        for (const T *cur = first; cur != last; ++cur) {
-            rw_asnprintf (&tmp, &buf_sz, 
-                          "%s%{?}>%{;}%{?}%d:%{;}%{lc}%{?}<%{;}",
-                          res,
-                          cur - first == pos,    // '>'
-                          use_id, cur->id_,      // "<id>:"
-                          cur->val_,             // <val>
-                          cur - first == pos);   // '<'
-
-            if (res != &nul_char)
-                std::free (res);
-
-            res = tmp;
-            tmp = 0;
-        }
-
-        str_ = res;
-    }
-
-    ~ToString () {
-        if (str_ != &nul_char)
-            std::free (str_);
-    }
-
-    operator const char* () const {
-        return str_;
-    }
-
-private:
-
-    char* str_;
-};
 
 /**************************************************************************/
 
@@ -247,11 +189,10 @@ void test_replace (int line,
     }
 
     rw_assert (success, 0, line, 
-               "line %d: %s<%s>(\"%s\", ..., '%c', '%c') ==> \"%s\"; "
-               "unexpected element value %c",
+               "line %d: %s<%s>(\"%s\", ..., %#c, %#c) ==> "
+               "\"%{X=*.*}\"; unexpected element value %#c",
                __LINE__, fname, itname, src, val, new_val,
-               (const char*) ToString<T>(xsrc, xsrc_end, i), 
-               src [i]);
+               int (nsrc), int (i), xsrc, src [i]);
 
     // check the id (not just the value) of the matching element
     // to make sure it has really been replaced
@@ -267,25 +208,25 @@ void test_replace (int line,
     }
 
     rw_assert (success, 0, line,
-               "line %d: %s<%s>(\"%s\", ..., '%c', '%c') ==> \"%s\"; "
-               "failed to replace element %zu: "
+               "line %d: %s<%s>(\"%s\", ..., %#c, %#c) ==> "
+               "\"%{X=#*.*}\"; failed to replace element %zu: "
                "origin %d (%d, %d), expected %d (%d)",
                __LINE__, fname, itname, src, val, new_val,
-               (const char*)ToString<T>(xsrc, xsrc_end, i), 
+               int (nsrc), int (i), xsrc,
                i, xsrc [i].origin_, xsrc [i].id_, xsrc [i].src_id_,
                replace_with.origin_, replace_with.id_);
 
     // verify the number of applications of the predicate: p 25.2.4.3
     if (tag.use_predicate) {
         rw_assert (pred.funcalls_ == nsrc, 0, line,
-                   "line %d: %s<%s>(\"%s\", ..., '%c') called  "
+                   "line %d: %s<%s>(\"%s\", ..., %#c) called  "
                    "Predicate::operator() %zu times, %zu expected",
                    __LINE__, fname, itname, src, val,
                    pred.funcalls_, nsrc);
     }
     else {
         rw_assert (T::n_total_op_eq_ == nsrc, 0, line,
-                   "line %d: %s<%s>(\"%s\", ..., '%c') called "
+                   "line %d: %s<%s>(\"%s\", ..., %#c) called "
                    "T::operator< %zu times, %zu expected",
                    __LINE__, fname, itname, src, val,
                    T::n_total_op_eq_, nsrc);
@@ -346,25 +287,25 @@ void test_replace (int line,
 
     // verify that the returned iterator is set as expected
     rw_assert (end.cur_ == result.cur_ + nsrc, 0, line,
-               "line %d: %s<%s>(\"%s\", ..., '%c') == %p, "
-               "got %p", __LINE__, fname, itname, src, val,
-               first.cur_ + nsrc, end.cur_);
+               "line %d: %s<%s>(\"%s\", ..., %#c) == result + %zu, got %td",
+               __LINE__, fname, itname, src, val, nsrc, end.cur_ - xdst);
 
     // verify that the value to be replaced does not appear anywhere
     // in the range [result, end)
     bool success = true;
     std::size_t i = 0;
     for ( ; i != nsrc; ++i) {
+        typedef unsigned char UChar;
         success = UChar (val) != xdst [i].val_;
         if (!success)
             break;
     }
 
     rw_assert (success, 0, line,
-               "line %d: %s<%s>(\"%s\", ..., '%c') ==> \"%s\"; "
-               "unexpected element value %c",
+               "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
+               "\"%{X=*.*}\"; unexpected element value %#c",
                __LINE__, fname, itname, src, val,
-               (const char*)ToString<T>(xdst, xdst_end, i), src [i]);
+               int (nsrc), int (i), xdst, src [i]);
 
     // check the id (not just the value) of the matching element
     // to make sure it has really been copied
@@ -379,25 +320,25 @@ void test_replace (int line,
     }
 
     rw_assert (success, 0, line,
-               "line %d: %s<%s>(\"%s\", ..., '%c', '%c') ==> \"%s\"; "
-               "failed to copy and replace element %zu: "
+               "line %d: %s<%s>(\"%s\", ..., %#c, %#c) ==> "
+               "\"%{X=*.*}\"; failed to copy and replace element %zu: "
                "origin %d (%d, %d), expected %d (%d)",
                __LINE__, fname, itname, src, val, new_val,
-               (const char*)ToString<T>(xdst, xdst_end, i), 
+               int (nsrc), int (i), xdst,
                i, xdst [i].origin_, xdst [i].id_, xdst [i].src_id_,
                replace_with.origin_, replace_with.id_);
 
     // verify the number of applications of the predicate: p 25.2.4.7
     if (tag.use_predicate) {
         rw_assert (pred.funcalls_ == nsrc, 0, line,
-                   "line %d: %s<%s>(\"%s\", ..., '%c') called  "
+                   "line %d: %s<%s>(\"%s\", ..., %#c) called  "
                    "Predicate::operator() %zu times, %zu expected",
                    __LINE__, fname, itname, src, val,
                    pred.funcalls_, nsrc);
     }
     else {
         rw_assert (T::n_total_op_eq_ == nsrc, 0, line,
-                   "line %d: %s<%s>(\"%s\", ..., '%c') called "
+                   "line %d: %s<%s>(\"%s\", ..., %#c) called "
                    "T::operator< %zu times, %zu expected",
                    __LINE__, fname, itname, src, val,
                    T::n_total_op_eq_, nsrc);
