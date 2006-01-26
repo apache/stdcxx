@@ -604,6 +604,9 @@ void random_shuffle (_RandomAccessIter __first, _RandomAccessIter __last,
             // and to the iterator's difference_type but nothing else
             const _DiffT __rndoff (__rand (__limit));
 
+            // returned value must be non-negative and less than the limit
+            _RWSTD_ASSERT (0 <= __rndoff && __rndoff < __limit);
+
             _STD::iter_swap (__i, __first + __rndoff);
         }
     }
