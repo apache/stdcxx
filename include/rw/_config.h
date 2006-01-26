@@ -667,9 +667,6 @@
 #  if defined (_WIN64)
      // FIXME: handle by forward declaring fuctions in <rw/_mutex.h>
 #    define _RWSTD_NO_FWD_DECLARATIONS
-#    if !defined (_RWSTD_NO_SSIZE_TYPE)
-#      define _RWSTD_NO_SSIZE_TYPE
-#    endif   // _RWSTD_NO_SSIZE_TYPE
 #  endif   // _WIN64
 
    // disable "Same type qualifier used more than once"
