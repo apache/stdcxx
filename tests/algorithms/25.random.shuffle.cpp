@@ -107,6 +107,10 @@ struct RandomGenerator
 
         gen_ = (gen_ << 7) + gen_ % 128;
 
+        // prevent the number from going negative(!)
+        if (gen_ < 0)
+            gen_ = -gen_;
+
         return gen_ % n;
     }
 
@@ -168,28 +172,25 @@ void test_random_shuffle (const std::size_t            line,
              fname, itname, rnd_gen, funname);
 
     // generate a sequential value for each default-constructed T
-    // starying with 0 (i.e., T::val_ will be 0 for the first T)
+    // starting with 0 (i.e., T::val_ will be 0 for the first T)
     sequence_start = 0;
-    T::gen_ = sequence_generator;
+    T::gen_        = sequence_generator;
 
-    T    *buf   = new T [N];
-    bool *found = new bool [N];
+    T    *buf      = new T [N + 1];
+    char *missing  = new char [N + 1];
 
     for (std::size_t i = 0; i < N; ++i) {
-
-        // reset found array to false
-        std::memset (found, 0, N * sizeof *found);
 
         // create a pair of safe iterator to pass to random_shuffle
         // in order to test that the function doesn't write past
         // the end of the sequence [first, last)
-        const Iterator first = make_iter (buf, buf, buf + i + 1, it);
-        const Iterator last  = make_iter (buf + i + 1, buf, buf + i + 1, it);
+        const Iterator first = make_iter (buf,     buf, buf + i, it);
+        const Iterator last  = make_iter (buf + i, buf, buf + i, it);
 
         /* non-const */ RandomNumberGenerator rnd (0, 0);   // dummy args
 
         // exercise 25.2.11 - std::random_shuffle<>()
-        std::size_t last_n_op_assign = T::n_total_op_assign_;
+        std::size_t n_op_assign = T::n_total_op_assign_;
 
         // shuffle buffer elements
         if (rnd_gen)
@@ -197,45 +198,47 @@ void test_random_shuffle (const std::size_t            line,
         else
             std::random_shuffle (first, last);
 
-        // verify 25.2.11, p1
-        // iterate over elements of the found array setting those
-        // at the index given by T::val_ to true to verify that
-        // random_shuffle() didn't drop any elements
-        std::size_t j;
-        for (j = 0; j != i + 1; ++j)
-            found [(buf + j)->val_ - 1] = true;
+        n_op_assign = T::n_total_op_assign_ - n_op_assign;
 
-        // iterate over elements of the found array once again,
-        // this time to verify that no elements of the buf array
-        // are missing
-        bool success = true;
-        for (j = 0; j != i + 1; ++j) {
-            success = found [j];
-            if (!success)
-                break;
+        // verify 25.2.11, p1
+        // iterate over elements of the missing array clearing those
+        // at the index given by T::val_ to true to verify that the
+        // algorithm didn't drop any elements
+        std::size_t j;
+        std::memset (missing, 1, N);
+        for (j = 0; j != i; ++j) {
+            const std::size_t inx = std::size_t (buf [j].val_);
+            if (inx < N)
+                missing [inx] = 0;
         }
 
-        rw_assert (success, 0, line,
-                   "%zu. std::%s<%s%{?}, %s%{;}>(): can't find %zu",
-                   i, fname, itname, rnd_gen, funname, j);
+        // find the first missing element (if any)
+        const char* const first_missing = (char*)std::memchr (missing, 1, i);
 
-        if (!success)
-            break;
+        bool success = 0 == first_missing;
 
-        // verify 25.2.11, p2
-        // exactly (i + 1) - 1 swaps * 2 assigns per swap = 2 * i assignments
-        success = T::n_total_op_assign_  - last_n_op_assign == 2 * i;
         rw_assert (success, 0, line,
-                   "%zu. std::%s<%s%{?}, %s%{;}>(): complexity: %zu != %zu",
+                   "%zu. std::%s<%s%{?}, %s%{;}>(): can't find element "
+                   "with value %td: got \"%{X=*.*}\"",
+                   i, fname, itname, rnd_gen, funname,
+                   first_missing - missing,
+                   int (i), -1, buf);
+
+
+        // verify 25.2.11, p2, complexity:
+        // exactly K = ((last - first) - 1) swaps
+        // i.e., K * 2 assignments (at 2 assignment per swap
+        // plus one copy construction)
+        success = n_op_assign == 2 * (i ? i - 1 : i);
+        rw_assert (success, 0, line,
+                   "%zu. std::%s<%s%{?}, %s%{;}>(): complexity: "
+                   "expected %zu swaps, got %zu",
                    i, fname, itname, rnd_gen, funname, 
-                   T::n_total_op_assign_  - last_n_op_assign, 2 * i);
-
-        if (!success)
-            break;
+                   2 * i, n_op_assign);
     }
 
     delete[] buf;
-    delete[] found;
+    delete[] missing;
 }
 
 /**************************************************************************/
