@@ -2,7 +2,7 @@
  *
  * _num_get.cc - definition of std::num_get members
  *
- * $Id: //stdlib/dev/include/loc/_num_get.cc#51 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -210,7 +210,7 @@ do_get (iter_type __begin, iter_type __end, ios_base &__flags,
                                     sizeof __names / sizeof *__names,
                                     __inx, __errtmp, 0);
 
-    if ((_RWSTD_SIZE_T)(-1) == __inx)
+    if (_RWSTD_SIZE_MAX == __inx)
         __err |= _RW::__rw_failbit;
     else
         __val = !!__inx;
@@ -284,8 +284,17 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
     // to avoid having to deal with the fact that it's optional
     *__pcur++ = '+';
 
-    unsigned __hex_x  = 33;   // 'x' or 'X' after a leading '0'
-    unsigned __ld_sgn = 43;   // leading plus or minus sign
+    static const _UChar _HexX = _RW::__rw_digit_map [_UChar ('X')];
+    static const _UChar _Sign = _RW::__rw_digit_map [_UChar ('+')];
+
+    // 'x' or 'X' after a leading '0' (the same value for both),
+    // any value outside the valid range [0, 36) is invalid and
+    // will not match any character
+    _UChar __hex_x = _HexX;
+
+    // leading plus or minus sign (the same value for both)
+    // any value outside the valid range [0, 36) is invalid
+    _UChar __ld_sgn = _Sign;
 
     for ( ; ; ++__begin) {
 
@@ -330,7 +339,7 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
             // add the length of the current group to the array groups
             // store UCHAR_MAX if group length exceeds the size of char
             const _RWSTD_PTRDIFF_T __len = __grpbeg ?
-                __pcur - __grpbeg : __pcur - __pbuf - 1 - (33U != __hex_x);
+                __pcur - __grpbeg : __pcur - __pbuf - 1 - (_HexX != __hex_x);
 
             if (0 == __len) {
                 // fatal error: thousands_sep characters must be separated
@@ -339,7 +348,7 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
                 return __begin;
             }
 
-            *__pgrp++ = char (__len < _UChar (-1) ? __len : -1);
+            *__pgrp++ = char (__len < _UChar (_RWSTD_UCHAR_MAX) ? __len : -1);
             __grpbeg  = __pcur;
         }
         else if (!__dp) {
@@ -348,7 +357,8 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
 
             // get the digit value of the character; anything over
             // 35 is not a digit (43 is either the plus sign or
-            // the minus sign, for efficiency)
+            // the minus sign, for efficiency); the value 99
+            // indicates an invalid character
             const _UChar __digit = _RW::__rw_digit_map [_UChar (__ch)];
 
             // 22.2.2.1.2, p8: Stage 8 calls for widening of the sequence
@@ -369,7 +379,7 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
                         __pcur [-1] = __ch;
 
                         // disable future recognition of the leading sign
-                        __ld_sgn = ~0;
+                        __ld_sgn = 36;
                     }
                     else
                         break;
@@ -390,13 +400,13 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
                             const char __ts =
                                 __ctp.narrow (__thousands_sep, '\0');
                             if (/* '+' or '-' == __ts */
-                                43 == _RW::__rw_digit_map [_UChar (__ts)])
+                                _Sign == _RW::__rw_digit_map [_UChar (__ts)])
                                 __grpsz = 0;
                         }
                     }
                     else if (   'e' == __pcur [-1]
                              && /* '+' or '-' == __ch */
-                                43 == _RW::__rw_digit_map [_UChar (__ch)]) {
+                                _Sign == _RW::__rw_digit_map [_UChar (__ch)]) {
                         // '+' or '-' only permitted (but not required)
                         // as the first character after 'e' or 'E'
 
@@ -414,7 +424,7 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
             else {
                 if (__pcur == __pbuf + 1 && __digit == __ld_sgn) {
                     __pcur [-1] = __ch;   // overwrite the default '+'
-                    __ld_sgn    = ~0;     // disable leading sign
+                    __ld_sgn    = 36;     // disable leading sign
                 }
                 else if (16 == __base) {
                     if (__digit < 16)
@@ -424,7 +434,7 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
                              && __pcur [-1] == '0') {
                         // don't append the 'x' part of the "0x" prefix
                         // and disable the recognition of any future 'x'
-                        __hex_x = ~0;
+                        __hex_x = 36;
                     }
                     else
                         break;   // invalid character terminates input
@@ -448,7 +458,7 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
                     else if (   __digit == __hex_x
                              && __pcur == __pbuf + 2
                              && __pcur [-1] == '0') {
-                        __hex_x = ~0;   // disable future 'x'
+                        __hex_x = 36;   // disable future 'x'
                         __base  = 16;   // set base-16
                         --__pcur;       // remove leading '0'
                     }
@@ -508,7 +518,7 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
             __grpend = __pcur;
 
         __len = __grpbeg ?
-            __grpend - __grpbeg : __grpend - __pbuf - 1 - (33U != __hex_x);
+            __grpend - __grpbeg : __grpend - __pbuf - 1 - (_HexX != __hex_x);
 
         if (__grpbeg && 0 == __len) {
             // fatal error: thousands_sep characters must be separated
@@ -517,7 +527,7 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
             return __begin;
         }
 
-        *__pgrp++ = char (__len < _UChar (-1) ? __len : -1);
+        *__pgrp++ = char (__len < _UChar (_RWSTD_UCHAR_MAX) ? __len : -1);
     }
 
     *__pgrp = '\0';
