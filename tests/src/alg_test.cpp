@@ -27,8 +27,9 @@
 #include <stdlib.h>     // for rand(), strtol()
 #include <string.h>     // for size_t, strlen()
 
+
 #include <alg_test.h>
-#include <printf.h>
+#include <snprintfa.h>
 
 
 /* static */ size_t X::count_;
@@ -443,12 +444,12 @@ operator= (const UnaryPredicate&)
 }
 
 
-/* virtual */ bool UnaryPredicate::
+/* virtual */ conv_to_bool UnaryPredicate::
 operator()(const X&) const
 {
     ++n_total_op_fcall_;
 
-    return true;
+    return conv_to_bool::make (true);
 }
 
 
@@ -485,13 +486,13 @@ operator= (const BinaryPredicate &rhs)
 }
 
 
-/* virtual */ bool BinaryPredicate::
+/* virtual */ conv_to_bool BinaryPredicate::
 operator()(const X &lhs, const X &rhs) const
 {
     ++n_total_op_fcall_;
 
     if (lhs == rhs)
-        return true;
+        return conv_to_bool::make (true);
 
     if (ignore_case_) {
 
@@ -500,15 +501,15 @@ operator()(const X &lhs, const X &rhs) const
 
         if (   lval < 0 || lval > int (_RWSTD_UCHAR_MAX)
             || rval < 0 || rval > int (_RWSTD_UCHAR_MAX))
-            return false;
+            return conv_to_bool::make (false);
 
         const int lup = toupper (lval);
         const int rup = toupper (rval);
 
-        return _RWSTD_EOF != lup && lup == rup;
+        return conv_to_bool::make (_RWSTD_EOF != lup && lup == rup);
     }
 
-    return false;
+    return conv_to_bool::make (false);
 }
 
 

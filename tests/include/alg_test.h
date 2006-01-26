@@ -143,52 +143,7 @@ struct _TEST_EXPORT X
     static int compare (const X*, const X*, _RWSTD_SIZE_T);
 };
 
-
-struct _TEST_EXPORT UnaryPredicate
-{
-    // total number of times operator() was invoked
-    static _RWSTD_SIZE_T n_total_op_fcall_;
-
-    UnaryPredicate ();
-
-    UnaryPredicate (const UnaryPredicate&);
-
-    UnaryPredicate& operator= (const UnaryPredicate&);
-
-    virtual ~UnaryPredicate ();
-
-    virtual bool operator()(const X&) const;
-};
-
-
-struct _TEST_EXPORT BinaryPredicate
-{
-    // total number of times operator() was invoked
-    static _RWSTD_SIZE_T n_total_op_fcall_;
-
-    bool ignore_case_;
-
-    BinaryPredicate (bool = false);
-
-    BinaryPredicate (const BinaryPredicate&);
-
-    BinaryPredicate& operator= (const BinaryPredicate&);
-
-    virtual ~BinaryPredicate ();
-
-    virtual bool operator()(const X&, const X&) const;
-};
-
-
-class _TEST_EXPORT tempstr;
-
-// converts a sequence of objects of type X to a tempstr object
-// in the format "[%p0, %p1): { x0, >x1<, ..., xN - 1 } where N
-// is defined as: N = (X*)p1 - (X*)p0
-// the last argument, if non-negative, indicates the index of the
-// element enclosed in between the '>' and '<' characters
-_TEST_EXPORT void to_string (tempstr*, const X*, const X*, int = -1);
-
+/**************************************************************************/
 
 // generate a unique sequential number starting from 0
 _TEST_EXPORT int gen_seq ();
@@ -257,6 +212,7 @@ inline bool is_sorted_gt (InputIterator first, InputIterator last)
     return true;
 }
 
+/**************************************************************************/
 
 // type used to exercise that algorithms do not apply operators
 // to function objects the latter are not required to define
@@ -482,18 +438,44 @@ struct const_cvt : T
     }
 };
 
+/**************************************************************************/
 
-#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
+struct _TEST_EXPORT UnaryPredicate
+{
+    // total number of times operator() was invoked
+    static _RWSTD_SIZE_T n_total_op_fcall_;
 
-struct DummyBase { };
+    UnaryPredicate ();
 
-#  define ITER_BASE(ign1, ign2, ign3, ign4, ign5) DummyBase
-#else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
-   // when partial specialization isn't supported 
-#  define ITER_BASE(Cat, T, Dist, Ptr, Ref) \
-          std::iterator<Cat, T, Dist, Ptr, Ref >
-#endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC
+    UnaryPredicate (const UnaryPredicate&);
 
+    UnaryPredicate& operator= (const UnaryPredicate&);
+
+    virtual ~UnaryPredicate ();
+
+    virtual conv_to_bool operator()(const X&) const;
+};
+
+
+struct _TEST_EXPORT BinaryPredicate
+{
+    // total number of times operator() was invoked
+    static _RWSTD_SIZE_T n_total_op_fcall_;
+
+    bool ignore_case_;
+
+    BinaryPredicate (bool = false);
+
+    BinaryPredicate (const BinaryPredicate&);
+
+    BinaryPredicate& operator= (const BinaryPredicate&);
+
+    virtual ~BinaryPredicate ();
+
+    virtual conv_to_bool operator()(const X&, const X&) const;
+};
+
+/**************************************************************************/
 
 // Size template argument to fill_n(), generate_n(), and search_n()
 template <class IntegralT>
@@ -513,6 +495,19 @@ private:
 
     IntegralT val_;
 };
+
+/**************************************************************************/
+
+#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
+
+struct DummyBase { };
+
+#  define ITER_BASE(ign1, ign2, ign3, ign4, ign5) DummyBase
+#else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
+   // when partial specialization isn't supported 
+#  define ITER_BASE(Cat, T, Dist, Ptr, Ref) \
+          std::iterator<Cat, T, Dist, Ptr, Ref >
+#endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC
 
 
 // satisfies the requirements in 24.1.1 [lib.input.iterators]
@@ -635,6 +630,7 @@ struct InputIter: ITER_BASE (std::input_iterator_tag, T, int, T*, T&)
     const value_type *cur_;   // past-the-end
 };
 
+/**************************************************************************/
 
 // satisfies the requirements in 24.1.2 [lib.output.iterators]
 template <class T>
@@ -761,6 +757,7 @@ struct OutputIter: ITER_BASE (std::output_iterator_tag, T, int, T*, T&)
     pointer  cur_;
 };
 
+/**************************************************************************/
 
 // satisfies the requirements in 24.1.3 [lib.forward.iterators]
 template <class T>
@@ -844,6 +841,7 @@ struct ConstFwdIter: FwdIter<T>
     _RWSTD_OPERATOR_ARROW (const value_type* operator-> () const);
 };
 
+/**************************************************************************/
 
 // satisfies the requirements in 24.1.4 [lib.bidirectional.iterators]
 template <class T>
@@ -938,6 +936,7 @@ struct ConstBidirIter: BidirIter<T>
     _RWSTD_OPERATOR_ARROW (const value_type* operator-> () const);
 };
 
+/**************************************************************************/
 
 // satisfies the requirements in 24.1.5 [lib.random.access.iterators]
 template <class T>
@@ -1060,6 +1059,7 @@ struct RandomAccessIter
     const value_type *end_;     // past-the-end
 };
 
+/**************************************************************************/
 
 template <class T>
 struct ConstRandomAccessIter: RandomAccessIter<T>
@@ -1086,6 +1086,7 @@ struct ConstRandomAccessIter: RandomAccessIter<T>
     }
 };
 
+/**************************************************************************/
 
 template <class T>
 inline T*
