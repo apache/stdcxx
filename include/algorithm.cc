@@ -588,10 +588,24 @@ void random_shuffle (_RandomAccessIter __first, _RandomAccessIter __last,
 
     if (!(__first == __last)) {
 
-        _RWSTD_SIZE_T __limit = 1U;
+#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
+        typedef _TYPENAME
+            iterator_traits<_RandomAccessIter>::difference_type _DiffT;
+#else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
+        typedef _RWSTD_PTRDIFF_T _DiffT;
+#endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC
 
-        for (_RandomAccessIter __i = __first; !(++__i == __last); )
-            _STD::iter_swap (__i, __first + __rand (++__limit));
+        _DiffT __limit = 2;
+
+        for (_RandomAccessIter __i = __first; !(++__i == __last); ++__limit) {
+
+            // the argument to and the return value of the random number
+            // generator's operator() is required to be convertinble from
+            // and to the iterator's difference_type but nothing else
+            const _DiffT __rndoff (__rand (__limit));
+
+            _STD::iter_swap (__i, __first + __rndoff);
+        }
     }
 }
 
