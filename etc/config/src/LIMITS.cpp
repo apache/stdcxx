@@ -20,6 +20,7 @@
 
      // prevent the propriterary gcc __extension__ from
      // throwing the vanilla EDG demo for a loop
+
 #    undef LDBL_EPSILON
 #    undef LDBL_MIN
 #    undef LDBL_MAX
@@ -102,6 +103,10 @@ void terminate ()
 #endif   // _RWSTD_NO_HONOR_STD
 
 
+// set to 1 if this is not a two's complement architecture
+int no_twos_complement = 0;
+
+
 template<class T>
 void print_limit (T n, const char *pfx, const char *sfx,
                   bool is_max, const char *type)
@@ -143,20 +148,31 @@ void print_limit (T n, const char *pfx, const char *sfx,
         *--pnstr = '0';
     }
 
+    char macro_name [64];
+    char macro_value [64];
+
     if (is_max) {
-        printf ("#define _RWSTD_%s_MAX %s%s", pfx, pnstr, sfx);
+        sprintf (macro_name, "_RWSTD_%s_MAX", pfx);
+        sprintf (macro_value, "%s%s", pnstr, sfx);
+
     }
     else {
+        sprintf (macro_name, "_RWSTD_%s_MIN ", pfx);
+
         if (n < zero) {
-            printf ("#define _RWSTD_%s_MIN (-_RWSTD_%s_MAX - 1%s)",
-                    pfx, pfx, sfx);
+            if (no_twos_complement) {
+                sprintf (macro_value, "-_RWSTD_%s_MAX", pfx);
+            }
+            else {
+                sprintf (macro_value, "(-_RWSTD_%s_MAX - 1%s)", pfx, sfx);
+            }
         }
         else {
-            printf ("#define _RWSTD_%s_MIN %s%s", pfx, pnstr, sfx);
+            sprintf (macro_value, "%s%s", pnstr, sfx);
         }
     }
 
-    printf ("\n");
+    printf ("#define %-18s %s\n", macro_name, macro_value);
 }
 
 
@@ -275,7 +291,7 @@ unsigned compute_char_bits ()
 
     for (unsigned char c = '\01'; c; c <<= 1, ++bits);
 
-    printf ("#define _RWSTD_CHAR_BIT %u\n", bits);
+    printf ("#define _RWSTD_CHAR_BIT    %u\n", bits);
 
     return bits;
 }
@@ -313,6 +329,12 @@ struct EmptyStruct { };
 #define SIZEOF(T)   unsigned (sizeof (T))
 
 
+volatile int zero = 0;
+volatile int one  = zero + 1;
+volatile int two  = one + 1;
+volatile int zero_complement = ~zero;
+
+
 int main ()
 {
 #if !defined (_RWSTD_USE_CONFIG)
@@ -320,6 +342,11 @@ int main ()
     printf ("/**/\n#undef _RWSTD_LIMITS\n");
 
 #endif   // _RWSTD_USE_CONFIG
+
+    // determine whether this is a two's complement architecture
+    // and set the no_twos_complement global variable to 1 if not
+    if (two + zero_complement != one)
+        no_twos_complement = 1;
 
     // compute sizes of fundamental types
 
@@ -366,10 +393,17 @@ int main ()
 
 #ifndef _RWSTD_NO_BOOL
 
-    printf ("#define _RWSTD_BOOL_MIN !!0\n");
-    printf ("#define _RWSTD_BOOL_MAX !0\n");
+    printf ("#define _RWSTD_BOOL_MIN    !!0\n");
+    printf ("#define _RWSTD_BOOL_MAX    !0\n");
 
 #endif   // _RWSTD_NO_BOOL
+
+    if (0 == no_twos_complement) {
+        // comment out the next #define (this is two's complement
+        // architecture)
+        printf ("%s", "// ");
+    }
+    printf ("#define _RWSTD_NO_TWOS_COMPLEMENT\n");
 
     compute_limits ((char)0, "CHAR", "", "char");
     compute_limits ((signed char)0, "SCHAR", "", "signed char");
