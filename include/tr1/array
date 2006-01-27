@@ -1,0 +1,365 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * array - definition of class template array
+ *
+ * $Id$
+ *
+ ***************************************************************************
+ *
+ * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
+ * Software division. Licensed under the Apache License, Version 2.0 (the
+ * "License");  you may  not use this file except  in compliance with the
+ * License.    You    may   obtain   a   copy   of    the   License    at
+ * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
+ * applicable law  or agreed to  in writing,  software  distributed under
+ * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
+ * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
+ * for the specific language governing permissions  and limitations under
+ * the License.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_TR1_ARRAY_INCLUDED
+#define _RWSTD_TR1_ARRAY_INCLUDED
+
+
+#include <rw/_algobase.h>
+#include <rw/_error.h>
+#include <rw/_iterator.h>
+#include <rw/_defs.h>
+
+
+_RWSTD_NAMESPACE (std) {
+
+_RWSTD_NAMESPACE (tr1) {
+
+
+// 6.2.2 -- class template array
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+struct array
+{
+    // types:
+    typedef _TypeT            value_type;
+    typedef value_type&       reference;
+    typedef const value_type& const_reference;
+    typedef value_type*       pointer;
+    typedef const value_type* const_pointer;
+    typedef _RWSTD_SIZE_T     size_type;
+    typedef _RWSTD_PTRDIFF_T  difference_type;
+
+#ifndef _RWSTD_NO_DEBUG_ITER
+
+    typedef _RW::__rw_debug_iter <array, pointer, pointer> iterator;
+    
+    typedef _RW::__rw_debug_iter <array, const_pointer, pointer> const_iterator;
+
+    iterator _C_make_iter (pointer __ptr) {
+        return iterator (*this, __ptr);
+    }
+
+    const_iterator _C_make_iter (const_pointer __ptr) const {
+        return const_iterator (*this, __ptr);
+    }
+
+#else   // if defined (_RWSTD_NO_DEBUG_ITER)
+
+    typedef pointer         iterator;
+    typedef const_pointer   const_iterator;
+
+    iterator _C_make_iter (pointer __ptr) {
+        return __ptr;
+    }
+
+    const_iterator _C_make_iter (const_pointer __ptr) const {
+        return __ptr;
+    }
+
+#endif   // _RWSTD_NO_DEBUG_ITER
+
+    typedef _RWSTD_REVERSE_ITERATOR (iterator,
+                                     reference,
+                                     pointer,
+                                     random_access_iterator_tag)
+        reverse_iterator;
+
+    typedef _RWSTD_REVERSE_ITERATOR (const_iterator,
+                                     const_reference,
+                                     const_pointer,
+                                     random_access_iterator_tag)
+        const_reverse_iterator;
+
+    // No explicit construct/copy/destroy for aggregate type
+    void assign (const_reference);
+    void swap (array&);
+
+    // iterators:
+    iterator begin () {
+        return _C_make_iter (data ());
+    }
+
+    const_iterator begin () const {
+        return _C_make_iter (data ());
+    }
+
+    iterator end () {
+        return _C_make_iter (data () + size ());
+    }
+
+    const_iterator end () const {
+        return _C_make_iter (data () + size ());
+    }
+
+    reverse_iterator rbegin () {
+        return reverse_iterator (end ());
+    }
+
+    const_reverse_iterator rbegin () const {
+        return const_reverse_iterator (end ());
+    }
+
+    reverse_iterator rend () {
+        return reverse_iterator (begin ());
+    }
+
+    const_reverse_iterator rend () const {
+        return const_reverse_iterator (begin ());
+    }
+
+    // capacity:
+    size_type size () const {
+        return _Size;
+    }
+
+    size_type max_size () const {
+        return _Size;
+    }
+
+    bool empty () const {
+        return 0 == size ();
+    }
+
+    // element access:
+    reference operator[] (size_type);
+    const_reference operator[] (size_type) const;
+
+    const_reference at (size_type) const;
+    reference at (size_type);
+
+    reference front () {
+        _RWSTD_ASSERT (!empty ());
+        return *data ();
+    }
+
+    const_reference front () const {
+        _RWSTD_ASSERT (!empty ());
+        return *data ();
+    }
+
+    reference back () {
+        _RWSTD_ASSERT (!empty ());
+        return data () [size () - 1];
+    }
+
+    const_reference back () const {
+        _RWSTD_ASSERT (!empty ());
+        return data () [size () - 1];
+    }
+
+    pointer data () {
+        return _C_elems;
+    }
+
+    const_pointer data () const {
+        return _C_elems;
+    }
+
+    // private: (no public/protected/private in aggregate types)
+    value_type _C_elems [_Size];
+};
+
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+inline void
+array<_TypeT, _Size>::
+assign (const_reference __val)
+{
+    const pointer __end = data () + size ();
+
+    for (pointer __ptr = data (); __ptr != __end; ++__ptr)
+        *__ptr = __val;
+}
+
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+inline void
+array<_TypeT, _Size>::
+swap (array<_TypeT, _Size> &__other)
+{
+    _RWSTD_ASSERT (size () == __other.size ());
+
+    const array __tmp (*this);
+    *this = __other;
+    __other = __tmp;
+}
+
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+inline _TYPENAME array<_TypeT, _Size>::reference
+array<_TypeT, _Size>::
+operator[] (size_type __inx)
+{
+#ifdef _RWSTD_BOUNDS_CHECKING
+
+    _RWSTD_REQUIRES (__inx < size (),
+                     (_RWSTD_ERROR_OUT_OF_RANGE,
+                      _RWSTD_FUNC ("array::operator[](size_type)"),
+                      __inx, size ()));
+
+#endif   // _RWSTD_BOUNDS_CHECKING
+
+    return data ()[__inx];
+}
+  
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+inline _TYPENAME array<_TypeT, _Size>::const_reference
+array<_TypeT, _Size>::
+operator[] (size_type __inx) const
+{
+#ifdef _RWSTD_BOUNDS_CHECKING
+
+    _RWSTD_REQUIRES (__inx < size (),
+                     (_RWSTD_ERROR_OUT_OF_RANGE,
+                      _RWSTD_FUNC ("array::operator[](size_type) const"),
+                      __inx, size ()));
+
+#endif   // _RWSTD_BOUNDS_CHECKING
+
+    return data ()[__inx];
+}
+  
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+inline _TYPENAME array<_TypeT, _Size>::reference
+array<_TypeT, _Size>::
+at (size_type __inx)
+{
+    _RWSTD_REQUIRES (__inx < size (),
+                     (_RWSTD_ERROR_OUT_OF_RANGE,
+                      _RWSTD_FUNC ("array::at (size_type)"),
+                      __inx, size ()));
+
+    return data ()[__inx];
+}
+    
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+inline _TYPENAME array<_TypeT, _Size>::const_reference
+array<_TypeT, _Size>::
+at (size_type __inx)  const
+{
+    _RWSTD_REQUIRES (__inx < size (),
+                     (_RWSTD_ERROR_OUT_OF_RANGE,
+                      _RWSTD_FUNC ("array::at(size_type) const"),
+                      __inx, size ()));
+    return data ()[__inx];
+}
+
+
+// array comparisons
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+inline bool
+operator== (const array<_TypeT, _Size> &__lhs,
+            const array<_TypeT, _Size> &__rhs)
+{
+    _RWSTD_ASSERT (__lhs.size () == __rhs.size ());
+
+    return _STD::equal (__lhs.begin (), __lhs.end (), __rhs.begin ());
+
+}
+
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+inline bool
+operator< (const array<_TypeT, _Size> &__lhs,
+           const array<_TypeT, _Size> &__rhs)
+{
+    _RWSTD_ASSERT (__lhs.size () == __rhs.size ());
+
+    return _STD::lexicographical_compare (__lhs.begin (), __lhs.end (),
+                                          __rhs.begin (), __rhs.end ());
+}
+
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+inline bool
+operator!= (const array<_TypeT, _Size> &__lhs,
+            const array<_TypeT, _Size> &__rhs)
+{
+    return !(__lhs == __rhs);
+}
+
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+inline bool
+operator> (const array<_TypeT, _Size> &__lhs,
+           const array<_TypeT, _Size> &__rhs)
+{
+    return __rhs < __lhs;
+}
+
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+inline bool
+operator>= (const array<_TypeT, _Size> &__lhs,
+            const array<_TypeT, _Size> &__rhs)
+{
+    return !(__lhs < __rhs);
+}
+
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+inline bool
+operator<= (const array<_TypeT, _Size> &__lhs,
+            const array<_TypeT, _Size> &__rhs)
+{
+    return !(__rhs <  __lhs);
+}
+
+
+// 6.2.2.2 -- specialized algorithms
+template <class _TypeT, _RWSTD_SIZE_T _Size >
+inline void
+swap (array<_TypeT, _Size> &__lhs, array<_TypeT, _Size> &__rhs)
+{
+    __lhs.swap (__rhs);
+}
+
+
+// 6.2.2.5 -- tuple interface to class template array
+template <class _TypeT>
+class tuple_size;   // defined in <tr1/tuple>
+
+template <int I, class _TypeT>
+class tuple_element;   // defined in <tr1/tuple>
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+struct tuple_size<array<_TypeT, _Size> >;
+
+template <int I, class _TypeT, _RWSTD_SIZE_T _Size>
+struct tuple_element<I, array<_TypeT, _Size> >;
+
+template <int I, class _TypeT, _RWSTD_SIZE_T _Size>
+_TypeT& get (array<_TypeT, _Size>&);
+
+template <int I, class _TypeT, _RWSTD_SIZE_T _Size>
+const _TypeT& get (const array<_TypeT, _Size>&);
+
+
+}   // namespace tr1
+
+}   // namespace std
+
+
+#endif   // _RWSTD_TR1_ARRAY_INCLUDED
