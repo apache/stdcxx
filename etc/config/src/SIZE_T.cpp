@@ -6,41 +6,24 @@
 
 #include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <stdlib.h>   // for RAND_MAX
+#include <time.h>     // for CLOCKS_PER_SEC
 
-#ifndef _RWSTD_NO_WCHAR_H
-#  include <wchar.h>
-#endif   // _RWSTD_NO_WCHAR_H
+#ifndef _RWSTD_NO_WCTYPE_H
+#  include <wctype.h>   // for WEOF
+#endif   // _RWSTD_NO_WCTYPE_H
 
-
-// determine the underlying arithmetic type of a typedef
-#define DEFINE_TYPE_HELPER(T)                       \
-    const char* get_type_name (T) { return # T; }   \
-    typedef void unused_type
-
-
-DEFINE_TYPE_HELPER (char);
-DEFINE_TYPE_HELPER (short);
-DEFINE_TYPE_HELPER (unsigned short);
-DEFINE_TYPE_HELPER (int);
-DEFINE_TYPE_HELPER (unsigned int);
-DEFINE_TYPE_HELPER (long);
-DEFINE_TYPE_HELPER (unsigned long);
-
+// establish a dependency on the test for long long
+// and #define the LONG_LONG macro used in "type.h"
 #ifndef _RWSTD_NO_LONG_LONG
+#  define LONG_LONG long long
+#else   // if defined (_RWSTD_NO_LONG_LONG)
+#  if defined (_MSC_VER)
+#    define LONG_LONG   __int64
+#  endif   // _MSC_VER
+#endif   // _RWSTD_NO_LONG_LONG
 
-DEFINE_TYPE_HELPER (long long);
-DEFINE_TYPE_HELPER (unsigned long long);
-
-#elif defined (_MSC_VER)
-
-DEFINE_TYPE_HELPER (__int64);
-DEFINE_TYPE_HELPER (unsigned __int64);
-
-#endif   // _RWSTD_NO_LONG_LONG, _MSC_VER
-
-const char* get_type_name (...) { return 0; }
+#include "types.h"   // for type_name()
 
 
 void get_type_names (int dummy, ...)
@@ -57,10 +40,21 @@ void get_type_names (int dummy, ...)
 
 #endif   // _RWSTD_USE_CONFIG
 
-    printf ("#define _RWSTD_CLOCK_T %s\n", get_type_name (clk));
-    printf ("#define _RWSTD_PTRDIFF_T %s\n", get_type_name (diff));
-    printf ("#define _RWSTD_SIZE_T %s\n", get_type_name (size));
-    printf ("#define _RWSTD_TIME_T %s\n", get_type_name (tim));
+    printf ("#define _RWSTD_CLOCK_T        %s\n", type_name (clk));
+    printf ("#define _RWSTD_PTRDIFF_T      %s\n", type_name (diff));
+    printf ("#define _RWSTD_SIZE_T         %s\n", type_name (size));
+
+    // compute the maximum and minimum for size_t and ptrdiff_t
+    ++size;
+    ++diff;
+    printf ("#define _RWSTD_SIZE_MAX       _RWSTD_%s_MAX\n",
+            type_name (size));
+    printf ("#define _RWSTD_PTRDIFF_MIN    _RWSTD_%s_MIN\n"
+            "#define _RWSTD_PTRDIFF_MAX    _RWSTD_%s_MAX\n",
+            type_name (diff), type_name (diff));
+
+
+    printf ("#define _RWSTD_TIME_T         %s\n", type_name (tim));
 
 #if defined (CLOCKS_PER_SEC)
     printf ("#define _RWSTD_CLOCKS_PER_SEC %d\n", CLOCKS_PER_SEC);
@@ -69,13 +63,13 @@ void get_type_names (int dummy, ...)
 #endif   // CLOCKS_PER_SEC
 
 #if defined (RAND_MAX)
-    printf ("#define _RWSTD_RAND_MAX %d\n", RAND_MAX);
+    printf ("#define _RWSTD_RAND_MAX       %d\n", RAND_MAX);
 #else
     printf ("#define _RWSTD_NO_RAND_MAX\n");
 #endif   // RAND_MAX
 
 #if defined (EOF)
-    printf ("#define _RWSTD_EOF %d\n", EOF);
+    printf ("#define _RWSTD_EOF            %d\n", EOF);
 #else
     // define _RWSTD_EOF to the usual value even if WEOF is not #defined
     // to avoid having to #ifdef around wchar_t code that needs the macro
@@ -86,7 +80,7 @@ void get_type_names (int dummy, ...)
 #endif   // EOF
 
 #if defined (WEOF)
-    printf ("#define _RWSTD_WEOF %d\n", WEOF);
+    printf ("#define _RWSTD_WEOF           %d\n", WEOF);
 #else
     // define _RWSTD_WEOF to the usual value even if WEOF is not #defined
     // to avoid having to #ifdef around wchar_t code that needs the macro
@@ -97,59 +91,59 @@ void get_type_names (int dummy, ...)
 #endif   // WEOF
 
 #if defined (L_tmpnam)
-    printf ("#define _RWSTD_L_TMPNAM %d\n", L_tmpnam);
+    printf ("#define _RWSTD_L_TMPNAM       %d\n", L_tmpnam);
 #else
     printf ("#define _RWSTD_NO_L_TMPNAM\n");
 #endif   // L_tmpnam
 
 #if defined (_IOFBF)
-    printf ("#define _RWSTD_IOFBF %d\n", _IOFBF);
+    printf ("#define _RWSTD_IOFBF          %d\n", _IOFBF);
 #else
     printf ("#define _RWSTD_NO_IOFBF\n");
 #endif   // _IOFBF
 
 #if defined (_IOLBF)
-    printf ("#define _RWSTD_IOLBF %d\n", _IOLBF);
+    printf ("#define _RWSTD_IOLBF          %d\n", _IOLBF);
 #else
     printf ("#define _RWSTD_NO_IOLBF\n");
 #endif   // _IOLBF
 
 #if defined (_IONBF)
-    printf ("#define _RWSTD_IONBF %d\n", _IONBF);
+    printf ("#define _RWSTD_IONBF          %d\n", _IONBF);
 #else
     printf ("#define _RWSTD_NO_IONBF\n");
 #endif   // _IONBF
 
 #if defined (BUFSIZ)
-    printf ("#define _RWSTD_BUFSIZ %d\n", BUFSIZ);
+    printf ("#define _RWSTD_BUFSIZ         %d\n", BUFSIZ);
 #else
     printf ("#define _RWSTD_NO_BUFSIZ\n");
 #endif   // BUFSIZ
 
 #if defined (FOPEN_MAX)
-    printf ("#define _RWSTD_FOPEN_MAX %d\n", FOPEN_MAX);
+    printf ("#define _RWSTD_FOPEN_MAX      %d\n", FOPEN_MAX);
 #else
     printf ("#define _RWSTD_NO_FOPEN_MAX\n");
 #endif   // FOPEN_MAX
 
 #if defined (FILENAME_MAX)
-    printf ("#define _RWSTD_FILENAME_MAX %d\n", FILENAME_MAX);
+    printf ("#define _RWSTD_FILENAME_MAX   %d\n", FILENAME_MAX);
 #else
     printf ("#define _RWSTD_NO_FILENAME_MAX\n");
 #endif   // FILENAME_MAX
 
 #if defined (TMP_MAX)
-    printf ("#define _RWSTD_TMP_MAX %d\n", TMP_MAX);
+    printf ("#define _RWSTD_TMP_MAX        %d\n", TMP_MAX);
 #else
     printf ("#define _RWSTD_NO_TMP_MAX\n");
 #endif   // TMP_MAX
 
-    if (get_type_name (pos))
-        printf ("#define _RWSTD_FPOS_T %s\n", get_type_name (pos));
+    if (type_name (pos))
+        printf ("#define _RWSTD_FPOS_T         %s\n", type_name (pos));
     else {
         printf ("#define _RWSTD_NO_NATIVE_FPOS_T"
                 "/* may be an aggregate */\n");
-        printf ("#define _RWSTD_FPOS_T_SIZE %u\n", sizeof pos);
+        printf ("#define _RWSTD_FPOS_T_SIZE    %u\n", sizeof pos);
     }
 }
 

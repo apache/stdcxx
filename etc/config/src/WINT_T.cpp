@@ -10,40 +10,44 @@
 
 #ifndef _RWSTD_NO_WCTYPE_H
 #  include <wctype.h>
-#endif
+#endif   // _RWSTD_NO_WCTYPE_H
 
 #include <stdio.h>
 
-
-const char* foo (char)               { return "char"; }
-const char* foo (signed char)        { return "signed char"; }
-const char* foo (unsigned char)      { return "unsigned char"; }
-const char* foo (short)              { return "short"; }
-const char* foo (unsigned short)     { return "unsigned short"; }
-const char* foo (int)                { return "int"; }
-const char* foo (unsigned int)       { return "unsigned int"; }
-const char* foo (long)               { return "long"; }
-const char* foo (unsigned long)      { return "unsigned long"; }
-
+// establish a dependency on the test for long long
+// and #define the LONG_LONG macro used in "type.h"
 #ifndef _RWSTD_NO_LONG_LONG
-
-const char* foo (long long)          { return "long long"; }
-const char* foo (unsigned long long) { return "unsigned long long"; }
-
+#  define LONG_LONG long long
+#else   // if defined (_RWSTD_NO_LONG_LONG)
+#  if defined (_MSC_VER)
+#    define LONG_LONG   __int64
+#  endif   // _MSC_VER
 #endif   // _RWSTD_NO_LONG_LONG
+
+#include "types.h"   // for type_name()
 
 
 int main ()
 {
 #if !defined (_RWSTD_USE_CONFIG)
 
-    printf ("#undef _RWSTD_WINT_T\n");
+    printf ("/**/\n#undef _RWSTD_WINT_T\n");
 
 #endif   // _RWSTD_USE_CONFIG
 
-    wint_t wi = 0;
+    //////////////////////////////////////////////////////////////////
+    // determine the underlying arithmetic type
 
-    printf ("#define _RWSTD_WINT_T %s\n", foo (wi));
+    wint_t wi = 0;
+    const char* const tname = type_name (wi);
+    printf ("#define _RWSTD_WINT_T   %s\n", tname);
+
+    // compute the type's minimum and maximum
+    const char* const symbol = type_name (++wi);
+
+    printf ("#define _RWSTD_WINT_MIN _RWSTD_%s_MIN\n"
+            "#define _RWSTD_WINT_MAX _RWSTD_%s_MAX\n",
+            symbol, symbol);
 
     return 0;
 }
