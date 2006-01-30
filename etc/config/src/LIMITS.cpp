@@ -1,10 +1,5 @@
 // computing numerical limits
 
-// Working around a Compaq c++ headers problem (PR#27459)
-#if defined (__PURE_CNAME)
-#  undef __PURE_CNAME
-#endif // __PURE_CNAME
-
 #if defined (_RWSTD_USE_CONFIG)
 #  include "config.h"
 #endif   // _RWSTD_USE_CONFIG
@@ -13,74 +8,19 @@
 #  include <limits.h>
 #endif   // _RWSTD_NO_LIMITS_H
 
-#ifndef _RWSTD_NO_FLOAT_H
-#  include <float.h>
-
-#  if defined (__EDG__) && defined (__linux__) && !defined (__INTEL_COMPILER)
-
-     // prevent the propriterary gcc __extension__ from
-     // throwing the vanilla EDG demo for a loop
-
-#    undef LDBL_EPSILON
-#    undef LDBL_MIN
-#    undef LDBL_MAX
-
-     // redefine to prevent compilation errors
-#    define LDBL_EPSILON 1.0842021724855044e-19L
-#    define LDBL_MIN     3.3621031431120935e-4932L
-#    define LDBL_MAX     1.1897314953572317e+4932L
-#  endif   // __EDG__ && __linux__ && !__INTEL_COMPILER
-
-#endif   // _RWSTD_NO_FLOAT_H
-
-
-#include <errno.h>    // for ERANGE, errno
 #include <stdio.h>    // for printf()
-#include <stdlib.h>   // for strtod()
 
+// establish a dependency on the test for long long
+// and #define the LONG_LONG macro used in "type.h"
+#ifndef _RWSTD_NO_LONG_LONG
+#  define LONG_LONG long long
+#else   // if defined (_RWSTD_NO_LONG_LONG)
+#  if defined (_MSC_VER)
+#    define LONG_LONG   __int64
+#  endif   // _MSC_VER
+#endif   // _RWSTD_NO_LONG_LONG
 
-#ifndef _RWSTD_NO_LIBC_EXCEPTION_SPEC
-#  define LIBC_THROWS()   throw ()
-#else
-#  define LIBC_THROWS()   /* empty */
-#endif   // _RWSTD_NO_LIBC_EXCEPTION_SPEC
-
-
-extern "C" {
-
-#ifdef _RWSTD_NO_STRTOF
-#  ifndef _RWSTD_NO_STRTOF_IN_LIBC
-
-#    undef _RWSTD_NO_STRTOF
-
-float strtof (const char*, char**) LIBC_THROWS ();
-
-#  endif   // _RWSTD_NO_STRTOF_IN_LIBC
-#endif   // _RWSTD_NO_STRTOF
-
-#ifdef _RWSTD_NO_STRTOD
-#  ifndef _RWSTD_NO_STRTOD_IN_LIBC
-
-#    undef _RWSTD_NO_STRTOD
-
-double strtod (const char*, char**) LIBC_THROWS ();
-
-#  endif   // _RWSTD_NO_STRTOD_IN_LIBC
-#endif   // _RWSTD_NO_STRTOD
-
-#ifndef _RWSTD_NO_LONG_DOUBLE
-#  ifdef _RWSTD_NO_STRTOLD
-#    ifndef _RWSTD_NO_STRTOLD_IN_LIBC
-
-#      undef _RWSTD_NO_STRTOLD
-
-long double strtold (const char*, char**) LIBC_THROWS ();
-
-#    endif   // _RWSTD_NO_STRTOLD_IN_LIBC
-#  endif   // _RWSTD_NO_STRTOLD
-#endif   // _RWSTD_NO_LONG_DOUBLE
-
-}
+#include "types.h"   // for type_name()
 
 
 #ifndef _RWSTD_NO_HONOR_STD
@@ -200,26 +140,6 @@ T greater (T lhs, T rhs)
 
 
 template <class T>
-const char* type_name (T) { return "unknown type"; }
-
-const char* type_name (short) { return "short"; }
-const char* type_name (unsigned short) { return "unsigned short"; }
-const char* type_name (int) { return "int"; }
-const char* type_name (unsigned int) { return "unsigned int"; }
-const char* type_name (long) { return "long"; }
-const char* type_name (unsigned long) { return "unsigned long"; }
-
-#ifndef _RWSTD_NO_LONG_LONG
-const char* type_name (long long) { return "long long"; }
-const char* type_name (unsigned long long) { return "unsigned long long"; }
-#else
-#  if defined (_MSC_VER)
-const char* type_name (__int64) { return "__int64"; }
-const char* type_name (unsigned __int64) { return "unsigned __int64"; }
-#  endif   // _MSC_VER
-#endif
-
-template <class T>
 const char* type_suffix (T) { return ""; }
 
 const char* type_suffix (short) { return ""; }
@@ -291,34 +211,10 @@ unsigned compute_char_bits ()
 
     for (unsigned char c = '\01'; c; c <<= 1, ++bits);
 
-    printf ("#define _RWSTD_CHAR_BIT    %u\n", bits);
+    printf ("#define _RWSTD_CHAR_BIT    %2u\n", bits);
 
     return bits;
 }
-
-
-// print a floating point number, either as a string (if the stringized
-// constant is a valid number, and not some complex expression), or as
-// a formatted floating point value
-template <class FloatT>
-void print_float (FloatT x, const char *xstr,
-                  const char *macro_name, const char *fmt, int prec)
-{
-    if ('-' == *xstr || '0' <= *xstr && '9' >= *xstr) {
-        printf ("#define %s %s", macro_name, xstr);
-    }
-    else {
-        printf ("#define %s ", macro_name);
-        printf (fmt, prec + 2, x);
-    }
-    printf ("\n");
-}
-
-#define DO_STRINGIZE(x)  #x
-#define STRINGIZE(x)     DO_STRINGIZE (x)
-
-#define PRINTFLT(x, fmt, prec, suffix) \
-    print_float (x, STRINGIZE (x), "_RWSTD_" #x, "%.*" fmt "e" suffix, prec)
 
 
 // used to compute the size of a pointer to a member function
@@ -351,39 +247,39 @@ int main ()
     // compute sizes of fundamental types
 
 #ifndef _RWSTD_NO_BOOL
-    printf ("#define _RWSTD_BOOL_SIZE   %u /* sizeof (bool) */\n",
+    printf ("#define _RWSTD_BOOL_SIZE   %2u /* sizeof (bool) */\n",
             SIZEOF (bool));
 #endif   // _RWSTD_NO_BOOL
 
-    printf ("#define _RWSTD_CHAR_SIZE   %u /* sizeof (char) */\n",
+    printf ("#define _RWSTD_CHAR_SIZE   %2u /* sizeof (char) */\n",
             SIZEOF (char));
-    printf ("#define _RWSTD_SHRT_SIZE   %u /* sizeof (short) */\n",
+    printf ("#define _RWSTD_SHRT_SIZE   %2u /* sizeof (short) */\n",
             SIZEOF (short));
-    printf ("#define _RWSTD_INT_SIZE    %u /* sizeof (int) */\n",
+    printf ("#define _RWSTD_INT_SIZE    %2u /* sizeof (int) */\n",
             SIZEOF (int));
-    printf ("#define _RWSTD_LONG_SIZE   %u /* sizeof (long) */\n",
+    printf ("#define _RWSTD_LONG_SIZE   %2u /* sizeof (long) */\n",
             SIZEOF (long));
 
-    printf ("#define _RWSTD_FLT_SIZE    %u /* sizeof (float) */\n",
+    printf ("#define _RWSTD_FLT_SIZE    %2u /* sizeof (float) */\n",
             SIZEOF (float));
-    printf ("#define _RWSTD_DBL_SIZE    %u /* sizeof (double) */\n",
+    printf ("#define _RWSTD_DBL_SIZE    %2u /* sizeof (double) */\n",
             SIZEOF (double));
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
-    printf ("#define _RWSTD_LDBL_SIZE   %u /* sizeof (long double) */\n",
+    printf ("#define _RWSTD_LDBL_SIZE   %2u /* sizeof (long double) */\n",
             SIZEOF (long double));
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
     // compute the sizes of data and function pointers
-    printf ("#define _RWSTD_PTR_SIZE    %u /* sizeof (void*) */\n",
+    printf ("#define _RWSTD_PTR_SIZE    %2u /* sizeof (void*) */\n",
             SIZEOF (void*));
 
     typedef void (*fun_ptr_t)();
-    printf ("#define _RWSTD_FUNPTR_SIZE %u /* sizeof (void(*)()) */\n",
+    printf ("#define _RWSTD_FUNPTR_SIZE %2u /* sizeof (void(*)()) */\n",
             SIZEOF (fun_ptr_t));
 
     typedef void (EmptyStruct::*memfun_ptr_t)();
-    printf ("#define _RWSTD_MEMPTR_SIZE %u "
+    printf ("#define _RWSTD_MEMPTR_SIZE %2u "
             "/* sizeof (void (struct::*)()) */\n",
             SIZEOF (memfun_ptr_t));
 
@@ -393,7 +289,7 @@ int main ()
 
 #ifndef _RWSTD_NO_BOOL
 
-    printf ("#define _RWSTD_BOOL_MIN    !!0\n");
+    printf ("#define _RWSTD_BOOL_MIN   !!0\n");
     printf ("#define _RWSTD_BOOL_MAX    !0\n");
 
 #endif   // _RWSTD_NO_BOOL
@@ -422,7 +318,7 @@ int main ()
 
 #    define LLong long long
 
-    printf ("#define _RWSTD_LLONG_SIZE  %u\n", SIZEOF (LLong));
+    printf ("#define _RWSTD_LLONG_SIZE  %2u\n", SIZEOF (LLong));
 
     const char llong_name[] = "long long";
 
@@ -435,7 +331,7 @@ int main ()
 
 #    define LLong __int64
 
-    printf ("#define _RWSTD_LLONG_SIZE  %u\n", SIZEOF (LLong));
+    printf ("#define _RWSTD_LLONG_SIZE  %2u\n", SIZEOF (LLong));
 
     const char llong_name[] = "__int64";
 
@@ -455,7 +351,7 @@ int main ()
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-    printf ("#define _RWSTD_WCHAR_T_SIZE  %u /* sizeof (wchar_t) */\n",
+    printf ("#define _RWSTD_WCHAR_T_SIZE  %2u /* sizeof (wchar_t) */\n",
             SIZEOF (wchar_t));
 
     const char *suffix = "U";
@@ -466,31 +362,10 @@ int main ()
 
 #endif   // _RWSTD_NO_WCHAR_T
 
-    // compute the maximum and minimum for size_t and ptrdiff_t
-    compute_limits (sizeof (int), "SIZE",
-                    type_suffix (sizeof (int)),
-                    type_name (sizeof (int)));
-
-    compute_limits ((int*)0 - (int*)0, "PTRDIFF",
-                    type_suffix ((int*)0 - (int*)0),
-                    type_name ((int*)0 - (int*)0));
-
-
-#ifndef _RWSTD_NO_WINT_T
-   // establish a dependency on WINT_T.cpp
-#  if defined (_RWSTD_WINT_T)
-
-    // compute the maximum and minimum for wint_t
-    compute_limits ((_RWSTD_WINT_T)0, "WINT",
-                    type_suffix ((_RWSTD_WINT_T)0),
-                    type_name ((_RWSTD_WINT_T)0));
-
-#  endif   // _RWSTD_WINT_T
-#endif   // _RWSTD_NO_WINT_T
-
 #if defined (MB_LEN_MAX)
 
-    printf ("#define _RWSTD_MB_LEN_MAX %d   /* libc value */\n", MB_LEN_MAX);
+    printf ("#define _RWSTD_MB_LEN_MAX    %d   /* libc value */\n",
+            MB_LEN_MAX);
 
 #else   // if !defined (MB_LEN_MAX)
 
@@ -512,326 +387,143 @@ int main ()
 
 #endif   // MB_LEN_MAX
 
+    //////////////////////////////////////////////////////////////////
+    // #define macros for exact and lest-width integer types
 
-    // #define macros for exact-width integer types
-    int bits = 0;
+    // width_bits will have the corresponding bit set for each exact-width
+    // type already processed (i.e., bit 0 for an 8-bit integer type, bit
+    // 1 for a 16-bit integer, etc)
+    int width_bits = 0;
+
+#define PRINT_SPECIFIC(width, least, type)                              \
+    do {                                                                \
+        /* avoid warnings about expression being constant */            \
+        const char* least_str = least;                                  \
+        if (least_str && *least_str)                                    \
+            printf ("#define _RWSTD_INT_LEAST%d_T  %s  _RWSTD_%s_T\n"   \
+                    "#define _RWSTD_UINT_LEAST%d_T %s  _RWSTD_U%s_T\n", \
+                    width, width < 10 ? " " : "", type,                 \
+                    width, width < 10 ? " " : "", type);                \
+        else                                                            \
+            printf ("#define _RWSTD_INT%d_T %s          %s%s\n"         \
+                    "#define _RWSTD_UINT%d_T %s         unsigned %s\n", \
+                    width, width < 10 ? " " : "",                       \
+                    8 == width && '\xff' < 0 ? "signed " : "", type,    \
+                    width, width < 10 ? " " : "", type);                \
+    } while (0)
 
     if (8 == char_bits) {
-        bits |= 1;
-        printf ("#define _RWSTD_INT8_T   %s\n",
-                '\xff' < 0 ? "char" : "signed char");
-        printf ("#define _RWSTD_UINT8_T  unsigned char\n");
+        width_bits |= 1;
+        PRINT_SPECIFIC (8, "", "char");
     }
     else if (16 == char_bits) {
-        bits |= 2;
-        printf ("#define _RWSTD_INT16_T  %s\n",
-                '\xff' < 0 ? "char" : "signed char");
-        printf ("#define _RWSTD_UINT16_T unsigned char\n");
+        width_bits |= 2;
+        PRINT_SPECIFIC (16, "", "char");
     }
     else if (32 == char_bits) {
-        bits |= 4;
-        printf ("#define _RWSTD_INT32_T  %s\n",
-                '\xff' < 0 ? "char" : "signed char");
-        printf ("#define _RWSTD_UINT32_T unsigned char\n");
+        width_bits |= 4;
+        PRINT_SPECIFIC (32, "", "char");
     }
     else if (64 == char_bits) {
-        bits |= 8;
-        printf ("#define _RWSTD_INT64_T  %s\n",
-                '\xff' < 0 ? "char" : "signed char");
-        printf ("#define _RWSTD_UINT64_T unsigned char\n");
+        width_bits |= 8;
+        PRINT_SPECIFIC (64, "", "char");
     }
 
-    if (16 == char_bits * sizeof (short) && !(bits & 2)) {
-        bits |= 2;
-        printf ("#define _RWSTD_INT16_T  short\n");
-        printf ("#define _RWSTD_UINT16_T unsigned short\n");
+    if (16 == char_bits * sizeof (short) && !(width_bits & 2)) {
+        width_bits |= 2;
+        PRINT_SPECIFIC (16, "", "short");
     }
-    else if (32 == char_bits * sizeof (short) && !(bits & 4)) {
-        bits |= 4;
-        printf ("#define _RWSTD_INT32_T  short\n");
-        printf ("#define _RWSTD_UINT32_T unsigned short\n");
+    else if (32 == char_bits * sizeof (short) && !(width_bits & 4)) {
+        width_bits |= 4;
+        PRINT_SPECIFIC (32, "", "short");
     }
-    else if (64 == char_bits * sizeof (short) && !(bits & 8)) {
-        bits |= 8;
-        printf ("#define _RWSTD_INT64_T  short\n");
-        printf ("#define _RWSTD_UINT64_T unsigned short\n");
+    else if (64 == char_bits * sizeof (short) && !(width_bits & 8)) {
+        width_bits |= 8;
+        PRINT_SPECIFIC (64, "", "short");
     }
-    else if (128 == char_bits * sizeof (short) && !(bits & 16)) {
-        bits |= 16;
-        printf ("#define _RWSTD_INT128_T  short\n");
-        printf ("#define _RWSTD_UINT128_T unsigned short\n");
+    else if (128 == char_bits * sizeof (short) && !(width_bits & 16)) {
+        width_bits |= 16;
+        PRINT_SPECIFIC (128, "", "short");
     }
 
-    if (32 == char_bits * sizeof (int) && !(bits & 4)) {
-        bits |= 4;
-        printf ("#define _RWSTD_INT32_T  int\n");
-        printf ("#define _RWSTD_UINT32_T unsigned int\n");
+    if (32 == char_bits * sizeof (int) && !(width_bits & 4)) {
+        width_bits |= 4;
+        PRINT_SPECIFIC (32, "", "int");
     }
-    else if (64 == char_bits * sizeof (int) && !(bits & 8)) {
-        bits |= 8;
-        printf ("#define _RWSTD_INT64_T  int\n");
-        printf ("#define _RWSTD_UINT64_T unsigned int\n");
+    else if (64 == char_bits * sizeof (int) && !(width_bits & 8)) {
+        width_bits |= 8;
+        PRINT_SPECIFIC (64, "", "int");
     }
-    else if (128 == char_bits * sizeof (int) && !(bits & 16)) {
-        bits |= 16;
-        printf ("#define _RWSTD_INT64_T  int\n");
-        printf ("#define _RWSTD_UINT64_T unsigned int\n");
+    else if (128 == char_bits * sizeof (int) && !(width_bits & 16)) {
+        width_bits |= 16;
+        PRINT_SPECIFIC (128, "", "int");
     }
 
-    if (32 == char_bits * sizeof (long) && !(bits & 4)) {
-        bits |= 4;
-        printf ("#define _RWSTD_INT32_T  long\n");
-        printf ("#define _RWSTD_UINT32_T unsigned long\n");
+    if (32 == char_bits * sizeof (long) && !(width_bits & 4)) {
+        width_bits |= 4;
+        PRINT_SPECIFIC (32, "", "long");
     }
-    else if (64 == char_bits * sizeof (long) && !(bits & 8)) {
-        bits |= 8;
-        printf ("#define _RWSTD_INT64_T  long\n");
-        printf ("#define _RWSTD_UINT64_T unsigned long\n");
+    else if (64 == char_bits * sizeof (long) && !(width_bits & 8)) {
+        width_bits |= 8;
+        PRINT_SPECIFIC (64, "", "long");
     }
-    else if (128 == char_bits * sizeof (long) && !(bits & 16)) {
-        bits |= 16;
-        printf ("#define _RWSTD_INT64_T  long\n");
-        printf ("#define _RWSTD_UINT64_T unsigned long\n");
+    else if (128 == char_bits * sizeof (long) && !(width_bits & 16)) {
+        width_bits |= 16;
+        PRINT_SPECIFIC (128, "", "long");
     }
 
-    if (32 == char_bits * sizeof (LLong) && !(bits & 4)) {
-        bits |= 4;
-        printf ("#define _RWSTD_INT32_T  %s\n", llong_name);
-        printf ("#define _RWSTD_UINT32_T unsigned %s\n", llong_name);
+    if (32 == char_bits * sizeof (LLong) && !(width_bits & 4)) {
+        width_bits |= 4;
+        PRINT_SPECIFIC (32, "", llong_name);
     }
-    else if (64 == char_bits * sizeof (LLong) && !(bits & 8)) {
-        bits |= 8;
-        printf ("#define _RWSTD_INT64_T  %s\n", llong_name);
-        printf ("#define _RWSTD_UINT64_T unsigned %s\n", llong_name);
+    else if (64 == char_bits * sizeof (LLong) && !(width_bits & 8)) {
+        width_bits |= 8;
+        PRINT_SPECIFIC (64, "", llong_name);
+
     }
-    else if (128 == char_bits * sizeof (LLong) && !(bits & 16)) {
-        bits |= 16;
-        printf ("#define _RWSTD_INT64_T  %s\n", llong_name);
-        printf ("#define _RWSTD_UINT64_T unsigned %s\n", llong_name);
+    else if (128 == char_bits * sizeof (LLong) && !(width_bits & 16)) {
+        width_bits |= 16;
+        PRINT_SPECIFIC (128, "", llong_name);
     }
 
     //////////////////////////////////////////////////////////////////
-    // compute floating point limits
-
-#undef LDBL_FMT
-
-#ifdef _RWSTD_LDBL_PRINTF_PREFIX
-#  define LDBL_FMT   _RWSTD_LDBL_PRINTF_PREFIX
-#else
-#  define LDBL_FMT   "L"
-#endif
-
-#if defined (FLT_ROUNDS)
-    printf ("#define _RWSTD_FLT_ROUNDS %d   /* %s */\n", FLT_ROUNDS,
-               0 == FLT_ROUNDS ? "round toward zero"
-            :  1 == FLT_ROUNDS ? "round to nearest"
-            :  2 == FLT_ROUNDS ? "round toward infinity"
-            :  3 == FLT_ROUNDS ? "round toward negative infinity"
-            :  "indeterminable");
-#endif   // FLT_ROUNDS
-
-#if !defined (DBL_DIG)
-#  define DBL_DIG   15
-#endif   // DBL_DIG
-
-    printf ("#define _RWSTD_DBL_DIG %d\n", DBL_DIG);
-
-
-#if defined (DBL_MANT_DIG)
-    printf ("#define _RWSTD_DBL_MANT_DIG %d\n", DBL_MANT_DIG);
-#endif   // DBL_MANT_DIG
-
-#if defined (DBL_MAX_10_EXP)
-    printf ("#define _RWSTD_DBL_MAX_10_EXP %d\n", DBL_MAX_10_EXP);
-#endif   // DBL_MAX_10_EXP
-
-#if defined (DBL_MAX_EXP)
-    printf ("#define _RWSTD_DBL_MAX_EXP %d\n", DBL_MAX_EXP);
-#endif   // DBL_MAX_EXP
-
-#if defined (DBL_MIN_10_EXP)
-    printf ("#define _RWSTD_DBL_MIN_10_EXP %d\n", DBL_MIN_10_EXP);
-#endif   // DBL_MIN_10_EXP
-
-#if defined (DBL_MIN_EXP)
-    printf ("#define _RWSTD_DBL_MIN_EXP %d\n", DBL_MIN_EXP);
-#endif   // DBL_MIN_EXP
-
-#if defined (DECIMAL_DIG)
-    printf ("#define _RWSTD_DECIMAL_DIG %d\n", DECIMAL_DIG);
-#endif   // DECIMAL_DIG
-
-
-#if !defined (FLT_DIG)
-#  define FLT_DIG   6
-#endif   // FLT_DIG
-
-    printf ("#define _RWSTD_FLT_DIG %d\n", FLT_DIG);
-
-#if defined (FLT_MANT_DIG)
-    printf ("#define _RWSTD_FLT_MANT_DIG %d\n", FLT_MANT_DIG);
-#endif   // FLT_MANT_DIG
-
-#if defined (FLT_MAX_10_EXP)
-    printf ("#define _RWSTD_FLT_MAX_10_EXP %d\n", FLT_MAX_10_EXP);
-#endif   // FLT_MAX_10_EXP
-
-#if defined (FLT_MAX_EXP)
-    printf ("#define _RWSTD_FLT_MAX_EXP %d\n", FLT_MAX_EXP);
-#endif   // FLT_MAX_EXP
-
-#if defined (FLT_MIN_10_EXP)
-    printf ("#define _RWSTD_FLT_MIN_10_EXP %d\n", FLT_MIN_10_EXP);
-#endif   // FLT_MIN_10_EXP
-
-#if defined (FLT_MIN_EXP)
-    printf ("#define _RWSTD_FLT_MIN_EXP %d\n", FLT_MIN_EXP);
-#endif   // FLT_MIN_EXP
-
-#if defined (FLT_RADIX)
-    printf ("#define _RWSTD_FLT_RADIX %d\n", FLT_RADIX);
-#endif   // FLT_RADIX
-
-
-#ifndef _RWSTD_NO_LONG_DOUBLE
-
-#  if !defined (LDBL_DIG)
-#    define LDBL_DIG   31
-#  endif   // LDBL_DIG
-
-    printf ("#define _RWSTD_LDBL_DIG %d\n", LDBL_DIG);
-
-
-#  if defined (LDBL_MANT_DIG)
-    printf ("#define _RWSTD_LDBL_MANT_DIG %d\n", LDBL_MANT_DIG);
-#  endif   // LDBL_MANT_DIG
-
-#  if defined (LDBL_MAX_10_EXP)
-    printf ("#define _RWSTD_LDBL_MAX_10_EXP %d\n", LDBL_MAX_10_EXP);
-#  endif   // LDBL_MAX_10_EXP
-
-#  if defined (LDBL_MAX_EXP)
-    printf ("#define _RWSTD_LDBL_MAX_EXP %d\n", LDBL_MAX_EXP);
-#  endif   // LDBL_MAX_EXP
-
-#  if defined (LDBL_MIN_10_EXP)
-    printf ("#define _RWSTD_LDBL_MIN_10_EXP %d\n", LDBL_MIN_10_EXP);
-#  endif   // LDBL_MIN_10_EXP
-
-#  if defined (LDBL_MIN_EXP)
-    printf ("#define _RWSTD_LDBL_MIN_EXP %d\n", LDBL_MIN_EXP);
-#  endif   // LDBL_MIN_EXP
-
-#endif   //  _RWSTD_NO_LONG_DOUBLE
-
-
-#if defined (DBL_MAX)
-    PRINTFLT (DBL_MAX, "l", DBL_DIG, "");
-#endif   // DBL_MAX
-
-#if defined (FLT_MAX)
-    PRINTFLT (FLT_MAX, "", FLT_DIG, "F");
-#endif   // FLT_MAX
-
-#ifndef _RWSTD_NO_LONG_DOUBLE
-#  if defined (LDBL_MAX)
-    PRINTFLT (LDBL_MAX, LDBL_FMT, DBL_DIG, "F");
-#  endif   // LDBL_MAX
-#endif   // _RWSTD_NO_LONG_DOUBLE
-
-#if defined (DBL_EPSILON)
-    PRINTFLT (DBL_EPSILON, "l", DBL_DIG, "");
-#endif   // DBL_EPSILON
-
-#if defined (DBL_MIN)
-    PRINTFLT (DBL_MIN, "l", DBL_DIG, "");
-#endif   // DBL_MIN
-
-#if defined (FLT_EPSILON)
-    PRINTFLT (FLT_EPSILON, "", FLT_DIG, "F");
-#endif   // FLT_EPSILON
-
-#if defined (FLT_MIN)
-    PRINTFLT (FLT_MIN, "", FLT_DIG, "F");
-#endif   // FLT_MIN
-
-#ifndef _RWSTD_NO_LONG_DOUBLE
-#  if defined (LDBL_EPSILON)
-    PRINTFLT (LDBL_EPSILON, LDBL_FMT, LDBL_DIG, "L");
-#  endif   // LDBL_EPSILON
-
-#  if defined (LDBL_MIN)
-    PRINTFLT (LDBL_MIN, LDBL_FMT, LDBL_DIG, "L");
-#  endif   // LDBL_MIN
-#endif   // _RWSTD_NO_LONG_DOUBLE
-
-
-#if !defined (ERANGE)
-#  define ERANGE -1
-#endif   // ERANGE
-
-#ifndef _RWSTD_NO_STRTOF
-
-    errno = 0;
-
-    // determine whether strtof() sets errno on underflow
-    const float f = strtof ("1.0e-999", (char**)0);
-
-
-    if (f < 0.0 || f > 1.0 || !errno)
-        printf ("#define _RWSTD_NO_STRTOF_UFLOW\n");
-    else
-        printf ("// #define _RWSTD_NO_STRTOF_UFLOW    // %d%s\n",
-                errno, ERANGE == errno ? " (ERANGE)" : "");
-
-#endif   // _RWSTD_NO_STRTOF
-
-#ifndef _RWSTD_NO_STRTOD
-
-    errno = 0;
-
-    // determine whether strtod() sets errno on underflow
-    const double d = strtod ("1.0e-999", (char**)0);
-
-
-    if (d < 0.0 || d > 1.0 || !errno)
-        printf ("#define _RWSTD_NO_STRTOD_UFLOW\n");
-    else
-        printf ("// #define _RWSTD_NO_STRTOD_UFLOW    // %d%s\n",
-                errno, ERANGE == errno ? " (ERANGE)" : "");
-
-#endif   // _RWSTD_NO_STRTOD
-
-#ifndef _RWSTD_NO_LONG_DOUBLE
-#  ifndef _RWSTD_NO_STRTOLD
-
-    errno = 0;
-
-#    if !defined (__hpux)
-
-    // determine whether strtold() sets errno on underflow
-    const long double ld = strtold ("1.0e-9999", (char**)0);
-
-#    else
-
-    union {
-        long double ld;
-        long_double data;
-    } ldu;
-
-    ldu.data = strtold ("1.0e-9999", (char**)0);
-    const long double ld = ldu.ld;
-
-#    endif   // __hpux
-
-    if (ld < 0.0 || ld > 1.0 || !errno)
-        printf ("#define _RWSTD_NO_STRTOLD_UFLOW\n");
-    else
-        printf ("// #define _RWSTD_NO_STRTOLD_UFLOW   // %d%s\n",
-                errno, ERANGE == errno ? " (ERANGE)" : "");
-
-#  endif   // _RWSTD_NO_STRTOLD
-#endif   // _RWSTD_NO_LONG_DOUBLE
+    // print the names of the width-specific least integer types
+    // i.e., INT_LEAST8_T, INT_LEAST16_T, INT_LEAST32_T, ...
+
+    if (width_bits & (1 << 0))
+        PRINT_SPECIFIC (8, "_LEAST", "INT8");
+    else if (width_bits & (1 << 1))
+        PRINT_SPECIFIC (8, "_LEAST", "INT16");
+    else if (width_bits & (1 << 2))
+        PRINT_SPECIFIC (8, "_LEAST", "INT32");
+    else if (width_bits & (1 << 3))
+        PRINT_SPECIFIC (8, "_LEAST", "INT64");
+    else if (width_bits & (1 << 4))
+        PRINT_SPECIFIC (8, "_LEAST", "INT128");
+
+    if (width_bits & (1 << 1))
+        PRINT_SPECIFIC (16, "_LEAST", "INT16");
+    else if (width_bits & (1 << 2))
+        PRINT_SPECIFIC (16, "_LEAST", "INT32");
+    else if (width_bits & (1 << 3))
+        PRINT_SPECIFIC (16, "_LEAST", "INT64");
+    else if (width_bits & (1 << 4))
+        PRINT_SPECIFIC (16, "_LEAST", "INT128");
+
+    if (width_bits & (1 << 2))
+        PRINT_SPECIFIC (32, "_LEAST", "INT32");
+    else if (width_bits & (1 << 3))
+        PRINT_SPECIFIC (32, "_LEAST", "INT64");
+    else if (width_bits & (1 << 4))
+        PRINT_SPECIFIC (32, "_LEAST", "INT128");
+
+    if (width_bits & (1 << 3))
+        PRINT_SPECIFIC (64, "_LEAST", "INT64");
+    else if (width_bits & (1 << 4))
+        PRINT_SPECIFIC (64, "_LEAST", "INT128");
+
+    if (width_bits & (1 << 4))
+        PRINT_SPECIFIC (128, "_LEAST", "INT128");
 
     return 0;
 }
