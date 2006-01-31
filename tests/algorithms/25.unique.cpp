@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * 25.unique.cpp - test exercising 25.2.8 [lib.alg.unique]
+ * unique.cpp - test exercising 25.2.8 [lib.alg.unique]
  *
  * $Id$
  *
@@ -371,6 +371,8 @@ void test_unique (const T*,
 static int
 run_test (int, char*[])
 {
+    const BinaryPredicate pred(true);
+
     if (rw_opt_no_unique) {
         rw_note (0, __FILE__, __LINE__,  "std::unique test disabled");
     }
@@ -382,7 +384,7 @@ run_test (int, char*[])
                     "std::unique predicate test disabled");
         }
         else {
-            test_unique ((X*)0, (BinaryPredicate*)0, false);
+            test_unique ((X*)0, &pred, false);
         }
     }
 
@@ -397,7 +399,7 @@ run_test (int, char*[])
                     "std::unique_copy predicate test disabled");
         }
         else {
-            test_unique ((X*)0, (BinaryPredicate*)0, true);
+            test_unique ((X*)0, &pred, true);
         }
     }
 
