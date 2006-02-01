@@ -581,7 +581,7 @@ $(MAKEFILE_IN): $(configpath)
           && echo "PHDIR      = $(PHDIR)"                >> $(MAKEFILE_IN)  \
           && echo "PHWARNFLAGS = $(PHWARNFLAGS)"         >> $(MAKEFILE_IN)  \
           && echo "LIBSUFFIX  = $(LIBSUFFIX)"            >> $(MAKEFILE_IN)  \
-          && echo "LIBBASE    = $(LIBBASE)"              >> $(MAKEFILE_IN)  \
+          && echo "LIBBASE    = std$$""(BUILDTYPE)"      >> $(MAKEFILE_IN)  \
           && echo "LIBVER     = $(LIBVER)"               >> $(MAKEFILE_IN)  \
           && echo "LIBNAME    = lib$$""(LIBBASE)$$""(LIBSUFFIX)"            \
                                                          >> $(MAKEFILE_IN)  \
