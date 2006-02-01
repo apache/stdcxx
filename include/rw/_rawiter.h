@@ -3,7 +3,7 @@
  *
  * _rawiter - declarations for the C++ Standard Library raw_storage_iterator
  *
- * $Id: //stdlib/dev/include/rw/_rawiter.h#11 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -33,13 +33,20 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_RAWITER_H_INCLUDED
-#define _RWSTD_RAWITER_H_INCLUDED
+#ifndef _RWSTD_RW_RAWITER_H_INCLUDED
+#define _RWSTD_RW_RAWITER_H_INCLUDED
 
-#include <rw/_iterbase.h>
-#include <rw/_new.h>
-#include <rw/_pair.h>
-#include <rw/_defs.h>
+#ifndef _RWSTD_ITERBASE_H_INCLUDED
+#  include <rw/_iterbase.h>
+#endif   // _RWSTD_ITERBASE_H_INCLUDED
+
+#ifndef _RWSTD_RW_NEW_H_INCLUDED
+#  include <rw/_new.h>
+#endif   // _RWSTD_RW_NEW_H_INCLUDED
+
+#ifndef _RWSTD_RW_PAIR_H_INCLUDED
+#  include <rw/_pair.h>
+#endif   // _RWSTD_RW_PAIR_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (std) {
@@ -155,4 +162,4 @@ return_temporary_buffer (_TypeT *__p)
 }   // namespace std
 
 
-#endif   // _RWSTD_MEMORY_INCLUDED
+#endif   // _RWSTD_RW_RAWITER_H_INCLUDED

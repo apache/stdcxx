@@ -22,8 +22,8 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_CONFIG_H_INCLUDED
-#define _RWSTD_CONFIG_H_INCLUDED
+#ifndef _RWSTD_RW_CONFIG_H_INCLUDED
+#define _RWSTD_RW_CONFIG_H_INCLUDED
 
 #ifdef _RWSTD_USE_CONFIG
 #  include <config.h>
@@ -1076,4 +1076,4 @@ typedef unsigned short wchar_t;
 #endif
 
 
-#endif   // _RWSTD_CONFIG_H_INCLUDED
+#endif   // _RWSTD_RW_CONFIG_H_INCLUDED

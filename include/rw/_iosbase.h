@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_iosbase.h#42 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -22,17 +22,23 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_IOSBASE_H_INCLUDED
-#define _RWSTD_IOSBASE_H_INCLUDED
+#ifndef _RWSTD_RW_IOSBASE_H_INCLUDED
+#define _RWSTD_RW_IOSBASE_H_INCLUDED
 
 
 #include <loc/_locale.h>
 
-#include <rw/_iosfailure.h>
-#include <rw/_iosfwd.h>
-#include <rw/_traits.h>
+#ifndef _RWSTD_RW_IOSFAILURE_H_INCLUDED
+#  include <rw/_iosfailure.h>
+#endif   // _RWSTD_RW_IOSFAILURE_H_INCLUDED
 
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_IOSFWD_H_INCLUDED
+#  include <rw/_iosfwd.h>
+#endif   // _RWSTD_RW_IOSFWD_H_INCLUDED
+
+#ifndef _RWSTD_RW_TRAITS_H_INCLUDED
+#  include <rw/_traits.h>
+#endif   // _RWSTD_RW_TRAITS_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (std) {
@@ -377,4 +383,4 @@ width (_RWSTD_STREAMSIZE __width)
 }   // namespace std
 
 
-#endif   // _RWSTD_IOSBASE_H_INCLUDED
+#endif   // _RWSTD_RW_IOSBASE_H_INCLUDED

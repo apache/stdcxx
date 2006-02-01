@@ -6,7 +6,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_allocator.h#8 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -36,12 +36,12 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_ALLOCATOR_H_INCLUDED
-#define _RWSTD_ALLOCATOR_H_INCLUDED
+#ifndef _RWSTD_RW_ALLOCATOR_H_INCLUDED
+#define _RWSTD_RW_ALLOCATOR_H_INCLUDED
 
-
-#include <rw/_specialized.h>
-#include <rw/_defs.h>
+#ifndef _RWSTD_SPECIALIZED_H_INCLUDED
+#  include <rw/_specialized.h>
+#endif   // _RWSTD_SPECIALIZED_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (__rw) {
@@ -392,4 +392,4 @@ operator!= (const allocator<_TypeT>& __x,
 }   // namespace std
 
 
-#endif   // _RWSTD_ALLOCATOR_H_INCLUDED
+#endif   // _RWSTD_RW_ALLOCATOR_H_INCLUDED

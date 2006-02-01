@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_exception.h#24 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -22,12 +22,15 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_EXCEPTION_H_INCLUDED
-#define _RWSTD_EXCEPTION_H_INCLUDED
+#ifndef _RWSTD_RW_EXCEPTION_H_INCLUDED
+#define _RWSTD_RW_EXCEPTION_H_INCLUDED
 
 
 #include <exception>
-#include <rw/_defs.h>
+
+#ifndef _RWSTD_RW_DEFS_H_INCLUDED
+#  include <rw/_defs.h>
+#endif   // _RWSTD_RW_DEFS_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -83,4 +86,4 @@ private:
 }   // namespace __rw
 
 
-#endif   // _RWSTD_EXCEPTION_H_INCLUDED
+#endif   // _RWSTD_RW_EXCEPTION_H_INCLUDED

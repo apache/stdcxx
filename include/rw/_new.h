@@ -6,7 +6,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_new.h#8 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -23,11 +23,12 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_NEW_H_INCLUDED
-#define _RWSTD_NEW_H_INCLUDED
+#ifndef _RWSTD_RW_NEW_H_INCLUDED
+#define _RWSTD_RW_NEW_H_INCLUDED
 
-
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_DEFS_H_INCLUDED
+#  include <rw/_defs.h>
+#endif   // _RWSTD_RW_DEFS_H_INCLUDED
 
 
 #if defined (__SUNPRO_CC)
@@ -86,4 +87,4 @@ operator delete (void*, void*) _NEW_THROWS (())
 #endif   // __SUNPRO_CC
 
 
-#endif   // _RWSTD_NEW_H_INCLUDED
+#endif   // _RWSTD_RW_NEW_H_INCLUDED

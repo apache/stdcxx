@@ -7,7 +7,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_heap.h#3 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -37,13 +37,16 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_HEAP_H_INCLUDED
-#define _RWSTD_HEAP_H_INCLUDED
+#ifndef _RWSTD_RW_HEAP_H_INCLUDED
+#define _RWSTD_RW_HEAP_H_INCLUDED
 
+#ifndef _RWSTD_RW_ALGOBASE_H_INCLUDED
+#  include <rw/_algobase.h>
+#endif   // _RWSTD_RW_ALGOBASE_H_INCLUDED
 
-#include <rw/_algobase.h>
-#include <rw/_iterbase.h>
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_ITERBASE_H_INCLUDED
+#  include <rw/_iterbase.h>
+#endif   // _RWSTD_RW_ITERBASE_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (std) {
@@ -181,4 +184,4 @@ inline void sort_heap (_RandomAccessIter __first, _RandomAccessIter __last)
 #endif
 
 
-#endif   // _RWSTD_HEAP_H_INCLUDED
+#endif   // _RWSTD_RW_HEAP_H_INCLUDED

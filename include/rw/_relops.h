@@ -3,7 +3,7 @@
  *
  * _relops.h - definition of the std::rel_ops namespace and members
  *
- * $Id: //stdlib/dev/include/rw/_relops.h#6 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -33,10 +33,12 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_RELOPS_H_INCLUDED
-#define _RWSTD_RELOPS_H_INCLUDED
+#ifndef _RWSTD_RW_RELOPS_H_INCLUDED
+#define _RWSTD_RW_RELOPS_H_INCLUDED
 
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_DEFS_H_INCLUDED
+#  include <rw/_defs.h>
+#endif   // _RWSTD_RW_DEFS_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -83,4 +85,4 @@ inline bool operator>= (const _TypeT& __x, const _TypeT& __y)
 }   // namespace std
 
 
-#endif   // _RWSTD_RELOPS_H_INCLUDED
+#endif   // _RWSTD_RW_RELOPS_H_INCLUDED

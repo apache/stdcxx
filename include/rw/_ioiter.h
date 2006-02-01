@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_ioiter.h#26 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -22,13 +22,16 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_IOITER_H_INCLUDED
-#define _RWSTD_IOITER_H_INCLUDED
+#ifndef _RWSTD_RW_IOITER_H_INCLUDED
+#define _RWSTD_RW_IOITER_H_INCLUDED
 
+#ifndef _RWSTD_RW_IOSFWD_H_INCLUDED
+#  include <rw/_iosfwd.h>
+#endif   // _RWSTD_RW_IOSFWD_H_INCLUDED
 
-#include <rw/_iosfwd.h>
-#include <rw/_iterbase.h>
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_ITERBASE_H_INCLUDED
+#  include <rw/_iterbase.h>
+#endif   // _RWSTD_RW_ITERBASE_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -272,4 +275,4 @@ ostreambuf_iterator (ostream_type &__strm) _THROWS (())
 }   // namespace std
 
 
-#endif   // _RWSTD_IOITER_H_INCLUDED
+#endif   // _RWSTD_RW_IOITER_H_INCLUDED

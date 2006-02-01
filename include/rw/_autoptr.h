@@ -6,7 +6,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_autoptr.h#7 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -23,10 +23,12 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_AUTOPTR_H_INCLUDED
-#define _RWSTD_AUTOPTR_H_INCLUDED
+#ifndef _RWSTD_RW_AUTOPTR_H_INCLUDED
+#define _RWSTD_RW_AUTOPTR_H_INCLUDED
 
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_DEFS_H_INCLUDED
+#  include <rw/_defs.h>
+#endif   // _RWSTD_RW_DEFS_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -177,4 +179,4 @@ private:
 }   // namespace std
 
 
-#endif   // _RWSTD_AUTOPTR_H_INCLUDED
+#endif   // _RWSTD_RW_AUTOPTR_H_INCLUDED

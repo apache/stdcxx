@@ -22,10 +22,12 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_DEFS_H_INCLUDED
-#define _RWSTD_DEFS_H_INCLUDED
+#ifndef _RWSTD_RW_DEFS_H_INCLUDED
+#define _RWSTD_RW_DEFS_H_INCLUDED
 
-#include <rw/_config.h>
+#ifndef _RWSTD_RW_CONFIG_H_INCLUDED
+#  include <rw/_config.h>
+#endif   //_RWSTD_RW_CONFIG_H_INCLUDED
 
 
 #ifndef _RWSTD_NO_V3_LOCALE
@@ -1589,4 +1591,4 @@ _RWSTD_NAMESPACE (std) {
           __rw_insert_range (this, it, first, last, tag)
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
-#endif   // _RWSTD_DEFS_H_INCLUDED
+#endif   // _RWSTD_RW_DEFS_H_INCLUDED

@@ -22,11 +22,12 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_MBSTATE_H_INCLUDED
-#define _RWSTD_MBSTATE_H_INCLUDED
+#ifndef _RWSTD_RW_MBSTATE_H_INCLUDED
+#define _RWSTD_RW_MBSTATE_H_INCLUDED
 
-
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_DEFS_H_INCLUDED
+#  include <rw/_defs.h>
+#endif   // _RWSTD_RW_DEFS_H_INCLUDED
 
 
 #if defined (_RWSTD_OS_AIX)
@@ -241,4 +242,4 @@ struct mbstate_t
 #endif   // _RWSTD_NO_MBSTATE_T && !_RWSTD_MBSTATE_T_DEFINED
 
 
-#endif   // _RWSTD_MBSTATE_H_INCLUDED
+#endif   // _RWSTD_RW_MBSTATE_H_INCLUDED

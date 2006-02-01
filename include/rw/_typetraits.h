@@ -6,7 +6,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_typetraits.h#13 $
+ * $Id$
  *
  ***************************************************************************
  *
