@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_tree.h#34 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -54,13 +54,16 @@
  *
  **************************************************************************/
 
-#ifndef _RWSTD_TREE_H_INCLUDED
-#define _RWSTD_TREE_H_INCLUDED
+#ifndef _RWSTD_RW_TREE_H_INCLUDED
+#define _RWSTD_RW_TREE_H_INCLUDED
 
+#ifndef _RWSTD_RW_ALGOBASE_H_INCLUDED
+#  include <rw/_algobase.h>
+#endif   // _RWSTD_RW_ALGOBASE_H_INCLUDED
 
-#include <rw/_algobase.h>
-#include <rw/_iterator.h>
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_ITERATOR_H_INCLUDED
+#  include <rw/_iterator.h>
+#endif   // _RWSTD_RW_ITERATOR_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (__rw) { 
@@ -922,4 +925,4 @@ equal_range (const _Key& __k)
 #  include <rw/_tree.cc>
 #endif
 
-#endif   // _RWSTD_TREE_H_INCLUDED
+#endif   // _RWSTD_RW_TREE_H_INCLUDED

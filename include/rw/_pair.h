@@ -3,7 +3,7 @@
  *
  * _pair.h - definition of std::pair
  *
- * $Id: //stdlib/dev/include/rw/_pair.h#7 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -33,12 +33,12 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_PAIR_H_INCLUDED
-#define _RWSTD_PAIR_H_INCLUDED
+#ifndef _RWSTD_RW_PAIR_H_INCLUDED
+#define _RWSTD_RW_PAIR_H_INCLUDED
 
-
-#include <rw/_funcbase.h>   // for less
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_FUNCBASE_H_INCLUDED
+#  include <rw/_funcbase.h>   // for less
+#endif   // _RWSTD_RW_FUNCBASE_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -152,4 +152,4 @@ make_pair (_TypeT __x, _TypeU __y)
 }   // namespace std
 
 
-#endif   // _RWSTD_PAIR_H_INCLUDED
+#endif   // _RWSTD_RW_PAIR_H_INCLUDED

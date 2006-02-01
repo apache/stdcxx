@@ -3,7 +3,7 @@
  *
  * _funcbase.h - definitions of function objects base classes
  *
- * $Id: //stdlib/dev/include/rw/_funcbase.h#6 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -33,11 +33,12 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_FUNCBASE_H_INCLUDED
-#define _RWSTD_FUNCBASE_H_INCLUDED
+#ifndef _RWSTD_RW_FUNCBASE_H_INCLUDED
+#define _RWSTD_RW_FUNCBASE_H_INCLUDED
 
-
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_DEFS_H_INCLUDED
+#  include <rw/_defs.h>
+#endif   // _RWSTD_RW_DEFS_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -91,4 +92,4 @@ struct less: binary_function<_TypeT, _TypeT, bool>
 }   // namespace std
 
 
-#endif   // _RWSTD_FUNCBASE_H_INCLUDED
+#endif   // _RWSTD_RW_FUNCBASE_H_INCLUDED

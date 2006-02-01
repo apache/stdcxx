@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_bitmask.h#6 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -22,11 +22,12 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_BITMASK_H_INCLUDED
-#define _RWSTD_BITMASK_H_INCLUDED
+#ifndef _RWSTD_RW_BITMASK_H_INCLUDED
+#define _RWSTD_RW_BITMASK_H_INCLUDED
 
-
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_DEFS_H_INCLUDED
+#  include <rw/_defs.h>
+#endif   // _RWSTD_RW_DEFS_H_INCLUDED
 
 
 #ifndef _RWSTD_NO_STATIC_CONST_MEMBER_INIT
@@ -72,4 +73,4 @@
 #endif   // _RWSTD_NO_STATIC_CONST_MEMBER_INIT
 
 
-#endif   // _RWSTD_BITMASK_H_INCLUDED
+#endif   // _RWSTD_RW_BITMASK_H_INCLUDED

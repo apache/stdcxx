@@ -7,7 +7,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_ioinsert.h#12 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -24,23 +24,27 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_IOINSERT_INCLUDED
-#define _RWSTD_IOINSERT_INCLUDED
+#ifndef _RWSTD_RW_IOINSERT_H_INCLUDED
+#define _RWSTD_RW_IOINSERT_H_INCLUDED
 
 #if __GNUG__ >= 3
 #  pragma GCC system_header
 #endif   // gcc >= 3
 
 #ifndef _RWSTD_NO_REDUNDANT_DEFINITIONS
-#  include <rw/_ioiter.h>
+#  ifndef _RWSTD_RW_IOITER_H_INCLUDED
+#    include <rw/_ioiter.h>
+#  endif   // _RWSTD_RW_IOITER_H_INCLUDED
+
 #  include <streambuf>
 #endif   // _RWSTD_NO_REDUNDANT_DEFINITIONS
 
 #include <loc/_num_get.h>
 #include <loc/_num_put.h>
 
-#include <rw/_basic_ios.h>
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_BASIC_IOS_H_INCLUDED
+#  include <rw/_basic_ios.h>
+#endif   // _RWSTD_RW_BASIC_IOS_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (std) {
@@ -213,4 +217,4 @@ _RWSTD_INSTANTIATE_FUN_1 (_RWSTD_EXPORT _STD::wostream&
 #endif   // _RWSTD_DEFINE_TEMPLATE_LAST (_INSERTER)
 
 
-#endif   // _RWSTD_IOINSERT_INCLUDED
+#endif   // _RWSTD_RW_IOINSERT_H_INCLUDED

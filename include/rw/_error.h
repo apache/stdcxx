@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_error.h#18 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -22,13 +22,16 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_ERROR_H_INCLUDED
-#define _RWSTD_ERROR_H_INCLUDED
+#ifndef _RWSTD_RW_ERROR_H_INCLUDED
+#define _RWSTD_RW_ERROR_H_INCLUDED
 
 #ifndef _RWSTD_NO_INCLUDES
-
    // prevent inclusion if compiling a .rc file with MSVC
-#  include <rw/_defs.h>
+
+#  ifndef _RWSTD_RW_DEFS_H_INCLUDED
+#    include <rw/_defs.h>
+#  endif   // _RWSTD_RW_DEFS_H_INCLUDED
+
 
 _RWSTD_NAMESPACE (__rw) { 
 
@@ -131,4 +134,4 @@ extern void _RWSTD_EXPORT (*__rw_throw_proc)(int, char*);
 #define _RWSTD_ERROR_BAD_ALLOC     "bad_alloc: out of memory"
 
 
-#endif   // _RWSTD_ERROR_H_INCLUDED
+#endif   // _RWSTD_RW_ERROR_H_INCLUDED

@@ -23,7 +23,6 @@
 #ifndef _RWSTD_IOSFWD_INCLUDED
 #define _RWSTD_IOSFWD_INCLUDED
 
-#include <rw/_defs.h>
 #include <rw/_iosfwd.h>
 #include <rw/_mbstate.h>   // for _RWSTD_MBSTATE_T
 
@@ -35,7 +34,7 @@ template <class _TypeT>
 class allocator;
 
 
-#ifndef _RWSTD_BASIC_IOS_H_INCLUDED
+#ifndef _RWSTD_RW_BASIC_IOS_H_INCLUDED
 
 _EXPORT
 template<class _CharT,
@@ -49,7 +48,7 @@ typedef basic_ios<char, char_traits<char> > ios;
 typedef basic_ios<wchar_t, char_traits<wchar_t> > wios;
 
 #  endif   // _RWSTD_NO_WCHAR_T
-#endif   // _RWSTD_IOS_H_INCLUDED
+#endif   // _RWSTD_RW_BASIC_IOS_H_INCLUDED
 
 
 #ifndef _RWSTD_STREAMBUF_INCLUDED
@@ -195,7 +194,7 @@ typedef basic_fstream<wchar_t, char_traits<wchar_t> >  wfstream;
 #endif   // _RWSTD_FSTREAM_INCLUDED
 
 
-#ifndef _RWSTD_IOITER_H_INCLUDED
+#ifndef _RWSTD_RW_IOITER_H_INCLUDED
 
 template<class _CharT,
          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) > 
@@ -205,7 +204,7 @@ template<class _CharT,
          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) > 
 struct istreambuf_iterator;
 
-#endif   // _RWSTD_IOITER_H_INCLUDED
+#endif   // _RWSTD_RW_IOITER_H_INCLUDED
 
 
 // 27.2, p8

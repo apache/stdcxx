@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_iterator.h#19 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -35,11 +35,12 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_ITERATOR_H_INCLUDED
-#define _RWSTD_ITERATOR_H_INCLUDED
+#ifndef _RWSTD_RW_ITERATOR_H_INCLUDED
+#define _RWSTD_RW_ITERATOR_H_INCLUDED
 
-#include <rw/_iterbase.h>
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_ITERBASE_H_INCLUDED
+#  include <rw/_iterbase.h>
+#endif   // _RWSTD_RW_ITERBASE_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -524,4 +525,4 @@ inline insert_iterator<_Container> inserter (_Container& __x, _Iterator __it)
 
 }   // namespace std
 
-#endif   // _RWSTD_ITERATOR_H_INCLUDED
+#endif   // _RWSTD_RW_ITERATOR_H_INCLUDED

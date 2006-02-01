@@ -3,7 +3,7 @@
  *
  * _basic_ios.h - definition of the class template basic_ios
  *
- * $Id: //stdlib/dev/include/rw/_basic_ios.h#15 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -20,8 +20,8 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_BASIC_IOS_H_INCLUDED
-#define _RWSTD_BASIC_IOS_H_INCLUDED
+#ifndef _RWSTD_RW_BASIC_IOS_H_INCLUDED
+#define _RWSTD_RW_BASIC_IOS_H_INCLUDED
 
 
 #if __GNUG__ >= 3
@@ -35,9 +35,13 @@
 
 #include <loc/_ctype.h>    // for ctype
 
-#include <rw/_iosbase.h>   // for ios_base
-#include <rw/_iosfwd.h>    //
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_IOSBASE_H_INCLUDED
+#  include <rw/_iosbase.h>   // for ios_base
+#endif   // _RWSTD_RW_IOSBASE_H_INCLUDED
+
+#ifndef _RWSTD_RW_IOSFWD_H_INCLUDED
+#  include <rw/_iosfwd.h>
+#endif   // _RWSTD_RW_IOSFWD_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -349,4 +353,4 @@ _RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
 }   // namespace std
 
 
-#endif   // _RWSTD_BASIC_IOS_H_INCLUDED
+#endif   // _RWSTD_RW_BASIC_IOS_H_INCLUDED

@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_math.h#9 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -22,10 +22,12 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_MATH_H_INCLUDED
-#define _RWSTD_MATH_H_INCLUDED
+#ifndef _RWSTD_RW_MATH_H_INCLUDED
+#define _RWSTD_RW_MATH_H_INCLUDED
 
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_DEFS_H_INCLUDED
+#  include <rw/_defs.h>
+#endif   // _RWSTD_RW_DEFS_H_INCLUDED
 
 // avoid a conflicting exception structure on platforms where
 // struct exception is defined unguarded in <math.h>
@@ -46,4 +48,4 @@
 #endif
 
 
-#endif   // _RWSTD_MATH_H_INCLUDED
+#endif   // _RWSTD_RW_MATH_H_INCLUDED

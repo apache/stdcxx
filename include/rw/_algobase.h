@@ -36,8 +36,8 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_ALGOBASE_H_INCLUDED
-#define _RWSTD_ALGOBASE_H_INCLUDED
+#ifndef _RWSTD_RW_ALGOBASE_H_INCLUDED
+#define _RWSTD_RW_ALGOBASE_H_INCLUDED
 
 
 #include <rw/_pair.h>       // for pair
@@ -302,4 +302,4 @@ bool lexicographical_compare(_InputIter1 __first1, _InputIter1 __last1,
 #endif   // _RWSTD_NO_IMPLICIT_INCLUSION
 
 
-#endif   // _RWSTD_ALGOBASE_H_INCLUDED
+#endif   // _RWSTD_RW_ALGOBASE_H_INCLUDED

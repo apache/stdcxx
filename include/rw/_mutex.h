@@ -23,8 +23,8 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_MUTEX_H_INCLUDED
-#define _RWSTD_MUTEX_H_INCLUDED
+#ifndef _RWSTD_RW_MUTEX_H_INCLUDED
+#define _RWSTD_RW_MUTEX_H_INCLUDED
 
 
 #if __GNUG__ >= 3
@@ -32,14 +32,21 @@
 #endif   // gcc >= 3
 
 
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_DEFS_H_INCLUDED
+#  include <rw/_defs.h>
+#endif   // _RWSTD_RW_DEFS_H_INCLUDED
 
 
 #ifdef _RWSTD_REENTRANT
 
+#ifndef _RWSTD_RW_EXCEPTION_H_INCLUDED
+#  include <rw/_exception.h>
+#endif   // _RWSTD_RW_EXCEPTION_INCLUDED
 
-#include <rw/_exception.h>
-#include <rw/_error.h>
+#ifndef _RWSTD_RW_ERROR_H_INCLUDED
+#  include <rw/_error.h>
+#endif   // _RWSTD_RW_ERROR_H_INCLUDED
+
 
 // work around SunOS 5.{8,9}/SunPro bug (see PR #26255)
 #if defined (__SunOS_5_8) || defined (__SunOS_5_9)
@@ -1886,4 +1893,4 @@ _TypeT __rw_ordinary_exchange (_TypeT &__t, const _TypeU &__u)
 }   // namespace __rw
 
 
-#endif   // _RWSTD_MUTEX_H_INCLUDED
+#endif   // _RWSTD_RW_MUTEX_H_INCLUDED

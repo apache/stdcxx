@@ -36,12 +36,13 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_SPECIALIZED_H_INCLUDED
-#define _RWSTD_SPECIALIZED_H_INCLUDED
+#ifndef _RWSTD_RW_SPECIALIZED_H_INCLUDED
+#define _RWSTD_RW_SPECIALIZED_H_INCLUDED
 
 
-#include <rw/_new.h>
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_NEW_H_INCLUDED
+#  include <rw/_new.h>
+#endif   // _RWSTD_RW_NEW_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (__rw) { 
@@ -276,4 +277,4 @@ uninitialized_fill_n (_ForwardIter __first, _Size __n,
 }   // namespace std
 
 
-#endif   // _RWSTD_SPECIALIZED_H_INCLUDED
+#endif   // _RWSTD_RW_SPECIALIZED_H_INCLUDED

@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_strref.h#35 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -22,14 +22,25 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_STRREF_H_INCLUDED
-#define _RWSTD_STRREF_H_INCLUDED
+#ifndef _RWSTD_RW_STRREF_H_INCLUDED
+#define _RWSTD_RW_STRREF_H_INCLUDED
 
-#include <rw/_allocator.h>
-#include <rw/_mutex.h>
-#include <rw/_specialized.h>
-#include <rw/_traits.h>
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_ALLOCATOR_H_INCLUDED
+#  include <rw/_allocator.h>
+#endif   // _RWSTD_RW_ALLOCATOR_H_INCLUDED
+
+#ifndef _RWSTD_RW_MUTEX_H_INCLUDED
+#  include <rw/_mutex.h>
+#endif   // _RWSTD_RW_MUTEX_H_INCLUDED
+
+#ifndef _RWSTD_RW_SPECIALIZED_H_INCLUDED
+#  include <rw/_specialized.h>
+#endif   // _RWSTD_RW_SPECIALIZED_H_INCLUDED
+
+#ifndef _RWSTD_RW_TRAITS_H_INCLUDED
+#  include <rw/_traits.h>
+#endif   // _RWSTD_RW_TRAITS_H_INCLUDED
+
 
 #if !defined(_RWSTD_STRING_REF_OFFSET)
 #  define _RWSTD_STRING_REF_OFFSET 1
@@ -244,4 +255,4 @@ extern _RWSTD_EXPORT unsigned long __nullref [];
 }   // namespace __rw
 
 
-#endif   // _RWSTD_STRREF_H_INCLUDED
+#endif   // _RWSTD_RW_STRREF_H_INCLUDED

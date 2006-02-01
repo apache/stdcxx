@@ -22,12 +22,16 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_TRAITS_H_INCLUDED
-#define _RWSTD_TRAITS_H_INCLUDED
+#ifndef _RWSTD_RW_TRAITS_H_INCLUDED
+#define _RWSTD_RW_TRAITS_H_INCLUDED
 
-#include <rw/_iosfwd.h>
-#include <rw/_mbstate.h>   // for _RWSTD_MBSTATE_T
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_IOSFWD_H_INCLUDED
+#  include <rw/_iosfwd.h>
+#endif   // _RWSTD_RW_IOSFWD_H_INCLUDED
+
+#ifndef _RWSTD_RW_MBSTATE_H_INCLUDED
+#  include <rw/_mbstate.h>   // for _RWSTD_MBSTATE_T
+#endif   // _RWSTD_RW_MBSTATE_H_INCLUDED
 
 
 #if defined (_RWSTDDEBUG) || defined (_RWSTD_EDG_ECCP)
@@ -524,4 +528,4 @@ struct char_traits<wchar_t>
 }   // namespace std
 
 
-#endif   // _RWSTD_TRAITS_H_INCLUDED
+#endif   // _RWSTD_RW_TRAITS_H_INCLUDED

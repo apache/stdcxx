@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/rw/_iosfailure.h#7 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -22,12 +22,16 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_IOSFAILURE_H_INCLUDED
-#define _RWSTD_IOSFAILURE_H_INCLUDED
+#ifndef _RWSTD_RW_IOSFAILURE_H_INCLUDED
+#define _RWSTD_RW_IOSFAILURE_H_INCLUDED
 
-#include <rw/_exception.h>
-#include <rw/_iosfwd.h>
-#include <rw/_defs.h>
+#ifndef _RWSTD_RW_EXCEPTION_H_INCLUDED
+#  include <rw/_exception.h>
+#endif   // _RWSTD_RW_EXCEPTION_H_INCLUDED
+
+#ifndef _RWSTD_RW_IOSFWD_H_INCLUDED
+#  include <rw/_iosfwd.h>
+#endif   // _RWSTD_RW_IOSFWD_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (__rw) {
@@ -54,4 +58,4 @@ struct _RWSTD_EXPORT __rw_failbit_set: __rw_failure { };
 }   // namespace __rw
 
 
-#endif   // _RWSTD_IOSFAILURE_H_INCLUDED
+#endif   // _RWSTD_RW_IOSFAILURE_H_INCLUDED
