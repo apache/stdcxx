@@ -1,3 +1,10 @@
+2006-02-01  Martin Sebor  <sebor@roguewave.com>
+
+	* wctype.cpp (<stdlib.h>): Included for wctomb.
+	(_RWSTD_NO_V3_LOCALE): Removed dead macro.
+	(__rw_toupper): Used _STD instead of _V3_LOCALE.
+	(__rw_tolower): Same.
+
 2006-01-19  Martin Sebor  <sebor@roguewave.com>
 
 	* ChangeLog: Generated and added.

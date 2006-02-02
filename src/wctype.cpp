@@ -23,8 +23,7 @@
 
 #include <rw/_defs.h>
 
-#ifndef _RWSTD_NO_V3_LOCALE
-#  ifndef _RWSTD_NO_WCHAR_T
+#ifndef _RWSTD_NO_WCHAR_T
 
 #include <ctype.h>
 #include <limits.h>
@@ -34,8 +33,9 @@
 #  include <wchar.h>   // for wctob()
 #endif   // _RWSTD_NO_WCHAR_H
 
-#include <wctype.h>   // for iswspace(), ...
+#include <stdlib.h>   // for wctomb()
 #include <string.h>   // for memset()
+#include <wctype.h>   // for iswspace(), ...
 
 #include <loc/_ctype.h>
 #include <loc/_locale.h>
@@ -234,7 +234,7 @@ __rw_get_mask (__rw_ctype_t    *impl,
 }
 
 
-static _V3_LOCALE::ctype_byname<wchar_t>::char_type
+static _STD::ctype_byname<wchar_t>::char_type
 __rw_toupper (__rw_ctype_t* impl,
               wchar_t c, bool use_libstd,
               const char* locname)
@@ -289,7 +289,7 @@ __rw_toupper (__rw_ctype_t* impl,
 }
 
 
-static _V3_LOCALE::ctype_byname<wchar_t>::char_type
+static _STD::ctype_byname<wchar_t>::char_type
 __rw_tolower (__rw_ctype_t* impl,
               wchar_t c, bool use_libstd,
               const char* locname)
@@ -1012,5 +1012,4 @@ do_widen (const char *lo, const char *hi, char_type *dest) const
 _RWSTD_DEFINE_FACET_FACTORY (static, ctype, <wchar_t>, wctype);
 _RWSTD_SPECIALIZE_USE_FACET (wctype);
 
-#  endif   // _RWSTD_NO_WCHAR_T
-#endif   // _RWSTD_NO_V3_LOCALE
+#endif   // _RWSTD_NO_WCHAR_T
