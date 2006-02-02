@@ -354,7 +354,14 @@ __rw_libc_do_in (_RWSTD_MBSTATE_T &state,
         psrc = from_next ? from_next : "";
 
         while (dst_len && src_len) {
-            _RWSTD_SIZE_T tmp = _RWSTD_MBRTOWC (pdst, psrc, src_len, &state);
+
+#ifndef _RWSTD_NO_MBRTOWC
+            _RWSTD_SIZE_T tmp = mbrtowc (pdst, psrc, src_len, &state);
+#elif !defined (_RWSTD_NO_MBTOWC)
+            _RWSTD_SIZE_T tmp = mbtowc (pdst, psrc, src_len);
+#else
+            tmp = _RWSTD_SIZE_MAX;
+#endif
 
             // error; -1 result comes only from an illegal sequence
             if (_RWSTD_SIZE_MAX == tmp) {
@@ -588,7 +595,14 @@ __rw_libc_do_out (_RWSTD_MBSTATE_T &state,
             char* const tmpdst = dst_free < mb_cur_max ? buff : to_next;
 
             // convert the next source character
-            dst_len = _RWSTD_WCRTOMB (tmpdst, *from_next, &state);
+
+#ifndef _RWSTD_NO_WCRTOMB
+            dst_len = wcrtomb (tmpdst, *from_next, &state);
+#elif !defined (_RWSTD_NO_WCTOMB)
+            dst_len = wcrtomb (tmpdst, *from_next);
+#else
+            dst_len = _RWSTD_SIZE_MAX;
+#endif
 
             // -1 is returned as an indication of an illegal sequence
             if (_RWSTD_SIZE_MAX == dst_len) {
@@ -642,7 +656,16 @@ __rw_libc_do_unshift (_RWSTD_MBSTATE_T& state, char*& to_next, char* to_limit)
 
     // use libc locale to obtain the shift sequence
     char tmp [_RWSTD_MB_LEN_MAX];
-    _RWSTD_SIZE_T ret = _RWSTD_WCRTOMB (tmp, wchar_t (0), &state);
+
+    _RWSTD_SIZE_T ret;
+
+#ifndef _RWSTD_NO_WCRTOMB
+    ret = wcrtomb (tmp, wchar_t (0), &state);
+#elif !defined (_RWSTD_NO_WCTOMB)
+    ret = wctomb (tmp, wchar_t (0));
+#else
+    ret = _RWSTD_SIZE_MAX;
+#endif
 
     if (_RWSTD_SIZE_MAX == ret)
         return  _STD::codecvt_base::error;
