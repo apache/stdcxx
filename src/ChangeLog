@@ -1,5 +1,10 @@
 2006-02-01  Martin Sebor  <sebor@roguewave.com>
 
+	* wcodecvt.cpp (__rw_libc_do_out): Removed the RWSTD_WCRTOMB macro and
+	instead explicitly spelled out the code	the macro used to expand to.
+	(__rw_libc_do_unshift): Same.
+	(__rw_libc_do_in): Same for _RWSTD_MBRTOWC().
+	
 	* wctype.cpp (<stdlib.h>): Included for wctomb.
 	(_RWSTD_NO_V3_LOCALE): Removed dead macro.
 	(__rw_toupper): Used _STD instead of _V3_LOCALE.
