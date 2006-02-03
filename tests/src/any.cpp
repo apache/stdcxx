@@ -1,6 +1,6 @@
 /************************************************************************
  *
- * any.cpp - definitions of the rw_any_t class members
+ * any.cpp - definitions of class any members
  *
  * $Id$
  *
@@ -16,7 +16,7 @@
  * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
  * for the specific language governing permissions  and limitations under
  * the License.
- *
+ * 
  **************************************************************************/
 
 // expand _TEST_EXPORT macros
@@ -24,9 +24,9 @@
 
 #include <any.h>
 
-#include <printf.h>   // for rw_sprintfa()
-#include <stdlib.h>   // for free()
-#include <string.h>   // for memset()
+#include <printf.h>      // for rw_sprintfa()
+#include <stdlib.h>      // for free()
+#include <string.h>      // for memset()
 
 
 #ifndef _RWSTD_NO_BOOL
@@ -166,21 +166,62 @@ rw_any_t::rw_any_t (long double value)
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
 
-rw_any_t::rw_any_t (const void* value)
+rw_any_t::rw_any_t (void* value)
     : str_ (0), tid_ (t_pvoid)
 {
     memset (&val_, 0, sizeof val_);
     val_.pvoid_ = value;
 }
 
+rw_any_t::rw_any_t (const void* value)
+    : str_ (0), tid_ (t_c_pvoid)
+{
+    memset (&val_, 0, sizeof val_);
+    val_.pvoid_ = value;
+}
 
-rw_any_t::rw_any_t (const char* value)
+rw_any_t::rw_any_t (volatile void* value)
+    : str_ (0), tid_ (t_v_pvoid)
+{
+    memset (&val_, 0, sizeof val_);
+    val_.pvoid_ = value;
+}
+
+rw_any_t::rw_any_t (const volatile void* value)
+    : str_ (0), tid_ (t_cv_pvoid)
+{
+    memset (&val_, 0, sizeof val_);
+    val_.pvoid_ = value;
+}
+
+
+rw_any_t::rw_any_t (char* value)
     : str_ (0), tid_ (t_str)
 {
     memset (&val_, 0, sizeof val_);
     val_.pvoid_ = value;
 }
 
+rw_any_t::rw_any_t (const char* value)
+    : str_ (0), tid_ (t_c_str)
+{
+    memset (&val_, 0, sizeof val_);
+    val_.pvoid_ = value;
+}
+
+rw_any_t::rw_any_t (volatile char* value)
+    : str_ (0), tid_ (t_v_str)
+{
+    memset (&val_, 0, sizeof val_);
+    val_.pvoid_ = value;
+}
+
+rw_any_t::rw_any_t (const volatile char* value)
+    : str_ (0), tid_ (t_cv_str)
+{
+    memset (&val_, 0, sizeof val_);
+    val_.pvoid_ = value;
+}
 
 #ifndef _RWSTD_NO_NATIVE_WCHAR_T
 
@@ -196,8 +237,29 @@ rw_any_t::rw_any_t (wchar_t value)
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-rw_any_t::rw_any_t (const wchar_t* value)
+rw_any_t::rw_any_t (wchar_t* value)
     : str_ (0), tid_ (t_wstr)
+{
+    memset (&val_, 0, sizeof val_);
+    val_.pvoid_ = value;
+}
+
+rw_any_t::rw_any_t (const wchar_t* value)
+    : str_ (0), tid_ (t_c_wstr)
+{
+    memset (&val_, 0, sizeof val_);
+    val_.pvoid_ = value;
+}
+
+rw_any_t::rw_any_t (volatile wchar_t* value)
+    : str_ (0), tid_ (t_v_wstr)
+{
+    memset (&val_, 0, sizeof val_);
+    val_.pvoid_ = value;
+}
+
+rw_any_t::rw_any_t (const volatile wchar_t* value)
+    : str_ (0), tid_ (t_cv_wstr)
 {
     memset (&val_, 0, sizeof val_);
     val_.pvoid_ = value;
@@ -247,8 +309,11 @@ rw_any_t::type_name () const
         "long", "unsigned long",
         "long long", "unsigned long long",
         "float", "double", "long double",
-        "wchar_t", "void*",
-        "const char*", "const wchar_t*"
+        "wchar_t",
+        "void*", "const void*", "volatile void*", "const volatile void*",
+        "char*", "const char*", "volatile char*", "const volatile char*",
+        "wchar_t*", "const wchar_t*", "volatile wchar_t*",
+        "const volatile wchar_t*"
     };
 
     // the liftime of the returned string must extend
@@ -364,6 +429,9 @@ rw_any_t::tostr (const char *fmt /* = 0 */)
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
     case t_pvoid:
+    case t_c_pvoid:
+    case t_v_pvoid:
+    case t_cv_pvoid:
         if (0 == fmt)
             fmt = "%p";
         str_ = rw_sprintfa (fmt, val_.pvoid_);
@@ -380,6 +448,9 @@ rw_any_t::tostr (const char *fmt /* = 0 */)
 #endif   // _RWSTD_NO_NATIVE_WCHAR_T
 
     case t_str:
+    case t_c_str:
+    case t_v_str:
+    case t_cv_str:
         if (0 == fmt)
             fmt = "%s";
         str_ = rw_sprintfa (fmt, val_.pvoid_);
@@ -388,6 +459,9 @@ rw_any_t::tostr (const char *fmt /* = 0 */)
 #ifndef _RWSTD_NO_WCHAR_T
 
     case t_wstr:
+    case t_c_wstr:
+    case t_v_wstr:
+    case t_cv_wstr:
         if (0 == fmt)
             fmt = "%ls";
         str_ = rw_sprintfa (fmt, val_.pvoid_);

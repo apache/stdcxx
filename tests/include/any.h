@@ -1,21 +1,28 @@
+// -*- C++ -*-
 /***************************************************************************
  *
- * any.h - definition of the rw_any_t class
+ * any.h - definition of utility class rw_any_t
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -59,15 +66,25 @@ public:
     rw_any_t (long double);
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
+    rw_any_t (void*);
+    rw_any_t (volatile void*);
     rw_any_t (const void*);
+    rw_any_t (const volatile void*);
+
+    rw_any_t (char*);
     rw_any_t (const char*);
+    rw_any_t (volatile char*);
+    rw_any_t (const volatile char*);
 
 #ifndef _RWSTD_NO_NATIVE_WCHAR_T
     rw_any_t (wchar_t);
 #endif   // _RWSTD_NO_NATIVE_WCHAR_T
 
 #ifndef _RWSTD_NO_WCHAR_T
+    rw_any_t (wchar_t*);
     rw_any_t (const wchar_t*);
+    rw_any_t (volatile wchar_t*);
+    rw_any_t (const volatile wchar_t*);
 #endif   // _RWSTD_NO_WCHAR_T
 
     rw_any_t (const rw_any_t&);
@@ -86,9 +103,9 @@ public:
         t_sllong, t_ullong,
         t_flt, t_dbl, t_ldbl,
         t_wchar,
-        t_pvoid,
-        t_str,
-        t_wstr
+        t_pvoid, t_c_pvoid, t_v_pvoid, t_cv_pvoid,
+        t_str, t_c_str, t_v_str, t_cv_str,
+        t_wstr, t_c_wstr, t_v_wstr, t_cv_wstr
     };
 
 private:
@@ -98,7 +115,7 @@ private:
 #ifndef _RWSTD_NO_LONG_DOUBLE
         long double ldbl_;
 #endif   // _RWSTD_NO_LONG_DOUBLE
-        const void *pvoid_;
+        const volatile void *pvoid_;
         double      dbl_;
 #ifdef _RWSTD_LONG_LONG
         signed _RWSTD_LONG_LONG   sllong_;
