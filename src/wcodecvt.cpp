@@ -599,7 +599,7 @@ __rw_libc_do_out (_RWSTD_MBSTATE_T &state,
 #ifndef _RWSTD_NO_WCRTOMB
             dst_len = wcrtomb (tmpdst, *from_next, &state);
 #elif !defined (_RWSTD_NO_WCTOMB)
-            dst_len = wcrtomb (tmpdst, *from_next);
+            dst_len = wctomb (tmpdst, *from_next);
 #else
             dst_len = _RWSTD_SIZE_MAX;
 #endif
