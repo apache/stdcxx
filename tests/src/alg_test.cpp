@@ -27,9 +27,8 @@
 #include <stdlib.h>     // for rand(), strtol()
 #include <string.h>     // for size_t, strlen()
 
-
 #include <alg_test.h>
-#include <snprintfa.h>
+#include <printf.h>     // for rw_asnprintf()
 
 
 /* static */ size_t X::count_;
