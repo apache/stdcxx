@@ -1223,30 +1223,6 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC
 
 
-// select appropriate C multibyte conversion function based on
-// whether "restartable" functions are available.
-#ifndef _RWSTD_NO_MBRTOWC
-   // reentrant versions return size_t - see 7.24.6.3.2 of C99
-#  define _RWSTD_MBRTOWC(to, from, size, state) \
-          mbrtowc (to, from, size, state)
-#elif !defined (_RWSTD_NO_MBTOWC)
-   // non-reentrant versions return int - see 7.20.7.2 of C99
-#  define _RWSTD_MBRTOWC(to, from, size, ignore_state) \
-          (_RWSTD_SIZE_T)(mbtowc (to, from, size))
-#else
-   // mbtowc not supported
-#  define _RWSTD_MBRTOWC(ign1, ign2, ign3, ign4) (_RWSTD_SIZE_T)(-1)
-#endif   // _RWSTD_NO_MBRTOWC
-
-#ifndef _RWSTD_NO_WCRTOMB
-#  define _RWSTD_WCRTOMB(to, from, state) \
-          wcrtomb (to, from, state)
-#else   // if defined (_RWSTD_NO_WCRTOMB)
-#  define _RWSTD_WCRTOMB(to, from, ignore_state) \
-          (_RWSTD_SIZE_T)(wctomb (to, from))
-#endif   // _RWSTD_NO_WCRTOMB
-
-
 // enable only in debug mode and only id partial class specialization
 // is supported; prevent multiple definition of _RWSTD_NO_DEBUG_ITER
 #if    defined(_RWSTDDEBUG) && !defined (_RWSTD_NO_CLASS_PARTIAL_SPEC) \
