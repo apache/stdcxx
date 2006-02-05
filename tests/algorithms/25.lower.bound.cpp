@@ -143,11 +143,11 @@ void test_lower_bound (int                    line,
     const std::size_t funcalls = predicate
         ? LessThan::funcalls_ : X::n_total_op_lt_;
 
-    rw_assert (off == result_off, 0, line,
+    rw_assert (funcalls <= ncomp, 0, line,
                "lower_bound(%s = \"%s\", ...%{?}%#c%{;}) complexity: "
                "invoked predicate at most %zu times, got %zu",
                itname, src_str, !predicate, val_char,
-               funcalls, ncomp);
+               ncomp, funcalls);
 
     delete[] xsrc;
 }
@@ -179,26 +179,26 @@ void test_lower_bound (const ForwardIterator*,
     TEST ("a", 'b', 1, 1);
     TEST ("b", 'a', 0, 1);
 
-    TEST ("aa", 'a', 0, 1);
-    TEST ("ab", 'a', 0, 1);
+    TEST ("aa", 'a', 0, 2);
+    TEST ("ab", 'a', 0, 2);
     TEST ("ab", 'b', 1, 2);
     TEST ("bb", 'a', 0, 2);
 
-    TEST ("ace", 'a', 0, 1);
-    TEST ("ace", 'b', 1, 2);
-    TEST ("ace", 'c', 1, 2);
+    TEST ("ace", 'a', 0, 3);
+    TEST ("ace", 'b', 1, 3);
+    TEST ("ace", 'c', 1, 3);
     TEST ("ace", 'd', 2, 3);
     TEST ("ace", 'e', 2, 3);
     TEST ("ace", 'f', 3, 3);
 
-    TEST ("aceg", 'a', 0, 1);
-    TEST ("aceg", 'b', 1, 2);
-    TEST ("aceg", 'c', 1, 2);
+    TEST ("aceg", 'a', 0, 3);
+    TEST ("aceg", 'b', 1, 3);
+    TEST ("aceg", 'c', 1, 3);
     TEST ("aceg", 'd', 2, 3);
     TEST ("aceg", 'e', 2, 3);
     TEST ("aceg", 'f', 3, 3);
-    TEST ("aceg", 'g', 3, 4);
-    TEST ("aceg", 'h', 4, 4);
+    TEST ("aceg", 'g', 3, 3);
+    TEST ("aceg", 'h', 4, 3);
 }
 
 /**************************************************************************/
@@ -213,7 +213,7 @@ static void
 test_lower_bound (bool predicate)
 {
     rw_info (0, 0, 0, "template <class %s, class %s%{?}, class %s%{;}> "
-             "std::lower_bound (%1$s, %1$s, const X&%{?}, %3$s%{;})",
+             "std::lower_bound (%1$s, %1$s, const X&%{?}, %4$s%{;})",
              "ForwardIterator", "X", predicate, "Compare", predicate);
 
     if (rw_opt_no_fwd_iter) {
