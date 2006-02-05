@@ -155,11 +155,11 @@ void test_nth_element (int                 line,
     }
 
     // check the complexity, 25.3.2, p2
-    // it should be linear, so use 2 * N * log N as upper bound
+    // it should be linear, i.e. <= K * N, there K << N
+    // after tests on random sequences use K == 8 as upper bound
     std::size_t n_ops = 
         ppred ? Predicate::funcalls_ : T::n_total_op_lt_ - last_n_op_lt;
-    std::size_t exp_ops = nsrc * 2 * (::ilog2 (nsrc) + 1) < nsrc ? 
-        nsrc : 2 * nsrc * (::ilog2 (nsrc) + 1);
+    std::size_t exp_ops = 8 * nsrc;
 
     success = n_ops <= exp_ops;
 
