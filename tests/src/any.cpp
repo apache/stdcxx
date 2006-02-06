@@ -24,7 +24,7 @@
 
 #include <any.h>
 
-#include <printf.h>      // for rw_sprintfa()
+#include <rw_printf.h>   // for rw_sprintfa()
 #include <stdlib.h>      // for free()
 #include <string.h>      // for memset()
 

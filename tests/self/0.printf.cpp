@@ -1,6 +1,6 @@
 /************************************************************************
  *
- * 0.printf.cpp - test exercising the rw_printf family of functions
+ * 0.printf.cpp - test exercising the rw_snprintfa() utility functions
  *
  * $Id$
  *
@@ -19,7 +19,7 @@
  * 
  **************************************************************************/
 
-#include <printf.h>
+#include <rw_printf.h>
 
 #include <ctype.h>     // for isdigit()
 #include <errno.h>     // for EXXX, errno

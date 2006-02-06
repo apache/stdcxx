@@ -25,7 +25,7 @@
 #include <system.h>
 
 #include <driver.h>
-#include <printf.h>
+#include <rw_printf.h>
 
 #include <stdarg.h>   // for va_copy, va_list, ...
 #include <stdlib.h>   // for system
@@ -54,10 +54,13 @@ _rw_vsystem (const char *cmd, va_list va)
 
     rw_vasnprintf (&buf, &bufsize, cmd, va);
 
-    rw_note (0, __FILE__, __LINE__,
-             "executing \"%s\"", buf);
+    rw_note (0, "file:" __FILE__, __LINE__, "executing \"%s\"", buf);
 
-    const int ret = system (buf);
+    // avoid using const in order to prevent gcc warning on Linux
+    // issued for WIFSIGNALED() et al: cast from `const int*' to
+    // `int*' discards qualifiers from pointer target type:
+    // see http://sourceware.org/bugzilla/show_bug.cgi?id=1392
+    /* const */ int ret = system (buf);
 
     if (ret) {
 
