@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * unique.cpp - test exercising 25.2.8 [lib.alg.unique]
+ * 25.unique.cpp - test exercising 25.2.8 [lib.alg.unique]
  *
  * $Id$
  *
@@ -29,9 +29,10 @@
 
 _RWSTD_NAMESPACE (std) { 
 
-// disable explicit instantiation for compilers (like MSVC)
-// that can't handle it
 #ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION
+
+// also exercise LWG issue 241:
+// http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#241
 
 template
 FwdIter<eq_comp<assign<base<> > > >
