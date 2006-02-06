@@ -90,7 +90,7 @@ struct Less
     static const char* name () { return "Less"; }
 
 private:
-    void operator= (StrictWeakLess&);   // not assignable
+    void operator= (Less&);   // not assignable
 };
 
 template<class T> std::size_t Less<T>::funcalls_;
