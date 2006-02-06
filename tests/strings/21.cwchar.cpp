@@ -956,7 +956,7 @@ void test_functions ()
 // included here to avoid namespace pollution
 #include <cstdarg>       // for va_list
 #include <cstdio>        // for FILE
-#include <printf.h>      // for rw_stdout
+#include <rw_printf.h>   // for rw_stdout
 
 namespace std {
 

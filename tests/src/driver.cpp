@@ -16,7 +16,7 @@
  * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
  * for the specific language governing permissions  and limitations under
  * the License.
- *
+ * 
  **************************************************************************/
 
 // expand _TEST_EXPORT macros
@@ -28,12 +28,12 @@
 #include "opt_types.h"
 
 #include <cmdopt.h>    // for rw_setopts()
-#include <printf.h>    // for rw_snprintfa()
+#include <rw_printf.h> // for rw_snprintfa()
 
 #include <assert.h>    // for assert
 #include <setjmp.h>    // for longjmp, setjmp, ...
 #include <stdarg.h>    // for va_list
-#include <stdio.h>     // for fileno, fprintf
+#include <stdio.h>     // for fileno
 #include <stdlib.h>    // for free
 #include <string.h>    // for strchr, strcpy
 
@@ -47,7 +47,7 @@ _RWSTD_DLLIMPORT int (fileno)(FILE*) _LIBC_THROWS ();
 
 }   // extern "C"
 
-#else
+#else   // if Windows
    // no isatty on Windoze
 #  define _RWSTD_NO_ISATTY
 #endif   // _WIN{32,64}
@@ -315,15 +315,21 @@ rw_vasnprintf (char**, size_t*, const char*, va_list);
 static int
 ndiags [N_DIAG_TYPES][2] /* = { { total, active }, ... }*/;
 
-static FILE *ftestout;
+static rw_file *_rw_ftestout = rw_stdout;
 
 static jmp_buf test_env;
 
+#ifdef _RWSTD_USE_CONFIG
 // set to 1 after the driver has been initialized
-static int driver_initialized = 0;
+static int _rw_driver_init = 0;
+#else   // if !defined (_RWSTD_USE_CONFIG)
+// FIXME: remove this as soon as all tests have been ported
+// from RWTest to this driver
+_TEST_EXPORT int _rw_driver_init = 0;
+#endif   // _RWSTD_USE_CONFIG
 
 // set to 1 after the driver has finished running
-static int driver_finished = 0;
+static int _rw_driver_done = 0;
 
 #if 0   // disabled
 // %S: severity
@@ -350,23 +356,32 @@ static char clause_id [80];
 #define CHECK_INIT(init, func)   _rw_check_init (init, __LINE__, func)
 
 static inline void
-_rw_check_init (bool init, int line, const char *func)
+_rw_check_init (int expect_init, int line, const char *func)
 {
-    if (init && !driver_initialized) {
-        fprintf (stderr, "%s:%d: %s: test driver already initialized\n",
-                 __FILE__, line, func);
+    if (expect_init) {
+        // driver is expected to be initialized
+        if (!_rw_driver_init) {
+            rw_fprintf (rw_stderr,
+                        "%s:%d: %s: test driver not initialized yet\n",
+                        __FILE__, line, func);
+
+            abort ();
+        }
+    }
+    else if (_rw_driver_init) {
+        // driver is NOT expected to be initialized
+        rw_fprintf (rw_stderr,
+                    "%s:%d: %s: test driver already initialized\n",
+                    __FILE__, line, func);
+
         abort ();
     }
 
-    if (!init && driver_initialized) {
-        fprintf (stderr, "%s:%d: %s: test driver not initialized yet\n",
-                 __FILE__, line, func);
-        abort ();
-    }
-
-    if (driver_finished) {
-        fprintf (stderr, "%s:%d: %s: test finished, cannot call\n",
-                 __FILE__, line, func);
+    if (_rw_driver_done) {
+        // driver is NOT expected to be done at this point
+        rw_fprintf (rw_stderr,
+                    "%s:%d: %s: test finished, cannot call\n",
+                    __FILE__, line, func);
     }
 }
 
@@ -580,15 +595,15 @@ _rw_setopt_output_file (int argc, char *argv[])
         FILE* const f = fopen (file_name, "w");
 
         if (f) {
-            if (ftestout && ftestout != stderr)
-                fclose (ftestout);
+            if (_rw_ftestout && _rw_ftestout != rw_stdout)
+                fclose ((FILE*)(void*)_rw_ftestout);
 
-            ftestout = f;
+            _rw_ftestout = (rw_file*)(void*)f;
         }
     }
 
     // return 0 on success, any non-zero value on failure
-    return !(ftestout != 0);
+    return !(_rw_ftestout != 0);
 }
 
 /************************************************************************/
@@ -605,7 +620,8 @@ _rw_use_color ()
 
     // is output sent to a terminal?
     // if so, assume a vt100 compatible terminal for now
-    static const int tty = isatty (fileno (ftestout));
+    static const int tty = _rw_ftestout ?
+        isatty (fileno ((FILE*)(void*)_rw_ftestout)) : 0;
 
 #else   // if defined (_RWSTD_NO_ISATTY)
 
@@ -630,10 +646,11 @@ rw_vtest (int argc, char **argv,
 {
     CHECK_INIT (false, "rw_vtest()");
 
-    driver_initialized = 1;
+    _rw_driver_init = 1;
 
     if (optstr && 0 > rw_vsetopts (optstr, va)) {
-        fprintf (stderr, "%s:%d: rw_setopts() failed\n", __FILE__, __LINE__);
+        rw_fprintf (rw_stderr,
+                    "%s:%d: rw_setopts() failed\n", __FILE__, __LINE__);
         return 1;
     }
 
@@ -661,7 +678,8 @@ rw_vtest (int argc, char **argv,
                     0);
 
     if (3 > nopts) {
-        fprintf (stderr, "%s:%d: rw_setopts() failed\n", __FILE__, __LINE__);
+        rw_fprintf (rw_stderr,
+                    "%s:%d: rw_setopts() failed\n", __FILE__, __LINE__);
         abort ();
         return 1;
     }
@@ -685,7 +703,7 @@ rw_vtest (int argc, char **argv,
     if (status)
         return status;
 
-    if (0 == ftestout) {
+    if (rw_stdout == _rw_ftestout) {
 
         if (_rw_opt_no_stdout (0, 0) && file_name) {
             char fname [256];
@@ -699,10 +717,10 @@ rw_vtest (int argc, char **argv,
             else
                 strcat (fname, ".out");
 
-            ftestout = fopen (fname, "w");
+            _rw_ftestout = (rw_file*)(void*)fopen (fname, "w");
         }
         else
-            ftestout = stdout;
+            _rw_ftestout = rw_stdout;
     }
 
     if (clause)
@@ -737,16 +755,16 @@ rw_vtest (int argc, char **argv,
         // fatal test error (via a call to rw_fatal())
     }
 
-    driver_finished = 1;
+    _rw_driver_done = 1;
 
     static const char tblrow[] =
         "+-----------------------+--------+--------+--------+";
 
-    fprintf (ftestout,
-             "# %s\n"
-             "# | DIAGNOSTIC            | ACTIVE |  TOTAL |INACTIVE|\n"
-             "# %s\n",
-             tblrow, tblrow);
+    rw_fprintf (_rw_ftestout,
+                "# %s\n"
+                "# | DIAGNOSTIC            | ACTIVE |  TOTAL |INACTIVE|\n"
+                "# %s\n",
+                tblrow, tblrow);
 
     int nlines = 0;
 
@@ -774,17 +792,18 @@ rw_vtest (int argc, char **argv,
                 sfx = ndiags [i][1] ? diag_msgs [i].esc_sfx : "";
             }
 
-            fprintf (ftestout,
-                     "# | (S%d) %-*s |%s %6d %s| %6d | %5ld%% |\n",
-                     i, int (sizeof diag_msgs [i].code), diag_msgs [i].code,
-                     pfx, ndiags [i][1], sfx, ndiags [i][0], pct);
+            rw_fprintf (_rw_ftestout,
+                        "# | (S%d) %-*s |%s %6d %s| %6d | %5ld%% |\n",
+                        i, int (sizeof diag_msgs [i].code),
+                        diag_msgs [i].code,
+                        pfx, ndiags [i][1], sfx, ndiags [i][0], pct);
         }
     }
 
     if (0 == nlines)
-        fprintf (ftestout, "# no diagnostics\n");
+        rw_fprintf (_rw_ftestout, "# no diagnostics\n");
 
-    fprintf (ftestout, "# %s\n", tblrow);
+    rw_fprintf (_rw_ftestout, "# %s\n", tblrow);
 
     if (_rw_opt_compat (0, 0)) {
 
@@ -792,18 +811,20 @@ rw_vtest (int argc, char **argv,
 
         // RWTest compatibility format
 
-        fprintf (ftestout,
-                 "######################################################\n"
-                 "## Warnings = %d\n"
-                 "## Assertions = %d\n"
-                 "## FailedAssertions = %d\n",
-                 ndiags [diag_warn][1] + ndiags [diag_xwarn][1],
-                 ndiags [diag_assert][0],
-                 ndiags [diag_assert][1] + ndiags [diag_xassert][1]);
+        rw_fprintf (_rw_ftestout,
+                    "######################################################\n"
+                    "## Warnings = %d\n"
+                    "## Assertions = %d\n"
+                    "## FailedAssertions = %d\n",
+                    ndiags [diag_warn][1] + ndiags [diag_xwarn][1],
+                    ndiags [diag_assert][0],
+                    ndiags [diag_assert][1] + ndiags [diag_xassert][1]);
     }
 
-    fclose (ftestout);
-    ftestout = 0;
+    if (_rw_ftestout != rw_stdout) {
+        fclose ((FILE*)(void*)_rw_ftestout);
+        _rw_ftestout = 0;
+    }
 
     return status;
 }
@@ -1051,7 +1072,7 @@ _rw_vissue_diag (diag_t diag, int severity, const char *file, int line,
     }
 #endif   // 0/1
 
-    fprintf (ftestout, "%s\n", mybuf);
+    rw_fprintf (_rw_ftestout, "%s\n", mybuf);
 
     if (mybuf != fmterr)
         free (mybuf);

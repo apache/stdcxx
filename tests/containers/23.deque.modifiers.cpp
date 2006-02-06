@@ -41,7 +41,7 @@
 
 #include <alg_test.h>    // for X
 #include <driver.h>      // for rw_test(), ...
-#include <snprintfa.h>   // for rw_asnprintf
+#include <rw_printf.h>   // for rw_asnprintf
 
 /**************************************************************************/
 

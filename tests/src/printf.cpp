@@ -1,6 +1,6 @@
 /************************************************************************
  *
- * printf.cpp - definitions of the rw_printf family of functions
+ * snprintfa.cpp - definitions of the snprintfa family of functions
  *
  * $Id$
  *
@@ -22,7 +22,7 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 #include <testdefs.h>
-#include <printf.h>
+#include <rw_printf.h>
 
 #include <ctype.h>    // for isalpha(), ...
 #include <errno.h>    // for errno, errno constants
@@ -80,12 +80,12 @@ _rw_big_endian = '\0' == _rw_one.bytes [0];
 
 struct FmtSpec;
 
-static int
+_RWSTD_INTERNAL int
 _rw_fmtlong (const FmtSpec&, char**, size_t*, long);
 
 #ifdef _RWSTD_LONG_LONG
 
-static int
+_RWSTD_INTERNAL int
 _rw_fmtllong (const FmtSpec&, char**, size_t*, _RWSTD_LONG_LONG);
 
 #endif   // _RWSTD_LONG_LONG
@@ -1089,7 +1089,7 @@ static const char _rw_digits[] = {
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 };
 
-static int
+_RWSTD_INTERNAL int
 _rw_fmtlong (const FmtSpec &spec, char **pbuf, size_t *pbufsize, long val)
 {
     char buffer [130];   // big enough for a 128-bit long in base 2
@@ -1180,7 +1180,7 @@ _rw_fmtlong (const FmtSpec &spec, char **pbuf, size_t *pbufsize, long val)
 
 #ifdef _RWSTD_LONG_LONG
 
-static int
+_RWSTD_INTERNAL int
 _rw_fmtllong (const FmtSpec &spec,
              char **pbuf, size_t *pbufsize, _RWSTD_LONG_LONG val)
 {
@@ -1275,12 +1275,12 @@ rw_fmtinteger (const FmtSpec &spec, char **pbuf, size_t *pbufsize, IntT val)
     typedef _RWSTD_LONG_LONG LLong;
 
     const int len = sizeof (val) <= sizeof (long) ?
-          _rw_fmtlong (spec, pbuf, pbufsize, long (val))
-        : _rw_fmtllong (spec, pbuf, pbufsize, LLong (val));
+          ::_rw_fmtlong (spec, pbuf, pbufsize, long (val))
+        : ::_rw_fmtllong (spec, pbuf, pbufsize, LLong (val));
 
 #else   // if !defined (_RWSTD_LONG_LONG)
 
-    const int len = _rw_fmtlong (spec, pbuf, pbufsize, long (val));
+    const int len = ::_rw_fmtlong (spec, pbuf, pbufsize, long (val));
 
 #endif   // _RWSTD_LONG_LONG
 
@@ -2675,8 +2675,11 @@ int rw_fmtarray (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
 {
     RW_ASSERT (0 != pbuf);
 
-    if (0 == array || 0 > _RW::__rw_memattr (array, _RWSTD_SIZE_MAX, 0))
-        return _rw_fmtbadaddr (spec, pbuf, pbufsize, array);
+    if (0 == array || 0 > _RW::__rw_memattr (array, _RWSTD_SIZE_MAX, 0)) {
+        // qualify the name of the static function in order to
+        // allow it to be found when referenced from a template
+        return ::_rw_fmtbadaddr (spec, pbuf, pbufsize, array);
+    }
 
     if (_RWSTD_SIZE_MAX == nelems) {
         // compute the length of the NUL-terminate string
