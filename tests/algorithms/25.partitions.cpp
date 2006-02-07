@@ -108,6 +108,8 @@ void test_partitions (int                   line,
     const Iterator last  = make_iter (xsrc_end, xsrc, xsrc_end, it);
 
     const std::size_t last_n_op_assign = T::n_total_op_assign_;
+    const std::size_t t_n_ctors = T::n_total_def_ctor_ + T::n_total_copy_ctor_;
+    const std::size_t t_n_dtors = T::n_total_dtor_;
 
     const Predicate pred (value, 0 /* dummy */);
 
@@ -115,8 +117,21 @@ void test_partitions (int                   line,
             stable ? std::stable_partition (first, last, pred) 
                    : std::partition (first, last, pred);
 
+    // check that there is no leaked objects
+     const std::size_t t_n_objs_diff =
+           T::n_total_def_ctor_ + T::n_total_copy_ctor_
+         - t_n_ctors - T::n_total_dtor_ + t_n_dtors;
+
+    bool success = 0 == t_n_objs_diff;
+    rw_assert (success, 0, line,
+               "line %d: std::%s <%s, %s>(\"%s\", ...) ==> \"%{X=*.*}\", "
+               "number of objects changed on %d: %s detected",
+               __LINE__, fname, itname, funname, src, 
+               int (nsrc), -1, xsrc, t_n_objs_diff, 
+               t_n_objs_diff > 0 ? "memory leak" : "unexpected dtor call");
+
     // check that the returned iterator points to the expected element
-    bool success = res.cur_ == first.cur_ + offset;
+    success = res.cur_ == first.cur_ + offset;
     rw_assert (success, 0, line,
                "line %d: std::%s <%s, %s>(\"%s\", ...) ==> \"%{X=*.*}\", "
                "returned iterator it = first + %td, expected first + %zu",
@@ -180,31 +195,29 @@ void test_partitions (int                   line,
                 __LINE__, fname, itname, funname, src,
                 Predicate::funcalls_, nsrc);
 
-    if (!stable) {
-        delete[] xsrc;
-        delete[] xdst;
-        return;
-    }
+    if (stable) {
 
-    // check the stable_partition is really stable 25.2.12, p5
-    for (i = 0; i < nsrc; i++) {
-        success = xsrc[i].val_ == xdst[i].val_;
-        if (!success)
-            break;
-    }
+        // check the stable_partition is really stable 25.2.12, p5
+        for (i = 0; i < nsrc; i++) {
+            success = xsrc[i].val_ == xdst[i].val_;
+            if (!success)
+                break;
+        }
 
-    rw_assert (success, 0, line,
-               "line %d: std::%s <%s, %s>(\"%s\", ...) ==> \"%{X=*.*}\", "
-               "expected \"%{X=*.*}\", realtive order broken at %zu, "
-               "%#c != %#c",
-               __LINE__, fname, itname, funname, src, 
-               int (nsrc), int (i), xsrc, int (ndst), int (i), xdst,
-               i, xsrc[i].val_, xdst[i].val_);
+        rw_assert (success, 0, line,
+                   "line %d: std::%s <%s, %s>(\"%s\", ...) ==> \"%{X=*.*}\", "
+                   "expected \"%{X=*.*}\", realtive order broken at %zu, "
+                   "%#c != %#c",
+                   __LINE__, fname, itname, funname, src, 
+                   int (nsrc), int (i), xsrc, int (ndst), int (i), xdst,
+                   i, xsrc[i].val_, xdst[i].val_);
+    }
 
     delete[] xsrc;
     delete[] xdst;
 }
 
+/**************************************************************************/
 
 template <class T, class Iterator>
 void test_partitions (const Iterator &it, 
