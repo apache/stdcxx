@@ -76,6 +76,9 @@ typedef struct {
 #      define _RWSTD_MBSTATE_T   _STD::mbstate_t
 #    else   // if !(HP aCC -AA)
 
+       // let <cwchar> et al know that mbstate_t is not declared
+       // in namespace std (and should be introduced there via
+       // a using declaration)
 #      define _RWSTD_NO_STD_MBSTATE_T
 
 _RWSTD_NAMESPACE (std) {
@@ -89,6 +92,9 @@ _USING (::mbstate_t);
 #  else   // if defined (_MBSTATE_T)
      // /usr/include/sys/_mbstate_t.h #included and mbstate_t defined
 #    ifndef _NAMESPACE_STD
+       // let <cwchar> et al know that mbstate_t is not declared
+       // in namespace std (and should be introduced there via
+       // a using declaration)
 #      define _RWSTD_NO_STD_MBSTATE_T
 
 _RWSTD_NAMESPACE (std) {
@@ -160,6 +166,10 @@ typedef struct __mbstate_t {
 #    endif   // _MBSTATET_H
 
 #    define _RWSTD_MBSTATE_T __mbstate_t
+     // let <cwchar> et al know that mbstate_t is not declared
+     // in namespace std (and should be introduced there via
+     // a using declaration)
+#    define _RWSTD_NO_STD_MBSTATE_T
 
 #  elif defined (_RWSTD_OS_DARWIN)
 /*** Apple Darwin/OS X ****************************************************/
@@ -210,6 +220,10 @@ struct __mbstate_t
 #      endif  // _MBSTATET_H
 #    endif   // _WCHAR_IMPL_H
 #    define _RWSTD_MBSTATE_T __mbstate_t
+     // let <cwchar> et al know that mbstate_t is not declared
+     // in namespace std (and should be introduced there via
+     // a using declaration)
+#    define _RWSTD_NO_STD_MBSTATE_T
 #  else   // any other OS
 
 #    ifndef _RWSTD_NO_USING_LIBC_IN_STD
