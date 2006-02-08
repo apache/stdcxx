@@ -2,7 +2,7 @@
  *
  * ctype.cpp
  *
- * $Id: //stdlib/dev/source/stdlib/util/ctype.cpp#4 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -29,6 +29,7 @@
 #include <cctype>            // for toupper()
 #include <cstdio>            // for sprintf()
 #include <cstdlib>           // for strtol()
+#include <cstring>           // for memset(), strchr()
 #include <fstream>           // for ofstream
 #include <locale>            // for ctype_base::mask
 

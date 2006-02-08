@@ -2,7 +2,7 @@
  *
  * aliases.cpp
  *
- * $Id: //stdlib/dev/source/stdlib/util/aliases.cpp#20 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -27,9 +27,10 @@
 
 #include <rw/_defs.h>
 
-#include <cassert>   // for assert
+#include <cassert>   // for assert()
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>   // for memcpy(), strlen()
 #include <clocale>
 #include <locale>
 #include <iostream>

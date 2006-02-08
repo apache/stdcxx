@@ -2,7 +2,7 @@
  *
  * def.cpp
  *
- * $Id: //stdlib/dev/source/stdlib/util/def.cpp#2 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -46,6 +46,7 @@
 #include <clocale>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>   // for memset()
 
 #include "aliases.h"
 #include "def.h"
