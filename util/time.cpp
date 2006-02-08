@@ -2,7 +2,7 @@
  *
  * time.cpp
  *
- * $Id: //stdlib/dev/source/stdlib/util/time.cpp#4 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -26,6 +26,7 @@
 
 #include <cassert>        // for assert()
 #include <cstdio>         // for fscanf()
+#include <cstring>        // for strcmp(), strtok()
 #include <fstream>        // for ofstream
 
 
