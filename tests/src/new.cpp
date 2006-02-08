@@ -24,14 +24,11 @@
 
 #include <new>        // for bad_alloc
 
-#include <assert.h>   // for assert()
-#include <stdio.h>    // for fprintf(), stderr
 #include <stdlib.h>   // for abort(), free(), getenv(), malloc()
 #include <string.h>   // for memset()
 
-#include <testdefs.h>
 #include <driver.h>
-#include <printf.h>
+#include <rw_printf.h>
 #include <rw_new.h>
 
 /************************************************************************/
@@ -407,7 +404,7 @@ operator_new (size_t nbytes, bool array)
         }
 
         if (trace_sequence [0] <= seq_gen && seq_gen < trace_sequence [1])
-            rw_fprintf (rw_stderr, "%s:%d: %s (%zi) --> %p\n",
+            rw_fprintf (rw_stderr, "%s:%d: %s (%zu) --> %p\n",
                         __FILE__, __LINE__, name [array], nbytes, ptr);
 
         return 0;
@@ -481,7 +478,7 @@ operator_new (size_t nbytes, bool array)
 
     if (trace_sequence [0] <= seq_gen && seq_gen < trace_sequence [1])
         rw_error (0, 0, __LINE__,
-                  "%s:%d: %3zi. %s (%zi) --> %p\n", 
+                  "%s:%d: %3zi. %s (%zu) --> %p\n", 
                   __FILE__, __LINE__, seq_gen, 
                   name [array], nbytes, hdr->ptr_);
 
@@ -541,7 +538,7 @@ operator_delete (void *ptr, bool array)
         }
 
         if (trace_sequence [0] <= seq && seq < trace_sequence [1]) {
-            rw_error (0, 0, __LINE__, "%s:%d: %3zi. %s (%p); size = %zi%s\n",
+            rw_error (0, 0, __LINE__, "%s:%d: %3zi. %s (%p); size = %zu%s\n",
                       __FILE__, __LINE__, seq, name [array], ptr, nbytes,
                       mismatch ? ": array form mismatch" : "");
         }
@@ -554,8 +551,8 @@ operator_delete (void *ptr, bool array)
 
             rw_error (0, 0, __LINE__,
                       "%s:%d: deallocation mismatch: "
-                      "pointer allocated %zi%s in the program "
-                      "with a call to operator new%s(%zi) "
+                      "pointer allocated %zu%s in the program "
+                      "with a call to operator new%s(%zu) "
                       "being deallocated with the wrong form of %s(%p)\n",
                       __FILE__, __LINE__,
                       seq + 1, ord_sfx, array ? "" : "[]",
