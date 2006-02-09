@@ -303,7 +303,7 @@ static int run_test (int, char*[])
                  "std::includes predicate test disabled");
     }
     else {
-        test_includes ((X*)0, (Less<X>*)0);
+        test_includes ((X*)0, (Less<X>*)1);
     }
 
     return 0;
