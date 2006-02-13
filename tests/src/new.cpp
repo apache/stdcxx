@@ -134,7 +134,7 @@ _rw_find_block (void *ptr, bool check_heap, const char *caller)
             if (hdr->self_ != hdr) {
                 rw_error (0, 0, __LINE__,
                           "%s:%d: header guard corruption at %p: "
-                          "expected %p, got %p\n",
+                          "expected %p, got %p",
                           hdr->ptr_, (const void*)hdr, hdr->self_);
                 abort ();
             }
@@ -143,7 +143,7 @@ _rw_find_block (void *ptr, bool check_heap, const char *caller)
             if (hdr->ptr_ != hdr + 1) {
                 rw_error (0, 0, __LINE__,
                           "%s:%d: block address mismatch: "
-                          "expected %p, got %p\n",
+                          "expected %p, got %p",
                           __FILE__, __LINE__,
                           (const void*)(hdr + 1), hdr->ptr_);
 
@@ -163,7 +163,7 @@ _rw_find_block (void *ptr, bool check_heap, const char *caller)
 
                 rw_error (0, 0, __LINE__,
                           "%s:%d: trailing guard corruption at %p "
-                          "+ %zu of a %zu byte block: '0x%02x' != '0x%x'\n",
+                          "+ %zu of a %zu byte block: '0x%02x' != '0x%x'",
                           __FILE__, __LINE__, hdr->ptr_,
                           hdr->size_ + off + 1, hdr->size_,
                           UChar (grd [off]), UChar (Guard [off]));
@@ -189,7 +189,7 @@ _rw_find_block (void *ptr, bool check_heap, const char *caller)
             rw_error (0, 0, __LINE__,
                       "%s:%d: counts mismatch: found %zu "
                       "bytes in %zu blocks, expected "
-                      "%zu in %zu\n", __FILE__, __LINE__, 
+                      "%zu in %zu", __FILE__, __LINE__, 
                       nbytes, nblocks, sum_bytes, sum_blocks);
 
             abort ();
@@ -201,7 +201,7 @@ _rw_find_block (void *ptr, bool check_heap, const char *caller)
 #if !defined (__DECCXX_VER) || __DECCXX_VER >= 60600000
 
         rw_error (0, 0, __LINE__,  
-                  "%s:%d: %s (%p): invalid pointer\n",
+                  "%s:%d: %s (%p): invalid pointer",
                   __FILE__, __LINE__, caller, ptr);
 
         _rw_print_heap ();
@@ -215,7 +215,7 @@ _rw_find_block (void *ptr, bool check_heap, const char *caller)
         if (static_dtors) {
 
             rw_error (0, 0, __LINE__, 
-                      "%s:%d: %s (%p): invalid pointer\n",
+                      "%s:%d: %s (%p): invalid pointer",
                       __FILE__, __LINE__, caller, ptr);
 
             print_heap ();
@@ -229,7 +229,7 @@ _rw_find_block (void *ptr, bool check_heap, const char *caller)
             if (!warned++) {
                 rw_warning (0, 0, __LINE__,
                             "%s:%d: %s (%p): warning: invalid pointer; "
-                            "ignoring memory errors from here on out\n",
+                            "ignoring memory errors from here on out",
                             __FILE__, __LINE__, caller, ptr);
             }
         }
@@ -247,7 +247,7 @@ static void
 _rw_print_heap ()
 {
     rw_info (0, 0, __LINE__,
-             "%s:%d: heap dump:\n%zu bytes in %zu blocks%s\n",
+             "%s:%d: heap dump:\n%zu bytes in %zu blocks%s",
              __FILE__, __LINE__, pst->bytes_, pst->blocks_, last ? ":" : "");
 
     for (Header *hdr = last; hdr; hdr = hdr->prev_) {
@@ -256,7 +256,7 @@ _rw_print_heap ()
         const bool array = !!(seq >> (_RWSTD_CHAR_BIT * sizeof (size_t) - 1));
 
         rw_info (0, 0, __LINE__, 
-                 "%zu: %zu bytes at %p allocated by operator new%s()\n",
+                 "%zu: %zu bytes at %p allocated by operator new%s()",
                  hdr->id_, hdr->size_, hdr->ptr_, array ? "[]" : "");
     }
 
@@ -478,7 +478,7 @@ operator_new (size_t nbytes, bool array)
 
     if (trace_sequence [0] <= seq_gen && seq_gen < trace_sequence [1])
         rw_error (0, 0, __LINE__,
-                  "%s:%d: %3zi. %s (%zu) --> %p\n", 
+                  "%s:%d: %3zi. %s (%zu) --> %p", 
                   __FILE__, __LINE__, seq_gen, 
                   name [array], nbytes, hdr->ptr_);
 
@@ -538,7 +538,7 @@ operator_delete (void *ptr, bool array)
         }
 
         if (trace_sequence [0] <= seq && seq < trace_sequence [1]) {
-            rw_error (0, 0, __LINE__, "%s:%d: %3zi. %s (%p); size = %zu%s\n",
+            rw_error (0, 0, __LINE__, "%s:%d: %3zi. %s (%p); size = %zu%s",
                       __FILE__, __LINE__, seq, name [array], ptr, nbytes,
                       mismatch ? ": array form mismatch" : "");
         }
@@ -553,7 +553,7 @@ operator_delete (void *ptr, bool array)
                       "%s:%d: deallocation mismatch: "
                       "pointer allocated %zu%s in the program "
                       "with a call to operator new%s(%zu) "
-                      "being deallocated with the wrong form of %s(%p)\n",
+                      "being deallocated with the wrong form of %s(%p)",
                       __FILE__, __LINE__,
                       seq + 1, ord_sfx, array ? "" : "[]",
                       nbytes, name [array], ptr);
@@ -587,7 +587,7 @@ operator_delete (void *ptr, bool array)
         ++pst->delete_0_calls_ [array];
 
         if (trace_sequence [0] <= seq_gen && seq_gen < trace_sequence [1])
-            rw_error (0, 0, __LINE__, "%s:%d: %s (0)\n", 
+            rw_error (0, 0, __LINE__, "%s:%d: %s (0)", 
                       __FILE__, __LINE__, name [array]);
     }
 }
