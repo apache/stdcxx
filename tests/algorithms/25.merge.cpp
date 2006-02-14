@@ -29,8 +29,6 @@
 
 _RWSTD_NAMESPACE (std) { 
 
-// disable explicit instantiation for compilers (like MSVC)
-// that can't handle it
 #ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION
 
 template
@@ -69,7 +67,6 @@ inplace_merge (BidirIter<lt_comp<assign<base<cpy_ctor> > > >,
 
 /**************************************************************************/
 
-template <class T>
 struct Less
 {
     static std::size_t funcalls_;
@@ -82,97 +79,158 @@ struct Less
 
     // return a type other than bool but one that is implicitly
     // convertible to bool to detect incorrect assumptions
-    conv_to_bool operator() (const T &x, const T &y) /* non-const */ {
+    conv_to_bool operator() (const X &x, const X &y) /* non-const */ {
         ++funcalls_;
         return conv_to_bool::make (x.val_ < y.val_);
     }
-
-    static const char* name () { return "Less"; }
 
 private:
     void operator= (Less&);   // not assignable
 };
 
-template<class T> std::size_t Less<T>::funcalls_;
+std::size_t Less::funcalls_;
 
 /**************************************************************************/
 
-template <class T, class InputIter1, class InputIter2, 
-          class OutputIterator, class BidirectIterator, class Predicate>
-void test_merge (int                     line,
-                 const char             *src1,
-                 const char             *src2,
-                 const std::size_t       midinx,
-                 const InputIter1       &it1,
-                 const InputIter2       &it2,
-                 const OutputIterator   &out,
-                 const BidirectIterator &bit,
-                 const T*,
-                 const Predicate        *ppred,
-                 bool                    inplace)
+// ordinary (non-template) base to minimize code bloat
+struct MergeTestBase
 {
-    const char* const it1name =
-        inplace ? type_name (bit, (T*)0) : type_name (it1, (T*)0);
-    const char* const it2name = type_name (it2, (T*)0);
-    const char* const outname = type_name (out, (T*)0);
-    const char* const fname   = inplace ? "inplace_merge" : "merge";
-    const char* const funname = Predicate::name();
+    const char* iter_names [3];
+
+    virtual ~MergeTestBase () { }
+
+    // invokes inplace_merge with iterators initialized
+    // to the specified arguments and (optionally) with
+    // a predicate object
+    virtual void
+    inplace_merge (X*, X*, X*, const Less*) const {
+        RW_ASSERT (!"test logic error");
+    }
+
+    // invokes merge
+    virtual X*
+    merge (const X*, const X*, const X*, const X*, X*, X*, const Less*) const {
+        RW_ASSERT (!"test logic error");
+        return 0;
+    }
+};
+
+template <class InputIterator1, class InputIterator2, class OutputIterator>
+struct MergeTest: MergeTestBase
+{
+    MergeTest () {
+        iter_names [0] = type_name (InputIterator1 (0, 0, 0), (X*)0);
+        iter_names [1] = type_name (InputIterator2 (0, 0, 0), (X*)0);
+        iter_names [2] = type_name (OutputIterator (0, 0, 0), (X*)0);
+    }
+
+    virtual X*
+    merge (const X    *xsrc1, const X *xsrc1_end,
+           const X    *xsrc2, const X *xsrc2_end,
+           X          *xdst, X *xdst_end,
+           const Less *ppred) const {
+
+        const InputIterator1 first1 (xsrc1,     xsrc1, xsrc1_end);
+        const InputIterator1 last1  (xsrc1_end, xsrc1, xsrc1_end);
+        const InputIterator2 first2 (xsrc2,     xsrc2, xsrc2_end);
+        const InputIterator2 last2  (xsrc2_end, xsrc2, xsrc2_end);
+
+        const OutputIterator result (xdst, xdst, xdst_end);
+
+        const OutputIterator ret = ppred ?
+              std::merge (first1, last1, first2, last2, result, *ppred)
+            : std::merge (first1, last1, first2, last2, result);
+
+        // silence EDG eccp 3.7 and prior remark #550-D:
+        //   variable was set but never used
+        _RWSTD_UNUSED (ret);
+
+        return ret.cur_;
+    }
+};
+
+template <class BidirectionalIterator>
+struct InplaceMergeTest: MergeTestBase
+{
+    InplaceMergeTest () {
+        iter_names [0] = type_name (BidirectionalIterator (0, 0, 0), (X*)0);
+        iter_names [1] = 0;
+        iter_names [2] = 0;
+    }
+
+    virtual void
+    inplace_merge (X *xsrc, X *xsrc_mid, X *xsrc_end, const Less *ppred) const {
+
+        const BidirectionalIterator first (xsrc,     xsrc, xsrc_end);
+        const BidirectionalIterator mid   (xsrc_mid, xsrc, xsrc_end);
+        const BidirectionalIterator last  (xsrc_end, xsrc, xsrc_end);
+
+        if (ppred)
+            std::inplace_merge (first, mid, last, *ppred);
+        else
+            std::inplace_merge (first, mid, last);
+    }
+};
+
+/**************************************************************************/
+
+// ordinary (non-template) function to minimize code bloat
+void test_merge (int                  line,
+                 const char          *src1,
+                 const char          *src2,
+                 const std::size_t    midinx,
+                 bool                 predicate,
+                 const MergeTestBase &alg)
+{
+    const char* const it1name  = alg.iter_names [0];
+    const char* const it2name  = alg.iter_names [1];
+    const char* const outname  = alg.iter_names [2];
+    const char* const predname = predicate ? "Less" : 0;
+    const bool        inplace  = 0 == it2name;
+    const char* const algname  =  inplace ? "inplace_merge" : "merge";
 
     const std::size_t nsrc1 = std::strlen (src1);
     const std::size_t nsrc2 = std::strlen (src2);
 
-    T* const xsrc1 = T::from_char (src1, nsrc1);
-    T* const xsrc2 = T::from_char (src2, nsrc2);
+    X* const xsrc1 = X::from_char (src1, nsrc1);
+    X* const xsrc2 = X::from_char (src2, nsrc2);
 
     const std::size_t ndst = nsrc1 + nsrc2;
-    T* const xdst = inplace ? xsrc1 : new T [ndst];
+    X* const xdst = inplace ? xsrc1 : new X [ndst];
 
-    T* const xsrc1_end = xsrc1 + nsrc1;
-    T* const xsrc2_end = xsrc2 + nsrc2;
-    T* const xsrc_mid  = xsrc1 + midinx;
-    T* const xdst_end  = xdst + ndst;
+    X* const xsrc1_end = xsrc1 + nsrc1;
+    X* const xsrc2_end = xsrc2 + nsrc2;
+    X* const xsrc_mid  = xsrc1 + midinx;
+    X* const xdst_end  = xdst + ndst;
 
-    const InputIter1 first1 = make_iter (xsrc1,     xsrc1, xsrc1_end, it1);
-    const InputIter1 last1  = make_iter (xsrc1_end, xsrc1, xsrc1_end, it1);
-    const InputIter2 first2 = make_iter (xsrc2,     xsrc2, xsrc2_end, it2);
-    const InputIter2 last2  = make_iter (xsrc2_end, xsrc2, xsrc2_end, it2);
+    const std::size_t last_n_op_lt = X::n_total_op_lt_;
 
-    const OutputIterator res_first = make_iter (xdst, xdst, xdst_end, out);
+    const Less pred (0, 0);
+    const Less* const ppred = predicate ? &pred : 0;
 
-    const BidirectIterator first = make_iter (xsrc1,     xsrc1, xsrc1_end, bit);
-    const BidirectIterator mid   = make_iter (xsrc_mid,  xsrc1, xsrc1_end, bit);
-    const BidirectIterator last  = make_iter (xsrc1_end, xsrc1, xsrc1_end, bit);
-
-    const Predicate pred (0, 0);
-
-    const std::size_t last_n_op_lt = T::n_total_op_lt_;
-    OutputIterator result (0, 0, 0);
+    X* xdst_res = 0;
 
     if (inplace) {  // inplace_merge
-        if (ppred)
-            std::inplace_merge (first, mid, last, pred);
-        else
-            std::inplace_merge (first, mid, last);
+        alg.inplace_merge (xsrc1, xsrc_mid, xsrc1_end, ppred);
     }
-    else {          // merge
-        result = ppred ?
-              std::merge (first1, last1, first2, last2, res_first, pred)
-            : std::merge (first1, last1, first2, last2, res_first);
+    else {
+        xdst_res = alg.merge (xsrc1, xsrc1_end,
+                              xsrc2, xsrc2_end, xdst, xdst_end, ppred);
     }
 
     const std::size_t n_ops_lt = ppred ? 
-        Predicate::funcalls_ : T::n_total_op_lt_ - last_n_op_lt;
+        Less::funcalls_ : X::n_total_op_lt_ - last_n_op_lt;
 
     bool success = true;
 
     // check output iterator for merge
     if (!inplace) {
-        success = result.cur_ == xdst_end;
+        success = xdst_res == xdst_end;
         rw_assert (success, 0, line,
                    "line %d: %s<%s, %s, %s%{?}, %s%{;}> (\"%s\", \"%s\", ...)"
-                   " return : expected first + %zu, got first + %td",
-                   __LINE__, fname, it1name, it2name, outname, ppred, funname,
-                   src1, src2, ndst, result.cur_ - res_first.cur_);
+                   " == first + %zu, got first + %td",
+                   __LINE__, algname, it1name, it2name, outname, predicate,
+                   predname, src1, src2, ndst, xdst_res - xdst);
     }
 
     // check that the sequence is sorted
@@ -181,8 +239,8 @@ void test_merge (int                     line,
                "line %d: %s<%s%{?}, %s, %s%{;}%{?}, %s%{;}> "
                "(\"%s\", %{?}\"%s\"%{;}%{?}%zu%{;}, ...) ==> \"%{X=*.*}\" "
                "not sorted",
-               __LINE__, fname, it1name, !inplace, it2name, outname, 
-               ppred, funname, src1, !inplace, src2, inplace, midinx,
+               __LINE__, algname, it1name, !inplace, it2name, outname, 
+               predicate, predname, src1, !inplace, src2, inplace, midinx,
                int (ndst), -1, xdst);
 
     // check that the algorithm is stable
@@ -201,9 +259,9 @@ void test_merge (int                     line,
     rw_assert (success, 0, line,
                "line %d: %s<%s%{?}, %s, %s%{;}%{?}, %s%{;}> "
                "(\"%s\", %{?}\"%s\"%{;}%{?}%zu%{;}, ...) ==> \"%{X=*.*}\" "
-               "not stable at %zu: got ids %d !< %d for values %#c == %#c",
-               __LINE__, fname, it1name, !inplace, it2name, outname, 
-               ppred, funname, src1, !inplace, src2, inplace, midinx,
+               "not stable at %zu: got ids %d != %d for values %#c == %#c",
+               __LINE__, algname, it1name, !inplace, it2name, outname, 
+               predicate, predname, src1, !inplace, src2, inplace, midinx,
                int (ndst), i, xdst, i, xdst [i - 1].origin_, 
                xdst [i].origin_, xdst [i - 1].val_, xdst [i].val_);
 
@@ -212,9 +270,9 @@ void test_merge (int                     line,
     rw_assert (success, 0, line,
                "line %d: %s<%s%{?}, %s, %s%{;}%{?}, %s%{;}> "
                "(\"%s\", %{?}\"%s\"%{;}%{?}%zu%{;}, ...) ==> \"%{X=*.*}\" "
-               "complexity: got %zu, expected no more than %zu",
-               __LINE__, fname, it1name, !inplace, it2name, outname, 
-               ppred, funname, src1, !inplace, src2, inplace, midinx,
+               "complexity: got %zu, expected <= %zu",
+               __LINE__, algname, it1name, !inplace, it2name, outname, 
+               predicate, predname, src1, !inplace, src2, inplace, midinx,
                int (ndst), -1, xdst, n_ops_lt, ndst - 1);
 
     delete[] xsrc1;
@@ -226,29 +284,20 @@ void test_merge (int                     line,
 
 /**************************************************************************/
 
-template <class T, class InputIter1, class InputIter2, 
-          class OutputIterator, class Predicate>
-void test_merge (const InputIter1     &it1,
-                 const InputIter2     &it2,
-                 const OutputIterator &out,
-                 const T*,
-                 const Predicate      *ppred)
+void test_merge (const MergeTestBase &alg, bool predicate)
 {
-    const char* const it1name = type_name (it1, (T*)0);
-    const char* const it2name = type_name (it2, (T*)0);
-    const char* const outname = type_name (out, (T*)0);
-    const char* const fname   = "merge";
-    const char* const funname = Predicate::name();
-
-    static const BidirIter<T> bidir_iter (0, 0, 0);
+    const char* const it1name  = alg.iter_names [0];
+    const char* const it2name  = alg.iter_names [1];
+    const char* const outname  = alg.iter_names [2];
+    const char* const predname = predicate ? "Less" : 0;
+    const char* const algname  = it2name ? "merge" : "inplace_merge";
 
     rw_info (0, 0, 0,
              "%s std::%s(%s, %3$s, %s, %4$s, %1$s%{?}, %s%{;})",
-             outname, fname, it1name, it2name, ppred, funname);
+             outname, algname, it1name, it2name, predicate, predname);
 
 #define TEST(src1, src2)                                            \
-    test_merge (__LINE__, src1, src2, 0, it1, it2, out,             \
-                bidir_iter, (T*)0, ppred, false)     
+    test_merge (__LINE__, src1, src2, 0, predicate, alg)
 
     TEST ("ab", "");
     TEST ("", "ab");
@@ -309,23 +358,19 @@ void test_merge (const InputIter1     &it1,
 
 /**************************************************************************/
 
-template <class T, class BidirectIterator, class Predicate>
-void test_inplace_merge (const BidirectIterator &it,
-                         const T*, 
-                         const Predicate        *ppred)
+void test_inplace_merge (const MergeTestBase &alg, bool predicate)
 {
-    const char* const itname  = type_name (it, (T*)0);
-    const char* const fname   = "inplace_merge";
-    const char* const funname = Predicate::name();
+    const char* const itname   = alg.iter_names [0];
+    const char* const predname = predicate ? "Less" : 0;
+    const char* const algname  = alg.iter_names [1] ?
+        "merge" : "inplace_merge";
 
-    rw_info (0, 0, 0,
-             "std::%s(%s, %2$s, %2$s%{?}, %s%{;})",
-             fname, itname, ppred, funname);
+    rw_info (0, 0, 0, "std::%s(%s, %2$s, %2$s%{?}, %s%{;})",
+             algname, itname, predicate, predname);
 
 #undef TEST
-#define TEST(src, mid)                                              \
-    test_merge (__LINE__, src, "", mid, it, it, it,                 \
-                it, (T*)0, ppred, true)     
+#define TEST(src, mid)                                            \
+    test_merge (__LINE__, src, "", mid, predicate, alg)     
 
     TEST ("a",  0);
     TEST ("aa", 0);
@@ -363,201 +408,125 @@ void test_inplace_merge (const BidirectIterator &it,
 
 /**************************************************************************/
 
-/* extern */ int rw_opt_no_merge;               // --no-merge
-/* extern */ int rw_opt_no_inplace_merge;       // --no-inplace_merge
-/* extern */ int rw_opt_no_predicate;           // --no-predicate
-/* extern */ int rw_opt_no_input_iter;          // --no-InputIterator
-/* extern */ int rw_opt_no_output_iter;         // --no-OutputIterator
-/* extern */ int rw_opt_no_fwd_iter;            // --no-ForwardIterator
-/* extern */ int rw_opt_no_bidir_iter;          // --no-BidirectionalIterator
-/* extern */ int rw_opt_no_rnd_iter;            // --no-RandomAccessIterator
+/* extern */ int rw_opt_no_merge;           // --no-merge
+/* extern */ int rw_opt_no_inplace_merge;   // --no-inplace_merge
+/* extern */ int rw_opt_no_predicate;       // --no-predicate
+/* extern */ int rw_opt_no_input_iter;      // --no-InputIterator
+/* extern */ int rw_opt_no_output_iter;     // --no-OutputIterator
+/* extern */ int rw_opt_no_fwd_iter;        // --no-ForwardIterator
+/* extern */ int rw_opt_no_bidir_iter;      // --no-BidirectionalIterator
+/* extern */ int rw_opt_no_rnd_iter;        // --no-RandomAccessIterator
 
 /**************************************************************************/
 
-template <class T, class InputIterator1, class InputIterator2, 
-          class OutputIterator, class Predicate>
-void test_merge (const InputIterator1   &it1,
-                 const InputIterator2   &it2,
-                 const OutputIterator   &out,
-                 int                     tag1,
-                 int                     tag2,
-                 int                     tag3,
-                 const T*,
-                 const Predicate        *ppred)
+template <class InputIterator1, class InputIterator2, class OutputIterator>
+void gen_merge_test (const InputIterator1&,
+                     const InputIterator2&,
+                     const OutputIterator&,
+                     bool predicate)
 {
-    static const InputIter<T>        input_iter (0, 0, 0);
-    static const OutputIter<T>       output_iter (0, 0, 0);
-    static const FwdIter<T>          fwd_iter (0, 0, 0);
-    static const BidirIter<T>        bidir_iter (0, 0, 0);
-    static const RandomAccessIter<T> rand_iter (0, 0, 0);
+    const MergeTest<InputIterator1, InputIterator2, OutputIterator> alg;
 
-    if (tag1 && tag2 && tag3) {
-        rw_info (0, 0, 0,
-                 "template <class %s, class %s, class %s%{?}, class %s%{;}> "
-                 "%3$s std::merge(%1$s, %1$s, %2$s, %2$s, %3$s%{?}, %s%{;})",
-                 "InputIterator1", "InputIterator2", "OutputIterator",
-                 ppred, "Compare", ppred, "Compare");
-    }
+    test_merge (alg, predicate);
+}
 
-    // tag1, tag2 and tag3 indicates that an iterator needs to be generated
-    // at the corresponding position by a recursive call to test_merge
-    // for all tags:
-    // 0 means that no iterator is needed here
-    //         (maybe it was already generated or just not needed)
-    // 1 means that the iterator is needed at this position
-    //         (first for tag1, second for tag2, etc)
+template <class InputIterator1, class InputIterator2>
+void gen_merge_test (const InputIterator1 &it1,
+                     const InputIterator2 &it2,
+                     bool predicate)
+{
+    if (0 == rw_opt_no_output_iter)
+        gen_merge_test (it1, it2, OutputIter<X>(0, 0, 0), predicate);
+    if (0 == rw_opt_no_fwd_iter)
+        gen_merge_test (it1, it2, FwdIter<X>(0, 0, 0), predicate);
+    if (0 == rw_opt_no_bidir_iter)
+        gen_merge_test (it1, it2, BidirIter<X>(0, 0, 0), predicate);
+    if (0 == rw_opt_no_rnd_iter)
+        gen_merge_test (it1, it2, RandomAccessIter<X>(0, 0, 0), predicate);
+}
 
-    ////////////////////////////////////////////////////////////////////////
-    if (rw_opt_no_input_iter) {
-        if (tag1 || tag2) 
-            rw_note (0, __FILE__, __LINE__, "InputIterator test disabled");
-    }
-    else {
-        if (tag1) { 
-            test_merge (input_iter, it2, out, 0, tag2, tag3, (T*)0, ppred);
-        }
-        else if (tag1 == 0 && tag2) {
-            test_merge (it1, input_iter, out, tag1, 0, tag3, (T*)0, ppred);
-        }
-    }
+template <class InputIterator1>
+void gen_merge_test (const InputIterator1 &it1, bool predicate)
+{
+    if (0 == rw_opt_no_input_iter)
+        gen_merge_test (it1, InputIter<X>(0, 0, 0), predicate);
+    if (0 == rw_opt_no_fwd_iter)
+        gen_merge_test (it1, ConstFwdIter<X>(0, 0, 0), predicate);
+    if (0 == rw_opt_no_bidir_iter)
+        gen_merge_test (it1, ConstBidirIter<X>(0, 0, 0), predicate);
+    if (0 == rw_opt_no_rnd_iter)
+        gen_merge_test (it1, ConstRandomAccessIter<X>(0, 0, 0), predicate);
+}
 
-    ////////////////////////////////////////////////////////////////////////
-    if (rw_opt_no_fwd_iter) {
-        if (tag1 || tag2 || tag3)
-            rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
-    }
-    else {
-        if (tag1) { 
-            test_merge (fwd_iter, it2, out, 0, tag2, tag3, (T*)0, ppred);
-        }
-        else if (tag1 == 0 && tag2) {
-            test_merge (it1, fwd_iter, out, tag1, 0, tag3, (T*)0, ppred);
-        }
-        else if (tag1 == 0 && tag2 == 0 && tag3) {
-            test_merge (it1, it2, fwd_iter, tag1, tag2, 0, (T*)0, ppred);
-        }
-    }
+// generates a specialization of the merge test for each of the required
+// iterator categopries
+void gen_merge_test (bool predicate)
+{
+    if (rw_opt_no_input_iter)
+        rw_note (0, 0, 0, "InputIterator test disabled");
+    else
+        gen_merge_test (InputIter<X>(0, 0, 0), predicate);
 
-    ////////////////////////////////////////////////////////////////////////
-    if (rw_opt_no_bidir_iter) {
-        if (tag1 || tag2 || tag3)
-            rw_note (0, __FILE__, __LINE__, 
-                     "BidirectionalIterator test disabled");
-    }
-    else {
-        if (tag1) { 
-            test_merge (bidir_iter, it2, out, 0, tag2, tag3, (T*)0, ppred);
-        }
-        else if (tag1 == 0 && tag2) {
-            test_merge (it1, bidir_iter, out, tag1, 0, tag3, (T*)0, ppred);
-        }
-        else if (tag1 == 0 && tag2 == 0 && tag3) {
-            test_merge (it1, it2, bidir_iter, tag1, tag2, 0, (T*)0, ppred);
-        }
-    }
+    if (rw_opt_no_fwd_iter)
+        rw_note (0, 0, 0, "ForwardIterator test disabled");
+    else
+        gen_merge_test (ConstFwdIter<X>(0, 0, 0), predicate);
 
-    ////////////////////////////////////////////////////////////////////////
-    if (rw_opt_no_rnd_iter) {
-        if (tag1 || tag2 || tag3)
-            rw_note (0, __FILE__, __LINE__, 
-                     "RandomAccessIterator test disabled");
-    }
-    else {
-        if (tag1) { 
-            test_merge (rand_iter, it2, out, 0, tag2, tag3, (T*)0, ppred);
-        }
-        else if (tag1 == 0 && tag2) {
-            test_merge (it1, rand_iter, out, tag1, 0, tag3, (T*)0, ppred);
-        }
-        else if (tag1 == 0 && tag2 == 0 && tag3) {
-            test_merge (it1, it2, rand_iter, tag1, tag2, 0, (T*)0, ppred);
-        }
-    }
+    if (rw_opt_no_bidir_iter)
+        rw_note (0, 0, 0, "BidirectionalIterator test disabled");
+    else
+        gen_merge_test (ConstBidirIter<X>(0, 0, 0), predicate);
 
-    ////////////////////////////////////////////////////////////////////////
-    if (rw_opt_no_output_iter) {
-        if (!tag1 && !tag2 && tag3)
-            rw_note (0, __FILE__, __LINE__, 
-                     "OutputIterator test disabled");
-    }
-    else {
-        if (tag1 == 0 && tag2 == 0 && tag3) {
-            test_merge (it1, it2, output_iter, tag1, tag2, 0, (T*)0, ppred);
-        }
-    }
-
-    if (0 == tag1 && 0 == tag2 && 0 == tag3)
-        test_merge (it1, it2, out, (T*)0, ppred);
+    if (rw_opt_no_rnd_iter)
+        rw_note (0, 0, 0, "RandomAccessIterator test disabled");
+    else
+        gen_merge_test (ConstRandomAccessIter<X>(0, 0, 0), predicate);
 }
 
 /**************************************************************************/
 
-template <class T, class Predicate>
-void test_inplace_merge (const T*, 
-                         const Predicate *ppred)
+template <class BidirectionalIterator>
+void gen_inplace_merge_test (const BidirectionalIterator&, bool predicate)
 {
-    static const BidirIter<T>        bidir_iter (0, 0, 0);
-    static const RandomAccessIter<T> rand_iter (0, 0, 0);
+    const InplaceMergeTest<BidirectionalIterator> alg;
 
-    rw_info (0, 0, 0,
-             "template <class %s%{?}, class %s%{;}> "
-             "std::inplace_merge (%1$s, %1$s, %1$s%{?}, %s%{;})",
-             "BidirectionalIterator", ppred, "Compare", ppred, "Compare");
-
-    if (rw_opt_no_bidir_iter) {
-        rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
-    }
-    else {
-        test_inplace_merge (bidir_iter, (T*)0, ppred);
-    }
-
-    if (rw_opt_no_rnd_iter) {
-        rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
-    }
-    else {
-        test_inplace_merge (rand_iter, (T*)0, ppred);
-    }
+    test_inplace_merge (alg, predicate);
 }
 
 /**************************************************************************/
 
 static int run_test (int, char*[])
 {
-    const Less<X> less_pred(0, 0);
+    if (rw_opt_no_predicate)
+        rw_note (0, 0, 0, "predicate test disabled");
 
-    if (rw_opt_no_merge) {
-        rw_note (0, __FILE__, __LINE__, 
-                 "std::merge test disabled");
-    }
+    const int niters = rw_opt_no_predicate ? 1 : 2;
+
+    //////////////////////////////////////////////////////////////////
+    if (rw_opt_no_merge)
+        rw_note (0, 0, 0, "merge test disabled");
     else {
-        static const FwdIter<X> fwd_iter (0, 0, 0);
-
-        test_merge (fwd_iter, fwd_iter, fwd_iter, 1, 1, 1, 
-                   (X*)0, (Less<X>*)0);
-
-        if (rw_opt_no_predicate) {
-          rw_note (0, __FILE__, __LINE__, 
-                   "std::merge predicate test disabled");
-        }
-        else {
-            test_merge (fwd_iter, fwd_iter, fwd_iter, 1, 1, 1, 
-                       (X*)0, &less_pred);
+        for (int i = 0; i != niters; ++i) {
+            gen_merge_test (1 == i);
         }
     }
 
+    //////////////////////////////////////////////////////////////////
     if (rw_opt_no_inplace_merge) {
-        rw_note (0, __FILE__, __LINE__, 
-                 "std::inplace_merge test disabled");
+        rw_note (0, 0, 0, "inplace_merge test disabled");
     }
     else {
-        test_inplace_merge ((X*)0, (Less<X>*)0);
+        for (int i = 0; i != niters; ++i) {
 
-        if (rw_opt_no_predicate) {
-          rw_note (0, __FILE__, __LINE__, 
-                   "std::inplace_merge predicate test disabled");
-        }
-        else {
-            test_inplace_merge ((X*)0, &less_pred);
+            if (rw_opt_no_bidir_iter)
+                rw_note (0, 0, 0, "BidirectionalIterator test disabled");
+            else
+                gen_inplace_merge_test (BidirIter<X> (0, 0, 0), 1 == i);
+
+            if (rw_opt_no_rnd_iter)
+                rw_note (0, 0, 0, "RandomAccessIterator test disabled");
+            else
+                gen_inplace_merge_test (RandomAccessIter<X> (0, 0, 0), 1 == i);
         }
     }
 
@@ -571,7 +540,8 @@ int main (int argc, char *argv[])
 {
     return rw_test (argc, argv, __FILE__,
                     "lib.alg.merge",
-                    0 /* no comment */, run_test,
+                    0 /* no comment */,
+                    run_test,
                     "|-no-merge# "
                     "|-no-inplace_merge# "
                     "|-no-predicate#"
