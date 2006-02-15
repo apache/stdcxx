@@ -2,7 +2,7 @@
  *
  * collate.cpp
  *
- * $Id: //stdlib/dev/source/stdlib/util/collate.cpp#4 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -33,6 +33,7 @@
 #include <cctype>         // for toupper()
 #include <cstdio>         // for sprintf()
 #include <cstdlib>        // for strtoul()
+#include <cstring>        // for strchr()
 
 
 void Def::process_weights (collate_entry_t& entry)
