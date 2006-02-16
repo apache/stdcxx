@@ -2,7 +2,7 @@
  *
  * sstream.cc - Declarations for the Standard Library basic strings
  *
- * $Id: //stdlib/dev/include/sstream.cc#31 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -28,35 +28,39 @@ basic_stringbuf<_CharT, _Traits, _Allocator>::
 basic_stringbuf (const _C_string_type& __str, ios_base::openmode __mode)
     : basic_streambuf<_CharT, _Traits>(__mode)
 {
-    typedef _RWSTD_STREAMSIZE _Streamsize;
-
-    this->_C_own_buf (true);
-
-    const _Streamsize __slen = _Streamsize (__str.length ());
-
-    if (__slen != 0) {
-
-        typedef _RWSTD_ALLOC_TYPE (allocator_type, char_type) _ValueAlloc;
-
-        this->_C_bufsize = __slen;
-        this->_C_buffer  = _ValueAlloc ().allocate (this->_C_bufsize);
-        traits_type::copy (this->_C_buffer, __str.data (), __slen);
-        
-        if (this->_C_is_in ())
-            this->setg (this->_C_buffer, this->_C_buffer, this->_C_buf_end ());
-        
-        if (this->_C_is_out ())
-            this->setp (this->_C_buffer, this->_C_buf_end ());
-        
-        if (__mode & (ios_base::app | ios_base::ate))
-            this->pbump (__slen);   // "seek" to end
-    }
+    str (__str);
 }
 
+
+// extension
+template<class _CharT, class _Traits, class _Allocator>
+basic_stringbuf<_CharT, _Traits, _Allocator>::
+basic_stringbuf (const char_type *__s, ios_base::openmode __mode)
+    : basic_streambuf<_CharT, _Traits>(__mode)
+{
+    _RWSTD_ASSERT (0 != __s);
+
+    str (__s, traits_type::length (__s));
+}
+
+
+template <class _CharT, class _Traits, class _Allocator>
+/* virtual */
+basic_stringbuf<_CharT, _Traits, _Allocator>::
+~basic_stringbuf ()
+{
+    typedef _RWSTD_ALLOC_TYPE (allocator_type, char_type) _ValueAlloc;
+
+    if (this->_C_own_buf ())
+        _ValueAlloc ().deallocate (this->_C_buffer, this->_C_bufsize);
+}
+
+
+// extension
 template<class _CharT, class _Traits, class _Allocator>
 void
 basic_stringbuf<_CharT, _Traits, _Allocator>::
-str (const _C_string_type& __str)
+str (const char_type *__s, _RWSTD_SIZE_T __slen /* = -1 */)
 {
     _RWSTD_ASSERT (this->_C_is_valid ());
 
@@ -64,20 +68,22 @@ str (const _C_string_type& __str)
 
     typedef _RWSTD_STREAMSIZE _Streamsize;
 
-    const _Streamsize __slen = _Streamsize (__str.length ());
+    if (_RWSTD_SIZE_MAX == __slen)
+        __slen = traits_type::length (__s);
 
     if (0 == __slen) {
 
         if (this->_C_own_buf ())
             _ValueAlloc ().deallocate (this->_C_buffer, this->_C_bufsize);
 
-        this->setg(0, 0, 0);
-        this->setp(0, 0);
-        this->_C_buffer = 0;
+        this->setg (0, 0, 0);
+        this->setp (0, 0);
+
+        this->_C_buffer  = 0;
         this->_C_bufsize = 0;
     }
     else {
-        if (__slen > this->_C_bufsize)  {
+        if (this->_C_bufsize < __slen)  {
 
             // buffer too small - need to reallocate
             if (this->_C_own_buf ())
@@ -88,20 +94,39 @@ str (const _C_string_type& __str)
             this->_C_buffer = _ValueAlloc ().allocate (this->_C_bufsize);
             this->_C_own_buf (true);
         }
-        traits_type::copy (this->_C_buffer, __str.data (), __slen);
+
+        traits_type::copy (this->_C_buffer, __s, __slen);
+
+        char_type* const __bufend = this->_C_buffer + __slen;
         
         if (this->_C_is_in ())
-            this->setg (this->_C_buffer, this->_C_buffer,
-                        this->_C_buffer + __slen);
+            this->setg (this->_C_buffer, this->_C_buffer, __bufend);
         
         if (this->_C_is_out ()) {
-            this->setp (this->_C_buffer, this->_C_buffer + __slen);
+            this->setp (this->_C_buffer, __bufend);
             
-            if (   (this->_C_state & ios_base::app)
-                || (this->_C_state & ios_base::ate))
-                this->pbump (__slen); // seek to end 
+            if (this->_C_state & (ios_base::app | ios_base::ate))
+                this->pbump (__slen);   // seek to end 
         } 
     }
+}
+
+
+template <class _CharT, class _Traits, class _Allocator>
+_TYPENAME basic_stringbuf<_CharT, _Traits, _Allocator>::int_type
+basic_stringbuf<_CharT, _Traits, _Allocator>::
+underflow ()
+{
+    _RWSTD_ASSERT (this->_C_is_valid ());
+
+    if (this->gptr () < this->egptr ()) {
+
+        _RWSTD_ASSERT (0 != this->gptr ());
+
+        return traits_type::to_int_type (*this->gptr ());
+    }
+
+    return traits_type::eof ();
 }
 
 

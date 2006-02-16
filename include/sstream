@@ -3,7 +3,7 @@
  *
  * sstream - Declarations for the Standard Library basic streams
  *
- * $Id: //stdlib/dev/include/sstream#32 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -115,17 +115,35 @@ public:
     }
 
     _EXPLICIT
-    basic_stringbuf (const _C_string_type &__str, 
+    basic_stringbuf (const _C_string_type&, 
                      ios_base::openmode = _RW::__rw_in_out);
     
+    // extension
+    _EXPLICIT
+    basic_stringbuf (const char_type*,
+                     ios_base::openmode = _RW::__rw_in_out);
+
     virtual ~basic_stringbuf ();
     
     _C_string_type str () const {
         return _C_strlen () == 0 ? _C_string_type ()
             : _C_string_type (this->_C_buffer, _C_strlen ());
     }
-    
-    void str (const _C_string_type&);
+
+#ifdef _RWSTD_NO_EXT_STRINGBUF_STR
+
+private:
+
+#endif   // _RWSTD_NO_EXT_STRINGBUF_STR
+
+    // extension
+    void str (const char_type*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+
+public:
+
+    void str (const _C_string_type &__str) {
+        str (__str.data (), __str.size ());
+    }
     
 protected:
     
@@ -160,33 +178,6 @@ private:
 
     _RWSTD_STREAMSIZE _C_grow (_RWSTD_STREAMSIZE, _RWSTD_STREAMSIZE) const;
 };
-
-
-template <class _CharT, class _Traits, class _Allocator>
-inline basic_stringbuf<_CharT, _Traits, _Allocator>::~basic_stringbuf ()
-{
-    typedef _RWSTD_ALLOC_TYPE (allocator_type, char_type) _ValueAlloc;
-
-    if (this->_C_own_buf ())
-        _ValueAlloc ().deallocate (this->_C_buffer, this->_C_bufsize);
-}
-
-
-template <class _CharT, class _Traits, class _Allocator>
-inline _TYPENAME basic_stringbuf<_CharT, _Traits, _Allocator>::int_type
-basic_stringbuf<_CharT, _Traits, _Allocator>::underflow ()
-{
-    _RWSTD_ASSERT (this->_C_is_valid ());
-
-    if (this->gptr () < this->egptr ()) {
-
-        _RWSTD_ASSERT (0 != this->gptr ());
-
-        return traits_type::to_int_type (*this->gptr ());
-    }
-
-    return traits_type::eof ();
-}
 
 
 template <class _CharT, class _Traits, class _Allocator>
@@ -226,6 +217,13 @@ public:
         : basic_istream<char_type, traits_type>(rdbuf ()),
           _C_sb (__str, __mode | ios_base::in) { }
 
+    // extension
+    _EXPLICIT
+    basic_istringstream (const char_type   * __s, 
+                         ios_base::openmode __mode = ios_base::in)
+        : basic_istream<char_type, traits_type>(rdbuf ()),
+          _C_sb (__s, __mode | ios_base::in) { }
+
     basic_stringbuf<char_type, traits_type, allocator_type> *rdbuf () const {
         // necessary to help SunPro 5.0/T9
         typedef basic_istringstream <char_type, traits_type, allocator_type>
@@ -237,7 +235,16 @@ public:
         return rdbuf ()->str ();
     }
 
-    void str (const _C_string_type& __str) {
+#ifdef _RWSTD_NO_EXT_STRINGBUF_STR
+
+    // extension
+    void str (const char_type *__s, _RWSTD_SIZE_T __len = _RWSTD_SIZE_MAX) {
+        rdbuf ()->str (__s, __len);
+    }
+
+#endif   //  _RWSTD_NO_EXT_STRINGBUF_STR
+
+    void str (const _C_string_type &__str) {
         rdbuf ()->str (__str);
     }
 
@@ -275,6 +282,13 @@ public:
         : basic_ostream<char_type, traits_type>(rdbuf ()),
           _C_sb (__str, __mode | ios_base::out) { }
 
+    // extension
+    _EXPLICIT
+    basic_ostringstream (const char_type    *__s, 
+                         ios_base::openmode  __mode = ios_base::out)
+        : basic_ostream<char_type, traits_type>(rdbuf ()),
+          _C_sb (__s, __mode | ios_base::out) { }
+
     basic_stringbuf<char_type, traits_type, allocator_type>* rdbuf () const {
         // necessary to help SunPro 5.0/T9
         typedef basic_ostringstream <char_type, traits_type, allocator_type>
@@ -285,6 +299,15 @@ public:
     _C_string_type str () const {
         return rdbuf ()->str ();
     }
+
+#ifdef _RWSTD_NO_EXT_STRINGBUF_STR
+
+    // extension
+    void str (const char_type *__s, _RWSTD_SIZE_T __len = _RWSTD_SIZE_MAX) {
+        rdbuf ()->str (__s, __len);
+    }
+
+#endif   //  _RWSTD_NO_EXT_STRINGBUF_STR
 
     void str (const _C_string_type &__str) {
         rdbuf ()->str (__str);
@@ -324,6 +347,14 @@ public:
         : basic_iostream<char_type, traits_type>(rdbuf ()),
           _C_sb (__str, __mode) { }
 
+    // extension
+    _EXPLICIT
+    basic_stringstream (const char_type    *__s, 
+                        ios_base::openmode __mode = 
+                        ios_base::out | ios_base::in)
+        : basic_iostream<char_type, traits_type>(rdbuf ()),
+          _C_sb (__s, __mode) { }
+
     basic_stringbuf<char_type, traits_type, allocator_type> *rdbuf () const {
         // necessary to help SunPro 5.0/T9
         typedef basic_stringstream <char_type, traits_type, allocator_type>
@@ -334,6 +365,15 @@ public:
     _C_string_type str () const {
         return rdbuf ()->str ();
     }
+
+#ifdef _RWSTD_NO_EXT_STRINGBUF_STR
+
+    // extension
+    void str (const char_type *__s, _RWSTD_SIZE_T __len = _RWSTD_SIZE_MAX) {
+        rdbuf ()->str (__s, __len);
+    }
+
+#endif   //  _RWSTD_NO_EXT_STRINGBUF_STR
 
     void str (const _C_string_type &__str) {
         rdbuf ()->str (__str);
