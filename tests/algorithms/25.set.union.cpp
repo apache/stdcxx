@@ -20,7 +20,7 @@
  **************************************************************************/
 
 #include <algorithm>    // for set_union 
-#include <cstring>      // for strlen, size_t
+#include <cstddef>      // for size_t
 
 #include <alg_test.h>
 #include <driver.h>     // for rw_test()
@@ -130,8 +130,11 @@ struct SetUnion: SetUnionBase
 
 void test_set_union (int                 line,
                      const char         *src1,
+                     std::size_t         nsrc1,
                      const char         *src2,
+                     std::size_t         nsrc2,
                      const char         *res,
+                     std::size_t         ndst,
                      bool                predicate,
                      const SetUnionBase &alg)
 {
@@ -141,13 +144,13 @@ void test_set_union (int                 line,
     const char* const fname   = "set_union";
     const char* const funname = predicate ? "Less" : 0;
 
-    const std::size_t nsrc1 = std::strlen (src1);
-    const std::size_t nsrc2 = std::strlen (src2);
-    const std::size_t ndst  = std::strlen (res);
+    X* const xsrc1 = X::from_char (src1, nsrc1, true /* must be sorted */);
+    X* const xsrc2 = X::from_char (src2, nsrc2, true /* must be sorted */);
+    // assert that the sequences have been successfully created
+    RW_ASSERT (0 == nsrc1 || xsrc1);
+    RW_ASSERT (0 == nsrc2 || xsrc2);
 
-    X* const xsrc1 = X::from_char (src1, nsrc1);
-    X* const xsrc2 = X::from_char (src2, nsrc2);
-    X* const xdst  = new X[ndst];
+    X* const xdst = new X [ndst];
 
     const int max1_id = nsrc1 > 0 ? xsrc1 [nsrc1 - 1].id_ : -1;
 
@@ -243,8 +246,11 @@ void test_set_union (const SetUnionBase &alg,
              "%s std::%s(%s, %3$s, %s, %4$s, %1$s%{?}, %s%{;})",
              outname, fname, it1name, it2name, predicate, funname);
 
-#define TEST(src1, src2, res)                                               \
-    test_set_union (__LINE__, src1, src2, res, predicate, alg)  
+#define TEST(src1, src2, res)                           \
+    test_set_union (__LINE__, src1, sizeof src1 - 1,    \
+                    src2, sizeof src2 - 1,              \
+                    res, sizeof res - 1,                \
+                    predicate, alg)  
 
     TEST ("a", "", "a");
     TEST ("abcde", "", "abcde");
