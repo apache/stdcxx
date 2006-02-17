@@ -306,6 +306,22 @@ is_total (size_t cnt,
 }
 
 
+/* static */ const X*
+X::first_less (const X *xarray, size_t nelems)
+{
+    size_t inx = nelems;
+
+    if (1 < nelems) {
+        for (inx = 1; inx != nelems; ++inx) {
+            if (xarray [inx] < xarray [inx - 1])
+                break;
+        }
+    }
+    
+    return inx < nelems ? xarray + inx : 0;
+}
+
+
 /* static */ void
 X::reset_totals ()
 {
@@ -333,7 +349,7 @@ static int xinit ()
 
 
 /* static */ X*
-X::from_char (const char *str, size_t len /* = -1 */)
+X::from_char (const char *str, size_t len /* = -1 */, bool sorted /* = false */)
 {
     // handle null pointers
     if (!str)
@@ -342,6 +358,15 @@ X::from_char (const char *str, size_t len /* = -1 */)
     // compute the length of the character array if not specified
     if (size_t (-1) == len)
         len = strlen (str);
+
+    if (sorted) {
+        // verify that the sequence is sorted
+        for (size_t i = 1; i < len; ++i) {
+            if (str [i] < str [i - 1]) {
+                return 0;
+            }
+        }
+    }
 
     // set the global pointer to point to the beginning of `str'
     xinit_begin = str;
@@ -545,6 +570,30 @@ _TEST_EXPORT int gen_subseq ()
 _TEST_EXPORT int gen_rnd ()
 {
     return rand ();
+}
+
+
+_TEST_EXPORT unsigned
+ilog2 (size_t n)
+{
+    unsigned result = 0;
+
+    while (n >>= 1)
+        ++result;
+
+    return result;
+}
+
+
+_TEST_EXPORT unsigned
+ilog10 (size_t n)
+{
+    unsigned result = 0;
+
+    while (n /= 10)
+        ++result;
+
+    return result;
 }
 
 
