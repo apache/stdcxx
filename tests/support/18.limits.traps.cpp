@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * limits.traps.cpp - test exercising std::numeric_limits::traps
+ * 18/limits_traps.cpp - test exercising std::numeric_limits::traps
  *
  * $Id$
  *
@@ -21,13 +21,35 @@
 
 #include <limits>
 
-#include <csetjmp>    // for longjmp, setjmp
 #include <csignal>    // for SIGFPE, signal
 
 #include <any.h>      // for rw_any_t
+#include <cmdopt.h>   // for rw_enabled()
 #include <driver.h>   // for rw_test(), ...
 
 /**************************************************************************/
+
+#ifdef _RWSTD_OS_LINUX
+
+   // use siglongjmp() and sigsetjmp() on Linux to avoid
+   // http://sourceware.org/bugzilla/show_bug.cgi?id=2351
+#  include <setjmp.h>    // for siglongjmp, sigsetjmp
+
+jmp_buf jmp_env;
+
+extern "C" {
+
+void handle_fpe (int)
+{
+    siglongjmp (jmp_env, 1);
+}
+
+}   // extern "C"
+
+#  define RW_SIGSETJMP(env, signo)   sigsetjmp (env, signo)
+#else   // if !defined (_RWSTD_OS_LINUX)
+
+#  include <csetjmp>    // for longjmp, setjmp
 
 std::jmp_buf jmp_env;
 
@@ -39,6 +61,9 @@ void handle_fpe (int)
 }
 
 }   // extern "C"
+#  define RW_SIGSETJMP(env, ignore)   setjmp (env)
+#endif   // _RWSTD_OS_LINUX
+
 
 /**************************************************************************/
 
@@ -62,23 +87,29 @@ numT test_traps (numT, int lineno, bool)
 {
     static const char* const tname = rw_any_t (numT ()).type_name ();
 
-    rw_info (0, 0, 0, "std::numeric_limits<%s>::traps", tname);
+    if (!rw_enabled (tname)) {
+        rw_note (0, 0, 0, "numeric_limits<%s>::traps test disabled", tname);
+        return numT ();
+    }
 
     const bool traps = std::numeric_limits<numT>::traps;
+
+    rw_info (0, 0, 0, "std::numeric_limits<%s>::traps = %b", tname, traps);
 
 #ifdef SIGFPE
     std::signal (SIGFPE, handle_fpe);
 #else   // if !defined (SIGFPE)
     if (!rw_warn (!traps, 0, lineno,
-                  "SIGFPE not #defined and numeric_limits<%s>::traps == true, "
-                  "cannot test", tname)) {
+                  "SIGFPE not #defined and numeric_limits<%s>::traps == %b, "
+                  "cannot test", tname, traps)) {
         return numT ();
     }
 #endif   // SIGFPE
 
     numT result = numT ();
 
-    const int jumped = setjmp (jmp_env);
+    // set the environment
+    const int jumped = RW_SIGSETJMP (jmp_env, SIGFPE);
 
     volatile numT zero = numT (jumped);
     volatile numT one  = numT (1);
@@ -86,15 +117,25 @@ numT test_traps (numT, int lineno, bool)
     bool trapped = false;
 
     if (jumped) {
+        // setjmp() call above returned from the SIGFPE handler
+        // as a result of a floating point exception triggered
+        // by the division by zero in the else block below
         result = zero / one;
 
         trapped = true;
     }
     else {
+        // setjmp() call above returned after setting up the jump
+        // environment; see of division by zero traps (if so, it
+        // will generate a SIGFPE which will be caught by the
+        // signal hanlder above and execution will resume by
+        // returning from setjmp() above again, but this time
+        // with a non-zero value
         TRY {
             result = one / zero;
         }
         EXCEPT (1) {
+            // Windows SEH hackery
             trapped = true;
         }
     }
@@ -152,6 +193,8 @@ run_test (int, char*[])
 int main (int argc, char *argv[])
 {
     return rw_test (argc, argv, __FILE__,
-                    "lib.numeric.limits.members.traps",
-                    0 /* no comment */, run_test, 0, 0);
+                    "lib.numeric.limits.members",
+                    "traps data member",
+                    run_test,
+                    0, 0);
 }
