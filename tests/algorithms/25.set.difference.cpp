@@ -20,7 +20,7 @@
  **************************************************************************/
 
 #include <algorithm>    // for set_difference 
-#include <cstring>      // for strlen, size_t
+#include <cstddef>      // for size_t
 
 #include <alg_test.h>
 #include <driver.h>     // for rw_test()
@@ -133,8 +133,11 @@ struct SetDifference: SetDifferenceBase
 // exercises set_difference: 25.3.5.4
 void test_set_difference (int                      line,
                           const char              *src1,
+                          std::size_t              nsrc1,
                           const char              *src2,
+                          std::size_t              nsrc2,
                           const char              *res,
+                          std::size_t              ndst,
                           bool                     predicate,
                           const SetDifferenceBase &alg)
 {
@@ -144,19 +147,20 @@ void test_set_difference (int                      line,
     const char* const fname   = "set_difference";
     const char* const funname = predicate ? "Less" : 0;
 
-    const std::size_t nsrc1 = std::strlen (src1);
-    const std::size_t nsrc2 = std::strlen (src2);
-    const std::size_t ndst = std::strlen (res);
+    X* const xsrc1 = X::from_char (src1, nsrc1, true /* must be sorted */);
+    X* const xsrc2 = X::from_char (src2, nsrc2, true /* must be sorted */);
 
-    X* const xsrc1 = X::from_char (src1, nsrc1);
-    X* const xsrc2 = X::from_char (src2, nsrc2);
-    X* const xdst = new X[ndst];
+    // assert that the sequences have been successfully created
+    RW_ASSERT (0 == nsrc1 || xsrc1);
+    RW_ASSERT (0 == nsrc2 || xsrc2);
+
+    X* const xdst = new X [ndst];
 
     const int max1_id = nsrc1 > 0 ? xsrc1[nsrc1 - 1].id_ : -1;
 
     X* const xsrc1_end = xsrc1 + nsrc1;
     X* const xsrc2_end = xsrc2 + nsrc2;
-    X* const xdst_end = xdst + ndst;
+    X* const xdst_end  = xdst + ndst;
 
     const std::size_t last_n_op_lt = X::n_total_op_lt_;
 
@@ -266,44 +270,43 @@ void test_set_difference (const SetDifferenceBase &alg,
              "%s std::%s(%s, %3$s, %s, %4$s, %1$s%{?}, %s%{;})",
              outname, fname, it1name, it2name, predicate, funname);
 
-#define TEST(src1, src2, res)                                               \
-    test_set_difference (__LINE__, src1, src2, res, predicate, alg)  
+#define TEST(src1, src2, res)                                           \
+    test_set_difference (__LINE__, src1, sizeof src1 - 1,               \
+                         src2, sizeof src2 - 1, res, sizeof res - 1,    \
+                         predicate, alg)  
 
-    TEST ("a", "", "a");
-    TEST ("abcde", "", "abcde");
-
-    TEST ("", "a", "");
-    TEST ("", "abcde", "");
-
-    TEST ("a", "b", "a");
-    TEST ("b", "a", "b");
-
-    TEST ("aa", "aa", "");
-    TEST ("ab", "ab", "");
-
-    TEST ("aa", "ab", "a");
-    TEST ("aa", "bb", "aa");
-    TEST ("ab", "bb", "a");
-    TEST ("ac", "bb", "ac");
-
-    TEST ("ace", "bdf", "ace");
-    TEST ("acf", "bdf", "ac");
-    TEST ("ade", "bdf", "ae");
-    TEST ("bce", "bdf", "ce");
-
+    //    +-------------------- first set
+    //    |        +----------- second set
+    //    |        |        +-- difference
+    //    |        |        |
+    //    V        V        V
+    TEST ("a",     "",      "a");
+    TEST ("abcde", "",      "abcde");
+    TEST ("",      "a",     "");
+    TEST ("",      "abcde", "");
+    TEST ("a",     "b",     "a");
+    TEST ("b",     "a",     "b");
+    TEST ("aa",    "aa",    "");
+    TEST ("ab",    "ab",    "");
+    TEST ("aa",    "ab",    "a");
+    TEST ("aa",    "bb",    "aa");
+    TEST ("ab",    "bb",    "a");
+    TEST ("ac",    "bb",    "ac");
+    TEST ("ace",   "bdf",   "ace");
+    TEST ("acf",   "bdf",   "ac");
+    TEST ("ade",   "bdf",   "ae");
+    TEST ("bce",   "bdf",   "ce");
     TEST ("aacee", "aacee", "");
     TEST ("aacee", "aaace", "e");
     TEST ("aacee", "aaaae", "ce");
     TEST ("aacee", "aaaaa", "cee");
     TEST ("aacee", "aaabd", "cee");
     TEST ("aacee", "aabee", "c");
-
     TEST ("aaaaa", "aaaaa", "");
-    TEST ("aaaaa", "aaaa", "a");
-    TEST ("aaaaa", "aaa", "aa");
-    TEST ("aaaaa", "aa", "aaa");
-    TEST ("aaaaa", "a", "aaaa");
-
+    TEST ("aaaaa", "aaaa",  "a");
+    TEST ("aaaaa", "aaa",   "aa");
+    TEST ("aaaaa", "aa",    "aaa");
+    TEST ("aaaaa", "a",     "aaaa");
     TEST ("acegi", "bdfhj", "acegi");
     TEST ("bdfhj", "acegi", "bdfhj");
 }
