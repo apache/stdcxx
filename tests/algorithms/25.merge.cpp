@@ -93,11 +93,11 @@ std::size_t Less::funcalls_;
 /**************************************************************************/
 
 // ordinary (non-template) base to minimize code bloat
-struct MergeTestBase
+struct MergeBase
 {
     const char* iter_names [3];
 
-    virtual ~MergeTestBase () { }
+    virtual ~MergeBase () { }
 
     // invokes inplace_merge with iterators initialized
     // to the specified arguments and (optionally) with
@@ -116,9 +116,9 @@ struct MergeTestBase
 };
 
 template <class InputIterator1, class InputIterator2, class OutputIterator>
-struct MergeTest: MergeTestBase
+struct Merge: MergeBase
 {
-    MergeTest () {
+    Merge () {
         iter_names [0] = type_name (InputIterator1 (0, 0, 0), (X*)0);
         iter_names [1] = type_name (InputIterator2 (0, 0, 0), (X*)0);
         iter_names [2] = type_name (OutputIterator (0, 0, 0), (X*)0);
@@ -150,9 +150,9 @@ struct MergeTest: MergeTestBase
 };
 
 template <class BidirectionalIterator>
-struct InplaceMergeTest: MergeTestBase
+struct InplaceMerge: MergeBase
 {
-    InplaceMergeTest () {
+    InplaceMerge () {
         iter_names [0] = type_name (BidirectionalIterator (0, 0, 0), (X*)0);
         iter_names [1] = 0;
         iter_names [2] = 0;
@@ -175,12 +175,12 @@ struct InplaceMergeTest: MergeTestBase
 /**************************************************************************/
 
 // ordinary (non-template) function to minimize code bloat
-void test_merge (int                  line,
-                 const char          *src1,
-                 const char          *src2,
-                 const std::size_t    midinx,
-                 bool                 predicate,
-                 const MergeTestBase &alg)
+void test_merge (int                line,
+                 const char        *src1,
+                 const char        *src2,
+                 const std::size_t  midinx,
+                 bool               predicate,
+                 const MergeBase   &alg)
 {
     const char* const it1name  = alg.iter_names [0];
     const char* const it2name  = alg.iter_names [1];
@@ -284,7 +284,7 @@ void test_merge (int                  line,
 
 /**************************************************************************/
 
-void test_merge (const MergeTestBase &alg, bool predicate)
+void test_merge (const MergeBase &alg, bool predicate)
 {
     const char* const it1name  = alg.iter_names [0];
     const char* const it2name  = alg.iter_names [1];
@@ -358,7 +358,7 @@ void test_merge (const MergeTestBase &alg, bool predicate)
 
 /**************************************************************************/
 
-void test_inplace_merge (const MergeTestBase &alg, bool predicate)
+void test_inplace_merge (const MergeBase &alg, bool predicate)
 {
     const char* const itname   = alg.iter_names [0];
     const char* const predname = predicate ? "Less" : 0;
@@ -425,7 +425,7 @@ void gen_merge_test (const InputIterator1&,
                      const OutputIterator&,
                      bool predicate)
 {
-    const MergeTest<InputIterator1, InputIterator2, OutputIterator> alg;
+    const Merge<InputIterator1, InputIterator2, OutputIterator> alg;
 
     test_merge (alg, predicate);
 }
@@ -488,7 +488,7 @@ void gen_merge_test (bool predicate)
 template <class BidirectionalIterator>
 void gen_inplace_merge_test (const BidirectionalIterator&, bool predicate)
 {
-    const InplaceMergeTest<BidirectionalIterator> alg;
+    const InplaceMerge<BidirectionalIterator> alg;
 
     test_inplace_merge (alg, predicate);
 }
