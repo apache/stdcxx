@@ -127,11 +127,22 @@ struct _TEST_EXPORT X
               _RWSTD_SIZE_T n_op_eq,
               _RWSTD_SIZE_T n_op_lt);
 
+    // returns a pointer to the first element in the sequence whose value
+    // is less than the value of the immediately preceding element, or 0
+    // when no such element exists
+    static const X*
+    first_less (const X*, _RWSTD_SIZE_T);
+
     static void reset_totals ();
 
     // construct an array of objects of type X each initialized
     // from the corresponding element of the character array
-    static X* from_char (const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+    // when the last argument is true and the character array
+    // is not sorted in ascending order the function fails by
+    // returning 0
+    static X*
+    from_char (const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX,
+               bool = false);
 
     // returns -1 when less, 0 when same, or +1 when the array
     // of X objects is greater than the character string
@@ -156,28 +167,30 @@ _TEST_EXPORT int gen_subseq ();
 
 // wrapper around a (possibly) extern "C" int rand()
 // extern "C++" 
-_TEST_EXPORT  int gen_rnd ();
+_TEST_EXPORT int gen_rnd ();
 
 
 // computes an integral log2
-inline unsigned ilog2 (unsigned long n)
-{
-    unsigned result = 0;
-    while (n >>= 1)
-        ++result;
-    return result;
-}
-
+_TEST_EXPORT unsigned ilog2 (_RWSTD_SIZE_T);
 
 // computes an integral log10
-inline unsigned ilog10 (unsigned long n)
-{
-    unsigned result = 0;
-    while (n /= 10)
-        ++result;
-    return result;
-}
+_TEST_EXPORT unsigned ilog10 (_RWSTD_SIZE_T);
 
+
+template <class InputIterator, class Predicate>
+inline bool
+is_sorted (InputIterator first, InputIterator last, Predicate pred)
+{
+    if (first == last)
+        return true;
+
+    for (InputIterator prev (first); ++first != last; prev = first) {
+        if (pred (*first, *prev))
+            return false;
+    }
+
+    return true;
+}
 
 // returns true iff a sequence of (not necessarily unique) values
 // is sorted in an ascending order
