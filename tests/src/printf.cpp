@@ -142,6 +142,10 @@ _rw_fmttm (const FmtSpec&, char**, size_t*, const tm*);
 static int
 _rw_fmtopenmode (const FmtSpec&, char**, size_t*, int);
 
+// format ios_base::seekdir
+static int
+_rw_fmtseekdir (const FmtSpec&, char**, size_t*, int);
+
 // format ios_base::event
 static int
 _rw_fmtevent (const FmtSpec&, char**, size_t*, int);
@@ -3070,12 +3074,79 @@ _rw_fmtstr (const FmtSpec &spec,
 
 /********************************************************************/
 
+#ifndef _RWSTD_NO_WCHAR_T
+
 static int
 _rw_fmtwstr (const FmtSpec &spec,
             char **pbuf, size_t *pbufsize, const wchar_t *wstr, size_t len)
 {
-    return rw_fmtarray (spec, pbuf, pbufsize, wstr, len, A_WCHAR | A_ESC);
+    if (spec.fl_pound)
+        return rw_fmtarray (spec, pbuf, pbufsize, wstr, len, A_WCHAR | A_ESC);
+
+    if (0 == wstr || 0 > _RW::__rw_memattr (wstr, _RWSTD_SIZE_MAX, 0))
+        return _rw_fmtbadaddr (spec, pbuf, pbufsize, wstr);
+
+    if (_RWSTD_SIZE_MAX == len) {
+
+#ifndef _RWSTD_NO_WCSLEN
+        len = wcslen (wstr);
+#else   // if defined (_RWSTD_NO_WCSLEN)
+        len = 0;
+        for (const wchar_t *pwc = wstr; *pwc; ++pwc, ++len);
+#endif   // _RWSTD_NO_WCSLEN
+
+    }
+
+    // compute the minimum number of characters to be generated
+    if (-1 < spec.prec && size_t (spec.prec) < len)
+        len = size_t (spec.prec);
+
+    // the number of generated characters depends on three variables:
+    // --  the optional field width,
+    // --  the optional precision, and
+    // --  the length of the argument
+
+    // compute the field width
+    const size_t width =
+        -1 < spec.width && len < size_t (spec.width) ?
+        size_t (spec.width) : len;
+
+    // compute the size of padding
+    const size_t pad = len < width ? width - len : 0;
+
+    // [re]allocate enough space in the buffer
+    if (0 == _rw_bufcat (pbuf, pbufsize, 0, pad + len * 10))
+        return -1;
+
+    RW_ASSERT (0 != *pbuf);
+    char *next = *pbuf + strlen (*pbuf);
+
+    if (!spec.fl_minus) {
+        for (size_t i = 0; i != pad; ++i)
+            *next++ = ' ';
+    }
+
+    // wmemcpy (next, wstr, len);
+    for (const wchar_t *pwc = wstr; pwc != wstr + len; ++pwc) {
+        const int n = rw_quotechar (next, *pwc, 0);
+
+        if (n < 0)
+            return n;
+
+        next += n;
+    }
+
+    if (spec.fl_minus) {
+        for (size_t i = 0; i != pad; ++i)
+            *next++ = ' ';
+    }
+
+    *next++ = '\0';
+
+    return int (pad + len);
 }
+
+#endif   // _RWSTD_NO_WCHAR_T
 
 /********************************************************************/
 
@@ -3089,7 +3160,7 @@ struct Bitnames
 #define BITNAME(qual, name)   { #qual "::" #name, #name, qual::name }
 
 static int
-rw_bmpfmt (const FmtSpec&, char **pbuf, size_t *pbufsize,
+rw_bmpfmt (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
            const Bitnames bmap[], size_t size, int bits)
 {
     RW_ASSERT (0 != pbuf);
@@ -3103,14 +3174,18 @@ rw_bmpfmt (const FmtSpec&, char **pbuf, size_t *pbufsize,
     for (size_t i = 0; i != size; ++i) {
         if (bmap [i].bits) {
             if ((bits & bmap [i].bits) == bmap [i].bits) {
-                strcat (*buffer ? strcat (buffer, " | ") : buffer,
-                        bmap [i].name);
+
+                const char* const name = spec.fl_pound ?
+                    bmap [i].longname : bmap [i].name;
+
+                strcat (*buffer ? strcat (buffer, " | ") : buffer, name);
+
                 bits &= ~bmap [i].bits;
             }
         }
         else {
             // save the name of the constant to use for 0
-            all_clear = bmap [i].name;
+            all_clear = spec.fl_pound ? bmap [i].longname : bmap [i].name;
         }
     }
 
@@ -3190,9 +3265,11 @@ rw_fmtflags (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int bits)
 
         // extension: allow unsychronized access to stream and/or its buffer
         BITNAME (std::ios, nolock),
-        BITNAME (std::ios, nolockbuf)
+        BITNAME (std::ios, nolockbuf),
 
 #endif   // _RWSTD_NO_EXT_REENTRANT_IO
+
+        { "std::ios::iostate(0)", "iostate(0)", std::ios::iostate () }
 
     };
 
@@ -3281,7 +3358,26 @@ _rw_fmtopenmode (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int bits)
         BITNAME (std::ios, in),
         BITNAME (std::ios, out),
         BITNAME (std::ios, trunc),
-        BITNAME (std::ios, ate)
+        BITNAME (std::ios, ate),
+
+        { "std::ios::openmode(0)", "openmode(0)", std::ios::openmode () }
+    };
+
+    static const size_t count = sizeof names / sizeof *names;
+
+    return rw_bmpfmt (spec, pbuf, pbufsize, names, count, bits);
+}
+
+/********************************************************************/
+
+static int
+_rw_fmtseekdir (const FmtSpec &spec, char **pbuf, size_t *pbufsize, int bits)
+{
+    static const Bitnames names [] = {
+
+        BITNAME (std::ios, beg),
+        BITNAME (std::ios, cur),
+        BITNAME (std::ios, end)
     };
 
     static const size_t count = sizeof names / sizeof *names;
@@ -3723,8 +3819,10 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         }
         break;
 
-    case 'S':   // %{S}, %{lS}
-        if (spec.mod == spec.mod_l) {   // std::wstring
+    case 'S':   // %{S}, %{lS}, %{#*S}
+        if (   spec.mod == spec.mod_l
+            || !spec.mod && spec.fl_pound && sizeof (wchar_t) == spec.width) {
+            // std::wstring
             spec.param.ptr_ = PARAM (ptr_);
 
             const std::wstring* const pstr = (std::wstring*)spec.param.ptr_;
@@ -3753,6 +3851,14 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
 
         break;
     }
+
+    case 'w': {   // %{Iw}
+        if (spec.mod == spec.mod_ext_I) {   // ios::seekdir
+            spec.param.int_ = PARAM (int_);
+            len = _rw_fmtseekdir (spec, pbuf, pbufsize, spec.param.int_);
+            break;
+        }
+    }
         
 
     default:
@@ -3773,7 +3879,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         else {
             char text [80];
             len = sprintf (text, "*** %%{%.*s}: not implemented ***",
-                           sizeof fmt - 40, fmt);
+                           int (sizeof fmt - 40), fmt);
 
             if (0 == _rw_bufcat (pbuf, pbufsize, text, size_t (len)))
                 return -1;
