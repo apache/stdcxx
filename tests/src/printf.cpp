@@ -2668,7 +2668,8 @@ int rw_quotechar (char *buf, charT wc, int noesc)
 enum {
     A_ESC   = 1,        // use escape sequences
     A_CHAR  = 1 << 1,   // format each element as a char
-    A_WCHAR = 1 << 2    // format each element as a wchar_t
+    A_WCHAR = 1 << 2,   // format each element as a wchar_t
+    A_ARRAY = 1 << 3    // generic array formatting
 };
 
 template <class elemT>
@@ -2718,7 +2719,12 @@ int rw_fmtarray (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
 
         }
         else {
-            if (_RWSTD_WCHAR_T_SIZE == sizeof (elemT))
+            // append 'L' for a generic array (i.e., one whose type
+            // is not known to be wchar_t) that is the same size as
+            // wchar_t (bot not for an array of wchar_t's being
+            // formatted using the {%ls} directive -- the caller
+            // can easily stick the 'L' there themselves)
+            if (flags & A_ARRAY && _RWSTD_WCHAR_T_SIZE == sizeof (elemT))
                 *next++ = 'L';
 
             *next++ = '"';
@@ -2803,11 +2809,11 @@ int rw_fmtarray (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
 
             if (last_repeat < 0) {
                 if (flags & (A_CHAR | A_WCHAR)) {
-                    // insert an opening quote (preceded by the 'L'
-                    // prefix for wchar_t arrays)
-                    if (_RWSTD_WCHAR_T_SIZE == sizeof (elemT)) {
+                    if (   (flags & A_ARRAY)
+                        && _RWSTD_WCHAR_T_SIZE == sizeof (elemT))
                         *s++ = 'L';
-                    }
+
+                    // insert an opening quote
                     *s++ = '\"';
                 }
             }
@@ -2908,8 +2914,9 @@ _rw_fmtarray (FmtSpec *pspec,
     const int width = spec.width;
     spec.width = -1;
 
-    const int flags = 'c' == spec.cvtspec ?
-        A_CHAR | A_ESC : spec.fl_pound ? A_ESC : 0;
+    const int flags = A_ARRAY
+        | ('c' == spec.cvtspec || 'S' == spec.cvtspec ?
+          A_CHAR | A_ESC : spec.fl_pound ? A_ESC : 0);
 
     // to format an array of integers using the 0 or 0x/0X prefix
     // both the pound and the zero flags must be set; clear the pound
@@ -2979,6 +2986,7 @@ _rw_fmtchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
     const UChar uc = UChar (val);
 
     char buffer [8];
+
     int len = rw_quotechar (buffer + spec.fl_pound, uc, noesc);
     if (spec.fl_pound) {
         buffer [0] = buffer [len + 1] = '\'';
@@ -2999,15 +3007,27 @@ static int
 _rw_fmtwchr (const FmtSpec &spec, char **pbuf, size_t *pbufsize,
              wint_t val, int noesc)
 {
-    const wchar_t wc = wchar_t (val);
-
     char buffer [16];
-    int len = rw_quotechar (buffer + 2 * spec.fl_pound, wc, noesc);
-    if (spec.fl_pound) {
-        buffer [0] = 'L';
-        buffer [1] = buffer [len + 2] = '\'';
-        buffer [len + 3] = '\0';
-        len += 3;
+    int  len;
+
+    if (0 == noesc && -1 == val) {
+
+        // format EOF
+        buffer [0] = 'E';
+        buffer [1] = 'O';
+        buffer [2] = 'F';
+        buffer [3] = '\0';
+        len = 3;
+    }
+    else {
+        const wchar_t wc = wchar_t (val);
+
+        len = rw_quotechar (buffer + spec.fl_pound, wc, noesc);
+        if (spec.fl_pound) {
+            buffer [0] = buffer [len + 1] = '\'';
+            buffer [len + 2] = '\0';
+            len += 2;
+        }
     }
 
     FmtSpec newspec (spec);
@@ -3080,8 +3100,18 @@ static int
 _rw_fmtwstr (const FmtSpec &spec,
             char **pbuf, size_t *pbufsize, const wchar_t *wstr, size_t len)
 {
-    if (spec.fl_pound)
-        return rw_fmtarray (spec, pbuf, pbufsize, wstr, len, A_WCHAR | A_ESC);
+    if (spec.fl_pound) {
+
+        // set up flags so that %{#*S} for generic basic_string quoted
+        // formatting (i.e., parametrized on the size of the character
+        // type) prepends a 'L' to the quoted string when the character
+        // type is (likely to be) wchar_t
+        const int flags =
+              ('S' == spec.cvtspec && -1 != spec.width ? A_ARRAY : 0)
+            | A_WCHAR | A_ESC;
+
+        return rw_fmtarray (spec, pbuf, pbufsize, wstr, len, flags);
+    }
 
     if (0 == wstr || 0 > _RW::__rw_memattr (wstr, _RWSTD_SIZE_MAX, 0))
         return _rw_fmtbadaddr (spec, pbuf, pbufsize, wstr);
