@@ -1,6 +1,6 @@
 /************************************************************************
  *
- * 0.printf.cpp - test exercising the rw_snprintfa() utility functions
+ * snprintfa.cpp - test exercising the rw_snprinfa() utility functions
  *
  * $Id$
  *
@@ -20,6 +20,9 @@
  **************************************************************************/
 
 #include <rw_printf.h>
+
+#include <ios>         // for ios::openmode, ios::seekdir
+#include <string>      // for string
 
 #include <ctype.h>     // for isdigit()
 #include <errno.h>     // for EXXX, errno
@@ -63,7 +66,7 @@ do_test (int         line,     // line number of the test case
         if (cmp) {
             ++nfailures;
             fprintf (stderr,
-                     "Assertion failed on line %d: "
+                     "# Assertion failed on line %d: "
                      "rw_sprintf(%c%s%c, ...) == \"%s\", got \"%s\"\n",
                      line, q_fmt [0], fmt, q_fmt [1], expect, result);
         }
@@ -84,7 +87,7 @@ do_test (int         line,     // line number of the test case
             q_result = "()";
         }
 
-        fprintf (stderr, "Assertion failed on line %d: "
+        fprintf (stderr, "# Assertion failed on line %d: "
                  "rw_sprintf(%c%s%c, ...) == %c%s%c got %c%s%c\n",
                  line, q_fmt [0], fmt, q_fmt [1],
                  q_expect [0], expect, q_expect [1],
@@ -118,7 +121,7 @@ do_test (int         line,     // line number of the test case
         if (result) {                                                   \
            ++nfailures;                                                 \
            fprintf (stderr,                                             \
-                    "Assertion failed on line %d: "                     \
+                    "# Assertion failed on line %d: "                   \
                     "rw_sprintf(\"%s\", %ld, %ld, %ld) "                \
                     "== \"%s\", got \"%s\"\n",                          \
                     __LINE__, fmt,                                      \
@@ -504,12 +507,135 @@ void test_basic_string ()
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{S}\": std::string");
 
-    fprintf (stderr, "Warning: %s\n", "\"%{S}\" not exercised");
+    std::string str;
+
+#undef S
+#define S(s)   &(str = std::string (s, sizeof s - 1))
+
+    TEST ("%{S}",  S (""),           0, 0, "");
+    TEST ("%{S}",  S ("a"),          0, 0, "a");
+    TEST ("%{S}",  S ("ab"),         0, 0, "ab");
+    TEST ("%{S}",  S ("abc"),        0, 0, "abc");
+
+    TEST ("%{#S}", S ("\a\n\r\t\v"), 0, 0, "\"\\a\\n\\r\\t\\v\"");
+
+    TEST ("%{#S}", S ("\0bc"),       0, 0, "\"\\0bc\"");
+    TEST ("%{#S}", S ("a\0c"),       0, 0, "\"a\\0c\"");
+    TEST ("%{#S}", S ("ab\0"),       0, 0, "\"ab\\0\"");
+    TEST ("%{#S}", S ("a\0\0"),      0, 0, "\"a\\0\\0\"");
+    TEST ("%{#S}", S ("\0\0\0"),     0, 0, "\"\\0\\0\\0\"");
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{lS}\": std::wstring");
 
-    fprintf (stderr, "Warning: %s\n", "%{lS}\" not exercised");
+#ifndef _RWSTD_NO_WCHAR_T
+
+    std::wstring wstr;
+
+#  undef WS
+#  define WS(ws)   \
+      &(wstr = std::wstring (L ## ws, sizeof L ## ws / sizeof (wchar_t) - 1))
+
+    TEST ("%{lS}",  WS (""),           0, 0, "");
+    TEST ("%{lS}",  WS ("a"),          0, 0, "a");
+    TEST ("%{lS}",  WS ("ab"),         0, 0, "ab");
+    TEST ("%{lS}",  WS ("abc"),        0, 0, "abc");
+
+    TEST ("%{#lS}", WS ("\a\n\r\t\v"), 0, 0, "L\"\\a\\n\\r\\t\\v\"");
+
+    TEST ("%{#lS}", WS ("\0bc"),       0, 0, "L\"\\0bc\"");
+    TEST ("%{#lS}", WS ("a\0c"),       0, 0, "L\"a\\0c\"");
+    TEST ("%{#lS}", WS ("ab\0"),       0, 0, "L\"ab\\0\"");
+    TEST ("%{#lS}", WS ("a\0\0"),      0, 0, "L\"a\\0\\0\"");
+    TEST ("%{#lS}", WS ("\0\0\0"),     0, 0, "L\"\\0\\0\\0\"");
+
+#else   // if defined (_RWSTD_NO_WCHAR_T)
+
+    fprintf (stderr, "Warning: %s\n", "\"%{lS}\" not exercised: "
+             "_RWSTD_NO_WCHAR_T #defined");
+
+#endif   // _RWSTD_NO_WCHAR_T
+
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{#*S}\": std::basic_string<charT> with "
+            "sizeof (charT)");
+
+    TEST ("%{#1S}", S ("\0bc"),   0, 0, "\"\\0bc\"");
+    TEST ("%{#1S}", S ("a\0c"),   0, 0, "\"a\\0c\"");
+    TEST ("%{#1S}", S ("ab\0"),   0, 0, "\"ab\\0\"");
+    TEST ("%{#1S}", S ("a\0\0"),  0, 0, "\"a\\0\\0\"");
+    TEST ("%{#1S}", S ("\0\0\0"), 0, 0, "\"\\0\\0\\0\"");
+
+#if 2 == _RWSTD_WCHAR_T_SIZE
+
+    TEST ("%{#2S}",  WS (""),       0, 0, "L\"\"");
+    TEST ("%{#2S}",  WS ("a"),      0, 0, "L\"a\"");
+    TEST ("%{#2S}",  WS ("ab"),     0, 0, "L\"ab\"");
+    TEST ("%{#2S}",  WS ("abc"),    0, 0, "L\"abc\"");
+
+    TEST ("%{#2S}",  WS ("\0bc"),   0, 0, "L\"\\0bc\"");
+    TEST ("%{#2S}",  WS ("a\0c"),   0, 0, "L\"a\\0c\"");
+    TEST ("%{#2S}",  WS ("ab\0"),   0, 0, "L\"ab\\0\"");
+    TEST ("%{#2S}",  WS ("a\0\0"),  0, 0, "L\"a\\0\\0\"");
+    TEST ("%{#2S}",  WS ("\0\0\0"), 0, 0, "L\"\\0\\0\\0\"");
+
+#elif 4 == _RWSTD_WCHAR_T_SIZE
+
+    TEST ("%{#4S}",  WS (""),       0, 0, "L\"\"");
+    TEST ("%{#4S}",  WS ("a"),      0, 0, "L\"a\"");
+    TEST ("%{#4S}",  WS ("ab"),     0, 0, "L\"ab\"");
+    TEST ("%{#4S}",  WS ("abc"),    0, 0, "L\"abc\"");
+
+    TEST ("%{#4S}",  WS ("\0bc"),   0, 0, "L\"\\0bc\"");
+    TEST ("%{#4S}",  WS ("a\0c"),   0, 0, "L\"a\\0c\"");
+    TEST ("%{#4S}",  WS ("ab\0"),   0, 0, "L\"ab\\0\"");
+    TEST ("%{#4S}",  WS ("a\0\0"),  0, 0, "L\"a\\0\\0\"");
+    TEST ("%{#4S}",  WS ("\0\0\0"), 0, 0, "L\"\\0\\0\\0\"");
+
+#endif   // _RWSTD_WCHAR_T_SIZE
+
+}
+
+/***********************************************************************/
+
+void test_ios_bitmasks ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{Io}\": std::ios_base::opemode");
+
+    const int in  = std::ios_base::in;
+    const int out = std::ios_base::out;
+    const int ate = std::ios_base::ate;
+
+    TEST ("%{Io}", 0,               0, 0, "openmode(0)");
+    TEST ("%{Io}", in,              0, 0, "in");
+    TEST ("%{Io}", out,             0, 0, "out");
+    TEST ("%{Io}", ate,             0, 0, "ate");
+    TEST ("%{Io}", in | out,        0, 0, "in | out");
+    TEST ("%{Io}", in | ate,        0, 0, "in | ate");
+    TEST ("%{Io}", in | out | ate,  0, 0, "in | out | ate");
+    TEST ("%{Io}", out | ate,       0, 0, "out | ate");
+
+    TEST ("%{#Io}", 0,              0, 0, "std::ios::openmode(0)");
+    TEST ("%{#Io}", in,             0, 0, "std::ios::in");
+    TEST ("%{#Io}", out,            0, 0, "std::ios::out");
+    TEST ("%{#Io}", ate,            0, 0, "std::ios::ate");
+    TEST ("%{#Io}", in | out,       0, 0, "std::ios::in | std::ios::out");
+    TEST ("%{#Io}", in | ate,       0, 0, "std::ios::in | std::ios::ate");
+    TEST ("%{#Io}", in | out | ate, 0, 0,
+          "std::ios::in | std::ios::out | std::ios::ate");
+    TEST ("%{#Io}", out | ate,      0, 0, "std::ios::out | std::ios::ate");
+
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{Iw}\": std::ios_base::seekdir");
+
+    TEST ("%{Iw}",  std::ios::beg, 0, 0, "beg");
+    TEST ("%{Iw}",  std::ios::cur, 0, 0, "cur");
+    TEST ("%{Iw}",  std::ios::end, 0, 0, "end");
+
+    TEST ("%{#Iw}", std::ios::beg, 0, 0, "std::ios::beg");
+    TEST ("%{#Iw}", std::ios::cur, 0, 0, "std::ios::cur");
+    TEST ("%{#Iw}", std::ios::end, 0, 0, "std::ios::end");
 }
 
 /***********************************************************************/
@@ -1002,7 +1128,10 @@ void test_intarray ()
     TEST ("%{1Ao}", 0, 0, 0, "(null)");
     TEST ("%{2Ao}", 0, 0, 0, "(null)");
     TEST ("%{4Ao}", 0, 0, 0, "(null)");
+
+#ifdef _RWSTD_INT64_T
     TEST ("%{8Ao}", 0, 0, 0, "(null)");
+#endif   // _RWSTD_INT64_T
 
     // 2-byte integer arrays
     TEST ("%{2Ao}",   AR (2, 0),             0, 0, "");
@@ -2118,6 +2247,8 @@ int main ()
     test_signal ();
 
     test_basic_string ();
+
+    test_ios_bitmasks ();
 
     test_tm ();
 
