@@ -83,7 +83,7 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen /* = -1 */)
         this->_C_bufsize = 0;
     }
     else {
-        if (this->_C_bufsize < __slen)  {
+        if (this->_C_bufsize < _Streamsize (__slen))  {
 
             // buffer too small - need to reallocate
             if (this->_C_own_buf ())
@@ -101,9 +101,15 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen /* = -1 */)
         
         if (this->_C_is_in ())
             this->setg (this->_C_buffer, this->_C_buffer, __bufend);
+        else {
+            // when not in in mode set all get pointers to the same
+            // value and use egptr() as the "high mark" (see LWG
+            // issue 432)
+            this->setg (__bufend, __bufend, __bufend);
+        }
         
         if (this->_C_is_out ()) {
-            this->setp (this->_C_buffer, __bufend);
+            this->setp (this->_C_buffer, this->_C_buffer + this->_C_bufsize);
             
             if (this->_C_state & (ios_base::app | ios_base::ate))
                 this->pbump (__slen);   // seek to end 
@@ -113,7 +119,21 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen /* = -1 */)
 
 
 template <class _CharT, class _Traits, class _Allocator>
-_TYPENAME basic_stringbuf<_CharT, _Traits, _Allocator>::int_type
+/* virtual */ streamsize
+basic_stringbuf<_CharT, _Traits, _Allocator>::
+showmanyc ()
+{
+    _RWSTD_ASSERT (this->_C_is_valid ());
+
+    // get egptr() caught up with pptr()
+    _C_catchup (this->eback ());
+
+    return streamsize (this->egptr () - this->gptr ());
+}
+
+
+template <class _CharT, class _Traits, class _Allocator>
+/* virtual */ _TYPENAME basic_stringbuf<_CharT, _Traits, _Allocator>::int_type
 basic_stringbuf<_CharT, _Traits, _Allocator>::
 underflow ()
 {
@@ -124,6 +144,14 @@ underflow ()
         _RWSTD_ASSERT (0 != this->gptr ());
 
         return traits_type::to_int_type (*this->gptr ());
+    }
+    else if (this->gptr () < this->pptr ()) {
+
+        // get egptr() caught up with pptr()
+        _C_catchup (this->eback ());
+
+        if (this->gptr () < this->egptr ())
+            return traits_type::to_int_type (*this->gptr ());
     }
 
     return traits_type::eof ();
@@ -137,58 +165,66 @@ overflow (int_type __c)
 {
     _RWSTD_ASSERT (this->_C_is_valid ());
 
+    // 27.7.1.3, p5, bullet 2 of C++ '03: when (c == eof)
+    // indicate success even when not in out mode
+    if (this->_C_is_eof (__c))
+        return traits_type::not_eof (__c);
+    
     if (!this->_C_is_out ()) 
         return traits_type::eof ();
     
-    if (this->_C_is_eof (__c))
-        return  traits_type::not_eof (__c);
+    char_type* const __bufend = this->_C_buffer + this->_C_bufsize;
     
-    typedef _RWSTD_STREAMSIZE _Streamsize;
+    if (this->epptr () < __bufend) {
+        // bump up epptr() keeping pbase() and pptr() unchanged
 
-    const _Streamsize __slen = _C_strlen ();
-    
-    // reallocate space if necessary
-
-    if (!(this->epptr () < this->_C_buf_end ())) {
+        const _RWSTD_STREAMSIZE __off = this->pptr () - this->pbase ();
+        this->setp (this->pbase (), __bufend);
+        this->pbump (__off);
+    }
+    else if (this->pptr () == this->epptr ()) {
+        // allocate new or reallocate existing buffer
 
         typedef _RWSTD_ALLOC_TYPE (allocator_type, char_type) _ValueAlloc;
 
-        // calculate size of buffer to allocate
-        const _Streamsize __new_size =
+        // calculate size of the new buffer to allocate
+        const _RWSTD_STREAMSIZE __new_size =
             _C_grow (this->_C_bufsize + 1, this->_C_bufsize);
         
-        char_type* __new_buf = _ValueAlloc ().allocate (__new_size);
+        char_type* const __new_buf = _ValueAlloc ().allocate (__new_size);
            
-        if (this->_C_buffer) {  // need to copy the old buffer to new buffer
-            traits_type::copy (__new_buf, this->_C_buffer, __slen);   
+        // compute the length of the output sequence
+        const _RWSTD_STREAMSIZE __slen = this->pptr () - this->pbase ();
+
+        if (this->_C_buffer) {
+            // copy the contents of the old buffer to the new one
+            traits_type::copy (__new_buf, this->_C_buffer, __slen);
+
+            // deallocate the old buffer if owned
             if (this->_C_own_buf ()) 
                 _ValueAlloc ().deallocate (this->_C_buffer, this->_C_bufsize);
         }
+
         this->_C_own_buf (true);
         this->_C_bufsize = __new_size;
         this->_C_buffer  = __new_buf;
+
+        // set the put area
+        this->setp (this->_C_buffer, this->_C_buffer + this->_C_bufsize);
+        this->pbump (__slen);
     }
 
-    // increment the end put pointer by one position
-    this->setp (this->_C_buffer, this->_C_buffer + __slen + 1);
-    this->pbump (__slen);
+    const int_type __retval = this->sputc (traits_type::to_char_type (__c));
 
-    // set get area if in in|out mode 
-    if (this->_C_is_inout ()) {
-        // use the relative offset of gptr () from eback() to set the new gptr
-        // although they are invalid, the offset is still valid
-        char_type* __gptr_new =   this->_C_buffer
-                                + (this->gptr () - this->eback ());  
-        // N.B. pptr() has already been incremented  
-        this->setg (this->_C_buffer, __gptr_new, this->epptr());
-    }
+    // get egptr() caught up with the value of pptr() after the call
+    _C_catchup (this->_C_buffer);
 
-    return this->sputc (traits_type::to_char_type (__c));
+    return __retval;
 }
 
 
 template<class _CharT, class _Traits, class _Allocator>
-_TYPENAME basic_stringbuf<_CharT, _Traits, _Allocator>::int_type
+/* virtual */ _TYPENAME basic_stringbuf<_CharT, _Traits, _Allocator>::int_type
 basic_stringbuf<_CharT, _Traits, _Allocator>::
 pbackfail (int_type __c)
 {
@@ -220,7 +256,7 @@ pbackfail (int_type __c)
 
 
 template<class _CharT, class _Traits, class _Allocator>
-basic_streambuf<_CharT, _Traits>*
+/* virtual */ basic_streambuf<_CharT, _Traits>*
 basic_stringbuf<_CharT, _Traits, _Allocator>::
 setbuf (char_type* __buf, _RWSTD_STREAMSIZE __n)
 {
@@ -259,22 +295,15 @@ setbuf (char_type* __buf, _RWSTD_STREAMSIZE __n)
     this->setp (this->_C_buffer, this->_C_buffer + __slen);
     this->pbump (__pptr_off);   // ... and restore it
  
-    // set get area if in in|out mode
-    if (this->_C_is_inout()) {
-        // use the relative offset of gptr () from eback() to set the new gptr
-        // (although the pointers are invalid, the offset is still valid)
-        char_type* const __gptr_new =
-            this->_C_buffer + (this->gptr () - this->eback ());
-
-        this->setg (this->_C_buffer, __gptr_new, this->epptr());
-    }
+    // get egptr() caught up with pptr()
+    _C_catchup (this->_C_buffer);
     
     return this;
 }
 
 
 template<class _CharT, class _Traits, class _Allocator>
-_TYPENAME basic_stringbuf<_CharT, _Traits, _Allocator>::pos_type
+/* virtual */ _TYPENAME basic_stringbuf<_CharT, _Traits, _Allocator>::pos_type
 basic_stringbuf<_CharT, _Traits, _Allocator>::
 seekoff (off_type __off, ios_base::seekdir __way, ios_base::openmode __which)
 {
@@ -285,122 +314,77 @@ seekoff (off_type __off, ios_base::seekdir __way, ios_base::openmode __which)
                    || ios_base::cur == __way
                    || ios_base::end == __way);
         
-    typedef _RWSTD_STREAMSIZE _Streamsize;
+    _RWSTD_STREAMSIZE __newoff = -1;
 
-    _Streamsize __newoff = 0;
+    // get egptr() caught up with pptr()
+    _C_catchup (this->eback ());
 
     if (__which & ios_base::in) {
+
         if (!this->_C_is_in () || !this->gptr ())
             return pos_type (off_type (-1));
+
         // do the checks for in|out mode here
-        if (__which & ios_base::out) {
-            if ((__way & ios_base::cur) || !this->_C_is_out ())
-                return pos_type (off_type (-1));
-        }     
-        switch (__way) {
-
-        case ios_base::beg:
-            __newoff = 0;
-            break;
-            
-        case ios_base::cur:
-            __newoff = _Streamsize (this->gptr () - this->eback ());
-            break;
-        
-        case ios_base::end:
-            __newoff = _Streamsize (this->egptr () - this->eback ());
-        }
-
-        if (   (__newoff + __off) < 0
-            || (this->egptr () - this->eback ()) < (__newoff + __off))
+        if (   __which & ios_base::out
+            && (ios_base::cur == __way || !this->_C_is_out ()))
             return pos_type (off_type (-1));
 
-        this->setg (this->eback (),
-                    this->eback () + __newoff + __off,
-                    this->egptr ());
+        switch (__way) {
+        case ios_base::beg: __newoff = 0; break;
+        case ios_base::cur: __newoff = this->gptr () - this->eback (); break;
+        case ios_base::end: __newoff = this->egptr () - this->eback (); break;
+        }
 
+        __newoff += __off;
+
+        if ( __newoff < 0 || (this->egptr () - this->eback ()) < __newoff)
+            return pos_type (off_type (-1));
+
+        this->setg (this->eback (), this->eback () + __newoff, this->egptr ());
     }
     
     if (__which & ios_base::out) {
+
         if (!this->_C_is_out () || !this->pptr ())
             return pos_type (off_type (-1));
 
-        switch (__way) {
+        // egptr() is used as the "high mark" even when not in "in" mode
+        _RWSTD_ASSERT (0 != this->egptr ());
 
-        case ios_base::beg:
-            __newoff = 0;
-            break;
-            
-        case ios_base::cur:
-            __newoff = _Streamsize (this->pptr () - this->pbase ());
-            break;
-            
-        case ios_base::end:
-            __newoff = _Streamsize (this->epptr () - this->pbase ());
-            break;
+        // compute the number of initialized characters in the buffer
+        // (see LWG issue 432)
+        const _RWSTD_STREAMSIZE __high = this->egptr () - this->pbase ();
+        const _RWSTD_STREAMSIZE __cur  = this->pptr () - this->pbase ();
+
+        switch (__way) {
+        case ios_base::beg: __newoff = 0; break;
+        case ios_base::cur: __newoff = __cur; break;
+        case ios_base::end: __newoff = __high; break;
         }
-        
-        if (   (__newoff + __off) < 0
-            || (this->epptr () - this->pbase ()) < (__newoff + __off))
+
+        __newoff += __off;
+
+        if (__newoff < 0 || __high < __newoff)
             return pos_type (off_type (-1));
 
-        this->setp (this->pbase (), this->epptr ());
-        this->pbump (__newoff + __off);
+        // bump pptr up (or down) to the new position
+        this->pbump (__newoff - __cur);
     }
 
-    return pos_type (__newoff + __off);
+    _RWSTD_ASSERT (this->_C_is_valid ());
+
+    return __newoff < 0 ? pos_type (off_type (-1)) : pos_type (__newoff);
 }
 
 
 template<class _CharT, class _Traits, class _Allocator>
-_TYPENAME basic_stringbuf<_CharT, _Traits, _Allocator>::pos_type
+/* virtual */ _TYPENAME basic_stringbuf<_CharT, _Traits, _Allocator>::pos_type
 basic_stringbuf<_CharT, _Traits, _Allocator>::
-seekpos (pos_type __sp, ios_base::openmode __which)
+seekpos (pos_type __pos, ios_base::openmode __which)
 {
     _RWSTD_ASSERT (this->_C_is_valid ());
 
-#if !defined (__GNUG__) || __GNUG__ != 4 || __GNUC_MINOR__ != 0
-
-    const _RWSTD_STREAMSIZE __newoff = off_type (__sp);
-
-#else   // !gcc 4.0
-
-    // work around gcc 4.0.0 bug #454
-    _RWSTD_STREAMSIZE __newoff = off_type (__sp);
-
-#endif   // gcc 4.0
-    
-    // return invalid pos if no positioning operation succeeds
-    pos_type __retval = pos_type (off_type (-1));
-     
-    if (__newoff < 0)
-        return __retval;
-
-    // see 27.7.1.3 p.11 for required conditions 
-    if ((__which & ios_base::in) && this->_C_is_in () && this->gptr()) {
-        
-        if ((this->eback () + __newoff) > this->egptr ())
-            return pos_type (off_type (-1));
-        
-        this->setg (this->eback (),
-                    this->eback () + __newoff,
-                    this->egptr ());
-
-        __retval = __sp;
-    }
-        
-    if ((__which & ios_base::out) && this->_C_is_out () && this->pptr()) {
-
-        if ((this->pbase () + __newoff) > this->epptr ()) 
-            return pos_type (off_type (-1));
-        
-        this->setp (this->pbase (), this->epptr ());
-        this->pbump (__newoff);
-
-        __retval = __sp;
-    }
-    
-    return __retval;
+    return pos_type (basic_stringbuf::seekoff (__pos, ios_base::beg, __which));
 }
 
 
