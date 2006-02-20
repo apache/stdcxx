@@ -1,4 +1,3 @@
-// -*- C++ -*-
 /***************************************************************************
  *
  * 27.stringbuf.virtuals.cpp - test exercising lib.stringbuf.virtuals
@@ -35,13 +34,13 @@
 /**************************************************************************/
 
 #undef EOF
-#define EOF   Traits::eof ()
+#define EOF   traits_eof
 
 #undef NOT_EOF
-#define NOT_EOF Traits::not_eof (Traits::eof ())
+#define NOT_EOF   (_RWSTD_INT_MIN + 1)
 
 #undef IGN
-#define IGN _RWSTD_INT_MIN
+#define IGN   _RWSTD_INT_MIN
 
 #undef NPOS
 #define NPOS       -1   // invalid position (post_type(off_type(-1))
@@ -97,14 +96,16 @@ struct PubBuf: std::basic_stringbuf<charT, Traits>
 };
 
 
+int traits_eof = -1;
+
 template <class charT>
-struct UserTraits: std::char_traits<charT>
+struct CharTraits: std::char_traits<charT>
 {
     typedef std::char_traits<charT> Base;
     typedef typename Base::int_type int_type;
 
     // override eof() to detect bad assumptions
-    static int_type eof () { return '$'; }
+    static int_type eof () { return traits_eof; }
     static int_type not_eof (int_type c) {
         return c == eof () ? int_type (!c) : c;
     }
@@ -112,24 +113,27 @@ struct UserTraits: std::char_traits<charT>
 
 /**************************************************************************/
 
-// convenience constants; must be extern in order allow
-// them to be found in template instantiation contexts
-extern const int in  = std::ios::in;
-extern const int out = std::ios::out;
-extern const int ate = std::ios::ate;
-
-extern const int beg = std::ios::beg;
-extern const int cur = std::ios::cur;
-extern const int end = std::ios::end;
-
 enum VirtualTag {
     // which virtual function to exercise
-    pbackfail = 1, overflow, underflow, seekoff, seekpos
+    pbackfail, overflow, underflow, seekoff, seekpos
 };
 
+struct FunctionId {
+    enum charT { Char, WChar };
+    enum Traits { DefaultTraits, UserTraits };
+
+    charT       cid;
+    Traits      tid;
+    VirtualTag  vfun;
+    const char *cname;   // character type name
+    const char *tname;   // traits name
+    const char *fname;   // function name
+};
+
+/**************************************************************************/
+
 template <class charT, class Traits>
-void test_virtual (charT, Traits, const char *cname, const char *tname,
-                   VirtualTag  vfun,           // which virtual to call
+void test_virtual (charT, Traits, const FunctionId *pfid,
                    int         line,           // line number
                    const char *str,            // ctor string argument
                    std::size_t,                // length of string
@@ -143,11 +147,6 @@ void test_virtual (charT, Traits, const char *cname, const char *tname,
                    int         read_expect,    // ... size of read area
                    int         write_expect)   // ... size of write area
 {
-    if (!rw_enabled (line)) {
-        rw_note (0, 0, __LINE__, "test on line %d disabled", line);
-        return;
-    }
-
     typedef std::allocator<charT>                          Allocator;
     typedef std::basic_stringbuf<charT, Traits, Allocator> Stringbuf;
 
@@ -190,7 +189,7 @@ void test_virtual (charT, Traits, const char *cname, const char *tname,
     }
 
     // create the argument to overflow
-    const int_type arg_int = -1 == arg0 ? EOF : int_type (arg0);
+    const int_type arg_int = int_type (arg0);
     const off_type arg_off = off_type (arg0);
     const pos_type arg_pos = arg_off;
 
@@ -199,37 +198,30 @@ void test_virtual (charT, Traits, const char *cname, const char *tname,
 
     int ret = EOF;
 
-    const char *fname = 0;
-
     // invoke the virtual function with the expected argument (if any)
-    switch (vfun) {
+    switch (pfid->vfun) {
     case pbackfail:
-        fname = "pbackfail";
-        ret   = IGN == arg0 ? pbuf->Pbackfail ()
-                            : pbuf->Pbackfail (arg_int);
+        ret = IGN == arg0 ? pbuf->Pbackfail ()
+                          : pbuf->Pbackfail (arg_int);
         break;
 
     case overflow:
-        fname = "overflow";
-        ret   = IGN == arg0 ? pbuf->Overflow ()
-                            : pbuf->Overflow (arg_int);
+        ret = IGN == arg0 ? pbuf->Overflow ()
+                          : pbuf->Overflow (arg_int);
         break;
 
     case underflow:
-        fname = "underflow";
-        ret   = pbuf->Underflow ();
+        ret = pbuf->Underflow ();
         break;
 
     case seekoff:
-        fname = "seekoff";
-        ret   = IGN == arg2 ? pbuf->Seekoff (arg_off, arg_way)
-                            : pbuf->Seekoff (arg_off, arg_way, arg_which);
+        ret = IGN == arg2 ? pbuf->Seekoff (arg_off, arg_way)
+                          : pbuf->Seekoff (arg_off, arg_way, arg_which);
         break;
 
     case seekpos:
-        fname = "seekpos";
-        ret   = IGN == arg2 ? pbuf->Seekpos (arg_pos)
-                            : pbuf->Seekpos (arg_pos, arg_which);
+        ret = IGN == arg2 ? pbuf->Seekpos (arg_pos)
+                          : pbuf->Seekpos (arg_pos, arg_which);
         break;
     }
 
@@ -262,23 +254,28 @@ void test_virtual (charT, Traits, const char *cname, const char *tname,
          "%{;})"
 
     // arguments corresponding to CALLFMT
-#define CALLARGS                                                        \
-    __LINE__,                                                           \
-    0 != tname, 'w' == *cname, 0 != tname, cname, 0 != tname, tname,    \
-    0 != str, str,  -1 < mode, mode, -1 < mode, mode,                   \
-    fname, vfun < seekoff,                                              \
-    IGN != arg0, arg_int,                                               \
-    arg0, seekoff == vfun, arg1, IGN != arg2, arg2,                     \
+#define CALLARGS                                                \
+    __LINE__,                                                   \
+    0 != pfid->tname, 'w' == *pfid->cname, 0 != pfid->tname,    \
+    pfid->cname, 0 != pfid->tname, pfid->tname,                 \
+    0 != str, str,  -1 < mode, mode, -1 < mode, mode,           \
+    pfid->fname, pfid->vfun < seekoff,                          \
+    IGN != arg0, arg_int,                                       \
+    arg0, seekoff == pfid->vfun, arg1, IGN != arg2, arg2,       \
     IGN != arg1, arg1
 
+    const int_type not_eof = Traits::not_eof (arg_int);
+
+    int success = ret == (NOT_EOF == ret_expect ? not_eof : ret_expect);
+
     // verify the expected return value
-    rw_assert (ret == ret_expect, 0, line,
+    rw_assert (success, 0, line,
                CALLFMT
                " == %{?}%{?}not EOF%{:}%{#lc}%{;}%{:}%d%{;}, "
                "got %{?}%{#lc}%{:}%d%{;}",
                CALLARGS,
-               vfun < seekoff, NOT_EOF == ret_expect, ret_expect, ret_expect,
-               vfun < seekoff, ret, ret);
+               pfid->vfun < seekoff, NOT_EOF == ret_expect, ret_expect,
+               ret_expect, pfid->vfun < seekoff, ret, ret);
 
     // verify the expected size of the putback area
     if (IGN != pback_expect)
@@ -300,7 +297,7 @@ void test_virtual (charT, Traits, const char *cname, const char *tname,
     if (IGN != write_expect) {
 
         // at least as many write positions as expected
-        const int success = 0 < write_expect ?
+        success = 0 < write_expect ?
             write_expect <= write_pos : write_pos == write_expect;
 
         rw_assert (success, 0, line,
@@ -314,17 +311,82 @@ void test_virtual (charT, Traits, const char *cname, const char *tname,
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_pbackfail (charT, Traits, const char *cname, const char *tname)
+// dispatches to the appropriate specialization of the function template
+void test_virtual (FunctionId   *pfid,
+                   int           line,
+                   const char   *str,
+                   std::size_t   str_len,
+                   int           mode,
+                   int           gbump,
+                   int           arg0,
+                   int           arg1,
+                   int           arg2,
+                   int           ret_expect,
+                   int           pback_expect,
+                   int           read_expect,
+                   int           write_expect)
+{
+#undef TEST
+#define TEST(charT, Traits)                                     \
+    test_virtual (charT (), Traits (), pfid, line,              \
+                  str, str_len, mode, gbump,                    \
+                  arg0, arg1, arg2, ret_expect,                 \
+                  pback_expect, read_expect, write_expect)
+
+    static const char* const fnames[] = {
+        "pbackfail", "overflow", "underflow", "seekoff", "seekpos"
+    };
+
+    if (!rw_enabled (line)) {
+        rw_note (0, 0, __LINE__, "test on line %d disabled", line);
+        return;
+    }
+
+    pfid->fname = fnames [pfid->vfun];
+    
+    if (FunctionId:: DefaultTraits == pfid->tid) {
+        if (FunctionId::Char == pfid->cid)
+            TEST (char, std::char_traits<char>);
+#ifndef _RWSTD_NO_WCHAR_T
+        else
+            TEST (wchar_t, std::char_traits<wchar_t>);
+#endif   // _RWSTD_NO_WCHAR_T
+    }
+    else {
+        if (FunctionId::Char == pfid->cid)
+            TEST (char, CharTraits<char>);
+
+#ifndef _RWSTD_NO_WCHAR_T
+        else
+            TEST (wchar_t, CharTraits<wchar_t>);
+#endif   // _RWSTD_NO_WCHAR_T
+    }
+}
+
+/**************************************************************************/
+
+// convenience constants
+const int in  = std::ios::in;
+const int out = std::ios::out;
+const int ate = std::ios::ate;
+
+const int cur = std::ios::cur;
+const int end = std::ios::end;
+
+/**************************************************************************/
+
+static void
+test_pbackfail (FunctionId *pfid)
 {
     rw_info (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::pbackfail(int_type)",
-             cname, 0 != tname, tname);
+             pfid->cname, 0 != pfid->tname, pfid->tname);
+
+    pfid->vfun = pbackfail;
 
 #undef TEST
-#define TEST(str, mode, gbump, arg, result, pback, read, write) \
-    test_virtual (charT (), Traits (), cname, tname, pbackfail, \
-                  __LINE__, str, sizeof str - 1, mode, gbump,   \
-                  arg, IGN, IGN, result, pback, read, write);
+#define TEST(str, mode, gbump, arg, result, pback, read, write)         \
+    test_virtual (pfid, __LINE__, str, sizeof str - 1, mode,            \
+                  gbump, arg, IGN, IGN, result, pback, read, write)
 
     ///////////////////////////////////////////////////////////////////////
     // 27.7.1.3
@@ -386,16 +448,17 @@ void test_pbackfail (charT, Traits, const char *cname, const char *tname)
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_overflow (charT, Traits, const char *cname, const char *tname)
+static void
+test_overflow (FunctionId *pfid)
 {
     rw_info (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::overflow(int_type)",
-             cname, 0 != tname, tname);
+             pfid->cname, 0 != pfid->tname, pfid->tname);
+
+    pfid->vfun = overflow;
 
 #undef TEST
-#define TEST(str, mode, gbump, arg, result, pback, read, write) \
-    test_virtual (charT (), Traits (), cname, tname, overflow,  \
-                  __LINE__, str, sizeof str - 1, mode, gbump,   \
+#define TEST(str, mode, gbump, arg, result, pback, read, write)         \
+    test_virtual (pfid, __LINE__, str, sizeof str - 1, mode, gbump,     \
                   arg, IGN, IGN, result, pback, read, write);
 
     ///////////////////////////////////////////////////////////////////////
@@ -488,16 +551,17 @@ void test_overflow (charT, Traits, const char *cname, const char *tname)
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_underflow (charT, Traits, const char *cname, const char *tname)
+static void
+test_underflow (FunctionId *pfid)
 {
     rw_info (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::underflow()",
-             cname, 0 != tname, tname);
+             pfid->cname, 0 != pfid->tname, pfid->tname);
+
+    pfid->vfun = underflow;
 
 #undef TEST
-#define TEST(str, mode, gbump, result, pback, read, write) \
-    test_virtual (charT (), Traits (), cname, tname, underflow, \
-                  __LINE__, str, sizeof str - 1, mode, gbump,   \
+#define TEST(str, mode, gbump, result, pback, read, write)              \
+    test_virtual (pfid, __LINE__, str, sizeof str - 1, mode, gbump,     \
                   IGN, IGN, IGN, result, pback, read, write);
 
 
@@ -552,7 +616,7 @@ void test_underflow (charT, Traits, const char *cname, const char *tname)
     //////////////////////////////////////////////////////////////////
     // exercise UserTraits with an unusual eof
 
-    if (0 == tname)
+    if (0 == pfid->tname)
         return;
 
     TEST ("a$c", in,             0, 'a',  0,  3, 0);
@@ -562,16 +626,14 @@ void test_underflow (charT, Traits, const char *cname, const char *tname)
 /**************************************************************************/
 
 // exercises both seekoff (seeking from the beginning) and seekpos
-template <class charT, class Traits>
-void test_seek (charT, Traits, const char *cname, const char *tname,
-                VirtualTag vfun)
+static void
+test_seek (FunctionId *pfid)
 {
-    RW_ASSERT (seekoff == vfun || seekpos == vfun);
+    RW_ASSERT (seekoff == pfid->vfun || seekpos == pfid->vfun);
 
 #undef TEST
-#define TEST(str, mode, gbump, off, which, res, pback, read, write)   \
-    test_virtual (charT (), Traits (), cname, tname, vfun,            \
-                  __LINE__, str, sizeof str - 1, mode, gbump,         \
+#define TEST(str, mode, gbump, off, which, res, pback, read, write)     \
+    test_virtual (pfid, __LINE__, str, sizeof str - 1, mode, gbump,     \
                   off, std::ios::beg, which, res, pback, read, write)
 
     //////////////////////////////////////////////////////////////////
@@ -690,19 +752,20 @@ void test_seek (charT, Traits, const char *cname, const char *tname,
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_seekoff (charT, Traits, const char *cname, const char *tname)
+static void
+test_seekoff (FunctionId *pfid)
 {
     rw_info (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::seekoff(off_type, "
              "ios_base::seekdir, ios_base::openmode)",
-             cname, 0 != tname, tname);
+             pfid->cname, 0 != pfid->tname, pfid->tname);
 
-    test_seek (charT (), Traits (), cname, tname, seekoff);
+    pfid->vfun = seekoff;
+
+    test_seek (pfid);
 
 #undef TEST
 #define TEST(str, mode, gbump, off, way, which, res, pback, read, write)  \
-    test_virtual (charT (), Traits (), cname, tname, seekoff,             \
-                  __LINE__, str, sizeof str - 1, mode, gbump,             \
+    test_virtual (pfid, __LINE__, str, sizeof str - 1, mode, gbump,       \
                   off, way, which, res, pback, read, write)
 
     // exercise seeking from the current position and from end
@@ -791,34 +854,36 @@ void test_seekoff (charT, Traits, const char *cname, const char *tname)
     // TO DO: exercise ate mode etc.
     rw_warn (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::seekoff(off_type, "
              "ios_base::seekdir, ios_base::openmode) insufficiently exercised",
-             cname, 0 != tname, tname);
+             pfid->cname, 0 != pfid->tname, pfid->tname);
 }
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_seekpos (charT, Traits, const char *cname, const char *tname)
+static void
+test_seekpos (FunctionId *pfid)
 {
     rw_info (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::seekpos(pos_type, "
              "ios_base::openmode)",
-             cname, 0 != tname, tname);
+             pfid->cname, 0 != pfid->tname, pfid->tname);
 
-    test_seek (charT (), Traits (), cname, tname, seekpos);
+    pfid->vfun = seekpos;
+
+    test_seek (pfid);
 }
 
 /**************************************************************************/
 
-/* etxern */ int rw_opt_no_pbackfail;     // for --no-pbackfail
-/* etxern */ int rw_opt_no_overflow;      // for --no-overflow
-/* etxern */ int rw_opt_no_underflow;     // for --no-underflow
-/* etxern */ int rw_opt_no_seekoff;       // for --no-seekoff
-/* etxern */ int rw_opt_no_seekpos;       // for --no-seekpos
-/* etxern */ int rw_opt_no_seek;          // for --no-seek
-/* etxern */ int rw_opt_no_char_traits;   // for --no-char_traits
-/* etxern */ int rw_opt_no_user_traits;   // for --no-user_traits
+static int rw_opt_no_pbackfail;     // for --no-pbackfail
+static int rw_opt_no_overflow;      // for --no-overflow
+static int rw_opt_no_underflow;     // for --no-underflow
+static int rw_opt_no_seekoff;       // for --no-seekoff
+static int rw_opt_no_seekpos;       // for --no-seekpos
+static int rw_opt_no_seek;          // for --no-seek
+static int rw_opt_no_char_traits;   // for --no-char_traits
+static int rw_opt_no_user_traits;   // for --no-user_traits
 
-template <class charT, class Traits>
-void run_test (charT, Traits, const char *cname, const char *tname)
+static void
+run_test (FunctionId *pfid)
 {
 #undef TEST
 #define TEST(function)                                          \
@@ -826,13 +891,13 @@ void run_test (charT, Traits, const char *cname, const char *tname)
         rw_note (1 < rw_opt_no_ ## function++, 0, 0,            \
                  "%s test disabled", #function);                \
     else                                                        \
-        test_ ## function (charT (), Traits (), cname, tname)
+        test_ ## function (pfid)
 
-    if (tname && rw_opt_no_user_traits) {
+    if (pfid->tname && rw_opt_no_user_traits) {
         rw_note (1 < rw_opt_no_user_traits++, 0, 0,
                  "user defined traits test disabled");
     }
-    else if (!tname && rw_opt_no_char_traits) {
+    else if (!pfid->tname && rw_opt_no_char_traits) {
         rw_note (1 < rw_opt_no_char_traits++, 0, 0,
                  "char_traits test disabled");
     }
@@ -847,7 +912,8 @@ void run_test (charT, Traits, const char *cname, const char *tname)
 
 /**************************************************************************/
 
-static int run_test (int, char*[])
+static int
+run_test (int, char*[])
 {
     if (rw_opt_no_seek) {
         rw_opt_no_seekoff = 1;
@@ -855,29 +921,42 @@ static int run_test (int, char*[])
     }
 
     if (rw_enabled ("char")) {
-        typedef std::char_traits<char> DefaultTraits;
-        typedef UserTraits<char>       UserTraits;
+        FunctionId fid;
 
-        run_test (char (), DefaultTraits (), "char", 0);
-        run_test (char (), UserTraits (), "char", "UserTraits");
+        fid.cid    = FunctionId::Char;
+        fid.tid    = FunctionId::DefaultTraits;
+        fid.cname  = "char";
+        traits_eof = -1;
+
+        run_test (&fid);
+
+        fid.tid    = FunctionId::UserTraits;
+        fid.tname  = "UserTraits";
+        traits_eof = '$';
+
+        run_test (&fid);
     }
     else
         rw_note (0, 0, 0, "char tests disabled");
-
-#ifndef _RWSTD_NO_WCHAR_T
 
     if (rw_enabled ("wchar_t")) {
-        typedef std::char_traits<wchar_t> DefaultTraits;
-        typedef UserTraits<wchar_t>       UserTraits;
+        FunctionId fid;
 
-        run_test (wchar_t (), DefaultTraits (), "wchar_t", 0);
-        run_test (wchar_t (), UserTraits (), "wchar_t", "UserTraits");
+        fid.cid    = FunctionId::WChar;
+        fid.tid    = FunctionId::DefaultTraits;
+        fid.cname  = "wchar_t";
+        traits_eof = -1;
+
+        run_test (&fid);
+
+        fid.tid    = FunctionId::UserTraits;
+        fid.tname  = "UserTraits";
+        traits_eof = '$';
+
+        run_test (&fid);
     }
     else
         rw_note (0, 0, 0, "char tests disabled");
-
-#endif   // _RWSTD_NO_WCHAR_T
-
 
     return 0;
 }
