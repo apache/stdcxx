@@ -235,14 +235,29 @@ _RWSTD_EXPORT extern const long double __rw_ldbl_sNaN;
 
 #undef _RWSTD_SPECIALIZE_LIMITS
 
-#define _RWSTD_SPECIALIZE_LIMITS(type, cpfx)  \
-_RWSTD_CLASS_BEGIN (numeric_limits<type>)     \
-    _RWSTD_LIMITS_BODY (type, cpfx)           \
-_RWSTD_CLASS_END
+#if    !defined (_RWSTD_NO_CLASS_PARTIAL_SPEC) \
+    || defined (_RWSTD_NO_EXT_CV_QUALIFIED_LIMITS)
+#  define _RWSTD_SPECIALIZE_LIMITS(T, cpfx)  \
+  _RWSTD_CLASS_BEGIN (numeric_limits<T>)     \
+      _RWSTD_LIMITS_BODY (T, cpfx)           \
+  _RWSTD_CLASS_END
+#else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
+    // define specializations for all cv-qualified types
+#  define _RWSTD_SPECIALIZE_LIMITS(T, cpfx)                     \
+  _RWSTD_CLASS_BEGIN (numeric_limits<T>)                        \
+      _RWSTD_LIMITS_BODY (T, cpfx)                              \
+  _RWSTD_CLASS_END;                                             \
+  _RWSTD_SPECIALIZED_CLASS                                      \
+  numeric_limits<const T>: numeric_limits<T> { };               \
+  _RWSTD_SPECIALIZED_CLASS                                      \
+  numeric_limits<volatile T>: numeric_limits<T> { };            \
+  _RWSTD_SPECIALIZED_CLASS                                      \
+  numeric_limits<const volatile T>: numeric_limits<T> { }
+#endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC
 
 
-#ifndef _RWSTD_LIMITS_TEMPLATE_DEFINED
-#define _RWSTD_LIMITS_TEMPLATE_DEFINED
+#ifndef _RWSTD_LIMITS_PRIMARY_TEMPLATE_DEFINED
+#  define _RWSTD_LIMITS_PRIMARY_TEMPLATE_DEFINED
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -320,11 +335,10 @@ struct numeric_limits
     _RWSTD_STATIC_CONST (float_round_style, round_style = round_toward_zero);
 };
 
-
 }   // namespace std
 
 
-#endif   // _RWSTD_LIMITS_TEMPLATE_DEFINED
+#endif   // _RWSTD_LIMITS_PRIMARY_TEMPLATE_DEFINED
 
 
 #ifndef _RWSTD_LIMITS_INCLUDED
@@ -517,6 +531,25 @@ _RWSTD_SPECIALIZE_LIMITS (unsigned _RWSTD_LONG_LONG, _RWSTD_ULLONG)
 
 #endif   // _RWSTD_LONG_LONG
 
+
+#ifndef _RWSTD_LIMITS_PARTIAL_SPEC_DEFINED
+#  define _RWSTD_LIMITS_PARTIAL_SPEC_DEFINED
+
+#  ifndef _RWSTD_NO_EXT_CV_QUALIFIED_LIMITS
+#    ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
+
+template <class _TypeT>
+struct numeric_limits<const _TypeT>: numeric_limits<_TypeT> { };
+
+template <class _TypeT>
+struct numeric_limits<volatile _TypeT>: numeric_limits<_TypeT> { };
+
+template <class _TypeT>
+struct numeric_limits<const volatile _TypeT>: numeric_limits<_TypeT> { };
+
+#    endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC
+#  endif   // _RWSTD_NO_EXT_CV_QUALIFIED_LIMITS
+#endif   // _RWSTD_LIMITS_PARTIAL_SPEC_DEFINED
 
 }   // namespace std
 
