@@ -3,7 +3,7 @@
  *
  * streambuf - Declarations for the Standard Library stream buffers
  *
- * $Id: //stdlib/dev/include/streambuf#52 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -314,20 +314,19 @@ protected:
 
     // is buffer in input mode?
     bool _C_is_in () const {
-        return 0 != (_C_state & ios_base::in);
+        return ios_base::in == (_C_state & ios_base::in);
     }
 
     // is buffer in output mode?
     bool _C_is_out () const {
-        return     _C_state & ios_base::out
-                && !(_C_state & (_C_frozen | _C_constant));
+        return ios_base::out ==
+            (_C_state & (ios_base::out | _C_frozen | _C_constant));
     }
 
     // is buffer in both input and output mode?
     bool _C_is_inout () const {
-        return        (_C_state & (ios_base::in | ios_base::out))
-                   == (ios_base::in | ios_base::out)
-                && !(_C_state & (_C_frozen | _C_constant));
+        return (ios_base::in | ios_base::out) ==
+          (_C_state & (ios_base::in | ios_base::out | _C_frozen | _C_constant));
     }
 
     // is character eof?
@@ -521,7 +520,7 @@ inline bool
 basic_streambuf<_CharT, _Traits>::
 _C_is_valid () const
 {
-    // that the controlled input, output, and putback sequences
+    // check that the controlled input, output, and putback sequences
     // are consistent with the requirements outlined in 27.5.1, p3
     // this implementation additionally requires that the following
     // expression hold for all sequences: (xbeg <= xnext <= xend)
