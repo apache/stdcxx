@@ -3,7 +3,7 @@
  *
  * streambuf.cc - definitions of basic_streambuf members
  *
- * $Id: //stdlib/dev/include/streambuf.cc#12 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -91,9 +91,10 @@ streamsize
 basic_streambuf<_CharT, _Traits>::
 xsputn (const char_type* __buf, streamsize __n)
 {
+    _RWSTD_ASSERT (0 != __buf || 0 == __n);
     _RWSTD_ASSERT (_C_is_valid ());
 
-    if (!__buf || !__n || !_C_is_out ())
+    if (__n <= 0 || !_C_is_out ())
         return 0;
 
     streamsize __nput = 0;
