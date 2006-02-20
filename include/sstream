@@ -115,9 +115,9 @@ public:
     }
 
     _EXPLICIT
-    basic_stringbuf (const _C_string_type&, 
+    basic_stringbuf (const _C_string_type&,
                      ios_base::openmode = _RW::__rw_in_out);
-    
+
     // extension
     _EXPLICIT
     basic_stringbuf (const char_type*,
@@ -126,8 +126,7 @@ public:
     virtual ~basic_stringbuf ();
     
     _C_string_type str () const {
-        return _C_strlen () == 0 ? _C_string_type ()
-            : _C_string_type (this->_C_buffer, _C_strlen ());
+        return _C_string_type (this->_C_buffer, _C_strlen ());
     }
 
 #ifdef _RWSTD_NO_EXT_STRINGBUF_STR
@@ -144,20 +143,17 @@ public:
     void str (const _C_string_type &__str) {
         str (__str.data (), __str.size ());
     }
-    
+
 protected:
     
-    virtual streamsize showmanyc () {
-        return this->gptr () < this->egptr () ?
-            streamsize (this->egptr () - this->gptr ()) : 0;
-    }
+    virtual streamsize showmanyc ();
     
     virtual int_type overflow (int_type = traits_type::eof ());
 
     virtual int_type pbackfail (int_type = traits_type::eof ());
 
     virtual int_type underflow ();
-    
+
     virtual pos_type
     seekoff (off_type, ios_base::seekdir, ios_base::openmode =
              _RW::__rw_in_out);
@@ -168,15 +164,20 @@ protected:
     virtual basic_streambuf<char_type, traits_type>*
     setbuf (char_type*, streamsize);
 
-    // non-standard convenience functions
-    streamsize _C_strlen () const {
-        return streamsize (this->_C_is_in () ? this->egptr () - this->eback ()
-                                             : this->epptr () - this->pbase ());
-    }
-
 private:
 
+    // returns the length of the underlying sequence as specified
+    // by 27.7.1.2, p1
+    streamsize _C_strlen () const {
+        return ios_base::in == (this->_C_state & (ios_base::in | ios_base::out))
+            ? this->egptr () - this->eback () : this->pptr () - this->pbase ();
+    }
+
     _RWSTD_STREAMSIZE _C_grow (_RWSTD_STREAMSIZE, _RWSTD_STREAMSIZE) const;
+
+    // called from overflow, underflow, et al to get egptr()
+    // caught up with pptr()
+    void _C_catchup (char_type*);
 };
 
 
@@ -189,6 +190,34 @@ _C_grow (_RWSTD_STREAMSIZE __from, _RWSTD_STREAMSIZE __to) const
         _RWSTD_NEW_CAPACITY (_C_string_type, (_C_string_type*)0, __from);
 
     return __new_cap < __to ? __to : __new_cap;
+}
+
+
+template <class _CharT, class _Traits, class _Allocator>
+inline void
+basic_stringbuf<_CharT, _Traits, _Allocator>::
+_C_catchup (char_type *__gbeg)
+{
+    if (this->egptr () < this->pptr ()) {
+
+        if (this->_C_is_in ()) {
+        
+            // in in|out mode use the relative offset of gptr ()
+            // from eback() to set the new gptr() and use egptr()
+            // as the "high mark" (see LWG issue 432)
+            char_type* const __gptr = __gbeg + (this->gptr () - this->eback ());
+
+            this->setg (__gbeg, __gptr, this->pptr ());
+        }
+        else {
+
+            // in out only mode use egptr() as the "high mark"
+            // (see LWG issue 432)
+            this->setg (this->pptr (), this->pptr (), this->pptr ());
+        }
+
+        _RWSTD_ASSERT (this->_C_is_valid ());
+    }
 }
 
 
