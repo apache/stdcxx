@@ -279,12 +279,12 @@ for h in $hdrs ; do
     ;;
 
     string)
-        funs="memchr((char*)0,0,0) memcmp memcpy memmove memset strcat strchr((char*)0,0) strcmp strcoll strcpy strcspn strerror strlen strncat strncmp strncpy strpbrk((char*)0,(char*)0) strrchr((char*)0,0) strspn strstr((char*)0,(char*)0) strtok strxfrm"
+        funs="memchr((const char*)0,0,0) memcmp memcpy memmove memset strcat strchr((char*)0,0) strcmp strcoll strcpy strcspn strerror strlen strncat strncmp strncpy strpbrk((char*)0,(char*)0) strrchr((char*)0,0) strspn strstr((char*)0,(char*)0) strtok strxfrm"
         lib=c
     ;;
 
     wchar)
-        funs="btowc fgetwc fgetws fputwc fputws fwide fwprintf fwscanf getwc getwchar mbrlen mbrtowc mbsinit mbsrtowcs putwc putwchar swprintf swscanf ungetwc vfwprintf vswprintf vwprintf vwscanf wcrtomb wcscat wcschr((wchar_t*)0,0) wcscmp wcscoll wcscpy wcscspn wcsftime wcslen wcsncat wcsncmp wcsncpy wcspbrk((wchar_t*)0,(wchar_t*)0) wcsrchr((wchar_t*)0,0) wcsrtombs wcsspn wcsstr((wchar_t*)0,(wchar_t*)0) wcstod wcstod wcstof wcstok wcstol wcstold wcstoll wcstombs wcstoul wcstoull wcsxfrm wctob wctomb wmemchr((wchar_t*)0,0,0) wmemcmp wmemcpy wmemmove wmemset wprintf wscanf"
+        funs="btowc fgetwc fgetws fputwc fputws fwide fwprintf fwscanf getwc getwchar mbrlen mbrtowc mbsinit mbsrtowcs putwc putwchar swprintf swscanf ungetwc vfwprintf vswprintf vwprintf vwscanf wcrtomb wcscat wcschr((wchar_t*)0,0) wcscmp wcscoll wcscpy wcscspn wcsftime wcslen wcsncat wcsncmp wcsncpy wcspbrk((wchar_t*)0,(wchar_t*)0) wcsrchr((wchar_t*)0,0) wcsrtombs wcsspn wcsstr((wchar_t*)0,(wchar_t*)0) wcstod wcstod wcstof wcstok wcstol wcstold wcstoll wcstombs wcstoul wcstoull wcsxfrm wctob wctomb wmemchr((const wchar_t*)0,0,0) wmemcmp wmemcpy wmemmove wmemset wprintf wscanf"
         lib=c
     ;;
 
