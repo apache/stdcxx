@@ -837,7 +837,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
     FmtSpec *pspec = specbuf;
 
     // local buffer for backtrack offsets implementing conditionals
-    int backtrack [32];
+    int backtrack [64];
     int nextoff = 0;
 
     size_t default_bufsize = 1024;
@@ -891,6 +891,8 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
             }
             else
                 goto fail;
+
+            spec_bufsize *= 2;
         }
 
         if ('{' == *fc) {
@@ -955,6 +957,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
                 RW_ASSERT (0 < nextoff);
                 RW_ASSERT (0 == len);
+                RW_ASSERT (offinx < sizeof backtrack / sizeof *backtrack);
 
                 if (pspec [paramno].cond_true) {
                     // change from an inactive if to an active else
@@ -999,6 +1002,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
                 if (!pspec [paramno].cond_true) {
                     // the end of an inactive clause
 
+                    RW_ASSERT (offinx < sizeof backtrack / sizeof *backtrack);
                     RW_ASSERT (backtrack [offinx] <= int (buflen));
 
                     // set the length so as to backtrack to the position
