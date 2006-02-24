@@ -9,16 +9,22 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -80,15 +86,15 @@ _RWSTD_EXPORT _RWSTD_SIZE_T __rw_wcslen (const wchar_t*);
 #  include _RWSTD_CSTRING   // for memcmp(), ...
 #  include _RWSTD_CWCHAR    // wmemcmp(), ...
 
-#  define _RWSTD_MEMCPY    memcpy
-#  define _RWSTD_MEMCMP    memcmp
-#  define _RWSTD_MEMMOVE   memmove
-#  define _RWSTD_MEMSET    memset
-#  define _RWSTD_STRLEN    strlen
-#  define _RWSTD_MEMCHR    memchr
+#  define _RWSTD_MEMCPY    _RWSTD_C::memcpy
+#  define _RWSTD_MEMCMP    _RWSTD_C::memcmp
+#  define _RWSTD_MEMMOVE   _RWSTD_C::memmove
+#  define _RWSTD_MEMSET    _RWSTD_C::memset
+#  define _RWSTD_STRLEN    _RWSTD_C::strlen
+#  define _RWSTD_MEMCHR    _RWSTD_C::memchr
 
 #  ifndef _RWSTD_NO_WMEMCPY
-#    define _RWSTD_WMEMCPY   wmemcpy
+#    define _RWSTD_WMEMCPY   _RWSTD_C::wmemcpy
 #  elif !defined (_RWSTD_NO_WCHAR_T)
 
 _RWSTD_NAMESPACE (__rw) {
@@ -118,7 +124,7 @@ __rw_wmemcmp (const wchar_t*, const wchar_t*, _RWSTD_SIZE_T);
 #  endif   // _RWSTD_NO_WMEMCMP
 
 #  ifndef _RWSTD_NO_WMEMMOVE
-#    define _RWSTD_WMEMMOVE  wmemmove
+#    define _RWSTD_WMEMMOVE  _RWSTD_C::wmemmove
 #  elif !defined (_RWSTD_NO_WCHAR_T)
 
 _RWSTD_NAMESPACE (__rw) {
@@ -133,7 +139,7 @@ __rw_wmemmove (wchar_t*, const wchar_t*, _RWSTD_SIZE_T);
 #  endif   // _RWSTD_NO_WMEMMOVE
 
 #  ifndef _RWSTD_NO_WMEMSET
-#    define _RWSTD_WMEMSET   wmemset
+#    define _RWSTD_WMEMSET   _RWSTD_C::wmemset
 #  elif !defined (_RWSTD_NO_WCHAR_T)
 
 _RWSTD_NAMESPACE (__rw) {
@@ -148,7 +154,7 @@ __rw_wmemset (wchar_t*, wchar_t, _RWSTD_SIZE_T);
 #  endif   // _RWSTD_NO_WMEMSET
 
 #  ifndef _RWSTD_NO_WCSLEN
-#    define _RWSTD_WCSLEN    wcslen
+#    define _RWSTD_WCSLEN    _RWSTD_C::wcslen
 #  elif !defined (_RWSTD_NO_WCHAR_T)
 
 _RWSTD_NAMESPACE (__rw) {
@@ -163,7 +169,7 @@ __rw_wcslen (const wchar_t*);
 #  endif   // _RWSTD_NO_WCSLEN
 
 #  ifndef _RWSTD_NO_WMEMCHR
-#    define _RWSTD_WMEMCHR   wmemchr
+#    define _RWSTD_WMEMCHR   _RWSTD_C::wmemchr
 #  elif !defined (_RWSTD_NO_WCHAR_T)
 
 _RWSTD_NAMESPACE (__rw) {
