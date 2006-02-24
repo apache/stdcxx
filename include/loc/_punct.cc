@@ -2,7 +2,7 @@
  *
  * _punct.cc
  *
- * $Id: //stdlib/dev/include/loc/_punct.cc#17 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -86,8 +86,8 @@ _InputIter __rw_match_name (_InputIter __it, _InputIter __end,
                 if (   __pos < __sizes [__k]
                     && !__err
                     && (__ctp ?
-                            _Traits::eq (__ctp->toupper (__names [__k][__pos]),
-                                         __ctp->toupper (__ch))
+                            _Traits::eq ((__ctp->toupper)(__names [__k][__pos]),
+                                         (__ctp->toupper)(__ch))
                           : _Traits::eq (__names [__k][__pos], __ch))) {
 
                     // next character on `name' mactches input
