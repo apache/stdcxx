@@ -279,12 +279,12 @@ for h in $hdrs ; do
     ;;
 
     string)
-        funs="memchr((const char*)0,0,0) memcmp memcpy memmove memset strcat strchr((char*)0,0) strcmp strcoll strcpy strcspn strerror strlen strncat strncmp strncpy strpbrk((char*)0,(char*)0) strrchr((char*)0,0) strspn strstr((char*)0,(char*)0) strtok strxfrm"
+        funs="memchr((void*)0,0,0) memcmp memcpy memmove memset strcat strchr((char*)0,0) strcmp strcoll strcpy strcspn strerror strlen strncat strncmp strncpy strpbrk((char*)0,(char*)0) strrchr((char*)0,0) strspn strstr((char*)0,(char*)0) strtok strxfrm"
         lib=c
     ;;
 
     wchar)
-        funs="btowc fgetwc fgetws fputwc fputws fwide fwprintf fwscanf getwc getwchar mbrlen mbrtowc mbsinit mbsrtowcs putwc putwchar swprintf swscanf ungetwc vfwprintf vswprintf vwprintf vwscanf wcrtomb wcscat wcschr((wchar_t*)0,0) wcscmp wcscoll wcscpy wcscspn wcsftime wcslen wcsncat wcsncmp wcsncpy wcspbrk((wchar_t*)0,(wchar_t*)0) wcsrchr((wchar_t*)0,0) wcsrtombs wcsspn wcsstr((wchar_t*)0,(wchar_t*)0) wcstod wcstod wcstof wcstok wcstol wcstold wcstoll wcstombs wcstoul wcstoull wcsxfrm wctob wctomb wmemchr((const wchar_t*)0,0,0) wmemcmp wmemcpy wmemmove wmemset wprintf wscanf"
+        funs="btowc fgetwc fgetws fputwc fputws fwide fwprintf fwscanf getwc getwchar mbrlen mbrtowc mbsinit mbsrtowcs putwc putwchar swprintf swscanf ungetwc vfwprintf vswprintf vwprintf vwscanf wcrtomb wcscat wcschr((wchar_t*)0,0) wcscmp wcscoll wcscpy wcscspn wcsftime wcslen wcsncat wcsncmp wcsncpy wcspbrk((wchar_t*)0,(wchar_t*)0) wcsrchr((wchar_t*)0,0) wcsrtombs wcsspn wcsstr((wchar_t*)0,(wchar_t*)0) wcstod wcstod wcstof wcstok wcstol wcstold wcstoll wcstombs wcstoul wcstoull wcsxfrm wctob wctomb wmemchr((wchar_t*)0,0,0) wmemcmp wmemcpy wmemmove wmemset wprintf wscanf"
         lib=c
     ;;
 
@@ -305,7 +305,7 @@ for h in $hdrs ; do
     # are not expected to be declared in <cmath> or in std
     use_libc_header=0
 
-    for f in $funs ; do
+    for f in $funs; do
 
        if [ "$function" != "" -a "$function" != "$f" ]; then
            continue
@@ -325,7 +325,7 @@ for h in $hdrs ; do
         fi
 
         # starting with acosf(), look in <math.h> rather than <cmath>
-        [ $f = acosf ] && use_libc_header=1
+        [ "$f" = acosf ] && use_libc_header=1
 
         std=""
 
@@ -351,7 +351,7 @@ for h in $hdrs ; do
 
         cxxflags="-DCHECK_DECL $CXXFLAGS $WARNFLAGS \
                  -DHDRNAME=<$hdrname> -DFUNNAME=$funname \
-                 -DFUN=$f -DTAKE_ADDR=$take_addr"
+                 -DFUN='$f' -DTAKE_ADDR=$take_addr"
 
         echo "$CXX -c $cxxflags $tmpsrc -o $tmpobj " \
              "&& $LD $tmpsrc $LDFLAGS -l$lib" >>$logfile
