@@ -105,7 +105,7 @@ const char* off_t_name (LONG_LONG)
 
 const char* ssize_t_name (LONG_LONG)
 {
-    return STR (LONG_ LONG);
+    return STR (LONG_LONG);
 }
 
 const char* ssize_t_name (unsigned LONG_LONG)
