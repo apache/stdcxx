@@ -6,21 +6,27 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
- * 
+ * Copyright 2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  **************************************************************************/
 
 
-_RWSTD_NAMESPACE (std) { 
+_RWSTD_NAMESPACE (std) {
 
 
 template<class _CharT, class _Traits, class _Allocator>
@@ -68,53 +74,125 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen /* = -1 */)
 
     typedef _RWSTD_STREAMSIZE _Streamsize;
 
+    // compute the lenth if not specified
     if (_RWSTD_SIZE_MAX == __slen)
         __slen = traits_type::length (__s);
 
-    if (0 == __slen) {
+    _ValueAlloc __alloc;
 
-        if (this->_C_own_buf ())
-            _ValueAlloc ().deallocate (this->_C_buffer, this->_C_bufsize);
+    // new buffer and size
+    char_type     *__buf;
+    _RWSTD_SIZE_T  __bufsize = __slen;
 
-        this->setg (0, 0, 0);
-        this->setp (0, 0);
+    if (__s == this->_C_buffer) {
+        // special case: str(_C_buffer, _C_bufsize + N) called
+        // to increase the capacity of buffer
 
-        this->_C_buffer  = 0;
-        this->_C_bufsize = 0;
+        _C_catchup (this->eback ());
+
+        // set `slen' to the number of initialized characters
+        // in the buffer
+        __slen = this->egptr () - this->pbase ();
+    }
+
+    if (this->_C_bufsize < __bufsize) {
+        // requested capacity is greater than the current capacity
+        // allocate a new buffer of sufficient size
+        __bufsize = _C_grow (__bufsize);
+
+        if (__s != this->_C_buffer && this->_C_own_buf ()) {
+            // deallocate the existing buffer here only if the string
+            // is not the same as the buffer itself; otherwise, copy
+            // it to the newly allocated buffer first and deallocate
+            // it later
+            __alloc.deallocate (this->_C_buffer, this->_C_bufsize);
+            this->_C_buffer = 0;
+        }
+
+        __buf = __alloc.allocate (__bufsize);
+
+        // take the ownsership of the allocated buffer
+        this->_C_own_buf (true);
+    }
+    else if (0 < __bufsize) {
+        // requested capacity is the same or less than the current one
+        __buf     = this->_C_buffer;
+        __bufsize = this->_C_bufsize;
     }
     else {
-        if (this->_C_bufsize < _Streamsize (__slen))  {
+        // 0 size and capacity, deallocate and reset all pointers
+        __buf     = 0;
+        __bufsize = 0;
 
-            // buffer too small - need to reallocate
-            if (this->_C_own_buf ())
-                _ValueAlloc ().deallocate (this->_C_buffer, this->_C_bufsize);
-
-            this->_C_bufsize = _C_grow (this->_C_bufsize, __slen);
-
-            this->_C_buffer = _ValueAlloc ().allocate (this->_C_bufsize);
-            this->_C_own_buf (true);
-        }
-
-        traits_type::copy (this->_C_buffer, __s, __slen);
-
-        char_type* const __bufend = this->_C_buffer + __slen;
-        
-        if (this->_C_is_in ())
-            this->setg (this->_C_buffer, this->_C_buffer, __bufend);
-        else {
-            // when not in in mode set all get pointers to the same
-            // value and use egptr() as the "high mark" (see LWG
-            // issue 432)
-            this->setg (__bufend, __bufend, __bufend);
-        }
-        
-        if (this->_C_is_out ()) {
-            this->setp (this->_C_buffer, this->_C_buffer + this->_C_bufsize);
-            
-            if (this->_C_state & (ios_base::app | ios_base::ate))
-                this->pbump (__slen);   // seek to end 
-        } 
+        _RWSTD_ASSERT (0 == __slen);
     }
+
+    // compute the "high mark" (see lwg issue 432)
+    char_type* const __egptr = __buf + __slen;
+
+    if (__s != __buf) {
+        // copy the provided string to buffer
+        traits_type::copy (__buf, __s, __slen);
+
+        if (this->_C_buffer && this->_C_own_buf ())
+            __alloc.deallocate (this->_C_buffer, this->_C_bufsize);
+
+        this->_C_buffer  = __buf;
+        this->_C_bufsize = __bufsize;
+    }
+
+    if (this->_C_is_in ())
+        this->setg (this->_C_buffer, this->_C_buffer, __egptr);
+    else {
+        // when not in in mode set all get pointers to the same
+        // value and use egptr() as the "high mark" (see lwg
+        // issue 432)
+        this->setg (__egptr, __egptr, __egptr);
+    }
+
+    if (this->_C_is_out ()) {
+        this->setp (this->_C_buffer, this->_C_buffer + this->_C_bufsize);
+
+        if (__s != __buf || this->_C_state & (ios_base::app | ios_base::ate))
+            this->pbump (__slen);   // seek to end
+    }
+
+    _RWSTD_ASSERT (this->_C_is_valid ());
+}
+
+
+template <class _CharT, class _Traits, class _Allocator>
+streamsize
+basic_stringbuf<_CharT, _Traits, _Allocator>::
+xsputn (const char_type* __s, streamsize __n)
+{
+    _RWSTD_ASSERT (0 != __s || 0 == __n);
+    _RWSTD_ASSERT (this->_C_is_valid ());
+
+    if (__n <= 0 || !this->_C_is_out ())
+        return 0;
+
+    if (this->epptr () - this->pptr () < __n) {
+
+        // compute the total amount of space necessary
+        const _RWSTD_SIZE_T __bufsize =
+            __n + (this->pptr () - this->pbase ());
+
+        // grow the buffer if necessary to accommodate the whole
+        // string plus the contents of the buffer up to pptr()
+        str (this->_C_buffer, __bufsize);
+
+        _RWSTD_ASSERT (__n <= this->epptr () - this->pptr ());
+    }
+
+    // copy the whole string
+    traits_type::copy (this->pptr (), __s, __n);
+
+    this->pbump (__n);
+
+    _C_catchup (this->eback ());
+
+    return __n;
 }
 
 
@@ -169,49 +247,28 @@ overflow (int_type __c)
     // indicate success even when not in out mode
     if (this->_C_is_eof (__c))
         return traits_type::not_eof (__c);
-    
-    if (!this->_C_is_out ()) 
+
+    if (!this->_C_is_out ())
         return traits_type::eof ();
-    
+
     char_type* const __bufend = this->_C_buffer + this->_C_bufsize;
-    
-    if (this->epptr () < __bufend) {
+
+    if (this->pptr () == this->epptr ()) {
+
+        // compute the total amount of space necessary
+        const _RWSTD_SIZE_T __bufsize = this->_C_bufsize ?
+              this->_C_bufsize * _RWSTD_NEW_CAPACITY_RATIO
+            : _RWSTD_MINIMUM_STRINGBUF_CAPACITY;
+
+        // reallocate buffer
+        str (this->_C_buffer, this->_C_bufsize + 1);
+    }
+    else if (this->epptr () < __bufend) {
         // bump up epptr() keeping pbase() and pptr() unchanged
 
         const _RWSTD_STREAMSIZE __off = this->pptr () - this->pbase ();
         this->setp (this->pbase (), __bufend);
         this->pbump (__off);
-    }
-    else if (this->pptr () == this->epptr ()) {
-        // allocate new or reallocate existing buffer
-
-        typedef _RWSTD_ALLOC_TYPE (allocator_type, char_type) _ValueAlloc;
-
-        // calculate size of the new buffer to allocate
-        const _RWSTD_STREAMSIZE __new_size =
-            _C_grow (this->_C_bufsize + 1, this->_C_bufsize);
-        
-        char_type* const __new_buf = _ValueAlloc ().allocate (__new_size);
-           
-        // compute the length of the output sequence
-        const _RWSTD_STREAMSIZE __slen = this->pptr () - this->pbase ();
-
-        if (this->_C_buffer) {
-            // copy the contents of the old buffer to the new one
-            traits_type::copy (__new_buf, this->_C_buffer, __slen);
-
-            // deallocate the old buffer if owned
-            if (this->_C_own_buf ()) 
-                _ValueAlloc ().deallocate (this->_C_buffer, this->_C_bufsize);
-        }
-
-        this->_C_own_buf (true);
-        this->_C_bufsize = __new_size;
-        this->_C_buffer  = __new_buf;
-
-        // set the put area
-        this->setp (this->_C_buffer, this->_C_buffer + this->_C_bufsize);
-        this->pbump (__slen);
     }
 
     const int_type __retval = this->sputc (traits_type::to_char_type (__c));
@@ -236,7 +293,7 @@ pbackfail (int_type __c)
     int_type __retval;
 
     const char_type __ch = traits_type::to_char_type (__c);
-    
+
     if (traits_type::eq (__ch, *(this->gptr () - 1)) || this->_C_is_eof (__c)) {
         // "put back" original value
         this->gbump (-1);
@@ -250,7 +307,7 @@ pbackfail (int_type __c)
     }
     else
         __retval = traits_type::eof ();
-    
+
     return __retval;
 }
 
@@ -265,39 +322,50 @@ setbuf (char_type* __buf, _RWSTD_STREAMSIZE __n)
     if (!__buf && !__n)   // 27.7.1.3, p16
         return this;
 
-    if (__n < _C_strlen() || !this->_C_is_out())  
+    const _RWSTD_STREAMSIZE __slen = (this->egptr () < this->pptr () ?
+        this->pptr () : this->egptr ()) - this->pbase ();
+
+    if (__n < __slen || !this->_C_is_out())
         return 0;   // failure
 
-    bool __own_old_buf = this->_C_own_buf ();
+    // compute the gptr and pptr offsets so the pointers can be restored
+    const _RWSTD_STREAMSIZE __goff = this->gptr () - this->eback ();
+    const _RWSTD_STREAMSIZE __poff = this->pptr () - this->pbase ();
 
-    typedef _RWSTD_STREAMSIZE _Streamsize;
+    const bool __own_old_buf = this->_C_own_buf ();
 
-    const _Streamsize __slen = _C_strlen ();
-    
     typedef _RWSTD_ALLOC_TYPE (allocator_type, char_type) _ValueAlloc;
 
     if (0 == __buf) {
+        // allocate a new buffer of the specified size
         __buf = _ValueAlloc ().allocate (__n);
         this->_C_own_buf (true);
     }
     else
         this->_C_own_buf (false);
-        
-    traits_type::copy (__buf, this->_C_buffer, __slen);   
+
+    // copy the contents of the existing buffer to the new one
+    traits_type::copy (__buf, this->_C_buffer, __slen);
 
     if (__own_old_buf)
         _ValueAlloc ().deallocate (this->_C_buffer, this->_C_bufsize);
-    
+
     this->_C_buffer  = __buf;
     this->_C_bufsize = __n;
 
-    const _Streamsize __pptr_off = _Streamsize(this->pptr () - this->pbase ());
-    this->setp (this->_C_buffer, this->_C_buffer + __slen);
-    this->pbump (__pptr_off);   // ... and restore it
- 
-    // get egptr() caught up with pptr()
-    _C_catchup (this->_C_buffer);
-    
+    // reset the output and input sequences within the new buffer
+    this->setp (this->_C_buffer, this->_C_buffer + this->_C_bufsize);
+    this->pbump (__poff);   // ... and restore it
+
+    char_type* const __egptr = this->_C_buffer + __slen;
+
+    if (this->_C_is_in ())
+        this->setg (this->_C_buffer, this->_C_buffer + __goff, __egptr);
+    else {
+        // use egptr as the "high mark" (see lwg issue 432)
+        this->setg (__egptr, __egptr, __egptr);
+    }
+
     return this;
 }
 
@@ -313,7 +381,7 @@ seekoff (off_type __off, ios_base::seekdir __way, ios_base::openmode __which)
     _RWSTD_ASSERT (   ios_base::beg == __way
                    || ios_base::cur == __way
                    || ios_base::end == __way);
-        
+
     _RWSTD_STREAMSIZE __newoff = -1;
 
     // get egptr() caught up with pptr()
@@ -337,12 +405,12 @@ seekoff (off_type __off, ios_base::seekdir __way, ios_base::openmode __which)
 
         __newoff += __off;
 
-        if ( __newoff < 0 || (this->egptr () - this->eback ()) < __newoff)
+        if (__newoff < 0 || this->egptr () - this->eback () < __newoff)
             return pos_type (off_type (-1));
 
         this->setg (this->eback (), this->eback () + __newoff, this->egptr ());
     }
-    
+
     if (__which & ios_base::out) {
 
         if (!this->_C_is_out () || !this->pptr ())
