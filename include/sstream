@@ -7,16 +7,22 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -126,7 +132,9 @@ public:
     virtual ~basic_stringbuf ();
     
     _C_string_type str () const {
-        return _C_string_type (this->_C_buffer, _C_strlen ());
+        const _RWSTD_SIZE_T __slen = (this->egptr () < this->pptr () ?
+            this->pptr () : this->egptr ()) - this->pbase ();
+        return _C_string_type (this->_C_buffer, __slen);
     }
 
 #ifdef _RWSTD_NO_EXT_STRINGBUF_STR
@@ -146,6 +154,8 @@ public:
 
 protected:
     
+    virtual streamsize xsputn (const char_type*, streamsize);
+
     virtual streamsize showmanyc ();
     
     virtual int_type overflow (int_type = traits_type::eof ());
@@ -166,14 +176,7 @@ protected:
 
 private:
 
-    // returns the length of the underlying sequence as specified
-    // by 27.7.1.2, p1
-    streamsize _C_strlen () const {
-        return ios_base::in == (this->_C_state & (ios_base::in | ios_base::out))
-            ? this->egptr () - this->eback () : this->pptr () - this->pbase ();
-    }
-
-    _RWSTD_STREAMSIZE _C_grow (_RWSTD_STREAMSIZE, _RWSTD_STREAMSIZE) const;
+    _RWSTD_STREAMSIZE _C_grow (_RWSTD_STREAMSIZE) const;
 
     // called from overflow, underflow, et al to get egptr()
     // caught up with pptr()
@@ -184,12 +187,15 @@ private:
 template <class _CharT, class _Traits, class _Allocator>
 inline _RWSTD_STREAMSIZE
 basic_stringbuf<_CharT, _Traits, _Allocator>::
-_C_grow (_RWSTD_STREAMSIZE __from, _RWSTD_STREAMSIZE __to) const
+_C_grow (_RWSTD_STREAMSIZE __to) const
 {
-    const _RWSTD_STREAMSIZE __new_cap =
-        _RWSTD_NEW_CAPACITY (_C_string_type, (_C_string_type*)0, __from);
+    const _RWSTD_STREAMSIZE __cap =
+        _RWSTD_STATIC_CAST (_RWSTD_STREAMSIZE,
+                            this->_C_bufsize ?
+                            this->_C_bufsize * _RWSTD_NEW_CAPACITY_RATIO
+                            : _RWSTD_MINIMUM_STRINGBUF_CAPACITY);
 
-    return __new_cap < __to ? __to : __new_cap;
+    return __cap < __to ? __to : __cap;
 }
 
 

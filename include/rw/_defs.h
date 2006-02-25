@@ -9,16 +9,22 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -431,6 +437,10 @@
 #if !defined(_RWSTD_STRING_CAPACITY_RATIO)
 #  define _RWSTD_STRING_CAPACITY_RATIO 1.618L
 #endif
+
+#if !defined (_RWSTD_MINIMUM_STRINGBUF_CAPACITY)
+#  define _RWSTD_MINIMUM_STRINGBUF_CAPACITY   512
+#endif   // _RWSTD_MINIMUM_STRINGBUF_CAPACITY
 
 // working around an HP aCC bug (PR #25354 and 22610)
 #if !defined (__HP_aCC)
