@@ -125,7 +125,8 @@
 #endif   // _WIN32
 
 // provide default #definitions of ANSI C library headers
-#ifdef _WIN64
+#if defined (_M_IA64)
+   // IA64/Itanium SDK paths
 #  if !defined (_RWSTD_NO_ASSERT_H) && !defined (_RWSTD_ANSI_C_ASSERT_H)
 #    define _RWSTD_ANSI_C_ASSERT_H <../include/crt/assert.h>
 #  endif
