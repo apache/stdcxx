@@ -254,12 +254,6 @@ overflow (int_type __c)
     char_type* const __bufend = this->_C_buffer + this->_C_bufsize;
 
     if (this->pptr () == this->epptr ()) {
-
-        // compute the total amount of space necessary
-        const _RWSTD_SIZE_T __bufsize = this->_C_bufsize ?
-              this->_C_bufsize * _RWSTD_NEW_CAPACITY_RATIO
-            : _RWSTD_MINIMUM_STRINGBUF_CAPACITY;
-
         // reallocate buffer
         str (this->_C_buffer, this->_C_bufsize + 1);
     }
