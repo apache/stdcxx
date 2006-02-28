@@ -47,6 +47,22 @@ struct _TEST_EXPORT X
     // regardless of whether the operation threw an exception or not
     _RWSTD_SIZE_T n_op_assign_;
 
+    // number of times the object's operator+=() has been invoked,
+    // regardless of whether the operation threw an exception or not
+    _RWSTD_SIZE_T n_op_plus_assign_;
+
+    // number of times the object's operator-=() has been invoked,
+    // regardless of whether the operation threw an exception or not
+    _RWSTD_SIZE_T n_op_minus_assign_;
+
+    // number of times the object's operator*=() has been invoked,
+    // regardless of whether the operation threw an exception or not
+    _RWSTD_SIZE_T n_op_times_assign_;
+
+    // number of times the object's operator/=() has been invoked,
+    // regardless of whether the operation threw an exception or not
+    _RWSTD_SIZE_T n_op_div_assign_;
+
     // number of times the object's operator== was invoked
     // regardless of whether the operation threw an exception
     _RWSTD_SIZE_T n_op_eq_;
@@ -63,6 +79,10 @@ struct _TEST_EXPORT X
     static _RWSTD_SIZE_T n_total_copy_ctor_;   // ... copy ctors ...
     static _RWSTD_SIZE_T n_total_dtor_;        // ... dtors ...
     static _RWSTD_SIZE_T n_total_op_assign_;   // ... assignment operators ...
+    static _RWSTD_SIZE_T n_total_op_plus_assign_;    // ... operator+=
+    static _RWSTD_SIZE_T n_total_op_minus_assign_;   // ... operator-=
+    static _RWSTD_SIZE_T n_total_op_times_assign_;   // ... operator*=
+    static _RWSTD_SIZE_T n_total_op_div_assign_;     // ... operator/=
     static _RWSTD_SIZE_T n_total_op_eq_;       // ... equality operators ...
     static _RWSTD_SIZE_T n_total_op_lt_;       // ... operators <= ...
 
@@ -72,6 +92,10 @@ struct _TEST_EXPORT X
     struct CopyCtor: Exception { };
     struct Dtor: Exception { };
     struct OpAssign: Exception { };
+    struct OpPlusAssign: Exception { };
+    struct OpMinusAssign: Exception { };
+    struct OpTimesAssign: Exception { };
+    struct OpDivAssign: Exception { };
     struct OpEq: Exception { };
     struct OpLt: Exception { };
 
@@ -82,6 +106,10 @@ struct _TEST_EXPORT X
     static _RWSTD_SIZE_T* copy_ctor_throw_ptr_;
     static _RWSTD_SIZE_T* dtor_throw_ptr_;
     static _RWSTD_SIZE_T* op_assign_throw_ptr_;
+    static _RWSTD_SIZE_T* op_plus_assign_throw_ptr_;
+    static _RWSTD_SIZE_T* op_minus_assign_throw_ptr_;
+    static _RWSTD_SIZE_T* op_times_assign_throw_ptr_;
+    static _RWSTD_SIZE_T* op_div_assign_throw_ptr_;
     static _RWSTD_SIZE_T* op_eq_throw_ptr_;
     static _RWSTD_SIZE_T* op_lt_throw_ptr_;
 
@@ -90,6 +118,10 @@ struct _TEST_EXPORT X
     static _RWSTD_SIZE_T copy_ctor_throw_count_;
     static _RWSTD_SIZE_T dtor_throw_count_;
     static _RWSTD_SIZE_T op_assign_throw_count_;
+    static _RWSTD_SIZE_T op_plus_assign_throw_count_;
+    static _RWSTD_SIZE_T op_minus_assign_throw_count_;
+    static _RWSTD_SIZE_T op_times_assign_throw_count_;
+    static _RWSTD_SIZE_T op_div_assign_throw_count_;
     static _RWSTD_SIZE_T op_eq_throw_count_;
     static _RWSTD_SIZE_T op_lt_throw_count_;
 
@@ -100,6 +132,10 @@ struct _TEST_EXPORT X
     ~X ();
 
     X& operator= (const X&);
+    X& operator+= (const X&);
+    X& operator-= (const X&);
+    X& operator*= (const X&);
+    X& operator/= (const X&);
 
     bool operator== (const X&) const;
     bool operator< (const X&) const;
@@ -152,6 +188,15 @@ struct _TEST_EXPORT X
     // returns -1 when less, 0 when same, or +1 when the first
     // array of X objects is greater than the second array
     static int compare (const X*, const X*, _RWSTD_SIZE_T);
+
+private:
+
+    enum assign_op {
+        op_assign, op_plus_assign, op_minus_assign,
+        op_times_assign, op_div_assign
+    };
+
+    void assign (assign_op, const X&);
 };
 
 /**************************************************************************/

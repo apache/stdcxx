@@ -40,24 +40,46 @@
 /* static */ size_t X::n_total_copy_ctor_;
 /* static */ size_t X::n_total_dtor_;
 /* static */ size_t X::n_total_op_assign_;
+/* static */ size_t X::n_total_op_plus_assign_;
+/* static */ size_t X::n_total_op_minus_assign_;
+/* static */ size_t X::n_total_op_times_assign_;
+/* static */ size_t X::n_total_op_div_assign_;
 /* static */ size_t X::n_total_op_eq_;
 /* static */ size_t X::n_total_op_lt_;
 
 // default values of pointers
-/* static */ size_t* X::def_ctor_throw_ptr_  = &X::def_ctor_throw_count_;
-/* static */ size_t* X::copy_ctor_throw_ptr_ = &X::copy_ctor_throw_count_;
-/* static */ size_t* X::dtor_throw_ptr_      = &X::dtor_throw_count_;
-/* static */ size_t* X::op_assign_throw_ptr_ = &X::op_assign_throw_count_;
-/* static */ size_t* X::op_eq_throw_ptr_     = &X::op_eq_throw_count_;
-/* static */ size_t* X::op_lt_throw_ptr_     = &X::op_lt_throw_count_;
+/* static */ size_t* X::def_ctor_throw_ptr_ =
+    &X::def_ctor_throw_count_;
+/* static */ size_t* X::copy_ctor_throw_ptr_ =
+    &X::copy_ctor_throw_count_;
+/* static */ size_t* X::dtor_throw_ptr_ =
+    &X::dtor_throw_count_;
+/* static */ size_t* X::op_assign_throw_ptr_ =
+    &X::op_assign_throw_count_;
+/* static */ size_t* X::op_plus_assign_throw_ptr_ =
+    &X::op_plus_assign_throw_count_;
+/* static */ size_t* X::op_minus_assign_throw_ptr_ =
+    &X::op_minus_assign_throw_count_;
+/* static */ size_t* X::op_times_assign_throw_ptr_ =
+    &X::op_times_assign_throw_count_;
+/* static */ size_t* X::op_div_assign_throw_ptr_ =
+    &X::op_div_assign_throw_count_;
+/* static */ size_t* X::op_eq_throw_ptr_ =
+    &X::op_eq_throw_count_;
+/* static */ size_t* X::op_lt_throw_ptr_ =
+    &X::op_lt_throw_count_;
 
 // exception throwing initially disabled
-/* static */ size_t X::def_ctor_throw_count_  = size_t (-1);
-/* static */ size_t X::copy_ctor_throw_count_ = size_t (-1);
-/* static */ size_t X::dtor_throw_count_      = size_t (-1);
-/* static */ size_t X::op_assign_throw_count_ = size_t (-1);
-/* static */ size_t X::op_eq_throw_count_     = size_t (-1);
-/* static */ size_t X::op_lt_throw_count_     = size_t (-1);
+/* static */ size_t X::def_ctor_throw_count_        = size_t (-1);
+/* static */ size_t X::copy_ctor_throw_count_       = size_t (-1);
+/* static */ size_t X::dtor_throw_count_            = size_t (-1);
+/* static */ size_t X::op_assign_throw_count_       = size_t (-1);
+/* static */ size_t X::op_plus_assign_throw_count_  = size_t (-1);
+/* static */ size_t X::op_minus_assign_throw_count_ = size_t (-1);
+/* static */ size_t X::op_times_assign_throw_count_ = size_t (-1);
+/* static */ size_t X::op_div_assign_throw_count_   = size_t (-1);
+/* static */ size_t X::op_eq_throw_count_           = size_t (-1);
+/* static */ size_t X::op_lt_throw_count_           = size_t (-1);
 
 
 static int
@@ -159,31 +181,87 @@ X::~X ()
 }
 
 
-X&
-X::operator= (const X &rhs)
+void X::
+assign (assign_op which, const X &rhs)
 {
-    // verify id validity and uniqueness
+    // verify id validity and uniqueness:
+    // a valid id is non-zero (dtor resets)
     RW_ASSERT (id_ && id_ <= id_gen_);
     RW_ASSERT (rhs.id_ && rhs.id_ <= id_gen_);
+
+    // no two id's have the same value
     RW_ASSERT (this == &rhs || id_ != rhs.id_);
 
-    // increment the total number of invocations of the operator
-    // (do so even if the function throws an exception below)
-    ++n_total_op_assign_;
+    size_t *p_total_op = 0;
+    size_t *p_op       = 0;
+    size_t *p_throw    = 0;
 
-    // increment the number of times the object has been assigned to
+    Exception *pex = 0; 
+
+    OpAssign      ex_assign;
+    OpPlusAssign  ex_plus_assign;
+    OpMinusAssign ex_minus_assign;
+    OpTimesAssign ex_times_assign;
+    OpDivAssign   ex_div_assign;
+
+    int new_val;
+
+    switch (which) {
+    case op_assign:
+        p_total_op = &n_total_op_assign_;
+        p_op       = &n_op_assign_;
+        p_throw    = op_assign_throw_ptr_;
+        pex        = &ex_assign;
+        new_val    = rhs.val_;
+        break;
+
+    case op_plus_assign:
+        p_total_op = &n_total_op_plus_assign_;
+        p_op       = &n_op_plus_assign_;
+        p_throw    = op_plus_assign_throw_ptr_;
+        pex        = &ex_plus_assign;
+        new_val    = val_ + rhs.val_;
+        break;
+
+    case op_minus_assign:
+        p_total_op = &n_total_op_minus_assign_;
+        p_op       = &n_op_minus_assign_;
+        p_throw    = op_minus_assign_throw_ptr_;
+        pex        = &ex_minus_assign;
+        new_val    = val_ - rhs.val_;
+        break;
+
+    case op_times_assign:
+        p_total_op = &n_total_op_times_assign_;
+        p_op       = &n_op_times_assign_;
+        p_throw    = op_times_assign_throw_ptr_;
+        pex        = &ex_times_assign;
+        new_val    = val_ * rhs.val_;
+        break;
+
+    case op_div_assign:
+        p_total_op = &n_total_op_div_assign_;
+        p_op       = &n_op_div_assign_;
+        p_throw    = op_div_assign_throw_ptr_;
+        pex        = &ex_div_assign;
+        new_val    = val_ / rhs.val_;
+        break;
+    }
+
+    // increment the number of invocations of the operator
     // (do so even if the function throws an exception below)
-    ++n_op_assign_;
+
+    ++*p_total_op;
+    ++*p_op;
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
     // throw an exception if the number of calls to
     // the assignment operator reaches the given value
 
-    if (op_assign_throw_ptr_ && n_total_op_assign_ == *op_assign_throw_ptr_) {
-        OpAssign ex;
-        ex.id_ = id_;
-        throw ex;
+    if (p_throw && *p_throw == *p_total_op) {
+        pex->id_ = id_;
+        throw *pex;
     }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -193,7 +271,50 @@ X::operator= (const X &rhs)
 
     origin_ = rhs.origin_;
     src_id_ = rhs.id_;
-    val_    = rhs.val_;
+    val_    = new_val;
+}
+
+
+X& X::
+operator= (const X &rhs)
+{
+    assign (op_assign, rhs);
+
+    return *this;
+}
+
+
+X& X::
+operator+= (const X &rhs)
+{
+    assign (op_plus_assign, rhs);
+
+    return *this;
+}
+
+
+X& X::
+operator-= (const X &rhs)
+{
+    assign (op_minus_assign, rhs);
+
+    return *this;
+}
+
+
+X& X::
+operator*= (const X &rhs)
+{
+    assign (op_times_assign, rhs);
+
+    return *this;
+}
+
+
+X& X::
+operator/= (const X &rhs)
+{
+    assign (op_div_assign, rhs);
 
     return *this;
 }
@@ -605,13 +726,14 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     RW_ASSERT (0 != fmt);
 
     va_list* pva      =  0;
+    bool     fl_plus  =  false;
     bool     fl_pound =  false;
     int      nelems   = -1;
     int      paramno  = -1;
     int      cursor   = -1;
 
     // directive syntax:
-    // "X=" [ '#' ] [ '*' | <n> ] [ '.' [ '*' | <n> ] ]
+    // "X=" [ '#' ] [ '+' ] [ '*' | <n> ] [ '.' [ '*' | <n> ] ]
 
 
     if ('X' != fmt [0] || '=' != fmt [1])
@@ -619,7 +741,14 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
 
     fmt += 2;
 
+    if ('+' == *fmt) {
+        // use numerical formatting for X::val_
+        fl_plus = true;
+        ++fmt;
+    }
+
     if ('#' == *fmt) {
+        // include X::id_ in output
         fl_pound = true;
         ++fmt;
     }
@@ -703,11 +832,16 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     for (const X *px = xbeg; px != xbeg + nelems; ++px) {
         const int n =
             rw_asnprintf (pbuf, pbufsize,
-                          "%{+}%{?}>%{;}%{?}%d:%{;}%{lc}%{?}<%{;}",
-                          px - xbeg == cursor,     // '>'
-                          fl_pound, px->id_,       // "<id>:"
-                          px->val_,                // <val>
-                          px - xbeg == cursor);    // '<'
+                          "%{+}%{?}>%{;}"
+                          "%{?}%d:%{;}"
+                          "%{?}%d%{?},%{;}%{:}%{lc}%{;}"
+                          "%{?}<%{;}",
+                          px - xbeg == cursor,            // '>'
+                          fl_pound, px->id_,              // "<id>:"
+                          fl_plus, px->val_,              // <val>
+                          px + 1 < xbeg + nelems,         // ','
+                          px->val_,                       // <val>
+                          px - xbeg == cursor);           // '<'
         if (n < 0)
             return n;
 
