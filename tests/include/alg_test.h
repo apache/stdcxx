@@ -189,6 +189,13 @@ struct _TEST_EXPORT X
     // array of X objects is greater than the second array
     static int compare (const X*, const X*, _RWSTD_SIZE_T);
 
+    // returns a pointer to the first element in the sequence of X
+    // whose value is not equal to the corresponding element of
+    // the character string or 0 when no such element exists
+    static const X* mismatch (const X*, const char*, _RWSTD_SIZE_T);
+
+    struct Less;
+
 private:
 
     enum assign_op {
@@ -520,17 +527,36 @@ struct _TEST_EXPORT BinaryPredicate
     // total number of times operator() was invoked
     static _RWSTD_SIZE_T n_total_op_fcall_;
 
-    bool ignore_case_;
+    enum binary_op {
+        op_equals,
+        op_not_equals,
+        op_less,
+        op_less_equal,
+        op_greater,
+        op_greater_equal
+    };
 
-    BinaryPredicate (bool = false);
-
-    BinaryPredicate (const BinaryPredicate&);
-
-    BinaryPredicate& operator= (const BinaryPredicate&);
+    BinaryPredicate (binary_op);
 
     virtual ~BinaryPredicate ();
 
-    virtual conv_to_bool operator()(const X&, const X&) const;
+    virtual conv_to_bool operator()(const X&, const X&) /* non-const */;
+
+private:
+
+    // not assignable
+    void operator= (const BinaryPredicate&);
+
+    binary_op op_;
+};
+
+
+struct X::Less: BinaryPredicate
+{
+    // dummy arguments provided to prevent the class from being
+    // default constructible and implicit conversion from int
+    Less (int /* dummy */, int /* dummy */)
+        : BinaryPredicate (BinaryPredicate::op_less) { /* no-op */ }
 };
 
 /**************************************************************************/

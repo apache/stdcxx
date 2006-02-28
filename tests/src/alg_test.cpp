@@ -520,11 +520,11 @@ X::from_char (const char *str, size_t len /* = -1 */, bool sorted /* = false */)
 }
 
 
-/* static */ int
-X::compare (const X *x, const char *str, size_t len /* = -1 */)
+/* static */ const X*
+X::mismatch (const X *xarray, const char *str, size_t len /* = -1 */)
 {
     if (!str)
-        return x == 0;
+        return xarray;
 
     if (size_t (-1) == len)
         len = strlen (str);
@@ -533,8 +533,8 @@ X::compare (const X *x, const char *str, size_t len /* = -1 */)
 
         const int val = UChar (str [i]);
 
-        if (val != x [i].val_)
-            return x [i].val_ - val;
+        if (val != xarray [i].val_)
+            return xarray + i;
     }
 
     return 0;
@@ -542,9 +542,24 @@ X::compare (const X *x, const char *str, size_t len /* = -1 */)
 
 
 /* static */ int
-X::compare (const char *str, const X *x, size_t len /* = -1 */)
+X::compare (const X *xarray, const char *str, size_t len /* = -1 */)
 {
-    return -X::compare (x, str, len);
+    const X* const px = mismatch (xarray, str, len);
+
+    if (px) {
+        RW_ASSERT (size_t (px - xarray) < len);
+
+        return px->val_ - int (UChar (str [px - xarray]));
+    }
+
+    return 0;
+}
+
+
+/* static */ int
+X::compare (const char *str, const X *xarray, size_t len /* = -1 */)
+{
+    return -X::compare (xarray, str, len);
 }
 
 
@@ -603,26 +618,9 @@ operator()(const X&) const
 
 
 BinaryPredicate::
-BinaryPredicate (bool ignore_case)
-    : ignore_case_ (ignore_case)
+BinaryPredicate (binary_op op): op_ (op)
 {
     // no-op
-}
-
-
-BinaryPredicate::
-BinaryPredicate (const BinaryPredicate &rhs)
-    : ignore_case_ (rhs.ignore_case_)
-{
-    // no-op
-}
-
-
-BinaryPredicate& BinaryPredicate::
-operator= (const BinaryPredicate &rhs)
-{
-    ignore_case_ = rhs.ignore_case_;
-    return *this;
 }
 
 
@@ -633,29 +631,22 @@ operator= (const BinaryPredicate &rhs)
 
 
 /* virtual */ conv_to_bool BinaryPredicate::
-operator()(const X &lhs, const X &rhs) const
+operator()(const X &lhs, const X &rhs) /* non-const */
 {
     ++n_total_op_fcall_;
 
-    if (lhs == rhs)
-        return conv_to_bool::make (true);
+    bool result;
 
-    if (ignore_case_) {
-
-        const int lval = lhs.val_;
-        const int rval = rhs.val_;
-
-        if (   lval < 0 || lval > int (_RWSTD_UCHAR_MAX)
-            || rval < 0 || rval > int (_RWSTD_UCHAR_MAX))
-            return conv_to_bool::make (false);
-
-        const int lup = toupper (lval);
-        const int rup = toupper (rval);
-
-        return conv_to_bool::make (_RWSTD_EOF != lup && lup == rup);
+    switch (op_) {
+    case op_equals:        result = lhs.val_ == rhs.val_; break;
+    case op_not_equals:    result = !(lhs.val_ == rhs.val_); break;
+    case op_less:          result = lhs.val_ < rhs.val_; break;
+    case op_less_equal:    result = !(rhs.val_ < lhs.val_); break;
+    case op_greater:       result = rhs.val_ < lhs.val_; break;
+    case op_greater_equal: result = !(rhs.val_ < lhs.val_); break;
     }
 
-    return conv_to_bool::make (false);
+    return conv_to_bool::make (result);
 }
 
 
@@ -732,9 +723,21 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     int      paramno  = -1;
     int      cursor   = -1;
 
-    // directive syntax:
-    // "X=" [ '#' ] [ '+' ] [ '*' | <n> ] [ '.' [ '*' | <n> ] ]
+    const X* pelem    = 0;
 
+    // directive syntax:
+    // "X=" [ '#' ] [ '+' ] [ '*' | <n> ] [ '.' [ '*' | '@' | <n> ] ]
+    // where
+    // '#' causes X::id_ to be included in output
+    // '+' forces X::val_ to be formatted as an integer (otherwise
+    //     it is formatted as an (optionally escaped) character
+    // '*' or <n> is the number of elements in the sequence (the
+    //     first occurrence)
+    // '*', <n> is the offset of the cursor within the sequence
+    //          (where the cursor is a pair of pointy brackets
+    //          surrounding the element, e.g., >123<)
+    // '@' is the pointer to the element to be surrended by the
+    //     pair of pointy brackets
 
     if ('X' != fmt [0] || '=' != fmt [1])
         return _RWSTD_INT_MIN;
@@ -785,8 +788,20 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
             RW_ASSERT (0 != pva);
 
             // extract the width from rw_snprintfa's variable argument
-            // list pass through to us by the caller
+            // list passed through to us by the caller
             cursor = va_arg (*pva, int);
+            ++fmt;
+        }
+        else if ('@' == *fmt) {
+            if (0 == pva)
+                pva = va_arg (va, va_list*);
+
+            RW_ASSERT (0 != pva);
+
+            // extract the pointer from rw_snprintfa's variable argument
+            // list passed through to us by the caller
+            pelem = va_arg (*pva, X*);
+
             ++fmt;
         }
         else if (isdigit (*fmt)) {
@@ -808,6 +823,13 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     // extract a pointer to X from rw_snprintfa's variable argument
     // list pass through to us by the caller 
     const X* const xbeg = va_arg (*pva, X*);
+
+    if (-1 != cursor) {
+        RW_ASSERT (-1 < cursor);
+        RW_ASSERT (0 == pelem);
+
+        pelem = xbeg + cursor;
+    }
 
     // extract the address where to store the extracted argument
     // for use by any subsequent positional paramaters
@@ -836,12 +858,12 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
                           "%{?}%d:%{;}"
                           "%{?}%d%{?},%{;}%{:}%{lc}%{;}"
                           "%{?}<%{;}",
-                          px - xbeg == cursor,            // '>'
+                          px == pelem,                    // '>'
                           fl_pound, px->id_,              // "<id>:"
                           fl_plus, px->val_,              // <val>
                           px + 1 < xbeg + nelems,         // ','
                           px->val_,                       // <val>
-                          px - xbeg == cursor);           // '<'
+                          px == pelem);                   // '<'
         if (n < 0)
             return n;
 
