@@ -25,11 +25,11 @@
  * 
  **************************************************************************/
 
-#include <sstream>
-#include <cstddef>   // for size_t
+#include <sstream>    // for stringbuf
+#include <cstddef>    // for size_t
 
 #include <cmdopt.h>   // for rw_enabled()
-#include <driver.h>
+#include <driver.h>   // for rw_assert(), ...
 
 /**************************************************************************/
 
@@ -45,8 +45,8 @@
 #undef NPOS
 #define NPOS       -1   // invalid position (post_type(off_type(-1))
 
+#define MAYBE_1     0   // 0 or more write positions available
 #define AT_LEAST_1  1   // at least one write position available
-#define MAYBE_1     1   // 0 or more write positions available
 
 /**************************************************************************/
 
@@ -93,6 +93,13 @@ struct PubBuf: std::basic_stringbuf<charT, Traits>
     pos_type Seekpos (pos_type pos, std::ios_base::openmode which) {
         return this->seekpos (pos, which);
     }
+
+    static int capacity (int n) {
+        Base buf (std::ios::out);
+        while (n--)
+            buf.sputc ('c');
+        return ((PubBuf&)buf).Epptr () - ((PubBuf&)buf).Pbase ();
+    }
 };
 
 
@@ -113,27 +120,59 @@ struct CharTraits: std::char_traits<charT>
 
 /**************************************************************************/
 
-enum VirtualTag {
-    // which virtual function to exercise
-    pbackfail, overflow, underflow, seekoff, seekpos
-};
-
-struct FunctionId {
+struct VFun
+{
     enum charT { Char, WChar };
     enum Traits { DefaultTraits, UserTraits };
+    enum VirtualTag {
+        // which virtual function to exercise
+        xsputn, pbackfail, overflow, underflow, seekoff, seekpos
+    };
 
-    charT       cid;
-    Traits      tid;
-    VirtualTag  vfun;
-    const char *cname;   // character type name
-    const char *tname;   // traits name
-    const char *fname;   // function name
+    VFun (charT cid, const char *cname,
+          Traits tid, const char *tname)
+        : cid_ (cid), tid_ (tid), vfun_ (),
+          cname_ (cname), tname_ (tname), fname_ (0),
+          strarg_ (0) { /* empty */ }
+
+    charT       cid_;
+    Traits      tid_;
+    VirtualTag  vfun_;
+    const char *cname_;   // character type name
+    const char *tname_;   // traits name
+    const char *fname_;   // function name
+
+    const char *strarg_;  // string argument
 };
+
+
+static int  stringbuf_capacity;
+static char long_string [4096];
+
+/**************************************************************************/
+
+template <class charT>
+void widen (charT *buf, const char *str)
+{
+    typedef unsigned char UChar;
+
+    buf [0] = '\0';
+
+    if (str) {
+        for (const char *pc = str; ; ++pc) {
+            buf [pc - str] = charT (UChar (*pc));
+            if ('\0' == *pc) {
+                RW_ASSERT (std::size_t (pc - str) < sizeof long_string);
+                break;
+            }
+        }
+    }
+}
 
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_virtual (charT, Traits, const FunctionId *pfid,
+void test_virtual (charT, Traits, const VFun *pfid,
                    int         line,           // line number
                    const char *str,            // ctor string argument
                    std::size_t,                // length of string
@@ -154,19 +193,15 @@ void test_virtual (charT, Traits, const FunctionId *pfid,
     typedef typename Stringbuf::off_type                   off_type;
     typedef typename Stringbuf::pos_type                   pos_type;
 
-    // widen the source sequence into the (possibly wide) character buffer
-    charT wstr [256];
-
-    wstr [0] = 0;
-
-    if (str) {
-        typedef unsigned char UChar;
-        for (const char *pc = str; ; ++pc) {
-            wstr [pc - str] = charT (UChar (*pc));
-            if ('\0' == *pc)
-                break;
-        }
+    if (!rw_enabled (line)) {
+        rw_note (0, 0, 0, "test on line %d disabled", line);
+        return;
     }
+
+    // widen the source sequence into the (possibly wide) character buffer
+    static charT wstr [4096];
+
+    widen (wstr, str);
 
     const std::ios_base::openmode openmode = std::ios_base::openmode (mode);
 
@@ -179,6 +214,10 @@ void test_virtual (charT, Traits, const FunctionId *pfid,
 
     PubBuf<charT, Traits>* const pbuf = (PubBuf<charT, Traits>*)
         (str ? -1 < mode ? &sb_s_m : &sb_s : -1 < mode ? &sb_m : &sb_0);
+
+    if (stringbuf_capacity < 0)
+        stringbuf_capacity =
+            PubBuf<charT, Traits>::capacity (-stringbuf_capacity);
 
     if (gbump && IGN != gbump) {
         // make sure gbump is valid
@@ -199,27 +238,36 @@ void test_virtual (charT, Traits, const FunctionId *pfid,
     int ret = EOF;
 
     // invoke the virtual function with the expected argument (if any)
-    switch (pfid->vfun) {
-    case pbackfail:
+    switch (pfid->vfun_) {
+    case VFun::xsputn: {
+
+        widen (wstr, pfid->strarg_);
+
+        RW_ASSERT (std::size_t (arg0) < sizeof wstr / sizeof *wstr);
+        ret = pbuf->sputn (wstr, arg0);
+        break;
+    }
+
+    case VFun::pbackfail:
         ret = IGN == arg0 ? pbuf->Pbackfail ()
                           : pbuf->Pbackfail (arg_int);
         break;
 
-    case overflow:
+    case VFun::overflow:
         ret = IGN == arg0 ? pbuf->Overflow ()
                           : pbuf->Overflow (arg_int);
         break;
 
-    case underflow:
+    case VFun::underflow:
         ret = pbuf->Underflow ();
         break;
 
-    case seekoff:
+    case VFun::seekoff:
         ret = IGN == arg2 ? pbuf->Seekoff (arg_off, arg_way)
                           : pbuf->Seekoff (arg_off, arg_way, arg_which);
         break;
 
-    case seekpos:
+    case VFun::seekpos:
         ret = IGN == arg2 ? pbuf->Seekpos (arg_pos)
                           : pbuf->Seekpos (arg_pos, arg_which);
         break;
@@ -245,23 +293,28 @@ void test_virtual (charT, Traits, const FunctionId *pfid,
 #define CALLFMT                                                         \
     "line %d. "                                                         \
     "%{?}basic_%{:}%{?}w%{;}%{;}stringbuf%{?}<%s%{?}, %s%{;}>%{;}"      \
-    "(%{?}\"%s\"%{?}, %{Io}%{;}%{:}%{?}%{Io}%{;}%{;})"                  \
-    ".%s (%{?}" /* pbackfail, over/underflow argument */                \
+    "(%{?}%#s%{?}, %{Io}%{;}%{:}%{?}%{Io}%{;}%{;})"                     \
+    ".%s (%{?}%#s, %d"   /* xsputn */                                   \
+         "%{:}%{?}" /* pbackfail, over/underflow argument */            \
               "%{?}%{#lc}%{;}"                                          \
          "%{:}" /* seekoff and seekpos */                               \
               "%d%{?}, %{Iw}%{?}, %{Io}%{;}"                            \
                 "%{:}%{?}, %{Io}%{;}%{;}"                               \
-         "%{;})"
+         "%{;}%{;})"
+
+    // is the tested virtual function seekoff or seekpos?
+    const bool is_seek = VFun::seekoff <= pfid->vfun_;
 
     // arguments corresponding to CALLFMT
-#define CALLARGS                                                \
-    __LINE__,                                                   \
-    0 != pfid->tname, 'w' == *pfid->cname, 0 != pfid->tname,    \
-    pfid->cname, 0 != pfid->tname, pfid->tname,                 \
-    0 != str, str,  -1 < mode, mode, -1 < mode, mode,           \
-    pfid->fname, pfid->vfun < seekoff,                          \
-    IGN != arg0, arg_int,                                       \
-    arg0, seekoff == pfid->vfun, arg1, IGN != arg2, arg2,       \
+#define CALLARGS                                                        \
+    __LINE__,                                                           \
+    0 != pfid->tname_, 'w' == *pfid->cname_, 0 != pfid->tname_,         \
+    pfid->cname_, 0 != pfid->tname_, pfid->tname_,                      \
+    0 != str, str,  -1 < mode, mode, -1 < mode, mode,                   \
+    pfid->fname_, pfid->vfun_ == VFun::xsputn, pfid->strarg_, arg0,     \
+    !is_seek,                                                           \
+    IGN != arg0, arg_int,                                               \
+    arg0, VFun::seekoff == pfid->vfun_, arg1, IGN != arg2, arg2,        \
     IGN != arg1, arg1
 
     const int_type not_eof = Traits::not_eof (arg_int);
@@ -269,13 +322,16 @@ void test_virtual (charT, Traits, const FunctionId *pfid,
     int success = ret == (NOT_EOF == ret_expect ? not_eof : ret_expect);
 
     // verify the expected return value
-    rw_assert (success, 0, line,
-               CALLFMT
-               " == %{?}%{?}not EOF%{:}%{#lc}%{;}%{:}%d%{;}, "
-               "got %{?}%{#lc}%{:}%d%{;}",
-               CALLARGS,
-               pfid->vfun < seekoff, NOT_EOF == ret_expect, ret_expect,
-               ret_expect, pfid->vfun < seekoff, ret, ret);
+    if (pfid->vfun_ == VFun::xsputn || is_seek) {
+        rw_assert (success, 0, line,
+                   CALLFMT " == %d, got %d",
+                   CALLARGS, ret_expect, ret);
+    }
+    else {
+        rw_assert (success, 0, line,
+                   CALLFMT " == %{?}not EOF%{:}%{#lc}%{;}, got %{#lc}",
+                   CALLARGS, NOT_EOF == ret_expect, ret_expect, ret);
+    }
 
     // verify the expected size of the putback area
     if (IGN != pback_expect)
@@ -297,8 +353,8 @@ void test_virtual (charT, Traits, const FunctionId *pfid,
     if (IGN != write_expect) {
 
         // at least as many write positions as expected
-        success = 0 < write_expect ?
-            write_expect <= write_pos : write_pos == write_expect;
+        success = -1 < write_expect ?
+            write_expect <= write_pos : 0 == write_pos;
 
         rw_assert (success, 0, line,
                    CALLFMT ": write positions (epptr - pptr) "
@@ -312,7 +368,7 @@ void test_virtual (charT, Traits, const FunctionId *pfid,
 /**************************************************************************/
 
 // dispatches to the appropriate specialization of the function template
-void test_virtual (FunctionId   *pfid,
+void test_virtual (VFun         *pfid,
                    int           line,
                    const char   *str,
                    std::size_t   str_len,
@@ -334,7 +390,7 @@ void test_virtual (FunctionId   *pfid,
                   pback_expect, read_expect, write_expect)
 
     static const char* const fnames[] = {
-        "pbackfail", "overflow", "underflow", "seekoff", "seekpos"
+        "xsputn", "pbackfail", "overflow", "underflow", "seekoff", "seekpos"
     };
 
     if (!rw_enabled (line)) {
@@ -342,10 +398,10 @@ void test_virtual (FunctionId   *pfid,
         return;
     }
 
-    pfid->fname = fnames [pfid->vfun];
+    pfid->fname_ = fnames [pfid->vfun_];
     
-    if (FunctionId:: DefaultTraits == pfid->tid) {
-        if (FunctionId::Char == pfid->cid)
+    if (VFun:: DefaultTraits == pfid->tid_) {
+        if (VFun::Char == pfid->cid_)
             TEST (char, std::char_traits<char>);
 #ifndef _RWSTD_NO_WCHAR_T
         else
@@ -353,7 +409,7 @@ void test_virtual (FunctionId   *pfid,
 #endif   // _RWSTD_NO_WCHAR_T
     }
     else {
-        if (FunctionId::Char == pfid->cid)
+        if (VFun::Char == pfid->cid_)
             TEST (char, CharTraits<char>);
 
 #ifndef _RWSTD_NO_WCHAR_T
@@ -373,15 +429,119 @@ const int ate = std::ios::ate;
 const int cur = std::ios::cur;
 const int end = std::ios::end;
 
+static int rw_opt_max_size = 1024;
+
 /**************************************************************************/
 
 static void
-test_pbackfail (FunctionId *pfid)
+test_xsputn (VFun *pfid)
+{
+    rw_info (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::xsputn"
+             "(const char_type*, streamsize)",
+             pfid->cname_, 0 != pfid->tname_, pfid->tname_);
+
+    pfid->vfun_ = VFun::xsputn;
+
+#undef TEST
+#define TEST(str, mode, gbump, sarg, result, pback, read, write)        \
+    pfid->strarg_ = sarg;                                                \
+    test_virtual (pfid, __LINE__, str, sizeof str - 1, mode,            \
+                  gbump, sizeof sarg - 1, IGN, IGN, result,             \
+                  pback, read, write)
+
+#undef STR
+#define STR(len)   (long_string + sizeof long_string - 1 - (len))
+
+    //    +-------------------------------------------- initial sequence
+    //    |      +------------------------------------- open mode
+    //    |      |               +--------------------- gbump (gptr offset)
+    //    |      |               |   +----------------- pbackfail argument
+    //    |      |               |   |     +----------- expected return value
+    //    |      |               |   |     |  +-------- putback positions
+    //    |      |               |   |     |  |  +----- read positions
+    //    |      |               |   |     |  |  |  +-- write positions
+    //    |      |               |   |     |  |  |  |
+    //    V      V               V   V     V  V  V  V
+    TEST (0,     0,              0, "",    0, 0, 0, -1);
+    TEST (0,     0,              0, "a",   0, 0, 0, -1);
+    TEST (0,     in,             0, "a",   0, 0, 0, -1);
+    TEST (0,     out,            0, "a",   1, 0, 0, MAYBE_1);
+    TEST (0,     out,            0, "ab",  2, 0, 0, MAYBE_1);
+    TEST (0,     out,            0, "abc", 3, 0, 0, MAYBE_1);
+    TEST (0,     in | out,       0, "abc", 3, 0, 3, MAYBE_1);
+    TEST (0,     in | out | ate, 0, "abc", 3, 0, 3, MAYBE_1);
+
+    TEST ("abc", in | out,       0, "def", 3, 0, 6, MAYBE_1);
+    TEST ("abc", in | out | ate, 0, "def", 3, 0, 6, MAYBE_1);
+
+#undef TEST
+#define TEST(len, mode, gbump, arg_len, result, pback, read, write)     \
+    pfid->strarg_ = long_string + sizeof long_string - (1 + len),        \
+    test_virtual (pfid, __LINE__,                                       \
+                  long_string + sizeof long_string - (1 + len),         \
+                  len, mode, gbump, arg_len, IGN, IGN,                  \
+                  result, pback, read, write)
+
+// for convenience
+#define CAP stringbuf_capacity
+
+    TEST (   0, in | out,       0,    0,    0,    0,    0, -1);
+
+    // compute the minimum buffer capacity
+    CAP = -1;
+    TEST (   0, in | out,       0, 1000, 1000,    0, 1000, MAYBE_1);
+
+    TEST (   0, in | out,       0, 1001, 1001,    0, 1001, MAYBE_1);
+    TEST (   1, in | out,       0, 1002, 1002,    0, 1003, MAYBE_1);
+    TEST (   2, in | out,       0, 1003, 1003,    0, 1005, MAYBE_1);
+    TEST (   3, in | out,       0, 1004, 1004,    0, 1007, MAYBE_1);
+
+    TEST (   0, in | out | ate, 0, 1000, 1000,    0, 1000, MAYBE_1);
+    TEST (   0, in | out | ate, 0, 1001, 1001,    0, 1001, MAYBE_1);
+    TEST (   1, in | out | ate, 0, 1002, 1002,    0, 1003, MAYBE_1);
+    TEST (   2, in | out | ate, 0, 1003, 1003,    0, 1005, MAYBE_1);
+    TEST (   3, in | out | ate, 0, 1004, 1004,    0, 1007, MAYBE_1);
+    TEST ( 127, in | out | ate, 0, 1005, 1005,    0, 1132, MAYBE_1);
+
+    TEST (1000, in | out | ate, 0, 1006, 1006,    0, 2006, MAYBE_1);
+    TEST (2000, in | out | ate, 0, 1007, 1007,    0, 3007, MAYBE_1);
+    TEST (2001, in | out | ate, 0, 1008, 1008,    0, 3009, MAYBE_1);
+
+    TEST ( CAP, in | out,       0,    1,    1,    0, CAP +    1, MAYBE_1);
+    TEST ( CAP, in | out,       0,    2,    2,    0, CAP +    2, MAYBE_1);
+    TEST ( CAP, in | out,       0,    3,    3,    0, CAP +    3, MAYBE_1);
+    TEST ( CAP, in | out,       0,  127,  127,    0, CAP +  127, MAYBE_1);
+    TEST ( CAP, in | out,       0, 1023, 1023,    0, CAP + 1023, MAYBE_1);
+    TEST ( CAP, in | out,       0, 1024, 1024,    0, CAP + 1024, MAYBE_1);
+    TEST ( CAP, in | out,       0,  CAP,  CAP,    0, CAP +  CAP, MAYBE_1);
+
+    TEST ( CAP, in | out | ate, 0,    1,    1,    0, CAP +    1, MAYBE_1);
+    TEST ( CAP, in | out | ate, 0,    2,    2,    0, CAP +    2, MAYBE_1);
+    TEST ( CAP, in | out | ate, 0,    3,    3,    0, CAP +    3, MAYBE_1);
+    TEST ( CAP, in | out | ate, 0,  CAP,  CAP,    0, CAP +  CAP, MAYBE_1);
+    TEST ( CAP, in | out | ate, 0,  127,  127,    0, CAP +  127, MAYBE_1);
+    TEST ( CAP, in | out | ate, 0, 1023, 1023,    0, CAP + 1023, MAYBE_1);
+    TEST ( CAP, in | out | ate, 0, 1024, 1024,    0, CAP + 1024, MAYBE_1);
+    TEST ( CAP, in | out | ate, 0, 1025, 1025,    0, CAP + 1025, MAYBE_1);
+
+    for (int i = 0; i != rw_opt_max_size; ++i) {
+        TEST (  0, in | out, 0, i, i, 0, i +   0, MAYBE_1);
+        TEST (  1, in | out, 0, i, i, 0, i +   1, MAYBE_1);
+        TEST ( 32, in | out, 0, i, i, 0, i +  32, MAYBE_1);
+        TEST (127, in | out, 0, i, i, 0, i + 127, MAYBE_1);
+        TEST (CAP, in | out, 0, i, i, 0, i + CAP, MAYBE_1);
+    }
+}
+
+/**************************************************************************/
+
+static void
+test_pbackfail (VFun *pfid)
 {
     rw_info (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::pbackfail(int_type)",
-             pfid->cname, 0 != pfid->tname, pfid->tname);
+             pfid->cname_, 0 != pfid->tname_, pfid->tname_);
 
-    pfid->vfun = pbackfail;
+    pfid->vfun_ = VFun::pbackfail;
 
 #undef TEST
 #define TEST(str, mode, gbump, arg, result, pback, read, write)         \
@@ -420,25 +580,25 @@ test_pbackfail (FunctionId *pfid)
     //    |      |         |   |   |    |  |  +----- number of write positions
     //    |      |         |   |   |    |  |  |
     //    V      V         V   V   V    V  V  V
-    TEST (0,     0,        0, 'c', EOF, 0, 0, 0);
-    TEST (0,     0,        0, EOF, EOF, 0, 0, 0);
+    TEST (0,     0,        0, 'c', EOF, 0, 0, -1);
+    TEST (0,     0,        0, EOF, EOF, 0, 0, -1);
 
-    TEST (0,     in,       0, 'c', EOF, 0, 0, 0);
-    TEST (0,     out,      0, EOF, EOF, 0, 0, 0);
-    TEST (0,     ate,      0, EOF, EOF, 0, 0, 0);
-    TEST (0,     in | out, 0, 'c', EOF, 0, 0, 0);
-    TEST (0,     in | out, 0, EOF, EOF, 0, 0, 0);
+    TEST (0,     in,       0, 'c', EOF, 0, 0, -1);
+    TEST (0,     out,      0, EOF, EOF, 0, 0, -1);
+    TEST (0,     ate,      0, EOF, EOF, 0, 0, -1);
+    TEST (0,     in | out, 0, 'c', EOF, 0, 0, -1);
+    TEST (0,     in | out, 0, EOF, EOF, 0, 0, -1);
 
-    TEST ("a",   0,        0, 'c', EOF, 0, 0, 0);
-    TEST ("a",   in,       0, 'c', EOF, 0, 1, 0);
-    TEST ("a",   in,       1, 'c', EOF, 1, 0, 0);
-    TEST ("a",   in,       1, 'a', 'a', 0, 1, 0);
+    TEST ("a",   0,        0, 'c', EOF, 0, 0, -1);
+    TEST ("a",   in,       0, 'c', EOF, 0, 1, -1);
+    TEST ("a",   in,       1, 'c', EOF, 1, 0, -1);
+    TEST ("a",   in,       1, 'a', 'a', 0, 1, -1);
     TEST ("a",   out,      0, 'c', EOF, 0, 0, AT_LEAST_1);
-    TEST ("a",   ate,      0, 'c', EOF, 0, 0, 0);
+    TEST ("a",   ate,      0, 'c', EOF, 0, 0, -1);
 
-    TEST ("abc", in,       1, 'c', EOF, 1, 2, 0);
-    TEST ("abc", in,       2, 'c', EOF, 2, 1, 0);
-    TEST ("abc", in,       3, 'c', 'c', 2, 1, 0);
+    TEST ("abc", in,       1, 'c', EOF, 1, 2, -1);
+    TEST ("abc", in,       2, 'c', EOF, 2, 1, -1);
+    TEST ("abc", in,       3, 'c', 'c', 2, 1, -1);
 
     TEST ("abc", in | out, 0, 'c', EOF, 0, 3, AT_LEAST_1);
     TEST ("abc", in | out, 1, 'c', 'c', 0, 3, AT_LEAST_1);
@@ -449,12 +609,12 @@ test_pbackfail (FunctionId *pfid)
 /**************************************************************************/
 
 static void
-test_overflow (FunctionId *pfid)
+test_overflow (VFun *pfid)
 {
     rw_info (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::overflow(int_type)",
-             pfid->cname, 0 != pfid->tname, pfid->tname);
+             pfid->cname_, 0 != pfid->tname_, pfid->tname_);
 
-    pfid->vfun = overflow;
+    pfid->vfun_ = VFun::overflow;
 
 #undef TEST
 #define TEST(str, mode, gbump, arg, result, pback, read, write)         \
@@ -498,53 +658,53 @@ test_overflow (FunctionId *pfid)
     //    |   |         |   |   |     |   |   |
     //    |   |         |   |   |     |   |   |
     //    V   V         V   V   V     V   V   V
-    TEST (0,  0,        0, 'c', EOF, 0, 0, 0);
-    TEST (0,  in,       0, 'c', EOF, 0, 0, 0);
+    TEST (0,  0,        0, 'c', EOF, 0, 0, -1);
+    TEST (0,  in,       0, 'c', EOF, 0, 0, -1);
     TEST (0,  out,      0, 'c', 'c', 0, 0, AT_LEAST_1);
     TEST (0,  in | out, 0, 'c', 'c', 0, 1, AT_LEAST_1);
 
-    TEST (0,  in | ate,         0, 'c', EOF, 0, 0, 0);
+    TEST (0,  in | ate,         0, 'c', EOF, 0, 0, -1);
     TEST (0,  out | ate,        0, 'c', 'c', 0, 0, AT_LEAST_1);
     TEST (0,  in | out | ate,   0, 'c', 'c', 0, 1, AT_LEAST_1);
 
-    TEST ("", 0,                0, 'c', EOF, 0, 0, 0);
-    TEST ("", in,               0, 'c', EOF, 0, 0, 0);
+    TEST ("", 0,                0, 'c', EOF, 0, 0, -1);
+    TEST ("", in,               0, 'c', EOF, 0, 0, -1);
     TEST ("", out,              0, 'c', 'c', 0, 0, AT_LEAST_1);
     TEST ("", in | out,         0, 'c', 'c', 0, 1, AT_LEAST_1);
 
-    TEST ("a", 0,               0, 'c', EOF, 0, 0, 0);
-    TEST ("a", in,              0, 'c', EOF, 0, 1, 0);
+    TEST ("a", 0,               0, 'c', EOF, 0, 0, -1);
+    TEST ("a", in,              0, 'c', EOF, 0, 1, -1);
     TEST ("a", out,             0, 'c', 'c', 0, 0, AT_LEAST_1);
-    TEST ("a", in | out,        0, 'c', 'c', 0, 1, AT_LEAST_1);
+    TEST ("a", in | out,        0, 'c', 'c', 0, 2, AT_LEAST_1);
 
-    TEST ("a", in | ate,        0, 'c', EOF, 0, 1, 0);
-    TEST ("a", out | ate,       0, 'c', 'c', 0, 0, AT_LEAST_1);
-    TEST ("a", in | out | ate,  0, 'c', 'c', 0, 2, AT_LEAST_1);
+    TEST ("a", in | ate,        0, 'c', EOF, 0, 1, -1);
+    TEST ("a", out | ate,       0, 'c', 'c', 0, 0, MAYBE_1);
+    TEST ("a", in | out | ate,  0, 'c', 'c', 0, 2, MAYBE_1);
 
-    TEST ("ab", 0,              0, 'c', EOF, 0, 0, 0);
-    TEST ("ab", in,             0, 'c', EOF, 0, 2, 0);
+    TEST ("ab", 0,              0, 'c', EOF, 0, 0, -1);
+    TEST ("ab", in,             0, 'c', EOF, 0, 2, -1);
     TEST ("ab", out,            0, 'c', 'c', 0, 0, AT_LEAST_1);
-    TEST ("ab", in | out,       0, 'c', 'c', 0, 2, AT_LEAST_1);
+    TEST ("ab", in | out,       0, 'c', 'c', 0, 3, AT_LEAST_1);
 
-    TEST ("ab", in | ate,       0, 'c', EOF, 0, 2, 0);
+    TEST ("ab", in | ate,       0, 'c', EOF, 0, 2, -1);
     TEST ("ab", out | ate,      0, 'c', 'c', 0, 0, AT_LEAST_1);
     TEST ("ab", in | out | ate, 0, 'c', 'c', 0, 3, AT_LEAST_1);
 
     // verify that when the argument is EOF the function returns a value
     // other than traits::eof() regardless of the streambuf open mode
-    TEST (0, 0,                   0, EOF, NOT_EOF, 0, 0, 0);
-    TEST (0, in,                  0, EOF, NOT_EOF, 0, 0, 0);
-    TEST (0, out,                 0, EOF, NOT_EOF, 0, 0, 0);
-    TEST (0, in | out,            0, EOF, NOT_EOF, 0, 0, 0);
-    TEST (0, in | ate,            0, EOF, NOT_EOF, 0, 0, 0);
-    TEST (0, out | ate,           0, EOF, NOT_EOF, 0, 0, 0);
-    TEST (0, in | out | ate,      0, EOF, NOT_EOF, 0, 0, 0);
+    TEST (0, 0,                   0, EOF, NOT_EOF, 0, 0, -1);
+    TEST (0, in,                  0, EOF, NOT_EOF, 0, 0, -1);
+    TEST (0, out,                 0, EOF, NOT_EOF, 0, 0, -1);
+    TEST (0, in | out,            0, EOF, NOT_EOF, 0, 0, -1);
+    TEST (0, in | ate,            0, EOF, NOT_EOF, 0, 0, -1);
+    TEST (0, out | ate,           0, EOF, NOT_EOF, 0, 0, -1);
+    TEST (0, in | out | ate,      0, EOF, NOT_EOF, 0, 0, -1);
 
-    TEST ("abc",  0,              0, EOF, NOT_EOF, 0, 0, 0);
-    TEST ("abc",  in,             0, EOF, NOT_EOF, 0, 3, 0);
+    TEST ("abc",  0,              0, EOF, NOT_EOF, 0, 0, -1);
+    TEST ("abc",  in,             0, EOF, NOT_EOF, 0, 3, -1);
     TEST ("abc",  out,            0, EOF, NOT_EOF, 0, 0, AT_LEAST_1);
     TEST ("abc",  in | out,       0, EOF, NOT_EOF, 0, 3, AT_LEAST_1);
-    TEST ("abc",  in | ate,       0, EOF, NOT_EOF, 0, 3, 0);
+    TEST ("abc",  in | ate,       0, EOF, NOT_EOF, 0, 3, -1);
     TEST ("abc",  out | ate,      0, EOF, NOT_EOF, 0, 0, MAYBE_1);
     TEST ("abc",  in | out | ate, 0, EOF, NOT_EOF, 0, 3, MAYBE_1);
 }
@@ -552,12 +712,12 @@ test_overflow (FunctionId *pfid)
 /**************************************************************************/
 
 static void
-test_underflow (FunctionId *pfid)
+test_underflow (VFun *pfid)
 {
     rw_info (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::underflow()",
-             pfid->cname, 0 != pfid->tname, pfid->tname);
+             pfid->cname_, 0 != pfid->tname_, pfid->tname_);
 
-    pfid->vfun = underflow;
+    pfid->vfun_ = VFun::underflow;
 
 #undef TEST
 #define TEST(str, mode, gbump, result, pback, read, write)              \
@@ -579,30 +739,30 @@ test_underflow (FunctionId *pfid)
     //    |      +----------------------------------- open mode
     //    |      |               +------------------- gbump
     //    |      |               |  +---------------- underflow result
-    //    |      |               |  |     +---------- putback positions
-    //    |      |               |  |     |   +------ read positions
-    //    |      |               |  |     |   |   +-- write positions
-    //    |      |               |  |     |   |   |
-    //    |      |               |  |     |   |   |
-    //    |      |               |  |     |   |   |
-    //    V      V               V  V     V   V   V
-    TEST (0,     0,              0, EOF, 0, 0, 0);
-    TEST (0,     in,             0, EOF, 0, 0, 0);
-    TEST (0,     out,            0, EOF, 0, 0, 0);
-    TEST (0,     in | out,       0, EOF, 0, 0, 0);
-    TEST (0,     in | out | ate, 0, EOF, 0, 0, 0);
+    //    |      |               |  |    +----------- putback positions
+    //    |      |               |  |    |  +-------- read positions
+    //    |      |               |  |    |  |   +---- write positions
+    //    |      |               |  |    |  |   |
+    //    |      |               |  |    |  |   |
+    //    |      |               |  |    |  |   |
+    //    V      V               V  V    V  V   V
+    TEST (0,     0,              0, EOF, 0, 0, -1);
+    TEST (0,     in,             0, EOF, 0, 0, -1);
+    TEST (0,     out,            0, EOF, 0, 0, -1);
+    TEST (0,     in | out,       0, EOF, 0, 0, -1);
+    TEST (0,     in | out | ate, 0, EOF, 0, 0, -1);
 
-    TEST ("",    0,              0, EOF, 0, 0, 0);
-    TEST ("",    in,             0, EOF, 0, 0, 0);
-    TEST ("",    out,            0, EOF, 0, 0, 0);
-    TEST ("",    in | out,       0, EOF, 0, 0, 0);
-    TEST ("",    in | out | ate, 0, EOF, 0, 0, 0);
+    TEST ("",    0,              0, EOF, 0, 0, -1);
+    TEST ("",    in,             0, EOF, 0, 0, -1);
+    TEST ("",    out,            0, EOF, 0, 0, -1);
+    TEST ("",    in | out,       0, EOF, 0, 0, -1);
+    TEST ("",    in | out | ate, 0, EOF, 0, 0, -1);
 
-    TEST ("abc", 0,              0, EOF, 0, 0, 0);
-    TEST ("abc", in,             0, 'a', 0, 3, 0);
-    TEST ("abc", in,             1, 'b', 1, 2, 0);
-    TEST ("abc", in,             2, 'c', 2, 1, 0);
-    TEST ("abc", in,             3, EOF, 3, 0, 0);
+    TEST ("abc", 0,              0, EOF, 0, 0, -1);
+    TEST ("abc", in,             0, 'a', 0, 3, -1);
+    TEST ("abc", in,             1, 'b', 1, 2, -1);
+    TEST ("abc", in,             2, 'c', 2, 1, -1);
+    TEST ("abc", in,             3, EOF, 3, 0, -1);
     TEST ("abc", out,            0, EOF, 0, 0, AT_LEAST_1);
     TEST ("abc", in | out,       0, 'a', 0, 3, AT_LEAST_1);
     TEST ("abc", in | out,       1, 'b', 1, 2, AT_LEAST_1);
@@ -616,20 +776,21 @@ test_underflow (FunctionId *pfid)
     //////////////////////////////////////////////////////////////////
     // exercise UserTraits with an unusual eof
 
-    if (0 == pfid->tname)
+    if (0 == pfid->tname_)
         return;
 
-    TEST ("a$c", in,             0, 'a',  0,  3, 0);
-    TEST ("a$c", in,             1, EOF,  1,  2, 0);
+    TEST ("a$c", in,             0, 'a',  0,  3, -1);
+    TEST ("a$c", in,             1, EOF,  1,  2, -1);
 }
 
 /**************************************************************************/
 
 // exercises both seekoff (seeking from the beginning) and seekpos
 static void
-test_seek (FunctionId *pfid)
+test_seek (VFun *pfid)
 {
-    RW_ASSERT (seekoff == pfid->vfun || seekpos == pfid->vfun);
+    RW_ASSERT (   VFun::seekoff == pfid->vfun_
+               || VFun::seekpos == pfid->vfun_);
 
 #undef TEST
 #define TEST(str, mode, gbump, off, which, res, pback, read, write)     \
@@ -699,67 +860,67 @@ test_seek (FunctionId *pfid)
     //    |      |               |   |  |  |     |  |  |
     //    |      |               |   |  |  |     |  |  |
     //    V      V               V   V  V  V     V  V  V
-    TEST (0,     0,              0,  0, 0, NPOS, 0, 0, 0);
-    TEST (0,     in,             0,  0, 0, NPOS, 0, 0, 0);
-    TEST (0,     out,            0,  0, 0, NPOS, 0, 0, 0);
-    TEST (0,     ate,            0,  0, 0, NPOS, 0, 0, 0);
-    TEST (0,     in | out,       0,  0, 0, NPOS, 0, 0, 0);
-    TEST (0,     in | out | ate, 0,  0, 0, NPOS, 0, 0, 0);
+    TEST (0,     0,              0,  0, 0, NPOS, 0, 0, -1);
+    TEST (0,     in,             0,  0, 0, NPOS, 0, 0, -1);
+    TEST (0,     out,            0,  0, 0, NPOS, 0, 0, -1);
+    TEST (0,     ate,            0,  0, 0, NPOS, 0, 0, -1);
+    TEST (0,     in | out,       0,  0, 0, NPOS, 0, 0, -1);
+    TEST (0,     in | out | ate, 0,  0, 0, NPOS, 0, 0, -1);
 
-    TEST (0,     0,              0,  0, 0, NPOS, 0, 0, 0);
+    TEST (0,     0,              0,  0, 0, NPOS, 0, 0, -1);
 
-    TEST ("abc", 0,              0,  0, 0, NPOS, 0, 0, 0);
-    TEST ("abc", 0,              0,  1, 0, NPOS, 0, 0, 0);
-    TEST ("abc", 0,              0, -1, 0, NPOS, 0, 0, 0);
+    TEST ("abc", 0,              0,  0, 0, NPOS, 0, 0, -1);
+    TEST ("abc", 0,              0,  1, 0, NPOS, 0, 0, -1);
+    TEST ("abc", 0,              0, -1, 0, NPOS, 0, 0, -1);
 
     // seek within the input sequence from the beginning
-    TEST ("abc", in,             0,  0, in,    0, 0, 3, 0);
-    TEST ("abc", in,             0,  1, in,    1, 1, 2, 0);
-    TEST ("abc", in,             0,  2, in,    2, 2, 1, 0);
-    TEST ("abc", in,             0,  3, in,    3, 3, 0, 0);
-    TEST ("abc", in,             0,  4, in, NPOS, 0, 3, 0);
+    TEST ("abc", in,             0,  0, in,    0, 0, 3, -1);
+    TEST ("abc", in,             0,  1, in,    1, 1, 2, -1);
+    TEST ("abc", in,             0,  2, in,    2, 2, 1, -1);
+    TEST ("abc", in,             0,  3, in,    3, 3, 0, -1);
+    TEST ("abc", in,             0,  4, in, NPOS, 0, 3, -1);
 
     // advance gptr by one and seek within the input sequence
-    TEST ("abc", in,             1,  0, in,    0, 0, 3, 0);
-    TEST ("abc", in,             1,  1, in,    1, 1, 2, 0);
-    TEST ("abc", in,             1,  2, in,    2, 2, 1, 0);
-    TEST ("abc", in,             1,  3, in,    3, 3, 0, 0);
-    TEST ("abc", in,             1,  4, in, NPOS, 1, 2, 0);
+    TEST ("abc", in,             1,  0, in,    0, 0, 3, -1);
+    TEST ("abc", in,             1,  1, in,    1, 1, 2, -1);
+    TEST ("abc", in,             1,  2, in,    2, 2, 1, -1);
+    TEST ("abc", in,             1,  3, in,    3, 3, 0, -1);
+    TEST ("abc", in,             1,  4, in, NPOS, 1, 2, -1);
 
     // advance gptr by two and seek within the input sequence
-    TEST ("abc", in,             2,  0, in,    0, 0, 3, 0);
-    TEST ("abc", in,             2,  1, in,    1, 1, 2, 0);
-    TEST ("abc", in,             2,  2, in,    2, 2, 1, 0);
-    TEST ("abc", in,             2,  3, in,    3, 3, 0, 0);
-    TEST ("abc", in,             2,  4, in, NPOS, 2, 1, 0);
+    TEST ("abc", in,             2,  0, in,    0, 0, 3, -1);
+    TEST ("abc", in,             2,  1, in,    1, 1, 2, -1);
+    TEST ("abc", in,             2,  2, in,    2, 2, 1, -1);
+    TEST ("abc", in,             2,  3, in,    3, 3, 0, -1);
+    TEST ("abc", in,             2,  4, in, NPOS, 2, 1, -1);
 
     // exercise seeking within the output sequence
-    TEST ("abc", out,            0,  0, out,    0, 0, 0, AT_LEAST_1);
-    TEST ("abc", out,            0,  1, out,    1, 0, 0, AT_LEAST_1);
-    TEST ("abc", out,            0, -1, out, NPOS, 0, 0, AT_LEAST_1);
-    TEST ("abc", out,            0,  2, out,    2, 0, 0, AT_LEAST_1);
-    TEST ("abc", out,            0,  3, out,    3, 0, 0, AT_LEAST_1);
-    TEST ("abc", out,            0,  4, out, NPOS, 0, 0, AT_LEAST_1);
+    TEST ("abc", out,            0,  0, out,    0, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0,  1, out,    1, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0, -1, out, NPOS, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0,  2, out,    2, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0,  3, out,    3, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0,  4, out, NPOS, 0, 0, MAYBE_1);
 
     // seeking withing both input and output
-    TEST ("abc", in | out,       0,  0, in | out,    0, 0, 3, AT_LEAST_1);
-    TEST ("abc", in | out,       0,  1, in | out,    1, 1, 2, AT_LEAST_1);
-    TEST ("abc", in | out,       0, -1, in | out, NPOS, 0, 3, AT_LEAST_1);
-    TEST ("abc", in | out,       0,  2, in | out,    2, 2, 1, AT_LEAST_1);
-    TEST ("abc", in | out,       0,  3, in | out,    3, 3, 0, AT_LEAST_1);
-    TEST ("abc", in | out,       0,  4, in | out, NPOS, 0, 3, AT_LEAST_1);
+    TEST ("abc", in | out,       0,  0, in | out,    0, 0, 3, MAYBE_1);
+    TEST ("abc", in | out,       0,  1, in | out,    1, 1, 2, MAYBE_1);
+    TEST ("abc", in | out,       0, -1, in | out, NPOS, 0, 3, MAYBE_1);
+    TEST ("abc", in | out,       0,  2, in | out,    2, 2, 1, MAYBE_1);
+    TEST ("abc", in | out,       0,  3, in | out,    3, 3, 0, MAYBE_1);
+    TEST ("abc", in | out,       0,  4, in | out, NPOS, 0, 3, MAYBE_1);
 }
 
 /**************************************************************************/
 
 static void
-test_seekoff (FunctionId *pfid)
+test_seekoff (VFun *pfid)
 {
     rw_info (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::seekoff(off_type, "
              "ios_base::seekdir, ios_base::openmode)",
-             pfid->cname, 0 != pfid->tname, pfid->tname);
+             pfid->cname_, 0 != pfid->tname_, pfid->tname_);
 
-    pfid->vfun = seekoff;
+    pfid->vfun_ = VFun::seekoff;
 
     test_seek (pfid);
 
@@ -784,41 +945,41 @@ test_seekoff (FunctionId *pfid)
     //    |      |               |   |  |    |  |     |  |  |
     //    |      |               |   |  |    |  |     |  |  |
     //    V      V               V   V  V    V  V     V  V  V
-    TEST (0,     0,              0,  0, cur, 0, NPOS, 0, 0, 0);
-    TEST (0,     in,             0,  0, cur, 0, NPOS, 0, 0, 0);
-    TEST (0,     out,            0,  0, cur, 0, NPOS, 0, 0, 0);
-    TEST (0,     ate,            0,  0, cur, 0, NPOS, 0, 0, 0);
-    TEST (0,     in | out,       0,  0, cur, 0, NPOS, 0, 0, 0);
-    TEST (0,     in | out | ate, 0,  0, cur, 0, NPOS, 0, 0, 0);
+    TEST (0,     0,              0,  0, cur, 0, NPOS, 0, 0, -1);
+    TEST (0,     in,             0,  0, cur, 0, NPOS, 0, 0, -1);
+    TEST (0,     out,            0,  0, cur, 0, NPOS, 0, 0, -1);
+    TEST (0,     ate,            0,  0, cur, 0, NPOS, 0, 0, -1);
+    TEST (0,     in | out,       0,  0, cur, 0, NPOS, 0, 0, -1);
+    TEST (0,     in | out | ate, 0,  0, cur, 0, NPOS, 0, 0, -1);
 
-    TEST (0,     0,              0,  0, end, 0, NPOS, 0, 0, 0);
-    TEST (0,     in,             0,  0, end, 0, NPOS, 0, 0, 0);
-    TEST (0,     out,            0,  0, end, 0, NPOS, 0, 0, 0);
-    TEST (0,     ate,            0,  0, end, 0, NPOS, 0, 0, 0);
-    TEST (0,     in | out,       0,  0, end, 0, NPOS, 0, 0, 0);
-    TEST (0,     in | out | ate, 0,  0, end, 0, NPOS, 0, 0, 0);
+    TEST (0,     0,              0,  0, end, 0, NPOS, 0, 0, -1);
+    TEST (0,     in,             0,  0, end, 0, NPOS, 0, 0, -1);
+    TEST (0,     out,            0,  0, end, 0, NPOS, 0, 0, -1);
+    TEST (0,     ate,            0,  0, end, 0, NPOS, 0, 0, -1);
+    TEST (0,     in | out,       0,  0, end, 0, NPOS, 0, 0, -1);
+    TEST (0,     in | out | ate, 0,  0, end, 0, NPOS, 0, 0, -1);
 
     // exercise seeking within the output sequence
-    TEST ("abc", out,            0,  0, cur, out,    0, 0, 0, AT_LEAST_1);
-    TEST ("abc", out,            0,  1, cur, out,    1, 0, 0, 1);
-    TEST ("abc", out,            0, -1, cur, out, NPOS, 0, 0, 1);
-    TEST ("abc", out,            0,  2, cur, out,    2, 0, 0, 1);
-    TEST ("abc", out,            0,  3, cur, out,    3, 0, 0, 1);
-    TEST ("abc", out,            0,  4, cur, out, NPOS, 0, 0, 1);
+    TEST ("abc", out,            0,  0, cur, out,    3, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0,  1, cur, out, NPOS, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0, -1, cur, out,    2, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0,  2, cur, out, NPOS, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0,  3, cur, out, NPOS, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0,  4, cur, out, NPOS, 0, 0, MAYBE_1);
 
     // seek within the input sequence from the current position
-    TEST ("abc", in,             0,  0, cur, in,    0, 0, 3, 0);
-    TEST ("abc", in,             0,  1, cur, in,    1, 1, 2, 0);
-    TEST ("abc", in,             0,  2, cur, in,    2, 2, 1, 0);
-    TEST ("abc", in,             0,  3, cur, in,    3, 3, 0, 0);
-    TEST ("abc", in,             0,  4, cur, in, NPOS, 0, 3, 0);
+    TEST ("abc", in,             0,  0, cur, in,    0, 0, 3, -1);
+    TEST ("abc", in,             0,  1, cur, in,    1, 1, 2, -1);
+    TEST ("abc", in,             0,  2, cur, in,    2, 2, 1, -1);
+    TEST ("abc", in,             0,  3, cur, in,    3, 3, 0, -1);
+    TEST ("abc", in,             0,  4, cur, in, NPOS, 0, 3, -1);
 
     // seek within the input sequence from the end
-    TEST ("abc", in,             0,  0, end, in,    3, 3, 0, 0);
-    TEST ("abc", in,             0, -1, end, in,    2, 2, 1, 0);
-    TEST ("abc", in,             0, -2, end, in,    1, 1, 2, 0);
-    TEST ("abc", in,             0, -3, end, in,    0, 0, 3, 0);
-    TEST ("abc", in,             0, -4, end, in, NPOS, 0, 3, 0);
+    TEST ("abc", in,             0,  0, end, in,    3, 3, 0, -1);
+    TEST ("abc", in,             0, -1, end, in,    2, 2, 1, -1);
+    TEST ("abc", in,             0, -2, end, in,    1, 1, 2, -1);
+    TEST ("abc", in,             0, -3, end, in,    0, 0, 3, -1);
+    TEST ("abc", in,             0, -4, end, in, NPOS, 0, 3, -1);
 
     // exercise positioning from the end: this behavior is not
     // correctly specified even in LWG issue 432 (see the post
@@ -829,50 +990,58 @@ test_seekoff (FunctionId *pfid)
 
     // FIXME: add a reference to the LWG issue that fixes this
     // as soon as one has been opened
-    TEST ("abc", out,            0,  0, end, out,    3, 0, 0, AT_LEAST_1);
-    TEST ("abc", out,            0,  1, end, out, NPOS, 0, 0, 1);
-    TEST ("abc", out,            0, -1, end, out,    2, 0, 0, 1);
-    TEST ("abc", out,            0, -2, end, out,    1, 0, 0, 1);
-    TEST ("abc", out,            0, -3, end, out,    0, 0, 0, 1);
-    TEST ("abc", out,            0, -4, end, out, NPOS, 0, 0, 1);
+    TEST ("abc", out,            0,  0, end, out,    3, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0,  1, end, out, NPOS, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0, -1, end, out,    2, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0, -2, end, out,    1, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0, -3, end, out,    0, 0, 0, MAYBE_1);
+    TEST ("abc", out,            0, -4, end, out, NPOS, 0, 0, MAYBE_1);
 
-    TEST ("abc", out | ate,      0,  0, cur, out,    3, 0, 0, AT_LEAST_1);
-    TEST ("abc", out | ate,      0,  1, cur, out, NPOS, 0, 0, 1);
-    TEST ("abc", out | ate,      0, -1, cur, out,    2, 0, 0, 1);
-    TEST ("abc", out | ate,      0, -2, cur, out,    1, 0, 0, 1);
-    TEST ("abc", out | ate,      0, -3, cur, out,    0, 0, 0, 1);
-    TEST ("abc", out | ate,      0, -4, cur, out, NPOS, 0, 0, 1);
+    TEST ("abc", out | ate,      0,  0, cur, out,    3, 0, 0, MAYBE_1);
+    TEST ("abc", out | ate,      0,  1, cur, out, NPOS, 0, 0, MAYBE_1);
+    TEST ("abc", out | ate,      0, -1, cur, out,    2, 0, 0, MAYBE_1);
+    TEST ("abc", out | ate,      0, -2, cur, out,    1, 0, 0, MAYBE_1);
+    TEST ("abc", out | ate,      0, -3, cur, out,    0, 0, 0, MAYBE_1);
+    TEST ("abc", out | ate,      0, -4, cur, out, NPOS, 0, 0, MAYBE_1);
 
     // seeking within both input and output from the end
-    TEST ("abc", in | out,       0,  0, end, in | out,    3, 3, 0, AT_LEAST_1);
-    TEST ("abc", in | out,       0,  1, end, in | out, NPOS, 0, 3, AT_LEAST_1);
-    TEST ("abc", in | out,       0, -1, end, in | out,    2, 2, 1, AT_LEAST_1);
-    TEST ("abc", in | out,       0, -2, end, in | out,    1, 1, 2, AT_LEAST_1);
-    TEST ("abc", in | out,       0, -3, end, in | out,    0, 0, 3, AT_LEAST_1);
-    TEST ("abc", in | out,       0, -4, end, in | out, NPOS, 0, 3, AT_LEAST_1);
+    TEST ("abc", in | out,       0,  0, end, in | out,    3, 3, 0, MAYBE_1);
+    TEST ("abc", in | out,       0,  1, end, in | out, NPOS, 0, 3, MAYBE_1);
+    TEST ("abc", in | out,       0, -1, end, in | out,    2, 2, 1, MAYBE_1);
+    TEST ("abc", in | out,       0, -2, end, in | out,    1, 1, 2, MAYBE_1);
+    TEST ("abc", in | out,       0, -3, end, in | out,    0, 0, 3, MAYBE_1);
+    TEST ("abc", in | out,       0, -4, end, in | out, NPOS, 0, 3, MAYBE_1);
 
-    // TO DO: exercise ate mode etc.
-    rw_warn (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::seekoff(off_type, "
-             "ios_base::seekdir, ios_base::openmode) insufficiently exercised",
-             pfid->cname, 0 != pfid->tname, pfid->tname);
+    TEST ("abc", in,             0,  0, cur, in | out, NPOS, 0, 3, MAYBE_1);
+    TEST ("abc", out,            0,  0, cur, in | out, NPOS, 0, 0, MAYBE_1);
+    TEST ("abc", in | out,       0,  0, cur, in | out, NPOS, 0, 3, MAYBE_1);
+    TEST ("abc", in | out | ate, 0,  0, cur, in | out, NPOS, 0, 3, MAYBE_1);
+
+    TEST ("abc", in | out | ate, 1, -1, end, in,          2, 2, 1, MAYBE_1);
+    TEST ("abc", in | out | ate, 1, -1, end, out,         2, 1, 2, MAYBE_1);
+
+    TEST ("abc", in | out | ate, 1, -1, end, in | out,    2, 2, 1, MAYBE_1);
+    TEST ("abc", in | out | ate, 2, -1, end, in | out,    2, 2, 1, MAYBE_1);
+    TEST ("abc", in | out | ate, 3, -1, end, in | out,    2, 2, 1, MAYBE_1);
 }
 
 /**************************************************************************/
 
 static void
-test_seekpos (FunctionId *pfid)
+test_seekpos (VFun *pfid)
 {
     rw_info (0, 0, 0, "basic_stringbuf<%s%{?}, %s%{;}>::seekpos(pos_type, "
              "ios_base::openmode)",
-             pfid->cname, 0 != pfid->tname, pfid->tname);
+             pfid->cname_, 0 != pfid->tname_, pfid->tname_);
 
-    pfid->vfun = seekpos;
+    pfid->vfun_ = VFun::seekpos;
 
     test_seek (pfid);
 }
 
 /**************************************************************************/
 
+static int rw_opt_no_xsputn;        // for --no-xsputn
 static int rw_opt_no_pbackfail;     // for --no-pbackfail
 static int rw_opt_no_overflow;      // for --no-overflow
 static int rw_opt_no_underflow;     // for --no-underflow
@@ -883,7 +1052,7 @@ static int rw_opt_no_char_traits;   // for --no-char_traits
 static int rw_opt_no_user_traits;   // for --no-user_traits
 
 static void
-run_test (FunctionId *pfid)
+run_test (VFun *pfid)
 {
 #undef TEST
 #define TEST(function)                                          \
@@ -893,15 +1062,16 @@ run_test (FunctionId *pfid)
     else                                                        \
         test_ ## function (pfid)
 
-    if (pfid->tname && rw_opt_no_user_traits) {
+    if (pfid->tname_ && rw_opt_no_user_traits) {
         rw_note (1 < rw_opt_no_user_traits++, 0, 0,
                  "user defined traits test disabled");
     }
-    else if (!pfid->tname && rw_opt_no_char_traits) {
+    else if (!pfid->tname_ && rw_opt_no_char_traits) {
         rw_note (1 < rw_opt_no_char_traits++, 0, 0,
                  "char_traits test disabled");
     }
     else {
+        TEST (xsputn);
         TEST (pbackfail);
         TEST (overflow);
         TEST (underflow);
@@ -915,23 +1085,27 @@ run_test (FunctionId *pfid)
 static int
 run_test (int, char*[])
 {
+    if ('\0' == long_string [0]) {
+        // initialize long_string
+        for (std::size_t i = 0; i != sizeof long_string - 1; ++i)
+            long_string [i] = 'x';
+    }
+
     if (rw_opt_no_seek) {
         rw_opt_no_seekoff = 1;
         rw_opt_no_seekpos = 1;
     }
 
     if (rw_enabled ("char")) {
-        FunctionId fid;
 
-        fid.cid    = FunctionId::Char;
-        fid.tid    = FunctionId::DefaultTraits;
-        fid.cname  = "char";
+        VFun fid (VFun::Char, "char", VFun::DefaultTraits, 0);
+
         traits_eof = -1;
 
         run_test (&fid);
 
-        fid.tid    = FunctionId::UserTraits;
-        fid.tname  = "UserTraits";
+        fid.tid_    = VFun::UserTraits;
+        fid.tname_  = "UserTraits";
         traits_eof = '$';
 
         run_test (&fid);
@@ -940,17 +1114,14 @@ run_test (int, char*[])
         rw_note (0, 0, 0, "char tests disabled");
 
     if (rw_enabled ("wchar_t")) {
-        FunctionId fid;
+        VFun fid (VFun::WChar, "wchar_t", VFun::DefaultTraits, 0);
 
-        fid.cid    = FunctionId::WChar;
-        fid.tid    = FunctionId::DefaultTraits;
-        fid.cname  = "wchar_t";
         traits_eof = -1;
 
         run_test (&fid);
 
-        fid.tid    = FunctionId::UserTraits;
-        fid.tname  = "UserTraits";
+        fid.tid_    = VFun::UserTraits;
+        fid.tname_  = "UserTraits";
         traits_eof = '$';
 
         run_test (&fid);
@@ -969,6 +1140,7 @@ int main (int argc, char *argv[])
                     "lib.stringbuf.virtuals",
                     0,   // no comment
                     run_test,
+                    "|-no-xsputn# "
                     "|-no-pbackfail# "
                     "|-no-overflow# "
                     "|-no-underflow# "
@@ -976,7 +1148,9 @@ int main (int argc, char *argv[])
                     "|-no-seekpos# "
                     "|-no-seek# "
                     "|-no-char_traits# "
-                    "|-no-user_traits#",
+                    "|-no-user_traits# "
+                    "|-max_buf_size#0-*",
+                    &rw_opt_no_xsputn,
                     &rw_opt_no_pbackfail,
                     &rw_opt_no_overflow,
                     &rw_opt_no_underflow,
@@ -984,5 +1158,7 @@ int main (int argc, char *argv[])
                     &rw_opt_no_seekpos,
                     &rw_opt_no_seek,
                     &rw_opt_no_char_traits,
-                    &rw_opt_no_user_traits);
+                    &rw_opt_no_user_traits,
+                    int (sizeof long_string) - 1,
+                    &rw_opt_max_size);
 }
