@@ -1,21 +1,27 @@
 /***************************************************************************
  *
- * 25.unique.cpp - test exercising 25.2.8 [lib.alg.unique]
+ * unique.cpp - test exercising 25.2.8 [lib.alg.unique]
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2000-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -106,18 +112,16 @@ void test_unique (int                    line,
     std::size_t n_total_ops = 
         ppred ? Predicate::n_total_op_fcall_ : T::n_total_op_eq_;
 
-    const Predicate pred (true);
-
     OutIterator res_c (0, 0, 0);
     FwdIterator res (0, 0, 0);
 
     if (use_copy)
         res_c = ppred ?
-              std::unique_copy (first_c, last_c, result, pred)
+              std::unique_copy (first_c, last_c, result, *ppred)
             : std::unique_copy (first_c, last_c, result);
     else
         res = ppred ?
-              std::unique (first, last, pred)
+              std::unique (first, last, *ppred)
             : std::unique (first, last);
 
     const T* const f_cur = use_copy ? result.cur_ : first.cur_;
@@ -131,24 +135,16 @@ void test_unique (int                    line,
                funname, src, ndst, r_cur - f_cur);
 
     // verify that the copied sequence matches the expected range
-    std::size_t i = 0;
-    for ( ; i != ndst; ++i) {
+    const T* const mismatch = T::mismatch (xdst, dst, ndst);
 
-        typedef unsigned char UChar;
-
-        success = UChar (dst [i]) == xdst [i].val_;
-        if (!success)
-            break;
-    }
-
-    rw_assert (success, 0, line,
+    rw_assert (0 == mismatch, 0, line,
                "line %d: std::%s <%s%{?}, %s%{;}%{?}, %s%{;}>(\"%s\", ...) "
-               "==> \"%s\", got \"%{X=*.*}\"", 
+               "==> \"%s\", got \"%{X=*.@}\"", 
                __LINE__, fname, itname, use_copy, outname, 0 != ppred,
-               funname, src, dst, int (ndst), int (i), xdst);
+               funname, src, dst, int (ndst), mismatch, xdst);
 
     if (ppred)
-        n_total_ops = Predicate::n_total_op_fcall_ - n_total_ops;
+        n_total_ops = ppred->n_total_op_fcall_ - n_total_ops;
     else
         n_total_ops = T::n_total_op_eq_ - n_total_ops;
 
@@ -227,29 +223,6 @@ void test_unique (const FwdIterator     &it,
     TEST ("abbbbbaaabb", "abab");
     TEST ("abaaaaaaabb", "abab");
     TEST ("ababbbbbbbb", "abab");
-
-    // different data for each version of the template
-    // (with and without the predicate argument)
-
-#undef TEST
-#define TEST(src, dst, dst_nocase)                                \
-    test_unique (__LINE__, src, ppred ? dst_nocase : dst,         \
-                 it, itc, out, (T*)0, ppred, use_copy)
-
-    TEST ("aA",          "aA",    "a");
-    TEST ("Aa",          "Aa",    "A");
-    TEST ("aAA",         "aA",    "a");
-    TEST ("AaA",         "AaA",   "A");
-    TEST ("AaAa",        "AaAa",  "A");
-    TEST ("AAaa",        "Aa",    "A");
-    TEST ("AAaaA",       "AaA",   "A");
-    TEST ("AAaaB",       "AaB",   "AB");
-    TEST ("AAaaBb",      "AaBb",  "AB");
-    TEST ("AAaaBB",      "AaB",   "AB");
-    TEST ("AAaaBBb",     "AaBb",  "AB");
-    TEST ("AAaabBb",     "AabBb", "Ab");
-    TEST ("aaAABBb",     "aABb",  "aB");
-    TEST ("aaAAbBb",     "aAbBb", "ab");
 }
 
 /**************************************************************************/
@@ -372,7 +345,7 @@ void test_unique (const T*,
 static int
 run_test (int, char*[])
 {
-    const BinaryPredicate pred(true);
+    const BinaryPredicate pred (BinaryPredicate::op_equals);
 
     if (rw_opt_no_unique) {
         rw_note (0, __FILE__, __LINE__,  "std::unique test disabled");
