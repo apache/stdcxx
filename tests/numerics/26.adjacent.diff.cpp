@@ -74,67 +74,10 @@ adjacent_difference (InputIter<assign<base<cpy_ctor> > >,
 
 /**************************************************************************/
 
-struct Y: public X
+X operator- (const X &lhs, const X &rhs)
 {
-    // number of times the object's + operator has been invoked,
-    // regardless of whether the operation threw an exception or not
-    std::size_t n_op_minus_;
-
-    static std::size_t n_total_op_minus_;       // ... - operators ...
-
-    // class thrown from the respective functions
-    struct OpMinus: Exception { };
-
-    // throw object's `id' wrapped in the appropriate struct when the
-    // corresponding n_total_xxx_ counter reaches the value pointed to
-    // by the respective pointer below
-    static std::size_t* op_minus_throw_ptr_;
-
-    // objects to which the pointers above initally point
-    static std::size_t op_minus_throw_count_;
-};
-
-/* static */ std::size_t  Y::n_total_op_minus_;
-/* static */ std::size_t* Y::op_minus_throw_ptr_ =
-    &Y::op_minus_throw_count_;
-/* static */ std::size_t  Y::op_minus_throw_count_ =
-    std::size_t (-1);
-
-/**************************************************************************/
-
-Y operator- (const Y& lhs, const Y& rhs) {
-
-    // increment the number of times each distinct object
-    // has been used as the argument to operator-
-    // (do so even if the function throws an exception below)
-    ++_RWSTD_CONST_CAST (Y*, &lhs)->n_op_minus_;
-
-    if (&lhs != &rhs)
-        ++_RWSTD_CONST_CAST (Y*, &rhs)->n_op_minus_;
-
-    // increment the total number of invocations of the operator
-    // (do so even if the function throws an exception below)
-    ++Y::n_total_op_minus_;
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    // throw an exception if the number of calls
-    // to operator- reaches the given value
-
-    if ( lhs.op_minus_throw_ptr_
-            && Y::n_total_op_minus_ == *lhs.op_minus_throw_ptr_) {
-            Y::OpMinus ex;
-            ex.id_ = lhs.id_;
-            throw ex;
-    }
-
-#endif   // _RWSTD_NO_EXCEPTIONS
-
-    Y res(lhs);
-    res.val_ -= rhs.val_;
-    return res;
+    return X (lhs)-= rhs;
 }
-
 
 /**************************************************************************/
 
@@ -172,12 +115,12 @@ struct Accumulator
         funcalls_ = 0;
     }
 
-    // return a type convertible to Y
-    conv_to_T<Y> operator() (const Y &x, const Y &y) /* non-const */ {
+    // return a type convertible to X
+    conv_to_T<X> operator() (const X &x, const X &y) /* non-const */ {
         ++funcalls_;
-        Y res (x);
+        X res (x);
         res.val_ -= y.val_;
-        return conv_to_T<Y>::make (res);
+        return conv_to_T<X>::make (res);
     }
 
 private:
@@ -195,9 +138,9 @@ struct AdjacentDiffBase
     const char* iter_names [2];
 
     // pure virtual
-    virtual Y*
-    adjacent_difference (const Y    *xsrc, const Y     *xsrc_end,
-                         Y          *xdst, const Y     *xdst_end,
+    virtual X*
+    adjacent_difference (const X    *xsrc, const X     *xsrc_end,
+                         X          *xdst, const X     *xdst_end,
                          const Accumulator *op) const = 0;
 };
 
@@ -205,13 +148,13 @@ template <class InputIterator, class OutputIterator>
 struct AdjacentDiff : AdjacentDiffBase
 {
     AdjacentDiff () {
-        iter_names [0] = type_name (InputIterator (0, 0, 0), (Y*)0);
-        iter_names [1] = type_name (OutputIterator (0, 0, 0), (Y*)0);
+        iter_names [0] = type_name (InputIterator (0, 0, 0), (X*)0);
+        iter_names [1] = type_name (OutputIterator (0, 0, 0), (X*)0);
     }
 
-    virtual Y*
-    adjacent_difference (const Y    *xsrc, const Y     *xsrc_end,
-                         Y          *xdst, const Y     *xdst_end,
+    virtual X*
+    adjacent_difference (const X    *xsrc, const X     *xsrc_end,
+                         X          *xdst, const X     *xdst_end,
                          const Accumulator *op) const {
 
         const InputIterator  first (xsrc,     xsrc, xsrc_end);
@@ -238,66 +181,68 @@ void test_adjacent_difference (const std::size_t         N,
                                bool                      binop,
                                bool                      same_seq)
 {
-    const char* const itname =  alg.iter_names [0];
+    const char* const itname  =  alg.iter_names [0];
     const char* const outname = alg.iter_names [1];
-    const char* const opname = "Minus";
+    const char* const opname  = "Minus";
 
     rw_info (0, 0, 0, 
              "std::adjacent_difference(%s, %1$s, %s%{?}, %s%{;})%{?}, %s%{;}",
              itname, outname, binop, opname, same_seq, "first == result");
 
-    Y::gen_ = gen_seq;
+    X::gen_ = gen_seq;
 
-    Y* const src = new Y [N];
-    Y* dst = same_seq ? src : new Y [N];
+    X* const src = new X [N + 1];
+    X* dst = same_seq ? src : new X [N + 1];
 
     for (std::size_t i = 0; i != N; ++i) {
 
-        Y* const src_end = src + i;
-        Y* const dst_end = dst + i;
+        X* const src_end = src + i;
+        X* const dst_end = dst + i;
 
-        std::size_t last_n_op_minus  = Y::n_total_op_minus_;
+        std::size_t last_n_op_minus_assign  = X::n_total_op_minus_assign_;
 
         const Accumulator   acc  (0, 0);
         const Accumulator* const pbinop = binop ? &acc : 0;
 
-        std::size_t k = i > 0 ? i - 1 : 0;
-        int* const tmp_val = new int [i]; 
-        for (; k > 0; k--)
-            tmp_val[k] = src[k].val_ - src[k - 1].val_;
-        if (i > 0)
-            tmp_val[0] = src[0].val_;
+        std::size_t k = 0 < i ? i - 1 : 0;
+        int* const tmp_val = new int [i + 1];
 
-        const Y* res = 
+        for (; 0 < k; --k)
+            tmp_val [k] = src [k].val_ - src [k - 1].val_;
+
+        tmp_val [0] = src [0].val_;
+
+        const X* const res =
             alg.adjacent_difference (src, src_end, dst, dst_end, pbinop);
 
-        const std::size_t minus_ops = binop ? Accumulator::funcalls_ : 
-            Y::n_total_op_minus_ - last_n_op_minus;
+        const std::size_t minus_ops = binop ?
+              Accumulator::funcalls_
+            : X::n_total_op_minus_assign_ - last_n_op_minus_assign;
 
         // verify the returned iterator 26.4.4, p2
         bool success = res == dst_end;
         rw_assert (success, 0, __LINE__,
-                   "step %zu: adjacent_difference <%s, %s%{?}, %s%{;}> = %p"
-                   " expected %p, difference %td",
-                   i + 1, itname, outname, binop, opname, res, dst_end,
-                   res - dst_end);
+                   "adjacent_difference <%s, %s%{?}, %s%{;}>"
+                   "({%{X=+*}}, ...) == result + %td, got result + %td",
+                   itname, outname, binop, opname,
+                   int (i), src, dst_end - dst, res - dst);
 
         for (k = 0; k < i; k++) {
-            success = dst[k].val_ == tmp_val[k];
+            success = dst [k].val_ == tmp_val [k];
             if (!success)
                 break;
         }
 
         // verify the result 26.4.4, p1
-        if (i > 0) {
+        if (0 < i) {
             // to avoid errors in --trace mode
             k = k < i ? k : i - 1;
 
             rw_assert (success, 0, __LINE__,
-                       "step %zu: adjacent_difference <%s, %s%{?}, %s%{;}>: "
-                       "got %d at %zu, expected %d here",
-                       i + 1, itname, outname, binop, opname, dst[k].val_, 
-                       k + 1, tmp_val[k]);
+                       "adjacent_difference <%s, %s%{?}, %s%{;}>"
+                       "({%{X=+*}}, ...) ==> {%{X=+*.*}}, expected %d",
+                       itname, outname, binop, opname,
+                       int (i), src, int (i), int (k), dst, tmp_val [k]);
         }
 
         delete[] tmp_val;
@@ -306,12 +251,14 @@ void test_adjacent_difference (const std::size_t         N,
             break;
 
         // verify the complexity, 26.4.4, p3
-        const std::size_t exp_minus_ops = i > 0 ? i - 1 : 0;
+        const std::size_t exp_minus_ops = 0 < i ? i - 1 : 0;
         success = minus_ops == exp_minus_ops;
         rw_assert (success, 0, __LINE__,
-                   "step %zu: adjacent_difference <%s, %s%{?}, %s%{;}> "
-                   "complexity: got %zu invocations of %s, expected %zu",
-                   i + 1, itname, outname, binop, opname, minus_ops, 
+                   "adjacent_difference <%s, %s%{?}, %s%{;}>"
+                   "({%{X=+*}}, ...) complexity: got %zu invocations "
+                   "of %s, expected %zu",
+                   itname, outname, binop, opname,
+                   int (i), src, minus_ops,
                    binop ? "BinaryMinus" : "operator-", exp_minus_ops);
 
         if (!success)
@@ -359,16 +306,16 @@ void gen_adjacent_difference_test (const std::size_t     N,
 {
     if (0 == rw_opt_no_output_iter)
         gen_adjacent_difference_test (
-            N, it, OutputIter<Y>(0, 0, 0), binop);
+            N, it, OutputIter<X>(0, 0, 0), binop);
     if (0 == rw_opt_no_fwd_iter)
         gen_adjacent_difference_test (
-            N, it, FwdIter<Y>(0, 0, 0), binop);
+            N, it, FwdIter<X>(0, 0, 0), binop);
     if (0 == rw_opt_no_bidir_iter)
         gen_adjacent_difference_test (
-            N, it, BidirIter<Y>(0, 0, 0), binop);
+            N, it, BidirIter<X>(0, 0, 0), binop);
     if (0 == rw_opt_no_rnd_iter)
         gen_adjacent_difference_test (
-            N, it, RandomAccessIter<Y>(0, 0, 0), binop);
+            N, it, RandomAccessIter<X>(0, 0, 0), binop);
 }
 
 // generates a specialization of the partial_sum test for each of the required
@@ -388,23 +335,23 @@ void gen_adjacent_difference_test (const std::size_t N,
     if (rw_opt_no_input_iter)
         rw_note (0, 0, 0, "InputIterator test disabled");
     else
-        gen_adjacent_difference_test (N, InputIter<Y>(0, 0, 0), binop);
+        gen_adjacent_difference_test (N, InputIter<X>(0, 0, 0), binop);
 
     if (rw_opt_no_fwd_iter)
         rw_note (0, 0, 0, "ForwardIterator test disabled");
     else
-        gen_adjacent_difference_test (N, ConstFwdIter<Y>(0, 0, 0), binop);
+        gen_adjacent_difference_test (N, ConstFwdIter<X>(0, 0, 0), binop);
 
     if (rw_opt_no_bidir_iter)
         rw_note (0, 0, 0, "BidirectionalIterator test disabled");
     else
-        gen_adjacent_difference_test (N, ConstBidirIter<Y>(0, 0, 0), binop);
+        gen_adjacent_difference_test (N, ConstBidirIter<X>(0, 0, 0), binop);
 
     if (rw_opt_no_rnd_iter)
         rw_note (0, 0, 0, "RandomAccessIterator test disabled");
     else
         gen_adjacent_difference_test (N, 
-            ConstRandomAccessIter<Y>(0, 0, 0), binop);
+            ConstRandomAccessIter<X>(0, 0, 0), binop);
 }
 
 /**************************************************************************/

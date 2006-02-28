@@ -84,113 +84,9 @@ inner_product (InputIter<assign<base<cpy_ctor> > >,
 
 /**************************************************************************/
 
-struct Y: public X
+X operator* (const X& lhs, const X& rhs)
 {
-    // number of times the object's += and * operators has been invoked,
-    // regardless of whether the operation threw an exception or not
-    std::size_t n_op_plus_assign_;
-    std::size_t n_op_multiple_;
-
-    static std::size_t n_total_op_plus_assign_;   // ... += operators ...
-    static std::size_t n_total_op_multiple_;       // ... * operators ...
-
-    // class thrown from the respective functions
-    struct OpPlusAssign: Exception { };
-    struct OpMultiple: Exception { };
-
-    // throw object's `id' wrapped in the appropriate struct when the
-    // corresponding n_total_xxx_ counter reaches the value pointed to
-    // by the respective pointer below
-    static std::size_t* op_plus_assign_throw_ptr_;
-    static std::size_t* op_multiple_throw_ptr_;
-
-    // objects to which the pointers above initally point
-    static std::size_t op_plus_assign_throw_count_;
-    static std::size_t op_multiple_throw_count_;
-
-    Y& operator+= (const Y& rhs) {
-
-        // verify id validity and uniqueness
-        RW_ASSERT (id_ && id_ <= id_gen_);
-        RW_ASSERT (rhs.id_ && rhs.id_ <= id_gen_);
-        RW_ASSERT (this == &rhs || id_ != rhs.id_);
-
-        // increment the number of times each distinct object
-        // has been used as the argument to operator+=
-        // (do so even if the function throws an exception below)
-        ++n_op_plus_assign_;
-
-        if (this != &rhs)
-            ++_RWSTD_CONST_CAST (Y*, &rhs)->n_op_plus_assign_;
-
-        // increment the total number of invocations of the operator
-        // (do so even if the function throws an exception below)
-        ++n_total_op_plus_assign_;
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-        // throw an exception if the number of calls
-        // to operator== reaches the given value
-
-        if (   op_plus_assign_throw_ptr_
-            && n_total_op_plus_assign_ == *op_plus_assign_throw_ptr_) {
-            OpPlusAssign ex;
-            ex.id_ = id_;
-            throw ex;
-        }
-
-#endif   // _RWSTD_NO_EXCEPTIONS
-
-        val_ += rhs.val_;
-        return *this;
-    }
-};
-
-/* static */ std::size_t  Y::n_total_op_plus_assign_;
-/* static */ std::size_t* Y::op_plus_assign_throw_ptr_ =
-    &Y::op_plus_assign_throw_count_;
-/* static */ std::size_t  Y::op_plus_assign_throw_count_ =
-    std::size_t (-1);
-
-/* static */ std::size_t  Y::n_total_op_multiple_;
-/* static */ std::size_t* Y::op_multiple_throw_ptr_ =
-    &Y::op_multiple_throw_count_;
-/* static */ std::size_t  Y::op_multiple_throw_count_ =
-    std::size_t (-1);
-
-/**************************************************************************/
-
-Y operator* (const Y& lhs, const Y& rhs) {
-
-    // increment the number of times each distinct object
-    // has been used as the argument to operator*
-    // (do so even if the function throws an exception below)
-    ++_RWSTD_CONST_CAST (Y*, &lhs)->n_op_multiple_;
-
-    if (&lhs != &rhs)
-        ++_RWSTD_CONST_CAST (Y*, &rhs)->n_op_multiple_;
-
-    // increment the total number of invocations of the operator
-    // (do so even if the function throws an exception below)
-    ++Y::n_total_op_multiple_;
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    // throw an exception if the number of calls
-    // to operator== reaches the given value
-
-    if (   lhs.op_multiple_throw_ptr_
-        && Y::n_total_op_multiple_ == *lhs.op_multiple_throw_ptr_) {
-        Y::OpMultiple ex;
-        ex.id_ = lhs.id_;
-        throw ex;
-    }
-
-#endif   // _RWSTD_NO_EXCEPTIONS
-
-    Y res (lhs);
-    res.val_ *= rhs.val_;
-    return res;
+    return X (lhs) *= rhs;
 }
 
 /**************************************************************************/
@@ -229,12 +125,12 @@ struct Accumulator
         funcalls_ = 0;
     }
 
-    // return a type convertible to Y
-    conv_to_T<Y> operator() (const Y &x, const Y &y) /* non-const */ {
+    // return a type convertible to X
+    conv_to_T<X> operator() (const X &x, const X &y) /* non-const */ {
         ++funcalls_;
-        Y res (x);
+        X res (x);
         res.val_ += y.val_;
-        return conv_to_T<Y>::make (res);
+        return conv_to_T<X>::make (res);
     }
 
 private:
@@ -254,12 +150,12 @@ struct Multiplicator
         funcalls_ = 0;
     }
 
-    // return a type convertible to Y
-    conv_to_T<Y> operator() (const Y &x, const Y &y) /* non-const */ {
+    // return a type convertible to X
+    conv_to_T<X> operator() (const X &x, const X &y) /* non-const */ {
         ++funcalls_;
-        Y res (x);
+        X res (x);
         res.val_ *= y.val_;
-        return conv_to_T<Y>::make (res);
+        return conv_to_T<X>::make (res);
     }
 
 private:
@@ -277,10 +173,10 @@ struct InnerProductBase
     const char* iter_names [2];
 
     // pure virtual
-    virtual Y
-    inner_product (const Y    *xsrc1, const Y           *xsrc1_end,
-                   const Y    *xsrc2, const Y           *xsrc2_end,
-                   const Y&    init,  const Accumulator *op1, 
+    virtual X
+    inner_product (const X    *xsrc1, const X           *xsrc1_end,
+                   const X    *xsrc2, const X           *xsrc2_end,
+                   const X&    init,  const Accumulator *op1, 
                    const Multiplicator *op2) const = 0;
 };
 
@@ -288,21 +184,21 @@ template <class InputIterator1, class InputIterator2>
 struct InnerProduct : InnerProductBase
 {
     InnerProduct () {
-        iter_names [0] = type_name (InputIterator1 (0, 0, 0), (Y*)0);
-        iter_names [1] = type_name (InputIterator2 (0, 0, 0), (Y*)0);
+        iter_names [0] = type_name (InputIterator1 (0, 0, 0), (X*)0);
+        iter_names [1] = type_name (InputIterator2 (0, 0, 0), (X*)0);
     }
 
-    virtual Y
-    inner_product (const Y    *xsrc1, const Y           *xsrc1_end,
-                   const Y    *xsrc2, const Y           *xsrc2_end,
-                   const Y&    init,  const Accumulator *op1, 
+    virtual X
+    inner_product (const X    *xsrc1, const X           *xsrc1_end,
+                   const X    *xsrc2, const X           *xsrc2_end,
+                   const X&    init,  const Accumulator *op1, 
                    const Multiplicator *op2) const {
 
         const InputIterator1 first1 (xsrc1,     xsrc1, xsrc1_end);
         const InputIterator1 last1  (xsrc1_end, xsrc1, xsrc1_end);
         const InputIterator2 first2 (xsrc2,     xsrc2, xsrc2_end);
 
-        const Y res = op1 ?
+        const X res = op1 ?
               std::inner_product (first1, last1, first2, init, *op1, *op2)
             : std::inner_product (first1, last1, first2, init);
 
@@ -323,7 +219,7 @@ void test_inner_product (const std::size_t       N,
 {
     const char* const it1name = alg.iter_names [0];
     const char* const it2name = alg.iter_names [1];
-    const char* const tname   = "Y";
+    const char* const tname   = "X";
     const char* const op1name = "Plus";
     const char* const op2name = "Multiple";
 
@@ -331,19 +227,19 @@ void test_inner_product (const std::size_t       N,
              "std::inner_product (%s, %1$s, %s, %s%{?}, %s, %s%{;})",
              it1name, it2name, tname, binop, op1name, op2name);
 
-    // construct initial Y
-    const Y init = Y ();
+    // construct initial X
+    const X init = X ();
     int sum = init.val_;
 
-    Y::gen_ = gen_seq;
+    X::gen_ = gen_seq;
 
-    Y* const buf1 = new Y [N];
-    Y* const buf2 = new Y [N];
+    X* const buf1 = new X [N];
+    X* const buf2 = new X [N];
     
     for (std::size_t i = 0; i != N; ++i) {
 
-        Y* const buf1_end = buf1 + i;
-        Y* const buf2_end = buf2 + i;
+        X* const buf1_end = buf1 + i;
+        X* const buf2_end = buf2 + i;
 
         const Accumulator   acc  (0, 0);
         const Multiplicator mult (0, 0);
@@ -351,17 +247,16 @@ void test_inner_product (const std::size_t       N,
         const Accumulator* const   pbinop1 = binop ? &acc : 0;
         const Multiplicator* const pbinop2 = binop ? &mult : 0;
 
-        const Y res = alg.inner_product (buf1, buf1_end, buf2, buf2_end, 
+        const X res = alg.inner_product (buf1, buf1_end, buf2, buf2_end, 
                                          init, pbinop1, pbinop2);
 
         // verify the result 26.4.1, p1
         bool success = sum == res.val_;
         rw_assert (success, 0, __LINE__,
-                   "step %zu: inner_product <%s, %s, %s%{?}, %s, %s%{;}>= %u "
-                   "expected %u%{?} (%d * %d + %d * %d + ... + %d * %d)%{;}",
-                   i + 1, it1name, it2name, tname, binop, op1name, op2name, 
-                   res.val_, sum, i >= 2, buf1[0].val_, buf2[0].val_, 
-                   buf1[1].val_, buf2[1].val_, buf1[i].val_, buf2[i].val_);
+                   "inner_product <%s, %s, %s%{?}, %s, %s%{;}>"
+                   "({%{X=+*}}, {%{X=+*}}) == %d, got %d",
+                   it1name, it2name, tname, binop, op1name, op2name,
+                   int (i), buf1, int (i), buf2, sum, res.val_);
 
         sum += (buf1 [i].val_ * buf2 [i].val_);
 
@@ -403,16 +298,16 @@ void gen_inner_product_test (const std::size_t     N,
 {
     if (0 == rw_opt_no_input_iter)
         gen_inner_product_test (
-            N, it1, InputIter<Y>(0, 0, 0), binop);
+            N, it1, InputIter<X>(0, 0, 0), binop);
     if (0 == rw_opt_no_fwd_iter)
         gen_inner_product_test (
-            N, it1, ConstFwdIter<Y>(0, 0, 0), binop);
+            N, it1, ConstFwdIter<X>(0, 0, 0), binop);
     if (0 == rw_opt_no_bidir_iter)
         gen_inner_product_test (
-            N, it1, ConstBidirIter<Y>(0, 0, 0), binop);
+            N, it1, ConstBidirIter<X>(0, 0, 0), binop);
     if (0 == rw_opt_no_rnd_iter)
         gen_inner_product_test (
-            N, it1, ConstRandomAccessIter<Y>(0, 0, 0), binop);
+            N, it1, ConstRandomAccessIter<X>(0, 0, 0), binop);
 }
 
 // generates a specialization of the inner_product test for each of the required
@@ -424,29 +319,29 @@ void gen_inner_product_test (const std::size_t N,
              "template <class %s, class %s, class %s%{?}, class %s, "
              "class %s%{;}> %3$s inner_product (%1$s, %1$s, %2$s, "
              "%3$s%{?}, %s, %s%{;})", 
-             "InputIterator1", "InputIterator2", "Y",
+             "InputIterator1", "InputIterator2", "X",
              binop, "BinaryOperation1", "BinaryOperation2", binop, 
              "BinaryOperation1", "BinaryOperation2");
 
     if (rw_opt_no_input_iter)
         rw_note (0, 0, 0, "InputIterator test disabled");
     else
-        gen_inner_product_test (N, InputIter<Y>(0, 0, 0), binop);
+        gen_inner_product_test (N, InputIter<X>(0, 0, 0), binop);
 
     if (rw_opt_no_fwd_iter)
         rw_note (0, 0, 0, "ForwardIterator test disabled");
     else
-        gen_inner_product_test (N, ConstFwdIter<Y>(0, 0, 0), binop);
+        gen_inner_product_test (N, ConstFwdIter<X>(0, 0, 0), binop);
 
     if (rw_opt_no_bidir_iter)
         rw_note (0, 0, 0, "BidirectionalIterator test disabled");
     else
-        gen_inner_product_test (N, ConstBidirIter<Y>(0, 0, 0), binop);
+        gen_inner_product_test (N, ConstBidirIter<X>(0, 0, 0), binop);
 
     if (rw_opt_no_rnd_iter)
         rw_note (0, 0, 0, "RandomAccessIterator test disabled");
     else
-        gen_inner_product_test (N, ConstRandomAccessIter<Y>(0, 0, 0), binop);
+        gen_inner_product_test (N, ConstRandomAccessIter<X>(0, 0, 0), binop);
 }
 
 /**************************************************************************/
