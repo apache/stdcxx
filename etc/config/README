@@ -68,7 +68,7 @@
     Microsoft MSVC ............................................. 10.12
     SGI MIPSpro ................................................ 10.13
     Siemens CDS++ .............................................. 10.14
-    SunPro ..................................................... 10.15
+    Sun C++ .................................................... 10.15
 
 
   1  Contents
@@ -113,7 +113,7 @@
   o  Compaq C++ 6.2 or later for Tru64 UNIX, or
   o  IBM VisualAge 5.0 or later for AIX 4.3 or later
   o  SGI MIPSpro 7.3 or later for IRIX
-  o  SunPro 5.3 or later for SunOS 5.6 or later
+  o  Sun C++ 5.3 or later for SunOS 5.6 or later
 
 
   3  Unpacking Instructions
@@ -404,7 +404,7 @@
                   mipspro.config  - for SGI MIPSpro
                   osf_cxx.config  - for Compaq C++
                   reliant_cds.config - for Siemens CDS++
-                  sunpro.config   - for SunPro
+                  sunpro.config   - for Sun C++
                   vacpp.config    - for IBM VisualAge C++ and XL C/C++
                   this argument is optional, the default is gcc.config
 
@@ -963,8 +963,31 @@
 
      #defined when they keyword typename isn't fully supported.
 
+  o  _RWSTD_NO_COLLAPSE_STATIC_LOCALS [auto]
+
+     #defined when  the compiler/linker fail to  collapse static local
+     variables defined in a function template instantiated on the same
+     type in multiple translation units into one.
+
+  o  _RWSTD_NO_COLLAPSE_TEMPLATE_LOCALS [auto]
+
+     #defined when  the compiler/linker fail to  collapse static local
+     variables whose type depends on a template parameter and that are
+     defined in a  function template instantiated on the  same type in
+     multiple translation units into one.
+
+  o  _RWSTD_NO_COLLAPSE_TEMPLATE_STATICS [auto]
+
+     #defined when  the compiler/linker  fail to collapse  static data
+     members  of a  class template  instantiated on  the same  type in
+     multiple translation units into one.
+
   o  _RWSTD_NO_USING_LIBC_IN_STD
+
   o  _RWSTD_NO_VECTOR_BOOL
+
+     When #defined the vector<bool> partial specialization is disabled
+     and the primary template is used instead.
 
 
   8.3.3  Runtime Library Configuration Macros
@@ -1674,8 +1697,8 @@
 
     Port not maintained.
 
-    10.15  SunPro
-    -------------
+    10.15  Sun C++
+    --------------
 
-    Ported to SunPro  5.3 through 5.7 on Solaris  and Linux (SPARC and
-    x86_64). 
+    Ported to Sun C++ 5.3 through 5.7 on Solaris and Linux (SPARC and
+    x86_64).
