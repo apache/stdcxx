@@ -1,6 +1,6 @@
 /************************************************************************
  *
- * snprintfa.cpp - test exercising the rw_snprinfa() utility functions
+ * 0.printf.cpp - test exercising the rw_snprinfa() utility functions
  *
  * $Id$
  *
@@ -36,7 +36,7 @@
 
 
 // disable tests for function name in "%{lF}"
-#define _RWSTD_NO_SPRINFA_FUNNAME
+#define _RWSTD_NO_SPRINTFA_FUNNAME
 
 /***********************************************************************/
 
@@ -1374,7 +1374,7 @@ void test_funptr ()
     TEST ("%{#f}", (funptr_t)0x123,      0, 0, "0x00000123");
     TEST ("%{#f}", (funptr_t)0xffffffff, 0, 0, "0xffffffff");
 
-#  ifndef _RWSTD_NO_SPRINFA_FUNNAME
+#  ifndef _RWSTD_NO_SPRINTFA_FUNNAME
 
     char output [64];
     void* funaddr = (void*)&test_function;
@@ -1387,7 +1387,7 @@ void test_funptr ()
 
     TEST ("%{lf}", (funptr_t)funaddr, 0, 0, output);
 
-#  endif   // _RWSTD_NO_SPRINFA_FUNNAME
+#  endif   // _RWSTD_NO_SPRINTFA_FUNNAME
 
 #elif 8 == _RWSTD_PTR_SIZE
 
@@ -1399,7 +1399,7 @@ void test_funptr ()
     TEST ("%{#f}", (funptr_t)0x123,      0, 0, "0x0000000000000123");
     TEST ("%{#f}", (funptr_t)0xffffffff, 0, 0, "0x00000000ffffffff");
 
-#  ifndef _RWSTD_NO_SPRINFA_FUNNAME
+#  ifndef _RWSTD_NO_SPRINTFA_FUNNAME
 
     char output [64];
     sprintf (output, "%#x=test_function+0", (void*)&test_function);
@@ -1409,7 +1409,7 @@ void test_funptr ()
     sprintf (output, "%#x=test_function+0", (char*)&test_function + 32);
     TEST ("%{lf}", (funptr_t)((char*)&test_funptr + 32), 0, 0, output);
 
-#  endif   // _RWSTD_NO_SPRINFA_FUNNAME
+#  endif   // _RWSTD_NO_SPRINTFA_FUNNAME
 
 #endif
 }
@@ -2227,6 +2227,27 @@ void test_user_defined_formatting ()
 
 /***********************************************************************/
 
+void test_bufsize ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{N}\" buffer size");
+
+    TEST ("%{0}foo",     0, 0, 0, 0);
+    TEST ("%{1}foo",     0, 0, 0, 0);
+    TEST ("%{2}foo",     0, 0, 0, 0);
+    TEST ("%{3}foo",     0, 0, 0, 0);
+    TEST ("%{4}foo",     0, 0, 0, "foo");
+    TEST ("%{10}foobar", 0, 0, 0, "foobar");
+
+    TEST ("%{*}bar",     0, 0, 0, 0);
+    TEST ("%{*}bar",     1, 0, 0, 0);
+    TEST ("%{*}bar",     2, 0, 0, 0);
+    TEST ("%{*}bar",     3, 0, 0, 0);
+    TEST ("%{*}bar",     4, 0, 0, "bar");
+}
+
+/***********************************************************************/
+
 int main ()
 {
     test_percent ();
@@ -2261,6 +2282,9 @@ int main ()
 
     test_user_defined_formatting ();
 
+    test_bufsize ();
+
+    //////////////////////////////////////////////////////////////////
     if (nfailures) {
         fprintf (stderr, "\nFailed %d out of %d assertions.\n",
                  nfailures, ntests);
