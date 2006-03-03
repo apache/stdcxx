@@ -64,7 +64,7 @@ if [ "$CXX" = "aCC" ] ; then
 
     cxx_major="`echo $CXX_VER | sed 's/.*\.\([0-9][0-9]*\)\..*/\1/'`"
 
-    if [ "$cxx_major" != "05" ] ; then
+    if [ "$cxx_major" -le "05" ] ; then
         # prepend -I/usr/include to CXXOPTS for HP aCC on PA but not IPF
         CXXFLAGS="$CXXFLAGS -I/usr/include"
     fi
@@ -307,14 +307,15 @@ for h in $hdrs ; do
 
     for f in $funs; do
 
-       if [ "$function" != "" -a "$function" != "$f" ]; then
-           continue
-       fi
-
         # determine whether the tested function is followed by
         # a function argument list; if so, call it, otherwise
         # take its address
         funname=`echo $f | sed "s/\([a-zA-Z_][a-zA-Z_0-9]*\).*/\1/"`
+
+        if [ "$function" != "" -a "$function" != "$funname" ]; then
+            continue
+        fi
+
         if [ "$funname" = "$f" ] ; then
             # take the address of the function
             # (the function must not be overloaded)
@@ -349,14 +350,17 @@ for h in $hdrs ; do
 
         sym="_RWSTD_NO_`echo $funname | $capitalize`"
 
-        cxxflags="-DCHECK_DECL $CXXFLAGS $WARNFLAGS \
-                 -DHDRNAME=<$hdrname> -DFUNNAME=$funname \
-                 -DFUN='$f' -DTAKE_ADDR=$take_addr"
+        echo "$CXX -c -DCHECK_DECL $CXXFLAGS $WARNFLAGS "   \
+             "-DHDRNAME=\"<$hdrname>\" -DFUNNAME=$funname " \
+             "-DFUN=$f -DTAKE_ADDR=$take_addr "             \
+             "$tmpsrc -o $tmpobj" >>$logfile 2>&1
 
-        echo "$CXX -c $cxxflags $tmpsrc -o $tmpobj " \
-             "&& $LD $tmpsrc $LDFLAGS -l$lib" >>$logfile
-
-        $CXX -c $cxxflags $tmpsrc -o $tmpobj >>$logfile 2>&1 \
+        # spell out all arguments just like above, being careful
+        # about quoting HDRNAME
+        $CXX -c -DCHECK_DECL $CXXFLAGS $WARNFLAGS          \
+                -DHDRNAME="<$hdrname>" -DFUNNAME=$funname  \
+                -DFUN=$f -DTAKE_ADDR=$take_addr            \
+             $tmpsrc -o $tmpobj >>$logfile 2>&1            \
         && $LD $tmpobj $LDFLAGS -l$lib >>$logfile 2>&1
 
         if [ $? -eq 0 ] ; then
@@ -372,6 +376,8 @@ for h in $hdrs ; do
             sym="`echo ${sym}_IN_LIB$lib | $capitalize`"
             
             printf "%-50.50s " "checking for extern \"C\" $funname() in lib$lib"
+
+            # define cxxflags for convenience
             cxxflags="$CXXFLAGS $WARNFLAGS -DFUNNAME=$funname"
 
             echo "$CXX -c $cxxflags $tmpsrc -o $tmpobj \
