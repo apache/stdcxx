@@ -9,16 +9,22 @@
  *
  ***************************************************************************
  * 
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -33,7 +39,7 @@
 
 /*** library version numbers and ids **************************************/
 
-#define _RWSTD_VER 0x04010300
+#define _RWSTD_VER 0x0402000
 //                    | | | |
 //                   MMmmuupp
 //                    | | | |
@@ -43,7 +49,7 @@
 //                    +--------- MM = major release number
 
 // library version string (patch number included only if non-zero)
-#define _RWSTD_VER_STR   "4.1.3"
+#define _RWSTD_VER_STR   "4.2.0"
 
 // library version numbers
 #define _RWSTD_VER_MAJOR ((_RWSTD_VER >> 24) & 0xff)
@@ -59,9 +65,9 @@
 // major and minor release numbers differ may or may not be binary
 // compatible.
 
-/*********************************************************************
- * OVERRIDES FOR CONFIGURATION MACROS                                *
- *********************************************************************/
+/**************************************************************************
+ * OVERRIDES FOR CONFIGURATION MACROS                                     *
+ **************************************************************************/
 
 #if defined (_RWSTD_NO_EXTENSIONS) && !defined (_RWSTD_STRICT_ANSI)
 #  define _RWSTD_STRICT_ANSI
@@ -81,11 +87,11 @@
 #  endif   // _RWSTD_REENTRANT
 #endif
 
-/*********************************************************************
- * ARCHITECTURE-SPECIFIC OVERRIDES                                   *
- *********************************************************************/
+/**************************************************************************
+ * ARCHITECTURE-SPECIFIC OVERRIDES                                        *
+ **************************************************************************/
 
-/*** Alpha ***********************************************************/
+/*** Alpha ****************************************************************/
 
 #if defined (__alpha__) || defined (__alpha)
 
@@ -104,703 +110,108 @@
 
 #endif   // Alpha
 
-/*** Itanium (IA64) **************************************************/
+/*** Itanium (IA64) *******************************************************/
 
 #if defined (__ia64__) || defined (__ia64)
 #endif   // IA64
 
-/*** MIPS ************************************************************/
+/*** MIPS *****************************************************************/
 
 #if defined (__mips__) || defined (__mips)
 #endif   // MIPS
 
-/*** PA-RISC *********************************************************/
+/*** PA-RISC **************************************************************/
 
 #if defined (__parisc__) || defined (__parsisc)
 #endif   // PA RISC
 
-/*** PowerPC *********************************************************/
+/*** PowerPC **************************************************************/
 
 #if defined (__powerpc__) || defined (__powerpc)
 #endif   // PowerPC
 
-/*** SPARC **********************************************************/
+/*** SPARC ****************************************************************/
 
 #if defined (__sparc__) || defined (__sparc)
 #endif   // SPARC
 
-/*********************************************************************
- * COMPILER-SPECIFIC OVERRIDES                                       *
- *********************************************************************/
+/**************************************************************************
+ * COMPILER-SPECIFIC OVERRIDES                                            * 
+ **************************************************************************/
 
-/*** Apogee C++ ******************************************************/
+/*** Apogee C++ ***********************************************************/
 
 // Apogee C++ uses an EDG front end but doesn't define __EDG__
 
 #ifdef __APOGEE__
 #endif   // __APOGEE__
 
-/*** IBM VAC++ *******************************************************/
+/*** IBM VAC++ ************************************************************/
 
 #if defined (__IBMCPP__)
-
-   // _THREAD_SAFE defined by the xlC_r compiler driver
-
-#  ifndef _RWSTD_NO_PURE_C_HEADERS
-#    define _RWSTD_NO_PURE_C_HEADERS
-#  endif   // _RWSTD_NO_PURE_C_HEADERS
-
-#  if defined _RWSTD_NO_NEW_HEADER
-#    undef _RWSTD_NO_NEW_HEADER
-#  endif   // _RWSTD_NO_NEW_HEADER
-
-// our <cxxx> libc headers put the libc functions in namespace std
-#  ifdef _RWSTD_NO_LIBC_IN_STD
-#    undef _RWSTD_NO_LIBC_IN_STD
-#  endif   // _RWSTD_NO_LIBC_IN_STD
-
-#  ifndef _RWSTD_NO_DEPRECATED_C_HEADERS
-#    define _RWSTD_NO_DEPRECATED_C_HEADERS
-#  endif
-
-#  ifdef _RWSTD_USE_CONFIG
-#    undef _RWSTD_ANSI_C_ASSERT_H
-#    undef _RWSTD_ANSI_C_CTYPE_H
-#    undef _RWSTD_ANSI_C_ERRNO_H
-#    undef _RWSTD_ANSI_C_FLOAT_H
-#    undef _RWSTD_ANSI_C_ISO646_H
-#    undef _RWSTD_ANSI_C_LIMITS_H
-#    undef _RWSTD_ANSI_C_LOCALE_H
-#    undef _RWSTD_ANSI_C_MATH_H
-#    undef _RWSTD_ANSI_C_SETJMP_H
-#    undef _RWSTD_ANSI_C_SIGNAL_H
-#    undef _RWSTD_ANSI_C_STDARG_H
-#    undef _RWSTD_ANSI_C_STDDEF_H
-#    undef _RWSTD_ANSI_C_STDIO_H
-#    undef _RWSTD_ANSI_C_STDLIB_H
-#    undef _RWSTD_ANSI_C_STRING_H
-#    undef _RWSTD_ANSI_C_TIME_H
-#    undef _RWSTD_ANSI_C_WCHAR_H
-#    undef _RWSTD_ANSI_C_WCTYPE_H
-#  endif   // _RWSTD_USE_CONFIG
-
-   // static data members of cass templates aren't properly collapsed
-   // (compiler emits one copy per each translation unit that contains
-   // the definition of the template member)
-#  define _RWSTD_NO_COLLAPSE_TEMPLATE_STATICS
-   // the above prevents correct static mutex initialization
-   // (but the alternative approach is also unreliable)
-#  define _RWSTD_NO_STATIC_MUTEX_INIT
-
-   // VisualAge for C++ version >= 5.0.2.0, when the tempinc model
-   // (which makes use of implicit inclusion) is in effect (i.e.,
-   // when neither of -qtemplateregistry or -qnotempinc is specified
-   // on the command line) the compiler defines the macro __TEMPINC__
-#  if __IBMCPP__ < 502 || !defined (__TEMPINC__)
-     // override the autodetected setting of the macro
-#    undef  _RWSTD_NO_IMPLICIT_INCLUSION
-#    define _RWSTD_NO_IMPLICIT_INCLUSION
-#  endif
-
-#  if __IBMCPP__ >=  502 && defined (__TEMPINC__)
-     // override the autodetected setting of the macro
-#    undef _RWSTD_NO_IMPLICIT_INCLUSION
-#  endif   // VAC++ >= 5.0.2 && __TEMPINC__
-
-#  if !defined (_RWSTD_WCTRANS_T)
-#    undef _RWSTD_NO_WCTRANS_T
-#    define _RWSTD_WCTRANS_T  win_t(*wctrans_t)(wint_t)
-#  endif // _RWSTD_WCTRANS_T
-
-#  ifdef _RWSTD_OS_AIX
-     // operator new and delete is not reliably replaceable across
-     // shared library boundaries, which includes the shared library
-     // version of the language support library
-#    define _RWSTD_NO_REPLACEABLE_NEW_DELETE
-
-#    if (8 == _RWSTD_LONG_SIZE)
-       // avoid using strtof() in LP64 due to bug #379 (PMR 02164)
-#      ifndef _RWSTD_NO_STRTOF
-#        define _RWSTD_NO_STRTOF
-#      endif   // _RWSTD_NO_STRTOF
-#      ifndef _RWSTD_NO_STRTOF_IN_LIBC
-#        define _RWSTD_NO_STRTOF_IN_LIBC
-#      endif   // _RWSTD_NO_STRTOF_IN_LIBC
-#    endif   // REENTRANT && LP64
-#  endif   // AIX
-
-#  ifndef __TEMPINC__
-     // avoid VAC++ 7.0 diagnostic 1540-2910 (I) The template uses
-     // a file organization for tempinc, but tempinc is not being
-     // used. See bug #450
-
-     // prevent warnings about VAC++ being unable to find
-     // source for (intentionally undefined) member functions
-     // of class templates
-#    define _RWSTD_NO_UNDEFINED_TEMPLATES
-#  endif   // __TEMPINC__
+#  include "_config-xlc.h"
 #endif   // __IBMCPP___
 
-/*** Compaq C++ ******************************************************/
+/*** Compaq C++ ***********************************************************/
 
 // Compaq C++ uses an EDG front end and #defines __EDG__
 
 #ifdef __DECCXX
-
-   // _REENTRANT is defined by -pthread option
-
-#  if defined (_RWSTD_REENTRANT)
-#    if defined (_PTHREAD_USE_D4) && !defined (_RWSTD_DCE_THREADS)
-#      define _RWSTD_DCE_THREADS
-#    endif   // _PTHREAD_USE_D4 && !_RWSTD_DCE_THREADS
-
-#    if !defined (_RWSTD_DCE_THREADS) && !defined (_RWSTD_POSIX_THREADS)
-#      define _RWSTD_POSIX_THREADS
-#    endif   // !(_RWSTD_DCE_THREADS) && !(_RWSTD_POSIX_THREADS)
-#  endif   // (_RWSTD_REENTRANT)
-
-#  if __DECCXX_VER < 60390008
-     // version of Compaq C++ prior to C++ do not implement
-     // C++ C library headers (the <cxxx> kind)
-#    define _RWSTD_NO_NEW_HEADER
-#  endif   // __DECCXX_VER < 60390008
-
+#  include "_config-deccxx.h"
 #endif // __DECCXX
 
-/*** EDG eccp (this is the vanilla EDG front end) **********************/
+/*** EDG eccp (this is the vanilla EDG front end) *************************/
 
-// NOTE: the __EDG__ macro is #defined by most edg-based compilers
+// NOTE: the __EDG__ macro is #defined by most EDG-based compilers
 
 #if    defined (__EDG__)                \
     && !defined (__DECCXX)              \
     && !defined (__INTEL_COMPILER)      \
     && !defined (_SGI_COMPILER_VERSION)
-
-   // identify the EDG eccp standalone front-end in order to help avoid
-   // confusing it with compilers such as Compaq C++, Intel C++, or SGI
-   // MIPSpro, that use the front-end and (sometimes) #define __EDG__
-#  define _RWSTD_EDG_ECCP
-
-#  if defined (_RWSTD_REENTRANT) && !defined (_RWSTD_POSIX_THREADS)
-#    define _RWSTD_POSIX_THREADS
-#  endif // (_RWSTD_REENTRANT) && !(_RWSTD_POSIX_THREADS)
-
-#  undef _RWSTD_NO_NEW_HEADER
-#  undef _RWSTD_NO_LIBC_IN_STD
-
-#  ifndef _RWSTD_NO_EXPORT
-#    undef _RWSTD_NO_IMPLICIT_INCLUSION
-#  endif
-
-   // the vanilla front-end doesn't actually #include the header,
-   // but it treats it specially instead, which throws off the test
-#  undef _RWSTD_ANSI_C_STDARG_H 
-#  define _RWSTD_ANSI_C_STDARG_H <stdarg.h>
-
-#  ifdef _RWSTD_REENTRANT
-     // std::uncaught_exception() not thread-safe in the front-end demo
-#    define _RWSTD_NO_UNCAUGHT_EXCEPTION
-#  endif   // _RWSTD_REENTRANT
-
-#  ifndef _RWSTD_NO_MBSTATE_T
-#    define _RWSTD_NO_MBSTATE_T
-#  endif   // _RWSTD_NO_MBSTATE_T
-
+#  include "_config-eccp.h"
 #endif   // __EDG__
 
-/*** GCC *************************************************************/
+/*** GCC ******************************************************************/
 
 #ifdef __GNUG__
-
-   // _REENTRANT is defined by the -pthread compiler option
-
-#  ifndef _RWSTD_NO_IMPLICIT_INCLUSION
-#    define _RWSTD_NO_IMPLICIT_INCLUSION
-#  endif
-
-#  ifndef _RWSTD_NO_EXPORT
-     // not implemented
-#    define _RWSTD_NO_EXPORT
-#  endif
-
-#  if !defined (_RWSTD_USE_PURE_C_HEADERS)
-     // disabled except when requested
-#    define _RWSTD_NO_PURE_C_HEADERS
-#  endif   // !_RWSTD_USE_PURE_C_HEADERS
-
-#  ifdef _RWSTD_NO_PURE_C_HEADERS
-     // deprecated C headers (the <xxx.h> kind) are fully implemented
-     // in terms of the pure C++ C library headers (the <cxxx> kind)
-#    define _RWSTD_NO_DEPRECATED_C_HEADERS
-#  endif   // _RWSTD_NO_PURE_C_HEADERS
-
-#  if !defined (_RWSTD_STRICT_ANSI) && __GNUG__ <= 2 && __GNUC_MINOR__ < 97
-     // prevent gcc 2.9x ICE
-#    define _RWSTD_NO_PLACEMENT_DELETE
-#  endif   // !_RWSTD_STRICT_ANSI
-
-#  if __GNUG__ < 3
-     // gcc 2.x doesn't understand the extern template syntax
-     // but only issues a warning: ANSI C++ forbids the use
-     // of `extern' on explicit instantiations
-#    ifndef _RWSTD_NO_EXTERN_TEMPLATE
-#      define _RWSTD_NO_EXTERN_TEMPLATE
-#    endif   // _RWSTD_NO_EXTERN_TEMPLATE
-#  endif   // gcc 2.x
-
-#  if __GNUG__ <= 2 && __GNUC_MINOR__ < 97 && defined (_RWSTD_NO_HONOR_STD)
-     // standard iostream objects are declared as objects of their respective
-     // types by defined as POD's to prevent their destruction during program
-     // lifetime (done to work around a g++ 2.95.2 bug that prevents g++
-     // from deducing the type of references to the objects in template code)
-#    define _RWSTD_NO_IOSTREAM_OBJECT_REFS
-#  endif   //__GNUG__ <= 2 && __GNUC_MINOR__ < 97 && _RWSTD_NO_HONOR_STD
-
-#  define _RWSTD_GNUC_ATTRIBUTE(attr)   __attribute__ (attr)
-
-#  ifdef _RWSTD_OS_LINUX
-
-#    ifdef _RWSTD_NO_NEW_HEADER
-#      undef _RWSTD_NO_NEW_HEADER
-#    endif   // _RWSTD_NO_NEW_HEADER
-
-     // our <cxxx> libc headers put the libc functions in namespace std
-#    ifdef _RWSTD_NO_LIBC_IN_STD
-#      undef _RWSTD_NO_LIBC_IN_STD
-#    endif   // _RWSTD_NO_LIBC_IN_STD
-
-#    ifdef _RWSTD_ANSI_C_LIMITS_H
-       // prevent system header warnings
-#      undef _RWSTD_ANSI_C_LIMITS_H
-#      define _RWSTD_ANSI_C_LIMITS_H <../include/limits.h>
-#    endif  // _RWSTD_ANSI_C_LIMITS_H
-#  endif   // _RWSTD_OS_LINUX
-
-#  ifdef _RWSTD_OS_AIX
-     // functions called from member functions of explicitly instantiated
-     // class templates aren't "implicitly" instantiated (compiler bug)
-#    define _RWSTD_NO_IMPLICIT_INSTANTIATION
-#  endif
-
-   // force using /usr/include/math.h 
-   // prevent recursion caused by pulling in gcc's own "fixed" header
-#  undef _RWSTD_ANSI_C_MATH_H
-
-   // use new C++ libc headers
-#  undef _RWSTD_NO_NEW_HEADER
-
-#  ifdef _RWSTD_USE_CONFIG
-#    undef _RWSTD_NO_LIBC_IN_STD
-#  endif
-
-#  undef _RWSTD_NO_DEPRECATED_LIBC_IN_STD
-
-#  ifdef __CYGWIN__
-     // use our own C++ libc headers
-#    undef _RWSTD_NO_NEW_HEADER
-     // libc is wrapped in namespaces std
-#    undef _RWSTD_NO_LIBC_IN_STD
-     // deprecated C++ libc headers don't introduce names into namespace std
-#    ifndef _RWSTD_NO_DEPRECATED_LIBC_IN_STD
-#      define _RWSTD_NO_DEPRECATED_LIBC_IN_STD
-#    endif
-#  endif   // __CYGWIN__
-
-#  ifdef _RWSTD_OS_OSF1
-      // sizeof (long double) == sizeof (double), 'L' causes SIGSEGV
-#     define _RWSTD_LDBL_PRINTF_PREFIX   ""
-#     define _RWSTD_LDBL_SCANF_PREFIX    "l"
-
-#  endif   // _RWSTD_OS_OSF1
-
-#  ifdef _RWSTD_OS_SUNOS
-
-     // _SOLARIS_THREADS #defined when the -threads option is used on SunOS
-#    if defined (_SOLARIS_THREADS) && !defined (_RWSTD_SOLARIS_THREADS)
-#      define _RWSTD_SOLARIS_THREADS
-#    endif // _SOLARIS_THREADS && !_RWSTD_SOLARIS_THREADS
-
-     // _PTHREADS #defined when the -pthreads option is used on SunOS
-#    if defined (_PTHREADS) && !defined (_RWSTD_POSIX_THREADS)
-#      define _RWSTD_POSIX_THREADS
-#    endif // _PTHREADS && !_RWSTD_POSIX_THREADS
-
-#    if __GNUG__ == 3 && __GNUC_MINOR__ < 1
-       // Avoid gcc 3.0.1 header configuration confusion with wchar
-#      ifndef _RWSTD_NO_NEW_HEADER
-#        define _RWSTD_NO_NEW_HEADER
-#      endif
-#      ifndef _RWSTD_NO_LIBC_IN_STD
-#        define _RWSTD_NO_LIBC_IN_STD
-#      endif
-#    endif  // __GNUG__ == 3 && __GNUC_MINOR__ < 1
-#  endif  // _RWSTD_OS_SUNOS
-
+#  include "_config-gcc.h"
 #else   // if !defined (__GNUG__)
 #  define _RWSTD_GNUC_ATTRIBUTE(ignore)
 #endif   // __GNUG__
 
-/*** HP aCC **********************************************************/
+/*** HP aCC ***************************************************************/
 
 #ifdef __HP_aCC
-
-   // _REENTRANT is defined by the -mt compiler option
-
-   // accommodate aCC 1.xx (HP-UX 10.xx), aCC 3.xx (HP-UX 11/PA-RISC)
-   // and aCC 5.xx (HP-UX 11/IA64)
-#  define _RWSTD_HP_aCC_MAJOR   (__HP_aCC / 10000)
-#  define _RWSTD_HP_aCC_MINOR   (__HP_aCC % 10000)
-
-   // new C++ libc headers supported
-#  undef _RWSTD_NO_NEW_HEADER
-
-#  ifndef _RWSTD_NO_PURE_C_HEADERS
-     // disable for now
-#    define _RWSTD_NO_PURE_C_HEADERS
-#  endif   // _RWSTD_NO_PURE_C_HEADERS
-
-   // deprecated C++ libc headers don't introduce names into namespace std
-#  ifndef _RWSTD_NO_DEPRECATED_LIBC_IN_STD
-#    define _RWSTD_NO_DEPRECATED_LIBC_IN_STD
-#  endif
-
-   // deprecated C++ libc headers aren't used
-#  define _RWSTD_NO_DEPRECATED_C_HEADERS
-
-   // prevents Error (future) 553: Expected type arguments to follow
-   //                              class template name.
-#  define _RWSTD_REDUNDANT_TMPL_PARAMS
-
-#  if (_RWSTD_HP_aCC_MINOR < 3300) && !defined (_RWSTD_NO_MBSTATE_T)
-   // mbstate_t definition is guarded in _mbstate_t.h and is available
-   // only if _INCLUDE__STDC_A1_SOURCE is defined (i.e., with -AA)
-#    define _RWSTD_NO_MBSTATE_T
-#  endif
-
-#  if defined (_HP_NAMESPACE_STD) || defined (_NAMESPACE_STD)
-#    undef _RWSTD_NO_RUNTIME_IN_STD
-#    undef _RWSTD_NO_STD_BAD_TYPEID
-#    undef _RWSTD_NO_STD_TYPE_INFO
-#  endif
-
-#  ifndef _RWSTD_NO_BAD_ALLOC_WHAT
-     // avoid the following ld errors:
-     // Unsatisfied symbol "Class tables [Vtable] dependent on
-     // key function: "bad_alloc::what() const"" in file [*.o]
-     // Unsatisfied symbol "typeid<bad_alloc>" in file [*.o]
-#    define _RWSTD_NO_BAD_ALLOC_WHAT
-#  endif   // _RWSTD_NO_BAD_ALLOC_WHAT
-
-#  if __HP_aCC < 60000
-#    ifndef _RWSTD_NO_EXTERN_TEMPLATE
-#      ifndef _RWSTD_NO_STRING_NPOS_TYPE
-         // define the type of basic_string::npos to be size_t
-         // instead of basic_string::size_type to work around
-         // an HP aCC extern template bug #333 (only the HP
-         // front end has this bug; HP aCC 6.0 which uses the
-         // EDG front end works fine
-#        define _RWSTD_NO_STRING_NPOS_TYPE
-#      endif   // _RWSTD_NO_STRING_NPOS_TYPE
-#    endif   // _RWSTD_NO_EXTERN_TEMPLATE
-#  endif   // aCC < 6.0
+#  include "_config-acc.h"
 #endif   // __HP_aCC
 
-/*** Intel C++ *******************************************************/
+/*** Intel C++ ************************************************************/
 
 #if defined (__INTEL_COMPILER)
-
-#  if !defined (_WIN32) && !defined (_WIN64)
-
-     // enable the <cxxx> form of libc headers
-     // we can only use the rw version in include/ansi
-#    ifndef _RWSTD_NO_PURE_C_HEADERS
-#      define _RWSTD_NO_PURE_C_HEADERS
-#    endif   // _RWSTD_NO_PURE_C_HEADERS
-
-#    ifndef _RWSTD_NO_DEPRECATED_C_HEADERS
-#      define _RWSTD_NO_DEPRECATED_C_HEADERS
-#    endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
-
-#    undef _RWSTD_NO_NEW_HEADER
-#    undef _RWSTD_NO_LIBC_IN_STD
-
-#  else   // if defined (_WIN{32,64}
-#    if defined (_RWSHARED)
-#      // only when using shared libstd and Intel C++/MSVC
-       // working around an Intel C++ 7.1 bug (PR #29178)
-#      define _RWSTD_NO_OUTLINED_USE_FACET_SPECIALIZATIONS
-#    endif   // _MSC_VER > 1200 && _RWSHARED
-#  endif
-
+#  include "_config-icc.h"
 #endif   // __INTEL_COMPILER
 
-/*** SGI MIPSpro *****************************************************/
+/*** SGI MIPSpro **********************************************************/
 
 // SGI MIPSpro uses an EDG front end; it may or may not #define __EDG__
 // (starting with MIPSpro 7.4 the preprocessor does #define the macro
 // along with _SGI_COMPILER_VERSION)
 
 #ifdef _RWSTD_OS_IRIX64
-
    // if _SGI_COMPILER_VERSION is not #defined, assume MIPSpro
    // unless __GNUG__ is #defined
 #  if defined (_SGI_COMPILER_VERSION) || !defined (__GNUG__)
-#    define _RWSTD_SGI_MIPSPRO
-
-#    ifndef _RWSTD_NO_PURE_C_HEADERS
-#      define _RWSTD_NO_PURE_C_HEADERS
-#    endif   // _RWSTD_NO_PURE_C_HEADERS
-
-#    if defined _RWSTD_NO_NEW_HEADER
-#      undef _RWSTD_NO_NEW_HEADER
-#    endif   // _RWSTD_NO_NEW_HEADER
-
-     // our <cxxx> libc headers put the libc functions in namespace std
-#    ifdef _RWSTD_NO_LIBC_IN_STD
-#      undef _RWSTD_NO_LIBC_IN_STD
-#    endif   // _RWSTD_NO_LIBC_IN_STD
-
-#    ifndef _RWSTD_NO_DEPRECATED_C_HEADERS
-#      define _RWSTD_NO_DEPRECATED_C_HEADERS
-#    endif
-
-#    define _RWSTD_NO_PLACEMENT_DELETE
-#    //  The comptest sets compile instantiate when it shouldn't.
-#    //  override it here.
-#    if defined (_RWSTD_NO_IMPLICIT_INCLUSION)
-#      undef _RWSTD_NO_IMPLICIT_INCLUSION
-#    endif
+#    include "_config-mipspro.h"
 #  endif   // _SGI_COMPILER_VERSION || !__GNUG__
-
 #endif   // _RWSTD_OS_IRIX64
 
-/*** MSVC (and Intel C++/Win{32,64}) ********************************/
+/*** MSVC (and Intel C++/Win{32,64}) **************************************/
 
 #ifdef _MSC_VER
-
-#  if _MSC_VER <= 1310   // MSVC <= 7.1
-#  endif   // MSVC <= 7.1
-
-#  if _MSC_VER <= 1300   // MSVC <= 7.0
-#    define _RWSTD_NO_TYPENAME
-#    define _RWSTD_EXCEPTION_HANDLER_IN_STD
-#    define _RWSTD_NO_STATIC_DEF3
-#    define _RWSTD_NO_PTR_VALUE_TEMPLATE_OVERLOAD
-#    define _RWSTD_NO_PRAGMA_INSTANTIATE
-     // disable explicit instantiation extensions if building
-     // optimized client code (all templates still explicitly
-     // instantiated in the library); 
-     // *** Not currently done for MSVC 7, since an implicit
-     //     instantiation bug causes multiply defined symbols
-     //     in downstream libraries
-#    ifndef _RWSTD_NO_STRING_NPOS_TYPE
-       // define basic_string::npos to be of type size_t
-       // instead of basic_string::size_type to work around
-       // an MSVC 7.0 bug (PR #26549)
-#      define _RWSTD_NO_STRING_NPOS_TYPE
-#    endif   // _RWSTD_NO_STRING_NPOS_TYPE
-#  endif   // MSVC <= 7.0
-
-#  if _MSC_VER <= 1200   // MSVC <= 6.0
-#  endif   // MSVC <= 6.0
-
-   // enable the <cxxx> form of libc headers
-   // we can only use the rw version in include/ansi
-#  ifndef _RWSTD_NO_PURE_C_HEADERS
-#    define _RWSTD_NO_PURE_C_HEADERS
-#  endif   // _RWSTD_NO_PURE_C_HEADERS
-
-#  if defined _RWSTD_NO_NEW_HEADER
-#    undef _RWSTD_NO_NEW_HEADER
-#  endif   // _RWSTD_NO_NEW_HEADER
-
-   // our <cxxx> libc headers put the libc functions in namespace std
-#  ifdef _RWSTD_NO_LIBC_IN_STD
-#    undef _RWSTD_NO_LIBC_IN_STD
-#  endif   // _RWSTD_NO_LIBC_IN_STD
-
-#  ifndef _RWSTD_NO_DEPRECATED_C_HEADERS
-#    define _RWSTD_NO_DEPRECATED_C_HEADERS
-#  endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
-
-   // static data members of cass templates aren't properly collapsed
-   // (compiler emits one copy per each translation unit that contains
-   // the definition of the template member, and the linker fails to
-   // multiple copies that reside in shared libraries)
-#  ifndef _RWSTD_NO_COLLAPSE_TEMPLATE_STATICS
-#    define _RWSTD_NO_COLLAPSE_TEMPLATE_STATICS
-#  endif   // _RWSTD_NO_COLLAPSE_TEMPLATE_STATICS
-
-   // operator new and delete is not reliably replaceable across
-   // shared library boundaries, which includes the shared library
-   // version of the language support library
-#  define _RWSTD_NO_REPLACEABLE_NEW_DELETE
-
-   // names of (most) extern "C" libc symbols begin with an underscore
-#  define _RWSTD_LIBC_SYM(name)   _ ## name
-
-#  ifdef _DLL
-#    define _RWSTD_DLLIMPORT   __declspec (dllimport)
-#  endif   // _DLL
-
-#  ifndef _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
-     // both MSVC 7.x and Intel C++/Windows allow "inline" initializers
-     // for static const integral data members but out-of-line definitions
-     // cause multiply defined symbol errors (see PR #26562 and #30260)
-     // disable their definitions in source files (the members are still
-     // declared)
-#    define _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
-#  endif   // _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
-
-   // enable iostream and locale support for long long integers
-#  define _RWSTD_LONG_LONG __int64
-
-   // not declared/defined in libc
-#  if !defined (_RWSTD_NO_STRTOLL_IN_LIBC)
-#    define _RWSTD_NO_STRTOLL_IN_LIBC
-#  endif   // _RWSTD_NO_STRTOLL_IN_LIBC
-
-#  if !defined (_RWSTD_NO_STRTOULL_IN_LIBC)
-#    define _RWSTD_NO_STRTOULL_IN_LIBC
-#  endif   // _RWSTD_NO_STRTOULL_IN_LIBC
-
-#  if defined (_WIN64)
-     // FIXME: handle by forward declaring fuctions in <rw/_mutex.h>
-#    define _RWSTD_NO_FWD_DECLARATIONS
-#  endif   // _WIN64
-
-   // disable "Same type qualifier used more than once"
-#  pragma warning (disable: 4114)
-
-   // disable "return type for operator->' is not a UDT"
-#  pragma warning (disable: 4284)
-
-   // disable "decorated name length exceeded"
-#  pragma warning (disable: 4503)
-
-   // disable "identifier was truncated to 255 characters"
-#  pragma warning (disable: 4786)
-
-#  if defined (WIN32) && !defined(_WIN32)
-#    define _WIN32
-#  endif
-
-#  ifdef _MT
-#    ifndef _RWSTD_REENTRANT
-#      define _RWSTD_REENTRANT 1
-#    endif   // _RWSTD_REENTRANT
-
-#    ifndef _RWSTD_NO_TLS
-       // thread-local stoprage declaration specifier
-#      ifndef _RWSTD_THREAD
-#        define _RWSTD_THREAD   __declspec (thread)
-#      endif   // _RWSTD_THREAD
-#    endif   // _RWSTD_NO_TLS
-#  else   // if !defined (_MT)
-#    ifndef _RWSTD_THREAD
-#      define _RWSTD_THREAD   /* empty */
-#    endif   // _RWSTD_THREAD
-#  endif   //_MT
-
-   // clean C++ C headers (the <cxxx> kind) not provided
-#  ifndef _RWSTD_NO_PURE_C_HEADERS
-#    define _RWSTD_NO_PURE_C_HEADERS
-#  endif   // _RWSTD_NO_PURE_C_HEADERS
-
-#  ifndef _RWSTD_NO_EXPORT
-     // not implemented
-#    define _RWSTD_NO_EXPORT
-#  endif   // _RWSTD_NO_EXPORT
-
-#  define _RWSTD_MUNMAP_ARG1_T void*
-#  define _RWSTD_NO_NL_LANGINFO
-
-#  if defined (_CPPRTTI)
-     // override in case library was configured with -GR-
-     // (i.e., with RTTI disabled)
-#    undef _RWSTD_NO_DYNAMIC_CAST
-#  elif !defined (_RWSTD_NO_DYNAMIC_CAST)
-     // override in case library was configured with -GR
-     // (i.e., with RTTI enabled)
-#    define _RWSTD_NO_DYNAMIC_CAST
-#  endif   // _CPPRTTI
-
-#  ifndef _NATIVE_WCHAR_T_DEFINED
-   // define wchar_t if it is not a keyword recognized by the compiler
-   // (use the /Zc:wchar_t compiler option to enable wchar_t as a keyword)
-typedef unsigned short wchar_t;
-
-#  endif   // _NATIVE_WCHAR_T_DEFINED
-
-   // functions are defined in MSVC's msvcprt.lib and msvcprtd.lib
-   // which include the compiler's implementation of the C++ Standard
-   // library and with which we (obviously) cannot use
-#  ifndef _RWSTD_NO_WCTOB
-#    define _RWSTD_NO_WCTOB
-#  endif   // _RWSTD_NO_WCTOB
-
-#  ifndef _RWSTD_NO_WCTOB_IN_LIBC
-#    define _RWSTD_NO_WCTOB_IN_LIBC
-#  endif   // _RWSTD_NO_WCTOB_IN_LIBC
-
-#  ifndef _RWSTD_NO_MBRTOWC
-#    define _RWSTD_NO_MBRTOWC
-#  endif   // _RWSTD_NO_MBRTOWC
-
-#  ifndef _RWSTD_NO_MBRTOWC_IN_LIBC
-#    define _RWSTD_NO_MBRTOWC_IN_LIBC
-#  endif   // _RWSTD_NO_MBRTOWC_IN_LIBC
-
-#  ifndef _RWSTD_NO_WCRTOMB
-#    define _RWSTD_NO_WCRTOMB
-#  endif   // _RWSTD_NO_WCRTOMB
-
-#  ifndef _RWSTD_NO_WCRTOMB_IN_LIBC
-#    define _RWSTD_NO_WCRTOMB_IN_LIBC
-#  endif   // _RWSTD_NO_WCRTOMB_IN_LIBC
-
-#  ifndef _RWSTD_NO_MBSTOWCS
-#    define _RWSTD_NO_MBSTOWCS
-#  endif   // _RWSTD_NO_MBSTOWCS
-
-#  ifndef _RWSTD_NO_MBSTOWCS_IN_LIBC
-#    define _RWSTD_NO_MBSTOWCS_IN_LIBC
-#  endif   // _RWSTD_NO_MBSTOWCS_IN_LIBC
-
-#  ifndef _RWSTD_NO_MBRLEN
-#    define _RWSTD_NO_MBRLEN
-#  endif   // _RWSTD_NO_MBRLEN
-
-#  ifndef _RWSTD_NO_MBRLEN_IN_LIBC
-#    define _RWSTD_NO_MBRLEN_IN_LIBC
-#  endif   // _RWSTD_NO_MBRLEN_IN_LIBC
-
-#  ifndef _RWSTD_NO_WCSRTOMBS
-#    define _RWSTD_NO_WCSRTOMBS
-#  endif   // _RWSTD_NO_WCSRTOMBS
-
-#  ifndef _RWSTD_NO_WCSRTOMBS_IN_LIBC
-#    define _RWSTD_NO_WCSRTOMBS_IN_LIBC
-#  endif   // _RWSTD_NO_WCSRTOMBS_IN_LIBC
-
-#  ifndef _RWSTD_NO_BTOWC
-#    define _RWSTD_NO_BTOWC
-#  endif   // _RWSTD_NO_BTOWC
-
-#  ifndef _RWSTD_NO_BTOWC_IN_LIBC
-#    define _RWSTD_NO_BTOWC_IN_LIBC
-#  endif   // _RWSTD_NO_BTOWC_IN_LIBC
-
-#  ifndef _RWSTD_NO_MBSRTOWCS
-#    define _RWSTD_NO_MBSRTOWCS
-#  endif   // _RWSTD_NO_MBSRTOWCS
-
-#  ifndef _RWSTD_NO_MBSRTOWCS_IN_LIBC
-#    define _RWSTD_NO_MBSRTOWCS_IN_LIBC
-#  endif   // _RWSTD_NO_MBSRTOWCS_IN_LIBC
+#  include "_config-msvc.h"
 #endif   // _MSC_VER
 
-/*** Siemens CDS++ ***************************************************/
+/*** Siemens CDS++ ********************************************************/
 
 #ifdef SNI
 #  define _RWSTD_NO_PTR_VALUE_TEMPLATE_OVERLOAD
@@ -816,41 +227,23 @@ typedef unsigned short wchar_t;
 #  endif
 #endif   // SNI
 
-/*** SunPro **********************************************************/
+/*** SunPro aka Sun C++ ***************************************************/
 
 #ifdef __SUNPRO_CC
-
-  // _REENTRANT defined by the -mt compiler option
-
-#  if __SUNPRO_CC >= 0x530 && __SUNPRO_CC <= 0x540
-     // test fails due to a SunPro 5.3 bug (PR RW #26641/Sun #4526136)
-#    undef _RWSTD_NO_MEMBER_TEMPLATES
-#  endif   // SunPro 5.3, 5.4
-
-#  if __SUNPRO_CC <= 0x540
-     // works around a partial specialization bug (PR #28119)
-#    ifndef _RWSTD_NO_EXT_CONST_ALLOCATOR
-#      define _RWSTD_NO_EXT_CONST_ALLOCATOR
-#    endif
-#  endif   // SunPro < 5.4
-
-#  ifndef _RWSTD_NO_EXPORT
-#    define _RWSTD_NO_EXPORT
-#  endif   // _RWSTD_NO_EXPORT
-
-   // prevent warnings about SunPro being unable to find
-   // source for (intentionally undefined) member functions
-   // of class templates
-#  define _RWSTD_NO_UNDEFINED_TEMPLATES
+#  include "_config-sunpro.h"
 #endif   // __SUNPRO_CC
 
-/*** OS2 **************************************************************/
+/**************************************************************************
+ * OPERATING SYSTEM-SPECIFIC OVERRIDES                                    * 
+ **************************************************************************/
+
+/*** OS2 ******************************************************************/
 
 #ifdef __OS2__
 #  define _RWSTD_NO_STATIC_MUTEX_INIT
 #endif   // __OS2__
 
-/*** Win{32,64} *******************************************************/
+/*** Win{32,64} ***********************************************************/
 
 #if defined (_WIN32) || defined (_WIN64)
 #  define _RWSTD_NO_STATIC_MUTEX_INIT
@@ -861,7 +254,7 @@ typedef unsigned short wchar_t;
 #  define _RWSTD_PATH_SEP      '/'
 #endif   // _RWSTD_PATH_SEP
 
-/*** Non-10646 platforms **********************************************/
+/*** Non-10646 platforms **************************************************/
 
 #if !defined (_RWSTD_OS_LINUX) && !defined (_WIN32)
    // Linux glibc and Windows use ISO 10646 (Unicode)
@@ -871,7 +264,7 @@ typedef unsigned short wchar_t;
 #  endif   // _RWSTD_NO_ISO_10646_WCHAR_T
 #endif   // !Linux && !Windoze
 
-/********************** Threads ***************************************/
+/********************** Threads *******************************************/
 
 #ifdef _RWSTD_REENTRANT
 #  if    !defined (_RWSTD_DCE_THREADS)   \
@@ -891,7 +284,7 @@ typedef unsigned short wchar_t;
 #  define _RWSTD_NO_STATIC_MUTEX_INIT
 #endif   // _RWSTD_DCE_THREADS
 
-/********************** Miscellaneous *********************************/
+/********************** Miscellaneous *************************************/
 
 // g++ cannot inline functions that take a variable number of arguments
 // or functions that contain static (local) variables
@@ -913,7 +306,7 @@ typedef unsigned short wchar_t;
 #  endif
 #endif   // NO_COLLAPSE_TEMPLATE_STATICS || NO_STATIC_TEMPLATE_MEMBER_INIT
 
-/********************** Environment *********************************/
+/********************** Environment ***************************************/
 
 // define wherever atomic instructions are provided
 // affects the size of string reference (i.e., is binary incompatible)
@@ -972,7 +365,7 @@ typedef unsigned short wchar_t;
 #  define _RWSTD_LIBC_SYM(name)   name
 #endif   // _RWSTD_LIBC_SYM
 
-/********************** Library Option Dependencies *************************/
+/********************** Library Option Dependencies ***********************/
 
 /*
  * The following macro sets the default size of file stream internal buffers
@@ -1008,6 +401,8 @@ typedef unsigned short wchar_t;
    // std::setbase manipulator accepts only required bases (i.e.,
    // 0, 8, 10, 16, and 2 unless _RWSTD_NO_EXT_BIN_IO is also #defined)
 #  define _RWSTD_NO_EXT_SETBASE
+   // disable the str(const char*) overload in stringbuf and stringstreams
+#  define _RWSTD_NO_EXT_STRINGBUF_STR
    // no support for member overloads on all fundamental types
 #  define _RWSTD_NO_EXT_NUM_GET
 #  define _RWSTD_NO_EXT_NUM_PUT
@@ -1040,6 +435,10 @@ typedef unsigned short wchar_t;
    // utilizes the entire range of size_t and will not generate the same
    // sequence of values between ILP32 and LP64 (or LLP64)
 #  define _RWSTD_NO_EXT_PORTABLE_RANDOM_SEQUENCE
+
+   // disable the implementation of LWG issue 559 (numeric_limits
+   // limits specialized on cv-qualified scalar types)
+#  define _RWSTD_NO_EXT_CV_QUALIFIED_LIMITS
 
 // commented out macros not implemented yet
 // #  define _RWSTD_NO_EXT_MONEYPUNCT_PRIMARY
