@@ -761,7 +761,8 @@ sync ()
                 __base = __from_next;
             }
 
-            _C_cur_pos = _C_beg_pos + __ext_chars;
+            _C_cur_pos  = _C_beg_pos;
+            _C_cur_pos += __ext_chars;
             _C_cur_pos.state (__state);
         }
 
