@@ -117,7 +117,7 @@ wcsrtombs (char*, const wchar_t**,
 #  undef _RWSTD_NO_WCRTOMB
 
 extern "C" _RWSTD_SIZE_T
-wcrtomb (char*, wchar_t, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*) _LIBC_THROWS();
+wcrtomb (char*, wchar_t, _RWSTD_MBSTATE_T*) _LIBC_THROWS();
 
 #endif   // _RWSTD_NO_WCRTOMB && !_RWSTD_NO_WCRTOMB_IN_LIBC
 
@@ -207,6 +207,28 @@ typedef _RWSTD_MBSTATE_T StateT;
 
 
 _RWSTD_NAMESPACE (__rw) {
+
+
+static const struct {
+    const char *mod;
+    int         flags;
+} __rw_ucsmods[] = {
+    { "UCS",         __rw_ucs },
+    { "UCS-4",       __rw_ucs4 },
+    { "UCS-2",       __rw_ucs2 },
+    { "UCS-4-BE",    __rw_ucs4_be },
+    { "UCS-4-LE",    __rw_ucs4_le },
+    { "UCS-2-BE",    __rw_ucs2_be },
+    { "UCS-2-LE",    __rw_ucs2_le },
+    { "UCS-4-BE-LE", __rw_ucs4_be_le },
+    { "UCS-4-LE-BE", __rw_ucs4_le_be },
+    { "UCS-BE",      __rw_ucs_be },
+    { "UCS-LE",      __rw_ucs_le }
+};
+
+static const _RWSTD_SIZE_T
+__rw_n_ucsmods = sizeof __rw_ucsmods / sizeof *__rw_ucsmods;
+
 
 static inline int
 __rw_mbsinit (const StateT *psrc)
@@ -1323,30 +1345,11 @@ codecvt_byname (const char *name, _RWSTD_SIZE_T ref)
         // search for one of the known modifiers
         if (mod_len > 2 && !memcmp (mod_nam, "UCS", 3)) {
 
-            static const struct {
-                const char *mod;
-                int         flags;
-            } mods[] = {
-                { "UCS",         __rw_ucs },
-                { "UCS-4",       __rw_ucs4 },
-                { "UCS-2",       __rw_ucs2 },
-                { "UCS-4-BE",    __rw_ucs4_be },
-                { "UCS-4-LE",    __rw_ucs4_le },
-                { "UCS-2-BE",    __rw_ucs2_be },
-                { "UCS-2-LE",    __rw_ucs2_le },
-                { "UCS-4-BE-LE", __rw_ucs4_be_le },
-                { "UCS-4-LE-BE", __rw_ucs4_le_be },
-                { "UCS-BE",      __rw_ucs_be },
-                { "UCS-LE",      __rw_ucs_le }
-            };
-
-            const _RWSTD_SIZE_T nmods = sizeof mods / sizeof *mods;
-
             int flags = 0;
 
-            for (_RWSTD_SIZE_T i = 0; i != nmods; ++i) {
-                if (!strcmp (mods [i].mod, mod_nam)) {
-                    flags = mods [i].flags;
+            for (_RWSTD_SIZE_T i = 0; i != _RW::__rw_n_ucsmods; ++i) {
+                if (!strcmp (_RW::__rw_ucsmods [i].mod, mod_nam)) {
+                    flags = _RW::__rw_ucsmods [i].flags;
                     break;
                 }
             }
