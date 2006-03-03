@@ -111,7 +111,7 @@ public:
 
 #if     defined (_RWSTD_NO_EXT_FILEBUF)            \
     && !defined (_RWSTD_NO_STATIC_IOSTREAM_INIT)   \
-    && (!defined (__GNUG__) || _GNUC_MINOR > 96)
+    && (!defined (__GNUG__) || 2 < __GNUG__ || 96 < __GNUC_MINOR__)
 
 private:
 
