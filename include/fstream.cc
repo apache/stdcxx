@@ -160,7 +160,7 @@ underflow ()
         // make sure putback area isn't too big - try to honor
         // _RWSTD_PBACK_SIZE if possible, otherwise shrink
 
-        const _RWSTD_STREAMSIZE __pbackavail = this->_C_putback_avail ();
+        const _RWSTD_SIZE_T __pbackavail = this->_C_putback_avail ();
         _C_pbacksize = __pbackavail < _RWSTD_PBACK_SIZE ?
             __pbackavail : _RWSTD_PBACK_SIZE;
 
@@ -506,12 +506,15 @@ pbackfail (int_type __c)
 template<class _CharT, class _Traits>
 basic_streambuf<_CharT, _Traits>*
 basic_filebuf<_CharT, _Traits>::
-setbuf (char_type *__buf, streamsize __len)
+setbuf (char_type *__buf, streamsize __ssize)
 {
     _RWSTD_ASSERT (this->_C_is_valid ());
 
-    if (__len < 0)
+    if (__ssize < 0)
         return 0;
+
+    const _RWSTD_SIZE_T __bufsize =
+        _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, __ssize);
 
     // sync the buffer to the external file so it can be deallocated
     if ((this->gptr () || this->pptr ()) && is_open () && sync () != 0)
@@ -519,14 +522,14 @@ setbuf (char_type *__buf, streamsize __len)
 
     bool __reset = true;
 
-    if (__len > 0) {
+    if (0 < __bufsize) {
 
-        if (!__buf && (this->_C_bufsize < __len || !this->_C_buffer)) {
+        if (!__buf && (this->_C_bufsize < __bufsize || !this->_C_buffer)) {
             // if `buf' is 0 and the requested size is greater than
             // the size of the object's buffer, or of the object's
             // buffer is 0, try to allocate a new buffer of the
             // specified size
-            __buf = new char_type [__len];
+            __buf = new char_type [__bufsize];
 
             // delete old buffer if the object owns it
             if (this->_C_own_buf ())
@@ -535,7 +538,7 @@ setbuf (char_type *__buf, streamsize __len)
             // take ownership of the newly allocated buffer
             this->_C_own_buf (true);
         }
-        else if (!__buf && __len <= this->_C_bufsize) {
+        else if (!__buf && __bufsize <= this->_C_bufsize) {
             // if `buf' is 0 and the requested size is less than
             // the size of the object's buffer, simply reuse the
             // object's buffer
@@ -556,7 +559,7 @@ setbuf (char_type *__buf, streamsize __len)
         }
 
         this->_C_buffer  = __buf;
-        this->_C_bufsize = __len;
+        this->_C_bufsize = __bufsize;
         this->_C_set_unbuffered (false);
     }
     else {
@@ -687,7 +690,7 @@ sync ()
         // pbacksize may need to be adjusted if it's greater than
         // the available putback area (e.g., after calling putback()
         // at the end of the buffer)
-        const _RWSTD_STREAMSIZE __pbackavail = this->_C_putback_avail ();
+        const _RWSTD_SIZE_T __pbackavail = this->_C_putback_avail ();
         if (__pbackavail < _C_pbacksize)
             _C_pbacksize = __pbackavail;
 
