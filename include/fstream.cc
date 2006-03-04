@@ -682,6 +682,9 @@ sync ()
         // flush the buffer to the file
         if (this->_C_is_eof (overflow (traits_type::eof ())))
             return -1;
+
+        if (this->_C_state & _RWSTD_IOS_STDIO)
+            _RW::__rw_fflush (_C_file, this->_C_state);
     }
 
     // get area active
