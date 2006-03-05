@@ -115,7 +115,7 @@ _C_ipfx (bool __noskipws, ios_base::iostate __errbits)
                 }
                 else {
 
-                    const int_type __c = __rdbuf->sgetc ();
+                    const int_type __c (__rdbuf->sgetc ());
 
                     if (traits_type::eq_int_type (__c, traits_type::eof ())) {
                         this->setstate (__errbits);
@@ -144,7 +144,7 @@ _C_ipfx (bool __noskipws, ios_base::iostate __errbits)
             // of exceptions thrown from streambuf virtuals
             for (; ; __rdbuf->sbumpc (), ++_C_gcount) {
 
-                const int_type __c = __rdbuf->sgetc ();
+                const int_type __c (__rdbuf->sgetc ());
 
                 if (traits_type::eq_int_type (__c, traits_type::eof ())) {
                     this->setstate (__errbits);
@@ -178,7 +178,7 @@ _C_unsafe_get (streamsize *__cnt   /* = 0     */,
     ios_base::iostate __err = ios_base::goodbit;
 
     // initialize in case sgetc() below throws
-    int_type __c = traits_type::eof ();
+    int_type __c (traits_type::eof ());
 
     _TRY {
 
@@ -232,7 +232,7 @@ _C_get (basic_streambuf<char_type, traits_type> &__sb, int_type __delim)
 
         _TRY {
             for ( ; ; ) {
-                int_type __c = this->rdbuf ()->sgetc ();
+                int_type __c (this->rdbuf ()->sgetc ());
 
                 if (traits_type::eq_int_type (__c, traits_type::eof ())) {
                     __err = ios_base::eofbit;
@@ -322,11 +322,12 @@ read (char_type *__s, streamsize __n, int_type __delim, int __flags)
 
             // handle 27.6.1.3, p17 and p18
             if (0 == --__n && _C_nullterm & __flags) {
-                int_type __c;
+                if (!__getline)
+                    break;
 
-                if (   !__getline
-                    || !traits_type::eq_int_type (__c = this->rdbuf ()->sgetc(),
-                                                  traits_type::eof ())
+                const int_type __c (this->rdbuf ()->sgetc ());
+                
+                if (   !traits_type::eq_int_type (__c, traits_type::eof ())
                     && !traits_type::eq_int_type (__c, __delim))
                     break;
 
@@ -336,7 +337,7 @@ read (char_type *__s, streamsize __n, int_type __delim, int __flags)
             }
 
             // get (possibly extract) next char
-            const int_type __c = _C_unsafe_get (&_C_gcount, __delim, __flags);
+            const int_type __c (_C_unsafe_get (&_C_gcount, __delim, __flags));
 
             // eof or delimiter may terminate input
             if (   traits_type::eq_int_type (__c, traits_type::eof())
@@ -612,7 +613,7 @@ get (char_type *__s, streamsize __n, char_type __delim)
                 }
                 else {
 
-                    const int_type __c = __rdbuf->sgetc ();
+                    const int_type __c (__rdbuf->sgetc ());
 
                     if (traits_type::eq_int_type (__c, traits_type::eof ())) {
                         __err = ios_base::eofbit;
@@ -734,7 +735,7 @@ getline (char_type *__line, streamsize __size, char_type __delim)
 
                     // no data in buffer, trigger underflow()
                     // note that streambuf may be unbuffered
-                    const int_type __c = __rdbuf->sgetc ();
+                    const int_type __c (__rdbuf->sgetc ());
 
                     if (traits_type::eq_int_type (__c, traits_type::eof ())) {
                         traits_type::assign (__line [_C_gcount], char_type ());
@@ -821,7 +822,7 @@ operator>> (basic_istream<_CharT, _Traits>&            __is,
 
             for ( ; __maxlen != __i; ++__i, __rdbuf->sbumpc ()) {
 
-                const _TYPENAME _Traits::int_type __c = __rdbuf->sgetc ();
+                const _TYPENAME _Traits::int_type __c (__rdbuf->sgetc ());
 
                 if (_Traits::eq_int_type (__c, _Traits::eof ())) {
                     __err = ios_base::eofbit;
@@ -938,7 +939,7 @@ getline (basic_istream<_CharT, _Traits>&            __is,
 
                     // no data in buffer, trigger underflow()
                     // note that streambuf may be unbuffered
-                    const int_type __c = __rdbuf->sgetc ();
+                    const int_type __c (__rdbuf->sgetc ());
 
                     if (_Traits::eq_int_type (__c, _Traits::eof ())) {
                         __err = ios_base::eofbit;
@@ -998,8 +999,8 @@ getline (basic_istream<_CharT, _Traits>&            __is,
 
             for ( ; ; ) {
 
-                const _TYPENAME _Traits::int_type __c =
-                    __is.rdbuf ()->sgetc ();
+                const _TYPENAME _Traits::int_type
+                    __c (__is.rdbuf ()->sgetc ());
 
                 if (_Traits::eq_int_type (__c, _Traits::eof ())) {
                     // 21.3.7.9, p7
