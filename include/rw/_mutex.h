@@ -635,9 +635,15 @@ _TypeT __rw_atomic_exchange (_TypeT &__t, const _TypeU &__u, bool)
                                  __rw_get_static_mutex ((_TypeT*)0));
 }
 
+/********************** no atomic ops ********************************/
+
+#if defined (_RWSTD_NO_ATOMIC_OPS)
+
+// do nothing
+
 /********************** DEC CXX **************************************/
 
-#if defined (__DECCXX) && !defined (_RWSTD_NO_ATOMIC_OPERATIONS)
+#elif defined (__DECCXX)
 
 }   // namespace __rw
 
@@ -742,9 +748,7 @@ __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
 
 /********************** SPARC **************************************/
 
-#elif    defined(__sparc) \
-    && (defined (__SUNPRO_CC) || defined (__GNUG__)) \
-    && !defined (_RWSTD_NO_ATOMIC_OPERATIONS)
+#elif defined (__sparc) && (defined (__SUNPRO_CC) || defined (__GNUG__))
 
 extern "C" {
 
@@ -868,8 +872,7 @@ __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
 
 /********************** AIX **************************************/
 
-#elif    defined(_AIX43) && defined(__IBMCPP__) \
-      && !defined (_RWSTD_NO_ATOMIC_OPERATIONS)
+#elif defined (_AIX43) && defined (__IBMCPP__)
 
 }   // namespace __rw
 
@@ -985,8 +988,7 @@ __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
 
 /********************** SGI **************************************/
 
-#elif    defined (__sgi) && defined (__host_mips) \
-      && !defined (_RWSTD_NO_ATOMIC_OPERATIONS)
+#elif defined (__sgi) && defined (__host_mips)
 
 }   // namespace __rw
 
@@ -1092,7 +1094,7 @@ __rw_atomic_exchange (long &__x, long __y, bool)
 
 /********************** PA-RISC 2.0 ************************************/
 
-#elif defined (_PA_RISC2_0) && !defined (_RWSTD_NO_ATOMIC_OPERATIONS)
+#elif defined (_PA_RISC2_0)
 
 extern "C" {
 
@@ -1155,9 +1157,7 @@ __rw_string_atomic_exchange (unsigned &__x, unsigned __y, bool)
 
 /********************** i386/gcc **************************************/
 
-#elif    defined (__i386__) \
-      && (defined (__GNUG__) || defined (__INTEL_COMPILER)) \
-      && !defined (_RWSTD_NO_ATOMIC_OPERATIONS)
+#elif defined (__i386__) && (defined (__GNUG__) || defined (__INTEL_COMPILER))
 
 extern "C" {
 
@@ -1346,7 +1346,7 @@ __rw_atomic_exchange (unsigned int &__x, unsigned int __y, bool)
 
 /********************** WIN 32/64 ************************************/
 
-#elif defined (_WIN32) && !defined (_RWSTD_NO_ATOMIC_OPERATIONS)
+#elif defined (_WIN32)
 
 // Interlocked[In|De]crement functions atomically modify their argument
 // and return the new value
@@ -1402,22 +1402,27 @@ __rw_atomic_exchange (unsigned int &__x, unsigned int __y, bool)
                                  _RWSTD_STATIC_CAST (int, __y), false);
 }
 
-/********************** IA64 ******************************************/
+/********************** IA64/x86_64 ***********************************/
 
-#elif defined (__ia64) && !defined (_RWSTD_NO_ATOMIC_OPERATIONS)
+#elif defined (__ia64) || defined (__x86_64)
 
 extern "C" {
 
 _RWSTD_INT8_T  __rw_atomic_xchg8  (_RWSTD_INT8_T*,  _RWSTD_INT8_T);
 _RWSTD_INT16_T __rw_atomic_xchg16 (_RWSTD_INT16_T*, _RWSTD_INT16_T);
 _RWSTD_INT32_T __rw_atomic_xchg32 (_RWSTD_INT32_T*, _RWSTD_INT32_T);
-_RWSTD_INT64_T __rw_atomic_xchg64 (_RWSTD_INT64_T*, _RWSTD_INT64_T);
 
 
 _RWSTD_INT8_T  __rw_atomic_add8  (_RWSTD_INT8_T*,  _RWSTD_INT8_T);
 _RWSTD_INT16_T __rw_atomic_add16 (_RWSTD_INT16_T*, _RWSTD_INT16_T);
 _RWSTD_INT32_T __rw_atomic_add32 (_RWSTD_INT32_T*, _RWSTD_INT32_T);
+
+#ifdef _RWSTD_INT64_T
+
+_RWSTD_INT64_T __rw_atomic_xchg64 (_RWSTD_INT64_T*, _RWSTD_INT64_T);
 _RWSTD_INT64_T __rw_atomic_add64 (_RWSTD_INT64_T*, _RWSTD_INT64_T);
+
+#endif   // _RWSTD_INT64_T
 
 }   // extern "C"
 
@@ -1703,7 +1708,9 @@ __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
 
 #  endif   // _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
 
-#endif   // IA64
+#elif !defined (_RWSTD_NO_ATOMIC_OPS)
+#  define _RWSTD_NO_ATOMIC_OPS
+#endif   // _RWSTD_NO_ATOMIC_OPS
 
 /********************** generic long functions ************************/
 
