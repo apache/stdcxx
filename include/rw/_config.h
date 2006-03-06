@@ -308,18 +308,6 @@
 
 /********************** Environment ***************************************/
 
-// define wherever atomic instructions are provided
-// affects the size of string reference (i.e., is binary incompatible)
-#if   defined (__DECCXX)                                        \
-  || (defined (__i386__)         &&  defined (__GNUG__))        \
-  || (defined (_WIN32)           && !defined (_WIN64))          \
-  || (defined (_AIX43)           &&  defined (__IBMCPP__))      \
-  || (defined (_RWSTD_OS_IRIX64) &&  defined (__host_mips))     \
-  || (defined (_PA_RISC2_0)      &&  defined (__HP_aCC))        \
-  || (defined (__sparc) && (defined (__SUNPRO_CC) || defined (__GNUG__)))
-#  define _RWSTD_NO_STRING_MUTEX
-#endif   
-
 // pa-risc2 atomic ops related
 #if defined(_PA_RISC2_0) && defined(__HP_aCC)
 #  define _RWSTD_STRING_REF_OFFSET             _RWSTD_INT_MAX

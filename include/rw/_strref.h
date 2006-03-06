@@ -50,6 +50,13 @@
 #  define _RWSTD_STRING_REF_INT long
 #endif
 
+#ifndef _RWSTD_NO_ATOMIC_OPS
+   // disable string mutex when atomic operations are available
+#  ifndef _RWSTD_NO_STRING_MUTEX
+#    define _RWSTD_NO_STRING_MUTEX
+#  endif   // _RWSTD_NO_STRING_MUTEX
+#endif   // _RWSTD_NO_ATOMIC_OPS
+
 _RWSTD_NAMESPACE (std) { 
 
 
@@ -76,7 +83,7 @@ class basic_string;
 _RWSTD_NAMESPACE (__rw) { 
 
 
-#if    defined (_RWSTD_REENTRANT)    \
+#if    defined (_RWSTD_REENTRANT)        \
     && defined (_RWSTD_ONE_STRING_MUTEX) \
     && !defined (_RWSTD_NO_STRING_MUTEX)
 
@@ -93,9 +100,9 @@ struct __string_ref
     typedef _TYPENAME allocator_type::size_type               size_type;
     typedef _STD::basic_string<_CharT, _Traits, _Allocator>   string_type;
 
-#if     defined (_RWSTD_REENTRANT)          \
-    && !defined (_RWSTD_ONE_STRING_MUTEX)      \
-    && !defined (_RWSTD_NO_STRING_MUTEX)   \
+#if     defined (_RWSTD_REENTRANT)              \
+    && !defined (_RWSTD_ONE_STRING_MUTEX)       \
+    && !defined (_RWSTD_NO_STRING_MUTEX)        \
     && !defined (_RWSTD_NO_STATIC_MUTEX_INIT)
 
     void _C_init (size_type __cap, size_type __size) {
@@ -210,8 +217,8 @@ struct __string_ref
 
 #ifndef _RWSTD_NO_STRING_REF_COUNT
 
-#  if     defined (_RWSTD_REENTRANT)     \
-      && !defined (_RWSTD_ONE_STRING_MUTEX) \
+#  if     defined (_RWSTD_REENTRANT)            \
+      && !defined (_RWSTD_ONE_STRING_MUTEX)     \
       && !defined (_RWSTD_NO_STRING_MUTEX)
 
     __rw_mutex_base _C_mutex;
