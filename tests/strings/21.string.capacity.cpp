@@ -113,7 +113,7 @@ void test_resize (charT, const MemFun *pfid,
 {
     typedef unsigned char UChar;
     charT chart_param = charT (UChar (cparam));
-    charT chart_eof = charT (UChar ('\0'));
+    charT chart_eof   = charT (UChar ('\0'));
 
     bool resize2args = charT (UChar (-1)) != chart_param;
 
@@ -138,12 +138,12 @@ void test_resize (charT, const MemFun *pfid,
     }
 
     rw_assert (should_throw == ex_thrown, 0, line,
-               "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>(%{#*S})"
-               ".resize(%zu%{?}, %#c%{;}) "
+               "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>"
+               "(%{#*s}, %zu).resize(%zu%{?}, %{#c}%{;}) "
                "should throw == %b, was thrown == %b",
                __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
-               int (sizeof (charT)), pstr, nparam,
-               resize2args, chart_param, should_throw, ex_thrown);
+               int (str_len), str, str_len,
+               nparam, resize2args, chart_param, should_throw, ex_thrown);
 
     if (ex_thrown)
         return;
@@ -172,10 +172,12 @@ void test_resize (charT, const MemFun *pfid,
         i = i < ubound ? i : ubound - 1;
 
         rw_assert (success, 0, line,
-                   "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>(%{#*S})"
-                   ".resize(%zu%{?}, %#c%{;}): got %#c at %zu, expected %#c",
+                   "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>"
+                   "(%{#*s}, %zu).resize(%zu%{?}, %{#c}%{;}): "
+                   "got %{#c} at %zu, expected %{#c}",
                    __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
-                   int (sizeof (charT)), pstr, nparam, resize2args, chart_param,
+                   int (str_len), str, str_len,
+                   nparam, resize2args, chart_param,
                    pstr->c_str()[i], i + 1, wstr_tmp[i]);
     }
 
@@ -193,11 +195,11 @@ void test_resize (charT, const MemFun *pfid,
             i = i < ubound ? i : ubound - 1;
 
             rw_assert (success, 0, line,
-                       "line %d. basic_string<%s, %s<%2$s, %s<%2$s>>(%{#*S})."
-                       "resize(%zu, %#c): got %{?}%#c%{;}%{?}'%s'%{;} "
-                       "at %zu, expected %#c",
+                       "line %d. basic_string<%s, %s<%2$s, %s<%2$s>>"
+                       "(%{#*s}, %zu).resize(%zu, %{#c}): "
+                       "got %{?}%{#c}%{;}%{?}'%s'%{;} at %zu, expected %{#c}",
                        __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
-                       int (sizeof (charT)), pstr, nparam, cparam,
+                       int (str_len), str, str_len, nparam, cparam,
                        chart_eof != pstr->c_str()[i], pstr->c_str()[i],
                        chart_eof == pstr->c_str()[i], "eof", i + 1,
                        chart_param);
@@ -206,10 +208,10 @@ void test_resize (charT, const MemFun *pfid,
     else {
         const std::string::size_type sz_tmp = pstr->size ();
         rw_assert (nparam == sz_tmp, 0, line,
-                   "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>(%{#*S})"
-                   ".resize(%zu): size() == %5$zu, got %zu",
+                   "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>"
+                   "(%{#*s}, %zu).resize(%zu): size() == %5$zu, got %zu",
                    __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
-                   int (sizeof (charT)), pstr, nparam, sz_tmp);
+                   int (str_len), str, str_len, nparam, sz_tmp);
     }
 }
 
