@@ -86,20 +86,16 @@ static char long_string [long_string_len];
 /**************************************************************************/
 
 template <class charT>
-void widen (charT *buf, const char *str)
+void widen (charT *buf, const char *str, const std::size_t str_len)
 {
     typedef unsigned char UChar;
 
-    buf [0] = '\0';
+    buf[0] = charT (UChar ('\0'));
+    RW_ASSERT (str_len < sizeof long_string);
 
     if (str) {
-        for (const char *pc = str; ; ++pc) {
-            buf [pc - str] = charT (UChar (*pc));
-            if ('\0' == *pc) {
-                RW_ASSERT (std::size_t (pc - str) < sizeof long_string);
-                break;
-            }
-        }
+        for (std::size_t i = 0; i < str_len; i++)
+            buf[i] = charT (UChar (str[i]));
     }
 }
 
@@ -160,7 +156,7 @@ void test_resize (charT, const MemFun *pfid,
 
     // check the results
     static charT wstr_tmp [long_string_len];
-    widen (wstr_tmp, str);
+    widen (wstr_tmp, str, str_len);
 
     std::size_t ubound = nparam < str_len ? nparam : str_len;
     bool success = true;
@@ -239,9 +235,9 @@ void test_string_capacity (charT, Traits, const MemFun *pfid,
 
     // widen the source sequence into the (possibly wide) character buffer
     static charT wstr [long_string_len];
-    0 == str ? widen (wstr, "a") : widen (wstr, str);
+    widen (wstr, str, str_len);
 
-    TestString str_ob (wstr);
+    TestString str_ob (wstr, str_len);
     TestString str_def;
 
     TestString* const pstr = 0 != str ? &str_ob : &str_def;
@@ -299,11 +295,11 @@ void test_string_capacity (charT, Traits, const MemFun *pfid,
         break;
     }
 
-#define CALLFMAT \
-    "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>(%{?}%{#*S}%{;})" \
+#define CALLFMAT                                                        \
+    "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>(%{?}%{#*S}%{;})"     \
     ".%s(%{?}%zu%{;})"
 
-#define CALLARGS \
+#define CALLARGS                                        \
     __LINE__, pfid->cname_, pfid->tname_, pfid->aname_, \
     0 != str, int (sizeof (charT)), pstr, pfid->fname_, \
     MemFun::reserve == pfid->mfun_, nparam
@@ -320,7 +316,7 @@ void test_string_capacity (charT, Traits, const MemFun *pfid,
     }
 
     rw_assert (caught == expected, 0, line,
-               CALLFMAT " %{?}expected %s, caught %s"
+              CALLFMAT " %{?}expected %s, caught %s"
                "%{:}unexpectedly caught %s%{;}",
                CALLARGS, 0 != expected, expected, caught, caught);
 
@@ -440,23 +436,34 @@ void test_size (MemFun *pfid)
     test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
                           0, 0, size, false)
 
-    TEST (0, 0);
-    TEST ("", 0);
+    //    +--------------------------------------- controlled sequence
+    //    |                +---------------------- expected result
+    //    |                |                   
+    //    |                |                   
+    //    V                V                   
+    TEST (0,               0);
+    TEST ("",              0);
 
-    TEST ("\0", 0);
-    TEST ("a",  1);
-    TEST (" ",  1);
-    TEST ("ab", 2);
-    TEST ("bc", 2);
+    TEST ("\0",            1);
+    TEST ("a",             1);
+    TEST (" ",             1);
+    TEST ("ab",            2);
+    TEST ("bc",            2);
 
-    TEST ("test string", 11);
-    TEST ("Test String", 11);
+    TEST ("test string",  11);
+    TEST ("Test String",  11);
 
-    TEST ("t\000 s", 1);
-    TEST ("Test\0string", 4);
-    TEST ("Test\000string", 4);
+    TEST ("t\0 s",         4);
+    TEST ("Test\0string", 11);
 
-    TEST (long_string, long_string_len - 1);
+    TEST ("\0a\0b",        4);
+    TEST ("a\0\0b",        4);
+    TEST ("a\0\0\0b",      5);
+    TEST ("a\0\0b\0",      5);
+    TEST ("a\0b\0\0c",     6);
+    TEST ("a\0b\0c\0\0",   7);
+
+    TEST (long_string,     long_string_len - 1);
 }
 
 /**************************************************************************/
@@ -473,30 +480,44 @@ void test_resize (MemFun *pfid)
     test_string_capacity (pfid, __LINE__, str, len, nparam,     \
                           cparam, 0, ex_throw)
 
-    TEST ("\0", 0,  0, 'a', false);
-    TEST ("\0", 0, 10, 'a', false);
+    //    +--------------------------------------- controlled sequence
+    //    |               +----------------------- controlled sequence length
+    //    |               |                    +-- resize() integer argument
+    //    |               |                    |   +-- resize() char argument
+    //    |               |                    |   |    +--exception expected?
+    //    |               |                    |   |    |
+    //    V               V                    V   V    V
+    TEST ("\0",           0,                   0, 'a',  false);
+    TEST ("\0",           0,                  10, 'a',  false);
 
-    TEST ("a", 1,  1, 'a', false);
-    TEST ("a", 1,  0, 'a', false);
-    TEST ("a", 1, 10, 'a', false);
+    TEST ("a",            1,                   1, 'a',  false);
+    TEST ("a",            1,                   0, 'a',  false);
+    TEST ("a",            1,                  10, 'a',  false);
 
-    TEST ("ab", 2,  2, 'a', false);
-    TEST ("ab", 2,  1, 'a', false);
-    TEST ("ab", 2, 10, 'a', false);
+    TEST ("ab",           2,                   2, 'a',  false);
+    TEST ("ab",           2,                   1, 'a',  false);
+    TEST ("ab",           2,                  10, 'a',  false);
 
-    TEST ("t\000 s", 1, 6, 'a', false);
-    TEST ("Test\0string", 4, 100, 'a', false);
+    TEST ("t\0 s",        4,                   6, 'a',  false);
+    TEST ("Test\0string", 11,                100, 'a',  false);
 
-    TEST ("bc", 2, long_string_len - 1, 'a', false);
+    TEST ("a\0\0\0b",     5,                  10, 'a',  false);
+    TEST ("a\0\0\0b",     5,                  10, '\0', false);
 
-    TEST (long_string, long_string_len - 1, 10, 'a', false);
+    TEST ("a\0b\0c\0\0",  7,                  10, 'a',  false);
+    TEST ("a\0b\0c\0\0",  7,                  10, '\0', false);
+
+    TEST ("bc",           2, long_string_len - 1, 'a',  false);
+
+    TEST (long_string, long_string_len - 1,                  10, 'a', false);
     TEST (long_string, long_string_len - 1, long_string_len - 1, 'a', false);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
     if (_RWSTD_SIZE_MAX > pfid->max_size_) {
+
         TEST ("\0", 1, pfid->max_size_ + 1, 'a', true);
-        TEST ("a",  1, pfid->max_size_ + 1, 'a', true);
+        TEST ("a" , 1, pfid->max_size_ + 1, 'a', true);
         TEST (long_string, long_string_len - 1,
               pfid->max_size_ + 1, 'a', true);
     }
@@ -512,28 +533,35 @@ void test_resize (MemFun *pfid)
     test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
                           nparam, -1, 0, ex_throw)
 
-    TEST ("\0", 0, false);
-    TEST ("\0", 10, false);
+    //    +---------------------------------------- controlled sequence
+    //    |             +-------------------------- resize() integer argument
+    //    |             |                       +-- exception expected?
+    //    |             |                       |
+    //    V             V                       V
+    TEST ("\0",         0,                      false);
+    TEST ("\0",        10,                      false);
 
-    TEST ("a",   1, false);
-    TEST ("a",   0, false);
-    TEST ("a",  10, false);
+    TEST ("a",          1,                      false);
+    TEST ("a",          0,                      false);
+    TEST ("a",         10,                      false);
 
-    TEST ("ab",  2, false);
-    TEST ("ab",  1, false);
-    TEST ("ab", 10, false);
+    TEST ("ab",         2,                      false);
+    TEST ("ab",         1,                      false);
+    TEST ("ab",        10,                      false);
 
-    TEST ("bc", long_string_len - 1, false);
+    TEST ("bc",        long_string_len - 1,     false);
 
-    TEST (long_string, 10, false);
-    TEST (long_string, long_string_len - 1, false);
+    TEST (long_string, 10,                      false);
+    TEST (long_string, long_string_len - 1,     false);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
     if (_RWSTD_SIZE_MAX > pfid->max_size_) {
-        TEST ("\0", pfid->max_size_ + 1, true);
-        TEST ("a",  pfid->max_size_ + 1, true);
-        TEST (long_string, pfid->max_size_ + 1, true);
+
+    TEST ("\0",        pfid->max_size_ + 1,     true);
+    TEST ("a",         pfid->max_size_ + 1,     true);
+    TEST (long_string, pfid->max_size_ + 1,     true);
+
     }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -548,29 +576,37 @@ void test_length (MemFun *pfid)
              pfid->cname_, pfid->tname_, pfid->aname_);
 
 #undef TEST
-#define TEST(str, size)                                                    \
-    test_string_capacity (pfid, __LINE__, str, sizeof str - 1,             \
+#define TEST(str, size)                                         \
+    test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
                           0, 0, size, false)
 
-    TEST (0, 0);
-    TEST ("", 0);
+    //    +--------------------------------------- controlled sequence
+    //    |                +---------------------- expected result
+    //    |                |                   
+    //    |                |                   
+    //    V                V 
+    TEST (0,               0);
+    TEST ("",              0);
 
-    TEST ("\0", 0);
-    TEST ("a",  1);
-    TEST (" ",  1);
-    TEST ("ab", 2);
-    TEST ("bc", 2);
+    TEST ("\0",            1);
+    TEST ("a",             1);
+    TEST (" ",             1);
+    TEST ("ab",            2);
+    TEST ("bc",            2);
 
-    TEST ("test string", 11);
-    TEST ("Test String", 11);
+    TEST ("Test String",  11);
 
-    TEST ("t\000 s", 1);
-    TEST ("Test\0string", 4);
-    TEST ("Test\000string", 4);
+    TEST ("t\0 s",         4);
+    TEST ("Test\0string", 11);
+   
+    TEST ("\0a\0b",        4);
+    TEST ("a\0\0b",        4);
+    TEST ("a\0\0\0b",      5);
+    TEST ("a\0\0b\0",      5);
+    TEST ("a\0b\0\0c",     6);
+    TEST ("a\0b\0c\0\0",   7);
 
-    TEST (long_string, long_string_len - 1);
-
-#undef TEST
+    TEST (long_string,     long_string_len - 1);
 }
 
 /**************************************************************************/
@@ -581,8 +617,9 @@ void test_reserve (MemFun *pfid)
              "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::reserve (size_type)",
              pfid->cname_, pfid->tname_, pfid->aname_);
 
-#define TEST(str, nparam, ex_throw)                                          \
-    test_string_capacity (pfid, __LINE__, str, sizeof str - 1,               \
+#undef TEST
+#define TEST(str, nparam, ex_throw)                             \
+    test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
                           nparam, 0, 0, ex_throw)
 
     //    +--------------------------------------- controlled sequence
@@ -604,8 +641,12 @@ void test_reserve (MemFun *pfid)
     TEST ("abcd",         10,                  false);
     TEST ("abcd",         long_string_len - 1, false);
 
-    TEST ("t\000 s",       1,                  false);
+    TEST ("t\0 s",         1,                  false);
     TEST ("Test\0string",  4,                  false);
+    TEST ("a\0\0b",        2,                  false);
+    TEST ("a\0\0b",       10,                  false);
+    TEST ("a\0b\0c\0\0",   4,                  false);
+    TEST ("a\0b\0c\0\0",  10,                  false);
 
     TEST (long_string,    10,                  false);
     TEST (long_string,    long_string_len - 1, false);
@@ -634,16 +675,25 @@ void test_capacity (MemFun *pfid)
     test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
                           0, 0, size, false)
 
-    TEST (0, 0);
-    TEST ("\0", 0);
+    //    +--------------------------------------- controlled sequence
+    //    |                +---------------------- expected result
+    //    |                |                   
+    //    |                |                   
+    //    V                V 
+    TEST (0,                0);
+    TEST ("\0",             0);
 
-    TEST ("a",    128);
-    TEST ("abcd", 128);
+    TEST ("a",            128);
+    TEST ("abcd",         128);
 
-    TEST ("t\000 s", 128);
+    TEST ("t\0 s",        128);
     TEST ("Test\0string", 128);
 
-    TEST (long_string, long_string_len - 1);
+    TEST ("\0a\0b",       128);
+    TEST ("a\0\0\0b",     128);
+    TEST ("a\0b\0c\0\0",  128);
+
+    TEST (long_string,    long_string_len - 1);
 }
 
 /**************************************************************************/
@@ -682,8 +732,12 @@ void test_clear (MemFun *pfid)
     TEST ("ab");
     TEST ("abcde");
 
-    TEST ("t\000 s");
+    TEST ("t\0 s");
     TEST ("Test\0string");
+
+    TEST ("\0a\0b");
+    TEST ("a\0\0\0b");
+    TEST ("a\0b\0c\0\0");
 
     TEST (long_string);
 }
@@ -698,23 +752,25 @@ void test_empty (MemFun *pfid)
     pfid->mfun_ = MemFun::empty;
 
 #undef TEST
-#define TEST(str, res)                                          \
+#define TEST(str)                                               \
     test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
-                          0, 0, res, false)
+                          0, 0, 0, false)
 
-    TEST (0, 1);
-    TEST ("\0", 1);
-    TEST ("a", 0);
-    TEST ("ab", 0);
-    TEST ("abcde", 0);
+    TEST (0);
+    TEST ("\0");
+    TEST ("a");
+    TEST ("ab");
+    TEST ("abcde");
 
-    TEST ("\000 s", 1);
-    TEST ("t\000 s", 0);
-    TEST ("Test\0string", 0);
+    TEST ("\0 s");
+    TEST ("t\0 s");
+    TEST ("Test\0string");
 
-    TEST (long_string, 0);
+    TEST ("\0a\0b");
+    TEST ("a\0\0\0b");
+    TEST ("a\0b\0c\0\0");
 
-#undef TEST
+    TEST (long_string);
 }
 
 /**************************************************************************/
@@ -762,7 +818,7 @@ run_test (MemFun *pfid)
         TEST (capacity);
         TEST (max_size);
         TEST (clear);
-        TEST (empty);
+        TEST (empty);        
     }
 }
 
@@ -822,7 +878,8 @@ int main (int argc, char** argv)
 {
     return rw_test (argc, argv, __FILE__,
                     "lib.string.capacity",
-                    0 /* no comment */, run_test,
+                    0 /* no comment */,
+                    run_test,
                     "|-no-size# "
                     "|-no-resize# "
                     "|-no-length# "
