@@ -3896,14 +3896,16 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         else if (spec.mod == spec.mod_l) {   // wchar_t*
             spec.param.ptr_ = PARAM (ptr_);
             const wchar_t* const wstr = (wchar_t*)spec.param.ptr_;
-            len = rw_fmtarray (spec, buf, wstr, _RWSTD_SIZE_MAX,
-                               A_WCHAR | A_ESC);
+            const size_t wstr_len =
+                spec.width < 0 ? _RWSTD_SIZE_MAX : size_t (spec.width);
+            len = rw_fmtarray (spec, buf, wstr, wstr_len, A_WCHAR | A_ESC);
         }
         else {   // char*
             spec.param.ptr_ = PARAM (ptr_);
             const char* const str = (char*)spec.param.ptr_;
-            len = rw_fmtarray (spec, buf, str, _RWSTD_SIZE_MAX,
-                               A_CHAR | A_ESC);
+            const size_t str_len =
+                spec.width < 0 ? _RWSTD_SIZE_MAX : size_t (spec.width);
+            len = rw_fmtarray (spec, buf, str, str_len, A_CHAR | A_ESC);
         }
         break;
 
