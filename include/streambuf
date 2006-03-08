@@ -297,19 +297,14 @@ protected:
         return 0;
     }
 
-
-    //
-    // non-standard convenience functions
-    //
-
     // is a write position available?
-    streamsize _C_write_avail () const {
-        return streamsize (_C_is_out () ? epptr () - pptr () : 0);
+    _RWSTD_SIZE_T _C_write_avail () const {
+        return _C_is_out () ? epptr () - pptr () : 0;
     }
 
     // how much space in putback area is available?
-    streamsize _C_putback_avail () const {
-        return streamsize (_C_is_in () ? gptr () - eback () : 0);
+    _RWSTD_SIZE_T _C_putback_avail () const {
+        return _C_is_in () ? gptr () - eback () : 0;
     }
 
     // is buffer in input mode?
@@ -320,7 +315,7 @@ protected:
     // is buffer in output mode?
     bool _C_is_out () const {
         return ios_base::out ==
-            (_C_state & (ios_base::out | _C_frozen | _C_constant));
+            (_C_state & (int (ios_base::out) | _C_frozen | _C_constant));
     }
 
     // is buffer in both input and output mode?
@@ -387,9 +382,9 @@ protected:
     // debug only - asserts that get and put areas are consistent
     bool _C_is_valid () const;
 
-    char_type  *_C_buffer;    // character buffer
-    streamsize  _C_bufsize;   // size of buffer in characters
-    int         _C_state;     // state of buffer (used in subclasses)
+    char_type     *_C_buffer;    // character buffer
+    _RWSTD_SIZE_T  _C_bufsize;   // size of buffer in characters
+    int            _C_state;     // state of buffer (used in subclasses)
 
 private:
 
