@@ -1451,7 +1451,12 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #      define _RWSTD_DEFINE_TEMPLATE_LAST(ignore)  0
 #    endif
 #  elif    !defined (_RWSTD_NO_EXPLICIT_INSTANTIATION) \
+        && !defined (_RWSTD_NO_IMPLICIT_INSTANTIATION) \
         && !defined (_RWSTD_NO_EXPLICIT_INSTANTIATION_WITH_IMPLICIT_INCLUSION)
+     // this block is active when compiling (as opposed to using)
+     // the library headers and sources and implicit inclusion
+     // is being emulated
+
 #    define _RWSTD_DEFINE_TEMPLATE(name)   _RWSTD_INSTANTIATE ## name
 #    ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION_BEFORE_DEFINITION
 #      define _RWSTD_DEFINE_TEMPLATE_FIRST(ignore) 0
@@ -1461,6 +1466,10 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #      define _RWSTD_DEFINE_TEMPLATE_LAST(ignore) 0
 #    endif   // _RWSTD_NO_EXPLICIT_INSTANTIATION_BEFORE_DEFINITION
 #  else   // if no explicit instantiation (or with implicit inclusion)
+     // this block is active when compiling (as opposed to using)
+     // the library headers and sources and implicit inclusion is
+     // not being emulated
+
 #    define _RWSTD_DEFINE_TEMPLATE(ignore)         1
 #    ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION_BEFORE_DEFINITION
 #      define _RWSTD_DEFINE_TEMPLATE_FIRST(ignore)   0
@@ -1472,7 +1481,7 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #  endif   // explicit instantiation (with implicit inclusion)
 #else
 #  ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION_WITH_IMPLICIT_INCLUSION
-     // when implicit inclusion is enabled or being emmulated,
+     // when implicit inclusion is enabled or being emulated,
      // prevent out-of line non-member template functions or
      // out-of-line member functions of class templates (i.e.,
      // those defined in .c and .cc files) from being #included
