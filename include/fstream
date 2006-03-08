@@ -263,7 +263,7 @@ private:
                                       //  end of buffer, and actual pos in file 
     pos_type   _C_beg_pos;            // offset/state in file corresponding
                                       //  to the beginning of buffer 
-    _RWSTD_STREAMSIZE _C_pbacksize;   // current size of putback area
+    _RWSTD_SIZE_T _C_pbacksize;       // size of putback area
 };
 
 
