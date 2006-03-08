@@ -190,6 +190,7 @@ typename UserTraits<charT>::int_type
 UserTraits<charT>::eof_ = std::char_traits<charT>::eof ();
 
 
+_TEST_EXPORT
 _RWSTD_SPECIALIZED_CLASS
 struct UserTraits<UserChar>   // user-defined character traits
 {
@@ -218,52 +219,25 @@ struct UserTraits<UserChar>   // user-defined character traits
     }
 
     static int
-    compare (const char_type *s1, const char_type *s2, _RWSTD_SIZE_T n) {
-        for (_RWSTD_SIZE_T i = 0; i != n; ++i) {
-            if (!eq (s1[i], s2[i])) {
-                return lt (s1[i], s2[i]) ? -1 : 1;
-            }
-        }
-        return 0;
-    }
+    compare (const char_type*, const char_type*, _RWSTD_SIZE_T);
         
-    static _RWSTD_SIZE_T length (const char_type *s) {
-        _RWSTD_SIZE_T len = 0;
-        for (; !eq (*s++, char_type::eos ()); ++len);
-        return len;
-    }
+    static _RWSTD_SIZE_T
+    length (const char_type*);
  
     static const char_type*
-    find (const char_type *s, _RWSTD_SIZE_T n, const char_type &c) {
-        for (; n-- && !eq (*s, c); ++s);
-        return eq (*s, c) ? s : 0;
-    }
+    find (const char_type*, _RWSTD_SIZE_T, const char_type&);
 
     static char_type*
-    copy (char_type *dst, const char_type *src, _RWSTD_SIZE_T n) {
-        for (; n--; *dst++ = *src++);
-        return dst;
-    }
+    copy (char_type*, const char_type*, _RWSTD_SIZE_T);
 
     static char_type*
-    move (char_type *s1, const char_type *s2, _RWSTD_SIZE_T n) {
-        if (s1 < s2)
-            copy (s1, s2, n);
-        else if (s2 < s1) {
-            s1 += n;
-            s2 += n;
-            for (_RWSTD_SIZE_T i = 0; i != n; ++i) 
-                assign (*--s1, *--s2);
-        }
-        return s1;
-    }
+    move (char_type*, const char_type*, _RWSTD_SIZE_T);
 
-    static char_type* assign (char_type *s, _RWSTD_SIZE_T n, char_type c) {
-        for (char_type *tmp = s; n--; assign (*tmp++, c));
-        return s;
-    }
+    static char_type*
+    assign (char_type*, _RWSTD_SIZE_T, char_type);
 
-    static int_type not_eof (const int_type &i) {
+    static int_type
+    not_eof (const int_type &i) {
         if (eq_int_type (i, int_type::eof ())) {
             const char_type c = { 0, 0 };
             return int_type::from_char (c);
@@ -288,5 +262,18 @@ struct UserTraits<UserChar>   // user-defined character traits
     }
 };
 
+
+_TEST_EXPORT
+char* rw_widen (char*, const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+
+#ifndef _RWSTD_WCHAR_T
+
+_TEST_EXPORT
+wchar_t* rw_widen (wchar_t*, const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+
+#endif   // _RWSTD_WCHAR_T
+
+_TEST_EXPORT
+UserChar* rw_widen (UserChar*, const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
 #endif   // RW_CHAR_INCLUDED
