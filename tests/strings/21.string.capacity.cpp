@@ -25,29 +25,13 @@
  *
  **************************************************************************/
 
-#include <string>
-#include <cstddef>
-#include <stdexcept>
+#include <string>      // for string
+#include <cstddef>     // for size_t
+#include <stdexcept>   // for length_error
 
-#include <cmdopt.h>
-#include <driver.h>
-
-/**************************************************************************/
-
-int traits_eof = -1;
-
-template <class charT>
-struct CharTraits: std::char_traits<charT>
-{
-    typedef std::char_traits<charT> Base;
-    typedef typename Base::int_type int_type;
-
-    // override eof() to detect bad assumptions
-    static int_type eof () { return traits_eof; }
-    static int_type not_eof (int_type c) {
-        return c == eof () ? int_type (!c) : c;
-    }
-};
+#include <cmdopt.h>    // for rw_enabled()
+#include <driver.h>    // for rw_test()
+#include <rw_char.h>   // for rw_widen()
 
 /**************************************************************************/
 
@@ -85,22 +69,6 @@ static char long_string [long_string_len];
 
 /**************************************************************************/
 
-template <class charT>
-void widen (charT *buf, const char *str, const std::size_t str_len)
-{
-    typedef unsigned char UChar;
-
-    buf[0] = charT (UChar ('\0'));
-    RW_ASSERT (str_len < sizeof long_string);
-
-    if (str) {
-        for (std::size_t i = 0; i < str_len; i++)
-            buf[i] = charT (UChar (str[i]));
-    }
-}
-
-/**************************************************************************/
-
 template <class charT, class String>
 void test_resize (charT, const MemFun *pfid,
                   int         line,         // line number
@@ -112,10 +80,10 @@ void test_resize (charT, const MemFun *pfid,
                   bool        should_throw) // if true the method should throw
 {
     typedef unsigned char UChar;
-    charT chart_param = charT (UChar (cparam));
-    charT chart_eof   = charT (UChar ('\0'));
+    const charT char_param = charT (UChar (cparam));
+    const charT char_eos   = charT ('\0');
 
-    bool resize2args = charT (UChar (-1)) != chart_param;
+    bool resize2args = charT (UChar (-1)) != char_param;
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -125,15 +93,14 @@ void test_resize (charT, const MemFun *pfid,
 #endif    // _RWSTD_NO_EXCEPTIONS
 
     if (resize2args)
-        pstr->resize (nparam, chart_param);
+        pstr->resize (nparam, char_param);
     else
         pstr->resize (nparam);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
     }
-    catch (std::length_error e) {
-        _RWSTD_UNUSED(e);
+    catch (std::length_error) {
         ex_thrown = true;
     }
 
@@ -143,7 +110,7 @@ void test_resize (charT, const MemFun *pfid,
                "should throw == %b, was thrown == %b",
                __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
                int (str_len), str, str_len,
-               nparam, resize2args, chart_param, should_throw, ex_thrown);
+               nparam, resize2args, char_param, should_throw, ex_thrown);
 
     if (ex_thrown)
         return;
@@ -156,7 +123,7 @@ void test_resize (charT, const MemFun *pfid,
 
     // check the results
     static charT wstr_tmp [long_string_len];
-    widen (wstr_tmp, str, str_len);
+    rw_widen (wstr_tmp, str, str_len);
 
     std::size_t ubound = nparam < str_len ? nparam : str_len;
     bool success = true;
@@ -177,7 +144,7 @@ void test_resize (charT, const MemFun *pfid,
                    "got %{#c} at %zu, expected %{#c}",
                    __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
                    int (str_len), str, str_len,
-                   nparam, resize2args, chart_param,
+                   nparam, resize2args, char_param,
                    pstr->c_str()[i], i + 1, wstr_tmp[i]);
     }
 
@@ -185,7 +152,7 @@ void test_resize (charT, const MemFun *pfid,
         i = ubound;
         ubound = str_len < nparam ? nparam : 0;
         for (; i < ubound; i++) {
-            success = chart_param == pstr->c_str()[i];
+            success = char_param == pstr->c_str()[i];
             if (!success)
                 break;
         }
@@ -200,9 +167,9 @@ void test_resize (charT, const MemFun *pfid,
                        "got %{?}%{#c}%{;}%{?}'%s'%{;} at %zu, expected %{#c}",
                        __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
                        int (str_len), str, str_len, nparam, cparam,
-                       chart_eof != pstr->c_str()[i], pstr->c_str()[i],
-                       chart_eof == pstr->c_str()[i], "eof", i + 1,
-                       chart_param);
+                       char_eos != pstr->c_str()[i], pstr->c_str()[i],
+                       char_eos == pstr->c_str()[i], "eof", i + 1,
+                       char_param);
         }
     }
     else {
@@ -218,14 +185,14 @@ void test_resize (charT, const MemFun *pfid,
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_string_capacity (charT, Traits, const MemFun *pfid,
-                           int         line,         // line number
-                           const char *str,          // string argument
-                           std::size_t str_len,      // the string length
-                           std::size_t nparam,       // method parameter
-                           char        cparam,       // method parameter char
-                           std::size_t res,          // method expected result
-                           bool        should_throw) // the method should throw
+void test_capacity (charT, Traits, const MemFun *pfid,
+                    int         line,         // line number
+                    const char *str,          // string argument
+                    std::size_t str_len,      // the string length
+                    std::size_t nparam,       // method parameter
+                    char        cparam,       // method parameter char
+                    std::size_t res,          // method expected result
+                    bool        should_throw) // the method should throw
 {
     typedef std::allocator<charT>                       Allocator;
     typedef std::basic_string<charT, Traits, Allocator> TestString;
@@ -237,7 +204,7 @@ void test_string_capacity (charT, Traits, const MemFun *pfid,
 
     // widen the source sequence into the (possibly wide) character buffer
     static charT wstr [long_string_len];
-    widen (wstr, str, str_len);
+    rw_widen (wstr, str, str_len);
 
     TestString str_ob (wstr, str_len);
     TestString str_def;
@@ -309,8 +276,7 @@ void test_string_capacity (charT, Traits, const MemFun *pfid,
 #ifndef _RWSTD_NO_EXCEPTIONS
 
     }
-    catch (std::length_error e) {
-        _RWSTD_UNUSED (e);
+    catch (std::length_error) {
         caught = expected;
     }
     catch (...) {
@@ -345,7 +311,7 @@ void test_string_capacity (charT, Traits, const MemFun *pfid,
         std::string::size_type max_sz = pstr->max_size();
 
         rw_assert (cur_sz <= ret && ret <= max_sz, 0, line,
-                   CALLFMAT " == %zu, expected %zu < res < %zu%",
+                   CALLFMAT " == %zu, expected %zu < res < %zu",
                    CALLARGS, ret, cur_sz, max_sz);
     }
 
@@ -374,19 +340,19 @@ void test_string_capacity (charT, Traits, const MemFun *pfid,
 
 /**************************************************************************/
 
-void test_string_capacity (MemFun      *pfid,
-                           int          line,
-                           const char  *str,
-                           std::size_t  str_len,
-                           int          nparam,
-                           char         cparam,
-                           std::size_t  res,
-                           bool         should_throw)
+void test_capacity (MemFun      *pfid,
+                    int          line,
+                    const char  *str,
+                    std::size_t  str_len,
+                    int          nparam,
+                    char         cparam,
+                    std::size_t  res,
+                    bool         should_throw)
 {
 #undef TEST
-#define TEST(charT, Traits)	                                            \
-    test_string_capacity (charT (), Traits (), pfid, line,                  \
-                          str, str_len, nparam, cparam, res, should_throw)
+#define TEST(charT, Traits)                                             \
+    test_capacity (charT (), Traits (), pfid, line,                     \
+                   str, str_len, nparam, cparam, res, should_throw)
 
     static const char* const fnames[] = {
         "size", "resize", "length", "reserve", "capacity", "max_size",
@@ -416,11 +382,11 @@ void test_string_capacity (MemFun      *pfid,
     }
     else {
         if (MemFun::Char == pfid->cid_)
-            TEST (char, CharTraits<char>);
+            TEST (char, UserTraits<char>);
 
 #ifndef _RWSTD_NO_WCHAR_T
         else
-            TEST (wchar_t, CharTraits<wchar_t>);
+            TEST (wchar_t, UserTraits<wchar_t>);
 #endif   // _RWSTD_NO_WCHAR_T
 
     }
@@ -434,8 +400,8 @@ void test_size (MemFun *pfid)
              pfid->cname_, pfid->tname_, pfid->aname_);
 
 #undef TEST
-#define TEST(str, size)                                         \
-    test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
+#define TEST(str, size)                                 \
+    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
                           0, 0, size, false)
 
     //    +--------------------------------------- controlled sequence
@@ -470,6 +436,20 @@ void test_size (MemFun *pfid)
 
 /**************************************************************************/
 
+static int rw_opt_no_size;          // for --no-size
+static int rw_opt_no_resize;        // for --no-resize
+static int rw_opt_no_length;        // for --no-length
+static int rw_opt_no_reserve;       // for --no-reserve
+static int rw_opt_no_capacity;      // for --no-capacity
+static int rw_opt_no_max_size;      // for --no-max_size
+static int rw_opt_no_clear;         // for --no-clear
+static int rw_opt_no_empty;         // for --no-empty
+static int rw_opt_no_exceptions;    // for --no-exceptions
+static int rw_opt_no_char_traits;   // for --no-char_traits
+static int rw_opt_no_user_traits;   // for --no-user_traits
+
+/**************************************************************************/
+
 void test_resize (MemFun *pfid)
 {
     rw_info (0, 0, 0,
@@ -479,7 +459,7 @@ void test_resize (MemFun *pfid)
 
 #undef TEST
 #define TEST(str, len, nparam, cparam, ex_throw)                \
-    test_string_capacity (pfid, __LINE__, str, len, nparam,     \
+    test_capacity (pfid, __LINE__, str, len, nparam,     \
                           cparam, 0, ex_throw)
 
     //    +--------------------------------------- controlled sequence
@@ -516,12 +496,16 @@ void test_resize (MemFun *pfid)
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    if (_RWSTD_SIZE_MAX > pfid->max_size_) {
+    if (rw_opt_no_exceptions)
+        rw_note (0, 0, __LINE__, "exceptions tests disabled");
+    else {
+        if (_RWSTD_SIZE_MAX > pfid->max_size_) {
 
-        TEST ("\0", 1, pfid->max_size_ + 1, 'a', true);
-        TEST ("a" , 1, pfid->max_size_ + 1, 'a', true);
-        TEST (long_string, long_string_len - 1,
-              pfid->max_size_ + 1, 'a', true);
+            TEST ("\0", 1, pfid->max_size_ + 1, 'a', true);
+            TEST ("a" , 1, pfid->max_size_ + 1, 'a', true);
+            TEST (long_string, long_string_len - 1,
+                  pfid->max_size_ + 1, 'a', true);
+        }
     }
 
 #endif   //_RWSTD_NO_EXCEPTIONS
@@ -531,8 +515,8 @@ void test_resize (MemFun *pfid)
              pfid->cname_, pfid->tname_, pfid->aname_);
 
 #undef TEST
-#define TEST(str, nparam, ex_throw)                             \
-    test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
+#define TEST(str, nparam, ex_throw)                     \
+    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
                           nparam, -1, 0, ex_throw)
 
     //    +---------------------------------------- controlled sequence
@@ -558,12 +542,13 @@ void test_resize (MemFun *pfid)
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    if (_RWSTD_SIZE_MAX > pfid->max_size_) {
+    if (!rw_opt_no_exceptions) {
+        if (_RWSTD_SIZE_MAX > pfid->max_size_) {
 
-    TEST ("\0",        pfid->max_size_ + 1,     true);
-    TEST ("a",         pfid->max_size_ + 1,     true);
-    TEST (long_string, pfid->max_size_ + 1,     true);
-
+            TEST ("\0",        pfid->max_size_ + 1,     true);
+            TEST ("a",         pfid->max_size_ + 1,     true);
+            TEST (long_string, pfid->max_size_ + 1,     true);
+        }
     }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -578,8 +563,8 @@ void test_length (MemFun *pfid)
              pfid->cname_, pfid->tname_, pfid->aname_);
 
 #undef TEST
-#define TEST(str, size)                                         \
-    test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
+#define TEST(str, size)                                 \
+    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
                           0, 0, size, false)
 
     //    +--------------------------------------- controlled sequence
@@ -620,8 +605,8 @@ void test_reserve (MemFun *pfid)
              pfid->cname_, pfid->tname_, pfid->aname_);
 
 #undef TEST
-#define TEST(str, nparam, ex_throw)                             \
-    test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
+#define TEST(str, nparam, ex_throw)                     \
+    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
                           nparam, 0, 0, ex_throw)
 
     //    +--------------------------------------- controlled sequence
@@ -673,8 +658,8 @@ void test_capacity (MemFun *pfid)
              pfid->cname_, pfid->tname_, pfid->aname_);
 
 #undef TEST
-#define TEST(str, size)                                         \
-    test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
+#define TEST(str, size)                                 \
+    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
                           0, 0, size, false)
 
     //    +--------------------------------------- controlled sequence
@@ -706,8 +691,8 @@ void test_max_size (MemFun *pfid)
              pfid->cname_, pfid->tname_, pfid->aname_);
 
 #undef TEST
-#define TEST(str)                                               \
-    test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
+#define TEST(str)                                       \
+    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
                           0, 0, 0, false)
 
     TEST (0);
@@ -724,8 +709,8 @@ void test_clear (MemFun *pfid)
              pfid->cname_, pfid->tname_, pfid->aname_);
 
 #undef TEST
-#define TEST(str)                                               \
-    test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
+#define TEST(str)                                       \
+    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
                           0, 0, 0, false)
 
     TEST (0);
@@ -754,8 +739,8 @@ void test_empty (MemFun *pfid)
     pfid->mfun_ = MemFun::empty;
 
 #undef TEST
-#define TEST(str)                                               \
-    test_string_capacity (pfid, __LINE__, str, sizeof str - 1,  \
+#define TEST(str)                                       \
+    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
                           0, 0, 0, false)
 
     TEST (0);
@@ -774,19 +759,6 @@ void test_empty (MemFun *pfid)
 
     TEST (long_string);
 }
-
-/**************************************************************************/
-
-static int rw_opt_no_size;          // for --no-size
-static int rw_opt_no_resize;        // for --no-resize
-static int rw_opt_no_length;        // for --no-length
-static int rw_opt_no_reserve;       // for --no-reserve
-static int rw_opt_no_capacity;      // for --no-capacity
-static int rw_opt_no_max_size;      // for --no-max_size
-static int rw_opt_no_clear;         // for --no-clear
-static int rw_opt_no_empty;         // for --no-empty
-static int rw_opt_no_char_traits;   // for --no-char_traits
-static int rw_opt_no_user_traits;   // for --no-user_traits
 
 /**************************************************************************/
 
@@ -838,37 +810,33 @@ int run_test (int, char*[])
 
         MemFun fid (MemFun::Char, "char", MemFun::DefaultTraits, 0);
 
-        traits_eof = -1;
         fid.tname_ = "char_traits";
 
         run_test (&fid);
 
         fid.tid_   = MemFun::UserTraits;
         fid.tname_ = "UserTraits";
-        traits_eof = '$';
 
         run_test (&fid);
     }
     else
-        rw_note (0, 0, 0, "string.capacity char tests disabled");
+        rw_note (0, 0, 0, "char tests disabled");
 
     if (rw_enabled ("wchar_t")) {
 
         MemFun fid (MemFun::WChar, "wchar_t", MemFun::DefaultTraits, 0);
 
-        traits_eof = -1;
         fid.tname_ = "char_traits";
 
         run_test (&fid);
 
         fid.tid_   = MemFun::UserTraits;
         fid.tname_ = "UserTraits";
-        traits_eof = '$';
 
         run_test (&fid);
     }
     else
-        rw_note (0, 0, 0, "string.capacity wchar tests disabled");
+        rw_note (0, 0, 0, "wchar_t tests disabled");
 
     return 0;
 
@@ -890,6 +858,7 @@ int main (int argc, char** argv)
                     "|-no-max_size# "
                     "|-no-clear# "
                     "|-no-empty# "
+                    "|-no-exceptions# "
                     "|-no-char_traits# "
                     "|-no-user_traits",
                     &rw_opt_no_size,
@@ -900,6 +869,7 @@ int main (int argc, char** argv)
                     &rw_opt_no_max_size,
                     &rw_opt_no_clear,
                     &rw_opt_no_empty,
+                    &rw_opt_no_exceptions,
                     &rw_opt_no_char_traits,
                     &rw_opt_no_user_traits);
 }
