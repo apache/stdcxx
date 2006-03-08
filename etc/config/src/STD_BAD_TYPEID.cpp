@@ -11,9 +11,12 @@
 #    include <typeinfo.h>
 #  else
 
-// using typeid() without #including <typeinfo> first
-// yields undefined behavior...
+// 5.2.8, p6 [expr.typeid]:
+// If the header <typeinfo> is not included prior to a use of typeid,
+// the program is ill-formed.
 namespace std {
+
+class type_info { };
 
 class bad_typeid { };
 
