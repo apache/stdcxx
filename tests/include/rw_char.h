@@ -190,9 +190,8 @@ typename UserTraits<charT>::int_type
 UserTraits<charT>::eof_ = std::char_traits<charT>::eof ();
 
 
-_TEST_EXPORT
 _RWSTD_SPECIALIZED_CLASS
-struct UserTraits<UserChar>   // user-defined character traits
+struct _TEST_EXPORT UserTraits<UserChar>   // user-defined character traits
 {
     typedef UserChar char_type;
     typedef UserInt  int_type;
