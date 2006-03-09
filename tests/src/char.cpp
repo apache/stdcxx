@@ -98,6 +98,18 @@ move (char_type *s1, const char_type *s2, size_t n)
 }
 
 
+UserTraits<UserChar>::char_type*
+UserTraits<UserChar>::
+assign (char_type *s, size_t n, char_type c)
+{
+    RW_ASSERT (0 == n || s);
+
+    for (; n--; assign (s [n], c));
+
+    return s;
+}
+
+
 _TEST_EXPORT
 char*
 rw_widen (char *dst, const char *src, size_t len)
