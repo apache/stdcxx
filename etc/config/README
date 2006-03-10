@@ -149,14 +149,14 @@
       ${TOPDIR}/GNUmakefile       master makefile
        +- etc/
        |  +- config/GNUmakefile.* makefiles
-       |     |     /*.config      compiler config files
-       |     |     /fixtree.sh    directory tree configuration script
-       |     |     /makefile.*    common definitions and rules
-       |     |     /runall.sh     testsuite run script
-       |     +- nls/              locale definitions and charmaps
-       |     |  +-charmaps/*      character set description files
-       |     |  +-src/*           locale definition files
-       |     +- src/*             configuration sources and scripts
+       |  |  |     /*.config      compiler config files
+       |  |  |     /fixtree.sh    directory tree configuration script
+       |  |  |     /makefile.*    common definitions and rules
+       |  |  |     /runall.sh     testsuite run script
+       |  |  +- src/              configuration sources and scripts
+       |  +- nls/                 locale definitions and charmaps
+       |     +- charmaps/         character set description files
+       |     +- src/              locale definition files
        +- examples/               set of examples and tutorials
        |  +- include/*.h          common example headers
        |  +- manual/*.cpp         example sources
