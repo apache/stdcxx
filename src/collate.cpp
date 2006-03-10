@@ -54,6 +54,16 @@
 #include "setlocale.h"
 
 
+// define _RWSTD_MB_MAX to the greater of MB_LEN_MAX and 8
+// where 8 the maximum length necessary to encode a Unicode
+// character in UTF-8
+#if _RWSTD_MB_LEN_MAX < 8
+#  define _RWSTD_MB_MAX   8
+#else
+#  define _RWSTD_MB_MAX   _RWSTD_MB_LEN_MAX
+#endif   // _RWSTD_MB_LEN_MAX
+
+
 #if defined (_RWSTD_NO_WCSCOLL) && !defined (_RWSTD_NO_WCSCOLL_IN_LIBC)
 
 extern "C" {
@@ -299,7 +309,7 @@ __rw_get_w_ce_offset (const __rw_collate_t *impl,
 
         unsigned int cur_tab = 0;
 
-        char utf8_enc [_RWSTD_MB_LEN_MAX];
+        char utf8_enc [_RWSTD_MB_MAX];
 
         const unsigned int* tab;
         while (*cur_char < end) {
@@ -345,7 +355,7 @@ __rw_get_wchar_offset (const __rw_collate_t *impl,
     // get the offset of the weight information for the current wide character
 
     unsigned cur_tab = 0;
-    char utf8_enc [_RWSTD_MB_LEN_MAX];
+    char utf8_enc [_RWSTD_MB_MAX];
 
     while (*cur_char < end) {
         // convert the next wchar_t character to a utf8 encoded character
@@ -518,10 +528,17 @@ __rw_strnxfrm (const char *src, _RWSTD_SIZE_T nchars)
 
         _RWSTD_SIZE_T res_size = res.size ();
 
-        // resize the result string to fit itself plus the result
-        // of the transformation including the terminatin NUL
-        // appended by strxfrm()
-        res.resize (res_size + dst_size + 1);
+        _TRY {
+            // resize the result string to fit itself plus the result
+            // of the transformation including the terminatin NUL
+            // appended by strxfrm()
+            res.resize (res_size + dst_size + 1);
+        }
+        _CATCH (...) {
+            if (pbuf != buf)
+                delete[] pbuf;
+            _RETHROW;
+        }
 
         // transfor the source string up to the terminating NUL
         _RWSTD_SIZE_T xfrm_size =
@@ -539,7 +556,15 @@ __rw_strnxfrm (const char *src, _RWSTD_SIZE_T nchars)
         // if strxfrm() transforms the empty string into the empty
         // string, keep the terminating NUL, otherwise drop it
         res_size += xfrm_size + (last && !*psrc && !xfrm_size);
-        res.resize (res_size);
+
+        _TRY {
+            res.resize (res_size);
+        }
+        _CATCH (...) {
+            if (pbuf != buf)
+                delete[] pbuf;
+            _RETHROW;
+        }
     }
 
     if (pbuf != buf)
@@ -662,7 +687,7 @@ __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
 
         typedef _STD::char_traits<wchar_t> Traits;
 
-        const wchar_t* const last = Traits::find (src, wchar_t (), nchars);
+        const wchar_t* const last = Traits::find (src, nchars, L'\0');
 
         if (0 == last) {
 
@@ -707,10 +732,17 @@ __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
 
         _RWSTD_SIZE_T res_size = res.size ();
 
-        // resize the result string to fit itself plus the result
-        // of the transformation including the terminatin NUL
-        // appended by strxfrm()
-        res.resize (res_size + dst_size + 1);
+        _TRY {
+            // resize the result string to fit itself plus the result
+            // of the transformation including the terminatin NUL
+            // appended by strxfrm()
+            res.resize (res_size + dst_size + 1);
+        }
+        _CATCH (...) {
+            if (pbuf != buf)
+                delete[] pbuf;
+            _RETHROW;
+        }
 
         // transfor the source string up to the terminating NUL
         _RWSTD_SIZE_T xfrm_size =
@@ -728,7 +760,15 @@ __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
         // if strxfrm() transforms the empty string into the empty
         // string, keep the terminating NUL, otherwise drop it
         res_size += xfrm_size + (last && !*psrc && !xfrm_size);
-        res.resize (res_size);
+
+        _TRY {
+            res.resize (res_size);
+        }
+        _CATCH (...) {
+            if (pbuf != buf)
+                delete[] pbuf;
+            _RETHROW;
+        }
     }
 
     if (pbuf != buf)
@@ -1122,7 +1162,7 @@ do_transform (const wchar_t* low, const wchar_t* high) const
                                                     ccvt_cat, size, _C_name,
                                                     impl->codeset_name ()));
 
-                        char tmp [_RWSTD_MB_LEN_MAX];
+                        char tmp [_RWSTD_MB_MAX];
 
                         const _RWSTD_SIZE_T nbytes =
                             _RW::__rw_itoutf8 (*tmp_lo2, tmp);
