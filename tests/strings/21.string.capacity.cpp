@@ -2,7 +2,7 @@
  *
  * 21.string.capacity.cpp - test exercising [lib.string.capacity]
  *
- * $Id:
+ * $Id$
  *
  ***************************************************************************
  *
@@ -185,7 +185,7 @@ void test_resize (charT, const MemFun *pfid,
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_capacity (charT, Traits, const MemFun *pfid,
+void test_capacity (charT, Traits*, const MemFun *pfid,
                     int         line,         // line number
                     const char *str,          // string argument
                     std::size_t str_len,      // the string length
@@ -351,7 +351,7 @@ void test_capacity (MemFun      *pfid,
 {
 #undef TEST
 #define TEST(charT, Traits)                                             \
-    test_capacity (charT (), Traits (), pfid, line,                     \
+    test_capacity (charT (), (Traits*)0, pfid, line,                    \
                    str, str_len, nparam, cparam, res, should_throw)
 
     static const char* const fnames[] = {
