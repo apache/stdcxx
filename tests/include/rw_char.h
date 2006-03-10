@@ -193,6 +193,26 @@ UserTraits<charT>::eof_ = std::char_traits<charT>::eof ();
 _RWSTD_SPECIALIZED_CLASS
 struct _TEST_EXPORT UserTraits<UserChar>   // user-defined character traits
 {
+private:
+
+    // not defined to detect bad assumptions made by the library
+    UserTraits ();
+    ~UserTraits ();
+    void operator= (UserTraits&);
+    
+public:
+
+    struct MemFun {
+        enum {
+            assign, eq, lt, compare, length, find, copy, move,
+            assign2, not_eof, to_char_type, to_int_type, eq_int_type,
+            eof,
+            n_funs
+        };
+    };
+
+    static _RWSTD_SIZE_T n_calls_ [];
+
     typedef UserChar char_type;
     typedef UserInt  int_type;
 
@@ -204,24 +224,17 @@ struct _TEST_EXPORT UserTraits<UserChar>   // user-defined character traits
     // accesses to the char_type::f member may trigger a SIGBUS
     // on some architectures (e.g., PA or SPARC) if the member
     // isn't appropriately aligned
-    static void assign (char_type &c1, const char_type &c2) {
-        c1.f = c2.f;
-        c1.c = c2.c;
-    }
 
-    static bool eq (const char_type &c1, const char_type &c2) {
-        return c1.f == c2.f && c1.c == c2.c;
-    }
+    static void assign (char_type&, const char_type&);
 
-    static bool lt (const char_type &c1, const char_type &c2) {
-        return c1.f < c2.f || c1.f == c2.f && c1.c < c2.c;
-    }
+    static bool eq (const char_type&, const char_type&);
+
+    static bool lt (const char_type&, const char_type&);
 
     static int
     compare (const char_type*, const char_type*, _RWSTD_SIZE_T);
         
-    static _RWSTD_SIZE_T
-    length (const char_type*);
+    static _RWSTD_SIZE_T length (const char_type*);
  
     static const char_type*
     find (const char_type*, _RWSTD_SIZE_T, const char_type&);
@@ -235,30 +248,15 @@ struct _TEST_EXPORT UserTraits<UserChar>   // user-defined character traits
     static char_type*
     assign (char_type*, _RWSTD_SIZE_T, char_type);
 
-    static int_type
-    not_eof (const int_type &i) {
-        if (eq_int_type (i, int_type::eof ())) {
-            const char_type c = { 0, 0 };
-            return int_type::from_char (c);
-        }
-        return i;
-    }
+    static int_type not_eof (const int_type&);
 
-    static char_type to_char_type (const int_type &i) {
-        return i.to_char ();
-    }
+    static char_type to_char_type (const int_type&);
       
-    static int_type to_int_type (const char_type &c) {
-        return int_type::from_char (c);
-    }
+    static int_type to_int_type (const char_type&);
 
-    static bool eq_int_type (const int_type &i1, const int_type &i2) {
-        return i1.equal (i2);
-    }
+    static bool eq_int_type (const int_type&, const int_type&);
 
-    static int_type eof () {
-        return int_type::eof ();
-    }
+    static int_type eof ();
 };
 
 

@@ -32,14 +32,56 @@
 #include <string.h>   // for memcpy()
 
 
+size_t
+UserTraits<UserChar>::
+n_calls_ [UserTraits<UserChar>::MemFun::n_funs];
+
+
+void
+UserTraits<UserChar>::
+assign (char_type &c1, const char_type &c2)
+{
+    ++n_calls_ [MemFun::assign];
+
+    c1.f = c2.f;
+    c1.c = c2.c;
+}
+
+
+bool
+UserTraits<UserChar>::
+eq (const char_type &c1, const char_type &c2)
+{
+    ++n_calls_ [MemFun::eq];
+
+    return c1.f == c2.f && c1.c == c2.c;
+}
+
+
+bool
+UserTraits<UserChar>::
+lt (const char_type &c1, const char_type &c2)
+{
+    ++n_calls_ [MemFun::lt];
+
+    return c1.f < c2.f || c1.f == c2.f && c1.c < c2.c;
+}
+
+
 int UserTraits<UserChar>::
 compare (const char_type *s1, const char_type *s2, size_t n)
 {
     RW_ASSERT (0 == n || s1 && s2);
 
+    ++n_calls_ [MemFun::compare];
+
     for (size_t i = 0; i != n; ++i) {
-        if (!eq (s1[i], s2[i])) {
-            return lt (s1[i], s2[i]) ? -1 : 1;
+        if (s1 [i].f != s2 [i].f || s1 [i].c != s2 [i].c) {
+            if (   s1 [i].f < s2 [i].f
+                || s1 [i].f == s2 [i].f && s1 [i].c < s2 [i].c)
+                return -1;
+
+            return 1;
         }
     }
 
@@ -52,8 +94,12 @@ length (const char_type *s)
 {
     RW_ASSERT (0 != s);
 
+    ++n_calls_ [MemFun::length];
+
     size_t len = 0;
-    for (; !eq (*s++, char_type::eos ()); ++len);
+
+    for (; s [len].f || s [len].c; ++len);
+
     return len;
 }
  
@@ -64,9 +110,14 @@ find (const char_type *s, size_t n, const char_type &c)
 {
     RW_ASSERT (0 == n || s);
 
-    for (; n-- && !eq (*s, c); ++s);
+    ++n_calls_ [MemFun::find];
 
-    return eq (*s, c) ? s : 0;
+    for (; n--; ++s) {
+        if (s->f == c.f && s->c == c.c)
+            return s;
+    }
+
+    return 0;
 }
 
 
@@ -74,7 +125,11 @@ UserTraits<UserChar>::char_type*
 UserTraits<UserChar>::
 copy (char_type *dst, const char_type *src, size_t n)
 {
-    for (; n--; *dst++ = *src++);
+    RW_ASSERT (0 == n || dst && src);
+
+    ++n_calls_ [MemFun::copy];
+
+    for (size_t i = 0; i != n; dst [i] = src [i]);
 
     return dst;
 }
@@ -82,19 +137,15 @@ copy (char_type *dst, const char_type *src, size_t n)
 
 UserTraits<UserChar>::char_type*
 UserTraits<UserChar>::
-move (char_type *s1, const char_type *s2, size_t n)
+move (char_type *dst, const char_type *src, size_t n)
 {
-    RW_ASSERT (0 == n || s1 && s2);
+    RW_ASSERT (0 == n || dst && src);
 
-    if (s1 < s2)
-        copy (s1, s2, n);
-    else if (s2 < s1) {
-        s1 += n;
-        s2 += n;
-        for (size_t i = 0; i != n; ++i) 
-            assign (*--s1, *--s2);
-    }
-    return s1;
+    ++n_calls_ [MemFun::move];
+
+    for (; n--; dst [n] = src [n]);
+
+    return dst;
 }
 
 
@@ -104,9 +155,67 @@ assign (char_type *s, size_t n, char_type c)
 {
     RW_ASSERT (0 == n || s);
 
-    for (; n--; assign (s [n], c));
+    ++n_calls_ [MemFun::assign2];
+
+    for (; n--; s [n] = c);
 
     return s;
+}
+
+
+UserTraits<UserChar>::int_type
+UserTraits<UserChar>::
+not_eof (const int_type &i)
+{
+    ++n_calls_ [MemFun::not_eof];
+
+    if (i.equal (int_type::eof ())) {
+        const char_type c = { 0, 0 };
+
+        return int_type::from_char (c);
+    }
+
+    return i;
+}
+
+
+UserTraits<UserChar>::char_type
+UserTraits<UserChar>::
+to_char_type (const int_type &i)
+{
+    ++n_calls_ [MemFun::to_char_type];
+
+    return i.to_char ();
+}
+      
+
+UserTraits<UserChar>::int_type
+UserTraits<UserChar>::
+to_int_type (const char_type &c)
+{
+    ++n_calls_ [MemFun::to_int_type];
+
+    return int_type::from_char (c);
+}
+
+
+bool
+UserTraits<UserChar>::
+eq_int_type (const int_type &i1, const int_type &i2)
+{
+    ++n_calls_ [MemFun::eq_int_type];
+
+    return i1.equal (i2);
+}
+
+
+UserTraits<UserChar>::int_type
+UserTraits<UserChar>::
+eof ()
+{
+    ++n_calls_ [MemFun::eof];
+
+    return int_type::eof ();
 }
 
 
