@@ -129,7 +129,8 @@ copy (char_type *dst, const char_type *src, size_t n)
 
     ++n_calls_ [MemFun::copy];
 
-    for (size_t i = 0; i != n; dst [i] = src [i]);
+    for (size_t i = 0; i != n; i++)
+        dst [i] = src [i];
 
     return dst;
 }
@@ -143,7 +144,14 @@ move (char_type *dst, const char_type *src, size_t n)
 
     ++n_calls_ [MemFun::move];
 
-    for (; n--; dst [n] = src [n]);
+    if (dst < src) {
+        for (size_t i = 0; i != n; ++i)
+            dst [i] = src [i];
+    }
+    else {
+        while (n--)
+            dst [n] = src [n];
+    }
 
     return dst;
 }
@@ -223,21 +231,21 @@ _TEST_EXPORT
 char*
 rw_widen (char *dst, const char *src, size_t len)
 {
-    // dst must point to an array of at least 1 element
-    RW_ASSERT (0 != dst);
-
     // allow src to be null
     if (0 == src)
         src = "";
 
     // compute the length of src if not specified
     if (_RWSTD_SIZE_MAX == len)
-        len = src ? strlen (src) : 0;
+        len = src ? strlen (src) + 1 : 0;
 
     // copy src into dst
-    if (len)
+    if (len) {
+        RW_ASSERT (0 != dst);
+
         memcpy (dst, src, len);
-    else
+    }
+    else if (dst)
         *dst = '\0';
 
     return dst;
@@ -250,26 +258,29 @@ _TEST_EXPORT
 wchar_t*
 rw_widen (wchar_t *dst, const char *src, size_t len)
 {
-    // dst must point to an array of at least 1 element
-    RW_ASSERT (0 != dst);
-
     // allow src to be null
     if (0 == src)
         src = "";
 
     // compute the length of src if not specified
     if (_RWSTD_SIZE_MAX == len)
-        len = src ? strlen (src) : 0;
+        len = src ? strlen (src) + 1 : 0;
 
-    // widen src into dst one element at a time
-    for (size_t i = 0; ; ++i) {
-        typedef unsigned char UChar;
+    // if len is non-zero dst must be non-0 as well
+    RW_ASSERT (0 == len || 0 != dst);
 
-        // always NUL-terminate dst
-        dst [i] = wchar_t (UChar (src [i]));
+    if (dst) {
+        // widen src into dst one element at a time
+        for (size_t i = 0; ; ++i) {
+            typedef unsigned char UChar;
 
-        if (i == len)
-            break;
+            if (i == len) {
+                dst [i] = L'\0';
+                break;
+            }
+
+            dst [i] = wchar_t (UChar (src [i]));
+        }
     }
 
     return dst;
@@ -291,18 +302,24 @@ rw_widen (UserChar *dst, const char *src, size_t len)
 
     // compute the length of src if not specified
     if (_RWSTD_SIZE_MAX == len)
-        len = src ? strlen (src) : 0;
+        len = src ? strlen (src) + 1 : 0;
 
-    // widen src into dst one element at a time
-    for (size_t i = 0; ; ++i) {
-        typedef unsigned char UChar;
+    // if len is non-zero dst must be non-0 as well
+    RW_ASSERT (0 == len || 0 != dst);
 
-        // always NUL-terminate dst
-        dst [i].f = 0;
-        dst [i].c = UChar (src [i]);
+    if (dst) {
+        // widen src into dst one element at a time
+        for (size_t i = 0; ; ++i) {
+            typedef unsigned char UChar;
 
-        if (i == len)
-            break;
+            if (i == len) {
+                dst [i] = UserChar::eos ();
+                break;
+            }
+
+            dst [i].f = 0;
+            dst [i].c = UChar (src [i]);
+        }
     }
 
     return dst;
