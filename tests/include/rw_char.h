@@ -260,8 +260,16 @@ public:
 };
 
 
+// widens the string src into the buffer dst; when (dst != 0) the last
+// character in the buffer is guaranteed to be NUL, regardless of the
+// value of str [len]
+// when (len == SIZE_MAX && src != 0), computes len as if by evaluating
+// len = strlen(src)
+// returns dst
 _TEST_EXPORT
-char* rw_widen (char*, const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+char* rw_widen (char*         /* dst */,
+                const char*   /* src */,
+                _RWSTD_SIZE_T /* len */ = _RWSTD_SIZE_MAX);
 
 #ifndef _RWSTD_WCHAR_T
 
