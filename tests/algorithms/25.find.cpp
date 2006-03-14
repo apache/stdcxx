@@ -1,21 +1,27 @@
 /***************************************************************************
  *
- * 25.find.cpp - test exercising 25.1.2 [lib.alg.find]
+ * find.cpp - test exercising 25.1.2 [lib.alg.find]
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2000-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -82,63 +88,45 @@ std::size_t Predicate<T>::funcalls_;
 
 /**************************************************************************/
 
-// used to initialize an array of objects of type T
-static const char *tinit_begin;
-
-int tinit ()
-{
-    typedef unsigned char UChar;
-
-    return UChar (*tinit_begin++);
-}
-
-/**************************************************************************/
-
-template <class InputIterator, class Predicate, class T>
+template <class InputIterator>
 void test_find (int           line,     // line number of test case
                 const char   *src,      // source sequence
                 std::size_t   findoff,  // offset of the element to find
                 InputIterator dummy_iter,
-                T*,
-                Predicate    *pred)
+                bool          test_pred)
 {
-    static const char* const itname = type_name (dummy_iter, (T*)0);
-    static const char* const pname  = pred ? "Predicate" : "operator==";
+    static const char* const itname = type_name (dummy_iter, (X*)0);
+    static const char* const pname  = test_pred ? "Predicate" : "operator==";
 
     const std::size_t nsrc = std::strlen (src);
 
     // normalize offset
-    if (std::size_t (-1) == findoff)
+    if (nsrc < findoff)
         findoff = nsrc;
 
-    // have the T default ctor initialize objects from `src'
-    tinit_begin = src;
-    T::gen_     = tinit;
+    // create always at least 1 element (used to test failed searches)
+    X* const tsrc      = X::from_char (src, nsrc + 1);
+    X* const src_begin = tsrc;
+    X* const src_end   = tsrc + nsrc;
 
-    T* const tsrc = new T [nsrc];
+    //                         current    [first,    last)
+    const InputIterator first (src_begin, src_begin, src_end);
+    const InputIterator last  (src_end,   src_begin, src_end);
 
-    T* const src_begin = tsrc;
-    T* const src_end   = tsrc + nsrc;
-
-    const InputIterator first =
-        make_iter (src_begin, src_begin, src_end, dummy_iter);
-
-    const InputIterator last =
-        make_iter (src_end, src_begin, src_end, dummy_iter);
-
-    // get a reference to the object to find
-    // or construct a temporary if no such object exists
-    const T &to_find = findoff < nsrc ? tsrc [findoff] : T ();
+    // get a reference to the object to find (when findoff == nsrc
+    // the sought for element is outside the source range and won't
+    // be found)
+    const X &to_find = tsrc [findoff];
 
     // construct a predicate object to use with find_if
-    const Predicate fun (to_find, 0 /* dummy */);
+    const Predicate<X> pred (to_find, 0 /* dummy */);
 
     // reset the operator==() counter
-    T::n_total_op_eq_ = 0;
+    X::n_total_op_eq_ = 0;
 
     // invoke find() or find_if(), depending on the predicate flag
-    const InputIterator res = pred ?
-        std::find_if (first, last, fun) : std::find (first, last, to_find);
+    const InputIterator res = test_pred ?
+        std::find_if (first, last, pred) : std::find (first, last, to_find);
 
     // silence a bogus EDG eccp remark #550-D:
     // variable "res" was set but never used
@@ -148,7 +136,7 @@ void test_find (int           line,     // line number of test case
     if (!rw_assert (res.cur_ == first.cur_ + findoff, 0, line,
                     "line %d: find%{?}_if%{;} (%s = \"%s\", ..., '%c')"
                     " == (it + %zu), got (it + %td)",
-                    __LINE__, pred != 0, itname, src, to_find.val_,
+                    __LINE__, test_pred, itname, src, to_find.val_,
                     findoff, res.cur_ - first.cur_)) {
         delete[] tsrc;
         return;
@@ -160,12 +148,12 @@ void test_find (int           line,     // line number of test case
     // The complexity when find is successful is actually
     // (res - first) applications of the corresponding predicate.
 
-    const std::size_t npreds = pred ? fun.funcalls_ : T::n_total_op_eq_;
+    const std::size_t npreds = test_pred ? pred.funcalls_ : X::n_total_op_eq_;
 
     rw_assert (npreds <= findoff + 1, 0, line,
                "line %d: find%{?}_if%{;} (%s = \"%s\", ..., '%c') "
                "invoked %s %zu times, expected no more than %zu",
-               __LINE__, pred != 0, itname, src, to_find.val_,
+               __LINE__, test_pred, itname, src, to_find.val_,
                pname, npreds, findoff + 1);
 
     delete[] tsrc;
@@ -173,18 +161,18 @@ void test_find (int           line,     // line number of test case
 
 /**************************************************************************/
 
-template <class InputIterator, class T, class Predicate>
-void test_find (InputIterator dummy_iter, const T*, const Predicate* pred)
+template <class InputIterator>
+void test_find (InputIterator dummy_iter, bool test_pred)
 {   
-    static const char* const itname = type_name (dummy_iter, (T*)0);
+    static const char* const itname = type_name (dummy_iter, (X*)0);
 
-    rw_info (0, 0, 0, "std::find%{?}_if%{;} (%s, %1$s, "
+    rw_info (0, 0, 0, "std::find%{?}_if%{;} (%s, %2$s, "
              "%{?}Predicate%{:}const X&%{;})",
-             0 != pred, itname, 0 != pred);
+             test_pred, itname, test_pred);
 
-#define TEST(src, off_find)                            \
-    test_find (__LINE__, src, std::size_t (off_find),  \
-               dummy_iter, (X*)0, pred)
+#define TEST(src, off_find)                             \
+    test_find (__LINE__, src, std::size_t (off_find),   \
+               dummy_iter, test_pred)
 
     //    +------------------ subject sequence
     //    |               +--- offset of the value to find (-1 for none)
@@ -220,47 +208,44 @@ void test_find (InputIterator dummy_iter, const T*, const Predicate* pred)
 /* extern */ int rw_opt_no_predicate;    // --no-Predicate
 
 static void
-test_find (bool test_predicate)
+test_find (bool test_pred)
 {
     rw_info (0, 0, 0, 
              "template <class %s, class %s> "
              "%1$s std::find%{?}_if%{;} (%1$s, %1$s, "
              "%{?}%2$s%{:}const %2$s&%{;})",
-             "InputIterator", test_predicate ? "Predicate" : "T",
-             test_predicate);
-
-    const Predicate<X>* const pred = test_predicate ?
-        (Predicate<X>*)1 : (Predicate<X>*)0;
+             "InputIterator", test_pred ? "Predicate" : "T",
+             test_pred);
 
     if (rw_opt_no_input_iter) {
         rw_note (0, __FILE__, __LINE__, "InputIterator test disabled");
     }
     else {
-        test_find (InputIter<X>(0, 0, 0), (X*)0, pred);
+        test_find (InputIter<X>(0, 0, 0), test_pred);
     }
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
-        test_find (ConstFwdIter<X>(), (X*)0, pred);
-        test_find (FwdIter<X>(), (X*)0, pred);
+        test_find (ConstFwdIter<X>(), test_pred);
+        test_find (FwdIter<X>(), test_pred);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        test_find (ConstBidirIter<X>(), (X*)0, pred);
-        test_find (BidirIter<X>(), (X*)0, pred);
+        test_find (ConstBidirIter<X>(), test_pred);
+        test_find (BidirIter<X>(), test_pred);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
     }
     else {
-        test_find (ConstRandomAccessIter<X>(), (X*)0, pred);
-        test_find (RandomAccessIter<X>(), (X*)0, pred);
+        test_find (ConstRandomAccessIter<X>(), test_pred);
+        test_find (RandomAccessIter<X>(), test_pred);
     }
 }
 
