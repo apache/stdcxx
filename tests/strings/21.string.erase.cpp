@@ -243,7 +243,6 @@ void test_erase (charT, Traits*, MemFun* pfid,
                CALLARGS, int (sizeof (charT)), pstr, res);
 }
 
-
 /**************************************************************************/
 
 static void
@@ -291,6 +290,20 @@ test_erase (MemFun      *pfid,
             TEST (UserChar, UserTraits<UserChar>);
     }
 }
+
+/**************************************************************************/
+
+static int rw_opt_no_char_traits;       // for --no-char_traits
+static int rw_opt_no_user_traits;       // for --no-user_traits
+
+static int rw_opt_no_user_chars;        // for --no-user_chars
+static int rw_opt_no_exceptions;        // for --no-exceptions
+
+static int rw_opt_no_erase;             // for --no-erase
+static int rw_opt_no_erase_pos;         // for --no-erase-pos
+static int rw_opt_no_erase_count;       // for --no-erase-count
+static int rw_opt_no_erase_iterator;    // for --no-erase-iterator
+static int rw_opt_no_erase_range;       // for --no-erase-range
 
 /**************************************************************************/
 
@@ -385,9 +398,11 @@ test_erase (MemFun *pfid, int which)
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    TEST ("\0",           2,                   1, "\0",          true);
-    TEST ("a",            2,                   1, "a",           true);
-    TEST (long_string,    long_string_len + 1, 1, long_string,   true);
+    if (! rw_opt_no_exceptions) {
+        TEST ("\0",           2,                   1, "\0",          true);
+        TEST ("a",            2,                   1, "a",           true);
+        TEST (long_string,    long_string_len + 1, 1, long_string,   true);
+    }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
@@ -423,27 +438,47 @@ test_erase (MemFun *pfid, int which)
 
 /**************************************************************************/
 
-static int rw_opt_no_char_traits;   // for --no-char_traits
-static int rw_opt_no_user_traits;   // for --no-user_traits
-static int rw_opt_no_user_chars;    // for --no-user_chars
-
-/**************************************************************************/
+static void 
+note_test_disabled (MemFun *pfid, int which)
+{
+    rw_note (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
+             "erase (%{?}%{?}size_type pos%{;}%{?}, size_type n%{;}%{;}"
+             "%{?}iterator first%{?}, iterator last%{;}%{;}) "
+             "test disabled",
+             pfid->cname_, pfid->tname_, pfid->aname_, 4 > which, 
+             2 == which || 3 == which, 3 == which, 4 <= which, which == 5);
+}
 
 static void
 run_test (MemFun *pfid)
 {
-    if (pfid->tname_ && rw_opt_no_user_traits) {
+    if (MemFun::UserTraits == pfid->tid_ && rw_opt_no_user_traits) {
         rw_note (1 < rw_opt_no_user_traits++, 0, 0,
-                 "user defined traits test disabled");
+                 "user defined traits tests disabled");
     }
-    else if (!pfid->tname_ && rw_opt_no_char_traits) {
+    else if (MemFun::DefaultTraits == pfid->tid_ && rw_opt_no_char_traits) {
         rw_note (1 < rw_opt_no_char_traits++, 0, 0,
-                 "char_traits test disabled");
+                 "char_traits tests disabled");
     }
     else {
+
+        if (rw_opt_no_exceptions)
+            rw_note (1 < rw_opt_no_exceptions++, 0, 0,
+                     "string::erase exceptions tests disabled");
+
         // exercise all erase overloads
-        for (int i = 1; i <= 5; i++)
-            test_erase (pfid, i);
+#undef TEST
+#define TEST(option, n)                         \
+        if (option)                             \
+            note_test_disabled (pfid, n);       \
+        else                                    \
+            test_erase (pfid, n);               
+
+        TEST (rw_opt_no_erase,          1);
+        TEST (rw_opt_no_erase_pos,      2);
+        TEST (rw_opt_no_erase_count,    3);
+        TEST (rw_opt_no_erase_iterator, 4);
+        TEST (rw_opt_no_erase_range,    5);
     }
 }
 
@@ -512,9 +547,21 @@ int main (int argc, char** argv)
                     0 /* no comment */,
                     run_test,
                     "|-no-char_traits# "
-                    "|-no-user_traits# ",
-                    "|-no-user_chars",
+                    "|-no-user_traits# "
+                    "|-no-user_chars# "
+                    "|-no-exceptions# "
+                    "|-no-erase# "
+                    "|-no-erase-pos# "
+                    "|-no-erase-count# "
+                    "|-no-erase-iterator# "
+                    "|-no-erase-range",
                     &rw_opt_no_char_traits,
                     &rw_opt_no_user_traits,
-                    &rw_opt_no_user_chars);
+                    &rw_opt_no_user_chars,
+                    &rw_opt_no_exceptions,
+                    &rw_opt_no_erase,
+                    &rw_opt_no_erase_pos,
+                    &rw_opt_no_erase_count,
+                    &rw_opt_no_erase_iterator,
+                    &rw_opt_no_erase_range);
 }
