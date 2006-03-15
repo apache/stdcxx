@@ -6,16 +6,22 @@
  *
  ************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2005-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -31,6 +37,7 @@
 #include <rw_printf.h> // for rw_snprintfa()
 
 #include <assert.h>    // for assert
+#include <ctype.h>     // for islower(), isupper()
 #include <setjmp.h>    // for longjmp, setjmp, ...
 #include <stdarg.h>    // for va_list
 #include <stdio.h>     // for fileno
@@ -38,7 +45,8 @@
 #include <string.h>    // for strchr, strcpy
 
 #if !defined (_WIN32) && !defined (_WIN64)
-#  include <unistd.h>    // for isatty
+#  include <unistd.h>         // for isatty()
+#  include <sys/resource.h>   // for setlimit()
 
 // declare fileno in case it's not declared (for strict ANSI conformance)
 extern "C" {
@@ -362,7 +370,7 @@ _rw_check_init (int expect_init, int line, const char *func)
         // driver is expected to be initialized
         if (!_rw_driver_init) {
             rw_fprintf (rw_stderr,
-                        "%s:%d: %s: test driver not initialized yet\n",
+                        "%s:%d: %s: error: test driver not initialized yet\n",
                         __FILE__, line, func);
 
             abort ();
@@ -371,7 +379,7 @@ _rw_check_init (int expect_init, int line, const char *func)
     else if (_rw_driver_init) {
         // driver is NOT expected to be initialized
         rw_fprintf (rw_stderr,
-                    "%s:%d: %s: test driver already initialized\n",
+                    "%s:%d: %s: error: test driver already initialized\n",
                     __FILE__, line, func);
 
         abort ();
@@ -380,7 +388,7 @@ _rw_check_init (int expect_init, int line, const char *func)
     if (_rw_driver_done) {
         // driver is NOT expected to be done at this point
         rw_fprintf (rw_stderr,
-                    "%s:%d: %s: test finished, cannot call\n",
+                    "%s:%d: %s: warning: test finished, cannot call\n",
                     __FILE__, line, func);
     }
 }
@@ -583,7 +591,8 @@ _rw_setopt_output_file (int argc, char *argv[])
 
     const char *file_name = 0;
 
-    if ('-' == argv [0][0] && 'O' == argv [0][1] || 'o' == argv [0][1]) {
+    if ('-' == argv [0][0] && ('O' == argv [0][1] || 'o' == argv [0][1])
+        && argv [0][2]) {
         file_name = argv [0] + 2;
     }
     else if (1 < argc && '-' != argv [1][0]) {
@@ -635,6 +644,270 @@ _rw_use_color ()
 
 /************************************************************************/
 
+static int
+_rw_setopt_ulimit (int argc, char **argv)
+{
+    if (1 == argc && argv && 0 == argv [0]) {
+        static const char helpstr[] = {
+            "Sets limits on one or more system resources.\n"
+            "The syntax of <arg> is as follows:\n"
+            "<arg>        ::= <limit-list>\n"
+            "<limit-list> ::= <limit> [, <limit-list> ]\n"
+            "<limit>      ::= <resource> : <number>\n"
+            "<resource>   ::= core | cpu | data | fsize | nofile | stack | as\n"
+            "             ::= CORE | CPU | DATA | FSIZE | NOFILE | STACK | AS\n"
+            "             ::= Core | Cpu | Data | Fsize | Nofile | Stack | As\n"
+            "Names in all lowercase letters set the soft limit, those in all\n"
+            "uppercase set the hard limit, names in mixed case will cause \n"
+            "both limits to attempt to be set.\n"
+        };
+
+        argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
+
+        return 0;
+    }
+
+    RW_ASSERT (0 != argv);
+
+#if defined (RLIMIT_CORE) || defined (RLIMIT_CPU) || defined (RLIMIT_DATA)
+
+    static const struct {
+        const char* name;   // name to set only the soft limit
+        const char* caps;   // name to set only the hard limit
+        const char* mixd;   // name to set both limits
+        int         resource;
+    } limits[] = {
+
+#ifdef RLIMIT_CORE
+        { "core", "CORE", "Core", RLIMIT_CORE },
+#endif   // RLIMIT_CORE
+#ifdef RLIMIT_CPU
+        { "cpu", "CPU", "Cpu", RLIMIT_CPU },
+#endif   // RLIMIT_CPU
+#ifdef RLIMIT_DATA
+        { "data", "DATA", "Data", RLIMIT_DATA },
+#endif   // RLIMIT_DATA
+#ifdef RLIMIT_FSIZE
+        { "fsize", "FSIZE", "Fsize", RLIMIT_FSIZE },
+#endif   // RLIMIT_FSIZE
+#ifdef RLIMIT_NOFILE
+        { "nofile", "NOFILE", "Nofile", RLIMIT_NOFILE },
+#endif   // RLIMIT_NOFILE
+#ifdef RLIMIT_STACK
+        { "stack", "STACK", "Stack", RLIMIT_STACK },
+#endif   // RLIMIT_STACK
+#ifdef RLIMIT_AS
+        { "as", "AS", "As", RLIMIT_AS },
+#endif   // RLIMIT_AS
+        { 0, 0 }
+    };
+
+    const char* arg = strchr (argv [0], '=');
+
+    while (arg && *arg) {
+
+        ++arg;
+
+        const size_t arglen = strlen (arg);
+
+        for (size_t i = 0; limits [i].name; ++i) {
+            const size_t limit_len = strlen (limits [i].name);
+
+            if (   limit_len < arglen
+                && (   0 == memcmp (limits [i].name, arg, limit_len)
+                    || 0 == memcmp (limits [i].caps, arg, limit_len)
+                    || 0 == memcmp (limits [i].mixd, arg, limit_len))
+                && ':' == arg [limit_len]) {
+
+                // determine whether the hard limit and/or
+                // the soft limit should be set
+                const bool hard = isupper (arg [0]);
+                const bool soft = islower (arg [1]);
+
+                arg += limit_len + 1;
+
+                char *end;
+                const long lim = strtol (arg, &end, 10);
+
+                arg = end;
+
+                if ('\0' != *arg && ',' != *arg)
+                    break;
+
+                rlimit rlim;
+                memset (&rlim, 0, sizeof rlim);
+
+                rlim.rlim_cur = soft ? lim : RLIM_SAVED_CUR;
+                rlim.rlim_max = hard ? lim : RLIM_SAVED_MAX;
+                
+                const int result = setrlimit (limits [i].resource, &rlim);
+
+                if (result) {
+                    rw_fprintf (rw_stderr,
+                                "setrlimit(RLIMIT_%s, { .rlim_cur=%ld, "
+                                ".rlim_max=%ld }) error: %m\n",
+                                limits [i].caps, rlim.rlim_cur, rlim.rlim_max);
+                }
+
+                break;
+            }
+        }
+
+        if ('\0' != *arg && ',' != *arg) {
+            rw_fprintf (rw_stderr,
+                        "%s: parse error at \"%s\"\n", argv [0], arg);
+            return 1;
+        }
+    }
+
+#else   // if !defined (RLIMIT_XXX)
+
+    rw_fprintf (rw_stderr, "warning: --ulimit: ignoring unimplemented "
+                "option: %s\n", argv [0]);
+
+#endif   // defined (RLIMIT_XXX)
+
+    return 0;
+
+}
+
+
+/************************************************************************/
+
+static int
+_rw_setopt_compat_error (int argc, char **argv, char opt)
+{
+    if (1 == argc && argv && 0 == argv [0]) {
+        static const char helpstr[] = {
+            "Compatibility-mode option\n"
+        };
+
+        argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
+
+        return 0;
+    }
+
+    rw_fprintf (rw_stderr, "error: -%c: option available only "
+                "in compatibility mode\n", opt);
+    return 1;
+}
+
+static int
+_rw_setopt_compat_warn (int argc, char **argv, char opt)
+{
+    if (1 == argc && argv && 0 == argv [0]) {
+        return _rw_setopt_compat_error (argc, argv, opt);
+    }
+
+    rw_fprintf (rw_stderr,
+                "warning: -%c: ignoring unimplemented compatibility "
+                "mode option\n", opt);
+    return 0;
+}
+
+
+static int
+_rw_setopt_compat_append (int argc, char **argv)
+{
+    if (_rw_opt_compat (0, 0))
+        return _rw_setopt_compat_warn (argc, argv, 'A');
+
+    return _rw_setopt_compat_error (argc, argv, 'A');
+}
+
+
+static int
+_rw_setopt_compat_compiler (int argc, char **argv)
+{
+    if (_rw_opt_compat (0, 0))
+        return _rw_setopt_compat_warn (argc, argv, 'C');
+
+    return _rw_setopt_compat_error (argc, argv, 'C');
+}
+
+
+static int
+_rw_setopt_compat_dir (int argc, char **argv)
+{
+    if (_rw_opt_compat (0, 0))
+        return _rw_setopt_compat_warn (argc, argv, 'D');
+
+    return _rw_setopt_compat_error (argc, argv, 'D');
+}
+
+
+static int
+_rw_setopt_compat_debug_file (int argc, char **argv)
+{
+    if (_rw_opt_compat (0, 0))
+        return _rw_setopt_compat_warn (argc, argv, 'G');
+
+    return _rw_setopt_compat_error (argc, argv, 'G');
+}
+
+
+static int
+_rw_setopt_compat_alarm (int argc, char **argv)
+{
+    if (_rw_opt_compat (0, 0))
+        return _rw_setopt_compat_warn (argc, argv, 'L');
+
+    return _rw_setopt_compat_error (argc, argv, 'L');
+}
+
+
+static int
+_rw_setopt_compat_machine (int argc, char **argv)
+{
+    if (_rw_opt_compat (0, 0))
+        return _rw_setopt_compat_warn (argc, argv, 'M');
+
+    return _rw_setopt_compat_error (argc, argv, 'M');
+}
+
+
+static int
+_rw_setopt_compat_output_file (int argc, char **argv)
+{
+    if (_rw_opt_compat (0, 0))
+        return _rw_setopt_output_file (argc, argv);
+
+    return _rw_setopt_compat_error (argc, argv, 'O');
+}
+
+
+static int
+_rw_setopts_compat ()
+{
+    const int nopts =
+        rw_setopts ("A "       // append output
+                    "C: "      // compiler
+                    "D: "      // directory
+                    "G: "      // debug file
+                    "L: "      // alarm
+                    "M: "      // machine
+                    "O: ",     // output file
+                    _rw_setopt_compat_append,
+                    _rw_setopt_compat_compiler,
+                    _rw_setopt_compat_dir,
+                    _rw_setopt_compat_debug_file,
+                    _rw_setopt_compat_alarm,
+                    _rw_setopt_compat_machine,
+                    _rw_setopt_compat_output_file,
+                    0 /* detect missing handlers */);
+
+    if (7 > nopts) {
+        rw_fprintf (rw_stderr,
+                    "%s:%d: rw_setopts() failed\n", __FILE__, __LINE__);
+        abort ();
+        return 1;
+    }
+
+    return 0;
+}
+
+/************************************************************************/
+
 _TEST_EXPORT int
 rw_vtest (int argc, char **argv,
           const char *file_name,
@@ -661,6 +934,7 @@ rw_vtest (int argc, char **argv,
                     "|-severity= "   // argument required
                     "|-csv "
                     "|-compat "
+                    "|-ulimit= "     // argument required
                     "o|-output:"     // argument optional
                     "b|-brief "
                     "q|-quiet "
@@ -671,6 +945,7 @@ rw_vtest (int argc, char **argv,
                     _rw_setopt_trace_mask,
                     _rw_setopt_csv,
                     _rw_opt_compat,
+                    _rw_setopt_ulimit,
                     _rw_setopt_output_file,
                     _rw_opt_brief,
                     _rw_opt_quiet,
@@ -693,6 +968,8 @@ rw_vtest (int argc, char **argv,
     _rw_opt_no_stdout (1, 0);
 
 #endif   // _RWSTD_USE_CONFIG
+ 
+    _rw_setopts_compat ();
 
     _rw_setopts_types ();
 
