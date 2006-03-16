@@ -48,6 +48,14 @@
 #  include <unistd.h>         // for isatty()
 #  include <sys/resource.h>   // for setlimit()
 
+#  ifndef RLIM_SAVED_CUR
+#    define RLIM_SAVED_CUR RLIM_INFINITY
+#  endif   // RLIM_SAVED_CUR
+
+#  ifndef RLIM_SAVED_MAX
+#    define RLIM_SAVED_MAX RLIM_INFINITY
+#  endif   // RLIM_SAVED_MAX
+
 // declare fileno in case it's not declared (for strict ANSI conformance)
 extern "C" {
 
@@ -1055,7 +1063,7 @@ rw_vtest (int argc, char **argv,
             ++nlines;
 
             const long num = (ndiags [i][0] - ndiags [i][1]) * 100L;
-            const long den = ndiags [i][0];
+            const long den = long (ndiags [i][0]);
 
             const long pct = den ? num / den : 0;
 
