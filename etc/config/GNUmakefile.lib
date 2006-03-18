@@ -56,13 +56,10 @@ realclean: dependclean clean
 # build an archive or shared library (repository included for DEC cxx 6.2)
 ifeq ($(findstring shared,$(BUILDMODE)),shared)
 
-  # determione whether we're bulding a .so-type shared library
-  # with VisualAge or a shared archive
-  xlC_lib_suffix = $(findstring xlC,$(CXX))$(LIBSUFFIX)
-
-  ifeq ($(xlC_lib_suffix),xlC.a)
-  # IBM VisualAge first "preprocesses" .o's with -qmkshrobj
-  # and then uses `ar' to create a shared library
+  ifeq ($(findstring archive,$(BUILDMODE)),archive)
+  # shared archives are unique to IBM AIX
+  # IBM VisualAge/XLC++ on AIX first "preprocesses" object files
+  # with -qmkshrobj and then uses `ar' to create a shared archive
 $(TARGET): $(OBJS)
 	@echo "$(CXXPRELINK) -o $(LIBBASE).o" >> $(LOGFILE)
 	$(CXXPRELINK) -o $(LIBBASE).o $(TEEOPTS)
@@ -70,12 +67,12 @@ $(TARGET): $(OBJS)
 	$(AR) $(ARFLAGS) $(LIBNAME) $(LIBBASE).o $(TEEOPTS)
   else
 $(TARGET): $(OBJS) $(MAPFILE)
-	@echo "$(LD) $(OBJS) $(LDFLAGS) -o $@.$(LIBVER)" >> $(LOGFILE)
-	$(LD) $(OBJS) $(LDFLAGS) -o $@.$(LIBVER) $(TEEOPTS)
+	@echo "$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $@.$(LIBVER)" >> $(LOGFILE)
+	$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $@.$(LIBVER) $(TEEOPTS)
 	@echo "ln -sf $@.$(LIBVER) $@" >> $(LOGFILE)
 	rm -f $@
 	ln -s $@.$(LIBVER) $@
-  endif   # eq ($(CXX),xlC)
+  endif   # shared archive
 
 else
 
