@@ -107,7 +107,7 @@
 #
 #   LIBVER    - library version number in the <major>.<minor>.<micro> format
 #
-#   LIBSUFFIX - static/shared library suffix (defaults to a)
+#   LIBSUFFIX - archive/shared library suffix (defaults to a)
 #
 #   LDSOFLAGS - linker flags used when building a shared lib
 #
@@ -416,10 +416,15 @@ ifeq ($(in_topdir),1)
     endif
   endif
 
-  # shared and static library suffix defaults
-  # (may be overridden in config file)
-  SHARED_SUFFIX = .so
-  STATIC_SUFFIX = .a
+  ifeq ($(SHARED_SUFFIX),)
+    # shared library suffix default (may be set in config file)
+    SHARED_SUFFIX = .so
+  endif
+
+  ifeq ($(STATIC_SUFFIX),)
+    # archive library suffix default (may be set in config file)
+    STATIC_SUFFIX = .a
+  endif
 
   # shared/archive
   ifeq ($(findstring shared,$(BUILDMODE)),shared)
