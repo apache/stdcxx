@@ -1,25 +1,29 @@
 /***************************************************************************
  *
- * 22.locale.num.get.cpp - test exercising the std::num_get facet
+ * num_get.cpp - test exercising the std::num_get facet
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2002-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
-
-#include <cstdlib>
 
 // Usage:
 //   #define NO_GET_${T}, where ${T} is the name of the arithmetic
@@ -66,7 +70,7 @@
 #include <any.h>         // for rw_any_t
 #include <cmdopt.h>      // for rw_enabled()
 #include <driver.h>      // for rw_test(), ...
-#include <localedef.h>   // for rw_locales()
+#include <rw_locale.h>   // for rw_locales()
 #include <valcmp.h>      // for rw_equal()
 
 /**************************************************************************/
@@ -232,12 +236,13 @@ int do_test (int         lineno,          // line number
              int         err_expect = -1, // expected iostate
              const char *grouping = "")   // optional grouping string
 {
-    if (!rw_enabled (lineno)) {
+    static const char* const cname = rw_any_t (charT ()).type_name ();
+    static const char* const tname = rw_any_t (nativeT ()).type_name ();
+
+    if (!rw_enabled (lineno /*, cname, tname */)) {
         rw_note (0, __FILE__, __LINE__, "test on line %d disabled", lineno);
         return 0;
     }
-    static const char* const cname = rw_any_t (charT ()).type_name ();
-    static const char* const tname = rw_any_t (nativeT ()).type_name ();
 
     // create a distinct punctuation facet for each iteration to make sure
     // any data cached in between successive calls to the facet's public
@@ -1534,15 +1539,15 @@ void test_llong (charT, const char *cname)
 #    define LL(number)   number ## I64
 #  endif   // _MSC_VER
 
-    TEST (T, LL (                   0),                    "0",  1, 0, Eof);
-    TEST (T, LL (                   0),                   "+0",  2, 0, Eof);
-    TEST (T, LL (                   0),                   "-0",  2, 0, Eof);
-    TEST (T, LL (                   1),                   "+1",  2, 0, Eof);
-    TEST (T, LL (                  -1),                   "-1",  2, 0, Eof);
-    TEST (T, LL (                1079),                 "1079",  4, 0, Eof);
+    TEST (T,  LL (   0),                    "0",  1, 0, Eof);
+    TEST (T,  LL (   0),                   "+0",  2, 0, Eof);
+    TEST (T,  LL (   0),                   "-0",  2, 0, Eof);
+    TEST (T,  LL (   1),                   "+1",  2, 0, Eof);
+    TEST (T, -LL (   1),                   "-1",  2, 0, Eof);
+    TEST (T,  LL (1079),                 "1079",  4, 0, Eof);
 
     // LLONG_MAX for a 64-bit long long
-    TEST (T, LL (+9223372036854775807), "+9223372036854775807", 20, 0, Eof);
+    TEST (T, +LL (9223372036854775807), "+9223372036854775807", 20, 0, Eof);
 
     // compute LLONG_MIN for a 64-bit long long using integer arithmetic
     // to avoid warnings due to 9223372036854775808 being too large for
@@ -1550,7 +1555,7 @@ void test_llong (charT, const char *cname)
     // e.g., gcc 4.0 issues the following:
     // warning: integer constant is so large that it is unsigned
     // warning: this decimal constant is unsigned only in ISO C90
-    TEST (T, LL (-9223372036854775807) - 1, "-9223372036854775808", 20, 0, Eof);
+    TEST (T, -LL (9223372036854775807) - 1, "-9223372036854775808", 20, 0, Eof);
 
     if (rw_opt_no_errno) {
         rw_note (0, 0, 0, "errno test disabled");
@@ -1579,7 +1584,7 @@ void test_ullong (charT, const char *cname)
 #    define ULL(number)   number ## ULL
 #  else   // if defined (_MSC_VER)
      // MSVC 7.0 doesn't recognize the LL suffix
-#    define LL(number)   number ## UI64
+#    define ULL(number)   number ## UI64
 #  endif   // _MSC_VER
 
     TEST (T, ULL (                  0),                     "0",  1, 0, Eof);
@@ -2044,7 +2049,7 @@ void test_flt_uflow (charT, const char *cname)
 
     // eofbit set unless LDBL_MAX ends in an 'L' or 'l'
     // (it may not when it's the same as double)
-    if (0 == std::strpbrk (_RWSTD_STRSTR ( _RWSTD_LDBL_MAX), "Ll"))
+    if (0 == std::strpbrk (_RWSTD_STRSTR (_RWSTD_LDBL_MAX), "Ll"))
         state |= Eof;
 
     TEST (T,  inf, _RWSTD_STRSTR ( _RWSTD_LDBL_MAX), -1, 0, state);
@@ -2417,26 +2422,26 @@ void run_tests (charT, const char *cname)
         rw_note (0, __FILE__, __LINE__, "%s test disabled", tname)
 
 #ifndef _RWSTD_NO_BOOL
-    TEST (bool, "bool");
+    TEST (bool,   "bool");
 #endif   // _RWSTD_NO_BOOL
 
-    TEST (shrt, "short");
-    TEST (int, "int");
-    TEST (long, "long");
-    TEST (ulong, "unsigned long");
+    TEST (shrt,   "short");
+    TEST (int,    "int");
+    TEST (long,   "long");
+    TEST (ulong,  "unsigned long");
 
 #ifndef _RWSTD_NO_LONG_LONG
 
-    TEST (llong, "long long");
+    TEST (llong,  "long long");
     TEST (ullong, "unsigned long long");
 
 #endif   // _RWSTD_NO_LONG_LONG
 
-    TEST (pvoid, "void*");
+    TEST (pvoid,  "void*");
 
-    TEST (flt, "float");
-    TEST (dbl, "double");
-    TEST (ldbl, "long double");
+    TEST (flt,    "float");
+    TEST (dbl,    "double");
+    TEST (ldbl,   "long double");
 }
 
 /**************************************************************************/
