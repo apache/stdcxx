@@ -2,20 +2,26 @@
  *
  * num_get.cpp
  *
- * $Id: //stdlib/dev/source/stdlib/num_get.cpp#79 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -651,11 +657,18 @@ __rw_get_num (void *pval, const char *buf, int type, int flags,
 
             // assumes `buf' is formatted for the current locale
             // specifically, affects the value of decimal_point
-#      ifndef __hpux
-            ld = strtold (buf, &end);
-#      else
+#      if !defined (_RWSTD_OS_HP_UX) || !defined (_LONG_DOUBLE)
 
-            // working around an HP-UX libc bug (PR #2773)
+            // not HP-UX or HP-UX with gcc
+            ld = strtold (buf, &end);
+
+#      else   // UP-UX with _LONG_DOUBLE
+
+            // HP-UX strtold() returns struct long_double
+            // the macro _LONG_DOUBLE is #defined when the struct is defined
+            // note that gcc's replacement <stdlib.h> may actually define the
+            // function with the correct signature
+
             union {
                 LDbl        ld;
                 long_double words;
@@ -680,7 +693,7 @@ __rw_get_num (void *pval, const char *buf, int type, int flags,
             }
 
 #        endif   // __ia64
-#      endif   // __hpux
+#      endif   // HP-UX, _LONG_DOUBLE
 
             err = errno;
 
@@ -691,12 +704,12 @@ __rw_get_num (void *pval, const char *buf, int type, int flags,
                 // set teporarily the global locale to "C" and reparse
                 __rw_setlocale loc ("C", _RWSTD_LC_NUMERIC);
 
-#      ifndef __hpux
+#      if !defined (_RWSTD_OS_HP_UX) || !defined (_LONG_DOUBLE)
                 ld = strtold (buf, &end);
-#      else
+#      else   // HP-UX with _LONG_DOUBLE #defined
                 u.words = strtold (buf, &end);
                 ld      = u.ld;
-#      endif   // __hpux
+#      endif   // HP-UX, _LONG_DOUBLE
 
                 err = errno;
             }
