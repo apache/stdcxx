@@ -55,21 +55,22 @@
 
 /**************************************************************************/
 
-#include <cfloat>
-#include <climits>   // XXX_MAX, XXX_MIN
+#include <cfloat>    // FLT_MAX, FLT_MIN, etc.
+#include <climits>   // INT_MAX, INT_MIN, etc.
 #include <clocale>   // for localeconv(), setlocale()
 #include <cstdio>    // for sprintf(), sscanf()
 #include <cstring>   // for memset(), strerror(), strlen()
-#include <cstddef>
 #include <cerrno>    // for ERANGE, errno
 
 #include <ios>
 #include <limits>
 #include <locale>
 
+#include <alg_test.h>    // for InputIter
 #include <any.h>         // for rw_any_t
 #include <cmdopt.h>      // for rw_enabled()
 #include <driver.h>      // for rw_test(), ...
+#include <rw_char.h>     // for rw_widen()
 #include <rw_locale.h>   // for rw_locales()
 #include <valcmp.h>      // for rw_equal()
 
@@ -128,22 +129,43 @@ int Ctype<charT>::n_widen_;
 
 /**************************************************************************/
 
-// replacement numpunct facet
-
-template <class charT>
-struct Punct: std::numpunct<charT>
+struct PunctData
 {
+    static       char  decimal_point_;
+    static       char  thousands_sep_;
+    static const char* grouping_;
+    static const char* falsename_;
+    static const char* truename_;
+
+    // number of facet objects in existence
+    static int n_objs_;
+
+    // number of calls to do_thousands_sep()
+    static int n_thousands_sep_;
+
+    static void set_names (const char *fname, const char *tname) {
+        falsename_ = fname;
+        truename_  = tname;
+    }
+};
+
+char        PunctData::decimal_point_    = '.';
+char        PunctData::thousands_sep_    = ',';
+const char* PunctData::grouping_  = "";
+const char* PunctData::falsename_ = 0;
+const char* PunctData::truename_  = 0;
+
+int         PunctData::n_thousands_sep_;
+int         PunctData::n_objs_;
+
+
+// replacement numpunct facet
+template <class charT>
+struct Punct: PunctData, std::numpunct<charT>
+{
+    typedef unsigned char                              UChar;
     typedef typename std::numpunct<charT>::char_type   char_type;
     typedef typename std::numpunct<charT>::string_type string_type;
-
-    static char_type        decimal_point_;
-    static char_type        thousands_sep_;
-    static const char      *grouping_;
-    static const char_type *truename_;
-    static const char_type *falsename_;
-
-    static int n_objs_;            // number of facet objects in existence
-    static int n_thousands_sep_;   // number of calls to do_thousands_sep()
 
     Punct (std::size_t ref = 0)
         : std::numpunct<charT>(ref) {
@@ -155,7 +177,7 @@ struct Punct: std::numpunct<charT>
     }
 
     virtual char_type do_decimal_point () const {
-        return decimal_point_;
+        return char_type (UChar (decimal_point_));
     }
 
     virtual std::string do_grouping () const {
@@ -164,59 +186,52 @@ struct Punct: std::numpunct<charT>
 
     virtual char_type do_thousands_sep () const {
         ++n_thousands_sep_;
-        return thousands_sep_;
+        return char_type (UChar (thousands_sep_));
     }
 
     virtual string_type do_truename () const {
-        return truename_ ? string_type (truename_) : string_type ();
+        char_type name [40];
+        return rw_widen (name, truename_, sizeof name / sizeof *name);
     }
 
     virtual string_type do_falsename () const {
-        return falsename_ ? string_type (falsename_) : string_type ();
+        char_type name [40];
+        return rw_widen (name, falsename_, sizeof name / sizeof *name);
     }
 };
 
-template <class charT>
-const char* Punct<charT>::grouping_ = "";
-
-template <class charT>
-typename Punct<charT>::char_type Punct<charT>::decimal_point_ = '.';
-
-template <class charT>
-typename Punct<charT>::char_type Punct<charT>::thousands_sep_ = ',';
-
-template <class charT>
-const typename Punct<charT>::char_type* Punct<charT>::truename_;
-
-template <class charT>
-const typename Punct<charT>::char_type* Punct<charT>::falsename_;
-
-template <class charT>
-int Punct<charT>::n_thousands_sep_;
-
-template <class charT>
-int Punct<charT>::n_objs_;
-
 /**************************************************************************/
 
-template <class charT>
-struct Ios: std::basic_ios<charT>
+template <class charT, class Traits>
+struct Ios: std::basic_ios<charT, Traits>
 {
     Ios () { this->init (0); }
 };
 
+template <class charT, class Traits>
+struct Streambuf: std::basic_streambuf<charT, Traits>
+{
+    typedef std::basic_streambuf<charT, Traits> Base;
 
-template <class charT>
-struct NumGet: std::num_get<charT, const charT*>
+    Streambuf (const charT *gbeg, const charT *gend)
+        : Base () {
+        this->setg (_RWSTD_CONST_CAST (charT*, gbeg),
+                    _RWSTD_CONST_CAST (charT*, gbeg),
+                    _RWSTD_CONST_CAST (charT*, gend));
+    }
+
+    int gptr_off () const {
+        return this->gptr () - this->eback ();
+    }
+};
+
+template <class charT, class InputIterator>
+struct NumGet: std::num_get<charT, InputIterator>
 {
     NumGet () { /* working around a bug in older versions of EDG eccp */ }
 };
 
-
 /**************************************************************************/
-
-#define TEST   do_test
-#define T      __LINE__, charT ()
 
 // if non-zero expected to point to a maximum valid value
 // of type T that's being tested below (used for floating
@@ -226,17 +241,23 @@ struct NumGet: std::num_get<charT, const charT*>
 void *pmax = 0;
 
 
+enum IterType { iter_pointer, iter_istreambuf, iter_input };
+
 template <class charT, class nativeT>
 int do_test (int         lineno,          // line number
              charT       /* dummy */,
+             const char *cname,           // name of character type
+             IterType    itype,           // type of input iterator
+             const char *iname,           // name of input iterator
              nativeT     val,             // value expected to be extracted
              const char *str,             // input sequence
-             int         consumed = -1,   // number of consumed characters
+             int         eat_expect = -1, // number of consumed characters
              int         flags = 0,       // initial set of flags
              int         err_expect = -1, // expected iostate
              const char *grouping = "")   // optional grouping string
 {
-    static const char* const cname = rw_any_t (charT ()).type_name ();
+    typedef std::char_traits<charT> Traits;
+
     static const char* const tname = rw_any_t (nativeT ()).type_name ();
 
     if (!rw_enabled (lineno /*, cname, tname */)) {
@@ -249,8 +270,8 @@ int do_test (int         lineno,          // line number
     // member functions are flushed
     const Punct<charT> pun (1);
 
-    Ios<charT> io;
-    NumGet<charT> ng;
+    Ios<charT, Traits> io;
+    std::ios_base &iob = io;
 
     io.imbue (std::locale (io.getloc (),
                            (const std::numpunct<charT>*)&pun));
@@ -268,12 +289,13 @@ int do_test (int         lineno,          // line number
     nativeT x =
         err_expect & std::ios::failbit || *grouping ? val : nativeT (!val);
 
-    charT wstr_buf [256];   // small buffer to widen `str' to
-    charT *wstr = 0;        // points to wstr_buf if large enough
+    // large buffer to widen `str' to
+    static charT wstr_buf [32767];
 
-    const charT *next;    // iterator to the next character where to parse
+    const charT *pnext;    // iterator to the next character where to parse
 
-    char nbuf [4096];    // narrow character buffer
+    // narrow character buffer
+    static char nbuf [sizeof wstr_buf / sizeof *wstr_buf];
 
     // if the string `str' starts with a '%', treat it as a printf()
     // format specifier and take the string produced by sprintf()
@@ -282,53 +304,65 @@ int do_test (int         lineno,          // line number
     if ('%' == *str && 0 < std::sprintf (nbuf, str, val))
         str = nbuf;
 
-    // convert the narrow character string `str' to a wide character
-    // string `wstr' if charT is wider than char
-    const std::size_t str_len = std::strlen (str);
-
-    if (sizeof (charT) > sizeof (char)) {
-
-        // widen `str' to the wide character buffer if the latter
-        // is large enough, or to a dynamically allocated buffer
-        // otherwise
-        wstr = str_len < sizeof wstr_buf / sizeof *wstr_buf ?
-            wstr_buf : new charT [str_len + 1];
-
-        typedef unsigned char UChar;
-
-        for (std::size_t j = 0; j != str_len + 1; ++j)
-            wstr [j] = charT (UChar (str [j]));
-
-        next = wstr;
-
-    }
-    else {
-
-        // charT == char, just point next at `str'
-        next = (const charT*)str;
-    }
+    pnext = rw_widen (wstr_buf, str);
 
     std::ios_base::iostate err = std::ios_base::goodbit;
 
-    const charT *last = next + std::char_traits<charT>::length (next);
+    const charT *plast = pnext + std::char_traits<charT>::length (pnext);
 
-    last = ng.get (next, last, io, err, x);
+    int consumed;
+
+    switch (itype) {
+    case iter_pointer: {
+        NumGet<charT, const charT*> ng;
+        plast    = ng.get (pnext, plast, iob, err, x);
+        consumed = plast - pnext;
+        break;
+    }
+
+    case iter_istreambuf: {
+        typedef std::istreambuf_iterator<charT, Traits> IStreambufIter;
+
+        Streambuf<charT, Traits> sb (pnext, plast);
+
+        IStreambufIter sbitnext (&sb);
+        IStreambufIter sbitlast; 
+
+        NumGet<charT, IStreambufIter> ng;
+        sbitlast = ng.get (sbitnext, sbitlast, iob, err, x);
+        consumed = sb.gptr_off ();
+        break;
+    }
+
+    case iter_input: {
+        typedef InputIter<charT> UserIter;
+
+        UserIter uitnext (pnext, pnext, plast);
+        UserIter uitlast (plast, pnext, plast);
+
+        NumGet<charT, UserIter> ng;
+        uitlast  = ng.get (uitnext, uitlast, iob, err, x);
+        consumed = uitlast.cur_ - uitnext.cur_;
+        break;
+    }
+
+    }
 
     // do not test the number of extracted characters
-    // if (consumed == -1) holds
-    int success = -1 == consumed || last - next == consumed;
+    // if (eat_expect == -1) holds
+    int success = -1 == eat_expect || consumed == eat_expect;
 
     int nfailures = !success;
 
     rw_assert (success, 0, lineno,
-               "line %d: num_get<%s>::get (%#s, ..., %s&); "
+               "line %d: num_get<%s, %s>::get (%#s, ..., %s&); "
                "fmtflags = %{If}; "
                "%{?}grouping = %#s; %{;}"
                "ate %td, expected %d",
-               __LINE__, cname, str, tname,
+               __LINE__, cname, iname, str, tname,
                flags,
                *grouping && '%' != *grouping, grouping,
-               last - next, consumed);
+               consumed, eat_expect);
 
     const nativeT val_max = pmax ? *(nativeT*)pmax : val;
     // if pmax is non-zero it points to the upper bound of the range
@@ -340,13 +374,13 @@ int do_test (int         lineno,          // line number
     nfailures += !success;
 
     rw_assert (success, 0, lineno,
-               "line %d: num_get<%s>::get (%{*Ac}, ..., %s&); "
+               "line %d: num_get<%s, %s>::get (%{*Ac}, ..., %s&); "
                "fmtflags = %{If}; "
                "%{?}grouping = %#s; %{;}"
                "got %s (%{Is}); "
                "expected %s%{?} <= %s %{;} "
                "(%{Is})",
-               __LINE__, cname, sizeof *str, str, tname,
+               __LINE__, cname, iname, int (sizeof *str), str, tname,
                flags,
                *grouping && '%' != *grouping, grouping,
                TOSTR (x), err,
@@ -378,18 +412,50 @@ int do_test (int         lineno,          // line number
         nfailures += !success;
 
         rw_assert (success, 0, lineno,
-                   "line %d: num_get<%s>::get (%#s, ..., %s&); "
+                   "line %d: num_get<%s, %s>::get (%#s, ..., %s&); "
                    "got %s, but scanf (..., \"%s\", ...) extracted %s "
                    "and returned %d; fmtflags = %{If}, iostate = %{Is}",
-                   __LINE__, cname, str, tname,
+                   __LINE__, cname, iname, str, tname,
                    TOSTR (x), scanspec, TOSTR (y),
                    n, flags, err);
     }
 
-    if (wstr != wstr_buf)
-        delete[] wstr;
-
     return nfailures;
+}
+
+/**************************************************************************/
+
+enum CharType { narrow_char, wide_char, user_char };
+
+template <class nativeT>
+int do_test (int         lineno,          // line number
+             CharType    ctype,           // character type
+             const char *cname,           // name of character type
+             IterType    itype,           // iterator type
+             const char *iname,           // name of iterator type
+             nativeT     val,             // value expected to be extracted
+             const char *str,             // input sequence
+             int         eat_expect = -1,   // number of consumed characters
+             int         flags = 0,       // initial set of flags
+             int         err_expect = -1, // expected iostate
+             const char *grouping = "")   // optional grouping string
+{
+    switch (ctype) {
+    case narrow_char:
+        return do_test (lineno, char (), cname, itype, iname,
+                        val, str, eat_expect, flags, err_expect, grouping);
+    case wide_char:
+        return do_test (lineno, wchar_t (), cname, itype, iname,
+                        val, str, eat_expect, flags, err_expect, grouping);
+    case user_char:
+        break;
+#if 0   // disabled
+        return do_test (lineno, UserChar (), cname, itype, iname,
+                        val, str, eat_expect, flags, err_expect, grouping);
+#endif   // disabled
+    }
+
+    return 1;
 }
 
 /**************************************************************************/
@@ -424,17 +490,21 @@ int do_test (int         lineno,          // line number
 
 /*************************************************************************/
 
-template <class charT, class numT>
-void test_errno (charT, numT)
+#define TEST   do_test
+#define T      __LINE__, ctype, cname, itype, iname
+
+
+template <class numT>
+void test_errno (CharType ctype, const char *cname,
+                 IterType itype, const char *iname, numT)
 {
     // verify that errno doesn't change after, or affects
     // a successful extraction
 
-    const char* const cname = rw_any_t (charT ()).type_name ();
     const char* const tname = rw_any_t (numT ()).type_name ();
 
-    rw_info (0, 0, 0, "std::num_get<%s>::get (..., %s&) and errno",
-             cname, tname);
+    rw_info (0, 0, 0, "std::num_get<%s, %s>::get (..., %s&) and errno",
+             cname, iname, tname);
 
     const int errnos[] = {
         ERANGE, -4, -3, -2, -1, 0, 1, 2, 3, 4,
@@ -484,27 +554,20 @@ void test_errno (charT, numT)
 
 /**************************************************************************/
 
-template <class charT>
-void test_bool (charT, const char *cname)
+static void
+test_bool (CharType ctype, const char *cname,
+           IterType itype, const char *iname)
 {
 #ifndef NO_GET_BOOL
 
     const char* const tname = "bool";
 
-    rw_info (0, 0, 0, "std::num_get<%s>::get (..., %s&)", cname, tname);
+    rw_info (0, 0, 0, "std::num_get<%s, %s>::get (..., %s&)",
+             cname, iname, tname);
 
-    Punct<charT>::decimal_point_ = '.';
-    Punct<charT>::thousands_sep_ = ',';
-
-    {
-        static const charT names[][6] = {
-            { 'f', 'a', 'l', 's', 'e', '\0' },
-            { 't', 'r', 'u', 'e', '\0' }
-        };
-
-        Punct<charT>::falsename_ = names [0];
-        Punct<charT>::truename_  = names [1];
-    }
+    PunctData::decimal_point_ = '.';
+    PunctData::thousands_sep_ = ',';
+    PunctData::set_names ("false", "true");
 
     // lwg issue 17: special treatment for bool:
 
@@ -587,7 +650,7 @@ void test_bool (charT, const char *cname)
 
     // bool, numeric parsing with grouping
 
-    Punct<charT>::thousands_sep_ = ';';
+    PunctData::thousands_sep_ = ';';
 
     TEST (T, false,        "0;0",  3, 0, Eof, "\1");
     TEST (T, false,       "+0;0",  4, 0, Eof, "\1");
@@ -668,15 +731,7 @@ void test_bool (charT, const char *cname)
     TEST (T, false, "f", 1, boolalpha, Eof | Fail);
     TEST (T, false, "",  0, boolalpha, Eof | Fail);
 
-    {
-        static const charT names[][7] = {
-            { 'b', 'o', 'o', 'l', ':', '-', '\0' },
-            { 'b', 'o', 'o', 'l', ':', '+', '\0' }
-        };
-
-        Punct<charT>::falsename_ = names [0];
-        Punct<charT>::truename_  = names [1];
-    }
+    PunctData::set_names ("bool:-", "bool:+");
 
     TEST (T, false, "false", 0, boolalpha, Fail);
     TEST (T, false, "true",  0, boolalpha, Fail);
@@ -687,15 +742,7 @@ void test_bool (charT, const char *cname)
     TEST (T, false, "bool: ", 5, boolalpha, Fail);
     TEST (T, false, "bool: ", 5, boolalpha, Fail);
 
-    {
-        static const charT names[][8] = {
-            { 'B', 'o', 'o', 'l', '\0' },
-            { 'B', 'o', 'o', 'l', 'e', 'a', 'n', '\0' }
-        };
-
-        Punct<charT>::falsename_ = names [0];
-        Punct<charT>::truename_  = names [1];
-    }
+    PunctData::set_names ("Bool", "Boolean");
 
     TEST (T, false, "false", 0, boolalpha, Fail);
     TEST (T, false, "true",  0, boolalpha, Fail);
@@ -706,16 +753,7 @@ void test_bool (charT, const char *cname)
     TEST (T, false, "Boole",  5, boolalpha, Eof | Fail);
     TEST (T, false, "Boolea", 6, boolalpha, Eof | Fail);
 
-
-    {
-        static const charT names[][8] = {
-            { 'B', 'O', 'O', 'L', 'E', 'A', 'N', '\0' },
-            { 'B', 'O', 'O', 'L', '\0' }
-        };
-
-        Punct<charT>::falsename_ = names [0];
-        Punct<charT>::truename_  = names [1];
-    }
+    PunctData::set_names ("BOOLEAN", "BOOL");
 
     TEST (T, false, "false", 0, boolalpha, Fail);
     TEST (T, false, "true",  0, boolalpha, Fail);
@@ -730,16 +768,7 @@ void test_bool (charT, const char *cname)
     TEST (T, false, "BOOLEA", 6, boolalpha, Eof | Fail);
     TEST (T, false, "BOOLE",  5, boolalpha, Eof | Fail);
 
-
-    {
-        static const charT names[][8] = {
-            { '1', '\0' },
-            { '0', '\0' }
-        };
-
-        Punct<charT>::falsename_ = names [0];
-        Punct<charT>::truename_  = names [1];
-    }
+    PunctData::set_names ("1", "0");
 
     TEST (T, false, "false", 0, boolalpha, Fail);
     TEST (T, false, "true",  0, boolalpha, Fail);
@@ -767,17 +796,17 @@ void test_bool (charT, const char *cname)
 
 /**************************************************************************/
 
-
-template <class charT>
-void test_shrt (charT, const char *cname)
+static void
+test_shrt (CharType ctype, const char *cname,
+           IterType itype, const char *iname)
 {
 #ifndef _RWSTD_NO_EXT_NUM_GET
 #  ifndef NO_GET_SHRT
 
     const char* const tname = "short";
 
-    rw_info (0, 0, 0, "extension: std::num_get<%s>::get (..., %s&)",
-             cname, tname);
+    rw_info (0, 0, 0, "extension: std::num_get<%s, %s>::get (..., %s&)",
+             cname, iname, tname);
 
     // short parsing of 0, no base specified
     TEST (T, short (0), "%hi",  1, 0, Eof, "%hi");
@@ -868,7 +897,7 @@ void test_shrt (charT, const char *cname)
         rw_note (0, 0, 0, "errno test disabled");
     }
     else {
-        test_errno (charT (), short ());
+        test_errno (ctype, cname, itype, iname, short ());
     }
 
 #  else   // if defined (NO_GET_SHRT)
@@ -882,17 +911,17 @@ void test_shrt (charT, const char *cname)
 
 /**************************************************************************/
 
-
-template <class charT>
-void test_int (charT, const char *cname)
+static void
+test_int (CharType ctype, const char *cname,
+          IterType itype, const char *iname)
 {
 #ifndef _RWSTD_NO_EXT_NUM_GET
 #  ifndef NO_GET_INT
 
     const char* const tname = "int";
 
-    rw_info (0, 0, 0, "extension: std::num_get<%s>::get (..., %s&)",
-             cname, tname);
+    rw_info (0, 0, 0, "extension: std::num_get<%s, %s>::get (..., %s&)",
+             cname, iname, tname);
 
     TEST (T, 0, "%i",  1, 0, Eof, "%i");
     TEST (T, 0, "%o",  1, 0, Eof, "%i");
@@ -903,7 +932,7 @@ void test_int (charT, const char *cname)
         rw_note (0, 0, 0, "errno test disabled");
     }
     else {
-        test_errno (charT (), int ());
+        test_errno (ctype, cname, itype, iname, int ());
     }
 
 #  else   // if defined (NO_GET_INT)
@@ -917,16 +946,16 @@ void test_int (charT, const char *cname)
 
 /**************************************************************************/
 
-
-template <class charT>
-void test_long (charT, const char *cname)
+static void
+test_long (CharType ctype, const char *cname,
+           IterType itype, const char *iname)
 {
 #ifndef NO_GET_LONG
 
     const char* const tname = "long";
 
-    rw_info (0, 0, 0, "std::num_get<%s>::get (..., %s&)",
-             cname, tname);
+    rw_info (0, 0, 0, "std::num_get<%s, %s>::get (..., %s&)",
+             cname, iname, tname);
 
     // 22.2.3.1, p2 -- integer grammar:
     // 
@@ -1073,7 +1102,7 @@ void test_long (charT, const char *cname)
     TEST (T,     4567890L,   "4567890.1",   7, dec, Good, "%ld");
     TEST (T,      567890L,   "567890e+1",   6, dec, Good, "%ld");
 
-    Punct<charT>::thousands_sep_ = ';';
+    PunctData::thousands_sep_ = ';';
 
     // long parsing, dec base, with grouping (which is optional, empty
     // grouping, "", causes extraction to terminate at the first occurrence
@@ -1194,10 +1223,10 @@ void test_long (charT, const char *cname)
     TEST (T, 2147483620L,   "+214;;7483620 ",  5, dec, Fail, "\7\4");
 
     // unusual thousands_sep
-    Punct<charT>::thousands_sep_ = '.';
+    PunctData::thousands_sep_ = '.';
     TEST (T, 2147483618L, "214.74836.18", 12, dec, Eof, "\2\5");
 
-    Punct<charT>::thousands_sep_ = 'A';
+    PunctData::thousands_sep_ = 'A';
     TEST (T, 2147483617L, "2A14A7483A617", 13, dec, Eof, "\3\4\2");
 
     // Stage 2 parsing algorithm in 22.2.2.1.2, p8 removes thousands_sep
@@ -1206,21 +1235,21 @@ void test_long (charT, const char *cname)
     // may not appear first, when the leading thousands_sep matches
     // the sign character it is taken as the sign
     // (these are totally anal-retentive tests)
-    Punct<charT>::thousands_sep_ = '-';
+    PunctData::thousands_sep_ = '-';
     TEST (T,  2147483617L, "21-47-4-83-617", 14, dec, Eof, "\3\2\1\2");
     TEST (T, -2147483616L, "-214-748-3616 ", 13, dec, Good, "\4\3\3");
 
-    Punct<charT>::thousands_sep_ = '+';
+    PunctData::thousands_sep_ = '+';
     TEST (T, 2147483615L, "2+147+48+3+615", 14, dec, Eof, "\3\1\2\3");
 
     // leading '+' taken as the plus sign and not a thousands_sep
     TEST (T, 2147483614L, "+21+4748361+4 ", 13, dec, Good, "\1\7\2");
 
     // a digit as a thousands_sep is removed from the input sequence
-    Punct<charT>::thousands_sep_ = '0';
+    PunctData::thousands_sep_ = '0';
     TEST (T, 2147483613L, "21047048306013", 14, dec, Eof, "\2\1\3\2");
 
-    Punct<charT>::thousands_sep_ = '1';
+    PunctData::thousands_sep_ = '1';
     TEST (T,   24748362L,     "2147483612", 10, dec, Eof, "\1\6");
 
     // exercise lwg issue 338 (whitespace after sign not allowed)
@@ -1421,7 +1450,7 @@ void test_long (charT, const char *cname)
         rw_note (0, 0, 0, "errno test disabled");
     }
     else {
-        test_errno (charT (), long ());
+        test_errno (ctype, cname, itype, iname, long ());
     }
 
 #endif   // NO_GET_LONG
@@ -1430,16 +1459,16 @@ void test_long (charT, const char *cname)
 
 /**************************************************************************/
 
-
-template <class charT>
-void test_ulong (charT, const char *cname)
+static void
+test_ulong (CharType ctype, const char *cname,
+            IterType itype, const char *iname)
 {
 #ifndef NO_GET_ULONG
 
     const char* const tname = "unsigned long";
 
-    rw_info (0, 0, 0, "std::num_get<%s>::get (..., %s&)",
-             cname, tname);
+    rw_info (0, 0, 0, "std::num_get<%s, %s>::get (..., %s&)",
+             cname, iname, tname);
 
     // negative numbers are conventionally parsed and interpreted
     // according to the following algorithm:
@@ -1514,7 +1543,7 @@ void test_ulong (charT, const char *cname)
         rw_note (0, 0, 0, "errno test disabled");
     }
     else {
-        test_errno (charT (), (unsigned long)0);
+        test_errno (ctype, cname, itype, iname, (unsigned long)0);
     }
 
 #endif   // NO_GET_ULONG
@@ -1522,22 +1551,24 @@ void test_ulong (charT, const char *cname)
 
 /**************************************************************************/
 
-template <class charT>
-void test_llong (charT, const char *cname)
+static void
+test_llong (CharType ctype, const char *cname,
+            IterType itype, const char *iname)
 {
 #ifndef NO_GET_LLONG
+#  ifndef _RWSTD_NO_LONG_LONG
 
     const char* const tname = "long long";
 
-    rw_info (0, 0, 0, "extension: std::num_get<%s>::get (..., %s&)",
-             cname, tname);
+    rw_info (0, 0, 0, "extension: std::num_get<%s, %s>::get (..., %s&)",
+             cname, iname, tname);
 
-#  ifndef _MSC_VER
-#    define LL(number)   number ## LL
-#  else   // if defined (_MSC_VER)
-     // MSVC 7.0 doesn't recognize the LL suffix
-#    define LL(number)   number ## I64
-#  endif   // _MSC_VER
+#    ifndef _MSC_VER
+#      define LL(number)   number ## LL
+#    else   // if defined (_MSC_VER)
+       // MSVC 7.0 doesn't recognize the LL suffix
+#      define LL(number)   number ## I64
+#    endif   // _MSC_VER
 
     TEST (T,  LL (   0),                    "0",  1, 0, Eof);
     TEST (T,  LL (   0),                   "+0",  2, 0, Eof);
@@ -1561,31 +1592,34 @@ void test_llong (charT, const char *cname)
         rw_note (0, 0, 0, "errno test disabled");
     }
     else {
-        test_errno (charT (), (long long)0);
+        test_errno (ctype, cname, itype, iname, (long long)0);
     }
 
+#  endif   // _RWSTD_NO_LONG_LONG
 #endif   // NO_GET_LLONG
 
 }
 
 /**************************************************************************/
 
-template <class charT>
-void test_ullong (charT, const char *cname)
+static void
+test_ullong (CharType ctype, const char *cname,
+             IterType itype, const char *iname)
 {
 #ifndef NO_GET_ULLONG
+#  ifndef _RWSTD_NO_LONG_LONG
 
     const char* const tname = "unsigned long long";
 
-    rw_info (0, 0, 0, "extension: std::num_get<%s>::get (..., %s&)",
-             cname, tname);
+    rw_info (0, 0, 0, "extension: std::num_get<%s, %s>::get (..., %s&)",
+             cname, iname, tname);
 
-#  ifndef _MSC_VER
-#    define ULL(number)   number ## ULL
-#  else   // if defined (_MSC_VER)
-     // MSVC 7.0 doesn't recognize the LL suffix
-#    define ULL(number)   number ## UI64
-#  endif   // _MSC_VER
+#    ifndef _MSC_VER
+#      define ULL(number)   number ## ULL
+#    else   // if defined (_MSC_VER)
+       // MSVC 7.0 doesn't recognize the LL suffix
+#      define ULL(number)   number ## UI64
+#    endif   // _MSC_VER
 
     TEST (T, ULL (                  0),                     "0",  1, 0, Eof);
     TEST (T, ULL (                  0),                    "+0",  2, 0, Eof);
@@ -1598,24 +1632,26 @@ void test_ullong (charT, const char *cname)
         rw_note (0, 0, 0, "errno test disabled");
     }
     else {
-        test_errno (charT (), (unsigned long long)0);
+        test_errno (ctype, cname, itype, iname, (unsigned long long)0);
     }
 
+#  endif   // _RWSTD_NO_LONG_LONG
 #endif   // NO_GET_ULLONG
 
 }
 
 /**************************************************************************/
 
-template <class charT>
-void test_pvoid (charT, const char *cname)
+static void
+test_pvoid (CharType ctype, const char *cname,
+            IterType itype, const char *iname)
 {
 #ifndef NO_GET_PVOID
 
     const char* const tname = "void*";
 
-    rw_info (0, 0, 0, "std::num_get<%s>::get (..., %s&)",
-             cname, tname);
+    rw_info (0, 0, 0, "std::num_get<%s, %s>::get (..., %s&)",
+             cname, iname, tname);
 
     typedef void* PVoid;
 
@@ -1661,14 +1697,14 @@ void test_pvoid (charT, const char *cname)
 
 /**************************************************************************/
 
-
-template <class charT, class floatT>
-void test_floating_point (charT, floatT, bool test_locale)
+template <class floatT>
+void test_floating_point (CharType ctype, const char *cname,
+                          IterType itype, const char *iname,
+                          floatT, bool test_locale)
 {
-    const char* const cname = rw_any_t (charT ()).type_name ();
     const char* const tname = rw_any_t (floatT ()).type_name ();
 
-    Punct<charT>::thousands_sep_ = ';';
+    PunctData::thousands_sep_ = ';';
 
     typedef floatT F;
 
@@ -1884,7 +1920,7 @@ void test_floating_point (charT, floatT, bool test_locale)
     // is the plus or minus character (e.g., on AIX, the Romanian locale,
     // "RO_RO" -- see bug #609)
 
-    Punct<charT>::thousands_sep_ = '+';
+    PunctData::thousands_sep_ = '+';
 
     TEST (T, F ( 123e+4),  "123e+4", 6, 0, Eof, "\1");
     TEST (T, F ( 124e+5),  "124e+5", 6, 0, Eof, "\1");
@@ -1892,7 +1928,7 @@ void test_floating_point (charT, floatT, bool test_locale)
     TEST (T, F (-126e+7), "-126e+7", 7, 0, Eof, "\1");
     TEST (T, F (-127e-8), "-127e-8", 7, 0, Eof, "\1");
 
-    Punct<charT>::thousands_sep_ = '-';
+    PunctData::thousands_sep_ = '-';
 
     TEST (T, F ( 123e-4),  "123e-4", 6, 0, Eof, "\1");
     TEST (T, F ( 124e-5),  "124e-5", 6, 0, Eof, "\1");
@@ -1901,7 +1937,7 @@ void test_floating_point (charT, floatT, bool test_locale)
     TEST (T, F (+127e+8), "+127e+8", 7, 0, Eof, "\1");
 
     // restore to a saner value
-    Punct<charT>::thousands_sep_ = ';';
+    PunctData::thousands_sep_ = ';';
 
     if (test_locale) {
         // verify that the global LC_NUMERIC locale setting
@@ -1921,8 +1957,9 @@ void test_floating_point (charT, floatT, bool test_locale)
 
             if (conv->decimal_point && '.' != *conv->decimal_point) {
                 rw_info (0, 0, 0, 
-                         "num_get<%s>::get(..., %s&) when LC_NUMERIC=\"%s\"",
-                         cname, tname, name);
+                         "num_get<%s, %s>::get(..., %s&) when "
+                         "LC_NUMERIC=\"%s\"",
+                         cname, iname, tname, name);
                 break;
             }
         }
@@ -1939,9 +1976,9 @@ void test_floating_point (charT, floatT, bool test_locale)
     }
     else
         rw_warn (0, 0, 0,
-                 "num_get<%s>::get (..., %s&) known to fail when LC_NUMERIC "
-                 "is set to a locale where decimal_point != '.'",
-                 cname, tname);
+                 "num_get<%s, %s>::get (..., %s&) known to fail when "
+                 "LC_NUMERIC is set to a locale where decimal_point != '.'",
+                 cname, iname, tname);
 
     //////////////////////////////////////////////////////////////////
     // exercise errno
@@ -1949,7 +1986,7 @@ void test_floating_point (charT, floatT, bool test_locale)
         rw_note (0, 0, 0, "errno test disabled");
     }
     else {
-        test_errno (charT (), floatT ());
+        test_errno (ctype, cname, itype, iname, floatT ());
     }
 
 }
@@ -1957,13 +1994,15 @@ void test_floating_point (charT, floatT, bool test_locale)
 
 /**************************************************************************/
 
-template <class charT>
-void test_flt_uflow (charT, const char *cname)
+static void
+test_flt_uflow (CharType ctype, const char *cname,
+                IterType itype, const char *iname)
 {
 #ifndef NO_GET_FLT
 
     rw_info (0, 0, 0,
-             "std::num_get<%s>::get (..., float&) on underflow", cname);
+             "std::num_get<%s, %s>::get (..., float&) on underflow",
+             cname, iname);
 
     // exercise bahvior on underflow
     float val = 0;
@@ -2009,7 +2048,8 @@ void test_flt_uflow (charT, const char *cname)
     pmax = 0;   // reset before next test
 
 
-    rw_info (0, 0, 0, "get (..., float&) on overflow");
+    rw_info (0, 0, 0, "std::num_get<%s, %s>::get (..., float&) on overflow",
+             cname, iname);
 
     const float inf = std::numeric_limits<float>::infinity ();
 
@@ -2068,17 +2108,18 @@ void test_flt_uflow (charT, const char *cname)
 
 /**************************************************************************/
 
-template <class charT>
-void test_flt (charT, const char *cname)
+static void
+test_flt (CharType ctype, const char *cname,
+          IterType itype, const char *iname)
 {
 #ifndef NO_GET_FLT
 
     const char* const tname = "float";
 
-    rw_info (0, 0, 0, "std::num_get<%s>::get (..., %s&)",
-             cname, tname);
+    rw_info (0, 0, 0, "std::num_get<%s, %s>::get (..., %s&)",
+             cname, iname, tname);
 
-    Punct<charT>::thousands_sep_ = ';';
+    PunctData::thousands_sep_ = ';';
 
 #  if    !defined (_RWSTD_NO_STRTOF) || !defined (_RWSTD_NO_STRTOF_IN_LIBC) \
       || !defined (_RWSTD_NO_STRTOD) || !defined (_RWSTD_NO_STRTOD_IN_LIBC)
@@ -2091,7 +2132,7 @@ void test_flt (charT, const char *cname)
 
 #  endif   // _RWSTD_NO_STRTO{D,F}(_IN_LIBC)
 
-    test_floating_point (charT (), float (), test_locale);
+    test_floating_point (ctype, cname, itype, iname, float (), test_locale);
 
     const char *str = _RWSTD_STRSTR (FLT_MAX);
 
@@ -2113,7 +2154,7 @@ void test_flt (charT, const char *cname)
         rw_note (0, 0, 0, "underflow test disabled");
     }
     else {
-        test_flt_uflow (charT (), cname);
+        test_flt_uflow (ctype, cname, itype, iname);
     }
 
 #else   // if defined (NO_GET_FLT)
@@ -2126,14 +2167,13 @@ void test_flt (charT, const char *cname)
 
 /**************************************************************************/
 
-
-template <class charT>
-void test_dbl_uflow (charT, const char *cname)
+void test_dbl_uflow (CharType ctype, const char *cname,
+                     IterType itype, const char *iname)
 {
 #ifndef NO_GET_DBL
 
-    rw_info (0, 0, 0, "std::num_get<%s>::get (..., double&) on underflow",
-             cname);
+    rw_info (0, 0, 0, "std::num_get<%s, %s>::get (..., double&) on underflow",
+             cname, iname);
 
     // exercise bahvior on underflow
     double val = DBL_MIN;
@@ -2171,7 +2211,8 @@ void test_dbl_uflow (charT, const char *cname)
 
 #  ifdef _RWSTD_LDBL_MAX
 
-    rw_info (0, 0, 0, "get (..., double&) on overflow");
+    rw_info (0, 0, 0, "std::num_get<%s, %s>::get (..., double&) on overflow",
+             cname, iname);
 
     const double inf = std::numeric_limits<double>::infinity ();
 
@@ -2197,8 +2238,9 @@ void test_dbl_uflow (charT, const char *cname)
 
 /**************************************************************************/
 
-template <class charT>
-void test_dbl (charT, const char *cname)
+static void
+test_dbl (CharType ctype, const char *cname,
+          IterType itype, const char *iname)
 {
 #ifndef NO_GET_DBL
 
@@ -2214,8 +2256,8 @@ void test_dbl (charT, const char *cname)
 
     const char* const tname = "double";
 
-    rw_info (0, 0, 0, "std::num_get<%s>::get (..., %s&)",
-             cname, tname);
+    rw_info (0, 0, 0, "std::num_get<%s, %s>::get (..., %s&)",
+             cname, iname, tname);
 
 #  if !defined (_RWSTD_NO_STRTOD) || !defined (_RWSTD_NO_STRTOD_IN_LIBC)
 
@@ -2227,13 +2269,13 @@ void test_dbl (charT, const char *cname)
 
 #  endif   // _RWSTD_NO_STRTOD(_IN_LIBC)
 
-    test_floating_point (charT (), double (), test_locale);
+    test_floating_point (ctype, cname, itype, iname, double (), test_locale);
 
     if (rw_opt_no_uflow) {
         rw_note (0, 0, 0, "underflow test disabled");
     }
     else {
-        test_dbl_uflow (charT (), cname);
+        test_dbl_uflow (ctype, cname, itype, iname);
     }
 
 #else   // if defined (NO_GET_DBL)
@@ -2246,14 +2288,15 @@ void test_dbl (charT, const char *cname)
 
 /**************************************************************************/
 
-
-template <class charT>
-void test_ldbl_uflow (charT, const char *cname)
+static void
+test_ldbl_uflow (CharType ctype, const char *cname,
+                 IterType itype, const char *iname)
 {
 #ifndef NO_GET_LDBL
 
     rw_info (0, 0, 0,
-             "std::num_get<%s>::get (..., long double&) on underflow", cname);
+             "std::num_get<%s, %s>::get (..., long double&) on underflow",
+             cname, iname);
 
     // exercise bahvior on underflow
     long double val = LDBL_MIN;
@@ -2289,7 +2332,9 @@ void test_ldbl_uflow (charT, const char *cname)
 
 #  ifdef _RWSTD_LDBL_MAX
 
-    rw_info (0, 0, 0, "get (..., long double&) on overflow");
+    rw_info (0, 0, 0,
+             "std::num_get<%s, %s>::get (..., long double&) on overflow",
+             cname, iname);
 
     const double inf = std::numeric_limits<long double>::infinity ();
 
@@ -2308,8 +2353,9 @@ void test_ldbl_uflow (charT, const char *cname)
 
 /**************************************************************************/
 
-template <class charT>
-void test_ldbl (charT, const char *cname)
+static void
+test_ldbl (CharType ctype, const char *cname,
+           IterType itype, const char *iname)
 {
 #ifndef NO_GET_LDBL
 
@@ -2317,8 +2363,8 @@ void test_ldbl (charT, const char *cname)
 
     const char* const tname = "long double";
 
-    rw_info (0, 0, 0, "std::num_get<%s>::get (..., %s&)",
-             cname, tname);
+    rw_info (0, 0, 0, "std::num_get<%s, %s>::get (..., %s&)",
+             cname, iname, tname);
 
 #    if !defined (_RWSTD_NO_STRTOLD) || !defined (_RWSTD_NO_STRTOLD_IN_LIBC)
 
@@ -2330,7 +2376,7 @@ void test_ldbl (charT, const char *cname)
 
 #    endif   // _RWSTD_NO_STRTOLD(_IN_LIBC)
 
-    test_floating_point (charT (), (long double)0, test_locale);
+    test_floating_point (ctype, cname, itype, iname, 0.0L, test_locale);
 
     long double long_val;
 
@@ -2398,7 +2444,7 @@ void test_ldbl (charT, const char *cname)
         rw_note (0, 0, 0, "underflow test disabled");
     }
     else {
-        test_ldbl_uflow (charT (), cname);
+        test_ldbl_uflow (ctype, cname, itype, iname);
     }
 
 #else   // if defined (NO_GET_LDBL)
@@ -2411,13 +2457,14 @@ void test_ldbl (charT, const char *cname)
 
 /**************************************************************************/
 
-template <class charT>
-void run_tests (charT, const char *cname)
+static void
+run_tests (CharType ctype, const char *cname,
+           IterType itype, const char *iname)
 {
 #undef TEST
 #define TEST(T, tname)                                          \
     if (rw_enabled (tname))                                     \
-        test_ ## T (charT (), cname);                           \
+        test_ ## T (ctype, cname, itype, iname);                \
     else                                                        \
         rw_note (0, __FILE__, __LINE__, "%s test disabled", tname)
 
@@ -2446,18 +2493,28 @@ void run_tests (charT, const char *cname)
 
 /**************************************************************************/
 
-static int
-run_test (int, char*[])
+static void
+run_tests (IterType itype)
 {
-    if (rw_enabled ("char"))
-        run_tests (char (), "char");
+    RW_ASSERT (0 <= itype && itype < 3);
+
+    if (rw_enabled ("char")) {
+        static const char* const inames[] = {
+            "char*", "istreambuf_iterator<char>", "InputIter<char>"
+        };
+        run_tests (narrow_char, "char", itype, inames [itype]);
+    }
     else
         rw_note (0, __FILE__, __LINE__, "char test disabled");
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-    if (rw_enabled ("wchar_t"))
-        run_tests (wchar_t (), "wchar_t");
+    if (rw_enabled ("wchar_t")) {
+        static const char* const inames[] = {
+            "wchar_t*", "istreambuf_iterator<wchar_t>", "InputIter<wchar_t>"
+        };
+        run_tests (wide_char, "wchar_t", itype, inames [itype]);
+    }
     else
         rw_note (0, __FILE__, __LINE__, "wchar_t test disabled");
 
@@ -2467,6 +2524,30 @@ run_test (int, char*[])
              "wchar_t test disabled: _RWSTD_NO_WCHAR_T #defined");
 
 #endif   // _RWSTD_NO_WCHAR_T
+
+#if 0   // disabled
+
+    if (rw_enabled ("UserChar")) {
+        static const char* const inames[] = {
+            "UserChar*", "istreambuf_iterator<UserChar>", "InputIter<UserChar>"
+        };
+        run_tests (narrow_char, "UserChar", itype, inames [itype]);
+    }
+    else
+        rw_note (0, __FILE__, __LINE__, "UserChar test disabled");
+
+#endif   // disabled
+
+}
+
+/**************************************************************************/
+
+static int
+run_test (int, char*[])
+{
+    run_tests (iter_pointer);
+    run_tests (iter_istreambuf);
+    run_tests (iter_input);
 
     return 0;
 }
