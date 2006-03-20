@@ -776,11 +776,11 @@ run_test (MemFun *pfid)
         test_ ## function (pfid);                       \
     } (void)0
 
-    if (pfid->tname_ && rw_opt_no_user_traits) {
+    if (MemFun::UserTraits == pfid->tid_ && rw_opt_no_user_traits) {
         rw_note (1 < rw_opt_no_user_traits++, 0, 0,
                  "user defined traits test disabled");
     }
-    else if (!pfid->tname_ && rw_opt_no_char_traits) {
+    else if (MemFun::DefaultTraits == pfid->tid_ && rw_opt_no_char_traits) {
         rw_note (1 < rw_opt_no_char_traits++, 0, 0,
                  "char_traits test disabled");
     }
@@ -860,7 +860,7 @@ int main (int argc, char** argv)
                     "|-no-empty# "
                     "|-no-exceptions# "
                     "|-no-char_traits# "
-                    "|-no-user_traits",
+                    "|-no-user_traits#",
                     &rw_opt_no_size,
                     &rw_opt_no_resize,
                     &rw_opt_no_length,
