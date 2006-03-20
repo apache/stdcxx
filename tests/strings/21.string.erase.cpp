@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * erase.cpp - string test exercising [lib.string::erase]
+ * 21.string.erase.cpp - string test exercising [lib.string::erase]
  *
  * $Id$
  *
@@ -554,7 +554,7 @@ int main (int argc, char** argv)
                     "|-no-erase-pos# "
                     "|-no-erase-count# "
                     "|-no-erase-iterator# "
-                    "|-no-erase-range",
+                    "|-no-erase-range#",
                     &rw_opt_no_char_traits,
                     &rw_opt_no_user_traits,
                     &rw_opt_no_user_chars,
