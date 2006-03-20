@@ -6,16 +6,22 @@
  *
  ************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2005-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -48,14 +54,15 @@ static void
 do_test (int         line,     // line number of the test case
          const char *fmt,      // format string
          const char *expect,   // expected output or 0 on error
-         const char *result)   // actual result (0 on error)
+         char       *result)   // actual result (0 on error)
 {
+    static char nullstr[] = "null";
     ++ntests;
 
     const char* q_fmt = "\"\"";
 
     if (0 == fmt) {
-        fmt   = "null";
+        fmt   = nullstr;
         q_fmt = "()";
     }
 
@@ -78,12 +85,12 @@ do_test (int         line,     // line number of the test case
         const char* q_result = "\"\"";
 
         if (0 == expect) {
-            expect   = "null";
+            expect   = nullstr;
             q_expect = "()";
         }
 
         if (0 == result) {
-            result   = "null";
+            result   = nullstr;
             q_result = "()";
         }
 
@@ -97,7 +104,8 @@ do_test (int         line,     // line number of the test case
         _RWSTD_ASSERT (!result && !expect);
     }
 
-    free ((char*)result);
+    if (result && result != nullstr)
+        free (result);
 }
 
 
@@ -129,6 +137,55 @@ do_test (int         line,     // line number of the test case
         }                                                               \
         free (s0);                                                      \
     } while (0)
+
+/***********************************************************************/
+
+// returns an invalid or unaligned address (when 1 < size)
+const void* bad_address (size_t size)
+{
+    const char *addr;
+
+    if (1 < size) {
+        static const char buf [] = "0123456789abcdef";
+
+        addr = buf;
+        while (0 == ((size_t)addr & (size - 1)))
+            ++addr;
+    }
+    else {
+
+#ifndef _RWSTD_OS_HP_UX
+        // the first page is usually unmapped
+        addr = (char*)32;
+#else
+        // the first page on HP-UX is readable, this might work
+        addr = (char*)(void*)bad_address + 1024 * 1024 * 16;
+#endif   // _RWSTD_OS_HP_UX
+
+    }
+
+    return addr;
+}
+
+// returns the expected string corresponding to an invalid
+// or unaligned address
+const char* format_bad_address (const void *ptr, bool valid)
+{
+    static char buf [80];
+
+#if 4 == _RWSTD_PTR_SIZE
+    sprintf (buf, "(%s address %#010" _RWSTD_PRIz "x)",
+             valid ? "unaligned" : "invalid", (size_t)ptr);
+#elif 8 == _RWSTD_PTR_SIZE
+    sprintf (buf, "(%s address %#018" _RWSTD_PRIz "x)",
+             valid ? "unaligned" : "invalid", (size_t)ptr);
+#else
+    sprintf (buf, "(%s address %#0" _RWSTD_PRIz "x)",
+             valid ? "unaligned" : "invalid", (size_t)ptr);
+#endif
+
+    return buf;
+}
 
 /***********************************************************************/
 
@@ -339,16 +396,25 @@ void test_string ()
 
     TEST ("%s", 0, 0, 0, "(null)");
 
-#if 4 == _RWSTD_PTR_SIZE
-    TEST ("%s",     (char*)1, 0, 0, "(invalid address 0x00000001)");
-#else
-    TEST ("%s",     (char*)1, 0, 0, "(invalid address 0x0000000000000001)");
-#endif
+    const void* addr = bad_address (0);
+    TEST ("%s", addr, 0, 0, format_bad_address (addr, false));
+
+#ifndef _RWSTD_NO_WCHAR_T
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "\"%ls\": wide character string");
 
+    TEST ("%ls", 0, 0, 0, "(null)");
+
+    addr = bad_address (0);
+    TEST ("%ls", addr, 0, 0, format_bad_address (addr, false));
+
+    addr = bad_address (sizeof (wchar_t));
+    TEST ("%ls", addr, 0, 0, format_bad_address (addr, true));
+
     fprintf (stderr, "Warning: %s\n", "\"%ls\" not exercised");
+
+#endif   //  _RWSTD_NO_WCHAR_T
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{#s}\": quoted character string");
@@ -383,6 +449,8 @@ void test_string ()
     TEST ("%{#*s}", 4, "\0\0\0z", 0, "\"\\0\\0\\0z\"");
     TEST ("%{#*s}", 5, "\0\0\0z", 0, "\"\\0\\0\\0z\\0\"");
 
+#ifndef _RWSTD_NO_WCHAR_T
+
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{#ls}\": quoted wide character string");
 
@@ -415,6 +483,15 @@ void test_string ()
     TEST ("%{#*ls}", 3, L"\0\0\0y", 0, "\"\\0\\0\\0\"");
     TEST ("%{#*ls}", 4, L"\0\0\0z", 0, "\"\\0\\0\\0z\"");
     TEST ("%{#*ls}", 5, L"\0\0\0z", 0, "\"\\0\\0\\0z\\0\"");
+
+    addr = bad_address (0);
+    TEST ("%{#ls}", addr, 0, 0, format_bad_address (addr, false));
+
+    addr = bad_address (sizeof (wchar_t));
+    TEST ("%{#ls}", addr,  0, 0, format_bad_address (addr, true));
+
+#endif   // _RWSTD_NO_WCHAR_T
+
 }
 
 /***********************************************************************/
@@ -427,11 +504,13 @@ void test_chararray ()
     // exercise the formatting of arrays of characters of arbitrary width
     // (i.e., single-byte narrow, 2-byte, 4-byte (usually wchar_t's), and
     // 8-byte characters
+    TEST ("%{Ac}", 0,     0, 0, "(null)");
     TEST ("%{Ac}", "",    0, 0, "\"\"");
     TEST ("%{Ac}", "a",   0, 0, "\"a\"");
     TEST ("%{Ac}", "ab",  0, 0, "\"ab\"");
     TEST ("%{Ac}", "abc", 0, 0, "\"abc\"");
 
+    TEST ("%{1Ac}", 0,     0, 0, "(null)");
     TEST ("%{1Ac}", "",    0, 0, "\"\"");
     TEST ("%{1Ac}", "a",   0, 0, "\"a\"");
     TEST ("%{1Ac}", "ab",  0, 0, "\"ab\"");
@@ -441,6 +520,7 @@ void test_chararray ()
     //       | +-- precision: number of elements in array
     //       | |
     //       v v
+    TEST ("%{1.0Ac}", 0,     0, 0, "(null)");
     TEST ("%{1.0Ac}", "",    0, 0, "\"\"");
     TEST ("%{1.1Ac}", "",    0, 0, "\"\\0\"");
 
@@ -464,6 +544,7 @@ void test_chararray ()
 #endif   // _RWSTD_NO_WCHAR_T
 
     if (2 == wchar_size) {
+        TEST ("%{2Ac}", 0,      0, 0, "(null)");
         TEST ("%{2Ac}", L"",    0, 0, "L\"\"");
         TEST ("%{2Ac}", L"a",   0, 0, "L\"a\"");
         TEST ("%{2Ac}", L"ab",  0, 0, "L\"ab\"");
@@ -498,6 +579,7 @@ void test_chararray ()
         const short s_ab []  = { 'a', 'b', '\0' };
         const short s_abc [] = { 'a', 'b', 'c', '\0' };
             
+        TEST ("%{2Ac}", 0,     0, 0, "(null)");
         TEST ("%{2Ac}", s_,    0, 0, "\"\"");
         TEST ("%{2Ac}", s_a,   0, 0, "\"a\"");
         TEST ("%{2Ac}", s_ab,  0, 0, "\"ab\"");
@@ -505,6 +587,7 @@ void test_chararray ()
     }
 
     if (4 == wchar_size) {
+        TEST ("%{4Ac}", 0,      0, 0, "(null)");
         TEST ("%{4Ac}", L"",    0, 0, "L\"\"");
         TEST ("%{4Ac}", L"a",   0, 0, "L\"a\"");
         TEST ("%{4Ac}", L"ab",  0, 0, "L\"ab\"");
@@ -546,6 +629,7 @@ void test_basic_string ()
 #undef S
 #define S(s)   &(str = std::string (s, sizeof s - 1))
 
+    TEST ("%{S}",  0,                0, 0, "(null)");
     TEST ("%{S}",  S (""),           0, 0, "");
     TEST ("%{S}",  S ("a"),          0, 0, "a");
     TEST ("%{S}",  S ("ab"),         0, 0, "ab");
@@ -570,6 +654,7 @@ void test_basic_string ()
 #  define WS(ws)   \
       &(wstr = std::wstring (L ## ws, sizeof L ## ws / sizeof (wchar_t) - 1))
 
+    TEST ("%{lS}",  0,                 0, 0, "(null)");
     TEST ("%{lS}",  WS (""),           0, 0, "");
     TEST ("%{lS}",  WS ("a"),          0, 0, "a");
     TEST ("%{lS}",  WS ("ab"),         0, 0, "ab");
@@ -594,6 +679,7 @@ void test_basic_string ()
     printf ("%s\n", "extension: \"%{#*S}\": std::basic_string<charT> with "
             "sizeof (charT)");
 
+    TEST ("%{#1S}", 0,            0, 0, "(null)");
     TEST ("%{#1S}", S ("\0bc"),   0, 0, "\"\\0bc\"");
     TEST ("%{#1S}", S ("a\0c"),   0, 0, "\"a\\0c\"");
     TEST ("%{#1S}", S ("ab\0"),   0, 0, "\"ab\\0\"");
@@ -602,6 +688,7 @@ void test_basic_string ()
 
 #if 2 == _RWSTD_WCHAR_T_SIZE
 
+    TEST ("%{#2S}",  0,             0, 0, "(null)");
     TEST ("%{#2S}",  WS (""),       0, 0, "L\"\"");
     TEST ("%{#2S}",  WS ("a"),      0, 0, "L\"a\"");
     TEST ("%{#2S}",  WS ("ab"),     0, 0, "L\"ab\"");
@@ -615,6 +702,7 @@ void test_basic_string ()
 
 #elif 4 == _RWSTD_WCHAR_T_SIZE
 
+    TEST ("%{#4S}",  0,             0, 0, "(null)");
     TEST ("%{#4S}",  WS (""),       0, 0, "L\"\"");
     TEST ("%{#4S}",  WS ("a"),      0, 0, "L\"a\"");
     TEST ("%{#4S}",  WS ("ab"),     0, 0, "L\"ab\"");
@@ -641,35 +729,35 @@ void test_ios_bitmasks ()
     const int out = std::ios_base::out;
     const int ate = std::ios_base::ate;
 
-    TEST ("%{Io}", 0,               0, 0, "openmode(0)");
-    TEST ("%{Io}", in,              0, 0, "in");
-    TEST ("%{Io}", out,             0, 0, "out");
-    TEST ("%{Io}", ate,             0, 0, "ate");
-    TEST ("%{Io}", in | out,        0, 0, "in | out");
-    TEST ("%{Io}", in | ate,        0, 0, "in | ate");
-    TEST ("%{Io}", in | out | ate,  0, 0, "in | out | ate");
-    TEST ("%{Io}", out | ate,       0, 0, "out | ate");
+    TEST ("[%{Io}]", 0,               0, 0, "[openmode(0)]");
+    TEST ("[%{Io}]", in,              0, 0, "[in]");
+    TEST ("[%{Io}]", out,             0, 0, "[out]");
+    TEST ("[%{Io}]", ate,             0, 0, "[ate]");
+    TEST ("[%{Io}]", in | out,        0, 0, "[in | out]");
+    TEST ("[%{Io}]", in | ate,        0, 0, "[in | ate]");
+    TEST ("[%{Io}]", in | out | ate,  0, 0, "[in | out | ate]");
+    TEST ("[%{Io}]", out | ate,       0, 0, "[out | ate]");
 
-    TEST ("%{#Io}", 0,              0, 0, "std::ios::openmode(0)");
-    TEST ("%{#Io}", in,             0, 0, "std::ios::in");
-    TEST ("%{#Io}", out,            0, 0, "std::ios::out");
-    TEST ("%{#Io}", ate,            0, 0, "std::ios::ate");
-    TEST ("%{#Io}", in | out,       0, 0, "std::ios::in | std::ios::out");
-    TEST ("%{#Io}", in | ate,       0, 0, "std::ios::in | std::ios::ate");
-    TEST ("%{#Io}", in | out | ate, 0, 0,
-          "std::ios::in | std::ios::out | std::ios::ate");
-    TEST ("%{#Io}", out | ate,      0, 0, "std::ios::out | std::ios::ate");
+    TEST ("[%{#Io}]", 0,              0, 0, "[std::ios::openmode(0)]");
+    TEST ("[%{#Io}]", in,             0, 0, "[std::ios::in]");
+    TEST ("[%{#Io}]", out,            0, 0, "[std::ios::out]");
+    TEST ("[%{#Io}]", ate,            0, 0, "[std::ios::ate]");
+    TEST ("[%{#Io}]", in | out,       0, 0, "[std::ios::in | std::ios::out]");
+    TEST ("[%{#Io}]", in | ate,       0, 0, "[std::ios::in | std::ios::ate]");
+    TEST ("[%{#Io}]", in | out | ate, 0, 0,
+          "[std::ios::in | std::ios::out | std::ios::ate]");
+    TEST ("[%{#Io}]", out | ate,      0, 0, "[std::ios::out | std::ios::ate]");
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{Iw}\": std::ios_base::seekdir");
 
-    TEST ("%{Iw}",  std::ios::beg, 0, 0, "beg");
-    TEST ("%{Iw}",  std::ios::cur, 0, 0, "cur");
-    TEST ("%{Iw}",  std::ios::end, 0, 0, "end");
+    TEST ("[%{Iw}]",  std::ios::beg, 0, 0, "[beg]");
+    TEST ("[%{Iw}]",  std::ios::cur, 0, 0, "[cur]");
+    TEST ("[%{Iw}]",  std::ios::end, 0, 0, "[end]");
 
-    TEST ("%{#Iw}", std::ios::beg, 0, 0, "std::ios::beg");
-    TEST ("%{#Iw}", std::ios::cur, 0, 0, "std::ios::cur");
-    TEST ("%{#Iw}", std::ios::end, 0, 0, "std::ios::end");
+    TEST ("[%{#Iw}]", std::ios::beg, 0, 0, "[std::ios::beg]");
+    TEST ("[%{#Iw}]", std::ios::cur, 0, 0, "[std::ios::cur]");
+    TEST ("[%{#Iw}]", std::ios::end, 0, 0, "[std::ios::end]");
 }
 
 /***********************************************************************/
@@ -1109,34 +1197,40 @@ void* make_array (int width,   // element width in bytes
 {
     RW_ASSERT (8 == width || 4 == width || 2 == width || 1 == width);
 
-    static union {
 #ifdef _RWSTD_INT64_T
-        _RWSTD_INT64_T i64;
+    typedef _RWSTD_UINT64_T ui64_t;
+    typedef _RWSTD_INT64_T  i64_t;
 #else
-        _RWSTD_INT32_T i64;
-#endif   // _RWSTD_INT64_T
-        _RWSTD_INT32_T i32;
-        _RWSTD_INT16_T i16;
-        _RWSTD_INT8_T  i8;
+    typedef _RWSTD_UINT32_T ui64_t;
+    typedef _RWSTD_INT32_T  i64_t;
+#endif
+    typedef _RWSTD_UINT32_T ui32_t;
+    typedef _RWSTD_INT32_T  i32_t;
+    typedef _RWSTD_INT16_T  ui16_t;
+    typedef _RWSTD_INT16_T  i16_t;
+    typedef _RWSTD_INT8_T   ui8_t;
+    typedef _RWSTD_INT8_T   i8_t;
+
+    static union {
+        i64_t i64;
+        i32_t i32;
+        i16_t i16;
+        i8_t  i8;
     } array [17];
 
     union {
-#ifdef _RWSTD_INT64_T
-        _RWSTD_INT64_T* pi64;
-#else
-        _RWSTD_INT32_T* pi64;
-#endif   // _RWSTD_INT64_T
-        _RWSTD_INT32_T* pi32;
-        _RWSTD_INT16_T* pi16;
-        _RWSTD_INT8_T*  pi8;
+        i64_t* pi64;
+        i32_t* pi32;
+        i16_t* pi16;
+        i8_t*  pi8;
     } ptr = { &array [0].i64 };
 
-#define ADD_ELEMENT(n)                                  \
-    switch (width) {                                    \
-    case 8 /* bytes */: *ptr.pi64++ = a##n; break;      \
-    case 4 /* bytes */: *ptr.pi32++ = a##n; break;      \
-    case 2 /* bytes */: *ptr.pi16++ = a##n; break;      \
-    case 1 /* byte  */: *ptr.pi8++  = a##n; break;      \
+#define ADD_ELEMENT(n)                                          \
+    switch (width) {                                            \
+    case 8 /* bytes */: *ptr.pi64++ = i64_t (a##n); break;      \
+    case 4 /* bytes */: *ptr.pi32++ = i32_t (a##n); break;      \
+    case 2 /* bytes */: *ptr.pi16++ = i16_t (a##n); break;      \
+    case 1 /* byte  */: *ptr.pi8++  = i8_t (a##n); break;       \
     } (void)0
 
     ADD_ELEMENT ( 0); ADD_ELEMENT ( 1); ADD_ELEMENT ( 2); ADD_ELEMENT ( 3);
@@ -1855,11 +1949,12 @@ void test_tm ()
 #define TM   make_tm
 
     TEST ("%{t}",        0, 0, 0, "(null)");
-#if 4 == _RWSTD_PTR_SIZE
-    TEST ("%{t}", (void*)1, 0, 0, "(invalid address 0x00000001)");
-#else
-    TEST ("%{t}", (void*)1, 0, 0, "(invalid address 0x0000000000000001)");
-#endif
+
+    const void* addr = bad_address (0);
+    TEST ("%{t}", addr, 0, 0, format_bad_address (addr, false));
+
+    addr = bad_address (sizeof (tm));
+    TEST ("%{t}", addr, 0, 0, format_bad_address (addr, true));
 
     // exercise human readable format
     TEST ("%{t}", TM (),                      0, 0, "Sun Jan  1 00:00:00 1900");
