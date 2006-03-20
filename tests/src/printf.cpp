@@ -6,16 +6,22 @@
  *
  ************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2005-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -109,7 +115,7 @@ _rw_fmtptr (const FmtSpec&, Buffer&, const void*);
 
 // format an invalid address
 _RWSTD_INTERNAL int
-_rw_fmtbadaddr (const FmtSpec&, Buffer&, const void*);
+_rw_fmtbadaddr (const FmtSpec&, Buffer&, const void*, size_t = 0);
 
 typedef void (*funptr_t)();
 
@@ -759,7 +765,7 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
 
             RW_ASSERT (0 != ptr);
 
-            *ptr = len;
+            *ptr = short (len);
 #else   // if !defined (_RWSTD_LONG_LONG)
             RW_ASSERT (!"%Ln not implemented");
 #endif   // _RWSTD_LONG_LONG
@@ -769,7 +775,7 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
 
             RW_ASSERT (0 != ptr);
 
-            *ptr = len;
+            *ptr = long (unsigned (len));
         }
         else if (spec.mod == spec.mod_t) {
             ptrdiff_t* const ptr = (ptrdiff_t*)spec.param.ptr_;
@@ -1002,7 +1008,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
             RW_ASSERT (size_t (len) < *buf.pbufsize);
             RW_ASSERT (buf.endoff < *buf.pbufsize);
 
-            const size_t offinx = nextoff - 1;
+            const size_t offinx = size_t (nextoff - 1);
 
             if (pspec [paramno].cond_end && pspec [paramno].cond_begin) {
                 // change from an if to an else clause
@@ -1676,7 +1682,7 @@ _rw_fmtpointer (const FmtSpec &spec, Buffer &buf,
 
     if (newspec.fl_pound) {
         // prepend the 0x prefix even to null pointers
-        if (0 == _rw_bufcat (buf, "0x", len = 2)) {
+        if (0 == _rw_bufcat (buf, "0x", size_t (len = 2))) {
             return -1;
         }
 
@@ -1697,7 +1703,7 @@ _rw_fmtpointer (const FmtSpec &spec, Buffer &buf,
         // separate pointer components with colons
         int n = 0;
         if (i + 1 < nelems) {
-            if (0 == _rw_bufcat (buf, ":", n = 1)) {
+            if (0 == _rw_bufcat (buf, ":", size_t (n = 1))) {
                 len = -1;
                 break;
             }
@@ -1721,14 +1727,21 @@ _rw_fmtptr (const FmtSpec &spec, Buffer &buf, const void *val)
 /********************************************************************/
 
 _RWSTD_INTERNAL int
-_rw_fmtbadaddr (const FmtSpec &spec, Buffer &buf, const void *addr)
+_rw_fmtbadaddr (const FmtSpec &spec, Buffer &buf,
+                const void *addr, size_t objsize /* = 0 */)
 {
     if (0 == addr)
         return _rw_bufcat (buf, "(null)", 6) ? 6 : -1;
 
     const size_t off = buf.endoff;
 
-    if (0 == _rw_bufcat (buf, "(invalid address ", 17))
+    const size_t num_addr = (size_t)addr;
+
+    if (objsize && (num_addr & (objsize - 1))) {
+        if (0 == _rw_bufcat (buf, "(unaligned address ", 19))
+            return -1;
+    }
+    else if (0 == _rw_bufcat (buf,    "(invalid address ", 17))
         return -1;
 
     FmtSpec newspec (spec);
@@ -2312,8 +2325,9 @@ _rw_fmtmask (const FmtSpec &spec, Buffer &buf, int c)
 static int
 _rw_fmttm (const FmtSpec &spec, Buffer &buf, const tm *tmb)
 {
-    if (0 == tmb || 0 > _RW::__rw_memattr (tmb, sizeof *tmb, 0)) {
-        return _rw_fmtbadaddr (spec, buf, tmb);
+    if (   0 == tmb || 0 > _RW::__rw_memattr (tmb, sizeof *tmb, 0)
+        || (size_t)tmb & (sizeof (int) - 1)) {
+        return _rw_fmtbadaddr (spec, buf, tmb, sizeof (int));
     }
 
     static const char* const months[] = {
@@ -2731,10 +2745,11 @@ int rw_fmtarray (const FmtSpec &spec,
 {
     RW_ASSERT (0 != buf.pbuf);
 
-    if (0 == array || 0 > _RW::__rw_memattr (array, _RWSTD_SIZE_MAX, 0)) {
+    if (   0 == array || 0 > _RW::__rw_memattr (array, _RWSTD_SIZE_MAX, 0)
+        || ((size_t)array & (sizeof *array - 1))) {
         // qualify the name of the static function in order to
         // allow it to be found when referenced from a template
-        return ::_rw_fmtbadaddr (spec, buf, array);
+        return ::_rw_fmtbadaddr (spec, buf, array, sizeof *array);
     }
 
     if (_RWSTD_SIZE_MAX == nelems) {
@@ -2980,7 +2995,7 @@ _rw_fmtarray (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
     if (0 == spec.fl_zero)
         spec.fl_pound = 0;
 
-    const size_t nelems = spec.prec;
+    const size_t nelems = size_t (spec.prec);
     spec.prec = -1;
 
     int len = -1;
@@ -3167,8 +3182,9 @@ _rw_fmtwstr (const FmtSpec &spec, Buffer &buf,
         return rw_fmtarray (spec, buf, wstr, len, flags);
     }
 
-    if (0 == wstr || 0 > _RW::__rw_memattr (wstr, _RWSTD_SIZE_MAX, 0))
-        return _rw_fmtbadaddr (spec, buf, wstr);
+    if (   0 == wstr || 0 > _RW::__rw_memattr (wstr, _RWSTD_SIZE_MAX, 0)
+        || ((size_t)wstr & (sizeof *wstr - 1)))
+        return _rw_fmtbadaddr (spec, buf, wstr, sizeof *wstr);
 
     if (_RWSTD_SIZE_MAX == len) {
 
@@ -3285,10 +3301,10 @@ rw_bmpfmt (const FmtSpec &spec, Buffer &buf,
         else
             strcpy (buffer, all_clear);
 
-        buffersize = strlen (buffer) + 1;
+        buffersize = strlen (buffer);
     }
     else if (bits) {
-        buffersize = strlen (buffer) + 1;
+        buffersize = strlen (buffer);
 
         // verify that buffer wasn't overflowed
         RW_ASSERT (buffersize <= sizeof buffer);
@@ -3304,7 +3320,7 @@ rw_bmpfmt (const FmtSpec &spec, Buffer &buf,
         buffersize += n;
     }
     else {
-        buffersize = strlen (buffer) + 1;
+        buffersize = strlen (buffer);
     }
 
     // verify that buffer wasn't overflowed
@@ -3916,19 +3932,34 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
             spec.param.ptr_ = PARAM (ptr_);
 
             const std::wstring* const pstr = (std::wstring*)spec.param.ptr_;
-            const wchar_t* const wstr = pstr->data ();
-            const std::wstring::size_type size = pstr->size ();
 
-            len = _rw_fmtwstr (spec, buf, wstr, size);
+            if (   0 == pstr || 0 > _RW::__rw_memattr (pstr, sizeof *pstr, 0)
+                || (size_t)pstr & (sizeof (pstr) - 1)) {
+                len = _rw_fmtbadaddr (spec, buf, pstr, sizeof pstr);
+            }
+            else {
+
+                const wchar_t* const wstr = pstr->data ();
+                const std::wstring::size_type size = pstr->size ();
+
+                len = _rw_fmtwstr (spec, buf, wstr, size);
+            }
         }
         else {   // std::string
             spec.param.ptr_ = PARAM (ptr_);
 
             const std::string* const pstr = (std::string*)spec.param.ptr_;
-            const char* const str = pstr->data ();
-            const std::string::size_type size = pstr->size ();
 
-            len = _rw_fmtstr (spec, buf, str, size);
+            if (   0 == pstr || 0 > _RW::__rw_memattr (pstr, sizeof *pstr, 0)
+                || (size_t)pstr & (sizeof (pstr) - 1)) {
+                len = _rw_fmtbadaddr (spec, buf, pstr, sizeof pstr);
+            }
+            else {
+                const char* const str = pstr->data ();
+                const std::string::size_type size = pstr->size ();
+
+                len = _rw_fmtstr (spec, buf, str, size);
+            }
         }
         break;
 
@@ -4109,7 +4140,7 @@ _rw_vfprintf (rw_file *file, const char *fmt, va_list va)
             //        for async-signal safety
             FILE* const stdio_file = _RWSTD_REINTERPRET_CAST (FILE*, file);
 
-            nwrote = fwrite (buf, 1, nchars, stdio_file);
+            nwrote = fwrite (buf, 1, size_t (nchars), stdio_file);
 
             // flush in case stderr isn't line-buffered (e.g., when
             // it's determined not to refer to a terminal device,
