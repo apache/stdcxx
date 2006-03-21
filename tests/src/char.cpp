@@ -229,7 +229,7 @@ eof ()
 
 _TEST_EXPORT
 char*
-rw_widen (char *dst, const char *src, size_t len)
+rw_widen (char *dst, const char *src, size_t len /* = SIZE_MAX */)
 {
     // compute the length of src if not specified
     if (_RWSTD_SIZE_MAX == len)
@@ -254,11 +254,18 @@ rw_widen (char *dst, const char *src, size_t len)
 }
 
 
+_TEST_EXPORT
+char* rw_narrow (char *dst, const char *src, size_t len /* = SIZE_MAX */)
+{
+    return rw_widen (dst, src, len);
+}
+
+
 #ifndef _RWSTD_WCHAR_T
 
 _TEST_EXPORT
 wchar_t*
-rw_widen (wchar_t *dst, const char *src, size_t len)
+rw_widen (wchar_t *dst, const char *src, size_t len /* = SIZE_MAX */)
 {
     // compute the length of src if not specified
     if (_RWSTD_SIZE_MAX == len)
@@ -290,12 +297,52 @@ rw_widen (wchar_t *dst, const char *src, size_t len)
     return dst;
 }
 
+
+_TEST_EXPORT
+char*
+rw_narrow (char *dst, const wchar_t *src, size_t len /* = SIZE_MAX */)
+{
+    // compute the length of src if not specified
+    if (_RWSTD_SIZE_MAX == len) {
+        if (src) {
+            for (len = 0; src [len]; ++len);
+        }
+        else
+            len = 0;
+    }
+
+    // if len is non-zero dst must be non-0 as well
+    RW_ASSERT (0 == len || 0 != dst);
+
+    if (dst) {
+        if (src) {
+            // narrow src into dst one element at a time
+            for (size_t i = 0; ; ++i) {
+                typedef unsigned char UChar;
+
+                if (i == len) {
+                    dst [i] = '\0';
+                    break;
+                }
+
+                dst [i] = char (UChar (src [i]));
+            }
+        }
+        else {
+            // set dst to all NUL
+            memset (dst, 0, len);
+        }
+    }
+
+    return dst;
+}
+
 #endif   // _RWSTD_WCHAR_T
 
 
 _TEST_EXPORT
 UserChar*
-rw_widen (UserChar *dst, const char *src, size_t len)
+rw_widen (UserChar *dst, const char *src, size_t len /* = SIZE_MAX */)
 {
     // compute the length of src if not specified
     if (_RWSTD_SIZE_MAX == len)
@@ -322,6 +369,46 @@ rw_widen (UserChar *dst, const char *src, size_t len)
         else {
             // set dst to all NUL
             memset (dst, 0, len * sizeof *dst);
+        }
+    }
+
+    return dst;
+}
+
+
+_TEST_EXPORT
+char*
+rw_narrow (char *dst, const UserChar *src, size_t len /* = SIZE_MAX */)
+{
+    // compute the length of src if not specified
+    if (_RWSTD_SIZE_MAX == len) {
+        if (src) {
+            for (len = 0; src [len].f || src [len].c; ++len);
+        }
+        else
+            len = 0;
+    }
+
+    // if len is non-zero dst must be non-0 as well
+    RW_ASSERT (0 == len || 0 != dst);
+
+    if (dst) {
+        if (src) {
+            // narrow src into dst one element at a time
+            for (size_t i = 0; ; ++i) {
+                typedef unsigned char UChar;
+
+                if (i == len) {
+                    dst [i] = '\0';
+                    break;
+                }
+
+                dst [i] = char (src [i].c);
+            }
+        }
+        else {
+            // set dst to all NUL
+            memset (dst, 0, len);
         }
     }
 
