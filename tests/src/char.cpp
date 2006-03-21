@@ -255,9 +255,33 @@ rw_widen (char *dst, const char *src, size_t len /* = SIZE_MAX */)
 
 
 _TEST_EXPORT
-char* rw_narrow (char *dst, const char *src, size_t len /* = SIZE_MAX */)
+char*
+rw_narrow (char *dst, const char *src, size_t len /* = SIZE_MAX */)
 {
     return rw_widen (dst, src, len);
+}
+
+
+_TEST_EXPORT
+size_t
+rw_match (const char *s1, const char *s2, size_t len /* = SIZE_MAX */)
+{
+    if (0 == s1) {
+        // return the length of s2 if non-null
+        return s2 ? strlen (s2) : 0;
+    }
+
+    if (0 == s2)
+        return strlen (s1);
+
+    size_t n = 0;
+
+    for ( ; n != len && s1 [n] == s2 [n]; ++n) {
+        if (_RWSTD_SIZE_MAX == len && '\0' == s1 [n])
+            break;
+    }
+
+    return n;
 }
 
 
@@ -337,6 +361,36 @@ rw_narrow (char *dst, const wchar_t *src, size_t len /* = SIZE_MAX */)
     return dst;
 }
 
+
+_TEST_EXPORT
+size_t
+rw_match (const char *s1, const wchar_t *s2, size_t len /* = SIZE_MAX */)
+{
+    if (0 == s1) {
+        if (s2) {
+            // return the length of s2
+            for (len = 0; s2 [len]; ++len);
+            return len;
+        }
+
+        return 0;
+    }
+
+    if (0 == s2)
+        return strlen (s1);
+
+    typedef unsigned char UChar;
+
+    size_t n = 0;
+
+    for ( ; n != len && UChar (s1 [n]) == unsigned (s2 [n]); ++n) {
+        if (_RWSTD_SIZE_MAX == len && '\0' == s1 [n])
+            break;
+    }
+
+    return n;
+}
+
 #endif   // _RWSTD_WCHAR_T
 
 
@@ -413,4 +467,34 @@ rw_narrow (char *dst, const UserChar *src, size_t len /* = SIZE_MAX */)
     }
 
     return dst;
+}
+
+
+_TEST_EXPORT
+size_t
+rw_match (const char *s1, const UserChar *s2, size_t len /* = SIZE_MAX */)
+{
+    if (0 == s1) {
+        if (s2) {
+            // return the length of s2
+            for (len = 0; s2 [len].f || s2 [len].c; ++len);
+            return len;
+        }
+
+        return 0;
+    }
+
+    if (0 == s2)
+        return strlen (s1);
+
+    typedef unsigned char UChar;
+
+    size_t n = 0;
+
+    for ( ; n != len && UChar (s1 [n]) == s2 [n].c; ++n) {
+        if (_RWSTD_SIZE_MAX == len && '\0' == s1 [n])
+            break;
+    }
+
+    return n;
 }

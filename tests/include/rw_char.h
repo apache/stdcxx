@@ -281,6 +281,17 @@ char* rw_narrow (char*         /* dst */,
                  const char*   /* src */,
                  _RWSTD_SIZE_T /* len */ = _RWSTD_SIZE_MAX);
 
+// rw_match() compares up to len successive elements of s1 and s2 for
+// equality until it finds a pair that do not compare equal or until
+// len comparisons has been made
+// if (len == SIZE_MAX) is true elements are compared until the first
+// mismatch is found or until the NUL character is encountered
+// returns the number of matching elements
+_TEST_EXPORT
+_RWSTD_SIZE_T rw_match (const char*   /* s1  */,
+                        const char*   /* s2  */,
+                        _RWSTD_SIZE_T /* len */ = _RWSTD_SIZE_MAX);
+
 #ifndef _RWSTD_WCHAR_T
 
 _TEST_EXPORT
@@ -289,6 +300,10 @@ wchar_t* rw_widen (wchar_t*, const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 _TEST_EXPORT
 char* rw_narrow (char*, const wchar_t*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
+_TEST_EXPORT
+_RWSTD_SIZE_T rw_match (const char*, const wchar_t*,
+                        _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+
 #endif   // _RWSTD_WCHAR_T
 
 _TEST_EXPORT
@@ -296,5 +311,9 @@ UserChar* rw_widen (UserChar*, const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
 _TEST_EXPORT
 char* rw_narrow (char*, const UserChar*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+
+_TEST_EXPORT
+_RWSTD_SIZE_T rw_match (const char*, const UserChar*,
+                        _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
 #endif   // RW_CHAR_INCLUDED
