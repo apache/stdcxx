@@ -265,6 +265,9 @@ public:
 // value of str [len]
 // when (len == SIZE_MAX && src != 0), computes len as if by evaluating
 // len = strlen(src)
+// when (src == 0 && len < SIZE_MAX), initializes the first len elements
+// of dst to NUL (i.e., such a call is the equivalent of calling
+// memset(dst, 0, len * sizeof *dst))
 // returns dst
 _TEST_EXPORT
 char* rw_widen (char*         /* dst */,
