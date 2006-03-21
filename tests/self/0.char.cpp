@@ -382,6 +382,7 @@ test_widen ()
 
     static const char   src []  = "abcdefgh";
     static const size_t nsrc = sizeof src;
+    static const char   null [nsrc + 1] = "";
     char                cdst [nsrc + 1];
 
     for (size_t i = 0; i != nsrc + 1; ++i) {
@@ -401,12 +402,22 @@ test_widen ()
                    src, i < nsrc, i, int (i), src, int (i + 1), cdst);
     }
 
+    memset (cdst, '@', sizeof cdst);
+    rw_widen (cdst, 0, sizeof cdst);
+
+    rw_assert (0 == memcmp (cdst, null, sizeof cdst), 0, __LINE__,
+               "rw_widen(char*, %{#s}, %zu) == %{#*s}, got %{#*s}",
+               0, sizeof cdst, int (sizeof cdst), null,
+               int (sizeof cdst), cdst);
+               
+
 #ifndef _RWSTD_NO_WCHAR_T
 
     //////////////////////////////////////////////////////////////////
     rw_info (0, 0, 0, "rw_widen(wchar_t*, const char*, size_t)");
 
     static const wchar_t wsrc [] = L"abcdefgh";
+    static const wchar_t wnull [nsrc + 1] = L"";
     wchar_t              wdst [nsrc + 1];
 
     for (size_t i = 0; i != nsrc + 1; ++i) {
@@ -427,6 +438,14 @@ test_widen ()
                    "got L%{#*ls}",
                    src, i < nsrc, i, int (i), wsrc, int (i + 1), wdst);
     }
+
+    memset (wdst, '@', sizeof wdst);
+    rw_widen (wdst, 0, sizeof wdst / sizeof *wdst);
+
+    rw_assert (0 == memcmp (wdst, wnull, nsrc + 1), 0, __LINE__,
+               "rw_widen(char*, %{#s}, %zu) == %{#*s}, got L%{#*ls}",
+               0, sizeof wdst, int (sizeof wdst / sizeof *wdst), wnull,
+               int (sizeof wdst / sizeof *wdst), wdst);
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -457,6 +476,13 @@ test_widen ()
                    "rw_widen(UserChar*, %{#s}%{?}, %zu%{;})",
                    src, i < nsrc, i);
     }
+
+    memset (udst, 1, sizeof udst);
+    rw_widen (udst, 0, sizeof udst / sizeof *udst);
+
+    rw_assert (0 == memcmp (wdst, wnull, nsrc + 1), 0, __LINE__,
+               "rw_widen(char*, %{#s}, %zu)",
+               0, sizeof udst, int (sizeof udst), wnull);
 }
 
 /***********************************************************************/
