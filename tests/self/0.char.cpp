@@ -375,7 +375,7 @@ test_user_traits_user_char ()
 /***********************************************************************/
 
 static void
-test_widen ()
+test_rw_widen ()
 {
     //////////////////////////////////////////////////////////////////
     rw_info (0, 0, 0, "rw_widen(char*, const char*, size_t)");
@@ -409,12 +409,11 @@ test_widen ()
                "rw_widen(char*, %{#s}, %zu) == %{#*s}, got %{#*s}",
                0, sizeof cdst, int (sizeof cdst), null,
                int (sizeof cdst), cdst);
-               
-
-#ifndef _RWSTD_NO_WCHAR_T
 
     //////////////////////////////////////////////////////////////////
     rw_info (0, 0, 0, "rw_widen(wchar_t*, const char*, size_t)");
+
+#ifndef _RWSTD_NO_WCHAR_T
 
     static const wchar_t wsrc [] = L"abcdefgh";
     static const wchar_t wnull [nsrc + 1] = L"";
@@ -446,6 +445,10 @@ test_widen ()
                "rw_widen(char*, %{#s}, %zu) == %{#*s}, got L%{#*ls}",
                0, sizeof wdst, int (sizeof wdst / sizeof *wdst), wnull,
                int (sizeof wdst / sizeof *wdst), wdst);
+
+#else   // if defined (_RWSTD_NO_WCHAR_T)
+
+    rw_note (0, 0, 0, "_RWSTD_NO_WCHAR_T #defined, wchar_t test disabled");
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -488,7 +491,7 @@ test_widen ()
 /***********************************************************************/
 
 static void
-test_narrow ()
+test_rw_narrow ()
 {
     //////////////////////////////////////////////////////////////////
     rw_info (0, 0, 0, "rw_narrow(char*, const char*, size_t)");
@@ -523,11 +526,10 @@ test_narrow ()
                0, sizeof cdst, int (sizeof cdst), null,
                int (sizeof cdst), cdst);
                
-
-#ifndef _RWSTD_NO_WCHAR_T
-
     //////////////////////////////////////////////////////////////////
     rw_info (0, 0, 0, "rw_narrow(wchar_t*, const wchar_t*, size_t)");
+
+#ifndef _RWSTD_NO_WCHAR_T
 
     static const wchar_t wsrc [] = L"abcdefgh";
 
@@ -556,6 +558,10 @@ test_narrow ()
                "rw_narrow(char*, %{#s}, %zu) == %{#*s}, got %{#*s}",
                0, sizeof cdst, int (sizeof null), null,
                int (sizeof cdst), cdst);
+
+#else   // if defined (_RWSTD_NO_WCHAR_T)
+
+    rw_note (0, 0, 0, "_RWSTD_NO_WCHAR_T #defined, wchar_t test disabled");
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -595,12 +601,193 @@ test_narrow ()
 
 /***********************************************************************/
 
+static size_t
+length (const char *s)
+{
+    return strlen (s);
+}
+
+
+static size_t
+length (const wchar_t *ws)
+{
+    size_t len = 0;
+    if (ws)
+        for (len = 0; ws [len]; ++len);
+    return len;
+}
+
+
+static size_t
+length (const UserChar *us)
+{
+    size_t len = 0;
+    if (us)
+        for (len = 0; us [len].f || us [len].c; ++len);
+    return len;
+}
+
+
+static const UserChar*
+make_user_string (const char *s, size_t len)
+{
+    static UserChar usrbuf [32];
+    memset (usrbuf, 0, sizeof usrbuf);
+
+    if (s) {
+        for (size_t i = 0; i != len; ++i) {
+
+            typedef unsigned char UChar;
+
+            usrbuf [i].f = 0;
+            usrbuf [i].c = UChar (s [i]);
+        }
+        return usrbuf;
+    }
+
+    return 0;
+}
+
+
+static void
+test_rw_match ()
+{
+    //////////////////////////////////////////////////////////////////
+    rw_info (0, 0, 0, "rw_match(char*, const char*, size_t)");
+
+    const size_t size_max = _RWSTD_SIZE_MAX;
+    size_t result;
+
+#undef TEST
+#define TEST(s1, s2, len, expect)                                         \
+  result = rw_match ((const char*)s1, (const char*)s2, size_t (len));     \
+  rw_assert (expect == result,                                            \
+             0, __LINE__,                                                 \
+             "rw_match(%{#*s}, %{#*s}, %zu) == %zu, got %zu",             \
+             int (size_max == len ? length ((const char*)s1) : len), s1,  \
+             int (size_max == len ? length ((const char*)s2) : len), s2,  \
+             len, expect, result)
+
+    TEST (0,      0,        -1, 0);
+    TEST ("",     0,        -1, 0);
+    TEST (0,      "",       -1, 0);
+    TEST ("",     "",       -1, 0);
+
+    // when invoked with NULL as the first string returns
+    // the length of the second string (if non-NULL)
+    TEST (0,      "a",      -1, 1);
+    TEST (0,      "ab",     -1, 2);
+    TEST (0,      "abc",    -1, 3);
+
+    // same as above but with the arguments reversed
+    TEST ("a",    0,        -1, 1);
+    TEST ("ab",   0,        -1, 2);
+    TEST ("abc",  0,        -1, 3);
+
+    TEST ("",     "a",      -1, 0);
+    TEST ("a",    "",       -1, 0);
+    TEST ("a",    "a",      -1, 1);
+
+    TEST ("a\0bc", "a\0bd", -1, 1);
+    TEST ("a\0bc", "a\0bd",  0, 0);
+    TEST ("a\0bc", "a\0bd",  1, 1);
+    TEST ("a\0bc", "a\0bd",  2, 2);
+    TEST ("a\0bc", "a\0bd",  3, 3);
+    TEST ("a\0bc", "a\0bd",  4, 3);
+
+    //////////////////////////////////////////////////////////////////
+    rw_info (0, 0, 0, "rw_match(char*, const wchar_t*, size_t)");
+
+#ifndef _RWSTD_NO_WCHAR_T
+
+#undef TEST
+#define TEST(s1, s2, len, expect)                                            \
+  result = rw_match ((const char*)s1, (const wchar_t*)s2, size_t (len));     \
+  rw_assert (expect == result,                                               \
+             0, __LINE__,                                                    \
+             "rw_match(%{#*s}, L%{#*ls}, %zu) == %zu, got %zu",              \
+             int (size_max == len ? length ((const char*)s1) : len), s1,     \
+             int (size_max == len ? length ((const wchar_t*)s2) : len), s2,  \
+             len, expect, result)
+
+    TEST (0,       0,        -1, 0);
+    TEST ("",      0,        -1, 0);
+    TEST (0,       L"",      -1, 0);
+    TEST ("",      L"",      -1, 0);
+
+    TEST (0,       L"a",     -1, 1);
+    TEST (0,       L"ab",    -1, 2);
+    TEST (0,       L"abc",   -1, 3);
+
+    TEST ("a",     0,        -1, 1);
+    TEST ("ab",    0,        -1, 2);
+    TEST ("abc",   0,        -1, 3);
+
+    TEST ("",      L"a",     -1, 0);
+    TEST ("a",     L"",      -1, 0);
+    TEST ("a",     L"a",     -1, 1);
+
+    TEST ("a\0bc", L"a\0bd", -1, 1);
+    TEST ("a\0bc", L"a\0bd",  0, 0);
+    TEST ("a\0bc", L"a\0bd",  1, 1);
+    TEST ("a\0bc", L"a\0bd",  2, 2);
+    TEST ("a\0bc", L"a\0bd",  3, 3);
+    TEST ("a\0bc", L"a\0bd",  4, 3);
+
+#else   // if defined (_RWSTD_NO_WCHAR_T)
+
+    rw_note (0, 0, 0, "_RWSTD_NO_WCHAR_T #defined, wchar_t test disabled");
+
+#endif   // _RWSTD_NO_WCHAR_T
+
+    //////////////////////////////////////////////////////////////////
+    rw_info (0, 0, 0, "rw_match(char*, const UserChar*, size_t)");
+
+#undef TEST
+#define TEST(s1, s2, len, expect)                                            \
+  result = rw_match ((const char*)s1,                                        \
+                     make_user_string (s2, sizeof (s2)), size_t (len));      \
+  rw_assert (expect == result,                                               \
+             0, __LINE__,                                                    \
+             "rw_match(%{#*s}, %{#*s}, %zu) == %zu, got %zu",                \
+             int (size_max == len ? length ((const char*)s1) : len), s1,     \
+             int (size_max == len ? length ((const char*)s2) : len), s2,     \
+             len, expect, result)
+
+    TEST (0,       0,       -1, 0);
+    TEST ("",      0,       -1, 0);
+    TEST (0,       "",      -1, 0);
+    TEST ("",      "",      -1, 0);
+
+    TEST (0,       "a",     -1, 1);
+    TEST (0,       "ab",    -1, 2);
+    TEST (0,       "abc",   -1, 3);
+
+    TEST ("a",     0,       -1, 1);
+    TEST ("ab",    0,       -1, 2);
+    TEST ("abc",   0,       -1, 3);
+
+    TEST ("",      "a",     -1, 0);
+    TEST ("a",     "",      -1, 0);
+    TEST ("a",     "a",     -1, 1);
+
+    TEST ("a\0bc", "a\0bd", -1, 1);
+    TEST ("a\0bc", "a\0bd",  0, 0);
+    TEST ("a\0bc", "a\0bd",  1, 1);
+    TEST ("a\0bc", "a\0bd",  2, 2);
+    TEST ("a\0bc", "a\0bd",  3, 3);
+    TEST ("a\0bc", "a\0bd",  4, 3);
+}
+
+/***********************************************************************/
+
 static int no_user_traits;
 static int no_user_traits_char;
 static int no_user_traits_wchar_t;
 static int no_user_traits_user_char;
 static int no_rw_widen;
 static int no_rw_narrow;
+static int no_rw_match;
 
 
 static int
@@ -632,19 +819,16 @@ run_test (int, char*[])
         }
     }
 
-    if (no_rw_widen) {
-        rw_note (0, 0, 0, "rw_widen() tests disabled");
-    }
-    else {
-        test_widen ();
-    }
+#undef TEST
+#define TEST(fun)                                               \
+        if (no_ ## fun)                                         \
+            rw_note (0, 0, 0, "%s() tests disabled", #fun);     \
+        else                                                    \
+            test_ ## fun ()
 
-    if (no_rw_narrow) {
-        rw_note (0, 0, 0, "rw_narrow() tests disabled");
-    }
-    else {
-        test_narrow ();
-    }
+    TEST (rw_widen);
+    TEST (rw_narrow);
+    TEST (rw_match);
 
     return 0;
 }
@@ -662,12 +846,14 @@ int main (int argc, char *argv[])
                     "|-no-UserTraits<wchar_t># "
                     "|-no-UserTraits<UserChar># "
                     "|-no-rw_widen# "
-                    "|-no-rw_narrow#",
+                    "|-no-rw_narrow# "
+                    "|-no-rw_macth#",
                     &no_user_traits,
                     &no_user_traits_char,
                     &no_user_traits_wchar_t,
                     &no_user_traits_user_char,
                     &no_rw_widen,
                     &no_rw_narrow,
+                    &no_rw_match,
                     0);
 }
