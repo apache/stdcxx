@@ -467,7 +467,7 @@ test_widen ()
             rw_widen (udst, src, i) : rw_widen (udst, src);
 
         rw_assert (udst == ret, 0, __LINE__,
-                   "rw_widen(wchar_t*, %{#s}%{?}, %zu%{;})",
+                   "rw_widen(UserChar*, %{#s}%{?}, %zu%{;})",
                    src, i < nsrc, i);
 
         rw_assert (   0 == memcmp (udst, usrc, i * sizeof *udst)
@@ -487,11 +487,120 @@ test_widen ()
 
 /***********************************************************************/
 
+static void
+test_narrow ()
+{
+    //////////////////////////////////////////////////////////////////
+    rw_info (0, 0, 0, "rw_narrow(char*, const char*, size_t)");
+
+    static const char   src []  = "abcdefgh";
+    static const size_t nsrc = sizeof src;
+    static const char   null [nsrc + 1] = "";
+    char                cdst [nsrc + 1];
+
+    for (size_t i = 0; i != nsrc + 1; ++i) {
+
+        memset (cdst, 0, sizeof cdst);
+
+        const char* const ret = i < nsrc ?
+            rw_narrow (cdst, src, i) : rw_narrow (cdst, src);
+
+        rw_assert (cdst == ret, 0, __LINE__,
+                   "rw_narrow(char*, %{#s}%{?}, %zu%{;})",
+                   src, i < nsrc);
+
+        rw_assert (0 == memcmp (cdst, src, i) && '\0' == cdst [i],
+                   0, __LINE__,
+                   "rw_narrow(char*, %{#s}%{?}, %zu%{;}) == %{#*s}, got %{#*s}",
+                   src, i < nsrc, i, int (i), src, int (i + 1), cdst);
+    }
+
+    memset (cdst, '@', sizeof cdst);
+    rw_narrow (cdst, (const char*)0, sizeof cdst);
+
+    rw_assert (0 == memcmp (cdst, null, sizeof cdst), 0, __LINE__,
+               "rw_narrow(char*, %{#s}, %zu) == %{#*s}, got %{#*s}",
+               0, sizeof cdst, int (sizeof cdst), null,
+               int (sizeof cdst), cdst);
+               
+
+#ifndef _RWSTD_NO_WCHAR_T
+
+    //////////////////////////////////////////////////////////////////
+    rw_info (0, 0, 0, "rw_narrow(wchar_t*, const wchar_t*, size_t)");
+
+    static const wchar_t wsrc [] = L"abcdefgh";
+
+    for (size_t i = 0; i != nsrc + 1; ++i) {
+
+        memset (cdst, 0, sizeof cdst);
+
+        const char* const ret = i < nsrc ?
+            rw_narrow (cdst, wsrc, i) : rw_narrow (cdst, wsrc);
+
+        rw_assert (cdst == ret, 0, __LINE__,
+                   "rw_narrow(char*, %{#s}%{?}, %zu%{;})",
+                   src, i < nsrc, i);
+
+        rw_assert (0 == memcmp (cdst, src, i) && '\0' == cdst [i],
+                   0, __LINE__,
+                   "rw_narrow(char*, L%{#*ls}%{?}, %zu%{;}) == %{#*s}, "
+                   "got %{#*s}",
+                   src, i < nsrc, i, int (i), wsrc, int (i + 1), cdst);
+    }
+
+    memset (cdst, '@', sizeof cdst);
+    rw_narrow (cdst, (const wchar_t*)0, sizeof cdst);
+
+    rw_assert (0 == memcmp (cdst, null, nsrc + 1), 0, __LINE__,
+               "rw_narrow(char*, %{#s}, %zu) == %{#*s}, got %{#*s}",
+               0, sizeof cdst, int (sizeof null), null,
+               int (sizeof cdst), cdst);
+
+#endif   // _RWSTD_NO_WCHAR_T
+
+    //////////////////////////////////////////////////////////////////
+    rw_info (0, 0, 0, "rw_narrow(char*, const UserChar*, size_t)");
+
+    static const UserChar usrc [] = {
+        { 0, 'a' }, { 0, 'b' }, { 0, 'c' }, { 0, 'd' },
+        { 0, 'e' }, { 0, 'f' }, { 0, 'g' }, { 0, 'h' },
+        { 0, '\0' }
+    };
+
+    for (size_t i = 0; i != nsrc + 1; ++i) {
+
+        memset (cdst, 0, sizeof cdst);
+
+        const char* const ret = i < nsrc ?
+            rw_narrow (cdst, usrc, i) : rw_narrow (cdst, usrc);
+
+        rw_assert (cdst == ret, 0, __LINE__,
+                   "rw_narrow(char*, %{#s}%{?}, %zu%{;})",
+                   src, i < nsrc, i);
+
+        rw_assert (0 == memcmp (cdst, src, i) && 0 == cdst [i],
+                   0, __LINE__,
+                   "rw_narrow(char*, %{#s}%{?}, %zu%{;})",
+                   src, i < nsrc, i);
+    }
+
+    memset (cdst, '@', sizeof cdst);
+    rw_narrow (cdst, (const UserChar*)0, sizeof cdst);
+
+    rw_assert (0 == memcmp (cdst, null, nsrc + 1), 0, __LINE__,
+               "rw_narrow(char*, %{#s}, %zu)",
+               0, sizeof cdst);
+}
+
+/***********************************************************************/
+
 static int no_user_traits;
 static int no_user_traits_char;
 static int no_user_traits_wchar_t;
 static int no_user_traits_user_char;
 static int no_rw_widen;
+static int no_rw_narrow;
 
 
 static int
@@ -530,6 +639,13 @@ run_test (int, char*[])
         test_widen ();
     }
 
+    if (no_rw_narrow) {
+        rw_note (0, 0, 0, "rw_narrow() tests disabled");
+    }
+    else {
+        test_narrow ();
+    }
+
     return 0;
 }
 
@@ -545,10 +661,13 @@ int main (int argc, char *argv[])
                     "|-no-UserTraits<char># "
                     "|-no-UserTraits<wchar_t># "
                     "|-no-UserTraits<UserChar># "
-                    "|-no-rw_widen#",
+                    "|-no-rw_widen# "
+                    "|-no-rw_narrow#",
                     &no_user_traits,
                     &no_user_traits_char,
                     &no_user_traits_wchar_t,
                     &no_user_traits_user_char,
-                    &no_rw_widen);
+                    &no_rw_widen,
+                    &no_rw_narrow,
+                    0);
 }

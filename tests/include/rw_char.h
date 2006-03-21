@@ -260,9 +260,9 @@ public:
 };
 
 
-// widens the string src into the buffer dst; when (dst != 0) the last
-// character in the buffer is guaranteed to be NUL, regardless of the
-// value of str [len]
+// rw_widen() widens successive elements of src into the buffer dst
+// when (dst != 0) the last character in the buffer is guaranteed to be NUL,
+// regardless of the value of str [len]
 // when (len == SIZE_MAX && src != 0), computes len as if by evaluating
 // len = strlen(src)
 // when (src == 0 && len < SIZE_MAX), initializes the first len elements
@@ -274,14 +274,27 @@ char* rw_widen (char*         /* dst */,
                 const char*   /* src */,
                 _RWSTD_SIZE_T /* len */ = _RWSTD_SIZE_MAX);
 
+// rw_narrow() narrows successive elements of src into the buffer dst
+// (see rw_widen() for details)
+_TEST_EXPORT
+char* rw_narrow (char*         /* dst */,
+                 const char*   /* src */,
+                 _RWSTD_SIZE_T /* len */ = _RWSTD_SIZE_MAX);
+
 #ifndef _RWSTD_WCHAR_T
 
 _TEST_EXPORT
 wchar_t* rw_widen (wchar_t*, const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
+_TEST_EXPORT
+char* rw_narrow (char*, const wchar_t*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+
 #endif   // _RWSTD_WCHAR_T
 
 _TEST_EXPORT
 UserChar* rw_widen (UserChar*, const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+
+_TEST_EXPORT
+char* rw_narrow (char*, const UserChar*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
 #endif   // RW_CHAR_INCLUDED
