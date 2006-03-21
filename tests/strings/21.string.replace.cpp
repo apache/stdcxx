@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * 21.string.replace.cpp - string test exercising [lib.string::replace]
+ * 21.string.replace.cpp - string test exercising lib.string.replace
  *
  * $Id$ 
  *
@@ -58,19 +58,24 @@ struct MemFun
 
 /**************************************************************************/
 
-static const int long_string_len = 4096;
+// for convenience and brevity
+#define LSTR  long_string
+#define LLEN  long_string_len
+#define LPAR  long_parity_len
+
+static const std::size_t long_string_len = 4096;
 static char long_string [long_string_len];
+static const size_t long_parity_len = (LLEN - 1) & 0x01 ?
+           (LLEN - 1) / 2 : (LLEN - 2) / 2;
 
-static const int long_parity_len = (long_string_len - 1) & 0x01 ? 
-           (long_string_len - 1) / 2 : (long_string_len - 2) / 2;
 
-static const char* exp_exceptions[] = 
+static const char* const exp_exceptions[] = 
     { "unknown exception", "out_of_range", "length_error" };
 
 /**************************************************************************/
 
-static const struct TestCase {
-
+static const struct TestCase
+{
     int  line;
 
     int  pos1;
@@ -80,16 +85,16 @@ static const struct TestCase {
     int  cnt;
     char ch;
 
-    char* str;
+    const char* str;
     std::size_t str_len;
 
-    char* src;
+    const char* src;
     std::size_t src_len;
 
-    char* res;
+    const char* res;
     std::size_t res_len;
 
-    char* it_res;
+    const char* it_res;
     std::size_t it_res_len;
 
     int bthrow;
@@ -97,10 +102,11 @@ static const struct TestCase {
 } test_cases [] = {
 
 #undef TEST
-#define TEST(str, pos1, num1, src, pos2, num2, cnt, ch, res, it_res, bthrow) \
-    { __LINE__, pos1, num1, pos2, num2, cnt, ch, (char*) str,                \
-      sizeof str - 1, (char*) src, sizeof src - 1, (char*) res,              \
-      sizeof res - 1, (char*) it_res, sizeof it_res - 1, bthrow }
+#define TEST(str, pos1, num1, src, pos2, num2, cnt,             \
+             ch, res, it_res, bthrow)                           \
+    { __LINE__, pos1, num1, pos2, num2, cnt, ch, str,           \
+      sizeof str - 1, src, sizeof src - 1, res,                 \
+      sizeof res - 1, it_res, sizeof it_res - 1, bthrow }
 
     //    +----------------------------------------- controlled sequence
     //    |      +---------------------------------- replace() pos1 argument
@@ -181,32 +187,26 @@ static const struct TestCase {
     TEST ("\0ab\0\0c", 5, 0, "\0e", 0, 2, 2, '\0', "\0ab\0\0\0ec", 
                                                            "\0ab\0\0\0ec", 0),
 
-    TEST (long_string, 0, long_string_len - 1, "ab", 
+    TEST (LSTR, 0, LLEN - 1, "ab", 
                                       0, 2, 2, 'a',  "ab",      "ab",      0),
-    TEST (long_string, 1, long_string_len - 2, "ab", 
+    TEST (LSTR, 1, LLEN - 2, "ab", 
                                       0, 2, 2, 'a',  "xab",     "xab",     0),
-    TEST (long_string, 0, long_string_len - 2, "ab", 
+    TEST (LSTR, 0, LLEN - 2, "ab", 
                                       0, 2, 2, 'a',  "abx",     "abx",     0),
-    TEST (long_string, 1, long_string_len - 3, "", 
+    TEST (LSTR, 1, LLEN - 3, "", 
                                       0, 0, 0, 'a',  "xx",      "xx",      0),
-    TEST (long_string, 1, long_string_len - 4, "\0\0", 
+    TEST (LSTR, 1, LLEN - 4, "\0\0", 
                                       0, 2, 1, '\0', "x\0\0xx", "x\0\0xx", 0),
 
-    TEST ("a", 0, 1, long_string, 0, long_string_len - 1, long_string_len - 1, 
-                                            'a', long_string, long_string, 0),
+    TEST ("a", 0, 1, LSTR, 0, LLEN - 1, LLEN - 1, 
+                                            'a', LSTR, LSTR, 0),
 
-    TEST (long_string, 0, long_string_len - 1, long_string, 0, 
-                                 long_string_len - 1, long_string_len - 1, 
-                                            'a', long_string, long_string, 0),
+    TEST (LSTR, 0, LLEN - 1, LSTR, 0, LLEN - 1, LLEN - 1, 'a', LSTR, LSTR, 0),
 
-    TEST (long_string, 0, long_parity_len, long_string, 0, 
-                                 long_parity_len, long_parity_len, 
-                                            'a', long_string, long_string, 0),
+    TEST (LSTR, 0, LPAR, LSTR, 0,  LPAR, LPAR, 'a', LSTR, LSTR, 0),
 
-    TEST (long_string, long_parity_len, long_string_len - 1 - long_parity_len, 
-       long_string, 0, long_string_len - 1 - long_parity_len, 
-                       long_string_len - 1 - long_parity_len, 
-                                            'a', long_string, long_string, 0),
+    TEST (LSTR, LPAR, LLEN - 1 - LPAR, 
+          LSTR, 0, LLEN - 1 - LPAR, LLEN - 1 - LPAR,  'a', LSTR, LSTR, 0),
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -216,8 +216,8 @@ static const struct TestCase {
     TEST ("a",        10, 0, "",    0, 0, 0, ' ',  "",        "",          1),
     TEST ("a",         0, 0, "a",  10, 0, 0, ' ',  "",        "",          2),
 
-    TEST (long_string, long_string_len + 10, 0, "", 0, 0, 0,  ' ', "", "", 1),
-    TEST (long_string, 0, 0, long_string, long_string_len + 10, 
+    TEST (LSTR, LLEN + 10, 0, "", 0, 0, 0,  ' ', "", "", 1),
+    TEST (LSTR, 0, 0, LSTR, LLEN + 10, 
                                                        0, 0,  ' ', "", "", 2),
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -357,25 +357,25 @@ String& test_replace (int                          which,
 template <class charT, class Traits>
 void test_replace (charT, Traits*, 
                    int             which,
-                   MemFun         *pfid, 
+                   const MemFun   *pfid, 
                    const TestCase &cs)
 {
     typedef std::basic_string <charT, Traits, 
                                std::allocator<charT> > TestString;
 
-    static charT wstr [long_string_len];
-    static charT wsrc [long_string_len];
-    static charT wres [long_string_len];
+    static charT wstr [LLEN];
+    static charT wsrc [LLEN];
+    static charT wres [LLEN];
 
     // construct strings
-    bool use_res = (4 == which || 7 == which);
-    bool use_iters = (6 <= which);
+    const bool use_res = (4 == which || 7 == which);
+    const bool use_iters = (6 <= which);
 
-    char* pstrres = use_res ? 
+    const char* const pstrres = use_res ? 
         use_iters ? cs.it_res : cs.res 
       : cs.str;
 
-    std::size_t res_len = use_res ? 
+    const std::size_t res_len = use_res ? 
         use_iters ? cs.it_res_len : cs.res_len 
       : cs.str_len;
 
@@ -390,15 +390,17 @@ void test_replace (charT, Traits*,
     // used to workaround the problem with empty UserChar strings output
     static charT wempty [10]; 
     rw_widen (wempty, "<empty>", 7);
-    TestString s_empty (wempty, 7);
+
+    const TestString s_empty (wempty, 7);
+
     bool src_use_empty = 
         0 == s_src.size () && sizeof (charT) > sizeof (wchar_t);
 
-    int first1_off = cs.pos1;
-    int last1_off  = cs.pos1 + cs.num1; 
+    const int first1_off = cs.pos1;
+    const int last1_off  = cs.pos1 + cs.num1; 
 
-    int first2_off = cs.pos2;
-    int last2_off  = cs.pos2 + cs.num2;
+    const int first2_off = cs.pos2;
+    const int last2_off  = cs.pos2 + cs.num2;
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -421,9 +423,9 @@ void test_replace (charT, Traits*,
     std::size_t exp_len = 0;
     std::size_t dummy_len = 0;
 
-    TestString& res_str = 
+    const TestString& res_str = 
         test_replace (which, cs, s_str, wsrc, true, &exp_len);
-    TestString& ctl_str = 
+    const TestString& ctl_str = 
         test_replace (which, cs, s_res, wsrc, false, &dummy_len);
 
 #define CALLFMAT                                                             \
@@ -463,13 +465,14 @@ void test_replace (charT, Traits*,
                    CALLARGS, len, exp_len);
     }
 
-    bool success = !TestString::traits_type::compare (res_str.c_str(), 
-                        ctl_str.c_str(), ctl_str.size ());
+    const bool success =
+        !TestString::traits_type::compare (res_str.c_str(), 
+                                           ctl_str.c_str(), ctl_str.size ());
 
     // to workaround UserChar's empty string output problem
-    bool use_empty_res = 
+    const bool use_empty_res = 
         0 == res_str.size () && sizeof (charT) > sizeof (wchar_t);
-    bool use_empty_ctl = 
+    const bool use_empty_ctl = 
         0 == ctl_str.size () && sizeof (charT) > sizeof (wchar_t);
 
     rw_assert (success, 0, cs.line,
@@ -522,8 +525,7 @@ static int rw_opt_no_replace_iters_range;      // for --no-replace-iters-range
 /**************************************************************************/
 
 static void 
-test_replace (MemFun *pfid,
-              int     which)
+test_replace (const MemFun *pfid, int which)
 {
     rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
              "replace (%{?}size_type pos1%{;}%{?}iterator i1%{;}"
@@ -585,7 +587,7 @@ test_replace (MemFun *pfid,
 /**************************************************************************/
 
 static void 
-note_test_disabled (MemFun *pfid, int which)
+note_test_disabled (const MemFun *pfid, int which)
 {
     rw_note (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
              "replace (%{?}size_type pos1%{;}%{?}iterator i1%{;}"
@@ -604,7 +606,7 @@ note_test_disabled (MemFun *pfid, int which)
 }
 
 static void
-run_test (MemFun *pfid)
+run_test (const MemFun *pfid)
 {
     if (MemFun::UserTraits == pfid->tid_ && rw_opt_no_user_traits) {
         rw_note (1 < rw_opt_no_user_traits++, 0, 0,
@@ -655,10 +657,10 @@ run_test (MemFun *pfid)
 
 int run_test (int, char*[])
 {
-    if ('\0' == long_string [0]) {
-        // initialize long_string
-        for (std::size_t i = 0; i != sizeof long_string - 1; ++i)
-            long_string [i] = 'x';
+    if ('\0' == LSTR [0]) {
+        // initialize LSTR
+        for (std::size_t i = 0; i != sizeof LSTR - 1; ++i)
+            LSTR [i] = 'x';
     }
 
     if (rw_enabled ("char")) {
