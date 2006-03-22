@@ -1070,10 +1070,14 @@ _C_is_managed (int cat) const
         if (*_RWSTD_CAT_SEP == *locname)
             ++locname;
 
-        size_t      loclen;
-        const char* next = strchr (locname, *_RWSTD_CAT_SEP);
+        // find the first category separator (if any) and compute
+        // the length of the name of the first category's locale
+        // (don't bother when combined locales don't exist, i.e.,
+        // when no locale separator is defined)
+        const char* next =
+            *_RWSTD_CAT_SEP ? strchr (locname, *_RWSTD_CAT_SEP) : 0;
 
-        loclen = next ? next - locname : strlen (locname);
+        size_t loclen = next ? next - locname : strlen (locname);
 
         // iterate over all standard facets, comparing the name of the
         // locale each comes from with the name of the category encoded
@@ -1081,8 +1085,10 @@ _C_is_managed (int cat) const
         // the locale is not managed
         for (size_t i = 0, catinx = 0; i != _C_n_std_facets; ++i) {
 
-            if (0 == _C_std_facets [i])
+            if (0 == _C_std_facets [i]) {
+                // skip facets that are not installed
                 continue;
+            }
 
             const __rw_facet::_C_facet_type facet_type =
                 _C_get_facet_type (*_C_std_facets [i]);
@@ -1096,7 +1102,7 @@ _C_is_managed (int cat) const
             case __rw_facet::_C_wmoney_put:
             case __rw_facet::_C_wnum_get:
             case __rw_facet::_C_wnum_put:
-                // skip facets with no byname forms
+                // skip facets with no _byname forms
                 continue;
             default:
                 break;
@@ -1107,7 +1113,11 @@ _C_is_managed (int cat) const
             while (next && !(__rw_cats [catinx].facet_bits & (1 << i))) {
 
                 if (*next) {
-                    // advance to the next category in the combined name 
+                    // advance past the category separator to the name
+                    // of the next category in the (potentially combined)
+                    // locale name
+                    _RWSTD_ASSERT (*next == *_RWSTD_CAT_SEP);
+
                    locname = ++next;
                     ++catinx;
                 }
