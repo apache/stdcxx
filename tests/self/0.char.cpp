@@ -753,8 +753,8 @@ test_rw_match ()
   rw_assert (expect == result,                                               \
              0, __LINE__,                                                    \
              "rw_match(%{#*s}, %{#*s}, %zu) == %zu, got %zu",                \
-             LEN (char, s1, len), s1, LEN (UserChar, s2, len),               \
-             s2, len, expect, result)
+             LEN (char, s1, len), s1, LEN (char, s2, len), s2,               \
+             expect, result)
 
     TEST (0,       0,       -1, 0);
     TEST ("",      0,       -1, 0);
