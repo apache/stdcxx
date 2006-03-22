@@ -61,16 +61,41 @@ struct MemFun
 // for convenience and brevity
 #define LSTR  long_string
 #define LLEN  long_string_len
-#define LPAR  long_parity_len
+// one half of the long_string length 
+#define LPAR  LLEN / 2
 
 static const std::size_t long_string_len = 4096;
 static char long_string [long_string_len];
-static const size_t long_parity_len = (LLEN - 1) & 0x01 ?
-           (LLEN - 1) / 2 : (LLEN - 2) / 2;
-
 
 static const char* const exp_exceptions[] = 
     { "unknown exception", "out_of_range", "length_error" };
+
+/**************************************************************************/
+
+typedef enum ReplaceTags {
+
+    // replace (size_type pos1, size_type n1, const charT* p)
+    r_ptr           =  1,   
+    // replace (size_type pos1, size_type n1, basic_string& s)
+    r_str           =  2,
+    // replace (size_type pos1, size_type n1, charT* p, size_type n2)
+    r_num_ptr       =  3,
+    // replace (pos1, n1, basic_string& s, size_type pos2, size_type n2)
+    r_num_str       =  4,
+    // replace (size_type pos1, size_type n1, size_type n, charT c)
+    r_char          =  5,
+    // replace (iterator i1, iterator i2, const charT* p)
+    r_iters_ptr     =  6,
+    // replace (iterator i1, iterator i2, basic_string& s)
+    r_iters_str     =  7,
+    // replace (iterator i1, iterator i2, charT* p, size_type n2)
+    r_iters_num_ptr =  8,
+    // replace (iterator i1, iterator i2, size_type n, charT c)
+    r_iters_char    =  9,
+    // replace (iterator i1, iterator i2, InputIterator j1, InputIterator j2)
+    r_iters_range   = 10
+
+} RTags;
 
 /**************************************************************************/
 
@@ -187,26 +212,18 @@ static const struct TestCase
     TEST ("\0ab\0\0c", 5, 0, "\0e", 0, 2, 2, '\0', "\0ab\0\0\0ec", 
                                                            "\0ab\0\0\0ec", 0),
 
-    TEST (LSTR, 0, LLEN - 1, "ab", 
-                                      0, 2, 2, 'a',  "ab",      "ab",      0),
-    TEST (LSTR, 1, LLEN - 2, "ab", 
-                                      0, 2, 2, 'a',  "xab",     "xab",     0),
-    TEST (LSTR, 0, LLEN - 2, "ab", 
-                                      0, 2, 2, 'a',  "abx",     "abx",     0),
-    TEST (LSTR, 1, LLEN - 3, "", 
-                                      0, 0, 0, 'a',  "xx",      "xx",      0),
+    TEST (LSTR, 0, LLEN - 1, "ab",  0, 2, 2, 'a',  "ab",       "ab",       0),
+    TEST (LSTR, 1, LLEN - 2, "ab",  0, 2, 2, 'a',  "xab",      "xab",      0),
+    TEST (LSTR, 0, LLEN - 2, "ab",  0, 2, 2, 'a',  "abx",      "abx",      0),
+    TEST (LSTR, 1, LLEN - 3, "",    0, 0, 0, 'a',  "xx",       "xx",       0),
     TEST (LSTR, 1, LLEN - 4, "\0\0", 
-                                      0, 2, 1, '\0', "x\0\0xx", "x\0\0xx", 0),
+                                    0, 2, 1, '\0', "x\0\0xx",  "x\0\0xx",  0),
 
-    TEST ("a", 0, 1, LSTR, 0, LLEN - 1, LLEN - 1, 
-                                            'a', LSTR, LSTR, 0),
-
+    TEST ("a",  0, 1,        LSTR, 0, LLEN - 1, LLEN - 1, 'a', LSTR, LSTR, 0),
     TEST (LSTR, 0, LLEN - 1, LSTR, 0, LLEN - 1, LLEN - 1, 'a', LSTR, LSTR, 0),
+    TEST (LSTR, 0, LPAR - 1, LSTR, 0, LPAR - 1, LPAR - 1, 'a', LSTR, LSTR, 0),
 
-    TEST (LSTR, 0, LPAR, LSTR, 0,  LPAR, LPAR, 'a', LSTR, LSTR, 0),
-
-    TEST (LSTR, LPAR, LLEN - 1 - LPAR, 
-          LSTR, 0, LLEN - 1 - LPAR, LLEN - 1 - LPAR,  'a', LSTR, LSTR, 0),
+    TEST (LSTR, LPAR - 1, LPAR, LSTR, 0, LPAR,  LPAR,     'a', LSTR, LSTR, 0),
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -216,9 +233,8 @@ static const struct TestCase
     TEST ("a",        10, 0, "",    0, 0, 0, ' ',  "",        "",          1),
     TEST ("a",         0, 0, "a",  10, 0, 0, ' ',  "",        "",          2),
 
-    TEST (LSTR, LLEN + 10, 0, "", 0, 0, 0,  ' ', "", "", 1),
-    TEST (LSTR, 0, 0, LSTR, LLEN + 10, 
-                                                       0, 0,  ' ', "", "", 2),
+    TEST (LSTR, LLEN + 10, 0, "",   0,                 0, 0,  ' ', "", "", 1),
+    TEST (LSTR, 0,         0, LSTR, LLEN + 10,         0, 0,  ' ', "", "", 2),
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
@@ -228,7 +244,7 @@ static const struct TestCase
 /**************************************************************************/
 
 template <class String>
-String& test_replace (int                          which,
+String& test_replace (const RTags                  which,
                       const TestCase              &cs,
                       String                      &str, 
                       typename String::value_type *wsrc, 
@@ -237,7 +253,7 @@ String& test_replace (int                          which,
 {
     *exp_len = 0;
 
-    if (!test && (4 == which || 7 == which))
+    if (!test && (r_num_str == which || r_iters_str == which))
         return str;
 
     const String& ref_src = String (wsrc, cs.src_len);
@@ -252,33 +268,33 @@ String& test_replace (int                          which,
         str.end () : str.begin () + last);
 
     switch (which) {
-        case 1: {
+        case r_ptr: {
             if (test)
                 return str.replace (cs.pos1, cs.num1, wsrc);
             else
                 return str.replace (cs.pos1, cs.num1, String (wsrc));
         }
-        case 2: {
+        case r_str: {
             if (test)
                 return str.replace (cs.pos1, cs.num1, ref_src);
             else
                 return str.replace (cs.pos1, cs.num1, ref_src, 
                                     0, String::npos);
         }
-        case 3: {
+        case r_num_ptr: {
             if (test)
                 return str.replace (cs.pos1, cs.num1, wsrc, cs.num2);
             else
                 return str.replace (cs.pos1, cs.num1, String (wsrc, cs.num2));
         }
-        case 4: {
+        case r_num_str: {
             if (test)
                 return str.replace (cs.pos1, cs.num1, ref_src, 
                                     cs.pos2, cs.num2);
             else
                 return str;
         }
-        case 5: {
+        case r_char: {
             if (test)
                 return str.replace (cs.pos1, cs.num1, cs.cnt, make_char (
                                     cs.ch, (typename  String::value_type*)0));
@@ -287,7 +303,7 @@ String& test_replace (int                          which,
                                     String (cs.cnt, make_char (cs.ch, 
                                     (typename String::value_type*)0)));
         }
-        case 6: {
+        case r_iters_ptr: {
             *exp_len = str.length () + String::traits_type::length (wsrc) -
                (it_last - it_first);
 
@@ -296,7 +312,7 @@ String& test_replace (int                          which,
             else
                 return str.replace (it_first, it_last, String (wsrc));
         }
-        case 7: {
+        case r_iters_str: {
             *exp_len = str.length () + ref_src.length () - 
                (it_last - it_first);
 
@@ -305,7 +321,7 @@ String& test_replace (int                          which,
             else
                 return str;
         }
-        case 8: {
+        case r_iters_num_ptr: {
             *exp_len = str.length () + cs.num2 - (it_last - it_first);
 
             if (test)
@@ -314,7 +330,7 @@ String& test_replace (int                          which,
                 return str.replace (it_first, it_last, 
                                     String (wsrc, cs.num2));
         }
-        case 9: {
+        case r_iters_char: {
             *exp_len = str.length () + cs.cnt - (it_last - it_first);
 
             if (test)
@@ -326,7 +342,7 @@ String& test_replace (int                          which,
                                     String (cs.cnt, make_char (cs.ch, 
                                     (typename String::value_type*)0)));
         }
-        case 10: {
+        case r_iters_range: {
             // construct iterators
             int last2 = cs.pos2 + cs.num2;
 
@@ -356,7 +372,7 @@ String& test_replace (int                          which,
 
 template <class charT, class Traits>
 void test_replace (charT, Traits*, 
-                   int             which,
+                   const RTags     which,
                    const MemFun   *pfid, 
                    const TestCase &cs)
 {
@@ -368,8 +384,8 @@ void test_replace (charT, Traits*,
     static charT wres [LLEN];
 
     // construct strings
-    const bool use_res = (4 == which || 7 == which);
-    const bool use_iters = (6 <= which);
+    const bool use_res = (r_num_str == which || r_iters_str == which);
+    const bool use_iters = (r_iters_ptr <= which);
 
     const char* const pstrres = use_res ? 
         use_iters ? cs.it_res : cs.res 
@@ -407,7 +423,7 @@ void test_replace (charT, Traits*,
     // is some exception expected ?
     const char* expected = 0;
     if (!use_iters) {
-        if (1 == cs.bthrow || 2 == cs.bthrow && 4 == which)
+        if (1 == cs.bthrow || 2 == cs.bthrow && r_num_str == which)
             expected = exp_exceptions[1];
         else if (3 == cs.bthrow)
             expected = exp_exceptions[2];
@@ -439,18 +455,19 @@ void test_replace (charT, Traits*,
 
 #define CALLARGS                                                             \
     __LINE__, pfid->cname_, pfid->tname_, pfid->aname_, int (cs.str_len),    \
-    cs.str, 5 >= which, cs.pos1, 6 <= which, first1_off,                     \
-    5 >= which, cs.num1, 6 <= which, last1_off,                              \
-    1 == which || 3 == which || 6 == which || 8 == which,                    \
-    int (cs.src_len), cs.src, 2 == which || 4 == which || 7 == which,        \
-    int (sizeof (charT)), src_use_empty ? &s_empty : &s_src,                 \
-    5 == which || 9 == which, cs.cnt, 4 == which, cs.pos2,                   \
-    3 == which || 4 == which || 8 == which, cs.num2,                         \
-    5 == which || 9 == which, cs.ch, 10 == which, first2_off,                \
-    10 == which, last2_off
+    cs.str, r_char >= which, cs.pos1, r_iters_ptr <= which, first1_off,      \
+    r_char >= which, cs.num1, r_iters_ptr <= which, last1_off,               \
+    r_ptr == which || r_num_ptr == which || r_iters_ptr == which ||          \
+    r_iters_num_ptr == which, int (cs.src_len), cs.src, r_str == which ||    \
+    r_num_str == which || r_iters_str == which, int (sizeof (charT)),        \
+    src_use_empty ? &s_empty : &s_src, r_char == which ||                    \
+    r_iters_char == which, cs.cnt, r_num_str == which, cs.pos2,              \
+    r_num_ptr == which || r_num_str == which || r_iters_num_ptr == which,    \
+    cs.num2, r_char == which || r_iters_char == which, cs.ch,                \
+    r_iters_range == which, first2_off, r_iters_range == which, last2_off
 
     // verify the results
-    if (4 == which || 7 == which) {
+    if (r_num_str == which || r_iters_str == which) {
         // verify the returned value
         rw_assert (&res_str == &s_str, 0, cs.line,
                    CALLFMAT " : the returned reference is invalid", CALLARGS);
@@ -525,7 +542,7 @@ static int rw_opt_no_replace_iters_range;      // for --no-replace-iters-range
 /**************************************************************************/
 
 static void 
-test_replace (const MemFun *pfid, int which)
+test_replace (const MemFun *pfid, const RTags which)
 {
     rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
              "replace (%{?}size_type pos1%{;}%{?}iterator i1%{;}"
@@ -535,11 +552,15 @@ test_replace (const MemFun *pfid, int which)
              "%{?}, size_type n2%{;}%{?}, const charT c%{;}"
              "%{?}, InputIterator j1%{;}%{?}, InputIterator j2%{;})",
              pfid->cname_, pfid->tname_, pfid->aname_, 
-             5 >= which, 6 <= which, 5 >= which, 6 <= which, 
-             1 == which || 3 == which || 6 == which || 8 == which,
-             2 == which || 4 == which || 7 == which, 5 == which || 9 == which, 
-             4 == which, 3 == which || 4 == which || 8 == which,
-             5 == which || 9 == which, 10 == which, 10 == which);
+             r_char >= which, r_iters_ptr <= which, r_char >= which, 
+             r_iters_ptr <= which, r_ptr == which || r_num_ptr == which || 
+             r_iters_ptr == which || r_iters_num_ptr == which, 
+             r_str == which || r_num_str == which || r_iters_str == which, 
+             r_char == which || r_iters_char == which, r_num_str == which, 
+             r_num_ptr == which || r_num_str == which || 
+             r_iters_num_ptr == which, r_char == which || 
+             r_iters_char == which, r_iters_range == which, 
+             r_iters_range == which);
 
 #undef TEST
 #define TEST(charT, Traits, cs)	                            \
@@ -587,7 +608,7 @@ test_replace (const MemFun *pfid, int which)
 /**************************************************************************/
 
 static void 
-note_test_disabled (const MemFun *pfid, int which)
+note_test_disabled (const MemFun *pfid, const RTags which)
 {
     rw_note (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
              "replace (%{?}size_type pos1%{;}%{?}iterator i1%{;}"
@@ -598,11 +619,15 @@ note_test_disabled (const MemFun *pfid, int which)
              "%{?}, InputIterator j1%{;}%{?}, InputIterator j2%{;})"
              " test disabled",
              pfid->cname_, pfid->tname_, pfid->aname_, 
-             5 >= which, 6 <= which, 5 >= which, 6 <= which, 
-             1 == which || 3 == which || 6 == which || 8 == which,
-             2 == which || 4 == which || 7 == which, 5 == which || 9 == which, 
-             4 == which, 3 == which || 4 == which || 8 == which,
-             5 == which || 9 == which, 10 == which, 10 == which);
+             r_char >= which, r_iters_ptr <= which, r_char >= which, 
+             r_iters_ptr <= which, r_ptr == which || r_num_ptr == which || 
+             r_iters_ptr == which || r_iters_num_ptr == which, 
+             r_str == which || r_num_str == which || r_iters_str == which, 
+             r_char == which || r_iters_char == which, r_num_str == which, 
+             r_num_ptr == which || r_num_str == which || 
+             r_iters_num_ptr == which, r_char == which || 
+             r_iters_char == which, r_iters_range == which, 
+             r_iters_range == which);
 }
 
 static void
@@ -624,32 +649,32 @@ run_test (const MemFun *pfid)
 
         // exercise all replace overloads
 #undef TEST
-#define TEST(option, n)                         \
+#define TEST(option, r_tag)                     \
         if (option)                             \
-            note_test_disabled (pfid, n);       \
+            note_test_disabled (pfid, r_tag);   \
         else                                    \
-            test_replace (pfid, n);               
+            test_replace (pfid, r_tag);               
 
     // replace (size_type pos1, size_type n1, const charT* p)
-    TEST (rw_opt_no_replace_ptr,           1);         
+    TEST (rw_opt_no_replace_ptr,           r_ptr);         
     // replace (size_type pos1, size_type n1, basic_string& s)
-    TEST (rw_opt_no_replace_str,           2);      
+    TEST (rw_opt_no_replace_str,           r_str);      
     // replace (size_type pos1, size_type n1, charT* p, size_type n2)
-    TEST (rw_opt_no_replace_num_ptr,       3);          
+    TEST (rw_opt_no_replace_num_ptr,       r_num_ptr);          
     // replace (pos1, n1, basic_string& s, size_type pos2, size_type n2)
-    TEST (rw_opt_no_replace_num_str,       4);  
+    TEST (rw_opt_no_replace_num_str,       r_num_str);  
     // replace (size_type pos1, size_type n1, size_type n, charT c)
-    TEST (rw_opt_no_replace_char,          5);     
+    TEST (rw_opt_no_replace_char,          r_char);     
     // replace (iterator i1, iterator i2, const charT* p)
-    TEST (rw_opt_no_replace_iters_ptr,     6);   
+    TEST (rw_opt_no_replace_iters_ptr,     r_iters_ptr);   
     // replace (iterator i1, iterator i2, basic_string& s)
-    TEST (rw_opt_no_replace_iters_str,     7);    
+    TEST (rw_opt_no_replace_iters_str,     r_iters_str);    
     // replace (iterator i1, iterator i2, charT* p, size_type n2)
-    TEST (rw_opt_no_replace_iters_num_ptr, 8);    
+    TEST (rw_opt_no_replace_iters_num_ptr, r_iters_num_ptr);    
     // replace (iterator i1, iterator i2, size_type n, charT c)
-    TEST (rw_opt_no_replace_iters_char,    9);    
+    TEST (rw_opt_no_replace_iters_char,    r_iters_char);    
     // replace (iterator i1, iterator i2, InputIterator j1, InputIterator j2)
-    TEST (rw_opt_no_replace_iters_range,  10);           
+    TEST (rw_opt_no_replace_iters_range,   r_iters_range);           
     }
 }
 
