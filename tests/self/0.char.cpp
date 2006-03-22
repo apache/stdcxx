@@ -27,8 +27,10 @@
  **************************************************************************/
 
 #include <rw_char.h>
+#include <rw_printf.h>
 #include <driver.h>
 
+#include <stdlib.h>
 #include <string.h>    // for memset, size_t
 
 /***********************************************************************/
@@ -604,7 +606,7 @@ test_rw_narrow ()
 static size_t
 length (const char *s)
 {
-    return strlen (s);
+    return s ? strlen (s) : 0;
 }
 
 
@@ -658,15 +660,17 @@ test_rw_match ()
     const size_t size_max = _RWSTD_SIZE_MAX;
     size_t result;
 
+#define LEN(T, s, len) \
+  int (size_max == size_t (len) ? length ((const T*)s) : size_t (len))
+
 #undef TEST
-#define TEST(s1, s2, len, expect)                                         \
-  result = rw_match ((const char*)s1, (const char*)s2, size_t (len));     \
-  rw_assert (expect == result,                                            \
-             0, __LINE__,                                                 \
-             "rw_match(%{#*s}, %{#*s}, %zu) == %zu, got %zu",             \
-             int (size_max == len ? length ((const char*)s1) : len), s1,  \
-             int (size_max == len ? length ((const char*)s2) : len), s2,  \
-             len, expect, result)
+#define TEST(s1, s2, len, expect)                                       \
+  result = rw_match ((const char*)s1, (const char*)s2, size_t (len));   \
+  rw_assert (expect == result,                                          \
+             0, __LINE__,                                               \
+             "rw_match(%{#*s}, %{#*s}, %zu) == %zu, got %zu",           \
+             LEN (char, s1, len), s1, LEN (char, s2, len),              \
+             s2, len, expect, result)
 
     TEST (0,      0,        -1, 0);
     TEST ("",     0,        -1, 0);
@@ -706,8 +710,7 @@ test_rw_match ()
   rw_assert (expect == result,                                               \
              0, __LINE__,                                                    \
              "rw_match(%{#*s}, L%{#*ls}, %zu) == %zu, got %zu",              \
-             int (size_max == len ? length ((const char*)s1) : len), s1,     \
-             int (size_max == len ? length ((const wchar_t*)s2) : len), s2,  \
+             LEN (char, s1, len), s1, LEN (wchar_t, s2, len), s2,            \
              len, expect, result)
 
     TEST (0,       0,        -1, 0);
@@ -750,9 +753,8 @@ test_rw_match ()
   rw_assert (expect == result,                                               \
              0, __LINE__,                                                    \
              "rw_match(%{#*s}, %{#*s}, %zu) == %zu, got %zu",                \
-             int (size_max == len ? length ((const char*)s1) : len), s1,     \
-             int (size_max == len ? length ((const char*)s2) : len), s2,     \
-             len, expect, result)
+             LEN (char, s1, len), s1, LEN (UserChar, s2, len),               \
+             s2, len, expect, result)
 
     TEST (0,       0,       -1, 0);
     TEST ("",      0,       -1, 0);
@@ -781,6 +783,61 @@ test_rw_match ()
 
 /***********************************************************************/
 
+static void
+test_formatting ()
+{
+    //////////////////////////////////////////////////////////////////
+    rw_info (0, 0, 0, "\"%s\": formatting directive", "%{/Gs}");
+
+    const int wchsize = int (sizeof (wchar_t));
+    const int usrsize = int (sizeof (UserChar));
+
+    char *str;
+
+#undef TEST
+#define TEST(fmt, arg0, arg1, arg2, expect_str)         \
+    str = rw_sprintfa (fmt, arg0, arg1, arg2);          \
+    rw_assert (str && 0 == strcmp (str, expect_str),    \
+               0, __LINE__,                             \
+               "rw_printf(%#s, ...) == %#s; got %#s",   \
+               fmt, expect_str, str);                   \
+    free (str)
+
+    TEST (">%{/Gs}<", (char*)0, 0, 0, ">(null)<");
+    TEST (">%{/Gs}<", "",       0, 0, ">\"\"<");
+    TEST (">%{/Gs}<", "a",      0, 0, ">\"a\"<");
+    TEST (">%{/Gs}<", "ab",     0, 0, ">\"ab\"<");
+    TEST (">%{/Gs}<", "abc",    0, 0, ">\"abc\"<");
+    TEST (">%{/Gs}<", "x\0z",   0, 0, ">\"x\"<");
+
+    TEST (">%{/*Gs}<",   1, "abc",  0,     ">\"abc\"<");
+    TEST (">%{/*.*Gs}<", 1, 2,      "abc", ">\"ab\"<");
+    TEST (">%{/.*Gs}<",  2, "abc",  0,     ">\"ab\"<");
+    TEST (">%{/.*Gs}<",  3, "x\0z", 0,     ">\"x\\0z\"<");
+
+    TEST (">%{/*Gs}<",   wchsize, (wchar_t*)0, 0,      ">(null)<");
+    TEST (">%{/*Gs}<",   wchsize, L"",         0,      ">\"\"<");
+    TEST (">%{/*Gs}<",   wchsize, L"a",        0,      ">\"a\"<");
+    TEST (">%{/*Gs}<",   wchsize, L"ab",       0,      ">\"ab\"<");
+    TEST (">%{/*Gs}<",   wchsize, L"abc",      0,      ">\"abc\"<");
+    TEST (">%{/*Gs}<",   wchsize, L"x\0z",     0,      ">\"x\"<");
+    TEST (">%{/*.*Gs}<", wchsize, 2,           L"abc", ">\"ab\"<");
+    TEST (">%{/*.*Gs}<", wchsize, 3,           L"x\0z",">\"x\\0z\"<");
+
+#define US(s)   make_user_string (s, sizeof (s))
+
+    TEST (">%{/*Gs}<",   usrsize, (UserChar*)0, 0,           ">(null)<");
+    TEST (">%{/*Gs}<",   usrsize, US (""),      0,           ">\"\"<");
+    TEST (">%{/*Gs}<",   usrsize, US ("a"),     0,           ">\"a\"<");
+    TEST (">%{/*Gs}<",   usrsize, US ("ab"),    0,           ">\"ab\"<");
+    TEST (">%{/*Gs}<",   usrsize, US ("abc"),   0,           ">\"abc\"<");
+    TEST (">%{/*Gs}<",   usrsize, US ("x\0z"),  0,           ">\"x\"<");
+    TEST (">%{/*.*Gs}<", usrsize, 2,            US ("abc"),  ">\"ab\"<");
+    TEST (">%{/*.*Gs}<", usrsize, 3,            US ("x\0z"), ">\"x\\0z\"<");
+}
+
+/***********************************************************************/
+
 static int no_user_traits;
 static int no_user_traits_char;
 static int no_user_traits_wchar_t;
@@ -788,6 +845,7 @@ static int no_user_traits_user_char;
 static int no_rw_widen;
 static int no_rw_narrow;
 static int no_rw_match;
+static int no_formatting;
 
 
 static int
@@ -829,6 +887,7 @@ run_test (int, char*[])
     TEST (rw_widen);
     TEST (rw_narrow);
     TEST (rw_match);
+    TEST (formatting);
 
     return 0;
 }
@@ -847,7 +906,8 @@ int main (int argc, char *argv[])
                     "|-no-UserTraits<UserChar># "
                     "|-no-rw_widen# "
                     "|-no-rw_narrow# "
-                    "|-no-rw_macth#",
+                    "|-no-rw_macth# "
+                    "|-no-formatting#",
                     &no_user_traits,
                     &no_user_traits_char,
                     &no_user_traits_wchar_t,
@@ -855,5 +915,6 @@ int main (int argc, char *argv[])
                     &no_rw_widen,
                     &no_rw_narrow,
                     &no_rw_match,
+                    &no_formatting,
                     0);
 }
