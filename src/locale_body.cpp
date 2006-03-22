@@ -9,24 +9,28 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
 #define _RWSTD_LIB_SRC
 
 #include <rw/_defs.h>
-
-#ifndef _RWSTD_NO_V3_LOCALE
 
 #include <new>        // for placement new
 #include <locale.h>
@@ -64,7 +68,8 @@ _RWSTD_NAMESPACE (__rw) {
 
 
 // maps LC_XXX category values to their names
-extern const __rw_cats_t __rw_cats [] = {
+extern const __rw_cats_t
+__rw_cats [] = {
 
     // expands to { LC_XXX, "LC_XXX", _RW::__rw_locale::_C_xxx }
     // the order of these is determined at config time and corresponds to
@@ -105,10 +110,11 @@ extern const __rw_cats_t __rw_cats [] = {
 //         locales (e.g., ctype<char> might come from the "C" locale,
 //         and ctype<wchar_t> from "ja_JP", etc.)
 
-char* __rw_locale::_C_get_cat_names (char *buf, _RWSTD_SIZE_T bufsize) const
+char* __rw_locale::
+_C_get_cat_names (char *buf, size_t bufsize) const
 {
-    const _RWSTD_SIZE_T  savesize = bufsize;
-    char                *savebuf  = buf;
+    const size_t  savesize = bufsize;
+    char         *savebuf  = buf;
 
     if (!buf)
         buf = new char [bufsize ? bufsize : (bufsize = 256)];
@@ -123,11 +129,11 @@ char* __rw_locale::_C_get_cat_names (char *buf, _RWSTD_SIZE_T bufsize) const
     // to that category and comparing their names. if all such facets come
     // from the same locale, the name of the category is the name of the
     // locale; otherwise "*"
-    for (_RWSTD_SIZE_T i = 0; i != __rw_n_cats; ++i) {
+    for (size_t i = 0; i != __rw_n_cats; ++i) {
 
         const char *cat_name = 0;
 
-        for (_RWSTD_SIZE_T j = 0; j != _C_n_std_facets; ++j) {
+        for (size_t j = 0; j != _C_n_std_facets; ++j) {
 
             // verify that all facet pointers are set
             _RWSTD_ASSERT (_C_std_facets [j]);
@@ -220,7 +226,7 @@ char* __rw_locale::_C_get_cat_names (char *buf, _RWSTD_SIZE_T bufsize) const
     }
 
     // remove trailing separator
-    const _RWSTD_SIZE_T len = strlen (buf);
+    const size_t len = strlen (buf);
     if (len && *_RWSTD_CAT_SEP == buf [len - 1])
         buf [len - 1] = '\0';
 
@@ -253,12 +259,12 @@ __rw_expand_name (__rw_chararray &namebuf, const char *name)
         // all locale categories to determine the name of the locale
         // for each one of them
 
-        for (_RWSTD_SIZE_T i = 0; ; sep = strchr (name, *_RWSTD_CAT_SEP)) {
+        for (size_t i = 0; ; sep = strchr (name, *_RWSTD_CAT_SEP)) {
 
             if (!sep)
                 sep = name + strlen (name);
 
-            const _RWSTD_SIZE_T catlen = sep - name;
+            const size_t catlen = sep - name;
 
             // copy the read-only substring forming a locale name
             // into a writeable buffer so that it can be NUL-terminated
@@ -279,7 +285,7 @@ __rw_expand_name (__rw_chararray &namebuf, const char *name)
             if (!fullname)
                 return 0;
 
-            const _RWSTD_SIZE_T namelen = strlen (fullname);
+            const size_t namelen = strlen (fullname);
 
             _RWSTD_ASSERT (0 != namelen);
 
@@ -309,7 +315,7 @@ __rw_expand_name (__rw_chararray &namebuf, const char *name)
             return 0;
 
         // compose a string of category names separated by CAT_SEP
-        for (_RWSTD_SIZE_T i = 0; ; ) {
+        for (size_t i = 0; ; ) {
 
             // retrieve the name of each idividual category
             const char* const fullname = setlocale (__rw_cats [i].cat, 0);
@@ -317,7 +323,7 @@ __rw_expand_name (__rw_chararray &namebuf, const char *name)
             // call to setlocale() must succeed if `loc' succeeded
             _RWSTD_ASSERT (0 != fullname);
 
-            const _RWSTD_SIZE_T namelen = strlen (fullname);
+            const size_t namelen = strlen (fullname);
 
             if (same_cats && i)
                 same_cats =    !memcmp (namebuf.data (), fullname, namelen)
@@ -338,8 +344,8 @@ __rw_expand_name (__rw_chararray &namebuf, const char *name)
 
             // all categories were the same, store just the first one
 
-            char* const         data   = namebuf.data ();
-            const _RWSTD_SIZE_T sepinx = strchr (data, *_RWSTD_CAT_SEP) - data;
+            char* const  data   = namebuf.data ();
+            const size_t sepinx = strchr (data, *_RWSTD_CAT_SEP) - data;
 
             // NUL-terminate at the first separator
             namebuf.acquire (data, sepinx);
@@ -376,7 +382,7 @@ __rw_expand_name (__rw_chararray &namebuf, const char *name)
 
             const char *ps = name;
 
-            _RWSTD_SIZE_T __i = 0;
+            size_t __i = 0;
             do {
                 if (!next)
                     next = ps + strlen (ps);
@@ -394,12 +400,12 @@ __rw_expand_name (__rw_chararray &namebuf, const char *name)
                         return 0;   // name not recognized
                 }
 
-                const _RWSTD_SIZE_T len = strlen (pbuf);
+                const size_t len = strlen (pbuf);
 
                 if (first_end == bufbeg)
                     first_end = pbuf + len;
                 else if (   first_end
-                         && (   (_RWSTD_SIZE_T)(first_end - bufbeg) != len
+                         && (   size_t (first_end - bufbeg) != len
                              || memcmp (bufbeg, pbuf, len))) {
                     // category name differs from the first (i.e., category
                     // names will be cobined) no need to check further
@@ -470,7 +476,8 @@ __rw_expand_name (__rw_chararray &namebuf, const char *name)
 }
 
 
-_RWSTD_SIZE_T __rw_locale::_C_get_facet_inx (_RWSTD_SIZE_T id) const
+size_t __rw_locale::
+_C_get_facet_inx (size_t id) const
 {
     // verify that facet's id is initialized
     _RWSTD_ASSERT (id);
@@ -482,7 +489,7 @@ _RWSTD_SIZE_T __rw_locale::_C_get_facet_inx (_RWSTD_SIZE_T id) const
     _RWSTD_ASSERT (!_C_n_usr_facets || _C_usr_facets);
 
     // linear search through user-defined facets (if any)
-    for (_RWSTD_SIZE_T i = 0; i != _C_n_usr_facets; ++i) {
+    for (size_t i = 0; i != _C_n_usr_facets; ++i) {
 
         _RWSTD_ASSERT (_C_usr_facets [i]->_C_pid);
 
@@ -490,11 +497,12 @@ _RWSTD_SIZE_T __rw_locale::_C_get_facet_inx (_RWSTD_SIZE_T id) const
             return i + _C_n_std_facets;
     }
 
-    return (_RWSTD_SIZE_T)(-1);
+    return _RWSTD_SIZE_MAX;
 }
 
 
-__rw_locale::__rw_locale (const char *name)
+__rw_locale::
+__rw_locale (const char *name)
     : _C_usr_facets (0), _C_n_usr_facets (0), _C_ref (1),
       _C_std_facet_bits (0), _C_byname_facet_bits (0)
 {
@@ -520,7 +528,7 @@ __rw_locale::__rw_locale (const char *name)
         // note that `name' may not be the same as `_C_name' at this point
     }
     else {
-        const _RWSTD_SIZE_T namelen = strlen (name) + 1;
+        const size_t namelen = strlen (name) + 1;
 
         // assume name is well-formed and valid (checked by caller)
         char* const tmp = namelen < sizeof _C_namebuf
@@ -541,7 +549,7 @@ __rw_locale::__rw_locale (const char *name)
 
        // name consist of multiple locale names; iterate over them all
        // setting byname facet bits for each named category
-       _RWSTD_SIZE_T inx = 0;
+       size_t inx = 0;
 
        for (const char *nm = _C_name; *nm && inx != __rw_n_cats; ++nm) {
 
@@ -574,7 +582,7 @@ __rw_locale::__rw_locale (const char *name)
    // being 0, 8, 16, etc. and std operating on 64-bit double words. The
    // first such misaligned std operation causes a SIGBUS
 
-   for (_RWSTD_SIZE_T i = 0; i != _C_n_std_facets; ++i)
+   for (size_t i = 0; i != _C_n_std_facets; ++i)
        _C_std_facets [i] = 0;
 
 #endif   // i86/gcc 3.x
@@ -583,7 +591,8 @@ __rw_locale::__rw_locale (const char *name)
 
 
 // convert a LC_XXX constant to a locale::category value
-/* static */ int __rw_locale::_C_LC2category (int cat)
+/* static */ int __rw_locale::
+_C_LC2category (int cat)
 {
     switch (cat) {
     case _RWSTD_LC_ALL:      cat = __rw_cat_all; break;
@@ -605,7 +614,8 @@ __rw_locale::__rw_locale (const char *name)
 
 
 // convert a LC_XXX constant to an internal bitset of facets
-/* static */ int __rw_locale::_C_LC2facet_bits (int cat)
+/* static */ int __rw_locale::
+_C_LC2facet_bits (int cat)
 {
     int bits;
 
@@ -645,7 +655,8 @@ __rw_locale::__rw_locale (const char *name)
 }
 
 
-__rw_locale::~__rw_locale ()
+__rw_locale::
+~__rw_locale ()
 {
     // verify that object isn't being destroyed prematurely
     _RWSTD_ASSERT (0 == _C_ref);
@@ -655,7 +666,7 @@ __rw_locale::~__rw_locale ()
 
     // decrement the reference count of each installed facet
     // and delete each facet whose refcount drops to zero
-    for (_RWSTD_SIZE_T i = 0; i != _C_n_std_facets; ++i) {
+    for (size_t i = 0; i != _C_n_std_facets; ++i) {
 
         if (!_C_std_facets [i])
             continue;
@@ -679,7 +690,7 @@ __rw_locale::~__rw_locale ()
         }
         else {
             // decrement ref count (must not drop below 0)
-            const _RWSTD_SIZE_T ref = _C_remove_ref (*_C_std_facets [i]);
+            const size_t ref = _C_remove_ref (*_C_std_facets [i]);
 
             _RWSTD_ASSERT (ref + 1U != 0);
 
@@ -692,14 +703,14 @@ __rw_locale::~__rw_locale ()
     _RWSTD_ASSERT (!_C_n_usr_facets == !_C_usr_facets);
 
     // decrement ref counts of user-defined facets and delete if necessary
-    for (_RWSTD_SIZE_T j = 0; j != _C_n_usr_facets; ++j) {
+    for (size_t j = 0; j != _C_n_usr_facets; ++j) {
 
         _RWSTD_ASSERT (_C_usr_facets [j]);
 
         _RWSTD_ASSERT (_C_usr_facets [j]->_C_type != __rw_facet::_C_invalid);
 
         // decrement ref count (must not drop below 0)
-        const _RWSTD_SIZE_T ref = _C_remove_ref (*_C_usr_facets [j]);
+        const size_t ref = _C_remove_ref (*_C_usr_facets [j]);
 
         _RWSTD_ASSERT (ref + 1U != 0);
 
@@ -714,7 +725,8 @@ __rw_locale::~__rw_locale ()
 extern "C" {
 
 // compares two locales, returns 0 if equal, -1 if less, +1 otherwise
-static int cmplocales (const void *pv1, const void *pv2)
+static int
+cmplocales (const void *pv1, const void *pv2)
 {
     _RWSTD_ASSERT (0 != pv1);
     _RWSTD_ASSERT (0 != pv2);
@@ -732,7 +744,8 @@ static int cmplocales (const void *pv1, const void *pv2)
 
 
 // compares a key to a locale, returns 0 if equal, -1 if less, +1 otherwise
-static int cmplocale (const void *pv1, const void *pv2)
+static int
+cmplocale (const void *pv1, const void *pv2)
 {
     _RWSTD_ASSERT (0 != pv1);
     _RWSTD_ASSERT (0 != pv2);
@@ -765,14 +778,15 @@ static int cmplocale (const void *pv1, const void *pv2)
 //                         count, and remove it if the ref count is 0
 
 /* static */ __rw_locale*
-__rw_locale::_C_manage (__rw_locale *plocale, const char *locname)
+__rw_locale::
+_C_manage (__rw_locale *plocale, const char *locname)
 {
     // a per-process array of locale body pointers
     static __rw_locale*  locale_buf [8];
     static __rw_locale** locales        = locale_buf;
     static __rw_locale*  classic        = 0;
-    static _RWSTD_SIZE_T n_locales      = 0;
-    static _RWSTD_SIZE_T locale_bufsize =
+    static size_t        n_locales      = 0;
+    static size_t        locale_bufsize =
         sizeof locale_buf / sizeof *locale_buf;
 
     if (!locname) {
@@ -864,20 +878,20 @@ __rw_locale::_C_manage (__rw_locale *plocale, const char *locname)
             bsearch (locname, locales, n_locales, sizeof *locales, &cmplocale);
         if (pl) {
 
-            const _RWSTD_SIZE_T inx =
+            const size_t inx =
                   _RWSTD_STATIC_CAST (const __rw_locale* const*, pl)
                 - _RWSTD_CONST_CAST (const __rw_locale* const*, locales);
 
             plocale = locales [inx];
 
-            const _RWSTD_SIZE_T ref =
+            const size_t ref =
                 _RWSTD_ATOMIC_PREDECREMENT (plocale->_C_ref, false);
 
-            _RWSTD_ASSERT ((_RWSTD_SIZE_T)-1 != ref);
+            _RWSTD_ASSERT (_RWSTD_SIZE_MAX != ref);
 
             if (0 == ref) {
 
-                static const _RWSTD_SIZE_T bufsize =
+                static const size_t bufsize =
                     sizeof locale_buf / sizeof *locale_buf;
 
                 --n_locales;
@@ -919,7 +933,7 @@ __rw_locale::_C_manage (__rw_locale *plocale, const char *locname)
             _RWSTD_ASSERT (plocale->_C_name);
             _RWSTD_ASSERT (__rw_is_C (plocale->_C_name));
 
-            const _RWSTD_SIZE_T ref =
+            const size_t ref =
                 _RWSTD_ATOMIC_PREDECREMENT (plocale->_C_ref, false);
 
             _RWSTD_ASSERT (ref + 1U != 0);
@@ -1012,7 +1026,8 @@ __rw_locale::_C_manage (__rw_locale *plocale, const char *locname)
 // installed in `*this' are being globally managed by the library
 // if (cat == locale::none) holds, returns true iff the entire
 // locale body is being managed
-bool __rw_locale::_C_is_managed (int cat) const
+bool __rw_locale::
+_C_is_managed (int cat) const
 {
     // `cat' must be a valid category
     _RWSTD_ASSERT (_C_check_category (_C_LC2category (cat)));
@@ -1055,7 +1070,7 @@ bool __rw_locale::_C_is_managed (int cat) const
         if (*_RWSTD_CAT_SEP == *locname)
             ++locname;
 
-        _RWSTD_SIZE_T loclen;
+        size_t      loclen;
         const char* next = strchr (locname, *_RWSTD_CAT_SEP);
 
         loclen = next ? next - locname : strlen (locname);
@@ -1064,7 +1079,7 @@ bool __rw_locale::_C_is_managed (int cat) const
         // locale each comes from with the name of the category encoded
         // in the locale name for equality; a mismatch indicates that
         // the locale is not managed
-        for (_RWSTD_SIZE_T i = 0, catinx = 0; i != _C_n_std_facets; ++i) {
+        for (size_t i = 0, catinx = 0; i != _C_n_std_facets; ++i) {
 
             if (0 == _C_std_facets [i])
                 continue;
@@ -1163,10 +1178,12 @@ bool __rw_locale::_C_is_managed (int cat) const
 #include <rw/_defs.h>
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
-const locale& locale::operator= (const locale &rhs) _THROWS (())
+const locale&
+locale::
+operator= (const locale &rhs) _THROWS (())
 {
     // copy body and bump up a ref count in `rhs'
     _RW::__rw_locale* const body = rhs._C_body;
@@ -1191,7 +1208,4 @@ const locale& locale::operator= (const locale &rhs) _THROWS (())
 }
 
 
-}   // namespace _V3_LOCALE
-
-
-#endif   // _RWSTD_NO_V3_LOCALE
+}   // namespace std
