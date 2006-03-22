@@ -316,4 +316,8 @@ _TEST_EXPORT
 _RWSTD_SIZE_T rw_match (const char*, const UserChar*,
                         _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
+static const struct UserCharFmatInit {
+    UserCharFmatInit ();
+} _rw_user_char_fmat_init;
+
 #endif   // RW_CHAR_INCLUDED
