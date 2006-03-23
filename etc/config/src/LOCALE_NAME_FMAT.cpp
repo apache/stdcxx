@@ -258,6 +258,7 @@ static struct LC_vars
     { -1, LC_MEASUREMENT, "LC_MEASUREMENT=C", "measurement" },
 #endif
 
+    { -1, LC_ALL, "LC_ALL", 0 },
     { -1, 0, "", 0 }
 };
 
@@ -321,7 +322,8 @@ int print_lc_constants ()
 
     for (unsigned i = 0; *lc_vars [i].name; ++i) {
         eq = rw_strchr (lc_vars [i].name, '=');
-        *eq = '\0';
+        if (eq)
+            *eq = '\0';
 
         printf ("#define _RWSTD_%-20s %2d\n",
                 lc_vars [i].name, lc_vars [i].cat);
@@ -332,24 +334,29 @@ int print_lc_constants ()
         if (lc_vars [i].cat < lc_vars [lc_min_inx].cat)
             lc_min_inx = i;
 
-        *eq = '=';
+        if (eq)
+            *eq = '=';
     }
 
     eq = rw_strchr (lc_vars [lc_max_inx].name, '=');
-    *eq = '\0';
+    if (eq)
+        *eq = '\0';
 
     printf ("#define %-27s _RWSTD_%s\n",
             "_RWSTD_LC_MAX", lc_vars [lc_max_inx].name);
 
-    *eq = '=';
+    if (eq)
+        *eq = '=';
 
     eq = rw_strchr (lc_vars [lc_min_inx].name, '=');
-    *eq = '\0';
+    if (eq)
+        *eq = '\0';
 
     printf ("#define %-27s _RWSTD_%s\n",
             "_RWSTD_LC_MIN", lc_vars [lc_min_inx].name);
 
-    *eq = '=';
+    if (eq)
+        *eq = '=';
 
     return 0;
 }
@@ -374,10 +381,10 @@ int print_categories (const char *locname,
     unsigned i;
 
     // set up the default environment (i.e., LC_COLLATE=C; LC_CTYPE=C; etc.)
-    for (i = 0; *lc_vars [i].name; ++i)
+    for (i = 0; lc_vars [i].cat != LC_ALL; ++i)
         putenv (lc_vars [i].name);
 
-    for (i = 0; locname && *lc_vars [i].name; ++i) {
+    for (i = 0; locname && lc_vars [i].cat != LC_ALL; ++i) {
         if (i) {
             if (setlocale_environ) {
                 // replace previous LC_XXX environment variable
@@ -437,9 +444,6 @@ int print_categories (const char *locname,
                 s = rw_strchr (s, loc_name_cat_eq) + 1;
 
             lc_vars [i].ord = j;
-//             printf ("#define _RWSTD_CAT_%d(pfx) "
-//                     "{ %d, \"%s\", pfx::_C_%s }\n",
-//                     j, lc_vars [i].cat, lc_vars [i].name, lc_vars [i].lower);
 
             // look for a separator between LC_XXX=name pairs
             // (typically ';')
@@ -484,7 +488,7 @@ int print_categories (const char *locname,
             loc_name_prepend_sep = 1;
     }
     
-    for (i = 0; *lc_vars [i].name; ++i) {
+    for (i = 0; lc_vars [i].cat != LC_ALL; ++i) {
 
         char* eq = rw_strchr (lc_vars [i].name, '=');
         if (eq)
