@@ -63,6 +63,10 @@
 #include <locale>
 #include <string>
 
+#ifndef WEOF
+#  define WEOF -1
+#endif   // WEOF
+
 
 _RWSTD_NAMESPACE (__rw) {
 
@@ -71,12 +75,25 @@ _RWSTD_EXPORT _RWSTD_SSIZE_T
 
 }
 
+/********************************************************************/
+
+// convenience typedefs
+typedef unsigned char  UChar;
+typedef unsigned short UShrt;
+typedef unsigned int   UInt;
+typedef unsigned long  ULong;
+
+#ifdef _RWSTD_LONG_LONG
+
+typedef unsigned _RWSTD_LONG_LONG ULLong;
+
+#endif   // _RWSTD_LONG_LONG
 
 /********************************************************************/
 
 static const union {
-    int           ival;
-    unsigned char bytes [sizeof (int)];
+    int   ival;
+    UChar bytes [sizeof (int)];
 } _rw_one = { 1 };
 
 static const int
@@ -746,7 +763,7 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
         spec.param.ptr_ = PARAM (ptr_);
 
         if (spec.mod == spec.mod_hh) {
-            unsigned char* const ptr = (unsigned char*)spec.param.ptr_;
+            UChar* const ptr = (UChar*)spec.param.ptr_;
 
             RW_ASSERT (0 != ptr);
 
@@ -875,7 +892,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
         else if (isdigit (fmt [2])) {
 
             char* end = 0;
-            const unsigned long n = strtoul (fmt + 2, &end, 0);
+            const ULong n = strtoul (fmt + 2, &end, 0);
             if ('}' == *end) {
                 buf.maxsize = n;
                 fmt         = end + 1;
@@ -1155,8 +1172,6 @@ _rw_fmtlong (const FmtSpec &spec, Buffer &buf, long val)
     }
 
     const int base = 1 < spec.base && spec.base < 37 ? spec.base : 10;
-
-    typedef unsigned long ULong;
 
     ULong uval;
 
@@ -1441,13 +1456,13 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
         if (spec.mod == spec.mod_hh) {
             // promoted unsigned char argument
             spec.param.int_ = PARAM (int_);
-            const unsigned char val = spec.param.int_;
+            const UChar val = spec.param.int_;
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (spec.mod == spec.mod_h) {
             // promoted unsigned short argument
             spec.param.int_ = PARAM (int_);
-            const unsigned short val = spec.param.int_;
+            const UShrt val = spec.param.int_;
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (spec.mod == spec.mod_ll) {
@@ -1457,7 +1472,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
             len = rw_fmtinteger (spec, buf, val);
 #elif 8 == _RWSTD_LONG_SIZE
             spec.param.long_ = PARAM (long_);
-            const unsigned long val = spec.param.long_;
+            const ULong val = spec.param.long_;
             len = rw_fmtinteger (spec, buf, val);
 #else
             RW_ASSERT (!"long long not supported");
@@ -1466,7 +1481,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
         }
         else if (spec.mod == spec.mod_l) {
             spec.param.long_ = PARAM (long_);
-            const unsigned long val = spec.param.long_;
+            const ULong val = spec.param.long_;
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (spec.mod == spec.mod_t) {
@@ -1480,7 +1495,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
         }
         else if (2 == spec.iwidth) {
             spec.param.int_ = PARAM (int_);
-            const long val = (unsigned short)spec.param.int_;
+            const long val = UShrt (spec.param.int_);
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (3 == spec.iwidth) {
@@ -1496,7 +1511,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
 #endif   // _RWSTD_INT64_T
 
 #if 8 == _RWSTD_LONG_SIZE
-            const unsigned long val = spec.param.i64_;
+            const ULong val = spec.param.i64_;
             len = rw_fmtinteger (spec, buf, val);
 #elif defined (_RWSTD_LONG_LONG)
             const unsigned _RWSTD_LONG_LONG val = spec.param.i64_;
@@ -1650,7 +1665,7 @@ _rw_fmtpointer (const FmtSpec &spec, Buffer &buf,
 
     const union {
         const void          *ptr;
-        const unsigned long *lptr;
+        const ULong *lptr;
     } uptr = { pptr };
 
     int len = 0;
@@ -2244,8 +2259,6 @@ _rw_fmtmask (const FmtSpec &spec, Buffer &buf, int c)
 
     }
     else {
-        typedef unsigned char UChar;
-
         const UChar uc = c;
 
         mask |= isalnum (uc) ? bit_alnum : 0;
@@ -2636,17 +2649,17 @@ int rw_quotechar (char *buf, charT wc, int noesc)
     // without widening (i.e., treat it as an unsigned type)
 
 #  if _RWSTD_WCHAR_T_MIN == _RWSTD_SHRT_MIN
-    const unsigned long wi = (unsigned short)wc;
+    const ULong wi = UShrt (wc);
 #  elif _RWSTD_WCHAR_T_MIN ==_RWSTD_INT_MIN
-    const unsigned long wi = (unsigned int)wc;
+    const ULong wi = UInt (wc);
 #  elif _RWSTD_WCHAR_T_MIN == _RWSTD_LONG_MIN
-    const unsigned long wi = (unsigned long)wc;
+    const ULong wi = ULong (wc);
 #  endif
 
 #else   // if _RWSTD_WCHAR_T_MIN >= 0
 
     // wchar_t is unsigned
-    const unsigned long wi = (unsigned long)wc;
+    const ULong wi = ULong (wc);
 
 #endif   // _RWSTD_WCHAR_T_MIN < 0
 
@@ -2680,7 +2693,7 @@ int rw_quotechar (char *buf, charT wc, int noesc)
                 len = 2;
             }
             else if (1 == sizeof wc) {
-                len = 1 + sprintf (buf + 1, "x%02x", (unsigned char)wc);
+                len = 1 + sprintf (buf + 1, "x%02x", UChar (wc));
             }
             else {
 
@@ -2690,7 +2703,7 @@ int rw_quotechar (char *buf, charT wc, int noesc)
                     : wi > 0xfffUL     ? 4 : wi > 0xffUL     ? 3
                     : wi > 0xfUL       ? 2 : 2;
 
-                len = 1 + sprintf (buf + 1, "x%0*lx", width, (unsigned long)wi);
+                len = 1 + sprintf (buf + 1, "x%0*lx", width, ULong (wi));
             }
         }
         else {
@@ -2946,6 +2959,30 @@ int rw_fmtarray (const FmtSpec &spec,
     return int (s - bufend);
 }
 
+#ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION
+
+template int rw_quotechar (char*, UChar, int);
+template int rw_quotechar (char*, char, int);
+template int rw_quotechar (char*, UShrt, int);
+template int rw_quotechar (char*, UInt, int);
+template int rw_quotechar (char*, ULong, int);
+
+template int rw_fmtarray (const FmtSpec&, Buffer&, const UChar*, size_t, int);
+template int rw_fmtarray (const FmtSpec&, Buffer&, const char*, size_t, int);
+template int rw_fmtarray (const FmtSpec&, Buffer&, const UShrt*, size_t, int);
+template int rw_fmtarray (const FmtSpec&, Buffer&, const UInt*, size_t, int);
+template int rw_fmtarray (const FmtSpec&, Buffer&, const ULong*, size_t, int);
+
+
+#  ifndef _RWSTD_NO_WCHAR_T
+
+template int rw_quotechar (char*, wchar_t, int);
+template int rw_fmtarray (const FmtSpec&, Buffer&, const wchar_t*, size_t, int);
+
+#  endif   // _RWSTD_NO_WCHAR_T
+
+#endif   // _RWSTD_NO_EXPLICIT_INSTANTIATION
+
 /********************************************************************/
 
 static int
@@ -3026,7 +3063,6 @@ _rw_fmtarray (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
 static int
 _rw_fmtchr (const FmtSpec &spec, Buffer &buf, int val, int noesc)
 {
-    typedef unsigned char UChar;
     const UChar uc = UChar (val);
 
     char buffer [8];
@@ -3053,7 +3089,7 @@ _rw_fmtwchr (const FmtSpec &spec, Buffer &buf, wint_t val, int noesc)
     char buffer [16];
     int  len;
 
-    if (0 == noesc && -1 == val) {
+    if (0 == noesc && WEOF == val) {
 
         // format EOF
         buffer [0] = 'E';
@@ -3830,11 +3866,11 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         spec.param.ptr_ = PARAM (ptr_);
 
         if (spec.mod == spec.mod_hh) {
-            unsigned char* const ptr = (unsigned char*)spec.param.ptr_;
+            UChar* const ptr = (UChar*)spec.param.ptr_;
 
             RW_ASSERT (0 != ptr);
 
-            *ptr = (unsigned char)nbytes;
+            *ptr = UChar (nbytes);
         }
         else if (spec.mod == spec.mod_h) {
             short* const ptr = (short*)spec.param.ptr_;
