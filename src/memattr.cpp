@@ -28,7 +28,7 @@
 
 #define _RWSTD_LIB_SRC
 
-#include <errno.h>    // for errno
+#include <errno.h>    // for ENOMEM, errno
 #include <string.h>   // for memchr
 
 #ifdef __CYGWIN__
@@ -131,6 +131,18 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
                 return next == page ? -1 : DIST (next, addr);
         }
 
+#  elif defined (_RWSTD_OS_OSF1)
+
+        // use Tru64 mvalid()
+        if (-1 == mvalid (next, 1, PROT_READ)) {
+
+            const int err = errno;
+            errno = errno_save;
+
+            if (err)
+                return next == page ? -1 : DIST (next, addr);
+        }
+
 #  elif !defined (_RWSTD_NO_MADVISE)
 
         // on HP-UX, Linux, use madvise() as opposed to mincore()
@@ -141,7 +153,7 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
             const int err = errno;
             errno = errno_save;
 
-            if (EFAULT == err || ENOMEM == err)
+            if (err)
                 return next == page ? -1 : DIST (next, addr);
         }
 
