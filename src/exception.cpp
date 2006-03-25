@@ -494,26 +494,16 @@ __rw_vfmtwhat (char          *buf,      // (allocate if 0)
 
         int nwrote;
 
-#ifdef va_copy
-
         // copy va to a temporary and use it in each iteration
         // of the loop since it may be modified by the call to
         // vsnprintf() (e.g., on PowerPC/Linux)
 
         va_list tmp_va;
-        va_copy (tmp_va, va);
+        _RWSTD_VA_COPY (tmp_va, va);
 
         nwrote = _RWSTD_VSNPRINTF (buf, size, fmat, tmp_va);
 
         va_end (tmp_va);
-
-#else   // if !defined (va_copy)
-
-        // va_copy not defined, use va directly and hope for the best
-
-        nwrote = _RWSTD_VSNPRINTF (buf, size, fmat, va);
-
-#endif   // va_copy
 
         if (0 > nwrote) {
 

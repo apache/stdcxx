@@ -808,35 +808,10 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 {
     va_list *pva;
 
-#ifdef va_copy
-    // create a copy of va whose address can be passed to a function
-    // taking a va_list* so that it can modify the original; note that
-    // passing &va is not portable since when declared as a function
-    // argument, va_list that is an array type decays into a pointer
-    // and the address of the pointer will not match va_list* (as is
-    // the case on EM64T)
     va_list vacpy;
-    va_copy (vacpy, varg);
+    _RWSTD_VA_COPY (vacpy, varg);
+
     pva = &vacpy;
-
-#else   // if !defined (va_copy)
-
-#  if 2 < __GNUG__
-
-    // use the gcc 3.x builtin when the va_copy macro is not defined
-    // (e.g., with gcc -ansi or Intel C++ icc -ansi or -strict_ansi)
-    va_list vacpy;
-    __builtin_va_copy (vacpy, varg);
-    pva = &vacpy;
-
-#  else   // if !defined (__GNUG__)
-
-    // use varg (in)directly and assume it's safe (e.g., HP aCC on PA)
-    pva = &varg;
-
-#  endif   // 2 < __GNUG__
-
-#endif   // va_copy
 
 // do not use varg of vacpy below this point -- use *pva instead
 #define varg  DONT_TOUCH_ME
@@ -4102,6 +4077,54 @@ rw_sprintfa (const char *fmt, ...)
     return buf;
 }
 
+
+/********************************************************************/
+
+_TEST_EXPORT int
+rw_sprintf (char *buf, const char *fmt, ...)
+{
+    char *tmpbuf = 0;
+    size_t tmpsize = 0;
+
+    va_list va;
+    va_start (va, fmt);
+
+    // FIXME: format directly into buf to avoid dynamic allocation
+    const int nchars = rw_vasnprintf (&tmpbuf, &tmpsize, fmt, va);
+
+    va_end (va);
+
+    if (-1 < nchars)
+        memcpy (buf, tmpbuf, size_t (nchars));
+
+    free (tmpbuf);
+
+    return nchars;
+}
+
+/********************************************************************/
+
+_TEST_EXPORT int
+rw_snprintf (char *buf, size_t bufsize, const char *fmt, ...)
+{
+    char *tmpbuf = 0;
+    size_t tmpsize = 0;
+
+    va_list va;
+    va_start (va, fmt);
+
+    // FIXME: format directly into buf to avoid dynamic allocation
+    const int nchars = rw_vasnprintf (&tmpbuf, &tmpsize, fmt, va);
+
+    va_end (va);
+
+    if (size_t (nchars) <= bufsize)
+        memcpy (buf, tmpbuf, size_t (nchars));
+
+    free (tmpbuf);
+
+    return nchars;
+}
 
 /********************************************************************/
 

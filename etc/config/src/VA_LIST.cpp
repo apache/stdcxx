@@ -123,6 +123,15 @@ int main ()
 
 #endif   // _RWSTD_USE_CONFIG
 
+#if defined (va_copy)
+
+    // comment out the macro #defined below when va_copy() exists
+    printf ("%s ", "//");
+
+#endif   // va_copy
+
+    printf ("#define _RWSTD_NO_VA_COPY\n");
+
     va_list va;
     memset (&va, 0, sizeof va);
 
