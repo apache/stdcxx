@@ -79,7 +79,14 @@ __rw_cats [] = {
     _RWSTD_CAT_2 (_RW::__rw_locale),
     _RWSTD_CAT_3 (_RW::__rw_locale),
     _RWSTD_CAT_4 (_RW::__rw_locale),
+
+#ifdef _RWSTD_CAT_5
     _RWSTD_CAT_5 (_RW::__rw_locale)
+#else   // if !defined (_RWSTD_CAT_5)
+    // for Windoze (no LC_MESSAGES there)
+    _RWSTD_CAT_0 (_RW::__rw_locale)
+#endif   // _RWSTD_CAT_5
+
 };
 
 
