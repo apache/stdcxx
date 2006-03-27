@@ -403,15 +403,6 @@ void test_replace (charT, Traits*,
     TestString s_src (wsrc, cs.src_len);
     TestString s_res (wres, res_len);
 
-    // used to workaround the problem with empty UserChar strings output
-    static charT wempty [10]; 
-    rw_widen (wempty, "<empty>", 7);
-
-    const TestString s_empty (wempty, 7);
-
-    bool src_use_empty = 
-        0 == s_src.size () && sizeof (charT) > sizeof (wchar_t);
-
     const int first1_off = cs.pos1;
     const int last1_off  = cs.pos1 + cs.num1; 
 
@@ -448,7 +439,7 @@ void test_replace (charT, Traits*,
     "line %d. std::basic_string<%s, %s<%2$s>, %s<%2$s>>(%{#*s})."            \
     "replace (%{?}%zu%{;}%{?}begin + %zu%{;}"                                \
     "%{?}, %zu%{;}%{?}, begin + %zu%{;}"                                     \
-    "%{?}, %{#*s}%{;}%{?}, %{#*S}%{;}"                                       \
+    "%{?}, %{/*.*Gs}%{;}%{?}, string(%{/*.*Gs})%{;}"                         \
     "%{?}, %zu%{;}%{?}, %zu%{;}"                                             \
     "%{?}, %zu%{;}%{?}, %#c%{;}"                                             \
     "%{?}, begin + %zu%{;}%{?}, begin + %zu%{;})"
@@ -458,13 +449,14 @@ void test_replace (charT, Traits*,
     cs.str, r_char >= which, cs.pos1, r_iters_ptr <= which, first1_off,      \
     r_char >= which, cs.num1, r_iters_ptr <= which, last1_off,               \
     r_ptr == which || r_num_ptr == which || r_iters_ptr == which ||          \
-    r_iters_num_ptr == which, int (cs.src_len), cs.src, r_str == which ||    \
-    r_num_str == which || r_iters_str == which, int (sizeof (charT)),        \
-    src_use_empty ? &s_empty : &s_src, r_char == which ||                    \
-    r_iters_char == which, cs.cnt, r_num_str == which, cs.pos2,              \
-    r_num_ptr == which || r_num_str == which || r_iters_num_ptr == which,    \
-    cs.num2, r_char == which || r_iters_char == which, cs.ch,                \
-    r_iters_range == which, first2_off, r_iters_range == which, last2_off
+    r_iters_num_ptr == which, int (sizeof (charT)), int (cs.src_len), wsrc,  \
+    r_str == which || r_num_str == which || r_iters_str == which,            \
+    int (sizeof (charT)), int (s_src.size ()), s_src.c_str (),               \
+    r_char == which || r_iters_char == which, cs.cnt, r_num_str == which,    \
+    cs.pos2, r_num_ptr == which || r_num_str == which ||                     \
+    r_iters_num_ptr == which, cs.num2, r_char == which ||                    \
+    r_iters_char == which, cs.ch, r_iters_range == which, first2_off,        \
+    r_iters_range == which, last2_off
 
     // verify the results
     if (r_num_str == which || r_iters_str == which) {
@@ -486,16 +478,10 @@ void test_replace (charT, Traits*,
         !TestString::traits_type::compare (res_str.c_str(), 
                                            ctl_str.c_str(), ctl_str.size ());
 
-    // to workaround UserChar's empty string output problem
-    const bool use_empty_res = 
-        0 == res_str.size () && sizeof (charT) > sizeof (wchar_t);
-    const bool use_empty_ctl = 
-        0 == ctl_str.size () && sizeof (charT) > sizeof (wchar_t);
-
     rw_assert (success, 0, cs.line,
-               CALLFMAT " == %{#*S}, got %{#*S}", CALLARGS, 
-               int (sizeof (charT)), use_empty_ctl ? &s_empty : &ctl_str,
-               int (sizeof (charT)), use_empty_res ? &s_empty : &res_str);
+               CALLFMAT " == %{/*.*Gs}, got %{/*.*Gs}", CALLARGS, 
+               int (sizeof (charT)), int (ctl_str.size ()), ctl_str.c_str (),
+               int (sizeof (charT)), int (res_str.size ()), res_str.c_str ());
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
