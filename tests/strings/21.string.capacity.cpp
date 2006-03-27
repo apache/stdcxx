@@ -37,7 +37,7 @@
 
 struct MemFun
 {
-    enum charT { Char, WChar };
+    enum charT { Char, WChar, UChar };
     enum Traits { DefaultTraits, UserTraits };
     enum FunTag {
         // which member function to exercise
@@ -85,8 +85,9 @@ void test_resize (charT, const MemFun *pfid,
 {
     typedef unsigned char UChar;
 
-    const charT char_eos   = charT ('\0');
-    const charT char_param = -1 == cparam ? char_eos : charT (UChar (cparam));
+    const charT char_eos   = make_char ('\0', (charT*)0);
+    const charT char_param = 
+        -1 == cparam ? char_eos : make_char (char (cparam), (charT*)0);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -115,7 +116,7 @@ void test_resize (charT, const MemFun *pfid,
                "should throw == %b, was thrown == %b",
                __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
                int (str_len), str, str_len,
-               nparam, -1 != cparam, char_param, should_throw, ex_thrown);
+               nparam, -1 != cparam, cparam, should_throw, ex_thrown);
 
     if (ex_thrown)
         return;
@@ -130,9 +131,9 @@ void test_resize (charT, const MemFun *pfid,
     rw_assert (test_str.size () == nparam, 0, line,
                "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>"
                "(%{#*s}, %zu).resize(%zu%{?}, %{#c}%{;}).size() == "
-               "%zu, got %zy",
+               "%zu, got %zu",
                __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
-               int (str_len), str, str_len, nparam, -1 != cparam, char_param,
+               int (str_len), str, str_len, nparam, -1 != cparam, cparam,
                nparam, test_str.size ());
 
     // create the expected string
@@ -143,16 +144,16 @@ void test_resize (charT, const MemFun *pfid,
         expect_str [i] = -1 == cparam ? '\0' : char (cparam);
 
     // verify that the test_string matches the expected result
-    const std::size_t inx = rw_match (expect_str, test_str.data (), nparam);
+    const std::size_t inx = rw_match (expect_str, test_str.c_str (), nparam);
 
     rw_assert (inx == nparam, 0, line,
                "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>"
                "(%{#*s}, %zu).resize(%zu%{?}, %{#c}%{;}) == "
-               "%{#*s}, got %{#*.*Ac}",
+               "%{#*s}, got %{/*.*Gs}",
                __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
-               int (str_len), str, str_len, nparam, -1 != cparam, char_param,
+               int (str_len), str, str_len, nparam, -1 != cparam, cparam,
                int (nparam), expect_str,
-               int (sizeof (charT)), int (test_str.size ()), test_str.data ());
+               int (sizeof (charT)), int (test_str.size ()), test_str.c_str ());
 
     delete[] expect_str;
 }
@@ -241,13 +242,15 @@ void test_capacity (charT, Traits*, const MemFun *pfid,
     }
 
 #define CALLFMAT                                                        \
-    "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>(%{?}%{#*S}%{;})"     \
+    "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>(%{?}%{#*s}%{;})"     \
     ".%s(%{?}%zu%{;})"
 
 #define CALLARGS                                                \
     __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,         \
-    0 != str, int (sizeof (charT)), &test_str, pfid->fname_,    \
+    0 != str, int (str_len), str, pfid->fname_,                 \
     MemFun::reserve == pfid->mfun_, nparam
+
+    //0 != str, int (sizeof (charT)), &test_str, pfid->fname_,    
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -361,10 +364,12 @@ void test_capacity (MemFun      *pfid,
             TEST (char, UserTraits<char>);
 
 #ifndef _RWSTD_NO_WCHAR_T
-        else
+        else if (MemFun::WChar == pfid->cid_)
             TEST (wchar_t, UserTraits<wchar_t>);
 #endif   // _RWSTD_NO_WCHAR_T
 
+        else
+            TEST (UserChar, UserTraits<UserChar>);
     }
 }
 
@@ -423,6 +428,7 @@ static int rw_opt_no_empty;         // for --no-empty
 static int rw_opt_no_exceptions;    // for --no-exceptions
 static int rw_opt_no_char_traits;   // for --no-char_traits
 static int rw_opt_no_user_traits;   // for --no-user_traits
+static int rw_opt_no_user_chars;    // for --no-user_chars
 
 /**************************************************************************/
 
@@ -445,9 +451,10 @@ void test_resize (MemFun *pfid)
     //    |                |        |   |    +-- exception expected?
     //    |                |        |   |    |
     //    V                V        V   V    V
-    TEST ("\0",            0,       0,  -1,  false);
-    TEST ("\0",            0,       0, 'a',  false);
-    TEST ("\0",            0,      10, 'a',  false);
+    TEST ("\0",            1,       0,  -1,  false);
+    TEST ("\0",            1,       0, 'a',  false);
+    TEST ("\0",            1,       1, 'a',  false);
+    TEST ("\0",            1,      10, 'a',  false);
 
     TEST ("a",             1,       1,  -1,  false);
     TEST ("a",             1,       1, 'a',  false);
@@ -822,6 +829,15 @@ int run_test (int, char*[])
     else
         rw_note (0, 0, 0, "wchar_t tests disabled");
 
+    if (rw_opt_no_user_chars) {
+        rw_note (0, 0, 0, "user defined chars test disabled");
+    }
+    else {
+        MemFun fid (MemFun::UChar, "UserChar", MemFun::UserTraits, 0);
+        fid.tname_ = "UserTraits";
+        run_test (&fid);
+    }
+
     return 0;
 
 }
@@ -844,7 +860,8 @@ int main (int argc, char** argv)
                     "|-no-empty# "
                     "|-no-exceptions# "
                     "|-no-char_traits# "
-                    "|-no-user_traits#",
+                    "|-no-user_traits# "
+                    "|-no-user_chars#",
                     &rw_opt_no_size,
                     &rw_opt_no_resize,
                     &rw_opt_no_length,
@@ -855,5 +872,6 @@ int main (int argc, char** argv)
                     &rw_opt_no_empty,
                     &rw_opt_no_exceptions,
                     &rw_opt_no_char_traits,
-                    &rw_opt_no_user_traits);
+                    &rw_opt_no_user_traits,
+                    &rw_opt_no_user_chars);
 }
