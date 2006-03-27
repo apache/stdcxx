@@ -54,28 +54,39 @@ struct MemFun
     const char *fname_;   // function name
 };
 
+/**************************************************************************/
+
+typedef enum EraseTags {
+
+    // erase ()
+    e_erase         =  1,   
+    // erase (size_type pos);
+    e_pos           =  2,
+    // erase (size_type pos, size_type cnt);
+    e_count         =  3,
+    // erase (iterator p);
+    e_iter          =  4,
+    // erase (iterator first, iterator last);
+    e_range         =  5
+
+} ETags;
+
 static const int long_string_len = 4096;
 static char long_string [long_string_len];
 
 /**************************************************************************/
 // exercises basic_string::erase, 21.3.5.5
-// which value determines which erase version to be exercised:
-// 1    erase ();
-// 2    erase (size_type pos);
-// 3    erase (size_type pos, size_type cnt);
-// 4    erase (iterator p);
-// 5    erase (iterator first, iterator last);
 template <class charT, class Traits>
 void test_erase (charT, Traits*, MemFun* pfid,
-                 int         line,
-                 int         which,
-                 const char *str,
-                 std::size_t str_len,
-                 int         pos,
-                 int         cnt,
-                 const char *res,
-                 std::size_t res_len,
-                 bool        should_throw)
+                 int          line,
+                 const ETags &which,
+                 const char  *str,
+                 std::size_t  str_len,
+                 int          pos,
+                 int          cnt,
+                 const char  *res,
+                 std::size_t  res_len,
+                 bool         should_throw)
 {
     typedef std::allocator<charT> Allocator;
     typedef std::basic_string<charT, Traits, Allocator> TestString;
@@ -105,7 +116,7 @@ void test_erase (charT, Traits*, MemFun* pfid,
     std::string::size_type sz = pstr->size();
 
     const int f_arg = pos;
-    const int s_arg = which >= 4 ? 4 == which ? 0 : pos + cnt : cnt;
+    const int s_arg = which >= e_iter ? e_iter == which ? 0 : pos + cnt : cnt;
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -168,11 +179,11 @@ void test_erase (charT, Traits*, MemFun* pfid,
     ").erase (%{?}%{?}%d%{;}%{?}, %d%{;}%{;}"           \
     "%{?}begin + %td%{?}, begin + %td%{;}%{;}) "
 
-#define CALLARGS                                                    \
-    __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,             \
-    0 != str, int (str_len), str,                                   \
-    4 > which, 2 == which || 3 == which, f_arg, 3 == which, s_arg,  \
-    4 <= which, f_arg, 5 == which, s_arg
+#define CALLARGS                                                        \
+    __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,                 \
+    0 != str, int (str_len), str, e_iter > which,                       \
+    e_pos == which || e_count == which, f_arg, e_count == which, s_arg, \
+    e_iter <= which, f_arg, e_range == which, s_arg
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -185,7 +196,7 @@ void test_erase (charT, Traits*, MemFun* pfid,
     }
 
     rw_assert (caught == expected, 0, line,
-              CALLFMAT "%{?}expected %s, caught %s"
+               CALLFMAT "%{?}expected %s, caught %s"
                "%{:}unexpectedly caught %s%{;}",
                CALLARGS, 0 != expected, expected, caught, caught);
 
@@ -201,7 +212,7 @@ void test_erase (charT, Traits*, MemFun* pfid,
     const typename TestString::iterator  end = pstr->end();
 
     // verify the returned value
-    if (which < 4) {
+    if (which < e_iter) {
         rw_assert (s_res == *pstr, 0, line,
                    CALLFMAT " != *this", CALLARGS);
     }
@@ -213,7 +224,7 @@ void test_erase (charT, Traits*, MemFun* pfid,
                    CALLARGS, it_res - begin);
 
         std::size_t idx 
-            = 4 == which ? std::size_t (pos + 1) : std::size_t (last);
+            = e_iter == which ? std::size_t (pos + 1) : std::size_t (last);
 
         if (idx == sz) {
             rw_assert (it_res == end, 0, line,
@@ -222,8 +233,8 @@ void test_erase (charT, Traits*, MemFun* pfid,
         else {
             success = TestString::traits_type::eq (*it_res, wstr[idx]);
             rw_assert (success, 0, line,
-                       CALLFMAT "== %#c, expected %#c",
-                       CALLARGS, *it_res, str[idx]);
+                       CALLFMAT "== %#c, got %#c",                       
+                       CALLARGS, str[idx], *it_res);
         }   
     }
 
@@ -231,16 +242,19 @@ void test_erase (charT, Traits*, MemFun* pfid,
     std::size_t exp_len = pos >= 0 ? cnt == -1 ? pos : res_len : 0;
     bool success = exp_len == res_sz;
     rw_assert (success, 0, line,
-               CALLFMAT ": size() == %zu, expected %zu",
-               CALLARGS, res_sz, exp_len);
+               CALLFMAT ": size() == %zu, got %zu",
+               CALLARGS, exp_len, res_sz);
 
     if (0 == res_sz)
         return;
 
-    success = !TestString::traits_type::compare (pstr->c_str(), pwres, res_sz);
+    success = 
+        !TestString::traits_type::compare (pstr->c_str (), pwres, res_sz);
+
     rw_assert (success, 0, line,
-               CALLFMAT ": got %{#*S}, expected %{#s}",
-               CALLARGS, int (sizeof (charT)), pstr, res);
+               CALLFMAT ": expected %{/*.*Gs}, got %{/*.*Gs}",
+               CALLARGS, int (sizeof (charT)), int (res_sz), wres, 
+               int (sizeof (charT)), int (pstr->size ()), pstr->c_str ());
 }
 
 /**************************************************************************/
@@ -248,7 +262,7 @@ void test_erase (charT, Traits*, MemFun* pfid,
 static void
 test_erase (MemFun      *pfid,
             int          line,
-            int          which,
+            const ETags &which,
             const char  *str,
             std::size_t  str_len,
             int          pos,
@@ -308,13 +322,14 @@ static int rw_opt_no_erase_range;       // for --no-erase-range
 /**************************************************************************/
 
 static void
-test_erase (MemFun *pfid, int which)
+test_erase (MemFun *pfid, const ETags &which)
 {
     rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
              "erase (%{?}%{?}size_type pos%{;}%{?}, size_type n%{;}%{;}"
              "%{?}iterator first%{?}, iterator last%{;}%{;})",
-             pfid->cname_, pfid->tname_, pfid->aname_, 4 > which, 
-             2 == which || 3 == which, 3 == which, 4 <= which, which == 5);
+             pfid->cname_, pfid->tname_, pfid->aname_, e_iter > which, 
+             e_pos == which || e_count == which, e_count == which, 
+             e_iter <= which, e_range == which);
 
 #undef TEST
 #define TEST(str, pos, cnt, res, should_throw)                              \
@@ -439,14 +454,15 @@ test_erase (MemFun *pfid, int which)
 /**************************************************************************/
 
 static void 
-note_test_disabled (MemFun *pfid, int which)
+note_test_disabled (MemFun *pfid, const ETags &which)
 {
     rw_note (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
              "erase (%{?}%{?}size_type pos%{;}%{?}, size_type n%{;}%{;}"
              "%{?}iterator first%{?}, iterator last%{;}%{;}) "
              "test disabled",
-             pfid->cname_, pfid->tname_, pfid->aname_, 4 > which, 
-             2 == which || 3 == which, 3 == which, 4 <= which, which == 5);
+             pfid->cname_, pfid->tname_, pfid->aname_, e_iter > which, 
+             e_pos == which || e_count == which, e_count == which, 
+             e_iter <= which, e_range == which);
 }
 
 static void
@@ -468,17 +484,17 @@ run_test (MemFun *pfid)
 
         // exercise all erase overloads
 #undef TEST
-#define TEST(option, n)                         \
-        if (option)                             \
-            note_test_disabled (pfid, n);       \
-        else                                    \
-            test_erase (pfid, n);               
+#define TEST(option, e_tag)                         \
+        if (option)                                 \
+            note_test_disabled (pfid, e_tag);       \
+        else                                        \
+            test_erase (pfid, e_tag);               
 
-        TEST (rw_opt_no_erase,          1);
-        TEST (rw_opt_no_erase_pos,      2);
-        TEST (rw_opt_no_erase_count,    3);
-        TEST (rw_opt_no_erase_iterator, 4);
-        TEST (rw_opt_no_erase_range,    5);
+        TEST (rw_opt_no_erase,          e_erase);
+        TEST (rw_opt_no_erase_pos,      e_pos);
+        TEST (rw_opt_no_erase_count,    e_count);
+        TEST (rw_opt_no_erase_iterator, e_iter);
+        TEST (rw_opt_no_erase_range,    e_range);
     }
 }
 
