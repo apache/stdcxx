@@ -93,6 +93,13 @@
 #  endif   // REENTRANT && LP64
 #endif   // AIX
 
+#if __IBMCPP__ == 800 && !defined (_RWSTDDEBUG)
+   // work around an XLC++ 8.0 ICE (STDCXX-159)
+#  if defined (_RWSTD_NO_EXTERN_TEMPLATE)
+#    define _RWSTD_NO_EXPLICIT_INSTANTIATION
+#  endif   // _RWSTD_NO_EXTERN_TEMPLATE
+#endif   // XLC++ 8.0 without debugging
+
 #ifndef __TEMPINC__
    // avoid VAC++ 7.0 diagnostic 1540-2910 (I) The template uses
    // a file organization for tempinc, but tempinc is not being
