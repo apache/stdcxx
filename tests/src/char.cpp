@@ -556,7 +556,8 @@ _rw_fmtstringv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
         pva = va_arg (va, va_list*);
 
         RW_ASSERT (0 != pva);
-        va_save = *pva;
+
+        _RWSTD_VA_COPY (va_save, *pva);
 
         // extract the width from rw_snprintfa's variable argument
         // list pass through to us by the caller
@@ -583,7 +584,7 @@ _rw_fmtstringv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
 
                 RW_ASSERT (0 != pva);
 
-                va_save = *pva;
+                _RWSTD_VA_COPY (va_save, *pva);
             }
 
             // extract the width from rw_snprintfa's variable argument
@@ -604,13 +605,13 @@ _rw_fmtstringv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
 
         RW_ASSERT (0 != pva);
 
-        va_save = *pva;
+        _RWSTD_VA_COPY (va_save, *pva);
     }
 
     if ('G' != fmt [0] || 's' != fmt [1] || '\0' != fmt [2]) {
 
         // restore caller's (potentially modified) va_list
-        *pva = va_save;
+        _RWSTD_VA_COPY (*pva, va_save);
 
         --nested_call;
 
