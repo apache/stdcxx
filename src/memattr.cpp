@@ -153,7 +153,17 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
             const int err = errno;
             errno = errno_save;
 
-            if (err)
+            bool bad_address;
+
+#    ifdef _RWSTD_OS_LINUX
+            // Linux fails with EBADF when "the map exists,
+            // but the area maps something that isn't a file"
+            bad_address = EFAULT == err || ENOMEM == err;
+#    else   // not Linux
+            bad_address = err != 0;
+#    endif   // Linux
+
+            if (bad_address)
                 return next == page ? -1 : DIST (next, addr);
         }
 
