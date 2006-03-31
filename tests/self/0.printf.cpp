@@ -26,6 +26,7 @@
  **************************************************************************/
 
 #include <rw_printf.h>
+#include <environ.h>   // for rw_putenv()
 
 #include <ios>         // for ios::openmode, ios::seekdir
 #include <string>      // for string
@@ -140,7 +141,7 @@ do_test (int         line,     // line number of the test case
 
 /***********************************************************************/
 
-// returns an invalid or unaligned address (when 1 < size)
+// returns an invalid or misaligned address (when 1 < size)
 const void* bad_address (size_t size)
 {
     const char *addr;
@@ -168,20 +169,20 @@ const void* bad_address (size_t size)
 }
 
 // returns the expected string corresponding to an invalid
-// or unaligned address
+// or misaligned address
 const char* format_bad_address (const void *ptr, bool valid)
 {
     static char buf [80];
 
 #if 4 == _RWSTD_PTR_SIZE
     sprintf (buf, "(%s address %#010" _RWSTD_PRIz "x)",
-             valid ? "unaligned" : "invalid", (size_t)ptr);
+             valid ? "misaligned" : "invalid", (size_t)ptr);
 #elif 8 == _RWSTD_PTR_SIZE
     sprintf (buf, "(%s address %#018" _RWSTD_PRIz "x)",
-             valid ? "unaligned" : "invalid", (size_t)ptr);
+             valid ? "misaligned" : "invalid", (size_t)ptr);
 #else
     sprintf (buf, "(%s address %#0" _RWSTD_PRIz "x)",
-             valid ? "unaligned" : "invalid", (size_t)ptr);
+             valid ? "misaligned" : "invalid", (size_t)ptr);
 #endif
 
     return buf;
@@ -1773,7 +1774,175 @@ void test_envvar ()
 {
     printf ("%s\n", "extension: \"%{$string}\": environment variable");
 
-    fprintf (stderr, "Warning: %s\n", "\"%{$string} not exercised");
+    rw_putenv ("FOO=bar");
+    TEST ("[%{$FOO}]",     0,     0, 0, "[bar]");
+    TEST ("[%{$*}]",       "FOO", 0, 0, "[bar]");
+    TEST ("[%{$*}][%1$s]", "FOO", 0, 0, "[bar][bar]");
+
+    // +--------------------+-------------+-------------+-------------+
+    // |                    |  parameter  |  parameter  |  parameter  |
+    // |                    +-------------+-------------+-------------+
+    // |                    |Set, Not Null|  Set, Null  |   Unset     |
+    // +--------------------+-------------+-------------+-------------+
+    // | ${parameter:-word} |  parameter  |    word     |    word     |
+    // | ${parameter-word}  |  parameter  |    null     |    word     |
+    // | ${parameter:=word} |  parameter  | assign word | assign word |
+    // | ${parameter=word}  |  parameter  |    null     | assign word |
+    // | ${parameter:?word} |  parameter  |    error    |    error    |
+    // | ${parameter?word}  |  parameter  |    null     |    error    |
+    // | ${parameter:+word} |     word    |    null     |    null     |
+    // | ${parameter+word}  |     word    |    word     |    null     |
+    // +--------------------+-------------+-------------+-------------+
+
+    rw_putenv ("NOT_NULL=FOO");
+    rw_putenv ("NULL=");   // define to null (empty string)
+    rw_putenv ("UNSET");   // undefine if defined
+
+    // ":-" use parameter if not null, otherwise word
+    TEST ("[%{$NOT_NULL:-word}]", 0, 0, 0, "[FOO]");
+    TEST ("[%{$NULL:-word}]",     0, 0, 0, "[word]");
+    TEST ("[%{$UNSET:-word}]",    0, 0, 0, "[word]");
+
+    // "-" use parameter if not null, word when unset, otherwise null
+    TEST ("[%{$NOT_NULL-word}]",  0, 0, 0, "[FOO]");
+    TEST ("[%{$NULL-word}]",      0, 0, 0, "[]");
+    TEST ("[%{$UNSET-word}]",     0, 0, 0, "[word]");
+
+    // ":=" use parameter if not null, otherwise assign word
+    TEST ("[%{$NOT_NULL:=word}]", 0, 0, 0, "[FOO]");
+    TEST ("[%{$NULL:=word}]",     0, 0, 0, "[word]");
+    TEST ("[%{$NULL}]",           0, 0, 0, "[word]");
+    TEST ("[%{$UNSET:=word}]",    0, 0, 0, "[word]");
+    TEST ("[%{$UNSET}]",          0, 0, 0, "[word]");
+
+    // restore variables assigned above
+    rw_putenv ("NULL=");
+    rw_putenv ("UNSET");
+
+    // "=" use parameter if not null, assign word when unset, otherwise null
+    TEST ("[%{$NOT_NULL=word}]",  0, 0, 0, "[FOO]");
+    TEST ("[%{$NULL=word}]",      0, 0, 0, "[]");
+    TEST ("[%{$UNSET=word}]",     0, 0, 0, "[word]");
+    TEST ("[%{$UNSET}]",          0, 0, 0, "[word]");
+
+    // restore variables assigned above
+    rw_putenv ("NULL=");
+    rw_putenv ("UNSET");
+
+    // ":?" use parameter if not null, otherwise error
+    TEST ("[%{$NOT_NULL:?word}]", 0, 0, 0, "[FOO]");
+    TEST ("[%{$NULL:?word}]",     0, 0, 0, "[%{$NULL:?word}]");
+    TEST ("[%{$UNSET:?word}]",    0, 0, 0, "[%{$UNSET:?word}]");
+
+    // "?" use parameter if not null, null when unset, otherwise error
+    TEST ("[%{$NOT_NULL?word}]",  0, 0, 0, "[FOO]");
+    TEST ("[%{$NULL?word}]",      0, 0, 0, "[]");
+    TEST ("[%{$UNSET?word}]",     0, 0, 0, "[%{$UNSET?word}]");
+
+    // ":+" use word if parameter is not null, otherwise null
+    TEST ("[%{$NOT_NULL:+word}]", 0, 0, 0, "[word]");
+    TEST ("[%{$NULL:+word}]",     0, 0, 0, "[]");
+    TEST ("[%{$UNSET:+word}]",    0, 0, 0, "[]");
+
+    // "+" use word if parameter is set, otherwise null
+    TEST ("[%{$NOT_NULL+word}]",  0, 0, 0, "[word]");
+    TEST ("[%{$NULL+word}]",      0, 0, 0, "[word]");
+    TEST ("[%{$UNSET+word}]",     0, 0, 0, "[]");
+
+    //////////////////////////////////////////////////////////////////
+
+    rw_putenv ("NOT_NULL=bar");
+    rw_putenv ("NULL=");   // define to null (empty string)
+    rw_putenv ("UNSET");   // undefine if defined
+
+    TEST ("[%{$*:-WORD}]", "NOT_NULL", 0, 0, "[bar]");
+    TEST ("[%{$*:-WORD}]", "NULL",     0, 0, "[WORD]");
+    TEST ("[%{$*:-WORD}]", "UNSET",    0, 0, "[WORD]");
+
+    TEST ("[%{$*-WORD}]",  "NOT_NULL", 0, 0, "[bar]");
+    TEST ("[%{$*-WORD}]",  "NULL",     0, 0, "[]");
+    TEST ("[%{$*-WORD}]",  "UNSET",    0, 0, "[WORD]");
+
+    TEST ("[%{$*:=WORD}]", "NOT_NULL", 0, 0, "[bar]");
+    TEST ("[%{$*:=WORD}]", "NULL",     0, 0, "[WORD]");
+    TEST ("[%{$*}]",       "NULL",     0, 0, "[WORD]");
+    TEST ("[%{$*:=WORD}]", "UNSET",    0, 0, "[WORD]");
+    TEST ("[%{$*}]",       "UNSET",    0, 0, "[WORD]");
+
+    // restore variables assigned above
+    rw_putenv ("NULL=");
+    rw_putenv ("UNSET");
+
+    TEST ("[%{$*=WORD}]",  "NOT_NULL", 0, 0, "[bar]");
+    TEST ("[%{$*=WORD}]",  "NULL",     0, 0, "[]");
+    TEST ("[%{$*=WORD}]",  "UNSET",    0, 0, "[WORD]");
+    TEST ("[%{$*}]",       "UNSET",    0, 0, "[WORD]");
+
+    // restore variables assigned above
+    rw_putenv ("NULL=");
+    rw_putenv ("UNSET");
+
+    TEST ("[%{$*:?WORD}]", "NOT_NULL", 0, 0, "[bar]");
+    TEST ("[%{$*:?WORD}]", "NULL",     0, 0, "[%{$*:?WORD}]");
+    TEST ("[%{$*:?WORD}]", "UNSET",    0, 0, "[%{$*:?WORD}]");
+
+    TEST ("[%{$*?WORD}]",  "NOT_NULL", 0, 0, "[bar]");
+    TEST ("[%{$*?WORD}]",  "NULL",     0, 0, "[]");
+    TEST ("[%{$*?WORD}]",  "UNSET",    0, 0, "[%{$*?WORD}]");
+
+    TEST ("[%{$*:+WORD}]", "NOT_NULL", 0, 0, "[WORD]");
+    TEST ("[%{$*:+WORD}]", "NULL",     0, 0, "[]");
+    TEST ("[%{$*:+WORD}]", "UNSET",    0, 0, "[]");
+
+    TEST ("[%{$*+WORD}]",  "NOT_NULL", 0, 0, "[WORD]");
+    TEST ("[%{$*+WORD}]",  "NULL",     0, 0, "[WORD]");
+    TEST ("[%{$*+WORD}]",  "UNSET",    0, 0, "[]");
+
+    //////////////////////////////////////////////////////////////////
+
+    TEST ("[%{$*:-*}]", "NOT_NULL", "WORD", 0, "[bar]");
+    TEST ("[%{$*:-*}]", "NULL",     "WORD", 0, "[WORD]");
+    TEST ("[%{$*:-*}]", "UNSET",    "WORD", 0, "[WORD]");
+
+    TEST ("[%{$*-*}]",  "NOT_NULL", "WORD", 0, "[bar]");
+    TEST ("[%{$*-*}]",  "NULL",     "WORD", 0, "[]");
+    TEST ("[%{$*-*}]",  "UNSET",    "WORD", 0, "[WORD]");
+
+    TEST ("[%{$*:=*}]", "NOT_NULL", "WORD", 0, "[bar]");
+    TEST ("[%{$*:=*}]", "NULL",     "WORD", 0, "[WORD]");
+    TEST ("[%{$*}]",    "NULL",     0,      0, "[WORD]");
+    TEST ("[%{$*:=*}]", "UNSET",    "WORD", 0, "[WORD]");
+    TEST ("[%{$*}]",    "UNSET",    0,      0, "[WORD]");
+
+    // restore variables assigned above
+    rw_putenv ("NULL=");
+    rw_putenv ("UNSET");
+
+    TEST ("[%{$*=*}]",  "NOT_NULL", "WORD", 0, "[bar]");
+    TEST ("[%{$*=*}]",  "NULL",     "WORD", 0, "[]");
+    TEST ("[%{$*=*}]",  "UNSET",    "WORD", 0, "[WORD]");
+    TEST ("[%{$*}]",    "UNSET",    0,      0, "[WORD]");
+
+    // restore variables assigned above
+    rw_putenv ("NULL=");
+    rw_putenv ("UNSET");
+
+    TEST ("[%{$*:?*}]", "NOT_NULL", "WORD", 0, "[bar]");
+    TEST ("[%{$*:?*}]", "NULL",     "WORD", 0, "[%{$*:?*}]");
+    TEST ("[%{$*:?*}]", "UNSET",    "WORD", 0, "[%{$*:?*}]");
+
+    TEST ("[%{$*?*}]",  "NOT_NULL", "WORD", 0, "[bar]");
+    TEST ("[%{$*?*}]",  "NULL",     "WORD", 0, "[]");
+    TEST ("[%{$*?*}]",  "UNSET",    "WORD", 0, "[%{$*?*}]");
+
+    TEST ("[%{$*:+*}]", "NOT_NULL", "WORD", 0, "[WORD]");
+    TEST ("[%{$*:+*}]", "NULL",     "WORD", 0, "[]");
+    TEST ("[%{$*:+*}]", "UNSET",    "WORD", 0, "[]");
+
+    TEST ("[%{$*+*}]",  "NOT_NULL", "WORD", 0, "[WORD]");
+    TEST ("[%{$*+*}]",  "NULL",     "WORD", 0, "[WORD]");
+    TEST ("[%{$*+*}]",  "UNSET",    "WORD", 0, "[]");
+
 }
 
 /***********************************************************************/
@@ -1953,7 +2122,7 @@ void test_tm ()
     const void* addr = bad_address (0);
     TEST ("%{t}", addr, 0, 0, format_bad_address (addr, false));
 
-    addr = bad_address (sizeof (tm));
+    addr = bad_address (sizeof (int));
     TEST ("%{t}", addr, 0, 0, format_bad_address (addr, true));
 
     // exercise human readable format
@@ -2376,6 +2545,19 @@ void test_bufsize ()
 
 /***********************************************************************/
 
+void test_malformed_directives ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "malformed directives");
+
+    TEST ("%{",   0, 0, 0, "%{");
+    TEST ("%{%",  0, 0, 0, "%{%");
+    TEST ("%{%{", 0, 0, 0, "%{%{");
+    TEST ("%{}",  0, 0, 0, "%{}");
+}
+
+/***********************************************************************/
+
 int main ()
 {
     test_percent ();
@@ -2411,6 +2593,8 @@ int main ()
     test_user_defined_formatting ();
 
     test_bufsize ();
+
+    test_malformed_directives ();
 
     //////////////////////////////////////////////////////////////////
     if (nfailures) {
