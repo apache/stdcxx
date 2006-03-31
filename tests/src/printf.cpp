@@ -27,8 +27,10 @@
 
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
-#include <testdefs.h>
+#include "fmt_defs.h"
+
 #include <rw_printf.h>
+#include <environ.h>
 
 #include <ctype.h>    // for isalpha(), ...
 #include <errno.h>    // for errno, errno constants
@@ -77,20 +79,6 @@ _RWSTD_EXPORT _RWSTD_SSIZE_T
 
 /********************************************************************/
 
-// convenience typedefs
-typedef unsigned char  UChar;
-typedef unsigned short UShrt;
-typedef unsigned int   UInt;
-typedef unsigned long  ULong;
-
-#ifdef _RWSTD_LONG_LONG
-
-typedef unsigned _RWSTD_LONG_LONG ULLong;
-
-#endif   // _RWSTD_LONG_LONG
-
-/********************************************************************/
-
 static const union {
     int   ival;
     UChar bytes [sizeof (int)];
@@ -101,15 +89,6 @@ _rw_big_endian = '\0' == _rw_one.bytes [0];
 
 
 /********************************************************************/
-
-struct Buffer {
-    char   **pbuf;       // pointer to the output buffer
-    size_t  *pbufsize;   // pointer to the size of the buffer
-    size_t   maxsize;    // maximum not-to-exceed size
-    size_t   endoff;     // offset of the last character
-};
-
-struct FmtSpec;
 
 _RWSTD_INTERNAL int
 _rw_fmtlong (const FmtSpec&, Buffer&, long);
@@ -134,19 +113,11 @@ _rw_fmtptr (const FmtSpec&, Buffer&, const void*);
 _RWSTD_INTERNAL int
 _rw_fmtbadaddr (const FmtSpec&, Buffer&, const void*, size_t = 0);
 
-typedef void (*funptr_t)();
-
 static int
 _rw_fmtfunptr (const FmtSpec&, Buffer&, funptr_t);
 
-struct DummyStruct;
-typedef void (DummyStruct::*memptr_t)() const;
-
 static int
 _rw_fmtmemptr (const FmtSpec&, Buffer&, memptr_t);
-
-static int
-_rw_fmtstr (const FmtSpec&, Buffer&, const char*, size_t);
 
 static int
 _rw_fmtchr (const FmtSpec&, Buffer&, int, int);
@@ -157,36 +128,13 @@ _rw_fmtwchr (const FmtSpec&, Buffer&, wint_t, int);
 static int
 _rw_fmtwstr (const FmtSpec&, Buffer&, const wchar_t*, size_t);
 
-// format errno value/name
-static int
-_rw_fmterrno (const FmtSpec&, Buffer&, int);
-
-// format a character mask (alpha|alnum|...|xdigit)
-static int
-_rw_fmtmask (const FmtSpec&, Buffer&, int);
-
 // format struct tm
 static int
 _rw_fmttm (const FmtSpec&, Buffer&, const tm*);
 
-// format ios_base::openmode
+// format an expression (parameter/environment variable)
 static int
-_rw_fmtopenmode (const FmtSpec&, Buffer&, int);
-
-// format ios_base::seekdir
-static int
-_rw_fmtseekdir (const FmtSpec&, Buffer&, int);
-
-// format ios_base::event
-static int
-_rw_fmtevent (const FmtSpec&, Buffer&, int);
-
-static int
-_rw_fmtmonpat (const FmtSpec&, Buffer&, const char [4]);
-
-// format a signal value/name
-static int
-_rw_fmtsignal (const FmtSpec&, Buffer&, int);
+_rw_fmtexpr (FmtSpec&, Buffer&, va_list*);
 
 // format an extension
 static int
@@ -198,122 +146,6 @@ typedef int _rw_usr_cb_t (char**, size_t*, const char*, ...);
 
 static _rw_usr_cb_t* _rw_usr_fun [32];
 static size_t        _rw_usr_inx;
-
-/********************************************************************/
-
-struct FmtSpec
-{
-    // optional flags
-    unsigned fl_minus  : 1;
-    unsigned fl_plus   : 1;
-    unsigned fl_pound  : 1;
-    unsigned fl_space  : 1;
-    unsigned fl_zero   : 1;
-
-    // optional length modifier
-    enum Modifier {
-        mod_none = 0,
-        mod_h,       // short modifier
-        mod_hh,      // char modifier
-        mod_l,       // long modifier
-        mod_ll,      // long long modifier
-        mod_j,       // intmax_t modifier
-        mod_z,       // size_t modifier
-        mod_t,       // ptrdiff_t modifier
-        mod_L,       // long double modifier
-        mod_ext_A,   // extension: arrays
-        mod_ext_I    // extension: int as ios::iostate
-    };
-
-    Modifier mod : 5;
-
-    unsigned cond       : 1;   // have an if/else clause
-    unsigned cond_true  : 1;   // if/else clause is active (true)
-    unsigned cond_begin : 1;   // beginning of an if/else clause
-    unsigned cond_end   : 1;   // end of an if/else clause
-
-    // note that the signedness of a bitfield is implementation-defined
-    // unless explicitly declared signed or unsigned
-
-    // extension: 8, 16, 32, and 64 bit integer width modifier
-    signed int iwidth : 4;
-
-    // extension: optional numerical base 2 - 36
-    signed int base   : 7;
-
-    // extension: optional parameter number
-    long paramno;
-
-    // optional field width and precision
-    int width;
-    int prec;
-
-    // extension: string argument
-    char *strarg;
-
-    // required conversion specifier
-    int cvtspec;
-
-    // extension: fill character
-    int fill;
-
-#ifndef _RWSTD_NO_LONG_DOUBLE
-    typedef long double ldbl_t;
-#else
-    typedef double ldbl_t;   // bogus (for convenience)
-#endif   // _RWSTD_NO_LONG_DOUBLE
-
-#ifdef _RWSTD_LONG_LONG
-    typedef _RWSTD_LONG_LONG llong_t;
-#else
-    typedef long llong_t;   // bogus (for convenience)
-#endif   // _RWSTD_LONG_LONG
-
-#ifdef _RWSTD_INT64_T
-    typedef _RWSTD_INT64_T i64_t;
-#else
-    typedef int            i64_t;   // for convenience
-#endif   // _RWSTD_INT64_T
-
-#ifdef _RWSTD_INT32_T
-    typedef _RWSTD_INT32_T i32_t;
-#else
-    typedef int i64_t;
-#endif   // _RWSTD_INT64_T
-
-#ifdef _RWSTD_WINT_T
-    typedef _RWSTD_WINT_T wint_t;
-#else
-    typedef int wint_t;
-#endif
-
-    typedef ::size_t   size_t;
-    typedef ptrdiff_t  diff_t;
-    typedef ::funptr_t funptr_t;
-    typedef ::memptr_t memptr_t;
-
-    typedef int        int_t;
-    typedef long       long_t;
-    typedef void*      ptr_t;
-    typedef double     dbl_t;
-
-    union {
-        ldbl_t    ldbl_;
-        llong_t   llong_;
-        i64_t     i64_;
-        ptr_t     ptr_;
-        long_t    long_;
-        i32_t     i32_;
-        int_t     int_;
-        diff_t    diff_;
-        size_t    size_;
-        wint_t    wint_;
-
-        dbl_t     dbl_;
-        memptr_t  memptr_;
-        funptr_t  funptr_;
-    } param;
-};
 
 /********************************************************************/
 
@@ -363,26 +195,33 @@ _rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
         if ('$' == *fmt) {
 
             // %{$<string>}: introduces the name of an environment
-            // variable (or some other string)
+            // variable (or parameter)
 
             ++fmt;
 
-            const char *str;
-            if ('*' == *fmt) {
-                str = va_arg (*pva, char*);
-                if (!str)
-                    str = "";
-                ++fmt;
-            }
-            else {
-                str  = fmt;
-                fmt += strlen (fmt);
+            const char *str = 0;
+            size_t      len = 0;
+
+            const char* const end = strchr (fmt, '}');
+
+            if (end) {
+                len = end - fmt;
+                str = fmt;
+                fmt = end;
             }
 
-            char* const tmp = (char*)malloc (strlen (str));
-            pspec->strarg = strcpy (tmp, str);
+            if (str) {
+                char* const tmp = (char*)malloc (len + 1);
+                if (tmp) {
+                    memcpy (tmp, str, len);
+                    pspec->strarg = tmp;
+                    pspec->strarg [len] = '\0';
 
-            return int (fmt - fmtbeg);
+                    return int (fmt - fmtbeg);
+                }
+
+                return -1;
+            }
         }
     }
 
@@ -947,7 +786,15 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
         if ('{' == *fc) {
             const char* const endbrace = strchr (++fc, '}');
 
-            RW_ASSERT (0 != endbrace);
+            if (0 == endbrace) {
+                const size_t flen = strlen (fc -= 2);
+                next = _rw_bufcat (buf, fc, flen);
+                if (0 == next)
+                    goto fail;
+
+                fc += flen;
+                continue;
+            }
 
             const size_t fmtlen = endbrace - fc;
 
@@ -965,8 +812,6 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
             // initiaze the current format specification, setting
             // all unused bits to 0
             const int speclen = _rw_fmtspec (pspec + paramno, true, fc, pva);
-
-            _RWSTD_UNUSED (speclen);
 
             // copy the current backtrack offset if one exists
             // and set the condition and condition true bits
@@ -1078,7 +923,9 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
             RW_ASSERT (next == *buf.pbuf + buf.endoff);
 
-            fc = endbrace + 1;
+            fc += speclen + 1;
+            if (fc < endbrace)
+                fc = endbrace + 1;
         }
         else {
             const int speclen =
@@ -1109,6 +956,9 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
         fmt = fc;
     }
 
+    for (size_t i = 0; i != paramno; ++i)
+        free (pspec [i].strarg);
+
     // deallocate if dynamically allocated
     if (pspec != specbuf)
         free (pspec);
@@ -1128,6 +978,9 @@ fail: // function failed
              "error: errno = %d: %s\n",
              __FILE__, __LINE__, (void*)buf.pbuf, (void*)buf.pbufsize, fmt,
              errno, strerror (errno));
+
+    for (size_t i = 0; i != paramno; ++i)
+        free (pspec [i].strarg);
 
     if (pspec != specbuf)
         free (pspec);
@@ -1728,7 +1581,7 @@ _rw_fmtbadaddr (const FmtSpec &spec, Buffer &buf,
     const size_t num_addr = (size_t)addr;
 
     if (objsize && (num_addr & (objsize - 1))) {
-        if (0 == _rw_bufcat (buf, "(unaligned address ", 19))
+        if (0 == _rw_bufcat (buf, "(misaligned address ", 20))
             return -1;
     }
     else if (0 == _rw_bufcat (buf,    "(invalid address ", 17))
@@ -1801,511 +1654,6 @@ _rw_fmtmemptr (const FmtSpec &spec, Buffer &buf, memptr_t val)
 {
     return _rw_fmtpointer (spec, buf, &val,
                            sizeof val / sizeof (long));
-}
-
-/********************************************************************/
-
-static int
-_rw_fmterrno (const FmtSpec &spec, Buffer &buf, int val)
-{
-    static const struct {
-        int         val;
-        const char* str;
-    } names[] = {
-
-#undef ERRNO
-#define ERRNO(val)   { val, #val }
-
-#ifdef EPERM
-        ERRNO (EPERM),
-#endif   // EPERM
-#ifdef ENOENT
-        ERRNO (ENOENT),
-#endif   // ENOENT
-#ifdef ESRCH
-        ERRNO (ESRCH),
-#endif   // ESRCH
-#ifdef EINTR
-        ERRNO (EINTR),
-#endif   // EINTR
-#ifdef EIO
-        ERRNO (EIO),
-#endif   // EIO
-#ifdef ENXIO
-        ERRNO (ENXIO),
-#endif   // ENXIO
-#ifdef E2BIG
-        ERRNO (E2BIG),
-#endif   // E2BIG
-#ifdef ENOEXEC
-        ERRNO (ENOEXEC),
-#endif   // ENOEXEC
-#ifdef EBADF
-        ERRNO (EBADF),
-#endif   // EBADF
-#ifdef ECHILD
-        ERRNO (ECHILD),
-#endif   // ECHILD
-#ifdef EAGAIN
-        ERRNO (EAGAIN),
-#endif   // EAGAIN
-#ifdef ENOMEM
-        ERRNO (ENOMEM),
-#endif   // ENOMEM
-#ifdef EACCES
-        ERRNO (EACCES),
-#endif   // EACCES
-#ifdef EFAULT
-        ERRNO (EFAULT),
-#endif   // EFAULT
-#ifdef ENOTBLK
-        ERRNO (ENOTBLK),
-#endif   // ENOTBLK
-#ifdef EBUSY
-        ERRNO (EBUSY),
-#endif   // EBUSY
-#ifdef EEXIST
-        ERRNO (EEXIST),
-#endif   // EEXIST
-#ifdef EXDEV
-        ERRNO (EXDEV),
-#endif   // EXDEV
-#ifdef ENODEV
-        ERRNO (ENODEV),
-#endif   // ENODEV
-#ifdef ENOTDIR
-        ERRNO (ENOTDIR),
-#endif   // ENOTDIR
-#ifdef EISDIR
-        ERRNO (EISDIR),
-#endif   // EISDIR
-#ifdef EINVAL
-        ERRNO (EINVAL),
-#endif   // EINVAL
-#ifdef ENFILE
-        ERRNO (ENFILE),
-#endif   // ENFILE
-#ifdef EMFILE
-        ERRNO (EMFILE),
-#endif   // EMFILE
-#ifdef ENOTTY
-        ERRNO (ENOTTY),
-#endif   // ENOTTY
-#ifdef ETXTBSY
-        ERRNO (ETXTBSY),
-#endif   // ETXTBSY
-#ifdef EFBIG
-        ERRNO (EFBIG),
-#endif   // EFBIG
-#ifdef ENOSPC
-        ERRNO (ENOSPC),
-#endif   // ENOSPC
-#ifdef ESPIPE
-        ERRNO (ESPIPE),
-#endif   // ESPIPE
-#ifdef EROFS
-        ERRNO (EROFS),
-#endif   // EROFS
-#ifdef EMLINK
-        ERRNO (EMLINK),
-#endif   // EMLINK
-#ifdef EPIPE
-        ERRNO (EPIPE),
-#endif   // EPIPE
-#ifdef EDOM
-        ERRNO (EDOM),
-#endif   // EDOM
-#ifdef ERANGE
-        ERRNO (ERANGE),
-#endif   // ERANGE
-#ifdef ENOMSG
-        ERRNO (ENOMSG),
-#endif   // ENOMSG
-#ifdef EIDRM
-        ERRNO (EIDRM),
-#endif   // EIDRM
-#ifdef ECHRNG
-        ERRNO (ECHRNG),
-#endif   // ECHRNG
-#ifdef EL2NSYNC
-        ERRNO (EL2NSYNC),
-#endif   // EL2NSYNC
-#ifdef EL3HLT
-        ERRNO (EL3HLT),
-#endif   // EL3HLT
-#ifdef EL3RST
-        ERRNO (EL3RST),
-#endif   // EL3RST
-#ifdef ELNRNG
-        ERRNO (ELNRNG),
-#endif   // ELNRNG
-#ifdef EUNATCH
-        ERRNO (EUNATCH),
-#endif   // EUNATCH
-#ifdef ENOCSI
-        ERRNO (ENOCSI),
-#endif   // ENOCSI
-#ifdef EL2HLT
-        ERRNO (EL2HLT),
-#endif   // EL2HLT
-#ifdef EDEADLK
-        ERRNO (EDEADLK),
-#endif   // EDEADLK
-#ifdef ENOLCK
-        ERRNO (ENOLCK),
-#endif   // ENOLCK
-#ifdef ECANCELED
-        ERRNO (ECANCELED),
-#endif   // ECANCELED
-#ifdef ENOTSUP
-        ERRNO (ENOTSUP),
-#endif   // ENOTSUP
-#ifdef EDQUOT
-        ERRNO (EDQUOT),
-#endif   // EDQUOT
-#ifdef EBADE
-        ERRNO (EBADE),
-#endif   // EBADE
-#ifdef EBADR
-        ERRNO (EBADR),
-#endif   // EBADR
-#ifdef EXFULL
-        ERRNO (EXFULL),
-#endif   // EXFULL
-#ifdef ENOANO
-        ERRNO (ENOANO),
-#endif   // ENOANO
-#ifdef EBADRQC
-        ERRNO (EBADRQC),
-#endif   // EBADRQC
-#ifdef EBADSLT
-        ERRNO (EBADSLT),
-#endif   // EBADSLT
-#ifdef EDEADLOCK
-        ERRNO (EDEADLOCK),
-#endif   // EDEADLOCK
-#ifdef EBFONT
-        ERRNO (EBFONT),
-#endif   // EBFONT
-#ifdef EOWNERDEAD
-        ERRNO (EOWNERDEAD),
-#endif   // EOWNERDEAD
-#ifdef ENOTRECOVERABLE
-        ERRNO (ENOTRECOVERABLE),
-#endif   // ENOTRECOVERABLE
-#ifdef ENOSTR
-        ERRNO (ENOSTR),
-#endif   // ENOSTR
-#ifdef ENODATA
-        ERRNO (ENODATA),
-#endif   // ENODATA
-#ifdef ETIME
-        ERRNO (ETIME),
-#endif   // ETIME
-#ifdef ENOSR
-        ERRNO (ENOSR),
-#endif   // ENOSR
-#ifdef ENONET
-        ERRNO (ENONET),
-#endif   // ENONET
-#ifdef ENOPKG
-        ERRNO (ENOPKG),
-#endif   // ENOPKG
-#ifdef EREMOTE
-        ERRNO (EREMOTE),
-#endif   // EREMOTE
-#ifdef ENOLINK
-        ERRNO (ENOLINK),
-#endif   // ENOLINK
-#ifdef EADV
-        ERRNO (EADV),
-#endif   // EADV
-#ifdef ESRMNT
-        ERRNO (ESRMNT),
-#endif   // ESRMNT
-#ifdef ECOMM
-        ERRNO (ECOMM),
-#endif   // ECOMM
-#ifdef ELOCKUNMAPPED
-        ERRNO (ELOCKUNMAPPED),
-#endif   // ELOCKUNMAPPED
-#ifdef ENOTACTIVE
-        ERRNO (ENOTACTIVE),
-#endif   // ENOTACTIVE
-#ifdef EMULTIHOP
-        ERRNO (EMULTIHOP),
-#endif   // EMULTIHOP
-#ifdef EBADMSG
-        ERRNO (EBADMSG),
-#endif   // EBADMSG
-#ifdef ENAMETOOLONG
-        ERRNO (ENAMETOOLONG),
-#endif   // ENAMETOOLONG
-#ifdef EOVERFLOW
-        ERRNO (EOVERFLOW),
-#endif   // EOVERFLOW
-#ifdef ENOTUNIQ
-        ERRNO (ENOTUNIQ),
-#endif   // ENOTUNIQ
-#ifdef EBADFD
-        ERRNO (EBADFD),
-#endif   // EBADFD
-#ifdef EREMCHG
-        ERRNO (EREMCHG),
-#endif   // EREMCHG
-#ifdef ELIBACC
-        ERRNO (ELIBACC),
-#endif   // ELIBACC
-#ifdef ELIBBAD
-        ERRNO (ELIBBAD),
-#endif   // ELIBBAD
-#ifdef ELIBSCN
-        ERRNO (ELIBSCN),
-#endif   // ELIBSCN
-#ifdef ELIBMAX
-        ERRNO (ELIBMAX),
-#endif   // ELIBMAX
-#ifdef ELIBEXEC
-        ERRNO (ELIBEXEC),
-#endif   // ELIBEXEC
-#ifdef EILSEQ
-        ERRNO (EILSEQ),
-#endif   // EILSEQ
-#ifdef ENOSYS
-        ERRNO (ENOSYS),
-#endif   // ENOSYS
-#ifdef ELOOP
-        ERRNO (ELOOP),
-#endif   // ELOOP
-#ifdef ERESTART
-        ERRNO (ERESTART),
-#endif   // ERESTART
-#ifdef ESTRPIPE
-        ERRNO (ESTRPIPE),
-#endif   // ESTRPIPE
-#ifdef ENOTEMPTY
-        ERRNO (ENOTEMPTY),
-#endif   // ENOTEMPTY
-#ifdef EUSERS
-        ERRNO (EUSERS),
-#endif   // EUSERS
-#ifdef ENOTSOCK
-        ERRNO (ENOTSOCK),
-#endif   // ENOTSOCK
-#ifdef EDESTADDRREQ
-        ERRNO (EDESTADDRREQ),
-#endif   // EDESTADDRREQ
-#ifdef EMSGSIZE
-        ERRNO (EMSGSIZE),
-#endif   // EMSGSIZE
-#ifdef EPROTOTYPE
-        ERRNO (EPROTOTYPE),
-#endif   // EPROTOTYPE
-#ifdef ENOPROTOOPT
-        ERRNO (ENOPROTOOPT),
-#endif   // ENOPROTOOPT
-#ifdef EPROTONOSUPPORT
-        ERRNO (EPROTONOSUPPORT),
-#endif   // EPROTONOSUPPORT
-#ifdef ESOCKTNOSUPPORT
-        ERRNO (ESOCKTNOSUPPORT),
-#endif   // ESOCKTNOSUPPORT
-#ifdef EOPNOTSUPP
-        ERRNO (EOPNOTSUPP),
-#endif   // EOPNOTSUPP
-#ifdef EPFNOSUPPORT
-        ERRNO (EPFNOSUPPORT),
-#endif   // EPFNOSUPPORT
-#ifdef EAFNOSUPPORT
-        ERRNO (EAFNOSUPPORT),
-#endif   // EAFNOSUPPORT
-#ifdef EADDRINUSE
-        ERRNO (EADDRINUSE),
-#endif   // EADDRINUSE
-#ifdef EADDRNOTAVAIL
-        ERRNO (EADDRNOTAVAIL),
-#endif   // EADDRNOTAVAIL
-#ifdef ENETDOWN
-        ERRNO (ENETDOWN),
-#endif   // ENETDOWN
-#ifdef ENETUNREACH
-        ERRNO (ENETUNREACH),
-#endif   // ENETUNREACH
-#ifdef ENETRESET
-        ERRNO (ENETRESET),
-#endif   // ENETRESET
-#ifdef ECONNABORTED
-        ERRNO (ECONNABORTED),
-#endif   // ECONNABORTED
-#ifdef ECONNRESET
-        ERRNO (ECONNRESET),
-#endif   // ECONNRESET
-#ifdef ENOBUFS
-        ERRNO (ENOBUFS),
-#endif   // ENOBUFS
-#ifdef EISCONN
-        ERRNO (EISCONN),
-#endif   // EISCONN
-#ifdef ENOTCONN
-        ERRNO (ENOTCONN),
-#endif   // ENOTCONN
-#ifdef ESHUTDOWN
-        ERRNO (ESHUTDOWN),
-#endif   // ESHUTDOWN
-#ifdef ETOOMANYREFS
-        ERRNO (ETOOMANYREFS),
-#endif   // ETOOMANYREFS
-#ifdef ETIMEDOUT
-        ERRNO (ETIMEDOUT),
-#endif   // ETIMEDOUT
-#ifdef ECONNREFUSED
-        ERRNO (ECONNREFUSED),
-#endif   // ECONNREFUSED
-#ifdef EHOSTDOWN
-        ERRNO (EHOSTDOWN),
-#endif   // EHOSTDOWN
-#ifdef EHOSTUNREACH
-        ERRNO (EHOSTUNREACH),
-#endif   // EHOSTUNREACH
-#ifdef EWOULDBLOCK
-        ERRNO (EWOULDBLOCK),
-#endif   // EWOULDBLOCK
-#ifdef EALREADY
-        ERRNO (EALREADY),
-#endif   // EALREADY
-#ifdef EINPROGRESS
-        ERRNO (EINPROGRESS),
-#endif   // EINPROGRESS
-#ifdef ESTALE
-        ERRNO (ESTALE),
-#endif   // ESTALE
-        { -1, 0 }
-    };
-
-    if (spec.fl_pound) {
-
-        char buffer [64];
-        const char *name = 0;
-
-        for (size_t i = 0; i != sizeof names / sizeof *names; ++i) {
-            if (names [i].val == val) {
-                name = names [i].str;
-                break;
-            }
-        }
-
-        int len;
-
-        if (0 == name) {
-            len = sprintf (buffer, "E#%d", val);
-            name = buffer;
-        }
-        else
-            len = int (strlen (name));
-
-        if (0 == _rw_bufcat (buf, name, size_t (len)))
-            return -1;
-
-        return len;
-    }
-
-    const char* const str = strerror (val);
-    const size_t len = strlen (str);
-
-    if (0 == _rw_bufcat (buf, str, len))
-        return -1;
-
-    return int (len);
-}
-
-/********************************************************************/
-
-static int
-_rw_fmtmask (const FmtSpec &spec, Buffer &buf, int c)
-{
-    enum {
-        bit_alnum  = 1,
-        bit_alpha  = 1 << 1,
-        bit_cntrl  = 1 << 2,
-        bit_digit  = 1 << 3,
-        bit_graph  = 1 << 4,
-        bit_lower  = 1 << 5,
-        bit_print  = 1 << 6,
-        bit_punct  = 1 << 7,
-        bit_space  = 1 << 8,
-        bit_upper  = 1 << 9,
-        bit_xdigit = 1 << 10
-    };
-
-    int mask = 0;
-
-    if (spec.mod == spec.mod_l) {
-
-#ifndef _RWSTD_NO_WCHAR_H
-
-        mask |= iswalnum (c) ? bit_alnum : 0;
-        mask |= iswalpha (c) ? bit_alpha : 0;
-        mask |= iswcntrl (c) ? bit_cntrl : 0;
-        mask |= iswdigit (c) ? bit_digit : 0;
-        mask |= iswgraph (c) ? bit_graph : 0;
-        mask |= iswlower (c) ? bit_lower : 0;
-        mask |= iswprint (c) ? bit_print : 0;
-        mask |= iswpunct (c) ? bit_punct : 0;
-        mask |= iswspace (c) ? bit_space : 0;
-        mask |= iswupper (c) ? bit_upper : 0;
-        mask |= iswxdigit (c) ? bit_xdigit : 0;
-
-#endif   // _RWSTD_NO_WCHAR_H
-
-    }
-    else {
-        const UChar uc = c;
-
-        mask |= isalnum (uc) ? bit_alnum : 0;
-        mask |= isalpha (uc) ? bit_alpha : 0;
-        mask |= iscntrl (uc) ? bit_cntrl : 0;
-        mask |= isdigit (uc) ? bit_digit : 0;
-        mask |= isgraph (uc) ? bit_graph : 0;
-        mask |= islower (uc) ? bit_lower : 0;
-        mask |= isprint (uc) ? bit_print : 0;
-        mask |= ispunct (uc) ? bit_punct : 0;
-        mask |= isspace (uc) ? bit_space : 0;
-        mask |= isupper (uc) ? bit_upper : 0;
-        mask |= isxdigit (uc) ? bit_xdigit : 0;
-    }
-
-    char mask_str [80];
-    char *str = mask_str;
-
-    str [0] = '\0';
-
-#define APPEND(bit)                             \
-    if (mask & bit_ ## bit)                     \
-        strcat (strcat (str, #bit), "|");       \
-    else (void)0
-
-    APPEND (alnum);
-    APPEND (alpha);
-    APPEND (cntrl);
-    APPEND (digit);
-    APPEND (graph);
-    APPEND (lower);
-    APPEND (print);
-    APPEND (punct);
-    APPEND (space);
-    APPEND (upper);
-    APPEND (xdigit);
-
-    if (str == mask_str)
-        *str = '\0';
-    else
-        str [-1] = '\0';
-
-    const size_t len = strlen (str);
-    if (0 == _rw_bufcat (buf, str, len))
-        return -1;
-
-    return int (len);
 }
 
 /********************************************************************/
@@ -2447,201 +1795,8 @@ _rw_fmttm (const FmtSpec &spec, Buffer &buf, const tm *tmb)
 
 /********************************************************************/
 
-static int
-_rw_fmtsignal (const FmtSpec &spec, Buffer &buf, int val)
-{
-    static const struct {
-        int         val;
-        const char* str;
-    } names[] = {
-
-#undef SIGNAL
-#define SIGNAL(val)   { val, #val }
-
-#ifdef SIGABRT
-        SIGNAL (SIGABRT),
-#endif   // SIGABRT
-#ifdef SIGALRM
-        SIGNAL (SIGALRM),
-#endif   // SIGALRM
-#ifdef SIGBUS
-        SIGNAL (SIGBUS),
-#endif   // SIGBUS
-#ifdef SIGCANCEL
-        SIGNAL (SIGCANCEL),
-#endif   // SIGCANCEL
-#ifdef SIGCHLD
-        SIGNAL (SIGCHLD),
-#endif   // SIGCHLD
-#ifdef SIGCKPT
-        SIGNAL (SIGCKPT),
-#endif   // SIGCKPT
-#ifdef SIGCLD
-        SIGNAL (SIGCLD),
-#endif   // SIGCLD
-#ifdef SIGCONT
-        SIGNAL (SIGCONT),
-#endif   // SIGCONT
-#ifdef SIGDIL
-        SIGNAL (SIGDIL),
-#endif   // SIGDIL
-#ifdef SIGEMT
-        SIGNAL (SIGEMT),
-#endif   // SIGEMT
-#ifdef SIGFPE
-        SIGNAL (SIGFPE),
-#endif   // SIGFPE
-#ifdef SIGFREEZE
-        SIGNAL (SIGFREEZE),
-#endif   // SIGFREEZE
-#ifdef SIGGFAULT
-        SIGNAL (SIGGFAULT),
-#endif   // SIGGFAULT
-#ifdef SIGHUP
-        SIGNAL (SIGHUP),
-#endif   // SIGHUP
-#ifdef SIGILL
-        SIGNAL (SIGILL),
-#endif   // SIGILL
-#ifdef SIGINFO
-        SIGNAL (SIGINFO),
-#endif   // SIGINFO
-#ifdef SIGINT
-        SIGNAL (SIGINT),
-#endif   // SIGINT
-#ifdef SIGIO
-        SIGNAL (SIGIO),
-#endif   // SIGIO
-#ifdef SIGIOT
-        SIGNAL (SIGIOT),
-#endif   // SIGIOT
-#ifdef SIGK32
-        SIGNAL (SIGK32),
-#endif   // SIGK32
-#ifdef SIGKILL
-        SIGNAL (SIGKILL),
-#endif   // SIGKILL
-#ifdef SIGLOST
-        SIGNAL (SIGLOST),
-#endif   // SIGLOST
-#ifdef SIGLWP
-        SIGNAL (SIGLWP),
-#endif   // SIGLWP
-#ifdef SIGPIPE
-        SIGNAL (SIGPIPE),
-#endif   // SIGPIPE
-#ifdef SIGPOLL
-        SIGNAL (SIGPOLL),
-#endif   // SIGPOLL
-#ifdef SIGPROF
-        SIGNAL (SIGPROF),
-#endif   // SIGPROF
-#ifdef SIGPTINTR
-        SIGNAL (SIGPTINTR),
-#endif   // SIGPTINTR
-#ifdef SIGPTRESCHED
-        SIGNAL (SIGPTRESCHED),
-#endif   // SIGPTRESCHED
-#ifdef SIGPWR
-        SIGNAL (SIGPWR),
-#endif   // SIGPWR
-#ifdef SIGQUIT
-        SIGNAL (SIGQUIT),
-#endif   // SIGQUIT
-#ifdef SIGRESTART
-        SIGNAL (SIGRESTART),
-#endif   // SIGRESTART
-#ifdef SIGRESV
-        SIGNAL (SIGRESV),
-#endif   // SIGRESV
-#ifdef SIGSEGV
-        SIGNAL (SIGSEGV),
-#endif   // SIGSEGV
-#ifdef SIGSTKFLT
-        SIGNAL (SIGSTKFLT),
-#endif   // SIGSTKFLT
-#ifdef SIGSTOP
-        SIGNAL (SIGSTOP),
-#endif   // SIGSTOP
-#ifdef SIGSYS
-        SIGNAL (SIGSYS),
-#endif   // SIGSYS
-#ifdef SIGTERM
-        SIGNAL (SIGTERM),
-#endif   // SIGTERM
-#ifdef SIGTHAW
-        SIGNAL (SIGTHAW),
-#endif   // SIGTHAW
-#ifdef SIGTRAP
-        SIGNAL (SIGTRAP),
-#endif   // SIGTRAP
-#ifdef SIGTSTP
-        SIGNAL (SIGTSTP),
-#endif   // SIGTSTP
-#ifdef SIGTTIN
-        SIGNAL (SIGTTIN),
-#endif   // SIGTTIN
-#ifdef SIGTTOU
-        SIGNAL (SIGTTOU),
-#endif   // SIGTTOU
-#ifdef SIGUNUSED
-        SIGNAL (SIGUNUSED),
-#endif   // SIGUNUSED
-#ifdef SIGURG
-        SIGNAL (SIGURG),
-#endif   // SIGURG
-#ifdef SIGUSR1
-        SIGNAL (SIGUSR1),
-#endif   // SIGUSR1
-#ifdef SIGUSR2
-        SIGNAL (SIGUSR2),
-#endif   // SIGUSR2
-#ifdef SIGVTALRM
-        SIGNAL (SIGVTALRM),
-#endif   // SIGVTALRM
-#ifdef SIGWAITING
-        SIGNAL (SIGWAITING),
-#endif   // SIGWAITING
-#ifdef SIGWINCH
-        SIGNAL (SIGWINCH),
-#endif   // SIGWINCH
-#ifdef SIGWINDOW
-        SIGNAL (SIGWINDOW),
-#endif   // SIGWINDOW
-#ifdef SIGXCPU
-        SIGNAL (SIGXCPU),
-#endif   // SIGXCPU
-#ifdef SIGXFSZ
-        SIGNAL (SIGXFSZ),
-#endif   // SIGXFSZ
-#ifdef SIGXRES
-        SIGNAL (SIGXRES),
-#endif   // SIGXRES
-        { -1, 0 }
-    };
-
-    char buffer [64];
-    const char *name = 0;
-
-    for (size_t i = 0; i != sizeof names / sizeof *names; ++i) {
-        if (names [i].val == val) {
-            name = names [i].str;
-            break;
-        }
-    }
-
-    if (0 == name) {
-        sprintf (buffer, "SIG#%d", val);
-        name = buffer;
-    }
-
-    return _rw_fmtstr (spec, buf, name, _RWSTD_SIZE_MAX);
-}
-
-/********************************************************************/
-
 template <class charT>
-int rw_quotechar (char *buf, charT wc, int noesc)
+int _rw_quotechar (char *buf, charT wc, int noesc)
 {
 #if _RWSTD_WCHAR_T_MIN < 0
 
@@ -2725,7 +1880,7 @@ enum {
 };
 
 template <class elemT>
-int rw_fmtarray (const FmtSpec &spec,
+int _rw_fmtarray (const FmtSpec &spec,
                  Buffer        &buf,
                  const elemT   *array,   // pointer to first element
                  size_t         nelems,  // number of elements
@@ -2823,7 +1978,7 @@ int rw_fmtarray (const FmtSpec &spec,
 
             if (flags & (A_CHAR | A_WCHAR)) {
                 // format element into elemstr as a character
-                rw_quotechar (elemstr, *last, !(flags & A_ESC));
+                _rw_quotechar (elemstr, *last, !(flags & A_ESC));
 
                 s += sprintf (s, "%s'%s' <repeats %ld times>",
                                 -1 == last_repeat ? ""
@@ -2886,7 +2041,7 @@ int rw_fmtarray (const FmtSpec &spec,
 
             if (flags & (A_CHAR | A_WCHAR)) {
                 // format element into elemstr as a character
-                rw_quotechar (elemstr, *last, !(flags & A_ESC));
+                _rw_quotechar (elemstr, *last, !(flags & A_ESC));
             }
             else {
                 // format element into elemstr as an integer
@@ -2961,23 +2116,23 @@ int rw_fmtarray (const FmtSpec &spec,
 
 #ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION
 
-template int rw_quotechar (char*, UChar, int);
-template int rw_quotechar (char*, char, int);
-template int rw_quotechar (char*, UShrt, int);
-template int rw_quotechar (char*, UInt, int);
-template int rw_quotechar (char*, ULong, int);
+template int _rw_quotechar (char*, UChar, int);
+template int _rw_quotechar (char*, char, int);
+template int _rw_quotechar (char*, UShrt, int);
+template int _rw_quotechar (char*, UInt, int);
+template int _rw_quotechar (char*, ULong, int);
 
-template int rw_fmtarray (const FmtSpec&, Buffer&, const UChar*, size_t, int);
-template int rw_fmtarray (const FmtSpec&, Buffer&, const char*, size_t, int);
-template int rw_fmtarray (const FmtSpec&, Buffer&, const UShrt*, size_t, int);
-template int rw_fmtarray (const FmtSpec&, Buffer&, const UInt*, size_t, int);
-template int rw_fmtarray (const FmtSpec&, Buffer&, const ULong*, size_t, int);
+template int _rw_fmtarray (const FmtSpec&, Buffer&, const UChar*, size_t, int);
+template int _rw_fmtarray (const FmtSpec&, Buffer&, const char*, size_t, int);
+template int _rw_fmtarray (const FmtSpec&, Buffer&, const UShrt*, size_t, int);
+template int _rw_fmtarray (const FmtSpec&, Buffer&, const UInt*, size_t, int);
+template int _rw_fmtarray (const FmtSpec&, Buffer&, const ULong*, size_t, int);
 
 
 #  ifndef _RWSTD_NO_WCHAR_T
 
-template int rw_quotechar (char*, wchar_t, int);
-template int rw_fmtarray (const FmtSpec&, Buffer&, const wchar_t*, size_t, int);
+template int _rw_quotechar (char*, wchar_t, int);
+template int _rw_fmtarray(const FmtSpec&, Buffer&, const wchar_t*, size_t, int);
 
 #  endif   // _RWSTD_NO_WCHAR_T
 
@@ -3021,17 +2176,17 @@ _rw_fmtarray (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
         // note that when no precision is specified in the format string
         // (e.g., "%{Ac}") its value will be -1 and the function will format
         // all elements up to but excluding the terminating 0
-        len = rw_fmtarray (spec, buf, array, nelems, flags);
+        len = _rw_fmtarray (spec, buf, array, nelems, flags);
     }
     else if (2 == width) {
         spec.param.ptr_ = PARAM (ptr_);
         const _RWSTD_UINT16_T* const array = (_RWSTD_UINT16_T*)spec.param.ptr_;
-        len = rw_fmtarray (spec, buf, array, nelems, flags);
+        len = _rw_fmtarray (spec, buf, array, nelems, flags);
     }
     else if (4 == width) {
         spec.param.ptr_ = PARAM (ptr_);
         const _RWSTD_UINT32_T* const array = (_RWSTD_UINT32_T*)spec.param.ptr_;
-        len = rw_fmtarray (spec, buf, array, nelems, flags);
+        len = _rw_fmtarray (spec, buf, array, nelems, flags);
     }
 
 #ifdef _RWSTD_UINT64_T
@@ -3039,7 +2194,7 @@ _rw_fmtarray (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
     else if (8 == width) {
         spec.param.ptr_ = PARAM (ptr_);
         const _RWSTD_UINT64_T* const array = (_RWSTD_UINT64_T*)spec.param.ptr_;
-        len = rw_fmtarray (spec, buf, array, nelems, flags);
+        len = _rw_fmtarray (spec, buf, array, nelems, flags);
     }
 
 #endif   // _RWSTD_UINT64_T
@@ -3067,7 +2222,7 @@ _rw_fmtchr (const FmtSpec &spec, Buffer &buf, int val, int noesc)
 
     char buffer [8];
 
-    int len = rw_quotechar (buffer + spec.fl_pound, uc, noesc);
+    int len = _rw_quotechar (buffer + spec.fl_pound, uc, noesc);
     if (spec.fl_pound) {
         buffer [0] = buffer [len + 1] = '\'';
         buffer [len + 2] = '\0';
@@ -3101,7 +2256,7 @@ _rw_fmtwchr (const FmtSpec &spec, Buffer &buf, wint_t val, int noesc)
     else {
         const wchar_t wc = wchar_t (val);
 
-        len = rw_quotechar (buffer + spec.fl_pound, wc, noesc);
+        len = _rw_quotechar (buffer + spec.fl_pound, wc, noesc);
         if (spec.fl_pound) {
             buffer [0] = buffer [len + 1] = '\'';
             buffer [len + 2] = '\0';
@@ -3116,11 +2271,11 @@ _rw_fmtwchr (const FmtSpec &spec, Buffer &buf, wint_t val, int noesc)
 
 /********************************************************************/
 
-static int
+extern int
 _rw_fmtstr (const FmtSpec &spec, Buffer &buf, const char *str, size_t len)
 {
     if (spec.fl_pound)
-        return rw_fmtarray (spec, buf, str, len, A_CHAR | A_ESC);
+        return _rw_fmtarray (spec, buf, str, len, A_CHAR | A_ESC);
 
     if (0 == str || 0 > _RW::__rw_memattr (str, _RWSTD_SIZE_MAX, 0))
         return _rw_fmtbadaddr (spec, buf, str);
@@ -3190,7 +2345,7 @@ _rw_fmtwstr (const FmtSpec &spec, Buffer &buf,
               ('S' == spec.cvtspec && -1 != spec.width ? A_ARRAY : 0)
             | A_WCHAR | A_ESC;
 
-        return rw_fmtarray (spec, buf, wstr, len, flags);
+        return _rw_fmtarray (spec, buf, wstr, len, flags);
     }
 
     if (   0 == wstr || 0 > _RW::__rw_memattr (wstr, _RWSTD_SIZE_MAX, 0)
@@ -3239,7 +2394,7 @@ _rw_fmtwstr (const FmtSpec &spec, Buffer &buf,
 
     // wmemcpy (next, wstr, len);
     for (const wchar_t *pwc = wstr; pwc != wstr + len; ++pwc) {
-        const int n = rw_quotechar (next, *pwc, 0);
+        const int n = _rw_quotechar (next, *pwc, 0);
 
         if (n < 0)
             return n;
@@ -3260,360 +2415,6 @@ _rw_fmtwstr (const FmtSpec &spec, Buffer &buf,
 }
 
 #endif   // _RWSTD_NO_WCHAR_T
-
-/********************************************************************/
-
-struct Bitnames
-{
-    const char *longname;
-    const char *name;
-    int         bits;
-};
-
-#define BITNAME(qual, name)   { #qual "::" #name, #name, qual::name }
-
-static int
-rw_bmpfmt (const FmtSpec &spec, Buffer &buf,
-           const Bitnames bmap[], size_t size, int bits)
-{
-    RW_ASSERT (0 != buf.pbuf);
-
-    char buffer [1024];
-    *buffer = '\0';
-
-    // string to use when no bits are set
-    const char* all_clear = "0";
-
-    for (size_t i = 0; i != size; ++i) {
-        if (bmap [i].bits) {
-            if ((bits & bmap [i].bits) == bmap [i].bits) {
-
-                const char* const name = spec.fl_pound ?
-                    bmap [i].longname : bmap [i].name;
-
-                strcat (*buffer ? strcat (buffer, " | ") : buffer, name);
-
-                bits &= ~bmap [i].bits;
-            }
-        }
-        else {
-            // save the name of the constant to use for 0
-            all_clear = spec.fl_pound ? bmap [i].longname : bmap [i].name;
-        }
-    }
-
-    size_t buffersize;
-
-    if ('\0' == *buffer) {
-        // no constant matched, format teh value either as a number
-        // or, when 0, using the all_clear name (see above)
-        if (bits)
-            sprintf (buffer, "%#x", bits);
-        else
-            strcpy (buffer, all_clear);
-
-        buffersize = strlen (buffer);
-    }
-    else if (bits) {
-        buffersize = strlen (buffer);
-
-        // verify that buffer wasn't overflowed
-        RW_ASSERT (buffersize <= sizeof buffer);
-
-        char bitstr [32];
-        const int n = sprintf (bitstr, "%#x | ", bits);
-
-        RW_ASSERT (0 < n);
-
-        memmove (buffer + n, buffer, buffersize);
-        memcpy (buffer, bitstr, size_t (n));
-
-        buffersize += n;
-    }
-    else {
-        buffersize = strlen (buffer);
-    }
-
-    // verify that buffer wasn't overflowed
-    RW_ASSERT (buffersize <= sizeof buffer);
-
-    if (0 == _rw_bufcat (buf, buffer, buffersize))
-        return -1;
-
-    return int (buffersize);
-}
-
-/********************************************************************/
-
-static int
-_rw_fmtflags (const FmtSpec &spec, Buffer &buf, int bits)
-{
-    static const Bitnames names [] = {
-        BITNAME (std::ios, adjustfield),
-        BITNAME (std::ios, basefield),
-        BITNAME (std::ios, boolalpha),
-        BITNAME (std::ios, dec),
-        BITNAME (std::ios, fixed),
-        BITNAME (std::ios, hex),
-        BITNAME (std::ios, internal),
-        BITNAME (std::ios, left),
-        BITNAME (std::ios, oct),
-        BITNAME (std::ios, right),
-        BITNAME (std::ios, scientific),
-        BITNAME (std::ios, showbase),
-        BITNAME (std::ios, showpoint),
-        BITNAME (std::ios, showpos),
-        BITNAME (std::ios, skipws),
-        BITNAME (std::ios, unitbuf),
-        BITNAME (std::ios, uppercase),
-
-#ifndef _RWSTD_NO_EXT_BIN_IO
-
-        // extension: produce binary output (similar to oct, dec, and hex)
-        BITNAME (std::ios, bin),
-
-#endif   // _RWSTD_NO_EXT_BIN_IO
-
-#ifndef _RWSTD_NO_EXT_REENTRANT_IO
-
-        // extension: allow unsychronized access to stream and/or its buffer
-        BITNAME (std::ios, nolock),
-        BITNAME (std::ios, nolockbuf),
-
-#endif   // _RWSTD_NO_EXT_REENTRANT_IO
-
-        { "std::ios::iostate(0)", "iostate(0)", std::ios::iostate () }
-
-    };
-
-    static const size_t count = sizeof names / sizeof *names;
-
-    const int base = (bits >> _RWSTD_IOS_BASEOFF) & _RWSTD_IOS_BASEMASK;
-
-    // zero out bits representingthe numeric base
-    bits &= ~(_RWSTD_IOS_BASEMASK << _RWSTD_IOS_BASEOFF);
-
-    int len = rw_bmpfmt (spec, buf, names, count, bits);
-
-    if (base && base != 8 && base != 10 && base != 16) {
-
-        // for numeric bases other than those required by the standard,
-        // use the text "base (%d)" to show the extended numeric base
-
-#ifndef _RWSTD_NO_EXT_BIN_IO
-
-        if (bits & std::ios::bin)
-            return len;
-
-#endif   // _RWSTD_NO_EXT_BIN_IO
-
-        char basestr [64];
-        const int n = sprintf (basestr, " | std::ios::base(%d)", base);
-        len += n;
-
-        if (0 == _rw_bufcat (buf, basestr, size_t (n)))
-            return -1;
-    }
-
-    return len;
-}
-
-/********************************************************************/
-
-static int
-rw_fmtiostate (const FmtSpec &spec, Buffer &buf, int bits)
-{
-    static const Bitnames names [] = {
-        BITNAME (std::ios, goodbit),
-        BITNAME (std::ios, badbit),
-        BITNAME (std::ios, eofbit),
-        BITNAME (std::ios, failbit)
-    };
-
-    static const size_t count = sizeof names / sizeof *names;
-
-    return rw_bmpfmt (spec, buf, names, count, bits);
-}
-
-/********************************************************************/
-
-static int
-_rw_fmtopenmode (const FmtSpec &spec, Buffer &buf, int bits)
-{
-    static const Bitnames names [] = {
-
-#ifndef _RWSTD_NO_EXTENSIONS
-
-        { "std::ios::nocreate", "nocreate", std::ios::nocreate },
-        { "std::ios::noreplace", "noreplace", std::ios::noreplace },
-
-#else   // if defined (_RWSTD_NO_EXTENSIONS)
-
-        { "__rw:::__rw_nocreate", "__rw_nocreate", _RW::__rw_nocreate },
-        { "__rw::__rw_noreplace", "__rw_noreplace", _RW::__rw_noreplace },
-
-#endif   // _RWSTD_NO_EXTENSIONS
-
-#ifndef _RWSTD_NO_EXT_STDIO
-
-        { "std::ios::stdio", "stdio", std::ios::stdio },
-        { "std::ios::native", "native", std::ios::native },
-
-#else   // if defined (_RWSTD_NO_EXT_STDIO)
-
-        { "__rw::__rw_stdio", "__rw_stdio", _RW::__rw_stdio },
-        { "__rw::__rw_native", "__rw_native", _RW::__rw_native },
-
-#endif   // _RWSTD_NO_EXT_STDIO
-
-        BITNAME (std::ios, app),
-        BITNAME (std::ios, binary),
-        BITNAME (std::ios, in),
-        BITNAME (std::ios, out),
-        BITNAME (std::ios, trunc),
-        BITNAME (std::ios, ate),
-
-        { "std::ios::openmode(0)", "openmode(0)", std::ios::openmode () }
-    };
-
-    static const size_t count = sizeof names / sizeof *names;
-
-    return rw_bmpfmt (spec, buf, names, count, bits);
-}
-
-/********************************************************************/
-
-static int
-_rw_fmtseekdir (const FmtSpec &spec, Buffer &buf, int bits)
-{
-    static const Bitnames names [] = {
-
-        BITNAME (std::ios, beg),
-        BITNAME (std::ios, cur),
-        BITNAME (std::ios, end)
-    };
-
-    static const size_t count = sizeof names / sizeof *names;
-
-    return rw_bmpfmt (spec, buf, names, count, bits);
-}
-
-/********************************************************************/
-
-static int
-_rw_fmtevent (const FmtSpec&, Buffer &buf, int event)
-{
-    const char* str =
-          std::ios::copyfmt_event == event ? "copyfmt_event"
-        : std::ios::imbue_event   == event ? "imbue_event"
-        : std::ios::erase_event   == event ? "erase_event"
-        : 0;
-
-    char buffer [64];
-
-    if (!str) {
-        sprintf (buffer, "copyfmt_event(%d)", event);
-        str = buffer;
-    }
-
-    const size_t len = strlen (str);
-
-    if (0 == _rw_bufcat (buf, str, len))
-        return -1;
-
-    return int (len);
-}
-
-/********************************************************************/
-
-static int
-rw_fmtlc (const FmtSpec &spec, Buffer &buf, int val)
-{
-    const char *str = 0;
-
-    switch (val) {
-    case LC_ALL:      str = "LC_ALL"; break;
-    case LC_COLLATE:  str = "LC_COLLATE"; break;
-    case LC_CTYPE:    str = "LC_CTYPE"; break;
-    case LC_MONETARY: str = "LC_MONETARY"; break;
-    case LC_NUMERIC:  str = "LC_NUMERIC"; break;
-    case LC_TIME:     str = "LC_TIME"; break;
-
-#ifdef LC_MESSAGES
-    case LC_MESSAGES: str = "LC_MESSAGES"; break;
-#endif   // LC_MESSAGES
-
-    }
-
-    if (str) {
-        const std::size_t len = strlen (str);
-
-        if (0 == _rw_bufcat (buf, str, len))
-            return -1;
-
-        return int (len);
-    }
-
-    static const Bitnames names [] = {
-        BITNAME (std::locale, all),
-        BITNAME (std::locale, none),
-        BITNAME (std::locale, collate),
-        BITNAME (std::locale, ctype),
-        BITNAME (std::locale, monetary),
-        BITNAME (std::locale, numeric),
-        BITNAME (std::locale, messages),
-        BITNAME (std::locale, time)
-    };
-
-    static const size_t count = sizeof names / sizeof *names;
-
-    return rw_bmpfmt (spec, buf, names, count, val);
-}
-
-/********************************************************************/
-
-static int
-_rw_fmtmonpat (const FmtSpec&, Buffer &buf, const char pat [4])
-{
-    char buffer [80];
-
-    buffer [0] = '\0';
-
-    for (int i = 0; i != 4; ++i) {
-        switch (pat [i]) {
-        case std::money_base::symbol:
-            strcat (buffer, "symbol ");
-            break;
-
-        case std::money_base::sign:
-            strcat (buffer, "sign ");
-            break;
-
-        case std::money_base::none:
-            strcat (buffer, "none ");
-            break;
-
-        case std::money_base::value:
-            strcat (buffer, "value ");
-            break;
-
-        case std::money_base::space:
-            strcat (buffer, "space ");
-            break;
-
-        default:
-            sprintf (buffer + strlen (buffer), "\\%03o", pat [i]);
-            break;
-        }
-    }
-
-    const size_t len = strlen (buffer);
-
-    if (0 == _rw_bufcat (buf, buffer, len))
-        return -1;
-
-    return int (len);
-}
 
 /********************************************************************/
 
@@ -3738,7 +2539,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         else if (spec.mod == spec.mod_L) {
             // locale category or LC_XXX constant
             spec.param.int_ = PARAM (int_);
-            len = rw_fmtlc (spec, buf, spec.param.int_);
+            len = _rw_fmtlc (spec, buf, spec.param.int_);
         }
         else if (spec.mod == spec.mod_l) {
             // wint_t argument formatted as wchar_t with non-printable
@@ -3833,10 +2634,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         break;
 
     case 'm':   // %{m} -- errno
-        if (-1 == spec.width)
-            len = _rw_fmterrno (spec, buf, errno);
-        else
-            len = _rw_fmterrno (spec, buf, spec.width);
+        len = _rw_fmterrno (spec, buf, -1 == spec.width ? errno : spec.width);
         break;
 
     case 'M':   // %{M}, %{LM}
@@ -3918,21 +2716,21 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
     case 's':   // %{s}, %{Is}, %{ls}
         if (spec.mod == spec.mod_ext_I) {   // ios::iostate
             spec.param.int_ = PARAM (int_);
-            len = rw_fmtiostate (spec, buf, spec.param.int_);
+            len = _rw_fmtiostate (spec, buf, spec.param.int_);
         }
         else if (spec.mod == spec.mod_l) {   // wchar_t*
             spec.param.ptr_ = PARAM (ptr_);
             const wchar_t* const wstr = (wchar_t*)spec.param.ptr_;
             const size_t wstr_len =
                 spec.width < 0 ? _RWSTD_SIZE_MAX : size_t (spec.width);
-            len = rw_fmtarray (spec, buf, wstr, wstr_len, A_WCHAR | A_ESC);
+            len = _rw_fmtarray (spec, buf, wstr, wstr_len, A_WCHAR | A_ESC);
         }
         else {   // char*
             spec.param.ptr_ = PARAM (ptr_);
             const char* const str = (char*)spec.param.ptr_;
             const size_t str_len =
                 spec.width < 0 ? _RWSTD_SIZE_MAX : size_t (spec.width);
-            len = rw_fmtarray (spec, buf, str, str_len, A_CHAR | A_ESC);
+            len = _rw_fmtarray (spec, buf, str, str_len, A_CHAR | A_ESC);
         }
         break;
 
@@ -3991,32 +2789,190 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
             break;
         }
     }
-        
 
     default:
         if (spec.strarg) {
-            // environment variable
-            const char* val = getenv (spec.strarg);
-
-            if (!val)
-                val = "";
-
-            len = int (strlen (val));
-
-            if (0 == _rw_bufcat (buf, val, size_t (len)))
-                return -1;
-
-            free (spec.strarg);
+            return _rw_fmtexpr (spec, buf, pva);
         }
         else {
             char text [80];
-            len = sprintf (text, "*** %%{%.*s}: not implemented ***",
-                           int (sizeof fmt - 40), fmt);
-
+            len = sprintf (text, "%%{%.*s}", int (sizeof text - 3), fmt);
             if (0 == _rw_bufcat (buf, text, size_t (len)))
                 return -1;
         }
     }
+
+    return len;
+}
+
+/********************************************************************/
+
+static int
+_rw_fmtexpr (FmtSpec &spec, Buffer &buf, va_list *pva)
+{
+    RW_ASSERT (0 != spec.strarg);
+
+    char oper [2] = "";
+    char *param = spec.strarg;
+
+    // look for the first operator character (if any)
+    char* word = strpbrk (param, ":+-=?");
+    if (word) {
+        if (':' == *word) {
+            if (   '+' == word [1] || '-' == word [1]
+                || '=' == word [1] || '?' == word [1]) {
+                oper [0] = word [0];
+                oper [1] = word [1];
+                *word    = '\0';
+                word    += 2;
+            }
+            else {
+                // ':' without an immediately following '+', '-',
+                // '=', or '?' is not special
+            }
+        }
+        else {
+            oper [0] = *word;
+            *word++ = '\0';
+        }
+    }
+    else
+        word = oper;
+
+    if ('*' == *param) {
+        // extract the name of the parameter from the argument list
+        param = va_arg (*pva, char*);
+    }
+
+    if ('*' == *word) {
+        // extract "word" from the argument list
+        word = va_arg (*pva, char*);
+    }
+
+    // retrieve the value of the parameter from the environments
+    const char* val = getenv (param);
+
+    //////////////////////////////////////////////////////////////////
+    // From IEEE Std 1003.1, 2004 Edition:
+    // http://www.opengroup.org/onlinepubs/009695399/utilities/
+    //     xcu_chap02.html#tag_02_06_02
+
+    // +--------------------+-------------+-------------+-------------+
+    // |                    |  parameter  |  parameter  |  parameter  |
+    // |                    +-------------+-------------+-------------+
+    // |                    |Set, Not Null|  Set, Null  |   Unset     |
+    // +--------------------+-------------+-------------+-------------+
+    // | ${parameter:-word} |  parameter  |    word     |    word     |
+    // | ${parameter-word}  |  parameter  |    null     |    word     |
+    // | ${parameter:=word} |  parameter  | assign word | assign word |
+    // | ${parameter=word}  |  parameter  |    null     | assign word |
+    // | ${parameter:?word} |  parameter  |    error    |    error    |
+    // | ${parameter?word}  |  parameter  |    null     |    error    |
+    // | ${parameter:+word} |     word    |    null     |    null     |
+    // | ${parameter+word}  |     word    |    word     |    null     |
+    // +--------------------+-------------+-------------+-------------+
+
+    int assign = 0;
+    int error  = 0;
+
+    switch (oper [0]) {
+    case ':':   // process two-character operators
+        if ('-' == oper [1]) {
+            if (0 == val || '\0' == *val)
+                val = word;
+        }
+        else if ('=' == oper [1]) {
+            if (0 == val || '\0' == *val) {
+                val    = word;
+                assign = 1;
+            }
+        }
+        else if ('?' == oper [1]) {
+            if (0 == val || '\0' == *val) {
+                val   = "";
+                error = 1;
+            }
+        }
+        else if ('+' == oper [1]) {
+            if (0 == val || '\0' == *val)
+                val = "";
+            else
+                val = word;
+        }
+        else {
+            // should never happen
+            RW_ASSERT (!"logic error");
+        }
+        break;
+
+    case '+':
+        val = val ? word : "";
+        break;
+
+    case '-':
+        if (0 == val)
+            val = word;
+        break;
+            
+    case '?':
+        if (0 == val) {
+            val   = "";
+            error = 1;
+        }
+        break;
+
+    case '=':
+        if (0 == val) {
+            val    = word;
+            assign = 1;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    RW_ASSERT (0 != val);
+    int len = int (strlen (val));
+
+    if (assign) {
+        // set/assign the specified value to the variable
+        char varbuf [256];
+        char *pbuf = varbuf;
+
+        const size_t varlen = strlen (param) + strlen (val) + 2;
+        if (sizeof varbuf < varlen)
+            pbuf = (char*)malloc (varlen);
+
+        strcpy (pbuf, param);
+        strcat (pbuf, "=");
+        strcat (pbuf, val);
+
+        rw_putenv (pbuf);
+        if (pbuf != varbuf)
+            free (varbuf);
+    }
+
+    if (error) {
+        // on error simply print the directive
+        if (oper [0])
+            spec.strarg [strlen (spec.strarg)] = oper [0];
+
+        char text [256];
+        len = sprintf (text, "%%{$%.*s}", int (sizeof text - 3), spec.strarg);
+        if (0 == _rw_bufcat (buf, text, size_t (len)))
+            return -1;
+    }
+    else {
+        // format the value of the variable (after assignment
+        // if it takes place)
+        if (0 == _rw_bufcat (buf, val, size_t (len)))
+            return -1;
+    }
+
+    free (spec.strarg);
+    spec.strarg     = 0;
+    spec.param.ptr_ = _RWSTD_CONST_CAST (char*, val);
 
     return len;
 }
