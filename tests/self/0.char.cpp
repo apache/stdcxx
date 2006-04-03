@@ -383,7 +383,7 @@ test_rw_widen ()
     rw_info (0, 0, 0, "rw_widen(char*, const char*, size_t)");
 
     static const char   src []  = "abcdefgh";
-    static const size_t nsrc = sizeof src;
+    const size_t nsrc = sizeof src - 1;
     static const char   null [nsrc + 1] = "";
     char                cdst [nsrc + 1];
 
@@ -443,8 +443,8 @@ test_rw_widen ()
     memset (wdst, '@', sizeof wdst);
     rw_widen (wdst, 0, sizeof wdst / sizeof *wdst);
 
-    rw_assert (0 == memcmp (wdst, wnull, nsrc + 1), 0, __LINE__,
-               "rw_widen(char*, %{#s}, %zu) == %{#*s}, got L%{#*ls}",
+    rw_assert (0 == memcmp (wdst, wnull, sizeof wdst), 0, __LINE__,
+               "rw_widen(wchar_t*, %{#s}, %zu) == %{#*s}, got L%{#*ls}",
                0, sizeof wdst, int (sizeof wdst / sizeof *wdst), wnull,
                int (sizeof wdst / sizeof *wdst), wdst);
 
@@ -462,6 +462,12 @@ test_rw_widen ()
         { 0, 'e' }, { 0, 'f' }, { 0, 'g' }, { 0, 'h' },
         { 0, '\0' }
     };
+    static const UserChar unull [] = {
+        { 0, '\0' }, { 0, '\0' }, { 0, '\0' }, { 0, '\0' },
+        { 0, '\0' }, { 0, '\0' }, { 0, '\0' }, { 0, '\0' },
+        { 0, '\0' }
+    };
+
     UserChar udst [nsrc + 1];
 
     for (size_t i = 0; i != nsrc + 1; ++i) {
@@ -485,8 +491,8 @@ test_rw_widen ()
     memset (udst, 1, sizeof udst);
     rw_widen (udst, 0, sizeof udst / sizeof *udst);
 
-    rw_assert (0 == memcmp (wdst, wnull, nsrc + 1), 0, __LINE__,
-               "rw_widen(char*, %{#s}, %zu)",
+    rw_assert (0 == memcmp (udst, unull, sizeof udst), 0, __LINE__,
+               "rw_widen(UserChar*, %{#s}, %zu)",
                0, sizeof udst, int (sizeof udst), wnull);
 }
 
@@ -499,7 +505,7 @@ test_rw_narrow ()
     rw_info (0, 0, 0, "rw_narrow(char*, const char*, size_t)");
 
     static const char   src []  = "abcdefgh";
-    static const size_t nsrc = sizeof src;
+    const size_t nsrc = sizeof src - 1;
     static const char   null [nsrc + 1] = "";
     char                cdst [nsrc + 1];
 
