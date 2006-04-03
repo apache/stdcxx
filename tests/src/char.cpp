@@ -247,6 +247,7 @@ rw_widen (char *dst, const char *src, size_t len /* = SIZE_MAX */)
         if (src) {
             // copy src into dst
             memcpy (dst, src, len);
+            dst [len] = '\0';
         }
         else {
             // set dst to all NUL
