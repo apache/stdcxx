@@ -30,6 +30,7 @@
 #include "fmt_defs.h"
 #include <rw_printf.h>
 
+#include <ctype.h>    // for isalnum(), ...
 #include <errno.h>    // for errno, errno constants
 #include <locale.h>
 #include <signal.h>   // for signal constant
