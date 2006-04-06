@@ -217,6 +217,7 @@ function readAndCheckArguments()
     if (WScript.Arguments.Named.Exists("BUILDDIR"))
     {
         outDir = WScript.Arguments.Named("BUILDDIR");
+        outDir = fso.GetAbsolutePathName (outDir);
     }
     
     if (WScript.Arguments.Named.Exists("COPYDLL"))
@@ -237,7 +238,25 @@ function createBuildDirs()
         var topdir = srcDir;
         
         if (! fso.FolderExists(builddir))
-            fso.CreateFolder(builddir); 
+        {           
+            var flddir = builddir;
+            var fldrs = new Array();
+            
+            while (! fso.FolderExists(flddir))
+            {   
+                fldrs.push (flddir);
+                flddir = fso.GetParentFolderName (flddir);
+                if ("" == flddir)
+                {
+                    WScript.StdErr.WriteLine("Generate: Fatal error: " + 
+                        "Failed to create folder " + builddir);
+                    WScript.Quit(3);
+                }
+            }
+            
+            while (fldrs.length > 0)
+                fso.CreateFolder(fldrs.pop());
+        }
             
         builddir += "\\" + currentCfg;
         
