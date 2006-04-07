@@ -25,6 +25,7 @@
  * 
  **************************************************************************/
 
+#include <memory>       // for placement operator new()
 #include <string>       // for string
 #include <cstdlib>      // for free(), size_t
 #include <stdexcept>    // for out_of_range, length_error
@@ -35,6 +36,12 @@
 #include <rw_printf.h>  // for rw_asnprintf()
 #include <rw_char.h>    // for rw_widen()
 #include <alg_test.h>   // for InputIter<>
+
+#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
+   // disabled for compilers such as IBM VAC++ or MSVC
+   // that can't reliably replace the operators
+#  include <rw_new.h>
+#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
 /**************************************************************************/
 
@@ -123,6 +130,7 @@ static int rw_opt_no_user_traits;              // for --no-user_traits
 
 static int rw_opt_no_user_chars;               // for --no-user_chars
 static int rw_opt_no_exceptions;               // for --no-exceptions
+static int rw_opt_no_exception_safety;         // for --no-exception-safety
 
 static int rw_opt_no_insert_off_ptr;           // for --no-insert-off-ptr
 static int rw_opt_no_insert_off_str;           // for --no-insert-off-str
@@ -151,7 +159,8 @@ static const TestCase off_test_cases [] = {
     //    |            |  |           |        +---- exception info 
     //    |            |  |           |        |         0 - no exception        
     //    |            |  |           |        |         1 - out_of_range        
-    //    |            |  |           |        |         2 - length_error        
+    //    |            |  |           |        |         2 - length_error  
+    //    |            |  |           |        |        -1 - exc. safety
     //    |            |  |           |        |                       
     //    |            |  |           |        +------------+             
     //    V            V  V           V                     V
@@ -181,6 +190,7 @@ static const TestCase off_test_cases [] = {
     TEST ("a\0b\0\0c", 2, "e\0e",     "a\0eb\0\0c",         0),
     TEST ("a\0bc\0\0", 6, "e\0e",     "a\0bc\0\0e",         0),
 
+    TEST ("",          0, 0,          "",                   0),
     TEST ("abc",       0, 0,          "abcabc",             0),
     TEST ("abc",       2, 0,          "ababcc",             0),
     TEST ("a\0bc\0\0", 0, 0,          "aa\0bc\0\0",         0),
@@ -194,6 +204,8 @@ static const TestCase off_test_cases [] = {
     TEST ("\0",        2, "",         "",                   1),
     TEST ("a",         2, "",         "",                   1),
     TEST (LSTR,LLEN + 10, "",         "",                   1),
+
+    TEST ("",          0, LSTR,       LSTR,                -1),
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
@@ -218,7 +230,8 @@ static const TestCase off_str_test_cases [] = {
     //    |            |  |           |        +---- exception info 
     //    |            |  |           |        |         0 - no exception        
     //    |            |  |           |        |         1 - out_of_range        
-    //    |            |  |           |        |         2 - length_error        
+    //    |            |  |           |        |         2 - length_error  
+    //    |            |  |           |        |        -1 - exc. safety
     //    |            |  |           |        |                       
     //    |            |  |           |        +------------+             
     //    V            V  V           V                     V
@@ -262,6 +275,8 @@ static const TestCase off_str_test_cases [] = {
     TEST ("a",         2, "",         "",                   1),
     TEST (LSTR,LLEN + 10, "",         "",                   1),
 
+    TEST ("",          0, LSTR,       LSTR,                -1),
+
 #endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",      4, "test",     "lasttest",           0)
@@ -288,7 +303,8 @@ static const TestCase range_test_cases [] = {
     //    |            |  |            |  |  |  +--- exception info  
     //    |            |  |            |  |  |  |       0 - no exception        
     //    |            |  |            |  |  |  |       1 - out_of_range        
-    //    |            |  |            |  |  |  |       2 - length_error        
+    //    |            |  |            |  |  |  |       2 - length_error   
+    //    |            |  |            |  |  |  |      -1 - exc. safety 
     //    |            |  |            |  |  |  |                         
     //    |            |  |            |  |  |  +----------------+             
     //    V            V  V            V  V  V                   V             
@@ -347,6 +363,8 @@ static const TestCase range_test_cases [] = {
     TEST (LSTR,LLEN + 10, "",          0, 0,  "",                1),
     TEST ("",          0, LSTR,LLEN + 10, 0,  "",                2),
 
+    TEST (LSTR,        0, 0,           0, 0, 0,                 -1),
+
 #endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",      4, "test",      0, 4,  "lasttest",        0)
@@ -371,7 +389,8 @@ static const TestCase off_size_test_cases [] = {
     //    |            |  |            |  |     +--- exception info 
     //    |            |  |            |  |     |      0 - no exception        
     //    |            |  |            |  |     |      1 - out_of_range        
-    //    |            |  |            |  |     |      2 - length_error        
+    //    |            |  |            |  |     |      2 - length_error  
+    //    |            |  |            |  |     |     -1 - exc. safety 
     //    |            |  |            |  |     |                           
     //    |            |  |            |  |     +------------+             
     //    V            V  V            V  V                  V             
@@ -416,6 +435,8 @@ static const TestCase off_size_test_cases [] = {
     TEST ("a",         2, "",          0,  "",               1),
     TEST (LSTR,LLEN + 10, "",          0,  "",               1),
 
+    TEST ("",          0, LSTR, LLEN - 1,  LSTR,            -1),
+
 #endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",      4, "test",      4,  "lasttest",       0)
@@ -441,7 +462,8 @@ static const TestCase size_val_test_cases [] = {
     //    |            |  |   |   |       +--------- exception info 
     //    |            |  |   |   |       |             0 - no exception        
     //    |            |  |   |   |       |             1 - out_of_range        
-    //    |            |  |   |   |       |             2 - length_error     
+    //    |            |  |   |   |       |             2 - length_error  
+    //    |            |  |   |   |       |            -1 - exc. safety
     //    |            |  |   |   |       |                         
     //    |            |  |   |   |       +-----------+             
     //    V            V  V   V   V                   V             
@@ -477,6 +499,12 @@ static const TestCase size_val_test_cases [] = {
     TEST ("",          0, LLEN - 1, 'x', LSTR,        0),
     TEST (LSTR,        0, 0,        'x', LSTR,        0),
 
+#ifndef _RWSTD_NO_EXCEPTIONS
+
+    TEST ("",          0, LLEN - 1, 'x', LSTR,       -1),
+
+#endif   // _RWSTD_NO_EXCEPTIONS
+
     TEST ("last",      4, 4, 't',  "lasttttt",        0)
 };
 
@@ -499,6 +527,7 @@ static const TestCase val_test_cases [] = {
     //    |            |    |   |               |       0 - no exception        
     //    |            |    |   |               |       1 - out_of_range        
     //    |            |    |   |               |       2 - length_error     
+    //    |            |    |   |               |      -1 - exc. safety 
     //    |            |    |   |               |                 
     //    |            |    |   |               |
     //    V            V    V   V               V  
@@ -520,6 +549,12 @@ static const TestCase val_test_cases [] = {
     TEST ("a\0b\0\0c", 3, '\0', "a\0b\0\0\0c",  0),
     TEST ("\0ab\0\0c", 0, '\0', "\0\0ab\0\0c",  0),
     TEST ("a\0bc\0\0", 6,  'a', "a\0bc\0\0a",   0),
+
+#ifndef _RWSTD_NO_EXCEPTIONS
+
+    TEST (LSTR,        0,  'c', 0,             -1),
+
+#endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",      4,  't', "lastt",        0)
 };
@@ -566,6 +601,149 @@ static const struct FunctionTag
     TEST (insert_range, rw_opt_no_insert_range, range_test_cases, 
           "insert (iterator p, InputIterator first, InputIterator last)")
 };
+
+/**************************************************************************/
+
+template <class charT, class Traits>
+void test_insert_exceptions (charT, Traits*,  
+                             const ITags     which,
+                             const TestCase &cs,
+                             const char     *insert_fmt)
+{
+    typedef std::basic_string <charT, Traits, 
+                               std::allocator<charT> > TestString;
+    typedef typename TestString::iterator StringIter;
+    typedef typename TestString::const_iterator ConstStringIter;
+
+    static charT wstr [LLEN];
+    static charT wsrc [LLEN];
+
+    rw_widen (wstr, cs.str, cs.str_len);
+    rw_widen (wsrc, cs.src, cs.src_len);
+
+    TestString s_str (wstr, cs.str_len);
+    TestString s_src (wsrc, cs.src_len);
+
+    std::size_t throw_after = 0;
+
+    const std::size_t     size     = s_str.size ();
+    const std::size_t     capacity = s_str.capacity ();
+    const ConstStringIter begin    = s_str.begin ();
+
+#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+    rwt_free_store* const pst = rwt_get_free_store (0);
+
+#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+    // iterate for`n=throw_after' starting at the next call to operator
+    // new, forcing each call to throw an exception, until the insertion
+    // finally succeeds (i.e, no exception is thrown)
+    for ( ; ; ) {
+
+#ifndef _RWSTD_NO_EXCEPTIONS
+#  ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+        *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_after + 1;
+
+#  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+#endif   // _RWSTD_NO_EXCEPTIONS
+
+        _TRY {
+            if (insert_off_ptr == which) 
+                s_str.insert (cs.pos1, cs.src ? wsrc : s_str.c_str ());
+
+            else if (insert_off_str == which)
+                s_str.insert (cs.pos1, cs.src ? s_src : s_str);
+
+            else if (insert_off_ptr_size == which)
+                s_str.insert (cs.pos1, cs.src ? 
+                              wsrc : s_str.c_str (), cs.count);
+
+            else if (insert_off_str_off_size == which) 
+                s_str.insert (cs.pos1, cs.src ? 
+                              s_src : s_str, cs.pos2, cs.count);
+
+            else if (insert_off_size_val == which)
+                s_str.insert (cs.pos1, cs.count, 
+                              make_char ((char) cs.ch, (charT*)0));
+
+            else if (insert_size_val == which) {
+                StringIter it (s_str.begin () + cs.pos1);
+                s_str.insert (it, cs.count, make_char ((char) cs.ch, (charT*)0));
+            }
+
+            else if (insert_val == which) {
+                StringIter it (s_str.begin () + cs.pos1);
+                s_str.insert (it, make_char ((char) cs.ch, (charT*)0));
+            }
+
+            else if (insert_range == which) {
+                StringIter it (s_str.begin () + cs.pos1);
+                s_str.insert (it, s_src.begin (), s_src.end ());
+            }
+
+            break;
+        }
+        _CATCH (...) {
+
+#ifndef _RWSTD_NO_EXCEPTIONS
+
+            // verify that an exception thrown during allocation
+            // doesn't cause a change in the state of the vector
+
+            rw_assert (s_str.size () == size, 0, cs.line,
+                       "line %d: %s: size unexpectedly changed "
+                       "from %zu to %zu after an exception",
+                       __LINE__, insert_fmt, size, s_str.size ());
+
+            rw_assert (s_str.capacity () == capacity, 0, cs.line,
+                       "line %d: %s: capacity unexpectedly "
+                       "changed from %zu to %zu after an exception",
+                       __LINE__, insert_fmt, capacity, s_str.capacity ());
+
+            
+            rw_assert (s_str.begin () == begin, 0, cs.line,
+                       "line %d: %s: begin() unexpectedly "
+                       "changed from after an exception by %d",
+                       __LINE__, insert_fmt, s_str.begin () - begin);
+
+
+            // increment to allow this call to operator new to succeed
+            // and force the next one to fail, and try to insert again
+            ++throw_after;
+
+#endif   // _RWSTD_NO_EXCEPTIONS
+
+        }   // catch
+    }   // for
+
+#ifndef _RWSTD_NO_EXCEPTIONS
+#  ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+    // verify that if exceptions are enabled and when capacity changes
+    // at least one exception is thrown
+    rw_assert (   *pst->throw_at_calls_ [0] == std::size_t (-1)
+               || throw_after, 
+               0, cs.line,
+               "line %d: %s: failed to throw an expected exception",
+               __LINE__, insert_fmt);
+
+#  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+#else   // if defined (_RWSTD_NO_EXCEPTIONS)
+
+    _RWSTD_UNUSED (size);
+    _RWSTD_UNUSED (capacity);
+    _RWSTD_UNUSED (throw_after);
+
+#endif   // _RWSTD_NO_EXCEPTIONS
+
+#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+    *pst->throw_at_calls_ [0] = std::size_t (-1);
+
+#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+}
 
 /**************************************************************************/
 
@@ -881,15 +1059,18 @@ void get_insert_format (char** pbuf, std::size_t* pbufsize,
 
 /**************************************************************************/
 
-void test_insert (const MemFun *pfid, const ITags which, const TestCase& cs)
+void test_insert (const MemFun *pfid, const ITags which, 
+                  const TestCase& cs, bool exc_safety_test)
 {
     char* buf = 0;
     std::size_t buf_sz = 0;
     get_insert_format (&buf, &buf_sz, pfid, which, cs); 
 
 #undef TEST
-#define TEST(charT, Traits)	                                    \
-    test_insert (charT(), (Traits*)0, which, cs, buf)
+#define TEST(charT, Traits)	                                           \
+    !exc_safety_test ?                                                 \
+        test_insert (charT(), (Traits*)0, which, cs, buf)              \
+      : test_insert_exceptions (charT(), (Traits*)0, which, cs, buf)
 
     if (MemFun:: DefaultTraits == pfid->tid_) {
         if (MemFun::Char == pfid->cid_)
@@ -925,6 +1106,21 @@ test_insert (const MemFun *pfid, const FunctionTag& ftag)
     rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::%s",
              pfid->cname_, pfid->tname_, pfid->aname_, ftag.str_hdr);
 
+    if (rw_opt_no_exception_safety)
+        rw_note (0, 0, 0,
+                 "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
+                 "%s exception safety test disabled", 
+                 pfid->cname_, pfid->tname_, pfid->aname_, ftag.str_hdr);
+
+#ifdef _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+    else
+        rw_warn (0, 0, __LINE__,
+                 "%s exception safety test: no replacable new and delete",
+                 ftag.str_hdr);
+
+#endif  //_RWSTD_NO_REPLACEABLE_NEW_DELETE
+
     for (std::size_t i = 0; i != ftag.n_cases; ++i) {
 
         if (!rw_enabled (ftag.t_cases[i].line)) {
@@ -937,7 +1133,12 @@ test_insert (const MemFun *pfid, const FunctionTag& ftag)
         if (0 != rw_opt_no_exceptions && 0 != ftag.t_cases[i].bthrow)
             continue;
 
-        test_insert (pfid, ftag.i_tag, ftag.t_cases[i]);
+        // do not exercise exception safety if they were disabled
+        if (0 != rw_opt_no_exception_safety && -1 == ftag.t_cases[i].bthrow)
+            continue;
+
+        test_insert (pfid, ftag.i_tag, ftag.t_cases[i], 
+                     -1 == ftag.t_cases[i].bthrow);
     }
 }
 
@@ -1046,6 +1247,8 @@ int main (int argc, char** argv)
                     "|-no-user_traits# "
                     "|-no-user_chars# "
                     "|-no-exceptions# "
+                    "|-no-exception-safety# "
+
                     "|-no-insert-off-ptr# "
                     "|-no-insert-off-str# "
                     "|-no-insert-off-ptr-size# "
@@ -1054,10 +1257,13 @@ int main (int argc, char** argv)
                     "|-no-insert-size-val# "
                     "|-no-insert-val# "
                     "|-no-insert-range#",
+
                     &rw_opt_no_char_traits,
                     &rw_opt_no_user_traits,
                     &rw_opt_no_user_chars,
                     &rw_opt_no_exceptions,
+                    &rw_opt_no_exception_safety,
+
                     &rw_opt_no_insert_off_ptr,
                     &rw_opt_no_insert_off_str,
                     &rw_opt_no_insert_off_ptr_size,
