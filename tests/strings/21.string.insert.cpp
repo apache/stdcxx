@@ -994,8 +994,8 @@ void get_insert_format (char** pbuf, std::size_t* pbufsize,
                       int (cs.str_len), cs.str);
     else
         rw_asnprintf (pbuf, pbufsize,
-                      "std::basic_string<%s, %s<%1$s>, %s<%1$s>>(%{#*s})",
-                      pfid->cname_, pfid->tname_, pfid->aname_, 
+                      "std::basic_string<%s, %s<%1$s>, %s<%1$s>>(%{#*s})"
+                      ".insert", pfid->cname_, pfid->tname_, pfid->aname_, 
                       int (cs.str_len), cs.str);
 
     const bool self = 0 == cs.src;
