@@ -10,16 +10,22 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -29,6 +35,47 @@
 #ifndef _RWSTD_RW_DEFS_H_INCLUDED
 #  include <rw/_defs.h>
 #endif   // _RWSTD_RW_DEFS_H_INCLUDED
+
+
+_RWSTD_NAMESPACE (__rw) { 
+
+
+template <class _TypeT>
+struct __rw_nonvoid_ref
+{
+    typedef _TypeT& _C_ref;
+};
+
+
+_RWSTD_SPECIALIZED_CLASS
+struct __rw_nonvoid_ref<void>
+{
+    // makes the declaration of auto_ptr<void>::operator*() well-formed
+    // (the function definition itself may still be ill-formed and must
+    // not be instantiated)
+    typedef void _C_ref;
+};
+
+_RWSTD_SPECIALIZED_CLASS
+struct __rw_nonvoid_ref<const void>
+{
+    typedef void _C_ref;
+};
+
+_RWSTD_SPECIALIZED_CLASS
+struct __rw_nonvoid_ref<volatile void>
+{
+    typedef void _C_ref;
+};
+
+_RWSTD_SPECIALIZED_CLASS
+struct __rw_nonvoid_ref<const volatile void>
+{
+    typedef void _C_ref;
+};
+
+
+}   // namespace __rw
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -133,13 +180,23 @@ public:
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     // 20.4.5.2, p1
-    element_type& operator* () const _THROWS (()) {
+    _TYPENAME _RW::__rw_nonvoid_ref<element_type>::_C_ref
+    operator* () const _THROWS (()) {
         _RWSTD_ASSERT (0 != get ());
         return *get (); 
     }
 
+#ifndef _RWSTD_NO_NONCLASS_ARROW_RETURN
+
     // 20.4.5.2, p3
-    _RWSTD_OPERATOR_ARROW (element_type* operator-> () const _THROWS (()))
+    element_type* operator->() const _THROWS (()) {
+        // avoid using the _RWSTD_OPERATOR_ARROW() helper macro
+        // (defined in terms of operator*()) in order to permit
+        // auto_ptr<void>::operator->() to be instantiated
+        return _C_ptr;
+    }
+
+#endif   // _RWSTD_NO_NONCLASS_ARROW_RETURN
 
     // 20.4.5.2, p4
     element_type* get () const _THROWS (()) {

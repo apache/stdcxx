@@ -7,17 +7,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
  *
+ * Copyright 2005-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
  **************************************************************************/
 
 #ifndef _RWSTD_TR1_SMARTPTR_INCLUDED
@@ -130,40 +136,6 @@ private:
     _Deleter _C_del;
 };
 
-
-template <class _TypeT>
-struct __rw_nonvoid_ref
-{
-    typedef _TypeT& _C_ref;
-};
-
-
-_RWSTD_SPECIALIZED_CLASS
-struct __rw_nonvoid_ref<void>
-{
-    // makes the declaration of shared_ptr<void>::operator*() well-formed
-    // (the function definition itself may still be ill-formed and must
-    // not be instantiated)
-    typedef void _C_ref;
-};
-
-_RWSTD_SPECIALIZED_CLASS
-struct __rw_nonvoid_ref<const void>
-{
-    typedef void _C_ref;
-};
-
-_RWSTD_SPECIALIZED_CLASS
-struct __rw_nonvoid_ref<volatile void>
-{
-    typedef void _C_ref;
-};
-
-_RWSTD_SPECIALIZED_CLASS
-struct __rw_nonvoid_ref<const volatile void>
-{
-    typedef void _C_ref;
-};
 
 }   // namespace __rw
 
