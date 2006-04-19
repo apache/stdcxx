@@ -29,7 +29,8 @@
 #ifndef RW_FMT_DEFS_H_INCLUDED
 #define RW_FMT_DEFS_H_INCLUDED
 
-#include <stddef.h>   // for ptrdiff_t, size_t
+#include <testdefs.h>
+#include <stddef.h>     // for ptrdiff_t, size_t
 
 /********************************************************************/
 
@@ -120,32 +121,32 @@ struct FmtSpec
 #ifndef _RWSTD_NO_LONG_DOUBLE
     typedef long double ldbl_t;
 #else
-    typedef double ldbl_t;   // bogus (for convenience)
+    typedef double      ldbl_t;   // bogus (for convenience)
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
 #ifdef _RWSTD_LONG_LONG
     typedef _RWSTD_LONG_LONG llong_t;
 #else
-    typedef long llong_t;   // bogus (for convenience)
+    typedef long             llong_t;   // bogus (for convenience)
 #endif   // _RWSTD_LONG_LONG
 
 #ifdef _RWSTD_INT64_T
     typedef _RWSTD_INT64_T i64_t;
 #else
-    typedef int            i64_t;   // for convenience
+    typedef int            i64_t;   // likely bogus (for convenience)
 #endif   // _RWSTD_INT64_T
 
 #ifdef _RWSTD_INT32_T
     typedef _RWSTD_INT32_T i32_t;
 #else
-    typedef int i64_t;
+    typedef int            i32_t;
 #endif   // _RWSTD_INT64_T
 
 #ifdef _RWSTD_WINT_T
     typedef _RWSTD_WINT_T wint_t;
 #else
-    typedef int wint_t;
-#endif
+    typedef int           wint_t;
+#endif   // _RWSTD_WINT_T
 
     typedef ::size_t   size_t;
     typedef ptrdiff_t  diff_t;
