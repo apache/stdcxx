@@ -22,7 +22,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  **************************************************************************/
 
 #include <memory>       // for placement operator new()
@@ -52,7 +52,7 @@ struct MemFun
 
     MemFun (charT cid, const char *cname,
           Traits tid, const char *tname)
-        : cid_ (cid), tid_ (tid), 
+        : cid_ (cid), tid_ (tid),
           cname_ (cname), tname_ (tname), aname_ ("allocator"),
           fname_ ("assign") { /* empty */ }
 
@@ -73,49 +73,49 @@ struct MemFun
 static const std::size_t long_string_len = 4096;
 static char long_string [long_string_len];
 
-static const char* const exp_exceptions[] = 
+static const char* const exp_exceptions [] =
     { "unknown exception", "out_of_range", "length_error" };
 
 /**************************************************************************/
 
-typedef enum AssignTags {
+enum AssignOverload {
+    // assign (const value_type*)
+    assign_ptr,
+    // assign (const basic_string&)
+    assign_str,
+    // assign (const value_type*, size_type)
+    assign_ptr_size,
+    // assign (const basic_string&, size_type, size_type)
+    assign_str_off_size,
+    // assign (size_type, value_type)
+    assign_size_val,
+    // assign (InputIterator, InputIterator)
+    assign_range,
 
-    // assign (const charT* s)
-    assign_ptr          =  1,   
-    // assign (const basic_string& str)
-    assign_str          =  2,
-    // assign (const charT* s, size_type n)
-    assign_ptr_size     =  3,
-    // assign (const basic_string& str, size_type pos, size_type n)
-    assign_str_off_size =  4,
-    // assign (size_type n, charT c)
-    assign_size_val     =  5,
-    // assign (InputIterator first, InputIterator last)
-    assign_range        =  6
-
-} ATags;
+    // must be last: number of exercised overloads
+    n_assign_overloads
+};
 
 /**************************************************************************/
 
 struct TestCase
 {
-    int  line;
+    int         line;      // test case line number
 
-    int  pos;
-    int  count;
-    int  ch;
+    int         off;       // offset (position argument)
+    int         size;      // size (count argument)
+    int         val;       // value (single character to insert)
 
-    const char* str;
-    std::size_t str_len;
+    const char* str;       // controlled sequence
+    std::size_t str_len;   // length of sequence
 
-    const char* src;
-    std::size_t src_len;
+    const char* arg;       // sequence to insert
+    std::size_t arg_len;   // length of sequence
 
-    const char* res;
-    std::size_t res_len;
+    const char* res;       // resulting sequence
+    std::size_t res_len;   // length of sequence
 
-    int bthrow;
-
+    int         bthrow;    // exception expected
 };
 
 /**************************************************************************/
@@ -127,34 +127,31 @@ static int rw_opt_no_user_chars;               // for --no-user_chars
 static int rw_opt_no_exceptions;               // for --no-exceptions
 static int rw_opt_no_exception_safety;         // for --no-exception-safety
 
-static int rw_opt_no_assign_ptr;               // for --no-assign-ptr
-static int rw_opt_no_assign_str;               // for --no-assign-str
-static int rw_opt_no_assign_ptr_size;          // for --no-assign-ptr-size
-static int rw_opt_no_assign_str_off_size;      // for --no-assign-str-off-size
-static int rw_opt_no_assign_size_val;          // for --no-assign-size_val
-static int rw_opt_no_assign_range;             // for --no-assign-range
+// array of options to disable each overload of assign
+static int rw_opt_no_assign [n_assign_overloads];
 
 /**************************************************************************/
 
-// used to exercise 
-// assign (const charT* s)
-static const TestCase ptr_test_cases [] = {
+// used to exercise:
+// assign (const value_type*)
+static const TestCase
+assign_ptr_test_cases [] = {
 
 #undef TEST
-#define TEST(str, src, res, bthrow)                            \
-    { __LINE__, -1, -1, -1, str, sizeof str - 1, src,          \
-      sizeof src - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, res, bthrow)                            \
+    { __LINE__, -1, -1, -1, str, sizeof str - 1, arg,          \
+      sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +----------------------------------------- controlled sequence
     //    |             +--------------------------- sequence to be assigned
     //    |             |             +------------- expected result sequence
-    //    |             |             |        +---- exception info 
-    //    |             |             |        |         0 - no exception        
-    //    |             |             |        |         1 - out_of_range        
-    //    |             |             |        |         2 - length_error  
-    //    |             |             |        |        -1 - exc. safety
-    //    |             |             |        |                       
-    //    |             |             |        +-------+             
+    //    |             |             |        +---- exception info
+    //    |             |             |        |      0 - no exception
+    //    |             |             |        |      1 - out_of_range
+    //    |             |             |        |      2 - length_error
+    //    |             |             |        |     -1 - exc. safety
+    //    |             |             |        |
+    //    |             |             |        +-------+
     //    V             V             V                V
     TEST ("ab",         "c",          "c",             0),
 
@@ -182,36 +179,34 @@ static const TestCase ptr_test_cases [] = {
     TEST ("\0\0abc",    0,            "",              0),
     TEST ("abc\0\0",    0,            "abc",           0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-
     TEST ("",           LSTR,         LSTR,           -1),
-
-#endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",       "test",       "test",          0)
 };
 
 /**************************************************************************/
 
-// used to exercise 
-// assign (const basic_string& str)
-static const TestCase str_test_cases [] = {
+// used to exercise:
+// assign (const basic_string&)
+static const TestCase
+assign_str_test_cases [] = {
 
 #undef TEST
-#define TEST(str, src, res, bthrow)                            \
-    { __LINE__, -1, -1, -1, str, sizeof str - 1, src,          \
-      sizeof src - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, res, bthrow)                            \
+    { __LINE__, -1, -1, -1, str, sizeof str - 1, arg,          \
+      sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +----------------------------------------- controlled sequence
-    //    |             +------------------------- sequence to be assigned
+    //    |             +--------------------------- sequence to be assigned
     //    |             |             +------------- expected result sequence
-    //    |             |             |        +---- exception info 
-    //    |             |             |        |         0 - no exception        
-    //    |             |             |        |         1 - out_of_range        
-    //    |             |             |        |         2 - length_error  
-    //    |             |             |        |        -1 - exc. safety
-    //    |             |             |        |                       
-    //    |             |             |        +-----+             
+    //    |             |             |        +---- exception info:
+    //    |             |             |        |      0 - no exception
+    //    |             |             |        |      1 - out_of_range
+    //    |             |             |        |      2 - length_error
+    //    |             |             |        |     -1 - exc. safety
+    //    |             |             |        |
+    //    |             |             |        +-----+
+    //    |             |             |              |
     //    V             V             V              V
     TEST ("ab",         "c",          "c",           0),
 
@@ -251,27 +246,28 @@ static const TestCase str_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise 
-// assign (const charT* s, size_type n)
-static const TestCase ptr_size_test_cases [] = {
+// used to exercise:
+// assign (const value_type*, size_type)
+static const TestCase
+assign_ptr_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, src, count, res, bthrow)                            \
-    { __LINE__, -1, count, -1, str, sizeof str - 1, src,              \
-      sizeof src - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, size, res, bthrow)                            \
+    { __LINE__, -1, size, -1, str, sizeof str - 1, arg,              \
+      sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +----------------------------------------- controlled sequence
-    //    |            +------------------------- sequence to be assigned
-    //    |            |            +------------ assign() n argument 
-    //    |            |            |  +--------- expected result sequence 
-    //    |            |            |  |     +--- exception info 
-    //    |            |            |  |     |      0 - no exception        
-    //    |            |            |  |     |      1 - out_of_range        
-    //    |            |            |  |     |      2 - length_error  
-    //    |            |            |  |     |     -1 - exc. safety 
-    //    |            |            |  |     |                           
-    //    |            |            |  |     +--------+             
-    //    V            V            V  V              V             
+    //    |            +---------------------------- sequence to be assigned
+    //    |            |            +--------------- assign() n argument
+    //    |            |            |  +------------ expected result sequence
+    //    |            |            |  |     +------ exception info
+    //    |            |            |  |     |        0 - no exception
+    //    |            |            |  |     |        1 - out_of_range
+    //    |            |            |  |     |        2 - length_error
+    //    |            |            |  |     |       -1 - exc. safety
+    //    |            |            |  |     |
+    //    |            |            |  |     +--------+
+    //    V            V            V  V              V
     TEST ("ab",        "c",         1, "c",           0),
 
     TEST ("",          "",          0,  "",           0),
@@ -311,42 +307,41 @@ static const TestCase ptr_size_test_cases [] = {
     TEST (LSTR,        LSTR,        1,  "x",          0),
     TEST (LSTR,        "",          0,  "",           0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-
     TEST ("",          "",         -1,  "",           2),
-
     TEST ("",          LSTR, LLEN - 1,  LSTR,        -1),
-
-#endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",      "test",      4, "test",        0)
 };
 
 /**************************************************************************/
 
-// used to exercise 
-// assign (const basic_string& str, size_type pos, size_type n)
-// assign (InputIterator first, InputIterator last)
-static const TestCase range_test_cases [] = {
+// used to exercise:
+// assign (const basic_string&, size_type, size_type)
+// assign (InputIterator, InputIterator)
+static const TestCase
+assign_range_test_cases [] = {
+
+// assign_range_test_cases serve a double duty
+#define assign_str_off_size_test_cases assign_range_test_cases
 
 #undef TEST
-#define TEST(str, src, pos, count, res, bthrow)                            \
-    { __LINE__, pos, count, -1, str, sizeof str - 1, src,                  \
-      sizeof src - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, off, size, res, bthrow)                            \
+    { __LINE__, off, size, -1, str, sizeof str - 1, arg,                  \
+      sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +----------------------------------------- controlled sequence
-    //    |            +------------------------- sequence to be inserted
-    //    |            |            +------------ assign() pos argument
-    //    |            |            |  +--------- assign() n argument 
-    //    |            |            |  |  +------ expected result sequence
-    //    |            |            |  |  |  +--- exception info  
-    //    |            |            |  |  |  |       0 - no exception        
-    //    |            |            |  |  |  |       1 - out_of_range        
-    //    |            |            |  |  |  |       2 - length_error   
-    //    |            |            |  |  |  |      -1 - exc. safety 
-    //    |            |            |  |  |  |                         
-    //    |            |            |  |  |  +-----------+             
-    //    V            V            V  V  V              V             
+    //    |            +---------------------------- sequence to be inserted
+    //    |            |            +--------------- assign() pos argument
+    //    |            |            |  +------------ assign() n argument
+    //    |            |            |  |  +--------- expected result sequence
+    //    |            |            |  |  |  +------ exception info
+    //    |            |            |  |  |  |        0 - no exception
+    //    |            |            |  |  |  |        1 - out_of_range
+    //    |            |            |  |  |  |        2 - length_error
+    //    |            |            |  |  |  |       -1 - exc. safety
+    //    |            |            |  |  |  |
+    //    |            |            |  |  |  +-----------+
+    //    V            V            V  V  V              V
     TEST ("ab",        "c",         0, 1, "c",           0),
 
     TEST ("",          "",          0, 0,  "",           0),
@@ -394,42 +389,38 @@ static const TestCase range_test_cases [] = {
     TEST (LSTR,        LSTR,        2, 3,  "xxx",        0),
     TEST ("",          LSTR,        0, LLEN, LSTR,       0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-
     TEST ("",          "\0",        2, 0,  "",           1),
     TEST ("",          "a",         2, 0,  "",           1),
     TEST ("",          LSTR,LLEN + 10, 0,  "",           1),
-
     TEST ("",          LSTR,        0, LLEN - 1, LSTR,  -1),
-
-#endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",      "test",      0, 4, "test",        0)
 };
 
 /**************************************************************************/
 
-// used to exercise 
-// assign (charT c, size_type n)
-static const TestCase size_val_test_cases [] = {
+// used to exercise:
+// assign (size_type, value_type)
+static const TestCase
+assign_size_val_test_cases [] = {
 
 #undef TEST
-#define TEST(str, count, ch, res, bthrow)                            \
-    { __LINE__, -1, count, ch, str, sizeof str - 1, 0, 0,            \
+#define TEST(str, size, val, res, bthrow)                            \
+    { __LINE__, -1, size, val, str, sizeof str - 1, 0, 0,            \
       res, sizeof res - 1, bthrow }
 
-    //    +---------------------------------------controlled sequence
-    //    |            +------------------------- assign() count argument
-    //    |            |   +--------------------- character to be assigned
-    //    |            |   |   +----------------- expected result sequence 
-    //    |            |   |   |       +--------- exception info 
-    //    |            |   |   |       |             0 - no exception        
-    //    |            |   |   |       |             1 - out_of_range        
-    //    |            |   |   |       |             2 - length_error  
-    //    |            |   |   |       |            -1 - exc. safety
-    //    |            |   |   |       |                         
-    //    |            |   |   |       +--------+             
-    //    V            V   V   V                V                
+    //    +----------------------------------------- controlled sequence
+    //    |            +---------------------------- assign() count argument
+    //    |            |   +------------------------ character to be assigned
+    //    |            |   |   +-------------------- expected result sequence
+    //    |            |   |   |       +------------ exception info
+    //    |            |   |   |       |              0 - no exception
+    //    |            |   |   |       |              1 - out_of_range
+    //    |            |   |   |       |              2 - length_error
+    //    |            |   |   |       |             -1 - exc. safety
+    //    |            |   |   |       |
+    //    |            |   |   |       +--------+
+    //    V            V   V   V                V
     TEST ("ab",        1, 'c', "c",             0),
 
     TEST ("",          0, ' ',  "",             0),
@@ -456,13 +447,8 @@ static const TestCase size_val_test_cases [] = {
     TEST ("",   LLEN - 1, 'x',  LSTR,           0),
     TEST (LSTR,        0, 'x',  "",             0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-
     TEST ("",         -1, 'x',  "",             2),
-
     TEST ("",   LLEN - 1, 'x',  LSTR,          -1),
-
-#endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",      4, 't',  "tttt",         0)
 };
@@ -471,59 +457,48 @@ static const TestCase size_val_test_cases [] = {
 
 static const struct FunctionTag
 {
-    ATags           a_tag;
-    const int      *p_opt;
-    const TestCase *t_cases;
-    std::size_t     n_cases;
-    const char     *str_hdr;
-
+    AssignOverload  which;     // which overload of insert()
+    const TestCase *t_cases;   // test cases to exercise
+    std::size_t     n_cases;   // number of test cases
+    const char     *funsig;    // function signature
 } function_tags [] = {
 
 #undef TEST
-#define TEST(tag, opt, cases, hdr)                              \
-    { tag, &opt, cases, sizeof cases / sizeof *cases, hdr }     
+#define TEST(tag, sig) {                                        \
+        tag, tag ## _test_cases,                                \
+        sizeof tag ## _test_cases / sizeof *tag ## _test_cases, \
+        "assign " sig                                           \
+    }
 
-    TEST (assign_ptr, rw_opt_no_assign_ptr, ptr_test_cases,                  
-          "assign (const charT* s)"),
-
-    TEST (assign_str, rw_opt_no_assign_str, str_test_cases,            
-          "assign (const basic_string& str)"),
-
-    TEST (assign_ptr_size, rw_opt_no_assign_ptr_size, ptr_size_test_cases, 
-          "assign (const charT* s, size_type n)"),
-
-    TEST (assign_str_off_size, rw_opt_no_assign_str_off_size, 
-          range_test_cases, "assign (const basic_string& str,"
-          " size_type pos, size_type n)"),
-
-    TEST (assign_size_val, rw_opt_no_assign_size_val, 
-          size_val_test_cases, "assign (size_type n, charT c)"),
-
-    TEST (assign_range, rw_opt_no_assign_range, range_test_cases, 
-          "assign (InputIterator first, InputIterator last)")
+    TEST (assign_ptr,          "(const value_type*)"),
+    TEST (assign_str,          "(const basic_string&)"),
+    TEST (assign_ptr_size,     "(const value_type*, size_type)"),
+    TEST (assign_str_off_size, "(const basic_string&, size_type, size_type)"),
+    TEST (assign_size_val,     "(size_type, value_type)"),
+    TEST (assign_range,        "(InputIterator, InputIterator)")
 };
 
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_assign_exceptions (charT, Traits*,  
-                             const ATags     which,
-                             const TestCase &cs,
-                             const char     *assign_fmt)
+void test_assign_exceptions (charT, Traits*,
+                             const AssignOverload  which,
+                             const TestCase       &cs,
+                             const char           *funcall)
 {
-    typedef std::basic_string <charT, Traits, 
-                               std::allocator<charT> > TestString;
-    typedef typename TestString::iterator StringIter;
-    typedef typename TestString::const_iterator ConstStringIter;
+    typedef std::allocator<charT>                        Allocator;
+    typedef std::basic_string <charT, Traits, Allocator> TestString;
+    typedef typename TestString::iterator                StringIter;
+    typedef typename TestString::const_iterator          ConstStringIter;
 
     static charT wstr [LLEN];
     static charT wsrc [LLEN];
 
     rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (wsrc, cs.src, cs.src_len);
+    rw_widen (wsrc, cs.arg, cs.arg_len);
 
-    TestString s_str (wstr, cs.str_len);
-    TestString s_src (wsrc, cs.src_len);
+    /* const */ TestString s_str (wstr, cs.str_len);
+    const       TestString s_arg (wsrc, cs.arg_len);
 
     std::size_t throw_after = 0;
 
@@ -536,6 +511,10 @@ void test_assign_exceptions (charT, Traits*,
     rwt_free_store* const pst = rwt_get_free_store (0);
 
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+    const charT* const arg_ptr = cs.arg ? wsrc : s_str.c_str ();
+    const TestString&  arg_str = cs.arg ? s_arg : s_str;
+    const charT        arg_val = make_char (char (cs.val), (charT*)0);
 
     // iterate for`n=throw_after' starting at the next call to operator
     // new, forcing each call to throw an exception, until the assignion
@@ -551,25 +530,39 @@ void test_assign_exceptions (charT, Traits*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
         _TRY {
-            if (assign_ptr == which) 
-                s_str.assign (cs.src ? wsrc : s_str.c_str ());
+            switch (which) {
+            case assign_ptr:
+                s_str.assign (arg_ptr);
+                break;
 
-            else if (assign_str == which)
-                s_str.assign (cs.src ? s_src : s_str);
+            case assign_str:
+                s_str.assign (arg_str);
+                break;
 
-            else if (assign_ptr_size == which)
-                s_str.assign (cs.src ? wsrc : s_str.c_str (), cs.count);
+            case assign_ptr_size:
+                s_str.assign (arg_ptr, cs.size);
+                break;
 
-            else if (assign_str_off_size == which) 
-                s_str.assign (cs.src ? s_src : s_str, cs.pos, cs.count);
+            case assign_str_off_size:
+                s_str.assign (arg_str, cs.off, cs.size);
+                break;
 
-            else if (assign_size_val == which)
-                s_str.assign (cs.count, make_char ((char) cs.ch, (charT*)0));
+            case assign_size_val:
+                s_str.assign (cs.size, arg_val);
+                break;
 
-            else if (assign_range == which)
-                s_str.assign (s_src.begin (), s_src.end ());
+            case assign_range: {
+                const ConstStringIter first = s_arg.begin ();
+                const ConstStringIter last  = s_arg.end ();
+                s_str.assign (first, last);
+                break;
+            }
 
-            break;
+            default:
+                RW_ASSERT (!"test logic error: unknown assign overload");
+            }
+
+            break;   // out of for loop
         }
         _CATCH (...) {
 
@@ -581,18 +574,18 @@ void test_assign_exceptions (charT, Traits*,
             rw_assert (s_str.size () == size, 0, cs.line,
                        "line %d: %s: size unexpectedly changed "
                        "from %zu to %zu after an exception",
-                       __LINE__, assign_fmt, size, s_str.size ());
+                       __LINE__, funcall, size, s_str.size ());
 
             rw_assert (s_str.capacity () == capacity, 0, cs.line,
                        "line %d: %s: capacity unexpectedly "
                        "changed from %zu to %zu after an exception",
-                       __LINE__, assign_fmt, capacity, s_str.capacity ());
+                       __LINE__, funcall, capacity, s_str.capacity ());
 
-            
+
             rw_assert (s_str.begin () == begin, 0, cs.line,
                        "line %d: %s: begin() unexpectedly "
                        "changed from after an exception by %d",
-                       __LINE__, assign_fmt, s_str.begin () - begin);
+                       __LINE__, funcall, s_str.begin () - begin);
 
 
             // increment to allow this call to operator new to succeed
@@ -610,10 +603,10 @@ void test_assign_exceptions (charT, Traits*,
     // verify that if exceptions are enabled and when capacity changes
     // at least one exception is thrown
     rw_assert (   *pst->throw_at_calls_ [0] == std::size_t (-1)
-               || throw_after, 
+               || throw_after,
                0, cs.line,
                "line %d: %s: failed to throw an expected exception",
-               __LINE__, assign_fmt);
+               __LINE__, funcall);
 
 #  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
@@ -629,44 +622,44 @@ void test_assign_exceptions (charT, Traits*,
     *pst->throw_at_calls_ [0] = std::size_t (-1);
 
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
 }
 
 /**************************************************************************/
 
 template <class charT, class Traits, class Iterator>
-void test_assign_range (charT* wstr,
-                        charT* wsrc, 
+void test_assign_range (charT          *wstr,
+                        charT          *wsrc,
                         Traits*,
                         const Iterator &it,
                         const TestCase &cs,
-                        const char     *assign_fmt)
+                        const char     *funcall)
 {
-    typedef std::basic_string <charT, Traits, 
-                               std::allocator<charT> > String;
-    typedef typename String::iterator StringIter;
+    typedef std::allocator<charT>                        Allocator;
+    typedef std::basic_string <charT, Traits, Allocator> String;
 
-    const char* const itname = 
-        cs.src ? type_name (it, (charT*)0) : "basic_string::iterator";
+    const char* const itname =
+        cs.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
 
-    String s_str (wstr, cs.str_len);
-    String s_src (wsrc, cs.src_len);
+    /* const */ String s_str (wstr, cs.str_len);
+    const       String s_arg (wsrc, cs.arg_len);
 
-    std::size_t off_last = cs.pos + cs.count;
+    std::size_t off_last = cs.off + cs.size;
 
-    if (cs.src) {
-        off_last = off_last > s_src.size () ? s_src.size () : off_last;
+    if (cs.arg) {
+        off_last = off_last > s_arg.size () ? s_arg.size () : off_last;
 
-        const Iterator first = make_iter (wsrc + cs.pos, 
-            wsrc + cs.pos, wsrc + off_last, Iterator (0, 0, 0));
-        const Iterator last  = make_iter (wsrc + off_last, 
-            wsrc + cs.pos, wsrc + off_last, Iterator (0, 0, 0));
+        const Iterator first (wsrc + cs.off,   wsrc + cs.off, wsrc + off_last);
+        const Iterator last  (wsrc + off_last, wsrc + cs.off, wsrc + off_last);
 
         s_str.assign (first, last);
     }
     else {
-        StringIter first (s_str.begin () + cs.pos);
-        StringIter last  (off_last > s_str.size () ? 
-            s_str.end () 
+        typedef typename String::iterator StringIter;
+
+        const StringIter first (s_str.begin () + cs.off);
+        const StringIter last  (off_last > s_str.size () ?
+            s_str.end ()
           : s_str.begin () + off_last);
 
         s_str.assign (first, last);
@@ -676,71 +669,78 @@ void test_assign_range (charT* wstr,
 
     rw_assert (match == cs.res_len, 0, cs.line,
                "line %d. %s expected %{#*s}, got %{/*.*Gs}, "
-               "difference at pos %zu for %s", 
-               __LINE__, assign_fmt, int (cs.res_len), cs.res, 
-               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (), 
+               "difference at off %zu for %s",
+               __LINE__, funcall, int (cs.res_len), cs.res,
+               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match, itname);
 }
 
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_assign_range (charT* wstr, 
-                        charT* wsrc, 
+void test_assign_range (charT          *wstr,
+                        charT          *wsrc,
                         Traits*,
                         const TestCase &cs,
-                        const char     *assign_fmt)
+                        const char     *funcall)
 {
     if (cs.bthrow)  // this method doesn't throw
         return;
 
-    test_assign_range (wstr, wsrc, (Traits*)0, 
-                       InputIter<charT>(0, 0, 0), cs, assign_fmt);
+    test_assign_range (wstr, wsrc, (Traits*)0,
+                       InputIter<charT>(0, 0, 0), cs, funcall);
 
-    // there is no need to call test_assign_range 
+    // there is no need to call test_assign_range
     // for other iterators in this case
-    if (0 == cs.src)
+    if (0 == cs.arg)
         return;
 
-    test_assign_range (wstr, wsrc, (Traits*)0, 
-                       ConstFwdIter<charT>(0, 0, 0), cs, assign_fmt);
+    test_assign_range (wstr, wsrc, (Traits*)0,
+                       ConstFwdIter<charT>(0, 0, 0), cs, funcall);
 
-    test_assign_range (wstr, wsrc, (Traits*)0, 
-                       ConstBidirIter<charT>(0, 0, 0), cs, assign_fmt);
+    test_assign_range (wstr, wsrc, (Traits*)0,
+                       ConstBidirIter<charT>(0, 0, 0), cs, funcall);
 
-    test_assign_range (wstr, wsrc, (Traits*)0, 
-                       ConstRandomAccessIter<charT>(0, 0, 0), cs, assign_fmt);
+    test_assign_range (wstr, wsrc, (Traits*)0,
+                       ConstRandomAccessIter<charT>(0, 0, 0), cs, funcall);
 }
 
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_assign (charT, Traits*,  
-                  const ATags     which,
-                  const TestCase &cs,
-                  const char     *assign_fmt)
+void test_assign (charT, Traits*,
+                  const AssignOverload  which,
+                  const TestCase       &cs,
+                  const char           *funcall)
 {
-    typedef std::basic_string <charT, Traits, 
-                               std::allocator<charT> > TestString;
-    typedef typename TestString::iterator StringIter;
+    typedef std::allocator<charT>                        Allocator;
+    typedef std::basic_string <charT, Traits, Allocator> TestString;
+    typedef typename TestString::iterator                StringIter;
 
     static charT wstr [LLEN];
     static charT wsrc [LLEN];
 
     rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (wsrc, cs.src, cs.src_len);
+    rw_widen (wsrc, cs.arg, cs.arg_len);
 
     // special processing for assign_range to exercise all iterators
     if (assign_range == which) {
-        test_assign_range (wstr, wsrc, (Traits*)0, cs, assign_fmt);
+        test_assign_range (wstr, wsrc, (Traits*)0, cs, funcall);
         return;
     }
 
-    TestString s_str (wstr, cs.str_len);
-    TestString s_src (wsrc, cs.src_len);
+    /* const */ TestString s_str (wstr, cs.str_len);
+    const       TestString s_arg (wsrc, cs.arg_len);
 
     std::size_t res_off = 0;
-    std::size_t count = cs.count >= 0 ? cs.count : s_str.max_size () + 1;
+    std::size_t size = cs.size >= 0 ? cs.size : s_str.max_size () + 1;
+
+    // first function argument
+    const charT* const arg_ptr = cs.arg ? wsrc : s_str.c_str ();
+    const TestString&  arg_str = cs.arg ? s_arg : s_str;
+
+    // address of returned reference
+    const TestString* res_ptr = 0;
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -755,57 +755,51 @@ void test_assign (charT, Traits*,
 
     try {
 
+#else   // if defined (_RWSTD_NO_EXCEPTIONS)
+
+    if (cs.bthrow)
+        return;
+
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    switch (which)
-    {
-    case assign_ptr: {
-        TestString& s_res = s_str.assign (cs.src ? wsrc : s_str.c_str ());
-        res_off = &s_res - &s_str;
+    switch (which) {
+    case assign_ptr:
+        res_ptr = &s_str.assign (arg_ptr);
         break;
-    }
 
-    case assign_str: {
-        TestString& s_res = s_str.assign (cs.src ? s_src : s_str);
-        res_off = &s_res - &s_str;
+    case assign_str:
+        res_ptr = &s_str.assign (arg_str);
         break;
-    }
 
-    case assign_ptr_size: {
-        TestString& s_res = 
-            s_str.assign (cs.src ? wsrc : s_str.c_str (), count);
-        res_off = &s_res - &s_str;
+    case assign_ptr_size:
+        res_ptr = &s_str.assign (arg_ptr, size);
         break;
-    }
 
-    case assign_str_off_size: {
-        TestString& s_res = 
-            s_str.assign (cs.src ? s_src : s_str, cs.pos, count);
-        res_off = &s_res - &s_str;
+    case assign_str_off_size:
+        res_ptr = &s_str.assign (arg_str, cs.off, size);
         break;
-    }
 
     case assign_size_val: {
-        TestString& s_res = 
-            s_str.assign (count, make_char ((char) cs.ch, (charT*)0));
-        res_off = &s_res - &s_str;
+        const charT val = make_char (char (cs.val), (charT*)0);
+        res_ptr = &s_str.assign (size, val);
         break;
     }
 
     default:
-        RW_ASSERT ("test logic error: unknown assign overload");
-        return;
+        RW_ASSERT (!"test logic error: unknown assign overload");
     }
+
+    res_off = res_ptr - &s_str;
 
     // verify the returned value
     rw_assert (0 == res_off, 0, cs.line,
-               "line %d. %s returned invalid reference, offset is %zu", 
-               __LINE__, assign_fmt, res_off);
+               "line %d. %s returned invalid reference, offset is %zu",
+               __LINE__, funcall, res_off);
 
     // verfiy that strings length are equal
     rw_assert (cs.res_len == s_str.size (), 0, cs.line,
                "line %d. %s expected %{#*s} with length %zu, got %{/*.*Gs} "
-               "with length %zu", __LINE__, assign_fmt, int (cs.res_len), 
+               "with length %zu", __LINE__, funcall, int (cs.res_len),
                cs.res, cs.res_len, int (sizeof (charT)), int (s_str.size ()),
                s_str.c_str (), s_str.size ());
 
@@ -814,22 +808,22 @@ void test_assign (charT, Traits*,
 
     rw_assert (match == cs.res_len, 0, cs.line,
                "line %d. %s expected %{#*s}, got %{/*.*Gs}, "
-               "difference at pos %zu", 
-               __LINE__, assign_fmt, int (cs.res_len), cs.res, 
-               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (), 
+               "difference at off %zu",
+               __LINE__, funcall, int (cs.res_len), cs.res,
+               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
     }
     catch (std::out_of_range) {
-        caught = exp_exceptions[1];
+        caught = exp_exceptions [1];
     }
     catch (std::length_error) {
-        caught = exp_exceptions[2];
+        caught = exp_exceptions [2];
     }
     catch (...) {
-        caught = exp_exceptions[0];
+        caught = exp_exceptions [0];
     }
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
@@ -839,89 +833,98 @@ void test_assign (charT, Traits*,
     rw_assert (caught == expected, 0, cs.line,
                "line %d. %s %{?}expected %s, caught %s"
                "%{:}unexpectedly caught %s%{;}",
-               __LINE__, assign_fmt, 0 != expected, expected, caught, caught);
+               __LINE__, funcall, 0 != expected, expected, caught, caught);
 }
 
 /**************************************************************************/
 
-void get_assign_format (char** pbuf, std::size_t* pbufsize, 
-                        const MemFun *pfid, 
-                        const ATags which, 
-                        const TestCase& cs)
+static char*
+get_assign_format (const MemFun         *pfid,
+                   const AssignOverload  which,
+                   const TestCase       &cs)
 {
+    char*       buf     = 0;
+    std::size_t bufsize = 0;
+
     if (   MemFun::DefaultTraits == pfid->tid_
         && (MemFun::Char == pfid->cid_ || MemFun::WChar == pfid->cid_))
-        rw_asnprintf (pbuf, pbufsize,
+        rw_asnprintf (&buf, &bufsize,
                       "std::%{?}w%{;}string (%{#*s}).assign",
                       MemFun::WChar == pfid->cid_,
                       int (cs.str_len), cs.str);
     else
-        rw_asnprintf (pbuf, pbufsize,
+        rw_asnprintf (&buf, &bufsize,
                       "std::basic_string<%s, %s<%1$s>, %s<%1$s>>(%{#*s})"
-                      ".assign", pfid->cname_, pfid->tname_, pfid->aname_, 
+                      ".assign", pfid->cname_, pfid->tname_, pfid->aname_,
                       int (cs.str_len), cs.str);
 
-    const bool self = 0 == cs.src;
+    // assignment from self to self?
+    const bool self = 0 == cs.arg;
 
-    switch (which)
-    {
+    switch (which) {
     case assign_ptr:
-        rw_asnprintf (pbuf, pbufsize, 
+        rw_asnprintf (&buf, &bufsize,
                       "%{+} (%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
-                      !self, int (cs.src_len), cs.src, self);
+                      !self, int (cs.arg_len), cs.arg, self);
         break;
 
     case assign_str:
-        rw_asnprintf (pbuf, pbufsize, 
+        rw_asnprintf (&buf, &bufsize,
                       "%{+} (%{?}string (%{#*s})%{;}%{?}*this%{;})",
-                      !self, int (cs.src_len), cs.src, self);
+                      !self, int (cs.arg_len), cs.arg, self);
         break;
 
     case assign_ptr_size:
-        rw_asnprintf (pbuf, pbufsize, "%{+} ("
-                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
-                      !self, int (cs.src_len), cs.src, self, cs.count);
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)",
+                      !self, int (cs.arg_len), cs.arg, self, cs.size);
         break;
 
     case assign_str_off_size:
-        rw_asnprintf (pbuf, pbufsize, "%{+} ("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
-                      !self, int (cs.src_len), cs.src, 
-                      self, cs.pos, cs.count);
+                      !self, int (cs.arg_len), cs.arg,
+                      self, cs.off, cs.size);
         break;
 
     case assign_size_val:
-        rw_asnprintf (pbuf, pbufsize, 
-                      "%{+} (%zu, %#c)", cs.count, cs.ch);
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (%zu, %#c)", cs.size, cs.val);
         break;
 
     case assign_range:
-        rw_asnprintf (pbuf, pbufsize, "%{+} ("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu, "
-                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu)", 
-                      !self, int (cs.src_len), cs.src,
-                      self, cs.pos, !self, int (cs.src_len), cs.src, 
-                      self, cs.pos + cs.count);
+                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu)",
+                      !self, int (cs.arg_len), cs.arg,
+                      self, cs.off, !self, int (cs.arg_len), cs.arg,
+                      self, cs.off + cs.size);
         break;
+
+    default:
+        RW_ASSERT (!"test logic error: unknown assign overload");
     }
+
+    return buf;
 }
 
 /**************************************************************************/
 
-void test_assign (const MemFun *pfid, const ATags which, 
-                  const TestCase& cs, bool exc_safety_test)
+static void
+test_assign (const MemFun *pfid, const AssignOverload which,
+             const TestCase& cs, bool exc_safety_test)
 {
-    char* buf = 0;
-    std::size_t buf_sz = 0;
-    get_assign_format (&buf, &buf_sz, pfid, which, cs); 
+    // format the description of the function call including
+    // the values of arguments for use in diagnostics
+    char* const funcall = get_assign_format (pfid, which, cs);
 
 #undef TEST
-#define TEST(charT, Traits)	                                           \
-    !exc_safety_test ?                                                 \
-        test_assign (charT(), (Traits*)0, which, cs, buf)              \
-      : test_assign_exceptions (charT(), (Traits*)0, which, cs, buf)
+#define TEST(charT, Traits)                                                 \
+    exc_safety_test ?                                                       \
+        test_assign_exceptions (charT (), (Traits*)0, which, cs, funcall)   \
+      : test_assign (charT(), (Traits*)0, which, cs, funcall)
 
-    if (MemFun:: DefaultTraits == pfid->tid_) {
+    if (MemFun::DefaultTraits == pfid->tid_) {
         if (MemFun::Char == pfid->cid_)
             TEST (char, std::char_traits<char>);
 
@@ -944,7 +947,7 @@ void test_assign (const MemFun *pfid, const ATags which,
            TEST (UserChar, UserTraits<UserChar>);
     }
 
-    free (buf);
+    std::free (funcall);
 }
 
 /**************************************************************************/
@@ -953,41 +956,41 @@ static void
 test_assign (const MemFun *pfid, const FunctionTag& ftag)
 {
     rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::%s",
-             pfid->cname_, pfid->tname_, pfid->aname_, ftag.str_hdr);
+             pfid->cname_, pfid->tname_, pfid->aname_, ftag.funsig);
 
     if (rw_opt_no_exception_safety)
         rw_note (0, 0, 0,
                  "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
-                 "%s exception safety test disabled", 
-                 pfid->cname_, pfid->tname_, pfid->aname_, ftag.str_hdr);
+                 "%s exception safety test disabled",
+                 pfid->cname_, pfid->tname_, pfid->aname_, ftag.funsig);
 
 #ifdef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
     else
         rw_warn (0, 0, __LINE__,
                  "%s exception safety test: no replacable new and delete",
-                 ftag.str_hdr);
+                 ftag.funsig);
 
 #endif  //_RWSTD_NO_REPLACEABLE_NEW_DELETE
 
     for (std::size_t i = 0; i != ftag.n_cases; ++i) {
 
-        if (!rw_enabled (ftag.t_cases[i].line)) {
-            rw_note (0, 0, __LINE__, 
-                     "test on line %d disabled", ftag.t_cases[i].line);
+        if (!rw_enabled (ftag.t_cases [i].line)) {
+            rw_note (0, 0, __LINE__,
+                     "test on line %d disabled", ftag.t_cases [i].line);
             continue;
         }
 
         // do not exercise exceptions if they were disabled
-        if (0 != rw_opt_no_exceptions && 0 != ftag.t_cases[i].bthrow)
+        if (0 != rw_opt_no_exceptions && 0 != ftag.t_cases [i].bthrow)
             continue;
 
         // do not exercise exception safety if they were disabled
-        if (0 != rw_opt_no_exception_safety && -1 == ftag.t_cases[i].bthrow)
+        if (0 != rw_opt_no_exception_safety && -1 == ftag.t_cases [i].bthrow)
             continue;
 
-        test_assign (pfid, ftag.a_tag, ftag.t_cases[i], 
-                     -1 == ftag.t_cases[i].bthrow);
+        test_assign (pfid, ftag.which, ftag.t_cases [i],
+                     -1 == ftag.t_cases [i].bthrow);
     }
 }
 
@@ -1009,27 +1012,28 @@ run_test (const MemFun *pfid)
 
         if (rw_opt_no_exceptions)
             rw_note (1 < rw_opt_no_exceptions++, 0, 0,
-                     "string::assign exceptions tests disabled"); 
+                     "string::assign exceptions tests disabled");
 
-        static const std::size_t ftags = 
+        static const std::size_t ftags =
             sizeof function_tags / sizeof *function_tags;
 
         for (std::size_t i = 0; i < ftags; i++) {
 
-            if (*function_tags[i].p_opt) 
-                rw_note (0, 0, 0, 
+            if (rw_opt_no_assign [function_tags [i].which])
+                rw_note (0, 0, 0,
                          "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
-                         "%s test disabled", pfid->cname_, pfid->tname_, 
-                         pfid->aname_, function_tags[i].str_hdr);
+                         "%s test disabled", pfid->cname_, pfid->tname_,
+                         pfid->aname_, function_tags [i].funsig);
             else
-                test_assign (pfid, function_tags[i]);
+                test_assign (pfid, function_tags [i]);
         }
     }
 }
 
 /**************************************************************************/
 
-int run_test (int, char*[])
+static int
+run_test (int, char*[])
 {
     if ('\0' == LSTR [0]) {
         // initialize LSTR
@@ -1091,7 +1095,8 @@ int main (int argc, char** argv)
 {
     return rw_test (argc, argv, __FILE__,
                     "lib.string.assign",
-                    0 /* no comment */, run_test,
+                    0 /* no comment */,
+                    run_test,
                     "|-no-char_traits# "
                     "|-no-user_traits# "
                     "|-no-user_chars# "
@@ -1111,11 +1116,10 @@ int main (int argc, char** argv)
                     &rw_opt_no_exceptions,
                     &rw_opt_no_exception_safety,
 
-                    &rw_opt_no_assign_ptr,
-                    &rw_opt_no_assign_str,
-                    &rw_opt_no_assign_ptr_size,
-                    &rw_opt_no_assign_str_off_size,
-                    &rw_opt_no_assign_size_val,
-                    &rw_opt_no_assign_range);
+                    rw_opt_no_assign + assign_ptr,
+                    rw_opt_no_assign + assign_str,
+                    rw_opt_no_assign + assign_ptr_size,
+                    rw_opt_no_assign + assign_str_off_size,
+                    rw_opt_no_assign + assign_size_val,
+                    rw_opt_no_assign + assign_range);
 }
-
