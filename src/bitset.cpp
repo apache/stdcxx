@@ -2,20 +2,26 @@
  *
  * bitset.cpp - definitions of bitset operations
  *
- * $Id: //stdlib/dev/source/stdlib/bitset.cpp#28 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -178,45 +184,45 @@ __rw_bitset (unsigned long *bits, _RWSTD_SIZE_T maxbits,
 #endif   // _RWSTD_NO_WCHAR_T
 
 
+// table of bitcounts in each of the 256 values
+// a byte can take on for efficient counting of bits
+static const unsigned char
+__rw_bitcounts [256] = {
+    0, 1, 1, 2, 1, 2, 2, 3,  1, 2, 2, 3, 2, 3, 3, 4,
+    1, 2, 2, 3, 2, 3, 3, 4,  2, 3, 3, 4, 3, 4, 4, 5, 
+    1, 2, 2, 3, 2, 3, 3, 4,  2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5,  3, 4, 4, 5, 4, 5, 5, 6, 
+    1, 2, 2, 3, 2, 3, 3, 4,  2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5,  3, 4, 4, 5, 4, 5, 5, 6, 
+    2, 3, 3, 4, 3, 4, 4, 5,  3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6,  4, 5, 5, 6, 5, 6, 6, 7,
+    1, 2, 2, 3, 2, 3, 3, 4,  2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5,  3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5,  3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6,  4, 5, 5, 6, 5, 6, 6, 7,
+    2, 3, 3, 4, 3, 4, 4, 5,  3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6,  4, 5, 5, 6, 5, 6, 6, 7,
+    3, 4, 4, 5, 4, 5, 5, 6,  4, 5, 5, 6, 5, 6, 6, 7,
+    4, 5, 5, 6, 5, 6, 6, 7,  5, 6, 6, 7, 6, 7, 7, 8
+};
+
+
 // count the number of 1 bits in bitset `bits' of `size' elements
 _RWSTD_EXPORT _RWSTD_SIZE_T
 __rw_bit_count (const unsigned long *bits,
                 _RWSTD_SIZE_T        size) _THROWS (())
 {
+    _RWSTD_ASSERT (0 != bits);
+
     _RWSTD_SIZE_T sum = 0;
 
-#if 4 == _RWSTD_LONG_SIZE
+    typedef unsigned char UChar;
 
-    // works if sizeof (unsigned long) * CHAR_BIT < 63
-    for (_RWSTD_SIZE_T i = 0; i != size; i++) {
+    const UChar*       pbyte = _RWSTD_REINTERPRET_CAST (const UChar*, bits);
+    const UChar* const pend  = pbyte + size * sizeof (unsigned long);
 
-        if (bits [i]) {
-
-            const unsigned long n = bits [i];
-
-            unsigned long t = n - ((n >> 1) & 033333333333UL)
-                                - ((n >> 2) & 011111111111UL);
-
-            t = (t + (t >> 3)) & 030707070707UL;
-
-            t = (t & 07700770077UL) + ((t >> 6) & 07700770077UL);
-            t = ((t >> 12) + (t >> 24) + t) & 0777UL;
-            t = (t >> 6) + (t & 077UL) + 1UL;
-
-            sum += (t >> 6) + (t & 077UL) - 1UL;
-        }
-    }
-
-#else   // if 4 != _RWSTD_LONG_SIZE
-
-    // the more naive implementation that always works
-    for (_RWSTD_SIZE_T i = 0; i != size; i++) {
-        for (unsigned long n = bits [i]; n; n &= n - 1UL) {
-            ++sum;
-        }
-    }
-
-#endif   // _RWSTD_LONG_SIZE
+    for ( ; pbyte != pend; ++pbyte)
+        sum += __rw_bitcounts [*pbyte];
 
     return sum;
 }
