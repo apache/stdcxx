@@ -22,7 +22,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  **************************************************************************/
 
 #include <memory>       // for placement operator new()
@@ -37,22 +37,32 @@
 #include <rw_char.h>    // for rw_widen()
 #include <alg_test.h>   // for InputIter<>
 
+#include <21.strings.h>
+
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
    // disabled for compilers such as IBM VAC++ or MSVC
    // that can't reliably replace the operators
 #  include <rw_new.h>
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
+
+#define AppendOverload   StringMembers::MemberFunction
+#define Append(which)   StringMembers::append_ ## which
+#define Disabled(which)  StringMembers::opt_memfun_disabled [which]
+
+typedef StringMembers::TestCase TestCase;
+typedef StringMembers::Test     Test;
+
 /**************************************************************************/
 
 struct MemFun
 {
-    enum charT  { Char, WChar, UChar };
-    enum Traits { DefaultTraits, UserTraits };
+    typedef StringMembers::charT  charT;
+    typedef StringMembers::Traits Traits;
 
     MemFun (charT cid, const char *cname,
           Traits tid, const char *tname)
-        : cid_ (cid), tid_ (tid), 
+        : cid_ (cid), tid_ (tid),
           cname_ (cname), tname_ (tname), aname_ ("allocator"),
           fname_ ("append") { /* empty */ }
 
@@ -73,50 +83,8 @@ struct MemFun
 static const std::size_t long_string_len = 4096;
 static char long_string [long_string_len];
 
-static const char* const exp_exceptions[] = 
+static const char* const exp_exceptions[] =
     { "unknown exception", "out_of_range", "length_error" };
-
-/**************************************************************************/
-
-typedef enum AppendTags {
-
-    // append (const charT* s)
-    append_ptr          =  1,   
-    // append (const basic_string& str)
-    append_str          =  2,
-    // append (const charT* s, size_type n)
-    append_ptr_size     =  3,
-    // append (const basic_string& str, size_type pos, size_type n)
-    append_str_off_size =  4,
-    // append (size_type n, charT c)
-    append_size_val     =  5,
-    // append (InputIterator first, InputIterator last)
-    append_range        =  6
-
-} ATags;
-
-/**************************************************************************/
-
-struct TestCase
-{
-    int  line;
-
-    int  pos;
-    int  count;
-    int  ch;
-
-    const char* str;
-    std::size_t str_len;
-
-    const char* src;
-    std::size_t src_len;
-
-    const char* res;
-    std::size_t res_len;
-
-    int bthrow;
-
-};
 
 /**************************************************************************/
 
@@ -127,34 +95,28 @@ static int rw_opt_no_user_chars;               // for --no-user_chars
 static int rw_opt_no_exceptions;               // for --no-exceptions
 static int rw_opt_no_exception_safety;         // for --no-exception-safety
 
-static int rw_opt_no_append_ptr;               // for --no-append-ptr
-static int rw_opt_no_append_str;               // for --no-append-str
-static int rw_opt_no_append_ptr_size;          // for --no-append-ptr-size
-static int rw_opt_no_append_str_off_size;      // for --no-append-str-off-size
-static int rw_opt_no_append_size_val;          // for --no-append-size-val
-static int rw_opt_no_append_range;             // for --no-append-range
-
 /**************************************************************************/
 
-// used to exercise 
+// used to exercise
 // append (const charT* s)
-static const TestCase ptr_test_cases [] = {
+static const TestCase
+ptr_test_cases [] = {
 
 #undef TEST
-#define TEST(str, src, res, bthrow)                            \
-    { __LINE__, -1, -1, -1, str, sizeof str - 1, src,          \
-      sizeof src - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, res, bthrow)                            \
+    { __LINE__, -1, -1, -1, str, sizeof str - 1, arg,          \
+      sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +----------------------------------------- controlled sequence
     //    |             +--------------------------- sequence to be appended
     //    |             |             +------------- expected result sequence
-    //    |             |             |        +---- exception info 
-    //    |             |             |        |         0 - no exception        
-    //    |             |             |        |         1 - out_of_range        
-    //    |             |             |        |         2 - length_error  
+    //    |             |             |        +---- exception info
+    //    |             |             |        |         0 - no exception
+    //    |             |             |        |         1 - out_of_range
+    //    |             |             |        |         2 - length_error
     //    |             |             |        |        -1 - exc. safety
-    //    |             |             |        |                       
-    //    |             |             |        +--------------+             
+    //    |             |             |        |
+    //    |             |             |        +--------------+
     //    V             V             V                       V
     TEST ("ab",         "c",          "abc",                  0),
 
@@ -199,25 +161,26 @@ static const TestCase ptr_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise 
+// used to exercise
 // append (const basic_string& str)
-static const TestCase str_test_cases [] = {
+static const TestCase
+str_test_cases [] = {
 
 #undef TEST
-#define TEST(str, src, res, bthrow)                            \
-    { __LINE__, -1, -1, -1, str, sizeof str - 1, src,          \
-      sizeof src - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, res, bthrow)                            \
+    { __LINE__, -1, -1, -1, str, sizeof str - 1, arg,          \
+      sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +----------------------------------------- controlled sequence
     //    |             +--------------------------- sequence to be appended
     //    |             |             +------------- expected result sequence
-    //    |             |             |        +---- exception info 
-    //    |             |             |        |         0 - no exception        
-    //    |             |             |        |         1 - out_of_range        
-    //    |             |             |        |         2 - length_error  
+    //    |             |             |        +---- exception info
+    //    |             |             |        |         0 - no exception
+    //    |             |             |        |         1 - out_of_range
+    //    |             |             |        |         2 - length_error
     //    |             |             |        |        -1 - exc. safety
-    //    |             |             |        |                       
-    //    |             |             |        +--------------+             
+    //    |             |             |        |
+    //    |             |             |        +--------------+
     //    V             V             V                       V
     TEST ("ab",         "c",          "abc",                  0),
 
@@ -263,27 +226,28 @@ static const TestCase str_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise 
+// used to exercise
 // append (const charT* s, size_type n)
-static const TestCase ptr_size_test_cases [] = {
+static const TestCase
+ptr_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, src, count, res, bthrow)                            \
-    { __LINE__, -1, count, -1, str, sizeof str - 1, src,              \
-      sizeof src - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, size, res, bthrow)                            \
+    { __LINE__, -1, size, -1, str, sizeof str - 1, arg,              \
+      sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +-------------------------------------- controlled sequence
     //    |            +------------------------- sequence to be appended
-    //    |            |            +------------ append() n argument 
-    //    |            |            |  +--------- expected result sequence 
-    //    |            |            |  |     +--- exception info 
-    //    |            |            |  |     |      0 - no exception        
-    //    |            |            |  |     |      1 - out_of_range        
-    //    |            |            |  |     |      2 - length_error  
-    //    |            |            |  |     |     -1 - exc. safety 
-    //    |            |            |  |     |                           
-    //    |            |            |  |     +------------+             
-    //    V            V            V  V                  V             
+    //    |            |            +------------ append() n argument
+    //    |            |            |  +--------- expected result sequence
+    //    |            |            |  |     +--- exception info
+    //    |            |            |  |     |      0 - no exception
+    //    |            |            |  |     |      1 - out_of_range
+    //    |            |            |  |     |      2 - length_error
+    //    |            |            |  |     |     -1 - exc. safety
+    //    |            |            |  |     |
+    //    |            |            |  |     +------------+
+    //    V            V            V  V                  V
     TEST ("ab",        "c",         1, "abc",             0),
 
     TEST ("",          "",          0,  "",               0),
@@ -329,29 +293,33 @@ static const TestCase ptr_size_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise 
-// append (const basic_string& str, size_type pos, size_type n)
+// used to exercise
+// append (const basic_string& str, size_type off, size_type n)
 // append (InputIterator first, InputIterator last)
-static const TestCase range_test_cases [] = {
+static const TestCase
+range_test_cases [] = {
+
+// range_test_cases serves a double duty
+#define str_off_size_test_cases range_test_cases
 
 #undef TEST
-#define TEST(str, src, pos, count, res, bthrow)                            \
-    { __LINE__, pos, count, -1, str, sizeof str - 1, src,                  \
-      sizeof src - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, off, size, res, bthrow)                            \
+    { __LINE__, off, size, -1, str, sizeof str - 1, arg,                  \
+      sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +-------------------------------------- controlled sequence
     //    |            +------------------------- sequence to be appended
     //    |            |            +------------ append() pos argument
-    //    |            |            |  +--------- append() n argument 
+    //    |            |            |  +--------- append() n argument
     //    |            |            |  |  +------ expected result sequence
-    //    |            |            |  |  |  +--- exception info  
-    //    |            |            |  |  |  |       0 - no exception        
-    //    |            |            |  |  |  |       1 - out_of_range        
-    //    |            |            |  |  |  |       2 - length_error   
-    //    |            |            |  |  |  |      -1 - exc. safety 
-    //    |            |            |  |  |  |                         
-    //    |            |            |  |  |  +----------------+             
-    //    V            V            V  V  V                   V             
+    //    |            |            |  |  |  +--- exception info
+    //    |            |            |  |  |  |       0 - no exception
+    //    |            |            |  |  |  |       1 - out_of_range
+    //    |            |            |  |  |  |       2 - length_error
+    //    |            |            |  |  |  |      -1 - exc. safety
+    //    |            |            |  |  |  |
+    //    |            |            |  |  |  +----------------+
+    //    V            V            V  V  V                   V
     TEST ("ab",        "c",         0, 1, "abc",              0),
 
     TEST ("",          "",          0, 0,  "",                0),
@@ -409,27 +377,28 @@ static const TestCase range_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise 
+// used to exercise
 // append (charT c, size_type n)
-static const TestCase size_val_test_cases [] = {
+static const TestCase
+size_val_test_cases [] = {
 
 #undef TEST
-#define TEST(str, count, ch, res, bthrow)                            \
-    { __LINE__, -1, count, ch, str, sizeof str - 1, 0, 0,            \
+#define TEST(str, size, val, res, bthrow)                            \
+    { __LINE__, -1, size, val, str, sizeof str - 1, 0, 0,            \
       res, sizeof res - 1, bthrow }
 
     //    +-------------------------------------- controlled sequence
     //    |            +------------------------- append() count argument
     //    |            |   +--------------------- character to be appended
-    //    |            |   |   +----------------- expected result sequence 
-    //    |            |   |   |       +--------- exception info 
-    //    |            |   |   |       |             0 - no exception        
-    //    |            |   |   |       |             1 - out_of_range        
-    //    |            |   |   |       |             2 - length_error  
+    //    |            |   |   +----------------- expected result sequence
+    //    |            |   |   |       +--------- exception info
+    //    |            |   |   |       |             0 - no exception
+    //    |            |   |   |       |             1 - out_of_range
+    //    |            |   |   |       |             2 - length_error
     //    |            |   |   |       |            -1 - exc. safety
-    //    |            |   |   |       |                         
-    //    |            |   |   |       +-----------+             
-    //    V            V   V   V                   V                
+    //    |            |   |   |       |
+    //    |            |   |   |       +-----------+
+    //    V            V   V   V                   V
     TEST ("ab",        1, 'c', "abc",              0),
 
     TEST ("",          0, ' ',  "",                0),
@@ -471,49 +440,33 @@ static const TestCase size_val_test_cases [] = {
 
 /**************************************************************************/
 
-static const struct FunctionTag
-{
-    ATags           a_tag;
-    const int      *p_opt;
-    const TestCase *t_cases;
-    std::size_t     n_cases;
-    const char     *str_hdr;
-
-} function_tags [] = {
+static const StringMembers::Test
+tests [] = {
 
 #undef TEST
-#define TEST(tag, opt, cases, hdr)                              \
-    { tag, &opt, cases, sizeof cases / sizeof *cases, hdr }     
+#define TEST(tag, sig) {                                        \
+        Append (tag), tag ## _test_cases,                       \
+        sizeof tag ## _test_cases / sizeof *tag ## _test_cases, \
+        "append " sig                                           \
+    }
 
-    TEST (append_ptr, rw_opt_no_append_ptr, ptr_test_cases,                  
-          "append (const charT* s)"),
-
-    TEST (append_str, rw_opt_no_append_str, str_test_cases,            
-          "append (const basic_string& str)"),
-
-    TEST (append_ptr_size, rw_opt_no_append_ptr_size, ptr_size_test_cases, 
-          "append (const charT* s, size_type n)"),
-
-    TEST (append_str_off_size, rw_opt_no_append_str_off_size, 
-          range_test_cases, "append (const basic_string& str,"
-          " size_type pos, size_type n)"),
-
-    TEST (append_size_val, rw_opt_no_append_size_val, 
-          size_val_test_cases, "append (size_type n, charT c)"),
-
-    TEST (append_range, rw_opt_no_append_range, range_test_cases, 
-          "append (InputIterator first, InputIterator last)")
+    TEST (ptr,          "(const value_type*)"),
+    TEST (str,          "(const basic_string&)"),
+    TEST (ptr_size,     "(const value_type*, size_type)"),
+    TEST (str_off_size, "(const basic_string&, size_type, size_type)"),
+    TEST (size_val,     "(size_type, value_type)"),
+    TEST (range,        "(InputIterator, InputIterator)")
 };
 
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_append_exceptions (charT, Traits*,  
-                             const ATags     which,
-                             const TestCase &cs,
-                             const char     *append_fmt)
+void test_append_exceptions (charT, Traits*,
+                             const AppendOverload  which,
+                             const TestCase       &cs,
+                             const char           *funcall)
 {
-    typedef std::basic_string <charT, Traits, 
+    typedef std::basic_string <charT, Traits,
                                std::allocator<charT> > TestString;
     typedef typename TestString::iterator StringIter;
     typedef typename TestString::const_iterator ConstStringIter;
@@ -522,10 +475,10 @@ void test_append_exceptions (charT, Traits*,
     static charT wsrc [LLEN];
 
     rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (wsrc, cs.src, cs.src_len);
+    rw_widen (wsrc, cs.arg, cs.arg_len);
 
     TestString s_str (wstr, cs.str_len);
-    TestString s_src (wsrc, cs.src_len);
+    TestString s_arg (wsrc, cs.arg_len);
 
     std::size_t throw_after = 0;
 
@@ -553,23 +506,23 @@ void test_append_exceptions (charT, Traits*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
         _TRY {
-            if (append_ptr == which) 
-                s_str.append (cs.src ? wsrc : s_str.c_str ());
+            if (Append (ptr) == which)
+                s_str.append (cs.arg ? wsrc : s_str.c_str ());
 
-            else if (append_str == which)
-                s_str.append (cs.src ? s_src : s_str);
+            else if (Append (str) == which)
+                s_str.append (cs.arg ? s_arg : s_str);
 
-            else if (append_ptr_size == which)
-                s_str.append (cs.src ? wsrc : s_str.c_str (), cs.count);
+            else if (Append (ptr_size) == which)
+                s_str.append (cs.arg ? wsrc : s_str.c_str (), cs.size);
 
-            else if (append_str_off_size == which) 
-                s_str.append (cs.src ? s_src : s_str, cs.pos, cs.count);
+            else if (Append (str_off_size) == which)
+                s_str.append (cs.arg ? s_arg : s_str, cs.off, cs.size);
 
-            else if (append_size_val == which)
-                s_str.append (cs.count, make_char ((char) cs.ch, (charT*)0));
+            else if (Append (size_val) == which)
+                s_str.append (cs.size, make_char (char (cs.val), (charT*)0));
 
-            else if (append_range == which)
-                s_str.append (s_src.begin (), s_src.end ());
+            else if (Append (range) == which)
+                s_str.append (s_arg.begin (), s_arg.end ());
 
             break;
         }
@@ -583,18 +536,18 @@ void test_append_exceptions (charT, Traits*,
             rw_assert (s_str.size () == size, 0, cs.line,
                        "line %d: %s: size unexpectedly changed "
                        "from %zu to %zu after an exception",
-                       __LINE__, append_fmt, size, s_str.size ());
+                       __LINE__, funcall, size, s_str.size ());
 
             rw_assert (s_str.capacity () == capacity, 0, cs.line,
                        "line %d: %s: capacity unexpectedly "
                        "changed from %zu to %zu after an exception",
-                       __LINE__, append_fmt, capacity, s_str.capacity ());
+                       __LINE__, funcall, capacity, s_str.capacity ());
 
-            
+
             rw_assert (s_str.begin () == begin, 0, cs.line,
                        "line %d: %s: begin() unexpectedly "
                        "changed from after an exception by %d",
-                       __LINE__, append_fmt, s_str.begin () - begin);
+                       __LINE__, funcall, s_str.begin () - begin);
 
 
             // increment to allow this call to operator new to succeed
@@ -612,10 +565,10 @@ void test_append_exceptions (charT, Traits*,
     // verify that if exceptions are enabled and when capacity changes
     // at least one exception is thrown
     rw_assert (   *pst->throw_at_calls_ [0] == std::size_t (-1)
-               || throw_after, 
+               || throw_after,
                0, cs.line,
                "line %d: %s: failed to throw an expected exception",
-               __LINE__, append_fmt);
+               __LINE__, funcall);
 
 #  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
@@ -637,38 +590,38 @@ void test_append_exceptions (charT, Traits*,
 
 template <class charT, class Traits, class Iterator>
 void test_append_range (charT* wstr,
-                        charT* wsrc, 
+                        charT* wsrc,
                         Traits*,
                         const Iterator &it,
                         const TestCase &cs,
-                        const char     *append_fmt)
+                        const char     *funcall)
 {
-    typedef std::basic_string <charT, Traits, 
+    typedef std::basic_string <charT, Traits,
                                std::allocator<charT> > String;
     typedef typename String::iterator StringIter;
 
-    const char* const itname = 
-        cs.src ? type_name (it, (charT*)0) : "basic_string::iterator";
+    const char* const itname =
+        cs.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
 
     String s_str (wstr, cs.str_len);
-    String s_src (wsrc, cs.src_len);
+    String s_arg (wsrc, cs.arg_len);
 
-    std::size_t off_last = cs.pos + cs.count;
+    std::size_t off_last = cs.off + cs.size;
 
-    if (cs.src) {
-        off_last = off_last > s_src.size () ? s_src.size () : off_last;
+    if (cs.arg) {
+        off_last = off_last > s_arg.size () ? s_arg.size () : off_last;
 
-        const Iterator first = make_iter (wsrc + cs.pos, 
-            wsrc + cs.pos, wsrc + off_last, Iterator (0, 0, 0));
-        const Iterator last  = make_iter (wsrc + off_last, 
-            wsrc + cs.pos, wsrc + off_last, Iterator (0, 0, 0));
+        const Iterator first = make_iter (wsrc + cs.off,
+            wsrc + cs.off, wsrc + off_last, Iterator (0, 0, 0));
+        const Iterator last  = make_iter (wsrc + off_last,
+            wsrc + cs.off, wsrc + off_last, Iterator (0, 0, 0));
 
         s_str.append (first, last);
     }
     else {
-        StringIter first (s_str.begin () + cs.pos);
-        StringIter last  (off_last > s_str.size () ? 
-            s_str.end () 
+        StringIter first (s_str.begin () + cs.off);
+        StringIter last  (off_last > s_str.size () ?
+            s_str.end ()
           : s_str.begin () + off_last);
 
         s_str.append (first, last);
@@ -678,51 +631,51 @@ void test_append_range (charT* wstr,
 
     rw_assert (match == cs.res_len, 0, cs.line,
                "line %d. %s expected %{#*s}, got %{/*.*Gs}, "
-               "difference at pos %zu for %s", 
-               __LINE__, append_fmt, int (cs.res_len), cs.res, 
-               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (), 
+               "difference at off %zu for %s",
+               __LINE__, funcall, int (cs.res_len), cs.res,
+               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match, itname);
 }
 
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_append_range (charT* wstr, 
-                        charT* wsrc, 
+void test_append_range (charT* wstr,
+                        charT* wsrc,
                         Traits*,
                         const TestCase &cs,
-                        const char     *append_fmt)
+                        const char     *funcall)
 {
     if (cs.bthrow)  // this method doesn't throw
         return;
 
-    test_append_range (wstr, wsrc, (Traits*)0, 
-                       InputIter<charT>(0, 0, 0), cs, append_fmt);
+    test_append_range (wstr, wsrc, (Traits*)0,
+                       InputIter<charT>(0, 0, 0), cs, funcall);
 
-    // there is no need to call test_append_range 
+    // there is no need to call test_append_range
     // for other iterators in this case
-    if (0 == cs.src)
+    if (0 == cs.arg)
         return;
 
-    test_append_range (wstr, wsrc, (Traits*)0, 
-                       ConstFwdIter<charT>(0, 0, 0), cs, append_fmt);
+    test_append_range (wstr, wsrc, (Traits*)0,
+                       ConstFwdIter<charT>(0, 0, 0), cs, funcall);
 
-    test_append_range (wstr, wsrc, (Traits*)0, 
-                       ConstBidirIter<charT>(0, 0, 0), cs, append_fmt);
+    test_append_range (wstr, wsrc, (Traits*)0,
+                       ConstBidirIter<charT>(0, 0, 0), cs, funcall);
 
-    test_append_range (wstr, wsrc, (Traits*)0, 
-                       ConstRandomAccessIter<charT>(0, 0, 0), cs, append_fmt);
+    test_append_range (wstr, wsrc, (Traits*)0,
+                       ConstRandomAccessIter<charT>(0, 0, 0), cs, funcall);
 }
 
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_append (charT, Traits*,  
-                  const ATags     which,
+void test_append (charT, Traits*,
+                  const AppendOverload     which,
                   const TestCase &cs,
-                  const char     *append_fmt)
+                  const char     *funcall)
 {
-    typedef std::basic_string <charT, Traits, 
+    typedef std::basic_string <charT, Traits,
                                std::allocator<charT> > TestString;
     typedef typename TestString::iterator StringIter;
 
@@ -730,16 +683,16 @@ void test_append (charT, Traits*,
     static charT wsrc [LLEN];
 
     rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (wsrc, cs.src, cs.src_len);
+    rw_widen (wsrc, cs.arg, cs.arg_len);
 
     // special processing for append_range to exercise all iterators
-    if (append_range == which) {
-        test_append_range (wstr, wsrc, (Traits*)0, cs, append_fmt);
+    if (Append (range) == which) {
+        test_append_range (wstr, wsrc, (Traits*)0, cs, funcall);
         return;
     }
 
     TestString s_str (wstr, cs.str_len);
-    TestString s_src (wsrc, cs.src_len);
+    TestString s_arg (wsrc, cs.arg_len);
 
     std::size_t res_off = 0;
 
@@ -747,7 +700,7 @@ void test_append (charT, Traits*,
 
     // is some exception expected ?
     const char* expected = 0;
-    if (1 == cs.bthrow && append_str_off_size == which)
+    if (1 == cs.bthrow && Append (str_off_size) == which)
         expected = exp_exceptions [1];
     if (2 == cs.bthrow)
         expected = exp_exceptions [2];
@@ -760,53 +713,52 @@ void test_append (charT, Traits*,
 
     switch (which)
     {
-    case append_ptr: {
-        TestString& s_res = s_str.append (cs.src ? wsrc : s_str.c_str ());
+    case Append (ptr): {
+        TestString& s_res = s_str.append (cs.arg ? wsrc : s_str.c_str ());
         res_off = &s_res - &s_str;
         break;
     }
 
-    case append_str: {
-        TestString& s_res = s_str.append (cs.src ? s_src : s_str);
+    case Append (str): {
+        TestString& s_res = s_str.append (cs.arg ? s_arg : s_str);
         res_off = &s_res - &s_str;
         break;
     }
 
-    case append_ptr_size: {
-        TestString& s_res = 
-            s_str.append (cs.src ? wsrc : s_str.c_str (), cs.count);
+    case Append (ptr_size): {
+        TestString& s_res =
+            s_str.append (cs.arg ? wsrc : s_str.c_str (), cs.size);
         res_off = &s_res - &s_str;
         break;
     }
 
-    case append_str_off_size: {
-        TestString& s_res = 
-            s_str.append (cs.src ? s_src : s_str, cs.pos, cs.count);
+    case Append (str_off_size): {
+        TestString& s_res =
+            s_str.append (cs.arg ? s_arg : s_str, cs.off, cs.size);
         res_off = &s_res - &s_str;
         break;
     }
 
-    case append_size_val: {
-        TestString& s_res = 
-            s_str.append (cs.count, make_char ((char) cs.ch, (charT*)0));
+    case Append (size_val): {
+        TestString& s_res =
+            s_str.append (cs.size, make_char (char (cs.val), (charT*)0));
         res_off = &s_res - &s_str;
         break;
     }
 
     default:
-        RW_ASSERT ("test logic error: unknown append overload");
-        return;
+        RW_ASSERT (!"test logic error: unknown append overload");
     }
 
     // verify the returned value
     rw_assert (0 == res_off, 0, cs.line,
-               "line %d. %s returned invalid reference, offset is %zu", 
-               __LINE__, append_fmt, res_off);
+               "line %d. %s returned invalid reference, offset is %zu",
+               __LINE__, funcall, res_off);
 
     // verfiy that strings length are equal
     rw_assert (cs.res_len == s_str.size (), 0, cs.line,
                "line %d. %s expected %{#*s} with length %zu, got %{/*.*Gs} "
-               "with length %zu", __LINE__, append_fmt, int (cs.res_len), 
+               "with length %zu", __LINE__, funcall, int (cs.res_len),
                cs.res, cs.res_len, int (sizeof (charT)), int (s_str.size ()),
                s_str.c_str (), s_str.size ());
 
@@ -815,9 +767,9 @@ void test_append (charT, Traits*,
 
     rw_assert (match == cs.res_len, 0, cs.line,
                "line %d. %s expected %{#*s}, got %{/*.*Gs}, "
-               "difference at pos %zu", 
-               __LINE__, append_fmt, int (cs.res_len), cs.res, 
-               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (), 
+               "difference at off %zu",
+               __LINE__, funcall, int (cs.res_len), cs.res,
+               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
@@ -840,90 +792,39 @@ void test_append (charT, Traits*,
     rw_assert (caught == expected, 0, cs.line,
                "line %d. %s %{?}expected %s, caught %s"
                "%{:}unexpectedly caught %s%{;}",
-               __LINE__, append_fmt, 0 != expected, expected, caught, caught);
+               __LINE__, funcall, 0 != expected, expected, caught, caught);
 }
 
 /**************************************************************************/
 
-void get_append_format (char** pbuf, std::size_t* pbufsize, 
-                        const MemFun *pfid, 
-                        const ATags which, 
-                        const TestCase& cs)
+static char*
+get_append_format (const MemFun         *pfid,
+                   const AppendOverload  which,
+                   const TestCase       &cs)
 {
-    if (   MemFun::DefaultTraits == pfid->tid_
-        && (MemFun::Char == pfid->cid_ || MemFun::WChar == pfid->cid_))
-        rw_asnprintf (pbuf, pbufsize,
-                      "std::%{?}w%{;}string (%{#*s}).append",
-                      MemFun::WChar == pfid->cid_,
-                      int (cs.str_len), cs.str);
-    else
-        rw_asnprintf (pbuf, pbufsize,
-                      "std::basic_string<%s, %s<%1$s>, %s<%1$s>>(%{#*s})"
-                      ".append", pfid->cname_, pfid->tname_, pfid->aname_, 
-                      int (cs.str_len), cs.str);
-
-    const bool self = 0 == cs.src;
-
-    switch (which)
-    {
-    case append_ptr:
-        rw_asnprintf (pbuf, pbufsize, 
-                      "%{+} (%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
-                      !self, int (cs.src_len), cs.src, self);
-        break;
-
-    case append_str:
-        rw_asnprintf (pbuf, pbufsize, 
-                      "%{+} (%{?}string (%{#*s})%{;}%{?}*this%{;})",
-                      !self, int (cs.src_len), cs.src, self);
-        break;
-
-    case append_ptr_size:
-        rw_asnprintf (pbuf, pbufsize, "%{+} ("
-                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
-                      !self, int (cs.src_len), cs.src, self, cs.count);
-        break;
-
-    case append_str_off_size:
-        rw_asnprintf (pbuf, pbufsize, "%{+} ("
-                      "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
-                      !self, int (cs.src_len), cs.src, 
-                      self, cs.pos, cs.count);
-        break;
-
-    case append_size_val:
-        rw_asnprintf (pbuf, pbufsize, 
-                      "%{+} (%zu, %#c)", cs.count, cs.ch);
-        break;
-
-    case append_range:
-        rw_asnprintf (pbuf, pbufsize, "%{+} ("
-                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu, "
-                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu)", 
-                      !self, int (cs.src_len), cs.src,
-                      self, cs.pos, !self, int (cs.src_len), cs.src, 
-                      self, cs.pos + cs.count);
-        break;
-    }
+    return StringMembers::format (pfid->cid_, pfid->tid_,
+                                  StringMembers::DefaultAllocator,
+                                  which, cs);
 }
 
 /**************************************************************************/
 
-void test_append (const MemFun *pfid, const ATags which, 
-                  const TestCase& cs, bool exc_safety_test)
+static void
+test_append (const MemFun *pfid, const AppendOverload which,
+             const TestCase& cs, bool exc_safety_test)
 {
-    char* buf = 0;
-    std::size_t buf_sz = 0;
-    get_append_format (&buf, &buf_sz, pfid, which, cs); 
+    // format the description of the function call including
+    // the values of arguments for use in diagnostics
+    char* const funcall = get_append_format (pfid, which, cs);
 
 #undef TEST
-#define TEST(charT, Traits)	                                           \
-    !exc_safety_test ?                                                 \
-        test_append (charT(), (Traits*)0, which, cs, buf)              \
-      : test_append_exceptions (charT(), (Traits*)0, which, cs, buf)
+#define TEST(charT, Traits)	                                          \
+    exc_safety_test ?                                                     \
+        test_append_exceptions (charT (), (Traits*)0, which, cs, funcall) \
+      : test_append (charT (), (Traits*)0, which, cs, funcall)
 
-    if (MemFun:: DefaultTraits == pfid->tid_) {
-        if (MemFun::Char == pfid->cid_)
+    if (StringMembers::DefaultTraits == pfid->tid_) {
+        if (StringMembers::Char == pfid->cid_)
             TEST (char, std::char_traits<char>);
 
 #ifndef _RWSTD_NO_WCHAR_T
@@ -933,11 +834,11 @@ void test_append (const MemFun *pfid, const ATags which,
 
     }
     else {
-       if (MemFun::Char == pfid->cid_)
+       if (StringMembers::Char == pfid->cid_)
            TEST (char, UserTraits<char>);
 
 #ifndef _RWSTD_NO_WCHAR_T
-       else if (MemFun::WChar == pfid->cid_)
+       else if (StringMembers::WChar == pfid->cid_)
            TEST (wchar_t, UserTraits<wchar_t>);
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -945,50 +846,50 @@ void test_append (const MemFun *pfid, const ATags which,
            TEST (UserChar, UserTraits<UserChar>);
     }
 
-    free (buf);
+    std::free (funcall);
 }
 
 /**************************************************************************/
 
 static void
-test_append (const MemFun *pfid, const FunctionTag& ftag)
+test_append (const MemFun *pfid, const Test& test)
 {
     rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::%s",
-             pfid->cname_, pfid->tname_, pfid->aname_, ftag.str_hdr);
+             pfid->cname_, pfid->tname_, pfid->aname_, test.funsig);
 
     if (rw_opt_no_exception_safety)
         rw_note (0, 0, 0,
                  "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
-                 "%s exception safety test disabled", 
-                 pfid->cname_, pfid->tname_, pfid->aname_, ftag.str_hdr);
+                 "%s exception safety test disabled",
+                 pfid->cname_, pfid->tname_, pfid->aname_, test.funsig);
 
 #ifdef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
     else
         rw_warn (0, 0, __LINE__,
                  "%s exception safety test: no replacable new and delete",
-                 ftag.str_hdr);
+                 test.funsig);
 
 #endif  //_RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-    for (std::size_t i = 0; i != ftag.n_cases; ++i) {
+    for (std::size_t i = 0; i != test.case_count; ++i) {
 
-        if (!rw_enabled (ftag.t_cases[i].line)) {
-            rw_note (0, 0, __LINE__, 
-                     "test on line %d disabled", ftag.t_cases[i].line);
+        if (!rw_enabled (test.cases[i].line)) {
+            rw_note (0, 0, __LINE__,
+                     "test on line %d disabled", test.cases[i].line);
             continue;
         }
 
         // do not exercise exceptions if they were disabled
-        if (0 != rw_opt_no_exceptions && 0 != ftag.t_cases[i].bthrow)
+        if (0 != rw_opt_no_exceptions && 0 != test.cases[i].bthrow)
             continue;
 
         // do not exercise exception safety if they were disabled
-        if (0 != rw_opt_no_exception_safety && -1 == ftag.t_cases[i].bthrow)
+        if (0 != rw_opt_no_exception_safety && -1 == test.cases[i].bthrow)
             continue;
 
-        test_append (pfid, ftag.a_tag, ftag.t_cases[i], 
-                     -1 == ftag.t_cases[i].bthrow);
+        test_append (pfid, test.which, test.cases[i],
+                     -1 == test.cases [i].bthrow);
     }
 }
 
@@ -998,11 +899,12 @@ test_append (const MemFun *pfid, const FunctionTag& ftag)
 static void
 run_test (const MemFun *pfid)
 {
-    if (MemFun::UserTraits == pfid->tid_ && rw_opt_no_user_traits) {
+    if (StringMembers::UserTraits == pfid->tid_ && rw_opt_no_user_traits) {
         rw_note (1 < rw_opt_no_user_traits++, 0, 0,
                  "user defined traits test disabled");
     }
-    else if (MemFun::DefaultTraits == pfid->tid_  && rw_opt_no_char_traits) {
+    else if (   StringMembers::DefaultTraits == pfid->tid_
+             && rw_opt_no_char_traits) {
         rw_note (1 < rw_opt_no_char_traits++, 0, 0,
                  "char_traits test disabled");
     }
@@ -1010,20 +912,19 @@ run_test (const MemFun *pfid)
 
         if (rw_opt_no_exceptions)
             rw_note (1 < rw_opt_no_exceptions++, 0, 0,
-                     "string::append exceptions tests disabled"); 
+                     "string::append exceptions tests disabled");
 
-        static const std::size_t ftags = 
-            sizeof function_tags / sizeof *function_tags;
+        static const std::size_t ntests = sizeof tests / sizeof *tests;
 
-        for (std::size_t i = 0; i < ftags; i++) {
+        for (std::size_t i = 0; i < ntests; i++) {
 
-            if (*function_tags[i].p_opt) 
-                rw_note (0, 0, 0, 
+            if (Disabled (tests [i].which))
+                rw_note (0, 0, 0,
                          "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
-                         "%s test disabled", pfid->cname_, pfid->tname_, 
-                         pfid->aname_, function_tags[i].str_hdr);
+                         "%s test disabled", pfid->cname_, pfid->tname_,
+                         pfid->aname_, tests [i].funsig);
             else
-                test_append (pfid, function_tags[i]);
+                test_append (pfid, tests [i]);
         }
     }
 }
@@ -1040,13 +941,14 @@ int run_test (int, char*[])
 
     if (rw_enabled ("char")) {
 
-        MemFun fid (MemFun::Char, "char", MemFun::DefaultTraits, 0);
+        MemFun fid (StringMembers::Char, "char",
+                    StringMembers::DefaultTraits, 0);
 
         fid.tname_ = "char_traits";
 
         run_test (&fid);
 
-        fid.tid_   = MemFun::UserTraits;
+        fid.tid_   = StringMembers::UserTraits;
         fid.tname_ = "UserTraits";
 
         run_test (&fid);
@@ -1056,13 +958,14 @@ int run_test (int, char*[])
 
     if (rw_enabled ("wchar_t")) {
 
-        MemFun fid (MemFun::WChar, "wchar_t", MemFun::DefaultTraits, 0);
+        MemFun fid (StringMembers::WChar, "wchar_t",
+                    StringMembers::DefaultTraits, 0);
 
         fid.tname_ = "char_traits";
 
         run_test (&fid);
 
-        fid.tid_   = MemFun::UserTraits;
+        fid.tid_   = StringMembers::UserTraits;
         fid.tname_ = "UserTraits";
 
         run_test (&fid);
@@ -1074,7 +977,8 @@ int run_test (int, char*[])
         rw_note (0, 0, 0, "user defined chars test disabled");
     }
     else {
-        MemFun fid (MemFun::UChar, "UserChar", MemFun::UserTraits, 0);
+        MemFun fid (StringMembers::UChar, "UserChar",
+                    StringMembers::UserTraits, 0);
         fid.tname_ = "UserTraits";
         run_test (&fid);
     }
@@ -1092,7 +996,8 @@ int main (int argc, char** argv)
 {
     return rw_test (argc, argv, __FILE__,
                     "lib.string.append",
-                    0 /* no comment */, run_test,
+                    0 /* no comment */,
+                    run_test,
                     "|-no-char_traits# "
                     "|-no-user_traits# "
                     "|-no-user_chars# "
@@ -1112,11 +1017,12 @@ int main (int argc, char** argv)
                     &rw_opt_no_exceptions,
                     &rw_opt_no_exception_safety,
 
-                    &rw_opt_no_append_ptr,
-                    &rw_opt_no_append_str,
-                    &rw_opt_no_append_ptr_size,
-                    &rw_opt_no_append_str_off_size,
-                    &rw_opt_no_append_size_val,
-                    &rw_opt_no_append_range);
+                    &Disabled (Append (ptr)),
+                    &Disabled (Append (str)),
+                    &Disabled (Append (ptr_size)),
+                    &Disabled (Append (str_off_size)),
+                    &Disabled (Append (size_val)),
+                    &Disabled (Append (range)),
+                    // sentinel
+                    (void*)0);
 }
-
