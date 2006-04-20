@@ -798,86 +798,16 @@ void test_assign (charT, Traits*,
 
 /**************************************************************************/
 
-static char*
-get_assign_format (const MemFun         *pfid,
-                   const AssignOverload  which,
-                   const TestCase       &cs)
-{
-    char*       buf     = 0;
-    std::size_t bufsize = 0;
-
-    if (   StringMembers::DefaultTraits == pfid->tid_
-        && (   StringMembers::Char == pfid->cid_
-            || StringMembers::WChar == pfid->cid_))
-        rw_asnprintf (&buf, &bufsize,
-                      "std::%{?}w%{;}string (%{#*s}).assign",
-                      StringMembers::WChar == pfid->cid_,
-                      int (cs.str_len), cs.str);
-    else
-        rw_asnprintf (&buf, &bufsize,
-                      "std::basic_string<%s, %s<%1$s>, %s<%1$s>>(%{#*s})"
-                      ".assign", pfid->cname_, pfid->tname_, pfid->aname_,
-                      int (cs.str_len), cs.str);
-
-    // assignment from self to self?
-    const bool self = 0 == cs.arg;
-
-    switch (which) {
-    case Assign (ptr):
-        rw_asnprintf (&buf, &bufsize,
-                      "%{+} (%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
-                      !self, int (cs.arg_len), cs.arg, self);
-        break;
-
-    case Assign (str):
-        rw_asnprintf (&buf, &bufsize,
-                      "%{+} (%{?}string (%{#*s})%{;}%{?}*this%{;})",
-                      !self, int (cs.arg_len), cs.arg, self);
-        break;
-
-    case Assign (ptr_size):
-        rw_asnprintf (&buf, &bufsize, "%{+} ("
-                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)",
-                      !self, int (cs.arg_len), cs.arg, self, cs.size);
-        break;
-
-    case Assign (str_off_size):
-        rw_asnprintf (&buf, &bufsize, "%{+} ("
-                      "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
-                      !self, int (cs.arg_len), cs.arg,
-                      self, cs.off, cs.size);
-        break;
-
-    case Assign (size_val):
-        rw_asnprintf (&buf, &bufsize,
-                      "%{+} (%zu, %#c)", cs.size, cs.val);
-        break;
-
-    case Assign (range):
-        rw_asnprintf (&buf, &bufsize, "%{+} ("
-                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu, "
-                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu)",
-                      !self, int (cs.arg_len), cs.arg,
-                      self, cs.off, !self, int (cs.arg_len), cs.arg,
-                      self, cs.off + cs.size);
-        break;
-
-    default:
-        RW_ASSERT (!"test logic error: unknown assign overload");
-    }
-
-    return buf;
-}
-
-/**************************************************************************/
-
 static void
 test_assign (const MemFun *pfid, const AssignOverload which,
              const TestCase& cs, bool exc_safety_test)
 {
     // format the description of the function call including
     // the values of arguments for use in diagnostics
-    char* const funcall = get_assign_format (pfid, which, cs);
+    char* const funcall =
+        StringMembers::format (pfid->cid_, pfid->tid_,
+                               StringMembers::DefaultAllocator,
+                               which, cs);
 
 #undef TEST
 #define TEST(charT, Traits)                                                 \
