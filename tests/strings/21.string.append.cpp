@@ -797,25 +797,16 @@ void test_append (charT, Traits*,
 
 /**************************************************************************/
 
-static char*
-get_append_format (const MemFun         *pfid,
-                   const AppendOverload  which,
-                   const TestCase       &cs)
-{
-    return StringMembers::format (pfid->cid_, pfid->tid_,
-                                  StringMembers::DefaultAllocator,
-                                  which, cs);
-}
-
-/**************************************************************************/
-
 static void
 test_append (const MemFun *pfid, const AppendOverload which,
              const TestCase& cs, bool exc_safety_test)
 {
     // format the description of the function call including
     // the values of arguments for use in diagnostics
-    char* const funcall = get_append_format (pfid, which, cs);
+    char* const funcall =
+        StringMembers::format (pfid->cid_, pfid->tid_,
+                               StringMembers::DefaultAllocator,
+                               which, cs);
 
 #undef TEST
 #define TEST(charT, Traits)	                                          \
