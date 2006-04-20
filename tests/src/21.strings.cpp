@@ -25,11 +25,15 @@
  * 
  **************************************************************************/
 
+// expand _TEST_EXPORT macros
+#define _RWSTD_TEST_SRC
+
 #include <21.strings.h>
-#include <rw_printf.h>
+#include <rw_printf.h>    // for rw_asnprintf()
 
-#include <stddef.h>
+#include <stddef.h>       // for size_t
 
+/**************************************************************************/
 
 static const char* const char_names[] = {
     "char", "wchar_t", "UserChar"
