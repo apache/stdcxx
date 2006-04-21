@@ -2,7 +2,7 @@
  *
  * 21.string.replace.cpp - string test exercising lib.string.replace
  *
- * $Id$ 
+ * $Id$
  *
  ***************************************************************************
  *
@@ -22,7 +22,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  **************************************************************************/
 
 #include <string>       // for string
@@ -36,22 +36,35 @@
 #include <rw_char.h>    // for rw_widen()
 #include <alg_test.h>   // for InputIter<>
 
+#include <21.strings.h>
+
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
    // disabled for compilers such as IBM VAC++ or MSVC
    // that can't reliably replace the operators
 #  include <rw_new.h>
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
+#define ReplaceOverload   StringMembers::MemberFunction
+#define Replace(which)    StringMembers::replace_ ## which
+#define Disabled(which)   StringMembers::opt_memfun_disabled [which]
+
+typedef StringMembers::TestCase TestCase;
+typedef StringMembers::Test     Test;
+
+/**************************************************************************/
+
+const char method_name[] = "replace";
+
 /**************************************************************************/
 
 struct MemFun
 {
-    enum charT  { Char, WChar, UChar };
-    enum Traits { DefaultTraits, UserTraits };
+    typedef StringMembers::charT  charT;
+    typedef StringMembers::Traits Traits;
 
     MemFun (charT cid, const char *cname,
           Traits tid, const char *tname)
-        : cid_ (cid), tid_ (tid), 
+        : cid_ (cid), tid_ (tid),
           cname_ (cname), tname_ (tname), aname_ ("allocator"),
           fname_ ("replace") { /* empty */ }
 
@@ -68,121 +81,39 @@ struct MemFun
 // for convenience and brevity
 #define LSTR  long_string
 #define LLEN  long_string_len
-// one half of the long_string length 
+// one half of the long_string length
 #define LPAR  LLEN / 2
 
 static const std::size_t long_string_len = 4096;
 static char long_string [long_string_len];
 
-static const char* const exp_exceptions[] = 
+static const char* const exp_exceptions[] =
     { "unknown exception", "out_of_range", "length_error" };
 
 /**************************************************************************/
 
-typedef enum ReplaceTags {
-
-    // replace (size_type pos1, size_type n1, const charT* p)
-    replace_off_size_ptr           =  1,   
-    // replace (size_type pos1, size_type n1, basic_string& s)
-    replace_off_size_str           =  2,
-    // replace (size_type pos1, size_type n1, charT* p, size_type n2)
-    replace_off_size_ptr_size      =  3,
-    // replace (pos1, n1, basic_string& s, size_type pos2, size_type n2)
-    replace_off_size_str_off_size  =  4,
-    // replace (size_type pos1, size_type n1, size_type n, charT c)
-    replace_off_size_size_val      =  5,
-    // replace (iterator i1, iterator i2, const charT* p)
-    replace_ptr                    =  6,
-    // replace (iterator i1, iterator i2, basic_string& s)
-    replace_str                    =  7,
-    // replace (iterator i1, iterator i2, charT* p, size_type n2)
-    replace_ptr_size               =  8,
-    // replace (iterator i1, iterator i2, size_type n, charT c)
-    replace_size_val               =  9,
-    // replace (iterator i1, iterator i2, InputIterator j1, InputIterator j2)
-    replace_range                  = 10
-
-} RTags;
-
-/**************************************************************************/
-
-struct TestCase
-{
-    int  line;
-
-    int  pos1;
-    int  num;
-    int  pos2;
-    int  count;
-    int  ch;
-
-    const char* str;
-    std::size_t str_len;
-
-    const char* src;
-    std::size_t src_len;
-
-    const char* res;
-    std::size_t res_len;
-
-    int bthrow;
-
-};
-
-/**************************************************************************/
-
-static int rw_opt_no_char_traits;              // for --no-char_traits
-static int rw_opt_no_user_traits;              // for --no-user_traits
-
-static int rw_opt_no_user_chars;               // for --no-user_chars
-static int rw_opt_no_exceptions;               // for --no-exceptions
-static int rw_opt_no_exception_safety;         // for --no-exception-safety
-
-// for --no-replace-off-size-ptr
-static int rw_opt_no_replace_off_size_ptr;     
-// for --no-replace-off-size-str
-static int rw_opt_no_replace_off_size_str;      
-// for --no-replace-off-size-ptr-size
-static int rw_opt_no_replace_off_size_ptr_size;      
-// for --no-replace-off-size-str-off-size
-static int rw_opt_no_replace_off_size_str_off_size;  
-// for --no-replace-off-size-size-val
-static int rw_opt_no_replace_off_size_size_val;      
-// for --no-replace-ptr
-static int rw_opt_no_replace_ptr;          
-// for --no-replace-str
-static int rw_opt_no_replace_str; 
-// for --no-replace-ptr-size
-static int rw_opt_no_replace_ptr_size;  
-// for --no-replace-size-val
-static int rw_opt_no_replace_size_val;          
-// for --no-replace-range
-static int rw_opt_no_replace_range;             
-
-/**************************************************************************/
-
-// used to exercise 
+// used to exercise
 // replace (size_type pos1, size_type n1, const charT* s)
-// replace (Iterator i1, Iterator i2, const charT* s)
-static const TestCase off_size_test_cases [] = {
+static const TestCase
+off_size_ptr_test_cases [] = {
 
 #undef TEST
-#define TEST(str, pos1, num, src, res, bthrow)                       \
-    { __LINE__, pos1, num, -1, -1, -1, str, sizeof str - 1, src,     \
-      sizeof src - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, off, size, arg, res, bthrow)                               \
+    { Replace (off_size_ptr), __LINE__, off, size, -1, -1, -1,               \
+      str, sizeof str - 1, arg, sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +------------------------------------------ controlled sequence
     //    |            +----------------------------- replace() pos1 argument
     //    |            |  +-------------------------- replace() n1 argument
     //    |            |  |  +----------------------- sequence to be inserted
     //    |            |  |  |           +----------- expected result sequence
-    //    |            |  |  |           |        +-- exception info 
-    //    |            |  |  |           |        |       0   - no exception        
-    //    |            |  |  |           |        |       1,2 - out_of_range        
-    //    |            |  |  |           |        |       3   - length_error 
-    //    |            |  |  |           |        |      -1   - exc. safety 
-    //    |            |  |  |           |        |                       
-    //    |            |  |  |           |        +-------+             
+    //    |            |  |  |           |        +-- exception info
+    //    |            |  |  |           |        |       0   - no exception
+    //    |            |  |  |           |        |       1,2 - out_of_range
+    //    |            |  |  |           |        |       3   - length_error
+    //    |            |  |  |           |        |      -1   - exc. safety
+    //    |            |  |  |           |        |
+    //    |            |  |  |           |        +-------+
     //    V            V  V  V           V                V
     TEST ("ab",        0, 0, "c",        "cab",           0),
 
@@ -241,7 +172,96 @@ static const TestCase off_size_test_cases [] = {
     TEST ("\0ab\0c\0", 3, 3, 0,          "\0ab",          0),
     TEST (LSTR, 0, LLEN - 1, 0,          LSTR,            0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
+    TEST ("\0",         2, 0, "",        "\0",            1),
+    TEST ("a",         10, 0, "",        "a",             1),
+    TEST (LSTR, LLEN + 10, 0, "",        LSTR,            1),
+
+    TEST ("",   0,        0, LSTR,       LSTR,           -1),
+
+    TEST ("last",      4, 0, "test",     "lasttest",      0)
+};
+
+/**************************************************************************/
+
+// used to exercise
+// replace (Iterator i1, Iterator i2, const charT* s)
+static const TestCase
+ptr_test_cases [] = {
+
+#undef TEST
+#define TEST(str, off, size, arg, res, bthrow)                               \
+    { Replace (ptr), __LINE__, off, size, -1, -1, -1,                        \
+      str, sizeof str - 1, arg, sizeof arg - 1, res, sizeof res - 1, bthrow }
+
+    //    +------------------------------------------ controlled sequence
+    //    |            +----------------------------- replace() pos1 argument
+    //    |            |  +-------------------------- replace() n1 argument
+    //    |            |  |  +----------------------- sequence to be inserted
+    //    |            |  |  |           +----------- expected result sequence
+    //    |            |  |  |           |        +-- exception info
+    //    |            |  |  |           |        |       0   - no exception
+    //    |            |  |  |           |        |       1,2 - out_of_range
+    //    |            |  |  |           |        |       3   - length_error
+    //    |            |  |  |           |        |      -1   - exc. safety
+    //    |            |  |  |           |        |
+    //    |            |  |  |           |        +-------+
+    //    V            V  V  V           V                V
+    TEST ("ab",        0, 0, "c",        "cab",           0),
+
+    TEST ("",          0, 0, "",         "",              0),
+    TEST ("",          0, 0, "abc",      "abc",           0),
+
+    TEST ("ab",        0, 2, "",         "",              0),
+    TEST ("ab",        0, 1, "",         "b",             0),
+
+    TEST ("\0",        0, 1, "",         "",              0),
+    TEST ("\0",        0, 1, "a",        "a",             0),
+    TEST ("\0",        0, 1, "\0\0",     "",              0),
+
+    TEST ("ah",        0, 1, "bcdefg",   "bcdefgh",       0),
+    TEST ("ah",        1, 1, "bcdefg",   "abcdefg",       0),
+    TEST ("ah",        0, 2, "bcdefg",   "bcdefg",        0),
+
+    TEST ("abc",       0, 2, "cc",       "ccc",           0),
+    TEST ("abc",       1, 2, "cc",       "acc",           0),
+
+    TEST ("abc",       0, 3, "defgh",    "defgh",         0),
+    TEST ("abc",       2, 1, "defgh",    "abdefgh",       0),
+    TEST ("abc",       2, 1, "de\0gh",   "abde",          0),
+    TEST ("abc",       2, 1, "",         "ab",            0),
+    TEST ("abc",       1, 1, "defgh",    "adefghc",       0),
+
+    TEST ("abc",       0, 0, "ee",       "eeabc",         0),
+    TEST ("abc",       0, 0, "\0\0e\0",  "abc",           0),
+    TEST ("abc",       2, 0, "ee",       "abeec",         0),
+    TEST ("abc",       1, 0, "ee",       "aeebc",         0),
+    TEST ("abc",       1, 0, "e\0\0",    "aebc",          0),
+
+    TEST ("a\0b\0\0c", 0, 3, "",         "\0\0c",         0),
+    TEST ("a\0b\0\0c", 0, 3, "\0e",      "\0\0c",         0),
+
+    TEST ("\0ab\0\0c", 0, 0, "e\0",      "e\0ab\0\0c",    0),
+    TEST ("a\0b\0c\0", 6, 0, "e\0",      "a\0b\0c\0e",    0),
+    TEST ("\0ab\0\0c", 5, 0, "e\0",      "\0ab\0\0ec",    0),
+
+    TEST (LSTR, 0, LLEN - 1, "ab",       "ab",            0),
+    TEST (LSTR, 1, LLEN - 2, "ab",       "xab",           0),
+    TEST (LSTR, 0, LLEN - 2, "ab",       "abx",           0),
+    TEST (LSTR, 1, LLEN - 3, "",         "xx",            0),
+
+    TEST ("",   0,        0, LSTR,       LSTR,            0),
+    TEST ("a",  0,        1, LSTR,       LSTR,            0),
+    TEST (LSTR, 0, LLEN - 1, LSTR,       LSTR,            0),
+    TEST ("\0ab\0\0c", 0, 6, LSTR,       LSTR,            0),
+
+    TEST ("",          0, 0, 0,          "",              0),
+    TEST ("abc",       0, 3, 0,          "abc",           0),
+    TEST ("abc",       1, 1, 0,          "aabcc",         0),
+    TEST ("a\0b\0c\0", 2, 3, 0,          "a\0a\0",        0),
+    TEST ("a\0b\0c\0", 0, 0, 0,          "aa\0b\0c\0",    0),
+    TEST ("a\0b\0c\0", 6, 0, 0,          "a\0b\0c\0a",    0),
+    TEST ("\0ab\0c\0", 3, 3, 0,          "\0ab",          0),
+    TEST (LSTR, 0, LLEN - 1, 0,          LSTR,            0),
 
     TEST ("\0",         2, 0, "",        "\0",            1),
     TEST ("a",         10, 0, "",        "a",             1),
@@ -249,35 +269,33 @@ static const TestCase off_size_test_cases [] = {
 
     TEST ("",   0,        0, LSTR,       LSTR,           -1),
 
-#endif   // _RWSTD_NO_EXCEPTIONS
-
     TEST ("last",      4, 0, "test",     "lasttest",      0)
 };
 
 /**************************************************************************/
 
-// used to exercise 
+// used to exercise
 // replace (size_type pos1, size_type n1, basic_string& s)
-// replace (Iterator i1, Iterator i2, basic_string& s)
-static const TestCase off_size_str_test_cases [] = {
+static const TestCase
+off_size_str_test_cases [] = {
 
 #undef TEST
-#define TEST(str, pos1, num, src, res, bthrow)                       \
-    { __LINE__, pos1, num, -1, -1, -1, str, sizeof str - 1, src,     \
-      sizeof src - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, off, size, arg, res, bthrow)                               \
+    { Replace (off_size_str), __LINE__, off, size, -1, -1, -1,               \
+      str, sizeof str - 1, arg, sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +------------------------------------------ controlled sequence
     //    |            +----------------------------- replace() pos1 argument
     //    |            |  +-------------------------- replace() n1 argument
     //    |            |  |  +----------------------- sequence to be inserted
     //    |            |  |  |           +----------- expected result sequence
-    //    |            |  |  |           |        +-- exception info 
-    //    |            |  |  |           |        |       0   - no exception        
-    //    |            |  |  |           |        |       1,2 - out_of_range        
-    //    |            |  |  |           |        |       3   - length_error        
-    //    |            |  |  |           |        |      -1   - exc. safety 
-    //    |            |  |  |           |        |                       
-    //    |            |  |  |           |        +-----------+             
+    //    |            |  |  |           |        +-- exception info
+    //    |            |  |  |           |        |       0   - no exception
+    //    |            |  |  |           |        |       1,2 - out_of_range
+    //    |            |  |  |           |        |       3   - length_error
+    //    |            |  |  |           |        |      -1   - exc. safety
+    //    |            |  |  |           |        |
+    //    |            |  |  |           |        +-----------+
     //    V            V  V  V           V                    V
     TEST ("ab",        0, 0, "c",        "cab",               0),
 
@@ -342,15 +360,108 @@ static const TestCase off_size_str_test_cases [] = {
     TEST ("\0ab\0c\0", 3, 3, 0,          "\0ab\0ab\0c\0",     0),
     TEST (LSTR, 0, LLEN - 1, 0,          LSTR,                0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-
     TEST ("\0",         2, 0, "",        "\0",                1),
     TEST ("a",         10, 0, "",        "a",                 1),
     TEST (LSTR, LLEN + 10, 0, "",        LSTR,                1),
 
     TEST ("",   0,        0, LSTR,       LSTR,               -1),
 
-#endif   // _RWSTD_NO_EXCEPTIONS
+    TEST ("last",      4, 0, "test",     "lasttest",          0)
+};
+
+/**************************************************************************/
+
+// used to exercise
+// replace (Iterator i1, Iterator i2, basic_string& s)
+static const TestCase
+str_test_cases [] = {
+
+#undef TEST
+#define TEST(s, off, size, arg, res, bthrow)                                 \
+    { Replace (str), __LINE__, off, size, -1, -1, -1,                        \
+      s, sizeof s - 1, arg, sizeof arg - 1, res, sizeof res - 1, bthrow }
+
+    //    +------------------------------------------ controlled sequence
+    //    |            +----------------------------- replace() pos1 argument
+    //    |            |  +-------------------------- replace() n1 argument
+    //    |            |  |  +----------------------- sequence to be inserted
+    //    |            |  |  |           +----------- expected result sequence
+    //    |            |  |  |           |        +-- exception info
+    //    |            |  |  |           |        |       0   - no exception
+    //    |            |  |  |           |        |       1,2 - out_of_range
+    //    |            |  |  |           |        |       3   - length_error
+    //    |            |  |  |           |        |      -1   - exc. safety
+    //    |            |  |  |           |        |
+    //    |            |  |  |           |        +-----------+
+    //    V            V  V  V           V                    V
+    TEST ("ab",        0, 0, "c",        "cab",               0),
+
+    TEST ("",          0, 0, "",         "",                  0),
+    TEST ("",          0, 0, "\0",       "\0",                0),
+    TEST ("",          0, 0, "abc",      "abc",               0),
+
+    TEST ("ab",        0, 2, "",         "",                  0),
+    TEST ("ab",        0, 1, "",         "b",                 0),
+    TEST ("ab",        1, 1, "\0",       "a\0",               0),
+
+    TEST ("\0",        0, 1, "",         "",                  0),
+    TEST ("\0",        0, 1, "a",        "a",                 0),
+    TEST ("\0",        0, 1, "\0\0",     "\0\0",              0),
+
+    TEST ("ah",        0, 1, "bcdefg",   "bcdefgh",           0),
+    TEST ("ah",        1, 1, "bcdefg",   "abcdefg",           0),
+    TEST ("ah",        0, 2, "bcdefg",   "bcdefg",            0),
+
+    TEST ("abc",       0, 2, "cc",       "ccc",               0),
+    TEST ("abc",       1, 2, "cc",       "acc",               0),
+
+    TEST ("abc",       0, 3, "defgh",    "defgh",             0),
+    TEST ("abc",       2, 1, "defgh",    "abdefgh",           0),
+    TEST ("abc",       2, 1, "de\0gh",   "abde\0gh",          0),
+    TEST ("abc",       2, 1, "",         "ab",                0),
+    TEST ("abc",       1, 1, "defgh",    "adefghc",           0),
+
+    TEST ("abc",       0, 0, "ee",       "eeabc",             0),
+    TEST ("abc",       0, 0, "\0\0e\0",  "\0\0e\0abc",        0),
+    TEST ("abc",       2, 0, "ee",       "abeec",             0),
+    TEST ("abc",       1, 0, "ee",       "aeebc",             0),
+    TEST ("abc",       1, 0, "e\0\0",    "ae\0\0bc",          0),
+
+    TEST ("a\0b\0\0c", 0, 3, "",         "\0\0c",             0),
+    TEST ("a\0b\0\0c", 0, 3, "\0e",      "\0e\0\0c",          0),
+
+    TEST ("a\0b\0\0c", 2, 3, "\0e",      "a\0\0ec",           0),
+    TEST ("a\0b\0\0c", 0, 3, "\0\0e\0",  "\0\0e\0\0\0c",      0),
+    TEST ("\0ab\0\0c", 1, 2, "\0e\0\0",  "\0\0e\0\0\0\0c",    0),
+
+    TEST ("\0ab\0\0c", 0, 0, "\0e",      "\0e\0ab\0\0c",      0),
+    TEST ("a\0b\0c\0", 6, 0, "e\0",      "a\0b\0c\0e\0",      0),
+    TEST ("\0ab\0\0c", 5, 0, "\0e",      "\0ab\0\0\0ec",      0),
+
+    TEST (LSTR, 0, LLEN - 1, "ab",       "ab",                0),
+    TEST (LSTR, 1, LLEN - 2, "ab",       "xab",               0),
+    TEST (LSTR, 0, LLEN - 2, "ab",       "abx",               0),
+    TEST (LSTR, 1, LLEN - 3, "",         "xx",                0),
+    TEST (LSTR, 1, LLEN - 4, "\0\0",     "x\0\0xx",           0),
+
+    TEST ("",   0,        0, LSTR,       LSTR,                0),
+    TEST ("a",  0,        1, LSTR,       LSTR,                0),
+    TEST (LSTR, 0, LLEN - 1, LSTR,       LSTR,                0),
+    TEST ("\0ab\0\0c", 0, 6, LSTR,       LSTR,                0),
+
+    TEST ("abc",       0, 3, 0,          "abc",               0),
+    TEST ("abc",       1, 1, 0,          "aabcc",             0),
+    TEST ("a\0b\0c\0", 2, 3, 0,          "a\0a\0b\0c\0\0",    0),
+    TEST ("a\0b\0c\0", 0, 0, 0,          "a\0b\0c\0a\0b\0c\0",0),
+    TEST ("a\0b\0c\0", 6, 0, 0,          "a\0b\0c\0a\0b\0c\0",0),
+    TEST ("\0ab\0c\0", 3, 3, 0,          "\0ab\0ab\0c\0",     0),
+    TEST (LSTR, 0, LLEN - 1, 0,          LSTR,                0),
+
+    TEST ("\0",         2, 0, "",        "\0",                1),
+    TEST ("a",         10, 0, "",        "a",                 1),
+    TEST (LSTR, LLEN + 10, 0, "",        LSTR,                1),
+
+    TEST ("",   0,        0, LSTR,       LSTR,               -1),
 
     TEST ("last",      4, 0, "test",     "lasttest",          0)
 };
@@ -359,28 +470,28 @@ static const TestCase off_size_str_test_cases [] = {
 
 // used to exercise
 // replace (size_type pos1, size_type n1, const charT* s, size_type n2)
-// replace (Iterator i1, Iterator i2, const charT* s, size_type n2)
-static const TestCase off_size_size_test_cases [] = {
+static const TestCase
+off_size_ptr_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, pos1, num, src, count, res, bthrow)                     \
-    { __LINE__, pos1, num, -1, count, -1, str, sizeof str - 1, src,       \
-      sizeof src - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, off, size, arg, count, res, bthrow)                        \
+    { Replace (off_size_ptr_size), __LINE__, off, size, -1, count, -1,       \
+      str, sizeof str - 1, arg, sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +------------------------------------------ controlled sequence
     //    |            +----------------------------- replace() pos1 argument
     //    |            |  +-------------------------- replace() n1 argument
     //    |            |  |  +----------------------- sequence to be inserted
-    //    |            |  |  |            +---------- replace() n2 argument 
+    //    |            |  |  |            +---------- replace() n2 argument
     //    |            |  |  |            |  +------- expected result sequence
-    //    |            |  |  |            |  |     +-- exception info 
-    //    |            |  |  |            |  |     |       0   - no exception        
-    //    |            |  |  |            |  |     |       1,2 - out_of_range        
-    //    |            |  |  |            |  |     |       3   - length_error 
+    //    |            |  |  |            |  |     +-- exception info
+    //    |            |  |  |            |  |     |       0   - no exception
+    //    |            |  |  |            |  |     |       1,2 - out_of_range
+    //    |            |  |  |            |  |     |       3   - length_error
     //    |            |  |  |            |  |     |      -1   - exc. safety
-    //    |            |  |  |            |  |     |                           
-    //    |            |  |  |            |  |     +------------+             
-    //    V            V  V  V            V  V                  V             
+    //    |            |  |  |            |  |     |
+    //    |            |  |  |            |  |     +------------+
+    //    V            V  V  V            V  V                  V
     TEST ("ab",        0, 0, "c",         1, "cab",             0),
 
     TEST ("",          0, 0, "",          0, "",                0),
@@ -437,7 +548,97 @@ static const TestCase off_size_size_test_cases [] = {
     TEST (LSTR, 0, LLEN - 1, 0,    LLEN - 1, LSTR,              0),
     TEST (LSTR, 0, LLEN - 1, 0,           1, "x",               0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
+    TEST ("\0",         2, 0, "",         0, "\0",              1),
+    TEST ("a",         10, 0, "",         0, "a",               1),
+    TEST (LSTR, LLEN + 10, 0, "",         0, LSTR,              1),
+
+    TEST ("a",  0,        1, LSTR, LLEN - 1, LSTR,             -1),
+
+    TEST ("last",      4, 0, "test",      4, "lasttest",        0)
+};
+
+
+/**************************************************************************/
+
+// used to exercise
+// replace (Iterator i1, Iterator i2, const charT* s, size_type n2)
+static const TestCase
+ptr_size_test_cases [] = {
+
+#undef TEST
+#define TEST(str, off, size, arg, count, res, bthrow)                        \
+    { Replace (ptr_size), __LINE__, off, size, -1, count, -1,                \
+      str, sizeof str - 1, arg, sizeof arg - 1, res, sizeof res - 1, bthrow }
+
+    //    +------------------------------------------ controlled sequence
+    //    |            +----------------------------- replace() pos1 argument
+    //    |            |  +-------------------------- replace() n1 argument
+    //    |            |  |  +----------------------- sequence to be inserted
+    //    |            |  |  |            +---------- replace() n2 argument
+    //    |            |  |  |            |  +------- expected result sequence
+    //    |            |  |  |            |  |     +-- exception info
+    //    |            |  |  |            |  |     |       0   - no exception
+    //    |            |  |  |            |  |     |       1,2 - out_of_range
+    //    |            |  |  |            |  |     |       3   - length_error
+    //    |            |  |  |            |  |     |      -1   - exc. safety
+    //    |            |  |  |            |  |     |
+    //    |            |  |  |            |  |     +------------+
+    //    V            V  V  V            V  V                  V
+    TEST ("ab",        0, 0, "c",         1, "cab",             0),
+
+    TEST ("",          0, 0, "",          0, "",                0),
+    TEST ("",          0, 0, "abc",       3, "abc",             0),
+
+    TEST ("ab",        0, 2, "",          0, "",                0),
+    TEST ("ab",        0, 1, "",          0, "b",               0),
+
+    TEST ("\0",        0, 1, "",          0, "",                0),
+    TEST ("\0",        0, 1, "a",         1, "a",               0),
+    TEST ("\0",        0, 1, "\0\0",      2, "\0\0",            0),
+
+    TEST ("ah",        0, 1, "bcdefg",    3, "bcdh",            0),
+    TEST ("ah",        1, 1, "bcdefg",    3, "abcd",            0),
+    TEST ("ah",        0, 2, "bcdefg",    5, "bcdef",           0),
+
+    TEST ("abc",       0, 2, "cc",        2, "ccc",             0),
+    TEST ("abc",       1, 2, "cc",        2, "acc",             0),
+    TEST ("abc",       2, 1, "defgh",     1, "abd",             0),
+    TEST ("abc",       2, 1, "de\0gh",    3, "abde\0",          0),
+    TEST ("abc",       2, 1, "",          0, "ab",              0),
+
+    TEST ("abc",       0, 0, "ee",        2, "eeabc",           0),
+    TEST ("abc",       0, 0, "\0\0e\0",   4, "\0\0e\0abc",      0),
+    TEST ("abc",       2, 0, "ee",        2, "abeec",           0),
+    TEST ("abc",       1, 0, "ee",        1, "aebc",            0),
+
+    TEST ("a\0b\0\0c", 0, 3, "",          0, "\0\0c",           0),
+    TEST ("a\0b\0\0c", 0, 3, "e\0",       2, "e\0\0\0c",        0),
+    TEST ("a\0b\0\0c", 2, 3, "e\0",       1, "a\0ec",           0),
+    TEST ("a\0b\0\0c", 2, 3, "\0e",       2, "a\0\0ec",         0),
+    TEST ("\0ab\0\0c", 2, 3, "\0e",       2, "\0a\0ec",         0),
+    TEST ("a\0b\0\0c", 0, 6, "e\0",       2, "e\0",             0),
+
+    TEST (LSTR, 1, LLEN - 1, "\0",        1, "x\0",             0),
+    TEST (LSTR, 0, LLEN - 1, "ab",        2, "ab",              0),
+    TEST (LSTR, 1, LLEN - 2, "ab",        1, "xa",              0),
+    TEST (LSTR, 0, LLEN - 2, "ab",        2, "abx",             0),
+    TEST (LSTR, 1, LLEN - 3, "",          0, "xx",              0),
+    TEST (LSTR, 1, LLEN - 4, "\0\0",      2, "x\0\0xx",         0),
+
+    TEST ("a",  0,        1, LSTR, LLEN - 1, LSTR,              0),
+    TEST (LSTR, 0, LLEN - 1, LSTR, LLEN - 1, LSTR,              0),
+    TEST (LSTR, 0, LPAR - 1, LSTR, LPAR - 1, LSTR,              0),
+
+    TEST (LSTR, LPAR - 1, LPAR, LSTR, LPAR,  LSTR,              0),
+
+    TEST ("abc",       0, 3, 0,           2, "ab",              0),
+    TEST ("abc",       1, 1, 0,           3, "aabcc",           0),
+    TEST ("a\0b\0c\0", 2, 3, 0,           6, "a\0a\0b\0c\0\0",  0),
+    TEST ("a\0b\0c\0", 0, 0, 0,           4, "a\0b\0a\0b\0c\0", 0),
+    TEST ("\0ab\0c\0", 6, 0, 0,           1, "\0ab\0c\0\0",     0),
+    TEST ("\0ab\0c\0", 3, 3, 0,           2, "\0ab\0a",         0),
+    TEST (LSTR, 0, LLEN - 1, 0,    LLEN - 1, LSTR,              0),
+    TEST (LSTR, 0, LLEN - 1, 0,           1, "x",               0),
 
     TEST ("\0",         2, 0, "",         0, "\0",              1),
     TEST ("a",         10, 0, "",         0, "a",               1),
@@ -445,39 +646,37 @@ static const TestCase off_size_size_test_cases [] = {
 
     TEST ("a",  0,        1, LSTR, LLEN - 1, LSTR,             -1),
 
-#endif   // _RWSTD_NO_EXCEPTIONS
-
     TEST ("last",      4, 0, "test",      4, "lasttest",        0)
 };
 
 /**************************************************************************/
 
-// used to exercise 
-// replace (size_type pos1, size_type n1, basic_string& s, 
+// used to exercise
+// replace (size_type pos1, size_type n1, basic_string& s,
 //          size_type pos2, size_type n2)
-// replcae (iterator i1, Iterator i2, InputIterator j1, InputIterator j2)
-static const TestCase range_test_cases [] = {
+static const TestCase
+off_size_str_off_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, pos1, num, src, pos2, count, res, bthrow)               \
-    { __LINE__, pos1, num, pos2, count, -1, str, sizeof str - 1, src,     \
-      sizeof src - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, off, size, arg, off2, size2, res, bthrow)                  \
+    { Replace (off_size_str_off_size), __LINE__, off, size, off2, size2, -1, \
+      str, sizeof str - 1, arg, sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +------------------------------------------ controlled sequence
     //    |            +----------------------------- replace() pos argument
     //    |            |  +-------------------------- replace() n1 argument
     //    |            |  |  +----------------------- sequence to be inserted
     //    |            |  |  |            +---------- replace() pos2 argument
-    //    |            |  |  |            |  +------- replace() n2 argument 
+    //    |            |  |  |            |  +------- replace() n2 argument
     //    |            |  |  |            |  |  +---- expected result sequence
-    //    |            |  |  |            |  |  |  +- exception info  
-    //    |            |  |  |            |  |  |  |     0   - no exception        
-    //    |            |  |  |            |  |  |  |     1,2 - out_of_range        
-    //    |            |  |  |            |  |  |  |     3   - length_error   
-    //    |            |  |  |            |  |  |  |    -1   - exc. safety  
-    //    |            |  |  |            |  |  |  |                         
-    //    |            |  |  |            |  |  |  +----------------+             
-    //    V            V  V  V            V  V  V                   V       
+    //    |            |  |  |            |  |  |  +- exception info
+    //    |            |  |  |            |  |  |  |     0   - no exception
+    //    |            |  |  |            |  |  |  |     1,2 - out_of_range
+    //    |            |  |  |            |  |  |  |     3   - length_error
+    //    |            |  |  |            |  |  |  |    -1   - exc. safety
+    //    |            |  |  |            |  |  |  |
+    //    |            |  |  |            |  |  |  +----------------+
+    //    V            V  V  V            V  V  V                   V
 
     TEST ("ab",        0, 0, "c",         0, 1, "cab",              0),
 
@@ -551,7 +750,121 @@ static const TestCase range_test_cases [] = {
     TEST ("a\0bc\0\0", 6, 0, 0,           1, 3,  "a\0bc\0\0\0bc",   0),
     TEST ("abcdef",    0, 0, 0,           1, 2,  "bcabcdef",        0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
+    TEST ("\0",         2, 0, "",           0, 0, "\0",             1),
+    TEST ("\0",         0, 0, "\0",         2, 0, "",               2),
+
+    TEST ("a",         10, 0, "",           0, 0, "a",              1),
+    TEST ("a",          0, 0, "a",         10, 0, "",               2),
+
+    TEST (LSTR, LLEN + 10, 0, "",           0, 0, LSTR,             1),
+    TEST (LSTR, 0,         0, LSTR, LLEN + 10, 0, "",               2),
+
+    TEST ("a",          0, 1, LSTR, 0, LLEN - 1, LSTR,             -1),
+    TEST (LSTR,         0, 0, LSTR, 0, LPAR - 1, 0,                -1),
+
+    TEST ("last",      4, 0, "test",      0, 4, "lasttest",         0)
+};
+
+
+/**************************************************************************/
+
+// used to exercise
+// replace (iterator i1, Iterator i2, InputIterator j1, InputIterator j2)
+static const TestCase
+range_test_cases [] = {
+
+#undef TEST
+#define TEST(str, off, size, arg, off2, size2, res, bthrow)                  \
+    { Replace (range), __LINE__, off, size, off2, size2, -1,                 \
+      str, sizeof str - 1, arg, sizeof arg - 1, res, sizeof res - 1, bthrow }
+
+    //    +------------------------------------------ controlled sequence
+    //    |            +----------------------------- replace() pos argument
+    //    |            |  +-------------------------- replace() n1 argument
+    //    |            |  |  +----------------------- sequence to be inserted
+    //    |            |  |  |            +---------- replace() pos2 argument
+    //    |            |  |  |            |  +------- replace() n2 argument
+    //    |            |  |  |            |  |  +---- expected result sequence
+    //    |            |  |  |            |  |  |  +- exception info
+    //    |            |  |  |            |  |  |  |     0   - no exception
+    //    |            |  |  |            |  |  |  |     1,2 - out_of_range
+    //    |            |  |  |            |  |  |  |     3   - length_error
+    //    |            |  |  |            |  |  |  |    -1   - exc. safety
+    //    |            |  |  |            |  |  |  |
+    //    |            |  |  |            |  |  |  +----------------+
+    //    V            V  V  V            V  V  V                   V
+
+    TEST ("ab",        0, 0, "c",         0, 1, "cab",              0),
+
+    TEST ("",          0, 0, "",          0, 0, "",                 0),
+    TEST ("",          0, 0, "abc",       0, 3, "abc",              0),
+
+    TEST ("ab",        0, 2, "",          0, 0, "",                 0),
+    TEST ("ab",        0, 1, "",          0, 0, "b",                0),
+
+    TEST ("\0",        0, 1, "",          0, 0, "",                 0),
+    TEST ("\0",        0, 1, "a",         0, 1, "a",                0),
+    TEST ("\0",        0, 1, "\0\0",      1, 1, "\0",               0),
+    TEST ("\0",        0, 1, "\0\0",      0, 2, "\0\0",             0),
+
+    TEST ("ah",        0, 1, "bcdefg",    0, 3, "bcdh",             0),
+    TEST ("ah",        1, 1, "bcdefg",    0, 3, "abcd",             0),
+    TEST ("ah",        0, 1, "bcdefg",    1, 3, "cdeh",             0),
+    TEST ("ah",        1, 1, "bcdefg",    1, 3, "acde",             0),
+    TEST ("ah",        0, 1, "bcdefg",    0, 6, "bcdefgh",          0),
+    TEST ("ah",        1, 1, "bcdefg",    0, 6, "abcdefg",          0),
+
+    TEST ("abc",       0, 2, "cc",        0, 2, "ccc",              0),
+    TEST ("abc",       1, 2, "cc",        0, 2, "acc",              0),
+
+    TEST ("abc",       0, 3, "d",         0, 1, "d",                0),
+    TEST ("abc",       0, 3, "def",       0, 3, "def",              0),
+    TEST ("abc",       0, 3, "defgh",     0, 5, "defgh",            0),
+    TEST ("abc",       2, 1, "defgh",     4, 1, "abh",              0),
+    TEST ("abc",       2, 1, "de\0gh",    2, 1, "ab\0",             0),
+    TEST ("abc",       2, 1, "",          0, 0, "ab",               0),
+
+    TEST ("abc",       1, 1, "defgh",     1, 2, "aefc",             0),
+    TEST ("abc",       0, 0, "ee",        0, 2, "eeabc",            0),
+    TEST ("abc",       0, 0, "\0\0e\0",   0, 4, "\0\0e\0abc",       0),
+    TEST ("abc",       2, 0, "ee",        0, 2, "abeec",            0),
+    TEST ("abc",       2, 1, "\0e\0\0",   0, 4, "ab\0e\0\0",        0),
+    TEST ("abc",       1, 0, "ee",        0, 2, "aeebc",            0),
+    TEST ("abc",       1, 0, "\0e\0\0",   0, 4, "a\0e\0\0bc",       0),
+
+    TEST ("a\0b\0\0c", 0, 3, "",          0, 0, "\0\0c",            0),
+    TEST ("\0ab\0\0c", 0, 3, "",          0, 0, "\0\0c",            0),
+    TEST ("a\0b\0\0c", 0, 3, "\0e",       0, 2, "\0e\0\0c",         0),
+
+    TEST ("a\0b\0\0c", 2, 3, "\0e",       0, 2, "a\0\0ec",          0),
+    TEST ("a\0b\0\0c", 2, 3, "\0e",       1, 1, "a\0ec",            0),
+    TEST ("\0ab\0\0c", 2, 3, "\0e",       0, 2, "\0a\0ec",          0),
+    TEST ("\0ab\0\0c", 2, 3, "\0e\0\0",   1, 3, "\0ae\0\0c",        0),
+
+    TEST ("a\0b\0\0c", 0, 6, "\0e",       0, 2, "\0e",              0),
+    TEST ("a\0b\0\0c", 0, 6, "\0e",       0, 1, "\0",               0),
+
+    TEST ("\0ab\0\0c", 0, 0, "\0e",       0, 2, "\0e\0ab\0\0c",     0),
+    TEST ("a\0b\0c\0", 6, 0, "e\0",       0, 2, "a\0b\0c\0e\0",     0),
+    TEST ("\0ab\0\0c", 5, 0, "\0e",       0, 2, "\0ab\0\0\0ec",     0),
+
+    TEST (LSTR, 0, LLEN - 1, "ab",        0, 2, "ab",               0),
+    TEST (LSTR, 1, LLEN - 2, "ab",        0, 2, "xab",              0),
+    TEST (LSTR, 0, LLEN - 2, "ab",        0, 2, "abx",              0),
+    TEST (LSTR, 1, LLEN - 3, "",          0, 0, "xx",               0),
+    TEST (LSTR, 1, LLEN - 4, "\0\0",      0, 2, "x\0\0xx",          0),
+
+    TEST ("a",  0, 1,        LSTR, 0, LLEN - 1, LSTR,               0),
+    TEST (LSTR, 0, LLEN - 1, LSTR, 0, LLEN - 1, LSTR,               0),
+    TEST (LSTR, 0, LPAR - 1, LSTR, 0, LPAR - 1, LSTR,               0),
+
+    TEST (LSTR, LPAR - 1, LPAR, LSTR, 0, LPAR,  LSTR,               0),
+
+    TEST ("abc",       0, 0, 0,           1, 1,  "babc",            0),
+    TEST ("abc",       2, 0, 0,           0, 2,  "ababc",           0),
+    TEST ("a\0bc\0\0", 0, 0, 0,           4, 2,  "\0\0a\0bc\0\0",   0),
+    TEST ("a\0bc\0\0", 6, 0, 0,           1, 3,  "a\0bc\0\0\0bc",   0),
+    TEST ("abcdef",    0, 0, 0,           1, 2,  "bcabcdef",        0),
 
     TEST ("\0",         2, 0, "",           0, 0, "\0",             1),
     TEST ("\0",         0, 0, "\0",         2, 0, "",               2),
@@ -565,8 +878,6 @@ static const TestCase range_test_cases [] = {
     TEST ("a",          0, 1, LSTR, 0, LLEN - 1, LSTR,             -1),
     TEST (LSTR,         0, 0, LSTR, 0, LPAR - 1, 0,                -1),
 
-#endif   // _RWSTD_NO_EXCEPTIONS
-
     TEST ("last",      4, 0, "test",      0, 4, "lasttest",         0)
 };
 
@@ -574,13 +885,13 @@ static const TestCase range_test_cases [] = {
 
 // used to exercise
 // replace (size_type pos1, size_type n1, charT c, size_type n2)
-// replace (iterator i1, Iterator i2, charT c, size_type n2)
-static const TestCase size_val_test_cases [] = {
+static const TestCase
+off_size_size_val_test_cases [] = {
 
 #undef TEST
-#define TEST(str, pos1, num, count, ch, res, bthrow)                     \
-    { __LINE__, pos1, num, -1, count, ch, str, sizeof str - 1, 0,        \
-      0, res, sizeof res - 1, bthrow }
+#define TEST(str, off, size, count, val, res, bthrow)                     \
+    { Replace (off_size_size_val), __LINE__, off, size, -1, count, val,   \
+      str, sizeof str - 1, 0, 0, res, sizeof res - 1, bthrow }
 
     //    +------------------------------------------ controlled sequence
     //    |            +----------------------------- replace() pos1 argument
@@ -588,14 +899,14 @@ static const TestCase size_val_test_cases [] = {
     //    |            |  |  +----------------------- replace() count argument
     //    |            |  |  |   +------------------- character to be inserted
     //    |            |  |  |   |    +-------------- expected result sequence
-    //    |            |  |  |   |    |       +------- exception info 
-    //    |            |  |  |   |    |       |          0   - no exception        
-    //    |            |  |  |   |    |       |          1,2 - out_of_range        
-    //    |            |  |  |   |    |       |          3   - length_error   
-    //    |            |  |  |   |    |       |         -1   - exc. safety 
-    //    |            |  |  |   |    |       |                         
-    //    |            |  |  |   |    |       +--------+             
-    //    V            V  V  V   V    V                V             
+    //    |            |  |  |   |    |       +------- exception info
+    //    |            |  |  |   |    |       |          0   - no exception
+    //    |            |  |  |   |    |       |          1,2 - out_of_range
+    //    |            |  |  |   |    |       |          3   - length_error
+    //    |            |  |  |   |    |       |         -1   - exc. safety
+    //    |            |  |  |   |    |       |
+    //    |            |  |  |   |    |       +--------+
+    //    V            V  V  V   V    V                V
     TEST ("ab",        0, 0, 1, 'c',  "cab",           0),
 
     TEST ("",          0, 0, 0, 'c',  "",              0),
@@ -653,7 +964,97 @@ static const TestCase size_val_test_cases [] = {
 
     TEST (LSTR, LPAR - 1, LPAR, LPAR,   'x', LSTR,     0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
+    TEST ("\0",         2, 0, 0, ' ',  "\0",           1),
+    TEST ("a",         10, 0, 0, ' ',  "a",            1),
+    TEST (LSTR, LLEN + 10, 0, 0, ' ',  LSTR,           1),
+
+    TEST ("a",  0,        1,  LLEN - 1, 'x', LSTR,    -1),
+
+    TEST ("last",      4, 0, 4, 't', "lasttttt",       0)
+};
+
+/**************************************************************************/
+
+// used to exercise
+// replace (iterator i1, Iterator i2, charT c, size_type n2)
+static const TestCase
+size_val_test_cases [] = {
+
+#undef TEST
+#define TEST(str, off, size, count, val, res, bthrow)                     \
+    { Replace (size_val), __LINE__, off, size, -1, count, val,            \
+      str, sizeof str - 1, 0, 0, res, sizeof res - 1, bthrow }
+
+    //    +------------------------------------------ controlled sequence
+    //    |            +----------------------------- replace() pos1 argument
+    //    |            |  +-------------------------- replace() n1 argument
+    //    |            |  |  +----------------------- replace() count argument
+    //    |            |  |  |   +------------------- character to be inserted
+    //    |            |  |  |   |    +-------------- expected result sequence
+    //    |            |  |  |   |    |       +------- exception info
+    //    |            |  |  |   |    |       |          0   - no exception
+    //    |            |  |  |   |    |       |          1,2 - out_of_range
+    //    |            |  |  |   |    |       |          3   - length_error
+    //    |            |  |  |   |    |       |         -1   - exc. safety
+    //    |            |  |  |   |    |       |
+    //    |            |  |  |   |    |       +--------+
+    //    V            V  V  V   V    V                V
+    TEST ("ab",        0, 0, 1, 'c',  "cab",           0),
+
+    TEST ("",          0, 0, 0, 'c',  "",              0),
+    TEST ("",          0, 0, 3, 'c',  "ccc",           0),
+
+    TEST ("ab",        0, 2, 0, 'c',  "",              0),
+    TEST ("ab",        0, 1, 0, 'c',  "b",             0),
+
+    TEST ("\0",        0, 1, 0, ' ',  "",              0),
+    TEST ("\0",        0, 1, 1, 'a',  "a",             0),
+    TEST ("\0",        0, 1, 1, '\0', "\0",            0),
+    TEST ("\0",        0, 1, 2, '\0', "\0\0",          0),
+
+    TEST ("ah",        0, 1, 1, 'c',  "ch",            0),
+    TEST ("ah",        1, 1, 1, 'c',  "ac",            0),
+    TEST ("ah",        0, 1, 4, 'c',  "cccch",         0),
+    TEST ("ah",        1, 1, 4, 'c',  "acccc",         0),
+
+    TEST ("abc",       0, 2, 2, 'c',  "ccc",           0),
+    TEST ("abc",       1, 2, 2, 'c',  "acc",           0),
+
+    TEST ("abc",       0, 3, 1, 'c',  "c",             0),
+    TEST ("abc",       0, 3, 5, 'c',  "ccccc",         0),
+    TEST ("abc",       2, 1, 1, 'c',  "abc",           0),
+    TEST ("abc",       2, 1, 0, 'c',  "ab",            0),
+
+    TEST ("abc",       1, 1, 5, 'c',  "acccccc",       0),
+    TEST ("abc",       0, 0, 2, 'c',  "ccabc",         0),
+    TEST ("abc",       0, 0, 3, '\0', "\0\0\0abc",     0),
+    TEST ("abc",       2, 0, 2, 'e',  "abeec",         0),
+    TEST ("abc",       2, 0, 3, '\0', "ab\0\0\0c",     0),
+    TEST ("abc",       1, 0, 1, '\0', "a\0bc",         0),
+
+    TEST ("a\0b\0\0c", 0, 3, 1, '\0', "\0\0\0c",       0),
+    TEST ("a\0b\0\0c", 2, 3, 2, '\0', "a\0\0\0c",      0),
+    TEST ("a\0b\0\0c", 2, 2, 1, '\0', "a\0\0\0c",      0),
+    TEST ("\0ab\0\0c", 2, 3, 0, '\0', "\0ac",          0),
+    TEST ("\0ab\0\0c", 2, 1, 2, '\0', "\0a\0\0\0\0c",  0),
+
+    TEST ("a\0b\0\0c", 0, 6, 2, '\0', "\0\0",          0),
+
+    TEST ("\0ab\0\0c", 0, 0, 2, '\0', "\0\0\0ab\0\0c", 0),
+    TEST ("a\0b\0c\0", 6, 0, 2, '\0', "a\0b\0c\0\0\0", 0),
+    TEST ("\0ab\0\0c", 5, 0, 1, '\0', "\0ab\0\0\0c",   0),
+
+    TEST (LSTR, 0, LLEN - 1, 2, 'a',  "aa",            0),
+    TEST (LSTR, 1, LLEN - 2, 2, 'a',  "xaa",           0),
+    TEST (LSTR, 0, LLEN - 2, 2, 'a',  "aax",           0),
+    TEST (LSTR, 1, LLEN - 3, 0, 'a',  "xx",            0),
+    TEST (LSTR, 1, LLEN - 4, 1, '\0', "x\0xx",         0),
+
+    TEST ("a",  0,        1,  LLEN - 1, 'x', LSTR,     0),
+    TEST (LSTR, 0, LLEN - 1,  LLEN - 1, 'x', LSTR,     0),
+    TEST (LSTR, 0, LPAR - 1,  LPAR - 1, 'x', LSTR,     0),
+
+    TEST (LSTR, LPAR - 1, LPAR, LPAR,   'x', LSTR,     0),
 
     TEST ("\0",         2, 0, 0, ' ',  "\0",           1),
     TEST ("a",         10, 0, 0, ' ',  "a",            1),
@@ -661,98 +1062,70 @@ static const TestCase size_val_test_cases [] = {
 
     TEST ("a",  0,        1,  LLEN - 1, 'x', LSTR,    -1),
 
-#endif   // _RWSTD_NO_EXCEPTIONS
-
     TEST ("last",      4, 0, 4, 't', "lasttttt",       0)
 };
 
+
 /**************************************************************************/
 
-static const struct FunctionTag
-{
-    RTags           r_tag;
-    const int      *p_opt;
-    const TestCase *t_cases;
-    std::size_t     n_cases;
-    const char     *str_hdr;
-
-} function_tags [] = {
+static const StringMembers::Test
+tests [] = {
 
 #undef TEST
-#define TEST(tag, opt, cases, hdr)                              \
-    { tag, &opt, cases, sizeof cases / sizeof *cases, hdr }     
+#define TEST(tag, sig) {                                         \
+        tag ## _test_cases,                                      \
+        sizeof tag ## _test_cases / sizeof *tag ## _test_cases,  \
+        "replace " sig                                           \
+    }
 
-    TEST (replace_off_size_ptr, rw_opt_no_replace_off_size_ptr, 
-          off_size_test_cases,
-          "replace (size_type pos1, size_type n1, const charT* p)"),
-
-    TEST (replace_off_size_str, rw_opt_no_replace_off_size_str, 
-          off_size_str_test_cases,            
-          "replace (size_type pos1, size_type n1, basic_string& s)"),
-
-    TEST (replace_off_size_ptr_size, rw_opt_no_replace_off_size_ptr_size, 
-          off_size_size_test_cases,                   
-          "replace (size_type pos1, size_type n1, charT* p, size_type n2)"),
-
-    TEST (replace_off_size_str_off_size, 
-          rw_opt_no_replace_off_size_str_off_size, range_test_cases, 
-          "replace (size_type pos1, size_type n1, basic_string& s, "
-          "size_type pos2, size_type n2)"),
-
-    TEST (replace_off_size_size_val, rw_opt_no_replace_off_size_size_val, 
-          size_val_test_cases, 
-          "replace (size_type pos1, size_type n1, size_type n, charT c)"),
-
-    TEST (replace_ptr, rw_opt_no_replace_ptr, off_size_test_cases, 
-          "replace (iterator i1, iterator i2, const charT* p)"),
-
-    TEST (replace_str, rw_opt_no_replace_str, off_size_str_test_cases, 
-          "replace (iterator i1, iterator i2, basic_string& s)"),
-
-    TEST (replace_ptr_size, rw_opt_no_replace_ptr_size, 
-          off_size_size_test_cases, 
-          "replace (iterator i1, iterator i2, charT* p, size_type n2)"),
-
-    TEST (replace_size_val, rw_opt_no_replace_size_val, 
-          size_val_test_cases, 
-          "replace (iterator i1, iterator i2, size_type n, charT c)"),
-
-    TEST (replace_range, rw_opt_no_replace_range, range_test_cases, 
-          "replace (iterator i1, iterator i2, InputIterator j1, "
-          "InputIterator j2)")
+    TEST (off_size_ptr, "(size_type, size_type, const value_type*)"),
+    TEST (off_size_str, "(size_type, size_type, basic_string&)"),
+    TEST (off_size_ptr_size,
+          "(size_type, size_type, const value_type*, size_type)"),
+    TEST (off_size_str_off_size,
+          "size_type, size_type, basic_string&, size_type, size_type)"),
+    TEST (off_size_size_val, "(size_type, size_type, size_type, value_type)"),
+    TEST (ptr, "(iterator, iterator, const value_type*)"),
+    TEST (str, "(iterator, iterator, basic_string&)"),
+    TEST (ptr_size, "(iterator, iterator, const value_type*, size_type)"),
+    TEST (size_val, "(iterator, iterator, size_type, value_type)"),
+    TEST (range, "(iterator, iterator, InputIterator, InputIterator)")
 };
 
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_replace_exceptions (charT, Traits*,  
-                              const RTags     which,
-                              const TestCase &cs,
-                              const char     *replace_fmt)
+void test_exceptions (charT, Traits*,
+                      const TestCase &cs,
+                      const char     *funcall)
 {
-    typedef std::basic_string <charT, Traits, 
+    typedef std::basic_string <charT, Traits,
                                std::allocator<charT> > TestString;
     typedef typename TestString::iterator StringIter;
     typedef typename TestString::const_iterator ConstStringIter;
 
-    const bool use_iters = (replace_ptr <= which);
+    const bool use_iters = (Replace (ptr) <= cs.which);
 
     static charT wstr [LLEN];
-    static charT wsrc [LLEN];
+    static charT warg [LLEN];
 
     rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (wsrc, cs.src, cs.src_len);
+    rw_widen (warg, cs.arg, cs.arg_len);
 
-    TestString s_str (wstr, cs.str_len);
-    TestString s_src (wsrc, cs.src_len);
+    /* const */ TestString s_str (wstr, cs.str_len);
+    const       TestString s_arg (warg, cs.arg_len);
 
-    int first = use_iters ? cs.pos1 : cs.str_len + 1;
-    int last  = use_iters ? cs.pos1 + cs.num : cs.str_len + 1;
+    const int first = use_iters ? cs.off : cs.str_len + 1;
+    const int last  = use_iters ? cs.off + cs.size : cs.str_len + 1;
 
-    StringIter it_first (std::size_t (first) >= s_str.size () ? 
-                         s_str.end () : s_str.begin () + first);
-    StringIter it_last  (std::size_t (last) >= s_str.size () ?
-                         s_str.end () : s_str.begin () + last);
+    const StringIter it_first (std::size_t (first) >= s_str.size () ?
+                               s_str.end () : s_str.begin () + first);
+    const StringIter it_last  (std::size_t (last) >= s_str.size () ?
+                               s_str.end () : s_str.begin () + last);
+
+    const charT* const arg_ptr = cs.arg ? warg : s_str.c_str ();
+    const TestString&  arg_str = cs.arg ? s_arg : s_str;
+    const charT        arg_val = make_char (char (cs.val), (charT*)0);
 
     std::size_t throw_after = 0;
 
@@ -780,43 +1153,35 @@ void test_replace_exceptions (charT, Traits*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
         _TRY {
-            if (replace_off_size_ptr == which)
-                s_str.replace (cs.pos1, cs.num, 
-                               cs.src ? wsrc : s_str.c_str ());
+            if (Replace (off_size_ptr) == cs.which)
+                s_str.replace (cs.off, cs.size, arg_ptr);
 
-            else if (replace_off_size_str == which)
-                s_str.replace (cs.pos1, cs.num, cs.src ? s_src : s_str);
+            else if (Replace (off_size_str) == cs.which)
+                s_str.replace (cs.off, cs.size, arg_str);
 
-            else if (replace_off_size_ptr_size == which)
-                s_str.replace (cs.pos1, cs.num, 
-                               cs.src ? wsrc : s_str.c_str (), cs.count);
+            else if (Replace (off_size_ptr_size) == cs.which)
+                s_str.replace (cs.off, cs.size, arg_ptr, cs.size2);
 
-            else if (replace_off_size_str_off_size == which)
-                s_str.replace (cs.pos1, cs.num, 
-                               cs.src ? s_src : s_str, cs.pos2, cs.count);
+            else if (Replace (off_size_str_off_size) == cs.which)
+                s_str.replace (cs.off, cs.size, arg_str, cs.off2, cs.size2);
 
-            else if (replace_off_size_size_val == which)
-                s_str.replace (cs.pos1, cs.num, cs.count, 
-                               make_char ((char) cs.ch, (charT*)0));
+            else if (Replace (off_size_size_val) == cs.which)
+                s_str.replace (cs.off, cs.size, cs.size2, arg_val);
 
-            else if (replace_ptr == which)
-                s_str.replace (it_first, it_last, 
-                               cs.src ? wsrc : s_str.c_str ());
+            else if (Replace (ptr) == cs.which)
+                s_str.replace (it_first, it_last, arg_ptr);
 
-            else if (replace_str == which)
-                s_str.replace (it_first, it_last, cs.src ? s_src : s_str);
+            else if (Replace (str) == cs.which)
+                s_str.replace (it_first, it_last, arg_str);
 
-            else if (replace_ptr_size == which)
-                s_str.replace (it_first, it_last, 
-                               cs.src ? wsrc : s_str.c_str (), cs.count);
+            else if (Replace (ptr_size) == cs.which)
+                s_str.replace (it_first, it_last, arg_ptr, cs.size2);
 
-            else if (replace_size_val == which)
-                s_str.replace (it_first, it_last, cs.count, 
-                               make_char ((char) cs.ch, (charT*)0));
+            else if (Replace (size_val) == cs.which)
+                s_str.replace (it_first, it_last, cs.size2, arg_val);
 
-            else if (replace_range == which)
-                s_str.replace (it_first, it_last, 
-                               s_src.begin (), s_src.end ());
+            else if (Replace (range) == cs.which)
+                s_str.replace (it_first, it_last, s_arg.begin(), s_arg.end());
 
             break;
         }
@@ -830,18 +1195,18 @@ void test_replace_exceptions (charT, Traits*,
             rw_assert (s_str.size () == size, 0, cs.line,
                        "line %d: %s: size unexpectedly changed "
                        "from %zu to %zu after an exception",
-                       __LINE__, replace_fmt, size, s_str.size ());
+                       __LINE__, funcall, size, s_str.size ());
 
             rw_assert (s_str.capacity () == capacity, 0, cs.line,
                        "line %d: %s: capacity unexpectedly "
                        "changed from %zu to %zu after an exception",
-                       __LINE__, replace_fmt, capacity, s_str.capacity ());
+                       __LINE__, funcall, capacity, s_str.capacity ());
 
-            
+
             rw_assert (s_str.begin () == begin, 0, cs.line,
                        "line %d: %s: begin() unexpectedly "
                        "changed from after an exception by %d",
-                       __LINE__, replace_fmt, s_str.begin () - begin);
+                       __LINE__, funcall, s_str.begin () - begin);
 
 
             // increment to allow this call to operator new to succeed
@@ -859,10 +1224,10 @@ void test_replace_exceptions (charT, Traits*,
     // verify that if exceptions are enabled and when capacity changes
     // at least one exception is thrown
     rw_assert (   *pst->throw_at_calls_ [0] == std::size_t (-1)
-               || throw_after, 
+               || throw_after,
                0, cs.line,
                "line %d: %s: failed to throw an expected exception",
-               __LINE__, replace_fmt);
+               __LINE__, funcall);
 
 #  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
@@ -883,48 +1248,49 @@ void test_replace_exceptions (charT, Traits*,
 /**************************************************************************/
 
 template <class charT, class Traits, class Iterator>
-void test_replace_range (charT* wstr,
-                         charT* wsrc, 
+void test_replace_range (const charT* wstr,
+                         const charT* warg,
                          Traits*,
                          const Iterator &it,
                          const TestCase &cs,
-                         const char     *replace_fmt)
+                         const char     *funcall)
 {
-    typedef std::basic_string <charT, Traits, 
-                               std::allocator<charT> > String;
-    typedef typename String::iterator StringIter;
+    typedef std::allocator<charT>                        Allocator;
+    typedef std::basic_string <charT, Traits, Allocator> String;
+    typedef typename String::iterator                    StringIter;
 
-    const char* const itname = 
-        cs.src ? type_name (it, (charT*)0) : "basic_string::iterator";
+    const char* const itname =
+        cs.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
 
-    String s_str (wstr, cs.str_len);
-    String s_src (wsrc, cs.src_len);
+    /* const */ String s_str (wstr, cs.str_len);
+    const       String s_arg (warg, cs.arg_len);
 
-    std::size_t off_last   = cs.pos1 + cs.num;
-    std::size_t off_first2 = cs.pos2;
-    std::size_t off_last2  = cs.pos2 + cs.count;
+    std::size_t off_last   = cs.off + cs.size;
+    std::size_t off_first2 = cs.off2;
+    std::size_t off_last2  = cs.off2 + cs.size2;
 
-    StringIter it_first (std::size_t (cs.pos1) >= s_str.size () ? 
-                         s_str.end () : s_str.begin () + cs.pos1);
-    StringIter it_last  (std::size_t (off_last) >= s_str.size () ? 
-                         s_str.end () : s_str.begin () + off_last);
+    const StringIter it_first (std::size_t (cs.off) >= s_str.size () ?
+                               s_str.end () : s_str.begin () + cs.off);
+    const StringIter it_last  (std::size_t (off_last) >= s_str.size () ?
+                               s_str.end () : s_str.begin () + off_last);
 
-    if (cs.src) {
-        off_first2 = off_first2 > s_src.size () ? s_src.size () : off_first2;
-        off_last2  = off_last2  > s_src.size () ? s_src.size () : off_last2;
+    if (cs.arg) {
+        off_first2 = off_first2 > s_arg.size () ? s_arg.size () : off_first2;
+        off_last2  = off_last2  > s_arg.size () ? s_arg.size () : off_last2;
 
-        const Iterator first = make_iter (wsrc + off_first2, 
-            wsrc + off_first2, wsrc + off_last2, Iterator (0, 0, 0));
-        const Iterator last  = make_iter (wsrc + off_last2, 
-            wsrc + cs.pos2, wsrc + off_last2, Iterator (0, 0, 0));
+        const charT* const warg_beg = warg + off_first2;
+        const charT* const warg_end = warg + off_last2;
+
+        const Iterator first (warg_beg, warg_beg,        warg_end);
+        const Iterator last  (warg_end, warg + cs.off2,  warg_end);
 
         s_str.replace (it_first, it_last, first, last);
     }
     else {
-        StringIter first (std::size_t (cs.pos2) >= s_str.size () ? 
-                          s_str.end () : s_str.begin () + cs.pos2); 
-        StringIter last  (off_last2 > s_str.size () ? 
-                          s_str.end () : s_str.begin () + off_last2);
+        const StringIter first (std::size_t (cs.off2) >= s_str.size () ?
+                                s_str.end () : s_str.begin () + cs.size2);
+        const StringIter last (off_last2 > s_str.size () ?
+                               s_str.end () : s_str.begin () + off_last2);
 
         s_str.replace (it_first, it_last, first, last);
     }
@@ -933,79 +1299,87 @@ void test_replace_range (charT* wstr,
 
     rw_assert (match == cs.res_len, 0, cs.line,
                "line %d. %s expected %{#*s}, got %{/*.*Gs}, "
-               "difference at pos %zu for %s", 
-               __LINE__, replace_fmt, int (cs.res_len), cs.res, 
-               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (), 
+               "difference at offset %zu for %s",
+               __LINE__, funcall, int (cs.res_len), cs.res,
+               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match, itname);
 }
 
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_replace_range (charT* wstr, 
-                         charT* wsrc, 
+void test_replace_range (const charT* wstr,
+                         const charT* warg,
                          Traits*,
                          const TestCase &cs,
-                         const char     *replace_fmt)
+                         const char     *funcall)
 {
     if (cs.bthrow)  // this method doesn't throw
         return;
 
-    test_replace_range (wstr, wsrc, (Traits*)0, 
-                       InputIter<charT>(0, 0, 0), cs, replace_fmt);
+    test_replace_range (wstr, warg, (Traits*)0,
+                       InputIter<charT>(0, 0, 0), cs, funcall);
 
-    // there is no need to call test_replace_range 
+    // there is no need to call test_replace_range
     // for other iterators in this case
-    if (0 == cs.src)
+    if (0 == cs.arg)
         return;
 
-    test_replace_range (wstr, wsrc, (Traits*)0, 
-                       ConstFwdIter<charT>(0, 0, 0), cs, replace_fmt);
+    test_replace_range (wstr, warg, (Traits*)0,
+                       ConstFwdIter<charT>(0, 0, 0), cs, funcall);
 
-    test_replace_range (wstr, wsrc, (Traits*)0, 
-                       ConstBidirIter<charT>(0, 0, 0), cs, replace_fmt);
+    test_replace_range (wstr, warg, (Traits*)0,
+                       ConstBidirIter<charT>(0, 0, 0), cs, funcall);
 
-    test_replace_range (wstr, wsrc, (Traits*)0, 
-                       ConstRandomAccessIter<charT>(0, 0, 0), cs, replace_fmt);
+    test_replace_range (wstr, warg, (Traits*)0,
+                       ConstRandomAccessIter<charT>(0, 0, 0), cs, funcall);
 }
 
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_replace (charT, Traits*,  
-                   const RTags     which,
+void test_replace (charT, Traits*,
                    const TestCase &cs,
-                   const char     *replace_fmt)
+                   const char     *funcall)
 {
-    typedef std::basic_string <charT, Traits, 
-                               std::allocator<charT> > TestString;
-    typedef typename TestString::iterator StringIter;
+    typedef std::allocator<charT>                        Allocator;
+    typedef std::basic_string <charT, Traits, Allocator> TestString;
+    typedef typename TestString::iterator                StringIter;
 
-    const bool use_iters = (replace_ptr <= which);
+    const bool use_iters = (Replace (ptr) <= cs.which);
 
     static charT wstr [LLEN];
-    static charT wsrc [LLEN];
+    static charT warg [LLEN];
 
     rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (wsrc, cs.src, cs.src_len);
+    rw_widen (warg, cs.arg, cs.arg_len);
 
     // special processing for replace_range to exercise all iterators
-    if (replace_range == which) {
-        test_replace_range (wstr, wsrc, (Traits*)0, cs, replace_fmt);
+    if (Replace (range) == cs.which) {
+        test_replace_range (wstr, warg, (Traits*)0, cs, funcall);
         return;
     }
 
-    TestString s_str (wstr, cs.str_len);
-    TestString s_src (wsrc, cs.src_len);
+    /* const */ TestString s_str (wstr, cs.str_len);
+    const       TestString s_arg (warg, cs.arg_len);
 
     std::size_t res_off = 0;
-    int first = use_iters ? cs.pos1 : cs.str_len + 1;
-    int last  = use_iters ? cs.pos1 + cs.num : cs.str_len + 1;
+    int first = use_iters ? cs.off : cs.str_len + 1;
+    int last  = use_iters ? cs.off + cs.size : cs.str_len + 1;
+    std::size_t size = cs.size2 >= 0 ? cs.size2 : s_str.max_size () + 1;
 
-    StringIter it_first (std::size_t (first) >= s_str.size () ? 
+    StringIter it_first (std::size_t (first) >= s_str.size () ?
                          s_str.end () : s_str.begin () + first);
     StringIter it_last  (std::size_t (last) >= s_str.size () ?
                          s_str.end () : s_str.begin () + last);
+
+    // string function argument
+    const charT* const arg_ptr = cs.arg ? warg : s_str.c_str ();
+    const TestString&  arg_str = cs.arg ? s_arg : s_str;
+    const charT        arg_val = make_char (char (cs.val), (charT*)0);
+
+    // address of returned reference
+    const TestString* res_ptr = 0;
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -1013,7 +1387,7 @@ void test_replace (charT, Traits*,
     const char* expected = 0;
     if (1 == cs.bthrow && !use_iters)
         expected = exp_exceptions [1];
-    if (2 == cs.bthrow && replace_off_size_str_off_size == which)
+    if (2 == cs.bthrow && Replace (off_size_str_off_size) == cs.which)
         expected = exp_exceptions [1];
     if (3 == cs.bthrow && !use_iters)
         expected = exp_exceptions [2];
@@ -1022,75 +1396,57 @@ void test_replace (charT, Traits*,
 
     try {
 
+#else   // if defined (_RWSTD_NO_EXCEPTIONS)
+
+    if (cs.bthrow)
+        return;
+
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    switch (which)
+    switch (cs.which)
     {
-    case replace_off_size_ptr: {
-        TestString& s_res = 
-            s_str.replace (cs.pos1, cs.num, cs.src ? wsrc : s_str.c_str ());
-        res_off = &s_res - &s_str;
+    case Replace (off_size_ptr): {
+        res_ptr = &s_str.replace (cs.off, cs.size, arg_ptr);
         break;
     }
 
-    case replace_off_size_str: {
-        TestString& s_res = 
-            s_str.replace (cs.pos1, cs.num, cs.src ? s_src : s_str);
-        res_off = &s_res - &s_str;
+    case Replace (off_size_str): {
+        res_ptr = &s_str.replace (cs.off, cs.size, arg_str);
         break;
     }
 
-    case replace_off_size_ptr_size: {
-        TestString& s_res = 
-            s_str.replace (cs.pos1, cs.num, 
-                           cs.src ? wsrc : s_str.c_str (), cs.count);
-        res_off = &s_res - &s_str;
+    case Replace (off_size_ptr_size): {
+        res_ptr = &s_str.replace (cs.off, cs.size, arg_ptr, size);
         break;
     }
 
-    case replace_off_size_str_off_size: {
-        TestString& s_res = 
-            s_str.replace (cs.pos1, cs.num, 
-                           cs.src ? s_src : s_str, cs.pos2, cs.count);
-        res_off = &s_res - &s_str;
+    case Replace (off_size_str_off_size): {
+        res_ptr = &s_str.replace (cs.off, cs.size, arg_str, cs.off2, size);
         break;
     }
 
-    case replace_off_size_size_val: {
-        TestString& s_res = 
-            s_str.replace (cs.pos1, cs.num, cs.count, 
-                           make_char ((char) cs.ch, (charT*)0));
-        res_off = &s_res - &s_str;
+    case Replace (off_size_size_val): {
+        res_ptr = &s_str.replace (cs.off, cs.size, size, arg_val);
         break;
     }
 
-    case replace_ptr: {
-        TestString& s_res = 
-            s_str.replace (it_first, it_last, cs.src ? wsrc : s_str.c_str ());
-        res_off = &s_res - &s_str;
+    case Replace (ptr): {
+        res_ptr = &s_str.replace (it_first, it_last, arg_ptr);
         break;
     }
 
-    case replace_str: {
-        TestString& s_res = 
-            s_str.replace (it_first, it_last, cs.src ? s_src : s_str);
-        res_off = &s_res - &s_str;
+    case Replace (str): {
+        res_ptr = &s_str.replace (it_first, it_last, arg_str);
         break;
     }
 
-    case replace_ptr_size: {
-        TestString& s_res = 
-            s_str.replace (it_first, it_last, 
-                           cs.src ? wsrc : s_str.c_str (), cs.count);
-        res_off = &s_res - &s_str;
+    case Replace (ptr_size): {
+        res_ptr = &s_str.replace (it_first, it_last, arg_ptr, size);
         break;
     }
 
-    case replace_size_val: {
-        TestString& s_res = 
-            s_str.replace (it_first, it_last, cs.count, 
-                           make_char ((char) cs.ch, (charT*)0));
-        res_off = &s_res - &s_str;
+    case Replace (size_val): {
+        res_ptr = &s_str.replace (it_first, it_last, size, arg_val);
         break;
     }
 
@@ -1099,15 +1455,17 @@ void test_replace (charT, Traits*,
         return;
     }
 
+    res_off = res_ptr - &s_str;
+
     // verify the returned value
     rw_assert (0 == res_off, 0, cs.line,
-               "line %d. %s returned invalid reference, offset is %zu%", 
-               __LINE__, replace_fmt, res_off);
+               "line %d. %s returned invalid reference, offset is %zu%",
+               __LINE__, funcall, res_off);
 
     // verfiy that strings length are equal
     rw_assert (cs.res_len == s_str.size (), 0, cs.line,
                "line %d. %s expected %{#*s} with length %zu, got %{/*.*Gs} "
-               "with length %zu", __LINE__, replace_fmt, int (cs.res_len), 
+               "with length %zu", __LINE__, funcall, int (cs.res_len),
                cs.res, cs.res_len, int (sizeof (charT)), int (s_str.size ()),
                s_str.c_str (), s_str.size ());
 
@@ -1116,9 +1474,9 @@ void test_replace (charT, Traits*,
 
     rw_assert (match == cs.res_len, 0, cs.line,
                "line %d. %s expected %{#*s}, got %{/*.*Gs}, "
-               "difference at pos %zu", 
-               __LINE__, replace_fmt, int (cs.res_len), cs.res, 
-               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (), 
+               "difference at offset %zu",
+               __LINE__, funcall, int (cs.res_len), cs.res,
+               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
@@ -1140,120 +1498,30 @@ void test_replace (charT, Traits*,
 
     rw_assert (caught == expected, 0, cs.line,
                "line %d. %s %{?}expected %s, caught %s"
-               "%{:}unexpectedly caught %s%{;}", __LINE__, 
-               replace_fmt, 0 != expected, expected, caught, caught);
+               "%{:}unexpectedly caught %s%{;}", __LINE__,
+               funcall, 0 != expected, expected, caught, caught);
 }
 
 /**************************************************************************/
 
-void get_replace_format (char** pbuf, std::size_t* pbufsize, 
-                        const MemFun *pfid, 
-                        const RTags which, 
-                        const TestCase& cs)
+static void
+test_replace (const MemFun *pfid, const TestCase& cs, bool exc_safety_test)
 {
-    if (   MemFun::DefaultTraits == pfid->tid_
-        && (MemFun::Char == pfid->cid_ || MemFun::WChar == pfid->cid_))
-        rw_asnprintf (pbuf, pbufsize,
-                      "std::%{?}w%{;}string (%{#*s}).replace",
-                      MemFun::WChar == pfid->cid_,
-                      int (cs.str_len), cs.str);
-    else
-        rw_asnprintf (pbuf, pbufsize,
-                      "std::basic_string<%s, %s<%1$s>, %s<%1$s>>(%{#*s})"
-                      ".replace", pfid->cname_, pfid->tname_, pfid->aname_, 
-                      int (cs.str_len), cs.str);
-
-    const bool self = 0 == cs.src;
-
-    switch (which)
-    {
-    case replace_off_size_ptr:
-        rw_asnprintf (pbuf, pbufsize, 
-                      "%{+} (%zu, %zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
-                      cs.pos1, cs.num, !self, int (cs.src_len), cs.src, self);
-        break;
-
-    case replace_off_size_str:
-        rw_asnprintf (pbuf, pbufsize, 
-                      "%{+} (%zu, %zu, %{?}string (%{#*s})%{;}%{?}*this%{;})",
-                      cs.pos1, cs.num, !self, int (cs.src_len), cs.src, self);
-        break;
-
-    case replace_off_size_ptr_size:
-        rw_asnprintf (pbuf, pbufsize, "%{+} ("
-                      "%zu, %zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
-                      cs.pos1, cs.num, !self, int (cs.src_len),
-                      cs.src, self, cs.count);
-        break;
-
-    case replace_off_size_str_off_size:
-        rw_asnprintf (pbuf, pbufsize, "%{+} (%zu, %zu, "
-                      "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
-                      cs.pos1, cs.num, !self, int (cs.src_len), cs.src,
-                      self, cs.pos2, cs.count);
-        break;
-
-    case replace_off_size_size_val:
-        rw_asnprintf (pbuf, pbufsize, 
-                      "%{+} (%zu, %zu, %zu, %#c)",
-                      cs.pos1, cs.num, cs.count, cs.ch);
-        break;
-
-    case replace_ptr:
-        rw_asnprintf (pbuf, pbufsize, "%{+} (begin + %zu, begin + %zu, "
-                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
-                      cs.pos1, cs.pos1 + cs.num, 
-                      !self, int (cs.src_len), cs.src, self);
-        break;
-
-    case replace_str:
-        rw_asnprintf (pbuf, pbufsize, "%{+} (begin + %zu, begin + %zu, " 
-                      "%{?}string (%{#*s})%{;}%{?}*this%{;})",
-                      cs.pos1, cs.pos1 + cs.num, 
-                      !self, int (cs.src_len), cs.src, self);
-        break;
-
-    case replace_ptr_size:
-        rw_asnprintf (pbuf, pbufsize, "%{+} (begin + %zu, begin + %zu, " 
-                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
-                      cs.pos1, cs.pos1 + cs.num, !self, int (cs.src_len),
-                      cs.src, self, cs.count);
-        break;
-
-    case replace_size_val:
-        rw_asnprintf (pbuf, pbufsize, 
-                      "%{+} (begin + %zu, begin + %zu, %zu, %#c)",
-                      cs.pos1, cs.pos1 + cs.num, cs.count, cs.ch);
-        break;
-
-    case replace_range:
-        rw_asnprintf (pbuf, pbufsize, "%{+} (begin + %zu, begin + %zu, "
-                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu, "
-                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu)", 
-                      cs.pos1, cs.pos1 + cs.num, !self, int (cs.src_len), 
-                      cs.src, self, cs.pos2, !self, int (cs.src_len), cs.src,
-                      self, cs.pos2 + cs.count);
-        break;
-    }
-}
-
-/**************************************************************************/
-
-void test_replace (const MemFun *pfid, const RTags which, 
-                   const TestCase& cs,  bool exc_safety_test)
-{
-    char* buf = 0;
-    std::size_t buf_sz = 0;
-    get_replace_format (&buf, &buf_sz, pfid, which, cs); 
+    // format the description of the function call including
+    // the values of arguments for use in diagnostics
+    char* const funcall =
+        StringMembers::format (pfid->cid_, pfid->tid_,
+                               StringMembers::DefaultAllocator,
+                               cs);
 
 #undef TEST
-#define TEST(charT, Traits)	                                             \
-    !exc_safety_test ?                                                   \
-        test_replace (charT(), (Traits*)0, which, cs, buf)               \
-      : test_replace_exceptions (charT(), (Traits*)0, which, cs, buf)
+#define TEST(charT, Traits)                                             \
+    exc_safety_test ?                                                   \
+        test_exceptions (charT (), (Traits*)0, cs, funcall)             \
+      : test_replace (charT (), (Traits*)0, cs, funcall)
 
-    if (MemFun:: DefaultTraits == pfid->tid_) {
-        if (MemFun::Char == pfid->cid_)
+    if (StringMembers::DefaultTraits == pfid->tid_) {
+        if (StringMembers::Char == pfid->cid_)
             TEST (char, std::char_traits<char>);
 
 #ifndef _RWSTD_NO_WCHAR_T
@@ -1263,11 +1531,11 @@ void test_replace (const MemFun *pfid, const RTags which,
 
     }
     else {
-       if (MemFun::Char == pfid->cid_)
+       if (StringMembers::Char == pfid->cid_)
            TEST (char, UserTraits<char>);
 
 #ifndef _RWSTD_NO_WCHAR_T
-       else if (MemFun::WChar == pfid->cid_)
+       else if (StringMembers::WChar == pfid->cid_)
            TEST (wchar_t, UserTraits<wchar_t>);
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -1275,50 +1543,51 @@ void test_replace (const MemFun *pfid, const RTags which,
            TEST (UserChar, UserTraits<UserChar>);
     }
 
-    free (buf);
+    std::free (funcall);
 }
 
 /**************************************************************************/
 
 static void
-test_replace (const MemFun *pfid, const FunctionTag& ftag)
+test_replace (const MemFun *pfid, const Test& test)
 {
     rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::%s",
-             pfid->cname_, pfid->tname_, pfid->aname_, ftag.str_hdr);
+             pfid->cname_, pfid->tname_, pfid->aname_, test.funsig);
 
-    if (rw_opt_no_exception_safety)
+    if (StringMembers::opt_no_exception_safety)
         rw_note (0, 0, 0,
                  "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
-                 "%s exception safety test disabled", 
-                 pfid->cname_, pfid->tname_, pfid->aname_, ftag.str_hdr);
+                 "%s exception safety test disabled",
+                 pfid->cname_, pfid->tname_, pfid->aname_, test.funsig);
 
 #ifdef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
     else
         rw_warn (0, 0, __LINE__,
                  "%s exception safety test: no replacable new and delete",
-                 ftag.str_hdr);
+                 test.funsig);
 
 #endif  //_RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-    for (std::size_t i = 0; i != ftag.n_cases; ++i) {
+    for (std::size_t i = 0; i != test.case_count; ++i) {
 
-        if (!rw_enabled (ftag.t_cases[i].line)) {
-            rw_note (0, 0, __LINE__, 
-                     "test on line %d disabled", ftag.t_cases[i].line);
+        if (!rw_enabled (test.cases [i].line)) {
+            rw_note (0, 0, __LINE__,
+                     "test on line %d disabled", test.cases [i].line);
             continue;
         }
 
         // do not exercise exceptions if they were disabled
-        if (0 != rw_opt_no_exceptions && 0 != ftag.t_cases[i].bthrow)
+        if (   0 != StringMembers::opt_no_exceptions
+            && 0 != test.cases [i].bthrow)
             continue;
 
         // do not exercise exception safety if they were disabled
-        if (0 != rw_opt_no_exception_safety && -1 == ftag.t_cases[i].bthrow)
+        if (    0 != StringMembers::opt_no_exception_safety
+            && -1 == test.cases [i].bthrow)
             continue;
 
-        test_replace (pfid, ftag.r_tag, ftag.t_cases[i], 
-                      -1 == ftag.t_cases[i].bthrow);
+        test_replace (pfid, test.cases [i], -1 == test.cases [i].bthrow);
     }
 }
 
@@ -1328,39 +1597,43 @@ test_replace (const MemFun *pfid, const FunctionTag& ftag)
 static void
 run_test (const MemFun *pfid)
 {
-    if (MemFun::UserTraits == pfid->tid_ && rw_opt_no_user_traits) {
-        rw_note (1 < rw_opt_no_user_traits++, 0, 0,
+    if (   StringMembers::UserTraits == pfid->tid_
+        && StringMembers::opt_no_user_traits) {
+        rw_note (1 < StringMembers::opt_no_user_traits++, 0, 0,
                  "user defined traits test disabled");
     }
-    else if (MemFun::DefaultTraits == pfid->tid_  && rw_opt_no_char_traits) {
-        rw_note (1 < rw_opt_no_char_traits++, 0, 0,
+    else if (   StringMembers::DefaultTraits == pfid->tid_
+             && StringMembers::opt_no_char_traits) {
+        rw_note (1 < StringMembers::opt_no_char_traits++, 0, 0,
                  "char_traits test disabled");
     }
     else {
 
-        if (rw_opt_no_exceptions)
-            rw_note (1 < rw_opt_no_exceptions++, 0, 0,
-                     "string::replace exceptions tests disabled"); 
+        if (StringMembers::opt_no_exceptions)
+            rw_note (1 < StringMembers::opt_no_exceptions++, 0, 0,
+                     "string::replace exceptions tests disabled");
 
-        static const std::size_t ftags = 
-            sizeof function_tags / sizeof *function_tags;
+        static const std::size_t ntests = sizeof tests / sizeof *tests;
 
-        for (std::size_t i = 0; i < ftags; i++) {
+        for (std::size_t i = 0; i < ntests; i++) {
 
-            if (*function_tags[i].p_opt) 
-                rw_note (0, 0, 0, 
+            int tmp = tests [i].cases [0].which - StringMembers::replace_first;
+
+            if (Disabled (tmp))
+                rw_note (0, 0, 0,
                          "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
-                         "%s test disabled", pfid->cname_, pfid->tname_, 
-                         pfid->aname_, function_tags[i].str_hdr);
+                         "%s test disabled", pfid->cname_, pfid->tname_,
+                         pfid->aname_, tests [i].funsig);
             else
-                test_replace (pfid, function_tags[i]);
+                test_replace (pfid, tests [i]);
         }
     }
 }
 
 /**************************************************************************/
 
-int run_test (int, char*[])
+static int
+run_test (int, char*[])
 {
     if ('\0' == LSTR [0]) {
         // initialize LSTR
@@ -1370,41 +1643,44 @@ int run_test (int, char*[])
 
     if (rw_enabled ("char")) {
 
-        MemFun fid (MemFun::Char, "char", MemFun::DefaultTraits, 0);
+        MemFun fid (StringMembers::Char, "char",
+                    StringMembers::DefaultTraits, 0);
 
         fid.tname_ = "char_traits";
 
         run_test (&fid);
 
-        fid.tid_   = MemFun::UserTraits;
+        fid.tid_   = StringMembers::UserTraits;
         fid.tname_ = "UserTraits";
 
         run_test (&fid);
     }
     else
-        rw_note (0, 0, 0, "string::replace char tests disabled");
+        rw_note (0, 0, 0, "string::%s char tests disabled", method_name);
 
     if (rw_enabled ("wchar_t")) {
 
-        MemFun fid (MemFun::WChar, "wchar_t", MemFun::DefaultTraits, 0);
+        MemFun fid (StringMembers::WChar, "wchar_t",
+                    StringMembers::DefaultTraits, 0);
 
         fid.tname_ = "char_traits";
 
         run_test (&fid);
 
-        fid.tid_   = MemFun::UserTraits;
+        fid.tid_   = StringMembers::UserTraits;
         fid.tname_ = "UserTraits";
 
         run_test (&fid);
     }
     else
-        rw_note (0, 0, 0, "string::replace wchar tests disabled");
+        rw_note (0, 0, 0, "string::%s wchar tests disabled", method_name);
 
-    if (rw_opt_no_user_chars) {
+    if (StringMembers::opt_no_user_char) {
         rw_note (0, 0, 0, "user defined chars test disabled");
     }
     else {
-        MemFun fid (MemFun::UChar, "UserChar", MemFun::UserTraits, 0);
+        MemFun fid (StringMembers::UChar, "UserChar",
+                    StringMembers::UserTraits, 0);
         fid.tname_ = "UserTraits";
         run_test (&fid);
     }
@@ -1415,6 +1691,7 @@ int run_test (int, char*[])
 
     return 0;
 }
+
 /**************************************************************************/
 
 int main (int argc, char** argv)
@@ -1424,7 +1701,7 @@ int main (int argc, char** argv)
                     0 /* no comment */, run_test,
                     "|-no-char_traits# "
                     "|-no-user_traits# "
-                    "|-no-user_chars# "
+                    "|-no-user_char# "
                     "|-no-exceptions# "
                     "|-no-exception-safety# "
 
@@ -1439,20 +1716,23 @@ int main (int argc, char** argv)
                     "|-no-replace-size-val# "
                     "|-no-replace-range#",
 
-                    &rw_opt_no_char_traits,
-                    &rw_opt_no_user_traits,
-                    &rw_opt_no_user_chars,
-                    &rw_opt_no_exceptions,
-                    &rw_opt_no_exception_safety,
+                    &StringMembers::opt_no_char_traits,
+                    &StringMembers::opt_no_user_traits,
+                    &StringMembers::opt_no_user_char,
+                    &StringMembers::opt_no_exceptions,
+                    &StringMembers::opt_no_exception_safety,
 
-                    &rw_opt_no_replace_off_size_ptr,
-                    &rw_opt_no_replace_off_size_str,
-                    &rw_opt_no_replace_off_size_ptr_size,
-                    &rw_opt_no_replace_off_size_str_off_size,
-                    &rw_opt_no_replace_off_size_size_val,
-                    &rw_opt_no_replace_ptr,
-                    &rw_opt_no_replace_str,
-                    &rw_opt_no_replace_ptr_size,
-                    &rw_opt_no_replace_size_val,
-                    &rw_opt_no_replace_range);
+                    &Disabled (Replace (off_size_ptr)),
+                    &Disabled (Replace (off_size_str)),
+                    &Disabled (Replace (off_size_ptr_size)),
+                    &Disabled (Replace (off_size_str_off_size)),
+                    &Disabled (Replace (off_size_size_val)),
+                    &Disabled (Replace (ptr)),
+                    &Disabled (Replace (str)),
+                    &Disabled (Replace (ptr_size)),
+                    &Disabled (Replace (size_val)),
+                    &Disabled (Replace (range)),
+
+                    // sentinel
+                    (void*)0);
 }
