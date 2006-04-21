@@ -55,10 +55,24 @@ static const char* const function_names[] = {
 int StringMembers::
 opt_memfun_disabled [StringMembers::member_functions];
 
+int StringMembers::
+opt_no_user_char;
+
+int StringMembers::
+opt_no_char_traits;
+
+int StringMembers::
+opt_no_user_traits;
+
+int StringMembers::
+opt_no_exceptions;
+
+int StringMembers::
+opt_no_exception_safety;
+
 
 char* StringMembers::
-format (charT cid, Traits tid, Allocator aid, MemberFunction which,
-        const TestCase &tcase)
+format (charT cid, Traits tid, Allocator aid, const TestCase &tcase)
 {
     char*  buf     = 0;
     size_t bufsize = 0;
@@ -82,7 +96,7 @@ format (charT cid, Traits tid, Allocator aid, MemberFunction which,
 
     const char *fname = "assign";
 
-    switch (which) {
+    switch (tcase.which) {
     case append_ptr:
         fname = "append";
     case assign_ptr:
