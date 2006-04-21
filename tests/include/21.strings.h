@@ -61,14 +61,10 @@ struct _TEST_EXPORT StringMembers {
         append_size_val,
         // append (InputIterator, InputIterator)
         append_range,
-        append_last = append_range,
-
-        // number of member function overloads
-        append_overloads = append_last - append_first,
+        append_last,
 
         //////////////////////////////////////////////////////////////
-        assign,
-        assign_first = assign,
+        assign_first = append_last,
         // assign (const value_type*)
         assign_ptr = assign_first,
         // assign (const basic_string&)
@@ -81,14 +77,10 @@ struct _TEST_EXPORT StringMembers {
         assign_size_val,
         // assign (InputIterator, InputIterator)
         assign_range,
-        assign_last = assign_range,
-
-        // number of member function overloads
-        assign_overloads = assign_last - assign_first,
+        assign_last,
 
         //////////////////////////////////////////////////////////////
-        insert,
-        insert_first = insert,
+        insert_first = assign_last,
         // insert (size_type, const value_type*)
         insert_off_ptr = insert_first,
         // insert (size_type, const basic_string&)
@@ -105,14 +97,10 @@ struct _TEST_EXPORT StringMembers {
         insert_size_val,
         // insert (iterator p, InputIterator, InputIterator)
         insert_range,
-        insert_last = insert_range,
-
-        // number of member function overloads
-        insert_overloads = insert_last - insert_first,
+        insert_last,
 
         //////////////////////////////////////////////////////////////
-        replace,
-        replace_first = replace,
+        replace_first = insert_last,
         // (size_type, size_type, const value_type*)
         replace_off_size_ptr = replace_first,
         // (size_type, size_type, basic_string&)
@@ -133,14 +121,21 @@ struct _TEST_EXPORT StringMembers {
         replace_size_val,
         // (iterator, iterator, InputIterator, InputIterator)
         replace_range,
-        replace_last = replace_range,
+        replace_last
+    };
 
+    enum {
+        // number of member function overloads
+        append_overloads = append_last - append_first,
+        // number of member function overloads
+        assign_overloads = assign_last - assign_first,
+        // number of member function overloads
+        insert_overloads = insert_last - insert_first,
         // number of member function overloads
         replace_overloads = replace_last - replace_first,
-
-        //////////////////////////////////////////////////////////////
-        // must be last: total number of member functions
-        member_functions
+        // total number of member functions
+        member_functions =   append_overloads + assign_overloads
+                           + insert_overloads + replace_overloads
     };
 
     // describes a single test case for any overload

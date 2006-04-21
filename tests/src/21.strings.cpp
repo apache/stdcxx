@@ -79,26 +79,39 @@ format (charT cid, Traits tid, Allocator aid, const TestCase &tcase)
 
     const bool self = 0 == tcase.arg;
 
-    if (   DefaultTraits == tid
-        && (Char == cid || WChar == cid))
+    if (DefaultTraits == tid && (Char == cid || WChar == cid)) {
+        // format std::string and std::wstring
         rw_asnprintf (&buf, &bufsize,
                       "std::%{?}w%{;}string (%{?}%{#*s}%{;}).",
                       WChar == cid,
                       tcase.str != 0, int (tcase.str_len), tcase.str);
-    else
+    }
+    else {
+        // format std::basic_string specializations other than
+        // std::string and std::wstring, leaving out the name
+        // of the default allocator for brevity
         rw_asnprintf (&buf, &bufsize,
-                      "std::basic_string<%s, %s<%1$s>, %s<%1$s>>"
+                      "std::basic_string<%s, %s<%1$s>%{?}, %s<%1$s>%{;}>"
                       "(%{?}%{#*s}%{;}).",
                       char_names [cid],
                       traits_names [tid],
-                      allocator_names [aid],
+                      DefaultAllocator != aid, allocator_names [aid],
                       tcase.str != 0, int (tcase.str_len), tcase.str);
+    }
 
-    const char *fname = "assign";
+    const char* fname = 0;
+
+    if (append_first <= tcase.which && tcase.which < append_last)
+        fname = "append";
+    else if (assign_first <= tcase.which && tcase.which < assign_last)
+        fname = "assign";
+    else if (insert_first <= tcase.which && tcase.which < insert_last)
+        fname ="insert";
+    else if (replace_first <= tcase.which && tcase.which < replace_last)
+        fname ="replace";
 
     switch (tcase.which) {
     case append_ptr:
-        fname = "append";
     case assign_ptr:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}%s (%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
@@ -106,7 +119,6 @@ format (charT cid, Traits tid, Allocator aid, const TestCase &tcase)
         break;
 
     case append_str:
-        fname = "append";
     case assign_str:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}%s (%{?}string (%{#*s})%{;}%{?}*this%{;})",
@@ -114,7 +126,6 @@ format (charT cid, Traits tid, Allocator aid, const TestCase &tcase)
         break;
 
     case append_ptr_size:
-        fname = "append";
     case assign_ptr_size:
         rw_asnprintf (&buf, &bufsize, "%{+}%s ("
                       "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)",
@@ -123,7 +134,6 @@ format (charT cid, Traits tid, Allocator aid, const TestCase &tcase)
         break;
 
     case append_str_off_size:
-        fname = "append";
     case assign_str_off_size:
         rw_asnprintf (&buf, &bufsize, "%{+}%s ("
                       "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
@@ -132,21 +142,92 @@ format (charT cid, Traits tid, Allocator aid, const TestCase &tcase)
         break;
 
     case append_size_val:
-        fname = "append";
     case assign_size_val:
         rw_asnprintf (&buf, &bufsize,
                       "%{+} %s (%zu, %#c)", tcase.size, tcase.val);
         break;
 
     case append_range:
-        fname = "append";
     case assign_range:
         rw_asnprintf (&buf, &bufsize, "%{+}%s ("
-                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu, "
-                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu)",
+                      "%{?}%{#*s}%{;}%{?}this->%{;}begin() + %zu, "
+                      "%{?}%{#*s}%{;}%{?}this->%{;}.begin() + %zu)",
                       fname, !self, int (tcase.arg_len), tcase.arg,
                       self, tcase.off, !self, int (tcase.arg_len), tcase.arg,
                       self, tcase.off + tcase.size);
+        break;
+
+    case replace_off_size_ptr:
+        rw_asnprintf (&buf, &bufsize, "%{+}%s ("
+                      "%zu, %zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
+                      fname, tcase.off, tcase.size, !self, 
+                      int (tcase.arg_len), tcase.arg, self);
+        break;
+
+    case replace_off_size_str:
+        rw_asnprintf (&buf, &bufsize, "%{+}%s ("
+                      "%zu, %zu, %{?}string (%{#*s})%{;}%{?}*this%{;})",
+                      fname, tcase.off, tcase.size, !self, 
+                      int (tcase.arg_len), tcase.arg, self);
+        break;
+
+    case replace_off_size_ptr_size:
+        rw_asnprintf (&buf, &bufsize, "%{+}%s ("
+                      "%zu, %zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
+                      fname, tcase.off, tcase.size, !self, 
+                      int (tcase.arg_len), tcase.arg, self, tcase.size2);
+        break;
+
+    case replace_off_size_str_off_size:
+        rw_asnprintf (&buf, &bufsize, "%{+}%s (%zu, %zu, "
+                      "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
+                      fname, tcase.off, tcase.size, !self, 
+                      int (tcase.arg_len), tcase.arg, self, 
+                      tcase.off2, tcase.size2);
+        break;
+
+    case replace_off_size_size_val:
+        rw_asnprintf (&buf, &bufsize, 
+                      "%{+}%s (%zu, %zu, %zu, %#c)",
+                      fname, tcase.off, tcase.size, tcase.size2, tcase.val);
+        break;
+
+    case replace_ptr:
+        rw_asnprintf (&buf, &bufsize, "%{+}%s (begin() + %zu, begin() + %zu, "
+                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
+                      fname, tcase.off, tcase.off + tcase.size, 
+                      !self, int (tcase.arg_len), tcase.arg, self);
+        break;
+
+    case replace_str:
+        rw_asnprintf (&buf, &bufsize, "%{+}%s (begin() + %zu, begin() + %zu, " 
+                      "%{?}string (%{#*s})%{;}%{?}*this%{;})",
+                      fname, tcase.off, tcase.off + tcase.size, 
+                      !self, int (tcase.arg_len), tcase.arg, self);
+        break;
+
+    case replace_ptr_size:
+        rw_asnprintf (&buf, &bufsize, "%{+}%s (begin() + %zu, begin() + %zu, " 
+                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
+                      fname, tcase.off, tcase.off + tcase.size, !self, 
+                      int (tcase.arg_len), tcase.arg, self, tcase.size2);
+        break;
+
+    case replace_size_val:
+        rw_asnprintf (&buf, &bufsize, 
+                      "%{+}%s (begin() + %zu, begin() + %zu, %zu, %#c)",
+                      fname, tcase.off, tcase.off + tcase.size, 
+                      tcase.size2, tcase.val);
+        break;
+
+    case replace_range:
+        rw_asnprintf (&buf, &bufsize, "%{+}%s (begin() + %zu, begin() + %zu, "
+                      "%{?}%{#*s}%{;}%{?}this->%{;}begin() + %zu, "
+                      "%{?}%{#*s}%{;}%{?}this->%{;}begin() + %zu)", 
+                      fname, tcase.off, tcase.off + tcase.size, !self, 
+                      int (tcase.arg_len), tcase.arg, self, tcase.off2, !self, 
+                      int (tcase.arg_len), tcase.arg, self, 
+                      tcase.off2 + tcase.size2);
         break;
 
     default:
