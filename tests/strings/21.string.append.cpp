@@ -47,7 +47,7 @@
 
 
 #define AppendOverload   StringMembers::MemberFunction
-#define Append(which)   StringMembers::append_ ## which
+#define Append(which)    StringMembers::append_ ## which
 #define Disabled(which)  StringMembers::opt_memfun_disabled [which]
 
 typedef StringMembers::TestCase TestCase;
@@ -88,24 +88,17 @@ static const char* const exp_exceptions[] =
 
 /**************************************************************************/
 
-static int rw_opt_no_char_traits;              // for --no-char_traits
-static int rw_opt_no_user_traits;              // for --no-user_traits
-
-static int rw_opt_no_user_chars;               // for --no-user_chars
-static int rw_opt_no_exceptions;               // for --no-exceptions
-static int rw_opt_no_exception_safety;         // for --no-exception-safety
-
-/**************************************************************************/
-
 // used to exercise
 // append (const charT* s)
 static const TestCase
 ptr_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, res, bthrow)                            \
-    { __LINE__, -1, -1, -1, str, sizeof str - 1, arg,          \
-      sizeof arg - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, res, bthrow) {                           \
+        Append (ptr), __LINE__, -1, -1, -1, -1, -1,             \
+        str, sizeof str - 1,                                    \
+        arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
+    }
 
     //    +----------------------------------------- controlled sequence
     //    |             +--------------------------- sequence to be appended
@@ -150,11 +143,7 @@ ptr_test_cases [] = {
     TEST ("\0\0abc",    0,            "\0\0abc",              0),
     TEST ("abc\0\0",    0,            "abc\0\0abc",           0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-
     TEST ("",           LSTR,         LSTR,                  -1),
-
-#endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",       "test",       "lasttest",             0)
 };
@@ -167,9 +156,11 @@ static const TestCase
 str_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, res, bthrow)                            \
-    { __LINE__, -1, -1, -1, str, sizeof str - 1, arg,          \
-      sizeof arg - 1, res, sizeof res - 1, bthrow }
+#define TEST(s, arg, res, bthrow) {                             \
+        Append (str), __LINE__, -1, -1, -1, -1, -1,             \
+        s, sizeof s - 1,                                        \
+        arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
+    }
 
     //    +----------------------------------------- controlled sequence
     //    |             +--------------------------- sequence to be appended
@@ -215,11 +206,7 @@ str_test_cases [] = {
     TEST ("\0\0abc",    0,            "\0\0abc\0\0abc",       0),
     TEST ("abc\0\0",    0,            "abc\0\0abc\0\0",       0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-
     TEST ("",           LSTR,         LSTR,                  -1),
-
-#endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",       "test",       "lasttest",             0)
 };
@@ -232,9 +219,11 @@ static const TestCase
 ptr_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, size, res, bthrow)                            \
-    { __LINE__, -1, size, -1, str, sizeof str - 1, arg,              \
-      sizeof arg - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, size, res, bthrow) {                     \
+        Append (ptr_size), __LINE__, -1, size, -1, -1, -1,      \
+        str, sizeof str - 1,                                    \
+        arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
+    }
 
     //    +-------------------------------------- controlled sequence
     //    |            +------------------------- sequence to be appended
@@ -282,11 +271,7 @@ ptr_size_test_cases [] = {
     TEST ("",          LSTR, LLEN - 1,  LSTR,             0),
     TEST (LSTR,        "",          0,  LSTR,             0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-
     TEST ("",          LSTR, LLEN - 1,  LSTR,            -1),
-
-#endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",      "test",      4, "lasttest",        0)
 };
@@ -303,9 +288,11 @@ range_test_cases [] = {
 #define str_off_size_test_cases range_test_cases
 
 #undef TEST
-#define TEST(str, arg, off, size, res, bthrow)                            \
-    { __LINE__, off, size, -1, str, sizeof str - 1, arg,                  \
-      sizeof arg - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, off, size, res, bthrow) {                \
+        Append (str_off_size), __LINE__, off, size, -1, -1, -1, \
+        str, sizeof str - 1,                                    \
+        arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
+    }
 
     //    +-------------------------------------- controlled sequence
     //    |            +------------------------- sequence to be appended
@@ -362,15 +349,11 @@ range_test_cases [] = {
     TEST ("",          LSTR,        0, LLEN, LSTR,            0),
     TEST (LSTR,        "",          0, 0,    LSTR,            0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-
     TEST ("",          "\0",        2, 0,  "",                1),
     TEST ("",          "a",         2, 0,  "",                1),
     TEST ("",          LSTR,LLEN + 10, 0,  "",                1),
 
     TEST (LSTR,        0,           0, 0, 0,                 -1),
-
-#endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",      "test",      0, 4, "lasttest",         0)
 };
@@ -383,9 +366,11 @@ static const TestCase
 size_val_test_cases [] = {
 
 #undef TEST
-#define TEST(str, size, val, res, bthrow)                            \
-    { __LINE__, -1, size, val, str, sizeof str - 1, 0, 0,            \
-      res, sizeof res - 1, bthrow }
+#define TEST(str, size, val, res, bthrow) {                     \
+        Append (size_val), __LINE__, -1, size, -1, -1, val,     \
+        str, sizeof str - 1,                                    \
+        0, 0, res, sizeof res - 1, bthrow                       \
+    }
 
     //    +-------------------------------------- controlled sequence
     //    |            +------------------------- append() count argument
@@ -429,11 +414,7 @@ size_val_test_cases [] = {
     TEST ("",          LLEN - 1, 'x', LSTR,        0),
     TEST (LSTR,        0,        'x', LSTR,        0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-
     TEST ("",          LLEN - 1, 'x', LSTR,       -1),
-
-#endif   // _RWSTD_NO_EXCEPTIONS
 
     TEST ("last",      4, 't', "lasttttt",         0)
 };
@@ -445,7 +426,7 @@ tests [] = {
 
 #undef TEST
 #define TEST(tag, sig) {                                        \
-        Append (tag), tag ## _test_cases,                       \
+        tag ## _test_cases,                                     \
         sizeof tag ## _test_cases / sizeof *tag ## _test_cases, \
         "append " sig                                           \
     }
@@ -461,10 +442,9 @@ tests [] = {
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_append_exceptions (charT, Traits*,
-                             const AppendOverload  which,
-                             const TestCase       &cs,
-                             const char           *funcall)
+void test_exceptions (charT, Traits*,
+                      const TestCase &cs,
+                      const char     *funcall)
 {
     typedef std::basic_string <charT, Traits,
                                std::allocator<charT> > TestString;
@@ -506,22 +486,22 @@ void test_append_exceptions (charT, Traits*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
         _TRY {
-            if (Append (ptr) == which)
+            if (Append (ptr) == cs.which)
                 s_str.append (cs.arg ? wsrc : s_str.c_str ());
 
-            else if (Append (str) == which)
+            else if (Append (str) == cs.which)
                 s_str.append (cs.arg ? s_arg : s_str);
 
-            else if (Append (ptr_size) == which)
+            else if (Append (ptr_size) == cs.which)
                 s_str.append (cs.arg ? wsrc : s_str.c_str (), cs.size);
 
-            else if (Append (str_off_size) == which)
+            else if (Append (str_off_size) == cs.which)
                 s_str.append (cs.arg ? s_arg : s_str, cs.off, cs.size);
 
-            else if (Append (size_val) == which)
+            else if (Append (size_val) == cs.which)
                 s_str.append (cs.size, make_char (char (cs.val), (charT*)0));
 
-            else if (Append (range) == which)
+            else if (Append (range) == cs.which)
                 s_str.append (s_arg.begin (), s_arg.end ());
 
             break;
@@ -671,7 +651,6 @@ void test_append_range (charT* wstr,
 
 template <class charT, class Traits>
 void test_append (charT, Traits*,
-                  const AppendOverload     which,
                   const TestCase &cs,
                   const char     *funcall)
 {
@@ -686,7 +665,7 @@ void test_append (charT, Traits*,
     rw_widen (wsrc, cs.arg, cs.arg_len);
 
     // special processing for append_range to exercise all iterators
-    if (Append (range) == which) {
+    if (Append (range) == cs.which) {
         test_append_range (wstr, wsrc, (Traits*)0, cs, funcall);
         return;
     }
@@ -700,7 +679,7 @@ void test_append (charT, Traits*,
 
     // is some exception expected ?
     const char* expected = 0;
-    if (1 == cs.bthrow && Append (str_off_size) == which)
+    if (1 == cs.bthrow && Append (str_off_size) == cs.which)
         expected = exp_exceptions [1];
     if (2 == cs.bthrow)
         expected = exp_exceptions [2];
@@ -709,10 +688,14 @@ void test_append (charT, Traits*,
 
     try {
 
+#else   // if defined (_RWSTD_NO_EXCEPTIONS)
+
+    if (cs.bthrow)
+        return;
+
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    switch (which)
-    {
+    switch (cs.which) {
     case Append (ptr): {
         TestString& s_res = s_str.append (cs.arg ? wsrc : s_str.c_str ());
         res_off = &s_res - &s_str;
@@ -798,7 +781,7 @@ void test_append (charT, Traits*,
 /**************************************************************************/
 
 static void
-test_append (const MemFun *pfid, const AppendOverload which,
+test_append (const MemFun *pfid,
              const TestCase& cs, bool exc_safety_test)
 {
     // format the description of the function call including
@@ -806,13 +789,13 @@ test_append (const MemFun *pfid, const AppendOverload which,
     char* const funcall =
         StringMembers::format (pfid->cid_, pfid->tid_,
                                StringMembers::DefaultAllocator,
-                               which, cs);
+                               cs);
 
 #undef TEST
 #define TEST(charT, Traits)	                                          \
     exc_safety_test ?                                                     \
-        test_append_exceptions (charT (), (Traits*)0, which, cs, funcall) \
-      : test_append (charT (), (Traits*)0, which, cs, funcall)
+        test_exceptions (charT (), (Traits*)0, cs, funcall) \
+      : test_append (charT (), (Traits*)0, cs, funcall)
 
     if (StringMembers::DefaultTraits == pfid->tid_) {
         if (StringMembers::Char == pfid->cid_)
@@ -848,7 +831,7 @@ test_append (const MemFun *pfid, const Test& test)
     rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::%s",
              pfid->cname_, pfid->tname_, pfid->aname_, test.funsig);
 
-    if (rw_opt_no_exception_safety)
+    if (StringMembers::opt_no_exception_safety)
         rw_note (0, 0, 0,
                  "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
                  "%s exception safety test disabled",
@@ -865,22 +848,23 @@ test_append (const MemFun *pfid, const Test& test)
 
     for (std::size_t i = 0; i != test.case_count; ++i) {
 
-        if (!rw_enabled (test.cases[i].line)) {
+        if (!rw_enabled (test.cases [i].line)) {
             rw_note (0, 0, __LINE__,
-                     "test on line %d disabled", test.cases[i].line);
+                     "test on line %d disabled", test.cases [i].line);
             continue;
         }
 
         // do not exercise exceptions if they were disabled
-        if (0 != rw_opt_no_exceptions && 0 != test.cases[i].bthrow)
+        if (   0 != StringMembers::opt_no_exceptions
+            && 0 != test.cases [i].bthrow)
             continue;
 
         // do not exercise exception safety if they were disabled
-        if (0 != rw_opt_no_exception_safety && -1 == test.cases[i].bthrow)
+        if (   0 != StringMembers::opt_no_exception_safety
+            && -1 == test.cases [i].bthrow)
             continue;
 
-        test_append (pfid, test.which, test.cases[i],
-                     -1 == test.cases [i].bthrow);
+        test_append (pfid, test.cases [i], -1 == test.cases [i].bthrow);
     }
 }
 
@@ -890,26 +874,27 @@ test_append (const MemFun *pfid, const Test& test)
 static void
 run_test (const MemFun *pfid)
 {
-    if (StringMembers::UserTraits == pfid->tid_ && rw_opt_no_user_traits) {
-        rw_note (1 < rw_opt_no_user_traits++, 0, 0,
+    if (   StringMembers::UserTraits == pfid->tid_
+        && StringMembers::opt_no_user_traits) {
+        rw_note (1 < StringMembers::opt_no_user_traits++, 0, 0,
                  "user defined traits test disabled");
     }
     else if (   StringMembers::DefaultTraits == pfid->tid_
-             && rw_opt_no_char_traits) {
-        rw_note (1 < rw_opt_no_char_traits++, 0, 0,
+             && StringMembers::opt_no_char_traits) {
+        rw_note (1 < StringMembers::opt_no_char_traits++, 0, 0,
                  "char_traits test disabled");
     }
     else {
 
-        if (rw_opt_no_exceptions)
-            rw_note (1 < rw_opt_no_exceptions++, 0, 0,
+        if (StringMembers::opt_no_exceptions)
+            rw_note (1 < StringMembers::opt_no_exceptions++, 0, 0,
                      "string::append exceptions tests disabled");
 
         static const std::size_t ntests = sizeof tests / sizeof *tests;
 
         for (std::size_t i = 0; i < ntests; i++) {
 
-            if (Disabled (tests [i].which))
+            if (Disabled (tests [i].cases [0].which))
                 rw_note (0, 0, 0,
                          "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
                          "%s test disabled", pfid->cname_, pfid->tname_,
@@ -964,7 +949,7 @@ int run_test (int, char*[])
     else
         rw_note (0, 0, 0, "string::append wchar tests disabled");
 
-    if (rw_opt_no_user_chars) {
+    if (StringMembers::opt_no_user_char) {
         rw_note (0, 0, 0, "user defined chars test disabled");
     }
     else {
@@ -991,7 +976,7 @@ int main (int argc, char** argv)
                     run_test,
                     "|-no-char_traits# "
                     "|-no-user_traits# "
-                    "|-no-user_chars# "
+                    "|-no-user_char# "
                     "|-no-exceptions# "
                     "|-no-exception-safety# "
 
@@ -1002,11 +987,11 @@ int main (int argc, char** argv)
                     "|-no-append-size-val# "
                     "|-no-append-range#",
 
-                    &rw_opt_no_char_traits,
-                    &rw_opt_no_user_traits,
-                    &rw_opt_no_user_chars,
-                    &rw_opt_no_exceptions,
-                    &rw_opt_no_exception_safety,
+                    &StringMembers::opt_no_char_traits,
+                    &StringMembers::opt_no_user_traits,
+                    &StringMembers::opt_no_user_char,
+                    &StringMembers::opt_no_exceptions,
+                    &StringMembers::opt_no_exception_safety,
 
                     &Disabled (Append (ptr)),
                     &Disabled (Append (str)),

@@ -146,44 +146,55 @@ struct _TEST_EXPORT StringMembers {
     // describes a single test case for any overload
     // of any member function
     struct TestCase {
-        int           line;      // test case line number
+        MemberFunction which;     // member function to call
+        int            line;      // test case line number
 
-        int           off;       // offset (position argument)
-        int           size;      // size (count argument)
-        int           val;       // value (single character to append)
+        int            off;       // offset (position argument)
+        int            size;      // size (count argument)
 
-        const char*   str;       // controlled sequence
-        _RWSTD_SIZE_T str_len;   // length of sequence
+        int            off2;      // offset 2 (position argument)
+        int            size2;     // size 2 (count argument)
 
-        const char*   arg;       // sequence to insert
-        _RWSTD_SIZE_T arg_len;   // length of sequence
+        int            val;       // value (single character to append)
 
-        const char*   res;       // resulting sequence
-        _RWSTD_SIZE_T res_len;   // length of sequence
+        const char*    str;       // controlled sequence
+        _RWSTD_SIZE_T  str_len;   // length of sequence
 
-        int           bthrow;    // exception expected
+        const char*    arg;       // sequence to insert
+        _RWSTD_SIZE_T  arg_len;   // length of sequence
+
+        const char*    res;       // resulting sequence
+        _RWSTD_SIZE_T  res_len;   // length of sequence
+
+        int            bthrow;    // exception expected
     };
 
     // describes a set of test cases for a single overload
     // of a member function
     struct Test {
-        MemberFunction   which;        // which overload of assign()
-        const TestCase  *cases;        // test cases to exercise
-        _RWSTD_SIZE_T    case_count;   // number of test cases
-        const char      *funsig;       // function signature
+        const TestCase *cases;        // test cases to exercise
+        _RWSTD_SIZE_T   case_count;   // number of test cases
+        const char     *funsig;       // function signature
     };
 
     // dynamically allocates and formats a string describing
     // the call to the member function, including the values
     // of its arguments, specfified by its arguments
     static char*
-    format (charT, Traits, Allocator, MemberFunction, const TestCase&);
+    format (charT, Traits, Allocator, const TestCase&);
 
     // array of integers to use for command line option
     // processing (to disable individual overloads of all
     // member functions)
     static int
     opt_memfun_disabled [member_functions];
+
+    static int opt_no_user_char;          // for --no-user_char
+    static int opt_no_char_traits;        // for --no-char_traits
+    static int opt_no_user_traits;        // for --no-user_traits
+
+    static int opt_no_exceptions;         // for --no-exceptions
+    static int opt_no_exception_safety;   // for --no-exception-safety
 };
 
 

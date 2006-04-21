@@ -88,24 +88,17 @@ static const char* const exp_exceptions [] =
 
 /**************************************************************************/
 
-static int rw_opt_no_char_traits;              // for --no-char_traits
-static int rw_opt_no_user_traits;              // for --no-user_traits
-
-static int rw_opt_no_user_chars;               // for --no-user_chars
-static int rw_opt_no_exceptions;               // for --no-exceptions
-static int rw_opt_no_exception_safety;         // for --no-exception-safety
-
-/**************************************************************************/
-
 // used to exercise:
 // assign (const value_type*)
 static const TestCase
 ptr_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, res, bthrow)                            \
-    { __LINE__, -1, -1, -1, str, sizeof str - 1, arg,          \
-      sizeof arg - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, res, bthrow) {                           \
+        Assign (ptr), __LINE__, -1, -1, -1, -1, -1,             \
+        str, sizeof str - 1,                                    \
+        arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
+    }
 
     //    +----------------------------------------- controlled sequence
     //    |             +--------------------------- sequence to be assigned
@@ -157,9 +150,11 @@ static const TestCase
 str_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, res, bthrow)                            \
-    { __LINE__, -1, -1, -1, str, sizeof str - 1, arg,          \
-      sizeof arg - 1, res, sizeof res - 1, bthrow }
+#define TEST(s, arg, res, bthrow) {                             \
+        Assign (str), __LINE__, -1, -1, -1, -1, -1,             \
+        s, sizeof s - 1,                                        \
+        arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
+    }
 
     //    +----------------------------------------- controlled sequence
     //    |             +--------------------------- sequence to be assigned
@@ -217,9 +212,11 @@ static const TestCase
 ptr_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, size, res, bthrow)                            \
-    { __LINE__, -1, size, -1, str, sizeof str - 1, arg,              \
-      sizeof arg - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, size, res, bthrow) {                     \
+        Assign (ptr_size), __LINE__, -1, size, -1, -1, -1,      \
+        str, sizeof str - 1,                                    \
+        arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
+    }
 
     //    +----------------------------------------- controlled sequence
     //    |            +---------------------------- sequence to be assigned
@@ -290,9 +287,11 @@ range_test_cases [] = {
 #define str_off_size_test_cases range_test_cases
 
 #undef TEST
-#define TEST(str, arg, off, size, res, bthrow)                            \
-    { __LINE__, off, size, -1, str, sizeof str - 1, arg,                  \
-      sizeof arg - 1, res, sizeof res - 1, bthrow }
+#define TEST(str, arg, off, size, res, bthrow) {                \
+        Assign (range), __LINE__, off, size, -1, -1, -1,        \
+        str, sizeof str - 1,                                    \
+        arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
+    }
 
     //    +----------------------------------------- controlled sequence
     //    |            +---------------------------- sequence to be inserted
@@ -370,9 +369,11 @@ static const TestCase
 size_val_test_cases [] = {
 
 #undef TEST
-#define TEST(str, size, val, res, bthrow)                            \
-    { __LINE__, -1, size, val, str, sizeof str - 1, 0, 0,            \
-      res, sizeof res - 1, bthrow }
+#define TEST(str, size, val, res, bthrow) {                     \
+        Assign (size_val), __LINE__, -1, size, -1, -1, val,     \
+        str, sizeof str - 1,                                    \
+        0, 0, res, sizeof res - 1, bthrow                       \
+    }
 
     //    +----------------------------------------- controlled sequence
     //    |            +---------------------------- assign() count argument
@@ -425,7 +426,7 @@ tests [] = {
 
 #undef TEST
 #define TEST(tag, sig) {                                        \
-        Assign (tag), tag ## _test_cases,                       \
+        tag ## _test_cases,                                     \
         sizeof tag ## _test_cases / sizeof *tag ## _test_cases, \
         "assign " sig                                           \
     }
@@ -441,10 +442,9 @@ tests [] = {
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_assign_exceptions (charT, Traits*,
-                             const AssignOverload  which,
-                             const TestCase       &cs,
-                             const char           *funcall)
+void test_exceptions (charT, Traits*,
+                      const TestCase &cs,
+                      const char     *funcall)
 {
     typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> TestString;
@@ -490,7 +490,7 @@ void test_assign_exceptions (charT, Traits*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
         _TRY {
-            switch (which) {
+            switch (cs.which) {
             case Assign (ptr):
                 s_str.assign (arg_ptr);
                 break;
@@ -669,7 +669,6 @@ void test_assign_range (charT          *wstr,
 
 template <class charT, class Traits>
 void test_assign (charT, Traits*,
-                  const AssignOverload  which,
                   const TestCase       &cs,
                   const char           *funcall)
 {
@@ -684,7 +683,7 @@ void test_assign (charT, Traits*,
     rw_widen (wsrc, cs.arg, cs.arg_len);
 
     // special processing for assign_range to exercise all iterators
-    if (Assign (range) == which) {
+    if (Assign (range) == cs.which) {
         test_assign_range (wstr, wsrc, (Traits*)0, cs, funcall);
         return;
     }
@@ -706,7 +705,7 @@ void test_assign (charT, Traits*,
 
     // is some exception expected ?
     const char* expected = 0;
-    if (1 == cs.bthrow && Assign (str_off_size) == which)
+    if (1 == cs.bthrow && Assign (str_off_size) == cs.which)
         expected = exp_exceptions [1];
     if (2 == cs.bthrow)
         expected = exp_exceptions [2];
@@ -722,7 +721,7 @@ void test_assign (charT, Traits*,
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    switch (which) {
+    switch (cs.which) {
     case Assign (ptr):
         res_ptr = &s_str.assign (arg_ptr);
         break;
@@ -799,21 +798,20 @@ void test_assign (charT, Traits*,
 /**************************************************************************/
 
 static void
-test_assign (const MemFun *pfid, const AssignOverload which,
-             const TestCase& cs, bool exc_safety_test)
+test_assign (const MemFun *pfid, const TestCase& cs, bool exc_safety_test)
 {
     // format the description of the function call including
     // the values of arguments for use in diagnostics
     char* const funcall =
         StringMembers::format (pfid->cid_, pfid->tid_,
                                StringMembers::DefaultAllocator,
-                               which, cs);
+                               cs);
 
 #undef TEST
-#define TEST(charT, Traits)                                                 \
-    exc_safety_test ?                                                       \
-        test_assign_exceptions (charT (), (Traits*)0, which, cs, funcall)   \
-      : test_assign (charT(), (Traits*)0, which, cs, funcall)
+#define TEST(charT, Traits)                                     \
+    exc_safety_test ?                                           \
+        test_exceptions (charT (), (Traits*)0, cs, funcall)     \
+      : test_assign (charT (), (Traits*)0, cs, funcall)
 
     if (StringMembers::DefaultTraits == pfid->tid_) {
         if (StringMembers::Char == pfid->cid_)
@@ -849,7 +847,7 @@ test_assign (const MemFun *pfid, const Test& test)
     rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::%s",
              pfid->cname_, pfid->tname_, pfid->aname_, test.funsig);
 
-    if (rw_opt_no_exception_safety)
+    if (StringMembers::opt_no_exception_safety)
         rw_note (0, 0, 0,
                  "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
                  "%s exception safety test disabled",
@@ -873,15 +871,16 @@ test_assign (const MemFun *pfid, const Test& test)
         }
 
         // do not exercise exceptions if they were disabled
-        if (0 != rw_opt_no_exceptions && 0 != test.cases [i].bthrow)
+        if (   0 != StringMembers::opt_no_exceptions
+            && 0 != test.cases [i].bthrow)
             continue;
 
         // do not exercise exception safety if they were disabled
-        if (0 != rw_opt_no_exception_safety && -1 == test.cases [i].bthrow)
+        if (   0 != StringMembers::opt_no_exception_safety
+            && -1 == test.cases [i].bthrow)
             continue;
 
-        test_assign (pfid, test.which, test.cases [i],
-                     -1 == test.cases [i].bthrow);
+        test_assign (pfid, test.cases [i], -1 == test.cases [i].bthrow);
     }
 }
 
@@ -891,26 +890,27 @@ test_assign (const MemFun *pfid, const Test& test)
 static void
 run_test (const MemFun *pfid)
 {
-    if (StringMembers::UserTraits == pfid->tid_ && rw_opt_no_user_traits) {
-        rw_note (1 < rw_opt_no_user_traits++, 0, 0,
+    if (   StringMembers::UserTraits == pfid->tid_
+        && StringMembers::opt_no_user_traits) {
+        rw_note (1 < StringMembers::opt_no_user_traits++, 0, 0,
                  "user defined traits test disabled");
     }
     else if (   StringMembers::DefaultTraits == pfid->tid_
-             && rw_opt_no_char_traits) {
-        rw_note (1 < rw_opt_no_char_traits++, 0, 0,
+             && StringMembers::opt_no_char_traits) {
+        rw_note (1 < StringMembers::opt_no_char_traits++, 0, 0,
                  "char_traits test disabled");
     }
     else {
 
-        if (rw_opt_no_exceptions)
-            rw_note (1 < rw_opt_no_exceptions++, 0, 0,
+        if (StringMembers::opt_no_exceptions)
+            rw_note (1 < StringMembers::opt_no_exceptions++, 0, 0,
                      "string::assign exceptions tests disabled");
 
         static const std::size_t ntests = sizeof tests / sizeof *tests;
 
         for (std::size_t i = 0; i < ntests; i++) {
 
-            if (Disabled (tests [i].which))
+            if (Disabled (tests [i].cases [0].which))
                 rw_note (0, 0, 0,
                          "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
                          "%s test disabled", pfid->cname_, pfid->tname_,
@@ -966,7 +966,7 @@ run_test (int, char*[])
     else
         rw_note (0, 0, 0, "string::assign wchar tests disabled");
 
-    if (rw_opt_no_user_chars) {
+    if (StringMembers::opt_no_user_char) {
         rw_note (0, 0, 0, "user defined chars test disabled");
     }
     else {
@@ -993,7 +993,7 @@ int main (int argc, char** argv)
                     run_test,
                     "|-no-char_traits# "
                     "|-no-user_traits# "
-                    "|-no-user_chars# "
+                    "|-no-user_char# "
                     "|-no-exceptions# "
                     "|-no-exception-safety# "
 
@@ -1004,11 +1004,11 @@ int main (int argc, char** argv)
                     "|-no-assign-size-val# "
                     "|-no-assign-range#",
 
-                    &rw_opt_no_char_traits,
-                    &rw_opt_no_user_traits,
-                    &rw_opt_no_user_chars,
-                    &rw_opt_no_exceptions,
-                    &rw_opt_no_exception_safety,
+                    &StringMembers::opt_no_char_traits,
+                    &StringMembers::opt_no_user_traits,
+                    &StringMembers::opt_no_user_char,
+                    &StringMembers::opt_no_exceptions,
+                    &StringMembers::opt_no_exception_safety,
 
                     &Disabled (Assign (ptr)),
                     &Disabled (Assign (str)),
