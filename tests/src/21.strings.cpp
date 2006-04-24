@@ -163,9 +163,12 @@ setvars (const Function &fun, const TestCase *pcase /* = 0 */)
             "iterator, iterator, InputIterator, InputIterator",
         };
 
+        const size_t siginx = size_t (fun.which_ & ~mem_mask) - 1U;
+
+        RW_ASSERT (siginx < sizeof signatures / sizeof *signatures);
+
         // append the function signature
-        rw_asnprintf (&buf, &bufsize,
-                      "%{+} (%s)", signatures [fun.which_ & ~mem_mask]);
+        rw_asnprintf (&buf, &bufsize, "%{+} (%s)", signatures [siginx]);
 
         rw_putenv ("FUNCSIG=");
         rw_fprintf (0, "%{$FUNCSIG:=*}", buf);
@@ -228,6 +231,61 @@ setvars (const Function &fun, const TestCase *pcase /* = 0 */)
                       !self, int (pcase->arg_len), pcase->arg,
                       self, pcase->off, !self, int (pcase->arg_len), pcase->arg,
                       self, pcase->off + pcase->size);
+        break;
+
+    case insert_size_ptr:
+        rw_asnprintf (&buf, &bufsize, 
+                      "%{+} (%zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
+                      pcase->off, !self, int (pcase->arg_len), 
+                      pcase->arg, self);
+        break;
+
+    case insert_size_str:
+        rw_asnprintf (&buf, &bufsize,  
+                      "%{+} (%zu, %{?}string (%{#*s})%{;}%{?}*this%{;})",
+                      pcase->off, !self, int (pcase->arg_len), 
+                      pcase->arg, self);
+        break;
+
+    case insert_size_ptr_size:
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
+                      pcase->off, !self, int (pcase->arg_len),
+                      pcase->arg, self, pcase->size2);
+        break;
+
+    case insert_size_str_size_size:
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%zu, %{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
+                      pcase->off, !self, int (pcase->arg_len), pcase->arg,
+                      self, pcase->off2, pcase->size2);
+        break;
+
+    case insert_size_size_val:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (%zu, %zu, %#c)",
+                      pcase->off, pcase->size2, pcase->val);
+        break;
+
+    case insert_size_val:
+        rw_asnprintf (&buf, &bufsize, 
+                      "%{+} (begin + %zu, %zu, %#c)",
+                      pcase->off, pcase->size2, pcase->val);
+        break;
+
+    case insert_val:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (begin + %zu, %#c)",
+                      pcase->off, pcase->val);
+        break;
+
+    case insert_range:
+        rw_asnprintf (&buf, &bufsize, "%{+} (begin + %zu, "
+                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu, "
+                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu)", 
+                      pcase->off, !self, int (pcase->arg_len), pcase->arg,
+                      self, pcase->off2, !self, int (pcase->arg_len),
+                      pcase->arg, self, pcase->off2 + pcase->size2);
         break;
 
     case replace_size_size_ptr:
