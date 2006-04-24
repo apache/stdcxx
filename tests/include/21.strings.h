@@ -271,4 +271,54 @@ private:
 #define Disabled(which)   \
     StringMembers::opt_memfun_disabled [which & ~StringMembers::mem_mask]
 
+#ifndef _RWSTD_NO_WCHAR_T
+#  define TEST_DISPATCH(fname, memfun, tcase)                   \
+    if (StringMembers::DefaultTraits == memfun.traits_id_) {    \
+        if (StringMembers::Char == memfun.char_id_)             \
+            fname (char (), (std::char_traits<char>*)0,         \
+                   memfun.which_, tcase);                       \
+        else                                                    \
+            fname (wchar_t (), (std::char_traits<wchar_t>*)0,   \
+                   memfun.which_, tcase);                       \
+    }                                                           \
+    else {                                                      \
+       if (StringMembers::Char == memfun.char_id_)              \
+           fname (char (), (UserTraits<char>*)0,                \
+                  memfun.which_, tcase);                        \
+       else if (StringMembers::WChar == memfun.char_id_)        \
+           fname (wchar_t (), (UserTraits<wchar_t>*)0,          \
+                  memfun.which_, tcase);                        \
+       else                                                     \
+           fname (UserChar (), (UserTraits<UserChar>*)0,        \
+                  memfun.which_, tcase);                        \
+    }                                                           \
+    (void)0
+
+#else   // if defined (_RWSTD_NO_WCHAR_T)
+#  define TEST_DISPATCH(fname, memfun, tcase)                   \
+    if (StringMembers::DefaultTraits == memfun.traits_id_) {    \
+        if (StringMembers::Char == memfun.char_id_)             \
+            fname (char (), (std::char_traits<char>*)0,         \
+                   memfun.which_, tcase);                       \
+    }                                                           \
+    else {                                                      \
+       if (StringMembers::Char == memfun.char_id_)              \
+           fname (char (), (UserTraits<char>*)0,                \
+                  memfun.which_, tcase);                        \
+       else if (StringMembers::UChar == memfun.char_id_)        \
+           fname (UserChar (), (UserTraits<UserChar>*)0,        \
+                  memfun.which_, tcase);                        \
+    }                                                           \
+    (void)0
+
+#endif   // _RWSTD_NO_WCHAR_T
+
+
+#define DEFINE_TEST_DISPATCH(fname)                             \
+    static void                                                 \
+    fname (const MemFun &memfun, const TestCase &tcase) {       \
+        TEST_DISPATCH (fname, memfun, tcase);                   \
+    } typedef void rw_unused_typedef
+    
+
 #endif   // RW_21_STRINGS_H_INCLUDED

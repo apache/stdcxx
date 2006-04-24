@@ -25,17 +25,16 @@
  *
  **************************************************************************/
 
-#include <memory>       // for placement operator new()
 #include <string>       // for string
-#include <cstdlib>      // for free(), size_t
 #include <stdexcept>    // for out_of_range, length_error
 
+#include <cstddef>      // for size_t
+
+#include <alg_test.h>   // for InputIter<>
 #include <cmdopt.h>     // for rw_enabled()
 #include <driver.h>     // for rw_test()
-
-#include <rw_printf.h>  // for rw_asnprintf()
 #include <rw_char.h>    // for rw_widen()
-#include <alg_test.h>   // for InputIter<>
+#include <rw_printf.h>  // for rw_asnprintf()
 
 #include <21.strings.h>
 
@@ -403,7 +402,7 @@ size_val_test_cases [] = {
 template <class charT, class Traits>
 void test_exceptions (charT, Traits*,
                       AppendOverload  which,
-                      const TestCase &cs)
+                      const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits,
                                std::allocator<charT> > TestString;
@@ -413,11 +412,11 @@ void test_exceptions (charT, Traits*,
     static charT wstr [LLEN];
     static charT wsrc [LLEN];
 
-    rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (wsrc, cs.arg, cs.arg_len);
+    rw_widen (wstr, tcase.str, tcase.str_len);
+    rw_widen (wsrc, tcase.arg, tcase.arg_len);
 
-    TestString s_str (wstr, cs.str_len);
-    TestString s_arg (wsrc, cs.arg_len);
+    TestString s_str (wstr, tcase.str_len);
+    TestString s_arg (wsrc, tcase.arg_len);
 
     std::size_t throw_after = 0;
 
@@ -446,19 +445,19 @@ void test_exceptions (charT, Traits*,
 
         _TRY {
             if (Append (ptr) == which)
-                s_str.append (cs.arg ? wsrc : s_str.c_str ());
+                s_str.append (tcase.arg ? wsrc : s_str.c_str ());
 
             else if (Append (str) == which)
-                s_str.append (cs.arg ? s_arg : s_str);
+                s_str.append (tcase.arg ? s_arg : s_str);
 
             else if (Append (ptr_size) == which)
-                s_str.append (cs.arg ? wsrc : s_str.c_str (), cs.size);
+                s_str.append (tcase.arg ? wsrc : s_str.c_str (), tcase.size);
 
             else if (Append (str_size_size) == which)
-                s_str.append (cs.arg ? s_arg : s_str, cs.off, cs.size);
+                s_str.append (tcase.arg ? s_arg : s_str, tcase.off, tcase.size);
 
             else if (Append (size_val) == which)
-                s_str.append (cs.size, make_char (char (cs.val), (charT*)0));
+                s_str.append (tcase.size, make_char (char (tcase.val), (charT*)0));
 
             else if (Append (range) == which)
                 s_str.append (s_arg.begin (), s_arg.end ());
@@ -472,18 +471,18 @@ void test_exceptions (charT, Traits*,
             // verify that an exception thrown during allocation
             // doesn't cause a change in the state of the vector
 
-            rw_assert (s_str.size () == size, 0, cs.line,
+            rw_assert (s_str.size () == size, 0, tcase.line,
                        "line %d: %{$FUNCALL}: size unexpectedly changed "
                        "from %zu to %zu after an exception",
                        __LINE__, size, s_str.size ());
 
-            rw_assert (s_str.capacity () == capacity, 0, cs.line,
+            rw_assert (s_str.capacity () == capacity, 0, tcase.line,
                        "line %d: %{$FUNCALL}: capacity unexpectedly "
                        "changed from %zu to %zu after an exception",
                        __LINE__, capacity, s_str.capacity ());
 
 
-            rw_assert (s_str.begin () == begin, 0, cs.line,
+            rw_assert (s_str.begin () == begin, 0, tcase.line,
                        "line %d: %{$FUNCALL}: begin() unexpectedly "
                        "changed from after an exception by %d",
                        __LINE__, s_str.begin () - begin);
@@ -505,7 +504,7 @@ void test_exceptions (charT, Traits*,
     // at least one exception is thrown
     rw_assert (   *pst->throw_at_calls_ [0] == std::size_t (-1)
                || throw_after,
-               0, cs.line,
+               0, tcase.line,
                "line %d: %{$FUNCALL}: failed to throw an expected exception",
                __LINE__);
 
@@ -528,36 +527,36 @@ void test_exceptions (charT, Traits*,
 /**************************************************************************/
 
 template <class charT, class Traits, class Iterator>
-void test_append_range (charT* wstr,
-                        charT* wsrc,
+void test_append_range (charT          *wstr,
+                        charT          *wsrc,
                         Traits*,
                         const Iterator &it,
-                        const TestCase &cs)
+                        const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits,
                                std::allocator<charT> > String;
     typedef typename String::iterator StringIter;
 
     const char* const itname =
-        cs.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
+        tcase.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
 
-    String s_str (wstr, cs.str_len);
-    String s_arg (wsrc, cs.arg_len);
+    String s_str (wstr, tcase.str_len);
+    String s_arg (wsrc, tcase.arg_len);
 
-    std::size_t off_last = cs.off + cs.size;
+    std::size_t off_last = tcase.off + tcase.size;
 
-    if (cs.arg) {
+    if (tcase.arg) {
         off_last = off_last > s_arg.size () ? s_arg.size () : off_last;
 
-        const Iterator first = make_iter (wsrc + cs.off,
-            wsrc + cs.off, wsrc + off_last, Iterator (0, 0, 0));
+        const Iterator first = make_iter (wsrc + tcase.off,
+            wsrc + tcase.off, wsrc + off_last, Iterator (0, 0, 0));
         const Iterator last  = make_iter (wsrc + off_last,
-            wsrc + cs.off, wsrc + off_last, Iterator (0, 0, 0));
+            wsrc + tcase.off, wsrc + off_last, Iterator (0, 0, 0));
 
         s_str.append (first, last);
     }
     else {
-        StringIter first (s_str.begin () + cs.off);
+        StringIter first (s_str.begin () + tcase.off);
         StringIter last  (off_last > s_str.size () ?
             s_str.end ()
           : s_str.begin () + off_last);
@@ -565,12 +564,12 @@ void test_append_range (charT* wstr,
         s_str.append (first, last);
     }
 
-    const std::size_t match = rw_match (cs.res, s_str.c_str(), cs.res_len);
+    const std::size_t match = rw_match (tcase.res, s_str.c_str(), tcase.res_len);
 
-    rw_assert (match == cs.res_len, 0, cs.line,
+    rw_assert (match == tcase.res_len, 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
                "difference at off %zu for %s",
-               __LINE__, int (cs.res_len), cs.res,
+               __LINE__, int (tcase.res_len), tcase.res,
                int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match, itname);
 }
@@ -581,27 +580,27 @@ template <class charT, class Traits>
 void test_append_range (charT* wstr,
                         charT* wsrc,
                         Traits*,
-                        const TestCase &cs)
+                        const TestCase &tcase)
 {
-    if (cs.bthrow)  // this method doesn't throw
+    if (tcase.bthrow)  // this method doesn't throw
         return;
 
     test_append_range (wstr, wsrc, (Traits*)0,
-                       InputIter<charT>(0, 0, 0), cs);
+                       InputIter<charT>(0, 0, 0), tcase);
 
     // there is no need to call test_append_range
     // for other iterators in this case
-    if (0 == cs.arg)
+    if (0 == tcase.arg)
         return;
 
     test_append_range (wstr, wsrc, (Traits*)0,
-                       ConstFwdIter<charT>(0, 0, 0), cs);
+                       ConstFwdIter<charT>(0, 0, 0), tcase);
 
     test_append_range (wstr, wsrc, (Traits*)0,
-                       ConstBidirIter<charT>(0, 0, 0), cs);
+                       ConstBidirIter<charT>(0, 0, 0), tcase);
 
     test_append_range (wstr, wsrc, (Traits*)0,
-                       ConstRandomAccessIter<charT>(0, 0, 0), cs);
+                       ConstRandomAccessIter<charT>(0, 0, 0), tcase);
 }
 
 /**************************************************************************/
@@ -609,26 +608,31 @@ void test_append_range (charT* wstr,
 template <class charT, class Traits>
 void test_append (charT, Traits*,
                   AppendOverload  which,
-                  const TestCase &cs)
+                  const TestCase &tcase)
 {
-    typedef std::basic_string <charT, Traits,
-                               std::allocator<charT> > TestString;
-    typedef typename TestString::iterator StringIter;
+    typedef std::allocator<charT>                        Allocator;
+    typedef std::basic_string <charT, Traits, Allocator> TestString;
+    typedef typename TestString::iterator                StringIter;
+
+    if (-1 == tcase.bthrow) {
+        test_exceptions (charT (), (Traits*)0, which, tcase);
+        return;
+    }
 
     static charT wstr [LLEN];
     static charT wsrc [LLEN];
 
-    rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (wsrc, cs.arg, cs.arg_len);
+    rw_widen (wstr, tcase.str, tcase.str_len);
+    rw_widen (wsrc, tcase.arg, tcase.arg_len);
 
     // special processing for append_range to exercise all iterators
     if (Append (range) == which) {
-        test_append_range (wstr, wsrc, (Traits*)0, cs);
+        test_append_range (wstr, wsrc, (Traits*)0, tcase);
         return;
     }
 
-    TestString s_str (wstr, cs.str_len);
-    TestString s_arg (wsrc, cs.arg_len);
+    TestString s_str (wstr, tcase.str_len);
+    TestString s_arg (wsrc, tcase.arg_len);
 
     std::size_t res_off = 0;
 
@@ -636,9 +640,9 @@ void test_append (charT, Traits*,
 
     // is some exception expected ?
     const char* expected = 0;
-    if (1 == cs.bthrow && Append (str_size_size) == which)
+    if (1 == tcase.bthrow && Append (str_size_size) == which)
         expected = exp_exceptions [1];
-    if (2 == cs.bthrow)
+    if (2 == tcase.bthrow)
         expected = exp_exceptions [2];
 
     const char* caught = 0;
@@ -647,41 +651,41 @@ void test_append (charT, Traits*,
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (cs.bthrow)
+    if (tcase.bthrow)
         return;
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
     switch (which) {
     case Append (ptr): {
-        TestString& s_res = s_str.append (cs.arg ? wsrc : s_str.c_str ());
+        TestString& s_res = s_str.append (tcase.arg ? wsrc : s_str.c_str ());
         res_off = &s_res - &s_str;
         break;
     }
 
     case Append (str): {
-        TestString& s_res = s_str.append (cs.arg ? s_arg : s_str);
+        TestString& s_res = s_str.append (tcase.arg ? s_arg : s_str);
         res_off = &s_res - &s_str;
         break;
     }
 
     case Append (ptr_size): {
         TestString& s_res =
-            s_str.append (cs.arg ? wsrc : s_str.c_str (), cs.size);
+            s_str.append (tcase.arg ? wsrc : s_str.c_str (), tcase.size);
         res_off = &s_res - &s_str;
         break;
     }
 
     case Append (str_size_size): {
         TestString& s_res =
-            s_str.append (cs.arg ? s_arg : s_str, cs.off, cs.size);
+            s_str.append (tcase.arg ? s_arg : s_str, tcase.off, tcase.size);
         res_off = &s_res - &s_str;
         break;
     }
 
     case Append (size_val): {
         TestString& s_res =
-            s_str.append (cs.size, make_char (char (cs.val), (charT*)0));
+            s_str.append (tcase.size, make_char (char (tcase.val), (charT*)0));
         res_off = &s_res - &s_str;
         break;
     }
@@ -691,24 +695,25 @@ void test_append (charT, Traits*,
     }
 
     // verify the returned value
-    rw_assert (0 == res_off, 0, cs.line,
+    rw_assert (0 == res_off, 0, tcase.line,
                "line %d. %{$FUNCALL} returned invalid reference, offset is %zu",
                __LINE__, res_off);
 
     // verfiy that strings length are equal
-    rw_assert (cs.res_len == s_str.size (), 0, cs.line,
+    rw_assert (tcase.res_len == s_str.size (), 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s} with length %zu, "
-               "got %{/*.*Gs} with length %zu", __LINE__, int (cs.res_len),
-               cs.res, cs.res_len, int (sizeof (charT)), int (s_str.size ()),
-               s_str.c_str (), s_str.size ());
+               "got %{/*.*Gs} with length %zu", __LINE__, int (tcase.res_len),
+               tcase.res, tcase.res_len, int (sizeof (charT)),
+               int (s_str.size ()), s_str.c_str (), s_str.size ());
 
     // verfiy that append results match expected result
-    const std::size_t match = rw_match (cs.res, s_str.c_str(), cs.res_len);
+    const std::size_t match =
+        rw_match (tcase.res, s_str.c_str(), tcase.res_len);
 
-    rw_assert (match == cs.res_len, 0, cs.line,
+    rw_assert (match == tcase.res_len, 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
                "difference at off %zu",
-               __LINE__, int (cs.res_len), cs.res,
+               __LINE__, int (tcase.res_len), tcase.res,
                int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match);
 
@@ -729,7 +734,7 @@ void test_append (charT, Traits*,
     _RWSTD_UNUSED (should_throw);
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    rw_assert (caught == expected, 0, cs.line,
+    rw_assert (caught == expected, 0, tcase.line,
                "line %d. %{$FUNCALL} %{?}expected %s, caught %s"
                "%{:}unexpectedly caught %s%{;}",
                __LINE__, 0 != expected, expected, caught, caught);
@@ -737,43 +742,7 @@ void test_append (charT, Traits*,
 
 /**************************************************************************/
 
-static void
-test_append (const MemFun &memfun, const TestCase& tcase)
-{
-    // exercise exception safety?
-    const bool exception_safety = -1 == tcase.bthrow;
-
-#undef TEST
-#define TEST(charT, Traits)                                             \
-    exception_safety ?                                                  \
-        test_exceptions (charT (), (Traits*)0, memfun.which_, tcase)    \
-      : test_append (charT (), (Traits*)0, memfun.which_, tcase)
-
-    if (StringMembers::DefaultTraits == memfun.traits_id_) {
-        if (StringMembers::Char == memfun.char_id_)
-            TEST (char, std::char_traits<char>);
-
-#ifndef _RWSTD_NO_WCHAR_T
-    else
-        TEST (wchar_t, std::char_traits<wchar_t>);
-#endif   // _RWSTD_NO_WCHAR_T
-
-    }
-    else {
-       if (StringMembers::Char == memfun.char_id_)
-           TEST (char, UserTraits<char>);
-
-#ifndef _RWSTD_NO_WCHAR_T
-       else if (StringMembers::WChar == memfun.char_id_)
-           TEST (wchar_t, UserTraits<wchar_t>);
-#endif   // _RWSTD_NO_WCHAR_T
-
-       else
-           TEST (UserChar, UserTraits<UserChar>);
-    }
-}
-
-/**************************************************************************/
+DEFINE_TEST_DISPATCH (test_append);
 
 int run_test (int, char*[])
 {

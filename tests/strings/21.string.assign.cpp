@@ -27,7 +27,7 @@
 
 #include <memory>       // for placement operator new()
 #include <string>       // for string
-#include <cstdlib>      // for free(), size_t
+#include <cstddef>      // for size_t
 #include <stdexcept>    // for out_of_range, length_error
 
 #include <cmdopt.h>     // for rw_enabled()
@@ -403,7 +403,7 @@ size_val_test_cases [] = {
 template <class charT, class Traits>
 void test_exceptions (charT, Traits*,
                       AssignOverload  which,
-                      const TestCase &cs)
+                      const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> TestString;
@@ -413,11 +413,11 @@ void test_exceptions (charT, Traits*,
     static charT wstr [LLEN];
     static charT wsrc [LLEN];
 
-    rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (wsrc, cs.arg, cs.arg_len);
+    rw_widen (wstr, tcase.str, tcase.str_len);
+    rw_widen (wsrc, tcase.arg, tcase.arg_len);
 
-    /* const */ TestString s_str (wstr, cs.str_len);
-    const       TestString s_arg (wsrc, cs.arg_len);
+    /* const */ TestString s_str (wstr, tcase.str_len);
+    const       TestString s_arg (wsrc, tcase.arg_len);
 
     std::size_t throw_after = 0;
 
@@ -431,9 +431,9 @@ void test_exceptions (charT, Traits*,
 
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-    const charT* const arg_ptr = cs.arg ? wsrc : s_str.c_str ();
-    const TestString&  arg_str = cs.arg ? s_arg : s_str;
-    const charT        arg_val = make_char (char (cs.val), (charT*)0);
+    const charT* const arg_ptr = tcase.arg ? wsrc : s_str.c_str ();
+    const TestString&  arg_str = tcase.arg ? s_arg : s_str;
+    const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
     // iterate for`n=throw_after' starting at the next call to operator
     // new, forcing each call to throw an exception, until the assignion
@@ -459,15 +459,15 @@ void test_exceptions (charT, Traits*,
                 break;
 
             case Assign (ptr_size):
-                s_str.assign (arg_ptr, cs.size);
+                s_str.assign (arg_ptr, tcase.size);
                 break;
 
             case Assign (str_size_size):
-                s_str.assign (arg_str, cs.off, cs.size);
+                s_str.assign (arg_str, tcase.off, tcase.size);
                 break;
 
             case Assign (size_val):
-                s_str.assign (cs.size, arg_val);
+                s_str.assign (tcase.size, arg_val);
                 break;
 
             case Assign (range): {
@@ -490,18 +490,18 @@ void test_exceptions (charT, Traits*,
             // verify that an exception thrown during allocation
             // doesn't cause a change in the state of the vector
 
-            rw_assert (s_str.size () == size, 0, cs.line,
+            rw_assert (s_str.size () == size, 0, tcase.line,
                        "line %d: %{$FUNCALL}: size unexpectedly changed "
                        "from %zu to %zu after an exception",
                        __LINE__, size, s_str.size ());
 
-            rw_assert (s_str.capacity () == capacity, 0, cs.line,
+            rw_assert (s_str.capacity () == capacity, 0, tcase.line,
                        "line %d: %{$FUNCALL}: capacity unexpectedly "
                        "changed from %zu to %zu after an exception",
                        __LINE__, capacity, s_str.capacity ());
 
 
-            rw_assert (s_str.begin () == begin, 0, cs.line,
+            rw_assert (s_str.begin () == begin, 0, tcase.line,
                        "line %d: %{$FUNCALL}: begin() unexpectedly "
                        "changed from after an exception by %d",
                        __LINE__, s_str.begin () - begin);
@@ -523,7 +523,7 @@ void test_exceptions (charT, Traits*,
     // at least one exception is thrown
     rw_assert (   *pst->throw_at_calls_ [0] == std::size_t (-1)
                || throw_after,
-               0, cs.line,
+               0, tcase.line,
                "line %d: %{$FUNCALL}: failed to throw an expected exception",
                __LINE__);
 
@@ -551,31 +551,33 @@ void test_assign_range (charT          *wstr,
                         charT          *wsrc,
                         Traits*,
                         const Iterator &it,
-                        const TestCase &cs)
+                        const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
 
     const char* const itname =
-        cs.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
+        tcase.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
 
-    /* const */ String s_str (wstr, cs.str_len);
-    const       String s_arg (wsrc, cs.arg_len);
+    /* const */ String s_str (wstr, tcase.str_len);
+    const       String s_arg (wsrc, tcase.arg_len);
 
-    std::size_t off_last = cs.off + cs.size;
+    std::size_t off_last = tcase.off + tcase.size;
 
-    if (cs.arg) {
+    if (tcase.arg) {
         off_last = off_last > s_arg.size () ? s_arg.size () : off_last;
 
-        const Iterator first (wsrc + cs.off,   wsrc + cs.off, wsrc + off_last);
-        const Iterator last  (wsrc + off_last, wsrc + cs.off, wsrc + off_last);
+        const Iterator
+            first (wsrc + tcase.off, wsrc + tcase.off, wsrc + off_last);
+        const Iterator
+            last  (wsrc + off_last, wsrc + tcase.off, wsrc + off_last);
 
         s_str.assign (first, last);
     }
     else {
         typedef typename String::iterator StringIter;
 
-        const StringIter first (s_str.begin () + cs.off);
+        const StringIter first (s_str.begin () + tcase.off);
         const StringIter last  (off_last > s_str.size () ?
             s_str.end ()
           : s_str.begin () + off_last);
@@ -583,12 +585,13 @@ void test_assign_range (charT          *wstr,
         s_str.assign (first, last);
     }
 
-    const std::size_t match = rw_match (cs.res, s_str.c_str(), cs.res_len);
+    const std::size_t match =
+        rw_match (tcase.res, s_str.c_str(), tcase.res_len);
 
-    rw_assert (match == cs.res_len, 0, cs.line,
+    rw_assert (match == tcase.res_len, 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
                "difference at off %zu for %s",
-               __LINE__, int (cs.res_len), cs.res,
+               __LINE__, int (tcase.res_len), tcase.res,
                int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match, itname);
 }
@@ -599,27 +602,27 @@ template <class charT, class Traits>
 void test_assign_range (charT          *wstr,
                         charT          *wsrc,
                         Traits*,
-                        const TestCase &cs)
+                        const TestCase &tcase)
 {
-    if (cs.bthrow)  // this method doesn't throw
+    if (tcase.bthrow)  // this method doesn't throw
         return;
 
     test_assign_range (wstr, wsrc, (Traits*)0,
-                       InputIter<charT>(0, 0, 0), cs);
+                       InputIter<charT>(0, 0, 0), tcase);
 
     // there is no need to call test_assign_range
     // for other iterators in this case
-    if (0 == cs.arg)
+    if (0 == tcase.arg)
         return;
 
     test_assign_range (wstr, wsrc, (Traits*)0,
-                       ConstFwdIter<charT>(0, 0, 0), cs);
+                       ConstFwdIter<charT>(0, 0, 0), tcase);
 
     test_assign_range (wstr, wsrc, (Traits*)0,
-                       ConstBidirIter<charT>(0, 0, 0), cs);
+                       ConstBidirIter<charT>(0, 0, 0), tcase);
 
     test_assign_range (wstr, wsrc, (Traits*)0,
-                       ConstRandomAccessIter<charT>(0, 0, 0), cs);
+                       ConstRandomAccessIter<charT>(0, 0, 0), tcase);
 }
 
 /**************************************************************************/
@@ -627,33 +630,38 @@ void test_assign_range (charT          *wstr,
 template <class charT, class Traits>
 void test_assign (charT, Traits*,
                   AssignOverload  which,
-                  const TestCase &cs)
+                  const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> TestString;
     typedef typename TestString::iterator                StringIter;
 
-    static charT wstr [LLEN];
-    static charT wsrc [LLEN];
-
-    rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (wsrc, cs.arg, cs.arg_len);
-
-    // special processing for assign_range to exercise all iterators
-    if (Assign (range) == which) {
-        test_assign_range (wstr, wsrc, (Traits*)0, cs);
+    if (-1 == tcase.bthrow) {
+        test_exceptions (charT (), (Traits*)0, which, tcase);
         return;
     }
 
-    /* const */ TestString s_str (wstr, cs.str_len);
-    const       TestString s_arg (wsrc, cs.arg_len);
+    static charT wstr [LLEN];
+    static charT wsrc [LLEN];
+
+    rw_widen (wstr, tcase.str, tcase.str_len);
+    rw_widen (wsrc, tcase.arg, tcase.arg_len);
+
+    // special processing for assign_range to exercise all iterators
+    if (Assign (range) == which) {
+        test_assign_range (wstr, wsrc, (Traits*)0, tcase);
+        return;
+    }
+
+    /* const */ TestString s_str (wstr, tcase.str_len);
+    const       TestString s_arg (wsrc, tcase.arg_len);
 
     std::size_t res_off = 0;
-    std::size_t size = cs.size >= 0 ? cs.size : s_str.max_size () + 1;
+    std::size_t size = tcase.size >= 0 ? tcase.size : s_str.max_size () + 1;
 
     // first function argument
-    const charT* const arg_ptr = cs.arg ? wsrc : s_str.c_str ();
-    const TestString&  arg_str = cs.arg ? s_arg : s_str;
+    const charT* const arg_ptr = tcase.arg ? wsrc : s_str.c_str ();
+    const TestString&  arg_str = tcase.arg ? s_arg : s_str;
 
     // address of returned reference
     const TestString* res_ptr = 0;
@@ -662,9 +670,9 @@ void test_assign (charT, Traits*,
 
     // is some exception expected ?
     const char* expected = 0;
-    if (1 == cs.bthrow && Assign (str_size_size) == which)
+    if (1 == tcase.bthrow && Assign (str_size_size) == which)
         expected = exp_exceptions [1];
-    if (2 == cs.bthrow)
+    if (2 == tcase.bthrow)
         expected = exp_exceptions [2];
 
     const char* caught = 0;
@@ -673,7 +681,7 @@ void test_assign (charT, Traits*,
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (cs.bthrow)
+    if (tcase.bthrow)
         return;
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -692,11 +700,11 @@ void test_assign (charT, Traits*,
         break;
 
     case Assign (str_size_size):
-        res_ptr = &s_str.assign (arg_str, cs.off, size);
+        res_ptr = &s_str.assign (arg_str, tcase.off, size);
         break;
 
     case Assign (size_val): {
-        const charT val = make_char (char (cs.val), (charT*)0);
+        const charT val = make_char (char (tcase.val), (charT*)0);
         res_ptr = &s_str.assign (size, val);
         break;
     }
@@ -708,24 +716,25 @@ void test_assign (charT, Traits*,
     res_off = res_ptr - &s_str;
 
     // verify the returned value
-    rw_assert (0 == res_off, 0, cs.line,
+    rw_assert (0 == res_off, 0, tcase.line,
                "line %d. %{$FUNCALL} returned invalid reference, offset is %zu",
                __LINE__, res_off);
 
     // verfiy that strings length are equal
-    rw_assert (cs.res_len == s_str.size (), 0, cs.line,
+    rw_assert (tcase.res_len == s_str.size (), 0, tcase.line,
                "line %d. %{$FUNCALL}: expected %{#*s} with length %zu, "
-               "got %{/*.*Gs} with length %zu", __LINE__, int (cs.res_len),
-               cs.res, cs.res_len, int (sizeof (charT)), int (s_str.size ()),
-               s_str.c_str (), s_str.size ());
+               "got %{/*.*Gs} with length %zu", __LINE__, int (tcase.res_len),
+               tcase.res, tcase.res_len, int (sizeof (charT)),
+               int (s_str.size ()), s_str.c_str (), s_str.size ());
 
     // verfiy that assign results match expected result
-    const std::size_t match = rw_match (cs.res, s_str.c_str(), cs.res_len);
+    const std::size_t match =
+        rw_match (tcase.res, s_str.c_str(), tcase.res_len);
 
-    rw_assert (match == cs.res_len, 0, cs.line,
+    rw_assert (match == tcase.res_len, 0, tcase.line,
                "line %d. %{$FUNCALL}: expected %{#*s}, got %{/*.*Gs}, "
                "difference at off %zu",
-               __LINE__, int (cs.res_len), cs.res,
+               __LINE__, int (tcase.res_len), tcase.res,
                int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match);
 
@@ -746,7 +755,7 @@ void test_assign (charT, Traits*,
     _RWSTD_UNUSED (should_throw);
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    rw_assert (caught == expected, 0, cs.line,
+    rw_assert (caught == expected, 0, tcase.line,
                "line %d. %{$FUNCALL}: %{?}expected %s, caught %s"
                "%{:}unexpectedly caught %s%{;}",
                __LINE__, 0 != expected, expected, caught, caught);
@@ -754,43 +763,7 @@ void test_assign (charT, Traits*,
 
 /**************************************************************************/
 
-static void
-test_assign (const MemFun &memfun, const TestCase& tcase)
-{
-    // exercise exception safety?
-    const bool exception_safety = -1 == tcase.bthrow;
-
-#undef TEST
-#define TEST(charT, Traits)                                             \
-    exception_safety ?                                                  \
-        test_exceptions (charT (), (Traits*)0, memfun.which_, tcase)    \
-      : test_assign (charT (), (Traits*)0, memfun.which_, tcase)
-
-    if (StringMembers::DefaultTraits == memfun.traits_id_) {
-        if (StringMembers::Char == memfun.char_id_)
-            TEST (char, std::char_traits<char>);
-
-#ifndef _RWSTD_NO_WCHAR_T
-    else
-        TEST (wchar_t, std::char_traits<wchar_t>);
-#endif   // _RWSTD_NO_WCHAR_T
-
-    }
-    else {
-       if (StringMembers::Char == memfun.char_id_)
-           TEST (char, UserTraits<char>);
-
-#ifndef _RWSTD_NO_WCHAR_T
-       else if (StringMembers::WChar == memfun.char_id_)
-           TEST (wchar_t, UserTraits<wchar_t>);
-#endif   // _RWSTD_NO_WCHAR_T
-
-       else
-           TEST (UserChar, UserTraits<UserChar>);
-    }
-}
-
-/**************************************************************************/
+DEFINE_TEST_DISPATCH (test_assign);
 
 static int
 run_test (int, char*[])
