@@ -1,6 +1,6 @@
 /************************************************************************
  *
- * 21_strings.h - definitions of helpers used in clause 21 tests
+ * 21.strings.h - definitions of helpers used in clause 21 tests
  *
  * $Id$
  *
@@ -35,113 +35,175 @@
 struct _TEST_EXPORT StringMembers {
 
     // identifiers for the charT template argument
-    enum charT  { Char, WChar, UChar };
+    enum charT  { UnknownChar = 0, Char, WChar, UChar };
 
     // identifiers for  the Traits template argument
-    enum Traits { DefaultTraits, UserTraits };
+    enum Traits { UnknownTraits = 0, DefaultTraits, UserTraits };
 
     // identifiers for  the Allocator template argument
-    enum Allocator { DefaultAllocator, UserAllocator };
+    enum Allocator { UnknownAllocator = 0, DefaultAllocator, UserAllocator };
 
-    // identifiers for all overloads of each member function
-    enum MemberFunction {
-
-        //////////////////////////////////////////////////////////////
-        append,
-        append_first = append,
-        // append (const value_type*)
-        append_ptr = append_first,
-        // append (const basic_string&)
-        append_str,
-        // append (const value_type*, size_type)
-        append_ptr_size,
-        // append (const basic_string&, size_type, size_type)
-        append_str_off_size,
-        // append (size_type, value_type)
-        append_size_val,
-        // append (InputIterator, InputIterator)
-        append_range,
-        append_last,
-
-        //////////////////////////////////////////////////////////////
-        assign_first = append_last,
-        // assign (const value_type*)
-        assign_ptr = assign_first,
-        // assign (const basic_string&)
-        assign_str,
-        // assign (const value_type*, size_type)
-        assign_ptr_size,
-        // assign (const basic_string&, size_type, size_type)
-        assign_str_off_size,
-        // assign (size_type, value_type)
-        assign_size_val,
-        // assign (InputIterator, InputIterator)
-        assign_range,
-        assign_last,
-
-        //////////////////////////////////////////////////////////////
-        insert_first = assign_last,
-        // insert (size_type, const value_type*)
-        insert_off_ptr = insert_first,
-        // insert (size_type, const basic_string&)
-        insert_off_str,
-        // insert (size_type, const value_type*, size_type)
-        insert_off_ptr_size,
-        // insert (size_type, basic_string&, size_type, size_type)
-        insert_off_str_off_size,
-        // insert (size_type, size_type, value_type)
-        insert_off_size_val,
-        // insert (iterator, value_type)
-        insert_val,
-        // insert (iterator, size_type, value_type)
-        insert_size_val,
-        // insert (iterator p, InputIterator, InputIterator)
-        insert_range,
-        insert_last,
-
-        //////////////////////////////////////////////////////////////
-        replace_first = insert_last,
+    enum SignatureId {
+        // (void)
+        sig_void = 1,
+        // (const value_type*)
+        sig_ptr,
+        // (const basic_string&)
+        sig_str,
+        // (size_type)
+        sig_size,
+        // (const value_type*, size_type)
+        sig_ptr_size,
+        // (const basic_string&, size_type, size_type)
+        sig_str_size_size,
+        // (size_type, const value_type*, size_type)
+        sig_size_ptr_size,
+        // (size_type, const basic_string&, size_type, size_type)
+        sig_size_str_size_size,
+        // (size_type, value_type)
+        sig_size_val,
+        // (size_type, const basic_string&)
+        sig_size_str,
+        // (size_type, size_type)
+        sig_size_size,
         // (size_type, size_type, const value_type*)
-        replace_off_size_ptr = replace_first,
-        // (size_type, size_type, basic_string&)
-        replace_off_size_str,
-        // (size_type1, size_type, const value_type*, size_type)
-        replace_off_size_ptr_size,
-        // (size_type, size_type, const basic_string&, size_type, size_type)
-        replace_off_size_str_off_size,
+        sig_size_size_ptr,
+        // (size_type, size_type, const basic_string&)
+        sig_size_size_str,
+        // (size_type, size_type, value_type)
+        sig_size_size_val,
+        // (size_type, size_type, const value_type*, size_type)
+        sig_size_size_ptr_size,
+        // (size_type, size_type, const value_type*, size_type, size_type)
+        sig_size_size_str_size_size,
         // (size_type, size_type, size_type, value_type)
-        replace_off_size_size_val,
+        sig_size_size_size_val,
+        // (InputIterator, InputIterator)
+        sig_range,
+        // (iterator, value_type)
+        sig_iter_val,
+        // (iterator, size_type, value_type)
+        sig_iter_size_val,
+        // (iterator, InputIterator, InputIterator)
+        sig_iter_range,
         // (iterator, iterator, const value_type*)
-        replace_ptr,
+        sig_iter_iter_ptr,
         // (iterator, iterator, const basic_string&)
-        replace_str,
+        sig_iter_iter_str,
         // (iterator, iterator, const value_type*, size_type)
-        replace_ptr_size,
+        sig_iter_iter_ptr_size,
         // (iterator, iterator, size_type, value_type)
-        replace_size_val,
+        sig_iter_iter_size_val,
         // (iterator, iterator, InputIterator, InputIterator)
-        replace_range,
-        replace_last
+        sig_iter_iter_range,
+
+        //
+        sig_last
     };
 
-    enum {
-        // number of member function overloads
-        append_overloads = append_last - append_first,
-        // number of member function overloads
-        assign_overloads = assign_last - assign_first,
-        // number of member function overloads
-        insert_overloads = insert_last - insert_first,
-        // number of member function overloads
-        replace_overloads = replace_last - replace_first,
-        // total number of member functions
-        member_functions =   append_overloads + assign_overloads
-                           + insert_overloads + replace_overloads
+    enum MemberId {
+        mem_append  = 1 << 5,
+        mem_assign  = 1 << 6,
+        mem_erase   = 1 << 7,
+        mem_insert  = 1 << 8,
+        mem_replace = 1 << 9,
+        mem_mask    =
+            mem_append | mem_assign | mem_erase | mem_insert | mem_replace
+    };
+
+    // unique identifiers for all overloads of each member function
+    enum OverloadId {
+        UnknownOverload = 0,
+        //////////////////////////////////////////////////////////////
+        // append (const value_type*)
+        append_ptr = mem_append + sig_ptr,
+        // append (const basic_string&)
+        append_str = mem_append + sig_str,
+        // append (const value_type*, size_type)
+        append_ptr_size = mem_append + sig_ptr_size,
+        // append (const basic_string&, size_type, size_type)
+        append_str_size_size = mem_append + sig_str_size_size,
+        // append (size_type, value_type)
+        append_size_val = mem_append + sig_size_val,
+        // append (InputIterator, InputIterator)
+        append_range = mem_append + sig_range,
+
+        //////////////////////////////////////////////////////////////
+        // assign (const value_type*)
+        assign_ptr = mem_assign + sig_ptr,
+        // assign (const basic_string&)
+        assign_str = mem_assign + sig_str,
+        // assign (const value_type*, size_type)
+        assign_ptr_size = mem_assign + sig_ptr_size,
+        // assign (const basic_string&, size_type, size_type)
+        assign_str_size_size = mem_assign + sig_str_size_size,
+        // assign (size_type, value_type)
+        assign_size_val = mem_assign + sig_size_val,
+        // assign (InputIterator, InputIterator)
+        assign_range = mem_assign + sig_range,
+
+        //////////////////////////////////////////////////////////////
+        // erase ()
+        erase_void = mem_erase + sig_void,
+        // erase (size_type)
+        erase_size = mem_erase + sig_size,
+        // erase (size_type, size_type)
+        erase_size_size = mem_erase + sig_size_size,
+
+        //////////////////////////////////////////////////////////////
+        // insert (size_type, const value_type*)
+        insert_size_ptr = mem_insert + sig_size_val,
+        // insert (size_type, const basic_string&)
+        insert_size_str = mem_insert + sig_size_str,
+        // insert (size_type, const value_type*, size_type)
+        insert_size_ptr_size = mem_insert + sig_size_ptr_size,
+        // insert (size_type, basic_string&, size_type, size_type)
+        insert_size_str_size_size = mem_insert + sig_size_str_size_size,
+        // insert (size_type, size_type, value_type)
+        insert_size_size_val = mem_insert + sig_size_size_val,
+        // insert (iterator, value_type)
+        insert_val = mem_insert + sig_iter_val,
+        // insert (iterator, size_type, value_type)
+        insert_size_val = mem_insert + sig_iter_size_val,
+        // insert (iterator p, InputIterator, InputIterator)
+        insert_range = mem_insert + sig_iter_range,
+
+        //////////////////////////////////////////////////////////////
+        // (size_type, size_type, const value_type*)
+        replace_size_size_ptr = mem_replace + sig_size_size_ptr,
+        // (size_type, size_type, basic_string&)
+        replace_size_size_str = mem_replace + sig_size_size_str,
+        // (size_type, size_type, const value_type*, size_type)
+        replace_size_size_ptr_size = mem_replace + sig_size_size_ptr_size,
+        // (size_type, size_type, const basic_string&, size_type, size_type)
+        replace_size_size_str_size_size =
+            mem_replace + sig_size_size_str_size_size,
+        // (size_type, size_type, size_type, value_type)
+        replace_size_size_size_val = mem_replace + sig_size_size_size_val,
+        // (iterator, iterator, const value_type*)
+        replace_iter_iter_ptr = mem_replace + sig_iter_iter_ptr,
+        // (iterator, iterator, const basic_string&)
+        replace_iter_iter_str = mem_replace + sig_iter_iter_str,
+        // (iterator, iterator, const value_type*, size_type)
+        replace_iter_iter_ptr_size = mem_replace + sig_iter_iter_ptr_size,
+        // (iterator, iterator, size_type, value_type)
+        replace_iter_iter_size_val = mem_replace + sig_iter_iter_size_val,
+        // (iterator, iterator, InputIterator, InputIterator)
+        replace_iter_iter_range = mem_replace + sig_iter_iter_range
+    };
+
+    struct Function {
+        charT      char_id_;
+        Traits     traits_id_;
+        Allocator  alloc_id_;
+        OverloadId which_;
     };
 
     // describes a single test case for any overload
-    // of any member function
+    // of any member function (the same test case can
+    // be used to exercise more than one overload of
+    // the same member function)
     struct TestCase {
-        MemberFunction which;     // member function to call
         int            line;      // test case line number
 
         int            off;       // offset (position argument)
@@ -167,22 +229,21 @@ struct _TEST_EXPORT StringMembers {
     // describes a set of test cases for a single overload
     // of a member function
     struct Test {
-        const TestCase *cases;        // test cases to exercise
+        OverloadId      which;        // member function overload to exercise
+        const TestCase *cases;        // test cases to exercise overload withh
         _RWSTD_SIZE_T   case_count;   // number of test cases
-        const char     *funsig;       // function signature
     };
 
-    // dynamically allocates and formats a string describing
-    // the call to the member function, including the values
-    // of its arguments, specfified by its arguments
-    static char*
-    format (charT, Traits, Allocator, const TestCase&);
+    typedef void TestFun (const Function&, const TestCase&);
+
+    static void
+    run_test (TestFun*, const Test*, _RWSTD_SIZE_T);
 
     // array of integers to use for command line option
     // processing (to disable individual overloads of all
     // member functions)
     static int
-    opt_memfun_disabled [member_functions];
+    opt_memfun_disabled [sig_last];
 
     static int opt_no_user_char;          // for --no-user_char
     static int opt_no_char_traits;        // for --no-char_traits
@@ -190,7 +251,24 @@ struct _TEST_EXPORT StringMembers {
 
     static int opt_no_exceptions;         // for --no-exceptions
     static int opt_no_exception_safety;   // for --no-exception-safety
+
+private:
+
+    // sets the {CLASS}, {FUNC}, {FUNCSIG}, and optionally {FUNCALL}
+    // environment variables as follows:
+    // CLASS:   the name of basic_string specialization
+    // FUNC:    the name of the basic_string member function
+    // FUNCSIG: the name and signature of a specific overload
+    //          of the basic_string member function
+    // FUNCALL: a string describing the call to the basic_string member
+    //          function with function with function arguments expanded
+    //          (as specified by the TestCase argument)
+    static void
+    setvars (const Function &fun, const TestCase* = 0);
+
 };
 
+#define Disabled(which)   \
+    StringMembers::opt_memfun_disabled [which & ~StringMembers::mem_mask]
 
 #endif   // RW_21_STRINGS_H_INCLUDED

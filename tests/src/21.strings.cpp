@@ -29,9 +29,15 @@
 #define _RWSTD_TEST_SRC
 
 #include <21.strings.h>
+
+#include <cmdopt.h>       // for rw_enabled()
+#include <driver.h>       // for rw_info()
+#include <environ.h>      // for rw_putenv()
 #include <rw_printf.h>    // for rw_asnprintf()
 
+#include <stdarg.h>       // for va_arg, ...
 #include <stddef.h>       // for size_t
+#include <stdlib.h>       // for free()
 
 /**************************************************************************/
 
@@ -39,21 +45,18 @@ static const char* const char_names[] = {
     "char", "wchar_t", "UserChar"
 };
 
+
 static const char* const traits_names[] = {
     "char_traits", "UserTraits"
 };
+
 
 static const char* const allocator_names[] = {
     "allocator", "UserAllocator"
 };
 
-static const char* const function_names[] = {
-    "append", "assign", "erase", "insert", "replace"
-};
-
-
 int StringMembers::
-opt_memfun_disabled [StringMembers::member_functions];
+opt_memfun_disabled [StringMembers::sig_last];
 
 int StringMembers::
 opt_no_user_char;
@@ -71,168 +74,300 @@ int StringMembers::
 opt_no_exception_safety;
 
 
-char* StringMembers::
-format (charT cid, Traits tid, Allocator aid, const TestCase &tcase)
+void StringMembers::
+setvars (const Function &fun, const TestCase *pcase /* = 0 */)
 {
     char*  buf     = 0;
     size_t bufsize = 0;
 
-    const bool self = 0 == tcase.arg;
+    if (0 == pcase) {
+        // set the {CLASS}, {FUNC}, and {FUNCSIG} environment variables
+        // to the name of the specialization of the template, the name
+        // of the member function, and the name of the overload of the
+        // member function, respectively, when no test case is given
 
-    if (DefaultTraits == tid && (Char == cid || WChar == cid)) {
-        // format std::string and std::wstring
+        if (   DefaultTraits == fun.traits_id_
+            && (Char == fun.char_id_ || WChar == fun.char_id_)) {
+            // format std::string and std::wstring
+            rw_asnprintf (&buf, &bufsize,
+                          "std::%{?}w%{;}string", WChar == fun.char_id_);
+        }
+        else {
+            // format std::basic_string specializations other than
+            // std::string and std::wstring, leaving out the name
+            // of the default allocator for brevity
+            rw_asnprintf (&buf, &bufsize,
+                          "std::basic_string<%s, %s<%1$s>%{?}, %s<%1$s>%{;}>",
+                          char_names [fun.char_id_ - 1],
+                          traits_names [fun.traits_id_ - 1],
+                          DefaultAllocator != fun.alloc_id_,
+                          allocator_names [fun.alloc_id_ - 1]);
+        }
+
+        // set the {CLASS} variable to the name of the specialization
+        // of basic_string
+        rw_putenv ("CLASS=");
+        rw_fprintf (0, "%{$CLASS:=*}", buf);
+
+        // determine the member function name
+        const char* fname = 0;
+
+        if (fun.which_ & mem_append)
+            fname = "append";
+        else if (fun.which_ & mem_assign)
+            fname = "assign";
+        else if (fun.which_ & mem_erase)
+            fname ="erase";
+        else if (fun.which_ & mem_insert)
+            fname ="insert";
+        else if (fun.which_ & mem_replace)
+            fname ="replace";
+
+        free (buf);
+        buf     = 0;
+        bufsize = 0;
+
+        // set the {FUNC} variable to the unqualified name
+        // of the member function
+        rw_asnprintf (&buf, &bufsize, "%s", fname);
+
+        rw_putenv ("FUNC=");
+        rw_fprintf (0, "%{$FUNC:=*}", buf);
+
+        static const char* const signatures[] = {
+            "void",
+            "const value_type*",
+            "const basic_string&",
+            "size_type",
+            "const value_type*, size_type",
+            "const basic_string&, size_type, size_type",
+            "size_type, const value_type*, size_type",
+            "size_type, const basic_string&, size_type, size_type",
+            "size_type, value_type",
+            "size_type, const basic_string&",
+            "size_type, size_type",
+            "size_type, size_type, const value_type*",
+            "size_type, size_type, const basic_string&",
+            "size_type, size_type, value_type",
+            "size_type, size_type, const value_type*, size_type",
+            "size_type, size_type, const value_type*, size_type, size_type",
+            "size_type, size_type, size_type, value_type",
+            "InputIterator, InputIterator",
+            "iterator, value_type",
+            "iterator, size_type, value_type",
+            "iterator, InputIterator, InputIterator",
+            "iterator, iterator, const value_type*",
+            "iterator, iterator, const basic_string&",
+            "iterator, iterator, const value_type*, size_type",
+            "iterator, iterator, size_type, value_type",
+            "iterator, iterator, InputIterator, InputIterator",
+        };
+
+        // append the function signature
         rw_asnprintf (&buf, &bufsize,
-                      "std::%{?}w%{;}string (%{?}%{#*s}%{;}).",
-                      WChar == cid,
-                      tcase.str != 0, int (tcase.str_len), tcase.str);
-    }
-    else {
-        // format std::basic_string specializations other than
-        // std::string and std::wstring, leaving out the name
-        // of the default allocator for brevity
-        rw_asnprintf (&buf, &bufsize,
-                      "std::basic_string<%s, %s<%1$s>%{?}, %s<%1$s>%{;}>"
-                      "(%{?}%{#*s}%{;}).",
-                      char_names [cid],
-                      traits_names [tid],
-                      DefaultAllocator != aid, allocator_names [aid],
-                      tcase.str != 0, int (tcase.str_len), tcase.str);
+                      "%{+} (%s)", signatures [fun.which_ & ~mem_mask]);
+
+        rw_putenv ("FUNCSIG=");
+        rw_fprintf (0, "%{$FUNCSIG:=*}", buf);
+        free (buf);
+
+        return;
     }
 
-    const char* fname = 0;
+    // do the function call arguments reference *this?
+    const bool self = 0 == pcase->arg;
 
-    if (append_first <= tcase.which && tcase.which < append_last)
-        fname = "append";
-    else if (assign_first <= tcase.which && tcase.which < assign_last)
-        fname = "assign";
-    else if (insert_first <= tcase.which && tcase.which < insert_last)
-        fname ="insert";
-    else if (replace_first <= tcase.which && tcase.which < replace_last)
-        fname ="replace";
+    // append the ctor argument(s) and the member function name
+    rw_asnprintf (&buf, &bufsize,
+                  "%{$CLASS} (%{?}%{#*s}%{;}).%{$FUNC} ",
+                  pcase->str != 0, int (pcase->str_len), pcase->str);
 
-    switch (tcase.which) {
+    // format and append member function arguments
+    switch (fun.which_) {
     case append_ptr:
     case assign_ptr:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}%s (%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
-                      fname, !self, int (tcase.arg_len), tcase.arg, self);
+                      "%{+}(%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
+                      !self, int (pcase->arg_len), pcase->arg, self);
         break;
 
     case append_str:
     case assign_str:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}%s (%{?}string (%{#*s})%{;}%{?}*this%{;})",
-                      fname, !self, int (tcase.arg_len), tcase.arg, self);
+                      "%{+}(%{?}string (%{#*s})%{;}%{?}*this%{;})",
+                      !self, int (pcase->arg_len), pcase->arg, self);
         break;
 
     case append_ptr_size:
     case assign_ptr_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}%s ("
+        rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)",
-                      fname, !self, int (tcase.arg_len), tcase.arg,
-                      self, tcase.size);
+                      !self, int (pcase->arg_len), pcase->arg,
+                      self, pcase->size);
         break;
 
-    case append_str_off_size:
-    case assign_str_off_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}%s ("
+    case append_str_size_size:
+    case assign_str_size_size:
+        rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
-                      fname, !self, int (tcase.arg_len), tcase.arg, self,
-                      tcase.off, tcase.size);
+                      !self, int (pcase->arg_len), pcase->arg, self,
+                      pcase->off, pcase->size);
         break;
 
     case append_size_val:
     case assign_size_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+} %s (%zu, %#c)", tcase.size, tcase.val);
+                      "%{+} %s (%zu, %#c)", pcase->size, pcase->val);
         break;
 
     case append_range:
     case assign_range:
-        rw_asnprintf (&buf, &bufsize, "%{+}%s ("
+        rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%{?}%{#*s}%{;}%{?}this->%{;}begin() + %zu, "
                       "%{?}%{#*s}%{;}%{?}this->%{;}.begin() + %zu)",
-                      fname, !self, int (tcase.arg_len), tcase.arg,
-                      self, tcase.off, !self, int (tcase.arg_len), tcase.arg,
-                      self, tcase.off + tcase.size);
+                      !self, int (pcase->arg_len), pcase->arg,
+                      self, pcase->off, !self, int (pcase->arg_len), pcase->arg,
+                      self, pcase->off + pcase->size);
         break;
 
-    case replace_off_size_ptr:
-        rw_asnprintf (&buf, &bufsize, "%{+}%s ("
+    case replace_size_size_ptr:
+        rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%zu, %zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
-                      fname, tcase.off, tcase.size, !self, 
-                      int (tcase.arg_len), tcase.arg, self);
+                      pcase->off, pcase->size, !self, 
+                      int (pcase->arg_len), pcase->arg, self);
         break;
 
-    case replace_off_size_str:
-        rw_asnprintf (&buf, &bufsize, "%{+}%s ("
+    case replace_size_size_str:
+        rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%zu, %zu, %{?}string (%{#*s})%{;}%{?}*this%{;})",
-                      fname, tcase.off, tcase.size, !self, 
-                      int (tcase.arg_len), tcase.arg, self);
+                      pcase->off, pcase->size, !self, 
+                      int (pcase->arg_len), pcase->arg, self);
         break;
 
-    case replace_off_size_ptr_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}%s ("
+    case replace_size_size_ptr_size:
+        rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%zu, %zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
-                      fname, tcase.off, tcase.size, !self, 
-                      int (tcase.arg_len), tcase.arg, self, tcase.size2);
+                      pcase->off, pcase->size, !self, 
+                      int (pcase->arg_len), pcase->arg, self, pcase->size2);
         break;
 
-    case replace_off_size_str_off_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}%s (%zu, %zu, "
+    case replace_size_size_str_size_size:
+        rw_asnprintf (&buf, &bufsize, "%{+}(%zu, %zu, "
                       "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
-                      fname, tcase.off, tcase.size, !self, 
-                      int (tcase.arg_len), tcase.arg, self, 
-                      tcase.off2, tcase.size2);
+                      pcase->off, pcase->size, !self, 
+                      int (pcase->arg_len), pcase->arg, self, 
+                      pcase->off2, pcase->size2);
         break;
 
-    case replace_off_size_size_val:
+    case replace_size_size_size_val:
         rw_asnprintf (&buf, &bufsize, 
-                      "%{+}%s (%zu, %zu, %zu, %#c)",
-                      fname, tcase.off, tcase.size, tcase.size2, tcase.val);
+                      "%{+}(%zu, %zu, %zu, %#c)",
+                      pcase->off, pcase->size, pcase->size2, pcase->val);
         break;
 
-    case replace_ptr:
-        rw_asnprintf (&buf, &bufsize, "%{+}%s (begin() + %zu, begin() + %zu, "
+    case replace_iter_iter_ptr:
+        rw_asnprintf (&buf, &bufsize, "%{+}(begin() + %zu, begin() + %zu, "
                       "%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
-                      fname, tcase.off, tcase.off + tcase.size, 
-                      !self, int (tcase.arg_len), tcase.arg, self);
+                      pcase->off, pcase->off + pcase->size, 
+                      !self, int (pcase->arg_len), pcase->arg, self);
         break;
 
-    case replace_str:
-        rw_asnprintf (&buf, &bufsize, "%{+}%s (begin() + %zu, begin() + %zu, " 
+    case replace_iter_iter_str:
+        rw_asnprintf (&buf, &bufsize, "%{+}(begin() + %zu, begin() + %zu, " 
                       "%{?}string (%{#*s})%{;}%{?}*this%{;})",
-                      fname, tcase.off, tcase.off + tcase.size, 
-                      !self, int (tcase.arg_len), tcase.arg, self);
+                      pcase->off, pcase->off + pcase->size, 
+                      !self, int (pcase->arg_len), pcase->arg, self);
         break;
 
-    case replace_ptr_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}%s (begin() + %zu, begin() + %zu, " 
+    case replace_iter_iter_ptr_size:
+        rw_asnprintf (&buf, &bufsize, "%{+}(begin() + %zu, begin() + %zu, " 
                       "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
-                      fname, tcase.off, tcase.off + tcase.size, !self, 
-                      int (tcase.arg_len), tcase.arg, self, tcase.size2);
+                      pcase->off, pcase->off + pcase->size, !self, 
+                      int (pcase->arg_len), pcase->arg, self, pcase->size2);
         break;
 
-    case replace_size_val:
+    case replace_iter_iter_size_val:
         rw_asnprintf (&buf, &bufsize, 
-                      "%{+}%s (begin() + %zu, begin() + %zu, %zu, %#c)",
-                      fname, tcase.off, tcase.off + tcase.size, 
-                      tcase.size2, tcase.val);
+                      "%{+}(begin() + %zu, begin() + %zu, %zu, %#c)",
+                      pcase->off, pcase->off + pcase->size, 
+                      pcase->size2, pcase->val);
         break;
 
-    case replace_range:
-        rw_asnprintf (&buf, &bufsize, "%{+}%s (begin() + %zu, begin() + %zu, "
+    case replace_iter_iter_range:
+        rw_asnprintf (&buf, &bufsize, "%{+}(begin() + %zu, begin() + %zu, "
                       "%{?}%{#*s}%{;}%{?}this->%{;}begin() + %zu, "
                       "%{?}%{#*s}%{;}%{?}this->%{;}begin() + %zu)", 
-                      fname, tcase.off, tcase.off + tcase.size, !self, 
-                      int (tcase.arg_len), tcase.arg, self, tcase.off2, !self, 
-                      int (tcase.arg_len), tcase.arg, self, 
-                      tcase.off2 + tcase.size2);
+                      pcase->off, pcase->off + pcase->size, !self, 
+                      int (pcase->arg_len), pcase->arg, self, pcase->off2,
+                      !self, int (pcase->arg_len), pcase->arg, self, 
+                      pcase->off2 + pcase->size2);
         break;
 
     default:
         RW_ASSERT (!"test logic error: unknown overload");
     }
 
-    return buf;
+    rw_putenv ("FUNCALL=");
+    rw_fprintf (0, "%{$FUNCALL:=*}", buf);
+    free (buf);
+}
+
+
+void StringMembers::
+run_test (TestFun *test_callback, const Test *tests, size_t test_count)
+{
+    const charT char_types[] = {
+        Char, WChar, UChar,
+        UnknownChar
+        
+    };
+
+    const Traits traits_types[] = {
+        DefaultTraits, UserTraits,
+        UnknownTraits,
+    };
+
+    const Allocator alloc_types[] = {
+        DefaultAllocator,
+        UnknownAllocator
+    };
+
+    for (size_t i = 0; char_types [i]; ++i) {
+
+        for (size_t j = 0; traits_types [j]; ++j) {
+
+            for (size_t k = 0; alloc_types [k]; ++k) {
+
+                for (size_t m = 0; m != test_count; ++m) {
+
+                    const Function memfun = {
+                        char_types [i],
+                        traits_types [j],
+                        alloc_types [k],
+                        tests [m].which
+                    };
+
+                    // set the {CLASS}, {FUNC}, and {FUNCSIG} environment
+                    // variable to the name of the basic_string specializaton
+                    // and its member function being exercised
+                    setvars (memfun);
+
+                    rw_info (0, 0, 0, "%{$CLASS}::%{$FUNCSIG}");
+
+                    for (size_t n = 0; n != tests [m].case_count; ++n)
+                        if (rw_enabled (tests [m].cases [n].line)) {
+
+                            // set the {FUNCALL} environment variable
+                            setvars (memfun, tests [m].cases + n);
+
+                            test_callback (memfun, tests [m].cases [n]);
+                        }
+                        else
+                            rw_note (0, 0, 0,
+                                     "test on line %d disabled",
+                                     tests [m].cases [n].line);
+                }
+            }
+        }
+    }
 }
