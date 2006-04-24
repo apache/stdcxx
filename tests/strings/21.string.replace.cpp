@@ -26,15 +26,16 @@
  **************************************************************************/
 
 #include <string>       // for string
-#include <cstdlib>      // for free(), size_t
 #include <stdexcept>    // for out_of_range, length_error
+
+#include <cstddef>      // for size_t
 
 #include <cmdopt.h>     // for rw_enabled()
 #include <driver.h>     // for rw_test()
 
+#include <alg_test.h>   // for InputIter
 #include <rw_printf.h>  // for rw_asnprintf()
 #include <rw_char.h>    // for rw_widen()
-#include <alg_test.h>   // for InputIter<>
 
 #include <21.strings.h>
 
@@ -1313,6 +1314,11 @@ void test_replace (charT, Traits*,
     typedef std::basic_string <charT, Traits, Allocator> TestString;
     typedef typename TestString::iterator                StringIter;
 
+    if (-1 == tcase.bthrow) {
+        test_exceptions (charT (), (Traits*)0, which, tcase);
+        return;
+    }
+
     const bool use_iters = Replace (iter_iter_ptr) <= which;
 
     static charT wstr [LLEN];
@@ -1474,44 +1480,7 @@ void test_replace (charT, Traits*,
 
 /**************************************************************************/
 
-static void
-test_replace (const MemFun   &memfun,
-              const TestCase &tcase)
-{
-    // exercise exception safety?
-    const bool exception_safety = -1 == tcase.bthrow;
-
-#undef TEST
-#define TEST(charT, Traits)                                             \
-    exception_safety ?                                                  \
-        test_exceptions (charT (), (Traits*)0, memfun.which_, tcase)    \
-      : test_replace (charT (), (Traits*)0, memfun.which_, tcase)
-
-    if (StringMembers::DefaultTraits == memfun.traits_id_) {
-        if (StringMembers::Char == memfun.char_id_)
-            TEST (char, std::char_traits<char>);
-
-#ifndef _RWSTD_NO_WCHAR_T
-    else
-        TEST (wchar_t, std::char_traits<wchar_t>);
-#endif   // _RWSTD_NO_WCHAR_T
-
-    }
-    else {
-       if (StringMembers::Char == memfun.char_id_)
-           TEST (char, UserTraits<char>);
-
-#ifndef _RWSTD_NO_WCHAR_T
-       else if (StringMembers::WChar == memfun.char_id_)
-           TEST (wchar_t, UserTraits<wchar_t>);
-#endif   // _RWSTD_NO_WCHAR_T
-
-       else
-           TEST (UserChar, UserTraits<UserChar>);
-    }
-}
-
-/**************************************************************************/
+DEFINE_TEST_DISPATCH (test_replace);
 
 static int
 run_test (int, char*[])
@@ -1523,7 +1492,7 @@ run_test (int, char*[])
     }
 
     static const StringMembers::Test
-        tests [] = {
+    tests [] = {
 
 #undef TEST
 #define TEST(tag) {                                             \
@@ -1531,17 +1500,17 @@ run_test (int, char*[])
         sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
     }
 
-            TEST (size_size_ptr),
-            TEST (size_size_str),
-            TEST (size_size_ptr_size),
-            TEST (size_size_str_size_size),
-            TEST (size_size_size_val),
-            TEST (iter_iter_ptr),
-            TEST (iter_iter_str),
-            TEST (iter_iter_ptr_size),
-            TEST (iter_iter_size_val),
-            TEST (iter_iter_range)
-        };
+        TEST (size_size_ptr),
+        TEST (size_size_str),
+        TEST (size_size_ptr_size),
+        TEST (size_size_str_size_size),
+        TEST (size_size_size_val),
+        TEST (iter_iter_ptr),
+        TEST (iter_iter_str),
+        TEST (iter_iter_ptr_size),
+        TEST (iter_iter_size_val),
+        TEST (iter_iter_range)
+    };
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
