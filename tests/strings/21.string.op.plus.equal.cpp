@@ -25,17 +25,16 @@
  *
  **************************************************************************/
 
-#include <string>       // for string
-#include <cstdlib>      // for free(), size_t
-#include <stdexcept>    // for out_of_range, length_error
+#include <string>        // for string
+#include <stdexcept>     // for out_of_range, length_error
 
-#include <alg_test.h>   // for InputIter
-#include <cmdopt.h>     // for rw_enabled()
-#include <driver.h>     // for rw_test()
-#include <rw_printf.h>  // for rw_asnprintf()
-#include <rw_char.h>    // for rw_widen()
+#include <cstddef>       // for size_t
 
-#include <21.strings.h>
+#include <21.strings.h>   // for StringMembers
+#include <alg_test.h>     // for InputIter
+#include <driver.h>       // for rw_test()
+#include <rw_char.h>      // for rw_widen()
+
 
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 #  include <rw_new.h>   // for bad_alloc, replacement operator new
@@ -444,8 +443,7 @@ void test_op_plus_eq (charT, Traits*,
 
 DEFINE_TEST_DISPATCH (test_op_plus_eq);
 
-static int
-run_test (int, char*[])
+int main (int argc, char** argv)
 {
     static const StringMembers::Test
     tests [] = {
@@ -463,39 +461,7 @@ run_test (int, char*[])
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    StringMembers::run_test (test_op_plus_eq, tests, test_count);
-
-    return 0;
-}
-
-/**************************************************************************/
-
-int main (int argc, char** argv)
-{
-    return rw_test (argc, argv, __FILE__,
-                    "lib.string.op+=",
-                    0 /* no comment */,
-                    run_test,
-                    "|-no-char_traits# "
-                    "|-no-user_traits# "
-                    "|-no-user_char# "
-                    "|-no-exceptions# "
-                    "|-no-exception-safety# "
-
-                    "|-no-op-append-ptr# "
-                    "|-no-op-append-str# "
-                    "|-no-op-append-val#",
-
-                    &StringMembers::opt_no_char_traits,
-                    &StringMembers::opt_no_user_traits,
-                    &StringMembers::opt_no_user_char,
-                    &StringMembers::opt_no_exceptions,
-                    &StringMembers::opt_no_exception_safety,
-
-                    &Disabled (OpPlusEq (ptr)),
-                    &Disabled (OpPlusEq (str)),
-                    &Disabled (OpPlusEq (val)),
-
-                    // sentinel
-                    (void*)0);
+    return StringMembers::run_test (argc, argv, __FILE__,
+                                    "lib.string.op+=",
+                                    test_op_plus_eq, tests, test_count);
 }

@@ -247,41 +247,14 @@ struct _TEST_EXPORT StringMembers {
 
     typedef void TestFun (const Function&, const TestCase&);
 
-    static void
-    run_test (TestFun*, const Test*, _RWSTD_SIZE_T);
+    static int
+    run_test (int, char**, const char*, const char*,
+              TestFun*, const Test*, _RWSTD_SIZE_T);
 
     enum { long_string_len = 4096 };
 
     static char
     long_string [long_string_len];
-
-    // array of integers to use for command line option
-    // processing (to disable individual overloads of all
-    // member functions)
-    static int
-    opt_memfun_disabled [sig_last];
-
-    static int opt_no_user_char;          // for --no-user_char
-    static int opt_no_char_traits;        // for --no-char_traits
-    static int opt_no_user_traits;        // for --no-user_traits
-
-    static int opt_no_exceptions;         // for --no-exceptions
-    static int opt_no_exception_safety;   // for --no-exception-safety
-
-private:
-
-    // sets the {CLASS}, {FUNC}, {FUNCSIG}, and optionally {FUNCALL}
-    // environment variables as follows:
-    // CLASS:   the name of basic_string specialization
-    // FUNC:    the name of the basic_string member function
-    // FUNCSIG: the name and signature of a specific overload
-    //          of the basic_string member function
-    // FUNCALL: a string describing the call to the basic_string member
-    //          function with function with function arguments expanded
-    //          (as specified by the TestCase argument)
-    static void
-    setvars (const Function &fun, const TestCase* = 0);
-
 };
 
 #define Disabled(which)   \

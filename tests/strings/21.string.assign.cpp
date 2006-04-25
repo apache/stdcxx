@@ -25,19 +25,14 @@
  *
  **************************************************************************/
 
-#include <memory>       // for placement operator new()
-#include <string>       // for string
-#include <cstddef>      // for size_t
-#include <stdexcept>    // for out_of_range, length_error
+#include <string>         // for string
+#include <cstddef>        // for size_t
+#include <stdexcept>      // for out_of_range, length_error
 
-#include <alg_test.h>   // for InputIter<>
-#include <cmdopt.h>     // for rw_enabled()
-#include <driver.h>     // for rw_test()
-
-#include <rw_char.h>    // for rw_widen()
-#include <rw_printf.h>  // for rw_asnprintf()
-
-#include <21.strings.h>
+#include <21.strings.h>   // for StringMembers
+#include <alg_test.h>     // for InputIter
+#include <driver.h>       // for rw_test()
+#include <rw_char.h>      // for rw_widen()
 
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
    // disabled for compilers such as IBM VAC++ or MSVC
@@ -737,8 +732,7 @@ void test_assign (charT, Traits*,
 
 DEFINE_TEST_DISPATCH (test_assign);
 
-static int
-run_test (int, char*[])
+int main (int argc, char** argv)
 {
     static const StringMembers::Test
     tests [] = {
@@ -760,44 +754,7 @@ run_test (int, char*[])
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    StringMembers::run_test (test_assign, tests, test_count);
-
-    return 0;
-}
-
-/**************************************************************************/
-
-int main (int argc, char** argv)
-{
-    return rw_test (argc, argv, __FILE__,
-                    "lib.string.assign",
-                    0 /* no comment */,
-                    run_test,
-                    "|-no-char_traits# "
-                    "|-no-user_traits# "
-                    "|-no-user_char# "
-                    "|-no-exceptions# "
-                    "|-no-exception-safety# "
-
-                    "|-no-assign-ptr# "
-                    "|-no-assign-str# "
-                    "|-no-assign-ptr-size# "
-                    "|-no-assign-str-size-size# "
-                    "|-no-assign-size-val# "
-                    "|-no-assign-range#",
-
-                    &StringMembers::opt_no_char_traits,
-                    &StringMembers::opt_no_user_traits,
-                    &StringMembers::opt_no_user_char,
-                    &StringMembers::opt_no_exceptions,
-                    &StringMembers::opt_no_exception_safety,
-
-                    &Disabled (Assign (ptr)),
-                    &Disabled (Assign (str)),
-                    &Disabled (Assign (ptr_size)),
-                    &Disabled (Assign (str_size_size)),
-                    &Disabled (Assign (size_val)),
-                    &Disabled (Assign (range)),
-                    // sentinel
-                    (void*)0);
+    return StringMembers::run_test (argc, argv, __FILE__,
+                                    "lib.string.assign",
+                                    test_assign, tests, test_count);
 }
