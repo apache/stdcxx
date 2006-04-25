@@ -42,6 +42,10 @@
    // disabled for compilers such as IBM VAC++ or MSVC
    // that can't reliably replace the operators
 #  include <rw_new.h>
+
+#else
+#  include <new>
+
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
 
@@ -333,7 +337,7 @@ range_test_cases [] = {
     TEST ("",          "a",         2, 0,  "",                1),
     TEST ("",          LSTR,LLEN + 10, 0,  "",                1),
 
-    TEST (LSTR,        0,           0, 0, 0,                 -1),
+    TEST (LSTR,        0,           0, 0,  LSTR,             -1),
 
     TEST ("last",      "test",      0, 4, "lasttest",         0)
 };
@@ -421,7 +425,7 @@ void test_append_range (charT          *wstr,
     std::size_t off_last = tcase.off + tcase.size;
 
     if (tcase.arg) {
-        if (off_last < s_arg.size ())
+        if (off_last > s_arg.size ())
             off_last = s_arg.size ();
 
         const charT* const beg = wsrc + tcase.off;
