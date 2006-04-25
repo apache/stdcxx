@@ -78,6 +78,8 @@ struct _TEST_EXPORT StringMembers {
         sig_size_size_str_size_size,
         // (size_type, size_type, size_type, value_type)
         sig_size_size_size_val,
+        // (value_type)
+        sig_val,
         // (InputIterator, InputIterator)
         sig_range,
         // (iterator, value_type)
@@ -102,13 +104,15 @@ struct _TEST_EXPORT StringMembers {
     };
 
     enum MemberId {
-        mem_append  = 1 << 5,
-        mem_assign  = 1 << 6,
-        mem_erase   = 1 << 7,
-        mem_insert  = 1 << 8,
-        mem_replace = 1 << 9,
-        mem_mask    =
-            mem_append | mem_assign | mem_erase | mem_insert | mem_replace
+        mem_append     = 1 << 5,
+        mem_assign     = 1 << 6,
+        mem_erase      = 1 << 7,
+        mem_insert     = 1 << 8,
+        mem_replace    = 1 << 9,
+        mem_op_plus_eq = 1 << 10,
+        mem_mask       =
+            mem_append | mem_assign | mem_erase | mem_insert | 
+            mem_replace | mem_op_plus_eq
     };
 
     // unique identifiers for all overloads of each member function
@@ -189,7 +193,14 @@ struct _TEST_EXPORT StringMembers {
         // (iterator, iterator, size_type, value_type)
         replace_iter_iter_size_val = mem_replace + sig_iter_iter_size_val,
         // (iterator, iterator, InputIterator, InputIterator)
-        replace_iter_iter_range = mem_replace + sig_iter_iter_range
+        replace_iter_iter_range = mem_replace + sig_iter_iter_range,
+
+        // operator += (const charT* s)
+        op_plus_eq_ptr = mem_op_plus_eq + sig_ptr,   
+        // operator += (const basic_string& str)
+        op_plus_eq_str = mem_op_plus_eq + sig_str,
+        // operator += (charT c)
+        op_plus_eq_val = mem_op_plus_eq + sig_val
     };
 
     struct Function {

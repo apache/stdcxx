@@ -122,6 +122,8 @@ setvars (const Function &fun, const TestCase *pcase /* = 0 */)
             fname ="insert";
         else if (fun.which_ & mem_replace)
             fname ="replace";
+        else if (fun.which_ & mem_op_plus_eq)
+            fname ="operator+=";
 
         free (buf);
         buf     = 0;
@@ -152,6 +154,7 @@ setvars (const Function &fun, const TestCase *pcase /* = 0 */)
             "size_type, size_type, const value_type*, size_type",
             "size_type, size_type, const value_type*, size_type, size_type",
             "size_type, size_type, size_type, value_type",
+            "value_type",
             "InputIterator, InputIterator",
             "iterator, value_type",
             "iterator, size_type, value_type",
@@ -189,6 +192,7 @@ setvars (const Function &fun, const TestCase *pcase /* = 0 */)
     switch (fun.which_) {
     case append_ptr:
     case assign_ptr:
+    case op_plus_eq_ptr:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
                       !self, int (pcase->arg_len), pcase->arg, self);
@@ -196,6 +200,7 @@ setvars (const Function &fun, const TestCase *pcase /* = 0 */)
 
     case append_str:
     case assign_str:
+    case op_plus_eq_str:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%{?}string (%{#*s})%{;}%{?}*this%{;})",
                       !self, int (pcase->arg_len), pcase->arg, self);
@@ -220,16 +225,17 @@ setvars (const Function &fun, const TestCase *pcase /* = 0 */)
     case append_size_val:
     case assign_size_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+} %s (%zu, %#c)", pcase->size, pcase->val);
+                      "%{+} (%zu, %#c)", pcase->size, pcase->val);
         break;
 
     case append_range:
     case assign_range:
         rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%{?}%{#*s}%{;}%{?}this->%{;}begin() + %zu, "
+                      "%{?}%{#*s}%{;}%{?}this->%{;}.begin() + %zu, "
                       "%{?}%{#*s}%{;}%{?}this->%{;}.begin() + %zu)",
                       !self, int (pcase->arg_len), pcase->arg,
-                      self, pcase->off, !self, int (pcase->arg_len), pcase->arg,
+                      self, pcase->off, !self, int (pcase->arg_len),
+                      pcase->arg,
                       self, pcase->off + pcase->size);
         break;
 
@@ -361,6 +367,11 @@ setvars (const Function &fun, const TestCase *pcase /* = 0 */)
                       pcase->off2 + pcase->size2);
         break;
 
+    case op_plus_eq_val:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (%#c)", pcase->val);
+        break;
+
     default:
         RW_ASSERT (!"test logic error: unknown overload");
     }
@@ -370,6 +381,7 @@ setvars (const Function &fun, const TestCase *pcase /* = 0 */)
     free (buf);
 }
 
+/**************************************************************************/
 
 void StringMembers::
 run_test (TestFun *test_callback, const Test *tests, size_t test_count)
@@ -377,7 +389,6 @@ run_test (TestFun *test_callback, const Test *tests, size_t test_count)
     const charT char_types[] = {
         Char, WChar, UChar,
         UnknownChar
-        
     };
 
     const Traits traits_types[] = {
