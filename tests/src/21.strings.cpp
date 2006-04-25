@@ -41,19 +41,8 @@
 
 /**************************************************************************/
 
-static const char* const char_names[] = {
-    "char", "wchar_t", "UserChar"
-};
-
-
-static const char* const traits_names[] = {
-    "char_traits", "UserTraits"
-};
-
-
-static const char* const allocator_names[] = {
-    "allocator", "UserAllocator"
-};
+char StringMembers::
+long_string [StringMembers::long_string_len];
 
 int StringMembers::
 opt_memfun_disabled [StringMembers::sig_last];
@@ -77,6 +66,20 @@ opt_no_exception_safety;
 void StringMembers::
 setvars (const Function &fun, const TestCase *pcase /* = 0 */)
 {
+    static const char* const char_names[] = {
+        "char", "wchar_t", "UserChar"
+    };
+
+
+    static const char* const traits_names[] = {
+        "char_traits", "UserTraits"
+    };
+
+
+    static const char* const allocator_names[] = {
+        "allocator", "UserAllocator"
+    };
+
     char*  buf     = 0;
     size_t bufsize = 0;
 
@@ -386,17 +389,23 @@ setvars (const Function &fun, const TestCase *pcase /* = 0 */)
 void StringMembers::
 run_test (TestFun *test_callback, const Test *tests, size_t test_count)
 {
-    const charT char_types[] = {
+    if ('\0' == long_string [0]) {
+        // initialize long_string
+        for (size_t i = 0; i != sizeof long_string - 1; ++i)
+            long_string [i] = 'x';
+    }
+
+    static const charT char_types[] = {
         Char, WChar, UChar,
         UnknownChar
     };
 
-    const Traits traits_types[] = {
+    static const Traits traits_types[] = {
         DefaultTraits, UserTraits,
         UnknownTraits,
     };
 
-    const Allocator alloc_types[] = {
+    static const Allocator alloc_types[] = {
         DefaultAllocator,
         UnknownAllocator
     };

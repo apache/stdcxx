@@ -250,6 +250,11 @@ struct _TEST_EXPORT StringMembers {
     static void
     run_test (TestFun*, const Test*, _RWSTD_SIZE_T);
 
+    enum { long_string_len = 4096 };
+
+    static char
+    long_string [long_string_len];
+
     // array of integers to use for command line option
     // processing (to disable individual overloads of all
     // member functions)

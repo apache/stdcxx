@@ -42,30 +42,26 @@
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
    // disabled for compilers such as IBM VAC++ or MSVC
    // that can't reliably replace the operators
-#  include <rw_new.h>
-
+#  include <rw_new.h>   // for bad_alloc, replacement operator new
 #else
-#  include <new>
-
+#  include <new>        // for bad_alloc
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-#define ReplaceOverload   StringMembers::OverloadId
 #define Replace(which)    StringMembers::replace_ ## which
 
-typedef StringMembers::TestCase TestCase;
-typedef StringMembers::Test     Test;
-typedef StringMembers::Function MemFun;
+typedef StringMembers::OverloadId OverloadId;
+typedef StringMembers::TestCase   TestCase;
+typedef StringMembers::Test       Test;
+typedef StringMembers::Function   MemFun;
 
 /**************************************************************************/
 
 // for convenience and brevity
-#define LSTR  long_string
-#define LLEN  long_string_len
+#define LSTR   StringMembers::long_string
+#define LLEN   StringMembers::long_string_len
 // one half of the long_string length
-#define LPAR  LLEN / 2
+#define LPAR   (LLEN / 2)
 
-static const std::size_t long_string_len = 4096;
-static char long_string [long_string_len];
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -680,7 +676,7 @@ void test_replace_range (const charT* wstr,
 
 template <class charT, class Traits>
 void test_replace (charT, Traits*,
-                   ReplaceOverload which,
+                   OverloadId      which,
                    const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
@@ -835,7 +831,7 @@ void test_replace (charT, Traits*,
             }
 
             default:
-                RW_ASSERT ("test logic error: unknown replace overload");
+                RW_ASSERT (!"logic error: unknown replace overload");
                 return;
             }
 
@@ -980,12 +976,6 @@ DEFINE_TEST_DISPATCH (test_replace);
 static int
 run_test (int, char*[])
 {
-    if ('\0' == LSTR [0]) {
-        // initialize LSTR
-        for (std::size_t i = 0; i != sizeof LSTR - 1; ++i)
-            LSTR [i] = 'x';
-    }
-
     static const StringMembers::Test
     tests [] = {
 
@@ -1020,7 +1010,8 @@ int main (int argc, char** argv)
 {
     return rw_test (argc, argv, __FILE__,
                     "lib.string.replace",
-                    0 /* no comment */, run_test,
+                    0 /* no comment */,
+                    run_test,
                     "|-no-char_traits# "
                     "|-no-user_traits# "
                     "|-no-user_char# "
