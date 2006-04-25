@@ -973,8 +973,7 @@ void test_replace (charT, Traits*,
 
 DEFINE_TEST_DISPATCH (test_replace);
 
-static int
-run_test (int, char*[])
+int main (int argc, char** argv)
 {
     static const StringMembers::Test
     tests [] = {
@@ -999,53 +998,7 @@ run_test (int, char*[])
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    StringMembers::run_test (test_replace, tests, test_count);
-
-    return 0;
-}
-
-/**************************************************************************/
-
-int main (int argc, char** argv)
-{
-    return rw_test (argc, argv, __FILE__,
-                    "lib.string.replace",
-                    0 /* no comment */,
-                    run_test,
-                    "|-no-char_traits# "
-                    "|-no-user_traits# "
-                    "|-no-user_char# "
-                    "|-no-exceptions# "
-                    "|-no-exception-safety# "
-
-                    "|-no-replace-size-size-ptr# "
-                    "|-no-replace-size-size-str# "
-                    "|-no-replace-size-size-ptr-size# "
-                    "|-no-replace-size-size-str-size-size# "
-                    "|-no-replace-size-size-size-val# "
-                    "|-no-replace-ptr# "
-                    "|-no-replace-str# "
-                    "|-no-replace-ptr-size# "
-                    "|-no-replace-size-val# "
-                    "|-no-replace-range#",
-
-                    &StringMembers::opt_no_char_traits,
-                    &StringMembers::opt_no_user_traits,
-                    &StringMembers::opt_no_user_char,
-                    &StringMembers::opt_no_exceptions,
-                    &StringMembers::opt_no_exception_safety,
-
-                    &Disabled (Replace (size_size_ptr)),
-                    &Disabled (Replace (size_size_str)),
-                    &Disabled (Replace (size_size_ptr_size)),
-                    &Disabled (Replace (size_size_str_size_size)),
-                    &Disabled (Replace (size_size_size_val)),
-                    &Disabled (Replace (iter_iter_ptr)),
-                    &Disabled (Replace (iter_iter_str)),
-                    &Disabled (Replace (iter_iter_ptr_size)),
-                    &Disabled (Replace (iter_iter_size_val)),
-                    &Disabled (Replace (iter_iter_range)),
-
-                    // sentinel
-                    (void*)0);
+    return StringMembers::run_test (argc, argv, __FILE__,
+                                    "lib.string.replace",
+                                    test_replace, tests, test_count);
 }

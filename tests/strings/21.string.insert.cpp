@@ -25,19 +25,15 @@
  *
  **************************************************************************/
 
-#include <string>       // for string
-#include <stdexcept>    // for out_of_range, length_error
+#include <string>         // for string
+#include <stdexcept>      // for out_of_range, length_error
 
-#include <cstddef>      // for size_t
+#include <cstddef>        // for size_t
 
-#include <cmdopt.h>     // for rw_enabled()
-#include <driver.h>     // for rw_test()
-
-#include <alg_test.h>   // for InputIter
-#include <rw_printf.h>  // for rw_asnprintf()
-#include <rw_char.h>    // for rw_widen()
-
-#include <21.strings.h>
+#include <21.strings.h>   // for StringMembers
+#include <alg_test.h>     // for InputIter
+#include <driver.h>       // for rw_test()
+#include <rw_char.h>      // for rw_widen()
 
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
    // disabled for compilers such as IBM VAC++ or MSVC
@@ -828,8 +824,7 @@ void test_insert (charT, Traits*,
 
 DEFINE_TEST_DISPATCH (test_insert);
 
-static int
-run_test (int, char*[])
+int main (int argc, char** argv)
 {
     static const StringMembers::Test
     tests [] = {
@@ -852,48 +847,7 @@ run_test (int, char*[])
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    StringMembers::run_test (test_insert, tests, test_count);
-
-    return 0;
-}
-
-/**************************************************************************/
-
-int main (int argc, char** argv)
-{
-    return rw_test (argc, argv, __FILE__,
-                    "lib.string.insert",
-                    0 /* no comment */, run_test,
-                    "|-no-char_traits# "
-                    "|-no-user_traits# "
-                    "|-no-user_chars# "
-                    "|-no-exceptions# "
-                    "|-no-exception-safety# "
-
-                    "|-no-insert-off-ptr# "
-                    "|-no-insert-off-str# "
-                    "|-no-insert-off-ptr-size# "
-                    "|-no-insert-off-str-off-size# "
-                    "|-no-insert-off-size-val# "
-                    "|-no-insert-size-val# "
-                    "|-no-insert-val# "
-                    "|-no-insert-range#",
-
-                    &StringMembers::opt_no_char_traits,
-                    &StringMembers::opt_no_user_traits,
-                    &StringMembers::opt_no_user_char,
-                    &StringMembers::opt_no_exceptions,
-                    &StringMembers::opt_no_exception_safety,
-
-                    &Disabled (Insert (size_ptr)),
-                    &Disabled (Insert (size_str)),
-                    &Disabled (Insert (size_ptr_size)),
-                    &Disabled (Insert (size_str_size_size)),
-                    &Disabled (Insert (size_size_val)),
-                    &Disabled (Insert (val)),
-                    &Disabled (Insert (size_val)),
-                    &Disabled (Insert (range)),
-
-                    // sentinel
-                    (void*)0);
+    return StringMembers::run_test (argc, argv, __FILE__,
+                                    "lib.string.insert",
+                                    test_insert, tests, test_count);
 }
