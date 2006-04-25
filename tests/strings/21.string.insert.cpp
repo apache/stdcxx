@@ -42,29 +42,23 @@
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
    // disabled for compilers such as IBM VAC++ or MSVC
    // that can't reliably replace the operators
-#  include <rw_new.h>
-
+#  include <rw_new.h>   // for bad_alloc, replacement operator new
 #else
-#  include <new>
-
+#  include <new>        // for bad_alloc
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-#define InsertOverload    StringMembers::OverloadId
 #define Insert(which)     StringMembers::insert_ ## which
 
-typedef StringMembers::TestCase TestCase;
-typedef StringMembers::Test     Test;
-typedef StringMembers::Function MemFun;
-
+typedef StringMembers::OverloadId OverloadId;
+typedef StringMembers::TestCase   TestCase;
+typedef StringMembers::Test       Test;
+typedef StringMembers::Function   MemFun;
 
 /**************************************************************************/
 
 // for convenience and brevity
-#define LSTR      long_string
-#define LLEN      long_string_len
-
-static const std::size_t long_string_len = 4096;
-static char long_string [long_string_len];
+#define LSTR   StringMembers::long_string
+#define LLEN   StringMembers::long_string_len
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -567,7 +561,7 @@ void test_insert_range (charT* wstr,
 
 template <class charT, class Traits>
 void test_insert (charT, Traits*,
-                  InsertOverload which,
+                  OverloadId      which,
                   const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
@@ -690,7 +684,7 @@ void test_insert (charT, Traits*,
             }
 
             default:
-                RW_ASSERT ("test logic error: unknown insert overload");
+                RW_ASSERT (!"logic error: unknown insert overload");
                 return;
             }
 
@@ -837,12 +831,6 @@ DEFINE_TEST_DISPATCH (test_insert);
 static int
 run_test (int, char*[])
 {
-    if ('\0' == LSTR [0]) {
-        // initialize LSTR
-        for (std::size_t i = 0; i != sizeof LSTR - 1; ++i)
-            LSTR [i] = 'x';
-    }
-
     static const StringMembers::Test
     tests [] = {
 

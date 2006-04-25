@@ -29,12 +29,11 @@
 #include <cstdlib>      // for free(), size_t
 #include <stdexcept>    // for out_of_range, length_error
 
+#include <alg_test.h>   // for InputIter
 #include <cmdopt.h>     // for rw_enabled()
 #include <driver.h>     // for rw_test()
-
 #include <rw_printf.h>  // for rw_asnprintf()
 #include <rw_char.h>    // for rw_widen()
-#include <alg_test.h>   // for InputIter<>
 
 #include <21.strings.h>
 
@@ -44,21 +43,18 @@
 #  include <new>        // for bad_alloc
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-#define OpPlusEqOverload   StringMembers::OverloadId
 #define OpPlusEq(which)    StringMembers::op_plus_eq_ ## which
 
-typedef StringMembers::TestCase TestCase;
-typedef StringMembers::Test     Test;
-typedef StringMembers::Function MemFun;
+typedef StringMembers::OverloadId OverloadId;
+typedef StringMembers::TestCase   TestCase;
+typedef StringMembers::Test       Test;
+typedef StringMembers::Function   MemFun;
 
 /**************************************************************************/
 
 // for convenience and brevity
-#define LSTR      long_string
-#define LLEN      long_string_len
-
-static const std::size_t long_string_len = 4096;
-static char long_string [long_string_len];
+#define LSTR   StringMembers::long_string
+#define LLEN   StringMembers::long_string_len
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -226,8 +222,8 @@ val_test_cases [] = {
 
 template <class charT, class Traits>
 void test_op_plus_eq (charT, Traits*,
-                      OpPlusEqOverload which,
-                      const TestCase  &cs)
+                      OverloadId      which,
+                      const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> TestString;
@@ -237,11 +233,11 @@ void test_op_plus_eq (charT, Traits*,
     static charT wstr [LLEN];
     static charT warg [LLEN];
 
-    rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (warg, cs.arg, cs.arg_len);
+    rw_widen (wstr, tcase.str, tcase.str_len);
+    rw_widen (warg, tcase.arg, tcase.arg_len);
 
-    TestString s_str (wstr, cs.str_len);
-    TestString s_arg (warg, cs.arg_len);
+    TestString s_str (wstr, tcase.str_len);
+    TestString s_arg (warg, tcase.arg_len);
 
     std::size_t res_off = 0;
     std::size_t throw_after = 0;
@@ -250,9 +246,9 @@ void test_op_plus_eq (charT, Traits*,
     const std::size_t     capacity = s_str.capacity ();
     const ConstStringIter begin    = s_str.begin ();
 
-    const charT* const arg_ptr = cs.arg ? warg : s_str.c_str ();
-    const TestString&  arg_str = cs.arg ? s_arg : s_str;
-    const charT        arg_val = make_char (char (cs.val), (charT*)0);
+    const charT* const arg_ptr = tcase.arg ? warg : s_str.c_str ();
+    const TestString&  arg_str = tcase.arg ? s_arg : s_str;
+    const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
@@ -268,7 +264,7 @@ void test_op_plus_eq (charT, Traits*,
 #ifndef _RWSTD_NO_EXCEPTIONS
 #  ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-        if (-1 == cs.bthrow)
+        if (-1 == tcase.bthrow)
             *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_after + 1;
 
 #  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
@@ -278,16 +274,16 @@ void test_op_plus_eq (charT, Traits*,
 
         // is some exception expected ?
         const char* expected = 0;
-        if (1 == cs.bthrow)
+        if (1 == tcase.bthrow)
             expected = exceptions [2];      // length_error
-        if (-1 == cs.bthrow)
+        if (-1 == tcase.bthrow)
             expected = exceptions [3];      // bad_alloc
 
         const char* caught = 0;
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-        if (cs.bthrow)
+        if (tcase.bthrow)
             return;
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -318,29 +314,29 @@ void test_op_plus_eq (charT, Traits*,
             }
 
             // verify the returned value
-            rw_assert (0 == res_off, 0, cs.line,
+            rw_assert (0 == res_off, 0, tcase.line,
                        "line %d. %{$FUNCALL} returned invalid reference, "
                        "offset is %zu", __LINE__, res_off);
 
             // verfiy that strings length are equal
-            rw_assert (cs.res_len == s_str.size (), 0, cs.line,
+            rw_assert (tcase.res_len == s_str.size (), 0, tcase.line,
                        "line %d. %{$FUNCALL} expected %{#*s} "
                        "with length %zu, got %{/*.*Gs} with length %zu",
-                       __LINE__, int (cs.res_len), cs.res, cs.res_len,
+                       __LINE__, int (tcase.res_len), tcase.res, tcase.res_len,
                        int (sizeof (charT)), int (s_str.size ()),
                        s_str.c_str (), s_str.size ());
 
-            if (cs.res_len == s_str.size ()) {
+            if (tcase.res_len == s_str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (cs.res, s_str.c_str(), cs.res_len);
+                    rw_match (tcase.res, s_str.c_str(), tcase.res_len);
 
-                rw_assert (match == cs.res_len, 0, cs.line,
+                rw_assert (match == tcase.res_len, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{#*s}, "
                            "got %{/*.*Gs}, difference at offset %zu",
-                           __LINE__, int (cs.res_len), cs.res,
+                           __LINE__, int (tcase.res_len), tcase.res,
                            int (sizeof (charT)), int (s_str.size ()),
                            s_str.c_str (), match);
             }
@@ -350,28 +346,28 @@ void test_op_plus_eq (charT, Traits*,
 
         catch (const std::length_error &ex) {
             caught = exceptions [2];
-            rw_assert (caught == expected, 0, cs.line,
+            rw_assert (caught == expected, 0, tcase.line,
                        "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                        "unexpectedly%{;} caught std::%s(%#s)",
                        __LINE__, 0 != expected, expected, caught, ex.what ());
         }
         catch (const std::bad_alloc &ex) {
             caught = exceptions [3];
-            rw_assert (-1 == cs.bthrow, 0, cs.line,
+            rw_assert (-1 == tcase.bthrow, 0, tcase.line,
                        "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                        "unexpectedly%{;} caught std::%s(%#s)",
                        __LINE__, 0 != expected, expected, caught, ex.what ());
         }
         catch (const std::exception &ex) {
             caught = exceptions [4];
-            rw_assert (0, 0, cs.line,
+            rw_assert (0, 0, tcase.line,
                        "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                        "unexpectedly%{;} caught std::%s(%#s)",
                        __LINE__, 0 != expected, expected, caught, ex.what ());
         }
         catch (...) {
             caught = exceptions [0];
-            rw_assert (0, 0, cs.line,
+            rw_assert (0, 0, tcase.line,
                        "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                        "unexpectedly%{;} caught %s",
                        __LINE__, 0 != expected, expected, caught);
@@ -387,22 +383,22 @@ void test_op_plus_eq (charT, Traits*,
             // verify that an exception thrown during allocation
             // didn't cause a change in the state of the object
 
-            rw_assert (s_str.size () == size, 0, cs.line,
+            rw_assert (s_str.size () == size, 0, tcase.line,
                        "line %d: %{$FUNCALL}: size unexpectedly changed "
                        "from %zu to %zu after an exception",
                        __LINE__, size, s_str.size ());
 
-            rw_assert (s_str.capacity () == capacity, 0, cs.line,
+            rw_assert (s_str.capacity () == capacity, 0, tcase.line,
                        "line %d: %{$FUNCALL}: capacity unexpectedly "
                        "changed from %zu to %zu after an exception",
                        __LINE__, capacity, s_str.capacity ());
 
-            rw_assert (s_str.begin () == begin, 0, cs.line,
+            rw_assert (s_str.begin () == begin, 0, tcase.line,
                        "line %d: %{$FUNCALL}: begin() unexpectedly "
                        "changed from after an exception by %d",
                        __LINE__, s_str.begin () - begin);
 
-            if (-1 == cs.bthrow) {
+            if (-1 == tcase.bthrow) {
                 // increment to allow this call to operator new to succeed
                 // and force the next one to fail, and try calling the same
                 // function again
@@ -410,8 +406,8 @@ void test_op_plus_eq (charT, Traits*,
                 continue;
             }
         }
-        else if (-1 != cs.bthrow) {
-            rw_assert (caught == expected, 0, cs.line,
+        else if (-1 != tcase.bthrow) {
+            rw_assert (caught == expected, 0, tcase.line,
                        "line %d. %{$FUNCALL} %{?}expected %s, caught %s"
                        "%{:}unexpectedly caught %s%{;}",
                        __LINE__, 0 != expected, expected, caught, caught);
@@ -427,7 +423,7 @@ void test_op_plus_eq (charT, Traits*,
     // at least one exception is thrown
     rw_assert (   *pst->throw_at_calls_ [0] == std::size_t (-1)
                || throw_after,
-               0, cs.line,
+               0, tcase.line,
                "line %d: %{$FUNCALL}: failed to throw an expected exception",
                __LINE__);
 
@@ -451,12 +447,6 @@ DEFINE_TEST_DISPATCH (test_op_plus_eq);
 static int
 run_test (int, char*[])
 {
-    if ('\0' == LSTR [0]) {
-        // initialize LSTR
-        for (std::size_t i = 0; i != sizeof LSTR - 1; ++i)
-            LSTR [i] = 'x';
-    }
-
     static const StringMembers::Test
     tests [] = {
 
@@ -484,7 +474,8 @@ int main (int argc, char** argv)
 {
     return rw_test (argc, argv, __FILE__,
                     "lib.string.op+=",
-                    0 /* no comment */, run_test,
+                    0 /* no comment */,
+                    run_test,
                     "|-no-char_traits# "
                     "|-no-user_traits# "
                     "|-no-user_char# "
