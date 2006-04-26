@@ -176,14 +176,127 @@ public:
 template <class charT>
 struct UserTraits: std::char_traits<charT>
 {
-    typedef typename std::char_traits<charT>::int_type int_type;
+    typedef std::char_traits<charT>  Base;
+    typedef typename Base::char_type char_type;
+    typedef typename Base::int_type  int_type;
+
+    struct MemFun {
+        enum {
+            assign, eq, lt, compare, length, find, copy, move,
+            assign2, not_eof, to_char_type, to_int_type, eq_int_type,
+            eof,
+            n_funs
+        };
+    };
+
+    static _RWSTD_SIZE_T n_calls_ [];
+
+    // avoid any dependency on the library
+    typedef int                   off_type;     // std::streamoff
+    typedef int                   state_type;   // std::mbstate_t
+    typedef std::fpos<state_type> pos_type;     // std::fpos<state_type>
+
+    // accesses to the char_type::f member may trigger a SIGBUS
+    // on some architectures (e.g., PA or SPARC) if the member
+    // isn't appropriately aligned
+
+    static void
+    assign (char_type &dst, const char_type &src) {
+        ++n_calls_ [MemFun::assign];
+        Base::assign (dst, src);
+    }
+
+    static bool
+    eq (const char_type &ch1, const char_type &ch2) {
+        ++n_calls_ [MemFun::eq];
+        return Base::eq (ch1, ch2);
+    }
+
+    static bool
+    lt (const char_type &ch1, const char_type &ch2) {
+        ++n_calls_ [MemFun::lt];
+        return Base::lt (ch1, ch2);
+    }
+
+    static int
+    compare (const char_type *s1, const char_type *s2, _RWSTD_SIZE_T n) {
+        ++n_calls_ [MemFun::compare];
+        return Base::compare (s1, s2, n);
+    }
+        
+    static _RWSTD_SIZE_T
+    length (const char_type *s) {
+        ++n_calls_ [MemFun::length];
+        return Base::length (s);
+    }
+ 
+    static const char_type*
+    find (const char_type *s, _RWSTD_SIZE_T n, const char_type &ch) {
+        ++n_calls_ [MemFun::find];
+        return Base::find (s, n, ch);
+    }
+
+    static char_type*
+    copy (char_type *dst, const char_type *src, _RWSTD_SIZE_T n) {
+        ++n_calls_ [MemFun::copy];
+        return Base::copy (dst, src, n);
+    }
+
+    static char_type*
+    move (char_type *dst, const char_type *src, _RWSTD_SIZE_T n) {
+        ++n_calls_ [MemFun::move];
+        return Base::move (dst, src, n);
+    }
+
+    static char_type*
+    assign (char_type *s, _RWSTD_SIZE_T n, char_type ch) {
+        ++n_calls_ [MemFun::assign];
+        return Base::assign (s, n, ch);
+    }
+
+    static int_type
+    not_eof (const int_type &i) {
+        ++n_calls_ [MemFun::not_eof];
+        return eof () == i ? ~i : i;
+    }
+
+    static char_type
+    to_char_type (const int_type &i) {
+        ++n_calls_ [MemFun::to_char_type];
+        return Base::to_char_type (i);
+    }
+      
+    static int_type
+    to_int_type (const char_type &ch) {
+        ++n_calls_ [MemFun::to_int_type];
+        return Base::to_int_type (ch);
+    }
+
+    static bool
+    eq_int_type (const int_type &i1, const int_type &i2) {
+        ++n_calls_ [MemFun::eq_int_type];
+        return Base::eq_int_type (i1, i2);
+    }
+
+    static int_type
+    eof () {
+        return eof_;
+    }
 
     static int_type eof_;
 
-    static int_type eof () {
-        return eof_;
-    }
+private:
+
+    // not defined to detect bad assumptions made by the library
+    UserTraits ();
+    ~UserTraits ();
+    void operator= (UserTraits&);
 };
+
+
+template <class charT>
+_RWSTD_SIZE_T
+UserTraits<charT>::n_calls_ [UserTraits<charT>::MemFun::n_funs];
 
 template <class charT>
 typename UserTraits<charT>::int_type
@@ -193,15 +306,6 @@ UserTraits<charT>::eof_ = std::char_traits<charT>::eof ();
 _RWSTD_SPECIALIZED_CLASS
 struct _TEST_EXPORT UserTraits<UserChar>   // user-defined character traits
 {
-private:
-
-    // not defined to detect bad assumptions made by the library
-    UserTraits ();
-    ~UserTraits ();
-    void operator= (UserTraits&);
-    
-public:
-
     struct MemFun {
         enum {
             assign, eq, lt, compare, length, find, copy, move,
@@ -257,6 +361,13 @@ public:
     static bool eq_int_type (const int_type&, const int_type&);
 
     static int_type eof ();
+
+private:
+
+    // not defined to detect bad assumptions made by the library
+    UserTraits ();
+    ~UserTraits ();
+    void operator= (UserTraits&);
 };
 
 
