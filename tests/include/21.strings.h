@@ -266,9 +266,12 @@ struct _TEST_EXPORT StringMembers {
         if (StringMembers::Char == memfun.char_id_)             \
             fname (char (), (std::char_traits<char>*)0,         \
                    memfun.which_, tcase);                       \
-        else                                                    \
+        else if (StringMembers::WChar == memfun.char_id_)       \
             fname (wchar_t (), (std::char_traits<wchar_t>*)0,   \
                    memfun.which_, tcase);                       \
+        else                                                    \
+            rw_note (0, 0, 0,                                   \
+                     "%{$CLASS} tests not implemented");        \
     }                                                           \
     else {                                                      \
        if (StringMembers::Char == memfun.char_id_)              \
@@ -289,14 +292,22 @@ struct _TEST_EXPORT StringMembers {
         if (StringMembers::Char == memfun.char_id_)             \
             fname (char (), (std::char_traits<char>*)0,         \
                    memfun.which_, tcase);                       \
+        else if (StringMembers::WChar == memfun.char_id_)       \
+            RW_ASSERT (!"logic error: wchar_t disabled");       \
+        else                                                    \
+            rw_note (0, 0, 0,                                   \
+                     "%{$CLASS} tests not implemented");        \
+        }                                                       \
     }                                                           \
     else {                                                      \
-       if (StringMembers::Char == memfun.char_id_)              \
-           fname (char (), (UserTraits<char>*)0,                \
-                  memfun.which_, tcase);                        \
-       else if (StringMembers::UChar == memfun.char_id_)        \
-           fname (UserChar (), (UserTraits<UserChar>*)0,        \
-                  memfun.which_, tcase);                        \
+        if (StringMembers::Char == memfun.char_id_)             \
+            fname (char (), (UserTraits<char>*)0,               \
+                   memfun.which_, tcase);                       \
+        else if (StringMembers::WChar == memfun.char_id_)       \
+             RW_ASSERT (!"logic error: wchar_t disabled");      \
+        else if (StringMembers::UChar == memfun.char_id_)       \
+            fname (UserChar (), (UserTraits<UserChar>*)0,       \
+                   memfun.which_, tcase);                       \
     }                                                           \
     (void)0
 

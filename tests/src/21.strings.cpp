@@ -430,6 +430,27 @@ _rw_string_test_count;
 static int
 _rw_run_test (int, char*[])
 {
+#ifdef _RWSTD_NO_EXCEPTIONS
+
+    rw_note (0, 0, 0, "exception tests disabled (macro "
+             "_RWSTD_NO_EXCEPTIONS #defined)");
+
+    // disable all exception tests and avoid further notes
+    _rw_no_exceptions       = 2;
+    _rw_no_exception_safety = 2;
+
+#endif   // _RWSTD_NO_EXCEPTIONS
+
+#ifdef _RWSTD_NO_WCHAR_T
+
+    rw_note (0, 0, 0, "wchar_t tests disabled (macro "
+             "_RWSTD_NO_WCHAR_T #defined)");
+
+    // disable wchar_t tests and avoid further notes
+    _rw_opt_no_char_types [1] = 2;
+
+#endif   // _RWSTD_NO_WCHAR_T
+
     if ('\0' == StringMembers::long_string [0]) {
         // initialize long_string
         for (size_t i = 0; i != sizeof StringMembers::long_string - 1; ++i)
@@ -460,7 +481,7 @@ _rw_run_test (int, char*[])
 
         if (_rw_opt_no_char_types [i]) {
             // issue only the first note
-            rw_note (1 < _rw_opt_no_char_types [i]++, 0, 0,
+            rw_note (1 < _rw_opt_no_char_types [i]++, __FILE__, __LINE__,
                      "%s tests disabled", _rw_char_names [i]);
             continue;
         }
@@ -468,20 +489,27 @@ _rw_run_test (int, char*[])
         // exercise all specializations on Traits before those on charT
         for (size_t j = 0; traits_types [j]; ++j) {
 
-            if (_rw_opt_no_traits_types [i]) {
+            if (0 == j && StringMembers::UChar == char_types [i]) {
+                // std::char_traits can only be instantiated on
+                // char and wchar_t, only UserTraits may be used
+                // with UserChar
+                continue;
+            }
+
+            if (_rw_opt_no_traits_types [j]) {
                 // issue only the first note
-                rw_note (1 < _rw_opt_no_traits_types [i]++, 0, 0,
-                         "%s tests disabled", _rw_traits_names [i]);
+                rw_note (1 < _rw_opt_no_traits_types [j]++, __FILE__, __LINE__,
+                         "%s tests disabled", _rw_traits_names [j]);
                 continue;
             }
 
             for (size_t k = 0; alloc_types [k]; ++k) {
 
-                if (_rw_opt_no_alloc_types [i]) {
+                if (_rw_opt_no_alloc_types [k]) {
                     // issue only the first note
-                    rw_note (1 < _rw_opt_no_alloc_types [i]++, 0, 0,
-                             "%s tests disabled",
-                             _rw_alloc_names [i]);
+                    rw_note (1 < _rw_opt_no_alloc_types [k]++, __FILE__,
+                             __LINE__, "%s tests disabled",
+                             _rw_alloc_names [k]);
                     continue;
                 }
 
@@ -513,7 +541,7 @@ _rw_run_test (int, char*[])
                     // check if tests of the function overload
                     // have been disabled
                     if (_rw_opt_memfun_disabled [siginx]) {
-                        rw_note (0, 0, 0,
+                        rw_note (0, __FILE__, __LINE__,
                                  "%{$CLASS}::%{$FUNCSIG} tests disabled");
                         continue;
                     }
@@ -534,7 +562,8 @@ _rw_run_test (int, char*[])
                             && _rw_opt_no_exception_safety) {
 
                             // issue only the first note
-                            rw_note (1 < _rw_opt_no_exception_safety++, 0, 0,
+                            rw_note (1 < _rw_opt_no_exception_safety++,
+                                     __FILE__, __LINE__,
                                      "exception safety tests disabled");
                             continue;
                         }
@@ -546,7 +575,8 @@ _rw_run_test (int, char*[])
                         if (tcase.bthrow && _rw_opt_no_exceptions) {
 
                             // issue only the first note
-                            rw_note (1 < _rw_opt_no_exceptions++, 0, 0,
+                            rw_note (1 < _rw_opt_no_exceptions++,
+                                     __FILE__, __LINE__,
                                      "exception tests disabled");
                             continue;
                         }
@@ -563,7 +593,8 @@ _rw_run_test (int, char*[])
                             _rw_test_callback (memfun, tcase);
                         }
                         else
-                            rw_note (0, 0, 0, "test on line %d disabled",
+                            rw_note (0, __FILE__, tcase.line,
+                                     "test on line %d disabled",
                                      tcase.line);
                     }
                 }
@@ -589,13 +620,6 @@ run_test (int         argc,
     _rw_test_callback     = test_callback;
     _rw_string_tests      = tests;
     _rw_string_test_count = test_count;
-
-#ifdef _RWSTD_NO_EXCEPTIONS
-
-    _rw_no_exceptions       = 1;
-    _rw_no_exception_safety = 1;
-
-#endif   // _RWSTD_NO_EXCEPTIONS
 
     return rw_test (argc, argv, file, clause,
                     0,   // comment
