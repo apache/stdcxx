@@ -73,6 +73,9 @@ static int
 _rw_opt_memfun_disabled [StringMembers::sig_last];
 
 static int
+_rw_opt_memfun_enabled [StringMembers::sig_last];
+
+static int
 _rw_opt_no_char_types [3];
 
 static int
@@ -451,6 +454,29 @@ _rw_run_test (int, char*[])
 
 #endif   // _RWSTD_NO_WCHAR_T
 
+    // see if any option has been explicitly enabled
+    const size_t nopts =
+        sizeof _rw_opt_memfun_enabled / sizeof *_rw_opt_memfun_enabled;
+
+    bool any_enabled = false;
+
+    for (size_t i = 0; i != nopts; ++i) {
+        if (_rw_opt_memfun_enabled [i]) {
+            any_enabled = true;
+            break;
+        }
+    }
+
+    if (any_enabled) {
+        // if one or more options has been explicitly enabled
+        // treat all those that haven't as if they had been
+        // disabled
+        for (size_t i = 0; i != nopts; ++i) {
+            if (!_rw_opt_memfun_enabled [i])
+                _rw_opt_memfun_disabled [i] = 1;
+        }
+    }
+
     if ('\0' == StringMembers::long_string [0]) {
         // initialize long_string
         for (size_t i = 0; i != sizeof StringMembers::long_string - 1; ++i)
@@ -661,7 +687,36 @@ run_test (int         argc,
                     "|-no-iter_iter_str# "
                     "|-no-iter_iter_ptr_size# "
                     "|-no-iter_iter_size_val# "
-                    "|-no-iter_iter_range# ",
+                    "|-no-iter_iter_range# "
+
+                    "|-enable-void# "
+                    "|-enable-ptr# "
+                    "|-enable-str# "
+                    "|-enable-size# "
+                    "|-enable-ptr_size# "
+                    "|-enable-str_size_size# "
+                    "|-enable-size_ptr_size# "
+                    "|-enable-size_str_size_size# "
+                    "|-enable-size_val# "
+                    "|-enable-size_str# "
+                    "|-enable-size_size# "
+                    "|-enable-size_size_ptr# "
+                    "|-enable-size_size_str# "
+                    "|-enable-size_size_val# "
+                    "|-enable-size_size_ptr_size# "
+                    "|-enable-size_size_str_size_size# "
+                    "|-enable-size_size_size_val# "
+                    "|-enable-val# "
+                    "|-enable-range# "
+                    "|-enable-iter_val# "
+                    "|-enable-iter_size_val# "
+                    "|-enable-iter_range# "
+                    "|-enable-iter_iter_ptr# "
+                    "|-enable-iter_iter_str# "
+                    "|-enable-iter_iter_ptr_size# "
+                    "|-enable-iter_iter_size_val# "
+                    "|-enable-iter_iter_range# ",
+
 
                     // handlers controlling specializations of the template
                     _rw_opt_no_char_types + 0,
@@ -705,6 +760,34 @@ run_test (int         argc,
                     _rw_opt_memfun_disabled + sig_iter_iter_ptr_size - 1,
                     _rw_opt_memfun_disabled + sig_iter_iter_size_val - 1,
                     _rw_opt_memfun_disabled + sig_iter_iter_range - 1,
+
+                    _rw_opt_memfun_enabled + sig_void - 1,
+                    _rw_opt_memfun_enabled + sig_ptr - 1,
+                    _rw_opt_memfun_enabled + sig_str - 1,
+                    _rw_opt_memfun_enabled + sig_size - 1,
+                    _rw_opt_memfun_enabled + sig_ptr_size - 1,
+                    _rw_opt_memfun_enabled + sig_str_size_size - 1,
+                    _rw_opt_memfun_enabled + sig_size_ptr_size - 1,
+                    _rw_opt_memfun_enabled + sig_size_str_size_size - 1,
+                    _rw_opt_memfun_enabled + sig_size_val - 1,
+                    _rw_opt_memfun_enabled + sig_size_str - 1,
+                    _rw_opt_memfun_enabled + sig_size_size - 1,
+                    _rw_opt_memfun_enabled + sig_size_size_ptr - 1,
+                    _rw_opt_memfun_enabled + sig_size_size_str - 1,
+                    _rw_opt_memfun_enabled + sig_size_size_val - 1,
+                    _rw_opt_memfun_enabled + sig_size_size_ptr_size - 1,
+                    _rw_opt_memfun_enabled + sig_size_size_str_size_size - 1,
+                    _rw_opt_memfun_enabled + sig_size_size_size_val - 1,
+                    _rw_opt_memfun_enabled + sig_val - 1,
+                    _rw_opt_memfun_enabled + sig_range - 1,
+                    _rw_opt_memfun_enabled + sig_iter_val - 1,
+                    _rw_opt_memfun_enabled + sig_iter_size_val - 1,
+                    _rw_opt_memfun_enabled + sig_iter_range - 1,
+                    _rw_opt_memfun_enabled + sig_iter_iter_ptr - 1,
+                    _rw_opt_memfun_enabled + sig_iter_iter_str - 1,
+                    _rw_opt_memfun_enabled + sig_iter_iter_ptr_size - 1,
+                    _rw_opt_memfun_enabled + sig_iter_iter_size_val - 1,
+                    _rw_opt_memfun_enabled + sig_iter_iter_range - 1,
 
                     // sentinel
                     (void*)0);
