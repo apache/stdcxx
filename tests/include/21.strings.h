@@ -54,6 +54,10 @@ struct _TEST_EXPORT StringMembers {
         sig_size,
         // (const value_type*, size_type)
         sig_ptr_size,
+        // (const basic_string&, size_type)
+        sig_str_size,
+        // (const value_type*, size_type, size_type)
+        sig_ptr_size_size,
         // (const basic_string&, size_type, size_type)
         sig_str_size_size,
         // (size_type, const value_type*, size_type)
@@ -80,14 +84,20 @@ struct _TEST_EXPORT StringMembers {
         sig_size_size_size_val,
         // (value_type)
         sig_val,
+        // (value_type, size_type)
+        sig_val_size,
         // (InputIterator, InputIterator)
         sig_range,
+        // (iterator)
+        sig_iter,
         // (iterator, value_type)
         sig_iter_val,
         // (iterator, size_type, value_type)
         sig_iter_size_val,
         // (iterator, InputIterator, InputIterator)
         sig_iter_range,
+        // (iterator, iterator)
+        sig_iter_iter,
         // (iterator, iterator, const value_type*)
         sig_iter_iter_ptr,
         // (iterator, iterator, const basic_string&)
@@ -104,15 +114,23 @@ struct _TEST_EXPORT StringMembers {
     };
 
     enum MemberId {
-        mem_append     = 1 << 5,
-        mem_assign     = 1 << 6,
-        mem_erase      = 1 << 7,
-        mem_insert     = 1 << 8,
-        mem_replace    = 1 << 9,
-        mem_op_plus_eq = 1 << 10,
+        mem_append             = 1 << 6,
+        mem_assign             = 1 << 7,
+        mem_erase              = 1 << 8,
+        mem_insert             = 1 << 9,
+        mem_replace            = 1 << 10,
+        mem_op_plus_eq         = 1 << 11,
+        mem_find               = 1 << 12,
+        mem_rfind              = 1 << 13,
+        mem_find_first_of      = 1 << 14,
+        mem_find_last_of       = 1 << 15,
+        mem_find_first_not_of  = 1 << 16,
+        mem_find_last_not_of   = 1 << 17,
         mem_mask       =
             mem_append | mem_assign | mem_erase | mem_insert | 
-            mem_replace | mem_op_plus_eq
+            mem_replace | mem_op_plus_eq | mem_find | mem_rfind |
+            mem_find_first_of | mem_find_last_of | mem_find_first_not_of |
+            mem_find_last_not_of
     };
 
     // unique identifiers for all overloads of each member function
@@ -153,6 +171,10 @@ struct _TEST_EXPORT StringMembers {
         erase_size = mem_erase + sig_size,
         // erase (size_type, size_type)
         erase_size_size = mem_erase + sig_size_size,
+        // erase (iterator)
+        erase_iter = mem_erase + sig_iter,
+        // erase (iterator, iterator)
+        erase_iter_iter = mem_erase + sig_iter_iter,
 
         //////////////////////////////////////////////////////////////
         // insert (size_type, const value_type*)
@@ -195,12 +217,113 @@ struct _TEST_EXPORT StringMembers {
         // (iterator, iterator, InputIterator, InputIterator)
         replace_iter_iter_range = mem_replace + sig_iter_iter_range,
 
-        // operator += (const charT* s)
+        // operator += (const value_type*)
         op_plus_eq_ptr = mem_op_plus_eq + sig_ptr,   
-        // operator += (const basic_string& str)
+        // operator += (const basic_string&)
         op_plus_eq_str = mem_op_plus_eq + sig_str,
-        // operator += (charT c)
-        op_plus_eq_val = mem_op_plus_eq + sig_val
+        // operator += (value_type)
+        op_plus_eq_val = mem_op_plus_eq + sig_val,
+
+        //////////////////////////////////////////////////////////////
+        // overloads of find, rfind, find_first_of, find_last_of, 
+        // find_first_not_of, find_last_not_of
+
+        // find (const value_type*)
+        find_ptr = mem_find + sig_ptr,
+        // find (basic_string&)
+        find_str = mem_find + sig_str,
+        // find (const value_type*, size_type)
+        find_ptr_size = mem_find + sig_ptr_size,
+        // find (const value_type*, size_type, size_type)
+        find_ptr_size_size = mem_find + sig_ptr_size_size,
+        // find (basic_string&, size_type)
+        find_str_size = mem_find + sig_str_size,
+        // find (value_type)
+        find_val = mem_find + sig_val,
+        // find (value_type, size_type)
+        find_val_size = mem_find + sig_val_size,
+
+        //////////////////////////////////////////////////////////////
+        // rfind (const value_type*)
+        rfind_ptr = mem_rfind + sig_ptr,
+        // rfind (basic_string&)
+        rfind_str = mem_rfind + sig_str,
+        // rfind (const value_type*, size_type)
+        rfind_ptr_size = mem_rfind + sig_ptr_size,
+        // rfind (const value_type*, size_type, size_type)
+        rfind_ptr_size_size = mem_rfind + sig_ptr_size_size,
+        // rfind (basic_string&, size_type)
+        rfind_str_size = mem_rfind + sig_str_size,
+        // rfind (value_type)
+        rfind_val = mem_rfind + sig_val,
+        // rfind (value_type, size_type)
+        rfind_val_size = mem_rfind + sig_val_size,
+
+        //////////////////////////////////////////////////////////////
+        // find_first_of (const value_type*)
+        find_first_of_ptr = mem_find_first_of + sig_ptr,
+        // find_first_of (basic_string&)
+        find_first_of_str = mem_find_first_of + sig_str,
+        // find_first_of (const value_type*, size_type)
+        find_first_of_ptr_size = mem_find_first_of + sig_ptr_size,
+        // find_first_of (const value_type*, size_type, size_type)
+        find_first_of_ptr_size_size = mem_find_first_of + sig_ptr_size_size,
+        // find_first_of (basic_string&, size_type)
+        find_first_of_str_size = mem_find_first_of + sig_str_size,
+        // find_first_of (value_type)
+        find_first_of_val = mem_find_first_of + sig_val,
+        // find_first_of (value_type, size_type)
+        find_first_of_val_size = mem_find_first_of + sig_val_size,
+
+        //////////////////////////////////////////////////////////////
+        // find_last_of (const value_type*)
+        find_last_of_ptr = mem_find_last_of + sig_ptr,
+        // find_last_of (basic_string&)
+        find_last_of_str = mem_find_last_of + sig_str,
+        // find_last_of (const value_type*, size_type)
+        find_last_of_ptr_size = mem_find_last_of + sig_ptr_size,
+        // find_last_of (const value_type*, size_type, size_type)
+        find_last_of_ptr_size_size = mem_find_last_of + sig_ptr_size_size,
+        // find_last_of (basic_string&, size_type)
+        find_last_of_str_size = mem_find_last_of + sig_str_size,
+        // find_last_of (value_type)
+        find_last_of_val = mem_find_last_of + sig_val,
+        // find_last_of (value_type, size_type)
+        find_last_of_val_size = mem_find_last_of + sig_val_size,
+
+        //////////////////////////////////////////////////////////////
+        // find_first_not_of (const value_type*)
+        find_first_not_of_ptr = mem_find_first_not_of + sig_ptr,
+        // find_first_not_of (basic_string&)
+        find_first_not_of_str = mem_find_first_not_of + sig_str,
+        // find_first_not_of (const value_type*, size_type)
+        find_first_not_of_ptr_size = mem_find_first_not_of + sig_ptr_size,
+        // find_first_not_of (const value_type*, size_type, size_type)
+        find_first_not_of_ptr_size_size = 
+            mem_find_first_not_of + sig_ptr_size_size,
+        // find_first_not_of (basic_string&, size_type)
+        find_first_not_of_str_size = mem_find_first_not_of + sig_str_size,
+        // find_first_not_of (value_type)
+        find_first_not_of_val = mem_find_first_not_of + sig_val,
+        // find_first_not_of (value_type, size_type)
+        find_first_not_of_val_size = mem_find_first_not_of + sig_val_size,
+
+        //////////////////////////////////////////////////////////////
+        // find_last_not_of (const value_type*)
+        find_last_not_of_ptr = mem_find_last_not_of + sig_ptr,
+        // find_last_not_of (basic_string&)
+        find_last_not_of_str = mem_find_last_not_of + sig_str,
+        // find_last_not_of (const value_type*, size_type)
+        find_last_not_of_ptr_size = mem_find_last_not_of + sig_ptr_size,
+        // find_last_not_of (const value_type*, size_type, size_type)
+        find_last_not_of_ptr_size_size = 
+            mem_find_last_not_of + sig_ptr_size_size,
+        // find_last_not_of (basic_string&, size_type)
+        find_last_not_of_str_size = mem_find_last_not_of + sig_str_size,
+        // find_last_not_of (value_type)
+        find_last_not_of_val = mem_find_last_not_of + sig_val,
+        // find_last_not_of (value_type, size_type)
+        find_last_not_of_val_size = mem_find_last_not_of + sig_val_size
     };
 
     struct Function {
@@ -232,7 +355,8 @@ struct _TEST_EXPORT StringMembers {
         _RWSTD_SIZE_T  arg_len;   // length of sequence
 
         const char*    res;       // resulting sequence
-        _RWSTD_SIZE_T  res_len;   // length of sequence
+        _RWSTD_SIZE_T  nres;      // length of sequence or expected result
+                                  // value for find, rfind, compare, etc
 
         int            bthrow;    // exception expected
     };
