@@ -61,7 +61,9 @@ _rw_alloc_names[] = {
 
 static const char* const
 _rw_memfun_names[] = {
-    "append", "assign", "erase", "insert", "replace", "operator+="
+    "append", "assign", "erase", "insert", "replace", "operator+=", "find", 
+    "rfind", "find_first_of", "find_last_of", "find_first_not_of", 
+    "find_last_not_of"
 };
 
 /**************************************************************************/
@@ -153,7 +155,7 @@ _rw_setvars (const StringMembers::Function &fun,
         rw_fprintf (0, "%{$CLASS:=*}", buf);
 
         // determine the member function name
-        const size_t funinx  = _rw_ilog2 (size_t (fun.which_) >> 5);
+        const size_t funinx  = _rw_ilog2 (size_t (fun.which_) >> 6);
         const size_t memfuns =
             sizeof _rw_memfun_names / sizeof *_rw_memfun_names;
 
@@ -178,6 +180,8 @@ _rw_setvars (const StringMembers::Function &fun,
             "const basic_string&",
             "size_type",
             "const value_type*, size_type",
+            "const basic_string&, size_type",
+            "const value_type*, size_type, size_type",
             "const basic_string&, size_type, size_type",
             "size_type, const value_type*, size_type",
             "size_type, const basic_string&, size_type, size_type",
@@ -191,15 +195,18 @@ _rw_setvars (const StringMembers::Function &fun,
             "size_type, size_type, const value_type*, size_type, size_type",
             "size_type, size_type, size_type, value_type",
             "value_type",
+            "value_type, size_type",
             "InputIterator, InputIterator",
+            "iterator",
             "iterator, value_type",
             "iterator, size_type, value_type",
             "iterator, InputIterator, InputIterator",
+            "iterator, iterator",
             "iterator, iterator, const value_type*",
             "iterator, iterator, const basic_string&",
             "iterator, iterator, const value_type*, size_type",
             "iterator, iterator, size_type, value_type",
-            "iterator, iterator, InputIterator, InputIterator",
+            "iterator, iterator, InputIterator, InputIterator"
         };
 
         const size_t siginx =
@@ -230,6 +237,12 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::append_ptr:
     case StringMembers::assign_ptr:
     case StringMembers::op_plus_eq_ptr:
+    case StringMembers::find_ptr:
+    case StringMembers::rfind_ptr:
+    case StringMembers::find_first_of_ptr:
+    case StringMembers::find_last_of_ptr:
+    case StringMembers::find_first_not_of_ptr:
+    case StringMembers::find_last_not_of_ptr:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
                       !self, int (pcase->arg_len), pcase->arg, self);
@@ -238,6 +251,12 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::append_str:
     case StringMembers::assign_str:
     case StringMembers::op_plus_eq_str:
+    case StringMembers::find_str:
+    case StringMembers::rfind_str:
+    case StringMembers::find_first_of_str:
+    case StringMembers::find_last_of_str:
+    case StringMembers::find_first_not_of_str:
+    case StringMembers::find_last_not_of_str:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%{?}string (%{#*s})%{;}%{?}*this%{;})",
                       !self, int (pcase->arg_len), pcase->arg, self);
@@ -249,6 +268,42 @@ _rw_setvars (const StringMembers::Function &fun,
                       "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)",
                       !self, int (pcase->arg_len), pcase->arg,
                       self, pcase->size);
+        break;
+
+    case StringMembers::find_ptr_size:
+    case StringMembers::rfind_ptr_size:
+    case StringMembers::find_first_of_ptr_size:
+    case StringMembers::find_last_of_ptr_size:
+    case StringMembers::find_first_not_of_ptr_size:
+    case StringMembers::find_last_not_of_ptr_size:
+        rw_asnprintf (&buf, &bufsize, "%{+}("
+                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)",
+                      !self, int (pcase->arg_len), pcase->arg,
+                      self, pcase->off);
+        break;
+
+    case StringMembers::find_str_size:
+    case StringMembers::rfind_str_size:
+    case StringMembers::find_first_of_str_size:
+    case StringMembers::find_last_of_str_size:
+    case StringMembers::find_first_not_of_str_size:
+    case StringMembers::find_last_not_of_str_size:
+        rw_asnprintf (&buf, &bufsize, "%{+}("
+                      "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu)",
+                      !self, int (pcase->arg_len), pcase->arg,
+                      self, pcase->off);
+        break;
+
+    case StringMembers::find_ptr_size_size:
+    case StringMembers::rfind_ptr_size_size:
+    case StringMembers::find_first_of_ptr_size_size:
+    case StringMembers::find_last_of_ptr_size_size:
+    case StringMembers::find_first_not_of_ptr_size_size:
+    case StringMembers::find_last_not_of_ptr_size_size:
+        rw_asnprintf (&buf, &bufsize, "%{+}("
+                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu, %zu)",
+                      !self, int (pcase->arg_len), pcase->arg,
+                      self, pcase->off, pcase->size);
         break;
 
     case StringMembers::append_str_size_size:
@@ -405,8 +460,50 @@ _rw_setvars (const StringMembers::Function &fun,
         break;
 
     case StringMembers::op_plus_eq_val:
+    case StringMembers::find_val:
+    case StringMembers::rfind_val:
+    case StringMembers::find_first_of_val:
+    case StringMembers::find_last_of_val:
+    case StringMembers::find_first_not_of_val:
+    case StringMembers::find_last_not_of_val:
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%#c)", pcase->val);
+        break;
+
+    case StringMembers::find_val_size:
+    case StringMembers::rfind_val_size:
+    case StringMembers::find_first_of_val_size:
+    case StringMembers::find_last_of_val_size:
+    case StringMembers::find_first_not_of_val_size:
+    case StringMembers::find_last_not_of_val_size:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (%#c, %zu)", pcase->val, pcase->off);
+        break;
+
+    case StringMembers::erase_void:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} ()");
+        break;
+
+    case StringMembers::erase_size:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (%zu)", pcase->off);
+        break;
+
+    case StringMembers::erase_size_size:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (%zu, %zu)", pcase->off, pcase->size);
+        break;
+
+    case StringMembers::erase_iter:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (begin() + %zu)", pcase->off);
+        break;
+
+    case StringMembers::erase_iter_iter:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (begin() + %zu, begin() + %zu)", 
+                      pcase->off, pcase->off + pcase->size);
         break;
 
     default:
@@ -666,6 +763,8 @@ run_test (int         argc,
                     "|-no-str# "
                     "|-no-size# "
                     "|-no-ptr_size# "
+                    "|-no-str_size# "
+                    "|-no-ptr_size_size# "
                     "|-no-str_size_size# "
                     "|-no-size_ptr_size# "
                     "|-no-size_str_size_size# "
@@ -679,10 +778,13 @@ run_test (int         argc,
                     "|-no-size_size_str_size_size# "
                     "|-no-size_size_size_val# "
                     "|-no-val# "
+                    "|-no-val_size# "
                     "|-no-range# "
+                    "|-no-iter# "
                     "|-no-iter_val# "
                     "|-no-iter_size_val# "
                     "|-no-iter_range# "
+                    "|-no-iter_iter# "
                     "|-no-iter_iter_ptr# "
                     "|-no-iter_iter_str# "
                     "|-no-iter_iter_ptr_size# "
@@ -694,6 +796,8 @@ run_test (int         argc,
                     "|-enable-str# "
                     "|-enable-size# "
                     "|-enable-ptr_size# "
+                    "|-enable-str_size# "
+                    "|-enable-ptr_size_size# "
                     "|-enable-str_size_size# "
                     "|-enable-size_ptr_size# "
                     "|-enable-size_str_size_size# "
@@ -707,10 +811,13 @@ run_test (int         argc,
                     "|-enable-size_size_str_size_size# "
                     "|-enable-size_size_size_val# "
                     "|-enable-val# "
+                    "|-enable-val-size# "
                     "|-enable-range# "
+                    "|-enable-iter# "
                     "|-enable-iter_val# "
                     "|-enable-iter_size_val# "
                     "|-enable-iter_range# "
+                    "|-enable-iter_iter# "
                     "|-enable-iter_iter_ptr# "
                     "|-enable-iter_iter_str# "
                     "|-enable-iter_iter_ptr_size# "
@@ -738,6 +845,8 @@ run_test (int         argc,
                     _rw_opt_memfun_disabled + sig_str - 1,
                     _rw_opt_memfun_disabled + sig_size - 1,
                     _rw_opt_memfun_disabled + sig_ptr_size - 1,
+                    _rw_opt_memfun_disabled + sig_str_size - 1,
+                    _rw_opt_memfun_disabled + sig_ptr_size_size - 1,
                     _rw_opt_memfun_disabled + sig_str_size_size - 1,
                     _rw_opt_memfun_disabled + sig_size_ptr_size - 1,
                     _rw_opt_memfun_disabled + sig_size_str_size_size - 1,
@@ -751,10 +860,13 @@ run_test (int         argc,
                     _rw_opt_memfun_disabled + sig_size_size_str_size_size - 1,
                     _rw_opt_memfun_disabled + sig_size_size_size_val - 1,
                     _rw_opt_memfun_disabled + sig_val - 1,
+                    _rw_opt_memfun_disabled + sig_val_size - 1,
                     _rw_opt_memfun_disabled + sig_range - 1,
+                    _rw_opt_memfun_disabled + sig_iter - 1,
                     _rw_opt_memfun_disabled + sig_iter_val - 1,
                     _rw_opt_memfun_disabled + sig_iter_size_val - 1,
                     _rw_opt_memfun_disabled + sig_iter_range - 1,
+                    _rw_opt_memfun_disabled + sig_iter_iter - 1,
                     _rw_opt_memfun_disabled + sig_iter_iter_ptr - 1,
                     _rw_opt_memfun_disabled + sig_iter_iter_str - 1,
                     _rw_opt_memfun_disabled + sig_iter_iter_ptr_size - 1,
@@ -766,6 +878,8 @@ run_test (int         argc,
                     _rw_opt_memfun_enabled + sig_str - 1,
                     _rw_opt_memfun_enabled + sig_size - 1,
                     _rw_opt_memfun_enabled + sig_ptr_size - 1,
+                    _rw_opt_memfun_enabled + sig_str_size - 1,
+                    _rw_opt_memfun_enabled + sig_ptr_size_size - 1,
                     _rw_opt_memfun_enabled + sig_str_size_size - 1,
                     _rw_opt_memfun_enabled + sig_size_ptr_size - 1,
                     _rw_opt_memfun_enabled + sig_size_str_size_size - 1,
@@ -779,10 +893,13 @@ run_test (int         argc,
                     _rw_opt_memfun_enabled + sig_size_size_str_size_size - 1,
                     _rw_opt_memfun_enabled + sig_size_size_size_val - 1,
                     _rw_opt_memfun_enabled + sig_val - 1,
+                    _rw_opt_memfun_enabled + sig_val_size - 1,
                     _rw_opt_memfun_enabled + sig_range - 1,
+                    _rw_opt_memfun_enabled + sig_iter - 1,
                     _rw_opt_memfun_enabled + sig_iter_val - 1,
                     _rw_opt_memfun_enabled + sig_iter_size_val - 1,
                     _rw_opt_memfun_enabled + sig_iter_range - 1,
+                    _rw_opt_memfun_enabled + sig_iter_iter - 1,
                     _rw_opt_memfun_enabled + sig_iter_iter_ptr - 1,
                     _rw_opt_memfun_enabled + sig_iter_iter_str - 1,
                     _rw_opt_memfun_enabled + sig_iter_iter_ptr_size - 1,
