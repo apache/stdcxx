@@ -633,12 +633,12 @@ void test_replace_range (const charT*    wstr,
     }
 
     const std::size_t match =
-        rw_match (tcase.res, s_str.c_str(), tcase.res_len);
+        rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-    rw_assert (match == tcase.res_len, 0, tcase.line,
+    rw_assert (match == tcase.nres, 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
                "difference at offset %zu for %s",
-               __LINE__, int (tcase.res_len), tcase.res,
+               __LINE__, int (tcase.nres), tcase.res,
                int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match, itname);
 }
@@ -841,24 +841,24 @@ void test_replace (charT, Traits*,
                        "offset is %zu", __LINE__, res_off);
 
             // verfiy that strings length are equal
-            rw_assert (tcase.res_len == s_str.size (), 0, tcase.line,
-                       "line %d. %{$FUNCALL} expected %{#*s} with length"
+            rw_assert (tcase.nres == s_str.size (), 0, tcase.line,
+                       "line %d. %{$FUNCALL} expected %{#*s} with length "
                        "%zu, got %{/*.*Gs} with length %zu",
-                       __LINE__, int (tcase.res_len), tcase.res, 
-                       tcase.res_len, int (sizeof (charT)), 
+                       __LINE__, int (tcase.nres), tcase.res, 
+                       tcase.nres, int (sizeof (charT)), 
                        int (s_str.size ()), s_str.c_str (), s_str.size ());
 
-            if (tcase.res_len == s_str.size ()) {
+            if (tcase.nres == s_str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, s_str.c_str(), tcase.res_len);
+                    rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-                rw_assert (match == tcase.res_len, 0, tcase.line,
+                rw_assert (match == tcase.nres, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{#*s}, "
                            "got %{/*.*Gs}, difference at offset %zu",
-                           __LINE__, int (tcase.res_len), tcase.res,
+                           __LINE__, int (tcase.nres), tcase.res,
                            int (sizeof (charT)), int (s_str.size ()),
                            s_str.c_str (), match);
             }
@@ -901,10 +901,6 @@ void test_replace (charT, Traits*,
                        "unexpectedly%{;} caught %s",
                        __LINE__, 0 != expected, expected, caught);
         }
-
-#else   // if defined (_RWSTD_NO_EXCEPTIONS)
-
-        _RWSTD_UNUSED (should_throw);
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
@@ -961,7 +957,7 @@ void test_replace (charT, Traits*,
 #  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    _RWSTD_UNUSED (size);
+    _RWSTD_UNUSED (ssize);
     _RWSTD_UNUSED (capacity);
     _RWSTD_UNUSED (throw_after);
 
