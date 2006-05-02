@@ -293,8 +293,7 @@ static const TestCase size_ptr_size_test_cases [] = {
 #undef TEST
 #define TEST(str, off, arg, size2, res, bthrow) {               \
         __LINE__, off, -1, -1, size2, -1, str, sizeof str - 1,  \
-        arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
-    }
+        arg, sizeof arg - 1, res, sizeof res - 1, bthrow }
 
     //    +----------------------------------------- controlled sequence
     //    |            +---------------------------- insert() pos argument
@@ -514,12 +513,12 @@ void test_insert_range (charT* wstr,
     }
 
     const std::size_t match =
-        rw_match (tcase.res, s_str.c_str(), tcase.res_len);
+        rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-    rw_assert (match == tcase.res_len, 0, tcase.line,
+    rw_assert (match == tcase.nres, 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
                "difference at pos %zu for %s",
-               __LINE__, int (tcase.res_len), tcase.res,
+               __LINE__, int (tcase.nres), tcase.res,
                int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match, itname);
 }
@@ -692,24 +691,24 @@ void test_insert (charT, Traits*,
                        Insert (val) != which, res_off);
 
             // verfiy that strings length are equal
-            rw_assert (tcase.res_len == s_str.size (), 0, tcase.line,
-                       "line %d. %{$FUNCALL} expected %{#*s} with length"
+            rw_assert (tcase.nres == s_str.size (), 0, tcase.line,
+                       "line %d. %{$FUNCALL} expected %{#*s} with length "
                        "%zu, got %{/*.*Gs} with length %zu", __LINE__, 
-                       int (tcase.res_len), tcase.res, tcase.res_len, 
+                       int (tcase.nres), tcase.res, tcase.nres, 
                        int (sizeof (charT)), int (s_str.size ()), 
                        s_str.c_str (), s_str.size ());
 
-            if (tcase.res_len == s_str.size ()) {
+            if (tcase.nres == s_str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, s_str.c_str(), tcase.res_len);
+                    rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-                rw_assert (match == tcase.res_len, 0, tcase.line,
+                rw_assert (match == tcase.nres, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{#*s}, "
                            "got %{/*.*Gs}, difference at offset %zu",
-                           __LINE__, int (tcase.res_len), tcase.res,
+                           __LINE__, int (tcase.nres), tcase.res,
                            int (sizeof (charT)), int (s_str.size ()),
                            s_str.c_str (), match);
             }
@@ -752,10 +751,6 @@ void test_insert (charT, Traits*,
                        "unexpectedly%{;} caught %s",
                        __LINE__, 0 != expected, expected, caught);
         }
-
-#else   // if defined (_RWSTD_NO_EXCEPTIONS)
-
-        _RWSTD_UNUSED (should_throw);
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 

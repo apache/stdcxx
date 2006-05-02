@@ -26,558 +26,485 @@
  **************************************************************************/
 
 #include <string>       // for string
-#include <cstddef>      // for size_t
+#include <cstdlib>      // for free(), size_t
 #include <stdexcept>    // for out_of_range
 
-#include <cmdopt.h>     // for rw_enabled()
+#include <21.strings.h> // for StringMembers
 #include <driver.h>     // for rw_test()
 #include <rw_char.h>    // for rw_widen()
 
+#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
+   // disabled for compilers such as IBM VAC++ or MSVC
+   // that can't reliably replace the operators
+#  include <rw_new.h>   // for bad_alloc, replacement operator new
+#else
+#  include <new>        // for bad_alloc
+#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+#define Erase(which)    StringMembers::erase_ ## which
+
+typedef StringMembers::OverloadId OverloadId;
+typedef StringMembers::TestCase   TestCase;
+typedef StringMembers::Test       Test;
+typedef StringMembers::Function   MemFun;
+
 /**************************************************************************/
 
-struct MemFun
-{
-    enum charT  { Char, WChar, UChar };
-    enum Traits { DefaultTraits, UserTraits };
+// for convenience and brevity
+#define LSTR   StringMembers::long_string
+#define LLEN   StringMembers::long_string_len
 
-    MemFun (charT cid, const char *cname,
-          Traits tid, const char *tname)
-        : cid_ (cid), tid_ (tid), 
-          cname_ (cname), tname_ (tname), aname_ ("allocator"),
-          fname_ ("erase") { /* empty */ }
-
-    charT       cid_;     // character type id (char or wchar_t)
-    Traits      tid_;     // traits type id (default or user-defined)
-    const char *cname_;   // character type name
-    const char *tname_;   // traits name
-    const char *aname_;   // allocator name
-    const char *fname_;   // function name
+static const char* const exceptions[] = {
+    "unknown exception", "out_of_range", "length_error",
+    "bad_alloc", "exception"
 };
 
 /**************************************************************************/
 
-typedef enum EraseTags {
+// used to exercise
+// erase ()
+static const TestCase void_test_cases [] = {
 
-    // erase ()
-    e_erase         =  1,   
-    // erase (size_type pos);
-    e_pos           =  2,
-    // erase (size_type pos, size_type cnt);
-    e_count         =  3,
-    // erase (iterator p);
-    e_iter          =  4,
-    // erase (iterator first, iterator last);
-    e_range         =  5
+#undef TEST
+#define TEST(str, res) {                                                \
+        __LINE__, -1, -1, -1, -1, -1, str, sizeof str - 1,              \
+        0, 0, res, sizeof res - 1, 0 }
 
-} ETags;
+    //    +--------------------------------- controlled sequence
+    //    |               +----------------- expected result sequence
+    //    |               |
+    //    V               V   
+    TEST ("a",            ""),
 
-static const int long_string_len = 4096;
-static char long_string [long_string_len];
+    TEST ("",             ""),
+    TEST ("\0",           ""),
+    TEST ("abc",          ""),
+    TEST ("t\0 s",        ""),
+    TEST ("\0ab\0\0c",    ""),
+    TEST ("a\0b\0\0c",    ""),
+    TEST ("a\0bc\0\0",    ""),
+
+    TEST (LSTR,           ""),
+    TEST ("last",         "")
+};
+
+
+/**************************************************************************/
+
+// used to exercise
+// erase (size_type)
+static const TestCase size_test_cases [] = {
+
+#undef TEST
+#define TEST(str, off, res, bthrow) {                                    \
+        __LINE__, off, -1, -1, -1, -1, str, sizeof str - 1,              \
+        0, 0, res, sizeof res - 1, bthrow }
+
+    //    +-------------------------------------- controlled sequence
+    //    |               +---------------------- erase() pos argument
+    //    |               |    +----------------- expected result sequence
+    //    |               |    |             +--- exception info
+    //    |               |    |             |      0 - no exception
+    //    |               |    |             |      1 - out_of_range
+    //    |               |    |             |
+    //    V               V    V             V
+    TEST ("",             0,   "",           0),
+    TEST ("\0",           0,   "",           0),
+    TEST ("\0",           1,   "\0",         0),
+    TEST ("\0\0",         1,   "\0",         0),
+
+    TEST ("a",            0,   "",           0),
+    TEST ("a",            1,   "a",          0),
+
+    TEST ("abc",          0,   "",           0),
+    TEST ("abc",          1,   "a",          0),
+    TEST ("abc",          2,   "ab",         0),
+    TEST ("abc",          3,   "abc",        0),
+
+    TEST ("t\0 s",        0,   "",           0),
+    TEST ("t\0 s",        1,   "t",          0),
+    TEST ("t\0 s",        2,   "t\0",        0),
+    TEST ("t\0 s",        3,   "t\0 ",       0),
+    TEST ("t\0 s",        4,   "t\0 s",      0),
+
+    TEST ("a\0\0\0b",     2,   "a\0",        0),
+    TEST ("a\0\0\0b",     1,   "a",          0),
+    TEST ("a\0\0\0b",     0,   "",           0),
+    TEST ("a\0b\0\0c",    0,   "",           0),
+    TEST ("a\0b\0\0c",    4,   "a\0b\0",     0),
+    TEST ("\0ab\0\0c",    2,   "\0a",        0),
+    TEST ("ab\0c\0\0",    5,   "ab\0c\0",    0),
+
+    TEST ("a",            3,   "a",          1),
+    TEST ("t\0 s",        5,   "t\0 s",      1),
+    TEST ("ab\0c\0\0",   10,   "ab\0c\0\0",  1),
+    TEST (LSTR,   LLEN + 10,   LSTR,         1),
+
+    TEST (LSTR,           0,   "",           0),
+    TEST (LSTR,           1,   "x",          0),
+    TEST (LSTR,           4,   "xxxx",       0),
+    TEST (LSTR,    LLEN - 1,   LSTR,         0),
+
+    TEST ("last test",    4,   "last",       0)
+};
+
+
+/**************************************************************************/
+
+// used to exercise
+// erase (size_type, size_type)
+// erase (iterator, iterator)
+static const TestCase size_size_test_cases [] = {
+
+// size_size_test_cases serves a double duty
+#define iter_iter_test_cases size_size_test_cases
+
+#undef TEST
+#define TEST(str, off, size, res, bthrow) {                                \
+        __LINE__, off, size, -1, -1, -1, str, sizeof str - 1,              \
+        0, 0, res, sizeof res - 1, bthrow }
+
+    //    +----------------------------------------- controlled sequence
+    //    |               +------------------------- erase() pos argument
+    //    |               |         +--------------- erase() n argument
+    //    |               |         |   +----------- expected result sequence
+    //    |               |         |   |             +--- exception info
+    //    |               |         |   |             |      0 - no exception
+    //    |               |         |   |             |      1 - out_of_range
+    //    |               |         |   |             |
+    //    V               V         V   V             V     
+    TEST ("",             0,        0,  "",           0),
+    TEST ("\0",           0,        1,  "",           0),
+    TEST ("\0",           0,        0,  "\0",         0),
+    TEST ("\0",           1,        1,  "\0",         0),
+    TEST ("\0\0",         1,        1,  "\0",         0),
+    TEST ("\0\0",         0,        1,  "\0",         0),
+
+    TEST ("a",            0,        1,  "",           0),
+    TEST ("a",            0,        0,  "a",          0),
+    TEST ("a",            1,        1,  "a",          0),
+
+    TEST ("abc",          0,        3,  "",           0),
+    TEST ("abc",          0,        2,  "c",          0),
+    TEST ("abc",          1,        2,  "a",          0),
+    TEST ("abc",          1,        1,  "ac",         0),
+    TEST ("abc",          2,        1,  "ab",         0),
+    TEST ("abc",          3,        0,  "abc",        0),
+
+    TEST ("t\0 s",        0,        3,  "s",          0),
+    TEST ("t\0 s",        0,        4,  "",           0),
+    TEST ("t\0 s",        0,        1,  "\0 s",       0),
+    TEST ("t\0 s",        1,        3,  "t",          0),
+    TEST ("t\0 s",        1,        2,  "ts",         0),
+    TEST ("t\0 s",        2,        2,  "t\0",        0),
+    TEST ("t\0 s",        2,        1,  "t\0s",       0),
+    TEST ("t\0 s",        3,        2,  "t\0 ",       0),
+    TEST ("t\0 s",        4,        0,  "t\0 s",      0),
+
+    TEST ("a\0\0\0b",     2,        0,  "a\0\0\0b",   0),
+    TEST ("a\0\0\0b",     2,        3,  "a\0",        0),
+    TEST ("a\0\0\0b",     2,        2,  "a\0b",       0),
+    TEST ("a\0\0\0b",     1,        4,  "a",          0),
+    TEST ("a\0\0\0b",     0,        5,  "",           0),
+    TEST ("a\0\0\0b",     0,        2,  "\0\0b",      0),
+    TEST ("a\0b\0\0c",    0,        6,  "",           0),
+    TEST ("a\0b\0\0c",    4,        2,  "a\0b\0",     0),
+    TEST ("a\0b\0\0c",    4,        1,  "a\0b\0c",    0),
+    TEST ("\0ab\0\0c",    2,        5,  "\0a",        0),
+    TEST ("\0ab\0\0c",    0,        4,  "\0c",        0),
+    TEST ("ab\0c\0\0",    5,        1,  "ab\0c\0",    0),
+
+    TEST ("a",            0,        3,  "",           0),
+    TEST ("t\0 s",        0,        9,  "",           0),
+    TEST ("ab\0c\0\0",    0,       10,  "",           0),
+    TEST (LSTR,           0, LLEN + 9,  "",           0),
+
+    TEST ("a",            3,        1,  "a",          1),
+    TEST ("t\0 s",        5,        1,  "t\0 s",      1),
+    TEST ("ab\0c\0\0",   10,        1,  "ab\0c\0\0",  1),
+    TEST (LSTR,   LLEN + 10,        1,  LSTR,         1),
+
+    TEST (LSTR,           0, LLEN - 1,  "",           0),
+    TEST (LSTR,           1, LLEN - 2,  "x",          0),
+    TEST (LSTR,           4, LLEN - 5,  "xxxx",       0),
+    TEST (LSTR,           4, LLEN - 7,  "xxxxxx",     0),
+    TEST (LSTR,    LLEN - 1, LLEN - 1,  LSTR,         0),
+
+    TEST ("last test",    4,        1,  "lasttest",   0)
+};
+
+
+/**************************************************************************/
+
+// used to exercise
+// erase (iterator)
+static const TestCase iter_test_cases [] = {
+
+#undef TEST
+#define TEST(str, off, res) {                                      \
+        __LINE__, off, -1, -1, -1, -1, str, sizeof str - 1,        \
+        0, 0, res, sizeof res - 1, 0 }
+
+    //    +-------------------------------------- controlled sequence
+    //    |               +---------------------- iterator offset
+    //    |               |    +----------------- expected result sequence
+    //    |               |    |
+    //    V               V    V     
+    TEST ("a",            0,   ""),
+
+    TEST ("\0",           0,   ""),
+    TEST ("\0\0",         0,   "\0"),
+    TEST ("\0\0",         1,   "\0"),
+
+    TEST ("abc",          0,   "bc"),
+    TEST ("abc",          1,   "ac"),
+    TEST ("abc",          2,   "ab"),
+
+    TEST ("t\0 s",        0,   "\0 s"),
+    TEST ("t\0 s",        1,   "t s"),
+    TEST ("t\0 s",        2,   "t\0s"),
+    TEST ("t\0 s",        3,   "t\0 "),
+
+    TEST ("a\0\0\0b",     4,   "a\0\0\0"),
+    TEST ("a\0\0\0b",     2,   "a\0\0b"),
+    TEST ("a\0\0\0b",     1,   "a\0\0b"),
+    TEST ("a\0\0\0b",     0,   "\0\0\0b"),
+    TEST ("a\0b\0\0c",    4,   "a\0b\0c"),
+    TEST ("\0ab\0\0c",    0,   "ab\0\0c"),
+    TEST ("\0ab\0\0c",    2,   "\0a\0\0c"),
+    TEST ("ab\0c\0\0",    5,   "ab\0c\0"),
+
+#undef TEST
+#define TEST(str, off, res, res_len) {                             \
+        __LINE__, off, -1, -1, -1, -1, str, sizeof str - 1,        \
+        0, 0, res, res_len, 0 }
+
+    TEST (LSTR,    LLEN - 2,   (LSTR + 1), LLEN - 2),
+    TEST (LSTR,    LLEN - 9,   (LSTR + 1), LLEN - 2),
+    TEST (LSTR,           0,   (LSTR + 1), LLEN - 2),
+    TEST (LSTR,           9,   (LSTR + 1), LLEN - 2),
+
+    TEST ("last test",    4,   "lasttest", 8)
+};
 
 /**************************************************************************/
 // exercises basic_string::erase, 21.3.5.5
+
 template <class charT, class Traits>
-void test_erase (charT, Traits*, MemFun* pfid,
-                 int          line,
-                 const ETags &which,
-                 const char  *str,
-                 std::size_t  str_len,
-                 int          pos,
-                 int          cnt,
-                 const char  *res,
-                 std::size_t  res_len,
-                 bool         should_throw)
+void test_erase (charT, Traits*,  
+                 OverloadId      which,
+                 const TestCase &cs)
 {
-    typedef std::allocator<charT> Allocator;
-    typedef std::basic_string<charT, Traits, Allocator> TestString;
+    typedef std::allocator<charT>                        Allocator;
+    typedef std::basic_string <charT, Traits, Allocator> TestString;
+    typedef typename TestString::iterator                StringIter;
+    typedef typename TestString::const_iterator          ConstStringIter;
 
-    if (!rw_enabled (line)) {
-        rw_note (0, 0, 0, "test on line %d disabled", line);
+    const bool use_iters = Erase (iter) <= which;
+    if (use_iters && cs.bthrow)
         return;
-    }
 
-    // widen the source sequence into the (possibly wide) character buffer
-    static charT wstr [long_string_len];
-    rw_widen (wstr, str, str_len);
+    static charT wstr [LLEN];
 
-    static charT wres [long_string_len];
-    rw_widen (wres, res, res_len);
+    rw_widen (wstr, cs.str, cs.str_len);
 
-    charT* pwres = 0 == str ? 0 : wres;
+    TestString s_str (wstr, cs.str_len);
 
-    TestString str_ob (wstr, str_len);
-    TestString str_def;
+    std::size_t res_off = 0;
+    StringIter res_iter = s_str.begin ();
 
-    TestString* pstr = 0 != str ? &str_ob : &str_def;
-    TestString& s_res = *pstr;
-    typename TestString::iterator it_res = pstr->begin();
+    int first = use_iters ? cs.off : cs.str_len + 1;
+    int last  = use_iters ? cs.off + cs.size : cs.str_len + 1;
 
-    int last = pos + cnt;
-    std::string::size_type sz = pstr->size();
+    StringIter it_first (std::size_t (first) >= s_str.size () ?
+                         s_str.end () : s_str.begin () + first);
+    StringIter it_last  (std::size_t (last) >= s_str.size () ?
+                         s_str.end () : s_str.begin () + last);
 
-    const int f_arg = pos;
-    const int s_arg = which >= e_iter ? e_iter == which ? 0 : pos + cnt : cnt;
+    const std::size_t     size     = s_str.size ();
+    const std::size_t     capacity = s_str.capacity ();
+    const ConstStringIter sbegin   = s_str.begin ();
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    const char* const expected = should_throw ? "out_of_range" : 0;
-    const char*       caught   = 0;
+    // is some exception expected ?
+    const char* expected = 0;
+    if (1 == cs.bthrow)
+        expected = exceptions [1];
 
-    try {
-
-#endif   // _RWSTD_NO_EXCEPTIONS
-
-    switch (which) {
-    case 1: {
-            if (pos > 0 || cnt > 0 || cnt == -2)
-                return;
-
-            s_res = pstr->erase ();
-            break;
-        }
-    case 2: {
-            if (pos < 0 || cnt != -1)
-                return;
-
-            s_res = pstr->erase (pos);
-            break;
-        }
-    case 3: {
-            if (pos < 0 || cnt < 0)
-                return;
-
-            s_res = pstr->erase (pos, cnt);
-            break;
-        }
-    case 4: {
-            if (pos < 0 || cnt != -2 || should_throw)
-                return;
-
-            typename TestString::iterator it_first (pstr->begin() + pos);
-            it_res = pstr->erase (it_first);
-            break;
-        }
-    case 5: {
-            if (pos < 0 || cnt < 0 || should_throw)
-                return;
-
-            typename TestString::iterator it_first (pstr->begin () + pos);
-            typename TestString::iterator it_last (std::size_t (last) == 
-                str_len ? pstr->end() : pstr->begin() + last);
-
-            it_res = pstr->erase (it_first, it_last);
-            break;
-        }
-    default:
-        RW_ASSERT ("Test logic error");
-        return;
-    }
-
-#define CALLFMAT                                        \
-    "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>("    \
-    "%{?}%{#*s}%{;}"                                    \
-    ").erase (%{?}%{?}%d%{;}%{?}, %d%{;}%{;}"           \
-    "%{?}begin + %td%{?}, begin + %td%{;}%{;}) "
-
-#define CALLARGS                                                        \
-    __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,                 \
-    0 != str, int (str_len), str, e_iter > which,                       \
-    e_pos == which || e_count == which, f_arg, e_count == which, s_arg, \
-    e_iter <= which, f_arg, e_range == which, s_arg
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    }
-    catch (std::out_of_range) {
-        caught = expected;
-    }
-    catch (...) {
-        caught = "unknown exception";
-    }
-
-    rw_assert (caught == expected, 0, line,
-               CALLFMAT "%{?}expected %s, caught %s"
-               "%{:}unexpectedly caught %s%{;}",
-               CALLARGS, 0 != expected, expected, caught, caught);
-
-    if (should_throw || caught)
-        return;
+    const char* caught = 0;
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
-    _RWSTD_UNUSED (should_throw);
+
+    if (cs.bthrow)
+        return;
+
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    const typename TestString::size_type res_sz = pstr->size();
-    const typename TestString::iterator  begin = pstr->begin();
-    const typename TestString::iterator  end = pstr->end();
+    try {
+        switch (which) {
+        case Erase (void): {
+            const TestString& s_res = s_str.erase ();
+            res_off = &s_res - &s_str;
+            break;
+        }
+        case Erase (size): {
+            const TestString& s_res = s_str.erase (cs.off);
+            res_off = &s_res - &s_str;
+            break;
+        }
 
-    // verify the returned value
-    if (which < e_iter) {
-        rw_assert (s_res == *pstr, 0, line,
-                   CALLFMAT " != *this", CALLARGS);
-    }
-    else {
-        bool success = begin <= it_res && it_res <= end;
-        rw_assert (success, 0, line,
-                   CALLFMAT "returned invalid iterator, "
-                   "difference with begin is %td",
-                   CALLARGS, it_res - begin);
+        case Erase (size_size): {
+            const TestString& s_res = s_str.erase (cs.off, cs.size);
+            res_off = &s_res - &s_str;
+            break;
+        }
 
-        std::size_t idx 
-            = e_iter == which ? std::size_t (pos + 1) : std::size_t (last);
+        case Erase (iter): {
+            res_iter = s_str.erase (it_first);
+            break;
+        }
 
-        if (idx == sz) {
-            rw_assert (it_res == end, 0, line,
-                       CALLFMAT "!= end()", CALLARGS);
+           case Erase (iter_iter): {
+            res_iter = s_str.erase (it_first, it_last);
+            break;
+        }
+
+        default:
+            RW_ASSERT ("test logic error: unknown erase overload");
+            return;
+        }
+
+        // verify the returned value
+        if (!use_iters) {
+            rw_assert (0 == res_off, 0, cs.line,
+                       "line %d. %{$FUNCALL} returned invalid reference, "
+                       "offset is %zu", __LINE__, res_off);
         }
         else {
-            success = TestString::traits_type::eq (*it_res, wstr[idx]);
-            rw_assert (success, 0, line,
-                       CALLFMAT "== %#c, got %#c",                       
-                       CALLARGS, str[idx], *it_res);
-        }   
+            const ConstStringIter begin = s_str.begin ();
+            const ConstStringIter end   = s_str.end ();
+
+            bool success = begin <= res_iter && res_iter <= end;
+            rw_assert (success, 0, cs.line,
+                       "line %d. %{$FUNCALL} returned invalid iterator, "
+                       "difference with begin is %td",
+                       __LINE__, res_iter - begin);
+
+            if (std::size_t (cs.off) >= cs.nres) {
+                rw_assert (res_iter == end, 0, cs.line,
+                           "line %d. %{$FUNCALL} != end()", __LINE__);
+            }
+            else {
+                const std::size_t match =
+                    rw_match (cs.res + cs.off, &(*res_iter), 1);
+                rw_assert (1 == match, 0, cs.line,
+                           "line %d. %{$FUNCALL} == %#c, got %#c",                       
+                           __LINE__, cs.res[cs.off], *res_iter);
+            }   
+        }
+
+        // verfiy that strings length are equal
+        rw_assert (cs.nres == s_str.size (), 0, cs.line,
+                   "line %d. %{$FUNCALL} expected %{#*s} with length "
+                   "%zu, got %{/*.*Gs} with length %zu",
+                   __LINE__, int (cs.nres), cs.res, 
+                   cs.nres, int (sizeof (charT)), 
+                   int (s_str.size ()), s_str.c_str (), s_str.size ());
+
+        if (cs.nres == s_str.size ()) {
+            // if the result length matches the expected length
+            // (and only then), also verify that the modified
+            // string matches the expected result
+            const std::size_t match =
+                rw_match (cs.res, s_str.c_str(), cs.nres);
+
+            rw_assert (match == cs.nres, 0, cs.line,
+                       "line %d. %{$FUNCALL} expected %{#*s}, "
+                       "got %{/*.*Gs}, difference at offset %zu",
+                       __LINE__, int (cs.nres), cs.res,
+                       int (sizeof (charT)), int (s_str.size ()),
+                       s_str.c_str (), match);
+        }
     }
-
-    // check the results
-    std::size_t exp_len = pos >= 0 ? cnt == -1 ? pos : res_len : 0;
-    bool success = exp_len == res_sz;
-    rw_assert (success, 0, line,
-               CALLFMAT ": size() == %zu, got %zu",
-               CALLARGS, exp_len, res_sz);
-
-    if (0 == res_sz)
-        return;
-
-    success = 
-        !TestString::traits_type::compare (pstr->c_str (), pwres, res_sz);
-
-    rw_assert (success, 0, line,
-               CALLFMAT ": expected %{/*.*Gs}, got %{/*.*Gs}",
-               CALLARGS, int (sizeof (charT)), int (res_sz), wres, 
-               int (sizeof (charT)), int (pstr->size ()), pstr->c_str ());
-}
-
-/**************************************************************************/
-
-static void
-test_erase (MemFun      *pfid,
-            int          line,
-            const ETags &which,
-            const char  *str,
-            std::size_t  str_len,
-            int          pos,
-            int          npos,
-            const char  *res,
-            std::size_t  res_len,
-            bool         should_throw)
-{
-#undef TEST
-#define TEST(charT, Traits)	                                      \
-    test_erase (charT (), (Traits*)0, pfid, line, which,              \
-                str, str_len, pos, npos, res, res_len, should_throw)     
-
-    if (!rw_enabled (line)) {
-        rw_note (0, 0, __LINE__, "test on line %d disabled", line);
-        return;
-    }
-
-    if (MemFun:: DefaultTraits == pfid->tid_) {
-        if (MemFun::Char == pfid->cid_)
-            TEST (char, std::char_traits<char>);
-
-#ifndef _RWSTD_NO_WCHAR_T
-        else
-            TEST (wchar_t, std::char_traits<wchar_t>);
-#endif   // _RWSTD_NO_WCHAR_T
-
-    }
-    else {
-        if (MemFun::Char == pfid->cid_)
-            TEST (char, UserTraits<char>);
-
-#ifndef _RWSTD_NO_WCHAR_T
-        else if (MemFun::WChar == pfid->cid_)
-            TEST (wchar_t, UserTraits<wchar_t>);
-#endif   // _RWSTD_NO_WCHAR_T
-
-        else
-            TEST (UserChar, UserTraits<UserChar>);
-    }
-}
-
-/**************************************************************************/
-
-static int rw_opt_no_char_traits;       // for --no-char_traits
-static int rw_opt_no_user_traits;       // for --no-user_traits
-
-static int rw_opt_no_user_chars;        // for --no-user_chars
-static int rw_opt_no_exceptions;        // for --no-exceptions
-
-static int rw_opt_no_erase;             // for --no-erase
-static int rw_opt_no_erase_pos;         // for --no-erase-pos
-static int rw_opt_no_erase_count;       // for --no-erase-count
-static int rw_opt_no_erase_iterator;    // for --no-erase-iterator
-static int rw_opt_no_erase_range;       // for --no-erase-range
-
-/**************************************************************************/
-
-static void
-test_erase (MemFun *pfid, const ETags &which)
-{
-    rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
-             "erase (%{?}%{?}size_type pos%{;}%{?}, size_type n%{;}%{;}"
-             "%{?}iterator first%{?}, iterator last%{;}%{;})",
-             pfid->cname_, pfid->tname_, pfid->aname_, e_iter > which, 
-             e_pos == which || e_count == which, e_count == which, 
-             e_iter <= which, e_range == which);
-
-#undef TEST
-#define TEST(str, pos, cnt, res, should_throw)                              \
-    test_erase (pfid, __LINE__, which, str, sizeof str - 1,                 \
-                pos, cnt, res, sizeof res - 1, should_throw)
-
-    //    +--------------------------------------- controlled sequence
-    //    |               +----------------------- erase() pos argument
-    //    |               |                    +-- erase() n   argument
-    //    |               |                    |  +-- expected result sequence
-    //    |               |                    |  |             +-- exception 
-    //    |               |                    |  |             |   expected?
-    //    V               V                    V  V             V
-    TEST (0,              0,                   0, "",           false);
-    TEST ("",             0,                   0, "",           false);
-
-    TEST ("\0",          -1,                  -1, "",           false);
-    TEST ("\0",           0,                   1, "",           false);
-    TEST ("\0",           0,                  -2, "",           false);
-    TEST ("s",            0,                  -2, "",           false);
-
-    TEST ("abc",         -1,                  -1, "",           false);
-    TEST ("abc",          0,                  -1, "",           false);
-
-    TEST ("abc",          0,                  -2, "bc",         false);
-    TEST ("abc",          1,                  -2, "ac",         false);
-    TEST ("abc",          2,                  -2, "ab",         false);
-
-    TEST ("abc",          0,                   1, "bc",         false);
-    TEST ("abc",          1,                   1, "ac",         false);
-    TEST ("abc",          2,                   1, "ab",         false);
-
-    TEST ("abc",          0,                   2, "c",          false);
-    TEST ("abc",          1,                   2, "a",          false);
-    TEST ("abc",          0,                   3, "",           false);
-
-    TEST ("t\0 s",        0,                   1, "\0 s",       false);
-    TEST ("t\0 s",        1,                   1, "t s",        false);
-    TEST ("t\0 s",        2,                   2, "t\0",        false);
-    TEST ("t\0 s",        1,                   2, "ts",         false);
-    TEST ("t\0 s",        0,                   2, " s",         false);
-    TEST ("t\0 s",        0,                   4, "",           false);
-    TEST ("t\0 s",       -1,                  -1, "",           false);
-
-    TEST ("t\0 s",        0,                  -2, "\0 s",       false);
-    TEST ("t\0 s",        1,                  -2, "t s",        false);
-    TEST ("t\0 s",        2,                  -2, "t\0s",       false);
-
-    TEST ("\0a\0b",       0,                   3, "b",          false);
-    TEST ("\0a\0b",       1,                   1, "\0\0b",      false);
-    TEST ("\0a\0b",       3,                   1, "\0a\0",      false);
-
-    TEST ("\0a\0b",       0,                  -2, "a\0b",       false);
-    TEST ("\0a\0b",       1,                  -2, "\0\0b",      false);
-    TEST ("\0a\0b",       3,                  -2, "\0a\0",      false);
-
-    TEST ("a\0\0\0b",     1,                   3, "ab",         false);
-    TEST ("a\0\0\0b",     0,                   1, "\0\0\0b",    false);
-    TEST ("a\0\0\0b",     2,                  -1, "a\0",        false);
-
-    TEST ("a\0\0\0b",     1,                  -2, "a\0\0b",     false);
-    TEST ("a\0\0\0b",     0,                  -2, "\0\0\0b",    false);
-
-    TEST ("a\0b\0\0c",    0,                  -2, "\0b\0\0c",   false);
-    TEST ("a\0b\0\0c",    1,                  -2, "ab\0\0c",    false);
-
-    TEST ("a\0b\0\0c",   -1,                  -1, "",           false);
-    TEST ("a\0b\0\0c",    0,                   2, "b\0\0c",     false);
-    TEST ("a\0b\0\0c",    1,                   2, "a\0\0c",     false);
-
-    TEST ("test string",  1,                   3, "t string",   false);
-    TEST ("Test\0string", 0,                   2, "st\0string", false);
-    TEST ("Test\0string", 1,                   4, "Tstring",    false);
-    TEST ("Test\0string", 0,                   4, "\0string",   false);
-    TEST ("Test\0string", 0,                   5, "string",     false);
-    TEST ("Test\0string", 0,                  11, "",           false);
-    TEST ("Test\0string", 1,                  -1, "T",          false);
-
-    TEST ("Test\0string", 1,                  -2, "Tst\0string", false);
-    TEST ("Test\0string", 4,                  -2, "Teststring", false);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    if (! rw_opt_no_exceptions) {
-        TEST ("\0",           2,                   1, "\0",          true);
-        TEST ("a",            2,                   1, "a",           true);
-        TEST (long_string,    long_string_len + 1, 1, long_string,   true);
+    catch (const std::out_of_range &ex) {
+        caught = exceptions [1];
+        rw_assert (caught == expected, 0, cs.line,
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught std::%s(%#s)",
+                   __LINE__, 0 != expected, expected, caught, ex.what ());
     }
+    catch (const std::exception &ex) {
+        caught = exceptions [4];
+        rw_assert (0, 0, cs.line,
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught std::%s(%#s)",
+                   __LINE__, 0 != expected, expected, caught, ex.what ());
+    }
+    catch (...) {
+        caught = exceptions [0];
+        rw_assert (0, 0, cs.line,
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught %s",
+                   __LINE__, 0 != expected, expected, caught);
+    }
+
+    if (caught) {
+            // verify that an exception thrown during allocation
+            // didn't cause a change in the state of the object
+
+        rw_assert (s_str.size () == size, 0, cs.line,
+                   "line %d: %{$FUNCALL}: size unexpectedly changed "
+                   "from %zu to %zu after an exception",
+                   __LINE__, size, s_str.size ());
+
+        rw_assert (s_str.capacity () == capacity, 0, cs.line,
+                   "line %d: %{$FUNCALL}: capacity unexpectedly "
+                   "changed from %zu to %zu after an exception",
+                   __LINE__, capacity, s_str.capacity ());
+
+        rw_assert (s_str.begin () == sbegin, 0, cs.line,
+                   "line %d: %{$FUNCALL}: begin() unexpectedly "
+                   "changed from after an exception by %d",
+                   __LINE__, s_str.begin () - sbegin);
+    }
+
+#else // if defined (_RWSTD_NO_EXCEPTIONS)
+
+    _RWSTD_UNUSED (size);
+    _RWSTD_UNUSED (capacity);
 
 #endif   // _RWSTD_NO_EXCEPTIONS
-
-#undef TEST
-#define TEST(str, pos, cnt, res, res_len, should_throw)                     \
-    test_erase (pfid, __LINE__, which, str, sizeof str - 1,                 \
-                pos, cnt, res, res_len, should_throw)
-
-    //    +--------------------------------------- controlled sequence
-    //    |             +------------------------- erase() pos argument
-    //    |             |    +-------------------- erase() n   argument
-    //    |             |    |                    +-- expected result sequence
-    //    |             |    |                    |     +-- result length
-    //    |             |    |                    |     |  +-- exception 
-    //    |             |    |                    |     |  |   expected?
-    //    V             V    V                    V     V  V
-    TEST (long_string, -1,  -1,                   "",   0, false);
-    TEST (long_string,  0,  -1,                   "",   0, false);
-
-    TEST (long_string,  0,   long_string_len - 1, "",   0, false);
-    TEST (long_string,  0,   long_string_len - 2, "x",  1, false);
-    TEST (long_string,  1,   long_string_len - 2, "x",  1, false);
-    TEST (long_string,  1,   long_string_len - 3, "xx", 2, false);
-
-    TEST (long_string,  0,  1, (long_string + 1), long_string_len - 2, false);
-    TEST (long_string, long_string_len - 2, 1, (long_string + 1), 
-          long_string_len - 2, false);
-
-    TEST (long_string, 0,  -2, (long_string + 1), long_string_len - 2, false);
-    TEST (long_string, long_string_len - 2,  -2, 
-         (long_string + 1), long_string_len - 2, false);
 }
 
 /**************************************************************************/
 
-static void 
-note_test_disabled (MemFun *pfid, const ETags &which)
-{
-    rw_note (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::"
-             "erase (%{?}%{?}size_type pos%{;}%{?}, size_type n%{;}%{;}"
-             "%{?}iterator first%{?}, iterator last%{;}%{;}) "
-             "test disabled",
-             pfid->cname_, pfid->tname_, pfid->aname_, e_iter > which, 
-             e_pos == which || e_count == which, e_count == which, 
-             e_iter <= which, e_range == which);
-}
-
-static void
-run_test (MemFun *pfid)
-{
-    if (MemFun::UserTraits == pfid->tid_ && rw_opt_no_user_traits) {
-        rw_note (1 < rw_opt_no_user_traits++, 0, 0,
-                 "user defined traits tests disabled");
-    }
-    else if (MemFun::DefaultTraits == pfid->tid_ && rw_opt_no_char_traits) {
-        rw_note (1 < rw_opt_no_char_traits++, 0, 0,
-                 "char_traits tests disabled");
-    }
-    else {
-
-        if (rw_opt_no_exceptions)
-            rw_note (1 < rw_opt_no_exceptions++, 0, 0,
-                     "string::erase exceptions tests disabled");
-
-        // exercise all erase overloads
-#undef TEST
-#define TEST(option, e_tag)                         \
-        if (option)                                 \
-            note_test_disabled (pfid, e_tag);       \
-        else                                        \
-            test_erase (pfid, e_tag);               
-
-        TEST (rw_opt_no_erase,          e_erase);
-        TEST (rw_opt_no_erase_pos,      e_pos);
-        TEST (rw_opt_no_erase_count,    e_count);
-        TEST (rw_opt_no_erase_iterator, e_iter);
-        TEST (rw_opt_no_erase_range,    e_range);
-    }
-}
-
-/**************************************************************************/
-
-static int
-run_test (int, char*[])
-{
-    if ('\0' == long_string [0]) {
-        // initialize long_string
-        for (std::size_t i = 0; i != sizeof long_string - 1; ++i)
-            long_string [i] = 'x';
-    }
-
-    if (rw_enabled ("char")) {
-
-        MemFun fid (MemFun::Char, "char", MemFun::DefaultTraits, 0);
-
-        fid.tname_ = "char_traits";
-
-        run_test (&fid);
-
-        fid.tid_   = MemFun::UserTraits;
-        fid.tname_ = "UserTraits";
-
-        run_test (&fid);
-    }
-    else
-        rw_note (0, 0, 0, "string::erase char tests disabled");
-
-    if (rw_enabled ("wchar_t")) {
-
-        MemFun fid (MemFun::WChar, "wchar_t", MemFun::DefaultTraits, 0);
-
-        fid.tname_ = "char_traits";
-
-        run_test (&fid);
-
-        fid.tid_   = MemFun::UserTraits;
-        fid.tname_ = "UserTraits";
-
-        run_test (&fid);
-    }
-    else
-        rw_note (0, 0, 0, "string::erase wchar tests disabled");
-
-    if (rw_opt_no_user_chars) {
-        rw_note (0, 0, 0, "user defined chars test disabled");
-    }
-    else {
-        MemFun fid (MemFun::UChar, "UserChar", MemFun::UserTraits, 0);
-        fid.tname_ = "UserTraits";
-        run_test (&fid);
-    }
-
-    return 0;
-
-}
-
-/**************************************************************************/
+DEFINE_TEST_DISPATCH (test_erase);
 
 int main (int argc, char** argv)
 {
-    return rw_test (argc, argv, __FILE__,
-                    "lib.string.erase",
-                    0 /* no comment */,
-                    run_test,
-                    "|-no-char_traits# "
-                    "|-no-user_traits# "
-                    "|-no-user_chars# "
-                    "|-no-exceptions# "
-                    "|-no-erase# "
-                    "|-no-erase-pos# "
-                    "|-no-erase-count# "
-                    "|-no-erase-iterator# "
-                    "|-no-erase-range#",
-                    &rw_opt_no_char_traits,
-                    &rw_opt_no_user_traits,
-                    &rw_opt_no_user_chars,
-                    &rw_opt_no_exceptions,
-                    &rw_opt_no_erase,
-                    &rw_opt_no_erase_pos,
-                    &rw_opt_no_erase_count,
-                    &rw_opt_no_erase_iterator,
-                    &rw_opt_no_erase_range);
+    static const StringMembers::Test
+    tests [] = {
+
+#undef TEST
+#define TEST(tag) {                                             \
+        StringMembers::erase_ ## tag, tag ## _test_cases,       \
+        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+    }
+
+        TEST (void),
+        TEST (size),
+        TEST (size_size),
+        TEST (iter),
+        TEST (iter_iter)
+    };
+
+    const std::size_t test_count = sizeof tests / sizeof *tests;
+
+    return StringMembers::run_test (argc, argv, __FILE__,
+                                    "lib.string.erase",
+                                    test_erase, tests, test_count);
 }

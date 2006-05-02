@@ -65,8 +65,7 @@ static const char* const exceptions[] = {
 
 // used to exercise:
 // assign (const value_type*)
-static const TestCase
-ptr_test_cases [] = {
+static const TestCase ptr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, res, bthrow) {                           \
@@ -121,8 +120,7 @@ ptr_test_cases [] = {
 
 // used to exercise:
 // assign (const basic_string&)
-static const TestCase
-str_test_cases [] = {
+static const TestCase str_test_cases [] = {
 
 #undef TEST
 #define TEST(s, arg, res, bthrow) {                             \
@@ -183,8 +181,7 @@ str_test_cases [] = {
 
 // used to exercise:
 // assign (const value_type*, size_type)
-static const TestCase
-ptr_size_test_cases [] = {
+static const TestCase ptr_size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, size, res, bthrow) {                     \
@@ -255,8 +252,7 @@ ptr_size_test_cases [] = {
 // used to exercise:
 // assign (const basic_string&, size_type, size_type)
 // assign (InputIterator, InputIterator)
-static const TestCase
-range_test_cases [] = {
+static const TestCase range_test_cases [] = {
 
 // range_test_cases serves a double duty
 #define str_size_size_test_cases range_test_cases
@@ -340,8 +336,7 @@ range_test_cases [] = {
 
 // used to exercise:
 // assign (size_type, value_type)
-static const TestCase
-size_val_test_cases [] = {
+static const TestCase size_val_test_cases [] = {
 
 #undef TEST
 #define TEST(str, size, val, res, bthrow) {     \
@@ -437,12 +432,12 @@ void test_assign_range (charT          *wstr,
     }
 
     const std::size_t match =
-        rw_match (tcase.res, s_str.c_str(), tcase.res_len);
+        rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-    rw_assert (match == tcase.res_len, 0, tcase.line,
+    rw_assert (match == tcase.nres, 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
                "difference at off %zu for %s",
-               __LINE__, int (tcase.res_len), tcase.res,
+               __LINE__, int (tcase.nres), tcase.res,
                int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match, itname);
 }
@@ -600,24 +595,24 @@ void test_assign (charT, Traits*,
                        "offset is %zu", __LINE__, res_off);
 
             // verfiy that strings length are equal
-            rw_assert (tcase.res_len == s_str.size (), 0, tcase.line,
-                       "line %d. %{$FUNCALL}: expected %{#*s} with length"
+            rw_assert (tcase.nres == s_str.size (), 0, tcase.line,
+                       "line %d. %{$FUNCALL}: expected %{#*s} with length "
                        "%zu, got %{/*.*Gs} with length %zu", __LINE__, 
-                       int (tcase.res_len), tcase.res, tcase.res_len, 
+                       int (tcase.nres), tcase.res, tcase.nres, 
                        int (sizeof (charT)), int (s_str.size ()), 
                        s_str.c_str (), s_str.size ());
 
-            if (tcase.res_len == s_str.size ()) {
+            if (tcase.nres == s_str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, s_str.c_str(), tcase.res_len);
+                    rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-                rw_assert (match == tcase.res_len, 0, tcase.line,
+                rw_assert (match == tcase.nres, 0, tcase.line,
                            "line %d. %{$FUNCALL}: expected %{#*s}, "
                            "got %{/*.*Gs}, difference at off %zu",
-                           __LINE__, int (tcase.res_len), tcase.res,
+                           __LINE__, int (tcase.nres), tcase.res,
                            int (sizeof (charT)), int (s_str.size ()), 
                            s_str.c_str (), match);
             }
@@ -660,10 +655,6 @@ void test_assign (charT, Traits*,
                        "unexpectedly%{;} caught %s",
                        __LINE__, 0 != expected, expected, caught);
         }
-
-#else   // if defined (_RWSTD_NO_EXCEPTIONS)
-
-    _RWSTD_UNUSED (should_throw);
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
@@ -720,7 +711,7 @@ void test_assign (charT, Traits*,
 #  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    _RWSTD_UNUSED (size);
+    _RWSTD_UNUSED (ssize);
     _RWSTD_UNUSED (capacity);
     _RWSTD_UNUSED (throw_after);
 

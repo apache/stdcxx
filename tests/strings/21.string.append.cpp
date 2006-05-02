@@ -66,8 +66,7 @@ static const char* const exceptions[] = {
 
 // used to exercise
 // append (const charT* s)
-static const TestCase
-ptr_test_cases [] = {
+static const TestCase ptr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, res, bthrow) {                           \
@@ -128,8 +127,7 @@ ptr_test_cases [] = {
 
 // used to exercise
 // append (const basic_string& str)
-static const TestCase
-str_test_cases [] = {
+static const TestCase str_test_cases [] = {
 
 #undef TEST
 #define TEST(s, arg, res, bthrow) {                             \
@@ -191,8 +189,7 @@ str_test_cases [] = {
 
 // used to exercise
 // append (const charT* s, size_type n)
-static const TestCase
-ptr_size_test_cases [] = {
+static const TestCase ptr_size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, size, res, bthrow) {                     \
@@ -257,8 +254,7 @@ ptr_size_test_cases [] = {
 // used to exercise
 // append (const basic_string& str, size_type off, size_type n)
 // append (InputIterator first, InputIterator last)
-static const TestCase
-range_test_cases [] = {
+static const TestCase range_test_cases [] = {
 
 // range_test_cases serves a double duty
 #define str_size_size_test_cases range_test_cases
@@ -338,8 +334,7 @@ range_test_cases [] = {
 
 // used to exercise
 // append (charT c, size_type n)
-static const TestCase
-size_val_test_cases [] = {
+static const TestCase size_val_test_cases [] = {
 
 #undef TEST
 #define TEST(str, size, val, res, bthrow) {     \
@@ -397,6 +392,20 @@ size_val_test_cases [] = {
 
 /**************************************************************************/
 
+template <class charT>
+std::size_t* get_calls (std::char_traits<charT>*, charT*)
+{
+    return 0;
+}
+
+template <class charT>
+std::size_t* get_calls (UserTraits<charT>*, charT*)
+{
+    return UserTraits<charT>::n_calls_;
+}
+
+/**************************************************************************/
+
 template <class charT, class Traits, class Iterator>
 void test_append_range (charT          *wstr,
                         charT          *wsrc,
@@ -438,12 +447,12 @@ void test_append_range (charT          *wstr,
     }
 
     const std::size_t match =
-        rw_match (tcase.res, s_str.c_str(), tcase.res_len);
+        rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-    rw_assert (match == tcase.res_len, 0, tcase.line,
+    rw_assert (match == tcase.nres, 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
                "difference at offset %zu for %s",
-               __LINE__, int (tcase.res_len), tcase.res,
+               __LINE__, int (tcase.nres), tcase.res,
                int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
                match, itname);
 }
@@ -489,6 +498,8 @@ void test_append (charT, Traits*,
     typedef typename TestString::iterator                StringIter;
     typedef typename TestString::const_iterator          ConstStringIter;
 
+    typedef typename UserTraits<charT>::MemFun UTMemFun;
+
     static charT wstr [LLEN];
     static charT wsrc [LLEN];
 
@@ -513,6 +524,13 @@ void test_append (charT, Traits*,
 
     const charT* const ptr_arg = tcase.arg ? wsrc : s_str.c_str ();
     const TestString&  str_arg = tcase.arg ? s_arg : s_str;
+
+    std::size_t total_length_calls = 0;
+    std::size_t n_length_calls = 0;
+    std::size_t* rg_calls = get_calls ((typename TestString::traits_type*)0, 
+                                       (typename TestString::value_type*)0);
+    if (rg_calls)
+        total_length_calls = rg_calls[UTMemFun::length];
 
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
@@ -560,6 +578,8 @@ void test_append (charT, Traits*,
             case Append (ptr): {
                 const TestString& s_res = s_str.append (ptr_arg);
                 res_off = &s_res - &s_str;
+                if (rg_calls)
+                    n_length_calls = rg_calls[UTMemFun::length];
                 break;
             }
 
@@ -599,26 +619,33 @@ void test_append (charT, Traits*,
                        "offset is %zu", __LINE__, res_off);
 
             // verify that strings are of equal length
-            rw_assert (tcase.res_len == s_str.size (), 0, tcase.line,
+            rw_assert (tcase.nres == s_str.size (), 0, tcase.line,
                        "line %d. %{$FUNCALL} expected %{#*s}, "
                        "length %zu, got %{/*.*Gs}, length %zu",
-                       __LINE__, int (tcase.res_len), tcase.res,
-                       tcase.res_len, int (sizeof (charT)),
+                       __LINE__, int (tcase.nres), tcase.res,
+                       tcase.nres, int (sizeof (charT)),
                        int (s_str.size ()), s_str.c_str (), s_str.size ());
 
-            if (tcase.res_len == s_str.size ()) {
+            if (tcase.nres == s_str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, s_str.c_str(), tcase.res_len);
+                    rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-                rw_assert (match == tcase.res_len, 0, tcase.line,
+                rw_assert (match == tcase.nres, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{#*s}, "
                            "got %{/*.*Gs}, difference at offset %zu",
-                           __LINE__, int (tcase.res_len), tcase.res,
+                           __LINE__, int (tcase.nres), tcase.res,
                            int (sizeof (charT)), int (s_str.size ()),
                            s_str.c_str (), match);
+            }
+
+            // verify that Traits::length was used
+            if (Append (ptr) == which && rg_calls) {
+                rw_assert (n_length_calls - total_length_calls > 0, 
+                           0, tcase.line, "line %d. %{$FUNCALL} doesn't "
+                           "use traits::length()", __LINE__);
             }
         }
 
@@ -659,10 +686,6 @@ void test_append (charT, Traits*,
                        "unexpectedly%{;} caught %s",
                        __LINE__, 0 != expected, expected, caught);
         }
-
-#else   // if defined (_RWSTD_NO_EXCEPTIONS)
-
-        _RWSTD_UNUSED (should_throw);
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 

@@ -62,8 +62,7 @@ static const char* const exceptions[] = {
 
 // used to exercise
 // operator += (const charT* s)
-static const TestCase
-ptr_test_cases [] = {
+static const TestCase ptr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, src, res, bthrow)                            \
@@ -121,8 +120,7 @@ ptr_test_cases [] = {
 
 // used to exercise
 // operator += (const basic_string& str)
-static const TestCase
-str_test_cases [] = {
+static const TestCase str_test_cases [] = {
 
 #undef TEST
 #define TEST(str, src, res, bthrow)                            \
@@ -181,8 +179,7 @@ str_test_cases [] = {
 
 // used to exercise
 // operator+= (value_type c)
-static const TestCase
-val_test_cases [] = {
+static const TestCase val_test_cases [] = {
 
 #undef TEST
 #define TEST(str, val, res, bthrow)                              \
@@ -318,24 +315,24 @@ void test_op_plus_eq (charT, Traits*,
                        "offset is %zu", __LINE__, res_off);
 
             // verfiy that strings length are equal
-            rw_assert (tcase.res_len == s_str.size (), 0, tcase.line,
+            rw_assert (tcase.nres == s_str.size (), 0, tcase.line,
                        "line %d. %{$FUNCALL} expected %{#*s} "
                        "with length %zu, got %{/*.*Gs} with length %zu",
-                       __LINE__, int (tcase.res_len), tcase.res, tcase.res_len,
+                       __LINE__, int (tcase.nres), tcase.res, tcase.nres,
                        int (sizeof (charT)), int (s_str.size ()),
                        s_str.c_str (), s_str.size ());
 
-            if (tcase.res_len == s_str.size ()) {
+            if (tcase.nres == s_str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, s_str.c_str(), tcase.res_len);
+                    rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-                rw_assert (match == tcase.res_len, 0, tcase.line,
+                rw_assert (match == tcase.nres, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{#*s}, "
                            "got %{/*.*Gs}, difference at offset %zu",
-                           __LINE__, int (tcase.res_len), tcase.res,
+                           __LINE__, int (tcase.nres), tcase.res,
                            int (sizeof (charT)), int (s_str.size ()),
                            s_str.c_str (), match);
             }
@@ -371,10 +368,6 @@ void test_op_plus_eq (charT, Traits*,
                        "unexpectedly%{;} caught %s",
                        __LINE__, 0 != expected, expected, caught);
         }
-
-#else   // if defined (_RWSTD_NO_EXCEPTIONS)
-
-        _RWSTD_UNUSED (should_throw);
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
