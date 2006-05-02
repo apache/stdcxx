@@ -92,6 +92,9 @@ _rw_opt_no_exceptions;
 static int
 _rw_opt_no_exception_safety;
 
+static int
+_rw_opt_no_self_ref;
+
 /**************************************************************************/
 
 // coputes integral base-2 logarithm of its argument
@@ -704,6 +707,18 @@ _rw_run_test (int, char*[])
                             continue;
                         }
 
+                        const bool self_ref = 0 == tcase.arg;
+
+                        // check for tests exercising self-referential
+                        // modifications (e.g., insert(1, *this)
+                        if (self_ref && _rw_opt_no_self_ref) {
+                            // issue only the first note
+                            rw_note (1 < _rw_opt_no_self_ref++,
+                                     __FILE__, __LINE__,
+                                     "selef-referential tests disabled");
+                            continue;
+                        }
+
                         // check to see if the test case is enabled
                         if (rw_enabled (tcase.line)) {
 
@@ -834,10 +849,12 @@ run_test (int         argc,
                     _rw_opt_no_alloc_types + 0,
                     _rw_opt_no_alloc_types + 1,
 
-
                     // handlers controlling exceptions
                     &_rw_opt_no_exceptions,
                     &_rw_opt_no_exception_safety,
+
+                    // handler controlling self-referential modifiers
+                    &_rw_opt_no_self_ref,
 
                     // handlers controlling specific overloads of a function
                     _rw_opt_memfun_disabled + sig_void - 1,
