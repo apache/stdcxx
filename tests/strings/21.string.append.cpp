@@ -392,20 +392,6 @@ static const TestCase size_val_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT>
-std::size_t* get_calls (std::char_traits<charT>*, charT*)
-{
-    return 0;
-}
-
-template <class charT>
-std::size_t* get_calls (UserTraits<charT>*, charT*)
-{
-    return UserTraits<charT>::n_calls_;
-}
-
-/**************************************************************************/
-
 template <class charT, class Traits, class Iterator>
 void test_append_range (charT          *wstr,
                         charT          *wsrc,
@@ -527,8 +513,9 @@ void test_append (charT, Traits*,
 
     std::size_t total_length_calls = 0;
     std::size_t n_length_calls = 0;
-    std::size_t* rg_calls = get_calls ((typename TestString::traits_type*)0, 
-                                       (typename TestString::value_type*)0);
+    std::size_t* rg_calls = 
+        rw_get_call_counters ((typename TestString::traits_type*)0, 
+                              (typename TestString::value_type*)0);
     if (rg_calls)
         total_length_calls = rg_calls[UTMemFun::length];
 
