@@ -63,7 +63,7 @@ static const char* const
 _rw_memfun_names[] = {
     "append", "assign", "erase", "insert", "replace", "operator+=", "find", 
     "rfind", "find_first_of", "find_last_of", "find_first_not_of", 
-    "find_last_not_of"
+    "find_last_not_of", "compare"
 };
 
 /**************************************************************************/
@@ -246,6 +246,7 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_last_of_ptr:
     case StringMembers::find_first_not_of_ptr:
     case StringMembers::find_last_not_of_ptr:
+    case StringMembers::compare_ptr:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
                       !self, int (pcase->arg_len), pcase->arg, self);
@@ -260,6 +261,7 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_last_of_str:
     case StringMembers::find_first_not_of_str:
     case StringMembers::find_last_not_of_str:
+    case StringMembers::compare_str:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%{?}string (%{#*s})%{;}%{?}*this%{;})",
                       !self, int (pcase->arg_len), pcase->arg, self);
@@ -390,6 +392,7 @@ _rw_setvars (const StringMembers::Function &fun,
         break;
 
     case StringMembers::replace_size_size_ptr:
+    case StringMembers::compare_size_size_ptr:
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%zu, %zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
                       pcase->off, pcase->size, !self, 
@@ -397,6 +400,7 @@ _rw_setvars (const StringMembers::Function &fun,
         break;
 
     case StringMembers::replace_size_size_str:
+    case StringMembers::compare_size_size_str:
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%zu, %zu, %{?}string (%{#*s})%{;}%{?}*this%{;})",
                       pcase->off, pcase->size, !self, 
@@ -404,6 +408,7 @@ _rw_setvars (const StringMembers::Function &fun,
         break;
 
     case StringMembers::replace_size_size_ptr_size:
+    case StringMembers::compare_size_size_ptr_size:
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%zu, %zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
                       pcase->off, pcase->size, !self, 
@@ -411,6 +416,7 @@ _rw_setvars (const StringMembers::Function &fun,
         break;
 
     case StringMembers::replace_size_size_str_size_size:
+    case StringMembers::compare_size_size_str_size_size:
         rw_asnprintf (&buf, &bufsize, "%{+}(%zu, %zu, "
                       "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
                       pcase->off, pcase->size, !self, 
