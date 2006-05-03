@@ -126,11 +126,12 @@ struct _TEST_EXPORT StringMembers {
         mem_find_last_of       = 1 << 15,
         mem_find_first_not_of  = 1 << 16,
         mem_find_last_not_of   = 1 << 17,
+        mem_compare            = 1 << 18,
         mem_mask       =
             mem_append | mem_assign | mem_erase | mem_insert | 
             mem_replace | mem_op_plus_eq | mem_find | mem_rfind |
             mem_find_first_of | mem_find_last_of | mem_find_first_not_of |
-            mem_find_last_not_of
+            mem_find_last_not_of | mem_compare
     };
 
     // unique identifiers for all overloads of each member function
@@ -323,7 +324,22 @@ struct _TEST_EXPORT StringMembers {
         // find_last_not_of (value_type)
         find_last_not_of_val = mem_find_last_not_of + sig_val,
         // find_last_not_of (value_type, size_type)
-        find_last_not_of_val_size = mem_find_last_not_of + sig_val_size
+        find_last_not_of_val_size = mem_find_last_not_of + sig_val_size,
+
+        //////////////////////////////////////////////////////////////
+        // compare (const value_type*)
+        compare_ptr = mem_compare + sig_ptr,
+        // compare (const basic_string&)
+        compare_str = mem_compare + sig_str,
+        // compare (size_type, size_type, const value_type*)
+        compare_size_size_ptr = mem_compare + sig_size_size_ptr,
+        // compare (size_type, size_type, const basic_string&)
+        compare_size_size_str = mem_compare + sig_size_size_str,
+        // compare (size_type, size_type, const value_type*, size_type)
+        compare_size_size_ptr_size = mem_compare + sig_size_size_ptr_size,
+        // (size_type, size_type, const basic_string&, size_type, size_type)
+        compare_size_size_str_size_size = 
+            mem_compare + sig_size_size_str_size_size
     };
 
     struct Function {
