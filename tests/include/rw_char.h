@@ -427,6 +427,19 @@ _TEST_EXPORT
 _RWSTD_SIZE_T rw_match (const char*, const UserChar*,
                         _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
+// accessors to n_calls array, if it presents
+template <class charT> _TEST_EXPORT
+_RWSTD_SIZE_T* rw_get_call_counters (std::char_traits<charT>*, charT*)
+{
+    return 0;
+}
+
+template <class charT> _TEST_EXPORT
+_RWSTD_SIZE_T* rw_get_call_counters (UserTraits<charT>*, charT*)
+{
+    return UserTraits<charT>::n_calls_;
+}
+
 static const struct UserCharFmatInit {
     UserCharFmatInit ();
 } _rw_user_char_fmat_init;
