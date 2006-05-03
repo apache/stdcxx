@@ -483,6 +483,8 @@ void test_assign (charT, Traits*,
     typedef typename TestString::iterator                StringIter;
     typedef typename TestString::const_iterator          ConstStringIter;
 
+    typedef typename UserTraits<charT>::MemFun UTMemFun;
+
     static charT wstr [LLEN];
     static charT wsrc [LLEN];
 
@@ -509,6 +511,14 @@ void test_assign (charT, Traits*,
     // first function argument
     const charT* const arg_ptr = tcase.arg ? wsrc : s_str.c_str ();
     const TestString&  arg_str = tcase.arg ? s_arg : s_str;
+
+    std::size_t total_length_calls = 0;
+    std::size_t n_length_calls = 0;
+    std::size_t* rg_calls = 
+        rw_get_call_counters ((typename TestString::traits_type*)0, 
+                              (typename TestString::value_type*)0);
+    if (rg_calls)
+        total_length_calls = rg_calls[UTMemFun::length];
 
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
@@ -555,6 +565,8 @@ void test_assign (charT, Traits*,
             case Assign (ptr): {
                 const TestString& s_res = s_str.assign (arg_ptr);
                 res_off = &s_res - &s_str;
+                if (rg_calls)
+                    n_length_calls = rg_calls[UTMemFun::length];
                 break;
             }
 
@@ -615,6 +627,13 @@ void test_assign (charT, Traits*,
                            __LINE__, int (tcase.nres), tcase.res,
                            int (sizeof (charT)), int (s_str.size ()), 
                            s_str.c_str (), match);
+            }
+
+            // verify that Traits::length was used
+            if (Assign (ptr) == which && rg_calls) {
+                rw_assert (n_length_calls - total_length_calls > 0, 
+                           0, tcase.line, "line %d. %{$FUNCALL} doesn't "
+                           "use traits::length()", __LINE__);
             }
         }
 
