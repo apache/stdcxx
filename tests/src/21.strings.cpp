@@ -97,6 +97,27 @@ _rw_opt_no_self_ref;
 
 /**************************************************************************/
 
+void StringState::
+assert_equal (const StringState &state, int line, int case_line,
+              const char *when) const
+{
+    const int equal =
+           data_ == state.data_
+        && size_ == state.size_
+        && capacity_ == state.capacity_;
+
+    rw_assert (equal, 0, case_line,
+               "line %d: %{$FUNCALL}: object state unexpectedly changed "
+               "from { %#p, %zu, %zu } to { %#p, %zu, %zu } (data, size, "
+               "capacity) after %s",
+               line, data_, size_, capacity_,
+               state.data_, state.size_, state.capacity_,
+               when);
+}
+
+
+/**************************************************************************/
+
 // coputes integral base-2 logarithm of its argument
 static size_t
 _rw_ilog2 (size_t n)

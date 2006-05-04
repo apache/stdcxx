@@ -397,6 +397,34 @@ struct _TEST_EXPORT StringMembers {
     long_string [long_string_len];
 };
 
+
+// encapsulates the state of a string object without regard to type
+// used in exception safety tests to determine changes to the state
+// after a modifying operation throws an exception
+struct StringState
+{
+    const void*   data_;
+    _RWSTD_SIZE_T size_;
+    _RWSTD_SIZE_T capacity_;
+
+    // invokes rw_assert() to verify that two states are the same
+    void assert_equal (const StringState&, int, int, const char*) const;
+};
+
+
+// creates a StringState object from a basic_string
+template <class String>
+inline StringState
+rw_get_string_state (const String &str)
+{
+    const StringState state = {
+        str.data (), str.size (), str.capacity ()
+    };
+
+    return state;
+}
+
+
 #define Disabled(which)   \
     StringMembers::opt_memfun_disabled [which & ~StringMembers::mem_mask]
 
