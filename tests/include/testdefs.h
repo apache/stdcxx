@@ -50,9 +50,23 @@
 #  define std   /* empty */
 #endif   // _RWSTD_NO_NAMESPACE && !std
 
+
 #if defined (_RWSTD_NO_TYPENAME) && !defined (typename)
 #  define typename /* ignore */
 #endif   // _RWSTD_NO_TYPENAME && !typename
+
+
+#if defined (_RWSTD_NO_EXCEPTIONS)
+#  ifndef try
+#    define try   if (0); else
+#  endif   // try
+#  ifdef catch
+#    define catch   void foo; while (0)
+#  endif
+#  define RW_CATCH_ALL(ignore)   while (0)
+#else   // if !defined (_RWSTD_NO_EXCEPTIONS)
+#  define RW_CATCH_ALL(dot_dot_dot)   catch (dot_dot_dot)
+#endif   // _RWSTD_NO_EXCEPTIONS
 
 // give the for-init-variable a local scope
 #ifdef _RWSTD_NO_FOR_LOCAL_SCOPE
