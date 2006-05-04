@@ -1,21 +1,27 @@
 /***************************************************************************
  *
- * string.cc - Definitions for the Standard Library string classes
+ * string.cc - definitions of the C++ Standard Library string members
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -681,19 +687,56 @@ copy (pointer __s, size_type __n, size_type __pos) const
 template <class _CharT, class _Traits, class _Allocator>
 _TYPENAME basic_string<_CharT, _Traits, _Allocator>::size_type
 basic_string<_CharT, _Traits, _Allocator>::
-find (const_pointer __s, size_type __pos, size_type __n) const
+find (const_pointer __seq, size_type __off, size_type __len) const
 {
-    _RWSTD_ASSERT (__s != 0);
+    const size_type __size = size ();
 
-    _RWSTD_REQUIRES (__n <= max_size (),
-                     (_RWSTD_ERROR_LENGTH_ERROR, 
-                      _RWSTD_FUNC ("basic_string::find(const_pointer, "
-                                   "size_type, size_type) const"),
-                      __n, max_size ()));
+    if (__size < __off)
+        return npos;
 
-    for (size_type __xpos = __pos; __xpos + __n <= size (); ++__xpos) {
-        if (!traits_type::compare (_C_data + __xpos, __s, __n))
-            return __xpos;
+    _RWSTD_ASSERT (__seq != 0 || __len == 0);
+
+    const const_pointer __end     = _C_data + __size;
+    const const_pointer __seq_end = __seq + __len;
+
+    // `first' is set to point to the first occurrence of the first
+    // element of the sought sequence in the controlling sequence
+    // if one exists, otherwise to 0
+    const_pointer __first = const_pointer ();
+
+    for (const_pointer __next = _C_data + __off; ; __next = __first) {
+
+        // compute the legth of the rest of the controlling sequene
+        // and break out when it's shorter than the sought sequence
+        const size_type __ext = size_type (__end - __next);
+
+        if (__ext < __len)
+            break;
+
+        __first = const_pointer ();
+
+        for (const_pointer __n = __next, __s = __seq; ; ++__n, ++__s) {
+
+            if (__seq_end == __s)
+                return size_type (__next - _C_data);
+
+            if (traits_type::eq (*__n, *__s)) {
+                if (__next != __first && traits_type::eq (*__n, *__seq))
+                    __first = __n + 1;
+            }
+            else {
+                if (const_pointer () == __first) {
+                    // look for the first occurrence of the first element
+                    // of the sought sequence in the rest of the cotrolling
+                    // sequence
+                    __first = traits_type::find (__next + 1, __ext - 1, *__seq);
+
+                    if (const_pointer () == __first)
+                        return npos;
+                }
+                break;
+            }
+        }
     }
 
     return npos;
