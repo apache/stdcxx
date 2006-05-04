@@ -401,8 +401,11 @@ replace (size_type __pos1, size_type __n1, const_pointer __s, size_type __n2)
 template <class _CharT, class _Traits, class _Allocator>
 basic_string<_CharT, _Traits, _Allocator>&
 basic_string<_CharT, _Traits, _Allocator>::
-replace (size_type __pos, size_type __n, size_type __n2, value_type __c)
+replace (size_type __pos, size_type __len, size_type __count, value_type __val)
 {
+    // replaces `len' characters at position `pos'
+    // with `count' copies of the character `val'
+
     const size_type __size0 = size ();
 
     _RWSTD_REQUIRES (__pos <= __size0,
@@ -411,16 +414,16 @@ replace (size_type __pos, size_type __n, size_type __n2, value_type __c)
                                    "size_type, size_type, value_type)"),
                       __pos, __size0));
 
-    const size_type __xlen = _C_min (__size0 - __pos, __n);
+    const size_type __xlen = _C_min (__size0 - __pos, __len);
 
-    _RWSTD_REQUIRES (__size0 - __xlen <= max_size () - __n2,
+    _RWSTD_REQUIRES (__size0 - __xlen <= max_size () - __count,
                      (_RWSTD_ERROR_LENGTH_ERROR,
                       _RWSTD_FUNC ("basic_string::replace(size_type, "
                                    "size_type, size_type, value_type)"), 
-                      __size0 - __xlen, max_size () - __n2));
+                      __size0 - __xlen, max_size () - __count));
 
     // compute the resulting string size
-    const size_type __size1 = __size0 - __xlen + __n2;
+    const size_type __size1 = __size0 - __xlen + __count;
 
     if (__size1) {
 
@@ -438,22 +441,23 @@ replace (size_type __pos, size_type __n, size_type __n2, value_type __c)
 
             traits_type::copy (__data, _C_data, __pos);
 
-            traits_type::assign (__data + __pos, __n2, __c);
+            traits_type::assign (__data + __pos, __count, __val);
 
-            traits_type::copy (__data + __pos + __n2,
-                               _C_data + __pos + __n, __rem);
+            traits_type::copy (__data + (__pos + __count),
+                               _C_data + (__pos + __len), __rem);
 
             _C_unlink (__data);
         }
         else {
-            // current reference has enough space
+            // current reference is not shared and has enough space
 
             const pointer __beg = _C_data + __pos;
 
-            traits_type::move (__beg + __n2, __beg + __n, __rem);
+            traits_type::move (__beg + __count, __beg + __len, __rem);
 
-            traits_type::assign (__beg, __n2, __c);
+            traits_type::assign (__beg, __count, __val);
 
+            // append the terminating NUL character
             traits_type::assign (_C_data [__size1], value_type ());
 
             _C_pref ()->_C_size._C_size = __size1;
