@@ -39,6 +39,15 @@
 #  define _RWSTD_NO_EXPORT
 #endif
 
+#ifndef __EXCEPTIONS
+   // disable exceptions when the macro __EXCEPTIONS
+   // is not #defined by the compiler, e.g., when
+   // the -fno-exceptions option is used
+#  ifndef _RWSTD_NO_EXCEPTIONS
+#    define _RWSTD_NO_EXCEPTIONS
+#  endif
+#endif   // __EXCEPTIONS
+
 #if !defined (_RWSTD_USE_PURE_C_HEADERS)
      // disabled except when requested
 #  define _RWSTD_NO_PURE_C_HEADERS
