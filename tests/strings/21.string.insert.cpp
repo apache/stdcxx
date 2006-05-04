@@ -65,7 +65,8 @@ static const char* const exceptions[] = {
 
 // used to exercise
 // insert (size_type pos, const charT* s)
-static const TestCase size_ptr_test_cases [] = {
+static const TestCase
+size_ptr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, arg, res, bthrow) {                      \
@@ -133,7 +134,8 @@ static const TestCase size_ptr_test_cases [] = {
 
 // used to exercise
 // insert (size_type pos, const basic_string& str)
-static const TestCase size_str_test_cases [] = {
+static const TestCase
+size_str_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, arg, res, bthrow) {                      \
@@ -201,7 +203,8 @@ static const TestCase size_str_test_cases [] = {
 // exrcises
 // insert (size_type off, basic_string& str, size_type off2, size_type n)
 // insert (iterator p, InputIterator first, InputIterator last)
-static const TestCase range_test_cases [] = {
+static const TestCase
+range_test_cases [] = {
 
 // range_test_cases serves a double duty
 #define size_str_size_size_test_cases range_test_cases
@@ -288,7 +291,8 @@ static const TestCase range_test_cases [] = {
 
 // used to exercise
 // insert (size_type pos, const charT* s, size_type n)
-static const TestCase size_ptr_size_test_cases [] = {
+static const TestCase
+size_ptr_size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, arg, size2, res, bthrow) {               \
@@ -357,7 +361,8 @@ static const TestCase size_ptr_size_test_cases [] = {
 // exrecises
 // insert (size_type pos, size_type n, charT c)
 // insert (iterator p, size_type n, charT c)
-static const TestCase size_val_test_cases [] = {
+static const TestCase
+size_val_test_cases [] = {
 
 // size_val_test_cases serves a double duty
 #define size_size_val_test_cases size_val_test_cases
@@ -422,7 +427,8 @@ static const TestCase size_val_test_cases [] = {
 
 // used to exercise
 // insert (iterator p, charT c)
-static const TestCase val_test_cases [] = {
+static const TestCase
+val_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, val, res, bthrow)                                \
@@ -580,16 +586,16 @@ void test_insert (charT, Traits*,
         return;
     }
 
-    TestString s_str (wstr, tcase.str_len);
-    TestString s_arg (warg, tcase.arg_len);
+    /* const */ TestString s_str (wstr, tcase.str_len);
+    const       TestString s_arg (warg, tcase.arg_len);
+
+    // save the state of the string object before the call
+    // to detect wxception safety violations (changes to
+    // the state of the object after an exception)
+    const StringState str_state (rw_get_string_state (s_str));
 
     std::size_t res_off = 0;
     std::size_t exp_off = Insert (val) == which ? tcase.off : 0;
-    std::size_t throw_after = 0;
-
-    const std::size_t     size    = s_str.size ();
-    const std::size_t     capacity = s_str.capacity ();
-    const ConstStringIter begin    = s_str.begin ();
 
     const charT* const arg_ptr = tcase.arg ? warg : s_str.c_str ();
     const TestString&  arg_str = tcase.arg ? s_arg : s_str;
@@ -597,11 +603,10 @@ void test_insert (charT, Traits*,
 
     std::size_t total_length_calls = 0;
     std::size_t n_length_calls = 0;
-    std::size_t* rg_calls = 
-        rw_get_call_counters ((typename TestString::traits_type*)0, 
-                              (typename TestString::value_type*)0);
+    std::size_t* const rg_calls = rw_get_call_counters ((Traits*)0, (charT*)0);
+
     if (rg_calls)
-        total_length_calls = rg_calls[UTMemFun::length];
+        total_length_calls = rg_calls [UTMemFun::length];
 
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
@@ -609,10 +614,11 @@ void test_insert (charT, Traits*,
 
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-    // iterate for`n=throw_after' starting at the next call to operator
-    // new, forcing each call to throw an exception, until the appendion
-    // finally succeeds (i.e, no exception is thrown)
-    for ( ; ; ) {
+    // iterate for`throw_after' starting at the next call to operator new,
+    // forcing each call to throw an exception, until the function finally
+    // succeeds (i.e, no exception is thrown)
+    std::size_t throw_after;
+    for (throw_after = 0; ; ++throw_after) {
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 #  ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
@@ -646,7 +652,7 @@ void test_insert (charT, Traits*,
                 const TestString& s_res = s_str.insert (tcase.off, arg_ptr);
                 res_off = &s_res - &s_str;
                 if (rg_calls)
-                    n_length_calls = rg_calls[UTMemFun::length];
+                    n_length_calls = rg_calls [UTMemFun::length];
                 break;
             }
 
@@ -776,27 +782,13 @@ void test_insert (charT, Traits*,
         if (caught) {
             // verify that an exception thrown during allocation
             // didn't cause a change in the state of the object
-
-            rw_assert (s_str.size () == size, 0, tcase.line,
-                       "line %d: %{$FUNCALL}: size unexpectedly changed "
-                       "from %zu to %zu after an exception",
-                       __LINE__, size, s_str.size ());
-
-            rw_assert (s_str.capacity () == capacity, 0, tcase.line,
-                       "line %d: %{$FUNCALL}: capacity unexpectedly "
-                       "changed from %zu to %zu after an exception",
-                       __LINE__, capacity, s_str.capacity ());
-
-            rw_assert (s_str.begin () == begin, 0, tcase.line,
-                       "line %d: %{$FUNCALL}: begin() unexpectedly "
-                       "changed from after an exception by %d",
-                       __LINE__, s_str.begin () - begin);
+            str_state.assert_equal (rw_get_string_state (s_str),
+                                    __LINE__, tcase.line, caught);
 
             if (-1 == tcase.bthrow) {
-                // increment to allow this call to operator new to succeed
-                // and force the next one to fail, and try calling the same
-                // function again
-                ++throw_after;
+                // allow this call to operator new to succeed and try
+                // to make the next one to fail during the next call
+                // to the same function again
                 continue;
             }
         }

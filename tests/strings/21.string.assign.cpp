@@ -65,7 +65,8 @@ static const char* const exceptions[] = {
 
 // used to exercise:
 // assign (const value_type*)
-static const TestCase ptr_test_cases [] = {
+static const TestCase
+ptr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, res, bthrow) {                           \
@@ -120,7 +121,8 @@ static const TestCase ptr_test_cases [] = {
 
 // used to exercise:
 // assign (const basic_string&)
-static const TestCase str_test_cases [] = {
+static const TestCase
+str_test_cases [] = {
 
 #undef TEST
 #define TEST(s, arg, res, bthrow) {                             \
@@ -181,7 +183,8 @@ static const TestCase str_test_cases [] = {
 
 // used to exercise:
 // assign (const value_type*, size_type)
-static const TestCase ptr_size_test_cases [] = {
+static const TestCase
+ptr_size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, size, res, bthrow) {                     \
@@ -252,7 +255,8 @@ static const TestCase ptr_size_test_cases [] = {
 // used to exercise:
 // assign (const basic_string&, size_type, size_type)
 // assign (InputIterator, InputIterator)
-static const TestCase range_test_cases [] = {
+static const TestCase
+range_test_cases [] = {
 
 // range_test_cases serves a double duty
 #define str_size_size_test_cases range_test_cases
@@ -336,7 +340,8 @@ static const TestCase range_test_cases [] = {
 
 // used to exercise:
 // assign (size_type, value_type)
-static const TestCase size_val_test_cases [] = {
+static const TestCase
+size_val_test_cases [] = {
 
 #undef TEST
 #define TEST(str, size, val, res, bthrow) {     \
@@ -501,12 +506,12 @@ void test_assign (charT, Traits*,
     const       TestString s_arg (wsrc, tcase.arg_len);
 
     std::size_t res_off = 0;
-    std::size_t throw_after = 0;
     std::size_t size = tcase.size >= 0 ? tcase.size : s_str.max_size () + 1;
 
-    const std::size_t     ssize    = s_str.size ();
-    const std::size_t     capacity = s_str.capacity ();
-    const ConstStringIter begin    = s_str.begin ();
+    // save the state of the string object before the call
+    // to detect wxception safety violations (changes to
+    // the state of the object after an exception)
+    const StringState str_state (rw_get_string_state (s_str));
 
     // first function argument
     const charT* const arg_ptr = tcase.arg ? wsrc : s_str.c_str ();
@@ -514,11 +519,10 @@ void test_assign (charT, Traits*,
 
     std::size_t total_length_calls = 0;
     std::size_t n_length_calls = 0;
-    std::size_t* rg_calls = 
-        rw_get_call_counters ((typename TestString::traits_type*)0, 
-                              (typename TestString::value_type*)0);
+    std::size_t* const rg_calls = rw_get_call_counters ((Traits*)0, (charT*)0);
+
     if (rg_calls)
-        total_length_calls = rg_calls[UTMemFun::length];
+        total_length_calls = rg_calls [UTMemFun::length];
 
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
@@ -526,10 +530,11 @@ void test_assign (charT, Traits*,
 
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-    // iterate for`n=throw_after' starting at the next call to operator
-    // new, forcing each call to throw an exception, until the appendion
-    // finally succeeds (i.e, no exception is thrown)
-    for ( ; ; ) {
+    // iterate for`throw_after' starting at the next call to operator new,
+    // forcing each call to throw an exception, until the function finally
+    // succeeds (i.e, no exception is thrown)
+    std::size_t throw_after;
+    for (throw_after = 0; ; ++throw_after) {
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 #  ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
@@ -566,7 +571,7 @@ void test_assign (charT, Traits*,
                 const TestString& s_res = s_str.assign (arg_ptr);
                 res_off = &s_res - &s_str;
                 if (rg_calls)
-                    n_length_calls = rg_calls[UTMemFun::length];
+                    n_length_calls = rg_calls [UTMemFun::length];
                 break;
             }
 
@@ -680,27 +685,13 @@ void test_assign (charT, Traits*,
         if (caught) {
             // verify that an exception thrown during allocation
             // didn't cause a change in the state of the object
-
-            rw_assert (s_str.size () == ssize, 0, tcase.line,
-                       "line %d: %{$FUNCALL}: size unexpectedly changed "
-                       "from %zu to %zu after an exception",
-                       __LINE__, ssize, s_str.size ());
-
-            rw_assert (s_str.capacity () == capacity, 0, tcase.line,
-                       "line %d: %{$FUNCALL}: capacity unexpectedly "
-                       "changed from %zu to %zu after an exception",
-                       __LINE__, capacity, s_str.capacity ());
-
-            rw_assert (s_str.begin () == begin, 0, tcase.line,
-                       "line %d: %{$FUNCALL}: begin() unexpectedly "
-                       "changed from after an exception by %d",
-                       __LINE__, s_str.begin () - begin);
+            str_state.assert_equal (rw_get_string_state (s_str),
+                                    __LINE__, tcase.line, caught);
 
             if (-1 == tcase.bthrow) {
-                // increment to allow this call to operator new to succeed
-                // and force the next one to fail, and try calling the same
-                // function again
-                ++throw_after;
+                // allow this call to operator new to succeed and try
+                // to make the next one to fail during the next call
+                // to the same function again
                 continue;
             }
         }
