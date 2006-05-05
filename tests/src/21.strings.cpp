@@ -38,6 +38,7 @@
 #include <stdarg.h>       // for va_arg, ...
 #include <stddef.h>       // for size_t
 #include <stdlib.h>       // for free()
+#include <string.h>       // for memset()
 
 /**************************************************************************/
 
@@ -618,8 +619,8 @@ _rw_run_test (int, char*[])
 
     if ('\0' == StringMembers::long_string [0]) {
         // initialize long_string
-        for (size_t i = 0; i != sizeof StringMembers::long_string - 1; ++i)
-            StringMembers::long_string [i] = 'x';
+        const size_t nchars = sizeof StringMembers::long_string - 1;
+        memset (StringMembers::long_string, 'x', nchars);
     }
 
     static const StringMembers::charT char_types[] = {
