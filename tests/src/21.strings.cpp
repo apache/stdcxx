@@ -59,7 +59,7 @@ _rw_alloc_names[] = {
     "allocator", "UserAllocator"
 };
 
-
+// order of elements depends on the values of StringMembers::MemberId
 static const char* const
 _rw_memfun_names[] = {
     "append", "assign", "erase", "insert", "replace", "operator+=", "find", 
@@ -257,7 +257,12 @@ _rw_setvars (const StringMembers::Function &fun,
                   "%{$CLASS} (%{?}%{#*s}%{;}).%{$FUNC} ",
                   pcase->str != 0, int (pcase->str_len), pcase->str);
 
-    // format and append member function arguments
+    // compute the end offsets for convenience
+    const size_t range1_end = pcase->off + pcase->size;
+    const size_t range2_end = pcase->off2 + pcase->size2;
+
+    // format and append member function arguments abbreviating complex
+    // expressions as much as possible to make them easy to understand
     switch (fun.which_) {
     case StringMembers::append_ptr:
     case StringMembers::assign_ptr:
@@ -269,9 +274,10 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_first_not_of_ptr:
     case StringMembers::find_last_not_of_ptr:
     case StringMembers::compare_ptr:
+        // format self-referential ptr argument without size as c_str()
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
-                      !self, int (pcase->arg_len), pcase->arg, self);
+                      "%{+} (%{?}c_str()%{:}%{#*s}%{;})",
+                      self, int (pcase->arg_len), pcase->arg);
         break;
 
     case StringMembers::append_str:
@@ -284,18 +290,19 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_first_not_of_str:
     case StringMembers::find_last_not_of_str:
     case StringMembers::compare_str:
+        // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%{?}string (%{#*s})%{;}%{?}*this%{;})",
-                      !self, int (pcase->arg_len), pcase->arg, self);
+                      "%{+} (%{?}*this%{:}string(%{#*s})%{;})",
+                      self, int (pcase->arg_len), pcase->arg);
         break;
 
     case StringMembers::append_ptr_size:
     case StringMembers::assign_ptr_size:
     case StringMembers::copy_ptr_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)",
-                      !self, int (pcase->arg_len), pcase->arg,
-                      self, pcase->size);
+        // format self-referential ptr argument with size as data()
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%{?}data()%{:}%{#*s}%{;}, %zu)",
+                      self, int (pcase->arg_len), pcase->arg, pcase->size);
         break;
 
     case StringMembers::find_ptr_size:
@@ -304,10 +311,10 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_last_of_ptr_size:
     case StringMembers::find_first_not_of_ptr_size:
     case StringMembers::find_last_not_of_ptr_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)",
-                      !self, int (pcase->arg_len), pcase->arg,
-                      self, pcase->off);
+        // format self-referential ptr argument with size as data()
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%{?}data()%{:}%{#*s}%{;}, %zu)",
+                      self, int (pcase->arg_len), pcase->arg, pcase->off);
         break;
 
     case StringMembers::find_str_size:
@@ -316,10 +323,10 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_last_of_str_size:
     case StringMembers::find_first_not_of_str_size:
     case StringMembers::find_last_not_of_str_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu)",
-                      !self, int (pcase->arg_len), pcase->arg,
-                      self, pcase->off);
+        // format self-referential str argument as *this
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%{?}*this%{:}string(%{#*s})%{;}, %zu)",
+                      self, int (pcase->arg_len), pcase->arg, pcase->off);
         break;
 
     case StringMembers::find_ptr_size_size:
@@ -328,174 +335,200 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_last_of_ptr_size_size:
     case StringMembers::find_first_not_of_ptr_size_size:
     case StringMembers::find_last_not_of_ptr_size_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu, %zu)",
-                      !self, int (pcase->arg_len), pcase->arg,
-                      self, pcase->off, pcase->size);
+        // format self-referential ptr argument with size as data()
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%{?}data()%{:}%{#*s}%{;}, %zu, %zu)",
+                      self, int (pcase->arg_len), pcase->arg,
+                      pcase->off, pcase->size);
         break;
 
     case StringMembers::copy_ptr_size_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu, %zu)",
-                      !self, int (pcase->arg_len), pcase->arg,
-                      self, pcase->size, pcase->off);
+        // format self-referential ptr argument with size as data()
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%{?}data()%{:}%{#*s}%{;}, %zu, %zu)",
+                      self, int (pcase->arg_len), pcase->arg,
+                      pcase->size, pcase->off);
         break;
 
     case StringMembers::append_str_size_size:
     case StringMembers::assign_str_size_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
-                      !self, int (pcase->arg_len), pcase->arg, self,
+        // format self-referential str argument as *this
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%{?}*this%{:}string(%{#*s})%{;}, %zu, %zu)",
+                      self, int (pcase->arg_len), pcase->arg,
                       pcase->off, pcase->size);
         break;
 
     case StringMembers::append_size_val:
     case StringMembers::assign_size_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+} (%zu, %#c)", pcase->size, pcase->val);
+                      "%{+} (%zu, %{#c})", pcase->size, pcase->val);
         break;
 
     case StringMembers::append_range:
     case StringMembers::assign_range:
-        rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%{?}%{#*s}%{;}%{?}this->%{;}.begin() + %zu, "
-                      "%{?}%{#*s}%{;}%{?}this->%{;}.begin() + %zu)",
-                      !self, int (pcase->arg_len), pcase->arg,
-                      self, pcase->off, !self, int (pcase->arg_len),
-                      pcase->arg,
-                      self, pcase->off + pcase->size);
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%{?}begin()%{:}Iterator(%{#*s})%{;}"
+                      "%{?} + %zu%{;}, "
+                      "%{?}begin()%{:}Iterator(...)%{;}"
+                      "%{?} + %zu%{;})",
+                      self, int (pcase->arg_len), pcase->arg,
+                      0 != pcase->off, pcase->off,
+                      self, 0 != range1_end, range1_end);
         break;
 
     case StringMembers::insert_size_ptr:
+        // format self-referential ptr argument without size as c_str()
         rw_asnprintf (&buf, &bufsize, 
-                      "%{+} (%zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
-                      pcase->off, !self, int (pcase->arg_len), 
-                      pcase->arg, self);
+                      "%{+} (%zu, %{?}c_str()%{:}%{#*s}%{;})",
+                      pcase->off, self, int (pcase->arg_len), pcase->arg);
         break;
 
     case StringMembers::insert_size_str:
+        // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize,  
-                      "%{+} (%zu, %{?}string (%{#*s})%{;}%{?}*this%{;})",
-                      pcase->off, !self, int (pcase->arg_len), 
-                      pcase->arg, self);
+                      "%{+} (%zu, %{?}*this%{:}string(%{#*s})%{;})",
+                      pcase->off, self, int (pcase->arg_len), pcase->arg);
         break;
 
     case StringMembers::insert_size_ptr_size:
+        // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+} ("
-                      "%zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
-                      pcase->off, !self, int (pcase->arg_len),
-                      pcase->arg, self, pcase->size2);
+                      "%zu, %{?}data()%{:}%{#*s}%{;}, %zu)", 
+                      pcase->off, self, int (pcase->arg_len), pcase->arg,
+                      pcase->size2);
         break;
 
     case StringMembers::insert_size_str_size_size:
+        // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+} ("
-                      "%zu, %{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
-                      pcase->off, !self, int (pcase->arg_len), pcase->arg,
-                      self, pcase->off2, pcase->size2);
+                      "%zu, %{?}*this%{:}string(%{#*s})%{;}, %zu, %zu)",
+                      pcase->off, self, int (pcase->arg_len), pcase->arg,
+                      pcase->off2, pcase->size2);
         break;
 
     case StringMembers::insert_size_size_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+} (%zu, %zu, %#c)",
+                      "%{+} (%zu, %zu, %{#c})",
                       pcase->off, pcase->size2, pcase->val);
         break;
 
     case StringMembers::insert_size_val:
         rw_asnprintf (&buf, &bufsize, 
-                      "%{+} (begin + %zu, %zu, %#c)",
-                      pcase->off, pcase->size2, pcase->val);
+                      "%{+} (begin()%{?} + %zu%{;}, %zu, %{#c})",
+                      0 != pcase->off, pcase->off, pcase->size2, pcase->val);
         break;
 
     case StringMembers::insert_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+} (begin + %zu, %#c)",
-                      pcase->off, pcase->val);
+                      "%{+} (begin()%{? + %zu%{;}, %{#c})",
+                      0 != pcase->off, pcase->off, pcase->val);
         break;
 
     case StringMembers::insert_range:
-        rw_asnprintf (&buf, &bufsize, "%{+} (begin + %zu, "
-                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu, "
-                      "%{?}%{#*s}%{;}%{?}*this%{;}.begin + %zu)", 
-                      pcase->off, !self, int (pcase->arg_len), pcase->arg,
-                      self, pcase->off2, !self, int (pcase->arg_len),
-                      pcase->arg, self, pcase->off2 + pcase->size2);
+        rw_asnprintf (&buf, &bufsize, "%{+} (begin()%{?} + %zu%{;}, "
+                      "%{?}begin()%{:}Iterator(%{#*s})%{;}"
+                      "%{?} + %zu%{;}, "
+                      "%{?}begin()%{:}Iterator(...)%{?} + %zu%{;})",
+                      0 != pcase->off, pcase->off,
+                      self, int (pcase->arg_len), pcase->arg,
+                      0 != pcase->off2, pcase->off2,
+                      self, 0 != range2_end, range2_end);
         break;
 
     case StringMembers::replace_size_size_ptr:
     case StringMembers::compare_size_size_ptr:
-        rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%zu, %zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
-                      pcase->off, pcase->size, !self, 
-                      int (pcase->arg_len), pcase->arg, self);
+        // format self-referential ptr argument without size as c_str()
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%zu, %zu, %{?}c_str()%{:}%{#*s}%{;})",
+                      pcase->off, pcase->size, self,
+                      int (pcase->arg_len), pcase->arg);
         break;
 
     case StringMembers::replace_size_size_str:
     case StringMembers::compare_size_size_str:
-        rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%zu, %zu, %{?}string (%{#*s})%{;}%{?}*this%{;})",
-                      pcase->off, pcase->size, !self, 
-                      int (pcase->arg_len), pcase->arg, self);
+        // format self-referential str argument as *this
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%zu, %zu, %{?}*this%{:}string(%{#*s}))",
+                      pcase->off, pcase->size, self, 
+                      int (pcase->arg_len), pcase->arg);
         break;
 
     case StringMembers::replace_size_size_ptr_size:
     case StringMembers::compare_size_size_ptr_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%zu, %zu, %{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
-                      pcase->off, pcase->size, !self, 
-                      int (pcase->arg_len), pcase->arg, self, pcase->size2);
+        // format self-referential ptr argument with size as data()
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "%zu, %zu, %{?}data()%{:}%{#*s}%{;}, %zu)", 
+                      pcase->off, pcase->size, self,
+                      int (pcase->arg_len), pcase->arg, pcase->size2);
         break;
 
     case StringMembers::replace_size_size_str_size_size:
     case StringMembers::compare_size_size_str_size_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}(%zu, %zu, "
-                      "%{?}string (%{#*s})%{;}%{?}*this%{;}, %zu, %zu)",
-                      pcase->off, pcase->size, !self, 
-                      int (pcase->arg_len), pcase->arg, self, 
+        // format self-referential str argument as *this
+        rw_asnprintf (&buf, &bufsize, "%{+} (%zu, %zu, "
+                      "%{?}*this%{:}string(%{#*s})%{;}, %zu, %zu)",
+                      pcase->off, pcase->size, self,
+                      int (pcase->arg_len), pcase->arg,
                       pcase->off2, pcase->size2);
         break;
 
     case StringMembers::replace_size_size_size_val:
         rw_asnprintf (&buf, &bufsize, 
-                      "%{+}(%zu, %zu, %zu, %#c)",
+                      "%{+} (%zu, %zu, %zu, %{#c})",
                       pcase->off, pcase->size, pcase->size2, pcase->val);
         break;
 
     case StringMembers::replace_iter_iter_ptr:
-        rw_asnprintf (&buf, &bufsize, "%{+}(begin() + %zu, begin() + %zu, "
-                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;})",
-                      pcase->off, pcase->off + pcase->size, 
-                      !self, int (pcase->arg_len), pcase->arg, self);
+        // format self-referential ptr argument without size as c_str()
+        rw_asnprintf (&buf, &bufsize, "%{+} (begin()%{?} + %zu%{;}, "
+                      "begin()%{?} + %zu%{;}, "
+                      "%{?}c_str()%{:}%{#*s}%{;})",
+                      0 != pcase->off, pcase->off,
+                      0 != range1_end, range1_end,
+                      self, int (pcase->arg_len), pcase->arg);
         break;
 
     case StringMembers::replace_iter_iter_str:
-        rw_asnprintf (&buf, &bufsize, "%{+}(begin() + %zu, begin() + %zu, " 
-                      "%{?}string (%{#*s})%{;}%{?}*this%{;})",
-                      pcase->off, pcase->off + pcase->size, 
-                      !self, int (pcase->arg_len), pcase->arg, self);
+        // format self-referential str argument as *this
+        rw_asnprintf (&buf, &bufsize, "%{+} (begin()%{?} + %zu%{;}, "
+                      "begin()%{?} + %zu%{;}, "
+                      "%{?}*this%{:}string(%{#*s})%{;})",
+                      0 != pcase->off, pcase->off,
+                      0 != range1_end, range1_end,
+                      self, int (pcase->arg_len), pcase->arg);
         break;
 
     case StringMembers::replace_iter_iter_ptr_size:
-        rw_asnprintf (&buf, &bufsize, "%{+}(begin() + %zu, begin() + %zu, " 
-                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)", 
-                      pcase->off, pcase->off + pcase->size, !self, 
-                      int (pcase->arg_len), pcase->arg, self, pcase->size2);
+        // format self-referential ptr argument with size as data()
+        rw_asnprintf (&buf, &bufsize, "%{+} (begin()%{?} + %zu%{;}, "
+                      "begin()%{?} + %zu%{;}, " 
+                      "%{?}data()%{:}%{#*s}%{;}, %zu)", 
+                      0 != pcase->off, pcase->off,
+                      0 != range1_end, range1_end,
+                      self, int (pcase->arg_len), pcase->arg, pcase->size2);
         break;
 
     case StringMembers::replace_iter_iter_size_val:
         rw_asnprintf (&buf, &bufsize, 
-                      "%{+}(begin() + %zu, begin() + %zu, %zu, %#c)",
-                      pcase->off, pcase->off + pcase->size, 
+                      "%{+} (begin()%{?} + %zu%{;}, begin()%{? + %zu%{;}, "
+                      "%zu, %{#c})",
+                      0 != pcase->off, pcase->off, 0 != range1_end, range1_end,
                       pcase->size2, pcase->val);
         break;
 
     case StringMembers::replace_iter_iter_range:
-        rw_asnprintf (&buf, &bufsize, "%{+}(begin() + %zu, begin() + %zu, "
-                      "%{?}%{#*s}%{;}%{?}this->%{;}begin() + %zu, "
-                      "%{?}%{#*s}%{;}%{?}this->%{;}begin() + %zu)", 
-                      pcase->off, pcase->off + pcase->size, !self, 
-                      int (pcase->arg_len), pcase->arg, self, pcase->off2,
-                      !self, int (pcase->arg_len), pcase->arg, self, 
-                      pcase->off2 + pcase->size2);
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
+                      "begin()%{?} + %zu%{;}, "
+                      "begin()%{?} + %zu%{;}, "
+                      "%{?}begin()%{:}Iterator(%{#*s})%{;}"
+                      "%{?} + %zu%{;}, "
+                      "%{?}begin()%{:}Iterator(...)%{?} + %zu%{;})",
+                      0 != pcase->off, pcase->off,
+                      0 != range1_end, range1_end,
+                      self, int (pcase->arg_len), pcase->arg,
+                      0 != pcase->off2, pcase->off2,
+                      self, 0 != range2_end, range2_end);
         break;
 
     case StringMembers::op_plus_eq_val:
@@ -506,7 +539,7 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_first_not_of_val:
     case StringMembers::find_last_not_of_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+} (%#c)", pcase->val);
+                      "%{+} (%{#c})", pcase->val);
         break;
 
     case StringMembers::find_val_size:
@@ -516,7 +549,7 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_first_not_of_val_size:
     case StringMembers::find_last_not_of_val_size:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+} (%#c, %zu)", pcase->val, pcase->off);
+                      "%{+} (%{#c}, %zu)", pcase->val, pcase->off);
         break;
 
     case StringMembers::erase_void:
@@ -540,13 +573,15 @@ _rw_setvars (const StringMembers::Function &fun,
 
     case StringMembers::erase_iter:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+} (begin() + %zu)", pcase->off);
+                      "%{+} (begin()%{?} + %zu%{;})",
+                      0 != pcase->off, pcase->off);
         break;
 
     case StringMembers::erase_iter_iter:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+} (begin() + %zu, begin() + %zu)", 
-                      pcase->off, pcase->off + pcase->size);
+                      "%{+} (begin()%{?} + %zu%{;}, begin()%{?} + %zu%{;})", 
+                      0 != pcase->off, pcase->off,
+                      0 != range1_end, range1_end);
         break;
 
     default:
