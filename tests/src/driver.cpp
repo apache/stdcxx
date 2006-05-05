@@ -331,7 +331,7 @@ rw_vasnprintf (char**, size_t*, const char*, va_list);
 static int
 ndiags [N_DIAG_TYPES][2] /* = { { total, active }, ... }*/;
 
-static rw_file *_rw_ftestout = rw_stdout;
+static rw_file *_rw_ftestout;
 
 static jmp_buf test_env;
 
@@ -927,6 +927,12 @@ rw_vtest (int argc, char **argv,
 {
     CHECK_INIT (false, "rw_vtest()");
 
+    // set the default test output to stdout
+    RW_ASSERT (0 == _rw_ftestout);
+    RW_ASSERT (0 != rw_stdout);
+
+    _rw_ftestout = rw_stdout;
+
     _rw_driver_init = 1;
 
     if (optstr && 0 > rw_vsetopts (optstr, va)) {
@@ -1106,7 +1112,7 @@ rw_vtest (int argc, char **argv,
                     ndiags [diag_assert][1] + ndiags [diag_xassert][1]);
     }
 
-    if (_rw_ftestout != rw_stdout) {
+    if (_rw_ftestout && _rw_ftestout != rw_stdout) {
         fclose ((FILE*)(void*)_rw_ftestout);
         _rw_ftestout = 0;
     }
