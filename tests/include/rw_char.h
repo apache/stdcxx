@@ -189,7 +189,7 @@ struct UserTraits: std::char_traits<charT>
         };
     };
 
-    static _RWSTD_SIZE_T n_calls_ [];
+    static _RWSTD_SIZE_T n_calls_ [MemFun::n_funs];
 
     // avoid any dependency on the library
     typedef int                   off_type;     // std::streamoff
@@ -296,7 +296,7 @@ private:
 
 template <class charT>
 _RWSTD_SIZE_T
-UserTraits<charT>::n_calls_ [UserTraits<charT>::MemFun::n_funs];
+UserTraits<charT>::n_calls_ [ /* UserTraits<charT>::MemFun::n_funs */];
 
 template <class charT>
 typename UserTraits<charT>::int_type
