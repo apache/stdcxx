@@ -33,28 +33,21 @@
 #include <alg_test.h>     // for InputIter
 #include <driver.h>       // for rw_test()
 #include <rw_char.h>      // for rw_widen()
-
-#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
-   // disabled for compilers such as IBM VAC++ or MSVC
-   // that can't reliably replace the operators
-#  include <rw_new.h>   // for bad_alloc, replacement operator new
-#else
-#  include <new>        // for bad_alloc
-#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
-
-
-#define AssignOverload   StringMembers::OverloadId
-#define Assign(which)    StringMembers::assign_ ## which
-
-typedef StringMembers::TestCase TestCase;
-typedef StringMembers::Test     Test;
-typedef StringMembers::Function MemFun;
+#include <rw_new.h>       // for bad_alloc, replacement operator new
 
 /**************************************************************************/
 
 // for convenience and brevity
-#define LSTR   StringMembers::long_string
-#define LLEN   StringMembers::long_string_len
+
+#define LSTR            StringMembers::long_string
+#define LLEN            StringMembers::long_string_len
+#define Assign(which)   StringMembers::assign_ ## which
+
+typedef StringMembers::OverloadId AssignOverload;
+typedef StringMembers::TestCase   TestCase;
+typedef StringMembers::Test       Test;
+typedef StringMembers::Function   MemFun;
+
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -524,26 +517,13 @@ void test_assign (charT, Traits*,
     if (rg_calls)
         total_length_calls = rg_calls [UTMemFun::length];
 
-#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
-
     rwt_free_store* const pst = rwt_get_free_store (0);
-
-#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
     // iterate for`throw_after' starting at the next call to operator new,
     // forcing each call to throw an exception, until the function finally
     // succeeds (i.e, no exception is thrown)
     std::size_t throw_after;
     for (throw_after = 0; ; ++throw_after) {
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-#  ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
-
-        if (-1 == tcase.bthrow)
-            *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_after + 1;
-
-#  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
-#endif   // _RWSTD_NO_EXCEPTIONS
 
         // (name of) expected and caught exception
         const char* expected = 0;
@@ -553,10 +533,12 @@ void test_assign (charT, Traits*,
 
         if (1 == tcase.bthrow && Assign (str_size_size) == which)
             expected = exceptions [1];   // out_of_range
-        if (2 == tcase.bthrow)
+        else if (2 == tcase.bthrow)
             expected = exceptions [2];   // length_error
-        if (-1 == tcase.bthrow)
+        else if (-1 == tcase.bthrow) {
             expected = exceptions [3];   // bad_alloc
+            *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_after + 1;
+        }
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
@@ -716,16 +698,10 @@ void test_assign (charT, Traits*,
                "line %d: %{$FUNCALL}: failed to throw an expected exception",
                __LINE__);
 
-    *pst->throw_at_calls_ [0] = std::size_t (-1);
-
 #  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
-#else   // if defined (_RWSTD_NO_EXCEPTIONS)
-
-    _RWSTD_UNUSED (pst);
-    _RWSTD_UNUSED (throw_after);
-
 #endif   // _RWSTD_NO_EXCEPTIONS
 
+    *pst->throw_at_calls_ [0] = std::size_t (-1);
 }
 
 /**************************************************************************/
