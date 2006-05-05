@@ -63,7 +63,7 @@ static const char* const
 _rw_memfun_names[] = {
     "append", "assign", "erase", "insert", "replace", "operator+=", "find", 
     "rfind", "find_first_of", "find_last_of", "find_first_not_of", 
-    "find_last_not_of", "compare"
+    "find_last_not_of", "compare", "substr"
 };
 
 /**************************************************************************/
@@ -511,16 +511,19 @@ _rw_setvars (const StringMembers::Function &fun,
         break;
 
     case StringMembers::erase_void:
+    case StringMembers::substr_void:
         rw_asnprintf (&buf, &bufsize,
                       "%{+} ()");
         break;
 
     case StringMembers::erase_size:
+    case StringMembers::substr_size:
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%zu)", pcase->off);
         break;
 
     case StringMembers::erase_size_size:
+    case StringMembers::substr_size_size:
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%zu, %zu)", pcase->off, pcase->size);
         break;
