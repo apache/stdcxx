@@ -63,7 +63,7 @@ static const char* const
 _rw_memfun_names[] = {
     "append", "assign", "erase", "insert", "replace", "operator+=", "find", 
     "rfind", "find_first_of", "find_last_of", "find_first_not_of", 
-    "find_last_not_of", "compare", "substr"
+    "find_last_not_of", "compare", "substr", "operator[]", "copy"
 };
 
 /**************************************************************************/
@@ -290,6 +290,7 @@ _rw_setvars (const StringMembers::Function &fun,
 
     case StringMembers::append_ptr_size:
     case StringMembers::assign_ptr_size:
+    case StringMembers::copy_ptr_size:
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu)",
                       !self, int (pcase->arg_len), pcase->arg,
@@ -330,6 +331,13 @@ _rw_setvars (const StringMembers::Function &fun,
                       "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu, %zu)",
                       !self, int (pcase->arg_len), pcase->arg,
                       self, pcase->off, pcase->size);
+        break;
+
+    case StringMembers::copy_ptr_size_size:
+        rw_asnprintf (&buf, &bufsize, "%{+}("
+                      "%{?}%{#*s}%{;}%{?}this->c_str ()%{;}, %zu, %zu)",
+                      !self, int (pcase->arg_len), pcase->arg,
+                      self, pcase->size, pcase->off);
         break;
 
     case StringMembers::append_str_size_size:
@@ -518,6 +526,7 @@ _rw_setvars (const StringMembers::Function &fun,
 
     case StringMembers::erase_size:
     case StringMembers::substr_size:
+    case StringMembers::access_size:
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%zu)", pcase->off);
         break;
