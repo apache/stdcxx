@@ -127,11 +127,12 @@ struct _TEST_EXPORT StringMembers {
         mem_find_first_not_of  = 1 << 16,
         mem_find_last_not_of   = 1 << 17,
         mem_compare            = 1 << 18,
+        mem_substr             = 1 << 19,
         mem_mask       =
             mem_append | mem_assign | mem_erase | mem_insert | 
             mem_replace | mem_op_plus_eq | mem_find | mem_rfind |
             mem_find_first_of | mem_find_last_of | mem_find_first_not_of |
-            mem_find_last_not_of | mem_compare
+            mem_find_last_not_of | mem_compare | mem_substr
     };
 
     // unique identifiers for all overloads of each member function
@@ -339,7 +340,16 @@ struct _TEST_EXPORT StringMembers {
         compare_size_size_ptr_size = mem_compare + sig_size_size_ptr_size,
         // (size_type, size_type, const basic_string&, size_type, size_type)
         compare_size_size_str_size_size = 
-            mem_compare + sig_size_size_str_size_size
+            mem_compare + sig_size_size_str_size_size,
+
+        //////////////////////////////////////////////////////////////
+        // substr (void)
+        substr_void = mem_substr + sig_void,
+        // substr (size_type)
+        substr_size = mem_substr + sig_size,
+        // substr (size_type, size_type)
+        substr_size_size = mem_substr + sig_size_size
+
     };
 
     struct Function {
