@@ -27,32 +27,15 @@
 
 #include <string>       // for string
 #include <stdexcept>    // for out_of_range, length_error
-
 #include <cstddef>      // for size_t
 
+#include <21.strings.h>
+#include <alg_test.h>   // for InputIter
 #include <cmdopt.h>     // for rw_enabled()
 #include <driver.h>     // for rw_test()
-
-#include <alg_test.h>   // for InputIter
-#include <rw_printf.h>  // for rw_asnprintf()
 #include <rw_char.h>    // for rw_widen()
-
-#include <21.strings.h>
-
-#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
-   // disabled for compilers such as IBM VAC++ or MSVC
-   // that can't reliably replace the operators
-#  include <rw_new.h>   // for bad_alloc, replacement operator new
-#else
-#  include <new>        // for bad_alloc
-#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
-
-#define Replace(which)    StringMembers::replace_ ## which
-
-typedef StringMembers::OverloadId OverloadId;
-typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+#include <rw_new.h>     // for bad_alloc, replacement operator new
+#include <rw_printf.h>  // for rw_asnprintf()
 
 /**************************************************************************/
 
@@ -62,6 +45,12 @@ typedef StringMembers::Function   MemFun;
 // one half of the long_string length
 #define LPAR   (LLEN / 2)
 
+#define Replace(which)    StringMembers::replace_ ## which
+
+typedef StringMembers::OverloadId OverloadId;
+typedef StringMembers::TestCase   TestCase;
+typedef StringMembers::Test       Test;
+typedef StringMembers::Function   MemFun;
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -70,7 +59,7 @@ static const char* const exceptions[] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // replace (size_type, size_type, const value_type*)
 // replace (iterator, iterator, const value_type*)
 static const TestCase
@@ -167,7 +156,7 @@ iter_iter_ptr_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // replace (size_type, size_type, const basic_string&)
 // replace (iterator, iterator, const basic_string&)
 static const TestCase
@@ -270,7 +259,7 @@ iter_iter_str_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // replace (size_type, size_type, const value_type*, size_type)
 // replace (iterator, iterator, const value_type*, size_type)
 static const TestCase
@@ -367,7 +356,7 @@ iter_iter_ptr_size_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // replace (size_type , size_type , basic_string& s, size_type , size_type )
 // replace (iterator, Iterator, InputIterator, InputIterator)
 static const TestCase
@@ -487,7 +476,7 @@ iter_iter_range_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // replace (size_type, size_type, value_type, size_type)
 // replace (iterator, iterator, size_type, value_type)
 static const TestCase
@@ -731,26 +720,13 @@ void test_replace (charT, Traits*,
     if (rg_calls)
         total_length_calls = rg_calls [UTMemFun::length];
 
-#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
-
     rwt_free_store* const pst = rwt_get_free_store (0);
-
-#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
     // iterate for`throw_after' starting at the next call to operator new,
     // forcing each call to throw an exception, until the function finally
     // succeeds (i.e, no exception is thrown)
     std::size_t throw_after;
     for (throw_after = 0; ; ++throw_after) {
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-#  ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
-
-        if (-1 == tcase.bthrow)
-            *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_after + 1;
-
-#  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
-#endif   // _RWSTD_NO_EXCEPTIONS
 
         // (name of) expected and caught exception
         const char* expected = 0;
@@ -760,13 +736,15 @@ void test_replace (charT, Traits*,
 
         if (1 == tcase.bthrow && !use_iters)
             expected = exceptions [1];      // out_of_range
-        if (2 == tcase.bthrow && Replace (size_size_str_size_size) == which)
+        else if (   2 == tcase.bthrow
+                 && Replace (size_size_str_size_size) == which)
             expected = exceptions [1];      // out_of_range
-        if (3 == tcase.bthrow && !use_iters)
+        else if (3 == tcase.bthrow && !use_iters)
             expected = exceptions [2];      // length_error
-        if (-1 == tcase.bthrow)
+        else if (-1 == tcase.bthrow) {
             expected = exceptions [3];      // bad_alloc
-
+            *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_after + 1;
+        }
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
         if (tcase.bthrow)
@@ -951,8 +929,7 @@ void test_replace (charT, Traits*,
         break;
     }
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-#  ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
+#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
     // verify that if exceptions are enabled and when capacity changes
     // at least one exception is thrown
@@ -962,16 +939,9 @@ void test_replace (charT, Traits*,
                "line %d: %{$FUNCALL}: failed to throw an expected exception",
                __LINE__);
 
+#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
     *pst->throw_at_calls_ [0] = std::size_t (-1);
-
-#  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
-#else   // if defined (_RWSTD_NO_EXCEPTIONS)
-
-    _RWSTD_UNUSED (pst);
-    _RWSTD_UNUSED (throw_after);
-
-#endif   // _RWSTD_NO_EXCEPTIONS
-
 }
 
 /**************************************************************************/
