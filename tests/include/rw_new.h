@@ -6,16 +6,22 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2004-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -152,6 +158,7 @@ static MyNewInit mynew_init_tracker;
 
 
 #  ifndef _RWSTD_TEST_SRC
+#    ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
 // prevent defining the replacement operator
 // when compiling in the test suite framework
@@ -167,8 +174,8 @@ void operator delete (void *ptr) _THROWS (())
 }
 
 
-#    if    !defined (_RWSTD_NO_OPERATOR_NEW_ARRAY) \
-        || defined (_RWSTD_NO_EXT_OPERATOR_NEW)
+#      if    !defined (_RWSTD_NO_OPERATOR_NEW_ARRAY) \
+          || defined (_RWSTD_NO_EXT_OPERATOR_NEW)
 
 // replaceable only if we don't provide a definition in <new>
 void* operator new[] (_RWSTD_SIZE_T n) _THROWS ((_RWSTD_BAD_ALLOC))
@@ -176,10 +183,10 @@ void* operator new[] (_RWSTD_SIZE_T n) _THROWS ((_RWSTD_BAD_ALLOC))
     return operator_new (n, true);
 }
 
-#    endif   // !_RWSTD_NO_OPERATOR_NEW_ARRAY || _RWSTD_NO_EXT_OPERATOR_NEW
+#      endif   // !_RWSTD_NO_OPERATOR_NEW_ARRAY || _RWSTD_NO_EXT_OPERATOR_NEW
 
-#    if   !defined (_RWSTD_NO_OPERATOR_DELETE_ARRAY) \
-        || defined (_RWSTD_NO_EXT_OPERATOR_NEW)
+#      if   !defined (_RWSTD_NO_OPERATOR_DELETE_ARRAY) \
+          || defined (_RWSTD_NO_EXT_OPERATOR_NEW)
 
 // replaceable only if we don't provide a definition in <new>
 void operator delete[] (void *ptr) _THROWS (())
@@ -188,6 +195,7 @@ void operator delete[] (void *ptr) _THROWS (())
 }
 
 
-#    endif   // !_RWSTD_NO_OPERATOR_DELETE_ARRAY || _RWSTD_NO_EXT_OPERATOR_NEW
+#      endif   // !_NO_OPERATOR_DELETE_ARRAY || _NO_EXT_OPERATOR_NEW
+#    endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 #  endif   // !_RWSTD_TEST_SRC
 #endif   // RW_NEW_H_INCLUDED
