@@ -752,10 +752,12 @@ void test_replace (charT, Traits*,
 #  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 #endif   // _RWSTD_NO_EXCEPTIONS
 
+        // (name of) expected and caught exception
+        const char* expected = 0;
+        const char* caught   = 0;
+
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-        // is some exception expected ?
-        const char* expected = 0;
         if (1 == tcase.bthrow && !use_iters)
             expected = exceptions [1];      // out_of_range
         if (2 == tcase.bthrow && Replace (size_size_str_size_size) == which)
@@ -764,8 +766,6 @@ void test_replace (charT, Traits*,
             expected = exceptions [2];      // length_error
         if (-1 == tcase.bthrow)
             expected = exceptions [3];      // bad_alloc
-
-        const char* caught = 0;
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
@@ -967,8 +967,7 @@ void test_replace (charT, Traits*,
 #  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    _RWSTD_UNUSED (ssize);
-    _RWSTD_UNUSED (capacity);
+    _RWSTD_UNUSED (pst);
     _RWSTD_UNUSED (throw_after);
 
 #endif   // _RWSTD_NO_EXCEPTIONS

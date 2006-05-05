@@ -175,12 +175,13 @@ void test_copy (charT, Traits*,
     charT wcgb = make_char (cgb, (charT*)0);
     Traits::assign (s_res, min_len + 1, wcgb);
 
+    // (name of) expected and caught exception
+    const char* expected = 0;
+    const char* caught   = 0;
+
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    // is some exception expected?
-    const char* const expected =
-        cs.bthrow && use_pos ? exp_exceptions [1] : 0;
-    const char* caught = 0;
+    expected = cs.bthrow && use_pos ? exp_exceptions [1] : 0;
 
     try {
 
@@ -228,7 +229,7 @@ void test_copy (charT, Traits*,
     }
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
-    _RWSTD_UNUSED (should_throw);
+
 #endif   // _RWSTD_NO_EXCEPTIONS
 
     rw_assert (caught == expected, 0, cs.line,
