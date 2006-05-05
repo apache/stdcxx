@@ -3152,7 +3152,8 @@ _rw_vfprintf (rw_file *file, const char *fmt, va_list va)
         // avoid formatting when there's nothing to output
 
         if (file) {
-            // allow null file argument
+            // allow null file argument (to determine
+            // the length of the formatted string)
 
             // FIXME: implement this in terms of POSIX write()
             //        for async-signal safety
@@ -3164,20 +3165,21 @@ _rw_vfprintf (rw_file *file, const char *fmt, va_list va)
             // it's determined not to refer to a terminal device,
             // for example after it has been redirected to a file)
             fflush (stdio_file);
-        }
 
 #ifdef _MSC_VER
 
-        // IsDebuggerPresent() depends on the macros _WIN32_WINNT and WINVER
-        // being appropriately #defined prior to the #inclusion of <windows.h>
-        if (IsDebuggerPresent ()) {
+            // IsDebuggerPresent() depends on the macros _WIN32_WINNT
+            // and WINVER being appropriately #defined prior to the
+            // #inclusion of <windows.h>
+            if (IsDebuggerPresent ()) {
 
-            // write string to the attached debugger (if any)
-            OutputDebugString (buf);
-        }
+                // write string to the attached debugger (if any)
+                OutputDebugString (buf);
+            }
 
 #endif   // _MSC_VER
 
+        }
     }
 
     free (buf);
