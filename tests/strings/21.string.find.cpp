@@ -27,12 +27,11 @@
 
 #include <string>       // for string
 #include <cstddef>      // size_t
-#include <stdexcept>    // for exception, length_error
+#include <exception>    // for exception
 
 #include <21.strings.h> // for StringMembers
-#include <driver.h>     // for rw_test()
+#include <driver.h>     // for rw_assert()
 #include <rw_char.h>    // for rw_widen()
-
 
 /**************************************************************************/
 
@@ -55,15 +54,17 @@ static const char* const exceptions[] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // find (const value_type*)
 static const TestCase
 ptr_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, res)                                    \
-    { __LINE__, -1, -1, -1, -1, -1, str, sizeof str - 1, arg,  \
-      sizeof arg - 1, 0, res, 0 }
+#define TEST(str, arg, res) {                   \
+        __LINE__, -1, -1, -1, -1, -1,           \
+        str, sizeof str - 1,                    \
+        arg,  sizeof arg - 1, 0, res, 0         \
+    }
 
     //    +----------------------------------- controlled sequence
     //    |             +--------------------- sequence to be found
@@ -133,15 +134,17 @@ ptr_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // find (const basic_string&)
 static const TestCase
 str_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, res)                                    \
-    { __LINE__, -1, -1, -1, -1, -1, str, sizeof str - 1, arg,  \
-      sizeof arg - 1, 0, res, 0 }
+#define TEST(str, arg, res) {                   \
+        __LINE__, -1, -1, -1, -1, -1,           \
+        str, sizeof str - 1,                    \
+        arg,  sizeof arg - 1, 0, res, 0         \
+    }
 
     //    +------------------------------------ controlled sequence
     //    |             +---------------------- sequence to be found
@@ -216,15 +219,17 @@ str_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // find (const value_type*, size_type)
 static const TestCase
 ptr_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, off, res)                                    \
-    { __LINE__, off, -1, -1, -1, -1, str, sizeof str - 1, arg,      \
-      sizeof arg - 1, 0, res, 0 }
+#define TEST(str, arg, off, res) {              \
+        __LINE__, off, -1, -1, -1, -1,          \
+        str, sizeof str - 1,                    \
+        arg, sizeof arg - 1, 0, res, 0          \
+    }
 
     //    +-------------------------------------- controlled sequence
     //    |            +------------------------- sequence to be found
@@ -314,7 +319,7 @@ ptr_size_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // find (const value_type*, size_type, size_type)
 static const TestCase
 ptr_size_size_test_cases [] = {
@@ -322,8 +327,8 @@ ptr_size_size_test_cases [] = {
 #undef TEST
 #define TEST(str, arg, off, size, res) {        \
         __LINE__, off, size, -1, -1, -1,        \
-        str, sizeof str - 1, arg,               \
-        sizeof arg - 1, 0, res, 0               \
+        str, sizeof str - 1,                    \
+        arg, sizeof arg - 1, 0, res, 0          \
     }
 
     //    +--------------------------------------- controlled sequence
@@ -442,15 +447,17 @@ ptr_size_size_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // find (const basic_string&, size_type)
 static const TestCase
 str_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, off, res)                                    \
-    { __LINE__, off, -1, -1, -1, -1, str, sizeof str - 1, arg,      \
-      sizeof arg - 1, 0, res, 0 }
+#define TEST(str, arg, off, res) {              \
+        __LINE__, off, -1, -1, -1, -1,          \
+        str, sizeof str - 1,                    \
+        arg, sizeof arg - 1, 0, res, 0          \
+    }
 
     //    +--------------------------------------- controlled sequence
     //    |             +------------------------- sequence to be found
@@ -537,15 +544,16 @@ str_size_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // find (value_type)
 static const TestCase
 val_test_cases [] = {
 
 #undef TEST
-#define TEST(str, val, res)                                     \
-    { __LINE__, -1, -1, -1, -1, val, str, sizeof str - 1,       \
-      0, 0, 0, res, 0 }
+#define TEST(str, val, res) {                   \
+        __LINE__, -1, -1, -1, -1, val,          \
+        str, sizeof str - 1, 0, 0, 0, res, 0    \
+    }
 
     //    +----------------------------- controlled sequence
     //    |              +-------------- character to be found
@@ -578,14 +586,16 @@ val_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // find (value_type, size_type)
-static const TestCase val_size_test_cases [] = {
+static const TestCase
+val_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, val, off, res)                                     \
-    { __LINE__, off, -1, -1, -1, val, str, sizeof str - 1,           \
-      0, 0, 0, res, 0 }
+#define TEST(str, val, off, res) {              \
+        __LINE__, off, -1, -1, -1, val,         \
+        str, sizeof str - 1, 0, 0, 0, res, 0    \
+    }
 
     //    +------------------------------ controlled sequence
     //    |              +--------------- character to be found
@@ -633,7 +643,7 @@ static const TestCase val_size_test_cases [] = {
 template <class charT, class Traits>
 void test_find (charT, Traits*,
                 OverloadId      which,
-                const TestCase &cs)
+                const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> TestString;
@@ -642,37 +652,35 @@ void test_find (charT, Traits*,
     static charT wstr [LLEN];
     static charT warg [LLEN];
 
-    rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (warg, cs.arg, cs.arg_len);
+    rw_widen (wstr, tcase.str, tcase.str_len);
+    rw_widen (warg, tcase.arg, tcase.arg_len);
 
-    const TestString s_str (wstr, cs.str_len);
-    const TestString s_arg (warg, cs.arg_len);
+    const TestString s_str (wstr, tcase.str_len);
+    const TestString s_arg (warg, tcase.arg_len);
+
+    // save the state of the string object before the call
+    // to detect wxception safety violations (changes to
+    // the state of the object after an exception)
+    const StringState str_state (rw_get_string_state (s_str));
 
     std::size_t res = 0;
-    std::size_t exp_res = NPOS != cs.nres ? cs.nres : TestString::npos;
+    std::size_t exp_res = NPOS != tcase.nres ? tcase.nres : TestString::npos;
 
-    const std::size_t     ssize    = s_str.size ();
-    const std::size_t     capacity = s_str.capacity ();
-    const ConstStringIter begin    = s_str.begin ();
+    const charT* const ptr_arg = tcase.arg ? warg : s_str.c_str ();
+    const TestString&  str_arg = tcase.arg ? s_arg : s_str;
+    const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
-    const charT* const ptr_arg = cs.arg ? warg : s_str.c_str ();
-    const TestString&  str_arg = cs.arg ? s_arg : s_str;
-    const charT        arg_val = make_char (char (cs.val), (charT*)0);
-
-    std::size_t size = cs.size >= 0 ? cs.size : s_arg.max_size () + 1;
+    std::size_t size = tcase.size >= 0 ? tcase.size : s_arg.max_size () + 1;
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    // is some exception expected ?
+    // no exceptions expected
     const char* expected = 0;
-    if (1 == cs.bthrow)
-        expected = exceptions [2];
-
     const char* caught = 0;
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (cs.bthrow)
+    if (tcase.bthrow)
         return;
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -690,17 +698,17 @@ void test_find (charT, Traits*,
         }
 
         case Find (ptr_size): {
-            res = s_str.find (ptr_arg, cs.off);
+            res = s_str.find (ptr_arg, tcase.off);
             break;
         }
 
         case Find (ptr_size_size): {
-            res = s_str.find (ptr_arg, cs.off, size);
+            res = s_str.find (ptr_arg, tcase.off, size);
             break;
         }
 
         case Find (str_size): {
-            res = s_str.find (str_arg, cs.off);
+            res = s_str.find (str_arg, tcase.off);
             break;
         }
 
@@ -710,77 +718,52 @@ void test_find (charT, Traits*,
         }
 
         case Find (val_size): {
-            res = s_str.find (arg_val, cs.off);
+            res = s_str.find (arg_val, tcase.off);
             break;
         }
 
         default:
-            RW_ASSERT ("test logic error: unknown find overload");
+            RW_ASSERT (!"logic error: unknown find overload");
             return;
         }
 
         // verify the returned value
-        rw_assert (exp_res == res, 0, cs.line,
+        rw_assert (exp_res == res, 0, tcase.line,
                    "line %d. %{$FUNCALL} == %{?}%zu%{;}%{?}npos%{;}, "
                    "got %{?}%zu%{;}%{?}npos%{;}",
-                   __LINE__, NPOS != cs.nres, exp_res, NPOS == cs.nres,
+                   __LINE__, NPOS != tcase.nres, exp_res, NPOS == tcase.nres,
                    TestString::npos != res, res, TestString::npos == res);
     }
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    catch (const std::length_error &ex) {
-        caught = exceptions [2];
-        rw_assert (caught == expected, 0, cs.line,
-                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
-                   "unexpectedly%{;} caught std::%s(%#s)",
-                   __LINE__, 0 != expected, expected, caught, ex.what ());
-    }
     catch (const std::exception &ex) {
         caught = exceptions [4];
-        rw_assert (0, 0, cs.line,
+        rw_assert (0, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught std::%s(%#s)",
                    __LINE__, 0 != expected, expected, caught, ex.what ());
     }
     catch (...) {
         caught = exceptions [0];
-        rw_assert (0, 0, cs.line,
+        rw_assert (0, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught %s",
                    __LINE__, 0 != expected, expected, caught);
     }
 
     if (caught) {
-            // verify that an exception thrown during allocation
-            // didn't cause a change in the state of the object
-
-        rw_assert (s_str.size () == ssize, 0, cs.line,
-                   "line %d: %{$FUNCALL}: size unexpectedly changed "
-                   "from %zu to %zu after an exception",
-                   __LINE__, ssize, s_str.size ());
-
-        rw_assert (s_str.capacity () == capacity, 0, cs.line,
-                   "line %d: %{$FUNCALL}: capacity unexpectedly "
-                   "changed from %zu to %zu after an exception",
-                   __LINE__, capacity, s_str.capacity ());
-
-        rw_assert (s_str.begin () == begin, 0, cs.line,
-                   "line %d: %{$FUNCALL}: begin() unexpectedly "
-                   "changed from after an exception by %d",
-                   __LINE__, s_str.begin () - begin);
+        // verify that an exception thrown during allocation
+        // didn't cause a change in the state of the object
+        str_state.assert_equal (rw_get_string_state (s_str),
+                                __LINE__, tcase.line, caught);
     }
-    else if (-1 != cs.bthrow) {
-        rw_assert (caught == expected, 0, cs.line,
+    else if (-1 != tcase.bthrow) {
+        rw_assert (caught == expected, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s, caught %s"
                    "%{:}unexpectedly caught %s%{;}",
                    __LINE__, 0 != expected, expected, caught, caught);
     }
-
-#else // if defined (_RWSTD_NO_EXCEPTIONS)
-
-    _RWSTD_UNUSED (ssize);
-    _RWSTD_UNUSED (capacity);
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 }
