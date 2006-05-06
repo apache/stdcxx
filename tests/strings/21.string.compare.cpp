@@ -2,7 +2,7 @@
  *
  * 21.string.compare.cpp - string test exercising lib.string.compare
  *
- * $Id$ 
+ * $Id$
  *
  ***************************************************************************
  *
@@ -22,17 +22,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  **************************************************************************/
 
 #include <string>       // for string
-#include <cstdlib>      // for free(), size_t
+#include <cstddef>      // for size_t
 #include <stdexcept>    // for out_of_range, length_error
 
 #include <21.strings.h> // for StringMembers
-#include <driver.h>     // for rw_test()
+#include <driver.h>     // for rw_assert()
 #include <rw_char.h>    // for rw_widen()
 
+/**************************************************************************/
+
+// for convenience and brevity
+#define NPOS              _RWSTD_SIZE_MAX
+#define LSTR              StringMembers::long_string
+#define LLEN              StringMembers::long_string_len
 #define Compare(which)    StringMembers::compare_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
@@ -40,12 +46,6 @@ typedef StringMembers::TestCase   TestCase;
 typedef StringMembers::Test       Test;
 typedef StringMembers::Function   MemFun;
 
-/**************************************************************************/
-
-// for convenience and brevity
-#define NPOS      _RWSTD_SIZE_MAX
-#define LSTR      StringMembers::long_string
-#define LLEN      StringMembers::long_string_len
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -54,24 +54,27 @@ static const char* const exceptions[] = {
 
 /**************************************************************************/
 
-// used to exercise 
+// exercises:
 // compare (const value_type*)
-static const TestCase ptr_test_cases [] = {
+static const TestCase
+ptr_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, res, bthrow)                               \
-    { __LINE__, -1, -1, -1, -1, -1, str, sizeof str - 1, arg,     \
-      sizeof arg - 1, 0, res, bthrow }
+#define TEST(str, arg, res, bthrow) {           \
+        __LINE__, -1, -1, -1, -1, -1,           \
+        str, sizeof str - 1,                    \
+        arg, sizeof arg - 1, 0, res, bthrow     \
+    }
 
     //    +------------------------------------------ controlled sequence
     //    |                  +----------------------- sequence to be inserted
-    //    |                  |                +------ expected result 
-    //    |                  |                |       +-- exception info 
+    //    |                  |                +------ expected result
+    //    |                  |                |       +-- exception info
     //    |                  |                |       |     0   - no exception
     //    |                  |                |       |     1,2 - out_of_range
     //    |                  |                |       |     3   - length_error
-    //    |                  |                |       |                       
-    //    |                  |                |       |            
+    //    |                  |                |       |
+    //    |                  |                |       |
     //    V                  V                V       V
     TEST ("ab",              "ab",            0,      0),
 
@@ -117,27 +120,29 @@ static const TestCase ptr_test_cases [] = {
     TEST ("last",            "last",          0,      0)
 };
 
-
 /**************************************************************************/
 
-// used to exercise 
+// exercises:
 // compare (const basic_string&)
-static const TestCase str_test_cases [] = {
+static const TestCase
+str_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, res, bthrow)                               \
-    { __LINE__, -1, -1, -1, -1, -1, str, sizeof str - 1, arg,     \
-      sizeof arg - 1, 0, res, bthrow }
+#define TEST(str, arg, res, bthrow) {           \
+        __LINE__, -1, -1, -1, -1, -1,           \
+        str, sizeof str - 1,                    \
+        arg, sizeof arg - 1, 0, res, bthrow     \
+    }
 
     //    +------------------------------------------- controlled sequence
     //    |                  +------------------------ sequence to be compared
-    //    |                  |                +------- expected result 
-    //    |                  |                |       +- exception info 
-    //    |                  |                |       |   0   - no exception        
-    //    |                  |                |       |   1,2 - out_of_range        
-    //    |                  |                |       |   3   - length_error        
-    //    |                  |                |       |                       
-    //    |                  |                |       |            
+    //    |                  |                +------- expected result
+    //    |                  |                |       +- exception info
+    //    |                  |                |       |   0   - no exception
+    //    |                  |                |       |   1,2 - out_of_range
+    //    |                  |                |       |   3   - length_error
+    //    |                  |                |       |
+    //    |                  |                |       |
     //    V                  V                V       V
     TEST ("ab",              "ab",            0,      0),
 
@@ -188,26 +193,29 @@ static const TestCase str_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise 
+// exercises:
 // compare (size_type, size_type, const value_type*)
-static const TestCase size_size_ptr_test_cases [] = {
+static const TestCase
+size_size_ptr_test_cases [] = {
 
 #undef TEST
-#define TEST(str, off, size, arg, res, bthrow)                       \
-    { __LINE__, off, size, -1, -1, -1, str, sizeof str - 1, arg,     \
-      sizeof arg - 1, 0, res, bthrow }
+#define TEST(str, off, size, arg, res, bthrow) {        \
+        __LINE__, off, size, -1, -1, -1,                \
+        str, sizeof str - 1,                            \
+        arg, sizeof arg - 1, 0, res, bthrow             \
+    }
 
     //    +------------------------------------------ controlled sequence
     //    |              +--------------------------- compare() off argument
     //    |              |   +----------------------- compare() n1 argument
     //    |              |   |  +-------------------- sequence to be compared
-    //    |              |   |  |                +--- expected result 
-    //    |              |   |  |                |   +- exception info 
-    //    |              |   |  |                |   |    0   - no exception        
-    //    |              |   |  |                |   |    1,2 - out_of_range        
-    //    |              |   |  |                |   |    3   - length_error        
-    //    |              |   |  |                |   |                       
-    //    |              |   |  |                |   |             
+    //    |              |   |  |                +--- expected result
+    //    |              |   |  |                |   +- exception info
+    //    |              |   |  |                |   |    0   - no exception
+    //    |              |   |  |                |   |    1,2 - out_of_range
+    //    |              |   |  |                |   |    3   - length_error
+    //    |              |   |  |                |   |
+    //    |              |   |  |                |   |
     //    V              V   V  V                V   V
     TEST ("ab",          0,  2, "ab",            0,  0),
 
@@ -278,26 +286,29 @@ static const TestCase size_size_ptr_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise 
+// exercises:
 // compare (size_type, size_type, basic_string&)
-static const TestCase size_size_str_test_cases [] = {
+static const TestCase
+size_size_str_test_cases [] = {
 
 #undef TEST
-#define TEST(str, off, size, arg, res, bthrow)                       \
-    { __LINE__, off, size, -1, -1, -1, str, sizeof str - 1, arg,     \
-      sizeof arg - 1, 0, res, bthrow }
+#define TEST(str, off, size, arg, res, bthrow) {        \
+        __LINE__, off, size, -1, -1, -1,                \
+        str, sizeof str - 1,                            \
+        arg, sizeof arg - 1, 0, res, bthrow             \
+    }
 
     //    +------------------------------------------ controlled sequence
     //    |              +--------------------------- compare() off argument
     //    |              |   +----------------------- compare() n1 argument
     //    |              |   |  +-------------------- sequence to be compared
-    //    |              |   |  |                +--- expected result 
-    //    |              |   |  |                |   +- exception info 
-    //    |              |   |  |                |   |    0   - no exception        
-    //    |              |   |  |                |   |    1,2 - out_of_range        
-    //    |              |   |  |                |   |    3   - length_error        
-    //    |              |   |  |                |   |                       
-    //    |              |   |  |                |   |             
+    //    |              |   |  |                +--- expected result
+    //    |              |   |  |                |   +- exception info
+    //    |              |   |  |                |   |    0   - no exception
+    //    |              |   |  |                |   |    1,2 - out_of_range
+    //    |              |   |  |                |   |    3   - length_error
+    //    |              |   |  |                |   |
+    //    |              |   |  |                |   |
     //    V              V   V  V                V   V
     TEST ("ab",          0,  2, "ab",            0,  0),
 
@@ -380,28 +391,31 @@ static const TestCase size_size_str_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise
+// exercises:
 // compare (size_type, size_type, const value_type*, size_type)
-static const TestCase size_size_ptr_size_test_cases [] = {
+static const TestCase
+size_size_ptr_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, off, size, arg, size2, res, bthrow)                     \
-    { __LINE__, off, size, -1, size2, -1, str, sizeof str - 1, arg,       \
-      sizeof arg - 1, 0, res, bthrow }
+#define TEST(str, off, size, arg, size2, res, bthrow) { \
+        __LINE__, off, size, -1, size2, -1,             \
+        str, sizeof str - 1,                            \
+        arg, sizeof arg - 1, 0, res, bthrow             \
+    }
 
     //    +------------------------------------------- controlled sequence
     //    |              +---------------------------- compare() off argument
     //    |              |   +------------------------ compare() n1 argument
     //    |              |   |  +--------------------- sequence to be compared
     //    |              |   |  |              +------ compare() n2 argument
-    //    |              |   |  |              |     +----- expected result 
-    //    |              |   |  |              |     |   +- exception info 
-    //    |              |   |  |              |     |   |  0   - no exception       
-    //    |              |   |  |              |     |   |  1,2 - out_of_range        
-    //    |              |   |  |              |     |   |  3   - length_error        
-    //    |              |   |  |              |     |   |                           
-    //    |              |   |  |              |     |   |             
-    //    V              V   V  V              V     V   V             
+    //    |              |   |  |              |     +----- expected result
+    //    |              |   |  |              |     |   +- exception info
+    //    |              |   |  |              |     |   |  0   - no exception
+    //    |              |   |  |              |     |   |  1,2 - out_of_range
+    //    |              |   |  |              |     |   |  3   - length_error
+    //    |              |   |  |              |     |   |
+    //    |              |   |  |              |     |   |
+    //    V              V   V  V              V     V   V
     TEST ("ab",          0,  2, "ab",          2,    0,  0),
 
     TEST ("",            0,  0, "",            0,    0,  0),
@@ -503,30 +517,33 @@ static const TestCase size_size_ptr_size_test_cases [] = {
 
 /**************************************************************************/
 
-// used to exercise 
+// exercises:
 // compare (size_type, size_type, basic_string&, size_type, size_type)
-static const TestCase size_size_str_size_size_test_cases [] = {
+static const TestCase
+size_size_str_size_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, off, size, arg, off2, size2, res, bthrow)               \
-    { __LINE__, off, size, off2, size2, -1, str, sizeof str - 1, arg,     \
-      sizeof arg - 1, 0, res, bthrow }
+#define TEST(str, off, size, arg, off2, size2, res, bthrow) {   \
+        __LINE__, off, size, off2, size2, -1,                   \
+        str, sizeof str - 1,                                    \
+        arg, sizeof arg - 1, 0, res, bthrow                     \
+    }
 
     //    +------------------------------------------- controlled sequence
     //    |              +---------------------------- compare() off argument
     //    |              |   +------------------------ compare() n1 argument
     //    |              |   |  +--------------------- sequence to be inserted
     //    |              |   |  |              +------ compare() off2 argument
-    //    |              |   |  |              |   +-- compare() n2 argument 
-    //    |              |   |  |              |   |     +-- expected result 
-    //    |              |   |  |              |   |     |   +- exception info 
+    //    |              |   |  |              |   +-- compare() n2 argument
+    //    |              |   |  |              |   |     +-- expected result
+    //    |              |   |  |              |   |     |   +- exception info
     //    |              |   |  |              |   |     |   | 0-no exception
     //    |              |   |  |              |   |     |   | 1-out_of_range
     //    |              |   |  |              |   |     |   | 2-out_of_range
     //    |              |   |  |              |   |     |   | 3-length_error
-    //    |              |   |  |              |   |     |   |                         
-    //    |              |   |  |              |   |     |   |             
-    //    V              V   V  V              V   V     V   V       
+    //    |              |   |  |              |   |     |   |
+    //    |              |   |  |              |   |     |   |
+    //    V              V   V  V              V   V     V   V
     TEST ("ab",          0,  2, "ab",          0,  2,    0,  0),
 
     TEST ("",            0,  0, "",            0,  0,    0,  0),
@@ -645,14 +662,14 @@ static const TestCase size_size_str_size_size_test_cases [] = {
     TEST (LSTR,    1, LLEN - 6, LSTR,    2, LLEN - 6,    0,  0),
     TEST (LSTR,    1, LLEN + 6, LSTR,    2, LLEN + 6,    1,  0),
     TEST ("xx",          0,  2, LSTR,    0, LLEN - 4, NPOS,  0),
-    TEST ("xx",          0,  2, LSTR,   LLEN - 6, 
+    TEST ("xx",          0,  2, LSTR,   LLEN - 6,
                                                    2,    0,  0),
     TEST (LSTR,    0, LLEN - 1, "xxxxx",       0,  5,    1,  0),
     TEST (LSTR,   LLEN - 6,  5, "xxxxx",       0,  5,    0,  0),
     TEST (LSTR,          2,  5, "xxxxx",       0,  5,    0,  0),
     TEST (LSTR,          5,  2, "xxxxx",       0,  3, NPOS,  0),
     TEST ("a\0x",        0,  3, LSTR,          0, 10, NPOS,  0),
-    TEST ("a\0x",        2,  1, LSTR,   LLEN - 2, 
+    TEST ("a\0x",        2,  1, LSTR,   LLEN - 2,
                                                    1,    0,  0),
     TEST (LSTR,          0, 10, "x\0b",        0,  2,    1,  0),
     TEST (LSTR,          0,  1, "x\0b",        0,  2, NPOS,  0),
@@ -671,9 +688,9 @@ static const TestCase size_size_str_size_size_test_cases [] = {
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_compare (charT, Traits*,  
+void test_compare (charT, Traits*,
                    OverloadId      which,
-                   const TestCase &cs)
+                   const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> TestString;
@@ -684,46 +701,47 @@ void test_compare (charT, Traits*,
     static charT wstr [LLEN];
     static charT warg [LLEN];
 
-    rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (warg, cs.arg, cs.arg_len);
+    rw_widen (wstr, tcase.str, tcase.str_len);
+    rw_widen (warg, tcase.arg, tcase.arg_len);
 
-    TestString s_str (wstr, cs.str_len);
-    TestString s_arg (warg, cs.arg_len);
+    /* const */ TestString s_str (wstr, tcase.str_len);
+    const       TestString s_arg (warg, tcase.arg_len);
+
+    // save the state of the string object before the call
+    // to detect wxception safety violations (changes to
+    // the state of the object after an exception)
+    const StringState str_state (rw_get_string_state (s_str));
 
     int res = 0;
 
-    const std::size_t     ssize    = s_str.size ();
-    const std::size_t     capacity = s_str.capacity ();
-    const ConstStringIter begin    = s_str.begin ();
-
     // string function argument
-    const charT* const arg_ptr = cs.arg ? warg : s_str.c_str ();
-    const TestString&  arg_str = cs.arg ? s_arg : s_str;
+    const charT* const arg_ptr = tcase.arg ? warg : s_str.c_str ();
+    const TestString&  arg_str = tcase.arg ? s_arg : s_str;
 
     std::size_t total_compare_calls = 0;
     std::size_t n_compare_calls = 0;
-    std::size_t* rg_calls = 
-        rw_get_call_counters ((typename TestString::traits_type*)0, 
-                              (typename TestString::value_type*)0);
+    std::size_t* const rg_calls =
+        rw_get_call_counters ((Traits*)0, (charT*)0);
+
     if (rg_calls)
         total_compare_calls = rg_calls[UTMemFun::compare];
 
+    // (name of) expected and caught exception
+    const char* expected = 0;
+    const char* caught   = 0;
+
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    // is some exception expected ?
-    const char* expected = 0;
-    if (1 == cs.bthrow)
+    if (1 == tcase.bthrow)
         expected = exceptions [1];
-    if (2 == cs.bthrow && Compare (size_size_str_size_size) == which)
+    else if (2 == tcase.bthrow && Compare (size_size_str_size_size) == which)
         expected = exceptions [1];
-    if (3 == cs.bthrow)
+    else if (3 == tcase.bthrow)
         expected = exceptions [2];
-
-    const char* caught = 0;
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (cs.bthrow)
+    if (tcase.bthrow)
         return;
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -743,24 +761,24 @@ void test_compare (charT, Traits*,
             }
 
             case Compare (size_size_ptr): {
-                res = s_str.compare (cs.off, cs.size, arg_ptr);
+                res = s_str.compare (tcase.off, tcase.size, arg_ptr);
                 break;
             }
 
             case Compare (size_size_str): {
-                res = s_str.compare (cs.off, cs.size, arg_str);
+                res = s_str.compare (tcase.off, tcase.size, arg_str);
                 break;
             }
 
             case Compare (size_size_ptr_size): {
-                res = s_str.compare (cs.off, cs.size, 
-                                    arg_ptr, cs.size2);
+                res = s_str.compare (tcase.off, tcase.size,
+                                    arg_ptr, tcase.size2);
                 break;
             }
 
             case Compare (size_size_str_size_size): {
-                res = s_str.compare (cs.off, cs.size, 
-                                    arg_str, cs.off2, cs.size2);
+                res = s_str.compare (tcase.off, tcase.size,
+                                    arg_str, tcase.off2, tcase.size2);
                 break;
             }
 
@@ -770,17 +788,18 @@ void test_compare (charT, Traits*,
         }
 
         // verify the returned value
-        bool success = (res < 0 && cs.nres == NPOS) || (res > 0 && cs.nres > 0) || 
-                       (res == 0 && cs.nres == 0);
+        bool success =    res < 0 && tcase.nres == NPOS
+                       || res > 0 && tcase.nres > 0
+                       || res == 0 && tcase.nres == 0;
 
-        rw_assert (success, 0, cs.line,
-                   "line %d. %{$FUNCALL} == %d, got %d", 
-                   __LINE__, cs.nres != NPOS ? cs.nres : -1, res);
+        rw_assert (success, 0, tcase.line,
+                   "line %d. %{$FUNCALL} == %d, got %d",
+                   __LINE__, tcase.nres != NPOS ? tcase.nres : -1, res);
 
         // verify that Traits::length was used
         if (Compare (str) == which && rg_calls) {
-            rw_assert (n_compare_calls - total_compare_calls > 0, 
-                       0, cs.line, "line %d. %{$FUNCALL} doesn't "
+            rw_assert (n_compare_calls - total_compare_calls > 0,
+                       0, tcase.line, "line %d. %{$FUNCALL} doesn't "
                        "use traits::compare()", __LINE__);
         }
     }
@@ -789,59 +808,42 @@ void test_compare (charT, Traits*,
 
     catch (const std::out_of_range &ex) {
         caught = exceptions [1];
-        rw_assert (caught == expected, 0, cs.line,
+        rw_assert (caught == expected, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught std::%s(%#s)",
                    __LINE__, 0 != expected, expected, caught, ex.what ());
     }
     catch (const std::length_error &ex) {
         caught = exceptions [2];
-        rw_assert (caught == expected, 0, cs.line,
+        rw_assert (caught == expected, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught std::%s(%#s)",
                    __LINE__, 0 != expected, expected, caught, ex.what ());
     }
     catch (const std::exception &ex) {
         caught = exceptions [4];
-        rw_assert (0, 0, cs.line,
+        rw_assert (0, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught std::%s(%#s)",
                    __LINE__, 0 != expected, expected, caught, ex.what ());
     }
     catch (...) {
         caught = exceptions [0];
-        rw_assert (0, 0, cs.line,
+        rw_assert (0, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught %s",
                    __LINE__, 0 != expected, expected, caught);
     }
 
     if (caught) {
-            // verify that an exception thrown during allocation
-            // didn't cause a change in the state of the object
-
-        rw_assert (s_str.size () == ssize, 0, cs.line,
-                   "line %d: %{$FUNCALL}: size unexpectedly changed "
-                   "from %zu to %zu after an exception",
-                   __LINE__, ssize, s_str.size ());
-
-        rw_assert (s_str.capacity () == capacity, 0, cs.line,
-                   "line %d: %{$FUNCALL}: capacity unexpectedly "
-                   "changed from %zu to %zu after an exception",
-                   __LINE__, capacity, s_str.capacity ());
-
-        rw_assert (s_str.begin () == begin, 0, cs.line,
-                   "line %d: %{$FUNCALL}: begin() unexpectedly "
-                   "changed from after an exception by %d",
-                   __LINE__, s_str.begin () - begin);
+        // verify that an exception thrown during allocation
+        // didn't cause a change in the state of the object
+        str_state.assert_equal (rw_get_string_state (s_str),
+                                __LINE__, tcase.line, caught);
     }
 
-#else // if defined (_RWSTD_NO_EXCEPTIONS)
-
-    _RWSTD_UNUSED (ssize);
-    _RWSTD_UNUSED (capacity);
-
 #endif   // _RWSTD_NO_EXCEPTIONS
+
 }
 
 /**************************************************************************/
