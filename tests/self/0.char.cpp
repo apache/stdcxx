@@ -499,6 +499,92 @@ test_rw_widen ()
 /***********************************************************************/
 
 static void
+test_rw_expand ()
+{
+    //////////////////////////////////////////////////////////////////
+    rw_info (0, 0, 0, "rw_expand(char*, const char*, size_t, size_t*)");
+
+    char *result;
+    size_t len;
+
+#undef TEST
+#define TEST(str, expstr, size)                                         \
+    result = rw_expand ((char*)0, str, sizeof str - 1, &len);           \
+    rw_assert (0 == memcmp (result, expstr, size + 1), 0, __LINE__,     \
+               "rw_expand(0, %#s, %zu, ...) == %#s, got %#s",           \
+               str, sizeof str -1, expstr, result);
+
+    TEST ("",          "",          0);
+    TEST ("a",         "a",         1);
+    TEST ("ab",        "ab",        2);
+    TEST ("abc",       "abc",       3);
+    TEST ("a\0b",      "a\0b",      3);
+    TEST ("a\0b\0c\0", "a\0b\0c\0", 6);
+
+    TEST ("a@0",       "",          0);
+    TEST ("a@1",       "a",         1);
+    TEST ("a@2",       "aa",        2);
+    TEST ("a@3",       "aaa",       3);
+    TEST ("a@1b",      "ab",        2);
+    TEST ("a@2b",      "aab",       3);
+    TEST ("a@3b",      "aaab",      4);
+    TEST ("a@3bc",     "aaabc",     5);
+    TEST ("a@3b@1c",   "aaabc",     5);
+    TEST ("a@3b@2c",   "aaabbc",    6);
+    TEST ("a@3b@2c@1", "aaabbc",    6);
+    TEST ("a@3b@3c@2", "aaabbbcc",  8);
+
+    //////////////////////////////////////////////////////////////////
+    rw_info (0, 0, 0, "rw_expand(wchar_t*, const char*, size_t, size_t*)");
+
+#ifndef _RWSTD_NO_WCHAR_T
+
+    wchar_t *wresult;
+
+#  undef TEST
+#  define TEST(str, expstr, size)                                       \
+      wresult = rw_expand ((wchar_t*)0, str, sizeof str - 1, &len);     \
+      rw_assert (0 == memcmp (wresult, expstr, size + 1), 0, __LINE__,  \
+                 "rw_expand(0, %#s, %zu, ...) == %#ls, got %#ls",       \
+                 str, sizeof str -1, expstr, wresult);
+
+    TEST ("",          L"",          0);
+    TEST ("a",         L"a",         1);
+    TEST ("ab",        L"ab",        2);
+    TEST ("abc",       L"abc",       3);
+    TEST ("a\0b",      L"a\0b",      3);
+    TEST ("a\0b\0c\0", L"a\0b\0c\0", 6);
+
+    TEST ("a@0",       L"",          0);
+    TEST ("a@1",       L"a",         1);
+    TEST ("a@2",       L"aa",        2);
+    TEST ("a@3",       L"aaa",       3);
+    TEST ("a@1b",      L"ab",        2);
+    TEST ("a@2b",      L"aab",       3);
+    TEST ("a@3b",      L"aaab",      4);
+    TEST ("a@3bc",     L"aaabc",     5);
+    TEST ("a@3b@1c",   L"aaabc",     5);
+    TEST ("a@3b@2c",   L"aaabbc",    6);
+    TEST ("a@3b@2c@1", L"aaabbc",    6);
+    TEST ("a@3b@3c@2", L"aaabbbcc",  8);
+
+#else   // if defined (_RWSTD_NO_WCHAR_T)
+
+    rw_note (0, 0, 0, "_RWSTD_NO_WCHAR_T #defined, wchar_t test disabled");
+
+#endif   // _RWSTD_NO_WCHAR_T
+
+    //////////////////////////////////////////////////////////////////
+    rw_info (0, 0, 0, "rw_expand(UserChar*, const char*, size_t, size_t*)");
+
+    rw_warn (0, 0, 0, "rw_expand(UserChar*, const char*, size_t, size_t*) "
+             "not exercised");
+}
+
+
+/***********************************************************************/
+
+static void
 test_rw_narrow ()
 {
     //////////////////////////////////////////////////////////////////
@@ -849,6 +935,7 @@ static int no_user_traits_char;
 static int no_user_traits_wchar_t;
 static int no_user_traits_user_char;
 static int no_rw_widen;
+static int no_rw_expand;
 static int no_rw_narrow;
 static int no_rw_match;
 static int no_formatting;
@@ -891,6 +978,7 @@ run_test (int, char*[])
             test_ ## fun ()
 
     TEST (rw_widen);
+    TEST (rw_expand);
     TEST (rw_narrow);
     TEST (rw_match);
     TEST (formatting);
@@ -911,6 +999,7 @@ int main (int argc, char *argv[])
                     "|-no-UserTraits<wchar_t># "
                     "|-no-UserTraits<UserChar># "
                     "|-no-rw_widen# "
+                    "|-no-expand# "
                     "|-no-rw_narrow# "
                     "|-no-rw_macth# "
                     "|-no-formatting#",
@@ -919,6 +1008,7 @@ int main (int argc, char *argv[])
                     &no_user_traits_wchar_t,
                     &no_user_traits_user_char,
                     &no_rw_widen,
+                    &no_rw_expand, 
                     &no_rw_narrow,
                     &no_rw_match,
                     &no_formatting,

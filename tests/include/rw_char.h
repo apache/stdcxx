@@ -385,6 +385,25 @@ char* rw_widen (char*         /* dst */,
                 const char*   /* src */,
                 _RWSTD_SIZE_T /* len */ = _RWSTD_SIZE_MAX);
 
+// rw_expand() interprets string src as a sequence of directives and
+// widens the result of their processing into the provided buffer dst
+// when (dst != 0), otherwise into a dynamically allocated buffer of
+// sufficient size
+// each directive consists of a character C, optionally followed by
+// the '@' sign followed by a non-negative decimal number N; the result
+// of the processing of a directive is N consecutive copies of the
+// character C where (N = 1) when the '@' is absent
+// when (dst_len != 0) the function sets *dst_len to the number of
+// produced characters not counting the terminating NUL
+// the function returns the dynamically allocated buffer; the caller
+// must deallocate the buffer using the delete expression
+_TEST_EXPORT
+char* rw_expand (char*          /* dst     */,
+                 const char*    /* src     */,
+                 _RWSTD_SIZE_T  /* src_len */ = _RWSTD_SIZE_MAX,
+                 _RWSTD_SIZE_T* /* dst_len */ = 0);
+
+
 // rw_narrow() narrows successive elements of src into the buffer dst
 // (see rw_widen() for details)
 _TEST_EXPORT
@@ -409,6 +428,12 @@ _TEST_EXPORT
 wchar_t* rw_widen (wchar_t*, const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
 _TEST_EXPORT
+wchar_t* rw_expand (wchar_t*       /* dst     */,
+                    const char*    /* src     */,
+                    _RWSTD_SIZE_T  /* src_len */ = _RWSTD_SIZE_MAX,
+                    _RWSTD_SIZE_T* /* dst_len */ = 0);
+
+_TEST_EXPORT
 char* rw_narrow (char*, const wchar_t*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
 _TEST_EXPORT
@@ -419,6 +444,12 @@ _RWSTD_SIZE_T rw_match (const char*, const wchar_t*,
 
 _TEST_EXPORT
 UserChar* rw_widen (UserChar*, const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+
+_TEST_EXPORT
+UserChar* rw_expand (UserChar*      /* dst     */,
+                     const char*    /* src     */,
+                     _RWSTD_SIZE_T  /* src_len */ = _RWSTD_SIZE_MAX,
+                     _RWSTD_SIZE_T* /* dst_len */ = 0);
 
 _TEST_EXPORT
 char* rw_narrow (char*, const UserChar*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
