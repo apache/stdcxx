@@ -263,6 +263,85 @@ rw_widen (char *dst, const char *src, size_t len /* = SIZE_MAX */)
 
 _TEST_EXPORT
 char*
+rw_expand (char *dst, const char *src, size_t src_len /* = SIZE_MAX */,
+           size_t *dst_len /* = 0 */)
+{
+    size_t bufsize = dst ? _RWSTD_SIZE_MAX : 0;
+    size_t buflen  = 0;
+
+    if (_RWSTD_SIZE_MAX == src_len)
+        src_len = strlen (src);
+
+    char *pnext = dst;
+
+    for (const char *psrc = src; ; ) {
+
+        const char c = *psrc;
+
+        unsigned long count;
+
+        if ('@' == psrc [1] && isdigit (psrc [2])) {
+            // process directive
+            psrc += 2;
+
+            char *end = 0;
+            count = strtoul (psrc, &end, 10);
+
+            src_len -= (end - psrc) + 2;
+
+            psrc = end;
+
+        }
+        else {
+            count = 1;
+
+            // decrement length unless it's already 0
+            if (src_len)
+                --src_len;
+
+            ++psrc;
+        }
+
+        if (bufsize - buflen <= count) {
+            // increase the size of the buffer
+            bufsize = (bufsize + count) * 2;
+            if (bufsize < 128)
+                bufsize = 128;
+
+            // allocate larger buffer
+            char* const tmp = new char [bufsize];
+
+            // copy old buffer into new one
+            memcpy (tmp, dst, buflen);
+
+            // dispose of old buffer
+            delete[] dst;
+
+            dst   = tmp;
+            pnext = dst + buflen;
+        }
+
+        typedef unsigned char UChar;
+        memset (pnext, UChar (c), count);
+
+        pnext += count;
+        buflen += count;
+
+        if (0 == src_len)
+            break;
+    }
+
+    *pnext = '\0';
+
+    if (dst_len)
+        *dst_len = buflen;
+
+    return dst;
+}
+
+
+_TEST_EXPORT
+char*
 rw_narrow (char *dst, const char *src, size_t len /* = SIZE_MAX */)
 {
     return rw_widen (dst, src, len);
@@ -324,6 +403,85 @@ rw_widen (wchar_t *dst, const char *src, size_t len /* = SIZE_MAX */)
             memset (dst, 0, len * sizeof *dst);
         }
     }
+
+    return dst;
+}
+
+
+_TEST_EXPORT
+wchar_t*
+rw_expand (wchar_t *dst, const char *src, size_t src_len /* = SIZE_MAX */,
+           size_t *dst_len /* = 0 */)
+{
+    size_t bufsize = dst ? _RWSTD_SIZE_MAX : 0;
+    size_t buflen  = 0;
+
+    if (_RWSTD_SIZE_MAX == src_len)
+        src_len = strlen (src);
+
+    wchar_t *pnext = dst;
+
+    for (const char *psrc = src; ; ) {
+
+        const char c = *psrc;
+
+        unsigned long count;
+
+        if ('@' == psrc [1] && isdigit (psrc [2])) {
+            // process directive 
+           psrc += 2;
+
+            char *end = 0;
+            count = strtoul (psrc, &end, 10);
+
+            src_len -= (end - psrc) + 2;
+
+            psrc = end;
+
+        }
+        else {
+            count = 1;
+
+            // decrement length unless it's already 0
+            if (src_len)
+                --src_len;
+
+            ++psrc;
+        }
+
+        if (bufsize - buflen <= count) {
+            // increase the size of the buffer
+            bufsize = (bufsize + count) * 2;
+            if (bufsize < 128)
+                bufsize = 128;
+
+            // allocate larger buffer
+            wchar_t* const tmp = new wchar_t [bufsize];
+
+            // copy old buffer into new one
+            memcpy (tmp, dst, buflen * sizeof *tmp);
+
+            // dispose of old buffer
+            delete[] dst;
+
+            dst   = tmp;
+            pnext = dst + buflen;
+        }
+
+        typedef unsigned char UChar;
+        for (size_t i = 0; i != count; ++i)
+            *pnext++ = wchar_t (UChar (c));
+
+        buflen += count;
+
+        if (0 == src_len)
+            break;
+    }
+
+    *pnext = L'\0';
+
+    if (dst_len)
+        *dst_len = buflen;
 
     return dst;
 }
@@ -432,6 +590,88 @@ rw_widen (UserChar *dst, const char *src, size_t len /* = SIZE_MAX */)
             memset (dst, 0, len * sizeof *dst);
         }
     }
+
+    return dst;
+}
+
+
+_TEST_EXPORT
+UserChar*
+rw_expand (UserChar *dst, const char *src, size_t src_len /* = SIZE_MAX */,
+           size_t *dst_len /* = 0 */)
+{
+    size_t bufsize = dst ? _RWSTD_SIZE_MAX : 0;
+    size_t buflen  = 0;
+
+    if (_RWSTD_SIZE_MAX == src_len)
+        src_len = strlen (src);
+
+    UserChar *pnext = dst;
+
+    for (const char *psrc = src; ; ) {
+
+        const char c = *psrc;
+
+        unsigned long count;
+
+        if ('@' == psrc [1] && isdigit (psrc [2])) {
+            // process directive 
+            psrc += 2;
+
+            char *end = 0;
+            count = strtoul (psrc, &end, 10);
+
+            src_len -= (end - psrc) + 2;
+
+            psrc = end;
+
+        }
+        else {
+            count = 1;
+
+            // decrement length unless it's already 0
+            if (src_len)
+                --src_len;
+
+            ++psrc;
+        }
+
+        if (bufsize - buflen <= count) {
+            // increase the size of the buffer
+            bufsize = (bufsize + count) * 2;
+            if (bufsize < 128)
+                bufsize = 128;
+
+            // allocate larger buffer
+            UserChar* const tmp = new UserChar [bufsize];
+
+            // copy old buffer into new one
+            memcpy (tmp, dst, buflen * sizeof *tmp);
+
+            // dispose of old buffer
+            delete[] dst;
+
+            dst   = tmp;
+            pnext = dst + buflen;
+        }
+
+        typedef unsigned char UChar;
+        for (size_t i = 0; i != count; ++i) {
+            pnext->f = 0;
+            pnext->c = UChar (c);
+            ++pnext;
+        }
+
+        buflen += count;
+
+        if (0 == src_len)
+            break;
+    }
+
+    *pnext = UserChar::eos ();
+
+    if (dst_len)
+        *dst_len = buflen;
 
     return dst;
 }
