@@ -33,14 +33,20 @@
 #include <cmdopt.h>       // for rw_enabled()
 #include <driver.h>       // for rw_info()
 #include <environ.h>      // for rw_putenv()
+#include <rw_char.h>      // for rw_expand()
 #include <rw_printf.h>    // for rw_asnprintf()
 
+#include <ctype.h>        // for isdigit()
 #include <stdarg.h>       // for va_arg, ...
 #include <stddef.h>       // for size_t
 #include <stdlib.h>       // for free()
 #include <string.h>       // for memset()
 
 /**************************************************************************/
+
+static const char
+_rw_this_file[] = __FILE__;
+
 
 static const char* const
 _rw_char_names[] = {
@@ -252,10 +258,29 @@ _rw_setvars (const StringMembers::Function &fun,
     // do the function call arguments reference *this?
     const bool self = 0 == pcase->arg;
 
+    char str_buf [256];
+    char arg_buf [256];
+    
+    char *str;
+    char *arg;
+
+    size_t str_len = sizeof str_buf;
+    size_t arg_len = sizeof arg_buf;
+
+    if (pcase->str)
+        str = rw_expand (str_buf, pcase->str, pcase->str_len, &str_len);
+    else
+        str = 0;
+
+    if (pcase->arg)
+        arg = rw_expand (arg_buf, pcase->arg, pcase->arg_len, &arg_len);
+    else
+        arg = 0;
+
     // append the ctor argument(s) and the member function name
     rw_asnprintf (&buf, &bufsize,
                   "%{$CLASS} (%{?}%{#*s}%{;}).%{$FUNC} ",
-                  pcase->str != 0, int (pcase->str_len), pcase->str);
+                  str != 0, int (str_len), str);
 
     // compute the end offsets for convenience
     const size_t range1_end = pcase->off + pcase->size;
@@ -277,7 +302,7 @@ _rw_setvars (const StringMembers::Function &fun,
         // format self-referential ptr argument without size as c_str()
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%{?}c_str()%{:}%{#*s}%{;})",
-                      self, int (pcase->arg_len), pcase->arg);
+                      self, int (arg_len), arg);
         break;
 
     case StringMembers::append_str:
@@ -293,7 +318,7 @@ _rw_setvars (const StringMembers::Function &fun,
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%{?}*this%{:}string(%{#*s})%{;})",
-                      self, int (pcase->arg_len), pcase->arg);
+                      self, int (arg_len), arg);
         break;
 
     case StringMembers::append_ptr_size:
@@ -302,7 +327,7 @@ _rw_setvars (const StringMembers::Function &fun,
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}data()%{:}%{#*s}%{;}, %zu)",
-                      self, int (pcase->arg_len), pcase->arg, pcase->size);
+                      self, int (arg_len), arg, pcase->size);
         break;
 
     case StringMembers::find_ptr_size:
@@ -314,7 +339,7 @@ _rw_setvars (const StringMembers::Function &fun,
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}data()%{:}%{#*s}%{;}, %zu)",
-                      self, int (pcase->arg_len), pcase->arg, pcase->off);
+                      self, int (arg_len), arg, pcase->off);
         break;
 
     case StringMembers::find_str_size:
@@ -326,7 +351,7 @@ _rw_setvars (const StringMembers::Function &fun,
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}*this%{:}string(%{#*s})%{;}, %zu)",
-                      self, int (pcase->arg_len), pcase->arg, pcase->off);
+                      self, int (arg_len), arg, pcase->off);
         break;
 
     case StringMembers::find_ptr_size_size:
@@ -338,7 +363,7 @@ _rw_setvars (const StringMembers::Function &fun,
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}data()%{:}%{#*s}%{;}, %zu, %zu)",
-                      self, int (pcase->arg_len), pcase->arg,
+                      self, int (arg_len), arg,
                       pcase->off, pcase->size);
         break;
 
@@ -346,7 +371,7 @@ _rw_setvars (const StringMembers::Function &fun,
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}data()%{:}%{#*s}%{;}, %zu, %zu)",
-                      self, int (pcase->arg_len), pcase->arg,
+                      self, int (arg_len), arg,
                       pcase->size, pcase->off);
         break;
 
@@ -355,7 +380,7 @@ _rw_setvars (const StringMembers::Function &fun,
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}*this%{:}string(%{#*s})%{;}, %zu, %zu)",
-                      self, int (pcase->arg_len), pcase->arg,
+                      self, int (arg_len), arg,
                       pcase->off, pcase->size);
         break;
 
@@ -372,7 +397,7 @@ _rw_setvars (const StringMembers::Function &fun,
                       "%{?} + %zu%{;}, "
                       "%{?}begin()%{:}Iterator(...)%{;}"
                       "%{?} + %zu%{;})",
-                      self, int (pcase->arg_len), pcase->arg,
+                      self, int (arg_len), arg,
                       0 != pcase->off, pcase->off,
                       self, 0 != range1_end, range1_end);
         break;
@@ -381,21 +406,21 @@ _rw_setvars (const StringMembers::Function &fun,
         // format self-referential ptr argument without size as c_str()
         rw_asnprintf (&buf, &bufsize, 
                       "%{+} (%zu, %{?}c_str()%{:}%{#*s}%{;})",
-                      pcase->off, self, int (pcase->arg_len), pcase->arg);
+                      pcase->off, self, int (arg_len), arg);
         break;
 
     case StringMembers::insert_size_str:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize,  
                       "%{+} (%zu, %{?}*this%{:}string(%{#*s})%{;})",
-                      pcase->off, self, int (pcase->arg_len), pcase->arg);
+                      pcase->off, self, int (arg_len), arg);
         break;
 
     case StringMembers::insert_size_ptr_size:
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%zu, %{?}data()%{:}%{#*s}%{;}, %zu)", 
-                      pcase->off, self, int (pcase->arg_len), pcase->arg,
+                      pcase->off, self, int (arg_len), arg,
                       pcase->size2);
         break;
 
@@ -403,7 +428,7 @@ _rw_setvars (const StringMembers::Function &fun,
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%zu, %{?}*this%{:}string(%{#*s})%{;}, %zu, %zu)",
-                      pcase->off, self, int (pcase->arg_len), pcase->arg,
+                      pcase->off, self, int (arg_len), arg,
                       pcase->off2, pcase->size2);
         break;
 
@@ -431,7 +456,7 @@ _rw_setvars (const StringMembers::Function &fun,
                       "%{?} + %zu%{;}, "
                       "%{?}begin()%{:}Iterator(...)%{?} + %zu%{;})",
                       0 != pcase->off, pcase->off,
-                      self, int (pcase->arg_len), pcase->arg,
+                      self, int (arg_len), arg,
                       0 != pcase->off2, pcase->off2,
                       self, 0 != range2_end, range2_end);
         break;
@@ -442,7 +467,7 @@ _rw_setvars (const StringMembers::Function &fun,
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%zu, %zu, %{?}c_str()%{:}%{#*s}%{;})",
                       pcase->off, pcase->size, self,
-                      int (pcase->arg_len), pcase->arg);
+                      int (arg_len), arg);
         break;
 
     case StringMembers::replace_size_size_str:
@@ -451,7 +476,7 @@ _rw_setvars (const StringMembers::Function &fun,
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%zu, %zu, %{?}*this%{:}string(%{#*s}))",
                       pcase->off, pcase->size, self, 
-                      int (pcase->arg_len), pcase->arg);
+                      int (arg_len), arg);
         break;
 
     case StringMembers::replace_size_size_ptr_size:
@@ -460,7 +485,7 @@ _rw_setvars (const StringMembers::Function &fun,
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%zu, %zu, %{?}data()%{:}%{#*s}%{;}, %zu)", 
                       pcase->off, pcase->size, self,
-                      int (pcase->arg_len), pcase->arg, pcase->size2);
+                      int (arg_len), arg, pcase->size2);
         break;
 
     case StringMembers::replace_size_size_str_size_size:
@@ -469,7 +494,7 @@ _rw_setvars (const StringMembers::Function &fun,
         rw_asnprintf (&buf, &bufsize, "%{+} (%zu, %zu, "
                       "%{?}*this%{:}string(%{#*s})%{;}, %zu, %zu)",
                       pcase->off, pcase->size, self,
-                      int (pcase->arg_len), pcase->arg,
+                      int (arg_len), arg,
                       pcase->off2, pcase->size2);
         break;
 
@@ -486,7 +511,7 @@ _rw_setvars (const StringMembers::Function &fun,
                       "%{?}c_str()%{:}%{#*s}%{;})",
                       0 != pcase->off, pcase->off,
                       0 != range1_end, range1_end,
-                      self, int (pcase->arg_len), pcase->arg);
+                      self, int (arg_len), arg);
         break;
 
     case StringMembers::replace_iter_iter_str:
@@ -496,7 +521,7 @@ _rw_setvars (const StringMembers::Function &fun,
                       "%{?}*this%{:}string(%{#*s})%{;})",
                       0 != pcase->off, pcase->off,
                       0 != range1_end, range1_end,
-                      self, int (pcase->arg_len), pcase->arg);
+                      self, int (arg_len), arg);
         break;
 
     case StringMembers::replace_iter_iter_ptr_size:
@@ -506,7 +531,7 @@ _rw_setvars (const StringMembers::Function &fun,
                       "%{?}data()%{:}%{#*s}%{;}, %zu)", 
                       0 != pcase->off, pcase->off,
                       0 != range1_end, range1_end,
-                      self, int (pcase->arg_len), pcase->arg, pcase->size2);
+                      self, int (arg_len), arg, pcase->size2);
         break;
 
     case StringMembers::replace_iter_iter_size_val:
@@ -523,10 +548,10 @@ _rw_setvars (const StringMembers::Function &fun,
                       "begin()%{?} + %zu%{;}, "
                       "%{?}begin()%{:}Iterator(%{#*s})%{;}"
                       "%{?} + %zu%{;}, "
-                      "%{?}begin()%{:}Iterator(...)%{?} + %zu%{;})",
+                      "%{?}begin()%{:}Iterator(...)%{;}%{?} + %zu%{;})",
                       0 != pcase->off, pcase->off,
                       0 != range1_end, range1_end,
-                      self, int (pcase->arg_len), pcase->arg,
+                      self, int (arg_len), arg,
                       0 != pcase->off2, pcase->off2,
                       self, 0 != range2_end, range2_end);
         break;
@@ -591,6 +616,68 @@ _rw_setvars (const StringMembers::Function &fun,
     rw_putenv ("FUNCALL=");
     rw_fprintf (0, "%{$FUNCALL:=*}", buf);
     free (buf);
+
+    if (str != str_buf)
+        delete[] str;
+
+    if (arg != arg_buf)
+        delete[] arg;
+}
+
+/**************************************************************************/
+
+static void
+_rw_test_case (const StringMembers::Function &memfun,
+               const StringMembers::TestCase &tcase,
+               StringMembers::TestFun        *test_callback)
+{
+    // check to see if this is an exception safety test case
+    // and avoid running it when exception safety has been
+    // disabled via a command line option
+    if (-1 == tcase.bthrow && _rw_opt_no_exception_safety) {
+
+        // issue only the first note
+        rw_note (1 < _rw_opt_no_exception_safety++, _rw_this_file, __LINE__,
+                 "exception safety tests disabled");
+        return;
+    }
+
+    // check to see if this is a test case that involves the throwing
+    // of an exception and avoid running it when exceptions have been
+    // disabled
+    if (tcase.bthrow && _rw_opt_no_exceptions) {
+
+        // issue only the first note
+        rw_note (1 < _rw_opt_no_exceptions++, _rw_this_file, __LINE__,
+                 "exception tests disabled");
+        return;
+    }
+
+    const bool self_ref = 0 == tcase.arg;
+
+    // check for tests exercising self-referential modifications
+    // (e.g., insert(1, *this)
+    if (self_ref && _rw_opt_no_self_ref) {
+
+        // issue only the first note
+        rw_note (1 < _rw_opt_no_self_ref++, _rw_this_file, __LINE__,
+                 "selef-referential tests disabled");
+        return;
+    }
+
+    // check to see if the test case is enabled
+    if (rw_enabled (tcase.line)) {
+
+        // set the {FUNCALL} environment variable to describe
+        // the function call specified by this test case
+        _rw_setvars (memfun, &tcase);
+
+        // invoke the test function
+        test_callback (memfun, tcase);
+    }
+    else
+        rw_note (0, _rw_this_file, tcase.line,
+                 "test on line %d disabled", tcase.line);
 }
 
 /**************************************************************************/
@@ -682,7 +769,7 @@ _rw_run_test (int, char*[])
 
         if (_rw_opt_no_char_types [i]) {
             // issue only the first note
-            rw_note (1 < _rw_opt_no_char_types [i]++, __FILE__, __LINE__,
+            rw_note (1 < _rw_opt_no_char_types [i]++, _rw_this_file, __LINE__,
                      "%s tests disabled", _rw_char_names [i]);
             continue;
         }
@@ -699,7 +786,8 @@ _rw_run_test (int, char*[])
 
             if (_rw_opt_no_traits_types [j]) {
                 // issue only the first note
-                rw_note (1 < _rw_opt_no_traits_types [j]++, __FILE__, __LINE__,
+                rw_note (1 < _rw_opt_no_traits_types [j]++,
+                         _rw_this_file, __LINE__,
                          "%s tests disabled", _rw_traits_names [j]);
                 continue;
             }
@@ -708,7 +796,7 @@ _rw_run_test (int, char*[])
 
                 if (_rw_opt_no_alloc_types [k]) {
                     // issue only the first note
-                    rw_note (1 < _rw_opt_no_alloc_types [k]++, __FILE__,
+                    rw_note (1 < _rw_opt_no_alloc_types [k]++, _rw_this_file,
                              __LINE__, "%s tests disabled",
                              _rw_alloc_names [k]);
                     continue;
@@ -742,7 +830,7 @@ _rw_run_test (int, char*[])
                     // check if tests of the function overload
                     // have been disabled
                     if (_rw_opt_memfun_disabled [siginx]) {
-                        rw_note (0, __FILE__, __LINE__,
+                        rw_note (0, _rw_this_file, __LINE__,
                                  "%{$CLASS}::%{$FUNCSIG} tests disabled");
                         continue;
                     }
@@ -755,60 +843,7 @@ _rw_run_test (int, char*[])
 
                         const StringMembers::TestCase& tcase = test.cases [n];
 
-                        // check to see if this is an exception safety
-                        // test case and avoid running it when exception
-                        // safety has been disabled via a command line
-                        // option
-                        if (   -1 == tcase.bthrow
-                            && _rw_opt_no_exception_safety) {
-
-                            // issue only the first note
-                            rw_note (1 < _rw_opt_no_exception_safety++,
-                                     __FILE__, __LINE__,
-                                     "exception safety tests disabled");
-                            continue;
-                        }
-
-                        // check to see if this is a test case that
-                        // involves the throwing of an exception and
-                        // avoid running it when exceptions have been
-                        // disabled
-                        if (tcase.bthrow && _rw_opt_no_exceptions) {
-
-                            // issue only the first note
-                            rw_note (1 < _rw_opt_no_exceptions++,
-                                     __FILE__, __LINE__,
-                                     "exception tests disabled");
-                            continue;
-                        }
-
-                        const bool self_ref = 0 == tcase.arg;
-
-                        // check for tests exercising self-referential
-                        // modifications (e.g., insert(1, *this)
-                        if (self_ref && _rw_opt_no_self_ref) {
-                            // issue only the first note
-                            rw_note (1 < _rw_opt_no_self_ref++,
-                                     __FILE__, __LINE__,
-                                     "selef-referential tests disabled");
-                            continue;
-                        }
-
-                        // check to see if the test case is enabled
-                        if (rw_enabled (tcase.line)) {
-
-                            // set the {FUNCALL} environment variable
-                            // to describe the function call specified
-                            // by this test case
-                            _rw_setvars (memfun, &tcase);
-
-                            // invoke the test function
-                            _rw_test_callback (memfun, tcase);
-                        }
-                        else
-                            rw_note (0, __FILE__, tcase.line,
-                                     "test on line %d disabled",
-                                     tcase.line);
+                        _rw_test_case (memfun, tcase, _rw_test_callback);
                     }
                 }
             }
