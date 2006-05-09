@@ -27,24 +27,18 @@
 
 #include <string>       // for string
 #include <stdexcept>    // for out_of_range, length_error
-#include <cstddef>      // for size_t
+#include <cstddef>      // for ptrdiff_t, size_t
 
 #include <21.strings.h>
 #include <alg_test.h>   // for InputIter
 #include <cmdopt.h>     // for rw_enabled()
 #include <driver.h>     // for rw_test()
-#include <rw_char.h>    // for rw_widen()
+#include <rw_char.h>    // for rw_expand()
 #include <rw_new.h>     // for bad_alloc, replacement operator new
-#include <rw_printf.h>  // for rw_asnprintf()
 
 /**************************************************************************/
 
 // for convenience and brevity
-#define LSTR   StringMembers::long_string
-#define LLEN   StringMembers::long_string_len
-// one half of the long_string length
-#define LPAR   (LLEN / 2)
-
 #define Replace(which)    StringMembers::replace_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
@@ -126,30 +120,32 @@ iter_iter_ptr_test_cases [] = {
     TEST ("a\0b\0c\0", 6, 0, "e\0",      "a\0b\0c\0e",    0),
     TEST ("\0ab\0\0c", 5, 0, "e\0",      "\0ab\0\0ec",    0),
 
-    TEST (LSTR, 0, LLEN - 1, "ab",       "ab",            0),
-    TEST (LSTR, 1, LLEN - 2, "ab",       "xab",           0),
-    TEST (LSTR, 0, LLEN - 2, "ab",       "abx",           0),
-    TEST (LSTR, 1, LLEN - 3, "",         "xx",            0),
+    TEST ("x@4096",    0, 4095, "ab",    "abx",           0),
+    TEST ("\0@4096",   1, 4094, "abc",   "\0abc\0",       0),
+    TEST ("x@4096",    1, 4094, "ab",    "xabx",          0),
+    TEST ("x@4096",    0, 4094, "ab",    "abxx",          0),
+    TEST ("x@4096",    1, 4093, "",      "xxx",           0),
 
-    TEST ("",   0,        0, LSTR,       LSTR,            0),
-    TEST ("a",  0,        1, LSTR,       LSTR,            0),
-    TEST (LSTR, 0, LLEN - 1, LSTR,       LSTR,            0),
-    TEST ("\0ab\0\0c", 0, 6, LSTR,       LSTR,            0),
+    TEST ("",          0,    0, "x@4096", "x@4096",       0),
+    TEST ("a",         0,    1, "x@4096", "x@4096",       0),
+    TEST ("x@4096",    0, 4095, "x@4096", "x@4097",       0),
+    TEST ("\0ab\0\0c", 0,    6, "x@4096", "x@4096",       0),
 
-    TEST ("",          0, 0, 0,          "",              0),
-    TEST ("abc",       0, 3, 0,          "abc",           0),
-    TEST ("abc",       1, 1, 0,          "aabcc",         0),
-    TEST ("a\0b\0c\0", 2, 3, 0,          "a\0a\0",        0),
-    TEST ("a\0b\0c\0", 0, 0, 0,          "aa\0b\0c\0",    0),
-    TEST ("a\0b\0c\0", 6, 0, 0,          "a\0b\0c\0a",    0),
-    TEST ("\0ab\0c\0", 3, 3, 0,          "\0ab",          0),
-    TEST (LSTR, 0, LLEN - 1, 0,          LSTR,            0),
+    TEST ("\0",         2,   0, "",       "\0",           1),
+    TEST ("a",         10,   0, "",       "a",            1),
+    TEST ("x@4096",  4106,   0, "",       "x@4096",       1),
 
-    TEST ("\0",         2, 0, "",        "\0",            1),
-    TEST ("a",         10, 0, "",        "a",             1),
-    TEST (LSTR, LLEN + 10, 0, "",        LSTR,            1),
+    TEST ("",           0,   0, "x@4096", "x@4096",      -1),
 
-    TEST ("",   0,        0, LSTR,       LSTR,           -1),
+    // self-referential replacement
+    TEST ("",          0,    0, 0,        "",             0),
+    TEST ("abc",       0,    3, 0,        "abc",          0),
+    TEST ("abc",       1,    1, 0,        "aabcc",        0),
+    TEST ("a\0b\0c\0", 2,    3, 0,        "a\0a\0",       0),
+    TEST ("a\0b\0c\0", 0,    0, 0,        "aa\0b\0c\0",   0),
+    TEST ("a\0b\0c\0", 6,    0, 0,        "a\0b\0c\0a",   0),
+    TEST ("\0ab\0c\0", 3,    3, 0,        "\0ab",         0),
+    TEST ("x@4096",    0, 4095, 0,        "x@4097",       0),
 
     TEST ("last",      4, 0, "test",     "lasttest",      0)
 };
@@ -172,89 +168,89 @@ iter_iter_str_test_cases [] = {
         arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
     }
 
-    //    +------------------------------------------ controlled sequence
-    //    |            +----------------------------- replace() pos1 argument
-    //    |            |  +-------------------------- replace() n1 argument
-    //    |            |  |  +----------------------- sequence to be inserted
-    //    |            |  |  |           +----------- expected result sequence
-    //    |            |  |  |           |        +-- exception info
-    //    |            |  |  |           |        |       0   - no exception
-    //    |            |  |  |           |        |       1,2 - out_of_range
-    //    |            |  |  |           |        |       3   - length_error
-    //    |            |  |  |           |        |      -1   - exc. safety
-    //    |            |  |  |           |        |
-    //    |            |  |  |           |        +-----------+
-    //    V            V  V  V           V                    V
-    TEST ("ab",        0, 0, "c",        "cab",               0),
+    //    +------------------------------------------- controlled sequence
+    //    |             +----------------------------- replace() pos1 argument
+    //    |             |  +-------------------------- replace() n1 argument
+    //    |             |  |  +----------------------- sequence to be inserted
+    //    |             |  |  |           +----------- expected result sequence
+    //    |             |  |  |           |        +-- exception info
+    //    |             |  |  |           |        |       0   - no exception
+    //    |             |  |  |           |        |       1,2 - out_of_range
+    //    |             |  |  |           |        |       3   - length_error
+    //    |             |  |  |           |        |      -1   - exc. safety
+    //    |             |  |  |           |        |
+    //    |             |  |  |           |        +-----------+
+    //    V             V  V  V           V                    V
+    TEST ("ab",         0, 0, "c",        "cab",               0),
 
-    TEST ("",          0, 0, "",         "",                  0),
-    TEST ("",          0, 0, "\0",       "\0",                0),
-    TEST ("",          0, 0, "abc",      "abc",               0),
+    TEST ("",           0, 0, "",         "",                  0),
+    TEST ("",           0, 0, "\0",       "\0",                0),
+    TEST ("",           0, 0, "abc",      "abc",               0),
 
-    TEST ("ab",        0, 2, "",         "",                  0),
-    TEST ("ab",        0, 1, "",         "b",                 0),
-    TEST ("ab",        1, 1, "\0",       "a\0",               0),
+    TEST ("ab",         0, 2, "",         "",                  0),
+    TEST ("ab",         0, 1, "",         "b",                 0),
+    TEST ("ab",         1, 1, "\0",       "a\0",               0),
 
-    TEST ("\0",        0, 1, "",         "",                  0),
-    TEST ("\0",        0, 1, "a",        "a",                 0),
-    TEST ("\0",        0, 1, "\0\0",     "\0\0",              0),
+    TEST ("\0",         0, 1, "",         "",                  0),
+    TEST ("\0",         0, 1, "a",        "a",                 0),
+    TEST ("\0",         0, 1, "\0\0",     "\0\0",              0),
 
-    TEST ("ah",        0, 1, "bcdefg",   "bcdefgh",           0),
-    TEST ("ah",        1, 1, "bcdefg",   "abcdefg",           0),
-    TEST ("ah",        0, 2, "bcdefg",   "bcdefg",            0),
+    TEST ("ah",         0, 1, "bcdefg",   "bcdefgh",           0),
+    TEST ("ah",         1, 1, "bcdefg",   "abcdefg",           0),
+    TEST ("ah",         0, 2, "bcdefg",   "bcdefg",            0),
 
-    TEST ("abc",       0, 2, "cc",       "ccc",               0),
-    TEST ("abc",       1, 2, "cc",       "acc",               0),
+    TEST ("abc",        0, 2, "cc",       "ccc",               0),
+    TEST ("abc",        1, 2, "cc",       "acc",               0),
 
-    TEST ("abc",       0, 3, "defgh",    "defgh",             0),
-    TEST ("abc",       2, 1, "defgh",    "abdefgh",           0),
-    TEST ("abc",       2, 1, "de\0gh",   "abde\0gh",          0),
-    TEST ("abc",       2, 1, "",         "ab",                0),
-    TEST ("abc",       1, 1, "defgh",    "adefghc",           0),
+    TEST ("abc",        0, 3, "defgh",    "defgh",             0),
+    TEST ("abc",        2, 1, "defgh",    "abdefgh",           0),
+    TEST ("abc",        2, 1, "de\0gh",   "abde\0gh",          0),
+    TEST ("abc",        2, 1, "",         "ab",                0),
+    TEST ("abc",        1, 1, "defgh",    "adefghc",           0),
 
-    TEST ("abc",       0, 0, "ee",       "eeabc",             0),
-    TEST ("abc",       0, 0, "\0\0e\0",  "\0\0e\0abc",        0),
-    TEST ("abc",       2, 0, "ee",       "abeec",             0),
-    TEST ("abc",       1, 0, "ee",       "aeebc",             0),
-    TEST ("abc",       1, 0, "e\0\0",    "ae\0\0bc",          0),
+    TEST ("abc",        0, 0, "ee",       "eeabc",             0),
+    TEST ("abc",        0, 0, "\0\0e\0",  "\0\0e\0abc",        0),
+    TEST ("abc",        2, 0, "ee",       "abeec",             0),
+    TEST ("abc",        1, 0, "ee",       "aeebc",             0),
+    TEST ("abc",        1, 0, "e\0\0",    "ae\0\0bc",          0),
 
-    TEST ("a\0b\0\0c", 0, 3, "",         "\0\0c",             0),
-    TEST ("a\0b\0\0c", 0, 3, "\0e",      "\0e\0\0c",          0),
+    TEST ("a\0b\0\0c",  0, 3, "",         "\0\0c",             0),
+    TEST ("a\0b\0\0c",  0, 3, "\0e",      "\0e\0\0c",          0),
 
-    TEST ("a\0b\0\0c", 2, 3, "\0e",      "a\0\0ec",           0),
-    TEST ("a\0b\0\0c", 0, 3, "\0\0e\0",  "\0\0e\0\0\0c",      0),
-    TEST ("\0ab\0\0c", 1, 2, "\0e\0\0",  "\0\0e\0\0\0\0c",    0),
+    TEST ("a\0b\0\0c",  2, 3, "\0e",      "a\0\0ec",           0),
+    TEST ("a\0b\0\0c",  0, 3, "\0\0e\0",  "\0\0e\0\0\0c",      0),
+    TEST ("\0ab\0\0c",  1, 2, "\0e\0\0",  "\0\0e\0\0\0\0c",    0),
 
-    TEST ("\0ab\0\0c", 0, 0, "\0e",      "\0e\0ab\0\0c",      0),
-    TEST ("a\0b\0c\0", 6, 0, "e\0",      "a\0b\0c\0e\0",      0),
-    TEST ("\0ab\0\0c", 5, 0, "\0e",      "\0ab\0\0\0ec",      0),
+    TEST ("\0ab\0\0c",  0, 0, "\0e",      "\0e\0ab\0\0c",      0),
+    TEST ("a\0b\0c\0",  6, 0, "e\0",      "a\0b\0c\0e\0",      0),
+    TEST ("\0ab\0\0c",  5, 0, "\0e",      "\0ab\0\0\0ec",      0),
 
-    TEST (LSTR, 0, LLEN - 1, "ab",       "ab",                0),
-    TEST (LSTR, 1, LLEN - 2, "ab",       "xab",               0),
-    TEST (LSTR, 0, LLEN - 2, "ab",       "abx",               0),
-    TEST (LSTR, 1, LLEN - 3, "",         "xx",                0),
-    TEST (LSTR, 1, LLEN - 4, "\0\0",     "x\0\0xx",           0),
+    TEST ("x@4096",     0, 4095, "ab",    "abx",               0),
+    TEST ("x@4096",     1, 4094, "ab",    "xabx",              0),
+    TEST ("x@4096",     0, 4094, "ab",    "abxx",              0),
+    TEST ("x@4096",     1, 4093, "",      "xxx",               0),
+    TEST ("x@4096",     1, 4092, "\0\0",  "x\0\0xxx",          0),
 
-    TEST ("",   0,        0, LSTR,       LSTR,                0),
-    TEST ("a",  0,        1, LSTR,       LSTR,                0),
-    TEST (LSTR, 0, LLEN - 1, LSTR,       LSTR,                0),
-    TEST ("\0ab\0\0c", 0, 6, LSTR,       LSTR,                0),
+    TEST ("",           0,    0, "x@4096", "x@4096",           0),
+    TEST ("a",          0,    1, "x@4096", "x@4096",           0),
+    TEST ("x@4096",     0, 4095, "x@4096", "x@4097",           0),
+    TEST ("\0ab\0\0c",  0,    6, "x@4096", "x@4096",           0),
 
-    TEST ("abc",       0, 3, 0,          "abc",               0),
-    TEST ("abc",       1, 1, 0,          "aabcc",             0),
-    TEST ("a\0b\0c\0", 2, 3, 0,          "a\0a\0b\0c\0\0",    0),
-    TEST ("a\0b\0c\0", 0, 0, 0,          "a\0b\0c\0a\0b\0c\0",0),
-    TEST ("a\0b\0c\0", 6, 0, 0,          "a\0b\0c\0a\0b\0c\0",0),
-    TEST ("\0ab\0c\0", 3, 3, 0,          "\0ab\0ab\0c\0",     0),
-    TEST (LSTR, 0, LLEN - 1, 0,          LSTR,                0),
+    TEST ("\0",         2,    0, "",        "\0",              1),
+    TEST ("a",         10,    0, "",        "a",               1),
+    TEST ("x@4096",  4106,    0, "",        "x@4096",          1),
+    TEST ("",           0,    0, "x@4096",  "x@4096",         -1),
 
-    TEST ("\0",         2, 0, "",        "\0",                1),
-    TEST ("a",         10, 0, "",        "a",                 1),
-    TEST (LSTR, LLEN + 10, 0, "",        LSTR,                1),
+    // self-referential replacement
+    TEST ("abc",        0,    3, 0, "abc",                     0),
+    TEST ("abc",        1,    1, 0, "aabcc",                   0),
+    TEST ("a\0b\0c\0",  2,    3, 0, "a\0a\0b\0c\0\0",          0),
+    TEST ("a\0b\0c\0",  0,    0, 0, "a\0b\0c\0a\0b\0c\0",      0),
+    TEST ("a\0b\0c\0",  6,    0, 0, "a\0b\0c\0a\0b\0c\0",      0),
+    TEST ("\0ab\0c\0",  3,    3, 0, "\0ab\0ab\0c\0",           0),
+    TEST ("x@4096",     0, 4095, 0, "x@4097",                  0),
 
-    TEST ("",   0,        0, LSTR,       LSTR,               -1),
-
-    TEST ("last",      4, 0, "test",     "lasttest",          0)
+    TEST ("last",       4,    0, "test",     "lasttest",       0)
 };
 
 /**************************************************************************/
@@ -323,41 +319,47 @@ iter_iter_ptr_size_test_cases [] = {
     TEST ("\0ab\0\0c", 2, 3, "\0e",       2, "\0a\0ec",         0),
     TEST ("a\0b\0\0c", 0, 6, "e\0",       2, "e\0",             0),
 
-    TEST (LSTR, 1, LLEN - 1, "\0",        1, "x\0",             0),
-    TEST (LSTR, 0, LLEN - 1, "ab",        2, "ab",              0),
-    TEST (LSTR, 1, LLEN - 2, "ab",        1, "xa",              0),
-    TEST (LSTR, 0, LLEN - 2, "ab",        2, "abx",             0),
-    TEST (LSTR, 1, LLEN - 3, "",          0, "xx",              0),
-    TEST (LSTR, 1, LLEN - 4, "\0\0",      2, "x\0\0xx",         0),
+    TEST ("x@4096",    1, 4095, "\0",        1, "x\0",          0),
+    TEST ("x@4096",    0, 4095, "ab",        2, "abx",          0),
+    TEST ("x@4096",    1, 4094, "ab",        1, "xax",          0),
+    TEST ("x@4096",    0, 4094, "ab",        2, "abxx",         0),
+    TEST ("x@4096",    1, 4093, "",          0, "xxx",          0),
+    TEST ("x@4096",    1, 4092, "\0\0",      2, "x\0\0xxx",     0),
 
-    TEST ("a",  0,        1, LSTR, LLEN - 1, LSTR,              0),
-    TEST (LSTR, 0, LLEN - 1, LSTR, LLEN - 1, LSTR,              0),
-    TEST (LSTR, 0, LPAR - 1, LSTR, LPAR - 1, LSTR,              0),
+    TEST ("a",         0,    1, "x@4096", 4095, "x@4095",       0),
+    TEST ("x@4096",    0, 4095, "y@4096", 4095, "y@4095x",      0),
+    TEST ("x@4096",    0, 2047, "x@4096", 2047, "x@4096",       0),
 
-    TEST (LSTR, LPAR - 1, LPAR, LSTR, LPAR,  LSTR,              0),
+    TEST ("x@4096", 2047, 2048, "x@4096", 2048,  "x@4096",      0),
 
-    TEST ("abc",       0, 3, 0,           2, "ab",              0),
-    TEST ("abc",       1, 1, 0,           3, "aabcc",           0),
-    TEST ("a\0b\0c\0", 2, 3, 0,           6, "a\0a\0b\0c\0\0",  0),
-    TEST ("a\0b\0c\0", 0, 0, 0,           4, "a\0b\0a\0b\0c\0", 0),
-    TEST ("\0ab\0c\0", 6, 0, 0,           1, "\0ab\0c\0\0",     0),
-    TEST ("\0ab\0c\0", 3, 3, 0,           2, "\0ab\0a",         0),
-    TEST (LSTR, 0, LLEN - 1, 0,    LLEN - 1, LSTR,              0),
-    TEST (LSTR, 0, LLEN - 1, 0,           1, "x",               0),
+    TEST ("\0",         2,   0, "",         0, "\0",            1),
+    TEST ("a",         10,   0, "",         0, "a",             1),
+    TEST ("x@4096",  4106,   0, "",         0, "x@4096",        1),
 
-    TEST ("\0",         2, 0, "",         0, "\0",              1),
-    TEST ("a",         10, 0, "",         0, "a",               1),
-    TEST (LSTR, LLEN + 10, 0, "",         0, LSTR,              1),
+    TEST ("a",          0,   1, "x@4096", 4095, "x@4095",      -1),
 
-    TEST ("a",  0,        1, LSTR, LLEN - 1, LSTR,             -1),
+    // self-referential replacement
+    TEST ("a",         0,    0, 0 /* self */,    1, "aa",              0),
+    TEST ("a",         0,    1, 0 /* self */,    1, "a",               0),
+    TEST ("a",         1,    0, 0 /* self */,    1, "aa",              0),
+    TEST ("abc",       0,    3, 0 /* self */,    2, "ab",              0),
+    TEST ("abc",       1,    1, 0 /* self */,    3, "aabcc",           0),
+    TEST ("a\0b\0c\0", 2,    3, 0 /* self */,    6, "a\0a\0b\0c\0\0",  0),
+    TEST ("a\0b\0c\0", 0,    0, 0 /* self */,    4, "a\0b\0a\0b\0c\0", 0),
+    TEST ("\0ab\0c\0", 6,    0, 0 /* self */,    1, "\0ab\0c\0\0",     0),
+    TEST ("\0ab\0c\0", 3,    3, 0 /* self */,    2, "\0ab\0a",         0),
+    TEST ("a@4096",    0,    1, 0 /* self */, 1111, "a@5206",          0),
+    TEST ("b@4096",    1,    2, 0 /* self */, 2222, "b@6316",          0),
+    TEST ("x@4096",    0, 4095, 0 /* self */, 4095, "x@4096",          0),
+    TEST ("x@4096",    0, 4095, 0 /* self */,    1, "xx",              0),
 
-    TEST ("last",      4, 0, "test",      4, "lasttest",        0)
+    TEST ("last",      4, 0, "test",         4, "lasttest",        0)
 };
 
 /**************************************************************************/
 
 // exercises:
-// replace (size_type , size_type , basic_string& s, size_type , size_type )
+// replace (size_type, size_type, basic_string&, size_type, size_type)
 // replace (iterator, Iterator, InputIterator, InputIterator)
 static const TestCase
 iter_iter_range_test_cases [] = {
@@ -372,106 +374,189 @@ iter_iter_range_test_cases [] = {
         arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
     }
 
-    //    +------------------------------------------ controlled sequence
-    //    |            +----------------------------- replace() pos argument
-    //    |            |  +-------------------------- replace() n1 argument
-    //    |            |  |  +----------------------- sequence to be inserted
-    //    |            |  |  |            +---------- replace() pos2 argument
-    //    |            |  |  |            |  +------- replace() n2 argument
-    //    |            |  |  |            |  |  +---- expected result sequence
-    //    |            |  |  |            |  |  |  +- exception info
-    //    |            |  |  |            |  |  |  |     0   - no exception
-    //    |            |  |  |            |  |  |  |     1,2 - out_of_range
-    //    |            |  |  |            |  |  |  |     3   - length_error
-    //    |            |  |  |            |  |  |  |    -1   - exc. safety
-    //    |            |  |  |            |  |  |  |
-    //    |            |  |  |            |  |  |  +----------------+
-    //    V            V  V  V            V  V  V                   V
+    //    +------------------------------------------- controlled sequence
+    //    |            +------------------------------ replace() pos argument
+    //    |            |   +-------------------------- replace() n1 argument
+    //    |            |   |  +----------------------- sequence to be inserted
+    //    |            |   |  |           +----------- replace() pos2 argument
+    //    |            |   |  |           |   +------- replace() n2 argument
+    //    |            |   |  |           |   |  +---- expected result sequence
+    //    |            |   |  |           |   |  | +-- exception info:
+    //    |            |   |  |           |   |  | |   0    - no exception
+    //    |            |   |  |           |   |  | |   1, 2 - out_of_range
+    //    |            |   |  |           |   |  | |   3    - length_error
+    //    |            |   |  |           |   |  | |  -1    - exc. safety
+    //    |            |   |  |           |   |  | |
+    //    |            |   |  |           |   |  | +-----------------+
+    //    |            |   |  |           |   |  |                   |
+    //    V            V   V  V           V   V  V                   V
+    TEST ("",          0,  0, "",         0,  0, "",                 0),
+    TEST ("",          0,  0, "",         0, -1, "",                 0),
+    TEST ("",          0,  0, "",         0,  1, "",                 0),
 
-    TEST ("ab",        0, 0, "c",         0, 1, "cab",              0),
+    TEST ("",          0,  1, "",         0,  0, "",                 0),
+    TEST ("",          0,  1, "",         0,  1, "",                 0),
+    TEST ("",          0,  1, "",         0, -1, "",                 0),
 
-    TEST ("",          0, 0, "",          0, 0, "",                 0),
-    TEST ("",          0, 0, "abc",       0, 3, "abc",              0),
+    TEST ("",          0, -1, "",         0,  0, "",                 0),
+    TEST ("",          0, -1, "",         0,  1, "",                 0),
+    TEST ("",          0, -1, "",         0, -1, "",                 0),
 
-    TEST ("ab",        0, 2, "",          0, 0, "",                 0),
-    TEST ("ab",        0, 1, "",          0, 0, "b",                0),
+    TEST ("1",         0,  0, "",         0,  0, "1",                0),
+    TEST ("2",         0,  0, "",         0, -1, "2",                0),
+    TEST ("3",         0,  0, "",         0,  1, "3",                0),
 
-    TEST ("\0",        0, 1, "",          0, 0, "",                 0),
-    TEST ("\0",        0, 1, "a",         0, 1, "a",                0),
-    TEST ("\0",        0, 1, "\0\0",      1, 1, "\0",               0),
-    TEST ("\0",        0, 1, "\0\0",      0, 2, "\0\0",             0),
+    TEST ("4",         0,  1, "",         0,  0, "",                 0),
+    TEST ("5",         0,  1, "",         0,  1, "",                 0),
+    TEST ("6",         0,  1, "",         0, -1, "",                 0),
 
-    TEST ("ah",        0, 1, "bcdefg",    0, 3, "bcdh",             0),
-    TEST ("ah",        1, 1, "bcdefg",    0, 3, "abcd",             0),
-    TEST ("ah",        0, 1, "bcdefg",    1, 3, "cdeh",             0),
-    TEST ("ah",        1, 1, "bcdefg",    1, 3, "acde",             0),
-    TEST ("ah",        0, 1, "bcdefg",    0, 6, "bcdefgh",          0),
-    TEST ("ah",        1, 1, "bcdefg",    0, 6, "abcdefg",          0),
+    TEST ("7",         0, -1, "",         0,  0, "",                 0),
+    TEST ("8",         0, -1, "",         0,  1, "",                 0),
+    TEST ("9",         0, -1, "",         0, -1, "",                 0),
 
-    TEST ("abc",       0, 2, "cc",        0, 2, "ccc",              0),
-    TEST ("abc",       1, 2, "cc",        0, 2, "acc",              0),
+    TEST ("1",         0,  0, "9",        0,  0, "1",                0),
+    TEST ("2",         0,  0, "8",        0, -1, "82",               0),
+    TEST ("3",         0,  0, "7",        0,  1, "73",               0),
 
-    TEST ("abc",       0, 3, "d",         0, 1, "d",                0),
-    TEST ("abc",       0, 3, "def",       0, 3, "def",              0),
-    TEST ("abc",       0, 3, "defgh",     0, 5, "defgh",            0),
-    TEST ("abc",       2, 1, "defgh",     4, 1, "abh",              0),
-    TEST ("abc",       2, 1, "de\0gh",    2, 1, "ab\0",             0),
-    TEST ("abc",       2, 1, "",          0, 0, "ab",               0),
+    TEST ("4",         0,  1, "6",        0,  0, "",                 0),
+    TEST ("5",         0,  1, "5",        0,  1, "5",                0),
+    TEST ("6",         0,  1, "4",        0, -1, "4",                0),
 
-    TEST ("abc",       1, 1, "defgh",     1, 2, "aefc",             0),
-    TEST ("abc",       0, 0, "ee",        0, 2, "eeabc",            0),
-    TEST ("abc",       0, 0, "\0\0e\0",   0, 4, "\0\0e\0abc",       0),
-    TEST ("abc",       2, 0, "ee",        0, 2, "abeec",            0),
-    TEST ("abc",       2, 1, "\0e\0\0",   0, 4, "ab\0e\0\0",        0),
-    TEST ("abc",       1, 0, "ee",        0, 2, "aeebc",            0),
-    TEST ("abc",       1, 0, "\0e\0\0",   0, 4, "a\0e\0\0bc",       0),
+    TEST ("7",         0, -1, "3",        0,  0, "",                 0),
+    TEST ("8",         0, -1, "2",        0,  1, "2",                0),
+    TEST ("9",         0, -1, "1",        0, -1, "1",                0),
 
-    TEST ("a\0b\0\0c", 0, 3, "",          0, 0, "\0\0c",            0),
-    TEST ("\0ab\0\0c", 0, 3, "",          0, 0, "\0\0c",            0),
-    TEST ("a\0b\0\0c", 0, 3, "\0e",       0, 2, "\0e\0\0c",         0),
+    TEST ("",          0,  0, "abc",      0,  3, "abc",              0),
 
-    TEST ("a\0b\0\0c", 2, 3, "\0e",       0, 2, "a\0\0ec",          0),
-    TEST ("a\0b\0\0c", 2, 3, "\0e",       1, 1, "a\0ec",            0),
-    TEST ("\0ab\0\0c", 2, 3, "\0e",       0, 2, "\0a\0ec",          0),
-    TEST ("\0ab\0\0c", 2, 3, "\0e\0\0",   1, 3, "\0ae\0\0c",        0),
+    TEST ("ab",        0,  0, "c",        0, 1, "cab",               0),
+    TEST ("ab",        0,  2, "",         0, 0, "",                  0),
+    TEST ("ab",        0,  1, "",         0, 0, "b",                 0),
 
-    TEST ("a\0b\0\0c", 0, 6, "\0e",       0, 2, "\0e",              0),
-    TEST ("a\0b\0\0c", 0, 6, "\0e",       0, 1, "\0",               0),
+    TEST ("\0",        0,  1, "",         0, 0, "",                  0),
+    TEST ("\0",        0,  1, "a",        0, 1, "a",                 0),
+    TEST ("\0",        0,  1, "\0\0",     1, 1, "\0",                0),
+    TEST ("\0",        0,  1, "\0\0",     0, 2, "\0\0",              0),
 
-    TEST ("\0ab\0\0c", 0, 0, "\0e",       0, 2, "\0e\0ab\0\0c",     0),
-    TEST ("a\0b\0c\0", 6, 0, "e\0",       0, 2, "a\0b\0c\0e\0",     0),
-    TEST ("\0ab\0\0c", 5, 0, "\0e",       0, 2, "\0ab\0\0\0ec",     0),
+    TEST ("ah",        0,  1, "bcdefg",   0, 3, "bcdh",              0),
+    TEST ("ah",        1,  1, "bcdefg",   0, 3, "abcd",              0),
+    TEST ("ah",        0,  1, "bcdefg",   1, 3, "cdeh",              0),
+    TEST ("ah",        1,  1, "bcdefg",   1, 3, "acde",              0),
+    TEST ("ah",        0,  1, "bcdefg",   0, 6, "bcdefgh",           0),
+    TEST ("ah",        1,  1, "bcdefg",   0, 6, "abcdefg",           0),
 
-    TEST (LSTR, 0, LLEN - 1, "ab",        0, 2, "ab",               0),
-    TEST (LSTR, 1, LLEN - 2, "ab",        0, 2, "xab",              0),
-    TEST (LSTR, 0, LLEN - 2, "ab",        0, 2, "abx",              0),
-    TEST (LSTR, 1, LLEN - 3, "",          0, 0, "xx",               0),
-    TEST (LSTR, 1, LLEN - 4, "\0\0",      0, 2, "x\0\0xx",          0),
+    TEST ("abc",       0,  2, "cc",       0, 2, "ccc",               0),
+    TEST ("abc",       1,  2, "cc",       0, 2, "acc",               0),
 
-    TEST ("a",  0, 1,        LSTR, 0, LLEN - 1, LSTR,               0),
-    TEST (LSTR, 0, LLEN - 1, LSTR, 0, LLEN - 1, LSTR,               0),
-    TEST (LSTR, 0, LPAR - 1, LSTR, 0, LPAR - 1, LSTR,               0),
+    TEST ("abc",       0,  3, "d",        0, 1, "d",                 0),
+    TEST ("abc",       0,  3, "def",      0, 3, "def",               0),
+    TEST ("abc",       0,  3, "defgh",    0, 5, "defgh",             0),
+    TEST ("abc",       2,  1, "defgh",    4, 1, "abh",               0),
+    TEST ("abc",       2,  1, "de\0gh",   2, 1, "ab\0",              0),
+    TEST ("abc",       2,  1, "",         0, 0, "ab",                0),
 
-    TEST (LSTR, LPAR - 1, LPAR, LSTR, 0, LPAR,  LSTR,               0),
+    TEST ("abc",       1,  1, "defgh",    1, 2, "aefc",              0),
+    TEST ("abc",       0,  0, "ee",       0, 2, "eeabc",             0),
+    TEST ("abc",       0,  0, "\0\0e\0",  0, 4, "\0\0e\0abc",        0),
+    TEST ("abc",       2,  0, "ee",       0, 2, "abeec",             0),
+    TEST ("abc",       2,  1, "\0e\0\0",  0, 4, "ab\0e\0\0",         0),
+    TEST ("abc",       1,  0, "ee",       0, 2, "aeebc",             0),
+    TEST ("abc",       1,  0, "\0e\0\0",  0, 4, "a\0e\0\0bc",        0),
 
-    TEST ("abc",       0, 0, 0,           1, 1,  "babc",            0),
-    TEST ("abc",       2, 0, 0,           0, 2,  "ababc",           0),
-    TEST ("a\0bc\0\0", 0, 0, 0,           4, 2,  "\0\0a\0bc\0\0",   0),
-    TEST ("a\0bc\0\0", 6, 0, 0,           1, 3,  "a\0bc\0\0\0bc",   0),
-    TEST ("abcdef",    0, 0, 0,           1, 2,  "bcabcdef",        0),
+    TEST ("a\0b\0\0c", 0,  3, "",         0, 0, "\0\0c",             0),
+    TEST ("\0ab\0\0c", 0,  3, "",         0, 0, "\0\0c",             0),
+    TEST ("a\0b\0\0c", 0,  3, "\0e",      0, 2, "\0e\0\0c",          0),
 
-    TEST ("\0",         2, 0, "",           0, 0, "\0",             1),
-    TEST ("\0",         0, 0, "\0",         2, 0, "",               2),
+    TEST ("a\0b\0\0c", 2,  3, "\0e",      0, 2, "a\0\0ec",           0),
+    TEST ("a\0b\0\0c", 2,  3, "\0e",      1, 1, "a\0ec",             0),
+    TEST ("\0ab\0\0c", 2,  3, "\0e",      0, 2, "\0a\0ec",           0),
+    TEST ("\0ab\0\0c", 2,  3, "\0e\0\0",  1, 3, "\0ae\0\0c",         0),
 
-    TEST ("a",         10, 0, "",           0, 0, "a",              1),
-    TEST ("a",          0, 0, "a",         10, 0, "",               2),
+    TEST ("a\0b\0\0c", 0,  6, "\0e",      0, 2, "\0e",               0),
+    TEST ("a\0b\0\0c", 0,  6, "\0e",      0, 1, "\0",                0),
 
-    TEST (LSTR, LLEN + 10, 0, "",           0, 0, LSTR,             1),
-    TEST (LSTR, 0,         0, LSTR, LLEN + 10, 0, "",               2),
+    TEST ("\0ab\0\0c", 0,  0, "\0e",      0, 2, "\0e\0ab\0\0c",      0),
+    TEST ("a\0b\0c\0", 6,  0, "e\0",      0, 2, "a\0b\0c\0e\0",      0),
+    TEST ("\0ab\0\0c", 5,  0, "\0e",      0, 2, "\0ab\0\0\0ec",      0),
 
-    TEST ("a",          0, 1, LSTR, 0, LLEN - 1, LSTR,             -1),
+    ///////////////////////////////////////////////////////////////////////
+    // very long strings
+    TEST ("a",         0,     0, "b",      0, -1, "ba",               0),
+    TEST ("a@0",       0,     0, "b@0",    0, -1, "",                 0),
+    TEST ("a@0",       0,     0, "b@1",    0, -1, "b",                0),
+    TEST ("a@1",       0,     0, "b@0",    0, -1, "a",                0),
+    TEST ("a@1",       0,     0, "b@1",    0, -1, "ba",               0),
+    TEST ("a@2",       0,     0, "b@2",    0, -1, "bbaa",             0),
+    TEST ("a@1000",    0,      0, "b@1000", 0, -1, "b@1000a@1000",     0),
+    TEST ("a@1000",    0,     1, "b@1001", 0, -1, "b@1001a@999",      0),
+    TEST ("a@1000",    0,     2, "b@1002", 0, -1, "b@1002a@998",      0),
+    TEST ("a@1000",    1,   998, "b@1003", 0, -1, "ab@1003a",         0),
+    TEST ("a@1000",    2,   996, "b@1004", 0, -1, "aab@1004aa",       0),
+    TEST ("a@1000",  500,   250, "b@1005", 0, -1, "a@500b@1005a@250", 0),
+    TEST ("a@1000",  998,     1, "b@1006", 0, -1, "a@998b@1006a",     0),
+    TEST ("a@2000", 1000,    -1, "b",      0, -1, "a@1000b",          0),
+    TEST ("a@2000", 1000,   999, "bb",     0, -1, "a@1000bba",        0),
 
-    TEST ("last",      4, 0, "test",      0, 4, "lasttest",         0)
+    TEST ("x@4096",    0,  4095, "ab",       0, 2, "abx",             0),
+    TEST ("x@4096",    1,  4094, "ab",       0, 2, "xabx",            0),
+    TEST ("x@4096",    0,  4094, "ab",       0, 2, "abxx",            0),
+    TEST ("x@4096",    1,  4093, "",         0, 0, "xxx",             0),
+    TEST ("x@4096",    1,  4092, "\0\0",     0, 2, "x\0\0xxx",        0),
+
+    TEST ("a",      0,     1, "x@4096",   0, 4095, "x@4095",         0),
+    TEST ("x@4096", 0,  4095, "x@4096",   0, 4095, "x@4096",         0),
+    TEST ("x@4096", 0,  2047, "x@4096",   0, 2047, "x@4096",         0),
+
+    TEST ("x@4096", 2047, 2048, "x@4096", 0, 2048,  "x@4096",        0),
+
+    TEST ("\0",         2, 0, "",           0, 0, "\0",              1),
+    TEST ("\0",         0, 0, "\0",         2, 0, "",                2),
+
+    TEST ("a",         10, 0, "",           0, 0, "a",               1),
+    TEST ("a",          0, 0, "a",         10, 0, "",                2),
+
+    TEST ("x@4096",  4106, 0, "",           0, 0, "x@4096",          1),
+    TEST ("x@4096",     0, 0, "x@4096", 4106, 0, "",                 2),
+
+    TEST ("a",          0, 1, "x@4096", 0, 4095, "x@4095",          -1),
+
+    ///////////////////////////////////////////////////////////////////////
+    // self-referential replacement
+    TEST ("",          0,  0, 0,          0,  0, "",                 0),
+    TEST ("",          0,  0, 0,          0,  1, "",                 0),
+    TEST ("",          0,  0, 0,          0, -1, "",                 0),
+
+    TEST ("",          0,  1, 0,          0,  0, "",                 0),
+    TEST ("",          0,  1, 0,          0,  1, "",                 0),
+    TEST ("",          0,  1, 0,          0, -1, "",                 0),
+
+    TEST ("",          0, -1, 0,          0,  0, "",                 0),
+    TEST ("",          0, -1, 0,          0,  1, "",                 0),
+    TEST ("",          0, -1, 0,          0, -1, "",                 0),
+
+    TEST ("1",         0,  0, 0,          0,  0, "1",                0),
+    TEST ("2",         0,  0, 0,          0, -1, "22",               0),
+    TEST ("3",         0,  0, 0,          0,  1, "33",               0),
+
+    TEST ("4",         0,  1, 0,          0,  0, "",                 0),
+    TEST ("5",         0,  1, 0,          0,  1, "5",                0),
+    TEST ("6",         0,  1, 0,          0, -1, "6",                0),
+
+    TEST ("7",         0, -1, 0,          0,  0, "",                 0),
+    TEST ("8",         0, -1, 0,          0,  1, "8",                0),
+    TEST ("9",         0, -1, 0,          0, -1, "9",                0),
+
+    TEST ("x@4096",        0,  0, 0,          0,  0, "x@4096",               0),
+    TEST ("x@4096",        0,  1, 0,          0,  1, "x@4096",               0),
+    TEST ("x@4096",        0,  2, 0,          0,  2, "x@4096",               0),
+    TEST ("x@4096",        0, -1, 0,          0, -1, "x@4096",               0),
+
+    TEST ("abc",       0, 0, 0,           1, 1,  "babc",             0),
+    TEST ("abc",       2, 0, 0,           0, 2,  "ababc",            0),
+    TEST ("a\0bc\0\0", 0, 0, 0,           4, 2,  "\0\0a\0bc\0\0",    0),
+    TEST ("a\0bc\0\0", 6, 0, 0,           1, 3,  "a\0bc\0\0\0bc",    0),
+    TEST ("abcdef",    0, 0, 0,           1, 2,  "bcabcdef",         0),
+
+    TEST ("last",      4, 0, "test",      0, 4, "lasttest",          0)
 };
 
 /**************************************************************************/
@@ -551,32 +636,34 @@ iter_iter_size_val_test_cases [] = {
     TEST ("a\0b\0c\0", 6, 0, 2, '\0', "a\0b\0c\0\0\0", 0),
     TEST ("\0ab\0\0c", 5, 0, 1, '\0', "\0ab\0\0\0c",   0),
 
-    TEST (LSTR, 0, LLEN - 1, 2, 'a',  "aa",            0),
-    TEST (LSTR, 1, LLEN - 2, 2, 'a',  "xaa",           0),
-    TEST (LSTR, 0, LLEN - 2, 2, 'a',  "aax",           0),
-    TEST (LSTR, 1, LLEN - 3, 0, 'a',  "xx",            0),
-    TEST (LSTR, 1, LLEN - 4, 1, '\0', "x\0xx",         0),
+    TEST ("x@4096",    0, 4095, 2, 'a',  "aax",        0),
+    TEST ("x@4096",    1, 4094, 2, 'a',  "xaax",       0),
+    TEST ("x@4096",    0, 4094, 2, 'a',  "aaxx",       0),
+    TEST ("x@4096",    1, 4093, 0, 'a',  "xxx",        0),
+    TEST ("x@4096",    1, 4092, 1, '\0', "x\0xxx",     0),
 
-    TEST ("a",  0,        1,  LLEN - 1, 'x', LSTR,     0),
-    TEST (LSTR, 0, LLEN - 1,  LLEN - 1, 'x', LSTR,     0),
-    TEST (LSTR, 0, LPAR - 1,  LPAR - 1, 'x', LSTR,     0),
+    TEST ("a",         0,    1, 4095, 'x', "x@4095",       0),
+    TEST ("x@4096",    0, 4095, 4095, 'a', "a@4095x",      0),
+    TEST ("x@4096",    0, 2047, 2047, 'b', "b@2047x@2049", 0),
 
-    TEST (LSTR, LPAR - 1, LPAR, LPAR,   'x', LSTR,     0),
+    TEST ("x@4096", 2047, 2048, 2048,   'x', "x@4096",     0),
 
-    TEST ("\0",         2, 0, 0, ' ',  "\0",           1),
-    TEST ("a",         10, 0, 0, ' ',  "a",            1),
-    TEST (LSTR, LLEN + 10, 0, 0, ' ',  LSTR,           1),
+    TEST ("\0",         2,   0,    0, ' ',  "\0",          1),
+    TEST ("a",         10,   0,    0, ' ',  "a",           1),
+    TEST ("x@4096",  4106,   0,    0, ' ',  "x@4096",      1),
 
-    TEST ("a",  0,        1,  LLEN - 1, 'x', LSTR,    -1),
+    TEST ("a",          0,   1, 4095, 'x', "x@4095",      -1),
 
-    TEST ("last",      4, 0, 4, 't', "lasttttt",       0)
+    TEST ("last",      4, 0, 4, 't', "lasttttt",           0)
 };
 
 /**************************************************************************/
 
 template <class charT, class Traits, class Iterator>
 void test_replace_range (const charT*    wstr,
+                         std::size_t     wstr_len,
                          const charT*    warg,
+                         std::size_t     warg_len,
                          Traits*,
                          const Iterator &it,
                          const TestCase &tcase)
@@ -588,77 +675,95 @@ void test_replace_range (const charT*    wstr,
     const char* const itname =
         tcase.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
 
-    /* const */ String s_str (wstr, tcase.str_len);
-    const       String s_arg (warg, tcase.arg_len);
+    // compute the size of the controlled sequence and the size
+    // of the sequence denoted by the argument keeping in mind
+    // that the latter may refer to the former
+    const std::size_t size1 = wstr_len;
+    const std::size_t size2 = tcase.arg ? warg_len : size1;
 
-    std::size_t off_last   = tcase.off + tcase.size;
-    std::size_t off_first2 = tcase.off2;
-    std::size_t off_last2  = tcase.off2 + tcase.size2;
+    // construct the string object to be modified
+    String str (wstr, size1);
 
-    const StringIter it_first (std::size_t (tcase.off) >= s_str.size () ?
-                               s_str.end () : s_str.begin () + tcase.off);
-    const StringIter it_last  (std::size_t (off_last) >= s_str.size () ?
-                               s_str.end () : s_str.begin () + off_last);
+    // compute the offset and the extent (the number of elements)
+    // of the first range into the string object being modified
+    const std::size_t off1 =
+        std::size_t (tcase.off) < size1 ? std::size_t (tcase.off) : size1;
+    const std::size_t ext1 =
+        off1 + tcase.size < size1 ? std::size_t (tcase.size) : size1 - off1;
+
+    // compute the offset and the extent (the number of elements)
+    // of the second range into the argument of the function call
+    const std::size_t off2 =
+        std::size_t (tcase.off2) < size2 ? std::size_t (tcase.off2) : size2;
+    const std::size_t ext2 =
+        off2 + tcase.size2 < size2 ? std::size_t (tcase.size2) : size2 - off2;
+
+    // create a pair of iterators into the string object being modified
+    const StringIter first1 (str.begin () + off1);
+    const StringIter last1 (first1 + ext1);
 
     if (tcase.arg) {
-        off_first2 = off_first2 > s_arg.size () ? s_arg.size () : off_first2;
-        off_last2  = off_last2  > s_arg.size () ? s_arg.size () : off_last2;
+        const charT* const beg = warg + off2;
+        const charT* const end = beg + ext2;
 
-        const charT* const warg_beg = warg + off_first2;
-        const charT* const warg_end = warg + off_last2;
+        const Iterator first2 (beg, beg, end);
+        const Iterator last2  (end, beg, end);
 
-        const Iterator first (warg_beg, warg_beg,           warg_end);
-        const Iterator last  (warg_end, warg + tcase.off2,  warg_end);
-
-        s_str.replace (it_first, it_last, first, last);
+        str.replace (first1, last1, first2, last2);
     }
     else {
-        const StringIter first (std::size_t (tcase.off2) >= s_str.size () ?
-                                s_str.end () : s_str.begin () + tcase.size2);
-        const StringIter last (off_last2 > s_str.size () ?
-                               s_str.end () : s_str.begin () + off_last2);
+        // self-referential modification (replacing a range
+        // of elements with a subrange of its own elements)
+        const StringIter first2 (str.begin () + off2);
+        const StringIter last2 (first2 + ext2);
 
-        s_str.replace (it_first, it_last, first, last);
+        str.replace (first1, last1, first2, last2);
     }
 
-    const std::size_t match =
-        rw_match (tcase.res, s_str.c_str(), tcase.nres);
+    // detrmine whether the produced sequence matches the exepceted result
+    const std::size_t match = rw_match (tcase.res, str.data (), tcase.nres);
 
     rw_assert (match == tcase.nres, 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
                "difference at offset %zu for %s",
                __LINE__, int (tcase.nres), tcase.res,
-               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
+               int (sizeof (charT)), int (str.size ()), str.c_str (),
                match, itname);
 }
 
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_replace_range (const charT* wstr,
-                         const charT* warg,
+void test_replace_range (const charT    *wstr,
+                         std::size_t     wstr_len,
+                         const charT    *warg,
+                         std::size_t     warg_len,
                          Traits*,
                          const TestCase &tcase)
 {
-    if (tcase.bthrow)  // this method doesn't throw
+    if (tcase.bthrow) {
+        // FIXME: exercise exceptions
         return;
+    }
 
-    test_replace_range (wstr, warg, (Traits*)0,
+    // exercise InputIterator *or* string::iterator (i.e., self
+    // referential modification), depending on the value of tcase.arg
+    test_replace_range (wstr, wstr_len, warg, warg_len, (Traits*)0,
                        InputIter<charT>(0, 0, 0), tcase);
 
-    // there is no need to call test_replace_range
-    // for other iterators in this case
-    if (0 == tcase.arg)
+    if (0 == tcase.arg) {
+        // avoid exercising the same function multiple times
         return;
+    }
 
-    test_replace_range (wstr, warg, (Traits*)0,
-                       ConstFwdIter<charT>(0, 0, 0), tcase);
+    test_replace_range (wstr, wstr_len, warg, warg_len, (Traits*)0,
+                        ConstFwdIter<charT>(0, 0, 0), tcase);
 
-    test_replace_range (wstr, warg, (Traits*)0,
-                       ConstBidirIter<charT>(0, 0, 0), tcase);
+    test_replace_range (wstr, wstr_len, warg, warg_len, (Traits*)0,
+                        ConstBidirIter<charT>(0, 0, 0), tcase);
 
-    test_replace_range (wstr, warg, (Traits*)0,
-                       ConstRandomAccessIter<charT>(0, 0, 0), tcase);
+    test_replace_range (wstr, wstr_len, warg, warg_len, (Traits*)0,
+                        ConstRandomAccessIter<charT>(0, 0, 0), tcase);
 }
 
 /**************************************************************************/
@@ -669,58 +774,98 @@ void test_replace (charT, Traits*,
                    const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
-    typedef std::basic_string <charT, Traits, Allocator> TestString;
-    typedef typename TestString::iterator                StringIter;
-    typedef typename TestString::const_iterator          ConstStringIter;
+    typedef std::basic_string <charT, Traits, Allocator> String;
+    typedef typename String::iterator                    StringIter;
+    typedef typename UserTraits<charT>::MemFun           UTMemFun;
 
-    typedef typename UserTraits<charT>::MemFun UTMemFun;
+    static const std::size_t BUFSIZE = 256;
 
-    const bool use_iters = Replace (iter_iter_ptr) <= which;
+    static charT wstr_buf [BUFSIZE];
+    static charT warg_buf [BUFSIZE];
 
-    static charT wstr [LLEN];
-    static charT warg [LLEN];
+    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
+    std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
 
-    rw_widen (wstr, tcase.str, tcase.str_len);
-    rw_widen (warg, tcase.arg, tcase.arg_len);
+    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
+    charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
 
     // special processing for replace_range to exercise all iterators
     if (Replace (iter_iter_range) == which) {
-        test_replace_range (wstr, warg, (Traits*)0, tcase);
+        test_replace_range (wstr, str_len, warg, arg_len, (Traits*)0, tcase);
+
+        if (wstr != wstr_buf)
+            delete[] wstr;
+
+        if (warg != warg_buf)
+            delete[] warg;
+
         return;
     }
 
-    /* const */ TestString s_str (wstr, tcase.str_len);
-    const       TestString s_arg (warg, tcase.arg_len);
+    // construct the string object to be modified
+    // and the (possibly unused) argument string
+    /* const */ String  str (wstr, str_len);
+    const       String  arg (warg, arg_len);
+
+    if (wstr != wstr_buf)
+        delete[] wstr;
+
+    if (warg != warg_buf)
+        delete[] warg;
+
+    wstr = 0;
+    warg = 0;
+
+    static charT wres_buf [BUFSIZE];
+    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
+    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
 
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
     // the state of the object after an exception)
-    const StringState str_state (rw_get_string_state (s_str));
+    const StringState str_state (rw_get_string_state (str));
 
-    std::size_t res_off = 0;
+    // compute the offset and the extent (the number of elements)
+    // of the first range into the string object being modified
+    const std::size_t size1 = str_len;
+    const std::size_t off1 =
+        std::size_t (tcase.off) < size1 ? std::size_t (tcase.off) : size1;
+    const std::size_t ext1 =
+        off1 + tcase.size < size1 ? tcase.size : size1 - off1;
 
-    int first = use_iters ? tcase.off : tcase.str_len + 1;
-    int last  = use_iters ? tcase.off + tcase.size : tcase.str_len + 1;
-    std::size_t size = tcase.size2 >= 0 ? tcase.size2 : s_str.max_size () + 1;
+    // create a pair of iterators into the string object being
+    // modified (used only by the iterator overloads)
+    const StringIter first (str.begin () + off1);
+    const StringIter last (first + ext1);
 
-    StringIter it_first (std::size_t (first) >= s_str.size () ?
-                         s_str.end () : s_str.begin () + first);
-    StringIter it_last  (std::size_t (last) >= s_str.size () ?
-                         s_str.end () : s_str.begin () + last);
+    // offset and extent function arguments
+    const std::size_t arg_off  = std::size_t (tcase.off);
+    const std::size_t arg_size = std::size_t (tcase.size);
+    const std::size_t arg_off2 = std::size_t (tcase.off2);
+    const std::size_t arg_size2 =
+        tcase.size2 >= 0 ? tcase.size2 : str.max_size () + 1;
 
     // string function argument
-    const charT* const arg_ptr = tcase.arg ? warg : s_str.c_str ();
-    const TestString&  arg_str = tcase.arg ? s_arg : s_str;
+    const charT* const arg_ptr = tcase.arg ? arg.c_str () : str.c_str ();
+    const String&      arg_str = tcase.arg ? arg : str;
     const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
     std::size_t total_length_calls = 0;
     std::size_t n_length_calls = 0;
-    std::size_t* const rg_calls = rw_get_call_counters ((Traits*)0, (charT*)0);
+    std::size_t* const rg_calls =
+        Replace (size_size_ptr) == which || Replace (iter_iter_ptr) == which ?
+        rw_get_call_counters ((Traits*)0, (charT*)0) : 0;
 
     if (rg_calls)
         total_length_calls = rg_calls [UTMemFun::length];
 
     rwt_free_store* const pst = rwt_get_free_store (0);
+
+    // use iterator overloads?
+    const bool use_iters = Replace (iter_iter_ptr) <= which;
+
+    // pointer to the returned reference
+    const String* ret_ptr = 0;
 
     // iterate for`throw_after' starting at the next call to operator new,
     // forcing each call to throw an exception, until the function finally
@@ -745,121 +890,104 @@ void test_replace (charT, Traits*,
             expected = exceptions [3];      // bad_alloc
             *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_after + 1;
         }
+
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-        if (tcase.bthrow)
+        if (tcase.bthrow) {
+            if (wres != wres_buf)
+                delete[] wres;
+
             return;
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
+        // start checking for memory leaks
+        rwt_check_leaks (0, 0);
+
         try {
             switch (which) {
-            case Replace (size_size_ptr): {
-                const TestString& s_res = 
-                    s_str.replace (tcase.off, tcase.size, arg_ptr);
-                res_off = &s_res - &s_str;
+            case Replace (size_size_ptr):
+                ret_ptr = &str.replace (arg_off, arg_size, arg_ptr);
                 if (rg_calls)
                     n_length_calls = rg_calls [UTMemFun::length];
                 break;
-            }
 
-            case Replace (size_size_str): {
-                const TestString& s_res = 
-                    s_str.replace (tcase.off, tcase.size, arg_str);
-                res_off = &s_res - &s_str;
+            case Replace (size_size_str):
+                ret_ptr = &str.replace (arg_off, arg_size, arg_str);
                 break;
-            }
 
-            case Replace (size_size_ptr_size): {
-                const TestString& s_res = 
-                    s_str.replace (tcase.off, tcase.size, arg_ptr, size);
-                res_off = &s_res - &s_str;
+            case Replace (size_size_ptr_size):
+                ret_ptr = &str.replace (arg_off, arg_size, arg_ptr, arg_size2);
                 break;
-            }
 
-            case Replace (size_size_str_size_size): {
-                const TestString& s_res = 
-                    s_str.replace (tcase.off, tcase.size, arg_str,
-                                   tcase.off2, size);
-                res_off = &s_res - &s_str;
+            case Replace (size_size_str_size_size):
+                ret_ptr = &str.replace (arg_off, arg_size, arg_str,
+                                        arg_off2, arg_size2);
                 break;
-            }
 
-            case Replace (size_size_size_val): {
-                const TestString& s_res = 
-                    s_str.replace (tcase.off, tcase.size, size, arg_val);
-                res_off = &s_res - &s_str;
+            case Replace (size_size_size_val):
+                ret_ptr = &str.replace (arg_off, arg_size, arg_size2, arg_val);
                 break;
-            }
 
-            case Replace (iter_iter_ptr): {
-                const TestString& s_res = 
-                    s_str.replace (it_first, it_last, arg_ptr);
-                res_off = &s_res - &s_str;
+            case Replace (iter_iter_ptr):
+                ret_ptr = &str.replace (first, last, arg_ptr);
                 if (rg_calls)
                     n_length_calls = rg_calls [UTMemFun::length];
                 break;
-            }
 
-            case Replace (iter_iter_str): {
-                const TestString& s_res = 
-                    s_str.replace (it_first, it_last, arg_str);
-                res_off = &s_res - &s_str;
+            case Replace (iter_iter_str):
+                ret_ptr = &str.replace (first, last, arg_str);
                 break;
-            }
 
-            case Replace (iter_iter_ptr_size): {
-                const TestString& s_res = 
-                    s_str.replace (it_first, it_last, arg_ptr, size);
-                res_off = &s_res - &s_str;
+            case Replace (iter_iter_ptr_size):
+                ret_ptr = &str.replace (first, last, arg_ptr, arg_size2);
                 break;
-            }
 
-            case Replace (iter_iter_size_val): {
-                const TestString& s_res = 
-                    s_str.replace (it_first, it_last, size, arg_val);
-                res_off = &s_res - &s_str;
+            case Replace (iter_iter_size_val):
+                ret_ptr = &str.replace (first, last, arg_size2, arg_val);
                 break;
-            }
 
             default:
                 RW_ASSERT (!"logic error: unknown replace overload");
-                return;
             }
+
+            // verify that the reference returned from the function
+            // refers to the modified string object (i.e., *this
+            // within the function)
+            const std::ptrdiff_t res_off = ret_ptr - &str;
 
             // verify the returned value
             rw_assert (0 == res_off, 0, tcase.line,
                        "line %d. %{$FUNCALL} returned invalid reference, "
-                       "offset is %zu", __LINE__, res_off);
+                       "offset is %td", __LINE__, res_off);
 
-            // verfiy that strings length are equal
-            rw_assert (tcase.nres == s_str.size (), 0, tcase.line,
+            
+
+            // verfiy that the length of the resulting string
+            rw_assert (res_len == str.size (), 0, tcase.line,
                        "line %d. %{$FUNCALL} expected %{#*s} with length "
                        "%zu, got %{/*.*Gs} with length %zu",
-                       __LINE__, int (tcase.nres), tcase.res, 
-                       tcase.nres, int (sizeof (charT)), 
-                       int (s_str.size ()), s_str.c_str (), s_str.size ());
+                       __LINE__, int (res_len), tcase.res, 
+                       res_len, int (sizeof (charT)), 
+                       int (str.size ()), str.c_str (), str.size ());
 
-            if (tcase.nres == s_str.size ()) {
+            if (res_len == str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, s_str.c_str(), tcase.nres);
+                    rw_match (tcase.res, str.c_str (), res_len);
 
-                rw_assert (match == tcase.nres, 0, tcase.line,
-                           "line %d. %{$FUNCALL} expected %{#*s}, "
+                rw_assert (match == res_len, 0, tcase.line,
+                           "line %d. %{$FUNCALL} expected %{/*.*Gs}, "
                            "got %{/*.*Gs}, difference at offset %zu",
-                           __LINE__, int (tcase.nres), tcase.res,
-                           int (sizeof (charT)), int (s_str.size ()),
-                           s_str.c_str (), match);
+                           __LINE__, int (sizeof (charT)), int (res_len), wres,
+                           int (sizeof (charT)), int (str.size ()),
+                           str.c_str (), match);
             }
 
             // verify that Traits::length was used
-            const bool verify_length_using = Replace (size_size_ptr) == which 
-                                          || Replace (iter_iter_ptr) == which;
-
-            if (verify_length_using && rg_calls) {
+            if (rg_calls) {
                 rw_assert (n_length_calls - total_length_calls > 0, 
                            0, tcase.line, "line %d. %{$FUNCALL} doesn't "
                            "use traits::length()", __LINE__);
@@ -906,10 +1034,21 @@ void test_replace (charT, Traits*,
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
+        /* const */ std::size_t nbytes;
+        const       std::size_t nblocks = rwt_check_leaks (&nbytes, 0);
+
+        // FIXME: verify the number of blocks the function call
+        // is expected to allocate and detect any memory leaks
+        const std::size_t expect_blocks = nblocks;
+
+        rw_assert (nblocks == expect_blocks, 0, tcase.line,
+                   "line %d. %{$FUNCALL} allocated %td bytes in %td blocks",
+                   __LINE__, nbytes, expect_blocks);
+
         if (caught) {
             // verify that an exception thrown during allocation
             // didn't cause a change in the state of the object
-            str_state.assert_equal (rw_get_string_state (s_str),
+            str_state.assert_equal (rw_get_string_state (str),
                                     __LINE__, tcase.line, caught);
 
             if (-1 == tcase.bthrow) {
@@ -942,6 +1081,9 @@ void test_replace (charT, Traits*,
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
     *pst->throw_at_calls_ [0] = std::size_t (-1);
+
+    if (wres != wres_buf)
+        delete[] wres;
 }
 
 /**************************************************************************/
