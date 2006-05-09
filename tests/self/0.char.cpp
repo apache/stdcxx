@@ -504,69 +504,94 @@ test_rw_expand ()
     //////////////////////////////////////////////////////////////////
     rw_info (0, 0, 0, "rw_expand(char*, const char*, size_t, size_t*)");
 
-    char *result;
-    size_t len;
-
 #undef TEST
-#define TEST(str, expstr, size)                                         \
-    result = rw_expand ((char*)0, str, sizeof str - 1, &len);           \
-    rw_assert (0 == memcmp (result, expstr, size + 1), 0, __LINE__,     \
-               "rw_expand(0, %#s, %zu, ...) == %#s, got %#s",           \
-               str, sizeof str -1, expstr, result);
+#define TEST(str, expstr)                                               \
+    do {                                                                \
+        const size_t str_size = sizeof str - 1;                         \
+        const size_t exp_size = sizeof expstr - 1;                      \
+        size_t len;                                                     \
+        char* const res = rw_expand ((char*)0, str, str_size, &len);    \
+        rw_assert (   0 == memcmp (res, expstr, exp_size)               \
+                   && exp_size == len,                                  \
+                   0, __LINE__,                                         \
+                   "rw_expand((char*)0, %{#*s}, %zu, ...) == "          \
+                   "%{#*s} (length %zu), got %{#*s} (length %zu)",      \
+                   int (str_size), str, str_size,                       \
+                   int (exp_size), expstr, exp_size,                    \
+                   int (len), res, len);                                \
+    } while (0)
 
-    TEST ("",          "",          0);
-    TEST ("a",         "a",         1);
-    TEST ("ab",        "ab",        2);
-    TEST ("abc",       "abc",       3);
-    TEST ("a\0b",      "a\0b",      3);
-    TEST ("a\0b\0c\0", "a\0b\0c\0", 6);
+    TEST ("",          "");
+    TEST ("\0",        "\0");
+    TEST ("a",         "a");
+    TEST ("a\0",       "a\0");
+    TEST ("ab",        "ab");
+    TEST ("abc",       "abc");
+    TEST ("a\0b",      "a\0b");
+    TEST ("a\0b\0c\0", "a\0b\0c\0");
 
-    TEST ("a@0",       "",          0);
-    TEST ("a@1",       "a",         1);
-    TEST ("a@2",       "aa",        2);
-    TEST ("a@3",       "aaa",       3);
-    TEST ("a@1b",      "ab",        2);
-    TEST ("a@2b",      "aab",       3);
-    TEST ("a@3b",      "aaab",      4);
-    TEST ("a@3bc",     "aaabc",     5);
-    TEST ("a@3b@1c",   "aaabc",     5);
-    TEST ("a@3b@2c",   "aaabbc",    6);
-    TEST ("a@3b@2c@1", "aaabbc",    6);
-    TEST ("a@3b@3c@2", "aaabbbcc",  8);
+    TEST ("\0@0",      "");
+    TEST ("a@0",       "");
+    TEST ("\0@1",      "\0");
+    TEST ("a@1",       "a");
+    TEST ("a@2",       "aa");
+    TEST ("a@2\0",     "aa\0");
+    TEST ("a@3",       "aaa");
+    TEST ("a@1b",      "ab");
+    TEST ("a@2b",      "aab");
+    TEST ("a@3b",      "aaab");
+    TEST ("a@3bc",     "aaabc");
+    TEST ("a@3b@1c",   "aaabc");
+    TEST ("a@3b@2c",   "aaabbc");
+    TEST ("a@3b@2c@1", "aaabbc");
+    TEST ("a@3b@3c@2", "aaabbbcc");
 
     //////////////////////////////////////////////////////////////////
     rw_info (0, 0, 0, "rw_expand(wchar_t*, const char*, size_t, size_t*)");
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-    wchar_t *wresult;
-
 #  undef TEST
-#  define TEST(str, expstr, size)                                       \
-      wresult = rw_expand ((wchar_t*)0, str, sizeof str - 1, &len);     \
-      rw_assert (0 == memcmp (wresult, expstr, size + 1), 0, __LINE__,  \
-                 "rw_expand(0, %#s, %zu, ...) == %#ls, got %#ls",       \
-                 str, sizeof str -1, expstr, wresult);
+#define TEST(str, expstr)                                                  \
+    do {                                                                   \
+        const size_t str_size = sizeof str - 1;                            \
+        const size_t exp_size = sizeof expstr / sizeof *expstr - 1;        \
+        size_t len;                                                        \
+        wchar_t* const res = rw_expand ((wchar_t*)0, str, str_size, &len); \
+        rw_assert (   0 == memcmp (res, expstr, exp_size)                  \
+                   && exp_size == len,                                     \
+                   0, __LINE__,                                            \
+                   "rw_expand((wchar_t*)0, %{#*s}, %zu, ...) == "          \
+                   "%{#*ls} (length %zu), got %{#*ls} (length %zu)",       \
+                   int (str_size), str, str_size,                          \
+                   int (exp_size), expstr, exp_size,                       \
+                   int (len), res, len);                                   \
+    } while (0)
 
-    TEST ("",          L"",          0);
-    TEST ("a",         L"a",         1);
-    TEST ("ab",        L"ab",        2);
-    TEST ("abc",       L"abc",       3);
-    TEST ("a\0b",      L"a\0b",      3);
-    TEST ("a\0b\0c\0", L"a\0b\0c\0", 6);
+    TEST ("",          L"");
+    TEST ("\0",        L"\0");
+    TEST ("a",         L"a");
+    TEST ("a\0",       L"a\0");
+    TEST ("ab",        L"ab");
+    TEST ("abc",       L"abc");
+    TEST ("a\0b",      L"a\0b");
+    TEST ("a\0b\0c\0", L"a\0b\0c\0");
 
-    TEST ("a@0",       L"",          0);
-    TEST ("a@1",       L"a",         1);
-    TEST ("a@2",       L"aa",        2);
-    TEST ("a@3",       L"aaa",       3);
-    TEST ("a@1b",      L"ab",        2);
-    TEST ("a@2b",      L"aab",       3);
-    TEST ("a@3b",      L"aaab",      4);
-    TEST ("a@3bc",     L"aaabc",     5);
-    TEST ("a@3b@1c",   L"aaabc",     5);
-    TEST ("a@3b@2c",   L"aaabbc",    6);
-    TEST ("a@3b@2c@1", L"aaabbc",    6);
-    TEST ("a@3b@3c@2", L"aaabbbcc",  8);
+    TEST ("\0@0",      L"");
+    TEST ("a@0",       L"");
+    TEST ("\0@1",      L"\0");
+    TEST ("a@1",       L"a");
+    TEST ("a@2",       L"aa");
+    TEST ("a@2\0",     L"aa\0");
+    TEST ("a@3",       L"aaa");
+    TEST ("a@1b",      L"ab");
+    TEST ("a@2b",      L"aab");
+    TEST ("a@3b",      L"aaab");
+    TEST ("a@3bc",     L"aaabc");
+    TEST ("a@3b@1c",   L"aaabc");
+    TEST ("a@3b@2c",   L"aaabbc");
+    TEST ("a@3b@2c@1", L"aaabbc");
+    TEST ("a@3b@3c@2", L"aaabbbcc");
 
 #else   // if defined (_RWSTD_NO_WCHAR_T)
 
@@ -642,7 +667,8 @@ test_rw_narrow ()
                    0, __LINE__,
                    "rw_narrow(char*, L%{#*ls}%{?}, %zu%{;}) == %{#*s}, "
                    "got %{#*s}",
-                   src, i < nsrc, i, int (i), wsrc, int (i + 1), cdst);
+                   int (i), src, i < nsrc, i, int (i), wsrc,
+                   int (i + 1), cdst);
     }
 
     memset (cdst, '@', sizeof cdst);
