@@ -519,6 +519,7 @@ test_rw_expand ()
                    int (str_size), str, str_size,                       \
                    int (exp_size), expstr, exp_size,                    \
                    int (len), res, len);                                \
+        delete[] res;                                                   \
     } while (0)
 
     TEST ("",          "");
@@ -566,6 +567,7 @@ test_rw_expand ()
                    int (str_size), str, str_size,                          \
                    int (exp_size), expstr, exp_size,                       \
                    int (len), res, len);                                   \
+        delete[] res;                                                      \
     } while (0)
 
     TEST ("",          L"");
