@@ -260,19 +260,46 @@ rw_widen (char *dst, const char *src, size_t len /* = SIZE_MAX */)
     return dst;
 }
 
+/**************************************************************************/
 
-_TEST_EXPORT
-char*
-rw_expand (char *dst, const char *src, size_t src_len /* = SIZE_MAX */,
-           size_t *dst_len /* = 0 */)
+static void*
+_rw_expand (void *dst, size_t elemsize,
+            const char *src, size_t src_len /* = SIZE_MAX */,
+            size_t *dst_len /* = 0 */)
 {
-    size_t bufsize = dst ? _RWSTD_SIZE_MAX : 0;
+    // create a typedef for "genericity"
+#ifndef _RWSTD_NO_WCHAR_T
+    typedef wchar_t WChar;
+#else   // if defined (_RWSTD_NO_WCHAR_T)
+    // dummy, will never be used
+    typedef int WChar;
+#endif   // _RWSTD_NO_WCHAR_T
+
+    RW_ASSERT (   sizeof (char) == elemsize
+               || sizeof (WChar) == elemsize
+               || sizeof (UserChar) == elemsize);
+
+    if (0 == src) {
+        src     = "";
+        src_len = 0;
+    }
+
+    // save the original value of dst and avoid deallocating
+    // it when a large buffer is needed
+    const void* const dst_save = dst;
+
+    // when both dst and dst_size are non-null use *dst_len
+    // as the size of the destination buffer
+    size_t bufsize = dst ? dst_len ? *dst_len : _RWSTD_SIZE_MAX : 0;
     size_t buflen  = 0;
 
     if (_RWSTD_SIZE_MAX == src_len)
         src_len = strlen (src);
 
-    char *pnext = dst;
+    // remember if src is the empty string
+    const bool empty_string = 0 == src_len;
+
+    void *pnext = dst;
 
     for (const char *psrc = src; ; ) {
 
@@ -309,34 +336,69 @@ rw_expand (char *dst, const char *src, size_t src_len /* = SIZE_MAX */,
                 bufsize = 128;
 
             // allocate larger buffer
-            char* const tmp = new char [bufsize];
+            void* tmp;
+
+            switch (elemsize) {
+            case sizeof (WChar):    tmp = new WChar [bufsize]; break;
+            case sizeof (UserChar): tmp = new UserChar [bufsize]; break;
+            default:                tmp = new char [bufsize]; break;
+            }
 
             // copy old buffer into new one
-            memcpy (tmp, dst, buflen);
+            memcpy (tmp, dst, buflen * elemsize);
 
-            // dispose of old buffer
-            delete[] dst;
+            // dispose of previously allocated buffer
+            if (dst != dst_save) {
+                switch (elemsize) {
+                case sizeof (WChar):    delete[] (WChar*)dst; break;
+                case sizeof (UserChar): delete[] (UserChar*)dst; break;
+                default:                delete[] (char*)dst; break;
+                }
+            }
 
-            dst   = tmp;
-            pnext = dst + buflen;
+            dst = tmp;
+
+            pnext = (char*)dst + buflen * elemsize;
         }
 
         typedef unsigned char UChar;
-        memset (pnext, UChar (c), count);
 
-        pnext += count;
+        if (sizeof (WChar) == elemsize) {
+            for (size_t i = 0; i != count; ++i)
+                ((WChar*)pnext)[i] = WChar (UChar (c));
+        }
+        else if (sizeof (UserChar) == elemsize) {
+            for (size_t i = 0; i != count; ++i) {
+                ((UserChar*)pnext)[i].f = 0;
+                ((UserChar*)pnext)[i].c = UChar (c);
+            }
+        }
+        else
+            memset (pnext, UChar (c), count);
+
+        pnext   = (char*)pnext + count * elemsize;
         buflen += count;
 
         if (0 == src_len)
             break;
     }
 
-    *pnext = '\0';
-
     if (dst_len)
-        *dst_len = buflen;
+        *dst_len = buflen - empty_string;
 
     return dst;
+}
+
+/**************************************************************************/
+
+_TEST_EXPORT
+char*
+rw_expand (char *dst, const char *src, size_t src_len /* = SIZE_MAX */,
+           size_t *dst_len /* = 0 */)
+{
+    void* const result = _rw_expand (dst, sizeof *dst, src, src_len, dst_len);
+
+    return _RWSTD_STATIC_CAST (char*, result);
 }
 
 
@@ -360,11 +422,27 @@ rw_match (const char *s1, const char *s2, size_t len /* = SIZE_MAX */)
     if (0 == s2)
         return strlen (s1);
 
+    const char* const s1_save = s1;
+
+    char   s1_buf [256];
+    size_t s1_len = sizeof s1_buf;
+
+    // see if the first string contains '@' and might need
+    // to be expanded  (see rw_expand() for details)
+    if (   _RWSTD_SIZE_MAX == len && strchr (s1, '@')
+        || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len))
+        s1 = rw_expand (s1_buf, s1, len, &s1_len);
+
     size_t n = 0;
 
     for ( ; n != len && s1 [n] == s2 [n]; ++n) {
         if (_RWSTD_SIZE_MAX == len && '\0' == s1 [n])
             break;
+    }
+
+    if (s1 && s1_save != s1 && s1_buf != s1) {
+        // deallocate memory if it was allocated by rw_expand()
+        delete[] s1;
     }
 
     return n;
@@ -413,77 +491,9 @@ wchar_t*
 rw_expand (wchar_t *dst, const char *src, size_t src_len /* = SIZE_MAX */,
            size_t *dst_len /* = 0 */)
 {
-    size_t bufsize = dst ? _RWSTD_SIZE_MAX : 0;
-    size_t buflen  = 0;
+    void* const result = _rw_expand (dst, sizeof *dst, src, src_len, dst_len);
 
-    if (_RWSTD_SIZE_MAX == src_len)
-        src_len = strlen (src);
-
-    wchar_t *pnext = dst;
-
-    for (const char *psrc = src; ; ) {
-
-        const char c = *psrc;
-
-        unsigned long count;
-
-        if ('@' == psrc [1] && isdigit (psrc [2])) {
-            // process directive 
-           psrc += 2;
-
-            char *end = 0;
-            count = strtoul (psrc, &end, 10);
-
-            src_len -= (end - psrc) + 2;
-
-            psrc = end;
-
-        }
-        else {
-            count = 1;
-
-            // decrement length unless it's already 0
-            if (src_len)
-                --src_len;
-
-            ++psrc;
-        }
-
-        if (bufsize - buflen <= count) {
-            // increase the size of the buffer
-            bufsize = (bufsize + count) * 2;
-            if (bufsize < 128)
-                bufsize = 128;
-
-            // allocate larger buffer
-            wchar_t* const tmp = new wchar_t [bufsize];
-
-            // copy old buffer into new one
-            memcpy (tmp, dst, buflen * sizeof *tmp);
-
-            // dispose of old buffer
-            delete[] dst;
-
-            dst   = tmp;
-            pnext = dst + buflen;
-        }
-
-        typedef unsigned char UChar;
-        for (size_t i = 0; i != count; ++i)
-            *pnext++ = wchar_t (UChar (c));
-
-        buflen += count;
-
-        if (0 == src_len)
-            break;
-    }
-
-    *pnext = L'\0';
-
-    if (dst_len)
-        *dst_len = buflen;
-
-    return dst;
+    return _RWSTD_STATIC_CAST (wchar_t*, result);
 }
 
 
@@ -544,6 +554,17 @@ rw_match (const char *s1, const wchar_t *s2, size_t len /* = SIZE_MAX */)
     if (0 == s2)
         return strlen (s1);
 
+    const char* const s1_save = s1;
+
+    char   s1_buf [256];
+    size_t s1_len = sizeof s1_buf;
+    
+    // see if the first string contains '@' and might need
+    // to be expanded  (see rw_expand() for details)
+    if (   _RWSTD_SIZE_MAX == len && strchr (s1, '@')
+        || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len))
+        s1 = rw_expand (s1_buf, s1, len, &s1_len);
+
     typedef unsigned char UChar;
 
     size_t n = 0;
@@ -552,6 +573,9 @@ rw_match (const char *s1, const wchar_t *s2, size_t len /* = SIZE_MAX */)
         if (_RWSTD_SIZE_MAX == len && '\0' == s1 [n])
             break;
     }
+
+    if (s1 && s1_save != s1 && s1_buf != s1)
+        delete[] s1;
 
     return n;
 }
@@ -600,80 +624,9 @@ UserChar*
 rw_expand (UserChar *dst, const char *src, size_t src_len /* = SIZE_MAX */,
            size_t *dst_len /* = 0 */)
 {
-    size_t bufsize = dst ? _RWSTD_SIZE_MAX : 0;
-    size_t buflen  = 0;
+    void* const result = _rw_expand (dst, sizeof *dst, src, src_len, dst_len);
 
-    if (_RWSTD_SIZE_MAX == src_len)
-        src_len = strlen (src);
-
-    UserChar *pnext = dst;
-
-    for (const char *psrc = src; ; ) {
-
-        const char c = *psrc;
-
-        unsigned long count;
-
-        if ('@' == psrc [1] && isdigit (psrc [2])) {
-            // process directive 
-            psrc += 2;
-
-            char *end = 0;
-            count = strtoul (psrc, &end, 10);
-
-            src_len -= (end - psrc) + 2;
-
-            psrc = end;
-
-        }
-        else {
-            count = 1;
-
-            // decrement length unless it's already 0
-            if (src_len)
-                --src_len;
-
-            ++psrc;
-        }
-
-        if (bufsize - buflen <= count) {
-            // increase the size of the buffer
-            bufsize = (bufsize + count) * 2;
-            if (bufsize < 128)
-                bufsize = 128;
-
-            // allocate larger buffer
-            UserChar* const tmp = new UserChar [bufsize];
-
-            // copy old buffer into new one
-            memcpy (tmp, dst, buflen * sizeof *tmp);
-
-            // dispose of old buffer
-            delete[] dst;
-
-            dst   = tmp;
-            pnext = dst + buflen;
-        }
-
-        typedef unsigned char UChar;
-        for (size_t i = 0; i != count; ++i) {
-            pnext->f = 0;
-            pnext->c = UChar (c);
-            ++pnext;
-        }
-
-        buflen += count;
-
-        if (0 == src_len)
-            break;
-    }
-
-    *pnext = UserChar::eos ();
-
-    if (dst_len)
-        *dst_len = buflen;
-
-    return dst;
+    return _RWSTD_STATIC_CAST (UserChar*, result);
 }
 
 
@@ -734,6 +687,17 @@ rw_match (const char *s1, const UserChar *s2, size_t len /* = SIZE_MAX */)
     if (0 == s2)
         return strlen (s1);
 
+    const char* const s1_save = s1;
+
+    char   s1_buf [256];
+    size_t s1_len = sizeof s1_buf;
+    
+    // see if the first string contains '@' and might need
+    // to be expanded  (see rw_expand() for details)
+    if (   _RWSTD_SIZE_MAX == len && strchr (s1, '@')
+        || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len))
+        s1 = rw_expand (s1_buf, s1, len, &s1_len);
+
     typedef unsigned char UChar;
 
     size_t n = 0;
@@ -742,6 +706,9 @@ rw_match (const char *s1, const UserChar *s2, size_t len /* = SIZE_MAX */)
         if (_RWSTD_SIZE_MAX == len && '\0' == s1 [n])
             break;
     }
+
+    if (s1 && s1_save != s1 && s1_buf != s1)
+        delete[] s1;
 
     return n;
 }
