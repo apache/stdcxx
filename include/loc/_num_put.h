@@ -5,7 +5,7 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/loc/_num_put.h#30 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -39,12 +39,11 @@
 #include <rw/_defs.h>
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
 
 // 22.2.2.2
 _EXPORT
-template <class _CharT,
-  class _OutputIter _RWSTD_COMPLEX_DEFAULT (_RWSTD_OSTREAMBUF_ITER (_CharT)) >
+template <class _CharT, class _OutputIter = ostreambuf_iterator<_CharT> >
 struct num_put: _RW::__rw_facet
 {
     typedef _CharT      char_type;
@@ -190,17 +189,17 @@ private:
 #ifndef _RWSTD_NO_SPECIALIZED_FACET_ID
 
 _RWSTD_SPECIALIZED_CLASS
-_RW::__rw_facet_id num_put<char, _RWSTD_OSTREAMBUF_ITER (char) >::id;
+_RW::__rw_facet_id num_put<char, ostreambuf_iterator<char> >::id;
 
 #  ifndef _RWSTD_NO_WCHAR_T
 
 _RWSTD_SPECIALIZED_CLASS
-_RW::__rw_facet_id num_put<wchar_t, _RWSTD_OSTREAMBUF_ITER (wchar_t) >::id;
+_RW::__rw_facet_id num_put<wchar_t, ostreambuf_iterator<wchar_t> >::id;
 
 #  endif   // _RWSTD_NO_WCHAR_T
 #endif   // _RWSTD_NO_SPECIALIZED_FACET_ID
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE_FIRST (_NUM_PUT)
@@ -208,23 +207,21 @@ _RW::__rw_facet_id num_put<wchar_t, _RWSTD_OSTREAMBUF_ITER (wchar_t) >::id;
 #endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (_NUM_PUT)
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
 
 #if _RWSTD_INSTANTIATE (_NUM_PUT, _CHAR)
 
-_RWSTD_INSTANTIATE_2 (struct _RWSTD_EXPORT
-                      num_put<char, _RWSTD_OSTREAMBUF_ITER (char) >);
+_RWSTD_INSTANTIATE_1 (struct _RWSTD_EXPORT num_put<char>);
 
 #endif   // _RWSTD_INSTANTIATE (_NUM_PUT, _CHAR)
 
 #if _RWSTD_INSTANTIATE (_NUM_PUT, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_2 (struct _RWSTD_EXPORT
-                      num_put<wchar_t, _RWSTD_OSTREAMBUF_ITER (wchar_t) >);
+_RWSTD_INSTANTIATE_1 (struct _RWSTD_EXPORT num_put<wchar_t>);
 
 #endif   // _RWSTD_INSTANTIATE (_NUM_PUT, _WCHAR_T)
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE_LAST (_NUM_PUT)

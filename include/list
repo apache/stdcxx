@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /***************************************************************************
  *
- * list - list declarations for the Standard Library
+ * <list> - definition of the C++ Standard Library list class template
  *
  * $Id$
  *
@@ -168,8 +168,7 @@ operator!= (const __rw_list_iter<_TypeT, _DiffT, _Ptr1, _Ref1> &__x,
 
 
 _EXPORT
-template <class _TypeT, 
-          class _Allocator _RWSTD_COMPLEX_DEFAULT (allocator<_TypeT>) >
+template <class _TypeT, class _Allocator = allocator<_TypeT> >
 class list : private _Allocator
 {
 public:
