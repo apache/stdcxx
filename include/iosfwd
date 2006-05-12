@@ -7,16 +7,22 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -37,15 +43,14 @@ class allocator;
 #ifndef _RWSTD_RW_BASIC_IOS_H_INCLUDED
 
 _EXPORT
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+template <class _CharT, class _Traits = char_traits<_CharT> >
 class basic_ios;
 
-typedef basic_ios<char, char_traits<char> > ios;
+typedef basic_ios<char> ios;
 
 #  ifndef _RWSTD_NO_WCHAR_T
 
-typedef basic_ios<wchar_t, char_traits<wchar_t> > wios;
+typedef basic_ios<wchar_t> wios;
 
 #  endif   // _RWSTD_NO_WCHAR_T
 #endif   // _RWSTD_RW_BASIC_IOS_H_INCLUDED
@@ -54,15 +59,14 @@ typedef basic_ios<wchar_t, char_traits<wchar_t> > wios;
 #ifndef _RWSTD_STREAMBUF_INCLUDED
 
 _EXPORT
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+template <class _CharT, class _Traits = char_traits<_CharT> >
 class basic_streambuf;
 
-typedef basic_streambuf<char, char_traits<char> > streambuf;
+typedef basic_streambuf<char> streambuf;
 
 #  ifndef _RWSTD_NO_WCHAR_T
 
-typedef basic_streambuf<wchar_t, char_traits<wchar_t> > wstreambuf;
+typedef basic_streambuf<wchar_t> wstreambuf;
 
 #  endif   // _RWSTD_NO_WCHAR_T
 #endif   // _RWSTD_STREAMBUF_INCLUDED
@@ -72,23 +76,21 @@ typedef basic_streambuf<wchar_t, char_traits<wchar_t> > wstreambuf;
 
 // 27.2, p4
 _EXPORT
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+template <class _CharT, class _Traits = char_traits<_CharT> >
 class basic_istream;
 
 // 27.2, p6
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+template <class _CharT, class _Traits = char_traits<_CharT> >
 class basic_iostream;
 
 
-typedef basic_istream<char, char_traits<char> >  istream;
-typedef basic_iostream<char, char_traits<char> > iostream;
+typedef basic_istream<char>  istream;
+typedef basic_iostream<char> iostream;
 
 #  ifndef _RWSTD_NO_WCHAR_T
 
-typedef basic_istream<wchar_t, char_traits<wchar_t> >  wistream;
-typedef basic_iostream<wchar_t, char_traits<wchar_t> > wiostream;
+typedef basic_istream<wchar_t>  wistream;
+typedef basic_iostream<wchar_t> wiostream;
 
 #  endif   // _RWSTD_NO_WCHAR_T
 #endif   // _RWSTD_ISTREAM_INCLUDED
@@ -98,8 +100,7 @@ typedef basic_iostream<wchar_t, char_traits<wchar_t> > wiostream;
 
 // 27.2, p5
 _EXPORT
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+template <class _CharT, class _Traits = char_traits<_CharT> >
 class basic_ostream;
 
 typedef basic_ostream<char, char_traits<char> > ostream;
@@ -115,45 +116,37 @@ typedef basic_ostream<wchar_t, char_traits<wchar_t> > wostream;
 #ifndef _RWSTD_SSTREAM_INCLUDED
 
 _EXPORT
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>),
-         class _Allocator _RWSTD_COMPLEX_DEFAULT (allocator<_CharT>) > 
+template <class _CharT,
+          class _Traits = char_traits<_CharT>,
+          class _Allocator = allocator<_CharT> > 
 class basic_stringbuf;
 
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>),
-         class _Allocator _RWSTD_COMPLEX_DEFAULT (allocator<_CharT>)  > 
+template <class _CharT,
+          class _Traits = char_traits<_CharT>,
+          class _Allocator = allocator<_CharT>  > 
 class basic_istringstream;
 
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>),
-         class _Allocator _RWSTD_COMPLEX_DEFAULT (allocator<_CharT>) > 
+template <class _CharT,
+          class _Traits = char_traits<_CharT>,
+          class _Allocator = allocator<_CharT> > 
 class basic_ostringstream;
 
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>),
-         class _Allocator _RWSTD_COMPLEX_DEFAULT (allocator<_CharT>)  > 
+template <class _CharT,
+          class _Traits = char_traits<_CharT>,
+          class _Allocator = allocator<_CharT>  > 
 class basic_stringstream;
 
-typedef basic_stringbuf<char, char_traits<char>, allocator<char> >
-        stringbuf;
-typedef basic_istringstream<char, char_traits<char>, allocator<char> >
-        istringstream;
-typedef basic_ostringstream<char, char_traits<char>, allocator<char> >
-        ostringstream;
-typedef basic_stringstream<char, char_traits<char>, allocator<char> >
-        stringstream;
+typedef basic_stringbuf<char>     stringbuf;
+typedef basic_istringstream<char> istringstream;
+typedef basic_ostringstream<char> ostringstream;
+typedef basic_stringstream<char>  stringstream;
 
 #  ifndef _RWSTD_NO_WCHAR_T
 
-typedef basic_stringbuf<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
-        wstringbuf;
-typedef basic_istringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
-        wistringstream;
-typedef basic_ostringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
-        wostringstream;
-typedef basic_stringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
-        wstringstream;
+typedef basic_stringbuf<wchar_t>     wstringbuf;
+typedef basic_istringstream<wchar_t> wistringstream;
+typedef basic_ostringstream<wchar_t> wostringstream;
+typedef basic_stringstream<wchar_t>  wstringstream;
 
 #  endif   // _RWSTD_NO_WCHAR_T
 #endif   // _RWSTD_SSTREAM_INCLUDED
@@ -162,33 +155,29 @@ typedef basic_stringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
 #ifndef _RWSTD_FSTREAM_INCLUDED
 
 _EXPORT
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+template <class _CharT, class _Traits = char_traits<_CharT> >
 class basic_filebuf;
 
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+template <class _CharT, class _Traits = char_traits<_CharT> >
 class basic_ifstream;
 
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+template <class _CharT, class _Traits = char_traits<_CharT> >
 class basic_ofstream;
 
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+template <class _CharT, class _Traits = char_traits<_CharT> >
 class basic_fstream;
 
-typedef basic_filebuf<char, char_traits<char> >  filebuf;
-typedef basic_ifstream<char, char_traits<char> > ifstream;
-typedef basic_ofstream<char, char_traits<char> > ofstream;
-typedef basic_fstream<char, char_traits<char> >  fstream;
+typedef basic_filebuf<char>  filebuf;
+typedef basic_ifstream<char> ifstream;
+typedef basic_ofstream<char> ofstream;
+typedef basic_fstream<char>  fstream;
 
 #  ifndef _RWSTD_NO_WCHAR_T
 
-typedef basic_filebuf<wchar_t, char_traits<wchar_t> >  wfilebuf;
-typedef basic_ifstream<wchar_t, char_traits<wchar_t> > wifstream;
-typedef basic_ofstream<wchar_t, char_traits<wchar_t> > wofstream;
-typedef basic_fstream<wchar_t, char_traits<wchar_t> >  wfstream;
+typedef basic_filebuf<wchar_t>  wfilebuf;
+typedef basic_ifstream<wchar_t> wifstream;
+typedef basic_ofstream<wchar_t> wofstream;
+typedef basic_fstream<wchar_t>  wfstream;
 
 #  endif   // _RWSTD_NO_WCHAR_T
 #endif   // _RWSTD_FSTREAM_INCLUDED
@@ -196,12 +185,10 @@ typedef basic_fstream<wchar_t, char_traits<wchar_t> >  wfstream;
 
 #ifndef _RWSTD_RW_IOITER_H_INCLUDED
 
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) > 
+template <class _CharT, class _Traits = char_traits<_CharT> > 
 struct ostreambuf_iterator;
 
-template<class _CharT,
-         class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) > 
+template <class _CharT, class _Traits = char_traits<_CharT> > 
 struct istreambuf_iterator;
 
 #endif   // _RWSTD_RW_IOITER_H_INCLUDED

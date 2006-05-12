@@ -540,32 +540,6 @@
 #endif   // !defined (_MSC_VER) || (_MSC_VER < 1300)
 
 
-
-//
-// Macro for forming or ommitting default template parameters.
-//
-#ifndef _RWSTD_NO_SIMPLE_DEFAULT_TEMPLATES
-#  define _RWSTD_SIMPLE_DEFAULT(a)          = a
-#  ifndef _RWSTD_NO_COMPLEX_DEFAULT_TEMPLATES
-#    define _RWSTD_COMPLEX_DEFAULT(a)       = a
-#    define _RWSTD_COMPLEX_DEFAULT_2(a, b)  = a, b
-#  else
-#    define _RWSTD_COMPLEX_DEFAULT(ignore)        /* empty */
-#    define _RWSTD_COMPLEX_DEFAULT_2(ign1, ign2)  /* empty */
-#  endif
-#else   // if defined (_RWSTD_NO_SIMPLE_DEFAULT_TEMPLATES)
-#  ifndef _RWSTD_NO_COMPLEX_DEFAULT_TEMPLATES
-#    define _RWSTD_NO_COMPLEX_DEFAULT_TEMPLATES
-#  endif
-#  define _RWSTD_SIMPLE_DEFAULT(ignore)          /* empty */
-#  define _RWSTD_COMPLEX_DEFAULT(ignore)         /* empty */
-#  define _RWSTD_COMPLEX_DEFAULT_2(ign1, ign2)   /* empty */
-#  ifndef _RWSTD_NO_DEFAULT_TEMPLATES
-#    define _RWSTD_NO_DEFAULT_TEMPLATES
-#  endif
-#endif   // _RWSTD_NO_SIMPLE_DEFAULT_TEMPLATES
-
-
 // Macro for casting, using either the "old" method
 // or the new C++ cast system
 #ifndef _RWSTD_NO_STATIC_CAST
@@ -649,6 +623,13 @@
     && (!defined (_MSC_VER) || _MSC_VER >= 1300)
 #  define _RWSTD_ALLOCATOR
 #endif
+
+#ifdef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+   // disable container member function templates
+#  ifndef _RWSTD_NO_CONTAINER_TEMPLATE_MEMBERS
+#    define _RWSTD_NO_CONTAINER_TEMPLATE_MEMBERS
+#  endif   // _RWSTD_NO_CONTAINER_TEMPLATE_MEMBERS
+#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
 
 #define _RWSTD_MB_CUR_MAX 16  // FIXME: must be determined dynamically
@@ -1142,9 +1123,16 @@
 #    define _RWSTD_ASSERT(expr)   \
      ((expr) ? (void)0 : _RW::__rw_assert_fail (#expr, __FILE__, __LINE__, 0))
 #  endif
+#elif defined (_RWSTD_ASSUME)
+#  define _RWSTD_ASSERT(expr)   _RWSTD_ASSUME (expr)
 #else   //  if !defined (_RWSTDDEBUG)
 #  define _RWSTD_ASSERT(ignore)   ((void)0)
 #endif   // _RWSTDDEBUG
+
+#ifndef _RWSTD_ASSUME
+   // must be #defined after _RWSTD_ASSERT
+#  define _RWSTD_ASSUME(expr)   _RWSTD_ASSERT (expr)
+#endif   // _RWSTD_ASSUME
 
 // compile-time assertion - asserts constant expressions during
 // compilation with no runtime overhead; failed assertions are reported

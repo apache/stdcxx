@@ -5,20 +5,26 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/loc/_num_get.h#34 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -38,13 +44,12 @@
 #include <rw/_defs.h>
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 // 22.2.2.1
 _EXPORT
-template <class _CharT,
-  class _InputIter _RWSTD_COMPLEX_DEFAULT (_RWSTD_ISTREAMBUF_ITER (_CharT)) >
+template <class _CharT, class _InputIter = istreambuf_iterator<_CharT> >
 struct num_get: _RW::__rw_facet
 {
     typedef _CharT     char_type;
@@ -240,17 +245,17 @@ private:
 #ifndef _RWSTD_NO_SPECIALIZED_FACET_ID
 
 _RWSTD_SPECIALIZED_CLASS
-_RW::__rw_facet_id num_get<char, _RWSTD_ISTREAMBUF_ITER (char) >::id;
+_RW::__rw_facet_id num_get<char, istreambuf_iterator<char> >::id;
 
 #  ifndef _RWSTD_NO_WCHAR_T
 
 _RWSTD_SPECIALIZED_CLASS
-_RW::__rw_facet_id num_get<wchar_t, _RWSTD_ISTREAMBUF_ITER (wchar_t) >::id;
+_RW::__rw_facet_id num_get<wchar_t, istreambuf_iterator<wchar_t> >::id;
 
 #  endif   // _RWSTD_NO_WCHAR_T
 #endif   // _RWSTD_NO_SPECIALIZED_FACET_ID
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE_FIRST (_NUM_GET)
@@ -258,23 +263,21 @@ _RW::__rw_facet_id num_get<wchar_t, _RWSTD_ISTREAMBUF_ITER (wchar_t) >::id;
 #endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (_NUM_GET)
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 #if _RWSTD_INSTANTIATE (_NUM_GET, _CHAR)
 
-_RWSTD_INSTANTIATE_2 (struct _RWSTD_EXPORT
-                      num_get<char, _RWSTD_ISTREAMBUF_ITER (char) >);
+_RWSTD_INSTANTIATE_1 (struct _RWSTD_EXPORT num_get<char>);
 
 #endif   // _RWSTD_INSTANTIATE (_NUM_GET, _CHAR)
 
 #if _RWSTD_INSTANTIATE (_NUM_GET, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_2 (struct _RWSTD_EXPORT
-                      num_get<wchar_t, _RWSTD_ISTREAMBUF_ITER (wchar_t) >);
+_RWSTD_INSTANTIATE_1 (struct _RWSTD_EXPORT num_get<wchar_t>);
 
 #endif   // _RWSTD_INSTANTIATE (_NUM_GET, _WCHAR_T)
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE_LAST (_NUM_GET)

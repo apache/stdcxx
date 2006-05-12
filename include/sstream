@@ -52,47 +52,39 @@ _RWSTD_NAMESPACE (std) {
 
 _EXPORT
 template <class _CharT,
-          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>),
-          class _Alloc _RWSTD_COMPLEX_DEFAULT (allocator<_CharT>) >
+          class _Traits = char_traits<_CharT>,
+          class _Alloc = allocator<_CharT> >
 class basic_stringbuf;
 
 _EXPORT
 template <class _CharT,
-          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>),
-          class _Alloc _RWSTD_COMPLEX_DEFAULT (allocator<_CharT>) >
+          class _Traits = char_traits<_CharT>,
+          class _Alloc = allocator<_CharT> >
 class basic_istringstream;
 
 _EXPORT
 template <class _CharT,
-          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>),
-          class _Alloc _RWSTD_COMPLEX_DEFAULT (allocator<_CharT>) >
+          class _Traits = char_traits<_CharT>,
+          class _Alloc = allocator<_CharT> >
 class basic_ostringstream;
 
 _EXPORT
 template <class _CharT,
-          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>),
-          class _Alloc _RWSTD_COMPLEX_DEFAULT (allocator<_CharT>) >
+          class _Traits = char_traits<_CharT>,
+          class _Alloc = allocator<_CharT> >
 class basic_stringstream;
 
-typedef basic_stringbuf<char, char_traits<char>, allocator<char> >
-        stringbuf;
-typedef basic_istringstream<char, char_traits<char>, allocator<char> >
-        istringstream;
-typedef basic_ostringstream<char, char_traits<char>, allocator<char> >
-        ostringstream;
-typedef basic_stringstream<char, char_traits<char>, allocator<char> >
-        stringstream;
+typedef basic_stringbuf<char>     stringbuf;
+typedef basic_istringstream<char> istringstream;
+typedef basic_ostringstream<char> ostringstream;
+typedef basic_stringstream<char>  stringstream;
 
 #  ifndef _RWSTD_NO_WCHAR_T
 
-typedef basic_stringbuf<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
-        wstringbuf;
-typedef basic_istringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
-        wistringstream;
-typedef basic_ostringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
-        wostringstream;
-typedef basic_stringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >
-        wstringstream;
+typedef basic_stringbuf<wchar_t>     wstringbuf;
+typedef basic_istringstream<wchar_t> wistringstream;
+typedef basic_ostringstream<wchar_t> wostringstream;
+typedef basic_stringstream<wchar_t>  wstringstream;
 
 #  endif   // _RWSTD_NO_WCHAR_T
 #endif   // _RWSTD_IOSFWD_INCLUDED
@@ -431,17 +423,13 @@ _RWSTD_NAMESPACE (std) {
 
 #if _RWSTD_INSTANTIATE (_BASIC_STRINGBUF, _CHAR)
 
-_RWSTD_INSTANTIATE_3 (class _RWSTD_EXPORT
-                      basic_stringbuf<char, char_traits<char>,
-                                      allocator<char> >);
+_RWSTD_INSTANTIATE_1 (class _RWSTD_EXPORT basic_stringbuf<char>);
 
 #endif   // _RWSTD_INSTANTIATE (_BASIC_STRINGBUF, _CHAR)
 
 #if _RWSTD_INSTANTIATE (_BASIC_STRINGBUF, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_3 (class _RWSTD_EXPORT
-                      basic_stringbuf<wchar_t, char_traits<wchar_t>,
-                                      allocator<wchar_t> >);
+_RWSTD_INSTANTIATE_1 (class _RWSTD_EXPORT basic_stringbuf<wchar_t>);
 
 #endif   // _RWSTD_INSTANTIATE (_BASIC_STRINGBUF, _WCHAR_T)
 

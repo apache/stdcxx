@@ -3,7 +3,7 @@
  *
  * istream - Declarations for the Standard Library istreams
  *
- * $Id: //stdlib/dev/include/istream#53 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -56,22 +56,20 @@ _RWSTD_NAMESPACE (std) {
 #ifndef _RWSTD_IOSFWD_INCLUDED
 
 _EXPORT
-template <class _CharT,
-          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+template <class _CharT, class _Traits = char_traits<_CharT> >
 class basic_istream;
 
 _EXPORT
-template <class _CharT,
-          class _Traits _RWSTD_COMPLEX_DEFAULT (char_traits<_CharT>) >
+template <class _CharT, class _Traits = char_traits<_CharT> >
 class basic_iostream;
 
-typedef basic_istream<char, char_traits<char> >  istream;
-typedef basic_iostream<char, char_traits<char> > iostream;
+typedef basic_istream<char>  istream;
+typedef basic_iostream<char> iostream;
 
 #  ifndef _RWSTD_NO_WCHAR_T
 
-typedef basic_istream<wchar_t, char_traits<wchar_t> >  wistream;
-typedef basic_iostream<wchar_t, char_traits<wchar_t> > wiostream;
+typedef basic_istream<wchar_t>  wistream;
+typedef basic_iostream<wchar_t> wiostream;
 
 #  endif   // _RWSTD_NO_WCHAR_T
 #endif   // _RWSTD_IOSFWD_INCLUDED
