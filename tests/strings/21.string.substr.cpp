@@ -253,7 +253,7 @@ void test_substr (charT, Traits*,
                 break;
 
             default:
-                RW_ASSERT ("test logic error: unknown substr overload");
+                RW_ASSERT (!"logic error: unknown substr overload");
                 return;
         }
 
