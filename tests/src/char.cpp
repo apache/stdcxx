@@ -36,6 +36,10 @@
 #include <stdlib.h>      // for strtol()
 #include <string.h>      // for memcpy(), strlen(), ...
 
+/**************************************************************************/
+// for convenience
+typedef unsigned char UChar;
+
 
 size_t
 UserTraits<UserChar>::
@@ -307,7 +311,7 @@ _rw_expand (void *dst, size_t elemsize,
 
         unsigned long count;
 
-        if ('@' == psrc [1] && isdigit (psrc [2])) {
+        if ('@' == psrc [1] && isdigit (UChar (psrc [2]))) {
             // process directive
             psrc += 2;
 
@@ -360,8 +364,6 @@ _rw_expand (void *dst, size_t elemsize,
 
             pnext = (char*)dst + buflen * elemsize;
         }
-
-        typedef unsigned char UChar;
 
         if (sizeof (WChar) == elemsize) {
             for (size_t i = 0; i != count; ++i)
@@ -466,8 +468,6 @@ rw_widen (wchar_t *dst, const char *src, size_t len /* = SIZE_MAX */)
         if (src) {
             // widen src into dst one element at a time
             for (size_t i = 0; ; ++i) {
-                typedef unsigned char UChar;
-
                 if (i == len) {
                     dst [i] = L'\0';
                     break;
@@ -517,8 +517,6 @@ rw_narrow (char *dst, const wchar_t *src, size_t len /* = SIZE_MAX */)
         if (src) {
             // narrow src into dst one element at a time
             for (size_t i = 0; ; ++i) {
-                typedef unsigned char UChar;
-
                 if (i == len) {
                     dst [i] = '\0';
                     break;
@@ -565,8 +563,6 @@ rw_match (const char *s1, const wchar_t *s2, size_t len /* = SIZE_MAX */)
         || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len))
         s1 = rw_expand (s1_buf, s1, len, &s1_len);
 
-    typedef unsigned char UChar;
-
     size_t n = 0;
 
     for ( ; n != len && UChar (s1 [n]) == unsigned (s2 [n]); ++n) {
@@ -598,8 +594,6 @@ rw_widen (UserChar *dst, const char *src, size_t len /* = SIZE_MAX */)
         if (src) {
             // widen src into dst one element at a time
             for (size_t i = 0; ; ++i) {
-                typedef unsigned char UChar;
-
                 if (i == len) {
                     dst [i] = UserChar::eos ();
                     break;
@@ -650,8 +644,6 @@ rw_narrow (char *dst, const UserChar *src, size_t len /* = SIZE_MAX */)
         if (src) {
             // narrow src into dst one element at a time
             for (size_t i = 0; ; ++i) {
-                typedef unsigned char UChar;
-
                 if (i == len) {
                     dst [i] = '\0';
                     break;
@@ -697,8 +689,6 @@ rw_match (const char *s1, const UserChar *s2, size_t len /* = SIZE_MAX */)
     if (   _RWSTD_SIZE_MAX == len && strchr (s1, '@')
         || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len))
         s1 = rw_expand (s1_buf, s1, len, &s1_len);
-
-    typedef unsigned char UChar;
 
     size_t n = 0;
 
@@ -772,7 +762,7 @@ _rw_fmtstringv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
         elemsize = va_arg (*pva, int);
         ++fmt;
     }
-    else if (isdigit (*fmt)) {
+    else if (isdigit (UChar (*fmt))) {
         // process positional parameter or width
         char* end = 0;
         const int arg = strtol (fmt, &end, 10);
@@ -800,7 +790,7 @@ _rw_fmtstringv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
             nelems = va_arg (*pva, int);
             ++fmt;
         }
-        else if (isdigit (*fmt)) {
+        else if (isdigit (UChar (*fmt))) {
             char* end = 0;
             nelems = int (strtol (fmt, &end, 10));
             fmt    = end;
