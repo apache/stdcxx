@@ -600,7 +600,7 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
 
             // compute the beginning of the range of elements whose copies
             // will be constructed just past the current end of the sequence
-            const pointer __ucpbeg = __self->_C_end - __size2;
+            pointer __ucpbeg = __self->_C_end - __size2;
 
             // construct copies of elements that will be moved beyond
             // the current end of the sequence controlled by *this as
@@ -613,15 +613,13 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
             for (__p = __ucpbeg; !(__p == __end); ++__p, ++__self->_C_end)
                 __self->_C_construct (__self->_C_end, *__p);
 
-            pointer __ucpend = __ucpbeg + (__ucpbeg - __movbeg);
-
             // copy elements that will be overwritten below
             // over the range of elements moved above as if
             // by a call to
-            // std::copy_backward (__movbeg, __ucpbeg, __ucpend);
+            // std::copy_backward (__movbeg, __ucpbeg, __movbeg);
 
             for (__p = __ucpbeg; !(__p == __movbeg); ) {
-                *--__ucpend = *--__p;
+                *__ucpbeg-- = *--__p;
             }
         }
         else {
