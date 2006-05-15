@@ -70,7 +70,8 @@ static const char* const
 _rw_memfun_names[] = {
     "append", "assign", "erase", "insert", "replace", "operator+=", "find", 
     "rfind", "find_first_of", "find_last_of", "find_first_not_of", 
-    "find_last_not_of", "compare", "substr", "operator[]", "copy"
+    "find_last_not_of", "compare", "substr", "operator[]", "at", "copy",
+    "constructor", "operator="
 };
 
 /**************************************************************************/
@@ -210,6 +211,7 @@ _rw_setvars (const StringMembers::Function &fun,
             "const value_type*",
             "const basic_string&",
             "size_type",
+            "size_type",
             "const value_type*, size_type",
             "const basic_string&, size_type",
             "const value_type*, size_type, size_type",
@@ -245,8 +247,10 @@ _rw_setvars (const StringMembers::Function &fun,
 
         RW_ASSERT (siginx < sizeof signatures / sizeof *signatures);
 
-        // append the function signature
-        rw_asnprintf (&buf, &bufsize, "%{+} (%s)", signatures [siginx]);
+        // append the function signature, 
+        // special processing for at (size_type) const and operator[] const
+        rw_asnprintf (&buf, &bufsize, "%{+} (%s)%{?} const%{;}", 
+                      signatures [siginx], 4 == siginx);
 
         rw_putenv ("FUNCSIG=");
         rw_fprintf (0, "%{$FUNCSIG:=*}", buf);
@@ -299,6 +303,8 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_first_not_of_ptr:
     case StringMembers::find_last_not_of_ptr:
     case StringMembers::compare_ptr:
+    case StringMembers::ctor_ptr:
+    case StringMembers::op_set_ptr:
         // format self-referential ptr argument without size as c_str()
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%{?}c_str()%{:}%{#*s}%{;})",
@@ -315,6 +321,8 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_first_not_of_str:
     case StringMembers::find_last_not_of_str:
     case StringMembers::compare_str:
+    case StringMembers::ctor_str:
+    case StringMembers::op_set_str:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%{?}*this%{:}string(%{#*s})%{;})",
@@ -324,6 +332,7 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::append_ptr_size:
     case StringMembers::assign_ptr_size:
     case StringMembers::copy_ptr_size:
+    case StringMembers::ctor_ptr_size:
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}data()%{:}%{#*s}%{;}, %zu)",
@@ -348,6 +357,7 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_last_of_str_size:
     case StringMembers::find_first_not_of_str_size:
     case StringMembers::find_last_not_of_str_size:
+    case StringMembers::ctor_str_size:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}*this%{:}string(%{#*s})%{;}, %zu)",
@@ -377,6 +387,7 @@ _rw_setvars (const StringMembers::Function &fun,
 
     case StringMembers::append_str_size_size:
     case StringMembers::assign_str_size_size:
+    case StringMembers::ctor_str_size_size:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}*this%{:}string(%{#*s})%{;}, %zu, %zu)",
@@ -386,12 +397,14 @@ _rw_setvars (const StringMembers::Function &fun,
 
     case StringMembers::append_size_val:
     case StringMembers::assign_size_val:
+    case StringMembers::ctor_size_val:
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%zu, %{#c})", pcase->size, pcase->val);
         break;
 
     case StringMembers::append_range:
     case StringMembers::assign_range:
+    case StringMembers::ctor_range:
         rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}begin()%{:}Iterator(%{#*s})%{;}"
                       "%{?} + %zu%{;}, "
@@ -563,6 +576,7 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_last_of_val:
     case StringMembers::find_first_not_of_val:
     case StringMembers::find_last_not_of_val:
+    case StringMembers::op_set_val:
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%{#c})", pcase->val);
         break;
@@ -579,15 +593,23 @@ _rw_setvars (const StringMembers::Function &fun,
 
     case StringMembers::erase_void:
     case StringMembers::substr_void:
+    case StringMembers::ctor_void:
         rw_asnprintf (&buf, &bufsize,
                       "%{+} ()");
         break;
 
     case StringMembers::erase_size:
     case StringMembers::substr_size:
-    case StringMembers::access_size:
+    case StringMembers::op_index_size:
+    case StringMembers::at_size:
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%zu)", pcase->off);
+        break;
+
+    case StringMembers::op_index_size_const:
+    case StringMembers::at_size_const:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (%zu) const", pcase->off);
         break;
 
     case StringMembers::erase_size_size:
@@ -887,6 +909,7 @@ run_test (int         argc,
                     "|-no-ptr# "
                     "|-no-str# "
                     "|-no-size# "
+                    "|-no-size-const# "
                     "|-no-ptr_size# "
                     "|-no-str_size# "
                     "|-no-ptr_size_size# "
@@ -971,6 +994,7 @@ run_test (int         argc,
                     _rw_opt_memfun_disabled + sig_ptr - 1,
                     _rw_opt_memfun_disabled + sig_str - 1,
                     _rw_opt_memfun_disabled + sig_size - 1,
+                    _rw_opt_memfun_disabled + sig_size_const - 1,
                     _rw_opt_memfun_disabled + sig_ptr_size - 1,
                     _rw_opt_memfun_disabled + sig_str_size - 1,
                     _rw_opt_memfun_disabled + sig_ptr_size_size - 1,
@@ -1004,6 +1028,7 @@ run_test (int         argc,
                     _rw_opt_memfun_enabled + sig_ptr - 1,
                     _rw_opt_memfun_enabled + sig_str - 1,
                     _rw_opt_memfun_enabled + sig_size - 1,
+                    _rw_opt_memfun_enabled + sig_size_const - 1,
                     _rw_opt_memfun_enabled + sig_ptr_size - 1,
                     _rw_opt_memfun_enabled + sig_str_size - 1,
                     _rw_opt_memfun_enabled + sig_ptr_size_size - 1,

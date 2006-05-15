@@ -432,8 +432,10 @@ rw_match (const char *s1, const char *s2, size_t len /* = SIZE_MAX */)
     // see if the first string contains '@' and might need
     // to be expanded  (see rw_expand() for details)
     if (   _RWSTD_SIZE_MAX == len && strchr (s1, '@')
-        || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len))
+        || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len)) {
         s1 = rw_expand (s1_buf, s1, len, &s1_len);
+        len = s1_len;
+    }
 
     size_t n = 0;
 
@@ -560,8 +562,10 @@ rw_match (const char *s1, const wchar_t *s2, size_t len /* = SIZE_MAX */)
     // see if the first string contains '@' and might need
     // to be expanded  (see rw_expand() for details)
     if (   _RWSTD_SIZE_MAX == len && strchr (s1, '@')
-        || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len))
+        || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len)) {
         s1 = rw_expand (s1_buf, s1, len, &s1_len);
+        len = s1_len;
+    }
 
     size_t n = 0;
 
@@ -687,8 +691,10 @@ rw_match (const char *s1, const UserChar *s2, size_t len /* = SIZE_MAX */)
     // see if the first string contains '@' and might need
     // to be expanded  (see rw_expand() for details)
     if (   _RWSTD_SIZE_MAX == len && strchr (s1, '@')
-        || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len))
+        || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len)) {
         s1 = rw_expand (s1_buf, s1, len, &s1_len);
+        len = s1_len;
+    }
 
     size_t n = 0;
 
