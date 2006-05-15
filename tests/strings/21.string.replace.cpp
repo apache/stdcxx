@@ -261,7 +261,7 @@ iter_iter_str_test_cases [] = {
 static const TestCase
 iter_iter_ptr_size_test_cases [] = {
 
-// iter_iter_range_test_cases serves a double duty
+// iter_iter_ptr_size_test_cases serves a double duty
 #define size_size_ptr_size_test_cases iter_iter_ptr_size_test_cases
 
 #undef TEST
@@ -486,7 +486,8 @@ iter_iter_range_test_cases [] = {
     TEST ("a@1",       0,     0, "b@0",    0, -1, "a",                0),
     TEST ("a@1",       0,     0, "b@1",    0, -1, "ba",               0),
     TEST ("a@2",       0,     0, "b@2",    0, -1, "bbaa",             0),
-    TEST ("a@1000",    0,      0, "b@1000", 0, -1, "b@1000a@1000",     0),
+
+    TEST ("a@1000",    0,     0, "b@1000", 0, -1, "b@1000a@1000",     0),
     TEST ("a@1000",    0,     1, "b@1001", 0, -1, "b@1001a@999",      0),
     TEST ("a@1000",    0,     2, "b@1002", 0, -1, "b@1002a@998",      0),
     TEST ("a@1000",    1,   998, "b@1003", 0, -1, "ab@1003a",         0),
@@ -664,6 +665,7 @@ void test_replace_range (const charT*    wstr,
                          std::size_t     wstr_len,
                          const charT*    warg,
                          std::size_t     warg_len,
+                         std::size_t     res_len,
                          Traits*,
                          const Iterator &it,
                          const TestCase &tcase)
@@ -723,7 +725,7 @@ void test_replace_range (const charT*    wstr,
     // detrmine whether the produced sequence matches the exepceted result
     const std::size_t match = rw_match (tcase.res, str.data (), tcase.nres);
 
-    rw_assert (match == tcase.nres, 0, tcase.line,
+    rw_assert (match == res_len, 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
                "difference at offset %zu for %s",
                __LINE__, int (tcase.nres), tcase.res,
@@ -738,6 +740,7 @@ void test_replace_range (const charT    *wstr,
                          std::size_t     wstr_len,
                          const charT    *warg,
                          std::size_t     warg_len,
+                         std::size_t     res_len,
                          Traits*,
                          const TestCase &tcase)
 {
@@ -748,7 +751,7 @@ void test_replace_range (const charT    *wstr,
 
     // exercise InputIterator *or* string::iterator (i.e., self
     // referential modification), depending on the value of tcase.arg
-    test_replace_range (wstr, wstr_len, warg, warg_len, (Traits*)0,
+    test_replace_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
                        InputIter<charT>(0, 0, 0), tcase);
 
     if (0 == tcase.arg) {
@@ -756,13 +759,13 @@ void test_replace_range (const charT    *wstr,
         return;
     }
 
-    test_replace_range (wstr, wstr_len, warg, warg_len, (Traits*)0,
+    test_replace_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
                         ConstFwdIter<charT>(0, 0, 0), tcase);
 
-    test_replace_range (wstr, wstr_len, warg, warg_len, (Traits*)0,
+    test_replace_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
                         ConstBidirIter<charT>(0, 0, 0), tcase);
 
-    test_replace_range (wstr, wstr_len, warg, warg_len, (Traits*)0,
+    test_replace_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
                         ConstRandomAccessIter<charT>(0, 0, 0), tcase);
 }
 
@@ -789,15 +792,23 @@ void test_replace (charT, Traits*,
     charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
     charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
 
+    static charT wres_buf [BUFSIZE];
+    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
+    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
+
     // special processing for replace_range to exercise all iterators
     if (Replace (iter_iter_range) == which) {
-        test_replace_range (wstr, str_len, warg, arg_len, (Traits*)0, tcase);
+        test_replace_range (wstr, str_len, warg, arg_len, 
+                            res_len, (Traits*)0, tcase);
 
         if (wstr != wstr_buf)
             delete[] wstr;
 
         if (warg != warg_buf)
             delete[] warg;
+
+         if (wres != wres_buf)
+            delete[] wres;
 
         return;
     }
@@ -815,10 +826,6 @@ void test_replace (charT, Traits*,
 
     wstr = 0;
     warg = 0;
-
-    static charT wres_buf [BUFSIZE];
-    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
-    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
 
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
@@ -898,6 +905,7 @@ void test_replace (charT, Traits*,
                 delete[] wres;
 
             return;
+        }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
@@ -976,7 +984,7 @@ void test_replace (charT, Traits*,
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, str.c_str (), res_len);
+                    rw_match (tcase.res, str.c_str (), tcase.nres);
 
                 rw_assert (match == res_len, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{/*.*Gs}, "

@@ -31,15 +31,12 @@
 
 #include <21.strings.h> // for StringMembers
 #include <driver.h>     // for rw_assert()
-#include <rw_char.h>    // for rw_widen()
+#include <rw_char.h>    // for rw_expand()
 
 /**************************************************************************/
 
 // for convenience and brevity
-
 #define NPOS          _RWSTD_SIZE_MAX
-#define LSTR          StringMembers::long_string
-#define LLEN          StringMembers::long_string_len
 #define Find(which)   StringMembers::find_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
@@ -117,17 +114,17 @@ ptr_test_cases [] = {
     TEST ("aaaaaaaaaa", "aaaaaaaaa",     0),
     TEST ("aaaaaaaaa",  "aaaaaaaaaa", NPOS),
 
-    TEST (LSTR,         "",              0),
-    TEST (LSTR,         "a",          NPOS),
-    TEST (LSTR,         "x",             0),
-    TEST (LSTR,         "xxx",           0),
-    TEST (LSTR,         "xxa",        NPOS),
-    TEST ("abc",        LSTR,         NPOS),
-    TEST ("xxxxxxxxxx", LSTR,         NPOS),
+    TEST ("x@4096",     "",              0),
+    TEST ("x@4096",     "a",          NPOS),
+    TEST ("x@4096",     "x",             0),
+    TEST ("x@4096",     "xxx",           0),
+    TEST ("x@4096",     "xxa",        NPOS),
+    TEST ("abc",        "x@4096",     NPOS),
+    TEST ("xxxxxxxxxx", "x@4096",     NPOS),
 
     TEST ("abcdefghij", 0,               0),
     TEST ("\0cb\0\0ge", 0,               0),
-    TEST (LSTR,         0,               0),
+    TEST ("x@4096",     0,               0),
 
     TEST ("last test",  "test",          5)
 };
@@ -202,17 +199,17 @@ str_test_cases [] = {
     TEST ("aaaaaaaaaa", "aaaaaaaaa",     0),
     TEST ("aaaaaaaaa",  "aaaaaaaaaa", NPOS),
 
-    TEST (LSTR,         "",              0),
-    TEST (LSTR,         "a",          NPOS),
-    TEST (LSTR,         "x",             0),
-    TEST (LSTR,         "xxx",           0),
-    TEST (LSTR,         "xxa",        NPOS),
-    TEST ("abc",        LSTR,         NPOS),
-    TEST ("xxxxxxxxxx", LSTR,         NPOS),
+    TEST ("x@4096",     "",              0),
+    TEST ("x@4096",     "a",          NPOS),
+    TEST ("x@4096",     "x",             0),
+    TEST ("x@4096",     "xxx",           0),
+    TEST ("x@4096",     "xxa",        NPOS),
+    TEST ("abc",        "x@4096",     NPOS),
+    TEST ("xxxxxxxxxx", "x@4096",     NPOS),
 
     TEST ("abcdefghij", 0,               0),
     TEST ("\0cb\0\0ge", 0,               0),
-    TEST (LSTR,         0,               0),
+    TEST ("x@4096",     0,               0),
 
     TEST ("last test",  "test",          5)
 };
@@ -293,22 +290,22 @@ ptr_size_test_cases [] = {
     TEST ("aaaaaaaaaa", "aaaaaaaaa",   2,  NPOS),
     TEST ("aaaaaaaaa",  "aaaaaaaaaa",  0,  NPOS),
 
-    TEST (LSTR,         "",            0,     0),
-    TEST (LSTR,         "a",           0,  NPOS),
-    TEST (LSTR,         "x",           0,     0),
-    TEST (LSTR,         "xxx",        10,    10),
-    TEST (LSTR,         "xxa",        10,  NPOS),
-    TEST ("abc",        LSTR,          2,  NPOS),
-    TEST ("xxxxxxxxxx", LSTR,          0,  NPOS),
+    TEST ("x@4096",     "",            0,     0),
+    TEST ("x@4096",     "a",           0,  NPOS),
+    TEST ("x@4096",     "x",           0,     0),
+    TEST ("x@4096",     "xxx",        10,    10),
+    TEST ("x@4096",     "xxa",        10,  NPOS),
+    TEST ("abc",        "x@4096",      2,  NPOS),
+    TEST ("xxxxxxxxxx", "x@4096",      0,  NPOS),
 
-    TEST (LSTR,         "xxx",  LLEN - 4, LLEN - 4),
-    TEST (LSTR,         "xxx",  LLEN - 3,  NPOS),
+    TEST ("x@4096",     "xxx",      4092,  4092),
+    TEST ("x@4096",     "xxx",      4094,  NPOS),
 
     TEST ("abcdefghij", 0,             0,     0),
     TEST ("abcdefghij", 0,             1,  NPOS),
     TEST ("\0cb\0\0ge", 0,             5,     5),
-    TEST (LSTR,         0,             0,     0),
-    TEST (LSTR,         0,             1,  NPOS),
+    TEST ("x@4096",     0,             0,     0),
+    TEST ("x@4096",     0,             1,  NPOS),
 
     TEST ("",           "",            1,  NPOS),
     TEST ("abcdefghij", "abc",        10,  NPOS),
@@ -410,27 +407,27 @@ ptr_size_size_test_cases [] = {
     TEST ("aaaaaaaaa",  "aaaaaaaaaa",  0, 10, NPOS),
     TEST ("aaaaaaaaa",  "aaaaaaaaaa",  0,  7,    0),
 
-    TEST (LSTR,         "",            0,  0,          0),
-    TEST (LSTR,         "a",           0,  1,       NPOS),
-    TEST (LSTR,         "x",           0,  1,          0),
-    TEST (LSTR,         "xxx",        10,  3,         10),
-    TEST (LSTR,         "xxa",        10,  3,       NPOS),
-    TEST (LSTR,         "xxa",        10,  2,         10),
-    TEST ("abc",        LSTR,          2, 10,       NPOS),
-    TEST ("xxxxxxxxxx", LSTR,          0, LLEN - 1, NPOS),
-    TEST ("xxxxxxxxxx", LSTR,          2,  4,          2),
+    TEST ("x@4096",     "",            0,  0,      0),
+    TEST ("x@4096",     "a",           0,  1,   NPOS),
+    TEST ("x@4096",     "x",           0,  1,      0),
+    TEST ("x@4096",     "xxx",        10,  3,     10),
+    TEST ("x@4096",     "xxa",        10,  3,   NPOS),
+    TEST ("x@4096",     "xxa",        10,  2,     10),
+    TEST ("abc",        "x@4096",      2, 10,   NPOS),
+    TEST ("xxxxxxxxxx", "x@4096",      0, 4096, NPOS),
+    TEST ("xxxxxxxxxx", "x@4096",      2,  4,      2),
 
-    TEST (LSTR,         "xxx",  LLEN - 4,  3,   LLEN - 4),
-    TEST (LSTR,         "xxx",  LLEN - 3,  3,       NPOS),
-    TEST (LSTR,         "xxx",  LLEN - 3,  2,   LLEN - 3),
+    TEST ("x@4096",     "xxx",      4093,  3,   4093),
+    TEST ("x@4096",     "xxx",      4094,  3,   NPOS),
+    TEST ("x@4096",     "xxx",      4094,  2,   4094),
 
-    TEST ("abcdefghij", 0,             0,  9,    0),
-    TEST ("abcdefghij", 0,             1,  9, NPOS),
-    TEST ("\0cb\0\0ge", 0,             5,  7, NPOS),
-    TEST ("\0cb\0ge\0", 0,             6,  1,    6),
-    TEST (LSTR,         0,             0, LLEN - 1,  0),
-    TEST (LSTR,         0,             1, LLEN - 1, NPOS),
-    TEST (LSTR,         0,             5, LLEN - 6,  5),
+    TEST ("abcdefghij", 0,             0,  9,      0),
+    TEST ("abcdefghij", 0,             1,  9,   NPOS),
+    TEST ("\0cb\0\0ge", 0,             5,  7,   NPOS),
+    TEST ("\0cb\0ge\0", 0,             6,  1,      6),
+    TEST ("x@4096",     0,             0, 4096,    0),
+    TEST ("x@4096",     0,             1, 4096, NPOS),
+    TEST ("x@4096",     0,             5, 4091,    5),
 
     TEST ("",           "",            1,  0, NPOS),
     TEST ("abcdefghij", "abc",        10,  3, NPOS),
@@ -439,8 +436,8 @@ ptr_size_size_test_cases [] = {
     // excercise strictly undefined behavior
     TEST ("",           "cba",         0, -1, NPOS),
     TEST ("abcdefghij", "cba",         0, -1, NPOS),
-    TEST (LSTR,         "xxx",         0, -1, NPOS),
-    TEST ("abcdefghij", LSTR,          0, -1, NPOS),
+    TEST ("x@4096",     "xxx",         0, -1, NPOS),
+    TEST ("abcdefghij", "x@4096",      0, -1, NPOS),
 
     TEST ("last test", "test",         0,  4,    5)
 };
@@ -517,23 +514,23 @@ str_size_test_cases [] = {
     TEST ("aaaaaaaaaa", "aaaaaaaaa",   2, NPOS),
     TEST ("aaaaaaaaa",  "aaaaaaaaaa",  0, NPOS),
 
-    TEST (LSTR,         "",            0,    0),
-    TEST (LSTR,         "a",           0, NPOS),
-    TEST (LSTR,         "x",           0,    0),
-    TEST (LSTR,         "xxx",        10,   10),
-    TEST (LSTR,         "xxa",        10, NPOS),
-    TEST ("abc",        LSTR,          2, NPOS),
-    TEST ("xxxxxxxxxx", LSTR,          0, NPOS),
+    TEST ("x@4096",     "",            0,    0),
+    TEST ("x@4096",     "a",           0, NPOS),
+    TEST ("x@4096",     "x",           0,    0),
+    TEST ("x@4096",     "xxx",        10,   10),
+    TEST ("x@4096",     "xxa",        10, NPOS),
+    TEST ("abc",        "x@4096",      2, NPOS),
+    TEST ("xxxxxxxxxx", "x@4096",      0, NPOS),
 
-    TEST (LSTR,         "xxx",  LLEN - 4, LLEN - 4),
-    TEST (LSTR,         "xxx",  LLEN - 3, NPOS),
+    TEST ("x@4096",     "xxx",      4093, 4093),
+    TEST ("x@4096",     "xxx",      4094, NPOS),
 
     TEST ("abcdefghij", 0,             0,    0),
     TEST ("abcdefghij", 0,             1, NPOS),
     TEST ("\0cb\0\0ge", 0,             5, NPOS),
     TEST ("\0cb\0\0ge", 0,             0,    0),
-    TEST (LSTR,         0,             0,    0),
-    TEST (LSTR,         0,             1, NPOS),
+    TEST ("x@4096",     0,             0,    0),
+    TEST ("x@4096",     0,             1, NPOS),
 
     TEST ("",           "",            1, NPOS),
     TEST ("abcdefghij", "abc",        10, NPOS),
@@ -577,9 +574,9 @@ val_test_cases [] = {
     TEST ("\0cbge\0\0",  'b',    2),
     TEST ("\0cbge\0\0",  'a', NPOS),
 
-    TEST (LSTR,          'x',    0),
-    TEST (LSTR,         '\0', NPOS),
-    TEST (LSTR,          'a', NPOS),
+    TEST ("x@4096",      'x',    0),
+    TEST ("x@4096",     '\0', NPOS),
+    TEST ("x@4096",      'a', NPOS),
 
     TEST ("last test",   't',    3)
 };
@@ -628,12 +625,13 @@ val_size_test_cases [] = {
     TEST ("\0bgeb\0\0",  'b',  2,    4),
     TEST ("\0cbge\0\0",  'a',  1, NPOS),
 
-    TEST (LSTR,          'x',  0,    0),
-    TEST (LSTR,          'x',  5,    5),
-    TEST (LSTR,         '\0',  0, NPOS),
-    TEST (LSTR,          'a',  3, NPOS),
-    TEST (LSTR,          'x', LLEN - 1, NPOS),
-    TEST (LSTR,          'x', LLEN - 2, LLEN - 2),
+    TEST ("x@4096",      'x',  0,    0),
+    TEST ("x@4096",      'x',  5,    5),
+    TEST ("x@4096",     '\0',  0, NPOS),
+    TEST ("x@2048\0xxx",'\0',  0, 2048),
+    TEST ("x@4096",      'a',  3, NPOS),
+    TEST ("x@4096",      'x', 4096, NPOS),
+    TEST ("x@4096",      'x', 4095, 4095),
 
     TEST ("last test",   't',  0,    3)
 };
@@ -646,17 +644,31 @@ void test_find (charT, Traits*,
                 const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
-    typedef std::basic_string <charT, Traits, Allocator> TestString;
-    typedef typename TestString::const_iterator          ConstStringIter;
+    typedef std::basic_string <charT, Traits, Allocator> String;
 
-    static charT wstr [LLEN];
-    static charT warg [LLEN];
+    static const std::size_t BUFSIZE = 256;
 
-    rw_widen (wstr, tcase.str, tcase.str_len);
-    rw_widen (warg, tcase.arg, tcase.arg_len);
+    static charT wstr_buf [BUFSIZE];
+    static charT warg_buf [BUFSIZE];
 
-    const TestString s_str (wstr, tcase.str_len);
-    const TestString s_arg (warg, tcase.arg_len);
+    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
+    std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
+
+    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
+    charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
+
+    // construct the string object and the argument string
+    const String  s_str (wstr, str_len);
+    const String  s_arg (warg, arg_len);
+
+    if (wstr != wstr_buf)
+        delete[] wstr;
+
+    if (warg != warg_buf)
+        delete[] warg;
+
+    wstr = 0;
+    warg = 0;
 
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
@@ -664,10 +676,11 @@ void test_find (charT, Traits*,
     const StringState str_state (rw_get_string_state (s_str));
 
     std::size_t res = 0;
-    std::size_t exp_res = NPOS != tcase.nres ? tcase.nres : TestString::npos;
+    std::size_t exp_res = NPOS != tcase.nres ? tcase.nres : String::npos;
 
-    const charT* const ptr_arg = tcase.arg ? warg : s_str.c_str ();
-    const TestString&  str_arg = tcase.arg ? s_arg : s_str;
+    // string function argument
+    const charT* const arg_ptr = tcase.arg ? s_arg.c_str () : s_str.c_str ();
+    const String&      arg_str = tcase.arg ? s_arg : s_str;
     const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
     std::size_t size = tcase.size >= 0 ? tcase.size : s_arg.max_size () + 1;
@@ -688,27 +701,27 @@ void test_find (charT, Traits*,
     try {
         switch (which) {
         case Find (ptr): {
-            res = s_str.find (ptr_arg);
+            res = s_str.find (arg_ptr);
             break;
         }
 
         case Find (str): {
-            res = s_str.find (str_arg);
+            res = s_str.find (arg_str);
             break;
         }
 
         case Find (ptr_size): {
-            res = s_str.find (ptr_arg, tcase.off);
+            res = s_str.find (arg_ptr, tcase.off);
             break;
         }
 
         case Find (ptr_size_size): {
-            res = s_str.find (ptr_arg, tcase.off, size);
+            res = s_str.find (arg_ptr, tcase.off, size);
             break;
         }
 
         case Find (str_size): {
-            res = s_str.find (str_arg, tcase.off);
+            res = s_str.find (arg_str, tcase.off);
             break;
         }
 
@@ -732,7 +745,7 @@ void test_find (charT, Traits*,
                    "line %d. %{$FUNCALL} == %{?}%zu%{;}%{?}npos%{;}, "
                    "got %{?}%zu%{;}%{?}npos%{;}",
                    __LINE__, NPOS != tcase.nres, exp_res, NPOS == tcase.nres,
-                   TestString::npos != res, res, TestString::npos == res);
+                   String::npos != res, res, String::npos == res);
     }
 
 #ifndef _RWSTD_NO_EXCEPTIONS

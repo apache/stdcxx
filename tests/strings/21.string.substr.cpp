@@ -31,13 +31,11 @@
 
 #include <21.strings.h> // for StringMembers
 #include <driver.h>     // for rw_test()
-#include <rw_char.h>    // for rw_widen()
+#include <rw_char.h>    // for rw_expand()
 
 /**************************************************************************/
 
 // for convenience and brevity
-#define LSTR             StringMembers::long_string
-#define LLEN             StringMembers::long_string_len
 #define Substr(which)    StringMembers::substr_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
@@ -77,7 +75,7 @@ void_test_cases [] = {
     TEST ("\0\0abcd\0",       "\0\0abcd\0"),
     TEST ("\0\0ab\0\0",       "\0\0ab\0\0"),
 
-    TEST (LSTR,               LSTR),
+    TEST ("x@4096",           "x@4096"),
 
     TEST ("last",             "last")
 };
@@ -124,14 +122,16 @@ size_test_cases [] = {
     TEST ("\0\0ab\0\0",     4,  "\0\0",       0),
     TEST ("\0\0ab\0\0",     6,  "",           0),
 
-    TEST (LSTR,             0,  LSTR,         0),
-    TEST (LSTR,      LLEN - 3,  "xx",         0),
-    TEST (LSTR,      LLEN - 9,  "xxxxxxxx",   0),
-    TEST (LSTR,      LLEN - 1,  "",           0),
+    TEST ("x@4096",         0,  "x@4096",     0),
+    TEST ("x@4096",      4094,  "xx",         0),
+    TEST ("x@4096",      4088,  "xxxxxxxx",   0),
+    TEST ("x@4096",      4096,  "",           0),
+    TEST ("abx@4096",       2,  "x@4096",     0),
+    TEST ("x@4096ab",    2048,  "x@2048ab",   0),
 
     TEST ("\0",             2,  "",           1),
     TEST ("a",             10,  "",           1),
-    TEST (LSTR,     LLEN + 10,  "",           1),
+    TEST ("x@4096",      4106,  "",           1),
 
     TEST ("last",           0,  "last",       0)
 };
@@ -192,16 +192,17 @@ size_size_test_cases [] = {
     TEST ("\0\0ab\0\0",     2,  3, "ab\0",       0),
     TEST ("\0\0ab\0\0",     6,  6, "",           0),
 
-    TEST (LSTR,             0, LLEN - 1, LSTR,   0),
-    TEST (LSTR,      LLEN - 2, LLEN - 1, "x",    0),
-    TEST (LSTR,      LLEN - 9,  2, "xx",         0),
-    TEST (LSTR,      LLEN - 4,  5, "xxx",        0),
-    TEST (LSTR,      LLEN - 9,  8, "xxxxxxxx",   0),
-    TEST (LSTR,      LLEN - 1,  1, "",           0),
+    TEST ("x@4096",       0, 4096, "x@4096",     0),
+    TEST ("x@4096",      4095, 4096, "x",        0),
+    TEST ("x@4096",      4088,  2, "xx",         0),
+    TEST ("x@4096",      4093,  5, "xxx",        0),
+    TEST ("x@4096",      4088,  8, "xxxxxxxx",   0),
+    TEST ("x@4096",      4096,  1, "",           0),
+    TEST ("ax@4096b",     1, 4094, "x@4094",     0),
 
     TEST ("\0",             2,  0, "",           1),
     TEST ("a",             10,  0, "",           1),
-    TEST (LSTR,     LLEN + 10,  0, "",           1),
+    TEST ("x@4096",      4106,  0, "",           1),
 
     TEST ("last",           0,  4, "last",       0)
 };
@@ -214,16 +215,28 @@ void test_substr (charT, Traits*,
                   const TestCase &cs)
 {
     typedef std::allocator<charT>                        Allocator;
-    typedef std::basic_string <charT, Traits, Allocator> TestString;
-    typedef typename TestString::const_iterator          ConstStringIter;
+    typedef std::basic_string <charT, Traits, Allocator> String;
 
-    static charT wstr [LLEN];
+    static const std::size_t BUFSIZE = 256;
 
-    // construct string
-    rw_widen (wstr, cs.str, cs.str_len);
-    const TestString str (wstr, cs.str_len);
+    static charT wstr_buf [BUFSIZE];
+    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
+    charT* wstr = rw_expand (wstr_buf, cs.str, cs.str_len, &str_len);
 
-    TestString s_res;
+    static charT wres_buf [BUFSIZE];
+    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
+    charT* wres = rw_expand (wres_buf, cs.res, cs.nres, &res_len);
+
+    // construct the string object 
+    const String  str (wstr, str_len);
+
+    if (wstr != wstr_buf)
+        delete[] wstr;
+
+    wstr = 0;
+
+
+    String s_res;
 
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
@@ -235,6 +248,15 @@ void test_substr (charT, Traits*,
     // is some exception expected?
     const char* const expected = cs.bthrow ? exceptions [1] : 0;
     const char* caught = 0;
+
+#else
+
+    if (cs.bthrow) {
+        if (wres != wres_buf)
+            delete[] wres;
+
+        return;
+    }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
@@ -258,21 +280,21 @@ void test_substr (charT, Traits*,
         }
 
         // verfiy that strings length are equal
-        rw_assert (cs.nres == s_res.size (), 0, cs.line,
+        rw_assert (res_len == s_res.size (), 0, cs.line,
                    "line %d. %{$FUNCALL} expected %{#*s} with length "
                    "%zu, got %{/*.*Gs} with length %zu",
                    __LINE__, int (cs.nres), cs.res, 
-                   cs.nres, int (sizeof (charT)), 
+                   res_len, int (sizeof (charT)), 
                    int (s_res.size ()), s_res.c_str (), s_res.size ());
 
-        if (cs.nres == s_res.size ()) {
+        if (res_len == s_res.size ()) {
             // if the result length matches the expected length
             // (and only then), also verify that the resulted
             // string matches the expected result
             const std::size_t match =
                 rw_match (cs.res, s_res.c_str(), cs.nres);
 
-            rw_assert (match == cs.nres, 0, cs.line,
+            rw_assert (match == res_len, 0, cs.line,
                        "line %d. %{$FUNCALL} expected %{#*s}, "
                        "got %{/*.*Gs}, difference at offset %zu",
                        __LINE__, int (cs.nres), cs.res,
@@ -313,6 +335,9 @@ void test_substr (charT, Traits*,
     }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
+
+    if (wres != wres_buf)
+        delete[] wres;
 }
 
 /**************************************************************************/
