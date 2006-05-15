@@ -52,6 +52,8 @@ struct _TEST_EXPORT StringMembers {
         sig_str,
         // (size_type)
         sig_size,
+        // (size_type) const
+        sig_size_const,
         // (const value_type*, size_type)
         sig_ptr_size,
         // (const basic_string&, size_type)
@@ -128,14 +130,17 @@ struct _TEST_EXPORT StringMembers {
         mem_find_last_not_of   = 1 << 17,
         mem_compare            = 1 << 18,
         mem_substr             = 1 << 19,
-        mem_access             = 1 << 20,
-        mem_copy               = 1 << 21,
+        mem_op_index           = 1 << 20,
+        mem_at                 = 1 << 21,
+        mem_copy               = 1 << 22,
+        mem_ctor               = 1 << 23,
+        mem_op_set             = 1 << 24,
         mem_mask       =
             mem_append | mem_assign | mem_erase | mem_insert | 
             mem_replace | mem_op_plus_eq | mem_find | mem_rfind |
             mem_find_first_of | mem_find_last_of | mem_find_first_not_of |
-            mem_find_last_not_of | mem_compare | mem_substr | mem_access |
-            mem_copy
+            mem_find_last_not_of | mem_compare | mem_substr | mem_op_index |
+            mem_at | mem_copy | mem_ctor | mem_op_set
     };
 
     // unique identifiers for all overloads of each member function
@@ -355,14 +360,45 @@ struct _TEST_EXPORT StringMembers {
 
         //////////////////////////////////////////////////////////////
         // operator[] (size_type)
+        op_index_size = mem_op_index + sig_size,
+        // operator[] (size_type) const
+        op_index_size_const = mem_op_index + sig_size_const,
         // at (size_type)
-        access_size = mem_access + sig_size,
+        at_size = mem_at + sig_size,
+        // at (size_type) const
+        at_size_const = mem_at + sig_size_const,
 
         //////////////////////////////////////////////////////////////
         // copy (value_type*, size_type)
         copy_ptr_size = mem_copy + sig_ptr_size,
         // copy (value_type*, size_type, size_type)
-        copy_ptr_size_size = mem_copy + sig_ptr_size_size
+        copy_ptr_size_size = mem_copy + sig_ptr_size_size,
+
+        //////////////////////////////////////////////////////////////
+        // (void)
+        ctor_void = mem_ctor + sig_void,
+        // (const value_type*)
+        ctor_ptr = mem_ctor + sig_ptr,
+        // (basic_string&)
+        ctor_str = mem_ctor + sig_str,
+        // (const value_type*, size_type)
+        ctor_ptr_size = mem_ctor + sig_ptr_size,
+        // (const basic_string&, size_type)
+        ctor_str_size = mem_ctor + sig_str_size,
+        // (const basic_string&, size_type, size_type)
+        ctor_str_size_size = mem_ctor + sig_str_size_size,
+        // (size_type, value_type)
+        ctor_size_val = mem_ctor + sig_size_val,
+        // (InputIterator, InputIterator)
+        ctor_range = mem_ctor + sig_range,
+
+        //////////////////////////////////////////////////////////////
+        // (const value_type*)
+        op_set_ptr = mem_op_set + sig_ptr,
+        // (basic_string&)
+        op_set_str = mem_op_set + sig_str,
+        // (value_type)
+        op_set_val = mem_op_set + sig_val
 
     };
 
