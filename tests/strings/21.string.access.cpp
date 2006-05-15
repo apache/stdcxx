@@ -19,282 +19,331 @@
  * 
  **************************************************************************/
 
-#include <stdexcept>   // for out_of_range
-#include <string>      // for basic_string
+#include <string>       // for string
+#include <cstdlib>      // for free(), size_t
+#include <stdexcept>    // for out_of_range
 
-#include <cmdopt.h>
-#include <driver.h>
-
-/**************************************************************************/
-
-template <class charT>
-class Lit;
-
-_RWSTD_SPECIALIZED_CLASS
-class Lit<char>
-{
-public:
-    static const char null[];
-    static const char a[];
-    static const char e[];
-    static const char s[];
-    static const char t[];
-    static const char x[];
-    static const char T[];
-    static const char _TypeT[];
-    static const char space[];
-    static const char testString[];
-    static const char testString2[];
-    static const char text[];
-    static const char testNullString[];
-    static const char testStringToBeWipedClean[];
-    static const char test[];
-    static const char anotherTest[];
-    static const char testNull00String[];
-    static const char tString[];
-    static const char str[];
-    static const char tNull00s[];
-    static const char more[];
-};
-
-const char Lit<char>:: null[] = "\0";
-const char Lit<char>:: a[] = "a";
-const char Lit<char>:: e[] = "e";
-const char Lit<char>:: s[] = "s";
-const char Lit<char>:: t[] = "t";
-const char Lit<char>:: T[] = "T";
-const char Lit<char>:: _TypeT[] = "_TypeT";
-const char Lit<char>:: x[] = "x";
-const char Lit<char>:: space[] = " ";
-const char Lit<char>:: testString[] = "test string";
-const char Lit<char>:: testString2[] = "Test string";
-const char Lit<char>:: text[] = "Text";
-const char Lit<char>:: testNullString[] = "Test\0string";
-const char Lit<char>:: testStringToBeWipedClean[] =
-"Test string to be wiped clean";
-const char Lit<char>:: test[] = "Test";
-const char Lit<char>:: anotherTest[] = "Another test";
-const char Lit<char>:: testNull00String[] = "Test\000 string";
-const char Lit<char>:: tString[] = "t string";
-const char Lit<char>:: str[] = "str";
-const char Lit<char>:: tNull00s[] = "t\000 s";
-const char Lit<char>:: more[] = "more";
-
-
-#ifndef _RWSTD_NO_WCHAR_T
-
-_RWSTD_SPECIALIZED_CLASS
-class Lit<wchar_t>
-{
-public:
-    static const wchar_t null[];
-    static const wchar_t a[];
-    static const wchar_t e[];
-    static const wchar_t s[];
-    static const wchar_t t[];
-    static const wchar_t T[];
-    static const wchar_t _TypeT[];
-    static const wchar_t x[];
-    static const wchar_t space[];
-    static const wchar_t testString[];
-    static const wchar_t testString2[];
-    static const wchar_t text[];
-    static const wchar_t testNullString[];
-    static const wchar_t testStringToBeWipedClean[];
-    static const wchar_t test[];
-    static const wchar_t anotherTest[];
-    static const wchar_t testNull00String[];
-    static const wchar_t tString[];
-    static const wchar_t str[];
-    static const wchar_t tNull00s[];
-    static const wchar_t more[];
-
-};
-
-const wchar_t Lit<wchar_t>:: null[] = L"\0";
-const wchar_t Lit<wchar_t>:: a[] = L"a";
-const wchar_t Lit<wchar_t>:: e[] = L"e";
-const wchar_t Lit<wchar_t>:: s[] = L"s";
-const wchar_t Lit<wchar_t>:: t[] = L"t";
-const wchar_t Lit<wchar_t>:: T[] = L"T";
-const wchar_t Lit<wchar_t>:: _TypeT[] = L"_TypeT";
-const wchar_t Lit<wchar_t>:: x[] = L"x";
-const wchar_t Lit<wchar_t>:: space[] = L" ";
-const wchar_t Lit<wchar_t>:: testString[] = L"test string";
-const wchar_t Lit<wchar_t>:: testString2[] = L"Test string";
-const wchar_t Lit<wchar_t>:: text[] = L"Text";
-const wchar_t Lit<wchar_t>:: testNullString[] = L"Test\0string";
-const wchar_t Lit<wchar_t>:: testStringToBeWipedClean[] =
-L"Test string to be wiped clean";
-const wchar_t Lit<wchar_t>:: test[] = L"Test";
-const wchar_t Lit<wchar_t>:: anotherTest[] = L"Another test";
-const wchar_t Lit<wchar_t>:: testNull00String[] = L"Test\000 string";
-const wchar_t Lit<wchar_t>:: tString[] = L"t string";
-const wchar_t Lit<wchar_t>:: str[] = L"str";
-const wchar_t Lit<wchar_t>:: tNull00s[] = L"t\000 s";
-const wchar_t Lit<wchar_t>:: more[] = L"more";
-
-#endif   // _RWSTD_NO_WCHAR_T
+#include <21.strings.h> // for StringMembers
+#include <driver.h>     // for rw_test()
+#include <rw_char.h>    // for rw_expand()
 
 /**************************************************************************/
 
-template <class charT>
-void test_at (charT, const char *cname)
-{
-    rw_case (0, 0,
-             "basic_string<charT>::at(size_type)",
-             "charT=%s", cname);
+// for convenience and brevity
+#define NPOS                      _RWSTD_SIZE_MAX
+#define At(which)                 StringMembers::at_ ## which
+#define OpIndex(which)            StringMembers::op_index_ ## which
 
-    typedef std::char_traits<charT>                     Traits;
-    typedef std::allocator<charT>                       Allocator;
-    typedef std::basic_string<charT, Traits, Allocator> String;
+typedef StringMembers::OverloadId OverloadId;
+typedef StringMembers::TestCase   TestCase;
+typedef StringMembers::Test       Test;
+typedef StringMembers::Function   MemFun;
+
+static const char* const exceptions[] = {
+    "unknown exception", "out_of_range", "length_error",
+    "bad_alloc", "exception"
+};
+
+/**************************************************************************/
+
+// used to exercise
+// operator[] (size_type)
+static const TestCase 
+op_index_size_test_cases [] = {
+
+#undef TEST
+#define TEST(str, off, res) {                    \
+        __LINE__, off, -1, -1, -1, -1,           \
+        str, sizeof str - 1,                     \
+        0, 0, 0, res, 0                          \
+    }
+
+    //    +--------------------------------- controlled sequence
+    //    |               +----------------- index 
+    //    |               |   +------------- expected result 
+    //    |               |   |     
+    //    V               V   V     
+    TEST ("a",            0, 'a' ), 
+
+    TEST ("\0",           0, '\0'),
+
+    TEST ("abc",          0, 'a' ),  
+    TEST ("abc",          1, 'b' ),  
+    TEST ("abc",          2, 'c' ),  
+
+    TEST ("\0ab\0\0c",    0, '\0'), 
+
+    TEST ("a\0b\0\0c",    0, 'a' ),  
+    TEST ("a\0b\0\0c",    1, '\0'),
+    TEST ("a\0b\0\0c",    2, 'b' ),  
+    TEST ("a\0b\0\0c",    3, '\0'), 
+    TEST ("a\0b\0\0c",    4, '\0'),
+    TEST ("a\0b\0\0c",    5, 'c' ),   
+
+    TEST ("a\0bc\0\0",    5, '\0'), 
+
+    TEST ("x@4096",       0, 'x' ),  
+    TEST ("x@4096",    2048, 'x' ), 
+    TEST ("x@4096",    4095, 'x' ), 
+
+    TEST ("last",         3, 't' )  
+};
+
+/**************************************************************************/
+
+// used to exercise
+// operator[] (size_type) const 
+static const TestCase 
+op_index_size_const_test_cases [] = {
+
+#undef TEST
+#define TEST(str, off, res) {                    \
+        __LINE__, off, -1, -1, -1, -1,           \
+        str, sizeof str - 1,                     \
+        0, 0, 0, res, 0                          \
+    }
+
+    //    +--------------------------------- controlled sequence
+    //    |               +----------------- index 
+    //    |               |   +------------- expected result 
+    //    |               |   |     
+    //    V               V   V     
+    TEST ("a",            0, 'a' ),  
+    TEST ("a",            1, NPOS), 
+
+    TEST ("",             0, NPOS), 
+
+    TEST ("\0",           0, '\0'),
+    TEST ("\0",           1, NPOS), 
+
+    TEST ("abc",          0, 'a' ),  
+    TEST ("abc",          1, 'b' ),  
+    TEST ("abc",          2, 'c' ),  
+    TEST ("abc",          3, NPOS), 
+
+    TEST ("\0ab\0\0c",    0, '\0'), 
+
+    TEST ("a\0b\0\0c",    0, 'a' ),  
+    TEST ("a\0b\0\0c",    1, '\0'),
+    TEST ("a\0b\0\0c",    2, 'b' ),  
+    TEST ("a\0b\0\0c",    3, '\0'), 
+    TEST ("a\0b\0\0c",    4, '\0'),
+    TEST ("a\0b\0\0c",    5, 'c' ),  
+    TEST ("a\0b\0\0c",    6, NPOS), 
+
+    TEST ("a\0bc\0\0",    5, '\0'), 
+
+    TEST ("x@4096",       0, 'x' ),  
+    TEST ("x@4096",    2048, 'x' ), 
+    TEST ("x@4096",    4095, 'x' ), 
+    TEST ("x@4096",    4096, NPOS),
+
+    TEST ("last",         3, 't' )  
+};
+
+/**************************************************************************/
+
+// used to exercise
+// at (size_type)
+// at (size_type) const 
+static const TestCase 
+at_size_test_cases [] = {
+
+#define at_size_const_test_cases    at_size_test_cases
+
+#undef TEST
+#define TEST(str, off, res, bthrow) {           \
+        __LINE__, off, -1, -1, -1, -1,          \
+        str, sizeof str - 1,                    \
+        0, 0, 0, res, bthrow                    \
+    }
+
+    //    +--------------------------------- controlled sequence
+    //    |               +----------------- index 
+    //    |               |  +-------------- expected result 
+    //    |               |  |     +-------- exception info 
+    //    |               |  |     |              0 - no exception
+    //    |               |  |     |              1 - out_of_range
+    //    |               |  |     |
+    //    V               V  V     V
+    TEST ("a",            0, 'a',  0),
+    TEST ("a",            1, NPOS, 1),
+
+    TEST ("",             0, NPOS, 1),
+
+    TEST ("\0",           0, '\0', 0),
+    TEST ("\0",           1, NPOS, 1),
+
+    TEST ("abc",          0, 'a',  0),
+    TEST ("abc",          1, 'b',  0),
+    TEST ("abc",          2, 'c',  0),
+    TEST ("abc",          3, NPOS, 1),
+
+    TEST ("\0ab\0\0c",    0, '\0', 0),
+
+    TEST ("a\0b\0\0c",    0, 'a',  0),
+    TEST ("a\0b\0\0c",    1, '\0', 0),
+    TEST ("a\0b\0\0c",    2, 'b',  0),
+    TEST ("a\0b\0\0c",    3, '\0', 0),
+    TEST ("a\0b\0\0c",    4, '\0', 0),
+    TEST ("a\0b\0\0c",    5, 'c',  0),
+    TEST ("a\0b\0\0c",    6, NPOS, 1),
+
+    TEST ("a\0bc\0\0",    5, '\0', 0),
+
+    TEST ("x@4096",       0, 'x',  0),
+    TEST ("x@4096",    2048, 'x',  0),
+    TEST ("x@4096",    4095, 'x',  0),
+    TEST ("x@4096",    4096, NPOS, 1),
+
+    TEST ("last",         3, 't',  0)
+};
+
+/**************************************************************************/
+
+template <class charT, class Traits>
+void test_access (charT, Traits*,  
+                  OverloadId      which,
+                  const TestCase &cs)
+{
+    typedef std::allocator<charT>                        Allocator;
+    typedef std::basic_string <charT, Traits, Allocator> String;
+    typedef typename String::reference                   StrRef;
+    typedef typename String::const_reference             StrConstRef;
+
+    static const std::size_t BUFSIZE = 256;
+
+    static charT wstr_buf [BUFSIZE];
+    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
+    charT* wstr = rw_expand (wstr_buf, cs.str, cs.str_len, &str_len);
+
+    // construct the string object 
+    String  s_str (wstr, str_len);
+
+    if (wstr != wstr_buf)
+        delete[] wstr;
+
+    wstr = 0;
+
+    // save the state of the string object before the call
+    // to detect wxception safety violations (changes to
+    // the state of the object after an exception)
+    const StringState str_state (rw_get_string_state (s_str));
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    {
-        bool threw_error = false;
-        const String cts(Lit<charT>::testString);
-        try { cts.at(cts.length()+1); }
-        catch (std::out_of_range)  { threw_error = true; }
-    
-        // Const version throws exception past end
-        rw_assert (threw_error, 0, __LINE__, "A1");
-    
-        threw_error = false;
-        try { cts.at(cts.length()); }
-        catch (std::out_of_range) { threw_error = true; }
-    
-        // And it throws one on the ending null
-        rw_assert (threw_error, 0, __LINE__, "A2");
+    // is some exception expected ?
+    const char* expected = 1 == cs.bthrow ? exceptions[1] : 0;
+    const char* caught = 0;
 
-        String ts(Lit<charT>::testString);
-        threw_error = false;
-        try { ts.at(ts.length()) = Lit<charT>::a[0]; }
-        catch (std::out_of_range) { threw_error = true; }
+#endif   // _RWSTD_NO_EXCEPTIONS
 
-        // Non-const version throws exception at end
-        rw_assert (threw_error, 0, __LINE__, "A3");
-    
-        threw_error = false;
-        try { ts.at(ts.length()+4) = Lit<charT>::a[0]; }
-        catch (std::out_of_range) { threw_error = true; }
-    
-        // Non-const version does throw exception past end
-        rw_assert (threw_error, 0, __LINE__, "A4");
+    try {
+
+        bool success = false;
+        charT cres;
+        char exp_res = NPOS != cs.nres 
+            ? (char) cs.nres 
+          : typename std::string::value_type();
+
+        switch (which) {
+        case OpIndex (size): {
+            StrRef res = s_str [cs.off];
+
+            success = 1 == rw_match (&exp_res, &res, 1);
+            cres = res;
+            break;
+        }
+        case OpIndex (size_const): {
+            StrConstRef res = const_cast<const String&>(s_str) [cs.off];
+
+            success = 1 == rw_match (&exp_res, &res, 1);
+            cres = res;
+            break;
+        }
+        case At (size): {
+            StrRef res = s_str.at (cs.off);
+
+            success = 1 == rw_match (&exp_res, &res, 1);
+            cres = res;
+            break;
+        }
+        case At (size_const): {
+            StrConstRef res = const_cast<const String&>(s_str).at (cs.off);
+
+            success = 1 == rw_match (&exp_res, &res, 1);
+            cres = res;
+            break;
+        }
+        default:
+            RW_ASSERT ("test logic error: unknown access overload");
+            return;
+        }
+
+        rw_assert (success, 0, cs.line,
+                   "line %d. %{$FUNCALL} == %{#c}, got %{#c}",
+                   __LINE__, cs.nres, cres);
+    }
+
+#ifndef _RWSTD_NO_EXCEPTIONS
+
+    catch (const std::out_of_range &ex) {
+        caught = exceptions [1];
+        rw_assert (caught == expected, 0, cs.line,
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught std::%s(%#s)",
+                   __LINE__, 0 != expected, expected, caught, ex.what ());
+    }
+    catch (const std::exception &ex) {
+        caught = exceptions [4];
+        rw_assert (0, 0, cs.line,
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught std::%s(%#s)",
+                   __LINE__, 0 != expected, expected, caught, ex.what ());
+    }
+    catch (...) {
+        caught = exceptions [0];
+        rw_assert (0, 0, cs.line,
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught %s",
+                   __LINE__, 0 != expected, expected, caught);
     }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-}
-
-/**************************************************************************/
-
-template <class charT>
-void test_operator_index (charT, const char *cname)
-{
-    rw_case (0, 0,
-             "basic_string<charT>::operator[](size_type)",
-             "charT=%s", cname);
-
-    typedef std::char_traits<charT>                     Traits;
-    typedef std::allocator<charT>                       Allocator;
-    typedef std::basic_string<charT, Traits, Allocator> String;
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    {
-        String ts (10, Lit<charT>::space[0]);
-    
-        bool threw_error = false;
-        try { ts.at(12); }
-        catch (std::out_of_range) { threw_error = true; }
-    
-        // At member range checks
-        rw_assert (threw_error, 0, __LINE__, "A7");
-
-#  ifdef _RWSTD_BOUNDS_CHECKING
-
-        threw_error = false;
-        try { ts[14];   /* Index past end. */ }
-        catch (std::out_of_range) { threw_error = true; }
-    
-        // Sqare brackets NOW range check
-        rw_assert (threw_error, 0, __LINE__, "A8");
-
-#  endif   // _RWSTD_BOUNDS_CHECKING
-
-    }
-
-#endif   //_RWSTD_NO_EXCEPTIONS 
-
-    {
-        String ts (Lit<charT>::test);
-    
-        // Character index 0 correct
-        rw_assert (ts [0] == Lit<charT>::T [0], 0, __LINE__, "A9");
-    
-        // Character index 1 correct
-        rw_assert (ts [1] == Lit<charT>::e [0], 0, __LINE__, "A10");
-    
-        // Character index 2 correct
-        rw_assert (ts [2] == Lit<charT>::s [0], 0, __LINE__, "A11");
-    
-        // Character index 3 correct
-        rw_assert (ts [3] == Lit<charT>::t [0], 0, __LINE__, "A12");
-    
-        // Character at end correct
-        //
-        // NOTE: operator[] throws an exception if _RWSTD_BOUNDS_CHECKING
-        // is defined. ONLY on constant strings can we step one beyond
-        // the size of the string and get eos().
-        //
-        // rw_assert (ts [4] == '\0', 0, __LINE__, "A15");
-    
-        ts [2] = Lit<charT>::x [0];
-        // Changing character works
-        rw_assert (ts == Lit<charT>::text, 0, __LINE__, "A14");
+    if (caught) {
+        // verify that an exception thrown during allocation
+        // didn't cause a change in the state of the object
+        str_state.assert_equal (rw_get_string_state (s_str),
+                                __LINE__, cs.line, caught);
     }
 }
 
 /**************************************************************************/
 
-template <class charT>
-void test_access (charT, const char *cname)
-{
-    test_at (charT (), cname);
+DEFINE_TEST_DISPATCH (test_access);
 
-    test_operator_index (charT (), cname);
+int main (int argc, char** argv)
+{
+    static const StringMembers::Test
+    tests [] = {
+
+#undef TEST
+#define TEST(tag) {                                             \
+        StringMembers::tag, tag ## _test_cases,                 \
+        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+    }
+
+        TEST (op_index_size),
+        TEST (op_index_size_const),
+        TEST (at_size),
+        TEST (at_size_const)
+    };
+
+    const std::size_t test_count = sizeof tests / sizeof *tests;
+
+    return StringMembers::run_test (argc, argv, __FILE__,
+                                    "lib.string.access",
+                                    test_access, tests, test_count);
 }
 
-/**************************************************************************/
-
-static int
-run_test (int, char*[])
-{
-    if (rw_enabled ("char"))
-        test_access (char (), "char");
-    else
-        rw_note (0, __FILE__, __LINE__, "char test disabled");
-
-#ifndef _RWSTD_NO_WCHAR_T
-
-    if (rw_enabled ("wchar_t"))
-        test_access (wchar_t (), "wchar_t");
-    else
-        rw_note (0, __FILE__, __LINE__, "wchar_t test disabled");
-
-#endif   // _RWSTD_NO_WCHAR_T
-
-    return 0;
-}
-
-/**************************************************************************/
-
-int main (int argc, char *argv[])
-{
-    return rw_test (argc, argv, __FILE__,
-                    "lib.string.access",
-                    0 /* no comment */,
-                    run_test,
-                    0 /* co command line options */);
-}
