@@ -19,799 +19,993 @@
  * 
  **************************************************************************/
 
-#include <stdexcept>    // for length_error
-#include <string>
-#include <cstring>
+#include <string>       // for string
+#include <stdexcept>    // for out_of_range, length_error
+#include <cstddef>      // for size_t
 
-#include <cmdopt.h>
-#include <driver.h>
-
-#include <alg_test.h>      // for InputIterator
-
-#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
-#  include <rw_new.h>    // for replacing operator new/delete
-#else   // if defined (_RWSTD_NO_REPLACEABLE_NEW_DELETE)
-   // e.g., AIX, Win32
-#  define rwt_check_leaks(pint, ignore) (pint ? *((std::size_t*)pint) = 0 : 0)
-#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
-
-
-template<class charT>
-class Lit { };
-
-_RWSTD_SPECIALIZED_CLASS
-class Lit<char>
-{
-public:
-    static const char null[];
-    static const char space[];
-    static const char aString[];
-    static const char abcdef[];
-    static const char abcdefg[];
-    static const char abcnulldefg[];
-    static const char nullchar[];
-    static const char a[];
-    static const char b[];
-    static const char c[];
-    static const char d[];
-    static const char ef[];
-    static const char f[];
-    static const char cd[];
-    static const char abc[];
-    static const char ddddd[];
-};
-
-const char Lit<char>::null[] = "\0";
-const char Lit<char>::space[] = " ";
-const char Lit<char>::aString[] = "A String";
-const char Lit<char>::abcdef[] = "abcdef";
-const char Lit<char>::abcdefg[] = "abcdefg";
-const char Lit<char>::abcnulldefg[] = "abc\0defg";
-const char Lit<char>::nullchar[] = " ";
-const char Lit<char>::a[] = "a";
-const char Lit<char>::b[] = "b";
-const char Lit<char>::c[] = "c";
-const char Lit<char>::d[] = "d";
-const char Lit<char>::ef[] = "ef";
-const char Lit<char>::f[] = "f";
-const char Lit<char>::cd[] = "cd";
-const char Lit<char>::abc[] = "abc";
-const char Lit<char>::ddddd[] = "ddddd";
-
-
-#ifndef _RWSTD_NO_WCHAR_T
-_RWSTD_SPECIALIZED_CLASS
-class Lit<wchar_t>
-{
-public:
-    static const wchar_t null[];
-    static const wchar_t space[];
-    static const wchar_t aString[];
-    static const wchar_t abcdef[];
-    static const wchar_t abcdefg[];
-    static const wchar_t abcnulldefg[];
-    static const wchar_t nullchar[];
-    static const wchar_t a[];
-    static const wchar_t b[];
-    static const wchar_t c[];
-    static const wchar_t d[];
-    static const wchar_t ef[];
-    static const wchar_t f[];
-    static const wchar_t cd[];
-    static const wchar_t abc[];
-    static const wchar_t ddddd[];
-};
-
-const wchar_t Lit<wchar_t>::null[] = L"\0";
-const wchar_t Lit<wchar_t>::space[] = L" ";
-const wchar_t Lit<wchar_t>::aString[] = L"A String";
-const wchar_t Lit<wchar_t>::abcdef[] = L"abcdef";
-const wchar_t Lit<wchar_t>::abcdefg[] = L"abcdefg";
-const wchar_t Lit<wchar_t>::abcnulldefg[] = L"abc\0defg";
-const wchar_t Lit<wchar_t>::nullchar[] = L" ";
-const wchar_t Lit<wchar_t>::a[] = L"a";
-const wchar_t Lit<wchar_t>::b[] = L"b";
-const wchar_t Lit<wchar_t>::c[] = L"c";
-const wchar_t Lit<wchar_t>::d[] = L"d";
-const wchar_t Lit<wchar_t>::ef[] = L"ef";
-const wchar_t Lit<wchar_t>::f[] = L"f";
-const wchar_t Lit<wchar_t>::cd[] = L"cd";
-const wchar_t Lit<wchar_t>::abc[] = L"abc";
-const wchar_t Lit<wchar_t>::ddddd[] = L"ddddd";
-
-#endif
+#include <21.strings.h>
+#include <alg_test.h>   // for InputIter
+#include <cmdopt.h>     // for rw_enabled()
+#include <driver.h>     // for rw_test()
+#include <rw_char.h>    // for rw_expand()
+#include <rw_new.h>     // for bad_alloc, replacement operator new
+#include <rw_printf.h>  // for rw_asnprintf()
 
 /**************************************************************************/
 
-/* extern */ int rw_opt_no_copy_ctor;   // for --no-copy-ctor
-/* extern */ int rw_opt_no_def_ctor;    // for --no-default-ctor
-/* extern */ int rw_opt_no_ptr_ctor;    // for --no-pointer-ctor
-/* extern */ int rw_opt_no_fill_ctor;   // for --no-fill-ctor
+// for convenience and brevity
+#define Ctor(which)               StringMembers::ctor_ ## which
+#define OpSet(which)              StringMembers::op_set_ ## which
+
+typedef StringMembers::OverloadId OverloadId;
+typedef StringMembers::TestCase   TestCase;
+typedef StringMembers::Test       Test;
+typedef StringMembers::Function   MemFun;
+
+static const char* const exceptions[] = {
+    "unknown exception", "out_of_range", "length_error",
+    "bad_alloc", "exception"
+};
+
+/**************************************************************************/
+
+// exercises:
+// ctor (void*)
+static const TestCase
+void_test_cases [] = {
+
+#undef TEST
+#define TEST(dummy) {                            \
+        __LINE__, -1, -1, -1, -1, -1,            \
+        0, 0, dummy, sizeof dummy - 1,           \
+        "", 0, 0                                 \
+    }
+
+    //    +--------------------- dummy argument
+    //    |
+    //    V             
+    TEST ("ab"),          
+
+    TEST ("last test")
+};
+
+/**************************************************************************/
+
+// exercises:
+// ctor (const value_type*)
+static const TestCase
+ptr_test_cases [] = {
+
+#undef TEST
+#define TEST(arg, res) {                            \
+        __LINE__, -1, -1, -1, -1, -1,               \
+        0, 0, arg, sizeof arg - 1,                  \
+        res, sizeof res - 1, 0                      \
+    }
+
+    //    +----------------------------------------- source sequence
+    //    |             +--------------------------- expected result sequence
+    //    |             |             
+    //    |             |            
+    //    V             V           
+    TEST ("ab",         "ab"),    
+
+    TEST ("",           ""),   
+    TEST ("\0",         ""),   
+
+    TEST ("a",          "a"),       
+    TEST ("bcd",        "bcd"),       
+    TEST ("cdefaihjb",  "cdefaihjb"),      
+
+    TEST ("\0\0ab",     ""),  
+    TEST ("a\0\0b",     "a"), 
+    TEST ("ab\0\0",     "ab"),  
+    TEST ("abefdcc\0a", "abefdcc"),  
+
+    TEST ("x@4096",     "x@4096"),     
+
+    TEST ("last test",  "last test")
+};
+
+/**************************************************************************/
+
+// exercises:
+// ctor (const basic_string&)
+static const TestCase
+str_test_cases [] = {
+
+#undef TEST
+#define TEST(arg, res) {                            \
+        __LINE__, -1, -1, -1, -1, -1,               \
+        0, 0, arg, sizeof arg - 1,                  \
+        res, sizeof res - 1, 0                      \
+    }
+
+    //    +----------------------------------------- source sequence
+    //    |             +--------------------------- expected result sequence
+    //    |             |             
+    //    |             |            
+    //    V             V           
+    TEST ("ab",         "ab"),    
+
+    TEST ("",           ""),   
+    TEST ("\0",         "\0"),
+    TEST ("\0\0",       "\0\0"),
+
+    TEST ("a",          "a"),       
+    TEST ("bcd",        "bcd"),       
+    TEST ("cdefaihjb",  "cdefaihjb"),      
+
+    TEST ("\0\0ab",     "\0\0ab"),  
+    TEST ("a\0\0b",     "a\0\0b"), 
+    TEST ("ab\0\0",     "ab\0\0"),  
+    TEST ("abefdcc\0a", "abefdcc\0a"),  
+
+    TEST ("x@4096",     "x@4096"),     
+
+    TEST ("last test",  "last test")
+};
+
+/**************************************************************************/
+
+// exercises:
+// ctor (const value_type*, size_type)
+static const TestCase
+ptr_size_test_cases [] = {
+
+#undef TEST
+#define TEST(arg, size, res) {                      \
+        __LINE__, -1, size, -1, -1, -1,             \
+        0, 0, arg, sizeof arg - 1,                  \
+        res, sizeof res - 1, 0                      \
+    }
+
+    //    +----------------------------------------- source sequence
+    //    |             +--------------------------- ctor n argument
+    //    |             |  +------------------------ expected result sequence
+    //    |             |  |             
+    //    |             |  |            
+    //    V             V  V         
+    TEST ("ab",         2, "ab"),    
+
+    TEST ("",           0, ""),   
+    TEST ("\0",         1, "\0"),   
+
+    TEST ("a",          1, "a"),       
+    TEST ("bcd",        3, "bcd"),       
+    TEST ("cdefaihjb",  9, "cdefaihjb"),      
+
+    TEST ("\0\0ab",     1, "\0"),
+    TEST ("\0\0ab",     4, "\0\0ab"),
+    TEST ("a\0\0b",     4, "a\0\0b"), 
+    TEST ("ab\0\0",     3, "ab\0"),  
+    TEST ("abefdcc\0a", 7, "abefdcc"), 
+    TEST ("abefdcc\0a", 8, "abefdcc\0"), 
+    TEST ("abefdcc\0a", 9, "abefdcc\0a"), 
+
+    TEST ("x@4096",  4096, "x@4096"),     
+
+    TEST ("last test",  9, "last test")
+};
+
+/**************************************************************************/
+
+// exercises:
+// ctor (const basic_string&, size_type)
+static const TestCase
+str_size_test_cases [] = {
+
+#undef TEST
+#define TEST(arg, off, res, bthrow) {               \
+        __LINE__, off, -1, -1, -1, -1,              \
+        0, 0, arg, sizeof arg - 1,                  \
+        res, sizeof res - 1, bthrow                 \
+    }
+
+    //    +----------------------------------------- source sequence
+    //    |             +--------------------------- ctor off argument
+    //    |             |  +------------------------ expected result sequence
+    //    |             |  |              +--------- exception info
+    //    |             |  |              |             0 - no exception
+    //    |             |  |              |             1 - out_of_range
+    //    |             |  |              |
+    //    |             |  |              |
+    //    V             V  V              V
+    TEST ("ab",         0, "ab",          0),    
+
+    TEST ("",           0, "",            0),   
+    TEST ("\0",         0, "\0",          0),
+    TEST ("\0\0",       0, "\0\0",        0),
+
+    TEST ("a",          0, "a",           0),       
+    TEST ("bcd",        0, "bcd",         0),       
+    TEST ("cdefaihjb",  0, "cdefaihjb",   0),      
+
+    TEST ("\0\0ab",     0, "\0\0ab",      0),  
+    TEST ("a\0\0b",     0, "a\0\0b",      0), 
+    TEST ("ab\0\0",     0, "ab\0\0",      0),  
+    TEST ("abefdcc\0a", 0, "abefdcc\0a",  0),  
+
+    TEST ("x@4096",     0, "x@4096",      0),
+
+    TEST ("abc",        5, "abc",         1),
+    TEST ("x@4096",  4106, "x@4096",      1),
+ 
+    TEST ("last test",  0, "last test",   0)
+};
+
+/**************************************************************************/
+
+// exercises:
+// ctor (const basic_string&, size_type, size_type)
+// ctor (InputIterator, InputIterator)
+static const TestCase
+str_size_size_test_cases [] = {
+
+#define range_test_cases    str_size_size_test_cases
+
+#undef TEST
+#define TEST(arg, off, size, res, bthrow) {         \
+        __LINE__, off, size, -1, -1, -1,            \
+        0, 0, arg, sizeof arg - 1,                  \
+        res, sizeof res - 1, bthrow                 \
+    }
+
+    //    +----------------------------------------- source sequence
+    //    |             +--------------------------- ctor off argument
+    //    |             |   +----------------------- ctor n argument
+    //    |             |   |  +-------------------- expected result sequence
+    //    |             |   |  |              +----- exception info
+    //    |             |   |  |              |         0 - no exception
+    //    |             |   |  |              |         1 - out_of_range
+    //    |             |   |  |              |
+    //    |             |   |  |              |
+    //    V             V   V  V              V
+    TEST ("ab",         0,  2, "ab",          0),    
+
+    TEST ("",           0,  0, "",            0),   
+    TEST ("\0",         0,  1, "\0",          0),
+    TEST ("\0\0",       0,  2, "\0\0",        0),
+
+    TEST ("a",          0,  1, "a",           0),       
+    TEST ("bcd",        0,  3, "bcd",         0),       
+    TEST ("cdefaihjb",  0,  9, "cdefaihjb",   0),      
+
+    TEST ("\0\0ab",     0,  4, "\0\0ab",      0),  
+    TEST ("a\0\0b",     0,  4, "a\0\0b",      0), 
+    TEST ("ab\0\0",     0,  4, "ab\0\0",      0),  
+    TEST ("abefdcc\0a", 0,  9, "abefdcc\0a",  0),  
+
+    TEST ("x@4096",     0, 4096, "x@4096",    0),     
+
+    TEST ("abc",        5,  3, "abc",         1), 
+    TEST ("x@4096",  4106,  3, "xxx",         1), 
+
+    TEST ("last test",  0,  9, "last test",   0)
+};
+
+/**************************************************************************/
+
+// exercises:
+// ctor (size_type, value_type)
+static const TestCase
+size_val_test_cases [] = {
+
+#undef TEST
+#define TEST(size, val, res) {                      \
+        __LINE__, -1, size, -1, -1, val,            \
+        0, 0, 0, 0,                                 \
+        res, sizeof res - 1, 0                      \
+    }
+
+    //    +---------------------------------------- ctor n argument 
+    //    |          +----------------------------- source value
+    //    |          |    +------------------------ expected result sequence
+    //    |          |    |             
+    //    |          |    |            
+    //    V          V    V         
+    TEST (1,        'a',  "a"), 
+    TEST (1,        '\0', "\0"),
+
+    TEST (2,        'a',  "aa"), 
+    TEST (2,        '\0', "\0\0"),
+
+    TEST (5,        '\0', "\0\0\0\0\0"),
+    TEST (10,       'a',  "aaaaaaaaaa"), 
+
+    TEST (4096,     'x',  "x@4096"),
+
+    TEST (4,        't',  "tttt") 
+};
+
+/**************************************************************************/
+// exercises:
+// operator= (const value_type*)
+static const TestCase
+op_set_ptr_test_cases [] = {
+
+#undef TEST
+#define TEST(str, arg, res, bthrow) {               \
+        __LINE__, -1, -1, -1, -1, -1,               \
+        str, sizeof str - 1, arg, sizeof arg - 1,   \
+        res, sizeof res - 1, bthrow                 \
+    }
+
+    //    +----------------------------------------- source sequence
+    //    |          +------------------------------ argument sequence
+    //    |          |            +----------------- expected result sequence
+    //    |          |            |              +-- exception info
+    //    |          |            |              |      0 - no exception
+    //    |          |            |              |     -1 - excpetion safety 
+    //    |          |            |              |  
+    //    |          |            |              |            
+    //    V          V            V              V          
+    TEST ("",       "ab",         "ab",          0),    
+
+    TEST ("",       "",           "",            0),   
+    TEST ("abc",    "",           "",            0),   
+    TEST ("",       "\0",         "",            0), 
+    TEST ("abc",    "\0",         "",            0),
+
+    TEST ("",       "a",          "a",           0),  
+    TEST ("\0\0",   "a",          "a",           0), 
+    TEST ("a",      "bcd",        "bcd",         0),       
+    TEST ("x@4096", "bcd",        "bcd",         0), 
+    TEST ("",       "cdefaihjb",  "cdefaihjb",   0),      
+    TEST ("a\0b",   "cdefaihjb",  "cdefaihjb",   0),
+
+    TEST ("",       "\0\0ab",     "",            0),  
+    TEST ("c\0d",   "\0\0ab",     "",            0),
+    TEST ("",       "a\0\0b",     "a",           0), 
+    TEST ("bcd",    "a\0\0b",     "a",           0), 
+    TEST ("\0",     "ab\0\0",     "ab",          0), 
+    TEST ("x@4096", "ab\0\0",     "ab",          0), 
+    TEST ("\0a",    "abefdcc\0a", "abefdcc",     0),  
+    TEST ("x@4096", "abefdcc\0a", "abefdcc",     0),
+
+    TEST ("abc",    "x@4096",     "x@4096",      0),  
+
+    TEST ("",       0,            "",            0),
+    TEST ("a\0b\0", 0,            "a",           0), 
+    TEST ("x@4096", 0,            "x@4096",      0), 
+
+    TEST ("abcd",   "x@4096",     "x@4096",     -1), 
+
+    TEST ("",       "last test",  "last test",   0)
+};
+
+/**************************************************************************/
+// exercises:
+// operator= (const basic_string&)
+static const TestCase
+op_set_str_test_cases [] = {
+
+#undef TEST
+#define TEST(str, arg, res, bthrow) {               \
+        __LINE__, -1, -1, -1, -1, -1,               \
+        str, sizeof str - 1, arg, sizeof arg - 1,   \
+        res, sizeof res - 1, bthrow                 \
+    }
+
+    //    +----------------------------------------- source sequence
+    //    |          +------------------------------ argument sequence
+    //    |          |            +----------------- expected result sequence
+    //    |          |            |              +-- exception info
+    //    |          |            |              |      0 - no exception
+    //    |          |            |              |     -1 - excpetion safety 
+    //    |          |            |              |  
+    //    |          |            |              |            
+    //    V          V            V              V
+    TEST ("",       "ab",         "ab",          0),    
+
+    TEST ("",       "",           "",            0),   
+    TEST ("abc",    "",           "",            0),   
+    TEST ("",       "\0",         "\0",          0), 
+    TEST ("abc",    "\0",         "\0",          0),
+
+    TEST ("",       "a",          "a",           0),  
+    TEST ("\0\0",   "a",          "a",           0), 
+    TEST ("a",      "bcd",        "bcd",         0),       
+    TEST ("x@4096", "bcd",        "bcd",         0), 
+    TEST ("",       "cdefaihjb",  "cdefaihjb",   0),      
+    TEST ("a\0b",   "cdefaihjb",  "cdefaihjb",   0),
+
+    TEST ("",       "\0\0ab",     "\0\0ab",      0),  
+    TEST ("c\0d",   "\0\0ab",     "\0\0ab",      0),
+    TEST ("",       "a\0\0b",     "a\0\0b",      0), 
+    TEST ("bcd",    "a\0\0b",     "a\0\0b",      0), 
+    TEST ("\0",     "ab\0\0",     "ab\0\0",      0), 
+    TEST ("x@4096", "ab\0\0",     "ab\0\0",      0), 
+    TEST ("\0a",    "abefdcc\0a", "abefdcc\0a",  0),  
+    TEST ("x@4096", "abefdcc\0a", "abefdcc\0a",  0),
+
+    TEST ("abc",    "x@4096",     "x@4096",      0),   
+
+    TEST ("",       0,            "",            0),
+    TEST ("a\0b\0", 0,            "a\0b\0",      0), 
+    TEST ("x@4096", 0,            "x@4096",      0), 
+
+    TEST ("",       "last test",  "last test",   0)
+};
 
 
-template <class T>
-void test_signatures (T, const char* tname)
+/**************************************************************************/
+
+// exercises:
+// operator= (value_type)
+static const TestCase
+op_set_val_test_cases [] = {
+
+#undef TEST
+#define TEST(str, val, res) {                 \
+        __LINE__, -1, -1, -1, -1, val,        \
+        str, sizeof str - 1, 0, 0,            \
+        res, sizeof res - 1, 0                \
+    }
+
+    //    +----------------------------------- initial sequence
+    //    |          +------------------------ source value
+    //    |          |    +------------------- expected result sequence
+    //    |          |    |             
+    //    |          |    |            
+    //    V          V    V         
+    TEST ("",       'a',  "a"), 
+    TEST ("abcdef", 'a',  "a"),
+    TEST ("",       '\0', "\0"),
+    TEST ("a",      '\0', "\0"),
+    TEST ("\0\0",   'x',  "x"),
+    TEST ("x@4096", 'x',  "x"),
+    TEST ("",       't',  "t") 
+};
+
+
+/**************************************************************************/
+
+template <class charT, class Traits, class Iterator>
+void test_ctor_range (const charT*    warg,
+                      std::size_t     warg_len,
+                      std::size_t     res_len,
+                      Traits*,
+                      const Iterator &it,
+                      const TestCase &tcase)
 {
-    // verify that constructs below compile ad run (no assertions)
+    typedef std::allocator<charT>                        Allocator;
+    typedef std::basic_string <charT, Traits, Allocator> String;
+    typedef typename String::iterator                    StringIter;
 
-    typedef std::char_traits<T>                      Traits;
-    typedef std::allocator<T>                        Allocator;
-    typedef std::basic_string<T, Traits, Allocator>  String;
+    const char* const itname =
+        tcase.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
 
-    typedef typename String::size_type SizeT;
+    /*const*/ String s_arg (warg, warg_len);
 
-    rw_info (0, 0, 0, "std::basic_string<%s> constructors signatures", tname);
+    std::size_t off_last = tcase.off + tcase.size;
 
-    // 21.3.1, p2
-    String s0 /* (Allocator ()) */;
-    String s1 = String (Allocator ());
+    const StringIter it_first (std::size_t (tcase.off) >= s_arg.size () ?
+                               s_arg.end () : s_arg.begin () + tcase.off);
+    const StringIter it_last  (std::size_t (off_last) >= s_arg.size () ?
+                               s_arg.end () : s_arg.begin () + off_last);
 
-    // lwg issue #42
-    String s2 = String (String ());
+    const String s_str (it_first, it_last);
 
-    // 21.3.1, p3
-    String s3 = String (String (), SizeT (), SizeT () /* , Allocator () */);
-    String s4 = String (String (), SizeT (), SizeT (), Allocator ());
+    const std::size_t match =
+        rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-    // 21.3.1, p6
-    const T c = T ();
-    String s5 (&c, 1 /* , Allocator () */);
-    String s6 (&c, 1, Allocator ());
-
-    // 21.3.1, p9
-    String s7 (&c /* , Allocator () */);
-    String s8 (&c, Allocator ());
-
-    // 21.3.1, p12
-    String s9  = String (SizeT (), c /* , Allocator () */);
-    String s10 = String (SizeT (), c, Allocator ());
-
-    // 21.3.1, p15 - template ctor
-
-    // check basic_string::const_pointer
-    String s11 = String ((const T*)0, (const T*)0 /* , Allocator () */);
-    String s12 = String ((const T*)0, (const T*)0, Allocator ());
-
-    _RWSTD_UNUSED (s0);  _RWSTD_UNUSED (s1);  _RWSTD_UNUSED (s2);
-    _RWSTD_UNUSED (s3);  _RWSTD_UNUSED (s4);  _RWSTD_UNUSED (s5);
-    _RWSTD_UNUSED (s6);  _RWSTD_UNUSED (s7);  _RWSTD_UNUSED (s8);
-    _RWSTD_UNUSED (s9);  _RWSTD_UNUSED (s10); _RWSTD_UNUSED (s11);
-    _RWSTD_UNUSED (s12);
-
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-#  if _MSC_VER >= 1300   // MSVC 6.0 and prior are too dumb to handle this
-
-    // check a pointer other than basic_string::const_pointer
-    String s13 = String ((const int*)0, (const int*)0 /* , Allocator () */);
-    String s14 = String ((const int*)0, (const int*)0, Allocator ());
-
-    // check integral types
-    String s15 = String (true, false /* , Allocator () */);
-    String s16 = String (true, false, Allocator ());
-    String s17 = String (2, 1 /* , Allocator () */);
-    String s18 = String (2, 1, Allocator ());
-    String s19 = String (2L, 1L /* , Allocator () */);
-    String s20 = String (2L, 1L, Allocator ());
-
-    _RWSTD_UNUSED (s13); _RWSTD_UNUSED (s14); _RWSTD_UNUSED (s15);
-    _RWSTD_UNUSED (s16); _RWSTD_UNUSED (s17); _RWSTD_UNUSED (s18);
-    _RWSTD_UNUSED (s19); _RWSTD_UNUSED (s20);
-
-#  endif   // MSVC > 6.0
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
+    rw_assert (match == res_len, 0, tcase.line,
+               "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
+               "difference at offset %zu for %s",
+               __LINE__, int (tcase.nres), tcase.res,
+               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
+               match, itname);
 }
 
 /**************************************************************************/
 
-template <class T>
-void test_ctors (T, const char* tname)
+template <class charT, class Traits>
+void test_ctor_range (const charT* warg,
+                      std::size_t  warg_len,
+                      std::size_t  res_len,
+                      Traits*,
+                      const TestCase &tcase)
 {
-    typedef std::char_traits<T>                      Traits;
-    typedef std::allocator<T>                        Allocator;
-    typedef std::basic_string<T, Traits, Allocator>  String;
+    if (tcase.bthrow)  // this method doesn't throw
+        return;
 
-    typedef typename String::size_type SizeT;
+    test_ctor_range (warg, warg_len, res_len, (Traits*)0,
+                     InputIter<charT>(0, 0, 0), tcase);
 
-    static const char* const sname = "basic_string";
+    test_ctor_range (warg, warg_len, res_len, (Traits*)0,
+                     ConstFwdIter<charT>(0, 0, 0), tcase);
 
-    SizeT nbytes = 0;
-    SizeT nblocks = 0;
+    test_ctor_range (warg, warg_len, res_len, (Traits*)0,
+                     ConstBidirIter<charT>(0, 0, 0), tcase);
 
-    // establish a checkpoint for memory leaks
+    test_ctor_range (warg, warg_len, res_len, (Traits*)0,
+                     ConstRandomAccessIter<charT>(0, 0, 0), tcase);
+}
+
+/**************************************************************************/
+
+template <class charT, class Traits>
+void test_ctor (charT, Traits*,
+                OverloadId      which,
+                const TestCase &tcase)
+{
+    typedef std::allocator<charT>                        Allocator;
+    typedef std::basic_string <charT, Traits, Allocator> String;
+
+    static const std::size_t BUFSIZE = 256;
+
+    static charT warg_buf [BUFSIZE];
+    std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
+    charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
+
+    static charT wres_buf [BUFSIZE];
+    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
+    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
+
+    // special processing for ctor_range to exercise all iterators
+    if (Ctor (range) == which) {
+        test_ctor_range (warg, arg_len, res_len, (Traits*)0, tcase);
+
+        if (warg != warg_buf)
+            delete[] warg;
+
+        if (wres != wres_buf)
+            delete[] wres;
+
+        return;
+    }
+
+    // construct the string object to be modified
+    // and the (possibly unused) argument string
+    const String  arg (warg, arg_len);
+    if (warg != warg_buf)
+        delete[] warg;
+
+    warg = 0;
+
+    // offset and extent function arguments
+    const std::size_t arg_off  = std::size_t (tcase.off);
+    const std::size_t arg_size = std::size_t (tcase.size);
+
+    // string function argument
+    const charT* const arg_ptr = arg.c_str ();
+    const String&      arg_str = arg;
+    const charT        arg_val = make_char (char (tcase.val), (charT*)0);
+
+    // (name of) expected and caught exception
+    const char* expected = 0;
+    const char* caught   = 0;
+
+#ifndef _RWSTD_NO_EXCEPTIONS
+
+    if (1 == tcase.bthrow)
+        expected = exceptions [1];      // out_of_range
+    else if (2 == tcase.bthrow)
+        expected = exceptions [2];      // length_error
+
+#else   // if defined (_RWSTD_NO_EXCEPTIONS)
+
+    if (tcase.bthrow) {
+        if (wres != wres_buf)
+            delete[] wres;
+
+        return;
+    }
+
+#endif   // _RWSTD_NO_EXCEPTIONS
+
+    // pointer to the returned reference
+    String* ret_ptr = 0;
+
+    // start checking for memory leaks
     rwt_check_leaks (0, 0);
 
-    //////////////////////////////////////////////////////////////
-    if (rw_opt_no_def_ctor) {
-        rw_note (0, 0, 0, "std::%s<%s>::%1$s (const %s&) test disabled",
-                 sname, tname, "allocator_type");
+    try {
+        switch (which) {
+        case Ctor (void): {
+            ret_ptr = new String ();
+            break;
+        }
+        case Ctor (ptr): {
+            ret_ptr = new String (arg_ptr);
+            break;
+        }
+        case Ctor (str): {
+            ret_ptr = new String (arg_str);
+            break;
+        }
+        case Ctor (ptr_size): {
+            ret_ptr = new String (arg_ptr, arg_size);
+            break;
+        }
+        case Ctor (str_size): {
+            ret_ptr = new String (arg_str, arg_off);
+            break;
+        }
+        case Ctor (str_size_size): {
+            ret_ptr = new String (arg_str, arg_off, arg_size);
+            break;
+        }
+        case Ctor (size_val): {
+            ret_ptr = new String (tcase.size, arg_val);
+            break;
+        }
+
+        default:
+            RW_ASSERT (!"logic error: unknown constructor overload");
+        }
+            
+        // verify that returned pointer is valid
+        rw_assert (0 != ret_ptr, 0, tcase.line,
+                   "line %d. %{$FUNCALL} expected %{#*s}, got null",
+                   __LINE__, int (res_len), tcase.res);
+
+        if (0 != ret_ptr) {
+            // verify the length of the resulting string
+            rw_assert (res_len == ret_ptr->size (), 0, tcase.line,
+                       "line %d. %{$FUNCALL} expected %{#*s} with length "
+                       "%zu, got %{/*.*Gs} with length %zu",
+                       __LINE__, int (res_len), tcase.res, 
+                       res_len, int (sizeof (charT)), 
+                       int (ret_ptr->size ()), ret_ptr->c_str (), 
+                       ret_ptr->size ());
+
+            if (Ctor (void) != which) {
+                // verify the capacity of the resulting string
+                rw_assert (ret_ptr->size () <= ret_ptr->capacity (), 0, 
+                           tcase.line, "line %d. %{$FUNCALL} expected "
+                           "capacity () >= size (), got capacity () == "
+                           "%zu, size () == %zu", __LINE__,   
+                           ret_ptr->capacity (), ret_ptr->size ());
+            }
+
+            if (res_len == ret_ptr->size ()) {
+                // if the result length matches the expected length
+                // (and only then), also verify that the modified
+                // string matches the expected result
+                const std::size_t match =
+                    rw_match (tcase.res, ret_ptr->c_str (), tcase.nres);
+
+                rw_assert (match == res_len, 0, tcase.line,
+                           "line %d. %{$FUNCALL} expected %{/*.*Gs}, "
+                           "got %{/*.*Gs}, difference at offset %zu",
+                           __LINE__, int (sizeof (charT)), int (res_len), 
+                           wres, int (sizeof (charT)), 
+                           int (ret_ptr->size ()), ret_ptr->c_str (), 
+                           match);
+            }
+
+            delete ret_ptr;
+        }
     }
-    else {
-        rw_info (0, 0, 0, "std::%s<%s>::%1$s (const allocator_type&)",
-                 sname, tname);
-
-        // 21.3.1, p2 - create an empty string
-        const String s0;
-
-        // 21.3.1, p2 - effects table, row 1
-        rw_assert (0 != s0.data (), 0, __LINE__,
-                   "%s<%s>::%1$s ().data () != 0", sname, tname);
-
-        // 21.3.1, p2 - effects table, row 2
-        rw_assert (0 == s0.size (), 0, __LINE__,
-                   "%s<%s>::%1$s().size () == 0", sname, tname);
-
-        // 21.3.1, p2 - effects table, row 3
-        rw_assert (s0.size () <= s0.capacity (), 0, __LINE__,
-                   "%s<%s>::%1$s(const char_type*).capacity() >= %zu, got %zu",
-                   sname, tname, s0.size (), s0.capacity ());
-
-        rw_assert (0 != s0.c_str (), 0, __LINE__,
-                   "%s<%s>().c_str () != 0", sname, tname);
-
-        rw_assert (Traits::eq (*s0.c_str(), T ()), 0, __LINE__,
-                   "%s<%s>().c_str ()[0] == '\\0'", sname, tname);
-    }
-
-    nblocks = rwt_check_leaks (&nbytes, 0);
-
-    rw_assert (!nblocks && !nbytes, 0, __LINE__,
-               "%s<%s>() leaked %zu bytes in %zu block(s)",
-               sname, tname, nbytes, nblocks);
-
-
-    //////////////////////////////////////////////////////////////
-    if (rw_opt_no_ptr_ctor) {
-        rw_note (0, 0, 0,
-                 "std::%s<%s>::%1$s (const_pointer %s&) test disabled",
-                 sname, tname);
-    }
-    else {
-        rw_info (0, 0, 0, "std::%s<%s>::%1$s (const_pointer)", sname, tname);
-        
-        const T ca [] = { '\0' };
-
-        // 21.3.1, p9 - create an empty string using a (non-null) pointer
-        const String s0 (ca + 0);
-    
-        // 21.3.1, p10 - effects table, row 1
-        rw_assert (0 != s0.data (), 0, __LINE__,
-                   "%s<%s>::%1$s(const_pointer = %{*Ac}).data() != 0",
-                   sname, tname, int (sizeof *ca), ca);
-
-        // 21.3.1, p10 - effects table, row 2
-        rw_assert (Traits::length (ca) == s0.size (), 0, __LINE__,
-                   "%s<%s>::%1$s(const_pointer = %{*Ac}).size() "
-                   "== 0, got %zu",
-                   sname, tname, int (sizeof *ca), ca, s0.size ());
-
-        // 21.3.1, p10 - effects table, row 3
-        rw_assert (s0.size () <= s0.capacity (), 0, __LINE__,
-                   "%s<%s>::%1$s(const_pointer= %{*Ac}).capacity() "
-                   ">= %zu, got %zu",
-                   sname, tname, int (sizeof *ca), ca,
-                   s0.size (), s0.capacity ());
-
-        rw_assert (0 != s0.c_str (), 0, __LINE__,
-                   "%s<%s>::%1$s(const_pointer = %{*Ac}).c_str () != 0",
-                   sname, tname, int (sizeof *ca), ca);
-
-        rw_assert (Traits::eq (*s0.c_str(), T ()), 0, __LINE__,
-                   "%s<%s>::%1$s(const_pointer = %{*Ac})"
-                   ".c_str()[0] == '\\0'",
-                   sname, tname, int (sizeof *ca), ca);
-    }
-
-    nblocks = rwt_check_leaks (&nbytes, 0);
-
-    rw_assert (!nblocks && !nbytes, 0, __LINE__,
-               "%s<%s>(\"\") leaked %d bytes in %d block(s)",
-               sname, tname, nbytes, nblocks);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    //////////////////////////////////////////////////////////////
-    if (rw_opt_no_fill_ctor) {
-        rw_note (0, 0, 0,
-                 "std::%s<%s>::%1$s (size_type, value_type) test disabled",
-                 sname, tname);
+    catch (const std::out_of_range &ex) {
+        caught = exceptions [1];
+        rw_assert (caught == expected, 0, tcase.line,
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught std::%s(%#s)",
+                   __LINE__, 0 != expected, expected, caught, ex.what ());
     }
-    else {
-        rw_info (0, 0, 0,
-                 "std::%s<%s>::%1$s (size_type, value_type)", sname, tname);
-
-        bool thrown = false;
-    
-        try {
-            String ts (String::npos, Lit<T>::space[0]);
-        }
-        catch (std::length_error) {
-            thrown = true;
-        }
-        catch (...) {
-        }
-    
-        rw_assert (thrown, 0, __LINE__,
-                   "%s<%s>::%1$s (size_type = %zu, char_type = %#lc) "
-                   "threw std::length_error",
-                   sname, tname, String::npos, Lit<T>::space[0]);
+    catch (const std::length_error &ex) {
+        caught = exceptions [2];
+        rw_assert (caught == expected, 0, tcase.line,
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught std::%s(%#s)",
+                   __LINE__, 0 != expected, expected, caught, ex.what ());    
     }
-
-    nblocks = rwt_check_leaks (&nbytes, 0);
-
-    rw_assert (!nblocks && !nbytes, 0, __LINE__,
-               "%s<%s>(size_type, char_type) leaked %d bytes "
-               "in %d block(s) after an exception",
-               sname, tname, nbytes, nblocks);
-
-#endif   // _RWSTD_NO_EXCEPTIONS
-
-    {
-        const SizeT siz = 120;
-    
-        const String ts (siz, Lit<T>::space[0] );
-
-        // Length set to siz when reserving
-        rw_assert ( (ts.length() == siz), 0, __LINE__, "C9");
-    
-        // Allocated size at least as large as requested
-        rw_assert ( (ts.capacity() >= siz), 0, __LINE__, "C10");
+    catch (const std::bad_alloc &ex) {
+        caught = exceptions [3];
+        rw_assert (-1 == tcase.bthrow, 0, tcase.line,
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught std::%s(%#s)",
+                   __LINE__, 0 != expected, expected, caught, ex.what ());
     }
-
-    nblocks = rwt_check_leaks (&nbytes, 0);
-
-    rw_assert (!nblocks && !nbytes, 0, __LINE__,
-               "%s<%s>(size_type, char_type) leaked %d bytes "
-               "in %d block(s)", sname, tname, nbytes, nblocks);
-
-    //////////////////////////////////////////////////////////////
-    if (rw_opt_no_copy_ctor) {
-        rw_note (0, 0, 0, "%s<%s>::%1$s (const %1$&) test disabled",
-                 sname, tname);
+    catch (const std::exception &ex) {
+        caught = exceptions [4];
+        rw_assert (0, 0, tcase.line,
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught std::%s(%#s)",
+                   __LINE__, 0 != expected, expected, caught, ex.what ());
     }
-    else {
-        rw_info (0, 0, 0, "std::%s<%s>::%1$s (const %1$s&)", sname, tname);
-
-        const String s1 (Lit<T>::aString);
-        const String s2 (s1);
-
-#ifndef _RWSTD_NO_STRING_REF_COUNT
-
-        // verify that the two strings share the same data
-        rw_assert (s1.data () == s2.data (), 0, __LINE__,
-                   "s1.data () == s2.data (); strings NOT reference counted");
-
-#else   // if defined (_RWSTD_NO_STRING_REF_COUNT)
-
-        // verify that the two strings share the same data
-        rw_assert (s1.data () != s2.data (), 0, __LINE__,
-                   "s1.data () != s2.data (); strings reference counted");
-
-#endif   // _RWSTD_NO_STRING_REF_COUNT
-
-        // 21.3.1, p5 - effects table, row 1
-        rw_assert (&s2 [0] == s2.data (), 0, __LINE__,
-                   "%s<%s>::%1$s(const %1$s&)", sname, tname);
-
-        // 21.3.1, p5 - effects table, row 2
-        rw_assert (s1.size () == s2.size (), 0, __LINE__,
-                   "%s<%s>::%1$s(const %1$s&).size () == %zu, got %zu",
-                   sname, tname, s1.size (), s2.size ());
-
-        // 21.3.1, p5 - effects table, row 3
-        rw_assert (s2.size () <= s2.capacity (), 0, __LINE__,
-                   "%s<%s>::%1$s(%1$s&).capacity () >= %zu, got %zu",
-                   sname, tname, s2.size (), s2.capacity ());
-
-        // verify that both strings are the same
-        rw_assert (s2 == s1
-                   && 0 == Traits::compare (s1.data (), s2.data (), s1.size ()),
-                   0, __LINE__,
-                   "std::operator==(const %s<%s>&, const %1$s<%2$s>&)",
-                   sname, tname);
-    }
-
-    nblocks = rwt_check_leaks (&nbytes, 0);
-
-    rw_assert (!nblocks && !nbytes, 0, __LINE__,
-               "%s<%s>(const %1$s&) leaked %d bytes in %d block(s)",
-               sname, tname, nbytes, nblocks);
-
-    if (!rw_opt_no_copy_ctor) {
-        String s1;
-        String s2(s1);
-    
-        // Empty copies have same lengths
-        rw_assert((s1.length() == s2.length()), 0, __LINE__, "C19");
-
-        // Empty copies compare equal
-        rw_assert ( (s1.compare(s2) == 0), 0, __LINE__, "C16");
-    
-        // Empty copies return same data string.
-        rw_assert (!Traits::compare (s1.data (), s2.data (), s1.size ()), 
-                   0, __LINE__, "C17");
-
-        // Empty copies return same c_str string.
-        rw_assert (!Traits::compare (s1.c_str (), s2.c_str (), s1.size()), 
-                   0, __LINE__, "C18");
-    }
-
-    nblocks = rwt_check_leaks (&nbytes, 0);
-
-    rw_assert (!nblocks && !nbytes, 0, __LINE__,
-               "%s<%s>(const basic_string&) leaked %d bytes "
-               "in %d block(s)", tname, nbytes, nblocks);
-
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    {   //////////////////////////////////////////////////////////////
-        rw_info (0, 0, 0, "std::%s<%s>::%1$s (const %1$s&, size_type)",
-                 sname, tname);
-    
-        bool thrown = false;
-        String t1( Lit<T>::abcdef );
-
-        try {
-            String t2(t1, 7);
-        }
-        catch (std::out_of_range) {
-            thrown = true;
-        }
-        catch (...) {
-        }
-    
-        // Threw exception when pos exceeded length of str
-        rw_assert ( ( thrown==true ) , 0, __LINE__, "C20");
+    catch (...) {
+        caught = exceptions [0];
+        rw_assert (0, 0, tcase.line,
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught %s",
+                   __LINE__, 0 != expected, expected, caught);
     }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    {
-        String t1( Lit<T>::abcdef );
-        String t2(t1, 6);
-    
-        // Correct single character beyond end value
-        rw_assert ( t2 == Lit<T>::null, 0, __LINE__, "C21");
+    /* const */ std::size_t nbytes;
+    const       std::size_t nblocks = rwt_check_leaks (&nbytes, 0);
 
-        // Correctly references nullRef
-        rw_assert ( t2.data() == String ().data(), 0, __LINE__, "C22");
-    
-        // Correct single character beyond end length
-        rw_assert ( (t2.length() == 0), 0, __LINE__, "C23");
-    }
-    {
-        String t1( Lit<T>::abcdef );
-        String t2(t1, 5);
-    
-        // Correct single character at end value
-        rw_assert ( (t2 == Lit<T>::f), 0, __LINE__, "C24");
-    
-        // Correct single character at end length
-        rw_assert ( (t2.length() == 1), 0, __LINE__, "C25");
-    }
-    {
-        String t1( Lit<T>::abcdef );
-        String t2(t1, 4);
-    
-        // Correct last two characters value
-        rw_assert ( (t2 == Lit<T>::ef), 0, __LINE__, "C26");
-    
-        // Correct last two characters length
-        rw_assert ( (t2.length() == 2), 0, __LINE__, "C27");
-    }
-    {
-        String t1( Lit<T>::abcdef );
-        String t2(t1, 0);
-    
-        // Correct entire String value
-        rw_assert ( (t2 == t1), 0, __LINE__, "C28");
-    
-        // Correct entire String length
-        rw_assert ( (t2.length() == t1.length()), 0, __LINE__, "C29");
-    }
-    {
-        String t1( Lit<T>::abcdef );
-        String t2(t1, 0, 0);
-    
-        // Correct zero-length string off front value
-        rw_assert ( t2 == Lit<T>::null, 0, __LINE__, "C30");
-    
-        // Correctly references nullRef
-        rw_assert ( t2.data () == String ().data (), 0, __LINE__, "C31");
-    
-        // Correct zero-length string off front length
-        rw_assert ( (t2.length() == 0), 0, __LINE__, "C32");
-    }
-    {
-        String t1( Lit<T>::abcdef );
-        String t2(t1, 0, 1);
-    
-        // Correct one character off front value
-        rw_assert ( (t2 == Lit<T>::a), 0, __LINE__, "C33");
-    
-        // Correct one character off front length
-        rw_assert ( (t2.length() == 1), 0, __LINE__, "C34");
-    }
-    {
-        String t1( Lit<T>::abcdef );
-        String t2(t1, 2, 2);
-    
-        // Correct subString from middle value
-        rw_assert ( (t2 == Lit<T>::cd), 0, __LINE__, "C35");
-    
-        // Correct subString from middle length
-        rw_assert ( (t2.length() == 2), 0, __LINE__, "C36");
-    }
-    {
-        rw_info (0, 0, 0, "std::%s<%s>::%1$s (const_pointer, size_type)",
-                 sname, tname);
-    
-        String t1( Lit<T>::abcdefg, (SizeT)0);
-        String t2( Lit<T>::abcdefg, 1 );
-        String t3( Lit<T>::abcdefg, 3 );
-        String t4( Lit<T>::abcnulldefg, 8 ); //Embedded null
-    
-        // Correct value when n is zero
-        rw_assert ( t1 == Lit<T>::null, 0, __LINE__, "C37");
-    
-        // Correctly references nullRef when n is zero
-        rw_assert ( t1.data () == String ().data (), 0, __LINE__, "C38");
-    
-        // Correct value when n is one
-        rw_assert ( (t2 == Lit<T>::a), 0, __LINE__, "C39");
-    
-        // Correct value when n is three
-        rw_assert ( (t3 == Lit<T>::abc), 0, __LINE__, "C40");
-    
-        // Correct value with embedded null
-        rw_assert (!std::memcmp(t4.c_str(), Lit<T>::abcnulldefg, 8), 
-                   0, __LINE__, "C41");
-    
-        // Lengths are n that was passed in
-        rw_assert (((t1.length()==0)&&(t2.length()==1) &&
-                    (t3.length()==3)&&(t4.length()==8)), 
-                   0, __LINE__, "C42");
-    }
+    // FIXME: verify the number of blocks the function call
+    // is expected to allocate and detect any memory leaks
+    const std::size_t expect_blocks = nblocks;
 
-    if (!rw_opt_no_ptr_ctor) {
-        rw_info (0, 0, 0, "std::%s<%s>::"
-                 "basic_string (const_pointer)", tname);
-    
-        String t1( Lit<T>::abcdefg );
-        String t2( Lit<T>::abcnulldefg );
-    
-        // Correct value with normal string
-        rw_assert ( (t1 == Lit<T>::abcdefg), 0, __LINE__, "C43");
-    
-        // Correct value with _EXPLICIT embedded null
-        rw_assert ( (t2 == Lit<T>::abc), 0, __LINE__, "C44");
-    
-        // Lengths are n that was passed in
-        rw_assert ( ((t1.length() == 7) && (t2.length() == 3)), 
-                    0, __LINE__, "C45");
-    }
+    rw_assert (nblocks == expect_blocks, 0, tcase.line,
+               "line %d. %{$FUNCALL} allocated %td bytes in %td blocks",
+               __LINE__, nbytes, expect_blocks);
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-    {
-        rw_info (0, 0, 0, "std::%s<%s>::%1$s (size_type, char_type)",
-                 sname, tname);
-
-        bool thrown = false;
-    
-        try { String ts(String::npos, Lit<T>::a[0] ); }
-        catch (std::length_error) { thrown = true; }
-    
-        rw_assert ( (thrown==true), 0, __LINE__, "C46");
-    }
-#endif
-
-    {
-        String t1( (SizeT)0, Lit<T>::b[0] );
-        String t2( (SizeT)1, Lit<T>::c[0] );
-        String t3( (SizeT)5, Lit<T>::d[0] );
-    
-        // Correct value for no repetitions
-        rw_assert ( (t1 == Lit<T>::null), 0, __LINE__, "C47");
-
-        // Correctly references nullRef when no reps
-        rw_assert ( t1.data () == String ().data (), 0, __LINE__, "C48");
-    
-        // Correct value for default repetitions
-        rw_assert ( (t2 == Lit<T>::c ), 0, __LINE__, "C49");
-    
-        // Correct value for five repetitions
-        rw_assert ( (t3 == Lit<T>::ddddd), 0, __LINE__, "C50");
-    
-        // Correct lengths for all
-        rw_assert (((t1.length() == 0) && (t2.length() == 1) &&
-                    (t3.length() == 5) ), 0, __LINE__, "C51");
-    }
-
-    {
-        // extension (for compilers with no member templates)
-        rw_info (0, 0, 0, "std::%s<%s>::%1$s(const_pointer, const_pointer)",
-                 sname, tname);
-
-        const T ca [] = { 'a', 'b', 'c', 'd', 'e', 'f', '\0' };
-
-        SizeT size = sizeof ca / sizeof *ca;
-
-        // 21.3.1, p16 - construct a string using two pointers
-        const String s1 (ca, ca + 0);
-
-        // verify that the constructed string is empty
-        rw_assert (s1.size () == 0, 0, __LINE__,
-                   "%s (const_pointer, const_pointer).size ()"
-                   " == 0, got %zu", sname, s1.size ());
-
-        rw_assert (s1.data () == String ().data (), 0, __LINE__,
-                   "%s (const_pointer, const_pointer).data () == "
-                   "%1$s().data ()", sname);
-
-        const String s2 (ca, ca + size);
-
-        // verify that both strings are the same
-        rw_assert (s2.size () == size, 0, __LINE__,
-                   "%s (const_pointer, const_pointer).size ()"
-                   " == %zu, got %zu", sname, size, s2.size ());
-
-        rw_assert (0 == Traits::compare (s2.data (), ca, s2.size ()), 
-                   0, __LINE__, "%s (const_pointer, const_pointer)", sname);
-    }
-
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-#  if !defined (_MSC_VER) || _MSC_VER >= 1300
- 
-    //////////////////////////////////////////////////////////////
-    if (rw_opt_no_fill_ctor) {
-        rw_note (0, 0, 0, "template <class %s> "
-                 "std::%s<%s>::%2$s (%1$s, %1$s) test disabled",
-                 "InputIterator", "basic_string", sname, tname);
-    }
-    else {
-        rw_info (0, 0, 0, "template <class %s> "
-                 "std::%s<%s>::%2$s (%1$s, %1$s)",
-                 "InputIterator", "basic_string", sname, tname);
-
-        const T ca [] = { 'a', 'b', 'c', 'd', 'e', 'f', '\0' };
-        const int ia []   = { 'a', 'b', 'c', 'd', 'e', 'f', '\0' };
-
-        SizeT size = sizeof ia / sizeof *ia;
-
-        // 21.3.1, p16 - construct a string using two InputIterators
-        const String s1 =
-            String (InputIter<int>(ia, ia, ia + size),
-                    InputIter<int>(ia + size, ia + size, ia + size));
-
-        // verify that both strings are the same
-        rw_assert (s1.size () == size, 0, __LINE__,
-                   "%s (InputIterator, InputIterator).size ()"
-                    " == %zu, got %zu", sname, size, s1.size ());
-
-        // verify that both strings are the same
-        rw_assert (0 == Traits::compare (s1.data (), ca, s1.size ()), 
-                   0, __LINE__,
-                   "%s (InputIterator, InputIterator)", sname);
-
-        const T ca2 [] = { 'a', 'a', 'a', 'a', 'a', 'a', '\0' };
-
-        // 21.3.1, p15 - construct a string using a template ctor
-        //               with InputIterator being an integral type
-        const String s2 = String (6, int (ca2 [0]));
-
-        // effects: same as basic_string (size_type (begin) size_type (end))
-        rw_assert (s2.size () == 6, 0, __LINE__,
-                   "%s (InputIterator, InputIterator).size ()"
-                   " == %zu, got %zu", sname, 6, s1.size ());
-
-        // verify that both strings are the same
-        rw_assert (0 == Traits::compare (s2.data (), ca2, s2.size ()), 
-                   0, __LINE__,
-                   "%s (InputIterator, InputIterator)", sname);
-    }
-
-    nblocks = rwt_check_leaks (&nbytes, 0);
-
-    rw_assert (!nblocks && !nbytes, 0, __LINE__,
-               "template <class %s> %s::%2$s"
-               "(%1$s, %1$s) leaked %d bytes in %d block(s)",
-               "InputIterator", tname, sname, nbytes, nblocks);
-
-#  endif   // !MSVC ||  MSVC > 6.0
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
-
-#if 0
-
-    {   // FIXME: implement and enable
-
-        rw_info (0, 0, 0, 
-                 "dynamic allocation, construction, destruction, "
-                 "and deallocation of string objects across "
-                 "library boundaries");
-
-        typedef std::allocator<T>                       Allocator;
-        typedef std::basic_string<T, Traits, Allocator> String;
-
-        const T eos = T ();
-        const T* const empty = &eos;
-        const T non_empty[] = { ' ', '\0' };
-
-        // exercise the ability to dynamically allocate, construct
-        // destroy, and deallocate std::string and std::wstring objects
-        // across library boundaries; especially important when strings
-        // are reference counted and _RWSTD_NO_COLLAPSE_TEMPLATE_STATICS
-        // is #defined
-        String *ps = copy_string ((String*)0);
-        delete ps;
-
-        ps = copy_string (new String ());
-        delete ps;
-
-        ps = copy_string (new String (empty));
-        delete ps;
-
-        ps = copy_string (new String (0, eos));
-        delete ps;
-
-        ps = copy_string (new String (non_empty));
-        delete ps;
-
-        ps = copy_string (copy_string ((String*)0));
-        delete ps;
-
-        ps = copy_string (copy_string (new String (empty)));
-        delete ps;
-
-        ps = copy_string (copy_string (new String (0, eos)));
-        delete ps;
-
-        ps = copy_string (copy_string (new String (non_empty)));
-        delete ps;
-    }
-
-#endif   // 0/1
-
+    if (wres != wres_buf)
+        delete[] wres;
 }
 
 /**************************************************************************/
 
-int run_test (int, char**)
+template <class charT, class Traits>
+void test_op_set (charT, Traits*,
+                  OverloadId      which,
+                  const TestCase &tcase)
 {
-    if (rw_enabled ("char")) {
-        test_signatures (char (), "char");
-        test_ctors (char (), "char");
+    typedef std::allocator<charT>                        Allocator;
+    typedef std::basic_string <charT, Traits, Allocator> String;
+    typedef typename UserTraits<charT>::MemFun           UTMemFun;
+
+    static const std::size_t BUFSIZE = 256;
+
+    static charT wstr_buf [BUFSIZE];
+    static charT warg_buf [BUFSIZE];
+
+    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
+    std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
+
+    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
+    charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
+
+    // construct the string object to be modified
+    // and the (possibly unused) argument string
+    /* const */ String  str (wstr, str_len);
+    const       String  arg (warg, arg_len);
+
+    if (wstr != wstr_buf)
+        delete[] wstr;
+
+    if (warg != warg_buf)
+        delete[] warg;
+
+    wstr = 0;
+    warg = 0;
+
+    static charT wres_buf [BUFSIZE];
+    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
+    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
+
+    // save the state of the string object before the call
+    // to detect wxception safety violations (changes to
+    // the state of the object after an exception)
+    const StringState str_state (rw_get_string_state (str));
+
+    // string function argument
+    const charT* const arg_ptr = tcase.arg ? arg.c_str () : str.c_str ();
+    const String&      arg_str = tcase.arg ? arg : str;
+    const charT        arg_val = make_char (char (tcase.val), (charT*)0);
+
+    std::size_t total_length_calls = 0;
+    std::size_t n_length_calls = 0;
+    std::size_t* const rg_calls = OpSet (ptr) == which ?
+        rw_get_call_counters ((Traits*)0, (charT*)0) : 0;
+
+    if (rg_calls)
+        total_length_calls = rg_calls [UTMemFun::length];
+
+    rwt_free_store* const pst = rwt_get_free_store (0);
+
+    // iterate for`throw_after' starting at the next call to operator new,
+    // forcing each call to throw an exception, until the function finally
+    // succeeds (i.e, no exception is thrown)
+    std::size_t throw_after;
+    for (throw_after = 0; ; ++throw_after) {
+
+        // (name of) expected and caught exception
+        const char* expected = 0;
+        const char* caught   = 0;
+
+#ifndef _RWSTD_NO_EXCEPTIONS
+
+        if (-1 == tcase.bthrow) {
+            expected = exceptions [3];      // bad_alloc
+            *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_after + 1;
+        }
+
+#else   // if defined (_RWSTD_NO_EXCEPTIONS)
+
+        if (tcase.bthrow) {
+            if (wres != wres_buf)
+                delete[] wres;
+
+            return;
+        }
+
+#endif   // _RWSTD_NO_EXCEPTIONS
+
+        // start checking for memory leaks
+        rwt_check_leaks (0, 0);
+
+        try {
+            switch (which) {
+            case OpSet (ptr): {
+                str = arg_ptr;
+                break;
+            }
+            case OpSet (str): {
+                str = arg_str;
+                break;
+            }
+            case OpSet (val): {
+                str = arg_val;
+                break;
+            }
+
+            default:
+                RW_ASSERT (!"logic error: unknown operator= overload");
+            }
+            
+            // verify the length of the resulting string
+            rw_assert (res_len == str.size (), 0, tcase.line,
+                       "line %d. %{$FUNCALL} expected %{#*s} with length "
+                       "%zu, got %{/*.*Gs} with length %zu",
+                       __LINE__, int (res_len), tcase.res, 
+                       res_len, int (sizeof (charT)), 
+                       int (str.size ()), str.c_str (), str.size ());
+
+            if (res_len == str.size ()) {
+                // if the result length matches the expected length
+                // (and only then), also verify that the modified
+                // string matches the expected result
+                const std::size_t match =
+                    rw_match (tcase.res, str.c_str (), tcase.nres);
+
+                rw_assert (match == res_len, 0, tcase.line,
+                           "line %d. %{$FUNCALL} expected %{/*.*Gs}, "
+                           "got %{/*.*Gs}, difference at offset %zu",
+                            __LINE__, int (sizeof (charT)), int (res_len), 
+                            wres, int (sizeof (charT)), 
+                            int (str.size ()), str.c_str (), match);
+            }
+
+            // verify that Traits::length was used
+            if (rg_calls) {
+                rw_assert (n_length_calls - total_length_calls > 0, 
+                           0, tcase.line, "line %d. %{$FUNCALL} doesn't "
+                           "use traits::length()", __LINE__);
+            }
+        }
+
+#ifndef _RWSTD_NO_EXCEPTIONS
+
+        catch (const std::bad_alloc &ex) {
+            caught = exceptions [3];
+            rw_assert (-1 == tcase.bthrow, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                       "unexpectedly%{;} caught std::%s(%#s)",
+                       __LINE__, 0 != expected, expected, caught, ex.what ());
+        }
+        catch (const std::exception &ex) {
+            caught = exceptions [4];
+            rw_assert (0, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                       "unexpectedly%{;} caught std::%s(%#s)",
+                       __LINE__, 0 != expected, expected, caught, ex.what ());
+        }
+        catch (...) {
+            caught = exceptions [0];
+            rw_assert (0, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                       "unexpectedly%{;} caught %s",
+                       __LINE__, 0 != expected, expected, caught);
+        }
+
+#endif   // _RWSTD_NO_EXCEPTIONS
+
+        /* const */ std::size_t nbytes;
+        const       std::size_t nblocks = rwt_check_leaks (&nbytes, 0);
+
+        // FIXME: verify the number of blocks the function call
+        // is expected to allocate and detect any memory leaks
+        const std::size_t expect_blocks = nblocks;
+
+        rw_assert (nblocks == expect_blocks, 0, tcase.line,
+                   "line %d. %{$FUNCALL} allocated %td bytes in %td blocks",
+                   __LINE__, nbytes, expect_blocks);
+
+        if (caught) {
+            // verify that an exception thrown during allocation
+            // didn't cause a change in the state of the object
+            str_state.assert_equal (rw_get_string_state (str),
+                                    __LINE__, tcase.line, caught);
+            if (-1 == tcase.bthrow) {
+                // allow this call to operator new to succeed and try
+                // to make the next one to fail during the next call
+                // to the same function again
+                continue;
+            }
+        }
+        else if (-1 != tcase.bthrow) {
+            rw_assert (caught == expected, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s, caught %s"
+                       "%{:}unexpectedly caught %s%{;}",
+                       __LINE__, 0 != expected, expected, caught, caught);
+        }
+
+        break;
     }
-    else
-        rw_note (0, __FILE__, __LINE__, "char test disabled");
 
-#ifndef _RWSTD_NO_WCHAR_T
+#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-    if (rw_enabled ("wchar_t")) {
-        test_signatures (wchar_t (), "wchar_t");
-        test_ctors (wchar_t (), "wchar_t");
-    }
-    else
-        rw_note (0, __FILE__, __LINE__, "wchar_t test disabled");
+    // verify that if exceptions are enabled and when capacity changes
+    // at least one exception is thrown
+    rw_assert (   *pst->throw_at_calls_ [0] == std::size_t (-1)
+               || throw_after,
+               0, tcase.line,
+               "line %d: %{$FUNCALL}: failed to throw an expected exception",
+               __LINE__);
 
-#endif   // _RWSTD_NO_WCHAR_T
+#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-    return 0;
+    *pst->throw_at_calls_ [0] = std::size_t (-1);
+
+    if (wres != wres_buf)
+        delete[] wres;
 }
 
 /**************************************************************************/
+
+template <class charT, class Traits>
+void test_cons (charT, Traits*,
+                OverloadId      which,
+                const TestCase &tcase)
+{
+    if (OpSet(ptr) <= which)
+        test_op_set (charT (), (Traits*)0, which, tcase);
+    else
+        test_ctor (charT (), (Traits*)0, which, tcase);
+}
+
+/**************************************************************************/
+
+DEFINE_TEST_DISPATCH (test_cons);
 
 int main (int argc, char** argv)
 {
-    return rw_test (argc, argv, __FILE__,
-                    "lib.string.cons",
-                    0 /* no comment */,
-                    run_test,
-                    "|-no-copy-ctor# "
-                    "|-no-default-ctor# "
-                    "|-no-pointer-ctor# ",
-                    &rw_opt_no_copy_ctor,
-                    &rw_opt_no_def_ctor,
-                    &rw_opt_no_ptr_ctor);
+    static const StringMembers::Test
+    tests [] = {
+
+#undef TEST
+#define TEST(tag) {                                             \
+        StringMembers::ctor_ ## tag, tag ## _test_cases,        \
+        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+    }
+
+        TEST (void),
+        TEST (ptr),
+        TEST (str),
+        TEST (ptr_size),
+        TEST (str_size),
+        TEST (str_size_size),
+        TEST (size_val),
+        TEST (range),
+
+#undef TEST
+#define TEST(tag) {                                             \
+        StringMembers::tag, tag ## _test_cases,                 \
+        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+    }
+
+        TEST (op_set_ptr),
+        TEST (op_set_str),
+        TEST (op_set_val)
+
+    };
+
+    const std::size_t test_count = sizeof tests / sizeof *tests;
+
+    return StringMembers::run_test (argc, argv, __FILE__,
+                                    "lib.string.cons",
+                                    test_cons, tests, test_count);
 }
+
