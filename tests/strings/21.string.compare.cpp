@@ -31,14 +31,12 @@
 
 #include <21.strings.h> // for StringMembers
 #include <driver.h>     // for rw_assert()
-#include <rw_char.h>    // for rw_widen()
+#include <rw_char.h>    // for rw_expand()
 
 /**************************************************************************/
 
 // for convenience and brevity
 #define NPOS              _RWSTD_SIZE_MAX
-#define LSTR              StringMembers::long_string
-#define LLEN              StringMembers::long_string_len
 #define Compare(which)    StringMembers::compare_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
@@ -111,11 +109,15 @@ ptr_test_cases [] = {
     TEST ("ab\0",            "abc\0\0\0",  NPOS,      0),
     TEST ("\0ab",            "e\0ab\0\0c", NPOS,      0),
 
-    TEST (LSTR,              LSTR,            0,      0),
-    TEST ("xx",              LSTR,         NPOS,      0),
-    TEST (LSTR,              "xxxxxx",        1,      0),
-    TEST ("a\0b",            LSTR,         NPOS,      0),
-    TEST (LSTR,              "a\0b",          1,      0),
+    TEST ("x@4096",          "x@4096",        0,      0),
+    TEST ("xx",              "x@4096",     NPOS,      0),
+    TEST ("x@4096",          "xxxxxx",        1,      0),
+    TEST ("a\0b",            "x@4096",     NPOS,      0),
+    TEST ("x@4096",          "a\0b",          1,      0),
+
+    TEST ("a@2048b@2048",    "a@2048b@2047",  1,      0),
+    TEST ("a@2048b@2048",    "a@2048b@2047c", NPOS,   0),
+    TEST ("a@2048cb@2047",   "a@2048cb@2047", 0,      0),
 
     TEST ("last",            "last",          0,      0)
 };
@@ -182,11 +184,15 @@ str_test_cases [] = {
     TEST ("bb\0",            "ab\0\0\0c",     1,      0),
     TEST ("\0ac",            "\0abe\0\0c",    1,      0),
 
-    TEST (LSTR,              LSTR,            0,      0),
-    TEST ("xx",              LSTR,         NPOS,      0),
-    TEST (LSTR,              "xxxxxx",        1,      0),
-    TEST ("a\0b",            LSTR,         NPOS,      0),
-    TEST (LSTR,              "a\0b",          1,      0),
+    TEST ("x@4096",          "x@4096",        0,      0),
+    TEST ("xx",              "x@4096",     NPOS,      0),
+    TEST ("x@4096",          "xxxxxx",        1,      0),
+    TEST ("a\0b",            "x@4096",     NPOS,      0),
+    TEST ("x@4096",          "a\0b",          1,      0),
+
+    TEST ("a@2048b@2048",    "a@2048b@2047",  1,      0),
+    TEST ("a@2048b@2048",    "a@2048b@2047c", NPOS,   0),
+    TEST ("a@2048cb@2047",   "a@2048cb@2047", 0,      0),
 
     TEST ("last",            "last",          0,      0)
 };
@@ -267,19 +273,19 @@ size_size_ptr_test_cases [] = {
     TEST ("\0eb",        0,  5, "e\0ab\0\0c", NPOS,  0),
     TEST ("\0eb",        1,  5, "e\0ab\0\0c",    1,  0),
 
-    TEST (LSTR,          0, LLEN - 1,  LSTR,     0,  0),
-    TEST (LSTR,          1, LLEN - 1,  LSTR,  NPOS,  0),
-    TEST ("xx",          0,  2, LSTR,         NPOS,  0),
-    TEST (LSTR,          0, LLEN - 1, "xxxxx",   1,  0),
-    TEST (LSTR,          2,  5, "xxxxx",         0,  0),
-    TEST (LSTR,          5,  2, "xxxxx",      NPOS,  0),
-    TEST ("a\0x",        0,  3, LSTR,         NPOS,  0),
-    TEST (LSTR,          0, 10, "x\0b",          1,  0),
-    TEST (LSTR,          0,  1, "x\0b",          0,  0),
+    TEST ("x@4096",    0, 4096, "x@4096",        0,  0),
+    TEST ("x@4096",    1, 4096, "x@4096",     NPOS,  0),
+    TEST ("xx",          0,  2, "x@4096",     NPOS,  0),
+    TEST ("x@4096",    0, 4096, "xxxxx",         1,  0),
+    TEST ("x@4096",      2,  5, "xxxxx",         0,  0),
+    TEST ("x@4096",      5,  2, "xxxxx",      NPOS,  0),
+    TEST ("a\0x",        0,  3, "x@4096",     NPOS,  0),
+    TEST ("x@4096",      0, 10, "x\0b",          1,  0),
+    TEST ("x@4096",      0,  1, "x\0b",          0,  0),
 
     TEST ("\0",          2,  0, "",              1,  1),
     TEST ("a",          10,  0, "",              1,  1),
-    TEST (LSTR,  LLEN + 10,  0, "",              1,  1),
+    TEST ("x@4096",   4106,  0, "",              1,  1),
 
     TEST ("last",        0,  4, "last",          0,  0)
 };
@@ -372,19 +378,20 @@ size_size_str_test_cases [] = {
     TEST ("abc\0\0\0",   2,  5, "abc\0\0",       1,  0),
     TEST ("e\0ag\0\0c",  3,  6, "e\0ab\0\0c",    1,  0),
 
-    TEST (LSTR,          0, LLEN - 1,  LSTR,     0,  0),
-    TEST (LSTR,          1, LLEN - 1,  LSTR,  NPOS,  0),
-    TEST ("xx",          0,  2, LSTR,         NPOS,  0),
-    TEST (LSTR,          0, LLEN - 1, "xxxxx",   1,  0),
-    TEST (LSTR,          2,  5, "xxxxx",         0,  0),
-    TEST (LSTR,          5,  2, "xxxxx",      NPOS,  0),
-    TEST ("a\0x",        0,  3, LSTR,         NPOS,  0),
-    TEST (LSTR,          0, 10, "x\0b",          1,  0),
-    TEST (LSTR,          0,  1, "x\0b",       NPOS,  0),
+    TEST ("x@4096",    0, 4096, "x@4096",        0,  0),
+    TEST ("x@4096",    1, 4096, "x@4096",     NPOS,  0),
+    TEST ("xx",          0,  2, "x@4096",     NPOS,  0),
+    TEST ("x@4096",    0, 4096, "xxxxx",         1,  0),
+    TEST ("x@4096",      2,  5, "xxxxx",         0,  0),
+    TEST ("x@4096",      5,  2, "xxxxx",      NPOS,  0),
+    TEST ("a\0x",        0,  3, "x@4096",     NPOS,  0),
+    TEST ("x@4096",      0, 10, "x\0b",          1,  0),
+    TEST ("x@4096",      0,  1, "x\0b",       NPOS,  0),
+    TEST ("a@4096\0", 4096,  1, "\0",            0,  0),
 
     TEST ("\0",          2,  0, "",              1,  1),
     TEST ("a",          10,  0, "",              1,  1),
-    TEST (LSTR,  LLEN + 10,  0, "",              1,  1),
+    TEST ("x@4096",   4106,  0, "",              1,  1),
 
     TEST ("last",        0, 4, "last",           0,  0)
 };
@@ -496,21 +503,23 @@ size_size_ptr_size_test_cases [] = {
     TEST ("e\0ag\0\0c",  3,  6, "e\0ab\0\0c",  7,    1,  0),
     TEST ("abc\0\0\0",   2,  5, "c\0\0ab",     4, NPOS,  0),
 
-    TEST (LSTR,    0, LLEN - 1, LSTR,   LLEN - 1,    0,  0),
-    TEST (LSTR,    1, LLEN - 1, LSTR,   LLEN - 1, NPOS,  0),
-    TEST (LSTR,    1, LLEN - 1, LSTR,   LLEN - 4,    1,  0),
-    TEST ("xx",          0,  2, LSTR,   LLEN - 4, NPOS,  0),
-    TEST (LSTR,    0, LLEN - 1, "xxxxx",       5,    1,  0),
-    TEST (LSTR,   LLEN - 6,  5, "xxxxx",       5,    0,  0),
-    TEST (LSTR,          2,  5, "xxxxx",       5,    0,  0),
-    TEST (LSTR,          5,  2, "xxxxx",       3, NPOS,  0),
-    TEST ("a\0x",        0,  3, LSTR,         10, NPOS,  0),
-    TEST (LSTR,          0, 10, "x\0b",        2,    1,  0),
-    TEST (LSTR,          0,  1, "x\0b",        2, NPOS,  0),
+    TEST ("x@4096",    0, 4096, "x@4096",   4096,    0,  0),
+    TEST ("x@4096",    1, 4096, "x@4096",   4096, NPOS,  0),
+    TEST ("x@4096",    1, 4096, "x@4096",   4092,    1,  0),
+    TEST ("xx",          0,  2, "x@4096",   4092, NPOS,  0),
+    TEST ("x@4096",    0, 4096, "xxxxx",       5,    1,  0),
+    TEST ("x@4096",   4090,  5, "xxxxx",       5,    0,  0),
+    TEST ("x@4096",      2,  5, "xxxxx",       5,    0,  0),
+    TEST ("x@4096",      5,  2, "xxxxx",       3, NPOS,  0),
+    TEST ("a\0x",        0,  3, "x@4096",     10, NPOS,  0),
+    TEST ("x@4096",      0, 10, "x\0b",        2,    1,  0),
+    TEST ("x@4096",      0,  1, "x\0b",        2, NPOS,  0),
+
+    TEST ("a@4096\0", 4096,  1, "\0b",         1,    0,  0),
 
     TEST ("\0",          2,  0, "",            0,    1,  1),
     TEST ("a",          10,  0, "",            0,    1,  1),
-    TEST (LSTR,  LLEN + 10,  0, "",            0,    1,  1),
+    TEST ("x@4096",   4106,  0, "",            0,    1,  1),
 
     TEST ("last",        0,  4, "last",        4,    0,  0)
 };
@@ -656,31 +665,31 @@ size_size_str_size_size_test_cases [] = {
     TEST ("e\0ag\0\0c",  3,  6, "e\0ab\0\0c",  0,  7,    1,  0),
     TEST ("abc\0\0\0",   2,  5, "c\0\0ab",     0,  4, NPOS,  0),
 
-    TEST (LSTR,    0, LLEN - 1, LSTR,    0, LLEN - 1,    0,  0),
-    TEST (LSTR,    1, LLEN - 1, LSTR,    0, LLEN - 1, NPOS,  0),
-    TEST (LSTR,    1, LLEN - 1, LSTR,    0, LLEN - 4,    1,  0),
-    TEST (LSTR,    1, LLEN - 6, LSTR,    2, LLEN - 6,    0,  0),
-    TEST (LSTR,    1, LLEN + 6, LSTR,    2, LLEN + 6,    1,  0),
-    TEST ("xx",          0,  2, LSTR,    0, LLEN - 4, NPOS,  0),
-    TEST ("xx",          0,  2, LSTR,   LLEN - 6,
-                                                   2,    0,  0),
-    TEST (LSTR,    0, LLEN - 1, "xxxxx",       0,  5,    1,  0),
-    TEST (LSTR,   LLEN - 6,  5, "xxxxx",       0,  5,    0,  0),
-    TEST (LSTR,          2,  5, "xxxxx",       0,  5,    0,  0),
-    TEST (LSTR,          5,  2, "xxxxx",       0,  3, NPOS,  0),
-    TEST ("a\0x",        0,  3, LSTR,          0, 10, NPOS,  0),
-    TEST ("a\0x",        2,  1, LSTR,   LLEN - 2,
-                                                   1,    0,  0),
-    TEST (LSTR,          0, 10, "x\0b",        0,  2,    1,  0),
-    TEST (LSTR,          0,  1, "x\0b",        0,  2, NPOS,  0),
+    TEST ("x@4096",    0, 4096, "x@4096",    0, 4096,    0,  0),
+    TEST ("x@4096",    1, 4096, "x@4096",    0, 4096, NPOS,  0),
+    TEST ("x@4096",    1, 4096, "x@4096",    0, 4092,    1,  0),
+    TEST ("x@4096",    1, 4090, "x@4096",    2, 4090,    0,  0),
+    TEST ("x@4096",    1, 4102, "x@4096",    2, 4102,    1,  0),
+    TEST ("xx",          0,  2, "x@4096",    0, 4092, NPOS,  0),
+    TEST ("xx",          0,  2, "x@4096", 4090,    2,    0,  0),
+    TEST ("x@4096",    0, 4096, "xxxxx",     0,    5,    1,  0),
+    TEST ("x@4096",   4090,  5, "xxxxx",     0,    5,    0,  0),
+    TEST ("x@4096",      2,  5, "xxxxx",     0,    5,    0,  0),
+    TEST ("x@4096",      5,  2, "xxxxx",     0,    3, NPOS,  0),
+    TEST ("a\0x",        0,  3, "x@4096",    0,   10, NPOS,  0),
+    TEST ("a\0x",        2,  1, "x@4096", 4095,    1,    0,  0),
+    TEST ("x@4096",      0, 10, "x\0b",      0,    2,    1,  0),
+    TEST ("x@4096",      0,  1, "x\0b",      0,    2, NPOS,  0),
+
+    TEST ("a@4096\0", 4096,  1, "b\0",       1,    1,    0,  0),
 
     TEST ("\0",          2,  0, "",            0,  0,    1,  1),
     TEST ("a",          10,  0, "",            0,  0,    1,  1),
-    TEST (LSTR,  LLEN + 10,  0, "",            0,  0,    1,  1),
+    TEST ("x@4096",   4106,  0, "",            0,  0,    1,  1),
 
     TEST ("",            0,  0, "\0",          2,  0,    1,  2),
     TEST ("",            0,  0, "a",          10,  0,    1,  2),
-    TEST ("",            0,  0, LSTR,  LLEN + 10,  0,    1,  2),
+    TEST ("",            0,  0, "x@4096",   4106,  0,    1,  2),
 
     TEST ("last",        0, 4, "last",         0, 4,     0,  0)
 };
@@ -693,19 +702,33 @@ void test_compare (charT, Traits*,
                    const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
-    typedef std::basic_string <charT, Traits, Allocator> TestString;
-    typedef typename TestString::const_iterator          ConstStringIter;
+    typedef std::basic_string <charT, Traits, Allocator> String;
+    typedef typename UserTraits<charT>::MemFun           UTMemFun;
 
-    typedef typename UserTraits<charT>::MemFun UTMemFun;
+    static const std::size_t BUFSIZE = 256;
 
-    static charT wstr [LLEN];
-    static charT warg [LLEN];
+    static charT wstr_buf [BUFSIZE];
+    static charT warg_buf [BUFSIZE];
 
-    rw_widen (wstr, tcase.str, tcase.str_len);
-    rw_widen (warg, tcase.arg, tcase.arg_len);
+    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
+    std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
 
-    /* const */ TestString s_str (wstr, tcase.str_len);
-    const       TestString s_arg (warg, tcase.arg_len);
+    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
+    charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
+
+    // construct the string object to be modified
+    // and the (possibly unused) argument string
+    /* const */ String  s_str (wstr, str_len);
+    const       String  s_arg (warg, arg_len);
+
+    if (wstr != wstr_buf)
+        delete[] wstr;
+
+    if (warg != warg_buf)
+        delete[] warg;
+
+    wstr = 0;
+    warg = 0;
 
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
@@ -715,8 +738,8 @@ void test_compare (charT, Traits*,
     int res = 0;
 
     // string function argument
-    const charT* const arg_ptr = tcase.arg ? warg : s_str.c_str ();
-    const TestString&  arg_str = tcase.arg ? s_arg : s_str;
+    const charT* const arg_ptr = tcase.arg ? s_arg.c_str () : s_str.c_str ();
+    const String&      arg_str = tcase.arg ? s_arg : s_str;
 
     std::size_t total_compare_calls = 0;
     std::size_t n_compare_calls = 0;

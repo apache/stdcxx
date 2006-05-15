@@ -33,14 +33,12 @@
 #include <21.strings.h>   // for StringMembers
 #include <alg_test.h>     // for InputIter
 #include <driver.h>       // for rw_test()
-#include <rw_char.h>      // for rw_widen()
+#include <rw_char.h>      // for rw_expand()
 #include <rw_new.h>       // for bad_alloc, replacement operator new
 
 /**************************************************************************/
 
 // for convenience and brevity
-#define LSTR              StringMembers::long_string
-#define LLEN              StringMembers::long_string_len
 #define OpPlusEq(which)   StringMembers::op_plus_eq_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
@@ -98,16 +96,18 @@ ptr_test_cases [] = {
     TEST ("\0ab\0\0c",  "e\0",        "\0ab\0\0ce",           0),
     TEST ("abcdefghij", "abcdefghij", "abcdefghijabcdefghij", 0),
 
-    TEST ("",           LSTR,         LSTR,                   0),
-    TEST (LSTR,         "",           LSTR,                   0),
+    TEST ("",           "x@4096",     "x@4096",               0),
+    TEST ("x@4096",     "",           "x@4096",               0),
+    TEST ("x@2048",     "y@2048",     "x@2048y@2048",         0),
 
     TEST ("",           0,            "",                     0),
     TEST ("abc",        0,            "abcabc",               0),
     TEST ("a\0\0bc",    0,            "a\0\0bca",             0),
     TEST ("\0\0abc",    0,            "\0\0abc",              0),
     TEST ("abc\0\0",    0,            "abc\0\0abc",           0),
+    TEST ("x@2048",     0,            "x@4096",               0),
 
-    TEST ("",           LSTR,         LSTR,                  -1),
+    TEST ("",           "x@4096",     "x@4096",              -1),
 
     TEST ("last",       "test",       "lasttest",             0)
 };
@@ -158,16 +158,18 @@ str_test_cases [] = {
     TEST ("ab\0\0c\0",  "\0e",        "ab\0\0c\0\0e",         0),
     TEST ("abcdefghij", "abcdefghij", "abcdefghijabcdefghij", 0),
 
-    TEST ("",           LSTR,         LSTR,                   0),
-    TEST (LSTR,         "",           LSTR,                   0),
+    TEST ("",           "x@4096",     "x@4096",               0),
+    TEST ("x@4096",     "",           "x@4096",               0),
+    TEST ("x@2048",     "y@2048",     "x@2048y@2048",         0),
 
     TEST ("",           0,            "",                     0),
     TEST ("abc",        0,            "abcabc",               0),
     TEST ("a\0\0bc",    0,            "a\0\0bca\0\0bc",       0),
     TEST ("\0\0abc",    0,            "\0\0abc\0\0abc",       0),
     TEST ("abc\0\0",    0,            "abc\0\0abc\0\0",       0),
+    TEST ("x@2048",     0,            "x@4096",               0),
 
-    TEST ("",           LSTR,         LSTR,                  -1),
+    TEST ("",           "x@4096",     "x@4096",              -1),
 
     TEST ("last",       "test",       "lasttest",             0)
 };
@@ -220,20 +222,38 @@ void test_op_plus_eq (charT, Traits*,
                       const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
-    typedef std::basic_string <charT, Traits, Allocator> TestString;
-    typedef typename TestString::iterator                StringIter;
-    typedef typename TestString::const_iterator          ConstStringIter;
+    typedef std::basic_string <charT, Traits, Allocator> String;
+    typedef typename String::iterator                    StringIter;
+    typedef typename UserTraits<charT>::MemFun           UTMemFun;
 
-    typedef typename UserTraits<charT>::MemFun UTMemFun;
+    static const std::size_t BUFSIZE = 256;
 
-    static charT wstr [LLEN];
-    static charT warg [LLEN];
+    static charT wstr_buf [BUFSIZE];
+    static charT warg_buf [BUFSIZE];
 
-    rw_widen (wstr, tcase.str, tcase.str_len);
-    rw_widen (warg, tcase.arg, tcase.arg_len);
+    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
+    std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
 
-    /* const */ TestString s_str (wstr, tcase.str_len);
-    const       TestString s_arg (warg, tcase.arg_len);
+    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
+    charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
+
+    static charT wres_buf [BUFSIZE];
+    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
+    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
+
+    // construct the string object to be modified
+    // and the (possibly unused) argument string
+    /* const */ String  s_str (wstr, str_len);
+    const       String  s_arg (warg, arg_len);
+
+    if (wstr != wstr_buf)
+        delete[] wstr;
+
+    if (warg != warg_buf)
+        delete[] warg;
+
+    wstr = 0;
+    warg = 0;
 
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
@@ -242,8 +262,8 @@ void test_op_plus_eq (charT, Traits*,
 
     std::size_t res_off = 0;
 
-    const charT* const arg_ptr = tcase.arg ? warg : s_str.c_str ();
-    const TestString&  arg_str = tcase.arg ? s_arg : s_str;
+    const charT* const arg_ptr = tcase.arg ? s_arg.c_str () : s_str.c_str ();
+    const String&      arg_str = tcase.arg ? s_arg : s_str;
     const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
     std::size_t total_length_calls = 0;
@@ -276,15 +296,19 @@ void test_op_plus_eq (charT, Traits*,
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-        if (tcase.bthrow)
-            return;
+    if (tcase.bthrow) {
+        if (wres != wres_buf)
+            delete[] wres;
+
+        return;
+    }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
         try {
             switch (which) {
             case OpPlusEq (ptr): {
-                const TestString& s_res = s_str += arg_ptr;
+                const String& s_res = s_str += arg_ptr;
                 res_off = &s_res - &s_str;
                 if (rg_calls)
                     n_length_calls = rg_calls [UTMemFun::length];
@@ -292,13 +316,13 @@ void test_op_plus_eq (charT, Traits*,
             }
 
             case OpPlusEq (str): {
-                const TestString& s_res = s_str += arg_str;
+                const String& s_res = s_str += arg_str;
                 res_off = &s_res - &s_str;
                 break;
             }
 
             case OpPlusEq (val): {
-                const TestString& s_res = s_str += arg_val;
+                const String& s_res = s_str += arg_val;
                 res_off = &s_res - &s_str;
                 break;
             }
@@ -314,21 +338,21 @@ void test_op_plus_eq (charT, Traits*,
                        "offset is %zu", __LINE__, res_off);
 
             // verfiy that strings length are equal
-            rw_assert (tcase.nres == s_str.size (), 0, tcase.line,
+            rw_assert (res_len == s_str.size (), 0, tcase.line,
                        "line %d. %{$FUNCALL} expected %{#*s} "
                        "with length %zu, got %{/*.*Gs} with length %zu",
-                       __LINE__, int (tcase.nres), tcase.res, tcase.nres,
+                       __LINE__, int (tcase.nres), tcase.res, res_len,
                        int (sizeof (charT)), int (s_str.size ()),
                        s_str.c_str (), s_str.size ());
 
-            if (tcase.nres == s_str.size ()) {
+            if (res_len == s_str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
                     rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-                rw_assert (match == tcase.nres, 0, tcase.line,
+                rw_assert (match == res_len, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{#*s}, "
                            "got %{/*.*Gs}, difference at offset %zu",
                            __LINE__, int (tcase.nres), tcase.res,
@@ -413,6 +437,9 @@ void test_op_plus_eq (charT, Traits*,
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
     *pst->throw_at_calls_ [0] = std::size_t (-1);
+
+    if (wres != wres_buf)
+        delete[] wres;
 }
 
 /**************************************************************************/

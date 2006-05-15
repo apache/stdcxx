@@ -27,21 +27,17 @@
 
 #include <string>         // for string
 #include <stdexcept>      // for out_of_range, length_error
-
 #include <cstddef>        // for size_t
 
 #include <21.strings.h>   // for StringMembers
 #include <alg_test.h>     // for InputIter
 #include <driver.h>       // for rw_test()
-#include <rw_char.h>      // for rw_widen()
+#include <rw_char.h>      // for rw_expand()
 #include <rw_new.h>       // for bad_alloc, replacement operator new
 
 /**************************************************************************/
 
 // for convenience and brevity
-
-#define LSTR            StringMembers::long_string
-#define LLEN            StringMembers::long_string_len
 #define Insert(which)   StringMembers::insert_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
@@ -57,7 +53,7 @@ static const char* const exceptions[] = {
 /**************************************************************************/
 
 // used to exercise
-// insert (size_type pos, const charT* s)
+// insert (size_type, const value_type*)
 static const TestCase
 size_ptr_test_cases [] = {
 
@@ -110,15 +106,18 @@ size_ptr_test_cases [] = {
     TEST ("abc",       2, 0,          "ababcc",             0),
     TEST ("a\0bc\0\0", 0, 0,          "aa\0bc\0\0",         0),
     TEST ("a\0bc\0\0", 6, 0,          "a\0bc\0\0a",         0),
+    TEST ("x@4096",    5, 0,          "x@8192",             0),
 
-    TEST ("",          0, LSTR,       LSTR,                 0),
-    TEST (LSTR,        0, "",         LSTR,                 0),
+    TEST ("",          0, "x@4096",   "x@4096",             0),
+    TEST ("x@4096",    0, "",         "x@4096",             0),
+    TEST ("x@4096",    2, "a@100",    "xxa@100x@4094",      0),
+    TEST ("a@102",     2, "x@4096",   "aax@4096a@100",      0),
 
     TEST ("\0",        2, "",         "",                   1),
     TEST ("a",         2, "",         "",                   1),
-    TEST (LSTR,LLEN + 10, "",         "",                   1),
+    TEST ("x@4096", 4106, "",         "",                   1),
 
-    TEST ("",          0, LSTR,       LSTR,                -1),
+    TEST ("",          0, "x@4096",   "x@4096",            -1),
 
     TEST ("last",      4, "test",     "lasttest",           0)
 };
@@ -126,7 +125,7 @@ size_ptr_test_cases [] = {
 /**************************************************************************/
 
 // used to exercise
-// insert (size_type pos, const basic_string& str)
+// insert (size_type, const basic_string&)
 static const TestCase
 size_str_test_cases [] = {
 
@@ -178,15 +177,18 @@ size_str_test_cases [] = {
     TEST ("abc",       2, 0,          "ababcc",             0),
     TEST ("a\0bc\0\0", 0, 0,          "a\0bc\0\0a\0bc\0\0", 0),
     TEST ("a\0bc\0\0", 6, 0,          "a\0bc\0\0a\0bc\0\0", 0),
+    TEST ("x@4096",    5, 0,          "x@8192",             0),
 
-    TEST ("",          0, LSTR,       LSTR,                 0),
-    TEST (LSTR,        0, "",         LSTR,                 0),
+    TEST ("",          0, "x@4096",   "x@4096",             0),
+    TEST ("x@4096",    0, "",         "x@4096",             0),
+    TEST ("x@4096",    2, "a@100",    "xxa@100x@4094",      0),
+    TEST ("a@102",     2, "x@4096",   "aax@4096a@100",      0),
 
     TEST ("\0",        2, "",         "",                   1),
     TEST ("a",         2, "",         "",                   1),
-    TEST (LSTR,LLEN + 10, "",         "",                   1),
+    TEST ("x@4096", 4106, "",         "",                   1),
 
-    TEST ("",          0, LSTR,       LSTR,                -1),
+    TEST ("",          0, "x@4096",   "x@4096",            -1),
 
     TEST ("last",      4, "test",     "lasttest",           0)
 };
@@ -194,8 +196,8 @@ size_str_test_cases [] = {
 /**************************************************************************/
 
 // exrcises
-// insert (size_type off, basic_string& str, size_type off2, size_type n)
-// insert (iterator p, InputIterator first, InputIterator last)
+// insert (size_type, basic_string&, size_type, size_type)
+// insert (iterator, InputIterator, InputIterator)
 static const TestCase
 range_test_cases [] = {
 
@@ -263,8 +265,14 @@ range_test_cases [] = {
     TEST ("a\0bc\0\0", 6, 0,           1, 3,  "a\0bc\0\0\0bc",   0),
     TEST ("abcdef",    0, 0,           1, 2,  "bcabcdef",        0),
 
-    TEST ("",          0, LSTR,        0, LLEN, LSTR,            0),
-    TEST (LSTR,        0, "",          0, 0,    LSTR,            0),
+    TEST ("",          0, "x@4096",    0, 4096, "x@4096",        0),
+    TEST ("x@4096",    0, "",          0,    0, "x@4096",        0),
+    TEST ("a@1000",    0, "b@1000",    0,  999, "b@999a@1000",   0),
+    TEST ("a@1000",    1, "b@1001",    0, 1000, "ab@1000a@999",  0),
+    TEST ("a@1000",    2, "b@1002",    0, 1001, "aab@1001a@998", 0),
+    TEST ("a@1000",  998, "b@1000",    1,  999, "a@998b@999aa",  0),
+    TEST ("a@1000",  999, "b@1001",    2, 1000, "a@999b@999a",   0),
+    TEST ("a@1000",    2, "b@1002",  999, 1001, "aabbba@998",    0),
 
     TEST ("\0",        2, "",          0, 0,  "",                1),
     TEST ("",          0, "\0",        2, 0,  "",                2),
@@ -272,10 +280,10 @@ range_test_cases [] = {
     TEST ("a",         2, "",          0, 0,  "",                1),
     TEST ("",          0, "a",         2, 0,  "",                2),
 
-    TEST (LSTR,LLEN + 10, "",          0, 0,  "",                1),
-    TEST ("",          0, LSTR,LLEN + 10, 0,  "",                2),
+    TEST ("x@4096", 4106, "",          0, 0,  "",                1),
+    TEST ("",          0, "x@4096", 4106, 0,  "",                2),
 
-    TEST ("",          0, LSTR, 0, LLEN - 1, LSTR,              -1),
+    TEST ("",          0, "x@4096",    0, 4096, "x@4096",       -1),
 
     TEST ("last",      4, "test",      0, 4,  "lasttest",        0)
 };
@@ -283,7 +291,7 @@ range_test_cases [] = {
 /**************************************************************************/
 
 // used to exercise
-// insert (size_type pos, const charT* s, size_type n)
+// insert (size_type, const value_type*, size_type)
 static const TestCase
 size_ptr_size_test_cases [] = {
 
@@ -336,15 +344,24 @@ size_ptr_size_test_cases [] = {
     TEST ("abc",       2, 0,           2,  "ababc",          0),
     TEST ("\0abc\0\0", 0, 0,           1,  "\0\0abc\0\0",    0),
     TEST ("a\0bc\0\0", 6, 0,           3,  "a\0bc\0\0a\0b",  0),
+    TEST ("a@4096",    0, 0,        1111, "a@5207",          0),
+    TEST ("b@4096",    1, 0,        2222, "b@6318",          0),
 
-    TEST ("",          0, LSTR, LLEN - 1,  LSTR,             0),
-    TEST (LSTR,        0, "",          0,  LSTR,             0),
+    TEST ("x@4096",    1, "\0",        1, "x\0x@4095",       0),
+    TEST ("x@4096",    0, "\0",        1, "\0x@4096",        0),
+    TEST ("x@4096", 4096, "\0",        1, "x@4096\0",        0),
+    TEST ("x@4096",    0, "ab",        2, "abx@4096",        0),
+    TEST ("x@4096", 4095, "ab",        1, "x@4095ax",        0),
+    TEST ("x@4096", 4094, "\0\0",      2, "x@4094\0\0xx",    0),
+
+    TEST ("",          0, "x@4096", 4096,  "x@4096",         0),
+    TEST ("x@4096",    0, "",          0,  "x@4096",         0),
 
     TEST ("\0",        2, "",          0,  "",               1),
     TEST ("a",         2, "",          0,  "",               1),
-    TEST (LSTR,LLEN + 10, "",          0,  "",               1),
+    TEST ("x@4096", 4106, "",          0,  "",               1),
 
-    TEST ("",          0, LSTR, LLEN - 1,  LSTR,            -1),
+    TEST ("",          0, "x@4096", 4095,  "x@4095",        -1),
 
     TEST ("last",      4, "test",      4,  "lasttest",       0)
 };
@@ -352,8 +369,8 @@ size_ptr_size_test_cases [] = {
 /**************************************************************************/
 
 // exrecises
-// insert (size_type pos, size_type n, charT c)
-// insert (iterator p, size_type n, charT c)
+// insert (size_type, size_type, value_type)
+// insert (iterator, size_type, value_type)
 static const TestCase
 size_val_test_cases [] = {
 
@@ -408,10 +425,18 @@ size_val_test_cases [] = {
     TEST ("\0ab\0\0c", 0, 3, '\0', "\0\0\0\0ab\0\0c", 0),
     TEST ("a\0bc\0\0", 6, 2, 'a',  "a\0bc\0\0aa",     0),
 
-    TEST ("",          0, LLEN - 1, 'x', LSTR,        0),
-    TEST (LSTR,        0, 0,        'x', LSTR,        0),
+    TEST ("",          0, 4106, 'x', "x@4106",        0),
+    TEST ("x@4096",    0, 2,    'a', "aax@4096",      0),
 
-    TEST ("",          0, LLEN - 1, 'x', LSTR,       -1),
+    TEST ("x@4096",    0, 2, 'a',  "aax@4096",        0),
+    TEST ("x@4096",    1, 2, 'a',  "xaax@4095",       0),
+    TEST ("x@4096",    1, 1, '\0', "x\0x@4095",       0),
+
+    TEST ("a",         0, 4095, 'x', "x@4095a",       0),
+    TEST ("x@4096",    0, 2047, 'b', "b@2047x@4096",  0),
+    TEST ("x@4096", 2047, 2048, 'x', "x@6144",        0),
+
+    TEST ("",          0, 4106, 'x', "x@4106",       -1),
 
     TEST ("last",      4, 4, 't',  "lasttttt",        0)
 };
@@ -419,7 +444,7 @@ size_val_test_cases [] = {
 /**************************************************************************/
 
 // used to exercise
-// insert (iterator p, charT c)
+// insert (iterator, value_type)
 static const TestCase
 val_test_cases [] = {
 
@@ -459,21 +484,23 @@ val_test_cases [] = {
     TEST ("\0ab\0\0c", 0, '\0', "\0\0ab\0\0c",  0),
     TEST ("a\0bc\0\0", 6,  'a', "a\0bc\0\0a",   0),
 
-#undef TEST
-#define TEST(str, len, off, val, res, bthrow)                           \
-    { __LINE__, off, -1, -1, -1, val, str, len, 0,                      \
-      0, res, sizeof res - 1, bthrow }
+    TEST ("x@4096",    0,  'a',  "ax@4096",     0),
+    TEST ("x@4096",    1,  'a',  "xax@4095",    0),
+    TEST ("x@4096",    1, '\0',  "x\0x@4095",   0),
 
-    TEST (LSTR + 1, LLEN - 2, 0, 'x', LSTR,    -1),
+    TEST ("x@4095",    0,  'x', "x@4096",      -1),
 
-    TEST ("last",  4,  4,  't', "lastt",        0)
+    TEST ("last",      4,  't', "lastt",        0)
 };
 
 /**************************************************************************/
 
 template <class charT, class Traits, class Iterator>
-void test_insert_range (charT* wstr,
-                        charT* warg,
+void test_insert_range (const charT    *wstr,
+                        std::size_t     wstr_len,
+                        const charT    *warg,
+                        std::size_t     warg_len,
+                        std::size_t     res_len,
                         Traits*,
                         const Iterator &it,
                         const TestCase &tcase)
@@ -485,36 +512,52 @@ void test_insert_range (charT* wstr,
     const char* const itname =
         tcase.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
 
-    String s_str (wstr, tcase.str_len);
-    String s_arg (warg, tcase.arg_len);
+    // compute the size of the controlled sequence and the size
+    // of the sequence denoted by the argument keeping in mind
+    // that the latter may refer to the former
+    const std::size_t size1 = wstr_len;
+    const std::size_t size2 = tcase.arg ? warg_len : size1;
 
-    std::size_t off_last = tcase.off2 + tcase.size2;
+    // construct the string object to be modified
+    String s_str (wstr, size1);
 
-    StringIter iter (s_str.begin () + tcase.off);
+    // compute the offset and the extent (the number of elements)
+    // of the first range into the string object being modified
+    const std::size_t off1 =
+        std::size_t (tcase.off) < size1 ? std::size_t (tcase.off) : size1;
+
+    // compute the offset and the extent (the number of elements)
+    // of the second range into the argument of the function call
+    const std::size_t off2 =
+        std::size_t (tcase.off2) < size2 ? std::size_t (tcase.off2) : size2;
+    const std::size_t ext2 =
+        off2 + tcase.size2 < size2 ? std::size_t (tcase.size2) : size2 - off2;
+
+    // create an iterator into the string object being modified
+    StringIter iter (s_str.begin () + off1);
 
     if (tcase.arg) {
-        off_last = off_last > s_arg.size () ? s_arg.size () : off_last;
+        const charT* const beg = warg + off2;
+        const charT* const end = beg + ext2;
 
-        const Iterator first = make_iter (warg + tcase.off2,
-            warg + tcase.off2, warg + off_last, Iterator (0, 0, 0));
-        const Iterator last  = make_iter (warg + off_last,
-            warg + tcase.off2, warg + off_last, Iterator (0, 0, 0));
+        const Iterator first (beg, beg, end);
+        const Iterator last  (end, beg, end);
 
         s_str.insert (iter, first, last);
     }
     else {
-        const StringIter first (s_str.begin () + tcase.off2);
-        const StringIter last  (off_last > s_str.size () ?
-                                s_str.end ()
-                              : s_str.begin () + off_last);
+        // self-referential modification (inserting a range
+        // of elements with a subrange of its own elements)
+        const StringIter first (s_str.begin () + off2);
+        const StringIter last (first + ext2);
 
         s_str.insert (iter, first, last);
     }
 
-    const std::size_t match =
-        rw_match (tcase.res, s_str.c_str(), tcase.nres);
+    // detrmine whether the produced sequence matches the exepceted result
+    const std::size_t match = rw_match (tcase.res, s_str.data (), tcase.nres);
 
-    rw_assert (match == tcase.nres, 0, tcase.line,
+    rw_assert (match == res_len, 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
                "difference at pos %zu for %s",
                __LINE__, int (tcase.nres), tcase.res,
@@ -525,15 +568,18 @@ void test_insert_range (charT* wstr,
 /**************************************************************************/
 
 template <class charT, class Traits>
-void test_insert_range (charT* wstr,
-                        charT* warg,
+void test_insert_range (const charT    *wstr,
+                        std::size_t     wstr_len,
+                        const charT    *warg,
+                        std::size_t     warg_len,
+                        std::size_t     res_len,
                         Traits*,
                         const TestCase &tcase)
 {
     if (tcase.bthrow)  // this method doesn't throw
         return;
 
-    test_insert_range (wstr, warg, (Traits*)0,
+    test_insert_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
                        InputIter<charT>(0, 0, 0), tcase);
 
     // there is no need to call test_insert_range
@@ -541,13 +587,13 @@ void test_insert_range (charT* wstr,
     if (0 == tcase.arg)
         return;
 
-    test_insert_range (wstr, warg, (Traits*)0,
+    test_insert_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
                        ConstFwdIter<charT>(0, 0, 0), tcase);
 
-    test_insert_range (wstr, warg, (Traits*)0,
+    test_insert_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
                        ConstBidirIter<charT>(0, 0, 0), tcase);
 
-    test_insert_range (wstr, warg, (Traits*)0,
+    test_insert_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
                        ConstRandomAccessIter<charT>(0, 0, 0), tcase);
 }
 
@@ -559,26 +605,52 @@ void test_insert (charT, Traits*,
                   const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
-    typedef std::basic_string <charT, Traits, Allocator> TestString;
-    typedef typename TestString::iterator                StringIter;
-    typedef typename TestString::const_iterator          ConstStringIter;
+    typedef std::basic_string <charT, Traits, Allocator> String;
+    typedef typename String::iterator                    StringIter;
+    typedef typename UserTraits<charT>::MemFun           UTMemFun;
 
-    typedef typename UserTraits<charT>::MemFun UTMemFun;
+    static const std::size_t BUFSIZE = 256;
 
-    static charT wstr [LLEN];
-    static charT warg [LLEN];
+    static charT wstr_buf [BUFSIZE];
+    static charT warg_buf [BUFSIZE];
 
-    rw_widen (wstr, tcase.str, tcase.str_len);
-    rw_widen (warg, tcase.arg, tcase.arg_len);
+    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
+    std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
+
+    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
+    charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
+
+    static charT wres_buf [BUFSIZE];
+    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
+    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
 
     // special processing for insert_range to exercise all iterators
     if (Insert (range) == which) {
-        test_insert_range (wstr, warg, (Traits*)0, tcase);
+        test_insert_range (wstr, str_len, warg, arg_len, 
+                           res_len, (Traits*)0, tcase);
+        if (wstr != wstr_buf)
+            delete[] wstr;
+
+        if (warg != warg_buf)
+            delete[] warg;
+
+         if (wres != wres_buf)
+            delete[] wres;
+
         return;
     }
 
-    /* const */ TestString s_str (wstr, tcase.str_len);
-    const       TestString s_arg (warg, tcase.arg_len);
+    /* const */ String s_str (wstr, str_len);
+    const       String s_arg (warg, arg_len);
+
+    if (wstr != wstr_buf)
+        delete[] wstr;
+
+    if (warg != warg_buf)
+        delete[] warg;
+
+    wstr = 0;
+    warg = 0;
 
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
@@ -588,8 +660,14 @@ void test_insert (charT, Traits*,
     std::size_t res_off = 0;
     std::size_t exp_off = Insert (val) == which ? tcase.off : 0;
 
-    const charT* const arg_ptr = tcase.arg ? warg : s_str.c_str ();
-    const TestString&  arg_str = tcase.arg ? s_arg : s_str;
+    // compute the offset and the extent (the number of elements)
+    // of the first range into the string object being modified
+    const std::size_t size1 = str_len;
+    const std::size_t off1 =
+        std::size_t (tcase.off) < size1 ? std::size_t (tcase.off) : size1;
+
+    const charT* const arg_ptr = tcase.arg ? s_arg.c_str () : s_str.c_str ();
+    const String&      arg_str = tcase.arg ? s_arg : s_str;
     const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
     std::size_t total_length_calls = 0;
@@ -628,15 +706,19 @@ void test_insert (charT, Traits*,
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-        if (tcase.bthrow)
-            return;
+    if (tcase.bthrow) {
+        if (wres != wres_buf)
+            delete[] wres;
+
+        return;
+    }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
         try {
             switch (which) {
             case Insert (size_ptr): {
-                const TestString& s_res = s_str.insert (tcase.off, arg_ptr);
+                const String& s_res = s_str.insert (tcase.off, arg_ptr);
                 res_off = &s_res - &s_str;
                 if (rg_calls)
                     n_length_calls = rg_calls [UTMemFun::length];
@@ -644,40 +726,40 @@ void test_insert (charT, Traits*,
             }
 
             case Insert (size_str): {
-                const TestString& s_res = s_str.insert (tcase.off, arg_str);
+                const String& s_res = s_str.insert (tcase.off, arg_str);
                 res_off = &s_res - &s_str;
                 break;
             }
 
             case Insert (size_ptr_size): {
-                const TestString& s_res = 
+                const String& s_res = 
                     s_str.insert (tcase.off, arg_ptr, tcase.size2);
                 res_off = &s_res - &s_str;
                 break;
             }
 
             case Insert (size_str_size_size): {
-                const TestString& s_res = 
+                const String& s_res = 
                     s_str.insert (tcase.off, arg_str, tcase.off2, tcase.size2);
                 res_off = &s_res - &s_str;
                 break;
             }
 
             case Insert (size_size_val): {
-                const TestString& s_res = 
+                const String& s_res = 
                     s_str.insert (tcase.off, tcase.size2, arg_val);
                 res_off = &s_res - &s_str;
                 break;
             }
 
             case Insert (size_val): {
-                StringIter it (s_str.begin () + tcase.off);
+                StringIter it (s_str.begin () + off1);
                 s_str.insert (it, tcase.size2, arg_val);
                 break;
             }
 
             case Insert (val): {
-                StringIter it (s_str.begin () + tcase.off);
+                StringIter it (s_str.begin () + off1);
                 StringIter res_it = s_str.insert (it, arg_val);
                 res_off = res_it - s_str.begin ();
                 break;
@@ -696,21 +778,21 @@ void test_insert (charT, Traits*,
                        Insert (val) != which, res_off);
 
             // verfiy that strings length are equal
-            rw_assert (tcase.nres == s_str.size (), 0, tcase.line,
+            rw_assert (res_len == s_str.size (), 0, tcase.line,
                        "line %d. %{$FUNCALL} expected %{#*s} with length "
                        "%zu, got %{/*.*Gs} with length %zu", __LINE__, 
-                       int (tcase.nres), tcase.res, tcase.nres, 
+                       int (tcase.nres), tcase.res, res_len, 
                        int (sizeof (charT)), int (s_str.size ()), 
                        s_str.c_str (), s_str.size ());
 
-            if (tcase.nres == s_str.size ()) {
+            if (res_len == s_str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
                     rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-                rw_assert (match == tcase.nres, 0, tcase.line,
+                rw_assert (match == res_len, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{#*s}, "
                            "got %{/*.*Gs}, difference at offset %zu",
                            __LINE__, int (tcase.nres), tcase.res,
@@ -802,6 +884,9 @@ void test_insert (charT, Traits*,
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
     *pst->throw_at_calls_ [0] = std::size_t (-1);
+
+    if (wres != wres_buf)
+        delete[] wres;
 }
 
 /**************************************************************************/

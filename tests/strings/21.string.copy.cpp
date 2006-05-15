@@ -31,15 +31,13 @@
 
 #include <21.strings.h> // for StringMembers
 #include <driver.h>     // for rw_assert()
-#include <rw_char.h>    // for rw_widen()
+#include <rw_char.h>    // for rw_expand()
 
 /**************************************************************************/
 
 // for convenience and brevity
 
 #define NPOS          _RWSTD_SIZE_MAX
-#define LSTR          StringMembers::long_string
-#define LLEN          StringMembers::long_string_len
 #define Copy(which)   StringMembers::copy_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
@@ -91,7 +89,9 @@ ptr_size_test_cases [] = {
     TEST ("\0ab\0\0\0c\0",  5,  "\0ab\0\0"),   
     TEST ("\0\0ab\0\0c\0",  6,  "\0\0ab\0\0"), 
 
-    TEST ("last",           4, "last")       
+    TEST ("x@4096",      4096,  "x@4096"),
+
+    TEST ("last",           4,  "last")       
 };
 
 /**************************************************************************/
@@ -147,13 +147,13 @@ ptr_size_size_test_cases [] = {
     TEST ("\0\0ab\0\0c\0",  6,  0, "\0\0ab\0\0", 0),
     TEST ("\0\0ab\0\0c\0",  4,  1, "\0ab\0",     0),
 
-    TEST (LSTR,      LLEN - 1,         0, LSTR,  0),
-    TEST (LSTR,             2,         1, "xx",  0),
-    TEST (LSTR,      LLEN - 1, LLEN -  2, "x",   0),
+    TEST ("x@4096",      4096,  0, "x@4096",     0),
+    TEST ("x@4096",         2,  1, "xx",         0),
+    TEST ("x@4096",      4096, 4095, "x",        0),
 
-    TEST ("\0",     0,          2, "",           1),
-    TEST ("a",      0,         10, "",           1),
-    TEST (LSTR,     0,  LLEN + 10, "",           1),
+    TEST ("\0",             0,  2, "",           1),
+    TEST ("a",              0, 10, "",           1),
+    TEST ("x@4096",         0, 4106, "",         1),
 
     TEST ("last",           4,  0, "last",       0)
 };
@@ -166,16 +166,28 @@ void test_copy (charT, Traits*,
                 const TestCase &tcase)
 {
     typedef std::allocator<charT>                        Allocator;
-    typedef std::basic_string <charT, Traits, Allocator> TestString;
+    typedef std::basic_string <charT, Traits, Allocator> String;
 
-    static charT wstr [LLEN];
+    static const std::size_t BUFSIZE = 256;
 
-    // construct strings
-    rw_widen (wstr, tcase.str, tcase.str_len);
-    const TestString str (wstr, tcase.str_len);
+    static charT wstr_buf [BUFSIZE];
+    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
+    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
+
+    static charT wres_buf [BUFSIZE];
+    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
+    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
+
+    // construct the string object 
+    const String  str (wstr, str_len);
+
+    if (wstr != wstr_buf)
+        delete[] wstr;
+
+    wstr = 0;
 
     const std::size_t min_len =
-        tcase.str_len < std::size_t (tcase.size) ? tcase.str_len : tcase.size;
+        str_len < std::size_t (tcase.size) ? str_len : tcase.size;
 
     std::size_t res = 0;
 
@@ -199,8 +211,12 @@ void test_copy (charT, Traits*,
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (tcase.bthrow)
+    if (tcase.bthrow) {
+        if (wres != wres_buf)
+            delete[] wres;
+
         return;
+    }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
@@ -221,12 +237,12 @@ void test_copy (charT, Traits*,
         }
 
         // verify the returned value
-        rw_assert (res == tcase.nres, 0, tcase.line,
+        rw_assert (res == res_len, 0, tcase.line,
                    "line %d. %{$FUNCALL} == %zu, got %zu", 
-                   __LINE__, tcase.nres, res);
+                   __LINE__, res_len, res);
 
         const std::size_t match = rw_match (tcase.res, s_res, tcase.nres);
-        bool success = match == tcase.nres;
+        bool success = match == res_len;
 
         rw_assert (success, 0, tcase.line,
                    "line %d. %{$FUNCALL} expected %{#*s}, "
@@ -278,6 +294,9 @@ void test_copy (charT, Traits*,
     }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
+
+    if (wres != wres_buf)
+        delete[] wres;
 
     delete[] s_res;
 }

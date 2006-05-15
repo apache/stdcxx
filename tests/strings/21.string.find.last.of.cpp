@@ -32,21 +32,18 @@
 
 #include <21.strings.h> // for StringMembers
 #include <driver.h>     // for rw_test()
-#include <rw_char.h>    // for rw_widen()
+#include <rw_char.h>    // for rw_expand()
 
-#define FindLastOf(which)    StringMembers::find_last_of_ ## which
+/**************************************************************************/
+
+// for convenience and brevity
+#define NPOS                      _RWSTD_SIZE_MAX
+#define FindLastOf(which)         StringMembers::find_last_of_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
 typedef StringMembers::Test       Test;
 typedef StringMembers::Function   MemFun;
-
-/**************************************************************************/
-
-// for convenience and brevity
-#define NPOS      _RWSTD_SIZE_MAX
-#define LSTR      StringMembers::long_string
-#define LLEN      StringMembers::long_string_len
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -57,12 +54,15 @@ static const char* const exceptions[] = {
 
 // used to exercise 
 // find_last_of (const value_type*)
-static const TestCase ptr_test_cases [] = {
+static const TestCase 
+ptr_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, res)                                    \
-    { __LINE__, -1, -1, -1, -1, -1, str, sizeof str - 1, arg,  \
-      sizeof arg - 1, 0, res, 0 }
+#define TEST(str, arg, res)                 \
+    { __LINE__, -1, -1, -1, -1, -1,         \
+      str, sizeof str - 1, arg,             \
+      sizeof arg - 1, 0, res, 0             \
+    }
 
     //    +----------------------------------- controlled sequence
     //    |             +--------------------- sequence to be found
@@ -111,17 +111,18 @@ static const TestCase ptr_test_cases [] = {
     TEST ("bbb",        "aaaaaaaaba",    2),        
     TEST ("bbb",        "aaaaaaaaaa", NPOS),   
 
-    TEST (LSTR,         "",           NPOS),     
-    TEST (LSTR,         "a",          NPOS),  
-    TEST (LSTR,         "x",      LLEN - 2),    
-    TEST (LSTR,         "xxx",    LLEN - 2),    
-    TEST (LSTR,         "aax",    LLEN - 2),   
-    TEST ("abc",        LSTR,         NPOS),    
-    TEST ("xxxxxxxxxx", LSTR,            9),  
+    TEST ("x@4096",     "",           NPOS),     
+    TEST ("x@4096",     "a",          NPOS),  
+    TEST ("x@4096",     "x",          4095),    
+    TEST ("x@4096",     "xxx",        4095),    
+    TEST ("x@4096",     "aax",        4095),   
+    TEST ("abc",        "x@4096",     NPOS),    
+    TEST ("xxxxxxxxxx", "x@4096",        9),
+    TEST ("xxax@2048",  "y@4096a",       2),
 
     TEST ("abcdefghij", 0,               9),      
     TEST ("\0cb\0\0ge", 0,            NPOS),       
-    TEST (LSTR,         0,        LLEN - 2),  
+    TEST ("x@4096",     0,            4095),  
 
     TEST ("last test",  "test",          8)       
 };
@@ -130,12 +131,15 @@ static const TestCase ptr_test_cases [] = {
 
 // used to exercise 
 // find_last_of (const basic_string&)
-static const TestCase str_test_cases [] = {
+static const TestCase 
+str_test_cases [] = {
 
 #undef TEST     
-#define TEST(str, arg, res)                                    \
-    { __LINE__, -1, -1, -1, -1, -1, str, sizeof str - 1, arg,  \
-      sizeof arg - 1, 0, res, 0 }
+#define TEST(str, arg, res)                 \
+    { __LINE__, -1, -1, -1, -1, -1,         \
+      str, sizeof str - 1, arg,             \
+      sizeof arg - 1, 0, res, 0             \
+    }
 
     //    +------------------------------------ controlled sequence
     //    |             +---------------------- sequence to be found
@@ -185,17 +189,18 @@ static const TestCase str_test_cases [] = {
     TEST ("bbb",        "aaaaaaaaba",    2),        
     TEST ("bbb",        "aaaaaaaaaa", NPOS),   
 
-    TEST (LSTR,         "",           NPOS),     
-    TEST (LSTR,         "a",          NPOS),  
-    TEST (LSTR,         "x",      LLEN - 2),    
-    TEST (LSTR,         "xxx",    LLEN - 2),    
-    TEST (LSTR,         "aax",    LLEN - 2),   
-    TEST ("abc",        LSTR,         NPOS),    
-    TEST ("xxxxxxxxxx", LSTR,            9),  
+    TEST ("x@4096",     "",           NPOS),     
+    TEST ("x@4096",     "a",          NPOS),  
+    TEST ("x@4096",     "x",          4095),    
+    TEST ("x@4096",     "xxx",        4095),    
+    TEST ("x@4096",     "aax",        4095),   
+    TEST ("abc",        "x@4096",     NPOS),    
+    TEST ("xxxxxxxxxx", "x@4096",        9),
+    TEST ("xxax@2048",  "y@4096a",       2),
 
     TEST ("abcdefghij", 0,               9),      
     TEST ("\0cb\0\0ge", 0,               6),       
-    TEST (LSTR,         0,        LLEN - 2),  
+    TEST ("x@4096",     0,            4095),  
 
     TEST ("last test",  "test",          8)      
 };
@@ -204,12 +209,15 @@ static const TestCase str_test_cases [] = {
 
 // used to exercise 
 // find_last_of (const value_type*, size_type)
-static const TestCase ptr_size_test_cases [] = {
+static const TestCase 
+ptr_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, off, res)                                    \
-    { __LINE__, off, NPOS, -1, -1, -1, str, sizeof str - 1, arg,      \
-      sizeof arg - 1, 0, res, 0 }
+#define TEST(str, arg, off, res)            \
+    { __LINE__, off, NPOS, -1, -1, -1,      \
+      str, sizeof str - 1, arg,             \
+      sizeof arg - 1, 0, res, 0             \
+    }
 
     //    +-------------------------------------- controlled sequence
     //    |            +------------------------- sequence to be found
@@ -272,24 +280,25 @@ static const TestCase ptr_size_test_cases [] = {
     TEST ("bab",        "aaaaaaaaba",  0,    0),
     TEST ("bbb",        "aaaaaaaaaa",  3, NPOS),      
 
-    TEST (LSTR,         "",     LLEN - 1, NPOS),    
-    TEST (LSTR,         "a",    LLEN - 1, NPOS),     
-    TEST (LSTR,         "x",    LLEN - 1,  LLEN - 2),   
-    TEST (LSTR,         "xxx",  LLEN - 2,  LLEN - 2),
-    TEST (LSTR,         "xxx",         0,    0),
-    TEST (LSTR,         "xxx", LLEN - 10,  LLEN - 10),    
-    TEST (LSTR,         "aax", LLEN - 10,  LLEN - 10),     
-    TEST ("abc",        LSTR,          2, NPOS),    
-    TEST ("xxxxxxxxxx", LSTR,          6,    6),   
+    TEST ("x@4096",     "",         4096, NPOS),    
+    TEST ("x@4096",     "a",        4096, NPOS),     
+    TEST ("x@4096",     "x",        4096,  4095),   
+    TEST ("x@4096",     "xxx",      4095,  4095),
+    TEST ("x@4096",     "xxx",         0,    0),
+    TEST ("x@4096",     "xxx",      4087,  4087),    
+    TEST ("x@4096",     "aax",      4087,  4087),     
+    TEST ("abc",        "x@4096",      2, NPOS),    
+    TEST ("xxxxxxxxxx", "x@4096",      6,    6), 
+    TEST ("xxax@2048",  "y@4096a",  2050,    2),
 
-    TEST (LSTR,         "xxx",         3,    3), 
-    TEST (LSTR,         "xxx",         2,    2),     
+    TEST ("x@4096",     "xxx",         3,    3), 
+    TEST ("x@4096",     "xxx",         2,    2),     
 
     TEST ("abcdefghij", 0,             0,    0),    
     TEST ("abcdefghij", 0,             9,    9),   
     TEST ("\0cb\0\0ge", 0,             5, NPOS),    
-    TEST (LSTR,         0,             0,    0),  
-    TEST (LSTR,         0,             1,    1),    
+    TEST ("x@4096",     0,             0,    0),  
+    TEST ("x@4096",     0,             1,    1),    
 
     TEST ("",           "",            1, NPOS),  
     TEST ("abcdefghij", "abc",        10,    2),   
@@ -302,12 +311,15 @@ static const TestCase ptr_size_test_cases [] = {
 
 // used to exercise 
 // find_last_of (const value_type*, size_type, size_type)
-static const TestCase ptr_size_size_test_cases [] = {
+static const TestCase 
+ptr_size_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, off, size, res, bthrow)                        \
-    { __LINE__, off, size, -1, -1, -1, str, sizeof str - 1, arg,      \
-      sizeof arg - 1, 0, res, bthrow }
+#define TEST(str, arg, off, size, res, bthrow)      \
+    { __LINE__, off, size, -1, -1, -1,              \
+      str, sizeof str - 1, arg,                     \
+      sizeof arg - 1, 0, res, bthrow                \
+    }
 
     //    +--------------------------------------- controlled sequence
     //    |            +-------------------------- sequence to be found
@@ -380,41 +392,38 @@ static const TestCase ptr_size_size_test_cases [] = {
     TEST ("bab",        "aaaaaaaaba",  0,  0, NPOS,       0),
     TEST ("bab",        "ccccccccba",  1, 10,    1,       0),
 
-    TEST (LSTR,         "",     LLEN - 1,  0, NPOS,       0),
-    TEST (LSTR,         "a",    LLEN - 1,  1, NPOS,       0),
-    TEST (LSTR,         "x",    LLEN - 1,  1, LLEN - 2,   0),
-    TEST (LSTR,         "xxx",  LLEN - 9,  3, LLEN - 9,   0),
-    TEST (LSTR,         "axa",  LLEN - 9,  3, LLEN - 9,   0),
-    TEST ("abc",        LSTR,          2, 10, NPOS,       0),
-    TEST ("xxxxxxxxxx", LSTR,          0, LLEN - 1, 0,    0),
-    TEST ("xxxxxxxxxx", LSTR,          2,  4,    2,       0),
+    TEST ("x@4096",     "",         4096,  0, NPOS,       0),
+    TEST ("x@4096",     "a",        4096,  1, NPOS,       0),
+    TEST ("x@4096",     "x",        4096,  1, 4095,       0),
+    TEST ("x@4096",     "xxx",      4088,  3, 4088,       0),
+    TEST ("x@4096",     "axa",      4088,  3, 4088,       0),
+    TEST ("abc",        "x@4096",      2, 10, NPOS,       0),
+    TEST ("xxxxxxxxxx", "x@4096",      0,4096,   0,       0),
+    TEST ("xxxxxxxxxx", "x@4096",      2,  4,    2,       0),
+    TEST ("xxax@2048",  "y@4096a",  2050,4097,   2,       0),
 
-    TEST (LSTR,         "xxx",  LLEN - 4,  3, LLEN - 4,   0),
-    TEST (LSTR,         "xxx",  LLEN - 3,  3, LLEN - 3,   0),
-    TEST (LSTR,         "xxx",  LLEN - 3,  2, LLEN - 3,   0),
+    TEST ("x@4096",     "xxx",      4093,  3, 4093,       0),
+    TEST ("x@4096",     "xxx",      4094,  3, 4094,       0),
+    TEST ("x@4096",     "xxx",      4094,  2, 4094,       0),
 
     TEST ("abcdefghij", 0,             0,  9,    0,       0),
     TEST ("abcdefghij", 0,             8,  9,    8,       0),
     TEST ("\0cb\0\0ge", 0,             5,  7,    5,       0),
     TEST ("\0cb\0ge\0", 0,             6,  1,    6,       0),
     TEST ("\0c\0e\0cg", 0,             6,  2,    5,       0),
-    TEST (LSTR,         0,             0, LLEN - 1,  0,   0),
-    TEST (LSTR,         0,             1, LLEN - 1,  1,   0),
-    TEST (LSTR,         0,             5, LLEN - 6,  5,   0),
-    TEST (LSTR,         0,      LLEN - 6,  1, LLEN - 6,   0),
+    TEST ("x@4096",     0,             0, 4096,  0,       0),
+    TEST ("x@4096",     0,             1, 4096,  1,       0),
+    TEST ("x@4096",     0,             5, 4091,  5,       0),
+    TEST ("x@4096",     0,          4091,  1, 4091,       0),
 
     TEST ("",           "",            1,  0, NPOS,       0),
     TEST ("abcdefghij", "abc",        10,  3,    2,       0),
     TEST ("abcdefghij", "cba",        10,  1,    2,       0),
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-
     TEST ("",           "cba",         0, -1,    0,       1),
     TEST ("abcdefghij", "cba",         0, -1,    0,       1),
-    TEST (LSTR,         "xxx",         0, -1,    0,       1),
-    TEST ("abcdefghij", LSTR,          0, -1,    0,       1),
-
-#endif   // _RWSTD_NO_EXCEPTIONS
+    TEST ("x@4096",     "xxx",         0, -1,    0,       1),
+    TEST ("abcdefghij", "x@4096",      0, -1,    0,       1),
 
     TEST ("last test", "test",         9,  4,    8,       0)
 };
@@ -423,12 +432,15 @@ static const TestCase ptr_size_size_test_cases [] = {
 
 // used to exercise 
 // find_last_of (const basic_string&, size_type)
-static const TestCase str_size_test_cases [] = {
+static const TestCase 
+str_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, off, res)                                    \
-    { __LINE__, off, -1, -1, -1, -1, str, sizeof str - 1, arg,      \
-      sizeof arg - 1, 0, res, 0 }
+#define TEST(str, arg, off, res)            \
+    { __LINE__, off, -1, -1, -1, -1,        \
+      str, sizeof str - 1, arg,             \
+      sizeof arg - 1, 0, res, 0             \
+    }
 
     //    +--------------------------------------- controlled sequence
     //    |             +------------------------- sequence to be found
@@ -491,24 +503,25 @@ static const TestCase str_size_test_cases [] = {
     TEST ("bab",        "aaaaaaaaba",  0,    0),
     TEST ("bbb",        "aaaaaaaaaa",  3, NPOS),      
 
-    TEST (LSTR,         "",     LLEN - 1, NPOS),    
-    TEST (LSTR,         "a",    LLEN - 1, NPOS),     
-    TEST (LSTR,         "x",    LLEN - 1,  LLEN - 2),   
-    TEST (LSTR,         "xxx",  LLEN - 2,  LLEN - 2),
-    TEST (LSTR,         "xxx",         0,    0),
-    TEST (LSTR,         "xxx", LLEN - 10,  LLEN - 10),    
-    TEST (LSTR,         "aax", LLEN - 10,  LLEN - 10),     
-    TEST ("abc",        LSTR,          2, NPOS),    
-    TEST ("xxxxxxxxxx", LSTR,          6,    6),   
+    TEST ("x@4096",     "",         4096, NPOS),    
+    TEST ("x@4096",     "a",        4096, NPOS),     
+    TEST ("x@4096",     "x",        4096, 4095),   
+    TEST ("x@4096",     "xxx",      4095, 4095),
+    TEST ("x@4096",     "xxx",         0,    0),
+    TEST ("x@4096",     "xxx",      4087, 4087),    
+    TEST ("x@4096",     "aax",      4087, 4087),     
+    TEST ("abc",        "x@4096",      2, NPOS),    
+    TEST ("xxxxxxxxxx", "x@4096",      6,    6),  
+    TEST ("xxax@2048",  "y@4096a",  2050,    2),
 
-    TEST (LSTR,         "xxx",         3,    3), 
-    TEST (LSTR,         "xxx",         2,    2),     
+    TEST ("x@4096",     "xxx",         3,    3), 
+    TEST ("x@4096",     "xxx",         2,    2),     
 
     TEST ("abcdefghij", 0,             0,    0),    
     TEST ("abcdefghij", 0,             9,    9),   
     TEST ("\0cb\0\0ge", 0,             5,    5),    
-    TEST (LSTR,         0,             0,    0),  
-    TEST (LSTR,         0,             1,    1),    
+    TEST ("x@4096",     0,             0,    0),  
+    TEST ("x@4096",     0,             1,    1),    
 
     TEST ("",           "",            1, NPOS),  
     TEST ("abcdefghij", "abc",        10,    2),   
@@ -521,12 +534,15 @@ static const TestCase str_size_test_cases [] = {
 
 // used to exercise 
 // find_last_of (value_type)
-static const TestCase val_test_cases [] = {
+static const TestCase 
+val_test_cases [] = {
 
 #undef TEST
-#define TEST(str, val, res)                                     \
-    { __LINE__, -1, -1, -1, -1, val, str, sizeof str - 1,       \
-      0, 0, 0, res, 0 }
+#define TEST(str, val, res)             \
+    { __LINE__, -1, -1, -1, -1,         \
+      val, str, sizeof str - 1,         \
+      0, 0, 0, res, 0                   \
+    }
 
     //    +----------------------------- controlled sequence
     //    |              +-------------- character to be found
@@ -550,9 +566,10 @@ static const TestCase val_test_cases [] = {
     TEST ("\0cbge\0\0",  'b',    2),   
     TEST ("\0cbge\0\0",  'a', NPOS),   
 
-    TEST (LSTR,          'x',  LLEN - 2),  
-    TEST (LSTR,         '\0', NPOS),   
-    TEST (LSTR,          'a', NPOS), 
+    TEST ("x@4096",      'x', 4095),  
+    TEST ("x@4096",     '\0', NPOS),   
+    TEST ("x@4096",      'a', NPOS), 
+    TEST ("xxax@2048",   'a',    2),
 
     TEST ("last test",   't',    8)    
 };
@@ -561,12 +578,15 @@ static const TestCase val_test_cases [] = {
 
 // used to exercise 
 // find_last_of (value_type, size_type)
-static const TestCase val_size_test_cases [] = {
+static const TestCase 
+val_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, val, off, res)                                     \
-    { __LINE__, off, -1, -1, -1, val, str, sizeof str - 1,           \
-      0, 0, 0, res, 0 }
+#define TEST(str, val, off, res)        \
+    { __LINE__, off, -1, -1, -1,        \
+      val, str, sizeof str - 1,         \
+      0, 0, 0, res, 0                   \
+    }
 
     //    +------------------------------ controlled sequence
     //    |              +--------------- character to be found
@@ -599,13 +619,14 @@ static const TestCase val_size_test_cases [] = {
     TEST ("\0bgeb\0\0",  'b',  5,    4),   
     TEST ("\0cbge\0\0",  'a',  6, NPOS),    
 
-    TEST (LSTR,          'x',  0,    0),
-    TEST (LSTR,          'x',  5,    5),
-    TEST (LSTR,          'x', LLEN - 1, LLEN - 2),      
-    TEST (LSTR,         '\0', LLEN - 1, NPOS),    
-    TEST (LSTR,          'a', LLEN - 3, NPOS),     
-    TEST (LSTR,          'x', LLEN - 2, LLEN - 2),
-    TEST (LSTR,          'x', LLEN + 9, LLEN - 2),
+    TEST ("x@4096",      'x',  0,    0),
+    TEST ("x@4096",      'x',  5,    5),
+    TEST ("x@4096",      'x', 4096, 4095),      
+    TEST ("x@4096",     '\0', 4096, NPOS),    
+    TEST ("x@4096",      'a', 4094, NPOS),     
+    TEST ("x@4096",      'x', 4095, 4095),
+    TEST ("x@4096",      'x', 4106, 4095),
+    TEST ("xxax@2048",   'a', 2050,    2),
 
     TEST ("last test",   't',  9,    8)      
 };
@@ -618,27 +639,42 @@ void test_find_last_of (charT, Traits*,
                         const TestCase &cs)
 {
     typedef std::allocator<charT>                        Allocator;
-    typedef std::basic_string <charT, Traits, Allocator> TestString;
-    typedef typename TestString::const_iterator          ConstStringIter;
+    typedef std::basic_string <charT, Traits, Allocator> String;
 
-    static charT wstr [LLEN];
-    static charT warg [LLEN];
+    static const std::size_t BUFSIZE = 256;
 
-    rw_widen (wstr, cs.str, cs.str_len);
-    rw_widen (warg, cs.arg, cs.arg_len);
+    static charT wstr_buf [BUFSIZE];
+    static charT warg_buf [BUFSIZE];
 
-    const TestString s_str (wstr, cs.str_len);
-    const TestString s_arg (warg, cs.arg_len);
+    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
+    std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
+
+    charT* wstr = rw_expand (wstr_buf, cs.str, cs.str_len, &str_len);
+    charT* warg = rw_expand (warg_buf, cs.arg, cs.arg_len, &arg_len);
+
+    // construct the string object and the argument string
+    const String  s_str (wstr, str_len);
+    const String  s_arg (warg, arg_len);
+
+    if (wstr != wstr_buf)
+        delete[] wstr;
+
+    if (warg != warg_buf)
+        delete[] warg;
+
+    wstr = 0;
+    warg = 0;
+
+    // save the state of the string object before the call
+    // to detect wxception safety violations (changes to
+    // the state of the object after an exception)
+    const StringState str_state (rw_get_string_state (s_str));
 
     std::size_t res = 0;
-    std::size_t exp_res = NPOS != cs.nres ? cs.nres : TestString::npos;
+    std::size_t exp_res = NPOS != cs.nres ? cs.nres : String::npos;
 
-    const std::size_t     ssize    = s_str.size ();
-    const std::size_t     capacity = s_str.capacity ();
-    const ConstStringIter begin    = s_str.begin ();
-
-    const charT* const ptr_arg = cs.arg ? warg : s_str.c_str ();
-    const TestString&  str_arg = cs.arg ? s_arg : s_str;
+    const charT* const arg_ptr = cs.arg ? s_arg.c_str () : s_str.c_str ();
+    const String&      arg_str = cs.arg ? s_arg : s_str;
     const charT        arg_val = make_char (char (cs.val), (charT*)0);
 
     std::size_t size = cs.size >= 0 ? cs.size : s_arg.max_size () + 1;
@@ -662,27 +698,27 @@ void test_find_last_of (charT, Traits*,
     try {
     switch (which) {
         case FindLastOf (ptr): {
-            res = s_str.find_last_of (ptr_arg);
+            res = s_str.find_last_of (arg_ptr);
             break;
         }
 
         case FindLastOf (str): {
-            res = s_str.find_last_of (str_arg);
+            res = s_str.find_last_of (arg_str);
             break;
         }
 
         case FindLastOf (ptr_size): {
-            res = s_str.find_last_of (ptr_arg, cs.off);
+            res = s_str.find_last_of (arg_ptr, cs.off);
             break;
         }
 
         case FindLastOf (ptr_size_size): {
-            res = s_str.find_last_of (ptr_arg, cs.off, size);
+            res = s_str.find_last_of (arg_ptr, cs.off, size);
             break;
         }
 
         case FindLastOf (str_size): {
-            res = s_str.find_last_of (str_arg, cs.off);
+            res = s_str.find_last_of (arg_str, cs.off);
             break;
         }
 
@@ -706,7 +742,7 @@ void test_find_last_of (charT, Traits*,
                    "line %d. %{$FUNCALL} == %{?}%zu%{;}%{?}npos%{;}, "
                    "got %{?}%zu%{;}%{?}npos%{;}", 
                    __LINE__, NPOS != cs.nres, exp_res, NPOS == cs.nres, 
-                   TestString::npos != res, res, TestString::npos == res);
+                   String::npos != res, res, String::npos == res);
     }
 
 #ifndef _RWSTD_NO_EXCEPTIONS
@@ -733,24 +769,13 @@ void test_find_last_of (charT, Traits*,
                    __LINE__, 0 != expected, expected, caught);
     }
 
+#endif   // _RWSTD_NO_EXCEPTIONS
+
     if (caught) {
-            // verify that an exception thrown during allocation
-            // didn't cause a change in the state of the object
-
-        rw_assert (s_str.size () == ssize, 0, cs.line,
-                   "line %d: %{$FUNCALL}: size unexpectedly changed "
-                   "from %zu to %zu after an exception",
-                   __LINE__, ssize, s_str.size ());
-
-        rw_assert (s_str.capacity () == capacity, 0, cs.line,
-                   "line %d: %{$FUNCALL}: capacity unexpectedly "
-                   "changed from %zu to %zu after an exception",
-                   __LINE__, capacity, s_str.capacity ());
-
-        rw_assert (s_str.begin () == begin, 0, cs.line,
-                   "line %d: %{$FUNCALL}: begin() unexpectedly "
-                   "changed from after an exception by %d",
-                   __LINE__, s_str.begin () - begin);
+        // verify that an exception thrown during allocation
+        // didn't cause a change in the state of the object
+        str_state.assert_equal (rw_get_string_state (s_str),
+                                __LINE__, cs.line, caught);
     }
     else if (-1 != cs.bthrow) {
         rw_assert (caught == expected, 0, cs.line,
@@ -758,13 +783,6 @@ void test_find_last_of (charT, Traits*,
                    "%{:}unexpectedly caught %s%{;}",
                    __LINE__, 0 != expected, expected, caught, caught);
     }
-
-#else // if defined (_RWSTD_NO_EXCEPTIONS)
-
-    _RWSTD_UNUSED (ssize);
-    _RWSTD_UNUSED (capacity);
-
-#endif   // _RWSTD_NO_EXCEPTIONS
 }
 
 /**************************************************************************/
