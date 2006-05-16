@@ -38,7 +38,8 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define Append(which)   StringMembers::append_ ## which
+#define Append(which)             StringMembers::append_ ## which
+#define PushBack(which)           StringMembers::push_back_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
@@ -394,6 +395,45 @@ size_val_test_cases [] = {
 
 /**************************************************************************/
 
+// exercises:
+// push_back (value_type)
+static const TestCase
+push_back_val_test_cases [] = {
+
+#undef TEST
+#define TEST(str, val, res, bthrow) {           \
+        __LINE__, -1, -1, -1, -1, val,          \
+        str, sizeof str - 1,                    \
+        0, 0, res, sizeof res - 1, bthrow       \
+    }
+
+    //    +-------------------------------------- controlled sequence
+    //    |            +--------------------- character to be appended
+    //    |            |   +----------------- expected result sequence
+    //    |            |   |       +--------- exception info
+    //    |            |   |       |             0 - no exception
+    //    |            |   |       |            -1 - exc. safety
+    //    |            |   |       |
+    //    |            |   |       +------------+
+    //    V            V   V                    V
+    TEST ("ab",        'c', "abc",              0),
+
+    TEST ("",          'a', "a",                0),
+    TEST ("",          '\0', "\0",              0),
+    TEST ("\0",        'a', "\0a",              0),
+    TEST ("\0",        '\0', "\0\0",            0),
+
+    TEST ("a\0b\0\0c", '\0', "a\0b\0\0c\0",     0),
+    TEST ("a\0bc\0\0", 'a', "a\0bc\0\0a",       0),
+    TEST ("\0abc\0\0", 'a', "\0abc\0\0a",       0),
+
+    TEST ("x@4095",    'x', "x@4096",           0),
+
+    TEST ("last",      't', "lastt",            0)
+};
+
+/**************************************************************************/
+
 template <class charT, class Traits, class Iterator>
 void test_append_range (const charT    *wstr,
                         std::size_t     wstr_len,
@@ -554,6 +594,7 @@ void test_append (charT, Traits*,
 
     const charT* const ptr_arg = tcase.arg ? s_arg.c_str () : s_str.c_str ();
     const String&      str_arg = tcase.arg ? s_arg : s_str;
+    const charT        val_arg = (make_char (char (tcase.val), (charT*)0));
 
     std::size_t total_length_calls = 0;
     std::size_t n_length_calls = 0;
@@ -627,9 +668,13 @@ void test_append (charT, Traits*,
             }
 
             case Append (size_val): {
-                const charT ch (make_char (char (tcase.val), (charT*)0));
-                const String& s_res = s_str.append (tcase.size, ch);
+                const String& s_res = s_str.append (tcase.size, val_arg);
                 res_off = &s_res - &s_str;
+                break;
+            }
+
+            case PushBack (val): {
+                s_str.push_back (val_arg);
                 break;
             }
 
@@ -638,9 +683,11 @@ void test_append (charT, Traits*,
             }
 
             // verify the returned value
-            rw_assert (0 == res_off, 0, tcase.line,
-                       "line %d. %{$FUNCALL} returned invalid reference, "
-                       "offset is %zu", __LINE__, res_off);
+            if (PushBack (val) != which) {
+                rw_assert (0 == res_off, 0, tcase.line,
+                           "line %d. %{$FUNCALL} returned invalid reference, "
+                           "offset is %zu", __LINE__, res_off);
+            }
 
             // verify that strings are of equal length
             rw_assert (res_len == s_str.size (), 0, tcase.line,
@@ -775,7 +822,12 @@ int main (int argc, char** argv)
         TEST (ptr_size),
         TEST (str_size_size),
         TEST (size_val),
-        TEST (range)
+        TEST (range),
+
+        { 
+            StringMembers::push_back_val, push_back_val_test_cases,
+            sizeof push_back_val_test_cases / sizeof *push_back_val_test_cases
+        }
     };
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
