@@ -135,12 +135,15 @@ struct _TEST_EXPORT StringMembers {
         mem_copy               = 1 << 22,
         mem_ctor               = 1 << 23,
         mem_op_set             = 1 << 24,
+        mem_swap               = 1 << 25,
+        mem_push_back          = 1 << 26,
         mem_mask       =
             mem_append | mem_assign | mem_erase | mem_insert | 
             mem_replace | mem_op_plus_eq | mem_find | mem_rfind |
             mem_find_first_of | mem_find_last_of | mem_find_first_not_of |
             mem_find_last_not_of | mem_compare | mem_substr | mem_op_index |
-            mem_at | mem_copy | mem_ctor | mem_op_set
+            mem_at | mem_copy | mem_ctor | mem_op_set | mem_swap | 
+            mem_push_back
     };
 
     // unique identifiers for all overloads of each member function
@@ -398,7 +401,15 @@ struct _TEST_EXPORT StringMembers {
         // (basic_string&)
         op_set_str = mem_op_set + sig_str,
         // (value_type)
-        op_set_val = mem_op_set + sig_val
+        op_set_val = mem_op_set + sig_val,
+
+        //////////////////////////////////////////////////////////////
+        // swap (basic_string&)
+        swap_str = mem_swap + sig_str,
+
+        //////////////////////////////////////////////////////////////
+        // push_back (value_type)
+        push_back_val = mem_push_back + sig_val
 
     };
 
