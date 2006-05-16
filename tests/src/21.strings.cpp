@@ -71,7 +71,7 @@ _rw_memfun_names[] = {
     "append", "assign", "erase", "insert", "replace", "operator+=", "find", 
     "rfind", "find_first_of", "find_last_of", "find_first_not_of", 
     "find_last_not_of", "compare", "substr", "operator[]", "at", "copy",
-    "constructor", "operator="
+    "constructor", "operator=", "swap", "push_back"
 };
 
 /**************************************************************************/
@@ -323,6 +323,7 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::compare_str:
     case StringMembers::ctor_str:
     case StringMembers::op_set_str:
+    case StringMembers::swap_str:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%{?}*this%{:}string(%{#*s})%{;})",
@@ -577,6 +578,7 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::find_first_not_of_val:
     case StringMembers::find_last_not_of_val:
     case StringMembers::op_set_val:
+    case StringMembers::push_back_val:
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%{#c})", pcase->val);
         break;
