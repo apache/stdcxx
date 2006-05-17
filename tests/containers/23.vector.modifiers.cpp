@@ -1223,7 +1223,6 @@ int main (int argc, char** argv)
                     "|-no-insert_at_end# "
                     "|-no-complexity# " 
                     "|-no-input_iter# "
-                    "|-no-input_iter# "
                     "|-no-forward_iter# "
                     "|-no-bidir_iter# "
                     "|-no-random_iter# "
@@ -1237,5 +1236,6 @@ int main (int argc, char** argv)
                     &rw_opt_no_forward_iter,
                     &rw_opt_no_bidir_iter,
                     &rw_opt_no_random_iter,
-                    &rw_opt_no_push_back);
+                    &rw_opt_no_push_back,
+                    0 /* sentinel*/);
 }
