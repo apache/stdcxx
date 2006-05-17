@@ -627,8 +627,6 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
             _FwdIter __mid = __first;
             _STD::advance (__mid, __size2a);
 
-            const pointer __end = __self->_C_end;
-
             // construct copies of the trailing subsequence of the range
             // of elements being inserted, as if by a call to
             // std::uninitialized_copy (__mid, __last, _C_end);
