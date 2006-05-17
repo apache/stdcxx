@@ -30,11 +30,12 @@
 #include <cstddef>      // for ptrdiff_t, size_t
 
 #include <21.strings.h>
-#include <alg_test.h>   // for InputIter
-#include <cmdopt.h>     // for rw_enabled()
-#include <driver.h>     // for rw_test()
-#include <rw_char.h>    // for rw_expand()
-#include <rw_new.h>     // for bad_alloc, replacement operator new
+#include <alg_test.h>       // for InputIter
+#include <cmdopt.h>         // for rw_enabled()
+#include <driver.h>         // for rw_test()
+#include <rw_allocator.h>   // for UserAlloc
+#include <rw_char.h>        // for rw_expand()
+#include <rw_new.h>         // for bad_alloc, replacement operator new
 
 /**************************************************************************/
 
@@ -546,10 +547,10 @@ iter_iter_range_test_cases [] = {
     TEST ("8",         0, -1, 0,          0,  1, "8",                0),
     TEST ("9",         0, -1, 0,          0, -1, "9",                0),
 
-    TEST ("x@4096",        0,  0, 0,          0,  0, "x@4096",               0),
-    TEST ("x@4096",        0,  1, 0,          0,  1, "x@4096",               0),
-    TEST ("x@4096",        0,  2, 0,          0,  2, "x@4096",               0),
-    TEST ("x@4096",        0, -1, 0,          0, -1, "x@4096",               0),
+    TEST ("x@4096",    0,  0, 0,          0,  0, "x@4096",           0),
+    TEST ("x@4096",    0,  1, 0,          0,  1, "x@4096",           0),
+    TEST ("x@4096",    0,  2, 0,          0,  2, "x@4096",           0),
+    TEST ("x@4096",    0, -1, 0,          0, -1, "x@4096",           0),
 
     TEST ("abc",       0, 0, 0,           1, 1,  "babc",             0),
     TEST ("abc",       2, 0, 0,           0, 2,  "ababc",            0),
@@ -660,17 +661,17 @@ iter_iter_size_val_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT, class Traits, class Iterator>
+template <class charT, class Traits, class Allocator, class Iterator>
 void test_replace_range (const charT*    wstr,
                          std::size_t     wstr_len,
                          const charT*    warg,
                          std::size_t     warg_len,
                          std::size_t     res_len,
                          Traits*,
+                         Allocator*,
                          const Iterator &it,
                          const TestCase &tcase)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
 
@@ -735,13 +736,14 @@ void test_replace_range (const charT*    wstr,
 
 /**************************************************************************/
 
-template <class charT, class Traits>
+template <class charT, class Traits, class Allocator>
 void test_replace_range (const charT    *wstr,
                          std::size_t     wstr_len,
                          const charT    *warg,
                          std::size_t     warg_len,
                          std::size_t     res_len,
                          Traits*,
+                         Allocator*,
                          const TestCase &tcase)
 {
     if (tcase.bthrow) {
@@ -751,32 +753,35 @@ void test_replace_range (const charT    *wstr,
 
     // exercise InputIterator *or* string::iterator (i.e., self
     // referential modification), depending on the value of tcase.arg
-    test_replace_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
-                       InputIter<charT>(0, 0, 0), tcase);
+    test_replace_range (wstr, wstr_len, warg, warg_len, res_len,
+                        (Traits*)0, (Allocator*)0,
+                        InputIter<charT>(0, 0, 0), tcase);
 
     if (0 == tcase.arg) {
         // avoid exercising the same function multiple times
         return;
     }
 
-    test_replace_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
+    test_replace_range (wstr, wstr_len, warg, warg_len, res_len,
+                        (Traits*)0, (Allocator*)0,
                         ConstFwdIter<charT>(0, 0, 0), tcase);
 
-    test_replace_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
+    test_replace_range (wstr, wstr_len, warg, warg_len, res_len,
+                        (Traits*)0, (Allocator*)0,
                         ConstBidirIter<charT>(0, 0, 0), tcase);
 
-    test_replace_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
+    test_replace_range (wstr, wstr_len, warg, warg_len, res_len,
+                        (Traits*)0, (Allocator*)0,
                         ConstRandomAccessIter<charT>(0, 0, 0), tcase);
 }
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_replace (charT, Traits*,
+template <class charT, class Traits, class Allocator>
+void test_replace (charT, Traits*, Allocator*,
                    OverloadId      which,
                    const TestCase &tcase)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
     typedef typename UserTraits<charT>::MemFun           UTMemFun;
@@ -799,7 +804,7 @@ void test_replace (charT, Traits*,
     // special processing for replace_range to exercise all iterators
     if (Replace (iter_iter_range) == which) {
         test_replace_range (wstr, str_len, warg, arg_len, 
-                            res_len, (Traits*)0, tcase);
+                            res_len, (Traits*)0, (Allocator*)0, tcase);
 
         if (wstr != wstr_buf)
             delete[] wstr;
@@ -857,14 +862,14 @@ void test_replace (charT, Traits*,
     const String&      arg_str = tcase.arg ? arg : str;
     const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
-    std::size_t total_length_calls = 0;
-    std::size_t n_length_calls = 0;
-    std::size_t* const rg_calls =
+    std::size_t* length_calls =
         Replace (size_size_ptr) == which || Replace (iter_iter_ptr) == which ?
         rw_get_call_counters ((Traits*)0, (charT*)0) : 0;
 
-    if (rg_calls)
-        total_length_calls = rg_calls [UTMemFun::length];
+    if (length_calls) {
+        length_calls += UTMemFun::length;
+        *length_calls = 0;
+    }
 
     rwt_free_store* const pst = rwt_get_free_store (0);
 
@@ -916,8 +921,6 @@ void test_replace (charT, Traits*,
             switch (which) {
             case Replace (size_size_ptr):
                 ret_ptr = &str.replace (arg_off, arg_size, arg_ptr);
-                if (rg_calls)
-                    n_length_calls = rg_calls [UTMemFun::length];
                 break;
 
             case Replace (size_size_str):
@@ -939,8 +942,6 @@ void test_replace (charT, Traits*,
 
             case Replace (iter_iter_ptr):
                 ret_ptr = &str.replace (first, last, arg_ptr);
-                if (rg_calls)
-                    n_length_calls = rg_calls [UTMemFun::length];
                 break;
 
             case Replace (iter_iter_str):
@@ -994,11 +995,11 @@ void test_replace (charT, Traits*,
                            str.c_str (), match);
             }
 
-            // verify that Traits::length was used
-            if (rg_calls) {
-                rw_assert (n_length_calls - total_length_calls > 0, 
+            // verify that Traits::length() was used
+            if (length_calls) {
+                rw_assert (0 < *length_calls,
                            0, tcase.line, "line %d. %{$FUNCALL} doesn't "
-                           "use traits::length()", __LINE__);
+                           "use traits_type::length()", __LINE__);
             }
         }
 
@@ -1096,7 +1097,7 @@ void test_replace (charT, Traits*,
 
 /**************************************************************************/
 
-DEFINE_TEST_DISPATCH (test_replace);
+DEFINE_STRING_TEST_DISPATCH (test_replace);
 
 int main (int argc, char** argv)
 {
