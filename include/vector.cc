@@ -589,38 +589,35 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
 
     if (__insert_in_place) {
 
-        // compute the beginning of the range of elements in the sequence
-        // controlled by *this that need to be moved (copy contructed past
-        // the end of the end of the sequence or assigned over existing
-        // elements)
+        // compute the beginning an end of the range of elements
+        // in the sequence controlled by *this that need to be moved
+        // (copy contructed past the end of the end of the sequence
+        // or assigned over existing elements)
         const pointer __movbeg = __self->_C_begin + __size1;
+        const pointer __movend = __movbeg + __size2;
+
         _RWSTD_ASSERT (__self->_C_make_iter (__movbeg) == __it);
 
-        if (__movbeg + __size2 <= __self->_C_end) {
+        const pointer __end = __self->_C_end;
+
+        if (__movend <= __end) {
 
             // compute the beginning of the range of elements whose copies
-            // will be constructed just past the current end of the sequence
-            pointer __ucpbeg = __self->_C_end - __size2;
+            // will be copy-constructed in the uninitialized space just past
+            // the current end of the sequence
+            const pointer __ucpbeg = __end - __size2;
 
             // construct copies of elements that will be moved beyond
-            // the current end of the sequence controlled by *this as
-            // if by calling
-            // std::uninitialized_copy (__ucpbeg, _C_end, _C_end);
-            pointer __end = __self->_C_end;
-
+            // the current end of the sequence controlled by *this
             pointer __p;
 
             for (__p = __ucpbeg; !(__p == __end); ++__p, ++__self->_C_end)
                 __self->_C_construct (__self->_C_end, *__p);
 
             // copy elements that will be overwritten below
-            // over the range of elements moved above as if
-            // by a call to
-            // std::copy_backward (__movbeg, __ucpbeg, __movbeg);
-
-            for (__p = __ucpbeg; !(__p == __movbeg); ) {
-                *__ucpbeg-- = *--__p;
-            }
+            // over the range of elements moved above
+            for (__p = __end; __movend < __p--; )
+                *__p = *(__p - __size2);
         }
         else {
             // compute the length of the initial subsequence of the range
