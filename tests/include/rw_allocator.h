@@ -32,12 +32,26 @@
 #include <testdefs.h>
 
 
+_RWSTD_NAMESPACE (std) {
+
+// declare to avoid dragging in all of <memory>
+// (yes, it is undefined for programs to do that)
+template <class T>
+struct allocator;
+
+}   // namespace std
+
+
 struct _TEST_EXPORT SharedAlloc
 {
     // identifies each member function of a standard allocator class
     enum MemFun {
-        m_ctor, m_cvt_ctor, m_cpy_ctor,
-        m_dtor,
+        m_ctor,         // ordinary constructor
+        m_cpy_ctor,     // copy constructor
+        m_cvt_ctor,     // converting (template) constructor
+        m_cpy_assign,   // ordinary assignment operator
+        m_cvt_assign,   // converting (template) assignment operator
+        m_dtor,         // destructor
         m_allocate, m_deallocate,
         m_construct, m_destroy,
         m_address, m_max_size,
@@ -69,13 +83,14 @@ struct _TEST_EXPORT SharedAlloc
     // returns the maximum number of objects of elemsize each
     // that can be allocated from the pool managed by *this
     virtual _RWSTD_SIZE_T
-    max_size (_RWSTD_SIZE_T /* elemsize */);
+    max_size (_RWSTD_SIZE_T /* elemsize */ = 1);
 
     // records a call to the allocator member function fun and
     // throws an exception derived from std::bad_alloc if the
     // number of calls to the member function reaches the limit
     // specified by throw_at_calls_
-    virtual void funcall (MemFun /* fun */);
+    virtual void
+    funcall (MemFun /* fun */, const SharedAlloc* = 0);
 
     // gets or sets a pointer to the global allocator object
     static SharedAlloc*
@@ -84,13 +99,13 @@ struct _TEST_EXPORT SharedAlloc
     // returns a unique id of this allocator object
     int id () const { return id_; }
 
-    _RWSTD_SIZE_T max_bytes_;    // memory pool size
-    _RWSTD_SIZE_T max_blocks_;   // memory pool size
+    _RWSTD_SIZE_T max_bytes_;    // memory pool size in bytes
+    _RWSTD_SIZE_T max_blocks_;   // memory pool size in blocks
 
-    _RWSTD_SIZE_T n_bytes_;     // number of allocated bytes
-    _RWSTD_SIZE_T n_blocks_;    // number of allocated blocks
+    _RWSTD_SIZE_T n_bytes_;      // number of allocated bytes
+    _RWSTD_SIZE_T n_blocks_;     // number of allocated blocks
 
-    _RWSTD_SIZE_T n_refs_;      // number of references
+    _RWSTD_SIZE_T n_refs_;       // number of references
 
     // counter of the number of calls to each allocator member function
     _RWSTD_SIZE_T n_calls_ [n_funs];
@@ -121,7 +136,7 @@ template <class T, class Types = AllocTypes<T> >
 struct UserAlloc
 {
 // private:
-    SharedAlloc* const pal_;
+    SharedAlloc* pal_;
 
 public:
     typedef T                               value_type;
@@ -154,9 +169,20 @@ public:
     }
 
     template <class U>
+    void operator= (const UserAlloc<U> &rhs) {
+        pal_->funcall (pal_->m_cvt_assign, rhs.pal_);
+        pal_ = rhs.pal_;
+    }
+
+    template <class U>
     struct rebind { typedef UserAlloc<U> other; };
 
 #endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+
+    void operator= (const UserAlloc &rhs) {
+        pal_->funcall (pal_->m_cpy_assign, rhs.pal_);
+        pal_ = rhs.pal_;
+    }
 
     ~UserAlloc () {
         pal_->funcall (pal_->m_dtor);
@@ -204,5 +230,55 @@ public:
     }
 };
 
+
+// when (line <= 0) establishes a new check point for memory leaks
+// by storing the number and size of blocks of storage currently
+// allocated by operator new and by the SharedAlloc object pointed
+// to by palloc (when non-zero)
+// when (line > 0) reports the difference between the the number
+// and size of blocks of storage allocated at the last checkpoint
+// and the values specified by expect_blocks and expect_bytes
+_TEST_EXPORT void
+rw_check_leaks (const SharedAlloc* /* palloc        */ = 0,
+                int                /* line          */ = 0,
+                _RWSTD_SIZE_T      /* expect_blocks */ = 0,
+                _RWSTD_SIZE_T      /* expect_bytes  */ = _RWSTD_SIZE_MAX);
+
+
+// when (line <= 0) establishes a new check point for memory leaks
+// by storing the number and size of blocks of storage currently
+// allocated by operator new
+// when (line > 0) reports the difference between the the number
+// and size of blocks of storage allocated at the last checkpoint
+// and the values specified by expect_blocks and expect_bytes
+template <class charT>
+inline void
+rw_check_leaks (const std::allocator<charT>& /* unused */,
+                int                          line          = 0,
+                _RWSTD_SIZE_T                expect_blocks = 0,
+                _RWSTD_SIZE_T                expect_bytes  = _RWSTD_SIZE_MAX)
+{
+    // can't track memory leaks here
+    rw_check_leaks ((SharedAlloc*)0, line, expect_blocks, expect_bytes);
+}
+
+
+// when (line <= 0) establishes a new check point for memory leaks
+// by storing the number and size of blocks of storage currently
+// allocated by operator new and by the user-defined allocator
+// specified by the first argument
+// when (line > 0) reports the difference between the the number
+// and size of blocks of storage allocated at the last checkpoint
+// and the values specified by expect_blocks and expect_bytes
+template <class charT, class Types>
+inline void
+rw_check_leaks (const UserAlloc<charT, Types> &alloc,
+                int                            line          = 0,
+                _RWSTD_SIZE_T                  expect_blocks = 0,
+                _RWSTD_SIZE_T                  expect_bytes  = _RWSTD_SIZE_MAX)
+{
+    // track memory leaks via SharedAlloc
+    rw_check_leaks (alloc.pal_, line, expect_blocks, expect_bytes);
+}
 
 #endif   // RW_ALLOCATOR_INCLUDED
