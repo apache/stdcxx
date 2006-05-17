@@ -293,8 +293,8 @@ void test_insert (int             line,     // line number of call site
     // format a string describing the function call being tested
     // (used in diagnostic messages, if any, below)
     rw_asnprintf (&fcall, &len, "vector(\"%{X=*.*}\").insert("
-                  "%{?}begin(), %{:}%{?}end (), %{:}begin () + %zu%{;}%{;}"
-                  "%{?}%d)%{:}%{?}\"%{X=*.*}\")%{:}%d, %d)%{;}%{;}",
+                  "%{?}begin()%{:}%{?}end()%{:}begin() + %zu%{;}%{;}, "
+                  "%{?}%d%{:}%{?}\"%{X=*.*}\"%{:}%d, %d%{;}%{;})",
                   int (seqlen), -1, xseq, 
                   0 == off, int (seqlen) == off, off, 
                   n == -2, *ins, n == -1, 
@@ -369,7 +369,7 @@ void test_insert (int             line,     // line number of call site
             got [vec.size ()] = '\0';
 
             rw_assert (0, 0, line,
-                       "line %d: %s: expected %s, got %s",
+                       "line %d: %s: expected %{#s}, got %{#s}",
                        __LINE__, fcall, res, got);
 
             delete [] got;
@@ -561,45 +561,90 @@ void test_insert_range (const Iterator &dummy)
     //    |      +------------------------------------- seqcap(acity)
     //    |      |   +--------------------------------- off(set of insertion)
     //    |      |   |   +----------------------------- ins(erted sequence)
-    //    |      |   |   |      +---------------------- res(ultin sequence)
+    //    |      |   |   |      +---------------------- res(ulting sequence)
     //    |      |   |   |      |
     //    v      v   v   v      v
     TEST ("",    -1, +0, "",    "");
     TEST ("",    -1, +0, "a",   "a");
     TEST ("",    -1, +0, "ab",  "ab");
     TEST ("",    -1, +0, "abc", "abc");
-    TEST ("a",   -1, +0, "",    "a");
-    TEST ("b",   -1, +0, "a",   "ab");
-    TEST ("c",   -1, +0, "ab",  "abc");
-    TEST ("cd",  -1, +0, "ab",  "abcd");
-    TEST ("def", -1, +0, "abc", "abcdef");
 
-    TEST ("a",   -1, +1, "",    "a");
-    TEST ("a",   -1, +1, "b",   "ab");
-    TEST ("a",   -1, +1, "bc",  "abc");
-    TEST ("a",   -1, +1, "bcd", "abcd");
+    TEST ("A",   -1, +0, "",    "A");
+    TEST ("B",   -1, +0, "a",   "aB");
+    TEST ("C",   -1, +0, "ab",  "abC");
+    TEST ("D",   -1, +0, "abc", "abcD");
 
-    TEST ("ab",  -1, +1, "",    "ab");
-    TEST ("ac",  -1, +1, "b",   "abc");
-    TEST ("acd", -1, +1, "b",   "abcd");
+    TEST ("AB",  -1, +0, "",    "AB");
+    TEST ("AB",  -1, +0, "c",   "cAB");
+    TEST ("AB",  -1, +0, "cd",  "cdAB");
+    TEST ("AB",  -1, +0, "cde", "cdeAB");
 
-    TEST ("ab",  -1, +2, "",    "ab");
-    TEST ("ab",  -1, +2, "c",   "abc");
-    TEST ("ab",  -1, +2, "cd",  "abcd");
+    TEST ("A",   -1, +1, "",    "A");
+    TEST ("A",   -1, +1, "b",   "Ab");
+    TEST ("A",   -1, +1, "bc",  "Abc");
+    TEST ("A",   -1, +1, "bcd", "Abcd");
 
-    TEST ("abc", -1, +2, "",    "abc");
-    TEST ("abd", -1, +2, "c",   "abcd");
-    TEST ("abe", -1, +2, "cd",  "abcde");
-    TEST ("abf", -1, +2, "cde", "abcdef");
+    TEST ("AB",  -1, +1, "",    "AB");
+    TEST ("AC",  -1, +1, "b",   "AbC");
+    TEST ("AD",  -1, +1, "bc",  "AbcD");
+    TEST ("AE",  -1, +1, "bcd", "AbcdE");
 
-    TEST ("abc", -1, +3, "",    "abc");
-    TEST ("abc", -1, +3, "d",   "abcd");
-    TEST ("abc", -1, +3, "de",  "abcde");
-    TEST ("abc", -1, +3, "def", "abcdef");
+    TEST ("AB",  -1, +2, "",    "AB");
+    TEST ("AB",  -1, +2, "c",   "ABc");
+    TEST ("AB",  -1, +2, "cd",  "ABcd");
+    TEST ("AB",  -1, +2, "cde", "ABcde");
+
+    TEST ("ABC", -1, +2, "",    "ABC");
+    TEST ("ABD", -1, +2, "c",   "ABcD");
+    TEST ("ABE", -1, +2, "cd",  "ABcdE");
+    TEST ("ABF", -1, +2, "cde", "ABcdeF");
+
+    TEST ("ABC", -1, +3, "",    "ABC");
+    TEST ("ABC", -1, +3, "d",   "ABCd");
+    TEST ("ABC", -1, +3, "de",  "ABCde");
+    TEST ("ABC", -1, +3, "def", "ABCdef");
     
 
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define LOWER "abcdefghijklmnopqrstuvwxyz"
+
+    TEST ("",    -1,  +0, LOWER, LOWER);
+
+    TEST ("A",   -1,  +0, LOWER, LOWER "A");
+    TEST ("A",   -1,  +1, LOWER, "A" LOWER);
+
+    TEST ("AB",  -1,  +0, LOWER, LOWER "AB");
+    TEST ("AB",  -1,  +1, LOWER, "A" LOWER "B");
+    TEST ("AB",  -1,  +2, LOWER, "AB" LOWER);
+
+    TEST ("ABC", -1,  +0, LOWER, LOWER "ABC");
+    TEST ("ABC", -1,  +1, LOWER, "A" LOWER "BC");
+    TEST ("ABC", -1,  +2, LOWER, "AB" LOWER "C");
+    TEST ("ABC", -1,  +3, LOWER, "ABC" LOWER);
+
+    TEST (UPPER, -1,  +0, "!",   "!ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1,  +1, "!",   "A!BCDEFGHIJKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1,  +2, "!",   "AB!CDEFGHIJKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1,  +3, "!",   "ABC!DEFGHIJKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1,  +9, "!",   "ABCDEFGHI!JKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1, +25, "!",   "ABCDEFGHIJKLMNOPQRSTUVWXY!Z");
+    TEST (UPPER, -1, +26, "!",   "ABCDEFGHIJKLMNOPQRSTUVWXYZ!");
+
+    TEST (UPPER, -1,  +0, "12",  "12ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1,  +1, "12",  "A12BCDEFGHIJKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1,  +2, "12",  "AB12CDEFGHIJKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1,  +3, "12",  "ABC12DEFGHIJKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1,  +9, "12",  "ABCDEFGHI12JKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1, +25, "12",  "ABCDEFGHIJKLMNOPQRSTUVWXY12Z");
+    TEST (UPPER, -1, +26, "12",  "ABCDEFGHIJKLMNOPQRSTUVWXYZ12");
+
+    TEST (UPPER, -1,  +0, "123", "123ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1,  +1, "123", "A123BCDEFGHIJKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1,  +2, "123", "AB123CDEFGHIJKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1,  +3, "123", "ABC123DEFGHIJKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1,  +9, "123", "ABCDEFGHI123JKLMNOPQRSTUVWXYZ");
+    TEST (UPPER, -1, +25, "123", "ABCDEFGHIJKLMNOPQRSTUVWXY123Z");
+    TEST (UPPER, -1, +26, "123", "ABCDEFGHIJKLMNOPQRSTUVWXYZ123");
 
     TEST (UPPER, -1,  +0, LOWER, "" LOWER "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     TEST (UPPER, -1,  +1, LOWER, "A" LOWER "BCDEFGHIJKLMNOPQRSTUVWXYZ");
