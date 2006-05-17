@@ -29,7 +29,8 @@
 #define _RWSTD_TEST_SRC
 
 #include <rw_allocator.h>
-#include <new>              // for bad_alloc
+#include <rw_new.h>         // for operator_new()
+#include <new>              // for bad_alloc, placement new
 #include <stdarg.h>         // for va_arg(), va_list
 #include <string.h>         // for memset()
 
@@ -118,7 +119,7 @@ allocate (size_t nelems, size_t size, const void* /* = 0 */)
                              "allocate (%zu):  reached size limit of %zu",
                              nbytes, max_bytes_);
 
-    return operator new (nbytes);
+    return operator_new (nbytes, false);
 }
 
 
@@ -127,7 +128,7 @@ deallocate (void *ptr, size_t nelems, size_t size)
 {
     funcall (m_deallocate);
 
-    return operator delete (ptr);
+    return operator_delete (ptr, false);
 }
 
 
