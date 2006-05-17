@@ -716,6 +716,11 @@ static size_t
 _rw_string_test_count;
 
 
+// TODO: remove this
+_TEST_EXPORT
+int rw_disable_user_allocator;
+
+
 static int
 _rw_run_test (int, char*[])
 {
@@ -784,7 +789,7 @@ _rw_run_test (int, char*[])
 
     static const StringMembers::Allocator alloc_types[] = {
         StringMembers::DefaultAllocator,
-        // StringMembers::UserAllocator,   // not implemented yet
+        StringMembers::UserAllocator,
         StringMembers::UnknownAllocator
     };
 
@@ -817,6 +822,12 @@ _rw_run_test (int, char*[])
             }
 
             for (size_t k = 0; alloc_types [k]; ++k) {
+
+                // TODO: remove this as soon as user-defined allocators
+                // are fully exercised
+                if (   StringMembers::UserAllocator == alloc_types [k]
+                    && rw_disable_user_allocator)
+                    continue;
 
                 if (_rw_opt_no_alloc_types [k]) {
                     // issue only the first note
@@ -945,6 +956,7 @@ run_test (int         argc,
                     "|-enable-ptr# "
                     "|-enable-str# "
                     "|-enable-size# "
+                    "|-enable-size-const# "
                     "|-enable-ptr_size# "
                     "|-enable-str_size# "
                     "|-enable-ptr_size_size# "
