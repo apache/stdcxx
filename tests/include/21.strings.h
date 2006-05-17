@@ -499,38 +499,39 @@ rw_get_string_state (const String &str)
 #define Disabled(which)   \
     StringMembers::opt_memfun_disabled [which & ~StringMembers::mem_mask]
 
+
 #ifndef _RWSTD_NO_WCHAR_T
-#  define TEST_DISPATCH(fname, memfun, tcase)                   \
+#  define TEST_DISPATCH(Alloc, fname, memfun, tcase)            \
     if (StringMembers::DefaultTraits == memfun.traits_id_) {    \
         if (StringMembers::Char == memfun.char_id_)             \
             fname (char (), (std::char_traits<char>*)0,         \
-                   memfun.which_, tcase);                       \
+                   (Alloc<char>*)0, memfun.which_, tcase);      \
         else if (StringMembers::WChar == memfun.char_id_)       \
             fname (wchar_t (), (std::char_traits<wchar_t>*)0,   \
-                   memfun.which_, tcase);                       \
+                   (Alloc<wchar_t>*)0, memfun.which_, tcase);   \
         else                                                    \
             rw_note (0, 0, 0,                                   \
                      "%{$CLASS} tests not implemented");        \
     }                                                           \
     else {                                                      \
-       if (StringMembers::Char == memfun.char_id_)              \
-           fname (char (), (UserTraits<char>*)0,                \
-                  memfun.which_, tcase);                        \
+        if (StringMembers::Char == memfun.char_id_)             \
+            fname (char (), (UserTraits<char>*)0,               \
+                   (Alloc<char>*)0, memfun.which_, tcase);      \
        else if (StringMembers::WChar == memfun.char_id_)        \
-           fname (wchar_t (), (UserTraits<wchar_t>*)0,          \
-                  memfun.which_, tcase);                        \
+            fname (wchar_t (), (UserTraits<wchar_t>*)0,         \
+                   (Alloc<wchar_t>*)0, memfun.which_, tcase);   \
        else                                                     \
            fname (UserChar (), (UserTraits<UserChar>*)0,        \
-                  memfun.which_, tcase);                        \
+                  (Alloc<UserChar>*)0, memfun.which_, tcase);   \
     }                                                           \
     (void)0
 
 #else   // if defined (_RWSTD_NO_WCHAR_T)
-#  define TEST_DISPATCH(fname, memfun, tcase)                   \
+#  define TEST_DISPATCH(Alloc, fname, memfun, tcase)            \
     if (StringMembers::DefaultTraits == memfun.traits_id_) {    \
         if (StringMembers::Char == memfun.char_id_)             \
             fname (char (), (std::char_traits<char>*)0,         \
-                   memfun.which_, tcase);                       \
+                   (Alloc<char>*)0, memfun.which_, tcase);      \
         else if (StringMembers::WChar == memfun.char_id_)       \
             RW_ASSERT (!"logic error: wchar_t disabled");       \
         else                                                    \
@@ -541,22 +542,50 @@ rw_get_string_state (const String &str)
     else {                                                      \
         if (StringMembers::Char == memfun.char_id_)             \
             fname (char (), (UserTraits<char>*)0,               \
-                   memfun.which_, tcase);                       \
+                   (Alloc<char>*)0, memfun.which_, tcase);      \
         else if (StringMembers::WChar == memfun.char_id_)       \
              RW_ASSERT (!"logic error: wchar_t disabled");      \
         else if (StringMembers::UChar == memfun.char_id_)       \
             fname (UserChar (), (UserTraits<UserChar>*)0,       \
-                   memfun.which_, tcase);                       \
+                   (Alloc<UserChar>*)0, memfun.which_, tcase);  \
     }                                                           \
     (void)0
 
 #endif   // _RWSTD_NO_WCHAR_T
 
 
+extern _TEST_EXPORT
+int rw_disable_user_allocator;
+
+
+// transitional, to be replaced by DEFINE_STRING_TEST_DISPATCH()
 #define DEFINE_TEST_DISPATCH(fname)                             \
+    template <class charT, class Traits, class Allocator>       \
+    void                                                        \
+    fname (charT, Traits*, Allocator*,                          \
+           StringMembers::OverloadId which,                     \
+           const StringMembers::TestCase &tcase) {              \
+        fname (charT (), (Traits*)0, which, tcase);             \
+    }                                                           \
+                                                                \
     static void                                                 \
     fname (const MemFun &memfun, const TestCase &tcase) {       \
-        TEST_DISPATCH (fname, memfun, tcase);                   \
+        /* disable tests exercising user-define allocator */    \
+        rw_disable_user_allocator = 1;                          \
+        TEST_DISPATCH (std::allocator, fname, memfun, tcase);   \
+    } typedef void rw_unused_typedef
+
+#define DEFINE_STRING_TEST_DISPATCH(fname)                              \
+    static void                                                         \
+    fname (const MemFun &memfun, const TestCase &tcase) {               \
+        if (StringMembers::DefaultAllocator == memfun.alloc_id_) {      \
+            TEST_DISPATCH (std::allocator, fname, memfun, tcase);       \
+        }                                                               \
+        else if (StringMembers::UserAllocator == memfun.alloc_id_) {    \
+            TEST_DISPATCH (UserAlloc, fname, memfun, tcase);            \
+        }                                                               \
+        else                                                            \
+            RW_ASSERT (!"logic error: bad allocator");                  \
     } typedef void rw_unused_typedef
     
 
