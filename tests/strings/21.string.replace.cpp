@@ -915,7 +915,7 @@ void test_replace (charT, Traits*, Allocator*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
         // start checking for memory leaks
-        rwt_check_leaks (0, 0);
+        rw_check_leaks (str.get_allocator ());
 
         try {
             switch (which) {
@@ -974,9 +974,9 @@ void test_replace (charT, Traits*, Allocator*,
 
             // verfiy that the length of the resulting string
             rw_assert (res_len == str.size (), 0, tcase.line,
-                       "line %d. %{$FUNCALL} expected %{#*s} with length "
+                       "line %d. %{$FUNCALL} expected %{/*.*Gs} with length "
                        "%zu, got %{/*.*Gs} with length %zu",
-                       __LINE__, int (res_len), tcase.res, 
+                       __LINE__, int (sizeof (charT)), int (res_len), wres, 
                        res_len, int (sizeof (charT)), 
                        int (str.size ()), str.c_str (), str.size ());
 
@@ -1043,16 +1043,10 @@ void test_replace (charT, Traits*, Allocator*,
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-        /* const */ std::size_t nbytes;
-        const       std::size_t nblocks = rwt_check_leaks (&nbytes, 0);
-
         // FIXME: verify the number of blocks the function call
         // is expected to allocate and detect any memory leaks
-        const std::size_t expect_blocks = nblocks;
-
-        rw_assert (nblocks == expect_blocks, 0, tcase.line,
-                   "line %d. %{$FUNCALL} allocated %td bytes in %td blocks",
-                   __LINE__, nbytes, expect_blocks);
+        rw_check_leaks (str.get_allocator (), tcase.line,
+                        std::size_t (-1), std::size_t (-1));
 
         if (caught) {
             // verify that an exception thrown during allocation
