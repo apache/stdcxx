@@ -30,6 +30,7 @@
 
 #include <rw_allocator.h>
 #include <rw_new.h>         // for operator_new()
+#include <driver.h>         // for rw_assert()
 #include <new>              // for bad_alloc, placement new
 #include <stdarg.h>         // for va_arg(), va_list
 #include <string.h>         // for memset()
@@ -39,15 +40,17 @@
 static const char* const
 _rw_funnames[] = {
     "UserAlloc::UserAlloc ()",
-    "UserAlloc::UserAlloc (const UserAlloc<U>&)",
     "UserAlloc::UserAlloc (const UserAlloc&)",
+    "UserAlloc::UserAlloc (const UserAlloc<U>&)",
     "UserAlloc::~UserAlloc ()",
+    "UserAlloc::operator= (const UserAlloc&)",
+    "UserAlloc::operator=<U>(const UserAlloc<U>&)",
     "UserAlloc::allocate (size_type, void*)",
     "UserAlloc::deallocate (pointer, size_type)",
     "UserAlloc::construct (pointer, const_reference)",
     "UserAlloc::destroy (pointer)",
-    "UserAlloc::address (reference)",
-    "UserAlloc::max_size ()"
+    "UserAlloc::address (reference) const",
+    "UserAlloc::max_size () const"
 };
 
 static int _rw_id_gen;   // generates unique ids
@@ -88,7 +91,7 @@ _rw_throw_exception (const char *file, int line, const char *fmt, ...)
 SharedAlloc::
 SharedAlloc (size_t nbytes /* = MAX_SIZE */, size_t nblocks /* = MAX_SIZE */)
     : max_bytes_ (nbytes), max_blocks_ (nblocks),
-      n_bytes_ (0), n_blocks_ (0), id_ (0)
+      n_bytes_ (0), n_blocks_ (0), n_refs_ (0), id_ (0)
 {
     memset (n_calls_, 0, sizeof n_calls_);
     memset (throw_at_calls_, -1, sizeof throw_at_calls_);
@@ -98,7 +101,25 @@ SharedAlloc (size_t nbytes /* = MAX_SIZE */, size_t nblocks /* = MAX_SIZE */)
 /* virtual */ SharedAlloc::
 ~SharedAlloc ()
 {
-    // no-op
+    static size_t deadbeef = 0;
+    if (0 == deadbeef) {
+        deadbeef = size_t (0xdeadbeefU);
+        if (deadbeef < deadbeef << 1) {
+            // assume 64-bit size_t
+            deadbeef <<= 31;
+            deadbeef <<=  1;
+            deadbeef  |= size_t (0xdeadbeefU);
+        }
+    }
+
+    // invalidate
+    size_t n = sizeof n_calls_ / sizeof *n_calls_;
+    for (size_t i = 0; i != n; ++i)
+        n_calls_ [i] = deadbeef;
+
+    n = sizeof throw_at_calls_ / sizeof *throw_at_calls_;
+    for (size_t i = 0; i != n; ++i)
+        throw_at_calls_ [i] = deadbeef;
 }
 
 
@@ -133,7 +154,7 @@ deallocate (void *ptr, size_t nelems, size_t size)
 
 
 /* virtual */ size_t SharedAlloc::
-max_size (size_t size)
+max_size (size_t size /* = 1 */)
 {
     funcall (m_max_size);
 
@@ -142,7 +163,7 @@ max_size (size_t size)
 
 
 /* virtual */ void SharedAlloc::
-funcall (MemFun mf)
+funcall (MemFun mf, const SharedAlloc *other /* = 0 */)
 {
     if (m_ctor == mf) {
         // ordinary (not a copy or converting) ctor
@@ -161,6 +182,27 @@ funcall (MemFun mf)
 
         // increment the number of references to this allocator
         ++n_refs_;
+    }
+    else if (m_cpy_assign == mf || m_cvt_assign == mf) {
+        // assignment operator
+        RW_ASSERT (0 <= id_ && id_ <= _rw_id_gen);
+        RW_ASSERT (0 < n_refs_);
+
+        RW_ASSERT (0 != other);
+
+        if (this != other) {
+            // decrement the number of references and invalidate
+            // id if no object refers to *this
+            if (0 == --n_refs_)
+                id_ = -1;
+
+            SharedAlloc* const po = _RWSTD_CONST_CAST (SharedAlloc*, other);
+
+            if (other->id_ <= 0)
+                po->id_ = ++_rw_id_gen;
+
+            ++po->n_refs_;
+        }
     }
     else if (m_dtor == mf) {
         // dtor
@@ -210,4 +252,76 @@ instance (SharedAlloc *pinst /* = 0 */)
     RW_ASSERT (0 != pinst);
 
     return pinst;
+}
+
+/**************************************************************************/
+
+static void
+_rw_check_leaks (int line, size_t expect_blocks, size_t expect_bytes)
+{
+    if (0 < line) {
+        // determine and report memory leaks since last checkpoint
+
+        /* const */ size_t nbytes;
+        const       size_t nblocks = rwt_check_leaks (&nbytes, 0);
+
+        if (_RWSTD_SIZE_MAX == expect_blocks)
+            expect_blocks = nblocks;
+
+        if (_RWSTD_SIZE_MAX == expect_bytes)
+            expect_bytes = nbytes;
+
+        rw_assert (nblocks == expect_blocks && nbytes == expect_bytes,
+                   0, line,
+                   "line %d. %{$FUNCALL} operator new allocated "
+                   "%zu bytes in %zu blocks, expected %zu bytes "
+                   "in %zu blocks",
+                   __LINE__, nbytes, nblocks,
+                   expect_bytes, expect_blocks);
+    }
+    else {
+        // establish a checkpoint for memory leaks
+        rwt_check_leaks (0, 0);
+    }
+}
+
+
+_TEST_EXPORT void
+rw_check_leaks (const SharedAlloc *palloc        /* =  0 */,
+                int                line          /* =  0 */, 
+                size_t             expect_blocks /* =  0 */,
+                size_t             expect_bytes  /* = -1 */)
+{
+    _rw_check_leaks (line, expect_blocks, expect_bytes);
+
+    if (0 == palloc)
+        return;
+
+    static size_t nbytes;
+    static size_t nblocks;
+
+    if (0 < line) {
+        // determine and report memory leaks since last checkpoint
+        const size_t leaked_bytes  = palloc->n_bytes_ - nbytes;
+        const size_t leaked_blocks = palloc->n_blocks_ - nblocks;
+
+        if (_RWSTD_SIZE_MAX == expect_blocks)   // don't care
+            expect_blocks = leaked_blocks;
+
+        if (_RWSTD_SIZE_MAX == expect_bytes)   // don't care
+            expect_bytes = nbytes;
+
+        rw_assert (   leaked_blocks == expect_blocks
+                   && leaked_bytes == expect_bytes, 0, line,
+                   "line %d. %{$FUNCALL} UserAlloc allocated "
+                   "%zu bytes in %zu blocks, expected %zu bytes "
+                   "in %zu blocks",
+                   __LINE__, leaked_bytes, leaked_blocks,
+                   expect_bytes, expect_blocks);
+    }
+    else {
+        // establish a checkpoint for memory leaks
+        nbytes  = palloc->n_bytes_;
+        nblocks = palloc->n_blocks_;
+    }
 }
