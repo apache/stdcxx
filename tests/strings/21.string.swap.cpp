@@ -25,14 +25,15 @@
  * 
  **************************************************************************/
 
-#include <string>       // for string
-#include <cstddef>      // size_t
-#include <exception>    // for exception
+#include <string>           // for string
+#include <cstddef>          // size_t
+#include <exception>        // for exception
 
-#include <21.strings.h> // for StringMembers
-#include <driver.h>     // for rw_assert()
-#include <rw_char.h>    // for rw_expand()
-#include <rw_new.h>     // for bad_alloc, replacement operator new
+#include <21.strings.h>     // for StringMembers
+#include <driver.h>         // for rw_assert()
+#include <rw_allocator.h>   // foir UserAlloc
+#include <rw_char.h>        // for rw_expand()
+#include <rw_new.h>         // for bad_alloc, replacement operator new
 
 /**************************************************************************/
 
@@ -107,12 +108,11 @@ str_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_swap (charT, Traits*,
+template <class charT, class Traits, class Allocator>
+void test_swap (charT, Traits*, Allocator*,
                 OverloadId      which,
                 const TestCase &tcase)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef UserTraits<UserChar>::MemFun                 UTMemFun;
 
@@ -298,7 +298,7 @@ void test_swap (charT, Traits*,
 
 /**************************************************************************/
 
-DEFINE_TEST_DISPATCH (test_swap);
+DEFINE_STRING_TEST_DISPATCH (test_swap);
 
 int main (int argc, char** argv)
 {

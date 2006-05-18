@@ -19,13 +19,14 @@
  * 
  **************************************************************************/
 
-#include <string>       // for string
-#include <cstdlib>      // for free(), size_t
-#include <stdexcept>    // for out_of_range
+#include <string>           // for string
+#include <cstdlib>          // for free(), size_t
+#include <stdexcept>        // for out_of_range
 
-#include <21.strings.h> // for StringMembers
-#include <driver.h>     // for rw_test()
-#include <rw_char.h>    // for rw_expand()
+#include <21.strings.h>     // for StringMembers
+#include <driver.h>         // for rw_test()
+#include <rw_allocator.h>   // for UserAlloc
+#include <rw_char.h>        // for rw_expand()
 
 /**************************************************************************/
 
@@ -201,12 +202,11 @@ at_size_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_access (charT, Traits*,  
+template <class charT, class Traits, class Allocator>
+void test_access (charT, Traits*, Allocator*, 
                   OverloadId      which,
                   const TestCase &cs)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::reference                   StrRef;
     typedef typename String::const_reference             StrConstRef;
@@ -321,7 +321,7 @@ void test_access (charT, Traits*,
 
 /**************************************************************************/
 
-DEFINE_TEST_DISPATCH (test_access);
+DEFINE_STRING_TEST_DISPATCH (test_access);
 
 int main (int argc, char** argv)
 {

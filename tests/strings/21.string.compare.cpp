@@ -25,19 +25,20 @@
  *
  **************************************************************************/
 
-#include <string>       // for string
-#include <cstddef>      // for size_t
-#include <stdexcept>    // for out_of_range, length_error
+#include <string>           // for string
+#include <cstddef>          // for size_t
+#include <stdexcept>        // for out_of_range, length_error
 
-#include <21.strings.h> // for StringMembers
-#include <driver.h>     // for rw_assert()
-#include <rw_char.h>    // for rw_expand()
+#include <21.strings.h>     // for StringMembers
+#include <driver.h>         // for rw_assert()
+#include <rw_allocator.h>   // for UserAlloc
+#include <rw_char.h>        // for rw_expand()
 
 /**************************************************************************/
 
 // for convenience and brevity
-#define NPOS              _RWSTD_SIZE_MAX
-#define Compare(which)    StringMembers::compare_ ## which
+#define NPOS                      _RWSTD_SIZE_MAX
+#define Compare(which)            StringMembers::compare_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
@@ -696,12 +697,11 @@ size_size_str_size_size_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_compare (charT, Traits*,
+template <class charT, class Traits, class Allocator>
+void test_compare (charT, Traits*, Allocator*,
                    OverloadId      which,
                    const TestCase &tcase)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename UserTraits<charT>::MemFun           UTMemFun;
 
@@ -871,7 +871,7 @@ void test_compare (charT, Traits*,
 
 /**************************************************************************/
 
-DEFINE_TEST_DISPATCH (test_compare);
+DEFINE_STRING_TEST_DISPATCH (test_compare);
 
 int main (int argc, char** argv)
 {
