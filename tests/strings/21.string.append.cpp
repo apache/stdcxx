@@ -32,6 +32,7 @@
 #include <21.strings.h>   // for StringMembers
 #include <alg_test.h>     // for InputIter
 #include <driver.h>       // for rw_test()
+#include <rw_allocator.h> // for UserAlloc
 #include <rw_char.h>      // for rw_expand()
 #include <rw_new.h>       // for bad_alloc, replacement operator new
 
@@ -434,17 +435,17 @@ push_back_val_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT, class Traits, class Iterator>
+template <class charT, class Traits, class Allocator, class Iterator>
 void test_append_range (const charT    *wstr,
                         std::size_t     wstr_len,
                         const charT    *warg,
                         std::size_t     warg_len,
                         std::size_t     res_len,
-                        Traits*,
+                        Traits*, 
+                        Allocator*,
                         const Iterator &it,
                         const TestCase &tcase)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
 
@@ -498,20 +499,21 @@ void test_append_range (const charT    *wstr,
 
 /**************************************************************************/
 
-template <class charT, class Traits>
+template <class charT, class Traits, class Allocator>
 void test_append_range (const charT    *wstr,
                         std::size_t     wstr_len,
                         const charT    *warg,
                         std::size_t     warg_len,
                         std::size_t     res_len,
                         Traits*,
+                        Allocator*,
                         const TestCase &tcase)
 {
     if (tcase.bthrow)  // this method doesn't throw
         return;
 
     test_append_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
-                       InputIter<charT>(0, 0, 0), tcase);
+                       (Allocator*)0, InputIter<charT>(0, 0, 0), tcase);
 
     // there is no need to call test_append_range
     // for other iterators in this case
@@ -519,23 +521,23 @@ void test_append_range (const charT    *wstr,
         return;
 
     test_append_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
-                       ConstFwdIter<charT>(0, 0, 0), tcase);
+                       (Allocator*)0, ConstFwdIter<charT>(0, 0, 0), tcase);
 
     test_append_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
-                       ConstBidirIter<charT>(0, 0, 0), tcase);
+                       (Allocator*)0, ConstBidirIter<charT>(0, 0, 0), tcase);
 
-    test_append_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
+    test_append_range (wstr, wstr_len, warg, warg_len, res_len, 
+                      (Traits*)0, (Allocator*)0, 
                        ConstRandomAccessIter<charT>(0, 0, 0), tcase);
 }
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_append (charT, Traits*,
+template <class charT, class Traits, class Allocator>
+void test_append (charT, Traits*, Allocator*,
                   OverloadId      which,
                   const TestCase &tcase)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
     typedef typename UserTraits<charT>::MemFun           UTMemFun;
@@ -557,8 +559,9 @@ void test_append (charT, Traits*,
 
     // special processing for append_range to exercise all iterators
     if (Append (range) == which) {
-        test_append_range (wstr, str_len, warg, arg_len, 
-                           res_len, (Traits*)0, tcase);
+        test_append_range (wstr, str_len, warg, arg_len, res_len, 
+                          (Traits*)0, (Allocator*)0, tcase);
+
         if (wstr != wstr_buf)
             delete[] wstr;
 
@@ -803,7 +806,7 @@ void test_append (charT, Traits*,
 
 /**************************************************************************/
 
-DEFINE_TEST_DISPATCH (test_append);
+DEFINE_STRING_TEST_DISPATCH (test_append);
 
 int main (int argc, char** argv)
 {

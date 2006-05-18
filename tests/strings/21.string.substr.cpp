@@ -25,18 +25,19 @@
  * 
  **************************************************************************/
 
-#include <string>       // for string
-#include <cstddef>      // for size_t
-#include <stdexcept>    // for out_of_range
+#include <string>           // for string
+#include <cstddef>          // for size_t
+#include <stdexcept>        // for out_of_range
 
-#include <21.strings.h> // for StringMembers
-#include <driver.h>     // for rw_test()
-#include <rw_char.h>    // for rw_expand()
+#include <21.strings.h>     // for StringMembers
+#include <driver.h>         // for rw_test()
+#include <rw_allocator.h>   // for UserAlloc
+#include <rw_char.h>        // for rw_expand()
 
 /**************************************************************************/
 
 // for convenience and brevity
-#define Substr(which)    StringMembers::substr_ ## which
+#define Substr(which)             StringMembers::substr_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
@@ -209,12 +210,11 @@ size_size_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_substr (charT, Traits*,
+template <class charT, class Traits, class Allocator>
+void test_substr (charT, Traits*, Allocator*,
                   OverloadId      which,
                   const TestCase &cs)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
 
     static const std::size_t BUFSIZE = 256;
@@ -342,7 +342,7 @@ void test_substr (charT, Traits*,
 
 /**************************************************************************/
 
-DEFINE_TEST_DISPATCH (test_substr);
+DEFINE_STRING_TEST_DISPATCH (test_substr);
 
 int main (int argc, char** argv)
 {

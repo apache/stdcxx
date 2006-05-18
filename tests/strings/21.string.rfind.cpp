@@ -25,13 +25,14 @@
  * 
  **************************************************************************/
 
-#include <string>       // for string
-#include <cstdlib>      // for free(), size_t
-#include <stdexcept>    // for length_error
+#include <string>           // for string
+#include <cstdlib>          // for free(), size_t
+#include <stdexcept>        // for length_error
 
-#include <21.strings.h> // for StringMembers
-#include <driver.h>     // for rw_test()
-#include <rw_char.h>    // for rw_expand()
+#include <21.strings.h>     // for StringMembers
+#include <driver.h>         // for rw_test()
+#include <rw_allocator.h>   // for UserAlloc
+#include <rw_char.h>        // for rw_expand()
 
 /**************************************************************************/
 
@@ -621,12 +622,11 @@ val_size_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_rfind (charT, Traits*,  
+template <class charT, class Traits, class Allocator>
+void test_rfind (charT, Traits*, Allocator*, 
                  OverloadId      which,
                  const TestCase &cs)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
 
     static const std::size_t BUFSIZE = 256;
@@ -775,7 +775,7 @@ void test_rfind (charT, Traits*,
 
 /**************************************************************************/
 
-DEFINE_TEST_DISPATCH (test_rfind);
+DEFINE_STRING_TEST_DISPATCH (test_rfind);
 
 int main (int argc, char** argv)
 {

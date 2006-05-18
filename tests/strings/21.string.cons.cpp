@@ -19,17 +19,18 @@
  * 
  **************************************************************************/
 
-#include <string>       // for string
-#include <stdexcept>    // for out_of_range, length_error
-#include <cstddef>      // for size_t
+#include <string>           // for string
+#include <stdexcept>        // for out_of_range, length_error
+#include <cstddef>          // for size_t
 
 #include <21.strings.h>
-#include <alg_test.h>   // for InputIter
-#include <cmdopt.h>     // for rw_enabled()
-#include <driver.h>     // for rw_test()
-#include <rw_char.h>    // for rw_expand()
-#include <rw_new.h>     // for bad_alloc, replacement operator new
-#include <rw_printf.h>  // for rw_asnprintf()
+#include <alg_test.h>       // for InputIter
+#include <cmdopt.h>         // for rw_enabled()
+#include <driver.h>         // for rw_test()
+#include <rw_allocator.h>   // for UserAlloc
+#include <rw_char.h>        // for rw_expand()
+#include <rw_new.h>         // for bad_alloc, replacement operator new
+#include <rw_printf.h>      // for rw_asnprintf()
 
 /**************************************************************************/
 
@@ -461,15 +462,14 @@ op_set_val_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT, class Traits, class Iterator>
+template <class charT, class Traits, class Allocator, class Iterator>
 void test_ctor_range (const charT*    warg,
                       std::size_t     warg_len,
                       std::size_t     res_len,
-                      Traits*,
+                      Traits*, Allocator*,
                       const Iterator &it,
                       const TestCase &tcase)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
 
@@ -500,37 +500,36 @@ void test_ctor_range (const charT*    warg,
 
 /**************************************************************************/
 
-template <class charT, class Traits>
+template <class charT, class Traits, class Allocator>
 void test_ctor_range (const charT* warg,
                       std::size_t  warg_len,
                       std::size_t  res_len,
-                      Traits*,
+                      Traits*, Allocator*, 
                       const TestCase &tcase)
 {
     if (tcase.bthrow)  // this method doesn't throw
         return;
 
-    test_ctor_range (warg, warg_len, res_len, (Traits*)0,
+    test_ctor_range (warg, warg_len, res_len, (Traits*)0, (Allocator*)0, 
                      InputIter<charT>(0, 0, 0), tcase);
 
-    test_ctor_range (warg, warg_len, res_len, (Traits*)0,
+    test_ctor_range (warg, warg_len, res_len, (Traits*)0, (Allocator*)0,
                      ConstFwdIter<charT>(0, 0, 0), tcase);
 
-    test_ctor_range (warg, warg_len, res_len, (Traits*)0,
+    test_ctor_range (warg, warg_len, res_len, (Traits*)0, (Allocator*)0,
                      ConstBidirIter<charT>(0, 0, 0), tcase);
 
-    test_ctor_range (warg, warg_len, res_len, (Traits*)0,
+    test_ctor_range (warg, warg_len, res_len, (Traits*)0, (Allocator*)0,
                      ConstRandomAccessIter<charT>(0, 0, 0), tcase);
 }
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_ctor (charT, Traits*,
+template <class charT, class Traits, class Allocator>
+void test_ctor (charT, Traits*, Allocator*,
                 OverloadId      which,
                 const TestCase &tcase)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
 
     static const std::size_t BUFSIZE = 256;
@@ -543,9 +542,9 @@ void test_ctor (charT, Traits*,
     std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
     charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
 
-    // special processing for ctor_range to exercise all iterators
     if (Ctor (range) == which) {
-        test_ctor_range (warg, arg_len, res_len, (Traits*)0, tcase);
+        test_ctor_range (warg, arg_len, res_len, 
+                        (Traits*)0, (Allocator*)0, tcase);
 
         if (warg != warg_buf)
             delete[] warg;
@@ -558,7 +557,7 @@ void test_ctor (charT, Traits*,
 
     // construct the string object to be modified
     // and the (possibly unused) argument string
-    const String  arg (warg, arg_len);
+    const String  arg (warg, arg_len, Allocator ());
     if (warg != warg_buf)
         delete[] warg;
 
@@ -604,11 +603,11 @@ void test_ctor (charT, Traits*,
     try {
         switch (which) {
         case Ctor (void): {
-            ret_ptr = new String ();
+            ret_ptr = new String (Allocator ());
             break;
         }
         case Ctor (ptr): {
-            ret_ptr = new String (arg_ptr);
+            ret_ptr = new String (arg_ptr, Allocator ());
             break;
         }
         case Ctor (str): {
@@ -616,7 +615,7 @@ void test_ctor (charT, Traits*,
             break;
         }
         case Ctor (ptr_size): {
-            ret_ptr = new String (arg_ptr, arg_size);
+            ret_ptr = new String (arg_ptr, arg_size, Allocator ());
             break;
         }
         case Ctor (str_size): {
@@ -624,11 +623,11 @@ void test_ctor (charT, Traits*,
             break;
         }
         case Ctor (str_size_size): {
-            ret_ptr = new String (arg_str, arg_off, arg_size);
+            ret_ptr = new String (arg_str, arg_off, arg_size, Allocator ());
             break;
         }
         case Ctor (size_val): {
-            ret_ptr = new String (tcase.size, arg_val);
+            ret_ptr = new String (tcase.size, arg_val, Allocator ());
             break;
         }
 
@@ -737,12 +736,11 @@ void test_ctor (charT, Traits*,
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_op_set (charT, Traits*,
+template <class charT, class Traits, class Allocator>
+void test_op_set (charT, Traits*, Allocator*,
                   OverloadId      which,
                   const TestCase &tcase)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename UserTraits<charT>::MemFun           UTMemFun;
 
@@ -759,8 +757,8 @@ void test_op_set (charT, Traits*,
 
     // construct the string object to be modified
     // and the (possibly unused) argument string
-    /* const */ String  str (wstr, str_len);
-    const       String  arg (warg, arg_len);
+    /* const */ String  str (wstr, str_len, Allocator ());
+    const       String  arg (warg, arg_len, Allocator ());
 
     if (wstr != wstr_buf)
         delete[] wstr;
@@ -955,20 +953,20 @@ void test_op_set (charT, Traits*,
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_cons (charT, Traits*,
+template <class charT, class Traits, class Allocator>
+void test_cons (charT, Traits*, Allocator*,
                 OverloadId      which,
                 const TestCase &tcase)
 {
     if (OpSet(ptr) <= which)
-        test_op_set (charT (), (Traits*)0, which, tcase);
+        test_op_set (charT (), (Traits*)0, (Allocator*)0, which, tcase);
     else
-        test_ctor (charT (), (Traits*)0, which, tcase);
+        test_ctor (charT (), (Traits*)0, (Allocator*)0, which, tcase);
 }
 
 /**************************************************************************/
 
-DEFINE_TEST_DISPATCH (test_cons);
+DEFINE_STRING_TEST_DISPATCH (test_cons);
 
 int main (int argc, char** argv)
 {

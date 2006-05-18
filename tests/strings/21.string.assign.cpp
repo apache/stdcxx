@@ -32,13 +32,14 @@
 #include <21.strings.h>   // for StringMembers
 #include <alg_test.h>     // for InputIter
 #include <driver.h>       // for rw_test()
+#include <rw_allocator.h> // for UserAlloc
 #include <rw_char.h>      // for rw_expand()
 #include <rw_new.h>       // for bad_alloc, replacement operator new
 
 /**************************************************************************/
 
 // for convenience and brevity
-#define Assign(which)   StringMembers::assign_ ## which
+#define Assign(which)             StringMembers::assign_ ## which
 
 typedef StringMembers::OverloadId AssignOverload;
 typedef StringMembers::TestCase   TestCase;
@@ -395,17 +396,17 @@ size_val_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT, class Traits, class Iterator>
+template <class charT, class Traits, class Allocator, class Iterator>
 void test_assign_range (const charT    *wstr,
                         std::size_t     wstr_len,
                         const charT    *warg,
                         std::size_t     warg_len,
                         std::size_t     res_len,
                         Traits*,
+                        Allocator*, 
                         const Iterator &it,
                         const TestCase &tcase)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
 
@@ -459,20 +460,21 @@ void test_assign_range (const charT    *wstr,
 
 /**************************************************************************/
 
-template <class charT, class Traits>
+template <class charT, class Traits, class Allocator>
 void test_assign_range (const charT    *wstr,
                         std::size_t     wstr_len,
                         const charT    *warg,
                         std::size_t     warg_len,
                         std::size_t     res_len,
                         Traits*,
+                        Allocator*, 
                         const TestCase &tcase)
 {
     if (tcase.bthrow)  // this method doesn't throw
         return;
 
     test_assign_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
-                       InputIter<charT>(0, 0, 0), tcase);
+                       (Allocator*)0, InputIter<charT>(0, 0, 0), tcase);
 
     // there is no need to call test_assign_range
     // for other iterators in this case
@@ -480,23 +482,23 @@ void test_assign_range (const charT    *wstr,
         return;
 
     test_assign_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
-                       ConstFwdIter<charT>(0, 0, 0), tcase);
+                       (Allocator*)0, ConstFwdIter<charT>(0, 0, 0), tcase);
 
     test_assign_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
-                       ConstBidirIter<charT>(0, 0, 0), tcase);
+                       (Allocator*)0, ConstBidirIter<charT>(0, 0, 0), tcase);
 
-    test_assign_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
+    test_assign_range (wstr, wstr_len, warg, warg_len, res_len, 
+                      (Traits*)0, (Allocator*)0, 
                        ConstRandomAccessIter<charT>(0, 0, 0), tcase);
 }
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_assign (charT, Traits*,
+template <class charT, class Traits, class Allocator>
+void test_assign (charT, Traits*, Allocator*,
                   AssignOverload  which,
                   const TestCase &tcase)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
     typedef typename UserTraits<charT>::MemFun           UTMemFun;
@@ -519,7 +521,7 @@ void test_assign (charT, Traits*,
     // special processing for assign_range to exercise all iterators
     if (Assign (range) == which) {
         test_assign_range (wstr, str_len, warg, arg_len, 
-                           res_len, (Traits*)0, tcase);
+                           res_len, (Traits*)0, (Allocator*)0, tcase);
 
         if (wstr != wstr_buf)
             delete[] wstr;
@@ -762,7 +764,7 @@ void test_assign (charT, Traits*,
 
 /**************************************************************************/
 
-DEFINE_TEST_DISPATCH (test_assign);
+DEFINE_STRING_TEST_DISPATCH (test_assign);
 
 int main (int argc, char** argv)
 {

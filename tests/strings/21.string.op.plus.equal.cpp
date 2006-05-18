@@ -33,13 +33,14 @@
 #include <21.strings.h>   // for StringMembers
 #include <alg_test.h>     // for InputIter
 #include <driver.h>       // for rw_test()
+#include <rw_allocator.h> // for UserAlloc
 #include <rw_char.h>      // for rw_expand()
 #include <rw_new.h>       // for bad_alloc, replacement operator new
 
 /**************************************************************************/
 
 // for convenience and brevity
-#define OpPlusEq(which)   StringMembers::op_plus_eq_ ## which
+#define OpPlusEq(which)           StringMembers::op_plus_eq_ ## which
 
 typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
@@ -216,12 +217,11 @@ val_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT, class Traits>
-void test_op_plus_eq (charT, Traits*,
+template <class charT, class Traits, class Allocator>
+void test_op_plus_eq (charT, Traits*, Allocator*,
                       OverloadId      which,
                       const TestCase &tcase)
 {
-    typedef std::allocator<charT>                        Allocator;
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
     typedef typename UserTraits<charT>::MemFun           UTMemFun;
@@ -444,7 +444,7 @@ void test_op_plus_eq (charT, Traits*,
 
 /**************************************************************************/
 
-DEFINE_TEST_DISPATCH (test_op_plus_eq);
+DEFINE_STRING_TEST_DISPATCH (test_op_plus_eq);
 
 int main (int argc, char** argv)
 {
