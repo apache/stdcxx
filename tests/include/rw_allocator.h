@@ -37,7 +37,7 @@ _RWSTD_NAMESPACE (std) {
 // declare to avoid dragging in all of <memory>
 // (yes, it is undefined for programs to do that)
 template <class T>
-struct allocator;
+class allocator;
 
 }   // namespace std
 
