@@ -108,7 +108,12 @@ struct _TEST_EXPORT SharedAlloc
     _RWSTD_SIZE_T n_refs_;       // number of references
 
     // counter of the number of calls to each allocator member function
+    // made throughout the lifetime of this object
     _RWSTD_SIZE_T n_calls_ [n_funs];
+
+    // counter of the number of exceptions thrown by each member function
+    // throughout the lifetime of this object
+    _RWSTD_SIZE_T n_throws_ [n_funs];
 
     // member function counter value that, when reached, will cause
     // an exception derived from std::bad_alloc to be thrown

@@ -94,7 +94,8 @@ SharedAlloc (size_t nbytes /* = MAX_SIZE */, size_t nblocks /* = MAX_SIZE */)
       n_bytes_ (0), n_blocks_ (0), n_refs_ (0), id_ (0)
 {
     memset (n_calls_, 0, sizeof n_calls_);
-    memset (throw_at_calls_, -1, sizeof throw_at_calls_);
+    memset (n_throws_, 0, sizeof n_throws_);
+    memset (throw_at_calls_, 0, sizeof throw_at_calls_);
 }
 
 
@@ -116,6 +117,10 @@ SharedAlloc (size_t nbytes /* = MAX_SIZE */, size_t nblocks /* = MAX_SIZE */)
     size_t n = sizeof n_calls_ / sizeof *n_calls_;
     for (size_t i = 0; i != n; ++i)
         n_calls_ [i] = deadbeef;
+
+    n = sizeof n_throws_ / sizeof *n_throws_;
+    for (size_t i = 0; i != n; ++i)
+        n_throws_ [i] = deadbeef;
 
     n = sizeof throw_at_calls_ / sizeof *throw_at_calls_;
     for (size_t i = 0; i != n; ++i)
@@ -165,6 +170,9 @@ max_size (size_t size /* = 1 */)
 /* virtual */ void SharedAlloc::
 funcall (MemFun mf, const SharedAlloc *other /* = 0 */)
 {
+    // increment the number of calls regardless of success
+    ++n_calls_ [mf];
+
     if (m_ctor == mf) {
         // ordinary (not a copy or converting) ctor
         if (id_ <= 0) {
@@ -217,13 +225,16 @@ funcall (MemFun mf, const SharedAlloc *other /* = 0 */)
 
     // check the number of calls and throw an exception
     // if the specified limit has been reached
-    if (n_calls_ [mf] == throw_at_calls_ [mf])
+    if (n_calls_ [mf] == throw_at_calls_ [mf]) {
+        // increment the exception counter for this function
+        ++n_throws_ [mf];
+
         _rw_throw_exception (__FILE__, __LINE__,
                              "%s: reached call limit of %zu",
                              _rw_funnames [mf], throw_at_calls_);
 
-    // increment the number of calls
-    ++n_calls_ [mf];
+        RW_ASSERT (!"logic error: should not reach");
+    }
 }
 
 
