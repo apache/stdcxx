@@ -41,10 +41,8 @@
 // for convenience and brevity
 #define Insert(which)             StringMembers::insert_ ## which
 
-typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+typedef StringMembers::Function   Function;
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -604,7 +602,7 @@ void test_insert_range (const charT    *wstr,
 
 template <class charT, class Traits, class Allocator>
 void test_insert (charT, Traits*, Allocator*,
-                  OverloadId      which,
+                  const Function &func,
                   const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
@@ -627,7 +625,7 @@ void test_insert (charT, Traits*, Allocator*,
     charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
 
     // special processing for insert_range to exercise all iterators
-    if (Insert (range) == which) {
+    if (Insert (range) == func.which_) {
         test_insert_range (wstr, str_len, warg, arg_len, 
                            res_len, (Traits*)0, (Allocator*)0, tcase);
         if (wstr != wstr_buf)
@@ -660,7 +658,7 @@ void test_insert (charT, Traits*, Allocator*,
     const StringState str_state (rw_get_string_state (s_str));
 
     std::size_t res_off = 0;
-    std::size_t exp_off = Insert (val) == which ? tcase.off : 0;
+    std::size_t exp_off = Insert (val) == func.which_ ? tcase.off : 0;
 
     // compute the offset and the extent (the number of elements)
     // of the first range into the string object being modified
@@ -693,11 +691,12 @@ void test_insert (charT, Traits*, Allocator*,
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-        const bool use_iters = (Insert (val) <= which);
+        const bool use_iters = (Insert (val) <= func.which_);
 
         if (1 == tcase.bthrow && !use_iters)
             expected = exceptions [1];      // out_of_range
-        else if (2 == tcase.bthrow && Insert (size_str_size_size) == which)
+        else if (   2 == tcase.bthrow
+                 && Insert (size_str_size_size) == func.which_)
             expected = exceptions [1];      // out_of_range
         else if (3 == tcase.bthrow && !use_iters)
             expected = exceptions [2];      // length_error
@@ -718,7 +717,7 @@ void test_insert (charT, Traits*, Allocator*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
         try {
-            switch (which) {
+            switch (func.which_) {
             case Insert (size_ptr): {
                 const String& s_res = s_str.insert (tcase.off, arg_ptr);
                 res_off = &s_res - &s_str;
@@ -776,8 +775,8 @@ void test_insert (charT, Traits*, Allocator*,
             rw_assert (exp_off == res_off, 0, tcase.line,
                        "line %d. %{$FUNCALL} %{?}== %zu, got %zu%{;}"
                        "%{?}returned invalid reference, offset is %zu%{;}",
-                       __LINE__, Insert (val) == which, exp_off, res_off,
-                       Insert (val) != which, res_off);
+                       __LINE__, Insert (val) == func.which_, exp_off, res_off,
+                       Insert (val) != func.which_, res_off);
 
             // verfiy that strings length are equal
             rw_assert (res_len == s_str.size (), 0, tcase.line,
@@ -803,7 +802,7 @@ void test_insert (charT, Traits*, Allocator*,
             }
 
             // verify that Traits::length was used
-            if (Insert (size_ptr) == which && rg_calls) {
+            if (Insert (size_ptr) == func.which_ && rg_calls) {
                 rw_assert (n_length_calls - total_length_calls > 0, 
                            0, tcase.line, "line %d. %{$FUNCALL} doesn't "
                            "use traits::length()", __LINE__);

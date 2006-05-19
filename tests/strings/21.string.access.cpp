@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * access.cpp - test exercising [lib.string.access]
+ * 21.string.access.cpp - test exercising [lib.string.access]
  *
  * $Id$
  *
@@ -35,10 +35,8 @@
 #define At(which)                 StringMembers::at_ ## which
 #define OpIndex(which)            StringMembers::op_index_ ## which
 
-typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+typedef StringMembers::Function   Function;
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -204,8 +202,8 @@ at_size_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_access (charT, Traits*, Allocator*, 
-                  OverloadId      which,
-                  const TestCase &cs)
+                  const Function &func,
+                  const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::reference                   StrRef;
@@ -215,10 +213,10 @@ void test_access (charT, Traits*, Allocator*,
 
     static charT wstr_buf [BUFSIZE];
     std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
-    charT* wstr = rw_expand (wstr_buf, cs.str, cs.str_len, &str_len);
+    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
 
     // construct the string object 
-    String  s_str (wstr, str_len);
+    String s_str (wstr, str_len);
 
     if (wstr != wstr_buf)
         delete[] wstr;
@@ -233,7 +231,7 @@ void test_access (charT, Traits*, Allocator*,
 #ifndef _RWSTD_NO_EXCEPTIONS
 
     // is some exception expected ?
-    const char* expected = 1 == cs.bthrow ? exceptions[1] : 0;
+    const char* expected = 1 == tcase.bthrow ? exceptions[1] : 0;
     const char* caught = 0;
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -242,34 +240,32 @@ void test_access (charT, Traits*, Allocator*,
 
         bool success = false;
         charT cres;
-        char exp_res = NPOS != cs.nres 
-            ? (char) cs.nres 
-          : typename std::string::value_type();
+        char exp_res = NPOS != tcase.nres ? char (tcase.nres) : char ();
 
-        switch (which) {
+        switch (func.which_) {
         case OpIndex (size): {
-            StrRef res = s_str [cs.off];
+            StrRef res = s_str [tcase.off];
 
             success = 1 == rw_match (&exp_res, &res, 1);
             cres = res;
             break;
         }
         case OpIndex (size_const): {
-            StrConstRef res = const_cast<const String&>(s_str) [cs.off];
+            StrConstRef res = const_cast<const String&>(s_str) [tcase.off];
 
             success = 1 == rw_match (&exp_res, &res, 1);
             cres = res;
             break;
         }
         case At (size): {
-            StrRef res = s_str.at (cs.off);
+            StrRef res = s_str.at (tcase.off);
 
             success = 1 == rw_match (&exp_res, &res, 1);
             cres = res;
             break;
         }
         case At (size_const): {
-            StrConstRef res = const_cast<const String&>(s_str).at (cs.off);
+            StrConstRef res = const_cast<const String&>(s_str).at (tcase.off);
 
             success = 1 == rw_match (&exp_res, &res, 1);
             cres = res;
@@ -280,30 +276,30 @@ void test_access (charT, Traits*, Allocator*,
             return;
         }
 
-        rw_assert (success, 0, cs.line,
+        rw_assert (success, 0, tcase.line,
                    "line %d. %{$FUNCALL} == %{#c}, got %{#c}",
-                   __LINE__, cs.nres, cres);
+                   __LINE__, tcase.nres, cres);
     }
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
     catch (const std::out_of_range &ex) {
         caught = exceptions [1];
-        rw_assert (caught == expected, 0, cs.line,
+        rw_assert (caught == expected, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught std::%s(%#s)",
                    __LINE__, 0 != expected, expected, caught, ex.what ());
     }
     catch (const std::exception &ex) {
         caught = exceptions [4];
-        rw_assert (0, 0, cs.line,
+        rw_assert (0, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught std::%s(%#s)",
                    __LINE__, 0 != expected, expected, caught, ex.what ());
     }
     catch (...) {
         caught = exceptions [0];
-        rw_assert (0, 0, cs.line,
+        rw_assert (0, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught %s",
                    __LINE__, 0 != expected, expected, caught);
@@ -315,7 +311,7 @@ void test_access (charT, Traits*, Allocator*,
         // verify that an exception thrown during allocation
         // didn't cause a change in the state of the object
         str_state.assert_equal (rw_get_string_state (s_str),
-                                __LINE__, cs.line, caught);
+                                __LINE__, tcase.line, caught);
     }
 }
 

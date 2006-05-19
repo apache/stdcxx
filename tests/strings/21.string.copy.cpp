@@ -40,10 +40,8 @@
 #define NPOS                      _RWSTD_SIZE_MAX
 #define Copy(which)               StringMembers::copy_ ## which
 
-typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+typedef StringMembers::Function   Function;
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -162,7 +160,7 @@ ptr_size_size_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_copy (charT, Traits*, Allocator*,                
-                OverloadId      which,
+                const Function &func,
                 const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
@@ -220,7 +218,7 @@ void test_copy (charT, Traits*, Allocator*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
     try {
-        switch (which) {
+        switch (func.which_) {
         case Copy (ptr_size): {
             res = str.copy (s_res, tcase.size);
             break;

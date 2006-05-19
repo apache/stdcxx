@@ -40,10 +40,8 @@
 #define NPOS                      _RWSTD_SIZE_MAX
 #define Compare(which)            StringMembers::compare_ ## which
 
-typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+typedef StringMembers::Function   Function;
 
 
 static const char* const exceptions[] = {
@@ -699,7 +697,7 @@ size_size_str_size_size_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_compare (charT, Traits*, Allocator*,
-                   OverloadId      which,
+                   const Function &func,
                    const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
@@ -718,8 +716,8 @@ void test_compare (charT, Traits*, Allocator*,
 
     // construct the string object to be modified
     // and the (possibly unused) argument string
-    /* const */ String  s_str (wstr, str_len);
-    const       String  s_arg (warg, arg_len);
+    /* const */ String s_str (wstr, str_len);
+    const       String s_arg (warg, arg_len);
 
     if (wstr != wstr_buf)
         delete[] wstr;
@@ -757,7 +755,8 @@ void test_compare (charT, Traits*, Allocator*,
 
     if (1 == tcase.bthrow)
         expected = exceptions [1];
-    else if (2 == tcase.bthrow && Compare (size_size_str_size_size) == which)
+    else if (   2 == tcase.bthrow
+             && Compare (size_size_str_size_size) == func.which_)
         expected = exceptions [1];
     else if (3 == tcase.bthrow)
         expected = exceptions [2];
@@ -770,7 +769,7 @@ void test_compare (charT, Traits*, Allocator*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
     try {
-        switch (which) {
+        switch (func.which_) {
             case Compare (ptr): {
                 res = s_str.compare (arg_ptr);
                 break;
@@ -811,16 +810,16 @@ void test_compare (charT, Traits*, Allocator*,
         }
 
         // verify the returned value
-        bool success =    res < 0 && tcase.nres == NPOS
-                       || res > 0 && tcase.nres > 0
-                       || res == 0 && tcase.nres == 0;
+        const bool success =    res < 0 && tcase.nres == NPOS
+                             || res > 0 && tcase.nres > 0
+                             || res == 0 && tcase.nres == 0;
 
         rw_assert (success, 0, tcase.line,
                    "line %d. %{$FUNCALL} == %d, got %d",
-                   __LINE__, tcase.nres != NPOS ? tcase.nres : -1, res);
+                   __LINE__, tcase.nres == NPOS ? -1 : int (tcase.nres), res);
 
         // verify that Traits::length was used
-        if (Compare (str) == which && rg_calls) {
+        if (Compare (str) == func.which_ && rg_calls) {
             rw_assert (n_compare_calls - total_compare_calls > 0,
                        0, tcase.line, "line %d. %{$FUNCALL} doesn't "
                        "use traits::compare()", __LINE__);

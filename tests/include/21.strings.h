@@ -505,10 +505,10 @@ rw_get_string_state (const String &str)
     if (StringMembers::DefaultTraits == memfun.traits_id_) {    \
         if (StringMembers::Char == memfun.char_id_)             \
             fname (char (), (std::char_traits<char>*)0,         \
-                   (Alloc<char>*)0, memfun.which_, tcase);      \
+                   (Alloc<char>*)0, memfun, tcase);             \
         else if (StringMembers::WChar == memfun.char_id_)       \
             fname (wchar_t (), (std::char_traits<wchar_t>*)0,   \
-                   (Alloc<wchar_t>*)0, memfun.which_, tcase);   \
+                   (Alloc<wchar_t>*)0, memfun, tcase);          \
         else                                                    \
             rw_note (0, 0, 0,                                   \
                      "%{$CLASS} tests not implemented");        \
@@ -516,13 +516,13 @@ rw_get_string_state (const String &str)
     else {                                                      \
         if (StringMembers::Char == memfun.char_id_)             \
             fname (char (), (UserTraits<char>*)0,               \
-                   (Alloc<char>*)0, memfun.which_, tcase);      \
+                   (Alloc<char>*)0, memfun, tcase);             \
        else if (StringMembers::WChar == memfun.char_id_)        \
             fname (wchar_t (), (UserTraits<wchar_t>*)0,         \
-                   (Alloc<wchar_t>*)0, memfun.which_, tcase);   \
+                   (Alloc<wchar_t>*)0, memfun, tcase);          \
        else                                                     \
            fname (UserChar (), (UserTraits<UserChar>*)0,        \
-                  (Alloc<UserChar>*)0, memfun.which_, tcase);   \
+                  (Alloc<UserChar>*)0, memfun, tcase);          \
     }                                                           \
     (void)0
 
@@ -531,7 +531,7 @@ rw_get_string_state (const String &str)
     if (StringMembers::DefaultTraits == memfun.traits_id_) {    \
         if (StringMembers::Char == memfun.char_id_)             \
             fname (char (), (std::char_traits<char>*)0,         \
-                   (Alloc<char>*)0, memfun.which_, tcase);      \
+                   (Alloc<char>*)0, memfun, tcase);             \
         else if (StringMembers::WChar == memfun.char_id_)       \
             RW_ASSERT (!"logic error: wchar_t disabled");       \
         else                                                    \
@@ -542,12 +542,12 @@ rw_get_string_state (const String &str)
     else {                                                      \
         if (StringMembers::Char == memfun.char_id_)             \
             fname (char (), (UserTraits<char>*)0,               \
-                   (Alloc<char>*)0, memfun.which_, tcase);      \
+                   (Alloc<char>*)0, memfun, tcase);             \
         else if (StringMembers::WChar == memfun.char_id_)       \
              RW_ASSERT (!"logic error: wchar_t disabled");      \
         else if (StringMembers::UChar == memfun.char_id_)       \
             fname (UserChar (), (UserTraits<UserChar>*)0,       \
-                   (Alloc<UserChar>*)0, memfun.which_, tcase);  \
+                   (Alloc<UserChar>*)0, memfun, tcase);         \
     }                                                           \
     (void)0
 

@@ -36,10 +36,8 @@
 #define Ctor(which)               StringMembers::ctor_ ## which
 #define OpSet(which)              StringMembers::op_set_ ## which
 
-typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+typedef StringMembers::Function   Function;
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -525,7 +523,7 @@ void test_ctor_range (const charT* warg,
 
 template <class charT, class Traits, class Allocator>
 void test_ctor (charT, Traits*, Allocator*,
-                OverloadId      which,
+                const Function &func,
                 const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
@@ -540,7 +538,7 @@ void test_ctor (charT, Traits*, Allocator*,
     std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
     charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
 
-    if (Ctor (range) == which) {
+    if (Ctor (range) == func.which_) {
         test_ctor_range (warg, arg_len, res_len, 
                         (Traits*)0, (Allocator*)0, tcase);
 
@@ -599,7 +597,7 @@ void test_ctor (charT, Traits*, Allocator*,
     rwt_check_leaks (0, 0);
 
     try {
-        switch (which) {
+        switch (func.which_) {
         case Ctor (void): {
             ret_ptr = new String (Allocator ());
             break;
@@ -648,7 +646,7 @@ void test_ctor (charT, Traits*, Allocator*,
                        int (ret_ptr->size ()), ret_ptr->c_str (), 
                        ret_ptr->size ());
 
-            if (Ctor (void) != which) {
+            if (Ctor (void) != func.which_) {
                 // verify the capacity of the resulting string
                 rw_assert (ret_ptr->size () <= ret_ptr->capacity (), 0, 
                            tcase.line, "line %d. %{$FUNCALL} expected "
@@ -736,7 +734,7 @@ void test_ctor (charT, Traits*, Allocator*,
 
 template <class charT, class Traits, class Allocator>
 void test_op_set (charT, Traits*, Allocator*,
-                  OverloadId      which,
+                  const Function &func,
                   const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
@@ -783,7 +781,7 @@ void test_op_set (charT, Traits*, Allocator*,
 
     std::size_t total_length_calls = 0;
     std::size_t n_length_calls = 0;
-    std::size_t* const rg_calls = OpSet (ptr) == which ?
+    std::size_t* const rg_calls = OpSet (ptr) == func.which_ ?
         rw_get_call_counters ((Traits*)0, (charT*)0) : 0;
 
     if (rg_calls)
@@ -823,7 +821,7 @@ void test_op_set (charT, Traits*, Allocator*,
         rwt_check_leaks (0, 0);
 
         try {
-            switch (which) {
+            switch (func.which_) {
             case OpSet (ptr): {
                 str = arg_ptr;
                 break;
@@ -953,13 +951,13 @@ void test_op_set (charT, Traits*, Allocator*,
 
 template <class charT, class Traits, class Allocator>
 void test_cons (charT, Traits*, Allocator*,
-                OverloadId      which,
+                const Function &func,
                 const TestCase &tcase)
 {
-    if (OpSet(ptr) <= which)
-        test_op_set (charT (), (Traits*)0, (Allocator*)0, which, tcase);
+    if (OpSet(ptr) <= func.which_)
+        test_op_set (charT (), (Traits*)0, (Allocator*)0, func, tcase);
     else
-        test_ctor (charT (), (Traits*)0, (Allocator*)0, which, tcase);
+        test_ctor (charT (), (Traits*)0, (Allocator*)0, func, tcase);
 }
 
 /**************************************************************************/

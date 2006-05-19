@@ -42,10 +42,8 @@
 #define Append(which)             StringMembers::append_ ## which
 #define PushBack(which)           StringMembers::push_back_ ## which
 
-typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+typedef StringMembers::Function   Function;
 
 
 static const char* const exceptions[] = {
@@ -535,7 +533,7 @@ void test_append_range (const charT    *wstr,
 
 template <class charT, class Traits, class Allocator>
 void test_append (charT, Traits*, Allocator*,
-                  OverloadId      which,
+                  const Function &func,
                   const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
@@ -558,7 +556,7 @@ void test_append (charT, Traits*, Allocator*,
     charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
 
     // special processing for append_range to exercise all iterators
-    if (Append (range) == which) {
+    if (Append (range) == func.which_) {
         test_append_range (wstr, str_len, warg, arg_len, res_len, 
                           (Traits*)0, (Allocator*)0, tcase);
 
@@ -620,7 +618,7 @@ void test_append (charT, Traits*, Allocator*,
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-        if (1 == tcase.bthrow && Append (str_size_size) == which)
+        if (1 == tcase.bthrow && Append (str_size_size) == func.which_)
             expected = exceptions [1];   // out_of_range
         else if (2 == tcase.bthrow)
             expected = exceptions [2];   // length_error
@@ -642,7 +640,7 @@ void test_append (charT, Traits*, Allocator*,
 
         try {
 
-            switch (which) {
+            switch (func.which_) {
             case Append (ptr): {
                 const String& s_res = s_str.append (ptr_arg);
                 res_off = &s_res - &s_str;
@@ -686,7 +684,7 @@ void test_append (charT, Traits*, Allocator*,
             }
 
             // verify the returned value
-            if (PushBack (val) != which) {
+            if (PushBack (val) != func.which_) {
                 rw_assert (0 == res_off, 0, tcase.line,
                            "line %d. %{$FUNCALL} returned invalid reference, "
                            "offset is %zu", __LINE__, res_off);
@@ -716,7 +714,7 @@ void test_append (charT, Traits*, Allocator*,
             }
 
             // verify that Traits::length was used
-            if (Append (ptr) == which && rg_calls) {
+            if (Append (ptr) == func.which_ && rg_calls) {
                 rw_assert (n_length_calls - total_length_calls > 0, 
                            0, tcase.line, "line %d. %{$FUNCALL} doesn't "
                            "use traits::length()", __LINE__);

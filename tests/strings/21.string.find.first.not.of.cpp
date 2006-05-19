@@ -41,10 +41,8 @@
 #define NPOS                      _RWSTD_SIZE_MAX
 #define FindFirstNotOf(which)     StringMembers::find_first_not_of_ ## which
 
-typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+typedef StringMembers::Function   Function;
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -610,8 +608,8 @@ val_size_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_find_first_not_of (charT, Traits*, Allocator*,  
-                             OverloadId      which,
-                             const TestCase &cs)
+                             const Function &func,
+                             const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
 
@@ -623,8 +621,8 @@ void test_find_first_not_of (charT, Traits*, Allocator*,
     std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
     std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
 
-    charT* wstr = rw_expand (wstr_buf, cs.str, cs.str_len, &str_len);
-    charT* warg = rw_expand (warg_buf, cs.arg, cs.arg_len, &arg_len);
+    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
+    charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
 
     // construct the string object and the argument string
     const String  s_str (wstr, str_len);
@@ -645,32 +643,32 @@ void test_find_first_not_of (charT, Traits*, Allocator*,
     const StringState str_state (rw_get_string_state (s_str));
 
     std::size_t res = 0;
-    std::size_t exp_res = NPOS != cs.nres ? cs.nres : String::npos;
+    std::size_t exp_res = NPOS != tcase.nres ? tcase.nres : String::npos;
 
-    const charT* const arg_ptr = cs.arg ? s_arg.c_str () : s_str.c_str ();
-    const String&      arg_str = cs.arg ? s_arg : s_str;
-    const charT        arg_val = make_char (char (cs.val), (charT*)0);
+    const charT* const arg_ptr = tcase.arg ? s_arg.c_str () : s_str.c_str ();
+    const String&      arg_str = tcase.arg ? s_arg : s_str;
+    const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
-    std::size_t size = cs.size >= 0 ? cs.size : s_arg.max_size () + 1;
+    std::size_t size = tcase.size >= 0 ? tcase.size : s_arg.max_size () + 1;
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
     // is some exception expected ?
     const char* expected = 0;
-    if (1 == cs.bthrow)
+    if (1 == tcase.bthrow)
         expected = exceptions [2];
 
     const char* caught = 0;
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (cs.bthrow)
+    if (tcase.bthrow)
         return;
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
     try {
-    switch (which) {
+    switch (func.which_) {
         case FindFirstNotOf (ptr): {
             res = s_str.find_first_not_of (arg_ptr);
             break;
@@ -682,17 +680,17 @@ void test_find_first_not_of (charT, Traits*, Allocator*,
         }
 
         case FindFirstNotOf (ptr_size): {
-            res = s_str.find_first_not_of (arg_ptr, cs.off);
+            res = s_str.find_first_not_of (arg_ptr, tcase.off);
             break;
         }
 
         case FindFirstNotOf (ptr_size_size): {
-            res = s_str.find_first_not_of (arg_ptr, cs.off, size);
+            res = s_str.find_first_not_of (arg_ptr, tcase.off, size);
             break;
         }
 
         case FindFirstNotOf (str_size): {
-            res = s_str.find_first_not_of (arg_str, cs.off);
+            res = s_str.find_first_not_of (arg_str, tcase.off);
             break;
         }
 
@@ -702,7 +700,7 @@ void test_find_first_not_of (charT, Traits*, Allocator*,
         }
 
         case FindFirstNotOf (val_size): {
-            res = s_str.find_first_not_of (arg_val, cs.off);
+            res = s_str.find_first_not_of (arg_val, tcase.off);
             break;
         }
 
@@ -712,10 +710,10 @@ void test_find_first_not_of (charT, Traits*, Allocator*,
         }
 
         // verify the returned value
-        rw_assert (exp_res == res, 0, cs.line,
+        rw_assert (exp_res == res, 0, tcase.line,
                    "line %d. %{$FUNCALL} == %{?}%zu%{;}%{?}npos%{;}, "
                    "got %{?}%zu%{;}%{?}npos%{;}", 
-                   __LINE__, NPOS != cs.nres, exp_res, NPOS == cs.nres, 
+                   __LINE__, NPOS != tcase.nres, exp_res, NPOS == tcase.nres, 
                    String::npos != res, res, String::npos == res);
     }
 
@@ -723,21 +721,21 @@ void test_find_first_not_of (charT, Traits*, Allocator*,
 
     catch (const std::length_error &ex) {
         caught = exceptions [2];
-        rw_assert (caught == expected, 0, cs.line,
+        rw_assert (caught == expected, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught std::%s(%#s)",
                    __LINE__, 0 != expected, expected, caught, ex.what ());
     }
     catch (const std::exception &ex) {
         caught = exceptions [4];
-        rw_assert (0, 0, cs.line,
+        rw_assert (0, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught std::%s(%#s)",
                    __LINE__, 0 != expected, expected, caught, ex.what ());
     }
     catch (...) {
         caught = exceptions [0];
-        rw_assert (0, 0, cs.line,
+        rw_assert (0, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught %s",
                    __LINE__, 0 != expected, expected, caught);
@@ -749,10 +747,10 @@ void test_find_first_not_of (charT, Traits*, Allocator*,
         // verify that an exception thrown during allocation
         // didn't cause a change in the state of the object
         str_state.assert_equal (rw_get_string_state (s_str),
-                                __LINE__, cs.line, caught);
+                                __LINE__, tcase.line, caught);
     }
-    else if (-1 != cs.bthrow) {
-        rw_assert (caught == expected, 0, cs.line,
+    else if (-1 != tcase.bthrow) {
+        rw_assert (caught == expected, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s, caught %s"
                    "%{:}unexpectedly caught %s%{;}",
                    __LINE__, 0 != expected, expected, caught, caught);

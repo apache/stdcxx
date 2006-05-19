@@ -40,10 +40,8 @@
 #define NPOS                      _RWSTD_SIZE_MAX
 #define Find(which)               StringMembers::find_ ## which
 
-typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+typedef StringMembers::Function   Function;
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -641,7 +639,7 @@ val_size_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_find (charT, Traits*, Allocator*,
-                OverloadId      which,
+                const Function &func,
                 const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
@@ -699,7 +697,7 @@ void test_find (charT, Traits*, Allocator*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
     try {
-        switch (which) {
+        switch (func.which_) {
         case Find (ptr): {
             res = s_str.find (arg_ptr);
             break;
