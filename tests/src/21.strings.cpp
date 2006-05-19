@@ -500,7 +500,7 @@ _rw_setvars (const StringMembers::Function &fun,
     case StringMembers::compare_size_size_str:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%zu, %zu, %{?}*this%{:}string(%{#*s}))",
+                      "%zu, %zu, %{?}*this%{:}string(%{#*s})%{;})",
                       pcase->off, pcase->size, self, 
                       int (arg_len), arg);
         break;
