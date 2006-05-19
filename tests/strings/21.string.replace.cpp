@@ -44,8 +44,6 @@
 
 typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -76,12 +74,13 @@ iter_iter_ptr_test_cases [] = {
     //    |            |  |  +----------------------- sequence to be inserted
     //    |            |  |  |           +----------- expected result sequence
     //    |            |  |  |           |        +-- exception info
-    //    |            |  |  |           |        |       0   - no exception
-    //    |            |  |  |           |        |       1,2 - out_of_range
-    //    |            |  |  |           |        |       3   - length_error
-    //    |            |  |  |           |        |      -1   - exc. safety
+    //    |            |  |  |           |        |   -1   - no exceptions
+    //    |            |  |  |           |        |    0   - exception safety
+    //    |            |  |  |           |        |    1,2 - out_of_range
+    //    |            |  |  |           |        |    3   - length_error
     //    |            |  |  |           |        |
     //    |            |  |  |           |        +-------+
+    //    |            |  |  |           |                |
     //    V            V  V  V           V                V
     TEST ("ab",        0, 0, "c",        "cab",           0),
 
@@ -136,7 +135,7 @@ iter_iter_ptr_test_cases [] = {
     TEST ("a",         10,   0, "",       "a",            1),
     TEST ("x@4096",  4106,   0, "",       "x@4096",       1),
 
-    TEST ("",           0,   0, "x@4096", "x@4096",      -1),
+    TEST ("",           0,   0, "x@4096", "x@4096",       0),
 
     // self-referential replacement
     TEST ("",          0,    0, 0,        "",             0),
@@ -175,12 +174,13 @@ iter_iter_str_test_cases [] = {
     //    |             |  |  +----------------------- sequence to be inserted
     //    |             |  |  |           +----------- expected result sequence
     //    |             |  |  |           |        +-- exception info
-    //    |             |  |  |           |        |       0   - no exception
-    //    |             |  |  |           |        |       1,2 - out_of_range
-    //    |             |  |  |           |        |       3   - length_error
-    //    |             |  |  |           |        |      -1   - exc. safety
+    //    |             |  |  |           |        |   -1   - no exceptions
+    //    |             |  |  |           |        |    0   - exception safety
+    //    |             |  |  |           |        |    1,2 - out_of_range
+    //    |             |  |  |           |        |    3   - length_error
     //    |             |  |  |           |        |
     //    |             |  |  |           |        +-----------+
+    //    |             |  |  |           |                    |
     //    V             V  V  V           V                    V
     TEST ("ab",         0, 0, "c",        "cab",               0),
 
@@ -240,7 +240,7 @@ iter_iter_str_test_cases [] = {
     TEST ("\0",         2,    0, "",        "\0",              1),
     TEST ("a",         10,    0, "",        "a",               1),
     TEST ("x@4096",  4106,    0, "",        "x@4096",          1),
-    TEST ("",           0,    0, "x@4096",  "x@4096",         -1),
+    TEST ("",           0,    0, "x@4096",  "x@4096",          0),
 
     // self-referential replacement
     TEST ("abc",        0,    3, 0, "abc",                     0),
@@ -278,13 +278,14 @@ iter_iter_ptr_size_test_cases [] = {
     //    |            |  |  +----------------------- sequence to be inserted
     //    |            |  |  |            +---------- replace() n2 argument
     //    |            |  |  |            |  +------- expected result sequence
-    //    |            |  |  |            |  |     +-- exception info
-    //    |            |  |  |            |  |     |       0   - no exception
-    //    |            |  |  |            |  |     |       1,2 - out_of_range
-    //    |            |  |  |            |  |     |       3   - length_error
-    //    |            |  |  |            |  |     |      -1   - exc. safety
+    //    |            |  |  |            |  |     +- exception info
+    //    |            |  |  |            |  |     |  -1   - no exceptions
+    //    |            |  |  |            |  |     |   0   - exception safety
+    //    |            |  |  |            |  |     |   1,2 - out_of_range
+    //    |            |  |  |            |  |     |   3   - length_error
     //    |            |  |  |            |  |     |
     //    |            |  |  |            |  |     +------------+
+    //    |            |  |  |            |  |                  |
     //    V            V  V  V            V  V                  V
     TEST ("ab",        0, 0, "c",         1, "cab",             0),
 
@@ -337,7 +338,7 @@ iter_iter_ptr_size_test_cases [] = {
     TEST ("a",         10,   0, "",         0, "a",             1),
     TEST ("x@4096",  4106,   0, "",         0, "x@4096",        1),
 
-    TEST ("a",          0,   1, "x@4096", 4095, "x@4095",      -1),
+    TEST ("a",          0,   1, "x@4096", 4095, "x@4095",       0),
 
     // self-referential replacement
     TEST ("a",         0,    0, 0 /* self */,    1, "aa",              0),
@@ -354,7 +355,7 @@ iter_iter_ptr_size_test_cases [] = {
     TEST ("x@4096",    0, 4095, 0 /* self */, 4095, "x@4096",          0),
     TEST ("x@4096",    0, 4095, 0 /* self */,    1, "xx",              0),
 
-    TEST ("last",      4, 0, "test",         4, "lasttest",        0)
+    TEST ("last",      4,    0, "test",          4, "lasttest",        0)
 };
 
 /**************************************************************************/
@@ -383,10 +384,10 @@ iter_iter_range_test_cases [] = {
     //    |            |   |  |           |   +------- replace() n2 argument
     //    |            |   |  |           |   |  +---- expected result sequence
     //    |            |   |  |           |   |  | +-- exception info:
-    //    |            |   |  |           |   |  | |   0    - no exception
-    //    |            |   |  |           |   |  | |   1, 2 - out_of_range
-    //    |            |   |  |           |   |  | |   3    - length_error
-    //    |            |   |  |           |   |  | |  -1    - exc. safety
+    //    |            |   |  |           |   | |  |   -1    - no exceptions
+    //    |            |   |  |           |   |  | |    0    - exception safety
+    //    |            |   |  |           |   |  | |    1, 2 - out_of_range
+    //    |            |   |  |           |   |  | |    3    - length_error
     //    |            |   |  |           |   |  | |
     //    |            |   |  |           |   |  | +-----------------+
     //    |            |   |  |           |   |  |                   |
@@ -519,7 +520,7 @@ iter_iter_range_test_cases [] = {
     TEST ("x@4096",  4106, 0, "",           0, 0, "x@4096",          1),
     TEST ("x@4096",     0, 0, "x@4096", 4106, 0, "",                 2),
 
-    TEST ("a",          0, 1, "x@4096", 0, 4095, "x@4095",          -1),
+    TEST ("a",          0, 1, "x@4096", 0, 4095, "x@4095",           0),
 
     ///////////////////////////////////////////////////////////////////////
     // self-referential replacement
@@ -585,13 +586,14 @@ iter_iter_size_val_test_cases [] = {
     //    |            |  |  +----------------------- replace() count argument
     //    |            |  |  |   +------------------- character to be inserted
     //    |            |  |  |   |    +-------------- expected result sequence
-    //    |            |  |  |   |    |       +------- exception info
-    //    |            |  |  |   |    |       |          0   - no exception
-    //    |            |  |  |   |    |       |          1,2 - out_of_range
-    //    |            |  |  |   |    |       |          3   - length_error
-    //    |            |  |  |   |    |       |         -1   - exc. safety
+    //    |            |  |  |   |    |       +------ exception info
+    //    |            |  |  |   |    |       |       -1   - no exceptions
+    //    |            |  |  |   |    |       |        0   - exception safety
+    //    |            |  |  |   |    |       |        1,2 - out_of_range
+    //    |            |  |  |   |    |       |        3   - length_error
     //    |            |  |  |   |    |       |
     //    |            |  |  |   |    |       +--------+
+    //    |            |  |  |   |    |                |
     //    V            V  V  V   V    V                V
     TEST ("ab",        0, 0, 1, 'c',  "cab",           0),
 
@@ -654,7 +656,7 @@ iter_iter_size_val_test_cases [] = {
     TEST ("a",         10,   0,    0, ' ',  "a",           1),
     TEST ("x@4096",  4106,   0,    0, ' ',  "x@4096",      1),
 
-    TEST ("a",          0,   1, 4095, 'x', "x@4095",      -1),
+    TEST ("a",          0,   1, 4095, 'x', "x@4095",       0),
 
     TEST ("last",      4, 0, 4, 't', "lasttttt",           0)
 };
@@ -788,21 +790,24 @@ void test_replace (charT, Traits*, Allocator*,
 
     static const std::size_t BUFSIZE = 256;
 
+    // small local buffers to avoid expensive dynamic memory
+    // allocation in most cases
     static charT wstr_buf [BUFSIZE];
     static charT warg_buf [BUFSIZE];
+    static charT wres_buf [BUFSIZE];
 
     std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
     std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
+    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
 
+    // expand "compressed" string literals in the form "a@<count>"
     charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
     charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
+    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres,    &res_len);
 
-    static charT wres_buf [BUFSIZE];
-    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
-    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
-
-    // special processing for replace_range to exercise all iterators
     if (Replace (iter_iter_range) == which) {
+        // special processing for the replace() template member
+        // function to exercise all iterator categories
         test_replace_range (wstr, str_len, warg, arg_len, 
                             res_len, (Traits*)0, (Allocator*)0, tcase);
 
@@ -820,8 +825,8 @@ void test_replace (charT, Traits*, Allocator*,
 
     // construct the string object to be modified
     // and the (possibly unused) argument string
-    /* const */ String  str (wstr, str_len);
-    const       String  arg (warg, arg_len);
+    /* const */ String str (wstr, str_len);
+    const       String arg (warg, arg_len);
 
     if (wstr != wstr_buf)
         delete[] wstr;
@@ -862,6 +867,9 @@ void test_replace (charT, Traits*, Allocator*,
     const String&      arg_str = tcase.arg ? arg : str;
     const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
+    // get a pointer to the Traits::length() function call counter
+    // or 0 when no such counter exists (i.e., when Traits is not
+    // UserTraits)
     std::size_t* length_calls =
         Replace (size_size_ptr) == which || Replace (iter_iter_ptr) == which ?
         rw_get_call_counters ((Traits*)0, (charT*)0) : 0;
@@ -872,18 +880,21 @@ void test_replace (charT, Traits*, Allocator*,
     }
 
     rwt_free_store* const pst = rwt_get_free_store (0);
+    SharedAlloc*    const pal = SharedAlloc::instance ();
 
-    // use iterator overloads?
+    // out_of_range is only generated from size_type overloads
+    // of replace() and not from the iterator equivalents of
+    // the same functions
     const bool use_iters = Replace (iter_iter_ptr) <= which;
 
     // pointer to the returned reference
     const String* ret_ptr = 0;
 
-    // iterate for`throw_after' starting at the next call to operator new,
+    // iterate for`throw_count' starting at the next call to operator new,
     // forcing each call to throw an exception, until the function finally
     // succeeds (i.e, no exception is thrown)
-    std::size_t throw_after;
-    for (throw_after = 0; ; ++throw_after) {
+    std::size_t throw_count;
+    for (throw_count = 0; ; ++throw_count) {
 
         // (name of) expected and caught exception
         const char* expected = 0;
@@ -893,14 +904,21 @@ void test_replace (charT, Traits*, Allocator*,
 
         if (1 == tcase.bthrow && !use_iters)
             expected = exceptions [1];      // out_of_range
-        else if (   2 == tcase.bthrow
-                 && Replace (size_size_str_size_size) == which)
+        else if (2 == tcase.bthrow)
             expected = exceptions [1];      // out_of_range
         else if (3 == tcase.bthrow && !use_iters)
             expected = exceptions [2];      // length_error
-        else if (-1 == tcase.bthrow) {
+        else if (0 == tcase.bthrow) {
+            // by default excercise the exception safety of the function
+            // by iteratively inducing an exception at each call to operator
+            // new or Allocator::allocate() until the call succeeds
             expected = exceptions [3];      // bad_alloc
-            *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_after + 1;
+            *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_count + 1;
+            pal->throw_at_calls_ [pal->m_allocate] =
+                pal->throw_at_calls_ [pal->m_allocate] + throw_count + 1;
+        }
+        else {
+            // exceptions disabled for this test case
         }
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
@@ -1021,7 +1039,7 @@ void test_replace (charT, Traits*, Allocator*,
         }
         catch (const std::bad_alloc &ex) {
             caught = exceptions [3];
-            rw_assert (-1 == tcase.bthrow, 0, tcase.line,
+            rw_assert (0 == tcase.bthrow, 0, tcase.line,
                        "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                        "unexpectedly%{;} caught std::%s(%#s)",
                        __LINE__, 0 != expected, expected, caught, ex.what ());
@@ -1049,19 +1067,19 @@ void test_replace (charT, Traits*, Allocator*,
                         std::size_t (-1), std::size_t (-1));
 
         if (caught) {
-            // verify that an exception thrown during allocation
-            // didn't cause a change in the state of the object
+            // verify that the exception didn't cause a change
+            // in the state of the object
             str_state.assert_equal (rw_get_string_state (str),
                                     __LINE__, tcase.line, caught);
 
-            if (-1 == tcase.bthrow) {
+            if (0 == tcase.bthrow) {
                 // allow this call to operator new to succeed and try
                 // to make the next one to fail during the next call
                 // to the same function again
                 continue;
             }
         }
-        else if (-1 != tcase.bthrow) {
+        else if (0 < tcase.bthrow) {
             rw_assert (caught == expected, 0, tcase.line,
                        "line %d. %{$FUNCALL} %{?}expected %s, caught %s"
                        "%{:}unexpectedly caught %s%{;}",
@@ -1075,15 +1093,23 @@ void test_replace (charT, Traits*, Allocator*,
 
     // verify that if exceptions are enabled and when capacity changes
     // at least one exception is thrown
-    rw_assert (   *pst->throw_at_calls_ [0] == std::size_t (-1)
-               || throw_after,
-               0, tcase.line,
-               "line %d: %{$FUNCALL}: failed to throw an expected exception",
-               __LINE__);
+    const std::size_t expect_throws = str_state.capacity_ < str.capacity ();
+
+#else   // if defined (_RWSTD_NO_REPLACEABLE_NEW_DELETE)
+
+    const std::size_t expect_throws = 0;
 
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-    *pst->throw_at_calls_ [0] = std::size_t (-1);
+    rw_assert (expect_throws == throw_count, 0, tcase.line,
+               "line %d: %{$FUNCALL}: expected exactly 1 %s exception "
+               "while changing capacity from %zu to %zu, got %zu",
+               __LINE__, exceptions [3],
+               str_state.capacity_, str.capacity (), throw_count);
+
+    // disable bad_alloc exceptions
+    *pst->throw_at_calls_ [0] = 0;
+    pal->throw_at_calls_ [pal->m_allocate] = 0;
 
     if (wres != wres_buf)
         delete[] wres;
@@ -1118,7 +1144,10 @@ int main (int argc, char** argv)
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return StringMembers::run_test (argc, argv, __FILE__,
-                                    "lib.string.replace",
-                                    test_replace, tests, test_count);
+    const int status =
+        StringMembers::run_test (argc, argv, __FILE__,
+                                 "lib.string.replace",
+                                 test_replace, tests, test_count);
+
+    return status;
 }
