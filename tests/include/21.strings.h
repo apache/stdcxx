@@ -569,7 +569,8 @@ int rw_disable_user_allocator;
     }                                                           \
                                                                 \
     static void                                                 \
-    fname (const MemFun &memfun, const TestCase &tcase) {       \
+    fname (const StringMembers::Function &memfun,               \
+           const StringMembers::TestCase &tcase) {              \
         /* disable tests exercising user-define allocator */    \
         rw_disable_user_allocator = 1;                          \
         TEST_DISPATCH (std::allocator, fname, memfun, tcase);   \
@@ -577,7 +578,8 @@ int rw_disable_user_allocator;
 
 #define DEFINE_STRING_TEST_DISPATCH(fname)                              \
     static void                                                         \
-    fname (const MemFun &memfun, const TestCase &tcase) {               \
+    fname (const StringMembers::Function &memfun,                       \
+           const StringMembers::TestCase &tcase) {                      \
         if (StringMembers::DefaultAllocator == memfun.alloc_id_) {      \
             TEST_DISPATCH (std::allocator, fname, memfun, tcase);       \
         }                                                               \
