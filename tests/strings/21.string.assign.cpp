@@ -41,10 +41,8 @@
 // for convenience and brevity
 #define Assign(which)             StringMembers::assign_ ## which
 
-typedef StringMembers::OverloadId AssignOverload;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+typedef StringMembers::Function   Function;
 
 
 static const char* const exceptions[] = {
@@ -496,7 +494,7 @@ void test_assign_range (const charT    *wstr,
 
 template <class charT, class Traits, class Allocator>
 void test_assign (charT, Traits*, Allocator*,
-                  AssignOverload  which,
+                  const Function &func,
                   const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
@@ -519,7 +517,7 @@ void test_assign (charT, Traits*, Allocator*,
     charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
 
     // special processing for assign_range to exercise all iterators
-    if (Assign (range) == which) {
+    if (Assign (range) == func.which_) {
         test_assign_range (wstr, str_len, warg, arg_len, 
                            res_len, (Traits*)0, (Allocator*)0, tcase);
 
@@ -582,7 +580,7 @@ void test_assign (charT, Traits*, Allocator*,
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-        if (1 == tcase.bthrow && Assign (str_size_size) == which)
+        if (1 == tcase.bthrow && Assign (str_size_size) == func.which_)
             expected = exceptions [1];   // out_of_range
         else if (2 == tcase.bthrow)
             expected = exceptions [2];   // length_error
@@ -603,7 +601,7 @@ void test_assign (charT, Traits*, Allocator*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
         try {
-            switch (which) {
+            switch (func.which_) {
             case Assign (ptr): {
                 const String& s_res = s_str.assign (arg_ptr);
                 res_off = &s_res - &s_str;
@@ -672,7 +670,7 @@ void test_assign (charT, Traits*, Allocator*,
             }
 
             // verify that Traits::length was used
-            if (Assign (ptr) == which && rg_calls) {
+            if (Assign (ptr) == func.which_ && rg_calls) {
                 rw_assert (n_length_calls - total_length_calls > 0, 
                            0, tcase.line, "line %d. %{$FUNCALL} doesn't "
                            "use traits::length()", __LINE__);

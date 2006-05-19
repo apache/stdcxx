@@ -42,8 +42,8 @@
 // for convenience and brevity
 #define Replace(which)    StringMembers::replace_ ## which
 
-typedef StringMembers::OverloadId OverloadId;
-typedef StringMembers::TestCase   TestCase;
+typedef StringMembers::Function  Function;
+typedef StringMembers::TestCase  TestCase;
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -781,7 +781,7 @@ void test_replace_range (const charT    *wstr,
 
 template <class charT, class Traits, class Allocator>
 void test_replace (charT, Traits*, Allocator*,
-                   OverloadId      which,
+                   const Function &func,
                    const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
@@ -805,7 +805,7 @@ void test_replace (charT, Traits*, Allocator*,
     charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
     charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres,    &res_len);
 
-    if (Replace (iter_iter_range) == which) {
+    if (Replace (iter_iter_range) == func.which_) {
         // special processing for the replace() template member
         // function to exercise all iterator categories
         test_replace_range (wstr, str_len, warg, arg_len, 
@@ -871,7 +871,8 @@ void test_replace (charT, Traits*, Allocator*,
     // or 0 when no such counter exists (i.e., when Traits is not
     // UserTraits)
     std::size_t* length_calls =
-        Replace (size_size_ptr) == which || Replace (iter_iter_ptr) == which ?
+           Replace (size_size_ptr) == func.which_
+        || Replace (iter_iter_ptr) == func.which_ ?
         rw_get_call_counters ((Traits*)0, (charT*)0) : 0;
 
     if (length_calls) {
@@ -885,7 +886,7 @@ void test_replace (charT, Traits*, Allocator*,
     // out_of_range is only generated from size_type overloads
     // of replace() and not from the iterator equivalents of
     // the same functions
-    const bool use_iters = Replace (iter_iter_ptr) <= which;
+    const bool use_iters = Replace (iter_iter_ptr) <= func.which_;
 
     // pointer to the returned reference
     const String* ret_ptr = 0;
@@ -936,7 +937,7 @@ void test_replace (charT, Traits*, Allocator*,
         rw_check_leaks (str.get_allocator ());
 
         try {
-            switch (which) {
+            switch (func.which_) {
             case Replace (size_size_ptr):
                 ret_ptr = &str.replace (arg_off, arg_size, arg_ptr);
                 break;

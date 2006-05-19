@@ -22,7 +22,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  **************************************************************************/
 
 #include <string>           // for string
@@ -40,10 +40,8 @@
 // for convenience and brevity
 #define Erase(which)              StringMembers::erase_ ## which
 
-typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+typedef StringMembers::Function   Function;
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -64,7 +62,7 @@ static const TestCase void_test_cases [] = {
     //    +--------------------------------- controlled sequence
     //    |               +----------------- expected result sequence
     //    |               |
-    //    V               V   
+    //    V               V
     TEST ("a",            ""),
 
     TEST ("",             ""),
@@ -164,7 +162,7 @@ static const TestCase size_size_test_cases [] = {
     //    |               |         |   |             |      0 - no exception
     //    |               |         |   |             |      1 - out_of_range
     //    |               |         |   |             |
-    //    V               V         V   V             V     
+    //    V               V         V   V             V
     TEST ("",             0,        0,  "",           0),
     TEST ("\0",           0,        1,  "",           0),
     TEST ("\0",           0,        0,  "\0",         0),
@@ -242,7 +240,7 @@ static const TestCase iter_test_cases [] = {
     //    |               +---------------------- iterator offset
     //    |               |    +----------------- expected result sequence
     //    |               |    |
-    //    V               V    V     
+    //    V               V    V
     TEST ("a",            0,   ""),
 
     TEST ("\0",           0,   ""),
@@ -268,9 +266,9 @@ static const TestCase iter_test_cases [] = {
     TEST ("ab\0c\0\0",    5,   "ab\0c\0"),
 
     TEST ("x@4096y",   4096,   "x@4096"),
-    TEST ("x@4096",    4088,   "x@4095"), 
-    TEST ("ax@4096",      0,   "x@4096"), 
-    TEST ("x@4096",       9,   "x@4095"), 
+    TEST ("x@4096",    4088,   "x@4095"),
+    TEST ("ax@4096",      0,   "x@4096"),
+    TEST ("x@4096",       9,   "x@4095"),
 
     TEST ("last test",    4,   "lasttest")
 };
@@ -280,32 +278,32 @@ static const TestCase iter_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_erase (charT, Traits*, Allocator*,
-                 OverloadId      which,
-                 const TestCase &cs)
+                 const Function &func,
+                 const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
     typedef typename String::const_iterator              ConstStringIter;
 
-    const bool use_iters = Erase (iter) <= which;
-    if (use_iters && cs.bthrow)
+    const bool use_iters = Erase (iter) <= func.which_;
+    if (use_iters && tcase.bthrow)
         return;
 
     static const std::size_t BUFSIZE = 256;
 
     static charT wstr_buf [BUFSIZE];
     std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
-    charT* wstr = rw_expand (wstr_buf, cs.str, cs.str_len, &str_len);
+    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
 
     static charT wres_buf [BUFSIZE];
     std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
-    charT* wres = rw_expand (wres_buf, cs.res, cs.nres, &res_len);
+    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
 
-    static char wres_charbuf [BUFSIZE];
-    char* res_char = 0;
+    static char nres_buf [BUFSIZE];
+    char* nres = 0;
     if (use_iters) {
-        std::size_t res_charlen = sizeof wres_charbuf / sizeof *wres_charbuf;
-        res_char = rw_expand (wres_charbuf, cs.res, cs.nres, &res_charlen);
+        std::size_t nreslen = sizeof nres_buf / sizeof *nres_buf;
+        nres = rw_expand (nres_buf, tcase.res, tcase.nres, &nreslen);
     }
 
     // construct the string object to be modified
@@ -329,9 +327,9 @@ void test_erase (charT, Traits*, Allocator*,
     // of the first range into the string object being modified
     const std::size_t size1 = str_len;
     const std::size_t off1 =
-        std::size_t (cs.off) < size1 ? std::size_t (cs.off) : size1;
+        std::size_t (tcase.off) < size1 ? std::size_t (tcase.off) : size1;
     const std::size_t ext1 =
-        off1 + cs.size < size1 ? cs.size : size1 - off1;
+        off1 + tcase.size < size1 ? tcase.size : size1 - off1;
 
     // create a pair of iterators into the string object being
     // modified (used only by the iterator overloads)
@@ -342,14 +340,14 @@ void test_erase (charT, Traits*, Allocator*,
 
     // is some exception expected ?
     const char* expected = 0;
-    if (1 == cs.bthrow)
+    if (1 == tcase.bthrow)
         expected = exceptions [1];
 
     const char* caught = 0;
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (cs.bthrow) {
+    if (tcase.bthrow) {
         if (wres != wres_buf)
             delete[] wres;
 
@@ -359,20 +357,20 @@ void test_erase (charT, Traits*, Allocator*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
     try {
-        switch (which) {
+        switch (func.which_) {
         case Erase (void): {
             const String& s_res = s_str.erase ();
             res_off = &s_res - &s_str;
             break;
         }
         case Erase (size): {
-            const String& s_res = s_str.erase (cs.off);
+            const String& s_res = s_str.erase (tcase.off);
             res_off = &s_res - &s_str;
             break;
         }
 
         case Erase (size_size): {
-            const String& s_res = s_str.erase (cs.off, cs.size);
+            const String& s_res = s_str.erase (tcase.off, tcase.size);
             res_off = &s_res - &s_str;
             break;
         }
@@ -394,7 +392,7 @@ void test_erase (charT, Traits*, Allocator*,
 
         // verify the returned value
         if (!use_iters) {
-            rw_assert (0 == res_off, 0, cs.line,
+            rw_assert (0 == res_off, 0, tcase.line,
                        "line %d. %{$FUNCALL} returned invalid reference, "
                        "offset is %zu", __LINE__, res_off);
         }
@@ -403,30 +401,30 @@ void test_erase (charT, Traits*, Allocator*,
             const ConstStringIter end   = s_str.end ();
 
             bool success = begin <= res_iter && res_iter <= end;
-            rw_assert (success, 0, cs.line,
+            rw_assert (success, 0, tcase.line,
                        "line %d. %{$FUNCALL} returned invalid iterator, "
                        "difference with begin is %td",
                        __LINE__, res_iter - begin);
 
-            if (std::size_t (cs.off) >= res_len) {
-                rw_assert (res_iter == end, 0, cs.line,
+            if (std::size_t (tcase.off) >= res_len) {
+                rw_assert (res_iter == end, 0, tcase.line,
                            "line %d. %{$FUNCALL} != end()", __LINE__);
             }
             else {
                 const std::size_t match =
-                    rw_match (res_char + cs.off, &(*res_iter), 1);
-                rw_assert (1 == match, 0, cs.line,
-                    "line %d. %{$FUNCALL} == %{#c}, got %{#c}",                       
-                           __LINE__, res_char[cs.off], *res_iter);
-            }   
+                    rw_match (nres + tcase.off, &(*res_iter), 1);
+                rw_assert (1 == match, 0, tcase.line,
+                    "line %d. %{$FUNCALL} == %{#c}, got %{#c}",
+                           __LINE__, nres[tcase.off], *res_iter);
+            }
         }
 
         // verfiy that strings length are equal
-        rw_assert (res_len == s_str.size (), 0, cs.line,
+        rw_assert (res_len == s_str.size (), 0, tcase.line,
                    "line %d. %{$FUNCALL} expected %{#*s} with length "
                    "%zu, got %{/*.*Gs} with length %zu",
-                   __LINE__, int (cs.nres), cs.res, 
-                   res_len, int (sizeof (charT)), 
+                   __LINE__, int (tcase.nres), tcase.res,
+                   res_len, int (sizeof (charT)),
                    int (s_str.size ()), s_str.c_str (), s_str.size ());
 
         if (res_len == s_str.size ()) {
@@ -434,12 +432,12 @@ void test_erase (charT, Traits*, Allocator*,
             // (and only then), also verify that the modified
             // string matches the expected result
             const std::size_t match =
-                rw_match (cs.res, s_str.c_str(), cs.nres);
+                rw_match (tcase.res, s_str.c_str(), tcase.nres);
 
-            rw_assert (match == res_len, 0, cs.line,
+            rw_assert (match == res_len, 0, tcase.line,
                        "line %d. %{$FUNCALL} expected %{#*s}, "
                        "got %{/*.*Gs}, difference at offset %zu",
-                       __LINE__, int (cs.nres), cs.res,
+                       __LINE__, int (tcase.nres), tcase.res,
                        int (sizeof (charT)), int (s_str.size ()),
                        s_str.c_str (), match);
         }
@@ -449,21 +447,21 @@ void test_erase (charT, Traits*, Allocator*,
 
     catch (const std::out_of_range &ex) {
         caught = exceptions [1];
-        rw_assert (caught == expected, 0, cs.line,
+        rw_assert (caught == expected, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught std::%s(%#s)",
                    __LINE__, 0 != expected, expected, caught, ex.what ());
     }
     catch (const std::exception &ex) {
         caught = exceptions [4];
-        rw_assert (0, 0, cs.line,
+        rw_assert (0, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught std::%s(%#s)",
                    __LINE__, 0 != expected, expected, caught, ex.what ());
     }
     catch (...) {
         caught = exceptions [0];
-        rw_assert (0, 0, cs.line,
+        rw_assert (0, 0, tcase.line,
                    "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                    "unexpectedly%{;} caught %s",
                    __LINE__, 0 != expected, expected, caught);
@@ -475,11 +473,11 @@ void test_erase (charT, Traits*, Allocator*,
         // verify that an exception thrown during allocation
         // didn't cause a change in the state of the object
         str_state.assert_equal (rw_get_string_state (s_str),
-                                __LINE__, cs.line, caught);
+                                __LINE__, tcase.line, caught);
     }
 
-    if (res_char != wres_charbuf)
-        delete[] res_char;
+    if (nres != nres_buf)
+        delete[] nres;
 
     if (wres != wres_buf)
         delete[] wres;

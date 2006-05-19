@@ -40,10 +40,8 @@
 // for convenience and brevity
 #define Swap(which)               StringMembers::swap_ ## which
 
-typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+typedef StringMembers::Function   Function;
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -110,13 +108,11 @@ str_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_swap (charT, Traits*, Allocator*,
-                OverloadId      which,
+                const Function&,
                 const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef UserTraits<UserChar>::MemFun                 UTMemFun;
-
-    _RWSTD_UNUSED (which);
 
     static const std::size_t BUFSIZE = 256;
 
@@ -130,8 +126,8 @@ void test_swap (charT, Traits*, Allocator*,
     charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
 
     // construct the string object and the argument string
-    String  s_str (wstr, str_len);
-    String  s_arg (warg, arg_len);
+    String s_str (wstr, str_len);
+    String s_arg (warg, arg_len);
 
     if (wstr != wstr_buf)
         delete[] wstr;
@@ -153,7 +149,7 @@ void test_swap (charT, Traits*, Allocator*,
     const charT* const p1 = s_str.data ();
     const charT* const p2 = tcase.arg ? s_arg.data () : s_str.data ();
 
-    const char* src           = tcase.arg ? tcase.arg : tcase.str;
+    const char* const src     = tcase.arg ? tcase.arg : tcase.str;
     const std::size_t src_len = tcase.arg ? tcase.arg_len : tcase.str_len;
     String& arg_str           = tcase.arg ? s_arg : s_str;
 

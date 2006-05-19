@@ -42,10 +42,8 @@
 // for convenience and brevity
 #define OpPlusEq(which)           StringMembers::op_plus_eq_ ## which
 
-typedef StringMembers::OverloadId OverloadId;
 typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Test       Test;
-typedef StringMembers::Function   MemFun;
+typedef StringMembers::Function   Function;
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -219,7 +217,7 @@ val_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_op_plus_eq (charT, Traits*, Allocator*,
-                      OverloadId      which,
+                      const Function &func,
                       const TestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
@@ -306,7 +304,7 @@ void test_op_plus_eq (charT, Traits*, Allocator*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
         try {
-            switch (which) {
+            switch (func.which_) {
             case OpPlusEq (ptr): {
                 const String& s_res = s_str += arg_ptr;
                 res_off = &s_res - &s_str;
@@ -361,7 +359,7 @@ void test_op_plus_eq (charT, Traits*, Allocator*,
             }
 
             // verify that Traits::length was used
-            if (OpPlusEq (ptr) == which && rg_calls) {
+            if (OpPlusEq (ptr) == func.which_ && rg_calls) {
                 rw_assert (n_length_calls - total_length_calls > 0, 
                            0, tcase.line, "line %d. %{$FUNCALL} doesn't "
                            "use traits::length()", __LINE__);
