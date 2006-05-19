@@ -25,12 +25,10 @@
 
 #include <21.strings.h>
 #include <alg_test.h>       // for InputIter
-#include <cmdopt.h>         // for rw_enabled()
 #include <driver.h>         // for rw_test()
 #include <rw_allocator.h>   // for UserAlloc
 #include <rw_char.h>        // for rw_expand()
 #include <rw_new.h>         // for bad_alloc, replacement operator new
-#include <rw_printf.h>      // for rw_asnprintf()
 
 /**************************************************************************/
 
@@ -51,7 +49,7 @@ static const char* const exceptions[] = {
 /**************************************************************************/
 
 // exercises:
-// ctor (void*)
+// basic_string (void)
 static const TestCase
 void_test_cases [] = {
 
@@ -73,7 +71,7 @@ void_test_cases [] = {
 /**************************************************************************/
 
 // exercises:
-// ctor (const value_type*)
+// basic_string (const value_type*)
 static const TestCase
 ptr_test_cases [] = {
 
@@ -111,7 +109,7 @@ ptr_test_cases [] = {
 /**************************************************************************/
 
 // exercises:
-// ctor (const basic_string&)
+// basic_string (const basic_string&)
 static const TestCase
 str_test_cases [] = {
 
@@ -150,7 +148,7 @@ str_test_cases [] = {
 /**************************************************************************/
 
 // exercises:
-// ctor (const value_type*, size_type)
+// basic_string (const value_type*, size_type)
 static const TestCase
 ptr_size_test_cases [] = {
 
@@ -192,7 +190,7 @@ ptr_size_test_cases [] = {
 /**************************************************************************/
 
 // exercises:
-// ctor (const basic_string&, size_type)
+// basic_string (const basic_string&, size_type)
 static const TestCase
 str_size_test_cases [] = {
 
@@ -238,8 +236,8 @@ str_size_test_cases [] = {
 /**************************************************************************/
 
 // exercises:
-// ctor (const basic_string&, size_type, size_type)
-// ctor (InputIterator, InputIterator)
+// basic_string (const basic_string&, size_type, size_type)
+// basic_string (InputIterator, InputIterator)
 static const TestCase
 str_size_size_test_cases [] = {
 
@@ -288,7 +286,7 @@ str_size_size_test_cases [] = {
 /**************************************************************************/
 
 // exercises:
-// ctor (size_type, value_type)
+// basic_string (size_type, value_type)
 static const TestCase
 size_val_test_cases [] = {
 
@@ -1006,4 +1004,3 @@ int main (int argc, char** argv)
                                     "lib.string.cons",
                                     test_cons, tests, test_count);
 }
-
