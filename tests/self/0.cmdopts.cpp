@@ -7,16 +7,22 @@
  *
  ************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2005-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -276,8 +282,6 @@ mkargv (const char *s0,
                               
 /**************************************************************************/
 
-
-
 // convenience macros for brevity
 
 #define A mkargv
@@ -384,6 +388,36 @@ test_counted_options ()
     T ("",        1, A ("--n=-11"),         1, "|-n#-1-1",   C0);
     T ("",        1, A ("--n=-1"),          1, "|-n#0-32",   C0);
     T ("",        1, A ("--n=33"),          1, "|-n#0-32",   C0);
+}
+
+/**************************************************************************/
+
+static void
+test_toggles ()
+{
+    //  +-- expected result string
+    //  |     +-- expected return value from rw_getopts()
+    //  |     |     +-- command line arguments
+    //  |     |     |                      +-- number of directives
+    //  |     |     |                      |  +-- cmdopt specification
+    //  |     |     |                      |  |         +-- counter
+    //  |     |     |                      |  |         |
+    //  V     V     V                      V  V         V
+    T ("#1",  0, A ("--enable-foo"),       1, "|-foo~", C0);
+    T ("#1",  0, A ("--use-foo"),          1, "|-foo~", C0);
+    T ("#1",  0, A ("--with-foo"),         1, "|-foo~", C0);
+
+    T ("#-1", 0, A ("--disable-foo"),      1, "|-foo~", C0);
+    T ("#-1", 0, A ("--no-foo"),           1, "|-foo~", C0);
+    T ("#-1", 0, A ("--without-foo"),      1, "|-foo~", C0);
+
+    // the same toggle can be repeated any number of times
+    T ("#1",  0, A ("--enable-foo", "--use-foo"),  1, "|-foo~", C0);
+    T ("#-1", 0, A ("--no-foo", "--without-foo"),  1, "|-foo~", C0);
+
+    // the last toggle wins
+    T ("#-1", 0, A ("--use-foo", "--no-foo"), 1, "|-foo~", C0);
+    T ("#1",  0, A ("--no-foo", "--use-foo"), 1, "|-foo~", C0);
 }
 
 /**************************************************************************/
@@ -546,6 +580,9 @@ int main ()
 
     // exercise the handling of options with an optional argument
     test_optional_argument ();
+
+    // exercise the handling of toggling options 
+    test_toggles ();
 
     // exercise the handling of options with a required argument
     test_required_argument ();
