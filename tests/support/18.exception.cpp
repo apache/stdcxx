@@ -53,8 +53,12 @@
 /**************************************************************************/
 
 // check header <exception> synopsis
-void test_synopsis ()
+static void
+test_synopsis ()
 {
+    // check header <exception> synopsis
+    rw_info (0, 0, __LINE__, "header <exception> synopsis");
+
     // verify that classes are declared
     std::exception *pex = (std::exception*)0;
 
@@ -94,7 +98,8 @@ static bool dtor_virtual = false;
 static bool what_virtual = false;
 
 // check the signatures of class exception and bad_exception members
-void test_signatures ()
+static void
+test_signatures ()
 {
 // verify that a member function is accessible and has the appropriate
 // signature, including return type and exception specification
@@ -190,7 +195,7 @@ int                     expect_abort;        // SIGABRT expected if 1
 int                     expect_terminate;    // terminate expected if 1
 int                     expect_unexpected;   // unexpected expected if 1
 int                     expect_throw_proc;   // throw_proc expected if 1
-std::jmp_buf       env;
+std::jmp_buf            env;
 
 /**************************************************************************/
 
@@ -270,7 +275,7 @@ test_unexpected_handler ()
 static void
 test_effects ()
 {
-    // verify 18.6.1, p8: whhat() returns an implementation-defined NTBS
+    // verify 18.6.1, p8: what() returns an implementation-defined NTBS
     std::exception e1;
     const char *what = e1.what ();
     rw_assert (what && 1 <= 1 + std::strlen (what), 0, __LINE__,
@@ -405,7 +410,7 @@ test_uncaught_exception ()
 /**************************************************************************/
 
 // original throw proc
-void (*const pthrow_proc_save)(int, char*) = _RW::__rw_throw_proc;
+static void (*const pthrow_proc_save)(int, char*) = _RW::__rw_throw_proc;
 
 // replaces the original throw proc
 static void
@@ -427,7 +432,7 @@ test_throw_proc (int id, char *s)
 
 // exercise __rw::__rw_throw() and __rw::__rw_throw_proc()
 static void
-test_rwthrow ()
+test_rw_throw ()
 {
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -496,7 +501,7 @@ test_rwthrow ()
         expect_throw_proc = expect [i];
 
         const char format[] = _RWSTD_FILE_LINE;
-        const char func[]   = "void test_rwthrow (Test&)";
+        const char func[]   = "void test_rwt_hrow (Test&)";
 
         _RW::__rw_throw (expect [i], format, func, empty, empty, empty);
 
@@ -727,8 +732,8 @@ induce_exception (RuntimeExceptionId reid, const char *name)
 
         // set the soft limit, leave hard limit unchanged
         rl.rlim_cur = 0;
-        if (setrlimit (RLIMIT_DATA, &rl))
-            return E_error;
+        rw_warn (0 == setrlimit (RLIMIT_DATA, &rl), 0, __LINE__,
+                 "setrlimit (RLIMIT_DATA, ...) failed: %m");
 
         try {
 
@@ -746,7 +751,8 @@ induce_exception (RuntimeExceptionId reid, const char *name)
 
             // reset the soft limit back to the value of the hard limit
             rl.rlim_cur = rl.rlim_max;
-            setrlimit (RLIMIT_DATA, &rl);
+            rw_warn (0 == setrlimit (RLIMIT_DATA, &rl), 0, __LINE__,
+                     "setrlimit (RLIMIT_DATA, ...) failed: %m");
 
             // rethrow bad_alloc
             throw;
@@ -862,7 +868,7 @@ rt_exception_names[] = {
 };
 
 static int
-opt_no_rt_exception [E_error];
+opt_rt_exception [E_error];
 
 
 static void
@@ -881,12 +887,12 @@ test_runtime ()
         const RuntimeExceptionId ex_id   = rt_exceptions [i];
         const char* const        ex_name = rt_exception_names [i];
 
-        rw_info (0, 0, __LINE__, "std::%s", ex_name);
-
-        if (0 == rw_note (0 == opt_no_rt_exception [i],
+        if (0 == rw_note (0 <= opt_rt_exception [i],
                           0, __LINE__,
                           "std::%s test disabled", ex_name))
             continue;
+
+        rw_info (0, 0, __LINE__, "std::%s", ex_name);
 
         static int ex0;
         static int ex1;
@@ -948,52 +954,62 @@ test_runtime ()
 
 /**************************************************************************/
 
-static int opt_no_synopsis;     // for --no-synopis
-static int opt_no_signatures;   // for --no-signatures
-static int opt_no_uncaught;     // for --no-uncaught_exception
-static int opt_no_effects;      // for --no-effects
-static int opt_no_rw_throw;     // for --no-rw_throw
-static int opt_no_runtime;      // for --no-runtime
+static int opt_synopsis;     // for --<toggle>-synopis
+static int opt_signatures;   // for --<toggle>-signatures
+static int opt_uncaught;     // for --<toggle>-uncaught_exception
+static int opt_effects;      // for --<toggle>-effects
+static int opt_rw_throw;     // for --<toggle>-rw_throw
+static int opt_runtime;      // for --<toggle>-runtime
 
 static int
 run_test (int, char**)
 {
-    // check header <exception> synopsis
-    rw_info (0, 0, __LINE__, "header <exception> synopsis");
-
-    test_synopsis ();
+    if (rw_note (0 <= opt_synopsis, 0, __LINE__,
+                 "test of <exception> synopsis disabled"))
+        test_synopsis ();
 
     // check the signatures of class exception and bad_exception members
-    test_signatures ();
+    if (rw_note (0 <= opt_signatures, 0, __LINE__,
+                 "test of function signatures disabled"))
+        test_signatures ();
 
     // exercise std::uncaught_exception() before running any other tests
     // since some of them might affect the correct behavior of the function
     // (if they violate such constraints as returning from a call to
     // std::terminate())
-    test_uncaught_exception ();
+    if (rw_note (0 <= opt_uncaught, 0, __LINE__,
+                 "test of uncaught_exception() disabled"))
+        test_uncaught_exception ();
 
-    if (0 == setjmp (env)) {
+    if (rw_note (0 <= opt_effects, 0, __LINE__,
+                 "test of effects disabled")) {
         // test the effects of 18.6
-        test_effects ();
-    }
+        if (0 == setjmp (env)) {
+            test_effects ();
+        }
 
-    // verify that test worked as expected (each handler sets
-    // its own expect_xxx variable to -1 after it's been called)
-    rw_error (-1 == expect_abort, 0, __LINE__,
+        // verify that test worked as expected (each handler sets
+        // its own expect_xxx variable to -1 after it's been called)
+        rw_error (-1 == expect_abort, 0, __LINE__,
               "abort() was called unexpectedly");
 
-    rw_error (-1 == expect_terminate, 0, __LINE__,
-              "terminate() was called unexpectedly");
+        rw_error (-1 == expect_terminate, 0, __LINE__,
+                  "terminate() was called unexpectedly");
 
-    rw_error (-1 == expect_unexpected, 0, __LINE__,
-              "unexpected() was called unexpectedly");
+        rw_error (-1 == expect_unexpected, 0, __LINE__,
+                  "unexpected() was called unexpectedly");
+    }
 
     // exercise __rw::__rw_throw() and __rw::__rw_throw_proc()
-    test_rwthrow ();
+    if (rw_note (0 <= opt_rw_throw, 0, __LINE__,
+                 "test of __rw_throw() disabled"))
+        test_rw_throw ();
 
     // exercise the cooperation between the C++ standard library and
     // the runtime support library when throwing standard exceptions
-    test_runtime ();
+    if (rw_note (0 <= opt_runtime, 0, __LINE__,
+                 "test of runtime support disabled"))
+        test_runtime ();
 
     return 0;
 }
@@ -1006,25 +1022,25 @@ int main (int argc, char *argv[])
                     "lib.support.exception",
                     0 /* no comment */,
                     run_test,
-                    "|-no-synopis# "
-                    "|-no-signatures# "
-                    "|-no-uncaught_exception# "
-                    "|-no-effects# "
-                    "|-no-rw_throw# "
-                    "|-no-runtime# "
-                    "|-no-bad_alloc# "
-                    "|-no-bad_cast# "
-                    "|-bad_exception# "
-                    "|-bad_typeid#",
-                    &opt_no_synopsis,
-                    &opt_no_signatures,
-                    &opt_no_uncaught,
-                    &opt_no_effects,
-                    &opt_no_rw_throw,
-                    &opt_no_runtime,
-                    opt_no_rt_exception + E_bad_alloc,
-                    opt_no_rt_exception + E_bad_cast,
-                    opt_no_rt_exception + E_bad_exception,
-                    opt_no_rt_exception + E_bad_typeid,
+                    "|-synopsis~ "
+                    "|-signatures~ "
+                    "|-uncaught_exception~ "
+                    "|-effects~ "
+                    "|-rw_throw~ "
+                    "|-runtime~ "
+                    "|-bad_alloc~ "
+                    "|-bad_cast~ "
+                    "|-bad_exception~ "
+                    "|-bad_typeid~",
+                    &opt_synopsis,
+                    &opt_signatures,
+                    &opt_uncaught,
+                    &opt_effects,
+                    &opt_rw_throw,
+                    &opt_runtime,
+                    opt_rt_exception + E_bad_alloc,
+                    opt_rt_exception + E_bad_cast,
+                    opt_rt_exception + E_bad_exception,
+                    opt_rt_exception + E_bad_typeid,
                     0 /* sentinel */);
 }
