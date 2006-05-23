@@ -4,16 +4,22 @@
  *
  ************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2005-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -22,7 +28,6 @@
 
 #include <cmdopt.h>
 
-#include <assert.h>   // for assert
 #include <ctype.h>    // isdigit(), isspace()
 #include <errno.h>    // for errno
 #include <stdarg.h>   // for va_arg, ...
@@ -55,20 +60,21 @@ struct cmdopts_t
     size_t         maxcount_;       // how many times option can be invoked
     size_t         count_;          // how many times it has been invoked
 
-    unsigned       arg_ : 1;        // option takes an argument?
+    unsigned       arg_ : 1;        // option takes an argument
     unsigned       inv_ : 1;        // callback invocation inverted
+    unsigned       toggle_ : 1;     // option is a toggle
     unsigned       envseen_ : 1;    // environment option already processed
 };
 
 
 // total number of registered options
-static size_t ncmdopts;
+static size_t _rw_ncmdopts;
 
 // number of default (always defined) options
-static size_t ndefopts;
-static cmdopts_t cmdoptbuf [32];
-static cmdopts_t *cmdopts = cmdoptbuf;
-static size_t optbufsize = sizeof cmdoptbuf / sizeof *cmdoptbuf;
+static size_t     _rw_ndefopts;
+static cmdopts_t  _rw_cmdoptbuf [32];
+static cmdopts_t *_rw_cmdopts = _rw_cmdoptbuf;
+static size_t     _rw_optbufsize = sizeof _rw_cmdoptbuf / sizeof *_rw_cmdoptbuf;
 
 /**************************************************************************/
 
@@ -104,15 +110,17 @@ _rw_print_help (int argc, char *argv[])
     // set to a non-zero when the specified option is found
     int option_found = 0;
 
-    for (size_t i = 0; i != ncmdopts; ++i) {
+    for (size_t i = 0; i != _rw_ncmdopts; ++i) {
+
+        // for convenience
+        const cmdopts_t* const opt = _rw_cmdopts + i;
 
         // get a pointer to the name of the long option, if any
-        const char* const lopt =
-            cmdopts [i].lopt_ ? cmdopts [i].lopt_ : cmdopts [i].loptbuf_;
+        const char* const lopt = opt->lopt_ ? opt->lopt_ : opt->loptbuf_;
 
         if (opthelp && *opthelp) {
 
-            if (   cmdopts [i].sopt_ == opthelp [0] && '\0' == opthelp [1]
+            if (   opt->sopt_ == opthelp [0] && '\0' == opthelp [1]
                 || *lopt && 0 == strcmp (lopt + 1, opthelp)) {
 
                 // remember that we found the option whose (short
@@ -131,13 +139,13 @@ _rw_print_help (int argc, char *argv[])
         // separate options with help functionality (which typically
         // produce multiline output) from previous options without
         // it (and thus very brief output)
-        if (i && 0 == cmdopts [i - 1].callback_ && cmdopts [i].callback_)
+        if (i && 0 == _rw_cmdopts [i - 1].callback_ && opt->callback_)
             puts ("");
 
         printf ("     ");
 
-        if (cmdopts [i].sopt_) {
-            printf ("-%c", cmdopts [i].sopt_);
+        if (opt->sopt_) {
+            printf ("-%c", opt->sopt_);
 
             if (lopt)
                 printf (" | ");
@@ -148,53 +156,52 @@ _rw_print_help (int argc, char *argv[])
 
         if (lopt) {
             printf ("-%s", lopt);
-            if (   cmdopts [i].arg_
-                && '=' != lopt [strlen (lopt) - 1]) {
+            if (opt->arg_ && '=' != lopt [strlen (lopt) - 1]) {
                 pfx = " [ ";
                 sfx = " ]";
             }
         }
 
-        const char* arg =
-               _RWSTD_INT_MIN < cmdopts [i].minval_
-            || cmdopts [i].maxval_ < _RWSTD_INT_MAX ? "int" : "arg";
+        const char* const arg =
+               _RWSTD_INT_MIN < opt->minval_
+            || opt->maxval_ < _RWSTD_INT_MAX ? "int" : "arg";
 
-        if (cmdopts [i].arg_) {
+        if (opt->arg_) {
             // print argument (in brackets when it's optional)
             printf ("%s<%s>%s", pfx, arg, sfx);
         }
 
-        if (cmdopts [i].pcntr_)
+        if (opt->pcntr_)
             printf (" | -%s=<%s>", lopt, arg);
 
         if ('i' == *arg) {
             printf (", with ");
 
-            if (_RWSTD_INT_MIN < cmdopts [i].minval_)
-                printf ("%d <= ", cmdopts [i].minval_);
+            if (_RWSTD_INT_MIN < opt->minval_)
+                printf ("%d <= ", opt->minval_);
 
             printf ("<%s>", arg);
 
-            if (cmdopts [i].maxval_ < _RWSTD_INT_MAX)
-                printf (" <= %d", cmdopts [i].maxval_);
+            if (opt->maxval_ < _RWSTD_INT_MAX)
+                printf (" <= %d", opt->maxval_);
 
             printf ("\n      ");
         }
 
-        if (_RWSTD_SIZE_MAX == cmdopts [i].maxcount_)
+        if (_RWSTD_SIZE_MAX == opt->maxcount_)
             printf (" (each occurrence evaluated)\n");
-        else if (1 < cmdopts [i].maxcount_)
+        else if (1 < opt->maxcount_)
             printf (" (at most %u occurrences evaluated)\n",
-                    unsigned (cmdopts [i].maxcount_));
+                    unsigned (opt->maxcount_));
         else
             printf (" (only the first occurrence evaluated)\n");
 
         // invoke callback with the "--help" option
-        if (cmdopts [i].callback_) {
+        if (opt->callback_) {
 
             char* help [2] = { 0, 0 };
 
-            cmdopts [i].callback_ (1, help);
+            opt->callback_ (1, help);
 
             for (const char *line = help [0]; line; ) {
 
@@ -249,41 +256,41 @@ _rw_set_ignenv (int argc, char *argv[])
 extern "C" {
 
 static void
-rw_clear_opts ()
+_rw_clear_opts ()
 {
     // reset all options, deallocating dynamically allocated storage
 
-    for (size_t i = 0; i != ncmdopts; ++i) {
+    for (size_t i = 0; i != _rw_ncmdopts; ++i) {
 
         // free any storage allocated for the option name
-        free (cmdopts [i].lopt_);
+        free (_rw_cmdopts [i].lopt_);
     }
 
-    if (cmdopts != cmdoptbuf) {
+    if (_rw_cmdopts != _rw_cmdoptbuf) {
         // free the storage allocated for all the options
-        free (cmdopts);
+        free (_rw_cmdopts);
     }
 
     // reset the options pointer to point at the statically
     // allocated buffer and the count back to 0
-    ncmdopts   = 0;
-    cmdopts    = cmdoptbuf;
-    optbufsize = sizeof cmdoptbuf / sizeof *cmdoptbuf;
+    _rw_ncmdopts   = 0;
+    _rw_cmdopts    = _rw_cmdoptbuf;
+    _rw_optbufsize = sizeof _rw_cmdoptbuf / sizeof *_rw_cmdoptbuf;
 }
 
 }
 
 static void
-rw_set_myopts ()
+_rw_set_myopts ()
 {
     static int cleanup_handler_registered;
 
     if (0 == cleanup_handler_registered) {
-        atexit (rw_clear_opts);
+        atexit (_rw_clear_opts);
         cleanup_handler_registered = 1;
     }
 
-    if (0 != ncmdopts)
+    if (0 != _rw_ncmdopts)
         return;
 
     static int recursive;
@@ -299,7 +306,7 @@ rw_set_myopts ()
                 _rw_print_help,
                 _rw_set_ignenv);
 
-    ndefopts = ncmdopts;
+    _rw_ndefopts = _rw_ncmdopts;
 
     recursive = 0;
 }
@@ -346,7 +353,7 @@ _rw_getbounds (const char *next, RW_VA_LIST_ARG_PTR pva)
 
         next = end ? end : next + 1;
 
-        cmdopts [ncmdopts].minval_ = minval;
+        _rw_cmdopts [_rw_ncmdopts].minval_ = minval;
 
         if ('-' == *next) {
             ++next;
@@ -384,7 +391,7 @@ _rw_getbounds (const char *next, RW_VA_LIST_ARG_PTR pva)
                 }
 
                 next = end ? end : next + 1;
-                cmdopts [ncmdopts].maxval_ = int (maxval);
+                _rw_cmdopts [_rw_ncmdopts].maxval_ = int (maxval);
             }
             else {
                 // syntax error in range
@@ -403,19 +410,19 @@ _rw_getbounds (const char *next, RW_VA_LIST_ARG_PTR pva)
         }
         else {
             // no upper bound on the value of the option argument
-            cmdopts [ncmdopts].maxval_ = _RWSTD_INT_MAX;
+            _rw_cmdopts [_rw_ncmdopts].maxval_ = _RWSTD_INT_MAX;
         }
 
     }
     else {
         // no minimum/maximum value for this option is set
-        cmdopts [ncmdopts].minval_ = _RWSTD_INT_MIN;
-        cmdopts [ncmdopts].maxval_ = _RWSTD_INT_MAX;
+        _rw_cmdopts [_rw_ncmdopts].minval_ = _RWSTD_INT_MIN;
+        _rw_cmdopts [_rw_ncmdopts].maxval_ = _RWSTD_INT_MAX;
     }
 
     // an unlimited number of occurrences of the option
     // are allowed and will be counted
-    cmdopts [ncmdopts].maxcount_ = _RWSTD_SIZE_MAX;
+    _rw_cmdopts [_rw_ncmdopts].maxcount_ = _RWSTD_SIZE_MAX;
 
     return next;
 }
@@ -426,15 +433,15 @@ rw_vsetopts (const char *opts, va_list va)
 {
     if (0 == opts) {
 
-        rw_clear_opts ();
+        _rw_clear_opts ();
         return 0;
     }
 
-    rw_set_myopts ();
+    _rw_set_myopts ();
 
     const char *next = opts;
 
-    for ( ; ; ++ncmdopts) {
+    for ( ; ; ++_rw_ncmdopts) {
 
         while (isspace (*next))
             ++next;
@@ -443,9 +450,9 @@ rw_vsetopts (const char *opts, va_list va)
             break;
         }
 
-        if (ncmdopts == optbufsize) {
+        if (_rw_ncmdopts == _rw_optbufsize) {
 
-            const size_t newbufsize = 2 * ncmdopts + 1;
+            const size_t newbufsize = 2 * _rw_ncmdopts + 1;
             
             cmdopts_t* const newopts =
                 (cmdopts_t*)malloc (newbufsize * sizeof (cmdopts_t));
@@ -456,26 +463,29 @@ rw_vsetopts (const char *opts, va_list va)
                 abort ();
             }
 
-            memcpy (newopts, cmdopts, ncmdopts * sizeof (cmdopts_t));
+            memcpy (newopts, _rw_cmdopts, _rw_ncmdopts * sizeof (cmdopts_t));
 
-            if (cmdopts != cmdoptbuf)
-                free (cmdopts);
+            if (_rw_cmdopts != _rw_cmdoptbuf)
+                free (_rw_cmdopts);
 
-            cmdopts    = newopts;
-            optbufsize = newbufsize;
+            _rw_cmdopts    = newopts;
+            _rw_optbufsize = newbufsize;
         }
 
         // clear the next option info
-        memset (cmdopts + ncmdopts, 0, sizeof *cmdopts);
+        memset (_rw_cmdopts + _rw_ncmdopts, 0, sizeof *_rw_cmdopts);
 
-        cmdopts [ncmdopts].minval_ = _RWSTD_INT_MIN;
-        cmdopts [ncmdopts].maxval_ = _RWSTD_INT_MAX;
+        // for convenience
+        cmdopts_t* const lastopt = _rw_cmdopts + _rw_ncmdopts;
+
+        lastopt->minval_ = _RWSTD_INT_MIN;
+        lastopt->maxval_ = _RWSTD_INT_MAX;
 
         if ('|' != *next)
-            cmdopts [ncmdopts].sopt_ = *next++;
+            lastopt->sopt_ = *next++;
 
         if ('|' == *next) {
-            const char* end = strpbrk (++next, "|@:=*!# ");
+            const char* end = strpbrk (++next, "|@:=*!#~ ");
             if (0 == end)
                 end = next + strlen (next);
 
@@ -486,11 +496,11 @@ rw_vsetopts (const char *opts, va_list va)
 
             char *lopt = 0;
 
-            if (optlen < sizeof cmdopts [ncmdopts].loptbuf_)
-                lopt = cmdopts [ncmdopts].loptbuf_;
+            if (optlen < sizeof lastopt->loptbuf_)
+                lopt = lastopt->loptbuf_;
             else {
                 lopt = (char*)malloc (optlen + 1);
-                cmdopts [ncmdopts].lopt_ = lopt;
+                lastopt->lopt_ = lopt;
             }
 
             memcpy (lopt, next, optlen);
@@ -502,7 +512,7 @@ rw_vsetopts (const char *opts, va_list va)
         // only the first occurrence of each command line option
         // causes an invocation of the callback, all subsequent
         // ones will be ignored by default
-        cmdopts [ncmdopts].maxcount_ = 1;
+        lastopt->maxcount_ = 1;
 
         int arg_is_callback = true;
 
@@ -520,10 +530,20 @@ rw_vsetopts (const char *opts, va_list va)
             arg_is_callback = false;
 
         }
+        else if ('~' == *next) {
+            ++next;
+
+            // unlimited number of toggles are allowed
+            lastopt->toggle_   = 1;
+            lastopt->maxcount_ = _RWSTD_SIZE_MAX;
+
+            // no callback function expected
+            arg_is_callback = false;
+        }
         else if (':' == *next || '=' == *next) {
             // ':' : argument optional
             // '=' : argument required
-            cmdopts [ncmdopts].arg_ = true;
+            lastopt->arg_ = true;
 
             // check if the value of the argument is restricted
             next = _rw_getbounds (next, RW_VA_LIST_ARG_TO_PTR (va));
@@ -539,18 +559,18 @@ rw_vsetopts (const char *opts, va_list va)
             // at most how many occurrences of an option can be processed?
             if ('*' == *next) {
                 // unlimited
-                cmdopts [ncmdopts].maxcount_ = _RWSTD_SIZE_MAX;
+                lastopt->maxcount_ = _RWSTD_SIZE_MAX;
                 ++next;
             }
             else {
                 // at most this many
                 char *end;
-                cmdopts [ncmdopts].maxcount_ = strtoul (next, &end, 10);
+                lastopt->maxcount_ = strtoul (next, &end, 10);
                 next = end;
             }
         }
         else if ('!' == *next) {
-            cmdopts [ncmdopts].inv_ = true;
+            lastopt->inv_ = true;
             ++next;
         }
 
@@ -559,35 +579,35 @@ rw_vsetopts (const char *opts, va_list va)
             // (null callback is permitted in the special case when
             // the short option is '-', i.e., when setting up or
             // resetting an "unknown option" handler)
-            cmdopts [ncmdopts].callback_ = va_arg (va, optcallback_t*);
+            lastopt->callback_ = va_arg (va, optcallback_t*);
         }
         else {
             // retrieve the address of the int counter where to keep
             // track of the number of occurrences of the option, or
             // where to store the value of the numeric argument of
             // the option
-            cmdopts [ncmdopts].pcntr_ = va_arg (va, int*);
+            lastopt->pcntr_ = va_arg (va, int*);
         }
 
-        if (   '-' != cmdopts [ncmdopts].sopt_
-            && 0 == cmdopts [ncmdopts].callback_
-            && 0 == cmdopts [ncmdopts].pcntr_) {
+        if (   '-' != lastopt->sopt_
+            && 0 == lastopt->callback_
+            && 0 == lastopt->pcntr_) {
 
             // get a pointer to the long option name
-            const char* const lopt = cmdopts [ncmdopts].lopt_
-                ? cmdopts [ncmdopts].lopt_ : cmdopts [ncmdopts].loptbuf_;
+            const char* const lopt = lastopt->lopt_
+                ? lastopt->lopt_ : lastopt->loptbuf_;
 
             if (*lopt)
                 fprintf (stderr, "null handler for option -%s\n", lopt);
             else
                 fprintf (stderr, "null handler for option -%c\n",
-                         cmdopts [ncmdopts].sopt_);
+                         lastopt->sopt_);
                 
             abort ();
         }
     }
 
-    return int (ncmdopts - ndefopts);
+    return int (_rw_ncmdopts - _rw_ndefopts);
 }
 
 /**************************************************************************/
@@ -608,8 +628,8 @@ rw_setopts (const char *opts, ...)
 static int
 _rw_getarg (cmdopts_t *optspec, const char *opt, const char *arg)
 {
-    assert (0 != optspec);
-    assert (0 != arg);
+    RW_ASSERT (0 != optspec);
+    RW_ASSERT (0 != arg);
 
     // obtain the numeric argument
     char *end = 0;
@@ -664,8 +684,8 @@ _rw_runopt_recursive = false;
 static int
 _rw_runopt (cmdopts_t *optspec, int argc, char *argv[])
 {
-    assert (0 != optspec);
-    assert (0 != argv);
+    RW_ASSERT (0 != optspec);
+    RW_ASSERT (0 != argv);
 
     // ignore the option if invoked recursively (by processing options
     // set in the environment) and the option has already been seen
@@ -727,15 +747,16 @@ _rw_runopt (cmdopts_t *optspec, int argc, char *argv[])
         }
     }
     else if (equals) {
-
         // option takes an optional numeric argument
 
-        assert (0 != optspec->pcntr_);
+        RW_ASSERT (0 != optspec->pcntr_);
 
         status = _rw_getarg (optspec, argv [0], equals + 1);
     }
     else {
-        assert (0 != optspec->pcntr_);
+        // option must not be a toggle (those are handled elsewhere)
+        RW_ASSERT (0 == optspec->toggle_);
+        RW_ASSERT (0 != optspec->pcntr_);
         ++*optspec->pcntr_;
     }
 
@@ -749,10 +770,59 @@ _rw_runopt (cmdopts_t *optspec, int argc, char *argv[])
 
 /**************************************************************************/
 
+// tries to match the option named by optname with the option
+// specification opt and returns a non-zero value on success,
+// 0 otherwise; the returned value is negative when the matched
+// option is being disabled and positive when it's being
+// enabled
+static int
+_rw_match_toggle (const cmdopts_t *opt, const char *optname)
+{
+    RW_ASSERT (0 != opt);
+    RW_ASSERT (0 != optname);
+
+    static const char* const prefix[] = {
+        "+enable", "+use", "+with", 
+        "-disable", "-no", "-without",
+        0
+    };
+
+    int toggle = 0;
+
+    if ('-' == optname [0] && '-' != optname [2]) {
+
+        ++optname;
+
+        const size_t optlen = strlen (optname);
+
+        for (size_t i = 0; prefix [i]; ++i) {
+            const char* const pfx    = prefix [i] + 1;
+            const size_t      pfxlen = strlen (pfx);
+
+            if (pfxlen < optlen && 0 == memcmp (optname, pfx, pfxlen)) {
+                const char* const name = optname + pfxlen;
+
+                // return -1 to disable, +1 to enable, 0 when not found
+                const char* const lopt =
+                    opt->lopt_ ? opt->lopt_ : opt->loptbuf_;
+
+                if (0 == strcmp (lopt, name)) {
+                    toggle = '+' == prefix [i][0] ? 1 : -1;
+                    break;
+                }
+            }
+        }
+    }
+
+    return toggle;
+}
+
+/**************************************************************************/
+
 _TEST_EXPORT int
 rw_runopts (int argc, char *argv[])
 {
-    rw_set_myopts ();
+    _rw_set_myopts ();
 
     // ignore options set in the environment?
     int ignenv = _rw_runopt_recursive;
@@ -763,9 +833,9 @@ rw_runopts (int argc, char *argv[])
     // number of options processed
     int nopts = 0;
 
-    // index of registered option whose callback should be invoked
+    // pointer to the option whose callback will be invoked
     // for command line options that do not match any other
-    size_t not_found_inx = _RWSTD_SIZE_MAX;
+    cmdopts_t* not_found_opt = 0;
 
     // iterate over the command line arguments until a callback
     // returns a non-zero value or until all options have been
@@ -787,6 +857,10 @@ rw_runopts (int argc, char *argv[])
         // the name of the option without the leading dash
         const char* const optname = argv [i] + 1;
 
+        // the argc and argv to pass to the option handler
+        const int    opt_argc = argc - i;
+        char** const opt_argv = argv + i;
+
         // look for the first equals sign
         const char* const eq = strchr (optname, '=');
 
@@ -797,34 +871,58 @@ rw_runopts (int argc, char *argv[])
 
         // look up each command line option (i.e., a string that starts
         // with a dash ('-')) and invoke the callback associated with it
-        for (size_t j = 0; j != ncmdopts; ++j) {
+        for (size_t j = 0; j != _rw_ncmdopts; ++j) {
 
-            if ('-' == cmdopts [j].sopt_)
-                not_found_inx = j;
+            // for convenience
+            cmdopts_t* const opt = _rw_cmdopts + j;
+
+            if ('-' == opt->sopt_)
+                not_found_opt = opt;
 
             if ('-' == argv [i][0]) {
 
                 const size_t cmplen =
-                    eq && cmdopts [j].pcntr_ ? optlen - 1 : optlen;
+                    eq && opt->pcntr_ ? optlen - 1 : optlen;
 
                 // get a pointer to the (possibly empty) name
                 // of the long option
-                const char* const lopt = cmdopts [j].lopt_ ? 
-                    cmdopts [j].lopt_ : cmdopts [j].loptbuf_;
+                const char* const lopt = opt->lopt_ ? 
+                    opt->lopt_ : opt->loptbuf_;
+
+                if (opt->toggle_) {
+                    // option specification denotes a toggle, see if it
+                    // matches and if so, whether it's being disabled or
+                    // enabled (-1 or +1, respectively)
+                    const int toggle = _rw_match_toggle (opt, optname);
+
+                    if (toggle) {
+                        RW_ASSERT (0 != opt->pcntr_);
+                        *opt->pcntr_ = toggle < 0 ? -1 : 1;
+
+                        // matching option has been found
+                        found = true;
+
+                        // increment the number of options processed
+                        ++nopts;
+                    }
+
+                    // avoid ordinary option processing below
+                    continue;
+                }
 
                 // try to match the long option first, and only if it
                 // doesn't match try the short single-character option
                 if (   cmplen == strlen (lopt)
                     && 0 == memcmp (optname, lopt, cmplen)
-                    || cmdopts [j].sopt_
-                    && optname [0] == cmdopts [j].sopt_
-                    && (1 == optlen || cmdopts [j].arg_)) {
+                    || opt->sopt_
+                    && optname [0] == opt->sopt_
+                    && (1 == optlen || opt->arg_)) {
 
                     // matching option has been found
                     found = true;
 
                     // process it and its arguments, if any
-                    status = _rw_runopt (cmdopts + j, int (argc - i), argv + i);
+                    status = _rw_runopt (opt, opt_argc, opt_argv);
 
                     // increment the number of options processed
                     // (whether successfully or otherwise)
@@ -846,12 +944,12 @@ rw_runopts (int argc, char *argv[])
 
             // invoke the appropriate error handler for an option
             // that was not found
-            if (_RWSTD_SIZE_MAX != not_found_inx) {
+            if (0 != not_found_opt) {
 
                 // invoke the error handler set up through rw_setopts()
                 // and let the handler decide whether to go on processing
                 // other options or whether to abort
-                status = cmdopts [not_found_inx].callback_ (argc - i, argv + i);
+                status = not_found_opt->callback_ (opt_argc, opt_argv);
                 if (status) {
                     // no further processing done
                     ignenv = true;
@@ -883,20 +981,23 @@ rw_runopts (int argc, char *argv[])
     // invoke any inverted callbacks or bump their user-specified counters,
     // and reset internal counters indicating if/how many times each option
     // has been processed
-    for (size_t j = 0; j != ncmdopts; ++j) {
+    for (size_t j = 0; j != _rw_ncmdopts; ++j) {
 
-        if (cmdopts [j].inv_ && 0 == cmdopts [j].count_ && 0 == status) {
+        // for convenience
+        cmdopts_t* const opt = _rw_cmdopts + j;
 
-            if (cmdopts [j].callback_)
-                status = cmdopts [j].callback_ (0, 0);
+        if (opt->inv_ && 0 == opt->count_ && 0 == status) {
+
+            if (opt->callback_)
+                status = opt->callback_ (0, 0);
             else {
-                assert (0 != cmdopts [j].pcntr_);
-                ++*cmdopts [j].pcntr_;
+                RW_ASSERT (0 != opt->pcntr_);
+                ++*opt->pcntr_;
             }
         }
 
-        cmdopts [j].count_   = 0;
-        cmdopts [j].envseen_ = false;
+        opt->count_   = 0;
+        opt->envseen_ = false;
     }
 
     return status;
@@ -907,9 +1008,9 @@ rw_runopts (int argc, char *argv[])
 _TEST_EXPORT int
 rw_runopts (const char *str)
 {
-    assert (0 != str);
+    RW_ASSERT (0 != str);
 
-    rw_set_myopts ();
+    _rw_set_myopts ();
 
     char buf [80];      // fixed size buffer to copy `str' into
     char *pbuf = buf;   // a modifiable copy of `str'
