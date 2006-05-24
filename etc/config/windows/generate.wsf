@@ -331,6 +331,12 @@ function generateBuildBatch(sourcesDir, buildDir, curSol)
         buildBatchFile.WriteLine("set useenv=/useenv");
         buildBatchFile.WriteLine(")");
         buildBatchFile.WriteLine("");
+        
+        buildBatchFile.WriteLine(
+            "if \"%1\"==\"" + icc91SolutionName + "\" ("); 
+        buildBatchFile.WriteLine("set useenv=/useenv");
+        buildBatchFile.WriteLine(")");
+        buildBatchFile.WriteLine("");
             
         buildBatchFile.WriteLine("shift");
         buildBatchFile.WriteLine("");

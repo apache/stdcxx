@@ -843,3 +843,9 @@ var icc90SolutionName = "icc-9.0";
 
 // ICC90 configuration solution
 var icc90CfgSolutionName = icc90SolutionName + "_config";
+
+// ICC91 solution 
+var icc91SolutionName = "icc-9.1";
+
+// ICC91 configuration solution
+var icc91CfgSolutionName = icc91SolutionName + "_config";

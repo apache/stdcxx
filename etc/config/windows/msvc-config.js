@@ -57,6 +57,10 @@ var solutionICC90 = solutionVC71.clone();
 solutionICC90.name = icc90SolutionName;
 configurations.add(solutionICC90.name, solutionICC90);
 
+var solutionICC91 = solutionVC71.clone();
+solutionICC91.name = icc91SolutionName;
+configurations.add(solutionICC91.name, solutionICC91);
+
 ////////////////////////////////////////////////////////////////////
 // implementation
 
