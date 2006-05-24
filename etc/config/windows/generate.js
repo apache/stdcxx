@@ -1619,3 +1619,7 @@ solutionVC80.checkEnvironment = checkEnvironmentVC;
 var solutionICC90 = getSolution(icc90SolutionName);
 solutionICC90.generateSolution = generateSolutionICC;
 solutionICC90.checkEnvironment = checkEnvironmentICC;
+
+var solutionICC91 = getSolution(icc91SolutionName);
+solutionICC91.generateSolution = generateSolutionICC;
+solutionICC91.checkEnvironment = checkEnvironmentICC;

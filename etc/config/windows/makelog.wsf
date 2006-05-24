@@ -157,7 +157,7 @@ function readAndCheckArguments()
         WScript.Quit(3);
     }
     
-    if (buildCfg == "msvc-8.0")
+    if (buildCfg == "msvc-8.0" || buildCfg == "icc-9.1")
         buildLogUnicode = -1;
 }
 

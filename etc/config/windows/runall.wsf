@@ -240,7 +240,8 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary)
         else
             runNoChecks(runCmd, exeFileName, itemInfo, fileLog); 
             
-        var unicodeLog = currentCfg == "msvc-8.0" ? true : false;
+        var unicodeLog = 
+            currentCfg == "msvc-8.0" || currentCfg == "icc-9.1" ? true : false;
         readBuildLog(exeDir, itemInfo, unicodeLog);
         saveBuildInfo(itemInfo, htmDir, "htm"); 
         saveBuildSummary(itemInfo, fileSummary);
