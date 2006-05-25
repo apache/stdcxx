@@ -25,12 +25,12 @@
  *
  **************************************************************************/
 
-#include <string>        // for string
-#include <stdexcept>     // for out_of_range, length_error
+#include <string>         // for string
+#include <stdexcept>      // for out_of_range, length_error
 
-#include <cstddef>       // for size_t
+#include <cstddef>        // for size_t
 
-#include <21.strings.h>   // for StringMembers
+#include <21.strings.h>   // for StringIds
 #include <alg_test.h>     // for InputIter
 #include <driver.h>       // for rw_test()
 #include <rw_allocator.h> // for UserAlloc
@@ -40,10 +40,7 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define OpPlusEq(which)           StringMembers::op_plus_eq_ ## which
-
-typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Function   Function;
+#define OpPlusEq(sig) StringIds::op_plus_eq_ ## sig
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -54,8 +51,8 @@ static const char* const exceptions[] = {
 
 // exercises:
 // operator += (const value_type*)
-static const TestCase
-ptr_test_cases [] = {
+static const StringTestCase
+cptr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, src, res, bthrow)                            \
@@ -115,8 +112,8 @@ ptr_test_cases [] = {
 
 // exercises:
 // operator += (const basic_string&)
-static const TestCase
-str_test_cases [] = {
+static const StringTestCase
+cstr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, src, res, bthrow)                            \
@@ -177,7 +174,7 @@ str_test_cases [] = {
 
 // exercises:
 // operator+= (value_type)
-static const TestCase
+static const StringTestCase
 val_test_cases [] = {
 
 #undef TEST
@@ -217,8 +214,8 @@ val_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_op_plus_eq (charT, Traits*, Allocator*,
-                      const Function &func,
-                      const TestCase &tcase)
+                      const StringFunc     &func,
+                      const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
@@ -241,8 +238,8 @@ void test_op_plus_eq (charT, Traits*, Allocator*,
 
     // construct the string object to be modified
     // and the (possibly unused) argument string
-    /* const */ String  s_str (wstr, str_len);
-    const       String  s_arg (warg, arg_len);
+    /* const */ String str (wstr, str_len);
+    const       String arg (warg, arg_len);
 
     if (wstr != wstr_buf)
         delete[] wstr;
@@ -256,12 +253,10 @@ void test_op_plus_eq (charT, Traits*, Allocator*,
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
     // the state of the object after an exception)
-    const StringState str_state (rw_get_string_state (s_str));
+    const StringState str_state (rw_get_string_state (str));
 
-    std::size_t res_off = 0;
-
-    const charT* const arg_ptr = tcase.arg ? s_arg.c_str () : s_str.c_str ();
-    const String&      arg_str = tcase.arg ? s_arg : s_str;
+    const charT* const arg_ptr = tcase.arg ? arg.c_str () : str.c_str ();
+    const String&      arg_str = tcase.arg ? arg : str;
     const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
     std::size_t total_length_calls = 0;
@@ -294,72 +289,76 @@ void test_op_plus_eq (charT, Traits*, Allocator*,
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (tcase.bthrow) {
-        if (wres != wres_buf)
-            delete[] wres;
+        if (tcase.bthrow) {
+            if (wres != wres_buf)
+                delete[] wres;
 
-        return;
-    }
+            return;
+        }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
         try {
+
+            // pointer to the returned reference
+            const String* ret_ptr = 0;
+
             switch (func.which_) {
-            case OpPlusEq (ptr): {
-                const String& s_res = s_str += arg_ptr;
-                res_off = &s_res - &s_str;
+
+            case OpPlusEq (cptr):
+                ret_ptr = &str.operator+= (arg_ptr);
                 if (rg_calls)
                     n_length_calls = rg_calls [UTMemFun::length];
                 break;
-            }
 
-            case OpPlusEq (str): {
-                const String& s_res = s_str += arg_str;
-                res_off = &s_res - &s_str;
+            case OpPlusEq (cstr):
+                ret_ptr = &str.operator+= (arg_str);
                 break;
-            }
 
-            case OpPlusEq (val): {
-                const String& s_res = s_str += arg_val;
-                res_off = &s_res - &s_str;
+            case OpPlusEq (val):
+                ret_ptr = &str.operator+= (arg_val);
                 break;
-            }
 
             default:
                 RW_ASSERT ("test logic error: unknown operator += overload");
                 return;
             }
 
+            // verify that the reference returned from the function
+            // refers to the modified string object (i.e., *this
+            // within the function)
+            const std::ptrdiff_t ret_off = ret_ptr - &str;
+
             // verify the returned value
-            rw_assert (0 == res_off, 0, tcase.line,
+            rw_assert (0 == ret_off, 0, tcase.line,
                        "line %d. %{$FUNCALL} returned invalid reference, "
-                       "offset is %zu", __LINE__, res_off);
+                       "offset is %td", __LINE__, ret_off);
 
             // verfiy that strings length are equal
-            rw_assert (res_len == s_str.size (), 0, tcase.line,
+            rw_assert (res_len == str.size (), 0, tcase.line,
                        "line %d. %{$FUNCALL} expected %{#*s} "
                        "with length %zu, got %{/*.*Gs} with length %zu",
                        __LINE__, int (tcase.nres), tcase.res, res_len,
-                       int (sizeof (charT)), int (s_str.size ()),
-                       s_str.c_str (), s_str.size ());
+                       int (sizeof (charT)), int (str.size ()),
+                       str.c_str (), str.size ());
 
-            if (res_len == s_str.size ()) {
+            if (res_len == str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, s_str.c_str(), tcase.nres);
+                    rw_match (tcase.res, str.c_str(), tcase.nres);
 
                 rw_assert (match == res_len, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{#*s}, "
                            "got %{/*.*Gs}, difference at offset %zu",
                            __LINE__, int (tcase.nres), tcase.res,
-                           int (sizeof (charT)), int (s_str.size ()),
-                           s_str.c_str (), match);
+                           int (sizeof (charT)), int (str.size ()),
+                           str.c_str (), match);
             }
 
             // verify that Traits::length was used
-            if (OpPlusEq (ptr) == func.which_ && rg_calls) {
+            if (OpPlusEq (cptr) == func.which_ && rg_calls) {
                 rw_assert (n_length_calls - total_length_calls > 0, 
                            0, tcase.line, "line %d. %{$FUNCALL} doesn't "
                            "use traits::length()", __LINE__);
@@ -402,7 +401,7 @@ void test_op_plus_eq (charT, Traits*, Allocator*,
         if (caught) {
             // verify that an exception thrown during allocation
             // didn't cause a change in the state of the object
-            str_state.assert_equal (rw_get_string_state (s_str),
+            str_state.assert_equal (rw_get_string_state (str),
                                     __LINE__, tcase.line, caught);
 
             if (-1 == tcase.bthrow) {
@@ -446,23 +445,23 @@ DEFINE_STRING_TEST_DISPATCH (test_op_plus_eq);
 
 int main (int argc, char** argv)
 {
-    static const StringMembers::Test
+    static const StringTest
     tests [] = {
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::op_plus_eq_ ## tag, tag ## _test_cases,  \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(sig) {                                             \
+        OpPlusEq (sig), sig ## _test_cases,                     \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
     }
 
-        TEST (ptr),
-        TEST (str),
+        TEST (cptr),
+        TEST (cstr),
         TEST (val)
     };
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return StringMembers::run_test (argc, argv, __FILE__,
-                                    "lib.string.op+=",
-                                    test_op_plus_eq, tests, test_count);
+    return rw_run_string_test (argc, argv, __FILE__,
+                               "lib.string.op+=",
+                               test_op_plus_eq, tests, test_count);
 }

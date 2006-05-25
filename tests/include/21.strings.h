@@ -32,441 +32,490 @@
 
 /**************************************************************************/
 
-struct _TEST_EXPORT StringMembers {
+struct StringIds {
 
     // identifiers for the charT template argument
-    enum charT  { UnknownChar = 0, Char, WChar, UChar };
+    enum CharId { Char, WChar, UChar };
 
     // identifiers for  the Traits template argument
-    enum Traits { UnknownTraits = 0, DefaultTraits, UserTraits };
+    enum TraitsId { DefaultTraits, UserTraits };
 
     // identifiers for  the Allocator template argument
-    enum Allocator { UnknownAllocator = 0, DefaultAllocator, UserAllocator };
+    enum AllocId { DefaultAlloc, UserAlloc };
 
-    enum SignatureId {
-        // (void)
-        sig_void = 1,
-        // (const value_type*)
-        sig_ptr,
-        // (const basic_string&)
-        sig_str,
-        // (size_type)
-        sig_size,
-        // (size_type) const
-        sig_size_const,
-        // (const value_type*, size_type)
-        sig_ptr_size,
-        // (const basic_string&, size_type)
-        sig_str_size,
-        // (const value_type*, size_type, size_type)
-        sig_ptr_size_size,
-        // (const basic_string&, size_type, size_type)
-        sig_str_size_size,
-        // (size_type, const value_type*, size_type)
-        sig_size_ptr_size,
-        // (size_type, const basic_string&, size_type, size_type)
-        sig_size_str_size_size,
-        // (size_type, value_type)
-        sig_size_val,
-        // (size_type, const basic_string&)
-        sig_size_str,
-        // (size_type, size_type)
-        sig_size_size,
-        // (size_type, size_type, const value_type*)
-        sig_size_size_ptr,
-        // (size_type, size_type, const basic_string&)
-        sig_size_size_str,
-        // (size_type, size_type, value_type)
-        sig_size_size_val,
-        // (size_type, size_type, const value_type*, size_type)
-        sig_size_size_ptr_size,
-        // (size_type, size_type, const value_type*, size_type, size_type)
-        sig_size_size_str_size_size,
-        // (size_type, size_type, size_type, value_type)
-        sig_size_size_size_val,
-        // (value_type)
-        sig_val,
-        // (value_type, size_type)
-        sig_val_size,
-        // (InputIterator, InputIterator)
-        sig_range,
-        // (iterator)
-        sig_iter,
-        // (iterator, value_type)
-        sig_iter_val,
-        // (iterator, size_type, value_type)
-        sig_iter_size_val,
-        // (iterator, InputIterator, InputIterator)
-        sig_iter_range,
-        // (iterator, iterator)
-        sig_iter_iter,
-        // (iterator, iterator, const value_type*)
-        sig_iter_iter_ptr,
-        // (iterator, iterator, const basic_string&)
-        sig_iter_iter_str,
-        // (iterator, iterator, const value_type*, size_type)
-        sig_iter_iter_ptr_size,
-        // (iterator, iterator, size_type, value_type)
-        sig_iter_iter_size_val,
-        // (iterator, iterator, InputIterator, InputIterator)
-        sig_iter_iter_range,
-
-        //
-        sig_last
+    // identifies a set of overloaded member or non-member
+    // string functions
+    enum FuncId {
+        // 5 bits, 32 functions max
+        /*  0 */ fid_append,
+        /*  1 */ fid_assign,
+        /*  2 */ fid_erase,
+        /*  3 */ fid_insert,
+        /*  4 */ fid_replace,
+        /*  5 */ fid_op_plus_eq,
+        /*  6 */ fid_find,
+        /*  7 */ fid_rfind,
+        /*  8 */ fid_find_first_of,
+        /*  9 */ fid_find_last_of,
+        /* 10 */ fid_find_first_not_of,
+        /* 11 */ fid_find_last_not_of,
+        /* 12 */ fid_compare,
+        /* 13 */ fid_substr,
+        /* 14 */ fid_op_index,
+        /*    */ fid_op_index_const = fid_op_index,
+        /* 15 */ fid_at,
+        /*    */ fid_at_const = fid_at,
+        /* 16 */ fid_copy,
+        /* 17 */ fid_ctor,
+        /* 18 */ fid_op_set,
+        /* 19 */ fid_swap,
+        /* 20 */ fid_push_back,
+        /* -- */ fid_bits = 5,
+        /* -- */ fid_mask = 31
     };
 
-    enum MemberId {
-        mem_append             = 1 << 6,
-        mem_assign             = 1 << 7,
-        mem_erase              = 1 << 8,
-        mem_insert             = 1 << 9,
-        mem_replace            = 1 << 10,
-        mem_op_plus_eq         = 1 << 11,
-        mem_find               = 1 << 12,
-        mem_rfind              = 1 << 13,
-        mem_find_first_of      = 1 << 14,
-        mem_find_last_of       = 1 << 15,
-        mem_find_first_not_of  = 1 << 16,
-        mem_find_last_not_of   = 1 << 17,
-        mem_compare            = 1 << 18,
-        mem_substr             = 1 << 19,
-        mem_op_index           = 1 << 20,
-        mem_at                 = 1 << 21,
-        mem_copy               = 1 << 22,
-        mem_ctor               = 1 << 23,
-        mem_op_set             = 1 << 24,
-        mem_swap               = 1 << 25,
-        mem_push_back          = 1 << 26,
-        mem_mask       =
-            mem_append | mem_assign | mem_erase | mem_insert | 
-            mem_replace | mem_op_plus_eq | mem_find | mem_rfind |
-            mem_find_first_of | mem_find_last_of | mem_find_first_not_of |
-            mem_find_last_not_of | mem_compare | mem_substr | mem_op_index |
-            mem_at | mem_copy | mem_ctor | mem_op_set | mem_swap | 
-            mem_push_back
+    // identifies the type of a function argument, including
+    // the implicit this
+    enum ArgId {
+        // 4 bits, 16 types max
+        /*  0 */ arg_void,    // void
+        /*  1 */ arg_size,    // size_type
+        /*  2 */ arg_val,     // value_type
+        /*  3 */ arg_ptr,     // pointer
+        /*  4 */ arg_cptr,    // const_pointer
+        /*  5 */ arg_ref,     // reference
+        /*  6 */ arg_cref,    // const_reference
+        /*  7 */ arg_iter,    // iterator
+        /*  8 */ arg_citer,   // const_iterator
+        /*  9 */ arg_range,   // Iterator, Iterator
+        /* 10 */ arg_str,     // string& (or this for member functions)
+        /* 11 */ arg_cstr,    // const string& (or const this for members)
+        /* 12 */ arg_alloc,   // const allocator&
+        /* -- */ arg_bits = 4,
+        /* -- */ arg_mask = 15
     };
+
+#define _FCAT(a, b)             a ## b
+#define FCAT(a, b)              _FCAT (a ## _, b)
+#define FID_0(f)                FCAT (f, void)
+#define FID_1(f, a)             FCAT (f, a)
+#define FID_2(f, a, b)          FID_1 (FCAT (f, a), b)
+#define FID_3(f, a, b, c)       FID_2 (FCAT (f, a), b, c)
+#define FID_4(f, a, b, c, d)    FID_3 (FCAT (f, a), b, c, d)
+#define FID_5(f, a, b, c, d, e) FID_4 (FCAT (f, a), b, c, d, e)
+
+#define ARG(a, N)   ((arg_ ## a << (N << 2)) << 5)
+
+#define SIG_0(f)                   fid_ ## f
+#define SIG_1(f, a)                SIG_0 (f) | ARG (a, 0)
+#define SIG_2(f, a, b)             SIG_1 (f, a) | ARG (b, 1)
+#define SIG_3(f, a, b, c)          SIG_2 (f, a, b) | ARG (c, 2)
+#define SIG_4(f, a, b, c, d)       SIG_3 (f, a, b, c) | ARG (d, 3)
+#define SIG_5(f, a, b, c, d, e)    SIG_4 (f, a, b, c, d) | ARG (e, 4)
+#define SIG_6(f, a, b, c, d, e, g) SIG_5 (f, a, b, c, d, e) | ARG (g, 5)
+
+// convenience macro to define member function overload id's
+// where the first argument encodes the constness of the member
+// function (or the lack thereof)
+#define MEMBER_0(f, self) \
+        FID_0 (f) = SIG_1 (f, self)
+#define MEMBER_1(f, self, a) \
+        FID_1 (f, a) = SIG_2 (f, self, a)
+#define MEMBER_2(f, self, a, b) \
+        FID_2 (f, a, b) = SIG_3 (f, self, a, b)
+#define MEMBER_3(f, self, a, b, c) \
+        FID_3 (f, a, b, c) = SIG_4 (f, self, a, b, c)
+#define MEMBER_4(f, self, a, b, c, d) \
+        FID_4 (f, a, b, c, d) = SIG_5 (f, self, a, b, c, d)
+#define MEMBER_5(f, self, a, b, c, d, e) \
+        FID_5 (f, a, b, c, d, e) = SIG_6 (f, self, a, b, c, d, e)
+
+// convenience macro to define non-member function overload id's
+#define NON_MEMBER_0(f) \
+        FID_0 (f) = SIG_0 (f)
+#define NON_MEMBER_1(f, a) \
+        FID_1 (f, a) = SIG_1 (f, a)
+#define NON_MEMBER_2(f, a, b) \
+        FID_2 (f, a, b) = SIG_2 (f, a, b)
+#define NON_MEMBER_3(f, a, b, c) \
+        FID_3 (f, a, b, c) = SIG_3 (f, a, b, c)
+#define NON_MEMBER_4(f, a, b, c, d) \
+        FID_4 (f, a, b, c, d) = SIG_4 (f, a, b, c, d)
+#define NON_MEMBER_5(f, a, b, c, d, e) \
+        FID_5 (f, a, b, c, d, e) = SIG_5 (f, a, b, c, d, e)
 
     // unique identifiers for all overloads of each member function
     enum OverloadId {
-        UnknownOverload = 0,
         //////////////////////////////////////////////////////////////
-        // append (const value_type*)
-        append_ptr = mem_append + sig_ptr,
+        // append (const_pointer)
+        MEMBER_1 (append, str, cptr),
         // append (const basic_string&)
-        append_str = mem_append + sig_str,
-        // append (const value_type*, size_type)
-        append_ptr_size = mem_append + sig_ptr_size,
+        MEMBER_1 (append, str, cstr),
+        // append (const_pointer, size_type)
+        MEMBER_2 (append, str, cptr, size),
         // append (const basic_string&, size_type, size_type)
-        append_str_size_size = mem_append + sig_str_size_size,
+        MEMBER_3 (append, str, cstr, size, size),
         // append (size_type, value_type)
-        append_size_val = mem_append + sig_size_val,
+        MEMBER_2 (append, str, size, val),
         // append (InputIterator, InputIterator)
-        append_range = mem_append + sig_range,
+        MEMBER_1 (append, str, range),
 
         //////////////////////////////////////////////////////////////
-        // assign (const value_type*)
-        assign_ptr = mem_assign + sig_ptr,
+        // assign (const_pointer)
+        MEMBER_1 (assign, str, cptr),
         // assign (const basic_string&)
-        assign_str = mem_assign + sig_str,
-        // assign (const value_type*, size_type)
-        assign_ptr_size = mem_assign + sig_ptr_size,
+        MEMBER_1 (assign, str, cstr),
+        // assign (const_pointer, size_type)
+        MEMBER_2 (assign, str, cptr, size),
         // assign (const basic_string&, size_type, size_type)
-        assign_str_size_size = mem_assign + sig_str_size_size,
+        MEMBER_3 (assign, str, cstr, size, size),
         // assign (size_type, value_type)
-        assign_size_val = mem_assign + sig_size_val,
+        MEMBER_2 (assign, str, size, val),
         // assign (InputIterator, InputIterator)
-        assign_range = mem_assign + sig_range,
+        MEMBER_1 (assign, str, range),
 
         //////////////////////////////////////////////////////////////
         // erase ()
-        erase_void = mem_erase + sig_void,
+        MEMBER_0 (erase, str),
         // erase (size_type)
-        erase_size = mem_erase + sig_size,
+        MEMBER_1 (erase, str, size),
         // erase (size_type, size_type)
-        erase_size_size = mem_erase + sig_size_size,
+        MEMBER_2 (erase, str, size, size),
         // erase (iterator)
-        erase_iter = mem_erase + sig_iter,
+        MEMBER_1 (erase, str, iter),
         // erase (iterator, iterator)
-        erase_iter_iter = mem_erase + sig_iter_iter,
+        MEMBER_2 (erase, str, iter, iter),
 
         //////////////////////////////////////////////////////////////
-        // insert (size_type, const value_type*)
-        insert_size_ptr = mem_insert + sig_size_val,
+        // insert (size_type, const_pointer)
+        MEMBER_2 (insert, str, size, cptr),
         // insert (size_type, const basic_string&)
-        insert_size_str = mem_insert + sig_size_str,
-        // insert (size_type, const value_type*, size_type)
-        insert_size_ptr_size = mem_insert + sig_size_ptr_size,
-        // insert (size_type, basic_string&, size_type, size_type)
-        insert_size_str_size_size = mem_insert + sig_size_str_size_size,
+        MEMBER_2 (insert, str, size, cstr),
+        // insert (size_type, const_pointer, size_type)
+        MEMBER_3 (insert, str, size, cptr, size),
+        // insert (size_type, const basic_string&, size_type, size_type)
+        MEMBER_4 (insert, str, size, cstr, size, size),
         // insert (size_type, size_type, value_type)
-        insert_size_size_val = mem_insert + sig_size_size_val,
+        MEMBER_3 (insert, str, size, size, val),
         // insert (iterator, value_type)
-        insert_val = mem_insert + sig_iter_val,
+        MEMBER_2 (insert, str, iter, val),
         // insert (iterator, size_type, value_type)
-        insert_size_val = mem_insert + sig_iter_size_val,
-        // insert (iterator p, InputIterator, InputIterator)
-        insert_range = mem_insert + sig_iter_range,
+        MEMBER_3 (insert, str, iter, size, val),
+        // insert (iterator, InputIterator, InputIterator)
+        MEMBER_2 (insert, str, iter, range),
 
         //////////////////////////////////////////////////////////////
-        // (size_type, size_type, const value_type*)
-        replace_size_size_ptr = mem_replace + sig_size_size_ptr,
-        // (size_type, size_type, basic_string&)
-        replace_size_size_str = mem_replace + sig_size_size_str,
-        // (size_type, size_type, const value_type*, size_type)
-        replace_size_size_ptr_size = mem_replace + sig_size_size_ptr_size,
+        // (size_type, size_type, const_pointer)
+        MEMBER_3 (replace, str, size, size, cptr),
+        // (size_type, size_type, const basic_string&)
+        MEMBER_3 (replace, str, size, size, cstr),
+        // (size_type, size_type, const_pointer, size_type)
+        MEMBER_4 (replace, str, size, size, cptr, size),
         // (size_type, size_type, const basic_string&, size_type, size_type)
-        replace_size_size_str_size_size =
-            mem_replace + sig_size_size_str_size_size,
+        MEMBER_5 (replace, str, size, size, cstr, size, size),
         // (size_type, size_type, size_type, value_type)
-        replace_size_size_size_val = mem_replace + sig_size_size_size_val,
-        // (iterator, iterator, const value_type*)
-        replace_iter_iter_ptr = mem_replace + sig_iter_iter_ptr,
+        MEMBER_4 (replace, str, size, size, size, val),
+        // (iterator, iterator, const_pointer)
+        MEMBER_3 (replace, str, iter, iter, cptr),
         // (iterator, iterator, const basic_string&)
-        replace_iter_iter_str = mem_replace + sig_iter_iter_str,
-        // (iterator, iterator, const value_type*, size_type)
-        replace_iter_iter_ptr_size = mem_replace + sig_iter_iter_ptr_size,
+        MEMBER_3 (replace, str, iter, iter, cstr),
+        // (iterator, iterator, const_pointer, size_type)
+        MEMBER_4 (replace, str, iter, iter, cptr, size),
         // (iterator, iterator, size_type, value_type)
-        replace_iter_iter_size_val = mem_replace + sig_iter_iter_size_val,
+        MEMBER_4 (replace, str, iter, iter, size, val),
         // (iterator, iterator, InputIterator, InputIterator)
-        replace_iter_iter_range = mem_replace + sig_iter_iter_range,
+        MEMBER_3 (replace, str, iter, iter, range),
 
-        // operator += (const value_type*)
-        op_plus_eq_ptr = mem_op_plus_eq + sig_ptr,   
-        // operator += (const basic_string&)
-        op_plus_eq_str = mem_op_plus_eq + sig_str,
-        // operator += (value_type)
-        op_plus_eq_val = mem_op_plus_eq + sig_val,
+        //////////////////////////////////////////////////////////////
+        // operator+= (const_pointer)
+        MEMBER_1 (op_plus_eq, str, cptr), 
+        // operator+= (const basic_string&)
+        MEMBER_1 (op_plus_eq, str, cstr),
+        // operator+= (value_type)
+        MEMBER_1 (op_plus_eq, str, val),
 
         //////////////////////////////////////////////////////////////
         // overloads of find, rfind, find_first_of, find_last_of, 
         // find_first_not_of, find_last_not_of
 
-        // find (const value_type*)
-        find_ptr = mem_find + sig_ptr,
-        // find (basic_string&)
-        find_str = mem_find + sig_str,
-        // find (const value_type*, size_type)
-        find_ptr_size = mem_find + sig_ptr_size,
-        // find (const value_type*, size_type, size_type)
-        find_ptr_size_size = mem_find + sig_ptr_size_size,
-        // find (basic_string&, size_type)
-        find_str_size = mem_find + sig_str_size,
-        // find (value_type)
-        find_val = mem_find + sig_val,
-        // find (value_type, size_type)
-        find_val_size = mem_find + sig_val_size,
+        // find (const_pointer) const
+        MEMBER_1 (find, cstr, cptr),
+        // find (const basic_string&) const
+        MEMBER_1 (find, cstr, cstr),
+        // find (const_pointer, size_type) const
+        MEMBER_2 (find, cstr, cptr, size),
+        // find (const_pointer, size_type, size_type) const
+        MEMBER_3 (find, cstr, cptr, size, size),
+        // find (const basic_string&, size_type) const
+        MEMBER_2 (find, cstr, cstr, size),
+        // find (value_type) const
+        MEMBER_1 (find, cstr, val),
+        // find (value_type, size_type) const
+        MEMBER_2 (find, cstr, val, size),
 
         //////////////////////////////////////////////////////////////
-        // rfind (const value_type*)
-        rfind_ptr = mem_rfind + sig_ptr,
-        // rfind (basic_string&)
-        rfind_str = mem_rfind + sig_str,
-        // rfind (const value_type*, size_type)
-        rfind_ptr_size = mem_rfind + sig_ptr_size,
-        // rfind (const value_type*, size_type, size_type)
-        rfind_ptr_size_size = mem_rfind + sig_ptr_size_size,
-        // rfind (basic_string&, size_type)
-        rfind_str_size = mem_rfind + sig_str_size,
-        // rfind (value_type)
-        rfind_val = mem_rfind + sig_val,
-        // rfind (value_type, size_type)
-        rfind_val_size = mem_rfind + sig_val_size,
+        // rfind (const_pointer) const
+        MEMBER_1 (rfind, cstr, cptr),
+        // rfind (const basic_string&) const
+        MEMBER_1 (rfind, cstr, cstr),
+        // rfind (const_pointer, size_type) const
+        MEMBER_2 (rfind, cstr, cptr, size),
+        // rfind (const_pointer, size_type, size_type) const
+        MEMBER_3 (rfind, cstr, cptr, size, size),
+        // rfind (const basic_string&, size_type) const
+        MEMBER_2 (rfind, cstr, cstr, size),
+        // rfind (value_type) const
+        MEMBER_1 (rfind, cstr, val),
+        // rfind (value_type, size_type) const
+        MEMBER_2 (rfind, cstr, val, size),
 
         //////////////////////////////////////////////////////////////
-        // find_first_of (const value_type*)
-        find_first_of_ptr = mem_find_first_of + sig_ptr,
-        // find_first_of (basic_string&)
-        find_first_of_str = mem_find_first_of + sig_str,
-        // find_first_of (const value_type*, size_type)
-        find_first_of_ptr_size = mem_find_first_of + sig_ptr_size,
-        // find_first_of (const value_type*, size_type, size_type)
-        find_first_of_ptr_size_size = mem_find_first_of + sig_ptr_size_size,
-        // find_first_of (basic_string&, size_type)
-        find_first_of_str_size = mem_find_first_of + sig_str_size,
-        // find_first_of (value_type)
-        find_first_of_val = mem_find_first_of + sig_val,
-        // find_first_of (value_type, size_type)
-        find_first_of_val_size = mem_find_first_of + sig_val_size,
+        // find_first_of (const_pointer) const
+        MEMBER_1 (find_first_of, cstr, cptr),
+        // find_first_of (const basic_string&) const
+        MEMBER_1 (find_first_of, cstr, cstr),
+        // find_first_of (const_pointer, size_type) const
+        MEMBER_2 (find_first_of, cstr, cptr, size),
+        // find_first_of (const_pointer, size_type, size_type) const
+        MEMBER_3 (find_first_of, cstr, cptr, size, size),
+        // find_first_of (const basic_string&, size_type) const
+        MEMBER_2 (find_first_of, cstr, cstr, size),
+        // find_first_of (value_type) const
+        MEMBER_1 (find_first_of, cstr, val),
+        // find_first_of (value_type, size_type) const
+        MEMBER_2 (find_first_of, cstr, val, size),
 
         //////////////////////////////////////////////////////////////
-        // find_last_of (const value_type*)
-        find_last_of_ptr = mem_find_last_of + sig_ptr,
-        // find_last_of (basic_string&)
-        find_last_of_str = mem_find_last_of + sig_str,
-        // find_last_of (const value_type*, size_type)
-        find_last_of_ptr_size = mem_find_last_of + sig_ptr_size,
-        // find_last_of (const value_type*, size_type, size_type)
-        find_last_of_ptr_size_size = mem_find_last_of + sig_ptr_size_size,
-        // find_last_of (basic_string&, size_type)
-        find_last_of_str_size = mem_find_last_of + sig_str_size,
-        // find_last_of (value_type)
-        find_last_of_val = mem_find_last_of + sig_val,
-        // find_last_of (value_type, size_type)
-        find_last_of_val_size = mem_find_last_of + sig_val_size,
+        // find_last_of (const_pointer) const
+        MEMBER_1 (find_last_of, cstr, cptr),
+        // find_last_of (const basic_string&) const
+        MEMBER_1 (find_last_of, cstr, cstr),
+        // find_last_of (const_pointer, size_type) const
+        MEMBER_2 (find_last_of, cstr, cptr, size),
+        // find_last_of (const_pointer, size_type, size_type) const
+        MEMBER_3 (find_last_of, cstr, cptr, size, size),
+        // find_last_of (const basic_string&, size_type) const
+        MEMBER_2 (find_last_of, cstr, cstr, size),
+        // find_last_of (value_type) const
+        MEMBER_1 (find_last_of, cstr, val),
+        // find_last_of (value_type, size_type) const
+        MEMBER_2 (find_last_of, cstr, val, size),
 
         //////////////////////////////////////////////////////////////
-        // find_first_not_of (const value_type*)
-        find_first_not_of_ptr = mem_find_first_not_of + sig_ptr,
-        // find_first_not_of (basic_string&)
-        find_first_not_of_str = mem_find_first_not_of + sig_str,
-        // find_first_not_of (const value_type*, size_type)
-        find_first_not_of_ptr_size = mem_find_first_not_of + sig_ptr_size,
-        // find_first_not_of (const value_type*, size_type, size_type)
-        find_first_not_of_ptr_size_size = 
-            mem_find_first_not_of + sig_ptr_size_size,
-        // find_first_not_of (basic_string&, size_type)
-        find_first_not_of_str_size = mem_find_first_not_of + sig_str_size,
-        // find_first_not_of (value_type)
-        find_first_not_of_val = mem_find_first_not_of + sig_val,
-        // find_first_not_of (value_type, size_type)
-        find_first_not_of_val_size = mem_find_first_not_of + sig_val_size,
+        // find_first_not_of (const_pointer) const
+        MEMBER_1 (find_first_not_of, cstr, cptr),
+        // find_first_not_of (const basic_string&) const
+        MEMBER_1 (find_first_not_of, cstr, cstr),
+        // find_first_not_of (const_pointer, size_type) const
+        MEMBER_2 (find_first_not_of, cstr, cptr, size),
+        // find_first_not_of (const_pointer, size_type, size_type) const
+        MEMBER_3 (find_first_not_of, cstr, cptr, size, size),
+        // find_first_not_of (const basic_string&, size_type) const
+        MEMBER_2 (find_first_not_of, cstr, cstr, size),
+        // find_first_not_of (value_type) const
+        MEMBER_1 (find_first_not_of, cstr, val),
+        // find_first_not_of (value_type, size_type) const
+        MEMBER_2 (find_first_not_of, cstr, val, size),
 
         //////////////////////////////////////////////////////////////
-        // find_last_not_of (const value_type*)
-        find_last_not_of_ptr = mem_find_last_not_of + sig_ptr,
-        // find_last_not_of (basic_string&)
-        find_last_not_of_str = mem_find_last_not_of + sig_str,
-        // find_last_not_of (const value_type*, size_type)
-        find_last_not_of_ptr_size = mem_find_last_not_of + sig_ptr_size,
-        // find_last_not_of (const value_type*, size_type, size_type)
-        find_last_not_of_ptr_size_size = 
-            mem_find_last_not_of + sig_ptr_size_size,
-        // find_last_not_of (basic_string&, size_type)
-        find_last_not_of_str_size = mem_find_last_not_of + sig_str_size,
-        // find_last_not_of (value_type)
-        find_last_not_of_val = mem_find_last_not_of + sig_val,
-        // find_last_not_of (value_type, size_type)
-        find_last_not_of_val_size = mem_find_last_not_of + sig_val_size,
+        // find_last_not_of (const_pointer) const
+        MEMBER_1 (find_last_not_of, cstr, cptr),
+        // find_last_not_of (const basic_string&) const
+        MEMBER_1 (find_last_not_of, cstr, cstr),
+        // find_last_not_of (const_pointer, size_type) const
+        MEMBER_2 (find_last_not_of, cstr, cptr, size),
+        // find_last_not_of (const_pointer, size_type, size_type) const
+        MEMBER_3 (find_last_not_of, cstr, cptr, size, size),
+        // find_last_not_of (const basic_string&, size_type) const
+        MEMBER_2 (find_last_not_of, cstr, cstr, size),
+        // find_last_not_of (value_type) const
+        MEMBER_1 (find_last_not_of, cstr, val),
+        // find_last_not_of (value_type, size_type) const
+        MEMBER_2 (find_last_not_of, cstr, val, size),
 
         //////////////////////////////////////////////////////////////
-        // compare (const value_type*)
-        compare_ptr = mem_compare + sig_ptr,
-        // compare (const basic_string&)
-        compare_str = mem_compare + sig_str,
-        // compare (size_type, size_type, const value_type*)
-        compare_size_size_ptr = mem_compare + sig_size_size_ptr,
-        // compare (size_type, size_type, const basic_string&)
-        compare_size_size_str = mem_compare + sig_size_size_str,
-        // compare (size_type, size_type, const value_type*, size_type)
-        compare_size_size_ptr_size = mem_compare + sig_size_size_ptr_size,
-        // (size_type, size_type, const basic_string&, size_type, size_type)
-        compare_size_size_str_size_size = 
-            mem_compare + sig_size_size_str_size_size,
+        // compare (const_pointer) const
+        MEMBER_1 (compare, cstr, cptr),
+        // compare (const basic_string&) const
+        MEMBER_1 (compare, cstr, cstr),
+        // compare (size_type, size_type, const_pointer) const
+        MEMBER_3 (compare, cstr, size, size, cptr),
+        // compare (size_type, size_type, const basic_string&) const
+        MEMBER_3 (compare, cstr, size, size, cstr),
+        // compare (size_type, size_type, const_pointer, size_type) const
+        MEMBER_4 (compare, cstr, size, size, cptr, size),
+        // compare (size_type, size_type, const basic_string&,
+        //          size_type, size_type) const
+        MEMBER_5 (compare, cstr, size, size, cstr, size, size),
 
         //////////////////////////////////////////////////////////////
-        // substr (void)
-        substr_void = mem_substr + sig_void,
-        // substr (size_type)
-        substr_size = mem_substr + sig_size,
-        // substr (size_type, size_type)
-        substr_size_size = mem_substr + sig_size_size,
+        // substr (void) const
+        MEMBER_1 (substr, cstr, void),
+        // substr (size_type) const
+        MEMBER_1 (substr, cstr, size),
+        // substr (size_type, size_type) const
+        MEMBER_2 (substr, cstr, size, size),
 
         //////////////////////////////////////////////////////////////
         // operator[] (size_type)
-        op_index_size = mem_op_index + sig_size,
+        MEMBER_1 (op_index, str, size),
         // operator[] (size_type) const
-        op_index_size_const = mem_op_index + sig_size_const,
+        MEMBER_1 (op_index_const, cstr, size),
         // at (size_type)
-        at_size = mem_at + sig_size,
+        MEMBER_1 (at, str, size),
         // at (size_type) const
-        at_size_const = mem_at + sig_size_const,
+        MEMBER_1 (at_const, cstr, size),
 
         //////////////////////////////////////////////////////////////
-        // copy (value_type*, size_type)
-        copy_ptr_size = mem_copy + sig_ptr_size,
-        // copy (value_type*, size_type, size_type)
-        copy_ptr_size_size = mem_copy + sig_ptr_size_size,
+        // copy (pointer, size_type) const
+        MEMBER_2 (copy, cstr, ptr, size),
+        // copy (pointer, size_type, size_type) const
+        MEMBER_3 (copy, cstr, ptr, size, size),
 
         //////////////////////////////////////////////////////////////
-        // (void)
-        ctor_void = mem_ctor + sig_void,
-        // (const value_type*)
-        ctor_ptr = mem_ctor + sig_ptr,
-        // (basic_string&)
-        ctor_str = mem_ctor + sig_str,
-        // (const value_type*, size_type)
-        ctor_ptr_size = mem_ctor + sig_ptr_size,
-        // (const basic_string&, size_type)
-        ctor_str_size = mem_ctor + sig_str_size,
-        // (const basic_string&, size_type, size_type)
-        ctor_str_size_size = mem_ctor + sig_str_size_size,
-        // (size_type, value_type)
-        ctor_size_val = mem_ctor + sig_size_val,
-        // (InputIterator, InputIterator)
-        ctor_range = mem_ctor + sig_range,
+        // basic_string (void)
+        MEMBER_0 (ctor, str),
+        // basic_string (const allocator_type&)
+        MEMBER_1 (ctor, str, alloc),
+        // basic_string (const_pointer)
+        MEMBER_1 (ctor, str, cptr),
+        // basic_string (const_pointer, const allocator_type&)
+        MEMBER_2 (ctor, str, cptr, alloc),
+        // basic_string (const basic_string&)
+        MEMBER_1 (ctor, str, cstr),
+        // basic_string (const basic_string&, const allocator_type&)
+        MEMBER_2 (ctor, str, cstr, alloc),
+        // basic_string (const_pointer, size_type)
+        MEMBER_2 (ctor, str, cptr, size),
+        // basic_string (const_pointer, size_type, const allocator_type&)
+        MEMBER_3 (ctor, str, cptr, size, alloc),
+        // basic_string (const basic_string&, size_type)
+        MEMBER_2 (ctor, str, cstr, size),
+        // basic_string (const basic_string&, size_type, const allocator&)
+        MEMBER_3 (ctor, str, cstr, size, alloc),
+        // basic_string (const basic_string&, size_type, size_type)
+        MEMBER_3 (ctor, str, cstr, size, size),
+        // basic_string (const basic_string&, size_type, size_type, allocator&)
+        MEMBER_4 (ctor, str, cstr, size, size, alloc),
+        // basic_string (size_type, value_type)
+        MEMBER_2 (ctor, str, size, val),
+        // basic_string (size_type, value_type, const allocator_type&)
+        MEMBER_3 (ctor, str, size, val, alloc),
+        // basic_string (InputIterator, InputIterator)
+        MEMBER_1 (ctor, str, range),
+        // basic_string (InputIterator, InputIterator, const allocator&)
+        MEMBER_2 (ctor, str, range, alloc),
 
         //////////////////////////////////////////////////////////////
-        // (const value_type*)
-        op_set_ptr = mem_op_set + sig_ptr,
-        // (basic_string&)
-        op_set_str = mem_op_set + sig_str,
-        // (value_type)
-        op_set_val = mem_op_set + sig_val,
+        // operator= (const_pointer)
+        MEMBER_1 (op_set, str, cptr),
+        // operator= (const basic_string&)
+        MEMBER_1 (op_set, str, cstr),
+        // operator= (value_type)
+        MEMBER_1 (op_set, str, val),
 
         //////////////////////////////////////////////////////////////
         // swap (basic_string&)
-        swap_str = mem_swap + sig_str,
+        MEMBER_1 (swap, str, str),
 
         //////////////////////////////////////////////////////////////
         // push_back (value_type)
-        push_back_val = mem_push_back + sig_val
-
+        MEMBER_1 (push_back, str, val)
     };
 
-    struct Function {
-        charT      char_id_;
-        Traits     traits_id_;
-        Allocator  alloc_id_;
-        OverloadId which_;
-    };
+// clean up helper macros used above
+#undef _FCAT
+#undef FCAT
+#undef FID_0
+#undef FID_1
+#undef FID_2
+#undef FID_3
+#undef FID_4
+#undef FID_5
 
-    // describes a single test case for any overload
-    // of any member function (the same test case can
-    // be used to exercise more than one overload of
-    // the same member function)
-    struct TestCase {
-        int            line;      // test case line number
+#undef ARG
 
-        int            off;       // offset (position argument)
-        int            size;      // size (count argument)
+#undef SIG_0
+#undef SIG_1
+#undef SIG_2
+#undef SIG_3
+#undef SIG_4
+#undef SIG_5
 
-        int            off2;      // offset 2 (position argument)
-        int            size2;     // size 2 (count argument)
+#undef MEMBER_0
+#undef MEMBER_1
+#undef MEMBER_2
+#undef MEMBER_3
+#undef MEMBER_4
+#undef MEMBER_5
 
-        int            val;       // value (single character to append)
-
-        const char*    str;       // controlled sequence
-        _RWSTD_SIZE_T  str_len;   // length of sequence
-
-        const char*    arg;       // sequence to insert
-        _RWSTD_SIZE_T  arg_len;   // length of sequence
-
-        const char*    res;       // resulting sequence
-        _RWSTD_SIZE_T  nres;      // length of sequence or expected result
-                                  // value for find, rfind, compare, etc
-
-        int            bthrow;    // exception expected
-    };
-
-    // describes a set of test cases for a single overload
-    // of a member function
-    struct Test {
-        OverloadId      which;        // member function overload to exercise
-        const TestCase *cases;        // test cases to exercise overload withh
-        _RWSTD_SIZE_T   case_count;   // number of test cases
-    };
-
-    typedef void TestFun (const Function&, const TestCase&);
-
-    static int
-    run_test (int, char**, const char*, const char*,
-              TestFun*, const Test*, _RWSTD_SIZE_T);
-
-    enum { long_string_len = 4096 };
-
-    static char
-    long_string [long_string_len];
+    static ArgId arg_type (OverloadId id, int argno) {
+        return ArgId (((id >> fid_bits) >> argno * arg_bits) & arg_mask);
+    }
 };
+
+
+static const _RWSTD_SIZE_T
+NPOS = _RWSTD_SIZE_MAX;
+
+
+struct StringFunc
+{
+    StringIds::CharId     char_id_;
+    StringIds::TraitsId   traits_id_;
+    StringIds::AllocId    alloc_id_;
+    StringIds::OverloadId which_;
+};
+
+
+// describes a single test case for any overload of any string
+// function (the same test case can be used to exercise more
+// than one overload of the same function)
+struct StringTestCase
+{
+    int            line;      // test case line number
+
+    int            off;       // offset (position argument)
+    int            size;      // size (count argument)
+
+    int            off2;      // offset 2 (position argument)
+    int            size2;     // size 2 (count argument)
+
+    int            val;       // value (single character to append)
+
+    const char*    str;       // controlled sequence
+    _RWSTD_SIZE_T  str_len;   // length of sequence
+
+    const char*    arg;       // sequence to insert
+    _RWSTD_SIZE_T  arg_len;   // length of sequence
+
+    const char*    res;       // resulting sequence
+    _RWSTD_SIZE_T  nres;      // length of sequence or expected result
+                              // value for find, rfind, compare, etc
+
+    int            bthrow;    // exception expected
+};
+
+
+// describes a set of test cases for a single overload of a function
+struct StringTest
+{
+    // string function overload to exercise
+    StringIds::OverloadId which;
+
+    // test cases to exercise overload withh
+    const StringTestCase *cases;
+
+    // number of test cases
+    _RWSTD_SIZE_T case_count;
+};
+
+
+typedef void StringTestFunc (const StringFunc&, const StringTestCase&);
+
+_TEST_EXPORT int
+rw_run_string_test (int, char**, const char*, const char*,
+                    StringTestFunc*, const StringTest*, _RWSTD_SIZE_T);
 
 
 // encapsulates the state of a string object without regard to type
@@ -497,42 +546,42 @@ rw_get_string_state (const String &str)
 
 
 #define Disabled(which)   \
-    StringMembers::opt_memfun_disabled [which & ~StringMembers::mem_mask]
+    StringIds::opt_memfun_disabled [which & ~StringIds::fid_mask]
 
 
 #ifndef _RWSTD_NO_WCHAR_T
-#  define TEST_DISPATCH(Alloc, fname, memfun, tcase)            \
-    if (StringMembers::DefaultTraits == memfun.traits_id_) {    \
-        if (StringMembers::Char == memfun.char_id_)             \
+#  define TEST_DISPATCH(Alloc, fname, func, tcase)              \
+    if (StringIds::DefaultTraits == func.traits_id_) {          \
+        if (StringIds::Char == func.char_id_)                   \
             fname (char (), (std::char_traits<char>*)0,         \
-                   (Alloc<char>*)0, memfun, tcase);             \
-        else if (StringMembers::WChar == memfun.char_id_)       \
+                   (Alloc<char>*)0, func, tcase);               \
+        else if (StringIds::WChar == func.char_id_)             \
             fname (wchar_t (), (std::char_traits<wchar_t>*)0,   \
-                   (Alloc<wchar_t>*)0, memfun, tcase);          \
+                   (Alloc<wchar_t>*)0, func, tcase);            \
         else                                                    \
             rw_note (0, 0, 0,                                   \
                      "%{$CLASS} tests not implemented");        \
     }                                                           \
     else {                                                      \
-        if (StringMembers::Char == memfun.char_id_)             \
+        if (StringIds::Char == func.char_id_)                   \
             fname (char (), (UserTraits<char>*)0,               \
-                   (Alloc<char>*)0, memfun, tcase);             \
-       else if (StringMembers::WChar == memfun.char_id_)        \
+                   (Alloc<char>*)0, func, tcase);               \
+       else if (StringIds::WChar == func.char_id_)              \
             fname (wchar_t (), (UserTraits<wchar_t>*)0,         \
-                   (Alloc<wchar_t>*)0, memfun, tcase);          \
+                   (Alloc<wchar_t>*)0, func, tcase);            \
        else                                                     \
            fname (UserChar (), (UserTraits<UserChar>*)0,        \
-                  (Alloc<UserChar>*)0, memfun, tcase);          \
+                  (Alloc<UserChar>*)0, func, tcase);            \
     }                                                           \
     (void)0
 
 #else   // if defined (_RWSTD_NO_WCHAR_T)
-#  define TEST_DISPATCH(Alloc, fname, memfun, tcase)            \
-    if (StringMembers::DefaultTraits == memfun.traits_id_) {    \
-        if (StringMembers::Char == memfun.char_id_)             \
+#  define TEST_DISPATCH(Alloc, fname, func, tcase)              \
+    if (StringIds::DefaultTraits == func.traits_id_) {          \
+        if (StringIds::Char == func.char_id_)                   \
             fname (char (), (std::char_traits<char>*)0,         \
-                   (Alloc<char>*)0, memfun, tcase);             \
-        else if (StringMembers::WChar == memfun.char_id_)       \
+                   (Alloc<char>*)0, func, tcase);               \
+        else if (StringIds::WChar == func.char_id_)             \
             RW_ASSERT (!"logic error: wchar_t disabled");       \
         else                                                    \
             rw_note (0, 0, 0,                                   \
@@ -540,54 +589,32 @@ rw_get_string_state (const String &str)
         }                                                       \
     }                                                           \
     else {                                                      \
-        if (StringMembers::Char == memfun.char_id_)             \
+        if (StringIds::Char == func.char_id_)                   \
             fname (char (), (UserTraits<char>*)0,               \
-                   (Alloc<char>*)0, memfun, tcase);             \
-        else if (StringMembers::WChar == memfun.char_id_)       \
+                   (Alloc<char>*)0, func, tcase);               \
+        else if (StringIds::WChar == func.char_id_)             \
              RW_ASSERT (!"logic error: wchar_t disabled");      \
-        else if (StringMembers::UChar == memfun.char_id_)       \
+        else if (StringIds::UChar == func.char_id_)             \
             fname (UserChar (), (UserTraits<UserChar>*)0,       \
-                   (Alloc<UserChar>*)0, memfun, tcase);         \
+                   (Alloc<UserChar>*)0, func, tcase);           \
     }                                                           \
     (void)0
 
 #endif   // _RWSTD_NO_WCHAR_T
 
 
-extern _TEST_EXPORT
-int rw_disable_user_allocator;
-
-
-// transitional, to be replaced by DEFINE_STRING_TEST_DISPATCH()
-#define DEFINE_TEST_DISPATCH(fname)                             \
-    template <class charT, class Traits, class Allocator>       \
-    void                                                        \
-    fname (charT, Traits*, Allocator*,                          \
-           StringMembers::OverloadId which,                     \
-           const StringMembers::TestCase &tcase) {              \
-        fname (charT (), (Traits*)0, which, tcase);             \
-    }                                                           \
-                                                                \
+#define DEFINE_STRING_TEST_DISPATCH(fname)                      \
     static void                                                 \
-    fname (const StringMembers::Function &memfun,               \
-           const StringMembers::TestCase &tcase) {              \
-        /* disable tests exercising user-define allocator */    \
-        rw_disable_user_allocator = 1;                          \
-        TEST_DISPATCH (std::allocator, fname, memfun, tcase);   \
-    } typedef void rw_unused_typedef
-
-#define DEFINE_STRING_TEST_DISPATCH(fname)                              \
-    static void                                                         \
-    fname (const StringMembers::Function &memfun,                       \
-           const StringMembers::TestCase &tcase) {                      \
-        if (StringMembers::DefaultAllocator == memfun.alloc_id_) {      \
-            TEST_DISPATCH (std::allocator, fname, memfun, tcase);       \
-        }                                                               \
-        else if (StringMembers::UserAllocator == memfun.alloc_id_) {    \
-            TEST_DISPATCH (UserAlloc, fname, memfun, tcase);            \
-        }                                                               \
-        else                                                            \
-            RW_ASSERT (!"logic error: bad allocator");                  \
+    fname (const StringFunc     &fun,                           \
+           const StringTestCase &tcase) {                       \
+        if (StringIds::DefaultAlloc == fun.alloc_id_) {         \
+            TEST_DISPATCH (std::allocator, fname, fun, tcase);  \
+        }                                                       \
+        else if (StringIds::UserAlloc == fun.alloc_id_) {       \
+            TEST_DISPATCH (UserAlloc, fname, fun, tcase);       \
+        }                                                       \
+        else                                                    \
+            RW_ASSERT (!"logic error: bad allocator");          \
     } typedef void rw_unused_typedef
     
 

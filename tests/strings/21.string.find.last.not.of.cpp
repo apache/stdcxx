@@ -38,11 +38,7 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define NPOS                      _RWSTD_SIZE_MAX
-#define FindLastNotOf(which)      StringMembers::find_last_not_of_ ## which
-
-typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Function   Function;
+#define FindLastNotOf(sig)        StringIds::find_last_not_of_ ## sig
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -53,8 +49,8 @@ static const char* const exceptions[] = {
 
 // used to exercise 
 // find_last_not_of (const value_type*)
-static const TestCase 
-ptr_test_cases [] = {
+static const StringTestCase 
+cptr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, res)                 \
@@ -125,8 +121,8 @@ ptr_test_cases [] = {
 
 // used to exercise 
 // find_last_not_of (const basic_string&)
-static const TestCase 
-str_test_cases [] = {
+static const StringTestCase 
+cstr_test_cases [] = {
 
 #undef TEST     
 #define TEST(str, arg, res)                 \
@@ -199,8 +195,8 @@ str_test_cases [] = {
 
 // used to exercise 
 // find_last_not_of (const value_type*, size_type)
-static const TestCase 
-ptr_size_test_cases [] = {
+static const StringTestCase 
+cptr_size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, off, res)            \
@@ -297,8 +293,8 @@ ptr_size_test_cases [] = {
 
 // used to exercise 
 // find_last_not_of (const value_type*, size_type, size_type)
-static const TestCase 
-ptr_size_size_test_cases [] = {
+static const StringTestCase 
+cptr_size_size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, off, size, res, bthrow)      \
@@ -420,8 +416,8 @@ ptr_size_size_test_cases [] = {
 
 // used to exercise 
 // find_last_not_of (const basic_string&, size_type)
-static const TestCase 
-str_size_test_cases [] = {
+static const StringTestCase 
+cstr_size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, off, res)            \
@@ -520,7 +516,7 @@ str_size_test_cases [] = {
 
 // used to exercise 
 // find_last_not_of (value_type)
-static const TestCase 
+static const StringTestCase 
 val_test_cases [] = {
 
 #undef TEST
@@ -566,7 +562,7 @@ val_test_cases [] = {
 
 // used to exercise 
 // find_last_not_of (value_type, size_type)
-static const TestCase 
+static const StringTestCase 
 val_size_test_cases [] = {
 
 #undef TEST
@@ -620,8 +616,8 @@ val_size_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_find_last_not_of (charT, Traits*, Allocator*,
-                            const Function &func,
-                            const TestCase &tcase)
+                            const StringFunc     &func,
+                            const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
 
@@ -654,9 +650,6 @@ void test_find_last_not_of (charT, Traits*, Allocator*,
     // the state of the object after an exception)
     const StringState str_state (rw_get_string_state (s_str));
 
-    std::size_t res = 0;
-    std::size_t exp_res = NPOS != tcase.nres ? tcase.nres : String::npos;
-
     const charT* const arg_ptr = tcase.arg ? s_arg.c_str () : s_str.c_str ();
     const String&      arg_str = tcase.arg ? s_arg : s_str;
     const charT        arg_val = make_char (char (tcase.val), (charT*)0);
@@ -680,46 +673,45 @@ void test_find_last_not_of (charT, Traits*, Allocator*,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
     try {
-    switch (func.which_) {
-        case FindLastNotOf (ptr): {
+        std::size_t res = 0;
+
+        switch (func.which_) {
+
+        case FindLastNotOf (cptr):
             res = s_str.find_last_not_of (arg_ptr);
             break;
-        }
 
-        case FindLastNotOf (str): {
+        case FindLastNotOf (cstr):
             res = s_str.find_last_not_of (arg_str);
             break;
-        }
 
-        case FindLastNotOf (ptr_size): {
+        case FindLastNotOf (cptr_size):
             res = s_str.find_last_not_of (arg_ptr, tcase.off);
             break;
-        }
 
-        case FindLastNotOf (ptr_size_size): {
+        case FindLastNotOf (cptr_size_size):
             res = s_str.find_last_not_of (arg_ptr, tcase.off, size);
             break;
-        }
 
-        case FindLastNotOf (str_size): {
+        case FindLastNotOf (cstr_size):
             res = s_str.find_last_not_of (arg_str, tcase.off);
             break;
-        }
 
-        case FindLastNotOf (val): {
+        case FindLastNotOf (val):
             res = s_str.find_last_not_of (arg_val);
             break;
-        }
 
-        case FindLastNotOf (val_size): {
+        case FindLastNotOf (val_size):
             res = s_str.find_last_not_of (arg_val, tcase.off);
             break;
-        }
 
         default:
             RW_ASSERT ("test logic error: unknown find_last_not_of overload");
             return;
         }
+
+        const std::size_t exp_res =
+            NPOS != tcase.nres ? tcase.nres : String::npos;
 
         // verify the returned value
         rw_assert (exp_res == res, 0, tcase.line,
@@ -775,29 +767,27 @@ DEFINE_STRING_TEST_DISPATCH (test_find_last_not_of);
 
 int main (int argc, char** argv)
 {
-    static const StringMembers::Test
+    static const StringTest
     tests [] = {
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::find_last_not_of_ ## tag,                \
-        tag ## _test_cases,                                     \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(sig) {                                             \
+        FindLastNotOf (sig), sig ## _test_cases,                \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
     }
 
-        TEST (ptr),
-        TEST (str),
-        TEST (ptr_size),
-        TEST (ptr_size_size),
-        TEST (str_size),
+        TEST (cptr),
+        TEST (cstr),
+        TEST (cptr_size),
+        TEST (cptr_size_size),
+        TEST (cstr_size),
         TEST (val),
         TEST (val_size)
     };
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return StringMembers::run_test (argc, argv, __FILE__,
-                                    "lib.string.find.last.not.of",
-                                    test_find_last_not_of, tests, test_count);
+    return rw_run_string_test (argc, argv, __FILE__,
+                               "lib.string.find.last.not.of",
+                               test_find_last_not_of, tests, test_count);
 }
-

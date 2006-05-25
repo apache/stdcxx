@@ -39,12 +39,8 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define Append(which)             StringMembers::append_ ## which
-#define PushBack(which)           StringMembers::push_back_ ## which
-
-typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Function   Function;
-
+#define Append(sig)             StringIds::append_ ## sig
+#define PushBack(sig)           StringIds::push_back_ ## sig
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -55,8 +51,8 @@ static const char* const exceptions[] = {
 
 // exercises:
 // append (const value_type*)
-static const TestCase
-ptr_test_cases [] = {
+static const StringTestCase
+cptr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, res, bthrow) {                           \
@@ -118,8 +114,8 @@ ptr_test_cases [] = {
 
 // exercises:
 // append (const basic_string&)
-static const TestCase
-str_test_cases [] = {
+static const StringTestCase
+cstr_test_cases [] = {
 
 #undef TEST
 #define TEST(s, arg, res, bthrow) {                             \
@@ -182,8 +178,8 @@ str_test_cases [] = {
 
 // exercises:
 // append (const value_type*, size_type)
-static const TestCase
-ptr_size_test_cases [] = {
+static const StringTestCase
+cptr_size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, size, res, bthrow) {                     \
@@ -250,11 +246,11 @@ ptr_size_test_cases [] = {
 // exercises:
 // append (const basic_string&, size_type, size_type)
 // append (InputIterator, InputIterator)
-static const TestCase
+static const StringTestCase
 range_test_cases [] = {
 
 // range_test_cases serves a double duty
-#define str_size_size_test_cases range_test_cases
+#define cstr_size_size_test_cases range_test_cases
 
 #undef TEST
 #define TEST(str, arg, off, size, res, bthrow) {                \
@@ -335,7 +331,7 @@ range_test_cases [] = {
 
 // exercises:
 // append (value_type, size_type)
-static const TestCase
+static const StringTestCase
 size_val_test_cases [] = {
 
 #undef TEST
@@ -396,7 +392,7 @@ size_val_test_cases [] = {
 
 // exercises:
 // push_back (value_type)
-static const TestCase
+static const StringTestCase
 push_back_val_test_cases [] = {
 
 #undef TEST
@@ -442,7 +438,7 @@ void test_append_range (const charT    *wstr,
                         Traits*, 
                         Allocator*,
                         const Iterator &it,
-                        const TestCase &tcase)
+                        const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
@@ -505,7 +501,7 @@ void test_append_range (const charT    *wstr,
                         std::size_t     res_len,
                         Traits*,
                         Allocator*,
-                        const TestCase &tcase)
+                        const StringTestCase &tcase)
 {
     if (tcase.bthrow)  // this method doesn't throw
         return;
@@ -533,8 +529,8 @@ void test_append_range (const charT    *wstr,
 
 template <class charT, class Traits, class Allocator>
 void test_append (charT, Traits*, Allocator*,
-                  const Function &func,
-                  const TestCase &tcase)
+                  const StringFunc     &func,
+                  const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
@@ -574,8 +570,8 @@ void test_append (charT, Traits*, Allocator*,
 
     // construct the string object to be modified
     // and the (possibly unused) argument string
-    /* const */ String  s_str (wstr, str_len);
-    const       String  s_arg (warg, arg_len);
+    /* const */ String str (wstr, str_len);
+    const       String arg (warg, arg_len);
 
     if (wstr != wstr_buf)
         delete[] wstr;
@@ -586,15 +582,13 @@ void test_append (charT, Traits*, Allocator*,
     wstr = 0;
     warg = 0;
 
-    std::size_t res_off = 0;
-
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
     // the state of the object after an exception)
-    const StringState str_state (rw_get_string_state (s_str));
+    const StringState str_state (rw_get_string_state (str));
 
-    const charT* const ptr_arg = tcase.arg ? s_arg.c_str () : s_str.c_str ();
-    const String&      str_arg = tcase.arg ? s_arg : s_str;
+    const charT* const ptr_arg = tcase.arg ? arg.c_str () : str.c_str ();
+    const String&      str_arg = tcase.arg ? arg : str;
     const charT        val_arg = (make_char (char (tcase.val), (charT*)0));
 
     std::size_t total_length_calls = 0;
@@ -618,7 +612,7 @@ void test_append (charT, Traits*, Allocator*,
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-        if (1 == tcase.bthrow && Append (str_size_size) == func.which_)
+        if (1 == tcase.bthrow && Append (cstr_size_size) == func.which_)
             expected = exceptions [1];   // out_of_range
         else if (2 == tcase.bthrow)
             expected = exceptions [2];   // length_error
@@ -629,92 +623,88 @@ void test_append (charT, Traits*, Allocator*,
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (tcase.bthrow) {
-        if (wres != wres_buf)
-            delete[] wres;
+        if (tcase.bthrow) {
+            if (wres != wres_buf)
+                delete[] wres;
 
-        return;
-    }
+            return;
+        }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
+
+        // pointer to the returned reference
+        const String* ret_ptr = 0;
 
         try {
 
             switch (func.which_) {
-            case Append (ptr): {
-                const String& s_res = s_str.append (ptr_arg);
-                res_off = &s_res - &s_str;
+
+            case Append (cptr):
+                ret_ptr = &str.append (ptr_arg);
                 if (rg_calls)
                     n_length_calls = rg_calls [UTMemFun::length];
                 break;
-            }
 
-            case Append (str): {
-                const String& s_res = s_str.append (str_arg);
-                res_off = &s_res - &s_str;
+            case Append (cstr):
+                ret_ptr = &str.append (str_arg);
                 break;
-            }
 
-            case Append (ptr_size): {
-                const String& s_res = s_str.append (ptr_arg, tcase.size);
-                res_off = &s_res - &s_str;
+            case Append (cptr_size):
+                ret_ptr = &str.append (ptr_arg, tcase.size);
                 break;
-            }
 
-            case Append (str_size_size): {
-                const String& s_res =
-                    s_str.append (str_arg, tcase.off, tcase.size);
-                res_off = &s_res - &s_str;
+            case Append (cstr_size_size):
+                ret_ptr = &str.append (str_arg, tcase.off, tcase.size);
                 break;
-            }
 
-            case Append (size_val): {
-                const String& s_res = s_str.append (tcase.size, val_arg);
-                res_off = &s_res - &s_str;
+            case Append (size_val):
+                ret_ptr = &str.append (tcase.size, val_arg);
                 break;
-            }
 
-            case PushBack (val): {
-                s_str.push_back (val_arg);
+            case PushBack (val):
+                str.push_back (val_arg);
+                ret_ptr = &str;
                 break;
-            }
 
             default:
                 RW_ASSERT (!"logic error: unknown append overload");
             }
 
+            // verify that the reference returned from the function
+            // refers to the modified string object (i.e., *this
+            // within the function)
+            const std::ptrdiff_t ret_off = ret_ptr - &str;
+
             // verify the returned value
-            if (PushBack (val) != func.which_) {
-                rw_assert (0 == res_off, 0, tcase.line,
-                           "line %d. %{$FUNCALL} returned invalid reference, "
-                           "offset is %zu", __LINE__, res_off);
-            }
+            rw_assert (0 == ret_off, 0, tcase.line,
+                       "line %d. %{$FUNCALL} returned invalid reference, "
+                       "offset is %td", __LINE__, ret_off);
 
             // verify that strings are of equal length
-            rw_assert (res_len == s_str.size (), 0, tcase.line,
+            rw_assert (res_len == str.size (), 0, tcase.line,
                        "line %d. %{$FUNCALL} expected %{#*s}, "
                        "length %zu, got %{/*.*Gs}, length %zu",
                        __LINE__, int (tcase.nres), tcase.res,
                        res_len, int (sizeof (charT)),
-                       int (s_str.size ()), s_str.c_str (), s_str.size ());
+                       int (str.size ()), str.c_str (), str.size ());
 
-            if (res_len == s_str.size ()) {
+            if (res_len == str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, s_str.c_str (), tcase.nres);
+                    rw_match (tcase.res, str.c_str (), tcase.nres);
 
                 rw_assert (match == res_len, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{#*s}, "
                            "got %{/*.*Gs}, difference at offset %zu",
                            __LINE__, int (tcase.nres), tcase.res,
-                           int (sizeof (charT)), int (s_str.size ()),
-                           s_str.c_str (), match);
+                           int (sizeof (charT)), int (str.size ()),
+                           str.c_str (), match);
             }
 
             // verify that Traits::length was used
-            if (Append (ptr) == func.which_ && rg_calls) {
+            if (Append (cptr) == func.which_ && rg_calls) {
                 rw_assert (n_length_calls - total_length_calls > 0, 
                            0, tcase.line, "line %d. %{$FUNCALL} doesn't "
                            "use traits::length()", __LINE__);
@@ -764,7 +754,7 @@ void test_append (charT, Traits*, Allocator*,
         if (caught) {
             // verify that an exception thrown during allocation
             // didn't cause a change in the state of the object
-            str_state.assert_equal (rw_get_string_state (s_str),
+            str_state.assert_equal (rw_get_string_state (str),
                                     __LINE__, tcase.line, caught);
 
             if (-1 == tcase.bthrow) {
@@ -808,32 +798,31 @@ DEFINE_STRING_TEST_DISPATCH (test_append);
 
 int main (int argc, char** argv)
 {
-    static const StringMembers::Test
+    static const StringTest
     tests [] = {
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::append_ ## tag,                          \
-        tag ## _test_cases,                                     \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(sig) {                                             \
+        Append (sig), sig ## _test_cases,                       \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
     }
 
-        TEST (ptr),
-        TEST (str),
-        TEST (ptr_size),
-        TEST (str_size_size),
+        TEST (cptr),
+        TEST (cstr),
+        TEST (cptr_size),
+        TEST (cstr_size_size),
         TEST (size_val),
         TEST (range),
 
         { 
-            StringMembers::push_back_val, push_back_val_test_cases,
+            StringIds::push_back_val, push_back_val_test_cases,
             sizeof push_back_val_test_cases / sizeof *push_back_val_test_cases
         }
     };
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return StringMembers::run_test (argc, argv, __FILE__,
-                                    "lib.string.append",
-                                    test_append, tests, test_count);
+    return rw_run_string_test (argc, argv, __FILE__,
+                               "lib.string.append",
+                               test_append, tests, test_count);
 }

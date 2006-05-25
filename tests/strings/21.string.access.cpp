@@ -31,12 +31,8 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define NPOS                      _RWSTD_SIZE_MAX
-#define At(which)                 StringMembers::at_ ## which
-#define OpIndex(which)            StringMembers::op_index_ ## which
-
-typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Function   Function;
+#define At(sig)                     StringIds::at_ ## sig
+#define OpIndex(sig)                StringIds::op_index_ ## sig
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -47,7 +43,7 @@ static const char* const exceptions[] = {
 
 // used to exercise
 // operator[] (size_type)
-static const TestCase 
+static const StringTestCase 
 op_index_size_test_cases [] = {
 
 #undef TEST
@@ -92,8 +88,8 @@ op_index_size_test_cases [] = {
 
 // used to exercise
 // operator[] (size_type) const 
-static const TestCase 
-op_index_size_const_test_cases [] = {
+static const StringTestCase 
+op_index_const_size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, res) {                    \
@@ -145,10 +141,10 @@ op_index_size_const_test_cases [] = {
 // used to exercise
 // at (size_type)
 // at (size_type) const 
-static const TestCase 
+static const StringTestCase 
 at_size_test_cases [] = {
 
-#define at_size_const_test_cases    at_size_test_cases
+#define at_const_size_test_cases    at_size_test_cases
 
 #undef TEST
 #define TEST(str, off, res, bthrow) {           \
@@ -160,54 +156,52 @@ at_size_test_cases [] = {
     //    +--------------------------------- controlled sequence
     //    |               +----------------- index 
     //    |               |  +-------------- expected result 
-    //    |               |  |     +-------- exception info 
-    //    |               |  |     |              0 - no exception
-    //    |               |  |     |              1 - out_of_range
-    //    |               |  |     |
-    //    V               V  V     V
-    TEST ("a",            0, 'a',  0),
-    TEST ("a",            1, NPOS, 1),
+    //    |               |  |        +----- exception info 
+    //    |               |  |        |      0 - no exception
+    //    |               |  |        |      1 - out_of_range
+    //    |               |  |        |
+    //    V               V  V        V
+    TEST ("a",            0, 'a',     0),
+    TEST ("a",            1, NPOS,    1),
 
-    TEST ("",             0, NPOS, 1),
+    TEST ("",             0, NPOS,    1),
 
-    TEST ("\0",           0, '\0', 0),
-    TEST ("\0",           1, NPOS, 1),
+    TEST ("\0",           0, '\0',    0),
+    TEST ("\0",           1, NPOS,    1),
 
-    TEST ("abc",          0, 'a',  0),
-    TEST ("abc",          1, 'b',  0),
-    TEST ("abc",          2, 'c',  0),
-    TEST ("abc",          3, NPOS, 1),
+    TEST ("abc",          0, 'a',     0),
+    TEST ("abc",          1, 'b',     0),
+    TEST ("abc",          2, 'c',     0),
+    TEST ("abc",          3, NPOS,    1),
 
-    TEST ("\0ab\0\0c",    0, '\0', 0),
+    TEST ("\0ab\0\0c",    0, '\0',    0),
 
-    TEST ("a\0b\0\0c",    0, 'a',  0),
-    TEST ("a\0b\0\0c",    1, '\0', 0),
-    TEST ("a\0b\0\0c",    2, 'b',  0),
-    TEST ("a\0b\0\0c",    3, '\0', 0),
-    TEST ("a\0b\0\0c",    4, '\0', 0),
-    TEST ("a\0b\0\0c",    5, 'c',  0),
-    TEST ("a\0b\0\0c",    6, NPOS, 1),
+    TEST ("a\0b\0\0c",    0, 'a',     0),
+    TEST ("a\0b\0\0c",    1, '\0',    0),
+    TEST ("a\0b\0\0c",    2, 'b',     0),
+    TEST ("a\0b\0\0c",    3, '\0',    0),
+    TEST ("a\0b\0\0c",    4, '\0',    0),
+    TEST ("a\0b\0\0c",    5, 'c',     0),
+    TEST ("a\0b\0\0c",    6, NPOS,    1),
 
-    TEST ("a\0bc\0\0",    5, '\0', 0),
+    TEST ("a\0bc\0\0",    5, '\0',    0),
 
-    TEST ("x@4096",       0, 'x',  0),
-    TEST ("x@4096",    2048, 'x',  0),
-    TEST ("x@4096",    4095, 'x',  0),
-    TEST ("x@4096",    4096, NPOS, 1),
+    TEST ("x@4096",       0, 'x',     0),
+    TEST ("x@4096",    2048, 'x',     0),
+    TEST ("x@4096",    4095, 'x',     0),
+    TEST ("x@4096",    4096, NPOS,    1),
 
-    TEST ("last",         3, 't',  0)
+    TEST ("last",         3, 't',     0)
 };
 
 /**************************************************************************/
 
 template <class charT, class Traits, class Allocator>
 void test_access (charT, Traits*, Allocator*, 
-                  const Function &func,
-                  const TestCase &tcase)
+                  const StringFunc     &func,
+                  const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
-    typedef typename String::reference                   StrRef;
-    typedef typename String::const_reference             StrConstRef;
 
     static const std::size_t BUFSIZE = 256;
 
@@ -216,7 +210,8 @@ void test_access (charT, Traits*, Allocator*,
     charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
 
     // construct the string object 
-    String s_str (wstr, str_len);
+    /* const */ String str (wstr, str_len);
+    const       String const_str = str;
 
     if (wstr != wstr_buf)
         delete[] wstr;
@@ -226,7 +221,7 @@ void test_access (charT, Traits*, Allocator*,
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
     // the state of the object after an exception)
-    const StringState str_state (rw_get_string_state (s_str));
+    const StringState str_state (rw_get_string_state (str));
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -238,47 +233,39 @@ void test_access (charT, Traits*, Allocator*,
 
     try {
 
-        bool success = false;
-        charT cres;
-        char exp_res = NPOS != tcase.nres ? char (tcase.nres) : char ();
+        const charT *pres = 0;
 
         switch (func.which_) {
-        case OpIndex (size): {
-            StrRef res = s_str [tcase.off];
 
-            success = 1 == rw_match (&exp_res, &res, 1);
-            cres = res;
+        case OpIndex (size):
+            pres = &str [tcase.off];
             break;
-        }
-        case OpIndex (size_const): {
-            StrConstRef res = const_cast<const String&>(s_str) [tcase.off];
 
-            success = 1 == rw_match (&exp_res, &res, 1);
-            cres = res;
+        case OpIndex (const_size):
+            pres = &const_str [tcase.off];
             break;
-        }
-        case At (size): {
-            StrRef res = s_str.at (tcase.off);
 
-            success = 1 == rw_match (&exp_res, &res, 1);
-            cres = res;
+        case At (size):
+            pres = &str.at (tcase.off);
             break;
-        }
-        case At (size_const): {
-            StrConstRef res = const_cast<const String&>(s_str).at (tcase.off);
 
-            success = 1 == rw_match (&exp_res, &res, 1);
-            cres = res;
+        case At (const_size):
+            pres = &const_str.at (tcase.off);
             break;
-        }
+
         default:
-            RW_ASSERT ("test logic error: unknown access overload");
+            RW_ASSERT (!"test logic error: unknown access overload");
             return;
         }
 
+        const char exp_res =
+            NPOS != tcase.nres ? char (tcase.nres) : char ();
+
+        const bool success = 1 == rw_match (&exp_res, pres, 1);
+
         rw_assert (success, 0, tcase.line,
                    "line %d. %{$FUNCALL} == %{#c}, got %{#c}",
-                   __LINE__, tcase.nres, cres);
+                   __LINE__, tcase.nres, *pres);
     }
 
 #ifndef _RWSTD_NO_EXCEPTIONS
@@ -310,7 +297,7 @@ void test_access (charT, Traits*, Allocator*,
     if (caught) {
         // verify that an exception thrown during allocation
         // didn't cause a change in the state of the object
-        str_state.assert_equal (rw_get_string_state (s_str),
+        str_state.assert_equal (rw_get_string_state (str),
                                 __LINE__, tcase.line, caught);
     }
 }
@@ -321,25 +308,24 @@ DEFINE_STRING_TEST_DISPATCH (test_access);
 
 int main (int argc, char** argv)
 {
-    static const StringMembers::Test
+    static const StringTest
     tests [] = {
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::tag, tag ## _test_cases,                 \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(sig) {                                             \
+        StringIds::sig, sig ## _test_cases,               \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
     }
 
         TEST (op_index_size),
-        TEST (op_index_size_const),
+        TEST (op_index_const_size),
         TEST (at_size),
-        TEST (at_size_const)
+        TEST (at_const_size)
     };
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return StringMembers::run_test (argc, argv, __FILE__,
-                                    "lib.string.access",
-                                    test_access, tests, test_count);
+    return rw_run_string_test (argc, argv, __FILE__,
+                               "lib.string.access",
+                               test_access, tests, test_count);
 }
-

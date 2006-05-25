@@ -29,7 +29,7 @@
 #include <stdexcept>      // for out_of_range, length_error
 #include <cstddef>        // for size_t
 
-#include <21.strings.h>   // for StringMembers
+#include <21.strings.h>   // for StringIds
 #include <alg_test.h>     // for InputIter
 #include <driver.h>       // for rw_test()
 #include <rw_allocator.h> // for UserAlloc
@@ -39,10 +39,7 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define Insert(which)             StringMembers::insert_ ## which
-
-typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Function   Function;
+#define Insert(sig)   StringIds::insert_ ## sig
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -53,8 +50,8 @@ static const char* const exceptions[] = {
 
 // used to exercise
 // insert (size_type, const value_type*)
-static const TestCase
-size_ptr_test_cases [] = {
+static const StringTestCase
+size_cptr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, arg, res, bthrow) {                      \
@@ -125,8 +122,8 @@ size_ptr_test_cases [] = {
 
 // used to exercise
 // insert (size_type, const basic_string&)
-static const TestCase
-size_str_test_cases [] = {
+static const StringTestCase
+size_cstr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, arg, res, bthrow) {                      \
@@ -197,11 +194,11 @@ size_str_test_cases [] = {
 // exrcises
 // insert (size_type, basic_string&, size_type, size_type)
 // insert (iterator, InputIterator, InputIterator)
-static const TestCase
-range_test_cases [] = {
+static const StringTestCase
+iter_range_test_cases [] = {
 
 // range_test_cases serves a double duty
-#define size_str_size_size_test_cases range_test_cases
+#define size_cstr_size_size_test_cases iter_range_test_cases
 
 #undef TEST
 #define TEST(str, off, arg, off2, size2, res, bthrow) {                 \
@@ -291,8 +288,8 @@ range_test_cases [] = {
 
 // used to exercise
 // insert (size_type, const value_type*, size_type)
-static const TestCase
-size_ptr_size_test_cases [] = {
+static const StringTestCase
+size_cptr_size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, arg, size2, res, bthrow) {               \
@@ -370,11 +367,11 @@ size_ptr_size_test_cases [] = {
 // exrecises
 // insert (size_type, size_type, value_type)
 // insert (iterator, size_type, value_type)
-static const TestCase
-size_val_test_cases [] = {
+static const StringTestCase
+iter_size_val_test_cases [] = {
 
 // size_val_test_cases serves a double duty
-#define size_size_val_test_cases size_val_test_cases
+#define size_size_val_test_cases iter_size_val_test_cases
 
 #undef TEST
 #define TEST(str, off, size2, val, res, bthrow) {               \
@@ -444,8 +441,8 @@ size_val_test_cases [] = {
 
 // used to exercise
 // insert (iterator, value_type)
-static const TestCase
-val_test_cases [] = {
+static const StringTestCase
+iter_val_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, val, res, bthrow)                                \
@@ -503,7 +500,7 @@ void test_insert_range (const charT    *wstr,
                         Traits*,
                         Allocator*, 
                         const Iterator &it,
-                        const TestCase &tcase)
+                        const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
@@ -518,7 +515,7 @@ void test_insert_range (const charT    *wstr,
     const std::size_t size2 = tcase.arg ? warg_len : size1;
 
     // construct the string object to be modified
-    String s_str (wstr, size1);
+    String str (wstr, size1);
 
     // compute the offset and the extent (the number of elements)
     // of the first range into the string object being modified
@@ -533,7 +530,7 @@ void test_insert_range (const charT    *wstr,
         off2 + tcase.size2 < size2 ? std::size_t (tcase.size2) : size2 - off2;
 
     // create an iterator into the string object being modified
-    StringIter iter (s_str.begin () + off1);
+    StringIter iter (str.begin () + off1);
 
     if (tcase.arg) {
         const charT* const beg = warg + off2;
@@ -542,25 +539,25 @@ void test_insert_range (const charT    *wstr,
         const Iterator first (beg, beg, end);
         const Iterator last  (end, beg, end);
 
-        s_str.insert (iter, first, last);
+        str.insert (iter, first, last);
     }
     else {
         // self-referential modification (inserting a range
         // of elements with a subrange of its own elements)
-        const StringIter first (s_str.begin () + off2);
+        const StringIter first (str.begin () + off2);
         const StringIter last (first + ext2);
 
-        s_str.insert (iter, first, last);
+        str.insert (iter, first, last);
     }
 
     // detrmine whether the produced sequence matches the exepceted result
-    const std::size_t match = rw_match (tcase.res, s_str.data (), tcase.nres);
+    const std::size_t match = rw_match (tcase.res, str.data (), tcase.nres);
 
     rw_assert (match == res_len, 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
                "difference at pos %zu for %s",
                __LINE__, int (tcase.nres), tcase.res,
-               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
+               int (sizeof (charT)), int (str.size ()), str.c_str (),
                match, itname);
 }
 
@@ -574,7 +571,7 @@ void test_insert_range (const charT    *wstr,
                         std::size_t     res_len,
                         Traits*,
                         Allocator*,
-                        const TestCase &tcase)
+                        const StringTestCase &tcase)
 {
     if (tcase.bthrow)  // this method doesn't throw
         return;
@@ -602,8 +599,8 @@ void test_insert_range (const charT    *wstr,
 
 template <class charT, class Traits, class Allocator>
 void test_insert (charT, Traits*, Allocator*,
-                  const Function &func,
-                  const TestCase &tcase)
+                  const StringFunc     &func,
+                  const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
@@ -625,7 +622,7 @@ void test_insert (charT, Traits*, Allocator*,
     charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
 
     // special processing for insert_range to exercise all iterators
-    if (Insert (range) == func.which_) {
+    if (Insert (iter_range) == func.which_) {
         test_insert_range (wstr, str_len, warg, arg_len, 
                            res_len, (Traits*)0, (Allocator*)0, tcase);
         if (wstr != wstr_buf)
@@ -640,8 +637,8 @@ void test_insert (charT, Traits*, Allocator*,
         return;
     }
 
-    /* const */ String s_str (wstr, str_len);
-    const       String s_arg (warg, arg_len);
+    /* const */ String str (wstr, str_len);
+    const       String arg (warg, arg_len);
 
     if (wstr != wstr_buf)
         delete[] wstr;
@@ -655,10 +652,9 @@ void test_insert (charT, Traits*, Allocator*,
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
     // the state of the object after an exception)
-    const StringState str_state (rw_get_string_state (s_str));
+    const StringState str_state (rw_get_string_state (str));
 
-    std::size_t res_off = 0;
-    std::size_t exp_off = Insert (val) == func.which_ ? tcase.off : 0;
+    std::ptrdiff_t exp_off = Insert (iter_val) == func.which_ ? tcase.off : 0;
 
     // compute the offset and the extent (the number of elements)
     // of the first range into the string object being modified
@@ -666,8 +662,8 @@ void test_insert (charT, Traits*, Allocator*,
     const std::size_t off1 =
         std::size_t (tcase.off) < size1 ? std::size_t (tcase.off) : size1;
 
-    const charT* const arg_ptr = tcase.arg ? s_arg.c_str () : s_str.c_str ();
-    const String&      arg_str = tcase.arg ? s_arg : s_str;
+    const charT* const arg_ptr = tcase.arg ? arg.c_str () : str.c_str ();
+    const String&      arg_str = tcase.arg ? arg : str;
     const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
     std::size_t total_length_calls = 0;
@@ -691,12 +687,13 @@ void test_insert (charT, Traits*, Allocator*,
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-        const bool use_iters = (Insert (val) <= func.which_);
+        const bool use_iters =
+            StringIds::arg_iter == StringIds::arg_type (func.which_, 1);
 
         if (1 == tcase.bthrow && !use_iters)
             expected = exceptions [1];      // out_of_range
         else if (   2 == tcase.bthrow
-                 && Insert (size_str_size_size) == func.which_)
+                 && Insert (size_cstr_size_size) == func.which_)
             expected = exceptions [1];      // out_of_range
         else if (3 == tcase.bthrow && !use_iters)
             expected = exceptions [2];      // length_error
@@ -707,62 +704,55 @@ void test_insert (charT, Traits*, Allocator*,
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (tcase.bthrow) {
-        if (wres != wres_buf)
-            delete[] wres;
+        if (tcase.bthrow) {
+            if (wres != wres_buf)
+                delete[] wres;
 
-        return;
-    }
+            return;
+        }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
+        // pointer to the returned reference
+        const String* ret_ptr = 0;
+
         try {
             switch (func.which_) {
-            case Insert (size_ptr): {
-                const String& s_res = s_str.insert (tcase.off, arg_ptr);
-                res_off = &s_res - &s_str;
+
+            case Insert (size_cptr):
+                ret_ptr = &str.insert (tcase.off, arg_ptr);
                 if (rg_calls)
                     n_length_calls = rg_calls [UTMemFun::length];
                 break;
-            }
 
-            case Insert (size_str): {
-                const String& s_res = s_str.insert (tcase.off, arg_str);
-                res_off = &s_res - &s_str;
+            case Insert (size_cstr):
+                ret_ptr = &str.insert (tcase.off, arg_str);
+                break;
+
+            case Insert (size_cptr_size):
+                ret_ptr = &str.insert (tcase.off, arg_ptr, tcase.size2);
+                break;
+
+            case Insert (size_cstr_size_size):
+                ret_ptr =
+                    &str.insert (tcase.off, arg_str, tcase.off2, tcase.size2);
+                break;
+
+            case Insert (size_size_val):
+                ret_ptr = &str.insert (tcase.off, tcase.size2, arg_val);
+                break;
+
+            case Insert (iter_size_val): {
+                const StringIter it (str.begin () + off1);
+                str.insert (it, tcase.size2, arg_val);
+                ret_ptr = &str;   // function returns void
                 break;
             }
 
-            case Insert (size_ptr_size): {
-                const String& s_res = 
-                    s_str.insert (tcase.off, arg_ptr, tcase.size2);
-                res_off = &s_res - &s_str;
-                break;
-            }
-
-            case Insert (size_str_size_size): {
-                const String& s_res = 
-                    s_str.insert (tcase.off, arg_str, tcase.off2, tcase.size2);
-                res_off = &s_res - &s_str;
-                break;
-            }
-
-            case Insert (size_size_val): {
-                const String& s_res = 
-                    s_str.insert (tcase.off, tcase.size2, arg_val);
-                res_off = &s_res - &s_str;
-                break;
-            }
-
-            case Insert (size_val): {
-                StringIter it (s_str.begin () + off1);
-                s_str.insert (it, tcase.size2, arg_val);
-                break;
-            }
-
-            case Insert (val): {
-                StringIter it (s_str.begin () + off1);
-                StringIter res_it = s_str.insert (it, arg_val);
-                res_off = res_it - s_str.begin ();
+            case Insert (iter_val): {
+                StringIter it (str.begin () + off1);
+                it = str.insert (it, arg_val);
+                ret_ptr = &str + (it - str.begin ());
                 break;
             }
 
@@ -771,38 +761,44 @@ void test_insert (charT, Traits*, Allocator*,
                 return;
             }
 
+            // verify that the reference returned from the function
+            // refers to the modified string object (i.e., *this
+            // within the function)
+            const std::ptrdiff_t ret_off = ret_ptr - &str;
+
             // verify the returned value
-            rw_assert (exp_off == res_off, 0, tcase.line,
-                       "line %d. %{$FUNCALL} %{?}== %zu, got %zu%{;}"
-                       "%{?}returned invalid reference, offset is %zu%{;}",
-                       __LINE__, Insert (val) == func.which_, exp_off, res_off,
-                       Insert (val) != func.which_, res_off);
+            rw_assert (exp_off == ret_off, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}== begin() + %td, got %td%{;}"
+                       "%{?}returned invalid reference, offset is %td%{;}",
+                       __LINE__, Insert (iter_val) == func.which_,
+                       exp_off, ret_off,
+                       Insert (iter_val) != func.which_, ret_off);
 
             // verfiy that strings length are equal
-            rw_assert (res_len == s_str.size (), 0, tcase.line,
+            rw_assert (res_len == str.size (), 0, tcase.line,
                        "line %d. %{$FUNCALL} expected %{#*s} with length "
                        "%zu, got %{/*.*Gs} with length %zu", __LINE__, 
                        int (tcase.nres), tcase.res, res_len, 
-                       int (sizeof (charT)), int (s_str.size ()), 
-                       s_str.c_str (), s_str.size ());
+                       int (sizeof (charT)), int (str.size ()), 
+                       str.c_str (), str.size ());
 
-            if (res_len == s_str.size ()) {
+            if (res_len == str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, s_str.c_str(), tcase.nres);
+                    rw_match (tcase.res, str.c_str(), tcase.nres);
 
                 rw_assert (match == res_len, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{#*s}, "
                            "got %{/*.*Gs}, difference at offset %zu",
                            __LINE__, int (tcase.nres), tcase.res,
-                           int (sizeof (charT)), int (s_str.size ()),
-                           s_str.c_str (), match);
+                           int (sizeof (charT)), int (str.size ()),
+                           str.c_str (), match);
             }
 
             // verify that Traits::length was used
-            if (Insert (size_ptr) == func.which_ && rg_calls) {
+            if (Insert (size_cptr) == func.which_ && rg_calls) {
                 rw_assert (n_length_calls - total_length_calls > 0, 
                            0, tcase.line, "line %d. %{$FUNCALL} doesn't "
                            "use traits::length()", __LINE__);
@@ -852,7 +848,7 @@ void test_insert (charT, Traits*, Allocator*,
         if (caught) {
             // verify that an exception thrown during allocation
             // didn't cause a change in the state of the object
-            str_state.assert_equal (rw_get_string_state (s_str),
+            str_state.assert_equal (rw_get_string_state (str),
                                     __LINE__, tcase.line, caught);
 
             if (-1 == tcase.bthrow) {
@@ -896,28 +892,28 @@ DEFINE_STRING_TEST_DISPATCH (test_insert);
 
 int main (int argc, char** argv)
 {
-    static const StringMembers::Test
+    static const StringTest
     tests [] = {
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::insert_ ## tag, tag ## _test_cases,      \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(sig) {                                             \
+        Insert (sig), sig ## _test_cases,                       \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
     }
 
-        TEST (size_ptr),
-        TEST (size_str),
-        TEST (size_ptr_size),
-        TEST (size_str_size_size),
+        TEST (size_cptr),
+        TEST (size_cstr),
+        TEST (size_cptr_size),
+        TEST (size_cstr_size_size),
         TEST (size_size_val),
-        TEST (val),
-        TEST (size_val),
-        TEST (range)
+        TEST (iter_val),
+        TEST (iter_size_val),
+        TEST (iter_range)
     };
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return StringMembers::run_test (argc, argv, __FILE__,
-                                    "lib.string.insert",
-                                    test_insert, tests, test_count);
+    return rw_run_string_test (argc, argv, __FILE__,
+                               "lib.string.insert",
+                               test_insert, tests, test_count);
 }

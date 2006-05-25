@@ -62,12 +62,12 @@ _rw_traits_names[] = {
 
 static const char* const
 _rw_alloc_names[] = {
-    "allocator", "UserAllocator"
+    "allocator", "UserAlloc"
 };
 
-// order of elements depends on the values of StringMembers::MemberId
+// order of elements depends on the values of StringIds::FuncId
 static const char* const
-_rw_memfun_names[] = {
+_rw_func_names[] = {
     "append", "assign", "erase", "insert", "replace", "operator+=", "find", 
     "rfind", "find_first_of", "find_last_of", "find_first_not_of", 
     "find_last_not_of", "compare", "substr", "operator[]", "at", "copy",
@@ -76,23 +76,29 @@ _rw_memfun_names[] = {
 
 /**************************************************************************/
 
-char StringMembers::
-long_string [StringMembers::long_string_len];
+const size_t MAX_OVERLOADS = 32;
+
+// disabled (-1) or explicitly enabled (+1) for each overload
+// of the string function being tested
+static int
+_rw_opt_func [MAX_OVERLOADS];
+
+// array of tests each exercising a single string function
+static const StringTest*
+_rw_string_tests;
+
+// size of the array above
+static size_t
+_rw_string_test_count;
 
 static int
-_rw_opt_memfun_disabled [StringMembers::sig_last];
+_rw_opt_char_types [3];
 
 static int
-_rw_opt_memfun_enabled [StringMembers::sig_last];
+_rw_opt_traits_types [2];
 
 static int
-_rw_opt_no_char_types [3];
-
-static int
-_rw_opt_no_traits_types [2];
-
-static int
-_rw_opt_no_alloc_types [2];
+_rw_opt_alloc_types [2];
 
 static int
 _rw_opt_no_exceptions;
@@ -101,7 +107,26 @@ static int
 _rw_opt_no_exception_safety;
 
 static int
-_rw_opt_no_self_ref;
+_rw_opt_self_ref;
+
+/**************************************************************************/
+
+static size_t
+_rw_get_func_inx (StringIds::OverloadId fid)
+{
+    size_t inx = _RWSTD_SIZE_MAX;
+
+    for (size_t i = 0; _rw_string_test_count; ++i) {
+        if (fid == _rw_string_tests [i].which) {
+            inx = i;
+            break;
+        }
+    }
+
+    RW_ASSERT (inx < _RWSTD_SIZE_MAX);
+
+    return inx;
+}
 
 /**************************************************************************/
 
@@ -126,32 +151,100 @@ assert_equal (const StringState &state, int line, int case_line,
 
 /**************************************************************************/
 
-// coputes integral base-2 logarithm of its argument
-static size_t
-_rw_ilog2 (size_t n)
+// appends the signature of the function specified by which
+// to the provided buffer; when brief is true, appends the
+// mnemonic representing the signature, including the name
+// of the function, instead
+static void
+_rw_sigcat (char **pbuf, size_t *pbufsize,
+            StringIds::OverloadId which,
+            bool                  brief = false)
 {
-    unsigned ilog2 = 0;
+    // for convenience
+    typedef StringIds Ids;
 
-    while (n >>= 1)
-        ++ilog2;
+    // get the bitmap describing the function's argument types
+    int argmap = which >> Ids::fid_bits;
 
-    return ilog2;
+    // determine whether the function is a const member function
+    const bool is_const = Ids::arg_cstr == (argmap & Ids::arg_mask);
+
+    // determine the string function name (for brief output)
+    const size_t funcinx = which & StringIds::fid_mask;
+    const size_t nfuncs =  sizeof _rw_func_names / sizeof *_rw_func_names;
+
+    RW_ASSERT (funcinx < nfuncs);
+
+    const char* const funcname = _rw_func_names [funcinx];
+
+    rw_asnprintf (pbuf, pbufsize, "%{+}%{?}%s%{?}_const%{;}%{:}(%{;}",
+                  brief, funcname, is_const);
+
+    // iterate through the map of argument types one field at a time
+    // determining and formatting the type of each argument until
+    // void is reached
+    for (size_t argno = 0; argmap >>= Ids::arg_bits; ++argno) {
+
+        const int argtype = argmap & Ids::arg_mask;
+
+        const char* tname = 0;
+
+        if (brief) {
+            switch (argtype) {
+            case Ids::arg_size:  tname = "size"; break;
+            case Ids::arg_val:   tname = "val"; break;
+            case Ids::arg_ptr:   tname = "ptr"; break;
+            case Ids::arg_cptr:  tname = "cptr"; break;
+            case Ids::arg_ref:   tname = "ref"; break;
+            case Ids::arg_cref:  tname = "cref"; break;
+            case Ids::arg_iter:  tname = "iter"; break;
+            case Ids::arg_citer: tname = "citer"; break;
+            case Ids::arg_range: tname = "range"; break;
+            case Ids::arg_str:   tname = "str"; break;
+            case Ids::arg_cstr:  tname = "cstr"; break;
+            case Ids::arg_alloc: tname = "alloc"; break;
+            }
+        }
+        else {
+            switch (argtype) {
+            case Ids::arg_size:  tname = "size_type"; break;
+            case Ids::arg_val:   tname = "value_type"; break;
+            case Ids::arg_ptr:   tname = "pointer"; break;
+            case Ids::arg_cptr:  tname = "const_pointer"; break;
+            case Ids::arg_ref:   tname = "reference"; break;
+            case Ids::arg_cref:  tname = "const_reference"; break;
+            case Ids::arg_iter:  tname = "iterator"; break;
+            case Ids::arg_citer: tname = "const_iterator"; break;
+            case Ids::arg_range: tname = "InputIterator, InputIterator"; break;
+            case Ids::arg_str:   tname = "basic_string&"; break;
+            case Ids::arg_cstr:  tname = "const basic_string&"; break;
+            case Ids::arg_alloc: tname = "const allocator_type&"; break;
+            }
+        }
+
+        RW_ASSERT (0 != tname);
+
+        // append the name of the argument type
+        rw_asnprintf (pbuf, pbufsize, "%{+}%{?}_%{:}%{?}, %{;}%{;}%s",
+                      brief, 0 < argno, tname);
+    }
+
+    if (!brief)
+        rw_asnprintf (pbuf, pbufsize, "%{+})%{?} const%{;}", is_const);
 }
-
-/**************************************************************************/
 
 // sets the {CLASS}, {FUNC}, {FUNCSIG}, and optionally {FUNCALL}
 // environment variables as follows:
 // CLASS:   the name of basic_string specialization
-// FUNC:    the name of the basic_string member function
+// FUNC:    the name of the basic_string function
 // FUNCSIG: the name and signature of a specific overload
-//          of the basic_string member function
-// FUNCALL: a string describing the call to the basic_string member
-//          function with function with function arguments expanded
-//          (as specified by the TestCase argument)
+//          of the basic_string function
+// FUNCALL: a string describing the call to the basic_string function
+//          with function with function arguments expanded (as specified
+//          by the TestCase argument)
 static void
-_rw_setvars (const StringMembers::Function &fun,
-             const StringMembers::TestCase *pcase = 0)
+_rw_setvars (const StringFunc     &func,
+             const StringTestCase *pcase = 0)
 {
     char*  buf     = 0;
     size_t bufsize = 0;
@@ -161,25 +254,25 @@ _rw_setvars (const StringMembers::Function &fun,
         // variables to the name of the character type and the
         // Traits and Allocator specializations
         rw_putenv ("charT=");
-        rw_fprintf (0, "%{charT:=*}", _rw_char_names [fun.char_id_ - 1]);
+        rw_fprintf (0, "%{charT:=*}", _rw_char_names [func.char_id_]);
 
         rw_putenv ("Traits=");
-        rw_fprintf (0, "%{Traits:=*}", _rw_traits_names [fun.traits_id_ - 1]);
+        rw_fprintf (0, "%{Traits:=*}", _rw_traits_names [func.traits_id_]);
 
         rw_putenv ("Allocator=");
-        rw_fprintf (0, "%{Allocator:=*}", _rw_alloc_names [fun.alloc_id_ - 1]);
+        rw_fprintf (0, "%{Allocator:=*}", _rw_alloc_names [func.alloc_id_]);
 
         // set the {CLASS}, {FUNC}, and {FUNCSIG} environment variables
         // to the name of the specialization of the template, the name
-        // of the member function, and the name of the overload of the
-        // member function, respectively, when no test case is given
+        // of the string function, and the name of the overload of the
+        // string function, respectively, when no test case is given
 
-        if (   StringMembers::DefaultTraits == fun.traits_id_
-            && (   StringMembers::Char == fun.char_id_
-                || StringMembers::WChar == fun.char_id_)) {
+        if (   StringIds::DefaultTraits == func.traits_id_
+            && (   StringIds::Char == func.char_id_
+                || StringIds::WChar == func.char_id_)) {
             // format std::string and std::wstring
             rw_asnprintf (&buf, &bufsize, "std::%{?}w%{;}string",
-                          StringMembers::WChar == fun.char_id_);
+                          StringIds::WChar == func.char_id_);
         }
         else {
             // format std::basic_string specializations other than
@@ -187,10 +280,10 @@ _rw_setvars (const StringMembers::Function &fun,
             // of the default allocator for brevity
             rw_asnprintf (&buf, &bufsize,
                           "std::basic_string<%s, %s<%1$s>%{?}, %s<%1$s>%{;}>",
-                          _rw_char_names [fun.char_id_ - 1],
-                          _rw_traits_names [fun.traits_id_ - 1],
-                          StringMembers::DefaultAllocator != fun.alloc_id_,
-                          _rw_alloc_names [fun.alloc_id_ - 1]);
+                          _rw_char_names [func.char_id_],
+                          _rw_traits_names [func.traits_id_],
+                          StringIds::DefaultAlloc != func.alloc_id_,
+                          _rw_alloc_names [func.alloc_id_]);
         }
 
         // set the {CLASS} variable to the name of the specialization
@@ -198,71 +291,27 @@ _rw_setvars (const StringMembers::Function &fun,
         rw_putenv ("CLASS=");
         rw_fprintf (0, "%{$CLASS:=*}", buf);
 
-        // determine the member function name
-        const size_t funinx  = _rw_ilog2 (size_t (fun.which_) >> 6);
-        const size_t memfuns =
-            sizeof _rw_memfun_names / sizeof *_rw_memfun_names;
+        // determine the string function name
+        const size_t funcinx = func.which_ & StringIds::fid_mask;
+        const size_t nfuncs =  sizeof _rw_func_names / sizeof *_rw_func_names;
 
-        RW_ASSERT (funinx < memfuns);
+        RW_ASSERT (funcinx < nfuncs);
 
-        const char* const fname = _rw_memfun_names [funinx];
+        const char* const funcname = _rw_func_names [funcinx];
 
         free (buf);
         buf     = 0;
         bufsize = 0;
 
         // set the {FUNC} variable to the unqualified name
-        // of the member function
-        rw_asnprintf (&buf, &bufsize, "%s", fname);
+        // of the string function
+        rw_asnprintf (&buf, &bufsize, "%s", funcname);
 
         rw_putenv ("FUNC=");
         rw_fprintf (0, "%{$FUNC:=*}", buf);
 
-        static const char* const signatures[] = {
-            "void",
-            "const value_type*",
-            "const basic_string&",
-            "size_type",
-            "size_type",
-            "const value_type*, size_type",
-            "const basic_string&, size_type",
-            "const value_type*, size_type, size_type",
-            "const basic_string&, size_type, size_type",
-            "size_type, const value_type*, size_type",
-            "size_type, const basic_string&, size_type, size_type",
-            "size_type, value_type",
-            "size_type, const basic_string&",
-            "size_type, size_type",
-            "size_type, size_type, const value_type*",
-            "size_type, size_type, const basic_string&",
-            "size_type, size_type, value_type",
-            "size_type, size_type, const value_type*, size_type",
-            "size_type, size_type, const value_type*, size_type, size_type",
-            "size_type, size_type, size_type, value_type",
-            "value_type",
-            "value_type, size_type",
-            "InputIterator, InputIterator",
-            "iterator",
-            "iterator, value_type",
-            "iterator, size_type, value_type",
-            "iterator, InputIterator, InputIterator",
-            "iterator, iterator",
-            "iterator, iterator, const value_type*",
-            "iterator, iterator, const basic_string&",
-            "iterator, iterator, const value_type*, size_type",
-            "iterator, iterator, size_type, value_type",
-            "iterator, iterator, InputIterator, InputIterator"
-        };
-
-        const size_t siginx =
-            size_t (fun.which_ & ~StringMembers::mem_mask) - 1U;
-
-        RW_ASSERT (siginx < sizeof signatures / sizeof *signatures);
-
-        // append the function signature, 
-        // special processing for at (size_type) const and operator[] const
-        rw_asnprintf (&buf, &bufsize, "%{+} (%s)%{?} const%{;}", 
-                      signatures [siginx], 4 == siginx);
+        // append the function signature
+        _rw_sigcat (&buf, &bufsize, func.which_);
 
         rw_putenv ("FUNCSIG=");
         rw_fprintf (0, "%{$FUNCSIG:=*}", buf);
@@ -293,7 +342,7 @@ _rw_setvars (const StringMembers::Function &fun,
     else
         arg = 0;
 
-    // append the ctor argument(s) and the member function name
+    // append the ctor argument(s) and the string function name
     rw_asnprintf (&buf, &bufsize,
                   "%{$CLASS} (%{?}%{#*s}%{;}).%{$FUNC} ",
                   str != 0, int (str_len), str);
@@ -302,87 +351,87 @@ _rw_setvars (const StringMembers::Function &fun,
     const size_t range1_end = pcase->off + pcase->size;
     const size_t range2_end = pcase->off2 + pcase->size2;
 
-    // format and append member function arguments abbreviating complex
+    // format and append string function arguments abbreviating complex
     // expressions as much as possible to make them easy to understand
-    switch (fun.which_) {
-    case StringMembers::append_ptr:
-    case StringMembers::assign_ptr:
-    case StringMembers::op_plus_eq_ptr:
-    case StringMembers::find_ptr:
-    case StringMembers::rfind_ptr:
-    case StringMembers::find_first_of_ptr:
-    case StringMembers::find_last_of_ptr:
-    case StringMembers::find_first_not_of_ptr:
-    case StringMembers::find_last_not_of_ptr:
-    case StringMembers::compare_ptr:
-    case StringMembers::ctor_ptr:
-    case StringMembers::op_set_ptr:
+    switch (func.which_) {
+    case StringIds::append_cptr:
+    case StringIds::assign_cptr:
+    case StringIds::op_plus_eq_cptr:
+    case StringIds::find_cptr:
+    case StringIds::rfind_cptr:
+    case StringIds::find_first_of_cptr:
+    case StringIds::find_last_of_cptr:
+    case StringIds::find_first_not_of_cptr:
+    case StringIds::find_last_not_of_cptr:
+    case StringIds::compare_cptr:
+    case StringIds::ctor_cptr:
+    case StringIds::op_set_cptr:
         // format self-referential ptr argument without size as c_str()
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%{?}c_str()%{:}%{#*s}%{;})",
                       self, int (arg_len), arg);
         break;
 
-    case StringMembers::append_str:
-    case StringMembers::assign_str:
-    case StringMembers::op_plus_eq_str:
-    case StringMembers::find_str:
-    case StringMembers::rfind_str:
-    case StringMembers::find_first_of_str:
-    case StringMembers::find_last_of_str:
-    case StringMembers::find_first_not_of_str:
-    case StringMembers::find_last_not_of_str:
-    case StringMembers::compare_str:
-    case StringMembers::ctor_str:
-    case StringMembers::op_set_str:
-    case StringMembers::swap_str:
+    case StringIds::append_cstr:
+    case StringIds::assign_cstr:
+    case StringIds::op_plus_eq_cstr:
+    case StringIds::find_cstr:
+    case StringIds::rfind_cstr:
+    case StringIds::find_first_of_cstr:
+    case StringIds::find_last_of_cstr:
+    case StringIds::find_first_not_of_cstr:
+    case StringIds::find_last_not_of_cstr:
+    case StringIds::compare_cstr:
+    case StringIds::ctor_cstr:
+    case StringIds::op_set_cstr:
+    case StringIds::swap_str:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%{?}*this%{:}string(%{#*s})%{;})",
                       self, int (arg_len), arg);
         break;
 
-    case StringMembers::append_ptr_size:
-    case StringMembers::assign_ptr_size:
-    case StringMembers::copy_ptr_size:
-    case StringMembers::ctor_ptr_size:
+    case StringIds::append_cptr_size:
+    case StringIds::assign_cptr_size:
+    case StringIds::copy_ptr_size:
+    case StringIds::ctor_cptr_size:
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%{?}data()%{:}%{#*s}%{;}, %zu)",
                       self, int (arg_len), arg, pcase->size);
         break;
 
-    case StringMembers::find_ptr_size:
-    case StringMembers::rfind_ptr_size:
-    case StringMembers::find_first_of_ptr_size:
-    case StringMembers::find_last_of_ptr_size:
-    case StringMembers::find_first_not_of_ptr_size:
-    case StringMembers::find_last_not_of_ptr_size:
+    case StringIds::find_cptr_size:
+    case StringIds::rfind_cptr_size:
+    case StringIds::find_first_of_cptr_size:
+    case StringIds::find_last_of_cptr_size:
+    case StringIds::find_first_not_of_cptr_size:
+    case StringIds::find_last_not_of_cptr_size:
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%{?}data()%{:}%{#*s}%{;}, %zu)",
                       self, int (arg_len), arg, pcase->off);
         break;
 
-    case StringMembers::find_str_size:
-    case StringMembers::rfind_str_size:
-    case StringMembers::find_first_of_str_size:
-    case StringMembers::find_last_of_str_size:
-    case StringMembers::find_first_not_of_str_size:
-    case StringMembers::find_last_not_of_str_size:
-    case StringMembers::ctor_str_size:
+    case StringIds::find_cstr_size:
+    case StringIds::rfind_cstr_size:
+    case StringIds::find_first_of_cstr_size:
+    case StringIds::find_last_of_cstr_size:
+    case StringIds::find_first_not_of_cstr_size:
+    case StringIds::find_last_not_of_cstr_size:
+    case StringIds::ctor_cstr_size:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%{?}*this%{:}string(%{#*s})%{;}, %zu)",
                       self, int (arg_len), arg, pcase->off);
         break;
 
-    case StringMembers::find_ptr_size_size:
-    case StringMembers::rfind_ptr_size_size:
-    case StringMembers::find_first_of_ptr_size_size:
-    case StringMembers::find_last_of_ptr_size_size:
-    case StringMembers::find_first_not_of_ptr_size_size:
-    case StringMembers::find_last_not_of_ptr_size_size:
+    case StringIds::find_cptr_size_size:
+    case StringIds::rfind_cptr_size_size:
+    case StringIds::find_first_of_cptr_size_size:
+    case StringIds::find_last_of_cptr_size_size:
+    case StringIds::find_first_not_of_cptr_size_size:
+    case StringIds::find_last_not_of_cptr_size_size:
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%{?}data()%{:}%{#*s}%{;}, %zu, %zu)",
@@ -390,7 +439,7 @@ _rw_setvars (const StringMembers::Function &fun,
                       pcase->off, pcase->size);
         break;
 
-    case StringMembers::copy_ptr_size_size:
+    case StringIds::copy_ptr_size_size:
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%{?}data()%{:}%{#*s}%{;}, %zu, %zu)",
@@ -398,9 +447,9 @@ _rw_setvars (const StringMembers::Function &fun,
                       pcase->size, pcase->off);
         break;
 
-    case StringMembers::append_str_size_size:
-    case StringMembers::assign_str_size_size:
-    case StringMembers::ctor_str_size_size:
+    case StringIds::append_cstr_size_size:
+    case StringIds::assign_cstr_size_size:
+    case StringIds::ctor_cstr_size_size:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%{?}*this%{:}string(%{#*s})%{;}, %zu, %zu)",
@@ -408,16 +457,16 @@ _rw_setvars (const StringMembers::Function &fun,
                       pcase->off, pcase->size);
         break;
 
-    case StringMembers::append_size_val:
-    case StringMembers::assign_size_val:
-    case StringMembers::ctor_size_val:
+    case StringIds::append_size_val:
+    case StringIds::assign_size_val:
+    case StringIds::ctor_size_val:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%zu, %{#c})", pcase->size, pcase->val);
         break;
 
-    case StringMembers::append_range:
-    case StringMembers::assign_range:
-    case StringMembers::ctor_range:
+    case StringIds::append_range:
+    case StringIds::assign_range:
+    case StringIds::ctor_range:
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%{?}begin()%{:}Iterator(%{#*s})%{;}"
                       "%{?} + %zu%{;}, "
@@ -428,21 +477,21 @@ _rw_setvars (const StringMembers::Function &fun,
                       self, 0 != range1_end, range1_end);
         break;
 
-    case StringMembers::insert_size_ptr:
+    case StringIds::insert_size_cptr:
         // format self-referential ptr argument without size as c_str()
         rw_asnprintf (&buf, &bufsize, 
                       "%{+}(%zu, %{?}c_str()%{:}%{#*s}%{;})",
                       pcase->off, self, int (arg_len), arg);
         break;
 
-    case StringMembers::insert_size_str:
+    case StringIds::insert_size_cstr:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize,  
                       "%{+}(%zu, %{?}*this%{:}string(%{#*s})%{;})",
                       pcase->off, self, int (arg_len), arg);
         break;
 
-    case StringMembers::insert_size_ptr_size:
+    case StringIds::insert_size_cptr_size:
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%zu, %{?}data()%{:}%{#*s}%{;}, %zu)", 
@@ -450,7 +499,7 @@ _rw_setvars (const StringMembers::Function &fun,
                       pcase->size2);
         break;
 
-    case StringMembers::insert_size_str_size_size:
+    case StringIds::insert_size_cstr_size_size:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%zu, %{?}*this%{:}string(%{#*s})%{;}, %zu, %zu)",
@@ -458,25 +507,25 @@ _rw_setvars (const StringMembers::Function &fun,
                       pcase->off2, pcase->size2);
         break;
 
-    case StringMembers::insert_size_size_val:
+    case StringIds::insert_size_size_val:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%zu, %zu, %{#c})",
                       pcase->off, pcase->size2, pcase->val);
         break;
 
-    case StringMembers::insert_size_val:
-        rw_asnprintf (&buf, &bufsize, 
-                      "%{+}(begin()%{?} + %zu%{;}, %zu, %{#c})",
-                      0 != pcase->off, pcase->off, pcase->size2, pcase->val);
-        break;
-
-    case StringMembers::insert_val:
+    case StringIds::insert_iter_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(begin()%{? + %zu%{;}, %{#c})",
+                      "%{+}(begin()%{?} + %zu%{;}, %{#c})",
                       0 != pcase->off, pcase->off, pcase->val);
         break;
 
-    case StringMembers::insert_range:
+    case StringIds::insert_iter_size_val:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+}(begin()%{?} + %zu%{;}, %zu, %{#c})",
+                      0 != pcase->off, pcase->off, pcase->size, pcase->val);
+        break;
+
+    case StringIds::insert_iter_range:
         rw_asnprintf (&buf, &bufsize, "%{+}(begin()%{?} + %zu%{;}, "
                       "%{?}begin()%{:}Iterator(%{#*s})%{;}"
                       "%{?} + %zu%{;}, "
@@ -487,8 +536,8 @@ _rw_setvars (const StringMembers::Function &fun,
                       self, 0 != range2_end, range2_end);
         break;
 
-    case StringMembers::replace_size_size_ptr:
-    case StringMembers::compare_size_size_ptr:
+    case StringIds::replace_size_size_cptr:
+    case StringIds::compare_size_size_cptr:
         // format self-referential ptr argument without size as c_str()
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%zu, %zu, %{?}c_str()%{:}%{#*s}%{;})",
@@ -496,8 +545,8 @@ _rw_setvars (const StringMembers::Function &fun,
                       int (arg_len), arg);
         break;
 
-    case StringMembers::replace_size_size_str:
-    case StringMembers::compare_size_size_str:
+    case StringIds::replace_size_size_cstr:
+    case StringIds::compare_size_size_cstr:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%zu, %zu, %{?}*this%{:}string(%{#*s})%{;})",
@@ -505,8 +554,8 @@ _rw_setvars (const StringMembers::Function &fun,
                       int (arg_len), arg);
         break;
 
-    case StringMembers::replace_size_size_ptr_size:
-    case StringMembers::compare_size_size_ptr_size:
+    case StringIds::replace_size_size_cptr_size:
+    case StringIds::compare_size_size_cptr_size:
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "%zu, %zu, %{?}data()%{:}%{#*s}%{;}, %zu)", 
@@ -514,8 +563,8 @@ _rw_setvars (const StringMembers::Function &fun,
                       int (arg_len), arg, pcase->size2);
         break;
 
-    case StringMembers::replace_size_size_str_size_size:
-    case StringMembers::compare_size_size_str_size_size:
+    case StringIds::replace_size_size_cstr_size_size:
+    case StringIds::compare_size_size_cstr_size_size:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+}(%zu, %zu, "
                       "%{?}*this%{:}string(%{#*s})%{;}, %zu, %zu)",
@@ -524,13 +573,13 @@ _rw_setvars (const StringMembers::Function &fun,
                       pcase->off2, pcase->size2);
         break;
 
-    case StringMembers::replace_size_size_size_val:
+    case StringIds::replace_size_size_size_val:
         rw_asnprintf (&buf, &bufsize, 
                       "%{+}(%zu, %zu, %zu, %{#c})",
                       pcase->off, pcase->size, pcase->size2, pcase->val);
         break;
 
-    case StringMembers::replace_iter_iter_ptr:
+    case StringIds::replace_iter_iter_cptr:
         // format self-referential ptr argument without size as c_str()
         rw_asnprintf (&buf, &bufsize, "%{+}(begin()%{?} + %zu%{;}, "
                       "begin()%{?} + %zu%{;}, "
@@ -540,7 +589,7 @@ _rw_setvars (const StringMembers::Function &fun,
                       self, int (arg_len), arg);
         break;
 
-    case StringMembers::replace_iter_iter_str:
+    case StringIds::replace_iter_iter_cstr:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize, "%{+}(begin()%{?} + %zu%{;}, "
                       "begin()%{?} + %zu%{;}, "
@@ -550,7 +599,7 @@ _rw_setvars (const StringMembers::Function &fun,
                       self, int (arg_len), arg);
         break;
 
-    case StringMembers::replace_iter_iter_ptr_size:
+    case StringIds::replace_iter_iter_cptr_size:
         // format self-referential ptr argument with size as data()
         rw_asnprintf (&buf, &bufsize, "%{+}(begin()%{?} + %zu%{;}, "
                       "begin()%{?} + %zu%{;}, " 
@@ -560,7 +609,7 @@ _rw_setvars (const StringMembers::Function &fun,
                       self, int (arg_len), arg, pcase->size2);
         break;
 
-    case StringMembers::replace_iter_iter_size_val:
+    case StringIds::replace_iter_iter_size_val:
         rw_asnprintf (&buf, &bufsize, 
                       "%{+}(begin()%{?} + %zu%{;}, begin()%{? + %zu%{;}, "
                       "%zu, %{#c})",
@@ -568,7 +617,7 @@ _rw_setvars (const StringMembers::Function &fun,
                       pcase->size2, pcase->val);
         break;
 
-    case StringMembers::replace_iter_iter_range:
+    case StringIds::replace_iter_iter_range:
         rw_asnprintf (&buf, &bufsize, "%{+}("
                       "begin()%{?} + %zu%{;}, "
                       "begin()%{?} + %zu%{;}, "
@@ -582,63 +631,63 @@ _rw_setvars (const StringMembers::Function &fun,
                       self, 0 != range2_end, range2_end);
         break;
 
-    case StringMembers::op_plus_eq_val:
-    case StringMembers::find_val:
-    case StringMembers::rfind_val:
-    case StringMembers::find_first_of_val:
-    case StringMembers::find_last_of_val:
-    case StringMembers::find_first_not_of_val:
-    case StringMembers::find_last_not_of_val:
-    case StringMembers::op_set_val:
-    case StringMembers::push_back_val:
+    case StringIds::op_plus_eq_val:
+    case StringIds::find_val:
+    case StringIds::rfind_val:
+    case StringIds::find_first_of_val:
+    case StringIds::find_last_of_val:
+    case StringIds::find_first_not_of_val:
+    case StringIds::find_last_not_of_val:
+    case StringIds::op_set_val:
+    case StringIds::push_back_val:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%{#c})", pcase->val);
         break;
 
-    case StringMembers::find_val_size:
-    case StringMembers::rfind_val_size:
-    case StringMembers::find_first_of_val_size:
-    case StringMembers::find_last_of_val_size:
-    case StringMembers::find_first_not_of_val_size:
-    case StringMembers::find_last_not_of_val_size:
+    case StringIds::find_val_size:
+    case StringIds::rfind_val_size:
+    case StringIds::find_first_of_val_size:
+    case StringIds::find_last_of_val_size:
+    case StringIds::find_first_not_of_val_size:
+    case StringIds::find_last_not_of_val_size:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%{#c}, %zu)", pcase->val, pcase->off);
         break;
 
-    case StringMembers::erase_void:
-    case StringMembers::substr_void:
-    case StringMembers::ctor_void:
+    case StringIds::erase_void:
+    case StringIds::substr_void:
+    case StringIds::ctor_void:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}()");
         break;
 
-    case StringMembers::erase_size:
-    case StringMembers::substr_size:
-    case StringMembers::op_index_size:
-    case StringMembers::at_size:
+    case StringIds::erase_size:
+    case StringIds::substr_size:
+    case StringIds::op_index_size:
+    case StringIds::at_size:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%zu)", pcase->off);
         break;
 
-    case StringMembers::op_index_size_const:
-    case StringMembers::at_size_const:
+    case StringIds::op_index_const_size:
+    case StringIds::at_const_size:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%zu) const", pcase->off);
         break;
 
-    case StringMembers::erase_size_size:
-    case StringMembers::substr_size_size:
+    case StringIds::erase_size_size:
+    case StringIds::substr_size_size:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%zu, %zu)", pcase->off, pcase->size);
         break;
 
-    case StringMembers::erase_iter:
+    case StringIds::erase_iter:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(begin()%{?} + %zu%{;})",
                       0 != pcase->off, pcase->off);
         break;
 
-    case StringMembers::erase_iter_iter:
+    case StringIds::erase_iter_iter:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(begin()%{?} + %zu%{;}, begin()%{?} + %zu%{;})", 
                       0 != pcase->off, pcase->off,
@@ -663,9 +712,9 @@ _rw_setvars (const StringMembers::Function &fun,
 /**************************************************************************/
 
 static void
-_rw_test_case (const StringMembers::Function &memfun,
-               const StringMembers::TestCase &tcase,
-               StringMembers::TestFun        *test_callback)
+_rw_test_case (const StringFunc     &func,
+               const StringTestCase &tcase,
+               StringTestFunc       *test_callback)
 {
     // check to see if this is an exception safety test case
     // and avoid running it when exception safety has been
@@ -692,12 +741,17 @@ _rw_test_case (const StringMembers::Function &memfun,
     const bool self_ref = 0 == tcase.arg;
 
     // check for tests exercising self-referential modifications
-    // (e.g., insert(1, *this)
-    if (self_ref && _rw_opt_no_self_ref) {
-
+    // (e.g., insert(1, *this))
+    if (_rw_opt_self_ref < 0 && self_ref) {
         // issue only the first note
-        rw_note (1 < _rw_opt_no_self_ref++, _rw_this_file, __LINE__,
-                 "selef-referential tests disabled");
+        rw_note (0, _rw_this_file, tcase.line,
+                 "self-referential test disabled");
+        return;
+    }
+    else if (0 < _rw_opt_self_ref && !self_ref) {
+        // issue only the first note
+        rw_note (0, _rw_this_file, tcase.line,
+                 "non-self-referential test disabled");
         return;
     }
 
@@ -706,10 +760,10 @@ _rw_test_case (const StringMembers::Function &memfun,
 
         // set the {FUNCALL} environment variable to describe
         // the function call specified by this test case
-        _rw_setvars (memfun, &tcase);
+        _rw_setvars (func, &tcase);
 
         // invoke the test function
-        test_callback (memfun, tcase);
+        test_callback (func, tcase);
     }
     else
         rw_note (0, _rw_this_file, tcase.line,
@@ -718,20 +772,25 @@ _rw_test_case (const StringMembers::Function &memfun,
 
 /**************************************************************************/
 
-static StringMembers::TestFun*
+static void
+_rw_toggle_options (int *opts, size_t count)
+{
+    for (size_t i = 0; i != count; ++i) {
+        if (0 < opts [i]) {
+            // if one or more options has been explicitly enabled
+            // treat all those that haven't been as if they had
+            // been disabled
+            for (i = 0; i != count; ++i) {
+                if (0 == opts [i])
+                    opts [i] = -1;
+            }
+            break;
+        }
+    }
+}
+
+static StringTestFunc*
 _rw_test_callback;
-
-static const StringMembers::Test*
-_rw_string_tests;
-
-static size_t
-_rw_string_test_count;
-
-
-// TODO: remove this
-_TEST_EXPORT
-int rw_disable_user_allocator;
-
 
 static int
 _rw_run_test (int, char*[])
@@ -753,110 +812,87 @@ _rw_run_test (int, char*[])
              "_RWSTD_NO_WCHAR_T #defined)");
 
     // disable wchar_t tests and avoid further notes
-    _rw_opt_no_char_types [1] = 2;
+    _rw_opt_char_types [StringIds::WChar] = -2;
 
 #endif   // _RWSTD_NO_WCHAR_T
 
-    // see if any option has been explicitly enabled
-    const size_t nopts =
-        sizeof _rw_opt_memfun_enabled / sizeof *_rw_opt_memfun_enabled;
+    // see if any option controlling a string function has been
+    // explicitly enabled and if so disable all those that haven't
+    // been (i.e., so that --enable-foo-size will have the effect
+    // of specifying --disable-foo-val and --disable-foo-range,
+    // given the three overloads of foo)
+    const size_t nopts = sizeof _rw_opt_func / sizeof *_rw_opt_func;
+    _rw_toggle_options (_rw_opt_func, nopts);
 
-    bool any_enabled = false;
-
-    for (size_t i = 0; i != nopts; ++i) {
-        if (_rw_opt_memfun_enabled [i]) {
-            any_enabled = true;
-            break;
-        }
-    }
-
-    if (any_enabled) {
-        // if one or more options has been explicitly enabled
-        // treat all those that haven't as if they had been
-        // disabled
-        for (size_t i = 0; i != nopts; ++i) {
-            if (!_rw_opt_memfun_enabled [i])
-                _rw_opt_memfun_disabled [i] = 1;
-        }
-    }
-
-    if ('\0' == StringMembers::long_string [0]) {
-        // initialize long_string
-        const size_t nchars = sizeof StringMembers::long_string - 1;
-        memset (StringMembers::long_string, 'x', nchars);
-    }
-
-    static const StringMembers::charT char_types[] = {
-        StringMembers::Char,
-        StringMembers::WChar,
-        StringMembers::UChar,
-        StringMembers::UnknownChar
+    static const StringIds::CharId char_types[] = {
+        StringIds::Char, StringIds::WChar, StringIds::UChar
     };
 
-    static const StringMembers::Traits traits_types[] = {
-        StringMembers::DefaultTraits,
-        StringMembers::UserTraits,
-        StringMembers::UnknownTraits,
+    static const StringIds::TraitsId traits_types[] = {
+        StringIds::DefaultTraits, StringIds::UserTraits
     };
 
-    static const StringMembers::Allocator alloc_types[] = {
-        StringMembers::DefaultAllocator,
-        StringMembers::UserAllocator,
-        StringMembers::UnknownAllocator
+    static const StringIds::AllocId alloc_types[] = {
+        StringIds::DefaultAlloc, StringIds::UserAlloc
     };
+
+    const size_t n_char_types   = sizeof char_types / sizeof *char_types;
+    const size_t n_traits_types = sizeof traits_types / sizeof *traits_types;
+    const size_t n_alloc_types  = sizeof alloc_types / sizeof *alloc_types;
+
+    // see if any option controlling the basic_string template arguments
+    // explicitly enabled and if so disable all those that haven't been
+    _rw_toggle_options (_rw_opt_char_types, n_char_types);
+    _rw_toggle_options (_rw_opt_traits_types, n_traits_types);
+    _rw_toggle_options (_rw_opt_alloc_types, n_alloc_types);
 
     // exercise different charT specializations last
-    for (size_t i = 0; char_types [i]; ++i) {
+    for (size_t i = 0; i != n_char_types; ++i) {
 
-        if (_rw_opt_no_char_types [i]) {
+        if (_rw_opt_char_types [i] < 0) {
             // issue only the first note
-            rw_note (1 < _rw_opt_no_char_types [i]++, _rw_this_file, __LINE__,
+            rw_note (-1 > _rw_opt_char_types [i]--,
+                     _rw_this_file, __LINE__,
                      "%s tests disabled", _rw_char_names [i]);
             continue;
         }
 
         // exercise all specializations on Traits before those on charT
-        for (size_t j = 0; traits_types [j]; ++j) {
+        for (size_t j = 0; j != n_traits_types; ++j) {
 
-            if (0 == j && StringMembers::UChar == char_types [i]) {
+            if (0 == j && StringIds::UChar == char_types [i]) {
                 // std::char_traits can only be instantiated on
                 // char and wchar_t, only UserTraits may be used
                 // with UserChar
                 continue;
             }
 
-            if (_rw_opt_no_traits_types [j]) {
+            if (_rw_opt_traits_types [j] < 0) {
                 // issue only the first note
-                rw_note (1 < _rw_opt_no_traits_types [j]++,
+                rw_note (-1 > _rw_opt_traits_types [j]--,
                          _rw_this_file, __LINE__,
                          "%s tests disabled", _rw_traits_names [j]);
                 continue;
             }
 
-            for (size_t k = 0; alloc_types [k]; ++k) {
+            for (size_t k = 0; k != n_alloc_types; ++k) {
 
-                // TODO: remove this as soon as user-defined allocators
-                // are fully exercised
-                if (   StringMembers::UserAllocator == alloc_types [k]
-                    && rw_disable_user_allocator)
-                    continue;
-
-                if (_rw_opt_no_alloc_types [k]) {
+                if (_rw_opt_alloc_types [k] < 0) {
                     // issue only the first note
-                    rw_note (1 < _rw_opt_no_alloc_types [k]++, _rw_this_file,
-                             __LINE__, "%s tests disabled",
-                             _rw_alloc_names [k]);
+                    rw_note (-1 > _rw_opt_alloc_types [k]--,
+                             _rw_this_file, __LINE__,
+                             "%s tests disabled", _rw_alloc_names [k]);
                     continue;
                 }
 
                 for (size_t m = 0; m != _rw_string_test_count; ++m) {
 
-                    const StringMembers::Test& test = _rw_string_tests [m];
+                    const StringTest& test = _rw_string_tests [m];
 
                     // create an object uniquely identifying the overload
-                    // of the member function exercised by the set of test
+                    // of the string function exercised by the set of test
                     // cases defined to exercise it
-                    const StringMembers::Function memfun = {
+                    const StringFunc func = {
                         char_types [i],
                         traits_types [j],
                         alloc_types [k],
@@ -865,22 +901,20 @@ _rw_run_test (int, char*[])
 
                     // set the {CLASS}, {FUNC}, and {FUNCSIG} environment
                     // variable to the name of the basic_string specializaton
-                    // and its member function being exercised
-                    _rw_setvars (memfun);
-
-                    rw_info (0, 0, 0, "%{$CLASS}::%{$FUNCSIG}");
+                    // and the string function being exercised
+                    _rw_setvars (func);
 
                     // compute the function overload's 0-based index
-                    const size_t siginx =
-                        size_t (test.which & ~StringMembers::mem_mask) - 1U;
+                    const size_t siginx = _rw_get_func_inx (test.which);
 
                     // check if tests of the function overload
                     // have been disabled
-                    if (_rw_opt_memfun_disabled [siginx]) {
-                        rw_note (0, _rw_this_file, __LINE__,
-                                 "%{$CLASS}::%{$FUNCSIG} tests disabled");
+                    if (0 == rw_note (0 <= _rw_opt_func [siginx],
+                                      _rw_this_file, __LINE__,
+                                      "%{$CLASS}::%{$FUNCSIG} tests disabled"))
                         continue;
-                    }
+
+                    rw_info (0, 0, 0, "%{$CLASS}::%{$FUNCSIG}");
 
                     const size_t case_count = test.case_count;
 
@@ -888,9 +922,9 @@ _rw_run_test (int, char*[])
                     // invoking the test case handler for each in turn
                     for (size_t n = 0; n != case_count; ++n) {
 
-                        const StringMembers::TestCase& tcase = test.cases [n];
+                        const StringTestCase& tcase = test.cases [n];
 
-                        _rw_test_case (memfun, tcase, _rw_test_callback);
+                        _rw_test_case (func, tcase, _rw_test_callback);
                     }
                 }
             }
@@ -902,190 +936,114 @@ _rw_run_test (int, char*[])
 
 /**************************************************************************/
 
-int StringMembers::
-run_test (int         argc,
-          char       *argv [],
-          const char *file,
-          const char *clause,
-          TestFun    *test_callback,
-          const Test *tests,
-          size_t      test_count)
+_TEST_EXPORT int
+rw_run_string_test (int               argc,
+                    char             *argv [],
+                    const char       *file,
+                    const char       *clause,
+                    StringTestFunc   *test_callback,
+                    const StringTest *tests,
+                    size_t            test_count)
 {
     // set the global variables accessed in _rw_run_test
     _rw_test_callback     = test_callback;
     _rw_string_tests      = tests;
     _rw_string_test_count = test_count;
 
-    return rw_test (argc, argv, file, clause,
-                    0,   // comment
-                    _rw_run_test,
-                    "|-no-char# "
-                    "|-no-wchar_t# "
-                    "|-no-UserChar# "
-                    "|-no-char_traits# "
-                    "|-no-UserTraits# "
-                    "|-no-allocator# "
-                    "|-no-UserAllocator# "
+    // put together a command line option specification with options
+    // to enable and disable tests exercising functions for all known
+    // specializations of the functions specified by the test array
+    char   *optbuf     = 0;
+    size_t  optbufsize = 0;
 
-                    "|-no-exceptions# "
-                    "|-no-exception-safety# "
+    rw_asnprintf (&optbuf, &optbufsize,
+                  "|-char~ "
+                  "|-wchar_t~ "
+                  "|-UserChar~ "
+                  "|-char_traits~ "
+                  "|-UserTraits~ "
+                  "|-allocator~ "
+                  "|-UserAlloc~ "
 
-                    "|-no-self-ref# "
+                  "|-no-exceptions# "
+                  "|-no-exception-safety# "
 
-                    "|-no-void# "
-                    "|-no-ptr# "
-                    "|-no-str# "
-                    "|-no-size# "
-                    "|-no-size-const# "
-                    "|-no-ptr_size# "
-                    "|-no-str_size# "
-                    "|-no-ptr_size_size# "
-                    "|-no-str_size_size# "
-                    "|-no-size_ptr_size# "
-                    "|-no-size_str_size_size# "
-                    "|-no-size_val# "
-                    "|-no-size_str# "
-                    "|-no-size_size# "
-                    "|-no-size_size_ptr# "
-                    "|-no-size_size_str# "
-                    "|-no-size_size_val# "
-                    "|-no-size_size_ptr_size# "
-                    "|-no-size_size_str_size_size# "
-                    "|-no-size_size_size_val# "
-                    "|-no-val# "
-                    "|-no-val_size# "
-                    "|-no-range# "
-                    "|-no-iter# "
-                    "|-no-iter_val# "
-                    "|-no-iter_size_val# "
-                    "|-no-iter_range# "
-                    "|-no-iter_iter# "
-                    "|-no-iter_iter_ptr# "
-                    "|-no-iter_iter_str# "
-                    "|-no-iter_iter_ptr_size# "
-                    "|-no-iter_iter_size_val# "
-                    "|-no-iter_iter_range# "
+                  "|-self-ref~ ");
 
-                    "|-enable-void# "
-                    "|-enable-ptr# "
-                    "|-enable-str# "
-                    "|-enable-size# "
-                    "|-enable-size-const# "
-                    "|-enable-ptr_size# "
-                    "|-enable-str_size# "
-                    "|-enable-ptr_size_size# "
-                    "|-enable-str_size_size# "
-                    "|-enable-size_ptr_size# "
-                    "|-enable-size_str_size_size# "
-                    "|-enable-size_val# "
-                    "|-enable-size_str# "
-                    "|-enable-size_size# "
-                    "|-enable-size_size_ptr# "
-                    "|-enable-size_size_str# "
-                    "|-enable-size_size_val# "
-                    "|-enable-size_size_ptr_size# "
-                    "|-enable-size_size_str_size_size# "
-                    "|-enable-size_size_size_val# "
-                    "|-enable-val# "
-                    "|-enable-val-size# "
-                    "|-enable-range# "
-                    "|-enable-iter# "
-                    "|-enable-iter_val# "
-                    "|-enable-iter_size_val# "
-                    "|-enable-iter_range# "
-                    "|-enable-iter_iter# "
-                    "|-enable-iter_iter_ptr# "
-                    "|-enable-iter_iter_str# "
-                    "|-enable-iter_iter_ptr_size# "
-                    "|-enable-iter_iter_size_val# "
-                    "|-enable-iter_iter_range# ",
+    for (size_t i = 0; i != test_count; ++i) {
 
+        // for each function append a command line option specification
+        // to allow to enable or disable it
+        rw_asnprintf (&optbuf, &optbufsize, "%{+}|-");
+        _rw_sigcat (&optbuf, &optbufsize, tests [i].which, true);
+        rw_asnprintf (&optbuf, &optbufsize, "%{+}~ ");
+    }
 
-                    // handlers controlling specializations of the template
-                    _rw_opt_no_char_types + 0,
-                    _rw_opt_no_char_types + 1,
-                    _rw_opt_no_char_types + 2,
-                    _rw_opt_no_traits_types + 0,
-                    _rw_opt_no_traits_types + 1,
-                    _rw_opt_no_alloc_types + 0,
-                    _rw_opt_no_alloc_types + 1,
+    RW_ASSERT (test_count <= 32);
+    RW_ASSERT (test_count <= MAX_OVERLOADS);
 
-                    // handlers controlling exceptions
-                    &_rw_opt_no_exceptions,
-                    &_rw_opt_no_exception_safety,
+    // process command line arguments run tests
+    const int status =
+        rw_test (argc, argv, file, clause,
+                 0,              // comment
+                 _rw_run_test,   // test callback
+                 optbuf,         // option specification
 
-                    // handler controlling self-referential modifiers
-                    &_rw_opt_no_self_ref,
+                 // handlers controlling specializations of the template
+                 _rw_opt_char_types + 0,
+                 _rw_opt_char_types + 1,
+                 _rw_opt_char_types + 2,
+                 _rw_opt_traits_types + 0,
+                 _rw_opt_traits_types + 1,
+                 _rw_opt_alloc_types + 0,
+                 _rw_opt_alloc_types + 1,
 
-                    // handlers controlling specific overloads of a function
-                    _rw_opt_memfun_disabled + sig_void - 1,
-                    _rw_opt_memfun_disabled + sig_ptr - 1,
-                    _rw_opt_memfun_disabled + sig_str - 1,
-                    _rw_opt_memfun_disabled + sig_size - 1,
-                    _rw_opt_memfun_disabled + sig_size_const - 1,
-                    _rw_opt_memfun_disabled + sig_ptr_size - 1,
-                    _rw_opt_memfun_disabled + sig_str_size - 1,
-                    _rw_opt_memfun_disabled + sig_ptr_size_size - 1,
-                    _rw_opt_memfun_disabled + sig_str_size_size - 1,
-                    _rw_opt_memfun_disabled + sig_size_ptr_size - 1,
-                    _rw_opt_memfun_disabled + sig_size_str_size_size - 1,
-                    _rw_opt_memfun_disabled + sig_size_val - 1,
-                    _rw_opt_memfun_disabled + sig_size_str - 1,
-                    _rw_opt_memfun_disabled + sig_size_size - 1,
-                    _rw_opt_memfun_disabled + sig_size_size_ptr - 1,
-                    _rw_opt_memfun_disabled + sig_size_size_str - 1,
-                    _rw_opt_memfun_disabled + sig_size_size_val - 1,
-                    _rw_opt_memfun_disabled + sig_size_size_ptr_size - 1,
-                    _rw_opt_memfun_disabled + sig_size_size_str_size_size - 1,
-                    _rw_opt_memfun_disabled + sig_size_size_size_val - 1,
-                    _rw_opt_memfun_disabled + sig_val - 1,
-                    _rw_opt_memfun_disabled + sig_val_size - 1,
-                    _rw_opt_memfun_disabled + sig_range - 1,
-                    _rw_opt_memfun_disabled + sig_iter - 1,
-                    _rw_opt_memfun_disabled + sig_iter_val - 1,
-                    _rw_opt_memfun_disabled + sig_iter_size_val - 1,
-                    _rw_opt_memfun_disabled + sig_iter_range - 1,
-                    _rw_opt_memfun_disabled + sig_iter_iter - 1,
-                    _rw_opt_memfun_disabled + sig_iter_iter_ptr - 1,
-                    _rw_opt_memfun_disabled + sig_iter_iter_str - 1,
-                    _rw_opt_memfun_disabled + sig_iter_iter_ptr_size - 1,
-                    _rw_opt_memfun_disabled + sig_iter_iter_size_val - 1,
-                    _rw_opt_memfun_disabled + sig_iter_iter_range - 1,
+                 // handlers controlling exceptions
+                 &_rw_opt_no_exceptions,
+                 &_rw_opt_no_exception_safety,
 
-                    _rw_opt_memfun_enabled + sig_void - 1,
-                    _rw_opt_memfun_enabled + sig_ptr - 1,
-                    _rw_opt_memfun_enabled + sig_str - 1,
-                    _rw_opt_memfun_enabled + sig_size - 1,
-                    _rw_opt_memfun_enabled + sig_size_const - 1,
-                    _rw_opt_memfun_enabled + sig_ptr_size - 1,
-                    _rw_opt_memfun_enabled + sig_str_size - 1,
-                    _rw_opt_memfun_enabled + sig_ptr_size_size - 1,
-                    _rw_opt_memfun_enabled + sig_str_size_size - 1,
-                    _rw_opt_memfun_enabled + sig_size_ptr_size - 1,
-                    _rw_opt_memfun_enabled + sig_size_str_size_size - 1,
-                    _rw_opt_memfun_enabled + sig_size_val - 1,
-                    _rw_opt_memfun_enabled + sig_size_str - 1,
-                    _rw_opt_memfun_enabled + sig_size_size - 1,
-                    _rw_opt_memfun_enabled + sig_size_size_ptr - 1,
-                    _rw_opt_memfun_enabled + sig_size_size_str - 1,
-                    _rw_opt_memfun_enabled + sig_size_size_val - 1,
-                    _rw_opt_memfun_enabled + sig_size_size_ptr_size - 1,
-                    _rw_opt_memfun_enabled + sig_size_size_str_size_size - 1,
-                    _rw_opt_memfun_enabled + sig_size_size_size_val - 1,
-                    _rw_opt_memfun_enabled + sig_val - 1,
-                    _rw_opt_memfun_enabled + sig_val_size - 1,
-                    _rw_opt_memfun_enabled + sig_range - 1,
-                    _rw_opt_memfun_enabled + sig_iter - 1,
-                    _rw_opt_memfun_enabled + sig_iter_val - 1,
-                    _rw_opt_memfun_enabled + sig_iter_size_val - 1,
-                    _rw_opt_memfun_enabled + sig_iter_range - 1,
-                    _rw_opt_memfun_enabled + sig_iter_iter - 1,
-                    _rw_opt_memfun_enabled + sig_iter_iter_ptr - 1,
-                    _rw_opt_memfun_enabled + sig_iter_iter_str - 1,
-                    _rw_opt_memfun_enabled + sig_iter_iter_ptr_size - 1,
-                    _rw_opt_memfun_enabled + sig_iter_iter_size_val - 1,
-                    _rw_opt_memfun_enabled + sig_iter_iter_range - 1,
+                 // handler controlling self-referential modifiers
+                 &_rw_opt_self_ref,
 
-                    // sentinel
-                    (void*)0);
+                 // handlers for up to 32 overloads
+                 _rw_opt_func +  0,
+                 _rw_opt_func +  1,
+                 _rw_opt_func +  2,
+                 _rw_opt_func +  3,
+                 _rw_opt_func +  4,
+                 _rw_opt_func +  5,
+                 _rw_opt_func +  6,
+                 _rw_opt_func +  7,
+                 _rw_opt_func +  8,
+                 _rw_opt_func +  9,
+                 _rw_opt_func + 10,
+                 _rw_opt_func + 11,
+                 _rw_opt_func + 12,
+                 _rw_opt_func + 13,
+                 _rw_opt_func + 14,
+                 _rw_opt_func + 15,
+                 _rw_opt_func + 16,
+                 _rw_opt_func + 17,
+                 _rw_opt_func + 18,
+                 _rw_opt_func + 19,
+                 _rw_opt_func + 20,
+                 _rw_opt_func + 21,
+                 _rw_opt_func + 22,
+                 _rw_opt_func + 23,
+                 _rw_opt_func + 24,
+                 _rw_opt_func + 25,
+                 _rw_opt_func + 26,
+                 _rw_opt_func + 27,
+                 _rw_opt_func + 28,
+                 _rw_opt_func + 29,
+                 _rw_opt_func + 30,
+                 _rw_opt_func + 31,
+
+                 // sentinel
+                 (void*)0);
+
+    // free storage allocated for the option specification
+    free (optbuf);
+
+    return status;
 }

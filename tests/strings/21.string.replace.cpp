@@ -40,10 +40,7 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define Replace(which)    StringMembers::replace_ ## which
-
-typedef StringMembers::Function  Function;
-typedef StringMembers::TestCase  TestCase;
+#define Replace(which)    StringIds::replace_ ## which
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -55,11 +52,11 @@ static const char* const exceptions[] = {
 // exercises:
 // replace (size_type, size_type, const value_type*)
 // replace (iterator, iterator, const value_type*)
-static const TestCase
-iter_iter_ptr_test_cases [] = {
+static const StringTestCase
+iter_iter_cptr_test_cases [] = {
 
-// iter_iter_ptr_test_cases serves a double duty
-#define size_size_ptr_test_cases iter_iter_ptr_test_cases
+// iter_iter_cptr_test_cases serves a double duty
+#define size_size_cptr_test_cases iter_iter_cptr_test_cases
 
 #undef TEST
 #define TEST(str, off, size, arg, res, bthrow) {                \
@@ -155,11 +152,11 @@ iter_iter_ptr_test_cases [] = {
 // exercises:
 // replace (size_type, size_type, const basic_string&)
 // replace (iterator, iterator, const basic_string&)
-static const TestCase
-iter_iter_str_test_cases [] = {
+static const StringTestCase
+iter_iter_cstr_test_cases [] = {
 
-// iter_iter_str_test_cases serves a double duty
-#define size_size_str_test_cases iter_iter_str_test_cases
+// iter_iter_cstr_test_cases serves a double duty
+#define size_size_cstr_test_cases iter_iter_cstr_test_cases
 
 #undef TEST
 #define TEST(s, off, size, arg, res, bthrow) {                  \
@@ -259,11 +256,11 @@ iter_iter_str_test_cases [] = {
 // exercises:
 // replace (size_type, size_type, const value_type*, size_type)
 // replace (iterator, iterator, const value_type*, size_type)
-static const TestCase
-iter_iter_ptr_size_test_cases [] = {
+static const StringTestCase
+iter_iter_cptr_size_test_cases [] = {
 
-// iter_iter_ptr_size_test_cases serves a double duty
-#define size_size_ptr_size_test_cases iter_iter_ptr_size_test_cases
+// iter_iter_cptr_size_test_cases serves a double duty
+#define size_size_cptr_size_test_cases iter_iter_cptr_size_test_cases
 
 #undef TEST
 #define TEST(str, off, size, arg, count, res, bthrow) {         \
@@ -363,11 +360,11 @@ iter_iter_ptr_size_test_cases [] = {
 // exercises:
 // replace (size_type, size_type, basic_string&, size_type, size_type)
 // replace (iterator, Iterator, InputIterator, InputIterator)
-static const TestCase
+static const StringTestCase
 iter_iter_range_test_cases [] = {
 
 // iter_iter_range_test_cases serves a double duty
-#define size_size_str_size_size_test_cases iter_iter_range_test_cases
+#define size_size_cstr_size_size_test_cases iter_iter_range_test_cases
 
 #undef TEST
 #define TEST(str, off, size, arg, off2, size2, res, bthrow) {   \
@@ -567,7 +564,7 @@ iter_iter_range_test_cases [] = {
 // exercises:
 // replace (size_type, size_type, value_type, size_type)
 // replace (iterator, iterator, size_type, value_type)
-static const TestCase
+static const StringTestCase
 iter_iter_size_val_test_cases [] = {
 
 // iter_iter_size_val_test_cases serves a double duty
@@ -672,7 +669,7 @@ void test_replace_range (const charT*    wstr,
                          Traits*,
                          Allocator*,
                          const Iterator &it,
-                         const TestCase &tcase)
+                         const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
@@ -746,7 +743,7 @@ void test_replace_range (const charT    *wstr,
                          std::size_t     res_len,
                          Traits*,
                          Allocator*,
-                         const TestCase &tcase)
+                         const StringTestCase &tcase)
 {
     if (tcase.bthrow) {
         // FIXME: exercise exceptions
@@ -781,8 +778,8 @@ void test_replace_range (const charT    *wstr,
 
 template <class charT, class Traits, class Allocator>
 void test_replace (charT, Traits*, Allocator*,
-                   const Function &func,
-                   const TestCase &tcase)
+                   const StringFunc     &func,
+                   const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
@@ -871,8 +868,8 @@ void test_replace (charT, Traits*, Allocator*,
     // or 0 when no such counter exists (i.e., when Traits is not
     // UserTraits)
     std::size_t* length_calls =
-           Replace (size_size_ptr) == func.which_
-        || Replace (iter_iter_ptr) == func.which_ ?
+           Replace (size_size_cptr) == func.which_
+        || Replace (iter_iter_cptr) == func.which_ ?
         rw_get_call_counters ((Traits*)0, (charT*)0) : 0;
 
     if (length_calls) {
@@ -886,10 +883,8 @@ void test_replace (charT, Traits*, Allocator*,
     // out_of_range is only generated from size_type overloads
     // of replace() and not from the iterator equivalents of
     // the same functions
-    const bool use_iters = Replace (iter_iter_ptr) <= func.which_;
-
-    // pointer to the returned reference
-    const String* ret_ptr = 0;
+    const bool use_iters =
+        StringIds::arg_iter == StringIds::arg_type (func.which_, 2);
 
     // iterate for`throw_count' starting at the next call to operator new,
     // forcing each call to throw an exception, until the function finally
@@ -933,24 +928,27 @@ void test_replace (charT, Traits*, Allocator*,
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
+        // pointer to the returned reference
+        const String* ret_ptr = 0;
+
         // start checking for memory leaks
         rw_check_leaks (str.get_allocator ());
 
         try {
             switch (func.which_) {
-            case Replace (size_size_ptr):
+            case Replace (size_size_cptr):
                 ret_ptr = &str.replace (arg_off, arg_size, arg_ptr);
                 break;
 
-            case Replace (size_size_str):
+            case Replace (size_size_cstr):
                 ret_ptr = &str.replace (arg_off, arg_size, arg_str);
                 break;
 
-            case Replace (size_size_ptr_size):
+            case Replace (size_size_cptr_size):
                 ret_ptr = &str.replace (arg_off, arg_size, arg_ptr, arg_size2);
                 break;
 
-            case Replace (size_size_str_size_size):
+            case Replace (size_size_cstr_size_size):
                 ret_ptr = &str.replace (arg_off, arg_size, arg_str,
                                         arg_off2, arg_size2);
                 break;
@@ -959,15 +957,15 @@ void test_replace (charT, Traits*, Allocator*,
                 ret_ptr = &str.replace (arg_off, arg_size, arg_size2, arg_val);
                 break;
 
-            case Replace (iter_iter_ptr):
+            case Replace (iter_iter_cptr):
                 ret_ptr = &str.replace (first, last, arg_ptr);
                 break;
 
-            case Replace (iter_iter_str):
+            case Replace (iter_iter_cstr):
                 ret_ptr = &str.replace (first, last, arg_str);
                 break;
 
-            case Replace (iter_iter_ptr_size):
+            case Replace (iter_iter_cptr_size):
                 ret_ptr = &str.replace (first, last, arg_ptr, arg_size2);
                 break;
 
@@ -982,14 +980,12 @@ void test_replace (charT, Traits*, Allocator*,
             // verify that the reference returned from the function
             // refers to the modified string object (i.e., *this
             // within the function)
-            const std::ptrdiff_t res_off = ret_ptr - &str;
+            const std::ptrdiff_t ret_off = ret_ptr - &str;
 
             // verify the returned value
-            rw_assert (0 == res_off, 0, tcase.line,
+            rw_assert (0 == ret_off, 0, tcase.line,
                        "line %d. %{$FUNCALL} returned invalid reference, "
-                       "offset is %td", __LINE__, res_off);
-
-            
+                       "offset is %td", __LINE__, ret_off);
 
             // verfiy that the length of the resulting string
             rw_assert (res_len == str.size (), 0, tcase.line,
@@ -1122,23 +1118,23 @@ DEFINE_STRING_TEST_DISPATCH (test_replace);
 
 int main (int argc, char** argv)
 {
-    static const StringMembers::Test
+    static const StringTest
     tests [] = {
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::replace_ ## tag, tag ## _test_cases,     \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(which) {                                                   \
+        StringIds::replace_ ## which, which ## _test_cases,         \
+        sizeof which ## _test_cases / sizeof *which ## _test_cases,     \
     }
 
-        TEST (size_size_ptr),
-        TEST (size_size_str),
-        TEST (size_size_ptr_size),
-        TEST (size_size_str_size_size),
+        TEST (size_size_cptr),
+        TEST (size_size_cstr),
+        TEST (size_size_cptr_size),
+        TEST (size_size_cstr_size_size),
         TEST (size_size_size_val),
-        TEST (iter_iter_ptr),
-        TEST (iter_iter_str),
-        TEST (iter_iter_ptr_size),
+        TEST (iter_iter_cptr),
+        TEST (iter_iter_cstr),
+        TEST (iter_iter_cptr_size),
         TEST (iter_iter_size_val),
         TEST (iter_iter_range)
     };
@@ -1146,9 +1142,9 @@ int main (int argc, char** argv)
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
     const int status =
-        StringMembers::run_test (argc, argv, __FILE__,
-                                 "lib.string.replace",
-                                 test_replace, tests, test_count);
+        rw_run_string_test (argc, argv, __FILE__,
+                            "lib.string.replace",
+                            test_replace, tests, test_count);
 
     return status;
 }

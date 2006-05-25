@@ -29,7 +29,7 @@
 #include <cstddef>          // size_t
 #include <exception>        // for exception
 
-#include <21.strings.h>     // for StringMembers
+#include <21.strings.h>     // for StringIds
 #include <driver.h>         // for rw_assert()
 #include <rw_allocator.h>   // foir UserAlloc
 #include <rw_char.h>        // for rw_expand()
@@ -38,10 +38,7 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define Swap(which)               StringMembers::swap_ ## which
-
-typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Function   Function;
+#define Swap(sig)   StringIds::swap_ ## sig
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -52,7 +49,7 @@ static const char* const exceptions[] = {
 
 // exercises:
 // swap (basic_string&)
-static const TestCase
+static const StringTestCase
 str_test_cases [] = {
 
 #undef TEST
@@ -108,8 +105,8 @@ str_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_swap (charT, Traits*, Allocator*,
-                const Function&,
-                const TestCase &tcase)
+                const StringFunc&,
+                const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef UserTraits<UserChar>::MemFun                 UTMemFun;
@@ -298,14 +295,13 @@ DEFINE_STRING_TEST_DISPATCH (test_swap);
 
 int main (int argc, char** argv)
 {
-    static const StringMembers::Test
+    static const StringTest
     tests [] = {
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::swap_ ## tag,                            \
-        tag ## _test_cases,                                     \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(sig) {                                             \
+        Swap (sig), sig ## _test_cases,                         \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
     }
 
         TEST (str)
@@ -313,7 +309,7 @@ int main (int argc, char** argv)
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return StringMembers::run_test (argc, argv, __FILE__,
-                                    "lib.string.swap",
-                                    test_swap, tests, test_count);
+    return rw_run_string_test (argc, argv, __FILE__,
+                               "lib.string.swap",
+                               test_swap, tests, test_count);
 }
