@@ -33,11 +33,8 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define Ctor(which)               StringMembers::ctor_ ## which
-#define OpSet(which)              StringMembers::op_set_ ## which
-
-typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Function   Function;
+#define Ctor(sig)               StringIds::ctor_ ## sig
+#define OpSet(sig)              StringIds::op_set_ ## sig
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -48,7 +45,7 @@ static const char* const exceptions[] = {
 
 // exercises:
 // basic_string (void)
-static const TestCase
+static const StringTestCase
 void_test_cases [] = {
 
 #undef TEST
@@ -70,8 +67,8 @@ void_test_cases [] = {
 
 // exercises:
 // basic_string (const value_type*)
-static const TestCase
-ptr_test_cases [] = {
+static const StringTestCase
+cptr_test_cases [] = {
 
 #undef TEST
 #define TEST(arg, res) {                            \
@@ -108,8 +105,8 @@ ptr_test_cases [] = {
 
 // exercises:
 // basic_string (const basic_string&)
-static const TestCase
-str_test_cases [] = {
+static const StringTestCase
+cstr_test_cases [] = {
 
 #undef TEST
 #define TEST(arg, res) {                            \
@@ -147,8 +144,8 @@ str_test_cases [] = {
 
 // exercises:
 // basic_string (const value_type*, size_type)
-static const TestCase
-ptr_size_test_cases [] = {
+static const StringTestCase
+cptr_size_test_cases [] = {
 
 #undef TEST
 #define TEST(arg, size, res) {                      \
@@ -189,8 +186,8 @@ ptr_size_test_cases [] = {
 
 // exercises:
 // basic_string (const basic_string&, size_type)
-static const TestCase
-str_size_test_cases [] = {
+static const StringTestCase
+cstr_size_test_cases [] = {
 
 #undef TEST
 #define TEST(arg, off, res, bthrow) {               \
@@ -236,10 +233,10 @@ str_size_test_cases [] = {
 // exercises:
 // basic_string (const basic_string&, size_type, size_type)
 // basic_string (InputIterator, InputIterator)
-static const TestCase
-str_size_size_test_cases [] = {
+static const StringTestCase
+cstr_size_size_test_cases [] = {
 
-#define range_test_cases    str_size_size_test_cases
+#define range_test_cases    cstr_size_size_test_cases
 
 #undef TEST
 #define TEST(arg, off, size, res, bthrow) {         \
@@ -285,7 +282,7 @@ str_size_size_test_cases [] = {
 
 // exercises:
 // basic_string (size_type, value_type)
-static const TestCase
+static const StringTestCase
 size_val_test_cases [] = {
 
 #undef TEST
@@ -318,8 +315,8 @@ size_val_test_cases [] = {
 /**************************************************************************/
 // exercises:
 // operator= (const value_type*)
-static const TestCase
-op_set_ptr_test_cases [] = {
+static const StringTestCase
+cptr_op_set_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, res, bthrow) {               \
@@ -374,8 +371,8 @@ op_set_ptr_test_cases [] = {
 /**************************************************************************/
 // exercises:
 // operator= (const basic_string&)
-static const TestCase
-op_set_str_test_cases [] = {
+static const StringTestCase
+cstr_op_set_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, res, bthrow) {               \
@@ -430,8 +427,8 @@ op_set_str_test_cases [] = {
 
 // exercises:
 // operator= (value_type)
-static const TestCase
-op_set_val_test_cases [] = {
+static const StringTestCase
+val_op_set_test_cases [] = {
 
 #undef TEST
 #define TEST(str, val, res) {                 \
@@ -464,7 +461,7 @@ void test_ctor_range (const charT*    warg,
                       std::size_t     res_len,
                       Traits*, Allocator*,
                       const Iterator &it,
-                      const TestCase &tcase)
+                      const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
@@ -501,7 +498,7 @@ void test_ctor_range (const charT* warg,
                       std::size_t  warg_len,
                       std::size_t  res_len,
                       Traits*, Allocator*, 
-                      const TestCase &tcase)
+                      const StringTestCase &tcase)
 {
     if (tcase.bthrow)  // this method doesn't throw
         return;
@@ -523,8 +520,8 @@ void test_ctor_range (const charT* warg,
 
 template <class charT, class Traits, class Allocator>
 void test_ctor (charT, Traits*, Allocator*,
-                const Function &func,
-                const TestCase &tcase)
+                const StringFunc     &func,
+                const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
 
@@ -598,34 +595,54 @@ void test_ctor (charT, Traits*, Allocator*,
 
     try {
         switch (func.which_) {
-        case Ctor (void): {
+
+        case Ctor (void):
+            ret_ptr = new String ();
+            break;
+
+        case Ctor (alloc):
             ret_ptr = new String (Allocator ());
             break;
-        }
-        case Ctor (ptr): {
+
+        case Ctor (cptr):
+            ret_ptr = new String (arg_ptr);
+            break;
+
+        case Ctor (cptr_alloc):
             ret_ptr = new String (arg_ptr, Allocator ());
             break;
-        }
-        case Ctor (str): {
+
+        case Ctor (cstr):
             ret_ptr = new String (arg_str);
             break;
-        }
-        case Ctor (ptr_size): {
+
+        case Ctor (cptr_size):
+            ret_ptr = new String (arg_ptr, arg_size);
+            break;
+
+        case Ctor (cptr_size_alloc):
             ret_ptr = new String (arg_ptr, arg_size, Allocator ());
             break;
-        }
-        case Ctor (str_size): {
+
+        case Ctor (cstr_size):
             ret_ptr = new String (arg_str, arg_off);
             break;
-        }
-        case Ctor (str_size_size): {
+
+        case Ctor (cstr_size_size):
+            ret_ptr = new String (arg_str, arg_off, arg_size);
+            break;
+
+        case Ctor (cstr_size_size_alloc):
             ret_ptr = new String (arg_str, arg_off, arg_size, Allocator ());
             break;
-        }
-        case Ctor (size_val): {
+
+        case Ctor (size_val):
+            ret_ptr = new String (tcase.size, arg_val);
+            break;
+
+        case Ctor (size_val_alloc):
             ret_ptr = new String (tcase.size, arg_val, Allocator ());
             break;
-        }
 
         default:
             RW_ASSERT (!"logic error: unknown constructor overload");
@@ -734,8 +751,8 @@ void test_ctor (charT, Traits*, Allocator*,
 
 template <class charT, class Traits, class Allocator>
 void test_op_set (charT, Traits*, Allocator*,
-                  const Function &func,
-                  const TestCase &tcase)
+                  const StringFunc     &func,
+                  const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename UserTraits<charT>::MemFun           UTMemFun;
@@ -781,7 +798,7 @@ void test_op_set (charT, Traits*, Allocator*,
 
     std::size_t total_length_calls = 0;
     std::size_t n_length_calls = 0;
-    std::size_t* const rg_calls = OpSet (ptr) == func.which_ ?
+    std::size_t* const rg_calls = OpSet (cptr) == func.which_ ?
         rw_get_call_counters ((Traits*)0, (charT*)0) : 0;
 
     if (rg_calls)
@@ -822,18 +839,18 @@ void test_op_set (charT, Traits*, Allocator*,
 
         try {
             switch (func.which_) {
-            case OpSet (ptr): {
+
+            case OpSet (cptr):
                 str = arg_ptr;
                 break;
-            }
-            case OpSet (str): {
+
+            case OpSet (cstr):
                 str = arg_str;
                 break;
-            }
-            case OpSet (val): {
+
+            case OpSet (val):
                 str = arg_val;
                 break;
-            }
 
             default:
                 RW_ASSERT (!"logic error: unknown operator= overload");
@@ -951,10 +968,10 @@ void test_op_set (charT, Traits*, Allocator*,
 
 template <class charT, class Traits, class Allocator>
 void test_cons (charT, Traits*, Allocator*,
-                const Function &func,
-                const TestCase &tcase)
+                const StringFunc     &func,
+                const StringTestCase &tcase)
 {
-    if (OpSet(ptr) <= func.which_)
+    if (StringIds::fid_op_set == (func.which_ & StringIds::fid_mask))
         test_op_set (charT (), (Traits*)0, (Allocator*)0, func, tcase);
     else
         test_ctor (charT (), (Traits*)0, (Allocator*)0, func, tcase);
@@ -966,39 +983,40 @@ DEFINE_STRING_TEST_DISPATCH (test_cons);
 
 int main (int argc, char** argv)
 {
-    static const StringMembers::Test
+    static const StringTest
     tests [] = {
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::ctor_ ## tag, tag ## _test_cases,        \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(sig) {                                             \
+        Ctor (sig), sig ## _test_cases,                         \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
     }
 
         TEST (void),
-        TEST (ptr),
-        TEST (str),
-        TEST (ptr_size),
-        TEST (str_size),
-        TEST (str_size_size),
+        TEST (cptr),
+        TEST (cstr),
+        TEST (cptr_size),
+        TEST (cstr_size),
+        TEST (cstr_size_size),
         TEST (size_val),
         TEST (range),
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::tag, tag ## _test_cases,                 \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(sig) {                             \
+        OpSet (sig), sig ## _op_set_test_cases, \
+          sizeof sig ## _op_set_test_cases      \
+        / sizeof *sig ## _op_set_test_cases     \
     }
 
-        TEST (op_set_ptr),
-        TEST (op_set_str),
-        TEST (op_set_val)
+        TEST (cptr),
+        TEST (cstr),
+        TEST (val)
 
     };
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return StringMembers::run_test (argc, argv, __FILE__,
-                                    "lib.string.cons",
-                                    test_cons, tests, test_count);
+    return rw_run_string_test (argc, argv, __FILE__,
+                               "lib.string.cons",
+                               test_cons, tests, test_count);
 }

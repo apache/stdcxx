@@ -29,7 +29,7 @@
 #include <cstddef>          // for size_t
 #include <stdexcept>        // for out_of_range
 
-#include <21.strings.h>     // for StringMembers
+#include <21.strings.h>     // for StringIds
 #include <driver.h>         // for rw_test()
 #include <rw_allocator.h>   // for UserAlloc
 #include <rw_char.h>        // for rw_expand()
@@ -37,10 +37,7 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define Substr(which)             StringMembers::substr_ ## which
-
-typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Function   Function;
+#define Substr(sig)               StringIds::substr_ ## sig
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -51,7 +48,7 @@ static const char* const exceptions[] = {
 
 // used to exercise
 // substr ()
-static const TestCase
+static const StringTestCase
 void_test_cases [] = {
 
 #undef TEST
@@ -84,7 +81,7 @@ void_test_cases [] = {
 
 // used to exercise
 // substr (size_type)
-static const TestCase
+static const StringTestCase
 size_test_cases [] = {
 
 #undef TEST
@@ -139,7 +136,7 @@ size_test_cases [] = {
 
 // used to exercise
 // substr (size_type, size_type)
-static const TestCase
+static const StringTestCase
 size_size_test_cases [] = {
 
 #undef TEST
@@ -210,8 +207,8 @@ size_size_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_substr (charT, Traits*, Allocator*,
-                  const Function &func,
-                  const TestCase &tcase)
+                  const StringFunc     &func,
+                  const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
 
@@ -259,21 +256,22 @@ void test_substr (charT, Traits*, Allocator*,
 
     try {
         switch (func.which_) {
-            case Substr (void):
-                s_res = str.substr ();
-                break;
 
-            case Substr (size):
-                s_res = str.substr (tcase.off);
-                break;
+        case Substr (void):
+            s_res = str.substr ();
+            break;
 
-            case Substr (size_size):
-                s_res = str.substr (tcase.off, tcase.size);
-                break;
+        case Substr (size):
+            s_res = str.substr (tcase.off);
+            break;
 
-            default:
-                RW_ASSERT (!"logic error: unknown substr overload");
-                return;
+        case Substr (size_size):
+            s_res = str.substr (tcase.off, tcase.size);
+            break;
+
+        default:
+            RW_ASSERT (!"logic error: unknown substr overload");
+            return;
         }
 
         // verfiy that strings length are equal
@@ -343,13 +341,13 @@ DEFINE_STRING_TEST_DISPATCH (test_substr);
 
 int main (int argc, char** argv)
 {
-    static const StringMembers::Test
+    static const StringTest
     tests [] = {
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::substr_ ## tag, tag ## _test_cases,      \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(sig) {                                             \
+        Substr (sig), sig ## _test_cases,                       \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
     }
 
         TEST (void),
@@ -359,7 +357,7 @@ int main (int argc, char** argv)
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return StringMembers::run_test (argc, argv, __FILE__,
-                                    "lib.string.substr",
-                                    test_substr, tests, test_count);
+    return rw_run_string_test (argc, argv, __FILE__,
+                               "lib.string.substr",
+                               test_substr, tests, test_count);
 }

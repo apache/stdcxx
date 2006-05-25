@@ -26,7 +26,7 @@
  **************************************************************************/
 
 #include <string>           // for string
-#include <cstdlib>          // for free(), size_t
+#include <cstddef>          // for ptrdiff_t, size_t
 #include <stdexcept>        // for out_of_range
 
 #include <21.strings.h>     // for StringMembers
@@ -38,10 +38,7 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define Erase(which)              StringMembers::erase_ ## which
-
-typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Function   Function;
+#define Erase(sig)                StringIds::erase_ ## sig
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -52,7 +49,8 @@ static const char* const exceptions[] = {
 
 // used to exercise
 // erase ()
-static const TestCase void_test_cases [] = {
+static const StringTestCase
+void_test_cases [] = {
 
 #undef TEST
 #define TEST(str, res) {                                                \
@@ -82,7 +80,8 @@ static const TestCase void_test_cases [] = {
 
 // used to exercise
 // erase (size_type)
-static const TestCase size_test_cases [] = {
+static const StringTestCase
+size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, res, bthrow) {                                    \
@@ -144,7 +143,8 @@ static const TestCase size_test_cases [] = {
 // used to exercise
 // erase (size_type, size_type)
 // erase (iterator, iterator)
-static const TestCase size_size_test_cases [] = {
+static const StringTestCase
+size_size_test_cases [] = {
 
 // size_size_test_cases serves a double duty
 #define iter_iter_test_cases size_size_test_cases
@@ -229,7 +229,8 @@ static const TestCase size_size_test_cases [] = {
 
 // used to exercise
 // erase (iterator)
-static const TestCase iter_test_cases [] = {
+static const StringTestCase
+iter_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, res) {                                      \
@@ -278,14 +279,16 @@ static const TestCase iter_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_erase (charT, Traits*, Allocator*,
-                 const Function &func,
-                 const TestCase &tcase)
+                 const StringFunc     &func,
+                 const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
     typedef typename String::const_iterator              ConstStringIter;
 
-    const bool use_iters = Erase (iter) <= func.which_;
+    const bool use_iters =
+        StringIds::arg_iter == StringIds::arg_type (func.which_, 1);
+
     if (use_iters && tcase.bthrow)
         return;
 
@@ -308,7 +311,7 @@ void test_erase (charT, Traits*, Allocator*,
 
     // construct the string object to be modified
     // and the (possibly unused) argument string
-    /* const */ String  s_str (wstr, str_len);
+    String str (wstr, str_len);
 
     if (wstr != wstr_buf)
         delete[] wstr;
@@ -318,10 +321,9 @@ void test_erase (charT, Traits*, Allocator*,
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
     // the state of the object after an exception)
-    const StringState str_state (rw_get_string_state (s_str));
+    const StringState str_state (rw_get_string_state (str));
 
-    std::size_t res_off = 0;
-    StringIter res_iter = s_str.begin ();
+    StringIter res_iter = str.begin ();
 
     // compute the offset and the extent (the number of elements)
     // of the first range into the string object being modified
@@ -333,7 +335,7 @@ void test_erase (charT, Traits*, Allocator*,
 
     // create a pair of iterators into the string object being
     // modified (used only by the iterator overloads)
-    const StringIter it_first (s_str.begin () + off1);
+    const StringIter it_first (str.begin () + off1);
     const StringIter it_last  (it_first + ext1);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
@@ -356,51 +358,43 @@ void test_erase (charT, Traits*, Allocator*,
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
+    // pointer to the returned reference
+    const String* ret_ptr = 0;
+
     try {
         switch (func.which_) {
-        case Erase (void): {
-            const String& s_res = s_str.erase ();
-            res_off = &s_res - &s_str;
-            break;
-        }
-        case Erase (size): {
-            const String& s_res = s_str.erase (tcase.off);
-            res_off = &s_res - &s_str;
-            break;
-        }
 
-        case Erase (size_size): {
-            const String& s_res = s_str.erase (tcase.off, tcase.size);
-            res_off = &s_res - &s_str;
+        case Erase (void):
+            ret_ptr = &str.erase ();
             break;
-        }
 
-        case Erase (iter): {
-            res_iter = s_str.erase (it_first);
+        case Erase (size):
+            ret_ptr = &str.erase (tcase.off);
             break;
-        }
 
-           case Erase (iter_iter): {
-            res_iter = s_str.erase (it_first, it_last);
+        case Erase (size_size):
+            ret_ptr = &str.erase (tcase.off, tcase.size);
             break;
-        }
+
+        case Erase (iter):
+            res_iter = str.erase (it_first);
+            break;
+
+        case Erase (iter_iter):
+            res_iter = str.erase (it_first, it_last);
+            break;
 
         default:
-            RW_ASSERT ("test logic error: unknown erase overload");
+            RW_ASSERT (!"test logic error: unknown erase overload");
             return;
         }
 
         // verify the returned value
-        if (!use_iters) {
-            rw_assert (0 == res_off, 0, tcase.line,
-                       "line %d. %{$FUNCALL} returned invalid reference, "
-                       "offset is %zu", __LINE__, res_off);
-        }
-        else {
-            const ConstStringIter begin = s_str.begin ();
-            const ConstStringIter end   = s_str.end ();
+        if (use_iters) {
+            const ConstStringIter begin = str.begin ();
+            const ConstStringIter end   = str.end ();
 
-            bool success = begin <= res_iter && res_iter <= end;
+            const bool success = begin <= res_iter && res_iter <= end;
             rw_assert (success, 0, tcase.line,
                        "line %d. %{$FUNCALL} returned invalid iterator, "
                        "difference with begin is %td",
@@ -413,33 +407,45 @@ void test_erase (charT, Traits*, Allocator*,
             else {
                 const std::size_t match =
                     rw_match (nres + tcase.off, &(*res_iter), 1);
+
                 rw_assert (1 == match, 0, tcase.line,
-                    "line %d. %{$FUNCALL} == %{#c}, got %{#c}",
+                           "line %d. %{$FUNCALL} == %{#c}, got %{#c}",
                            __LINE__, nres[tcase.off], *res_iter);
             }
         }
+        else {
+            // verify that the reference returned from the function
+            // refers to the modified string object (i.e., *this
+            // within the function)
+            const std::ptrdiff_t ret_off = ret_ptr - &str;
+
+            // verify the returned value
+            rw_assert (0 == ret_off, 0, tcase.line,
+                       "line %d. %{$FUNCALL} returned invalid reference, "
+                       "offset is %td", __LINE__, ret_off);
+        }
 
         // verfiy that strings length are equal
-        rw_assert (res_len == s_str.size (), 0, tcase.line,
+        rw_assert (res_len == str.size (), 0, tcase.line,
                    "line %d. %{$FUNCALL} expected %{#*s} with length "
                    "%zu, got %{/*.*Gs} with length %zu",
                    __LINE__, int (tcase.nres), tcase.res,
                    res_len, int (sizeof (charT)),
-                   int (s_str.size ()), s_str.c_str (), s_str.size ());
+                   int (str.size ()), str.c_str (), str.size ());
 
-        if (res_len == s_str.size ()) {
+        if (res_len == str.size ()) {
             // if the result length matches the expected length
             // (and only then), also verify that the modified
             // string matches the expected result
             const std::size_t match =
-                rw_match (tcase.res, s_str.c_str(), tcase.nres);
+                rw_match (tcase.res, str.c_str(), tcase.nres);
 
             rw_assert (match == res_len, 0, tcase.line,
                        "line %d. %{$FUNCALL} expected %{#*s}, "
                        "got %{/*.*Gs}, difference at offset %zu",
                        __LINE__, int (tcase.nres), tcase.res,
-                       int (sizeof (charT)), int (s_str.size ()),
-                       s_str.c_str (), match);
+                       int (sizeof (charT)), int (str.size ()),
+                       str.c_str (), match);
         }
     }
 
@@ -472,7 +478,7 @@ void test_erase (charT, Traits*, Allocator*,
     if (caught) {
         // verify that an exception thrown during allocation
         // didn't cause a change in the state of the object
-        str_state.assert_equal (rw_get_string_state (s_str),
+        str_state.assert_equal (rw_get_string_state (str),
                                 __LINE__, tcase.line, caught);
     }
 
@@ -489,13 +495,13 @@ DEFINE_STRING_TEST_DISPATCH (test_erase);
 
 int main (int argc, char** argv)
 {
-    static const StringMembers::Test
+    static const StringTest
     tests [] = {
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::erase_ ## tag, tag ## _test_cases,       \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(sig) {                                             \
+        Erase (sig), sig ## _test_cases,                        \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
     }
 
         TEST (void),
@@ -507,7 +513,7 @@ int main (int argc, char** argv)
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return StringMembers::run_test (argc, argv, __FILE__,
-                                    "lib.string.erase",
-                                    test_erase, tests, test_count);
+    return rw_run_string_test (argc, argv, __FILE__,
+                               "lib.string.erase",
+                               test_erase, tests, test_count);
 }

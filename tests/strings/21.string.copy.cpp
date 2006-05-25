@@ -37,11 +37,7 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define NPOS                      _RWSTD_SIZE_MAX
-#define Copy(which)               StringMembers::copy_ ## which
-
-typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Function   Function;
+#define Copy(which)               StringIds::copy_ ## which
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -52,7 +48,7 @@ static const char* const exceptions[] = {
 
 // exercises:
 // copy (value_type*, size_type)
-static const TestCase
+static const StringTestCase
 ptr_size_test_cases [] = {
 
 #undef TEST
@@ -96,7 +92,7 @@ ptr_size_test_cases [] = {
 
 // exercises:
 // copy (value_type*, size_type, size_type)
-static const TestCase
+static const StringTestCase
 ptr_size_size_test_cases [] = {
 
 #undef TEST
@@ -160,8 +156,8 @@ ptr_size_size_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_copy (charT, Traits*, Allocator*,                
-                const Function &func,
-                const TestCase &tcase)
+                const StringFunc     &func,
+                const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
 
@@ -304,14 +300,13 @@ DEFINE_STRING_TEST_DISPATCH (test_copy);
 
 int main (int argc, char** argv)
 {
-    static const StringMembers::Test
+    static const StringTest
     tests [] = {
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::copy_ ## tag,                            \
-        tag ## _test_cases,                                     \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(which) {                                               \
+        Copy (which), which ## _test_cases,                         \
+        sizeof which ## _test_cases / sizeof *which ## _test_cases  \
     }
 
         TEST (ptr_size),
@@ -320,7 +315,7 @@ int main (int argc, char** argv)
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return StringMembers::run_test (argc, argv, __FILE__,
-                                    "lib.string.copy",
-                                    test_copy, tests, test_count);
+    return rw_run_string_test (argc, argv, __FILE__,
+                               "lib.string.copy",
+                               test_copy, tests, test_count);
 }

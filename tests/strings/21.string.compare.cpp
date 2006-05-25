@@ -37,12 +37,7 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define NPOS                      _RWSTD_SIZE_MAX
-#define Compare(which)            StringMembers::compare_ ## which
-
-typedef StringMembers::TestCase   TestCase;
-typedef StringMembers::Function   Function;
-
+#define Compare(sig)              StringIds::compare_ ## sig
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -53,8 +48,8 @@ static const char* const exceptions[] = {
 
 // exercises:
 // compare (const value_type*)
-static const TestCase
-ptr_test_cases [] = {
+static const StringTestCase
+cptr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, res, bthrow) {           \
@@ -125,8 +120,8 @@ ptr_test_cases [] = {
 
 // exercises:
 // compare (const basic_string&)
-static const TestCase
-str_test_cases [] = {
+static const StringTestCase
+cstr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, res, bthrow) {           \
@@ -200,8 +195,8 @@ str_test_cases [] = {
 
 // exercises:
 // compare (size_type, size_type, const value_type*)
-static const TestCase
-size_size_ptr_test_cases [] = {
+static const StringTestCase
+size_size_cptr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, size, arg, res, bthrow) {        \
@@ -293,8 +288,8 @@ size_size_ptr_test_cases [] = {
 
 // exercises:
 // compare (size_type, size_type, basic_string&)
-static const TestCase
-size_size_str_test_cases [] = {
+static const StringTestCase
+size_size_cstr_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, size, arg, res, bthrow) {        \
@@ -399,8 +394,8 @@ size_size_str_test_cases [] = {
 
 // exercises:
 // compare (size_type, size_type, const value_type*, size_type)
-static const TestCase
-size_size_ptr_size_test_cases [] = {
+static const StringTestCase
+size_size_cptr_size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, size, arg, size2, res, bthrow) { \
@@ -527,8 +522,8 @@ size_size_ptr_size_test_cases [] = {
 
 // exercises:
 // compare (size_type, size_type, basic_string&, size_type, size_type)
-static const TestCase
-size_size_str_size_size_test_cases [] = {
+static const StringTestCase
+size_size_cstr_size_size_test_cases [] = {
 
 #undef TEST
 #define TEST(str, off, size, arg, off2, size2, res, bthrow) {   \
@@ -697,8 +692,8 @@ size_size_str_size_size_test_cases [] = {
 
 template <class charT, class Traits, class Allocator>
 void test_compare (charT, Traits*, Allocator*,
-                   const Function &func,
-                   const TestCase &tcase)
+                   const StringFunc     &func,
+                   const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename UserTraits<charT>::MemFun           UTMemFun;
@@ -716,8 +711,8 @@ void test_compare (charT, Traits*, Allocator*,
 
     // construct the string object to be modified
     // and the (possibly unused) argument string
-    /* const */ String s_str (wstr, str_len);
-    const       String s_arg (warg, arg_len);
+    const String str (wstr, str_len);
+    const String arg (warg, arg_len);
 
     if (wstr != wstr_buf)
         delete[] wstr;
@@ -731,13 +726,13 @@ void test_compare (charT, Traits*, Allocator*,
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
     // the state of the object after an exception)
-    const StringState str_state (rw_get_string_state (s_str));
+    const StringState str_state (rw_get_string_state (str));
 
     int res = 0;
 
     // string function argument
-    const charT* const arg_ptr = tcase.arg ? s_arg.c_str () : s_str.c_str ();
-    const String&      arg_str = tcase.arg ? s_arg : s_str;
+    const charT* const arg_ptr = tcase.arg ? arg.c_str () : str.c_str ();
+    const String&      arg_str = tcase.arg ? arg : str;
 
     std::size_t total_compare_calls = 0;
     std::size_t n_compare_calls = 0;
@@ -756,7 +751,7 @@ void test_compare (charT, Traits*, Allocator*,
     if (1 == tcase.bthrow)
         expected = exceptions [1];
     else if (   2 == tcase.bthrow
-             && Compare (size_size_str_size_size) == func.which_)
+             && Compare (size_size_cstr_size_size) == func.which_)
         expected = exceptions [1];
     else if (3 == tcase.bthrow)
         expected = exceptions [2];
@@ -770,39 +765,33 @@ void test_compare (charT, Traits*, Allocator*,
 
     try {
         switch (func.which_) {
-            case Compare (ptr): {
-                res = s_str.compare (arg_ptr);
+            case Compare (cptr):
+                res = str.compare (arg_ptr);
                 break;
-            }
 
-            case Compare (str): {
-                res = s_str.compare (arg_str);
+            case Compare (cstr):
+                res = str.compare (arg_str);
                 if (rg_calls)
                     n_compare_calls = rg_calls[UTMemFun::compare];
                 break;
-            }
 
-            case Compare (size_size_ptr): {
-                res = s_str.compare (tcase.off, tcase.size, arg_ptr);
+            case Compare (size_size_cptr):
+                res = str.compare (tcase.off, tcase.size, arg_ptr);
                 break;
-            }
 
-            case Compare (size_size_str): {
-                res = s_str.compare (tcase.off, tcase.size, arg_str);
+            case Compare (size_size_cstr):
+                res = str.compare (tcase.off, tcase.size, arg_str);
                 break;
-            }
 
-            case Compare (size_size_ptr_size): {
-                res = s_str.compare (tcase.off, tcase.size,
+            case Compare (size_size_cptr_size):
+                res = str.compare (tcase.off, tcase.size,
                                     arg_ptr, tcase.size2);
                 break;
-            }
 
-            case Compare (size_size_str_size_size): {
-                res = s_str.compare (tcase.off, tcase.size,
+            case Compare (size_size_cstr_size_size):
+                res = str.compare (tcase.off, tcase.size,
                                     arg_str, tcase.off2, tcase.size2);
                 break;
-            }
 
             default:
                 RW_ASSERT ("test logic error: unknown compare overload");
@@ -819,7 +808,7 @@ void test_compare (charT, Traits*, Allocator*,
                    __LINE__, tcase.nres == NPOS ? -1 : int (tcase.nres), res);
 
         // verify that Traits::length was used
-        if (Compare (str) == func.which_ && rg_calls) {
+        if (Compare (cstr) == func.which_ && rg_calls) {
             rw_assert (n_compare_calls - total_compare_calls > 0,
                        0, tcase.line, "line %d. %{$FUNCALL} doesn't "
                        "use traits::compare()", __LINE__);
@@ -860,7 +849,7 @@ void test_compare (charT, Traits*, Allocator*,
     if (caught) {
         // verify that an exception thrown during allocation
         // didn't cause a change in the state of the object
-        str_state.assert_equal (rw_get_string_state (s_str),
+        str_state.assert_equal (rw_get_string_state (str),
                                 __LINE__, tcase.line, caught);
     }
 
@@ -874,26 +863,26 @@ DEFINE_STRING_TEST_DISPATCH (test_compare);
 
 int main (int argc, char** argv)
 {
-    static const StringMembers::Test
+    static const StringTest
     tests [] = {
 
 #undef TEST
-#define TEST(tag) {                                             \
-        StringMembers::compare_ ## tag, tag ## _test_cases,     \
-        sizeof tag ## _test_cases / sizeof *tag ## _test_cases  \
+#define TEST(sig) {                                             \
+        Compare (sig), sig ## _test_cases,                      \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
     }
 
-        TEST (ptr),
-        TEST (str),
-        TEST (size_size_ptr),
-        TEST (size_size_str),
-        TEST (size_size_ptr_size),
-        TEST (size_size_str_size_size)
+        TEST (cptr),
+        TEST (cstr),
+        TEST (size_size_cptr),
+        TEST (size_size_cstr),
+        TEST (size_size_cptr_size),
+        TEST (size_size_cstr_size_size)
     };
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return StringMembers::run_test (argc, argv, __FILE__,
-                                    "lib.string.compare",
-                                    test_compare, tests, test_count);
+    return rw_run_string_test (argc, argv, __FILE__,
+                               "lib.string.compare",
+                               test_compare, tests, test_count);
 }
