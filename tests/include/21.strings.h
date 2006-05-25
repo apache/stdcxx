@@ -37,16 +37,16 @@ struct StringIds {
     // identifiers for the charT template argument
     enum CharId { Char, WChar, UChar };
 
-    // identifiers for  the Traits template argument
+    // identifiers for the Traits template argument
     enum TraitsId { DefaultTraits, UserTraits };
 
-    // identifiers for  the Allocator template argument
+    // identifiers for the Allocator template argument
     enum AllocId { DefaultAlloc, UserAlloc };
 
     // identifies a set of overloaded member or non-member
     // string functions
     enum FuncId {
-        // 5 bits, 32 functions max
+        // 6 bits, 64 functions max
         /*  0 */ fid_append,
         /*  1 */ fid_assign,
         /*  2 */ fid_erase,
@@ -70,8 +70,15 @@ struct StringIds {
         /* 18 */ fid_op_set,
         /* 19 */ fid_swap,
         /* 20 */ fid_push_back,
-        /* -- */ fid_bits = 5,
-        /* -- */ fid_mask = 31
+        /* 21 */ fid_op_plus,
+        /* 22 */ fid_op_equal,
+        /* 23 */ fid_op_not_equal,
+        /* 24 */ fid_op_less,
+        /* 25 */ fid_op_less_equal,
+        /* 26 */ fid_op_greater,
+        /* 27 */ fid_op_greater_equal,
+        /* -- */ fid_bits = 6,
+        /* -- */ fid_mask = 63
     };
 
     // identifies the type of a function argument, including
@@ -95,8 +102,16 @@ struct StringIds {
         /* -- */ arg_mask = 15
     };
 
+    enum {
+        // bit designating a member function
+        bit_member = 1 << fid_bits + 6 * arg_bits
+    };
+
+// FCAT() concatenates prefix, underscrore, and suffix
 #define _FCAT(a, b)             a ## b
 #define FCAT(a, b)              _FCAT (a ## _, b)
+
+// FID_N() constructs the name for an overload of a string function
 #define FID_0(f)                FCAT (f, void)
 #define FID_1(f, a)             FCAT (f, a)
 #define FID_2(f, a, b)          FID_1 (FCAT (f, a), b)
@@ -104,8 +119,10 @@ struct StringIds {
 #define FID_4(f, a, b, c, d)    FID_3 (FCAT (f, a), b, c, d)
 #define FID_5(f, a, b, c, d, e) FID_4 (FCAT (f, a), b, c, d, e)
 
-#define ARG(a, N)   ((arg_ ## a << (N << 2)) << 5)
+// ARG() creates a bitmap of an argument type at the given position
+#define ARG(a, N)   ((arg_ ## a << (N * arg_bits)) << fid_bits)
 
+// SIG_N() creates an argument bitmap for the given function signature
 #define SIG_0(f)                   fid_ ## f
 #define SIG_1(f, a)                SIG_0 (f) | ARG (a, 0)
 #define SIG_2(f, a, b)             SIG_1 (f, a) | ARG (b, 1)
@@ -118,17 +135,17 @@ struct StringIds {
 // where the first argument encodes the constness of the member
 // function (or the lack thereof)
 #define MEMBER_0(f, self) \
-        FID_0 (f) = SIG_1 (f, self)
+        FID_0 (f) = SIG_1 (f, self) | bit_member
 #define MEMBER_1(f, self, a) \
-        FID_1 (f, a) = SIG_2 (f, self, a)
+        FID_1 (f, a) = SIG_2 (f, self, a) | bit_member
 #define MEMBER_2(f, self, a, b) \
-        FID_2 (f, a, b) = SIG_3 (f, self, a, b)
+        FID_2 (f, a, b) = SIG_3 (f, self, a, b) | bit_member
 #define MEMBER_3(f, self, a, b, c) \
-        FID_3 (f, a, b, c) = SIG_4 (f, self, a, b, c)
+        FID_3 (f, a, b, c) = SIG_4 (f, self, a, b, c) | bit_member
 #define MEMBER_4(f, self, a, b, c, d) \
-        FID_4 (f, a, b, c, d) = SIG_5 (f, self, a, b, c, d)
+        FID_4 (f, a, b, c, d) = SIG_5 (f, self, a, b, c, d) | bit_member
 #define MEMBER_5(f, self, a, b, c, d, e) \
-        FID_5 (f, a, b, c, d, e) = SIG_6 (f, self, a, b, c, d, e)
+        FID_5 (f, a, b, c, d, e) = SIG_6 (f, self, a, b, c, d, e) | bit_member
 
 // convenience macro to define non-member function overload id's
 #define NON_MEMBER_0(f) \
@@ -145,6 +162,9 @@ struct StringIds {
         FID_5 (f, a, b, c, d, e) = SIG_5 (f, a, b, c, d, e)
 
     // unique identifiers for all overloads of each member function
+    //     6 bits for FuncId
+    // 6 * 4 bits for ArgId (at most 6 arguments including this)
+    //     1 bit for membership
     enum OverloadId {
         //////////////////////////////////////////////////////////////
         // append (const_pointer)
@@ -420,7 +440,67 @@ struct StringIds {
 
         //////////////////////////////////////////////////////////////
         // push_back (value_type)
-        MEMBER_1 (push_back, str, val)
+        MEMBER_1 (push_back, str, val),
+
+        //////////////////////////////////////////////////////////////
+        // operator+ (const_pointer, const basic_string&)
+        NON_MEMBER_2 (op_plus, cptr, cstr),
+        // operator+ (const basic_string&, const basic_string&)
+        NON_MEMBER_2 (op_plus, cstr, cstr),
+        // operator+ (const basic_string&, const_pointer)
+        NON_MEMBER_2 (op_plus, cstr, cptr),
+        // operator+ (const basic_string&, value_type)
+        NON_MEMBER_2 (op_plus, cstr, val),
+        // operator+ (value_type, const basic_string&)
+        NON_MEMBER_2 (op_plus, val, cstr),
+
+        //////////////////////////////////////////////////////////////
+        // operator== (const_pointer, const basic_string&)
+        NON_MEMBER_2 (op_equal, cptr, cstr),
+        // operator== (const basic_string&, const basic_string&)
+        NON_MEMBER_2 (op_equal, cstr, cstr),
+        // operator== (const basic_string&, const_pointer)
+        NON_MEMBER_2 (op_equal, cstr, cptr),
+
+        //////////////////////////////////////////////////////////////
+        // operator!= (const_pointer, const basic_string&)
+        NON_MEMBER_2 (op_not_equal, cptr, cstr),
+        // operator!= (const basic_string&, const basic_string&)
+        NON_MEMBER_2 (op_not_equal, cstr, cstr),
+        // operator!= (const basic_string&, const_pointer)
+        NON_MEMBER_2 (op_not_equal, cstr, cptr),
+
+        //////////////////////////////////////////////////////////////
+        // operator< (const_pointer, const basic_string&)
+        NON_MEMBER_2 (op_less, cptr, cstr),
+        // operator< (const basic_string&, const basic_string&)
+        NON_MEMBER_2 (op_less, cstr, cstr),
+        // operator< (const basic_string&, const_pointer)
+        NON_MEMBER_2 (op_less, cstr, cptr),
+
+        //////////////////////////////////////////////////////////////
+        // operator<= (const_pointer, const basic_string&)
+        NON_MEMBER_2 (op_less_equal, cptr, cstr),
+        // operator<= (const basic_string&, const basic_string&)
+        NON_MEMBER_2 (op_less_equal, cstr, cstr),
+        // operator<= (const basic_string&, const_pointer)
+        NON_MEMBER_2 (op_less_equal, cstr, cptr),
+
+        //////////////////////////////////////////////////////////////
+        // operator> (const_pointer, const basic_string&)
+        NON_MEMBER_2 (op_greater, cptr, cstr),
+        // operator> (const basic_string&, const basic_string&)
+        NON_MEMBER_2 (op_greater, cstr, cstr),
+        // operator> (const basic_string&, const_pointer)
+        NON_MEMBER_2 (op_greater, cstr, cptr),
+
+        //////////////////////////////////////////////////////////////
+        // operator>= (const_pointer, const basic_string&)
+        NON_MEMBER_2 (op_greater_equal, cptr, cstr),
+        // operator>= (const basic_string&, const basic_string&)
+        NON_MEMBER_2 (op_greater_equal, cstr, cstr),
+        // operator>= (const basic_string&, const_pointer)
+        NON_MEMBER_2 (op_greater_equal, cstr, cptr)
     };
 
 // clean up helper macros used above
