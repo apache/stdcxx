@@ -1094,7 +1094,9 @@ void test_replace (charT, Traits*, Allocator*,
 
 #else   // if defined (_RWSTD_NO_REPLACEABLE_NEW_DELETE)
 
-    const std::size_t expect_throws = 0;
+    const std::size_t expect_throws = 
+        (StringIds::UserAlloc == func.alloc_id_) 
+      ? str_state.capacity_ < str.capacity (): 0;
 
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 

@@ -99,8 +99,6 @@ cptr_test_cases [] = {
     TEST ("abc\0\0",    0,            "abc",           0),
     TEST ("x@4096",     0,            "x@4096",        0),
 
-    TEST ("",           "x@4096",     "x@4096",       -1),
-
     TEST ("last",       "test",       "test",          0)
 };
 
@@ -236,7 +234,6 @@ cptr_size_test_cases [] = {
     TEST ("a@4096",    "b@4096", 2048,  "b@2048",     0),
 
     TEST ("",          "",         -1,  "",           2),
-    TEST ("",          "x@4096", 4096,  "x@4096",    -1),
 
     TEST ("last",      "test",      4, "test",        0)
 };
@@ -325,8 +322,6 @@ range_test_cases [] = {
     TEST ("",          "a",         2, 0,  "",           1),
     TEST ("",          "x@4096", 4106, 0,  "",           1),
 
-    TEST ("",          "x@4096",    0, 4096, "x@4096",  -1),
-
     TEST ("last",      "test",      0, 4, "test",        0)
 };
 
@@ -383,7 +378,6 @@ size_val_test_cases [] = {
     TEST ("x@4096",    0, 'x',  "",             0),
 
     TEST ("",         -1, 'x',  "",             2),
-    TEST ("",       4096, 'x',  "x@4096",      -1),
 
     TEST ("last",      4, 't',  "tttt",         0)
 };
@@ -562,12 +556,13 @@ void test_assign (charT, Traits*, Allocator*,
         total_length_calls = rg_calls [UTMemFun::length];
 
     rwt_free_store* const pst = rwt_get_free_store (0);
+    SharedAlloc*    const pal = SharedAlloc::instance ();
 
     // iterate for`throw_after' starting at the next call to operator new,
     // forcing each call to throw an exception, until the function finally
     // succeeds (i.e, no exception is thrown)
-    std::size_t throw_after;
-    for (throw_after = 0; ; ++throw_after) {
+    std::size_t throw_count;
+    for (throw_count = 0; ; ++throw_count) {
 
         // (name of) expected and caught exception
         const char* expected = 0;
@@ -579,9 +574,17 @@ void test_assign (charT, Traits*, Allocator*,
             expected = exceptions [1];   // out_of_range
         else if (2 == tcase.bthrow)
             expected = exceptions [2];   // length_error
-        else if (-1 == tcase.bthrow) {
-            expected = exceptions [3];   // bad_alloc
-            *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_after + 1;
+        else if (0 == tcase.bthrow) {
+            // by default excercise the exception safety of the function
+            // by iteratively inducing an exception at each call to operator
+            // new or Allocator::allocate() until the call succeeds
+            expected = exceptions [3];      // bad_alloc
+            *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_count + 1;
+            pal->throw_at_calls_ [pal->m_allocate] =
+                pal->throw_at_calls_ [pal->m_allocate] + throw_count + 1;
+        }
+        else {
+            // exceptions disabled for this test case
         }
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
@@ -597,6 +600,9 @@ void test_assign (charT, Traits*, Allocator*,
 
         // pointer to the returned reference
         const String* ret_ptr = 0;
+
+        // start checking for memory leaks
+        rw_check_leaks (str.get_allocator ());
 
         try {
             switch (func.which_) {
@@ -688,7 +694,7 @@ void test_assign (charT, Traits*, Allocator*,
         }
         catch (const std::bad_alloc &ex) {
             caught = exceptions [3];
-            rw_assert (-1 == tcase.bthrow, 0, tcase.line,
+            rw_assert (0 == tcase.bthrow, 0, tcase.line,
                        "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                        "unexpectedly%{;} caught std::%s(%#s)",
                        __LINE__, 0 != expected, expected, caught, ex.what ());
@@ -710,20 +716,25 @@ void test_assign (charT, Traits*, Allocator*,
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
+        // FIXME: verify the number of blocks the function call
+        // is expected to allocate and detect any memory leaks
+        rw_check_leaks (str.get_allocator (), tcase.line,
+                        std::size_t (-1), std::size_t (-1));
+
         if (caught) {
             // verify that an exception thrown during allocation
             // didn't cause a change in the state of the object
             str_state.assert_equal (rw_get_string_state (str),
                                     __LINE__, tcase.line, caught);
 
-            if (-1 == tcase.bthrow) {
+            if (0 == tcase.bthrow) {
                 // allow this call to operator new to succeed and try
                 // to make the next one to fail during the next call
                 // to the same function again
                 continue;
             }
         }
-        else if (-1 != tcase.bthrow) {
+        else if (0 < tcase.bthrow) {
             rw_assert (caught == expected, 0, tcase.line,
                        "line %d. %{$FUNCALL} %{?}expected %s, caught %s"
                        "%{:}unexpectedly caught %s%{;}",
@@ -733,24 +744,42 @@ void test_assign (charT, Traits*, Allocator*,
         break;
     }
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-#  ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
+    std::size_t expect_throws = 0;
+
+#ifndef _RWSTD_NO_STRING_REF_COUNT
+    if (Assign (cstr) != func.which_) {
+#endif
+
+#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
     // verify that if exceptions are enabled and when capacity changes
     // at least one exception is thrown
-    rw_assert (   *pst->throw_at_calls_ [0] == std::size_t (-1)
-               || throw_after,
-               0, tcase.line,
-               "line %d: %{$FUNCALL}: failed to throw an expected exception",
-               __LINE__);
+    expect_throws = str_state.capacity_ < str.capacity ();
 
-#  endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
-#endif   // _RWSTD_NO_EXCEPTIONS
+#else   // if defined (_RWSTD_NO_REPLACEABLE_NEW_DELETE)
 
-    *pst->throw_at_calls_ [0] = std::size_t (-1);
+    expect_throws = (StringIds::UserAlloc == func.alloc_id_) 
+        ? str_state.capacity_ < str.capacity (): 0;
+
+#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+#ifndef _RWSTD_NO_STRING_REF_COUNT
+    }
+#endif
+
+    rw_assert (expect_throws == throw_count, 0, tcase.line,
+               "line %d: %{$FUNCALL}: expected exactly 1 %s exception "
+               "while changing capacity from %zu to %zu, got %zu",
+               __LINE__, exceptions [3],
+               str_state.capacity_, str.capacity (), throw_count);
+
+    // disable bad_alloc exceptions
+    *pst->throw_at_calls_ [0] = 0;
+    pal->throw_at_calls_ [pal->m_allocate] = 0;
 
     if (wres != wres_buf)
         delete[] wres;
+
 }
 
 /**************************************************************************/
