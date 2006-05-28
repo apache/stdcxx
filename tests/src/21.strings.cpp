@@ -28,19 +28,23 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
+#include <memory>         // for allocator
+#include <string>         // for char_traits
+
 #include <21.strings.h>
 
-#include <cmdopt.h>       // for rw_enabled()
-#include <driver.h>       // for rw_info()
-#include <environ.h>      // for rw_putenv()
-#include <rw_char.h>      // for rw_expand()
-#include <rw_printf.h>    // for rw_asnprintf()
+#include <cmdopt.h>         // for rw_enabled()
+#include <driver.h>         // for rw_info()
+#include <environ.h>        // for rw_putenv()
+#include <rw_allocator.h>   // for UserAlloc
+#include <rw_char.h>        // for rw_expand()
+#include <rw_printf.h>      // for rw_asnprintf()
 
-#include <ctype.h>        // for isdigit()
-#include <stdarg.h>       // for va_arg, ...
-#include <stddef.h>       // for size_t
-#include <stdlib.h>       // for free()
-#include <string.h>       // for memset()
+#include <ctype.h>          // for isdigit()
+#include <stdarg.h>         // for va_arg, ...
+#include <stddef.h>         // for size_t
+#include <stdlib.h>         // for free()
+#include <string.h>         // for memset()
 
 /**************************************************************************/
 
@@ -926,10 +930,101 @@ _rw_setvars (const StringFunc     &func,
 
 /**************************************************************************/
 
+template <class charT, class Traits, class Allocator>
+void
+_rw_dispatch (charT*, Traits*, Allocator*,
+              VoidFunc* const      *farray,
+              const StringFunc     &func,
+              const StringTestCase &tcase)
+{
+    typedef StringTestCaseData<charT> Data;
+    typedef void TestFunc (charT, Traits*, Allocator*, const Data&);
+
+    const size_t inx = func.char_id_ * 4 + func.traits_id_ * 2 + func.alloc_id_;
+
+    TestFunc* const tfunc = _RWSTD_REINTERPRET_CAST (TestFunc*, farray [inx]);
+
+    const Data tdata (func, tcase);
+
+    tfunc (charT (), (Traits*)0, (Allocator*)0, tdata);
+}
+
+
+template <class charT, class Traits>
+void
+_rw_dispatch (charT*, Traits*,
+              VoidFunc* const      *farray,
+              const StringFunc     &func,
+              const StringTestCase &tcase)
+{
+    if (StringIds::DefaultAlloc == func.alloc_id_) {
+        typedef std::allocator<charT> Alloc;
+        _rw_dispatch ((charT*)0, (Traits*)0, (Alloc*)0, farray, func, tcase);
+    }
+    else if (StringIds::UserAlloc == func.alloc_id_) {
+        typedef UserAlloc<charT> Alloc;
+        _rw_dispatch ((charT*)0, (Traits*)0, (Alloc*)0, farray, func, tcase);
+    }
+    else {
+        RW_ASSERT (!"logic error: unknown Allocator argument");
+    }
+}
+
+
+template <class charT>
+void
+_rw_dispatch (charT*,
+              VoidFunc* const     *farray,
+              const StringFunc     &func,
+              const StringTestCase &tcase)
+{
+    if (StringIds::DefaultTraits == func.traits_id_) {
+        typedef std::char_traits<charT> Traits;
+        _rw_dispatch ((charT*)0, (Traits*)0, farray, func, tcase);
+    }
+    else if (StringIds::UserTraits == func.traits_id_) {
+        typedef UserTraits<charT> Traits;
+        _rw_dispatch ((charT*)0, (Traits*)0, farray, func, tcase);
+    }
+    else {
+        RW_ASSERT (!"logic error: unknown Traits argument");
+    }
+
+}
+
+
+static void
+_rw_dispatch (VoidFunc* const      *farray,
+              const StringFunc     &func,
+              const StringTestCase &tcase)
+{
+    if (StringIds::Char == func.char_id_) {
+        _rw_dispatch ((char*)0, farray, func, tcase);
+    }
+    else if (StringIds::WChar == func.char_id_) {
+        _rw_dispatch ((wchar_t*)0, farray, func, tcase);
+    }
+    else if (StringIds::UChar == func.char_id_) {
+        if (StringIds::DefaultTraits == func.traits_id_) {
+            RW_ASSERT (!"logic error: std::char_traits<UserChar> not allowed");
+        }
+        else if (StringIds::UserTraits == func.traits_id_) {
+            typedef UserTraits<UserChar> Traits;
+            _rw_dispatch ((UserChar*)0, (Traits*)0, farray, func, tcase);
+        }
+    }
+    else {
+        RW_ASSERT (!"logic error: unknown charT argument");
+    }
+}
+
+/**************************************************************************/
+
 static void
 _rw_test_case (const StringFunc     &func,
                const StringTestCase &tcase,
-               StringTestFunc       *test_callback)
+               StringTestFunc       *test_callback,
+               VoidFunc* const      *farray)
 {
     // check to see if this is an exception safety test case
     // and avoid running it when exception safety has been
@@ -977,8 +1072,13 @@ _rw_test_case (const StringFunc     &func,
         // the function call specified by this test case
         _rw_setvars (func, &tcase);
 
-        // invoke the test function
-        test_callback (func, tcase);
+        if (test_callback) {
+            // invoke the test callback function
+            test_callback (func, tcase);
+        }
+        else {
+            _rw_dispatch (farray, func, tcase);
+        }
     }
     else
         rw_note (0, _rw_this_file, tcase.line,
@@ -1006,6 +1106,10 @@ _rw_toggle_options (int *opts, size_t count)
 
 static StringTestFunc*
 _rw_test_callback;
+
+static VoidFunc* const*
+_rw_func_array;
+
 
 static int
 _rw_run_test (int, char*[])
@@ -1144,7 +1248,8 @@ _rw_run_test (int, char*[])
 
                         const StringTestCase& tcase = test.cases [n];
 
-                        _rw_test_case (func, tcase, _rw_test_callback);
+                        _rw_test_case (func, tcase,
+                                       _rw_test_callback, _rw_func_array);
                     }
                 }
             }
@@ -1156,17 +1261,19 @@ _rw_run_test (int, char*[])
 
 /**************************************************************************/
 
-_TEST_EXPORT int
-rw_run_string_test (int               argc,
-                    char             *argv [],
-                    const char       *file,
-                    const char       *clause,
-                    StringTestFunc   *test_callback,
-                    const StringTest *tests,
-                    size_t            test_count)
+static int
+_rw_run_test  (int               argc,
+               char             *argv [],
+               const char       *file,
+               const char       *clause,
+               StringTestFunc   *test_callback,
+               VoidFunc* const  *func_array,
+               const StringTest *tests,
+               size_t            test_count)
 {
     // set the global variables accessed in _rw_run_test
     _rw_test_callback     = test_callback;
+    _rw_func_array        = func_array,
     _rw_string_tests      = tests;
     _rw_string_test_count = test_count;
 
@@ -1266,4 +1373,31 @@ rw_run_string_test (int               argc,
     free (optbuf);
 
     return status;
+}
+
+
+
+_TEST_EXPORT int
+rw_run_string_test (int               argc,
+                    char             *argv [],
+                    const char       *file,
+                    const char       *clause,
+                    StringTestFunc   *callback,
+                    const StringTest *tests,
+                    size_t            count)
+{
+    return _rw_run_test (argc, argv, file, clause, callback, 0, tests, count);
+}
+
+
+_TEST_EXPORT int
+rw_run_string_test (int               argc,
+                    char             *argv [],
+                    const char       *file,
+                    const char       *clause,
+                    VoidFunc* const  *farray,
+                    const StringTest *tests,
+                    size_t            count)
+{
+    return _rw_run_test (argc, argv, file, clause, 0, farray, tests, count);
 }

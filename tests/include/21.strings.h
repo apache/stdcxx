@@ -28,10 +28,14 @@
 #ifndef RW_21_STRINGS_H_INCLUDED
 #define RW_21_STRINGS_H_INCLUDED
 
+#include <rw_char.h>        // for rw_expand()
 #include <testdefs.h>
 
 /**************************************************************************/
 
+// defines enumerations identifying basic_string template arguments,
+// sets of overloaded functions, member types used in the declarations
+// of their signatures, and specific overloads of such member functions
 struct StringIds {
 
     // identifiers for the charT template argument
@@ -597,6 +601,97 @@ _TEST_EXPORT int
 rw_run_string_test (int, char**, const char*, const char*,
                     StringTestFunc*, const StringTest*, _RWSTD_SIZE_T);
 
+typedef void VoidFunc ();
+
+_TEST_EXPORT int
+rw_run_string_test (int, char**, const char*, const char*,
+                    VoidFunc* const*, const StringTest*, _RWSTD_SIZE_T);
+
+/**************************************************************************/
+
+template <class charT>
+class StringTestCaseData
+{
+private:
+
+    enum { BUFSIZE = 256 };
+
+    // small buffers to avoid expensive dynamic memory allocation
+    // in most test cases (will dynamically allocate sufficient
+    // storage if necessary)
+    charT str_buf_ [BUFSIZE];
+    charT arg_buf_ [BUFSIZE];
+    charT res_buf_ [BUFSIZE];
+
+    // not defined, not copiable, not assignable
+    StringTestCaseData (const StringTestCaseData&);
+    void operator= (const StringTestCaseData&);
+
+    // for convenience
+    typedef _RWSTD_SIZE_T SizeType;
+
+public:
+
+    SizeType strlen_;   // the length of the expanded string
+    SizeType arglen_;   // the length of the expanded argument
+    SizeType reslen_;   // the length of the expanded result
+
+    // the offset and extent (the number of elements) of
+    // the first range into the string object being modified
+    SizeType off1_;
+    SizeType ext1_;
+
+    // the offset and extent (the number of elements) of
+    // the argument of the function call
+    SizeType off2_;
+    SizeType ext2_;
+
+    const charT* const str_;   // pointer to the expanded string
+    const charT* const arg_;   // pointer to the expanded argument
+    const charT* const res_;   // pointer to the expanded result
+
+    const StringFunc     &func_;
+    const StringTestCase &tcase_;
+
+    // converts the narrow (and possibly) condensed strings to fully
+    // expanded wide character arrays that can be used to construct
+    // basic_string objects
+    StringTestCaseData (const StringFunc &func, const StringTestCase &tcase)
+        : strlen_ (BUFSIZE), arglen_ (BUFSIZE), reslen_ (BUFSIZE),
+          str_ (rw_expand (str_buf_, tcase.str, tcase.str_len, &strlen_)),
+          arg_ (rw_expand (arg_buf_, tcase.arg, tcase.arg_len, &arglen_)),
+          res_ (rw_expand (res_buf_, tcase.res, tcase.nres,    &reslen_)),
+          func_ (func), tcase_ (tcase) {
+        // compute the offset and extent of the string object
+        // representing the controlled sequence and the offset
+        // and extent of the argument of the function call
+        const SizeType argl = tcase_.arg ? arglen_ : strlen_;
+
+        off1_ = SizeType (tcase_.off) < strlen_ ?
+            SizeType (tcase_.off) : strlen_;
+
+        ext1_ = off1_ + tcase_.size < strlen_ ?
+            SizeType (tcase_.size) : strlen_ - off1_;
+        
+        off2_ = SizeType (tcase_.off2) < argl ?
+            SizeType (tcase_.off2) : argl;
+
+        ext2_ = off2_ + tcase_.size2 < argl ?
+            SizeType (tcase_.size2) : argl - off2_;
+    }
+
+    ~StringTestCaseData () {
+        // clean up dynamically allocated memory (if any)
+        if (str_ != str_buf_)
+            delete[] _RWSTD_CONST_CAST (charT*, str_);
+        if (arg_ != arg_buf_)
+            delete[] _RWSTD_CONST_CAST (charT*, arg_);
+        if (res_ != res_buf_)
+            delete[] _RWSTD_CONST_CAST (charT*, res_);
+    }
+};
+
+/**************************************************************************/
 
 // encapsulates the state of a string object without regard to type
 // used in exception safety tests to determine changes to the state
@@ -696,6 +791,55 @@ rw_get_string_state (const String &str)
         else                                                    \
             RW_ASSERT (!"logic error: bad allocator");          \
     } typedef void rw_unused_typedef
-    
+
+
+#define TFUNC(charT, Traits, Allocator)                 \
+    void (*)(charT*, Traits<charT>*, Allocator<charT>*, \
+             const StringTestCaseData<charT>&)
+
+#define TFUNC_ADDR(fname, charT, Traits, Allocator)     \
+    (VoidFunc*)(TFUNC (charT, Traits, Allocator))       \
+        &fname<charT, Traits<charT>, Allocator<charT> >
+
+#ifndef _RWSTD_NO_WCHAR_T
+#  define DEFINE_STRING_TEST_FUNCTIONS(fname)                           \
+    static VoidFunc* const fname ## _func_array [] = {                  \
+      TFUNC_ADDR (fname, char, std::char_traits, std::allocator),       \
+      TFUNC_ADDR (fname, char, std::char_traits, UserAlloc),            \
+      TFUNC_ADDR (fname, char, UserTraits,       std::allocator),       \
+      TFUNC_ADDR (fname, char, UserTraits,       UserAlloc),            \
+                                                                        \
+      TFUNC_ADDR (fname, wchar_t, std::char_traits, std::allocator),    \
+      TFUNC_ADDR (fname, wchar_t, std::char_traits, UserAlloc),         \
+      TFUNC_ADDR (fname, wchar_t, UserTraits,       std::allocator),    \
+      TFUNC_ADDR (fname, wchar_t, UserTraits,       UserAlloc),         \
+                                                                        \
+      (VoidFunc*)0, /* std::char_traits<UserChar> not allowed */        \
+      (VoidFunc*)0, /* std::char_traits<UserChar> not allowed */        \
+      TFUNC_ADDR (fname, UserChar, UserTraits, std::allocator),         \
+      TFUNC_ADDR (fname, UserChar, UserTraits, UserAlloc)               \
+    }
+
+#else   // if defined (_RWSTD_NO_WCHAR_T)
+#  define DEFINE_STRING_TEST_FUNCTIONS(fname)                           \
+    static VoidFunc* const fname ## _func_array [] = {                  \
+      TFUNC_ADDR (fname, char, std::char_traits, std::allocator),       \
+      TFUNC_ADDR (fname, char, std::char_traits, UserAlloc),            \
+      TFUNC_ADDR (fname, char, UserTraits,       std::allocator),       \
+      TFUNC_ADDR (fname, char, UserTraits,       UserAlloc),            \
+                                                                        \
+      (VoidFunc*)0, /* wchar_t disabled */                              \
+      (VoidFunc*)0, /* wchar_t disabled */                              \
+      (VoidFunc*)0, /* wchar_t disabled */                              \
+      (VoidFunc*)0, /* wchar_t disabled */                              \
+                                                                        \
+      (VoidFunc*)0, /* std::char_traits<UserChar> not allowed */        \
+      (VoidFunc*)0, /* std::char_traits<UserChar> not allowed */        \
+      TFUNC_ADDR (fname, UserChar, UserTraits, std::allocator),         \
+      TFUNC_ADDR (fname, UserChar, UserTraits, UserAlloc)               \
+    }
+
+#endif   // _RWSTD_NO_WCHAR_T
+
 
 #endif   // RW_21_STRINGS_H_INCLUDED
