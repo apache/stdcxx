@@ -108,7 +108,7 @@ struct StringIds {
 
     enum {
         // bit designating a member function
-        bit_member = 1 << fid_bits + 6 * arg_bits
+        bit_member = 1 << (fid_bits + 6 * arg_bits)
     };
 
 // FCAT() concatenates prefix, underscrore, and suffix
