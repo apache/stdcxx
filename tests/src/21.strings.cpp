@@ -190,7 +190,7 @@ _rw_sigcat (char **pbuf, size_t *pbufsize,
         which = func->which_;
 
     // determine whether the function is a member function
-    const bool is_member = Ids::bit_member & which;
+    const bool is_member = 0 != (Ids::bit_member & which);
 
     // get the bitmap describing the function's argument types
     int argmap = (which & ~Ids::bit_member) >> Ids::fid_bits;
@@ -422,7 +422,7 @@ _rw_setvars (const StringFunc     &func,
             _rw_func_names [funcinx] : class_name;
 
         // determine whether the function is a member function
-        const bool is_member = func.which_ & StringIds::bit_member;
+        const bool is_member = 0 != (func.which_ & StringIds::bit_member);
 
         // set the {FUNC} variable to the unqualified/undecorated
         // name of the string function (member or otherwise)
@@ -465,7 +465,7 @@ _rw_setvars (const StringFunc     &func,
         arg = 0;
 
     // determine whether the function is a member function
-    const bool is_member = func.which_ & StringIds::bit_member;
+    const bool is_member = 0 != (func.which_ & StringIds::bit_member);
 
     // determine whether the function is a ctor
     bool is_ctor = StringIds::fid_ctor == (func.which_ & StringIds::fid_mask);
@@ -1224,7 +1224,7 @@ _rw_run_test (int, char*[])
                     _rw_setvars (func);
 
                     // determine whether the function is a member function
-                    const bool is_member = StringIds::bit_member & test.which;
+                    const bool is_member = 0 != (StringIds::bit_member & test.which);
 
                     // compute the function overload's 0-based index
                     const size_t siginx = _rw_get_func_inx (test.which);
