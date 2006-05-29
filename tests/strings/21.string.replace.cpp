@@ -34,13 +34,12 @@
 #include <cmdopt.h>         // for rw_enabled()
 #include <driver.h>         // for rw_test()
 #include <rw_allocator.h>   // for UserAlloc
-#include <rw_char.h>        // for rw_expand()
 #include <rw_new.h>         // for bad_alloc, replacement operator new
 
 /**************************************************************************/
 
 // for convenience and brevity
-#define Replace(which)    StringIds::replace_ ## which
+#define Replace(sig)    StringIds::replace_ ## sig
 
 static const char* const exceptions[] = {
     "unknown exception", "out_of_range", "length_error",
@@ -661,52 +660,27 @@ iter_iter_size_val_test_cases [] = {
 /**************************************************************************/
 
 template <class charT, class Traits, class Allocator, class Iterator>
-void test_replace_range (const charT*    wstr,
-                         std::size_t     wstr_len,
-                         const charT*    warg,
-                         std::size_t     warg_len,
-                         std::size_t     res_len,
-                         Traits*,
-                         Allocator*,
-                         const Iterator &it,
-                         const StringTestCase &tcase)
+void test_replace_range (const StringTestCaseData<charT> &tdata,
+                         Traits*, Allocator*, const Iterator &it)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
 
+    const StringTestCase &tcase = tdata.tcase_;
+
     const char* const itname =
         tcase.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
 
-    // compute the size of the controlled sequence and the size
-    // of the sequence denoted by the argument keeping in mind
-    // that the latter may refer to the former
-    const std::size_t size1 = wstr_len;
-    const std::size_t size2 = tcase.arg ? warg_len : size1;
-
     // construct the string object to be modified
-    String str (wstr, size1);
-
-    // compute the offset and the extent (the number of elements)
-    // of the first range into the string object being modified
-    const std::size_t off1 =
-        std::size_t (tcase.off) < size1 ? std::size_t (tcase.off) : size1;
-    const std::size_t ext1 =
-        off1 + tcase.size < size1 ? std::size_t (tcase.size) : size1 - off1;
-
-    // compute the offset and the extent (the number of elements)
-    // of the second range into the argument of the function call
-    const std::size_t off2 =
-        std::size_t (tcase.off2) < size2 ? std::size_t (tcase.off2) : size2;
-    const std::size_t ext2 =
-        off2 + tcase.size2 < size2 ? std::size_t (tcase.size2) : size2 - off2;
+    String str (tdata.str_, tdata.strlen_);
 
     // create a pair of iterators into the string object being modified
-    const StringIter first1 (str.begin () + off1);
-    const StringIter last1 (first1 + ext1);
+    const StringIter first1 (str.begin () + tdata.off1_);
+    const StringIter last1  (first1 + tdata.ext1_);
 
     if (tcase.arg) {
-        const charT* const beg = warg + off2;
-        const charT* const end = beg + ext2;
+        const charT* const beg = tdata.arg_ + tdata.off2_;
+        const charT* const end = beg + tdata.ext2_;
 
         const Iterator first2 (beg, beg, end);
         const Iterator last2  (end, beg, end);
@@ -716,8 +690,8 @@ void test_replace_range (const charT*    wstr,
     else {
         // self-referential modification (replacing a range
         // of elements with a subrange of its own elements)
-        const StringIter first2 (str.begin () + off2);
-        const StringIter last2 (first2 + ext2);
+        const StringIter first2 (str.begin () + tdata.off2_);
+        const StringIter last2 (first2 + tdata.ext2_);
 
         str.replace (first1, last1, first2, last2);
     }
@@ -725,7 +699,7 @@ void test_replace_range (const charT*    wstr,
     // detrmine whether the produced sequence matches the exepceted result
     const std::size_t match = rw_match (tcase.res, str.data (), tcase.nres);
 
-    rw_assert (match == res_len, 0, tcase.line,
+    rw_assert (match == tdata.reslen_, 0, tcase.line,
                "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
                "difference at offset %zu for %s",
                __LINE__, int (tcase.nres), tcase.res,
@@ -736,131 +710,78 @@ void test_replace_range (const charT*    wstr,
 /**************************************************************************/
 
 template <class charT, class Traits, class Allocator>
-void test_replace_range (const charT    *wstr,
-                         std::size_t     wstr_len,
-                         const charT    *warg,
-                         std::size_t     warg_len,
-                         std::size_t     res_len,
-                         Traits*,
-                         Allocator*,
-                         const StringTestCase &tcase)
+void test_replace_range (const StringTestCaseData<charT> &tdata,
+                         Traits*, Allocator*)
 {
-    if (tcase.bthrow) {
+    if (tdata.tcase_.bthrow) {
         // FIXME: exercise exceptions
         return;
     }
 
     // exercise InputIterator *or* string::iterator (i.e., self
     // referential modification), depending on the value of tcase.arg
-    test_replace_range (wstr, wstr_len, warg, warg_len, res_len,
-                        (Traits*)0, (Allocator*)0,
-                        InputIter<charT>(0, 0, 0), tcase);
+    test_replace_range (tdata, (Traits*)0, (Allocator*)0,
+                        InputIter<charT>(0, 0, 0));
 
-    if (0 == tcase.arg) {
+    if (0 == tdata.tcase_.arg) {
         // avoid exercising the same function multiple times
         return;
     }
 
-    test_replace_range (wstr, wstr_len, warg, warg_len, res_len,
-                        (Traits*)0, (Allocator*)0,
-                        ConstFwdIter<charT>(0, 0, 0), tcase);
+    test_replace_range (tdata, (Traits*)0, (Allocator*)0,
+                        ConstFwdIter<charT>(0, 0, 0));
 
-    test_replace_range (wstr, wstr_len, warg, warg_len, res_len,
-                        (Traits*)0, (Allocator*)0,
-                        ConstBidirIter<charT>(0, 0, 0), tcase);
+    test_replace_range (tdata, (Traits*)0, (Allocator*)0,
+                        ConstBidirIter<charT>(0, 0, 0));
 
-    test_replace_range (wstr, wstr_len, warg, warg_len, res_len,
-                        (Traits*)0, (Allocator*)0,
-                        ConstRandomAccessIter<charT>(0, 0, 0), tcase);
+    test_replace_range (tdata, (Traits*)0, (Allocator*)0,
+                        ConstRandomAccessIter<charT>(0, 0, 0));
 }
 
 /**************************************************************************/
 
 template <class charT, class Traits, class Allocator>
-void test_replace (charT, Traits*, Allocator*,
-                   const StringFunc     &func,
-                   const StringTestCase &tcase)
+void test_replace (charT*, Traits*, Allocator*,
+                   const StringTestCaseData<charT> &tdata)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
-    typedef typename UserTraits<charT>::MemFun           UTMemFun;
+    typedef typename UserTraits<charT>::MemFun           TraitsFunc;
 
-    static const std::size_t BUFSIZE = 256;
-
-    // small local buffers to avoid expensive dynamic memory
-    // allocation in most cases
-    static charT wstr_buf [BUFSIZE];
-    static charT warg_buf [BUFSIZE];
-    static charT wres_buf [BUFSIZE];
-
-    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
-    std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
-    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
-
-    // expand "compressed" string literals in the form "a@<count>"
-    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
-    charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
-    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres,    &res_len);
+    const StringFunc     &func  = tdata.func_;
+    const StringTestCase &tcase = tdata.tcase_;
 
     if (Replace (iter_iter_range) == func.which_) {
         // special processing for the replace() template member
         // function to exercise all iterator categories
-        test_replace_range (wstr, str_len, warg, arg_len, 
-                            res_len, (Traits*)0, (Allocator*)0, tcase);
-
-        if (wstr != wstr_buf)
-            delete[] wstr;
-
-        if (warg != warg_buf)
-            delete[] warg;
-
-         if (wres != wres_buf)
-            delete[] wres;
-
+        test_replace_range (tdata, (Traits*)0, (Allocator*)0);
         return;
     }
 
     // construct the string object to be modified
     // and the (possibly unused) argument string
-    /* const */ String str (wstr, str_len);
-    const       String arg (warg, arg_len);
-
-    if (wstr != wstr_buf)
-        delete[] wstr;
-
-    if (warg != warg_buf)
-        delete[] warg;
-
-    wstr = 0;
-    warg = 0;
+    /* const */ String str (tdata.str_, tdata.strlen_);
+    const       String arg (tdata.arg_, tdata.arglen_);
 
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
     // the state of the object after an exception)
     const StringState str_state (rw_get_string_state (str));
 
-    // compute the offset and the extent (the number of elements)
-    // of the first range into the string object being modified
-    const std::size_t size1 = str_len;
-    const std::size_t off1 =
-        std::size_t (tcase.off) < size1 ? std::size_t (tcase.off) : size1;
-    const std::size_t ext1 =
-        off1 + tcase.size < size1 ? tcase.size : size1 - off1;
-
     // create a pair of iterators into the string object being
     // modified (used only by the iterator overloads)
-    const StringIter first (str.begin () + off1);
-    const StringIter last (first + ext1);
+    const StringIter first (str.begin () + tdata.off1_);
+    const StringIter last  (first + tdata.ext1_);
 
     // offset and extent function arguments
     const std::size_t arg_off  = std::size_t (tcase.off);
     const std::size_t arg_size = std::size_t (tcase.size);
     const std::size_t arg_off2 = std::size_t (tcase.off2);
     const std::size_t arg_size2 =
-        tcase.size2 >= 0 ? tcase.size2 : str.max_size () + 1;
+        0 <= tcase.size2 ? tcase.size2 : str.max_size () + 1;
 
     // string function argument
-    const charT* const arg_ptr = tcase.arg ? arg.c_str () : str.c_str ();
+    const charT* const arg_ptr = tcase.arg ? arg.data () : str.data ();
     const String&      arg_str = tcase.arg ? arg : str;
     const charT        arg_val = make_char (char (tcase.val), (charT*)0);
 
@@ -873,7 +794,7 @@ void test_replace (charT, Traits*, Allocator*,
         rw_get_call_counters ((Traits*)0, (charT*)0) : 0;
 
     if (length_calls) {
-        length_calls += UTMemFun::length;
+        length_calls += TraitsFunc::length;
         *length_calls = 0;
     }
 
@@ -919,12 +840,8 @@ void test_replace (charT, Traits*, Allocator*,
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-        if (tcase.bthrow) {
-            if (wres != wres_buf)
-                delete[] wres;
-
+        if (tcase.bthrow)
             return;
-        }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
@@ -987,27 +904,31 @@ void test_replace (charT, Traits*, Allocator*,
                        "line %d. %{$FUNCALL} returned invalid reference, "
                        "offset is %td", __LINE__, ret_off);
 
-            // verfiy that the length of the resulting string
-            rw_assert (res_len == str.size (), 0, tcase.line,
-                       "line %d. %{$FUNCALL} expected %{/*.*Gs} with length "
-                       "%zu, got %{/*.*Gs} with length %zu",
-                       __LINE__, int (sizeof (charT)), int (res_len), wres, 
-                       res_len, int (sizeof (charT)), 
-                       int (str.size ()), str.c_str (), str.size ());
+            // for convenience
+            static const int cwidth = sizeof (charT);
 
-            if (res_len == str.size ()) {
+            // verfiy that the length of the resulting string
+            rw_assert (tdata.reslen_ == str.size (), 0, tcase.line,
+                       "line %d. %{$FUNCALL} expected %{/*.*Gs} with "
+                       "length %zu, got %{/*.*Gs} with length %zu",
+                       __LINE__,
+                       cwidth, int (tdata.reslen_), tdata.res_, 
+                       tdata.reslen_, cwidth, int (str.size ()), str.data (),
+                       str.size ());
+
+            if (tdata.reslen_ == str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, str.c_str (), tcase.nres);
+                    rw_match (tcase.res, str.data (), tcase.nres);
 
-                rw_assert (match == res_len, 0, tcase.line,
+                rw_assert (match == tdata.reslen_, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{/*.*Gs}, "
                            "got %{/*.*Gs}, difference at offset %zu",
-                           __LINE__, int (sizeof (charT)), int (res_len), wres,
-                           int (sizeof (charT)), int (str.size ()),
-                           str.c_str (), match);
+                           __LINE__,
+                           cwidth, int (tdata.reslen_), tdata.res_,
+                           cwidth, int (str.size ()),str.data (), match);
             }
 
             // verify that Traits::length() was used
@@ -1094,9 +1015,8 @@ void test_replace (charT, Traits*, Allocator*,
 
 #else   // if defined (_RWSTD_NO_REPLACEABLE_NEW_DELETE)
 
-    const std::size_t expect_throws = 
-        (StringIds::UserAlloc == func.alloc_id_) 
-      ? str_state.capacity_ < str.capacity (): 0;
+    const std::size_t expect_throws = StringIds::UserAlloc == func.alloc_id_ ?
+        str_state.capacity_ < str.capacity (): 0;
 
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
@@ -1109,14 +1029,11 @@ void test_replace (charT, Traits*, Allocator*,
     // disable bad_alloc exceptions
     *pst->throw_at_calls_ [0] = 0;
     pal->throw_at_calls_ [pal->m_allocate] = 0;
-
-    if (wres != wres_buf)
-        delete[] wres;
 }
 
 /**************************************************************************/
 
-DEFINE_STRING_TEST_DISPATCH (test_replace);
+DEFINE_STRING_TEST_FUNCTIONS (test_replace);
 
 int main (int argc, char** argv)
 {
@@ -1124,9 +1041,9 @@ int main (int argc, char** argv)
     tests [] = {
 
 #undef TEST
-#define TEST(which) {                                                   \
-        StringIds::replace_ ## which, which ## _test_cases,         \
-        sizeof which ## _test_cases / sizeof *which ## _test_cases,     \
+#define TEST(sig) {                                             \
+        Replace (sig), sig ## _test_cases,                      \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases, \
     }
 
         TEST (size_size_cptr),
@@ -1146,7 +1063,7 @@ int main (int argc, char** argv)
     const int status =
         rw_run_string_test (argc, argv, __FILE__,
                             "lib.string.replace",
-                            test_replace, tests, test_count);
+                            test_replace_func_array, tests, test_count);
 
     return status;
 }
