@@ -938,7 +938,7 @@ _rw_dispatch (charT*, Traits*, Allocator*,
               const StringTestCase &tcase)
 {
     typedef StringTestCaseData<charT> Data;
-    typedef void TestFunc (charT, Traits*, Allocator*, const Data&);
+    typedef void TestFunc (charT*, Traits*, Allocator*, const Data&);
 
     const size_t inx = func.char_id_ * 4 + func.traits_id_ * 2 + func.alloc_id_;
 
@@ -946,7 +946,7 @@ _rw_dispatch (charT*, Traits*, Allocator*,
 
     const Data tdata (func, tcase);
 
-    tfunc (charT (), (Traits*)0, (Allocator*)0, tdata);
+    tfunc ((charT*)0, (Traits*)0, (Allocator*)0, tdata);
 }
 
 
