@@ -81,6 +81,14 @@ struct StringIds {
         /* 25 */ fid_op_less_equal,
         /* 26 */ fid_op_greater,
         /* 27 */ fid_op_greater_equal,
+        /* 28 */ fid_size,
+        /* 29 */ fid_length,
+        /* 30 */ fid_max_size,
+        /* 31 */ fid_resize,
+        /* 32 */ fid_capacity,
+        /* 33 */ fid_reserve,
+        /* 34 */ fid_clear,
+        /* 35 */ fid_empty,
         /* -- */ fid_bits = 6,
         /* -- */ fid_mask = 63
     };
@@ -504,7 +512,43 @@ struct StringIds {
         // operator>= (const basic_string&, const basic_string&)
         NON_MEMBER_2 (op_greater_equal, cstr, cstr),
         // operator>= (const basic_string&, const_pointer)
-        NON_MEMBER_2 (op_greater_equal, cstr, cptr)
+        NON_MEMBER_2 (op_greater_equal, cstr, cptr),
+
+        //////////////////////////////////////////////////////////////
+        // size ()
+        MEMBER_0 (size, cstr),
+
+        //////////////////////////////////////////////////////////////
+        // length ()
+        MEMBER_0 (length, cstr),
+
+        //////////////////////////////////////////////////////////////
+        // max_size ()
+        MEMBER_0 (max_size, cstr),
+
+        //////////////////////////////////////////////////////////////
+        // resize (size_type, value_type)
+        MEMBER_2 (resize, str, size, val),
+        // resize (size_type)
+        MEMBER_1 (resize, str, size),
+
+        //////////////////////////////////////////////////////////////
+        // capacity ()
+        MEMBER_0 (capacity, cstr),
+
+        //////////////////////////////////////////////////////////////
+        // reserve (size_type)
+        MEMBER_1 (reserve, str, size),
+        // reserve ()
+        MEMBER_0 (reserve, str),
+
+        //////////////////////////////////////////////////////////////
+        // clear ()
+        MEMBER_0 (clear, str),
+
+        //////////////////////////////////////////////////////////////
+        // empty ()
+        MEMBER_0 (empty, cstr)
     };
 
 // clean up helper macros used above
