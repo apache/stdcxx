@@ -1,21 +1,27 @@
 /***************************************************************************
  *
- * atomic.s
+ * i86/atomic.s
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2003-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -30,7 +36,6 @@
  **************************************************************************/
 
     .globl __rw_atomic_xchg8
-    .type __rw_atomic_xchg8, @function
 __rw_atomic_xchg8:                 /* ; char (char *x, char y)        */
     mov           4(%esp), %ecx    /* ; %ecx = x                      */
     movb          8(%esp), %al     /* ; %al = y                       */
@@ -46,7 +51,6 @@ __rw_atomic_xchg8:                 /* ; char (char *x, char y)        */
  **************************************************************************/
 
     .globl __rw_atomic_xchg16
-    .type __rw_atomic_xchg16, @function
 __rw_atomic_xchg16:                /* ; short (short *x, short y)     */
     mov           4(%esp), %ecx    /* ; %ecx = x                      */
     mov           8(%esp), %eax    /* ; %eax = y                      */
@@ -62,7 +66,6 @@ __rw_atomic_xchg16:                /* ; short (short *x, short y)     */
  **************************************************************************/
 
     .globl __rw_atomic_xchg32
-    .type __rw_atomic_xchg32, @function
 __rw_atomic_xchg32:                /* ; int (int *x, int y)           */
     movl          4(%esp), %ecx    /* ; %ecx = x                      */
     movl          8(%esp), %eax    /* ; %eax = y                      */
@@ -78,7 +81,6 @@ __rw_atomic_xchg32:                /* ; int (int *x, int y)           */
  **************************************************************************/
 
     .globl __rw_atomic_add8
-    .type __rw_atomic_add8, @function
 __rw_atomic_add8:                  /* ; char (char *dst, int inc)     */
     mov            4(%esp), %ecx   /* ; %ecx = dst                    */
     mov            8(%esp), %eax   /* ; %eax = inc                    */
@@ -101,7 +103,6 @@ __rw_atomic_add8:                  /* ; char (char *dst, int inc)     */
  **************************************************************************/
 
      .globl __rw_atomic_add16
-    .type __rw_atomic_add16, @function
 __rw_atomic_add16:                 /* ; long (long *dst, long inc)    */
     mov            4(%esp), %ecx   /* ; %ecx = dst                    */
     mov            8(%esp), %eax   /* ; %eax = inc                    */
@@ -124,7 +125,6 @@ __rw_atomic_add16:                 /* ; long (long *dst, long inc)    */
  **************************************************************************/
 
     .globl __rw_atomic_add32
-    .type __rw_atomic_add32, @function
 __rw_atomic_add32:                 /* ; long (long *dst, long inc)    */
     movl           4(%esp), %ecx   /* ; %ecx = dst                    */
     movl           8(%esp), %edx   /* ; %edx = inc                    */
