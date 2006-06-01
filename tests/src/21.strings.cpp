@@ -77,7 +77,8 @@ _rw_func_names[] = {
     "find_last_not_of", "compare", "substr", "operator[]", "at", "copy",
     0 /* special handling for the ctor */, "operator=", "swap", "push_back",
     "operator+", "operator==", "operator!=", "operator<", "operator<=",
-    "operator>", "operator>="
+    "operator>", "operator>=", "size", "length", "max_size", "resize", 
+    "capacity", "reserve", "clear", "empty"
 };
 
 /**************************************************************************/
@@ -817,6 +818,13 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::erase_void:
     case StringIds::substr_void:
     case StringIds::ctor_void:
+    case StringIds::size_void:
+    case StringIds::length_void:
+    case StringIds::max_size_void:
+    case StringIds::capacity_void:
+    case StringIds::reserve_void:
+    case StringIds::clear_void:
+    case StringIds::empty_void:
         rw_asnprintf (&buf, &bufsize,
                       "%{+}()");
         break;
@@ -911,6 +919,17 @@ _rw_setvars (const StringFunc     &func,
         rw_asnprintf (&buf, &bufsize,
                       "%{+}(%{#c}, %{$CLASS}(%{#*s}))",
                       pcase->val, int (arg_len), arg);
+        break;
+
+    case StringIds::resize_size_val:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+}(%zu, %{#c})", pcase->size, pcase->val);
+        break;
+
+    case StringIds::resize_size:
+    case StringIds::reserve_size:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+}(%zu)", pcase->size);
         break;
 
     default:

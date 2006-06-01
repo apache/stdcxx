@@ -25,853 +25,820 @@
  *
  **************************************************************************/
 
-#include <string>      // for string
-#include <cstddef>     // for size_t
-#include <stdexcept>   // for length_error
+#include <string>           // for string
+#include <cstddef>          // for ptrdiff_t, size_t
+#include <stdexcept>        // for out_of_range
 
-#include <cmdopt.h>    // for rw_enabled()
-#include <driver.h>    // for rw_test()
-#include <rw_char.h>   // for rw_match(), rw_widen()
+#include <21.strings.h>     // for StringMembers
+#include <driver.h>         // for rw_test()
+#include <rw_allocator.h>   // for UserAlloc
+#include <rw_char.h>        // for rw_expand()
+#include <rw_new.h>         // for bad_alloc, replacement operator new
 
 /**************************************************************************/
 
-struct MemFun
-{
-    enum charT { Char, WChar, UChar };
-    enum Traits { DefaultTraits, UserTraits };
-    enum FunTag {
-        // which member function to exercise
-        size, resize, length, reserve, capacity, max_size, clear, empty
-    };
+// for convenience and brevity
+#define Size(sig)                 StringIds::size_ ## sig
+#define Length(sig)               StringIds::length_ ## sig
+#define MaxSize(sig)              StringIds::max_size_ ## sig
+#define Resize(sig)               StringIds::resize_ ## sig
+#define Capacity(sig)             StringIds::capacity_ ## sig
+#define Reserve(sig)              StringIds::reserve_ ## sig
+#define Clear(sig)                StringIds::clear_ ## sig
+#define Empty(sig)                StringIds::empty_ ## sig
 
-    MemFun (charT cid, const char *cname,
-          Traits tid, const char *tname)
-        : cid_ (cid), tid_ (tid), mfun_ (),
-          cname_ (cname), tname_ (tname), aname_ ("allocator"),
-          fname_ (0),
-          max_size_ (0) { /* empty */ }
-
-    charT       cid_;     // character type id (char or wchar_t)
-    Traits      tid_;     // traits type id (default or user-defined)
-    FunTag      mfun_;    // member function id
-    const char *cname_;   // character type name
-    const char *tname_;   // traits name
-    const char *aname_;   // allocator name
-    const char *fname_;   // function name
-
-    unsigned int max_size_;
+static const char* const exceptions[] = {
+    "unknown exception", "out_of_range", "length_error",
+    "bad_alloc", "exception"
 };
 
 /**************************************************************************/
 
-static const size_t long_string_len = 4096U;
-static char long_string [long_string_len];
+// used to exercise
+// size ()
+static const StringTestCase
+size_void_test_cases [] = {
 
-// for convenience and brevity
-#define LSTR   long_string
-#define LLEN   long_string_len
+#define length_void_test_cases  size_void_test_cases 
+
+#undef TEST
+#define TEST(str, res) {                    \
+        __LINE__, -1, -1, -1, -1, -1,       \
+        str, sizeof str - 1, 0, 0,          \
+        0, res, -1                          \
+    }
+
+    //    +--------------------------------------- controlled sequence
+    //    |                 +--------------------- expected result
+    //    |                 |                   
+    //    |                 |                   
+    //    V                 V                   
+    TEST (0,                0),
+    TEST ("",               0),
+
+    TEST ("\0",             1),
+    TEST ("a",              1),
+    TEST (" ",              1),
+    TEST ("ab",             2),
+    TEST ("bc",             2),
+
+    TEST ("test string",   11),
+    TEST ("Test String",   11),
+
+    TEST ("t\0 s",          4),
+    TEST ("Test\0string",  11),
+
+    TEST ("\0a\0b",         4),
+    TEST ("a\0\0b",         4),
+    TEST ("a\0\0\0b",       5),
+    TEST ("a\0\0b\0",       5),
+    TEST ("a\0b\0\0c",      6),
+    TEST ("a\0b\0c\0\0",    7),
+
+    TEST ("x@128",        128),
+    TEST ("x@207",        207),
+    TEST ("x@334",        334),
+    TEST ("x@540",        540),
+    TEST ("x@873",        873),
+    TEST ("x@1412",      1412),
+    TEST ("x@2284",      2284),
+    TEST ("x@3695",      3695),
+    TEST ("x@4096",      4096),
+
+    TEST ("last",           4)
+
+};
 
 /**************************************************************************/
 
-template <class charT, class String>
-void test_resize (charT, const MemFun *pfid,
-                  int         line,         // line number
-                  String     &test_str,     // tested string object
-                  const char *str,          // source string argument
-                  std::size_t str_len,      // the string length
-                  std::size_t nparam,       // resize() first argument
-                  int         cparam,       // resize() second argument
-                  bool        should_throw) // if true the method should throw
+// used to exercise
+// max_size ()
+static const StringTestCase
+max_size_void_test_cases [] = {
+
+#undef TEST
+#define TEST(str) {                         \
+        __LINE__, -1, -1, -1, -1, -1,       \
+        str, sizeof str - 1, 0, 0,          \
+        0, 0, -1                            \
+    }
+
+    //    +------------------------------ controlled sequence
+    //    |                
+    //    |                               
+    //    |                               
+    //    V                             
+    TEST (0),     
+    TEST (""),   
+
+    TEST ("\0"),    
+    TEST ("a"),       
+
+    TEST ("test string"), 
+    TEST ("a\0b\0c\0\0"),  
+
+    TEST ("x@128"),     
+    TEST ("x@207"),    
+    TEST ("x@2284"),   
+    TEST ("x@3695"), 
+
+    TEST ("last")        
+
+};
+
+/**************************************************************************/
+
+// used to exercise
+// resize (size_type, value_type)
+static const StringTestCase
+resize_size_val_test_cases [] = {
+
+#undef TEST
+#define TEST(str, size, val, res, bthrow) {    \
+        __LINE__, -1, size, -1, -1, val,       \
+        str, sizeof str - 1, 0, 0,             \
+        res, sizeof res - 1, bthrow            \
+    }
+
+    //    +----------------------------------------- controlled sequence
+    //    |                +------------------------ new size
+    //    |                |     +------------------ value_type argument
+    //    |                |     |    +------------- expected result sequence
+    //    |                |     |    |                +-- exception info
+    //    |                |     |    |                |     0 - no exception
+    //    |                |     |    |                |     1 - length_error
+    //    |                |     |    |                |
+    //    V                V     V    V                V
+    TEST ("",              0,   'a',  "",              0),
+    TEST ("",              5,  '\0',  "\0\0\0\0\0",    0),
+    TEST ("",            334,   'x',  "x@334",         0),
+
+    TEST ("\0",            0,   'a',  "",              0),
+    TEST ("\0",            2,   'a',  "\0a",           0),
+    TEST ("\0",            1,   'a',  "\0",            0),
+    TEST ("\0",          128,   'a',  "\0a@127",       0),
+
+    TEST ("a",             0,   'a',  "",              0),
+    TEST ("a",             2,  '\0',  "a\0",           0),
+    TEST ("a",           540,   'a',  "a@540",         0),
+
+    TEST ("a\0\0\0b",     10,   'a',  "a\0\0\0baaaaa", 0),
+    TEST ("ab\0\0\0",     10,   'a',  "ab\0\0\0aaaaa", 0),
+    TEST ("\0\0\0ab",     10,   'a',  "\0\0\0abaaaaa", 0),
+    TEST ("a\0\0\0b",      7,  '\0',  "a\0\0\0b\0\0",  0),
+    TEST ("ab\0\0\0",      7,  '\0',  "ab\0\0\0\0\0",  0),
+    TEST ("\0\0\0ba",      7,  '\0',  "\0\0\0ba\0\0",  0),
+
+    TEST ("a\0b\0c\0\0",   6,   'a',  "a\0b\0c\0",     0),
+    TEST ("a\0b\0c\0\0",   5,  '\0',  "a\0b\0c",       0),
+    TEST ("\0ba\0c\0\0",   1,  '\0',  "\0",            0),
+    TEST ("\0ba\0c\0\0",   0,  '\0',  "",              0),
+
+    TEST ("x@540",       127,   'a',  "x@127",         0),
+    TEST ("x@873",       127,   'a',  "x@127",         0),
+    TEST ("x@1412",      127,   'a',  "x@127",         0),
+    TEST ("x@2284",      127,   'a',  "x@127",         0),
+
+    TEST ("x@127",       128,   'a',  "x@127a",        0),
+    TEST ("x@128",       207,   'a',  "x@128a@79",     0),
+    TEST ("x@207",       334,   'a',  "x@207a@127",    0),
+    TEST ("x@334",       540,   'a',  "x@334a@206",    0),
+    TEST ("x@540",       873,   'a',  "x@540a@333",    0),
+    TEST ("x@873",      1412,   'a',  "x@873a@539",    0),
+    TEST ("x@1412",     2284,   'a',  "x@1412a@872",   0),
+    TEST ("x@2284",     3695,   'a',  "x@2284a@1411",  0),
+
+    TEST ("",           NPOS,   'a',  "",              1),
+    TEST ("abc",        NPOS,   'a',  "abc",           1),
+    TEST ("x@3695",     NPOS,   'a',  "x@3695",        1),
+
+    TEST ("last",          4,   't',  "last",          0)
+
+};
+
+/**************************************************************************/
+
+// used to exercise
+// resize (size_type)
+static const StringTestCase
+resize_size_test_cases [] = {
+
+#undef TEST
+#define TEST(str, size, res, bthrow) {      \
+        __LINE__, -1, size, -1, -1, -1,     \
+        str, sizeof str - 1, 0, 0,          \
+        res, sizeof res - 1, bthrow         \
+    }
+
+    //    +--------------------------------------- controlled sequence
+    //    |                +---------------------- new size
+    //    |                |    +----------------- expected result sequence
+    //    |                |    |           +----- exception info
+    //    |                |    |           |          0 - no exception
+    //    |                |    |           |          1 - length_error
+    //    |                |    |           |
+    //    V                V    V           V    
+    TEST ("",              0,   "",         0),
+    TEST ("",              5,   "",         0),
+    TEST ("",            334,   "",         0),
+
+    TEST ("\0",            0,   "",         0),
+    TEST ("\0",            2,   "\0",       0),
+    TEST ("\0",            1,   "\0",       0),
+    TEST ("\0",          127,   "\0",       0),
+
+    TEST ("a",             0,   "",         0),
+    TEST ("a",             2,   "a",        0),
+    TEST ("a",           539,   "a",        0),
+
+    TEST ("a\0\0\0b",     10,   "a\0\0\0b", 0),
+    TEST ("ab\0\0\0",     10,   "ab\0\0\0", 0),
+    TEST ("\0\0\0ab",     10,   "\0\0\0ab", 0),
+    TEST ("a\0\0\0b",      7,   "a\0\0\0b", 0),
+    TEST ("ab\0\0\0",      7,   "ab\0\0\0", 0),
+    TEST ("\0\0\0ba",      7,   "\0\0\0ba", 0),
+
+    TEST ("a\0b\0c\0\0",   5,   "a\0b\0c",  0),
+    TEST ("a\0b\0c\0\0",   4,   "a\0b\0",   0),
+    TEST ("\0ba\0c\0\0",   1,   "\0",       0),
+    TEST ("\0ba\0c\0\0",   0,   "",         0),
+
+    TEST ("x@540",       127,   "x@127",    0),
+    TEST ("x@873",       127,   "x@127",    0),
+    TEST ("x@1412",      127,   "x@127",    0),
+    TEST ("x@2284",      127,   "x@127",    0),
+
+    TEST ("x@127",       128,   "x@127",    0),
+    TEST ("x@128",       207,   "x@128",    0),
+    TEST ("x@207",       334,   "x@207",    0),
+    TEST ("x@334",       540,   "x@334",    0),
+    TEST ("x@540",       873,   "x@540",    0),
+    TEST ("x@873",      1412,   "x@873",    0),
+    TEST ("x@1412",     2284,   "x@1412",   0),
+    TEST ("x@2284",     3695,   "x@2284",   0),
+
+    TEST ("",           NPOS,   "",         1),
+    TEST ("abc",        NPOS,   "abc",      1),
+    TEST ("x@3695",     NPOS,   "x@3695",   1),
+
+    TEST ("last",          4,   "last",     0)
+
+};
+
+/**************************************************************************/
+
+// used to exercise
+// capacity ()
+static const StringTestCase
+capacity_void_test_cases [] = {
+
+#undef TEST
+#define TEST(str) {                         \
+        __LINE__, -1, -1, -1, -1, -1,       \
+        str, sizeof str - 1, 0, 0,          \
+        0, 0, -1                            \
+    }
+
+    //    +------------------------------ controlled sequence
+    //    |                
+    //    |                               
+    //    |                               
+    //    V  
+    TEST (0), 
+    TEST (""),   
+
+    TEST ("\0"),    
+    TEST ("a"),       
+
+    TEST ("test string"), 
+    TEST ("a\0b\0c\0\0"),  
+
+    TEST ("x@128"),     
+    TEST ("x@207"),    
+    TEST ("x@334"),
+    TEST ("x@540"),
+    TEST ("x@873"),
+    TEST ("x@1412"),
+    TEST ("x@2284"),   
+    TEST ("x@3695"), 
+    TEST ("x@4096"), 
+
+    TEST ("last") 
+};
+
+/**************************************************************************/
+
+// used to exercise
+// reserve (size_type)
+static const StringTestCase
+reserve_size_test_cases [] = {
+
+#undef TEST
+#define TEST(str, size, bthrow) {           \
+        __LINE__, -1, size, -1, -1, -1,     \
+        str, sizeof str - 1, 0, 0,          \
+        0, 0, bthrow                        \
+    }
+
+    //    +--------------------------------------- controlled sequence
+    //    |                +---------------------- requested capacity
+    //    |                |    +----------------- exception info
+    //    |                |    |                   0 - no exception
+    //    |                |    |                   1 - length_error
+    //    |                |    |    
+    //    V                V    V    
+    TEST ("",              0,   0),
+    TEST ("",              5,   0),
+    TEST ("",            334,   0),
+
+    TEST ("\0",            0,   0),
+    TEST ("\0",            2,   0),
+    TEST ("\0",            1,   0),
+    TEST ("\0",          127,   0),
+
+    TEST ("a",             0,   0),
+    TEST ("a",             2,   0),
+    TEST ("a",           539,   0),
+
+    TEST ("a\0\0\0b",     10,   0),
+    TEST ("ab\0\0\0",     10,   0),
+    TEST ("\0\0\0ab",     10,   0),
+    TEST ("a\0b\0c\0\0",   5,   0),
+    TEST ("a\0b\0c\0\0",   4,   0),
+    TEST ("\0ba\0c\0\0",   1,   0),
+    TEST ("\0ba\0c\0\0",   0,   0),
+
+    TEST ("x@540",       127,   0),
+    TEST ("x@873",       127,   0),
+    TEST ("x@1412",      127,   0),
+    TEST ("x@2284",      127,   0),
+
+    TEST ("x@127",      1412,   0),
+    TEST ("x@128",      1412,   0),
+    TEST ("x@206",       207,   0),
+    TEST ("x@333",       334,   0),
+    TEST ("x@540",       540,   0),
+    TEST ("x@873",       873,   0),
+    TEST ("x@1412",     2284,   0),
+    TEST ("x@2284",     3695,   0),
+
+    TEST ("",           NPOS,   1),
+    TEST ("abc",        NPOS,   1),
+    TEST ("x@3695",     NPOS,   1),
+
+    TEST ("last",          4,   0)
+};
+
+/**************************************************************************/
+
+// used to exercise
+// reserve ()
+static const StringTestCase
+reserve_void_test_cases [] = {
+
+#undef TEST
+#define TEST(str) {                      \
+        __LINE__, -1, 0, -1, -1, -1,     \
+        str, sizeof str - 1, 0, 0,       \
+        0, 0, -1                         \
+    }
+
+    //    +----------------------------- controlled sequence
+    //    |
+    //    |                
+    //    V               
+    TEST (""),
+    TEST ("\0"),
+    TEST ("a"),
+
+    TEST ("a\0\0\0b"),
+    TEST ("a\0b\0c\0\0"),
+
+    TEST ("x@127"),
+    TEST ("x@128"),
+    TEST ("x@206"),
+    TEST ("x@333"),
+    TEST ("x@540"),
+    TEST ("x@873"),
+    TEST ("x@1412"),
+    TEST ("x@2284"),
+
+    TEST ("last")
+};
+
+/**************************************************************************/
+
+// used to exercise
+// clear ()
+static const StringTestCase
+clear_void_test_cases [] = {
+
+#undef TEST
+#define TEST(str) {                         \
+        __LINE__, -1, -1, -1, -1, -1,       \
+        str, sizeof str - 1, 0, 0,          \
+        "", 0, -1                           \
+    }
+
+    //    +------------------------------ controlled sequence
+    //    |                
+    //    |                               
+    //    |                               
+    //    V  
+    TEST (0), 
+    TEST (""),   
+
+    TEST ("\0"),    
+    TEST ("a"),       
+
+    TEST ("test string"), 
+    TEST ("a\0b\0c\0\0"),  
+
+    TEST ("x@128"),     
+    TEST ("x@207"),    
+    TEST ("x@334"),
+    TEST ("x@540"),
+    TEST ("x@873"),
+    TEST ("x@1412"),
+    TEST ("x@2284"),   
+    TEST ("x@3695"), 
+    TEST ("x@4096"), 
+
+    TEST ("last") 
+};
+
+/**************************************************************************/
+
+// used to exercise
+// empty ()
+static const StringTestCase
+empty_void_test_cases [] = {
+
+#undef TEST
+#define TEST(str, res) {                 \
+        __LINE__, -1, -1, -1, -1, -1,    \
+        str, sizeof str - 1, 0, 0,       \
+        0, res, -1                       \
+    }
+
+    //    +------------------------------ controlled sequence
+    //    |          +------------------- expected result              
+    //    |          |                     
+    //    |          |                     
+    //    V          V
+    TEST (0,         1), 
+    TEST ("",        1),   
+
+    TEST ("\0",      0),    
+    TEST ("a",       0),       
+    TEST ("\0ab\0c", 0),  
+
+    TEST ("x@128",   0),     
+    TEST ("x@3695",  0), 
+
+    TEST ("last",    0) 
+};
+
+/**************************************************************************/
+template <class charT, class Traits, class Allocator>
+void test_capacity (charT, Traits*, Allocator*,
+                    const StringFunc     &func,
+                    const StringTestCase &tcase)
 {
-    typedef unsigned char UChar;
+    typedef std::basic_string <charT, Traits, Allocator> String;
+    typedef typename UserTraits<charT>::MemFun           UTMemFun;
 
-    const charT char_eos   = make_char ('\0', (charT*)0);
-    const charT char_param = 
-        -1 == cparam ? char_eos : make_char (char (cparam), (charT*)0);
+    static const std::size_t BUFSIZE = 256;
+
+    static charT wstr_buf [BUFSIZE];
+    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
+    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
+
+    static charT wres_buf [BUFSIZE];
+    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
+    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
+
+    // construct the string object to be modified and constant one
+    String str (wstr, str_len);
+    const String cstr (wstr, str_len);
+
+    if (wstr != wstr_buf)
+        delete[] wstr;
+
+    wstr = 0;
+
+    // save the state of the string object before the call
+    // to detect wxception safety violations (changes to
+    // the state of the object after an exception)
+    const StringState str_state (rw_get_string_state (str));
+
+    const charT arg_val = -1 != tcase.val ? 
+        make_char (char (tcase.val), (charT*)0)
+      : make_char (char (), (charT*)0);
+
+    rwt_free_store* const pst = rwt_get_free_store (0);
+    SharedAlloc*    const pal = SharedAlloc::instance ();
+
+    // iterate for`throw_after' starting at the next call to operator new,
+    // forcing each call to throw an exception, until the function finally
+    // succeeds (i.e, no exception is thrown)
+    std::size_t throw_count;
+    for (throw_count = 0; ; ++throw_count) {
+
+        // (name of) expected and caught exception
+        const char* expected = 0;
+        const char* caught   = 0;
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    bool ex_thrown = false;
-    try {
-
-#endif    // _RWSTD_NO_EXCEPTIONS
-
-    if (-1 == cparam)
-        test_str.resize (nparam);
-    else
-        test_str.resize (nparam, char_param);
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    }
-    catch (std::length_error) {
-        ex_thrown = true;
-    }
-    catch (...) {
-    }
-
-    rw_assert (should_throw == ex_thrown, 0, line,
-               "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>"
-               "(%{#*s}, %zu).resize(%zu%{?}, %{#c}%{;}) "
-               "should throw == %b, was thrown == %b",
-               __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
-               int (str_len), str, str_len,
-               nparam, -1 != cparam, cparam, should_throw, ex_thrown);
-
-    if (ex_thrown)
-        return;
+        if (1 == tcase.bthrow)
+            expected = exceptions [2];      // length_error
+        else if (0 == tcase.bthrow) {
+            // by default excercise the exception safety of the function
+            // by iteratively inducing an exception at each call to operator
+            // new or Allocator::allocate() until the call succeeds
+            expected = exceptions [3];      // bad_alloc
+            *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_count + 1;
+            pal->throw_at_calls_ [pal->m_allocate] =
+                pal->throw_at_calls_ [pal->m_allocate] + throw_count + 1;
+        }
+        else {
+            // exceptions disabled for this test case
+        }
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    _RWSTD_UNUSED (should_throw);
-
-#endif   // _RWSTD_NO_EXCEPTIONS
-
-    // verify the size of the test string
-    rw_assert (test_str.size () == nparam, 0, line,
-               "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>"
-               "(%{#*s}, %zu).resize(%zu%{?}, %{#c}%{;}).size() == "
-               "%zu, got %zu",
-               __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
-               int (str_len), str, str_len, nparam, -1 != cparam, cparam,
-               nparam, test_str.size ());
-
-    // create the expected string
-    char* const expect_str = new char [nparam + 1];
-    rw_widen (expect_str, str, str_len < nparam ? str_len : nparam);
-
-    for (std::size_t i = str_len; i < nparam; ++i)
-        expect_str [i] = -1 == cparam ? '\0' : char (cparam);
-
-    // verify that the test_string matches the expected result
-    const std::size_t inx = rw_match (expect_str, test_str.c_str (), nparam);
-
-    rw_assert (inx == nparam, 0, line,
-               "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>"
-               "(%{#*s}, %zu).resize(%zu%{?}, %{#c}%{;}) == "
-               "%{#*s}, got %{/*.*Gs}",
-               __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,
-               int (str_len), str, str_len, nparam, -1 != cparam, cparam,
-               int (nparam), expect_str,
-               int (sizeof (charT)), int (test_str.size ()), test_str.c_str ());
-
-    delete[] expect_str;
-}
-
-/**************************************************************************/
-
-template <class charT, class Traits>
-void test_capacity (charT, Traits*, const MemFun *pfid,
-                    int         line,         // line number
-                    const char *str,          // string argument
-                    std::size_t str_len,      // the string length
-                    std::size_t nparam,       // method parameter
-                    char        cparam,       // method parameter char
-                    std::size_t res,          // method expected result
-                    bool        should_throw) // the method should throw
-{
-    typedef std::allocator<charT>                       Allocator;
-    typedef std::basic_string<charT, Traits, Allocator> TestString;
-
-    if (!rw_enabled (line)) {
-        rw_note (0, 0, 0, "test on line %d disabled", line);
-        return;
-    }
-
-    // widen the source sequence into the (possibly wide) character buffer
-    static charT wstr [LLEN];
-    rw_widen (wstr, str, str_len);
-
-    // construct a test string object either using the specified
-    // arguments or using the default ctor
-    TestString test_str = str ? TestString (wstr, str_len) : TestString ();
-
-    if (MemFun::resize == pfid->mfun_) {
-        test_resize (charT (), pfid, line, test_str, str, str_len,
-                     nparam, cparam, should_throw);
-        return;
-    }
-
-    std::string::size_type ret     = 0;
-    std::string::size_type exp_ret = res;
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    const char* const expected = should_throw ? "length_error" : 0;
-    const char*       caught   = 0;
-
-    try {
-
-#endif   // _RWSTD_NO_EXCEPTIONS
-
-    // invoke the virtual function with the expected argument (if any)
-    switch (pfid->mfun_) {
-    case MemFun::size:
-        ret = test_str.size ();
-        break;
-
-    case MemFun::length:
-        ret     = test_str.length ();
-        exp_ret = test_str.size ();
-        break;
-
-    case MemFun::resize:
-        // do nothing, handled above
-        break;
-
-    case MemFun::reserve:
-        0 == nparam ? test_str.reserve () : test_str.reserve (nparam);
-        break;
-
-    case MemFun::capacity:
-        ret = test_str.capacity ();
-        break;
-
-    case MemFun::max_size:
-        ret = test_str.max_size ();
-        break;
-
-    case MemFun::empty:
-        ret     = test_str.empty ();
-        exp_ret = 0 == test_str.size ();
-        break;
-
-    case MemFun::clear:
-        test_str.clear ();
-        break;
-    }
-
-#define CALLFMAT                                                        \
-    "line %d. basic_string<%s, %s<%2$s>, %s<%2$s>>(%{?}%{#*s}%{;})"     \
-    ".%s(%{?}%zu%{;})"
-
-#define CALLARGS                                                \
-    __LINE__, pfid->cname_, pfid->tname_, pfid->aname_,         \
-    0 != str, int (str_len), str, pfid->fname_,                 \
-    MemFun::reserve == pfid->mfun_, nparam
-
-    //0 != str, int (sizeof (charT)), &test_str, pfid->fname_,    
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    }
-    catch (std::length_error) {
-        caught = expected;
-    }
-    catch (...) {
-        caught = "unknown exception";
-    }
-
-    rw_assert (caught == expected, 0, line,
-              CALLFMAT " %{?}expected %s, caught %s"
-               "%{:}unexpectedly caught %s%{;}",
-               CALLARGS, 0 != expected, expected, caught, caught);
-
-    if (should_throw || caught)
-        return;
-
-#else   // if defined (_RWSTD_NO_EXCEPTIONS)
-    _RWSTD_UNUSED (should_throw);
-#endif   // _RWSTD_NO_EXCEPTIONS
-
-    // check the results
-    if (MemFun::size == pfid->mfun_ || MemFun::length == pfid->mfun_ ||
-        MemFun::empty == pfid->mfun_) {
-
-        rw_assert (exp_ret == ret, 0, line,
-                   CALLFMAT " == %zu, expected %zu",
-                   CALLARGS, ret, exp_ret);
-
-        return;
-    }
-
-    if (MemFun::capacity == pfid->mfun_) {
-        std::string::size_type cur_sz = test_str.size();
-        std::string::size_type max_sz = test_str.max_size();
-
-        rw_assert (cur_sz <= ret && ret <= max_sz, 0, line,
-                   CALLFMAT " == %zu, expected %zu < res < %zu",
-                   CALLARGS, ret, cur_sz, max_sz);
-    }
-
-    if (MemFun::max_size == pfid->mfun_) {
-        std::string::size_type cur_sz = test_str.size();
-
-        rw_assert (cur_sz <= ret, 0, line,
-                   CALLFMAT " == %zu, expected res > %zu",
-                   CALLARGS, ret, cur_sz);
-    }
-
-    if (MemFun::reserve == pfid->mfun_ ) {
-        ret = test_str.capacity ();
-        rw_assert (nparam <= ret, 0, line,
-                   CALLFMAT ": capacity() >= %zu, got %zu",
-                   CALLARGS, nparam, ret);
-        return;
-    }
-
-    if (MemFun::clear == pfid->mfun_ ) {
-        rw_assert (test_str.empty (), 0, line,
-                   CALLFMAT ": string not empty", CALLARGS);
-        return;
-    }
-}
-
-/**************************************************************************/
-
-void test_capacity (MemFun      *pfid,
-                    int          line,
-                    const char  *str,
-                    std::size_t  str_len,
-                    int          nparam,
-                    int          cparam,
-                    std::size_t  res,
-                    bool         should_throw)
-{
-#undef TEST
-#define TEST(charT, Traits)                                             \
-    test_capacity (charT (), (Traits*)0, pfid, line,                    \
-                   str, str_len, nparam, cparam, res, should_throw)
-
-    static const char* const fnames[] = {
-        "size", "resize", "length", "reserve", "capacity", "max_size",
-        "clear", "empty"
-    };
-
-    if (!rw_enabled (line)) {
-        rw_note (0, 0, __LINE__, "test on line %d disabled", line);
-        return;
-    }
-
-    pfid->fname_ = fnames [pfid->mfun_];
-
-    pfid->max_size_ = MemFun::Char == pfid->cid_ ?
-        _RWSTD_SIZE_MAX / sizeof (char) - 1
-      : _RWSTD_SIZE_MAX / sizeof (wchar_t) - 1;
-
-    if (MemFun:: DefaultTraits == pfid->tid_) {
-        if (MemFun::Char == pfid->cid_)
-            TEST (char, std::char_traits<char>);
-
-#ifndef _RWSTD_NO_WCHAR_T
-        else
-            TEST (wchar_t, std::char_traits<wchar_t>);
-#endif   // _RWSTD_NO_WCHAR_T
-
-    }
-    else {
-        if (MemFun::Char == pfid->cid_)
-            TEST (char, UserTraits<char>);
-
-#ifndef _RWSTD_NO_WCHAR_T
-        else if (MemFun::WChar == pfid->cid_)
-            TEST (wchar_t, UserTraits<wchar_t>);
-#endif   // _RWSTD_NO_WCHAR_T
-
-        else
-            TEST (UserChar, UserTraits<UserChar>);
-    }
-}
-
-/**************************************************************************/
-
-void test_size (MemFun *pfid)
-{
-    rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::size ()",
-             pfid->cname_, pfid->tname_, pfid->aname_);
-
-#undef TEST
-#define TEST(str, size)                                 \
-    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
-                   0, 0, size, false)
-
-    //    +--------------------------------------- controlled sequence
-    //    |                +---------------------- expected result
-    //    |                |                   
-    //    |                |                   
-    //    V                V                   
-    TEST (0,               0);
-    TEST ("",              0);
-
-    TEST ("\0",            1);
-    TEST ("a",             1);
-    TEST (" ",             1);
-    TEST ("ab",            2);
-    TEST ("bc",            2);
-
-    TEST ("test string",  11);
-    TEST ("Test String",  11);
-
-    TEST ("t\0 s",         4);
-    TEST ("Test\0string", 11);
-
-    TEST ("\0a\0b",        4);
-    TEST ("a\0\0b",        4);
-    TEST ("a\0\0\0b",      5);
-    TEST ("a\0\0b\0",      5);
-    TEST ("a\0b\0\0c",     6);
-    TEST ("a\0b\0c\0\0",   7);
-
-    TEST (LSTR,     LLEN - 1);
-}
-
-/**************************************************************************/
-
-static int rw_opt_no_size;          // for --no-size
-static int rw_opt_no_resize;        // for --no-resize
-static int rw_opt_no_length;        // for --no-length
-static int rw_opt_no_reserve;       // for --no-reserve
-static int rw_opt_no_capacity;      // for --no-capacity
-static int rw_opt_no_max_size;      // for --no-max_size
-static int rw_opt_no_clear;         // for --no-clear
-static int rw_opt_no_empty;         // for --no-empty
-static int rw_opt_no_exceptions;    // for --no-exceptions
-static int rw_opt_no_char_traits;   // for --no-char_traits
-static int rw_opt_no_user_traits;   // for --no-user_traits
-static int rw_opt_no_user_chars;    // for --no-user_chars
-
-/**************************************************************************/
-
-void test_resize (MemFun *pfid)
-{
-    rw_info (0, 0, 0,
-             "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::resize "
-             "(size_type, char_type)",
-             pfid->cname_, pfid->tname_, pfid->aname_);
-
-#undef TEST
-#define TEST(str, len, nparam, cparam, ex_throw)        \
-    test_capacity (pfid, __LINE__, str, len, nparam,    \
-                   int (cparam), 0, ex_throw)
-
-    //    +------------------------------------- controlled sequence
-    //    |                +-------------------- controlled sequence length
-    //    |                |        +----------- resize() integer argument
-    //    |                |        |   +------- resize() char argument
-    //    |                |        |   |    +-- exception expected?
-    //    |                |        |   |    |
-    //    V                V        V   V    V
-    TEST ("\0",            1,       0,  -1,  false);
-    TEST ("\0",            1,       0, 'a',  false);
-    TEST ("\0",            1,       1, 'a',  false);
-    TEST ("\0",            1,      10, 'a',  false);
-
-    TEST ("a",             1,       1,  -1,  false);
-    TEST ("a",             1,       1, 'a',  false);
-    TEST ("a",             1,       0, 'a',  false);
-    TEST ("a",             1,      10, 'a',  false);
-
-    TEST ("ab",            2,       2,  -1,  false);
-    TEST ("ab",            2,       1, 'a',  false);
-    TEST ("ab",            2,      10, 'a',  false);
-    TEST ("ab",            2,      10, 'a',  false);
-
-    TEST ("t\0 s",         4,       6,  -1,  false);
-    TEST ("t\0 s",         4,       6, 'a',  false);
-    TEST ("Test\0string", 11,     100, 'a',  false);
-
-    TEST ("a\0\0\0b",     5,       10,  -1,  false);
-    TEST ("a\0\0\0b",     5,       10, 'a',  false);
-    TEST ("a\0\0\0b",     5,       10, '\0', false);
-
-    TEST ("a\0b\0c\0\0",  7,       10,  -1,  false);
-    TEST ("a\0b\0c\0\0",  7,       10, 'a',  false);
-    TEST ("a\0b\0c\0\0",  7,       10, '\0', false);
-
-    TEST ("bc",           2, LLEN - 1,  -1,  false);
-    TEST ("bc",           2, LLEN - 1, 'a',  false);
-
-    TEST (LSTR,    LLEN - 1,       10,  -1, false);
-    TEST (LSTR,    LLEN - 1,       10, 'a', false);
-    TEST (LSTR,    LLEN - 1, LLEN - 1, 'a', false);
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    if (rw_opt_no_exceptions)
-        rw_note (0, 0, __LINE__, "exceptions tests disabled");
-    else {
-        if (_RWSTD_SIZE_MAX > pfid->max_size_) {
-
-            TEST ("\0", 1, pfid->max_size_ + 1, 'a', true);
-            TEST ("a" , 1, pfid->max_size_ + 1, 'a', true);
-            TEST (LSTR, LLEN - 1,
-                  pfid->max_size_ + 1, 'a', true);
+        if (tcase.bthrow) {
+            if (wres != wres_buf)
+                delete[] wres;
+
+            return;
         }
-    }
 
-#endif   //_RWSTD_NO_EXCEPTIONS
+#endif   // _RWSTD_NO_EXCEPTIONS
 
-    rw_info (0, 0, 0,
-             "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::resize (size_type)",
-             pfid->cname_, pfid->tname_, pfid->aname_);
+        // start checking for memory leaks
+        rw_check_leaks (str.get_allocator ());
 
-#undef TEST
-#define TEST(str, nparam, ex_throw)                     \
-    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
-                   nparam, -1, 0, ex_throw)
+        std::size_t res = 0;
 
-    //    +---------------------------------------- controlled sequence
-    //    |             +-------------------------- resize() integer argument
-    //    |             |                       +-- exception expected?
-    //    |             |                       |
-    //    V             V                       V
-    TEST ("\0",         0,                      false);
-    TEST ("\0",        10,                      false);
+        try {
 
-    TEST ("a",          1,                      false);
-    TEST ("a",          0,                      false);
-    TEST ("a",         10,                      false);
+            switch (func.which_) {
 
-    TEST ("ab",         2,                      false);
-    TEST ("ab",         1,                      false);
-    TEST ("ab",        10,                      false);
+            case Size (void):
+                res = cstr.size ();
+                break;
 
-    TEST ("bc",        LLEN - 1,     false);
+            case Length (void):
+                res = cstr.length ();
+                break;
 
-    TEST (LSTR, 10,                      false);
-    TEST (LSTR, LLEN - 1,     false);
+            case MaxSize (void):
+                res = cstr.max_size ();
+                break;
 
-#ifndef _RWSTD_NO_EXCEPTIONS
+            case Resize (size_val):
+                str.resize (tcase.size, arg_val);
+                break;
 
-    if (!rw_opt_no_exceptions) {
-        if (_RWSTD_SIZE_MAX > pfid->max_size_) {
+            case Resize (size):
+                str.resize (tcase.size);
+                break;
 
-            TEST ("\0",        pfid->max_size_ + 1,     true);
-            TEST ("a",         pfid->max_size_ + 1,     true);
-            TEST (LSTR, pfid->max_size_ + 1,     true);
+            case Capacity (void):
+                res = cstr.capacity ();
+                break;
+
+            case Reserve (size):
+                str.reserve (tcase.size);
+                break;
+
+            case Reserve (void):
+                str.reserve ();
+                break;
+
+            case Clear (void):
+                str.clear ();
+                break;
+
+            case Empty (void):
+                res = cstr.empty () ? 1 : 0;
+                break;
+
+            default:
+                RW_ASSERT ("test logic error: unknown capacity overload");
+                return;
+            }
+
+            // verify the returned value
+            if (func.which_ == StringIds::size_void 
+                || func.which_ == StringIds::length_void
+                || func.which_ == StringIds::empty_void) {
+                    rw_assert (res == tcase.nres, 0, tcase.line,
+                               "line %d. %{$FUNCALL} expected %zu, got %zu",
+                                __LINE__, tcase.nres, res);
+            }
+
+            if (func.which_ == StringIds::capacity_void) {
+                std::size_t cur_sz = cstr.size ();
+                std::size_t max_sz = cstr.max_size ();
+
+                rw_assert (cur_sz <= res && res <= max_sz, 0, tcase.line,
+                           "line %d. %{$FUNCALL} == %zu, "
+                           "expected %zu < res < %zu", 
+                           __LINE__, res, cur_sz, max_sz);
+            }
+
+            if (func.which_ == StringIds::max_size_void) {
+                std::size_t cur_sz = cstr.size ();
+
+                rw_assert (cur_sz <= res, 0, tcase.line,
+                           "line %d. %{$FUNCALL} == %zu, expected res > %zu",
+                           __LINE__, res, cur_sz);
+            }
+
+            if (func.which_ == StringIds::reserve_size
+                || func.which_ == StringIds::reserve_void) {
+
+                    res = str.capacity ();
+                    rw_assert (std::size_t (tcase.size) <= res, 0, tcase.line,
+                               "line %d. %{$FUNCALL} : capacity() >= "
+                               "%zu, got %zu", __LINE__, tcase.size, res);
+            }
+
+            if (func.which_ == StringIds::resize_size_val 
+                || func.which_ == StringIds::clear_void) {
+
+                // verfiy that strings length are equal
+                rw_assert (res_len == str.size (), 0, tcase.line,
+                           "line %d. %{$FUNCALL} expected %{#*s} "
+                           "with length %zu, got %{/*.*Gs} with length %zu",
+                            __LINE__, int (tcase.nres), tcase.res, res_len,
+                            int (sizeof (charT)), int (str.size ()),
+                            str.c_str (), str.size ());
+
+                if (res_len == str.size ()) {
+                    // if the result length matches the expected length
+                    // (and only then), also verify that the modified
+                    // string matches the expected result
+                    const std::size_t match =
+                        rw_match (tcase.res, str.c_str(), tcase.nres);
+
+                    rw_assert (match == res_len, 0, tcase.line,
+                               "line %d. %{$FUNCALL} expected %{#*s}, "
+                                "got %{/*.*Gs}, difference at offset %zu",
+                                __LINE__, int (tcase.nres), tcase.res,
+                                int (sizeof (charT)), int (str.size ()),
+                                str.c_str (), match);
+                }
+            }
+
+            if (func.which_ == StringIds::resize_size) {
+
+                std::size_t match =
+                    rw_match (tcase.res, str.data (), tcase.nres);
+
+                rw_assert (match == res_len, 0, tcase.line,
+                           "line %d. %{$FUNCALL} expected %{#*s}, "
+                           "got %{/*.*Gs}, difference at offset %zu",
+                           __LINE__, int (tcase.nres), tcase.res,
+                           int (sizeof (charT)), int (str.size ()),
+                           str.c_str (), match);
+
+                for (std::size_t tmp = res_len; tmp < str.size (); tmp++) {
+
+                    char c = char ();
+                    match = rw_match (&c, str.data () + tmp, 1);
+                    rw_assert (1 == match, 0, tcase.line,
+                               "line %d. %{$FUNCALL} expected %c "
+                               "at offset %zu, got %{#c}",
+                               __LINE__, c, tmp, str.data () + tmp);
+                }
+            }
         }
-    }
-
-#endif   // _RWSTD_NO_EXCEPTIONS
-
-}
-
-/**************************************************************************/
-
-void test_length (MemFun *pfid)
-{
-    rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::length ()",
-             pfid->cname_, pfid->tname_, pfid->aname_);
-
-#undef TEST
-#define TEST(str, size)                                 \
-    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
-                          0, 0, size, false)
-
-    //    +--------------------------------------- controlled sequence
-    //    |                +---------------------- expected result
-    //    |                |                   
-    //    |                |                   
-    //    V                V 
-    TEST (0,               0);
-    TEST ("",              0);
-
-    TEST ("\0",            1);
-    TEST ("a",             1);
-    TEST (" ",             1);
-    TEST ("ab",            2);
-    TEST ("bc",            2);
-
-    TEST ("Test String",  11);
-
-    TEST ("t\0 s",         4);
-    TEST ("Test\0string", 11);
-   
-    TEST ("\0a\0b",        4);
-    TEST ("a\0\0b",        4);
-    TEST ("a\0\0\0b",      5);
-    TEST ("a\0\0b\0",      5);
-    TEST ("a\0b\0\0c",     6);
-    TEST ("a\0b\0c\0\0",   7);
-
-    TEST (LSTR,     LLEN - 1);
-}
-
-/**************************************************************************/
-
-void test_reserve (MemFun *pfid)
-{
-    rw_info (0, 0, 0,
-             "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::reserve (size_type)",
-             pfid->cname_, pfid->tname_, pfid->aname_);
-
-#undef TEST
-#define TEST(str, nparam, ex_throw)                     \
-    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
-                          nparam, 0, 0, ex_throw)
-
-    //    +--------------------------------------- controlled sequence
-    //    |                +---------------------- reserve() argument
-    //    |                |                   +-- exception expected?
-    //    |                |                   |
-    //    V                V                   V
-    TEST (0,               0,                  false);
-    TEST (0,              10,                  false);
-    TEST (0,              LLEN - 1, false);
-
-    TEST ("\0",            0,                  false);
-    TEST ("\0",           10,                  false);
-    TEST ("\0",           LLEN - 1, false);
-
-    TEST ("abcd",          0,                  false);
-    TEST ("abcd",          2,                  false);
-    TEST ("abcd",          4,                  false);
-    TEST ("abcd",         10,                  false);
-    TEST ("abcd",         LLEN - 1, false);
-
-    TEST ("t\0 s",         1,                  false);
-    TEST ("Test\0string",  4,                  false);
-    TEST ("a\0\0b",        2,                  false);
-    TEST ("a\0\0b",       10,                  false);
-    TEST ("a\0b\0c\0\0",   4,                  false);
-    TEST ("a\0b\0c\0\0",  10,                  false);
-
-    TEST (LSTR,           10,                  false);
-    TEST (LSTR,     LLEN - 1,                  false);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    if (_RWSTD_SIZE_MAX > pfid->max_size_) {
-        TEST ("\0", pfid->max_size_ + 1, true);
-        TEST ("a",  pfid->max_size_ + 1, true);
-        TEST (LSTR, pfid->max_size_ + 1, true);
-    }
+        catch (const std::length_error &ex) {
+            caught = exceptions [2];
+            rw_assert (caught == expected, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                       "unexpectedly%{;} caught std::%s(%#s)",
+                       __LINE__, 0 != expected, expected, caught, ex.what ());
+        }
+        catch (const std::bad_alloc &ex) {
+            caught = exceptions [3];
+            rw_assert (0 == tcase.bthrow, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                       "unexpectedly%{;} caught std::%s(%#s)",
+                       __LINE__, 0 != expected, expected, caught, ex.what ());
+        }
+        catch (const std::exception &ex) {
+            caught = exceptions [4];
+            rw_assert (0, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                       "unexpectedly%{;} caught std::%s(%#s)",
+                       __LINE__, 0 != expected, expected, caught, ex.what ());
+        }
+        catch (...) {
+            caught = exceptions [0];
+            rw_assert (0, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                       "unexpectedly%{;} caught %s",
+                       __LINE__, 0 != expected, expected, caught);
+        }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
+        // FIXME: verify the number of blocks the function call
+        // is expected to allocate and detect any memory leaks
+        rw_check_leaks (str.get_allocator (), tcase.line,
+                        std::size_t (-1), std::size_t (-1));
+
+        if (caught) {
+            // verify that an exception thrown during allocation
+            // didn't cause a change in the state of the object
+            str_state.assert_equal (rw_get_string_state (str),
+                                    __LINE__, tcase.line, caught);
+
+            if (0 == tcase.bthrow) {
+                // allow this call to operator new to succeed and try
+                // to make the next one to fail during the next call
+                // to the same function again
+                continue;
+            }
+        }
+        else if (0 < tcase.bthrow) {
+            rw_assert (caught == expected, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s, caught %s"
+                       "%{:}unexpectedly caught %s%{;}",
+                       __LINE__, 0 != expected, expected, caught, caught);
+        }
+
+        break;
+    }
+
+#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+    // verify that if exceptions are enabled and when capacity changes
+    // at least one exception is thrown
+    const std::size_t expect_throws = str_state.capacity_ < str.capacity ();
+
+#else   // if defined (_RWSTD_NO_REPLACEABLE_NEW_DELETE)
+
+    const std::size_t expect_throws = 
+        (StringIds::UserAlloc == func.alloc_id_) 
+      ? str_state.capacity_ < str.capacity () : 0;
+
+#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+    rw_assert (expect_throws == throw_count, 0, tcase.line,
+               "line %d: %{$FUNCALL}: expected exactly 1 %s exception "
+               "while changing capacity from %zu to %zu, got %zu",
+               __LINE__, exceptions [3],
+               str_state.capacity_, str.capacity (), throw_count);
+
+    // disable bad_alloc exceptions
+    *pst->throw_at_calls_ [0] = 0;
+    pal->throw_at_calls_ [pal->m_allocate] = 0;
+
+    if (wres != wres_buf)
+        delete[] wres;
 }
 
 /**************************************************************************/
 
-void test_capacity (MemFun *pfid)
-{
-    rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::capacity ()",
-             pfid->cname_, pfid->tname_, pfid->aname_);
-
-#undef TEST
-#define TEST(str, size)                                 \
-    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
-                          0, 0, size, false)
-
-    //    +--------------------------------------- controlled sequence
-    //    |                +---------------------- expected result
-    //    |                |                   
-    //    |                |                   
-    //    V                V 
-    TEST (0,                0);
-    TEST ("\0",             0);
-
-    TEST ("a",            128);
-    TEST ("abcd",         128);
-
-    TEST ("t\0 s",        128);
-    TEST ("Test\0string", 128);
-
-    TEST ("\0a\0b",       128);
-    TEST ("a\0\0\0b",     128);
-    TEST ("a\0b\0c\0\0",  128);
-
-    TEST (LSTR,       LLEN - 1);
-}
-
-/**************************************************************************/
-
-void test_max_size (MemFun *pfid)
-{
-    rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::max_size ()",
-             pfid->cname_, pfid->tname_, pfid->aname_);
-
-#undef TEST
-#define TEST(str)                                       \
-    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
-                          0, 0, 0, false)
-
-    TEST (0);
-    TEST ("\0");
-    TEST ("abcd");
-    TEST (LSTR);
-}
-
-/**************************************************************************/
-
-void test_clear (MemFun *pfid)
-{
-    rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::clear ()",
-             pfid->cname_, pfid->tname_, pfid->aname_);
-
-#undef TEST
-#define TEST(str)                                       \
-    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
-                          0, 0, 0, false)
-
-    TEST (0);
-    TEST ("\0");
-    TEST ("a");
-    TEST ("ab");
-    TEST ("abcde");
-
-    TEST ("t\0 s");
-    TEST ("Test\0string");
-
-    TEST ("\0a\0b");
-    TEST ("a\0\0\0b");
-    TEST ("a\0b\0c\0\0");
-
-    TEST (LSTR);
-}
-
-/**************************************************************************/
-
-void test_empty (MemFun *pfid)
-{
-    rw_info (0, 0, 0, "std::basic_string<%s, %s<%1$s>, %s<%1$s>>::empty ()",
-             pfid->cname_, pfid->tname_, pfid->aname_);
-
-    pfid->mfun_ = MemFun::empty;
-
-#undef TEST
-#define TEST(str)                                       \
-    test_capacity (pfid, __LINE__, str, sizeof str - 1, \
-                          0, 0, 0, false)
-
-    TEST (0);
-    TEST ("\0");
-    TEST ("a");
-    TEST ("ab");
-    TEST ("abcde");
-
-    TEST ("\0 s");
-    TEST ("t\0 s");
-    TEST ("Test\0string");
-
-    TEST ("\0a\0b");
-    TEST ("a\0\0\0b");
-    TEST ("a\0b\0c\0\0");
-
-    TEST (LSTR);
-}
-
-/**************************************************************************/
-
-static void
-run_test (MemFun *pfid)
-{
-
-#undef TEST
-#define TEST(function)                                  \
-    if (rw_opt_no_ ## function)                         \
-        rw_note (1 < rw_opt_no_ ## function++, 0, 0,    \
-                 "%s test disabled", #function);        \
-    else  {                                             \
-        pfid->mfun_ = MemFun::function;                 \
-        test_ ## function (pfid);                       \
-    } (void)0
-
-    if (MemFun::UserTraits == pfid->tid_ && rw_opt_no_user_traits) {
-        rw_note (1 < rw_opt_no_user_traits++, 0, 0,
-                 "user defined traits test disabled");
-    }
-    else if (MemFun::DefaultTraits == pfid->tid_ && rw_opt_no_char_traits) {
-        rw_note (1 < rw_opt_no_char_traits++, 0, 0,
-                 "char_traits test disabled");
-    }
-    else {
-        TEST (size);
-        TEST (resize);
-        TEST (length);
-        TEST (reserve);
-        TEST (capacity);
-        TEST (max_size);
-        TEST (clear);
-        TEST (empty);        
-    }
-}
-
-/**************************************************************************/
-
-int run_test (int, char*[])
-{
-    if ('\0' == LSTR [0]) {
-        // initialize LSTR
-        for (std::size_t i = 0; i != sizeof LSTR - 1; ++i)
-            LSTR [i] = 'x';
-    }
-
-    if (rw_enabled ("char")) {
-
-        MemFun fid (MemFun::Char, "char", MemFun::DefaultTraits, 0);
-
-        fid.tname_ = "char_traits";
-
-        run_test (&fid);
-
-        fid.tid_   = MemFun::UserTraits;
-        fid.tname_ = "UserTraits";
-
-        run_test (&fid);
-    }
-    else
-        rw_note (0, 0, 0, "char tests disabled");
-
-    if (rw_enabled ("wchar_t")) {
-
-        MemFun fid (MemFun::WChar, "wchar_t", MemFun::DefaultTraits, 0);
-
-        fid.tname_ = "char_traits";
-
-        run_test (&fid);
-
-        fid.tid_   = MemFun::UserTraits;
-        fid.tname_ = "UserTraits";
-
-        run_test (&fid);
-    }
-    else
-        rw_note (0, 0, 0, "wchar_t tests disabled");
-
-    if (rw_opt_no_user_chars) {
-        rw_note (0, 0, 0, "user defined chars test disabled");
-    }
-    else {
-        MemFun fid (MemFun::UChar, "UserChar", MemFun::UserTraits, 0);
-        fid.tname_ = "UserTraits";
-        run_test (&fid);
-    }
-
-    return 0;
-
-}
-
-/**************************************************************************/
+DEFINE_STRING_TEST_DISPATCH (test_capacity);
 
 int main (int argc, char** argv)
 {
-    return rw_test (argc, argv, __FILE__,
-                    "lib.string.capacity",
-                    0 /* no comment */,
-                    run_test,
-                    "|-no-size# "
-                    "|-no-resize# "
-                    "|-no-length# "
-                    "|-no-reserve# "
-                    "|-no-capacity# "
-                    "|-no-max_size# "
-                    "|-no-clear# "
-                    "|-no-empty# "
-                    "|-no-exceptions# "
-                    "|-no-char_traits# "
-                    "|-no-user_traits# "
-                    "|-no-user_chars#",
-                    &rw_opt_no_size,
-                    &rw_opt_no_resize,
-                    &rw_opt_no_length,
-                    &rw_opt_no_reserve,
-                    &rw_opt_no_capacity,
-                    &rw_opt_no_max_size,
-                    &rw_opt_no_clear,
-                    &rw_opt_no_empty,
-                    &rw_opt_no_exceptions,
-                    &rw_opt_no_char_traits,
-                    &rw_opt_no_user_traits,
-                    &rw_opt_no_user_chars);
+    static const StringTest
+    tests [] = {
+
+#undef TEST
+#define TEST(gsig, sig) {                                       \
+        gsig, sig ## _test_cases,                               \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
+    }
+
+        TEST (StringIds::size_void, size_void),
+        TEST (StringIds::length_void, length_void),
+        TEST (StringIds::max_size_void, max_size_void),
+        TEST (StringIds::resize_size_val, resize_size_val),
+        TEST (StringIds::resize_size, resize_size),
+        TEST (StringIds::capacity_void, capacity_void),
+        TEST (StringIds::reserve_size, reserve_size),
+        TEST (StringIds::reserve_void, reserve_void),
+        TEST (StringIds::clear_void, clear_void),
+        TEST (StringIds::empty_void, empty_void)
+    };
+
+    const std::size_t test_count = sizeof tests / sizeof *tests;
+
+    return rw_run_string_test (argc, argv, __FILE__,
+                               "lib.string.capacity",
+                               test_capacity, tests, test_count);
 }
+
+
