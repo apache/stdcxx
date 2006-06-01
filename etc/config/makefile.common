@@ -16,7 +16,7 @@ ifeq ($(CURDIR),)
   CURDIR := $(shell pwd)
 endif
 
-INCLUDES     = -I$(BUILDDIR)/include -I$(TOPDIR)/include
+INCLUDES     = -I$(TOPDIR)/include -I$(BUILDDIR)/include
 
 ALL_FILES := "*"
 
