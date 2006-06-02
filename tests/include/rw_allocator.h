@@ -99,6 +99,12 @@ struct _TEST_EXPORT SharedAlloc
     // returns a unique id of this allocator object
     int id () const { return id_; }
 
+    // resets the n_calls_ array to all zeros
+    void reset_call_counters ();
+
+    // returns the name of the member function
+    static const char* func_name (MemFun);
+
     _RWSTD_SIZE_T max_bytes_;    // memory pool size in bytes
     _RWSTD_SIZE_T max_blocks_;   // memory pool size in blocks
 

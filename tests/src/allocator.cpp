@@ -38,19 +38,19 @@
 /**************************************************************************/
 
 static const char* const
-_rw_funnames[] = {
-    "UserAlloc::UserAlloc ()",
-    "UserAlloc::UserAlloc (const UserAlloc&)",
-    "UserAlloc::UserAlloc (const UserAlloc<U>&)",
-    "UserAlloc::~UserAlloc ()",
-    "UserAlloc::operator= (const UserAlloc&)",
-    "UserAlloc::operator=<U>(const UserAlloc<U>&)",
-    "UserAlloc::allocate (size_type, void*)",
-    "UserAlloc::deallocate (pointer, size_type)",
-    "UserAlloc::construct (pointer, const_reference)",
-    "UserAlloc::destroy (pointer)",
-    "UserAlloc::address (reference) const",
-    "UserAlloc::max_size () const"
+_rw_func_names[] = {
+    "UserAlloc ()",
+    "UserAlloc (const UserAlloc&)",
+    "UserAlloc (const UserAlloc<U>&)",
+    "~UserAlloc ()",
+    "operator= (const UserAlloc&)",
+    "operator=<U>(const UserAlloc<U>&)",
+    "allocate (size_type, void*)",
+    "deallocate (pointer, size_type)",
+    "construct (pointer, const_reference)",
+    "destroy (pointer)",
+    "address (reference) const",
+    "max_size () const"
 };
 
 static int _rw_id_gen;   // generates unique ids
@@ -230,8 +230,8 @@ funcall (MemFun mf, const SharedAlloc *other /* = 0 */)
         ++n_throws_ [mf];
 
         _rw_throw_exception (__FILE__, __LINE__,
-                             "%s: reached call limit of %zu",
-                             _rw_funnames [mf], throw_at_calls_);
+                             "UserAlloc::%s: reached call limit of %zu",
+                             _rw_func_names [mf], throw_at_calls_);
 
         RW_ASSERT (!"logic error: should not reach");
     }
@@ -242,20 +242,22 @@ funcall (MemFun mf, const SharedAlloc *other /* = 0 */)
 instance (SharedAlloc *pinst /* = 0 */)
 {
     // get or a set a pointer to the global allocator object
-    static size_t instbuf [sizeof (SharedAlloc) / sizeof (size_t) + 1];
     static SharedAlloc* pglobal = 0;
 
+    if (0 == pglobal) {
+        // construct the global allocator object in the static buffer
+        static size_t instbuf [sizeof (SharedAlloc) / sizeof (size_t) + 1];
+        static SharedAlloc* const pbuf = new (instbuf) SharedAlloc ();
+
+        pglobal = pbuf;
+    }
+
     if (pinst) {
-        // set the global allocator object and return
-        // a pointer to the old one (may be 0)
+        // set the global allocator object and return a pointer
+        // to the previous one
         SharedAlloc* const tmp = pglobal;
         pglobal = pinst;
-        pinst = tmp;
-    }
-    else if (0 == pglobal) {
-        // construct the global allocator object
-        pglobal = new (instbuf) SharedAlloc ();
-        pinst   = pglobal;
+        pinst   = tmp;
     }
     else
         pinst = pglobal;
@@ -263,6 +265,20 @@ instance (SharedAlloc *pinst /* = 0 */)
     RW_ASSERT (0 != pinst);
 
     return pinst;
+}
+
+
+void SharedAlloc::
+reset_call_counters ()
+{
+    memset (n_calls_, 0, sizeof n_calls_);
+}
+
+
+/* static */ const char* SharedAlloc::
+func_name (MemFun mf)
+{
+    return _rw_func_names [mf];
 }
 
 /**************************************************************************/
