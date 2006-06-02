@@ -369,13 +369,13 @@ _rw_setvars (const StringFunc     &func,
         // variables to the name of the character type and the
         // Traits and Allocator specializations
         rw_putenv ("charT=");
-        rw_fprintf (0, "%{charT:=*}", _rw_char_names [func.char_id_]);
+        rw_fprintf (0, "%{$charT:=*}", _rw_char_names [func.char_id_]);
 
         rw_putenv ("Traits=");
-        rw_fprintf (0, "%{Traits:=*}", _rw_traits_names [func.traits_id_]);
+        rw_fprintf (0, "%{$Traits:=*}", _rw_traits_names [func.traits_id_]);
 
         rw_putenv ("Allocator=");
-        rw_fprintf (0, "%{Allocator:=*}", _rw_alloc_names [func.alloc_id_]);
+        rw_fprintf (0, "%{$Allocator:=*}", _rw_alloc_names [func.alloc_id_]);
 
         // set the {CLASS}, {FUNC}, and {FUNCSIG} environment variables
         // to the name of the specialization of the template, the name
@@ -383,6 +383,7 @@ _rw_setvars (const StringFunc     &func,
         // string function, respectively, when no test case is given
 
         if (   StringIds::DefaultTraits == func.traits_id_
+            && StringIds::DefaultAlloc == func.alloc_id_
             && (   StringIds::Char == func.char_id_
                 || StringIds::WChar == func.char_id_)) {
             // format std::string and std::wstring
@@ -1243,7 +1244,8 @@ _rw_run_test (int, char*[])
                     _rw_setvars (func);
 
                     // determine whether the function is a member function
-                    const bool is_member = 0 != (StringIds::bit_member & test.which);
+                    const bool is_member =
+                        0 != (StringIds::bit_member & test.which);
 
                     // compute the function overload's 0-based index
                     const size_t siginx = _rw_get_func_inx (test.which);
