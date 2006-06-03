@@ -2819,7 +2819,7 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, va_list *pva)
     char *param = spec.strarg;
 
     // look for the first operator character (if any)
-    char* word = strpbrk (param, ":+-=?");
+    char* word = strpbrk (param, ":+-=?!");
     if (word) {
         if (':' == *word) {
             if (   '+' == word [1] || '-' == word [1]
@@ -2833,6 +2833,13 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, va_list *pva)
                 // ':' without an immediately following '+', '-',
                 // '=', or '?' is not special
             }
+        }
+        else if ('!' == word [0] && ':' == word [1]) {
+            // extension
+            oper [0] = word [0];
+            oper [1] = word [1];
+            *word    = '\0';
+            word    += 2;
         }
         else {
             oper [0] = *word;
@@ -2873,6 +2880,11 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, va_list *pva)
     // | ${parameter?word}  |  parameter  |    null     |    error    |
     // | ${parameter:+word} |     word    |    null     |    null     |
     // | ${parameter+word}  |     word    |    word     |    null     |
+    // +--------------------+-------------+-------------+-------------+
+
+    // Extension:
+    // +--------------------+-------------+-------------+-------------+
+    // | ${parameter!:word} | assign word | assign word | assign word |
     // +--------------------+-------------+-------------+-------------+
 
     int assign = 0;
@@ -2931,6 +2943,11 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, va_list *pva)
         }
         break;
 
+    case '!':
+        val = word ? word : "";
+        assign = 1;
+        break;
+
     default:
         break;
     }
@@ -2953,7 +2970,7 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, va_list *pva)
 
         rw_putenv (pbuf);
         if (pbuf != varbuf)
-            free (varbuf);
+            free (pbuf);
     }
 
     if (error) {
