@@ -482,7 +482,7 @@ _rw_setvars (const StringFunc     &func,
         // for other members append the ctor argument(s) followed
         // by the string member function name
         rw_asnprintf (&buf, &bufsize,
-                      "%{$CLASS} (%{?}%{#*s}%{;}).%{$FUNC} ",
+                      "%{$CLASS} (%{?}%{#*s}%{;}).%{$FUNC}",
                       str != 0, int (str_len), str);
     }
     else {
@@ -516,7 +516,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::ctor_cptr_alloc:
         // format self-referential ptr argument without size as c_str()
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%{?}c_str()%{:}%{#*s}%{;}"
+                      "%{+} (%{?}c_str()%{:}%{#*s}%{;}"
                       "%{?}, const allocator_type&%{;})",
                       self, int (arg_len), arg, use_alloc);
         break;
@@ -537,7 +537,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::swap_str:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%{?}*this%{:}%s(%{#*s})%{;}"
+                      "%{+} (%{?}*this%{:}%s(%{#*s})%{;}"
                       "%{?}, const allocator_type&%{;})",
                       self, class_name, int (arg_len), arg, use_alloc);
         break;
@@ -548,7 +548,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::ctor_cptr_size:
     case StringIds::ctor_cptr_size_alloc:
         // format self-referential ptr argument with size as data()
-        rw_asnprintf (&buf, &bufsize, "%{+}("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}data()%{:}%{#*s}%{;}, %zu"
                       "%{?}, const allocator_type&%{;})",
                       self, int (arg_len), arg, pcase->size, use_alloc);
@@ -561,7 +561,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::find_first_not_of_cptr_size:
     case StringIds::find_last_not_of_cptr_size:
         // format self-referential ptr argument with size as data()
-        rw_asnprintf (&buf, &bufsize, "%{+}("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}data()%{:}%{#*s}%{;}, %zu)",
                       self, int (arg_len), arg, pcase->off);
         break;
@@ -575,7 +575,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::ctor_cstr_size:
     case StringIds::ctor_cstr_size_alloc:
         // format self-referential str argument as *this
-        rw_asnprintf (&buf, &bufsize, "%{+}("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}*this%{:}%s(%{#*s})%{;}, %zu"
                       "%{?}, const allocator_type%{;})",
                       self, class_name, int (arg_len), arg, pcase->off,
@@ -589,7 +589,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::find_first_not_of_cptr_size_size:
     case StringIds::find_last_not_of_cptr_size_size:
         // format self-referential ptr argument with size as data()
-        rw_asnprintf (&buf, &bufsize, "%{+}("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}data()%{:}%{#*s}%{;}, %zu, %zu)",
                       self, int (arg_len), arg,
                       pcase->off, pcase->size);
@@ -597,7 +597,7 @@ _rw_setvars (const StringFunc     &func,
 
     case StringIds::copy_ptr_size_size:
         // format self-referential ptr argument with size as data()
-        rw_asnprintf (&buf, &bufsize, "%{+}("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}data()%{:}%{#*s}%{;}, %zu, %zu)",
                       self, int (arg_len), arg,
                       pcase->size, pcase->off);
@@ -608,7 +608,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::ctor_cstr_size_size:
     case StringIds::ctor_cstr_size_size_alloc:
         // format self-referential str argument as *this
-        rw_asnprintf (&buf, &bufsize, "%{+}("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%{?}*this%{:}%s(%{#*s})%{;}, %zu, %zu"
                       "%{?}, const allocator_type%{;})",
                       self, class_name, int (arg_len), arg,
@@ -620,7 +620,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::ctor_size_val:
     case StringIds::ctor_size_val_alloc:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%zu, %{#c}%{?}, const allocator_type&%{;})",
+                      "%{+} (%zu, %{#c}%{?}, const allocator_type&%{;})",
                       pcase->size, pcase->val, use_alloc);
         break;
 
@@ -628,10 +628,10 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::assign_range:
     case StringIds::ctor_range:
     case StringIds::ctor_range_alloc:
-        rw_asnprintf (&buf, &bufsize, "%{+}("
-                      "%{?}begin()%{:}Iterator(%{#*s})%{;}"
+        rw_asnprintf (&buf, &bufsize, "%{+}<%{$Iterator:-Iterator}>("
+                      "%{?}begin()%{:}%{$Iterator:-Iterator}(%{#*s})%{;}"
                       "%{?} + %zu%{;}, "
-                      "%{?}begin()%{:}Iterator(...)%{;}"
+                      "%{?}begin()%{:}%{$Iterator:-Iterator}(...)%{;}"
                       "%{?} + %zu%{;}"
                       "%{?}, const allocator_type&%{;})",
                       self, int (arg_len), arg,
@@ -642,20 +642,20 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::insert_size_cptr:
         // format self-referential ptr argument without size as c_str()
         rw_asnprintf (&buf, &bufsize, 
-                      "%{+}(%zu, %{?}c_str()%{:}%{#*s}%{;})",
+                      "%{+} (%zu, %{?}c_str()%{:}%{#*s}%{;})",
                       pcase->off, self, int (arg_len), arg);
         break;
 
     case StringIds::insert_size_cstr:
         // format self-referential str argument as *this
         rw_asnprintf (&buf, &bufsize,  
-                      "%{+}(%zu, %{?}*this%{:}%s(%{#*s})%{;})",
+                      "%{+} (%zu, %{?}*this%{:}%s(%{#*s})%{;})",
                       pcase->off, self, class_name, int (arg_len), arg);
         break;
 
     case StringIds::insert_size_cptr_size:
         // format self-referential ptr argument with size as data()
-        rw_asnprintf (&buf, &bufsize, "%{+}("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%zu, %{?}data()%{:}%{#*s}%{;}, %zu)", 
                       pcase->off, self, int (arg_len), arg,
                       pcase->size2);
@@ -663,7 +663,7 @@ _rw_setvars (const StringFunc     &func,
 
     case StringIds::insert_size_cstr_size_size:
         // format self-referential str argument as *this
-        rw_asnprintf (&buf, &bufsize, "%{+}("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%zu, %{?}*this%{:}%s(%{#*s})%{;}, %zu, %zu)",
                       pcase->off, self, class_name, int (arg_len), arg,
                       pcase->off2, pcase->size2);
@@ -671,27 +671,29 @@ _rw_setvars (const StringFunc     &func,
 
     case StringIds::insert_size_size_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%zu, %zu, %{#c})",
+                      "%{+} (%zu, %zu, %{#c})",
                       pcase->off, pcase->size2, pcase->val);
         break;
 
     case StringIds::insert_iter_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(begin()%{?} + %zu%{;}, %{#c})",
+                      "%{+} (begin()%{?} + %zu%{;}, %{#c})",
                       0 != pcase->off, pcase->off, pcase->val);
         break;
 
     case StringIds::insert_iter_size_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(begin()%{?} + %zu%{;}, %zu, %{#c})",
+                      "%{+} (begin()%{?} + %zu%{;}, %zu, %{#c})",
                       0 != pcase->off, pcase->off, pcase->size, pcase->val);
         break;
 
     case StringIds::insert_iter_range:
-        rw_asnprintf (&buf, &bufsize, "%{+}(begin()%{?} + %zu%{;}, "
-                      "%{?}begin()%{:}Iterator(%{#*s})%{;}"
+        rw_asnprintf (&buf, &bufsize, "%{+}<%{$Iterator:-Iterator}>"
+                      "(begin()%{?} + %zu%{;}, "
+                      "%{?}begin()%{:}%{$Iterator:-Iterator}(%{#*s})%{;}"
                       "%{?} + %zu%{;}, "
-                      "%{?}begin()%{:}Iterator(...)%{?} + %zu%{;})",
+                      "%{?}begin()%{:}%{$Iterator:-Iterator}(...)"
+                      "%{?} + %zu%{;})",
                       0 != pcase->off, pcase->off,
                       self, int (arg_len), arg,
                       0 != pcase->off2, pcase->off2,
@@ -701,7 +703,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::replace_size_size_cptr:
     case StringIds::compare_size_size_cptr:
         // format self-referential ptr argument without size as c_str()
-        rw_asnprintf (&buf, &bufsize, "%{+}("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%zu, %zu, %{?}c_str()%{:}%{#*s}%{;})",
                       pcase->off, pcase->size, self,
                       int (arg_len), arg);
@@ -710,7 +712,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::replace_size_size_cstr:
     case StringIds::compare_size_size_cstr:
         // format self-referential str argument as *this
-        rw_asnprintf (&buf, &bufsize, "%{+}("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%zu, %zu, %{?}*this%{:}%s(%{#*s})%{;})",
                       pcase->off, pcase->size, self, class_name,
                       int (arg_len), arg);
@@ -719,7 +721,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::replace_size_size_cptr_size:
     case StringIds::compare_size_size_cptr_size:
         // format self-referential ptr argument with size as data()
-        rw_asnprintf (&buf, &bufsize, "%{+}("
+        rw_asnprintf (&buf, &bufsize, "%{+} ("
                       "%zu, %zu, %{?}data()%{:}%{#*s}%{;}, %zu)", 
                       pcase->off, pcase->size, self,
                       int (arg_len), arg, pcase->size2);
@@ -728,7 +730,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::replace_size_size_cstr_size_size:
     case StringIds::compare_size_size_cstr_size_size:
         // format self-referential str argument as *this
-        rw_asnprintf (&buf, &bufsize, "%{+}(%zu, %zu, "
+        rw_asnprintf (&buf, &bufsize, "%{+} (%zu, %zu, "
                       "%{?}*this%{:}%s(%{#*s})%{;}, %zu, %zu)",
                       pcase->off, pcase->size,
                       self, class_name, int (arg_len), arg,
@@ -737,13 +739,13 @@ _rw_setvars (const StringFunc     &func,
 
     case StringIds::replace_size_size_size_val:
         rw_asnprintf (&buf, &bufsize, 
-                      "%{+}(%zu, %zu, %zu, %{#c})",
+                      "%{+} (%zu, %zu, %zu, %{#c})",
                       pcase->off, pcase->size, pcase->size2, pcase->val);
         break;
 
     case StringIds::replace_iter_iter_cptr:
         // format self-referential ptr argument without size as c_str()
-        rw_asnprintf (&buf, &bufsize, "%{+}(begin()%{?} + %zu%{;}, "
+        rw_asnprintf (&buf, &bufsize, "%{+} (begin()%{?} + %zu%{;}, "
                       "begin()%{?} + %zu%{;}, "
                       "%{?}c_str()%{:}%{#*s}%{;})",
                       0 != pcase->off, pcase->off,
@@ -753,7 +755,7 @@ _rw_setvars (const StringFunc     &func,
 
     case StringIds::replace_iter_iter_cstr:
         // format self-referential str argument as *this
-        rw_asnprintf (&buf, &bufsize, "%{+}(begin()%{?} + %zu%{;}, "
+        rw_asnprintf (&buf, &bufsize, "%{+} (begin()%{?} + %zu%{;}, "
                       "begin()%{?} + %zu%{;}, "
                       "%{?}*this%{:}%s(%{#*s})%{;})",
                       0 != pcase->off, pcase->off,
@@ -763,7 +765,7 @@ _rw_setvars (const StringFunc     &func,
 
     case StringIds::replace_iter_iter_cptr_size:
         // format self-referential ptr argument with size as data()
-        rw_asnprintf (&buf, &bufsize, "%{+}(begin()%{?} + %zu%{;}, "
+        rw_asnprintf (&buf, &bufsize, "%{+} (begin()%{?} + %zu%{;}, "
                       "begin()%{?} + %zu%{;}, " 
                       "%{?}data()%{:}%{#*s}%{;}, %zu)", 
                       0 != pcase->off, pcase->off,
@@ -773,19 +775,20 @@ _rw_setvars (const StringFunc     &func,
 
     case StringIds::replace_iter_iter_size_val:
         rw_asnprintf (&buf, &bufsize, 
-                      "%{+}(begin()%{?} + %zu%{;}, begin()%{? + %zu%{;}, "
+                      "%{+} (begin()%{?} + %zu%{;}, begin()%{? + %zu%{;}, "
                       "%zu, %{#c})",
                       0 != pcase->off, pcase->off, 0 != range1_end, range1_end,
                       pcase->size2, pcase->val);
         break;
 
     case StringIds::replace_iter_iter_range:
-        rw_asnprintf (&buf, &bufsize, "%{+}("
+        rw_asnprintf (&buf, &bufsize, "%{+}<%{$Iterator:-Iterator}>("
                       "begin()%{?} + %zu%{;}, "
                       "begin()%{?} + %zu%{;}, "
-                      "%{?}begin()%{:}Iterator(%{#*s})%{;}"
+                      "%{?}begin()%{:}%{$Iterator:-Iterator}(%{#*s})%{;}"
                       "%{?} + %zu%{;}, "
-                      "%{?}begin()%{:}Iterator(...)%{;}%{?} + %zu%{;})",
+                      "%{?}begin()%{:}%{$Iterator:-Iterator}(...)%{;}"
+                      "%{?} + %zu%{;})",
                       0 != pcase->off, pcase->off,
                       0 != range1_end, range1_end,
                       self, int (arg_len), arg,
@@ -803,7 +806,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::op_set_val:
     case StringIds::push_back_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%{#c})", pcase->val);
+                      "%{+} (%{#c})", pcase->val);
         break;
 
     case StringIds::find_val_size:
@@ -813,7 +816,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::find_first_not_of_val_size:
     case StringIds::find_last_not_of_val_size:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%{#c}, %zu)", pcase->val, pcase->off);
+                      "%{+} (%{#c}, %zu)", pcase->val, pcase->off);
         break;
 
     case StringIds::erase_void:
@@ -827,12 +830,12 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::clear_void:
     case StringIds::empty_void:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}()");
+                      "%{+} ()");
         break;
 
     case StringIds::ctor_alloc:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(const allocator_type&)");
+                      "%{+} (const allocator_type&)");
         break;
         
     case StringIds::erase_size:
@@ -840,30 +843,30 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::op_index_size:
     case StringIds::at_size:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%zu)", pcase->off);
+                      "%{+} (%zu)", pcase->off);
         break;
 
     case StringIds::op_index_const_size:
     case StringIds::at_const_size:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%zu) const", pcase->off);
+                      "%{+} (%zu) const", pcase->off);
         break;
 
     case StringIds::erase_size_size:
     case StringIds::substr_size_size:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%zu, %zu)", pcase->off, pcase->size);
+                      "%{+} (%zu, %zu)", pcase->off, pcase->size);
         break;
 
     case StringIds::erase_iter:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(begin()%{?} + %zu%{;})",
+                      "%{+} (begin()%{?} + %zu%{;})",
                       0 != pcase->off, pcase->off);
         break;
 
     case StringIds::erase_iter_iter:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(begin()%{?} + %zu%{;}, begin()%{?} + %zu%{;})", 
+                      "%{+} (begin()%{?} + %zu%{;}, begin()%{?} + %zu%{;})", 
                       0 != pcase->off, pcase->off,
                       0 != range1_end, range1_end);
         break;
@@ -877,7 +880,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::op_greater_equal_cptr_cstr:
         // format zero ptr argument without size as arg.c_str()
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%{?}arg2.c_str()%{:}%{#*s}%{;}, "
+                      "%{+} (%{?}arg2.c_str()%{:}%{#*s}%{;}, "
                       "%{$CLASS}(%{#*s}))",
                       0 == str, int (str_len), str, int (arg_len), arg);
         break;
@@ -891,7 +894,7 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::op_greater_equal_cstr_cptr:
         // format zero ptr argument without size as arg.c_str()
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%{$CLASS}(%{#*s}), "
+                      "%{+} (%{$CLASS}(%{#*s}), "
                       "%{?}arg1.c_str()%{:}%{#*s}%{;})",
                       int (str_len), str, self, int (arg_len), arg);
         break;
@@ -905,32 +908,32 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::op_greater_equal_cstr_cstr:
         // format zero str argument without size as arg
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%{?}arg2%{:}%{$CLASS}(%{#*s})%{;}, "
+                      "%{+} (%{?}arg2%{:}%{$CLASS}(%{#*s})%{;}, "
                       "%{?}arg1%{:}%{$CLASS}(%{#*s})%{;})",
                       0 == str, int (str_len), str, self, int (arg_len), arg);
         break;
 
     case StringIds::op_plus_cstr_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%{$CLASS}(%{#*s}), %{#c})",
+                      "%{+} (%{$CLASS}(%{#*s}), %{#c})",
                       int (arg_len), arg, pcase->val);
         break;
 
     case StringIds::op_plus_val_cstr:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%{#c}, %{$CLASS}(%{#*s}))",
+                      "%{+} (%{#c}, %{$CLASS}(%{#*s}))",
                       pcase->val, int (arg_len), arg);
         break;
 
     case StringIds::resize_size_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%zu, %{#c})", pcase->size, pcase->val);
+                      "%{+} (%zu, %{#c})", pcase->size, pcase->val);
         break;
 
     case StringIds::resize_size:
     case StringIds::reserve_size:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+}(%zu)", pcase->size);
+                      "%{+} (%zu)", pcase->size);
         break;
 
     default:
@@ -1254,7 +1257,7 @@ _rw_run_test (int, char*[])
                     // have been disabled
                     if (0 == rw_note (0 <= _rw_opt_func [siginx],
                                       _rw_this_file, __LINE__,
-                                      "%{?%{$CLASS}::%{;}%{$FUNCSIG} "
+                                      "%{?}%{$CLASS}::%{;}%{$FUNCSIG} "
                                       "tests disabled", is_member))
                         continue;
 
