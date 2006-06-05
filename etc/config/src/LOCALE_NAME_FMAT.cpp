@@ -19,6 +19,13 @@
 #undef strcat
 
 
+// the longest combined locale name handled by the test (GNU glibc
+// can generate some awfully long names since in addition to the
+// name of the locale name for each category it includes the name
+// of the category itself, e.g., "LC_CTYPE=en;LC_NUMERIC=es;...")
+#define MAX_LOCALE_NAME_LEN   1024
+
+
 #if 0   // disabled
 
 // enable for debugging to emulate a system with no locales installed
@@ -126,7 +133,7 @@ int main ()
     char loc_name_cat_sep     = '\0';
     char loc_name_cat_eq      = '\0';
 
-    char namebuf [1024];
+    char namebuf [MAX_LOCALE_NAME_LEN];
     namebuf [0] = '\0';
 
     // determine whether setlocale(LC_ALL, name) returns
@@ -181,14 +188,14 @@ int main ()
 
         // determine if the environment has any effect on setlocale()
         {
-            char def_locale [256];
+            char def_locale [MAX_LOCALE_NAME_LEN];
             def_locale [0] = '\0';
 
             const char *tmpname = setlocale (LC_ALL, "");
             if (tmpname)
                 strcpy (def_locale, tmpname);
 
-            char buf [256];
+            char buf [MAX_LOCALE_NAME_LEN];
             strcpy (buf, "LC_COLLATE=");
             strcat (buf, locname);
             putenv (buf);
