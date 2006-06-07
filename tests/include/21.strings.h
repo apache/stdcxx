@@ -47,6 +47,16 @@ struct StringIds {
     // identifiers for the Allocator template argument
     enum AllocId { DefaultAlloc, UserAlloc };
 
+    // identifiers for the Iterator template argument
+    // used with meber templates
+    enum IteratorId {
+        None,
+        Input, Forward, Bidir, Random,
+        Pointer, ConstPointer,
+        Iterator, ConstIterator,
+        ReverseIterator, ConstReverseIterator
+    };
+
     // identifies a set of overloaded member or non-member
     // string functions
     enum FuncId {
@@ -582,16 +592,19 @@ struct StringIds {
     }
 };
 
+/**************************************************************************/
 
 static const _RWSTD_SIZE_T
 NPOS = _RWSTD_SIZE_MAX;
 
+/**************************************************************************/
 
 struct StringFunc
 {
     StringIds::CharId     char_id_;
     StringIds::TraitsId   traits_id_;
     StringIds::AllocId    alloc_id_;
+    StringIds::IteratorId iter_id_;
     StringIds::OverloadId which_;
 };
 
@@ -824,13 +837,13 @@ rw_get_string_state (const String &str)
 
 #define DEFINE_STRING_TEST_DISPATCH(fname)                      \
     static void                                                 \
-    fname (const StringFunc     &fun,                           \
+    fname (const StringFunc     &func,                          \
            const StringTestCase &tcase) {                       \
-        if (StringIds::DefaultAlloc == fun.alloc_id_) {         \
-            TEST_DISPATCH (std::allocator, fname, fun, tcase);  \
+        if (StringIds::DefaultAlloc == func.alloc_id_) {        \
+            TEST_DISPATCH (std::allocator, fname, func, tcase); \
         }                                                       \
-        else if (StringIds::UserAlloc == fun.alloc_id_) {       \
-            TEST_DISPATCH (UserAlloc, fname, fun, tcase);       \
+        else if (StringIds::UserAlloc == func.alloc_id_) {      \
+            TEST_DISPATCH (UserAlloc, fname, func, tcase);      \
         }                                                       \
         else                                                    \
             RW_ASSERT (!"logic error: bad allocator");          \

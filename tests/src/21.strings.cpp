@@ -35,7 +35,6 @@
 
 #include <cmdopt.h>         // for rw_enabled()
 #include <driver.h>         // for rw_info()
-#include <environ.h>        // for rw_putenv()
 #include <rw_allocator.h>   // for UserAlloc
 #include <rw_char.h>        // for rw_expand()
 #include <rw_printf.h>      // for rw_asnprintf()
@@ -69,6 +68,18 @@ _rw_alloc_names[] = {
     "allocator", "UserAlloc"
 };
 
+
+static const char* const
+_rw_iter_names[] = {
+    "",
+    "InputIterator", "ForwardIterator", "BidirectionalIterator",
+    "RandomAccessIterator",
+    "pointer", "const_pointer",
+    "iterator", "const_iterator",
+    "reverse_iterator", "const_reverse_iterator"
+};
+
+
 // order of elements depends on the values of StringIds::FuncId
 static const char* const
 _rw_func_names[] = {
@@ -99,13 +110,16 @@ static size_t
 _rw_string_test_count;
 
 static int
-_rw_opt_char_types [3];
+_rw_opt_char_types [sizeof _rw_char_names / sizeof *_rw_char_names];
 
 static int
-_rw_opt_traits_types [2];
+_rw_opt_traits_types [sizeof _rw_traits_names / sizeof *_rw_traits_names];
 
 static int
-_rw_opt_alloc_types [2];
+_rw_opt_alloc_types [sizeof _rw_alloc_names / sizeof *_rw_alloc_names];
+
+static int
+_rw_opt_iter_types [sizeof _rw_iter_names / sizeof *_rw_iter_names];
 
 static int
 _rw_opt_no_exceptions;
@@ -252,8 +266,15 @@ _rw_sigcat (char **pbuf, size_t *pbufsize,
         }
     }
 
-    rw_asnprintf (pbuf, pbufsize, "%{+}%{?}%s%{?}_const%{;}%{:}(%{;}",
-                  0 == func, funcname, is_const_member);
+    // iterator name for member templates, empty string for other functions
+    const char* const iname = func ? _rw_iter_names [func->iter_id_] : "";
+
+    rw_asnprintf (pbuf, pbufsize,
+                  "%{+}%{?}%s%{?}_const%{;}%{:}%{?}<%s>%{;}(%{;}",
+                  0 == func, funcname, is_const_member, 0 != *iname, iname);
+
+    char iname_buf [80];
+    *iname_buf = '\0';
 
     // iterate through the map of argument types one field at a time
     // determining and formatting the type of each argument until
@@ -277,7 +298,15 @@ _rw_sigcat (char **pbuf, size_t *pbufsize,
             case Ids::arg_cref:  tname = "const_reference"; break;
             case Ids::arg_iter:  tname = "iterator"; break;
             case Ids::arg_citer: tname = "const_iterator"; break;
-            case Ids::arg_range: tname = "InputIterator, InputIterator"; break;
+            case Ids::arg_range:
+                if ('\0' == *iname_buf) {
+                    strcpy (iname_buf, iname);
+                    strcat (iname_buf, ", ");
+                    strcat (iname_buf, iname);
+                }
+                tname = iname_buf;
+                break;
+
             case Ids::arg_alloc: tname = "const allocator_type&"; break;
             case Ids::arg_cstr:
                 pfx   = "const ";
@@ -330,18 +359,27 @@ _rw_sigcat (char **pbuf, size_t *pbufsize,
 
 /**************************************************************************/
 
-static bool
-_rw_uses_alloc (StringIds::OverloadId which)
+// returns the zero-based index of the argument type specified
+// by arg in the function signature given by which
+static int
+_rw_argno (StringIds::OverloadId which, int arg)
 {
     // get the bitmap describing the function's argument types
     int argmap = (which & ~StringIds::bit_member) >> StringIds::fid_bits;
 
-    for (; argmap; argmap >>= StringIds::arg_bits) {
-        if ((argmap & StringIds::arg_alloc) == StringIds::arg_alloc)
-            return true;
+    int argno = 0;
+
+    // iterate over argument types looking for the first one
+    // that equals arg
+    for (; argmap; argmap >>= StringIds::arg_bits, ++argno) {
+        if ((argmap & StringIds::arg_mask) == arg) {
+            return argno;
+        }
     }
 
-    return false;
+    // return -1 when the function doesn't take an argument
+    // of the specified type
+    return -1;
 }
 
 /**************************************************************************/
@@ -368,14 +406,13 @@ _rw_setvars (const StringFunc     &func,
         // set the {charT}, {Traits}, and {Allocator} environment
         // variables to the name of the character type and the
         // Traits and Allocator specializations
-        rw_putenv ("charT=");
-        rw_fprintf (0, "%{$charT:=*}", _rw_char_names [func.char_id_]);
+        rw_fprintf (0, "%{$charT!:*}", _rw_char_names [func.char_id_]);
 
-        rw_putenv ("Traits=");
-        rw_fprintf (0, "%{$Traits:=*}", _rw_traits_names [func.traits_id_]);
+        rw_fprintf (0, "%{$Traits!:*}", _rw_traits_names [func.traits_id_]);
 
-        rw_putenv ("Allocator=");
-        rw_fprintf (0, "%{$Allocator:=*}", _rw_alloc_names [func.alloc_id_]);
+        rw_fprintf (0, "%{$Allocator!:*}", _rw_alloc_names [func.alloc_id_]);
+
+        rw_fprintf (0, "%{$Iterator!:*}", _rw_iter_names [func.iter_id_]);
 
         // set the {CLASS}, {FUNC}, and {FUNCSIG} environment variables
         // to the name of the specialization of the template, the name
@@ -404,8 +441,7 @@ _rw_setvars (const StringFunc     &func,
 
         // set the {CLASS} variable to the name of the specialization
         // of basic_string
-        rw_putenv ("CLASS=");
-        rw_fprintf (0, "%{$CLASS:=*}", buf);
+        rw_fprintf (0, "%{$CLASS!:*}", buf);
 
         // determine the string function name
         const size_t funcinx = func.which_ & StringIds::fid_mask;
@@ -431,14 +467,12 @@ _rw_setvars (const StringFunc     &func,
         rw_asnprintf (&buf, &bufsize, "%{?}std::%{;}%s",
                       !is_member, funcname);
 
-        rw_putenv ("FUNC=");
-        rw_fprintf (0, "%{$FUNC:=*}", buf);
+        rw_fprintf (0, "%{$FUNC!:*}", buf);
 
         // append the function signature
         _rw_sigcat (&buf, &bufsize, &func);
 
-        rw_putenv ("FUNCSIG=");
-        rw_fprintf (0, "%{$FUNCSIG:=*}", buf);
+        rw_fprintf (0, "%{$FUNCSIG!:*}", buf);
         free (buf);
 
         return;
@@ -496,7 +530,8 @@ _rw_setvars (const StringFunc     &func,
     const size_t range1_end = pcase->off + pcase->size;
     const size_t range2_end = pcase->off2 + pcase->size2;
 
-    const bool use_alloc = _rw_uses_alloc (func.which_);
+    // determine whether the function takes an allocator_type argument
+    const bool use_alloc = 0 < _rw_argno (func.which_, StringIds::arg_alloc);
 
     // format and append string function arguments abbreviating complex
     // expressions as much as possible to make them easy to understand
@@ -940,8 +975,7 @@ _rw_setvars (const StringFunc     &func,
         RW_ASSERT (!"test logic error: unknown overload");
     }
 
-    rw_putenv ("FUNCALL=");
-    rw_fprintf (0, "%{$FUNCALL:=*}", buf);
+    rw_fprintf (0, "%{$FUNCALL!:*}", buf);
     free (buf);
 
     if (str != str_buf)
@@ -1043,6 +1077,7 @@ _rw_dispatch (VoidFunc* const      *farray,
 
 /**************************************************************************/
 
+// exercise a single test case for the given function
 static void
 _rw_test_case (const StringFunc     &func,
                const StringTestCase &tcase,
@@ -1110,6 +1145,54 @@ _rw_test_case (const StringFunc     &func,
 
 /**************************************************************************/
 
+static StringTestFunc*
+_rw_test_callback;
+
+
+static VoidFunc* const*
+_rw_func_array;
+
+
+// exercise all test cases defined for the given function
+static void
+_rw_run_cases (const StringFunc &func,
+               const StringTest &test)
+{
+    // set the {CLASS}, {FUNC}, and {FUNCSIG} environment
+    // variable to the name of the basic_string specializaton
+    // and the string function being exercised
+    _rw_setvars (func);
+
+    // determine whether the function is a member function
+    const bool is_member = 0 != (StringIds::bit_member & test.which);
+
+    // compute the function overload's 0-based index
+    const size_t siginx = _rw_get_func_inx (test.which);
+
+    // check if tests of the function overload
+    // have been disabled
+    if (0 == rw_note (0 <= _rw_opt_func [siginx], _rw_this_file, __LINE__,
+                      "%{?}%{$CLASS}::%{;}%{$FUNCSIG} tests disabled",
+                      is_member))
+        return;
+
+    rw_info (0, 0, 0, "%{?}%{$CLASS}::%{;}%{$FUNCSIG}", is_member);
+
+    const size_t case_count = test.case_count;
+
+    // iterate over all test cases for this function
+    // overload invoking the test case handler for each
+    // in turn
+    for (size_t n = 0; n != case_count; ++n) {
+
+        const StringTestCase& tcase = test.cases [n];
+
+        _rw_test_case (func, tcase,  _rw_test_callback, _rw_func_array);
+    }
+}
+
+/**************************************************************************/
+
 static void
 _rw_toggle_options (int *opts, size_t count)
 {
@@ -1126,12 +1209,6 @@ _rw_toggle_options (int *opts, size_t count)
         }
     }
 }
-
-static StringTestFunc*
-_rw_test_callback;
-
-static VoidFunc* const*
-_rw_func_array;
 
 
 static int
@@ -1178,15 +1255,26 @@ _rw_run_test (int, char*[])
         StringIds::DefaultAlloc, StringIds::UserAlloc
     };
 
+    static const StringIds::IteratorId iter_types[] = {
+        StringIds::None,
+        StringIds::Input, StringIds::Forward,
+        StringIds::Bidir, StringIds::Random,
+        StringIds::Pointer, StringIds::ConstPointer,
+        StringIds::Iterator, StringIds::ConstIterator,
+        StringIds::ReverseIterator, StringIds::ConstReverseIterator
+    };
+
     const size_t n_char_types   = sizeof char_types / sizeof *char_types;
     const size_t n_traits_types = sizeof traits_types / sizeof *traits_types;
     const size_t n_alloc_types  = sizeof alloc_types / sizeof *alloc_types;
+    const size_t n_iter_types   = sizeof iter_types / sizeof *iter_types;
 
     // see if any option controlling the basic_string template arguments
     // explicitly enabled and if so disable all those that haven't been
     _rw_toggle_options (_rw_opt_char_types, n_char_types);
     _rw_toggle_options (_rw_opt_traits_types, n_traits_types);
     _rw_toggle_options (_rw_opt_alloc_types, n_alloc_types);
+    _rw_toggle_options (_rw_opt_iter_types, n_iter_types);
 
     // exercise different charT specializations last
     for (size_t i = 0; i != n_char_types; ++i) {
@@ -1227,53 +1315,46 @@ _rw_run_test (int, char*[])
                     continue;
                 }
 
-                for (size_t m = 0; m != _rw_string_test_count; ++m) {
+                for (size_t l = 0; l != n_iter_types; ++l) {
 
-                    const StringTest& test = _rw_string_tests [m];
-
-                    // create an object uniquely identifying the overload
-                    // of the string function exercised by the set of test
-                    // cases defined to exercise it
-                    const StringFunc func = {
-                        char_types [i],
-                        traits_types [j],
-                        alloc_types [k],
-                        test.which
-                    };
-
-                    // set the {CLASS}, {FUNC}, and {FUNCSIG} environment
-                    // variable to the name of the basic_string specializaton
-                    // and the string function being exercised
-                    _rw_setvars (func);
-
-                    // determine whether the function is a member function
-                    const bool is_member =
-                        0 != (StringIds::bit_member & test.which);
-
-                    // compute the function overload's 0-based index
-                    const size_t siginx = _rw_get_func_inx (test.which);
-
-                    // check if tests of the function overload
-                    // have been disabled
-                    if (0 == rw_note (0 <= _rw_opt_func [siginx],
-                                      _rw_this_file, __LINE__,
-                                      "%{?}%{$CLASS}::%{;}%{$FUNCSIG} "
-                                      "tests disabled", is_member))
+                    if (l && _rw_opt_iter_types [l - 1] < 0) {
+                        // issue only the first note
+                        rw_note (-1 > _rw_opt_iter_types [l]--,
+                                 _rw_this_file, __LINE__,
+                                 "%s tests disabled", _rw_iter_names [l]);
                         continue;
+                    }
 
-                    rw_info (0, 0, 0, "%{?}%{$CLASS}::%{;}%{$FUNCSIG}",
-                             is_member);
+                    for (size_t m = 0; m != _rw_string_test_count; ++m) {
 
-                    const size_t case_count = test.case_count;
+                        const StringTest& test = _rw_string_tests [m];
 
-                    // iterate over all test cases for this function overload
-                    // invoking the test case handler for each in turn
-                    for (size_t n = 0; n != case_count; ++n) {
+                        // determine whether the function is a template
+                        if (-1 < _rw_argno (test.which, StringIds::arg_range)) {
+                            if (StringIds::None == iter_types [l]) {
+                                // skip a non-sensical template specialization
+                                break;
+                            }
+                        }
+                        else if (StringIds::None != iter_types [l]) {
+                            // avoid repeatedly exercising a non-template
+                            // function
+                            continue;
+                        }
 
-                        const StringTestCase& tcase = test.cases [n];
+                        // create an object uniquely identifying the overload
+                        // of the string function exercised by the set of test
+                        // cases defined to exercise it
+                        const StringFunc func = {
+                            char_types [i],
+                            traits_types [j],
+                            alloc_types [k],
+                            iter_types [l],
+                            test.which
+                        };
 
-                        _rw_test_case (func, tcase,
-                                       _rw_test_callback, _rw_func_array);
+                        // exercise all test cases defined for the function
+                        _rw_run_cases (func, test);
                     }
                 }
             }
@@ -1284,6 +1365,17 @@ _rw_run_test (int, char*[])
 }
 
 /**************************************************************************/
+
+// add a bunch of toggle-type command line options based on the names array
+static void
+_rw_add_toggles (char **pbuf, size_t *pbufsize,
+                 const char* const names[], size_t count)
+{
+    for (size_t i = 0; i != count; ++i) {
+        rw_asnprintf (pbuf, pbufsize, "%{+}|-%s~ ", names [i]);
+    }
+}
+
 
 static int
 _rw_run_test  (int               argc,
@@ -1308,18 +1400,21 @@ _rw_run_test  (int               argc,
     size_t  optbufsize = 0;
 
     rw_asnprintf (&optbuf, &optbufsize,
-                  "|-char~ "
-                  "|-wchar_t~ "
-                  "|-UserChar~ "
-                  "|-char_traits~ "
-                  "|-UserTraits~ "
-                  "|-allocator~ "
-                  "|-UserAlloc~ "
-
                   "|-no-exceptions# "
                   "|-no-exception-safety# "
-
                   "|-self-ref~ ");
+
+    const size_t n_chars  = sizeof _rw_char_names / sizeof *_rw_char_names;
+    const size_t n_traits = sizeof _rw_traits_names / sizeof *_rw_traits_names;
+    const size_t n_allocs = sizeof _rw_alloc_names / sizeof *_rw_alloc_names;
+    const size_t n_iters  = sizeof _rw_iter_names / sizeof *_rw_iter_names;
+
+    // see if any option has been explicitly enabled and if so,
+    // uncodnitionally disable all those that have not been
+    _rw_add_toggles (&optbuf, &optbufsize, _rw_char_names, n_chars);
+    _rw_add_toggles (&optbuf, &optbufsize, _rw_traits_names, n_traits);
+    _rw_add_toggles (&optbuf, &optbufsize, _rw_alloc_names, n_allocs);
+    _rw_add_toggles (&optbuf, &optbufsize, _rw_iter_names + 1, n_iters - 1);
 
     for (size_t i = 0; i != test_count; ++i) {
 
@@ -1340,21 +1435,46 @@ _rw_run_test  (int               argc,
                  _rw_run_test,   // test callback
                  optbuf,         // option specification
 
-                 // handlers controlling specializations of the template
-                 _rw_opt_char_types + 0,
-                 _rw_opt_char_types + 1,
-                 _rw_opt_char_types + 2,
-                 _rw_opt_traits_types + 0,
-                 _rw_opt_traits_types + 1,
-                 _rw_opt_alloc_types + 0,
-                 _rw_opt_alloc_types + 1,
-
                  // handlers controlling exceptions
                  &_rw_opt_no_exceptions,
                  &_rw_opt_no_exception_safety,
 
                  // handler controlling self-referential modifiers
                  &_rw_opt_self_ref,
+
+                 // handlers controlling specializations of the template
+                 // ...on the charT template parameter
+                 _rw_opt_char_types + 0,
+                 _rw_opt_char_types + 1,
+                 _rw_opt_char_types + 2,
+
+                 // ...on the Traits template parameter
+                 _rw_opt_traits_types + 0,
+                 _rw_opt_traits_types + 1,
+
+                 // ...on the Allocator template parameter
+                 _rw_opt_alloc_types + 0,
+                 _rw_opt_alloc_types + 1,
+
+                 // FIXME: add handlers (and options) only for tests
+                 // that exercise member templates
+
+                 // handlers controlling specializations of the member
+                 // template (if this is one) on the InputIterator
+                 // template parameter
+                 _rw_opt_iter_types + 0,
+                 _rw_opt_iter_types + 1,
+                 _rw_opt_iter_types + 2,
+                 _rw_opt_iter_types + 3,
+                 _rw_opt_iter_types + 4,
+                 _rw_opt_iter_types + 5,
+                 _rw_opt_iter_types + 6,
+                 _rw_opt_iter_types + 7,
+                 _rw_opt_iter_types + 8,
+                 _rw_opt_iter_types + 9,
+
+                 // FIXME: install exactly as many handlers (and options)
+                 // as there are distinct functions being exercised
 
                  // handlers for up to 32 overloads
                  _rw_opt_func +  0,
