@@ -85,6 +85,15 @@ str_test_cases [] = {
     TEST ("\0\0\0",    "x@4096"),
     TEST ("x@4096",    "x@4096"),
 
+    TEST ("",          "x@128"),
+    TEST ("x@207",     "x@128"),
+    TEST ("x@128",     "x@334"),
+    TEST ("x@873",     "x@334"),
+    TEST ("x@1412",    "x@540"),
+    TEST ("x@540",     "x@2284"),
+    TEST ("x@3695",    "x@2284"),
+    TEST ("x@3695",    "x@128"),
+
     TEST ("",          0),
     TEST ("\0",        0),
     TEST ("abc",       0),
@@ -104,51 +113,34 @@ str_test_cases [] = {
 /**************************************************************************/
 
 template <class charT, class Traits, class Allocator>
-void test_swap (charT, Traits*, Allocator*,
-                const StringFunc&,
-                const StringTestCase &tcase)
+void test_swap (charT*, Traits*, 
+                Allocator                       &a1,
+                Allocator                       &a2,
+                const StringTestCaseData<charT> &tdata)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef UserTraits<UserChar>::MemFun                 UTMemFun;
 
-    static const std::size_t BUFSIZE = 256;
+    const StringTestCase &tcase = tdata.tcase_;
 
-    static charT wstr_buf [BUFSIZE];
-    static charT warg_buf [BUFSIZE];
-
-    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
-    std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
-
-    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
-    charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
-
-    // construct the string object and the argument string
-    String s_str (wstr, str_len);
-    String s_arg (warg, arg_len);
-
-    if (wstr != wstr_buf)
-        delete[] wstr;
-
-    if (warg != warg_buf)
-        delete[] warg;
-
-    wstr = 0;
-    warg = 0;
-
-    if (0 == tcase.arg)
-        arg_len = str_len;
-
-    // save the state of the string object before the call
-    // to detect wxception safety violations (changes to
-    // the state of the object after an exception)
-    const StringState str_state (rw_get_string_state (s_str));
+    // construct the string object to be modified
+    // and the argument string
+    String s_str (tdata.str_, tdata.strlen_, a1);
+    String s_arg (tdata.arg_, tdata.arglen_, a2);
 
     const charT* const p1 = s_str.data ();
     const charT* const p2 = tcase.arg ? s_arg.data () : s_str.data ();
 
     const char* const src     = tcase.arg ? tcase.arg : tcase.str;
     const std::size_t src_len = tcase.arg ? tcase.arg_len : tcase.str_len;
+    const std::size_t srclen_ = tcase.arg ? tdata.arglen_ : tdata.strlen_;
     String& arg_str           = tcase.arg ? s_arg : s_str;
+
+    // save the state of the string object before the call
+    // to detect wxception safety violations (changes to
+    // the state of the object after an exception)
+    const StringState str_state (rw_get_string_state (s_str));
+    const StringState arg_str_state (rw_get_string_state (arg_str));
 
     std::size_t n_total_op_assign  = 0;
     std::size_t n_total_op_assign2 = 0;
@@ -163,135 +155,215 @@ void test_swap (charT, Traits*, Allocator*,
         n_total_op_move    = rg_calls[UTMemFun::move];
     }
 
+    rwt_free_store* const pst = rwt_get_free_store (0);
+    SharedAlloc*    const pal = SharedAlloc::instance ();
+
+    // iterate for`throw_count' starting at the next call to operator new,
+    // forcing each call to throw an exception, until the function finally
+    // succeeds (i.e, no exception is thrown)
+    std::size_t throw_count;
+    for (throw_count = 0; ; ++throw_count) {
+
+        const char* expected = 0;
+        const char* caught = 0;
+
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    // no exceptions expected
-    const char* expected = 0;
-    const char* caught = 0;
+        // no exceptions expected
+        if (0 == tcase.bthrow) {
+            // by default excercise the exception safety of the function
+            // by iteratively inducing an exception at each call to operator
+            // new or Allocator::allocate() until the call succeeds
+            expected = exceptions [3];      // bad_alloc
+            *pst->throw_at_calls_ [0] = pst->new_calls_ [0] + throw_count + 1;
+            pal->throw_at_calls_ [pal->m_allocate] =
+                pal->throw_at_calls_ [pal->m_allocate] + throw_count + 1;
+        }
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (tcase.bthrow)
-        return;
+        if (tcase.bthrow)
+            return;
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    try {
+        try {
 
-        // start checking for memory leaks
-        rwt_check_leaks (0, 0);
+            // start checking for memory leaks
+            rw_check_leaks (s_str.get_allocator ());
+            rw_check_leaks (arg_str.get_allocator ());
 
-        if (0 == tcase.str)
-            String ().swap (arg_str);
-        else
-            s_str.swap (arg_str);
+            if (0 == tcase.str)
+                String ().swap (arg_str);
+            else
+                s_str.swap (arg_str);
 
-        if (rg_calls) {
+            if (rg_calls) {
 
-            std::size_t n_op_assign  = 
-                rg_calls[UTMemFun::assign]  - n_total_op_assign;
-            std::size_t n_op_assign2 = 
-                rg_calls[UTMemFun::assign2] - n_total_op_assign2;
-            std::size_t n_op_copy    = 
-                rg_calls[UTMemFun::copy]    - n_total_op_copy;
-            std::size_t n_op_move    = 
-                rg_calls[UTMemFun::move]    - n_total_op_move;
+                std::size_t n_op_assign  = 
+                    rg_calls[UTMemFun::assign]  - n_total_op_assign;
+                std::size_t n_op_assign2 = 
+                    rg_calls[UTMemFun::assign2] - n_total_op_assign2;
+                std::size_t n_op_copy    = 
+                    rg_calls[UTMemFun::copy]    - n_total_op_copy;
+                std::size_t n_op_move    = 
+                    rg_calls[UTMemFun::move]    - n_total_op_move;
 
-            bool success = 
-                0 == (n_op_assign | n_op_assign2 | n_op_copy | n_op_move);
+                bool success = 
+                    0 == (n_op_assign | n_op_assign2 | n_op_copy | n_op_move);
 
-            rw_assert (success, 0, tcase.line, 
-                       "line %d. %{$FUNCALL}: complexity: %zu assigns, "
-                       "%zu assign2s, %zu copies, %zu moves", __LINE__,
-                       n_op_assign, n_op_assign2, n_op_copy, n_op_move);
+                rw_assert (success, 0, tcase.line, 
+                           "line %d. %{$FUNCALL}: complexity: %zu assigns, "
+                           "%zu assign2s, %zu copies, %zu moves", __LINE__,
+                           n_op_assign, n_op_assign2, n_op_copy, n_op_move);
+            }
+
+            if (0 == tcase.str) {
+
+                rw_assert (0 == arg_str.capacity (), 0, tcase.line,
+                           "line %d. %{$FUNCALL}: expected 0 capacity, "
+                           "got %zu",  __LINE__, arg_str.capacity ());
+            }
+            else {
+
+                const charT* const res_p1 = s_str.data ();
+                const charT* const res_p2 = 
+                    tcase.arg ? s_arg.data () : s_str.data ();
+
+                const std::size_t res1_len = s_str.size ();
+                const std::size_t res2_len = 
+                    tcase.arg ? s_arg.size () : s_str.size ();
+
+                rw_assert (res_p1 == p2 && res_p2 == p1, 0, tcase.line,
+                           "line %d. %{$FUNCALL}: got offset %td from "
+                           "expected value, arg.data (): got offset %td "
+                           "from expected value", 
+                           __LINE__, p2 - res_p1, p1 - res_p2);
+
+                std::size_t match = 
+                    rw_match (tcase.str, res_p2, tcase.str_len);
+
+                rw_assert (match == tdata.strlen_, 0, tcase.line,
+                           "line %d. %{$FUNCALL}: this == %{#*s}, got this = "
+                           "%{/*.*Gs}, differs at pos %zu", 
+                           __LINE__, int (src_len), src, int (sizeof (charT)), 
+                           int (res1_len), res_p1, match);
+
+                match = rw_match (src, res_p1, src_len);
+
+                rw_assert (match == srclen_, 0, tcase.line,
+                           "line %d. %{$FUNCALL}: str == %{#*s}, got str = "
+                           "%{/*.*Gs}, differs at pos %zu",  
+                           __LINE__, int (tcase.str_len), tcase.str, 
+                           int (sizeof (charT)), int (res2_len), 
+                           res_p2, match);
+            }
         }
-
-        if (0 == tcase.str) {
-
-            rw_assert (0 == arg_str.capacity (), 0, tcase.line,
-                       "line %d. %{$FUNCALL}: expected 0 capacity, got %zu",
-                       __LINE__, arg_str.capacity ());
-        }
-        else {
-
-            const charT* const res_p1 = s_str.data ();
-            const charT* const res_p2 = 
-                tcase.arg ? s_arg.data () : s_str.data ();
-
-            const std::size_t res1_len = s_str.size ();
-            const std::size_t res2_len = 
-                tcase.arg ? s_arg.size () : s_str.size ();
-
-            rw_assert (res_p1 == p2 && res_p2 == p1, 0, tcase.line,
-                    "line %d. %{$FUNCALL}: got offset %td from expected value,"
-                    " arg.data (): got offset %td from expected value", 
-                    __LINE__, p2 - res_p1, p1 - res_p2);
-
-            std::size_t match = rw_match (tcase.str, res_p2, tcase.str_len);
-
-            rw_assert (match == str_len, 0, tcase.line,
-                    "line %d. %{$FUNCALL}: this == %{#*s}, got this = "
-                    "%{/*.*Gs}, differs at pos %zu", 
-                    __LINE__, int (src_len), src, int (sizeof (charT)), 
-                    int (res1_len), res_p1, match);
-
-            match = rw_match (src, res_p1, src_len);
-
-            rw_assert (match == arg_len, 0, tcase.line,
-                    "line %d. %{$FUNCALL}: str == %{#*s}, got str = "
-                    "%{/*.*Gs}, differs at pos %zu",  
-                    __LINE__, int (tcase.str_len), tcase.str, 
-                    int (sizeof (charT)), int (res2_len), res_p2, match);
-        }
-    }
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    catch (const std::exception &ex) {
-        caught = exceptions [4];
-        rw_assert (0, 0, tcase.line,
-                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
-                   "unexpectedly%{;} caught std::%s(%#s)",
-                   __LINE__, 0 != expected, expected, caught, ex.what ());
-    }
-    catch (...) {
-        caught = exceptions [0];
-        rw_assert (0, 0, tcase.line,
-                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
-                   "unexpectedly%{;} caught %s",
-                   __LINE__, 0 != expected, expected, caught);
-    }
+        catch (const std::exception &ex) {
+            caught = exceptions [4];
+            rw_assert (0, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                       "unexpectedly%{;} caught std::%s(%#s)",
+                       __LINE__, 0 != expected, expected, caught, ex.what ());
+        }
+        catch (...) {
+            caught = exceptions [0];
+            rw_assert (0, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                       "unexpectedly%{;} caught %s",
+                       __LINE__, 0 != expected, expected, caught);
+        }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    /* const */ std::size_t nbytes;
-    const       std::size_t nblocks = rwt_check_leaks (&nbytes, 0);
+        // FIXME: verify the number of blocks the function call
+        // is expected to allocate and detect any memory leaks
+        rw_check_leaks (s_str.get_allocator (), tcase.line,
+                        std::size_t (-1), std::size_t (-1));
 
-    // FIXME: verify the number of blocks the function call
-    // is expected to allocate and detect any memory leaks
-    const std::size_t expect_blocks = nblocks;
+        rw_check_leaks (arg_str.get_allocator (), tcase.line,
+                        std::size_t (-1), std::size_t (-1));
 
-    rw_assert (nblocks == expect_blocks, 0, tcase.line,
-               "line %d. %{$FUNCALL} allocated %td bytes in %td blocks",
-               __LINE__, nbytes, expect_blocks);
+        if (caught) {
+            // verify that an exception thrown during allocation
+            // didn't cause a change in the state of the object
+            str_state.assert_equal (rw_get_string_state (s_str),
+                                    __LINE__, tcase.line, caught);
 
-    if (caught) {
-        // verify that an exception thrown during allocation
-        // didn't cause a change in the state of the object
-        str_state.assert_equal (rw_get_string_state (s_str),
-                                __LINE__, tcase.line, caught);
+            arg_str_state.assert_equal (rw_get_string_state (arg_str),
+                                        __LINE__, tcase.line, caught);
+
+            if (0 == tcase.bthrow) {
+                // allow this call to operator new to succeed and try
+                // to make the next one to fail during the next call
+                // to the same function again
+                continue;
+            }
+        }
+        else if (0 < tcase.bthrow) {
+            rw_assert (caught == expected, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s, caught %s"
+                       "%{:}unexpectedly caught %s%{;}",
+                       __LINE__, 0 != expected, expected, caught, caught);
+        }
+
+        break;
     }
-    else if (-1 != tcase.bthrow) {
-        rw_assert (caught == expected, 0, tcase.line,
-                   "line %d. %{$FUNCALL} %{?}expected %s, caught %s"
-                   "%{:}unexpectedly caught %s%{;}",
-                   __LINE__, 0 != expected, expected, caught, caught);
+
+    // no exception expected
+    const std::size_t expect_throws = 0;
+
+    rw_assert (expect_throws == throw_count, 0, tcase.line,
+               "line %d: %{$FUNCALL}: expected exactly 0 %s exception "
+               "while the swap, got %zu",
+               __LINE__, exceptions [3], throw_count);
+
+    // disable bad_alloc exceptions
+    *pst->throw_at_calls_ [0] = 0;
+    pal->throw_at_calls_ [pal->m_allocate] = 0;
+}
+
+/**************************************************************************/
+
+template <class charT>
+std::allocator<charT>
+make_alloc (SharedAlloc&, std::allocator<charT>*) {
+    return std::allocator<charT>();
+}
+
+template <class charT, class Types>
+UserAlloc<charT, Types>
+make_alloc (SharedAlloc &shal, UserAlloc<charT, Types>*) {
+    return UserAlloc<charT, Types>(&shal);
+}
+
+/**************************************************************************/
+
+template <class charT, class Traits, class Allocator>
+void test_swap (charT*, Traits*, Allocator*,
+                const StringTestCaseData<charT> &tdata)
+{
+    SharedAlloc sa1;
+    Allocator a1 = make_alloc(sa1, (Allocator*)0);
+
+    // test swap using the same allocator objects
+    test_swap ((charT*)0, (Traits*)0, a1, a1, tdata);
+
+    SharedAlloc sa2;
+    Allocator a2 = make_alloc(sa2, (Allocator*)0);
+
+    if (a1 != a2) {
+        // test swap using different allocator objects
+        test_swap ((charT*)0, (Traits*)0, a1, a2, tdata);
     }
 }
 
 /**************************************************************************/
 
-DEFINE_STRING_TEST_DISPATCH (test_swap);
+DEFINE_STRING_TEST_FUNCTIONS (test_swap);
 
 int main (int argc, char** argv)
 {
@@ -301,7 +373,7 @@ int main (int argc, char** argv)
 #undef TEST
 #define TEST(sig) {                                             \
         Swap (sig), sig ## _test_cases,                         \
-        sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
+        sizeof sig ## _test_cases / sizeof *sig ## _test_cases, \
     }
 
         TEST (str)
@@ -309,7 +381,10 @@ int main (int argc, char** argv)
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return rw_run_string_test (argc, argv, __FILE__,
-                               "lib.string.swap",
-                               test_swap, tests, test_count);
+    const int status =
+        rw_run_string_test (argc, argv, __FILE__,
+                            "lib.string.swap",
+                            test_swap_func_array, tests, test_count);
+
+    return status;
 }
