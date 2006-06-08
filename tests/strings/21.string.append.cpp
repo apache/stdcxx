@@ -281,7 +281,7 @@ range_test_cases [] = {
 
 #undef TEST
 #define TEST(str, arg, off, size, res, bthrow) {                \
-        __LINE__, off, size, -1, -1, -1,                        \
+        __LINE__, -1, -1, off, size, -1,                        \
         str, sizeof str - 1,                                    \
         arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
     }
@@ -483,158 +483,97 @@ push_back_val_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT, class Traits, class Allocator, class Iterator>
-void test_append_range (const charT    *wstr,
-                        std::size_t     wstr_len,
-                        const charT    *warg,
-                        std::size_t     warg_len,
-                        std::size_t     res_len,
-                        Traits*, 
-                        Allocator*,
-                        const Iterator &it,
-                        const StringTestCase &tcase)
-{
-    typedef std::basic_string <charT, Traits, Allocator> String;
-    typedef typename String::iterator                    StringIter;
+// invokes specializations of the member function template
+// on the required iterator categories
+template <class String, class Iterator>
+struct AppendRange: RangeBase<String> {
 
-    const char* const itname =
-        tcase.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
+    typedef typename String::iterator     StringIter;
+    typedef typename String::value_type   StringChar;
 
-    // compute the size of the controlled sequence and the size
-    // of the sequence denoted by the argument keeping in mind
-    // that the latter may refer to the former
-    const std::size_t size1 = wstr_len;
-    const std::size_t size2 = tcase.arg ? warg_len : size1;
+    AppendRange () { }
 
-    // construct the string object to be modified
-    String s_str (wstr, size1);
+    virtual String&
+    operator() (String &str, 
+                const StringTestCaseData<StringChar>& tdata) const {
 
-    // compute the offset and the extent (the number of elements)
-    // of the second range into the argument of the function call
-    const std::size_t off =
-        std::size_t (tcase.off) < size2 ? std::size_t (tcase.off) : size2;
-    const std::size_t ext =
-        off + tcase.size < size2 ? std::size_t (tcase.size) : size2 - off;
+        const StringTestCase &tcase = tdata.tcase_;
 
-    if (tcase.arg) {
-        const charT* const beg = warg + off;
-        const charT* const end = beg + ext;
+        const String &cstr = str;
+
+        // when (0 == tcase.arg) exercise self-referential modification
+        // (i.e., replacing a range of elements with a subrange of its
+        // own elements)
+        const StringChar* const beg =
+            (tcase.arg ? tdata.arg_ : cstr.data ()) + tdata.off2_;
+
+        const StringChar* const end = beg + tdata.ext2_;
 
         const Iterator first (beg, beg, end);
         const Iterator last  (end, beg, end);
 
-        s_str.append (first, last);
+        return str.append (first, last);
     }
-    else {
-        // self-referential modification (appending a range
-        // of elements with a subrange of its own elements)
-        const StringIter first (s_str.begin () + off);
-        const StringIter last (first + ext);
-
-        s_str.append (first, last);
-    }
-
-    // detrmine whether the produced sequence matches the exepceted result
-    const std::size_t match = rw_match (tcase.res, s_str.data (), tcase.nres);
-
-    rw_assert (match == res_len, 0, tcase.line,
-               "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
-               "difference at offset %zu for %s",
-               __LINE__, int (tcase.nres), tcase.res,
-               int (sizeof (charT)), int (s_str.size ()), s_str.c_str (),
-               match, itname);
-}
+};
 
 /**************************************************************************/
 
-template <class charT, class Traits, class Allocator>
-void test_append_range (const charT    *wstr,
-                        std::size_t     wstr_len,
-                        const charT    *warg,
-                        std::size_t     warg_len,
-                        std::size_t     res_len,
-                        Traits*,
-                        Allocator*,
-                        const StringTestCase &tcase)
+// invokes possible overloads of the member function template
+// on common RandomAccessIterator types
+template <class String, class Iterator>
+struct AppendRangeOverload: RangeBase<String>
 {
-    if (tcase.bthrow)  // this method doesn't throw
-        return;
+    typedef typename String::iterator     StringIter;
+    typedef typename String::value_type   StringChar;
 
-    test_append_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
-                       (Allocator*)0, InputIter<charT>(0, 0, 0), tcase);
+    AppendRangeOverload () { }
 
-    // there is no need to call test_append_range
-    // for other iterators in this case
-    if (0 == tcase.arg)
-        return;
+    virtual String&
+    operator() (String &str, 
+                const StringTestCaseData<StringChar>& tdata) const {
 
-    test_append_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
-                       (Allocator*)0, ConstFwdIter<charT>(0, 0, 0), tcase);
+        const StringTestCase &tcase = tdata.tcase_;
 
-    test_append_range (wstr, wstr_len, warg, warg_len, res_len, (Traits*)0,
-                       (Allocator*)0, ConstBidirIter<charT>(0, 0, 0), tcase);
+        const std::size_t off = tdata.off2_;
+        const std::size_t ext = tdata.ext2_;
 
-    test_append_range (wstr, wstr_len, warg, warg_len, res_len, 
-                      (Traits*)0, (Allocator*)0, 
-                       ConstRandomAccessIter<charT>(0, 0, 0), tcase);
-}
+        if (0 == tcase.arg) {
+            // exercise self-referential modification (i.e., replacing
+            // a range of elements with a subrange of its own elements)
+
+            const Iterator first (begin (str, (Iterator*)0) + off);
+            const Iterator last (first + ext);
+
+            return str.append (first, last);
+        }
+
+        String str_arg (tdata.arg_, tdata.arglen_);
+
+        const Iterator first (begin (str_arg, (Iterator*)0) + off);
+        const Iterator last (first + ext);
+
+        return str.append (first, last);
+    }
+};
 
 /**************************************************************************/
 
 template <class charT, class Traits, class Allocator>
-void test_append (charT, Traits*, Allocator*,
-                  const StringFunc     &func,
-                  const StringTestCase &tcase)
+void test_append (charT*, Traits*, Allocator*, const RangeBase<
+                      std::basic_string <charT, Traits, Allocator> > &rng,
+                  const StringTestCaseData<charT>                    &tdata)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
-    typedef typename UserTraits<charT>::MemFun           UTMemFun;
+    typedef typename UserTraits<charT>::MemFun           TraitsFunc;
 
-    static const std::size_t BUFSIZE = 256;
-
-    static charT wstr_buf [BUFSIZE];
-    static charT warg_buf [BUFSIZE];
-
-    std::size_t str_len = sizeof wstr_buf / sizeof *wstr_buf;
-    std::size_t arg_len = sizeof warg_buf / sizeof *warg_buf;
-
-    charT* wstr = rw_expand (wstr_buf, tcase.str, tcase.str_len, &str_len);
-    charT* warg = rw_expand (warg_buf, tcase.arg, tcase.arg_len, &arg_len);
-
-    static charT wres_buf [BUFSIZE];
-    std::size_t res_len = sizeof wres_buf / sizeof *wres_buf;
-    charT* wres = rw_expand (wres_buf, tcase.res, tcase.nres, &res_len);
-
-    // special processing for append_range to exercise all iterators
-    if (Append (range) == func.which_) {
-        test_append_range (wstr, str_len, warg, arg_len, res_len, 
-                          (Traits*)0, (Allocator*)0, tcase);
-
-        if (wstr != wstr_buf)
-            delete[] wstr;
-
-        if (warg != warg_buf)
-            delete[] warg;
-
-         if (wres != wres_buf)
-            delete[] wres;
-
-        return;
-    }
+    const StringFunc     &func  = tdata.func_;
+    const StringTestCase &tcase = tdata.tcase_;
 
     // construct the string object to be modified
     // and the (possibly unused) argument string
-    /* const */ String str (wstr, str_len);
-    const       String arg (warg, arg_len);
-
-    if (wstr != wstr_buf)
-        delete[] wstr;
-
-    if (warg != warg_buf)
-        delete[] warg;
-
-    wstr = 0;
-    warg = 0;
+    /* const */ String str (tdata.str_, tdata.strlen_);
+    const       String arg (tdata.arg_, tdata.arglen_);
 
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
@@ -650,7 +589,7 @@ void test_append (charT, Traits*, Allocator*,
     std::size_t* const rg_calls = rw_get_call_counters ((Traits*)0, (charT*)0);
 
     if (rg_calls)
-        total_length_calls = rg_calls [UTMemFun::length];
+        total_length_calls = rg_calls [TraitsFunc::length];
 
     rwt_free_store* const pst = rwt_get_free_store (0);
     SharedAlloc*    const pal = SharedAlloc::instance ();
@@ -686,12 +625,8 @@ void test_append (charT, Traits*, Allocator*,
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-        if (tcase.bthrow) {
-            if (wres != wres_buf)
-                delete[] wres;
-
+        if (tcase.bthrow)
             return;
-        }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
@@ -708,7 +643,7 @@ void test_append (charT, Traits*, Allocator*,
             case Append (cptr):
                 ret_ptr = &str.append (ptr_arg);
                 if (rg_calls)
-                    n_length_calls = rg_calls [UTMemFun::length];
+                    n_length_calls = rg_calls [TraitsFunc::length];
                 break;
 
             case Append (cstr):
@@ -720,11 +655,15 @@ void test_append (charT, Traits*, Allocator*,
                 break;
 
             case Append (cstr_size_size):
-                ret_ptr = &str.append (str_arg, tcase.off, tcase.size);
+                ret_ptr = &str.append (str_arg, tcase.off2, tcase.size2);
                 break;
 
             case Append (size_val):
                 ret_ptr = &str.append (tcase.size, val_arg);
+                break;
+
+            case Append (range):
+                ret_ptr = &rng (str, tdata);
                 break;
 
             case PushBack (val):
@@ -746,27 +685,29 @@ void test_append (charT, Traits*, Allocator*,
                        "line %d. %{$FUNCALL} returned invalid reference, "
                        "offset is %td", __LINE__, ret_off);
 
+            // for convenience
+            static const int cwidth = sizeof (charT);
+
             // verify that strings are of equal length
-            rw_assert (res_len == str.size (), 0, tcase.line,
-                       "line %d. %{$FUNCALL} expected %{#*s}, "
+            rw_assert (tdata.reslen_ == str.size (), 0, tcase.line,
+                       "line %d. %{$FUNCALL} expected %{/*.*Gs}, "
                        "length %zu, got %{/*.*Gs}, length %zu",
-                       __LINE__, int (tcase.nres), tcase.res,
-                       res_len, int (sizeof (charT)),
+                       __LINE__, cwidth, int (tdata.reslen_), tdata.res_,
+                       tdata.reslen_, cwidth,
                        int (str.size ()), str.c_str (), str.size ());
 
-            if (res_len == str.size ()) {
+            if (tdata.reslen_ == str.size ()) {
                 // if the result length matches the expected length
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
                     rw_match (tcase.res, str.c_str (), tcase.nres);
 
-                rw_assert (match == res_len, 0, tcase.line,
-                           "line %d. %{$FUNCALL} expected %{#*s}, "
+                rw_assert (match == tdata.reslen_, 0, tcase.line,
+                           "line %d. %{$FUNCALL} expected %{/*.*Gs}, "
                            "got %{/*.*Gs}, difference at offset %zu",
-                           __LINE__, int (tcase.nres), tcase.res,
-                           int (sizeof (charT)), int (str.size ()),
-                           str.c_str (), match);
+                           __LINE__, cwidth, int (tdata.reslen_), tdata.res_,
+                           cwidth, int (str.size ()), str.c_str (), match);
             }
 
             // verify that Traits::length was used
@@ -859,23 +800,92 @@ void test_append (charT, Traits*, Allocator*,
 
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-    rw_assert (expect_throws == throw_count, 0, tcase.line,
-               "line %d: %{$FUNCALL}: expected exactly 1 %s exception "
-               "while changing capacity from %zu to %zu, got %zu",
-               __LINE__, exceptions [3],
-               str_state.capacity_, str.capacity (), throw_count);
+    // verify number of exceptions thrown
+    // for range version the allocation may take place several times
+    if (Append (range) != func.which_)
+        rw_assert (expect_throws == throw_count, 0, tcase.line,
+                   "line %d: %{$FUNCALL}: expected exactly 1 %s exception "
+                   "while changing capacity from %zu to %zu, got %zu",
+                   __LINE__, exceptions [3],
+                   str_state.capacity_, str.capacity (), throw_count);
+    else
+        rw_assert (expect_throws <= throw_count, 0, tcase.line,
+                   "line %d: %{$FUNCALL}: expected at least 1 %s exception "
+                   "while changing capacity from %zu to %zu, got %zu",
+                   __LINE__, exceptions [3],
+                   str_state.capacity_, str.capacity (), throw_count);
 
     // disable bad_alloc exceptions
     *pst->throw_at_calls_ [0] = 0;
     pal->throw_at_calls_ [pal->m_allocate] = 0;
-
-    if (wres != wres_buf)
-        delete[] wres;
 }
 
 /**************************************************************************/
 
-DEFINE_STRING_TEST_DISPATCH (test_append);
+template <class charT, class Traits, class Allocator>
+void test_append (charT*, Traits*, Allocator*,
+                  const StringTestCaseData<charT> &tdata)
+{
+    typedef std::basic_string<charT, Traits, Allocator> String;
+
+    if (tdata.func_.which_ == Append (range)) {
+
+        switch (tdata.func_.iter_id_) {
+
+        // exercise possible overloads of the member function template
+        // on common RandomAccessIterator types
+#undef TEST
+#define TEST(Iterator) do {                                                 \
+        typedef typename String::Iterator Iter;                             \
+        static const                                                        \
+        AppendRangeOverload<String, Iter> app;                              \
+        test_append ((charT*)0, (Traits*)0, (Allocator*)0, app, tdata);     \
+    } while (0)
+
+        case StringIds::Pointer: TEST (pointer); break;
+        case StringIds::ConstPointer: TEST (const_pointer); break;
+        case StringIds::Iterator: TEST (iterator); break;
+        case StringIds::ConstIterator: TEST (const_iterator); break;
+
+            // disabled for now
+        case StringIds::ReverseIterator:
+            // TEST (reverse_iterator);
+            break;
+
+        case StringIds::ConstReverseIterator:
+            // TEST (const_reverse_iterator);
+            break;
+
+        // exercise specializations of the member function template
+        // on the required iterator categories
+
+#undef TEST
+#define TEST(Iterator) do {                                                 \
+        typedef Iterator<charT> Iter;                                       \
+        static const                                                        \
+        AppendRange<String, Iter> app;                                      \
+        test_append ((charT*)0, (Traits*)0, (Allocator*)0, app, tdata);     \
+    } while (0)
+
+        case StringIds::Input: TEST (InputIter); break;
+        case StringIds::Forward: TEST (ConstFwdIter); break;
+        case StringIds::Bidir: TEST (ConstBidirIter); break;
+        case StringIds::Random: TEST (ConstRandomAccessIter); break;
+
+        default:
+            rw_error (0, 0, __LINE__, "bad iterator id");
+        }
+    }
+    else {
+        // exercise ordinary overloads of the member function
+        static const RangeBase<String > app;
+        test_append ((charT*)0, (Traits*)0, (Allocator*)0, app, tdata);
+    }
+}
+
+/**************************************************************************/
+
+DEFINE_STRING_TEST_FUNCTIONS (test_append);
 
 int main (int argc, char** argv)
 {
@@ -903,7 +913,10 @@ int main (int argc, char** argv)
 
     const std::size_t test_count = sizeof tests / sizeof *tests;
 
-    return rw_run_string_test (argc, argv, __FILE__,
-                               "lib.string.append",
-                               test_append, tests, test_count);
+    const int status =
+        rw_run_string_test (argc, argv, __FILE__,
+                            "lib.string.append",
+                            test_append_func_array, tests, test_count);
+
+    return status;
 }

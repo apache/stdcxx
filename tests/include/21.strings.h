@@ -777,6 +777,71 @@ rw_get_string_state (const String &str)
 }
 
 
+/**************************************************************************/
+
+// base class-functor for the range template overloads testing
+template <class String>
+struct RangeBase {
+
+    typedef typename String::value_type                 StringChar;
+    typedef typename String::pointer                    StringPtr;
+    typedef typename String::const_pointer              StringConstPtr;
+    typedef typename String::iterator                   StringIter;
+    typedef typename String::const_iterator             StringConstIter;
+    typedef typename String::reverse_iterator           StringRevIter;
+    typedef typename String::const_reverse_iterator     StringConstRevIter;
+
+    RangeBase () { }
+
+    virtual ~RangeBase () { /* silence warnings */ }
+
+    static StringPtr
+    begin (String &str, StringPtr*) {
+        return _RWSTD_CONST_CAST (StringPtr, str.data ());
+    }
+
+    static StringConstPtr
+    begin (const String &str, StringConstPtr*) {
+        return str.data ();
+    }
+
+#ifndef _RWSTD_NO_DEBUG_ITER
+
+    // when debugging iterators are enabled string::iterator and
+    // string::pointer are distinct types; otherwise they are the
+    // same type
+
+    static StringIter
+    begin (String &str, StringIter*) {
+        return str.begin ();
+    }
+
+    static StringConstIter
+    begin (const String &str, StringConstIter*) {
+        return str.begin ();
+    }
+
+#endif   // _RWSTD_NO_DEBUG_ITER
+
+    static StringRevIter
+    begin (String &str, StringRevIter*) {
+        return str.rbegin ();
+    }
+
+    static StringConstRevIter
+    begin (const String &str, StringConstRevIter*) {
+        return str.rbegin ();
+    }
+
+    virtual String&
+    operator() (String &str, const StringTestCaseData<StringChar>&) const {
+        RW_ASSERT (!"logic error: should be never called");
+        return str;
+    }
+};
+
+/**************************************************************************/
+
 #define Disabled(which)   \
     StringIds::opt_memfun_disabled [which & ~StringIds::fid_mask]
 
