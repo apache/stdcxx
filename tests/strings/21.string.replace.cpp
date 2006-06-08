@@ -716,35 +716,19 @@ iter_iter_size_val_test_cases [] = {
 
 /**************************************************************************/
 
-template <class charT, class Traits, class Allocator>
-struct ReplaceBase {
-    typedef std::basic_string<charT, Traits, Allocator> String;
-    typedef typename String::iterator                   StringIter;
-
-    ReplaceBase () { }
-
-    virtual ~ReplaceBase () { /* silence warnings */ }
-
-    virtual String&
-    operator() (String &str, const StringTestCaseData<charT>&) const {
-        RW_ASSERT (!"logic error: should be never called");
-        return str;
-    }
-};
-
-/**************************************************************************/
-
 // invokes specializations of the member function template
 // on the required iterator categories
-template <class charT, class Traits, class Allocator, class Iterator>
-struct ReplaceRange: ReplaceBase<charT, Traits, Allocator> {
-    typedef std::basic_string<charT, Traits, Allocator> String;
-    typedef typename String::iterator                   StringIter;
+template <class String, class Iterator>
+struct ReplaceRange: RangeBase<String> {
+
+    typedef typename String::iterator       StringIter;
+    typedef typename String::value_type     StringChar;
 
     ReplaceRange () { }
 
     virtual String&
-    operator() (String &str, const StringTestCaseData<charT>& tdata) const {
+    operator() (String &str, 
+                const StringTestCaseData<StringChar>& tdata) const {
 
         const StringTestCase &tcase = tdata.tcase_;
 
@@ -757,10 +741,10 @@ struct ReplaceRange: ReplaceBase<charT, Traits, Allocator> {
         // when (0 == tcase.arg) exercise self-referential modification
         // (i.e., replacing a range of elements with a subrange of its
         // own elements)
-        const charT* const beg =
+        const StringChar* const beg =
             (tcase.arg ? tdata.arg_ : cstr.data ()) + tdata.off2_;
 
-        const charT* const end = beg + tdata.ext2_;
+        const StringChar* const end = beg + tdata.ext2_;
 
         const Iterator first2 (beg, beg, end);
         const Iterator last2  (end, beg, end);
@@ -769,63 +753,20 @@ struct ReplaceRange: ReplaceBase<charT, Traits, Allocator> {
     }
 };
 
-/**************************************************************************/
 
 // invokes possible overloads of the member function template
 // on common RandomAccessIterator types
-template <class charT, class Traits, class Allocator, class Iterator>
-struct ReplaceRangeOverload: ReplaceBase<charT, Traits, Allocator>
+template <class String, class Iterator>
+struct ReplaceRangeOverload: RangeBase<String>
 {
-    typedef std::basic_string<charT, Traits, Allocator> String;
-    typedef typename String::pointer                    StringPtr;
-    typedef typename String::const_pointer              StringConstPtr;
-    typedef typename String::iterator                   StringIter;
-    typedef typename String::const_iterator             StringConstIter;
-    typedef typename String::reverse_iterator           StringRevIter;
-    typedef typename String::const_reverse_iterator     StringConstRevIter;
+    typedef typename String::iterator       StringIter;
+    typedef typename String::value_type     StringChar;
 
     ReplaceRangeOverload () { }
 
-    static StringPtr
-    begin (String &str, StringPtr*) {
-        return _RWSTD_CONST_CAST (StringPtr, str.data ());
-    }
-
-    static StringConstPtr
-    begin (const String &str, StringConstPtr*) {
-        return str.data ();
-    }
-
-#ifndef _RWSTD_NO_DEBUG_ITER
-
-    // when debugging iterators are enabled string::iterator and
-    // string::pointer are distinct types; otherwise they are the
-    // same type
-
-    static StringIter
-    begin (String &str, StringIter*) {
-        return str.begin ();
-    }
-
-    static StringConstIter
-    begin (const String &str, StringConstIter*) {
-        return str.begin ();
-    }
-
-#endif   // _RWSTD_NO_DEBUG_ITER
-
-    static StringRevIter
-    begin (String &str, StringRevIter*) {
-        return str.rbegin ();
-    }
-
-    static StringConstRevIter
-    begin (const String &str, StringConstRevIter*) {
-        return str.rbegin ();
-    }
-
     virtual String&
-    operator() (String &str, const StringTestCaseData<charT>& tdata) const {
+    operator() (String &str, 
+                const StringTestCaseData<StringChar>& tdata) const {
 
         const StringTestCase &tcase = tdata.tcase_;
 
@@ -858,9 +799,9 @@ struct ReplaceRangeOverload: ReplaceBase<charT, Traits, Allocator>
 /**************************************************************************/
 
 template <class charT, class Traits, class Allocator>
-void test_replace (charT*, Traits*, Allocator*,
-                   const ReplaceBase<charT, Traits, Allocator> &rep,
-                   const StringTestCaseData<charT>             &tdata)
+void test_replace (charT*, Traits*, Allocator*, const RangeBase<
+                       std::basic_string <charT, Traits, Allocator> > &rep,
+                   const StringTestCaseData<charT>                    &tdata)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef typename String::iterator                    StringIter;
@@ -1161,9 +1102,9 @@ template <class charT, class Traits, class Allocator>
 void test_replace (charT*, Traits*, Allocator*,
                    const StringTestCaseData<charT> &tdata)
 {
-    if (tdata.func_.which_ == Replace (iter_iter_range)) {
+    typedef std::basic_string<charT, Traits, Allocator> String;
 
-        typedef std::basic_string<charT, Traits, Allocator> String;
+    if (tdata.func_.which_ == Replace (iter_iter_range)) {
 
         switch (tdata.func_.iter_id_) {
 
@@ -1173,7 +1114,7 @@ void test_replace (charT*, Traits*, Allocator*,
 #define TEST(Iterator) do {                                                 \
         typedef typename String::Iterator Iter;                             \
         static const                                                        \
-        ReplaceRangeOverload<charT, Traits, Allocator, Iter> rep;           \
+        ReplaceRangeOverload<String, Iter> rep;                             \
         test_replace ((charT*)0, (Traits*)0, (Allocator*)0, rep, tdata);    \
     } while (0)
 
@@ -1197,7 +1138,7 @@ void test_replace (charT*, Traits*, Allocator*,
 #define TEST(Iterator) do {                                                 \
         typedef Iterator<charT> Iter;                                       \
         static const                                                        \
-        ReplaceRange<charT, Traits, Allocator, Iter> rep;                   \
+        ReplaceRange<String, Iter> rep;                                     \
         test_replace ((charT*)0, (Traits*)0, (Allocator*)0, rep, tdata);    \
     } while (0)
 
@@ -1212,7 +1153,7 @@ void test_replace (charT*, Traits*, Allocator*,
     }
     else {
         // exercise ordinary overloads of the member function
-        static const ReplaceBase<charT, Traits, Allocator> rep;
+        static const RangeBase<String> rep;
         test_replace ((charT*)0, (Traits*)0, (Allocator*)0, rep, tdata);
     }
 }

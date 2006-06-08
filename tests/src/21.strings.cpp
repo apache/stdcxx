@@ -661,6 +661,17 @@ _rw_setvars (const StringFunc     &func,
 
     case StringIds::append_range:
     case StringIds::assign_range:
+        rw_asnprintf (&buf, &bufsize, "%{+}<%{$Iterator:-Iterator}>("
+                      "%{?}begin()%{:}%{$Iterator:-Iterator}(%{#*s})%{;}"
+                      "%{?} + %zu%{;}, "
+                      "%{?}begin()%{:}%{$Iterator:-Iterator}(...)%{;}"
+                      "%{?} + %zu%{;}"
+                      "%{?}, const allocator_type&%{;})",
+                      self, int (arg_len), arg,
+                      0 != pcase->off2, pcase->off2,
+                      self, 0 != range2_end, range2_end, use_alloc);
+        break;
+
     case StringIds::ctor_range:
     case StringIds::ctor_range_alloc:
         rw_asnprintf (&buf, &bufsize, "%{+}<%{$Iterator:-Iterator}>("
