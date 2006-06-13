@@ -172,116 +172,80 @@ public:
 };
 
 
-// user-defined character traits
+// user-defined character traits template
+// (declared but not defined)
 template <class charT>
-struct UserTraits: std::char_traits<charT>
+struct UserTraits;
+
+
+struct TraitsMemFunc
 {
-    typedef std::char_traits<charT>  Base;
-    typedef typename Base::char_type char_type;
-    typedef typename Base::int_type  int_type;
-
-    struct MemFun {
-        enum {
-            assign, eq, lt, compare, length, find, copy, move,
-            assign2, not_eof, to_char_type, to_int_type, eq_int_type,
-            eof,
-            n_funs
-        };
+    enum {
+        assign, eq, lt, compare, length, find, copy, move,
+        assign2, not_eof, to_char_type, to_int_type, eq_int_type,
+        eof,
+        n_funs
     };
+};
 
-    static _RWSTD_SIZE_T n_calls_ [MemFun::n_funs];
+
+// required specialization on char
+_RWSTD_SPECIALIZED_CLASS
+struct _TEST_EXPORT UserTraits<char>: std::char_traits<char>
+{
+    typedef std::char_traits<char> Base;
+    typedef Base::char_type        char_type;
+    typedef Base::int_type         int_type;
+    typedef TraitsMemFunc          MemFun;
 
     // avoid any dependency on the library
     typedef int                   off_type;     // std::streamoff
     typedef int                   state_type;   // std::mbstate_t
     typedef std::fpos<state_type> pos_type;     // std::fpos<state_type>
 
-    // accesses to the char_type::f member may trigger a SIGBUS
-    // on some architectures (e.g., PA or SPARC) if the member
-    // isn't appropriately aligned
-
     static void
-    assign (char_type &dst, const char_type &src) {
-        ++n_calls_ [MemFun::assign];
-        Base::assign (dst, src);
-    }
+    assign (char_type&, const char_type&);
 
     static bool
-    eq (const char_type &ch1, const char_type &ch2) {
-        ++n_calls_ [MemFun::eq];
-        return Base::eq (ch1, ch2);
-    }
+    eq (const char_type&, const char_type&);
 
     static bool
-    lt (const char_type &ch1, const char_type &ch2) {
-        ++n_calls_ [MemFun::lt];
-        return Base::lt (ch1, ch2);
-    }
+    lt (const char_type&, const char_type&);
 
     static int
-    compare (const char_type *s1, const char_type *s2, _RWSTD_SIZE_T n) {
-        ++n_calls_ [MemFun::compare];
-        return Base::compare (s1, s2, n);
-    }
+    compare (const char_type*, const char_type*, _RWSTD_SIZE_T);
         
     static _RWSTD_SIZE_T
-    length (const char_type *s) {
-        ++n_calls_ [MemFun::length];
-        return Base::length (s);
-    }
+    length (const char_type*);
  
     static const char_type*
-    find (const char_type *s, _RWSTD_SIZE_T n, const char_type &ch) {
-        ++n_calls_ [MemFun::find];
-        return Base::find (s, n, ch);
-    }
+    find (const char_type*, _RWSTD_SIZE_T, const char_type&);
 
     static char_type*
-    copy (char_type *dst, const char_type *src, _RWSTD_SIZE_T n) {
-        ++n_calls_ [MemFun::copy];
-        return Base::copy (dst, src, n);
-    }
+    copy (char_type*, const char_type*, _RWSTD_SIZE_T);
 
     static char_type*
-    move (char_type *dst, const char_type *src, _RWSTD_SIZE_T n) {
-        ++n_calls_ [MemFun::move];
-        return Base::move (dst, src, n);
-    }
+    move (char_type*, const char_type*, _RWSTD_SIZE_T);
 
     static char_type*
-    assign (char_type *s, _RWSTD_SIZE_T n, char_type ch) {
-        ++n_calls_ [MemFun::assign];
-        return Base::assign (s, n, ch);
-    }
+    assign (char_type*, _RWSTD_SIZE_T, char_type);
 
     static int_type
-    not_eof (const int_type &i) {
-        ++n_calls_ [MemFun::not_eof];
-        return eof () == i ? ~i : i;
-    }
+    not_eof (const int_type&);
 
     static char_type
-    to_char_type (const int_type &i) {
-        ++n_calls_ [MemFun::to_char_type];
-        return Base::to_char_type (i);
-    }
+    to_char_type (const int_type&);
       
     static int_type
-    to_int_type (const char_type &ch) {
-        ++n_calls_ [MemFun::to_int_type];
-        return Base::to_int_type (ch);
-    }
+    to_int_type (const char_type&);
 
     static bool
-    eq_int_type (const int_type &i1, const int_type &i2) {
-        ++n_calls_ [MemFun::eq_int_type];
-        return Base::eq_int_type (i1, i2);
-    }
+    eq_int_type (const int_type&, const int_type&);
 
     static int_type
-    eof () {
-        return eof_;
-    }
+    eof ();
+
+    static _RWSTD_SIZE_T n_calls_ [];
 
     static int_type eof_;
 
@@ -294,28 +258,83 @@ private:
 };
 
 
-template <class charT>
-_RWSTD_SIZE_T
-UserTraits<charT>::n_calls_ [ /* UserTraits<charT>::MemFun::n_funs */];
+#ifndef _RWSTD_NO_WCHAR_T
 
-template <class charT>
-typename UserTraits<charT>::int_type
-UserTraits<charT>::eof_ = std::char_traits<charT>::eof ();
+// required specialization on wchar_t
+_RWSTD_SPECIALIZED_CLASS
+struct _TEST_EXPORT UserTraits<wchar_t>: std::char_traits<wchar_t>
+{
+    typedef std::char_traits<wchar_t> Base;
+    typedef Base::char_type           char_type;
+    typedef Base::int_type            int_type;
+    typedef TraitsMemFunc             MemFun;
+
+    // avoid any dependency on the library
+    typedef int                   off_type;     // std::streamoff
+    typedef int                   state_type;   // std::mbstate_t
+    typedef std::fpos<state_type> pos_type;     // std::fpos<state_type>
+
+    static void
+    assign (char_type&, const char_type&);
+
+    static bool
+    eq (const char_type&, const char_type&);
+
+    static bool
+    lt (const char_type&, const char_type&);
+
+    static int
+    compare (const char_type*, const char_type*, _RWSTD_SIZE_T);
+        
+    static _RWSTD_SIZE_T
+    length (const char_type*);
+ 
+    static const char_type*
+    find (const char_type*, _RWSTD_SIZE_T, const char_type&);
+
+    static char_type*
+    copy (char_type*, const char_type*, _RWSTD_SIZE_T);
+
+    static char_type*
+    move (char_type*, const char_type*, _RWSTD_SIZE_T);
+
+    static char_type*
+    assign (char_type*, _RWSTD_SIZE_T, char_type);
+
+    static int_type
+    not_eof (const int_type&);
+
+    static char_type
+    to_char_type (const int_type&);
+      
+    static int_type
+    to_int_type (const char_type&);
+
+    static bool
+    eq_int_type (const int_type&, const int_type&);
+
+    static int_type
+    eof ();
+
+    static _RWSTD_SIZE_T n_calls_ [];
+
+    static int_type eof_;
+
+private:
+
+    // not defined to detect bad assumptions made by the library
+    UserTraits ();
+    ~UserTraits ();
+    void operator= (UserTraits&);
+};
+
+#endif   // _RWSTD_NO_WCHAR_T
 
 
 _RWSTD_SPECIALIZED_CLASS
 struct _TEST_EXPORT UserTraits<UserChar>   // user-defined character traits
 {
-    struct MemFun {
-        enum {
-            assign, eq, lt, compare, length, find, copy, move,
-            assign2, not_eof, to_char_type, to_int_type, eq_int_type,
-            eof,
-            n_funs
-        };
-    };
-
-    static _RWSTD_SIZE_T n_calls_ [];
+    typedef TraitsMemFunc MemFun;
 
     typedef UserChar char_type;
     typedef UserInt  int_type;
@@ -361,6 +380,8 @@ struct _TEST_EXPORT UserTraits<UserChar>   // user-defined character traits
     static bool eq_int_type (const int_type&, const int_type&);
 
     static int_type eof ();
+
+    static _RWSTD_SIZE_T n_calls_ [];
 
 private:
 
