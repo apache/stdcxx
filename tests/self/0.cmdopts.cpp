@@ -219,6 +219,11 @@ test_opts (const char *expect,
     }
 
     if (strchr (expect, '#')) {
+        // when the expected result string contains the pound sign,
+        // treat the arguments as pointers to integers as opposed
+        // to pointers to callback functions and format the actual
+        // result as a sequence of integers at the given addresses
+
         if (f0 == cntptrs [0].pfun) {
             sprintf (argstr + strlen (argstr),
                      "%s%d", *argstr ? "; #" : "#", opt_counts [0]);
@@ -393,7 +398,7 @@ test_counted_options ()
 /**************************************************************************/
 
 static void
-test_toggles ()
+test_tristate ()
 {
     //  +-- expected result string
     //  |     +-- expected return value from rw_getopts()
@@ -406,18 +411,93 @@ test_toggles ()
     T ("#1",  0, A ("--enable-foo"),       1, "|-foo~", C0);
     T ("#1",  0, A ("--use-foo"),          1, "|-foo~", C0);
     T ("#1",  0, A ("--with-foo"),         1, "|-foo~", C0);
-
     T ("#-1", 0, A ("--disable-foo"),      1, "|-foo~", C0);
     T ("#-1", 0, A ("--no-foo"),           1, "|-foo~", C0);
     T ("#-1", 0, A ("--without-foo"),      1, "|-foo~", C0);
 
-    // the same toggle can be repeated any number of times
+    // the same tristate can be repeated any number of times
     T ("#1",  0, A ("--enable-foo", "--use-foo"),  1, "|-foo~", C0);
     T ("#-1", 0, A ("--no-foo", "--without-foo"),  1, "|-foo~", C0);
 
-    // the last toggle wins
+    // the last tristate wins
     T ("#-1", 0, A ("--use-foo", "--no-foo"), 1, "|-foo~", C0);
     T ("#1",  0, A ("--no-foo", "--use-foo"), 1, "|-foo~", C0);
+
+    //////////////////////////////////////////////////////////////////
+
+    // set bits using a bitmap
+    T ("#1",             0, A ("--enable-foo"),   1, "|-foo~:0",  C0);
+    T ("#1",             0, A ("--enable-foo"),   1, "|-foo~:1",  C0);
+    T ("#2",             0, A ("--enable-foo"),   1, "|-foo~:2",  C0);
+    T ("#3",             0, A ("--enable-foo"),   1, "|-foo~:3",  C0);
+    T ("#4",             0, A ("--enable-foo"),   1, "|-foo~:4",  C0);
+
+    // unset bits using a bitmap
+    T ("#-2",            0, A ("--disable-foo"),  1, "|-foo~:1",  C0);
+    T ("#-3",            0, A ("--disable-foo"),  1, "|-foo~:2",  C0);
+    T ("#-4",            0, A ("--disable-foo"),  1, "|-foo~:3",  C0);
+    T ("#-5",            0, A ("--disable-foo"),  1, "|-foo~:4",  C0);
+
+    // set bits in word 2
+    T ("#0,1",           0, A ("--enable-bar"),   1, "|-bar~32:0", C0, C1);
+    T ("#0,1",           0, A ("--enable-bar"),   1, "|-bar~32:1", C0, C1);
+    T ("#0,2",           0, A ("--enable-bar"),   1, "|-bar~32:2", C0, C1);
+    T ("#0,3",           0, A ("--enable-bar"),   1, "|-bar~32:3", C0, C1);
+    T ("#0,4",           0, A ("--enable-bar"),   1, "|-bar~32:4", C0, C1);
+ 
+    // enable bits 0 through 4 in C0 one at a time
+    T ("#1", 0, A ("--with-0"), 4, "|-0~0 |-1~1 |-2~2 |-3~3", C0, C0, C0, C0);
+    T ("#2", 0, A ("--with-1"), 4, "|-0~0 |-1~1 |-2~2 |-3~3", C0, C0, C0, C0);
+    T ("#4", 0, A ("--with-2"), 4, "|-0~0 |-1~1 |-2~2 |-3~3", C0, C0, C0, C0);
+    T ("#8", 0, A ("--with-3"), 4, "|-0~0 |-1~1 |-2~2 |-3~3", C0, C0, C0, C0);
+
+    // enable multiple bits 0 through 4 in C0 simultaneously
+    T ("#3", 0, A ("--with-0", "--with-1"),
+       4, "|-0~0 |-1~1 |-2~2 |-3~3", C0, C0, C0, C0);
+
+    T ("#7", 0, A ("--with-0", "--with-1", "--with-2"),
+       4, "|-0~0 |-1~1 |-2~2 |-3~3", C0, C0, C0, C0);
+
+    T ("#15", 0, A ("--with-0", "--with-1", "--with-2", "--with-3"),
+       4, "|-0~0 |-1~1 |-2~2 |-3~3", C0, C0, C0, C0);
+
+    // specify bit value
+    T ("#1", 0, A ("--with-0"),
+       4, "|-0~0:1 |-1~1:1 |-2~2:1 |-3~3:1", C0, C0, C0, C0);
+
+    T ("#2", 0, A ("--with-1"),
+       4, "|-0~0:1 |-1~1:1 |-2~2:1 |-3~3:1", C0, C0, C0, C0);
+
+    T ("#4", 0, A ("--with-2"),
+       4, "|-0~0:1 |-1~1:1 |-2~2:1 |-3~3:1", C0, C0, C0, C0);
+
+    T ("#8", 0, A ("--with-3"),
+       4, "|-0~0:1 |-1~1:1 |-2~2:1 |-3~3:1", C0, C0, C0, C0);
+
+    T ("#3", 0, A ("--with-0", "--with-1"),
+       4, "|-0~0:1 |-1~1:1 |-2~2:1 |-3~3:1", C0, C0, C0, C0);
+
+    T ("#7", 0, A ("--with-0", "--with-1", "--with-2"),
+       4, "|-0~0:1 |-1~1:1 |-2~2:1 |-3~3:1", C0, C0, C0, C0);
+
+    T ("#15", 0, A ("--with-0", "--with-1", "--with-2", "--with-3"),
+       4, "|-0~0:1 |-1~1:1 |-2~2:1 |-3~3:1", C0, C0, C0, C0);
+
+    T ("#-1073741824",
+       0, A ("--enable-f30"),
+       3, "|-f30~30:3 |-f28~28:2 |-f26~26:2", C0, C0, C0);
+
+    T ("#-2147483648",
+       0, A ("--enable-f30"),
+       3, "|-f30~30:2 |-f28~28:2 |-f26~26:2", C0, C0, C0);
+
+    T ("#-1610612736",
+       0, A ("--enable-f30","--enable-f28"),
+       3, "|-f30~30:2 |-f28~28:2 |-f26~26:2", C0, C0, C0);
+
+    T ("#-1476395008",
+       0, A ("--enable-f30","--enable-f28","--enable-f26"),
+       3, "|-f30~30:2 |-f28~28:2 |-f26~26:2", C0, C0, C0);
 }
 
 /**************************************************************************/
@@ -581,8 +661,8 @@ int main ()
     // exercise the handling of options with an optional argument
     test_optional_argument ();
 
-    // exercise the handling of toggling options 
-    test_toggles ();
+    // exercise the handling of tristate options 
+    test_tristate ();
 
     // exercise the handling of options with a required argument
     test_required_argument ();

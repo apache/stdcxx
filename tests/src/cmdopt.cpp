@@ -62,7 +62,7 @@ struct cmdopts_t
 
     unsigned       arg_ : 1;        // option takes an argument
     unsigned       inv_ : 1;        // callback invocation inverted
-    unsigned       toggle_ : 1;     // option is a toggle
+    unsigned       tristate_ : 1;   // option is a tristate
     unsigned       envseen_ : 1;    // environment option already processed
 };
 
@@ -327,25 +327,33 @@ _rw_set_myopts ()
 
 
 static const char*
-_rw_getbounds (const char *next, RW_VA_LIST_ARG_PTR pva)
+_rw_getbounds (const char *next, char sep, RW_VA_LIST_ARG_PTR pva)
 {
     ++next;
 
-    if ('*' == *next || '+' == *next || '-' == *next || isdigit (*next)) {
+    if (   '*' == *next || '+' == *next || '-' == *next || sep == *next
+        || isdigit (*next)) {
 
+        bool have_maxval = false;
+
+        if (*next == sep && '-' != sep) {
+            have_maxval = true;
+            ++next;
+        }
+        
         char *end = 0;
 
         // '*' designates an int va_arg argument
-        const long minval = '*' == *next ?
+        const long val = '*' == *next ?
               long (va_arg (RW_VA_LIST_PTR_ARG_TO_VA_LIST (pva), int))
             : strtol (next, &end, 10);
 
 #if _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
         // validate
-        if (minval < _RWSTD_INT_MIN || _RWSTD_INT_MAX < minval) {
+        if (val < _RWSTD_INT_MIN || _RWSTD_INT_MAX < val) {
             fprintf (stderr,
                      "lower bound %ld out of range [%d, %d]: "
-                     "%s\n", minval, _RWSTD_INT_MIN, _RWSTD_INT_MAX,
+                     "%s\n", val, _RWSTD_INT_MIN, _RWSTD_INT_MAX,
                      next);
             return 0;
         }
@@ -353,14 +361,19 @@ _rw_getbounds (const char *next, RW_VA_LIST_ARG_PTR pva)
 
         next = end ? end : next + 1;
 
-        _rw_cmdopts [_rw_ncmdopts].minval_ = minval;
+        if (have_maxval) {
+            _rw_cmdopts [_rw_ncmdopts].minval_ = 0;
+            _rw_cmdopts [_rw_ncmdopts].maxval_ = val;
+        }
+        else
+            _rw_cmdopts [_rw_ncmdopts].minval_ = val;
 
-        if ('-' == *next) {
+        if (sep == *next && !have_maxval) {
             ++next;
 
             if (   '*' == *next
                 || '+' == *next
-                || minval < 0 && '-' == *next
+                || val < 0 && '-' == *next
                 || isdigit (*next)) {
 
                 end = 0;
@@ -376,17 +389,17 @@ _rw_getbounds (const char *next, RW_VA_LIST_ARG_PTR pva)
 
                     fprintf (stderr,
                              "upper bound %ld out of range [%ld, %d]: "
-                             "%s\n", maxval, minval, _RWSTD_INT_MAX,
+                             "%s\n", maxval, val, _RWSTD_INT_MAX,
                              next);
                     return 0;
                 }
 #endif   // INT_SIZE < LONG_SIZE
 
-                if (maxval < minval) {
+                if ('-' == sep && maxval < val) {
                     // invalid range (upper bound < lower bound
                     fprintf (stderr,
                              "invalid range [%ld, %ld]: %s\n",
-                             minval, maxval, next);
+                             val, maxval, next);
                     return 0;
                 }
 
@@ -408,11 +421,15 @@ _rw_getbounds (const char *next, RW_VA_LIST_ARG_PTR pva)
                      next);
             return 0;
         }
-        else {
+        else if (!have_maxval) {
             // no upper bound on the value of the option argument
             _rw_cmdopts [_rw_ncmdopts].maxval_ = _RWSTD_INT_MAX;
         }
-
+    }
+    else if (':' == sep) {
+        // special value indicating no bits specified for a tristate
+        _rw_cmdopts [_rw_ncmdopts].minval_ = 0;
+        _rw_cmdopts [_rw_ncmdopts].maxval_ = 0;
     }
     else {
         // no minimum/maximum value for this option is set
@@ -517,12 +534,17 @@ rw_vsetopts (const char *opts, va_list va)
         int arg_is_callback = true;
 
         if ('#' == *next) {
+            // examples of option specification:
+            //   --foo#     option takes an optional numeric argument
+            //   --foo#3    numeric argument must be equal to 3
+            //   --foo#1-5  numeric argument must be in the range [1,5]
+
             // instead of a pointer to a callback, the argument is a pointer
             // to an int counter that is to be incremented for each occurrence
             // of the option during processing
             // when the option is immediately followed by the equals sign ('=')
             // and a numeric argument N, the value of N will be stored instead
-            next = _rw_getbounds (next, RW_VA_LIST_ARG_TO_PTR (va));
+            next = _rw_getbounds (next, '-', RW_VA_LIST_ARG_TO_PTR (va));
 
             if (0 == next)
                 return -1;   // error
@@ -531,11 +553,20 @@ rw_vsetopts (const char *opts, va_list va)
 
         }
         else if ('~' == *next) {
-            ++next;
+            // examples of option specification:
+            //   --foo~      word 0
+            //   --foo~3     word 3
+            //   --foo~:4    word 0, bit 2
+            //   --foo~3:6   word 3, bits 2 and 3
 
-            // unlimited number of toggles are allowed
-            lastopt->toggle_   = 1;
-            lastopt->maxcount_ = _RWSTD_SIZE_MAX;
+            // get the optional word number and bit number
+            next = _rw_getbounds (next, ':', RW_VA_LIST_ARG_TO_PTR (va));
+
+            if (0 == next)
+                return -1;   // error
+
+            // unlimited number of tristates are allowed
+            lastopt->tristate_ = 1;
 
             // no callback function expected
             arg_is_callback = false;
@@ -546,7 +577,7 @@ rw_vsetopts (const char *opts, va_list va)
             lastopt->arg_ = true;
 
             // check if the value of the argument is restricted
-            next = _rw_getbounds (next, RW_VA_LIST_ARG_TO_PTR (va));
+            next = _rw_getbounds (next, '-', RW_VA_LIST_ARG_TO_PTR (va));
 
             if (0 == next)
                 return -1;   // error
@@ -754,8 +785,8 @@ _rw_runopt (cmdopts_t *optspec, int argc, char *argv[])
         status = _rw_getarg (optspec, argv [0], equals + 1);
     }
     else {
-        // option must not be a toggle (those are handled elsewhere)
-        RW_ASSERT (0 == optspec->toggle_);
+        // option must not be a tristate (those are handled elsewhere)
+        RW_ASSERT (0 == optspec->tristate_);
         RW_ASSERT (0 != optspec->pcntr_);
         ++*optspec->pcntr_;
     }
@@ -776,7 +807,7 @@ _rw_runopt (cmdopts_t *optspec, int argc, char *argv[])
 // option is being disabled and positive when it's being
 // enabled
 static int
-_rw_match_toggle (const cmdopts_t *opt, const char *optname)
+_rw_match_tristate (const cmdopts_t *opt, const char *optname)
 {
     RW_ASSERT (0 != opt);
     RW_ASSERT (0 != optname);
@@ -787,7 +818,7 @@ _rw_match_toggle (const cmdopts_t *opt, const char *optname)
         0
     };
 
-    int toggle = 0;
+    int tristate = 0;
 
     if ('-' == optname [0] && '-' != optname [2]) {
 
@@ -807,17 +838,33 @@ _rw_match_toggle (const cmdopts_t *opt, const char *optname)
                     opt->lopt_ ? opt->lopt_ : opt->loptbuf_;
 
                 if (0 == strcmp (lopt, name)) {
-                    toggle = '+' == prefix [i][0] ? 1 : -1;
+                    tristate = '+' == prefix [i][0] ? 1 : -1;
                     break;
                 }
             }
         }
     }
 
-    return toggle;
+    return tristate;
 }
 
 /**************************************************************************/
+
+// returns a bitmap all of whose bits are set starting with the most
+// significant non-zero bit corresponding to first such bit in val
+// e.g., _rw_set_bits(4) --> 7
+static int
+_rw_set_bits (int val)
+{
+    int res = 0;
+
+    for (unsigned uval = val; uval; uval >>= 1) {
+        res = (res << 1) | 1;
+    }
+
+    return res;
+}
+
 
 _TEST_EXPORT int
 rw_runopts (int argc, char *argv[])
@@ -889,15 +936,42 @@ rw_runopts (int argc, char *argv[])
                 const char* const lopt = opt->lopt_ ? 
                     opt->lopt_ : opt->loptbuf_;
 
-                if (opt->toggle_) {
-                    // option specification denotes a toggle, see if it
+                if (opt->tristate_) {
+                    // option specification denotes a tristate, see if it
                     // matches and if so, whether it's being disabled or
                     // enabled (-1 or +1, respectively)
-                    const int toggle = _rw_match_toggle (opt, optname);
+                    const int tristate = _rw_match_tristate (opt, optname);
 
-                    if (toggle) {
+                    if (tristate) {
                         RW_ASSERT (0 != opt->pcntr_);
-                        *opt->pcntr_ = toggle < 0 ? -1 : 1;
+
+                        const int word_bits = _RWSTD_CHAR_BIT * sizeof (int);
+
+                        // the optional minval_ specifies the bit number
+                        // of the first of a sequence of bits in an array
+                        // stored at pcntr_
+                        const int word_inx = opt->minval_ / word_bits;
+                        const int bit_inx  = opt->minval_ % word_bits;
+
+                        const int bit_val = _RWSTD_INT_MAX == opt->maxval_
+                            ? 1 : opt->maxval_;
+
+                        if (bit_val) {
+                            const int bit_mask =
+                                _rw_set_bits (bit_val) << bit_inx;
+
+                            // clear the bit field
+                            opt->pcntr_ [word_inx] &= ~bit_mask;
+
+                            if (tristate < 0)
+                                opt->pcntr_ [word_inx] = ~(bit_val << bit_inx);
+                            else
+                                opt->pcntr_ [word_inx] |= bit_val << bit_inx;
+                        }
+                        else {
+                            // special case
+                            opt->pcntr_ [word_inx] = tristate < 0 ? -1 : +1;
+                        }
 
                         // matching option has been found
                         found = true;
