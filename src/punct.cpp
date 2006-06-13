@@ -2,20 +2,26 @@
  *
  * punct.cpp
  *
- * $Id: //stdlib/dev/source/stdlib/punct.cpp#46 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -167,7 +173,7 @@ __rw_get_numpunct (const __rw_facet *pfacet, int flags)
 
     // compute offsets into the varaiable size structure
     pun->decimal_point_off [winx] = 0;
-    pun->thousands_sep_off [winx] = pun->decimal_point_off [winx] + dpsz;
+    pun->thousands_sep_off [winx] = pun->decimal_point_off [winx] + int (dpsz);
 
     // point widen to a wrapper for mbstowcs() for wchar_t or memcpy otherwise
     void (*widen)(void*, const void*, _RWSTD_SIZE_T) =
@@ -180,12 +186,12 @@ __rw_get_numpunct (const __rw_facet *pfacet, int flags)
     widen (s + pun->thousands_sep_off [winx], ts, tssz);
 
     // set the offset of the extended punctuation data
-    pun->punct_ext_off = pun->thousands_sep_off [winx] + tssz;
+    pun->punct_ext_off = pun->thousands_sep_off [winx] + int (tssz);
 
     // adjust alignment
-    if (pun->punct_ext_off % sizeof (_RWSTD_SIZE_T))
-        pun->punct_ext_off += 
-            sizeof (_RWSTD_SIZE_T) - pun->punct_ext_off % sizeof(_RWSTD_SIZE_T);
+    const _RWSTD_SIZE_T misalign = pun->punct_ext_off % sizeof (_RWSTD_SIZE_T);
+    if (misalign)
+        pun->punct_ext_off += int (sizeof (_RWSTD_SIZE_T) - misalign);
 
     s = _RWSTD_REINTERPRET_CAST (char*, pun + 1) + pun->punct_ext_off;
 
@@ -197,7 +203,7 @@ __rw_get_numpunct (const __rw_facet *pfacet, int flags)
     memset (num, ~0, sizeof *num);
 
     num->truename_off  [winx] = 0;
-    num->falsename_off [winx] = num->truename_off [winx] + tnsz;
+    num->falsename_off [winx] = num->truename_off [winx] + int (tnsz);
 
     widen (s + num->truename_off  [winx], "true", tnsz);
     widen (s + num->falsename_off [winx], "false", fnsz);
@@ -347,7 +353,7 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
 
     // compute offsets into the varaiable size structure
     pun->decimal_point_off [winx] = 0;
-    pun->thousands_sep_off [winx] = pun->decimal_point_off [winx] + dpsz;
+    pun->thousands_sep_off [winx] = pun->decimal_point_off [winx] + int (dpsz);
 
     // point widen to a wrapper for mbstowcs() for wchar_t or memcpy otherwise
     void (*widen)(void*, const void*, _RWSTD_SIZE_T) =
@@ -360,12 +366,12 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
     widen (s + pun->thousands_sep_off [winx], pconv->mon_thousands_sep, tssz);
 
     // set the offset of the extended punctuation data
-    pun->punct_ext_off = pun->thousands_sep_off [winx] + tssz;
+    pun->punct_ext_off = pun->thousands_sep_off [winx] + int (tssz);
 
     // adjust alignment
-    if (pun->punct_ext_off % sizeof (_RWSTD_SIZE_T))
-        pun->punct_ext_off += 
-            sizeof (_RWSTD_SIZE_T) - pun->punct_ext_off % sizeof(_RWSTD_SIZE_T);
+    const _RWSTD_SIZE_T misalign = pun->punct_ext_off % sizeof (_RWSTD_SIZE_T);
+    if (misalign)
+        pun->punct_ext_off += int (sizeof (_RWSTD_SIZE_T) - misalign);
 
     s = _RWSTD_REINTERPRET_CAST (char*, pun + 1) + pun->punct_ext_off;
 
@@ -377,12 +383,14 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
     ::memset (mon, ~0, sizeof *mon);
 
     mon->positive_sign_off [winx] = 0;
-    mon->negative_sign_off [winx] = mon->positive_sign_off [winx] + pssz;
+    mon->negative_sign_off [winx] = mon->positive_sign_off [winx] + int (pssz);
 
     widen (s + mon->positive_sign_off [winx], pconv->positive_sign, pssz);
     widen (s + mon->negative_sign_off [winx], pconv->negative_sign, nssz);
 
-    mon->curr_symbol_off [intl][winx] = mon->negative_sign_off [winx] + nssz;
+    mon->curr_symbol_off [intl][winx] =
+        mon->negative_sign_off [winx] + int (nssz);
+
     widen (s + mon->curr_symbol_off [intl][winx], cs, cssz);
 
     pun->grouping_off =
