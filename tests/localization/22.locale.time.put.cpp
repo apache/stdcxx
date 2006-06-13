@@ -1508,12 +1508,23 @@ void test_POSIX (charT, const char *tname)
     rw_putenv ("TZ=foo0bar1");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%Z", 0, 0, ' ', "foo");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%Z", 0, 0, ' ', "bar");
-    TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1), "%Z", 0, 0, ' ', "bar");
+
+    // the behavior when tmb is invalid (e.g., when (tm_isdst < 0))
+    // is undefined, avoid exercising it
+    // TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1), "%Z", 0, 0, ' ', "bar");
 
     rw_putenv ("TZ=EST1EDT2");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%Z", 0, 0, ' ', "EST");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%Z", 0, 0, ' ', "EDT");
-    TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1), "%Z", 0, 0, ' ', "EDT");
+
+    // the behavior when tmb is invalid (e.g., when (tm_isdst < 0))
+    // is undefined, avoid exercising it
+    // TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1), "%Z", 0, 0, ' ', "EDT");
+
+    // exercise two-digit hour
+    rw_putenv ("TZ=ABCD01DEFG02");
+    TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%Z", 0, 0, ' ', "ABCD");
+    TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%Z", 0, 0, ' ', "DEFG");
 
     //////////////////////////////////////////////////////////////////
     // %%: replaced by %
