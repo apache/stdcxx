@@ -41,6 +41,266 @@
 typedef unsigned char UChar;
 
 
+void UserTraits<char>::
+assign (char_type &dst, const char_type &src)
+{
+    ++n_calls_ [MemFun::assign];
+    Base::assign (dst, src);
+}
+
+
+bool UserTraits<char>::
+eq (const char_type &ch1, const char_type &ch2)
+{
+    ++n_calls_ [MemFun::eq];
+    return Base::eq (ch1, ch2);
+}
+
+
+bool UserTraits<char>::
+lt (const char_type &ch1, const char_type &ch2)
+{
+    ++n_calls_ [MemFun::lt];
+    return Base::lt (ch1, ch2);
+}
+
+
+int UserTraits<char>::
+compare (const char_type *s1, const char_type *s2, size_t n)
+{
+    ++n_calls_ [MemFun::compare];
+    return Base::compare (s1, s2, n);
+}
+
+        
+size_t UserTraits<char>::
+length (const char_type *s)
+{
+    ++n_calls_ [MemFun::length];
+    return Base::length (s);
+}
+ 
+
+const UserTraits<char>::char_type*
+UserTraits<char>::
+find (const char_type *s, size_t n, const char_type &ch)
+{
+    ++n_calls_ [MemFun::find];
+    return Base::find (s, n, ch);
+}
+
+
+UserTraits<char>::char_type*
+UserTraits<char>::
+copy (char_type *dst, const char_type *src, size_t n)
+{
+    ++n_calls_ [MemFun::copy];
+    return Base::copy (dst, src, n);
+}
+
+
+UserTraits<char>::char_type*
+UserTraits<char>::
+move (char_type *dst, const char_type *src, size_t n)
+{
+    ++n_calls_ [MemFun::move];
+    return Base::move (dst, src, n);
+}
+
+
+UserTraits<char>::char_type*
+UserTraits<char>::
+assign (char_type *s, size_t n, char_type ch)
+{
+    ++n_calls_ [MemFun::assign];
+    return Base::assign (s, n, ch);
+}
+
+
+UserTraits<char>::int_type
+UserTraits<char>::
+not_eof (const int_type &i)
+{
+    ++n_calls_ [MemFun::not_eof];
+    return eof () == i ? ~i : i;
+}
+
+
+UserTraits<char>::char_type
+UserTraits<char>::
+to_char_type (const int_type &i)
+{
+    ++n_calls_ [MemFun::to_char_type];
+    return Base::to_char_type (i);
+}
+
+      
+UserTraits<char>::int_type
+UserTraits<char>::
+to_int_type (const char_type &ch)
+{
+    ++n_calls_ [MemFun::to_int_type];
+    return Base::to_int_type (ch);
+}
+
+
+bool UserTraits<char>::
+eq_int_type (const int_type &i1, const int_type &i2)
+{
+    ++n_calls_ [MemFun::eq_int_type];
+    return Base::eq_int_type (i1, i2);
+}
+
+
+UserTraits<char>::int_type
+UserTraits<char>::
+eof ()
+{
+    return eof_;
+}
+
+
+size_t UserTraits<char>::
+n_calls_ [UserTraits<char>::MemFun::n_funs];
+
+
+UserTraits<char>::int_type
+UserTraits<char>::
+eof_ = std::char_traits<char>::eof ();
+
+
+#ifndef _RWSTD_NO_WCHAR_T
+
+void UserTraits<wchar_t>::
+assign (char_type &dst, const char_type &src)
+{
+    ++n_calls_ [MemFun::assign];
+    Base::assign (dst, src);
+}
+
+
+bool UserTraits<wchar_t>::
+eq (const char_type &ch1, const char_type &ch2)
+{
+    ++n_calls_ [MemFun::eq];
+    return Base::eq (ch1, ch2);
+}
+
+
+bool UserTraits<wchar_t>::
+lt (const char_type &ch1, const char_type &ch2)
+{
+    ++n_calls_ [MemFun::lt];
+    return Base::lt (ch1, ch2);
+}
+
+
+int UserTraits<wchar_t>::
+compare (const char_type *s1, const char_type *s2, size_t n)
+{
+    ++n_calls_ [MemFun::compare];
+    return Base::compare (s1, s2, n);
+}
+
+        
+size_t UserTraits<wchar_t>::
+length (const char_type *s)
+{
+    ++n_calls_ [MemFun::length];
+    return Base::length (s);
+}
+ 
+
+const UserTraits<wchar_t>::char_type*
+UserTraits<wchar_t>::
+find (const char_type *s, size_t n, const char_type &ch)
+{
+    ++n_calls_ [MemFun::find];
+    return Base::find (s, n, ch);
+}
+
+
+UserTraits<wchar_t>::char_type*
+UserTraits<wchar_t>::
+copy (char_type *dst, const char_type *src, size_t n)
+{
+    ++n_calls_ [MemFun::copy];
+    return Base::copy (dst, src, n);
+}
+
+
+UserTraits<wchar_t>::char_type*
+UserTraits<wchar_t>::
+move (char_type *dst, const char_type *src, size_t n)
+{
+    ++n_calls_ [MemFun::move];
+    return Base::move (dst, src, n);
+}
+
+
+UserTraits<wchar_t>::char_type*
+UserTraits<wchar_t>::
+assign (char_type *s, size_t n, char_type ch)
+{
+    ++n_calls_ [MemFun::assign];
+    return Base::assign (s, n, ch);
+}
+
+
+UserTraits<wchar_t>::int_type
+UserTraits<wchar_t>::
+not_eof (const int_type &i)
+{
+    ++n_calls_ [MemFun::not_eof];
+    return eof () == i ? ~i : i;
+}
+
+
+UserTraits<wchar_t>::char_type
+UserTraits<wchar_t>::
+to_char_type (const int_type &i)
+{
+    ++n_calls_ [MemFun::to_char_type];
+    return Base::to_char_type (i);
+}
+
+      
+UserTraits<wchar_t>::int_type
+UserTraits<wchar_t>::
+to_int_type (const char_type &ch)
+{
+    ++n_calls_ [MemFun::to_int_type];
+    return Base::to_int_type (ch);
+}
+
+
+bool UserTraits<wchar_t>::
+eq_int_type (const int_type &i1, const int_type &i2)
+{
+    ++n_calls_ [MemFun::eq_int_type];
+    return Base::eq_int_type (i1, i2);
+}
+
+
+UserTraits<wchar_t>::int_type
+UserTraits<wchar_t>::
+eof ()
+{
+    return eof_;
+}
+
+
+size_t UserTraits<wchar_t>::
+n_calls_ [UserTraits<wchar_t>::MemFun::n_funs];
+
+
+UserTraits<wchar_t>::int_type
+UserTraits<wchar_t>::
+eof_ = std::char_traits<wchar_t>::eof ();
+
+#endif   // _RWSTD_NO_WCHAR_T
+
+
 size_t
 UserTraits<UserChar>::
 n_calls_ [UserTraits<UserChar>::MemFun::n_funs];
