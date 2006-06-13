@@ -6,16 +6,22 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -602,8 +608,9 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
         // copy string to the allocated buffer and set its offset
         memcpy (pbuf + off, str, size);
-        pmem [nl_items [i].moff [0]]  = off;
-        off                          += size;
+        pmem [nl_items [i].moff [0]] =
+            _RWSTD_STATIC_CAST (_RWSTD_UINT32_T, off);
+        off += size;
 
 #ifndef _RWSTD_NO_WCHAR_T
 
@@ -627,8 +634,9 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
             size += 1;
         }
 
-        pmem [nl_items [i].moff [1]]  = off;
-        off                          += size * sizeof (wchar_t);
+        pmem [nl_items [i].moff [1]] =
+            _RWSTD_STATIC_CAST (_RWSTD_UINT32_T, off);
+        off += size * sizeof (wchar_t);
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -2019,7 +2027,7 @@ use_tzset:
 
     // tzet() sets timezone to the difference, in seconds, between
     // Coordinated Universal Time (UTC) and local standard time
-    tpd.val = timezone / 60;
+    tpd.val = _RWSTD_STATIC_CAST (int, timezone / 60);
 
 #else   // if defined (_RWSTD_NO_TIMEZONE)
 
@@ -2657,12 +2665,12 @@ __rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
 
         _RWSTD_ASSERT (0 != ptime);
 
-        const _RWSTD_UINT32_T n = ptime->alt_digits_count ();
+        const _RWSTD_UINT32_T ndigits = ptime->alt_digits_count ();
 
-        if (tpd.altval >= 0 && tpd.altval < int (n)) {
+        const _RWSTD_UINT32_T altval =
+            _RWSTD_STATIC_CAST (_RWSTD_UINT32_T, tpd.altval);
 
-            const _RWSTD_SIZE_T altval =
-                _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, tpd.altval);
+        if (altval < ndigits) {
 
             // format using alternative numeric symbols
             const char* digit =

@@ -2,20 +2,26 @@
  *
  * _localedef.h
  *
- * $Id: //stdlib/dev/include/loc/_localedef.h#74 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -238,23 +244,26 @@ struct __rw_collate_t
 
     // get the offset of a table number `tabno'
     _RWSTD_UINT32_T get_n_tab_off (_RWSTD_UINT32_T tabno) const {
-        return sizeof (_RWSTD_UINT32_T) * (*(const _RWSTD_UINT32_T*)(
-            (_RWSTD_SIZE_T)((const char*)this + sizeof *this 
+        return (_RWSTD_UINT32_T)
+            (sizeof (_RWSTD_UINT32_T) * (*(const _RWSTD_UINT32_T*)(
+             (_RWSTD_SIZE_T)((const char*)this + sizeof *this 
                             + n_char_off_tab_off 
-                            + (tabno * sizeof (_RWSTD_UINT32_T)))));
+                            + (tabno * sizeof (_RWSTD_UINT32_T))))));
     }
     _RWSTD_UINT32_T get_n_ce_tab_off (_RWSTD_UINT32_T tabno) const {
-        return sizeof (_RWSTD_UINT32_T) * (*(const _RWSTD_UINT32_T*)(
-            (_RWSTD_SIZE_T)((const char*)this + sizeof *this 
+        return (_RWSTD_UINT32_T)
+            (sizeof (_RWSTD_UINT32_T) * (*(const _RWSTD_UINT32_T*)(
+             (_RWSTD_SIZE_T)((const char*)this + sizeof *this 
                             + n_ce_off_tab_off 
-                            + (tabno * sizeof (_RWSTD_UINT32_T)))));
+                            + (tabno * sizeof (_RWSTD_UINT32_T))))));
     }
 
     _RWSTD_UINT32_T get_w_ce_tab_off (_RWSTD_UINT32_T tabno) const {
-        return sizeof (_RWSTD_UINT32_T) * (*(const _RWSTD_UINT32_T*)(
-            (_RWSTD_SIZE_T)((const char*)this + sizeof *this 
+        return (_RWSTD_UINT32_T)
+            (sizeof (_RWSTD_UINT32_T) * (*(const _RWSTD_UINT32_T*)(
+             (_RWSTD_SIZE_T)((const char*)this + sizeof *this 
                             + w_ce_off_tab_off 
-                            + (tabno * sizeof (_RWSTD_UINT32_T)))));
+                            + (tabno * sizeof (_RWSTD_UINT32_T))))));
     }
 
     unsigned char get_first_char_in_n_tab (_RWSTD_UINT32_T tabno) const {
@@ -302,10 +311,11 @@ struct __rw_collate_t
     }
 
     _RWSTD_UINT32_T get_w_tab_off (_RWSTD_UINT32_T tabno) const {
-        return sizeof (_RWSTD_UINT32_T) * (*(const _RWSTD_UINT32_T*)(
-            (_RWSTD_SIZE_T)((const char*)this + sizeof *this
+        return (_RWSTD_UINT32_T)
+            (sizeof (_RWSTD_UINT32_T) * (*(const _RWSTD_UINT32_T*)(
+             (_RWSTD_SIZE_T)((const char*)this + sizeof *this
                             + w_char_off_tab_off 
-                            + (tabno * sizeof (_RWSTD_UINT32_T)))));
+                            + (tabno * sizeof (_RWSTD_UINT32_T))))));
     }
 
     unsigned char get_first_char_in_w_tab (_RWSTD_UINT32_T tabno) const {
@@ -550,28 +560,28 @@ struct __rw_time_t
     _RWSTD_UINT32_T time_ext_off;      // extended time data offset
 
     // %a: abbreviated weekday name [tm_wday]
-    const void* abday (unsigned idx, bool wide) const {
+    const void* abday (_RWSTD_SIZE_T idx, bool wide) const {
         return _RWSTD_CHAR_ARRAY (abday_off [wide][idx]);
     }
 
     // %A: full weekday name [tm_wday]
-    const void* day (unsigned idx, bool wide) const {
+    const void* day (_RWSTD_SIZE_T idx, bool wide) const {
         return _RWSTD_CHAR_ARRAY (day_off [wide][idx]);
     }
 
     // %b: abbreviated month name [tm_mon]
-    const void* abmon (unsigned idx, bool wide) const {
+    const void* abmon (_RWSTD_SIZE_T idx, bool wide) const {
         return _RWSTD_CHAR_ARRAY (abmon_off [wide][idx]);
     }
 
     // %B: full month name [tm_mon]
-    const void* mon (unsigned idx, bool wide) const {
+    const void* mon (_RWSTD_SIZE_T idx, bool wide) const {
         return _RWSTD_CHAR_ARRAY (mon_off [wide][idx]);
     }
 
     // %p: the locale's equivalent of the AM/PM designations
     //     associated with a 12-hour clock [tm_hour]
-    const void* am_pm (unsigned idx, bool wide) const {
+    const void* am_pm (_RWSTD_SIZE_T idx, bool wide) const {
         return _RWSTD_CHAR_ARRAY (am_pm_off [wide][idx]);
     }
 
@@ -651,7 +661,7 @@ struct __rw_time_t
     }
 
     // number of alternative digits
-    _RWSTD_SIZE_T alt_digits_count () const {
+    _RWSTD_UINT32_T alt_digits_count () const {
         return num_alt_digits;
     }
 
@@ -809,9 +819,9 @@ __rw_utf8toucs4 (_RWSTD_INT32_T *ret, const char *from, const char *from_end)
 // with bit 31 set if the the range [`from', `from_end') forms an incomplete
 // multibyte character (i.e., if it's an initial subsequence of one)
 static inline 
-unsigned __rw_mbtowco (const unsigned int  *cvtbl,
-                       const char         *&from,
-                       const char          *from_end)
+unsigned __rw_mbtowco (const unsigned *cvtbl,
+                       const char     *&from,
+                       const char     *from_end)
 {
     typedef unsigned char _UChar;
 
