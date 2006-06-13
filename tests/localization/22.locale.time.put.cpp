@@ -252,13 +252,15 @@ void do_test (int             lineno,  // line number containing tests
         // format character, no modifier
         *tp.put (it, ios, fill, tmb, char (wpat [1])) = charT ();
 
-        bool ok = 0 == rw_strncmp (buf, result);
+        const bool success = 0 == rw_strncmp (buf, result);
 
-        rw_assert (!str || ok , __FILE__, lineno,
-                   "line %d. time_put<%s>::do_put (%{t}, ..., %#c) ==>"
+        rw_assert (!str || success , __FILE__, lineno,
+                   "line %d. time_put<%s>::do_put (%{t}, ..., %#c) "
+                   "%{?}with TZ=\"%{$TZ}\" %{;}==>"
                    " %{*Ac}, expected %{*Ac}%{?} (strftime format %#s)%{;}, "
                    "flags = %{If}",
                    __LINE__, tname, tmb, pat [1],
+                   'Z' == pat [1] || 'z' == pat [1],
                    int (sizeof *buf), buf, int (sizeof *result), result,
                    str && '%' == str [0], str, flags);
     }
@@ -268,9 +270,9 @@ void do_test (int             lineno,  // line number containing tests
         *tp.put (it, ios, fill, tmb, char (wpat [2]), char (wpat [1])) =
             charT ();
 
-        bool ok = 0 == rw_strncmp (buf, result);
+        const bool success = 0 == rw_strncmp (buf, result);
 
-        rw_assert (!str || ok , __FILE__, lineno,
+        rw_assert (!str || success , __FILE__, lineno,
                    "line %d. time_put<%s>::do_put (%{t}, ..., %#c, %#c) ==>"
                    " %{*Ac}, expected %{*Ac}%{?} (strftime format %#s)%{;}, "
                    "flags = %{If}",
@@ -287,10 +289,12 @@ void do_test (int             lineno,  // line number containing tests
     const bool success = 0 == rw_strncmp (buf, result);
 
     rw_assert (!str || success , __FILE__, lineno,
-               "line %d. time_put<%s>::do_put (%{t}, ..., %#s) ==>"
+               "line %d. time_put<%s>::do_put (%{t}, ..., %#s) "
+               "%{?}with TZ=\"%{$TZ}\" %{;}==>"
                " %{*Ac}, expected %{*Ac}%{?} (strftime format %#s)%{;}, "
                "flags = %{If}",
                __LINE__, tname, tmb, pat,
+               std::strstr (pat, "%Z") || std::strstr (pat, "%z"),
                int (sizeof *buf), buf, int (sizeof *result), result,
                str && '%' == str [0], str, flags);
 }
