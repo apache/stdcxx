@@ -315,7 +315,7 @@ extern "C" int swprintf (wchar_t*, size_t, const wchar_t*, ...);
 #else   // MSVC 7.1 and above
 
 // MSVC 7.1 declares two overloads of swprintf()
-extern "C++" int swprintf (wchar_t*, size_t, const wchar_t*, ...);
+/* extern "C++" */ int swprintf (wchar_t*, size_t, const wchar_t*, ...);
 
 #endif   // MSVC
 
@@ -384,7 +384,8 @@ extern "C" int vswprintf (wchar_t*, size_t, const wchar_t*, _RWSTD_VA_LIST);
 #else   // MSVC 7.1 and above
 
 // MSVC 7.1 declares two overloads of vswprintf()
-extern "C++" int vswprintf (wchar_t*, size_t, const wchar_t*, _RWSTD_VA_LIST);
+/* extern "C++" */
+int vswprintf (wchar_t*, size_t, const wchar_t*, _RWSTD_VA_LIST);
 
 #endif   // MSVC
 
