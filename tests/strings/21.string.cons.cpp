@@ -33,7 +33,7 @@
 /**************************************************************************/
 
 // for convenience and brevity
-#define Ctor(sig)               StringIds::ctor_ ## sig
+#define Cons(sig)               StringIds::ctor_ ## sig
 #define OpSet(sig)              StringIds::op_set_ ## sig
 
 static const char* const exceptions[] = {
@@ -277,7 +277,7 @@ cstr_size_size_test_cases [] = {
 
 #undef TEST
 #define TEST(arg, off, size, res, bthrow) {         \
-        __LINE__, off, size, -1, -1, -1,            \
+        __LINE__, -1, -1, off, size, -1,            \
         0, 0, arg, sizeof arg - 1,                  \
         res, sizeof res - 1, bthrow                 \
     }
@@ -317,8 +317,8 @@ cstr_size_size_test_cases [] = {
     TEST ("x@3695",    10, 2284, "x@2284",    0),
     TEST ("x@4096",     0, 4096, "x@4096",    0),     
 
-    TEST ("abc",        5,  3, "abc",         1), 
-    TEST ("x@4096",  4106,  3, "xxx",         1), 
+    TEST ("abc",        5,  3,   "",          1), 
+    TEST ("x@4096",  4106,  3,   "",          1), 
 
     TEST ("last test",  0,  9, "last test",   0)
 };
@@ -527,95 +527,93 @@ val_op_set_test_cases [] = {
     TEST ("",       't',  "t") 
 };
 
-
 /**************************************************************************/
 
-template <class charT, class Traits, class Allocator, class Iterator>
-void test_ctor_range (const StringTestCaseData<charT> &tdata,
-                      Traits*, Allocator*, const Iterator &it)
-{
-    typedef std::basic_string <charT, Traits, Allocator> String;
-    typedef typename String::iterator                    StringIter;
+// invokes specializations of the member function template
+// on the required iterator categories
+template <class String, class Iterator>
+struct ConsRange: RangeBase<String> {
 
-    const StringTestCase &tcase = tdata.tcase_;
+    typedef typename String::iterator       StringIter;
+    typedef typename String::value_type     StringChar;
+    typedef typename String::allocator_type StringAlloc;
 
-    const char* const itname =
-        tcase.arg ? type_name (it, (charT*)0) : "basic_string::iterator";
+    ConsRange () { }
 
-    // construct the string argument 
-    /* const */ String arg (tdata.arg_, tdata.arglen_);
+    virtual String&
+    operator() (String&, const StringTestCaseData<StringChar>& tdata) const {
 
-    std::size_t off1 = std::size_t (tcase.off) < tdata.arglen_ ?
-             std::size_t (tcase.off) : tdata.arglen_;
+        const StringChar* const beg = tdata.arg_ + tdata.off2_;
+        const StringChar* const end = beg + tdata.ext2_;
 
-    std::size_t ext1 = off1 + tcase.size < tdata.arglen_ ?
-             std::size_t (tcase.size) : tdata.arglen_ - off1;
+        const Iterator first (beg, beg, end);
+        const Iterator last  (end, beg, end);
 
-    // create a pair of iterators into the string object being modified
-    const StringIter it_first (arg.begin () + off1);
-    const StringIter it_last  (it_first + ext1);
+        if (Cons (range_alloc) == tdata.func_.which_) {
+            StringAlloc alloc;
+            String* tmp = new String (first, last, alloc);
+            return *tmp;
+        }
 
-    const String str (it_first, it_last);
-
-    // detrmine whether the produced sequence matches the exepceted result
-    const std::size_t match = rw_match (tcase.res, str.data (), tcase.nres);
-
-    rw_assert (match == tdata.reslen_, 0, tcase.line,
-               "line %d. %{$FUNCALL} expected %{#*s}, got %{/*.*Gs}, "
-               "difference at offset %zu for %s",
-               __LINE__, int (tcase.nres), tcase.res,
-               int (sizeof (charT)), int (str.size ()), str.c_str (),
-               match, itname);
-}
-
-/**************************************************************************/
-
-template <class charT, class Traits, class Allocator>
-void test_ctor_range (const StringTestCaseData<charT> &tdata,
-                      Traits*, Allocator*)
-{
-    if (tdata.tcase_.bthrow) {
-        return;
+        String* tmp = new String (first, last);
+        return *tmp;
     }
+};
 
-    test_ctor_range (tdata, (Traits*)0, (Allocator*)0, 
-                     InputIter<charT>(0, 0, 0));
+/**************************************************************************/
 
-    test_ctor_range (tdata, (Traits*)0, (Allocator*)0,
-                     ConstFwdIter<charT>(0, 0, 0));
+// invokes possible overloads of the member function template
+// on common RandomAccessIterator types
+template <class String, class Iterator>
+struct ConsRangeOverload: RangeBase<String>
+{
+    typedef typename String::iterator       StringIter;
+    typedef typename String::value_type     StringChar;
+    typedef typename String::allocator_type StringAlloc;
 
-    test_ctor_range (tdata, (Traits*)0, (Allocator*)0,
-                     ConstBidirIter<charT>(0, 0, 0));
+    ConsRangeOverload () { }
 
-    test_ctor_range (tdata, (Traits*)0, (Allocator*)0,
-                     ConstRandomAccessIter<charT>(0, 0, 0));
-}
+    virtual String&
+    operator() (String& str_arg, 
+                const StringTestCaseData<StringChar>& tdata) const {
+
+        const std::size_t off = tdata.off2_;
+        const std::size_t ext = tdata.ext2_;
+
+        const Iterator first (begin (str_arg, (Iterator*)0) + off);
+        const Iterator last (first + ext);
+
+        if (Cons (range_alloc) == tdata.func_.which_) {
+            StringAlloc alloc;
+            String* tmp = new String (first, last, alloc);
+            return *tmp;
+        }
+
+        String* tmp = new String (first, last);
+        return *tmp;
+    }
+};
 
 /**************************************************************************/
 
 template <class charT, class Traits, class Allocator>
-void test_ctor (charT*, Traits*, Allocator*,
-                const StringTestCaseData<charT> &tdata)
+void test_cons (charT*, Traits*, Allocator*, const RangeBase<
+                    std::basic_string <charT, Traits, Allocator> > &rng,
+                const StringTestCaseData<charT>                    &tdata)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
 
     const StringFunc     &func  = tdata.func_;
     const StringTestCase &tcase = tdata.tcase_;
 
-    if (Ctor (range) == func.which_) {
-        // special processing for the ctor() template member
-        // function to exercise all iterator categories
-        test_ctor_range (tdata, (Traits*)0, (Allocator*)0);
-        return;
-    }
-
     // construct the argument string 
-    const String arg (tdata.arg_, tdata.arglen_);
+    /* const */ String arg (tdata.arg_, tdata.arglen_);
 
     // offset and extent function arguments
-    // offset and extent function arguments
-    const std::size_t arg_off  = std::size_t (tcase.off);
-    const std::size_t arg_size = std::size_t (tcase.size);
+    const std::size_t arg_off  = -1 != tcase.off ? 
+        std::size_t (tcase.off) : std::size_t (tcase.off2);
+    const std::size_t arg_size = -1 != tcase.size ? 
+        std::size_t (tcase.size) : std::size_t (tcase.size2);
 
     // string function argument
     const charT* const arg_ptr = arg.c_str ();
@@ -629,7 +627,8 @@ void test_ctor (charT*, Traits*, Allocator*,
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    if (1 == tcase.bthrow)
+    if (1 == tcase.bthrow && Cons (range) != func.which_ 
+                          && Cons (range_alloc) != func.which_)
         expected = exceptions [1];      // out_of_range
     else if (2 == tcase.bthrow)
         expected = exceptions [2];      // length_error
@@ -650,52 +649,60 @@ void test_ctor (charT*, Traits*, Allocator*,
     try {
         switch (func.which_) {
 
-        case Ctor (void):
+        case Cons (void):
             ret_ptr = new String ();
             break;
 
-        case Ctor (alloc):
+        case Cons (alloc):
             ret_ptr = new String (arg_alc);
             break;
 
-        case Ctor (cptr):
+        case Cons (cptr):
             ret_ptr = new String (arg_ptr);
             break;
 
-        case Ctor (cptr_alloc):
+        case Cons (cptr_alloc):
             ret_ptr = new String (arg_ptr, arg_alc);
             break;
 
-        case Ctor (cstr):
+        case Cons (cstr):
             ret_ptr = new String (arg_str);
             break;
 
-        case Ctor (cptr_size):
+        case Cons (cptr_size):
             ret_ptr = new String (arg_ptr, arg_size);
             break;
 
-        case Ctor (cptr_size_alloc):
+        case Cons (cptr_size_alloc):
             ret_ptr = new String (arg_ptr, arg_size, arg_alc);
             break;
 
-        case Ctor (cstr_size):
+        case Cons (cstr_size):
             ret_ptr = new String (arg_str, arg_off);
             break;
 
-        case Ctor (cstr_size_size):
+        case Cons (cstr_size_size):
             ret_ptr = new String (arg_str, arg_off, arg_size);
             break;
 
-        case Ctor (cstr_size_size_alloc):
+        case Cons (cstr_size_size_alloc):
             ret_ptr = new String (arg_str, arg_off, arg_size, arg_alc);
             break;
 
-        case Ctor (size_val):
+        case Cons (size_val):
             ret_ptr = new String (tcase.size, arg_val);
             break;
 
-        case Ctor (size_val_alloc):
+        case Cons (size_val_alloc):
             ret_ptr = new String (tcase.size, arg_val, arg_alc);
+            break;
+
+        case Cons (range):
+            ret_ptr = &rng (arg, tdata);
+            break;
+
+        case Cons (range_alloc):
+            ret_ptr = &rng (arg, tdata);
             break;
 
         default:
@@ -721,7 +728,7 @@ void test_ctor (charT*, Traits*, Allocator*,
                        tdata.reslen_, cwidth, int (ret_ptr->size ()), 
                        ret_ptr->data (), ret_ptr->size ());
 
-            if (Ctor (void) != func.which_) {
+            if (Cons (void) != func.which_) {
                 // verify the capacity of the resulting string
                 rw_assert (ret_ptr->size () <= ret_ptr->capacity (), 0, 
                            tcase.line, "line %d. %{$FUNCALL} expected "
@@ -1020,10 +1027,67 @@ template <class charT, class Traits, class Allocator>
 void test_cons (charT*, Traits*, Allocator*,
                 const StringTestCaseData<charT> &tdata)
 {
-    if (StringIds::fid_op_set == (tdata.func_.which_ & StringIds::fid_mask))
+    typedef std::basic_string<charT, Traits, Allocator> String;
+
+    if (StringIds::fid_op_set == (tdata.func_.which_ & StringIds::fid_mask)) {
         test_op_set ((charT*)0, (Traits*)0, (Allocator*)0, tdata);
-    else
-        test_ctor ((charT*)0, (Traits*)0, (Allocator*)0, tdata);
+        return;
+    }
+
+    if (tdata.func_.which_ == Cons (range) 
+        || tdata.func_.which_ == Cons (range_alloc)) {
+
+        switch (tdata.func_.iter_id_) {
+
+        // exercise possible overloads of the member function template
+        // on common RandomAccessIterator types
+#undef TEST
+#define TEST(Iterator) do {                                                 \
+        typedef typename String::Iterator Iter;                             \
+        static const                                                        \
+        ConsRangeOverload<String, Iter> rng;                                \
+        test_cons ((charT*)0, (Traits*)0, (Allocator*)0, rng, tdata);       \
+    } while (0)
+
+        case StringIds::Pointer: TEST (pointer); break;
+        case StringIds::ConstPointer: TEST (const_pointer); break;
+        case StringIds::Iterator: TEST (iterator); break;
+        case StringIds::ConstIterator: TEST (const_iterator); break;
+
+            // disabled for now
+        case StringIds::ReverseIterator:
+            // TEST (reverse_iterator);
+            break;
+
+        case StringIds::ConstReverseIterator:
+            // TEST (const_reverse_iterator);
+            break;
+
+        // exercise specializations of the member function template
+        // on the required iterator categories
+
+#undef TEST
+#define TEST(Iterator) do {                                                 \
+        typedef Iterator<charT> Iter;                                       \
+        static const                                                        \
+        ConsRange<String, Iter> rng;                                        \
+        test_cons ((charT*)0, (Traits*)0, (Allocator*)0, rng, tdata);       \
+    } while (0)
+
+        case StringIds::Input: TEST (InputIter); break;
+        case StringIds::Forward: TEST (ConstFwdIter); break;
+        case StringIds::Bidir: TEST (ConstBidirIter); break;
+        case StringIds::Random: TEST (ConstRandomAccessIter); break;
+
+        default:
+            rw_error (0, 0, __LINE__, "bad iterator id");
+        }
+    }
+    else {
+        // exercise ordinary overloads of the member function
+        static const RangeBase<String> rng;
+        test_cons ((charT*)0, (Traits*)0, (Allocator*)0, rng, tdata);
+    }
 }
 
 /**************************************************************************/
@@ -1037,7 +1101,7 @@ int main (int argc, char** argv)
 
 #undef TEST
 #define TEST(sig) {                                             \
-        Ctor (sig), sig ## _test_cases,                         \
+        Cons (sig), sig ## _test_cases,                         \
         sizeof sig ## _test_cases / sizeof *sig ## _test_cases  \
     }
 
