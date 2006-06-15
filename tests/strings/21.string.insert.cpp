@@ -603,7 +603,13 @@ struct InsertRangeOverload: RangeBase<String>
         // create a pair of iterators into the string object being modified
         const StringIter first1 (str.begin () + tdata.off1_);
 
-        const std::size_t off = tdata.off2_;
+        bool reverse_iter = StringIds::ReverseIterator == tdata.func_.iter_id_
+            || StringIds::ConstReverseIterator == tdata.func_.iter_id_;
+
+        const std::size_t srclen_ = tcase.arg ? tdata.arglen_ : str.size ();
+
+        const std::size_t off = 
+            reverse_iter ? srclen_ - tdata.off2_ - tdata.ext2_ : tdata.off2_;
         const std::size_t ext = tdata.ext2_;
 
         if (0 == tcase.arg) {
@@ -936,8 +942,8 @@ void test_insert (charT*, Traits*, Allocator*,
 #define TEST(Iterator) do {                                                 \
         typedef typename String::Iterator Iter;                             \
         static const                                                        \
-        InsertRangeOverload<String, Iter> rep;                              \
-        test_insert ((charT*)0, (Traits*)0, (Allocator*)0, rep, tdata);     \
+        InsertRangeOverload<String, Iter> rng;                              \
+        test_insert ((charT*)0, (Traits*)0, (Allocator*)0, rng, tdata);     \
     } while (0)
 
         case StringIds::Pointer: TEST (pointer); break;
@@ -945,13 +951,8 @@ void test_insert (charT*, Traits*, Allocator*,
         case StringIds::Iterator: TEST (iterator); break;
         case StringIds::ConstIterator: TEST (const_iterator); break;
 
-            // disabled for now
-        case StringIds::ReverseIterator:
-            // TEST (reverse_iterator);
-            break;
-
-        case StringIds::ConstReverseIterator:
-            // TEST (const_reverse_iterator);
+        case StringIds::ReverseIterator: TEST (reverse_iterator); break;
+        case StringIds::ConstReverseIterator: TEST (const_reverse_iterator);
             break;
 
         // exercise specializations of the member function template
@@ -960,8 +961,8 @@ void test_insert (charT*, Traits*, Allocator*,
 #define TEST(Iterator) do {                                                 \
         typedef Iterator<charT> Iter;                                       \
         static const                                                        \
-        InsertRange<String, Iter> rep;                                      \
-        test_insert ((charT*)0, (Traits*)0, (Allocator*)0, rep, tdata);     \
+        InsertRange<String, Iter> rng;                                      \
+        test_insert ((charT*)0, (Traits*)0, (Allocator*)0, rng, tdata);     \
     } while (0)
 
         case StringIds::Input: TEST (InputIter); break;
@@ -975,8 +976,8 @@ void test_insert (charT*, Traits*, Allocator*,
     }
     else {
         // exercise ordinary overloads of the member function
-        static const RangeBase<String> rep;
-        test_insert ((charT*)0, (Traits*)0, (Allocator*)0, rep, tdata);
+        static const RangeBase<String> rng;
+        test_insert ((charT*)0, (Traits*)0, (Allocator*)0, rng, tdata);
     }
 }
 

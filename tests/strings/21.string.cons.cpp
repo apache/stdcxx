@@ -577,7 +577,11 @@ struct ConsRangeOverload: RangeBase<String>
     operator() (String& str_arg, 
                 const StringTestCaseData<StringChar>& tdata) const {
 
-        const std::size_t off = tdata.off2_;
+        bool reverse_iter = StringIds::ReverseIterator == tdata.func_.iter_id_
+            || StringIds::ConstReverseIterator == tdata.func_.iter_id_;
+
+        const std::size_t off = reverse_iter ? 
+            tdata.arglen_ - tdata.off2_ - tdata.ext2_ : tdata.off2_;
         const std::size_t ext = tdata.ext2_;
 
         const Iterator first (begin (str_arg, (Iterator*)0) + off);
@@ -1054,13 +1058,8 @@ void test_cons (charT*, Traits*, Allocator*,
         case StringIds::Iterator: TEST (iterator); break;
         case StringIds::ConstIterator: TEST (const_iterator); break;
 
-            // disabled for now
-        case StringIds::ReverseIterator:
-            // TEST (reverse_iterator);
-            break;
-
-        case StringIds::ConstReverseIterator:
-            // TEST (const_reverse_iterator);
+        case StringIds::ReverseIterator: TEST (reverse_iterator); break;
+        case StringIds::ConstReverseIterator: TEST (const_reverse_iterator);
             break;
 
         // exercise specializations of the member function template
