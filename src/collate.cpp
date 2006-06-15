@@ -6,16 +6,22 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -104,7 +110,8 @@ _RWSTD_SIZE_T wcsxfrm (wchar_t*, const wchar_t*, _RWSTD_SIZE_T) _LIBC_THROWS ();
 extern "C" {
 
 // declare if not declared in the system header(s)
-_RWSTD_SIZE_T wcstombs (char*, const wchar_t*, _RWSTD_SIZE_T) _LIBC_THROWS ();
+_RWSTD_DLLIMPORT _RWSTD_SIZE_T
+wcstombs (char*, const wchar_t*, _RWSTD_SIZE_T) _LIBC_THROWS ();
 
 #  undef _RWSTD_NO_WCSTOMBS
 
