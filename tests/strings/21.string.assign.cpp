@@ -480,7 +480,13 @@ struct AssignRangeOverload: RangeBase<String>
 
         const StringTestCase &tcase = tdata.tcase_;
 
-        const std::size_t off = tdata.off2_;
+        bool reverse_iter = StringIds::ReverseIterator == tdata.func_.iter_id_
+            || StringIds::ConstReverseIterator == tdata.func_.iter_id_;
+
+        const std::size_t srclen_ = tcase.arg ? tdata.arglen_ : str.size ();
+
+        const std::size_t off = 
+            reverse_iter ? srclen_ - tdata.off2_ - tdata.ext2_ : tdata.off2_;
         const std::size_t ext = tdata.ext2_;
 
         if (0 == tcase.arg) {
@@ -791,8 +797,8 @@ void test_assign (charT*, Traits*, Allocator*,
 #define TEST(Iterator) do {                                                 \
         typedef typename String::Iterator Iter;                             \
         static const                                                        \
-        AssignRangeOverload<String, Iter> app;                              \
-        test_assign ((charT*)0, (Traits*)0, (Allocator*)0, app, tdata);     \
+        AssignRangeOverload<String, Iter> rng;                              \
+        test_assign ((charT*)0, (Traits*)0, (Allocator*)0, rng, tdata);     \
     } while (0)
 
         case StringIds::Pointer: TEST (pointer); break;
@@ -800,13 +806,8 @@ void test_assign (charT*, Traits*, Allocator*,
         case StringIds::Iterator: TEST (iterator); break;
         case StringIds::ConstIterator: TEST (const_iterator); break;
 
-            // disabled for now
-        case StringIds::ReverseIterator:
-            // TEST (reverse_iterator);
-            break;
-
-        case StringIds::ConstReverseIterator:
-            // TEST (const_reverse_iterator);
+        case StringIds::ReverseIterator: TEST (reverse_iterator); break;
+        case StringIds::ConstReverseIterator: TEST (const_reverse_iterator);
             break;
 
         // exercise specializations of the member function template
@@ -816,8 +817,8 @@ void test_assign (charT*, Traits*, Allocator*,
 #define TEST(Iterator) do {                                                 \
         typedef Iterator<charT> Iter;                                       \
         static const                                                        \
-        AssignRange<String, Iter> app;                                      \
-        test_assign ((charT*)0, (Traits*)0, (Allocator*)0, app, tdata);     \
+        AssignRange<String, Iter> rng;                                      \
+        test_assign ((charT*)0, (Traits*)0, (Allocator*)0, rng, tdata);     \
     } while (0)
 
         case StringIds::Input: TEST (InputIter); break;
@@ -831,8 +832,8 @@ void test_assign (charT*, Traits*, Allocator*,
     }
     else {
         // exercise ordinary overloads of the member function
-        static const RangeBase<String> app;
-        test_assign ((charT*)0, (Traits*)0, (Allocator*)0, app, tdata);
+        static const RangeBase<String> rng;
+        test_assign ((charT*)0, (Traits*)0, (Allocator*)0, rng, tdata);
     }
 }
 

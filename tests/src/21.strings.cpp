@@ -987,6 +987,40 @@ _rw_setvars (const StringFunc     &func,
 
 /**************************************************************************/
 
+// helper function to reverse substring in the resulting sequence
+static
+StringTestCase _rw_reverse_results (const StringTestCase &tsrc,
+                                    _RWSTD_SIZE_T off, _RWSTD_SIZE_T ext)
+{
+    // expand expected results
+    char *new_res = 0;
+    _RWSTD_SIZE_T res_len = 0;
+    new_res = rw_expand (new_res, tsrc.res, tsrc.nres, &res_len);
+
+    // reverse them
+    _RWSTD_SIZE_T res_off = off;
+    _RWSTD_SIZE_T res_ext = (ext < res_len ? ext : res_len) - 1;
+
+    char* beg = new_res + res_off;
+    char* end = beg + res_ext;
+
+    for (; beg < end; ++beg, --end) {
+        char tmp = *beg;
+        *beg = *end;
+        *end = tmp;
+    }
+
+    // form new test case
+    StringTestCase new_case = { 
+        tsrc.line, tsrc.off, tsrc.size, tsrc.off2,
+        tsrc.size2, tsrc.val, tsrc.str, tsrc.str_len, 
+        tsrc.arg, tsrc.arg_len, new_res, res_len, tsrc.bthrow 
+    };
+
+    return new_case;
+}
+
+
 template <class charT, class Traits, class Allocator>
 void
 _rw_dispatch (charT*, Traits*, Allocator*,
@@ -1001,9 +1035,34 @@ _rw_dispatch (charT*, Traits*, Allocator*,
 
     TestFunc* const tfunc = _RWSTD_REINTERPRET_CAST (TestFunc*, farray [inx]);
 
+    bool reverse_iter = StringIds::ReverseIterator == func.iter_id_ 
+        || StringIds::ConstReverseIterator == func.iter_id_;
+
     const Data tdata (func, tcase);
 
-    tfunc ((charT*)0, (Traits*)0, (Allocator*)0, tdata);
+    // special processing for the reverse iterators
+    if (reverse_iter) {
+
+        _RWSTD_SIZE_T func_id = tdata.func_.which_ & StringIds::fid_mask;
+        bool like_ctor = StringIds::fid_ctor == func_id 
+            || StringIds::fid_assign == func_id;
+
+        // ctor and assign require the full string reverse
+        _RWSTD_SIZE_T off = like_ctor ? 0 : tdata.off1_;
+        _RWSTD_SIZE_T ext = like_ctor ? tdata.reslen_ : tdata.ext2_;
+
+        StringTestCase rev_tcase = _rw_reverse_results (tcase, off, ext);
+
+        const Data rev_tdata (func, rev_tcase);
+
+        tfunc ((charT*)0, (Traits*)0, (Allocator*)0, rev_tdata);
+
+        // clean up allocated memory, if any
+        if (0 != rev_tcase.res) 
+            delete[] rev_tcase.res;
+    }
+    else
+        tfunc ((charT*)0, (Traits*)0, (Allocator*)0, tdata);
 }
 
 
