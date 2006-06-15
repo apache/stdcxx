@@ -310,12 +310,24 @@ using ::swprintf;
 
 #if _MSC_VER < 1310   // MSVC < 7.1 or (better yet) not MSVC
 
-extern "C" int swprintf (wchar_t*, size_t, const wchar_t*, ...);
+extern "C" {
 
-#else   // MSVC 7.1 and above
+_RWSTD_DLLIMPORT int
+swprintf (wchar_t*, size_t, const wchar_t*, ...);
+
+}   // extern "C"
+
+#elif _MSC_VER == 1310   // MSVC 7.1
+
+// MSVC 8.0 defines the C++ overload of swprintf() inline
+/* extern "C++" */ _RWSTD_DLLIMPORT int
+swprintf (wchar_t*, size_t, const wchar_t*, ...);
+
+#else   // MSVC 8.0 and above
 
 // MSVC 7.1 declares two overloads of swprintf()
-/* extern "C++" */ int swprintf (wchar_t*, size_t, const wchar_t*, ...);
+/* extern "C++" */ int
+swprintf (wchar_t*, size_t, const wchar_t*, ...);
 
 #endif   // MSVC
 
@@ -379,13 +391,24 @@ using ::vswprintf;
 
 #if _MSC_VER < 1310   // MSVC < 7.1 or (better yet) not MSVC
 
-extern "C" int vswprintf (wchar_t*, size_t, const wchar_t*, _RWSTD_VA_LIST);
+extern "C" {
 
-#else   // MSVC 7.1 and above
+_RWSTD_DLLIMPORT int
+vswprintf (wchar_t*, size_t, const wchar_t*, _RWSTD_VA_LIST);
 
-// MSVC 7.1 declares two overloads of vswprintf()
-/* extern "C++" */
-int vswprintf (wchar_t*, size_t, const wchar_t*, _RWSTD_VA_LIST);
+}   // extern "C"
+
+#elif _MSC_VER == 1310   // MSVC 7.1
+
+// MSVC 7.1 declares two overloads of swprintf()
+/* extern "C++" */ _RWSTD_DLLIMPORT int
+swprintf (wchar_t*, size_t, const wchar_t*, ...);
+
+#else   // MSVC 8.0 and above
+
+// MSVC 8.0 defines the C++ overload of vswprintf() inline
+/* extern "C++" */ int
+vswprintf (wchar_t*, size_t, const wchar_t*, _RWSTD_VA_LIST);
 
 #endif   // MSVC
 
