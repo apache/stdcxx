@@ -10,6 +10,25 @@
  *
  ***************************************************************************
  *
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ***************************************************************************
+ *
  * Copyright (c) 1994
  * Hewlett-Packard Company
  *
@@ -21,19 +40,6 @@
  * representations about the suitability of this software for any
  * purpose.  It is provided "as is" without express or implied warranty.
  *
- ***************************************************************************
- *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
- * 
  **************************************************************************/
 
 #ifndef _RWSTD_RW_SPECIALIZED_H_INCLUDED
@@ -70,22 +76,34 @@ __rw_new_capacity (_RWSTD_CONTAINER_SIZE_TYPE __size, const _Container*)
 #undef _RWSTD_CONTAINER_SIZE_TYPE
 
 
+template <class _TypeT, class _TypeU>
+inline void
+__rw_construct (_TypeT* __p, const _TypeU& __val)
+{
+    ::new (_RWSTD_STATIC_CAST (void*, __p)) _TypeT (__val);
+}
+
+
+template <class _TypeT, class _TypeU>
+inline void
+__rw_construct (volatile _TypeT* __p, const _TypeU& __val)
+{
+    // remove volatile before invoking operator new
+    __rw_construct (_RWSTD_CONST_CAST (_TypeT*, __p), __val);
+}
+
+
 template <class _TypeT>
-inline void __rw_destroy (_TypeT &__ref)
+inline void
+__rw_destroy (_TypeT &__ref)
 {
     __ref.~_TypeT ();
 }
 
 
-template <class _TypeT, class _TypeU>
-inline void __rw_construct (_TypeT* __p, const _TypeU& __val)
-{
-    ::new (__p) _TypeT (__val);
-}
-
-
 template <class _ForwardIterator> 
-inline void __rw_destroy (_ForwardIterator __first, _ForwardIterator __last)
+inline void
+__rw_destroy (_ForwardIterator __first, _ForwardIterator __last)
 {
     for (; __first != __last; ++__first)
         __rw_destroy (*__first);
@@ -107,8 +125,8 @@ inline void __rw_destroy (_TypeT**, _TypeT**)
 
 _RWSTD_NAMESPACE (std) { 
 
-template <class _TypeT> class
-allocator;
+template <class _TypeT>
+class allocator;
 
 
 // 20.4.4.1
