@@ -2,7 +2,7 @@
  *
  * specialized.cpp - test exercising 20.4.4 [lib.specialized.algorithms]
  *
- * $Id: //stdlib/dev/tests/stdlib/utilities/specialized.cpp#3 $
+ * $Id: //stdlib/dev/tests/stdlib/utilities/specialized.cpp#4 $
  *
  ***************************************************************************
  *
@@ -80,8 +80,19 @@ const char* type_name (volatile T*, T*) { return "volatile T*"; }
 template <class T>
 const char* type_name (const volatile T*, T*) { return "const volatile T*"; }
 
-template <class T>
-volatile T* make_iter (T *beg, T*, T*, volatile T*) { return beg; }
+// defined as ordinary functions (as opposed to templates)
+// to avoid tripping up broken compilers on argument deduction
+inline const volatile int*
+make_iter (const int *beg, const int*, const int*, const volatile int*)
+{
+    return beg;
+}
+
+inline volatile Y*
+make_iter (Y *beg, Y*, Y*, volatile Y*)
+{
+    return beg;
+}
 
 /**************************************************************************/
 
