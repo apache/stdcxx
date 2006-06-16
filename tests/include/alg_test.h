@@ -601,7 +601,7 @@ struct InputIter: ITER_BASE (std::input_iterator_tag, T, int, T*, T&)
     typedef T                       value_type;
     typedef value_type*             pointer;
     typedef value_type&             reference;
-    typedef int                     difference_type;
+    typedef _RWSTD_PTRDIFF_T        difference_type;
     typedef std::input_iterator_tag iterator_category;
 
     // body shared by all copies of the same InputIter specialization
@@ -616,7 +616,9 @@ struct InputIter: ITER_BASE (std::input_iterator_tag, T, int, T*, T&)
         Shared (const value_type *cur,
                 const value_type *beg,
                 const value_type *end)
-            : cur_ (cur), beg_ (beg), end_ (end), ref_ (1) { }
+            : cur_ (cur), beg_ (beg), end_ (end), ref_ (1) {
+            RW_ASSERT (beg_ <= cur_ && cur_ <= end_);
+        }
 
         ~Shared () {
             cur_ = beg_ = end_ = 0;
@@ -723,7 +725,7 @@ struct OutputIter: ITER_BASE (std::output_iterator_tag, T, int, T*, T&)
     typedef T                        value_type;
     typedef value_type*              pointer;
     typedef value_type&              reference;
-    typedef int                      difference_type;
+    typedef _RWSTD_PTRDIFF_T         difference_type;
     typedef std::output_iterator_tag iterator_category;
 
     // body shared by all copies of the same OutputIter specialization
@@ -850,7 +852,7 @@ struct FwdIter: ITER_BASE (std::forward_iterator_tag, T, int, T*, T&)
     typedef T                         value_type;
     typedef value_type*               pointer;
     typedef value_type&               reference;
-    typedef int                       difference_type;
+    typedef _RWSTD_PTRDIFF_T          difference_type;
     typedef std::forward_iterator_tag iterator_category;
 
     FwdIter (): cur_ (0), end_ (0) { }
@@ -934,7 +936,7 @@ struct BidirIter: ITER_BASE (std::bidirectional_iterator_tag, T, int, T*, T&)
     typedef T                               value_type;
     typedef value_type*                     pointer;
     typedef value_type&                     reference;
-    typedef int                             difference_type;
+    typedef _RWSTD_PTRDIFF_T                difference_type;
     typedef std::bidirectional_iterator_tag iterator_category;
 
     BidirIter (): cur_ (0), begin_ (0), end_ (0) { }
@@ -1030,7 +1032,7 @@ struct RandomAccessIter
     typedef T                               value_type;
     typedef value_type*                     pointer;
     typedef value_type&                     reference;
-    typedef int                             difference_type;
+    typedef _RWSTD_PTRDIFF_T                difference_type;
     typedef std::random_access_iterator_tag iterator_category;
 
     RandomAccessIter (): cur_ (0), begin_ (0), end_ (0) { }
@@ -1247,7 +1249,7 @@ inline const char* type_name (FwdIter<T>, const T*)
 
 template <class T>
 inline ConstFwdIter<T>
-make_iter (T *cur, const T *begin, const T *end, ConstFwdIter<T>)
+make_iter (const T *cur, const T *begin, const T *end, ConstFwdIter<T>)
 {
     return ConstFwdIter<T>(cur, begin, end);
 }
@@ -1285,7 +1287,7 @@ inline const char* type_name (BidirIter<T>, const T*)
 
 template <class T>
 inline ConstBidirIter<T>
-make_iter (T *cur, const T *begin, const T *end, ConstBidirIter<T>)
+make_iter (const T *cur, const T *begin, const T *end, ConstBidirIter<T>)
 {
     return ConstBidirIter<T>(cur, begin, end);
 }
@@ -1323,7 +1325,7 @@ inline const char* type_name (RandomAccessIter<T>, const T*)
 
 template <class T>
 inline ConstRandomAccessIter<T>
-make_iter (T *cur, const T *begin, const T *end, ConstRandomAccessIter<T>)
+make_iter (const T *cur, const T *begin, const T *end, ConstRandomAccessIter<T>)
 {
     return ConstRandomAccessIter<T>(cur, begin, end);
 }
