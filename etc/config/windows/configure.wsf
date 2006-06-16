@@ -717,7 +717,7 @@ function checkHeaders(currentCfg)
             {
                 // if a symbol isn't declared in the header,
                 // see if it maybe exists in the library
-                WScript.StdOut.WriteLine("\tno\t" + sym);
+                WScript.StdOut.WriteLine("\tno (" + sym + ")");
                 appendLineToOutFile("#define " + sym);
                 // that is quite strange because there is no LIBM on Windows?
                 sym = sym + "_IN_LIB" + lib.toUpperCase();
@@ -739,7 +739,7 @@ function checkHeaders(currentCfg)
                 else
                 {
                     appendLineToOutFile("#define " + sym);
-                    WScript.StdOut.WriteLine("  no\t\t" + sym);
+                    WScript.StdOut.WriteLine("  no (" + sym + ")");
                 }
             }
         }
@@ -938,8 +938,12 @@ function runExeTests()
                 outSymbol = "";
             }
             appendLineToOutFile(symbol);
-            if (descText && descText != "")
-                WScript.StdOut.WriteLine("  ok " + outSymbol);
+            if (descText && descText != "") {
+                if ("" != outSymbol)
+                    WScript.StdOut.WriteLine("  no (" + outSymbol + ")");
+                else
+                    WScript.StdOut.WriteLine("  ok ");
+            }
                 
             // append text results if present
             if (textResult.length != 0)
