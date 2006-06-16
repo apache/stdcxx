@@ -2,7 +2,7 @@
  *
  * specialized.cpp - test exercising 20.4.4 [lib.specialized.algorithms]
  *
- * $Id: //stdlib/dev/tests/stdlib/utilities/specialized.cpp#2 $
+ * $Id: //stdlib/dev/tests/stdlib/utilities/specialized.cpp#3 $
  *
  ***************************************************************************
  *
@@ -78,6 +78,9 @@ template <class T>
 const char* type_name (volatile T*, T*) { return "volatile T*"; }
 
 template <class T>
+const char* type_name (const volatile T*, T*) { return "const volatile T*"; }
+
+template <class T>
 volatile T* make_iter (T *beg, T*, T*, volatile T*) { return beg; }
 
 /**************************************************************************/
@@ -89,7 +92,7 @@ template <class InputIterator, class ForwardIterator>
 void test_uninitialized_copy (const InputIterator &dummy,
                               const ForwardIterator*)
 {
-    const char* const i1name = type_name (InputIterator (0, 0, 0), (int*)0);
+    const char* const i1name = type_name (dummy, (int*)0);
     const char* const i2name = type_name (ForwardIterator (), (Y*)0);
 
     rw_info (0, 0, __LINE__, "std::uninitialized_copy(%s, %1$s, %s)",
@@ -273,6 +276,9 @@ void test_uninitialized_copy (const InputIterator &dummy)
 static int
 run_test (int, char**)
 {
+    typedef const volatile int* ConstVolatilePointer;
+    typedef /* */ volatile Y*   VolatilePointer;
+
     if (-1 < opt_copy) {
         if (-1 < opt_input_iter)
             test_uninitialized_copy (InputIter<int>(0, 0, 0));
@@ -292,18 +298,22 @@ run_test (int, char**)
             rw_note (-1 > opt_bidir_iter--, 0, __LINE__,
                      "BidirectionalIterator tests disabled");
 
-        if (-1 < opt_bidir_iter)
+        if (-1 < opt_rnd_iter)
             test_uninitialized_copy (ConstRandomAccessIter<int>());
         else
-            rw_note (-1 > opt_bidir_iter--, 0, __LINE__,
+            rw_note (-1 > opt_rnd_iter--, 0, __LINE__,
                      "RandomAccessIterator tests disabled");
+
+        if (-1 < opt_volatile_ptr)
+            test_uninitialized_copy (ConstVolatilePointer ());
+        else
+            rw_note (-1 > opt_volatile_ptr--, 0, __LINE__,
+                     "volatile T* tests disabled");
     }
     else
         rw_note (0, 0, 0, "tests of std::uninitialized_copy disabled");
 
     //////////////////////////////////////////////////////////////////
-
-    typedef volatile Y* VolatilePointer;
 
     if (-1 < opt_fill) {
         if (-1 < opt_fwd_iter)
