@@ -99,6 +99,17 @@ struct StringIds {
         /* 33 */ fid_reserve,
         /* 34 */ fid_clear,
         /* 35 */ fid_empty,
+        /* 36 */ fid_begin,
+        /*    */ fid_begin_const = fid_begin,
+        /* 37 */ fid_end,
+        /*    */ fid_end_const = fid_end,
+        /* 38 */ fid_rbegin,
+        /*    */ fid_rbegin_const = fid_rbegin,
+        /* 39 */ fid_rend,
+        /*    */ fid_rend_const = fid_rend,
+        /* 40 */ fid_c_str,
+        /* 41 */ fid_data,
+        /* 42 */ fid_get_allocator,
         /* -- */ fid_bits = 6,
         /* -- */ fid_mask = 63
     };
@@ -558,7 +569,37 @@ struct StringIds {
 
         //////////////////////////////////////////////////////////////
         // empty ()
-        MEMBER_0 (empty, cstr)
+        MEMBER_0 (empty, cstr),
+
+        //////////////////////////////////////////////////////////////
+        // begin ()
+        MEMBER_0 (begin, str),
+        // begin () const
+        MEMBER_0 (begin_const, cstr),
+        // end ()
+        MEMBER_0 (end, str),
+        // end () const
+        MEMBER_0 (end_const, cstr),
+
+        //////////////////////////////////////////////////////////////
+        // rbegin ()
+        MEMBER_0 (rbegin, str),
+        // rbegin () const
+        MEMBER_0 (rbegin_const, cstr),
+        // rend ()
+        MEMBER_0 (rend, str),
+        // rend () const
+        MEMBER_0 (rend_const, cstr),
+
+        //////////////////////////////////////////////////////////////
+        // c_str () const
+        MEMBER_0 (c_str, cstr),
+        // data () const
+        MEMBER_0 (data, cstr),
+
+        //////////////////////////////////////////////////////////////
+        // get_allocator () const
+        MEMBER_0 (get_allocator, cstr)
     };
 
 // clean up helper macros used above

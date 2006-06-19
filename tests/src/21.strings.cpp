@@ -89,7 +89,8 @@ _rw_func_names[] = {
     0 /* special handling for the ctor */, "operator=", "swap", "push_back",
     "operator+", "operator==", "operator!=", "operator<", "operator<=",
     "operator>", "operator>=", "size", "length", "max_size", "resize", 
-    "capacity", "reserve", "clear", "empty"
+    "capacity", "reserve", "clear", "empty", "begin", "end", "rbegin",
+    "rend", "c_str", "data", "get_allocator"
 };
 
 /**************************************************************************/
@@ -246,6 +247,9 @@ _rw_sigcat (char **pbuf, size_t *pbufsize,
         case Ids::fid_find_last_of:
         case Ids::fid_rfind:
         case Ids::fid_substr:
+        case Ids::fid_c_str:
+        case Ids::fid_data:
+        case Ids::fid_get_allocator:
             // prevent appending the "_const" bit to the mnemonics
             // of member functions not overloaded on const
             is_const_member = false;
@@ -864,8 +868,23 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::reserve_void:
     case StringIds::clear_void:
     case StringIds::empty_void:
+    case StringIds::begin_void:
+    case StringIds::end_void:
+    case StringIds::rbegin_void:
+    case StringIds::rend_void:
+    case StringIds::c_str_void:
+    case StringIds::data_void:
+    case StringIds::get_allocator_void:
         rw_asnprintf (&buf, &bufsize,
                       "%{+} ()");
+        break;
+
+    case StringIds::begin_const_void:
+    case StringIds::end_const_void:
+    case StringIds::rbegin_const_void:
+    case StringIds::rend_const_void:
+        rw_asnprintf (&buf, &bufsize,
+            "%{+} () const");
         break;
 
     case StringIds::ctor_alloc:
