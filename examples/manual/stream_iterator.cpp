@@ -2,7 +2,7 @@
  *
  * io_iter.cpp - Example program of iterator.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/io_iter.cpp#11 $
+ * $Id$
  *
  ***************************************************************************
  *

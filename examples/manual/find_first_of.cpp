@@ -2,7 +2,7 @@
  *
  * find_f_o.cpp - Example program for finding a subsequence. 
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/find_f_o.cpp#12 $
+ * $Id$
  *
  ***************************************************************************
  *

@@ -1,8 +1,8 @@
 /**************************************************************************
  *
- * rev_itr.cpp - Example program of reverse iterator.
+ * accum.cpp - Example program for accumulate.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/rev_itr.cpp#10 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -19,32 +19,38 @@
  * 
  **************************************************************************/
 
-#include <iostream>   // for cout, endl
+#include <numeric>    // for accumulate
 #include <vector>     // for vector
+#include <functional> // for multiplies
+#include <iostream>   // for cout
 
 #include <examples.h>
 
-
 int main ()
 {
+    // Typedef for convenience.
     typedef std::vector<int, std::allocator<int> > Vector;
 
-    // Initialize a vector using an array.
-    const Vector::value_type arr[] = { 3, 4, 7, 8 };
-    const Vector v (arr + 0, arr + sizeof arr / sizeof *arr);
+    // Initialize a vector using an array of integers.
+    const Vector::value_type arr[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    Vector v1 (arr, arr + sizeof arr / sizeof *arr);
 
-    // Output the original vector.
-    std::cout << "Traversing vector with iterator: \n     ";
-    for (Vector::const_iterator i = v.begin (); i != v.end (); ++i)
+    // Accumulate sums and products.
+    Vector::value_type sum =
+        std::accumulate (v1.begin (), v1.end (), 0);
+
+    Vector::value_type prod =
+        std::accumulate (v1.begin (), v1.end (), 1,
+                         std::multiplies<Vector::value_type>());
+
+    // Output the results.
+    std::cout << "For the series: ";
+    for (Vector::iterator i = v1.begin (); i != v1.end (); ++i)
         std::cout << *i << " ";
 
-    // Output the vector backwards.
-    std::cout << "\n\nSame vector, same loop, reverse_itertor: \n     ";
-    for (Vector::const_reverse_iterator j (v.end ());
-         j != Vector::const_reverse_iterator (v.begin ()); ++j)
-        std::cout << *j << " ";
-
-    std::cout << std::endl;
+    std::cout << "where N = " << v1.size ()
+              << "\nThe sum = (N * N + N) / 2 = " << sum
+              << "\nThe product = N! = " << prod << std::endl;
 
     return 0;
 }

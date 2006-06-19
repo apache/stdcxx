@@ -2,7 +2,7 @@
  *
  * numget.cpp - Example program for the numget facet. 
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/numget.cpp#10 $
+ * $Id$
  *
  ***************************************************************************
  *

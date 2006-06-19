@@ -2,7 +2,7 @@
  *
  * ins_itr.cpp - Example program of insert iterator. 
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/ins_itr.cpp#10 $
+ * $Id$
  *
  ***************************************************************************
  *

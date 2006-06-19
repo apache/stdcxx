@@ -3,7 +3,7 @@
  * inr_prod.cpp - Example program computes the inner product A X B of two
  *                ranges A and B.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/inr_prod.cpp#11 $
+ * $Id$
  *
  ***************************************************************************
  *

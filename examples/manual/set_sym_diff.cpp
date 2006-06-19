@@ -2,7 +2,7 @@
  *
  * set_s_di.cpp - Example program of set symmetric difference algorithm.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/set_s_di.cpp#11 $
+ * $Id$
  *
  ***************************************************************************
  *

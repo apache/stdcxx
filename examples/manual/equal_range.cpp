@@ -3,7 +3,7 @@
  * eqlrange.cpp - Example program for finding the valid range for insertion 
  *                of a value in a container.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/eqlrange.cpp#11 $
+ * $Id$
  *
  ***************************************************************************
  *

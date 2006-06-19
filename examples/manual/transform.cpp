@@ -2,7 +2,7 @@
  *
  * trnsform.cpp - Example program of transform algorithm. 
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/trnsform.cpp#10 $
+ * $Id$
  *
  ***************************************************************************
  *

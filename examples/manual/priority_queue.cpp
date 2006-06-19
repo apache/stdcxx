@@ -2,7 +2,7 @@
  *
  * p_queue.cpp - Example program of a priority queue.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/p_queue.cpp#11 $
+ * $Id$
  *
  ***************************************************************************
  *
