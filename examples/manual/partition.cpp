@@ -2,7 +2,7 @@
  *
  * prtition.cpp - Example program for partition.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/prtition.cpp#11 $
+ * $Id$
  *
  ***************************************************************************
  *

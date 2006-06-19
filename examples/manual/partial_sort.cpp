@@ -2,7 +2,7 @@
  *
  * partsort.cpp - Example program of partial sort.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/partsort.cpp#10 $
+ * $Id$
  *
  ***************************************************************************
  *

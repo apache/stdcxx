@@ -2,7 +2,7 @@
  *
  * partsum.cpp - Example program for partial sum.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/partsum.cpp#8 $
+ * $Id$
  *
  ***************************************************************************
  *

@@ -1,8 +1,8 @@
 /**************************************************************************
  *
- * usefacet.cpp - Example program of the usefacet function template. 
+ * rev_itr.cpp - Example program of reverse iterator.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/usefacet.cpp#10 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -18,21 +18,33 @@
  * the License.
  * 
  **************************************************************************/
- 
-#include <iostream>     // for cout
-#include <locale>       // for locale
+
+#include <iostream>   // for cout, endl
+#include <vector>     // for vector
 
 #include <examples.h>
 
+
 int main ()
 {
-    std::locale loc;
+    typedef std::vector<int, std::allocator<int> > Vector;
 
-    // Get a ctype facet
-    const std::ctype<char>&
-        ct = std::use_facet<std::ctype<char> >(loc); 
+    // Initialize a vector using an array.
+    const Vector::value_type arr[] = { 3, 4, 7, 8 };
+    const Vector v (arr + 0, arr + sizeof arr / sizeof *arr);
 
-    std::cout << 'a' << ct.toupper('c') << std::endl;
- 
+    // Output the original vector.
+    std::cout << "Traversing vector with iterator: \n     ";
+    for (Vector::const_iterator i = v.begin (); i != v.end (); ++i)
+        std::cout << *i << " ";
+
+    // Output the vector backwards.
+    std::cout << "\n\nSame vector, same loop, reverse_itertor: \n     ";
+    for (Vector::const_reverse_iterator j (v.end ());
+         j != Vector::const_reverse_iterator (v.begin ()); ++j)
+        std::cout << *j << " ";
+
+    std::cout << std::endl;
+
     return 0;
 }

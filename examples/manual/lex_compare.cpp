@@ -2,7 +2,7 @@
  *
  * lex_comp.cpp - Example program compares to ranges lexicographically.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/lex_comp.cpp#12 $
+ * $Id$
  *
  ***************************************************************************
  *

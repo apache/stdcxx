@@ -2,7 +2,7 @@
  *
  * hasfacet.cpp - Example program of the hasfacet function template. 
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/hasfacet.cpp#12 $
+ * $Id$
  *
  ***************************************************************************
  *

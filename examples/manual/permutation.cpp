@@ -2,7 +2,7 @@
  *
  * permute.cpp - Example program of permutations.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/permute.cpp#14 $
+ * $Id$
  *
  ***************************************************************************
  *
