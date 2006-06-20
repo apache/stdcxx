@@ -28,6 +28,7 @@
 #include <rw_printf.h>
 #include <environ.h>   // for rw_putenv()
 
+#include <bitset>      // for bitset
 #include <ios>         // for ios::openmode, ios::seekdir
 #include <string>      // for string
 
@@ -190,7 +191,8 @@ const char* format_bad_address (const void *ptr, bool valid)
 
 /***********************************************************************/
 
-void test_percent ()
+static void
+test_percent ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "\"%\": percent sign");
@@ -213,7 +215,8 @@ void test_percent ()
 
 /***********************************************************************/
 
-void test_character ()
+static void
+test_character ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "\"%c\": character formatting");
@@ -346,7 +349,8 @@ void test_character ()
 
 /***********************************************************************/
 
-void test_string ()
+static void
+test_string ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "\"%s\": character string");
@@ -497,7 +501,8 @@ void test_string ()
 
 /***********************************************************************/
 
-void test_chararray ()
+static void
+test_chararray ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{Ac}\": quoted character array");
@@ -620,7 +625,8 @@ void test_chararray ()
 
 /***********************************************************************/
 
-void test_basic_string ()
+static void
+test_basic_string ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{S}\": std::string");
@@ -721,7 +727,8 @@ void test_basic_string ()
 
 /***********************************************************************/
 
-void test_ios_bitmasks ()
+static void
+test_ios_bitmasks ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{Io}\": std::ios_base::opemode");
@@ -763,7 +770,75 @@ void test_ios_bitmasks ()
 
 /***********************************************************************/
 
-void test_dec (char spec)
+static const char*
+mkbitset (const char *str)
+{
+    static char bitset [32];
+
+    memset (bitset, 0, sizeof bitset);
+
+    char *pbyte = bitset;
+
+    for (const char *pc = str; *pc; ++pc) {
+
+        const size_t bitno = size_t (pc - str);
+
+        if ((bitno & 15) == 8)
+            ++pbyte;
+
+        const size_t binx = bitno & 7;
+
+        if ('0' == *pc)
+            *pbyte &= ~(1 << binx);
+        else if ('1' == *pc)
+            *pbyte |= 1 << binx;
+        else
+            RW_ASSERT (!"logic error: bit must be '0' or '1'");
+
+        RW_ASSERT (size_t (pbyte - bitset) < sizeof bitset);
+    }
+
+    return bitset;
+}
+
+
+static void
+test_bitset ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{b}\": bitset");
+
+#define BS(str)   mkbitset (str)
+
+    TEST ("%{b}",    0,                       0, 0, "(null)");
+    TEST ("%{.1b}",  BS ("1"),                0, 0, "1");
+    TEST ("%{.2b}",  BS ("1"),                0, 0, "10");
+    TEST ("%{.3b}",  BS ("1"),                0, 0, "100");
+    TEST ("%{.3b}",  BS ("101"),              0, 0, "101");
+    TEST ("%{.8b}",  BS ("11111111"),         0, 0, "11111111");
+    TEST ("%{.16b}", BS ("0000000000000000"), 0, 0, "0000000000000000");
+    TEST ("%{.16b}", BS ("0000000000000001"), 0, 0, "0000000000000001");
+    TEST ("%{.16b}", BS ("0000000000000010"), 0, 0, "0000000000000010");
+    TEST ("%{.16b}", BS ("0000000000000100"), 0, 0, "0000000000000100");
+    TEST ("%{.16b}", BS ("0000000000001000"), 0, 0, "0000000000001000");
+    TEST ("%{.16b}", BS ("0000000000010000"), 0, 0, "0000000000010000");
+    TEST ("%{.16b}", BS ("0000000000100000"), 0, 0, "0000000000100000");
+    TEST ("%{.16b}", BS ("0000000001000000"), 0, 0, "0000000001000000");
+    TEST ("%{.16b}", BS ("0000000010000000"), 0, 0, "0000000010000000");
+    TEST ("%{.16b}", BS ("0000000100000000"), 0, 0, "0000000100000000");
+    TEST ("%{.16b}", BS ("0000001000000000"), 0, 0, "0000001000000000");
+    TEST ("%{.16b}", BS ("0000010000000000"), 0, 0, "0000010000000000");
+    TEST ("%{.16b}", BS ("0000100000000000"), 0, 0, "0000100000000000");
+    TEST ("%{.16b}", BS ("0001000000000000"), 0, 0, "0001000000000000");
+    TEST ("%{.16b}", BS ("0010000000000000"), 0, 0, "0010000000000000");
+    TEST ("%{.16b}", BS ("0100000000000000"), 0, 0, "0100000000000000");
+    TEST ("%{.16b}", BS ("1000000000000000"), 0, 0, "1000000000000000");
+}
+
+/***********************************************************************/
+
+static void
+test_dec (char spec)
 {
     const bool sgn = 'u' != spec;
 
@@ -916,7 +991,8 @@ void test_dec (char spec)
 
 /***********************************************************************/
 
-void test_oct ()
+static void
+test_oct ()
 {
     printf ("%s\n", "\"%o\": octal integer");
 
@@ -937,7 +1013,8 @@ void test_oct ()
 
 /***********************************************************************/
 
-void test_hex (char spec)
+static void
+test_hex (char spec)
 {
     printf ("\"%%%c\": hexadecimal integer\n", spec);
 
@@ -1153,7 +1230,8 @@ void test_hex (char spec)
 
 /***********************************************************************/
 
-void test_bool ()
+static void
+test_bool ()
 {
     printf ("%s\n", "extension: \"%b\": bool");
 
@@ -1174,7 +1252,8 @@ void test_bool ()
 
 /***********************************************************************/
 
-void test_integer ()
+static void
+test_integer ()
 {
     test_dec ('d');
     test_dec ('i');
@@ -1246,7 +1325,8 @@ void* make_array (int width,   // element width in bytes
     return array;
 }
 
-void test_intarray ()
+static void
+test_intarray ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{Ao}\": array of octal integers");
@@ -1377,7 +1457,8 @@ void test_intarray ()
 
 /***********************************************************************/
 
-void test_floating ()
+static void
+test_floating ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "\"%e\": scientific floating point notation");
@@ -1449,7 +1530,8 @@ void test_floating ()
 
 /***********************************************************************/
 
-void test_pointer ()
+static void
+test_pointer ()
 {
     printf ("%s\n", "\"%p\": void pointer");
 
@@ -1486,7 +1568,8 @@ extern "C" int test_function (int i)
 }
 
 
-void test_funptr ()
+static void
+test_funptr ()
 {
     printf ("%s\n", "extension: \"%{f}\": function pointer");
 
@@ -1544,7 +1627,8 @@ void test_funptr ()
 
 /***********************************************************************/
 
-void test_memptr ()
+static void
+test_memptr ()
 {
     printf ("%s\n", "extension: \"%{M}\": member pointer");
 
@@ -1676,7 +1760,8 @@ void test_memptr ()
 
 /***********************************************************************/
 
-void test_width_specific_int ()
+static void
+test_width_specific_int ()
 {
     printf ("%s\n", "extension: \"%{I8d}\": 8-bit decimal integers");
 
@@ -1770,7 +1855,8 @@ void test_width_specific_int ()
 
 /***********************************************************************/
 
-void test_envvar ()
+static void
+test_envvar ()
 {
     printf ("%s\n", "extension: \"%{$string}\": environment variable");
 
@@ -1947,7 +2033,8 @@ void test_envvar ()
 
 /***********************************************************************/
 
-void test_errno ()
+static void
+test_errno ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%m\": strerror(errno)");
@@ -2017,7 +2104,8 @@ void test_errno ()
 
 /***********************************************************************/
 
-void test_signal ()
+static void
+test_signal ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%K\": signal name");
@@ -2110,7 +2198,8 @@ make_tm (int sec = 0,            // [0,60]
 }
 
 
-void test_tm ()
+static void
+test_tm ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{t}\": struct tm");
@@ -2190,7 +2279,8 @@ void test_tm ()
 
 /***********************************************************************/
 
-void test_paramno ()
+static void
+test_paramno ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%<paramno>$\": positional parameters");
@@ -2243,7 +2333,8 @@ void test_paramno ()
 
 /***********************************************************************/
 
-void test_conditional ()
+static void
+test_conditional ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{?}\", \"%{:}\", \"%{;}\": conditional");
@@ -2481,7 +2572,8 @@ user_fun_g (char **pbuf, size_t *pbufsize, const char *fmt, ...)
 }
 
 
-void test_user_defined_formatting ()
+static void
+test_user_defined_formatting ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{!}\" user-defined formatting function");
@@ -2524,7 +2616,8 @@ void test_user_defined_formatting ()
 
 /***********************************************************************/
 
-void test_bufsize ()
+static void
+test_bufsize ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{N}\" buffer size");
@@ -2545,7 +2638,8 @@ void test_bufsize ()
 
 /***********************************************************************/
 
-void test_malformed_directives ()
+static void
+test_malformed_directives ()
 {
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "malformed directives");
@@ -2581,6 +2675,8 @@ int main ()
     test_basic_string ();
 
     test_ios_bitmasks ();
+
+    test_bitset ();
 
     test_tm ();
 

@@ -2535,6 +2535,25 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         }
         break;
 
+    case 'B':   // %{B}
+        // std::bitset
+        spec.param.ptr_ = PARAM (ptr_);
+        if (   0 == spec.param.ptr_
+            || 0 > _RW::__rw_memattr (spec.param.ptr_, spec.prec, 0))
+            len = _rw_fmtbadaddr (spec, buf, spec.param.ptr_, sizeof (long));
+        else
+            len = _rw_fmtbits (spec, buf, spec.param.ptr_, sizeof (long));
+        break;
+
+    case 'b':   // %{b}
+        spec.param.ptr_ = PARAM (ptr_);
+        if (   0 == spec.param.ptr_
+            || 0 > _RW::__rw_memattr (spec.param.ptr_, spec.prec, 0))
+            len = _rw_fmtbadaddr (spec, buf, spec.param.ptr_);
+        else
+            len = _rw_fmtbits (spec, buf, spec.param.ptr_, 1);
+        break;
+
     case 'c':   // %{c}, %{Ac}, %{Lc}, %{lc}
         if (spec.mod == spec.mod_ext_A) {   // array of characters
             len = _rw_fmtarray (pspec, paramno, buf, pva);
