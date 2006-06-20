@@ -221,5 +221,8 @@ _rw_fmtmonpat (const FmtSpec&, Buffer&, const char [4]);
 extern int
 _rw_fmtsignal (const FmtSpec&, Buffer&, int);
 
+// format a bitset of arbitrary size
+extern int
+_rw_fmtbits (const FmtSpec&, Buffer&, const void*, size_t);
 
 #endif   // RW_FMT_DEFS_H_INCLUDED

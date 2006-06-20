@@ -288,7 +288,7 @@ _rw_fmtseekdir (const FmtSpec &spec, Buffer &buf, int bits)
 /********************************************************************/
 
 /* extern */ int
-_rw_fmtevent (const FmtSpec &spec, Buffer &buf, int event)
+_rw_fmtevent (const FmtSpec&, Buffer &buf, int event)
 {
     const char* const str =
           std::ios::copyfmt_event == event ? "copyfmt_event"
@@ -1088,4 +1088,66 @@ _rw_fmtmask (const FmtSpec &spec, Buffer &buf, int c)
     newspec.fl_pound = 0;
 
     return _rw_fmtstr (newspec, buf, str, _RWSTD_SIZE_MAX);
+}
+
+/********************************************************************/
+
+/* extern */ int
+_rw_fmtbits (const FmtSpec &spec, Buffer &buf,
+             const void *pelems, size_t elemsize)
+{
+    const size_t nbits = spec.prec;
+
+    char bitbuf [256];
+    char *pbits = nbits < sizeof bitbuf ? bitbuf : new char [nbits + 1];
+
+    for (size_t bitno = 0; bitno != nbits; ++bitno) {
+
+        if (bitno && 0 == (bitno % (elemsize * _RWSTD_CHAR_BIT)))
+            pelems = _RWSTD_STATIC_CAST (const UChar*, pelems) + elemsize;
+
+        size_t bit = 1 << (bitno & (_RWSTD_CHAR_BIT * elemsize - 1));
+
+        switch (elemsize) {
+        case _RWSTD_CHAR_SIZE:
+            bit = *_RWSTD_STATIC_CAST (const UChar*, pelems) & bit;
+            break;
+
+#if _RWSTD_CHAR_SIZE < _RWSTD_SHRT_SIZE
+        case _RWSTD_SHRT_SIZE:
+            bit = *_RWSTD_STATIC_CAST (const UShrt*, pelems) & bit;
+            break;
+#endif   // sizeof (char) < sizeof (short)
+
+#if _RWSTD_SHRT_SIZE < _RWSTD_INT_SIZE
+        case _RWSTD_INT_SIZE:
+            bit = *_RWSTD_STATIC_CAST (const UInt*, pelems) & bit;
+            break;
+#endif   // sizeof (short) < sizeof (int)
+
+#if _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
+        case _RWSTD_LONG_SIZE:
+            bit = *_RWSTD_STATIC_CAST (const ULong*, pelems) & bit;
+            break;
+#endif   // sizeof (int) < sizeof (long)
+
+#if _RWSTD_LONG_SIZE < _RWSTD_LLONG_SIZE
+        case _RWSTD_LLONG_SIZE:
+            bit = *_RWSTD_STATIC_CAST (const ULLong*, pelems) & bit;
+            break;
+#endif   // sizeof (long) < sizeof (long long)
+
+        default:
+            RW_ASSERT ("logic error: bad element size");
+        }
+
+        pbits [bitno] = bit ? '1' : '0';
+    }
+
+    const int res = _rw_fmtstr (spec, buf, pbits, nbits);
+
+    if (pbits != bitbuf)
+        delete[] pbits;
+
+    return res;
 }
