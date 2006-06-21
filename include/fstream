@@ -245,6 +245,10 @@ protected:
     // 27.8.1.4, p16 - in input mode, repopulates buffer from file
     virtual int sync ();
 
+    // overridden for efficiency
+    virtual _RWSTD_STREAMSIZE
+    xsputn (const char_type*, _RWSTD_STREAMSIZE);
+
 private:
 
     basic_filebuf*
@@ -259,7 +263,7 @@ private:
 
     // write unshift sequence to file (multibyte, state-dependent encondings)
     bool _C_unshift ();
-    
+
     void      *_C_file;               // underlying FILE ptr or file descriptor
     pos_type   _C_cur_pos;            // offset/state in file corresponding to
                                       //  end of buffer, and actual pos in file 

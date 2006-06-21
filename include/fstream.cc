@@ -7,16 +7,22 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -329,137 +335,199 @@ overflow (int_type __c /* = eof () */)
 
     this->setg (0, 0, 0);            // invalidate the get area
 
-    const char_type* __from_beg;     // pointer to start of sequence to write
-    const char_type* __from_end;     // pointer to end of sequence to write
+    const bool __unbuf = this->_C_is_unbuffered ();
 
     const char_type __c_to_char = traits_type::to_char_type (__c);
 
-    if (this->_C_is_unbuffered ()) {
-        __from_beg = &__c_to_char;
-        __from_end = __from_beg + 1;
-    }
-    else {
-        __from_beg = this->_C_buffer;
-        __from_end = this->pptr ();
-    }
-
-    if (this->pptr () == 0 && !this->_C_is_unbuffered ()) {
+    if (this->pptr () == 0 && !__unbuf) {
         // put area not valid yet - just need to initialize it
         this->setp (this->_C_buffer, this->_C_buf_end ());
     }
     else if (   this->pptr () == this->epptr ()
              || this->_C_is_eof (__c)
-             || this->_C_is_unbuffered ()) {
+             || __unbuf) {
 
-        //  flush put area to file,
-        //  performing code conversion if necessary
+        const char_type*  __buf;
+        _RWSTD_STREAMSIZE __nchars;
 
-        typedef _TYPENAME traits_type::state_type _StateT;
-
-        _RWSTD_STREAMSIZE __nwrote = 0;          // num chars to write
-        _StateT __state = _C_cur_pos.state ();   // state of stream
-
-        _C_beg_pos = _C_cur_pos;
-
-        typedef codecvt<char_type, char, _StateT> _Codecvt;
-
-        const _Codecvt &__cvt = _USE_FACET (_Codecvt, this->getloc ());
-
-        if (__cvt.always_noconv ()) {
-
-            // no conversion
-
-            __nwrote = __from_end - __from_beg;
-
-            const _RWSTD_STREAMSIZE __nbytes = sizeof (char_type) * __nwrote;
-
-            if (__nbytes != _RW::__rw_fwrite (_C_file, this->_C_state,
-                                              __from_beg, __nbytes))
-                return traits_type::eof ();  // error while writing
+        if (__unbuf) {
+            __buf    = &__c_to_char;
+            __nchars = 1;
         }
         else {
-
-            // conversion required: we do this a chunk at a time
-            // to avoid dynamic allocation of memory
-
-            char             __xbuf [_RWSTD_DEFAULT_BUFSIZE];
-            char*            __xbuf_end  = __xbuf + sizeof __xbuf;
-            char*            __to_next   = 0;
-            const char_type* __from_next = 0;
-
-            for (const char_type* __base = __from_beg;
-                 __from_next != __from_end;
-                 __base = __from_next) {
-
-                const codecvt_base::result __res =
-                    __cvt.out (__state, __base, __from_end, __from_next,
-                               __xbuf, __xbuf_end, __to_next);
-
-                _RWSTD_STREAMSIZE __nbytes =
-                    sizeof (char_type) * (__from_end - __base);
-
-                switch (__res) {
-                case codecvt_base::error:
-                    // write out the sequence successfully converted up
-                    // to the point of the error in the internal sequence
-                    // and fail
-                    _RW::__rw_fwrite (_C_file, this->_C_state,
-                                      __base, __nbytes);
-                    return traits_type::eof ();
-
-                case codecvt_base::noconv:
-                    // write the entire sequence
-                    if (__nbytes != _RW::__rw_fwrite (_C_file, this->_C_state,
-                                                      __base, __nbytes))
-                        return traits_type::eof ();
-
-                    __nwrote += __from_end - __base
-                        + _C_crlf_intern_count (__base, __from_end);
-
-                    __from_next = __from_end; // effectively 'break'
-                    break;
-
-                default:
-                    _RWSTD_ASSERT (   codecvt_base::ok == __res
-                                   || codecvt_base::partial == __res);
-
-                    // a partial conversion will result if there's
-                    // not enough space in the conversion buffer to
-                    // hold the converted sequence, but we're O.K.
-                    // since we'll be passing any remaining unconverted
-                    // characters (starting at __from_next) in the next
-                    // iteration
-
-                    __nbytes = __to_next - __xbuf;
-
-                    if (__nbytes != _RW::__rw_fwrite (_C_file, this->_C_state,
-                                                      __xbuf, __nbytes))
-                        return traits_type::eof ();
-
-                    __nwrote += __nbytes
-                        + _C_crlf_extern_count (__xbuf, __to_next);
-                }
-            }
+            // call xsputn() with a special value to have it flush
+            // the controlled sequence to the file
+            __buf    = _RWSTD_REINTERPRET_CAST (char_type*, this);
+            __nchars = this->pptr () - this->pbase ();
         }
 
-        // adjust the current position in the file
-        _C_cur_pos += __nwrote;
-        _C_cur_pos.state (__state);
-
-        // reset the put area
-        if (!this->_C_is_unbuffered ())
-            this->setp (this->_C_buffer, this->_C_buf_end ());
+        if (__nchars != basic_filebuf::xsputn (__buf, __nchars))
+            return traits_type::eof ();  // error while writing
     }
 
     // now that there's room in the buffer, call sputc() recursively
-    //  to actually place the character in the buffer (unless we're
-    //   in unbuffered mode because we just wrote it out)
-    if (!this->_C_is_eof (__c) && !this->_C_is_unbuffered ())
+    // to actually place the character in the buffer (unless we're
+    // in unbuffered mode because we just wrote it out)
+    if (!this->_C_is_eof (__c) && !__unbuf)
         this->sputc (__c_to_char);
 
     this->_C_out_last (true);   // needed by close ()
 
     return traits_type::not_eof (__c);
+}
+
+
+template <class _CharT, class _Traits>
+_RWSTD_STREAMSIZE
+basic_filebuf<_CharT, _Traits>::
+xsputn (const char_type* __buf, _RWSTD_STREAMSIZE __nchars)
+{
+    _RWSTD_ASSERT (0 != __buf || 0 == __nchars);
+    _RWSTD_ASSERT (this->_C_is_valid ());
+
+    if (0 == __nchars)
+        return 0;   // not an error
+
+    if (__nchars < 0 || !this->_C_is_out () || !is_open ())
+        return -1;   // error
+
+    if (0 == this->pptr () && !this->_C_is_unbuffered ())
+        // put area not valid yet - just need to initialize it
+        this->setp (this->_C_buffer, this->_C_buf_end ());
+
+    const _RWSTD_STREAMSIZE __navail = this->epptr () - this->pptr ();
+
+    const char_type* const __special =
+        _RWSTD_REINTERPRET_CAST (char_type*, this);
+
+    if (__buf == __special) {
+        __buf = this->pbase ();
+    }
+    else if (__nchars <= __navail) {
+        // the amount of available space is big enough
+
+        // append the contents of the buffer to the controlled sequence
+        traits_type::copy (this->pptr (), __buf, __nchars);
+
+        this->pbump (__nchars);
+
+        return __nchars;
+    }
+    else {
+        // call self recursively to flush the controlled sequence first
+        const _RWSTD_STREAMSIZE __nwrite = this->pptr () - this->pbase ();
+
+        // return -1 on error to flush the controlled sequence
+        if (__nwrite != basic_filebuf::xsputn (__special, __nwrite))
+            return -1;
+    }
+
+    //  flush buffer to file, performing code conversion if necessary
+
+    _RWSTD_ASSERT (this->_C_is_valid ());
+    _RWSTD_ASSERT (this->_C_is_out ());
+    _RWSTD_ASSERT (is_open ());
+
+    const char_type* const __end = __buf + __nchars;
+
+    typedef _TYPENAME traits_type::state_type _StateT;
+
+    _RWSTD_STREAMSIZE __nwrote = 0;          // num chars to write
+    _StateT __state = _C_cur_pos.state ();   // state of stream
+
+    _C_beg_pos = _C_cur_pos;
+
+    typedef codecvt<char_type, char, _StateT> _Codecvt;
+
+    const _Codecvt &__cvt = _USE_FACET (_Codecvt, this->getloc ());
+
+    if (__cvt.always_noconv ()) {
+
+        // no conversion
+
+        __nwrote = __end - __buf;
+
+        const _RWSTD_STREAMSIZE __nbytes = sizeof (char_type) * __nwrote;
+
+        if (__nbytes != _RW::__rw_fwrite (_C_file, this->_C_state,
+                                          __buf, __nbytes))
+            return -1;  // error while writing
+    }
+    else {
+
+        // perform codeset conversion in chunks to avoid dynamic
+        // memory allocation
+
+        char             __xbuf [_RWSTD_DEFAULT_BUFSIZE];
+        char*            __xbuf_end  = __xbuf + sizeof __xbuf;
+        char*            __to_next   = 0;
+        const char_type* __from_next = 0;
+
+        for (const char_type* __base = __buf; __from_next != __end;
+             __base = __from_next) {
+
+            const codecvt_base::result __res =
+                __cvt.out (__state, __base, __end, __from_next,
+                           __xbuf, __xbuf_end, __to_next);
+
+            _RWSTD_STREAMSIZE __nbytes =
+                sizeof (char_type) * (__end - __base);
+
+            switch (__res) {
+            case codecvt_base::error:
+                // write out the sequence successfully converted up
+                // to the point of the error in the internal sequence
+                // and fail
+                _RW::__rw_fwrite (_C_file, this->_C_state, __base, __nbytes);
+                    return traits_type::eof ();
+
+            case codecvt_base::noconv:
+                // write the entire sequence
+                if (__nbytes != _RW::__rw_fwrite (_C_file, this->_C_state,
+                                                  __base, __nbytes))
+                    return traits_type::eof ();
+
+                __nwrote += __end - __base
+                    + _C_crlf_intern_count (__base, __end);
+
+                __from_next = __end; // effectively 'break'
+                break;
+
+            default:
+                _RWSTD_ASSERT (   codecvt_base::ok == __res
+                               || codecvt_base::partial == __res);
+
+                // partial conversion will result if there isn't enough
+                // space in the conversion buffer to hold the converted
+                // sequence, but we're O.K. since we'll be passing any
+                // remaining unconverted characters (starting at
+                // __from_next) in the next iteration
+
+                __nbytes = __to_next - __xbuf;
+
+                if (__nbytes != _RW::__rw_fwrite (_C_file, this->_C_state,
+                                                  __xbuf, __nbytes))
+                    return -1;
+
+                __nwrote += __nbytes
+                    + _C_crlf_extern_count (__xbuf, __to_next);
+            }
+        }
+    }
+
+    // adjust the current position in the file
+    _C_cur_pos += __nwrote;
+    _C_cur_pos.state (__state);
+
+    // reset the put area
+    if (!this->_C_is_unbuffered ())
+        this->setp (this->_C_buffer, this->_C_buf_end ());
+
+    this->_C_out_last (true);   // needed by close ()
+
+    // return the number of characters (not bytes) in the buffer
+    // successfully written to the file
+    return __nchars;
 }
 
 
