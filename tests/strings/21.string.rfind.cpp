@@ -27,6 +27,7 @@
 
 #include <string>           // for string
 #include <cstdlib>          // for free(), size_t
+#include <exception>        // for exception
 
 #include <21.strings.h>     // for StringIds
 #include <driver.h>         // for rw_test()
