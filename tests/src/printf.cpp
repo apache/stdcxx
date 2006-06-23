@@ -769,10 +769,11 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
         if (spec_bufsize == paramno) {
             // grow the buffer of conversion specifiers
-            FmtSpec* const tmp =
-                (FmtSpec*)malloc (spec_bufsize * 2 * sizeof (FmtSpec));
+            const size_t bytesize = spec_bufsize * sizeof (FmtSpec);
+
+            FmtSpec* const tmp = (FmtSpec*)malloc (bytesize * 2);
             if (tmp) {
-                memcpy (tmp, pspec, spec_bufsize);
+                memcpy (tmp, pspec, bytesize);
                 if (pspec != specbuf)
                     free (pspec);
                 pspec = tmp;
