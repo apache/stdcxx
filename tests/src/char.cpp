@@ -641,8 +641,10 @@ _rw_expand (void *dst, size_t elemsize,
         pnext   = (char*)pnext + count * elemsize;
         buflen += count;
 
-        if (0 == src_len)
+        if (0 == src_len) {
+            memset (pnext, 0, elemsize);
             break;
+        }
     }
 
     if (dst_len)
@@ -690,10 +692,25 @@ rw_match (const char *s1, const char *s2, size_t len /* = SIZE_MAX */)
     size_t s1_len = sizeof s1_buf;
 
     // see if the first string contains '@' and might need
-    // to be expanded  (see rw_expand() for details)
-    if (   _RWSTD_SIZE_MAX == len && strchr (s1, '@')
-        || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len)) {
-        s1 = rw_expand (s1_buf, s1, len, &s1_len);
+    // to be expanded (see rw_expand() for details)
+    bool expand = false;
+
+    if (_RWSTD_SIZE_MAX == len) {
+        expand = 0 != strchr (s1, '@');
+    }
+    else {
+        for (const char *p = s1; *p; ++p) {
+            if (size_t (p - s1) == len)
+                break;
+            if ('@' == *p) {
+                expand = true;
+                break;
+            }
+        }
+    }
+
+    if (expand) {
+        s1  = rw_expand (s1_buf, s1, _RWSTD_SIZE_MAX, &s1_len);
         len = s1_len;
     }
 
