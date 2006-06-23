@@ -30,8 +30,8 @@
 #include <rw_printf.h>
 #include <driver.h>
 
-#include <stdlib.h>
-#include <string.h>    // for memset, size_t
+#include <stdlib.h>    // for free()
+#include <string.h>    // for memset(), size_t, strlen()
 
 /***********************************************************************/
 
@@ -47,7 +47,7 @@ test_user_traits_char ()
 /***********************************************************************/
 
 static void
-test_user_traits_wchar_t ()
+test_user_traits_wchar ()
 {
     //////////////////////////////////////////////////////////////////
     rw_info (0, 0, 0, "template class UserTraits<wchar_t>");
@@ -530,17 +530,21 @@ test_rw_expand ()
     TEST ("abc",       "abc");
     TEST ("a\0b",      "a\0b");
     TEST ("a\0b\0c\0", "a\0b\0c\0");
+    TEST ("\0\0\0",    "\0\0\0");
 
     TEST ("\0@0",      "");
     TEST ("a@0",       "");
     TEST ("\0@1",      "\0");
     TEST ("a@1",       "a");
+    TEST ("\0@2",      "\0\0");
     TEST ("a@2",       "aa");
     TEST ("a@2\0",     "aa\0");
     TEST ("a@3",       "aaa");
     TEST ("a@1b",      "ab");
     TEST ("a@2b",      "aab");
     TEST ("a@3b",      "aaab");
+    TEST ("a@2\0\0",   "aa\0\0");
+    TEST ("\0@2b",     "\0\0b");
     TEST ("a@3bc",     "aaabc");
     TEST ("a@3b@1c",   "aaabc");
     TEST ("a@3b@2c",   "aaabbc");
@@ -559,7 +563,7 @@ test_rw_expand ()
         const size_t exp_size = sizeof expstr / sizeof *expstr - 1;        \
         size_t len;                                                        \
         wchar_t* const res = rw_expand ((wchar_t*)0, str, str_size, &len); \
-        rw_assert (   0 == memcmp (res, expstr, exp_size)                  \
+        rw_assert (   0 == memcmp (res, expstr, exp_size * sizeof *res)    \
                    && exp_size == len,                                     \
                    0, __LINE__,                                            \
                    "rw_expand((wchar_t*)0, %{#*s}, %zu, ...) == "          \
@@ -578,17 +582,22 @@ test_rw_expand ()
     TEST ("abc",       L"abc");
     TEST ("a\0b",      L"a\0b");
     TEST ("a\0b\0c\0", L"a\0b\0c\0");
+    TEST ("\0\0\0",    L"\0\0\0");
 
     TEST ("\0@0",      L"");
     TEST ("a@0",       L"");
     TEST ("\0@1",      L"\0");
     TEST ("a@1",       L"a");
+    TEST ("\0@2",      L"\0\0");
     TEST ("a@2",       L"aa");
     TEST ("a@2\0",     L"aa\0");
+    TEST ("\0@2a",     L"\0\0a");
     TEST ("a@3",       L"aaa");
     TEST ("a@1b",      L"ab");
     TEST ("a@2b",      L"aab");
     TEST ("a@3b",      L"aaab");
+    TEST ("a@2\0\0",   L"aa\0\0");
+    TEST ("\0@2b",     L"\0\0b");
     TEST ("a@3bc",     L"aaabc");
     TEST ("a@3b@1c",   L"aaabc");
     TEST ("a@3b@2c",   L"aaabbc");
@@ -958,39 +967,39 @@ test_formatting ()
 
 /***********************************************************************/
 
-static int no_user_traits;
-static int no_user_traits_char;
-static int no_user_traits_wchar_t;
-static int no_user_traits_user_char;
-static int no_rw_widen;
-static int no_rw_expand;
-static int no_rw_narrow;
-static int no_rw_match;
-static int no_formatting;
+static int opt_user_traits;
+static int opt_user_traits_char;
+static int opt_user_traits_wchar;
+static int opt_user_traits_user_char;
+static int opt_rw_widen;
+static int opt_rw_expand;
+static int opt_rw_narrow;
+static int opt_rw_match;
+static int opt_formatting;
 
 
 static int
 run_test (int, char*[])
 {
-    if (no_user_traits) {
+    if (opt_user_traits < 0) {
         rw_note (0, 0, 0, "UserTraits tests disabled");
     }
     else {
-        if (no_user_traits_char) {
+        if (opt_user_traits_char < 0) {
             rw_note (0, 0, 0, "UserTraits<char> tests disabled");
         }
         else {
             test_user_traits_char ();
         }
 
-        if (no_user_traits_wchar_t) {
+        if (opt_user_traits_wchar < 0) {
             rw_note (0, 0, 0, "UserTraits<wchar_t> tests disabled");
         }
         else {
-            test_user_traits_wchar_t ();
+            test_user_traits_wchar ();
         }
 
-        if (no_user_traits_user_char) {
+        if (opt_user_traits_user_char < 0) {
             rw_note (0, 0, 0, "UserTraits<UserChar> tests disabled");
         }
         else {
@@ -1000,7 +1009,7 @@ run_test (int, char*[])
 
 #undef TEST
 #define TEST(fun)                                               \
-        if (no_ ## fun)                                         \
+        if (opt_ ## fun < 0)                                    \
             rw_note (0, 0, 0, "%s() tests disabled", #fun);     \
         else                                                    \
             test_ ## fun ()
@@ -1022,23 +1031,23 @@ int main (int argc, char *argv[])
                     "",
                     0,
                     run_test,
-                    "|-no-UserTraits# "
-                    "|-no-UserTraits<char># "
-                    "|-no-UserTraits<wchar_t># "
-                    "|-no-UserTraits<UserChar># "
-                    "|-no-rw_widen# "
-                    "|-no-expand# "
-                    "|-no-rw_narrow# "
-                    "|-no-rw_macth# "
-                    "|-no-formatting#",
-                    &no_user_traits,
-                    &no_user_traits_char,
-                    &no_user_traits_wchar_t,
-                    &no_user_traits_user_char,
-                    &no_rw_widen,
-                    &no_rw_expand, 
-                    &no_rw_narrow,
-                    &no_rw_match,
-                    &no_formatting,
+                    "|-UserTraits~ "
+                    "|-UserTraits<char>~ "
+                    "|-UserTraits<wchar_t>~ "
+                    "|-UserTraits<UserChar>~ "
+                    "|-rw_widen~ "
+                    "|-rw_expand~ "
+                    "|-rw_narrow~ "
+                    "|-rw_macth~ "
+                    "|-formatting~",
+                    &opt_user_traits,
+                    &opt_user_traits_char,
+                    &opt_user_traits_wchar,
+                    &opt_user_traits_user_char,
+                    &opt_rw_widen,
+                    &opt_rw_expand, 
+                    &opt_rw_narrow,
+                    &opt_rw_match,
+                    &opt_formatting,
                     0);
 }
