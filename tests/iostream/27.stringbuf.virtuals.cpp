@@ -25,11 +25,12 @@
  * 
  **************************************************************************/
 
-#include <sstream>    // for stringbuf
-#include <cstddef>    // for size_t
+#include <sstream>     // for stringbuf
+#include <cstring>     // for size_t, strchr()
 
-#include <cmdopt.h>   // for rw_enabled()
-#include <driver.h>   // for rw_assert(), ...
+#include <cmdopt.h>    // for rw_enabled()
+#include <driver.h>    // for rw_assert(), ...
+#include <rw_char.h>   // for rw_expand(), rw_match()
 
 /**************************************************************************/
 
@@ -133,41 +134,22 @@ struct VFun
           Traits tid, const char *tname)
         : cid_ (cid), tid_ (tid), vfun_ (),
           cname_ (cname), tname_ (tname), fname_ (0),
-          strarg_ (0) { /* empty */ }
+          strarg_ (0), sequence_ (0) { /* empty */ }
 
     charT       cid_;
     Traits      tid_;
     VirtualTag  vfun_;
-    const char *cname_;   // character type name
-    const char *tname_;   // traits name
-    const char *fname_;   // function name
+    const char *cname_;      // character type name
+    const char *tname_;      // traits name
+    const char *fname_;      // function name
 
-    const char *strarg_;  // string argument
+    const char *strarg_;     // string argument
+    const char *sequence_;   // final sequence
 };
 
 
 static int  stringbuf_capacity;
 static char long_string [4096];
-
-/**************************************************************************/
-
-template <class charT>
-void widen (charT *buf, const char *str)
-{
-    typedef unsigned char UChar;
-
-    buf [0] = '\0';
-
-    if (str) {
-        for (const char *pc = str; ; ++pc) {
-            buf [pc - str] = charT (UChar (*pc));
-            if ('\0' == *pc) {
-                RW_ASSERT (std::size_t (pc - str) < sizeof long_string);
-                break;
-            }
-        }
-    }
-}
 
 /**************************************************************************/
 
@@ -200,8 +182,13 @@ void test_virtual (charT, Traits, const VFun *pfid,
 
     // widen the source sequence into the (possibly wide) character buffer
     static charT wstr [4096];
+    static charT warg [4096];
 
-    widen (wstr, str);
+    std::size_t wstr_len = sizeof wstr / sizeof *wstr;
+    std::size_t warg_len = sizeof warg / sizeof *warg;
+
+    wstr [0] = charT ();
+    rw_expand (wstr, str, _RWSTD_SIZE_MAX, &wstr_len);
 
     const std::ios_base::openmode openmode = std::ios_base::openmode (mode);
 
@@ -241,10 +228,19 @@ void test_virtual (charT, Traits, const VFun *pfid,
     switch (pfid->vfun_) {
     case VFun::xsputn: {
 
-        widen (wstr, pfid->strarg_);
+        if (pfid->strarg_) {
+            rw_expand (warg, pfid->strarg_, _RWSTD_SIZE_MAX, &warg_len);
+            if (std::strchr (pfid->strarg_, '@'))
+                arg0 = warg_len;
 
-        RW_ASSERT (std::size_t (arg0) < sizeof wstr / sizeof *wstr);
-        ret = pbuf->sputn (wstr, arg0);
+            RW_ASSERT (std::size_t (arg0) < sizeof wstr / sizeof *wstr);
+            ret = pbuf->sputn (warg, arg0);
+        }
+        else {
+            // invoke sputn() with pbase as an argument
+            ret = pbuf->sputn (pbuf->Pbase (), arg0);
+        }
+
         break;
     }
 
@@ -293,8 +289,8 @@ void test_virtual (charT, Traits, const VFun *pfid,
 #define CALLFMT                                                         \
     "line %d. "                                                         \
     "%{?}basic_%{:}%{?}w%{;}%{;}stringbuf%{?}<%s%{?}, %s%{;}>%{;}"      \
-    "(%{?}%#s%{?}, %{Io}%{;}%{:}%{?}%{Io}%{;}%{;})"                     \
-    ".%s (%{?}%#s, %d"   /* xsputn */                                   \
+    "(%{?}%{*Ac}%{?}, %{Io}%{;}%{:}%{?}%{Io}%{;}%{;})"                  \
+    ".%s (%{?}%{?}%{*Ac}%{:}pptr()%{;}, %d"   /* xsputn */              \
          "%{:}%{?}" /* pbackfail, over/underflow argument */            \
               "%{?}%{#lc}%{;}"                                          \
          "%{:}" /* seekoff and seekpos */                               \
@@ -306,15 +302,16 @@ void test_virtual (charT, Traits, const VFun *pfid,
     const bool is_seek = VFun::seekoff <= pfid->vfun_;
 
     // arguments corresponding to CALLFMT
-#define CALLARGS                                                        \
-    __LINE__,                                                           \
-    0 != pfid->tname_, 'w' == *pfid->cname_, 0 != pfid->tname_,         \
-    pfid->cname_, 0 != pfid->tname_, pfid->tname_,                      \
-    0 != str, str,  -1 < mode, mode, -1 < mode, mode,                   \
-    pfid->fname_, pfid->vfun_ == VFun::xsputn, pfid->strarg_, arg0,     \
-    !is_seek,                                                           \
-    IGN != arg0, arg_int,                                               \
-    arg0, VFun::seekoff == pfid->vfun_, arg1, IGN != arg2, arg2,        \
+#define CALLARGS                                                          \
+    __LINE__,                                                             \
+    0 != pfid->tname_, 'w' == *pfid->cname_, 0 != pfid->tname_,           \
+    pfid->cname_, 0 != pfid->tname_, pfid->tname_,                        \
+    0 != str, int (sizeof *wstr), wstr, -1 < mode, mode, -1 < mode, mode, \
+    pfid->fname_, pfid->vfun_ == VFun::xsputn, 0 != pfid->strarg_,        \
+        int (sizeof *warg), warg, arg0,                                   \
+    !is_seek,                                                             \
+    IGN != arg0, arg_int,                                                 \
+    arg0, VFun::seekoff == pfid->vfun_, arg1, IGN != arg2, arg2,          \
     IGN != arg1, arg1
 
     const int_type not_eof = Traits::not_eof (arg_int);
@@ -362,6 +359,18 @@ void test_virtual (charT, Traits, const VFun *pfid,
                    "pptr = %{?}NULL%{:}pbase + %td%{;}",
                    CALLARGS, 1 < write_expect, write_expect, write_pos,
                    0 == pbuf->Pptr (), pbuf->Pptr () - pbuf->Pbase ());
+    }
+
+    if (pfid->sequence_) {
+
+        // verify that the put area matches the expected sequence
+        const std::size_t len    = pbuf->Pptr () - pbuf->Pbase ();
+        const std::size_t xmatch =
+            rw_match (pfid->sequence_, pbuf->Pbase (), len);
+
+        rw_assert (xmatch == len, 0, line,
+                   CALLFMT ": put area mismatch (pbase + %zu)",
+                   CALLARGS, xmatch);
     }
 }
 
@@ -417,6 +426,9 @@ void test_virtual (VFun         *pfid,
             TEST (wchar_t, CharTraits<wchar_t>);
 #endif   // _RWSTD_NO_WCHAR_T
     }
+
+    pfid->strarg_   = 0;
+    pfid->sequence_ = 0;
 }
 
 /**************************************************************************/
@@ -449,13 +461,10 @@ test_xsputn (VFun *pfid)
                   gbump, sizeof sarg - 1, IGN, IGN, result,             \
                   pback, read, write)
 
-#undef STR
-#define STR(len)   (long_string + sizeof long_string - 1 - (len))
-
     //    +-------------------------------------------- initial sequence
     //    |      +------------------------------------- open mode
     //    |      |               +--------------------- gbump (gptr offset)
-    //    |      |               |   +----------------- pbackfail argument
+    //    |      |               |   +----------------- xsputn argument
     //    |      |               |   |     +----------- expected return value
     //    |      |               |   |     |  +-------- putback positions
     //    |      |               |   |     |  |  +----- read positions
@@ -474,55 +483,96 @@ test_xsputn (VFun *pfid)
     TEST ("abc", in | out,       0, "def", 3, 0, 6, MAYBE_1);
     TEST ("abc", in | out | ate, 0, "def", 3, 0, 6, MAYBE_1);
 
+    TEST (       0, in | out,       0, "a@1000", 1000,    0, 1000, MAYBE_1);
+    TEST (       0, in | out,       0, "a@1000", 1000,    0, 1000, MAYBE_1);
+
+    TEST (       0, in | out,       0, "a@1001", 1001,    0, 1001, MAYBE_1);
+    TEST (   "a@1", in | out,       0, "a@1002", 1002,    0, 1003, MAYBE_1);
+    TEST (   "a@2", in | out,       0, "a@1003", 1003,    0, 1005, MAYBE_1);
+    TEST (   "a@3", in | out,       0, "a@1004", 1004,    0, 1007, MAYBE_1);
+
+    TEST (       0, in | out | ate, 0, "a@1000", 1000,    0, 1000, MAYBE_1);
+    TEST (       0, in | out | ate, 0, "a@1001", 1001,    0, 1001, MAYBE_1);
+    TEST (   "a@1", in | out | ate, 0, "a@1002", 1002,    0, 1003, MAYBE_1);
+    TEST (   "a@2", in | out | ate, 0, "a@1003", 1003,    0, 1005, MAYBE_1);
+    TEST (   "a@3", in | out | ate, 0, "a@1004", 1004,    0, 1007, MAYBE_1);
+    TEST ( "a@127", in | out | ate, 0, "a@1005", 1005,    0, 1132, MAYBE_1);
+
+    TEST ("a@1000", in | out | ate, 0, "a@1006", 1006,    0, 2006, MAYBE_1);
+    TEST ("a@2000", in | out | ate, 0, "a@1007", 1007,    0, 3007, MAYBE_1);
+    TEST ("a@2001", in | out | ate, 0, "a@1008", 1008,    0, 3009, MAYBE_1);
+
+    //////////////////////////////////////////////////////////////////
+    // exercise calling sputn() with pptr() as the first argument
 #undef TEST
-#define TEST(len, mode, gbump, arg_len, result, pback, read, write)     \
-    pfid->strarg_ = long_string + sizeof long_string - (1 + len),        \
-    test_virtual (pfid, __LINE__,                                       \
-                  long_string + sizeof long_string - (1 + len),         \
-                  len, mode, gbump, arg_len, IGN, IGN,                  \
+#define TEST(str, mode, len, result, seq, read)                 \
+    pfid->strarg_ = 0; pfid->sequence_ = seq;                   \
+    test_virtual (pfid, __LINE__, str, sizeof str - 1, mode,    \
+                  0, len, IGN, IGN, result,                     \
+                  0, read, MAYBE_1)
+
+    //     +---------------------------------------------- initial sequence
+    //     |         +------------------------------------ open mode
+    //     |         |               +-------------------- xsputn 2nd argument
+    //     |         |               |     +-------------- return value
+    //     |         |               |     |     +-------- sequence at pbase()
+    //     |         |               |     |     |     +-- read positions
+    //     |         |               |     |     |     |
+    //     |         |               |     |     |     +---------+
+    //     |         |               |     |     |               |
+    //     V         V               V     V     V               V
+    TEST ( "a@500b", in | out | ate,   11,   11, "a@500ba@11",   512);
+    TEST ( "a@500b", in | out | ate,   12,   12, "a@500ba@12",   513);
+    TEST ( "a@500b", in | out | ate,   13,   13, "a@500ba@13",   514);
+    TEST ( "a@500b", in | out | ate,  500,  500, "a@500ba@500",  1001);
+    TEST ( "a@500b", in | out | ate,  501,  501, "a@500ba@500b", 1002);
+    TEST ("a@1022b", in | out | ate,    1,    1, "a@1022ba",     1024);
+    TEST ("a@1023b", in | out | ate,    1,    1, "a@1023ba",     1025);
+
+    //////////////////////////////////////////////////////////////////
+    // exercise multiples of stringbuf capacity
+#undef TEST
+#define TEST(len, mode, gbump, arg_len, result, pback, read, write)  \
+    pfid->strarg_ = long_string + (sizeof long_string - 1 - len),    \
+    test_virtual (pfid, __LINE__, pfid->strarg_,                     \
+                  len, mode, gbump, arg_len, IGN, IGN,               \
                   result, pback, read, write)
 
 // for convenience
 #define CAP stringbuf_capacity
 
+    // compute the minimum buffer capacity
+    stringbuf_capacity = -1;
     TEST (   0, in | out,       0,    0,    0,    0,    0, -1);
 
-    // compute the minimum buffer capacity
-    CAP = -1;
-    TEST (   0, in | out,       0, 1000, 1000,    0, 1000, MAYBE_1);
+    //    +----------------------------------------------- length of sequence
+    //    |    +------------------------------------------ open mode
+    //    |    |               +-------------------------- gbump (gptr offset)
+    //    |    |               |     +-------------------- xsputn 2nd argument
+    //    |    |               |     |     +-------------- expected return value
+    //    |    |               |     |     |     +-------- putback positions
+    //    |    |               |     |     |     |  +----- read positions
+    //    |    |               |     |     |     |  |  +-- write positions
+    //    |    |               |     |     |     |  |  |
+    //    |    |               |     |     |     |  |  +--------+
+    //    |    |               |     |     |     |  |           |
+    //    V    V               V     V     V     V  V           V
+    TEST (CAP, in | out,       0,    1,    1,    0, CAP +    1, MAYBE_1);
+    TEST (CAP, in | out,       0,    2,    2,    0, CAP +    2, MAYBE_1);
+    TEST (CAP, in | out,       0,    3,    3,    0, CAP +    3, MAYBE_1);
+    TEST (CAP, in | out,       0,  127,  127,    0, CAP +  127, MAYBE_1);
+    TEST (CAP, in | out,       0, 1023, 1023,    0, CAP + 1023, MAYBE_1);
+    TEST (CAP, in | out,       0, 1024, 1024,    0, CAP + 1024, MAYBE_1);
+    TEST (CAP, in | out,       0,  CAP,  CAP,    0, CAP +  CAP, MAYBE_1);
 
-    TEST (   0, in | out,       0, 1001, 1001,    0, 1001, MAYBE_1);
-    TEST (   1, in | out,       0, 1002, 1002,    0, 1003, MAYBE_1);
-    TEST (   2, in | out,       0, 1003, 1003,    0, 1005, MAYBE_1);
-    TEST (   3, in | out,       0, 1004, 1004,    0, 1007, MAYBE_1);
-
-    TEST (   0, in | out | ate, 0, 1000, 1000,    0, 1000, MAYBE_1);
-    TEST (   0, in | out | ate, 0, 1001, 1001,    0, 1001, MAYBE_1);
-    TEST (   1, in | out | ate, 0, 1002, 1002,    0, 1003, MAYBE_1);
-    TEST (   2, in | out | ate, 0, 1003, 1003,    0, 1005, MAYBE_1);
-    TEST (   3, in | out | ate, 0, 1004, 1004,    0, 1007, MAYBE_1);
-    TEST ( 127, in | out | ate, 0, 1005, 1005,    0, 1132, MAYBE_1);
-
-    TEST (1000, in | out | ate, 0, 1006, 1006,    0, 2006, MAYBE_1);
-    TEST (2000, in | out | ate, 0, 1007, 1007,    0, 3007, MAYBE_1);
-    TEST (2001, in | out | ate, 0, 1008, 1008,    0, 3009, MAYBE_1);
-
-    TEST ( CAP, in | out,       0,    1,    1,    0, CAP +    1, MAYBE_1);
-    TEST ( CAP, in | out,       0,    2,    2,    0, CAP +    2, MAYBE_1);
-    TEST ( CAP, in | out,       0,    3,    3,    0, CAP +    3, MAYBE_1);
-    TEST ( CAP, in | out,       0,  127,  127,    0, CAP +  127, MAYBE_1);
-    TEST ( CAP, in | out,       0, 1023, 1023,    0, CAP + 1023, MAYBE_1);
-    TEST ( CAP, in | out,       0, 1024, 1024,    0, CAP + 1024, MAYBE_1);
-    TEST ( CAP, in | out,       0,  CAP,  CAP,    0, CAP +  CAP, MAYBE_1);
-
-    TEST ( CAP, in | out | ate, 0,    1,    1,    0, CAP +    1, MAYBE_1);
-    TEST ( CAP, in | out | ate, 0,    2,    2,    0, CAP +    2, MAYBE_1);
-    TEST ( CAP, in | out | ate, 0,    3,    3,    0, CAP +    3, MAYBE_1);
-    TEST ( CAP, in | out | ate, 0,  CAP,  CAP,    0, CAP +  CAP, MAYBE_1);
-    TEST ( CAP, in | out | ate, 0,  127,  127,    0, CAP +  127, MAYBE_1);
-    TEST ( CAP, in | out | ate, 0, 1023, 1023,    0, CAP + 1023, MAYBE_1);
-    TEST ( CAP, in | out | ate, 0, 1024, 1024,    0, CAP + 1024, MAYBE_1);
-    TEST ( CAP, in | out | ate, 0, 1025, 1025,    0, CAP + 1025, MAYBE_1);
+    TEST (CAP, in | out | ate, 0,    1,    1,    0, CAP +    1, MAYBE_1);
+    TEST (CAP, in | out | ate, 0,    2,    2,    0, CAP +    2, MAYBE_1);
+    TEST (CAP, in | out | ate, 0,    3,    3,    0, CAP +    3, MAYBE_1);
+    TEST (CAP, in | out | ate, 0,  CAP,  CAP,    0, CAP +  CAP, MAYBE_1);
+    TEST (CAP, in | out | ate, 0,  127,  127,    0, CAP +  127, MAYBE_1);
+    TEST (CAP, in | out | ate, 0, 1023, 1023,    0, CAP + 1023, MAYBE_1);
+    TEST (CAP, in | out | ate, 0, 1024, 1024,    0, CAP + 1024, MAYBE_1);
+    TEST (CAP, in | out | ate, 0, 1025, 1025,    0, CAP + 1025, MAYBE_1);
 
     for (int i = 0; i != rw_opt_max_size; ++i) {
         TEST (  0, in | out, 0, i, i, 0, i +   0, MAYBE_1);
