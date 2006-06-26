@@ -633,7 +633,7 @@ extern const char* const __rw_mutex_exception =
 
 // dummy empty object (not an actual mutex) - allows lib to "look"
 // the same in single-threaded mode as in multi-threaded mode
-__rw_mutex __rw_synchronized::_C_mutex;
+__rw_mutex _RWSTD_EXPORT __rw_synchronized::_C_mutex;
 
 #endif   // _RWSTD_REENTRANT
 
