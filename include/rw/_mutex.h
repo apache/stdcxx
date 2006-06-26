@@ -1866,7 +1866,7 @@ struct __rw_guard
 struct __rw_synchronized
 {
     // static so that it takes up no space
-    static __rw_mutex _C_mutex;
+    static _RWSTD_EXPORT __rw_mutex _C_mutex;
 
     void _C_lock () { }
 
