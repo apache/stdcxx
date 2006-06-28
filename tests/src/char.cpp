@@ -526,6 +526,42 @@ rw_widen (char *dst, const char *src, size_t len /* = SIZE_MAX */)
 
 /**************************************************************************/
 
+static unsigned long
+_rw_get_char (const char *src, const char** end, size_t *count)
+{
+    unsigned long ch = UChar (*src++);
+
+    if ('<' == char (ch) && 'U' == src [0] && isxdigit (src [1])) {
+        // this looks like the beginning of a <Unnn...>
+        // sequence encoding a Unicode character, look
+        // for a sequence of digits followed by the
+        // closing '>'
+
+        char *tmp_end;
+        const unsigned long val = strtoul (src + 1, &tmp_end, 16);
+        if ('>' == *tmp_end) {
+            ch  = val;
+            src = tmp_end + 1;
+        }
+    }
+
+    if ('@' == src [0] && isdigit (src [1])) {
+        // <char>@<count> denotes a repeat directive representing
+        // <count> consecutive occurrences of the character <char>
+
+        char* tmp_end;
+        *count = strtoul (src + 1, &tmp_end, 10);
+        src    = tmp_end;
+    }
+    else
+        *count = 1;
+
+    *end = src;
+
+    return ch;
+}
+
+
 static void*
 _rw_expand (void *dst, size_t elemsize,
             const char *src, size_t src_len /* = SIZE_MAX */,
@@ -567,31 +603,17 @@ _rw_expand (void *dst, size_t elemsize,
 
     for (const char *psrc = src; ; ) {
 
-        const char c = *psrc;
+        size_t count = 0;
+        const char *end = 0;
+        const unsigned long ch = _rw_get_char (psrc, &end, &count);
 
-        unsigned long count;
+        const size_t nchars = size_t (end - psrc);
+        if (nchars <= src_len)
+            src_len -= nchars;
+        else
+            src_len = 0;
 
-        if ('@' == psrc [1] && isdigit (UChar (psrc [2]))) {
-            // process directive
-            psrc += 2;
-
-            char *end = 0;
-            count = strtoul (psrc, &end, 10);
-
-            src_len -= (end - psrc) + 2;
-
-            psrc = end;
-
-        }
-        else {
-            count = 1;
-
-            // decrement length unless it's already 0
-            if (src_len)
-                --src_len;
-
-            ++psrc;
-        }
+        psrc = end;
 
         if (bufsize - buflen <= count) {
             // increase the size of the buffer
@@ -627,16 +649,76 @@ _rw_expand (void *dst, size_t elemsize,
 
         if (sizeof (WChar) == elemsize) {
             for (size_t i = 0; i != count; ++i)
-                ((WChar*)pnext)[i] = WChar (UChar (c));
+                ((WChar*)pnext)[i] = WChar (ch);
         }
         else if (sizeof (UserChar) == elemsize) {
             for (size_t i = 0; i != count; ++i) {
                 ((UserChar*)pnext)[i].f = 0;
-                ((UserChar*)pnext)[i].c = UChar (c);
+                ((UserChar*)pnext)[i].c = UChar (ch);
             }
         }
-        else
-            memset (pnext, UChar (c), count);
+        else if (ch < 0x80U) {
+            memset (pnext, UChar (ch), count);
+        }
+        else {
+#if 1
+            // narrow the wide character to char
+            memset (pnext, UChar (ch), count);
+
+            pnext   = (char*)pnext + count * elemsize;
+            buflen += count;
+            
+#else   // disabled
+
+            // FIXME: enable UCS to UTF-8 conversion
+            // (need to allocate sufficient storage above)
+
+            const char* const pnext_start = pnext;
+
+            // count the number of UTF-8 bytes
+            size_t nbytes = 0;
+
+            for (size_t i = 0; i != count; ++i) {
+                if (ch < 0x800U) {
+                    *pnext++ = UChar (0xc0U | (ch >> 6));
+                    *pnext++ = UChar (0x80U | (ch & 0x3fU));
+                    nbytes  += 2;
+                }
+                else if (ch < 0x10000U) {
+                    *pnext++ = UChar (0xe0U | (ch >> 12));
+                    *pnext++ = UChar (0x80U | (ch >>  6 & 0x3fU));
+                    *pnext++ = UChar (0x80U | (ch       & 0x3fU));
+                    nbytes  += 3;
+                }
+                else if (ch < 0x200000U) {
+                    *pnext++ = UChar (0xf0U | (ch >> 18));
+                    *pnext++ = UChar (0x80U | (ch >> 12 & 0x3fU));
+                    *pnext++ = UChar (0x80U | (ch >>  6 & 0x3fU));
+                    *pnext++ = UChar (0x80U | (ch       & 0x3fU));
+                    nbytes  += 4;
+                }
+                else if (ch < 0x4000000U) {
+                    *pnext++ = UChar (0xf8U | (ch >> 24));
+                    *pnext++ = UChar (0x80U | (ch >> 18 & 0x3fU));
+                    *pnext++ = UChar (0x80U | (ch >> 12 & 0x3fU));
+                    *pnext++ = UChar (0x80U | (ch >>  6 & 0x3fU));
+                    *pnext++ = UChar (0x80U | (ch       & 0x3fU));
+                    nbytes  += 5;
+                }
+                else {
+                    *pnext++ = UChar (0xfcU | (ch >> 30));
+                    *pnext++ = UChar (0x80U | (ch >> 24 & 0x3fU));
+                    *pnext++ = UChar (0x80U | (ch >> 18 & 0x3fU));
+                    *pnext++ = UChar (0x80U | (ch >> 12 & 0x3fU));
+                    *pnext++ = UChar (0x80U | (ch >>  6 & 0x3fU));
+                    *pnext++ = UChar (0x80U | (ch       & 0x3fU));
+                    nbytes  += 6;
+                }
+            }
+
+#endif   // 0/1
+
+        }
 
         pnext   = (char*)pnext + count * elemsize;
         buflen += count;
@@ -678,59 +760,75 @@ _TEST_EXPORT
 size_t
 rw_match (const char *s1, const char *s2, size_t len /* = SIZE_MAX */)
 {
+    // the length of the initial subsequence of s1 and s2
+    // consisting solely of characters that compare equal
+    size_t count = 0;
+
     if (0 == s1) {
-        // return the length of s2 if non-null
-        return s2 ? strlen (s2) : 0;
+        s1 = s2;
+        s2 = 0;
     }
 
-    if (0 == s2)
-        return strlen (s1);
+    const char* p1 = s1;
 
-    const char* const s1_save = s1;
+    if (0 == s2) {
+        // when one of the strings is null, compute the length
+        // of the other string when all directives are expanded
+        if (0 == s1 || 0 == *s1)
+            return 0;
 
-    char   s1_buf [256];
-    size_t s1_len = sizeof s1_buf;
+        do {
+            size_t n = 0;
 
-    // see if the first string contains '@' and might need
-    // to be expanded (see rw_expand() for details)
-    bool expand = false;
+            _rw_get_char (p1, &p1, &n);
 
-    if (_RWSTD_SIZE_MAX == len) {
-        expand = 0 != strchr (s1, '@');
+            count += n;
+        } while (p1 && *p1);
+
+        return count;
     }
-    else {
-        for (const char *p = s1; *p; ++p) {
-            if (size_t (p - s1) == len)
-                break;
-            if ('@' == *p) {
-                expand = true;
-                break;
-            }
+    
+    const char* p2 = s2;
+
+    size_t n1 = 0;
+    size_t n2 = 0;
+
+    for (unsigned long ch1, ch2; count < len; ) {
+
+        while (0 == n1)
+            ch1 = _rw_get_char (p1, &p1, &n1);
+
+        while (0 == n2)
+            ch2 = _rw_get_char (p2, &p2, &n2);
+
+        if (ch1 != ch2)
+            break;
+
+        if (n1 < n2) {
+            // the repeat count specified by the first directive
+            // is less than the repeat count given by the second
+            count += n1;
+            n2    -= n1;
+            n1     = 0;
+
         }
-    }
+        else if (n2 <= n1) {
+            // the repeat count specified by the second directive
+            // is less than or equal than that given by the first
+            count += n2;
+            n1    -= n2;
+            n2     = 0;
+        }
 
-    if (expand) {
-        s1  = rw_expand (s1_buf, s1, _RWSTD_SIZE_MAX, &s1_len);
-        len = s1_len;
-    }
-
-    size_t n = 0;
-
-    for ( ; n != len && s1 [n] == s2 [n]; ++n) {
-        if (_RWSTD_SIZE_MAX == len && '\0' == s1 [n])
+        if (_RWSTD_SIZE_MAX == len && 0 == ch1)
             break;
     }
 
-    if (s1 && s1_save != s1 && s1_buf != s1) {
-        // deallocate memory if it was allocated by rw_expand()
-        delete[] s1;
-    }
-
-    return n;
+    return len < count ? len : count;
 }
 
 
-#ifndef _RWSTD_WCHAR_T
+#ifndef _RWSTD_NO_WCHAR_T
 
 _TEST_EXPORT
 wchar_t*
@@ -829,35 +927,53 @@ rw_match (const char *s1, const wchar_t *s2, size_t len /* = SIZE_MAX */)
     }
 
     if (0 == s2)
-        return strlen (s1);
+        return rw_match (s1, (char*)0, len);
 
-    const char* const s1_save = s1;
+    const char*    p1 = s1;
+    const wchar_t* p2 = s2;
 
-    char   s1_buf [256];
-    size_t s1_len = sizeof s1_buf;
-    
-    // see if the first string contains '@' and might need
-    // to be expanded  (see rw_expand() for details)
-    if (   _RWSTD_SIZE_MAX == len && strchr (s1, '@')
-        || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len)) {
-        s1 = rw_expand (s1_buf, s1, len, &s1_len);
-        len = s1_len;
-    }
+    // the length of the initial subsequence of s1 and s2
+    // consisting solely of characters that compare equal
+    size_t count = 0;
 
-    size_t n = 0;
+    size_t n1 = 0;
+    size_t n2 = 0;
 
-    for ( ; n != len && UChar (s1 [n]) == unsigned (s2 [n]); ++n) {
-        if (_RWSTD_SIZE_MAX == len && '\0' == s1 [n])
+    for (unsigned long ch1, ch2; count < len; ) {
+
+        while (0 == n1)
+            ch1 = _rw_get_char (p1, &p1, &n1);
+
+        ch2 = _RWSTD_STATIC_CAST (unsigned long, *p2++);
+        n2  = 1;
+
+        if (ch1 != ch2)
+            break;
+
+        if (n1 < n2) {
+            // the repeat count specified by the first directive
+            // is less than the repeat count given by the second
+            count += n1;
+            n2    -= n1;
+            n1     = 0;
+
+        }
+        else if (n2 <= n1) {
+            // the repeat count specified by the second directive
+            // is less than or equal than that given by the first
+            count += n2;
+            n1    -= n2;
+            n2     = 0;
+        }
+
+        if (_RWSTD_SIZE_MAX == len && L'\0' == ch1)
             break;
     }
 
-    if (s1 && s1_save != s1 && s1_buf != s1)
-        delete[] s1;
-
-    return n;
+    return len < count ? len : count;
 }
 
-#endif   // _RWSTD_WCHAR_T
+#endif   // _RWSTD_NO_WCHAR_T
 
 
 _TEST_EXPORT
@@ -958,32 +1074,52 @@ rw_match (const char *s1, const UserChar *s2, size_t len /* = SIZE_MAX */)
     }
 
     if (0 == s2)
-        return strlen (s1);
+        return rw_match (s1, (char*)0, len);
 
-    const char* const s1_save = s1;
+    const char*     p1 = s1;
+    const UserChar* p2 = s2;
 
-    char   s1_buf [256];
-    size_t s1_len = sizeof s1_buf;
-    
-    // see if the first string contains '@' and might need
-    // to be expanded  (see rw_expand() for details)
-    if (   _RWSTD_SIZE_MAX == len && strchr (s1, '@')
-        || _RWSTD_SIZE_MAX != len && memchr (s1, '@', len)) {
-        s1 = rw_expand (s1_buf, s1, len, &s1_len);
-        len = s1_len;
-    }
+    // the length of the initial subsequence of s1 and s2
+    // consisting solely of characters that compare equal
+    size_t count = 0;
 
-    size_t n = 0;
+    size_t n1 = 0;
+    size_t n2 = 0;
 
-    for ( ; n != len && UChar (s1 [n]) == s2 [n].c; ++n) {
-        if (_RWSTD_SIZE_MAX == len && '\0' == s1 [n])
+    unsigned long ch1;
+
+    for (UserChar ch2; count < len; ) {
+
+        while (0 == n1)
+            ch1 = _rw_get_char (p1, &p1, &n1);
+
+        ch2 = *p2++;
+        n2  = 1;
+
+        if (ch1 != ch2.c)
+            break;
+
+        if (n1 < n2) {
+            // the repeat count specified by the first directive
+            // is less than the repeat count given by the second
+            count += n1;
+            n2    -= n1;
+            n1     = 0;
+
+        }
+        else if (n2 <= n1) {
+            // the repeat count specified by the second directive
+            // is less than or equal than that given by the first
+            count += n2;
+            n1    -= n2;
+            n2     = 0;
+        }
+
+        if (_RWSTD_SIZE_MAX == len && L'\0' == ch1)
             break;
     }
 
-    if (s1 && s1_save != s1 && s1_buf != s1)
-        delete[] s1;
-
-    return n;
+    return len < count ? len : count;
 }
 
 /**************************************************************************/

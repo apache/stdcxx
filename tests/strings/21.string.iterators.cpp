@@ -56,17 +56,17 @@ begin_void_test_cases [] = {
 }
 
     //    +--------------------------------- controlled sequence
-    //    |                +---------------- expected result 
-    //    |                |     
-    //    V                V     
-    TEST ("a",            'a' ), 
-    TEST ("\0",           '\0'),
-    TEST ("abc",          'a' ),  
-    TEST ("\0ab\0\0c",    '\0'), 
-    TEST ("a\0b\0\0c",    'a' ),  
-    TEST ("a\0bc\0\0",    'a' ), 
-    TEST ("x@4096",       'x' ),  
-    TEST ("last",         'l' )  
+    //    |                 +--------------- expected result 
+    //    |                 |     
+    //    V                 V     
+    TEST ("a",             'a' ), 
+    TEST ("<U0>",          '\0'),
+    TEST ("abc",           'a' ),  
+    TEST ("<U0>ab<U0>@2c", '\0'), 
+    TEST ("a<U0>b<U0>@2c", 'a' ),  
+    TEST ("a<U0>bc<U0>@2", 'a' ), 
+    TEST ("x@4096",        'x' ),  
+    TEST ("last",          'l' )  
 };
 
 /**************************************************************************/
@@ -84,17 +84,17 @@ end_void_test_cases [] = {
 }
 
     //    +--------------------------------- controlled sequence
-    //    |                +---------------- expected result 
-    //    |                |     
-    //    V                V     
-    TEST ("a",            'a' ), 
-    TEST ("\0",           '\0'),
-    TEST ("abc",          'c' ),  
-    TEST ("\0ab\0\0c",    'c' ), 
-    TEST ("a\0b\0\0c",    'c' ),  
-    TEST ("a\0bc\0\0",    '\0'), 
-    TEST ("x@4096",       'x' ),  
-    TEST ("last",         't' )  
+    //    |                 +--------------- expected result 
+    //    |                 |     
+    //    V                 V     
+    TEST ("a",             'a' ), 
+    TEST ("<U0>",          '\0'),
+    TEST ("abc",           'c' ),  
+    TEST ("<U0>ab<U0>@2c", 'c' ), 
+    TEST ("a<U0>b<U0>@2c", 'c' ),  
+    TEST ("a<U0>bc<U0>@2", '\0'), 
+    TEST ("x@4096",        'x' ),  
+    TEST ("last",          't' )  
 };
 
 /**************************************************************************/
@@ -124,7 +124,7 @@ c_str_void_test_cases [] = {
 
     TEST (""                ),
                              
-    TEST ("\0"              ),
+    TEST ("<U0>"              ),
                              
     TEST ("abcdefghij"      ),
     TEST ("abcdefghi"       ),
@@ -142,13 +142,13 @@ c_str_void_test_cases [] = {
     TEST ("abcdffghij"      ),
     TEST ("abcdefghjj"      ),
                              
-    TEST ("a\0b\0\0c"       ),
-    TEST ("abc\0\0\0"       ),
-    TEST ("\0ab\0\0c"       ),
+    TEST ("a<U0>b<U0>@2c"   ),
+    TEST ("abc<U0>@3"       ),
+    TEST ("<U0>ab<U0>@2c"   ),
                              
-    TEST ("a\0b"            ),
-    TEST ("ab\0"            ),
-    TEST ("\0ab"            ),
+    TEST ("a<U0>b"          ),
+    TEST ("ab<U0>"          ),
+    TEST ("<U0>ab"          ),
                              
     TEST ("x@4096"          ),
     TEST ("xx"              ),
@@ -184,9 +184,9 @@ get_allocator_void_test_cases [] = {
     //    V 
     TEST ("ab"            ),
     TEST (""              ),
-    TEST ("\0"            ),
+    TEST ("<U0>"          ),
     TEST ("x@4096"        ),
-    TEST ("a\0b"          ),
+    TEST ("a<U0>b"        ),
     TEST ("a@2048cb@2047" ),
     TEST ("last"          )
 };
@@ -381,7 +381,7 @@ void test_iterators (charT*, Traits*, Allocator*,
                 // equal the corresponding elements of the string controlled
                 // by *this
                 const std::size_t match = 
-                    rw_match (tcase.res, ret_ptr, tcase.nres);
+                    rw_match (tcase.res, ret_ptr, tdata.reslen_);
 
                 rw_assert (match == tdata.reslen_, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{#*s}, "

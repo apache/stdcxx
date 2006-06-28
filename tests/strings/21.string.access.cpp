@@ -53,35 +53,35 @@ op_index_size_test_cases [] = {
         0, 0, 0, res, 0                          \
     }
 
-    //    +--------------------------------- controlled sequence
-    //    |               +----------------- index 
-    //    |               |   +------------- expected result 
-    //    |               |   |     
-    //    V               V   V     
-    TEST ("a",            0, 'a' ), 
+    //    +--------------------------------------- controlled sequence
+    //    |                     +----------------- index 
+    //    |                     |   +------------- expected result 
+    //    |                     |   |     
+    //    V                     V   V     
+    TEST ("a",                  0, 'a' ), 
 
-    TEST ("\0",           0, '\0'),
+    TEST ("<U0>",               0, '\0'),
 
-    TEST ("abc",          0, 'a' ),  
-    TEST ("abc",          1, 'b' ),  
-    TEST ("abc",          2, 'c' ),  
+    TEST ("abc",                0, 'a' ),  
+    TEST ("abc",                1, 'b' ),  
+    TEST ("abc",                2, 'c' ),  
 
-    TEST ("\0ab\0\0c",    0, '\0'), 
+    TEST ("<U0>ab<U0><U0>c",    0, '\0'), 
 
-    TEST ("a\0b\0\0c",    0, 'a' ),  
-    TEST ("a\0b\0\0c",    1, '\0'),
-    TEST ("a\0b\0\0c",    2, 'b' ),  
-    TEST ("a\0b\0\0c",    3, '\0'), 
-    TEST ("a\0b\0\0c",    4, '\0'),
-    TEST ("a\0b\0\0c",    5, 'c' ),   
+    TEST ("a<U0>b<U0><U0>c",    0, 'a' ),  
+    TEST ("a<U0>b<U0><U0>c",    1, '\0'),
+    TEST ("a<U0>b<U0><U0>c",    2, 'b' ),  
+    TEST ("a<U0>b<U0><U0>c",    3, '\0'), 
+    TEST ("a<U0>b<U0><U0>c",    4, '\0'),
+    TEST ("a<U0>b<U0><U0>c",    5, 'c' ),   
 
-    TEST ("a\0bc\0\0",    5, '\0'), 
+    TEST ("a<U0>bc<U0><U0>",    5, '\0'), 
 
-    TEST ("x@4096",       0, 'x' ),  
-    TEST ("x@4096",    2048, 'x' ), 
-    TEST ("x@4096",    4095, 'x' ), 
+    TEST ("x@4096",             0, 'x' ),  
+    TEST ("x@4096",          2048, 'x' ), 
+    TEST ("x@4096",          4095, 'x' ), 
 
-    TEST ("last",         3, 't' )  
+    TEST ("last",               3, 't' )  
 };
 
 /**************************************************************************/
@@ -98,42 +98,42 @@ op_index_const_size_test_cases [] = {
         0, 0, 0, res, 0                          \
     }
 
-    //    +--------------------------------- controlled sequence
-    //    |               +----------------- index 
-    //    |               |   +------------- expected result 
-    //    |               |   |     
-    //    V               V   V     
-    TEST ("a",            0, 'a' ),  
-    TEST ("a",            1, NPOS), 
+    //    +--------------------------------------- controlled sequence
+    //    |                     +----------------- index 
+    //    |                     |   +------------- expected result 
+    //    |                     |   |     
+    //    V                     V   V     
+    TEST ("a",                  0, 'a' ),  
+    TEST ("a",                  1, NPOS), 
 
-    TEST ("",             0, NPOS), 
+    TEST ("",                   0, NPOS), 
 
-    TEST ("\0",           0, '\0'),
-    TEST ("\0",           1, NPOS), 
+    TEST ("<U0>",               0, '\0'),
+    TEST ("<U0>",               1, NPOS), 
 
-    TEST ("abc",          0, 'a' ),  
-    TEST ("abc",          1, 'b' ),  
-    TEST ("abc",          2, 'c' ),  
-    TEST ("abc",          3, NPOS), 
+    TEST ("abc",                0, 'a' ),  
+    TEST ("abc",                1, 'b' ),  
+    TEST ("abc",                2, 'c' ),  
+    TEST ("abc",                3, NPOS), 
 
-    TEST ("\0ab\0\0c",    0, '\0'), 
+    TEST ("<U0>ab<U0><U0>c",    0, '\0'), 
 
-    TEST ("a\0b\0\0c",    0, 'a' ),  
-    TEST ("a\0b\0\0c",    1, '\0'),
-    TEST ("a\0b\0\0c",    2, 'b' ),  
-    TEST ("a\0b\0\0c",    3, '\0'), 
-    TEST ("a\0b\0\0c",    4, '\0'),
-    TEST ("a\0b\0\0c",    5, 'c' ),  
-    TEST ("a\0b\0\0c",    6, NPOS), 
+    TEST ("a<U0>b<U0><U0>c",    0, 'a' ),  
+    TEST ("a<U0>b<U0><U0>c",    1, '\0'),
+    TEST ("a<U0>b<U0><U0>c",    2, 'b' ),  
+    TEST ("a<U0>b<U0><U0>c",    3, '\0'), 
+    TEST ("a<U0>b<U0><U0>c",    4, '\0'),
+    TEST ("a<U0>b<U0><U0>c",    5, 'c' ),  
+    TEST ("a<U0>b<U0><U0>c",    6, NPOS), 
 
-    TEST ("a\0bc\0\0",    5, '\0'), 
+    TEST ("a<U0>bc<U0><U0>",    5, '\0'), 
 
-    TEST ("x@4096",       0, 'x' ),  
-    TEST ("x@4096",    2048, 'x' ), 
-    TEST ("x@4096",    4095, 'x' ), 
-    TEST ("x@4096",    4096, NPOS),
+    TEST ("x@4096",             0, 'x' ),  
+    TEST ("x@4096",          2048, 'x' ), 
+    TEST ("x@4096",          4095, 'x' ), 
+    TEST ("x@4096",          4096, NPOS),
 
-    TEST ("last",         3, 't' )  
+    TEST ("last",               3, 't' )  
 };
 
 /**************************************************************************/
@@ -153,45 +153,45 @@ at_size_test_cases [] = {
         0, 0, 0, res, bthrow                    \
     }
 
-    //    +--------------------------------- controlled sequence
-    //    |               +----------------- index 
-    //    |               |  +-------------- expected result 
-    //    |               |  |        +----- exception info 
-    //    |               |  |        |      0 - no exception
-    //    |               |  |        |      1 - out_of_range
-    //    |               |  |        |
-    //    V               V  V        V
-    TEST ("a",            0, 'a',     0),
-    TEST ("a",            1, NPOS,    1),
+    //    +--------------------------------------- controlled sequence
+    //    |                     +----------------- index 
+    //    |                     |  +-------------- expected result 
+    //    |                     |  |        +----- exception info 
+    //    |                     |  |        |      0 - no exception
+    //    |                     |  |        |      1 - out_of_range
+    //    |                     |  |        |
+    //    V                     V  V        V
+    TEST ("a",                  0, 'a',     0),
+    TEST ("a",                  1, NPOS,    1),
 
-    TEST ("",             0, NPOS,    1),
+    TEST ("",                   0, NPOS,    1),
 
-    TEST ("\0",           0, '\0',    0),
-    TEST ("\0",           1, NPOS,    1),
+    TEST ("<U0>",               0, '\0',    0),
+    TEST ("<U0>",               1, NPOS,    1),
 
-    TEST ("abc",          0, 'a',     0),
-    TEST ("abc",          1, 'b',     0),
-    TEST ("abc",          2, 'c',     0),
-    TEST ("abc",          3, NPOS,    1),
+    TEST ("abc",                0, 'a',     0),
+    TEST ("abc",                1, 'b',     0),
+    TEST ("abc",                2, 'c',     0),
+    TEST ("abc",                3, NPOS,    1),
 
-    TEST ("\0ab\0\0c",    0, '\0',    0),
+    TEST ("<U0>ab<U0><U0>c",    0, '\0',    0),
 
-    TEST ("a\0b\0\0c",    0, 'a',     0),
-    TEST ("a\0b\0\0c",    1, '\0',    0),
-    TEST ("a\0b\0\0c",    2, 'b',     0),
-    TEST ("a\0b\0\0c",    3, '\0',    0),
-    TEST ("a\0b\0\0c",    4, '\0',    0),
-    TEST ("a\0b\0\0c",    5, 'c',     0),
-    TEST ("a\0b\0\0c",    6, NPOS,    1),
+    TEST ("a<U0>b<U0><U0>c",    0, 'a',     0),
+    TEST ("a<U0>b<U0><U0>c",    1, '\0',    0),
+    TEST ("a<U0>b<U0><U0>c",    2, 'b',     0),
+    TEST ("a<U0>b<U0><U0>c",    3, '\0',    0),
+    TEST ("a<U0>b<U0><U0>c",    4, '\0',    0),
+    TEST ("a<U0>b<U0><U0>c",    5, 'c',     0),
+    TEST ("a<U0>b<U0><U0>c",    6, NPOS,    1),
 
-    TEST ("a\0bc\0\0",    5, '\0',    0),
+    TEST ("a<U0>bc<U0><U0>",    5, '\0',    0),
 
-    TEST ("x@4096",       0, 'x',     0),
-    TEST ("x@4096",    2048, 'x',     0),
-    TEST ("x@4096",    4095, 'x',     0),
-    TEST ("x@4096",    4096, NPOS,    1),
+    TEST ("x@4096",             0, 'x',     0),
+    TEST ("x@4096",          2048, 'x',     0),
+    TEST ("x@4096",          4095, 'x',     0),
+    TEST ("x@4096",          4096, NPOS,    1),
 
-    TEST ("last",         3, 't',     0)
+    TEST ("last",               3, 't',     0)
 };
 
 /**************************************************************************/

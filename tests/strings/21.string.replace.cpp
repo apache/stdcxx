@@ -85,9 +85,9 @@ iter_iter_cptr_test_cases [] = {
     TEST ("ab",        0, 2, "",         "",              0),
     TEST ("ab",        0, 1, "",         "b",             0),
 
-    TEST ("\0",        0, 1, "",         "",              0),
-    TEST ("\0",        0, 1, "a",        "a",             0),
-    TEST ("\0",        0, 1, "\0\0",     "",              0),
+    TEST ("<U0>",      0, 1, "",         "",              0),
+    TEST ("<U0>",      0, 1, "a",        "a",             0),
+    TEST ("<U0>",      0, 1, "<U0>@2",   "",              0),
 
     TEST ("ah",        0, 1, "bcdefg",   "bcdefgh",       0),
     TEST ("ah",        1, 1, "bcdefg",   "abcdefg",       0),
@@ -98,25 +98,25 @@ iter_iter_cptr_test_cases [] = {
 
     TEST ("abc",       0, 3, "defgh",    "defgh",         0),
     TEST ("abc",       2, 1, "defgh",    "abdefgh",       0),
-    TEST ("abc",       2, 1, "de\0gh",   "abde",          0),
+    TEST ("abc",       2, 1, "de<U0>gh", "abde",          0),
     TEST ("abc",       2, 1, "",         "ab",            0),
     TEST ("abc",       1, 1, "defgh",    "adefghc",       0),
 
     TEST ("abc",       0, 0, "ee",       "eeabc",         0),
-    TEST ("abc",       0, 0, "\0\0e\0",  "abc",           0),
+    TEST ("abc",       0, 0, "<U0>@2e<U0>", "abc",        0),
     TEST ("abc",       2, 0, "ee",       "abeec",         0),
     TEST ("abc",       1, 0, "ee",       "aeebc",         0),
-    TEST ("abc",       1, 0, "e\0\0",    "aebc",          0),
+    TEST ("abc",       1, 0, "e<U0>@2",  "aebc",          0),
 
-    TEST ("a\0b\0\0c", 0, 3, "",         "\0\0c",         0),
-    TEST ("a\0b\0\0c", 0, 3, "\0e",      "\0\0c",         0),
+    TEST ("a<U0>b<U0>@2c", 0, 3, "",      "<U0>@2c",      0),
+    TEST ("a<U0>b<U0>@2c", 0, 3, "<U0>e", "<U0>@2c",      0),
 
-    TEST ("\0ab\0\0c", 0, 0, "e\0",      "e\0ab\0\0c",    0),
-    TEST ("a\0b\0c\0", 6, 0, "e\0",      "a\0b\0c\0e",    0),
-    TEST ("\0ab\0\0c", 5, 0, "e\0",      "\0ab\0\0ec",    0),
+    TEST ("<U0>ab<U0>@2c", 0, 0, "e<U0>",   "e<U0>ab<U0>@2c",   0),
+    TEST ("a<U0>b<U0>c<U0>", 6, 0, "e<U0>", "a<U0>b<U0>c<U0>e", 0),
+    TEST ("<U0>ab<U0>@2c", 5, 0, "e<U0>",   "<U0>ab<U0>@2ec",   0),
 
     TEST ("x@4096",    0, 4095, "ab",    "abx",           0),
-    TEST ("\0@4096",   1, 4094, "abc",   "\0abc\0",       0),
+    TEST ("<U0>@4096", 1, 4094, "abc",   "<U0>abc<U0>",   0),
     TEST ("x@4096",    1, 4094, "ab",    "xabx",          0),
     TEST ("x@4096",    0, 4094, "ab",    "abxx",          0),
     TEST ("x@4096",    1, 4093, "",      "xxx",           0),
@@ -134,9 +134,9 @@ iter_iter_cptr_test_cases [] = {
     TEST ("",          0,    0, "x@4096", "x@4096",       0),
     TEST ("a",         0,    1, "x@4096", "x@4096",       0),
     TEST ("x@4096",    0, 4095, "x@4096", "x@4097",       0),
-    TEST ("\0ab\0\0c", 0,    6, "x@4096", "x@4096",       0),
+    TEST ("<U0>ab<U0>@2c", 0, 6, "x@4096", "x@4096",      0),
 
-    TEST ("\0",         2,   0, "",       "\0",           1),
+    TEST ("<U0>",       2,   0, "",       "<U0>",         1),
     TEST ("a",         10,   0, "",       "a",            1),
     TEST ("x@4096",  4106,   0, "",       "x@4096",       1),
 
@@ -146,10 +146,10 @@ iter_iter_cptr_test_cases [] = {
     TEST ("",          0,    0, 0,        "",             0),
     TEST ("abc",       0,    3, 0,        "abc",          0),
     TEST ("abc",       1,    1, 0,        "aabcc",        0),
-    TEST ("a\0b\0c\0", 2,    3, 0,        "a\0a\0",       0),
-    TEST ("a\0b\0c\0", 0,    0, 0,        "aa\0b\0c\0",   0),
-    TEST ("a\0b\0c\0", 6,    0, 0,        "a\0b\0c\0a",   0),
-    TEST ("\0ab\0c\0", 3,    3, 0,        "\0ab",         0),
+    TEST ("a<U0>b<U0>c<U0>", 2,    3, 0,  "a<U0>a<U0>",       0),
+    TEST ("a<U0>b<U0>c<U0>", 0,    0, 0,  "aa<U0>b<U0>c<U0>", 0),
+    TEST ("a<U0>b<U0>c<U0>", 6,    0, 0,  "a<U0>b<U0>c<U0>a", 0),
+    TEST ("<U0>ab<U0>c<U0>", 3,    3, 0,  "<U0>ab",           0),
     TEST ("x@4096",    0, 4095, 0,        "x@4097",       0),
 
     TEST ("last",      4, 0, "test",     "lasttest",      0)
@@ -190,16 +190,16 @@ iter_iter_cstr_test_cases [] = {
     TEST ("ab",         0, 0, "c",        "cab",               0),
 
     TEST ("",           0, 0, "",         "",                  0),
-    TEST ("",           0, 0, "\0",       "\0",                0),
+    TEST ("",           0, 0, "<U0>",       "<U0>",            0),
     TEST ("",           0, 0, "abc",      "abc",               0),
 
     TEST ("ab",         0, 2, "",         "",                  0),
     TEST ("ab",         0, 1, "",         "b",                 0),
-    TEST ("ab",         1, 1, "\0",       "a\0",               0),
+    TEST ("ab",         1, 1, "<U0>",       "a<U0>",           0),
 
-    TEST ("\0",         0, 1, "",         "",                  0),
-    TEST ("\0",         0, 1, "a",        "a",                 0),
-    TEST ("\0",         0, 1, "\0\0",     "\0\0",              0),
+    TEST ("<U0>",       0, 1, "",         "",                  0),
+    TEST ("<U0>",       0, 1, "a",        "a",                 0),
+    TEST ("<U0>",       0, 1, "<U0>@2",     "<U0>@2",          0),
 
     TEST ("ah",         0, 1, "bcdefg",   "bcdefgh",           0),
     TEST ("ah",         1, 1, "bcdefg",   "abcdefg",           0),
@@ -210,32 +210,32 @@ iter_iter_cstr_test_cases [] = {
 
     TEST ("abc",        0, 3, "defgh",    "defgh",             0),
     TEST ("abc",        2, 1, "defgh",    "abdefgh",           0),
-    TEST ("abc",        2, 1, "de\0gh",   "abde\0gh",          0),
+    TEST ("abc",        2, 1, "de<U0>gh", "abde<U0>gh",        0),
     TEST ("abc",        2, 1, "",         "ab",                0),
     TEST ("abc",        1, 1, "defgh",    "adefghc",           0),
 
     TEST ("abc",        0, 0, "ee",       "eeabc",             0),
-    TEST ("abc",        0, 0, "\0\0e\0",  "\0\0e\0abc",        0),
+    TEST ("abc",        0, 0, "<U0>@2e<U0>", "<U0>@2e<U0>abc", 0),
     TEST ("abc",        2, 0, "ee",       "abeec",             0),
     TEST ("abc",        1, 0, "ee",       "aeebc",             0),
-    TEST ("abc",        1, 0, "e\0\0",    "ae\0\0bc",          0),
+    TEST ("abc",        1, 0, "e<U0>@2",  "ae<U0>@2bc",        0),
 
-    TEST ("a\0b\0\0c",  0, 3, "",         "\0\0c",             0),
-    TEST ("a\0b\0\0c",  0, 3, "\0e",      "\0e\0\0c",          0),
+    TEST ("a<U0>b<U0>@2c",  0, 3, "",      "<U0>@2c",          0),
+    TEST ("a<U0>b<U0>@2c",  0, 3, "<U0>e", "<U0>e<U0>@2c",     0),
 
-    TEST ("a\0b\0\0c",  2, 3, "\0e",      "a\0\0ec",           0),
-    TEST ("a\0b\0\0c",  0, 3, "\0\0e\0",  "\0\0e\0\0\0c",      0),
-    TEST ("\0ab\0\0c",  1, 2, "\0e\0\0",  "\0\0e\0\0\0\0c",    0),
+    TEST ("a<U0>b<U0>@2c",  2, 3, "<U0>e",       "a<U0>@2ec",      0),
+    TEST ("a<U0>b<U0>@2c",  0, 3, "<U0>@2e<U0>", "<U0>@2e<U0>@3c", 0),
+    TEST ("<U0>ab<U0>@2c",  1, 2, "<U0>e<U0>@2", "<U0>@2e<U0>@4c", 0),
 
-    TEST ("\0ab\0\0c",  0, 0, "\0e",      "\0e\0ab\0\0c",      0),
-    TEST ("a\0b\0c\0",  6, 0, "e\0",      "a\0b\0c\0e\0",      0),
-    TEST ("\0ab\0\0c",  5, 0, "\0e",      "\0ab\0\0\0ec",      0),
+    TEST ("<U0>ab<U0>@2c",   0, 0, "<U0>e", "<U0>e<U0>ab<U0>@2c",   0),
+    TEST ("a<U0>b<U0>c<U0>", 6, 0, "e<U0>", "a<U0>b<U0>c<U0>e<U0>", 0),
+    TEST ("<U0>ab<U0>@2c",  5, 0, "<U0>e",      "<U0>ab<U0>@3ec",   0),
 
     TEST ("x@4096",     0, 4095, "ab",    "abx",               0),
     TEST ("x@4096",     1, 4094, "ab",    "xabx",              0),
     TEST ("x@4096",     0, 4094, "ab",    "abxx",              0),
     TEST ("x@4096",     1, 4093, "",      "xxx",               0),
-    TEST ("x@4096",     1, 4092, "\0\0",  "x\0\0xxx",          0),
+    TEST ("x@4096",     1, 4092, "<U0>@2", "x<U0>@2xxx",       0),
 
     TEST ("x@20",       1,   10, "x@118", "x@128",             0),
     TEST ("x@128",    128,    0, "x@79",  "x@207",             0),
@@ -250,9 +250,9 @@ iter_iter_cstr_test_cases [] = {
     TEST ("",           0,    0, "x@4096", "x@4096",           0),
     TEST ("a",          0,    1, "x@4096", "x@4096",           0),
     TEST ("x@4096",     0, 4095, "x@4096", "x@4097",           0),
-    TEST ("\0ab\0\0c",  0,    6, "x@4096", "x@4096",           0),
+    TEST ("<U0>ab<U0>@2c",  0,    6, "x@4096", "x@4096",       0),
 
-    TEST ("\0",         2,    0, "",        "\0",              1),
+    TEST ("<U0>",         2,    0, "",        "<U0>",          1),
     TEST ("a",         10,    0, "",        "a",               1),
     TEST ("x@4096",  4106,    0, "",        "x@4096",          1),
     TEST ("",           0,    0, "x@4096",  "x@4096",          0),
@@ -260,10 +260,10 @@ iter_iter_cstr_test_cases [] = {
     // self-referential replacement
     TEST ("abc",        0,    3, 0, "abc",                     0),
     TEST ("abc",        1,    1, 0, "aabcc",                   0),
-    TEST ("a\0b\0c\0",  2,    3, 0, "a\0a\0b\0c\0\0",          0),
-    TEST ("a\0b\0c\0",  0,    0, 0, "a\0b\0c\0a\0b\0c\0",      0),
-    TEST ("a\0b\0c\0",  6,    0, 0, "a\0b\0c\0a\0b\0c\0",      0),
-    TEST ("\0ab\0c\0",  3,    3, 0, "\0ab\0ab\0c\0",           0),
+    TEST ("a<U0>b<U0>c<U0>",  2, 3, 0, "a<U0>a<U0>b<U0>c<U0>@2",         0),
+    TEST ("a<U0>b<U0>c<U0>",  0, 0, 0, "a<U0>b<U0>c<U0>a<U0>b<U0>c<U0>", 0),
+    TEST ("a<U0>b<U0>c<U0>",  6, 0, 0, "a<U0>b<U0>c<U0>a<U0>b<U0>c<U0>", 0),
+    TEST ("<U0>ab<U0>c<U0>",  3, 3, 0, "<U0>ab<U0>ab<U0>c<U0>",          0),
     TEST ("x@4096",     0, 4095, 0, "x@4097",                  0),
 
     TEST ("last",       4,    0, "test",     "lasttest",       0)
@@ -310,9 +310,9 @@ iter_iter_cptr_size_test_cases [] = {
     TEST ("ab",        0, 2, "",          0, "",                0),
     TEST ("ab",        0, 1, "",          0, "b",               0),
 
-    TEST ("\0",        0, 1, "",          0, "",                0),
-    TEST ("\0",        0, 1, "a",         1, "a",               0),
-    TEST ("\0",        0, 1, "\0\0",      2, "\0\0",            0),
+    TEST ("<U0>",      0, 1, "",          0, "",                0),
+    TEST ("<U0>",      0, 1, "a",         1, "a",               0),
+    TEST ("<U0>",      0, 1, "<U0>@2",    2, "<U0>@2",          0),
 
     TEST ("ah",        0, 1, "bcdefg",    3, "bcdh",            0),
     TEST ("ah",        1, 1, "bcdefg",    3, "abcd",            0),
@@ -321,27 +321,27 @@ iter_iter_cptr_size_test_cases [] = {
     TEST ("abc",       0, 2, "cc",        2, "ccc",             0),
     TEST ("abc",       1, 2, "cc",        2, "acc",             0),
     TEST ("abc",       2, 1, "defgh",     1, "abd",             0),
-    TEST ("abc",       2, 1, "de\0gh",    3, "abde\0",          0),
+    TEST ("abc",       2, 1, "de<U0>gh",  3, "abde<U0>",        0),
     TEST ("abc",       2, 1, "",          0, "ab",              0),
 
     TEST ("abc",       0, 0, "ee",        2, "eeabc",           0),
-    TEST ("abc",       0, 0, "\0\0e\0",   4, "\0\0e\0abc",      0),
+    TEST ("abc",       0, 0, "<U0>@2e<U0>", 4, "<U0>@2e<U0>abc",0),
     TEST ("abc",       2, 0, "ee",        2, "abeec",           0),
     TEST ("abc",       1, 0, "ee",        1, "aebc",            0),
 
-    TEST ("a\0b\0\0c", 0, 3, "",          0, "\0\0c",           0),
-    TEST ("a\0b\0\0c", 0, 3, "e\0",       2, "e\0\0\0c",        0),
-    TEST ("a\0b\0\0c", 2, 3, "e\0",       1, "a\0ec",           0),
-    TEST ("a\0b\0\0c", 2, 3, "\0e",       2, "a\0\0ec",         0),
-    TEST ("\0ab\0\0c", 2, 3, "\0e",       2, "\0a\0ec",         0),
-    TEST ("a\0b\0\0c", 0, 6, "e\0",       2, "e\0",             0),
+    TEST ("a<U0>b<U0>@2c", 0, 3, "",      0, "<U0>@2c",         0),
+    TEST ("a<U0>b<U0>@2c", 0, 3, "e<U0>", 2, "e<U0>@3c",        0),
+    TEST ("a<U0>b<U0>@2c", 2, 3, "e<U0>", 1, "a<U0>ec",         0),
+    TEST ("a<U0>b<U0>@2c", 2, 3, "<U0>e", 2, "a<U0>@2ec",       0),
+    TEST ("<U0>ab<U0>@2c", 2, 3, "<U0>e", 2, "<U0>a<U0>ec",     0),
+    TEST ("a<U0>b<U0>@2c", 0, 6, "e<U0>", 2, "e<U0>",           0),
 
-    TEST ("x@4096",    1, 4095, "\0",        1, "x\0",          0),
+    TEST ("x@4096",    1, 4095, "<U0>",      1, "x<U0>",        0),
     TEST ("x@4096",    0, 4095, "ab",        2, "abx",          0),
     TEST ("x@4096",    1, 4094, "ab",        1, "xax",          0),
     TEST ("x@4096",    0, 4094, "ab",        2, "abxx",         0),
     TEST ("x@4096",    1, 4093, "",          0, "xxx",          0),
-    TEST ("x@4096",    1, 4092, "\0\0",      2, "x\0\0xxx",     0),
+    TEST ("x@4096",    1, 4092, "<U0>@2",    2, "x<U0>@2xxx",   0),
 
     TEST ("",          0,    0, "x@873",   540, "x@540",        0),
     TEST ("x@20",      1,   10, "x@118",   118, "x@128",        0),
@@ -363,7 +363,7 @@ iter_iter_cptr_size_test_cases [] = {
 
     TEST ("x@4096", 2047, 2048, "x@4096", 2048,  "x@4096",      0),
 
-    TEST ("\0",         2,   0, "",         0, "\0",            1),
+    TEST ("<U0>",       2,   0, "",         0, "<U0>",          1),
     TEST ("a",         10,   0, "",         0, "a",             1),
     TEST ("x@4096",  4106,   0, "",         0, "x@4096",        1),
 
@@ -375,10 +375,10 @@ iter_iter_cptr_size_test_cases [] = {
     TEST ("a",         1,    0, 0 /* self */,    1, "aa",              0),
     TEST ("abc",       0,    3, 0 /* self */,    2, "ab",              0),
     TEST ("abc",       1,    1, 0 /* self */,    3, "aabcc",           0),
-    TEST ("a\0b\0c\0", 2,    3, 0 /* self */,    6, "a\0a\0b\0c\0\0",  0),
-    TEST ("a\0b\0c\0", 0,    0, 0 /* self */,    4, "a\0b\0a\0b\0c\0", 0),
-    TEST ("\0ab\0c\0", 6,    0, 0 /* self */,    1, "\0ab\0c\0\0",     0),
-    TEST ("\0ab\0c\0", 3,    3, 0 /* self */,    2, "\0ab\0a",         0),
+    TEST ("a<U0>b<U0>c<U0>", 2, 3, 0, 6, "a<U0>a<U0>b<U0>c<U0>@2",     0),
+    TEST ("a<U0>b<U0>c<U0>", 0, 0, 0, 4, "a<U0>b<U0>a<U0>b<U0>c<U0>",  0),
+    TEST ("<U0>ab<U0>c<U0>", 6, 0, 0 /* self */, 1, "<U0>ab<U0>c<U0>@2", 0),
+    TEST ("<U0>ab<U0>c<U0>", 3, 3, 0 /* self */, 2, "<U0>ab<U0>a",       0),
     TEST ("a@4096",    0,    1, 0 /* self */, 1111, "a@5206",          0),
     TEST ("b@4096",    1,    2, 0 /* self */, 2222, "b@6316",          0),
     TEST ("x@4096",    0, 4095, 0 /* self */, 4095, "x@4096",          0),
@@ -463,10 +463,10 @@ iter_iter_range_test_cases [] = {
     TEST ("ab",        0,  2, "",         0, 0, "",                  0),
     TEST ("ab",        0,  1, "",         0, 0, "b",                 0),
 
-    TEST ("\0",        0,  1, "",         0, 0, "",                  0),
-    TEST ("\0",        0,  1, "a",        0, 1, "a",                 0),
-    TEST ("\0",        0,  1, "\0\0",     1, 1, "\0",                0),
-    TEST ("\0",        0,  1, "\0\0",     0, 2, "\0\0",              0),
+    TEST ("<U0>",      0,  1, "",         0, 0, "",                  0),
+    TEST ("<U0>",      0,  1, "a",        0, 1, "a",                 0),
+    TEST ("<U0>",      0,  1, "<U0>@2",   1, 1, "<U0>",              0),
+    TEST ("<U0>",      0,  1, "<U0>@2",   0, 2, "<U0>@2",            0),
 
     TEST ("ah",        0,  1, "bcdefg",   0, 3, "bcdh",              0),
     TEST ("ah",        1,  1, "bcdefg",   0, 3, "abcd",              0),
@@ -482,32 +482,32 @@ iter_iter_range_test_cases [] = {
     TEST ("abc",       0,  3, "def",      0, 3, "def",               0),
     TEST ("abc",       0,  3, "defgh",    0, 5, "defgh",             0),
     TEST ("abc",       2,  1, "defgh",    4, 1, "abh",               0),
-    TEST ("abc",       2,  1, "de\0gh",   2, 1, "ab\0",              0),
+    TEST ("abc",       2,  1, "de<U0>gh",   2, 1, "ab<U0>",          0),
     TEST ("abc",       2,  1, "",         0, 0, "ab",                0),
 
     TEST ("abc",       1,  1, "defgh",    1, 2, "aefc",              0),
     TEST ("abc",       0,  0, "ee",       0, 2, "eeabc",             0),
-    TEST ("abc",       0,  0, "\0\0e\0",  0, 4, "\0\0e\0abc",        0),
+    TEST ("abc",       0,  0, "<U0>@2e<U0>",  0, 4, "<U0>@2e<U0>abc",0),
     TEST ("abc",       2,  0, "ee",       0, 2, "abeec",             0),
-    TEST ("abc",       2,  1, "\0e\0\0",  0, 4, "ab\0e\0\0",         0),
+    TEST ("abc",       2,  1, "<U0>e<U0>@2",  0, 4, "ab<U0>e<U0>@2", 0),
     TEST ("abc",       1,  0, "ee",       0, 2, "aeebc",             0),
-    TEST ("abc",       1,  0, "\0e\0\0",  0, 4, "a\0e\0\0bc",        0),
+    TEST ("abc",       1,  0, "<U0>e<U0>@2",  0, 4, "a<U0>e<U0>@2bc", 0),
 
-    TEST ("a\0b\0\0c", 0,  3, "",         0, 0, "\0\0c",             0),
-    TEST ("\0ab\0\0c", 0,  3, "",         0, 0, "\0\0c",             0),
-    TEST ("a\0b\0\0c", 0,  3, "\0e",      0, 2, "\0e\0\0c",          0),
+    TEST ("a<U0>b<U0>@2c", 0,  3, "",      0, 0, "<U0>@2c",           0),
+    TEST ("<U0>ab<U0>@2c", 0,  3, "",      0, 0, "<U0>@2c",           0),
+    TEST ("a<U0>b<U0>@2c", 0,  3, "<U0>e", 0, 2, "<U0>e<U0>@2c",      0),
 
-    TEST ("a\0b\0\0c", 2,  3, "\0e",      0, 2, "a\0\0ec",           0),
-    TEST ("a\0b\0\0c", 2,  3, "\0e",      1, 1, "a\0ec",             0),
-    TEST ("\0ab\0\0c", 2,  3, "\0e",      0, 2, "\0a\0ec",           0),
-    TEST ("\0ab\0\0c", 2,  3, "\0e\0\0",  1, 3, "\0ae\0\0c",         0),
+    TEST ("a<U0>b<U0>@2c", 2,  3, "<U0>e",      0, 2, "a<U0>@2ec",    0),
+    TEST ("a<U0>b<U0>@2c", 2,  3, "<U0>e",      1, 1, "a<U0>ec",      0),
+    TEST ("<U0>ab<U0>@2c", 2,  3, "<U0>e",      0, 2, "<U0>a<U0>ec",  0),
+    TEST ("<U0>ab<U0>@2c", 2,  3, "<U0>e<U0>@2", 1, 3, "<U0>ae<U0>@2c", 0),
 
-    TEST ("a\0b\0\0c", 0,  6, "\0e",      0, 2, "\0e",               0),
-    TEST ("a\0b\0\0c", 0,  6, "\0e",      0, 1, "\0",                0),
+    TEST ("a<U0>b<U0>@2c", 0,  6, "<U0>e",      0, 2, "<U0>e",          0),
+    TEST ("a<U0>b<U0>@2c", 0,  6, "<U0>e",      0, 1, "<U0>",           0),
 
-    TEST ("\0ab\0\0c", 0,  0, "\0e",      0, 2, "\0e\0ab\0\0c",      0),
-    TEST ("a\0b\0c\0", 6,  0, "e\0",      0, 2, "a\0b\0c\0e\0",      0),
-    TEST ("\0ab\0\0c", 5,  0, "\0e",      0, 2, "\0ab\0\0\0ec",      0),
+    TEST ("<U0>ab<U0>@2c",   0,  0, "<U0>e",  0, 2, "<U0>e<U0>ab<U0>@2c",   0),
+    TEST ("a<U0>b<U0>c<U0>", 6,  0, "e<U0>",  0, 2, "a<U0>b<U0>c<U0>e<U0>", 0),
+    TEST ("<U0>ab<U0>@2c",   5,  0, "<U0>e",  0, 2, "<U0>ab<U0>@3ec",       0),
 
     ///////////////////////////////////////////////////////////////////////
     // very long strings
@@ -532,7 +532,7 @@ iter_iter_range_test_cases [] = {
     TEST ("x@4096",    1,  4094, "ab",       0, 2, "xabx",            0),
     TEST ("x@4096",    0,  4094, "ab",       0, 2, "abxx",            0),
     TEST ("x@4096",    1,  4093, "",         0, 0, "xxx",             0),
-    TEST ("x@4096",    1,  4092, "\0\0",     0, 2, "x\0\0xxx",        0),
+    TEST ("x@4096",    1,  4092, "<U0>@2",   0, 2, "x<U0>@2xxx",      0),
 
     TEST ("a",      0,     1, "x@4096",   0, 4095, "x@4095",         0),
     TEST ("x@4096", 0,  4095, "x@4096",   0, 4095, "x@4096",         0),
@@ -554,8 +554,8 @@ iter_iter_range_test_cases [] = {
 
     TEST ("x@4096", 2047, 2048, "x@4096", 0, 2048,  "x@4096",        0),
 
-    TEST ("\0",         2, 0, "",           0, 0, "\0",              1),
-    TEST ("\0",         0, 0, "\0",         2, 0, "\0",              2),
+    TEST ("<U0>",         2, 0, "",           0, 0, "<U0>",          1),
+    TEST ("<U0>",         0, 0, "<U0>",       2, 0, "<U0>",          2),
 
     TEST ("a",         10, 0, "",           0, 0, "a",               1),
     TEST ("a",          0, 0, "a",         10, 0, "a",               2),
@@ -598,9 +598,9 @@ iter_iter_range_test_cases [] = {
 
     TEST ("abc",       0, 0, 0,           1, 1,  "babc",             0),
     TEST ("abc",       2, 0, 0,           0, 2,  "ababc",            0),
-    TEST ("a\0bc\0\0", 0, 0, 0,           4, 2,  "\0\0a\0bc\0\0",    0),
-    TEST ("a\0bc\0\0", 6, 0, 0,           1, 3,  "a\0bc\0\0\0bc",    0),
-    TEST ("abcdef",    0, 0, 0,           1, 2,  "bcabcdef",         0),
+    TEST ("a<U0>bc<U0>@2", 0, 0, 0,       4, 2,  "<U0>@2a<U0>bc<U0>@2", 0),
+    TEST ("a<U0>bc<U0>@2", 6, 0, 0,       1, 3,  "a<U0>bc<U0>@3bc",     0),
+    TEST ("abcdef",    0, 0, 0,           1, 2,  "bcabcdef",            0),
 
     TEST ("last",      4, 0, "test",      0, 4, "lasttest",          0)
 };
@@ -646,10 +646,10 @@ iter_iter_size_val_test_cases [] = {
     TEST ("ab",        0, 2, 0, 'c',  "",              0),
     TEST ("ab",        0, 1, 0, 'c',  "b",             0),
 
-    TEST ("\0",        0, 1, 0, ' ',  "",              0),
-    TEST ("\0",        0, 1, 1, 'a',  "a",             0),
-    TEST ("\0",        0, 1, 1, '\0', "\0",            0),
-    TEST ("\0",        0, 1, 2, '\0', "\0\0",          0),
+    TEST ("<U0>",      0, 1, 0, ' ',  "",              0),
+    TEST ("<U0>",      0, 1, 1, 'a',  "a",             0),
+    TEST ("<U0>",      0, 1, 1, '\0', "<U0>",          0),
+    TEST ("<U0>",      0, 1, 2, '\0', "<U0>@2",        0),
 
     TEST ("ah",        0, 1, 1, 'c',  "ch",            0),
     TEST ("ah",        1, 1, 1, 'c',  "ac",            0),
@@ -666,28 +666,28 @@ iter_iter_size_val_test_cases [] = {
 
     TEST ("abc",       1, 1, 5, 'c',  "acccccc",       0),
     TEST ("abc",       0, 0, 2, 'c',  "ccabc",         0),
-    TEST ("abc",       0, 0, 3, '\0', "\0\0\0abc",     0),
+    TEST ("abc",       0, 0, 3, '\0', "<U0>@3abc",     0),
     TEST ("abc",       2, 0, 2, 'e',  "abeec",         0),
-    TEST ("abc",       2, 0, 3, '\0', "ab\0\0\0c",     0),
-    TEST ("abc",       1, 0, 1, '\0', "a\0bc",         0),
+    TEST ("abc",       2, 0, 3, '\0', "ab<U0>@3c",     0),
+    TEST ("abc",       1, 0, 1, '\0', "a<U0>bc",       0),
 
-    TEST ("a\0b\0\0c", 0, 3, 1, '\0', "\0\0\0c",       0),
-    TEST ("a\0b\0\0c", 2, 3, 2, '\0', "a\0\0\0c",      0),
-    TEST ("a\0b\0\0c", 2, 2, 1, '\0', "a\0\0\0c",      0),
-    TEST ("\0ab\0\0c", 2, 3, 0, '\0', "\0ac",          0),
-    TEST ("\0ab\0\0c", 2, 1, 2, '\0', "\0a\0\0\0\0c",  0),
+    TEST ("a<U0>b<U0>@2c", 0, 3, 1, '\0', "<U0>@3c",      0),
+    TEST ("a<U0>b<U0>@2c", 2, 3, 2, '\0', "a<U0>@3c",     0),
+    TEST ("a<U0>b<U0>@2c", 2, 2, 1, '\0', "a<U0>@3c",     0),
+    TEST ("<U0>ab<U0>@2c", 2, 3, 0, '\0', "<U0>ac",       0),
+    TEST ("<U0>ab<U0>@2c", 2, 1, 2, '\0', "<U0>a<U0>@4c", 0),
 
-    TEST ("a\0b\0\0c", 0, 6, 2, '\0', "\0\0",          0),
+    TEST ("a<U0>b<U0>@2c", 0, 6, 2, '\0', "<U0>@2",       0),
 
-    TEST ("\0ab\0\0c", 0, 0, 2, '\0', "\0\0\0ab\0\0c", 0),
-    TEST ("a\0b\0c\0", 6, 0, 2, '\0', "a\0b\0c\0\0\0", 0),
-    TEST ("\0ab\0\0c", 5, 0, 1, '\0', "\0ab\0\0\0c",   0),
+    TEST ("<U0>ab<U0>@2c", 0, 0, 2, '\0', "<U0>@3ab<U0>@2c",     0),
+    TEST ("a<U0>b<U0>c<U0>", 6, 0, 2, '\0', "a<U0>b<U0>c<U0>@3", 0),
+    TEST ("<U0>ab<U0>@2c", 5, 0, 1, '\0', "<U0>ab<U0>@3c",       0),
 
     TEST ("x@4096",    0, 4095,  2, 'a',  "aax",       0),
     TEST ("x@4096",    1, 4094,  2, 'a',  "xaax",      0),
     TEST ("x@4096",    0, 4094,  2, 'a',  "aaxx",      0),
     TEST ("x@4096",    1, 4093,  0, 'a',  "xxx",       0),
-    TEST ("x@4096",    1, 4092,  1, '\0', "x\0xxx",    0),
+    TEST ("x@4096",    1, 4092,  1, '\0', "x<U0>xxx",  0),
 
     TEST ("x@127",     0,    0,  1, 'x', "x@128",      0),
     TEST ("x@200",   128,    7, 14, 'x', "x@207",      0),
@@ -705,7 +705,7 @@ iter_iter_size_val_test_cases [] = {
 
     TEST ("x@4096", 2047, 2048, 2048,   'x', "x@4096",     0),
 
-    TEST ("\0",         2,   0,    0, ' ',  "\0",          1),
+    TEST ("<U0>",       2,   0,    0, ' ',  "<U0>",        1),
     TEST ("a",         10,   0,    0, ' ',  "a",           1),
     TEST ("x@4096",  4106,   0,    0, ' ',  "x@4096",      1),
 
@@ -983,7 +983,7 @@ void test_replace (charT*, Traits*, Allocator*, const RangeBase<
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, str.data (), tcase.nres);
+                    rw_match (tcase.res, str.data (), str.size ());
 
                 rw_assert (match == tdata.reslen_, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{/*.*Gs}, "
