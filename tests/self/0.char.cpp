@@ -732,33 +732,6 @@ test_rw_narrow ()
 
 /***********************************************************************/
 
-static size_t
-length (const char *s)
-{
-    return s ? strlen (s) : 0;
-}
-
-
-static size_t
-length (const wchar_t *ws)
-{
-    size_t len = 0;
-    if (ws)
-        for (len = 0; ws [len]; ++len);
-    return len;
-}
-
-
-static size_t
-length (const UserChar *us)
-{
-    size_t len = 0;
-    if (us)
-        for (len = 0; us [len].f || us [len].c; ++len);
-    return len;
-}
-
-
 static const UserChar*
 make_user_string (const char *s, size_t len)
 {
@@ -786,11 +759,7 @@ test_rw_match ()
     //////////////////////////////////////////////////////////////////
     rw_info (0, 0, 0, "rw_match(char*, const char*, size_t)");
 
-    const size_t size_max = _RWSTD_SIZE_MAX;
     size_t result;
-
-#define LEN(T, s, len) \
-  int (size_max == size_t (len) ? length ((const T*)s) : size_t (len))
 
 #undef TEST
 #define TEST(s1, s2, len, expect)                                       \
@@ -798,35 +767,146 @@ test_rw_match ()
   rw_assert (expect == result,                                          \
              0, __LINE__,                                               \
              "rw_match(%{#*s}, %{#*s}, %zu) == %zu, got %zu",           \
-             LEN (char, s1, len), s1, LEN (char, s2, len),              \
-             s2, len, expect, result)
+             int (sizeof s1 - 1), s1, int (sizeof s2 - 1), s2, len,     \
+             expect, result)
 
     TEST (0,      0,        -1, 0);
     TEST ("",     0,        -1, 0);
     TEST (0,      "",       -1, 0);
-    TEST ("",     "",       -1, 0);
+    TEST ("",     "",       -1, 1);
 
-    // when invoked with NULL as the first string returns
-    // the length of the second string (if non-NULL)
+    // same as above but using the <char>@<count> directive
+    TEST ("a@0",  "",       -1, 1);
+    TEST ("",     "b@0",    -1, 1);
+    TEST ("a@0",  "b@0",    -1, 1);
+
+    // when invoked with NULL as the first argument returns
+    // the length of the second string with all directives
+    // expanded
     TEST (0,      "a",      -1, 1);
     TEST (0,      "ab",     -1, 2);
     TEST (0,      "abc",    -1, 3);
+    TEST (0,      "a@0",    -1, 0);
+    TEST (0,      "a@1",    -1, 1);
+    TEST (0,      "a@2",    -1, 2);
+    TEST (0,      "a@2b@0", -1, 2);
+    TEST (0,      "a@2b@1", -1, 3);
+    TEST (0,      "a@2b@2", -1, 4);
 
     // same as above but with the arguments reversed
-    TEST ("a",    0,        -1, 1);
-    TEST ("ab",   0,        -1, 2);
-    TEST ("abc",  0,        -1, 3);
+    TEST ("a",      0,      -1, 1);
+    TEST ("ab",     0,      -1, 2);
+    TEST ("abc",    0,      -1, 3);
+    TEST ("a@0",    0,      -1, 0);
+    TEST ("a@1",    0,      -1, 1);
+    TEST ("a@2",    0,      -1, 2);
+    TEST ("a@2b@0", 0,      -1, 2);
+    TEST ("a@2b@1", 0,      -1, 3);
+    TEST ("a@2b@2", 0,      -1, 4);
 
     TEST ("",     "a",      -1, 0);
     TEST ("a",    "",       -1, 0);
-    TEST ("a",    "a",      -1, 1);
+    TEST ("a",    "a",      -1, 2);
 
-    TEST ("a\0bc", "a\0bd", -1, 1);
+    // same as above but using the <char>@<count> directive
+    TEST ("",     "a@1",    -1, 0);
+    TEST ("a@1",  "",       -1, 0);
+    TEST ("a",    "a@1",    -1, 2);
+    TEST ("a@1",  "a",      -1, 2);
+    TEST ("a@1",  "a@1",    -1, 2);
+
+    TEST ("\0ab",       "\0ac",   2, 2);
+    TEST ("\0@0ab",     "ab",     2, 2);
+    TEST ("\0@0a\0@0b", "ab",     2, 2);
+    TEST ("\0@1ab",     "\0@1ac", 2, 2);
+    TEST ("\0@1ab",     "\0@1ac", 2, 2);
+
+    TEST ("a\0bc", "a\0bd", -1, 2);
     TEST ("a\0bc", "a\0bd",  0, 0);
     TEST ("a\0bc", "a\0bd",  1, 1);
     TEST ("a\0bc", "a\0bd",  2, 2);
     TEST ("a\0bc", "a\0bd",  3, 3);
     TEST ("a\0bc", "a\0bd",  4, 3);
+
+    TEST ("aaaaa",    "a@5",  -1, 6);
+    TEST ("aaaaaa@0", "a@5",  -1, 6);
+    TEST ("aaaaa@1",  "a@5",  -1, 6);
+    TEST ("aaaa@2",   "a@5",  -1, 6);
+    TEST ("aaa@3",    "a@5",  -1, 6);
+    TEST ("aa@4",     "a@5",  -1, 6);
+    TEST ("a@5",      "a@5",  -1, 6);
+    TEST ("a@4a",     "a@5",  -1, 6);
+    TEST ("a@3aa",    "a@5",  -1, 6);
+    TEST ("a@2aaa",   "a@5",  -1, 6);
+    TEST ("a@1aaaa",  "a@5",  -1, 6);
+    TEST ("a@0aaaaa", "a@5",  -1, 6);
+
+    TEST ("a@0a@1a@2a@3", "a@3a@2a@1a@0", -1, 7);
+    TEST ("a@0a@1a@2a@3", "a@3a@2a@1a@0",  0, 0);
+    TEST ("a@0a@1a@2a@3", "a@3a@2a@1a@0",  1, 1);
+    TEST ("a@0a@1a@2a@3", "a@3a@2a@1a@0",  2, 2);
+    TEST ("a@0a@1a@2a@3", "a@3a@2a@1a@0",  3, 3);
+    TEST ("a@0a@1a@2a@3", "a@3a@2a@1a@0",  4, 4);
+    TEST ("a@0a@1a@2a@3", "a@3a@2a@1a@0",  5, 5);
+    TEST ("a@0a@1a@2a@3", "a@3a@2a@1a@0",  6, 6);
+    TEST ("a@0a@1a@2a@3", "a@3a@2a@1a@0",  7, 7);
+
+    TEST ("a@0\0a@1a@2\0a@3\0", "\0a@3\0a@2a@1a@0\0", 10, 10);
+    TEST ("a@0*a@1a@2\0a@3\0",  "\0a@3\0a@2a@1a@0\0", 10,  0);
+    TEST ("a@0\0a@1a@2*a@3\0",  "\0a@3\0a@2a@1a@0\0", 10,  4);
+    TEST ("a@0\0a@1a@2\0a@3*",  "\0a@3\0a@2a@1a@0\0", 10,  8);
+    TEST ("a@11aa@12aaa@13b",   "a@13aa@12aaa@11c",   -1, 39);
+
+    // invalid directives
+    TEST ("a@b",   "a@0a@b",   -1, 4);
+    TEST ("a@b@c", "a@0a@b@c", -1, 6);
+
+    //////////////////////////////////////////////////////////////////
+    // exercise Unicode escape sequences
+    TEST ("<U0>",     "",        -1, 1);
+    TEST ("<U00>",    "",        -1, 1);
+    TEST ("<U000>",   "",        -1, 1);
+    TEST ("<U0000>",  "",        -1, 1);
+    TEST ("",         "<U0>",    -1, 1);
+    TEST ("",         "<U00>",   -1, 1);
+    TEST ("",         "<U000>",  -1, 1);
+    TEST ("",         "<U0000>", -1, 1);
+    TEST ("<U0>",     "<U0000>", -1, 1);
+    TEST ("<U00>",    "<U000>",  -1, 1);
+    TEST ("<U000>",   "<U00>",   -1, 1);
+    TEST ("<U0000>",  "<U0>",    -1, 1);
+
+    TEST ("<U1>",                   0, -1, 1);
+    TEST ("<U1><U02>",              0, -1, 2);
+    TEST ("<U1><U02><U003>",        0, -1, 3);
+    TEST ("<U1><U02><U003><U0004>", 0, -1, 4);
+
+#if 'A' == 0x41   // ASCII
+    TEST ("<UA>",      "\n",     -1, 2);
+    TEST ("<U0A>",     "\n",     -1, 2);
+    TEST ("<U00A>",    "\n",     -1, 2);
+    TEST ("<U000A>",   "\n",     -1, 2);
+    TEST ("<U0000A>",  "\n",     -1, 2);
+    TEST ("<U41>",     "A",      -1, 2);
+    TEST ("<U41>A",    "AA",     -1, 3);
+    TEST ("A<U41>A",   "AAA",    -1, 4);
+    TEST ("A<U41>@3A", "AAAAA",  -1, 6);
+
+    TEST ("<U41>@0<U42>@1<U43>@2<U44>@3", "BCCDDD", -1, 7);
+#elif 'A' == 0xC1   // EBCDIC
+    TEST ("<U25>",     "\n",     -1, 2);
+    TEST ("<U025>",    "\n",     -1, 2);
+    TEST ("<U025>",    "\n",     -1, 2);
+    TEST ("<U0025>",   "\n",     -1, 2);
+    TEST ("<UC1>",     "A",      -1, 2);
+    TEST ("<UC1>A",    "AA",     -1, 3);
+    TEST ("A<UC1>A",   "AAA",    -1, 4);
+    TEST ("A<UC1>@3A", "AAAAA",  -1, 6);
+
+    TEST ("<UC1>@0<UC2>@1<UC3>@2<UC4>@3", "BCCDDD", -1, 7);
+#else   // unknown
+    rw_warn (0, 0, "unknown character set (neither ASCII nor EBCDIC)");
+#endif
 
     //////////////////////////////////////////////////////////////////
     rw_info (0, 0, 0, "rw_match(char*, const wchar_t*, size_t)");
@@ -839,32 +919,91 @@ test_rw_match ()
   rw_assert (expect == result,                                               \
              0, __LINE__,                                                    \
              "rw_match(%{#*s}, L%{#*ls}, %zu) == %zu, got %zu",              \
-             LEN (char, s1, len), s1, LEN (wchar_t, s2, len), s2,            \
-             len, expect, result)
+             int (sizeof s1 - 1), s1,                                        \
+             int (sizeof (s2) / sizeof *(s2) - 1), s2, len,                  \
+             expect, result)
 
-    TEST (0,       0,        -1, 0);
-    TEST ("",      0,        -1, 0);
-    TEST (0,       L"",      -1, 0);
-    TEST ("",      L"",      -1, 0);
+    TEST (0,      (wchar_t*)0, -1, 0);
+    TEST ("",     (wchar_t*)0, -1, 0);
+    TEST (0,      L"",         -1, 0);
+    TEST ("",     L"",         -1, 1);
 
-    TEST (0,       L"a",     -1, 1);
-    TEST (0,       L"ab",    -1, 2);
-    TEST (0,       L"abc",   -1, 3);
+    // same as above but using the <char>@<count> directive
+    TEST ("a@0",  L"",       -1, 1);
+    TEST ("",     L"",       -1, 1);
+    TEST ("a@0",  L"",       -1, 1);
 
-    TEST ("a",     0,        -1, 1);
-    TEST ("ab",    0,        -1, 2);
-    TEST ("abc",   0,        -1, 3);
+    // when invoked with NULL as the first argument returns
+    // the length of the second string with all directives
+    // expanded
+    TEST (0, L"a",      -1, 1);
+    TEST (0, L"ab",     -1, 2);
+    TEST (0, L"abc",    -1, 3);
+    TEST (0, L"abcd",   -1, 4);
+    TEST (0, L"abcde",  -1, 5);
+    TEST (0, L"abcdef", -1, 6);
 
-    TEST ("",      L"a",     -1, 0);
-    TEST ("a",     L"",      -1, 0);
-    TEST ("a",     L"a",     -1, 1);
+    // same as above but with the arguments reversed
+    TEST ("a",      (wchar_t*)0, -1, 1);
+    TEST ("ab",     (wchar_t*)0, -1, 2);
+    TEST ("abc",    (wchar_t*)0, -1, 3);
+    TEST ("a@0",    (wchar_t*)0, -1, 0);
+    TEST ("a@1",    (wchar_t*)0, -1, 1);
+    TEST ("a@2",    (wchar_t*)0, -1, 2);
+    TEST ("a@2b@0", (wchar_t*)0, -1, 2);
+    TEST ("a@2b@1", (wchar_t*)0, -1, 3);
+    TEST ("a@2b@2", (wchar_t*)0, -1, 4);
 
-    TEST ("a\0bc", L"a\0bd", -1, 1);
+    TEST ("",     L"a",      -1, 0);
+    TEST ("a",    L"",       -1, 0);
+    TEST ("a",    L"a",      -1, 2);
+
+    // same as above but using the <char>@<count> directive
+    TEST ("a@1",  L"",       -1, 0);
+    TEST ("a@1",  L"a",      -1, 2);
+
+    TEST ("\0ab",       L"\0ac",   2, 2);
+    TEST ("\0@0ab",     L"ab",     2, 2);
+    TEST ("\0@0a\0@0b", L"ab",     2, 2);
+
+    TEST ("a\0bc", L"a\0bd", -1, 2);
     TEST ("a\0bc", L"a\0bd",  0, 0);
     TEST ("a\0bc", L"a\0bd",  1, 1);
     TEST ("a\0bc", L"a\0bd",  2, 2);
     TEST ("a\0bc", L"a\0bd",  3, 3);
     TEST ("a\0bc", L"a\0bd",  4, 3);
+
+    TEST ("aaaaa",    L"aaaaa",  -1, 6);
+    TEST ("aaaaaa@0", L"aaaaa",  -1, 6);
+    TEST ("aaaaa@1",  L"aaaaa",  -1, 6);
+    TEST ("aaaa@2",   L"aaaaa",  -1, 6);
+    TEST ("aaa@3",    L"aaaaa",  -1, 6);
+    TEST ("aa@4",     L"aaaaa",  -1, 6);
+    TEST ("a@5",      L"aaaaa",  -1, 6);
+    TEST ("a@4a",     L"aaaaa",  -1, 6);
+    TEST ("a@3aa",    L"aaaaa",  -1, 6);
+    TEST ("a@2aaa",   L"aaaaa",  -1, 6);
+    TEST ("a@1aaaa",  L"aaaaa",  -1, 6);
+    TEST ("a@0aaaaa", L"aaaaa",  -1, 6);
+
+    TEST ("a@0a@1a@2a@3", L"aaaaaa", -1, 7);
+    TEST ("a@0a@1a@2a@3", L"aaaaaa",  0, 0);
+    TEST ("a@0a@1a@2a@3", L"aaaaaa",  1, 1);
+    TEST ("a@0a@1a@2a@3", L"aaaaaa",  2, 2);
+    TEST ("a@0a@1a@2a@3", L"aaaaaa",  3, 3);
+    TEST ("a@0a@1a@2a@3", L"aaaaaa",  4, 4);
+    TEST ("a@0a@1a@2a@3", L"aaaaaa",  5, 5);
+    TEST ("a@0a@1a@2a@3", L"aaaaaa",  6, 6);
+    TEST ("a@0a@1a@2a@3", L"aaaaaa",  7, 7);
+
+    TEST ("a@0\0a@1a@2\0a@3\0", L"\0aaa\0aaa\0", 10, 10);
+    TEST ("a@0*a@1a@2\0a@3\0",  L"\0aaa\0aaa\0", 10,  0);
+    TEST ("a@0\0a@1a@2*a@3\0",  L"\0aaa\0aaa\0", 10,  4);
+    TEST ("a@0\0a@1a@2\0a@3*",  L"\0aaa\0aaa\0", 10,  8);
+
+    // invalid directives
+    TEST ("a@b",   L"a@b",   -1, 4);
+    TEST ("a@b@c", L"a@b@c", -1, 6);
 
 #else   // if defined (_RWSTD_NO_WCHAR_T)
 
@@ -876,38 +1015,86 @@ test_rw_match ()
     rw_info (0, 0, 0, "rw_match(char*, const UserChar*, size_t)");
 
 #undef TEST
-#define TEST(s1, s2, len, expect)                                            \
-  result = rw_match ((const char*)s1,                                        \
-                     make_user_string (s2, sizeof (s2)), size_t (len));      \
-  rw_assert (expect == result,                                               \
-             0, __LINE__,                                                    \
-             "rw_match(%{#*s}, %{#*s}, %zu) == %zu, got %zu",                \
-             LEN (char, s1, len), s1, LEN (char, s2, len), s2,               \
+#define TEST(s1, s2, len, expect)                                       \
+  result = rw_match ((const char*)s1,                                   \
+                     make_user_string (s2, sizeof (s2)), size_t (len)); \
+  rw_assert (expect == result,                                          \
+             0, __LINE__,                                               \
+             "rw_match(%{#*s}, %{#*s}, %zu) == %zu, got %zu",           \
+             int (sizeof s1 - 1), s1, int (sizeof s2 - 1), s2, len,     \
              expect, result)
 
-    TEST (0,       0,       -1, 0);
-    TEST ("",      0,       -1, 0);
-    TEST (0,       "",      -1, 0);
-    TEST ("",      "",      -1, 0);
+    TEST (0,      0,  -1, 0);
+    TEST ("",     0,  -1, 0);
+    TEST (0,      "", -1, 0);
+    TEST ("",     "", -1, 1);
 
-    TEST (0,       "a",     -1, 1);
-    TEST (0,       "ab",    -1, 2);
-    TEST (0,       "abc",   -1, 3);
+    // same as above but using the <char>@<count> directive
+    TEST ("a@0",  "",       -1, 1);
+    TEST ("",     "",       -1, 1);
+    TEST ("a@0",  "",       -1, 1);
 
-    TEST ("a",     0,       -1, 1);
-    TEST ("ab",    0,       -1, 2);
-    TEST ("abc",   0,       -1, 3);
+    // when invoked with NULL as the first string returns
+    // the length of the second string (if non-NULL)
+    TEST (0,      "a",      -1, 1);
+    TEST (0,      "ab",     -1, 2);
+    TEST (0,      "abc",    -1, 3);
 
-    TEST ("",      "a",     -1, 0);
-    TEST ("a",     "",      -1, 0);
-    TEST ("a",     "a",     -1, 1);
+    // same as above but with the arguments reversed
+    TEST ("a",   0, -1, 1);
+    TEST ("ab",  0, -1, 2);
+    TEST ("abc", 0, -1, 3);
 
-    TEST ("a\0bc", "a\0bd", -1, 1);
+    TEST ("",     "a",      -1, 0);
+    TEST ("a",    "",       -1, 0);
+    TEST ("a",    "a",      -1, 2);
+
+    // same as above but using the <char>@<count> directive
+    TEST ("a@1",  "",       -1, 0);
+    TEST ("a@1",  "a",      -1, 2);
+
+    TEST ("\0ab",       "\0ac",   2, 2);
+    TEST ("\0@0ab",     "ab",     2, 2);
+    TEST ("\0@0a\0@0b", "ab",     2, 2);
+
+    TEST ("a\0bc", "a\0bd", -1, 2);
     TEST ("a\0bc", "a\0bd",  0, 0);
     TEST ("a\0bc", "a\0bd",  1, 1);
     TEST ("a\0bc", "a\0bd",  2, 2);
     TEST ("a\0bc", "a\0bd",  3, 3);
     TEST ("a\0bc", "a\0bd",  4, 3);
+
+    TEST ("aaaaa",    "aaaaa",  -1, 6);
+    TEST ("aaaaaa@0", "aaaaa",  -1, 6);
+    TEST ("aaaaa@1",  "aaaaa",  -1, 6);
+    TEST ("aaaa@2",   "aaaaa",  -1, 6);
+    TEST ("aaa@3",    "aaaaa",  -1, 6);
+    TEST ("aa@4",     "aaaaa",  -1, 6);
+    TEST ("a@5",      "aaaaa",  -1, 6);
+    TEST ("a@4a",     "aaaaa",  -1, 6);
+    TEST ("a@3aa",    "aaaaa",  -1, 6);
+    TEST ("a@2aaa",   "aaaaa",  -1, 6);
+    TEST ("a@1aaaa",  "aaaaa",  -1, 6);
+    TEST ("a@0aaaaa", "aaaaa",  -1, 6);
+
+    TEST ("a@0a@1a@2a@3", "aaaaaa", -1, 7);
+    TEST ("a@0a@1a@2a@3", "aaaaaa",  0, 0);
+    TEST ("a@0a@1a@2a@3", "aaaaaa",  1, 1);
+    TEST ("a@0a@1a@2a@3", "aaaaaa",  2, 2);
+    TEST ("a@0a@1a@2a@3", "aaaaaa",  3, 3);
+    TEST ("a@0a@1a@2a@3", "aaaaaa",  4, 4);
+    TEST ("a@0a@1a@2a@3", "aaaaaa",  5, 5);
+    TEST ("a@0a@1a@2a@3", "aaaaaa",  6, 6);
+    TEST ("a@0a@1a@2a@3", "aaaaaa",  7, 7);
+
+    TEST ("a@0\0a@1a@2\0a@3\0", "\0aaa\0aaa\0", 10, 10);
+    TEST ("a@0*a@1a@2\0a@3\0",  "\0aaa\0aaa\0", 10,  0);
+    TEST ("a@0\0a@1a@2*a@3\0",  "\0aaa\0aaa\0", 10,  4);
+    TEST ("a@0\0a@1a@2\0a@3*",  "\0aaa\0aaa\0", 10,  8);
+
+    // invalid directives
+    TEST ("a@b",   "a@b",   -1, 4);
+    TEST ("a@b@c", "a@b@c", -1, 6);
 }
 
 /***********************************************************************/

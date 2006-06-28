@@ -58,21 +58,21 @@ void_test_cases [] = {
         0, 0, res, sizeof res - 1, 0 }
 
     //    +--------------------------------- controlled sequence
-    //    |               +----------------- expected result sequence
-    //    |               |
-    //    V               V
-    TEST ("a",            ""),
+    //    |                 +--------------- expected result sequence
+    //    |                 |
+    //    V                 V
+    TEST ("a",              ""),
 
-    TEST ("",             ""),
-    TEST ("\0",           ""),
-    TEST ("abc",          ""),
-    TEST ("t\0 s",        ""),
-    TEST ("\0ab\0\0c",    ""),
-    TEST ("a\0b\0\0c",    ""),
-    TEST ("a\0bc\0\0",    ""),
+    TEST ("",               ""),
+    TEST ("<U0>",           ""),
+    TEST ("abc",            ""),
+    TEST ("t<U0> s",        ""),
+    TEST ("<U0>ab<U0>@2c",  ""),
+    TEST ("a<U0>b<U0>@2c",  ""),
+    TEST ("a<U0>bc<U0>@2",  ""),
 
-    TEST ("x@4096",       ""),
-    TEST ("last",         "")
+    TEST ("x@4096",         ""),
+    TEST ("last",           "")
 };
 
 
@@ -89,52 +89,52 @@ size_test_cases [] = {
         0, 0, res, sizeof res - 1, bthrow }
 
     //    +-------------------------------------- controlled sequence
-    //    |               +---------------------- erase() pos argument
-    //    |               |    +----------------- expected result sequence
-    //    |               |    |             +--- exception info
-    //    |               |    |             |      0 - no exception
-    //    |               |    |             |      1 - out_of_range
-    //    |               |    |             |
-    //    V               V    V             V
-    TEST ("",             0,   "",           0),
-    TEST ("\0",           0,   "",           0),
-    TEST ("\0",           1,   "\0",         0),
-    TEST ("\0\0",         1,   "\0",         0),
+    //    |                   +------------------ erase() pos argument
+    //    |                   |    +------------- expected result sequence
+    //    |                   |    |                +--- exception info
+    //    |                   |    |                |      0 - no exception
+    //    |                   |    |                |      1 - out_of_range
+    //    |                   |    |                |
+    //    V                   V    V                V
+    TEST ("",                 0,   "",              0),
+    TEST ("<U0>",             0,   "",              0),
+    TEST ("<U0>",             1,   "<U0>",          0),
+    TEST ("<U0>@2",           1,   "<U0>",          0),
 
-    TEST ("a",            0,   "",           0),
-    TEST ("a",            1,   "a",          0),
+    TEST ("a",                0,   "",              0),
+    TEST ("a",                1,   "a",             0),
 
-    TEST ("abc",          0,   "",           0),
-    TEST ("abc",          1,   "a",          0),
-    TEST ("abc",          2,   "ab",         0),
-    TEST ("abc",          3,   "abc",        0),
+    TEST ("abc",              0,   "",              0),
+    TEST ("abc",              1,   "a",             0),
+    TEST ("abc",              2,   "ab",            0),
+    TEST ("abc",              3,   "abc",           0),
 
-    TEST ("t\0 s",        0,   "",           0),
-    TEST ("t\0 s",        1,   "t",          0),
-    TEST ("t\0 s",        2,   "t\0",        0),
-    TEST ("t\0 s",        3,   "t\0 ",       0),
-    TEST ("t\0 s",        4,   "t\0 s",      0),
+    TEST ("t<U0> s",          0,   "",              0),
+    TEST ("t<U0> s",          1,   "t",             0),
+    TEST ("t<U0> s",          2,   "t<U0>",         0),
+    TEST ("t<U0> s",          3,   "t<U0> ",        0),
+    TEST ("t<U0> s",          4,   "t<U0> s",       0),
 
-    TEST ("a\0\0\0b",     2,   "a\0",        0),
-    TEST ("a\0\0\0b",     1,   "a",          0),
-    TEST ("a\0\0\0b",     0,   "",           0),
-    TEST ("a\0b\0\0c",    0,   "",           0),
-    TEST ("a\0b\0\0c",    4,   "a\0b\0",     0),
-    TEST ("\0ab\0\0c",    2,   "\0a",        0),
-    TEST ("ab\0c\0\0",    5,   "ab\0c\0",    0),
+    TEST ("a<U0>@3b",         2,   "a<U0>",         0),
+    TEST ("a<U0>@3b",         1,   "a",             0),
+    TEST ("a<U0>@3b",         0,   "",              0),
+    TEST ("a<U0>b<U0>@2c",    0,   "",              0),
+    TEST ("a<U0>b<U0>@2c",    4,   "a<U0>b<U0>",    0),
+    TEST ("<U0>ab<U0>@2c",    2,   "<U0>a",         0),
+    TEST ("ab<U0>c<U0>@2",    5,   "ab<U0>c<U0>",   0),
 
-    TEST ("a",            3,   "a",          1),
-    TEST ("t\0 s",        5,   "t\0 s",      1),
-    TEST ("ab\0c\0\0",   10,   "ab\0c\0\0",  1),
-    TEST ("x@4096",    4106,   "x@4096",     1),
+    TEST ("a",                3,   "a",             1),
+    TEST ("t<U0> s",          5,   "t<U0> s",       1),
+    TEST ("ab<U0>c<U0>@2",   10,   "ab<U0>c<U0>@2", 1),
+    TEST ("x@4096",        4106,   "x@4096",        1),
 
-    TEST ("x@4096",        0,  "",           0),
-    TEST ("x@4096",        1,  "x",          0),
-    TEST ("x@4096",        4,  "xxxx",       0),
-    TEST ("x@4096",     4096,  "x@4096",     0),
-    TEST ("x@2048y@2048", 2048,"x@2048",     0),
+    TEST ("x@4096",           0,   "",              0),
+    TEST ("x@4096",           1,   "x",             0),
+    TEST ("x@4096",           4,   "xxxx",          0),
+    TEST ("x@4096",        4096,   "x@4096",        0),
+    TEST ("x@2048y@2048",  2048,   "x@2048",        0),
 
-    TEST ("last test",    4,   "last",       0)
+    TEST ("last test",        4,   "last",          0)
 };
 
 
@@ -155,73 +155,74 @@ size_size_test_cases [] = {
         0, 0, res, sizeof res - 1, bthrow }
 
     //    +----------------------------------------- controlled sequence
-    //    |               +------------------------- erase() pos argument
-    //    |               |         +--------------- erase() n argument
-    //    |               |         |   +----------- expected result sequence
-    //    |               |         |   |             +--- exception info
-    //    |               |         |   |             |      0 - no exception
-    //    |               |         |   |             |      1 - out_of_range
-    //    |               |         |   |             |
-    //    V               V         V   V             V
-    TEST ("",             0,        0,  "",           0),
-    TEST ("\0",           0,        1,  "",           0),
-    TEST ("\0",           0,        0,  "\0",         0),
-    TEST ("\0",           1,        1,  "\0",         0),
-    TEST ("\0\0",         1,        1,  "\0",         0),
-    TEST ("\0\0",         0,        1,  "\0",         0),
+    //    |                   +--------------------- erase() pos argument
+    //    |                   |         +----------- erase() n argument
+    //    |                   |         |   +------- expected result sequence
+    //    |                   |         |   |        +--- exception info
+    //    |                   |         |   |        |      0 - no exception
+    //    |                   |         |   |        |      1 - out_of_range
+    //    |                   |         |   |        |        
+    //    |                   |         |   |        +-------+
+    //    V                   V         V   V                V
+    TEST ("",                 0,        0,  "",              0),
+    TEST ("<U0>",             0,        1,  "",              0),
+    TEST ("<U0>",             0,        0,  "<U0>",          0),
+    TEST ("<U0>",             1,        1,  "<U0>",          0),
+    TEST ("<U0>@2",           1,        1,  "<U0>",          0),
+    TEST ("<U0>@2",           0,        1,  "<U0>",          0),
 
-    TEST ("a",            0,        1,  "",           0),
-    TEST ("a",            0,        0,  "a",          0),
-    TEST ("a",            1,        1,  "a",          0),
+    TEST ("a",                0,        1,  "",              0),
+    TEST ("a",                0,        0,  "a",             0),
+    TEST ("a",                1,        1,  "a",             0),
 
-    TEST ("abc",          0,        3,  "",           0),
-    TEST ("abc",          0,        2,  "c",          0),
-    TEST ("abc",          1,        2,  "a",          0),
-    TEST ("abc",          1,        1,  "ac",         0),
-    TEST ("abc",          2,        1,  "ab",         0),
-    TEST ("abc",          3,        0,  "abc",        0),
+    TEST ("abc",              0,        3,  "",              0),
+    TEST ("abc",              0,        2,  "c",             0),
+    TEST ("abc",              1,        2,  "a",             0),
+    TEST ("abc",              1,        1,  "ac",            0),
+    TEST ("abc",              2,        1,  "ab",            0),
+    TEST ("abc",              3,        0,  "abc",           0),
 
-    TEST ("t\0 s",        0,        3,  "s",          0),
-    TEST ("t\0 s",        0,        4,  "",           0),
-    TEST ("t\0 s",        0,        1,  "\0 s",       0),
-    TEST ("t\0 s",        1,        3,  "t",          0),
-    TEST ("t\0 s",        1,        2,  "ts",         0),
-    TEST ("t\0 s",        2,        2,  "t\0",        0),
-    TEST ("t\0 s",        2,        1,  "t\0s",       0),
-    TEST ("t\0 s",        3,        2,  "t\0 ",       0),
-    TEST ("t\0 s",        4,        0,  "t\0 s",      0),
+    TEST ("t<U0> s",          0,        3,  "s",             0),
+    TEST ("t<U0> s",          0,        4,  "",              0),
+    TEST ("t<U0> s",          0,        1,  "<U0> s",        0),
+    TEST ("t<U0> s",          1,        3,  "t",             0),
+    TEST ("t<U0> s",          1,        2,  "ts",            0),
+    TEST ("t<U0> s",          2,        2,  "t<U0>",         0),
+    TEST ("t<U0> s",          2,        1,  "t<U0>s",        0),
+    TEST ("t<U0> s",          3,        2,  "t<U0> ",        0),
+    TEST ("t<U0> s",          4,        0,  "t<U0> s",       0),
 
-    TEST ("a\0\0\0b",     2,        0,  "a\0\0\0b",   0),
-    TEST ("a\0\0\0b",     2,        3,  "a\0",        0),
-    TEST ("a\0\0\0b",     2,        2,  "a\0b",       0),
-    TEST ("a\0\0\0b",     1,        4,  "a",          0),
-    TEST ("a\0\0\0b",     0,        5,  "",           0),
-    TEST ("a\0\0\0b",     0,        2,  "\0\0b",      0),
-    TEST ("a\0b\0\0c",    0,        6,  "",           0),
-    TEST ("a\0b\0\0c",    4,        2,  "a\0b\0",     0),
-    TEST ("a\0b\0\0c",    4,        1,  "a\0b\0c",    0),
-    TEST ("\0ab\0\0c",    2,        5,  "\0a",        0),
-    TEST ("\0ab\0\0c",    0,        4,  "\0c",        0),
-    TEST ("ab\0c\0\0",    5,        1,  "ab\0c\0",    0),
+    TEST ("a<U0>@3b",         2,        0,  "a<U0>@3b",      0),
+    TEST ("a<U0>@3b",         2,        3,  "a<U0>",         0),
+    TEST ("a<U0>@3b",         2,        2,  "a<U0>b",        0),
+    TEST ("a<U0>@3b",         1,        4,  "a",             0),
+    TEST ("a<U0>@3b",         0,        5,  "",              0),
+    TEST ("a<U0>@3b",         0,        2,  "<U0>@2b",       0),
+    TEST ("a<U0>b<U0>@2c",    0,        6,  "",              0),
+    TEST ("a<U0>b<U0>@2c",    4,        2,  "a<U0>b<U0>",    0),
+    TEST ("a<U0>b<U0>@2c",    4,        1,  "a<U0>b<U0>c",   0),
+    TEST ("<U0>ab<U0>@2c",    2,        5,  "<U0>a",         0),
+    TEST ("<U0>ab<U0>@2c",    0,        4,  "<U0>c",         0),
+    TEST ("ab<U0>c<U0>@2",    5,        1,  "ab<U0>c<U0>",   0),
 
-    TEST ("a",            0,        3,  "",           0),
-    TEST ("t\0 s",        0,        9,  "",           0),
-    TEST ("ab\0c\0\0",    0,       10,  "",           0),
-    TEST ("x@4096",       0,     4105,  "",           0),
+    TEST ("a",                0,        3,  "",              0),
+    TEST ("t<U0> s",          0,        9,  "",              0),
+    TEST ("ab<U0>c<U0>@2",    0,       10,  "",              0),
+    TEST ("x@4096",           0,     4105,  "",              0),
 
-    TEST ("a",            3,        1,  "a",          1),
-    TEST ("t\0 s",        5,        1,  "t\0 s",      1),
-    TEST ("ab\0c\0\0",   10,        1,  "ab\0c\0\0",  1),
-    TEST ("x@4096",    4106,        1,  "x@4096",     1),
+    TEST ("a",                3,        1,  "a",             1),
+    TEST ("t<U0> s",          5,        1,  "t<U0> s",       1),
+    TEST ("ab<U0>c<U0>@2",   10,        1,  "ab<U0>c<U0>@2", 1),
+    TEST ("x@4096",        4106,        1,  "x@4096",        1),
 
-    TEST ("x@4096",       0,     4096,  "",           0),
-    TEST ("x@4096",       1,     4095,  "x",          0),
-    TEST ("x@4096",       4,     4092,  "xxxx",       0),
-    TEST ("x@4096",       4,     4090,  "xxxxxx",     0),
-    TEST ("x@4096",    4096,     4096,  "x@4096",     0),
-    TEST ("x@2048y@2048", 1,     4094,  "xy",         0),
+    TEST ("x@4096",           0,     4096,  "",              0),
+    TEST ("x@4096",           1,     4095,  "x",             0),
+    TEST ("x@4096",           4,     4092,  "xxxx",          0),
+    TEST ("x@4096",           4,     4090,  "xxxxxx",        0),
+    TEST ("x@4096",        4096,     4096,  "x@4096",        0),
+    TEST ("x@2048y@2048",     1,     4094,  "xy",            0),
 
-    TEST ("last test",    4,        1,  "lasttest",   0)
+    TEST ("last test",        4,        1,  "lasttest",      0)
 };
 
 
@@ -238,40 +239,40 @@ iter_test_cases [] = {
         0, 0, res, sizeof res - 1, 0 }
 
     //    +-------------------------------------- controlled sequence
-    //    |               +---------------------- iterator offset
-    //    |               |    +----------------- expected result sequence
-    //    |               |    |
-    //    V               V    V
-    TEST ("a",            0,   ""),
+    //    |                   +------------------ iterator offset
+    //    |                   |    +------------- expected result sequence
+    //    |                   |    |
+    //    V                   V    V
+    TEST ("a",                0,   ""),
 
-    TEST ("\0",           0,   ""),
-    TEST ("\0\0",         0,   "\0"),
-    TEST ("\0\0",         1,   "\0"),
+    TEST ("<U0>",             0,   ""),
+    TEST ("<U0>@2",           0,   "<U0>"),
+    TEST ("<U0>@2",           1,   "<U0>"),
 
-    TEST ("abc",          0,   "bc"),
-    TEST ("abc",          1,   "ac"),
-    TEST ("abc",          2,   "ab"),
+    TEST ("abc",              0,   "bc"),
+    TEST ("abc",              1,   "ac"),
+    TEST ("abc",              2,   "ab"),
 
-    TEST ("t\0 s",        0,   "\0 s"),
-    TEST ("t\0 s",        1,   "t s"),
-    TEST ("t\0 s",        2,   "t\0s"),
-    TEST ("t\0 s",        3,   "t\0 "),
+    TEST ("t<U0> s",          0,   "<U0> s"),
+    TEST ("t<U0> s",          1,   "t s"),
+    TEST ("t<U0> s",          2,   "t<U0>s"),
+    TEST ("t<U0> s",          3,   "t<U0> "),
 
-    TEST ("a\0\0\0b",     4,   "a\0\0\0"),
-    TEST ("a\0\0\0b",     2,   "a\0\0b"),
-    TEST ("a\0\0\0b",     1,   "a\0\0b"),
-    TEST ("a\0\0\0b",     0,   "\0\0\0b"),
-    TEST ("a\0b\0\0c",    4,   "a\0b\0c"),
-    TEST ("\0ab\0\0c",    0,   "ab\0\0c"),
-    TEST ("\0ab\0\0c",    2,   "\0a\0\0c"),
-    TEST ("ab\0c\0\0",    5,   "ab\0c\0"),
+    TEST ("a<U0>@3b",         4,   "a<U0>@3"),
+    TEST ("a<U0>@3b",         2,   "a<U0>@2b"),
+    TEST ("a<U0>@3b",         1,   "a<U0>@2b"),
+    TEST ("a<U0>@3b",         0,   "<U0>@3b"),
+    TEST ("a<U0>b<U0>@2c",    4,   "a<U0>b<U0>c"),
+    TEST ("<U0>ab<U0>@2c",    0,   "ab<U0>@2c"),
+    TEST ("<U0>ab<U0>@2c",    2,   "<U0>a<U0>@2c"),
+    TEST ("ab<U0>c<U0>@2",    5,   "ab<U0>c<U0>"),
 
-    TEST ("x@4096y",   4096,   "x@4096"),
-    TEST ("x@4096",    4088,   "x@4095"),
-    TEST ("ax@4096",      0,   "x@4096"),
-    TEST ("x@4096",       9,   "x@4095"),
+    TEST ("x@4096y",       4096,   "x@4096"),
+    TEST ("x@4096",        4088,   "x@4095"),
+    TEST ("ax@4096",          0,   "x@4096"),
+    TEST ("x@4096",           9,   "x@4095"),
 
-    TEST ("last test",    4,   "lasttest")
+    TEST ("last test",        4,   "lasttest")
 };
 
 /**************************************************************************/
@@ -438,7 +439,7 @@ void test_erase (charT, Traits*, Allocator*,
             // (and only then), also verify that the modified
             // string matches the expected result
             const std::size_t match =
-                rw_match (tcase.res, str.c_str(), tcase.nres);
+                rw_match (tcase.res, str.c_str(), str.size ());
 
             rw_assert (match == res_len, 0, tcase.line,
                        "line %d. %{$FUNCALL} expected %{#*s}, "

@@ -59,33 +59,33 @@ ptr_size_test_cases [] = {
     }
 
     //    +--------------------------------------- controlled sequence
-    //    |                 +--------------------- copy() n argument
-    //    |                 |   +----------------- expected result sequence
-    //    |                 |   |     
-    //    V                 V   V             
-    TEST ("ab",             2,  "ab"),       
+    //    |                       +--------------- copy() n argument
+    //    |                       |   +----------- expected result sequence
+    //    |                       |   |     
+    //    V                       V   V             
+    TEST ("ab",                   2,  "ab"),       
 
-    TEST ("",               0,  ""),         
-    TEST ("",              10,  ""),          
+    TEST ("",                     0,  ""),         
+    TEST ("",                    10,  ""),          
 
-    TEST ("\0",             1,  "\0"),       
-    TEST ("\0\0",           2,  "\0\0"),    
+    TEST ("<U0>",                 1,  "<U0>"),       
+    TEST ("<U0>@2",               2,  "<U0>@2"),    
 
-    TEST ("abc",            0,  ""), 
-    TEST ("abc",            1,  "a"),                 
-    TEST ("abc",            2,  "ab"),       
-    TEST ("abc",            3,  "abc"), 
-    TEST ("abc",            5,  "abc"),
+    TEST ("abc",                  0,  ""), 
+    TEST ("abc",                  1,  "a"),                 
+    TEST ("abc",                  2,  "ab"),       
+    TEST ("abc",                  3,  "abc"), 
+    TEST ("abc",                  5,  "abc"),
 
-    TEST ("a\0b\0\0c",     10,  "a\0b\0\0c"),  
-    TEST ("\0ab\0\0\0c\0",  1,  "\0"),
-    TEST ("\0ab\0\0\0c\0",  8,  "\0ab\0\0\0c\0"),
-    TEST ("\0ab\0\0\0c\0",  5,  "\0ab\0\0"),   
-    TEST ("\0\0ab\0\0c\0",  6,  "\0\0ab\0\0"), 
+    TEST ("a<U0>b<U0>@2c",       10,  "a<U0>b<U0>@2c"),  
+    TEST ("<U0>ab<U0>@3c<U0>",    1,  "<U0>"),
+    TEST ("<U0>ab<U0>@3c<U0>",    8,  "<U0>ab<U0>@3c<U0>"),
+    TEST ("<U0>ab<U0>@3c<U0>",    5,  "<U0>ab<U0>@2"),   
+    TEST ("<U0>@2ab<U0>@2c<U0>",  6,  "<U0>@2ab<U0>@2"), 
 
-    TEST ("x@4096",      4096,  "x@4096"),
+    TEST ("x@4096",            4096,  "x@4096"),
 
-    TEST ("last",           4,  "last")       
+    TEST ("last",                 4,  "last")       
 };
 
 /**************************************************************************/
@@ -103,53 +103,55 @@ ptr_size_size_test_cases [] = {
     }
 
     //    +------------------------------------------ controlled sequence
-    //    |                 +------------------------ copy() n argument
-    //    |                 |   +-------------------- copy() pos argument
-    //    |                 |   |  +----------------- expected result sequence
-    //    |                 |   |  |             +--- exception info:
-    //    |                 |   |  |             |      0 - no exception    
-    //    |                 |   |  |             |      1 - out_of_range        
-    //    V                 V   V  V             V  
-    TEST ("ab",             2,  0, "ab",         0),
+    //    |                       +------------------ copy() n argument
+    //    |                       |   +-------------- copy() pos argument
+    //    |                       |   |  +----------- expected result sequence
+    //    |                       |   |  |       +--- exception info:
+    //    |                       |   |  |       |      0 - no exception    
+    //    |                       |   |  |       |      1 - out_of_range 
+    //    |                       |   |  |       |   
+    //    |                       |   |  |       +---------+   
+    //    V                       V   V  V                 V  
+    TEST ("ab",                   2,  0, "ab",             0),
 
-    TEST ("",               0,  0, "",           0),
-    TEST ("",              10,  0, "",           0),
+    TEST ("",                     0,  0, "",               0),
+    TEST ("",                    10,  0, "",               0),
 
-    TEST ("\0",             1,  0, "\0",         0),
-    TEST ("\0\0",           1,  1, "\0",         0),
-    TEST ("\0\0",           2,  0, "\0\0",       0),
+    TEST ("<U0>",                 1,  0, "<U0>",           0),
+    TEST ("<U0>@2",               1,  1, "<U0>",           0),
+    TEST ("<U0>@2",               2,  0, "<U0>@2",         0),
 
-    TEST ("abc",            1,  0, "a",          0),
-    TEST ("abc",            1,  1, "b",          0),
-    TEST ("abc",            1,  2, "c",          0),
+    TEST ("abc",                  1,  0, "a",              0),
+    TEST ("abc",                  1,  1, "b",              0),
+    TEST ("abc",                  1,  2, "c",              0),
 
-    TEST ("abc",            0,  0, "",           0),
-    TEST ("abc",            2,  0, "ab",         0),
-    TEST ("abc",            2,  1, "bc",         0),
-    TEST ("abc",            3,  0, "abc",        0),
-    TEST ("abc",           10,  1, "bc",         0),
-    TEST ("abc",            3,  2, "c",          0),
+    TEST ("abc",                  0,  0, "",               0),
+    TEST ("abc",                  2,  0, "ab",             0),
+    TEST ("abc",                  2,  1, "bc",             0),
+    TEST ("abc",                  3,  0, "abc",            0),
+    TEST ("abc",                 10,  1, "bc",             0),
+    TEST ("abc",                  3,  2, "c",              0),
 
-    TEST ("a\0b\0\0c",     10,  1, "\0b\0\0c",   0),
-    TEST ("a\0b\0\0c",     10,  0, "a\0b\0\0c",  0),
-    TEST ("a\0b\0\0c",      1,  1, "\0",         0),
+    TEST ("a<U0>b<U0>@2c",       10,  1, "<U0>b<U0>@2c",   0),
+    TEST ("a<U0>b<U0>@2c",       10,  0, "a<U0>b<U0>@2c",  0),
+    TEST ("a<U0>b<U0>@2c",        1,  1, "<U0>",           0),
 
-    TEST ("\0ab\0\0\0c\0", 10,  1, "ab\0\0\0c\0",0),
-    TEST ("\0ab\0\0\0c\0",  5,  0, "\0ab\0\0",   0),
-    TEST ("\0ab\0\0\0c\0",  3,  3, "\0\0\0",     0),
+    TEST ("<U0>ab<U0>@3c<U0>",   10,  1, "ab<U0>@3c<U0>",  0),
+    TEST ("<U0>ab<U0>@3c<U0>",    5,  0, "<U0>ab<U0>@2",   0),
+    TEST ("<U0>ab<U0>@3c<U0>",    3,  3, "<U0>@3",         0),
 
-    TEST ("\0\0ab\0\0c\0",  6,  0, "\0\0ab\0\0", 0),
-    TEST ("\0\0ab\0\0c\0",  4,  1, "\0ab\0",     0),
+    TEST ("<U0>@2ab<U0>@2c<U0>",  6,  0, "<U0>@2ab<U0>@2", 0),
+    TEST ("<U0>@2ab<U0>@2c<U0>",  4,  1, "<U0>ab<U0>",     0),
 
-    TEST ("x@4096",      4096,  0, "x@4096",     0),
-    TEST ("x@4096",         2,  1, "xx",         0),
-    TEST ("x@4096",      4096, 4095, "x",        0),
+    TEST ("x@4096",            4096,  0, "x@4096",         0),
+    TEST ("x@4096",               2,  1, "xx",             0),
+    TEST ("x@4096",            4096, 4095, "x",            0),
 
-    TEST ("\0",             0,  2, "",           1),
-    TEST ("a",              0, 10, "",           1),
-    TEST ("x@4096",         0, 4106, "",         1),
+    TEST ("<U0>",                 0,  2, "",               1),
+    TEST ("a",                    0, 10, "",               1),
+    TEST ("x@4096",               0, 4106, "",             1),
 
-    TEST ("last",           4,  0, "last",       0)
+    TEST ("last",                 4,  0, "last",           0)
 };
 
 /**************************************************************************/
@@ -187,7 +189,7 @@ void test_copy (charT, Traits*, Allocator*,
     // create destination array and initialize it with garbage
     charT* const s_res = new charT [min_len + 1];
 
-    char cgb = '@';
+    char cgb = '#';
     charT wcgb = make_char (cgb, (charT*)0);
     Traits::assign (s_res, min_len + 1, wcgb);
 
@@ -234,19 +236,22 @@ void test_copy (charT, Traits*, Allocator*,
                    "line %d. %{$FUNCALL} == %zu, got %zu", 
                    __LINE__, res_len, res);
 
-        const std::size_t match = rw_match (tcase.res, s_res, tcase.nres);
-        bool success = match == res_len;
+        if (res == res_len) 
+        {
+            const std::size_t match = rw_match (tcase.res, s_res, res_len);
+            bool success = match == res_len;
 
-        rw_assert (success, 0, tcase.line,
-                   "line %d. %{$FUNCALL} expected %{#*s}, "
-                   "got %{/*.*Gs}, differ at pos %zu",
-                   __LINE__, int (tcase.nres), tcase.res, 
-                   int (sizeof (charT)), int (res), s_res, match);
+            rw_assert (success, 0, tcase.line,
+                       "line %d. %{$FUNCALL} expected %{#*s}, "
+                       "got %{/*.*Gs}, differ at pos %zu",
+                       __LINE__, int (tcase.nres), tcase.res, 
+                       int (sizeof (charT)), int (res), s_res, match);
 
-        success = 1 == rw_match (&cgb, &s_res [min_len], 1);
-        rw_assert (success, 0, tcase.line,
-                   "line %d. %{$FUNCALL} detected writing past the end of "
-                   "the provided buffer", __LINE__);
+            success = 1 == rw_match (&cgb, &s_res [min_len], 1);
+            rw_assert (success, 0, tcase.line,
+                       "line %d. %{$FUNCALL} detected writing past the end of "
+                       "the provided buffer", __LINE__);
+        }
     }
 
 #ifndef _RWSTD_NO_EXCEPTIONS

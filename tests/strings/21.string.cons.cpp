@@ -78,34 +78,34 @@ cptr_test_cases [] = {
     }
 
     //    +----------------------------------------- source sequence
-    //    |             +--------------------------- expected result sequence
-    //    |             |             
-    //    |             |            
-    //    V             V           
-    TEST ("ab",         "ab"),    
+    //    |               +------------------------- expected result sequence
+    //    |               |             
+    //    |               |            
+    //    V               V           
+    TEST ("ab",           "ab"),    
 
-    TEST ("",           ""),   
-    TEST ("\0",         ""),   
+    TEST ("",             ""),   
+    TEST ("<U0>",         ""),   
 
-    TEST ("a",          "a"),       
-    TEST ("bcd",        "bcd"),       
-    TEST ("cdefaihjb",  "cdefaihjb"),      
+    TEST ("a",            "a"),       
+    TEST ("bcd",          "bcd"),       
+    TEST ("cdefaihjb",    "cdefaihjb"),      
 
-    TEST ("\0\0ab",     ""),  
-    TEST ("a\0\0b",     "a"), 
-    TEST ("ab\0\0",     "ab"),  
-    TEST ("abefdcc\0a", "abefdcc"),  
+    TEST ("<U0>@2ab",     ""),  
+    TEST ("a<U0>@2b",     "a"), 
+    TEST ("ab<U0>@2",     "ab"),  
+    TEST ("abefdcc<U0>a", "abefdcc"),  
 
-    TEST ("x@128",      "x@128"),
-    TEST ("x@207",      "x@207"),
-    TEST ("x@334",      "x@334"),
-    TEST ("x@540",      "x@540"),
-    TEST ("x@873",      "x@873"),
-    TEST ("x@1412",     "x@1412"),
-    TEST ("x@3695",     "x@3695"),
-    TEST ("x@4096",     "x@4096"),     
+    TEST ("x@128",        "x@128"),
+    TEST ("x@207",        "x@207"),
+    TEST ("x@334",        "x@334"),
+    TEST ("x@540",        "x@540"),
+    TEST ("x@873",        "x@873"),
+    TEST ("x@1412",       "x@1412"),
+    TEST ("x@3695",       "x@3695"),
+    TEST ("x@4096",       "x@4096"),     
 
-    TEST ("last test",  "last test")
+    TEST ("last test",    "last test")
 };
 
 /**************************************************************************/
@@ -123,35 +123,35 @@ cstr_test_cases [] = {
     }
 
     //    +----------------------------------------- source sequence
-    //    |             +--------------------------- expected result sequence
-    //    |             |             
-    //    |             |            
-    //    V             V           
-    TEST ("ab",         "ab"),    
+    //    |               +------------------------- expected result sequence
+    //    |               |             
+    //    |               |            
+    //    V               V           
+    TEST ("ab",           "ab"),    
 
-    TEST ("",           ""),   
-    TEST ("\0",         "\0"),
-    TEST ("\0\0",       "\0\0"),
+    TEST ("",             ""),   
+    TEST ("<U0>",         "<U0>"),
+    TEST ("<U0>@2",       "<U0>@2"),
 
-    TEST ("a",          "a"),       
-    TEST ("bcd",        "bcd"),       
-    TEST ("cdefaihjb",  "cdefaihjb"),      
+    TEST ("a",            "a"),       
+    TEST ("bcd",          "bcd"),       
+    TEST ("cdefaihjb",    "cdefaihjb"),      
 
-    TEST ("\0\0ab",     "\0\0ab"),  
-    TEST ("a\0\0b",     "a\0\0b"), 
-    TEST ("ab\0\0",     "ab\0\0"),  
-    TEST ("abefdcc\0a", "abefdcc\0a"),  
+    TEST ("<U0>@2ab",     "<U0>@2ab"),  
+    TEST ("a<U0>@2b",     "a<U0>@2b"), 
+    TEST ("ab<U0>@2",     "ab<U0>@2"),  
+    TEST ("abefdcc<U0>a", "abefdcc<U0>a"),  
 
-    TEST ("x@128",      "x@128"),
-    TEST ("x@207",      "x@207"),
-    TEST ("x@334",      "x@334"),
-    TEST ("x@540",      "x@540"),
-    TEST ("x@873",      "x@873"),
-    TEST ("x@1412",     "x@1412"),
-    TEST ("x@3695",     "x@3695"),
-    TEST ("x@4096",     "x@4096"),     
+    TEST ("x@128",        "x@128"),
+    TEST ("x@207",        "x@207"),
+    TEST ("x@334",        "x@334"),
+    TEST ("x@540",        "x@540"),
+    TEST ("x@873",        "x@873"),
+    TEST ("x@1412",       "x@1412"),
+    TEST ("x@3695",       "x@3695"),
+    TEST ("x@4096",       "x@4096"),     
 
-    TEST ("last test",  "last test")
+    TEST ("last test",    "last test")
 };
 
 /**************************************************************************/
@@ -169,39 +169,39 @@ cptr_size_test_cases [] = {
     }
 
     //    +----------------------------------------- source sequence
-    //    |             +--------------------------- ctor n argument
-    //    |             |  +------------------------ expected result sequence
-    //    |             |  |             
-    //    |             |  |            
-    //    V             V  V         
-    TEST ("ab",         2, "ab"),    
+    //    |               +------------------------- ctor n argument
+    //    |               |  +---------------------- expected result sequence
+    //    |               |  |             
+    //    |               |  |            
+    //    V               V  V         
+    TEST ("ab",           2, "ab"),    
 
-    TEST ("",           0, ""),   
-    TEST ("\0",         1, "\0"),   
+    TEST ("",             0, ""),   
+    TEST ("<U0>",         1, "<U0>"),   
 
-    TEST ("a",          1, "a"),       
-    TEST ("bcd",        3, "bcd"),       
-    TEST ("cdefaihjb",  9, "cdefaihjb"),      
+    TEST ("a",            1, "a"),       
+    TEST ("bcd",          3, "bcd"),       
+    TEST ("cdefaihjb",    9, "cdefaihjb"),      
 
-    TEST ("\0\0ab",     1, "\0"),
-    TEST ("\0\0ab",     4, "\0\0ab"),
-    TEST ("a\0\0b",     4, "a\0\0b"), 
-    TEST ("ab\0\0",     3, "ab\0"),  
-    TEST ("abefdcc\0a", 7, "abefdcc"), 
-    TEST ("abefdcc\0a", 8, "abefdcc\0"), 
-    TEST ("abefdcc\0a", 9, "abefdcc\0a"), 
+    TEST ("<U0>@2ab",     1, "<U0>"),
+    TEST ("<U0>@2ab",     4, "<U0>@2ab"),
+    TEST ("a<U0>@2b",     4, "a<U0>@2b"), 
+    TEST ("ab<U0>@2",     3, "ab<U0>"),  
+    TEST ("abefdcc<U0>a", 7, "abefdcc"), 
+    TEST ("abefdcc<U0>a", 8, "abefdcc<U0>"), 
+    TEST ("abefdcc<U0>a", 9, "abefdcc<U0>a"), 
 
-    TEST ("x@207",    207, "x@207"),
-    TEST ("x@334",    207, "x@207"),
-    TEST ("x@207",    128, "x@128"),
-    TEST ("x@1412",   873, "x@873"),
-    TEST ("x@1412",  1412, "x@1412"),
-    TEST ("x@1412",   540, "x@540"),
-    TEST ("x@873",    873, "x@873"),
-    TEST ("x@3695",  2284, "x@2284"),
-    TEST ("x@4096",  4096, "x@4096"),     
+    TEST ("x@207",      207, "x@207"),
+    TEST ("x@334",      207, "x@207"),
+    TEST ("x@207",      128, "x@128"),
+    TEST ("x@1412",     873, "x@873"),
+    TEST ("x@1412",    1412, "x@1412"),
+    TEST ("x@1412",     540, "x@540"),
+    TEST ("x@873",      873, "x@873"),
+    TEST ("x@3695",    2284, "x@2284"),
+    TEST ("x@4096",    4096, "x@4096"),     
 
-    TEST ("last test",  9, "last test")
+    TEST ("last test",    9, "last test")
 };
 
 /**************************************************************************/
@@ -219,50 +219,50 @@ cstr_size_test_cases [] = {
     }
 
     //    +----------------------------------------- source sequence
-    //    |             +--------------------------- ctor off argument
-    //    |             |  +------------------------ expected result sequence
-    //    |             |  |              +--------- exception info
-    //    |             |  |              |             0 - no exception
-    //    |             |  |              |             1 - out_of_range
-    //    |             |  |              |
-    //    |             |  |              |
-    //    V             V  V              V
-    TEST ("ab",         0, "ab",          0),    
+    //    |               +------------------------- ctor off argument
+    //    |               |  +---------------------- expected result sequence
+    //    |               |  |               +------ exception info
+    //    |               |  |               |          0 - no exception
+    //    |               |  |               |          1 - out_of_range
+    //    |               |  |               |
+    //    |               |  |               |
+    //    V               V  V               V
+    TEST ("ab",           0, "ab",           0),    
 
-    TEST ("",           0, "",            0),   
-    TEST ("\0",         0, "\0",          0),
-    TEST ("\0\0",       0, "\0\0",        0),
-    TEST ("\0\0",       1, "\0",          0),
-    TEST ("\0\0",       2, "",            0),
+    TEST ("",             0, "",             0),   
+    TEST ("<U0>",         0, "<U0>",         0),
+    TEST ("<U0>@2",       0, "<U0>@2",       0),
+    TEST ("<U0>@2",       1, "<U0>",         0),
+    TEST ("<U0>@2",       2, "",             0),
 
-    TEST ("a",          0, "a",           0),       
-    TEST ("bcd",        0, "bcd",         0),       
-    TEST ("cdefaihjb",  0, "cdefaihjb",   0),      
+    TEST ("a",            0, "a",            0),       
+    TEST ("bcd",          0, "bcd",          0),       
+    TEST ("cdefaihjb",    0, "cdefaihjb",    0),      
 
-    TEST ("\0\0ab",     0, "\0\0ab",      0), 
-    TEST ("\0\0ab",     1, "\0ab",        0),
-    TEST ("a\0\0b",     0, "a\0\0b",      0), 
-    TEST ("a\0\0b",     1, "\0\0b",       0), 
-    TEST ("a\0\0b",     2, "\0b",         0),
-    TEST ("ab\0\0",     0, "ab\0\0",      0), 
-    TEST ("ab\0\0",     2, "\0\0",        0),
-    TEST ("ab\0\0",     4, "",            0),
-    TEST ("abefdcc\0a", 0, "abefdcc\0a",  0),  
-    TEST ("abefdcc\0a", 7, "\0a",         0),
+    TEST ("<U0>@2ab",     0, "<U0>@2ab",     0), 
+    TEST ("<U0>@2ab",     1, "<U0>ab",       0),
+    TEST ("a<U0>@2b",     0, "a<U0>@2b",     0), 
+    TEST ("a<U0>@2b",     1, "<U0>@2b",      0), 
+    TEST ("a<U0>@2b",     2, "<U0>b",        0),
+    TEST ("ab<U0>@2",     0, "ab<U0>@2",     0), 
+    TEST ("ab<U0>@2",     2, "<U0>@2",       0),
+    TEST ("ab<U0>@2",     4, "",             0),
+    TEST ("abefdcc<U0>a", 0, "abefdcc<U0>a", 0),  
+    TEST ("abefdcc<U0>a", 7, "<U0>a",        0),
 
-    TEST ("x@207",      0, "x@207",       0),
-    TEST ("x@334",    127, "x@207",       0),
-    TEST ("x@1412",   872, "x@540",       0),
-    TEST ("x@1412",     0, "x@1412",      0),
-    TEST ("x@1412",   539, "x@873",       0),
-    TEST ("x@873",      0, "x@873",       0),
-    TEST ("x@3695",     0, "x@3695",      0), 
-    TEST ("x@4096",     0, "x@4096",      0),
+    TEST ("x@207",        0, "x@207",        0),
+    TEST ("x@334",      127, "x@207",        0),
+    TEST ("x@1412",     872, "x@540",        0),
+    TEST ("x@1412",       0, "x@1412",       0),
+    TEST ("x@1412",     539, "x@873",        0),
+    TEST ("x@873",        0, "x@873",        0),
+    TEST ("x@3695",       0, "x@3695",       0), 
+    TEST ("x@4096",       0, "x@4096",       0),
 
-    TEST ("abc",        5, "abc",         1),
-    TEST ("x@4096",  4106, "x@4096",      1),
+    TEST ("abc",          5, "abc",          1),
+    TEST ("x@4096",    4106, "x@4096",       1),
  
-    TEST ("last test",  0, "last test",   0)
+    TEST ("last test",    0, "last test",    0)
 };
 
 /**************************************************************************/
@@ -283,44 +283,44 @@ cstr_size_size_test_cases [] = {
     }
 
     //    +----------------------------------------- source sequence
-    //    |             +--------------------------- ctor off argument
-    //    |             |   +----------------------- ctor n argument
-    //    |             |   |  +-------------------- expected result sequence
-    //    |             |   |  |              +----- exception info
-    //    |             |   |  |              |         0 - no exception
-    //    |             |   |  |              |         1 - out_of_range
-    //    |             |   |  |              |
-    //    |             |   |  |              |
-    //    V             V   V  V              V
-    TEST ("ab",         0,  2, "ab",          0),    
+    //    |               +------------------------- ctor off argument
+    //    |               |   +--------------------- ctor n argument
+    //    |               |   |    +---------------- expected result sequence
+    //    |               |   |    |                +--- exception info
+    //    |               |   |    |                |       0 - no exception
+    //    |               |   |    |                |       1 - out_of_range
+    //    |               |   |    |                |
+    //    |               |   |    |                |
+    //    V               V   V    V                V
+    TEST ("ab",           0,  2,   "ab",            0),    
 
-    TEST ("",           0,  0, "",            0),   
-    TEST ("\0",         0,  1, "\0",          0),
-    TEST ("\0\0",       0,  2, "\0\0",        0),
+    TEST ("",             0,  0,   "",              0),   
+    TEST ("<U0>",         0,  1,   "<U0>",          0),
+    TEST ("<U0>@2",       0,  2,   "<U0>@2",        0),
 
-    TEST ("a",          0,  1, "a",           0),       
-    TEST ("bcd",        0,  3, "bcd",         0),       
-    TEST ("cdefaihjb",  0,  9, "cdefaihjb",   0),      
+    TEST ("a",            0,  1,   "a",             0),       
+    TEST ("bcd",          0,  3,   "bcd",           0),       
+    TEST ("cdefaihjb",    0,  9,   "cdefaihjb",     0),      
 
-    TEST ("\0\0ab",     0,  4, "\0\0ab",      0),  
-    TEST ("a\0\0b",     0,  4, "a\0\0b",      0), 
-    TEST ("ab\0\0",     0,  4, "ab\0\0",      0),  
-    TEST ("abefdcc\0a", 0,  9, "abefdcc\0a",  0),  
+    TEST ("<U0>@2ab",     0,  4,   "<U0>@2ab",      0),  
+    TEST ("a<U0>@2b",     0,  4,   "a<U0>@2b",      0), 
+    TEST ("ab<U0>@2",     0,  4,   "ab<U0>@2",      0),  
+    TEST ("abefdcc<U0>a", 0,  9,   "abefdcc<U0>a",  0),  
 
-    TEST ("x@207",      0,  207, "x@207",     0),
-    TEST ("x@334",     10,  207, "x@207",     0),
-    TEST ("x@207",     50,  128, "x@128",     0),
-    TEST ("x@1412",   128,  873, "x@873",     0),
-    TEST ("x@1412",     0, 1412, "x@1412",    0),
-    TEST ("x@1412",   207,  540, "x@540",     0),
-    TEST ("x@874",      1,  873, "x@873",     0),
-    TEST ("x@3695",    10, 2284, "x@2284",    0),
-    TEST ("x@4096",     0, 4096, "x@4096",    0),     
+    TEST ("x@207",        0,  207, "x@207",         0),
+    TEST ("x@334",       10,  207, "x@207",         0),
+    TEST ("x@207",       50,  128, "x@128",         0),
+    TEST ("x@1412",     128,  873, "x@873",         0),
+    TEST ("x@1412",       0, 1412, "x@1412",        0),
+    TEST ("x@1412",     207,  540, "x@540",         0),
+    TEST ("x@874",        1,  873, "x@873",         0),
+    TEST ("x@3695",      10, 2284, "x@2284",        0),
+    TEST ("x@4096",       0, 4096, "x@4096",        0),     
 
-    TEST ("abc",        5,  3,   "",          1), 
-    TEST ("x@4096",  4106,  3,   "",          1), 
+    TEST ("abc",          5,  3,   "",              1), 
+    TEST ("x@4096",    4106,  3,   "",              1), 
 
-    TEST ("last test",  0,  9, "last test",   0)
+    TEST ("last test",    0,  9,  "last test",      0)
 };
 
 /**************************************************************************/
@@ -344,12 +344,12 @@ size_val_test_cases [] = {
     //    |          |    |            
     //    V          V    V         
     TEST (1,        'a',  "a"), 
-    TEST (1,        '\0', "\0"),
+    TEST (1,        '\0', "<U0>"),
 
     TEST (2,        'a',  "aa"), 
-    TEST (2,        '\0', "\0\0"),
+    TEST (2,        '\0', "<U0>@2"),
 
-    TEST (5,        '\0', "\0\0\0\0\0"),
+    TEST (5,        '\0', "<U0>@5"),
     TEST (10,       'a',  "aaaaaaaaaa"), 
 
     TEST (128,      'x',  "x@128"),
@@ -379,54 +379,54 @@ cptr_op_set_test_cases [] = {
 
     //    +----------------------------------------- source sequence
     //    |          +------------------------------ argument sequence
-    //    |          |            +----------------- expected result sequence
-    //    |          |            |              +-- exception info
-    //    |          |            |              |      0 - no exception
-    //    |          |            |              |     -1 - excpetion safety 
-    //    |          |            |              |  
-    //    |          |            |              |            
-    //    V          V            V              V          
-    TEST ("",       "ab",         "ab",          0),    
+    //    |          |               +-------------- expected result sequence
+    //    |          |               |             +--- exception info
+    //    |          |               |             |      0 - no exception
+    //    |          |               |             |     -1 - excpetion safety 
+    //    |          |               |             |  
+    //    |          |               |             |            
+    //    V          V               V             V          
+    TEST ("",       "ab",           "ab",          0),    
 
-    TEST ("",       "",           "",            0),   
-    TEST ("abc",    "",           "",            0),   
-    TEST ("",       "\0",         "",            0), 
-    TEST ("abc",    "\0",         "",            0),
+    TEST ("",       "",             "",            0),   
+    TEST ("abc",    "",             "",            0),   
+    TEST ("",       "<U0>",         "",            0), 
+    TEST ("abc",    "<U0>",         "",            0),
 
-    TEST ("",       "a",          "a",           0),  
-    TEST ("\0\0",   "a",          "a",           0), 
-    TEST ("a",      "bcd",        "bcd",         0),       
-    TEST ("x@4096", "bcd",        "bcd",         0), 
-    TEST ("",       "cdefaihjb",  "cdefaihjb",   0),      
-    TEST ("a\0b",   "cdefaihjb",  "cdefaihjb",   0),
+    TEST ("",       "a",            "a",           0),  
+    TEST ("<U0>@2", "a",            "a",           0), 
+    TEST ("a",      "bcd",          "bcd",         0),       
+    TEST ("x@4096", "bcd",          "bcd",         0), 
+    TEST ("",       "cdefaihjb",    "cdefaihjb",   0),      
+    TEST ("a<U0>b", "cdefaihjb",    "cdefaihjb",   0),
 
-    TEST ("",       "\0\0ab",     "",            0),  
-    TEST ("c\0d",   "\0\0ab",     "",            0),
-    TEST ("",       "a\0\0b",     "a",           0), 
-    TEST ("bcd",    "a\0\0b",     "a",           0), 
-    TEST ("\0",     "ab\0\0",     "ab",          0), 
-    TEST ("x@4096", "ab\0\0",     "ab",          0), 
-    TEST ("\0a",    "abefdcc\0a", "abefdcc",     0),  
-    TEST ("x@4096", "abefdcc\0a", "abefdcc",     0),
+    TEST ("",       "<U0>@2ab",     "",            0),  
+    TEST ("c<U0>d", "<U0>@2ab",     "",            0),
+    TEST ("",       "a<U0>@2b",     "a",           0), 
+    TEST ("bcd",    "a<U0>@2b",     "a",           0), 
+    TEST ("<U0>",   "ab<U0>@2",     "ab",          0), 
+    TEST ("x@4096", "ab<U0>@2",     "ab",          0), 
+    TEST ("<U0>a",  "abefdcc<U0>a", "abefdcc",     0),  
+    TEST ("x@4096", "abefdcc<U0>a", "abefdcc",     0),
 
-    TEST ("",       "x@207",      "x@207",       0),
-    TEST ("x@128",  "x@207",      "x@207",       0),
-    TEST ("x@540",  "x@207",      "x@207",       0),
-    TEST ("",       "x@1412",     "x@1412",      0),
-    TEST ("x@128",  "x@1412",     "x@1412",      0),
-    TEST ("x@3695", "x@1412",     "x@1412",      0),
-    TEST ("x@872",  "x@873",      "x@873",       0),
-    TEST ("x@873",  "x@3695",     "x@3695",      0),
+    TEST ("",       "x@207",        "x@207",       0),
+    TEST ("x@128",  "x@207",        "x@207",       0),
+    TEST ("x@540",  "x@207",        "x@207",       0),
+    TEST ("",       "x@1412",       "x@1412",      0),
+    TEST ("x@128",  "x@1412",       "x@1412",      0),
+    TEST ("x@3695", "x@1412",       "x@1412",      0),
+    TEST ("x@872",  "x@873",        "x@873",       0),
+    TEST ("x@873",  "x@3695",       "x@3695",      0),
 
-    TEST ("abc",    "x@4096",     "x@4096",      0),  
+    TEST ("abc",    "x@4096",       "x@4096",      0),  
 
-    TEST ("",       0,            "",            0),
-    TEST ("a\0b\0", 0,            "a",           0), 
-    TEST ("x@4096", 0,            "x@4096",      0), 
+    TEST ("",              0,       "",            0),
+    TEST ("a<U0>b<U0>",    0,       "a",           0), 
+    TEST ("x@4096",        0,       "x@4096",      0), 
 
-    TEST ("abcd",   "x@4096",     "x@4096",      0), 
+    TEST ("abcd",   "x@4096",       "x@4096",      0), 
 
-    TEST ("",       "last test",  "last test",   0)
+    TEST ("",       "last test",    "last test",   0)
 };
 
 /**************************************************************************/
@@ -444,52 +444,52 @@ cstr_op_set_test_cases [] = {
 
     //    +----------------------------------------- source sequence
     //    |          +------------------------------ argument sequence
-    //    |          |            +----------------- expected result sequence
-    //    |          |            |              +-- exception info
-    //    |          |            |              |      0 - no exception
-    //    |          |            |              |     -1 - excpetion safety 
-    //    |          |            |              |  
-    //    |          |            |              |            
-    //    V          V            V              V
-    TEST ("",       "ab",         "ab",          0),    
+    //    |          |              +--------------- expected result sequence
+    //    |          |              |                +- exception info
+    //    |          |              |                |    0 - no exception
+    //    |          |              |                |   -1 - excpetion safety
+    //    |          |              |                |  
+    //    |          |              |                |            
+    //    V          V              V                V
+    TEST ("",       "ab",           "ab",            0),    
 
-    TEST ("",       "",           "",            0),   
-    TEST ("abc",    "",           "",            0),   
-    TEST ("",       "\0",         "\0",          0), 
-    TEST ("abc",    "\0",         "\0",          0),
+    TEST ("",       "",             "",              0),   
+    TEST ("abc",    "",             "",              0),   
+    TEST ("",       "<U0>",         "<U0>",          0), 
+    TEST ("abc",    "<U0>",         "<U0>",          0),
 
-    TEST ("",       "a",          "a",           0),  
-    TEST ("\0\0",   "a",          "a",           0), 
-    TEST ("a",      "bcd",        "bcd",         0),       
-    TEST ("x@4096", "bcd",        "bcd",         0), 
-    TEST ("",       "cdefaihjb",  "cdefaihjb",   0),      
-    TEST ("a\0b",   "cdefaihjb",  "cdefaihjb",   0),
+    TEST ("",       "a",            "a",             0),  
+    TEST ("<U0>@2", "a",            "a",             0), 
+    TEST ("a",      "bcd",          "bcd",           0),       
+    TEST ("x@4096", "bcd",          "bcd",           0), 
+    TEST ("",       "cdefaihjb",    "cdefaihjb",     0),      
+    TEST ("a<U0>b", "cdefaihjb",    "cdefaihjb",     0),
+ 
+    TEST ("",       "<U0>@2ab",     "<U0>@2ab",      0),  
+    TEST ("c<U0>d", "<U0>@2ab",     "<U0>@2ab",      0),
+    TEST ("",       "a<U0>@2b",     "a<U0>@2b",      0), 
+    TEST ("bcd",    "a<U0>@2b",     "a<U0>@2b",      0), 
+    TEST ("<U0>",   "ab<U0>@2",     "ab<U0>@2",      0), 
+    TEST ("x@4096", "ab<U0>@2",     "ab<U0>@2",      0), 
+    TEST ("<U0>a",  "abefdcc<U0>a", "abefdcc<U0>a",  0),  
+    TEST ("x@4096", "abefdcc<U0>a", "abefdcc<U0>a",  0),
 
-    TEST ("",       "\0\0ab",     "\0\0ab",      0),  
-    TEST ("c\0d",   "\0\0ab",     "\0\0ab",      0),
-    TEST ("",       "a\0\0b",     "a\0\0b",      0), 
-    TEST ("bcd",    "a\0\0b",     "a\0\0b",      0), 
-    TEST ("\0",     "ab\0\0",     "ab\0\0",      0), 
-    TEST ("x@4096", "ab\0\0",     "ab\0\0",      0), 
-    TEST ("\0a",    "abefdcc\0a", "abefdcc\0a",  0),  
-    TEST ("x@4096", "abefdcc\0a", "abefdcc\0a",  0),
+    TEST ("",       "x@207",        "x@207",         0),
+    TEST ("x@128",  "x@207",        "x@207",         0),
+    TEST ("x@540",  "x@207",        "x@207",         0),
+    TEST ("",       "x@1412",       "x@1412",        0),
+    TEST ("x@128",  "x@1412",       "x@1412",        0),
+    TEST ("x@3695", "x@1412",       "x@1412",        0),
+    TEST ("x@872",  "x@873",        "x@873",         0),
+    TEST ("x@873",  "x@3695",       "x@3695",        0),
 
-    TEST ("",       "x@207",      "x@207",       0),
-    TEST ("x@128",  "x@207",      "x@207",       0),
-    TEST ("x@540",  "x@207",      "x@207",       0),
-    TEST ("",       "x@1412",     "x@1412",      0),
-    TEST ("x@128",  "x@1412",     "x@1412",      0),
-    TEST ("x@3695", "x@1412",     "x@1412",      0),
-    TEST ("x@872",  "x@873",      "x@873",       0),
-    TEST ("x@873",  "x@3695",     "x@3695",      0),
+    TEST ("abc",    "x@4096",       "x@4096",        0),   
 
-    TEST ("abc",    "x@4096",     "x@4096",      0),   
+    TEST ("",           0,          "",              0),
+    TEST ("a<U0>b<U0>", 0,          "a<U0>b<U0>",    0), 
+    TEST ("x@4096",     0,          "x@4096",        0), 
 
-    TEST ("",       0,            "",            0),
-    TEST ("a\0b\0", 0,            "a\0b\0",      0), 
-    TEST ("x@4096", 0,            "x@4096",      0), 
-
-    TEST ("",       "last test",  "last test",   0)
+    TEST ("",       "last test",    "last test",     0)
 };
 
 
@@ -515,12 +515,12 @@ val_op_set_test_cases [] = {
     //    V          V    V         
     TEST ("",       'a',  "a"), 
     TEST ("abcdef", 'a',  "a"),
-    TEST ("",       '\0', "\0"),
-    TEST ("a",      '\0', "\0"),
-    TEST ("\0\0",   'x',  "x"),
+    TEST ("",       '\0', "<U0>"),
+    TEST ("a",      '\0', "<U0>"),
+    TEST ("<U0>@2", 'x',  "x"),
 
     TEST ("x@207",  'a',  "a"), 
-    TEST ("x@873",  '\0', "\0"),
+    TEST ("x@873",  '\0', "<U0>"),
     TEST ("x@2284", 't',  "t"),
     TEST ("x@4096", 'x',  "x"),
 
@@ -746,7 +746,7 @@ void test_cons (charT*, Traits*, Allocator*, const RangeBase<
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, ret_ptr->c_str (), tcase.nres);
+                    rw_match (tcase.res, ret_ptr->c_str (), ret_ptr->size ());
 
                 rw_assert (match == tdata.reslen_, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{/*.*Gs}, "
@@ -923,7 +923,7 @@ void test_op_set (charT*, Traits*, Allocator*,
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, str.c_str (), tcase.nres);
+                    rw_match (tcase.res, str.c_str (), str.size ());
 
                 rw_assert (match == tdata.reslen_, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{/*.*Gs}, "

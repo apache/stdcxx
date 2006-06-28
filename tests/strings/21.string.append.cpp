@@ -61,61 +61,61 @@ cptr_test_cases [] = {
         arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
     }
 
-    //    +----------------------------------------- controlled sequence
-    //    |             +--------------------------- sequence to be appended
-    //    |             |             +------------- expected result sequence
-    //    |             |             |        +---- exception info
-    //    |             |             |        |         0 - no exception
-    //    |             |             |        |         1 - out_of_range
-    //    |             |             |        |         2 - length_error
-    //    |             |             |        |        -1 - exc. safety
-    //    |             |             |        |
-    //    |             |             |        +--------------+
-    //    V             V             V                       V
-    TEST ("ab",         "c",          "abc",                  0),
+    //    +------------------------------------------ controlled sequence
+    //    |                  +----------------------- sequence to be appended
+    //    |                  |            +---------- expected result sequence
+    //    |                  |            |        +- exception info
+    //    |                  |            |        |    0 - no exception
+    //    |                  |            |        |    1 - out_of_range
+    //    |                  |            |        |    2 - length_error
+    //    |                  |            |        |   -1 - avoid exc. safety
+    //    |                  |            |        |
+    //    |                  |            |        +--------------+
+    //    V                  V            V                       V
+    TEST ("ab",             "c",          "abc",                  0),
 
-    TEST ("",           "",           "",                     0),
-    TEST ("",           "\0",         "",                     0),
-    TEST ("",           "abc",        "abc",                  0),
+    TEST ("",               "",           "",                     0),
+    TEST ("",               "<U0>",       "",                     0),
+    TEST ("",               "abc",        "abc",                  0),
 
-    TEST ("\0",         "",           "\0",                   0),
-    TEST ("\0",         "a",          "\0a",                  0),
-    TEST ("\0",         "\0\0",       "\0",                   0),
+    TEST ("<U0>",           "",           "<U0>",                 0),
+    TEST ("<U0>",           "a",          "<U0>a",                0),
+    TEST ("<U0>",           "<U0>@2",     "<U0>",                 0),
 
-    TEST ("ab",         "cd",         "abcd",                 0),
-    TEST ("bcd",        "a",          "bcda",                 0),
-    TEST ("cde",        "ab",         "cdeab",                0),
-    TEST ("abc",        "",           "abc",                  0),
-    TEST ("ab",         "c\0e",       "abc",                  0),
+    TEST ("ab",             "cd",         "abcd",                 0),
+    TEST ("bcd",            "a",          "bcda",                 0),
+    TEST ("cde",            "ab",         "cdeab",                0),
+    TEST ("abc",            "",           "abc",                  0),
+    TEST ("ab",             "c<U0>e",     "abc",                  0),
 
-    TEST ("\0\0ab",     "cdefghij",   "\0\0abcdefghij",       0),
-    TEST ("a\0\0b",     "cdefghij",   "a\0\0bcdefghij",       0),
-    TEST ("ab\0\0",     "cdefghij",   "ab\0\0cdefghij",       0),
-    TEST ("a\0b\0\0c",  "e\0",        "a\0b\0\0ce",           0),
-    TEST ("\0ab\0\0c",  "e\0",        "\0ab\0\0ce",           0),
-    TEST ("abcdefghij", "abcdefghij", "abcdefghijabcdefghij", 0),
+    TEST ("<U0>@2ab",       "cdefghij",   "<U0>@2abcdefghij",     0),
+    TEST ("a<U0>@2b",       "cdefghij",   "a<U0>@2bcdefghij",     0),
+    TEST ("ab<U0>@2",       "cdefghij",   "ab<U0>@2cdefghij",     0),
+    TEST ("a<U0>b<U0>@2c",  "e<U0>",      "a<U0>b<U0>@2ce",       0),
+    TEST ("<U0>ab<U0>@2c",  "e<U0>",      "<U0>ab<U0>@2ce",       0),
+    TEST ("abcdefghij",     "abcdefghij", "abcdefghijabcdefghij", 0),
 
-    TEST ("",           "x@4096",     "x@4096",               0),
-    TEST ("x@4096",     "",           "x@4096",               0),
-    TEST ("x@4096",     "x@4096",     "x@8192",               0),
+    TEST ("",               "x@4096",     "x@4096",               0),
+    TEST ("x@4096",         "",           "x@4096",               0),
+    TEST ("x@4096",         "x@4096",     "x@8192",               0),
 
-    TEST ("x@10",       "x@118",      "x@128",                0),
-    TEST ("x@128",      "x@79",       "x@207",                0),
-    TEST ("x@207",      "x@127",      "x@334",                0),
-    TEST ("x@334",      "x@206",      "x@540",                0),
-    TEST ("x@540",      "x@333",      "x@873",                0),
-    TEST ("x@539",      "x@873",      "x@1412",               0),
-    TEST ("x@872",      "x@1412",     "x@2284",               0),
-    TEST ("x@1411",     "x@2284",     "x@3695",               0),
-    TEST ("x@1412",     "x@2284",     "x@3696",               0),
+    TEST ("x@10",           "x@118",      "x@128",                0),
+    TEST ("x@128",          "x@79",       "x@207",                0),
+    TEST ("x@207",          "x@127",      "x@334",                0),
+    TEST ("x@334",          "x@206",      "x@540",                0),
+    TEST ("x@540",          "x@333",      "x@873",                0),
+    TEST ("x@539",          "x@873",      "x@1412",               0),
+    TEST ("x@872",          "x@1412",     "x@2284",               0),
+    TEST ("x@1411",         "x@2284",     "x@3695",               0),
+    TEST ("x@1412",         "x@2284",     "x@3696",               0),
 
-    TEST ("",           0,            "",                     0),
-    TEST ("abc",        0,            "abcabc",               0),
-    TEST ("a\0\0bc",    0,            "a\0\0bca",             0),
-    TEST ("\0\0abc",    0,            "\0\0abc",              0),
-    TEST ("abc\0\0",    0,            "abc\0\0abc",           0),
+    TEST ("",                      0,     "",                     0),
+    TEST ("abc",                   0,     "abcabc",               0),
+    TEST ("a<U0>@2bc",             0,     "a<U0>@2bca",           0),
+    TEST ("<U0>@2abc",             0,     "<U0>@2abc",            0),
+    TEST ("abc<U0>@2",             0,     "abc<U0>@2abc",         0),
 
-    TEST ("last",       "test",       "lasttest",             0)
+    TEST ("last",             "test",     "lasttest",             0)
 };
 
 /**************************************************************************/
@@ -132,62 +132,62 @@ cstr_test_cases [] = {
         arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
     }
 
-    //    +----------------------------------------- controlled sequence
-    //    |             +--------------------------- sequence to be appended
-    //    |             |             +------------- expected result sequence
-    //    |             |             |        +---- exception info
-    //    |             |             |        |         0 - no exception
-    //    |             |             |        |         1 - out_of_range
-    //    |             |             |        |         2 - length_error
-    //    |             |             |        |        -1 - exc. safety
-    //    |             |             |        |
-    //    |             |             |        +--------------+
-    //    V             V             V                       V
-    TEST ("ab",         "c",          "abc",                  0),
+    //    +------------------------------------------ controlled sequence
+    //    |                  +----------------------- sequence to be appended
+    //    |                  |            +---------- expected result sequence
+    //    |                  |            |        +- exception info
+    //    |                  |            |        |    0 - no exception
+    //    |                  |            |        |    1 - out_of_range
+    //    |                  |            |        |    2 - length_error
+    //    |                  |            |        |   -1 - avoid exc. safety
+    //    |                  |            |        |
+    //    |                  |            |        +--------------+
+    //    V                  V            V                       V
+    TEST ("ab",             "c",          "abc",                  0),
 
-    TEST ("",           "",           "",                     0),
-    TEST ("",           "\0",         "\0",                   0),
-    TEST ("",           "abc",        "abc",                  0),
+    TEST ("",               "",           "",                     0),
+    TEST ("",               "<U0>",       "<U0>",                 0),
+    TEST ("",               "abc",        "abc",                  0),
 
-    TEST ("\0",         "",           "\0",                   0),
-    TEST ("\0",         "a",          "\0a",                  0),
-    TEST ("\0",         "\0\0",       "\0\0\0",               0),
+    TEST ("<U0>",           "",           "<U0>",                 0),
+    TEST ("<U0>",           "a",          "<U0>a",                0),
+    TEST ("<U0>",           "<U0>@2",     "<U0>@3",               0),
 
-    TEST ("ab",         "cd",         "abcd",                 0),
-    TEST ("bcd",        "a",          "bcda",                 0),
-    TEST ("cde",        "ab",         "cdeab",                0),
-    TEST ("abc",        "",           "abc",                  0),
-    TEST ("ab",         "c\0e",       "abc\0e",               0),
+    TEST ("ab",             "cd",         "abcd",                 0),
+    TEST ("bcd",            "a",          "bcda",                 0),
+    TEST ("cde",            "ab",         "cdeab",                0),
+    TEST ("abc",            "",           "abc",                  0),
+    TEST ("ab",             "c<U0>e",     "abc<U0>e",             0),
 
-    TEST ("\0\0ab",     "cdefghij",   "\0\0abcdefghij",       0),
-    TEST ("a\0\0b",     "cdefghij",   "a\0\0bcdefghij",       0),
-    TEST ("ab\0\0",     "cdefghij",   "ab\0\0cdefghij",       0),
-    TEST ("a\0b\0\0c",  "e\0",        "a\0b\0\0ce\0",         0),
-    TEST ("\0ab\0\0c",  "e\0",        "\0ab\0\0ce\0",         0),
-    TEST ("ab\0\0c\0",  "\0e",        "ab\0\0c\0\0e",         0),
-    TEST ("abcdefghij", "abcdefghij", "abcdefghijabcdefghij", 0),
+    TEST ("<U0>@2ab",       "cdefghij",   "<U0>@2abcdefghij",     0),
+    TEST ("a<U0>@2b",       "cdefghij",   "a<U0>@2bcdefghij",     0),
+    TEST ("ab<U0>@2",       "cdefghij",   "ab<U0>@2cdefghij",     0),
+    TEST ("a<U0>b<U0>@2c",  "e<U0>",      "a<U0>b<U0>@2ce<U0>",   0),
+    TEST ("<U0>ab<U0>@2c",  "e<U0>",      "<U0>ab<U0>@2ce<U0>",   0),
+    TEST ("ab<U0>@2c<U0>",  "<U0>e",      "ab<U0>@2c<U0>@2e",     0),
+    TEST ("abcdefghij",     "abcdefghij", "abcdefghijabcdefghij", 0),
 
-    TEST ("",           "x@4096",     "x@4096",               0),
-    TEST ("x@4096",     "",           "x@4096",               0),
-    TEST ("x@4096",     "x@4096",     "x@8192",               0),
+    TEST ("",               "x@4096",     "x@4096",               0),
+    TEST ("x@4096",         "",           "x@4096",               0),
+    TEST ("x@4096",         "x@4096",     "x@8192",               0),
 
-    TEST ("x@10",       "x@118",      "x@128",                0),
-    TEST ("x@128",      "x@79",       "x@207",                0),
-    TEST ("x@207",      "x@127",      "x@334",                0),
-    TEST ("x@334",      "x@206",      "x@540",                0),
-    TEST ("x@540",      "x@333",      "x@873",                0),
-    TEST ("x@539",      "x@873",      "x@1412",               0),
-    TEST ("x@872",      "x@1412",     "x@2284",               0),
-    TEST ("x@1411",     "x@2284",     "x@3695",               0),
-    TEST ("x@1412",     "x@2284",     "x@3696",               0),
+    TEST ("x@10",           "x@118",      "x@128",                0),
+    TEST ("x@128",          "x@79",       "x@207",                0),
+    TEST ("x@207",          "x@127",      "x@334",                0),
+    TEST ("x@334",          "x@206",      "x@540",                0),
+    TEST ("x@540",          "x@333",      "x@873",                0),
+    TEST ("x@539",          "x@873",      "x@1412",               0),
+    TEST ("x@872",          "x@1412",     "x@2284",               0),
+    TEST ("x@1411",         "x@2284",     "x@3695",               0),
+    TEST ("x@1412",         "x@2284",     "x@3696",               0),
 
-    TEST ("",           0,            "",                     0),
-    TEST ("abc",        0,            "abcabc",               0),
-    TEST ("a\0\0bc",    0,            "a\0\0bca\0\0bc",       0),
-    TEST ("\0\0abc",    0,            "\0\0abc\0\0abc",       0),
-    TEST ("abc\0\0",    0,            "abc\0\0abc\0\0",       0),
+    TEST ("",               0,            "",                     0),
+    TEST ("abc",            0,            "abcabc",               0),
+    TEST ("a<U0>@2bc",      0,            "a<U0>@2bca<U0>@2bc",   0),
+    TEST ("<U0>@2abc",      0,            "<U0>@2abc<U0>@2abc",   0),
+    TEST ("abc<U0>@2",      0,            "abc<U0>@2abc<U0>@2",   0),
 
-    TEST ("last",       "test",       "lasttest",             0)
+    TEST ("last",           "test",       "lasttest",             0)
 };
 
 /**************************************************************************/
@@ -204,68 +204,68 @@ cptr_size_test_cases [] = {
         arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
     }
 
-    //    +-------------------------------------- controlled sequence
-    //    |            +------------------------- sequence to be appended
-    //    |            |            +------------ append() n argument
-    //    |            |            |  +--------- expected result sequence
-    //    |            |            |  |     +--- exception info
-    //    |            |            |  |     |      0 - no exception
-    //    |            |            |  |     |      1 - out_of_range
-    //    |            |            |  |     |      2 - length_error
-    //    |            |            |  |     |     -1 - exc. safety
-    //    |            |            |  |     |
-    //    |            |            |  |     +------------+
-    //    V            V            V  V                  V
-    TEST ("ab",        "c",         1, "abc",             0),
+    //    +------------------------------------------ controlled sequence
+    //    |                +------------------------- sequence to be appended
+    //    |                |            +------------ append() n argument
+    //    |                |            |  +--------- expected result sequence
+    //    |                |            |  |    +---- exception info
+    //    |                |            |  |    |       0 - no exception
+    //    |                |            |  |    |       1 - out_of_range
+    //    |                |            |  |    |       2 - length_error
+    //    |                |            |  |    |      -1 - avoid exc. safety
+    //    |                |            |  |    |
+    //    |                |            |  |    +------------+
+    //    V                V            V  V                 V
+    TEST ("ab",            "c",         1, "abc",            0),
 
-    TEST ("",          "",          0,  "",               0),
-    TEST ("",          "abc",       1,  "a",              0),
-    TEST ("",          "\0",        1,  "\0",             0),
+    TEST ("",              "",          0,  "",              0),
+    TEST ("",              "abc",       1,  "a",             0),
+    TEST ("",              "<U0>",      1,  "<U0>",          0),
 
-    TEST ("\0",        "",          0,  "\0",             0),
-    TEST ("\0",        "a",         0,  "\0",             0),
-    TEST ("\0",        "a",         1,  "\0a",            0),
-    TEST ("\0",        "\0\0",      1,  "\0\0",           0),
-    TEST ("\0",        "\0\0",      2,  "\0\0\0",         0),
+    TEST ("<U0>",          "",          0,  "<U0>",          0),
+    TEST ("<U0>",          "a",         0,  "<U0>",          0),
+    TEST ("<U0>",          "a",         1,  "<U0>a",         0),
+    TEST ("<U0>",          "<U0>@2",    1,  "<U0>@2",        0),
+    TEST ("<U0>",          "<U0>@2",    2,  "<U0>@3",        0),
 
-    TEST ("cde",       "ab",        2,  "cdeab",          0),
-    TEST ("cde",       "ab",        1,  "cdea",           0),
+    TEST ("cde",           "ab",        2,  "cdeab",         0),
+    TEST ("cde",           "ab",        1,  "cdea",          0),
 
-    TEST ("\0e\0",     "a\0b\0\0c", 0,  "\0e\0",          0),
-    TEST ("\0e\0",     "\0ab\0\0c", 3,  "\0e\0\0ab",      0),
+    TEST ("<U0>e<U0>",     "a<U0>b<U0>@2c", 0,  "<U0>e<U0>",              0),
+    TEST ("<U0>e<U0>",     "<U0>ab<U0>@2c", 3,  "<U0>e<U0>@2ab",          0),
 
-    TEST ("a\0b\0\0c", "\0e\0",     3,  "a\0b\0\0c\0e\0", 0),
-    TEST ("a\0b\0\0c", "\0\0e\0",   2,  "a\0b\0\0c\0\0",  0),
-    TEST ("\0ab\0\0c", "\0e\0",     1,  "\0ab\0\0c\0",    0),
-    TEST ("a\0bc\0\0", "\0e",       2,  "a\0bc\0\0\0e",   0),
+    TEST ("a<U0>b<U0>@2c", "<U0>e<U0>",     3,  "a<U0>b<U0>@2c<U0>e<U0>", 0),
+    TEST ("a<U0>b<U0>@2c", "<U0>@2e<U0>",   2,  "a<U0>b<U0>@2c<U0>@2",    0),
+    TEST ("<U0>ab<U0>@2c", "<U0>e<U0>",     1,  "<U0>ab<U0>@2c<U0>",      0),
+    TEST ("a<U0>bc<U0>@2", "<U0>e",         2,  "a<U0>bc<U0>@3e",         0),
 
-    TEST ("x@10",      "x@118",   118,   "x@128",         0),
-    TEST ("x@128",     "x@79",     79,   "x@207",         0),
-    TEST ("x@207",     "x@127",   127,   "x@334",         0),
-    TEST ("x@207",     "x@207",   127,   "x@334",         0),
-    TEST ("x@334",     "x@206",   206,   "x@540",         0),
-    TEST ("x@540",     "x@333",   333,   "x@873",         0),
-    TEST ("x@539",     "x@873",   873,   "x@1412",        0),
-    TEST ("x@873",     "x@540",   539,   "x@1412",        0),
-    TEST ("x@872",     "x@1412", 1412,   "x@2284",        0),
-    TEST ("x@1411",    "x@2284", 2284,   "x@3695",        0),
-    TEST ("x@1411",    "x@3695", 2284,   "x@3695",        0),
-    TEST ("x@1412",    "x@2284", 2284,   "x@3696",        0),
+    TEST ("x@10",          "x@118",   118,  "x@128",         0),
+    TEST ("x@128",         "x@79",     79,  "x@207",         0),
+    TEST ("x@207",         "x@127",   127,  "x@334",         0),
+    TEST ("x@207",         "x@207",   127,  "x@334",         0),
+    TEST ("x@334",         "x@206",   206,  "x@540",         0),
+    TEST ("x@540",         "x@333",   333,  "x@873",         0),
+    TEST ("x@539",         "x@873",   873,  "x@1412",        0),
+    TEST ("x@873",         "x@540",   539,  "x@1412",        0),
+    TEST ("x@872",         "x@1412", 1412,  "x@2284",        0),
+    TEST ("x@1411",        "x@2284", 2284,  "x@3695",        0),
+    TEST ("x@1411",        "x@3695", 2284,  "x@3695",        0),
+    TEST ("x@1412",        "x@2284", 2284,  "x@3696",        0),
 
-    TEST ("",          0,           0,  "",               0),
-    TEST ("abc",       0,           0,  "abc",            0),
-    TEST ("abc",       0,           1,  "abca",           0),
-    TEST ("abc",       0,           2,  "abcab",          0),
-    TEST ("a\0bc",     0,           2,  "a\0bca\0",       0),
-    TEST ("\0abc\0\0", 0,           1,  "\0abc\0\0\0",    0),
-    TEST ("a\0bc\0\0", 0,           3,  "a\0bc\0\0a\0b",  0),
-    TEST ("a@4096",    0,        1111,  "a@5207",         0),
-    TEST ("b@4096",    0,        2222,  "b@6318",         0),
+    TEST ("",              0,           0,  "",              0),
+    TEST ("abc",           0,           0,  "abc",           0),
+    TEST ("abc",           0,           1,  "abca",          0),
+    TEST ("abc",           0,           2,  "abcab",         0),
+    TEST ("a<U0>bc",       0,           2,  "a<U0>bca<U0>",         0),
+    TEST ("<U0>abc<U0>@2", 0,           1,  "<U0>abc<U0>@3",        0),
+    TEST ("a<U0>bc<U0>@2", 0,           3,  "a<U0>bc<U0>@2a<U0>b",  0),
+    TEST ("a@4096",        0,        1111,  "a@5207",        0),
+    TEST ("b@4096",        0,        2222,  "b@6318",        0),
 
-    TEST ("",          "x@4096", 4096,  "x@4096",         0),
-    TEST ("x@4096",    "",          0,  "x@4096",         0),
+    TEST ("",              "x@4096", 4096,  "x@4096",        0),
+    TEST ("x@4096",        "",          0,  "x@4096",        0),
 
-    TEST ("last",      "test",      4, "lasttest",        0)
+    TEST ("last",          "test",      4,  "lasttest",      0)
 };
 
 /**************************************************************************/
@@ -286,83 +286,83 @@ range_test_cases [] = {
         arg, sizeof arg - 1, res, sizeof res - 1, bthrow        \
     }
 
-    //    +-------------------------------------- controlled sequence
-    //    |            +------------------------- sequence to be appended
-    //    |            |            +------------ append() pos argument
-    //    |            |            |  +--------- append() n argument
-    //    |            |            |  |  +------ expected result sequence
-    //    |            |            |  |  |  +--- exception info
-    //    |            |            |  |  |  |       0 - no exception
-    //    |            |            |  |  |  |       1 - out_of_range
-    //    |            |            |  |  |  |       2 - length_error
-    //    |            |            |  |  |  |      -1 - exc. safety
-    //    |            |            |  |  |  |
-    //    |            |            |  |  |  +----------------+
-    //    V            V            V  V  V                   V
-    TEST ("ab",        "c",         0, 1, "abc",              0),
+    //    +------------------------------------------ controlled sequence
+    //    |                +------------------------- sequence to be appended
+    //    |                |            +------------ append() pos argument
+    //    |                |            |  +--------- append() n argument
+    //    |                |            |  |  +------ expected result sequence
+    //    |                |            |  |  |  +--- exception info
+    //    |                |            |  |  |  |       0 - no exception
+    //    |                |            |  |  |  |       1 - out_of_range
+    //    |                |            |  |  |  |       2 - length_error
+    //    |                |            |  |  |  |      -1 - exc. safety
+    //    |                |            |  |  |  |
+    //    |                |            |  |  |  +----------------+
+    //    V                V            V  V  V                   V
+    TEST ("ab",            "c",         0, 1, "abc",              0),
 
-    TEST ("",          "",          0, 0,  "",                0),
-    TEST ("",          "abc",       1, 1,  "b",               0),
-    TEST ("",          "\0",        0, 1,  "\0",              0),
+    TEST ("",              "",          0, 0,  "",                0),
+    TEST ("",              "abc",       1, 1,  "b",               0),
+    TEST ("",              "<U0>",      0, 1,  "<U0>",            0),
 
-    TEST ("\0",        "",          0, 0,  "\0",              0),
+    TEST ("<U0>",          "",          0, 0,  "<U0>",            0),
 
-    TEST ("abc",       "",          0, 0,  "abc",             0),
+    TEST ("abc",           "",          0, 0,  "abc",             0),
 
-    TEST ("\0",        "a",         0, 1,  "\0a",             0),
-    TEST ("\0",        "\0\0",      1, 1,  "\0\0",            0),
-    TEST ("\0",        "\0\0",      0, 2,  "\0\0\0",          0),
-    TEST ("\0",        "\0\0",      1, 5,  "\0\0",            0),
+    TEST ("<U0>",          "a",         0, 1,  "<U0>a",           0),
+    TEST ("<U0>",          "<U0>@2",    1, 1,  "<U0>@2",          0),
+    TEST ("<U0>",          "<U0>@2",    0, 2,  "<U0>@3",          0),
+    TEST ("<U0>",          "<U0>@2",    1, 5,  "<U0>@2",          0),
 
-    TEST ("cde",       "ab",        0, 2,  "cdeab",           0),
-    TEST ("cde",       "ab",        0, 1,  "cdea",            0),
-    TEST ("cde",       "ab",        1, 5,  "cdeb",            0),
+    TEST ("cde",           "ab",        0, 2,  "cdeab",           0),
+    TEST ("cde",           "ab",        0, 1,  "cdea",            0),
+    TEST ("cde",           "ab",        1, 5,  "cdeb",            0),
 
-    TEST ("ab",        "c\0e",      0, 3,  "abc\0e",          0),
-    TEST ("ab",        "c\0e",      1, 2,  "ab\0e",           0),
-    TEST ("ab",        "c\0e",      0, 2,  "abc\0",           0),
+    TEST ("ab",            "c<U0>e",    0, 3,  "abc<U0>e",        0),
+    TEST ("ab",            "c<U0>e",    1, 2,  "ab<U0>e",         0),
+    TEST ("ab",            "c<U0>e",    0, 2,  "abc<U0>",         0),
 
-    TEST ("\0e\0",     "\0ab\0\0c", 0, 9,  "\0e\0\0ab\0\0c",  0),
-    TEST ("\0e\0",     "\0ab\0\0c", 0, 3,  "\0e\0\0ab",       0),
-    TEST ("a\0b\0\0c", "\0e\0",     0, 3,  "a\0b\0\0c\0e\0",  0),
-    TEST ("a\0b\0\0c", "\0\0e\0",   0, 2,  "a\0b\0\0c\0\0",   0),
-    TEST ("\0ab\0\0c", "\0e\0",     2, 1,  "\0ab\0\0c\0",     0),
-    TEST ("a\0bc\0\0", "\0e",       0, 2,  "a\0bc\0\0\0e",    0),
+    TEST ("<U0>e<U0>",     "<U0>ab<U0>@2c", 0, 9, "<U0>e<U0>@2ab<U0>@2c",   0),
+    TEST ("<U0>e<U0>",     "<U0>ab<U0>@2c", 0, 3, "<U0>e<U0>@2ab",          0),
+    TEST ("a<U0>b<U0>@2c", "<U0>e<U0>",     0, 3, "a<U0>b<U0>@2c<U0>e<U0>", 0),
+    TEST ("a<U0>b<U0>@2c", "<U0>@2e<U0>",   0, 2, "a<U0>b<U0>@2c<U0>@2",    0),
+    TEST ("<U0>ab<U0>@2c", "<U0>e<U0>",     2, 1, "<U0>ab<U0>@2c<U0>",      0),
+    TEST ("a<U0>bc<U0>@2", "<U0>e",         0, 2, "a<U0>bc<U0>@3e",         0),
 
-    TEST ("",          0,           0, 0,  "",                0),
-    TEST ("abc",       0,           1, 0,  "abc",             0),
-    TEST ("abc",       0,           1, 1,  "abcb",            0),
-    TEST ("abc",       0,           0, 2,  "abcab",           0),
-    TEST ("a\0bc\0\0", 0,           4, 2,  "a\0bc\0\0\0\0",   0),
-    TEST ("a\0bc\0\0", 0,           1, 3,  "a\0bc\0\0\0bc",   0),
-    TEST ("a\0bc\0\0", 0,           3, 9,  "a\0bc\0\0c\0\0",  0),
-    TEST ("abcdef",    0,           1, 2,  "abcdefbc",        0),
+    TEST ("",              0,           0, 0,  "",                0),
+    TEST ("abc",           0,           1, 0,  "abc",             0),
+    TEST ("abc",           0,           1, 1,  "abcb",            0),
+    TEST ("abc",           0,           0, 2,  "abcab",           0),
+    TEST ("a<U0>bc<U0>@2", 0,           4, 2,  "a<U0>bc<U0>@3<U0>",     0),
+    TEST ("a<U0>bc<U0>@2", 0,           1, 3,  "a<U0>bc<U0>@3bc",       0),
+    TEST ("a<U0>bc<U0>@2", 0,           3, 9,  "a<U0>bc<U0>@2c<U0>@2",  0),
+    TEST ("abcdef",        0,           1, 2,  "abcdefbc",        0),
 
-    TEST ("a@1000",    "b@1000",    0,  999, "a@1000b@999",   0),
-    TEST ("a@1000",    "b@1001",    0, 1000, "a@1000b@1000",  0),
-    TEST ("a@1000",    "b@1002",    0,  102, "a@1000b@102",   0),
-    TEST ("",          "x@4096",    0, 4096, "x@4096",        0),
-    TEST ("x@4096",    "",          0,    0, "x@4096",        0),
-    TEST ("x@4096",    "a@4096",  100,   10, "x@4096a@10",    0),
+    TEST ("a@1000",        "b@1000",    0,  999, "a@1000b@999",   0),
+    TEST ("a@1000",        "b@1001",    0, 1000, "a@1000b@1000",  0),
+    TEST ("a@1000",        "b@1002",    0,  102, "a@1000b@102",   0),
+    TEST ("",              "x@4096",    0, 4096, "x@4096",        0),
+    TEST ("x@4096",        "",          0,    0, "x@4096",        0),
+    TEST ("x@4096",        "a@4096",  100,   10, "x@4096a@10",    0),
 
-    TEST ("x@10",      "x@118",     0,  118, "x@128",         0),
-    TEST ("x@128",     "x@129",    50,   79, "x@207",         0),
-    TEST ("x@207",     "x@127",     0,  127, "x@334",         0),
-    TEST ("x@207",     "x@207",    10,  127, "x@334",         0),
-    TEST ("x@334",     "x@208",     2,  206, "x@540",         0),
-    TEST ("x@540",     "x@336",     3,  333, "x@873",         0),
-    TEST ("x@539",     "x@873",     0,  873, "x@1412",        0),
-    TEST ("x@873",     "x@540",     1,  539, "x@1412",        0),
-    TEST ("x@872",     "x@1412",    0, 1412, "x@2284",        0),
-    TEST ("x@1411",    "x@2288",    4, 2284, "x@3695",        0),
-    TEST ("x@1411",    "x@3695",  128, 2284, "x@3695",        0),
-    TEST ("x@1412",    "x@2284",    0, 2284, "x@3696",        0),
+    TEST ("x@10",          "x@118",     0,  118, "x@128",         0),
+    TEST ("x@128",         "x@129",    50,   79, "x@207",         0),
+    TEST ("x@207",         "x@127",     0,  127, "x@334",         0),
+    TEST ("x@207",         "x@207",    10,  127, "x@334",         0),
+    TEST ("x@334",         "x@208",     2,  206, "x@540",         0),
+    TEST ("x@540",         "x@336",     3,  333, "x@873",         0),
+    TEST ("x@539",         "x@873",     0,  873, "x@1412",        0),
+    TEST ("x@873",         "x@540",     1,  539, "x@1412",        0),
+    TEST ("x@872",         "x@1412",    0, 1412, "x@2284",        0),
+    TEST ("x@1411",        "x@2288",    4, 2284, "x@3695",        0),
+    TEST ("x@1411",        "x@3695",  128, 2284, "x@3695",        0),
+    TEST ("x@1412",        "x@2284",    0, 2284, "x@3696",        0),
 
-    TEST ("",          "\0",        2,    0, "",              1),
-    TEST ("",          "a",         2,    0, "",              1),
-    TEST ("",          "x@4096", 4106,    0, "",              1),
+    TEST ("",              "<U0>",      2,    0, "",              1),
+    TEST ("",              "a",         2,    0, "",              1),
+    TEST ("",              "x@4096", 4106,    0, "",              1),
 
-    TEST ("last",      "test",      0,    4, "lasttest",      0)
+    TEST ("last",          "test",      0,    4, "lasttest",      0)
 };
 
 /**************************************************************************/
@@ -379,58 +379,58 @@ size_val_test_cases [] = {
         0, 0, res, sizeof res - 1, bthrow       \
     }
 
-    //    +-------------------------------------- controlled sequence
-    //    |            +------------------------- append() count argument
-    //    |            |   +--------------------- character to be appended
-    //    |            |   |   +----------------- expected result sequence
-    //    |            |   |   |       +--------- exception info
-    //    |            |   |   |       |             0 - no exception
-    //    |            |   |   |       |             1 - out_of_range
-    //    |            |   |   |       |             2 - length_error
-    //    |            |   |   |       |            -1 - exc. safety
-    //    |            |   |   |       |
-    //    |            |   |   |       +-----------+
-    //    V            V   V   V                   V
-    TEST ("ab",        1, 'c', "abc",              0),
+    //    +------------------------------------------ controlled sequence
+    //    |                +------------------------- append() count argument
+    //    |                |   +--------------------- character to be appended
+    //    |                |   |   +----------------- expected result sequence
+    //    |                |   |   |       +--------- exception info
+    //    |                |   |   |       |             0 - no exception
+    //    |                |   |   |       |             1 - out_of_range
+    //    |                |   |   |       |             2 - length_error
+    //    |                |   |   |       |            -1 - exc. safety
+    //    |                |   |   |       |
+    //    |                |   |   |       +-----------+
+    //    V                V   V   V                   V
+    TEST ("ab",            1, 'c', "abc",              0),
 
-    TEST ("",          0, ' ',  "",                0),
-    TEST ("",          1, 'b',  "b",               0),
-    TEST ("",          3, 'b',  "bbb",             0),
+    TEST ("",              0, ' ',  "",                0),
+    TEST ("",              1, 'b',  "b",               0),
+    TEST ("",              3, 'b',  "bbb",             0),
 
-    TEST ("\0",        0, ' ',  "\0",              0),
-    TEST ("",          2, '\0', "\0\0",            0),
+    TEST ("<U0>",          0, ' ',  "<U0>",            0),
+    TEST ("",              2, '\0', "<U0>@2",          0),
 
-    TEST ("\0",        1, 'a',  "\0a",             0),
-    TEST ("\0",        1, '\0', "\0\0",            0),
-    TEST ("\0",        2, '\0', "\0\0\0",          0),
-    TEST ("\0",        0, '\0', "\0",              0),
+    TEST ("<U0>",          1, 'a',  "<U0>a",           0),
+    TEST ("<U0>",          1, '\0', "<U0>@2",          0),
+    TEST ("<U0>",          2, '\0', "<U0>@3",          0),
+    TEST ("<U0>",          0, '\0', "<U0>",            0),
 
-    TEST ("cde",       1, 'a',  "cdea",            0),
-    TEST ("cde",       2, 'a',  "cdeaa",           0),
-    TEST ("cde",       3, 'a',  "cdeaaa",          0),
+    TEST ("cde",           1, 'a',  "cdea",            0),
+    TEST ("cde",           2, 'a',  "cdeaa",           0),
+    TEST ("cde",           3, 'a',  "cdeaaa",          0),
 
-    TEST ("ab",        2, '\0', "ab\0\0",          0),
-    TEST ("ab",        1, '\0', "ab\0",            0),
-    TEST ("ab",        2, '\0', "ab\0\0",          0),
+    TEST ("ab",            2, '\0', "ab<U0>@2",        0),
+    TEST ("ab",            1, '\0', "ab<U0>",          0),
+    TEST ("ab",            2, '\0', "ab<U0>@2",        0),
 
-    TEST ("a\0b\0\0c", 2, '\0', "a\0b\0\0c\0\0",   0),
-    TEST ("a\0b\0\0c", 1, '\0', "a\0b\0\0c\0",     0),
-    TEST ("\0ab\0\0c", 3, '\0', "\0ab\0\0c\0\0\0", 0),
-    TEST ("a\0bc\0\0", 2, 'a',  "a\0bc\0\0aa",     0),
+    TEST ("a<U0>b<U0>@2c", 2, '\0', "a<U0>b<U0>@2c<U0>@2", 0),
+    TEST ("a<U0>b<U0>@2c", 1, '\0', "a<U0>b<U0>@2c<U0>",   0),
+    TEST ("<U0>ab<U0>@2c", 3, '\0', "<U0>ab<U0>@2c<U0>@3", 0),
+    TEST ("a<U0>bc<U0>@2", 2, 'a',  "a<U0>bc<U0>@2aa",     0),
 
-    TEST ("",       4096, 'x', "x@4096",           0),
-    TEST ("x@4096",    0, 'x', "x@4096",           0),
+    TEST ("",           4096, 'x', "x@4096",           0),
+    TEST ("x@4096",        0, 'x', "x@4096",           0),
 
-    TEST ("x@127",     1, 'x', "x@128",            0),
-    TEST ("x@200",     7, 'x', "x@207",            0),
-    TEST ("x@331",     3, 'x', "x@334",            0),
-    TEST ("x@539",     1, 'x', "x@540",            0),
-    TEST ("x@539",   873, 'x', "x@1412",           0),
-    TEST ("x@873",  1411, 'x', "x@2284",           0),
-    TEST ("x@3694",    1, 'x', "x@3695",           0),
-    TEST ("x@540",     1, 'x', "x@541",            0),
+    TEST ("x@127",         1, 'x', "x@128",            0),
+    TEST ("x@200",         7, 'x', "x@207",            0),
+    TEST ("x@331",         3, 'x', "x@334",            0),
+    TEST ("x@539",         1, 'x', "x@540",            0),
+    TEST ("x@539",       873, 'x', "x@1412",           0),
+    TEST ("x@873",      1411, 'x', "x@2284",           0),
+    TEST ("x@3694",        1, 'x', "x@3695",           0),
+    TEST ("x@540",         1, 'x', "x@541",            0),
 
-    TEST ("last",      4, 't', "lasttttt",         0)
+    TEST ("last",          4, 't', "lasttttt",         0)
 };
 
 /**************************************************************************/
@@ -447,38 +447,38 @@ push_back_val_test_cases [] = {
         0, 0, res, sizeof res - 1, bthrow       \
     }
 
-    //    +-------------------------------------- controlled sequence
-    //    |            +--------------------- character to be appended
-    //    |            |   +----------------- expected result sequence
-    //    |            |   |       +--------- exception info
-    //    |            |   |       |             0 - no exception
-    //    |            |   |       |            -1 - exc. safety
-    //    |            |   |       |
-    //    |            |   |       +------------+
-    //    V            V   V                    V
-    TEST ("ab",        'c', "abc",              0),
+    //    +---------------------------------------- controlled sequence
+    //    |                 +---------------------- character to be appended
+    //    |                 |    +----------------- expected result sequence
+    //    |                 |    |       +--------- exception info
+    //    |                 |    |       |             0 - no exception
+    //    |                 |    |       |            -1 - exc. safety
+    //    |                 |    |       |
+    //    |                 |    |       +------------+
+    //    V                 V    V                    V
+    TEST ("ab",            'c',  "abc",               0),
 
-    TEST ("",          'a', "a",                0),
-    TEST ("",          '\0', "\0",              0),
-    TEST ("\0",        'a', "\0a",              0),
-    TEST ("\0",        '\0', "\0\0",            0),
+    TEST ("",              'a',  "a",                 0),
+    TEST ("",              '\0', "<U0>",              0),
+    TEST ("<U0>",          'a',  "<U0>a",             0),
+    TEST ("<U0>",          '\0', "<U0>@2",            0),
 
-    TEST ("a\0b\0\0c", '\0', "a\0b\0\0c\0",     0),
-    TEST ("a\0bc\0\0", 'a', "a\0bc\0\0a",       0),
-    TEST ("\0abc\0\0", 'a', "\0abc\0\0a",       0),
+    TEST ("a<U0>b<U0>@2c", '\0', "a<U0>b<U0>@2c<U0>", 0),
+    TEST ("a<U0>bc<U0>@2", 'a',  "a<U0>bc<U0>@2a",    0),
+    TEST ("<U0>abc<U0>@2", 'a',  "<U0>abc<U0>@2a",    0),
 
-    TEST ("x@4095",    'x', "x@4096",           0),
+    TEST ("x@4095",        'x',  "x@4096",            0),
 
-    TEST ("x@127",     'x',  "x@128",           0),
-    TEST ("x@206",     'x',  "x@207",           0),
-    TEST ("x@333",     'x',  "x@334",           0),
-    TEST ("x@539",     'x',  "x@540",           0),
-    TEST ("x@1411",    'x',  "x@1412",          0),
-    TEST ("x@2283",    'x',  "x@2284",          0),
-    TEST ("x@3694",    'x',  "x@3695",          0),
-    TEST ("x@540",     'x',  "x@541",           0),
+    TEST ("x@127",         'x',  "x@128",             0),
+    TEST ("x@206",         'x',  "x@207",             0),
+    TEST ("x@333",         'x',  "x@334",             0),
+    TEST ("x@539",         'x',  "x@540",             0),
+    TEST ("x@1411",        'x',  "x@1412",            0),
+    TEST ("x@2283",        'x',  "x@2284",            0),
+    TEST ("x@3694",        'x',  "x@3695",            0),
+    TEST ("x@540",         'x',  "x@541",             0),
 
-    TEST ("last",      't', "lastt",            0)
+    TEST ("last",          't',  "lastt",             0)
 };
 
 /**************************************************************************/
@@ -707,7 +707,7 @@ void test_append (charT*, Traits*, Allocator*, const RangeBase<
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, str.c_str (), tcase.nres);
+                    rw_match (tcase.res, str.c_str (), str.size ());
 
                 rw_assert (match == tdata.reslen_, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{/*.*Gs}, "

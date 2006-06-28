@@ -60,59 +60,59 @@ cptr_test_cases [] = {
       sizeof src - 1, res, sizeof res - 1, bthrow }
 
     //    +----------------------------------------- controlled sequence
-    //    |             +--------------------------- sequence to be appended
-    //    |             |             +------------- expected result sequence
-    //    |             |             |        +---- exception info
-    //    |             |             |        |         0 - no exception
-    //    |             |             |        |         1 - length_error
-    //    |             |             |        |
-    //    |             |             |        +--------------+
-    //    V             V             V                       V
-    TEST ("ab",         "c",          "abc",                  0),
+    //    |                 +----------------------- sequence to be appended
+    //    |                 |             +--------- expected result sequence
+    //    |                 |             |        +---- exception info
+    //    |                 |             |        |         0 - no exception
+    //    |                 |             |        |         1 - length_error
+    //    |                 |             |        |
+    //    |                 |             |        +--------------+
+    //    V                 V             V                       V
+    TEST ("ab",             "c",          "abc",                  0),
 
-    TEST ("",           "",           "",                     0),
-    TEST ("",           "\0",         "",                     0),
-    TEST ("",           "abc",        "abc",                  0),
+    TEST ("",               "",           "",                     0),
+    TEST ("",               "<U0>",       "",                     0),
+    TEST ("",               "abc",        "abc",                  0),
 
-    TEST ("\0",         "",           "\0",                   0),
-    TEST ("\0",         "a",          "\0a",                  0),
-    TEST ("\0",         "\0\0",       "\0",                   0),
+    TEST ("<U0>",           "",           "<U0>",                 0),
+    TEST ("<U0>",           "a",          "<U0>a",                0),
+    TEST ("<U0>",           "<U0>@2",     "<U0>",                 0),
 
-    TEST ("ab",         "cd",         "abcd",                 0),
-    TEST ("bcd",        "a",          "bcda",                 0),
-    TEST ("cde",        "ab",         "cdeab",                0),
-    TEST ("abc",        "",           "abc",                  0),
-    TEST ("ab",         "c\0e",       "abc",                  0),
+    TEST ("ab",             "cd",         "abcd",                 0),
+    TEST ("bcd",            "a",          "bcda",                 0),
+    TEST ("cde",            "ab",         "cdeab",                0),
+    TEST ("abc",            "",           "abc",                  0),
+    TEST ("ab",             "c<U0>e",     "abc",                  0),
 
-    TEST ("\0\0ab",     "cdefghij",   "\0\0abcdefghij",       0),
-    TEST ("a\0\0b",     "cdefghij",   "a\0\0bcdefghij",       0),
-    TEST ("ab\0\0",     "cdefghij",   "ab\0\0cdefghij",       0),
-    TEST ("a\0b\0\0c",  "e\0",        "a\0b\0\0ce",           0),
-    TEST ("\0ab\0\0c",  "e\0",        "\0ab\0\0ce",           0),
-    TEST ("abcdefghij", "abcdefghij", "abcdefghijabcdefghij", 0),
+    TEST ("<U0>@2ab",       "cdefghij",   "<U0>@2abcdefghij",     0),
+    TEST ("a<U0>@2b",       "cdefghij",   "a<U0>@2bcdefghij",     0),
+    TEST ("ab<U0>@2",       "cdefghij",   "ab<U0>@2cdefghij",     0),
+    TEST ("a<U0>b<U0>@2c",  "e<U0>",      "a<U0>b<U0>@2ce",       0),
+    TEST ("<U0>ab<U0>@2c",  "e<U0>",      "<U0>ab<U0>@2ce",       0),
+    TEST ("abcdefghij",     "abcdefghij", "abcdefghijabcdefghij", 0),
 
-    TEST ("",           "x@4096",     "x@4096",               0),
-    TEST ("x@4096",     "",           "x@4096",               0),
-    TEST ("x@2048",     "y@2048",     "x@2048y@2048",         0),
+    TEST ("",               "x@4096",     "x@4096",               0),
+    TEST ("x@4096",         "",           "x@4096",               0),
+    TEST ("x@2048",         "y@2048",     "x@2048y@2048",         0),
 
-    TEST ("x@10",       "x@118",      "x@128",                0),
-    TEST ("x@128",      "x@79",       "x@207",                0),
-    TEST ("x@207",      "x@127",      "x@334",                0),
-    TEST ("x@334",      "x@206",      "x@540",                0),
-    TEST ("x@540",      "x@333",      "x@873",                0),
-    TEST ("x@539",      "x@873",      "x@1412",               0),
-    TEST ("x@872",      "x@1412",     "x@2284",               0),
-    TEST ("x@1411",     "x@2284",     "x@3695",               0),
-    TEST ("x@1412",     "x@2284",     "x@3696",               0),
+    TEST ("x@10",           "x@118",      "x@128",                0),
+    TEST ("x@128",          "x@79",       "x@207",                0),
+    TEST ("x@207",          "x@127",      "x@334",                0),
+    TEST ("x@334",          "x@206",      "x@540",                0),
+    TEST ("x@540",          "x@333",      "x@873",                0),
+    TEST ("x@539",          "x@873",      "x@1412",               0),
+    TEST ("x@872",          "x@1412",     "x@2284",               0),
+    TEST ("x@1411",         "x@2284",     "x@3695",               0),
+    TEST ("x@1412",         "x@2284",     "x@3696",               0),
 
-    TEST ("",           0,            "",                     0),
-    TEST ("abc",        0,            "abcabc",               0),
-    TEST ("a\0\0bc",    0,            "a\0\0bca",             0),
-    TEST ("\0\0abc",    0,            "\0\0abc",              0),
-    TEST ("abc\0\0",    0,            "abc\0\0abc",           0),
-    TEST ("x@2048",     0,            "x@4096",               0),
+    TEST ("",               0,            "",                     0),
+    TEST ("abc",            0,            "abcabc",               0),
+    TEST ("a<U0>@2bc",      0,            "a<U0>@2bca",           0),
+    TEST ("<U0>@2abc",      0,            "<U0>@2abc",            0),
+    TEST ("abc<U0>@2",      0,            "abc<U0>@2abc",         0),
+    TEST ("x@2048",         0,            "x@4096",               0),
 
-    TEST ("last",       "test",       "lasttest",             0)
+    TEST ("last",           "test",       "lasttest",             0)
 };
 
 /**************************************************************************/
@@ -128,60 +128,60 @@ cstr_test_cases [] = {
       sizeof src - 1, res, sizeof res - 1, bthrow }
 
     //    +----------------------------------------- controlled sequence
-    //    |             +------------------------- sequence to be appended
-    //    |             |             +------------- expected result sequence
-    //    |             |             |        +---- exception info
-    //    |             |             |        |         0 - no exception
-    //    |             |             |        |         1 - length_error
-    //    |             |             |        |
-    //    |             |             |        +--------------+
-    //    V             V             V                       V
-    TEST ("ab",         "c",          "abc",                  0),
+    //    |                 +----------------------- sequence to be appended
+    //    |                 |             +--------- expected result sequence
+    //    |                 |             |        +---- exception info
+    //    |                 |             |        |         0 - no exception
+    //    |                 |             |        |         1 - length_error
+    //    |                 |             |        |
+    //    |                 |             |        +--------------+
+    //    V                 V             V                       V
+    TEST ("ab",             "c",          "abc",                  0),
 
-    TEST ("",           "",           "",                     0),
-    TEST ("",           "\0",         "\0",                   0),
-    TEST ("",           "abc",        "abc",                  0),
+    TEST ("",               "",           "",                     0),
+    TEST ("",               "<U0>",       "<U0>",                 0),
+    TEST ("",               "abc",        "abc",                  0),
 
-    TEST ("\0",         "",           "\0",                   0),
-    TEST ("\0",         "a",          "\0a",                  0),
-    TEST ("\0",         "\0\0",       "\0\0\0",               0),
+    TEST ("<U0>",           "",           "<U0>",                 0),
+    TEST ("<U0>",           "a",          "<U0>a",                0),
+    TEST ("<U0>",           "<U0>@2",     "<U0>@3",               0),
 
-    TEST ("ab",         "cd",         "abcd",                 0),
-    TEST ("bcd",        "a",          "bcda",                 0),
-    TEST ("cde",        "ab",         "cdeab",                0),
-    TEST ("abc",        "",           "abc",                  0),
-    TEST ("ab",         "c\0e",       "abc\0e",               0),
+    TEST ("ab",             "cd",         "abcd",                 0),
+    TEST ("bcd",            "a",          "bcda",                 0),
+    TEST ("cde",            "ab",         "cdeab",                0),
+    TEST ("abc",            "",           "abc",                  0),
+    TEST ("ab",             "c<U0>e",     "abc<U0>e",             0),
 
-    TEST ("\0\0ab",     "cdefghij",   "\0\0abcdefghij",       0),
-    TEST ("a\0\0b",     "cdefghij",   "a\0\0bcdefghij",       0),
-    TEST ("ab\0\0",     "cdefghij",   "ab\0\0cdefghij",       0),
-    TEST ("a\0b\0\0c",  "e\0",        "a\0b\0\0ce\0",         0),
-    TEST ("\0ab\0\0c",  "e\0",        "\0ab\0\0ce\0",         0),
-    TEST ("ab\0\0c\0",  "\0e",        "ab\0\0c\0\0e",         0),
-    TEST ("abcdefghij", "abcdefghij", "abcdefghijabcdefghij", 0),
+    TEST ("<U0>@2ab",       "cdefghij",   "<U0>@2abcdefghij",     0),
+    TEST ("a<U0>@2b",       "cdefghij",   "a<U0>@2bcdefghij",     0),
+    TEST ("ab<U0>@2",       "cdefghij",   "ab<U0>@2cdefghij",     0),
+    TEST ("a<U0>b<U0>@2c",  "e<U0>",      "a<U0>b<U0>@2ce<U0>",   0),
+    TEST ("<U0>ab<U0>@2c",  "e<U0>",      "<U0>ab<U0>@2ce<U0>",   0),
+    TEST ("ab<U0>@2c<U0>",  "<U0>e",      "ab<U0>@2c<U0>@2e",     0),
+    TEST ("abcdefghij",     "abcdefghij", "abcdefghijabcdefghij", 0),
 
-    TEST ("",           "x@4096",     "x@4096",               0),
-    TEST ("x@4096",     "",           "x@4096",               0),
-    TEST ("x@2048",     "y@2048",     "x@2048y@2048",         0),
+    TEST ("",               "x@4096",     "x@4096",               0),
+    TEST ("x@4096",         "",           "x@4096",               0),
+    TEST ("x@2048",         "y@2048",     "x@2048y@2048",         0),
 
-    TEST ("x@10",       "x@118",      "x@128",                0),
-    TEST ("x@128",      "x@79",       "x@207",                0),
-    TEST ("x@207",      "x@127",      "x@334",                0),
-    TEST ("x@334",      "x@206",      "x@540",                0),
-    TEST ("x@540",      "x@333",      "x@873",                0),
-    TEST ("x@539",      "x@873",      "x@1412",               0),
-    TEST ("x@872",      "x@1412",     "x@2284",               0),
-    TEST ("x@1411",     "x@2284",     "x@3695",               0),
-    TEST ("x@1412",     "x@2284",     "x@3696",               0),
+    TEST ("x@10",           "x@118",      "x@128",                0),
+    TEST ("x@128",          "x@79",       "x@207",                0),
+    TEST ("x@207",          "x@127",      "x@334",                0),
+    TEST ("x@334",          "x@206",      "x@540",                0),
+    TEST ("x@540",          "x@333",      "x@873",                0),
+    TEST ("x@539",          "x@873",      "x@1412",               0),
+    TEST ("x@872",          "x@1412",     "x@2284",               0),
+    TEST ("x@1411",         "x@2284",     "x@3695",               0),
+    TEST ("x@1412",         "x@2284",     "x@3696",               0),
 
-    TEST ("",           0,            "",                     0),
-    TEST ("abc",        0,            "abcabc",               0),
-    TEST ("a\0\0bc",    0,            "a\0\0bca\0\0bc",       0),
-    TEST ("\0\0abc",    0,            "\0\0abc\0\0abc",       0),
-    TEST ("abc\0\0",    0,            "abc\0\0abc\0\0",       0),
-    TEST ("x@2048",     0,            "x@4096",               0),
+    TEST ("",               0,            "",                     0),
+    TEST ("abc",            0,            "abcabc",               0),
+    TEST ("a<U0>@2bc",      0,            "a<U0>@2bca<U0>@2bc",   0),
+    TEST ("<U0>@2abc",      0,            "<U0>@2abc<U0>@2abc",   0),
+    TEST ("abc<U0>@2",      0,            "abc<U0>@2abc<U0>@2",   0),
+    TEST ("x@2048",         0,            "x@4096",               0),
 
-    TEST ("last",       "test",       "lasttest",             0)
+    TEST ("last",           "test",       "lasttest",             0)
 };
 
 /**************************************************************************/
@@ -197,39 +197,39 @@ val_test_cases [] = {
       res, sizeof res - 1, bthrow }
 
     //    +---------------------------------- controlled sequence
-    //    |            +--------------------- character to be appended
-    //    |            |   +----------------- expected result sequence
-    //    |            |   |           +----- exception info
-    //    |            |   |           |        0 - no exception
-    //    |            |   |           |        1 - length_error
-    //    |            |   |           |
-    //    |            |   |           +----+
-    //    V            V   V                V
-    TEST ("ab",        'c', "abc",          0),
+    //    |                +----------------- character to be appended
+    //    |                |   +------------- expected result sequence
+    //    |                |   |           +- exception info
+    //    |                |   |           |      0 - no exception
+    //    |                |   |           |       1 - length_error
+    //    |                |   |           |
+    //    |                |   |           +----+
+    //    V                V   V                V
+    TEST ("ab",            'c', "abc",          0),
 
-    TEST ("",          'a',  "a",           0),
-    TEST ("",          '\0', "\0",          0),
+    TEST ("",              'a',  "a",           0),
+    TEST ("",              '\0', "<U0>",        0),
 
-    TEST ("\0",        'a',  "\0a",         0),
-    TEST ("\0",        '\0', "\0\0",        0),
+    TEST ("<U0>",          'a',  "<U0>a",       0),
+    TEST ("<U0>",          '\0', "<U0>@2",      0),
 
-    TEST ("cde",       'a',  "cdea",        0),
-    TEST ("abc",       '\0', "abc\0",       0),
+    TEST ("cde",           'a',  "cdea",        0),
+    TEST ("abc",           '\0', "abc<U0>",     0),
 
-    TEST ("a\0b\0\0c", '\0', "a\0b\0\0c\0", 0),
-    TEST ("\0ab\0\0c", '\0', "\0ab\0\0c\0", 0),
-    TEST ("a\0bc\0\0", 'a',  "a\0bc\0\0a",  0),
+    TEST ("a<U0>b<U0>@2c", '\0', "a<U0>b<U0>@2c<U0>", 0),
+    TEST ("<U0>ab<U0>@2c", '\0', "<U0>ab<U0>@2c<U0>", 0),
+    TEST ("a<U0>bc<U0>@2", 'a',  "a<U0>bc<U0>@2a",    0),
 
-    TEST ("x@127",     'x',  "x@128",       0),
-    TEST ("x@206",     'x',  "x@207",       0),
-    TEST ("x@333",     'x',  "x@334",       0),
-    TEST ("x@539",     'x',  "x@540",       0),
-    TEST ("x@1411",    'x',  "x@1412",      0),
-    TEST ("x@2283",    'x',  "x@2284",      0),
-    TEST ("x@3694",    'x',  "x@3695",      0),
-    TEST ("x@540",     'x',  "x@541",       0),
+    TEST ("x@127",         'x',  "x@128",       0),
+    TEST ("x@206",         'x',  "x@207",       0),
+    TEST ("x@333",         'x',  "x@334",       0),
+    TEST ("x@539",         'x',  "x@540",       0),
+    TEST ("x@1411",        'x',  "x@1412",      0),
+    TEST ("x@2283",        'x',  "x@2284",      0),
+    TEST ("x@3694",        'x',  "x@3695",      0),
+    TEST ("x@540",         'x',  "x@541",       0),
 
-    TEST ("last",      't',  "lastt",       0)
+    TEST ("last",          't',  "lastt",       0)
 };
 
 /**************************************************************************/
@@ -381,7 +381,7 @@ void test_op_plus_eq (charT, Traits*, Allocator*,
                 // (and only then), also verify that the modified
                 // string matches the expected result
                 const std::size_t match =
-                    rw_match (tcase.res, str.c_str(), tcase.nres);
+                    rw_match (tcase.res, str.c_str(), str.size ());
 
                 rw_assert (match == res_len, 0, tcase.line,
                            "line %d. %{$FUNCALL} expected %{#*s}, "

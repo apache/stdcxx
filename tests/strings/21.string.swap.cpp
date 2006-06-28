@@ -60,53 +60,53 @@ str_test_cases [] = {
     }
 
     //    +------------------------- controlled "destination" (str) sequence
-    //    |            +------------ controlled "source" (arg) sequence
-    //    |            |
-    //    V            V
-    TEST ("",          ""),
-    TEST ("",          "a"),
-    TEST ("a",         ""),
-    TEST ("",          "\0"),
-    TEST ("\0",        ""),
+    //    |                +-------- controlled "source" (arg) sequence
+    //    |                |
+    //    V                V
+    TEST ("",              ""),
+    TEST ("",              "a"),
+    TEST ("a",             ""),
+    TEST ("",              "<U0>"),
+    TEST ("<U0>",          ""),
 
-    TEST ("a",         "b"),
-    TEST ("a",         "bc"),
-    TEST ("ab",        "c"),
+    TEST ("a",             "b"),
+    TEST ("a",             "bc"),
+    TEST ("ab",            "c"),
 
-    TEST ("a\0b\0\0c", "\0b\0\0c"),
-    TEST ("\0b\0\0c",  "a\0b\0\0c"),
+    TEST ("a<U0>b<U0>@2c", "<U0>b<U0>@2c"),
+    TEST ("<U0>b<U0>@2c",  "a<U0>b<U0>@2c"),
 
-    TEST ("a\0b\0\0c", "\0\0"),
-    TEST ("\0\0",      "a\0b\0\0c"),
+    TEST ("a<U0>b<U0>@2c", "<U0>@2"),
+    TEST ("<U0>@2",        "a<U0>b<U0>@2c"),
 
-    TEST ("x@4096",    ""),
-    TEST ("",          "x@4096"),
-    TEST ("x@4096",    "\0\0\0"),
-    TEST ("\0\0\0",    "x@4096"),
-    TEST ("x@4096",    "x@4096"),
+    TEST ("x@4096",        ""),
+    TEST ("",              "x@4096"),
+    TEST ("x@4096",        "<U0>@3"),
+    TEST ("<U0>@3",        "x@4096"),
+    TEST ("x@4096",        "x@4096"),
 
-    TEST ("",          "x@128"),
-    TEST ("x@207",     "x@128"),
-    TEST ("x@128",     "x@334"),
-    TEST ("x@873",     "x@334"),
-    TEST ("x@1412",    "x@540"),
-    TEST ("x@540",     "x@2284"),
-    TEST ("x@3695",    "x@2284"),
-    TEST ("x@3695",    "x@128"),
+    TEST ("",              "x@128"),
+    TEST ("x@207",         "x@128"),
+    TEST ("x@128",         "x@334"),
+    TEST ("x@873",         "x@334"),
+    TEST ("x@1412",        "x@540"),
+    TEST ("x@540",         "x@2284"),
+    TEST ("x@3695",        "x@2284"),
+    TEST ("x@3695",        "x@128"),
 
-    TEST ("",          0),
-    TEST ("\0",        0),
-    TEST ("abc",       0),
-    TEST ("a\0b\0\0c", 0),
-    TEST ("x@4096",    0),
+    TEST ("",              0),
+    TEST ("<U0>",          0),
+    TEST ("abc",           0),
+    TEST ("a<U0>b<U0>@2c", 0),
+    TEST ("x@4096",        0),
 
-    TEST (0,           ""),
-    TEST (0,           "\0"),       
-    TEST (0,           "abc@1024"),       
-    TEST (0,           "a\0b\0\0c"), 
-    TEST (0,           "x@4096"),   
+    TEST (0,               ""),
+    TEST (0,               "<U0>"),       
+    TEST (0,               "abc@1024"),       
+    TEST (0,               "a<U0>b<U0>@2c"), 
+    TEST (0,               "x@4096"),   
  
-    TEST ("last",      "test")
+    TEST ("last",          "test")
 };
 
 
@@ -241,7 +241,7 @@ void test_swap (charT*, Traits*,
                            __LINE__, p2 - res_p1, p1 - res_p2);
 
                 std::size_t match = 
-                    rw_match (tcase.str, res_p2, tcase.str_len);
+                    rw_match (tcase.str, res_p2, res2_len);
 
                 rw_assert (match == tdata.strlen_, 0, tcase.line,
                            "line %d. %{$FUNCALL}: this == %{#*s}, got this = "
@@ -249,7 +249,7 @@ void test_swap (charT*, Traits*,
                            __LINE__, int (src_len), src, int (sizeof (charT)), 
                            int (res1_len), res_p1, match);
 
-                match = rw_match (src, res_p1, src_len);
+                match = rw_match (src, res_p1, res1_len);
 
                 rw_assert (match == srclen_, 0, tcase.line,
                            "line %d. %{$FUNCALL}: str == %{#*s}, got str = "
