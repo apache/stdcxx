@@ -1053,6 +1053,12 @@ _rw_dispatch (charT*, Traits*, Allocator*,
 
     TestFunc* const tfunc = _RWSTD_REINTERPRET_CAST (TestFunc*, farray [inx]);
 
+    if (0 == tfunc) {
+        rw_error (0, __FILE__, __LINE__,
+                  "logic error: null test function for %{$FUNCSIG}");
+        return;
+    }
+
     const bool reverse_iter =
            StringIds::ReverseIterator == func.iter_id_ 
         || StringIds::ConstReverseIterator == func.iter_id_;
