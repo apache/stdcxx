@@ -189,9 +189,13 @@ inline unsigned _RWSTD_LONG_LONG abs (unsigned _RWSTD_LONG_LONG __x)
 
     using ::abort;
 
-#if (defined (_RWSTD_NO_ABS) || defined (__hpux)) && defined (_RWSTD_NO_ABS_INT)
+#if    defined (_RWSTD_NO_ABS) && defined (_RWSTD_NO_ABS_INT) \
+    || defined (__HP_aCC) \
+    && defined (_MATH_INCLUDED) && !defined (__MATH_INCLUDED)
 
-    // working around a quirk in HP-UX <stdlib.h> and <math.h>
+// hacking around an HP aCC quirk when using system headers
+// in /usr/include without the compiler's wrappers (i.e.,
+// when -I/usr/include is on the command line)
 
 }   // namespace std
 
@@ -206,7 +210,7 @@ inline int abs (int __x)
 
 namespace std {
 
-#endif   // (_RWSTD_NO_ABS || __hpux) && _RWSTD_NO_ABS_INT
+#endif   // _RWSTD_NO_ABS && _RWSTD_NO_ABS_INT ...
 
     using ::abs;
 
