@@ -90,7 +90,8 @@ _rw_func_names[] = {
     "operator+", "operator==", "operator!=", "operator<", "operator<=",
     "operator>", "operator>=", "size", "length", "max_size", "resize", 
     "capacity", "reserve", "clear", "empty", "begin", "end", "rbegin",
-    "rend", "c_str", "data", "get_allocator"
+    "rend", "c_str", "data", "get_allocator", "operator>>", "operator<<",
+    "getline"
 };
 
 /**************************************************************************/
@@ -237,6 +238,8 @@ _rw_sigcat (char **pbuf, size_t *pbufsize,
         case Ids::fid_op_less_equal: funcname = "op_less_equal"; break;
         case Ids::fid_op_greater:    funcname = "op_greater"; break;
         case Ids::fid_op_greater_equal: funcname = "op_greater_equal"; break;
+        case Ids::fid_extractor:     funcname = "extractor"; break;
+        case Ids::fid_inserter:      funcname = "inserter"; break;
 
         case Ids::fid_compare:
         case Ids::fid_copy:
@@ -319,6 +322,9 @@ _rw_sigcat (char **pbuf, size_t *pbufsize,
                 tname = _rw_class_name (*func);
                 sfx   = "&";
                 break;
+
+            case Ids::arg_istream: tname = "istream&"; break;
+            case Ids::arg_ostream: tname = "ostream&"; break;
             }
         }
         else {
@@ -335,23 +341,34 @@ _rw_sigcat (char **pbuf, size_t *pbufsize,
             case Ids::arg_alloc: tname = "alloc"; break;
             case Ids::arg_str:   tname = "str"; break;
             case Ids::arg_cstr:  tname = "cstr"; break;
+            case Ids::arg_istream: tname = "istream"; break;
+            case Ids::arg_ostream: tname = "ostream"; break;
             }
         }
 
         RW_ASSERT (0 != tname);
 
         if (   0 == func || is_member
-            || Ids::arg_str != argtype && Ids::arg_cstr != argtype) {
+            || Ids::arg_str != argtype && Ids::arg_cstr != argtype
+            && Ids::arg_istream != argtype && Ids::arg_ostream != argtype) {
             // append the name or mnemonic of the argument type
             rw_asnprintf (pbuf, pbufsize, "%{+}%{?}_%{:}%{?}, %{;}%{;}%s%s%s",
                           0 == func, 0 < argno, pfx, tname, sfx);
+        }
+        else if (Ids::arg_istream == argtype || Ids::arg_ostream == argtype) {
+            // in non-member functions use ${{I|O}STREAM} to format
+            // the basic_{i|o}stream argument in order to expand
+            // its template argument list
+            rw_asnprintf (pbuf, pbufsize,
+                "%{+}%{?}, %{;}%{?}%{$ISTREAM}%{:}%{$OSTREAM}%{;}&",
+                0 < argno, Ids::arg_istream == argtype);
         }
         else {
             // in non-member functions use ${CLASS} to format
             // the basic_string argument in order to expand
             // its template argument list
             rw_asnprintf (pbuf, pbufsize,
-                          "%{+}%{?}, %{;}%{?}const %{$CLASS}&%{;}",
+                          "%{+}%{?}, %{;}%{?}const %{;}%{$CLASS}&",
                           0 < argno, Ids::arg_cstr == argtype);
             
         }
@@ -446,16 +463,63 @@ _rw_setvars (const StringFunc     &func,
         // set the {CLASS} variable to the name of the specialization
         // of basic_string
         rw_fprintf (0, "%{$CLASS!:*}", buf);
+        free (buf);
+        buf     = 0;
+        bufsize = 0;
+
+        // set the {ISTREAM} environment variable
+        // to the name of the specialization of the template basic_istream
+
+        if (   StringIds::DefaultTraits == func.traits_id_
+            && (   StringIds::Char == func.char_id_
+            || StringIds::WChar == func.char_id_)) {
+                // format std::istream and std::wistream
+                rw_asnprintf (&buf, &bufsize, "std::%{?}w%{;}istream",
+                    StringIds::WChar == func.char_id_);
+            }
+        else {
+            // format std::basic_istream specializations other than
+            // std::istream and std::wistream
+            rw_asnprintf (&buf, &bufsize,
+                "std::basic_istream<%s, %s<%1$s>>",
+                _rw_char_names [func.char_id_],
+                _rw_traits_names [func.traits_id_]);
+        }
+
+        rw_fprintf (0, "%{$ISTREAM!:*}", buf);
+        free (buf);
+        buf     = 0;
+        bufsize = 0;
+
+        // set the {OSTREAM} environment variable
+        // to the name of the specialization of the template basic_ostream
+
+        if (   StringIds::DefaultTraits == func.traits_id_
+            && (   StringIds::Char == func.char_id_
+            || StringIds::WChar == func.char_id_)) {
+                // format std::ostream and std::wostream
+                rw_asnprintf (&buf, &bufsize, "std::%{?}w%{;}ostream",
+                    StringIds::WChar == func.char_id_);
+            }
+        else {
+            // format std::basic_ostream specializations other than
+            // std::ostream and std::wostream
+            rw_asnprintf (&buf, &bufsize,
+                "std::basic_ostream<%s, %s<%1$s>>",
+                _rw_char_names [func.char_id_],
+                _rw_traits_names [func.traits_id_]);
+        }
+
+        rw_fprintf (0, "%{$OSTREAM!:*}", buf);
+        free (buf);
+        buf     = 0;
+        bufsize = 0;
 
         // determine the string function name
         const size_t funcinx = func.which_ & StringIds::fid_mask;
         const size_t nfuncs =  sizeof _rw_func_names / sizeof *_rw_func_names;
 
         RW_ASSERT (funcinx < nfuncs);
-
-        free (buf);
-        buf     = 0;
-        bufsize = 0;
 
         // get the undecorated function name; ctors are treated
         // specially so that we can have string, wstring, or
@@ -977,6 +1041,22 @@ _rw_setvars (const StringFunc     &func,
         rw_asnprintf (&buf, &bufsize,
                       "%{+} (%{#c}, %{$CLASS}(%{#*s}))",
                       pcase->val, int (arg_len), arg);
+        break;
+
+    case StringIds::extractor_istream_str:
+    case StringIds::getline_istream_str:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (%{$ISTREAM}&, %{$CLASS}&)");
+        break;
+
+    case StringIds::getline_istream_str_val:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (%{$ISTREAM}&, %{$CLASS}&, %{#c})", pcase->val);
+        break;
+
+    case StringIds::inserter_ostream_cstr:
+        rw_asnprintf (&buf, &bufsize,
+                      "%{+} (%{$OSTREAM}&, const %{$CLASS}&)");
         break;
 
     case StringIds::resize_size_val:
@@ -1602,7 +1682,7 @@ _rw_run_test  (int               argc,
     free (optbuf);
 
     return status;
-}
+}   
 
 
 

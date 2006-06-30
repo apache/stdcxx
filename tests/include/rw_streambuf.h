@@ -33,6 +33,7 @@
 #include <streambuf>   // for basic_streambuf
 
 #include <testdefs.h>
+#include <rw_char.h>   // for make_char
 
 
 enum MemFun {
@@ -210,7 +211,7 @@ MyStreambuf (std::streamsize bufsize, int fail_set, int when)
     buf_ = new charT [bufsize_];
 
     // invalidate the contents of the buffer
-    traits_type::assign (buf_, bufsize_, charT ('\xfe'));
+    traits_type::assign (buf_, bufsize_, make_char ('\xfe', buf_));
 
     // set the put area to 0 size to force a call to overflow()
     // on the first write attempt to the buffer 
@@ -248,7 +249,7 @@ MyStreambuf (const char *buf, std::streamsize bufsize, int fail_set, int when)
     for (std::streamsize inx = 0; inx != bufsize_; ++inx) {
         typedef unsigned char UChar;
 
-        buf_ [inx] = UChar (buf [inx]);
+        buf_ [inx] = make_char (buf [inx], buf_);
     }
 
     // zero out the (non-dereferenceable) element just past the end
@@ -359,7 +360,7 @@ pbackfail (int_type c /* = traits_type::eof () */)
     const int_type last = traits_type::to_int_type (*this->gptr ());
 
     if (!traits_type::eq_int_type (c, traits_type::eof ()))
-        traits_type::assign (*this->gptr (), c);
+        traits_type::assign (*this->gptr (), traits_type::to_char_type (c));
 
     return last;
 }
