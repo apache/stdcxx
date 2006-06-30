@@ -110,6 +110,9 @@ struct StringIds {
         /* 40 */ fid_c_str,
         /* 41 */ fid_data,
         /* 42 */ fid_get_allocator,
+        /* 43 */ fid_extractor,
+        /* 44 */ fid_inserter,
+        /* 45 */ fid_getline,
         /* -- */ fid_bits = 6,
         /* -- */ fid_mask = 63
     };
@@ -131,6 +134,8 @@ struct StringIds {
         /* 10 */ arg_str,     // string& (or this for member functions)
         /* 11 */ arg_cstr,    // const string& (or const this for members)
         /* 12 */ arg_alloc,   // const allocator&
+        /* 13 */ arg_istream, // istream&
+        /* 14 */ arg_ostream, // ostream&
         /* -- */ arg_bits = 4,
         /* -- */ arg_mask = 15
     };
@@ -599,7 +604,19 @@ struct StringIds {
 
         //////////////////////////////////////////////////////////////
         // get_allocator () const
-        MEMBER_0 (get_allocator, cstr)
+        MEMBER_0 (get_allocator, cstr),
+
+        //////////////////////////////////////////////////////////////
+        // operator>> (istream&, basic_string&)
+        NON_MEMBER_2 (extractor, istream, str),
+        // operator<< (ostream&, const basic_string&)
+        NON_MEMBER_2 (inserter, ostream, cstr),
+
+        //////////////////////////////////////////////////////////////
+        // getline (istream&, basic_string&)
+        NON_MEMBER_2 (getline, istream, str),
+        // getline (istream&, basic_string&, value_type)
+        NON_MEMBER_3 (getline, istream, str, val)
     };
 
 // clean up helper macros used above
