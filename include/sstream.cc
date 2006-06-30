@@ -446,7 +446,10 @@ seekpos (pos_type __pos, ios_base::openmode __which)
 {
     _RWSTD_ASSERT (this->_C_is_valid ());
 
-    return pos_type (basic_stringbuf::seekoff (__pos, ios_base::beg, __which));
+    // typedef helps HP aCC 3.27
+    typedef basic_stringbuf _StringBuf;
+
+    return pos_type (_StringBuf::seekoff (__pos, ios_base::beg, __which));
 }
 
 

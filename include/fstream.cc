@@ -361,7 +361,10 @@ overflow (int_type __c /* = eof () */)
             __nchars = this->pptr () - this->pbase ();
         }
 
-        if (__nchars != basic_filebuf::xsputn (__buf, __nchars))
+        // typedef helps HP aCC 3.27
+        typedef basic_filebuf _FileBuf;
+
+        if (__nchars != _FileBuf::xsputn (__buf, __nchars))
             return traits_type::eof ();  // error while writing
     }
 
@@ -417,8 +420,11 @@ xsputn (const char_type* __buf, _RWSTD_STREAMSIZE __nchars)
         // call self recursively to flush the controlled sequence first
         const _RWSTD_STREAMSIZE __nwrite = this->pptr () - this->pbase ();
 
+        // typedef helps HP aCC 3.27
+        typedef basic_filebuf _FileBuf;
+
         // return -1 on error to flush the controlled sequence
-        if (__nwrite != basic_filebuf::xsputn (__special, __nwrite))
+        if (__nwrite != _FileBuf::xsputn (__special, __nwrite))
             return -1;
     }
 
@@ -466,7 +472,9 @@ xsputn (const char_type* __buf, _RWSTD_STREAMSIZE __nchars)
         for (const char_type* __base = __buf; __from_next != __end;
              __base = __from_next) {
 
-            const codecvt_base::result __res =
+            // avoid using const codecvt_base::result here
+            // to prevent HP aCC 3.27 errors
+            const int __res =
                 __cvt.out (__state, __base, __end, __from_next,
                            __xbuf, __xbuf_end, __to_next);
 
@@ -812,7 +820,7 @@ sync ()
             const char_type* __base      = this->eback () + _C_pbacksize;
 
             while (__from_next != __from_end) {
-                const codecvt_base::result __res =
+                const int __res =
                     __cvt.out (__state, __base, __from_end, __from_next,
                                __xbuf, __xbuf_end, __to_next);
 
@@ -928,7 +936,7 @@ _C_unshift ()
 
     _StateT __state = _C_cur_pos.state ();
 
-    const codecvt_base::result __res =
+    const int __res =
         __cvt.unshift (__state, __useq, __useq + sizeof __useq, __useq_end);
 
     const _RWSTD_STREAMSIZE __nbytes = __useq_end - __useq;
