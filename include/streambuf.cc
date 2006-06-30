@@ -7,16 +7,22 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -38,6 +44,26 @@ basic_streambuf (ios_base::openmode __mode /* = ios_base::in | ios_base::out */)
     _C_epptr (0)
 {
     // no op
+}
+
+
+template <class _CharT, class _Traits>
+_TYPENAME basic_streambuf<_CharT, _Traits>::int_type
+basic_streambuf<_CharT, _Traits>::
+uflow ()
+{
+    _RWSTD_ASSERT (_C_is_valid ());
+
+    const int_type __c = underflow ();
+
+    if (traits_type::eq_int_type (__c, traits_type::eof ()))
+        return traits_type::eof ();
+
+    // handle unbuffered input mode
+    if (_C_gptr < _C_egptr)
+        return traits_type::to_int_type (*_C_gptr++);
+
+    return __c;
 }
 
 
