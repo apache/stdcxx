@@ -422,22 +422,6 @@ private:
 template<class _CharT, class _Traits>
 inline _TYPENAME basic_streambuf<_CharT, _Traits>::int_type
 basic_streambuf<_CharT, _Traits>::
-uflow ()
-{
-    _RWSTD_ASSERT (_C_is_valid ());
-
-    if (_C_is_eof (underflow ()))
-        return traits_type::eof ();
-
-    _RWSTD_ASSERT (0 != _C_gptr);
-
-    return traits_type::to_int_type (*_C_gptr++);
-}
-
-
-template<class _CharT, class _Traits>
-inline _TYPENAME basic_streambuf<_CharT, _Traits>::int_type
-basic_streambuf<_CharT, _Traits>::
 sbumpc ()
 {
     _RWSTD_ASSERT (_C_is_valid ());
