@@ -51,8 +51,7 @@ static const char* const exceptions[] = {
 #define Eof     std::ios_base::eofbit
 #define Fail    std::ios_base::failbit
 #define Bad     std::ios_base::badbit
-
-#define NotGood Eof | Fail | Bad
+#define NotGood (Eof | Fail | Bad)
 
 #define Skipws   std::ios_base::skipws
 #define Left     std::ios_base::left
@@ -85,11 +84,12 @@ extractor_test_cases [] = {
 }
 
     // 1.
-    // string and width should be unchanged when initial iostate is not good
-    // or initial iostate is good and flag skipws is set
-    // and stream contains only spaces or empty
+    // the string argument and stream width should be unchanged when
+    // the stream's initial state is not good, or the initial state
+    // is good and skipws is set and the stream's buffer contains only
+    // whitespace characters or is empty
 
-    //    +----------------------------------------------- controlled sequence
+    //    +----------------------------------------------- initial string
     //    |    +------------------------------------------ sequence in stream 
     //    |    |           +------------------------------ stream width       
     //    |    |           |   +-------------------------- stream flags       
@@ -145,12 +145,13 @@ extractor_test_cases [] = {
 
 
     // 2.
-    // string should be erased when initial iostate is good and
-    // flag skipws is not set and stream empty or contains string
-    // which begins from spaces
-    // width should be 0, iostate should have Fail bit setted
+    // the string argument should be cleared when the stream's initial
+    // state is good and skipws is not set and the stream's buffer is
+    // empty or contains a string which begins with whitespace
+    // width should be reset to 0, and the stream's state should have
+    // failbit set
 
-    //    +----------------------------------------------- controlled sequence
+    //    +----------------------------------------------- initial string
     //    |    +------------------------------------------ sequence in stream 
     //    |    |                      +------------------- stream width       
     //    |    |                      |   +--------------- stream flags       
@@ -219,15 +220,14 @@ extractor_test_cases [] = {
 
 
     // 3.
-    // string should be compared with result when
-    // initial iostate is good
-    // and
-    //     flag skipws is not set and stream string begins from not space
-    //   or
-    //     flag skipws is set and stream string contains not only spaces
-    // width should be 0
+    // the string argument should contain the extracted characters when
+    // the stream's initial state is good and either
+    //     skipws is clear and the stream's buffer doesn't contain whitespace
+    // or
+    //     skipws is set
+    // width should be reset to 0
 
-    //    +----------------------------------------------- controlled sequence
+    //    +----------------------------------------------- initial string
     //    |                +------------------------------ sequence in stream 
     //    |                |    +------------------------- stream width       
     //    |                |    |      +------------------ stream flags       
@@ -279,8 +279,15 @@ extractor_test_cases [] = {
     //     |                            |   |       |
     //     V                            V   V       V
     TEST3 ("abc",                       0,  0,      "abc"),
+    TEST3 ("abc",                       1,  0,      "a"),
     TEST3 ("abc",                       2,  0,      "ab" ),
     TEST3 ("abc",                       10, 0,      "abc"),
+    TEST3 ("abc ",                      10, 0,      "abc"),
+    TEST3 ("abc\f",                     10, 0,      "abc"),
+    TEST3 ("abc\n",                     10, 0,      "abc"),
+    TEST3 ("abc\r",                     10, 0,      "abc"),
+    TEST3 ("abc\t",                     10, 0,      "abc"),
+    TEST3 ("abc\v",                     10, 0,      "abc"),
 
     TEST3 ("abc" WHITESPACE,            0,  0,      "abc"),
     TEST3 ("abc" WHITESPACE,            2,  0,      "ab" ),
@@ -994,6 +1001,7 @@ void test_io (charT*, Traits*, Allocator*,
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
     typedef MyStreambuf<charT, Traits>                   Streambuf;
+    typedef std::basic_ios<charT, Traits>                BasicIos;
     typedef std::basic_istream<charT, Traits>            Istream;
     typedef std::basic_ostream<charT, Traits>            Ostream;
 
@@ -1003,45 +1011,53 @@ void test_io (charT*, Traits*, Allocator*,
     const StringFunc     &func  = tdata.func_;
     const StringTestCase &tcase = tdata.tcase_;
 
-    // construct the string object 
+    // construct the string object
     String str (tdata.str_, tdata.strlen_);
-    // construct the constant string object
-    const String cstr (tdata.str_, tdata.strlen_);
+    // construct a const reference to the string object
+    // for tests exercising output
+    const String& cstr (str);
 
     static const size_t BUFSIZE = 256;
 
     static char arg_buf [BUFSIZE];
 
     size_t arg_len = 0;
-    const char * arg = rw_expand (arg_buf,
-        tcase.arg, tcase.arg_len, &arg_len);
+    const char* arg = rw_expand (arg_buf, tcase.arg, tcase.arg_len, &arg_len);
 
-    std::streamsize os_size = tcase.arg_len;
+    // construct ctype facet to install in each stream's locale
+    // (the facet's lifetime must exceed that of the locale in
+    // which it is installed, which might include both the stream
+    // and the stream's streambuf)
+    const Ctype ctyp (1);
 
-    Ctype ctyp(1);
-
+    // construct streambuf objects to associate with each stream
     Streambuf inbuf (arg, arg_len, 0, -1);
-    Streambuf outbuf (os_size, 0, -1);
+    Streambuf outbuf (std::streamsize (tcase.arg_len), 0, -1);
 
     if (arg != arg_buf)
         delete[] arg;
 
     arg = 0;
 
+    // construct both stream objects even though only one will be used
     Istream is (&inbuf);
     Ostream os (&outbuf);
 
-    // add facet std::ctype<UserChar>
-    is.imbue (std::locale (is.getloc (), &ctyp));
-    os.imbue (is.getloc ());
+    // base referes to the basic_ios subobject of the stream used in
+    // each test case (to avoid unnecessarily manipulating both streams)
+    BasicIos &strm = StringIds::inserter_ostream_cstr == func.which_ ?
+        (BasicIos&)os : (BasicIos&)is;
 
-    is.width(tcase.off);
-    os.width(tcase.off);
+    // install std::ctype<UserChar> facet
+    strm.imbue (std::locale (strm.getloc (), &ctyp));
 
-    Fmtflags flags = _RWSTD_STATIC_CAST (Fmtflags, tcase.size);
+    // set the inital width of both streams
+    strm.width (tcase.off);
 
-    is.flags(flags);
-    os.flags(flags);
+    // set the initial formatting flags in both streams
+    const Fmtflags flags = Fmtflags (tcase.size);
+
+    strm.flags (flags);
 
     // save the state of the const string object before the call
     // to any (changes to the state of the object after a call)
@@ -1055,7 +1071,8 @@ void test_io (charT*, Traits*, Allocator*,
 
     if (1 == tcase.bthrow) {
         expected = exceptions [1];   // ios_base::failure
-    } else {
+    }
+    else {
         // exceptions disabled for this test case
     }
 
@@ -1066,16 +1083,15 @@ void test_io (charT*, Traits*, Allocator*,
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    Iostate state = _RWSTD_STATIC_CAST (Iostate, tcase.off2);
+    const Iostate state = Iostate (tcase.off2);
 
-    if (0 == tcase.bthrow) {
-        // set the state
-        is.clear (state);
-        os.clear (state);
-    } else {
-        // set the exceptions
-        is.exceptions (state);
-        os.exceptions (state);
+    if (tcase.bthrow) {
+        // set exception bits leaving the initial stream state good
+        strm.exceptions (state);
+    }
+    else {
+        // set the initial stream state leaving exceptions clear
+        strm.clear (state);
     }
 
     // start checking for memory leaks
@@ -1083,10 +1099,12 @@ void test_io (charT*, Traits*, Allocator*,
 
     try {
 
+        // the offset of the address of the returned reference
+        // from the address of the stream object argument (the
+        // two must be the same)
         std::ptrdiff_t ret_off = 0;
 
-        try
-        {
+        try {
             switch (func.which_) {
 
             case StringIds::extractor_istream_str:
@@ -1097,105 +1115,103 @@ void test_io (charT*, Traits*, Allocator*,
                 ret_off = &is - &std::getline (is, str);
                 break;
 
-            case StringIds::getline_istream_str_val:
-                ret_off = &is - &std::getline (is, str,
-                    is.widen (_RWSTD_STATIC_CAST (char, tcase.val)));
+            case StringIds::getline_istream_str_val: {
+                const charT delim = make_char (tcase.val, (charT*)0);
+                ret_off = &is - &std::getline (is, str, delim);
                 break;
+            }
 
             case StringIds::inserter_ostream_cstr:
                 ret_off = &os - &(os << cstr);
                 break;
 
             default:
-                RW_ASSERT ("test logic error: unknown io overload");
+                RW_ASSERT (!"test logic error: unknown io overload");
                 return;
             }
         }
 #ifndef _RWSTD_NO_EXCEPTIONS
-        catch (std::ios_base::failure& ex)
-        {
+
+        catch (std::ios_base::failure& ex) {
             caught = exceptions [1];
             rw_assert (caught == expected, 0, tcase.line,
-                "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
-                "unexpectedly%{;} caught std::%s(%#s)",
-                __LINE__, 0 != expected, expected, caught, ex.what ());
+                       "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                       "unexpectedly%{;} caught std::%s(%#s)",
+                       __LINE__, 0 != expected, expected, caught, ex.what ());
 
         }
+        catch (...) {
+            caught = exceptions [0];
+            rw_assert (0, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                       "unexpectedly%{;} caught %s",
+                       __LINE__, 0 != expected, expected, caught);
+        }
+
 #endif   // _RWSTD_NO_EXCEPTIONS
 
+        const std::streamsize ret_width = strm.width ();
+        const Iostate         ret_state = strm.rdstate ();
+        const charT*          ret_str   = str.data ();
+        size_t                ret_sz    = str.size ();
 
-        std::streamsize ret_width;
-        Iostate ret_state;
-        const charT * ret_str;
-        size_t ret_sz;
-
-        if (func.which_ != StringIds::inserter_ostream_cstr) {
-            ret_width = is.width ();
-            ret_state = is.rdstate ();
-            ret_str = str.c_str ();
-            ret_sz = str.size ();
-        } else {
-            ret_width = os.width ();
-            ret_state = os.rdstate ();
+        if (StringIds::inserter_ostream_cstr == func.which_) {
             ret_str = outbuf.pubpbase ();
-            ret_sz = outbuf.pubepptr () - ret_str;
+            ret_sz  = outbuf.pubepptr () - ret_str;
         }
 
-        // for convenience
+        // character width (for convenience)
         static const int cwidth = sizeof (charT);
 
         // verify that the reference returned from the function
         // refers to the passed stream object
         bool success = 0 == ret_off;
         rw_assert (success, 0, tcase.line,
-            "line %d. %{$FUNCALL} returned invalid reference, "
-            "offset is %td", __LINE__, ret_off);
+                   "line %d. %{$FUNCALL} returned invalid reference, "
+                   "offset is %td", __LINE__, ret_off);
 
         // verify the width
-        std::streamsize width =
-            (func.which_ == StringIds::getline_istream_str ||
-            func.which_ == StringIds::getline_istream_str_val) ?
+        const std::streamsize width =
+            (   func.which_ == StringIds::getline_istream_str
+             || func.which_ == StringIds::getline_istream_str_val) ?
             tcase.off : tcase.val;
 
         success = width == ret_width;
         rw_assert (success, 0, tcase.line,
-            "line %d. After %{$FUNCALL} strm.width () expected %td, "
-            "actual is %td", __LINE__, width, ret_width);
+                   "line %d. %{$FUNCALL}: width() == %td, got %td",
+                   __LINE__, width, ret_width);
 
-        // tcase.size2 is expected iostate
-        if (0 <= tcase.size2)
-        {
+        // tcase.size2 is the expected iostate
+        if (0 <= tcase.size2) {
             // verify the iostate
-            Iostate res_state = _RWSTD_STATIC_CAST (Iostate, tcase.size2);
+            const Iostate res_state = Iostate (tcase.size2);
             success = res_state ?
                 (res_state == (ret_state & res_state)) : (0 == ret_state);
             rw_assert (success, 0, tcase.line,
-                "line %d. After %{$FUNCALL} strm.rdstate () expected %d"
-                ", actual is %d", __LINE__,
-                int (res_state), int (ret_state));
+                       "line %d. %{$FUNCALL}: rdstate() == %{Is}, got %{Is}",
+                       __LINE__, res_state, ret_state);
         }
 
         // verify that strings length are equal
         success = tdata.reslen_ == ret_sz;
         rw_assert (success, 0, tcase.line,
-            "line %d. %{$FUNCALL}: expected %{/*.*Gs} with length "
-            "%zu, got %{/*.*Gs} with length %zu", __LINE__, 
-            cwidth, int (tdata.reslen_), tdata.res_, tdata.reslen_,
-            cwidth, int (ret_sz), ret_str, ret_sz);
+                   "line %d. %{$FUNCALL}: expected %{/*.*Gs} with length "
+                   "%zu, got %{/*.*Gs} with length %zu", __LINE__, 
+                   cwidth, int (tdata.reslen_), tdata.res_, tdata.reslen_,
+                   cwidth, int (ret_sz), ret_str, ret_sz);
 
         if (tdata.reslen_ == ret_sz) {
             // if the result length matches the expected length
             // (and only then), also verify that the modified
             // string matches the expected result
-            const std::size_t match =
-                rw_match (tcase.res, ret_str, ret_sz);
+            const std::size_t match = rw_match (tcase.res, ret_str, ret_sz);
 
             success = match == tdata.reslen_;
             rw_assert (success, 0, tcase.line,
-                "line %d. %{$FUNCALL}: expected %{/*.*Gs}, "
-                "got %{/*.*Gs}, difference at off %zu",
-                __LINE__, cwidth, int (tdata.reslen_), tdata.res_,
-                cwidth, int (ret_sz), ret_str, match);
+                       "line %d. %{$FUNCALL}: expected %{/*.*Gs}, "
+                       "got %{/*.*Gs}, difference at off %zu",
+                       __LINE__, cwidth, int (tdata.reslen_), tdata.res_,
+                       cwidth, int (ret_sz), ret_str, match);
         }
     }
 
@@ -1204,35 +1220,39 @@ void test_io (charT*, Traits*, Allocator*,
     catch (const std::bad_alloc &ex) {
         caught = exceptions [2];
         rw_assert (0, 0, tcase.line,
-            "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
-            "unexpectedly%{;} caught std::%s(%#s)",
-            __LINE__, 0 != expected, expected, caught, ex.what ());
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught std::%s(%#s)",
+                   __LINE__, 0 != expected, expected, caught, ex.what ());
     }
     catch (const std::exception &ex) {
         caught = exceptions [3];
         rw_assert (0, 0, tcase.line,
-            "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
-            "unexpectedly%{;} caught std::%s(%#s)",
-            __LINE__, 0 != expected, expected, caught, ex.what ());
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught std::%s(%#s)",
+                   __LINE__, 0 != expected, expected, caught, ex.what ());
     }
     catch (...) {
         caught = exceptions [0];
         rw_assert (0, 0, tcase.line,
-            "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
-            "unexpectedly%{;} caught %s",
-            __LINE__, 0 != expected, expected, caught);
+                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                   "unexpectedly%{;} caught %s",
+                   __LINE__, 0 != expected, expected, caught);
     }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    // verify that const string object was not modified during call
-    cstr_state.assert_equal (rw_get_string_state (cstr),
-        __LINE__, tcase.line, "call");
+    if (StringIds::fid_inserter == (func.which_ & StringIds::fid_mask)) {
+        // verify that const string object was not modified during
+        // the call to the inserter (input functions may, obviously,
+        // modify it)
+        cstr_state.assert_equal (rw_get_string_state (cstr),
+                                 __LINE__, tcase.line, "call");
+    }
 
     // FIXME: verify the number of blocks the function call
     // is expected to allocate and detect any memory leaks
     rw_check_leaks (str.get_allocator (), tcase.line,
-        std::size_t (-1), std::size_t (-1));
+                    std::size_t (-1), std::size_t (-1));
 }
 
 /**************************************************************************/
