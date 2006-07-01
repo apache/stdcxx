@@ -591,7 +591,7 @@ _rw_setvars (const StringFunc     &func,
         // for non-members append just the function name here
         // the class name will inserted below during argument
         // formatting
-        rw_asnprintf (&buf, &bufsize, "%{$FUNC} ");
+        rw_asnprintf (&buf, &bufsize, "%{$FUNC}");
     }
 
     // compute the end offsets for convenience
@@ -1046,17 +1046,20 @@ _rw_setvars (const StringFunc     &func,
     case StringIds::extractor_istream_str:
     case StringIds::getline_istream_str:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+} (%{$ISTREAM}&, %{$CLASS}&)");
+                      "%{+} (%{$ISTREAM}&, %{$CLASS}(%{?}%{#*s}%{;}))",
+                      0 < str_len, int (str_len), str);
         break;
 
     case StringIds::getline_istream_str_val:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+} (%{$ISTREAM}&, %{$CLASS}&, %{#c})", pcase->val);
+                      "%{+} (%{$ISTREAM}&, %{$CLASS}(%{?}%{#*s}%{;}), %{#c})",
+                      0 < str_len, int (str_len), str, pcase->val);
         break;
 
     case StringIds::inserter_ostream_cstr:
         rw_asnprintf (&buf, &bufsize,
-                      "%{+} (%{$OSTREAM}&, const %{$CLASS}&)");
+                      "%{+} (%{$OSTREAM}&, %{$CLASS}(%{?}%{#*s}%{;}))",
+                      0 < str_len, int (str_len), str);
         break;
 
     case StringIds::resize_size_val:
