@@ -726,4 +726,4 @@ post:
 endif   # ($(CURDIR),$(TOPDIR))
 
 
-.PHONY: all builddir lib rwtest bin tests phtst examples post
+.PHONY: all builddir lib rwtest bin tests phtst examples post util
