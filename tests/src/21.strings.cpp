@@ -1424,7 +1424,6 @@ _rw_run_test (int, char*[])
     };
 
     static const StringIds::IteratorId iter_types[] = {
-        StringIds::None,
         StringIds::Input, StringIds::Forward,
         StringIds::Bidir, StringIds::Random,
         StringIds::Pointer, StringIds::ConstPointer,
@@ -1483,45 +1482,48 @@ _rw_run_test (int, char*[])
                     continue;
                 }
 
-                for (size_t l = 0; l != n_iter_types; ++l) {
+                for (size_t m = 0; m != _rw_string_test_count; ++m) {
 
-                    if (l && _rw_opt_iter_types [l - 1] < 0) {
-                        // issue only the first note
-                        rw_note (-1 > _rw_opt_iter_types [l]--,
-                                 _rw_this_file, __LINE__,
-                                 "%s tests disabled", _rw_iter_names [l]);
-                        continue;
-                    }
+                    const StringTest& test = _rw_string_tests [m];
 
-                    for (size_t m = 0; m != _rw_string_test_count; ++m) {
+                    // create an object uniquely identifying the overload
+                    // of the string function exercised by the set of test
+                    // cases defined to exercise it
+                    StringFunc func = {
+                        char_types [i],
+                        traits_types [j],
+                        alloc_types [k],
+                        StringIds::None,
+                        test.which
+                    };
 
-                        const StringTest& test = _rw_string_tests [m];
+                    // determine whether the function is a template
+                    if (-1 < _rw_argno (test.which, StringIds::arg_range)) {
 
-                        // determine whether the function is a template
-                        if (-1 < _rw_argno (test.which, StringIds::arg_range)) {
-                            if (StringIds::None == iter_types [l]) {
-                                // skip a non-sensical template specialization
-                                break;
+                        // iterate over the standard iterator categories
+                        // and iterator types the template might perhaps
+                        // be specialized on
+                        for (size_t l = 0; l != n_iter_types; ++l) {
+
+                            if (_rw_opt_iter_types [l] < 0) {
+                                // issue only the first note
+                                rw_note (-1 > _rw_opt_iter_types [l]--,
+                                         _rw_this_file, __LINE__,
+                                         "%s tests disabled",
+                                         _rw_iter_names [l]);
+                                continue;
                             }
-                        }
-                        else if (StringIds::None != iter_types [l]) {
-                            // avoid repeatedly exercising a non-template
-                            // function
-                            continue;
-                        }
 
-                        // create an object uniquely identifying the overload
-                        // of the string function exercised by the set of test
-                        // cases defined to exercise it
-                        const StringFunc func = {
-                            char_types [i],
-                            traits_types [j],
-                            alloc_types [k],
-                            iter_types [l],
-                            test.which
-                        };
+                            func.iter_id_ = iter_types [l];
 
-                        // exercise all test cases defined for the function
+                            // exercise all test cases defined for
+                            // the function template
+                            _rw_run_cases (func, test);
+                        }
+                    }
+                    else {
+                        // exercise all test cases defined for the ordinary
+                        // (i.e., non-template) function
                         _rw_run_cases (func, test);
                     }
                 }
