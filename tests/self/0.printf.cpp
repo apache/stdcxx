@@ -770,6 +770,57 @@ test_ios_bitmasks ()
 
 /***********************************************************************/
 
+static void
+test_ctype_mask ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{LC}\": std::ctype_base::mask");
+
+    const int Alpha  = std::ctype_base::alpha;
+    const int Alnum  = std::ctype_base::alnum;
+    const int Cntrl  = std::ctype_base::cntrl;
+    const int Digit  = std::ctype_base::digit;
+    const int Graph  = std::ctype_base::graph;
+    const int Lower  = std::ctype_base::lower;
+    const int Print  = std::ctype_base::print;
+    const int Punct  = std::ctype_base::punct;
+    const int Space  = std::ctype_base::space;
+    const int Xdigit = std::ctype_base::xdigit;
+
+    TEST ("[%{LC}]", Alpha,  0, 0, "[alpha]");
+    TEST ("[%{LC}]", Alnum,  0, 0, "[alnum]");
+    TEST ("[%{LC}]", Cntrl,  0, 0, "[cntrl]");
+    TEST ("[%{LC}]", Digit,  0, 0, "[digit]");
+    TEST ("[%{LC}]", Graph,  0, 0, "[graph]");
+    TEST ("[%{LC}]", Lower,  0, 0, "[lower]");
+    TEST ("[%{LC}]", Print,  0, 0, "[print]");
+    TEST ("[%{LC}]", Punct,  0, 0, "[punct]");
+    TEST ("[%{LC}]", Space,  0, 0, "[space]");
+    TEST ("[%{LC}]", Xdigit, 0, 0, "[xdigit]");
+
+    TEST ("[%{#LC}]", Alpha,  0, 0, "[std::ctype_base::alpha]");
+    TEST ("[%{#LC}]", Alnum,  0, 0, "[std::ctype_base::alnum]");
+    TEST ("[%{#LC}]", Cntrl,  0, 0, "[std::ctype_base::cntrl]");
+    TEST ("[%{#LC}]", Digit,  0, 0, "[std::ctype_base::digit]");
+    TEST ("[%{#LC}]", Graph,  0, 0, "[std::ctype_base::graph]");
+    TEST ("[%{#LC}]", Lower,  0, 0, "[std::ctype_base::lower]");
+    TEST ("[%{#LC}]", Print,  0, 0, "[std::ctype_base::print]");
+    TEST ("[%{#LC}]", Punct,  0, 0, "[std::ctype_base::punct]");
+    TEST ("[%{#LC}]", Space,  0, 0, "[std::ctype_base::space]");
+    TEST ("[%{#LC}]", Xdigit, 0, 0, "[std::ctype_base::xdigit]");
+
+    TEST ("[%{LC}]", Alpha | Cntrl, 0, 0, "[alpha | cntrl]");
+    TEST ("[%{LC}]", Cntrl | Digit, 0, 0, "[cntrl | digit]");
+    TEST ("[%{LC}]", Digit | Graph, 0, 0, "[digit | graph]");
+    TEST ("[%{LC}]", Graph | Lower, 0, 0, "[graph | lower]");
+    TEST ("[%{LC}]", Lower | Print, 0, 0, "[lower | print]");
+    TEST ("[%{LC}]", Print | Punct, 0, 0, "[print | punct]");
+    TEST ("[%{LC}]", Punct | Space, 0, 0, "[punct | space]");
+}
+
+/***********************************************************************/
+
+
 static const char*
 mkbitset (const char *str)
 {
@@ -2675,6 +2726,8 @@ int main ()
     test_basic_string ();
 
     test_ios_bitmasks ();
+
+    test_ctype_mask ();
 
     test_bitset ();
 

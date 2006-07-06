@@ -190,9 +190,13 @@ _rw_fmterrno (const FmtSpec&, Buffer&, int);
 extern int
 _rw_fmtlc (const FmtSpec&, Buffer&, int);
 
-// format a character mask (alpha|alnum|...|xdigit)
+// format ctype_base::mask
 extern int
 _rw_fmtmask (const FmtSpec&, Buffer&, int);
+
+// format a character mask (alpha|alnum|...|xdigit)
+extern int
+_rw_fmtcharmask (const FmtSpec&, Buffer&, int);
 
 // format ios_base::iostate
 extern int
