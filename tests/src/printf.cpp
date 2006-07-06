@@ -2580,6 +2580,19 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         }
         break;
 
+    case 'C':   // %{C}, %{LC}
+        if (spec.mod == spec.mod_L) {
+            // ctype_base::mask value
+            spec.param.int_ = PARAM (int_);
+            len = _rw_fmtmask (spec, buf, spec.param.int_);
+        }
+        else {
+            // ctype_base::mask of a character
+            spec.param.int_ = PARAM (int_);
+            len = _rw_fmtcharmask (spec, buf, spec.param.int_);
+        }
+        break;
+
     case 'e':   // %{e}, %{Ae}
         if (spec.mod == spec.mod_ext_A) {   // array of floating point values
             spec.param.ptr_ = PARAM (ptr_);

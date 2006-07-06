@@ -1004,7 +1004,31 @@ _rw_fmterrno (const FmtSpec &spec, Buffer &buf, int val)
 /********************************************************************/
 
 /* extern */ int
-_rw_fmtmask (const FmtSpec &spec, Buffer &buf, int c)
+_rw_fmtmask (const FmtSpec &spec, Buffer &buf, int bits)
+{
+    static const Bitnames names [] = {
+        BITNAME (std::ctype_base, alnum),
+        BITNAME (std::ctype_base, alpha),
+        BITNAME (std::ctype_base, cntrl),
+        BITNAME (std::ctype_base, digit),
+        BITNAME (std::ctype_base, graph),
+        BITNAME (std::ctype_base, lower),
+        BITNAME (std::ctype_base, print),
+        BITNAME (std::ctype_base, punct),
+        BITNAME (std::ctype_base, space),
+        BITNAME (std::ctype_base, upper),
+        BITNAME (std::ctype_base, xdigit)
+    };
+
+    static const size_t count = sizeof names / sizeof *names;
+
+    return _rw_bmpfmt (spec, buf, names, count, bits);
+}
+
+/********************************************************************/
+
+/* extern */ int
+_rw_fmtcharmask (const FmtSpec &spec, Buffer &buf, int c)
 {
     enum {
         bit_alnum  = 1,
