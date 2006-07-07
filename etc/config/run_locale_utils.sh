@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: //stdlib/dev/etc/stdlib/config/run_locale_utils.sh#4 $
+# $Id$
 #
 ##############################################################################
 #
@@ -27,7 +27,7 @@
 ##############################################################################
 #	Function definitions - checking sanity
 ##############################################################################
-function check_locale_location
+check_locale_location()
 {
     # 1 = location of util directory
     $echo_n "Checking location of locale utilities..." >$dbgout
@@ -45,7 +45,7 @@ function check_locale_location
     echo " correct."  >$dbgout
 }
 
-function check_locale_help 
+check_locale_help ()
 {
     $echo_n "Checking \"locale --help\" output..."  >$dbgout
     loc_h_out=`locale --help`
@@ -63,7 +63,7 @@ function check_locale_help
     echo " correct." >$dbgout
 }
 
-function check_locale_all
+check_locale_all()
 {
     $echo_n "Checking \"locale -a\" output..." >$dbgout
     loc_a_out=`locale -a`
@@ -81,7 +81,7 @@ function check_locale_all
     echo "check completed." >$dbgout
 }
 
-function check_locale_m
+check_locale_m()
 {
     $echo_n "Checking \"locale -m\" output..." >$dbgout
     loc_m_out=`locale -m`
@@ -97,7 +97,7 @@ function check_locale_m
     echo " correct." >$dbgout
 }
 
-function check_locale_k
+check_locale_k()
 {
     $echo_n "Checking \"locale -k LC_ALL\" output..." >$dbgout
     loc_k_out=`locale -k LC_ALL`
@@ -123,7 +123,7 @@ function check_locale_k
     echo " (seems) correct." >$dbgout
 }
 
-function check_localedef_help
+check_localedef_help()
 {
     $echo_n "Checking \"localedef --help\" output..." >$dbgout
     locdef_h_out=`localedef --help`
@@ -149,7 +149,7 @@ function check_localedef_help
 #
 # Generates one specified locale
 #
-function generate_locale
+generate_locale()
 {
     err="Cannot generate locale database - "
 
@@ -191,7 +191,7 @@ function generate_locale
 #
 # Dumps one locale database
 #
-function dump_locale 
+dump_locale ()
 {
     err="Cannot dump locale database - "
 
@@ -221,7 +221,7 @@ function dump_locale
 #
 # Test one locale
 #
-function test_locale
+test_locale()
 {
     err="Cannot test locale - "
 
@@ -260,7 +260,8 @@ function test_locale
     LANG=$3
 
     ## adjust the locale root
-    export RWSTD_LOCALE_ROOT=$2
+    RWSTD_LOCALE_ROOT=$2
+    export RWSTD_LOCALE_ROOT
 
     # dump the locale database content to temporary location
     echo Dump stage one database to file... > $dbgout
@@ -383,8 +384,10 @@ elif [ "$chk_func" = "yes" ]; then
     [ -d $TMP/locale ] || mkdir $TMP/locale;
 
     ## checking locale functionality
-    export RWSTD_SRC_ROOT=$nlsdir;
-    export RWSTD_LOCALE_ROOT=$TMP/locale;
+    RWSTD_SRC_ROOT=$nlsdir
+    export RWSTD_SRC_ROOT
+    RWSTD_LOCALE_ROOT=$TMP/locale
+    export RWSTD_LOCALE_ROOT
 
     # test only one locale
     test_locale $nlsdir $TMP/locale $locale_db;
