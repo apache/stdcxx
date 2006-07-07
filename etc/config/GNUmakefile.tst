@@ -67,7 +67,7 @@ TARGET := $(patsubst %.cpp,%,$(SRCS))
 # add to targets objects for any sources in the current working directory
 TARGET += $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
-RUNFLAGS += -X "-C $(CXX)-$(CCVER)" 
+RUNFLAGS += -X "--compat -C $(CXX)-$(CCVER)" 
 
 ##############################################################################
 #  TARGETS
