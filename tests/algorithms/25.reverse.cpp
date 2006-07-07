@@ -165,7 +165,7 @@ void test_reverse (int line,
 template <class Iterator, class OutputIterator, class T>
 void test_reverse (int line,
                    const char *src,
-                   Iterator it, OutputIterator dummy,
+                   Iterator& it, OutputIterator& ,
                    const T*, ReverseCopyTag)
 {
     static const char* const itname = type_name (it, (T*)0);
@@ -176,10 +176,10 @@ void test_reverse (int line,
     T* const xsrc = T::from_char (src, nsrc);
     T* const xdst = T::from_char (src, nsrc);
 
-    const Iterator first = make_iter (xsrc, xsrc, xsrc + nsrc, it);
-    const Iterator last  = make_iter (xsrc + nsrc, xsrc, xsrc + nsrc, it);
+    const Iterator first (xsrc, xsrc, xsrc + nsrc);
+    const Iterator last  (xsrc + nsrc, xsrc, xsrc + nsrc);
 
-    const OutputIterator result = make_iter (xdst, xdst, xdst + nsrc, dummy);
+    const OutputIterator result (xdst, xdst, xdst + nsrc);
 
     std::size_t last_n_op_assign = T::n_total_op_assign_;
 

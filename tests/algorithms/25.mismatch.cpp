@@ -73,14 +73,9 @@ void test_mismatch (std::size_t           N,
         X* const buf1_end = buf1 + i + 1;
         X* const buf2_end = buf2 + i + 1;
 
-        const InputIterator1 first1 =
-            make_iter (buf1, buf1, buf1_end, it1_dummy);
-
-        const InputIterator1 last1 =
-            make_iter (buf1_end, buf1_end, buf1_end, it1_dummy);
-
-        const InputIterator2 first2 =
-            make_iter (buf2, buf2, buf2_end, it2_dummy);
+        const InputIterator1 first1 (buf1, buf1, buf1_end);
+        const InputIterator1 last1  (buf1_end, buf1_end, buf1_end);
+        const InputIterator2 first2 (buf2, buf2, buf2_end);
 
         const std::equal_to<X> pred = std::equal_to<X>();
 
