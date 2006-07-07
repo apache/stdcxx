@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $Id: //stdlib/dev/etc/stdlib/config/runall.sh#36 $
+# $Id$
 #
 ##############################################################################
 #
@@ -520,7 +520,7 @@ for i do
             # run test in the background, redirect I/O to a file
             # stderr redirected to /dev/null to prevent compilation
             # warnings in "script" mode from causing false errors
-            $i -O $output -L $alrm -M "`uname -a`" $XOPTS \
+            $i $XOPTS -O $output -L $alrm -M "`uname -a`" \
                > $output < $input 2>/dev/null &
 
             # get the background process' pid
