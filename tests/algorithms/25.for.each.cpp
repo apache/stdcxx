@@ -97,11 +97,8 @@ void test_for_each (std::size_t N, InputIterator dummy, T*, Function*)
 
         X* const buf_end = buf + i;
 
-        const InputIterator first =
-            make_iter (buf, buf, buf_end, dummy);
-
-        const InputIterator last =
-            make_iter (buf_end, buf_end, buf_end, dummy);
+        const InputIterator first (buf, buf, buf_end);
+        const InputIterator last  (buf_end, buf_end, buf_end);
 
         // create a const function object and zero out all its counters
         const Function fun (0, 0);
