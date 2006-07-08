@@ -787,7 +787,7 @@ struct ReplaceRangeOverload: RangeBase<String>
             // exercise self-referential modification (i.e., replacing
             // a range of elements with a subrange of its own elements)
 
-            const Iterator first2 (begin (str, (Iterator*)0) + off);
+            const Iterator first2 (this->begin (str, (Iterator*)0) + off);
             const Iterator last2 (first2 + ext);
 
             return str.replace (first1, last1, first2, last2);
@@ -795,7 +795,7 @@ struct ReplaceRangeOverload: RangeBase<String>
 
         String str_arg (tdata.arg_, tdata.arglen_);
 
-        const Iterator first2 (begin (str_arg, (Iterator*)0) + off);
+        const Iterator first2 (this->begin (str_arg, (Iterator*)0) + off);
         const Iterator last2 (first2 + ext);
 
         return str.replace (first1, last1, first2, last2);
