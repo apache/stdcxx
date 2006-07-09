@@ -10,8 +10,6 @@
  * Copyright 2006 The Apache Software Foundation or its licensors,
  * as applicable.
  *
- * Copyright 2006 Rogue Wave Software.
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -815,11 +813,15 @@ test_rw_match ()
     TEST ("a@1",  "a",      -1, 2);
     TEST ("a@1",  "a@1",    -1, 2);
 
-    TEST ("\0ab",       "\0ac",   2, 2);
-    TEST ("\0@0ab",     "ab",     2, 2);
-    TEST ("\0@0a\0@0b", "ab",     2, 2);
-    TEST ("\0@1ab",     "\0@1ac", 2, 2);
-    TEST ("\0@1ab",     "\0@1ac", 2, 2);
+    TEST ("\0ab",       "\0ac",    2, 2);
+    TEST ("\0@0ab",     "ab",      2, 2);
+    TEST ("\0@0a\0@0b", "ab",      2, 2);
+    TEST ("\0@1ab",     "\0@1ac",  2, 2);
+    TEST ("\0@1ab",     "\0@1ac",  2, 2);
+    TEST ("a\0@0b",     "a\0@0c", -1, 2);
+    TEST ("a\0@0b",     "a\0@1c", -1, 2);
+    TEST ("a\0@1b",     "a\0@0c", -1, 2);
+    TEST ("a\0@1b",     "a\0@1c", -1, 2);
 
     TEST ("a\0bc", "a\0bd", -1, 2);
     TEST ("a\0bc", "a\0bd",  0, 0);
@@ -965,6 +967,8 @@ test_rw_match ()
     TEST ("\0ab",       L"\0ac",   2, 2);
     TEST ("\0@0ab",     L"ab",     2, 2);
     TEST ("\0@0a\0@0b", L"ab",     2, 2);
+    TEST ("a\0@0b",     L"a\0\0", -1, 2);
+    TEST ("a\0@1b",     L"a\0\0", -1, 2);
 
     TEST ("a\0bc", L"a\0bd", -1, 2);
     TEST ("a\0bc", L"a\0bd",  0, 0);
@@ -1056,6 +1060,8 @@ test_rw_match ()
     TEST ("\0ab",       "\0ac",   2, 2);
     TEST ("\0@0ab",     "ab",     2, 2);
     TEST ("\0@0a\0@0b", "ab",     2, 2);
+    TEST ("a\0@0b",     "a\0\0", -1, 2);
+    TEST ("a\0@1b",     "a\0\0", -1, 2);
 
     TEST ("a\0bc", "a\0bd", -1, 2);
     TEST ("a\0bc", "a\0bd",  0, 0);

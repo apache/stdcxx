@@ -9,8 +9,6 @@
  * Copyright 2006 The Apache Software Foundation or its licensors,
  * as applicable.
  *
- * Copyright 2006 Rogue Wave Software.
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -529,7 +527,23 @@ rw_widen (char *dst, const char *src, size_t len /* = SIZE_MAX */)
 static unsigned long
 _rw_get_char (const char *src, const char** end, size_t *count)
 {
+    RW_ASSERT (0 != src);
+    RW_ASSERT (0 != end);
+    RW_ASSERT (0 != count);
+
+    if (0 == *count) {
+        *end = src;
+        return 0;
+    }
+
     unsigned long ch = UChar (*src++);
+
+    if (0 == ch && _RWSTD_SIZE_MAX == *count) {
+        // stop at the terminating NUL
+        *end   = src;
+        *count = 1;
+        return ch;
+    }
 
     if ('<' == char (ch) && 'U' == src [0] && isxdigit (src [1])) {
         // this looks like the beginning of a <Unnn...>
@@ -596,14 +610,11 @@ _rw_expand (void *dst, size_t elemsize,
     if (_RWSTD_SIZE_MAX == src_len)
         src_len = strlen (src);
 
-    // remember if src is the empty string
-    const bool empty_string = 0 == src_len;
-
     void *pnext = dst;
 
     for (const char *psrc = src; ; ) {
 
-        size_t count = 0;
+        size_t count = src_len;
         const char *end = 0;
         const unsigned long ch = _rw_get_char (psrc, &end, &count);
 
@@ -730,7 +741,7 @@ _rw_expand (void *dst, size_t elemsize,
     }
 
     if (dst_len)
-        *dst_len = buflen - empty_string;
+        *dst_len = buflen;
 
     return dst;
 }
@@ -778,7 +789,7 @@ rw_match (const char *s1, const char *s2, size_t len /* = SIZE_MAX */)
             return 0;
 
         do {
-            size_t n = 0;
+            size_t n = _RWSTD_SIZE_MAX == len ? len : len - count;
 
             _rw_get_char (p1, &p1, &n);
 
@@ -795,11 +806,15 @@ rw_match (const char *s1, const char *s2, size_t len /* = SIZE_MAX */)
 
     for (unsigned long ch1, ch2; count < len; ) {
 
-        while (0 == n1)
+        while (0 == n1) {
+            n1  = _RWSTD_SIZE_MAX == len ? len : len - count;
             ch1 = _rw_get_char (p1, &p1, &n1);
+        }
 
-        while (0 == n2)
+        while (0 == n2) {
+            n2  = _RWSTD_SIZE_MAX == len ? len : len - count;
             ch2 = _rw_get_char (p2, &p2, &n2);
+        }
 
         if (ch1 != ch2)
             break;
@@ -941,8 +956,10 @@ rw_match (const char *s1, const wchar_t *s2, size_t len /* = SIZE_MAX */)
 
     for (unsigned long ch1, ch2; count < len; ) {
 
-        while (0 == n1)
+        while (0 == n1) {
+            n1  = _RWSTD_SIZE_MAX == len ? len : len - count;
             ch1 = _rw_get_char (p1, &p1, &n1);
+        }
 
         ch2 = _RWSTD_STATIC_CAST (unsigned long, *p2++);
         n2  = 1;
@@ -1090,8 +1107,10 @@ rw_match (const char *s1, const UserChar *s2, size_t len /* = SIZE_MAX */)
 
     for (UserChar ch2; count < len; ) {
 
-        while (0 == n1)
+        while (0 == n1) {
+            n1  = _RWSTD_SIZE_MAX == len ? len : len - count;
             ch1 = _rw_get_char (p1, &p1, &n1);
+        }
 
         ch2 = *p2++;
         n2  = 1;
