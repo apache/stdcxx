@@ -54,13 +54,16 @@ $(LIBDIR)/$(LIBNAME):
 	@$(MAKE) -C $(LIBDIR) 
 
 # link the localedef utility
-localedef: localedef.o aliases.o charmap.o codecvt.o collate.o ctype.o def.o \
-           diagnostic.o messages.o monetary.o numeric.o path.o time.o scanner.o
+localedef: localedef.o aliases.o charmap.o codecvt.o collate.o ctype.o \
+           def.o diagnostic.o messages.o monetary.o numeric.o path.o   \
+           time.o scanner.o
 	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" >> $(LOGFILE)
 	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(TEEOPTS)
 
 # link the locale utility
-locale: locale.o aliases.o charmap.o codecvt.o collate.o def.o ctype.o diagnostic.o memchk.o messages.o monetary.o numeric.o path.o scanner.o time.o
+locale: locale.o aliases.o charmap.o codecvt.o collate.o def.o ctype.o \
+        diagnostic.o memchk.o messages.o monetary.o numeric.o path.o   \
+        scanner.o time.o
 	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" >> $(LOGFILE)
 	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(TEEOPTS)
 
@@ -69,17 +72,14 @@ locales: localedef $(LOCALE_LIST)
 
 # the rule builds the scripts that are run by the runall script
 $(RUNTARGET): 
-	@(echo "#! /bin/sh" > $@;                                            \
+	@(echo "making $@...";                                               \
+          echo "#!/bin/sh" > $@;                                             \
           locname=`echo $@ | sed "s:^\./::g;s:\.sh$$::g"`;                   \
           if [ "$@" = "sanity_test.sh" ]; then                               \
-              echo "$(BUILDDIR)/bin/run_utils -s"                            \
-                   "-b $(BUILDDIR)/bin \\" >>$@;                             \
+              echo "./run_utils -s -b $(BUILDDIR)/bin $$""*" >>$@;           \
           else                                                               \
-              echo "$(BUILDDIR)/bin/run_utils -f -i $(NLSDIR)"               \
-                   "-l $$locname \\" >> $@;                                  \
+              echo "./run_utils -f -i $(NLSDIR) -l $$locname $$""*" >> $@;   \
           fi;                                                                \
-          echo "    $$""1 $$""2 $$""3 $$""4 $$""5 $$""6 $$""7 $$""8 $$""9"   \
-               >> $@;                                                        \
           chmod ug+x $@;)
 
 # the rule presents as dependencies the source files corresponding
