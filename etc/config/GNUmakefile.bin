@@ -8,7 +8,7 @@
 
 include ../makefile.in
 
-SRCDIRS = $(TOPDIR)/util
+SRCDIRS = $(TOPDIR)/src/util
 
 # include common variables setting for all makefiles
 ONE_REPOSITORY = 1
@@ -72,7 +72,7 @@ $(RUNTARGET):
 	@(echo "#! /bin/sh" > $@;                                            \
           locname=`echo $@ | sed "s:^\./::g;s:\.sh$$::g"`;                   \
           if [ "$@" = "sanity_test.sh" ]; then                               \
-              echo "$(BUILDDIR)/bin/run_locale_utils.sh -s"                  \
+              echo "$(BUILDDIR)/bin/run_utils -s"                            \
                    "-b $(BUILDDIR)/bin \\" >>$@;                             \
           else                                                               \
               echo "$(BUILDDIR)/bin/run_locale_utils.sh -f -i $(NLSDIR)"     \

@@ -548,8 +548,7 @@ define make-builddir
     ln -sf $(ETCDIR)/configure.sh        $(buildpath)/include/configure;     \
     ln -sf $(ETCDIR)/runall.sh           $(buildpath)/run;                   \
     ln -sf $(ETCDIR)/runall.sh           $(buildpath)/bin/run;               \
-    ln -sf $(ETCDIR)/run_locale_utils.sh                                     \
-           $(buildpath)/bin/run_locale_utils.sh;                             \
+    ln -sf $(ETCDIR)/run_locale_utils.sh $(buildpath)/bin/run_utils;         \
     ln -sf $(ETCDIR)/runall.sh           $(TSTDIR)/run;                      \
     ln -sf $(ETCDIR)/runall.sh           $(PHTSTDIR)/run;                    \
     ln -sf $(ETCDIR)/runall.sh           $(EXMDIR)/run
