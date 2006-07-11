@@ -9,10 +9,10 @@
  *
  ***************************************************************************
  * 
- * Copyright 2006 The Apache Software Foundation or its licensors,
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
  * as applicable.
  *
- * Copyright 2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@
 
 /*** library version numbers and ids **************************************/
 
-#define _RWSTD_VER 0x0402000
+#define _RWSTD_VER 0x04020000
 //                    | | | |
 //                   MMmmuupp
 //                    | | | |
@@ -406,6 +406,9 @@
 #  define _RWSTD_NO_EXT_VOID_COUNT
    // void std::distance() not defined
 #  define _RWSTD_NO_EXT_VOID_DISTANCE
+
+   // calling width(0) only when insertion succeeds
+#  define _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
 
    // deque::assign() clears container before assignment
    // rather than assigning over existing elements
