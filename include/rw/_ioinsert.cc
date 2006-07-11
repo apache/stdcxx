@@ -3,20 +3,26 @@
  * _ioinsert.cc - definitions for the C++ Standard Library inserter
  *                helper templates
  *
- * $Id: //stdlib/dev/include/rw/_ioinsert.cc#11 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -118,8 +124,11 @@ __rw_insert (_STD::basic_ostream<_CharT, _Traits> &__strm,
       
     _STD::ios_base::iostate __err = _STD::ios_base::goodbit;
 
-    // will write out max(len, width) characters, padding
-    // appropriately (with fill character) if len < width
+    // writes out max(len, width) characters, padding appropriately
+    // with the fill character if (len < width);
+    // calls width(0) if and only if the write has been successful
+    // (i.e., will leave it unchanged if sputn fails or throws an
+    // exception)
 
     _TRY {
   
@@ -148,17 +157,35 @@ __rw_insert (_STD::basic_ostream<_CharT, _Traits> &__strm,
                     || _STD::ios_base::left == __padbits
                     && __pad != __strm._C_pad (__pad))
                     __err = _STD::ios_base::badbit;
+#ifndef _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
+                else
+                    __strm.width (0);   // reset width only on success
+#else   // if defined (_RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE)
+                __strm.width (0);   // reset width unconditionally
+#endif   // _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
             }
-            else if (__len != __rw_sputn (__strm, __s, __len, _Same ()))
+            else if (__len == __rw_sputn (__strm, __s, __len, _Same ())) {
+                __strm.width (0);   // reset width only on success
+            }
+            else {
                 __err = _STD::ios_base::badbit;
+
+#ifndef _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
+                __strm.width (0);
+#endif   // _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
+            }
         }
     }
     _CATCH (...) {
+        // set badbit and rethrow the caught exception if badbit
+        // is also set in exceptions()
         __strm.setstate (_STD::ios_base::badbit | _RW::__rw_rethrow);
     }
 
-    if (__err)
-        __strm.setstate (__err);  
+    if (__err) {
+        // set badbit which may throw ios_base::failure
+        __strm.setstate (__err);
+    }
 
     return __strm;
 }
