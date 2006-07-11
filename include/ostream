@@ -3,20 +3,26 @@
  *
  * ostream - Declarations for the Standard Library ostream classes
  *
- * $Id: //stdlib/dev/include/ostream#76 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Copyright 2005-2006 The Apache Software Foundation or its licensors,
+ * as applicable.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * 
  **************************************************************************/
 
@@ -336,8 +342,7 @@ template<class _CharT, class _Traits>
 inline basic_ostream<_CharT, _Traits>&
 operator<< (basic_ostream<_CharT, _Traits> &__strm, _CharT __c)
 {
-    _RW::__rw_insert (__strm, &__c, 1, __strm.width ()).width (0);
-    return __strm;
+    return _RW::__rw_insert (__strm, &__c, 1, __strm.width ());
 }
 
 
@@ -347,8 +352,7 @@ template<class _CharT, class _Traits>
 inline basic_ostream<_CharT, _Traits>&
 operator<< (basic_ostream<_CharT, _Traits> &__strm, char __c)
 {
-    _RW::__rw_insert (__strm, &__c, 1, __strm.width ()).width (0);
-    return __strm;
+    return _RW::__rw_insert (__strm, &__c, 1, __strm.width ());
 }
 
 
@@ -358,8 +362,7 @@ template <class _Traits>
 inline basic_ostream<char, _Traits>&
 operator<< (basic_ostream<char, _Traits> &__strm, char __c)
 {
-    _RW::__rw_insert (__strm, &__c, 1, __strm.width ()).width (0);
-    return __strm;
+    return _RW::__rw_insert (__strm, &__c, 1, __strm.width ());
 }
 
 #  else   // if defined (_RWSTD_NO_FUNC_PARTIAL_SPEC)
@@ -367,8 +370,7 @@ operator<< (basic_ostream<char, _Traits> &__strm, char __c)
 inline basic_ostream<char, char_traits<char> >&
 operator<< (basic_ostream<char, char_traits<char> > &__strm, char __c)
 {
-    _RW::__rw_insert (__strm, &__c, 1, __strm.width ()).width (0);
-    return __strm;
+    return _RW::__rw_insert (__strm, &__c, 1, __strm.width ());
 }
 
 #  endif   // _RWSTD_NO_FUNC_PARTIAL_SPEC
@@ -380,8 +382,7 @@ template<class _CharT, class _Traits>
 inline basic_ostream<_CharT, _Traits>&
 operator<< (basic_ostream<_CharT, _Traits> &__strm, const _CharT *__s)
 {
-    _RW::__rw_insert (__strm, __s, _Traits::length (__s),
-                      __strm.width ()).width (0);
+    _RW::__rw_insert (__strm, __s, _Traits::length (__s), __strm.width ());
     return __strm;
 }
 
@@ -393,7 +394,7 @@ inline basic_ostream<_CharT, _Traits>&
 operator<< (basic_ostream<_CharT, _Traits> &__strm, const char *__s)
 {
     _RW::__rw_insert (__strm, __s, char_traits<char>::length (__s),
-                      __strm.width ()).width (0);
+                      __strm.width ());
     return __strm;
 }
 
@@ -405,7 +406,7 @@ inline basic_ostream<char, _Traits>&
 operator<< (basic_ostream<char, _Traits> &__strm, const char *__s)
 {
     _RW::__rw_insert (__strm, __s, char_traits<char>::length (__s),
-                      __strm.width ()).width (0);
+                      __strm.width ());
     return __strm;
 }
 
@@ -415,7 +416,7 @@ inline basic_ostream<char, char_traits<char> >&
 operator<< (basic_ostream<char, char_traits<char> >& __strm, const char *__s)
 {
     _RW::__rw_insert (__strm, __s, streamsize (char_traits<char>::length (__s)),
-                      __strm.width ()).width (0);
+                      __strm.width ());
     return __strm;
 }
 
@@ -489,7 +490,7 @@ operator<< (basic_ostream<_CharT, _Traits>                  & __strm,
             const basic_string<_CharT, _Traits, _Allocator> &__str)
 {
     _RW::__rw_insert (__strm, __str.data (), __str.length (),
-                      __strm.width ()).width (0);
+                      __strm.width ());
     return __strm;
 }
 
