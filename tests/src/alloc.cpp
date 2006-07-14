@@ -2,7 +2,7 @@
  *
  * alloc.cpp - definitions of rw_alloc and rw_free
  *
- * $Id: alloc.cpp
+ * $Id$
  *
  ************************************************************************
  *
@@ -26,11 +26,11 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
-#include <assert.h>   // for assert()
 #include <stdlib.h>   // for atoi(), getenv(), malloc(), free()
 #include <string.h>   // for memset()
 
-#include <algorithm>
+#include <rw_alloc.h>
+
 
 #ifdef __CYGWIN__
 // use the Windows API on Cygwin
@@ -66,7 +66,8 @@
 
 #  define GETPAGESIZE()   getpagesize ()
 
-static long getpagesize ()
+static long
+getpagesize ()
 {
     static long pagesize_ = 0;
 
@@ -92,7 +93,8 @@ enum {
 
 static void* const MAP_FAILED = (void*)-1;
 
-static const DWORD prots[8] = {
+static const DWORD
+_rw_prots [] = {
     PAGE_NOACCESS,
     PAGE_READONLY,
     PAGE_READWRITE,
@@ -103,18 +105,22 @@ static const DWORD prots[8] = {
     PAGE_EXECUTE_READWRITE
 };
 
-static inline DWORD translate_prot(int prot)
+
+static inline DWORD
+_rw_translate_prot (int prot)
 {
-    if ((0 <= prot) && (sizeof(prots) / sizeof(prots[0]) > prot))
-        return prots[prot];
+    if (0 <= prot && prot < sizeof _rw_prots / sizeof *_rw_prots)
+        return _rw_prots[prot];
 
     return PAGE_NOACCESS;
 }
 
-static inline void* mmap(void* addr, size_t len, int prot, int, int, off_t)
+
+static inline void*
+mmap (void* addr, size_t len, int prot, int, int, off_t)
 {
     addr = VirtualAlloc (addr, len, MEM_RESERVE | MEM_COMMIT,
-        translate_prot (prot));
+        _rw_translate_prot (prot));
 
     if (addr)
         return addr;
@@ -123,7 +129,9 @@ static inline void* mmap(void* addr, size_t len, int prot, int, int, off_t)
     return MAP_FAILED;
 }
 
-static inline int munmap(void* addr, size_t)
+
+static inline int
+munmap (void* addr, size_t)
 {
     if (VirtualFree (addr, 0, MEM_RELEASE))
         return 0;
@@ -132,10 +140,12 @@ static inline int munmap(void* addr, size_t)
     return -1;
 }
 
-static inline int mprotect(void *addr, size_t len, int prot)
+
+static inline int
+mprotect (void *addr, size_t len, int prot)
 {
     DWORD flOldProt;
-    if (VirtualProtect (addr, len, translate_prot (prot), &flOldProt))
+    if (VirtualProtect (addr, len, _rw_translate_prot (prot), &flOldProt))
         return 0;
     
     errno = EINVAL;
@@ -143,9 +153,6 @@ static inline int mprotect(void *addr, size_t len, int prot)
 }
 
 #endif   // _WIN{32,64}
-
-#include <rw/_defs.h>
-#include <rw_alloc.h>
 
 /************************************************************************/
 
@@ -165,7 +172,10 @@ struct Stats
     size_t maxblocks_;  // max number of the allocated blocks
 };
 
-static Stats stats_;
+
+static Stats
+_rw_stats;
+
 
 struct Blocks
 {
@@ -174,8 +184,9 @@ struct Blocks
     BlockInfo blocks_[1];
 };
 
-static Blocks* first_ = 0;  // pointer to the first Blocks in list
-static Blocks* last_ = 0;   // pointer to the last Blocks in list
+
+static Blocks* _rw_head = 0;   // pointer to the first Blocks in list
+static Blocks* _rw_tail = 0;   // pointer to the last Blocks in list
 
 struct Pair
 {
@@ -189,7 +200,8 @@ static size_t table_max_size_  = 0; // max number of items in table
 
 /************************************************************************/
 
-static Pair* _rw_lower_bound (Pair* first, Pair* last, void* addr)
+static Pair*
+_rw_lower_bound (Pair* first, Pair* last, void* addr)
 {
     for (size_t dist = last - first; dist > 0; ) {
 
@@ -207,7 +219,9 @@ static Pair* _rw_lower_bound (Pair* first, Pair* last, void* addr)
     return first;
 }
 
-static inline Pair* _rw_binary_search (Pair* first, Pair* last, void* addr)
+
+static inline Pair*
+_rw_binary_search (Pair* first, Pair* last, void* addr)
 {
     Pair* it = _rw_lower_bound (first, last, addr);
     return (it != last && it->addr_ == addr) ? it : 0;
@@ -229,20 +243,20 @@ public:
         static const size_t pagemask = GETPAGESIZE () - 1;
 
         // check that pagesize is power of 2
-        assert (0 == ((pagemask + 1) & pagemask));
+        RW_ASSERT (0 == ((pagemask + 1) & pagemask));
         // addr_ should be aligned to memory page boundary
         size_t off = size_t (addr) & pagemask;
         addr_ = _RWSTD_STATIC_CAST(char*, addr) - off;
         size_ = size + off;
 
         int res = mprotect (addr_, size, PROT_READ | PROT_WRITE);
-        assert (0 == res);
+        RW_ASSERT (0 == res);
     }
 
     ~MemRWGuard ()
     {
         int res = mprotect (addr_, size_, PROT_READ);
-        assert (0 == res);
+        RW_ASSERT (0 == res);
     }
 
 private:
@@ -253,26 +267,29 @@ private:
 
 /************************************************************************/
 
-static void _rw_table_free ()
+static void
+_rw_table_free ()
 {
     if (!table_)
         return;
 
     int res = munmap (table_, table_size_);
-    assert (0 == res);
+    RW_ASSERT (0 == res);
 
     table_          = 0;
     table_size_     = 0;
     table_max_size_ = 0;
 }
 
-static bool _rw_table_grow ()
+
+static bool
+_rw_table_grow ()
 {
     // table_max_size_ cannot be less than allocated blocks
-    assert (table_max_size_ >= stats_.blocks_);
+    RW_ASSERT (table_max_size_ >= _rw_stats.blocks_);
 
     // check for free space in current table
-    if (table_max_size_ == stats_.blocks_) {
+    if (table_max_size_ == _rw_stats.blocks_) {
         // realloc more memory
         static const size_t pagesize = GETPAGESIZE ();
 
@@ -285,11 +302,11 @@ static bool _rw_table_grow ()
             return false;
 
         // copy old table
-        memcpy (new_table, table_, stats_.blocks_ * sizeof (Pair));
+        memcpy (new_table, table_, _rw_stats.blocks_ * sizeof (Pair));
 
         // protect the new table
         int res = mprotect (new_table, new_table_size, PROT_READ);
-        assert (0 == res);
+        RW_ASSERT (0 == res);
 
         // free old table
         _rw_table_free ();
@@ -302,11 +319,13 @@ static bool _rw_table_grow ()
     return true;
 }
 
+
 // inserts info about newly created BlockInfo
 // increments the number of the allocated blocks
-static void _rw_table_insert (BlockInfo& info)
+static void
+_rw_table_insert (BlockInfo& info)
 {
-    Pair* end = table_ + stats_.blocks_;
+    Pair* end = table_ + _rw_stats.blocks_;
     Pair* it = _rw_lower_bound (table_, end, info.data_);
 
     {
@@ -319,26 +338,29 @@ static void _rw_table_insert (BlockInfo& info)
         it->info_ = &info;
     }
 
-    ++stats_.blocks_;
-    if (stats_.blocks_ > stats_.maxblocks_)
-        stats_.maxblocks_ = stats_.blocks_;
+    ++_rw_stats.blocks_;
+    if (_rw_stats.blocks_ > _rw_stats.maxblocks_)
+        _rw_stats.maxblocks_ = _rw_stats.blocks_;
 }
+
 
 // removes the specified item from table
 // decrements the number of the allocated blocks
-static void _rw_table_remove (Pair* it)
+static void
+_rw_table_remove (Pair* it)
 {
-    assert (table_ <= it && table_ + stats_.blocks_ > it);
+    RW_ASSERT (table_ <= it && table_ + _rw_stats.blocks_ > it);
     size_t index = it - table_;
 
     MemRWGuard guard (table_, table_size_);
-    memmove (it, it + 1, (--stats_.blocks_ - index) * sizeof (Pair));
+    memmove (it, it + 1, (--_rw_stats.blocks_ - index) * sizeof (Pair));
 }
 
 /************************************************************************/
 
 // allocate more blocks (allocates one memory page)
-static bool _rw_allocate_blocks ()
+static bool
+_rw_allocate_blocks ()
 {
     // count of the blocks per memory page
     static size_t blocks_per_page = 0;
@@ -360,12 +382,12 @@ static bool _rw_allocate_blocks ()
         Blocks* blocks = _RWSTD_STATIC_CAST(Blocks*, buf);
         blocks->nblocks_ = blocks_per_page;
 
-        if (0 == first_)
-            first_ = blocks;
+        if (0 == _rw_head)
+            _rw_head = blocks;
         else
-            last_->next_ = blocks;
+            _rw_tail->next_ = blocks;
 
-        last_ = blocks;
+        _rw_tail = blocks;
 
         return true;
     }
@@ -373,26 +395,30 @@ static bool _rw_allocate_blocks ()
     return false;
 }
 
+
 // free allocated blocks
 // should be called when all user memory allocated
 // by rw_alloc were freed by rw_free
-static void _rw_free_blocks ()
+static void
+_rw_free_blocks ()
 {
-    assert (0 == stats_.blocks_);
+    RW_ASSERT (0 == _rw_stats.blocks_);
 
     static const size_t pagesize = GETPAGESIZE ();
 
-    while (first_) {
-        Blocks* it = first_;
-        first_ = first_->next_;
+    while (_rw_head) {
+        Blocks* it = _rw_head;
+        _rw_head = _rw_head->next_;
         int res = munmap (it, pagesize);
-        assert (0 == res);
+        RW_ASSERT (0 == res);
     }
 
-    last_ = 0;
+    _rw_tail = 0;
 }
 
-static BlockInfo * _rw_find_unused_from (Blocks* it)
+
+static BlockInfo*
+_rw_find_unused_from (Blocks* it)
 {
     while (it) {
         for (size_t i = 0; i < it->nblocks_; ++i) {
@@ -407,42 +433,51 @@ static BlockInfo * _rw_find_unused_from (Blocks* it)
     return 0;
 }
 
+
 // returns pointer to the first unused BlockInfo
 // if none unused items tries allocate more blocks
 // returns 0 if no memory
-static BlockInfo * _rw_find_unused ()
+static BlockInfo*
+_rw_find_unused ()
 {
-    BlockInfo * res = _rw_find_unused_from (first_);
+    BlockInfo * res = _rw_find_unused_from (_rw_head);
 
     if (!res && _rw_allocate_blocks ()) {
         // find the unused block from newly allocated blocks
-        // res = _rw_find_unused_from (last_);
-        res = last_->blocks_;
+        // res = _rw_find_unused_from (_rw_tail);
+        res = _rw_tail->blocks_;
         // res should be != 0
-        assert (0 != res);
+        RW_ASSERT (0 != res);
     }
 
     return res;
 }
 
+
 // returns pointer to the Pair which corresponds to addr
 // returns 0 if addr is not valid pointer, returned by rw_alloc
-static Pair * _rw_find_by_addr (void* addr)
+static Pair*
+_rw_find_by_addr (void* addr)
 {
-    Pair* end = table_ + stats_.blocks_;
+    Pair* end = table_ + _rw_stats.blocks_;
     return _rw_binary_search (table_, end, addr);
 }
 
-static inline int _rw_get_prot (int flags)
+
+static inline int
+_rw_get_prot (int flags)
 {
     return (flags & RW_PROT_READ  ? PROT_READ  : 0)
          | (flags & RW_PROT_WRITE ? PROT_WRITE : 0)
          | (flags & RW_PROT_EXEC  ? PROT_EXEC  : 0);
 }
 
-static inline int getenvflags ()
+
+static inline int
+_rw_getenvflags ()
 {
-    if (const char * envvar = getenv ("RWSTD_ALLOC_FLAGS"))
+    const char* const envvar = getenv ("RWSTD_ALLOC_FLAGS");
+    if (envvar)
         return atoi (envvar);
 
     return 0;
@@ -451,9 +486,9 @@ static inline int getenvflags ()
 /************************************************************************/
 
 _TEST_EXPORT void*
-rw_alloc(size_t nbytes, int flags/* = -1*/)
+rw_alloc (size_t nbytes, int flags /* = -1 */)
 {
-    static const int RWSTD_ALLOC_FLAGS = getenvflags ();
+    static const int RWSTD_ALLOC_FLAGS = _rw_getenvflags ();
 
     // redefine flags if environment variable was set
     if (-1 == flags && 0 != RWSTD_ALLOC_FLAGS)
@@ -463,7 +498,7 @@ rw_alloc(size_t nbytes, int flags/* = -1*/)
     if (!_rw_table_grow ())
         return 0;
 
-    if (BlockInfo * info = _rw_find_unused ()) {
+    if (BlockInfo *info = _rw_find_unused ()) {
 
         BlockInfo newinfo = BlockInfo ();
 
@@ -480,13 +515,12 @@ rw_alloc(size_t nbytes, int flags/* = -1*/)
             }
         }
         else {
-
             static const size_t pagesize = GETPAGESIZE ();
 
             size_t size = nbytes + pagesize;
 
             // check that pagesize is power of 2
-            assert (0 == (pagesize & (pagesize - 1)));
+            RW_ASSERT (0 == (pagesize & (pagesize - 1)));
             size_t offset = size & (pagesize - 1);
 
             if (offset) {
@@ -495,7 +529,8 @@ rw_alloc(size_t nbytes, int flags/* = -1*/)
             }
 
             newinfo.addr_ = mmap (0, size, _rw_get_prot(flags),
-                MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+                                  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
             if (MAP_FAILED != newinfo.addr_) {
 
                 char* data = _RWSTD_STATIC_CAST (char*, newinfo.addr_);
@@ -508,7 +543,7 @@ rw_alloc(size_t nbytes, int flags/* = -1*/)
 
                 // deny access to the guard page
                 int res = mprotect (guard, pagesize, PROT_NONE);
-                assert (0 == res);
+                RW_ASSERT (0 == res);
 
                 newinfo.size_ = size;
                 newinfo.data_ = data + offset;
@@ -531,18 +566,20 @@ rw_alloc(size_t nbytes, int flags/* = -1*/)
     return 0;
 }
 
-_TEST_EXPORT void
-rw_free(void* addr)
-{
-    if (Pair * it = _rw_find_by_addr (addr)) {
+/************************************************************************/
 
-        BlockInfo & info = *it->info_;
+_TEST_EXPORT void
+rw_free (void* addr)
+{
+    if (Pair *it = _rw_find_by_addr (addr)) {
+
+        BlockInfo &info = *it->info_;
 
         if (-1 == info.flags_)
             free (addr);
         else {
             int res = munmap (info.addr_, info.size_);
-            assert (0 == res);
+            RW_ASSERT (0 == res);
         }
 
         {
@@ -552,11 +589,11 @@ rw_free(void* addr)
 
         _rw_table_remove (it);
 
-        if (0 == stats_.blocks_) {
+        if (0 == _rw_stats.blocks_) {
             _rw_free_blocks ();
             _rw_table_free ();
         }
     }
     else
-        assert (!"Invalid addr passed to the rw_free");
+        RW_ASSERT (!"Invalid addr passed to the rw_free");
 }
