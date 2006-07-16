@@ -1261,9 +1261,26 @@ do_narrow (const char_type *lo, const char_type *hi, char dflt, char *dst) const
 
 /**************************************************************************/
 
-UserCtype<UserChar>::
-UserCtype (const int *chars, const int *masks, size_t refs)
-    : Base (refs), UserCtypeBase ("wchar_t")
+_RWSTD_NAMESPACE (std) {
+
+
+std::locale::id
+ctype<UserChar>::
+id;
+
+
+ctype<UserChar>::
+ctype (size_t refs)
+    : Base (refs), UserCtypeBase ("UserChar")
+{
+    masks_ = _rw_char_masks;
+    chars_ = 0;
+}
+
+
+ctype<UserChar>::
+ctype (const int *chars, const int *masks, size_t refs)
+    : Base (refs), UserCtypeBase ("UserChar")
 {
     if (0 == masks) {
         // when masks is null so must chars
@@ -1276,7 +1293,7 @@ UserCtype (const int *chars, const int *masks, size_t refs)
 }
 
 
-bool UserCtype<UserChar>::
+bool ctype<UserChar>::
 do_is (mask m, char_type ch) const
 {
     _rw_funcall (*this, mf_is);
@@ -1297,8 +1314,8 @@ do_is (mask m, char_type ch) const
 }
 
 
-const UserCtype<UserChar>::char_type*
-UserCtype<UserChar>::
+const ctype<UserChar>::char_type*
+ctype<UserChar>::
 do_is (const char_type *lo, const char_type *hi, mask *vec) const
 {
     _rw_funcall (*this, mf_is_range);
@@ -1337,8 +1354,8 @@ do_is (const char_type *lo, const char_type *hi, mask *vec) const
 }
 
 
-const UserCtype<UserChar>::char_type*
-UserCtype<UserChar>::
+const ctype<UserChar>::char_type*
+ctype<UserChar>::
 do_scan_is (mask m, const char_type *lo, const char_type *hi) const
 {
     _rw_funcall (*this, mf_scan_is);
@@ -1369,8 +1386,8 @@ do_scan_is (mask m, const char_type *lo, const char_type *hi) const
 }
 
 
-const UserCtype<UserChar>::char_type*
-UserCtype<UserChar>::
+const ctype<UserChar>::char_type*
+ctype<UserChar>::
 do_scan_not (mask m, const char_type *lo, const char_type *hi) const
 {
     _rw_funcall (*this, mf_scan_not);
@@ -1404,8 +1421,8 @@ do_scan_not (mask m, const char_type *lo, const char_type *hi) const
 }
 
 
-UserCtype<UserChar>::char_type
-UserCtype<UserChar>::
+ctype<UserChar>::char_type
+ctype<UserChar>::
 do_toupper (char_type ch) const
 {
     _rw_funcall (*this, mf_toupper);
@@ -1433,8 +1450,8 @@ do_toupper (char_type ch) const
 }
 
 
-const UserCtype<UserChar>::char_type*
-UserCtype<UserChar>::
+const ctype<UserChar>::char_type*
+ctype<UserChar>::
 do_toupper (char_type *lo, const char_type *hi) const
 {
     _rw_funcall (*this, mf_toupper_range);
@@ -1463,8 +1480,8 @@ do_toupper (char_type *lo, const char_type *hi) const
 }
 
 
-UserCtype<UserChar>::char_type
-UserCtype<UserChar>::
+ctype<UserChar>::char_type
+ctype<UserChar>::
 do_tolower (char_type ch) const
 {
     _rw_funcall (*this, mf_tolower);
@@ -1491,8 +1508,8 @@ do_tolower (char_type ch) const
 }
 
 
-const UserCtype<UserChar>::char_type*
-UserCtype<UserChar>::
+const ctype<UserChar>::char_type*
+ctype<UserChar>::
 do_tolower (char_type *lo, const char_type *hi) const
 {
     _rw_funcall (*this, mf_tolower_range);
@@ -1520,8 +1537,8 @@ do_tolower (char_type *lo, const char_type *hi) const
 }
 
 
-UserCtype<UserChar>::char_type
-UserCtype<UserChar>::
+ctype<UserChar>::char_type
+ctype<UserChar>::
 do_widen (char ch) const
 {
     _rw_funcall (*this, mf_widen);
@@ -1549,7 +1566,7 @@ do_widen (char ch) const
 
 
 const char*
-UserCtype<UserChar>::
+ctype<UserChar>::
 do_widen (const char *lo, const char *hi, char_type *dst) const
 {
     _rw_funcall (*this, mf_widen_range);
@@ -1589,7 +1606,7 @@ do_widen (const char *lo, const char *hi, char_type *dst) const
 }
 
 
-char UserCtype<UserChar>::
+char ctype<UserChar>::
 do_narrow (char_type ch, char dfault) const
 {
     _rw_funcall (*this, mf_narrow);
@@ -1616,8 +1633,8 @@ do_narrow (char_type ch, char dfault) const
 }
 
 
-const UserCtype<UserChar>::char_type*
-UserCtype<UserChar>::
+const ctype<UserChar>::char_type*
+ctype<UserChar>::
 do_narrow (const char_type *lo, const char_type *hi, char dflt, char *dst) const
 {
     _rw_funcall (*this, mf_narrow_range);
@@ -1649,4 +1666,22 @@ do_narrow (const char_type *lo, const char_type *hi, char dflt, char *dst) const
     }
 
     return lo;
+}
+
+}   // namespace std
+
+/**************************************************************************/
+
+UserCtype<UserChar>::
+UserCtype (const int *chars, const int *masks, size_t refs)
+    : Base (refs)
+{
+    if (0 == masks) {
+        // when masks is null so must chars
+        RW_ASSERT (0 == chars);
+        masks = _rw_char_masks;
+    }
+
+    chars_ = chars;
+    masks_ = masks;
 }
