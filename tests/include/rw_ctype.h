@@ -119,7 +119,10 @@ class _TEST_EXPORT UserCtype<char>
 public:
 
     explicit
-    UserCtype (const int* = 0, const int* = 0, _RWSTD_SIZE_T = 0);
+    UserCtype (_RWSTD_SIZE_T = 0);
+
+    explicit
+    UserCtype (const int*, const int*, _RWSTD_SIZE_T = 0);
 
 protected:
 
@@ -160,7 +163,10 @@ class _TEST_EXPORT UserCtype<wchar_t>
 public:
 
     explicit
-    UserCtype (const int* = 0, const int* = 0, _RWSTD_SIZE_T = 0);
+    UserCtype (_RWSTD_SIZE_T = 0);
+
+    explicit
+    UserCtype (const int*, const int*, _RWSTD_SIZE_T = 0);
 
 protected:
 
@@ -337,7 +343,10 @@ public:
     typedef UserChar char_type;
 
     explicit
-    UserCtype (const int* = 0, const int* = 0, _RWSTD_SIZE_T = 0);
+    UserCtype (_RWSTD_SIZE_T = 0);
+
+    explicit
+    UserCtype (const int*, const int*, _RWSTD_SIZE_T = 0);
 };
 
 
