@@ -599,7 +599,17 @@ _rw_make_mask_vec (const int *chars, const int *masks)
 
 
 UserCtype<char>::
-UserCtype (const int *chars, const int *masks, size_t refs)
+UserCtype (size_t refs /* = 0 */)
+    : Base (0, false, refs),
+      UserCtypeBase ("char")
+{
+    chars_ = 0;
+    masks_ = _rw_char_masks;
+}
+
+
+UserCtype<char>::
+UserCtype (const int *chars, const int *masks, size_t refs /* = 0 */)
     : Base (_rw_make_mask_vec (chars, masks), true, refs),
       UserCtypeBase ("char")
 {
@@ -868,6 +878,15 @@ do_narrow (const char_type *lo, const char_type *hi, char dflt, char *dst) const
 /**************************************************************************/
 
 #ifndef _RWSTD_NO_WCHAR_T
+
+UserCtype<wchar_t>::
+UserCtype (size_t refs /* = 0 */)
+    : Base (refs), UserCtypeBase ("wchar_t")
+{
+    chars_ = 0;
+    masks_ = _rw_char_masks;
+}
+
 
 UserCtype<wchar_t>::
 UserCtype (const int *chars, const int *masks, size_t refs)
@@ -1270,7 +1289,7 @@ id;
 
 
 ctype<UserChar>::
-ctype (size_t refs)
+ctype (size_t refs /* = 0 */)
     : Base (refs), UserCtypeBase ("UserChar")
 {
     masks_ = _rw_char_masks;
@@ -1279,7 +1298,7 @@ ctype (size_t refs)
 
 
 ctype<UserChar>::
-ctype (const int *chars, const int *masks, size_t refs)
+ctype (const int *chars, const int *masks, size_t refs /* = 0 */)
     : Base (refs), UserCtypeBase ("UserChar")
 {
     if (0 == masks) {
@@ -1671,6 +1690,15 @@ do_narrow (const char_type *lo, const char_type *hi, char dflt, char *dst) const
 }   // namespace std
 
 /**************************************************************************/
+
+UserCtype<UserChar>::
+UserCtype (size_t refs /* = 0 */)
+    : Base (refs)
+{
+    chars_ = 0;
+    masks_ = _rw_char_masks;
+}
+
 
 UserCtype<UserChar>::
 UserCtype (const int *chars, const int *masks, size_t refs)
