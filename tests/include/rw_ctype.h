@@ -205,8 +205,10 @@ protected:
 #endif   // _RWSTD_NO_WCHAR_T
 
 
+_RWSTD_NAMESPACE (std) {
+
 _RWSTD_SPECIALIZED_CLASS
-class _TEST_EXPORT UserCtype<UserChar>
+class _TEST_EXPORT ctype<UserChar>
     : public std::locale::facet, public UserCtypeBase
 {
     typedef std::locale::facet Base;
@@ -215,7 +217,10 @@ public:
     typedef UserChar char_type;
 
     explicit
-    UserCtype (const int* = 0, const int* = 0, _RWSTD_SIZE_T = 0);
+    ctype (_RWSTD_SIZE_T = 0);
+
+    explicit
+    ctype (const int*, const int*, _RWSTD_SIZE_T = 0);
 
     bool
     is (mask m, char_type c) const {
@@ -317,6 +322,22 @@ protected:
 
     virtual const char_type*
     do_narrow (const char_type*, const char_type*, char, char*) const;
+};
+
+}   // namespace std
+
+
+_RWSTD_SPECIALIZED_CLASS
+class _TEST_EXPORT UserCtype<UserChar>
+    : public std::ctype<UserChar>
+{
+    typedef std::ctype<UserChar> Base;
+public:
+
+    typedef UserChar char_type;
+
+    explicit
+    UserCtype (const int* = 0, const int* = 0, _RWSTD_SIZE_T = 0);
 };
 
 

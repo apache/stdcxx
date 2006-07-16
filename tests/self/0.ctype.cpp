@@ -106,6 +106,23 @@ n_xdigits = sizeof xdigits - 1;
 
 template <class charT>
 void
+test_id (charT*, const char *cname)
+{
+    rw_info (0, 0, __LINE__, "UserCtype<%s>::id", cname);
+
+    std::locale::id* const pid_b = &std::ctype<charT>::id;
+    std::locale::id* const pid_d = &UserCtype<charT>::id;
+
+    rw_assert (pid_b == pid_d, 0, __LINE__,
+               "&ctype<%s>::id == &UserCtype<%1$s>::id "
+               "(%#p == %2$#p, got %#p)",
+               cname, pid_b, pid_d);
+}
+
+/***********************************************************************/
+
+template <class charT>
+void
 test_is (charT*, const char *cname,
          std::ctype_base::mask m,
          const char *chars, std::size_t n_chars)
@@ -397,6 +414,8 @@ test_narrow (charT*, const char *cname)
 
 /***********************************************************************/
 
+/* extern */ int opt_id;
+
 /* extern */ int opt_is;
 /* extern */ int opt_scan_is;
 /* extern */ int opt_scan_not;
@@ -419,6 +438,8 @@ test (charT*, const char *cname)
         rw_note (0, 0, __LINE__,                        \
                  "UserCtype<%s>::%s() tests disabled",  \
                  cname, # func)
+
+    TEST (id);
 
     TEST (is);
     TEST (scan_is);
@@ -455,6 +476,7 @@ int main (int argc, char *argv[])
                     "",
                     0,
                     run_test,
+                    "|-id~ "
                     "|-is~ "
                     "|-scan_is~ "
                     "|-scan_not~ "
@@ -462,6 +484,7 @@ int main (int argc, char *argv[])
                     "|-tolower~ "
                     "|-widen~ "
                     "|-narrow~ ",
+                    &opt_id,
                     &opt_is,
                     &opt_scan_is,
                     &opt_scan_not,
