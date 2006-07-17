@@ -419,7 +419,7 @@ _rw_bufcat (Buffer &buf, const char *str, size_t len)
     size_t       buflen = buf.endoff;
     const size_t bufree = *buf.pbuf ? *buf.pbufsize - buflen : 0;
 
-    if (bufree <= len || !*buf.pbuf) {
+    if (bufree < len || !*buf.pbuf) {
 
         // for guard block
         static const char guard[] = "\xde\xad\xbe\xef";
@@ -465,14 +465,11 @@ _rw_bufcat (Buffer &buf, const char *str, size_t len)
 
         *buf.pbuf     = newbuf;
         *buf.pbufsize = newbufsize - guardsize;
-
-        (*buf.pbuf)[buflen] = '\0';
     }
 
     if (0 != str) {
         memcpy (*buf.pbuf + buflen, str, len);
         buflen += len;
-        (*buf.pbuf)[buflen] = '\0';
     }
 
     buf.endoff = buflen;
@@ -750,7 +747,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
             goto fail;
 
         RW_ASSERT (0 != *buf.pbuf);
-        RW_ASSERT (0 != *buf.pbufsize);
+        RW_ASSERT (0 != buf.pbufsize);
 
         if (0 == pcnt)
             break;
@@ -843,8 +840,8 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
             if (len < 0)
                 goto fail;
 
-            RW_ASSERT (size_t (len) < *buf.pbufsize);
-            RW_ASSERT (buf.endoff < *buf.pbufsize);
+            RW_ASSERT (size_t (len) <= *buf.pbufsize);
+            RW_ASSERT (buf.endoff <= *buf.pbufsize);
 
             const size_t offinx = size_t (nextoff - 1);
 
@@ -916,7 +913,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
                 ++paramno;
             }
 
-            RW_ASSERT (len + buflen < *buf.pbufsize);
+            RW_ASSERT (len + buflen <= *buf.pbufsize);
 
             // adjust the next pointer to point to the terminating
             // NUL in the (possibly reallocated) buffer
@@ -975,10 +972,12 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
 fail: // function failed
 
+    const int error = errno;
+
     fprintf (stderr, "%s:%d: rw_vasnprintf(%p, %p, \"%s\", va_list) "
              "error: errno = %d: %s\n",
              __FILE__, __LINE__, (void*)buf.pbuf, (void*)buf.pbufsize, fmt,
-             errno, strerror (errno));
+             error, strerror (error));
 
     for (size_t i = 0; i != paramno; ++i)
         free (pspec [i].strarg);
@@ -991,6 +990,9 @@ fail: // function failed
         free (*buf.pbuf);
         *buf.pbuf = 0;
     }
+
+    if (errno != error)
+        errno = error;
 
     return -1;
 
@@ -2445,6 +2447,11 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         // top to bottom
 
         if (_rw_usr_fun [i]) {
+            if (0 == _rw_bufcat (buf, 0, 1))
+                return -1;
+
+            (*buf.pbuf)[buf.endoff] = '\0';
+
             // user-defined extension?
             if (0 < spec.paramno) {
                 // pass the address of the paramno argument
@@ -3094,7 +3101,7 @@ rw_snprintfa (char *buf, size_t bufsize, const char* fmt, ...)
 
     _RWSTD_UNUSED (nchars);
 
-    return buf;
+    return nchars < 0 ? 0 : buf;
 }
 
 /********************************************************************/

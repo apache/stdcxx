@@ -32,6 +32,7 @@
 #include <ios>         // for ios::openmode, ios::seekdir
 #include <string>      // for string
 
+#include <assert.h>    // for assert()
 #include <ctype.h>     // for isdigit()
 #include <errno.h>     // for EXXX, errno
 #include <limits.h>    // for INT_MAX, ...
@@ -2703,6 +2704,51 @@ test_malformed_directives ()
 
 /***********************************************************************/
 
+static void
+stress_bufsize ()
+{
+    // exercise the ability to format into a fixed size buffer
+    // and correctly report buffer overlow errors via ENOMEM
+
+    //////////////////////////////////////////////////////////////////
+    static const char str[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    char buf [sizeof str] = "";
+
+    for (unsigned size = 0; size != sizeof str - 1; ++size) {
+        for (unsigned len = 0; len != sizeof str - 1; ++len) {
+
+            errno = 0;
+
+            const char* const s = str + sizeof str - 1 - len;
+
+            // format a substring of s len characters long
+            // into a buffer size characters wide
+            const char* const res =
+                rw_snprintfa (buf, size, "%{*}%s", size, s);
+
+            const int error = errno;
+
+            if (size <= len) {
+                // verify that the function returns 0 and sets errno
+                // to ENOMEM when the provided buffer is not big enough
+                assert (0 == res);
+                assert (ENOMEM == error);
+            }
+            else {
+                // verify that the function returns the address
+                // of the provided buffer on success and that
+                // the contents of the buffer match the argument
+                assert (res == buf);
+                assert (0 == error);
+                assert (0 == strcmp (s, buf));
+            }
+        }
+    }
+}
+
+/***********************************************************************/
+
 int main ()
 {
     test_percent ();
@@ -2751,6 +2797,13 @@ int main ()
                  nfailures, ntests);
         return 1;
     }
+
+    //////////////////////////////////////////////////////////////////
+    // close stderr to prevent the tested function from spitting out
+    // thousands of error messages in the stress test below
+    fclose (stderr);
+
+    stress_bufsize ();
 
     printf ("\nPassed all %d assertions.\n", ntests);
 
