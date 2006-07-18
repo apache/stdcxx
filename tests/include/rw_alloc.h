@@ -34,7 +34,6 @@ enum {
     RW_PROT_READ  = 1 << 0,
     RW_PROT_WRITE = 1 << 1,
     RW_PROT_RDWR  = RW_PROT_READ | RW_PROT_WRITE,
-    RW_PROT_EXEC  = 1 << 2,
     RW_PROT_BELOW = 1 << 3
 };
 

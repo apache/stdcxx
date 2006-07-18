@@ -30,6 +30,7 @@
 #include <string.h>   // for memset()
 
 #include <rw_alloc.h>
+#include <driver.h>   // for rw_error(), rw_fatal()
 
 
 #ifdef __CYGWIN__
@@ -205,7 +206,8 @@ _rw_lower_bound (Pair* first, Pair* last, void* addr)
 {
     for (size_t dist = last - first; dist > 0; ) {
 
-        const size_t half = dist / 2;
+        // half = dist / 2
+        const size_t half = dist >> 1;
         Pair* const middle = first + half;
 
         if (middle->addr_ < addr) {
@@ -250,13 +252,15 @@ public:
         size_ = size + off;
 
         int res = mprotect (addr_, size, PROT_READ | PROT_WRITE);
-        RW_ASSERT (0 == res);
+        rw_error (0 == res, __FILE__, __LINE__,
+                  "mprotect failed: errno = %{#m} (%{m})");
     }
 
     ~MemRWGuard ()
     {
         int res = mprotect (addr_, size_, PROT_READ);
-        RW_ASSERT (0 == res);
+        rw_error (0 == res, __FILE__, __LINE__,
+                  "mprotect failed: errno = %{#m} (%{m})");
     }
 
 private:
@@ -274,7 +278,8 @@ _rw_table_free ()
         return;
 
     int res = munmap (table_, table_size_);
-    RW_ASSERT (0 == res);
+    rw_error (0 == res, __FILE__, __LINE__,
+              "munmap failed: errno = %{#m} (%{m})");
 
     table_          = 0;
     table_size_     = 0;
@@ -306,7 +311,8 @@ _rw_table_grow ()
 
         // protect the new table
         int res = mprotect (new_table, new_table_size, PROT_READ);
-        RW_ASSERT (0 == res);
+        rw_error (0 == res, __FILE__, __LINE__,
+                  "mprotect failed: errno = %{#m} (%{m})");
 
         // free old table
         _rw_table_free ();
@@ -349,8 +355,11 @@ _rw_table_insert (BlockInfo& info)
 static void
 _rw_table_remove (Pair* it)
 {
-    RW_ASSERT (table_ <= it && table_ + _rw_stats.blocks_ > it);
-    size_t index = it - table_;
+    int index = it - table_;
+    rw_fatal (0 <= index && int (_rw_stats.blocks_) > index,
+              __FILE__, __LINE__,
+              "invalid index in _rw_table_remove: %i",
+              index);
 
     MemRWGuard guard (table_, table_size_);
     memmove (it, it + 1, (--_rw_stats.blocks_ - index) * sizeof (Pair));
@@ -370,17 +379,20 @@ _rw_allocate_blocks ()
     if (0 == blocks_per_page)
         blocks_per_page = (pagesize - sizeof (Blocks)) / sizeof (BlockInfo) + 1;
 
-    void* buf = mmap (0, pagesize, PROT_READ,
+    void* buf = mmap (0, pagesize, PROT_READ | PROT_WRITE,
         MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
     if (MAP_FAILED != buf) {
-
-        MemRWGuard guard (buf, pagesize);
 
         memset (buf, 0, pagesize);
 
         Blocks* blocks = _RWSTD_STATIC_CAST(Blocks*, buf);
         blocks->nblocks_ = blocks_per_page;
+
+        // set r/o access to the new page
+        int res = mprotect (buf, pagesize, PROT_READ);
+        rw_error (0 == res, __FILE__, __LINE__,
+                  "mprotect failed: errno = %{#m} (%{m})");
 
         if (0 == _rw_head)
             _rw_head = blocks;
@@ -402,7 +414,9 @@ _rw_allocate_blocks ()
 static void
 _rw_free_blocks ()
 {
-    RW_ASSERT (0 == _rw_stats.blocks_);
+    rw_fatal (0 == _rw_stats.blocks_, __FILE__, __LINE__,
+              "_rw_free_blocks called when %zu blocks are not freed",
+              _rw_stats.blocks_);
 
     static const size_t pagesize = GETPAGESIZE ();
 
@@ -410,7 +424,8 @@ _rw_free_blocks ()
         Blocks* it = _rw_head;
         _rw_head = _rw_head->next_;
         int res = munmap (it, pagesize);
-        RW_ASSERT (0 == res);
+        rw_error (0 == res, __FILE__, __LINE__,
+                  "munmap failed: errno = %{#m} (%{m})");
     }
 
     _rw_tail = 0;
@@ -447,7 +462,9 @@ _rw_find_unused ()
         // res = _rw_find_unused_from (_rw_tail);
         res = _rw_tail->blocks_;
         // res should be != 0
-        RW_ASSERT (0 != res);
+        rw_fatal (0 != res, __FILE__, __LINE__,
+                  "logic error in _rw_find_unused: res == 0 after "
+                  "_rw_allocate_blocks() succeeded ");
     }
 
     return res;
@@ -468,8 +485,7 @@ static inline int
 _rw_get_prot (int flags)
 {
     return (flags & RW_PROT_READ  ? PROT_READ  : 0)
-         | (flags & RW_PROT_WRITE ? PROT_WRITE : 0)
-         | (flags & RW_PROT_EXEC  ? PROT_EXEC  : 0);
+         | (flags & RW_PROT_WRITE ? PROT_WRITE : 0);
 }
 
 
@@ -543,7 +559,8 @@ rw_alloc (size_t nbytes, int flags /* = -1 */)
 
                 // deny access to the guard page
                 int res = mprotect (guard, pagesize, PROT_NONE);
-                RW_ASSERT (0 == res);
+                rw_error (0 == res, __FILE__, __LINE__,
+                          "mprotect failed: errno = %{#m} (%{m})");
 
                 newinfo.size_ = size;
                 newinfo.data_ = data + offset;
@@ -579,7 +596,8 @@ rw_free (void* addr)
             free (addr);
         else {
             int res = munmap (info.addr_, info.size_);
-            RW_ASSERT (0 == res);
+            rw_error (0 == res, __FILE__, __LINE__,
+                      "munmap failed: errno = %{#m} (%{m})");
         }
 
         {
@@ -595,5 +613,8 @@ rw_free (void* addr)
         }
     }
     else
-        RW_ASSERT (!"Invalid addr passed to the rw_free");
+        rw_error (0 == addr, __FILE__, __LINE__,
+                  "rw_free(%#p): the address is not a valid address, "
+                  "returned by rw_alloc()",
+                  addr);
 }
