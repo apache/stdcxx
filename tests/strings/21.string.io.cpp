@@ -9,8 +9,6 @@
 * Copyright 2006 The Apache Software Foundation or its licensors,
 * as applicable.
 *
-* Copyright 2006 Rogue Wave Software.
-*
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -35,6 +33,7 @@
 #include <driver.h>       // for rw_test()
 #include <rw_allocator.h> // for UserAlloc
 #include <rw_char.h>      // for rw_expand()
+#include <rw_ctype.h>     // for UserCtype
 #include <rw_new.h>       // for bad_alloc, replacement operator new
 #include <rw_streambuf.h> // for MyStreambuf
 
@@ -58,6 +57,8 @@ static const char* const exceptions[] = {
 #define Right    std::ios_base::right
 
 #define WHITESPACE " \f\n\r\t\v"
+
+const char SYMB_THROW = '!';
 
 // off   - width
 // size  - fmtflags
@@ -103,30 +104,30 @@ extractor_test_cases [] = {
     //    |    |           |   |       |        | |   | |  1 - ios_base::failure
     //    |    |           |   |       |        | |   | |  -1 - exc. safety
     //    |    |           |   |       |        | |   | |
-    //    |    |           |   |       |        | |   | +------+
-    //    |    |           |   |       |        | |   +--+     |
-    //    |    |           |   |       |        | +--+   |     |
-    //    |    |           |   |       |        |    |   |     |
-    //    V    V           V   V       V        V    V   V     V
+    //    |    |           |   |       |        | |   | +------------+
+    //    |    |           |   |       |        | |   +--+           |
+    //    |    |           |   |       |        | +--+   |           |
+    //    |    |           |   |       |        |    |   |           |
+    //    V    V           V   V       V        V    V   V           V
 
 #undef TEST1                                
-#define TEST1(str)                                                 \
-    TEST (str, "",         0,  0,      Eof,     str, 0,  Eof,  0), \
-    TEST (str, "",         1,  0,      Fail,    str, 1,  Fail, 0), \
-    TEST (str, "",         2,  0,      Bad,     str, 2,  Bad,  0), \
-    TEST (str, "",         3,  Skipws, Eof,     str, 3,  Eof,  0), \
-    TEST (str, "",         4,  Skipws, Fail,    str, 4,  Fail, 0), \
-    TEST (str, "",         5,  Skipws, Bad,     str, 5,  Bad,  0), \
-    TEST (str, "",         6,  Skipws, Good,    str, 6,  -1,   0), \
-    TEST (str, WHITESPACE, 7,  0,      Eof,     str, 7,  Eof,  0), \
-    TEST (str, WHITESPACE, 8,  0,      Fail,    str, 8,  Fail, 0), \
-    TEST (str, WHITESPACE, 9,  0,      Bad,     str, 9,  Bad,  0), \
-    TEST (str, WHITESPACE, 10, Skipws, Eof,     str, 10, Eof,  0), \
-    TEST (str, WHITESPACE, 11, Skipws, Fail,    str, 11, Fail, 0), \
-    TEST (str, WHITESPACE, 12, Skipws, Bad,     str, 12, Bad,  0), \
-    TEST (str, WHITESPACE, 13, Skipws, Good,    str, 13, -1,   0), \
-    TEST (str, "",         14, Skipws, NotGood, str, 14, -1,   1), \
-    TEST (str, WHITESPACE, 15, Skipws, NotGood, str, 15, -1,   1)
+#define TEST1(str)                                                       \
+    TEST (str, "",         0,  0,      Eof,     str, 0,  Eof,        0), \
+    TEST (str, "",         1,  0,      Fail,    str, 1,  Fail,       0), \
+    TEST (str, "",         2,  0,      Bad,     str, 2,  Bad,        0), \
+    TEST (str, "",         3,  Skipws, Eof,     str, 3,  Eof,        0), \
+    TEST (str, "",         4,  Skipws, Fail,    str, 4,  Fail,       0), \
+    TEST (str, "",         5,  Skipws, Bad,     str, 5,  Bad,        0), \
+    TEST (str, "",         6,  Skipws, Good,    str, 6,  Eof | Fail, 0), \
+    TEST (str, WHITESPACE, 7,  0,      Eof,     str, 7,  Eof,        0), \
+    TEST (str, WHITESPACE, 8,  0,      Fail,    str, 8,  Fail,       0), \
+    TEST (str, WHITESPACE, 9,  0,      Bad,     str, 9,  Bad,        0), \
+    TEST (str, WHITESPACE, 10, Skipws, Eof,     str, 10, Eof,        0), \
+    TEST (str, WHITESPACE, 11, Skipws, Fail,    str, 11, Fail,       0), \
+    TEST (str, WHITESPACE, 12, Skipws, Bad,     str, 12, Bad,        0), \
+    TEST (str, WHITESPACE, 13, Skipws, Good,    str, 13, Eof | Fail, 0), \
+    TEST (str, "",         14, Skipws, NotGood, str, 14, Eof | Fail, 1), \
+    TEST (str, WHITESPACE, 15, Skipws, NotGood, str, 15, Eof | Fail, 1)
 
     //     +----------------------------------------- controlled sequence
     //     |
@@ -142,7 +143,6 @@ extractor_test_cases [] = {
     TEST1 ("a<U0>b<U0>@2c"),
     TEST1 ("<U0>ab<U0>@2c"),
     TEST1 ("x@4096"       ),
-
 
     // 2.
     // the string argument should be cleared when the stream's initial
@@ -278,36 +278,35 @@ extractor_test_cases [] = {
     //     |                            |   |       |
     //     |                            |   |       |
     //     V                            V   V       V
-    TEST3 ("abc",                       0,  0,      "abc"),
-    TEST3 ("abc",                       1,  0,      "a"),
-    TEST3 ("abc",                       2,  0,      "ab" ),
-    TEST3 ("abc",                       10, 0,      "abc"),
-    TEST3 ("abc ",                      10, 0,      "abc"),
-    TEST3 ("abc\f",                     10, 0,      "abc"),
-    TEST3 ("abc\n",                     10, 0,      "abc"),
-    TEST3 ("abc\r",                     10, 0,      "abc"),
-    TEST3 ("abc\t",                     10, 0,      "abc"),
-    TEST3 ("abc\v",                     10, 0,      "abc"),
+    TEST3 ("a!bc",                      1,  0,      "a"   ),
+    TEST3 ("a!bc",                      2,  0,      "a!"  ),
+    TEST3 ("a!bc",                      10, 0,      "a!bc"),
+    TEST3 ("ab!c ",                     10, 0,      "ab!c"),
+    TEST3 ("ab!c\f",                    10, 0,      "ab!c"),
+    TEST3 ("ab!c\n",                    10, 0,      "ab!c"),
+    TEST3 ("ab!c\r",                    10, 0,      "ab!c"),
+    TEST3 ("ab!c\t",                    10, 0,      "ab!c"),
+    TEST3 ("ab!c\v",                    10, 0,      "ab!c"),
 
-    TEST3 ("abc" WHITESPACE,            0,  0,      "abc"),
-    TEST3 ("abc" WHITESPACE,            2,  0,      "ab" ),
-    TEST3 ("abc" WHITESPACE,            10, 0,      "abc"),
+    TEST3 ("a!bc" WHITESPACE,           0,  0,      "a!bc"),
+    TEST3 ("ab!c" WHITESPACE,           2,  0,      "ab"  ),
+    TEST3 ("abc!" WHITESPACE,           10, 0,      "abc!"),
 
-    TEST3 ("abc",                       0,  Skipws, "abc"),
-    TEST3 ("abc",                       2,  Skipws, "ab" ),
-    TEST3 ("abc",                       10, Skipws, "abc"),
+    TEST3 ("abc!",                      0,  Skipws, "abc!"),
+    TEST3 ("ab!c",                      2,  Skipws, "ab"  ),
+    TEST3 ("a!bc",                      10, Skipws, "a!bc"),
 
-    TEST3 ("abc" WHITESPACE,            0,  Skipws, "abc"),
-    TEST3 ("abc" WHITESPACE,            2,  Skipws, "ab" ),
-    TEST3 ("abc" WHITESPACE,            10, Skipws, "abc"),
+    TEST3 ("abc" WHITESPACE,            0,  Skipws, "abc" ),
+    TEST3 ("abc" WHITESPACE,            2,  Skipws, "ab"  ),
+    TEST3 ("abc" WHITESPACE,            10, Skipws, "abc" ),
 
-    TEST3 (WHITESPACE "abc",            0,  Skipws, "abc"),
-    TEST3 (WHITESPACE "abc",            2,  Skipws, "ab" ),
-    TEST3 (WHITESPACE "abc",            30, Skipws, "abc"),
+    TEST3 (WHITESPACE "abc",            0,  Skipws, "abc" ),
+    TEST3 (WHITESPACE "abc",            2,  Skipws, "ab"  ),
+    TEST3 (WHITESPACE "abc",            30, Skipws, "abc" ),
 
-    TEST3 (WHITESPACE "abc" WHITESPACE, 0,  Skipws, "abc"),
-    TEST3 (WHITESPACE "abc" WHITESPACE, 2,  Skipws, "ab" ),
-    TEST3 (WHITESPACE "abc" WHITESPACE, 30, Skipws, "abc")
+    TEST3 (WHITESPACE "abc" WHITESPACE, 0,  Skipws, "abc" ),
+    TEST3 (WHITESPACE "abc" WHITESPACE, 2,  Skipws, "ab"  ),
+    TEST3 (WHITESPACE "abc" WHITESPACE, 30, Skipws, "abc" )
 };
 
 /**************************************************************************/
@@ -400,7 +399,7 @@ getline_test_cases [] = {
     // 2.
     // string should be erased when initial iostate is good and
     // stream empty or contains string which begins from '\n'
-    // width should be unchanged, iostate should have Fail bit setted
+    // width should be unchanged, iostate should have failbit setted
 
     //    +--------------------------------------------- controlled sequence
     //    |    +---------------------------------------- sequence in stream 
@@ -516,10 +515,10 @@ getline_test_cases [] = {
     //     |                         |
     //     |                         |
     //     V                         V
-    TEST3 ("abc",                    "abc"           ),
-    TEST3 ("ab\nc",                  "ab"            ),
-    TEST3 ("a\nbc",                  "a"             ),
-    TEST3 (" \t\n",                  " \t"           ),
+    TEST3 ("ab!c",                   "ab!c"          ),
+    TEST3 ("a!b\nc",                 "a!b"           ),
+    TEST3 ("a\n!bc",                 "a"             ),
+    TEST3 (" !\t\n",                 " !\t"          ),
     TEST3 (" \f\r\t\v\n",            " \f\r\t\v"     ),
     TEST3 (" \f\r\n\t\v\n",          " \f\r"         ),
     TEST3 ("<U0>a<U0>b<U0>\n<U0>@2", "<U0>a<U0>b<U0>"),
@@ -618,7 +617,7 @@ getline_val_test_cases [] = {
     // 2.
     // string should be erased when initial iostate is good and
     // stream empty or contains string which begins from delim
-    // width should be unchanged, iostate should have Fail bit setted
+    // width should be unchanged, iostate should have failbit setted
 
     //    +--------------------------------------------- controlled sequence
     //    |    +---------------------------------------- sequence in stream 
@@ -735,9 +734,9 @@ getline_val_test_cases [] = {
     //     |                         |     |
     //     |                         |     |
     //     V                         V     V
-    TEST3 ("abc",                    '\t', "abc"      ),
-    TEST3 ("ab<U0>c",                '\0', "ab"       ),
-    TEST3 ("a\nbc",                  'b',  "a\n"      ),
+    TEST3 ("ab!c",                   '\t', "ab!c"     ),
+    TEST3 ("a!b<U0>c",               '\0', "a!b"      ),
+    TEST3 ("a\n!bc",                 'b',  "a\n!"     ),
     TEST3 (" \t\n",                  '\n', " \t"      ),
     TEST3 (" \f\r\t\v\n",            '\v', " \f\r\t"  ),
     TEST3 (" \f\r\n\t\v\n",          '\r', " \f"      ),
@@ -819,9 +818,8 @@ inserter_test_cases [] = {
 
 
     // 2. if initial state is good then:
-    // if stream has not enough size to get string then failbit should be set
-    //   and width should be unchanged
-    // else width should be 0
+    // if stream has not enough size to get string then badbit should be set
+    // width should be 0
 
     //    +---------------------------------------- controlled sequence
     //    |    +----------------------------------- size of streambuf
@@ -869,9 +867,9 @@ inserter_test_cases [] = {
     TEST2 ("",              20,   10,   Right, " @10",             0,    Good),
     TEST2 ("",              20,   10,   Left,  " @10",             0,    Good),
                                                              
-    TEST2 ("",              5,    10,   0,     " @5",              10,   Fail),
-    TEST2 ("",              5,    10,   Right, " @5",              10,   Fail),
-    TEST2 ("",              5,    10,   Left,  " @5",              10,   Fail),
+    TEST2 ("",              5,    10,   0,     " @5",              0,    Bad ),
+    TEST2 ("",              5,    10,   Right, " @5",              0,    Bad ),
+    TEST2 ("",              5,    10,   Left,  " @5",              0,    Bad ),
                                                              
     TEST2 (" @10",          20,   10,   0,     " @10",             0,    Good),
     TEST2 (" @10",          20,   10,   Right, " @10",             0,    Good),
@@ -881,9 +879,9 @@ inserter_test_cases [] = {
     TEST2 ("abc def",       20,   0,    Right, "abc def",          0,    Good),
     TEST2 ("abc def",       20,   0,    Left,  "abc def",          0,    Good),
                                                              
-    TEST2 ("abc def",       5,    0,    0,     "abc d",            0,    Fail),
-    TEST2 ("abc def",       5,    0,    Right, "abc d",            0,    Fail),
-    TEST2 ("abc def",       5,    0,    Left,  "abc d",            0,    Fail),
+    TEST2 ("abc def",       5,    0,    0,     "abc d",            0,    Bad ),
+    TEST2 ("abc def",       5,    0,    Right, "abc d",            0,    Bad ),
+    TEST2 ("abc def",       5,    0,    Left,  "abc d",            0,    Bad ),
                                                              
     TEST2 ("abc def",       20,   5,    0,     "abc def",          0,    Good),
     TEST2 ("abc def",       20,   5,    Right, "abc def",          0,    Good),
@@ -912,89 +910,6 @@ inserter_test_cases [] = {
 
 /**************************************************************************/
 
-class Ctype : public std::ctype<UserChar>
-{
-    typedef std::ctype<UserChar> Base;
-
-public:
-
-    explicit Ctype(size_t refs = 0) : Base(refs)
-    {
-    }
-
-protected:
-
-    virtual bool do_is (mask mask_val, UserChar ch) const
-    {
-        return std::use_facet<std::ctype<char> >(std::locale ()).is (
-            mask_val, do_narrow (ch, char ()));
-    }
-
-    virtual const UserChar* do_is (const UserChar* low,
-                                   const UserChar* high, mask* vec) const
-    {
-        const size_t size = high - low;
-
-        char * buf = new char[size];
-
-        do_narrow (low, high, char (), buf);
-
-        std::use_facet<std::ctype<char> >(std::locale ()).is (
-            buf, buf + size, vec);
-
-        delete[] buf;
-
-        return high;
-    }
-
-    virtual const UserChar* do_scan_is (mask mask_val,
-                                        const UserChar* low,
-                                        const UserChar* high) const
-    {
-        for (; low != high && !do_is (mask_val, *low); ++low) ;
-        return low;
-    }
-
-    virtual const UserChar* do_scan_not (mask mask_val,
-                                         const UserChar* low,
-                                         const UserChar* high) const
-    {
-        for (; low != high && do_is (mask_val, *low); ++low) ;
-        return low;
-    }
-
-    virtual UserChar do_widen (char ch) const
-    {
-        return make_char (ch, _RWSTD_STATIC_CAST (UserChar *, 0));
-    }
-
-    virtual const char* do_widen (const char* low,
-                                  const char* high, UserChar* dest) const
-    {
-        for (; low != high; ++low, ++dest)
-            *dest = do_widen (*low);
-        return low;
-    }
-
-    virtual char do_narrow (UserChar ch, char /*dfault*/) const
-    {
-        char c[2];
-        rw_narrow (c, &ch, 1);
-        return c[0];
-    }
-
-    virtual const UserChar* do_narrow (const UserChar* low,
-                                       const UserChar* high,
-                                       char dfault, char* dest) const
-    {
-        for (; low != high; ++low, ++dest)
-            *dest = do_narrow (*low, dfault);
-        return low;
-    }
-};
-
-/**************************************************************************/
-
 template <class charT, class Traits, class Allocator>
 void test_io (charT*, Traits*, Allocator*,
               const StringTestCaseData<charT> &tdata)
@@ -1011,6 +926,8 @@ void test_io (charT*, Traits*, Allocator*,
     const StringFunc     &func  = tdata.func_;
     const StringTestCase &tcase = tdata.tcase_;
 
+    bool test_inserter = func.which_ == StringIds::inserter_ostream_cstr;
+
     // construct the string object
     String str (tdata.str_, tdata.strlen_);
     // construct a const reference to the string object
@@ -1024,121 +941,276 @@ void test_io (charT*, Traits*, Allocator*,
     size_t arg_len = 0;
     const char* arg = rw_expand (arg_buf, tcase.arg, tcase.arg_len, &arg_len);
 
+    // prepare arrays of indexes on which force the exception throwing
+    const charT* arg_throw = test_inserter ? tdata.str_ : tdata.arg_;
+    const size_t arg_throw_len = 
+        test_inserter ? tdata.strlen_ : tdata.arglen_;
+
+    size_t* throw_on = new size_t [arg_throw_len + 1];
+    size_t pthrow = 0;
+    for (size_t k = 0; k < arg_throw_len; ++k) {
+        if (1 == rw_match (&SYMB_THROW, arg_throw + k, 1))
+            throw_on [pthrow++] = k + 1;
+    }
+    throw_on [pthrow] = NPOS;
+
     // construct ctype facet to install in each stream's locale
     // (the facet's lifetime must exceed that of the locale in
     // which it is installed, which might include both the stream
     // and the stream's streambuf)
-    const Ctype ctyp (1);
-
-    // construct streambuf objects to associate with each stream
-    Streambuf inbuf (arg, arg_len, 0, -1);
-    Streambuf outbuf (std::streamsize (tcase.arg_len), 0, -1);
-
-    if (arg != arg_buf)
-        delete[] arg;
-
-    arg = 0;
-
-    // construct both stream objects even though only one will be used
-    Istream is (&inbuf);
-    Ostream os (&outbuf);
-
-    // base referes to the basic_ios subobject of the stream used in
-    // each test case (to avoid unnecessarily manipulating both streams)
-    BasicIos &strm = StringIds::inserter_ostream_cstr == func.which_ ?
-        (BasicIos&)os : (BasicIos&)is;
-
-    // install std::ctype<UserChar> facet
-    strm.imbue (std::locale (strm.getloc (), &ctyp));
-
-    // set the inital width of both streams
-    strm.width (tcase.off);
+    const UserCtype<charT> ctyp (1);
 
     // set the initial formatting flags in both streams
     const Fmtflags flags = Fmtflags (tcase.size);
-
-    strm.flags (flags);
 
     // save the state of the const string object before the call
     // to any (changes to the state of the object after a call)
     const StringState cstr_state (rw_get_string_state (cstr));
 
+    //                             Xsgetn, Sync, Xsputn
+    size_t throw_count [] = {    1,     1,     1   };
+    size_t throw_inx = 0;
+
+    while (1) {
+
+        Streambuf inbuf (arg, arg_len, Throw | Underflow | Sync | Xsgetn, -1);
+
+        Streambuf outbuf (std::streamsize (tcase.arg_len), 
+                          Throw | Overflow | Sync | Xsputn, -1);
+
+        Streambuf& sbuf = test_inserter ? outbuf : inbuf;
+
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-    // (name of) expected and caught exception
-    const char* expected = 0;
-    const char* caught   = 0;
+        // (name of) expected and caught exception
+        const char* expected = 0;
+        const char* caught   = 0;
 
-    if (1 == tcase.bthrow) {
-        expected = exceptions [1];   // ios_base::failure
-    }
-    else {
-        // exceptions disabled for this test case
-    }
+        if (1 == tcase.bthrow) {
+            expected = exceptions [1];   // ios_base::failure
+        }
+        else if (0 == tcase.bthrow) {
+            // set on which call of which method to throw
+            sbuf.throw_when_ [sbuf.memfun_inx (
+                test_inserter ? Overflow : Underflow) ] = throw_on [throw_inx];
+
+            sbuf.throw_when_ [sbuf.memfun_inx (Xsgetn)] = 
+                throw_count [0];
+            sbuf.throw_when_ [sbuf.memfun_inx (Sync)] = 
+                throw_count [1];
+            sbuf.throw_when_ [sbuf.memfun_inx (Xsputn)] = 
+                throw_count [2];
+        }
+        else {
+            // exceptions disabled for this test case
+        }
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (tcase.bthrow)
-        return;
+        if (tcase.bthrow)
+            return;
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    const Iostate state = Iostate (tcase.off2);
+        // construct both stream objects even though only one will be used
+        Istream is (&inbuf);
+        Ostream os (&outbuf);
 
-    if (tcase.bthrow) {
-        // set exception bits leaving the initial stream state good
-        strm.exceptions (state);
-    }
-    else {
-        // set the initial stream state leaving exceptions clear
-        strm.clear (state);
-    }
+        // base referes to the basic_ios subobject of the stream used in
+        // each test case (to avoid unnecessarily manipulating both streams)
+        BasicIos &strm = test_inserter ? (BasicIos&)os : (BasicIos&)is;
 
-    // start checking for memory leaks
-    rw_check_leaks (str.get_allocator ());
+        // install std::ctype<UserChar> facet
+        strm.imbue (std::locale (strm.getloc (), &ctyp));
 
-    try {
+        // set the initial width of both streams
+        strm.width (tcase.off);
 
-        // the offset of the address of the returned reference
-        // from the address of the stream object argument (the
-        // two must be the same)
-        std::ptrdiff_t ret_off = 0;
+        strm.flags (flags);
+
+        const Iostate state = Iostate (tcase.off2);
+
+        if (tcase.bthrow) {
+            // set exception bits leaving the initial stream state good
+            strm.exceptions (state);
+        }
+        else {
+            // set the initial stream state leaving exceptions clear
+            strm.clear (state);
+        }
+
+        // start checking for memory leaks
+        rw_check_leaks (str.get_allocator ());
+
+        bool streambuf_threw = false;
 
         try {
-            switch (func.which_) {
 
-            case StringIds::extractor_istream_str:
-                ret_off = &is - &(is >> str);
-                break;
+            // the offset of the address of the returned reference
+            // from the address of the stream object argument (the
+            // two must be the same)
+            std::ptrdiff_t ret_off = 0;
 
-            case StringIds::getline_istream_str:
-                ret_off = &is - &std::getline (is, str);
-                break;
+            try {
+                switch (func.which_) {
 
-            case StringIds::getline_istream_str_val: {
-                const charT delim = make_char (tcase.val, (charT*)0);
-                ret_off = &is - &std::getline (is, str, delim);
-                break;
+                case StringIds::extractor_istream_str:
+                    ret_off = &is - &(is >> str);
+                    break;
+
+                case StringIds::getline_istream_str:
+                    ret_off = &is - &std::getline (is, str);
+                    break;
+
+                case StringIds::getline_istream_str_val: {
+                    const charT delim = make_char (tcase.val, (charT*)0);
+                    ret_off = &is - &std::getline (is, str, delim);
+                    break;
+                }
+
+                case StringIds::inserter_ostream_cstr:
+                    ret_off = &os - &(os << cstr);
+                    break;
+
+                default:
+                    RW_ASSERT (!"test logic error: unknown io overload");
+                    return;
+                }
             }
-
-            case StringIds::inserter_ostream_cstr:
-                ret_off = &os - &(os << cstr);
-                break;
-
-            default:
-                RW_ASSERT (!"test logic error: unknown io overload");
-                return;
-            }
-        }
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-        catch (std::ios_base::failure& ex) {
-            caught = exceptions [1];
-            rw_assert (caught == expected, 0, tcase.line,
+            catch (std::ios_base::failure& ex) {
+                caught = exceptions [1];
+                rw_assert (caught == expected, 0, tcase.line,
+                           "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                           "unexpectedly%{;} caught std::%s(%#s)",
+                           __LINE__, 0 != expected, expected, caught,
+                           ex.what ());
+
+            }
+            catch (...) {
+                caught = exceptions [0];
+                rw_assert (0, 0, tcase.line,
+                           "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                           "unexpectedly%{;} caught %s",
+                           __LINE__, 0 != expected, expected, caught);
+            }
+
+#endif   // _RWSTD_NO_EXCEPTIONS
+
+            const std::streamsize ret_width = strm.width ();
+            const Iostate         ret_state = strm.rdstate ();
+            const charT*          ret_str   = str.data ();
+            size_t                ret_sz    = str.size ();
+
+            if (test_inserter) {
+                ret_str = outbuf.pubpbase ();
+                ret_sz  = outbuf.pubepptr () - ret_str;
+            }
+
+            streambuf_threw = None != sbuf.threw_;
+
+            if (streambuf_threw) {
+                if (Overflow == sbuf.threw_ || Underflow == sbuf.threw_)
+                    throw_inx++;
+                if (Xsgetn == sbuf.threw_)
+                    throw_count [0] ++;
+                if (Sync == sbuf.threw_)
+                    throw_count [1] ++;
+                if (Xsputn == sbuf.threw_)
+                    throw_count [2] ++;
+            }
+
+            // character width (for convenience)
+            static const int cwidth = sizeof (charT);
+
+            // verify that the reference returned from the function
+            // refers to the passed stream object
+            bool success = 0 == ret_off;
+            rw_assert (success, 0, tcase.line,
+                    "line %d. %{$FUNCALL} returned invalid reference, "
+                    "offset is %td", __LINE__, ret_off);
+
+            if (!streambuf_threw) {
+                // verify the width
+
+                const std::streamsize width =
+                       func.which_ == StringIds::getline_istream_str
+                    || func.which_ == StringIds::getline_istream_str_val
+#ifndef _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
+                    || func.which_ == StringIds::inserter_ostream_cstr
+                    && ret_state != Good
+#endif  // _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
+                    ? tcase.off : tcase.val;
+
+                success = width == ret_width;
+                rw_assert (success, 0, tcase.line,
+                           "line %d. %{$FUNCALL}: expected width() == %td, "
+                           "got %td", __LINE__, width, ret_width);
+            }
+
+            // tcase.size2 is the expected iostate
+            if (0 <= tcase.size2) {
+
+                // verify the iostate
+                const Iostate res_state = 
+                    streambuf_threw ? Bad : Iostate (tcase.size2);
+
+                success = res_state ?
+                    (res_state == (ret_state & res_state)) : (0 == ret_state);
+                rw_assert (success, 0, tcase.line,
+                           "line %d. %{$FUNCALL}: expected rdstate() "
+                           "== %{Is}, got %{Is}",
+                           __LINE__, res_state, ret_state);
+            }
+
+            if (   !streambuf_threw
+                || Overflow == sbuf.threw_ || Underflow == sbuf.threw_) {
+
+                size_t res_sz = streambuf_threw ?
+                    sbuf.throw_when_ [sbuf.memfun_inx (sbuf.threw_)] - 1 :
+                    tdata.reslen_;
+
+                // verify that strings length are equal
+                success = res_sz == ret_sz;
+                rw_assert (success, 0, tcase.line,
+                           "line %d. %{$FUNCALL}: expected %{/*.*Gs} with "
+                           "length %zu, got %{/*.*Gs} with length %zu",
+                           __LINE__, 
+                           cwidth, int (res_sz), tdata.res_, res_sz,
+                           cwidth, int (ret_sz), ret_str, ret_sz);
+
+                if (res_sz == ret_sz) {
+                    // if the result length matches the expected length
+                    // (and only then), also verify that the modified
+                    // string matches the expected result
+                    const size_t match = rw_match (tcase.res, ret_str, ret_sz);
+
+                    success = match == res_sz;
+                    rw_assert (success, 0, tcase.line,
+                               "line %d. %{$FUNCALL}: expected %{/*.*Gs}, "
+                               "got %{/*.*Gs}, difference at off %zu",
+                               __LINE__, cwidth, int (res_sz), tdata.res_,
+                               cwidth, int (ret_sz), ret_str, match);
+                }
+            }
+        }
+
+#ifndef _RWSTD_NO_EXCEPTIONS
+
+        catch (const std::bad_alloc &ex) {
+            caught = exceptions [2];
+            rw_assert (0, 0, tcase.line,
                        "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
                        "unexpectedly%{;} caught std::%s(%#s)",
                        __LINE__, 0 != expected, expected, caught, ex.what ());
-
+        }
+        catch (const std::exception &ex) {
+            caught = exceptions [3];
+            rw_assert (0, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
+                       "unexpectedly%{;} caught std::%s(%#s)",
+                       __LINE__, 0 != expected, expected, caught, ex.what ());
         }
         catch (...) {
             caught = exceptions [0];
@@ -1150,96 +1222,25 @@ void test_io (charT*, Traits*, Allocator*,
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-        const std::streamsize ret_width = strm.width ();
-        const Iostate         ret_state = strm.rdstate ();
-        const charT*          ret_str   = str.data ();
-        size_t                ret_sz    = str.size ();
+        // FIXME: verify the number of blocks the function call
+        // is expected to allocate and detect any memory leaks
+        rw_check_leaks (str.get_allocator (), tcase.line,
+                        size_t (-1), size_t (-1));
 
-        if (StringIds::inserter_ostream_cstr == func.which_) {
-            ret_str = outbuf.pubpbase ();
-            ret_sz  = outbuf.pubepptr () - ret_str;
+        if (streambuf_threw && 0 == tcase.bthrow) {
+            // call the function again until streambuf methods
+            // not throws the exception
+            continue;
+        }
+        else if (1 < tcase.bthrow) {
+            rw_assert (caught == expected, 0, tcase.line,
+                       "line %d. %{$FUNCALL} %{?}expected %s, caught %s"
+                       "%{:}unexpectedly caught %s%{;}",
+                       __LINE__, 0 != expected, expected, caught, caught);
         }
 
-        // character width (for convenience)
-        static const int cwidth = sizeof (charT);
-
-        // verify that the reference returned from the function
-        // refers to the passed stream object
-        bool success = 0 == ret_off;
-        rw_assert (success, 0, tcase.line,
-                   "line %d. %{$FUNCALL} returned invalid reference, "
-                   "offset is %td", __LINE__, ret_off);
-
-        // verify the width
-        const std::streamsize width =
-            (   func.which_ == StringIds::getline_istream_str
-             || func.which_ == StringIds::getline_istream_str_val) ?
-            tcase.off : tcase.val;
-
-        success = width == ret_width;
-        rw_assert (success, 0, tcase.line,
-                   "line %d. %{$FUNCALL}: width() == %td, got %td",
-                   __LINE__, width, ret_width);
-
-        // tcase.size2 is the expected iostate
-        if (0 <= tcase.size2) {
-            // verify the iostate
-            const Iostate res_state = Iostate (tcase.size2);
-            success = res_state ?
-                (res_state == (ret_state & res_state)) : (0 == ret_state);
-            rw_assert (success, 0, tcase.line,
-                       "line %d. %{$FUNCALL}: rdstate() == %{Is}, got %{Is}",
-                       __LINE__, res_state, ret_state);
-        }
-
-        // verify that strings length are equal
-        success = tdata.reslen_ == ret_sz;
-        rw_assert (success, 0, tcase.line,
-                   "line %d. %{$FUNCALL}: expected %{/*.*Gs} with length "
-                   "%zu, got %{/*.*Gs} with length %zu", __LINE__, 
-                   cwidth, int (tdata.reslen_), tdata.res_, tdata.reslen_,
-                   cwidth, int (ret_sz), ret_str, ret_sz);
-
-        if (tdata.reslen_ == ret_sz) {
-            // if the result length matches the expected length
-            // (and only then), also verify that the modified
-            // string matches the expected result
-            const std::size_t match = rw_match (tcase.res, ret_str, ret_sz);
-
-            success = match == tdata.reslen_;
-            rw_assert (success, 0, tcase.line,
-                       "line %d. %{$FUNCALL}: expected %{/*.*Gs}, "
-                       "got %{/*.*Gs}, difference at off %zu",
-                       __LINE__, cwidth, int (tdata.reslen_), tdata.res_,
-                       cwidth, int (ret_sz), ret_str, match);
-        }
+        break;
     }
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    catch (const std::bad_alloc &ex) {
-        caught = exceptions [2];
-        rw_assert (0, 0, tcase.line,
-                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
-                   "unexpectedly%{;} caught std::%s(%#s)",
-                   __LINE__, 0 != expected, expected, caught, ex.what ());
-    }
-    catch (const std::exception &ex) {
-        caught = exceptions [3];
-        rw_assert (0, 0, tcase.line,
-                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
-                   "unexpectedly%{;} caught std::%s(%#s)",
-                   __LINE__, 0 != expected, expected, caught, ex.what ());
-    }
-    catch (...) {
-        caught = exceptions [0];
-        rw_assert (0, 0, tcase.line,
-                   "line %d. %{$FUNCALL} %{?}expected %s,%{:}"
-                   "unexpectedly%{;} caught %s",
-                   __LINE__, 0 != expected, expected, caught);
-    }
-
-#endif   // _RWSTD_NO_EXCEPTIONS
 
     if (StringIds::fid_inserter == (func.which_ & StringIds::fid_mask)) {
         // verify that const string object was not modified during
@@ -1249,10 +1250,13 @@ void test_io (charT*, Traits*, Allocator*,
                                  __LINE__, tcase.line, "call");
     }
 
-    // FIXME: verify the number of blocks the function call
-    // is expected to allocate and detect any memory leaks
-    rw_check_leaks (str.get_allocator (), tcase.line,
-                    std::size_t (-1), std::size_t (-1));
+    if (arg != arg_buf)
+        delete[] arg;
+
+    arg = 0;
+
+    if (throw_on)
+        delete[] throw_on;
 }
 
 /**************************************************************************/
@@ -1276,7 +1280,7 @@ int main (int argc, char** argv)
         TEST (StringIds::getline_istream_str_val, getline_val)
     };
 
-    const std::size_t test_count = sizeof tests / sizeof *tests;
+    const size_t test_count = sizeof tests / sizeof *tests;
 
     return rw_run_string_test (argc, argv, __FILE__,
                                "lib.string.io",
