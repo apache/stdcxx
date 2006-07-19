@@ -6,16 +6,23 @@
  *
  ************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2004-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -36,9 +43,9 @@
 
 #if !defined  (_WIN32) && !defined (_WIN64)
 #  include <langinfo.h>   // for CODESET
-#  include <unistd.h>
+#  include <unistd.h>     // for close(), open()
 #else
-#  include <io.h>
+#  include <io.h>         // for _commit()
 #endif
 
 #include <assert.h>   // for assert
@@ -450,4 +457,43 @@ size_t rw_fwrite (const char *fname,
     fclose (fp);
 
     return nbytes;
+}
+
+
+/************************************************************************/
+
+// get the file descriptor that will be returned by the next call
+// to creat() or open() (used to detect file descriptor leaks)
+_TEST_EXPORT int
+rw_nextfd (int *count)
+{
+    if (count) {
+
+        *count = 0;
+
+#if defined (_WIN32) || defined (_WIN64)
+
+        for (int i = 0; i != 256; ++i) {
+
+            const int ret = _commit (i);
+
+            if (-1 != ret || EBADF != errno)
+                ++*count;
+        }
+#else   // if not Windoze
+
+        for (int i = 0; i != 256; ++i) {
+            if (-1 != fcntl (i, F_GETFD))
+                ++*count;
+        }
+
+#endif   // WIN{32,64}
+
+    }
+
+    const int fd = open (DEV_NULL, O_RDONLY);
+
+    close (fd);
+
+    return fd;
 }
