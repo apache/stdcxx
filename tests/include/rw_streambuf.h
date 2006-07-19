@@ -29,11 +29,12 @@
 #define RW_STREAMBUF_H_INCLUDED
 
 
-#include <cstring>     // for memset()
-#include <streambuf>   // for basic_streambuf
+#include <cstring>          // for memset()
+#include <streambuf>        // for basic_streambuf
 
 #include <testdefs.h>
-#include <rw_char.h>   // for make_char
+#include <rw_char.h>        // for make_char()
+#include <rw_exception.h>   // for rw_throw()
 
 
 enum MemFun {
@@ -56,6 +57,10 @@ enum MemFun {
     Unknown   = 0x4000
 };
 
+static const char* const streambuf_func_names[] = {
+    "setbuf", "seekoff", "seekpos", "showmanyc", "xsgetn", "underflow",
+    "uflow", "overflow", "pbackfail", "xsputn", "sync"
+};
 
 template <class charT, class Traits>
 struct MyStreambuf: std::basic_streambuf<charT, Traits>
@@ -163,16 +168,20 @@ private:
 public:
 
     int ncalls (MemFun) const;
+    int memfun_inx (MemFun) const;
 
     char_type       *buf_;
     std::streamsize  bufsize_;
 
-    int        throw_set_;     // functions that should throw
-    int        fail_set_;      // functions that should fail
-    MemFun     threw_;         // which function threw
-    MemFun     failed_;        // which function failed
+    int        throw_set_;       // functions that should throw
+    int        fail_set_;        // functions that should fail
+    MemFun     threw_;           // which function threw
+    MemFun     failed_;          // which function failed
 
-    int        fail_when_;     // call number on which to fail
+    int        fail_when_;       // call number on which to fail
+
+    int        throw_when_ [11]; // call number on which to throw for each func
+    int        allthrows_;       // total number of thrown exceptions
 
     // max size of the pending input sequence
     static std::streamsize in_pending_;
@@ -183,7 +192,10 @@ public:
 private:
 
     bool test (MemFun) const;
+
     int ncalls_ [11];  // number of calls made to each function
+
+    int allcalls_;     // total number of calls
 };
 
 
@@ -202,10 +214,13 @@ MyStreambuf<charT, Traits>::
 MyStreambuf (std::streamsize bufsize, int fail_set, int when)
     : Base (), buf_ (0), bufsize_ (bufsize),
       throw_set_ (0), fail_set_ (0), threw_ (None), failed_ (None),
-      fail_when_ (when)
+      fail_when_ (when), allthrows_ (0), allcalls_ (0)
 {
     // reset the member function call counters
     std::memset (ncalls_, 0, sizeof ncalls_);
+
+    // reset the member function throw counters
+    std::memset (throw_when_, 0, sizeof throw_when_);
 
     // allocate a (possibly wide) character buffer for output
     buf_ = new charT [bufsize_];
@@ -232,10 +247,13 @@ MyStreambuf<charT, Traits>::
 MyStreambuf (const char *buf, std::streamsize bufsize, int fail_set, int when)
     : Base (), buf_ (0), bufsize_ (bufsize),
       throw_set_ (0), fail_set_ (0), threw_ (None), failed_ (None),
-      fail_when_ (when)
+      fail_when_ (when), allthrows_ (0), allcalls_ (0)
 {
     // reset the member function call counters
     std::memset (ncalls_, 0, sizeof ncalls_);
+
+    // reset the member function throw counters
+    std::memset (throw_when_, 0, sizeof throw_when_);
 
     // as a convenience, if `bufsize == -1' compute the size
     // from the length of `buf'
@@ -396,11 +414,10 @@ uflow ()
     return traits_type::eof ();        
 }
 
-
 template <class charT, class Traits>
 int
 MyStreambuf<charT, Traits>::
-ncalls (MemFun which) const
+memfun_inx (MemFun which) const
 {
     int inx = -1;
 
@@ -413,7 +430,19 @@ ncalls (MemFun which) const
         }
     }
 
-    return ncalls_ [inx];
+    return inx;
+}
+
+template <class charT, class Traits>
+int
+MyStreambuf<charT, Traits>::
+ncalls (MemFun which) const
+{
+    int inx = memfun_inx (which);
+    if (0 <= inx)
+        return ncalls_ [inx];
+    
+    return -1;
 }
 
 
@@ -424,35 +453,34 @@ test (MemFun which) const
 {
     MyStreambuf* const self = _RWSTD_CONST_CAST (MyStreambuf*, this);
 
-    int inx = -1;
-
-    for (unsigned i = 0; i < sizeof (which) * _RWSTD_CHAR_BIT; ++i) {
-        if (which & (1U << i)) {
-            if (inx < 0)
-                inx = i;
-            else
-                return true;
-        }
-    }
+    int inx = memfun_inx (which);
+    if (-1 == inx)
+        return true;
 
     // increment the counter tracking the number of calls made
     // to each member function; do so regardless of whether
     // an exception will be thrown below
-    const int callno = self->ncalls_ [inx]++;
+    self->ncalls_ [inx] ++;
+    self->allcalls_ ++;
+    const int callno = self->ncalls_ [inx];
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
     // if the call counter is equal to the `fail_when_' watermark
     // and `shich' is set in the `throw_set_' bitmask, throw an
     // exception with the value of the member id
-    if (callno == fail_when_ && throw_set_ & which) {
+    if (callno == throw_when_ [inx] && throw_set_ & which) {
         self->threw_ = which;
-        throw which;
+        self->allthrows_++;
+
+        rw_throw (ex_stream, __FILE__, __LINE__, 
+                  streambuf_func_names [inx], 
+                  "%s", "test exception");
     }
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
-    if (callno == fail_when_ && throw_set_ & which) {
+    if (callno == throw_when_ [inx] && throw_set_ & which) {
         self->threw_ = which;
         return false;
     }

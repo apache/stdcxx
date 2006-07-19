@@ -28,14 +28,13 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
-#include <new>        // for bad_alloc
-
-#include <stdlib.h>   // for abort(), free(), getenv(), malloc()
+#include <stdlib.h>   // for abort(), getenv()
 #include <string.h>   // for memset()
 
 #include <driver.h>
 #include <rw_printf.h>
 #include <rw_new.h>
+#include <rw_exception.h>   // for rw_throw()
 
 /************************************************************************/
 
@@ -272,16 +271,6 @@ _rw_print_heap ()
 }
 
 
-struct BadAlloc: _RWSTD_BAD_ALLOC
-{
-    char what_ [4096];
-
-    /* virtual */ const char* what () const _THROWS (()) {
-        return what_;
-    }
-};
-
-
 static size_t seq_gen;   // sequence number generator
 
 
@@ -365,48 +354,47 @@ operator_new (size_t nbytes, bool array)
         || reached_block_limit
         || reached_size_limit) {
 
-        BadAlloc ex;
-
 #ifndef _RWSTD_NO_EXCEPTIONS
 
-        rw_snprintfa (ex.what_, 4096U, "%s:%d: %s (%zu) ",
-                      __FILE__, __LINE__, name [array], nbytes);
+        try {
+            const char * threw = "threw bad_alloc:";
 
-        strcat (ex.what_, "threw bad_alloc: ");
+            if (reached_call_limit)
+                rw_throw (ex_bad_alloc,
+                __FILE__, __LINE__, name [array], 
+                "(%zu) %s reached call limit of %zu", 
+                nbytes, threw, pst->new_calls_ [array]);
 
-        if (reached_call_limit)
+            else if (reached_block_limit)
+                rw_throw (ex_bad_alloc,
+                __FILE__, __LINE__, name [array], 
+                "(%zu) %s reached block limit of %zu: %zu",
+                nbytes, threw, *pst->throw_at_blocks_ [array], 
+                pst->blocks_ [array]);
 
-            rw_snprintfa (
-                ex.what_ + strlen (ex.what_), 4096U - strlen (ex.what_),
-                "reached call limit of %zu", pst->new_calls_ [array]);
+            else if (reached_size_limit)
+                rw_throw (ex_bad_alloc,
+                __FILE__, __LINE__, name [array], 
+                "(%zu) %s reached size limit of %zu: %zu",
+                nbytes, threw, *pst->throw_at_bytes_ [array], 
+                pst->bytes_ [array]);
+        }
+        catch (const std::exception & ex) {
+            if (trace_sequence [0] <= seq_gen && seq_gen < trace_sequence [1])
+                rw_fprintf (rw_stderr, "%s\n", ex.what ());
 
-        else if (reached_block_limit)
-
-            rw_snprintfa (
-                ex.what_ + strlen (ex.what_), 4096U - strlen (ex.what_),
-                "reached block limit of %zu: %zu", 
-                *pst->throw_at_blocks_ [array], pst->blocks_ [array]);
-
-        else if (reached_size_limit)
-
-            rw_snprintfa (
-                ex.what_ + strlen (ex.what_), 4096U - strlen (ex.what_),
-                "reached size limit of %zu: %zu",
-                *pst->throw_at_bytes_ [array], pst->bytes_ [array]);
-
-        if (trace_sequence [0] <= seq_gen && seq_gen < trace_sequence [1])
-            rw_fprintf (rw_stderr, "%s\n", ex.what ());
-
-        throw ex;
+            throw;
+        }
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
         if (reached_breakpoint) {
-            rw_snprintfa (
-                ex.what_ + strlen (ex.what_), 4096U - strlen (ex.what_),
+            char buf[4096];
+
+            rw_snprintfa (buf, sizeof(buf),
                 "reached a breakpoint at of %zu calls", *pst->break_at_seqno_);
 
-            _RW::__rw_assert_fail (ex.what_, __FILE__, __LINE__, name [array]);
+            _RW::__rw_assert_fail (buf, __FILE__, __LINE__, name [array]);
         }
 
         if (trace_sequence [0] <= seq_gen && seq_gen < trace_sequence [1])
@@ -426,16 +414,21 @@ operator_new (size_t nbytes, bool array)
         ptr = malloc (block_size);
 
     if (!ptr) {
-        BadAlloc ex;
-        rw_snprintfa (ex.what_, 4096U, 
-                      "%s:%d: %s (%zu) threw bad_alloc: malloc() returned 0",
-                      __FILE__, __LINE__, name [array], nbytes);
-        
-        if (trace_sequence [0] <= seq_gen && seq_gen < trace_sequence [1])
-            rw_fprintf (rw_stderr, "%s\n", ex.what ());
 
 #ifndef _RWSTD_NO_EXCEPTIONS
-        throw ex;
+
+        try {
+            rw_throw (ex_bad_alloc,
+                __FILE__, __LINE__, name [array], 
+                "(%zu): malloc() returned 0", nbytes);
+        }
+        catch (const std::exception & ex) {
+            if (trace_sequence [0] <= seq_gen && seq_gen < trace_sequence [1])
+                rw_fprintf (rw_stderr, "%s\n", ex.what ());
+
+            throw;
+        }
+
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
         return ptr;
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -514,7 +507,6 @@ operator_delete (void *ptr, bool array)
         Header* const hdr = _rw_find_block (ptr, true, name [array]);
 
         if (!hdr) {
-
             // hdr should never be 0 except under special circumstances
             // such as when the compiler's runtime library itself passes
             // the wrong argument to operator delete (such as libcxx

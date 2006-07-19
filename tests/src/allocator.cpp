@@ -34,6 +34,7 @@
 #include <new>              // for bad_alloc, placement new
 #include <stdarg.h>         // for va_arg(), va_list
 #include <string.h>         // for memset()
+#include <rw_exception.h>   // for rw_throw()
 
 /**************************************************************************/
 
@@ -55,36 +56,6 @@ _rw_func_names[] = {
 
 static int _rw_id_gen;   // generates unique ids
 
-/**************************************************************************/
-
-_TEST_EXPORT int
-rw_vasnprintf (char**, size_t*, const char*, va_list);
-
-
-static void
-_rw_throw_exception (const char *file, int line, const char *fmt, ...)
-{
-    struct BadSharedAlloc: _RWSTD_BAD_ALLOC {
-        char what_ [4096];
-
-        /* virtual */ const char* what () const _THROWS (()) {
-            return what_;
-        }
-    };
-
-    BadSharedAlloc ex;
-
-    va_list va;
-    va_start (va, fmt);
-
-    char *buf = ex.what_;
-    size_t bufsize = sizeof ex.what_;
-    rw_vasnprintf (&buf, &bufsize, fmt, va);
-
-    va_end (va);
-
-    throw ex;
-}
 
 /**************************************************************************/
 
@@ -136,14 +107,14 @@ allocate (size_t nelems, size_t size, const void* /* = 0 */)
     const size_t nbytes = nelems * size;
 
     if (max_blocks_ < n_blocks_ + nelems)
-        _rw_throw_exception (__FILE__, __LINE__,
-                             "allocate (%zu):  reached block limit of %zu",
-                             nbytes, max_blocks_);
+        rw_throw (ex_bad_alloc, __FILE__, __LINE__, 0,
+                  "allocate (%zu):  reached block limit of %zu",
+                  nbytes, max_blocks_);
 
     if (max_bytes_ < n_bytes_ + nbytes)
-        _rw_throw_exception (__FILE__, __LINE__,
-                             "allocate (%zu):  reached size limit of %zu",
-                             nbytes, max_bytes_);
+        rw_throw (ex_bad_alloc, __FILE__, __LINE__, 0,
+                  "allocate (%zu):  reached size limit of %zu",
+                  nbytes, max_bytes_);
 
     return operator_new (nbytes, false);
 }
@@ -229,9 +200,9 @@ funcall (MemFun mf, const SharedAlloc *other /* = 0 */)
         // increment the exception counter for this function
         ++n_throws_ [mf];
 
-        _rw_throw_exception (__FILE__, __LINE__,
-                             "UserAlloc::%s: reached call limit of %zu",
-                             _rw_func_names [mf], throw_at_calls_);
+        rw_throw (ex_bad_alloc, __FILE__, __LINE__, 0,
+                  "UserAlloc::%s: reached call limit of %zu",
+                  _rw_func_names [mf], throw_at_calls_);
 
         RW_ASSERT (!"logic error: should not reach");
     }
