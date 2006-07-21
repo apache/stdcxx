@@ -1,8 +1,8 @@
 /***************************************************************************
  *
- * messages.cpp - tests exercising the std::messages facet
+ * 22.locale.messages.cpp - tests exercising the std::messages facet
  *
- * $Id: //stdlib/dev/tests/stdlib/locale/messages.cpp#40 $
+ * $Id: //stdlib/dev/tests/stdlib/locale/messages.cpp#42 $
  *
  ***************************************************************************
  *
@@ -77,23 +77,34 @@
 
 /***************************************************************************/
 
-struct CodeCvt: std::codecvt<wchar_t, char, std::mbstate_t>
+template <class charT>
+struct CodeCvt: std::codecvt<charT, char, std::mbstate_t>
 {
-    typedef std::codecvt<wchar_t, char, std::mbstate_t> Base;
+    typedef std::codecvt<charT, char, std::mbstate_t> Base;
+    typedef typename Base::extern_type                extern_type;
+    typedef typename Base::intern_type                intern_type;
+    typedef typename Base::state_type                 state_type;
+    typedef typename Base::result                     result;
 
-    static bool _used;
-    static bool _partial;
-    static bool _noconv;
-    static bool _check_state;
+    static bool used_;
+    static bool partial_;
+    static bool noconv_;
+    static bool check_state_;
 
-    static bool _valid_state;
+    static bool valid_state_;
 
     CodeCvt (std::size_t ref = 1U)
         : Base (ref) {
-        _used = _partial = _noconv = _check_state = _valid_state = false;
+        used_ = partial_ = noconv_ = check_state_ = valid_state_ = false;
     }
 
 protected:
+
+    // override base class virtual function to make the messages
+    // facet use codecvt<char, char>::in() (the base returns true)
+    bool do_always_noconv () const _THROWS (()) {
+        return false;
+    }
 
     result
     do_in (state_type         &state,
@@ -104,17 +115,17 @@ protected:
            intern_type        *to_end,
            intern_type       *&to_next) const {
 
-        _used = true;
+        used_ = true;
 
 #ifndef _RWSTD_NO_MBSINIT
 
-        if (_check_state)
-            _valid_state = std::mbsinit (&state) != 0;
+        if (check_state_)
+            valid_state_ = std::mbsinit (&state) != 0;
 
 #else   // if (_RWSTD_NO_MBSINIT)
 
-        if (_check_state)
-            _valid_state = true;
+        if (check_state_)
+            valid_state_ = true;
 
 #endif   // _RWSTD_NO_MBSINIT
 
@@ -122,21 +133,26 @@ protected:
             Base::do_in (state, from, from_end, from_next,
                          to, to_end, to_next);
 
-        if (_partial)
+        if (partial_)
             return std::codecvt_base::partial;
 
-        if (_noconv)
+        if (noconv_)
             return std::codecvt_base::noconv;
 
         return res;
     }
 };
 
-bool CodeCvt::_used;
-bool CodeCvt::_partial;
-bool CodeCvt::_noconv;
-bool CodeCvt::_check_state;
-bool CodeCvt::_valid_state;
+template <class charT>
+bool CodeCvt<charT>::used_;
+template <class charT>
+bool CodeCvt<charT>::partial_;
+template <class charT>
+bool CodeCvt<charT>::noconv_;
+template <class charT>
+bool CodeCvt<charT>::check_state_;
+template <class charT>
+bool CodeCvt<charT>::valid_state_;
 
 /***************************************************************************/
 
@@ -269,7 +285,8 @@ void generate_catalog (const char *msg_name,
     std::fprintf (f, "STRINGTABLE\nBEGIN\n");
     for (int i = 0; i < MAX_SETS; ++i) {
         for (int j = 0; j < MAX_MESSAGES; ++j) {
-            std::fprintf (f, "%d \"%s\"\n", msg_id(i+1, j+1), text[i][j]);
+            const int msgid = msg_id (i + 1, j + 1);
+            std::fprintf (f, "%d \"%s\"\n", msgid, text[i][j]);
         }
     }
 
@@ -349,13 +366,89 @@ void test_has_facet (const char *loc_name, const char *cname)
     try {
         std::use_facet<Messages>(loc);
     }
+#ifndef _RWSTD_NO_EXCEPTIONS
+
+    catch (std::exception &ex) {
+        rw_assert (0, 0, __LINE__,
+                   "use_fact<messages<%s> >(locale(%#s)) unexpectedly threw "
+                   "exception(%#s)", cname, loc_name, ex.what ());
+    }
+
+#endif   // _RWSTD_NO_EXCEPTIONS
+
+}
+
+/***************************************************************************/
+
+template <class charT>
+std::messages_base::catalog
+open_catalog (const std::messages<charT> &msgs,
+              const char *cat_name, const std::locale &loc,
+              bool expect_exception, const char *cname, int line)
+{
+    std::messages_base::catalog cat = -1;
+
+    try {
+        // an already closed cat should throw an exception
+        cat = (msgs.open)(cat_name, loc);
+
+        rw_assert (!expect_exception, 0, line,
+                   "messages<%s>::open(%#s, locale(%#s)) failed "
+                   "to throw an expected exception",
+                   cname, cat_name, loc.name ().c_str ());
+    }
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
     catch (std::exception &ex) {
-        rw_assert (!facet_exists, 0, __LINE__,
-                   "use_facet<messages<%s>> unexpectedly threw "
-                   "exception(%#s)", cname, ex.what ());
+        rw_assert (expect_exception, 0, line,
+                   "messages<%s>::open(%#s, locale(%#s)) unexpectedly "
+                   "threw exception(%#s)",
+                   cname, cat_name, loc.name ().c_str (), ex.what ());
+    }
+    catch (...) {
+        rw_assert (expect_exception, 0, line,
+                   "messages<%s>::open(%#s, locale(%#s)) unexpectedly "
+                   "threw an unknown exception",
+                   cname, cat_name, loc.name ().c_str ());
+    }
+
+#endif   // _RWSTD_NO_EXCEPTIONS
+
+    return cat;
+}
+
+/***************************************************************************/
+
+template <class charT>
+void
+close_catalog (const std::messages<charT> &msgs,
+               std::messages_base::catalog cat,
+               bool expect_exception,
+               const char *cname, int line)
+{
+    try {
+        // an already closed cat should throw an exception
+        (msgs.close)(cat);
+
+        rw_assert (!expect_exception, 0, line,
+                   "messages<%s>::close(%d) failed "
+                   "to throw an expected exception", cname);
+    }
+
+#ifndef _RWSTD_NO_EXCEPTIONS
+
+    catch (std::exception &ex) {
+        rw_assert (expect_exception, 0, line,
+                   "messages<%s>::close(%d) unexpectedly "
+                   "threw exception(%#s)",
+                   cname, cat, ex.what ());
+    }
+    catch (...) {
+        rw_assert (expect_exception, 0, line,
+                   "messages<%s>::close(%d) unexpectedly "
+                   "threw an unknown exception",
+                   cname, cat);
     }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -381,59 +474,14 @@ void test_open_close (const char *loc_name, const char *cname)
     const std::messages<charT>& msgs =
         std::use_facet<std::messages<charT> >(loc);
 
-    std::messages_base::catalog cat = -1;
+    const std::messages_base::catalog cat =
+        open_catalog (msgs, CAT_NAME, loc, false, cname, __LINE__);
 
-    try {
-        cat = (msgs.open)(CAT_NAME, loc);
-    }
+    // close a (presumably successfully) opened catalog
+    close_catalog (msgs, cat, cat < 0, cname, __LINE__);
 
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    catch (std::exception &ex) {
-        rw_assert (cat < 0, 0, __LINE__,
-                   "messages<%s>::open(%#s, locale(%#s)) unexpectedly threw "
-                   "exception(%#s)", cname, CAT_NAME, loc.name ().c_str (),
-                   ex.what ());
-    }
-
-#endif   // _RWSTD_NO_EXCEPTIONS
-
-    rw_assert (0 <= cat, 0, __LINE__,
-               "messages<%s>::open(%#s, locale(%#s)) >= -1, got %d",
-               cname, CAT_NAME, loc_name, cat);
-
-    try {
-        (msgs.close)(cat);
-    }
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    catch (std::exception &ex) {
-        rw_assert (cat < 0, 0, __LINE__,
-                   "messages<%s>::close(%d) unexpectedly threw "
-                   "exception(%#s)", cname, cat, ex.what ());
-    }
-
-#endif   // _RWSTD_NO_EXCEPTIONS
-
-    try {
-        // an already closed cat should throw an exception
-        (msgs.close)(cat);
-
-        rw_assert (0, 0, __LINE__,
-                   "std::messages<%s>::get(-1, ...) failed "
-                   "to throw an exception", cname);
-    }
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    catch (std::exception &ex) {
-        rw_assert (true, 0, __LINE__,
-                   "messages<%s>::close(%d) threw exception(%#s)",
-                   cname, cat, ex.what ());
-    }
-
-#endif   // _RWSTD_NO_EXCEPTIONS
+    // an already closed cat should throw an exception
+    close_catalog (msgs, cat, true, cname, __LINE__);
 
     // verify that no file descriptor has leaked
     next_fd [1] = rw_nextfd (fdcount + 1);
@@ -463,20 +511,7 @@ void test_get (const char *loc_name,
 
     std::messages_base::catalog cat = -1;
 
-    try {
-        cat = (msgs.open)(CAT_NAME, loc);
-    }
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    catch (std::exception &ex) {
-        rw_assert (cat < 0, 0, __LINE__,
-                   "messages<%s>::open(%#s, locale(%#s)) unexpectedly threw "
-                   "exception(%#s)", cname, CAT_NAME, loc.name ().c_str (),
-                   ex.what ());
-    }
-
-#endif   // _RWSTD_NO_EXCEPTIONS
+    cat = open_catalog (msgs, CAT_NAME, loc, false, cname, __LINE__);
 
     rw_assert (-1 <= cat, 0, __LINE__,
                "messages<%s>::open(%#s, locale(%#s)) <= -1, got %d",
@@ -493,14 +528,14 @@ void test_get (const char *loc_name,
 
         for (int msgId = 1; msgId < MAX_MESSAGES; ++msgId) {
 
-            const String got =
-                msgs.get (cat, setId, msg_id (setId, msgId), def);
+            const int id = msg_id (setId, msgId);
+            const String got = msgs.get (cat, setId, id, def);
 
             rw_assert (got == widen<charT>(text [setId - 1][msgId - 1]),
                        0, __LINE__,
                        "messages<%s>::get(%d, %d, %d, %{*Ac}) == %#s, "
                        "got %{#*S}",
-                       cname, cat, setId, msg_id (setId, msgId),
+                       cname, cat, setId, id,
                        int (sizeof *def), def,
                        text [setId - 1][msgId - 1],
                        int (sizeof (charT)), &got);
@@ -544,7 +579,7 @@ void test_get (const char *loc_name,
     rw_assert (msgs.get (cat, 1, 777, def) == def, 0, __LINE__,
                "messages<%s>::get(%d, 777, 1) == \"\"", cname);
 
-    (msgs.close)(cat);
+    close_catalog (msgs, cat, false, cname, __LINE__);
 }
 
 /***************************************************************************/
@@ -552,7 +587,7 @@ void test_get (const char *loc_name,
 template <class charT>
 void test_use_codecvt (const char *cname)
 {
-    CodeCvt cvt (1);
+    CodeCvt<charT> cvt (1);
 
     const std::locale loc (std::locale::classic (), &cvt);
 
@@ -563,59 +598,52 @@ void test_use_codecvt (const char *cname)
     const std::messages<charT>& msgs =
         std::use_facet <std::messages<charT> >(loc);
 
-    cvt._used = false;
+    cvt.used_ = false;
 
     std::messages_base::catalog cat = -1;
 
-    try {
-        cat = (msgs.open)(CAT_NAME, loc);
-    }
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-    catch (std::exception &ex) {
-        rw_assert (cat < 0, 0, __LINE__,
-                   "messages<%s>::open(%#s, locale(%#s)) unexpectedly threw "
-                   "exception(%#s)", cname, CAT_NAME, loc.name ().c_str (),
-                   ex.what ());
-    }
-
-#endif   // _RWSTD_NO_EXCEPTIONS
+    cat = open_catalog (msgs, CAT_NAME, loc, false, cname, __LINE__);
 
     if (!rw_error (-1 < cat, 0, __LINE__,
                    "messages<%s>::open(%#s, locale(%#s)) >= -1, got %d",
                    CAT_NAME, loc.name ().c_str (), cat))
         return;
 
-    cvt._check_state = true;
+    cvt.check_state_ = true;
 
-    std::basic_string<charT> got = msgs.get (cat, 1, msg_id(1,1), def);
-    rw_assert (cvt._used, 0, __LINE__,
-               "messages<%s>::get() uses codecvt<%1$s, char>", cname);
+    const int msgid = msg_id (1, 1);
+    std::basic_string<charT> got = msgs.get (cat, 1, msgid, def);
+    rw_assert (cvt.used_, 0, __LINE__,
+               "messages<%s>::get(%d, 1, %d, const char_type*) "
+               "uses codecvt<%1$s, char>", cname, cat, msgid);
 
-    rw_assert (cvt._valid_state, 0, __LINE__,
-               "messages<%s>::get() initializes mbstate_t argument", cname);
+    rw_assert (cvt.valid_state_, 0, __LINE__,
+               "messages<%s>::get(%d, 1, %d, const char_type*) "
+               "initializes mbstate_t argument", cname, cat, msgid);
 
-    cvt._check_state = false;
-    cvt._partial     = true;
+    cvt.check_state_ = false;
+    cvt.partial_     = true;
 
-    got = msgs.get (cat, 1, msg_id (1, 1), def);
-    rw_assert (got == def, 0, __LINE__, "messages<%s>::get() == %{*Ac}",
-               cname, int (sizeof *def), def);
+    got = msgs.get (cat, 1, msgid, def);
+    rw_assert (got == def, 0, __LINE__,
+               "messages<%s>::get(%d, 1, %d, %{*Ac}) == %{*Ac}",
+               cname, cat, msgid, int (sizeof *def), def,
+               int (sizeof *def), def);
 
-    cvt._partial = false;
-    cvt._noconv  = true;
+    cvt.partial_ = false;
+    cvt.noconv_  = true;
 
-    got = msgs.get (cat, 1, msg_id(1,1), def);
+    got = msgs.get (cat, 1, msgid, def);
     rw_assert (got == widen<charT>(std::string(messages[0][0])), 0, __LINE__,
-               "messages<%s>::get() == %#s, got %{#*S}",
-               cname, messages [0][0], int (sizeof (charT)), &got);
+               "messages<%s>::get(%d, 1, %d, %{*Ac}) == %#s, got %{#*S}",
+               cname, cat, msgid, int (sizeof *def), def,
+               messages [0][0], int (sizeof (charT)), &got);
 
-    cvt._noconv = false;
+    cvt.noconv_ = false;
 
-    (msgs.close)(cat);
+    close_catalog (msgs, cat, false, cname, __LINE__);
 
-    cvt._used = false;
+    cvt.used_ = false;
 }
 
 /***************************************************************************/
@@ -649,7 +677,7 @@ void test_use_nls_path (const char *cname)
                    "NLSPATH=%s", cname, NLS_CAT_NAME, envvar);
     }
     else {
-        (msgs.close)(cat);
+        close_catalog (msgs, cat, false, cname, __LINE__);
     }
 
     delete[] nlspath;
@@ -693,45 +721,44 @@ void stress_test (const char *cname)
         std::strcat (catalog_names[i], ".dll");
 #endif
 
-        cats[i] = (msgs.open)(catalog_names [i], loc);
-        rw_assert (cats [i] != -1, 0, __LINE__,
-                   "messages<%s>::open(%#s) != -1, got %d",
-                   cname, catalog_names [i], cats [i]);
+        cats [i] = open_catalog (msgs, catalog_names [i],
+                                 loc, false, cname, __LINE__);
     }
 
     // close smallest first and check for descriptor leaks
-    for (i = 0; i < 24; i++) {
+    for (i = 0; i < 24; ++i) {
         if (-1 != cats [i])
-            (msgs.close)(cats [i]);
+            close_catalog (msgs, cats [i], false, cname, __LINE__);
     }
 
     int fd2 = open (__FILE__, O_RDONLY);
     rw_assert (fd2 - fd1 == 1, 0, __LINE__,
-               "messages<%s>::close():  Look for file descriptor leaks");
+               "messages<%s>::close() leaked %d file descriptors",
+               cname, fd2 - fd1 - 1);
 
     //open again, close largest first and check for descriptor leaks
-    for (i = 0; i < 24; i++) {
-        cats [i] = (msgs.open)(catalog_names[i], loc);
-        rw_assert (cats [i] != -1, 0, __LINE__,
-                   "messages<%s>::open(%#s) != -1, got %d",
-                   cname, catalog_names[i], cats [i]);
+    for (i = 0; i < 24; ++i) {
+        cats [i] = open_catalog (msgs, catalog_names [i],
+                                 loc, false, cname, __LINE__);
     }
 
-    for (i = 23; i >=0 ; i--)
-        if (-1 != cats[i])
-            (msgs.close)(cats [i]);
+    for (i = 23; i >= 0 ; --i) {
+        if (-1 != cats [i])
+            close_catalog (msgs, cats [i], false, cname, __LINE__);
+    }
 
     // close again fd2
     close (fd2);
 
     fd2 = open (__FILE__, O_RDONLY);
     rw_assert (fd2 - fd1 == 1, 0, __LINE__,
-               "messages<%s>::close():  Look for file descriptor leaks");
+               "messages<%s>::close() leaked %d file descriptors",
+               cname, fd2 - fd1 - 1);
 
     close (fd1);
     close (fd2);
 
-    for (i = 0; i < 24; i++) {
+    for (i = 0; i < 24; ++i) {
 
 #ifndef _WIN32
         std::sprintf (msg_name, "rwstdmessages_%d.msg", i);
