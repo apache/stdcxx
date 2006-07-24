@@ -34,6 +34,7 @@
     Examples and Tutorials ....................................... 4.6
     Build Directory Structure .................................... 4.7
   Library Build Instructions ....................................... 5
+    VisualStudio Setup Instructions .............................. 5.1
   Library Installation ............................................. 6
   Test Suite Build Instructions .................................... 7
   Library Configuration ............................................ 8
@@ -471,6 +472,33 @@
      $ gmake clean       # remove all object files
      $ gmake dependclean # remove .d files (dependencies)
      $ gmake realclean   # remove all temporary files
+
+
+  5.1  VisualStudio Setup Instructions
+  ------------------------------------
+
+  To generate a Microsoft VisualStudio solution (for .NET 2003 or 2005
+  only) follow the step below.
+
+  o  > CD stdlib-X.Y.Z-YYYYMMDD\stdlib
+     > DIR /D  # this is ${TOPDIR}
+     GNUmakefile  etc  examples  generate.bat include  src  tests
+
+     If your distribution  does not contain the test  suite and/or the
+     examples, the output will look like so:
+
+     > DIR /D  # this is ${TOPDIR}
+     GNUmakefile  etc  generate.bat include  src
+
+  o  > .\generate.bat /BUILDDIR:<builddir> /CONFIG:<config>
+
+     Where <builddir> is the name of the directory where to create the
+     solution and projects, and <config> is one of msvc-7.1, msvc-8.0,
+     and  icc-9.0.   After  the  script has  finished  generating  the
+     solution and  projects, cd to <builddir>  and launch VisualStudio
+     with the name  of the solution as the argument.   The name of the
+     solution will correspond to  the specified configuration with the
+     .sln suffix.
 
 
   6  Library Installation
