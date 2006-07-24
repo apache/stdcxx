@@ -1,0 +1,1704 @@
+/***************************************************************************
+ *
+ * 22.locale.ctype.cpp -  Tests exercising the ctype facet
+ *
+ * $Id$
+ *
+ ***************************************************************************
+ *
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
+ *
+ **************************************************************************/
+
+// DESCRIPTION: test iterates over the locales installed on a machine,
+//              calling the C character classification functions and
+//              their C++ counterpart(s), comparing the results of
+//              the calls against one another.
+
+
+#include <rw/_defs.h>
+
+#if defined __linux__
+   // on Linux define _XOPEN_SOURCE to get CODESET defined in <langinfo.h>
+#  define _XOPEN_SOURCE   500   /* Single Unix conformance */
+   // bring __int32_t into scope (otherwise <wctype.h> fails to compile)
+#  include <sys/types.h>
+#endif   // __linux__
+
+// see Onyx PR #28150
+#if defined (__SUNPRO_CC) && __SUNPRO_CC <= 0x540
+#  include <wchar.h>
+#endif // defined (__SUNPRO_CC) && __SUNPRO_CC <= 0x540
+
+#include <locale>
+
+#include <climits>
+#include <clocale>
+#include <cstring>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <cwchar>     // for WEOF, btowc(), wctob()
+#include <cwctype>    // for iswxxx()
+
+
+#if !defined (_MSC_VER)
+#  if !defined (LC_MESSAGES)
+#    define LC_MESSAGES _RWSTD_LC_MESSAGES
+#  endif   // LC_MESSAGES
+#  include <langinfo.h>
+#endif  // _MSC_VER
+
+#include <driver.h>
+#include <file.h>        // for SLASH
+#include <rw_locale.h>   // for rw_locales()
+
+/**************************************************************************/
+
+// the root of the locale directory (RWSTD_LOCALE_ROOT)
+// not set here to avoid Solaris 7 putenv() bug (PR #30017)
+const char* locale_root;
+
+#define NLOOPS         25
+#define MAX_STR_SIZE   16
+
+#define BEGIN_LOCALE_LOOP(num, locname, loop_cntrl)                        \
+   for (const char* locname = rw_locales (LC_CTYPE, 0);                    \
+        *locname; locname += std::strlen (locname) + 1) {                  \
+       _TRY {                                                              \
+           const std::locale loc (locname);                                \
+           const std::ctype<char> &ctc =                                   \
+               _STD_USE_FACET (std::ctype<char>, loc);                     \
+           _RWSTD_UNUSED (ctc);                                            \
+           const std::ctype<charT> &ctp =                                  \
+               _STD_USE_FACET (std::ctype<charT>, loc);                    \
+           for (int loop_cntrl = 0; loop_cntrl < int (num); loop_cntrl++)
+
+#define END_LOCALE_LOOP(locname)                                        \
+       }                                                                \
+       _CATCH (...) {                                                   \
+           rw_assert (0, 0, __LINE__,                                   \
+                      "locale (\"%s\") threw an exception", locname);   \
+       }                                                                \
+  }
+
+
+// for notational convenience
+typedef unsigned char UChar;
+
+#define ALPHA   std::ctype_base::alpha
+#define UPPER   std::ctype_base::upper
+#define LOWER   std::ctype_base::lower
+#define DIGIT   std::ctype_base::digit
+#define SPACE   std::ctype_base::space
+#define CNTRL   std::ctype_base::cntrl
+#define PUNCT   std::ctype_base::punct
+#define XDIGIT  std::ctype_base::xdigit
+#define GRAPH   std::ctype_base::graph
+#define PRINT   std::ctype_base::print
+
+
+// wrapper functions for the c library char and wchar_t functions
+int libc_isalpha (char ch)
+{
+    return (std::isalpha)(UChar (ch));
+}
+
+int libc_isspace (char ch)
+{
+    return (std::isspace)(UChar (ch));
+}
+
+int libc_isprint (char ch)
+{
+    return (std::isprint)(UChar (ch));
+}
+
+int libc_iscntrl (char ch)
+{
+    return (std::iscntrl)(UChar (ch));
+}
+
+int libc_isupper (char ch)
+{
+    return (std::isupper)(UChar (ch));
+}
+
+int libc_islower (char ch)
+{
+    return (std::islower)(UChar (ch));
+}
+
+int libc_isdigit (char ch)
+{
+    return (std::isdigit)(UChar (ch));
+}
+
+int libc_ispunct (char ch)
+{
+    return (std::ispunct)(UChar (ch));
+}
+
+int libc_isxdigit (char ch)
+{
+    return (std::isxdigit)(UChar (ch));
+}
+
+int libc_isalnum (char ch)
+{
+    return (std::isalnum)(UChar (ch));
+}
+
+int libc_isgraph (char ch)
+{
+    return (std::isgraph)(UChar (ch));
+}
+
+char libc_tolower (char ch)
+{
+    return std::tolower (UChar (ch));
+}
+
+char libc_toupper (char ch)
+{
+    return (std::toupper)(UChar (ch));
+}
+
+std::ctype_base::mask libc_mask (int mask, char ch, const char *locname)
+{
+    char curlocname [256];
+
+    if (locname) {
+        std::strcpy (curlocname, std::setlocale (LC_CTYPE, 0));
+
+        if (0 == std::setlocale (LC_CTYPE, locname))
+            return std::ctype_base::mask ();
+    }
+
+    const int c = UChar (ch);
+
+    int result = 0;
+
+    if (mask & ALPHA && (std::isalpha)(c))
+        result |= ALPHA;
+    if (mask & CNTRL && (std::iscntrl)(c))
+        result |= CNTRL;
+    if (mask & DIGIT && (std::isdigit)(c))
+        result |= DIGIT;
+    if (mask & GRAPH && (std::isgraph)(c))
+        result |= GRAPH;
+    if (mask & LOWER && (std::islower)(c))
+        result |= LOWER;
+    if (mask & PRINT && (std::isprint)(c))
+        result |= PRINT;
+    if (mask & PUNCT && (std::ispunct)(c))
+        result |= PUNCT;
+    if (mask & SPACE && (std::isspace)(c))
+        result |= SPACE;
+    if (mask & UPPER && (std::isupper)(c))
+        result |= UPPER;
+    if (mask & XDIGIT && (std::isxdigit)(c))
+        result |= XDIGIT;
+
+    if (locname)
+        std::setlocale (LC_CTYPE, curlocname);
+
+    return std::ctype_base::mask (result);
+}
+
+inline bool libc_is (std::ctype_base::mask mask, char ch, const char *locname)
+{
+    const std::ctype_base::mask m = libc_mask (mask, ch, locname);
+
+    return 0 != (m & mask);
+}
+
+std::size_t c_strlen (const char *s1)
+{
+    return std::strlen (s1);
+}
+
+int c_strcmp (const char *s1, const char *s2)
+{
+    int ret = std::strcoll (s1, s2);
+    return ret ? ret > 0 ? 1 : -1 : 0;
+}
+
+const char* narrow (char *dst, const char *src)
+{
+    if (src == dst || !src || !dst)
+        return src;
+
+    std::memcpy (dst, src, std::strlen (src) + 1);
+    return dst;
+}
+
+
+const char* widen (char *dst, const char *src)
+{
+    if (src == dst || !src || !dst)
+        return src;
+
+    std::memcpy (dst, src, std::strlen (src) + 1);
+    return dst;
+}
+
+
+char widen (char, char ch, const char*)
+{
+    return ch;
+}
+
+char narrow (char ch, const char*)
+{
+    return ch;
+}
+
+// cond1() verifies condition [1] in Test::test_narrow_widen()
+// below using libc functions
+bool cond1 (std::ctype_base::mask mask, char ch, const char *locname)
+{
+    char curlocname [256];
+    std::strcpy (curlocname, std::setlocale (LC_CTYPE, 0));
+
+    if (0 == std::setlocale (LC_CTYPE, locname))
+        return false;
+
+#ifdef __SUNPRO_CC
+
+    // working around a SunPro bug (PR #28150)
+    using std::wint_t;
+
+#endif   // __SUNPRO_CC
+
+#ifndef _RWSTD_NO_BTOWC
+
+    const std::wint_t wc = std::btowc (UChar (ch));
+
+#elif !defined (_RWSTD_NO_MBSTOWCS)
+
+    wchar_t tmp;
+    const std::wint_t wc = 1 == std::mbstowcs (&tmp, &ch, 1) ? tmp : WEOF;
+
+#else
+
+    const std::wint_t wc = WEOF;
+
+#endif   // _RWSTD_NO_BTOWC, _RWSTD_NO_MBSTOWCS
+
+    const bool result =
+        WEOF == wc || libc_is (mask, ch, 0) || !libc_is (mask, wchar_t (wc), 0);
+
+    std::setlocale (LC_CTYPE, curlocname);
+
+    return result;
+}
+
+
+// cond3() overloads verify condition [3] in Test::test_narrow_widen()
+// below using libc functions
+bool cond3 (std::ctype_base::mask, char, const char*)
+{
+    return true;
+}
+
+
+#ifndef _RWSTD_NO_WCHAR_T
+
+int libc_isalpha (wchar_t ch)
+{
+    return (std::iswalpha)(ch);
+}
+
+int libc_isspace (wchar_t ch)
+{
+    return (std::iswspace)(ch);
+}
+
+int libc_isprint (wchar_t ch)
+{
+    return (std::iswprint)(ch);
+}
+
+int libc_iscntrl (wchar_t ch)
+{
+    return (std::iswcntrl)(ch);
+}
+
+int libc_isupper (wchar_t ch)
+{
+    return (std::iswupper)(ch);
+}
+
+int libc_islower (wchar_t ch)
+{
+    return (std::iswlower)(ch);
+}
+
+int libc_isdigit (wchar_t ch)
+{
+    return (std::iswdigit)(ch);
+}
+
+int libc_ispunct (wchar_t ch)
+{
+    return (std::iswpunct)(ch);
+}
+
+int libc_isxdigit (wchar_t ch)
+{
+    return (std::iswxdigit)(ch);
+}
+
+int libc_isalnum (wchar_t ch)
+{
+    return (std::iswalnum)(ch);
+}
+
+int libc_isgraph (wchar_t ch)
+{
+    return (std::iswgraph)(ch);
+}
+
+wchar_t libc_tolower (wchar_t ch)
+{
+    return (std::towlower)(ch);
+}
+
+wchar_t libc_toupper (wchar_t ch)
+{
+    return (std::towupper)(ch);
+}
+
+std::size_t c_strlen (const wchar_t *s1)
+{
+    return std::wcslen (s1);
+}
+
+int c_strcmp (const wchar_t *s1, const wchar_t *s2)
+{
+    int ret = std::wcscmp (s1, s2);
+    return ret ? ret > 0 ? 1 : -1 : 0;
+}
+
+
+const char* narrow (char *dst, const wchar_t *src)
+{
+    static char buf [4096];
+
+    if (!src)
+        return 0;
+
+    if (!dst)
+        dst = buf;
+
+    std::size_t len = std::wcslen (src);
+
+    _RWSTD_ASSERT (len < sizeof buf);
+
+    len = std::wcstombs (dst, src, sizeof buf / sizeof *buf);
+
+    if (std::size_t (-1) == len)
+        *dst = 0;
+
+    return dst;
+}
+
+
+const wchar_t* widen (wchar_t *dst, const char *src)
+{
+    static wchar_t buf [4096];
+
+    if (!src)
+        return 0;
+
+    if (!dst)
+        dst = buf;
+
+    std::size_t len = std::strlen (src);
+
+    _RWSTD_ASSERT (len < sizeof buf /sizeof *buf);
+
+    len = std::mbstowcs (dst, src, sizeof buf / sizeof *buf);
+
+    if (std::size_t (-1) == len)
+        *dst = 0;
+
+    return dst;
+}
+
+std::ctype_base::mask libc_mask (int mask, wchar_t ch, const char *locname)
+{
+    char curlocname [256];
+
+    if (locname) {
+        std::strcpy (curlocname, std::setlocale (LC_CTYPE, 0));
+
+        if (0 == std::setlocale (LC_CTYPE, locname))
+            return std::ctype_base::mask ();
+    }
+
+    int result = 0;
+
+    if (mask & ALPHA && (std::iswalpha)(ch))
+        result |= ALPHA;
+    if (mask & CNTRL && (std::iswcntrl)(ch))
+        result |= CNTRL;
+    if (mask & DIGIT && (std::iswdigit)(ch))
+        result |= DIGIT;
+    if (mask & GRAPH && (std::iswgraph)(ch))
+        result |= GRAPH;
+    if (mask & LOWER && (std::iswlower)(ch))
+        result |= LOWER;
+    if (mask & PRINT && (std::iswprint)(ch))
+        result |= PRINT;
+    if (mask & PUNCT && (std::iswpunct)(ch))
+        result |= PUNCT;
+    if (mask & SPACE && (std::iswspace)(ch))
+        result |= SPACE;
+    if (mask & UPPER && (std::iswupper)(ch))
+        result |= UPPER;
+    if (mask & XDIGIT && (std::iswxdigit)(ch))
+        result |= XDIGIT;
+
+    if (locname)
+        std::setlocale (LC_CTYPE, curlocname);
+
+    return std::ctype_base::mask (result);
+}
+
+bool libc_is (std::ctype_base::mask mask, wchar_t ch, const char *locname)
+{
+    const std::ctype_base::mask m = libc_mask (mask, ch, locname);
+
+    return 0 != (m & mask);
+}
+
+wchar_t widen (wchar_t, char ch, const char *locname)
+{
+    char curlocname [256];
+    std::strcpy (curlocname, std::setlocale (LC_CTYPE, 0));
+
+    if (0 == std::setlocale (LC_CTYPE, locname))
+        return UChar (ch);
+
+    wchar_t result;
+
+#ifndef _RWSTD_NO_BTOWC
+
+    result = std::btowc (UChar (ch));
+
+#elif !defined (_RWSTD_NO_MBTOWC)
+
+    if (1 != std::mbtowc (&result, &ch, 1))
+        result = wchar_t (WEOF);
+
+#else
+
+    result = UChar (ch);
+
+#endif   // _RWSTD_NO_BTOWC, _RWSTD_NO_MBTOWC
+
+    if (locname)
+        std::setlocale (LC_CTYPE, curlocname);
+
+    return result;
+}
+
+char narrow (wchar_t ch, const char *locname)
+{
+    char curlocname [256];
+    std::strcpy (curlocname, std::setlocale (LC_CTYPE, 0));
+
+    if (0 == std::setlocale (LC_CTYPE, locname))
+        return UChar (ch);
+
+    char result [MB_LEN_MAX];
+
+#ifndef _RWSTD_NO_WCTOB
+
+    result [0] = std::wctob (ch);
+
+#elif !defined (_RWSTD_NO_WCTOMB)
+
+    if (1 != std::wctomb (result, ch))
+        result [0] = '\377';
+
+#else
+
+    result [0] = char (ch);
+
+#endif   // _RWSTD_NO_WCTOB, _RWSTD_NO_WCTOMB
+
+    if (locname)
+        std::setlocale (LC_CTYPE, curlocname);
+
+    return result [0];
+}
+
+bool cond3 (std::ctype_base::mask mask, wchar_t ch, const char *locname)
+{
+    char curlocname [256];
+    std::strcpy (curlocname, std::setlocale (LC_CTYPE, 0));
+
+    if (0 == std::setlocale (LC_CTYPE, locname))
+        return false;
+
+#ifndef _RWSTD_NO_WCTOB
+
+    const int byte = std::wctob (ch);
+
+#elif !defined (_RWSTD_NO_WCTOMB)
+
+    char buf [MB_LEN_MAX];
+    const int byte = 1 == std::wctomb (buf, ch) ? buf [0] : EOF;
+
+#else
+
+    const int byte = EOF;
+
+#endif   // _RWSTD_NO_WCTOB, _RWSTD_NO_WCTOMB
+
+    const bool result =
+        EOF == byte || !libc_is (mask, char (byte), 0) || libc_is (mask, ch, 0);
+
+    std::setlocale (LC_CTYPE, curlocname);
+
+    return result;
+}
+
+#endif   // _RWSTD_NO_WCHAR_T
+
+
+template <class charT>
+void gen_str (charT *str, std::size_t size)
+{
+    // generate a random string with the given size
+    // we do not attempt to check that the size is within the
+    // valid range for the string.
+
+    for (std::size_t i = 0; i < size; i++){
+        str [i] = UChar (std::rand () % UCHAR_MAX);
+        // only increment if we are not going to roll over
+        if (str [i] != charT (UCHAR_MAX - 1U))
+            ++str [i];
+    }
+
+    str [size] = charT ();
+
+    _RWSTD_ASSERT (c_strlen (str) == size);
+}
+
+
+
+//  The  character map, as  well as  the source  file generated  below use
+//  Unicode literal strings for character symbolic names; the algorithm in
+//  localedef utility will generate correct databases even if the platform
+//  does not have a C library locale encoded with the character set we are
+//  creating.
+void write_string (std::FILE *fp, const char *str)
+{
+    // ASCII (ISO-646) character map definition
+    static const char* const base_chset [] = {
+        "<U0000>", "<U0001>", "<U0002>", "<U0003>", "<U0004>", "<U0005>",
+        "<U0006>", "<U0007>", "<U0008>", "<U0009>", "<U000a>", "<U000b>",
+        "<U000c>", "<U000d>", "<U000e>", "<U000f>", "<U0010>", "<U0011>",
+        "<U0012>", "<U0013>", "<U0014>", "<U0015>", "<U0016>", "<U0017>",
+        "<U0018>", "<U0019>", "<U001a>", "<U001b>", "<U001c>", "<U001d>",
+        "<U001e>", "<U001f>", "<U0020>", "<U0021>", "<U0022>", "<U0023>",
+        "<U0024>", "<U0025>", "<U0026>", "<U0027>", "<U0028>", "<U0029>",
+        "<U002a>", "<U002b>", "<U002c>", "<U002d>", "<U002e>", "<U002f>",
+        "<U0030>", "<U0031>", "<U0032>", "<U0033>", "<U0034>", "<U0035>",
+        "<U0036>", "<U0037>", "<U0038>", "<U0039>", "<U003a>", "<U003b>",
+        "<U003c>", "<U003d>", "<U003e>", "<U003f>", "<U0040>", "<U0041>",
+        "<U0042>", "<U0043>", "<U0044>", "<U0045>", "<U0046>", "<U0047>",
+        "<U0048>", "<U0049>", "<U004a>", "<U004b>", "<U004c>", "<U004d>",
+        "<U004e>", "<U004f>", "<U0050>", "<U0051>", "<U0052>", "<U0053>",
+        "<U0054>", "<U0055>", "<U0056>", "<U0057>", "<U0058>", "<U0059>",
+        "<U005a>", "<U005b>", "<U005c>", "<U005d>", "<U005e>", "<U005f>",
+        "<U0060>", "<U0061>", "<U0062>", "<U0063>", "<U0064>", "<U0065>",
+        "<U0066>", "<U0067>", "<U0068>", "<U0069>", "<U006a>", "<U006b>",
+        "<U006c>", "<U006d>", "<U006e>", "<U006f>", "<U0070>", "<U0071>",
+        "<U0072>", "<U0073>", "<U0074>", "<U0075>", "<U0076>", "<U0077>",
+        "<U0078>", "<U0079>", "<U007a>", "<U007b>", "<U007c>", "<U007d>",
+        "<U007e>", "<U007f>"
+    };
+
+    static const char* const supp_chset [] = {
+        // And a set of characters above 128, which have wide equivalents
+        // with values above 256
+        /* <U1000> */ "<U1000> \\xa0",
+        /* <U1001> */ "<U1001> \\xa1",
+        /* <U1002> */ "<U1002> \\xa2"
+    };
+
+    if (str) {
+        // write out `str' using the charmap above
+        for (; *str; ++str)
+            std::fprintf (fp, "%s", base_chset [UChar (*str)]);
+
+    }
+    else {
+
+#ifndef _RWSTD_NO_NL_LANGINFO
+
+        const char* const codeset = nl_langinfo (CODESET);
+
+        std::fprintf (fp, "<code_set_name> \"%s\"\n", codeset);
+        std::fprintf (fp, "<mb_cur_max> 1\n");
+        std::fprintf (fp, "<mb_cur_min> 1\n");
+
+        std::fprintf (fp, "CHARMAP\n");
+
+        // write out the basic character set
+        for (unsigned i = 0; i < sizeof base_chset / sizeof *base_chset; ++i)
+            std::fprintf (fp, "%s \\x%02x\n", base_chset [i], i);
+
+        // write out the additional characters
+        for (unsigned j = 0; j < sizeof supp_chset / sizeof *supp_chset; ++j)
+            std::fprintf (fp, "%s\n", supp_chset [j]);
+
+        std::fprintf (fp, "END CHARMAP\n");
+
+#endif   // _RWSTD_NO_NL_LANGINFO
+
+    }
+}
+
+
+// invoke localedef to build a simple locale for testing
+const char* create_locale ()
+{
+    // only one locale is enough (avoid invoking localedef more than once)
+    static const char* locname;
+
+    if (locname)
+        return locname;
+
+    // set up RWSTD_LOCALE_ROOT and other environment variables
+    locale_root = rw_set_locale_root ();
+
+    if (0 == locale_root)
+        return 0;
+
+    // create a temporary locale definition file that exercises as
+    // many different parts of the collate standard as possible
+    char srcfname [256];
+    std::sprintf (srcfname, "%s%slocale.src", locale_root, SLASH);
+
+    std::FILE *fout = std::fopen (srcfname, "w");
+
+    if (!fout) {
+        std::fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
+                      __FILE__, __LINE__, srcfname);
+        return 0;
+    }
+
+    static const char text[] = {
+        "escape_char /\n"
+        "LC_CTYPE\n"
+        "#     <A>     <B>     <C>     MYANMAR LETTER KHA\n"
+        "upper <U0041>;<U0042>;<U0043>;<U1001>\n"
+        "      <a>     <b>     <c>     MYANMAR LETTER KA\n"
+        "lower <U0061>;<U0062>;<U0063>;<U1000>\n"
+        "alpha <U0061>;<U0062>;<U0063>;<U0041>;"
+              "<U0042>;<U0043>;<U1000>;<U1001>\n"
+        "digit <U0031>;<U0032>;<U0033>;<U1002>\n"
+        "space <U0020>\n"
+        "cntrl <U0000>\n"
+        "      <!>      <\">\n"
+        "punct <U0021>; <U0022>\n"
+        "graph <U0041>;<U0042>;<U0043>;<U0061>;<U0062>;<U0063>;"
+              "<U1000>;<U1001>;<U1002>;<U1003>;<U1004>;<U1005>;"
+              "<U0031>;<U0032>;<U0033>;<U0020>;<U0021>;<U0022>\n"
+        "print <U0041>;<U0042>;<U0043>;"
+              "<U0061>;<U0062>;<U0063>;"
+              "<U1000>;<U1001>;<U1002>;<U1003>;<U1004>;<U1005>;"
+              "<U0031>;<U0032>;<U0033>;<U0020>;<U0021>;<U0022>\n"
+        "xdigit <U0041>;<U0042>;<U0043>;<U0061>;<U0062>;"
+               "<U0063>;<U0031>;<U0032>;<U0033>\n"
+        "toupper (<U0061>,<U0041>);(<U0062>,<U0042>);"
+                "(<U0063>,<U0043>);(<U1000>,<U1001>)\n"
+        "tolower (<U0041>,<U0061>);(<U0042>,<U0062>);"
+                "(<U0043>,<U0063>);(<U1001>,<U1000>)\n"
+        "END LC_CTYPE\n"
+    };
+
+    std::fprintf (fout, "%s", text);
+
+    std::fclose (fout);
+
+    // create a temporary character map file
+    char cmfname [256];
+    std::sprintf (cmfname, "%s%scharmap.src", locale_root, SLASH);
+
+    fout = std::fopen (cmfname, "w");
+
+    if (!fout) {
+        std::fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
+                      __FILE__, __LINE__, cmfname);
+        return 0;
+    }
+
+    write_string (fout, 0);
+
+    std::fclose (fout);
+
+    locname = "test-locale";
+
+    // process the locale definition file and character map
+    if (0 == rw_localedef ("-w", srcfname, cmfname, locname))
+        locname = 0;
+
+    return locname;
+}
+
+/**************************************************************************/
+
+template <class charT>
+void test_is (charT, const char *cname)
+{
+    charT str [MAX_STR_SIZE + 1];
+
+    BEGIN_LOCALE_LOOP (NLOOPS, locname, j) {
+
+        std::size_t size = std::size_t (j % MAX_STR_SIZE);
+
+        gen_str (str, size);
+
+        // create a mask for each character in the string using the c library
+        // to make sure that it is the same as the mask returned by is
+        std::ctype_base::mask vec [MAX_STR_SIZE + 1];
+
+        // set the global C locale to default to make sure
+        // the C++ library does not asume a set value
+        std::setlocale (LC_CTYPE, "");
+
+        ctp.is (str, str + size, vec);
+
+        // set the global C locale to the current locale for calls to the
+        // C library
+        std::setlocale (LC_CTYPE, locname);
+
+        for (std::size_t i = 0; i < size ; i++) {
+
+            int libc_result = 0;
+
+            if (libc_isalpha (str [i]))
+                libc_result |= ALPHA;
+            if (libc_isprint (str [i]))
+                libc_result |= PRINT;
+            if (libc_isspace (str [i]))
+                libc_result |= SPACE;
+            if (libc_iscntrl (str [i]))
+                libc_result |= CNTRL;
+            if (libc_isupper (str [i]))
+                libc_result |= UPPER;
+            if (libc_islower (str [i]))
+                libc_result |= LOWER;
+            if (libc_isdigit (str [i]))
+                libc_result |= DIGIT;
+            if (libc_ispunct (str [i]))
+                libc_result |= PUNCT;
+            if (libc_isxdigit (str [i]))
+                libc_result |= XDIGIT;
+            if (libc_isgraph (str [i]))
+                libc_result |= GRAPH;
+
+            rw_assert (vec [i] == libc_result, 0, __LINE__,
+                       "ctype<%s>::is(%{*Ac}, ..., v) in locale(%#s) "
+                       "at offset %zu; got %{LC} expected %{LC}\n",
+                       cname, int (sizeof *str), str,
+                       locname, i, vec [i], libc_result);
+        }
+    } END_LOCALE_LOOP (locname);
+}
+
+/**************************************************************************/
+
+template <class charT>
+void test_toupper_tolower (charT, const char *cname)
+{
+    rw_info (0, 0, __LINE__, "std::ctype<%s>::tolower(%1$s)", cname);
+
+    BEGIN_LOCALE_LOOP (UCHAR_MAX, locname, i) {
+
+        const charT ch = charT (i);
+
+        // set the global C locale to locname for the C library call
+        std::setlocale (LC_CTYPE, locname);
+
+        const charT lch = libc_tolower (ch);
+
+        // set the global C locale to default to make sure
+        // the C++ library does not asume a set value
+        std::setlocale (LC_CTYPE, "");
+
+        // exercise tolower using ctype<>::tolower ()
+        rw_assert (lch == (ctp.tolower)(ch), 0, __LINE__,
+                   "ctype<%s>::tolower(%{#lc}) == %{#lc}, got %{#lc} "
+                   "in locale(%#s)",
+                   cname, ch, lch, (ctp.tolower)(ch), locname);
+
+        // exercise tolower using tolower (char, locale)
+        rw_assert (lch == (charT)(std::tolower)(ch, loc), 0, __LINE__,
+                   "tolower<%s>(%{#lc}, locale(%#s)) == %{#lc}, got %{#lc}",
+                   cname, ch, locname, lch, (std::tolower)(ch, loc));
+    } END_LOCALE_LOOP (locname);
+
+    rw_info (0, 0, __LINE__, "std::ctype<%s>::toupper(%1$s)", cname);
+
+    BEGIN_LOCALE_LOOP (UCHAR_MAX, locname2, i) {
+
+        const charT ch = charT (i);
+
+        // set the global C locale to the locale name for the C library call
+        std::setlocale (LC_CTYPE, locname2);
+
+        const charT uch = libc_toupper (ch);
+
+        // set the global C locale to default to make sure
+        // the C++ library does not asume a set value
+        std::setlocale (LC_CTYPE, "");
+
+        // exercise toupper using ctype<>::toupper ()
+        rw_assert (uch == (ctp.toupper)(ch), 0, __LINE__,
+                   "ctype<%s>::toupper(%{#lc}) == %{#lc}, got %{#lc} "
+                   "in locale(%#s)",
+                   cname, ch, uch, (ctp.toupper)(ch), locname2);
+
+        // exercise toupper using toupper (char, locale)
+        rw_assert (uch == (charT)(std::toupper)(ch, loc), 0, __LINE__,
+                   "toupper<%s>(%{#lc}, locale(%#s)) == %{#lc}, got %{#lc}",
+                   cname, ch, locname2, uch, (std::toupper)(ch, loc));
+    } END_LOCALE_LOOP (locname2);
+}
+
+/**************************************************************************/
+
+template <class charT>
+void test_scan (charT, const char *cname)
+{
+    rw_info (0, 0, __LINE__, "std::ctype<%s>::scan_is(), scan_not()", cname);
+
+    charT str [MAX_STR_SIZE + 1];
+
+    BEGIN_LOCALE_LOOP (NLOOPS, locname, j) {
+
+        const std::size_t size = std::size_t (j % MAX_STR_SIZE);
+
+        // generate a random string
+        gen_str (str, size);
+
+        // set the global C locale to default to make sure
+        // the C++ library does not asume a set value
+        std::setlocale (LC_CTYPE, "");
+
+        // call scan_is and scan_not using each mask and compare it to
+        // the results found when using the c library
+
+        const charT* alpha_is   = ctp.scan_is  (ALPHA,  str, str + size);
+        const charT* alpha_not  = ctp.scan_not (ALPHA,  str, str + size);
+        const charT* space_is   = ctp.scan_is  (SPACE,  str, str + size);
+        const charT* space_not  = ctp.scan_not (SPACE,  str, str + size);
+        const charT* print_is   = ctp.scan_is  (PRINT,  str, str + size);
+        const charT* print_not  = ctp.scan_not (PRINT,  str, str + size);
+        const charT* cntrl_is   = ctp.scan_is  (CNTRL,  str, str + size);
+        const charT* cntrl_not  = ctp.scan_not (CNTRL,  str, str + size);
+        const charT* upper_is   = ctp.scan_is  (UPPER,  str, str + size);
+        const charT* upper_not  = ctp.scan_not (UPPER,  str, str + size);
+        const charT* lower_is   = ctp.scan_is  (LOWER,  str, str + size);
+        const charT* lower_not  = ctp.scan_not (LOWER,  str, str + size);
+        const charT* digit_is   = ctp.scan_is  (DIGIT,  str, str + size);
+        const charT* digit_not  = ctp.scan_not (DIGIT,  str, str + size);
+        const charT* punct_is   = ctp.scan_is  (PUNCT,  str, str + size);
+        const charT* punct_not  = ctp.scan_not (PUNCT,  str, str + size);
+        const charT* xdigit_is  = ctp.scan_is  (XDIGIT, str, str + size);
+        const charT* xdigit_not = ctp.scan_not (XDIGIT, str, str + size);
+
+        // set the global C locale to locname for the C library call
+        std::setlocale (LC_CTYPE, locname);
+
+        // find the first character in the string that is of the specified
+        // type
+        charT first = 0;
+        charT first_not = 0;
+        _RWSTD_SIZE_T i;
+        int success;
+
+#define SCAN(what)                                                      \
+        for (i = 0; i < size; i++) {                                    \
+            if (libc_is##what (str [i])) {                              \
+                first = (str [i]);                                      \
+                break;                                                  \
+            }                                                           \
+        }                                                               \
+        success =    what##_is != (str + size) || 0 == first            \
+                  || *what##_is != first;                               \
+        rw_assert (success, 0, __LINE__,                                \
+                   "ctype<%s>::scan_is(" #what ", %{#lc}) "             \
+                   "== %{*Ac}, got %{*Ac} in locale (%#s)",             \
+                   cname, int (sizeof *str), first,                     \
+                   int (sizeof *what##_is), what##_is,                  \
+                   locname);                                            \
+                                                                        \
+        first = 0;                                                      \
+        for (i = 0; i < size; i++) {                                    \
+            if (!libc_is##what (str[i])) {                              \
+                first_not = (str[i]);                                   \
+                break;                                                  \
+            }                                                           \
+        }                                                               \
+        success =    what##_not != (str + size) || 0 == first_not       \
+                  || *what##_not == first_not;                          \
+        rw_assert (success, 0, __LINE__,                                \
+                   "ctype<%s>::scan_not(" #what ", %{#lc}) "            \
+                   "== %{*Ac}, got %{*Ac} in locale (%#s)",             \
+                   cname, int (sizeof *str), first,                     \
+                   int (sizeof *what##_not), what##_not,                \
+                   locname);                                            \
+                                                                        \
+        first_not = 0
+
+        // test all classes of characters
+        SCAN (alpha);
+        SCAN (space);
+        SCAN (print);
+        SCAN (cntrl);
+        SCAN (upper);
+        SCAN (lower);
+        SCAN (digit);
+        SCAN (punct);
+        SCAN (xdigit);
+
+    } END_LOCALE_LOOP (locname);
+}
+
+/**************************************************************************/
+
+template <class charT>
+void test_narrow_widen (charT, const char *cname)
+{
+    // 22.2.1.1.2, p11 requires that the conditions below hold for all
+    // facets ctc and ct whose types are ctype<char> and ctype<charT>,
+    // respectively:
+
+    // [1] (ctc.is (M, c) || !ct.is (M, ctc.do_widen (c))) holds for
+    //     all narrow characters c
+    //     i.e., narrow characters that are NOT members of a certain
+    //     category may not belong to the same category when widened
+    //     Note: this implies that some sort of code conversion may
+    //     be necessary in order to implement a conforming do_widen()
+
+    // 22.2.1.1.2, p13 requires that:
+    // [2] (ct.do_widen (ct.do_narrow (c, dfault)) == c) holds unless
+    //     (ct.do_narrow (c, dfault) == dfault) holds
+    // [3] (ct.is (M, c) || !ctc.is (M, ct.do_narrow (c, dfault))) holds
+    //     unless (ct.do_narrow(c, dfault) == dfault) holds
+    //
+    //     C99: each of the iswxxx() functions returns true for each
+    //     wide character that corresponds (as if by a call to the
+    //     wctob() function) to a single-byte character for which the
+    //     corresponding character classification function from 7.4.1
+    //     returns true, except that the iswgraph() and iswpunct()
+    //     functions may differ with respect to wide characters other
+    //     than L' ' that are both printing and white-space wide
+    //     characters.
+    //
+    // [4] (ct.do_narrow (c, default) - '0') evaluates to the digit
+    //     value of the character for all c for which ct.is(digit, c)
+    //     returns true
+
+    rw_info (0, 0, __LINE__,
+             "std::ctype<%s>::narrow(%1$s), widen(char)",
+             cname);
+
+    rw_info (0, 0, __LINE__,
+             "std::ctype<%s>::narrow(const %1$s*, const %1$s*, char*), "
+             "widen(const char*, const char*, %1$s*)", cname);
+
+#define STR(x) #x
+
+    // verify condition [1] above; if it fails, verify that
+    // the same condition also fails to hold when using the
+    // corresponding libc functions
+#define COND1(what)                                             \
+  if (!(ctc.is (what, c) || !ctp.is (what, ctp.widen (c)))) {   \
+      rw_assert (!cond1 (what, c, locname), 0, __LINE__,        \
+                 "ctype<char>::is (" STR (what) ", %{#lc})"     \
+                 " || !ctype<%1$s>::is (" STR (what) ", "       \
+                 "ctype<%s>::widen (%{#lc}) = %{#lc})"          \
+                 " returned false in locale(%#s)",              \
+                 c, cname, c, ctp.widen (c), locname);          \
+  } else (void)0
+
+    // verify condition [3] above; if it fails, verify that
+    // the same condition also fails to hold when using the
+    // corresponding libc functions
+#define COND3(what)                                                         \
+  if (   ctp.narrow (ch, dfault) != dfault                                  \
+      && !(ctp.is (what, ch) || !ctc.is (what, ctp.narrow (ch, dfault)))) { \
+      rw_assert (!cond3 (what, ch, locname), 0, __LINE__,                   \
+                 "ctype<%s>::is (" STR (what) ", %{#lc})"                   \
+                 " || !ctype<char>::is (" STR (what) ", "                   \
+                 "ctype<%1$s>::narrow (%{#lc}, %{#c}) = %{#lc})"            \
+                 " returned false in locale(%#s)", cname,                   \
+                 ch, cname, ch, dfault, ctp.narrow (ch, '\0'),              \
+                 locname);                                                  \
+  } else (void)0
+
+
+    char c_locname [256];
+    std::strcpy (c_locname, std::setlocale (LC_ALL, 0));
+
+    BEGIN_LOCALE_LOOP (UCHAR_MAX, locname, i) {
+
+#if defined (_RWSTD_OS_SUNOS) && _RWSTD_OS_MAJOR == 5 && _RWSTD_OS_MINOR <= 10
+
+        // avoid a libc SIGSEGV in mbtowc() in zh_HK and zh_TW
+        // locales encoded using the BIG5 codeset (see bug #603)
+        if (   0 == std::strncmp ("zh_HK.BIG5", locname, 10)
+            || 0 == std::strncmp ("zh_TW.BIG5", locname, 10))
+            continue;
+
+#endif   // SunOS < 5.10
+
+        {
+            // verify that the global C locale stays unchanged
+            const char* const curlocname = std::setlocale (LC_ALL, 0);
+
+            rw_assert (!std::strcmp (c_locname, curlocname), 0, __LINE__,
+                       "setlocale(LC_ALL, 0) == \"%s\", got \"%s\"",
+                       c_locname, curlocname);
+        }
+
+        const char  c  = char (i);
+        const charT ch = charT (i);
+
+        // verify that condition [1] holds
+        COND1 (ALPHA);
+        COND1 (CNTRL);
+        COND1 (DIGIT);
+        COND1 (GRAPH);
+        COND1 (LOWER);
+        COND1 (PRINT);
+        COND1 (PUNCT);
+        COND1 (SPACE);
+        COND1 (UPPER);
+        COND1 (XDIGIT);
+
+        // verify that condition [2] holds
+        char dfault = c ? '\0' : '\1';
+        const charT ret = ctp.widen (ctp.narrow (ch, dfault));
+
+        if (ret != charT (dfault) && ret != ch) {
+            rw_assert (ch != widen (ch, narrow (ch, locname), locname),
+                       0, __LINE__,
+                       "ctype<%s>::widen (ctype<%1$s>::narrow "
+                       "(%{#lc}, %{#c})) == %{#c}; got %{#c} "
+                       "in locale (%#s)",
+                       cname, ch, dfault, ch, ret, locname);
+        }
+
+        // finally verify that condition [3] holds
+        COND3 (ALPHA);
+        COND3 (CNTRL);
+        COND3 (DIGIT);
+        COND3 (GRAPH);
+        COND3 (LOWER);
+        COND3 (PRINT);
+        COND3 (PUNCT);
+        COND3 (SPACE);
+        COND3 (UPPER);
+        COND3 (XDIGIT);
+
+        // now perform a relitively simple sanity check on the 3-argument
+        // overloads of narrow() and widen(). Make sure that the 3-argument
+        // overloads return the same value that the other overload produces
+        // Only do this the first time through the locale list.
+
+        if (i == 0) {
+            // arrays of all tested narrow and wide characters
+            charT wide_chars   [UCHAR_MAX + 1];
+            char  narrow_chars [UCHAR_MAX + 1];
+            charT narrow_in    [UCHAR_MAX + 1];
+            char  widen_in     [UCHAR_MAX + 1];
+
+            // zero out the last element to allow printing
+            wide_chars   [UCHAR_MAX] = charT ();
+            narrow_chars [UCHAR_MAX] = char ();
+            narrow_in    [UCHAR_MAX] = charT ();
+            widen_in     [UCHAR_MAX] = char ();
+
+            // set the `dfault' character to something unlikely
+            // but other than '\0'
+            dfault = '\377';
+
+            for (unsigned j = 0; j <= UCHAR_MAX; j++) {
+                wide_chars [j]   = ctp.widen (char (j));
+                narrow_chars [j] = ctp.narrow (wide_chars [j], dfault);
+                narrow_in [j]    = ctp.widen (char (j));
+                widen_in [j]     = char (j);
+            }
+
+            charT widen_out [UCHAR_MAX + 1];
+            char narrow_out [UCHAR_MAX + 1];
+
+            widen_out  [UCHAR_MAX] = charT ();
+            narrow_out [UCHAR_MAX] = char ();
+
+            // narrow source buffer into the destination
+            // and compare with expected values
+            ctp.narrow (narrow_in,
+                        narrow_in + UCHAR_MAX + 1,
+                        dfault,
+                        narrow_out);
+
+            bool success =
+                !std::memcmp (narrow_chars, narrow_out, sizeof narrow_chars);
+
+            rw_assert (success, 0, __LINE__,
+                       "ctype<%s>::narrow (%{*.*Ac}\", ... , %#c) "
+                       "== %{.*Ac}, got %{.Ac} in locale (%#s)", cname,
+                       int (sizeof *narrow_in), UCHAR_MAX, narrow_in, dfault,
+                       UCHAR_MAX, narrow_chars, UCHAR_MAX, narrow_out,
+                       locname);
+
+            // widen source buffer into the destination
+            // and compare with expected values
+            ctp.widen (widen_in,
+                       widen_in + UCHAR_MAX + 1,
+                       widen_out);
+
+            success = !std::memcmp (wide_chars, widen_out, sizeof wide_chars);
+
+            rw_assert (success, 0, __LINE__,
+                       "ctype<%s>::widen (%{.*Ac}, ...) == "
+                       "%{*.*Ac}, got %{*.*Ac} in locale (%#s)",
+                       cname, UCHAR_MAX, widen_in,
+                       int (sizeof *wide_chars), UCHAR_MAX, wide_chars,
+                       int (sizeof *wide_chars), UCHAR_MAX, widen_out,
+                       locname);
+        }
+
+    } END_LOCALE_LOOP (locname);
+}
+
+/**************************************************************************/
+
+template <class charT>
+void test_is_ch (charT, const char *cname)
+{
+    // buffers to hold the character classification
+    // e.g., for `a' in the "C" locale the string will be
+    //       "print lower alpha xdigit alnum graph "
+
+    static char is_C    [80];  // C character classification
+    static char is_CXX  [80];  // C++ classification using ctype<char> facet
+    static char is_CXX2 [80];  // C++ classification using convenience funcs
+
+    rw_info (0, 0, __LINE__, "std::ctype<%s>::is(mask, %1$s)", cname);
+
+    BEGIN_LOCALE_LOOP (UCHAR_MAX, locname, i) {
+
+        const charT ch = charT (i);
+        const UChar uch = ch;
+
+        *is_C    =
+        *is_CXX  =
+        *is_CXX2 = '\0';
+
+        // set the global C locale to locname for the C library calls
+        std::setlocale (LC_CTYPE, locname);
+
+#define IS(what)                                                        \
+        libc_is##what (ch)                                              \
+             ? (void)std::strcat (is_C,    #what" ") : (void)0;
+
+        // test all classes of characters
+        IS (space); IS (print); IS (cntrl); IS (upper); IS (lower);
+        IS (alpha); IS (digit); IS (punct); IS (xdigit); IS (alnum);
+        IS (graph);
+
+        // set the global C locale to default to make sure
+        // the C++ library does not asume a set value
+        std::setlocale (LC_CTYPE, "");
+
+#undef IS
+// convenience macro
+#define IS(what)                                                   \
+    ctp.is (std::ctype_base::what, ch)                             \
+          ? (void)std::strcat (is_CXX,  #what" ") : (void)0;       \
+    (std::is##what)(ch, loc)                                       \
+          ? (void)std::strcat (is_CXX2, #what" ") : (void)0;
+
+        // test all classes of characters
+        // (must be in the same order as the IS() calls above)
+        IS (space); IS (print); IS (cntrl); IS (upper); IS (lower);
+        IS (alpha); IS (digit); IS (punct); IS (xdigit); IS (alnum);
+        IS (graph);
+
+        // compare the two strings (should match)
+
+        rw_assert (0 == std::strcmp (is_C, is_CXX), 0, __LINE__,
+                   "ctype<%s>::is(..., %{#lc}) in locale(%#s) "
+                   "expected to hold for { %s}, got { %s}",
+                   cname, uch, locname, is_C, is_CXX);
+
+        // convenience functions must produce the same results
+        rw_assert (0 == std::strcmp (is_C, is_CXX2), 0, __LINE__,
+                   "is* (%{#lc}, locale (%#s)) expected to hold for "
+                   "{ %s}, got { %s}",
+                   uch, locname, is_C, is_CXX2);
+
+#if !defined (_WIN32) && !defined (_WIN64)
+
+        // exercise POSIX requirements only on POSIX platforms
+
+        static const std::ctype_base::mask masks[] = {
+            ALPHA, std::ctype_base::mask (), CNTRL, DIGIT,
+            GRAPH, LOWER, PRINT, PUNCT,
+            SPACE, UPPER, XDIGIT
+        };
+
+        // see the POSIX description of LC_CTYPE in Locale for a table
+        // of required and allowed combinations of character classes
+
+        // a character in a given /* class */ below is also required
+        // to be included in the following set of classes
+        static const int required [sizeof masks / sizeof *masks] = {
+            /* alpha  */ ALPHA | GRAPH | PRINT,
+            /* blank  */ SPACE,
+            /* cntrl  */ CNTRL,
+            /* digit  */ DIGIT | GRAPH | PRINT | XDIGIT,
+            /* graph  */ GRAPH | PRINT,
+            /* lower  */ ALPHA | GRAPH | LOWER | PRINT,
+            /* print  */ PRINT,
+            /* punct  */ GRAPH | PRINT | PUNCT,
+            /* space  */ SPACE,
+            /* upper  */ ALPHA | GRAPH | PRINT | UPPER,
+            /* xdigit */ GRAPH | PRINT | XDIGIT
+        };
+
+        // a character in a given /* class */ below may also
+        // be included in the following set of classes
+        static const int allowed [sizeof masks / sizeof *masks] = {
+            /* alpha  */ UPPER | LOWER | XDIGIT,
+            /* blank  */ CNTRL,
+            /* cntrl  */ SPACE,
+            /* digit  */ 0,
+            /* graph  */ UPPER | LOWER | ALPHA | DIGIT | SPACE | PUNCT |XDIGIT,
+            /* lower  */ UPPER | XDIGIT,
+            /* print  */ UPPER | LOWER | ALPHA | DIGIT | SPACE | PUNCT |XDIGIT,
+            /* punct  */ SPACE,
+            /* space  */ CNTRL,
+            /* upper  */ LOWER | XDIGIT,
+            /* xdigit */ UPPER | LOWER | ALPHA | DIGIT
+        };
+
+        // a character in a given /* class */ below is explicitly
+        // disallowed to be included in the following set of classes
+        static const int disallowed [sizeof masks / sizeof *masks] = {
+            /* alpha  */ DIGIT | SPACE | CNTRL | PUNCT,
+            /* blank  */ UPPER | LOWER | ALPHA | DIGIT,
+            /* cntrl  */ UPPER | LOWER | ALPHA | DIGIT | PUNCT | GRAPH | PRINT,
+            /* digit  */ UPPER | LOWER | ALPHA | SPACE | SPACE | CNTRL,
+            /* graph  */ CNTRL,
+            /* lower  */ DIGIT | SPACE | CNTRL | PUNCT,
+            /* print  */ CNTRL,
+            /* punct  */ UPPER | LOWER | ALPHA | DIGIT | CNTRL | XDIGIT,
+            /* space  */ UPPER | LOWER | ALPHA | DIGIT | XDIGIT,
+            /* upper  */ DIGIT | SPACE | CNTRL | PUNCT,
+            /* xdigit */ SPACE | CNTRL | PUNCT
+        };
+
+        // obtain the mask of a single character
+        std::ctype_base::mask m;
+        ctp.is (&ch, &ch + 1, &m);
+
+        int missing        = 0;   // required bits missing in ch's mask
+        int all_allowed    = 0;   // all bits allowed to be set in ch's mask
+        int all_disallowed = 0;   // all bits disallowed to be set in the mask
+
+        for (std::size_t k = 0; k != sizeof masks / sizeof *masks; ++k) {
+
+            // assumes masks [k] has a single bit set
+            const int bit = m & masks [k];
+            if (!bit)
+                continue;
+
+            if ((bit & required [k]) && (m & required [k]) != required [k]) {
+                // character in a class given by masks[k] is required
+                // to also belong to all classes in required[k]
+
+                missing |= ~(m & required [k]) & required [k];
+            }
+
+            // character in a class given by masks[k] is only allowed
+            // to belong to classes in (allowed[k] | required[k]) and
+            // is not allowed to belong to those in disallowed[k]
+            all_allowed    |= required [k] | allowed [k];
+            all_disallowed |= disallowed [k];
+        }
+
+        // the space character automatically belongs to the print class
+        // but cannot belong to the punct or graph classes; other characters
+        // that belong to the space class can belong to the punct and graph
+        // classes
+        if (' ' == ch) {
+            all_disallowed |= PUNCT | GRAPH;
+            if (!(m & PRINT))
+                missing |= PRINT;
+        }
+
+        int cmask = -1;
+
+        if (missing) {
+
+            if (-1 == cmask)
+                cmask = libc_mask (-1, ch, locname);
+
+            rw_assert (m == cmask, 0, __LINE__,
+                       "mask of %{#lc} in locale(%#s) "
+                       "is missing bits %{LC}: %{LC}",
+                       ch, locname, missing, m);
+        }
+
+        if (m & ~all_allowed) {
+
+            if (-1 == cmask)
+                cmask = libc_mask (-1, ch, locname);
+
+            rw_assert (m == cmask, 0, __LINE__,
+                       "mask of %{#lc} in locale (%#s) "
+                       "contains extra bits %{LC}: %{LC}",
+                       ch, locname, m & ~all_allowed, m);
+        }
+
+        if (m & all_disallowed) {
+
+            if (-1 == cmask)
+                cmask = libc_mask (-1, ch, locname);
+
+            rw_assert (m == cmask, 0, __LINE__,
+                       "mask of %{#lc} in locale (%s#) "
+                       "contains disallowed bits { %s }: { %s }",
+                       ch, locname, m & all_disallowed, m);
+        }
+
+#endif   // !WIN32 && !WIN64
+
+    } END_LOCALE_LOOP (locname);
+}
+
+/**************************************************************************/
+
+template <class charT>
+void test_libc (charT, const char *cname)
+{
+    test_is_ch (charT (), cname);
+    test_toupper_tolower (charT (), cname);
+    test_narrow_widen (charT (), cname);
+    test_is (charT (), cname);
+    test_scan (charT (), cname);
+}
+
+/**************************************************************************/
+
+template <class charT>
+void test_libstd_scan_is (charT, const char *cname,
+                          const std::ctype<charT> &ct,
+                          const char* str, std::ctype_base::mask mask,
+                          int expected_idx, int fwiden = 0)
+{
+    // convert narrow string to a (possibly) wide representation
+    charT  wstrbuf [256];
+    charT* wstr = wstrbuf;
+
+    // If instructed to use the facet widen method, do so, otherwise
+    // use widen helper function that in turn uses C lib mbstowcs
+    if (fwiden == 0)
+        widen (wstrbuf, str);
+    else
+        ct.widen (str, str + std::strlen (str), wstrbuf);
+
+    const int success =
+        &wstr [expected_idx] == ct.scan_is (mask, wstr, wstr + c_strlen (wstr));
+
+    rw_assert (success, 0, __LINE__,
+               "ctype<%s>::scan_is() returned an unexpected value",
+               cname);
+
+}
+
+/**************************************************************************/
+
+template <class charT>
+void test_libstd_scan_not (charT, const char *cname,
+                           const std::ctype<charT> &ct,
+                           const char* str, std::ctype_base::mask mask,
+                           int expected_idx, int fwiden = 0)
+{
+    // convert narrow string to a (possibly) wide representation
+    charT  wstrbuf [256];
+    charT* wstr = wstrbuf;
+
+    // If instructed to use the facet widen method, do so, otherwise
+    // use widen helper function that in turn uses C lib mbstowcs
+    if (fwiden == 0)
+        widen (wstrbuf, str);
+    else
+        ct.widen (str, str + std::strlen (str), wstrbuf);
+
+    const int success =
+        &wstr[expected_idx] == ct.scan_not (mask, wstr, wstr + c_strlen (wstr));
+
+    rw_assert (success, 0, __LINE__,
+               "ctype<%s>::scan_not() returned an unexpected value",
+               cname);
+
+}
+
+/**************************************************************************/
+
+template <class charT>
+void test_libstd_toupper_tolower (charT, const char *cname,
+                                  const std::ctype<charT> &ct,
+                                  const char *locname)
+{
+    rw_info (0, 0, __LINE__,
+             "std::ctype<%s>::tolower(%1$s) toupper(%1$s) in locale(%#s)",
+             cname, locname);
+
+    int success;
+
+#undef TEST
+#define TEST(lower, upper)                                              \
+    success = ct.widen (upper) == ct.toupper (ct.widen (lower));        \
+    rw_assert (success, 0, __LINE__,                                    \
+               "ctype<%s>::toupper(%d) == %d, got %d", cname,           \
+               lower, upper, ct.toupper((charT)lower));                 \
+    success = ct.widen (lower) == ct.tolower (ct.widen (upper));        \
+    rw_assert (success, 0, __LINE__,                                    \
+               "ctype<%s>::tolower(%d) == %d, got %d",                  \
+               cname, upper, lower, ct.tolower((charT)upper))
+
+    TEST ('a', 'A');
+    TEST ('b', 'B');
+    TEST ('c', 'C');
+
+    if (sizeof(charT) > 1)
+        TEST ('\xa0', '\xa1');
+
+#undef TEST
+}
+
+/**************************************************************************/
+
+template <class charT>
+void test_libstd_mask (charT, const char *cname,
+                       const std::ctype<charT> &ct, const char *locname)
+{
+
+    rw_info (0, 0, __LINE__, "std::ctype<%s>::is(mask, %1$s) in locale(%#s)",
+             cname, locname);
+
+#undef TEST
+#define TEST(ch, m)                                             \
+    rw_assert (ct.is (m, ch), 0, __LINE__,                      \
+               "ctype<%s>::is(%d, %d) failed", cname, m, ch)
+
+    // make sure the characters have the correct masks
+    TEST (charT ('a'), ALPHA);
+    TEST (charT ('a'), LOWER);
+    TEST (charT ('a'), XDIGIT);
+    TEST (charT ('a'), GRAPH);
+    TEST (charT ('a'), PRINT);
+    TEST (charT ('a'), ALPHA | LOWER | XDIGIT | PRINT);
+
+    TEST (charT ('b'), ALPHA);
+    TEST (charT ('b'), LOWER);
+    TEST (charT ('b'), XDIGIT);
+    TEST (charT ('b'), GRAPH);
+    TEST (charT ('b'), PRINT);
+    TEST (charT ('b'), ALPHA | LOWER | XDIGIT | PRINT);
+
+    TEST (charT ('c'), ALPHA);
+    TEST (charT ('c'), LOWER);
+    TEST (charT ('c'), XDIGIT);
+    TEST (charT ('c'), GRAPH);
+    TEST (charT ('c'), PRINT);
+    TEST (charT ('c'), ALPHA | LOWER | XDIGIT | PRINT);
+
+    TEST (charT ('A'), ALPHA);
+    TEST (charT ('A'), UPPER);
+    TEST (charT ('A'), XDIGIT);
+    TEST (charT ('A'), GRAPH);
+    TEST (charT ('A'), PRINT);
+    TEST (charT ('A'), ALPHA | UPPER | XDIGIT | PRINT);
+
+    TEST (charT ('B'), ALPHA);
+    TEST (charT ('B'), UPPER);
+    TEST (charT ('B'), XDIGIT);
+    TEST (charT ('B'), GRAPH);
+    TEST (charT ('B'), PRINT);
+    TEST (charT ('B'), ALPHA | UPPER | XDIGIT | PRINT);
+
+    TEST (charT ('C'), ALPHA);
+    TEST (charT ('C'), UPPER);
+    TEST (charT ('C'), XDIGIT);
+    TEST (charT ('C'), GRAPH);
+    TEST (charT ('C'), PRINT);
+    TEST (charT ('C'), ALPHA | UPPER | XDIGIT | PRINT);
+
+    TEST (charT ('1'), DIGIT);
+    TEST (charT ('1'), XDIGIT);
+    TEST (charT ('1'), GRAPH);
+    TEST (charT ('1'), PRINT);
+    TEST (charT ('1'), DIGIT | XDIGIT | GRAPH | PRINT);
+
+    TEST (charT ('2'), DIGIT);
+    TEST (charT ('2'), XDIGIT);
+    TEST (charT ('2'), GRAPH);
+    TEST (charT ('2'), PRINT);
+    TEST (charT ('2'), DIGIT | XDIGIT | GRAPH | PRINT);
+
+    TEST (charT ('3'), DIGIT);
+    TEST (charT ('3'), XDIGIT);
+    TEST (charT ('3'), GRAPH);
+    TEST (charT ('3'), PRINT);
+    TEST (charT ('3'), DIGIT | XDIGIT | GRAPH | PRINT);
+
+    TEST (charT (' '), SPACE);
+    TEST (charT (' '), GRAPH);
+    TEST (charT (' '), PRINT);
+    TEST (charT (' '), SPACE | GRAPH | PRINT);
+
+    if (sizeof (charT) > 1) {
+        TEST (ct.widen ('\xa0'), ALPHA);
+        TEST (ct.widen ('\xa0'), LOWER);
+        TEST (ct.widen ('\xa0'), GRAPH);
+        TEST (ct.widen ('\xa0'), PRINT);
+        TEST (ct.widen ('\xa0'), ALPHA | LOWER | GRAPH | PRINT);
+
+        TEST (ct.widen ('\xa1'), ALPHA);
+        TEST (ct.widen ('\xa1'), UPPER);
+        TEST (ct.widen ('\xa1'), GRAPH);
+        TEST (ct.widen ('\xa1'), PRINT);
+        TEST (ct.widen ('\xa1'), ALPHA | UPPER | GRAPH | PRINT);
+
+        TEST (ct.widen ('\xa2'), DIGIT);
+        TEST (ct.widen ('\xa2'), GRAPH);
+        TEST (ct.widen ('\xa2'), PRINT);
+        TEST (ct.widen ('\xa0'), DIGIT | GRAPH | PRINT);
+    }
+}
+
+/**************************************************************************/
+
+template <class charT>
+void test_libstd (charT, const char *cname)
+{
+    // invoke localedef to build a locale to test with
+    const char* const locname = create_locale ();
+
+    if (!rw_error (0 != locname, 0, __LINE__,
+                   "failed to create a locale in %s", locale_root))
+        return;
+
+    const std::locale loc (locname);
+
+    const std::ctype<charT> &ct =
+        _STD_USE_FACET (std::ctype<charT>, loc);
+
+    ct._C_opts |=  ct._C_use_libstd;
+    ct._C_opts &= ~ct._C_use_libc;
+
+    test_libstd_mask (charT (), cname, ct, locname);
+    test_libstd_toupper_tolower (charT (), cname, ct, locname);
+
+    // now check the scan functions
+    rw_info (0, 0, __LINE__,
+             "std::ctype<%s>::scan_is(const %1$s*, const %1$s, mask*) "
+             "in locale(%#s)", cname, locname);
+
+    test_libstd_scan_is (charT (), cname, ct, "abc1BC",   DIGIT, 3);
+    test_libstd_scan_is (charT (), cname, ct, "abc123B ", SPACE, 7);
+    test_libstd_scan_is (charT (), cname, ct, "abc123",   LOWER, 0);
+    test_libstd_scan_is (charT (), cname, ct, "abc123",   UPPER, 6);
+    test_libstd_scan_is (charT (), cname, ct, "abc1ABC",  DIGIT | UPPER, 3);
+    test_libstd_scan_is (charT (), cname, ct, "abcA2BC",  DIGIT | UPPER, 3);
+
+    if (sizeof(charT) > 1) {
+        test_libstd_scan_is (charT (), cname, ct, "ABC\xa0xyz", LOWER, 3, 1);
+        test_libstd_scan_is (charT (), cname, ct, "abcx\xa1yz", UPPER, 4, 1);
+    }
+
+    rw_info (0, 0, __LINE__,
+             "std::ctype<%s>::scan_not(const %1$s*, const %1$s, mask*) "
+             "in locale(%#s)", cname, locname);
+
+    test_libstd_scan_not (charT (), cname, ct, "abc1BC", ALPHA, 3);
+    test_libstd_scan_not (charT (), cname, ct, "aaBBcc", LOWER, 2);
+    test_libstd_scan_not (charT (), cname, ct, "abc1BC", DIGIT, 0);
+    test_libstd_scan_not (charT (), cname, ct, "abc1BC", PRINT, 6);
+
+    if (sizeof(charT) > 1) {
+        test_libstd_scan_not (charT (), cname, ct, "abc\xa2xyz", ALPHA, 3, 1);
+        test_libstd_scan_not (charT (), cname, ct, "123\xa1yz ", DIGIT, 3, 1);
+    }
+}
+
+/**************************************************************************/
+
+template <class charT>
+void run_test (charT, const char *cname)
+{
+    if (0) {
+        // do a compile time only test on use_facet and has_facet
+        _STD_HAS_FACET (std::ctype_byname<charT>, std::locale ());
+        _STD_USE_FACET (std::ctype_byname<charT>, std::locale ());
+    }
+
+    test_libstd (charT (), cname);
+    test_libc (charT (), cname);
+}
+
+/**************************************************************************/
+
+static int
+run_test (int, char**)
+{
+    run_test (char (), "char");
+    run_test (wchar_t (), "wchar_t");
+
+    return 0;
+}
+
+/**************************************************************************/
+
+int main (int argc, char *argv[])
+{
+    return rw_test (argc, argv, __FILE__,
+                    "lib.category.ctype",
+                    0 /* no comment */,
+                    run_test,
+                    "",
+                    (void*)0   /* sentinel */);
+}
