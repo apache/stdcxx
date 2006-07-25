@@ -86,11 +86,11 @@ check_target_ok (const char* target)
         /* This is roughly equivlent to the -x bash operator.
            It checks if the file can be run, /not/ if we can run it
         */
-        const size_t path_len = strlen ( target );
+        const size_t path_len = strlen (target);
         char* tmp_name;
 
         /* If target is a .o file, check if it exists */
-        if ( '.' == target [path_len-1] && 'o' == target [path_len] ){
+        if ('.' == target [path_len-1] && 'o' == target [path_len]) {
             if (exists)
                 puts ("     0");
             else
@@ -105,24 +105,21 @@ check_target_ok (const char* target)
         }
 
         /* Otherwise, check for the .o file */
-        tmp_name = (char*)RW_MALLOC ( path_len + 3 );
+        tmp_name = (char*)RW_MALLOC (path_len + 3);
         memcpy (tmp_name, target, path_len + 1);
         strcat (tmp_name,".o");
 
-        if (0 > stat(tmp_name, &file_info)) {
-            if (ENOENT != errno) {
-                printf ("stat(%s) error: %s\n", tmp_name, 
-                        strerror (errno));
-            }
-            else {
+        if (0 > stat (tmp_name, &file_info)) {
+            if (ENOENT != errno)
+                printf ("stat (%s) error: %s\n", tmp_name, strerror (errno));
+            else
                 puts ("  COMP");
-            }
         }
         else {
             puts ("  LINK");
         }
                 
-        free(tmp_name);
+        free (tmp_name);
         return 0;
     }
     return 1;
@@ -132,7 +129,7 @@ check_target_ok (const char* target)
    Post target execution result analysis.
 
    This method examines the content of result, dispatching the processing
-   to check_test() or check_example() if target had a return code of 0.
+   to check_test () or check_example () if target had a return code of 0.
    Otherwise, this method determines why target terminated, based on the
    return code and outputs that reason.
 
@@ -151,15 +148,15 @@ check_target_ok (const char* target)
    @param target the path to the executable that was run
    @param exec_name the short name of the executable
    @param result the return code data from running the target
-   @see check_test()
-   @see check_example()
+   @see check_test ()
+   @see check_example ()
 */
 static void
 process_results (const char* target, const char* exec_name, 
                  const struct exec_attrs* result)
 {
     if (0 == result->status) {
-        parse_output(target, exec_name);
+        parse_output (target, exec_name);
     } 
     else if (WIFEXITED (result->status)) {
         const int retcode = WEXITSTATUS (result->status);
@@ -175,10 +172,10 @@ process_results (const char* target, const char* exec_name,
         }
     }
     else if (WIFSIGNALED (result->status)) {
-        printf("%6s\n", get_signame (WTERMSIG (result->status)));
+        printf ("%6s\n", get_signame (WTERMSIG (result->status)));
     }
     else if (WIFSTOPPED (result->status)) {
-        printf("%6s\n", get_signame (WSTOPSIG (result->status)));
+        printf ("%6s\n", get_signame (WSTOPSIG (result->status)));
     }
     else if (-1 == result->status && -1 == result->killed) {
         puts (" NKILL");
@@ -209,8 +206,8 @@ rw_basename (const char* path)
 
     assert (0 != path);
 
-    for (mark = pos = path; '\0' != *(pos); ++pos)
-        mark = ( '/' == *(pos) || '\\' == *(pos) ) ? pos+1 : mark;
+    for (mark = pos = path; '\0' != *pos; ++pos)
+        mark = ('/' == *pos || '\\' == *pos) ? pos + 1 : mark;
 
     return mark;
 }
@@ -239,10 +236,10 @@ run_target (char* target, char** childargv)
 
     childargv [0] = target;
 
-    printf ( "%-18.18s ", exec_name );
-    fflush ( stdout );
+    printf ("%-18.18s ", exec_name);
+    fflush (stdout);
 
-    if ( !check_target_ok (target))
+    if (!check_target_ok (target))
         return;
 
     status = exec_file (exec_name, childargv);
@@ -262,9 +259,9 @@ run_target (char* target, char** childargv)
 */
 
 int
-main (int argc, char *argv[])
+main (int argc, char *argv [])
 {
-    exe_name = argv[0];
+    exe_name = argv [0];
 
     if (1 < argc && '-' == argv [1][0]) {
         const int nopts = eval_options (argc, argv);
@@ -282,13 +279,13 @@ main (int argc, char *argv[])
 
     if (0 < argc) {
         int i;
-        char** childargv = split_child_opts();
+        char** childargv = split_child_opts ();
 
-        assert ( 0 != childargv );
-        puts("NAME               STATUS ASSRTS FAILED PERCNT");
+        assert (0 != childargv);
+        puts ("NAME               STATUS ASSRTS FAILED PERCNT");
 
-        for ( i = 0; i < argc; ++i ) {
-            run_target ( argv [i], childargv );
+        for (i = 0; i < argc; ++i) {
+            run_target (argv [i], childargv);
         }
 
         if (childargv [1])

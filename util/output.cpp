@@ -81,8 +81,8 @@ check_test (const char* exec_name, const char* out_name)
     unsigned fsm = 0;
     char tok;
 
-    assert ( 0 != exec_name );
-    assert ( 0 != out_name );
+    assert (0 != exec_name);
+    assert (0 != out_name);
 
     if (0 == data) {
         if (ENOENT != errno) {
@@ -99,16 +99,16 @@ check_test (const char* exec_name, const char* out_name)
             fsm = 1;
             break;
         case '#':
-            fsm = ( 1 == fsm ) ? 2 : 0;
+            fsm = (1 == fsm) ? 2 : 0;
             break;
         case ' ':
-            fsm = ( 2 == fsm ) ? 3 : ( ( 4 == fsm ) ? 5 : 0 );
+            fsm = (2 == fsm) ? 3 : ((4 == fsm) ? 5 : 0);
             break;
         case '|':
-            fsm = ( 3 == fsm ) ? 4 : 0;
+            fsm = (3 == fsm) ? 4 : 0;
             break;
         case '(':
-            if ( 5 == fsm ) {
+            if (5 == fsm) {
                 fseek (data, -6, SEEK_CUR);
                 fsm++;
                 break;
@@ -118,18 +118,18 @@ check_test (const char* exec_name, const char* out_name)
         }
     }
 
-    if (!feof(data)) {
-        while (3 == fscanf(data, "# | (S%u) %*s | %u | %u | %*u%% |\n", 
-                        &r_lvl, &r_active, &r_total)) {
+    if (!feof (data)) {
+        while (3 == fscanf (data, "# | (S%u) %*s | %u | %u | %*u%% |\n", 
+                            &r_lvl, &r_active, &r_total)) {
             if (6 < r_lvl) {
                 /* The 0.new tests produces errors, and are all 
                    expected to be active, so invert the total */
-                if (8 == r_lvl && 0 == strcmp(exec_name,"0.new"))
+                if (8 == r_lvl && 0 == strcmp (exec_name,"0.new"))
                     r_active = r_total-r_active;
                 failed += r_active;
                 asserts += r_total;
                 if (failed < r_active || asserts < r_total) {
-                    puts(" OFLOW");
+                    puts (" OFLOW");
                     return;
                 }
             }
@@ -141,27 +141,27 @@ check_test (const char* exec_name, const char* out_name)
     if (fmt_ok) {
         unsigned pcnt = 0;
         if (asserts) {
-            pcnt = 100 * ( asserts - failed ) / asserts;
+            pcnt = 100 * (asserts - failed) / asserts;
         }
-        printf("     0 %6d %6d %5d%%\n", asserts, failed, pcnt);
+        printf ("     0 %6d %6d %5d%%\n", asserts, failed, pcnt);
     }
     else {
-        puts("FORMAT");
+        puts ("FORMAT");
     }
 
-    fclose(data);
+    fclose (data);
 }
 
 /**
    Parses output file out_name for test exec_name.
    
-   This method is a reimplementation of check_test().  The difference between
-   this method and check_test() is how it parses the results.  This version
+   This method is a reimplementation of check_test ().  The difference between
+   this method and check_test () is how it parses the results.  This version
    parses compatability layer output, rather than the test driver output.
 
    @param exec_name the name of the executable that generated the output file
    @param out_name the name of the output file being parsed
-   @see check_test()
+   @see check_test ()
 */
 static void
 check_compat_test (const char* out_name)
@@ -172,7 +172,7 @@ check_compat_test (const char* out_name)
     unsigned fsm = 0;
     char tok;
 
-    assert ( 0 != out_name );
+    assert (0 != out_name);
 
     if (0 == data) {
         if (ENOENT != errno) {
@@ -191,13 +191,13 @@ check_compat_test (const char* out_name)
             fsm = 1;
             break;
         case '#':
-            if ( 1 == fsm || 2 == fsm )
+            if (1 == fsm || 2 == fsm)
                 ++fsm;
             else
                 fsm = 0;
             break;
         case ' ':
-            if ( 3 == fsm ) {
+            if (3 == fsm) {
                 ++fsm;
                 break;
             }
@@ -206,23 +206,23 @@ check_compat_test (const char* out_name)
         }
     }
 
-    if (!feof(data)) { /* leading "## A" eaten above */
-        read = fscanf(data, "ssertions = %u\n## FailedAssertions = %u",
+    if (!feof (data)) { /* leading "## A" eaten above */
+        read = fscanf (data, "ssertions = %u\n## FailedAssertions = %u",
                         &asserts, &failed);
     }
 
     if (2 == read) {
         unsigned pcnt = 0;
         if (asserts) {
-            pcnt = 100 * ( asserts - failed ) / asserts;
+            pcnt = 100 * (asserts - failed) / asserts;
         }
-        printf("     0 %6d %6d %5d%%\n", asserts, failed, pcnt);
+        printf ("     0 %6d %6d %5d%%\n", asserts, failed, pcnt);
     }
     else {
-        puts("FORMAT");
+        puts ("FORMAT");
     }
 
-    fclose(data);
+    fclose (data);
 }
 
 /**
@@ -237,7 +237,7 @@ check_compat_test (const char* out_name)
 */
 #define FILE_TEST(op, x)                                                \
     if (-1==(x))                                                        \
-        terminate ( 2, op " failed: %s\n", strerror (errno) )
+        terminate (2, op " failed: %s\n", strerror (errno))
 
 /**
    Parses output file out_name for the example exec_name.
@@ -263,16 +263,16 @@ check_compat_test (const char* out_name)
    @param exec_name the name of the executable that generated the output file
    @param out_name the name of the output file being parsed
    @see in_root
-   @see FILE_TEST()
+   @see FILE_TEST ()
    @todo remove dependancy on POSIX diff utility
 */
 static void
-check_example(const char* const exec_name, const char* const out_name)
+check_example (const char* const exec_name, const char* const out_name)
 {
     struct stat file_info;
-    const size_t root_len = strlen(in_root);
-    char* const ref_name = (char*)RW_MALLOC(root_len 
-                                           + strlen(exec_name) + 19);
+    const size_t root_len = strlen (in_root);
+    char* const ref_name = (char*)RW_MALLOC (root_len 
+                                            + strlen (exec_name) + 19);
     int state = -1;
 
     assert (0 != in_root);
@@ -286,11 +286,10 @@ check_example(const char* const exec_name, const char* const out_name)
     strcat (ref_name, exec_name);
     strcat (ref_name, ".out");
 
-    if (0 > stat(ref_name, &file_info)) {
+    if (0 > stat (ref_name, &file_info)) {
         if (ENOENT != errno) {
-            printf("stat(%s) error: %s\n", ref_name, 
-                   strerror (errno));
-            free(ref_name);
+            printf ("stat (%s) error: %s\n", ref_name, strerror (errno));
+            free (ref_name);
             return;
         }
                         
@@ -301,15 +300,13 @@ check_example(const char* const exec_name, const char* const out_name)
         strcat (ref_name, exec_name);
         strcat (ref_name, ".out");
 
-        if (0 > stat(ref_name, &file_info)) {
-            if (ENOENT != errno) {
-                printf("stat(%s) error: %s\n", ref_name, 
-                       strerror (errno));
-            }
-            else {
-                puts(" NOREF");
-            }
-            free(ref_name);
+        if (0 > stat (ref_name, &file_info)) {
+            if (ENOENT != errno)
+                printf ("stat (%s) error: %s\n", ref_name, strerror (errno));
+            else
+                puts (" NOREF");
+
+            free (ref_name);
             return;
         }
     }
@@ -317,23 +314,23 @@ check_example(const char* const exec_name, const char* const out_name)
     const pid_t child_pid = fork ();
 
     if (0 == child_pid) {   /* child */
-        /* Cache stdout (hopefully) for use if execv() fails */
-        int error_cache = dup(2);
+        /* Cache stdout (hopefully) for use if execv () fails */
+        int error_cache = dup (2);
         FILE* error_file;
-        FILE_TEST("dup(stderr)", error_cache);
+        FILE_TEST ("dup (stderr)", error_cache);
 
-        FILE_TEST("close(stdin)",close(0));
-        FILE_TEST("close(stdin)",close(1));
-        FILE_TEST("close(stderr)",close(2));
+        FILE_TEST ("close (stdin)",close (0));
+        FILE_TEST ("close (stdin)",close (1));
+        FILE_TEST ("close (stderr)",close (2));
 
         /* Todo: diff with --strip-trailing-cr on windows */
         execlp ("diff", "diff", ref_name, out_name, (char *)0);
 
         if ((error_file = fdopen (error_cache, "a")))
-            fprintf (error_file, "execlp(\"diff\", ...) error: %s\n",
+            fprintf (error_file, "execlp (\"diff\", ...) error: %s\n",
                      strerror (errno));
 
-        exit(2);
+        exit (2);
     }
 
     while (1) {
@@ -343,21 +340,21 @@ check_example(const char* const exec_name, const char* const out_name)
 
             if (WIFEXITED (state)) {
                 const int retcode = WEXITSTATUS (state);                
-                switch ( retcode ) {
+                switch (retcode) {
                 case 0:
-                    puts("     0");
+                    puts ("     0");
                     break;
                 case 1:
-                    puts("OUTPUT");
+                    puts ("OUTPUT");
                     break;
                 default:
-                    printf("diff returned %d\n", retcode);
+                    printf ("diff returned %d\n", retcode);
                 }
                 break;
             }
             else if (WIFSIGNALED (state)) {
-                printf("diff exited with %s\n", 
-                       get_signame (WTERMSIG (state)));
+                printf ("diff exited with %s\n", 
+                        get_signame (WTERMSIG (state)));
                 break;
             }
 /*
@@ -371,7 +368,7 @@ check_example(const char* const exec_name, const char* const out_name)
         }
     }
 
-    free(ref_name);
+    free (ref_name);
 }
 
 /**
@@ -379,15 +376,15 @@ check_example(const char* const exec_name, const char* const out_name)
 
    @param target the path to the executable that generated the output file
    @param exec_name the name of the executable that generated the output file
-   @see check_test()
-   @see check_compat_test()
-   @see check_example()
+   @see check_test ()
+   @see check_compat_test ()
+   @see check_example ()
 */
 void
 parse_output (const char* target, const char* exec_name)
 {
-    const size_t path_len = strlen ( target );
-    char* const out_name = (char*)RW_MALLOC ( path_len + 5);
+    const size_t path_len = strlen (target);
+    char* const out_name = (char*)RW_MALLOC (path_len + 5);
     memcpy (out_name, target, path_len + 1);
     strcat (out_name,".out");
 
@@ -398,9 +395,9 @@ parse_output (const char* target, const char* exec_name)
         else
             check_compat_test (out_name);
     }
-    else{
+    else {
         /* Otherwise, diff against the output file */
         check_example (exec_name, out_name);
     }
-    free(out_name);
+    free (out_name);
 }

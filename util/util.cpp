@@ -31,28 +31,28 @@
 #include "util.h"
 
 /**
-   Wrapper for exit(), providing a terminal error message on stderr.
+   Wrapper for exit (), providing a terminal error message on stderr.
 
-   @param state non-zero status code to exit() with
-   @param format printf() format string to display on stderr
+   @param state non-zero status code to exit () with
+   @param format printf () format string to display on stderr
 */
 void
-terminate ( const int state, const char* const format, ... )
+terminate (const int state, const char* const format, ...)
 {
     va_list args;
 
     assert (0 != format);
     assert (0 != state);
 
-    va_start ( args, format );
-    vfprintf ( stderr, format, args );
-    va_end ( args );
+    va_start (args, format);
+    vfprintf (stderr, format, args);
+    va_end (args);
 
-    exit ( state );
+    exit (state);
 }
 
 /**
-   Wrapper for malloc(), providing return value checking.
+   Wrapper for malloc (), providing return value checking.
 
    @param size number of bytes of memory to allocate
    @param file name of file calling method
@@ -62,13 +62,13 @@ terminate ( const int state, const char* const format, ... )
 void*
 guarded_malloc (const size_t size, const char* const file, const unsigned line)
 {
-    void* const alloc = malloc(size);
+    void* const alloc = malloc (size);
 
     assert (0 != file);
     assert (0 < size);
 
-    if ( 0 == alloc )
-        terminate ( 1, "malloc(%lu) at line %u of %s failed: %s\n", 
+    if (0 == alloc)
+        terminate (1, "malloc (%lu) at line %u of %s failed: %s\n", 
                  (unsigned long)size, line, file, strerror (errno));
 
     return alloc;

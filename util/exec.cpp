@@ -26,7 +26,7 @@
 
 #include <assert.h> /* for assert */
 #include <errno.h> /* for errno */
-#include <fcntl.h> /* for O_*,  */
+#include <fcntl.h> /* for O_*, */
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,13 +43,15 @@
 #include "exec.h"
 
 /**
-   Status flag used to comunicate that an alarm has triggered
+   Status flag used to comunicate that an alarm has triggered.
+
+   Value is 0 when alarm hasn't been triggered or has been handled
+   Value is 1 when alarm has been triggered and hasn't been handled
+
    @see handle_alrm
    @see open_input
 */
-static int
-alarm_timeout;   /* set to a non-zero value when a non-zero timeout expires */
-
+static int alarm_timeout;
 
 /**
    Translates a signal number into a human understandable name
@@ -65,7 +67,7 @@ get_signame (int signo)
     static const struct {
         int         val;
         const char* str;
-    } names[] = {
+    } names [] = {
 
 #undef SIGNAL
 #define SIGNAL(val)   { SIG ## val, #val }
@@ -233,16 +235,16 @@ get_signame (int signo)
     };
 
     size_t i;
-    static char def[16];
+    static char def [16];
 
-    for (i = 0; i != sizeof names / sizeof *names; ++i) {
+    for (i = 0; i < sizeof names / sizeof *names; ++i) {
         if (names [i].val == signo) {
             return names [i].str;
         }
     }
 
     /* We've run out of known signal numbers, so use a default name */
-    snprintf (def, sizeof(def), "SIG#%d", signo);
+    snprintf (def, sizeof def, "SIG#%d", signo);
     return def;
 }
 
@@ -276,7 +278,7 @@ handle_alrm (int signo)
    that the child process has terminated, or when we conclude it won't 
    terminate.  To prevent the child process from running forever, we set 
    handle_alrm as the handler for SIGALRM using the sigaction system call and 
-   set a timeout using the alarm() system call.  If this timeout expires, we 
+   set a timeout using the alarm () system call.  If this timeout expires, we 
    try to kill the child process using several different signals.
 
    @todo add better handling for corner conditions
@@ -289,7 +291,7 @@ handle_alrm (int signo)
 static struct exec_attrs
 wait_for_child (pid_t child_pid)
 {
-    static const int signals[] = {
+    static const int signals [] = {
         SIGHUP, SIGINT, SIGTERM, SIGKILL, SIGKILL
     };
 
@@ -308,7 +310,7 @@ wait_for_child (pid_t child_pid)
 #else
     int waitopts = WUNTRACED;
 #endif
-    assert ( 1 < child_pid );
+    assert (1 < child_pid);
 
     /* Clear timeout */
     alarm_timeout = 0;
@@ -320,7 +322,7 @@ wait_for_child (pid_t child_pid)
     act.sa_handler = handle_alrm;
     sigaction (SIGALRM, &act, 0);
     
-    if (timeout>0)
+    if (timeout > 0)
         alarm (timeout);
 
     while (1) {
@@ -358,7 +360,7 @@ wait_for_child (pid_t child_pid)
                 ++siginx;
 
                 /* Step to the next signal */
-                if (siginx > sigcount ) {
+                if (siginx > sigcount) {
                     /* Still running, but we've run out of signals to try
                        Therefore, we'll set error flags and break out of 
                        the loop.
@@ -384,12 +386,12 @@ wait_for_child (pid_t child_pid)
             }
             else if (ECHILD == errno) {
                 /* should not happen */
-                fprintf (stderr, "waitpid(%d) error: %s\n",
+                fprintf (stderr, "waitpid (%d) error: %s\n",
                          (int)child_pid, strerror (errno));
             }
             else {
-                /* waitpid() error */
-                fprintf (stderr, "waitpid(%d) error: %s\n",
+                /* waitpid () error */
+                fprintf (stderr, "waitpid (%d) error: %s\n",
                          (int)child_pid, strerror (errno));
             }
         }
@@ -453,8 +455,8 @@ open_input (const char* exec_name)
 
         /* If the file exists (errno isn't ENOENT), exit */
         if (ENOENT != errno)
-            terminate ( 1, "open(%s) failed: %s\n", tmp_name, 
-                        strerror (errno));
+            terminate (1, "open (%s) failed: %s\n", tmp_name, 
+                       strerror (errno));
 
         /* Try in_root/tutorial/in/exec_name.in */
         memcpy (tmp_name, in_root, root_len+1);
@@ -471,22 +473,22 @@ open_input (const char* exec_name)
 
         /* If the file exists (errno isn't ENOENT), exit */
         if (-1 == intermit && ENOENT != errno)
-            terminate ( 1, "open(%s) failed: %s\n", tmp_name, 
-                        strerror (errno));
+            terminate (1, "open (%s) failed: %s\n", tmp_name, 
+                       strerror (errno));
 
-        free(tmp_name);
+        free (tmp_name);
     }
 
     /* If we didn't find a source file, open /dev/null */
 
-    intermit = open("/dev/null", O_RDONLY);
+    intermit = open ("/dev/null", O_RDONLY);
 
     /* If we opened the file, return the descriptor */
     if (0 <= intermit)
         return intermit;
 
     /* otherwise, print an error message and exit */
-    terminate ( 1, "open(/dev/null) failed: %s\n", strerror (errno));
+    terminate (1, "open (/dev/null) failed: %s\n", strerror (errno));
     return -1; /* silence a compiler warning */
 }
 
@@ -510,21 +512,21 @@ replace_file (int source, int dest, const char* name)
 
     result = dup2 (source, dest);
     if (-1 == result)
-        terminate ( 1,  "redirecting to %s failed: %s\n", name, 
-                    strerror (errno));
+        terminate (1, "redirecting to %s failed: %s\n", name, 
+                   strerror (errno));
 
     result = close (source);
     if (-1 == result)
-        terminate ( 1,  "closing source for %s redirection failed: %s\n", 
-                    name, strerror (errno));
+        terminate (1, "closing source for %s redirection failed: %s\n", 
+                   name, strerror (errno));
 }
 
 /**
    Entry point to the watchdog subsystem.
 
-   This method fork()s, creating a child process.  This child process becomes
-   a process group leader, redirects input and output files, then exec()s
-   the target specified in argv[0], providing it with argv to use as its argv 
+   This method fork ()s, creating a child process.  This child process becomes
+   a process group leader, redirects input and output files, then exec ()s
+   the target specified in argv [0], providing it with argv to use as its argv 
    array.  Meanwhile, the parent process calls the wait_for_child method to
    monitor the child process, passing the return value back to the calling
    method.
@@ -532,7 +534,7 @@ replace_file (int source, int dest, const char* name)
    @param exec_name name of the child executable
    @param argv argv array for child process
    @return structure describing how the child procees exited
-   @see wait_for_child()
+   @see wait_for_child ()
 */
 struct exec_attrs 
 exec_file (const char* exec_name, char** argv)
@@ -543,62 +545,62 @@ exec_file (const char* exec_name, char** argv)
         FILE* error_file;
 
         assert (0 != argv);
-        assert (0 != argv[0]);
+        assert (0 != argv [0]);
         assert (0 != exec_name);
 
         /* Set process group ID (so entire group can be killed)*/
         {
-            const pid_t pgroup = setsid();
-            if ( getpid() != pgroup )
-                terminate ( 1, "Error setting process group: %s\n",
-                            strerror (errno));
+            const pid_t pgroup = setsid ();
+            if (getpid () != pgroup)
+                terminate (1, "Error setting process group: %s\n",
+                           strerror (errno));
         }
 
-        /* Cache stdout for use if execv() fails */
+        /* Cache stdout for use if execv () fails */
         {
             const int error_cache = dup (2);
             if (-1 == error_cache)
-                terminate ( 1,  "Error duplicating stderr: %s\n", 
-                            strerror (errno));
+                terminate (1, "Error duplicating stderr: %s\n", 
+                           strerror (errno));
 
             error_file = fdopen (error_cache,"a");
             if (0 == error_file)
-                terminate ( 1,  "Error opening file handle  from cloned "
-                            "stderr file descriptor: %s\n", strerror (errno));
+                terminate (1, "Error opening file handle  from cloned "
+                           "stderr file descriptor: %s\n", strerror (errno));
         }
 
         /* Redirect stdin */
         {
             const int intermit = open_input (exec_name);
-            replace_file(intermit, 0, "stdin");
+            replace_file (intermit, 0, "stdin");
         }
 
         /* Redirect stdout */
         {
-            const size_t exelen = strlen (argv[0]);
+            const size_t exelen = strlen (argv [0]);
             const size_t outlen = exelen + 5;
             char* const tmp_name = (char*)RW_MALLOC (outlen);
             int intermit;
 
             /* Redirect stdout */
-            memcpy (tmp_name, argv[0], exelen + 1);
+            memcpy (tmp_name, argv [0], exelen + 1);
             strcat (tmp_name, ".out");
             intermit = open (tmp_name, O_WRONLY | O_CREAT | O_TRUNC, 
                              S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
             if (-1 == intermit)
-                terminate( 1,  "Error opening %s for output redirection: "
+                terminate (1, "Error opening %s for output redirection: "
                            "%s\n", tmp_name, strerror (errno));
 
-            replace_file(intermit, 1, "stdout");
+            replace_file (intermit, 1, "stdout");
 
             free (tmp_name);
         }
 
         /* Redirect stderr */
-        if (-1 == dup2(1, 2))
-            terminate ( 1,  "Redirection of stderr to stdout failed: %s\n", 
-                        strerror (errno));
+        if (-1 == dup2 (1, 2))
+            terminate (1, "Redirection of stderr to stdout failed: %s\n", 
+                       strerror (errno));
 
         execv (argv [0], argv);
 
@@ -608,14 +610,14 @@ exec_file (const char* exec_name, char** argv)
         exit (1);
     }
 
-    if (-1 == child_pid){
+    if (-1 == child_pid) {
         /* Fake a failue to execute status return structure */
         struct exec_attrs state = {127, -1};
         fprintf (stderr, "Unable to create child process for %s: %s\n",
-                 argv[0], strerror (errno));
+                 argv [0], strerror (errno));
         return state;
     }
 
     /* parent */
-    return wait_for_child ( child_pid );
+    return wait_for_child (child_pid);
 }
