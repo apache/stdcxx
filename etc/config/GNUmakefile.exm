@@ -21,7 +21,7 @@ include ../makefile.common
 
 INCLUDES += -I$(EXMDIR)/include
 
-RUNFLAGS += -x $(EXMDIR)
+RUNFLAGS += -d $(EXMDIR)
 
 ##############################################################################
 #  TARGETS
@@ -36,6 +36,9 @@ $(TARGET): $(LIBDIR)/$(LIBNAME)
 
 $(LIBDIR)/$(LIBNAME):
 	@$(MAKE) -C $(LIBDIR) 
+
+$(BINDIR)/runutil:
+	@$(MAKE) -C $(BINDIR) runutil
 
 # do any directory specific cleanup using the realclean target
 realclean: dependclean clean

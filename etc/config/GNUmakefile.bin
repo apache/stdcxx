@@ -15,7 +15,7 @@ ONE_REPOSITORY = 1
 include ../makefile.common
 
 INCLUDES += -I$(TOPDIR)/include/loc
-TARGET    = localedef locale
+TARGET    = exec localedef locale
 
 # locale sources and related 
 NLSDIR = $(TOPDIR)/etc/nls
@@ -52,6 +52,11 @@ all:  $(LIBDIR)/$(LIBNAME) $(TARGET) $(RUNTARGET)
 
 $(LIBDIR)/$(LIBNAME):
 	@$(MAKE) -C $(LIBDIR) 
+
+# link the run utility
+exec: runall.o cmdopt.o output.o util.o exec.o
+	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" >> $(LOGFILE)
+	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(TEEOPTS)
 
 # link the localedef utility
 localedef: localedef.o aliases.o charmap.o codecvt.o collate.o ctype.o \
