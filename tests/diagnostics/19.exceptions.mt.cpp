@@ -1,28 +1,29 @@
 /***************************************************************************
  *
- * exceptions_mt.cpp - test exercising the thread safety
- *                     of C++ Standard Library exception classes
+ * 19.exceptions.mt.cpp - test exercising the thread safety
+ *                        of C++ Standard Library exception classes
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2005-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2005-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -32,10 +33,10 @@
 #include <cassert>     // for assert
 #include <cstdio>      // for printf()
 
-#include <rw_alarm.h>  // for rw_alarm()
 #include <cmdopt.h>
 #include <driver.h>
-#include <rwthread.h>
+#include <rw_alarm.h>    // for rw_alarm()
+#include <rw_thread.h>   // for rw_thread_pool()
 #include <valcmp.h>
 
 /**************************************************************************/
@@ -309,8 +310,7 @@ run_test (int, char**)
 
 #else   // if !(0 < NTHREADS)
 
-    rw_thread_t tid;
-    std::memset (&tid, 0, sizeof tid);
+    rw_thread_t tid = rw_thread_t ();
 
     test_single_exception (&tid);
 
