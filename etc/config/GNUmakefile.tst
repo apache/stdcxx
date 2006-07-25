@@ -67,8 +67,6 @@ TARGET := $(patsubst %.cpp,%,$(SRCS))
 # add to targets objects for any sources in the current working directory
 TARGET += $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
-RUNFLAGS += -X "--compat -C $(CXX)-$(CCVER)" 
-
 ##############################################################################
 #  TARGETS
 ##############################################################################
@@ -82,6 +80,9 @@ $(LIBDIR)/$(LIBNAME):
 
 $(BUILDDIR)/rwtest/$(RWTLIBNAME):
 	@$(MAKE) -C $(BUILDDIR)/rwtest MAKEOVERRIDES=
+
+$(BINDIR)/runutil:
+	@$(MAKE) -C $(BINDIR) runutil
 
 # do any directory specific cleanup using the realclean target
 realclean: clean dependclean

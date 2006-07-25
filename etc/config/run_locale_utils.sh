@@ -317,7 +317,7 @@ nlsdir=""
 locdir=""
 
 ## output stream
-out="/dev/null"
+out="/dev/stdout"
 dbgout="/dev/null"
 
 ## Get the options from the command line
@@ -378,7 +378,12 @@ else
     exit 2
 fi
 
-
+pcnt=`expr 100 \* \( $assertions - $failedassertions \) / $assertions`
+echo "# +-----------------------+--------+--------+--------+" >> $out
+echo "# | DIAGNOSTIC            | ACTIVE |  TOTAL |INACTIVE|" >> $out
+echo "# +-----------------------+--------+--------+--------+" >> $out
+printf "# | (S7) ASSERTION        | %6d | %6d | %5d%% |\n"  $failedassertions $assertions $pcnt >> $out
+echo "# +-----------------------+--------+--------+--------+" >> $out
 echo >> $out
 echo "## Assertions = "$assertions >> $out
 echo "## FailedAssertions = "$failedassertions >> $out

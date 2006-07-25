@@ -190,14 +190,15 @@ MAKEFILE_IN = $(buildpath)/makefile.in
 
 INCDIR      = $(buildpath)/include
 LIBDIR      = $(buildpath)/lib
+BINDIR      = $(buildpath)/bin
 EXMDIR      = $(buildpath)/examples
 TSTDIR      = $(buildpath)/tests
 PHTSTDIR    = $(buildpath)/plumhall
-MAKEDIRS    = $(buildpath)           \
+MAKEDIRS    = $(buildpath)          \
               $(LIBDIR)             \
-              $(buildpath)/rwtest    \
-              $(buildpath)/bin       \
-              $(buildpath)/nls       \
+              $(buildpath)/rwtest   \
+              $(BINDIR)             \
+              $(buildpath)/nls      \
               $(TSTDIR)             \
               $(PHTSTDIR)           \
               $(EXMDIR)             \
@@ -542,16 +543,16 @@ define make-builddir
     ln -sf $(ETCDIR)/GNUmakefile.exm     $(EXMDIR)/GNUmakefile;              \
     ln -sf $(ETCDIR)/GNUmakefile.tst     $(TSTDIR)/GNUmakefile;              \
     ln -sf $(ETCDIR)/GNUmakefile.ph      $(PHTSTDIR)/GNUmakefile;            \
-    ln -sf $(ETCDIR)/GNUmakefile.bin     $(buildpath)/bin/GNUmakefile;       \
+    ln -sf $(ETCDIR)/GNUmakefile.bin     $(BINDIR)/GNUmakefile;              \
     ln -sf $(ETCDIR)/makefile.common     $(buildpath);                       \
     ln -sf $(ETCDIR)/makefile.rules      $(buildpath);                       \
     ln -sf $(ETCDIR)/configure.sh        $(buildpath)/include/configure;     \
-    ln -sf $(ETCDIR)/runall.sh           $(buildpath)/run;                   \
-    ln -sf $(ETCDIR)/runall.sh           $(buildpath)/bin/run;               \
-    ln -sf $(ETCDIR)/run_locale_utils.sh $(buildpath)/bin/run_utils;         \
-    ln -sf $(ETCDIR)/runall.sh           $(TSTDIR)/run;                      \
-    ln -sf $(ETCDIR)/runall.sh           $(PHTSTDIR)/run;                    \
-    ln -sf $(ETCDIR)/runall.sh           $(EXMDIR)/run
+    ln -sf $(BINDIR)/exec                $(buildpath)/run;                   \
+    ln -sf $(BINDIR)/exec                $(BINDIR)/run;                      \
+    ln -sf $(ETCDIR)/run_locale_utils.sh $(BINDIR)/run_utils;                \
+    ln -sf $(BINDIR)/exec                $(TSTDIR)/run;                      \
+    ln -sf $(BINDIR)/exec                $(PHTSTDIR)/run;                    \
+    ln -sf $(BINDIR)/exec                $(EXMDIR)/run
 endef   # make-builddir
 
 
@@ -581,6 +582,7 @@ $(MAKEFILE_IN): $(configpath)
           || echo "MAPFILE    = $$""(TOPDIR)/$(MAPFILE)" >> $(MAKEFILE_IN)  \
           && echo "RUNFLAGS   = -t 180"                  >> $(MAKEFILE_IN)  \
           && echo "LIBDIR     = $$""(BUILDDIR)/lib"      >> $(MAKEFILE_IN)  \
+          && echo "BINDIR     = $$""(BUILDDIR)/bin"      >> $(MAKEFILE_IN)  \
           && echo "DEPENDDIR  = $(DEPENDDIR)"            >> $(MAKEFILE_IN)  \
           && echo "PHDIR      = $(PHDIR)"                >> $(MAKEFILE_IN)  \
           && echo "PHWARNFLAGS = $(PHWARNFLAGS)"         >> $(MAKEFILE_IN)  \
@@ -632,7 +634,7 @@ config:
 
 # build utilities
 util:
-	@$(MAKE) -C$(BUILDDIR)/bin
+	@$(MAKE) -C$(BINDIR)
 
 # build library
 lib:

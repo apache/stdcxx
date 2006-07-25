@@ -109,7 +109,7 @@ endif   # eq ($(NO_DOT_O),)
 # PlumHall specific:
 # for all "top level" tests that failed to build, find and build all
 # subtests (the little tests the main test consists of)
-run runall run_all:
+run runall run_all: $(BINDIR)/exec
 	@(LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(LIBDIR);                    \
         PATH=$$PATH:.;                                                    \
         TOPDIR=$(TOPDIR);                                                 \
