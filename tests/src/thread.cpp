@@ -1,6 +1,6 @@
 /************************************************************************
  *
- * rwthread.cpp - definitions of testsuite thread helpers
+ * thread.cpp - definitions of testsuite thread helpers
  *
  * $Id$
  *
@@ -29,8 +29,8 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
-#include <rwthread.h>
-#include <stddef.h>
+#include <rw_thread.h>
+#include <stddef.h>     // for size_t
 
 /**************************************************************************/
 
