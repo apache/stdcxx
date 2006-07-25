@@ -38,7 +38,7 @@ int timeout = 10; /**< Child process timeout.  Default 10 */
 int compat = 0; /**< Test compatability mode switch.  Defaults to 0 (off) */
 const char* exe_opts = ""; /**< Command line switches for child processes */
 const char* in_root = ""; /**< Root directory for input/reference files */
-const char* exe_name; /**< Alias for process argv[0]. */
+const char* exe_name; /**< Alias for process argv [0]. */
 
 /**
    Display command line switches for program and terminate.
@@ -77,7 +77,7 @@ show_usage (int status)
    @see exe_opts
 */
 int 
-eval_options (const int argc, /* const */ char* const argv[])
+eval_options (const int argc, char* const argv [])
 {
     int i;
 
@@ -129,11 +129,11 @@ eval_options (const int argc, /* const */ char* const argv[])
             if ('\0' == argv [i][2])
                 return i+1;
 
-            if (8 == arglen && 0 == memcmp ("--compat", argv [i], 8)){
+            if (8 == arglen && 0 == memcmp ("--compat", argv [i], 8)) {
                 compat = 1;
                 break;
             }
-            else if (10 == arglen && 0 == memcmp ("--nocompat", argv [i], 10)){
+            else if (10 == arglen && 0 == memcmp ("--nocompat", argv [i], 10)) {
                 compat = 0;
                 break;
             }
@@ -185,13 +185,13 @@ split_child_opts ()
 
     table_pos = argv = (char**)RW_MALLOC (
         (strlen (exe_opts) + 5) * sizeof (char*) / 2);
-    /* (strlen (exe_opts)+5)/2 is overkill for the most situations, 
-       but it is just large enough to handle the worst case scenario
-       (worst case is similar to 'x y' or 'x y z', requiring lengths
-       of 4 and 5 respectively.)
+    /* (strlen (exe_opts)+5)/2 is overkill for the most situations, but it is 
+       just large enough to handle the worst case scenario.  The worst case 
+       is a string similar to 'x y' or 'x y z', requiring array lengths of 4 
+       and 5 respectively.
     */
 
-    last = target = argv[1] = (char*)RW_MALLOC (strlen (exe_opts) + 1);
+    last = target = argv [1] = (char*)RW_MALLOC (strlen (exe_opts) + 1);
 
     /* Transcribe the contents, handling escaping and splitting */
     for (pos = exe_opts; *pos; ++pos) {
