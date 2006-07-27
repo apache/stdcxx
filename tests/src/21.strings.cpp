@@ -6,22 +6,21 @@
  *
  ***************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
  * 
  **************************************************************************/
 
@@ -153,7 +152,7 @@ _rw_get_func_inx (StringIds::OverloadId fid)
 
 /**************************************************************************/
 
-void StringState::
+int StringState::
 assert_equal (const StringState &state, int line, int case_line,
               const char *when) const
 {
@@ -169,6 +168,8 @@ assert_equal (const StringState &state, int line, int case_line,
                line, data_, size_, capacity_,
                state.data_, state.size_, state.capacity_,
                when);
+
+    return equal;
 }
 
 /**************************************************************************/
@@ -405,18 +406,9 @@ _rw_argno (StringIds::OverloadId which, int arg)
 
 /**************************************************************************/
 
-// sets the {CLASS}, {FUNC}, {FUNCSIG}, and optionally {FUNCALL}
-// environment variables as follows:
-// CLASS:   the name of basic_string specialization
-// FUNC:    the name of the basic_string function
-// FUNCSIG: the name and signature of a specific overload
-//          of the basic_string function
-// FUNCALL: a string describing the call to the basic_string function
-//          with function with function arguments expanded (as specified
-//          by the TestCase argument)
-static void
-_rw_setvars (const StringFunc     &func,
-             const StringTestCase *pcase = 0)
+_TEST_EXPORT void
+rw_setvars (const StringFunc     &func,
+            const StringTestCase *pcase /* = 0 */)
 {
     char*  buf     = 0;
     size_t bufsize = 0;
@@ -1296,7 +1288,7 @@ _rw_test_case (const StringFunc     &func,
 
         // set the {FUNCALL} environment variable to describe
         // the function call specified by this test case
-        _rw_setvars (func, &tcase);
+        rw_setvars (func, &tcase);
 
         if (test_callback) {
             // invoke the test callback function
@@ -1329,7 +1321,7 @@ _rw_run_cases (const StringFunc &func,
     // set the {CLASS}, {FUNC}, and {FUNCSIG} environment
     // variable to the name of the basic_string specializaton
     // and the string function being exercised
-    _rw_setvars (func);
+    rw_setvars (func);
 
     // determine whether the function is a member function
     const bool is_member = 0 != (StringIds::bit_member & test.which);

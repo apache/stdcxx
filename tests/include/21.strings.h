@@ -6,22 +6,21 @@
  *
  ***************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
  * 
  **************************************************************************/
 
@@ -408,7 +407,7 @@ struct StringIds {
 
         //////////////////////////////////////////////////////////////
         // substr (void) const
-        MEMBER_1 (substr, cstr, void),
+        MEMBER_0 (substr, cstr),
         // substr (size_type) const
         MEMBER_1 (substr, cstr, size),
         // substr (size_type, size_type) const
@@ -541,15 +540,15 @@ struct StringIds {
         NON_MEMBER_2 (op_greater_equal, cstr, cptr),
 
         //////////////////////////////////////////////////////////////
-        // size ()
+        // size () const
         MEMBER_0 (size, cstr),
 
         //////////////////////////////////////////////////////////////
-        // length ()
+        // length () const
         MEMBER_0 (length, cstr),
 
         //////////////////////////////////////////////////////////////
-        // max_size ()
+        // max_size () const
         MEMBER_0 (max_size, cstr),
 
         //////////////////////////////////////////////////////////////
@@ -559,7 +558,7 @@ struct StringIds {
         MEMBER_1 (resize, str, size),
 
         //////////////////////////////////////////////////////////////
-        // capacity ()
+        // capacity () const
         MEMBER_0 (capacity, cstr),
 
         //////////////////////////////////////////////////////////////
@@ -573,7 +572,7 @@ struct StringIds {
         MEMBER_0 (clear, str),
 
         //////////////////////////////////////////////////////////////
-        // empty ()
+        // empty () const
         MEMBER_0 (empty, cstr),
 
         //////////////////////////////////////////////////////////////
@@ -710,6 +709,18 @@ struct StringTest
 };
 
 
+// sets the {CLASS}, {FUNC}, {FUNCSIG}, and optionally {FUNCALL}
+// environment variables as follows:
+// CLASS:   the name of basic_string specialization
+// FUNC:    the name of the basic_string function
+// FUNCSIG: the name and signature of a specific overload
+//          of the basic_string function
+// FUNCALL: a string describing the call to the basic_string function
+//          with function with function arguments expanded (as specified
+//          by the TestCase argument)
+_TEST_EXPORT void
+rw_setvars (const StringFunc&, const StringTestCase* = 0);
+
 typedef void StringTestFunc (const StringFunc&, const StringTestCase&);
 
 _TEST_EXPORT int
@@ -818,7 +829,8 @@ struct StringState
     _RWSTD_SIZE_T capacity_;
 
     // invokes rw_assert() to verify that two states are the same
-    void assert_equal (const StringState&, int, int, const char*) const;
+    // returns 1 when the two states compare equal, and 0 otherwise
+    int assert_equal (const StringState&, int, int, const char*) const;
 };
 
 
