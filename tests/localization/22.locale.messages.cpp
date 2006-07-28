@@ -2,7 +2,7 @@
  *
  * 22.locale.messages.cpp - tests exercising the std::messages facet
  *
- * $Id: //stdlib/dev/tests/stdlib/locale/messages.cpp#42 $
+ * $Id: //stdlib/dev/tests/stdlib/locale/messages.cpp#43 $
  *
  ***************************************************************************
  *
@@ -31,8 +31,8 @@
 #include <driver.h>      // for rw_test()
 #include <environ.h>     // for rw_putenv()
 #include <file.h>        // for rw_nextfd()
-#include <system.h>      // for rw_system()
 #include <rw_locale.h>   // for rw_locales()
+#include <rw_process.h>  // for rw_system()
 
 #ifndef _MSC_VER
 #  include <nl_types.h>  // for cat operations
