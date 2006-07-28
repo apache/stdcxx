@@ -6,22 +6,23 @@
  *
  ************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2005-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2005-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -127,6 +128,10 @@ _rw_fmtwchr (const FmtSpec&, Buffer&, wint_t, int);
 
 static int
 _rw_fmtwstr (const FmtSpec&, Buffer&, const wchar_t*, size_t);
+
+// format an argv-style (null-terminated) array of character strings
+static int
+_rw_fmtstrarray (FmtSpec*, size_t, Buffer&, const char* const*);
 
 // format struct tm
 static int
@@ -2219,6 +2224,50 @@ _rw_fmtarray (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
 
 /********************************************************************/
 
+// formats an argv-style array of character strings
+static int
+_rw_fmtstrarray (FmtSpec *pspec, size_t paramno, Buffer &buf,
+                 const char* const* argv)
+{
+    FmtSpec &spec = pspec [paramno];
+
+    int len = 0;
+
+    if (0 == argv || 0 > _RW::__rw_memattr (argv, sizeof *argv, 0))
+        return _rw_fmtbadaddr (spec, buf, argv);
+
+    size_t argc = spec.prec;
+
+    for (size_t i = 0; i != argc; ++i) {
+        if (_RWSTD_SIZE_MAX == argc && 0 == argv [i])
+            break;
+
+        int n = _rw_fmtstr (spec, buf, argv [i], _RWSTD_SIZE_MAX);
+
+        if (n < 0)
+            return n;
+
+        len += n;
+
+        if (i + 1 == argc || _RWSTD_SIZE_MAX == argc && 0 == argv [i + 1])
+            break;
+
+        const unsigned pound = spec.fl_pound;
+        spec.fl_pound = 0;
+        n = _rw_fmtstr (spec, buf, ",", 1);
+        spec.fl_pound = pound;
+
+        if (n < 0)
+            return n;
+
+        len += n;
+    }
+
+    return len;
+}
+
+/********************************************************************/
+
 // implements %c and %{c} (narrow character formatting, both without
 // and with escape sequences, respectively)
 static int
@@ -2756,8 +2805,13 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         break;
     }
 
-    case 's':   // %{s}, %{Is}, %{ls}
-        if (spec.mod == spec.mod_ext_I) {   // ios::iostate
+    case 's':   // %{s}, %{As}, %{Is}, %{ls}
+        if (spec.mod == spec.mod_ext_A) {   // array of strings
+            spec.param.ptr_ = PARAM (ptr_);
+            const char* const* const argv = (char**)spec.param.ptr_;
+            len = _rw_fmtstrarray (pspec, paramno, buf, argv);
+        }
+        else if (spec.mod == spec.mod_ext_I) {   // ios::iostate
             spec.param.int_ = PARAM (int_);
             len = _rw_fmtiostate (spec, buf, spec.param.int_);
         }
