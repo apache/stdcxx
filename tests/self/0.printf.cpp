@@ -6,22 +6,23 @@
  *
  ************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2005-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2005-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -622,6 +623,58 @@ test_chararray ()
         TEST ("%{*.7Ac}", 4,    L"abc\0def", 0, "L\"abc\\0def\"");
         TEST ("%{*.*Ac}", 4, 7, L"abcd\0ef",    "L\"abcd\\0ef\"");
     }
+}
+
+/***********************************************************************/
+
+static const char**
+mkargv (const char *arg0 = 0,
+        const char *arg1 = 0,
+        const char *arg2 = 0,
+        const char *arg3 = 0,
+        const char *arg4 = 0,
+        const char *arg5 = 0,
+        const char *arg6 = 0,
+        const char *arg7 = 0,
+        const char *arg8 = 0,
+        const char *arg9 = 0)
+{
+    static const char* argv [10];
+
+    argv [0] = arg0;
+    argv [1] = arg1;
+    argv [2] = arg2;
+    argv [3] = arg3;
+    argv [4] = arg4;
+    argv [5] = arg5;
+    argv [6] = arg6;
+    argv [7] = arg7;
+    argv [8] = arg8;
+    argv [9] = arg9;
+
+    return argv;
+}
+
+
+static void
+test_stringarray ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{As}\": array of character strings");
+
+#undef ARG
+#define ARG   mkargv
+
+    TEST ("%{As}", 0,                              0, 0, "(null)");
+    TEST ("%{As}", ARG ("a"),                      0, 0, "a");
+    TEST ("%{As}", ARG ("a", "bc"),                0, 0, "a,bc");
+    TEST ("%{As}", ARG ("a", "bc", "def"),         0, 0, "a,bc,def");
+    TEST ("%{As}", ARG ("a", "bc", "def", "ghij"), 0, 0, "a,bc,def,ghij");
+
+    TEST ("%{#As}", 0,                         0, 0, "(null)");
+    TEST ("%{#As}", ARG ("abcd"),              0, 0, "\"abcd\"");
+    TEST ("%{#As}", ARG ("abcd", "efg"),       0, 0, "\"abcd\",\"efg\"");
+    TEST ("%{#As}", ARG ("abcd", "efg", "hi"), 0, 0, "\"abcd\",\"efg\",\"hi\"");
 }
 
 /***********************************************************************/
@@ -2756,6 +2809,7 @@ int main ()
     test_character ();
     test_string ();
     test_chararray ();
+    test_stringarray ();
 
     test_integer ();
     test_intarray ();
