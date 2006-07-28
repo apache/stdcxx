@@ -32,12 +32,13 @@ extern int compat;
 extern const char* exe_opts;
 extern const char* in_root;
 extern const char* exe_name;
+extern const char* target_name; /**< Alias for current target name. */
 
 void 
 show_usage(const int status);
 
 int 
-eval_options (const int argc, /* const */ char* const argv[]);
+eval_options (const int argc, char* const argv[]);
 
 char**
 split_child_opts();

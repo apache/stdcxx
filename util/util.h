@@ -27,6 +27,13 @@
 #ifndef RW_UTIL_H
 #define RW_UTIL_H
 
+/**
+   Generates a non-terminal error message on stderr.
+
+   @param format printf () format string to display on stderr
+*/
+void warn (const char* const format, ...);
+
 void terminate ( const int state, const char* const format, ... );
 
 /* Note: RW_MALLOC should be used rather than malloc within the runall 

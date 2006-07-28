@@ -32,10 +32,8 @@ struct exec_attrs {
     int killed;
 };
 
-const char* 
-get_signame (int);
+const char* get_signame (int signo);
 
-struct exec_attrs 
-exec_file (const char*, char**);
+struct exec_attrs exec_file (char** argv);
 
 #endif   // RW_EXEC
