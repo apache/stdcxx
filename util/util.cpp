@@ -28,7 +28,23 @@
 #include <string.h> /* for strerror */
 #include <sys/types.h> /* for size_t */
 
+#include "cmdopt.h" /* for exe_name, target_name */
+
 #include "util.h"
+
+void
+warn (const char* const format, ...)
+{
+    va_list args;
+
+    assert (0 != format);
+
+    fprintf (stderr, "%s (%s): ", exe_name, target_name);
+
+    va_start (args, format);
+    vfprintf (stderr, format, args);
+    va_end (args);
+}
 
 /**
    Wrapper for exit (), providing a terminal error message on stderr.
@@ -43,6 +59,8 @@ terminate (const int state, const char* const format, ...)
 
     assert (0 != format);
     assert (0 != state);
+
+    fprintf (stderr, "%s (%s): ", exe_name, target_name);
 
     va_start (args, format);
     vfprintf (stderr, format, args);

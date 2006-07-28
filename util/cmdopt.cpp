@@ -34,11 +34,13 @@
 
 #include "cmdopt.h"
 
-int timeout = 10; /**< Child process timeout.  Default 10 */
-int compat = 0; /**< Test compatability mode switch.  Defaults to 0 (off) */
-const char* exe_opts = ""; /**< Command line switches for child processes */
-const char* in_root = ""; /**< Root directory for input/reference files */
+int timeout = 10; /**< Child process timeout.  Default 10. */
+int compat = 0; /**< Test compatability mode switch.  Defaults to 0 (off). */
+const char* exe_opts = ""; /**< Global command line switches for child 
+                                processes. */
+const char* in_root = ""; /**< Root directory for input/reference files. */
 const char* exe_name; /**< Alias for process argv [0]. */
+const char* target_name;
 
 /**
    Display command line switches for program and terminate.
@@ -73,6 +75,7 @@ show_usage (int status)
    @param argv command line arguments
    @return number of command line arguments parsed.
    @see timeout
+   @see compat
    @see in_root
    @see exe_opts
 */
@@ -140,7 +143,7 @@ eval_options (const int argc, char* const argv [])
         }
             /* Intentionally falling through */
         default:
-            printf ("Unknown option: %s\n", argv [i]);
+            fprintf (stderr, "Unknown option: %s\n", argv [i]);
             show_usage (1);
         }
     }
@@ -151,11 +154,11 @@ eval_options (const int argc, char* const argv [])
 /**
    Translates exe_opts into an array that can be passed to exec ().
 
-   This method malloc ()s two blocks of memory.  The first block is the argv
-   index array.  This is the return value of this method.  The second block
-   is the parsed and split string contents the index referenced.  This block
-   is stored in subscript 1 of the return array.  It is the responsibility of
-   the calling method to free () both blocks.
+   This method malloc ()s two blocks of memory.  The first block is the 
+   generated argv index array.  This is the return value of this method.  The 
+   second block is the parsed and split string contents the index referenced.  
+   This block is stored in element 1 of the return array.  It is the 
+   responsibility of the calling method to free () both blocks.
 
    @warning this logic is UTF-8 unsafe
    @warning I/O redirection command piping isn't supported in the parse logic
@@ -171,10 +174,11 @@ split_child_opts ()
     const char *pos;
     char *target, *last;
     char **table_pos, **argv;
+    const size_t optlen = strlen (exe_opts);
 
     assert (0 != exe_opts);
 
-    if (0 == strlen (exe_opts)) {
+    if (0 == optlen) {
         /* Alloc a an index array to hold the program name  */
         argv = (char**)RW_MALLOC (2 * sizeof (char*));
 
@@ -183,15 +187,14 @@ split_child_opts ()
         return argv;
     }
 
-    table_pos = argv = (char**)RW_MALLOC (
-        (strlen (exe_opts) + 5) * sizeof (char*) / 2);
+    table_pos = argv = (char**)RW_MALLOC ((optlen + 5) * sizeof (char*) / 2);
     /* (strlen (exe_opts)+5)/2 is overkill for the most situations, but it is 
        just large enough to handle the worst case scenario.  The worst case 
        is a string similar to 'x y' or 'x y z', requiring array lengths of 4 
        and 5 respectively.
     */
 
-    last = target = argv [1] = (char*)RW_MALLOC (strlen (exe_opts) + 1);
+    last = target = argv [1] = (char*)RW_MALLOC (optlen + 1);
 
     /* Transcribe the contents, handling escaping and splitting */
     for (pos = exe_opts; *pos; ++pos) {

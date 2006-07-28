@@ -50,7 +50,7 @@
 
 
 /**
-   Parses output file out_name for test exec_name.
+   Parses output file out_name for test target_name.
    
    This method tries to open out_name.  If this succedes, it then searches
    the file for a result summary as produced by the rwtest driver.
@@ -68,30 +68,19 @@
      - 0 [assertion count] [failed assertion count] [pass rate]\n
        Parsed results
 
-   @param exec_name the name of the executable that generated the output file
-   @param out_name the name of the output file being parsed
+   @param data pointer to file structure for output file being parsed
 */
 static void
-check_test (const char* exec_name, const char* out_name)
+check_test (FILE* data)
 {
-    FILE* data = fopen (out_name, "r");
     unsigned r_lvl = 0, r_active = 0, r_total = 0;
     unsigned asserts = 0, failed = 0;
     int fmt_ok = 0;
     unsigned fsm = 0;
     char tok;
 
-    assert (0 != exec_name);
-    assert (0 != out_name);
-
-    if (0 == data) {
-        if (ENOENT != errno) {
-            printf ("Error opening %s: %s\n", out_name, strerror (errno));
-            return;
-        }
-        puts ("OUTPUT");
-        return;
-    }
+    assert (0 != target_name);
+    assert (0 != data);
 
     for (tok = fgetc (data); fsm < 6 && !feof (data); tok = fgetc (data)) {
         switch (tok) {
@@ -124,7 +113,7 @@ check_test (const char* exec_name, const char* out_name)
             if (6 < r_lvl) {
                 /* The 0.new tests produces errors, and are all 
                    expected to be active, so invert the total */
-                if (8 == r_lvl && 0 == strcmp (exec_name,"0.new"))
+                if (8 == r_lvl && 0 == strcmp (target_name, "0.new"))
                     r_active = r_total-r_active;
                 failed += r_active;
                 asserts += r_total;
@@ -148,40 +137,27 @@ check_test (const char* exec_name, const char* out_name)
     else {
         puts ("FORMAT");
     }
-
-    fclose (data);
 }
 
 /**
-   Parses output file out_name for test exec_name.
+   Parses output file out_name for test target_name.
    
    This method is a reimplementation of check_test ().  The difference between
    this method and check_test () is how it parses the results.  This version
    parses compatability layer output, rather than the test driver output.
 
-   @param exec_name the name of the executable that generated the output file
-   @param out_name the name of the output file being parsed
+   @param data pointer to file structure for output file being parsed
    @see check_test ()
 */
 static void
-check_compat_test (const char* out_name)
+check_compat_test (FILE* data)
 {
-    FILE* data = fopen (out_name, "r");
     unsigned asserts = 0, failed = 0;
     int read = 0;
     unsigned fsm = 0;
     char tok;
 
-    assert (0 != out_name);
-
-    if (0 == data) {
-        if (ENOENT != errno) {
-            printf ("Error opening %s: %s\n", out_name, strerror (errno));
-            return;
-        }
-        puts ("OUTPUT");
-        return;
-    }
+    assert (0 != data);
 
     fseek (data, -64, SEEK_END); /* Seek near the end of the file */
 
@@ -221,36 +197,27 @@ check_compat_test (const char* out_name)
     else {
         puts ("FORMAT");
     }
-
-    fclose (data);
 }
 
 /**
-   Sanity test macro for file descriptor operations.
-   
-   @killme this should be removed after removing the dependancy on the
-   posix diff utility
-   
-   @param op human understandable name for operation
-   @param x variable to test the result for
-   @see check_example
+   Arbitrary constant controling static read buffer size.
+
+   @see check_example ()
 */
-#define FILE_TEST(op, x)                                                \
-    if (-1==(x))                                                        \
-        terminate (2, op " failed: %s\n", strerror (errno))
+#define DELTA_BUF_LEN 64
 
 /**
-   Parses output file out_name for the example exec_name.
+   Parses output file out_name for the example target_name.
    
    This method tries to compare out_name against a reference output file and
-   displays a result code.  The reference file is determined by exec_name and
+   displays a result code.  The reference file is determined by target_name and
    the in_root global variable.
    This method relies on the POSIX diff utility at this time.  This dependancy
    needs to be removed, though doing so will require a rewrite of the method.
 
    Reference file locations:
-     - [in_root]/manual/out/[exec_name].out
-     - [in_root]/tutorial/out/[exec_name].out
+     - [in_root]/manual/out/[target_name].out
+     - [in_root]/tutorial/out/[target_name].out
 
    Output messages produced:
      - NOREF\n
@@ -260,49 +227,54 @@ check_compat_test (const char* out_name)
      - 0\n
        Output file matches the reference file (check passes)
 
-   @param exec_name the name of the executable that generated the output file
-   @param out_name the name of the output file being parsed
+   @todo add logic to handle differing line endings (CR vs LF vs CRLF)
+
+   @param output_name the name of the output file
+   @param data pointer to file structure for output file being parsed
    @see in_root
-   @see FILE_TEST ()
-   @todo remove dependancy on POSIX diff utility
 */
 static void
-check_example (const char* const exec_name, const char* const out_name)
+check_example (char* const out_name, FILE* output)
 {
     struct stat file_info;
     const size_t root_len = strlen (in_root);
     char* const ref_name = (char*)RW_MALLOC (root_len 
-                                            + strlen (exec_name) + 19);
-    int state = -1;
+                                             + strlen (target_name) + 19);
+    FILE* reference;
 
     assert (0 != in_root);
     assert (0 < root_len);
-    assert (0 != exec_name);
-    assert (0 != out_name);
+    assert (0 != target_name);
+    assert (0 != output);
 
-    /* Try in_root/manual/out/exec_name.out */
+    /* Try in_root/manual/out/target_name.out */
     memcpy (ref_name, in_root, root_len+1);
     strcat (ref_name, "/manual/out/");
-    strcat (ref_name, exec_name);
+    strcat (ref_name, target_name);
     strcat (ref_name, ".out");
 
     if (0 > stat (ref_name, &file_info)) {
         if (ENOENT != errno) {
-            printf ("stat (%s) error: %s\n", ref_name, strerror (errno));
+            warn ("stat (%s) error: %s\n", exe_name, ref_name, 
+                  strerror (errno));
+            puts ("BADREF");
             free (ref_name);
             return;
         }
                         
         /* If that doesn't exist, try 
-           in_root/tutorial/out/exec_name.out */
+           in_root/tutorial/out/target_name.out */
         memcpy (ref_name, in_root, root_len+1);
         strcat (ref_name, "/tutorial/out/");
-        strcat (ref_name, exec_name);
+        strcat (ref_name, target_name);
         strcat (ref_name, ".out");
 
         if (0 > stat (ref_name, &file_info)) {
-            if (ENOENT != errno)
-                printf ("stat (%s) error: %s\n", ref_name, strerror (errno));
+            if (ENOENT != errno) {
+                warn ("stat (%s) error: %s\n", exe_name, ref_name, 
+                      strerror (errno));
+                puts ("BADREF");
+            }
             else
                 puts (" NOREF");
 
@@ -311,93 +283,98 @@ check_example (const char* const exec_name, const char* const out_name)
         }
     }
 
-    const pid_t child_pid = fork ();
+    reference = fopen (ref_name, "r");
 
-    if (0 == child_pid) {   /* child */
-        /* Cache stdout (hopefully) for use if execv () fails */
-        int error_cache = dup (2);
-        FILE* error_file;
-        FILE_TEST ("dup (stderr)", error_cache);
-
-        FILE_TEST ("close (stdin)",close (0));
-        FILE_TEST ("close (stdin)",close (1));
-        FILE_TEST ("close (stderr)",close (2));
-
-        /* Todo: diff with --strip-trailing-cr on windows */
-        execlp ("diff", "diff", ref_name, out_name, (char *)0);
-
-        if ((error_file = fdopen (error_cache, "a")))
-            fprintf (error_file, "execlp (\"diff\", ...) error: %s\n",
-                     strerror (errno));
-
-        exit (2);
+    if (0 == reference) {
+        int cache = errno; /* caching errno, as puts could alter it */
+        if (ENOENT != cache)
+            warn ("Error opening %s: %s\n", ref_name, strerror (cache));
+        puts ("BADREF");
     }
+    else {
+        char out_buf [DELTA_BUF_LEN], ref_buf [DELTA_BUF_LEN];
+        size_t out_read, ref_read;
+        int match = 1;
 
-    while (1) {
-        const pid_t wait_pid = waitpid (child_pid, &state, 0);
-
-        if (child_pid == wait_pid) {
-
-            if (WIFEXITED (state)) {
-                const int retcode = WEXITSTATUS (state);                
-                switch (retcode) {
-                case 0:
-                    puts ("     0");
-                    break;
-                case 1:
-                    puts ("OUTPUT");
-                    break;
-                default:
-                    printf ("diff returned %d\n", retcode);
-                }
+        while (!feof (reference) && !feof (output)) {
+            /* First, read a block from the files into the buffer */
+            out_read = fread (out_buf, DELTA_BUF_LEN, 1, output);
+            if (ferror (output)) {
+                warn ("Error reading %s: %s\n", out_name, strerror (errno));
+                match = 0;
                 break;
             }
-            else if (WIFSIGNALED (state)) {
-                printf ("diff exited with %s\n", 
-                        get_signame (WTERMSIG (state)));
+            ref_read = fread (ref_buf, DELTA_BUF_LEN, 1, reference);
+            if (ferror (reference)) {
+                warn ("Error reading %s: %s\n", ref_name, strerror (errno));
+                match = 0;
                 break;
             }
-/*
-            else if (WIFSTOPPED (state)) {
-                printf ("process %d stopped\n", (int)child_pid);
+
+            /* Then, check if the amount of data read or the state of the 
+               files differs
+            */
+            if (ref_read != out_read || feof (reference) != feof (output)) {
+                match = 0;
+                break;
             }
-            else if (WIFCONTINUED (state)) {
-                printf ("process %d continued\n", (int)child_pid);
+
+            /* Finally, check if the contents of the buffers differ */
+            if (0 != memcmp (out_buf, ref_buf, DELTA_BUF_LEN)) {
+                match = 0;
+                break;
             }
-*/
         }
-    }
 
+        if (match)
+            puts ("     0");
+        else
+            puts ("OUTPUT");
+
+        fclose (reference);
+    }
     free (ref_name);
 }
 
 /**
-   Dispatch method that invoks another method to parse the output file.
+   Umbrella (dispatch) function to analyse the (saved) output of target
 
-   @param target the path to the executable that generated the output file
-   @param exec_name the name of the executable that generated the output file
-   @see check_test ()
-   @see check_compat_test ()
-   @see check_example ()
+   @param target the path to the executable that generated the output file 
+   being parsed.
 */
 void
-parse_output (const char* target, const char* exec_name)
+parse_output (const char* target)
 {
     const size_t path_len = strlen (target);
     char* const out_name = (char*)RW_MALLOC (path_len + 5);
+    FILE* data;
+
+    assert (0 != target);
+
     memcpy (out_name, target, path_len + 1);
     strcat (out_name,".out");
 
-    if (!strlen (in_root)) {
-        /* If there is not an input directory, look at the assertion tags */
-        if (!compat)
-            check_test (exec_name, out_name);
-        else
-            check_compat_test (out_name);
+    data = fopen (out_name, "r");
+
+    if (0 == data) {
+        if (ENOENT != errno)
+            warn ("Error opening %s: %s\n", out_name, strerror (errno));
+        puts ("OUTPUT");
     }
     else {
-        /* Otherwise, diff against the output file */
-        check_example (exec_name, out_name);
+        if (!strlen (in_root)) {
+            /* If there is not an input directory, look at the assertion tags */
+
+            if (!compat)
+                check_test (data);
+            else
+                check_compat_test (data);
+        }
+        else {
+            /* Otherwise, diff against the output file */
+            check_example (out_name, data);
+        }
+        fclose (data);
     }
     free (out_name);
 }

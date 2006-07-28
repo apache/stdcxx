@@ -76,7 +76,8 @@ check_target_ok (const char* target)
 
     if (0 > stat (target, &file_info)) {
         if (ENOENT != errno) {
-            printf ("Stat error: %s\n", strerror (errno));
+            warn ("Error stating %s: %s\n", target, strerror (errno));
+            puts ("ERROR");
             return 0;
         }
         file_info.st_mode = 0; /* force mode on non-existant file to 0 */
@@ -110,8 +111,10 @@ check_target_ok (const char* target)
         strcat (tmp_name,".o");
 
         if (0 > stat (tmp_name, &file_info)) {
-            if (ENOENT != errno)
-                printf ("stat (%s) error: %s\n", tmp_name, strerror (errno));
+            if (ENOENT != errno) {
+                warn ("Error stating %s: %s\n", tmp_name, strerror (errno));
+                puts ("ERROR");
+            }
             else
                 puts ("  COMP");
         }
@@ -152,11 +155,10 @@ check_target_ok (const char* target)
    @see check_example ()
 */
 static void
-process_results (const char* target, const char* exec_name, 
-                 const struct exec_attrs* result)
+process_results (const char* target, const struct exec_attrs* result)
 {
     if (0 == result->status) {
-        parse_output (target, exec_name);
+        parse_output (target);
     } 
     else if (WIFEXITED (result->status)) {
         const int retcode = WEXITSTATUS (result->status);
@@ -229,22 +231,22 @@ static void
 run_target (char* target, char** childargv)
 {
     struct exec_attrs status;
-    const char* const exec_name = rw_basename (target);
 
     assert (0 != target);
     assert (0 != childargv);
 
     childargv [0] = target;
+    target_name = rw_basename (target);
 
-    printf ("%-18.18s ", exec_name);
+    printf ("%-18.18s ", target_name);
     fflush (stdout);
 
     if (!check_target_ok (target))
         return;
 
-    status = exec_file (exec_name, childargv);
+    status = exec_file (childargv);
 
-    process_results (target, exec_name, &status);
+    process_results (target, &status);
 }
 
 /**

@@ -386,13 +386,13 @@ wait_for_child (pid_t child_pid)
             }
             else if (ECHILD == errno) {
                 /* should not happen */
-                fprintf (stderr, "waitpid (%d) error: %s\n",
-                         (int)child_pid, strerror (errno));
+                warn ("waitpid (%d) error: %s\n", (int)child_pid, 
+                      strerror (errno));
             }
             else {
                 /* waitpid () error */
-                fprintf (stderr, "waitpid (%d) error: %s\n",
-                         (int)child_pid, strerror (errno));
+                warn ("waitpid (%d) error: %s\n", (int)child_pid, 
+                      strerror (errno));
             }
         }
         else if ((pid_t)0 == wait_pid) {
@@ -522,7 +522,7 @@ replace_file (int source, int dest, const char* name)
 }
 
 /**
-   Entry point to the watchdog subsystem.
+   Entry point to the child process (watchdog) subsystem.
 
    This method fork ()s, creating a child process.  This child process becomes
    a process group leader, redirects input and output files, then exec ()s
@@ -537,7 +537,7 @@ replace_file (int source, int dest, const char* name)
    @see wait_for_child ()
 */
 struct exec_attrs 
-exec_file (const char* exec_name, char** argv)
+exec_file (char** argv)
 {
     const pid_t child_pid = fork ();
 
@@ -546,7 +546,7 @@ exec_file (const char* exec_name, char** argv)
 
         assert (0 != argv);
         assert (0 != argv [0]);
-        assert (0 != exec_name);
+        assert (0 != target_name);
 
         /* Set process group ID (so entire group can be killed)*/
         {
@@ -571,7 +571,7 @@ exec_file (const char* exec_name, char** argv)
 
         /* Redirect stdin */
         {
-            const int intermit = open_input (exec_name);
+            const int intermit = open_input (target_name);
             replace_file (intermit, 0, "stdin");
         }
 
@@ -604,8 +604,8 @@ exec_file (const char* exec_name, char** argv)
 
         execv (argv [0], argv);
 
-        fprintf (error_file, "execv (\"%s\", ...) error: %s\n",
-                 argv [0], strerror (errno));
+        fprintf (error_file, "%s (%s): execv (\"%s\", ...) error: %s\n",
+                 exe_name, target_name, argv [0], strerror (errno));
 
         exit (1);
     }
@@ -613,8 +613,8 @@ exec_file (const char* exec_name, char** argv)
     if (-1 == child_pid) {
         /* Fake a failue to execute status return structure */
         struct exec_attrs state = {127, -1};
-        fprintf (stderr, "Unable to create child process for %s: %s\n",
-                 argv [0], strerror (errno));
+        warn ("Unable to create child process for %s: %s\n", argv [0],
+              strerror (errno));
         return state;
     }
 

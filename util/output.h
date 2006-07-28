@@ -28,6 +28,6 @@
 #define OUTPUT_H
 
 void
-parse_output (const char*, const char*);
+parse_output (const char* target);
 
 #endif   // OUTPUT_H
