@@ -46,6 +46,13 @@ void terminate ()
 // set to 1 if this is not a two's complement architecture
 int no_twos_complement = 0;
 
+// volatile to foil aggressive optimizers
+volatile int zero            = 0;
+volatile int one             = zero + 1;
+volatile int two             = one + 1;
+volatile int zero_complement = ~zero;
+
+
 
 template<class T>
 void print_limit (T n, const char *pfx, const char *sfx,
@@ -117,25 +124,17 @@ void print_limit (T n, const char *pfx, const char *sfx,
 
 
 template <class T>
-T foo (T one, T min)
+T compute_min (T min)
 {
     // prevents overzealous gcc optimizer from invoking
     // undefined behavior on signed integer over/underflow
     for (T tmp; ; --min) {
-        tmp = min - one;
+        tmp = T (min - one);
         if (tmp >= min)
             break;
     }
 
     return min;
-}
-
-template <class T>
-T greater (T lhs, T rhs)
-{
-    // prevents overzealous gcc optimizer from invoking
-    // undefined behavior on signed integer over/underflow
-    return lhs > rhs;
 }
 
 
@@ -163,23 +162,22 @@ const char* type_suffix (unsigned __int64) { return "UL"; }
 template <class T>
 T compute_limits (T, const char *pfx, const char *sfx, const char *type)
 {
-    T zero = T (0);
-    T min  = T (-1);
-    T max  = T (1);
-    T one  = T (1);
+    T min = T (-one);
+    T max = T (one);
 
-    int is_signed = T (min - T (1)) < zero;
+    int is_signed = T (min - one) < T (zero);
 
     if (!is_signed)
         max = min;
 
-    for (; T (max * 2) > max; max *= 2);
-    for (T n = max / 4; n; ) {
+    // compute the maximum representable value
+    for (; T (max * two) > max; max *= two);
+    for (T n = max / (two + two); n; ) {
         if (T (max + n) < max) {
-            if (n > 2)
-                n /= 2;
-            else if (greater (T (max + one), max))
-                n = 1;
+            if (n > T (two))
+                n /= two;
+            else if (max < T (max + one))
+                n = one;
             else
                 break;
         }
@@ -187,19 +185,18 @@ T compute_limits (T, const char *pfx, const char *sfx, const char *type)
             max += n;
     }
 
+    // print the maximum representable value
     print_limit (max, pfx, sfx, true, type);
 
-    min = -max;
-
-    // compute a minimum
-    for (; T (min * 2) < min; min *= 2);
+    // compute the minimum representable value
+    for (min = -max; T (min * two) < min; min *= two);
 
     // working around a gcc optimizer "feature" (PR #26211)
     // signed integer overflow is undefined behavior
     // for (; T (min - 1) < min; min -= 1);
-    min = foo (one, min);
+    min = compute_min (min);
 
-    print_limit<T> (min, pfx, sfx, false, type);
+    print_limit (min, pfx, sfx, false, type);
 
     return max;
 }
@@ -223,12 +220,6 @@ struct EmptyStruct { };
 
 // to silence printf() format comaptibility warnings
 #define SIZEOF(T)   unsigned (sizeof (T))
-
-
-volatile int zero = 0;
-volatile int one  = zero + 1;
-volatile int two  = one + 1;
-volatile int zero_complement = ~zero;
 
 
 int main ()
