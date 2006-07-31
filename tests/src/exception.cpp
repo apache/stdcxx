@@ -6,22 +6,21 @@
  *
  ************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
  * 
  **************************************************************************/
 
@@ -31,9 +30,8 @@
 #include <rw_exception.h>
 #include <driver.h>   
 #include <rw_printf.h>
-#include <string.h>         // for strncpy()
-#include <malloc.h>         // for free()
-#include <stddef.h>         // for size_t
+#include <string.h>         // for size_t, strcpy()
+#include <stdlib.h>         // for free()
 #include <stdarg.h>         // for va_arg(), va_list
 #include <new>              // for std::bad_alloc
 
@@ -135,43 +133,47 @@ ExceptionBase& ExceptionBase::operator= (const ExceptionBase& ex)
             ex_str_->addref ();
         }
         else
-            strncpy (buf_, ex.buf_, sizeof (buf_));
+            strcpy (buf_, ex.buf_);
     }
 
     return *this;
 }
 
-void ExceptionBase::format (const char* file, int line,
-                            const char* function, const char* fmt, va_list va)
+
+void ExceptionBase::
+format (const char* file, int line,
+        const char* function, const char* fmt, va_list va)
 {
     free_ ();
 
-    char* buf = 0;
+    char* tmpbuf = 0;
     size_t bufsize = 0;
 
-    const int nchars = _rw_format (&buf, &bufsize, file, line,
-        function, fmt, va);
+    const int nchars =
+        _rw_format (&tmpbuf, &bufsize, file, line, function, fmt, va);
 
     if (0 > nchars)
         return;
 
-    if (sizeof (buf_) <= nchars) {
-        // buf_ size is too small
+    if (sizeof buf_ <= size_t (nchars)) {
+        // tmpbuf_ size is too small
         ex_str_ = _RWSTD_STATIC_CAST (ExceptionString*,
                                       malloc (sizeof (*ex_str_)));
 
         if (ex_str_) {
-            ex_str_->init (buf);
+            ex_str_->init (tmpbuf);
             return;
         }
     }
 
     // buf_ size if enough or cannot allocate memory for the ex_str_
-    const size_t max_len = sizeof (buf_) - 1;
-    strncpy (buf_, buf, max_len);
-    buf_ [max_len] = '\0';
-    free (buf);
+    const size_t len =
+        size_t (nchars) < sizeof buf_ ? size_t (nchars) : sizeof buf_ - 1;
+    memcpy (buf_, tmpbuf, len);
+    buf_ [len] = '\0';
+    free (tmpbuf);
 }
+
 
 const char* ExceptionBase::what () const
 {
