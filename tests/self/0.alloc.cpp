@@ -23,8 +23,9 @@
  *
  **************************************************************************/
 
-#include <signal.h>      // for signal
 #include <setjmp.h>      // for setjmp, longjmp
+#include <signal.h>      // for signal
+#include <stddef.h>      // for size_t
 
 #include <rw_alloc.h>    // for rw_alloc, rw_free
 #include <rw_printf.h>   // for rw_printf
@@ -37,9 +38,14 @@
 
 static jmp_buf mark;
 
-static void sig_handler (int)
+extern "C" {
+
+static void
+sig_handler (int)
 {
     longjmp (mark, -1);
+}
+
 }
 
 #ifdef sigsetjmp
