@@ -24,6 +24,10 @@
  * 
  **************************************************************************/
 
+// disable Compaq/HP C++ pure libc headers to allow POSIX symbols
+// such as SIGALRM or SIGKILL to be defined
+#undef __PURE_CNAME
+
 #include <assert.h> /* for assert */
 #include <errno.h> /* for errno */
 #include <fcntl.h> /* for O_*, */
