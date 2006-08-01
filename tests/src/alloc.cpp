@@ -6,20 +6,21 @@
  *
  ************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
  * 
  **************************************************************************/
 
@@ -59,6 +60,10 @@
 #      define GETPAGESIZE()   sysconf (_SC_PAGE_SIZE)
 #  endif   // _SC_PAGE_SIZE
 
+// POSIX mprotect() and munmap() take void* but some legacy systems
+// still declare the functions to take char* (aliased as caddr_t)
+typedef _RWSTD_MUNMAP_ARG1_T CaddrT;
+
 #else   // defined (_WIN32) || defined (_WIN64)
 
 #  include <windows.h>    // for everything (ugh)
@@ -66,6 +71,8 @@
 #  include <errno.h>      // for errno
 
 #  define GETPAGESIZE()   getpagesize ()
+
+typedef void* CaddrT;
 
 static long
 getpagesize ()
@@ -92,7 +99,7 @@ enum {
 #define MAP_PRIVATE   0
 #define MAP_ANONYMOUS 0
 
-static void* const MAP_FAILED = (void*)-1;
+#define MAP_FAILED ((CaddrT)-1)
 
 static const DWORD
 _rw_prots [] = {
@@ -117,8 +124,8 @@ _rw_translate_prot (int prot)
 }
 
 
-static inline void*
-mmap (void* addr, size_t len, int prot, int, int, off_t)
+static inline CaddrT
+mmap (CaddrT addr, size_t len, int prot, int, int, off_t)
 {
     addr = VirtualAlloc (addr, len, MEM_RESERVE | MEM_COMMIT,
         _rw_translate_prot (prot));
@@ -132,7 +139,7 @@ mmap (void* addr, size_t len, int prot, int, int, off_t)
 
 
 static inline int
-munmap (void* addr, size_t)
+munmap (CaddrT addr, size_t)
 {
     if (VirtualFree (addr, 0, MEM_RELEASE))
         return 0;
@@ -143,7 +150,7 @@ munmap (void* addr, size_t)
 
 
 static inline int
-mprotect (void *addr, size_t len, int prot)
+mprotect (CaddrT addr, size_t len, int prot)
 {
     DWORD flOldProt;
     if (VirtualProtect (addr, len, _rw_translate_prot (prot), &flOldProt))
@@ -195,9 +202,9 @@ struct Pair
     BlockInfo* info_;       // pointer to the corresponding BlockInfo
 };
 
-static Pair* table_            = 0; // pointer to the table
-static size_t table_size_      = 0; // size of table in bytes
-static size_t table_max_size_  = 0; // max number of items in table
+static Pair*  _rw_table           = 0; // pointer to the table
+static size_t _rw_table_size      = 0; // size of table in bytes
+static size_t _rw_table_max_size  = 0; // max number of items in table
 
 /************************************************************************/
 
@@ -235,30 +242,31 @@ _rw_binary_search (Pair* first, Pair* last, void* addr)
 // destructor sets r/o access to the specified memory pages
 class MemRWGuard
 {
-private:
-    void*  addr_;
+    CaddrT caddr_;
     size_t size_;
 
 public:
-    MemRWGuard (void* addr, size_t size)
-    {
+    MemRWGuard (void* addr, size_t size) {
         static const size_t pagemask = GETPAGESIZE () - 1;
 
         // check that pagesize is power of 2
         RW_ASSERT (0 == ((pagemask + 1) & pagemask));
-        // addr_ should be aligned to memory page boundary
-        size_t off = size_t (addr) & pagemask;
-        addr_ = _RWSTD_STATIC_CAST(char*, addr) - off;
-        size_ = size + off;
 
-        int res = mprotect (addr_, size, PROT_READ | PROT_WRITE);
+        // caddr_ should be aligned to memory page boundary
+        const size_t off = size_t (addr) & pagemask;
+
+        addr = _RWSTD_STATIC_CAST (char*, addr) - off;
+
+        caddr_ = _RWSTD_STATIC_CAST (CaddrT, addr);
+        size_  = size + off;
+
+        const int res = mprotect (caddr_, size, PROT_READ | PROT_WRITE);
         rw_error (0 == res, __FILE__, __LINE__,
                   "mprotect failed: errno = %{#m} (%{m})");
     }
 
-    ~MemRWGuard ()
-    {
-        int res = mprotect (addr_, size_, PROT_READ);
+    ~MemRWGuard () {
+        const int res = mprotect (caddr_, size_, PROT_READ);
         rw_error (0 == res, __FILE__, __LINE__,
                   "mprotect failed: errno = %{#m} (%{m})");
     }
@@ -274,52 +282,58 @@ private:
 static void
 _rw_table_free ()
 {
-    if (!table_)
+    if (!_rw_table)
         return;
 
-    int res = munmap (table_, table_size_);
-    rw_error (0 == res, __FILE__, __LINE__,
-              "munmap failed: errno = %{#m} (%{m})");
+    const CaddrT caddr = _RWSTD_REINTERPRET_CAST (CaddrT, _rw_table);
 
-    table_          = 0;
-    table_size_     = 0;
-    table_max_size_ = 0;
+    const int res = munmap (caddr, _rw_table_size);
+    rw_error (0 == res, __FILE__, __LINE__,
+              "munmap(%#p, %zu) failed: errno = %{#m} (%{m})",
+              _rw_table, _rw_table_size);
+
+    _rw_table          = 0;
+    _rw_table_size     = 0;
+    _rw_table_max_size = 0;
 }
 
 
 static bool
 _rw_table_grow ()
 {
-    // table_max_size_ cannot be less than allocated blocks
-    RW_ASSERT (table_max_size_ >= _rw_stats.blocks_);
+    // _rw_table_max_size cannot be less than allocated blocks
+    RW_ASSERT (_rw_table_max_size >= _rw_stats.blocks_);
 
     // check for free space in current table
-    if (table_max_size_ == _rw_stats.blocks_) {
+    if (_rw_table_max_size == _rw_stats.blocks_) {
         // realloc more memory
         static const size_t pagesize = GETPAGESIZE ();
 
-        const size_t new_table_size = table_size_ + pagesize;
+        const size_t new_size = _rw_table_size + pagesize;
 
-        void* new_table = mmap (0, new_table_size, PROT_READ | PROT_WRITE,
-            MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-        if (MAP_FAILED == new_table)
+        const CaddrT caddr = mmap (0, new_size,
+                                   PROT_READ | PROT_WRITE,
+                                   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+        if (MAP_FAILED == caddr)
             // no memory available
             return false;
 
         // copy old table
-        memcpy (new_table, table_, _rw_stats.blocks_ * sizeof (Pair));
+        memcpy (caddr, _rw_table, _rw_stats.blocks_ * sizeof (Pair));
 
         // protect the new table
-        int res = mprotect (new_table, new_table_size, PROT_READ);
+        const int res = mprotect (caddr, new_size, PROT_READ);
         rw_error (0 == res, __FILE__, __LINE__,
-                  "mprotect failed: errno = %{#m} (%{m})");
+                  "mprotect(%#p, %zu, PROT_READ) failed: errno = %{#m} (%{m})",
+                  caddr, new_size);
 
         // free old table
         _rw_table_free ();
 
-        table_          = _RWSTD_STATIC_CAST (Pair*, new_table);
-        table_size_     = new_table_size;
-        table_max_size_ = new_table_size / sizeof (Pair);
+        _rw_table          = _RWSTD_REINTERPRET_CAST (Pair*, caddr);
+        _rw_table_size     = new_size;
+        _rw_table_max_size = new_size / sizeof (Pair);
     }
 
     return true;
@@ -331,11 +345,12 @@ _rw_table_grow ()
 static void
 _rw_table_insert (BlockInfo& info)
 {
-    Pair* end = table_ + _rw_stats.blocks_;
-    Pair* it = _rw_lower_bound (table_, end, info.data_);
+    Pair* const begin = _rw_table;
+    Pair* const end   = begin + _rw_stats.blocks_;
+    Pair* const it    = _rw_lower_bound (begin, end, info.data_);
 
     {
-        MemRWGuard guard (table_, table_size_);
+        MemRWGuard guard (_rw_table, _rw_table_size);
 
         // move items [it, end) to the end of table
         memmove (it + 1, it, (end - it) * sizeof (Pair));
@@ -355,13 +370,12 @@ _rw_table_insert (BlockInfo& info)
 static void
 _rw_table_remove (Pair* it)
 {
-    int index = it - table_;
-    rw_fatal (0 <= index && int (_rw_stats.blocks_) > index,
-              __FILE__, __LINE__,
-              "invalid index in _rw_table_remove: %i",
-              index);
+    const size_t index = size_t (it - _rw_table);
 
-    MemRWGuard guard (table_, table_size_);
+    rw_fatal (index < _rw_stats.blocks_, __FILE__, __LINE__,
+              "invalid index in _rw_table_remove: %zu", index);
+
+    MemRWGuard guard (_rw_table, _rw_table_size);
     memmove (it, it + 1, (--_rw_stats.blocks_ - index) * sizeof (Pair));
 }
 
@@ -379,20 +393,23 @@ _rw_allocate_blocks ()
     if (0 == blocks_per_page)
         blocks_per_page = (pagesize - sizeof (Blocks)) / sizeof (BlockInfo) + 1;
 
-    void* buf = mmap (0, pagesize, PROT_READ | PROT_WRITE,
-        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    const CaddrT caddr = mmap (0, pagesize,
+                               PROT_READ | PROT_WRITE,
+                               MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-    if (MAP_FAILED != buf) {
+    if (MAP_FAILED != caddr) {
 
-        memset (buf, 0, pagesize);
+        memset (caddr, 0, pagesize);
 
-        Blocks* blocks = _RWSTD_STATIC_CAST(Blocks*, buf);
+        Blocks* const blocks = _RWSTD_REINTERPRET_CAST (Blocks*, caddr);
+
         blocks->nblocks_ = blocks_per_page;
 
         // set r/o access to the new page
-        int res = mprotect (buf, pagesize, PROT_READ);
+        const int res = mprotect (caddr, pagesize, PROT_READ);
         rw_error (0 == res, __FILE__, __LINE__,
-                  "mprotect failed: errno = %{#m} (%{m})");
+                  "mprotect(%#p, %zu, PROT_READ) failed: errno = %{#m} (%{m})",
+                  caddr, pagesize);
 
         if (0 == _rw_head)
             _rw_head = blocks;
@@ -421,11 +438,15 @@ _rw_free_blocks ()
     static const size_t pagesize = GETPAGESIZE ();
 
     while (_rw_head) {
-        Blocks* it = _rw_head;
+        const CaddrT caddr = _RWSTD_REINTERPRET_CAST (CaddrT, _rw_head);
+
         _rw_head = _rw_head->next_;
-        int res = munmap (it, pagesize);
+
+        const int res = munmap (caddr, pagesize);
+
         rw_error (0 == res, __FILE__, __LINE__,
-                  "munmap failed: errno = %{#m} (%{m})");
+                  "munmap(%#p, %zu) failed: errno = %{#m} (%{m})",
+                  caddr, pagesize);
     }
 
     _rw_tail = 0;
@@ -476,8 +497,8 @@ _rw_find_unused ()
 static Pair*
 _rw_find_by_addr (void* addr)
 {
-    Pair* end = table_ + _rw_stats.blocks_;
-    return _rw_binary_search (table_, end, addr);
+    Pair* const end = _rw_table + _rw_stats.blocks_;
+    return _rw_binary_search (_rw_table, end, addr);
 }
 
 
@@ -595,9 +616,12 @@ rw_free (void* addr)
         if (-1 == info.flags_)
             free (addr);
         else {
-            int res = munmap (info.addr_, info.size_);
+            const CaddrT caddr = _RWSTD_REINTERPRET_CAST (CaddrT, info.addr_);
+
+            const int res = munmap (caddr, info.size_);
             rw_error (0 == res, __FILE__, __LINE__,
-                      "munmap failed: errno = %{#m} (%{m})");
+                      "munmap(%#p, %zu) failed: errno = %{#m} (%{m})",
+                      caddr, info.size_);
         }
 
         {
