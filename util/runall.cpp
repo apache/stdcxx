@@ -30,6 +30,7 @@
 #include <stdlib.h> /* for exit, free */
 #include <string.h> /* for str* */
 
+#include <ctype.h> /* for isspace */
 #include <unistd.h>
     /* for close, dup, exec, fork - remove when removing diff dependancy*/
 #include <sys/types.h>
@@ -45,6 +46,126 @@
 #ifndef ENOENT
 #  define ENOENT 2
 #endif   // ENOENT
+
+/**
+   Utility function to rework the argv array
+
+   target is either a 'bare' executable or a 'complex' executable.  A bare
+   executable is the path to an executable.  A complex executable is the
+   path to the executable, followed by a series of command line arguments.
+
+   If target is a bare executable, the arguments in the returned argv array
+   will be the target followed by the contents of the recieved argv array.
+   
+   If target is a complex executable, the arguments in the returned argv
+   array will be target, transformed into an array.  If a token in the 
+   argument string is '%x' (no quotes), the contents of the provided argv 
+   array will be inserted into the return array at that point.
+
+   @todo Figure out an escaping mechanism to allow '%x' to be passed to an
+   executable
+
+   @param target target to generate an argv array for
+   @param argv program wide argv array for child processes
+   @return processed argv array, usable in exec ()
+*/
+static char** const
+merge_argv (char* const target, char* const argv [])
+{
+    const size_t tlen = strlen (target);
+    char ** split = split_opt_string (target);
+    unsigned i, arg_count = 0, spl_count = 0, wld_count = 0;
+
+    assert (0 != target);
+    assert (0 != argv);
+
+    /* If the split of target only contains a single value, we may have a 
+     bare executable name */
+    if (!split [1]) {
+        /* Check if last character in the target is whitespace */
+        if (isspace (target [tlen])) {
+            /* If it is, we've got a complex executable with no arguments.
+               Therfore, return it as is.
+            */
+            return split;
+        } /* Otherwise, it's a bare executable, so append argv */
+
+        /* Figure out how many arguments we've got in argv*/
+        for (/* none */; argv [arg_count]; ++arg_count);
+
+        /* reallocate memory for copying them, extending the buffer */
+        split = (char**)RW_REALLOC (split, (arg_count + 1) * sizeof (char*));
+            
+        /* And copy the pointers */
+        for (i=0; i < arg_count; ++i)
+            split [i+1] = argv [i];
+
+        return split;
+    } /* Otherwise, it's a complex executable with 1 or more arguments */
+
+    /* Figure out how many instances of '%x' we've got */
+    for (spl_count = 1; split [spl_count]; ++spl_count) {
+        if ('%' == split [spl_count][0] && 'x' == split [spl_count][1] 
+            && '\0' == split [spl_count][2])
+            ++wld_count;
+    }
+
+    /* If we don't have any instances of '%x', we have a valid argv array, 
+       so return it as it is.
+    */
+    if (0 == wld_count)
+        return split;
+
+    /* Now we need to determine how large the argv array is */
+    for (/* none */; argv [arg_count]; ++arg_count);
+
+    if (0 == arg_count) {
+        /* We want to shrink the array, removing the '%x' terms*/
+        unsigned found = 0;
+        for (i = 1; i <= spl_count; ++i) {
+            if (split [i] && '%' == split [i][0] && 'x' == split [i][1] 
+                && '\0' == split [i][2])
+                ++found;
+            else
+                split [i - found] = split [i];
+        }
+    }
+    else if (1 == arg_count) {
+        /* We need to replace all the %x terms with argv [0] */
+        
+        for (i = 1; i < spl_count; ++i) {
+            if ('%' == split [i][0] && 'x' == split [i][1] 
+                && '\0' == split [i][2])
+                split [i] = argv [0];
+        }
+    }
+    else {
+        /* We need to resize the split array to hold the insertion (s) */
+        /* First, we realloc the array */
+        const unsigned new_len = spl_count + (arg_count - 1) * wld_count;
+        split = (char**)RW_REALLOC (split, sizeof (char**) * new_len);
+
+        /* Then we itterate backwards through the split array, transcribing 
+           elements as we go.  We have to go backwards, so we don't clobber
+           data in the process.
+        */
+        for (/* none */; wld_count; --spl_count) {
+            if (split [spl_count] && '%' == split [spl_count][0] 
+                && 'x' == split [spl_count][1] 
+                && '\0' == split [spl_count][2]) {
+                --wld_count;
+                for (i = arg_count; i; --i) {
+                    split [spl_count + (arg_count - 1) * wld_count + i - 1] = 
+                        argv [i - 1];
+                }
+            }
+            else
+                split [spl_count + (arg_count - 1) * wld_count] = 
+                    split [spl_count];
+        }
+    }
+    return split;
+}
 
 /**
    Preflight check to ensure that target is something that should be run.
@@ -228,25 +349,26 @@ rw_basename (const char* path)
    @see process_results
 */
 static void
-run_target (char* target, char** childargv)
+run_target (char* target, char** argv)
 {
     struct exec_attrs status;
+    char** childargv = merge_argv (target, argv);
 
     assert (0 != target);
+    assert (0 != argv);
     assert (0 != childargv);
 
-    childargv [0] = target;
-    target_name = rw_basename (target);
+    target_name = rw_basename (childargv [0]);
 
     printf ("%-18.18s ", target_name);
     fflush (stdout);
 
-    if (!check_target_ok (target))
+    if (!check_target_ok (childargv [0]))
         return;
 
     status = exec_file (childargv);
 
-    process_results (target, &status);
+    process_results (childargv [0], &status);
 }
 
 /**
@@ -281,7 +403,7 @@ main (int argc, char *argv [])
 
     if (0 < argc) {
         int i;
-        char** childargv = split_child_opts ();
+        char** childargv = split_opt_string (exe_opts);
 
         assert (0 != childargv);
         puts ("NAME               STATUS ASSRTS FAILED PERCNT");
@@ -290,8 +412,8 @@ main (int argc, char *argv [])
             run_target (argv [i], childargv);
         }
 
-        if (childargv [1])
-            free (childargv [1]);
+        if (childargv [0])
+            free (childargv [0]);
         free (childargv);
     }
 

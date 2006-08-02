@@ -152,7 +152,7 @@ eval_options (const int argc, char* const argv [])
 }
 
 /**
-   Translates exe_opts into an array that can be passed to exec ().
+   Translates opts into an array that can be passed to exec().
 
    This method malloc ()s two blocks of memory.  The first block is the 
    generated argv index array.  This is the return value of this method.  The 
@@ -162,11 +162,11 @@ eval_options (const int argc, char* const argv [])
 
    @warning this logic is UTF-8 unsafe
    @warning I/O redirection command piping isn't supported in the parse logic
+   @param opts option string to split
    @return the parsed argv array
-   @see exe_opts
 */
 char**
-split_child_opts ()
+split_opt_string (const char* const opts)
 {
     char in_quote = 0;
     int in_escape = 0;
@@ -174,30 +174,30 @@ split_child_opts ()
     const char *pos;
     char *target, *last;
     char **table_pos, **argv;
-    const size_t optlen = strlen (exe_opts);
+    const size_t optlen = strlen (opts);
 
-    assert (0 != exe_opts);
+    assert (0 != opts);
 
     if (0 == optlen) {
         /* Alloc a an index array to hold the program name  */
-        argv = (char**)RW_MALLOC (2 * sizeof (char*));
+        argv = (char**)RW_MALLOC (sizeof (char*));
 
         /* And tie the two together */
-        argv [1] = (char*)0;
+        argv [0] = (char*)0;
         return argv;
     }
 
-    table_pos = argv = (char**)RW_MALLOC ((optlen + 5) * sizeof (char*) / 2);
-    /* (strlen (exe_opts)+5)/2 is overkill for the most situations, but it is 
-       just large enough to handle the worst case scenario.  The worst case 
-       is a string similar to 'x y' or 'x y z', requiring array lengths of 4 
-       and 5 respectively.
+    table_pos = argv = (char**)RW_MALLOC ((optlen + 3) * sizeof (char*) / 2);
+    /* (strlen (opts)+3)/2 is overkill for the most situations, but it is just 
+       large enough to handle the worst case scenario.  The worst case is a 
+       string similar to 'x y' or 'x y z', requiring array lengths of 4 and 5 
+       respectively.
     */
 
-    last = target = argv [1] = (char*)RW_MALLOC (optlen + 1);
+    last = target = argv [0] = (char*)RW_MALLOC (optlen + 1);
 
     /* Transcribe the contents, handling escaping and splitting */
-    for (pos = exe_opts; *pos; ++pos) {
+    for (pos = opts; *pos; ++pos) {
         if (in_escape) {
             *(target++) = *pos;
             in_escape = 0;
@@ -210,7 +210,7 @@ split_child_opts ()
             else {
                 if (in_token) {
                     *(target++) = '\0';
-                    *(++table_pos) = last;
+                    *(table_pos++) = last;
                     in_token = 0;
                 }
                 last = target;
@@ -242,9 +242,9 @@ split_child_opts ()
 
     if (in_token) { /* close and record the final token */
         *(target++) = '\0';
-        *(++table_pos) = last;
+        *(table_pos++) = last;
     }
-    *(++table_pos) = (char*)0;/*And terminate the array*/
+    *table_pos = (char*)0;/*And terminate the array*/
 
     return argv;
 }
