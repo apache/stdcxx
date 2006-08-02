@@ -39,7 +39,10 @@ warn (const char* const format, ...)
 
     assert (0 != format);
 
-    fprintf (stderr, "%s (%s): ", exe_name, target_name);
+    if (target_name)
+        fprintf (stderr, "%s (%s): ", exe_name, target_name);
+    else
+        fprintf (stderr, "%s: ", exe_name);
 
     va_start (args, format);
     vfprintf (stderr, format, args);
@@ -60,7 +63,10 @@ terminate (const int state, const char* const format, ...)
     assert (0 != format);
     assert (0 != state);
 
-    fprintf (stderr, "%s (%s): ", exe_name, target_name);
+    if (target_name)
+        fprintf (stderr, "%s (%s): ", exe_name, target_name);
+    else
+        fprintf (stderr, "%s: ", exe_name);
 
     va_start (args, format);
     vfprintf (stderr, format, args);
