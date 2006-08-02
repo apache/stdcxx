@@ -70,7 +70,8 @@ static int alarm_timeout;
 /**
     Signal name/number translation table.
     
-    This table is populated using the SIGNAL helper macro to translate system SIG* macro values into name/value pairs.
+    This table is populated using the SIGNAL helper macro to translate
+    system SIG* macro values into name/value pairs.
     
     @see SIGNAL ()
 */
@@ -295,7 +296,7 @@ rw_strcasecmp (const char* s1, const char* s2)
    @returns the signal number or -1 if a number couldn't be determined
    @see signal_names []
 */
-const int
+int
 get_signo (const char* signame)
 {
     size_t i;

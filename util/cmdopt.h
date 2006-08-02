@@ -29,7 +29,7 @@
 
 extern int timeout;
 extern int compat;
-extern unsigned verbose; /**< Verbose output mode switch.  Defaults to 0 (off) */
+extern unsigned verbose; /**< Verbose output mode switch.  Defaults to 0 */
 extern const char* exe_opts;
 extern const char* in_root;
 extern const char* exe_name;
@@ -39,9 +39,9 @@ void
 show_usage(const int status);
 
 int 
-eval_options (const int argc, char* const argv[]);
+eval_options (int argc, char* const argv[]);
 
 char**
-split_opt_string(const char* const opts);
+split_opt_string(const char* opts);
 
 #endif   // RW_PARSE_OPTS_H
