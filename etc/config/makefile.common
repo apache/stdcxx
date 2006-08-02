@@ -11,6 +11,10 @@ SHELL        = /bin/sh
 # specify path to find to avoid problems with example named 'find'
 FIND         = /usr/bin/find
 
+# set common variables used in makefiles
+BINDIR       = $(BUILDDIR)/bin
+LIBDIR       = $(BUILDDIR)/lib
+
 # provide a value if it isn't already set by make
 ifeq ($(CURDIR),)
   CURDIR := $(shell pwd)
