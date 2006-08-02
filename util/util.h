@@ -47,4 +47,9 @@ void terminate ( const int state, const char* const format, ... );
 void* guarded_malloc (const size_t size, const char* const file, 
                       const unsigned line);
 
+#define RW_REALLOC(source, size)                 \
+    guarded_realloc(source, size, __FILE__, __LINE__)
+void* guarded_realloc (void* source, const size_t size, 
+                       const char* const file, const unsigned line);
+
 #endif   // RW_UTIL_H

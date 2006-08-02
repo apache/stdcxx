@@ -41,6 +41,6 @@ int
 eval_options (const int argc, char* const argv[]);
 
 char**
-split_child_opts();
+split_opt_string(const char* const opts);
 
 #endif   // RW_PARSE_OPTS_H
