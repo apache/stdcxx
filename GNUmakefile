@@ -99,8 +99,6 @@
 #   LIBBASE   - name of the library w/o the suffix suitable
 #               for use by the linker after the -l option
 #
-#   LIBDIR    - the directory where the library will be built
-#
 #   DEPENDDIR - the subdirectory where dependency files will reside
 #
 #   LIBNAME   - full name of the library being built
@@ -581,8 +579,6 @@ $(MAKEFILE_IN): $(configpath)
           && [ "$(MAPFILE)" = "" ]                                          \
           || echo "MAPFILE    = $$""(TOPDIR)/$(MAPFILE)" >> $(MAKEFILE_IN)  \
           && echo "RUNFLAGS   = -t 180"                  >> $(MAKEFILE_IN)  \
-          && echo "LIBDIR     = $$""(BUILDDIR)/lib"      >> $(MAKEFILE_IN)  \
-          && echo "BINDIR     = $$""(BUILDDIR)/bin"      >> $(MAKEFILE_IN)  \
           && echo "DEPENDDIR  = $(DEPENDDIR)"            >> $(MAKEFILE_IN)  \
           && echo "PHDIR      = $(PHDIR)"                >> $(MAKEFILE_IN)  \
           && echo "PHWARNFLAGS = $(PHWARNFLAGS)"         >> $(MAKEFILE_IN)  \
