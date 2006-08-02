@@ -29,6 +29,7 @@
 
 extern int timeout;
 extern int compat;
+extern unsigned verbose; /**< Verbose output mode switch.  Defaults to 0 (off) */
 extern const char* exe_opts;
 extern const char* in_root;
 extern const char* exe_name;

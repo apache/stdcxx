@@ -29,6 +29,7 @@
 #undef __PURE_CNAME
 
 #include <assert.h> /* for assert */
+#include <ctype.h> /* for tolower */
 #include <errno.h> /* for errno */
 #include <fcntl.h> /* for O_*, */
 #include <signal.h>
@@ -58,192 +59,292 @@
 static int alarm_timeout;
 
 /**
+    Utility macro to generate a signal number/name pair.
+    
+    @parm val 'short' signal name (no leading SIG) to generate pair for.
+    @see signal_names []
+*/
+#undef SIGNAL
+#define SIGNAL(val)   { SIG ## val, #val }
+
+/**
+    Signal name/number translation table.
+    
+    This table is populated using the SIGNAL helper macro to translate system SIG* macro values into name/value pairs.
+    
+    @see SIGNAL ()
+*/
+static const struct {
+    int         val; /**< Signal value for lookup pair */
+    const char* str; /**< Signal name for lookup pair */
+} signal_names [] = {
+#ifdef SIGABRT
+    SIGNAL (ABRT),
+#endif   /* SIGABRT */
+#ifdef SIGALRM
+    SIGNAL (ALRM),
+#endif   /* SIGALRM */
+#ifdef SIGBUS
+    SIGNAL (BUS),
+#endif   /* SIGBUS */
+#ifdef SIGCANCEL
+    SIGNAL (CANCEL),
+#endif   /* SIGCANCEL */
+#ifdef SIGCHLD
+    SIGNAL (CHLD),
+#endif   /* SIGCHLD */
+#ifdef SIGCKPT
+    SIGNAL (CKPT),
+#endif   /* SIGCKPT */
+#ifdef SIGCLD
+    SIGNAL (CLD),
+#endif   /* SIGCLD */
+#ifdef SIGCONT
+    SIGNAL (CONT),
+#endif   /* SIGCONT */
+#ifdef SIGDIL
+    SIGNAL (DIL),
+#endif   /* SIGDIL */
+#ifdef SIGEMT
+    SIGNAL (EMT),
+#endif   /* SIGEMT */
+#ifdef SIGFPE
+    SIGNAL (FPE),
+#endif   /* SIGFPE */
+#ifdef SIGFREEZE
+    SIGNAL (FREEZE),
+#endif   /* SIGFREEZE */
+#ifdef SIGGFAULT
+    SIGNAL (GFAULT),
+#endif   /* SIGGFAULT */
+#ifdef SIGHUP
+    SIGNAL (HUP),
+#endif   /* SIGHUP */
+#ifdef SIGILL
+    SIGNAL (ILL),
+#endif   /* SIGILL */
+#ifdef SIGINFO
+    SIGNAL (INFO),
+#endif   /* SIGINFO */
+#ifdef SIGINT
+    SIGNAL (INT),
+#endif   /* SIGINT */
+#ifdef SIGIO
+    SIGNAL (IO),
+#endif   /* SIGIO */
+#ifdef SIGIOT
+    SIGNAL (IOT),
+#endif   /* SIGIOT */
+#ifdef SIGK32
+    SIGNAL (K32),
+#endif   /* SIGK32 */
+#ifdef SIGKILL
+    SIGNAL (KILL),
+#endif   /* SIGKILL */
+#ifdef SIGLOST
+    SIGNAL (LOST),
+#endif   /* SIGLOST */
+#ifdef SIGLWP
+    SIGNAL (LWP),
+#endif   /* SIGLWP */
+#ifdef SIGPIPE
+    SIGNAL (PIPE),
+#endif   /* SIGPIPE */
+#ifdef SIGPOLL
+    SIGNAL (POLL),
+#endif   /* SIGPOLL */
+#ifdef SIGPROF
+    SIGNAL (PROF),
+#endif   /* SIGPROF */
+#ifdef SIGPTINTR
+    SIGNAL (PTINTR),
+#endif   /* SIGPTINTR */
+#ifdef SIGPTRESCHED
+    SIGNAL (PTRESCHED),
+#endif   /* SIGPTRESCHED */
+#ifdef SIGPWR
+    SIGNAL (PWR),
+#endif   /* SIGPWR */
+#ifdef SIGQUIT
+    SIGNAL (QUIT),
+#endif   /* SIGQUIT */
+#ifdef SIGRESTART
+    SIGNAL (RESTART),
+#endif   /* SIGRESTART */
+#ifdef SIGRESV
+    SIGNAL (RESV),
+#endif   /* SIGRESV */
+#ifdef SIGSEGV
+    SIGNAL (SEGV),
+#endif   /* SIGSEGV */
+#ifdef SIGSTKFLT
+    SIGNAL (STKFLT),
+#endif   /* SIGSTKFLT */
+#ifdef SIGSTOP
+    SIGNAL (STOP),
+#endif   /* SIGSTOP */
+#ifdef SIGSYS
+    SIGNAL (SYS),
+#endif   /* SIGSYS */
+#ifdef SIGTERM
+    SIGNAL (TERM),
+#endif   /* SIGTERM */
+#ifdef SIGTHAW
+    SIGNAL (THAW),
+#endif   /* SIGTHAW */
+#ifdef SIGTRAP
+    SIGNAL (TRAP),
+#endif   /* SIGTRAP */
+#ifdef SIGTSTP
+    SIGNAL (TSTP),
+#endif   /* SIGTSTP */
+#ifdef SIGTTIN
+    SIGNAL (TTIN),
+#endif   /* SIGTTIN */
+#ifdef SIGTTOU
+    SIGNAL (TTOU),
+#endif   /* SIGTTOU */
+#ifdef SIGUNUSED
+    SIGNAL (UNUSED),
+#endif   /* SIGUNUSED */
+#ifdef SIGURG
+    SIGNAL (URG),
+#endif   /* SIGURG */
+#ifdef SIGUSR1
+    SIGNAL (USR1),
+#endif   /* SIGUSR1 */
+#ifdef SIGUSR2
+    SIGNAL (USR2),
+#endif   /* SIGUSR2 */
+#ifdef SIGVTALRM
+    SIGNAL (VTALRM),
+#endif   /* SIGVTALRM */
+#ifdef SIGWAITING
+    SIGNAL (WAITING),
+#endif   /* SIGWAITING */
+#ifdef SIGWINCH
+    SIGNAL (WINCH),
+#endif   /* SIGWINCH */
+#ifdef SIGWINDOW
+    SIGNAL (WINDOW),
+#endif   /* SIGWINDOW */
+#ifdef SIGXCPU
+    SIGNAL (XCPU),
+#endif   /* SIGXCPU */
+#ifdef SIGXFSZ
+    SIGNAL (XFSZ),
+#endif   /* SIGXFSZ */
+#ifdef SIGXRES
+    SIGNAL (XRES),
+#endif   /* SIGXRES */
+    { -1, 0 }
+};
+
+/**
+   Compare two characters in a case-insensitive manner
+
+   @param c1 first character to compare
+   @param c2 second character to compare
+   @return an integer less than, equal to, or greater than 0, coresponding
+   to whether c1 is less than, equal to, or greater than c2 when compared
+   in a case insensitive manner.
+*/
+static int
+rw_charcasecmp (char c1, char c2)
+{
+    typedef unsigned char UChar; 
+    return tolower ((UChar)c1) - tolower ((UChar)c2);
+}
+
+/**
+   Reimplementation of the POSIX strcasecmp function.
+
+   This is a simplistic (re)implementation of the strcasecmp function
+   specified in the XSI extension to the IEEE Std 1003.1 (POSIX) standard.
+
+   @param s1 pointer to first string to compare
+   @param s2 pointer to second string to compare
+   @return an integer less than, equal to, or greater than 0, coresponding
+   to whether s1 is less than, equal to, or greater than s2 when compared
+   in a case insensitive manner.
+*/
+static int
+rw_strcasecmp (const char* s1, const char* s2)
+{
+    int delta;
+
+    assert (0 != s1);
+    assert (0 != s2);
+
+    for (delta = rw_charcasecmp (*s1, *s2); 
+         *s1 && *s2 && 0 == delta; 
+         delta = rw_charcasecmp (*(++s1), *(++s2)));
+    return delta;
+}
+
+/**
+   Translates a human understandable signal name into a number usable by kill ().
+
+   This method understands several formats for signal names.  They are as follows:
+   - n
+   - SIGFOO
+   - FOO
+   In this list, n denotes a number and FOO denotes a short signal name.
+
+   @param signame a signal name to decode
+   @returns the signal number or -1 if a number couldn't be determined
+   @see signal_names []
+*/
+const int
+get_signo (const char* signame)
+{
+    size_t i;
+    typedef unsigned char UChar; 
+
+    assert (0 != signame);
+
+    if (isdigit (signame [0])){
+        char *junk;
+        int trans = strtol (signame, &junk, 10);
+
+        if (0 == *junk && 0 == errno)
+            return trans;
+        else
+            return -1;
+    }
+
+    if (   's' == tolower ((UChar)signame [0]) 
+        && 'i' == tolower ((UChar)signame [1]) 
+        && 'g' == tolower ((UChar)signame [2]))
+        signame += 3;
+    
+    for (i = 0; signal_names [i].str; ++i) {
+        if (0 == rw_strcasecmp (signal_names [i].str, signame)) {
+            return signal_names [i].val;
+        }
+    }
+    
+    return -1;
+}
+
+/**
    Translates a signal number into a human understandable name
 
    @param signo a signal number
    @returns the human understandable name for the signal (minus the SIG 
    prefix), or "#n" if the the name for the number is unknown to the 
    function, where n is signo
+   @see signal_names []
 */
 const char* 
 get_signame (int signo)
 {
-    static const struct {
-        int         val;
-        const char* str;
-    } names [] = {
-
-#undef SIGNAL
-#define SIGNAL(val)   { SIG ## val, #val }
-
-#ifdef SIGABRT
-        SIGNAL (ABRT),
-#endif   /* SIGABRT */
-#ifdef SIGALRM
-        SIGNAL (ALRM),
-#endif   /* SIGALRM */
-#ifdef SIGBUS
-        SIGNAL (BUS),
-#endif   /* SIGBUS */
-#ifdef SIGCANCEL
-        SIGNAL (CANCEL),
-#endif   /* SIGCANCEL */
-#ifdef SIGCHLD
-        SIGNAL (CHLD),
-#endif   /* SIGCHLD */
-#ifdef SIGCKPT
-        SIGNAL (CKPT),
-#endif   /* SIGCKPT */
-#ifdef SIGCLD
-        SIGNAL (CLD),
-#endif   /* SIGCLD */
-#ifdef SIGCONT
-        SIGNAL (CONT),
-#endif   /* SIGCONT */
-#ifdef SIGDIL
-        SIGNAL (DIL),
-#endif   /* SIGDIL */
-#ifdef SIGEMT
-        SIGNAL (EMT),
-#endif   /* SIGEMT */
-#ifdef SIGFPE
-        SIGNAL (FPE),
-#endif   /* SIGFPE */
-#ifdef SIGFREEZE
-        SIGNAL (FREEZE),
-#endif   /* SIGFREEZE */
-#ifdef SIGGFAULT
-        SIGNAL (GFAULT),
-#endif   /* SIGGFAULT */
-#ifdef SIGHUP
-        SIGNAL (HUP),
-#endif   /* SIGHUP */
-#ifdef SIGILL
-        SIGNAL (ILL),
-#endif   /* SIGILL */
-#ifdef SIGINFO
-        SIGNAL (INFO),
-#endif   /* SIGINFO */
-#ifdef SIGINT
-        SIGNAL (INT),
-#endif   /* SIGINT */
-#ifdef SIGIO
-        SIGNAL (IO),
-#endif   /* SIGIO */
-#ifdef SIGIOT
-        SIGNAL (IOT),
-#endif   /* SIGIOT */
-#ifdef SIGK32
-        SIGNAL (K32),
-#endif   /* SIGK32 */
-#ifdef SIGKILL
-        SIGNAL (KILL),
-#endif   /* SIGKILL */
-#ifdef SIGLOST
-        SIGNAL (LOST),
-#endif   /* SIGLOST */
-#ifdef SIGLWP
-        SIGNAL (LWP),
-#endif   /* SIGLWP */
-#ifdef SIGPIPE
-        SIGNAL (PIPE),
-#endif   /* SIGPIPE */
-#ifdef SIGPOLL
-        SIGNAL (POLL),
-#endif   /* SIGPOLL */
-#ifdef SIGPROF
-        SIGNAL (PROF),
-#endif   /* SIGPROF */
-#ifdef SIGPTINTR
-        SIGNAL (PTINTR),
-#endif   /* SIGPTINTR */
-#ifdef SIGPTRESCHED
-        SIGNAL (PTRESCHED),
-#endif   /* SIGPTRESCHED */
-#ifdef SIGPWR
-        SIGNAL (PWR),
-#endif   /* SIGPWR */
-#ifdef SIGQUIT
-        SIGNAL (QUIT),
-#endif   /* SIGQUIT */
-#ifdef SIGRESTART
-        SIGNAL (RESTART),
-#endif   /* SIGRESTART */
-#ifdef SIGRESV
-        SIGNAL (RESV),
-#endif   /* SIGRESV */
-#ifdef SIGSEGV
-        SIGNAL (SEGV),
-#endif   /* SIGSEGV */
-#ifdef SIGSTKFLT
-        SIGNAL (STKFLT),
-#endif   /* SIGSTKFLT */
-#ifdef SIGSTOP
-        SIGNAL (STOP),
-#endif   /* SIGSTOP */
-#ifdef SIGSYS
-        SIGNAL (SYS),
-#endif   /* SIGSYS */
-#ifdef SIGTERM
-        SIGNAL (TERM),
-#endif   /* SIGTERM */
-#ifdef SIGTHAW
-        SIGNAL (THAW),
-#endif   /* SIGTHAW */
-#ifdef SIGTRAP
-        SIGNAL (TRAP),
-#endif   /* SIGTRAP */
-#ifdef SIGTSTP
-        SIGNAL (TSTP),
-#endif   /* SIGTSTP */
-#ifdef SIGTTIN
-        SIGNAL (TTIN),
-#endif   /* SIGTTIN */
-#ifdef SIGTTOU
-        SIGNAL (TTOU),
-#endif   /* SIGTTOU */
-#ifdef SIGUNUSED
-        SIGNAL (UNUSED),
-#endif   /* SIGUNUSED */
-#ifdef SIGURG
-        SIGNAL (URG),
-#endif   /* SIGURG */
-#ifdef SIGUSR1
-        SIGNAL (USR1),
-#endif   /* SIGUSR1 */
-#ifdef SIGUSR2
-        SIGNAL (USR2),
-#endif   /* SIGUSR2 */
-#ifdef SIGVTALRM
-        SIGNAL (VTALRM),
-#endif   /* SIGVTALRM */
-#ifdef SIGWAITING
-        SIGNAL (WAITING),
-#endif   /* SIGWAITING */
-#ifdef SIGWINCH
-        SIGNAL (WINCH),
-#endif   /* SIGWINCH */
-#ifdef SIGWINDOW
-        SIGNAL (WINDOW),
-#endif   /* SIGWINDOW */
-#ifdef SIGXCPU
-        SIGNAL (XCPU),
-#endif   /* SIGXCPU */
-#ifdef SIGXFSZ
-        SIGNAL (XFSZ),
-#endif   /* SIGXFSZ */
-#ifdef SIGXRES
-        SIGNAL (XRES),
-#endif   /* SIGXRES */
-        { -1, 0 }
-    };
-
     size_t i;
     static char def [16];
 
-    for (i = 0; i < sizeof names / sizeof *names; ++i) {
-        if (names [i].val == signo) {
-            return names [i].str;
+    for (i = 0; signal_names [i].str; ++i) {
+        if (signal_names [i].val == signo) {
+            return signal_names [i].str;
         }
     }
 
@@ -621,7 +722,7 @@ exec_file (char** argv)
               strerror (errno));
         return state;
     }
-
+    
     /* parent */
     return wait_for_child (child_pid);
 }

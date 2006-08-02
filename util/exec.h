@@ -32,6 +32,8 @@ struct exec_attrs {
     int killed;
 };
 
+const int get_signo (const char* signame);
+
 const char* get_signame (int signo);
 
 struct exec_attrs exec_file (char** argv);
