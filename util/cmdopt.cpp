@@ -26,16 +26,21 @@
 
 #include <assert.h>
 #include <ctype.h> /* for isspace */
+#include <errno.h> /* for errno */
+#include <signal.h> /* for kill, SIG_IGN */
 #include <stdio.h> /* for *printf, fputs */
-#include <stdlib.h> /* for atoi, exit */
+#include <stdlib.h> /* for exit */
 #include <string.h> /* for str* */
+#include <unistd.h> /* for getpid */
 
+#include "exec.h"
 #include "util.h"
 
 #include "cmdopt.h"
 
 int timeout = 10; /**< Child process timeout.  Default 10. */
 int compat = 0; /**< Test compatability mode switch.  Defaults to 0 (off). */
+unsigned verbose = 0;
 const char* exe_opts = ""; /**< Global command line switches for child 
                                 processes. */
 const char* in_root = ""; /**< Root directory for input/reference files. */
@@ -58,14 +63,84 @@ show_usage (int status)
            "processed after termination.  If\n  execution takes longer "
            "than a certain (configurable) period of time, the\n  process is "
            "killed\n\n", stderr);
-    fputs ("    -d dir      Root directory for output reference files\n"
-           "    -h, -?      Display usage information and exit\n"
-           "    -t seconds  Watchdog timeout before killing target (default is "
-"10 \n                seconds)\n"
-           "    -x opts     Command line options to pass to targets\n"
-           "    --          Terminate option processing and treat all "
-           "following arguments\n                as targets\n", stderr);
+    fputs ("    -d dir       Root directory for output reference files\n"
+           "    -h, -?       Display usage information and exit\n"
+           "    -t seconds   Watchdog timeout before killing target (default "
+           "is 10 \n                 seconds)\n"
+           "    -q           Set verbosity level to 0 (default)\n"
+           "    -v           Increase verbosity of output\n"
+           "    -x opts      Command line options to pass to targets\n", 
+           stderr);
+    fputs ("    --           Terminate option processing and treat all "
+           "following arguments\n                 as targets\n"
+           "    --compat     Use compatability mode test output parsing\n"
+           "    --nocompat   Use standard test output parsing (default)\n"
+           "    --exit=val   Exit (now) with a return code of val\n"
+           "    --sleep=sec  sleep() (now) for sec seconds\n"
+           "    --signal=sig Send self signal sig (now)\n"
+           "    --ignore=sig Ignore signal sig\n", stderr);
+    fputs ("\n"
+           "  All short (single dash) options must be specified seperately.\n"
+           "  If a short option takes a value, it may either be provided like"
+           "\n  '-sval' or  '-s val'\n"
+           "  If a long option take a value, it may either be provided like\n"
+           "  '--option=value' or '--option value'\n", stderr);
+          
     exit (status);
+}
+
+/**
+    Helper function to read the value for a short option
+    
+    @param argv argument array
+    @param idx reference to index for option
+*/
+static char*
+get_short_val (char* const* argv, int* idx)
+{
+    assert (0 != argv);
+    assert (0 != idx);
+
+    if ('\0' == argv [*idx][2])
+        return argv [++(*idx)];
+    else
+        return argv [*idx] + 2;
+}
+
+/**
+    Helper function to read the value for a long option
+    
+    @param argv argument array
+    @param idx reference to index for option
+    @param offset length of option name (including leading --)
+*/
+static char*
+get_long_val (char* const* argv, int* idx, unsigned offset)
+{
+    assert (0 != argv);
+    assert (0 != idx);
+
+    if ('\0' == argv [*idx][offset])
+        return argv [++(*idx)];
+    else if ('=' == argv [*idx][offset])
+        return argv [*idx] + offset + 1;
+    else
+        return (char*)0;
+}
+
+/**
+    Helper function to produce 'Unknown option' error message.
+    
+    Terminates via show_usage.
+    
+    @param opt name of option encountered
+*/
+static void
+bad_option (char* const opt)
+{
+    assert (0 != opt);
+    warn ("Unknown option: %s\n", opt);
+    show_usage (1);
 }
 
 /**
@@ -101,28 +176,22 @@ eval_options (const int argc, char* const argv [])
             ++i; /* Ignore -r option (makefile compat) */
             break;
         case 't':
-            if ('\0' == argv [i][2])
-                val = argv [++i];
-            else
-                val = argv [i] + 2;
-
-            timeout = atoi (val);
+            val = get_short_val (argv, &i);
+            timeout = strtol (val, &val, 10);
+            if (*val || errno)
+                terminate (1, "Unknown value for -t: %s\n", val);
             break;
         case 'd':
-            if ('\0' == argv [i][2])
-                val = argv [++i];
-            else
-                val = argv [i] + 2;
-
-            in_root = val;
+            in_root = get_short_val (argv, &i);
             break;
         case 'x':
-            if ('\0' == argv [i][2])
-                val = argv [++i];
-            else
-                val = argv [i] + 2;
-
-            exe_opts = val;
+            exe_opts = get_short_val (argv, &i);
+            break;
+        case 'v':
+            ++verbose;
+            break;
+        case 'q':
+            verbose = 0;
             break;
         case '-':
         {
@@ -132,19 +201,80 @@ eval_options (const int argc, char* const argv [])
             if ('\0' == argv [i][2])
                 return i+1;
 
-            if (8 == arglen && 0 == memcmp ("--compat", argv [i], 8)) {
+            if (8 == arglen && 0 == memcmp ("--compat\0", argv [i], 9)) {
                 compat = 1;
                 break;
             }
-            else if (10 == arglen && 0 == memcmp ("--nocompat", argv [i], 10)) {
+            else if (10 == arglen && 0 == memcmp ("--nocompat\0", argv [i], 
+                                                  11)) {
                 compat = 0;
                 break;
             }
+            else if (6 <= arglen && 0 == memcmp ("--exit", argv [i], 6)) {
+                val = get_long_val (argv, &i, 6);
+                if (val) {
+                    int code = strtol (val, &val, 10);
+                    if (*val || errno)
+                        terminate (1, "Unknown value for --exit: %s\n", val);
+                    exit (code);
+                }
+                else
+                    bad_option (argv [i]);
+            }
+            else if (7 <= arglen && 0 == memcmp ("--sleep", argv [i], 7)) {
+                val = get_long_val (argv, &i, 7);
+                if (val) {
+                    int duration = strtol (val, &val, 10);
+                    if (*val || errno)
+                        terminate (1, "Unknown value for --sleep: %s\n", val);
+                    sleep (duration);
+                    break;
+                }
+                else
+                    bad_option (argv [i]);
+            }
+            else if (8 <= arglen && 0 == memcmp ("--signal", argv [i], 8)) {
+                val = get_long_val (argv, &i, 8);
+                if (val) {
+                    int sig = get_signo (val);
+                    if (0 > sig)
+                        terminate (1, "Unknown signal name for --signal: "
+                                   "%s\n", val);
+                    
+                    /* Ignore kill errors (what should we do with them?) */
+                    (void)kill (getpid (), sig);
+
+                    /* Not certain what we should do if we don't terminate by 
+                       signal */
+                    break;
+                }
+                else
+                    bad_option (argv [i]);
+            }
+            else if (8 <= arglen && 0 == memcmp ("--ignore", argv [i], 8)) {
+                val = get_long_val (argv, &i, 8);
+                if (val) {
+                    struct sigaction act;
+                    int sig = get_signo (val);
+                    if (0 > sig)
+                        terminate (1, "Unknown signal name for --ignore: "
+                                   "%s\n", val);
+                    
+                    memset (&act, 0, sizeof act);
+                    act.sa_handler = SIG_IGN;
+                    (void)sigaction (sig, &act, 0);
+                    /* Ignore sigaction errors (what should we do with them?) 
+                     */
+                    break;
+                }
+                else
+                    bad_option (argv [i]);
+            }
+            else
+                bad_option (argv [i]);
         }
-            /* Intentionally falling through */
         default:
-            fprintf (stderr, "Unknown option: %s\n", argv [i]);
-            show_usage (1);
+            bad_option (argv [i]);
         }
     }
 
