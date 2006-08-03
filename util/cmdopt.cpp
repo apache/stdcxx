@@ -129,17 +129,44 @@ get_long_val (char* const* argv, int* idx, unsigned offset)
 }
 
 /**
-    Helper function to produce 'Unknown option' error message.
+    Helper function to produce 'Bad argument' error message.
     
-    Terminates via show_usage.
+    @param opt name of option encountered
+    @param val invalid value found
+*/
+static void
+bad_value (const char* opt, const char* val)
+{
+    assert (0 != opt);
+
+    terminate (1, "Bad argument for %s: %s\n", opt, val);
+}
+
+/**
+    Helper function to produce 'Missing argument' error message.
+    
+    @param opt name of option missing argument
+*/
+static void
+missing_value (const char* opt)
+{
+    assert (0 != opt);
+
+    terminate (1, "Missing argument for %s\n", opt);
+}
+
+/**
+    Helper function to produce 'Unknown option' error message.
     
     @param opt name of option encountered
 */
 static void
-bad_option (char* const opt)
+bad_option (const char* opt)
 {
     assert (0 != opt);
+
     warn ("Unknown option: %s\n", opt);
+
     show_usage (1);
 }
 
@@ -157,9 +184,17 @@ bad_option (char* const opt)
 int 
 eval_options (const int argc, char* const argv [])
 {
-    int i;
+    const char opt_timeout[]  = "-t";
+    const char opt_data_dir[] = "-d";
+    const char opt_t_flags[]  = "-x";
+    const char opt_compat[]   = "--compat";
+    const char opt_exit[]     = "--exit";
+    const char opt_ignore[]   = "--ignore";
+    const char opt_nocompat[] = "--nocompat";
+    const char opt_signal[]   = "--signal";
+    const char opt_sleep[]    = "--sleep";
 
-    char* val;
+    int i;
 
     assert (0 != argv);
 
@@ -167,6 +202,14 @@ eval_options (const int argc, char* const argv [])
         return 1;
 
     for (i = 1; i < argc && '-' == argv [i][0]; ++i) {
+
+        /* the name of the option being processed */
+        const char* optname = argv [i];
+
+        /* the option's argument, if any */
+        const char* optarg  = 0;
+
+        char* end = 0;
 
         switch (argv [i][1]) {
         case '?':
@@ -176,16 +219,29 @@ eval_options (const int argc, char* const argv [])
             ++i; /* Ignore -r option (makefile compat) */
             break;
         case 't':
-            val = get_short_val (argv, &i);
-            timeout = strtol (val, &val, 10);
-            if (*val || errno)
-                terminate (1, "Unknown value for -t: %s\n", val);
+            optname = opt_timeout;
+            optarg  = get_short_val (argv, &i);
+            if (optarg) {
+                timeout = strtol (optarg, &end, 10);
+                if (*end || timeout < 0 || errno)
+                    bad_value (optname, optarg);
+            }
+            else
+                missing_value (optname);
+
             break;
+
         case 'd':
+            optname = opt_data_dir;
             in_root = get_short_val (argv, &i);
+            if (!in_root)
+                missing_value (optname);
             break;
         case 'x':
+            optname  = opt_t_flags;
             exe_opts = get_short_val (argv, &i);
+            if (!exe_opts)
+                missing_value (optname);
             break;
         case 'v':
             ++verbose;
@@ -193,6 +249,7 @@ eval_options (const int argc, char* const argv [])
         case 'q':
             verbose = 0;
             break;
+
         case '-':
         {
             const size_t arglen = strlen (argv [i]);
@@ -201,80 +258,85 @@ eval_options (const int argc, char* const argv [])
             if ('\0' == argv [i][2])
                 return i+1;
 
-            if (8 == arglen && 0 == memcmp ("--compat\0", argv [i], 9)) {
-                compat = 1;
+            if (   sizeof opt_compat - 1 == arglen
+                && !memcmp (opt_compat, argv [i], sizeof opt_compat)) {
+                compat  = 1;
                 break;
             }
-            else if (10 == arglen && 0 == memcmp ("--nocompat\0", argv [i], 
-                                                  11)) {
-                compat = 0;
+            else if (   sizeof opt_nocompat - 1 == arglen
+                     && !memcmp (opt_nocompat, argv [i], sizeof opt_nocompat)) {
+                compat  = 0;
                 break;
             }
-            else if (6 <= arglen && 0 == memcmp ("--exit", argv [i], 6)) {
-                val = get_long_val (argv, &i, 6);
-                if (val) {
-                    int code = strtol (val, &val, 10);
-                    if (*val || errno)
-                        terminate (1, "Unknown value for --exit: %s\n", val);
-                    exit (code);
+            else if (   sizeof opt_exit - 1 <= arglen
+                     && !memcmp (opt_exit, argv [i], sizeof opt_exit - 1)) {
+                optname = opt_exit;
+                optarg  = get_long_val (argv, &i, sizeof opt_exit - 1);
+                if (optarg && *optarg) {
+                    const long code = strtol (optarg, &end, 10);
+                    if ('\0' == *end && !errno)
+                        exit (code);
                 }
-                else
-                    bad_option (argv [i]);
             }
-            else if (7 <= arglen && 0 == memcmp ("--sleep", argv [i], 7)) {
-                val = get_long_val (argv, &i, 7);
-                if (val) {
-                    int duration = strtol (val, &val, 10);
-                    if (*val || errno)
-                        terminate (1, "Unknown value for --sleep: %s\n", val);
-                    sleep (duration);
-                    break;
+            else if (   sizeof opt_sleep - 1 <= arglen
+                     && !memcmp (opt_sleep, argv [i], sizeof opt_sleep - 1)) {
+                optname = opt_sleep;
+                optarg  = get_long_val (argv, &i, sizeof opt_sleep - 1);
+                if (optarg && *optarg) {
+                    const long nsec = strtol (optarg, &end, 10);
+                    if ('\0' == *end && 0 <= nsec && !errno) {
+                        sleep (nsec);
+                        break;
+                    }
                 }
-                else
-                    bad_option (argv [i]);
             }
-            else if (8 <= arglen && 0 == memcmp ("--signal", argv [i], 8)) {
-                val = get_long_val (argv, &i, 8);
-                if (val) {
-                    int sig = get_signo (val);
-                    if (0 > sig)
-                        terminate (1, "Unknown signal name for --signal: "
-                                   "%s\n", val);
-                    
-                    /* Ignore kill errors (what should we do with them?) */
-                    (void)kill (getpid (), sig);
+            else if (   sizeof opt_signal - 1 <= arglen
+                     && !memcmp (opt_signal, argv [i], sizeof opt_signal - 1)) {
+                optname = opt_signal;
+                optarg  = get_long_val (argv, &i, sizeof opt_signal - 1);
+                if (optarg && *optarg) {
+                    const long signo = get_signo (optarg);
+                    if (0 <= signo) {
+                        if (0 > kill (getpid (), signo))
+                            terminate (1, "kill(%d, %s) failed: %s\n",
+                                       getpid (), get_signame (signo),
+                                       strerror (errno));
+                        break;
+                    }
+                }
+            }
+            else if (   sizeof opt_ignore <= arglen
+                     && !memcmp (opt_ignore, argv [i], sizeof opt_ignore - 1)) {
+                optname = opt_ignore;
+                optarg  = get_long_val (argv, &i, sizeof opt_ignore);
+                if (optarg && *optarg) {
+                    const long signo = get_signo (optarg);
+                    if (0 <= signo) {
+                        struct sigaction act;
+                        memset (&act, 0, sizeof act);
+                        act.sa_handler = SIG_IGN;
+                        if (0 > sigaction (signo, &act, 0))
+                            terminate (1, "sigaction(%s, ...) failed: %s\n",
+                                       get_signame (signo), strerror (errno));
+                        break;
+                    }
+                }
+            }
 
-                    /* Not certain what we should do if we don't terminate by 
-                       signal */
-                    break;
-                }
-                else
-                    bad_option (argv [i]);
-            }
-            else if (8 <= arglen && 0 == memcmp ("--ignore", argv [i], 8)) {
-                val = get_long_val (argv, &i, 8);
-                if (val) {
-                    struct sigaction act;
-                    int sig = get_signo (val);
-                    if (0 > sig)
-                        terminate (1, "Unknown signal name for --ignore: "
-                                   "%s\n", val);
-                    
-                    memset (&act, 0, sizeof act);
-                    act.sa_handler = SIG_IGN;
-                    (void)sigaction (sig, &act, 0);
-                    /* Ignore sigaction errors (what should we do with them?) 
-                     */
-                    break;
-                }
-                else
-                    bad_option (argv [i]);
-            }
-            else
-                bad_option (argv [i]);
+            /* fall through */
         }
         default:
-            bad_option (argv [i]);
+            if (optarg) {
+                if (*optarg)
+                    bad_value (optname, optarg);
+                else
+                    missing_value (optname);
+            }
+
+            if (argv [i])
+                bad_option (argv [i]);
+            else
+                missing_value (optname);
         }
     }
 
