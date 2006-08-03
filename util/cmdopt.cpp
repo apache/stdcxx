@@ -24,6 +24,10 @@
  *
  **************************************************************************/
 
+// disable Compaq/HP C++ pure libc headers to allow POSIX symbols
+// such as SIGALRM or SIGKILL to be defined
+#undef __PURE_CNAME
+
 #include <assert.h>
 #include <ctype.h> /* for isspace */
 #include <errno.h> /* for errno */
@@ -47,6 +51,39 @@ const char* in_root = ""; /**< Root directory for input/reference files. */
 const char* exe_name; /**< Alias for process argv [0]. */
 const char* target_name;
 
+static const char
+usage_text[] = {
+    "Usage: %s [OPTIONS] [targets]\n"
+    "\n"
+    "  Treats each token in targets as the path to an executable. Each target\n"
+    "  enumerated is executed, and the output is processed after termination.\n"
+    "  If the execution takes longer than a certain (configurable) amount of\n"
+    "  time, the process is killed.\n"
+    "\n"
+    "    -d dir       Specify root directory for output reference files.\n"
+    "    -h, -?       Display usage information and exit.\n"
+    "    -t seconds   Set timeout before killing target (default is 10\n"
+    "                 seconds).\n"
+    "    -q           Set verbosity level to 0 (default).\n"
+    "    -v           Increase verbosity of output.\n"
+    "    -x opts      Specify command line options to pass to targets.\n"
+    "    --           Terminate option processing and treat all arguments\n"
+    "                 that follow as targets.\n"
+    "    --compat     Use compatability mode test output parsing.\n"
+    "    --nocompat   Use standard test output parsing (default).\n"
+    "    --help       Display usage information and exit.\n"
+    "    --exit=val   Exit immediately with the specified return code.\n"
+    "    --sleep=sec  Sleep for the specified number of seconds.\n"
+    "    --signal=sig Send itself the specified signal.\n"
+    "    --ignore=sig Ignore the specified signal.\n"
+    "\n"
+    "  All short (single dash) options must be specified seperately.\n"
+    "  If a short option takes a value, it may either be provided like\n"
+    "  '-sval' or '-s val'.\n"
+    "  If a long option take a value, it may either be provided like\n"
+    "  '--option=value' or '--option value'.\n"
+};
+
 /**
    Display command line switches for program and terminate.
 
@@ -55,37 +92,12 @@ const char* target_name;
 void 
 show_usage (int status)
 {
+    FILE* const where = status ? stderr : stdout;
+
     assert (0 != exe_name);
-    fprintf (stderr, "Usage: %s [OPTIONS] [targets]\n", exe_name);
-    fputs ("\n"
-           "  Treats each token in targets as the path to an executable.  "
-           "Each target\n  enumerated is executed, and the output is "
-           "processed after termination.  If\n  execution takes longer "
-           "than a certain (configurable) period of time, the\n  process is "
-           "killed\n\n", stderr);
-    fputs ("    -d dir       Root directory for output reference files\n"
-           "    -h, -?       Display usage information and exit\n"
-           "    -t seconds   Watchdog timeout before killing target (default "
-           "is 10 \n                 seconds)\n"
-           "    -q           Set verbosity level to 0 (default)\n"
-           "    -v           Increase verbosity of output\n"
-           "    -x opts      Command line options to pass to targets\n", 
-           stderr);
-    fputs ("    --           Terminate option processing and treat all "
-           "following arguments\n                 as targets\n"
-           "    --compat     Use compatability mode test output parsing\n"
-           "    --nocompat   Use standard test output parsing (default)\n"
-           "    --exit=val   Exit (now) with a return code of val\n"
-           "    --sleep=sec  sleep() (now) for sec seconds\n"
-           "    --signal=sig Send self signal sig (now)\n"
-           "    --ignore=sig Ignore signal sig\n", stderr);
-    fputs ("\n"
-           "  All short (single dash) options must be specified seperately.\n"
-           "  If a short option takes a value, it may either be provided like"
-           "\n  '-sval' or  '-s val'\n"
-           "  If a long option take a value, it may either be provided like\n"
-           "  '--option=value' or '--option value'\n", stderr);
-          
+
+    fprintf (where, usage_text, exe_name);
+
     exit (status);
 }
 
@@ -189,6 +201,7 @@ eval_options (const int argc, char* const argv [])
     const char opt_t_flags[]  = "-x";
     const char opt_compat[]   = "--compat";
     const char opt_exit[]     = "--exit";
+    const char opt_help[]     = "--help";
     const char opt_ignore[]   = "--ignore";
     const char opt_nocompat[] = "--nocompat";
     const char opt_signal[]   = "--signal";
@@ -277,6 +290,12 @@ eval_options (const int argc, char* const argv [])
                     if ('\0' == *end && !errno)
                         exit (code);
                 }
+            }
+            else if (   sizeof opt_help - 1 == arglen
+                     && !memcmp (opt_help, argv [i], sizeof opt_help - 1)) {
+                optname = opt_help;
+                show_usage (0);
+                break;
             }
             else if (   sizeof opt_sleep - 1 <= arglen
                      && !memcmp (opt_sleep, argv [i], sizeof opt_sleep - 1)) {
