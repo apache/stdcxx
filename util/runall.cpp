@@ -360,7 +360,7 @@ run_target (char* target, char** argv)
 
     target_name = rw_basename (childargv [0]);
 
-    printf ("%-18.18s ", target_name);
+    printf ("%-25.25s ", target_name);
     fflush (stdout);
 
     if (!check_target_ok (childargv [0]))
@@ -406,7 +406,7 @@ main (int argc, char *argv [])
         char** childargv = split_opt_string (exe_opts);
 
         assert (0 != childargv);
-        puts ("NAME               STATUS ASSRTS FAILED PERCNT");
+        puts ("NAME                      STATUS ASSERTS FAILED PERCNT");
 
         for (i = 0; i < argc; ++i) {
             run_target (argv [i], childargv);

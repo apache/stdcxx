@@ -132,7 +132,7 @@ check_test (FILE* data)
         if (asserts) {
             pcnt = 100 * (asserts - failed) / asserts;
         }
-        printf ("     0 %6d %6d %5d%%\n", asserts, failed, pcnt);
+        printf ("     0 %7d %6d %5d%%\n", asserts, failed, pcnt);
     }
     else {
         puts ("FORMAT");
@@ -192,7 +192,7 @@ check_compat_test (FILE* data)
         if (asserts) {
             pcnt = 100 * (asserts - failed) / asserts;
         }
-        printf ("     0 %6d %6d %5d%%\n", asserts, failed, pcnt);
+        printf ("     0 %7d %6d %5d%%\n", asserts, failed, pcnt);
     }
     else {
         puts ("FORMAT");
