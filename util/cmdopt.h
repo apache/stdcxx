@@ -36,12 +36,12 @@ extern const char* exe_name;
 extern const char* target_name; /**< Alias for current target name. */
 
 void 
-show_usage(const int status);
+show_usage (int status);
 
 int 
-eval_options (int argc, char* const argv[]);
+eval_options (int argc, char** argv);
 
 char**
-split_opt_string(const char* opts);
+split_opt_string (const char* opts);
 
 #endif   // RW_PARSE_OPTS_H
