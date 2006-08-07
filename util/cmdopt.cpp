@@ -194,7 +194,7 @@ bad_option (const char* opt)
    @see exe_opts
 */
 int 
-eval_options (const int argc, char* const argv [])
+eval_options (int argc, char **argv)
 {
     const char opt_timeout[]  = "-t";
     const char opt_data_dir[] = "-d";
