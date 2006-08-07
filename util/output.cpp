@@ -296,6 +296,10 @@ check_example (char* const out_name, FILE* output)
         size_t out_read, ref_read;
         int match = 1;
 
+        /* Zero out holding buffers to avoid false differences */
+        memset (out_buf, 0, DELTA_BUF_LEN);
+        memset (ref_buf, 0, DELTA_BUF_LEN);
+
         while (!feof (reference) && !feof (output)) {
             /* First, read a block from the files into the buffer */
             out_read = fread (out_buf, DELTA_BUF_LEN, 1, output);
