@@ -31,10 +31,7 @@
 #include <string.h> /* for str* */
 
 #include <ctype.h> /* for isspace */
-#include <unistd.h>
-    /* for close, dup, exec, fork - remove when removing diff dependancy*/
 #include <sys/types.h>
-#include <sys/wait.h> /* for waitpid, W* */
 
 #include <sys/stat.h>
 
@@ -94,11 +91,14 @@ merge_argv (char* const target, char* const argv [])
         for (/* none */; argv [arg_count]; ++arg_count);
 
         /* reallocate memory for copying them, extending the buffer */
-        split = (char**)RW_REALLOC (split, (arg_count + 1) * sizeof (char*));
+        split = (char**)RW_REALLOC (split, (arg_count + 2) * sizeof (char*));
             
         /* And copy the pointers */
         for (i=0; i < arg_count; ++i)
             split [i+1] = argv [i];
+
+        /* Then terminate the array*/
+        split [++i] = (char*)0;
 
         return split;
     } /* Otherwise, it's a complex executable with 1 or more arguments */

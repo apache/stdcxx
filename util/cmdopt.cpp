@@ -31,11 +31,11 @@
 #include <assert.h>
 #include <ctype.h> /* for isspace */
 #include <errno.h> /* for errno */
-#include <signal.h> /* for kill, SIG_IGN */
+#include <signal.h> /* for raise, signal, SIG_IGN */
 #include <stdio.h> /* for *printf, fputs */
 #include <stdlib.h> /* for exit */
 #include <string.h> /* for str* */
-#include <unistd.h> /* for getpid */
+#include <unistd.h> /* for sleep */
 
 #include "exec.h"
 #include "util.h"
@@ -316,10 +316,9 @@ eval_options (int argc, char **argv)
                 if (optarg && *optarg) {
                     const long signo = get_signo (optarg);
                     if (0 <= signo) {
-                        if (0 > kill (getpid (), signo))
-                            terminate (1, "kill(%d, %s) failed: %s\n",
-                                       getpid (), get_signame (signo),
-                                       strerror (errno));
+                        if (0 > raise (signo))
+                            terminate (1, "raise(%s) failed: %s\n",
+                                       get_signame (signo), strerror (errno));
                         break;
                     }
                 }
@@ -377,7 +376,7 @@ eval_options (int argc, char **argv)
    @return the parsed argv array
 */
 char**
-split_opt_string (const char* const opts)
+split_opt_string (const char* opts)
 {
     char in_quote = 0;
     int in_escape = 0;
