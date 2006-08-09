@@ -2,7 +2,7 @@
  *
  * 22.locale.messages.cpp - tests exercising the std::messages facet
  *
- * $Id: //stdlib/dev/tests/stdlib/locale/messages.cpp#43 $
+ * $Id: //stdlib/dev/tests/stdlib/locale/messages.cpp#45 $
  *
  ***************************************************************************
  *
@@ -353,25 +353,71 @@ std::basic_string<charT> widen (std::string message)
 template <class charT>
 void test_has_facet (const char *loc_name, const char *cname)
 {
-    const std::locale loc (loc_name);
+    // construct a copy of the named locale or default
+    // when no name is specified
+    const std::locale loc =
+        loc_name ? std::locale (loc_name) : std::locale ();
 
     typedef std::messages<charT> Messages;
 
-    const bool facet_exists = std::has_facet<Messages> (loc);
+    // verify that the facet exists in the locale
+    bool facet_exists = std::has_facet<Messages>(loc);
 
     rw_assert (facet_exists, 0, __LINE__,
-               "has_facet<messages<%s> >(locale(%#s)) == true",
-               cname, loc_name);
+               "has_facet<messages<%s> >(locale(%{?}%#s%{;})) == true",
+               cname, 0 != loc_name, loc_name);
 
     try {
+        // verify that use facet doesn't throw an exception
         std::use_facet<Messages>(loc);
     }
 #ifndef _RWSTD_NO_EXCEPTIONS
 
     catch (std::exception &ex) {
         rw_assert (0, 0, __LINE__,
-                   "use_fact<messages<%s> >(locale(%#s)) unexpectedly threw "
-                   "exception(%#s)", cname, loc_name, ex.what ());
+                   "use_fact<messages<%s> >(locale(%{?}%#s%{;})) "
+                   "unexpectedly threw exception(%#s)",
+                   cname, 0 != loc_name, loc_name, ex.what ());
+    }
+    catch (...) {
+        rw_assert (0, 0, __LINE__,
+                   "use_fact<messages<%s> >(locale(%{?}%#s%{;})) "
+                   "unexpectedly threw an unknown exception",
+                   cname, 0 != loc_name, loc_name);
+    }
+
+    typedef std::messages_byname<charT> MessagesByname;
+
+    const bool byname = loc_name
+        && std::strcmp (loc_name, "C") && std::strcmp (loc_name, "POSIX");
+ 
+    facet_exists = std::has_facet<MessagesByname>(loc);
+
+    rw_assert (byname == facet_exists, 0, __LINE__,
+               "has_fact<messages_byname<%s> >(locale(%{?}%#s%{;})) == %b",
+               cname, 0 != loc_name, loc_name);
+
+    try {
+        // verify that use facet throws an exception only
+        // for the default and "C" locales
+        std::use_facet<MessagesByname>(loc);
+
+        rw_assert (byname, 0, __LINE__,
+                   "use_fact<messages_byname<%s> >(locale(%{?}%#s%{;})) "
+                   "failed to throw",
+                   cname, 0 != loc_name, loc_name);
+    }
+    catch (std::exception &ex) {
+        rw_assert (!byname, 0, __LINE__,
+                   "use_fact<messages_byname<%s> >(locale(%{?}%#s%{;})) "
+                   "unexpectedly threw exception(%#s)",
+                   cname, 0 != loc_name, loc_name, ex.what ());
+    }
+    catch (...) {
+        rw_assert (0, 0, __LINE__,
+                   "use_fact<messages<%s> >(locale(%{?}%#s%{;})) "
+                   "unexpectedly threw an unknown exception",
+                   cname, 0 != loc_name, loc_name);
     }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -393,9 +439,9 @@ open_catalog (const std::messages<charT> &msgs,
         cat = (msgs.open)(cat_name, loc);
 
         rw_assert (!expect_exception, 0, line,
-                   "messages<%s>::open(%#s, locale(%#s)) failed "
+                   "messages<%s>::open(%#s, locale(%#s)) ==> %d: failed "
                    "to throw an expected exception",
-                   cname, cat_name, loc.name ().c_str ());
+                   cname, cat_name, loc.name ().c_str (), cat);
     }
 
 #ifndef _RWSTD_NO_EXCEPTIONS
@@ -433,7 +479,8 @@ close_catalog (const std::messages<charT> &msgs,
 
         rw_assert (!expect_exception, 0, line,
                    "messages<%s>::close(%d) failed "
-                   "to throw an expected exception", cname);
+                   "to throw an expected exception",
+                   cname, cat);
     }
 
 #ifndef _RWSTD_NO_EXCEPTIONS
@@ -490,7 +537,7 @@ void test_open_close (const char *loc_name, const char *cname)
                0, __LINE__,
                "std::messages<%s>::close() leaked %d file descriptor(s) "
                "(or descriptor mismatch)",
-               fdcount [1] - fdcount [0]);
+               cname, fdcount [1] - fdcount [0]);
 }
 
 /***************************************************************************/
@@ -606,7 +653,7 @@ void test_use_codecvt (const char *cname)
 
     if (!rw_error (-1 < cat, 0, __LINE__,
                    "messages<%s>::open(%#s, locale(%#s)) >= -1, got %d",
-                   CAT_NAME, loc.name ().c_str (), cat))
+                   cname, CAT_NAME, loc.name ().c_str (), cat))
         return;
 
     cvt.check_state_ = true;
@@ -653,9 +700,13 @@ template <class charT>
 void test_use_nls_path (const char *cname)
 {
     // get working directory
-    char cwd[2048];
-    getcwd(cwd, 2048);
-    char *nlspath = new char[std::strlen(cwd) + 512];
+    char cwd [2048];
+    cwd [0] = '\0';
+    if (!rw_error (0 != getcwd (cwd, 2048), 0, __LINE__,
+                   "getcwd(%#p, %u) failed: %{#m} (%m)", cwd, 2048))
+        return;
+
+    char* const nlspath = new char [std::strlen (cwd) + 512];
 
     // create NLSPATH string
     std::sprintf (nlspath, "NLSPATH=%s/%%N.cat", cwd);
@@ -666,7 +717,8 @@ void test_use_nls_path (const char *cname)
     const std::messages<charT>& msgs =
         std::use_facet <std::messages<charT> >(loc);
 
-    const std::messages_base::catalog cat = (msgs.open)(NLS_CAT_NAME, loc);
+    const std::messages_base::catalog cat =
+        open_catalog (msgs, NLS_CAT_NAME, loc, false, "char", __LINE__);
 
     if (-1 == cat) {
 
@@ -689,6 +741,9 @@ void test_use_nls_path (const char *cname)
 template <class charT>
 void stress_test (const char *cname)
 {
+    // NLSPATH must be defined
+    RW_ASSERT (0 != std::getenv ("NLSPATH"));
+
     char catalog_names [24][24];
     std::messages_base::catalog cats[24];
 
@@ -793,7 +848,14 @@ void test_messages (charT, const char *cname, const char *locname)
 {
     if (rw_note (0 <= opt_has_facet, 0, __LINE__,
                  "has_facet<messages<%s> > tests disabled", cname)) {
+
+        // exercise has_facet and use_facet in the default locale
+        test_has_facet<charT>(0, cname);
+
+        // exercise has_facet and use_facet in locale("C")
         test_has_facet<charT>("C", cname);
+
+        // exercise has_facet and use_facet in a named locale
         test_has_facet<charT>(locname, cname);
     }
 
