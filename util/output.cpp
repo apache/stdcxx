@@ -30,16 +30,11 @@
 #include <stdlib.h> /* for exit, free */
 #include <string.h> /* for str* */
 
-#include <unistd.h>
-    /* for close, dup, exec, fork - remove when removing diff dependancy*/
 #include <sys/types.h>
-#include <sys/wait.h> /* for waitpid, W* */
 
 #include <sys/stat.h>
 
 #include "cmdopt.h"
-#include "exec.h"
-    /* for get_signame - remove when removing diff dependancy */
 #include "util.h"
 
 #include "output.h"
