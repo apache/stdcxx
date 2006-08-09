@@ -2,7 +2,7 @@
  *
  * 22.locale.messages.cpp - tests exercising the std::messages facet
  *
- * $Id: //stdlib/dev/tests/stdlib/locale/messages.cpp#45 $
+ * $Id: //stdlib/dev/tests/stdlib/locale/messages.cpp#46 $
  *
  ***************************************************************************
  *
@@ -40,28 +40,23 @@
 
 #include <cstring>   // for strlen()
 #include <cstdlib>   // for getcwd(), getenv()
-#include <cstdio>    // for file operations
+#include <cstdio>    // for FILE, fopen(), fprintf()
 #include <clocale>   // for LC_ALL
 
 #include <cwchar>    // for mbsinit()
 
 
 #ifndef _RWSTD_NO_NEW_HEADER
-
-#  include <stdio.h>         // for fileno
-#  include <stdlib.h>        // for getcwd
-
+#  include <stdio.h>         // for fileno()
 #  if defined (_MSC_VER)
-#    include <io.h>          // for _open
+#    include <io.h>          // for _open()
 #    include <direct.h>
 #  else
 #    include <sys/types.h>
 #    include <sys/stat.h>
-#    include <unistd.h>      // for getcwd
+#    include <unistd.h>      // for getcwd()
 #  endif
-
 #  include <fcntl.h>         // for mode flags for _open
-
 #endif   // _RWSTD_NO_NEW_HEADER
 
 #undef open
@@ -430,18 +425,37 @@ template <class charT>
 std::messages_base::catalog
 open_catalog (const std::messages<charT> &msgs,
               const char *cat_name, const std::locale &loc,
-              bool expect_exception, const char *cname, int line)
+              int expect, const char *cname, int line)
 {
     std::messages_base::catalog cat = -1;
+
+    // expect is set to:
+    //   *   0 (or greater) when the caller expects the call to open()
+    //         to succeed 
+    //   *  -1 when the caller expects the call to open() to fail
+    //         by returning -1
+    //   *  -2 (or less) when the caller expects the call to open()
+    //         to exit by throwing an exception
+   const bool expect_success   = expect >= 0;
+   const bool expect_failure   = expect == -1;
+   const bool expect_exception = expect <  -1;
+
+    const char* const nlspath = std::getenv ("NLSPATH");
 
     try {
         // an already closed cat should throw an exception
         cat = (msgs.open)(cat_name, loc);
 
-        rw_assert (!expect_exception, 0, line,
-                   "messages<%s>::open(%#s, locale(%#s)) ==> %d: failed "
-                   "to throw an expected exception",
-                   cname, cat_name, loc.name ().c_str (), cat);
+        const bool success =
+            expect_success && -1 < cat || expect_failure && cat < 0;
+
+        rw_assert (success, 0, line,
+                   "messages<%s>::open(%#s, locale(%#s))"
+                   "%{?} > -1%{:}%{?} == -1 %{;}%{;}, got %d"
+                   "%{?}; failed to throw an exception%{;}; NLSPATH=%s",
+                   cname, cat_name, loc.name ().c_str (),
+                   expect_success, expect_failure, cat,
+                   expect_exception, nlspath);
     }
 
 #ifndef _RWSTD_NO_EXCEPTIONS
@@ -449,14 +463,14 @@ open_catalog (const std::messages<charT> &msgs,
     catch (std::exception &ex) {
         rw_assert (expect_exception, 0, line,
                    "messages<%s>::open(%#s, locale(%#s)) unexpectedly "
-                   "threw exception(%#s)",
-                   cname, cat_name, loc.name ().c_str (), ex.what ());
+                   "threw exception(%#s); NLSPATH=%s",
+                   cname, cat_name, loc.name ().c_str (), ex.what (), nlspath);
     }
     catch (...) {
         rw_assert (expect_exception, 0, line,
                    "messages<%s>::open(%#s, locale(%#s)) unexpectedly "
-                   "threw an unknown exception",
-                   cname, cat_name, loc.name ().c_str ());
+                   "threw an unknown exception; NLSPATH=%s",
+                   cname, cat_name, loc.name ().c_str (), nlspath);
     }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -513,7 +527,7 @@ void test_open_close (const char *loc_name, const char *cname)
     next_fd [0] = rw_nextfd (fdcount + 0);
 
     rw_info (0, 0, __LINE__,
-             "std::messages<%s>::open () and close() in locale (\"%s\")",
+             "std::messages<%s>::open() and close() in locale(#%s)",
              cname, loc_name);
 
     const std::locale loc (loc_name);
@@ -522,7 +536,7 @@ void test_open_close (const char *loc_name, const char *cname)
         std::use_facet<std::messages<charT> >(loc);
 
     const std::messages_base::catalog cat =
-        open_catalog (msgs, CAT_NAME, loc, false, cname, __LINE__);
+        open_catalog (msgs, CAT_NAME, loc, 0, cname, __LINE__);
 
     // close a (presumably successfully) opened catalog
     close_catalog (msgs, cat, cat < 0, cname, __LINE__);
@@ -558,13 +572,9 @@ void test_get (const char *loc_name,
 
     std::messages_base::catalog cat = -1;
 
-    cat = open_catalog (msgs, CAT_NAME, loc, false, cname, __LINE__);
+    cat = open_catalog (msgs, CAT_NAME, loc, 0, cname, __LINE__);
 
-    rw_assert (-1 <= cat, 0, __LINE__,
-               "messages<%s>::open(%#s, locale(%#s)) <= -1, got %d",
-               cname, CAT_NAME, loc_name, cat);
-
-    if (cat == -1)
+    if (cat < 0)
         return;
 
     typedef std::char_traits<charT>                     Traits;
@@ -649,11 +659,9 @@ void test_use_codecvt (const char *cname)
 
     std::messages_base::catalog cat = -1;
 
-    cat = open_catalog (msgs, CAT_NAME, loc, false, cname, __LINE__);
+    cat = open_catalog (msgs, CAT_NAME, loc, 0, cname, __LINE__);
 
-    if (!rw_error (-1 < cat, 0, __LINE__,
-                   "messages<%s>::open(%#s, locale(%#s)) >= -1, got %d",
-                   cname, CAT_NAME, loc.name ().c_str (), cat))
+    if (cat < 0)
         return;
 
     cvt.check_state_ = true;
@@ -718,19 +726,10 @@ void test_use_nls_path (const char *cname)
         std::use_facet <std::messages<charT> >(loc);
 
     const std::messages_base::catalog cat =
-        open_catalog (msgs, NLS_CAT_NAME, loc, false, "char", __LINE__);
+        open_catalog (msgs, NLS_CAT_NAME, loc, 0, "char", __LINE__);
 
-    if (-1 == cat) {
-
-        const char* const envvar = std::getenv ("NLSPATH");
-
-        rw_assert (0, 0, __LINE__,
-                   "messages<%s>::open(%#s, locale ()) != -1; "
-                   "NLSPATH=%s", cname, NLS_CAT_NAME, envvar);
-    }
-    else {
+    if (-1 < cat)
         close_catalog (msgs, cat, false, cname, __LINE__);
-    }
 
     delete[] nlspath;
 }
@@ -745,8 +744,11 @@ void stress_test (const char *cname)
     RW_ASSERT (0 != std::getenv ("NLSPATH"));
 
     char catalog_names [24][24];
-    std::messages_base::catalog cats[24];
+    const std::size_t NCATS = sizeof catalog_names / sizeof *catalog_names;
 
+    std::messages_base::catalog cats [NCATS];
+
+    // detect descriptor leaks
     const int fd1 = open (__FILE__, O_RDONLY);
 
     const std::locale loc = std::locale::classic ();
@@ -754,34 +756,35 @@ void stress_test (const char *cname)
     const std::messages<charT>& msgs =
         std::use_facet<std::messages<charT> > (loc);
 
-    char msg_name[24];
+    std::size_t i;
 
-    int i;
+    for (i = 0; i < NCATS; i++) {
 
-    for (i = 0; i < 24; i++) {
+        char msg_name [NCATS];
+
 #ifndef _WIN32
-        std::sprintf (msg_name, "rwstdmessages_%d.msg", i);
+        std::sprintf (msg_name, "rwstdmessages_%d.msg", int (i));
 #else
-        std::sprintf (msg_name, "rwstdmessages_%d.rc", i);
+        std::sprintf (msg_name, "rwstdmessages_%d.rc", int (i));
 #endif
 
         generate_catalog (msg_name, messages);
-        char *dot = std::strrchr (msg_name, '.');
+
+        const char* const dot = std::strrchr (msg_name, '.');
         std::strncpy (catalog_names[i], msg_name, dot - msg_name);
         *(catalog_names[i] + (dot - msg_name)) = '\0';
 
-#ifndef _WIN32
-        std::strcat (catalog_names[i], ".cat");
-#else
+#ifdef _WIN32
         std::strcat (catalog_names[i], ".dll");
-#endif
+#endif   // _WIN32
 
+        // open each catalog (expect success)
         cats [i] = open_catalog (msgs, catalog_names [i],
-                                 loc, false, cname, __LINE__);
+                                 loc, 0, cname, __LINE__);
     }
 
     // close smallest first and check for descriptor leaks
-    for (i = 0; i < 24; ++i) {
+    for (i = 0; i < NCATS; ++i) {
         if (-1 != cats [i])
             close_catalog (msgs, cats [i], false, cname, __LINE__);
     }
@@ -791,13 +794,13 @@ void stress_test (const char *cname)
                "messages<%s>::close() leaked %d file descriptors",
                cname, fd2 - fd1 - 1);
 
-    //open again, close largest first and check for descriptor leaks
-    for (i = 0; i < 24; ++i) {
+    // open again, close largest first and check for descriptor leaks
+    for (i = 0; i < NCATS; ++i) {
         cats [i] = open_catalog (msgs, catalog_names [i],
-                                 loc, false, cname, __LINE__);
+                                 loc, 0, cname, __LINE__);
     }
 
-    for (i = 23; i >= 0 ; --i) {
+    for (i = NCATS; i-- > 0; ) {
         if (-1 != cats [i])
             close_catalog (msgs, cats [i], false, cname, __LINE__);
     }
@@ -813,24 +816,7 @@ void stress_test (const char *cname)
     close (fd1);
     close (fd2);
 
-    for (i = 0; i < 24; ++i) {
-
-#ifndef _WIN32
-        std::sprintf (msg_name, "rwstdmessages_%d.msg", i);
-#else
-        std::sprintf (msg_name, "rwstdmessages_%d.dll", i);
-
-        std::remove (msg_name);
-
-        std::sprintf (msg_name, "rwstdmessages_%d.rc", i);
-#endif
-
-        std::remove (msg_name);
-
-        std::sprintf (msg_name, "rwstdmessages_%d.cat", i);
-
-        std::remove (msg_name);
-    }
+    rw_system (SHELL_RM_F "rwstdmessages_*");
 }
 
 /**************************************************************************/
