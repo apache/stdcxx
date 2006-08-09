@@ -471,10 +471,16 @@ ifeq ($(in_topdir),1)
 
   # wide (typically 64-bit) mode
   ifeq ($(findstring wide,$(BUILDMODE)),wide)
-    CXXFLAGS  += $(WIDE_CXXFLAGS)
-    LDFLAGS   += $(WIDE_LDFLAGS)
-    LDSOFLAGS += $(WIDE_LDSOFLAGS)
-    ARFLAGS   += $(WIDE_ARFLAGS)
+    CXXFLAGS  += $(CXXFLAGS.wide)
+    LDFLAGS   += $(LDFLAGS.wide)
+    LDSOFLAGS += $(LDSOFLAGS.wide)
+    ARFLAGS   += $(ARFLAGS.wide)
+  endif
+  ifeq ($(findstring wide,$(BUILDMODE)),narrow)
+    CXXFLAGS  += $(CXXFLAGS.narrow)
+    LDFLAGS   += $(LDFLAGS.narrow)
+    LDSOFLAGS += $(LDSOFLAGS.narrow)
+    ARFLAGS   += $(ARFLAGS.narrow)
   endif
 
   # platform is determined as {OS-name}-{OS-version}-{hardware}
