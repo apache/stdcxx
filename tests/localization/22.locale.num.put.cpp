@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -38,12 +45,12 @@
 #include <climits>   // for integral limits macros
 #include <clocale>   // for LC_NUMERIC, setlocale()
 #include <cstdio>    // for sprintf()
-#include <cstdlib>   // for mbstowcs()
+#include <cstring>   // for strcmp(), strlen()
 
 #include <any.h>         // for TOSTR()
 #include <cmdopt.h>      // for rw_enabled
 #include <driver.h>      // for rw_test
-#include <localedef.h>   // for rw_locales
+#include <rw_locale.h>   // for rw_locales
 #include <valcmp.h>      // for rw_equal
 
 /**************************************************************************/
@@ -1326,11 +1333,11 @@ void ulong_test (charT, const char *cname)
 template <class charT>
 void llong_test (charT, const char *cname)
 {
-#ifdef _RWSTD_LONG_LONG
-
     const char* const tname = "long long";
 
     rw_info (0, 0, 0, "std::num_put<%s>::put (..., %s)", cname, tname);
+
+#ifndef _RWSTD_NO_LONG_LONG
 
 #  define STDIO_FMAT   "%" _RWSTD_LLONG_PRINTF_PREFIX "d"
 
@@ -1363,11 +1370,11 @@ void llong_test (charT, const char *cname)
     TEST (T,  -LL (87654321), dec, 0, 0, ' ', "", STDIO_FMAT);
     TEST (T, -LL (987654321), dec, 0, 0, ' ', "", STDIO_FMAT);
 
-#undef FLAGS
-#define FLAGS   hex | showbase | internal
+#  undef FLAGS
+#  define FLAGS   hex | showbase | internal
 
-#undef OPTS
-#define OPTS   FLAGS, 0, 20, ' ', "\1\2\3\4\1\2\3\4"
+#  undef OPTS
+#  define OPTS   FLAGS, 0, 20, ' ', "\1\2\3\4\1\2\3\4"
 
     // internal justfication, hex format, grouping
     TEST (T, LL (0),                  OPTS,     "                   0");
@@ -1388,6 +1395,12 @@ void llong_test (charT, const char *cname)
     TEST (T, LL (0x123456789abcdef),  OPTS,  "0x12,34,5,6789,abc,de,f");
     TEST (T, LL (0x123456789abcdef0), OPTS, "0x123,45,6,789a,bcd,ef,0");
 
+#else   // if defined (_RWSTD_NO_LONG_LONG)
+
+    rw_note (0, 0, __LINE__, "num_put<%s>::put (..., %s) not exercised, "
+             "macro _RWSTD_NO_LONG_LONG #defined",
+             cname, tname);
+
 #endif   // _RWSTD_LONG_LONG
 }
 
@@ -1397,13 +1410,22 @@ void llong_test (charT, const char *cname)
 template <class charT>
 void ullong_test (charT, const char *cname)
 {
-#ifdef _RWSTD_LONG_LONG
-
     const char* const tname = "unsigned long long";
 
     rw_info (0, 0, 0, "std::num_put<%s>::put (..., %s)", cname, tname);
 
-#endif   // _RWSTD_LONG_LONG
+#ifndef _RWSTD_NO_LONG_LONG
+
+    rw_warn (0, 0, __LINE__, "num_put<%s>::put (..., %s) not exercised",
+             cname, tname);
+
+#else   // if defined (_RWSTD_NO_LONG_LONG)
+
+    rw_note (0, 0, __LINE__, "num_put<%s>::put (..., %s) not exercised, "
+             "macro _RWSTD_NO_LONG_LONG #defined",
+             cname, tname);
+
+#endif   // _RWSTD_NO_LONG_LONG
 }
 
 
@@ -1703,12 +1725,14 @@ void pvoid_test (charT, const char *cname)
     TEST (T, PVoid ( LONG_MIN), 0, 0, 0, ' ', "", "%p");
     TEST (T, PVoid (ULONG_MAX), 0, 0, 0, ' ', "", "%p");
 
-#if _RWSTD_LLONG_SIZE <= _RWSTD_PTR_SIZE
+#ifdef _RWSTD_LLONG_MAX
+#  if _RWSTD_LLONG_SIZE <= _RWSTD_PTR_SIZE
 
-    TEST (T, PVoid (_RWSTD_LLONG_MAX),  0, 0, 0, ' ', "", "%p");
-    TEST (T, PVoid (_RWSTD_ULLONG_MAX), 0, 0, 0, ' ', "", "%p");
+      TEST (T, PVoid (_RWSTD_LLONG_MAX),  0, 0, 0, ' ', "", "%p");
+      TEST (T, PVoid (_RWSTD_ULLONG_MAX), 0, 0, 0, ' ', "", "%p");
 
-#endif   // LLONG_MAX
+#  endif   // LLONG_MAX
+#endif   // _RWSTD_LLONG_MAX
 
 }
 
