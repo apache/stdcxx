@@ -43,6 +43,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>     // for struct tm
 
 #ifndef _RWSTD_NO_WCHAR_H
 #  include <wchar.h>
