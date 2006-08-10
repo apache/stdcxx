@@ -24,16 +24,16 @@
  * 
  **************************************************************************/
 
-#include <assert.h>
-#include <errno.h>
-#include <stdio.h> /* for printf, puts, FILE, f* */
-#include <stdlib.h> /* for exit, free */
-#include <string.h> /* for str* */
+#include <assert.h>     /* for assert() */
+#include <errno.h>      /* for errno */
+#include <stdio.h>      /* for fflush(), printf(), puts(), ... */
+#include <stdlib.h>     /* for exit(), free() */
+#include <string.h>     /* for memcpy(), ... */
 
-#include <ctype.h> /* for isspace */
+#include <ctype.h>      /* for isspace */
 #include <sys/types.h>
-
 #include <sys/stat.h>
+#include <sys/wait.h>   /* for WIFEXITED(), ... */
 
 #include "cmdopt.h"
 #include "exec.h"
