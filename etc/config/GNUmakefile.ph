@@ -1,7 +1,7 @@
 # -*- Makefile -*-
 ##############################################################################
 #
-# $Id: //stdlib/dev/etc/stdlib/config/GNUmakefile.ph#10 $
+# $Id$
 #
 ##############################################################################
 
@@ -19,7 +19,7 @@ listtarget:
 	@echo
 
 .DEFAULT:
-	@printf "\nPHDIR not set; skipping Plum Hall test suite\n" >> $(LOGFILE)
+	@echo "PHDIR not set; skipping Plum Hall tests"
 
 #########################################################
 #  end of makefile if PHDIR isn't set
