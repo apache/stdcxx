@@ -1,34 +1,42 @@
 /***************************************************************************
  *
- * locale.money.put.cpp - tests exercising the std::money_get facet
+ * 22.locale.money.get.cpp
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
 #include <ios>
 #include <locale>
 
-#include <cstdio>    // for sscanf()
-#include <cstdlib>   // for mbstowcs(), wcstombs()
-#include <cstring>   // for strcat(), strlen()
+#include <cstdio>     // for sscanf()
+#include <cstdlib>    // for mbstowcs(), wcstombs()
+#include <cstring>    // for strcat(), strlen()
+#include <cwchar>     // for wcslen()
 
-#include <cmdopt.h>
-#include <driver.h>
-#include <valcmp.h>
+#include <cmdopt.h>   // for rw_enabled()
+#include <driver.h>   // for rw_assert(), rw_test(), ...
+#include <valcmp.h>   // for rw_fltcmp()
 
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
@@ -245,7 +253,7 @@ const char* narrow (char *dst, const wchar_t *src)
 
     std::size_t len = std::wcslen (src);
 
-    _RWSTD_ASSERT (len < sizeof buf);
+    RW_ASSERT (len < sizeof buf);
 
     len = std::wcstombs (dst, src, sizeof buf / sizeof *buf);
 
@@ -268,7 +276,7 @@ const wchar_t* widen (wchar_t *dst, const char *src)
 
     std::size_t len = std::strlen (src);
 
-    _RWSTD_ASSERT (len < sizeof buf /sizeof *buf);
+    RW_ASSERT (len < sizeof buf /sizeof *buf);
 
     len = std::mbstowcs (dst, src, sizeof buf / sizeof *buf);
 
@@ -916,13 +924,13 @@ void test_memfun (charT opt, const char *cname, const char *tname)
     TEST (T, LDBL (1234567890.0),
           "$+0;1;2;3;4;5;6;7;8;9;0", 23, 0, eofbit, 0, 0, "$", "\1");
 
-    TEST (T, LDBL (-1234567890.0),
+    TEST (T, -LDBL (1234567890.0),
           "$-1;2;3;4;5;6;7;8;9;0", 21, 0, eofbit, 0, 0, "$", "\1");
 
-    TEST (T, LDBL (-1234567890.0),
+    TEST (T, -LDBL (1234567890.0),
           "$-0;1;2;3;4;5;6;7;8;9;0", 23, 0, eofbit, 0, 0, "$", "\1");
 
-    TEST (T, LDBL (-1234567890.0),
+    TEST (T, -LDBL (1234567890.0),
           "$-0;0;1;2;3;4;5;6;7;8;9;0", 25, 0, eofbit, 0, 0, "$", "\1");
 
 
@@ -932,7 +940,7 @@ void test_memfun (charT opt, const char *cname, const char *tname)
     TEST (T, LDBL (1234567890.0),
           "$+12;34;56;78;90", 16, 0, eofbit, 0, 0, "$", "\2");
 
-    TEST (T, LDBL (-1234567890.0),
+    TEST (T, -LDBL (1234567890.0),
           "$-12;34;56;78;90", 16, 0, eofbit, 0, 0, "$", "\2");
 
 #undef T
