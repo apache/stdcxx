@@ -41,7 +41,7 @@
 
 #ifndef ENOENT
 #  define ENOENT 2
-#endif   // ENOENT
+#endif   /* ENOENT */
 
 
 /**
@@ -229,18 +229,19 @@ check_compat_test (FILE* data)
    @see in_root
 */
 static void
-check_example (char* const out_name, FILE* output)
+check_example (char* const out_name, FILE* fout)
 {
     struct stat file_info;
     const size_t root_len = strlen (in_root);
     char* const ref_name = (char*)RW_MALLOC (root_len 
                                              + strlen (target_name) + 19);
-    FILE* reference;
+
+    FILE* fref;   /* reference file (expected output) */
 
     assert (0 != in_root);
     assert (0 < root_len);
     assert (0 != target_name);
-    assert (0 != output);
+    assert (0 != fout);
 
     /* Try in_root/manual/out/target_name.out */
     memcpy (ref_name, in_root, root_len+1);
@@ -278,33 +279,33 @@ check_example (char* const out_name, FILE* output)
         }
     }
 
-    reference = fopen (ref_name, "r");
+    fref = fopen (ref_name, "r");
 
-    if (0 == reference) {
+    if (0 == fref) {
         int cache = errno; /* caching errno, as puts could alter it */
         if (ENOENT != cache)
             warn ("Error opening %s: %s\n", ref_name, strerror (cache));
         puts ("BADREF");
     }
     else {
-        char out_buf [DELTA_BUF_LEN], ref_buf [DELTA_BUF_LEN];
-        size_t out_read, ref_read;
-        int match = 1;
+        int match = 1;   /* do the two files match? */
 
-        /* Zero out holding buffers to avoid false differences */
-        memset (out_buf, 0, DELTA_BUF_LEN);
-        memset (ref_buf, 0, DELTA_BUF_LEN);
+        while (!feof (fref) && !feof (fout)) {
 
-        while (!feof (reference) && !feof (output)) {
+            char buf [2][DELTA_BUF_LEN];
+
+            size_t nread [2];   /* bytes read from the output/ref file */
+
             /* First, read a block from the files into the buffer */
-            out_read = fread (out_buf, DELTA_BUF_LEN, 1, output);
-            if (ferror (output)) {
+            nread [0] = fread (buf [0], sizeof buf [0], 1, fout);
+            if (ferror (fout)) {
                 warn ("Error reading %s: %s\n", out_name, strerror (errno));
                 match = 0;
                 break;
             }
-            ref_read = fread (ref_buf, DELTA_BUF_LEN, 1, reference);
-            if (ferror (reference)) {
+
+            nread [1] = fread (buf [1], sizeof buf [1], 1, fref);
+            if (ferror (fref)) {
                 warn ("Error reading %s: %s\n", ref_name, strerror (errno));
                 match = 0;
                 break;
@@ -313,13 +314,13 @@ check_example (char* const out_name, FILE* output)
             /* Then, check if the amount of data read or the state of the 
                files differs
             */
-            if (ref_read != out_read || feof (reference) != feof (output)) {
+            if (nread [0] != nread [1] || feof (fref) != feof (fout)) {
                 match = 0;
                 break;
             }
 
             /* Finally, check if the contents of the buffers differ */
-            if (0 != memcmp (out_buf, ref_buf, DELTA_BUF_LEN)) {
+            if (0 != memcmp (buf [0], buf [1], nread [0])) {
                 match = 0;
                 break;
             }
@@ -330,7 +331,7 @@ check_example (char* const out_name, FILE* output)
         else
             puts ("OUTPUT");
 
-        fclose (reference);
+        fclose (fref);
     }
     free (ref_name);
 }
