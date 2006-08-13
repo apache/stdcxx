@@ -5,28 +5,33 @@
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/source/stdlib/setlocale.cpp#8 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
 #define _RWSTD_LIB_SRC
 
 #include <rw/_defs.h>
-
-#ifndef _RWSTD_NO_V3_LOCALE
 
 #if defined (__linux__) && !defined (_XOPEN_SOURCE)
    // need S_IFDIR on Linux
@@ -41,7 +46,7 @@
 #include <rw/_error.h>
 #include <rw/_mutex.h>
 
-#include "podarray.h"
+#include "podarray.h"   // for __rw_charray
 #include "setlocale.h"
 
 #ifndef _MSC_VER
@@ -216,6 +221,3 @@ char* __rw_locale_name (int cat, const char *locname, __rw_chararray &namebuf)
 
 
 }   // namespace __rw
-
-
-#endif   // _RWSTD_NO_V3_LOCALE
