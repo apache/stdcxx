@@ -210,12 +210,12 @@ _RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT __rw_pod_array<char, 256>);
 
 #endif   // _RWSTD_INSTANTIATE_POD_ARRAY
 
+}   // namespace __rw
+
 
 #if _RWSTD_DEFINE_TEMPLATE_LAST (_POD_ARRAY)
 #  include "podarray.cc"
 #endif   // _RWSTD_DEFINE_TEMPLATE_LAST (_POD_ARRAY)
-
-}   // namespace __rw
 
 
 #endif   // _RWSTD_PODARRAY_H_INCLUDED
