@@ -458,7 +458,7 @@ wait_for_child (pid_t child_pid)
                 }
 
                 /* ignore kill errors (perhaps should record them)*/
-                (void)kill (child_pid, signals [siginx]);
+                (void)kill (-child_pid, signals [siginx]);
 
                 /* Record the signal used*/
                 state.killed = signals [siginx];
