@@ -84,21 +84,38 @@ public:
     }
 
     _EXPLICIT __rw_pod_array (const _TypeT *__a)
-        : _C_len (_STD::char_traits<_TypeT>::length (__a)),
-          _C_pbuf (_C_len < _Size ? _C_buffer : new _TypeT [_C_len + 1]) {
-        memcpy (_C_pbuf, __a, (_C_len + 1) * sizeof *__a);
-    }
+        : _C_len (_STD::char_traits<_TypeT>::length (__a))
+        // , _C_pbuf (_C_len < _Size ? _C_buffer : new _TypeT [_C_len + 1])
+        {
+            // initialze _C_pbuf here in order to prevent HP aCC 3.70
+            // ICE: see http://issues.apache.org/jira/browse/STDCXX-276
+            if (_C_len < _Size)
+                _C_pbuf = _C_buffer;
+            else
+                _C_pbuf = new _TypeT [_C_len + 1];
+            memcpy (_C_pbuf, __a, (_C_len + 1) * sizeof *__a);
+        }
 
     __rw_pod_array (const _TypeT *__a, _SizeT __len)
-        : _C_len (__len),
-          _C_pbuf (_C_len < _Size ? _C_buffer : new _TypeT [__len + 1]) {
+        : _C_len (__len) {
+        // initialze _C_pbuf here in order to prevent HP aCC 3.70
+        // ICE: see http://issues.apache.org/jira/browse/STDCXX-276
+        if (__len < _Size)
+            _C_pbuf = _C_buffer;
+        else
+            _C_pbuf = new _TypeT [__len + 1];
         memcpy (_C_pbuf, __a, __len * sizeof *__a);
         _C_pbuf [_C_len] = _TypeT ();
     }
 
     __rw_pod_array (const __rw_pod_array &__rhs)
-        : _C_len (__rhs._C_len),
-          _C_pbuf (_C_len < _Size ? _C_buffer : new _TypeT [_C_len + 1]) {
+        : _C_len (__rhs._C_len) {
+        // initialze _C_pbuf here in order to prevent HP aCC 3.70
+        // ICE: see http://issues.apache.org/jira/browse/STDCXX-276
+        if (_C_len < _Size)
+            _C_pbuf = _C_buffer;
+        else
+            _C_pbuf = new _TypeT [_C_len + 1];
         memcpy (_C_pbuf, __rhs._C_pbuf,
                 (_C_len + !!__rhs._C_pbuf) * sizeof *_C_pbuf);
     }
