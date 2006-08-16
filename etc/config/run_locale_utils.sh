@@ -167,8 +167,8 @@ generate_locale()
     assertions=`expr $assertions + 1`
 
     # Generating the database
-    echo "${localedef} -w -c -f $1 -i $2 $3 2>/dev/null" >$dbgout
-    ${localedef} -w -c -f $1 -i $2 $3 2>/dev/null
+    echo "${localedef} -w -c -f $1 -i $2 $3 2>"$dbgout >$dbgout
+    ${localedef} -w -c -f $1 -i $2 $3 2>$dbgout
 
     retcode=$?
     if [ $retcode -ne 0 ] ; then 
@@ -242,11 +242,19 @@ test_locale()
                     $2/$3
 
     # set necessary environment variables
+    echo "LC_ALL="$3 >$dbgout
     LC_ALL=$3
+    echo "export LC_ALL" >$dbgout
+    export LC_ALL
+    echo "LANG="$3 >$dbgout
     LANG=$3
+    echo "export LANG" >$dbgout
+    export LANG
 
     ## adjust the locale root
+    echo "RWSTD_LOCALE_ROOT="$2 >$dbgout
     RWSTD_LOCALE_ROOT=$2
+    echo "export RWSTD_LOCALE_ROOT" >$dbgout
     export RWSTD_LOCALE_ROOT
 
     # dump the locale database content to temporary location
@@ -361,9 +369,13 @@ elif [ "$chk_func" = "yes" ]; then
     fi
 
     ## checking locale functionality
+    echo "RWSTD_SRC_ROOT="$nlsdir >$dbgout
     RWSTD_SRC_ROOT=$nlsdir
+    echo "export RWSTD_SRC_ROOT" >$dbgout
     export RWSTD_SRC_ROOT
+    echo "RWSTD_LOCALE_ROOT="$tmpdir >$dbgout
     RWSTD_LOCALE_ROOT=$tmpdir
+    echo "export RWSTD_LOCALE_ROOT" >$dbgout
     export RWSTD_LOCALE_ROOT
 
     # test only one locale
