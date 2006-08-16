@@ -52,4 +52,24 @@ void* guarded_malloc (const size_t size, const char* const file,
 void* guarded_realloc (void* source, const size_t size, 
                        const char* const file, const unsigned line);
 
+/**
+   Generates the name of a reference (input/output) file, based on dir and mode.
+
+   This function allocates memory which is to be freed by the caller.
+
+   @param dir example subdirectory to reference
+   @param mode type of file to generate name for (should be 'in' or 'out')
+   @return translation of 'in_root/dir/mode/target_name.mode'
+*/
+char* reference_name (const char* dir, const char* mode);
+
+/**
+   Generates the name of the output file for the executable target.
+
+   This function allocates memory which is to be freed by the caller.
+
+   @param path of target to generate output name for
+   @return translation of 'target.out'
+*/
+char* output_name (const char* target);
 #endif   // RW_UTIL_H

@@ -341,7 +341,7 @@ const char*
 get_signame (int signo)
 {
     size_t i;
-    static char def [16];
+    static char def [32];
 
     for (i = 0; signal_names [i].str; ++i) {
         if (signal_names [i].val == signo) {
@@ -350,7 +350,7 @@ get_signame (int signo)
     }
 
     /* We've run out of known signal numbers, so use a default name */
-    snprintf (def, sizeof def, "SIG#%d", signo);
+    sprintf (def, "SIG#%d", signo);
     return def;
 }
 
@@ -535,22 +535,16 @@ wait_for_child (pid_t child_pid)
 static int
 open_input (const char* exec_name)
 {
-    const size_t root_len = strlen (in_root);
     int intermit = -1;
 
     assert (0 != exec_name);
     assert (0 != in_root);
 
-    if (root_len) {
-        const size_t out_len = root_len + strlen (exec_name) + 17;
-    
-        char* const tmp_name = (char*)RW_MALLOC (out_len);
+    if (strlen (in_root)) {
+        char* tmp_name;
 
         /* Try in_root/manual/in/exec_name.in */
-        memcpy (tmp_name, in_root, root_len+1);
-        strcat (tmp_name, "/manual/in/");
-        strcat (tmp_name, exec_name);
-        strcat (tmp_name, ".in");
+        tmp_name = reference_name ("manual", "in");
         intermit = open (tmp_name, O_RDONLY);
     
         /* If we opened the file, return the descriptor */
@@ -565,10 +559,8 @@ open_input (const char* exec_name)
                        strerror (errno));
 
         /* Try in_root/tutorial/in/exec_name.in */
-        memcpy (tmp_name, in_root, root_len+1);
-        strcat (tmp_name, "/tutorial/in/");
-        strcat (tmp_name, exec_name);
-        strcat (tmp_name, ".in");
+        free (tmp_name);
+        tmp_name = reference_name ("tutorial", "in");
         intermit = open (tmp_name, O_RDONLY);
 
         /* If we opened the file, return the descriptor */
@@ -683,14 +675,9 @@ exec_file (char** argv)
 
         /* Redirect stdout */
         {
-            const size_t exelen = strlen (argv [0]);
-            const size_t outlen = exelen + 5;
-            char* const tmp_name = (char*)RW_MALLOC (outlen);
+            char* const tmp_name = output_name (argv [0]);
             int intermit;
 
-            /* Redirect stdout */
-            memcpy (tmp_name, argv [0], exelen + 1);
-            strcat (tmp_name, ".out");
             intermit = open (tmp_name, O_WRONLY | O_CREAT | O_TRUNC, 
                              S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
