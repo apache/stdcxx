@@ -34,6 +34,10 @@ extern const char* exe_opts;
 extern const char* in_root;
 extern const char* exe_name;
 extern const char* target_name; /**< Alias for current target name. */
+extern const char escape_code; /**< Escape character used in paths. */
+extern const char default_path_sep; /**< Primary path seperator */
+extern const char suffix_sep; /**< File suffix seperator. */
+extern const size_t exe_suffix_len; /**< Length of executable suffix. */
 
 void 
 show_usage (int status);

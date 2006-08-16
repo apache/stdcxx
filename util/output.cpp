@@ -232,22 +232,15 @@ static void
 check_example (char* const out_name, FILE* fout)
 {
     struct stat file_info;
-    const size_t root_len = strlen (in_root);
-    char* const ref_name = (char*)RW_MALLOC (root_len 
-                                             + strlen (target_name) + 19);
+    char* ref_name;
 
     FILE* fref;   /* reference file (expected output) */
 
-    assert (0 != in_root);
-    assert (0 < root_len);
-    assert (0 != target_name);
+    assert (0 != out_name);
     assert (0 != fout);
 
     /* Try in_root/manual/out/target_name.out */
-    memcpy (ref_name, in_root, root_len+1);
-    strcat (ref_name, "/manual/out/");
-    strcat (ref_name, target_name);
-    strcat (ref_name, ".out");
+    ref_name = reference_name ("manual", "out");
 
     if (0 > stat (ref_name, &file_info)) {
         if (ENOENT != errno) {
@@ -260,10 +253,8 @@ check_example (char* const out_name, FILE* fout)
                         
         /* If that doesn't exist, try 
            in_root/tutorial/out/target_name.out */
-        memcpy (ref_name, in_root, root_len+1);
-        strcat (ref_name, "/tutorial/out/");
-        strcat (ref_name, target_name);
-        strcat (ref_name, ".out");
+        free (ref_name);
+        ref_name = reference_name ("tutorial", "out");
 
         if (0 > stat (ref_name, &file_info)) {
             if (ENOENT != errno) {
@@ -345,14 +336,11 @@ check_example (char* const out_name, FILE* fout)
 void
 parse_output (const char* target)
 {
-    const size_t path_len = strlen (target);
-    char* const out_name = (char*)RW_MALLOC (path_len + 5);
+    char* out_name;
     FILE* data;
 
     assert (0 != target);
-
-    memcpy (out_name, target, path_len + 1);
-    strcat (out_name,".out");
+    out_name = output_name (target);
 
     data = fopen (out_name, "r");
 

@@ -69,12 +69,15 @@
 static char** const
 merge_argv (char* const target, char* const argv [])
 {
-    const size_t tlen = strlen (target);
-    char ** split = split_opt_string (target);
+    size_t tlen;
+    char ** split;
     unsigned i, arg_count = 0, spl_count = 0, wld_count = 0;
 
     assert (0 != target);
     assert (0 != argv);
+
+    tlen = strlen (target);
+    split = split_opt_string (target);
 
     /* If the split of target only contains a single value, we may have a 
      bare executable name */
@@ -211,6 +214,7 @@ check_target_ok (const char* target)
         const size_t path_len = strlen (target);
         char* tmp_name;
 
+#if 0 /* Disable .o target check as unused */
         /* If target is a .o file, check if it exists */
         if ('.' == target [path_len-1] && 'o' == target [path_len]) {
             if (exists)
@@ -219,6 +223,7 @@ check_target_ok (const char* target)
                 puts ("  COMP");
             return 0;
         }
+#endif
             
         /* If the target exists, it doesn't have valid permissions */
         if (exists) {
@@ -330,7 +335,7 @@ rw_basename (const char* path)
     assert (0 != path);
 
     for (mark = pos = path; '\0' != *pos; ++pos)
-        mark = ('/' == *pos || '\\' == *pos) ? pos + 1 : mark;
+        mark = (default_path_sep == *pos) ? pos + 1 : mark;
 
     return mark;
 }
@@ -352,11 +357,15 @@ static void
 run_target (char* target, char** argv)
 {
     struct exec_attrs status;
-    char** childargv = merge_argv (target, argv);
+    char** childargv;
 
     assert (0 != target);
     assert (0 != argv);
+
+    childargv = merge_argv (target, argv);
+
     assert (0 != childargv);
+    assert (0 != childargv [0]);
 
     target_name = rw_basename (childargv [0]);
 

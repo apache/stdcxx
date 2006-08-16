@@ -86,10 +86,12 @@ terminate (const int state, const char* const format, ...)
 void*
 guarded_malloc (const size_t size, const char* const file, const unsigned line)
 {
-    void* const alloc = malloc (size);
+    void* alloc;
 
     assert (0 != file);
     assert (0 < size);
+
+    alloc = malloc (size);
 
     if (0 == alloc)
         terminate (1, "malloc (%lu) at line %u of %s failed: %s\n", 
@@ -111,14 +113,70 @@ void*
 guarded_realloc (void* source, const size_t size, const char* const file, 
                  const unsigned line)
 {
-    void* const alloc = realloc (source, size);
+    void* alloc;
 
     assert (0 != file);
     assert (0 < size);
+
+    alloc = realloc (source, size);
 
     if ( 0 == alloc )
         terminate ( 1, "malloc(%lu) at line %u of %s failed: %s\n", 
                  (unsigned long)size, line, file, strerror (errno));
 
     return alloc;
+}
+
+char*
+reference_name (const char* dir, const char* mode)
+{
+    size_t root_len, cmp_len, dir_len, mode_len, net_len;
+    char* ref_name;
+    char* tail;
+
+    assert (0 != in_root);
+    assert (0 != target_name);
+    assert (0 != dir);
+    assert (0 != mode);
+
+    root_len = strlen (in_root);
+    cmp_len = strlen (target_name) - exe_suffix_len;
+    dir_len = strlen (dir);
+    mode_len = strlen (mode);
+    net_len = root_len + cmp_len + dir_len + mode_len * 2 + 5;
+    /* 5 comes from 3 path seperator characters, the suffix seperator 
+       character, and the trailing null */
+    tail = ref_name = (char*)RW_MALLOC (net_len);
+
+    memcpy (tail, in_root, root_len);
+    tail += root_len;
+    *tail++ = default_path_sep;
+    memcpy (tail , dir, dir_len);
+    tail += dir_len;
+    *tail++ = default_path_sep;
+    memcpy (tail , mode, mode_len);
+    tail += mode_len;
+    *tail++ = default_path_sep;
+    memcpy (tail , target_name, cmp_len);
+    tail += cmp_len;
+    *tail++ = suffix_sep;
+    memcpy (tail , mode, mode_len);
+    tail += mode_len;
+    *tail = '\0';
+
+    return ref_name;
+}
+
+char*
+output_name (const char* target)
+{
+    const char* suffix = "out";
+    const size_t sfx_len = strlen (suffix);
+    const size_t exe_len = strlen (target) - exe_suffix_len;
+    char* const tmp_name = (char*)RW_MALLOC (exe_len + sfx_len + 2);
+    
+    memcpy (tmp_name, target, exe_len);
+    *(tmp_name + exe_len) = suffix_sep;
+    memcpy (tmp_name + exe_len + 1, suffix, sfx_len + 1);
+    return tmp_name;
 }

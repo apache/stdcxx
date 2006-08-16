@@ -50,6 +50,10 @@ const char* exe_opts = ""; /**< Global command line switches for child
 const char* in_root = ""; /**< Root directory for input/reference files. */
 const char* exe_name; /**< Alias for process argv [0]. */
 const char* target_name;
+const char escape_code = '\\';
+const char default_path_sep = '/';
+const char suffix_sep = '.';
+const size_t exe_suffix_len = 0;
 
 static const char
 usage_text[] = {
@@ -384,9 +388,11 @@ split_opt_string (const char* opts)
     const char *pos;
     char *target, *last;
     char **table_pos, **argv;
-    const size_t optlen = strlen (opts);
+    size_t optlen;
 
     assert (0 != opts);
+
+    optlen = strlen (opts);
 
     if (0 == optlen) {
         /* Alloc a an index array to hold the program name  */
@@ -429,7 +435,7 @@ split_opt_string (const char* opts)
         }
         in_token = 1;
         switch (*pos) {
-        case '\\':
+        case escape_code:
             in_escape = 1;
             break;
         case '"':
