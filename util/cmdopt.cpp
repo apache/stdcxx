@@ -35,7 +35,11 @@
 #include <stdio.h> /* for *printf, fputs */
 #include <stdlib.h> /* for exit */
 #include <string.h> /* for str* */
-#include <unistd.h> /* for sleep */
+#if !defined (_WIN32) && !defined (_WIN64)
+#  include <unistd.h> /* for sleep */
+#else
+#  include <windows.h> /* for Sleep */
+#endif   /* _WIN{32,64} */
 
 #include "exec.h"
 #include "util.h"
@@ -50,10 +54,17 @@ const char* exe_opts = ""; /**< Global command line switches for child
 const char* in_root = ""; /**< Root directory for input/reference files. */
 const char* exe_name; /**< Alias for process argv [0]. */
 const char* target_name;
+#if !defined (_WIN32) && !defined (_WIN64)
 const char escape_code = '\\';
 const char default_path_sep = '/';
 const char suffix_sep = '.';
 const size_t exe_suffix_len = 0;
+#else
+const char escape_code = '^';
+const char default_path_sep = '\\';
+const char suffix_sep = '.';
+const size_t exe_suffix_len = 4; /* strlen(".exe") == 4 */
+#endif
 
 static const char
 usage_text[] = {
@@ -87,6 +98,35 @@ usage_text[] = {
     "  If a long option take a value, it may either be provided like\n"
     "  '--option=value' or '--option value'.\n"
 };
+
+#if !defined (_WIN32) && !defined (_WIN64)
+static void
+rw_sleep (int seconds)
+{
+    sleep (seconds);
+}
+
+static int
+rw_signal (int signo, void (*func)(int))
+{
+    struct sigaction act;
+    memset (&act, 0, sizeof act);
+    act.sa_handler = func;
+    return 0 > sigaction (signo, &act, 0);
+}
+#else
+static void
+rw_sleep (int seconds)
+{
+    Sleep (seconds * 1000);
+}
+
+static int
+rw_signal (int signo, void (*func)(int))
+{
+    return SIG_ERR == signal (signo, func);
+}
+#endif
 
 /**
    Display command line switches for program and terminate.
@@ -308,7 +348,7 @@ eval_options (int argc, char **argv)
                 if (optarg && *optarg) {
                     const long nsec = strtol (optarg, &end, 10);
                     if ('\0' == *end && 0 <= nsec && !errno) {
-                        sleep (nsec);
+                        rw_sleep (nsec);
                         break;
                     }
                 }
@@ -334,11 +374,8 @@ eval_options (int argc, char **argv)
                 if (optarg && *optarg) {
                     const long signo = get_signo (optarg);
                     if (0 <= signo) {
-                        struct sigaction act;
-                        memset (&act, 0, sizeof act);
-                        act.sa_handler = SIG_IGN;
-                        if (0 > sigaction (signo, &act, 0))
-                            terminate (1, "sigaction(%s, ...) failed: %s\n",
+                        if (rw_signal (signo, SIG_IGN))
+                            terminate (1, "rw_signal(%s, ...) failed: %s\n",
                                        get_signame (signo), strerror (errno));
                         break;
                     }
