@@ -100,11 +100,18 @@ usage_text[] = {
 };
 
 #if !defined (_WIN32) && !defined (_WIN64)
+
 static void
 rw_sleep (int seconds)
 {
     sleep (seconds);
 }
+
+#ifdef __cplusplus
+
+extern "C" {
+
+#endif   /*__cplusplus */
 
 static int
 rw_signal (int signo, void (*func)(int))
@@ -114,7 +121,15 @@ rw_signal (int signo, void (*func)(int))
     act.sa_handler = func;
     return 0 > sigaction (signo, &act, 0);
 }
-#else
+
+#ifdef __cplusplus
+
+}   /* extern "C" */
+
+#endif   /* __cplusplus */
+
+#else   /* if defined (_WIN32) || defined (_WIN64) */
+
 static void
 rw_sleep (int seconds)
 {
@@ -126,7 +141,8 @@ rw_signal (int signo, void (*func)(int))
 {
     return SIG_ERR == signal (signo, func);
 }
-#endif
+
+#endif   /* _WIN{32,64}*/
 
 /**
    Display command line switches for program and terminate.
