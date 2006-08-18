@@ -293,17 +293,16 @@ test_locale()
         echo "ERROR: $2/out.2 $2/out.3 differ." > $dbgout
         failedassertions=`expr $failedassertions + 1`
     fi
+}
 
-    # and remove database
-    [ -d $2/$3 ] && rm -rf $2/$3 
+#
+# Cleanup handler
+#
 
-    # remove dump files
-    [ -f $2/out.1 ] && rm $2/out.1
-    [ -f $2/out.2 ] && rm $2/out.2
-    [ -f $2/out.3 ] && rm $2/out.3
-
-    # and finally remove the tmp directory
-    [ -d $2 ] && rm -rf $2
+signal_cleanup ()
+{
+    echo "Cleaning up " $tmpdir > $dbgout
+    rm -rf $tmpdir
 }
 
 ##############################################################################
@@ -327,6 +326,10 @@ locdir=""
 ## output stream
 out="/dev/stdout"
 dbgout="/dev/null"
+
+## Temporary (working) directory
+[ -z "$TMP" ] && TMP="/tmp";
+tmpdir=$TMP/locale.$$
 
 ## Get the options from the command line
 while getopts ":sfdb:i:l:O:L:M:C:D:" opt_name; do
@@ -359,9 +362,7 @@ if [ "$chk_sanity" = "yes" ]; then
 
 elif [ "$chk_func" = "yes" ]; then
 
-    ## set the temp dir
-    [ -z "$TMP" ] && TMP="/tmp";
-    tmpdir=$TMP/locale.$$
+    ## create the temp dir
     mkdir $tmpdir
     if [ $? -ne 0 ]; then
         echo "$0: Unable to create $tmpdir, aborting" >&2
@@ -378,10 +379,11 @@ elif [ "$chk_func" = "yes" ]; then
     echo "export RWSTD_LOCALE_ROOT" >$dbgout
     export RWSTD_LOCALE_ROOT
 
+    # set our cleanup on exit trap
+    trap signal_cleanup EXIT
+
     # test only one locale
     test_locale $nlsdir $tmpdir $locale_db;
-
-    rm -rf $tmpdir
 else 
     ## Invocation is wrong
     echo "$0: Usage : " >&2
