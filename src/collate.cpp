@@ -58,6 +58,11 @@
 #include "podarray.h"      // for __rw_pod_array
 #include "setlocale.h"     // for __rw_setlocale
 
+#ifdef _RWSTD_NO_IMPLICIT_INCLUSION
+   // included for the explicit instantiation below
+#  include "podarray.cc"
+#endif   // _RWSTD_NO_IMPLICIT_INCLUSION
+
 
 // define _RWSTD_MB_MAX to the greater of MB_LEN_MAX and 8
 // where 8 the maximum length necessary to encode a Unicode
