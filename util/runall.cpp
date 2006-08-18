@@ -33,7 +33,9 @@
 #include <ctype.h>      /* for isspace */
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/wait.h>   /* for WIFEXITED(), ... */
+#if !defined (_WIN32) && !defined (_WIN64)
+#  include <sys/wait.h>   /* for WIFEXITED(), ... */
+#endif
 
 #include "cmdopt.h"
 #include "exec.h"
@@ -43,6 +45,18 @@
 #ifndef ENOENT
 #  define ENOENT 2
 #endif   // ENOENT
+
+#ifndef S_IXUSR
+#  define S_IXUSR 0100
+#endif   // S_IXUSR
+
+#ifndef S_IXGRP
+#  define S_IXGRP 0010
+#endif   // S_IXGRP
+
+#ifndef S_IXOTH
+#  define S_IXOTH 0001
+#endif   // S_IXOTH
 
 /**
    Utility function to rework the argv array
@@ -231,10 +245,29 @@ check_target_ok (const char* target)
             return 0;
         }
 
-        /* Otherwise, check for the .o file */
+#if !defined (_WIN32) && !defined (_WIN64)
+        /* Otherwise, check for the .o file on non-windows systems */
         tmp_name = (char*)RW_MALLOC (path_len + 3);
         memcpy (tmp_name, target, path_len + 1);
         strcat (tmp_name,".o");
+#else
+        /* Or the target\target.obj file on windows systems*/
+        {
+            size_t target_len = strlen (target_name);
+            size_t tmp_len = path_len + target_len - 2;
+                /* - 2 comes from removing 4 characters (extra .exe) and 
+                   adding 2 characters (\ directory seperator and trailing 
+                   null) */
+            tmp_name = (char*)RW_MALLOC (tmp_len);
+            memcpy (tmp_name, target, path_len - 4);
+            tmp_name [path_len - 4] = default_path_sep;
+            memcpy (tmp_name + path_len - 3, target_name, target_len);
+            tmp_name [tmp_len - 4] = 'o';
+            tmp_name [tmp_len - 3] = 'b';
+            tmp_name [tmp_len - 2] = 'j';
+            tmp_name [tmp_len - 2] = '\0';
+        }
+#endif   /* _WIN{32,64} */
 
         if (0 > stat (tmp_name, &file_info)) {
             if (ENOENT != errno) {
@@ -286,6 +319,7 @@ process_results (const char* target, const struct exec_attrs* result)
     if (0 == result->status) {
         parse_output (target);
     } 
+#if !defined (_WIN32) && !defined (_WIN64)
     else if (WIFEXITED (result->status)) {
         const int retcode = WEXITSTATUS (result->status);
         switch (retcode) {
@@ -311,6 +345,14 @@ process_results (const char* target, const struct exec_attrs* result)
     else {
         printf ("(%d|%d)\n", result->status, result->killed);
     }
+#else
+    else if (-1 == result->status)
+        puts ("   I/O");
+    else if (result->error)
+        puts ("KILLED");
+    else
+        printf ("%6d\n", result->status);
+#endif   /* _WIN{32,64} */
 }
 
 /**
@@ -335,7 +377,11 @@ rw_basename (const char* path)
     assert (0 != path);
 
     for (mark = pos = path; '\0' != *pos; ++pos)
+#if !defined (_WIN32) && !defined (_WIN64)
         mark = (default_path_sep == *pos) ? pos + 1 : mark;
+#else
+        mark = (default_path_sep == *pos || '/' == *pos) ? pos + 1 : mark;
+#endif   /* _WIN{32,64} */
 
     return mark;
 }

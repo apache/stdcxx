@@ -37,10 +37,15 @@
 #include <stdlib.h>
 #include <string.h> /* for str*, mem* */
 
-#include <unistd.h> /* for close, dup, exec, fork */
+#if !defined (_WIN32) && !defined (_WIN64)
+#  include <unistd.h> /* for close, dup, exec, fork */
+#  include <sys/wait.h>
+#else
+#  include <windows.h> /* for PROCESS_INFORMATION, ... */
+#  include <process.h> /* for CreateProcess, ... */
+#endif
 #include <sys/stat.h> /* for S_* */
 #include <sys/types.h>
-#include <sys/wait.h>
 
 #include "cmdopt.h"
 #include "util.h"
@@ -354,6 +359,7 @@ get_signame (int signo)
     return def;
 }
 
+#if !defined (_WIN32) && !defined (_WIN64)
 /**
    Callback used to set the alarm_timeout flag in response to recieving
    the signal SIGALRM
@@ -714,3 +720,306 @@ exec_file (char** argv)
     /* parent */
     return wait_for_child (child_pid);
 }
+#else  /* _WIN{32,64} */
+/**
+   Opens an input file, based on exec_name, using the child_sa security 
+   setting.
+
+   Takes an executable name and security setting, and tries to open an input 
+   file based on these variables and the value of the in_root global variable.
+   If a file is found in neither of two locations derived from these 
+   variables, or if in_root is a null string, it returns null.
+   If a file system error occurs when opening a file, INVALID_HANDLE_VALUE
+   is returned (and should be checked for).
+
+   Source file locations:
+     - [in_root]/manual/in/[exec_name].in
+     - [in_root]/tutorial/in/[exec_name].in
+
+   @param exec_name the name of executable being run
+   @param child_sa pointer to a SECURITY_ATTRIBUTES    structure
+   @returns the file descriptor of the opened file
+   @see in_root
+*/
+static HANDLE
+open_input (const char* exec_name, SECURITY_ATTRIBUTES* child_sa)
+{
+    const size_t root_len = strlen (in_root);
+    HANDLE intermit;
+    DWORD error;
+    char* tmp_name;
+
+    assert (0 != exec_name);
+    assert (0 != in_root);
+    assert (0 != child_sa);
+
+    if (!root_len) 
+        return 0;
+
+    /* Try in_root\manual\in\exec_name.in */
+    tmp_name = reference_name ("manual", "in");
+
+    intermit = CreateFile (tmp_name, GENERIC_READ, FILE_SHARE_READ, child_sa, 
+        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+    error = GetLastError ();
+    /* If we found the file, return the descriptor */
+    if (INVALID_HANDLE_VALUE != intermit || (2 != error && 3 != error)) {
+        free (tmp_name);
+        return intermit;
+    }
+
+    /* Try in_root\tutorial\in\exec_name.in */
+    free (tmp_name);
+    tmp_name = reference_name ("tutorial", "in");
+    intermit = CreateFile (tmp_name, GENERIC_READ, FILE_SHARE_READ, child_sa, 
+        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+    /* If we didn't find the file, null out the handle to return */
+    error = GetLastError ();
+    if (INVALID_HANDLE_VALUE == intermit && (2 == error || 3 == error)) {
+        intermit = 0;
+    }
+
+    free (tmp_name);
+    return intermit;
+}
+
+/**
+   Convert an argv array into a string that can be passed to CreateProcess.
+
+   This method allocates memory which the caller is responsible for free ()ing.
+   The provided argv array is converted into a series of quoted strings.
+
+   @param argv argv array to convert
+   @return allocated array with converted contents
+*/
+static char*
+merge_argv (char** argv)
+{
+    size_t len = 0;
+    char** opts;
+    char* term;
+    char* merge;
+    char* pos;
+
+    assert (0 != argv);
+
+    for (opts = argv; *opts; ++opts) {
+        len += 3; /* for open ", close " and trailing space or null */
+        for (term = *opts; *term; ++term) {
+            if ('"' == *term || escape_code == *term)
+                ++len; /* Escape embedded "s and ^s*/
+            ++len;
+        }
+    }
+
+    pos = merge = (char*)RW_MALLOC (len);
+    for (opts = argv; *opts; ++opts) {
+        *(pos++) = '"';
+        for (term = *opts; *term; ++term) {
+            if ('"' == *term || escape_code == *term)
+                *(pos++) = escape_code;  /* Escape embedded "s and ^s*/
+            *(pos++) = *term;
+        }
+        *(pos++) = '"';
+        *(pos++) = ' ';
+    }
+    *(pos-1) = '\0'; /* convert trailing space to null */
+    return merge;
+}
+
+/**
+   Wrapper function around warn for windows native API calls.
+
+   @param action Human understandable description of failed action.
+   @return Value of GetLastError.
+*/
+static DWORD
+warn_last_error (const char* action)
+{
+    DWORD error = GetLastError (); 
+
+    if (error) {
+        LPTSTR error_text = 0;
+        if (FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+            FORMAT_MESSAGE_FROM_SYSTEM, NULL, error,
+            MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT),
+            error_text, 0, NULL)) {
+            warn ("%s failed with error %d: %s\n", action, error, error_text);
+            LocalFree (error_text);
+        }
+        else {
+            warn ("%s failed with error %d.  Additionally, FormatMessage "
+                  "failed with error %d.\n", action, error, GetLastError ());
+        }
+    }
+    return error;
+}
+
+/**
+   Entry point to the child process (watchdog) subsystem.
+
+   This method creates a process using the windows CreateProcess API call.
+   The startup context for this process is based on the context of the exec
+   utility, but with the standard * file handles redirected.  The execution of
+   the process is monitored with the WaitForSingleObject API call.  If the 
+   process doesn't complete within the allowed timeout, it is then killed.  On 
+   Windows NT systems, a soft kill of the process (via the 
+   GenerateConsoleCtrlEvent API call) are first attempted attempted.  The 
+   process is then hard killed via the TerminateProcess API call.
+
+   @param exec_name name of the child executable
+   @param argv argv array for child process
+   @return structure describing how the child procees exited
+   @see wait_for_child ()
+*/
+struct exec_attrs 
+exec_file (char** argv)
+{
+    char* merged;
+    PROCESS_INFORMATION child;
+    OSVERSIONINFO OSVer;
+    STARTUPINFO context;
+    SECURITY_ATTRIBUTES child_sa = /* SA for inheritable handle. */
+          {sizeof (SECURITY_ATTRIBUTES), NULL, TRUE};
+    struct exec_attrs status;
+    const DWORD real_timeout = (timeout > 0) ? timeout * 1000 : INFINITE;
+    DWORD wait_code;
+
+    assert (0 != argv);
+
+    memset (&status, 0, sizeof status);
+
+    OSVer.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
+    if (0 == GetVersionEx (&OSVer)) {
+        status.status = -1;
+        status.error = warn_last_error ("Retrieving host version");
+        return status;
+    }
+    /* Borrow our startup info */
+    GetStartupInfo (&context);
+    context.dwFlags = STARTF_USESTDHANDLES;
+
+    /* Create I/O handles */
+    {
+        /* Output redirection */
+        char* const tmp_name = output_name (argv [0]);
+
+        context.hStdOutput = CreateFile (tmp_name, GENERIC_WRITE, 
+                FILE_SHARE_WRITE, &child_sa, CREATE_ALWAYS, 
+                FILE_ATTRIBUTE_NORMAL, NULL);
+        if (INVALID_HANDLE_VALUE == context.hStdOutput) { 
+            status.status = -1;
+            status.error = warn_last_error ("Opening child output stream");
+            return status;
+        }
+
+        context.hStdError = context.hStdOutput;
+        free (tmp_name);
+
+        /* Input redirection */
+        context.hStdInput = open_input (target_name, &child_sa);
+        if (INVALID_HANDLE_VALUE == context.hStdInput) { 
+            CloseHandle (context.hStdOutput);
+            status.status = -1;
+            status.error = warn_last_error ("Opening child input stream");
+            return status;
+        }
+    }    
+
+    merged = merge_argv (argv);
+
+    /* Create the child process */
+    if (0 == CreateProcess (argv [0], merged, 0, 0, 1, 
+        CREATE_NEW_PROCESS_GROUP, 0, 0, &context, &child)) {
+        /* record the status if we failed to create the process */
+        status.status = -1;
+        status.error = warn_last_error ("Creating child process");;
+    }
+
+    /* Clean up handles */
+    if (context.hStdInput)
+        if (0 == CloseHandle (context.hStdInput))
+            warn_last_error ("Closing child input stream");
+    if (0 == CloseHandle (context.hStdOutput))
+        warn_last_error ("Closing child output stream");
+
+    /* Clean up argument string*/
+    free (merged);
+
+    /* Return if we failed to create the child process */
+    if (-1 == status.status)
+        return status;
+
+    /* Wait for the child process to terminate */
+    wait_code = WaitForSingleObject (child.hProcess, real_timeout);
+    if (WAIT_TIMEOUT != wait_code) {
+        if (WAIT_OBJECT_0 == wait_code) {
+            if (0 == GetExitCodeProcess (child.hProcess, &status.status)) {
+                warn_last_error ("Retrieving child process exit code");
+                status.status = -1;
+            }
+            status.error = 0;
+        }
+        else {
+            status.status = -1;
+            status.error = warn_last_error ("Waiting for child process");
+        }
+        return status;
+    }
+
+    /* Try to soft kill child process group if it didn't terminate, but only 
+       on NT */
+    if (VER_PLATFORM_WIN32_NT == OSVer.dwPlatformId) {
+        if (0 == GenerateConsoleCtrlEvent (CTRL_C_EVENT, child.dwProcessId))
+            warn_last_error ("Sending child process Control-C");
+
+        wait_code = WaitForSingleObject (child.hProcess, 1000);
+        if (WAIT_TIMEOUT != wait_code) {
+            if (WAIT_OBJECT_0 == wait_code) {
+                if (0 == GetExitCodeProcess (child.hProcess, 
+                                             &status.status)) {
+                    warn_last_error ("Retrieving child process exit code");
+                    status.status = -1;
+                }
+                status.error = 1;
+            }
+            else {
+                status.status = -1;
+                status.error = warn_last_error ("Waiting for child process");
+            }
+            return status;
+        }
+
+        if (0 == GenerateConsoleCtrlEvent (CTRL_BREAK_EVENT, 
+                                           child.dwProcessId))
+            warn_last_error ("Sending child process Control-Break");
+
+        if (WAIT_TIMEOUT != wait_code) {
+            if (WAIT_OBJECT_0 == wait_code) {
+                if (0 == GetExitCodeProcess (child.hProcess, 
+                                             &status.status)) {
+                    warn_last_error ("Retrieving child process exit code");
+                    status.status = -1;
+                }
+                status.error = 2;
+            }
+            else {
+                status.status = -1;
+                status.error = warn_last_error ("Waiting for child process");
+            }
+            return status;
+        }
+    }
+    /* Then hard kill the child process */
+    if (0 == TerminateProcess (child.hProcess, 3))
+        warn_last_error ("Terminating child process");
+    if (0 == GetExitCodeProcess (child.hProcess, &status.status)) {
+        warn_last_error ("Retrieving child process exit code");
+        status.status = -1;
+    }
+    status.error = 3;
+    return status;
+}
+#endif  /* _WIN{32,64} */

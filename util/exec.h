@@ -28,8 +28,14 @@
 #define RW_EXEC_H
 
 struct exec_attrs {
+#if !defined (_WIN32) && !defined (_WIN64)
     int status;
     int killed;
+#else
+    /* AKA DWORD */
+    unsigned long status;
+    unsigned long error;
+#endif  /* _WIN{32,64} */
 };
 
 int get_signo (const char* signame);
