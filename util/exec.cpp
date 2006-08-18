@@ -843,9 +843,9 @@ warn_last_error (const char* action)
     if (error) {
         LPTSTR error_text = 0;
         if (FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-            FORMAT_MESSAGE_FROM_SYSTEM, NULL, error,
-            MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT),
-            error_text, 0, NULL)) {
+                           FORMAT_MESSAGE_FROM_SYSTEM, NULL, error,
+                           MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT),
+                           (LPTSTR)&error_text, 0, NULL)) {
             warn ("%s failed with error %d: %s\n", action, error, error_text);
             LocalFree (error_text);
         }
@@ -952,6 +952,8 @@ exec_file (char** argv)
     if (-1 == status.status)
         return status;
 
+    CloseHandle (child.hThread);
+
     /* Wait for the child process to terminate */
     wait_code = WaitForSingleObject (child.hProcess, real_timeout);
     if (WAIT_TIMEOUT != wait_code) {
@@ -966,60 +968,63 @@ exec_file (char** argv)
             status.status = -1;
             status.error = warn_last_error ("Waiting for child process");
         }
+
+        CloseHandle (child.hProcess);
         return status;
     }
 
     /* Try to soft kill child process group if it didn't terminate, but only 
        on NT */
     if (VER_PLATFORM_WIN32_NT == OSVer.dwPlatformId) {
-        if (0 == GenerateConsoleCtrlEvent (CTRL_C_EVENT, child.dwProcessId))
-            warn_last_error ("Sending child process Control-C");
 
-        wait_code = WaitForSingleObject (child.hProcess, 1000);
-        if (WAIT_TIMEOUT != wait_code) {
-            if (WAIT_OBJECT_0 == wait_code) {
-                if (0 == GetExitCodeProcess (child.hProcess, 
-                                             &status.status)) {
-                    warn_last_error ("Retrieving child process exit code");
-                    status.status = -1;
-                }
-                status.error = 1;
-            }
-            else {
-                status.status = -1;
-                status.error = warn_last_error ("Waiting for child process");
-            }
-            return status;
+        struct sig_event
+        {
+            DWORD       signal_;
+            const char* msg_;
         }
+        sig_events [] = {
+            { CTRL_C_EVENT,     "Sending child process Control-C"     },
+            { CTRL_BREAK_EVENT, "Sending child process Control-Break" }
+        };
 
-        if (0 == GenerateConsoleCtrlEvent (CTRL_BREAK_EVENT, 
-                                           child.dwProcessId))
-            warn_last_error ("Sending child process Control-Break");
+        for (unsigned long i = 0;
+            i < sizeof (sig_events) / sizeof (*sig_events); ++i) {
 
-        if (WAIT_TIMEOUT != wait_code) {
+            if (0 == GenerateConsoleCtrlEvent (sig_events [i].signal_,
+                                               child.dwProcessId))
+                warn_last_error (sig_events [i].msg_);
+
+            wait_code = WaitForSingleObject (child.hProcess, 1000);
+            if (WAIT_TIMEOUT == wait_code)
+                continue;
+
             if (WAIT_OBJECT_0 == wait_code) {
-                if (0 == GetExitCodeProcess (child.hProcess, 
-                                             &status.status)) {
+                if (0 == GetExitCodeProcess (child.hProcess, &status.status)) {
                     warn_last_error ("Retrieving child process exit code");
                     status.status = -1;
                 }
-                status.error = 2;
+                status.error = i + 1;
             }
             else {
                 status.status = -1;
                 status.error = warn_last_error ("Waiting for child process");
             }
+
+            CloseHandle (child.hProcess);
             return status;
         }
     }
     /* Then hard kill the child process */
     if (0 == TerminateProcess (child.hProcess, 3))
         warn_last_error ("Terminating child process");
+    else
+        WaitForSingleObject (child.hProcess, 1000);
     if (0 == GetExitCodeProcess (child.hProcess, &status.status)) {
         warn_last_error ("Retrieving child process exit code");
         status.status = -1;
     }
     status.error = 3;
+    CloseHandle (child.hProcess);
     return status;
 }
 #endif  /* _WIN{32,64} */
