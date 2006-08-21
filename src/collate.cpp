@@ -58,12 +58,6 @@
 #include "podarray.h"      // for __rw_pod_array
 #include "setlocale.h"     // for __rw_setlocale
 
-#ifdef _RWSTD_NO_IMPLICIT_INCLUSION
-   // included for the explicit instantiation below
-#  include "podarray.cc"
-#endif   // _RWSTD_NO_IMPLICIT_INCLUSION
-
-
 // define _RWSTD_MB_MAX to the greater of MB_LEN_MAX and 8
 // where 8 the maximum length necessary to encode a Unicode
 // character in UTF-8
@@ -132,16 +126,6 @@ _RWSTD_NAMESPACE (__rw) {
  
 #undef min
 #undef max
-
-
-#ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION
-
-// explicitly instantiate for compilers such as Compaq/HP C++ that
-// do not do so automatically when a template specialization is
-// used
-template class _RWSTD_EXPORT __rw_pod_array<const unsigned int*, 1024>;
-
-#endif   // _RWSTD_NO_EXPLICIT_INSTANTIATION
 
 
 // computes LC_XXX category from a numeric facet id, returns the

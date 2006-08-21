@@ -206,7 +206,13 @@ _RWSTD_NAMESPACE (__rw) {
 
 #if _RWSTD_INSTANTIATE_POD_ARRAY
 
+// used throughout locale
 _RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT __rw_pod_array<char, 256>);
+
+// used in collate.cpp
+_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+                      __rw_pod_array<const unsigned int*, 1024>);
+
 
 #endif   // _RWSTD_INSTANTIATE_POD_ARRAY
 
