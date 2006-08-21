@@ -952,7 +952,7 @@ exec_file (char** argv)
     if (-1 == status.status)
         return status;
 
-    if (0 == CloseHandle (context.hThread))
+    if (0 == CloseHandle (child.hThread))
         warn_last_error ("Closing child main thread handle");
 
     /* Wait for the child process to terminate */
@@ -970,7 +970,7 @@ exec_file (char** argv)
             status.error = warn_last_error ("Waiting for child process");
         }
 
-        if (0 == CloseHandle (context.hProcess))
+        if (0 == CloseHandle (child.hProcess))
             warn_last_error ("Closing child process handle");
         return status;
     }
@@ -1012,7 +1012,7 @@ exec_file (char** argv)
                 status.error = warn_last_error ("Waiting for child process");
             }
 
-            if (0 == CloseHandle (context.hProcess))
+            if (0 == CloseHandle (child.hProcess))
                 warn_last_error ("Closing child process handle");
             return status;
         }
@@ -1020,7 +1020,7 @@ exec_file (char** argv)
     /* Then hard kill the child process */
     if (0 == TerminateProcess (child.hProcess, 3))
         warn_last_error ("Terminating child process");
-    else if (WAIT_FAIL == WaitForSingleObject (child.hProcess, 1000))
+    else if (WAIT_FAILED == WaitForSingleObject (child.hProcess, 1000))
         warn_last_error ("Waiting for child process");
 
     if (0 == GetExitCodeProcess (child.hProcess, &status.status)) {
@@ -1028,7 +1028,7 @@ exec_file (char** argv)
         status.status = -1;
     }
     status.error = 3;
-    if (0 == CloseHandle (context.hProcess))
+    if (0 == CloseHandle (child.hProcess))
         warn_last_error ("Closing child process handle");
     return status;
 }
