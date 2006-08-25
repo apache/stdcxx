@@ -930,6 +930,11 @@ exec_file (char** argv)
 
     merged = merge_argv (argv);
 
+    /* set appropriate error mode (the child process inherits this
+       error mode) to disable displaying the critical-error-handler
+       and general-protection-fault message boxes */
+    UINT old_mode = SetErrorMode (SEM_FAILCRITICALERRORS
+                                | SEM_NOGPFAULTERRORBOX);
     /* Create the child process */
     if (0 == CreateProcess (argv [0], merged, 0, 0, 1, 
         CREATE_NEW_PROCESS_GROUP, 0, 0, &context, &child)) {
@@ -937,6 +942,9 @@ exec_file (char** argv)
         status.status = -1;
         status.error = warn_last_error ("Creating child process");;
     }
+
+    /* restore the previous error mode */
+    SetErrorMode (old_mode);
 
     /* Clean up handles */
     if (context.hStdInput)
