@@ -73,6 +73,9 @@
    argument string is '%x' (no quotes), the contents of the provided argv 
    array will be inserted into the return array at that point.
 
+   It is the responsibility of the caller to free() the returned blocks of
+   memory, which were allocated by a call to split_opt_string().
+
    @todo Figure out an escaping mechanism to allow '%x' to be passed to an
    executable
 
@@ -402,7 +405,6 @@ rw_basename (const char* path)
 static void
 run_target (char* target, char** argv)
 {
-    struct exec_attrs status;
     char** childargv;
 
     assert (0 != target);
@@ -418,12 +420,13 @@ run_target (char* target, char** argv)
     printf ("%-25.25s ", target_name);
     fflush (stdout);
 
-    if (!check_target_ok (childargv [0]))
-        return;
+    if (check_target_ok (childargv [0])) {
+        struct exec_attrs status = exec_file (childargv);
+        process_results (childargv [0], &status);
+    }
 
-    status = exec_file (childargv);
-
-    process_results (childargv [0], &status);
+    free (childargv [0]);
+    free (childargv);
 }
 
 /**
