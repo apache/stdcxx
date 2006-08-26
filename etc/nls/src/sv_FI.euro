@@ -51,7 +51,7 @@ copy "sv_FI"
 END LC_MESSAGES
 
 LC_MONETARY
-copy "fi_FI@euro"
+copy "fi_FI.euro"
 END LC_MONETARY
 
 LC_NUMERIC
