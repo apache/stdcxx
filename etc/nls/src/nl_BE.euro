@@ -51,7 +51,7 @@ copy "nl_BE"
 END LC_MESSAGES
 
 LC_MONETARY
-copy "fr_BE@euro"
+copy "fr_BE.euro"
 END LC_MONETARY
 
 LC_NUMERIC
