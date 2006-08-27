@@ -36,7 +36,7 @@
 
 
 _TEST_EXPORT char*
-rw_locales (int loc_cat, const char* grep_exp);
+rw_locales (int = _UNUSED_CAT, const char* = 0);
 
 
 _TEST_EXPORT int
