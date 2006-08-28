@@ -6,22 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2001-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -476,204 +477,97 @@ __rw_libc_do_out (_RWSTD_MBSTATE_T &state,
     from_next = from;
     to_next   = to;
 
-    // the result of conversion (from wcsrtombs() or wcrtomb())
-    // i.e., the number of bytes in the resulting multibyte
-    // character sequence, not including the terminating NUL
-    _RWSTD_SIZE_T dst_len = 0;
-
     // save the value of MB_CUR_MAX and avoid repeatedly using
     // the macro for efficiency (it may expand to a function call)
-    const _RWSTD_SIZE_T mb_cur_max = (_RWSTD_SIZE_T)MB_CUR_MAX;
+    const _RWSTD_SIZE_T mb_cur_max =
+        _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, MB_CUR_MAX);
 
     // the result of conversion
     _STD::codecvt_base::result res = _STD::codecvt_base::ok;
 
     // the size of the available space in the destination range
-    _RWSTD_SIZE_T dst_free = 0;
+    _RWSTD_SIZE_T dst_free =
+        _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, to_limit - to_next);
 
-    for ( ; ; ) {
+    // small temporary buffer used when the space in the destination
+    // buffer is less than MB_CUR_MAX
+    char buff [_RWSTD_MB_LEN_MAX];
 
-        // compute the number of characters available in the source sequence
-        const _RWSTD_SIZE_T src_avail = from_end - from_next;
+    // convert the source sequence one character at a time
+    for ( ; from_next < from_end; ++from_next) {
 
-        if (0 == src_avail) {
-            // successfully converted the entire source sequence
-            break;
-        }
+        // since there is no guarantee that the converted internal
+        // character would fit in the remaining space in the
+        // destination buffer, use the small local buffer if
+        // the remaining space is less that the longest external
+        // multibyte character (i.e., MB_CUR_MAX)
+        char* const tmpdst = dst_free < mb_cur_max ? buff : to_next;
 
-        // compute the amount of space available in the destination range
-        dst_free = to_limit - to_next;
-        if (0 == dst_free) {
-            // out of space, return partial as per Table 53
-            res = _STD::codecvt_base::partial;
-            break;
-        }
+        // save the state in case it's changed but the converted
+        // character doesn't fit in the destination buffer
+        const _RWSTD_MBSTATE_T save_state = state;
 
-        // compute the minimum number of multibyte characters
-        // that can be safely stored in the destination range
-        // without risking that wcsrtombs() will try to read
-        // past the end of the source sequence when there is
-        // no terminating NUL (this is the worst case estimate
-        // that assumes that each source character converts to
-        // a multibyte character MB_CUR_MAX bytes long)
-        _RWSTD_SIZE_T dst_min = src_avail * mb_cur_max;
-        if (dst_free < dst_min)
-            dst_min = dst_free;
-
-        const wchar_t* src = from_next;
-
-#  ifndef _RWSTD_NO_WCSRTOMBS
-
-        // mbsrtowcs() converts the source sequence up to the terminating
-        // NUL character but stops converting before it's reached in case
-        // it encounters an illegal character or when it completely fills
-        // the destination buffer
-        dst_len = wcsrtombs (to_next, &src, dst_min, &state);
-#  else   // if defined (_RWSTD_NO_WCSRTOMBS)
-        // when mbsrtowcs() is not available, treat the sequence same
-        // as if the function returned an error
-        dst_len = _RWSTD_SIZE_MAX;
-#  endif    // if defined (_RWSTD_NO_MBSRTOWCS)
-
-        // check for an error from the restartable function
-        // (or if the function isn't available)
-        if (_RWSTD_SIZE_MAX == dst_len)
-            break;
-
-        // advance the destination next pointer by the number
-        // of external character produced by the conversion
-        to_next += dst_len;
-
-        // wcsrtombs() sets src to 0 when it stops due
-        // to the NUL character, otherwise it sets src
-        // to point one past the last converted source
-        // character
-        if (from_next < src) {
-
-            from_next = src;
-
-            // the source subsequence has been successfully converted
-            if (from_next == from_end) {
-                // the entire source sequence has been converted
-                break;
-            }
-
-            continue;
-        }
-        else if (src) {
-            // not enough space in the destination range
-            // to convert even a single source character
-            res       = _STD::codecvt_base::partial;
-            from_next = src;
-            break;
-        }
-
-        // conversion stopped due to a NUL character that may
-        // or may not be past the end of the source range
-        // [from, from_end)
-
-        // compute the length of the source subsequence up to
-        // and including the NUL and advance the source next
-        // pointer just past it
-        const _RWSTD_SIZE_T nul_off = _RWSTD_WCSLEN (from_next);
-
-        from_next += nul_off;
-
-        // the last source character must have been a NUL
-        _RWSTD_ASSERT (L'\0' == *from_next);
-        _RWSTD_ASSERT ('\0' == *to_next);
-
-        if (from_next == from_end) {
-            // wcsrtombs() converted the entire source sequence
-            // and the terminating NUL is actually past its end
-            break;
-        }
-
-        // advance the source next pointer past the NUL
-        ++from_next;
-
-        // advance the destination next pointer past the NUL
-        // appended to the end of the destination sequence
-        // by wcsrtombs()
-        ++to_next;
-
-        // verify postcondition
-        _RWSTD_ASSERT (to_next <= to_limit);
-    }
-
-    if (_RWSTD_SIZE_MAX == dst_len) {
-
-        // convert the rest of the sequence one character at a time
-        // either because wcsrtombs() is not available (and the non
-        // reentrant wcstombs() does not provide any information about
-        // the size of the source sequence that has been processed),
-        // or when the function returns an error for some character
-        // in the middle of the source sequence (and we need to convert
-        // the entire source sequence up to the illegal character)
-
-        // state may be unused if wcrtomb() is not available and
-        // we're using wctomb()
-        _RWSTD_UNUSED (state);
-
-        char buff [_RWSTD_MB_LEN_MAX];
-
-        while (from_next < from_end && dst_free) {
-
-            // since there is no guarantee that the converted internal
-            // character would fit in the remaining space in the
-            // destination buffer, use the small local buffer if
-            // the remaining space is less that the longest external
-            // multibyte character (i.e., MB_CUR_MAX)
-            char* const tmpdst = dst_free < mb_cur_max ? buff : to_next;
-
-            // convert the next source character
+        // the number of bytes in the resulting multibyte character
+        // sequence, not including the terminating NUL
+        _RWSTD_SIZE_T dst_len = 0;
 
 #ifndef _RWSTD_NO_WCRTOMB
-            dst_len = wcrtomb (tmpdst, *from_next, &state);
+
+        // convert the next source character (note that it would be
+        // unsafe to use wcsrtombs() since the source sequence may
+        // not be NUL terminated)
+        dst_len = wcrtomb (tmpdst, *from_next, &state);
+
 #elif !defined (_RWSTD_NO_WCTOMB)
-            dst_len = wctomb (tmpdst, *from_next);
-#else
-            dst_len = _RWSTD_SIZE_MAX;
-#endif
 
-            // -1 is returned as an indication of an illegal sequence
-            if (_RWSTD_SIZE_MAX == dst_len) {
-                res = _STD::codecvt_base::error;
-                break;
-            }
- 
-            // if the multibyte sequence is the NUL character
-            // adjust the result by one (i.e., the length of
-            // the multibyte NUL character)
-            if (0 == dst_len)
-                ++dst_len;
+        _RWSTD_UNUSED (state);
+        dst_len = wctomb (tmpdst, *from_next);
 
-            // if the remaining space in the destination sequence
-            // is less than MB_CUR_MAX, check to see if the multibyte
-            // character will fit in there
-            if (dst_free < mb_cur_max) {
-                if (dst_free < dst_len) {
-                    // the source character converted to a multibyte
-                    // character whose length in bytes is greater than
-                    // the available space in the destination sequence
-                    res = _STD::codecvt_base::partial;
-                    break;
-                } 
+#else   // error
 
-                // the destination sequence has sufficient space
-                // for the multibyte character
-                memcpy (to_next, buff, dst_len);
-            }
+        _RWSTD_UNUSED (state);
+        dst_len = _RWSTD_SIZE_MAX;
 
-            // advance the source next pointer to the next character
-            ++from_next;
+#endif   // _RWSTD_NO_WCRTOMB, _RWSTD_NO_WCTOMB
 
-            // advance the destination next pointer one past the end
-            // of the multibyte character and decrement the size of
-            // of the available space in the destination sequence
-            to_next  += dst_len;
-            dst_free -= dst_len;
+        // -1 is returned as an indication of an illegal sequence
+        if (_RWSTD_SIZE_MAX == dst_len) {
+            res = _STD::codecvt_base::error;
+            break;
         }
+ 
+        // if the multibyte sequence is the NUL character
+        // adjust the result by one (i.e., the length of
+        // the multibyte NUL character)
+        if (0 == dst_len)
+            ++dst_len;
+
+        // if the remaining space in the destination sequence
+        // is less than MB_CUR_MAX, check to see if the multibyte
+        // character will fit in there
+        if (dst_free < mb_cur_max) {
+            if (dst_free < dst_len) {
+                // the source character converted to a multibyte
+                // character whose length in bytes is greater than
+                // the available space in the destination sequence
+
+                // restore the state to the value prior to the last
+                // conversion and return partial
+                state = save_state;
+                res   = _STD::codecvt_base::partial;
+                break;
+            } 
+
+            // the destination sequence has sufficient space
+            // for the multibyte character
+            memcpy (to_next, buff, dst_len);
+        }
+
+        // advance the destination next pointer one past the end
+        // of the multibyte character and decrement the size of
+        // of the available space in the destination sequence
+        to_next  += dst_len;
+        dst_free -= dst_len;
     }
 
     return res;
