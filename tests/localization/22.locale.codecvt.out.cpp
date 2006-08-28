@@ -119,8 +119,8 @@ create_locale ()
 static const char*
 get_mb_char (wchar_t *wchar, char *mbchar, std::size_t bytes)
 {
-    _RWSTD_ASSERT (0 != wchar);
-    _RWSTD_ASSERT (0 != mbchar);
+    RW_ASSERT (0 != wchar);
+    RW_ASSERT (0 != mbchar);
 
     *mbchar = '\0';
 
@@ -159,11 +159,16 @@ get_mb_char (wchar_t *wchar, char *mbchar, std::size_t bytes)
         // multibyte character
         for (int i = 0; i != 0x100000; ++i) {
 
-            wc = wchar_t (std::rand ());
+            wc = 0;
 
-            if (RAND_MAX < 0x10000) {
-                wc <<= 16;
-                wc |=  wchar_t (std::rand ());
+            typedef unsigned char UChar;
+
+            // set wc to a random value (rand() returns a value
+            // less than or equal to RAND_MAX so the loop makes
+            // sure all bits are initialized)
+            for (int j = 0; j < int (sizeof wc); ++j) {
+                wc <<= 8;
+                wc  |= wchar_t (UChar (std::rand ()));
             }
 
             if (   int (bytes) == std::wctomb (mbchar, wc)
@@ -201,7 +206,7 @@ typedef WideCode mb_char_array_t [MB_LEN_MAX];
 static std::size_t
 get_mb_chars (mb_char_array_t mb_chars)
 {
-    _RWSTD_ASSERT (0 != mb_chars);
+    RW_ASSERT (0 != mb_chars);
 
     const char* mbc =
         get_mb_char (&mb_chars [0].wchar,
@@ -252,8 +257,8 @@ get_mb_chars (mb_char_array_t mb_chars)
 static const char*
 find_mb_locale (std::size_t *mb_cur_max, mb_char_array_t mb_chars)
 {
-    _RWSTD_ASSERT (0 != mb_cur_max);
-    _RWSTD_ASSERT (0 != mb_chars);
+    RW_ASSERT (0 != mb_cur_max);
+    RW_ASSERT (0 != mb_chars);
 
     if (2 > MB_LEN_MAX) {
         std::fprintf (stderr, "MB_LEN_MAX = %d, giving up\n", MB_LEN_MAX);
@@ -337,10 +342,8 @@ void test_out (int                                                line,
 
     std::mbstate_t state = pstate ? *pstate : initial_state;
 
-    typedef char externT;
-
     // create and invalidate a buffer for the destination sequence
-    externT buf [1024];
+    char buf [1024];
     std::memset (buf, -1, sizeof buf);
 
     // set up from, from_end, and from_next arguments
@@ -349,9 +352,9 @@ void test_out (int                                                line,
     const internT*       from_next = 0;
 
     // set up to, to_end, and to_next arguments
-    externT* const to      = buf;
-    externT* const to_end  = to + res_len;
-    externT*       to_next = 0;
+    char* const to      = buf;
+    char* const to_end  = to + res_len;
+    char*       to_next = 0;
 
     // call codecvt::out () with the arguments above
     const std::codecvt_base::result cvtres =
@@ -361,9 +364,11 @@ void test_out (int                                                line,
 
     // format a string describing the function call above
     static char fcall [4096];
+    std::memset (fcall, 0, sizeof fcall);
+
     rw_sprintf (fcall,
                 "codecvt<%s, char, mbstate_t>::out(state, "
-                "from = %{*.*Ac}, from + %d, from + %d, "
+                "from = %{*.*Ac}, from + %td, from + %td, "
                 "to = %{#*s}, to + %d, to + %d)",
                 tname, int (sizeof *from), int (src_len), from,
                 from_end - from, from_next - from,
@@ -371,30 +376,46 @@ void test_out (int                                                line,
 
     RW_ASSERT (std::strlen (fcall) < sizeof fcall);
 
+    // verify the expected result of the conversion
     rw_assert (cvtres == result, __FILE__, line,
                "line %d: %s == %s, got %s",
                __LINE__, fcall,
                codecvt_result (result),
                codecvt_result (cvtres));
 
+    // verify that the from_next pointer is set just past the last
+    // successfully converted character in the source sequence
     rw_assert (from_next == from + src_off, __FILE__, line,
                "line %d: %s: from_next == from + %d, got from + %d",
                __LINE__, fcall,
                src_off, from_next - from);
 
+    // verify that the to_next pointer is set just past the last
+    // external character in the converted (destination) sequence
     rw_assert (to_next == to + res_off, __FILE__, line,
                "line %d: %s: to_next == to + %d, got to + %d",
                __LINE__, fcall,
                res_off, to_next - to);
 
+    // compare the converted sequence against the expected result
     rw_assert (0 == rw_strncmp (to, res, res_off), __FILE__, line,
                "line %d: %s: expected %{#*s}, got %{#*s}",
-               __LINE__, int (res_off), res, int (to_next - to), to);
+               __LINE__, fcall,
+               int (res_off), res, int (to_next - to), to);
 
+    // verify that the function didn't write past the end
+    // of the destination buffer
+    rw_assert (char (-1) == to [res_off], 0, line,
+               "line %d: %s: expected %{#lc}, got %{#lc} "
+               "at end of destination buffer (offset %zu)",
+               __LINE__, fcall,
+               -1, to [res_off], res_off);
+
+    // verify that the conversion state is as expected
     rw_assert (!pstate || !std::memcmp (pstate, &state, sizeof state),
                __FILE__, line,
-               "line %d: %s: unexpected state",
-               __LINE__, tname);
+               "line %d: %s: unexpected conversion state",
+               __LINE__, fcall);
 }
 
 /****************************************************************************/
@@ -505,6 +526,8 @@ test_wcodecvt ()
     TEST (L"ab",   2, 2, "ab",   2, 2, ok);
     TEST (L"abc",  3, 3, "abc",  3, 3, ok);
     TEST (L"\0",   1, 1, "\0",   1, 1, ok);
+    TEST (L"\x80", 1, 1, "\x80", 1, 1, ok);
+    TEST (L"\xff", 1, 1, "\xff", 1, 1, ok);
     TEST (L"a\0",  2, 2, "a\0",  2, 2, ok);
     TEST (L"a\0b", 3, 3, "a\0b", 3, 3, ok);
     TEST (L"\0\0", 2, 2, "\0\0", 2, 2, ok);
@@ -633,6 +656,9 @@ test_wcodecvt_byname_algorithmic ()
 static void
 test_wcodecvt_byname_table_based ()
 {
+    // create a locale from a generated character set description file
+    // where L'\1' maps to "1", L'\2' to "22", ..., and L'\x10' to "A",
+    // L'\x11' to "B", L'\x12' to "C", etc.
     const char* const locname = create_locale ();
 
     if (!locname) {
@@ -683,6 +709,7 @@ test_wcodecvt_byname_table_based ()
     TEST (L"\6\5\4\3\2\1",  6, 3, "666666555554444", 15, 15, partial);
     TEST (L"\6\5\4\3\2\1",  6, 3, "666666555554444", 16, 15, partial);
 
+    // exercise the ability to detect invalid characters (e.g., '*')
     TEST (L"*\3\4\5\6\7",   6, 0, "",                27,  0, error);
     TEST (L"\2*\4\5\6\7",   6, 0, "",                 1,  0, partial);
     TEST (L"\2*\4\5\6\7",   6, 1, "22",               2,  2, partial);
@@ -699,10 +726,10 @@ make_strings (const char *pat, std::size_t patsize,
               wchar_t *wstr, char *mbstr,
               const mb_char_array_t mb_chars)
 {
-    _RWSTD_ASSERT (0 != pat);
-    _RWSTD_ASSERT (0 != wstr);
-    _RWSTD_ASSERT (0 != mbstr);
-    _RWSTD_ASSERT (0 != mb_chars);
+    RW_ASSERT (0 != pat);
+    RW_ASSERT (0 != wstr);
+    RW_ASSERT (0 != mbstr);
+    RW_ASSERT (0 != mb_chars);
 
     typedef unsigned char UChar;
 
@@ -714,7 +741,7 @@ make_strings (const char *pat, std::size_t patsize,
 
             ++s;
 
-            _RWSTD_ASSERT ('0' <= *s && *s <= char ('0' + MB_LEN_MAX));
+            RW_ASSERT ('0' <= *s && *s <= char ('0' + MB_LEN_MAX));
 
             std::size_t char_inx = *s - '0';
 
@@ -786,13 +813,30 @@ test_wcodecvt_byname_libc_based ()
               res, res_end_off, res_next_off,        \
               std::codecvt_base::result)
 
+    //    +----------------------------------- source sequence (from)
+    //    |          +------------------------ from_end offset from from
+    //    |          |  +--------------------- expected from_next offset
+    //    |          |  |  +------------------ expected destination sequence
+    //    |          |  |  |         +-------- to_end offset from to
+    //    |          |  |  |         |  +----- expected to_next offset
+    //    |          |  |  |         |  |  +-- expected result (to)
+    //    |          |  |  |         |  |  |
+    //    V          V  V  V         V  V  V
     TEST (L"",       0, 0, "",       0, 0, ok);
-    TEST (L"a",      1, 1, "a",      6, 1, ok);
+    TEST (L"a",      1, 1, "a",      1, 1, ok);
+    TEST (L"b",      1, 1, "b",      2, 1, ok);
+    TEST (L"c",      1, 1, "c",      3, 1, ok);
+    TEST (L"d",      1, 1, "d",      4, 1, ok);
+    TEST (L"e",      1, 1, "e",      5, 1, ok);
+    TEST (L"f",      1, 1, "f",      6, 1, ok);
     TEST (L"ab",     2, 2, "ab",     6, 2, ok);
     TEST (L"abc",    3, 3, "abc",    6, 3, ok);
     TEST (L"abcd",   4, 4, "abcd",   6, 4, ok);
     TEST (L"abcde",  5, 5, "abcde",  6, 5, ok);
     TEST (L"abcdef", 6, 6, "abcdef", 6, 6, ok);
+
+    TEST (L"\n",     1, 1, "\n",     1, 1, ok);
+    TEST (L"\n\377", 1, 1, "\n",     1, 1, ok);
 
     // exercise embedded NULs
     TEST (L"\0abcdef", 7, 7, "\0abcdef", 7, 7, ok);
@@ -868,30 +912,39 @@ test_wcodecvt_byname_libc_based ()
     // whose multibyte representation is (N + 1) bytes long
     // any other (narrow) character, including the NUL, is
     // widened to a wchar_t as if by an ordinary cast
-    TEST ("%0", 0, 0, 0, 0, ok);
-    TEST ("%0", 1, 0, 0, 0, partial);
-    TEST ("%0", 1, 1, 1, 1, ok);
-    TEST ("%1", 1, 0, 0, 0, partial);
-    TEST ("%1", 1, 0, 1, 0, partial);
-    TEST ("%1", 1, 1, 2, 2, ok);
 
-    TEST ("a%1", 2, 1, 2, 1, partial);
-    TEST ("b%1", 2, 2, 3, 3, ok);
+    //    +------------------------------ source sequence (from)
+    //    |               +-------------- initial (from_end - from)
+    //    |               |  +----------- expected (from_next - from)
+    //    |               |  |  +-------- initial (to_limit - to)
+    //    |               |  |  |  +----- expected (to_next - to)
+    //    |               |  |  |  |  +-- expected conversion result
+    //    |               |  |  |  |  |
+    //    V               V  V  V  V  V
+    TEST ("%0",           0, 0, 0, 0, ok);
+    TEST ("%0",           1, 0, 0, 0, partial);
+    TEST ("%0",           1, 1, 1, 1, ok);
+    TEST ("%1",           1, 0, 0, 0, partial);
+    TEST ("%1",           1, 0, 1, 0, partial);
+    TEST ("%1",           1, 1, 2, 2, ok);
 
-    TEST ("%1%1", 2, 0, 1, 0, partial);
-    TEST ("%1%1", 2, 1, 2, 2, partial);
-    TEST ("%1%1", 2, 1, 3, 2, partial);
-    TEST ("%1%1", 2, 2, 4, 4, ok);
+    TEST ("a%1",          2, 1, 2, 1, partial);
+    TEST ("b%1",          2, 2, 3, 3, ok);
 
-    TEST ("%1X%1Y%1Z", 6, 0, 1, 0, partial);
-    TEST ("%1X%1Y%1Z", 6, 1, 2, 2, partial);
-    TEST ("%1X%1Y%1Z", 6, 2, 3, 3, partial);
-    TEST ("%1X%1Y%1Z", 6, 2, 4, 3, partial);
-    TEST ("%1X%1Y%1Z", 6, 3, 5, 5, partial);
-    TEST ("%1X%1Y%1Z", 6, 4, 6, 6, partial);
-    TEST ("%1X%1Y%1Z", 6, 4, 7, 6, partial);
-    TEST ("%1X%1Y%1Z", 6, 5, 8, 8, partial);
-    TEST ("%1X%1Y%1Z", 6, 6, 9, 9, ok);
+    TEST ("%1%1",         2, 0, 1, 0, partial);
+    TEST ("%1%1",         2, 1, 2, 2, partial);
+    TEST ("%1%1",         2, 1, 3, 2, partial);
+    TEST ("%1%1",         2, 2, 4, 4, ok);
+
+    TEST ("%1X%1Y%1Z",    6, 0, 1, 0, partial);
+    TEST ("%1X%1Y%1Z",    6, 1, 2, 2, partial);
+    TEST ("%1X%1Y%1Z",    6, 2, 3, 3, partial);
+    TEST ("%1X%1Y%1Z",    6, 2, 4, 3, partial);
+    TEST ("%1X%1Y%1Z",    6, 3, 5, 5, partial);
+    TEST ("%1X%1Y%1Z",    6, 4, 6, 6, partial);
+    TEST ("%1X%1Y%1Z",    6, 4, 7, 6, partial);
+    TEST ("%1X%1Y%1Z",    6, 5, 8, 8, partial);
+    TEST ("%1X%1Y%1Z",    6, 6, 9, 9, ok);
 
     // exercise embedded NULs
     TEST ("\0",           1, 1, 1, 1, ok);
