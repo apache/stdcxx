@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -2020,28 +2027,34 @@ bool Def::get_weight ( token_t&     w,
     else if (w.token == Scanner::tok_decimal_value 
              || w.token == Scanner::tok_hex_value
              || w.token == Scanner::tok_octal_value) {
-        // the weights are given in decimal form so get the value 
-        // and assign it to the weights 
-        int val;
-        const char* next_val = std::strchr(w.name.c_str(),
-                                           scanner_.escape_char ());
-        const char* next_weight = std::strchr (w.name.c_str(), ';');
+        // the weight is given in numerical form
+        const char* next_val =
+            std::strchr (w.name.c_str (), scanner_.escape_char ());
+
+        assert (0 != next_val);
+
+        const char* next_wt = std::strchr (w.name.c_str (), ';');
+
         while (weight_num < collate_out_.num_weights) {
-            int c = 0;
-            for ( c = 0; 
-                  0 != next_val && (0 == next_weight 
-                                    || next_val < next_weight);c++) {
-                val = scanner_.convert_escape (next_val);
 
-                weights[weight_num].weight[c] = val;
-                next_val = std::strchr(next_val + 1, scanner_.escape_char ());
+            std::size_t c;
+
+            for (c = 0; *next_val && (!next_wt || next_val < next_wt); ++c) {
+
+                const char* end = 0;
+
+                weights [weight_num].weight [c] =
+                    scanner_.convert_escape (next_val, &end, true);
+
+                assert (0 != end);
+
+                next_val = end;
             }
-            weights[weight_num].size = c;
 
-            weight_num++;
+            weights [weight_num++].size = c;
 
-            if (0 != next_weight && 0 != next_val)
-                next_weight = std::strchr (next_val, ';');
+            if (next_wt)
+                next_wt = std::strchr (next_val, ';');
                 
         }
 
@@ -2052,16 +2065,19 @@ bool Def::get_weight ( token_t&     w,
         weights[weight_num].weight[0] = 0;
     }
     else if (w.token == Scanner::tok_string) {
-        // the weights are given in symbolic name form so
-        // extract the string inside quotes
-        std::string tmp (w.name.substr (1, w.name.size() - 2));
+        // the weights are given either in symbolic name form (e.g.,
+        // "<symbolic-name>" or in the form of a quoted multibyte
+        // character string (e.g., "\001\d010\x16\")
+        const std::string tmp (w.name.substr (1, w.name.size() - 2));
 
         // keeps track of the length of the weight
         unsigned char k = 0;
 
         // iterate thru the string content and retrieve the symbols
-        std::string::iterator it = tmp.begin ();
-        char ec = scanner_.escape_char ();
+        std::string::const_iterator it = tmp.begin ();
+
+        const char escape = scanner_.escape_char ();
+
         while (it != tmp.end ()) {
             // weight in string form
             std::string wsym;
@@ -2069,7 +2085,7 @@ bool Def::get_weight ( token_t&     w,
             // next comes a symbolic name
             if (*it == '<') {
                 while (*it != '>') {
-                    if (*it == ec) 
+                    if (*it == escape) 
                         it++;
 
                     wsym += *it++;
@@ -2113,20 +2129,23 @@ bool Def::get_weight ( token_t&     w,
                                 "symbolic name %s not found\n", 
                                 wsym.c_str());
                 }
-            } else if (*it == ec) {
-                std::string wstr (it, tmp.end ());
-                std::string::size_type idx;
-                
-                do{ 
-                    weights [weight_num].weight [k++] =
-                        scanner_.convert_escape (wstr.c_str ());
+            }
+            else if (*it == escape) {
 
-                    idx = wstr.find (scanner_.escape_char (), 1);
-                    if (std::string::npos != idx )
-                        wstr = wstr.substr (idx);
-                } while (std::string::npos != idx);
+                // weight is given in a quoted escape form
+                const char* const beg = tmp.c_str () + (it - tmp.begin ());
+                const char*       end = 0;
+
+                weights [weight_num].weight [k++] =
+                    scanner_.convert_escape (beg, &end, true);
+
+                assert (0 != end);
+
+                it += end - beg;
+
                 break;
-            } else 
+            }
+            else 
                 issue_diag (E_SYNTAX, true, &w,
                             "illegal string content as a weight");
         }
@@ -2174,4 +2193,3 @@ void Def::gen_valid_coll_wchar_set () {
         }
     }
 }
-    

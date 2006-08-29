@@ -701,50 +701,69 @@ next_token ()
 }
 
 
-unsigned char Scanner::
-convert_escape (const char* esc, const char **pend /* = 0 */) const
+unsigned long Scanner::
+convert_escape (const char  *esc,
+                const char **pend  /* = 0 */,
+                bool         multi /* = false */) const
 {
     assert (0 != esc);
 
-    const char* s = esc;
+    const char escape = escape_char ();
 
-    if (escape_char () != *s)
+    if (escape != *esc)
         issue_diag (E_SYNTAX, true, 0,
                     "expected the escape character ('%c'): %s\n",
-                    escape_char (), esc);
+                    escape, esc);
 
-    int base = 16;
-    const char *basename = "hexadecimal";
+    unsigned long value = 0;
 
-    switch (*++s) {
-    case 'o': base = 8;  basename = "octal"; break;
-    case 'd': base = 10; basename = "decimal"; break;
-    case 'x': break;
-    default:
-        issue_diag (E_SYNTAX, true, 0,
-                    "one of { 'o', 'd', 'x' } expected following "
-                    "the escape character: %s\n", esc);
-    }    
+    for (const char *s = esc; ; ) {
 
-    ++s;
+        // escaped characters are octal by default
+        const char *basename = "octal";
+        int         base     = 8;
 
-    const char *end = 0;
+        switch (*++s) {
+        case 'd': ++s; base = 10; basename = "decimal"; break;
+        case 'x': ++s; base = 16; basename = "hexadecimal"; break;
 
-    if (!pend)
-        pend = &end;
+        case 'o': ++s;
+        case '0': case '1': case '2': case '3':
+        case '4': case '5': case '6': case '7':
+            break;
 
-    const long val = std::strtol (s, (char**)pend, base);
+        default:
+            issue_diag (E_SYNTAX, true, 0,
+                        "one of { 'o', 'd', 'x' } expected following "
+                        "the escape character: %s\n", esc);
+        }
 
-    if (pend == &end && *pend && **pend)
-        issue_diag (E_SYNTAX, true, 0,
-                    "%s constant expected: %s\n", basename, esc);
+        const char *end = 0;
 
-    if (val < 0 || val > long (UCHAR_MAX))
-        issue_diag (E_INVAL, true, 0,
-                    "%s value in the range [0, %lu) expected: %s\n",
-                    basename, long (UCHAR_MAX), esc);
+        if (!pend)
+            pend = &end;
 
-    typedef unsigned char UChar;
+        const unsigned long byte = std::strtoul (s, (char**)pend, base);
 
-    return UChar (val);
+        if (!multi && pend == &end && **pend)
+            issue_diag (E_SYNTAX, true, 0,
+                        "%s constant expected: %s\n", basename, esc);
+
+        if (UCHAR_MAX < byte)
+            issue_diag (E_INVAL, true, 0,
+                        "%s byte value must be in the range [0, %d]: %s\n",
+                        basename, int (UCHAR_MAX), esc);
+
+        if (value >> (sizeof (unsigned long) - 1) * CHAR_BIT)
+            issue_diag (E_INVAL, true, 0, "integer overflow: %s\n", esc);
+
+        value = (value << CHAR_BIT) | byte;
+
+        if (**pend != escape || !multi)
+            break;
+
+        s = *pend;
+    }
+
+    return value;
 }
