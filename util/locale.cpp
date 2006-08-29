@@ -6,22 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2001-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -72,7 +73,12 @@
 
 bool print_cat_names = false;
 bool print_keywords = false;
+
+// set to true in response to the "-h" command line option requesting
+// locale to try to use character names from the original charmap used
+// to create the locale (if possible)
 bool decode = false;
+
 bool is_utf8 = true;
 bool POSIX_output = true;
 
@@ -568,51 +574,61 @@ wchar_t get_wchar_from_offset(unsigned int offset,
     return 0;
 }
 
+
 void print_weight (const unsigned int* weightp, 
                    unsigned int        num_weights,
                    unsigned int        longest_weight)
 {
     // FIXME: ignore the order of the element
-    weightp++;
+    ++weightp;
 
-    for (unsigned int k = 0; k < num_weights; k++) {
-        bool quoted = false;
+    for (unsigned k = 0; k != num_weights; ++k) {
 
-        if (*weightp && longest_weight > 1) {
-            quoted = true;
-            std::cout << "\"";
-        }
+        for (unsigned x = 0; x != longest_weight; ++x, ++weightp) {
 
-        for (unsigned int x = 0; x < longest_weight; x++){
             if (*weightp != UINT_MAX) {
-                if (*weightp == 0) 
-                    std::cout << "IGNORE";
-                else
-                    std::cout << "\\d" << *weightp;
+                if (0 == *weightp) 
+                    std::cout << "IGNORE;";
+                else if (*weightp <= UCHAR_MAX) {
+                    std::cout << "\\d" << *weightp << ';';
+                }
+                else {
+                    std::cout << '"';
+
+                    unsigned wt = *weightp;
+
+                    for (unsigned inx = sizeof wt; wt && inx--; ) {
+
+                        const unsigned byte =
+                            (wt >> CHAR_BIT * inx) & UCHAR_MAX;
+
+                        wt &= ~(wt << (CHAR_BIT * inx));
+
+                        if (byte || wt)
+                            std::cout << "\\d" << byte;
+                    }
+                    std::cout << "\";";
+                }
             }
-            weightp++;
         }
-
-        if (quoted)
-            std::cout << "\"";
-
-        if (k != num_weights)
-            std::cout << ";";
     }
 
     std::cout << '\n';
 }
 
+
 void write_coll_info (const std::string &ch, unsigned int idx,
                       unsigned int tab_num)
 {
+    typedef unsigned char UChar;
+
     if (collate_st->num_elms > 1) {
         typedef std::map <std::string, wchar_t>::const_iterator n_cmap2_iter;
         const unsigned int* tab = collate_st->get_n_tab (tab_num);
         unsigned int first = collate_st->get_first_char_in_n_tab(tab_num);
         for (unsigned int i = first; i <= UCHAR_MAX; i++) {
             std::string new_ch = ch;
-            new_ch += (unsigned char)i;
+            new_ch += UChar (i);
             if (tab[i - first] != UINT_MAX) {
                 if (tab[i - first] & 0x80000000) {
                     // it's an offset to another table
@@ -633,10 +649,12 @@ void write_coll_info (const std::string &ch, unsigned int idx,
                     }
                     else {
                         for (unsigned int j = 0; j < idx; j++) {
-                            std::cout << "\\d" << (unsigned int)
-                                (unsigned char)new_ch[j];
+                            const UChar uc = UChar (new_ch [j]);
+
+                            std::cout << "\\d" << int (uc);
+
                             if (j != idx - 1)
-                                std::cout << ";";
+                                std::cout << ';';
                         }
                     }
                     std::cout << "  ";
