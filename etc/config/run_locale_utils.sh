@@ -232,7 +232,8 @@ test_locale()
 
     # get locale's name and encoding
     locale_src=`echo $3 | \
-                sed -n "s:\([^\.]*\)\.\([^\.\@]*\)\(.*\):\1\3:p;s:\@$::g"`;
+                sed -n "s:\([^\.]*\)\.\([^\.\@]*\)\(.*\):\1\3:;\
+                        s:\@$::;y:@:.:;p"`;
     locale_encoding=`echo $3 | \
                      sed -n "s:\([^\.]*\)\.\([^\.\@]*\)\(.*\):\2:p"`;
 
