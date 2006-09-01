@@ -1,21 +1,28 @@
 /***************************************************************************
  *
- * 26.c.math.cpp - test exercising [lib.c.math]
+ * c_math.cpp - test exercising [lib.c.math]
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -191,12 +198,16 @@ test_behavior ()
 
     // check overloads of std::pow()
     for (int i = -10; i != 10; ++i) {
+
         for (int j = -10; j != 10; ++j) {
 
             if (-9 < j && j < 9) {
+                const float fi = float (i);
+                const float fj = float (j);
+
                 // verify that both versions are equivalent
-                const float xf = std::pow (float (i), int (j));
-                const float yf = std::pow (float (i), float (j));
+                const float xf = std::pow (fi, j);
+                const float yf = std::pow (fi, fj);
 
                 rw_assert (rw_equal (xf, yf) || !i && j < 0,
                            0, __LINE__,
@@ -205,8 +216,11 @@ test_behavior ()
                            i, j, xf, i, j, yf);
             }
 
-            const float xd = std::pow (double (i), int (j));
-            const float yd = std::pow (double (i), double (j));
+            const double id = double (i);
+            const double jd = double (j);
+
+            const double xd = std::pow (id, j);
+            const double yd = std::pow (id, jd);
 
             rw_assert (rw_equal (xd, yd) || !i && j < 0,
                        0, __LINE__,
@@ -216,8 +230,11 @@ test_behavior ()
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
 
-            const long double xl = std::pow ((long double)i, int (j));
-            const long double yl = std::pow ((long double)i, (long double)j);
+            const long double il = _RWSTD_STATIC_CAST (long double, i);
+            const long double jl = _RWSTD_STATIC_CAST (long double, j);
+
+            const long double xl = std::pow (il, j);
+            const long double yl = std::pow (il, jl);
 
             rw_assert (rw_equal (xl, yl) || !i && j < 0,
                        0, __LINE__,
