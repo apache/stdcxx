@@ -231,11 +231,8 @@ test_locale()
     fi
 
     # get locale's name and encoding
-    locale_src=`echo $3 | \
-                sed -n "s:\([^\.]*\)\.\([^\.\@]*\)\(.*\):\1\3:;\
-                        s:\@$::;y:@:.:;p"`;
-    locale_encoding=`echo $3 | \
-                     sed -n "s:\([^\.]*\)\.\([^\.\@]*\)\(.*\):\2:p"`;
+    locale_src=`echo $3 | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\1\3:;y:@:.:"`;
+    locale_encoding=`echo $3 | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\2:"`;
 
     ## generate the first locale database
     generate_locale $1/charmaps/$locale_encoding     \

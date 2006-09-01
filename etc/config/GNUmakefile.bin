@@ -8,7 +8,7 @@
 
 include ../makefile.in
 
-SRCDIRS = $(TOPDIR)/util
+SRCDIRS = $(TOPDIR)/src/util
 
 # include common variables setting for all makefiles
 ONE_REPOSITORY = 1
@@ -90,10 +90,8 @@ $(RUNTARGET):
 # the rule presents as dependencies the source files corresponding
 # to that locale; it is run once for each entry in LOCALE_LIST
 $(LOCALE_LIST):
-	@(lname=`echo $@ |                                                   \
-                 sed s:"\([^.]*\)\.\([^>@]*\)\(.*\)":"\1\3":g | tr "@" "."`; \
-          cname=`echo $@ |                                                   \
-                 sed s:"\([^.]*\)\.\([^>@]*\)\(.*\)":"\2":g | tr "@" "."`;   \
+	@(lname=`echo $@ | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\1\3:;y:@:.:"`;     \
+          cname=`echo $@ | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\2:"`;          \
           echo "./localedef -w -c -f $(NLSDIR)/charmaps/$$cname"             \
                "-i $(NLSDIR)/src/$$lname $(LOCDIR)/$@";                      \
           ./localedef -w -c -f $(NLSDIR)/charmaps/$$cname                    \
@@ -103,9 +101,8 @@ $(DEPENDDIR)/localedb.d:
 	@(echo "# generated locale dependencies" > $@;                      \
           for f in $(LOCALE_LIST); do                                       \
               lname=`echo $$f |                                             \
-                sed s:"\([^.]*\)\.\([^>@]*\)\(.*\)":"\1\3":g | tr "@" "."`; \
-              cname=`echo $$f |                                             \
-                sed s:"\([^.]*\)\.\([^>@]*\)\(.*\)":"\2":g`;                \
+                sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\1\3:;y:@:.:"`;           \
+              cname=`echo $$f | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\2:"`;    \
               f=$$f;                                                        \
               echo "generating dependencies for $$f";                       \
               printf "%-32s:%s %s\n" $$f                                    \
