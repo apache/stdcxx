@@ -131,13 +131,13 @@ ifeq ($(findstring clean,$(MAKECMDGOALS)),)
 
   ifeq ($(MAKECMDGOALS),)
     # include all dependencies (can be slow when there are a lot of them)
-    DEPS := $(patsubst %.cpp,$(DEPENDDIR)/%.d,$(filter %.cpp,$(SRCS)))
+    DEPS += $(patsubst %.cpp,$(DEPENDDIR)/%.d,$(filter %.cpp,$(SRCS)))
     DEPS += $(patsubst %$(AS_EXT),$(DEPENDDIR)/%.d,$(filter %$(AS_EXT),$(SRCS)))
   else
     # as a (potentially significant) optimization, include
     # only the dependencies for the explicitly specified goals
-    DEPS := $(addprefix $(DEPENDDIR)/,$(basename $(MAKECMDGOALS)))
-    DEPS := $(addsuffix .d,$(DEPS))
+    DEPS += $(addprefix $(DEPENDDIR)/,$(basename $(MAKECMDGOALS)))
+    DEPS += $(addsuffix .d,$(DEPS))
   endif
 
   # (try to) include the dependency file(s), failing gracefully
@@ -158,9 +158,6 @@ ifneq ($(DEPENDFLAGS),)
 
 define makedep
     -@(if [ ! -f $@ ] ; then                                                 \
-           if [ ! -d $(DEPENDDIR) ]; then                                    \
-               mkdir -p $(DEPENDDIR);                                        \
-           fi;                                                               \
            echo "generating dependencies for"                                \
                 `echo $< | sed "s:$(TOPDIR):$$""(TOPDIR):"` ;                \
                                                                              \
@@ -188,12 +185,15 @@ define makedep
       fi)
 endef
 
+$(DEPENDDIR):
+	@[ ! -d $(DEPENDDIR) ] && mkdir -p $(DEPENDDIR)
+
 # rule to make dependencies for C++ source files
-$(DEPENDDIR)/%.d: %.cpp
+$(DEPENDDIR)/%.d: %.cpp $(DEPENDDIR)
 	$(makedep)
 
 # rule to make dependencies for assembly files
-$(DEPENDDIR)/%.d: %$(AS_EXT)
+$(DEPENDDIR)/%.d: %$(AS_EXT) $(DEPENDDIR)
 	$(makedep)
 
 
@@ -238,4 +238,3 @@ printvars:
 
 # override the default set of suffixes with our own
 .SUFFIXES: .a .c .cc .cpp .d .h .o .$(AS_EXT)
-

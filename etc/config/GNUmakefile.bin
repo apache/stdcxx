@@ -8,7 +8,7 @@
 
 include ../makefile.in
 
-SRCDIRS = $(TOPDIR)/src/util
+SRCDIRS = $(TOPDIR)/util
 
 # include common variables setting for all makefiles
 ONE_REPOSITORY = 1
@@ -76,7 +76,7 @@ locale: locale.o aliases.o charmap.o codecvt.o collate.o def.o ctype.o \
 locales: localedef $(LOCALE_LIST)
 
 # the rule builds the scripts that are run by the runall script
-$(RUNTARGET): 
+$(RUNTARGET): $(NLSDIR)/gen_list
 	@(echo "making $@...";                                               \
           echo "#!/bin/sh" > $@;                                             \
           locname=`echo $@ | sed "s:^\./::g;s:\.sh$$::g"`;                   \
@@ -89,15 +89,15 @@ $(RUNTARGET):
 
 # the rule presents as dependencies the source files corresponding
 # to that locale; it is run once for each entry in LOCALE_LIST
-$(LOCALE_LIST):
-	@(lname=`echo $@ | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\1\3:;y:@:.:"`;     \
+$(LOCALE_LIST): $(NLSDIR)/gen_list
+	@(lname=`echo $@ | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\1\3:;y:@:.:"`; \
           cname=`echo $@ | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\2:"`;          \
           echo "./localedef -w -c -f $(NLSDIR)/charmaps/$$cname"             \
                "-i $(NLSDIR)/src/$$lname $(LOCDIR)/$@";                      \
           ./localedef -w -c -f $(NLSDIR)/charmaps/$$cname                    \
                       -i $(NLSDIR)/src/$$lname $(LOCDIR)/$@)
 
-$(DEPENDDIR)/localedb.d:
+$(DEPENDDIR)/localedb.d: $(DEPENDDIR) $(NLSDIR)/gen_list
 	@(echo "# generated locale dependencies" > $@;                      \
           for f in $(LOCALE_LIST); do                                       \
               lname=`echo $$f |                                             \
@@ -105,13 +105,12 @@ $(DEPENDDIR)/localedb.d:
               cname=`echo $$f | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\2:"`;    \
               f=$$f;                                                        \
               echo "generating dependencies for $$f";                       \
-              printf "%-32s:%s %s\n" $$f                                    \
-                     $(NLSDIR)/src/$$lname                                  \
-                     $(NLSDIR)/charmaps/$$cname >> $@;                      \
+              echo "$$f: $$""(NLSDIR)/src/$$lname"                          \
+                   "$$""(NLSDIR)/charmaps/$$cname" >> $@;                   \
           done;)
 
-# include the generated dependencies file
--include $(DEPENDDIR)/localedb.d
+# tell makefile.rules to include the generated dependencies file
+DEPS := $(DEPENDDIR)/localedb.d
 
 # do any directory specific cleanup using the realclean target
 realclean: clean dependclean
