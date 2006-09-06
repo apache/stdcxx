@@ -115,6 +115,8 @@ OBJS        := $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRCS)))
 OBJS        += $(patsubst %$(AS_EXT),%.o,$(filter %$(AS_EXT),$(SRCS)))
 OBJS        := $(sort $(OBJS))
 
+DEPS        :=
+
 # message files - text files used to generate a catalog - see gencat(1)
 MSGFILES     = $(filter %.msg,$(ALL_FILES))
 
