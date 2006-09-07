@@ -54,7 +54,7 @@ $(LIBDIR)/$(LIBNAME):
 	@$(MAKE) -C $(LIBDIR) 
 
 # link the run utility
-exec: runall.o cmdopt.o output.o util.o exec.o
+exec: runall.o cmdopt.o output.o util.o exec.o display.o
 	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" >> $(LOGFILE)
 	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(TEEOPTS)
 

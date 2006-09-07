@@ -28,6 +28,6 @@
 #define OUTPUT_H
 
 void
-parse_output (const char* target);
+parse_output (struct target_status* status);
 
 #endif   // OUTPUT_H

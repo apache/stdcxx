@@ -26,7 +26,6 @@
 
 #include <assert.h>     /* for assert() */
 #include <errno.h>      /* for errno */
-#include <stdio.h>      /* for fflush(), printf(), puts(), ... */
 #include <stdlib.h>     /* for exit(), free() */
 #include <string.h>     /* for memcpy(), ... */
 
@@ -36,10 +35,12 @@
 #if !defined (_WIN32) && !defined (_WIN64)
 #  include <sys/wait.h>   /* for WIFEXITED(), ... */
 #else
+#  include <signal.h>     /* for SIGSEGV */
 #  include <windows.h>    /* for STATUS_ACCESS_VIOLATION */
 #endif
 
 #include "cmdopt.h"
+#include "display.h"
 #include "exec.h"
 #include "output.h"
 #include "util.h"
@@ -193,34 +194,31 @@ merge_argv (char* const target, char* const argv [])
    Preflight check to ensure that target is something that should be run.
 
    This method checks to see if target exists and is theoretically executable.
+   If a problem is detected, the condition is recorded in the status structure
+   and 0 is returned.
+
    A special case is the situation where the target name ends in .o, 
    indicating that the target only needed to compile, and doesn't need to
-   be run.  If there are problems, or the target is a .o file, a result is 
-   displayed and 0 is returned.
-
-   Output messages produced:
-     - COMP\n
-       Target failed to compile
-     - LINK\n
-       Target failed to link
-     - XPERM\n
-       Target lacks execute permissions
-     - 0\n
-       Target .o file exists (check passes)
+   be run.  Processing for this case is currently disabled as it is unused.
 
    @param target the path to the executable to check
+   @param status status object to record results in.
    @return 1 if valid target to run, 0 otherwise.
 */
 static int
-check_target_ok (const char* target)
+check_target_ok (struct target_status* status)
 {
     struct stat file_info;
     int exists = 1;
 
-    if (0 > stat (target, &file_info)) {
+    assert (0 != status);
+    assert (0 != status->argv);
+    assert (0 != status->argv[0]);
+
+    if (0 > stat (status->argv [0], &file_info)) {
         if (ENOENT != errno) {
-            warn ("Error stating %s: %s\n", target, strerror (errno));
-            puts ("ERROR");
+            warn ("Error stating %s: %s\n", status->argv [0], strerror (errno));
+            status->status = ST_SYSTEM_ERROR;
             return 0;
         }
         file_info.st_mode = 0; /* force mode on non-existant file to 0 */
@@ -230,30 +228,28 @@ check_target_ok (const char* target)
         /* This is roughly equivlent to the -x bash operator.
            It checks if the file can be run, /not/ if we can run it
         */
-        const size_t path_len = strlen (target);
+        const size_t path_len = strlen (status->argv [0]);
         char* tmp_name;
 
 #if 0 /* Disable .o target check as unused */
         /* If target is a .o file, check if it exists */
-        if ('.' == target [path_len-1] && 'o' == target [path_len]) {
-            if (exists)
-                puts ("     0");
-            else
-                puts ("  COMP");
+        if ('.' == status->argv [0] [path_len-1] && 'o' == status->argv [0] [path_len]) {
+            if (!exists)
+                status->status = ST_COMPILE;
             return 0;
         }
 #endif
             
         /* If the target exists, it doesn't have valid permissions */
         if (exists) {
-            puts (" XPERM");
+            status->status = ST_EXECUTE_FLAG;
             return 0;
         }
 
 #if !defined (_WIN32) && !defined (_WIN64)
         /* Otherwise, check for the .o file on non-windows systems */
         tmp_name = (char*)RW_MALLOC (path_len + 3);
-        memcpy (tmp_name, target, path_len + 1);
+        memcpy (tmp_name, status->argv [0], path_len + 1);
         strcat (tmp_name,".o");
 #else
         /* Or the target\target.obj file on windows systems*/
@@ -264,7 +260,7 @@ check_target_ok (const char* target)
                    adding 2 characters (\ directory seperator and trailing 
                    null) */
             tmp_name = (char*)RW_MALLOC (tmp_len);
-            memcpy (tmp_name, target, path_len - 4);
+            memcpy (tmp_name, status->argv [0], path_len - 4);
             tmp_name [path_len - 4] = default_path_sep;
             memcpy (tmp_name + path_len - 3, target_name, target_len);
             tmp_name [tmp_len - 4] = 'o';
@@ -277,13 +273,13 @@ check_target_ok (const char* target)
         if (0 > stat (tmp_name, &file_info)) {
             if (ENOENT != errno) {
                 warn ("Error stating %s: %s\n", tmp_name, strerror (errno));
-                puts ("ERROR");
+                status->status = ST_SYSTEM_ERROR;
             }
             else
-                puts ("  COMP");
+                status->status = ST_COMPILE;
         }
         else {
-            puts ("  LINK");
+            status->status = ST_LINK;
         }
                 
         free (tmp_name);
@@ -296,69 +292,62 @@ check_target_ok (const char* target)
    Post target execution result analysis.
 
    This method examines the content of result, dispatching the processing
-   to check_test () or check_example () if target had a return code of 0.
+   to pares_output () if target had a return code of 0.
    Otherwise, this method determines why target terminated, based on the
-   return code and outputs that reason.
-
-   Output messages produced:
-     - EXIST\n
-       Return code 126 (target doesn't exist?)
-     - EXEC\n
-       Return code 127 (target couldn't be run?)
-     - NKILL\n
-       Couldn't kill the child executable
-     - n\n
-       Child exited with the non-zero return code n
-     - name\n
-       Child terminated upon recieving the signal SIGname
+   return code and fills the result structure with these results.
 
    @param target the path to the executable that was run
-   @param exec_name the short name of the executable
    @param result the return code data from running the target
-   @see check_test ()
-   @see check_example ()
+   @param status status object to record results in.
+   @see parse_output ()
 */
 static void
-process_results (const char* target, const struct exec_attrs* result)
+process_results (const struct exec_attrs* result, 
+                 struct target_status* status)
 {
+    assert (0 != result);
+    assert (0 != status);
+
     if (0 == result->status) {
-        parse_output (target);
+        parse_output (status);
     } 
 #if !defined (_WIN32) && !defined (_WIN64)
     else if (WIFEXITED (result->status)) {
         const int retcode = WEXITSTATUS (result->status);
         switch (retcode) {
         case 126:
-            puts (" EXIST");
+            status->status = ST_EXIST;
             break;
         case 127:
-            puts ("  EXEC");
+            status->status = ST_EXECUTE;
             break;
         default:
-            printf ("%6d\n", retcode);
+            status->exit = retcode;
         }
     }
     else if (WIFSIGNALED (result->status)) {
-        printf ("%6s\n", get_signame (WTERMSIG (result->status)));
+        status->signal = WTERMSIG (result->status);
     }
     else if (WIFSTOPPED (result->status)) {
-        printf ("%6s\n", get_signame (WSTOPSIG (result->status)));
+        status->signal = WSTOPSIG (result->status);
     }
     else if (-1 == result->status && -1 == result->killed) {
-        puts (" NKILL");
+        status->status = ST_NOT_KILLED;
     }
     else {
-        printf ("(%d|%d)\n", result->status, result->killed);
+        warn ("Unknown result status: %d, %d\n", result->status, 
+              result->killed);
+        status->status = ST_SYSTEM_ERROR;
     }
 #else
     else if (-1 == result->status)
-        puts ("   I/O");
+        status->status = ST_SYSTEM_ERROR;
     else if (result->error)
-        puts ("KILLED");
+        status->status = ST_KILLED;
     else if (STATUS_ACCESS_VIOLATION == result->status)
-        puts ("  SEGV");
+        status->signal = SIGSEGV;
     else
-        printf ("%6d\n", result->status);
+        status->exit = result->status;
 #endif   /* _WIN{32,64} */
 }
 
@@ -409,28 +398,31 @@ rw_basename (const char* path)
 static void
 run_target (char* target, char** argv)
 {
-    char** childargv;
+    struct target_status results;
 
     assert (0 != target);
     assert (0 != argv);
 
-    childargv = merge_argv (target, argv);
+    memset (&results, 0, sizeof results);
 
-    assert (0 != childargv);
-    assert (0 != childargv [0]);
+    results.argv = merge_argv (target, argv);
 
-    target_name = rw_basename (childargv [0]);
+    assert (0 != results.argv);
+    assert (0 != results.argv [0]);
 
-    printf ("%-25.25s ", target_name);
-    fflush (stdout);
+    target_name = rw_basename (results.argv [0]);
 
-    if (check_target_ok (childargv [0])) {
-        struct exec_attrs status = exec_file (childargv);
-        process_results (childargv [0], &status);
+    print_target (&results);
+
+    if (check_target_ok (&results)) {
+        struct exec_attrs status = exec_file (results.argv);
+        process_results (&status, &results);
     }
 
-    free (childargv [0]);
-    free (childargv);
+    print_status (&results);
+
+    free (results.argv [0]);
+    free (results.argv);
 }
 
 /**
@@ -468,11 +460,14 @@ main (int argc, char *argv [])
         char** childargv = split_opt_string (exe_opts);
 
         assert (0 != childargv);
-        puts ("NAME                      STATUS ASSERTS FAILED PERCNT");
+
+        print_header ();
 
         for (i = 0; i < argc; ++i) {
             run_target (argv [i], childargv);
         }
+
+        print_footer ();
 
         if (childargv [0])
             free (childargv [0]);
