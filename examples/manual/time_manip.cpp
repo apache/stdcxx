@@ -44,25 +44,56 @@ struct time_get_manip
         : tmb_ (tmb) { }
 
     template <class Traits>
-    void
-    operator() (std::basic_ios<charT, Traits> &strm, const charT *fmt) const {
+    void operator() (std::basic_istream<charT, Traits>&, const charT*) const;
+};
+
+
+template <class charT>
+template <class Traits>
+void time_get_manip<charT>::
+operator()(std::basic_istream<charT, Traits> &strm, const charT *fmt) const
+{
+    // begin by constructing a sentry object for the stream
+    const typename std::basic_istream<charT, Traits>::sentry guard (strm);
+
+    if (guard) {
+
+        // compute the end pointer of the format specifier
+        const charT* const end = fmt + Traits::length (fmt);
+
+        std::ios_base::iostate err = strm.goodbit;
+
         typedef std::istreambuf_iterator<charT> Iter;
         typedef std::time_get<charT, Iter>      TimeGet;
 
-        // compute the end pointer of the format specifier
-        const charT* const fmtend = fmt + Traits::length (fmt);
+        try {
+            const TimeGet &tg = std::use_facet<TimeGet>(strm.getloc ());
 
-        std::ios_base::iostate err = std::ios_base::goodbit;
-        const TimeGet &tg = std::use_facet<TimeGet>(strm.getloc ());
+            // try to extract the time from the stream using
+            // an extension of this implementation
+            tg.get (Iter (strm.rdbuf ()), Iter (), strm, err, tmb_, fmt, end);
+        }
+        catch (...) {
+            bool rethrow = false;
 
-        // extract the time from the stream using an extension
-        // of this implementation
-        tg.get (Iter (strm.rdbuf ()), Iter (), strm, err, tmb_, fmt, fmtend);
+            try {
+                // set badbit in exceptions without causing
+                // ios_base::failure to be thrown
+                strm.setstate (strm.badbit);
+            }
+            catch (...) {
+                // set a flag to rethrow the originally caught exception
+                rethrow = true;
+            }
 
-        if (std::ios_base::goodbit != err)
+            if (rethrow)
+                throw;
+        }
+
+        if (strm.goodbit != err)
             strm.setstate (err);
     }
-};
+}
 
 
 // implementation class of the insertion manipulator of std::tm values
@@ -75,22 +106,57 @@ struct time_put_manip
         : tmb_ (tmb) { }
 
     template <class Traits>
-    void
-    operator() (std::basic_ios<charT, Traits> &strm, const charT *fmt) const {
+    void operator() (std::basic_ostream<charT, Traits>&, const charT*) const;
+};
+
+
+template <class charT>
+template <class Traits>
+void time_put_manip<charT>::
+operator() (std::basic_ostream<charT, Traits> &strm, const charT *fmt) const
+{
+    // begin by constructing a sentry object for the stream
+    const typename std::basic_ostream<charT, Traits>::sentry guard (strm);
+
+    if (guard) {
+
+        // compute the end pointer of the format specifier
+        const charT* const end = fmt + Traits::length (fmt);
+
         typedef std::ostreambuf_iterator<charT> Iter;
         typedef std::time_put<charT, Iter>      TimePut;
 
-        // compute the end pointer of the format specifier
-        const charT* const fmtend = fmt + Traits::length (fmt);
+        Iter it (strm.rdbuf ());
 
-        const TimePut &tp = std::use_facet<TimePut>(strm.getloc ());
-        const Iter end = tp.put (Iter (strm.rdbuf ()), strm, strm.fill (),
-                                 tmb_, fmt, fmtend);
+        try {
+            const TimePut &tp = std::use_facet<TimePut>(strm.getloc ());
 
-        if (end.failed ())
-            strm.setstate (std::ios_base::badbit);
+            // try to format and insert the time object into the stream
+            it = tp.put (it, strm, strm.fill (), tmb_, fmt, end);
+        }
+        catch (...) {
+            bool rethrow = false;
+
+            try {
+                // set badbit in exceptions without causing
+                // ios_base::failure to be thrown
+                strm.setstate (strm.badbit);
+            }
+            catch (...) {
+                // set a flag to rethrow the originally caught exception
+                rethrow = true;
+            }
+
+            if (rethrow)
+                throw;
+        }
+
+        // set badbit on failure to insert (which may cause
+        // ios_base::failure to be thrown)
+        if (it.failed ())
+            strm.setstate (strm.badbit);
     }
-};
+}
 
 
 // manipulator for the extraction of std::tm values
