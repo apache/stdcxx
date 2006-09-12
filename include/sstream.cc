@@ -6,22 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 1994-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  *
  **************************************************************************/
 
@@ -111,7 +112,7 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen /* = -1 */)
 
         __buf = __alloc.allocate (__bufsize);
 
-        // take the ownsership of the allocated buffer
+        // take ownsership of the allocated buffer
         this->_C_own_buf (true);
     }
     else if (0 < __bufsize) {
@@ -120,7 +121,7 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen /* = -1 */)
         __bufsize = this->_C_bufsize;
     }
     else {
-        // 0 size and capacity, deallocate and reset all pointers
+        // zero size and capacity, deallocate and reset all pointers
         __buf     = 0;
         __bufsize = 0;
 
@@ -153,8 +154,12 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen /* = -1 */)
     if (this->_C_is_out ()) {
         this->setp (this->_C_buffer, this->_C_buffer + this->_C_bufsize);
 
-        if (__s != __buf || this->_C_state & (ios_base::app | ios_base::ate))
-            this->pbump (__slen);   // seek to end
+        if (   __s != __buf && this->_C_state & ios_base::in
+            || this->_C_state & (ios_base::app | ios_base::ate)) {
+            // in input or append/ate modes seek to end
+            // (see also lwg issue 562 for clarification)
+            this->pbump (__slen);
+        }
     }
 
     _RWSTD_ASSERT (this->_C_is_valid ());
