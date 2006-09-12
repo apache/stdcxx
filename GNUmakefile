@@ -476,7 +476,7 @@ ifeq ($(in_topdir),1)
     LDSOFLAGS += $(LDSOFLAGS.wide)
     ARFLAGS   += $(ARFLAGS.wide)
   endif
-  ifeq ($(findstring wide,$(BUILDMODE)),narrow)
+  ifeq ($(findstring narrow,$(BUILDMODE)),narrow)
     CXXFLAGS  += $(CXXFLAGS.narrow)
     LDFLAGS   += $(LDFLAGS.narrow)
     LDSOFLAGS += $(LDSOFLAGS.narrow)
