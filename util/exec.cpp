@@ -40,6 +40,9 @@
 #if !defined (_WIN32) && !defined (_WIN64)
 #  include <unistd.h> /* for close, dup, exec, fork */
 #  include <sys/wait.h>
+#  ifdef _XOPEN_UNIX
+#    include <sys/resource.h> /* for setlimit(), RLIMIT_CORE, ... */
+#  endif
 #else
 #  include <windows.h> /* for PROCESS_INFORMATION, ... */
 #  include <process.h> /* for CreateProcess, ... */
@@ -625,6 +628,70 @@ replace_file (int source, int dest, const char* name)
                    name, strerror (errno));
 }
 
+#ifdef _XOPEN_UNIX
+/**
+    Utility macro to generate an rlimit tuple.
+    
+    @parm val 'short' resource name (no leading RLIMIT_).
+    @param idx limit structure name in child_limits global
+    @see limit_process
+    @see child_limits
+*/
+#undef LIMIT
+#define LIMIT(val, idx)   { RLIMIT_ ## val, &child_limits.idx, #val }
+
+/**
+   Set process resource limits, based on the child_limits global.
+
+   This method uses the LIMIT macro to build an internal array of limits
+   to try setting.  If setrlimit fails
+*/
+static void
+limit_process ()
+{
+    static const struct {
+        int resource;
+        rw_rlimit* limit;
+        const char* name;
+    } limits[] = {
+#ifdef RLIMIT_CORE
+        LIMIT (CORE, core),
+#endif   // RLIMIT_CORE
+#ifdef RLIMIT_CPU
+        LIMIT (CPU, cpu),
+#endif   // RLIMIT_CPU
+#ifdef RLIMIT_DATA
+        LIMIT (DATA, data),
+#endif   // RLIMIT_DATA
+#ifdef RLIMIT_FSIZE
+        LIMIT (FSIZE, fsize),
+#endif   // RLIMIT_FSIZE
+#ifdef RLIMIT_NOFILE
+        LIMIT (NOFILE, nofile),
+#endif   // RLIMIT_NOFILE
+#ifdef RLIMIT_STACK
+        LIMIT (STACK, stack),
+#endif   // RLIMIT_STACK
+#ifdef RLIMIT_AS
+        LIMIT (AS, as),
+#endif   // RLIMIT_AS    
+        { 0, 0, 0 }
+    };
+
+    for (size_t i = 0; limits [i].limit; ++i) {
+        rw_rlimit local;
+
+        memcpy (&local, limits [i].limit, sizeof (struct rlimit));
+
+        if (setrlimit (limits [i].resource, &local)) {
+            warn ("error setting process limits for %s (soft: %lu, hard: "
+                  "%lu): %s\n", limits [i].name, local.rlim_cur, 
+                  local.rlim_max, strerror (errno));
+        }
+    }
+}
+#endif /* _XOPEN_UNIX */
+
 /**
    Entry point to the child process (watchdog) subsystem.
 
@@ -700,6 +767,10 @@ exec_file (char** argv)
         if (-1 == dup2 (1, 2))
             terminate (1, "Redirection of stderr to stdout failed: %s\n", 
                        strerror (errno));
+
+#ifdef _XOPEN_UNIX
+        limit_process ();
+#endif /* _XOPEN_UNIX */
 
         execv (argv [0], argv);
 

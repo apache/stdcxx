@@ -27,6 +27,10 @@
 #ifndef RW_PARSE_OPTS_H
 #define RW_PARSE_OPTS_H
 
+#if !defined (_WIN32) && !defined (_WIN64)
+#  include <unistd.h> /* For _XOPEN_UNIX */
+#endif
+
 extern int timeout;
 extern int compat;
 extern unsigned verbose; /**< Verbose output mode switch.  Defaults to 0 */
@@ -38,6 +42,41 @@ extern const char escape_code; /**< Escape character used in paths. */
 extern const char default_path_sep; /**< Primary path seperator */
 extern const char suffix_sep; /**< File suffix seperator. */
 extern const size_t exe_suffix_len; /**< Length of executable suffix. */
+
+#ifdef _XOPEN_UNIX
+#  include <sys/resource.h> /* for struct rlimit */
+/**
+   Abstraction typedef for struct rlimit using real struct
+*/
+typedef struct rlimit rw_rlimit;
+#else
+/**
+   Placeholder rlim_t for use in rw_rlimit
+*/
+typedef unsigned long rw_rlim_t;
+/**
+   Placeholder struct rlimit to use if _XOPEN_UNIX isn't defined
+*/
+struct rw_rlimit {
+    rw_rlim_t rlim_cur;
+    rw_rlim_t rlim_max;
+};
+/**
+   Abstraction typedef for struct rlimit using placeholder struct
+*/
+typedef struct rw_rlimit rw_rlimit;
+#endif
+
+extern struct limit_set {
+    rw_rlimit core;
+    rw_rlimit cpu;
+    rw_rlimit data;
+    rw_rlimit fsize;
+    rw_rlimit nofile;
+    rw_rlimit stack;
+    rw_rlimit mem;
+    rw_rlimit as;
+} child_limits; /**< Container holding child process limits. */
 
 void 
 show_usage (int status);
