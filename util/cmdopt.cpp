@@ -37,6 +37,11 @@
 #include <string.h> /* for str* */
 #if !defined (_WIN32) && !defined (_WIN64)
 #  include <unistd.h> /* for sleep */
+
+#  if defined (_XOPEN_UNIX)
+#    include <sys/resource.h> /* for struct rlimit, RLIMIT_CORE, ... */
+#  endif
+
 #else
 #  include <windows.h> /* for Sleep */
 #endif   /* _WIN{32,64} */
@@ -66,6 +71,28 @@ const char suffix_sep = '.';
 const size_t exe_suffix_len = 4; /* strlen(".exe") == 4 */
 #endif
 
+#ifndef RLIM_INFINITY
+#  define RLIM_INFINITY -1
+#endif /* RLIM_INFINITY */
+
+#ifndef RLIM_SAVED_CUR
+#  define RLIM_SAVED_CUR RLIM_INFINITY
+#endif   /* RLIM_SAVED_CUR */
+
+#ifndef RLIM_SAVED_MAX
+#  define RLIM_SAVED_MAX RLIM_INFINITY
+#endif   /* RLIM_SAVED_MAX */
+struct limit_set child_limits = {
+    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
+    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
+    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
+    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
+    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
+    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
+    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
+    { RLIM_SAVED_CUR, RLIM_SAVED_MAX }
+};
+
 static const char
 usage_text[] = {
     "Usage: %s [OPTIONS] [targets]\n"
@@ -91,12 +118,39 @@ usage_text[] = {
     "    --sleep=sec  Sleep for the specified number of seconds.\n"
     "    --signal=sig Send itself the specified signal.\n"
     "    --ignore=sig Ignore the specified signal.\n"
+    "    --ulimit=lim Set child process usage limits (see below).\n"
     "\n"
     "  All short (single dash) options must be specified seperately.\n"
     "  If a short option takes a value, it may either be provided like\n"
     "  '-sval' or '-s val'.\n"
     "  If a long option take a value, it may either be provided like\n"
     "  '--option=value' or '--option value'.\n"
+    "\n"
+    "  --ulimit sets limits on how much of a given resource or resorces\n"
+    "  child processes are allowed to utilize.  These limits take on two\n"
+    "  forms, 'soft' and 'hard' limits.  Options are specified in the form\n"
+    "  'resource:limit', where resource is a resource named below, and and\n"
+    "  limit is a number, with value specifing the limit for the named\n"
+    "  resource.  If multiple limits are to be set, they can be specified\n"
+    "  either in multiple instances of the --ulimit switch, or by specifying\n"
+    "  additional limits in the same call by seperating the pairs with\n"
+    "  commas.  'Soft' limits are specified by providing the resource name\n"
+    "  in lowercase letters, while 'hard' limits are specified by providing\n"
+    "  the resource name in uppercase letters.  To set both limits, specify\n"
+    "  the resource name in title case.\n"
+    "\n"
+    "  --ulimit modes:\n"
+    "    core   Maximum size of core file, in bytes.\n"
+    "    cpu    Maximum CPU time, in seconds.\n"
+    "    data   Maximum data segment size, in bytes.\n"
+    "    fsize  Maximum size of generated files, in bytes.\n"
+    "    nofile Maximum number of open file descriptors.\n"
+    "    stack  Maximum size of initial thread's stack, in bytes.\n"
+    "    as     Maximum size of available memory, in bytes.\n"
+    "\n"
+    "  Note: Some operating systems lack support for some or all of the\n"
+    "  ulimit modes.  If a system is unable to limit a given property, a\n"
+    "  warning message will be produced.\n"
 };
 
 #if !defined (_WIN32) && !defined (_WIN64)
@@ -201,6 +255,128 @@ get_long_val (char* const* argv, int* idx, unsigned offset)
 }
 
 /**
+   Helper function to parse a ulimit value string
+
+   @param opts ulimit value string to pares
+   @see child_limits
+*/
+static bool
+parse_limit_opts (const char* opts)
+{
+    static const struct {
+        rw_rlimit* limit;
+        const char* name;
+        const char* caps;
+        const char* mixd;
+        size_t len;
+    } limits[] = {
+        {
+#ifdef RLIMIT_CORE
+            &child_limits.core,
+#else
+            0,
+#endif   // RLIMIT_CORE
+            "core", "CORE", "Core", 4 },
+        {
+#ifdef RLIMIT_CPU
+            &child_limits.cpu,
+#else
+            0,
+#endif   // RLIMIT_CPU
+            "cpu", "CPU", "Cpu", 3 },
+        {
+#ifdef RLIMIT_DATA
+            &child_limits.data,
+#else
+            0,
+#endif   // RLIMIT_DATA
+            "data", "DATA", "Data", 4 },
+        {
+#ifdef RLIMIT_FSIZE
+            &child_limits.fsize,
+#else
+            0,
+#endif   // RLIMIT_FSIZE
+            "fsize", "FSIZE", "Fsize", 5 },
+        {
+#ifdef RLIMIT_NOFILE
+            &child_limits.nofile,
+#else
+            0,
+#endif   // RLIMIT_NOFILE
+            "nofile", "NOFILE", "Nofile", 6 },
+        {
+#ifdef RLIMIT_STACK
+            &child_limits.stack,
+#else
+            0,
+#endif   // RLIMIT_STACK
+            "stack", "STACK", "Stack", 5 },
+        {
+#ifdef RLIMIT_AS
+            &child_limits.as,
+#else
+            0,
+#endif   // RLIMIT_AS    
+            "as", "AS", "As", 2 },
+        { 0, 0, 0, 0, 0 }
+    };
+
+    const char* arg = opts;
+
+    assert (0 != opts);
+
+    while (arg && *arg) {
+
+        const size_t arglen = strlen (arg);
+
+        for (size_t i = 0; limits [i].name; ++i) {
+            if (   limits [i].len < arglen
+                && (   0 == memcmp (limits [i].name, arg, limits [i].len)
+                    || 0 == memcmp (limits [i].caps, arg, limits [i].len)
+                    || 0 == memcmp (limits [i].mixd, arg, limits [i].len))
+                && ':' == arg [limits [i].len]) {
+
+                // determine whether the hard limit and/or
+                // the soft limit should be set
+                const bool hard = isupper (arg [0]);
+                const bool soft = islower (arg [1]);
+
+                arg += limits [i].len + 1;
+
+                char *end;
+                const long lim = strtol (arg, &end, 10);
+
+                arg = end;
+
+                if ('\0' != *arg && ',' != *arg)
+                    break;
+
+                if (limits [i].limit) {
+                    if (soft)
+                        limits [i].limit->rlim_cur = lim;
+
+                    if (hard)
+                        limits [i].limit->rlim_max = lim;
+                } else
+                    warn ("Unable to process %s limit: Not supported\n", 
+                          limits [i].name);
+                break;
+            }
+        }
+
+        if (',' == *arg) {
+            ++arg;
+        }
+        else if ('\0' != *arg) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+/**
     Helper function to produce 'Bad argument' error message.
     
     @param opt name of option encountered
@@ -266,6 +442,7 @@ eval_options (int argc, char **argv)
     const char opt_nocompat[] = "--nocompat";
     const char opt_signal[]   = "--signal";
     const char opt_sleep[]    = "--sleep";
+    const char opt_ulimit[]   = "--ulimit";
 
     int i;
 
@@ -397,7 +574,16 @@ eval_options (int argc, char **argv)
                     }
                 }
             }
-
+            else if (   sizeof opt_ulimit <= arglen
+                     && !memcmp (opt_ulimit, argv [i], sizeof opt_ulimit - 1)) {
+                optname = opt_ulimit;
+                optarg  = get_long_val (argv, &i, sizeof opt_ulimit - 1);
+                if (optarg && *optarg) {
+                    if (!parse_limit_opts (optarg)) {
+                        break;
+                    }
+                }
+            }
             /* fall through */
         }
         default:
