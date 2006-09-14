@@ -71,17 +71,6 @@ const char suffix_sep = '.';
 const size_t exe_suffix_len = 4; /* strlen(".exe") == 4 */
 #endif
 
-#ifndef RLIM_INFINITY
-#  define RLIM_INFINITY -1
-#endif /* RLIM_INFINITY */
-
-#ifndef RLIM_SAVED_CUR
-#  define RLIM_SAVED_CUR RLIM_INFINITY
-#endif   /* RLIM_SAVED_CUR */
-
-#ifndef RLIM_SAVED_MAX
-#  define RLIM_SAVED_MAX RLIM_INFINITY
-#endif   /* RLIM_SAVED_MAX */
 struct limit_set child_limits = {
     { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
     { RLIM_SAVED_CUR, RLIM_SAVED_MAX },

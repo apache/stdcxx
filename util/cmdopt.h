@@ -67,6 +67,18 @@ struct rw_rlimit {
 typedef struct rw_rlimit rw_rlimit;
 #endif
 
+#ifndef RLIM_INFINITY
+#  define RLIM_INFINITY -1
+#endif /* RLIM_INFINITY */
+
+#ifndef RLIM_SAVED_CUR
+#  define RLIM_SAVED_CUR RLIM_INFINITY
+#endif   /* RLIM_SAVED_CUR */
+
+#ifndef RLIM_SAVED_MAX
+#  define RLIM_SAVED_MAX RLIM_INFINITY
+#endif   /* RLIM_SAVED_MAX */
+
 extern struct limit_set {
     rw_rlimit core;
     rw_rlimit cpu;
