@@ -681,6 +681,10 @@ limit_process ()
     for (size_t i = 0; limits [i].limit; ++i) {
         rw_rlimit local;
 
+        if (   RLIM_SAVED_CUR == limits [i].limit->rlim_cur
+            && RLIM_SAVED_MAX == limits [i].limit->rlim_max )
+            continue;
+
         memcpy (&local, limits [i].limit, sizeof (struct rlimit));
 
         if (setrlimit (limits [i].resource, &local)) {
