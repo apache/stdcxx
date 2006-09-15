@@ -26,6 +26,9 @@
 
 #include <assert.h>
 #include <stdio.h>      /* for fflush(), printf(), puts(), ... */
+#if !defined (_WIN32) && !defined (_WIN64)
+#  include <unistd.h> /* for _XOPEN_UNIX */
+#endif
 
 #include "cmdopt.h" /* for target_name -should this be moved? */
 #include "exec.h" /* for get_signame */
@@ -34,7 +37,8 @@
 
 void print_header_plain ()
 {
-    puts ("NAME                      STATUS ASSERTS FAILED PERCNT");
+    puts ("NAME                      STATUS ASSERTS FAILED PERCNT    USER     "
+          "SYS");
 }
 
 void print_target_plain (const struct target_status*)
@@ -45,23 +49,38 @@ void print_target_plain (const struct target_status*)
 
 void print_status_plain (const struct target_status* status)
 {
+    unsigned valid_timing;
+    assert (0 != status);
     assert (ST_OK <= status->status && ST_LAST > status->status);
 
+    valid_timing = status->run && ST_NOT_KILLED != status->status;
+
     if (status->status) /* if status is set, print it */
-        printf ("%6s\n", short_st_name [status->status]);
+        printf ("%6s", short_st_name [status->status]);
     else if (status->exit) /* if exit code is non-zero, print it */
-        printf ("%6d\n", status->exit);
+        printf ("%6d", status->exit);
     else if (status->signal) /* if exit signal is non-zero, print it */
-        printf ("%6s\n", get_signame (status->signal));
-    else if (!status->assert) /* if the assertion count is 0, it's an example */
-        puts ("     0");
-    else {
-        unsigned pcnt = 0;
-        if (status->assert) {
-            pcnt = 100 * (status->assert - status->failed) / status->assert;
-        }
-        printf ("     0 %7u %6u %5d%%\n", status->assert, status->failed, pcnt);
+        printf ("%6s", get_signame (status->signal));
+    else 
+        printf ("     0");
+
+    /* Print assetions, if any registered */
+    if (status->assert) {
+        printf (" %7u %6u %5d%%", status->assert, status->failed, 
+                100 * (status->assert - status->failed) / status->assert);
     }
+    else if (valid_timing)
+        printf ("                      ");
+
+    /* Print timings, if available */
+    if (valid_timing)
+        printf (" %3ld.%03ld %3ld.%03ld\n", status->user.tv_sec,
+                status->user.tv_usec/1000, status->sys.tv_sec,
+                status->sys.tv_usec/1000);
+    else {
+        puts ("");
+    }
+
 }
 
 void print_footer_plain () {}

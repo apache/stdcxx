@@ -42,6 +42,6 @@ int get_signo (const char* signame);
 
 const char* get_signame (int signo);
 
-struct exec_attrs exec_file (char** argv);
+struct exec_attrs exec_file (struct target_status* result);
 
 #endif   // RW_EXEC_H

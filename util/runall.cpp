@@ -415,7 +415,7 @@ run_target (char* target, char** argv)
     print_target (&results);
 
     if (check_target_ok (&results)) {
-        struct exec_attrs status = exec_file (results.argv);
+        struct exec_attrs status = exec_file (&results);
         process_results (&status, &results);
     }
 

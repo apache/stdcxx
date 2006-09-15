@@ -27,6 +27,38 @@
 #ifndef RW_DISPLAY_H
 #define RW_DISPLAY_H
 
+#if !defined (_WIN32) && !defined (_WIN64)
+#  include <unistd.h> /* for _XOPEN_UNIX */
+#endif
+
+#ifdef _XOPEN_UNIX
+#  include <sys/time.h> /* for struct timeval */
+/**
+   Abstraction typedef for struct timeval using real struct
+*/
+typedef struct timeval rw_timeval;
+#else
+/**
+   Placeholder time_t for use in rw_timeval
+*/
+typedef long rw_time_t;
+/**
+   Placeholder suseconds_t for use in rw_timeval
+*/
+typedef long rw_suseconds_t;
+/**
+   Placeholder struct timeval to use if _XOPEN_UNIX isn't defined
+*/
+struct rw_timeval {
+    rw_time_t tv_sec;
+    rw_suseconds_t tv_usec;
+};
+/**
+   Abstraction typedef for struct timeval using placeholder struct
+*/
+typedef struct rw_timeval rw_timeval;
+#endif
+
 /**
    Output format mode enumeration.
 
@@ -74,7 +106,10 @@ struct target_status {
     char** argv; /**< Target argv array. */
     int exit; /**< exit code for process. */
     int signal; /**< Termination signal for process. */
+    int run; /**< Flag indicating if the process executed. */
     enum ProcessStatus status; /**< Textual process status. */
+    rw_timeval user; /**< Elapsed user time spent in execution. */
+    rw_timeval sys; /**< Elapsed system time spent in execution. */
     unsigned warn; /**< Number of (test) warnings. */
     unsigned assert; /**< Number of (test) assertions. */
     unsigned failed; /**< Number of failed (test) assertions. */

@@ -51,6 +51,7 @@
 #include <sys/types.h>
 
 #include "cmdopt.h"
+#include "display.h" /* for struct target_status */
 #include "util.h"
 
 #include "exec.h"
@@ -697,6 +698,62 @@ limit_process ()
 #endif /* _XOPEN_UNIX */
 
 /**
+   Calculates the amount of resources used by the child processes.
+
+   This method uses the getrusage() system call to calculate the resources
+   used by the child process.  However, getrusage() only is able to calcualte
+   agragate usage by all child processes, not usage by a specific child process.
+   Therefore, we must keep a running tally of how many resources had been used
+   the previous time we calculated the usage.  This difference is the resources
+   that were used by the process that just completed.
+
+   @param result target_status structure to populate with process usage.
+*/
+static void
+calculate_usage (struct target_status* result)
+{
+#ifdef _XOPEN_UNIX
+    static bool init = 0;
+    static struct rusage history;
+    struct rusage now;
+
+    assert (0 != result);
+
+    if (!init) {
+        memset (&history, 0, sizeof history);
+        init = 1;
+    }
+
+    if (0 != getrusage (RUSAGE_CHILDREN, &now)) {
+        warn ("Failed to retrieve child resource usage: %s", strerror (errno));
+        return;
+    }
+
+    /* time calculations */
+    result->user.tv_sec = now.ru_utime.tv_sec - history.ru_utime.tv_sec;
+    result->user.tv_usec = now.ru_utime.tv_usec - history.ru_utime.tv_usec;
+    result->sys.tv_sec = now.ru_stime.tv_sec - history.ru_stime.tv_sec;
+    result->sys.tv_usec = now.ru_stime.tv_usec - history.ru_stime.tv_usec;
+
+    /* Adjust seconds/microseconds */
+    if (now.ru_utime.tv_usec < history.ru_utime.tv_usec) {
+        --result->user.tv_sec;
+        result->user.tv_usec += 1000000;
+    }
+    if (now.ru_stime.tv_usec < history.ru_stime.tv_usec) {
+        --result->sys.tv_sec;
+        result->sys.tv_usec += 1000000;
+    }
+
+    /* Tag result as having run */
+    result->run = 1;
+
+    /* Cache the values retrieved */
+    memcpy (&history, &now, sizeof (struct rusage));
+#endif /* _XOPEN_UNIX */
+}
+
+/**
    Entry point to the child process (watchdog) subsystem.
 
    This method fork ()s, creating a child process.  This child process becomes
@@ -712,15 +769,17 @@ limit_process ()
    @see wait_for_child ()
 */
 struct exec_attrs 
-exec_file (char** argv)
+exec_file (struct target_status* result)
 {
     const pid_t child_pid = fork ();
+
+    assert (0 != result);
+    assert (0 != result->argv);
+    assert (0 != result->argv [0]);
 
     if (0 == child_pid) {   /* child */
         FILE* error_file;
 
-        assert (0 != argv);
-        assert (0 != argv [0]);
         assert (0 != target_name);
 
         /* Set process group ID (so entire group can be killed)*/
@@ -752,7 +811,7 @@ exec_file (char** argv)
 
         /* Redirect stdout */
         {
-            char* const tmp_name = output_name (argv [0]);
+            char* const tmp_name = output_name (result->argv [0]);
             int intermit;
 
             intermit = open (tmp_name, O_WRONLY | O_CREAT | O_TRUNC, 
@@ -776,10 +835,10 @@ exec_file (char** argv)
         limit_process ();
 #endif /* _XOPEN_UNIX */
 
-        execv (argv [0], argv);
+        execv (result->argv [0], result->argv);
 
         fprintf (error_file, "%s (%s): execv (\"%s\", ...) error: %s\n",
-                 exe_name, target_name, argv [0], strerror (errno));
+                 exe_name, target_name, result->argv [0], strerror (errno));
 
         exit (1);
     }
@@ -787,13 +846,15 @@ exec_file (char** argv)
     if (-1 == child_pid) {
         /* Fake a failue to execute status return structure */
         struct exec_attrs state = {127, -1};
-        warn ("Unable to create child process for %s: %s\n", argv [0],
+        warn ("Unable to create child process for %s: %s\n", result->argv [0],
               strerror (errno));
         return state;
+    } else {
+        /* parent */
+        struct exec_attrs state = wait_for_child (child_pid);
+        calculate_usage (result);
+        return state;
     }
-    
-    /* parent */
-    return wait_for_child (child_pid);
 }
 #else  /* _WIN{32,64} */
 /**
@@ -950,7 +1011,7 @@ warn_last_error (const char* action)
    @see wait_for_child ()
 */
 struct exec_attrs 
-exec_file (char** argv)
+exec_file (struct target_status* result)
 {
     char* merged;
     PROCESS_INFORMATION child;
@@ -962,7 +1023,9 @@ exec_file (char** argv)
     const DWORD real_timeout = (timeout > 0) ? timeout * 1000 : INFINITE;
     DWORD wait_code;
 
-    assert (0 != argv);
+    assert (0 != result);
+    assert (0 != result->argv);
+    assert (0 != result->argv [0]);
 
     memset (&status, 0, sizeof status);
 
@@ -979,7 +1042,7 @@ exec_file (char** argv)
     /* Create I/O handles */
     {
         /* Output redirection */
-        char* const tmp_name = output_name (argv [0]);
+        char* const tmp_name = output_name (result->argv [0]);
 
         context.hStdOutput = CreateFile (tmp_name, GENERIC_WRITE, 
                 FILE_SHARE_WRITE, &child_sa, CREATE_ALWAYS, 
@@ -1003,7 +1066,7 @@ exec_file (char** argv)
         }
     }    
 
-    merged = merge_argv (argv);
+    merged = merge_argv (result->argv);
 
     /* set appropriate error mode (the child process inherits this
        error mode) to disable displaying the critical-error-handler
@@ -1011,7 +1074,7 @@ exec_file (char** argv)
     UINT old_mode = SetErrorMode (SEM_FAILCRITICALERRORS
                                 | SEM_NOGPFAULTERRORBOX);
     /* Create the child process */
-    if (0 == CreateProcess (argv [0], merged, 0, 0, 1, 
+    if (0 == CreateProcess (result->argv [0], merged, 0, 0, 1, 
         CREATE_NEW_PROCESS_GROUP, 0, 0, &context, &child)) {
         /* record the status if we failed to create the process */
         status.status = -1;
