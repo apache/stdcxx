@@ -499,7 +499,7 @@ rw_get_call_counters (UserTraits<charT>*, charT*)
 }
 
 
-static const struct UserCharFmatInit {
+static const struct _TEST_EXPORT UserCharFmatInit {
     UserCharFmatInit ();
 } _rw_user_char_fmat_init;
 
