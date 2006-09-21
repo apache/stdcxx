@@ -822,7 +822,7 @@ public:
 // encapsulates the state of a string object without regard to type
 // used in exception safety tests to determine changes to the state
 // after a modifying operation throws an exception
-struct StringState
+struct _TEST_EXPORT StringState
 {
     const void*   data_;
     _RWSTD_SIZE_T size_;

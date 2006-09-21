@@ -322,7 +322,7 @@ run_test (int, char*[])
 
 #ifdef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-    rw_warning (0, 0, __LINE__,
+    rw_warn (0, 0, __LINE__,
                 "replacement operators new and delete not tested: "
                 "_RWSTD_NO_REPLACEABLE_NEW_DELETE #defined");
 
