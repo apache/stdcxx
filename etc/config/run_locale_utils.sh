@@ -4,6 +4,26 @@
 #
 ##############################################################################
 #
+# Licensed to the Apache Software  Foundation (ASF) under one or more
+# contributor  license agreements.  See  the NOTICE  file distributed
+# with  this  work  for  additional information  regarding  copyright
+# ownership.   The ASF  licenses this  file to  you under  the Apache
+# License, Version  2.0 (the  "License"); you may  not use  this file
+# except in  compliance with the License.   You may obtain  a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the  License is distributed on an  "AS IS" BASIS,
+# WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+# implied.   See  the License  for  the  specific language  governing
+# permissions and limitations under the License.
+#
+# Copyright 2001-2006 Rogue Wave Software.
+#
+##############################################################################
+#
 # NAME
 #     run_locale_utils.sh
 #
@@ -11,22 +31,41 @@
 #     run_locale_utils.sh
 #
 # DESCRIPTION
-#     Checks locale utilities:
+#     Exercise the locale utilities:
 #     1. Locale utilities sanity: location, output, etc;
 #     2. Functionality:
-#         - (re)generation  of databases;
+#         - (re)generation of databases;
 #    
 # OPTIONS:
-#    - "-d" debug;
-#    - "-s" tests location, otput;
+#    - "-d" debug
+#    - "-n" no cleanup
+#    - "-s" tests location, output
 #    - "-f" tests functionality; is followed by:
 #        - "-i <nlsdir>"
 #        - "-l <locale name>"
 #    
 ##############################################################################
 
+
 locale="./locale"
 localedef="./localedef"
+
+output ()
+{
+    if test -z "$outfile"; then
+        echo "$*" 2>/dev/null
+    else
+        echo "$*" >> $outfile
+    fi;
+}
+
+
+debug_output ()
+{
+    if test ! -z "$dbgout"; then
+        echo "$*" >> $dbgout 2>/dev/null
+    fi;
+}
 
 ##############################################################################
 #	Function definitions - checking sanity
@@ -34,60 +73,76 @@ localedef="./localedef"
 
 check_locale_help ()
 {
-    printf "Checking \"locale --help\" output..."  >$dbgout
-    loc_h_out=`${locale} --help`
+    debug_output "Checking \"locale --help\" output..."
+
+    loc_h_out=`${locale} --help 2>/dev/null`
     loc_h_xout="NAME SYNOPSIS DESCRIPTION"
     loc_h_regexp="locale - get locale-specific information"
     for it in $loc_h_xout; do
         assertions=`expr $assertions + 1`
         if test -z "`echo $loc_h_out | grep $it`"; then
-            echo " incorrect."  >$dbgout
-            echo "ERROR: \"locale --help\" gives wrong output ($it)." >$dbgout 
-            echo >$dbgout
+            debug_output " incorrect."
+            debug_output "ERROR: \"locale --help\" gives wrong output ($it)."
+            debug_output ""
             failedassertions=`expr $failedassertions + 1`
         fi;
     done
-    echo " correct." >$dbgout
+
+    debug_output "...ok"
 }
+
 
 check_locale_all()
 {
-    printf "Checking \"locale -a\" output..." >$dbgout
-    loc_a_out=`${locale} -a`
+    debug_output "Checking \"locale -a\" output..."
+
+    loc_a_out=`${locale} -a 2>/dev/null`
     loc_a_regexp="[a-z]\{2\}_[A-Z]\{2\}"
     for it in $loc_a_out; do					
         assertions=`expr $assertions + 1`
 	test "$it" = "C" && continue;
 	if test -z "`echo $it | grep -e \"$loc_a_regexp\"`"; then
-            echo "incorrect." >$dbgout
-            echo "    Warning: Locale name \"$it\" not matching pattern." \
-                >$dbgout
+            debug_output "incorrect."
+            debug_output "Warning: Locale name \"$it\" not matching pattern."
             failedassertions=`expr $failedassertions + 1`
 	fi;							
     done
-    echo "check completed." >$dbgout
+
+    debug_output "...ok"
 }
+
 
 check_locale_m()
 {
-    printf "Checking \"locale -m\" output..." >$dbgout
-    loc_m_out=`${locale} -m`
+    debug_output "Checking \"locale -m\" output..."
+
+    any_failed=0
+
+    loc_m_out=`${locale} -m 2>/dev/null`
+    any_failed=$?
+
     for it in $loc_m_out; do
         assertions=`expr $assertions + 1`
 	if test -z "`echo $it | grep .cm`" ; then
-            echo " incorrect." >$dbgout
-            echo "ERROR: \"locale -m\" failed."  >$dbgout
-            echo >$dbgout
+            any_failed=1
+            debug_output " incorrect."
+            debug_output "ERROR: \"locale -m\" failed."
+            debug_output
             failedassertions=`expr $failedassertions + 1`
         fi;
     done;						
-    echo " correct." >$dbgout
+
+    if [ $any_failed -eq 0 ]; then
+        debug_output "...ok"
+    fi
 }
+
 
 check_locale_k()
 {
-    printf "Checking \"locale -k LC_ALL\" output..." >$dbgout
-    loc_k_out=`${locale} -k LC_ALL`
+    debug_output "Checking \"locale -k LC_ALL\" output..."
+
+    loc_k_out=`${locale} -k LC_ALL 2>/dev/null`
     loc_k_xout="upper lower space print                                     \
                 cntrl alpha digit punct                                     \
                 graph xdigit toupper tolower                                \
@@ -104,33 +159,37 @@ check_locale_k()
         assertions=`expr $assertions + 1`;
         if test -z "`echo $loc_k_out | grep $it`"; then
             # output text only for the first failure
-            [ $any_failed -eq 0 ] && echo " incorrect." >$dbgout
-            echo "ERROR: \"locale -k\" gives wrong output ($it)." >$dbgout
-            echo >$dbgout
+            [ $any_failed -eq 0 ] && debug_output " incorrect."
+            debug_output "ERROR: \"locale -k\" gives wrong output ($it)."
+            debug_output
             failedassertions=`expr $failedassertions + 1`
             any_failed=1
         fi;
     done
 
-    [ $any_failed -eq 0 ] && echo " correct." >$dbgout
+    if [ $any_failed -eq 0 ]; then
+        debug_output "...ok"
+    fi
 }
 
 check_localedef_help()
 {
-    printf "Checking \"localedef --help\" output..." >$dbgout
-    locdef_h_out=`${localedef} --help`
+    debug_output "Checking \"localedef --help\" output..."
+
+    locdef_h_out=`${localedef} --help 2>/dev/null`
     locdef_h_xout="NAME SYNOPSIS DESCRIPTION"
     locdef_h_regexp="localedef - generate a locale environment"
     for it in $locdef_h_xout; do
         assertions=`expr $assertions + 1`;
         if test -z "`echo $locdef_h_out | grep $it`"; then
-            echo " incorrect." >$dbgout
-            echo "ERROR: \"localedef --help\" gives wrong output ($it)." >$dbgout
-            echo >$dbgout
+            debug_output " incorrect."
+            debug_output "ERROR: \"localedef --help\" gives wrong output ($it)."
+            debug_output
             failedassertions=`expr $failedassertions + 1`
         fi;
     done
-    echo " correct." >$dbgout
+
+    debug_output "...ok"
 }
 
 ##############################################################################
@@ -149,31 +208,55 @@ generate_locale()
     # 2 - source/locale definition file
     # 3 - locale database name
 
-    if [ "$1" = "" ] ; then
-        echo $err character maps file not specified. >>$out
+    if [ "$1" = "" ]; then
+        output "$err character maps file not specified."
         exit 1;
     fi
 
-    if [ "$2" = "" ] ; then
-        echo $err source input file not specified. >>$out
+    if [ "$2" = "" ]; then
+        output "$err source input file not specified."
         exit 1;
     fi
 
-    if [ "$3" = "" ] ; then
-        echo $err output locale name not specified. >>$out
+    if [ "$3" = "" ]; then
+        output "$err output locale name not specified."
         exit 1;
     fi
 
     assertions=`expr $assertions + 1`
 
     # Generating the database
-    echo "${localedef} -w -c -f $1 -i $2 $3 2>"$dbgout >$dbgout
-    ${localedef} -w -c -f $1 -i $2 $3 2>$dbgout
+    debug_output "${localedef} -w -c -f $1 -i $2 $3 >${dbgout:-/dev/null} 2>&1"
+    ${localedef} -w -c -f $1 -i $2 $3 >${dbgout:-/dev/null} 2>&1
 
     retcode=$?
-    if [ $retcode -ne 0 ] ; then 
-        echo "Error - localedef returned code: $retcode" >>$out
-        failedassertions=`expr $failedassertions + 1`
+    if [ $retcode -ne 0 ]; then
+        # exit with the same status as the tool
+        exit $retcode
+    fi
+}
+
+
+#
+#
+#
+dump_charmap()
+{
+    err="Cannot create characater set description file - "
+
+    # $1: LC_ALL value
+    # $2: output file name
+
+    assertions=`expr $assertions + 1`
+
+    # dumping charmap
+    output "LC_ALL=$1 ${locale} --charmap -l >$2 2>${dbgout:-/dev/null}"
+    LC_ALL=$1 ${locale} --charmap -l > $2 2>${dbgout:-/dev/null}
+
+    retcode=$?
+    if [ $retcode -ne 0 ]; then 
+        # exit with the same status as the tool
+        exit $retcode
     fi
 }
 
@@ -184,23 +267,24 @@ dump_locale ()
 {
     err="Cannot dump locale database - "
 
-    # 1 - current locale dump file
+    # $1: LC_ALL value
+    # $2: current locale dump file
 
-    if [ "$1" = "" ] ; then
-        echo $err - no output file specified. >> $out
+    if [ "$2" = "" ]; then
+        output "$err - no output file specified."
         exit 1
     fi
 
     assertions=`expr $assertions + 1`
 
-    # Dumping locale database
-    echo "${locale} -ck -h LC_ALL > $1" > $dbgout
-    ${locale} -ck -h LC_ALL > $1
+    # dumping locale database
+    output "LC_ALL=$1 ${locale} -ck -h -l LC_ALL >$2 2>${dbgout:-/dev/null}"
+    LC_ALL=$1 ${locale} -ck -h -l LC_ALL > $2 2>${dbgout:-/dev/null}
     
     retcode=$?
-    if [ $retcode -ne 0 ] ; then 
-        echo "Error - locale returned code: $retcode" >>$out
-        failedassertions=`expr $failedassertions + 1`
+    if [ $retcode -ne 0 ]; then 
+        # exit with the same status as the tool
+        exit $retcode
     fi
 }
 
@@ -211,96 +295,185 @@ test_locale()
 {
     err="Cannot test locale - "
 
-    # $1 - nlsdir
-    # $2 - test directory
+    # $1 - nls subdirectory of the source directory tree
+    # $2 - the test (sandbox) directory
     # $3 - name of the locale database
     
-    if [ "$1" = "" ] ; then 
-        echo $err - nls directory not specified. >> $out
+    if [ "$1" = "" ]; then 
+        output "$err - nls directory not specified."
         exit 1
     fi
 
-    if [ "$2" = "" ] ; then 
-        echo $err - test directory not specified. >> $out
+    if [ "$2" = "" ]; then 
+        output "$err - temporary directory not specified."
         exit 1
     fi
 
-    if [ "$3" = "" ] ; then 
-        echo $err - locale database name not specified. >> $out
+    if [ "$3" = "" ]; then 
+        output "$err - locale database name not specified."
         exit 1
     fi
 
-    # get locale's name and encoding
-    locale_src=`echo $3 | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\1\3:;y:@:.:"`;
-    locale_encoding=`echo $3 | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\2:"`;
+    nlsdir=$1
+    tmpdir=$2
+    fname=$3
 
-    ## generate the first locale database
-    generate_locale $1/charmaps/$locale_encoding     \
-                    $1/src/$locale_src               \
-                    $2/$3
+    # get the name of the locale and the character map
+    source=`echo $fname | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\1\3:;y:@:.:"`;
+    charmap=`echo $fname | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\2:"`;
 
-    # set necessary environment variables
-    echo "LC_ALL="$3 >$dbgout
-    LC_ALL=$3
-    echo "export LC_ALL" >$dbgout
-    export LC_ALL
-    echo "LANG="$3 >$dbgout
-    LANG=$3
-    echo "export LANG" >$dbgout
-    export LANG
+    src_path=$nlsdir/src/$source
+    cm_path=$nlsdir/charmaps/$charmap
 
-    ## adjust the locale root
-    echo "RWSTD_LOCALE_ROOT="$2 >$dbgout
-    RWSTD_LOCALE_ROOT=$2
-    echo "export RWSTD_LOCALE_ROOT" >$dbgout
-    export RWSTD_LOCALE_ROOT
+    stage_1=$tmpdir/stage.1
+    stage_2=$tmpdir/stage.2
+    stage_3=$tmpdir/stage.3
 
-    # dump the locale database content to temporary location
-    dump_locale $2/out.1
-    echo > $dbgout
+    # point locale at the original source directory
+    debug_output "RWSTD_SRC_ROOT="$nlsdir
+    RWSTD_SRC_ROOT=$nlsdir
+    debug_output "export RWSTD_SRC_ROOT"
+    export RWSTD_SRC_ROOT
 
-    # remove stage one database
-    echo "rm -rf $2/$3"
-    rm -rf $2/$3
-    
-    # generate stage two database
-    generate_locale $1/charmaps/$locale_encoding                  \
-                    $2/out.1                                      \
-                    $2/$3
-
-    # dump stage two database to file
-    dump_locale $2/out.2
-
-    # remove stage two database
-    echo "rm -rf $2/$3"
-    rm -rf $2/$3
-
-    # generate stage three database
-    generate_locale $1/charmaps/$locale_encoding            \
-                    $2/out.2                                \
-                    $2/$3
-
-    # and finally dump it to file
-    dump_locale $2/out.3
+    # create a directory for stage 1 charmap source files
+    debug_output "mkdir -p $stage_1/charmaps"
+    mkdir -p $stage_1/charmaps
 
     assertions=`expr $assertions + 1`
 
-    # compare
-    file_diff=`diff $2/out.2 $2/out.3` >/dev/null
-    if [ $? -ne 0 ] ; then
-        echo "ERROR: $2/out.2 $2/out.3 differ." > $dbgout
+    ## generate stage 1 locale database from the orignal sources
+    generate_locale $cm_path $src_path $stage_1/$fname
+    if [ $? -ne 0 ]; then
         failedassertions=`expr $failedassertions + 1`
+        return;
+    fi
+
+    # set necessary environment variables
+    # debug_output "LC_ALL=$fname"
+    # LC_ALL=$fname
+    # debug_output "export LC_ALL"
+    # export LC_ALL
+    # debug_output "LANG=$fname"
+    # LANG=$fname
+    # debug_output "export LANG"
+    # export LANG
+
+    assertions=`expr $assertions + 1`
+
+    # dump the charmap and the locale data from the database
+    # to a pair of charmap and locale source files
+    dump_charmap $stage_1/$fname $stage_1/charmaps/$charmap
+    dump_locale $stage_1/$fname $stage_1/$source.src
+
+    # create a directory for stage 2 charmap source files
+    debug_output "mkdir -p $stage_2/charmaps"
+    mkdir -p $stage_2/charmaps
+
+    assertions=`expr $assertions + 1`
+
+    # generate stage 2 locale database from the charmap and locale
+    # source files produced by locale from the stage 1 database
+    generate_locale $stage_1/charmaps/$charmap \
+                    $stage_1/$source.src \
+                    $stage_2/$fname
+
+    if [ $? -ne 0 ]; then
+        failedassertions=`expr $failedassertions + 1`
+        return;
+    fi
+
+    # point locale at the stage 1 directory
+    debug_output "RWSTD_SRC_ROOT=$stage_1"
+    RWSTD_SRC_ROOT=$stage_1
+    debug_output "export RWSTD_SRC_ROOT"
+    export RWSTD_SRC_ROOT
+
+    assertions=`expr $assertions + 1`
+
+    # dump the charmap and the locale data from the database
+    # to a pair of charmap and locale source files
+    dump_charmap $stage_2/$fname $stage_2/charmaps/$charmap
+    dump_locale $stage_2/$fname $stage_2/$source.src
+
+    assertions=`expr $assertions + 1`
+
+    # create a directory for stage 2 charmap source files
+    debug_output "mkdir -p $stage_3/charmaps"
+    mkdir -p $stage_3/charmaps
+
+    # generate stage 3 locale database from the charmap and locale
+    # source files produced by locale from the stage 2 database
+    generate_locale $stage_2/charmaps/$charmap \
+                    $stage_2/$source.src \
+                    $stage_3/$fname
+
+    if [ $? -ne 0 ]; then
+        failedassertions=`expr $failedassertions + 1`
+        return;
+    fi
+
+    # point locale at the stage 2 directory
+    debug_output "RWSTD_SRC_ROOT=$stage_2"
+    RWSTD_SRC_ROOT=$stage_2
+    debug_output "export RWSTD_SRC_ROOT"
+    export RWSTD_SRC_ROOT
+
+    assertions=`expr $assertions + 1`
+
+    # dump the charmap and the locale data from the database
+    # to a pair of charmap and locale source files
+    dump_charmap $stage_3/$fname $stage_3/charmaps/$charmap
+    dump_locale $stage_3/$fname $stage_3/$source.src
+
+    assertions=`expr $assertions + 1`
+
+    # verify that stage 1 and stage 2 charmaps are the same
+    debug_output "diff $stage_1/charmaps/$charmap " \
+                      "$stage_2/charmaps/$charmap >/dev/null"
+    diff $stage_1/charmaps/$charmap $stage_2/charmaps/$charmap >/dev/null
+    if [ $? -ne 0 ]; then
+        debug_output "## AssertionFailed: $stage_1/charmaps/$charmap " \
+                     "and $stage_2/charmaps/$charmap differ."
+        failedassertions=`expr $failedassertions + 1`
+    fi
+
+    # verify that stage 2 and stage 3 charmaps are the same
+    debug_output "diff $stage_2/charmaps/$charmap " \
+                      "$stage_3/charmaps/$charmap >/dev/null"
+    diff $stage_2/charmaps/$charmap $stage_3/charmaps/$charmap >/dev/null
+    if [ $? -ne 0 ]; then
+        debug_output "## AssertionFailed: $stage_2/charmaps/$charmap " \
+                     "and $stage_3/charmaps/$charmap differ."
+        failedassertions=`expr $failedassertions + 1`
+    fi
+
+    # verify that stage 2 and stage 3 locale sources are the same
+    debug_output "diff $stage_2/$source.src " \
+                      "$stage_3/$source.src >/dev/null"
+    diff $stage_2/$source.src $stage_3/$source.src >/dev/null
+    if [ $? -ne 0 ]; then
+        debug_output "## AssertionFailed: $stage_2/$source.src " \
+                     "and $stage_3/$source.src differ."
+        failedassertions=`expr $failedassertions + 1`
+    fi
+
+    if [ "$no_clean" = "" ]; then
+        # clean up
+        debug_output "rm -rf $stage_1 $stage_2 $stage_3"
+        rm -rf rm -rf $stage_1 $stage_2 $stage_3
     fi
 }
 
 #
 # Cleanup handler
 #
-
 signal_cleanup ()
 {
-    echo "Cleaning up " $tmpdir > $dbgout
-    rm -rf $tmpdir
+    if [ "$no_clean" = "" ]; then
+        # clean up
+        debug_output "rm -rf $tmpdir"
+        rm -rf $tmpdir
+    fi
 }
 
 ##############################################################################
@@ -321,16 +494,12 @@ bindir=""
 nlsdir=""
 locdir=""
 
-## output stream
-out="/dev/stdout"
-dbgout="/dev/null"
-
 ## Temporary (working) directory
 [ -z "$TMP" ] && TMP="/tmp";
 tmpdir=$TMP/locale.$$
 
 ## Get the options from the command line
-while getopts ":sfdb:i:l:O:L:M:C:D:" opt_name; do
+while getopts ":nsfdb:i:l:O:L:M:C:D:" opt_name; do
     case $opt_name in 
         d) dbgout="/dev/tty";;
         s) chk_sanity=yes;;
@@ -338,7 +507,8 @@ while getopts ":sfdb:i:l:O:L:M:C:D:" opt_name; do
         b) bindir=$OPTARG;;
         i) nlsdir=$OPTARG;;
         l) locale_db=$OPTARG;;
-        O) out=$OPTARG;;
+        n) no_clean=yes;;
+        O) outfile=$OPTARG;;
         L);; ## ignored
         M);; ## ignored
         C);; ## ignored
@@ -367,16 +537,6 @@ elif [ "$chk_func" = "yes" ]; then
         exit 1
     fi
 
-    ## checking locale functionality
-    echo "RWSTD_SRC_ROOT="$nlsdir >$dbgout
-    RWSTD_SRC_ROOT=$nlsdir
-    echo "export RWSTD_SRC_ROOT" >$dbgout
-    export RWSTD_SRC_ROOT
-    echo "RWSTD_LOCALE_ROOT="$tmpdir >$dbgout
-    RWSTD_LOCALE_ROOT=$tmpdir
-    echo "export RWSTD_LOCALE_ROOT" >$dbgout
-    export RWSTD_LOCALE_ROOT
-
     # set our cleanup on exit trap
     trap signal_cleanup EXIT
 
@@ -391,12 +551,20 @@ else
 fi
 
 pcnt=`expr 100 \* \( $assertions - $failedassertions \) / $assertions`
-echo "# +-----------------------+--------+--------+--------+" >> $out
-echo "# | DIAGNOSTIC            | ACTIVE |  TOTAL |INACTIVE|" >> $out
-echo "# +-----------------------+--------+--------+--------+" >> $out
-printf "# | (S7) ASSERTION        | %6d | %6d | %5d%% |\n"  $failedassertions $assertions $pcnt >> $out
-echo "# +-----------------------+--------+--------+--------+" >> $out
-echo >> $out
-echo "## Assertions = "$assertions >> $out
-echo "## FailedAssertions = "$failedassertions >> $out
-echo >> $out
+output "# +-----------------------+--------+--------+--------+"
+output "# | DIAGNOSTIC            | ACTIVE |  TOTAL |INACTIVE|"
+output "# +-----------------------+--------+--------+--------+"
+
+if test -z "$outfile"; then
+    printf "# | (S7) ASSERTION        | %6d | %6d | %5d%% |\n" \
+            $failedassertions $assertions $pcnt
+else
+    printf "# | (S7) ASSERTION        | %6d | %6d | %5d%% |\n" \
+            $failedassertions $assertions $pcnt >> $outfile
+fi
+
+output "# +-----------------------+--------+--------+--------+"
+output
+output "## Assertions = "$assertions
+output "## FailedAssertions = "$failedassertions
+output
