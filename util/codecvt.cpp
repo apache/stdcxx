@@ -545,7 +545,7 @@ write_codecvt (std::string dir_name)
             out.write ((const char*)&off, sizeof off);
         }
 
-        delete it->second->off;
+        delete it->second;
     }
 
     // not needed beyond this point, clear it out
@@ -570,7 +570,7 @@ write_codecvt (std::string dir_name)
             out.write ((const char*)&off, sizeof off);
         }
 
-        delete it->second->off;
+        delete it->second;
     }
             
     // not needed beyond this point, clear it out
@@ -595,7 +595,7 @@ write_codecvt (std::string dir_name)
             out.write ((const char*)&off, sizeof off);
         }
 
-        delete it->second->off;
+        delete it->second;
     }
 
     // not needed beyond this point, clear it out
