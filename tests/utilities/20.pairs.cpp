@@ -62,7 +62,11 @@ _RWSTD_NAMESPACE (std) {
 // instead of qualifying it with its name to work around compiler
 // bugs (e.g., SunPro 5.4 -- see PR #28117)
 
+#ifndef _RWSTD_NO_EMPTY_MEM_INITIALIZER
+
 template pair<DefaultConstructible, DefaultConstructible>::pair ();
+
+#endif  // _RWSTD_NO_EMPTY_MEM_INITIALIZER
 
 template pair<CopyConstructible, CopyConstructible>::
          pair (const CopyConstructible&, const CopyConstructible&);
