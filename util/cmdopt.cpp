@@ -333,6 +333,10 @@ parse_limit_opts (const char* opts)
 
                 arg += limits [i].len + 1;
 
+                if (!isdigit (*arg)) {
+                    return 1;
+                }
+
                 char *end;
                 const long lim = strtol (arg, &end, 10);
 
@@ -461,8 +465,10 @@ eval_options (int argc, char **argv)
             optname = opt_timeout;
             optarg  = get_short_val (argv, &i);
             if (optarg) {
+                if (!isdigit (*optarg))
+                    bad_value (optname, optarg);
                 timeout = strtol (optarg, &end, 10);
-                if (*end || timeout < 0 || errno)
+                if (*end || errno)
                     bad_value (optname, optarg);
             }
             else
@@ -512,6 +518,8 @@ eval_options (int argc, char **argv)
                 optname = opt_exit;
                 optarg  = get_long_val (argv, &i, sizeof opt_exit - 1);
                 if (optarg && *optarg) {
+                    if (!isdigit (*optarg))
+                        bad_value (optname, optarg);
                     const long code = strtol (optarg, &end, 10);
                     if ('\0' == *end && !errno)
                         exit (code);
@@ -528,6 +536,8 @@ eval_options (int argc, char **argv)
                 optname = opt_sleep;
                 optarg  = get_long_val (argv, &i, sizeof opt_sleep - 1);
                 if (optarg && *optarg) {
+                    if (!isdigit (*optarg))
+                        bad_value (optname, optarg);
                     const long nsec = strtol (optarg, &end, 10);
                     if ('\0' == *end && 0 <= nsec && !errno) {
                         rw_sleep (nsec);
@@ -549,10 +559,10 @@ eval_options (int argc, char **argv)
                     }
                 }
             }
-            else if (   sizeof opt_ignore <= arglen
+            else if (   sizeof opt_ignore - 1 <= arglen
                      && !memcmp (opt_ignore, argv [i], sizeof opt_ignore - 1)) {
                 optname = opt_ignore;
-                optarg  = get_long_val (argv, &i, sizeof opt_ignore);
+                optarg  = get_long_val (argv, &i, sizeof opt_ignore - 1);
                 if (optarg && *optarg) {
                     const long signo = get_signo (optarg);
                     if (0 <= signo) {
@@ -563,7 +573,7 @@ eval_options (int argc, char **argv)
                     }
                 }
             }
-            else if (   sizeof opt_ulimit <= arglen
+            else if (   sizeof opt_ulimit - 1 <= arglen
                      && !memcmp (opt_ulimit, argv [i], sizeof opt_ulimit - 1)) {
                 optname = opt_ulimit;
                 optarg  = get_long_val (argv, &i, sizeof opt_ulimit - 1);
