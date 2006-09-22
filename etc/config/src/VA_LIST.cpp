@@ -51,7 +51,7 @@ GET_TYPE_NAME (void*);
 
 const char* get_type_name (...) { return 0; }
 
-#if 1 // ndef _RWSTD_NO_CLASS_PARTIAL_SPEC
+#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
 
 template <class T>
 struct Type {
@@ -79,6 +79,8 @@ const char* va_list_type_name (va_list)
 
 #else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
 
+#ifndef _RWSTD_NO_PART_SPEC_OVERLOAD
+
 template <class T>
 int va_list_array_size_imp (T *va)
 {
@@ -95,6 +97,38 @@ int va_list_array_size (va_list va)
 {
     return va_list_array_size_imp (&va);
 }
+
+#else   // if defined (_RWSTD_NO_PART_SPEC_OVERLOAD)
+
+template <class T>
+class is_array
+{ 
+    class yes {};
+
+    class no { yes yes_ [2]; };
+
+    template <class U> struct Type {};
+
+    template <class U, size_t N>
+    static yes test (Type<U[N]>);
+    static no test (...);
+
+public:
+    enum { value = sizeof (test (Type<T> ())) == sizeof (yes) };
+};
+
+template <class T>
+int va_list_array_size_imp (T **va)
+{
+    return sizeof (va_list) / sizeof **va;
+}
+
+int va_list_array_size (va_list va)
+{
+    return is_array<va_list>::value ? va_list_array_size_imp (&va) : 0;
+}
+
+#endif  // _RWSTD_NO_PART_SPEC_OVERLOAD
 
 template <class T>
 const char* va_list_type (T *va)
