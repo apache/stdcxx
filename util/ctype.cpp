@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -26,12 +33,15 @@
 #include "scanner.h"         // for scanner
 
 #include <cassert>           // for assert()
-#include <cctype>            // for toupper()
+#include <cctype>            // for isdigit(), ...
 #include <cstdio>            // for sprintf()
 #include <cstdlib>           // for strtol()
 #include <cstring>           // for memset(), strchr()
 #include <fstream>           // for ofstream
 #include <locale>            // for ctype_base::mask
+
+
+static const char lc_name[] = "LC_CTYPE";
 
 
 static wchar_t
@@ -72,9 +82,7 @@ bool Def::get_n_val (const Scanner::token_t &tok, unsigned char &val)
             got_val = false;
         break;
 
-    case Scanner::tok_decimal_value:
-    case Scanner::tok_hex_value:
-    case Scanner::tok_octal_value:
+    case Scanner::tok_char_value:
         if (charmap_.mbcharlen (tok.name) == 1)
             val = scanner_.convert_escape (tok.name.c_str ());
         else 
@@ -105,9 +113,7 @@ bool Def::get_w_val (const Scanner::token_t &tok, wchar_t &val)
             got_val = false;
         break;
 
-    case Scanner::tok_decimal_value:
-    case Scanner::tok_hex_value:
-    case Scanner::tok_octal_value:
+    case Scanner::tok_char_value:
         return charmap_.convert_to_wc ("", tok.name, val);
 
     default:
@@ -118,73 +124,141 @@ bool Def::get_w_val (const Scanner::token_t &tok, wchar_t &val)
 }
 
 
-// process hexadecimal symbolic ellipsis, decimal symbolic ellipsis,
-// and double increment hexadecimal symbolic ellipsis
-void Def::process_sym_ellipsis (const std::string& start_sym,
-                                const std::string& end_sym,
-                                Scanner::token_id type,
-                                std::ctype_base::mask m) {
-    
-    // first, get the alphabetic beginning of the sym name
-    std::size_t idx = 0;
-    std::string begin;            
+// process absolute ellipsis
+std::size_t Def::
+process_abs_ellipsis (const Scanner::token_t &nextnext,
+                      std::ctype_base::mask   m)
+{
+    std::size_t nchars = 0;
 
-    if (type == Scanner::tok_dellipsis 
-        || type == Scanner::tok_doub_inc_ellipsis) {
-        while (idx < start_sym.size () && 
-               ((start_sym[idx] < '0' || start_sym[idx] > '9') &&
-                (start_sym[idx] < 'a' || start_sym[idx] > 'f') && 
-                (start_sym[idx] < 'A' || start_sym[idx] > 'F')))
-            begin += start_sym[idx++];
+    typedef unsigned char UChar;
+
+    // first we need to handle narrow chars if the range is a range 
+    // of narrow characters
+    UChar first;
+    UChar last;
+
+    // check to see if the start value is in the narrow map
+    // if it is then we have to add some values to the narrow mask_tab
+    if (get_n_val (next, first) && get_n_val (nextnext, last)) {
+        // both the start value and end value are in the mask table
+        // so add the mask to the narrow table from start value
+        // to end_value.  Make sure that start < end
+        if (last < first)
+            issue_diag (E_RANGE, true, &next,
+                        "illegal range [%u, %u] in LC_CTYPE definition\n",
+                        last, first);
+
+        for (unsigned val = first; val <= last; ++val)
+            ctype_out_.mask_tab [val] |= m;
+
+        nchars += last - first;
+    }
+
+    wchar_t wfirst;
+    wchar_t wlast;
+
+    if (get_w_val (next, wfirst) && get_w_val (nextnext, wlast)) {
+
+        for (wchar_t val = wfirst; val != wlast; ) {
+
+            const mask_iter mask_pos = mask_.find (val);
+
+            if (mask_pos == mask_.end ())
+                mask_.insert (std::make_pair (val, m));
+            else
+                mask_pos->second |= m;
+                    
+            val = charmap_.increment_wchar (val);
+
+            ++nchars;
+        }
+
+        // now add the end_value
+        mask_iter mask_pos = mask_.find (wlast);
+        if(mask_pos == mask_.end ())
+            mask_.insert (std::make_pair (wlast, m));
+        else {
+            mask_pos->second |= m;
+        }
     }
     else {
-        while (idx < start_sym.size () && 
-               ((start_sym[idx] < '0' || start_sym[idx] > '9')))
-            begin += start_sym[idx++];
+        warnings_occurred_ = 
+            issue_diag (W_RANGE, false, 
+                        &next, "beginning or endpoint of range "
+                        "was not found in the character map; "
+                        "ignoring range\n") || warnings_occurred_;
+    }
+
+    next = scanner_.next_token ();
+
+    return nchars;
+}
+
+
+// process hexadecimal symbolic ellipsis, decimal symbolic ellipsis,
+// and double increment hexadecimal symbolic ellipsis
+std::size_t Def::
+process_sym_ellipsis (const std::string&    start_sym,
+                      const std::string&    end_sym,
+                      Scanner::token_id     type,
+                      std::ctype_base::mask m)
+{
+    // number of characters in the range
+    std::size_t nchars = 0;
+
+    // first, get the alphabetic beginning of the sym name
+    std::size_t idx = 0;
+    std::string begin;
+
+    const int base =
+           type == Scanner::tok_hex_ellipsis
+        || type == Scanner::tok_dbl_ellipsis ? 16 : 10;
+
+    if (16 == base) {
+        // append all characters until the first hex digit
+        while (idx < start_sym.size () && !std::isxdigit (start_sym [idx]))
+            begin += start_sym [idx++];
+    }
+    else {
+        // append all characters until the first decimal digit
+        while (idx < start_sym.size () && !std::isdigit (start_sym [idx]))
+            begin += start_sym [idx++];
     }
 
     std::string num_str;  // the numeric portion of the sym name
 
     // get the numeric portion of the sym_name, this is the portion
     // that will be different for each sym_name within the ellipsis
-    while (idx < start_sym.size() && start_sym[idx] != '>')
-        num_str += start_sym[idx++];
+    while (idx < start_sym.size () && start_sym [idx] != '>')
+        num_str += start_sym [idx++];
             
     std::size_t num_len = num_str.size();
             
     // convert the numeric string to a long
 
-    unsigned long num = 0;
-    if (type == Scanner::tok_dellipsis 
-        || type == Scanner::tok_doub_inc_ellipsis)
-        num = std::strtoul (num_str.c_str(), (char**)0, 16);
-    else
-        num = std::strtoul (num_str.c_str(), (char**)0, 10);
+    unsigned long num = std::strtoul (num_str.c_str(), (char**)0, base);
     
     // now create the symbolic name
     char next_num [32];
     std::string sym_name;
     do {
-        if (   type == Scanner::tok_dellipsis 
-            || type == Scanner::tok_doub_inc_ellipsis) {
-            std::sprintf (next_num, "%lx", num++);
+        int len;
 
-            if (type == Scanner::tok_doub_inc_ellipsis)
+        if (16 == base) {
+            len = std::sprintf (next_num, "%lX", num++);
+
+            if (type == Scanner::tok_dbl_ellipsis)
                 num++;
-
-            // the numeric portion of the sym name must be uppercase
-            for (std::size_t i = 0; next_num[i] != '\0'; i++)
-                if (next_num[i] >= 'a' && next_num[i] <= 'f')
-                    next_num[i] = (std::toupper) (next_num[i]);
         }
         else {
-            std::sprintf (next_num, "%ld", num++);
+            len = std::sprintf (next_num, "%ld", num++);
         }
 
         sym_name = begin;
-        for (std::size_t leading_zeros = num_len  - std::strlen (next_num);
-             leading_zeros > 0; leading_zeros--)
-            sym_name += '0';
+
+        sym_name.append (num_len - len, '0');
+
         sym_name += next_num;
         sym_name += '>';
 
@@ -197,8 +271,19 @@ void Def::process_sym_ellipsis (const std::string& start_sym,
         }
 
         wchar_t w_val;
-        // if the value is not in the charmap then we cannot continue
-        if (!get_w_val (next, w_val)) {
+        if (get_w_val (next, w_val)) {
+            // add the mask to the mask map
+            mask_iter mask_pos = mask_.find (w_val);
+            if (mask_pos != mask_.end())
+                mask_pos->second |= m;
+            else {
+                mask_.insert (std::make_pair (w_val, m));     
+            }
+        }
+        else {
+            // if the value is not in the charmap
+            // then we cannot continue (???)
+
             /*
             warnings_occurred_ = 
                 issue_diag (W_SYM, false, 
@@ -208,17 +293,14 @@ void Def::process_sym_ellipsis (const std::string& start_sym,
                 || warnings_occurred_;
             */
         }
-        else {
-            // add the mask to the mask map
-            mask_iter mask_pos = mask_.find (w_val);
-            if (mask_pos != mask_.end())
-                mask_pos->second |= m;
-            else {
-                mask_.insert (std::make_pair (w_val, m));     
-            }
-        }                
+
+        ++nchars;
+
     } while (sym_name != end_sym);
 
+    next = scanner_.next_token ();
+
+    return nchars;
 }
 
 
@@ -230,94 +312,71 @@ void Def::process_sym_ellipsis (const std::string& start_sym,
 // the value of the character and adds the character to the mask map (if
 // the character is not alreay there) with the current mask.
 void Def::
-process_mask (std::ctype_base::mask m) 
+process_mask (std::ctype_base::mask m, const char *name) 
 {
-    next = scanner_.next_token();
-    Scanner::token_t nextnext = scanner_.next_token();
-    while (next.token != Scanner::tok_nl){                
-        if (Scanner::tok_ellipsis == nextnext.token) {
-            // if there are ellipsis then include all characters in between
-            // the values that surround the ellipsis
-            nextnext = scanner_.next_token();
-            
-            // first we need to handle narrow chars if the range is a range 
-            // of narrow characters
-            unsigned char n_start_val;
-            unsigned char n_end_val;
-            // check to see if the start value is in the narrow map
-            // if it is then we have to add some values to the narrow mask_tab
-            if (get_n_val (next, n_start_val) 
-                && get_n_val(nextnext, n_end_val)) {
-                // both the start value and end value are in the mask table
-                // so add the mask to the narrow table from start value
-                // to end_value.  Make sure that start < end
-                if (n_start_val > n_end_val)
-                    issue_diag (E_RANGE, true, 
-                                &next, "illegal range found in "
-                                "ctype definition\n");
-                for(unsigned char n_current_val = n_start_val;
-                    n_current_val <= n_end_val; n_current_val++) {
-                    ctype_out_.mask_tab [n_current_val] |= m;
-                }
-            }
+    issue_diag (I_STAGE, false, 0, "processing %s class\n", name);
 
-            wchar_t w_start_val;
-            wchar_t w_end_val;
-            if (!get_w_val (next, w_start_val) 
-                || !get_w_val (nextnext, w_end_val)) {
-                warnings_occurred_ = 
-                    issue_diag (W_RANGE, false, 
-                                &next, "beginning or endpoint of range "
-                                "was not found in the character map; "
-                                "ignoring range\n") || warnings_occurred_;
-            }
-            else {
-                wchar_t w_current_val = w_start_val;
-                while (w_current_val != w_end_val) {
-                    mask_iter mask_pos = mask_.find (w_current_val);
-                    if(mask_pos != mask_.end())
-                        mask_pos->second |= m;
-                    else {
-                        mask_.insert(std::make_pair(w_current_val, m));
-                    }
-                    
-                    w_current_val = charmap_.increment_val (w_current_val);
-                }
-                // now add the end_value
-                mask_iter mask_pos = mask_.find (w_end_val);
-                if(mask_pos != mask_.end())
-                    mask_pos->second |= m;
-                else {
-                    mask_.insert(std::make_pair(w_end_val, m));
-                }
+    next = scanner_.next_token ();
 
-            }
+    Scanner::token_t nextnext = scanner_.next_token ();
 
-            next = scanner_.next_token();
+    std::size_t nchars  = 0;
 
-        }
-        else if (Scanner::tok_dellipsis == nextnext.token 
-                 || Scanner::tok_qellipsis == nextnext.token
-                 || Scanner::tok_doub_inc_ellipsis == nextnext.token) {
+    typedef unsigned char UChar;
 
-            Scanner::token_id tok = nextnext.token;
+    for ( ; next.token != Scanner::tok_nl; ) {
+
+        switch (nextnext.token) {
+
+        case Scanner::tok_abs_ellipsis: {
+
+            // if there are ellipses then include all characters
+            // in between the values that surround the ellipsis
+
             // the next token will be the end of the range
-            nextnext = scanner_.next_token ();
-            process_sym_ellipsis (next.name, nextnext.name, tok, m);
-            next = scanner_.next_token();
+            nextnext  = scanner_.next_token ();
+            nchars   += process_abs_ellipsis (nextnext, m);
+            break;
         }
-        else if (Scanner::tok_sym_name == next.token) {
 
-            unsigned char n_val;
-            // if the value is <= UCHARMAX then we will add this mask to the
-            // mask_tab table
+        case Scanner::tok_hex_ellipsis:
+        case Scanner::tok_dec_ellipsis:
+        case Scanner::tok_dbl_ellipsis: {
+
+            const Scanner::token_id id = nextnext.token;
+            // the next token will be the end of the range
+            nextnext  = scanner_.next_token ();
+            nchars   += process_sym_ellipsis (next.name, nextnext.name, id, m);
+            break;
+        }
+
+        case Scanner::tok_nl:
+        case Scanner::tok_sym_name:
+        case Scanner::tok_char_value: {
+
+            UChar n_val;
+            // if the value is <= UCHARMAX then add this mask
+            // to the mask table
             if (get_n_val (next, n_val)) {
                 ctype_out_.mask_tab [n_val] |= m;
+                ++nchars;
             }
 
             wchar_t w_val;
-            // if the value is not in the charmap then we cannot continue
-            if (!get_w_val (next, w_val)) {
+            if (get_w_val (next, w_val)) {
+                // add the mask to the mask map
+                const mask_iter mask_pos = mask_.find (w_val);
+                if (mask_pos == mask_.end ())
+                    mask_.insert (std::make_pair (w_val, m));
+                else {
+                    mask_pos->second |= m;
+                }
+
+                ++nchars;
+            }
+            else {
+                // if the value is not in the charmap
+                // then we cannot continue (???)
                 /*
                 warnings_occurred_ = 
                     issue_diag (W_SYM, false, 
@@ -327,42 +386,12 @@ process_mask (std::ctype_base::mask m)
                     || warnings_occurred_;
                 */
             }
-            else {
-                // add the mask to the mask map
-                mask_iter mask_pos = mask_.find (w_val);
-                if (mask_pos != mask_.end())
-                    mask_pos->second |= m;
-                else {
-                    mask_.insert (std::make_pair (w_val, m));     
-                }
-            }
-            next = nextnext;
-        }
-
-        else if (   Scanner::tok_decimal_value == next.token 
-                 || Scanner::tok_hex_value == next.token
-                 || Scanner::tok_octal_value == next.token) {
-
-            unsigned char n_val;
-            if (get_n_val (next, n_val))
-                ctype_out_.mask_tab[n_val] |= m;
-            
-            wchar_t w_val;
-            if (get_w_val (next, w_val)) {
-                mask_iter mask_pos = mask_.find (w_val);
-                if (mask_pos != mask_.end())
-                    mask_pos->second |= m;
-                else {
-                    mask_.insert (std::make_pair (w_val, m));
-                }
-                
-            }
-                
             next = nextnext;
 
+            break;
         }
 
-        else {
+        default: {
             // the ctype category definition contains non-symbolic characters
             // the actual value of the characters will be used.  This is
             // unportable
@@ -379,21 +408,28 @@ process_mask (std::ctype_base::mask m)
                                 "length. Ignoring character\n", 
                                 next.name.c_str()) || warnings_occurred_;
             else {
-                ctype_out_.mask_tab [(unsigned char) next.name[0]] |= m;
-                wchar_t mb_val = wchar_t ((unsigned char)next.name[0]);
+                ctype_out_.mask_tab [UChar (next.name [0])] |= m;
+                wchar_t mb_val = wchar_t (UChar (next.name [0]));
                 mask_iter mask_pos = mask_.find (mb_val);
                 if (mask_pos != mask_.end())
                     mask_pos->second |= m;
                 else
                     mask_.insert (std::make_pair (mb_val, m));
+                ++nchars;
             }
             next = nextnext;
         }
+
+        }
+
         // if we are not at the newline get the next token
         if (Scanner::tok_nl != next.token)
-            nextnext = scanner_.next_token();
-
+            nextnext = scanner_.next_token ();
     }
+
+    issue_diag (I_STAGE, false, 0,
+                "done processing %s class (%lu characters)\n",
+                name, nchars);
 }
 
 
@@ -404,10 +440,18 @@ process_upper_lower (Scanner::token_id tok)
 {
     assert (Scanner::tok_toupper == tok || Scanner::tok_tolower == tok);
 
+    const char* const name =
+        Scanner::tok_toupper == tok ? "upper" : "lower";
+
+    issue_diag (I_STAGE, false, 0, "processing ctype to%s map\n", name);
+
+    std::size_t nchars  = 0;
+
     // process the toupper and tolower ctype categories
 
     next = scanner_.next_token();
-    while (next.token != Scanner::tok_nl) {
+    for  (; next.token != Scanner::tok_nl; ) {
+
         std::string sym, sym2;
         
         // seperate the symbolic names in the toupper or tolower pair
@@ -415,46 +459,54 @@ process_upper_lower (Scanner::token_id tok)
         strip_pair(next.name, sym, sym2);
 
         // first process toupper or tolower for the narrow characters
-        n_cmap_iter sym1_pos = charmap_.get_n_cmap().find (sym);
-        n_cmap_iter sym2_pos = charmap_.get_n_cmap().find (sym2);
-        if (sym1_pos != charmap_.get_n_cmap().end() 
+        const n_cmap_iter sym1_pos = charmap_.get_n_cmap().find (sym);
+        const n_cmap_iter sym2_pos = charmap_.get_n_cmap().find (sym2);
+        if (   sym1_pos != charmap_.get_n_cmap().end() 
             && sym2_pos != charmap_.get_n_cmap().end()) {
             if (tok == Scanner::tok_toupper)
                 ctype_out_.toupper_tab [sym1_pos->second] = sym2_pos->second;
             else
                 ctype_out_.tolower_tab [sym1_pos->second] = sym2_pos->second;
+
+            ++nchars;
         }
 
         // now process toupper or tolower fot the wide characters
-        w_cmap_iter wsym1_pos = charmap_.get_w_cmap().find (sym);
-        w_cmap_iter wsym2_pos = charmap_.get_w_cmap().find (sym2);
-        if (wsym1_pos == charmap_.get_w_cmap().end())
+        const w_cmap_iter wsym1_pos = charmap_.get_w_cmap().find (sym);
+        const w_cmap_iter wsym2_pos = charmap_.get_w_cmap().find (sym2);
+        if (wsym1_pos == charmap_.get_w_cmap().end ())
             warnings_occurred_ = 
                 issue_diag (W_SYM, false, &next, 
                             "unknown symbol name %s found in "
-                            "LC_CTYPE definition\n", 
-                            sym.c_str()) || warnings_occurred_;
+                            "%s definition\n", sym.c_str (), lc_name)
+                || warnings_occurred_;
         else if (wsym2_pos == charmap_.get_w_cmap().end())
             warnings_occurred_ = 
                 issue_diag (W_SYM, false, &next, 
                             "unknown symbol name %s found in "
-                            "LC_CTYPE definition\n", 
-                            sym2.c_str()) || warnings_occurred_;
+                            "%s definition\n", 
+                            sym2.c_str (), lc_name)
+                || warnings_occurred_;
         else {
             if (tok == Scanner::tok_toupper)
                 upper_.insert (std::make_pair (wsym1_pos->second, 
-                                              wsym2_pos->second));
+                                               wsym2_pos->second));
             else
                 lower_.insert (std::make_pair (wsym1_pos->second, 
-                                              wsym2_pos->second));
+                                               wsym2_pos->second));
+
+            ++nchars;
         }
         next = scanner_.next_token();
     }
+
+    issue_diag (I_STAGE, false, 0,
+                "done processing to%s map (%lu characters)\n", name, nchars);
 }
 
 
 void Def::
-process_transliteration_statement ()
+process_xlit_statement (std::size_t &nchars)
 {
     // convert the name we have for a symbolic name
     std::string sym_s (next.name);
@@ -488,6 +540,7 @@ process_transliteration_statement ()
             w_cmap_iter w_pos = charmap_.get_w_cmap().find (next.name);
             if (w_pos != charmap_.get_w_cmap().end()) {
                 it->second.push_back(convert_to_ext(w_pos->second));
+                ++nchars;
             }
             break;
         }
@@ -503,13 +556,14 @@ process_transliteration_statement ()
             if (enc.empty())
                 break;
             it->second.push_back (enc);
+            ++nchars;
 
             break;
         }
         default:
             issue_diag (W_SYNTAX, false, &next,
-                        "unexpected token while processing "
-                        "a transliteration statement\n");
+                        "ignoring unexpected token in "
+                        "transliteration statement\n");
             break;
         }
 
@@ -524,8 +578,12 @@ process_transliteration_statement ()
 
 
 void Def::
-process_transliteration ()
+process_xlit ()
 {
+    issue_diag (I_STAGE, false, 0, "processing transliteration\n");
+
+    std::size_t nchars  = 0;
+
     // used in processing  the include directive
     int nesting_level = 0;
     std::list<std::string> file_list;
@@ -562,15 +620,15 @@ process_transliteration ()
             // get comment char and escape char; 
             // these informations are stored by the scanner
             while ((next = scanner_.next_token ()).token 
-                   != Scanner::tok_translit_start );
+                   != Scanner::tok_xlit_start );
             
             break;
         }
         case Scanner::tok_sym_name: {
-            process_transliteration_statement ();
+            process_xlit_statement (nchars);
             break;
         }
-        case Scanner::tok_translit_end: {
+        case Scanner::tok_xlit_end: {
             if (nesting_level == 0)
                 return;
 
@@ -595,19 +653,24 @@ process_transliteration ()
             // get comment char and escape char; 
             // these informations are stored by the scanner
             while ((next = scanner_.next_token ()).token 
-                   != Scanner::tok_translit_start );
+                   != Scanner::tok_xlit_start);
             
         }
         default:
             break;
         }
     }
+
+    issue_diag (I_STAGE, false, 0, "done processing transliteration "
+                "(%lu tokens, %lu characters)");
 }
 
 
 void Def::
 process_ctype ()
 {
+    issue_diag (I_STAGE, false, 0, "processing %s section\n", lc_name);
+
     ctype_def_found_ = true;
 
     // used in processing  the copy/include directive
@@ -665,7 +728,7 @@ process_ctype ()
                    != Scanner::tok_ctype ){
                 // the LC_IDENTIFICATION section may also have a 
                 // LC_CTYPE token that will mess up the parsing
-                if (next.token == Scanner::tok_identification) {
+                if (next.token == Scanner::tok_ident) {
                     while ((next = scanner_.next_token()).token
                            != Scanner::tok_end );
                     next = scanner_.next_token();
@@ -678,43 +741,43 @@ process_ctype ()
             break;
 
         case Scanner::tok_upper:
-            process_mask(std::ctype_base::upper);
+            process_mask (std::ctype_base::upper, "upper");
             break;
 
         case Scanner::tok_lower:
-            process_mask(std::ctype_base::lower);
+            process_mask (std::ctype_base::lower, "lower");
             break;
 
         case Scanner::tok_alpha:
-            process_mask(std::ctype_base::alpha);
+            process_mask (std::ctype_base::alpha, "alpha");
             break;
 
         case Scanner::tok_digit:
-            process_mask(std::ctype_base::digit);
+            process_mask (std::ctype_base::digit, "digit");
             break;
 
         case Scanner::tok_space:
-            process_mask(std::ctype_base::space);
+            process_mask (std::ctype_base::space, "space");
             break;
 
         case Scanner::tok_cntrl:
-            process_mask(std::ctype_base::cntrl);
+            process_mask (std::ctype_base::cntrl, "cntrl");
             break;
 
         case Scanner::tok_punct:
-            process_mask(std::ctype_base::punct);
+            process_mask (std::ctype_base::punct, "punct");
             break;
 
         case Scanner::tok_graph:
-            process_mask(std::ctype_base::graph);
+            process_mask (std::ctype_base::graph, "graph");
             break;
 
         case Scanner::tok_print:
-            process_mask(std::ctype_base::print);
+            process_mask (std::ctype_base::print, "print");
             break;
 
         case Scanner::tok_xdigit:
-            process_mask(std::ctype_base::xdigit);
+            process_mask (std::ctype_base::xdigit, "xdigit");
             break;
 
         case Scanner::tok_toupper:
@@ -729,8 +792,8 @@ process_ctype ()
             scanner_.ignore_line();
             break;
 
-        case Scanner::tok_translit_start:
-            process_transliteration ();
+        case Scanner::tok_xlit_start:
+            process_xlit ();
             break;
 
         case Scanner::tok_end:
@@ -766,7 +829,7 @@ write_ctype (std::string dir_name)
     assert (!dir_name.empty());
 
     if (ctype_filename_.empty ()) {
-        ctype_filename_ = dir_name + _RWSTD_PATH_SEP + "LC_CTYPE";
+        ctype_filename_ = dir_name + _RWSTD_PATH_SEP + lc_name;
         ctype_symlink_ = false;
     }
 
@@ -841,7 +904,7 @@ write_ctype (std::string dir_name)
                 ctype_filename_.size ());
         }
 
-        std::string sname ("LC_CTYPE");
+        std::string sname (lc_name);
         create_symlink (output_name_, xname, sname);
         return;
     }

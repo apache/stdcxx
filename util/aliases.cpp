@@ -38,7 +38,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>   // for memcpy(), strlen()
-#include <clocale>
+#include <clocale>   // for setlocale()
 #include <locale>
 #include <iostream>
 #include <string>
@@ -541,10 +541,10 @@ char* get_installed_locales (int loc_cat /* = LC_INVALID_CAT */)
     }
 
     char* locname = slocname;
-    char* save_localename = 0;
 
-    if (loc_cat != int (LC_INVALID_CAT))
-        save_localename = std::setlocale (loc_cat, 0);
+    // save the current locale setting and set the locale to "C"
+    const char* const save_localename = std::setlocale (LC_ALL, 0);
+    std::setlocale (LC_ALL, "C");
 
 #if __GNUG__ == 2 && __GNUC_MINOR__ == 96
 
@@ -582,11 +582,11 @@ char* get_installed_locales (int loc_cat /* = LC_INVALID_CAT */)
     //   sizeof ("locale -a | grep \"\" > ")   // 22
     // + strlen (fname)                        // must be <= L_tmpnam
 
-    char cmd [22 + L_tmpnam];
+    char cmd [80 + L_tmpnam];
 
-    std::sprintf (cmd, "/usr/bin/locale -a > %s 2>/dev/null", fname);
+    std::sprintf (cmd, "LC_ALL=C /usr/bin/locale -a >%s 2>/dev/null", fname);
 
-    int ret = std::system(cmd);
+    const int ret = std::system (cmd);
 
     if (ret && ret != 256) {
         std::strcpy (slocname, "call to system ");
@@ -653,8 +653,10 @@ char* get_installed_locales (int loc_cat /* = LC_INVALID_CAT */)
         *locname = '\0';
 
     }
-    if (loc_cat != int (LC_INVALID_CAT))
-        std::setlocale (loc_cat, save_localename);
+
+    // restore the original locale
+    if (save_localename)
+        std::setlocale (LC_ALL, save_localename);
 
     std::fclose (f);
     std::remove (fname);

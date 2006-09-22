@@ -45,7 +45,7 @@
 #include <clocale>    // for LC_CTYPE, setlocale()
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>    // for strerror()
+#include <cstring>    // for strrchr(), strerror()
 
 #include <map>
 #include <string>
@@ -234,66 +234,164 @@ static wchar_t utf8_decode (const char* from, const char* to)
 }
 
 
-#if 0
-
-// convert the first character of a string to an unsigned char 
-unsigned char Charmap::
-convert_escape (const char *str, const char **pend /* = 0 */) const
+// count the number of bytes in a multibyte sequence denoted
+// by the argument by counting the number of escape characters
+std::size_t Charmap::mbcharlen (const std::string &str) const
 {
-    assert (str != 0);
+    std::size_t count = 1;
 
-    if (!*str || *str != scanner_.escape_char ())
-        issue_diag (E_CVT, true, &next,
-                    "unable to convert character %s\n", str);
+    const char escape = scanner_.escape_char ();
 
-    long ch = 0;
+    for (std::size_t idx = 0; ; ++idx, ++count) {
+        idx = str.find (escape, idx);
 
-    char *end;
-
-    switch (str [1]) {
-    case '%': ch = std::strtol (str + 2, &end, 8); break;
-    case 'd': ch = std::strtol (str + 2, &end, 10); break;
-    case 'x': ch = std::strtol (str + 2, &end, 16); break;
-    default: ch = -1; end = _RWSTD_CONST_CAST (char*, str) + 1;
-    }
-
-    if (end == str + 2 || (ch < 0 || ch > UCHAR_MAX))
-        issue_diag (E_IFMT, true, &next,
-                    "unable to convert character %s\n", str);
-
-    if (pend)
-        *pend = end;
-
-    typedef unsigned char UChar;
-
-    return UChar (ch);
-}
-
-#endif
-
-
-// find the number of bytes in the multibyte string by counting the
-// number of escape chars in the string
-size_t Charmap::mbcharlen (const std::string &str) const
-{
-    std::size_t count = 0;
-
-    std::size_t idx = str.find (scanner_.escape_char ());
-
-    for (; std::string::npos != idx; ++count) {
-        idx = str.find (scanner_.escape_char (), idx + 1);
+        if (std::string::npos == idx)
+            break;
     }
 
     return count;
 }
 
 
+/**************************************************************************/
+
+const char* const Charmap::
+portable_charset[] = {
+    /* 0x00       */ "<NUL>",
+    /* 0x01   SOH */ 0,
+    /* 0x02   STX */ 0,
+    /* 0x03   ETX */ 0,
+    /* 0x04   EOT */ 0,
+    /* 0x05   ENQ */ 0,
+    /* 0x06   ACK */ 0,
+    /* 0x07   BEL */ "<alert>",
+    /* 0x08       */ "<backspace>",
+    /* 0x09   TAB */ "<tab>",
+    /* 0x0a       */ "<newline>", 
+    /* 0x0b       */ "<vertical-tab>",
+    /* 0x0c       */ "<form-feed>",
+    /* 0x0d       */ "<carriage-return>",
+    /* 0x0e   SO  */ 0,
+    /* 0x0f   SI  */ 0,
+    /* 0x10   DLE */ 0,
+    /* 0x11   DC1 */ 0,
+    /* 0x12   DC2 */ 0,
+    /* 0x13   DC3 */ 0,
+    /* 0x14   DC4 */ 0,
+    /* 0x15   NAK */ 0,
+    /* 0x16   SYN */ 0,
+    /* 0x17   ETB */ 0,
+    /* 0x18   CAN */ 0,
+    /* 0x19   EM  */ 0,
+    /* 0x1a   SUB */ 0,
+    /* 0x1b   ESC */ 0,
+    /* 0x1c   IS4 */ 0,
+    /* 0x1d   IS3 */ 0,
+    /* 0x1e   IS2 */ 0,
+    /* 0x1f   IS1 */ 0,
+    /* 0x20   SPC */ "<space>",
+    /* 0x21    !  */ "<exclamation-mark>",
+    /* 0x22    '  */ "<quotation-mark>",
+    /* 0x23    #  */ "<number-sign>", 
+    /* 0x24    $  */ "<dollar-sign>",
+    /* 0x25    %  */ "<percent-sign>",
+    /* 0x26    &  */ "<ampersand>",
+    /* 0x27    '  */ "<apostrophe>",
+    /* 0x28    (  */ "<left-parenthesis>",
+    /* 0x29    )  */ "<right-parenthesis>",
+    /* 0x2a    *  */ "<asterisk>", 
+    /* 0x2b    +  */ "<plus-sign>",
+    /* 0x2c    ,  */ "<comma>",
+    /* 0x2d    -  */ "<hyphen>",   // "<hyphen-minus>",
+    /* 0x2e    .  */ "<period>",   // "<full-stop>",
+    /* 0x2f    /  */ "<slash>",    // "<solidus>",
+    /* 0x30    0  */ "<zero>",
+    /* 0x31    1  */ "<one>",
+    /* 0x32    2  */ "<two>",
+    /* 0x33    3  */ "<three>",
+    /* 0x34    4  */ "<four>",
+    /* 0x35    5  */ "<five>",
+    /* 0x36    6  */ "<six>",
+    /* 0x37    7  */ "<seven>",
+    /* 0x38    8  */ "<eight>",
+    /* 0x39    9  */ "<nine>",
+    /* 0x3a    :  */ "<colon>",
+    /* 0x3b    ;  */ "<semicolon>",
+    /* 0x3c    <  */ "<less-than-sign>", 
+    /* 0x3d    =  */ "<equals-sign>",
+    /* 0x3e    >  */ "<greater-than-sign>",
+    /* 0x3f    ?  */ "<question-mark>",
+    /* 0x40    @  */ "<commercial-at>",
+    /* 0x41    A  */ "<A>",
+    /* 0x42    B  */ "<B>",
+    /* 0x43    C  */ "<C>",
+    /* 0x44    D  */ "<D>",
+    /* 0x45    E  */ "<E>",
+    /* 0x46    F  */ "<F>",
+    /* 0x47    G  */ "<G>",
+    /* 0x48    H  */ "<H>",
+    /* 0x49    I  */ "<I>",
+    /* 0x4a    J  */ "<J>",
+    /* 0x4b    K  */ "<K>",
+    /* 0x4c    L  */ "<L>",
+    /* 0x4d    M  */ "<M>",
+    /* 0x4e    N  */ "<N>",
+    /* 0x4f    O  */ "<O>",
+    /* 0x50    P  */ "<P>",
+    /* 0x51    Q  */ "<Q>",
+    /* 0x52    R  */ "<R>",
+    /* 0x53    S  */ "<S>",
+    /* 0x54    T  */ "<T>",
+    /* 0x55    U  */ "<U>",
+    /* 0x56    V  */ "<V>",
+    /* 0x57    W  */ "<W>",
+    /* 0x58    X  */ "<X>",
+    /* 0x59    Y  */ "<Y>",
+    /* 0x5a    Z  */ "<Z>",
+    /* 0x5b    [  */ "<left-square-bracket>",
+    /* 0x5c    \  */ "<backslash>",    // "<reverse-solidus>",
+    /* 0x5d    ]  */ "<right-square-bracket>",
+    /* 0x5e    ^  */ "<circumflex>",   // "<circumflex-accent>",
+    /* 0x5f    _  */ "<underscore>",   // "<low-line>",
+    /* 0x60    `  */ "<grave-accent>",
+    /* 0x61    a  */ "<a>",
+    /* 0x62    b  */ "<b>",
+    /* 0x63    c  */ "<c>",
+    /* 0x64    d  */ "<d>",
+    /* 0x65    e  */ "<e>",
+    /* 0x66    f  */ "<f>",
+    /* 0x67    g  */ "<g>",
+    /* 0x68    h  */ "<h>",
+    /* 0x69    i  */ "<i>",
+    /* 0x6a    j  */ "<j>",
+    /* 0x6b    k  */ "<k>",
+    /* 0x6c    l  */ "<l>",
+    /* 0x6d    m  */ "<m>",
+    /* 0x6e    n  */ "<n>",
+    /* 0x6f    o  */ "<o>",
+    /* 0x70    p  */ "<p>",
+    /* 0x71    q  */ "<q>",
+    /* 0x72    r  */ "<r>",
+    /* 0x73    s  */ "<s>",
+    /* 0x74    t  */ "<t>",
+    /* 0x75    u  */ "<u>",
+    /* 0x76    v  */ "<v>",
+    /* 0x77    w  */ "<w>",
+    /* 0x78    x  */ "<x>",
+    /* 0x79    y  */ "<y>",
+    /* 0x7a    z  */ "<z>",
+    /* 0x7b    {  */ "<left-brace>",    // "<left-curly-bracket>",
+    /* 0x7c    |  */ "<vertical-line>", 
+    /* 0x7d    }  */ "<right-brace>",   // "<right-curly-bracket>",
+    /* 0x7e    ~  */ "<tilde>",
+    /* 0x7f       */ 0
+};
+
 
 // convert a string of narrow character into a wchar_t
 bool Charmap::convert_to_wc (const std::string& sym_name,
                              const std::string& ext_enc, wchar_t& wc)
 {
-
 #ifndef _RWSTD_NO_ISO_10646_WCHAR_T
 
     // the internal wchar_t representation for all characters
@@ -302,16 +400,13 @@ bool Charmap::convert_to_wc (const std::string& sym_name,
 
 #else   // if defined _RWSTD_NO_ISO_10646_WCHAR_T
 
-    if (UCS4_internal_) {
+    if (UCS4_internal_ || Clocale_.empty ()) {
 
-        // translate the character to ISO-10646 (UCS)
+        // when using UCS as the internal encoding or for a locale
+        // that has no corresponding C library locale convert the
+        // character to ISO-10646 (UCS)
         return convert_to_ucs (sym_name, ext_enc, wc);
     }
-
-    // for a locale that has no corresponding C library locale
-    // convert the character to ISO-10646 (UCS)
-    if (Clocale_.empty ()) 
-        return convert_to_ucs (sym_name, ext_enc, wc);
 
     // otherwise use libc to convert the multi-byte character
     // to its wchar_t value
@@ -332,6 +427,7 @@ bool Charmap::convert_to_wc (const std::string& sym_name,
     return true;
 
 #endif   // _RWSTD_NO_ISO_10646_WCHAR_T
+
 }
 
 
@@ -377,153 +473,198 @@ std::string Charmap::get_charmap_name () const
 }
 
 
-wchar_t Charmap::increment_val (const wchar_t val) const
+wchar_t Charmap::increment_wchar (wchar_t val) const
 {
 #ifndef _RWSTD_NO_ISO_10646_WCHAR_T
+
     // to increment a wchar_t value and keep the encoding all we have
-    // to do is increment the val because the internal encoding is utf8
+    // to do is increment the val because the internal encoding is UCS
     return val + 1;
 
 #else
     // to increment a wchar_t value and keep the encoding we have to
     // convert the wchar_t to the external encoding, increment that
     // string value, and convert back to the internal representation
-    rn_cmap2_iter it = rn_cmap2_.find (val);
+    const rmb_cmap_iter it = rmb_cmap_.find (val);
 
-    if (it != rn_cmap2_.end ()) {
+    if (it != rmb_cmap_.end ()) {
 
-        n_cmap2_iter ret;
+        mb_cmap_iter ret;
 
-        std::string mb_str = it->second;
+        // multibyte character corresponding to the wchar_t value
+        std::string encoding = it->second;
+
         // continue incrementing the multi-byte value until we get a valid 
         // character.  NOTE: this must be done for encodings such as SJIS where
         // \x7f in the last byte of a multibyte string is not a valid character
         // NOTE: this will not detect errors in the sequence, since the program
         // will continue until it finds a valid character
         do {
-            int last_elm = mb_str.size() - 1;
+            int last_elm = encoding.size () - 1;
 
             while (last_elm >= 0) {
 
                 typedef unsigned char UChar;
 
-                const unsigned ic = UChar (mb_str [last_elm]) + 1;
+                const unsigned ic = UChar (encoding [last_elm]) + 1;
 
                 // if incrementing the last element caused it to exceed
-                // 0xff increment the next higher byte if there is one
-                if (ic > 0xff)
-                    mb_str [last_elm--] = 0;
+                // UCHAR_MAX increment the next higher byte if there is
+                // one
+                if (UCHAR_MAX < ic)
+                    encoding [last_elm--] = '\0';
                 else {
-                    mb_str [last_elm] = char (ic);
+                    encoding [last_elm] = char (ic);
                     break;
                 }
             }
 
             if (last_elm < 0)
-                std::cerr << "cannot convert character\n";
-        } while ((ret = n_cmap2_.find (mb_str)) == n_cmap2_.end ());
+                return -1;   // error
+
+        } while ((ret = mb_cmap_.find (encoding)) == mb_cmap_.end ());
 
         return ret->second;
     }
 
-    return -1;
+    return -1;   // error
 
 #endif   // _RWSTD_NO_ISO_10646_WCHAR_T    
-}
 
-const char* Charmap::increment_strval (const char* str)
-{
-    static char s  [64];
-    static char sd [64];
-    int         i = 0;
-
-    char* ps = s;
-
-    // zero the first element of string s
-    *ps = 0;
-
-    if (str == 0 || *str == 0)
-        return s;
-
-    for (i = 0; *str && i < 64; i++) {
-
-        *ps++ = scanner_.convert_escape (str, (const char**)&str);
-    }
-
-    *ps = 0;
-
-    //  now  attempt to  increment the  last character  in the  string  if the
-    //  character gets incremented above  /xff then we increment the next char
-    if (ps == s) {
-        return s;
-    }
-
-    for (ps--; ps >= s; ps--) 
-        if ((unsigned char)(*ps) == 0xff) {
-            *ps = 0;
-            continue;
-        } else {
-            (*ps)++;
-            break;
-        }
-
-    const char fmt [] = {scanner_.escape_char (), 
-                         'x', '%', '0', '2', 'x', '\0'};
-    ps = s;
-    for (i = 0; *ps; i += 4, ps++)
-        std::sprintf (&sd [i], fmt, *(unsigned char*)ps);
-
-    return sd;
 }
 
 
-std::string Charmap::parse_ext_strval (const std::string &strval) const
+bool Charmap::
+increment_encoding (std::string &encoding)
 {
-    std::string ext_enc;
+    // find the last escape character in the human readable representation
+    // of the encoding (i.e., in the multibyte character such as "/xf0/x80")
+    const std::string::size_type pos =
+        encoding.rfind (scanner_.escape_char ());
 
-    for (const char *str = strval.c_str (); str && *str; )
-        ext_enc += char (scanner_.convert_escape (str, &str));
+    // the escape character must be there (guaranteed by the scanner)
+    assert (pos < encoding.size ());
 
-    return ext_enc;
+    const char* end = 0;
+
+    // convert the last character in the multibyte character to a numeric
+    // value representing the last byte of the sequence
+    unsigned long last_byte =
+        scanner_.convert_escape (encoding.c_str () + pos, &end);
+
+    // POSIX requires that the incremented value be non-NUL
+    if (UCHAR_MAX <= last_byte || *end)
+        return false;
+
+    // increment the last byte
+    ++last_byte;
+
+    // format the last byte in the same notation (octal, decimal,
+    // or hexadecimal escape sequence)
+    static const char xdigits[] = "0123456789ABCDEF";
+
+    char byte_str [5];
+    char *pdig = byte_str;
+
+    switch (encoding [pos + 1]) {
+    case 'd': {   // decimal escape
+        const unsigned hundreds = last_byte / 100;
+        const unsigned tens     = (last_byte - hundreds) / 10;
+        const unsigned units    = last_byte % 10;
+
+        *pdig++ = 'd';
+
+        if (hundreds)
+            *pdig++ = xdigits [hundreds];
+
+        *pdig++ = xdigits [tens];
+        *pdig++ = xdigits [units];
+        *pdig   = '\0';
+        break;
+    }
+
+    case 'x': {   // hex escape
+        const unsigned hi = last_byte >> 4;
+        const unsigned lo = last_byte & 0xfU;
+
+        *pdig++ = 'x';
+        *pdig++ = xdigits [hi];
+        *pdig++ = xdigits [lo];
+        *pdig   = '\0';
+        break;
+    }
+    default: {   // octal escape
+        const unsigned hi  = last_byte >> 6;
+        const unsigned mid = (last_byte >> 3) & 07U;
+        const unsigned lo  = last_byte & 07U;
+
+        if (hi)
+            *pdig++ = xdigits [hi];
+
+        *pdig++ = xdigits [mid];
+        *pdig++ = xdigits [lo];
+        *pdig   = '\0';
+    }
+    }   // switch
+
+    // replace the last escape sequence with the new one
+    encoding.replace (pos + 1, std::string::npos, byte_str);
+
+    return true;
+}
+
+
+std::string Charmap::
+encoding_to_mbchar (const std::string &encoding) const
+{
+    std::string mbchar;
+
+    for (const char *pbyte = encoding.c_str (); pbyte && *pbyte; )
+        mbchar += char (scanner_.convert_escape (pbyte, &pbyte));
+
+    return mbchar;
 }
 
 
 // convert the locale's encoded character to UCS4 wchar_t
-wchar_t Charmap::convert_sym_to_ucs (const std::string& s) const
+wchar_t Charmap::
+convert_sym_to_ucs (const std::string &sym) const
 {
-    std::string::const_iterator it (s.begin ());
+    std::string::const_iterator it (sym.begin ());
 
-    if (s.size () < 4 || *it != '<' || *++it != 'U') {
-        issue_diag (E_UCS, true, 0, 
-                    "Attempt to convert symbolic name to UCS value failed. "
-                    "Name %s not in <Uxxxxxxxx> form.\n", s.c_str ());
+    if (   sym.size () < 4 || *it != '<' || *++it != 'U'
+        || !isxdigit (*++it)) {
+        issue_diag (E_UCS, true, 0,
+                    "Unable to convert symbolic name %s to UCS.\n",
+                    sym.c_str ());
     }
 
-    long w = std::strtol (&*++it, (char**)0, 16);
-    if (w == _RWSTD_LONG_MIN || w == _RWSTD_LONG_MAX ||
-        w >  _RWSTD_WCHAR_T_MAX )
-        issue_diag (E_UCS, true, 0, 
-                    "Attempt to convert symbolic name to UCS value failed. "
-                    "Value of %s out of range.\n", s.c_str ());
+    const unsigned long val = std::strtoul (&*++it, (char**)0, 16);
 
-    return wchar_t (w);
+    if (_RWSTD_WCHAR_T_MAX <= val)
+        issue_diag (E_UCS, true, 0, 
+                    "UCS value %lu of symbolic character %s out of range.\n",
+                    val, sym.c_str ());
+
+    return wchar_t (val);
 }
+
 
 // convert the locale's encoded character to UCS4/UCS2 wchar_t
 bool Charmap::convert_to_ucs (const std::string &sym_name, 
-                              const std::string &ext_enc, wchar_t& wc)
+                              const std::string &encoding, wchar_t& wc)
 {
 #ifndef _MSC_VER
 
     if (in_utf8_) {
-        wc = utf8_decode (ext_enc.c_str (), &*(ext_enc.end () - 1));
+        wc = utf8_decode (encoding.c_str (), &*(encoding.end () - 1));
         return true;
     }
 
     char utf8_enc [_RWSTD_MB_LEN_MAX + 1];
 
     const char* const ch_end =
-        convert_to_utf8  (ext_enc.c_str (), ext_enc.size (),
+        convert_to_utf8  (encoding.c_str (), encoding.size (),
                           utf8_enc, sizeof utf8_enc);
     if (ch_end)
         // only if conversion to utf8 succeeded
@@ -538,7 +679,7 @@ bool Charmap::convert_to_ucs (const std::string &sym_name,
 
     if (0 != codepage_) {
         wchar_t ret[2] = {0};
-        MultiByteToWideChar (codepage_, 0, ext_enc.c_str(), -1, ret, 2);
+        MultiByteToWideChar (codepage_, 0, encoding.c_str(), -1, ret, 2);
         if (ret[1] != 0)
             return false;
 
@@ -556,16 +697,27 @@ bool Charmap::convert_to_ucs (const std::string &sym_name,
 
 
 void Charmap::add_to_cmaps (const std::string &sym_name, 
-                            const std::string &strval)
+                            const std::string &encoding,
+                            bool               is_mbchar /* = false */)
 {
-    strval_map_.insert (std::make_pair (strval, sym_name));
+    // compute the external (multibyte) encoding of the character
+    // if necessary (i.e., unless already done by the caller)
+    const std::string mbchar =
+        is_mbchar ? encoding : encoding_to_mbchar (encoding);
 
-    if (mbcharlen (strval) == 1) {
+    symnames_list_.push_back (sym_name);
 
-        const unsigned char ch = scanner_.convert_escape (strval.c_str ());
+    if (1 == mbchar.size ()) {
+        // strval is a single-byte character
 
-        if (forward_maps)
+        const unsigned char ch = mbchar [0];
+
+        // add the wide character and its symbolic name to the narrow
+        // character maps
+        if (forward_maps) {
+            // the locale utility doesn't need reverse maps
             n_cmap_.insert (std::make_pair (sym_name, ch));
+        }
 
         if (reverse_maps)
             rn_cmap_.insert (std::make_pair (ch, sym_name));
@@ -574,176 +726,204 @@ void Charmap::add_to_cmaps (const std::string &sym_name,
             largest_nchar_ = ch;
     }
 
-    const std::string ext_enc = parse_ext_strval (strval);
+    // (try to) compute the wide character value of the character
+    wchar_t wch;
 
-    wchar_t ch;
+    if (convert_to_wc (sym_name, mbchar, wch)) {
 
-    if (convert_to_wc (sym_name, ext_enc, ch)) {
-
-        if (forward_maps)
-            w_cmap_.insert (std::make_pair (sym_name, ch));
+        // add the wide character and its symbolic name to the wide
+        // character maps
+        if (forward_maps) {
+            // the locale utility doesn't need forward maps
+            w_cmap_.insert (std::make_pair (sym_name, wch));
+        }
 
         if (reverse_maps)
-            rw_cmap_.insert (std::make_pair (ch, sym_name));
+            rw_cmap_.insert (std::make_pair (wch, sym_name));
 
-        std::string n_strval = parse_ext_strval (strval);
-
-        n_cmap2_.insert (std::make_pair (n_strval, ch));
-        rn_cmap2_.insert (std::make_pair (ch, n_strval));
-
-        assert (n_strval.size () != 0);
-
-        for (std::string::size_type i = n_strval.size (); --i; )
-            valid_mb_set_.insert (n_strval.substr (0, i));
+        // add the corresponding multibyte character to the multibyte
+        // character maps
+        mb_cmap_.insert (std::make_pair (mbchar, wch));
+        rmb_cmap_.insert (std::make_pair (wch, mbchar));
     }
 
-    wchar_t ucs_val;
+    // compute the UCS value of the character
+    wchar_t uch;
 
-    if (convert_to_ucs (sym_name, ext_enc, ucs_val)) {
-        ucs4_cmap_.insert (std::make_pair (sym_name, ucs_val));
-        rucs4_cmap_.insert (std::make_pair (ucs_val, sym_name));
+    if (convert_to_ucs (sym_name, mbchar, uch)) {
+
+        // add UCS character and its symbolic name to the UCS
+        // character maps
+        ucs4_cmap_.insert (std::make_pair (sym_name, uch));
+        rucs4_cmap_.insert (std::make_pair (uch, sym_name));
     }
 }
 
 
 // process the characters implicitly defined by using ellipsis between
 // two explicitly defined characters
-void Charmap::
+std::size_t Charmap::
 process_ellipsis (const Scanner::token_t &beg_tok, int num_ellipsis)
 {
+    // get the upper end of the range denoted by the ellipsis
     const Scanner::token_t end_tok = scanner_.next_token ();
-    std::string strval = scanner_.next_token ().name;
 
-    // first add the beg_tok symbol name to the maps
-    add_to_cmaps (beg_tok.name, strval);
+    // get the human readabale encoding of the character
+    // denoted by the lower end of the ellipsis
+    const std::string encoding = scanner_.next_token ().name;
+
+    // convert the encoding to a multibyte character
+    std::string mbchar = encoding_to_mbchar (encoding);
+
+    // add the beg_tok symbol name to the maps
+    add_to_cmaps (beg_tok.name, mbchar, true);
     
-    // seperate the numeric portion of the symbolic name from the
-    // character portion in order to dynamically create symbolic
-    // names with increasing numeric values
-    std::string begin;
-    size_t idx = 0;
+    // extract the numeric portion of the symbolic character name
+    // denoted by the lower end of the ellipsis
+    std::size_t idx = 0;
 
     int base;           // numeric base
     const char *fmat;   // sprintf() format specifier
 
+    const std::size_t beg_len = beg_tok.name.size ();
+
     // determine the value of the beginning of the range
     // denoted by the ellipsis
-    if (num_ellipsis == 2) {
+    if (2 == num_ellipsis) {
         base = 16;
-        fmat = "%s%0*lX>";
+        fmat = "%.*s%0*lX>";
 
         // advance to the first hex digit
-        while (   idx < beg_tok.name.size ()
-               && !(std::isxdigit)(beg_tok.name [idx]))
-            begin += beg_tok.name [idx++];
+        while (idx < beg_len && !(std::isxdigit)(beg_tok.name [idx]))
+            ++idx;
     }
     else {
         base = 10;
-        fmat = "%s%0*ld>";
+        fmat = "%.*s%0*ld>";
 
         // advance to the first decimal digit
-        while (   idx < beg_tok.name.size ()
-               && !(std::isdigit)(beg_tok.name [idx]))
-            begin += beg_tok.name [idx++];
+        while (idx < beg_len && !(std::isdigit)(beg_tok.name [idx]))
+            ++idx;
     }
 
-    std::string num_str;  // the numeric portion of the sym name
+    // length of non-numeric prefix of the symbolic character name
+    const std::size_t pfx_len = idx;
 
-    // get the numeric portion of the sym_name, this is the portion
-    // that will be different for each sym_name within the ellipsis
-    while (idx < beg_tok.name.size () && beg_tok.name [idx] != '>')
-        num_str += beg_tok.name [idx++];
+    // get the character value plus one (since the first value
+    // has already been added to the map earlier)
+    char *num_end;
+    const unsigned long beg_val =
+        1 + std::strtoul (beg_tok.name.c_str () + pfx_len, &num_end, base);
 
-    const int num_size = int (num_str.size ());
-    
-    // convert the num_str to a long
-    unsigned long start_num = std::strtoul (num_str.c_str(), (char**)0, base);
-
-    // increment the start_num once because we already added the 
-    // beg_tok symbol name to the cmaps
-    ++start_num;
+    // the length of the numeric portion
+    const std::size_t num_size =
+        num_end - (beg_tok.name.c_str () + pfx_len);
 
     // find the end of the range denoted by the ellipsis
     idx = 0;
 
-    if (num_ellipsis == 2) {
+    const std::size_t end_len = end_tok.name.size ();
+
+    if (2 == num_ellipsis) {
         // advance to the next hex digit
-        while (   idx < end_tok.name.size ()
-               && !(std::isxdigit)(end_tok.name [idx]))
+        while (idx < end_len && !(std::isxdigit)(end_tok.name [idx]))
             ++idx;
     }
     else {
         // advance to the next dec digit
-        while (   idx < end_tok.name.size ()
-               && (std::isdigit)(end_tok.name [idx]))
+        while (idx < end_len && (std::isdigit)(end_tok.name [idx]))
             ++idx;
     }
 
-    num_str.clear ();
+    const unsigned long end_val =
+        std::strtoul (end_tok.name.c_str () + idx, (char**)0, base);
 
-    // advance to the closing bracket ('>')
-    while (idx < end_tok.name.size() && end_tok.name[idx] != '>')
-        num_str += end_tok.name [idx++];
-    
-    unsigned long end_num = std::strtoul (num_str.c_str(), (char**)0, base);
-
-    // the ending numeric value should be greater then the start numeric value
-    if (end_num < start_num)
+    // the ending numeric value must be greater than or equal
+    // to the beginning numeric value
+    if (end_val < beg_val)
         issue_diag (E_RANGE, true, &end_tok, 
                     "invalid range found in character map file\n");
     
     char next_name [MAX_SYM_NAME_LEN];
 
-    for (; start_num <= end_num; ++start_num) {
+    std::size_t nchars = 0;
 
-        std::sprintf (next_name, fmat, begin.c_str (), num_size, start_num);
+    const char* const pfx = beg_tok.name.c_str ();
+
+    for (unsigned long val = beg_val; val <= end_val; ++val, ++nchars) {
+
+        std::sprintf (next_name, fmat, pfx_len, pfx, num_size, val);
         
-        // increment the string value to the next encoded character value
-        strval = increment_strval (strval.c_str ());
-
-        // and finally add the generated name and string value to the maps
-        add_to_cmaps (next_name, strval);
+        // increment the last byte of the multibyte character
+        // and if the result is valid (i.e., doesn't contain
+        // an embedded NUL) add the generated name and the
+        // multibyte character to the maps
+        const unsigned char last_byte = mbchar [mbchar.size () - 1];
+        if (last_byte < UCHAR_MAX) {
+            mbchar [mbchar.size () - 1] = last_byte + 1;
+            add_to_cmaps (next_name, mbchar, true);
+        }
+        else {
+            // an ellipsis must not specify a range that includes
+            // an encoding with an embedded NUL
+            issue_diag (E_RANGE, true, &beg_tok, 
+                        "encoding of an element in range contains NUL\n");
+        }
     }
+
+    // return the number of characters denoted by the ellipsis
+    return nchars;
 }
 
 
 // process all the characters in the character map file.
 void Charmap::process_chars()
 {
+    issue_diag (I_STAGE, false, 0, "processing CHARMAP section\n");
+
+    std::size_t ntokens = 0;
+    std::size_t nellips = 0;
+    std::size_t nchars  = 0;
+
     next = scanner_.next_token();
     Scanner::token_t nextnext;
 
     // loop until we find the closing charmap token
-    while (next.token != Scanner::tok_charmap) {
+    for ( ; next.token != Scanner::tok_charmap; ++ntokens) {
 
-        switch (next.token){
+        switch (next.token) {
 
         case Scanner::tok_nl:
         case Scanner::tok_end:
             break;
 
         case Scanner::tok_sym_name:
-            // the next token may be either ellipsis if this line of the
-            // charmap is in the form: 
+            // the next token may be either ellipsis if this line
+            // of the charmap is in the form:
             // "%s...%s %s\n", <sym_name>, <sym_name>, <encoding>
             // or an encoding if this line is in the format:
             // "%s %s\n", <sym_name>, <encoding>
-            nextnext = scanner_.next_token();
+            nextnext = scanner_.next_token ();
+            ntokens += 3;
 
             switch (nextnext.token) {
 
-            case Scanner::tok_ellipsis:
-                process_ellipsis (next, 3);
+            case Scanner::tok_abs_ellipsis:
+                // absolute ellipsis (see ISO/IEC TR 14652)
+                nchars += process_ellipsis (next, 3);
+                ++nellips;
                 break;
 
-            case Scanner::tok_dellipsis:
-                process_ellipsis (next, 2);
+            case Scanner::tok_hex_ellipsis:
+                // hexadecimal symbolic ellipsis (see ISO/IEC TR 14652)
+                nchars += process_ellipsis (next, 2);
+                ++nellips;
                 break;
 
-            case Scanner::tok_decimal_value:
-            case Scanner::tok_hex_value:
-            case Scanner::tok_octal_value:
+            case Scanner::tok_char_value:
+                // character represented as a numeric constant
                 add_to_cmaps (next.name, nextnext.name);
+                ++nchars;
                 break;
 
             default:
@@ -752,7 +932,7 @@ void Charmap::process_chars()
                             "name in character map file\n");
             }
 
-            scanner_.ignore_line();
+            scanner_.ignore_line ();
             break;
 
         default:
@@ -762,9 +942,13 @@ void Charmap::process_chars()
         }
 
         next = scanner_.next_token();
-
     }
-    
+
+    issue_diag (I_STAGE, false, 0,
+                "done processing CHARMAP section (%lu tokens, "
+                "%lu ellipses, %lu characters)\n",
+                ntokens, nellips, nchars);
+
     // make sure that all characters in the portable character set
     // are in the charmap
     if (forward_maps)
@@ -772,37 +956,20 @@ void Charmap::process_chars()
 }
 
 
-void Charmap::verify_portable_charset()
+void Charmap::verify_portable_charset () const
 {
-    static const char* const charset[] = {
-        "<NUL>","<alert>", "<backspace>", "<tab>", "<newline>", 
-        "<vertical-tab>", "<form-feed>", "<carriage-return>", "<space>",
-        "<exclamation-mark>", "<quotation-mark>", "<number-sign>", 
-        "<dollar-sign>", "<percent-sign>", "<ampersand>", "<apostrophe>",
-        "<left-parenthesis>", "<right-parenthesis>", "<asterisk>", 
-        "<plus-sign>", "<comma>", "<hyphen>", "<hyphen-minus>", "<period>",
-        "<full-stop>", "<slash>", "<solidus>", "<zero>", "<one>", "<two>",
-        "<three>", "<four>", "<five>", "<six>", "<seven>", "<eight>",
-        "<nine>", "<colon>", "<semicolon>", "<less-than-sign>", 
-        "<equals-sign>", "<greater-than-sign>", "<question-mark>",
-        "<commercial-at>", "<A>", "<B>", "<C>", "<D>", "<E>", "<F>", "<G>",
-        "<H>", "<I>", "<J>", "<K>", "<L>","<M>", "<N>", "<O>", "<P>","<Q>",
-        "<R>", "<S>", "<T>", "<U>", "<V>", "<W>", "<X>", "<Y>", "<Z>",
-        "<left-square-bracket>", "<backslash>", "<reverse-solidus>",
-        "<right-square-bracket>", "<circumflex>", "<circumflex-accent>",
-        "<underscore>", "<low-line>", "<grave-accent>",
-        "<a>", "<b>", "<c>", "<d>", "<e>", "<f>", "<g>",
-        "<h>", "<i>", "<j>", "<k>", "<l>","<m>", "<n>", "<o>", "<p>","<q>",
-        "<r>", "<s>", "<t>", "<u>", "<v>", "<w>", "<x>", "<y>", "<z>",
-        "<left-brace>", "<left-curly-bracket>", "<vertical-line>", 
-        "<right-brace>", "<right-curly-bracket>", "<tilde>"
-    };
+    const std::size_t nchars =
+        sizeof portable_charset / sizeof *portable_charset;
 
-    for (std::size_t i = 0; i < sizeof charset / sizeof (char*); ++i)
-        if (n_cmap_.find (charset [i]) == n_cmap_.end ())
+    for (std::size_t i = 0; i < nchars; ++i) {
+        if (0 == portable_charset [i])
+            continue;
+
+        if (n_cmap_.find (portable_charset [i]) == n_cmap_.end ())
             issue_diag (W_NOPCS, false, 0, 
                         "member of portable character set %s not found "
-                        "in the character map\n", charset[i]);
+                        "in the character map\n", portable_charset [i]);
+    }
 }
 
 

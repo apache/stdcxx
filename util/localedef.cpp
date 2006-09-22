@@ -2,7 +2,7 @@
  *
  * localedef.cpp
  *
- * $Id: //stdlib/dev/source/stdlib/util/localedef.cpp#248 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -100,6 +100,7 @@ print_help_msg ()
         "\t-w###\n"
         "\t\tDisable warning number ###.\n"
         "\n"
+        "\t--notes\tEnable notes (informational messages).\n"
         "\t-?\n"
         "\t--help\tPrint out this message.\n";
 
@@ -233,7 +234,7 @@ create_locale (std::string std_src,
     issue_diag (I_STAGE, false, 0, "generating LC_CTYPE database\n");
     def.write_ctype (locale_dir);
 
-    issue_diag (I_STAGE, false, 0, "generating codecvt database\n");
+    issue_diag (I_STAGE, false, 0, "generating codeset database\n");
     def.write_codecvt (locale_dir);
 
     issue_diag (I_STAGE, false, 0, "generating LC_MONETARY database\n");
