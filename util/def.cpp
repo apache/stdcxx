@@ -221,7 +221,8 @@ void Def::copy_category(int category, std::string name)
 void Def::strip_pair (const std::string &tok, std::string &sym,
                       std::string &sym2)
 {
-    int i = 0;
+    std::size_t i = 0;
+
     if(tok[i] == '(') {
         if(tok[++i] == '<')
             while (tok[i] != '>'){
