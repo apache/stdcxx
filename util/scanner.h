@@ -44,39 +44,130 @@ public:
     // enumeration of all tokens in the character map 
     // and locale definition file
     enum token_id {
-        tok_charmap, tok_code_set_name, tok_mb_cur_max,
-        tok_mb_cur_min, tok_ctype, tok_upper, tok_lower, 
-        tok_digit, tok_space, tok_alpha, tok_graph, tok_print,
-        tok_cntrl, tok_punct, tok_xdigit, tok_blank, tok_tolower,
-        tok_toupper, tok_end, tok_collate, tok_monetary,
-        tok_numeric, tok_time, tok_messages, tok_sym_name, 
+        tok_code_set_name,   // <code_set_name>
+        tok_mb_cur_max,      // <mb_cur_max>
+        tok_mb_cur_min,      // <mb_cur_min>
+        // sections
+        tok_charmap,         // beginning of CHARMAP section
+        tok_collate,         // beginning of LC_COLLATE section
+        tok_ctype,           // beginning of LC_CTYPE section
+        tok_messages,        // beginning of LC_MESSAGES section
+        tok_monetary,        // beginning of LC_MONETARY section
+        tok_numeric,         // beginning of LC_NUMERIC section
+        tok_time,            // beginning of LC_TIME section
+        // ISO/IEC TR 14652 extensions:
+        tok_addr,            // beginning of LC_ADDRESS section
+        tok_ident,           // beginning of LC_IDENTIFICATION section
+        tok_measure,         // beginning of LC_MEASUREMENT section
+        tok_name,            // beginning of LC_NAME section
+        tok_paper,           // beginning of LC_PAPER section
+        tok_phone,           // beginning of LC_TELEPHONE section
+        //
+        tok_end,             // END of a section
+        // LC_CTYPE-specific tokens
+        tok_upper,           // upper section of LC_CTYPE
+        tok_lower,           // lower section of LC_CTYPE
+        tok_digit,           // digit section of LC_CTYPE
+        tok_space,           // space section of LC_CTYPE
+        tok_alpha,           // alpha section of LC_CTYPE
+        tok_graph,           // graph section of LC_CTYPE
+        tok_print,           // print section of LC_CTYPE
+        tok_cntrl,           // cntrl section of LC_CTYPE
+        tok_punct,           // punct section of LC_CTYPE
+        tok_xdigit,          // xdigit section of LC_CTYPE
+        tok_blank,           // blank section of LC_CTYPE
+        tok_tolower,         // tolower section of LC_CTYPE
+        tok_toupper,         // toupper section of LC_CTYPE
+        // LC_COLLATE-specific tokens
         tok_script,
-        tok_collating_element, tok_from, tok_collating_symbol, 
-        tok_translit_start, tok_translit_end,
-        tok_reorder, tok_reorder_end,
-        tok_reorder_section, tok_reorder_section_end,
-        tok_order_start, tok_order_end, tok_forward, tok_backward,
-        tok_position, tok_undefined, tok_string, tok_ignore,
-        tok_int_curr_symbol, tok_currency_symbol, 
-        tok_mon_decimal_point, tok_mon_thousands_sep, 
-        tok_mon_grouping, tok_positive_sign, tok_negative_sign,
-        tok_int_frac_digits, tok_frac_digits, tok_p_cs_precedes,
-        tok_p_sep_by_space, tok_n_cs_precedes, tok_n_sep_by_space,
-        tok_p_sign_posn, tok_n_sign_posn,
-        tok_int_p_cs_precedes, tok_int_n_cs_precedes,
-        tok_int_p_sep_by_space, tok_int_n_sep_by_space,
-        tok_int_p_sign_posn, tok_int_n_sign_posn,
-        tok_decimal_point, tok_thousands_sep, tok_grouping,
-        tok_abday, tok_day, tok_abmon, tok_mon, tok_d_t_fmt,
-        tok_d_fmt, tok_t_fmt, tok_am_pm, tok_t_fmt_ampm, tok_era,
-        tok_era_d_fmt, tok_era_t_fmt, tok_era_d_t_fmt, 
-        tok_alt_digits, tok_ellipsis, tok_dellipsis, tok_qellipsis,
-        tok_truename, tok_falsename,
-        tok_yesexpr, tok_noexpr, tok_identification,
-        tok_decimal_value, tok_hex_value, tok_octal_value,
-        tok_comment, tok_comment_char, tok_escape_char, tok_pair,
-        tok_copy, tok_include, tok_cont_line, tok_nl, tok_ndef, 
-        tok_eof, tok_end_tokens, tok_doub_inc_ellipsis, tok_width
+        tok_coll_elem,       // collating-element
+        tok_coll_sym,        // collating symbol
+        tok_from,
+        tok_xlit_start,      // translit_start
+        tok_xlit_end,        // translit_end
+        tok_reorder,
+        tok_reorder_end,
+        tok_reorder_section,
+        tok_reorder_section_end,
+        tok_order_start,
+        tok_order_end,
+        tok_forward,
+        tok_backward,
+        tok_position,
+        tok_undefined,
+        // 
+        tok_string,
+        tok_ignore,
+        // absolute, hexadecimal, decimal, and double-increment
+        // ellipses (see ISO/IEC TR 14652)
+        tok_abs_ellipsis,    // "..."
+        tok_hex_ellipsis,    // ".."
+        tok_dec_ellipsis,    // "...."
+        tok_dbl_ellipsis,    // "..(N).."
+        tok_width,
+        // LC_MONETARY-specific tokens
+        tok_int_curr_symbol,
+        tok_currency_symbol, 
+        tok_mon_decimal_point,
+        tok_mon_thousands_sep, 
+        tok_mon_grouping,
+        tok_positive_sign,
+        tok_negative_sign,
+        tok_int_frac_digits,
+        tok_frac_digits,
+        tok_p_cs_precedes,
+        tok_p_sep_by_space,
+        tok_n_cs_precedes,
+        tok_n_sep_by_space,
+        tok_p_sign_posn,
+        tok_n_sign_posn,
+        tok_int_p_cs_precedes,
+        tok_int_n_cs_precedes,
+        tok_int_p_sep_by_space,
+        tok_int_n_sep_by_space,
+        tok_int_p_sign_posn,
+        tok_int_n_sign_posn,
+        // LC_NUMERIC-specific tokens
+        tok_decimal_point,   // decimal point
+        tok_thousands_sep,   // thousands_sep
+        tok_grouping,        // grouping
+        tok_truename,        // truename (C++ extension)
+        tok_falsename,       // falsename (C++ extension)
+        // LC_TIME-specific tokens
+        tok_abday,
+        tok_day,
+        tok_abmon,
+        tok_mon,
+        tok_d_t_fmt,
+        tok_d_fmt,
+        tok_t_fmt,
+        tok_am_pm,
+        tok_t_fmt_ampm,
+        tok_era,
+        tok_era_d_fmt,
+        tok_era_t_fmt,
+        tok_era_d_t_fmt, 
+        tok_alt_digits,
+        // LC_MESSAGES-specific tokens
+        tok_yesexpr,
+        tok_noexpr,
+        // LC_ADDRESS-specific tokens
+        // LC_IDENTIFICATION-specific tokens
+        // LC_MEASUREMENT-specific tokens
+        // LC_NAME-specific tokens
+        // LC_PAPER-specific tokens
+        // LC_TELEPHONE-specific tokens
+        // other:
+        tok_sym_name,        // symbolic character name
+        tok_char_value,      // character value (octal, decimal, or hex)
+        tok_comment,         // comment
+        tok_comment_char,    // <comment_char>
+        tok_escape_char,     // <escape_char>
+        tok_copy,            // copy directive
+        tok_include,         // include directive
+        tok_nl,              // newline
+        tok_ndef,            // unknown/undefined token
+        tok_end_tokens       // end of input
     };
 
     // scanner states

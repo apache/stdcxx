@@ -26,7 +26,7 @@
  * 
  **************************************************************************/
 
-#if defined(__linux__) && !defined (_XOPEN_SOURCE) 
+#if defined (__linux__) && !defined (_XOPEN_SOURCE) 
    // on Linux define _XOPEN_SOURCE to get CODESET defined in <langinfo.h>
 #  define _XOPEN_SOURCE 500   /* Single UNIX conformance */
 #endif   // __linux__
@@ -35,27 +35,27 @@
 #include _RWSTD_SYS_TYPES_H
 
 #ifndef _MSC_VER
-#  include <sys/mman.h>
-#  include <unistd.h>    // for close ()
+#  include <sys/mman.h>   // for mmap()
+#  include <unistd.h>     // for close ()
 #  include <iconv.h>
 #  include <langinfo.h>
 #else
-#  include <io.h>        // for open()
+#  include <io.h>         // for open()
 #  include <windows.h>
 #endif  // _MSC_VER
 
-#include <limits.h>
+#include <limits.h>      // for INT_MAX, INT_MIN
 #include <sys/stat.h>
 #include <fcntl.h>
 
 #include <locale>
-#include <map>
-#include <vector>
-#include <iostream>
+#include <map>           // for map
+#include <vector>        // for vector
+#include <iostream>      // for cerr, cout
 #include <iomanip>
-#include <fstream>
+#include <fstream>       // for fstream
 
-#include <cerrno>
+// #include <cerrno>
 #include <clocale>
 #include <cstdio>
 #include <cstdlib>
@@ -70,41 +70,72 @@
 #include "memchk.h"
 #include "diagnostic.h"
 
+/**************************************************************************/
 
-bool print_cat_names = false;
-bool print_keywords = false;
+#ifndef LC_MESSAGES
+#  ifdef _RWSTD_LC_MESSAGES
+#    define LC_MESSAGES   _RWSTD_LC_MESSAGES
+#  else
+#    define LC_MESSAGES   -1
+#  endif   // _RWSTD_LC_MESSAGES
+#endif   // LC_MESSAGES
+
+
+// set to true in response to the "-c" command line option requesting
+// locale to print the name of each section before printing out its
+// contents
+static bool print_sect_names = false;
+
+// set to true in response to the "-k" command line option requesting
+// locale to print the name of each keyword before printing out its
+// value
+static bool print_keywords = false;
 
 // set to true in response to the "-h" command line option requesting
 // locale to try to use character names from the original charmap used
 // to create the locale (if possible)
-bool decode = false;
+static bool decode = false;
 
-bool is_utf8 = true;
-bool POSIX_output = true;
+// set to false in response to the "-l" command line option requesting
+// locale to produce output suitable for processing by the localedef
+// utility
+static bool posix_output = true;
 
-const _RW::__rw_codecvt_t* codecvt_st   = 0;
-const _RW::__rw_collate_t* collate_st   = 0;
-const _RW::__rw_ctype_t*   ctype_st     = 0;
-const _RW::__rw_time_t*    time_st      = 0;
-const _RW::__rw_num_t*     num_st       = 0;
-const _RW::__rw_mon_t*     mon_st       = 0;
-const _RW::__rw_punct_t*   num_punct_st = 0;
-const _RW::__rw_punct_t*   mon_punct_st = 0;
-const _RW::__rw_messages_t* messages_st = 0;
+// set to true in response to the "-p" command line option requesting
+// locale to produce output using the symbols from the POSIX Portable
+// Character Set
+static bool use_pcs = false;
 
-Charmap *collate_charmap  = 0;
-Charmap *ctype_charmap    = 0;
-Charmap *time_charmap     = 0;
-Charmap *num_charmap      = 0;
-Charmap *mon_charmap      = 0;
-Charmap *messages_charmap = 0;
+static bool is_utf8 = true;
 
-const char* current_locales[8];
-bool is_env_set[8];
+
+static const _RW::__rw_codecvt_t*  codecvt_st   = 0;
+static const _RW::__rw_collate_t*  collate_st   = 0;
+static const _RW::__rw_ctype_t*    ctype_st     = 0;
+static const _RW::__rw_time_t*     time_st      = 0;
+static const _RW::__rw_num_t*      num_st       = 0;
+static const _RW::__rw_mon_t*      mon_st       = 0;
+static const _RW::__rw_punct_t*    num_punct_st = 0;
+static const _RW::__rw_punct_t*    mon_punct_st = 0;
+static const _RW::__rw_messages_t* messages_st  = 0;
+
+
+static const char sect_charmap[]     = "CHARMAP";
+static const char sect_lc_all[]      = "LC_ALL";
+static const char sect_lc_collate[]  = "LC_COLLATE";
+static const char sect_lc_ctype[]    = "LC_CTYPE";
+static const char sect_lc_messages[] = "LC_MESSAGES";
+static const char sect_lc_monetary[] = "LC_MONETARY";
+static const char sect_lc_numeric[]  = "LC_NUMERIC";
+static const char sect_lc_time[]     = "LC_TIME";
 
 // length of the largest string you want printed
 #define MAX_LINE_LEN 50
 
+// for convenience
+typedef unsigned char UChar;
+
+/**************************************************************************/
 
 int validate (const void *addr, std::size_t nbytes)
 {
@@ -113,7 +144,7 @@ int validate (const void *addr, std::size_t nbytes)
     if (nbytes != size) {
         if (size)
             issue_diag (E_INVAL, true, 0,
-                        "invalid size at %p: %u, expected %u\n",
+                        "invalid size at address %p: %u, expected %u\n",
                         addr, size, nbytes);
         else
             issue_diag (E_INVAL, true, 0,
@@ -153,10 +184,16 @@ int validate (const char *str)
 // silently use the hardcoded 'POSIX' locale
 
 const void*
-initialize_struct (const std::string &loc_path_root,
-                   const char *all_val, const char *lang_val,
-                   const char *cat_name, const char *codeset_name)
+init_struct (const std::string &loc_path_root,
+             const char *cat_name, const char *codeset_name)
 {
+    // check to see if the LC_ALL or LC_LANG environment variable
+    // was set, if LC_LANG was not set it defaults to "C"
+    static const char* const all_val = std::getenv ("LC_ALL");
+    static const char*       lang_val   = std::getenv ("LANG");
+    if (0 == lang_val)
+        lang_val = "C";
+
     // if LC_ALL is set, use that value for this locale
     // otherwise, find out what the environment value is for this category
     // is and if it is not set use the value in LC_LANG
@@ -230,14 +267,12 @@ initialize_struct (const std::string &loc_path_root,
 
 template <class FacetData>
 const FacetData*
-initialize (const std::string &loc_path_root,
-            const char *all_val, const char *lang_val,
-            const char *cat_name, const char *codeset_name,
-            FacetData*)
+init_section (const std::string &loc_path_root,
+              const char *cat_name, const char *codeset_name,
+              FacetData*)
 {
     const void* const ptr =
-        initialize_struct (loc_path_root, all_val, lang_val,
-                           cat_name, codeset_name);
+        init_struct (loc_path_root, cat_name, codeset_name);
 
     if (ptr && 0 == validate (ptr, sizeof (FacetData)))
         return static_cast<const FacetData*>(ptr);
@@ -246,7 +281,8 @@ initialize (const std::string &loc_path_root,
 }
 
 
-void initialize_structs ()
+static void
+init_sections ()
 {
     std::string loc_path_root;
 
@@ -257,63 +293,49 @@ void initialize_structs ()
     loc_path_root  = root ? root : ".";
     loc_path_root += _RWSTD_PATH_SEP;
 
-    // check to see if the LC_ALL or LC_LANG environment was set.
-    // if LC_LANG was not set it defaults to "C"
-    const char* const all_val  = std::getenv ("LC_ALL");
-    const char*       lang_val = std::getenv ("LANG");
-    if (0 == lang_val)
-        lang_val = "C";
-
     // points to the name of the codeset used by all non-empty
     // locale categories, otherwise 0
-    const char *codeset_name = 0;
+    const char *codeset = 0;
 
-    // points to the name of the LC_XXX environment variable
-    // that refers to the collate category whose codeset is
-    // described by codeset_name; the value of the variable
-    // is used to determine the location of the codeset
-    // conversion database file, e.g., when the environment
-    // variable RWSTD_LOCALE_ROOT is not defined and locale
-    // is invoked like so:
-    // LC_CTYPE=/foo/bar/somelocale locale --charmap
-    const char *lc_cat_envvar = 0;
+    // points to the name of the LC_XXX environment variable that refers
+    // to the collate category whose codeset is described by codeset;
+    // the value of the variable is used to determine the location of
+    // the codeset conversion database file, e.g., when the environment
+    // variable RWSTD_LOCALE_ROOT is not defined and locale is invoked
+    // like so:
+    //   LC_CTYPE=/foo/bar/somelocale locale --charmap
+    const char *section = 0;
 
     // initialize collate_st
-    collate_st = initialize (loc_path_root,
-                             all_val, lang_val,
-                             "LC_COLLATE", 0,
-                             (_RW::__rw_collate_t*)0);
+    collate_st = init_section (loc_path_root, sect_lc_collate, 0,
+                               (_RW::__rw_collate_t*)0);
 
     if (collate_st) {
         validate (collate_st->codeset_name ());
 
-        codeset_name  = collate_st->codeset_name ();
-        lc_cat_envvar = "LC_COLLATE";
+        codeset = collate_st->codeset_name ();
+        section = sect_lc_collate;
     }
 
     // initialize ctype_st
-    ctype_st = initialize (loc_path_root,
-                           all_val, lang_val,
-                           "LC_CTYPE", 0,
+    ctype_st = init_section (loc_path_root, sect_lc_ctype, 0,
                            (_RW::__rw_ctype_t*)0);
 
     if (ctype_st) {
         validate (ctype_st->codeset_name ());
 
-        if (codeset_name) {
-            if (std::strcmp (codeset_name, ctype_st->codeset_name ()))
-                codeset_name = 0;
+        if (codeset) {
+            if (std::strcmp (codeset, ctype_st->codeset_name ()))
+                codeset = 0;
         }
         else {
-            codeset_name  = ctype_st->codeset_name ();
-            lc_cat_envvar = "LC_CTYPE";
+            codeset = ctype_st->codeset_name ();
+            section = sect_lc_ctype;
         }
     }
 
     // initialize mon_st
-    mon_punct_st = initialize (loc_path_root,
-                               all_val, lang_val,
-                               "LC_MONETARY", 0,
+    mon_punct_st = init_section (loc_path_root, sect_lc_monetary, 0,
                                (_RW::__rw_punct_t*)0);
 
     if (0 != mon_punct_st) {
@@ -325,20 +347,18 @@ void initialize_structs ()
     if (mon_st) {
         validate (mon_st->codeset_name ());
 
-        if (codeset_name) {
-            if (std::strcmp (codeset_name, mon_st->codeset_name ()))
-                codeset_name = 0;
+        if (codeset) {
+            if (std::strcmp (codeset, mon_st->codeset_name ()))
+                codeset = 0;
         }
         else {
-            codeset_name  = mon_st->codeset_name ();
-            lc_cat_envvar = "LC_MONETARY";
+            codeset = mon_st->codeset_name ();
+            section = sect_lc_monetary;
         }
     }
 
     // initialize num_st
-    num_punct_st = initialize (loc_path_root,
-                               all_val, lang_val,
-                               "LC_NUMERIC", 0,
+    num_punct_st = init_section (loc_path_root, sect_lc_numeric, 0,
                                (_RW::__rw_punct_t*)0);
     if (0 != num_punct_st) {
         num_st = _RWSTD_STATIC_CAST (const _RW::__rw_num_t*,
@@ -349,182 +369,72 @@ void initialize_structs ()
     if (num_st) {
         validate (num_st->codeset_name ());
 
-        if (codeset_name) {
-            if (std::strcmp (codeset_name, num_st->codeset_name ()))
-                codeset_name = 0;
+        if (codeset) {
+            if (std::strcmp (codeset, num_st->codeset_name ()))
+                codeset = 0;
         }
         else {
-            codeset_name  = num_st->codeset_name ();
-            lc_cat_envvar = "LC_NUMERIC";
+            codeset = num_st->codeset_name ();
+            section = sect_lc_numeric;
         }
     }
 
     // initialize time_st
-    time_st = initialize (loc_path_root,
-                          all_val, lang_val,
-                          "LC_TIME", 0,
-                          (_RW::__rw_time_t*)0);
+    time_st = init_section (loc_path_root, sect_lc_time, 0,
+                            (_RW::__rw_time_t*)0);
     if (time_st) {
         validate (time_st->codeset_name ());
 
-        if (codeset_name) {
-            if (std::strcmp (codeset_name, time_st->codeset_name ()))
-                codeset_name = 0;
+        if (codeset) {
+            if (std::strcmp (codeset, time_st->codeset_name ()))
+                codeset = 0;
         }
         else {
-            codeset_name  = time_st->codeset_name ();
-            lc_cat_envvar = "LC_TIME";
+            codeset = time_st->codeset_name ();
+            section = sect_lc_time;
         }
     }
 
     // initialize messages_st
-    messages_st = initialize (loc_path_root,
-                              all_val, lang_val,
-                              "LC_MESSAGES", 0,
+    messages_st = init_section (loc_path_root, sect_lc_messages, 0,
                               (_RW::__rw_messages_t*)0);
 
     if (messages_st) {
         validate (messages_st->codeset_name ());
 
-        if (codeset_name) {
-            if (std::strcmp (codeset_name, messages_st->codeset_name ()))
-                codeset_name = 0;
+        if (codeset) {
+            if (std::strcmp (codeset, messages_st->codeset_name ()))
+                codeset = 0;
         }
         else {
-            codeset_name  = messages_st->codeset_name ();
-            lc_cat_envvar = "LC_MESSAGES";
+            codeset = messages_st->codeset_name ();
+            section = sect_lc_messages;
         }
     }
 
-    if (codeset_name) {
-
+    if (codeset) {
         // initialize codecvt_st
-        codecvt_st = initialize (loc_path_root,
-                                 all_val, lang_val,
-                                 lc_cat_envvar,
-                                 codeset_name,
-                                 (_RW::__rw_codecvt_t*)0);
+        codecvt_st = init_section (loc_path_root, section, codeset,
+                                   (_RW::__rw_codecvt_t*)0);
     }
 }
 
 
-Charmap* get_charmap (const char* name)
-{
-    if (ctype_charmap && ctype_charmap->get_charmap_name () == name)
-        return ctype_charmap;
-
-    if (collate_charmap && collate_charmap->get_charmap_name () == name)
-        return collate_charmap;
-
-    if (time_charmap && time_charmap->get_charmap_name () == name)
-        return time_charmap;
-
-    if (mon_charmap && mon_charmap->get_charmap_name () == name)
-        return mon_charmap;
-
-    if (num_charmap && num_charmap->get_charmap_name () == name)
-        return num_charmap;
-
-    // look for the charmap directory
-    const char* const src_root = std::getenv ("RWSTD_SRC_ROOT");
-    if (0 != src_root) {
-        std::string charmap_path = src_root;
-        charmap_path = charmap_path + "/charmaps/" + name;
-
-        // search for a C library locale that uses the same encoding
-        std::string std_encoding (name);
-
-# if !defined(_MSC_VER)
-        std::string C_locale (get_C_encoding_locale (std_encoding));
-# else
-        std::string C_locale ("");
-# endif
-
-        return new Charmap (C_locale.c_str (), charmap_path.c_str(),
-                            0 == std::strcmp ("utf8.cm", name),
-                            false, true, false);
-    }
-
-    issue_diag (503, true, 0, "RWSTD_SRC_ROOT not set, giving up\n");
-    return 0;
-}
-
-
-std::string create_str (const char* str, const wchar_t* w_str,
-                        Charmap* charmap)
-{
-    assert (0 != str);
-
-    typedef std::map <unsigned char, std::string>::const_iterator rn_cmap_iter;
-    typedef std::map <wchar_t, std::string>::const_iterator rw_cmap_iter;
-
-    if (0 == charmap)
-        return str;
-
-    std::string ret;
-    if (0 == ctype_st || ctype_st->mb_cur_max == 1) {
-        // if we were given a charmap file we will look up each character in
-        // the charmap to get the symbolic name associated with the value
-        while (*str != '\0'){
-            rn_cmap_iter ch_pos = charmap->get_rn_cmap().find
-                ((unsigned char)*str);
-            if (ch_pos != charmap->get_rn_cmap().end()) {
-                ret += ch_pos->second;
-            }
-                str++;
-        }
-    }
-    else {
-        while (*w_str != '\0') {
-            rw_cmap_iter ch_wpos = charmap->get_rw_cmap().find (*w_str);
-            if (ch_wpos != charmap->get_rw_cmap().end()) {
-                ret += ch_wpos->second;
-            }
-            w_str++;
-        }
-    }
-    return ret;
-}
-
-std::string create_str (wchar_t ch, Charmap* charmap)
-{
-    typedef std::map <wchar_t, std::string>::const_iterator rw_cmap_iter;
-
-    std::string ret;
-
-    if (charmap) {
-            rw_cmap_iter ch_pos = charmap->get_rw_cmap().find (ch);
-            if (ch_pos != charmap->get_rw_cmap().end())
-                ret += ch_pos->second;
-            else {
-                issue_diag (501, true, 0, "%d character in locale database "
-                            "could not be found in character map file\n", ch);
-            }
-    }
-    else {
-        ret += (unsigned char)ch;
-    }
-    return ret;
-
-}
-
-std::string create_keyword (const char* str)
-{
-    std::string keyword_str = str;
-    if (POSIX_output)
-        keyword_str += '=';
-    else
-        keyword_str += ' ';
-
-    return (print_keywords ? keyword_str : "");
-}
-
-const char* set_locale (const std::string& charmap_name)
+static const char*
+set_locale (int lc_cat, const char *locname, const std::string &charmap_name)
 {
 #ifndef _MSC_VER
+
+    assert (0 != locname);
+
+    locname = std::setlocale (lc_cat, locname);
+
+    if (locname)
+        return locname;
+
     std::string encoding (charmap_name.substr (0, charmap_name.rfind ('.')));
 
-    std::vector<std::string>aliases;
+    std::vector<std::string> aliases;
     get_cname_aliases (encoding, aliases);
 
     std::vector<std::string>::iterator pos;
@@ -538,27 +448,335 @@ const char* set_locale (const std::string& charmap_name)
     for (; *names; names += std::strlen (names) + 1) {
 
         if (0 != std::setlocale (LC_CTYPE, names)) {
-            std::string codeset = nl_langinfo(CODESET);
-            for (pos = aliases.begin(); pos != aliases.end(); pos++)
+
+            const char* const codeset = nl_langinfo (CODESET);
+
+            for (pos = aliases.begin (); pos != aliases.end (); ++pos)
                 if (codeset == *pos)
                     return names;
         }
     }
-#endif  // _MSC_VER
-    return 0;
 
+#endif  // _MSC_VER
+
+    return 0;
 }
 
 
+/**************************************************************************/
+
+static const Charmap*
+get_charmap (int lc_cat)
+{
+    if (!decode)
+        return 0;
+
+    static const char* const lang        = std::getenv ("LANG");
+    static const char* const lc_all      = std::getenv (sect_lc_all);
+    static const char* const lc_collate  = std::getenv (sect_lc_collate);
+    static const char* const lc_ctype    = std::getenv (sect_lc_ctype);
+    static const char* const lc_messages = std::getenv (sect_lc_messages);
+    static const char* const lc_monetary = std::getenv (sect_lc_monetary);
+    static const char* const lc_numeric  = std::getenv (sect_lc_numeric);
+    static const char* const lc_time     = std::getenv (sect_lc_time);
+
+    static const Charmap* cmaps [6];
+    static bool           cmaps_tried [sizeof cmaps / sizeof *cmaps];
+
+    const char* charmap = 0;
+    const char* locale  = 0;
+
+    const Charmap** cmap = 0;
+
+    switch (lc_cat) {
+
+    case LC_COLLATE:
+        charmap = collate_st ? collate_st->charmap_name () : "";
+        locale  = lc_collate;
+        cmap    = cmaps + 0;
+        break;
+
+    case LC_CTYPE:
+        charmap = ctype_st ? ctype_st->charmap_name () : "";
+        locale  = lc_ctype;
+        cmap    = cmaps + 1;
+        break;
+
+    case LC_MESSAGES:
+        charmap = messages_st ? messages_st->charmap_name () : "";
+        locale  = lc_messages;
+        cmap    = cmaps + 2;
+        break;
+
+    case LC_MONETARY:
+        charmap = mon_st ? mon_st->charmap_name () : "";
+        locale  = lc_monetary;
+        cmap    = cmaps + 3;
+        break;
+
+    case LC_NUMERIC:
+        charmap = num_st ? num_st->charmap_name () : "";
+        locale  = lc_numeric;
+        cmap    = cmaps + 4;
+        break;
+
+    case LC_TIME:
+        charmap = time_st ? time_st->charmap_name () : "";
+        locale  = lc_time;
+        cmap    = cmaps + 5;
+        break;
+
+    default: assert (!"bad LC_XXX constant");
+    }
+
+    assert (0 != cmap);
+    assert (0 != charmap);
+
+    if (*cmap && (*cmap)->get_charmap_name () == charmap)
+        return *cmap;
+
+    if (cmaps_tried [cmap - cmaps])
+        return *cmap;
+
+    cmaps_tried [cmap - cmaps] = true;
+
+    // LC_ALL overrides any other LC_XXX setting
+    if (lc_all && *lc_all)
+        locale = lc_all;
+
+    // when neither LC_ALL or LC_XX is specified fall back on LANG
+    if (0 == locale)
+        locale = lang ? lang : "POSIX";
+
+    set_locale (lc_cat, locale, charmap);
+
+    // look for the charmap directory
+    static const char* const src_root = std::getenv ("RWSTD_SRC_ROOT");
+
+    if (0 == src_root) {
+        static int warning_issued = 0;
+        if (0 == warning_issued++)
+            issue_diag (W_CHARMAP, false, 0, "RWSTD_SRC_ROOT not set\n");
+    }
+    else if ('\0' == *charmap) {
+        static int warning_issued = 0;
+        if (0 == warning_issued++)
+            issue_diag (W_CHARMAP, false, 0, "no charmap name\n");
+    }
+    else {
+        std::string charmap_path = src_root;
+
+        charmap_path += _RWSTD_PATH_SEP;
+        charmap_path += "charmaps";
+        charmap_path += _RWSTD_PATH_SEP;
+        charmap_path += charmap;
+
+        // search for a C library locale that uses the same encoding
+        std::string std_encoding (charmap);
+
+# if !defined(_MSC_VER)
+        std::string C_locale (get_C_encoding_locale (std_encoding));
+# else
+        std::string C_locale ("");
+# endif
+
+        *cmap = new Charmap (C_locale.c_str (), charmap_path.c_str(),
+                             0 == std::strcmp ("utf8.cm", charmap),
+                             false, true, false);
+    }
+
+    return cmap ? *cmap : 0;
+}
+
+
+static std::string
+escape_value (unsigned val, bool always = false)
+{
+    // set of printable ASCII characters
+    static const char printable [] = {
+        //        ................
+        //        0123456789abcdef
+        /* 0. */ "                "
+        /* 1. */ "                "
+        /* 2. */ " ! #$%''()*+,-./"
+        /* 3. */ "0123456789: <=>?"
+        /* 4. */ "@ABCDEFGHIJKLMNO"
+        /* 5. */ "PQRSTUVWXYZ[ ]^_"
+        /* 6. */ "`abcdefghijklmno"
+        /* 7. */ "pqrstuvwxyz{|}~ "
+    };
+
+    static const char hexdigit[] = "0123456789abcdef";
+
+    std::string ret;
+
+    if (   (UChar (';') == val || UChar ('"') == val || UChar ('\\') == val)
+        && !always) {
+        ret += '\\';
+        ret += char (val);
+    }
+    else if (   use_pcs && val <= UChar ('~')
+             && Charmap::portable_charset [val]) {
+        // use symbols from the Portable Character Set
+        ret += Charmap::portable_charset [val];
+    }
+    else if (val < sizeof printable - 1 && ' ' != printable [val] && !always) {
+        // represent non-space printable characters as themselves
+        ret += printable [val];
+    }
+    else if (UChar (' ') == val && !always) {
+        // represent space as itself unless always escaping
+        ret += ' ';
+    }
+    else {
+        // non-printable character or escaping requested
+
+        char buf [40];
+        char *pbuf = buf;
+
+        if (0xffU < val)
+            *pbuf++ = '"';
+
+        const unsigned mask = 0xffU << (sizeof mask - 1) * 8;
+
+        while (val && 0 == (val & mask))
+            val <<= 8;
+
+        do {
+            *pbuf++ = '\\';
+            *pbuf++ = 'x';
+            *pbuf++ = hexdigit [val >> (sizeof val * 8 - 4)];
+            val   <<= 4;
+            *pbuf++ = hexdigit [val >> (sizeof val * 8 - 4)];
+        } while (val <<= 4);
+
+        if ('"' == *buf)
+            *pbuf++ = '"';
+
+        *pbuf = '\0';
+
+        ret = buf;
+    }
+
+    return ret;
+}
+
+
+static std::string
+create_str (const char* str, const wchar_t* wstr, const Charmap *charmap)
+{
+    if (0 == str)
+        str = "";
+
+    std::string ret;
+
+    if (0 == charmap) {
+
+        // when no character map is provided format non-printable
+        // characters using escape sequences
+        for (; *str; ++str)
+            ret += escape_value (UChar (*str));
+
+        return ret;
+    }
+
+    typedef std::map <UChar, std::string>::const_iterator rn_cmap_iter;
+    typedef std::map <wchar_t, std::string>::const_iterator rw_cmap_iter;
+
+    if (0 == ctype_st || 1 == ctype_st->mb_cur_max) {
+        // look up each character in the character map and (try
+        // to) get the symbolic name associated with each, falling
+        // back on ordinary formatting using escape sequences when
+        // the character is not found in the map
+
+        const rn_cmap_iter end = charmap->get_rn_cmap ().end ();
+
+        for (; *str != '\0'; ++str) {
+            const UChar uc = UChar (*str);
+            const rn_cmap_iter it = charmap->get_rn_cmap ().find (uc);
+
+            ret += (it == end) ? escape_value (uc) : it->second;
+        }
+    }
+    else {
+        const rw_cmap_iter end = charmap->get_rw_cmap ().end ();
+
+        if (0 == wstr)
+            wstr = L"";
+
+        for ( ; *wstr != '\0'; ++wstr) {
+
+            const unsigned uc = unsigned (*wstr);
+
+            const rw_cmap_iter it = charmap->get_rw_cmap ().find (uc);
+
+            ret += (it == end) ? escape_value (uc) : it->second;
+        }
+    }
+
+    return ret;
+}
+
+
+// formats a character in human readable form
+static std::string
+create_str (unsigned ch, const Charmap *charmap)
+{
+    typedef std::map <wchar_t, std::string>::const_iterator rw_cmap_iter;
+
+    std::string ret;
+
+    if (charmap) {
+        // look up character in the reverse wide character map
+        const rw_cmap_iter ch_pos = charmap->get_rw_cmap ().find (ch);
+
+        if (ch_pos == charmap->get_rw_cmap ().end ()) {
+            // issue a warning when not found and format it below
+            issue_diag (W_CHAR, true, 0, "wide character L'\\%x' "
+                        "not found in character map\n", ch);
+        }
+        else
+            return ch_pos->second;
+    }
+
+    return escape_value (ch);
+}
+
+
+static void
+print_section (const char* name, bool end = false)
+{
+    assert (0 != name);
+
+    if (print_sect_names)
+        std::cout << (end ? "END " : "") << name << '\n';
+}
+
+
+static void
+print_keyword (const char* str)
+{
+    assert (0 != str);
+
+    if (print_keywords)
+        std::cout << str << (posix_output ? '=' : ' ');
+}
+
+/**************************************************************************/
+
 // place holder for function that prints the "C" locale LC_COLLATE category
-void print_c_lc_collate ()
+static void
+print_c_lc_collate ()
 {
     assert (0);
 }
 
-wchar_t get_wchar_from_offset(unsigned int offset,
-                              const unsigned int* wchar_map,
-                              unsigned int num_wchars) {
+/**************************************************************************/
+
+static wchar_t
+get_wchar_from_offset(unsigned int offset,
+                      const unsigned int* wchar_map,
+                      unsigned int num_wchars) {
     unsigned int beg = 0;
     unsigned int end = num_wchars;
     while (beg <= end) {
@@ -575,9 +793,10 @@ wchar_t get_wchar_from_offset(unsigned int offset,
 }
 
 
-void print_weight (const unsigned int* weightp, 
-                   unsigned int        num_weights,
-                   unsigned int        longest_weight)
+static void
+print_weight (const unsigned int* weightp, 
+              unsigned int        num_weights,
+              unsigned int        longest_weight)
 {
     // FIXME: ignore the order of the element
     ++weightp;
@@ -589,26 +808,8 @@ void print_weight (const unsigned int* weightp,
             if (*weightp != UINT_MAX) {
                 if (0 == *weightp) 
                     std::cout << "IGNORE;";
-                else if (*weightp <= UCHAR_MAX) {
-                    std::cout << "\\d" << *weightp << ';';
-                }
-                else {
-                    std::cout << '"';
-
-                    unsigned wt = *weightp;
-
-                    for (unsigned inx = sizeof wt; wt && inx--; ) {
-
-                        const unsigned byte =
-                            (wt >> CHAR_BIT * inx) & UCHAR_MAX;
-
-                        wt &= ~(wt << (CHAR_BIT * inx));
-
-                        if (byte || wt)
-                            std::cout << "\\d" << byte;
-                    }
-                    std::cout << "\";";
-                }
+                else
+                    std::cout << escape_value (*weightp, true) << ';';
             }
         }
     }
@@ -617,12 +818,13 @@ void print_weight (const unsigned int* weightp,
 }
 
 
-void write_coll_info (const std::string &ch, unsigned int idx,
-                      unsigned int tab_num)
+static void
+write_coll_info (const std::string &ch, unsigned int idx,
+                 unsigned int tab_num)
 {
-    typedef unsigned char UChar;
-
     if (collate_st->num_elms > 1) {
+        const Charmap* const cmap = get_charmap (LC_COLLATE);
+
         typedef std::map <std::string, wchar_t>::const_iterator n_cmap2_iter;
         const unsigned int* tab = collate_st->get_n_tab (tab_num);
         unsigned int first = collate_st->get_first_char_in_n_tab(tab_num);
@@ -637,12 +839,12 @@ void write_coll_info (const std::string &ch, unsigned int idx,
                 }
                 else {
                     // we found the offset to the weight
-                    if (collate_charmap) {
+                    if (cmap) {
                         // first we need to print the symbolic name
                         n_cmap2_iter n_cmap2_it =
-                            collate_charmap->get_n_cmap2().find(new_ch);
-                        if (n_cmap2_it != collate_charmap->get_n_cmap2().end())
-                            std::cout << collate_charmap->get_rw_cmap().find(
+                            cmap->get_mb_cmap().find(new_ch);
+                        if (n_cmap2_it != cmap->get_mb_cmap().end())
+                            std::cout << cmap->get_rw_cmap().find(
                                 n_cmap2_it->second)->second;
                         else
                             ;
@@ -668,52 +870,71 @@ void write_coll_info (const std::string &ch, unsigned int idx,
     }
 }
 
-void print_ce_info (unsigned int tab_num, const std::string& mb_str,
-                    std::map<std::string, unsigned int> &ce_map) {
-    static unsigned int ce_num = 0;
-    const unsigned int *tab = collate_st->get_n_ce_tab (tab_num);
-    unsigned char first = collate_st->get_first_char_in_n_ce_tab (tab_num);
-    unsigned char last = collate_st->get_last_char_in_n_ce_tab (tab_num);
-    std::string cur_mb;
-    for (unsigned int i = first; i <= last; i++) {
-        cur_mb = mb_str;
-        cur_mb += (unsigned char) i;
-        if (tab[i-first] != UINT_MAX) {
-            if (tab[i-first] & 0x80000000) {
+
+static void
+print_ce_info (unsigned                             tab_num,
+               const std::string                   &mb_str,
+               std::map<std::string, unsigned int> &ce_map)
+{
+    static unsigned ce_num = 0;
+
+    const unsigned* const tab = collate_st->get_n_ce_tab (tab_num);
+
+    const unsigned first = collate_st->get_first_char_in_n_ce_tab (tab_num);
+    const unsigned last  = collate_st->get_last_char_in_n_ce_tab (tab_num);
+
+    std::string mbchar;
+
+    const Charmap* const cmap = get_charmap (LC_COLLATE);
+
+    for (unsigned i = first; i <= last; ++i) {
+
+        mbchar = mb_str;
+        mbchar += UChar (i);
+
+        const unsigned elem = tab [i - first];
+
+        if (elem != UINT_MAX) {
+
+            if (elem & 0x80000000) {
                 // it's an offset to another table. recursively call
                 // print_ce_info with the new table number.
 
-                print_ce_info (tab[i-first] &~ 0x80000000, cur_mb, ce_map);
+                print_ce_info (elem &~ 0x80000000, mbchar, ce_map);
             }
             else {
                 // we found the end of the collating element
-                // now we need to do a lookup in the narrow character maps to
-                // find the symbolic names for the characters that make up
-                // this collating element.
+                // now we need to do a lookup in the narrow character maps
+                // and find the symbolic names for the characters that make
+                // up this collating element
 
                 // sym is sized at 13 because there will never be more then
                 // 99,999 collating elements
-                char sym[13];
+                char sym [13];
                 std::sprintf (sym, "<RW_CE_%d>", ce_num++);
 
-                ce_map.insert (std::make_pair (sym, tab[i-first]));
+                ce_map.insert (std::make_pair (sym, elem));
                 std::cout << "collating-element " << sym << " from \"";
 
-                if (0 == collate_charmap)
-                    std::cout << cur_mb << "\"\n";
+                if (0 == cmap)
+                    std::cout << mbchar << "\"\n";
                 else {
-                    unsigned int first_char = 0;
-                    std::map<std::string, wchar_t>::const_iterator it;
-                    for (unsigned int j = 1; j <= cur_mb.size(); j++) {
-                        if ((it = collate_charmap->get_n_cmap2().find
-                             (cur_mb.substr (first_char, j)))
-                            != collate_charmap->get_n_cmap2().end()) {
-                            std::cout << (collate_charmap->get_rw_cmap().find
-                                          (it->second))->second;
-                            first_char = j;
-                        }
+                    const std::map<std::string, wchar_t> &cm =
+                        cmap->get_mb_cmap ();
 
+                    unsigned ch = 0;
+
+                    for (unsigned j = 1; j <= mbchar.size (); ++j) {
+                        const std::map<std::string, wchar_t>::const_iterator
+                            it = cm.find (mbchar.substr (ch, j));
+
+                        if (it != cm.end ()) {
+                            std::cout << (cmap->get_rw_cmap ().find
+                                          (it->second))->second;
+                            ch = j;
+                        }
                     }
+
                     std::cout << "\"\n";
                 }
             }
@@ -722,26 +943,40 @@ void print_ce_info (unsigned int tab_num, const std::string& mb_str,
 }
 
 
-void print_lc_collate ()
+static int
+print_lc_collate (const char *section, int)
 {
-    if (print_cat_names)
-        std::cout << "LC_COLLATE\n";
+    print_section (section);
 
-    if (0 == collate_st) {
-        //print_c_lc_collate();
-    }
-    else {
-        // if the collate_charmap has not been initialized then initialize it
-        if (0 == collate_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[1]))
-                set_locale (collate_st->charmap_name());
-#endif  // _MSC_VER
-            collate_charmap = get_charmap (collate_st->charmap_name());
+    if (collate_st) {
+
+        if (decode) {
+
+            // print out internal collate_st data
+            std::cout <<   "# collate data:"
+                      << "\n#   codeset: \""
+                      << collate_st->codeset_name ()
+                      << "\"\n#   charmap: \""
+                      << collate_st->charmap_name ()
+                      << "\"\n#   codeset_off: "
+                      << collate_st->codeset_off
+                      << "\n#   charmap_off: "
+                      << collate_st->charmap_off
+                      << "\n#   elm_size: "
+                      << collate_st->elm_size
+                      << "\n#   num_elms: "
+                      << collate_st->num_elms
+                      << "\n#   num_wchars: "
+                      << collate_st->num_wchars
+                      << "\n#   longest_weight: "
+                      << int (collate_st->longest_weight)
+                      << "\n#   num_weights: "
+                      << int (collate_st->num_weights)
+                      << "\n#   largest_ce: "
+                      << int (collate_st->largest_ce)
+                      << '\n';
         }
+
         std::map<std::string, unsigned int> ce_map;
         typedef std::map<std::string, unsigned int>::iterator ce_map_iter;
 
@@ -772,7 +1007,7 @@ void print_lc_collate ()
                             "in collate definition\n");
             }
             if (i == collate_st->num_weights - 1)
-                std::cout << std::endl;
+                std::cout << '\n';
             else
                 std::cout << ';';
         }
@@ -782,291 +1017,381 @@ void print_lc_collate ()
 
 
         // first print out the collating elements
-        for (ce_map_iter ce_map_it = ce_map.begin();
-             ce_map_it != ce_map.end(); ce_map_it++) {
-            std::cout << ce_map_it->first << "  ";
-            print_weight (collate_st->get_weight (ce_map_it->second),
+        for (ce_map_iter it = ce_map.begin (); it != ce_map.end (); ++it) {
+            std::cout << it->first << "  ";
+
+            print_weight (collate_st->get_weight (it->second),
                           collate_st->num_weights,
                           collate_st->longest_weight);
         }
 
-        std::string ch;
-        write_coll_info (ch, 0, 0);
+        write_coll_info ("", 0, 0);
+
         if (collate_st->undefined_optimization) {
             std::cout << "UNDEFINED ";
-            print_weight (collate_st->get_weight (collate_st->undefined_weight_idx),
-                          collate_st->num_weights, collate_st->longest_weight);
+
+            const unsigned idx = collate_st->undefined_weight_idx;
+
+            print_weight (collate_st->get_weight (idx),
+                          collate_st->num_weights,
+                          collate_st->longest_weight);
         }
 
         std::cout << "\norder_end\n";
     }
 
-    if (print_cat_names)
-        std::cout << "END LC_COLLATE\n";
+    print_section (section, true);
 
+    return 0;
 }
 
-//  print_mask takes in a ctype_base::mask value and prints all the
+/**************************************************************************/
+
+// print_mask takes in a ctype_base::mask value and prints all the
 // characters in that mask category.  If a charmap was given on the
 // command line then it will look up the symbolic name and print that instead
-void print_mask(std::ctype_base::mask m, bool print_cat)
+static int
+print_mask (const char *section, int mask)
 {
     std::string out;
 
-    if (print_cat)
-        std::cout << "LC_CTYPE\n";
-    switch (m){
-    case std::ctype_base::upper:
-        std::cout << create_keyword("upper");
-        break;
-    case std::ctype_base::lower:
-        std::cout << create_keyword("lower");
-        break;
-    case std::ctype_base::space:
-        std::cout << create_keyword("space");
-        break;
-    case std::ctype_base::print:
-        std::cout << create_keyword("print");
-        break;
-    case std::ctype_base::alpha:
-        std::cout << create_keyword("alpha");
-        break;
-    case std::ctype_base::cntrl:
-        std::cout << create_keyword("cntrl");
-        break;
-    case std::ctype_base::punct:
-        std::cout << create_keyword("punct");
-        break;
-    case std::ctype_base::graph:
-        std::cout << create_keyword("graph");
-        break;
-    case std::ctype_base::digit:
-        std::cout << create_keyword("digit");
-        break;
-    case std::ctype_base::xdigit:
-        std::cout << create_keyword("xdigit");
-        break;
-    default:
-        break;
+    if (section)
+        print_section (section);
+
+    const char *keyword = 0;
+
+    switch (mask) {
+    case std::ctype_base::upper:  keyword = "upper"; break;
+    case std::ctype_base::lower:  keyword = "lower"; break;
+    case std::ctype_base::space:  keyword = "space"; break;
+    case std::ctype_base::print:  keyword = "print"; break;
+    case std::ctype_base::alpha:  keyword = "alpha"; break;
+    case std::ctype_base::cntrl:  keyword = "cntrl"; break;
+    case std::ctype_base::punct:  keyword = "punct"; break;
+    case std::ctype_base::graph:  keyword = "graph"; break;
+    case std::ctype_base::digit:  keyword = "digit"; break;
+    case std::ctype_base::xdigit: keyword = "xdigit"; break;
+    default: break;
     }
+
+    if (keyword)
+        print_keyword (keyword);
+
+    int nchars = 0;
+
     if (0 != ctype_st) {
-        // if the ctype_charmap has not been initialized then initialize it
-        if (0 == ctype_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[0]))
-                set_locale (ctype_st->charmap_name());
-#endif  // _MSC_VER
-            ctype_charmap = get_charmap (ctype_st->charmap_name());
-        }
+        const Charmap* const cmap = get_charmap (LC_CTYPE);
+
         // go through the entire mask_table and print out each
-        // character that has this mask value.
-        for (size_t k = 0; k < ctype_st->wmask_s; k++) {
-            if (ctype_st->wmask_tab(k).mask & m) {
-                out += create_str (ctype_st->wmask_tab(k).ch, ctype_charmap);
-                for (size_t j = k + 1; j < ctype_st->wmask_s; j++)
-                    if (ctype_st->wmask_tab(j).mask & m) {
-                        if (out.size() >= MAX_LINE_LEN && !POSIX_output)
-                            out += ";\\";
-                        else
+        // character that has the specified mask, counting the
+        // matching characters in the process
+        // avoid printing masks without a keyword while still
+        // counting such characters
+#if 1
+        for (std::size_t i = 0; i != ctype_st->wmask_s; ++i) {
+
+            if (ctype_st->wmask_tab (i).mask & mask) {
+
+                ++nchars;
+
+                if (keyword) {
+                    std::cout << create_str (ctype_st->wmask_tab (i).ch, cmap);
+
+                    if (i + 1 < ctype_st->wmask_s)
+                        std::cout << ';';
+                }
+            }
+        }
+#else
+        for (std::size_t k = 0; k < ctype_st->wmask_s; ++k) {
+
+            if (ctype_st->wmask_tab (k).mask & mask) {
+
+                if (keyword)
+                    out += create_str (ctype_st->wmask_tab (k).ch, cmap);
+
+                ++nchars;
+
+                for (std::size_t j = k + 1; j < ctype_st->wmask_s; ++j) {
+
+                    if (ctype_st->wmask_tab (j).mask & mask) {
+
+                        if (keyword) {
                             out += ';';
+
+                            if (out.size () >= MAX_LINE_LEN && !posix_output)
+                                out += '\\';
+                        }
+
                         break;
                     }
+                }
             }
-            if (out.size() > MAX_LINE_LEN && !POSIX_output) {
-                std::cout << out << '\n';
-                out.clear();
 
+            if (keyword && MAX_LINE_LEN < out.size () && !posix_output) {
+                std::cout << out << '\n';
+                out.clear ();
             }
         }
+
         std::cout << out;
+#endif
+
     }
 
-    std::cout << '\n';
+    if (keyword)
+        std::cout << '\n';
+
+    return nchars;
 }
 
 
-void print_toupper (bool print_cat)
+static int
+print_toupper (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_CTYPE\n";
+        print_section (sect_lc_ctype);
 
-    std::cout << create_keyword ("toupper");
+    print_keyword (keyword);
 
     std::string out;
+
+    // number of characters in the maps
+    int nchars = 0;
+
     if (0 != ctype_st) {
-        // if the ctype_charmap has not been initialized then initialize it
-        if (0 == ctype_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[0]))
-                set_locale (ctype_st->charmap_name());
-#endif  // _MSC_VER
-            ctype_charmap = get_charmap (ctype_st->charmap_name());
-        }
+
+        const Charmap* const cmap = get_charmap (LC_CTYPE);
+
+        const std::size_t count = ctype_st->wtoupper_s ();
+
+        nchars += count;
+
         // print out each pair in the toupper table.
         // the wide char table is used because it contains all characters
-        for (size_t j = 0; j < ctype_st->wtoupper_s(); j++) {
-            out = out + "(" + create_str (ctype_st->wtoupper_tab(j).lower,
-                                          ctype_charmap)
-                + "," + create_str (ctype_st->wtoupper_tab(j).upper,
-                                    ctype_charmap) + ")";
-            if (j != ctype_st->wtoupper_s() - 1) {
-                if (out.size() >= MAX_LINE_LEN && !POSIX_output)
+        for (std::size_t j = 0; j < count; ++j) {
+            out += '(';
+            out += create_str (ctype_st->wtoupper_tab (j).lower, cmap);
+            out += ',';
+            out += create_str (ctype_st->wtoupper_tab (j).upper, cmap);
+            out += ')';
+
+            if (j != count - 1) {
+                if (out.size () >= MAX_LINE_LEN && !posix_output)
                     out += ";\\";
                 else
                     out += ';';
             }
-            if (out.size() > MAX_LINE_LEN && !POSIX_output) {
+
+            if (out.size () > MAX_LINE_LEN && !posix_output) {
                 std::cout << out << '\n';
-                out.clear();
+                out.clear ();
             }
         }
+
         std::cout << out;
     }
 
     std::cout << '\n';
+
+    return nchars;
 }
 
 
-void print_tolower (bool print_cat)
+static int
+print_tolower (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_CTYPE\n";
+        print_section (sect_lc_ctype);
 
-    std::cout << create_keyword ("tolower");
+    print_keyword (keyword);
 
     std::string out;
 
+    // number of characters in the maps
+    int nchars = 0;
+
     if (0 != ctype_st) {
 
-        // if the ctype_charmap has not been initialized then initialize it
-        if (0 == ctype_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[0]))
-                set_locale (ctype_st->charmap_name());
-#endif  // _MSC_VER
-            ctype_charmap = get_charmap (ctype_st->charmap_name());
-        }
-        for (size_t j = 0; j < ctype_st->wtolower_s(); j++) {
-            out = out + "(" + create_str (ctype_st->wtolower_tab(j).upper,
-                                          ctype_charmap)
-                + "," + create_str (ctype_st->wtolower_tab(j).lower,
-                                    ctype_charmap) + ")";
-            if (j != ctype_st->wtolower_s() - 1) {
-                if (out.size() >= MAX_LINE_LEN && !POSIX_output)
+        const Charmap* const cmap = get_charmap (LC_CTYPE);
+
+        const std::size_t count = ctype_st->wtolower_s ();
+
+        nchars += count;
+
+        for (std::size_t j = 0; j < count; ++j) {
+            out += '(';
+            out += create_str (ctype_st->wtolower_tab (j).upper, cmap);
+            out += ',';
+            out += create_str (ctype_st->wtolower_tab (j).lower, cmap);
+            out += ')';
+
+            if (j != count - 1) {
+                if (out.size () >= MAX_LINE_LEN && !posix_output)
                     out += ";\\";
                 else
                     out += ';';
             }
-            if (out.size() > MAX_LINE_LEN && !POSIX_output) {
+            if (out.size () > MAX_LINE_LEN && !posix_output) {
                 std::cout << out << '\n';
-                out.clear();
+                out.clear ();
             }
         }
         std::cout << out;
     }
 
     std::cout << '\n';
+
+    return nchars;
 }
 
 
-void print_lc_ctype ()
+static int
+print_lc_ctype (const char *section, int)
 {
-    if (print_cat_names)
-        std::cout << "LC_CTYPE\n";
+    print_section (section);
 
-    print_mask (std::ctype_base::upper, false);
-    print_mask (std::ctype_base::lower, false);
-    print_mask (std::ctype_base::space, false);
-    print_mask (std::ctype_base::print, false);
-    print_mask (std::ctype_base::cntrl, false);
-    print_mask (std::ctype_base::alpha, false);
-    print_mask (std::ctype_base::digit, false);
-    print_mask (std::ctype_base::punct, false);
-    print_mask (std::ctype_base::graph, false);
-    print_mask (std::ctype_base::xdigit, false);
-    print_toupper (false);
-    print_tolower (false);
+    if (0 != ctype_st && decode) {
 
-    if (print_cat_names)
-        std::cout << "END LC_CTYPE\n";
-}
-
-
-void print_decimal_point (bool print_cat)
-{
-    if (print_cat)
-      std::cout << "LC_NUMERIC\n";
-    std::cout << create_keyword ("decimal_point");
-    if (0 == num_st)
-        std::cout << "\"" << create_str(".", 0, 0) << "\"\n";
-    else {
-        // if the num_charmap has not been initialized then initialize it
-        if (0 == num_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[4]))
-                set_locale (num_st->charmap_name());
-#endif  // _MSC_VER
-            num_charmap = get_charmap (num_st->charmap_name());
-        }
-        std::cout <<  "\""
-                  << create_str (_RWSTD_STATIC_CAST (const char*,
-                                     num_punct_st->decimal_point (0)),
-                                 _RWSTD_STATIC_CAST (const wchar_t*,
-                                     num_punct_st->decimal_point (1)),
-                                 num_charmap)
-                  << "\"\n";
+        // print out internal ctype_st data
+        std::cout <<   "# ctype data:"
+                  << "\n#   codeset: \""
+                  << ctype_st->codeset_name ()
+                  << "\"\n#   charmap: \""
+                  << ctype_st->charmap_name ()
+                  << "\"\n#   codeset_off: "
+                  << ctype_st->codeset_off
+                  << "\n#   charmap_off: "
+                  << ctype_st->charmap_off
+                  << "\n#   wmask_s: "
+                  << ctype_st->wmask_s
+                  << "\n#   wtoupper_off: "
+                  << ctype_st->wtoupper_off
+                  << "\n#   wtolower_off: "
+                  << ctype_st->wtolower_off
+                  << "\n#   wmask_off: "
+                  << ctype_st->wmask_off
+                  << "\n#   ctype_ext_off: "
+                  << ctype_st->ctype_ext_off
+                  << "\n#   mb_cur_max: "
+                  << unsigned (ctype_st->mb_cur_max)
+                  << '\n';
     }
 
+    const std::size_t nupper = print_mask (0, std::ctype_base::upper);
+    const std::size_t nlower = print_mask (0, std::ctype_base::lower);
+    const std::size_t nspace = print_mask (0, std::ctype_base::space);
+    const std::size_t nprint = print_mask (0, std::ctype_base::print);
+    const std::size_t ncntrl = print_mask (0, std::ctype_base::cntrl);
+    const std::size_t nalpha = print_mask (0, std::ctype_base::alpha);
+    const std::size_t ndigit = print_mask (0, std::ctype_base::digit);
+    const std::size_t npunct = print_mask (0, std::ctype_base::punct);
+    const std::size_t ngraph = print_mask (0, std::ctype_base::graph);
+    const std::size_t nxdigit = print_mask (0, std::ctype_base::xdigit);
+
+    const int all_masks =
+          std::ctype_base::upper | std::ctype_base::lower
+        | std::ctype_base::space | std::ctype_base::print
+        | std::ctype_base::cntrl | std::ctype_base::alpha
+        | std::ctype_base::digit | std::ctype_base::punct
+        | std::ctype_base::graph | std::ctype_base::xdigit;
+
+    // count the number of all characters in all tables
+    const std::size_t nall = print_mask (0, -1);
+
+    // count the number of characters whose mask is other than
+    // any of those specified (probably mistakes)
+    const std::size_t nother = print_mask (0, ~all_masks);
+
+    const std::size_t ntoupper = print_toupper ("toupper", 0);
+    const std::size_t ntolower = print_tolower ("tolower", 0);
+
+    if (0 != ctype_st && decode) {
+        std::cout << "\n# ctype stats:"
+                  << "\n#   total characters: " << nall
+                  << "\n#   upper characters: " << nupper
+                  << "\n#   lower characters: " << nlower
+                  << "\n#   space characters: " << nspace
+                  << "\n#   print characters: " << nprint
+                  << "\n#   cntrl characters: " << ncntrl
+                  << "\n#   alpha characters: " << nalpha
+                  << "\n#   digit characters: " << ndigit
+                  << "\n#   punct characters: " << npunct
+                  << "\n#   graph characters: " << ngraph
+                  << "\n#   xdigit characters: " << nxdigit
+                  << "\n#   unclassified: " << nother
+                  << "\n#   tolower pairs: " << ntolower
+                  << "\n#   toupper pairs: " << ntoupper
+                  << "\n";
+    }
+
+    print_section (section, true);
+
+    return 0;
 }
-void print_thousands_sep (bool print_cat)
+
+/**************************************************************************/
+
+static int
+print_decimal_point (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_NUMERIC\n";
-    std::cout << create_keyword ("thousands_sep");
+        print_section (sect_lc_numeric);
+
+    print_keyword (keyword);
+
+    if (0 == num_st)
+        std::cout << '"' << create_str (".", 0, 0) << "\"\n";
+    else {
+        const char* const dp =
+            _RWSTD_STATIC_CAST (const char*, num_punct_st->decimal_point (0));
+
+        const wchar_t* const wdp =
+            _RWSTD_STATIC_CAST(const wchar_t*, num_punct_st->decimal_point (1));
+
+        const Charmap* const cmap = get_charmap (LC_NUMERIC);
+
+        std::cout <<  '"' << create_str (dp, wdp, cmap) << "\"\n";
+    }
+
+    return 0;
+}
+
+
+static int
+print_thousands_sep (const char *keyword, int print_cat)
+{
+    if (print_cat)
+        print_section (sect_lc_numeric);
+
+    print_keyword (keyword);
+
     if (0 == num_st)
         std::cout << "\"\"\n";
     else {
-        // if the num_charmap has not been initialized then initialize it
-        if (0 == num_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[4]))
-                set_locale (num_st->charmap_name());
-#endif  // _MSC_VER
-            num_charmap = get_charmap (num_st->charmap_name());
-        }
+        const char* const ts =
+            _RWSTD_STATIC_CAST (const char*, num_punct_st->thousands_sep (0));
 
-        std::cout <<  "\""
-                  << create_str (_RWSTD_STATIC_CAST
-                                 (const char*,
-                                  num_punct_st->thousands_sep(false)),
-                                 _RWSTD_STATIC_CAST
-                                 (const wchar_t*,
-                                  num_punct_st->thousands_sep(true)),
-                                 num_charmap)
-                  << "\"\n";
+        const wchar_t* const wts =
+            _RWSTD_STATIC_CAST(const wchar_t*, num_punct_st->thousands_sep (1));
+
+        const Charmap* const cmap = get_charmap (LC_NUMERIC);
+
+        std::cout <<  '"' << create_str (ts, wts, cmap) << "\"\n";
     }
+
+    return 0;
 }
 
-void print_grouping (bool print_cat)
+
+static int
+print_grouping (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_NUMERIC\n";
-    std::cout << create_keyword ("grouping");
+        print_section (sect_lc_numeric);
+
+    print_keyword (keyword);
+
     if (0 == num_st)
         std::cout << "-1\n";
     else {
@@ -1079,137 +1404,155 @@ void print_grouping (bool print_cat)
         std::cout << (int)((const char*)num_punct_st->grouping())[i]
                   << '\n';
     }
+
+    return 0;
 }
-void print_lc_numeric ()
+
+
+static int
+print_lc_numeric (const char *section, int)
 {
-    if (print_cat_names)
-        std::cout << "LC_NUMERIC\n";
+    print_section (section);
 
-        print_decimal_point (false);
-        print_thousands_sep (false);
-        print_grouping (false);
+    if (0 != num_st && decode) {
 
-    if (print_cat_names)
-        std::cout << "END LC_NUMERIC\n";
+        // print out internal numeric_st data
+        std::cout <<   "# numeric data:"
+                  << "\n#   codeset: \""
+                  << num_st->codeset_name ()
+                  << "\"\n#   charmap: \""
+                  << num_st->charmap_name ()
+                  << "\"\n#   codeset_off: "
+                  << num_st->codeset_off
+                  << "\n#   charmap_off: "
+                  << num_st->charmap_off
+                  << '\n';
+    }
 
+    // keywords follow the established order on popular platforms
+    print_decimal_point ("decimal_point", 0);
+    print_thousands_sep ("thousands_sep", 0);
+    print_grouping ("grouping", 0);
+
+    print_section (section, true);
+
+    return 0;
 }
 
-void print_int_curr_symbol (bool print_cat)
+/**************************************************************************/
+
+static int
+print_int_curr_symbol (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("int_curr_symbol");
+        print_section (sect_lc_monetary);
+
+    print_keyword (keyword);
+
     if (0 == mon_st)
         std::cout << "\"\"\n";
     else {
-        // if the mon_charmap has not been initialized then initialize it
-        if (0 == mon_charmap && decode)
-            mon_charmap = get_charmap (mon_st->charmap_name());
-        std::cout << "\"" << create_str (_RWSTD_STATIC_CAST (const char*,
-                                             mon_st->curr_symbol (1, 0)),
-                                         _RWSTD_STATIC_CAST (const wchar_t*,
-                                             mon_st->curr_symbol (1, 1)),
-                                         mon_charmap)
-                  << "\"\n";
+        const char* const cs =
+            _RWSTD_STATIC_CAST (const char*, mon_st->curr_symbol (1, 0));
+
+        const wchar_t* const wcs =
+            _RWSTD_STATIC_CAST (const wchar_t*, mon_st->curr_symbol (1, 1));
+
+        const Charmap* const cmap = get_charmap (LC_MONETARY);
+
+        std::cout << '"' << create_str (cs, wcs, cmap) << "\"\n";
     }
+
+    return 0;
 }
 
-void print_currency_symbol (bool print_cat)
+
+static int
+print_currency_symbol (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("currency_symbol");
+        print_section (sect_lc_monetary);
+
+    print_keyword (keyword);
+
     if (0 == mon_st)
         std::cout << "\"\"\n";
     else {
-        // if the mon_charmap has not been initialized then initialize it
-        if (0 == mon_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encodin
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[3]))
-                set_locale (mon_st->charmap_name());
-#endif  // _MSC_VER
-            mon_charmap = get_charmap (mon_st->charmap_name());
-        }
+        const char* const cs =
+            _RWSTD_STATIC_CAST (const char*, mon_st->curr_symbol (0, 1));
 
-        std::cout << "\"" << create_str (_RWSTD_STATIC_CAST (const char*,
-                                             mon_st->curr_symbol (0, 0)),
-                                         _RWSTD_STATIC_CAST (const wchar_t*,
-                                             mon_st->curr_symbol (0, 1)),
-                                         mon_charmap)
-                  << "\"\n";
+        const wchar_t* const wcs =
+            _RWSTD_STATIC_CAST (const wchar_t*, mon_st->curr_symbol (0, 1));
+
+        const Charmap* const cmap = get_charmap (LC_MONETARY);
+
+        std::cout << '"' << create_str (cs, wcs, cmap) << "\"\n";
     }
+
+    return 0;
 }
 
-void print_mon_decimal_point (bool print_cat)
+
+static int
+print_mon_decimal_point (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout <<  create_keyword ("mon_decimal_point");
+        print_section (sect_lc_monetary);
+
+    print_keyword (keyword);
+
     if (0 == mon_st)
         std::cout << "\"\"\n";
     else {
-        // if the mon_charmap has not been initialized then initialize it
-        if (0 == mon_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[3]))
-                set_locale (mon_st->charmap_name());
-#endif  // _MSC_VER
-            mon_charmap = get_charmap (mon_st->charmap_name());
-        }
+        const char* const dp =
+            _RWSTD_STATIC_CAST (const char*, mon_punct_st->decimal_point (0));
 
-        std::cout << "\""
-                  << create_str (_RWSTD_STATIC_CAST (const char*,
-                                     mon_punct_st->decimal_point (0)),
-                                 _RWSTD_STATIC_CAST (const wchar_t*,
-                                     mon_punct_st->decimal_point (1)),
-                                 mon_charmap)
-                  << "\"\n";
+        const wchar_t* const wdp =
+            _RWSTD_STATIC_CAST(const wchar_t*, mon_punct_st->decimal_point (1));
+
+        const Charmap* const cmap = get_charmap (LC_MONETARY);
+
+        std::cout << '"' << create_str (dp, wdp, cmap) << "\"\n";
     }
+
+    return 0;
 }
 
-void print_mon_thousands_sep (bool print_cat)
+
+static int
+print_mon_thousands_sep (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("mon_thousands_sep");
+        print_section (sect_lc_monetary);
+
+    print_keyword (keyword);
+
     if (0 == mon_st)
         std::cout << "\"\"\n";
     else {
-        // if the mon_charmap has not been initialized then initialize it
-        if (0 == mon_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[3]))
-                set_locale (mon_st->charmap_name());
-#endif  // _MSC_VER
-            mon_charmap = get_charmap (mon_st->charmap_name());
-        }
+        const char* const ts =
+            _RWSTD_STATIC_CAST (const char*, mon_punct_st->thousands_sep (0));
 
-        std::cout << "\""
-                  << create_str (_RWSTD_STATIC_CAST
-                                 (const char*,
-                                  mon_punct_st->thousands_sep(false)),
-                                 _RWSTD_STATIC_CAST
-                                 (const wchar_t*,
-                                  mon_punct_st->thousands_sep(true)),
-                                 mon_charmap)
-                  << "\"\n";
+        const wchar_t* const wts =
+            _RWSTD_STATIC_CAST(const wchar_t*, mon_punct_st->thousands_sep (1));
+
+        const Charmap* const cmap = get_charmap (LC_MONETARY);
+
+        std::cout << '"' << create_str (ts, wts, cmap) << "\"\n";
     }
+
+    return 0;
 }
 
-void print_mon_grouping (bool print_cat)
+
+static int
+print_mon_grouping (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("mon_grouping");
+        print_section (sect_lc_monetary);
+
+    print_keyword (keyword);
+
     if (0 == mon_st)
         std::cout << "-1\n";
     else {
@@ -1221,582 +1564,427 @@ void print_mon_grouping (bool print_cat)
         std::cout << (int)((const char*)mon_punct_st->grouping())[i]
                   << '\n';
     }
+
+    return 0;
 }
 
-void print_positive_sign (bool print_cat)
+
+static int
+print_positive_sign (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("positive_sign");
+        print_section (sect_lc_monetary);
+
+    print_keyword (keyword);
+
     if (0 == mon_st)
         std::cout << "\"\"\n";
     else {
-        // if the mon_charmap has not been initialized then initialize it
-        if (0 == mon_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[3]))
-                set_locale (mon_st->charmap_name());
-#endif  // _MSC_VER
-            mon_charmap = get_charmap (mon_st->charmap_name());
-        }
+        const char* const ps =
+            _RWSTD_STATIC_CAST (const char*, mon_st->positive_sign (0));
 
-        std::cout << "\"" << create_str (_RWSTD_STATIC_CAST (const char*,
-                                             mon_st->positive_sign (0)),
-                                         _RWSTD_STATIC_CAST (const wchar_t*,
-                                             mon_st->positive_sign (1)),
-                                         mon_charmap)
-                  << "\"\n";
+        const wchar_t* const wps =
+            _RWSTD_STATIC_CAST (const wchar_t*, mon_st->positive_sign (1));
+
+        const Charmap* const cmap = get_charmap (LC_MONETARY);
+
+        std::cout << '"' << create_str (ps, wps, cmap) << "\"\n";
     }
+
+    return 0;
 }
 
-void print_negative_sign (bool print_cat)
+
+static int
+print_negative_sign (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("negative_sign");
+        print_section (sect_lc_monetary);
+
+    print_keyword (keyword);
+
     if (0 == mon_st)
         std::cout << "\"\"\n";
     else {
-        // if the mon_charmap has not been initialized then initialize it
-        if (0 == mon_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[3]))
-                set_locale (mon_st->charmap_name());
-#endif  // _MSC_VER
-            mon_charmap = get_charmap (mon_st->charmap_name());
-        }
+        const char* const ns =
+            _RWSTD_STATIC_CAST (const char*, mon_st->negative_sign (0));
 
-        std::cout << "\"" << create_str (_RWSTD_STATIC_CAST (const char*,
-                                             mon_st->negative_sign (0)),
-                                         _RWSTD_STATIC_CAST (const wchar_t*,
-                                             mon_st->negative_sign (1)),
-                                         mon_charmap)
-                  << "\"\n";
+        const wchar_t* const wns =
+            _RWSTD_STATIC_CAST (const wchar_t*, mon_st->negative_sign (1));
+        
+        const Charmap* const cmap = get_charmap (LC_MONETARY);
+
+        std::cout << '"' << create_str (ns, wns, cmap) << "\"\n";
     }
+
+    return 0;
+}
+
+
+static void
+print_int (const char *keyword, int val, int print_cat)
+{
+    if (print_cat)
+        print_section (sect_lc_monetary);
+
+    print_keyword (keyword);
+
+    std::cout << val << '\n';
+}
+
+
+static int
+print_int_frac_digits (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->frac_digits [1] : -1, print_cat);
+
+    return 0;
 
 }
 
-void print_int_frac_digits (bool print_cat)
+
+static int
+print_frac_digits (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->frac_digits [0] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_p_cs_precedes (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->p_cs_precedes [0] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_n_sep_by_space (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->n_sep_by_space [0] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_p_sep_by_space (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->p_sep_by_space [0] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_n_cs_precedes (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->n_cs_precedes [0] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_p_sign_posn (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->p_sign_posn [0] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_n_sign_posn (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->n_sign_posn [0] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_int_p_cs_precedes (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->p_cs_precedes [1] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_int_n_sep_by_space (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->n_sep_by_space [1] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_int_p_sep_by_space (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->p_sep_by_space [1] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_int_n_cs_precedes (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->n_cs_precedes [1] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_int_p_sign_posn (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->p_sign_posn [1] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_int_n_sign_posn (const char *keyword, int print_cat)
+{
+    print_int (keyword, mon_st ? mon_st->n_sign_posn [1] : -1, print_cat);
+
+    return 0;
+}
+
+
+static int
+print_lc_monetary (const char *section, int)
+{
+    print_section (section);
+
+    if (mon_st && decode) {
+
+        // print out internal monetary_st data
+        std::cout <<   "# monetary data:"
+                  << "\n#   codeset: \""
+                  << mon_st->codeset_name ()
+                  << "\"\n#   charmap: \""
+                  << mon_st->charmap_name ()
+                  << "\"\n#   codeset_off: "
+                  << mon_st->codeset_off
+                  << "\n#   charmap_off: "
+                  << mon_st->charmap_off
+                  << '\n';
+    }
+
+    // keywords follow the established order on popular platforms
+    print_int_curr_symbol ("int_curr_symbol", 0);
+    print_currency_symbol ("currency_symbol", 0);
+    print_mon_decimal_point ("mon_decimal_point", 0);
+    print_mon_thousands_sep ("mon_thousands_sep", 0);
+    print_mon_grouping ("mon_grouping", 0);
+    print_positive_sign ("positive_sign", 0);
+    print_negative_sign ("negative_sign", 0);
+
+    print_int_frac_digits ("int_frac_digits", 0);
+    print_frac_digits ("frac_digits", 0);
+
+    print_p_cs_precedes ("p_cs_precedes", 0);
+    print_p_sep_by_space ("p_sep_by_space", 0);
+    print_n_cs_precedes ("n_cs_precedes", 0);
+    print_n_sep_by_space ("n_sep_by_space", 0);
+    print_p_sign_posn ("p_sign_posn", 0);
+    print_n_sign_posn ("n_sign_posn", 0);
+
+    print_int_p_cs_precedes ("int_p_cs_precedes", 0);
+    print_int_p_sep_by_space ("int_p_sep_by_space", 0);
+    print_int_n_cs_precedes ("int_n_cs_precedes", 0);
+    print_int_n_sep_by_space ("int_n_sep_by_space", 0);
+    print_int_p_sign_posn ("int_p_sign_posn", 0);
+    print_int_n_sign_posn ("int_n_sign_posn", 0);
+
+    print_section (section, true);
+
+    return 0;
+}
+
+/**************************************************************************/
+
+static void
+print_time_keyword (const char *keyword, int print_cat,
+                    const void *vstr, const void *vwstr)
 {
     if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("int_frac_digits");
+        print_section (sect_lc_monetary);
 
-    signed char c = 0;
+    if (keyword)
+        print_keyword (keyword);
 
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = mon_st->frac_digits [1];
+    const Charmap* const cmap = get_charmap (LC_TIME);
+
+    const char*    const str  = _RWSTD_STATIC_CAST (const char*, vstr);
+    const wchar_t* const wstr = _RWSTD_STATIC_CAST (const wchar_t*, vwstr);
+
+    std::cout << '"' << create_str (str, wstr, cmap) << "\"";
+}
+
+
+static int
+print_abday (const char *keyword, int print_cat)
+{
+    static const char str[][4] = {
+        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+    };
+
+    for (std::size_t i = 0; ; ) {
+
+        print_time_keyword (keyword, print_cat,
+                            time_st ? time_st->abday (i, 0) : str [i],
+                            time_st ? time_st->abday (i, 1) : 0);
+
+        keyword   = 0;
+        print_cat = 0;
+
+        if (sizeof str / sizeof *str == ++i)
+            break;
+
+        std::cout << ';';
+    }
+
+    std::cout << '\n';
+
+    return 0;
+}
+
+
+static int
+print_day (const char *keyword, int print_cat)
+{
+    static const char str[][10] = {
+        "Sunday", "Monday", "Tuesday", "Wednesday",
+        "Thursday", "Friday", "Saturday"
+    };
+
+    for (std::size_t i = 0; ; ) {
+
+        print_time_keyword (keyword, print_cat,
+                            time_st ? time_st->day (i, 0) : str [i],
+                            time_st ? time_st->day (i, 1) : 0);
+
+        keyword   = 0;
+        print_cat = 0;
+
+        if (sizeof str / sizeof *str == ++i)
+            break;
+
+        std::cout << ';';
+    }
+
+    std::cout << '\n';
+
+    return 0;
+}
+
+
+static int
+print_abmon (const char *keyword, int print_cat)
+{
+    static const char str[][4] = {
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+
+    for (std::size_t i = 0; ; ) {
+
+        print_time_keyword (keyword, print_cat,
+                            time_st ? time_st->abmon (i, 0) : str [i],
+                            time_st ? time_st->abmon (i, 1) : 0);
+
+        keyword   = 0;
+        print_cat = 0;
+
+        if (sizeof str / sizeof *str == ++i)
+            break;
+
+        std::cout << ';';
+    }
+
+    std::cout << '\n';
+
+    return 0;
+}
+
+
+static int
+print_mon (const char *keyword, int print_cat)
+{
+    static const char str[][10] = {
+        "January", "February", "March", "April", "May", "June"
+        "July", "August", "September", "October", "November", "December"
+    };
+
+    for (std::size_t i = 0; ; ) {
+
+        print_time_keyword (keyword, print_cat,
+                            time_st ? time_st->mon (i, 0) : str [i],
+                            time_st ? time_st->mon (i, 1) : 0);
+
+        keyword   = 0;
+        print_cat = 0;
+
+        if (sizeof str / sizeof *str == ++i)
+            break;
+
+        std::cout << ';';
+    }
+
+    std::cout << '\n';
+
+    return 0;
+}
+
+
+static int
+print_am_pm (const char *keyword, int print_cat)
+{
+    static const char str[][3] = { "AM", "PM" };
     
-    std::cout << int(c) << '\n';
+    print_time_keyword (keyword, print_cat,
+                        time_st ? time_st->am_pm (0, 0) : str [0],
+                        time_st ? time_st->am_pm (0, 1) : str [1]);
+
+    std::cout << ';';
+
+    print_time_keyword (0, 0,
+                        time_st ? time_st->am_pm (1, 0) : str [0],
+                        time_st ? time_st->am_pm (1, 1) : str [1]);
+
+    std::cout << '\n';
+
+    return 0;
 }
 
-void print_frac_digits (bool print_cat)
+
+static int
+print_era (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("frac_digits");
+        print_section (sect_lc_monetary);
 
-    signed char c = 0;
-
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->frac_digits [0]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_p_cs_precedes (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("p_cs_precedes");
-
-    signed char c = 0;
-
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->p_cs_precedes [0]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_n_sep_by_space (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("n_sep_by_space");
-
-    signed char c = 0;
-
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->n_sep_by_space [0]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_p_sep_by_space (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("p_sep_by_space");
-
-    signed char c = 0;
-
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->p_sep_by_space [0]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_n_cs_precedes (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("n_cs_precedes");
-
-    signed char c = 0;
-
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->n_cs_precedes [0]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_p_sign_posn (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_MONETARY\n";
-
-    signed char c = 0;
-
-    std::cout << create_keyword ("p_sign_posn");
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->p_sign_posn [0]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_n_sign_posn (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_MONETARY\n";
-
-    signed char c = 0;
-
-    std::cout << create_keyword ("n_sign_posn");
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->n_sign_posn [0]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_int_p_cs_precedes (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("int_p_cs_precedes");
-
-    signed char c = 0;
-
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->p_cs_precedes [1]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_int_n_sep_by_space (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("int_n_sep_by_space");
-
-    signed char c = 0;
-
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->n_sep_by_space [1]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_int_p_sep_by_space (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("int_p_sep_by_space");
-
-    signed char c = 0;
-
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->p_sep_by_space [1]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_int_n_cs_precedes (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("int_n_cs_precedes");
-
-    signed char c = 0;
-
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->n_cs_precedes [1]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_int_p_sign_posn (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("int_p_sign_posn");
-
-    signed char c = 0;
-
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->p_sign_posn [1]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_int_n_sign_posn (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_MONETARY\n";
-    std::cout << create_keyword ("int_n_sign_posn");
-
-    signed char c = 0;
-
-    if (0 == mon_st)
-        c = -1;
-    else
-        c = int(mon_st->n_sign_posn [1]);
-
-    std::cout << int(c) << '\n';
-}
-
-void print_lc_monetary ()
-{
-    if (print_cat_names)
-        std::cout << "LC_MONETARY\n";
-
-        print_int_curr_symbol (false);
-        print_currency_symbol (false);
-        print_mon_decimal_point (false);
-        print_mon_thousands_sep (false);
-        print_mon_grouping (false);
-        print_positive_sign (false);
-        print_negative_sign (false);
-        print_int_frac_digits (false);
-        print_frac_digits (false);
-        print_p_cs_precedes (false);
-        print_p_sep_by_space (false);
-        print_n_cs_precedes (false);
-        print_n_sep_by_space (false);
-        print_p_sign_posn (false);
-        print_n_sign_posn (false);
-        print_int_p_cs_precedes (false);
-        print_int_p_sep_by_space (false);
-        print_int_n_cs_precedes (false);
-        print_int_n_sep_by_space (false);
-        print_int_p_sign_posn (false);
-        print_int_n_sign_posn (false);
-
-
-    if (print_cat_names)
-        std::cout << "END LC_MONETARY\n";
-}
-
-void print_abday (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("abday");
-    if (0 == time_st)
-        std::cout << "\"" << create_str ("Sun", 0, 0) << "\";"
-                  << "\"" << create_str ("Mon", 0, 0) << "\";"
-                  << "\"" << create_str ("Tue", 0, 0) << "\";\\\n"
-                  << "\"" << create_str ("Wed", 0, 0) << "\";"
-                  << "\"" << create_str ("Thu", 0, 0) << "\";"
-                  << "\"" << create_str ("Fri", 0, 0) << "\";"
-                  << "\"" << create_str ("Sat", 0, 0) << "\"\n";
-    else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
-        for (unsigned int i = 0; i <= 6; i++) {
-            std::cout << "\""
-                      << create_str (_RWSTD_STATIC_CAST
-                                     (const char*, time_st->abday (i, 0)),
-                                     _RWSTD_STATIC_CAST
-                                     (const wchar_t*, time_st->abday (i, 1)),
-                                     time_charmap);
-            if (i != 6)
-                std::cout << "\";";
-            else
-                std::cout << "\"\n";
-        }
-    }
-
-}
-
-void print_day (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("day");
-    if (0 == time_st)
-        std::cout << "\"" << create_str ("Sunday", 0, 0) << "\";"
-                  << "\"" << create_str ("Monday", 0, 0) << "\";"
-                  << "\"" << create_str ("Tuesday", 0, 0) << "\";\\\n"
-                  << "\"" << create_str ("Wednesday", 0, 0) << "\";"
-                  << "\"" << create_str ("Thursday", 0, 0) << "\";"
-                  << "\"" << create_str ("Friday", 0, 0) << "\";"
-                  << "\"" << create_str ("Saturday", 0, 0) << "\"\n";
-
-    else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
-        for (unsigned int i = 0; i <= 6; i++) {
-            std::cout << "\""
-                      << create_str (_RWSTD_STATIC_CAST
-                                     (const char*, time_st->day (i, 0)),
-                                     _RWSTD_STATIC_CAST
-                                     (const wchar_t*, time_st->day (i, 1)),
-                                     time_charmap);
-            if (i != 6)
-                std::cout << "\";";
-            else
-                std::cout << "\"\n";
-        }
-    }
-}
-
-
-void print_abmon (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("abmon");
-    if (0 == time_st) {
-        std::cout << "\"" << create_str ("Jan", 0, 0) << "\";"
-                  << "\"" << create_str ("Feb", 0, 0) << "\";"
-                  << "\"" << create_str ("Mar", 0, 0) << "\";";
-        if (!POSIX_output)
-            std::cout << "\\\n";
-        std::cout << "\"" << create_str ("Apr", 0, 0) << "\";"
-                  << "\"" << create_str ("May", 0, 0) << "\";"
-                  << "\"" << create_str ("Jun", 0, 0) << "\";";
-        if (!POSIX_output)
-            std::cout << "\\\n";
-        std::cout << "\"" << create_str ("Jul", 0, 0) << "\";"
-                  << "\"" << create_str ("Aug", 0, 0) << "\";"
-                  << "\"" << create_str ("Sep", 0, 0) << "\";";
-        if (!POSIX_output)
-            std::cout << "\\\n";
-        std::cout << "\"" << create_str ("Oct", 0, 0) << "\";"
-                  << "\"" << create_str ("Nov", 0, 0) << "\";"
-                  << "\"" << create_str ("Dec", 0, 0) << "\"\n";
-    }
-    else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
-
-        for (unsigned int i = 0; i <= 11; i++) {
-            std::cout << "\""
-                      << create_str (_RWSTD_STATIC_CAST
-                                     (const char*, time_st->abmon (i, 0)),
-                                     _RWSTD_STATIC_CAST
-                                     (const wchar_t*, time_st->abmon (i, 1)),
-                                     time_charmap);
-            if (i != 11)
-                std::cout << "\";";
-            else
-                std::cout << "\"\n";
-
-            if (!(i % 2) && !POSIX_output)
-                std::cout << "\\\n" ;
-        }
-    }
-}
-
-void print_mon (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("mon");
-    if (0 == time_st) {
-        std::cout << "\"" << create_str ("January", 0, 0) << "\";"
-                  << "\"" << create_str ("February", 0, 0) << "\";"
-                  << "\"" << create_str ("March", 0, 0) << "\";";
-        if (!POSIX_output)
-            std::cout << "\\\n";
-        std::cout << "\"" << create_str ("April", 0, 0) << "\";"
-                  << "\"" << create_str ("May", 0, 0) << "\";"
-                  << "\"" << create_str ("June", 0, 0) << "\";";
-        if (!POSIX_output)
-            std::cout << "\\\n";
-        std::cout << "\"" << create_str ("July", 0, 0) << "\";"
-                  << "\"" << create_str ("August", 0, 0) << "\";"
-                  << "\"" << create_str ("September", 0, 0) << "\";";
-        if (!POSIX_output)
-            std::cout << "\\\n";
-        std::cout << "\"" << create_str ("October", 0, 0) << "\";"
-                  << "\"" << create_str ("November", 0, 0) << "\";"
-                  << "\"" << create_str ("December", 0, 0) << "\"\n";
-    }
-    else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
-
-        for (unsigned int i = 0; i <= 11; i++) {
-            std::cout << "\""
-                      << create_str (_RWSTD_STATIC_CAST
-                                     (const char*, time_st->mon (i, 0)),
-                                     _RWSTD_STATIC_CAST
-                                     (const wchar_t*, time_st->mon (i, 1)),
-                                     time_charmap);
-            if (i != 11)
-                std::cout << "\";";
-            else
-                std::cout << "\"\n";
-
-            if (!(i % 2) && !POSIX_output)
-                std::cout << "\\\n" ;
-        }
-    }
-}
-
-void print_am_pm (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("am_pm");
-    if (0 == time_st)
-        std::cout << "\"" << create_str ("AM", 0, 0) << "\";\""
-                  << create_str ("PM", 0, 0)
-                  << "\"\n";
-    else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
-
-        std::cout << "\""
-                  << create_str (_RWSTD_STATIC_CAST
-                                 (const char*, time_st->am_pm (0,0)),
-                                 _RWSTD_STATIC_CAST
-                                 (const wchar_t*, time_st->am_pm (0, 1)),
-                                 time_charmap) << "\";\""
-                  << create_str (_RWSTD_STATIC_CAST
-                                 (const char*, time_st->am_pm (1, 0)),
-                                 _RWSTD_STATIC_CAST
-                                 (const wchar_t*, time_st->am_pm (1, 1)),
-                                 time_charmap)
-                  << "\"\n";
-    }
-}
-
-
-void print_era (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-
-    std::cout << create_keyword ("era");
+    print_keyword (keyword);
 
     if (0 == time_st)
-        std::cout << "\"" << create_str ("", 0, 0)
+        std::cout << '"' << create_str ("", 0, 0)
                   << "\"\n";
     else if (0 == time_st->era_count ()) {
         // if there are no eras, print out the empty string
         std::cout << "\"\"\n";
     }
     else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
+        const Charmap* const cmap = get_charmap (LC_TIME);
 
         // print each era in the database according to the format
         // specified by POSIX
@@ -1822,11 +2010,11 @@ void print_era (bool print_cat)
                       << int(era_p->month[0]) + 1 << _RWSTD_PATH_SEP 
                       << std::setw(2) << int(era_p->day[0]) << ":";
 
-            // now print the end year, _RWSTD_INT_MIN is the beginning of time
-            // and _RWSTD_INT_MAX is the end of time
-            if (era_p->year[1] == _RWSTD_INT_MIN)
+            // now print the end year, INT_MIN is the beginning of time
+            // and INT_MAX is the end of time
+            if (era_p->year[1] == INT_MIN)
                 std::cout << "-*:";
-            else if (era_p->year[1] == _RWSTD_INT_MAX)
+            else if (era_p->year[1] == INT_MAX)
                 std::cout << "+*:";
             else {
                 if (era_p->year[1] < 0)
@@ -1840,414 +2028,359 @@ void print_era (bool print_cat)
                           << std::setw(2) << int(era_p->day[1]) << ":";
             }
 
-            // now print out the name of the era
-            std::cout << create_str (_RWSTD_STATIC_CAST
-                                     (const char*, time_st->era_name (i,0)),
-                                     _RWSTD_STATIC_CAST
-                                     (const wchar_t*, time_st->era_name(i, 1)),
-                                     time_charmap) << ":";
+            const char* const era =
+                _RWSTD_STATIC_CAST (const char*, time_st->era_name (i, 0));
 
-            // finally print the format
-            std::cout << create_str (_RWSTD_STATIC_CAST
-                                     (const char*, time_st->era_fmt (i,0)),
-                                     _RWSTD_STATIC_CAST
-                                     (const wchar_t*, time_st->era_fmt(i, 1)),
-                                     time_charmap);
+            const wchar_t* const wera =
+                _RWSTD_STATIC_CAST (const wchar_t*, time_st->era_name (i, 1));
 
-            if (i != time_st->era_count() - 1)
+            const char* const fmt =
+                _RWSTD_STATIC_CAST (const char*, time_st->era_fmt (i, 0));
+
+            const wchar_t* const wfmt =
+                _RWSTD_STATIC_CAST (const wchar_t*, time_st->era_fmt (i, 1));
+
+            std::cout << create_str (era, wera, cmap) << ":"
+                      << create_str (fmt, wfmt, cmap);
+
+            if (i != time_st->era_count () - 1)
                 std::cout << "\";";
             else
                 std::cout << "\"\n";
         }
     }
+
+    return 0;
 }
 
 
-void print_d_t_fmt (bool print_cat)
+static int
+print_d_t_fmt (const char *keyword, int print_cat)
 {
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("d_t_fmt");
-    if (0 == time_st)
-        std::cout << "\"" << create_str ("%a %b %e %H:%M:%S %Y", 0, 0)
-                  << "\"\n";
-    else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
+    static const char str[] = "%a %b %e %H:%M:%S %Y";
+
+    print_time_keyword (keyword, print_cat,
+                        time_st ? time_st->d_t_fmt (0) : str,
+                        time_st ? time_st->d_t_fmt (1) : 0);
+
+    std::cout << '\n';
+
+    return 0;
+}
+
+
+static int
+print_era_d_t_fmt (const char *keyword, int print_cat)
+{
+    print_time_keyword (keyword, print_cat,
+                        time_st ? time_st->era_d_t_fmt (0) : 0,
+                        time_st ? time_st->era_d_t_fmt (1) : 0);
+
+    std::cout << '\n';
+
+    return 0;
+}
+
+
+static int
+print_d_fmt (const char *keyword, int print_cat)
+{
+    static const char str[] = "%m/%d/%y";
+
+    print_time_keyword (keyword, print_cat,
+                        time_st ? time_st->d_fmt (0) : str,
+                        time_st ? time_st->d_fmt (1) : 0);
+
+    std::cout << '\n';
+
+    return 0;
+}
+
+
+static int
+print_era_d_fmt (const char *keyword, int print_cat)
+{
+    print_time_keyword (keyword, print_cat,
+                        time_st ? time_st->era_d_fmt (0) : 0,
+                        time_st ? time_st->era_d_fmt (1) : 0);
+
+    std::cout << '\n';
+
+    return 0;
+}
+
+
+static int
+print_t_fmt (const char *keyword, int print_cat)
+{
+    static const char str[] = "%H:%M:%S";
+
+    print_time_keyword (keyword, print_cat,
+                        time_st ? time_st->t_fmt (0) : str,
+                        time_st ? time_st->t_fmt (1) : 0);
+
+    std::cout << '\n';
+
+    return 0;
+}
+
+
+static int
+print_era_t_fmt (const char *keyword, int print_cat)
+{
+    print_time_keyword (keyword, print_cat,
+                        time_st ? time_st->era_t_fmt (0) : 0,
+                        time_st ? time_st->era_t_fmt (1) : 0);
+
+    std::cout << '\n';
+
+    return 0;
+}
+
+
+static int
+print_t_fmt_ampm (const char *keyword, int print_cat)
+{
+    static const char str[] = "%I:%M:%S %p";
+
+    print_time_keyword (keyword, print_cat,
+                        time_st ? time_st->t_fmt_ampm (0) : str,
+                        time_st ? time_st->t_fmt_ampm (1) : 0);
+
+    std::cout << '\n';
+
+    return 0;
+}
+
+
+static int
+print_alt_digits (const char *keyword, int print_cat)
+{
+    if (time_st) {
+        const unsigned ndigits = time_st->alt_digits_count ();
+
+        for (unsigned i = 0; ; ) {
+
+            print_time_keyword (keyword, print_cat,
+                                i < ndigits ? time_st->alt_digits (i, 0) : 0,
+                                i < ndigits ? time_st->alt_digits (i, 1) : 0);
+
+            keyword   = 0;
+            print_cat = 0;
+
+            if (ndigits <= ++i)
+                break;
+
+            std::cout << ';';
         }
 
-        std::cout << "\""
-                  << create_str (_RWSTD_STATIC_CAST
-                                 (const char*, time_st->d_t_fmt(0)),
-                                 _RWSTD_STATIC_CAST
-                                 (const wchar_t*, time_st->d_t_fmt(1)),
-                                 time_charmap)
-                  << "\"\n";
+        std::cout << '\n';
     }
-}
-
-void print_era_d_t_fmt (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("era_d_t_fmt");
-    if (0 == time_st)
-        std::cout << "\"" << create_str ("", 0, 0)
-                  << "\"\n";
     else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
-
-        std::cout << "\""
-                  << create_str (_RWSTD_STATIC_CAST
-                                 (const char*, time_st->era_d_t_fmt(0)),
-                                 _RWSTD_STATIC_CAST
-                                 (const wchar_t*, time_st->era_d_t_fmt(1)),
-                                 time_charmap)
-                  << "\"\n";
-    }
-}
-
-void print_d_fmt (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("d_fmt");
-    if (0 == time_st)
-        std::cout << "\"" << create_str ("%m/%d/%y", 0, 0) << "\"\n";
-    else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
-
-        std::cout << "\""
-                  << create_str (_RWSTD_STATIC_CAST
-                                 (const char*, time_st->d_fmt(0)),
-                                 _RWSTD_STATIC_CAST
-                                 (const wchar_t*, time_st->d_fmt(1)),
-                                 time_charmap)
-                  << "\"\n";
-    }
-}
-
-void print_era_d_fmt (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("era_d_fmt");
-    if (0 == time_st)
-        std::cout << "\"" << create_str ("", 0, 0) << "\"\n";
-    else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
-
-        std::cout << "\""
-                  << create_str (_RWSTD_STATIC_CAST
-                                 (const char*, time_st->era_d_fmt(0)),
-                                 _RWSTD_STATIC_CAST
-                                 (const wchar_t*, time_st->era_d_fmt(1)),
-                                 time_charmap)
-                  << "\"\n";
-    }
-}
-
-
-
-void print_t_fmt (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("t_fmt");
-    if (0 == time_st)
-        std::cout << "\"" << create_str ("%H:%M:%S", 0, 0) << "\"\n";
-    else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode){
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
-
-        std::cout << "\""
-                  << create_str (_RWSTD_STATIC_CAST
-                                 (const char*, time_st->t_fmt(0)),
-                                 _RWSTD_STATIC_CAST
-                                 (const wchar_t*, time_st->t_fmt(1)),
-                                 time_charmap)
-                  << "\"\n";
-    }
-}
-
-void print_era_t_fmt (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("era_t_fmt");
-    if (0 == time_st)
-        std::cout << "\"" << create_str ("", 0, 0) << "\"\n";
-    else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode){
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
-
-        std::cout << "\""
-                  << create_str (_RWSTD_STATIC_CAST
-                                 (const char*, time_st->era_t_fmt(0)),
-                                 _RWSTD_STATIC_CAST
-                                 (const wchar_t*, time_st->era_t_fmt(1)),
-                                 time_charmap)
-                  << "\"\n";
-    }
-}
-
-void print_t_fmt_ampm (bool print_cat)
-{
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("t_fmt_ampm");
-    if (0 == time_st)
-        std::cout << "\"" << create_str ("%I:%M:%S %p", 0, 0) << "\"\n";
-    else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
-
-        std::cout << "\""
-                  << create_str (_RWSTD_STATIC_CAST
-                                 (const char*, time_st->t_fmt_ampm(0)),
-                                 _RWSTD_STATIC_CAST
-                                 (const wchar_t*, time_st->t_fmt_ampm(1)),
-                                 time_charmap)
-                  << "\"\n";
+        print_time_keyword (keyword, print_cat, 0, 0);
     }
 
+    return 0;
 }
 
-void print_alt_digits (bool print_cat)
+
+static int
+print_lc_time (const char *section, int)
 {
-    if (print_cat)
-        std::cout << "LC_TIME\n";
-    std::cout << create_keyword ("alt_digits");
-    if (0 == time_st)
-        std::cout << "\"" << create_str ("", 0, 0) << "\"\n";
-    else {
-        // if the time_charmap has not been initialized then initialize it
-        if (0 == time_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[2]))
-                set_locale (time_st->charmap_name());
-#endif  // _MSC_VER
-            time_charmap = get_charmap (time_st->charmap_name());
-        }
+    print_section (section);
 
-        std::cout << '"';
+    if (time_st && decode) {
 
-        unsigned digits_count = time_st->alt_digits_count ();
-
-        for (unsigned i = 0; i != digits_count; i++) {
-
-            const char* const str =
-                _RWSTD_STATIC_CAST (const char*, time_st->alt_digits (i, 0));
-
-            const wchar_t* const wstr =
-                _RWSTD_STATIC_CAST (const wchar_t*, time_st->alt_digits (i, 1));
-
-            std:: cout << create_str (str, wstr, time_charmap);
-
-            if (i != digits_count - 1)
-                std::cout << "\";\"";
-        }
-        std::cout << "\"\n";
+        // print out internal time_st data
+        std::cout <<   "# time data:"
+                  << "\n#   codeset: \""
+                  << time_st->codeset_name ()
+                  << "\"\n#   charmap: \""
+                  << time_st->charmap_name ()
+                  << "\"\n#   codeset_off: "
+                  << time_st->codeset_off
+                  << "\n#   charmap_off: "
+                  << time_st->charmap_off
+                  << '\n';
     }
+
+    print_abday ("abday", 0);
+    print_day ("day", 0);
+    print_abmon ("abmon", 0);
+    print_mon ("mon", 0);
+    print_am_pm ("am_pm", 0);
+    print_d_t_fmt ("d_t_fmt", 0);
+    print_d_fmt ("d_fmt", 0);
+    print_t_fmt ("t_fmt", 0);
+    print_t_fmt_ampm ("t_fmt_ampm", 0);
+    print_era ("era", 0);
+    print_era_d_t_fmt ("era_d_t_fmt", 0);
+    print_era_d_fmt ("era_d_fmt", 0);
+    print_era_t_fmt ("era_t_fmt", 0);
+    print_alt_digits ("alt_digits", 0);
+
+    print_section (section, true);
+
+    return 0;
 }
 
+/**************************************************************************/
 
-void print_noexpr (bool print_cat)
+static int
+print_noexpr (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_MESSAGES\n";
-    std::cout << create_keyword ("noexpr");
+        print_section (sect_lc_messages);
+
+    print_keyword (keyword);
+
     if (0 == messages_st)
-        std::cout << "\"" << create_str ("^[nN]", 0, 0) << "\"\n";
+        std::cout << '"' << create_str ("^[nN]", 0, 0) << "\"\n";
     else {
-        // if the messages_charmap has not been initialized then initialize it
-        if (0 == messages_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[5]))
-                set_locale (messages_st->charmap_name());
-#endif  // _MSC_VER
-            messages_charmap = get_charmap (messages_st->charmap_name());
+        const char* const no
+            = _RWSTD_STATIC_CAST (const char*, messages_st->noexpr (0));
 
-        }
-        std:: cout << "\""
-                   << create_str (_RWSTD_STATIC_CAST
-                                  (const char*, messages_st->noexpr(0)),
-                                  _RWSTD_STATIC_CAST
-                                  (const wchar_t*, messages_st->noexpr(1)),
-                                  messages_charmap) << "\"\n";
+        const wchar_t* const wno
+            = _RWSTD_STATIC_CAST (const wchar_t*, messages_st->noexpr (1));
+
+        const Charmap* const cmap = get_charmap (LC_MESSAGES);
+
+        std::cout << '"' << create_str (no, wno, cmap) << "\"\n";
     }
+
+    return 0;
 }
 
-void print_yesexpr (bool print_cat)
+
+static int
+print_yesexpr (const char *keyword, int print_cat)
 {
     if (print_cat)
-        std::cout << "LC_MESSAGES\n";
-    std::cout << create_keyword ("yesexpr");
+        print_section (sect_lc_messages);
+
+    print_keyword (keyword);
+
     if (0 == messages_st)
-        std::cout << "\"" << create_str ("^[yY]", 0, 0) << "\"\n";
+        std::cout << '"' << create_str ("^[yY]", 0, 0) << "\"\n";
     else {
-        // if the messages_charmap has not been initialized then initialize it
-        if (0 == messages_charmap && decode) {
-            // try to set the locale to the locale we are dumping
-            // if we can't then try to set the locale to any locale
-            // that uses the same encoding
-#ifndef _MSC_VER
-            if (0 == std::setlocale (LC_CTYPE, current_locales[5]))
-                set_locale (messages_st->charmap_name());
-#endif  // _MSC_VER
-            messages_charmap = get_charmap (messages_st->charmap_name());
+        const char* const yes
+            = _RWSTD_STATIC_CAST (const char*, messages_st->yesexpr (0));
 
-        }
-        std::cout << "\""
-                  << create_str (_RWSTD_STATIC_CAST
-                                 (const char*, messages_st->yesexpr(0)),
-                                 _RWSTD_STATIC_CAST
-                                 (const wchar_t*, messages_st->yesexpr(1)),
-                                 messages_charmap) << "\"\n";
+        const wchar_t* const wyes
+            = _RWSTD_STATIC_CAST (const wchar_t*, messages_st->yesexpr (1));
+
+        const Charmap* const cmap = get_charmap (LC_MESSAGES);
+
+        std::cout << '"' << create_str (yes, wyes, cmap) << "\"\n";
     }
+
+    return 0;
 }
 
-void print_lc_messages ()
+
+static int
+print_lc_messages (const char *section, int)
 {
-    if (print_cat_names)
-        std::cout << "LC_MESSAGES\n";
-    print_yesexpr (false);
-    print_noexpr (false);
+    print_section (section);
 
-    if (print_cat_names)
-        std::cout << "END LC_MESSAGES\n";
+    if (messages_st && decode) {
+
+        // print out internal time_st data
+        std::cout <<   "# messages data:"
+                  << "\n#   codeset: \""
+                  << messages_st->codeset_name ()
+                  << "\"\n#   charmap: \""
+                  << messages_st->charmap_name ()
+                  << "\"\n#   codeset_off: "
+                  << messages_st->codeset_off
+                  << "\n#   charmap_off: "
+                  << messages_st->charmap_off
+                  << '\n';
+    }
+
+    print_yesexpr ("yesexpr", 0);
+    print_noexpr ("noexpr", 0);
+
+    print_section (section, true);
+
+    return 0;
 }
 
-void print_lc_time ()
+/**************************************************************************/
+
+static int
+print_lc_all (const char*, int)
 {
-    if (print_cat_names)
-        std::cout << "LC_TIME\n";
+    print_lc_collate (sect_lc_collate, 0);
+    std::cout << '\n';
 
-    print_abday (false);
-    print_day (false);
-    print_abmon (false);
-    print_mon (false);
-    print_am_pm (false);
-    print_d_t_fmt (false);
-    print_d_fmt (false);
-    print_t_fmt (false);
-    print_t_fmt_ampm (false);
-    print_era (false);
-    print_era_d_t_fmt (false);
-    print_era_d_fmt (false);
-    print_era_t_fmt (false);
-    print_alt_digits (false);
+    print_lc_ctype (sect_lc_ctype, 0);
+    std::cout << '\n';
 
-    if (print_cat_names)
-        std::cout << "END LC_TIME\n";
+    print_lc_monetary (sect_lc_monetary, 0);
+    std::cout << '\n';
+
+    print_lc_numeric (sect_lc_numeric, 0);
+    std::cout << '\n';
+
+    print_lc_time (sect_lc_time, 0);
+    std::cout << '\n';
+
+    print_lc_messages (sect_lc_messages, 0);
+
+    return 0;
 }
 
-void print_charmap_name ()
+/**************************************************************************/
+
+static int
+print_charmap_name (const char *section, int)
 {
     if (0 != ctype_st) {
-        if (print_cat_names)
-            std::cout << "CHARMAP\n";
-        std::cout << create_keyword ("charmap") << "\""
-                  << ctype_st->charmap_name() << "\"\n";
+        print_section (section);
+
+        print_keyword ("charmap");
+        std::cout << '"'<< ctype_st->charmap_name () << "\"\n";
     }
+
+    return 0;
 }
+
 
 // print the available locales
-void print_locale_names()
+static void
+print_locale_names ()
 {
     std::cout << "C\n";
-    const char* locale_root = std::getenv ("RWSTD_LOCALE_ROOT");
+
+    const char* const locale_root = std::getenv ("RWSTD_LOCALE_ROOT");
+
     if (0 != locale_root) {
-        std::string cmd;
-        cmd = cmd + "ls -1 " + locale_root;
-        std::system (cmd.c_str());
+        const std::string cmd = std::string ("ls -1 ") + locale_root;
+
+        std::system (cmd.c_str ());
     }
 }
+
 
 // print the available charmaps
-void print_charmap_names ()
+static void
+print_charmap_names ()
 {
-    const char* locale_root = std::getenv ("RWSTD_SRC_ROOT");
+    const char* const locale_root = std::getenv ("RWSTD_SRC_ROOT");
+
     if (0 != locale_root) {
-        std::string cmd;
-        cmd = cmd + "ls -1 " + locale_root + "/charmaps";
+        const std::string cmd =
+            std::string ("ls -1 ") + locale_root + "/charmaps";
+
         std::system (cmd.c_str());
     }
 }
 
+/**************************************************************************/
 
-static void print_help_msg ()
+static void
+print_help ()
 {
     static const char* msg =
         "NAME\n\tlocale - get locale-specific information\n\n"
@@ -2293,96 +2426,47 @@ static void print_help_msg ()
     std::cout << msg;
 }
 
-void initialize_env_vars ()
-{
-    current_locales[6] = std::getenv ("LANG");
-    if (0 == current_locales[6])
-        current_locales[6] = "POSIX";
+/**************************************************************************/
 
-    current_locales[7] = std::getenv("LC_ALL");
-    if (0 != current_locales[7] && '\0' != *current_locales[7]) {
-        current_locales[0] = current_locales[7];
-        current_locales[4] = current_locales[7];
-        current_locales[2] = current_locales[7];
-        current_locales[1] = current_locales[7];
-        current_locales[3] = current_locales[7];
-        current_locales[5] = current_locales[7];
-    }
-    else {
-        current_locales[7] = "";
-
-        current_locales[0] = std::getenv ("LC_CTYPE");
-        if (0 == current_locales[0])
-            current_locales[0] = current_locales[6];
-        else
-            is_env_set[0] = true;
-
-        current_locales[4] = std::getenv ("LC_NUMERIC");
-        if (0 == current_locales[4])
-            current_locales[4] = current_locales[6];
-        else
-            is_env_set[4] = true;
-
-        current_locales[2] = std::getenv ("LC_TIME");
-        if (0 == current_locales[2])
-            current_locales[2] = current_locales[6];
-        else
-            is_env_set[2] = true;
-
-        current_locales[1] = std::getenv ("LC_COLLATE");
-        if (0 == current_locales[1])
-            current_locales[1] = current_locales[6];
-        else
-            is_env_set[1] = true;
-
-        current_locales[3] = std::getenv ("LC_MONETARY");
-        if (0 == current_locales[3])
-            current_locales[3] = current_locales[6];
-        else
-            is_env_set[3] = true;
-
-        current_locales[5] = std::getenv ("LC_MESSAGES");
-        if (0 == current_locales[5])
-            current_locales[5] = current_locales[6];
-        else
-            is_env_set[5] = true;
-
-    }
-
-}
-
-void print_locale_name (const char* cat_name, const char* loc_str,
-                        bool env_set) {
-    std::cout << cat_name;
-    if (!env_set)
-        std::cout << "\"";
-    std::cout << loc_str;
-    if (!env_set)
-        std::cout << "\"";
-    std::cout << std::endl;
-}
-
-
-// print out the character map in the POSIX format
+// traverses codeset conversion tables and prints out the character
+// map in POSIX format with the internal wchar_t encoding in comments
+// collects space utilization statistics
 static void
 print_charmap (const __rw::__rw_codecvt_t *cvt,
-               char *mbchar,  const unsigned *tab,
-               unsigned *ntables, unsigned *nchars, unsigned *nunused)
+               char           *mbchar,
+               const unsigned *tab,
+               unsigned       *ntables,
+               unsigned       *nchars,
+               unsigned       *nunused)
 {
     const unsigned* const table = cvt->n_to_w_tab ();
 
     if (!tab)
         tab = table;
 
-    unsigned i;
+    // the length of the multibyte character (prefix) formatted
+    // in a human-readable form (e.g., "\x80\xff" or similar)
+    const std::size_t mbchar_len = std::strlen (mbchar);
 
-    if (ntables)
-        ++*ntables;
+    // index into the array of counters corresponding to the
+    // table being processed at this level of recursion
+    const std::size_t count_inx = mbchar_len / 4 + 1;
 
-    for (i = 0; i != UCHAR_MAX + 1U; ++i) {
-        
-        if (tab [i] & 0x80000000)
+    if (ntables) {
+        // increment the grand total of all tables
+        ++ntables [0];
+        // increment the number of tables for characters
+        // of this length
+        ++ntables [count_inx];
+    }
+
+    // print out all multibyte characters in this map
+    for (std::size_t i = 0; i != UCHAR_MAX + 1U; ++i) {
+
+        if (tab [i] & 0x80000000) {
+            // skip invalid character or next table
             continue;
+        }
 
         // look up the UCS-4 and the wchar_t value of the MB character
         const unsigned ucs4  = cvt->get_ucs4_at_offset (tab [i]);
@@ -2396,77 +2480,272 @@ print_charmap (const __rw::__rw_codecvt_t *cvt,
         std::printf ("<U%0*X>%*s%s\\x%02x   # L'\\x%02x'\n",
                      width, ucs4, pad, " ", mbchar, i, wchar);
 
-        // increment the total number of characters
-        if (nchars)
-            ++*nchars;
+        if (nchars) {
+            // increment the grand total of all characters
+            ++nchars [0];
+
+            // increment the number of multibyte characters
+            // of this length
+            ++nchars [count_inx];
+        }
     }
 
-    for (i = 0; i != UCHAR_MAX + 1U; ++i) {
+    // process subsequent maps
+    for (std::size_t i = 0; i != UCHAR_MAX + 1U; ++i) {
 
         if (UINT_MAX == tab [i]) {
+            // invalid multibyte sequence (i.e., unused slot)
 
-            if (nunused)
-                ++*nunused;
+            if (nunused) {
+                // increment counters
+                ++nunused [0];
+                ++nunused [count_inx];
+            }
 
             continue;
         }
 
-        if (!(tab [i] & 0x80000000))
+        if (!(tab [i] & 0x80000000)) {
+            // valid multibyte characater already printed out above
             continue;
+        }
 
-        const std::size_t len = std::strlen (mbchar);
-        std::sprintf (mbchar + len, "\\x%02x", i);
+        // invoke self recursively to print out the contents
+        // of the next map
+        std::sprintf (mbchar + mbchar_len, "\\x%02x", i);
 
         print_charmap (cvt, mbchar, table + 256 * (tab [i] & 0x7fffffff),
                        ntables, nchars, nunused);
 
-        mbchar [len] = '\0';
+        mbchar [mbchar_len] = '\0';
     }
 }
 
 
 // print out the contents of the __rw_codecvt_t structure
 static void
-print_charmap (const __rw::__rw_codecvt_t *cvt)
+print_charmap (const __rw::__rw_codecvt_t *cvt = 0)
 {
-    if (!cvt)
+    if (0 == cvt) {
+        // use the codecvt map when none is specified
         cvt = codecvt_st;
+    }
 
-    if (!cvt)
+    if (0 == cvt)
         return;
 
     std::cout <<   "<escape_char>   \\"
               << "\n<comment_char>  #"
               << "\n<code_set_name> " << cvt->codeset_name ()
               << "\n<mb_cur_max>    " << int (cvt->mb_cur_max)
-              << "\n\n# charmap data:"
-              << "\n#   charmap name        = " << cvt->charmap_name ()
-              << "\n#   n_to_w_tab_off      = " << cvt->n_to_w_tab_off
-              << "\n#   w_to_n_tab_off      = " << cvt->w_to_n_tab_off
-              << "\n#   utf8_to_ext_tab_off = " << cvt->utf8_to_ext_tab_off
-              << "\n#   xliteration_off     = " << cvt->xliteration_off
-              << "\n#   wchar_off           = " << cvt->wchar_off
-              << "\n#   codeset_off         = " << cvt->codeset_off
-              << "\n#   charmap_off         = " << cvt->charmap_off
-              << "\n#   codecvt_ext_off     = " << cvt->codecvt_ext_off
-              << "\n\nCHARMAP\n";
+              << "\nCHARMAP\n";
 
+    if (decode) {
+        std::cout << "# charmap data:"
+                  << "\n#   charmap name: "
+                  << cvt->charmap_name ()
+                  << "\n#   n_to_w_tab_off: "
+                  << cvt->n_to_w_tab_off
+                  << "\n#   w_to_n_tab_off: "
+                  << cvt->w_to_n_tab_off
+                  << "\n#   utf8_to_ext_tab_off: "
+                  << cvt->utf8_to_ext_tab_off
+                  << "\n#   xliteration_off: "
+                  << cvt->xliteration_off
+                  << "\n#   wchar_off: "
+                  << cvt->wchar_off
+                  << "\n#   codeset_off: "
+                  << cvt->codeset_off
+                  << "\n#   charmap_off: "
+                  << cvt->charmap_off
+                  << "\n#   codecvt_ext_off: "
+                  << cvt->codecvt_ext_off
+                  << '\n';
+    }
+            
     char buf [1024];
     *buf = '\0';
 
-    unsigned ntables = 0;
-    unsigned nchars  = 0;
-    unsigned nunused = 0;
+    // total number of conversion tables for characters
+    // of each length up to MB_CUR_MAX with ntables being
+    // the sum of all of them
+    unsigned ntables [64] = { 0 };
 
-    print_charmap (cvt, buf, 0, &ntables, &nchars, &nunused);
+    // total number of unused slots in tables at each level
+    // (i.e., slots not used either to encode character or
+    // to store an offset to the next table)
+    unsigned nunused [64] = { 0 };
+
+    // total numbers of multibyte characters of each lenght
+    // up to MB_CUR_MAX with nchars [0] being the sum of all
+    // of them
+    unsigned nchars [64] = { 0 };
+
+    print_charmap (cvt, buf, 0, ntables, nchars, nunused);
 
     std::cout << "END CHARMAP\n"
-              << "\n# charmap stats:"
-              << "\n#   number of tables       = " << ntables
-              << "\n#   number of characters   = " << nchars
-              << "\n#   number of unused slots = " << nunused
-              << '\n';
+              << "\n# charmap stats:";
+
+    for (std::size_t i = 1; i != sizeof nchars / sizeof *nchars; ++i) {
+        if (0 != nchars [i] || 0 != ntables [i]) {
+
+            const double waste =
+                (100.0 * nunused [i]) / (ntables [i] * UCHAR_MAX);
+
+            std::cout << "\n#   ";
+            std::cout << i << " byte characters: " << nchars [i]
+                      << " (" << ntables [i] << " tables, "
+                      << unsigned (waste) << "% waste)";
+        }
+    }
+
+    const double waste = (100.0 * nunused [0]) / (ntables [0] * UCHAR_MAX);
+
+    std::cout << "\n#   total characters:  " << nchars [0]
+              << " (" << ntables [0] << " tables, "
+              << unsigned (waste) << "% waste)\n";
 }
+
+/**************************************************************************/
+
+// print the value of a single localization environment variable
+// according to POSIX rules
+static void
+print_lc_var (const char* cat_name, const char* val,
+              const char *lc_all, const char *lang)
+{
+    std::cout << cat_name << '=';
+
+    if (0 == val)
+        std::cout << '"';
+
+    const char* const strval = 
+        (lc_all ? lc_all : val ? val : lang ? lang : "");
+
+    // POSIX requires that environment variable "values be properly
+    // quoted for possible later reentry to the shell"
+    for (const char* s = strval; *s; ++s) {
+        switch (*s) {
+        case '$': case '"':
+            // escape unconditionally
+            std::cout << '\\' << *s; break;
+
+        case '|': case '&': case '\\': case '<': case '>':
+        case '`': case ' ':
+            // escape only when not quoted
+            if (val) std::cout << '\\' << *s;
+            
+        default:
+            // do not escape
+            std::cout << *s;
+        }
+    }
+
+    if (0 == val)
+        std::cout << '"';
+
+    std::cout << '\n';
+}
+
+/**************************************************************************/
+
+// print the values of the LANG and LC_XXX environment variables
+// according to POSIX rules
+static void
+print_lc_vars ()
+{
+    const char* const lang        = std::getenv ("LANG");
+    const char* const lc_all      = std::getenv (sect_lc_all);
+    const char* const lc_collate  = std::getenv (sect_lc_collate);
+    const char* const lc_ctype    = std::getenv (sect_lc_ctype);
+    const char* const lc_messages = std::getenv (sect_lc_messages);
+    const char* const lc_monetary = std::getenv (sect_lc_monetary);
+    const char* const lc_numeric  = std::getenv (sect_lc_numeric);
+    const char* const lc_time     = std::getenv (sect_lc_time);
+
+    print_lc_var ("LANG",           lang ? lang : "", 0, 0);
+    print_lc_var (sect_lc_ctype,    lc_ctype,    lc_all, lang);
+    print_lc_var (sect_lc_collate,  lc_collate,  lc_all, lang);
+    print_lc_var (sect_lc_time,     lc_time,     lc_all, lang);
+    print_lc_var (sect_lc_monetary, lc_monetary, lc_all, lang);
+    print_lc_var (sect_lc_numeric,  lc_numeric,  lc_all, lang);
+    print_lc_var (sect_lc_messages, lc_messages, lc_all, lang);
+    print_lc_var (sect_lc_all,      lc_all ? lc_all : "", 0, 0);
+}
+
+/**************************************************************************/
+
+static const struct {
+    const char *name;
+    int       (*print)(const char*, int);
+    int         arg;
+} handlers[] = {
+
+    { sect_lc_time,     print_lc_time, 0 },
+    { sect_lc_monetary, print_lc_monetary, 0 },
+    { sect_lc_numeric,  print_lc_numeric, 0 },
+    { sect_lc_ctype,    print_lc_ctype, 0 },
+    { sect_lc_collate,  print_lc_collate, 0 },
+    { sect_lc_messages, print_lc_messages, 0 },
+    { sect_lc_all,      print_lc_all, 0 },
+
+    { "abday", print_abday, -1 },
+    { "day",  print_day, -1 },
+    { "abmon", print_abmon, -1 },
+    { "mon", print_mon, -1 },
+    { "am_pm", print_am_pm, -1 },
+    { "d_t_fmt", print_d_t_fmt, -1 },
+    { "t_fmt", print_t_fmt, -1 },
+    { "d_fmt", print_d_fmt, -1 },
+    { "t_fmt_ampm", print_t_fmt_ampm, -1 },
+    { "era_d_t_fmt", print_era_d_t_fmt, -1 },
+    { "era_t_fmt", print_era_t_fmt, -1 },
+    { "era_d_fmt", print_era_d_fmt, -1 },
+    { "era", print_era, -1 },
+    { "alt_digits", print_alt_digits, -1 },
+    { "yesexpr", print_yesexpr, -1 },
+    { "noexpr", print_noexpr, -1 },
+    { "int_curr_symbol", print_int_curr_symbol, -1 },
+    { "currency_symbol", print_currency_symbol, -1 },
+    { "mon_decimal_point", print_mon_decimal_point, -1 },
+    { "mon_thousands_sep", print_mon_thousands_sep, -1 },
+    { "mon_grouping", print_mon_grouping, -1 },
+    { "positive_sign", print_positive_sign, -1 },
+    { "negative_sign", print_negative_sign, -1 },
+    { "int_frac_digits", print_int_frac_digits, -1 },
+    { "frac_digits", print_frac_digits, -1 },
+    { "p_cs_precedes", print_p_cs_precedes, -1 },
+    { "p_sep_by_space", print_p_sep_by_space, -1 },
+    { "n_cs_precedes", print_n_cs_precedes, -1 },
+    { "n_sep_by_space", print_n_sep_by_space, -1 },
+    { "p_sign_posn", print_p_sign_posn, -1 },
+    { "n_sign_posn", print_n_sign_posn, -1 },
+    { "int_p_cs_precedes", print_int_p_cs_precedes, -1 },
+    { "int_p_sep_by_space", print_int_p_sep_by_space, -1 },
+    { "int_n_cs_precedes", print_int_n_cs_precedes, -1 },
+    { "int_n_sep_by_space", print_int_n_sep_by_space, -1 },
+    { "int_p_sign_posn", print_int_p_sign_posn, -1 },
+    { "int_n_sign_posn", print_int_n_sign_posn, -1 },
+    { "decimal_point", print_decimal_point, -1 },
+    { "thousands_sep", print_thousands_sep, -1 },
+    { "grouping", print_grouping, -1 },
+    { "upper", print_mask, std::ctype_base::upper },
+    { "lower", print_mask, std::ctype_base::lower },
+    { "space", print_mask, std::ctype_base::space },
+    { "print", print_mask, std::ctype_base::print },
+    { "cntrl", print_mask, std::ctype_base::cntrl },
+    { "alpha", print_mask, std::ctype_base::alpha },
+    { "digit", print_mask, std::ctype_base::digit },
+    { "punct", print_mask, std::ctype_base::punct },
+    { "graph", print_mask, std::ctype_base::graph },
+    { "xdigit", print_mask, std::ctype_base::xdigit },
+    { "tolower", print_tolower, -1 },
+    { "toupper", print_toupper, -1 },
+    { "charmap", print_charmap_name, 0 },
+
+    // sentinel
+    { 0, 0, 0 }
+};
 
 
 int main (int argc, char *argv[])
@@ -2474,24 +2753,12 @@ int main (int argc, char *argv[])
     try {
         const char* const program_name = argv [0];
 
-        initialize_env_vars ();
-
         if (1 == argc) {
-            std::cout << "LANG=" << current_locales[6] << '\n';
-            print_locale_name ("LC_CTYPE=", current_locales[0], is_env_set[0]);
-            print_locale_name ("LC_COLLATE=", current_locales[1],
-                               is_env_set[1]);
-            print_locale_name ("LC_TIME=", current_locales[2], is_env_set[2]);
-            print_locale_name ("LC_MONETARY=", current_locales[3],
-                               is_env_set[3]);
-            print_locale_name ("LC_NUMERIC=", current_locales[4],
-                               is_env_set[4]);
-            print_locale_name ("LC_MESSAGES=", current_locales[5],
-                               is_env_set[5]);
-            print_locale_name ("LC_ALL=", current_locales[7], true);
+            // print all localization environment variables
+            print_lc_vars ();
         }
         else {
-            initialize_structs ();
+            init_sections ();
 
             --argc;
 
@@ -2500,29 +2767,44 @@ int main (int argc, char *argv[])
                 switch (*++*argv) {
 
                 case 'a':
-                    print_locale_names();
+                    // -a: print the names of all installed locales
+                    print_locale_names ();
                     return EXIT_SUCCESS;
 
                 case 'k':
+                    // -k: print the names of keywords when printing
+                    //     their values
                     print_keywords = true;
                     break;
 
                 case 'c':
-                    print_cat_names = true;
+                    // -c[k]: print the name of each section
+                    print_sect_names = true;
                     if (*(*argv + 1) == 'k')
                         print_keywords = true;
                     break;
 
                 case 'm':
-                    print_charmap_names();
+                    print_charmap_names ();
                     return EXIT_SUCCESS;
 
                 case 'h':
+                    // -h: use character names from the original charmap
+                    //     used by localedef to build the locale (if possible)
                     decode = true;
                     break;
 
                 case 'l':
-                    POSIX_output = false;
+                    // -l: produce output suitable as input for processing
+                    //     by the localedef utility
+                    posix_output = false;
+                    break;
+
+                case 'p':
+                    // -p: produce output using symbols from the Portable
+                    //     Character Set whenever possible
+                    use_pcs      = true;
+                    posix_output = false;
                     break;
 
                 case 'w':
@@ -2533,17 +2815,17 @@ int main (int argc, char *argv[])
                     break;
 
                 case '?':
-                    print_help_msg();
+                    print_help ();
                     return EXIT_SUCCESS;
 
                 case '-':
                     if (0 == std::strcmp (*argv, "-help")) {
-                        print_help_msg ();
+                        print_help ();
                         return EXIT_SUCCESS;
                     }
 
                     if (0 == std::strcmp (*argv, "-charmap")) {
-                        print_charmap (0);
+                        print_charmap ();
                         return EXIT_SUCCESS;
                     }
 
@@ -2560,149 +2842,18 @@ int main (int argc, char *argv[])
                             "%s --help'\n", program_name, program_name);
             }
 
-            while (0 != *argv) {
-                if (0 == std::strcmp (*argv, "LC_TIME"))
-                    print_lc_time ();
-                else if (0 == std::strcmp (*argv, "LC_MONETARY"))
-                    print_lc_monetary();
-                else if (0 == std::strcmp (*argv, "LC_NUMERIC"))
-                    print_lc_numeric ();
-                else if (0 == std::strcmp (*argv, "LC_CTYPE"))
-                    print_lc_ctype ();
-                else if (0 == std::strcmp (*argv, "LC_COLLATE"))
-                    print_lc_collate ();
-                else if (0 == std::strcmp (*argv, "LC_MESSAGES"))
-                    print_lc_messages ();
-                else if (0 == std::strcmp (*argv, "LC_ALL")) {
-                    print_lc_time ();
-                    std::cout << '\n';
-                    print_lc_monetary ();
-                    std::cout << '\n';
-                    print_lc_numeric ();
-                    std::cout << '\n';
-                    print_lc_ctype ();
-                    std::cout << '\n';
-                    print_lc_collate ();
-                    std::cout << '\n';
-                    print_lc_messages ();
+            for (; 0 != *argv; ++argv) {
+
+                for (std::size_t i = 0; handlers [i].name; ++i) {
+                    if (0 == std::strcmp (*argv, handlers [i].name)) {
+
+                        const int arg =
+                            -1 == handlers [i].arg ? print_sect_names
+                                                   : handlers [i].arg;
+
+                        handlers [i].print (handlers [i].name, arg);
+                    }
                 }
-
-                else if (0 ==std::strcmp (*argv, "abday"))
-                    print_abday (print_cat_names);
-                else if (0 == std::strcmp(*argv, "day"))
-                    print_day(print_cat_names);
-                else if (0 == std::strcmp (*argv, "abmon"))
-                    print_abmon (print_cat_names);
-                else if (0 == std::strcmp (*argv, "mon"))
-                    print_mon (print_cat_names);
-                else if (0 == std::strcmp (*argv, "am_pm"))
-                    print_am_pm (print_cat_names);
-                else if (0 == std::strcmp (*argv, "d_t_fmt"))
-                    print_d_t_fmt (print_cat_names);
-                else if (0 == std::strcmp (*argv, "t_fmt"))
-                    print_t_fmt (print_cat_names);
-                else if (0 == std::strcmp (*argv, "d_fmt"))
-                    print_d_fmt (print_cat_names);
-                else if (0 == std::strcmp (*argv, "t_fmt_ampm"))
-                    print_t_fmt_ampm (print_cat_names);
-                else if (0 == std::strcmp (*argv, "era_d_t_fmt"))
-                    print_era_d_t_fmt (print_cat_names);
-                else if (0 == std::strcmp (*argv, "era_t_fmt"))
-                    print_era_t_fmt (print_cat_names);
-                else if (0 == std::strcmp (*argv, "era_d_fmt"))
-                    print_era_d_fmt (print_cat_names);
-                else if (0 == std::strcmp (*argv, "era"))
-                    print_era (print_cat_names);
-                else if (0 == std::strcmp (*argv, "alt_digits"))
-                    print_alt_digits (print_cat_names);
-
-                else if (0 == std::strcmp (*argv, "yesexpr"))
-                    print_yesexpr (print_cat_names);
-                else if (0 == std::strcmp (*argv, "noexpr"))
-                    print_noexpr (print_cat_names);
-
-                else if (0 == std::strcmp (*argv, "int_curr_symbol"))
-                    print_int_curr_symbol (print_cat_names);
-                else if (0 == std::strcmp (*argv, "currency_symbol"))
-                    print_currency_symbol (print_cat_names);
-                else if (0 == std::strcmp (*argv, "mon_decimal_point"))
-                    print_mon_decimal_point (print_cat_names);
-                else if (0 == std::strcmp (*argv, "mon_thousands_sep"))
-                    print_mon_thousands_sep (print_cat_names);
-                else if (0 == std::strcmp (*argv, "mon_grouping"))
-                    print_mon_grouping (print_cat_names);
-                else if (0 == std::strcmp (*argv, "positive_sign"))
-                    print_positive_sign (print_cat_names);
-                else if (0 == std::strcmp (*argv, "negative_sign"))
-                    print_negative_sign (print_cat_names);
-
-                else if (0 == std::strcmp (*argv, "int_frac_digits"))
-                    print_int_frac_digits (print_cat_names);
-                else if (0 == std::strcmp (*argv, "frac_digits"))
-                    print_frac_digits (print_cat_names);
-                else if (0 == std::strcmp (*argv, "p_cs_precedes"))
-                    print_p_cs_precedes (print_cat_names);
-                else if (0 == std::strcmp (*argv, "p_sep_by_space"))
-                    print_p_sep_by_space (print_cat_names);
-                else if (0 == std::strcmp (*argv, "n_cs_precedes"))
-                    print_n_cs_precedes (print_cat_names);
-                else if (0 == std::strcmp (*argv, "n_sep_by_space"))
-                    print_n_sep_by_space (print_cat_names);
-                else if (0 == std::strcmp (*argv, "p_sign_posn"))
-                    print_p_sign_posn (print_cat_names);
-                else if (0 == std::strcmp (*argv, "n_sign_posn"))
-                    print_n_sign_posn (print_cat_names);
-                else if (0 == std::strcmp (*argv, "int_p_cs_precedes"))
-                    print_int_p_cs_precedes (print_cat_names);
-                else if (0 == std::strcmp (*argv, "int_p_sep_by_space"))
-                    print_int_p_sep_by_space (print_cat_names);
-                else if (0 == std::strcmp (*argv, "int_n_cs_precedes"))
-                    print_int_n_cs_precedes (print_cat_names);
-                else if (0 == std::strcmp (*argv, "int_n_sep_by_space"))
-                    print_int_n_sep_by_space (print_cat_names);
-                else if (0 == std::strcmp (*argv, "int_p_sign_posn"))
-                    print_int_p_sign_posn (print_cat_names);
-                else if (0 == std::strcmp (*argv, "int_n_sign_posn"))
-                    print_int_n_sign_posn (print_cat_names);
-
-
-                else if (0 == std::strcmp (*argv, "decimal_point"))
-                    print_decimal_point (print_cat_names);
-                else if (0 == std::strcmp (*argv, "thousands_sep"))
-                    print_thousands_sep (print_cat_names);
-                else if (0 == std::strcmp (*argv, "grouping"))
-                    print_grouping (print_cat_names);
-
-                else if (0 == std::strcmp (*argv, "upper"))
-                    print_mask (std::ctype_base::upper, print_cat_names);
-
-                else if (0 == std::strcmp (*argv, "lower"))
-                    print_mask (std::ctype_base::lower, print_cat_names);
-                else if (0 == std::strcmp (*argv, "space"))
-                    print_mask (std::ctype_base::space, print_cat_names);
-                else if (0 == std::strcmp (*argv, "print"))
-                    print_mask (std::ctype_base::print, print_cat_names);
-                else if (0 == std::strcmp (*argv, "cntrl"))
-                    print_mask (std::ctype_base::cntrl, print_cat_names);
-                else if (0 == std::strcmp (*argv, "alpha"))
-                    print_mask (std::ctype_base::alpha, print_cat_names);
-                else if (0 == std::strcmp (*argv, "digit"))
-                    print_mask (std::ctype_base::digit, print_cat_names);
-                else if (0 == std::strcmp (*argv, "punct"))
-                    print_mask (std::ctype_base::punct, print_cat_names);
-                else if (0 == std::strcmp (*argv, "graph"))
-                    print_mask (std::ctype_base::graph, print_cat_names);
-                else if (0 == std::strcmp (*argv, "xdigit"))
-                    print_mask (std::ctype_base::xdigit, print_cat_names);
-                else if (0 == std::strcmp (*argv, "tolower"))
-                    print_tolower (print_cat_names);
-                else if (0 == std::strcmp (*argv, "toupper"))
-                    print_toupper (print_cat_names);
-
-                else if (0 == std::strcmp (*argv, "charmap"))
-                    print_charmap_name ();
-
-                argv++;
             }
         }
     }
@@ -2710,7 +2861,7 @@ int main (int argc, char *argv[])
         return 1;
     }
     catch (const std::exception& error) {
-        std::cerr <<"ERROR: " << error.what() << '\n';
+        std::cerr <<"Error: " << error.what () << '\n';
         return 1;
     }
     catch (...) {
@@ -2722,5 +2873,5 @@ int main (int argc, char *argv[])
         //      std::setlocale (LC_CTYPE, saved_loc_name);
 #endif   // _RWSTD_NO_ISO_10646_WCHAR_T
 
-    return 0;
+    return EXIT_SUCCESS;
 }

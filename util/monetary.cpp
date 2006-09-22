@@ -2,20 +2,27 @@
  *
  * monetary.cpp
  *
- * $Id: //stdlib/dev/source/stdlib/util/monetary.cpp#5 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -30,8 +37,13 @@
 #include <locale>         // for money_base
 
 
+static const char lc_name[] = "LC_MONETARY";
+
+
 void Def::process_monetary()
 {
+    issue_diag (I_STAGE, false, 0, "processing %s section\n", lc_name);
+
     // nexting level
     int nesting_level = 0;
 
@@ -77,7 +89,7 @@ void Def::process_monetary()
                    != Scanner::tok_monetary ){
                 // the LC_IDENTIFICATION section may also have a 
                 // LC_MONETARY token that will mess up the parsing
-                if (next.token == Scanner::tok_identification) {
+                if (next.token == Scanner::tok_ident) {
                     while ((next = scanner_.next_token()).token
                            != Scanner::tok_end );
                     next = scanner_.next_token();
@@ -456,10 +468,14 @@ void Def::write_monetary (std::string dir_name)
 {
     assert (!dir_name.empty());
 
-    if (!mon_def_found_ || mon_written_)
+    if (mon_written_)
         return;
 
-    static const char lc_name[] = "LC_MONETARY";
+    if (!mon_def_found_) {
+        issue_diag (I_SKIP, false, 0,
+                    "%s section not found, skipping\n", lc_name);
+        return;
+    }
 
     // write out all the information in the LC_MONETARY category
     (dir_name += _RWSTD_PATH_SEP) += lc_name;

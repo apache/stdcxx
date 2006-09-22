@@ -2,20 +2,27 @@
  *
  * messages.cpp
  *
- * $Id: //stdlib/dev/source/stdlib/util/messages.cpp#4 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -28,9 +35,14 @@
 #include <fstream>        // for ofstream
 
 
+static const char lc_name[] = "LC_MESSAGES";
+
+
 void Def::process_messages()
 {
-    // nexting level
+    issue_diag (I_STAGE, false, 0, "processing %s section\n", lc_name);
+
+    // nesting level
     int nesting_level = 0;
 
     messages_def_found_ = true;
@@ -76,7 +88,7 @@ void Def::process_messages()
                    != Scanner::tok_messages ){
                 // the LC_IDENTIFICATION section may also have a 
                 // LC_MESSAGES token that will mess up the parsing
-                if (next.token == Scanner::tok_identification) {
+                if (next.token == Scanner::tok_ident) {
                     while ((next = scanner_.next_token()).token
                            != Scanner::tok_end );
                     next = scanner_.next_token();
@@ -110,44 +122,50 @@ void Def::write_messages(std::string dir_name)
 {
     assert (!dir_name.empty());
     
-    if (messages_def_found_ && !messages_written_) {
+    if (messages_written_)
+        return;
 
-        (dir_name += _RWSTD_PATH_SEP) += "LC_MESSAGES";
-
-        issue_diag (I_OPENWR, false, 0, "writing %s\n", dir_name.c_str ());
-
-        std::ofstream out (dir_name.c_str(), std::ios::binary);
-        out.exceptions (std::ios::failbit | std::ios::badbit);
-
-        // now calculate the offsets for the wide string representations
-        messages_out_.yesexpr_off[1] = 0;
-        messages_out_.noexpr_off[1] = messages_out_.yesexpr_off[1] 
-            + (messages_st_.wyesexpr.size() + 1) * sizeof (wchar_t) ;
-        
-        // now calculate the offsets for the narrow string representations
-        messages_out_.yesexpr_off[0] = messages_out_.noexpr_off[1] 
-            + (messages_st_.wnoexpr.size() + 1) * sizeof (wchar_t);
-        messages_out_.noexpr_off[0] = messages_out_.yesexpr_off[0] 
-            + (messages_st_.yesexpr.size() + 1) * sizeof (char);
-
-        messages_out_.codeset_off = messages_out_.noexpr_off[0] 
-            + (messages_st_.noexpr.size() + 1) * sizeof (char);
-        messages_out_.charmap_off = messages_out_.codeset_off 
-            + (charmap_.get_code_set_name().size() + 1) * sizeof (char);
-
-        // first write out the messages structure
-        out.write ((char*)&messages_out_, sizeof(messages_out_));
-
-        // now write out all the strings
-        out.write ((const char*)messages_st_.wyesexpr.c_str(), 
-                   (messages_st_.wyesexpr.size() + 1) * sizeof (wchar_t));
-        out.write ((const char*)messages_st_.wnoexpr.c_str(), 
-                   (messages_st_.wnoexpr.size() + 1) * sizeof (wchar_t));
-
-        out << messages_st_.yesexpr << std::ends;
-        out << messages_st_.noexpr << std::ends;
-        out << charmap_.get_code_set_name() << std::ends;
-        out << charmap_.get_charmap_name() << std::ends;
-        out.close();
+    if (!messages_def_found_) {
+        issue_diag (I_SKIP, false, 0,
+                    "%s section not found, skipping\n", lc_name);
+        return;
     }
+
+    (dir_name += _RWSTD_PATH_SEP) += lc_name;
+
+    issue_diag (I_OPENWR, false, 0, "writing %s\n", dir_name.c_str ());
+
+    std::ofstream out (dir_name.c_str(), std::ios::binary);
+    out.exceptions (std::ios::failbit | std::ios::badbit);
+
+    // now calculate the offsets for the wide string representations
+    messages_out_.yesexpr_off[1] = 0;
+    messages_out_.noexpr_off[1] = messages_out_.yesexpr_off[1] 
+        + (messages_st_.wyesexpr.size() + 1) * sizeof (wchar_t) ;
+        
+    // now calculate the offsets for the narrow string representations
+    messages_out_.yesexpr_off[0] = messages_out_.noexpr_off[1] 
+        + (messages_st_.wnoexpr.size() + 1) * sizeof (wchar_t);
+    messages_out_.noexpr_off[0] = messages_out_.yesexpr_off[0] 
+        + (messages_st_.yesexpr.size() + 1) * sizeof (char);
+
+    messages_out_.codeset_off = messages_out_.noexpr_off[0] 
+        + (messages_st_.noexpr.size() + 1) * sizeof (char);
+    messages_out_.charmap_off = messages_out_.codeset_off 
+        + (charmap_.get_code_set_name().size() + 1) * sizeof (char);
+
+    // first write out the messages structure
+    out.write ((char*)&messages_out_, sizeof(messages_out_));
+
+    // now write out all the strings
+    out.write ((const char*)messages_st_.wyesexpr.c_str(), 
+               (messages_st_.wyesexpr.size() + 1) * sizeof (wchar_t));
+    out.write ((const char*)messages_st_.wnoexpr.c_str(), 
+               (messages_st_.wnoexpr.size() + 1) * sizeof (wchar_t));
+
+    out << messages_st_.yesexpr << std::ends;
+    out << messages_st_.noexpr << std::ends;
+    out << charmap_.get_code_set_name() << std::ends;
+    out << charmap_.get_charmap_name() << std::ends;
+    out.close();
 }

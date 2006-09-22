@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -62,9 +69,9 @@
 // a narrow character string in the current locale's encoding
 std::string Def::convert_to_ext (wchar_t val)
 {
-    rn_cmap_iter2 it;
-    if ((it = charmap_.get_rn_cmap2().find(val)) 
-        != charmap_.get_rn_cmap2().end()){
+    rmb_cmap_iter it;
+    if ((it = charmap_.get_rmb_cmap().find(val)) 
+        != charmap_.get_rmb_cmap().end()){
       return it->second;
         
     }
@@ -483,32 +490,26 @@ void Def::process_input ()
             break;
 
         case Scanner::tok_ctype:
-            issue_diag (I_STAGE, false, 0, "processing LC_CTYPE\n");
             process_ctype ();
             break;
 
         case Scanner::tok_collate:
-            issue_diag (I_STAGE, false, 0, "processing LC_COLLATE\n");
             process_collate ();
             break;
 
         case Scanner::tok_monetary:
-            issue_diag (I_STAGE, false, 0, "processing LC_MONETARY\n");
             process_monetary ();
             break;
 
         case Scanner::tok_numeric:
-            issue_diag (I_STAGE, false, 0, "processing LC_NUMERIC\n");
             process_numeric ();
             break;
 
         case Scanner::tok_time:
-            issue_diag (I_STAGE, false, 0, "processing LC_TIME\n");
             process_time ();
             break;
 
         case Scanner::tok_messages:
-            issue_diag (I_STAGE, false, 0, "processing LC_MESSAGES\n");
             process_messages ();
             break;
 

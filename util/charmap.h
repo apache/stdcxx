@@ -2,20 +2,27 @@
  *
  * charmap.h
  *
- * $Id: //stdlib/dev/source/stdlib/util/charmap.h#41 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -24,6 +31,7 @@
 #define _RWSTD_LOC_CHARMAP_H_INCLUDED
 
 #include <string>
+#include <list>
 #include <map>
 #include <set>
 
@@ -36,6 +44,8 @@
 class Charmap
 {
 public:
+    static const char* const portable_charset [];
+
     Charmap(const char* /*corresponding C library locale*/,
             const char* /*filename*/, 
             bool /*is utf8 encoding?*/, 
@@ -43,37 +53,45 @@ public:
             bool /*create_reverse_charmaps*/, 
             bool /*use UCS4 internally*/);    
   
-    // get the narrow character map
-    const std::map<std::string, unsigned char >& get_n_cmap() const {
+    // returns the narrow character map which maps a symbolic character
+    // name to its narrow character value
+    const std::map<std::string, unsigned char>& get_n_cmap() const {
         return n_cmap_;
     }
     
-    // get the reverse narrow character map
-    const std::map<unsigned char, std::string >& get_rn_cmap() const {
+    // returns the reverse narrow character map which maps a narrow
+    // character value to its symbolic name
+    const std::map<unsigned char, std::string>& get_rn_cmap() const {
         return rn_cmap_;
     }
 
-    // get the wide character map
-    const std::map<std::string, wchar_t >& get_w_cmap() const {
+    // returns the wide character map which maps a symbolic character
+    // name to its wide character value
+    const std::map<std::string, wchar_t>& get_w_cmap() const {
         return w_cmap_;
     }
 
-    // get the reverse wide character map
-    const std::map<wchar_t, std::string >& get_rw_cmap() const {
+    // returns the reverse wide character map which maps a wide
+    // character value to its symbolic name
+    const std::map<wchar_t, std::string>& get_rw_cmap() const {
         return rw_cmap_;
     }
 
-    const std::map<std::string, wchar_t>& get_n_cmap2() const {
-        return n_cmap2_;
+    // returns the multibyte character map which maps a multibyte
+    // character to its corresponding wide character value
+    const std::map<std::string, wchar_t>& get_mb_cmap() const {
+        return mb_cmap_;
     }
 
-    const std::map<wchar_t, std::string>& get_rn_cmap2() const {
-        return rn_cmap2_;
+    // returns the reverse multibyte character map which maps a wide
+    // character value to its corresponding multibyte character
+    const std::map<wchar_t, std::string>& get_rmb_cmap() const {
+        return rmb_cmap_;
     }
 
     // get the string value map
-    const std::map<std::string, std::string>& get_strval_map() const {
-        return strval_map_;
+    const std::list<std::string>& get_symnames_list() const {
+        return symnames_list_;
     }
 
     const std::map <std::string, wchar_t>& get_ucs4_cmap () const {
@@ -82,14 +100,6 @@ public:
 
     const std::map <wchar_t, std::string>& get_rucs4_cmap () const {
         return rucs4_cmap_;
-    }
-
-    const std::set<std::string>& get_valid_mb_set() const {
-        return valid_mb_set_;
-    }
-
-    const std::set<std::string>& get_valid_wchar_set() const {
-        return valid_wchar_set_;
     }
 
     // return the value of mb_cur_max
@@ -128,32 +138,36 @@ public:
 
     unsigned char get_largest_nchar () const;
     
-    // increment the wide character value to the next encoded character in
-    // this codeset
-    wchar_t increment_val (const wchar_t) const;
+    // increments the wide character value to the next encoded character
+    // in the current codeset; returns the incremented value or -1 on
+    // error
+    wchar_t increment_wchar (wchar_t) const;
 
 private:
     
-    // process the characters implicitly defined by using ellipsis between
-    // two explicitly defined characters
-    void process_ellipsis (const Scanner::token_t&, int);
+    // processes characters implicitly defined by an ellipsis denoted
+    // by two explicitly defined characters; returns the number of
+    // characters in the range, -1 on error
+    std::size_t process_ellipsis (const Scanner::token_t&, int);
 
     // process the charmap file making the necessary mappings in the cmaps
     void process_chars();
 
-    // increment the multi-byte string by 1.
-    const char* increment_strval (const char*);
+    // increment the encoded multi byte character argument
+    bool increment_encoding (std::string&);
 
-    // make sure that all the characters in the portable character set are
-    // defined in the character map
-    void verify_portable_charset ();
+    // verify that all the characters in the portable character set
+    // are defined in the character map
+    void verify_portable_charset () const;
 
 #ifndef _MSC_VER
     // open the iconv descriptor to convert to utf8
     iconv_t open_iconv_to_utf8 () const;
 #endif  // _MSC_VER
 
-    std::string parse_ext_strval (const std::string&) const;
+    // convert a human-readable encoding of a character
+    // to its raw multibyte character representation
+    std::string encoding_to_mbchar (const std::string&) const;
 
     // convert a multi-byte string to a utf8 multi-byte string
     char* convert_to_utf8 (const char *inbuf, std::size_t inbuf_s, 
@@ -167,8 +181,11 @@ private:
 #  endif   // _RWSTD_NO_ISO_10646_WCHAR_T
 #endif  // _MSC_VER
     
-    // add the sym_name and multi-byte character to the character maps
-    void add_to_cmaps (const std::string&, const std::string&);
+    // add the symbolic name of a character and the raw multibyte
+    // character corresponding to it to the character maps
+    void add_to_cmaps (const std::string&,
+                       const std::string&,
+                       bool = false);
         
     // the scanner used to process the charmap file
     Scanner scanner_;
@@ -181,16 +198,18 @@ private:
 #endif // _MSC_VER
 
     // n_cmap maps the symbolic name to a narrow character value
-    // rn_cmap does exactly the opposite
+    // rn_cmap does the opposite
     std::map <std::string, unsigned char> n_cmap_;
     std::map <unsigned char, std::string> rn_cmap_;
-    std::map <std::string, wchar_t> n_cmap2_;
-    std::map <wchar_t, std::string> rn_cmap2_;
-    typedef std::map <wchar_t, std::string>::const_iterator rn_cmap2_iter;
-    typedef std::map <std::string, wchar_t>::const_iterator n_cmap2_iter;
 
-    std::set<std::string> valid_mb_set_;
-    std::set<std::string> valid_wchar_set_;
+    // mb_cmap maps a multibyte character representation to its
+    // corresponding wide character value
+    // rmb_cmap does the opposite
+    std::map <std::string, wchar_t> mb_cmap_;
+    std::map <wchar_t, std::string> rmb_cmap_;
+
+    typedef std::map <wchar_t, std::string>::const_iterator rmb_cmap_iter;
+    typedef std::map <std::string, wchar_t>::const_iterator mb_cmap_iter;
 
     // w_cmap maps the symbolic name to a wide character value
     // rw_cmap does exactly the opposite 
@@ -232,11 +251,8 @@ private:
     // should we use UCS4 as the internal representation
     bool UCS4_internal_;
 
-    // maps the string value to the symbolic name
-    // this map is required for the UNDEFINED keyword
-    // in localedef where the elements must be added in
-    // increasing encoded order.
-    std::map<std::string, std::string> strval_map_;
+    // list of all known symbolic character names
+    std::list<std::string> symnames_list_;
 
     Scanner::token_t next;
 };

@@ -43,10 +43,31 @@
 #include <cstring>        // for strchr()
 
 
+void Def::
+create_wchar_utf8_table ()
+{
+    if (!wchar_utf8_to_ext_.empty())
+        return;
+
+    typedef std::map<std::string, wchar_t>::const_iterator n_cmap_citer2;
+
+    const n_cmap_citer2 n_cmap_end = charmap_.get_mb_cmap ().end ();
+
+    for (n_cmap_citer2 n_cmap_it = charmap_.get_mb_cmap ().begin ();
+         n_cmap_it != n_cmap_end; ++n_cmap_it) {
+
+        const std::string wchar_utf8 = utf8_encode (n_cmap_it->second);
+
+        wchar_utf8_to_ext_.insert (std::make_pair (wchar_utf8,
+                                                   n_cmap_it->first));
+    }
+}
+
+
 void Def::process_weights (collate_entry_t& entry)
 {
     // iterator of weights tokens
-     token_list_t::iterator w_it = entry.second.begin ();
+    token_list_t::iterator w_it = entry.second.begin ();
 
     w_cmap_iter   wcmap_it;
     ce_map_iter   ce_map_it;
@@ -56,16 +77,18 @@ void Def::process_weights (collate_entry_t& entry)
 
     std::size_t i = 0;
     for (i = 0; i < collate_out_.num_weights && w_it != entry.second.end (); 
-         i++, w_it++){
+         ++i, ++w_it){
         get_weight (*w_it, weights, i);
     }
+
+    const std::map<std::string, wchar_t>& w_cmap = charmap_.get_w_cmap ();
 
     // the remaining weights - see above - are given as weight the
     // collating value of the symbol at start of line
     while (i < collate_out_.num_weights) {
         weights[i].size = 1;
-        wcmap_it = charmap_.get_w_cmap().find (entry.first.name);
-        if (wcmap_it != charmap_.get_w_cmap().end()) {
+        wcmap_it = w_cmap.find (entry.first.name);
+        if (wcmap_it != w_cmap.end()) {
             coll_map_it = coll_map_.find (wcmap_it->second);
             weights[i].weight[0] = coll_map_it->second.coll_val;
         }
@@ -83,8 +106,8 @@ void Def::process_weights (collate_entry_t& entry)
         i++;
     }
 
-    wcmap_it = charmap_.get_w_cmap().find (entry.first.name);
-    if (wcmap_it != charmap_.get_w_cmap().end()) {
+    wcmap_it = w_cmap.find (entry.first.name);
+    if (wcmap_it != w_cmap.end()) {
         coll_map_it = coll_map_.find (wcmap_it->second);
         coll_map_it->second.weights = weights;
     } else if ((ce_map_it = ce_map_.find (entry.first.name)) != ce_map_.end()) {
@@ -110,7 +133,7 @@ unsigned int Def::process_order_stmt (collate_section_t& section)
         collate_out_.num_weights = 0;
         token_list_t::iterator ord_it = section.order.begin ();
         for (; ord_it != section.order.end (); 
-             ord_it++, collate_out_.num_weights++) {
+             ++ord_it, ++collate_out_.num_weights) {
             if (ord_it->token == Scanner::tok_forward) {
                 collate_out_.weight_type[collate_out_.num_weights] = 0;
             } else if (ord_it->token == Scanner::tok_backward) {
@@ -154,7 +177,7 @@ unsigned int Def::process_order_stmt (collate_section_t& section)
 
     // build the order value;
     unsigned int order = 0;
-    for (int i = 0; i < collate_out_.num_weights; i++) {
+    for (int i = 0; i < collate_out_.num_weights; ++i) {
         order <<= 2;
         order |= collate_out_.weight_type[i];
     }
@@ -165,7 +188,8 @@ unsigned int Def::process_order_stmt (collate_section_t& section)
 
 // decimally increment the symbolic name, turning something like
 // <U1234> into <U1245>, or <jis234> to <jis235>
-std::string Def::dec_increment (const std::string &sym)
+static std::string
+dec_increment (const std::string &sym)
 {
     const char *pdig = sym.c_str ();
 
@@ -178,19 +202,17 @@ std::string Def::dec_increment (const std::string &sym)
     char numstr [64];
     std::sprintf (numstr, "%lu", sym_val + 1);
 
-    std::string next_sym;
-    next_sym.append (sym, 0, pdig - sym.c_str ());
+    std::string next_sym = sym.substr (0, pdig - sym.c_str ());
     next_sym.append (numstr);
     next_sym.append (end);
-
-    std::printf ("%s + 1 = %s\n", sym.c_str (), next_sym.c_str ());
 
     return next_sym;
 }
 
 
 // hexadecimally increment the symbolic name
-std::string Def::hex_increment (const std::string& sym)
+static std::string
+hex_increment (const std::string& sym)
 {
     const char *pdig = sym.c_str ();
 
@@ -203,12 +225,9 @@ std::string Def::hex_increment (const std::string& sym)
     char numstr [64];
     std::sprintf (numstr, "%lx", sym_val + 1);
 
-    std::string next_sym;
-    next_sym.append (sym, 0, pdig - sym.c_str ());
+    std::string next_sym = sym.substr (0, pdig - sym.c_str ());
     next_sym.append (numstr);
     next_sym.append (end);
-
-    std::printf ("%s + 1 = %s\n", sym.c_str (), next_sym.c_str ());
 
     return next_sym;
 }
@@ -227,7 +246,7 @@ void Def::preprocess_collation_definitions()
     static unsigned int max_orders = 0;
 
     token_list_t::iterator cs_it = sym_list_.begin ();
-    for (; cs_it != sym_list_.end (); cs_it++) {
+    for (; cs_it != sym_list_.end (); ++cs_it) {
         cs_map_iter csm_it = cs_map_.find (cs_it->name);
         if (csm_it != cs_map_.end ())
             csm_it->second = coll_value++;
@@ -240,16 +259,18 @@ void Def::preprocess_collation_definitions()
         max_orders = s_it->order.size ();
     }
 
-    for (; s_it != section_list_.end (); s_it++) {
+    for (; s_it != section_list_.end (); ++s_it) {
         if (max_orders != s_it->order.size ())
             issue_diag (E_COLNUM, true, &*s_it->order.begin (),
                         "number of collation orders "
                         "different for this section\n");
     }
 
+    const std::map<std::string, wchar_t>& w_cmap = charmap_.get_w_cmap ();
+
     // preprocess sections' collation definitions
     for (s_it = section_list_.begin (); 
-         s_it != section_list_.end (); s_it++) {
+         s_it != section_list_.end (); ++s_it) {
 
         // process the order statement and get the weight
         unsigned int order = process_order_stmt (*s_it);
@@ -257,7 +278,7 @@ void Def::preprocess_collation_definitions()
         std::list<collate_entry_t>::iterator e_it = 
             s_it->entries.begin ();
 
-        for (; e_it != s_it->entries.end (); e_it++) {
+        for (; e_it != s_it->entries.end (); ++e_it) {
             switch (e_it->first.token) {
             case Scanner::tok_sym_name:
                 // store the previous name
@@ -269,9 +290,10 @@ void Def::preprocess_collation_definitions()
 
                 break;
 
-            case Scanner::tok_ellipsis:
-            case Scanner::tok_dellipsis:
-            case Scanner::tok_qellipsis: {
+            case Scanner::tok_abs_ellipsis:   // "<FOO>...<BAR>"
+            case Scanner::tok_hex_ellipsis:   // "<FOO>..<BAR>"
+            case Scanner::tok_dec_ellipsis:   // "<FOO>....<BAR>"
+            {
 
                 if (++e_it != s_it->entries.end ())
                     next_elm = e_it->first.name;
@@ -281,15 +303,15 @@ void Def::preprocess_collation_definitions()
                                 " processing ellipsis during scan_ahead\n");
                 }
 
-                if (e_it->first.token == Scanner::tok_ellipsis) {
+                if (e_it->first.token == Scanner::tok_abs_ellipsis) {
                     wchar_t w_cmap_cur_val 
-                        = charmap_.get_w_cmap().find(prev_elm)->second;
+                        = w_cmap.find(prev_elm)->second;
                     wchar_t w_cmap_end_val
-                        = charmap_.get_w_cmap().find(next_elm)->second;
+                        = w_cmap.find(next_elm)->second;
 
                     // the first value has already been 
                     // added so don't add it again
-                    w_cmap_cur_val = charmap_.increment_val (w_cmap_cur_val);
+                    w_cmap_cur_val = charmap_.increment_wchar (w_cmap_cur_val);
                     while (w_cmap_cur_val != w_cmap_end_val) {
                         // process iteration
                         collate_info_t ci = {UINT_MAX, UINT_MAX, 0, 0};
@@ -298,7 +320,7 @@ void Def::preprocess_collation_definitions()
 
                         coll_map_.insert (std::make_pair (w_cmap_cur_val, ci));
                         w_cmap_cur_val = 
-                            charmap_.increment_val (w_cmap_cur_val);
+                            charmap_.increment_wchar (w_cmap_cur_val);
                     }
 
                     // add last element "next_elm" to array
@@ -307,18 +329,18 @@ void Def::preprocess_collation_definitions()
                     ci.order = order;
                     coll_map_.insert (std::make_pair (w_cmap_cur_val, ci));
 
-                } else { 
-
+                }
+                else {
                     // we are incrementing the symbolic names
                     std::string next_name = prev_elm;
                     do {
-                        if (e_it->first.token == Scanner::tok_dellipsis) 
+                        if (e_it->first.token == Scanner::tok_hex_ellipsis) 
                             next_name = hex_increment (next_name);
                         else 
                             next_name = dec_increment (next_name);
 
-                        w_cmap_iter it = charmap_.get_w_cmap().find (next_name);
-                        if (it != charmap_.get_w_cmap().end()) {
+                        w_cmap_iter it = w_cmap.find (next_name);
+                        if (it != w_cmap.end()) {
                             // process iteration
                             collate_info_t ci = {UINT_MAX, UINT_MAX, 0, 0};
                             ci.coll_val = coll_value++;
@@ -332,8 +354,13 @@ void Def::preprocess_collation_definitions()
                 prev_elm = next_elm;
                 break;
             }
-                        default:
-                                break;
+
+            case Scanner::tok_dbl_ellipsis:
+                    issue_diag (W_NOTSUP, true, &e_it->first,
+                                "ellipsis not supported"
+                                " processing ellipsis during scan_ahead\n");
+            default:
+                break;
             }
         }
     }
@@ -345,14 +372,16 @@ void Def::process_collation_definition ( bool do_weights,
                                          unsigned int coll_value,
                                          unsigned int order)
 {
+    const std::map<std::string, wchar_t>& w_cmap = charmap_.get_w_cmap ();
+
     // iterators
     w_cmap_iter w_cmap_pos = 
-        charmap_.get_w_cmap().find(entry.first.name);
+        w_cmap.find(entry.first.name);
     ce_map_iter ce_map_pos = 
         ce_map_.find(entry.first.name);
 
     // look up the symbolic name in the wide character map
-    if (w_cmap_pos != charmap_.get_w_cmap().end()) {
+    if (w_cmap_pos != w_cmap.end()) {
 
         wchar_t wval = w_cmap_pos->second;
         coll_map_iter coll_map_pos = coll_map_.find (wval);
@@ -418,17 +447,20 @@ void Def::process_order(collate_section_t& section,
     std::string prev_elm;
     std::string next_elm;
 
+    const std::map<std::string, wchar_t>& w_cmap = charmap_.get_w_cmap ();
+
     // iterate thru section's entries
     std::list<collate_entry_t>::iterator e_it = section.entries.begin ();
-    for (; e_it != section.entries.end (); e_it++) {
+    for (; e_it != section.entries.end (); ++e_it) {
         if (e_it->first.token == Scanner::tok_sym_name) {
             prev_elm = e_it->first.name;
             process_collation_definition (true, *e_it, 
                                           coll_value++, section_order);
 
-        } else if (e_it->first.token == Scanner::tok_ellipsis  || 
-                   e_it->first.token == Scanner::tok_qellipsis || 
-                   e_it->first.token == Scanner::tok_dellipsis) {
+        }
+        else if (   e_it->first.token == Scanner::tok_abs_ellipsis
+                 || e_it->first.token == Scanner::tok_dec_ellipsis
+                 || e_it->first.token == Scanner::tok_hex_ellipsis) {
 
             // process line with ellipsis
             Weights_t* weights_template = 
@@ -437,7 +469,7 @@ void Def::process_order(collate_section_t& section,
 
             token_list_t::iterator w_it = e_it->second.begin ();
             for (int i = 0; i < collate_out_.num_weights 
-                     && w_it != e_it->second.end (); i++, w_it++) {
+                     && w_it != e_it->second.end (); ++i, ++w_it) {
                 ordinal_weights.push_back (
                     get_weight (*w_it,weights_template, i));
             }
@@ -453,21 +485,21 @@ void Def::process_order(collate_section_t& section,
                             " processing ellipsis\n");
             }
 
-            if (e_it->first.token == Scanner::tok_ellipsis) {
+            if (e_it->first.token == Scanner::tok_abs_ellipsis) {
                 wchar_t w_cmap_cur_val 
-                    = charmap_.get_w_cmap().find(prev_elm)->second;
+                    = w_cmap.find(prev_elm)->second;
                 wchar_t w_cmap_end_val
-                    = charmap_.get_w_cmap().find(next_elm)->second;
+                    = w_cmap.find(next_elm)->second;
             
                 // the first value has already been added so don't add it again
-                w_cmap_cur_val = charmap_.increment_val (w_cmap_cur_val);
+                w_cmap_cur_val = charmap_.increment_wchar (w_cmap_cur_val);
             
                 while (w_cmap_cur_val != w_cmap_end_val) {
 
-                    add_to_coll (w_cmap_cur_val, weights_template, coll_value++,
-                                 ordinal_weights, false);
+                    add_to_coll (w_cmap_cur_val, weights_template,
+                                 coll_value++, ordinal_weights, false);
    
-                    w_cmap_cur_val = charmap_.increment_val (w_cmap_cur_val);
+                    w_cmap_cur_val = charmap_.increment_wchar (w_cmap_cur_val);
                 }
 
                 // add the end element to the collation array.
@@ -479,13 +511,13 @@ void Def::process_order(collate_section_t& section,
                 // we are incrementing the symbolic names
                 std::string next_name = prev_elm;
                 do {
-                    if (e_it->first.token == Scanner::tok_dellipsis) 
+                    if (e_it->first.token == Scanner::tok_hex_ellipsis) 
                         next_name = hex_increment (next_name);
                     else 
                         next_name = dec_increment (next_name);
 
-                    w_cmap_iter it = charmap_.get_w_cmap().find (next_name);
-                    if (it != charmap_.get_w_cmap().end()) {
+                    w_cmap_iter it = w_cmap.find (next_name);
+                    if (it != w_cmap.end()) {
                         add_to_coll (it->second, weights_template, 
                                      coll_value++, ordinal_weights, false);
                     }
@@ -510,9 +542,9 @@ void Def::process_order(collate_section_t& section,
 
             token_list_t::iterator w_it = e_it->second.begin ();
             for (int i = 0; i < collate_out_.num_weights 
-                     && w_it != e_it->second.end(); i++, w_it++) {
+                     && w_it != e_it->second.end(); ++i, ++w_it) {
 
-                if (w_it->token == Scanner::tok_ellipsis) 
+                if (w_it->token == Scanner::tok_abs_ellipsis) 
                     collate_out_.undefined_optimization = false;
 
                 ordinal_weights.push_back (
@@ -532,18 +564,19 @@ void Def::process_order(collate_section_t& section,
 
 void Def::add_missing_values (const std::vector<bool> &ordinal_weights,
                               const Weights_t* weights_template,
-                              unsigned int &coll_value, bool give_warning) {
+                              unsigned int &coll_value, bool give_warning)
+{
+    const std::map<std::string, wchar_t>& w_cmap = charmap_.get_w_cmap ();
 
     // we want to print a warning message once if there are characters that 
     // were not given collation values.
     bool warning_issued = false;
 
-    strval_map_iter strval_map_it;
-    for (strval_map_it = charmap_.get_strval_map().begin();
-         strval_map_it != charmap_.get_strval_map().end();
-         strval_map_it++) {
-        wchar_t wchar_val = (*charmap_.get_w_cmap().find 
-                             ((*strval_map_it).second)).second;
+    symnames_list_iter symnames_it;
+    for (symnames_it = charmap_.get_symnames_list ().begin ();
+         symnames_it != charmap_.get_symnames_list ().end ();
+         ++symnames_it) {
+        wchar_t wchar_val = (*w_cmap.find (*symnames_it)).second;
 
         coll_map_iter coll_map_it;
         if ((coll_map_it = coll_map_.find(wchar_val)) != coll_map_.end()) {
@@ -551,7 +584,7 @@ void Def::add_missing_values (const std::vector<bool> &ordinal_weights,
                 if (give_warning && !warning_issued) {
                     warning_issued = true;
                     warnings_occurred_ = 
-                        issue_diag (W_COLVAL, false,
+                        issue_diag (W_MISSING, false,
                                     0, "some characters in the codeset "
                                     "were not explicitly given a "
                                     "collation value\n") || warnings_occurred_;
@@ -571,9 +604,9 @@ void Def::add_missing_values (const std::vector<bool> &ordinal_weights,
         Weights_t* weights = new Weights_t[collate_out_.num_weights];
 
         if (0 != weights_template) {
-            for (int k = 0; k < collate_out_.num_weights; k++) {
+            for (int k = 0; k < collate_out_.num_weights; ++k) {
                 weights[k].size = weights_template[k].size; 
-                for (int j = 0; j < 256; j++)
+                for (int j = 0; j < 256; ++j)
                     weights[k].weight[j] = weights_template[k].weight[j];
             }
         }
@@ -587,7 +620,7 @@ void Def::add_missing_values (const std::vector<bool> &ordinal_weights,
         // if it is.
         int i = 0;
         for (it = ordinal_weights.begin();
-             it != ordinal_weights.end(); it++, i++)
+             it != ordinal_weights.end(); ++it, ++i)
         {
             // FIXME: this may not be correct
             if (!*it){
@@ -610,9 +643,9 @@ void Def::add_to_coll (const wchar_t            w_cmap_cur_val,
     Weights_t* weights = new Weights_t[collate_out_.num_weights];
 
     if (0 != weights_template) {
-        for (int k = 0; k < collate_out_.num_weights; k++) {
+        for (int k = 0; k < collate_out_.num_weights; ++k) {
             weights[k].size = weights_template[k].size; 
-            for (int j = 0; j < 256; j++)
+            for (int j = 0; j < 256; ++j)
                 weights[k].weight[j] = weights_template[k].weight[j];
         }
     }
@@ -628,7 +661,9 @@ void Def::add_to_coll (const wchar_t            w_cmap_cur_val,
     else
         offset = next_offset_++;
 
-    w_cmap_iter w_cmap_pos = charmap_.get_w_cmap().find(name);
+    const std::map<std::string, wchar_t>& w_cmap = charmap_.get_w_cmap ();
+
+    w_cmap_iter w_cmap_pos = w_cmap.find(name);
     coll_map_iter coll_it = coll_map_.find (w_cmap_pos->second);
     coll_it->second.offset = offset;
 
@@ -642,7 +677,7 @@ void Def::add_to_coll (const wchar_t            w_cmap_cur_val,
     // if it is.
     int i = 0;
     for (it = ordinal_weights.begin();
-         it != ordinal_weights.end(); it++, i++)
+         it != ordinal_weights.end(); ++it, ++i)
     {
         if (*it){
             weights[i].size = 1;
@@ -661,11 +696,11 @@ void Def::gen_valid_coll_mb_set ()
         return;
     
     for (coll_map_iter coll_it = coll_map_.begin(); 
-         coll_it != coll_map_.end(); coll_it++) {
+         coll_it != coll_map_.end(); ++coll_it) {
         if (coll_it->second.offset != UINT_MAX 
             || !collate_out_.undefined_optimization){
-            rn_cmap_iter2 rn_cmap_it 
-                = charmap_.get_rn_cmap2().find (coll_it->first);
+            rmb_cmap_iter rn_cmap_it 
+                = charmap_.get_rmb_cmap().find (coll_it->first);
             std::string valid = rn_cmap_it->second.substr 
                 (0, rn_cmap_it->second.size() - 1);
             
@@ -687,6 +722,8 @@ void Def::gen_valid_coll_mb_set ()
 // its position in the collate section.
 void Def::process_collate()
 {
+    issue_diag (I_STAGE, false, 0, "processing LC_COLLATE section\n");
+
     // update flags
     collate_def_found_ = true;
     // initialization
@@ -695,11 +732,13 @@ void Def::process_collate()
     // first preprocess the collate section
     preprocess_collate ();
 
+    const std::map<std::string, wchar_t>& w_cmap = charmap_.get_w_cmap ();
+
     // process the collating symbols list
     token_list_t::iterator cs_it = cs_list_.begin ();
-    for (;cs_it != cs_list_.end (); cs_it++) {
-        if (charmap_.get_w_cmap().find (cs_it->name) != 
-            charmap_.get_w_cmap().end())
+    for (;cs_it != cs_list_.end (); ++cs_it) {
+        if (w_cmap.find (cs_it->name) != 
+            w_cmap.end())
             issue_diag (E_SYNTAX, true, &*cs_it,
                         "collating-symbol %s found in character map\n",
                         cs_it->name.c_str ());
@@ -714,9 +753,9 @@ void Def::process_collate()
     // process the collating elements list
     std::list<collate_elem_t>::iterator ce_it = 
         ce_list_.begin ();
-    for (; ce_it != ce_list_.end (); ce_it++) {
-        if (charmap_.get_w_cmap().find (ce_it->first.name) != 
-            charmap_.get_w_cmap().end()) {
+    for (; ce_it != ce_list_.end (); ++ce_it) {
+        if (w_cmap.find (ce_it->first.name) != 
+            w_cmap.end()) {
             issue_diag (E_SYNTAX, true, &ce_it->first,
                         "collating element %s found in charmap\n", 
                         ce_it->first.name.c_str());
@@ -741,7 +780,7 @@ void Def::process_collate()
             if ((ce_tmp.ce_wstr = convert_wstring (*ce_def_it)).empty())
                 invalid = true;
         } else if (ce_def_it->token == Scanner::tok_sym_name) {
-            for (; ce_def_it != ce_def_list.end (); ce_def_it++) 
+            for (; ce_def_it != ce_def_list.end (); ++ce_def_it) 
                 ce_sym_array.push_back (ce_def_it->name);
             if ((ce_tmp.ce_wstr = convert_wstring (ce_sym_array)).empty())
                 invalid = true;
@@ -760,7 +799,7 @@ void Def::process_collate()
 
             std::string ce_str;
             std::string ce_utf8_wstr;
-            for (unsigned int i = 0; i < ce_tmp.ce_wstr.size(); i++){
+            for (unsigned int i = 0; i < ce_tmp.ce_wstr.size(); ++i){
                 ce_str += convert_to_ext(ce_tmp.ce_wstr[i]);
                 ce_utf8_wstr += utf8_encode (ce_tmp.ce_wstr[i]); 
             }
@@ -779,7 +818,7 @@ void Def::process_collate()
 
     // FIXME: assign values to the collating-elements AGAIN
     cs_it = sym_list_.begin ();
-    for (; cs_it != sym_list_.end (); cs_it++) {
+    for (; cs_it != sym_list_.end (); ++cs_it) {
         cs_map_iter csm_it = cs_map_.find (cs_it->name);
         if (csm_it != cs_map_.end ())
             csm_it->second = coll_value++;
@@ -788,13 +827,13 @@ void Def::process_collate()
     // process the sections
     std::list<collate_section_t>::iterator sect_it = 
         section_list_.begin ();
-    for (; sect_it != section_list_.end (); sect_it++)
+    for (; sect_it != section_list_.end (); ++sect_it)
         process_order (*sect_it, coll_value);
 
     // check to make sure that all the elements in the codeset were added
     if (!undefined_keyword_found_) {
         std::vector<bool> ordinal_weights;
-        for (int i = 0; i < collate_out_.num_weights; i++) 
+        for (int i = 0; i < collate_out_.num_weights; ++i) 
             ordinal_weights.push_back (false);
         collate_out_.undefined_optimization = true;
         add_missing_values (ordinal_weights, 0, coll_value, true);
@@ -808,19 +847,19 @@ void Def::gen_n_to_w_coll_tables (const std::string &charp,
 {
     gen_valid_coll_mb_set();
     offset_tab_t tab;
-    for (unsigned int k = 0; k <= UCHAR_MAX; k++) {
+    for (unsigned int k = 0; k <= UCHAR_MAX; ++k) {
         tab.off[k] = UINT_MAX;
     }
 
     tab.first_offset = -1;
-    n_cmap_iter2 n_cmap_it;
+    mb_cmap_iter n_cmap_it;
 
-    for (unsigned int i = 0; i <= UCHAR_MAX; i++){
+    for (unsigned int i = 0; i <= UCHAR_MAX; ++i){
         unsigned char cur_char = (unsigned char)i;
         std::string mb_char = charp;
         mb_char += (char)cur_char;
-        if ((n_cmap_it = charmap_.get_n_cmap2().find (mb_char)) 
-            != charmap_.get_n_cmap2().end()) {
+        if ((n_cmap_it = charmap_.get_mb_cmap().find (mb_char)) 
+            != charmap_.get_mb_cmap().end()) {
             coll_map_iter coll_map_it = coll_map_.find (n_cmap_it->second);
             if (coll_map_it->second.offset != UINT_MAX 
                 || !collate_out_.undefined_optimization) {
@@ -855,14 +894,14 @@ void Def::gen_w_to_n_coll_tables (const std::string &charp,
     gen_valid_coll_wchar_set();
 
     offset_tab_t tab;
-    for (unsigned int k = 0; k <= UCHAR_MAX; k++) 
+    for (unsigned int k = 0; k <= UCHAR_MAX; ++k) 
         tab.off[k] = UINT_MAX;
 
     tab.first_offset = -1;
     wchar_utf8_iter wu_it;
-    n_cmap_iter2 n_cmap_it;
+    mb_cmap_iter n_cmap_it;
 
-    for (unsigned int i = 0; i <= UCHAR_MAX; i++) {
+    for (unsigned int i = 0; i <= UCHAR_MAX; ++i) {
         unsigned char cur_char = (unsigned char)i;
         std::string   mb_char = (charp);
 
@@ -870,8 +909,8 @@ void Def::gen_w_to_n_coll_tables (const std::string &charp,
 
         wu_it = wchar_utf8_to_ext_.find (mb_char);
         if (wu_it != wchar_utf8_to_ext_.end()) {
-            n_cmap_it = charmap_.get_n_cmap2().find (wu_it->second);
-            if (n_cmap_it != charmap_.get_n_cmap2().end ()) {
+            n_cmap_it = charmap_.get_mb_cmap().find (wu_it->second);
+            if (n_cmap_it != charmap_.get_mb_cmap().end ()) {
                 
                 coll_map_iter coll_map_it = coll_map_.find (n_cmap_it->second);
                 if (coll_map_it->second.offset != UINT_MAX || 
@@ -906,7 +945,7 @@ void Def::gen_n_ce_tables (const std::set<std::string>ce_elms,
 {
     if (ce_elms.size() > 0) {
         ce_offset_tab_t tab;
-        for (unsigned int k = 0; k <= UCHAR_MAX; k++) {
+        for (unsigned int k = 0; k <= UCHAR_MAX; ++k) {
             tab.off[k] = UINT_MAX;
         }
         tab.first_offset = -1;
@@ -917,7 +956,7 @@ void Def::gen_n_ce_tables (const std::set<std::string>ce_elms,
         std::set<std::string>::const_iterator ce_elms_it;
         std::set<std::string> next_elms;
 
-        for (unsigned int i = 0; i <= UCHAR_MAX; i++) {
+        for (unsigned int i = 0; i <= UCHAR_MAX; ++i) {
             next_elms.clear();
             for (ce_elms_it = ce_elms.begin(); ce_elms_it != ce_elms.end(); 
                  ce_elms_it ++) {
@@ -964,7 +1003,7 @@ void Def::gen_w_ce_tables (const std::set<std::string>ce_elms,
 {
     if (ce_elms.size() > 0) {
         ce_offset_tab_t tab;
-        for (unsigned int k = 0; k <= UCHAR_MAX; k++) {
+        for (unsigned int k = 0; k <= UCHAR_MAX; ++k) {
             tab.off[k] = UINT_MAX;
         }
         tab.first_offset = -1;
@@ -975,7 +1014,7 @@ void Def::gen_w_ce_tables (const std::set<std::string>ce_elms,
         std::set<std::string>::const_iterator ce_elms_it;
         std::set<std::string> next_elms;
 
-        for (unsigned int i = 0; i <= UCHAR_MAX; i++) {
+        for (unsigned int i = 0; i <= UCHAR_MAX; ++i) {
             next_elms.clear();
             for (ce_elms_it = ce_elms.begin(); ce_elms_it != ce_elms.end(); 
                  ce_elms_it ++) {
@@ -1019,8 +1058,10 @@ void Def::dump_collate ()
 {
     std::cout << "LC_COLLATE\n";
 
+    const std::map<std::string, wchar_t>& w_cmap = charmap_.get_w_cmap ();
+
     token_list_t::iterator sl_it = sym_list_.begin ();
-    for (; sl_it != sym_list_.end (); sl_it++) {
+    for (; sl_it != sym_list_.end (); ++sl_it) {
         std::cout << sl_it->name << " % "; 
         cs_map_iter cs_it = cs_map_.find (sl_it->name);
         if (cs_it != cs_map_.end ()) {
@@ -1035,8 +1076,8 @@ void Def::dump_collate ()
         }
         
         std::map<std::string, wchar_t >::const_iterator cw_it = 
-            charmap_.get_w_cmap ().find (sl_it->name);
-        if (cw_it != charmap_.get_w_cmap ().end ()) {
+            w_cmap.find (sl_it->name);
+        if (cw_it != w_cmap.end ()) {
             coll_map_iter cm_it = 
                 coll_map_.find (cw_it->second);
             if (cm_it != coll_map_.end ()) {
@@ -1056,20 +1097,20 @@ void Def::dump_collate ()
         // dump the orders
         std::cout << "order_start " << sect_it->name;
         token_list_t::iterator o_it = sect_it->order.begin ();
-        for (; o_it != sect_it->order.end (); o_it++)
+        for (; o_it != sect_it->order.end (); ++o_it)
             std::cout << ";" << o_it->name;
         std::cout << '\n';
 
         // for each entry in the entries list
         collate_entry_list_t::iterator e_it = sect_it->entries.begin ();
-        for (; e_it != sect_it->entries.end (); e_it++) {
+        for (; e_it != sect_it->entries.end (); ++e_it) {
 
             // dump the collation definition (weights included)
             std::cout << e_it->first.name << " ";
             if (!e_it->second.empty ()) {
                 token_list_t::iterator w_it = e_it->second.begin ();
                 std::cout << (w_it++)->name;
-                for (; w_it != e_it->second.end (); w_it++) 
+                for (; w_it != e_it->second.end (); ++w_it) 
                     std::cout << ";" << w_it->name;
             }
 
@@ -1087,8 +1128,8 @@ void Def::dump_collate ()
             }
         
             std::map<std::string, wchar_t >::const_iterator cw_it = 
-                charmap_.get_w_cmap ().find (e_it->first.name);
-            if (cw_it != charmap_.get_w_cmap ().end ()) {
+                w_cmap.find (e_it->first.name);
+            if (cw_it != w_cmap.end ()) {
                 coll_map_iter cm_it = 
                     coll_map_.find (cw_it->second);
                 if (cm_it != coll_map_.end ()) {
@@ -1101,385 +1142,394 @@ void Def::dump_collate ()
         }
 
         std::cout << "order_end\n";
-        sect_it++;
+        ++sect_it;
     }
     std::cout << "END LC_COLLATE\n";
 }
 
 
-void Def::write_collate(std::string dir_name)
+void Def::write_collate (std::string dir_name)
 {
     assert (!dir_name.empty());
-    if (collate_def_found_ && !collate_written_) {
-        next_tab_num_ = 0;
-        next_wchar_coll_tab_num_ = 0;
-        std::set<std::string> ce_strs;
-        ce_sym_map_iter it;
-        ce_map_iter ce_mit;
-        for (it = ce_sym_map_.begin(); it != ce_sym_map_.end(); it++) {
-            if ((ce_mit = ce_map_.find (it->second))->second.coll_val 
-                != UINT_MAX) {
-                // check to see of the largest_ce needs to be changed
-                if (ce_mit->second.ce_wstr.size() + 1 
-                    > collate_out_.largest_ce)
-                    collate_out_.largest_ce = ce_mit->second.ce_wstr.size();
+
+    static const char lc_name[] = "LC_COLLATE";
+
+    if (collate_written_)
+        return;
+
+    if (!collate_def_found_) {
+        issue_diag (I_SKIP, false, 0,
+                    "%s section not found, skipping\n", lc_name);
+        return;
+    }
+
+    next_tab_num_ = 0;
+    next_wchar_coll_tab_num_ = 0;
+    std::set<std::string> ce_strs;
+    ce_sym_map_iter it;
+    ce_map_iter ce_mit;
+    for (it = ce_sym_map_.begin (); it != ce_sym_map_.end (); ++it) {
+        if ((ce_mit = ce_map_.find (it->second))->second.coll_val 
+            != UINT_MAX) {
+            // check to see of the largest_ce needs to be changed
+            if (ce_mit->second.ce_wstr.size() + 1 
+                > collate_out_.largest_ce)
+                collate_out_.largest_ce = ce_mit->second.ce_wstr.size();
             
-                ce_strs.insert (it->first);
-            }
+            ce_strs.insert (it->first);
         }
-        next_n_ce_tab_num_ = 0;
-        gen_n_ce_tables(ce_strs, 0, 0);
-        ce_strs.clear();
-        for (it = ce_wsym_map_.begin(); it != ce_wsym_map_.end(); it++) {
-            if (ce_map_.find (it->second)->second.coll_val != UINT_MAX)
-                ce_strs.insert (it->first);
-        }
-        next_w_ce_tab_num_ = 0;
-        gen_w_ce_tables (ce_strs, 0, 0);
+    }
+    next_n_ce_tab_num_ = 0;
+    gen_n_ce_tables(ce_strs, 0, 0);
+    ce_strs.clear();
+    for (it = ce_wsym_map_.begin (); it != ce_wsym_map_.end (); ++it) {
+        if (ce_map_.find (it->second)->second.coll_val != UINT_MAX)
+            ce_strs.insert (it->first);
+    }
+    next_w_ce_tab_num_ = 0;
+    gen_w_ce_tables (ce_strs, 0, 0);
 
-        gen_n_to_w_coll_tables ("", next_tab_num_);
-        gen_w_to_n_coll_tables ("", next_wchar_coll_tab_num_);
+    gen_n_to_w_coll_tables ("", next_tab_num_);
+    gen_w_to_n_coll_tables ("", next_wchar_coll_tab_num_);
 
-        (dir_name += _RWSTD_PATH_SEP) += "LC_COLLATE";
+    (dir_name += _RWSTD_PATH_SEP) += lc_name;
 
-        issue_diag (I_OPENWR, false, 0, "writing %s\n", dir_name.c_str ());
+    issue_diag (I_OPENWR, false, 0, "writing %s\n", dir_name.c_str ());
 
-        std::ofstream out (dir_name.c_str(), std::ios::binary);
-        out.exceptions (std::ios::failbit | std::ios::badbit);
+    std::ofstream out (dir_name.c_str(), std::ios::binary);
+    out.exceptions (std::ios::failbit | std::ios::badbit);
 
-        unsigned int i;
-        // array of the number of each sized collating element
-        // initialized to 0
-        std::vector<int> num_of_w (collate_out_.largest_ce, 0);
+    unsigned int i;
 
-        // calculate the size of an individual weight element
-        collate_out_.elm_size = collate_out_.num_weights 
-            * collate_out_.longest_weight * sizeof (unsigned int) + 
-            sizeof (unsigned int);
+    // calculate the size of an individual weight element
+    collate_out_.elm_size = collate_out_.num_weights 
+        * collate_out_.longest_weight * sizeof (unsigned int) + 
+        sizeof (unsigned int);
 
-        // the first section of the collate database is the collating
-        // element information
-        collate_out_.n_ce_tab_off = 0;
-        collate_out_.w_ce_tab_off = collate_out_.n_ce_tab_off;
-        n_ce_offs_iter n_ce_offs_it;
-        for (n_ce_offs_it = n_ce_offs_.begin(); 
-             n_ce_offs_it != n_ce_offs_.end(); n_ce_offs_it++) {
-            collate_out_.w_ce_tab_off += (n_ce_offs_it->second.last_offset 
-                - n_ce_offs_it->second.first_offset + 1)* sizeof (int);
-        }
+    // the first section of the collate database is the collating
+    // element information
+    collate_out_.n_ce_tab_off = 0;
+    collate_out_.w_ce_tab_off = collate_out_.n_ce_tab_off;
+    n_ce_offs_iter n_ce_offs_it;
+    for (n_ce_offs_it = n_ce_offs_.begin(); 
+         n_ce_offs_it != n_ce_offs_.end (); ++n_ce_offs_it) {
+        collate_out_.w_ce_tab_off += (n_ce_offs_it->second.last_offset 
+                                      - n_ce_offs_it->second.first_offset + 1)* sizeof (int);
+    }
 
-        // next comes the weight information
-        collate_out_.weight_tab_off = collate_out_.w_ce_tab_off;
-        w_ce_offs_iter w_ce_offs_it;
-        for (w_ce_offs_it = w_ce_offs_.begin(); 
-             w_ce_offs_it != w_ce_offs_.end(); w_ce_offs_it++) {
-            collate_out_.weight_tab_off += (w_ce_offs_it->second.last_offset 
-                - w_ce_offs_it->second.first_offset + 1)* sizeof (int);
-        }
+    // next comes the weight information
+    collate_out_.weight_tab_off = collate_out_.w_ce_tab_off;
+    w_ce_offs_iter w_ce_offs_it;
+    for (w_ce_offs_it = w_ce_offs_.begin(); 
+         w_ce_offs_it != w_ce_offs_.end(); ++w_ce_offs_it) {
+        collate_out_.weight_tab_off += (w_ce_offs_it->second.last_offset 
+                                        - w_ce_offs_it->second.first_offset + 1)* sizeof (int);
+    }
 
-        coll_map_iter coll_map_pos;
+    coll_map_iter coll_map_pos;
 
-        collate_out_.num_elms = off_mapr_.size();
-        if (collate_out_.undefined_optimization)
-            collate_out_.num_elms++;
+    collate_out_.num_elms = off_mapr_.size();
+    if (collate_out_.undefined_optimization)
+        ++collate_out_.num_elms;
 
-        // now calculate the offset for the first narrow character table
-        collate_out_.n_char_tab_off = collate_out_.weight_tab_off
-            + collate_out_.num_elms * collate_out_.elm_size;
+    // now calculate the offset for the first narrow character table
+    collate_out_.n_char_tab_off = collate_out_.weight_tab_off
+        + collate_out_.num_elms * collate_out_.elm_size;
 
-        // now calculate the offset fo the fist wide character table
-        // but first we need the size of the narrow tables
-        char_offs_iter char_offs_it;
-        unsigned int char_offs_size = 0;
-        for (char_offs_it = char_offs_.begin(); 
-             char_offs_it != char_offs_.end(); char_offs_it++) {
-            char_offs_size += (UCHAR_MAX + 1 
-                               - char_offs_it->second.first_offset)
-                * sizeof (unsigned int);
-        }
+    // now calculate the offset fo the fist wide character table
+    // but first we need the size of the narrow tables
+    char_offs_iter char_offs_it;
+    unsigned int char_offs_size = 0;
+    for (char_offs_it = char_offs_.begin(); 
+         char_offs_it != char_offs_.end(); ++char_offs_it) {
+        char_offs_size += (UCHAR_MAX + 1 
+                           - char_offs_it->second.first_offset)
+            * sizeof (unsigned int);
+    }
         
-        collate_out_.w_char_tab_off = collate_out_.n_char_tab_off
-            + char_offs_size;
+    collate_out_.w_char_tab_off = collate_out_.n_char_tab_off
+        + char_offs_size;
 
-        // now calculate the offset for the narrow character offset table
-        // but first we need the size of the wide tables
-        w_to_n_coll_iter w_to_n_coll_it;
-        unsigned int w_to_n_size = 0;
-        for (w_to_n_coll_it = w_to_n_coll_.begin();
-             w_to_n_coll_it != w_to_n_coll_.end(); w_to_n_coll_it ++) {
-            w_to_n_size += (UCHAR_MAX + 1 
-                            - w_to_n_coll_it->second.first_offset)
-                * sizeof (unsigned int);
-        }
+    // now calculate the offset for the narrow character offset table
+    // but first we need the size of the wide tables
+    w_to_n_coll_iter w_to_n_coll_it;
+    unsigned int w_to_n_size = 0;
+    for (w_to_n_coll_it = w_to_n_coll_.begin();
+         w_to_n_coll_it != w_to_n_coll_.end(); ++w_to_n_coll_it) {
+        w_to_n_size += (UCHAR_MAX + 1 
+                        - w_to_n_coll_it->second.first_offset)
+            * sizeof (unsigned int);
+    }
 
-        collate_out_.n_char_off_tab_off = collate_out_.w_char_tab_off
-            + w_to_n_size;
+    collate_out_.n_char_off_tab_off = collate_out_.w_char_tab_off
+        + w_to_n_size;
 
-        // now calculate the offset for the wide character offset table
-        collate_out_.w_char_off_tab_off = collate_out_.n_char_off_tab_off
-            + char_offs_.size() * sizeof (unsigned int);
+    // now calculate the offset for the wide character offset table
+    collate_out_.w_char_off_tab_off = collate_out_.n_char_off_tab_off
+        + char_offs_.size() * sizeof (unsigned int);
 
-        // calculate the offset for the narrow collating element offset table
-        collate_out_.n_ce_off_tab_off = collate_out_.w_char_off_tab_off
-            + w_to_n_coll_.size() * sizeof (unsigned int);
+    // calculate the offset for the narrow collating element offset table
+    collate_out_.n_ce_off_tab_off = collate_out_.w_char_off_tab_off
+        + w_to_n_coll_.size() * sizeof (unsigned int);
 
-        // calculate the offset for the wide collating element offset table
-        collate_out_.w_ce_off_tab_off = collate_out_.n_ce_off_tab_off
-            + n_ce_offs_.size() * sizeof (unsigned int);
+    // calculate the offset for the wide collating element offset table
+    collate_out_.w_ce_off_tab_off = collate_out_.n_ce_off_tab_off
+        + n_ce_offs_.size() * sizeof (unsigned int);
 
-        // now calculate the offset of the first character information
-        collate_out_.n_char_first_char_off = collate_out_.w_ce_off_tab_off
-            + w_ce_offs_.size() * sizeof (unsigned int);
+    // now calculate the offset of the first character information
+    collate_out_.n_char_first_char_off = collate_out_.w_ce_off_tab_off
+        + w_ce_offs_.size() * sizeof (unsigned int);
         
-        // now calculate the offset of the wide table first char info
-        collate_out_.w_char_first_char_off = collate_out_.n_char_first_char_off
-            + char_offs_.size() * sizeof (unsigned char);
+    // now calculate the offset of the wide table first char info
+    collate_out_.w_char_first_char_off = collate_out_.n_char_first_char_off
+        + char_offs_.size() * sizeof (unsigned char);
         
-        // now calculate the offset of the narrow ce first character info
-        collate_out_.n_ce_first_char_off = collate_out_.w_char_first_char_off
-            + w_to_n_coll_.size() * sizeof (unsigned char);
+    // now calculate the offset of the narrow ce first character info
+    collate_out_.n_ce_first_char_off = collate_out_.w_char_first_char_off
+        + w_to_n_coll_.size() * sizeof (unsigned char);
 
-        // now calculate the offset of the wide ce first character info
-        collate_out_.w_ce_first_char_off = collate_out_.n_ce_first_char_off
-            + n_ce_offs_.size() * sizeof (unsigned char);
+    // now calculate the offset of the wide ce first character info
+    collate_out_.w_ce_first_char_off = collate_out_.n_ce_first_char_off
+        + n_ce_offs_.size() * sizeof (unsigned char);
 
-        // now calculate the offset of the narrow ce last character info
-        collate_out_.n_ce_last_char_off = collate_out_.w_ce_first_char_off
-            + w_ce_offs_.size() * sizeof (unsigned char);
+    // now calculate the offset of the narrow ce last character info
+    collate_out_.n_ce_last_char_off = collate_out_.w_ce_first_char_off
+        + w_ce_offs_.size() * sizeof (unsigned char);
 
-        // now calculate the offset of the wide ce last character info
-        collate_out_.w_ce_last_char_off = collate_out_.n_ce_last_char_off
-            + n_ce_offs_.size() * sizeof (unsigned char);
+    // now calculate the offset of the wide ce last character info
+    collate_out_.w_ce_last_char_off = collate_out_.n_ce_last_char_off
+        + n_ce_offs_.size() * sizeof (unsigned char);
 
-        // now calculate the offset of the codeset name
-        collate_out_.codeset_off = collate_out_.w_ce_last_char_off
-            + w_ce_offs_.size() * sizeof (unsigned char);
+    // now calculate the offset of the codeset name
+    collate_out_.codeset_off = collate_out_.w_ce_last_char_off
+        + w_ce_offs_.size() * sizeof (unsigned char);
 
-        // finally calculate the offset of the charmap name
-        collate_out_.charmap_off = collate_out_.codeset_off 
-            + charmap_.get_code_set_name().size() + 1;
+    // finally calculate the offset of the charmap name
+    collate_out_.charmap_off = collate_out_.codeset_off 
+        + charmap_.get_code_set_name().size() + 1;
         
 
 
-        // print out the collate struct
-        out.write ((char*)&collate_out_, sizeof(collate_out_));
+    // print out the collate struct
+    out.write ((char*)&collate_out_, sizeof(collate_out_));
 
-        for (n_ce_offs_it = n_ce_offs_.begin(); 
-             n_ce_offs_it != n_ce_offs_.end(); n_ce_offs_it++) {
-            for (i = (unsigned int)n_ce_offs_it->second.first_offset; 
-                 i <= (unsigned int)n_ce_offs_it->second.last_offset; i++)
-                out.write ((char*)&n_ce_offs_it->second.off[i], 
-                           sizeof (n_ce_offs_it->second.off[i]));
-        }
+    for (n_ce_offs_it = n_ce_offs_.begin(); 
+         n_ce_offs_it != n_ce_offs_.end(); ++n_ce_offs_it) {
+        for (i = (unsigned int)n_ce_offs_it->second.first_offset; 
+             i <= (unsigned int)n_ce_offs_it->second.last_offset; ++i)
+            out.write ((char*)&n_ce_offs_it->second.off[i], 
+                       sizeof (n_ce_offs_it->second.off[i]));
+    }
 
-        for (w_ce_offs_it = w_ce_offs_.begin(); 
-             w_ce_offs_it != w_ce_offs_.end(); w_ce_offs_it++) {
-            for (i = (unsigned int)w_ce_offs_it->second.first_offset; 
-                 i <= (unsigned int)w_ce_offs_it->second.last_offset; i++)
-                out.write ((char*)&w_ce_offs_it->second.off[i], 
-                           sizeof (w_ce_offs_it->second.off[i]));
-        }
+    for (w_ce_offs_it = w_ce_offs_.begin(); 
+         w_ce_offs_it != w_ce_offs_.end(); ++w_ce_offs_it) {
+        for (i = (unsigned int)w_ce_offs_it->second.first_offset; 
+             i <= (unsigned int)w_ce_offs_it->second.last_offset; ++i)
+            out.write ((char*)&w_ce_offs_it->second.off[i], 
+                       sizeof (w_ce_offs_it->second.off[i]));
+    }
 
         
-        // now print out the weight array
-        unsigned int maxw = UINT_MAX;
-        Weights_t* weights;
-        bool undefined_written = false;
+    // now print out the weight array
+    unsigned int maxw = UINT_MAX;
+    Weights_t* weights;
+    bool undefined_written = false;
 
-        std::size_t off_idx = 0;
-        off_mapr_iter current_off = off_mapr_.begin();
-        for (; current_off != off_mapr_.end(); off_idx++) {
+    const std::map<std::string, wchar_t>& w_cmap = charmap_.get_w_cmap ();
 
-            // check the current offset
-            if (current_off->first != off_idx 
-                && off_idx != undef_char_info_.offset)
-                issue_diag (E_RANGE, true, 0, 
-                            "current_off : %d, index : %d, giving up\n",
-                            current_off->first, off_idx);
+    std::size_t off_idx = 0;
+    off_mapr_iter current_off = off_mapr_.begin();
+    for (; current_off != off_mapr_.end(); ++off_idx) {
 
-            if (collate_out_.undefined_optimization 
-                && off_idx == undef_char_info_.offset) {
-                undefined_written = true;
-                weights = undef_char_info_.weights;
-                out.write ((char*)&undef_char_info_.order, 
-                           sizeof (undef_char_info_.order));
-                for (int j = 0; j < collate_out_.num_weights; j++) {
-                    for (int k = 0; k < weights[j].size; k++) {
-                        out.write ((char*)&weights[j].weight[k],
-                                   sizeof (weights[j].weight[k]));
-                    }
-                    for (int c = weights[j].size; 
-                         c < collate_out_.longest_weight; c++)
-                        out.write ((char*)&maxw, sizeof (maxw)); 
-                }
-                continue;
-            }
+        // check the current offset
+        if (current_off->first != off_idx 
+            && off_idx != undef_char_info_.offset)
+            issue_diag (E_RANGE, true, 0, 
+                        "current_off : %d, index : %d, giving up\n",
+                        current_off->first, off_idx);
 
-            w_cmap_iter w_cmap_pos = charmap_.get_w_cmap().find 
-                (current_off->second);
-            if (w_cmap_pos != charmap_.get_w_cmap().end()) {
-                coll_map_pos = coll_map_.find (w_cmap_pos->second);
-                out.write ((char*)&coll_map_pos->second.order, 
-                           sizeof (coll_map_pos->second.order));
-                weights = coll_map_pos->second.weights;
-                for (int j = 0; j < collate_out_.num_weights; j++) {
-                    for (int k = 0; k < weights[j].size; k++) {
-                        out.write ((char*)&weights[j].weight[k],
-                                   sizeof (weights[j].weight[k]));
-                    }
-                    for (int c = weights[j].size; 
-                         c < collate_out_.longest_weight; c++)
-                        out.write ((char*)&maxw, sizeof (maxw)); 
-                }
-                current_off ++;
-            }
-
-            else {
-                ce_map_iter ce_map_it = ce_map_.find (current_off->second);
-                if (ce_map_it != ce_map_.end() 
-                    && ce_map_it->second.coll_val != UINT_MAX) {
-                    out.write ((char*)&ce_map_it->second.order, 
-                               sizeof (ce_map_it->second.order));
-                    weights = ce_map_it->second.weights;
-                    for (int j = 0; j < collate_out_.num_weights; j++) {
-                        for (int k = 0; k < weights[j].size; k++) {
-                            out.write ((char*)&weights[j].weight[k],
-                                       sizeof (weights[j].weight[k]));
-                        }
-                        for (int c = weights[j].size; 
-                             c < collate_out_.longest_weight; c++)
-                            out.write ((char*)&maxw, sizeof (maxw)); 
-                    }
-
-                }
-                current_off++;
-            }
-        }            
-
-        // maske sure that we got to the undefined value
-        if (!undefined_written && collate_out_.undefined_optimization) {
-            if (off_idx != undef_char_info_.offset)
-                issue_diag (E_RANGE, true, 0, 
-                            "current_off : %d, index : %d, giving up\n",
-                            undef_char_info_.offset, off_idx);
-
+        if (collate_out_.undefined_optimization 
+            && off_idx == undef_char_info_.offset) {
+            undefined_written = true;
             weights = undef_char_info_.weights;
             out.write ((char*)&undef_char_info_.order, 
                        sizeof (undef_char_info_.order));
-            for (int j = 0; j < collate_out_.num_weights; j++) {
-                for (int k = 0; k < weights[j].size; k++) {
+            for (int j = 0; j < collate_out_.num_weights; ++j) {
+                for (int k = 0; k < weights[j].size; ++k) {
                     out.write ((char*)&weights[j].weight[k],
                                sizeof (weights[j].weight[k]));
                 }
                 for (int c = weights[j].size; 
-                     c < collate_out_.longest_weight; c++)
+                     c < collate_out_.longest_weight; ++c)
                     out.write ((char*)&maxw, sizeof (maxw)); 
             }
+            continue;
         }
 
-        // now print out the narrow character tables
-        for (char_offs_it = char_offs_.begin(); 
-             char_offs_it != char_offs_.end(); char_offs_it++) {
-            for (unsigned int c = char_offs_it->second.first_offset; 
-                 c <= UCHAR_MAX; c++) {
-                out.write ((const char*)&char_offs_it->second.off[c],
-                           sizeof (char_offs_it->second.off[c]));
+        w_cmap_iter w_cmap_pos = w_cmap.find 
+            (current_off->second);
+        if (w_cmap_pos != w_cmap.end()) {
+            coll_map_pos = coll_map_.find (w_cmap_pos->second);
+            out.write ((char*)&coll_map_pos->second.order, 
+                       sizeof (coll_map_pos->second.order));
+            weights = coll_map_pos->second.weights;
+            for (int j = 0; j < collate_out_.num_weights; ++j) {
+                for (int k = 0; k < weights[j].size; ++k) {
+                    out.write ((char*)&weights[j].weight[k],
+                               sizeof (weights[j].weight[k]));
+                }
+                for (int c = weights[j].size; 
+                     c < collate_out_.longest_weight; ++c)
+                    out.write ((char*)&maxw, sizeof (maxw)); 
             }
+            ++current_off;
         }
 
-        // now print out the wide character tables
-        for (w_to_n_coll_it = w_to_n_coll_.begin(); 
-             w_to_n_coll_it != w_to_n_coll_.end(); w_to_n_coll_it++) {
-            for (unsigned int c = w_to_n_coll_it->second.first_offset; 
-                 c <= UCHAR_MAX; c++) {
-                out.write ((const char*)&w_to_n_coll_it->second.off[c],
-                           sizeof (w_to_n_coll_it->second.off[c]));
+        else {
+            ce_map_iter ce_map_it = ce_map_.find (current_off->second);
+            if (ce_map_it != ce_map_.end() 
+                && ce_map_it->second.coll_val != UINT_MAX) {
+                out.write ((char*)&ce_map_it->second.order, 
+                           sizeof (ce_map_it->second.order));
+                weights = ce_map_it->second.weights;
+                for (int j = 0; j < collate_out_.num_weights; ++j) {
+                    for (int k = 0; k < weights[j].size; ++k) {
+                        out.write ((char*)&weights[j].weight[k],
+                                   sizeof (weights[j].weight[k]));
+                    }
+                    for (int c = weights[j].size; 
+                         c < collate_out_.longest_weight; ++c)
+                        out.write ((char*)&maxw, sizeof (maxw)); 
+                }
+
             }
+            ++current_off;
         }
-        
-        // now print the narrow character table offsets
-        unsigned int current_offset = 0;
-        for (char_offs_it = char_offs_.begin();
-             char_offs_it != char_offs_.end(); char_offs_it++) {
-            out.write ((const char*)&current_offset, sizeof (current_offset));
-            current_offset += (UCHAR_MAX + 1 
-                               - char_offs_it->second.first_offset);
+    }            
+
+    // maske sure that we got to the undefined value
+    if (!undefined_written && collate_out_.undefined_optimization) {
+        if (off_idx != undef_char_info_.offset)
+            issue_diag (E_RANGE, true, 0, 
+                        "current_off : %d, index : %d, giving up\n",
+                        undef_char_info_.offset, off_idx);
+
+        weights = undef_char_info_.weights;
+        out.write ((char*)&undef_char_info_.order, 
+                   sizeof (undef_char_info_.order));
+        for (int j = 0; j < collate_out_.num_weights; ++j) {
+            for (int k = 0; k < weights[j].size; ++k) {
+                out.write ((char*)&weights[j].weight[k],
+                           sizeof (weights[j].weight[k]));
+            }
+            for (int c = weights[j].size; 
+                 c < collate_out_.longest_weight; ++c)
+                out.write ((char*)&maxw, sizeof (maxw)); 
         }
-
-        // now print the wide character table offsets
-        current_offset = 0;
-        for (w_to_n_coll_it = w_to_n_coll_.begin();
-             w_to_n_coll_it != w_to_n_coll_.end(); w_to_n_coll_it++) {
-            out.write ((const char*)&current_offset, sizeof (current_offset));
-            current_offset += (UCHAR_MAX + 1 
-                               - w_to_n_coll_it->second.first_offset);
-        }
-
-        // now print the narrow ce table offsets
-        current_offset = 0;
-        for (n_ce_offs_it = n_ce_offs_.begin();
-             n_ce_offs_it != n_ce_offs_.end(); n_ce_offs_it++) {
-            out.write ((const char*)&current_offset, sizeof (current_offset));
-            current_offset += (n_ce_offs_it->second.last_offset 
-                               - n_ce_offs_it->second.first_offset + 1);
-        }
-
-        // now print the wide ce table offsets
-        current_offset = 0;
-        for (w_ce_offs_it = w_ce_offs_.begin();
-             w_ce_offs_it != w_ce_offs_.end(); w_ce_offs_it++) {
-            out.write ((const char*)&current_offset, sizeof (current_offset));
-            current_offset += (w_ce_offs_it->second.last_offset 
-                               - w_ce_offs_it->second.first_offset + 1);
-        }
-
-
-        // now print out the narrow character tables starting character
-        for (char_offs_it = char_offs_.begin();
-             char_offs_it != char_offs_.end(); char_offs_it++) {
-            char off = char((char_offs_it->second).first_offset);
-            out.write ((const char*)&off, sizeof (char));
-        }        
-        
-        // now print out the wide character tables starting character
-        for (w_to_n_coll_it = w_to_n_coll_.begin();
-             w_to_n_coll_it != w_to_n_coll_.end(); w_to_n_coll_it++) {
-            char off = char((w_to_n_coll_it->second).first_offset);
-            out.write ((const char*)&off, sizeof (char));
-        }        
-        
-        // now print out the narrow ce tables starting character
-        for (n_ce_offs_it = n_ce_offs_.begin();
-             n_ce_offs_it != n_ce_offs_.end(); n_ce_offs_it++) {
-            char off = char((n_ce_offs_it->second).first_offset);
-            out.write ((const char*)&off, sizeof (char));
-        }        
-
-        // now print out the wide ce tables starting character
-        for (w_ce_offs_it = w_ce_offs_.begin();
-             w_ce_offs_it != w_ce_offs_.end(); w_ce_offs_it++) {
-            char off = char((w_ce_offs_it->second).first_offset);
-            out.write ((const char*)&off, sizeof (char));
-        }        
-
-        // now print out the narrow ce tables ending character
-        for (n_ce_offs_it = n_ce_offs_.begin();
-             n_ce_offs_it != n_ce_offs_.end(); n_ce_offs_it++) {
-            char off = char((n_ce_offs_it->second).last_offset);
-            out.write ((const char*)&off, sizeof (char));
-        }        
-
-        // now print out the wide ce tables ending character
-        for (w_ce_offs_it = w_ce_offs_.begin();
-             w_ce_offs_it != w_ce_offs_.end(); w_ce_offs_it++) {
-            char off = char((w_ce_offs_it->second).last_offset);
-            out.write ((const char*)&off, sizeof (char));
-        }        
-        
-        // finally write the codeset and charmap names
-        out << charmap_.get_code_set_name() << std::ends
-            << charmap_.get_charmap_name() << std::ends;
     }
+
+    // now print out the narrow character tables
+    for (char_offs_it = char_offs_.begin(); 
+         char_offs_it != char_offs_.end(); ++char_offs_it) {
+        for (unsigned int c = char_offs_it->second.first_offset; 
+             c <= UCHAR_MAX; ++c) {
+            out.write ((const char*)&char_offs_it->second.off[c],
+                       sizeof (char_offs_it->second.off[c]));
+        }
+    }
+
+    // now print out the wide character tables
+    for (w_to_n_coll_it = w_to_n_coll_.begin(); 
+         w_to_n_coll_it != w_to_n_coll_.end(); ++w_to_n_coll_it) {
+        for (unsigned int c = w_to_n_coll_it->second.first_offset; 
+             c <= UCHAR_MAX; ++c) {
+            out.write ((const char*)&w_to_n_coll_it->second.off[c],
+                       sizeof (w_to_n_coll_it->second.off[c]));
+        }
+    }
+        
+    // now print the narrow character table offsets
+    unsigned int current_offset = 0;
+    for (char_offs_it = char_offs_.begin();
+         char_offs_it != char_offs_.end(); ++char_offs_it) {
+        out.write ((const char*)&current_offset, sizeof (current_offset));
+        current_offset += (UCHAR_MAX + 1 
+                           - char_offs_it->second.first_offset);
+    }
+
+    // now print the wide character table offsets
+    current_offset = 0;
+    for (w_to_n_coll_it = w_to_n_coll_.begin();
+         w_to_n_coll_it != w_to_n_coll_.end(); ++w_to_n_coll_it) {
+        out.write ((const char*)&current_offset, sizeof (current_offset));
+        current_offset += (UCHAR_MAX + 1 
+                           - w_to_n_coll_it->second.first_offset);
+    }
+
+    // now print the narrow ce table offsets
+    current_offset = 0;
+    for (n_ce_offs_it = n_ce_offs_.begin();
+         n_ce_offs_it != n_ce_offs_.end(); ++n_ce_offs_it) {
+        out.write ((const char*)&current_offset, sizeof (current_offset));
+        current_offset += (n_ce_offs_it->second.last_offset 
+                           - n_ce_offs_it->second.first_offset + 1);
+    }
+
+    // now print the wide ce table offsets
+    current_offset = 0;
+    for (w_ce_offs_it = w_ce_offs_.begin();
+         w_ce_offs_it != w_ce_offs_.end(); ++w_ce_offs_it) {
+        out.write ((const char*)&current_offset, sizeof (current_offset));
+        current_offset += (w_ce_offs_it->second.last_offset 
+                           - w_ce_offs_it->second.first_offset + 1);
+    }
+
+
+    // now print out the narrow character tables starting character
+    for (char_offs_it = char_offs_.begin();
+         char_offs_it != char_offs_.end(); ++char_offs_it) {
+        const char off = char ((char_offs_it->second).first_offset);
+        out << off;
+    }        
+        
+    // now print out the wide character tables starting character
+    for (w_to_n_coll_it = w_to_n_coll_.begin();
+         w_to_n_coll_it != w_to_n_coll_.end(); ++w_to_n_coll_it) {
+        const char off = char ((w_to_n_coll_it->second).first_offset);
+        out << off;
+    }        
+        
+    // now print out the narrow ce tables starting character
+    for (n_ce_offs_it = n_ce_offs_.begin();
+         n_ce_offs_it != n_ce_offs_.end(); ++n_ce_offs_it) {
+        const char off = char ((n_ce_offs_it->second).first_offset);
+        out << off;
+    }        
+
+    // now print out the wide ce tables starting character
+    for (w_ce_offs_it = w_ce_offs_.begin();
+         w_ce_offs_it != w_ce_offs_.end(); ++w_ce_offs_it) {
+        const char off = char ((w_ce_offs_it->second).first_offset);
+        out << off;
+    }        
+
+    // now print out the narrow ce tables ending character
+    for (n_ce_offs_it = n_ce_offs_.begin();
+         n_ce_offs_it != n_ce_offs_.end(); ++n_ce_offs_it) {
+        const char off = char ((n_ce_offs_it->second).last_offset);
+        out << off;
+    }        
+
+    // now print out the wide ce tables ending character
+    for (w_ce_offs_it = w_ce_offs_.begin();
+         w_ce_offs_it != w_ce_offs_.end(); ++w_ce_offs_it) {
+        const char off = char ((w_ce_offs_it->second).last_offset);
+        out << off;
+    }        
+        
+    // finally write the codeset and charmap names
+    out << charmap_.get_code_set_name() << std::ends
+        << charmap_.get_charmap_name() << std::ends;
 }
 
 
@@ -1490,7 +1540,7 @@ void Def::init_coll_map() {
 
     for (rw_cmap_pos = charmap_.get_rw_cmap().begin(); 
          rw_cmap_pos != charmap_.get_rw_cmap().end();
-         rw_cmap_pos++) {
+         ++rw_cmap_pos) {
         coll_map_.insert (std::make_pair (rw_cmap_pos->first, tmp));
     }
 }
@@ -1531,7 +1581,7 @@ void Def::preprocess_collate ()
                             "expected string following \"copy\" directive\n");
 
             // bump up the nesting level
-            nesting_level++;
+            ++nesting_level;
 
             issue_diag (I_STAGE, false, 0, "processing copy directive\n");
 
@@ -1544,7 +1594,7 @@ void Def::preprocess_collate ()
                    != Scanner::tok_collate ){
                 // the LC_IDENTIFICATION section may also have a 
                 // LC_COLLATE token that will mess up the parsing
-                if (next.token == Scanner::tok_identification) {
+                if (next.token == Scanner::tok_ident) {
                     while ((next = scanner_.next_token()).token
                            != Scanner::tok_end );
                     next = scanner_.next_token();
@@ -1559,7 +1609,7 @@ void Def::preprocess_collate ()
         // names which have to be present in the character map;
         // the form of the phrase is:
         // collating-element sym from ("string" | (sym sym+))
-        case Scanner::tok_collating_element: {
+        case Scanner::tok_coll_elem: {
             next = scanner_.next_token();
             // we expect a symbolic name
             if (next.token != Scanner::tok_sym_name) 
@@ -1590,7 +1640,7 @@ void Def::preprocess_collate ()
                             "illegal collating-element expression\n");
             break;
         }
-        case Scanner::tok_collating_symbol:
+        case Scanner::tok_coll_sym:
             next = scanner_.next_token();
             if (next.token != Scanner::tok_sym_name)
                 issue_diag (E_SYNTAX, true, &next,
@@ -1658,6 +1708,9 @@ void Def::preprocess_order ()
         // unnamed sections
         if (section.name == "")
             section.name = "unnamed";
+
+        issue_diag (I_STAGE, false, 0,
+                    "processing %s order\n", section.name.c_str ());
 
         // store the collation statements
         while (!(next.token == Scanner::tok_order_end || 
@@ -1727,8 +1780,8 @@ void Def::preprocess_reorder ()
 
             if (next.token == Scanner::tok_nl )
                 continue;
-            else if (next.token == Scanner::tok_sym_name || 
-                     next.token == Scanner::tok_dellipsis) {
+            else if (   next.token == Scanner::tok_sym_name
+                     || next.token == Scanner::tok_hex_ellipsis) {
                 // the line will contain one single symbolic name 
                 // or a complete collation statement
                 collate_entry_t entry;
@@ -1799,10 +1852,10 @@ void Def::preprocess_reorder_section ()
                 std::list<collate_section_t>::iterator ref_it, mov_it;
                 for (ref_it = beg; 
                      ref_it->name != sym.name && ref_it != end; 
-                     ref_it++);
+                     ++ref_it);
                 for (mov_it = beg; 
                      mov_it->name != next.name && mov_it != end; 
-                     mov_it++);
+                     ++mov_it);
 
                 if (ref_it == end || mov_it == end)
                     issue_diag (E_SYNTAX, true, &next,
@@ -1888,10 +1941,10 @@ void Def::list_collate ()
             while (w_it != e_it->second.end ())
                 std::cout << (w_it++)->name << ";";
             std::cout << '\n';
-            e_it++;
+            ++e_it;
         }
 
-        sc_it++;
+        ++sc_it;
     }
     std::cout << '\n' << "order_end\n";
 }
@@ -1905,13 +1958,13 @@ bool Def::insert_entries (token_t& s, collate_entry_list_t& e)
 {
     // first remove these entries if found
     collate_entry_list_t::iterator r_it = e.begin ();
-    for (; r_it != e.end (); r_it++) 
+    for (; r_it != e.end (); ++r_it) 
         remove_entry (*r_it);
 
     // first search through the symbols list; if found check
     // the collate_entry object; it should not have weights
     token_list_t::iterator it = sym_list_.begin ();
-    for (; it != sym_list_.end (); it++) {
+    for (; it != sym_list_.end (); ++it) {
         if (it->name != s.name) 
             continue;
 
@@ -1928,7 +1981,7 @@ bool Def::insert_entries (token_t& s, collate_entry_list_t& e)
 
         // insert the symbolic name there
         collate_entry_list_t::iterator e_it = e.begin ();
-        for (; e_it != e.end (); e_it++) 
+        for (; e_it != e.end (); ++e_it) 
             it = sym_list_.insert (++it, e_it->first);
 
         return true;
@@ -1938,7 +1991,7 @@ bool Def::insert_entries (token_t& s, collate_entry_list_t& e)
     std::list<collate_section_t>::iterator sect_it = section_list_.begin ();
     while (sect_it != section_list_.end ()) {
         collate_entry_list_t::iterator e_it = sect_it->entries.begin ();
-        for (; e_it != sect_it->entries.end (); e_it++) {
+        for (; e_it != sect_it->entries.end (); ++e_it) {
             if (e_it->first.name != s.name)
                 continue;
 
@@ -1946,7 +1999,7 @@ bool Def::insert_entries (token_t& s, collate_entry_list_t& e)
             sect_it->entries.insert (++e_it, e.begin (), e.end ());
             return true;
         }
-        sect_it++;
+        ++sect_it;
     }
 
     issue_diag (W_REORD, false, &s,
@@ -1963,7 +2016,7 @@ void Def::remove_entry (collate_entry_t& e)
     // search in the sym_list_ and in the sections
     if (e.second.empty ()) {
         token_list_t::iterator it = sym_list_.begin ();
-        for (; it != sym_list_.end (); it++) {
+        for (; it != sym_list_.end (); ++it) {
             if (it->name != e.first.name) 
                 continue;
 
@@ -1976,14 +2029,14 @@ void Def::remove_entry (collate_entry_t& e)
     std::list<collate_section_t>::iterator sect_it = section_list_.begin ();
     while (sect_it != section_list_.end ()) {
         std::list<collate_entry_t>::iterator e_it = sect_it->entries.begin ();
-        for (; e_it != sect_it->entries.end (); e_it++) {
+        for (; e_it != sect_it->entries.end (); ++e_it) {
             if (e_it->first.name != e.first.name)
                 continue;
 
             sect_it->entries.erase (e_it);
             return;
         }
-        sect_it++;
+        ++sect_it;
     }
     return ;
 }
@@ -1994,12 +2047,14 @@ bool Def::get_weight ( token_t&     w,
                        Weights_t*   weights, 
                        int          weight_num)
 {
+    const std::map<std::string, wchar_t>& w_cmap = charmap_.get_w_cmap ();
+
     bool ret = false;
     weights[weight_num].size = 1;
     ce_map_iter ce_map_it;
     if(w.token == Scanner::tok_sym_name) {
-        w_cmap_iter w_cmap_pos = charmap_.get_w_cmap().find (w.name);
-        if (w_cmap_pos != charmap_.get_w_cmap().end()){
+        w_cmap_iter w_cmap_pos = w_cmap.find (w.name);
+        if (w_cmap_pos != w_cmap.end()){
             coll_map_iter coll_map_pos = coll_map_.find(w_cmap_pos->second);
 
             if (coll_map_pos->second.coll_val == UINT_MAX) 
@@ -2024,9 +2079,7 @@ bool Def::get_weight ( token_t&     w,
             weights[weight_num].weight[0] = cs_it->second;
         }
     }
-    else if (w.token == Scanner::tok_decimal_value 
-             || w.token == Scanner::tok_hex_value
-             || w.token == Scanner::tok_octal_value) {
+    else if (w.token == Scanner::tok_char_value) {
         // the weight is given in numerical form
         const char* next_val =
             std::strchr (w.name.c_str (), scanner_.escape_char ());
@@ -2086,7 +2139,7 @@ bool Def::get_weight ( token_t&     w,
             if (*it == '<') {
                 while (*it != '>') {
                     if (*it == escape) 
-                        it++;
+                        ++it;
 
                     wsym += *it++;
                 }
@@ -2095,11 +2148,11 @@ bool Def::get_weight ( token_t&     w,
                 // wsym has the symbolic name, lookup for it in 
                 // the character map, collating-symbol map, 
                 // and collating-element map
-                w_cmap_iter w_cm_pos = charmap_.get_w_cmap().find(wsym);
+                w_cmap_iter w_cm_pos = w_cmap.find(wsym);
                 cs_map_iter cs_it = cs_map_.find (wsym);
                 ce_map_iter ce_it = ce_map_.find (wsym);
 
-                if (w_cm_pos != charmap_.get_w_cmap().end()) {
+                if (w_cm_pos != w_cmap.end()) {
                     // is in the character map, check its associated
                     // collation value
                     coll_map_iter coll_it = coll_map_.find(w_cm_pos->second);
@@ -2155,7 +2208,7 @@ bool Def::get_weight ( token_t&     w,
             collate_out_.longest_weight = k;
 
     }
-    else if (w.token == Scanner::tok_ellipsis)
+    else if (w.token == Scanner::tok_abs_ellipsis)
         // return true if ellipsis are embedded in the weight
         ret = true;
     else
@@ -2179,7 +2232,7 @@ void Def::gen_valid_coll_wchar_set () {
     create_wchar_utf8_table();
 
     for (coll_map_iter coll_it = coll_map_.begin(); 
-         coll_it != coll_map_.end(); coll_it++) {
+         coll_it != coll_map_.end(); ++coll_it) {
         if (coll_it->second.offset != UINT_MAX 
             || !collate_out_.undefined_optimization){
 

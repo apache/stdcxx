@@ -44,7 +44,6 @@
 struct ScannerContext
 {
     ScannerContext (const char*, char = '#', char = '\\');
-    ScannerContext (const ScannerContext&);
  
     std::ifstream file;		// file stream object
     std::string   filename;	// filename
@@ -60,7 +59,9 @@ struct ScannerContext
     std::string line_;
     const char* pos_;
 
-protected:
+private:
+    // not defined (not copy constructible or assignable)
+    ScannerContext (const ScannerContext&);
     void operator= (ScannerContext&);
 };
 
@@ -100,18 +101,6 @@ ScannerContext (const char* name, char cc, char ec)
     issue_diag (I_OPENRD, false, 0, "reading %s\n", name);
 }
 
-
-ScannerContext::
-ScannerContext (const ScannerContext& scanner)
-    : file (scanner.filename.c_str(), std::ios::binary), 
-      filename (scanner.filename),
-      comment_char (scanner.comment_char),
-      escape_char (scanner.escape_char),
-      line (scanner.line)
-      // column (scanner.column)
-{
-}
-
 /**************************************************************************/
 // Scanner class definitions
 
@@ -119,6 +108,7 @@ Scanner::
 Scanner ()
     : context_ (0), nlines_ (0), ntokens_ (0), escaped_newline_ (false)
 {
+    // no-op
 }
 
 
@@ -201,16 +191,13 @@ process_token (const char* name)
     assert (0 != name);
 
     if (*name == context_->escape_char) {
-
         switch (name [1]) {
-
-        case 'd':
-            return tok_decimal_value;
-        case 'x':
-            return tok_hex_value;
         case '0': case '1': case '2': case '3':
         case '4': case '5': case '6': case '7':
-            return tok_octal_value;
+        case 'd':
+        case 'x':
+            // escaped numeric character value
+            return tok_char_value;
         default:
             break;
         }
@@ -224,93 +211,98 @@ process_token (const char* name)
         const char*       name;
         Scanner::token_id token;
     } tok_map [] = {
-        { "CHARMAP", Scanner::tok_charmap },
-        { "END", Scanner::tok_end },
-        { "IGNORE", Scanner::tok_ignore },
-        { "LC_COLLATE", Scanner::tok_collate },
-        { "LC_CTYPE", Scanner::tok_ctype },
-        { "LC_IDENTIFICATION", Scanner::tok_identification },
-        { "LC_MESSAGES", Scanner::tok_messages },
-        { "LC_MONETARY", Scanner::tok_monetary },
-        { "LC_NUMERIC", Scanner::tok_numeric },
-        { "LC_TIME", Scanner::tok_time },
-        { "UNDEFINED", Scanner::tok_undefined },
-        { "WIDTH", Scanner::tok_width },
-        { "abday", Scanner::tok_abday },
-        { "abmon", Scanner::tok_abmon },
-        { "alpha", Scanner::tok_alpha },
-        { "alt_digits", Scanner::tok_alt_digits },
-        { "am_pm", Scanner::tok_am_pm },
-        { "backward", Scanner::tok_backward },
-        { "blank", Scanner::tok_blank },
-        { "cntrl", Scanner::tok_cntrl },
-        { "collating-element", Scanner::tok_collating_element },
-        { "collating-symbol", Scanner::tok_collating_symbol },
-        { "comment_char", Scanner::tok_comment_char },
-        { "copy", Scanner::tok_copy },
-        { "currency_symbol", Scanner::tok_currency_symbol },
-        { "d_fmt", Scanner::tok_d_fmt },
-        { "d_t_fmt", Scanner::tok_d_t_fmt },
-        { "day", Scanner::tok_day },
-        { "decimal_point", Scanner::tok_decimal_point },
-        { "digit", Scanner::tok_digit },
-        { "era", Scanner::tok_era },
-        { "era_d_fmt", Scanner::tok_era_d_fmt },
-        { "era_d_t_fmt", Scanner::tok_era_d_t_fmt },
-        { "era_t_fmt", Scanner::tok_era_t_fmt },
-        { "escape_char", Scanner::tok_escape_char },
-        { "falsename", Scanner::tok_falsename },
-        { "forward", Scanner::tok_forward },
-        { "frac_digits", Scanner::tok_frac_digits },
-        { "from", Scanner::tok_from },
-        { "graph", Scanner::tok_graph },
-        { "grouping", Scanner::tok_grouping },
-        { "include", Scanner::tok_include },
-        { "int_curr_symbol", Scanner::tok_int_curr_symbol },
-        { "int_frac_digits", Scanner::tok_int_frac_digits },
-        { "int_n_cs_precedes", Scanner::tok_int_n_cs_precedes },
-        { "int_n_sep_by_space", Scanner::tok_int_n_sep_by_space },
-        { "int_n_sign_posn", Scanner::tok_int_n_sign_posn },
-        { "int_p_cs_precedes", Scanner::tok_int_p_cs_precedes },
-        { "int_p_sep_by_space", Scanner::tok_int_p_sep_by_space },
-        { "int_p_sign_posn", Scanner::tok_int_p_sign_posn },
-        { "lower", Scanner::tok_lower },
-        { "mon", Scanner::tok_mon },
-        { "mon_decimal_point", Scanner::tok_mon_decimal_point },
-        { "mon_grouping", Scanner::tok_mon_grouping },
-        { "mon_thousands_sep", Scanner::tok_mon_thousands_sep },
-        { "noexpr", Scanner::tok_noexpr },
-        { "n_cs_precedes", Scanner::tok_n_cs_precedes },
-        { "n_sep_by_space", Scanner::tok_n_sep_by_space },
-        { "n_sign_posn", Scanner::tok_n_sign_posn },
-        { "negative_sign", Scanner::tok_negative_sign },
-        { "order_end", Scanner::tok_order_end },
-        { "order_start", Scanner::tok_order_start },
-        { "p_cs_precedes", Scanner::tok_p_cs_precedes },
-        { "p_sep_by_space", Scanner::tok_p_sep_by_space },
-        { "p_sign_posn", Scanner::tok_p_sign_posn },
-        { "position", Scanner::tok_position },
-        { "positive_sign", Scanner::tok_positive_sign },
-        { "print", Scanner::tok_print },
-        { "punct", Scanner::tok_punct },
-        { "reorder-after", Scanner::tok_reorder },
-        { "reorder-end", Scanner::tok_reorder_end },
-        { "reorder-section-after", Scanner::tok_reorder_section },
-        { "reorder-section-end", Scanner::tok_reorder_section_end },
-        { "space", Scanner::tok_space },
-        { "script", Scanner::tok_script },
-        { "t_fmt", Scanner::tok_t_fmt },
-        { "t_fmt_ampm", Scanner::tok_t_fmt_ampm },
-        { "thousands_sep", Scanner::tok_thousands_sep },
-        { "tolower", Scanner::tok_tolower },
-        { "toupper", Scanner::tok_toupper },
-        { "translit_end", Scanner::tok_translit_end },
-        { "translit_start", Scanner::tok_translit_start },
-        { "truename", Scanner::tok_truename },
-        { "upper", Scanner::tok_upper },
-        { "xdigit", Scanner::tok_xdigit },
-        { "yesexpr", Scanner::tok_yesexpr },
-        { "eof", Scanner::tok_eof }
+        // elements must be sorted in ascending order
+        { "CHARMAP", tok_charmap },
+        { "END", tok_end },
+        { "IGNORE", tok_ignore },
+        { "LC_ADDRESS", tok_addr },
+        { "LC_COLLATE", tok_collate },
+        { "LC_CTYPE", tok_ctype },
+        { "LC_IDENTIFICATION", tok_ident },
+        { "LC_MEASUREMENT", tok_measure },
+        { "LC_MESSAGES", tok_messages },
+        { "LC_MONETARY", tok_monetary },
+        { "LC_NAME", tok_name },
+        { "LC_NUMERIC", tok_numeric },
+        { "LC_PAPER", tok_paper },
+        { "LC_TELEPHONE", tok_phone },
+        { "LC_TIME", tok_time },
+        { "UNDEFINED", tok_undefined },
+        { "WIDTH", tok_width },
+        { "abday", tok_abday },
+        { "abmon", tok_abmon },
+        { "alpha", tok_alpha },
+        { "alt_digits", tok_alt_digits },
+        { "am_pm", tok_am_pm },
+        { "backward", tok_backward },
+        { "blank", tok_blank },
+        { "cntrl", tok_cntrl },
+        { "collating-element", tok_coll_elem },
+        { "collating-symbol", tok_coll_sym },
+        { "comment_char", tok_comment_char },
+        { "copy", tok_copy },
+        { "currency_symbol", tok_currency_symbol },
+        { "d_fmt", tok_d_fmt },
+        { "d_t_fmt", tok_d_t_fmt },
+        { "day", tok_day },
+        { "decimal_point", tok_decimal_point },
+        { "digit", tok_digit },
+        { "era", tok_era },
+        { "era_d_fmt", tok_era_d_fmt },
+        { "era_d_t_fmt", tok_era_d_t_fmt },
+        { "era_t_fmt", tok_era_t_fmt },
+        { "escape_char", tok_escape_char },
+        { "falsename", tok_falsename },
+        { "forward", tok_forward },
+        { "frac_digits", tok_frac_digits },
+        { "from", tok_from },
+        { "graph", tok_graph },
+        { "grouping", tok_grouping },
+        { "include", tok_include },
+        { "int_curr_symbol", tok_int_curr_symbol },
+        { "int_frac_digits", tok_int_frac_digits },
+        { "int_n_cs_precedes", tok_int_n_cs_precedes },
+        { "int_n_sep_by_space", tok_int_n_sep_by_space },
+        { "int_n_sign_posn", tok_int_n_sign_posn },
+        { "int_p_cs_precedes", tok_int_p_cs_precedes },
+        { "int_p_sep_by_space", tok_int_p_sep_by_space },
+        { "int_p_sign_posn", tok_int_p_sign_posn },
+        { "lower", tok_lower },
+        { "mon", tok_mon },
+        { "mon_decimal_point", tok_mon_decimal_point },
+        { "mon_grouping", tok_mon_grouping },
+        { "mon_thousands_sep", tok_mon_thousands_sep },
+        { "n_cs_precedes", tok_n_cs_precedes },
+        { "n_sep_by_space", tok_n_sep_by_space },
+        { "n_sign_posn", tok_n_sign_posn },
+        { "negative_sign", tok_negative_sign },
+        { "noexpr", tok_noexpr },
+        { "order_end", tok_order_end },
+        { "order_start", tok_order_start },
+        { "p_cs_precedes", tok_p_cs_precedes },
+        { "p_sep_by_space", tok_p_sep_by_space },
+        { "p_sign_posn", tok_p_sign_posn },
+        { "position", tok_position },
+        { "positive_sign", tok_positive_sign },
+        { "print", tok_print },
+        { "punct", tok_punct },
+        { "reorder-after", tok_reorder },
+        { "reorder-end", tok_reorder_end },
+        { "reorder-section-after", tok_reorder_section },
+        { "reorder-section-end", tok_reorder_section_end },
+        { "script", tok_script },
+        { "space", tok_space },
+        { "t_fmt", tok_t_fmt },
+        { "t_fmt_ampm", tok_t_fmt_ampm },
+        { "thousands_sep", tok_thousands_sep },
+        { "tolower", tok_tolower },
+        { "toupper", tok_toupper },
+        { "translit_end", tok_xlit_end },
+        { "translit_start", tok_xlit_start },
+        { "truename", tok_truename },
+        { "upper", tok_upper },
+        { "xdigit", tok_xdigit },
+        { "yesexpr", tok_yesexpr }
     };
 
     int low  = 0;
@@ -332,7 +324,7 @@ process_token (const char* name)
             low = cur + 1;
     }
 
-    return Scanner::tok_ndef;
+    return tok_ndef;
 }
 
 
@@ -525,7 +517,6 @@ next_token ()
                         issue_diag (E_SYNTAX, true, &next_tok, 
                                     " unterminated symbolic name");
 
-                    // increment the pointer
                     ++next;
                 }
                 else {
@@ -543,31 +534,40 @@ next_token ()
             break;
         } 
         else if (*next == '.') {
+            // ellipsis (see ISO/IEC TR 14652)
             int ellipsis_count = 0;
             // start of an interval
             while (*next == '.') {
                 next_tok.name.push_back (*next++);
                 ++ellipsis_count;
             }
+
             switch (ellipsis_count) {
-            case 2 : 
-            {
+            case 2: {
                 const char* tmp = next;
                 if (*tmp++ == '(' && *tmp++ == '2' && *tmp++ == ')'
                     && *tmp++ == '.' && *tmp++ == '.') {
-                    next_tok.token = tok_doub_inc_ellipsis;
+                    // double increment hexadecimal symbolic ellipsis
+                    next_tok.token = tok_dbl_ellipsis;
                     next = tmp;
                 }
-                else
-                    next_tok.token = tok_dellipsis;
+                else {
+                    // hexadecimal symbolic ellipsis
+                    next_tok.token = tok_hex_ellipsis;
+                }
                 break;
             }
+
             case 3:
-                next_tok.token = tok_ellipsis;
+                // absolute symbolic ellipsis
+                next_tok.token = tok_abs_ellipsis;
                 break;
+
             case 4:
-                next_tok.token = tok_qellipsis;
+                // decimal symbolic ellipsis
+                next_tok.token = tok_dec_ellipsis;
                 break;
+
             default:
                 issue_diag (E_SYNTAX, true, &next_tok, "illegal ellipsis\n");
             }
@@ -712,7 +712,7 @@ convert_escape (const char  *esc,
 
     if (escape != *esc)
         issue_diag (E_SYNTAX, true, 0,
-                    "expected the escape character ('%c'): %s\n",
+                    "expected the escape character ('%c'), got \"%s\"\n",
                     escape, esc);
 
     unsigned long value = 0;
@@ -738,12 +738,12 @@ convert_escape (const char  *esc,
                         "the escape character: %s\n", esc);
         }
 
-        const char *end = 0;
+        char *end = 0;
 
-        if (!pend)
-            pend = &end;
+        const unsigned long byte = std::strtoul (s, &end, base);
 
-        const unsigned long byte = std::strtoul (s, (char**)pend, base);
+        if (pend)
+            *pend = end;
 
         if (!multi && pend == &end && **pend)
             issue_diag (E_SYNTAX, true, 0,

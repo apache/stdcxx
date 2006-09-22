@@ -2,20 +2,27 @@
  *
  * def.h
  *
- * $Id: //stdlib/dev/source/stdlib/util/def.h#2 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -30,6 +37,7 @@
 
 #include <cassert>             // for assert()
 #include <climits>             // for UCHAR_MAX
+#include <cstddef>             // for size_t
 
 #include <loc/_localedef.h>
 
@@ -144,25 +152,23 @@ private:
     // copy a file
     void copy_file(const std::string &name, const std::string &outname);
     
+    // process absolute ellipsis
+    std::size_t process_abs_ellipsis (const Scanner::token_t&,
+                                      std::ctype_base::mask);
+
     // process hexadecimal symbolic ellipsis, decimal symbolic ellipsis,
     // and double increment hexadecimal symbolic ellipsis
-    void process_sym_ellipsis (const std::string& start_sym,
-                               const std::string& end_sym,
-                               Scanner::token_id type,
-                               std::ctype_base::mask m);
-
-    // hexadecimally increment the symbolic name
-    std::string hex_increment (const std::string& sym);
-
-    // decimally increment the symbolic name
-    std::string dec_increment (const std::string& sym);
+    std::size_t process_sym_ellipsis (const std::string&,
+                                      const std::string&,
+                                      Scanner::token_id,
+                                      std::ctype_base::mask);
 
     // parse the era string
     void parse_era (const token_t&);
 
     // process the ctype category specified by m with the exception of
     // (e.g. std::ctype_base::upper)
-    void process_mask(std::ctype_base::mask m);
+    void process_mask (std::ctype_base::mask, const char*);
 
     // process the ctype toupper and tolower definitions
     void process_upper_lower(Scanner::token_id tok);
@@ -171,11 +177,12 @@ private:
     void process_ctype();
 
     // process transliteration information
-    void process_transliteration ();
-    void process_transliteration_statement ();
+    void process_xlit ();
+
+    void process_xlit_statement (std::size_t&);
 
     // process the collate section of the locale definition file
-    void process_collate    ();
+    void process_collate ();
 
     // processing of collating definition statements
     void process_collate_definition (bool, collate_entry_t&,
@@ -215,6 +222,12 @@ private:
 
     // process the numeric section of the locale definition file
     void process_numeric();
+
+    // extracts and converts an array of strings such as those
+    // representing the names of weekdays in the LC_TIME section
+    Scanner::token_t
+    extract_string_array (std::string*, std::wstring*, std::size_t);
+
 
     // process the time section of the locale definition file
     void process_time();
@@ -273,67 +286,52 @@ private:
     // maps characters to their upper case representation
     std::map<wchar_t, wchar_t> upper_;
 
-    std::map<std::string, unsigned int>mb_char_off_map_;
     typedef std::map<std::string, unsigned int>::iterator mb_char_off_map_iter;
-    struct ctype_offset_tab_t {
-        unsigned int off[UCHAR_MAX + 1];
+
+    struct codecvt_offset_tab_t {
+        unsigned int off [UCHAR_MAX + 1];
     };
-
-    std::map<std::string, unsigned int>wchar_off_map_;
-
-    std::map<unsigned int, ctype_offset_tab_t> mb_char_offs_;
-    typedef std::map<unsigned int, ctype_offset_tab_t>::iterator 
-    mb_char_offs_iter;
-
-    std::map<unsigned int, ctype_offset_tab_t> wchar_offs_;
-    typedef std::map<unsigned int, ctype_offset_tab_t>::iterator 
-    wchar_offs_iter;
-
-    std::map<unsigned int, ctype_offset_tab_t> utf8_offs_;
-    typedef std::map<unsigned int, ctype_offset_tab_t>::iterator 
-    utf8_offs_iter;
 
     void create_wchar_utf8_table ();
     std::map<std::string, std::string> wchar_utf8_to_ext_;
     typedef std::map<std::string, std::string>::iterator wchar_utf8_iter;
 
     void gen_valid_coll_wchar_set ();
-    void gen_valid_codecvt_wchar_set ();
-    void gen_valid_codecvt_utf8_set ();
-    void gen_utf8_map();
-
 
     std::set<std::string> valid_coll_wchar_set_;
     typedef std::set<std::string>::iterator valid_coll_wchar_set_iter;
     std::set<std::string> valid_codecvt_wchar_set_;
     typedef std::set<std::string>::iterator valid_codecvt_wchar_set_iter;
-    std::set<std::string> valid_codecvt_utf8_set_;
-    typedef std::set<std::string>::iterator valid_codecvt_utf8_set_iter;
 
-    // the set of complete utf8 strings in the current character map
-    std::map<std::string, wchar_t> utf8_map_;
-    typedef std::map<std::string, wchar_t>::iterator utf8_map_iter;
+    typedef std::map<unsigned, const codecvt_offset_tab_t*>
+    codecvt_offsets_map_t;
 
-    unsigned int next_codecvt_tab_num_;
-    void generate_codecvt_table (const std::string &charp, 
-                                 unsigned int tab_num);
+    // generates conversion tables of all valid multibyte characters
+    // from a multibyte character map populated from the character
+    // set description file
+    std::size_t
+    gen_mbchar_tables (codecvt_offsets_map_t&,
+                       std::map<std::string, unsigned>&,
+                       const std::string& = "",
+                       unsigned = 0);
 
-    unsigned int next_wchar_codecvt_tab_num_;
-    unsigned int next_utf8_codecvt_tab_num_;
-    void generate_wchar_codecvt_table (const std::string &charp, 
-                                       unsigned int tab_num);
+    std::size_t
+    gen_wchar_tables (codecvt_offsets_map_t&,
+                      const std::string& = "",
+                      unsigned = 0);
 
-    void generate_utf8_codecvt_table (const std::string &charp, 
-                                      unsigned int tab_num);
-
+    std::size_t
+    gen_utf8_tables (codecvt_offsets_map_t&,
+                     std::map<std::string, unsigned>&,
+                     const std::string& = "",
+                     unsigned = 0);
 
     std::set<std::string> valid_coll_mb_set_;
-    std::set<std::string> valid_codecvt_mb_set_;
+
     void gen_valid_coll_mb_set();
-    void gen_valid_codecvt_mb_set();
 
     // generation of transliteration tables
-    void generate_xliteration_data ();
+    void gen_xlit_data ();
 
     // specifies if the locale file has already been written such as when
     // the "copy" directive is used in a locale definition file
@@ -449,20 +447,20 @@ private:
     typedef std::map<wchar_t, wchar_t>::iterator upper_iter;
     typedef std::map<wchar_t, wchar_t>::iterator lower_iter;
     typedef std::map< std::string, unsigned char >::const_iterator n_cmap_iter;
-    typedef std::map<std::string, wchar_t>::const_iterator n_cmap_iter2;
-    typedef std::map<wchar_t, std::string>::const_iterator rn_cmap_iter2;
+    typedef std::map<std::string, wchar_t>::const_iterator mb_cmap_iter;
+    typedef std::map<wchar_t, std::string>::const_iterator rmb_cmap_iter;
     typedef std::map<std::string, wchar_t >::const_iterator w_cmap_iter;
     typedef std::map<wchar_t, std::string >::const_iterator rw_cmap_iter;
     typedef std::map<unsigned int, std::string>::iterator off_mapr_iter;
-    typedef std::map<std::string, std::string>::const_iterator strval_map_iter;
     typedef std::map<std::string, wchar_t>::const_iterator ucs4_cmap_iter;
+
+    typedef std::list<std::string>::const_iterator symnames_list_iter;
 
     // the structures used to hold the offsets for each locale category
     // and any non-pointer locale information
     _RW::__rw_punct_t mon_punct_out_;
     _RW::__rw_punct_t num_punct_out_;
     _RW::__rw_ctype_t ctype_out_;
-    _RW::__rw_codecvt_t codecvt_out_;
     _RW::__rw_time_t time_out_;
     _RW::__rw_collate_t collate_out_;
     _RW::__rw_mon_t mon_out_;
