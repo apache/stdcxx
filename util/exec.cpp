@@ -467,8 +467,33 @@ wait_for_child (pid_t child_pid)
                     break;
                 }
 
-                /* ignore kill errors (perhaps should record them)*/
-                (void)kill (-child_pid, signals [siginx]);
+                if(0 != kill (-child_pid, signals [siginx])) {
+                    if (ESRCH == errno)
+                        /* ESRCH means 'No process (group) found'.  Since 
+                           there aren't any processes in the process group, 
+                           we'll continue so we can collect the return value
+                           if needed.
+                        */
+                        continue;
+                    /* In addition to ESRCH, kill () may also set errno to 
+                       EINVAL or EPERM, according to the POSIX spec, in 
+                       addition to any platform specific extensions.
+                       EPERM means 'No permissions to signal any recieving 
+                       process'.  It is unlikely that this situation will
+                       change, but we will try the remaining signals in the
+                       signals array, in the same manner as if the signal had
+                       been sent correctly.
+                       EINVAL means 'The signal is an invalid or unsupported
+                       signal number'.  As the signal number macros used in 
+                       the signal array are hard coded, issues should be 
+                       detected at compile time, not run time.  This is not a
+                       fatal situation, so the remainder of signals in the
+                       signal array will be tried, as if this transmission
+                       had been successfull.
+                       The correct behavior for any platform-specific 
+                       extensions needs to be evaluated, but we are treating
+                       them like EPERM or EINVAL at this time. */
+                }
 
                 /* Record the signal used*/
                 state.killed = signals [siginx];
@@ -476,7 +501,7 @@ wait_for_child (pid_t child_pid)
                 ++siginx;
 
                 /* Step to the next signal */
-                if (siginx > sigcount) {
+                if (siginx >= sigcount) {
                     /* Still running, but we've run out of signals to try
                        Therefore, we'll set error flags and break out of 
                        the loop.
@@ -521,6 +546,14 @@ wait_for_child (pid_t child_pid)
 
     /* Clear alarm */
     alarm (0);
+
+    /* Kill/cleanup any grandchildren. */
+    /* On solaris, this logic tries to avoid the situation where grandchild
+       process times are rolled into the timing of a later process */
+    while (siginx < sigcount && 0 == kill (-child_pid, signals [siginx])) {
+        ++siginx;
+        sleep(1);
+    }
 
     return state;
 }
