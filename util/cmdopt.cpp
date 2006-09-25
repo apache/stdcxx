@@ -28,7 +28,7 @@
 // such as SIGALRM or SIGKILL to be defined
 #undef __PURE_CNAME
 
-#include <assert.h>
+#include <assert.h> /* for assert() */
 #include <ctype.h> /* for isspace */
 #include <errno.h> /* for errno */
 #include <signal.h> /* for raise, signal, SIG_IGN */
@@ -150,18 +150,26 @@ rw_sleep (int seconds)
     sleep (seconds);
 }
 
+
 #ifdef __cplusplus
 
 extern "C" {
 
-#endif   /*__cplusplus */
+#endif   /* __cplusplus */
 
 static int
 rw_signal (int signo, void (*func)(int))
 {
     struct sigaction act;
     memset (&act, 0, sizeof act);
-    act.sa_handler = func;
+
+    // avoid extern "C"/"C++" mismatch due to an HP aCC 6 bug
+    // (see STDCXX-291)
+    if (func)
+        memcpy (&act.sa_handler, &func, sizeof func);
+    else
+        act.sa_handler = 0;
+
     return 0 > sigaction (signo, &act, 0);
 }
 
@@ -178,6 +186,7 @@ rw_sleep (int seconds)
 {
     Sleep (seconds * 1000);
 }
+
 
 static int
 rw_signal (int signo, void (*func)(int))
@@ -550,7 +559,7 @@ eval_options (int argc, char **argv)
                 optname = opt_signal;
                 optarg  = get_long_val (argv, &i, sizeof opt_signal - 1);
                 if (optarg && *optarg) {
-                    const long signo = get_signo (optarg);
+                    const int signo = get_signo (optarg);
                     if (0 <= signo) {
                         if (0 > raise (signo))
                             terminate (1, "raise(%s) failed: %s\n",
@@ -564,9 +573,9 @@ eval_options (int argc, char **argv)
                 optname = opt_ignore;
                 optarg  = get_long_val (argv, &i, sizeof opt_ignore - 1);
                 if (optarg && *optarg) {
-                    const long signo = get_signo (optarg);
+                    const int signo = get_signo (optarg);
                     if (0 <= signo) {
-                        if (rw_signal (signo, SIG_IGN))
+                        if (rw_signal (signo, 0 /* SIG_IGN */))
                             terminate (1, "rw_signal(%s, ...) failed: %s\n",
                                        get_signame (signo), strerror (errno));
                         break;
