@@ -1,16 +1,7 @@
 // checking if errno is thread safe
 
 #include <errno.h>
-
-#ifndef _WIN32
-
-#include <pthread.h>
-
-#else
-
-#include "wthread.h"
-
-#endif
+#include "thread.h"
 
 
 void *errno_addr = 0;

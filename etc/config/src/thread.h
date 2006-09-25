@@ -1,6 +1,10 @@
+#if defined (_WIN32)
+
 // definitions of Win32 POSIX compatibility layer functions
 
 #include <windows.h>
+
+extern "C" {
 
 struct pthread_attr_t;
 
@@ -60,3 +64,19 @@ int pthread_join(pthread_t thread, void **value_ptr)
 
     return result;
 }
+
+}   // extern "C"
+
+#  define set_concurrency(ignore)   0
+#else   // if !defined (_WIN32)
+#  include <pthread.h>
+
+#  if defined (__sun) && defined (__SVR4)
+     // use the Solaris threads API in case this is Solaris 2.6
+     // where the POSIX pthread_setconcurrency() API is missing
+#    include <thread.h>
+#    define set_concurrency(n)   thr_setconcurrency (n)
+#  else
+#    define set_concurrency(n)   pthread_setconcurrency (n)
+#  endif   // __sun && __SVR4
+#endif   // _WIN32
