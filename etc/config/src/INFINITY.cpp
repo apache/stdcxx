@@ -757,7 +757,7 @@ int main ()
 {
 #if !defined (_RWSTD_USE_CONFIG)
 
-    printf (":\n#undef _RWSTD_NAN_BITS\n");
+    printf ("/**/\n#undef _RWSTD_NAN_BITS\n");
 
 #endif   // _RWSTD_USE_CONFIG
 
