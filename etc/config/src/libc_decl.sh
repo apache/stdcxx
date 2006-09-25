@@ -284,7 +284,7 @@ for h in $hdrs ; do
     ;;
 
     wchar)
-        funs="btowc fgetwc fgetws fputwc fputws fwide fwprintf fwscanf getwc getwchar mbrlen mbrtowc mbsinit mbsrtowcs putwc putwchar swprintf swscanf ungetwc vfwprintf vswprintf vwprintf vwscanf wcrtomb wcscat wcschr((wchar_t*)0,0) wcscmp wcscoll wcscpy wcscspn wcsftime wcslen wcsncat wcsncmp wcsncpy wcspbrk((wchar_t*)0,(wchar_t*)0) wcsrchr((wchar_t*)0,0) wcsrtombs wcsspn wcsstr((wchar_t*)0,(wchar_t*)0) wcstod wcstod wcstof wcstok wcstol wcstold wcstoll wcstombs wcstoul wcstoull wcsxfrm wctob wctomb wmemchr((wchar_t*)0,0,0) wmemcmp wmemcpy wmemmove wmemset wprintf wscanf"
+        funs="btowc fgetwc fgetws fputwc fputws fwide fwprintf fwscanf getwc getwchar mbrlen mbrtowc mbsinit mbsrtowcs putwc putwchar swprintf swscanf ungetwc vfwprintf vswprintf vwprintf vwscanf wcrtomb wcscat wcschr((wchar_t*)0,0) wcscmp wcscoll wcscpy wcscspn wcsftime wcslen wcsncat wcsncmp wcsncpy wcspbrk((wchar_t*)0,(wchar_t*)0) wcsrchr((wchar_t*)0,0) wcsrtombs wcsspn wcsstr((wchar_t*)0,(wchar_t*)0) wcstod wcstod wcstof wcstok wcstol wcstold wcstoll wcstoul wcstoull wcsxfrm wctob wmemchr((wchar_t*)0,0,0) wmemcmp wmemcpy wmemmove wmemset wprintf wscanf"
         lib=c
     ;;
 

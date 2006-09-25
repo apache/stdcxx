@@ -1,13 +1,31 @@
 // checking for thread-local storage
 
-__thread int tls_i;
+#include <stdio.h>
 
-static __thread char tls_static_array [256];
-extern __thread char tls_extern_array [256];
+#ifdef _MSC_VER
+#define _RWSTD_THREAD __declspec (thread)
+#define _RWSTD_THREAD_STR "__declspec (thread)"
+#else
+#define _RWSTD_THREAD __thread
+#define _RWSTD_THREAD_STR "__thread"
+#endif
 
-__thread char tls_extern_array [256];
+#define STR(x) #x
+#define PRINT_MACRO(name) printf ("#define " #name " " STR(##name) "\n")
+
+_RWSTD_THREAD int tls_i;
+
+static _RWSTD_THREAD char tls_static_array [256];
+extern _RWSTD_THREAD char tls_extern_array [256];
+
+_RWSTD_THREAD char tls_extern_array [256];
 
 int main ()
 {
-    return tls_i + tls_static_array [0] + tls_extern_array [0];
+    int result = tls_i + tls_static_array [0] + tls_extern_array [0];
+
+    if (0 == result)
+        PRINT_MACRO(_RWSTD_THREAD);
+
+    return result;
 }
