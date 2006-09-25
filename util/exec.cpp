@@ -435,7 +435,12 @@ wait_for_child (pid_t child_pid)
        to linux glitch
     */
     memset (&act, 0, sizeof act);
-    act.sa_handler = handle_alrm;
+
+    /* avoid extern "C"/"C++" mismatch due to an HP aCC 6 bug
+       (see STDCXX-291)
+    */
+    memcpy (act.sa_handler, handle_alrm, sizeof act.sa_handler);
+
     sigaction (SIGALRM, &act, 0);
     
     if (timeout > 0)
