@@ -439,7 +439,8 @@ wait_for_child (pid_t child_pid)
     /* avoid extern "C"/"C++" mismatch due to an HP aCC 6 bug
        (see STDCXX-291)
     */
-    memcpy (act.sa_handler, handle_alrm, sizeof act.sa_handler);
+    void (*phandler)(int) = handle_alrm;
+    memcpy (&act.sa_handler, &phandler, sizeof act.sa_handler);
 
     sigaction (SIGALRM, &act, 0);
     
