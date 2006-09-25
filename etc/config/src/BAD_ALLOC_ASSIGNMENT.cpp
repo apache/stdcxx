@@ -139,9 +139,13 @@ public:
 // (like VisualAge C++) from optimizing the base class dtor away
 struct Base0: virtual std::bad_alloc
 {
+    int index0;
+
     typedef std::bad_alloc Base;
 
     Base0 ();
+
+    Base0 (const Base0&);
 
     virtual ~Base0 ();
 
@@ -153,9 +157,13 @@ struct Base0: virtual std::bad_alloc
 
 struct Base1: virtual std::bad_alloc
 {
+    int index1;
+
     typedef std::bad_alloc Base;
 
     Base1 ();
+
+    Base1 (const Base1&);
 
     virtual ~Base1 ();
 
@@ -173,6 +181,8 @@ struct Derived: Base0, Base1
 
     Derived ();
 
+    Derived (const Derived&);
+
     virtual ~Derived ();
 
     Derived& operator= (const Derived&);
@@ -181,7 +191,7 @@ struct Derived: Base0, Base1
 };
 
 
-#if defined (TEST_COPY_CTOR)
+#if defined (TEST_COPY_CTOR)   ///////////////////////////////////////
 
 int test_member (int argc, void *ptr)
 {
@@ -191,12 +201,35 @@ int test_member (int argc, void *ptr)
 
     try {
         try {
-            if (argc > 1) {
-                std::bad_alloc *pe = (std::bad_alloc*)ptr;
-                std::bad_alloc *pf = pe + argc;
+            if (1 < argc) {
+                // jump through hoops to try to foil
+                // even the most aggressive optimizers
+                Derived        *pd  = (Derived*)ptr;
+                Base0          *pb0 = (Derived*)ptr + argc;
+                Base1          *pb1 = (Derived*)ptr + argc + 1;
+                std::bad_alloc *pba = (Derived*)ptr + argc + 2;
 
-                throw argc < 6 ? *pe : *pf;
+                if (argc < 6)
+                    throw *pd;
+                if (argc < 7)
+                    throw *pb0;
+                if (argc < 8)
+                    throw *pb1;
+                if (argc < 9)
+                    throw *pba;
             }
+        }
+        catch (Derived e) {
+            e.index0 = e.index1 = __LINE__;
+            throw e;
+        }
+        catch (Base0 b0) {
+            b0.index0 = __LINE__;
+            throw b0;
+        }
+        catch (Base1 b1) {
+            b1.index1 = __LINE__;
+            throw b1;
         }
         catch (std::bad_alloc e) {
 
@@ -232,7 +265,7 @@ int test_member (int argc, void *ptr)
 
 }
 
-#elif defined (TEST_DEFAULT_CTOR)
+#elif defined (TEST_DEFAULT_CTOR)   //////////////////////////////////
 
 int test_member (int, void*)
 {
@@ -244,7 +277,7 @@ int test_member (int, void*)
     return pe1 < pe2;
 }
 
-#elif defined (TEST_DTOR)
+#elif defined (TEST_DTOR)   //////////////////////////////////////////
 
 int test_member (int argc, void *ptr)
 {
@@ -262,7 +295,7 @@ int test_member (int argc, void *ptr)
     return !(1 < argc ? 1 == ndtors : 0 == ndtors);
 }
 
-#elif defined (TEST_WHAT)
+#elif defined (TEST_WHAT)   //////////////////////////////////////////
 
 int test_member (int argc, void *ptr)
 {
@@ -276,7 +309,7 @@ int test_member (int argc, void *ptr)
     return pe [0].what () == pd [argc].what ();
 }
 
-#else   // test assignment
+#else   // test assignment   /////////////////////////////////////////
 
 int test_member (int argc, void *ptr)
 {
@@ -296,7 +329,7 @@ int test_member (int argc, void *ptr)
 }
 
 
-#endif   // TEST_...
+#endif   // TEST_...   ///////////////////////////////////////////////
 
 
 int main (int argc, char *argv[])
@@ -316,22 +349,35 @@ int main (int argc, char *argv[])
 }
 
 
-Base0::Base0 ()
-    : Base ()
+Base0::Base0 (): Base (), index0 (++ndefault_ctors) { }
+
+
+Base0::Base0 (const Base0 &rhs)
+
+#if defined (TEST_COPY_CTOR)
+    : Base (rhs),
+#else   // if defined (TEST_COPY_CTOR)
+    : Base (),
+#endif   // TEST_COPY_CTOR
+      index0 (rhs.index0)
 {
-    ++ndefault_ctors;
+    (void)&rhs;   // silence unused argument warnings
+
+    ++ncopy_ctors;
 }
 
 
 Base0::~Base0 ()
 {
     ++ndtors;
+    index0 = 0;
 }
 
 
 Base0& Base0::operator=(const Base0 &rhs)
 {
     ++nassignments;
+    index0 = rhs.index0;
 
 #if defined (TEST_ASSIGNMENT)
 
@@ -358,16 +404,28 @@ const char* Base0::what () const
 }
 
 
-Base1::Base1 ()
-    : Base ()
+Base1::Base1 (): Base (), index1 (++ndefault_ctors) { }
+
+
+Base1::Base1 (const Base1 &rhs)
+
+#if defined (TEST_COPY_CTOR)
+    : Base (rhs),
+#else   // if defined (TEST_COPY_CTOR)
+    : Base (),
+#endif   // TEST_COPY_CTOR
+      index1 (rhs.index1)
 {
-    ++ndefault_ctors;
+    (void)&rhs;   // silence unused argument warnings
+
+    ++ncopy_ctors;
 }
 
 
 Base1::~Base1 ()
 {
     ++ndtors;
+    index1 = 0;
 }
 
 
@@ -387,6 +445,7 @@ const char* Base1::what () const
 Base1& Base1::operator=(const Base1 &rhs)
 {
     ++nassignments;
+    index1 = rhs.index1;
 
 #if defined (TEST_ASSIGNMENT)
 
@@ -402,6 +461,21 @@ Derived::Derived ()
     : Base (), Base0 (), Base1 ()
 {
     ++ndefault_ctors;
+}
+
+
+Derived::Derived (const Derived &rhs)
+
+#if defined (TEST_COPY_CTOR)
+    : Base (rhs), Base0 (rhs), Base1 (rhs)
+#else   // if defined (TEST_COPY_CTOR)
+    : Base (), Base0 (), Base1 ()
+#endif   // TEST_COPY_CTOR
+
+{
+    (void)&rhs;   // silence unused argument warnings
+
+    ++ncopy_ctors;
 }
 
 
