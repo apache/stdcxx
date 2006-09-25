@@ -1,24 +1,6 @@
 // checking if exceptions are thread safe
 
-#ifndef _WIN32
-
-#include <pthread.h>
-
-#if defined (__sun) && defined (__SVR4)
-// use the Solaris threads API in case this is Solaris 2.6
-// where the POSIX pthread_setconcurrency() API is missing
-#  include <thread.h>
-#  define set_concurrency(n)   thr_setconcurrency (n)
-#else
-#  define set_concurrency(n)   pthread_setconcurrency (n)
-#endif   // __sun && __SVR4
-
-#else
-
-#include "wthread.h"
-#define set_concurrency(n) 
-
-#endif
+#include "thread.h"
 
 
 extern "C" void* thread_proc (void *arg)
