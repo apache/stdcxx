@@ -633,7 +633,7 @@ convert_sym_to_ucs (const std::string &sym) const
     std::string::const_iterator it (sym.begin ());
 
     if (   sym.size () < 4 || *it != '<' || *++it != 'U'
-        || !isxdigit (*++it)) {
+        || !(std::isxdigit)(*++it)) {
         issue_diag (E_UCS, true, 0,
                     "Unable to convert symbolic name %s to UCS.\n",
                     sym.c_str ());
@@ -831,7 +831,7 @@ process_ellipsis (const Scanner::token_t &beg_tok, int num_ellipsis)
     }
     else {
         // advance to the next dec digit
-        while (idx < end_len && (std::isdigit)(end_tok.name [idx]))
+        while (idx < end_len && !(std::isdigit)(end_tok.name [idx]))
             ++idx;
     }
 
