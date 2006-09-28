@@ -7,36 +7,26 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994
- * Hewlett-Packard Company
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Permission to use, copy, modify, distribute and sell this software
- * and its documentation for any purpose is hereby granted without fee,
- * provided that the above copyright notice appear in all copies and
- * that both that copyright notice and this permission notice appear
- * in supporting documentation.  Hewlett-Packard Company makes no
- * representations about the suitability of this software for any
- * purpose.  It is provided "as is" without express or implied warranty.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- ***************************************************************************
- *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
  *
  * Copyright 1994-2006 Rogue Wave Software.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright (c) 1994 Hewlett-Packard Company
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
  **************************************************************************/
 
 #ifndef _RWSTD_DEQUE_INCLUDED
@@ -651,6 +641,13 @@ public:
         _RWSTD_ASSERT (_C_is_valid (1 /* valid and empty */));
     }
 
+#if defined (_RWSTD_NO_PART_SPEC_OVERLOAD)
+    friend void swap (deque& __lhs, deque& __rhs) {
+        __lhs.swap (__rhs);
+    }
+#endif
+
+
 private:
 
     //////////////////////////////////////////////////////////////////
@@ -983,6 +980,8 @@ operator>= (const deque<_TypeT, _Allocator> &__lhs,
 }
 
 
+#ifndef _RWSTD_NO_PART_SPEC_OVERLOAD
+
 template <class _TypeT, class _Allocator>
 inline void
 swap (deque<_TypeT, _Allocator> &__lhs, deque<_TypeT, _Allocator> &__rhs)
@@ -990,6 +989,7 @@ swap (deque<_TypeT, _Allocator> &__lhs, deque<_TypeT, _Allocator> &__rhs)
     __lhs.swap (__rhs);
 }
 
+#endif   // _RWSTD_NO_PART_SPEC_OVERLOAD
 
 }   // namespace end
 
