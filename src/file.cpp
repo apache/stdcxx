@@ -2,7 +2,7 @@
  *
  * support.cpp - definition of support functions and objects
  *
- * $Id: //stdlib/dev/source/stdlib/file.cpp#3 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -78,12 +78,18 @@ _RWSTD_DLLIMPORT int mkstemp (char*);
 #endif   // _RWSTD_NO_MKSTEMP[_IN_LIBC]
 
 
+#if defined (_RWSTD_NO_FILENO) && !defined (_RWSTD_NO_FILENO_IN_LIBC)
+
 // declare fileno in case it's not declared (for strict ANSI conformance)
 extern "C" {
 
 _RWSTD_DLLIMPORT int (fileno)(FILE*) _LIBC_THROWS ();
 
+#  undef _RWSTD_NO_FILENO
+
 }   // extern "C"
+
+#endif   // _RWSTD_NO_FILENO && !_RWSTD_NO_FILENO_IN_LIBC
 
 
 _RWSTD_NAMESPACE (__rw) {

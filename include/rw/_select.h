@@ -90,14 +90,14 @@ _RWSTD_SPECIALIZE_IS_INT (wchar_t);
 #endif
 
 
+#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
+
 template <class _TypeT, class _TypeU>
 struct __rw_is_same
 {
     typedef __rw_false_t _C_type;
     enum { _C_val };
 };
-
-#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
 
 template <class _TypeT>
 struct __rw_is_same<_TypeT, _TypeT>
@@ -108,23 +108,35 @@ struct __rw_is_same<_TypeT, _TypeT>
 
 #else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
 
-_RWSTD_SPECIALIZED_CLASS
-struct __rw_is_same<char, char>
+template <bool flag>
+struct __rw_bool_t
 {
-    typedef __rw_true_t _C_type;
-    enum { _C_val = 1 };
+    typedef __rw_false_t _C_type;
 };
 
-#  ifndef _RWSTD_NO_WCHAR_T
-
 _RWSTD_SPECIALIZED_CLASS
-struct __rw_is_same<wchar_t, wchar_t>
+struct __rw_bool_t<true>
 {
     typedef __rw_true_t _C_type;
-    enum { _C_val = 1 };
 };
 
-#  endif   // _RWSTD_NO_WCHAR_T
+template <class _TypeT, class _TypeU>
+struct __rw_is_same
+{
+    struct yes {};
+    struct no { yes no_ [2]; };
+    template <class T>
+    struct Type {};
+
+    static yes test (Type<_TypeT>, Type<_TypeT>);
+    static no test (...);
+
+    enum { _C_val = sizeof (test (Type<_TypeT> (),
+                                  Type<_TypeU> ())) == sizeof (yes) };
+
+    typedef _TYPENAME __rw_bool_t<_C_val>::_C_type _C_type;
+};
+
 #endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC
 
 

@@ -42,9 +42,11 @@ template <class _OutputIter>
 inline bool
 __rw_iter_failed (const _OutputIter&) { return false; }
 
+// const commented to resolve ambiguity on MSVC 7.0:
+// error C2667: '__rw_iter_failed' : none of 2 overloads have a best conversion
 template <class _CharT, class _Traits>
 inline bool
-__rw_iter_failed (const _STD::ostreambuf_iterator<_CharT, _Traits> &__it)
+__rw_iter_failed (/*const */_STD::ostreambuf_iterator<_CharT, _Traits> &__it)
 {
     return __it.failed ();
 }

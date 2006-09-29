@@ -115,7 +115,5 @@ int main ()
         return 0;
     }
 
-    printf ("#define _RWSTD_NO_NEW_THROWS\n");
-
-    return 0;
+    return 1;
 }
