@@ -27,37 +27,7 @@
 #ifndef RW_DISPLAY_H
 #define RW_DISPLAY_H
 
-#if !defined (_WIN32) && !defined (_WIN64)
-#  include <unistd.h> /* for _XOPEN_UNIX */
-#endif
-
-#ifdef _XOPEN_UNIX
-#  include <sys/time.h> /* for struct timeval */
-/**
-   Abstraction typedef for struct timeval using real struct
-*/
-typedef struct timeval rw_timeval;
-#else
-/**
-   Placeholder time_t for use in rw_timeval
-*/
-typedef long rw_time_t;
-/**
-   Placeholder suseconds_t for use in rw_timeval
-*/
-typedef long rw_suseconds_t;
-/**
-   Placeholder struct timeval to use if _XOPEN_UNIX isn't defined
-*/
-struct rw_timeval {
-    rw_time_t tv_sec;
-    rw_suseconds_t tv_usec;
-};
-/**
-   Abstraction typedef for struct timeval using placeholder struct
-*/
-typedef struct rw_timeval rw_timeval;
-#endif
+#include "target.h" /* For target_opts */
 
 /**
    Output format mode enumeration.
@@ -73,47 +43,9 @@ enum OutputFmt {
 };
 
 /**
-   Status codes to denote result of analysis.
-*/
-enum ProcessStatus {
-    ST_OK = 0, /**< Default (OK) status */
-    ST_COMPILE, /**< Target failed to compile */
-    ST_LINK, /**< Target failed to link */
-    ST_EXIST, /**< Target doesn't exist? */
-    ST_EXECUTE_FLAG, /**< Target lacks X flag */
-    ST_EXECUTE, /**< Target failed to execute? */
-    ST_NO_OUTPUT, /**< Target produced no output */
-    ST_NO_REF, /**< No reference file found */
-    ST_BAD_REF, /**< Invalid reference file found */
-    ST_BAD_OUTPUT, /**< Incorrect output found */
-    ST_FORMAT, /**< Incorrectly formatted (test) output found */
-    ST_OVERFLOW, /**< Assertion counter overflow */
-    ST_SYSTEM_ERROR, /**< System error during file system operation */
-    ST_KILLED, /**< Target killed by exec utility */
-    ST_NOT_KILLED, /** Target not killed by exec utility */
-    ST_LAST /**< Array terminator */
-};
-
-/**
    ProcessStatus enum lookup table for 'short' (6 character) strings.
 */
-extern const char* short_st_name [ST_LAST];
-
-/**
-   Structure encapsulating the results extracted from a run.
-*/
-struct target_status {
-    char** argv; /**< Target argv array. */
-    int exit; /**< exit code for process. */
-    int signal; /**< Termination signal for process. */
-    int run; /**< Flag indicating if the process executed. */
-    enum ProcessStatus status; /**< Textual process status. */
-    rw_timeval user; /**< Elapsed user time spent in execution. */
-    rw_timeval sys; /**< Elapsed system time spent in execution. */
-    unsigned warn; /**< Number of (test) warnings. */
-    unsigned assert; /**< Number of (test) assertions. */
-    unsigned failed; /**< Number of failed (test) assertions. */
-};
+extern const char* const short_st_name [ST_LAST];
 
 /**
    Sets the output functions referenced.
@@ -140,7 +72,7 @@ extern void (*print_header) ();
 
    @see target_name
 */
-extern void (*print_target) (const struct target_status* status);
+extern void (*print_target) (const struct target_opts* options);
 
 /**
    Updates the display of a (non-final) status indicator

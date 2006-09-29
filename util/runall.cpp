@@ -45,6 +45,8 @@
 #include "output.h"
 #include "util.h"
 
+#include "target.h"
+
 #ifndef ENOENT
 #  define ENOENT 2
 #endif   // ENOENT
@@ -206,18 +208,17 @@ merge_argv (char* const target, char* const argv [])
    @return 1 if valid target to run, 0 otherwise.
 */
 static int
-check_target_ok (struct target_status* status)
+check_target_ok (const char* target, struct target_status* status)
 {
     struct stat file_info;
     int exists = 1;
 
+    assert (0 != target);
     assert (0 != status);
-    assert (0 != status->argv);
-    assert (0 != status->argv[0]);
 
-    if (0 > stat (status->argv [0], &file_info)) {
+    if (0 > stat (target, &file_info)) {
         if (ENOENT != errno) {
-            warn ("Error stating %s: %s\n", status->argv [0], strerror (errno));
+            warn ("Error stating %s: %s\n", target, strerror (errno));
             status->status = ST_SYSTEM_ERROR;
             return 0;
         }
@@ -228,12 +229,12 @@ check_target_ok (struct target_status* status)
         /* This is roughly equivlent to the -x bash operator.
            It checks if the file can be run, /not/ if we can run it
         */
-        const size_t path_len = strlen (status->argv [0]);
+        const size_t path_len = strlen (target);
         char* tmp_name;
 
 #if 0 /* Disable .o target check as unused */
         /* If target is a .o file, check if it exists */
-        if ('.' == status->argv [0] [path_len-1] && 'o' == status->argv [0] [path_len]) {
+        if ('.' == target [path_len-1] && 'o' == target [path_len]) {
             if (!exists)
                 status->status = ST_COMPILE;
             return 0;
@@ -249,18 +250,19 @@ check_target_ok (struct target_status* status)
 #if !defined (_WIN32) && !defined (_WIN64)
         /* Otherwise, check for the .o file on non-windows systems */
         tmp_name = (char*)RW_MALLOC (path_len + 3);
-        memcpy (tmp_name, status->argv [0], path_len + 1);
+        memcpy (tmp_name, target, path_len + 1);
         strcat (tmp_name,".o");
 #else
         /* Or the target\target.obj file on windows systems*/
         {
+            const char* const target_name = get_target ();
             size_t target_len = strlen (target_name);
             size_t tmp_len = path_len + target_len - 2;
                 /* - 2 comes from removing 4 characters (extra .exe) and 
                    adding 2 characters (\ directory seperator and trailing 
                    null) */
             tmp_name = (char*)RW_MALLOC (tmp_len);
-            memcpy (tmp_name, status->argv [0], path_len - 4);
+            memcpy (tmp_name, target, path_len - 4);
             tmp_name [path_len - 4] = default_path_sep;
             memcpy (tmp_name + path_len - 3, target_name, target_len);
             tmp_name [tmp_len - 4] = 'o';
@@ -286,69 +288,6 @@ check_target_ok (struct target_status* status)
         return 0;
     }
     return 1;
-}
-
-/**
-   Post target execution result analysis.
-
-   This method examines the content of result, dispatching the processing
-   to pares_output () if target had a return code of 0.
-   Otherwise, this method determines why target terminated, based on the
-   return code and fills the result structure with these results.
-
-   @param target the path to the executable that was run
-   @param result the return code data from running the target
-   @param status status object to record results in.
-   @see parse_output ()
-*/
-static void
-process_results (const struct exec_attrs* result, 
-                 struct target_status* status)
-{
-    assert (0 != result);
-    assert (0 != status);
-
-    if (0 == result->status) {
-        parse_output (status);
-    } 
-#if !defined (_WIN32) && !defined (_WIN64)
-    else if (WIFEXITED (result->status)) {
-        const int retcode = WEXITSTATUS (result->status);
-        switch (retcode) {
-        case 126:
-            status->status = ST_EXIST;
-            break;
-        case 127:
-            status->status = ST_EXECUTE;
-            break;
-        default:
-            status->exit = retcode;
-        }
-    }
-    else if (WIFSIGNALED (result->status)) {
-        status->signal = WTERMSIG (result->status);
-    }
-    else if (WIFSTOPPED (result->status)) {
-        status->signal = WSTOPSIG (result->status);
-    }
-    else if (-1 == result->status && -1 == result->killed) {
-        status->status = ST_NOT_KILLED;
-    }
-    else {
-        warn ("Unknown result status: %d, %d\n", result->status, 
-              result->killed);
-        status->status = ST_SYSTEM_ERROR;
-    }
-#else
-    else if (-1 == result->status)
-        status->status = ST_SYSTEM_ERROR;
-    else if (result->error)
-        status->status = ST_KILLED;
-    else if (STATUS_ACCESS_VIOLATION == result->status)
-        status->signal = SIGSEGV;
-    else
-        status->exit = result->status;
-#endif   /* _WIN{32,64} */
 }
 
 /**
@@ -382,6 +321,13 @@ rw_basename (const char* path)
     return mark;
 }
 
+static const char* target_name;
+
+const char* get_target ()
+{
+    return target_name;
+}
+
 /**
    High level method to run target, using childargv as arguments.
 
@@ -396,33 +342,37 @@ rw_basename (const char* path)
    @see process_results
 */
 static void
-run_target (char* target, char** argv)
+run_target (char* target, const struct target_opts *target_template)
 {
+    struct target_opts options;
     struct target_status results;
 
     assert (0 != target);
-    assert (0 != argv);
+    assert (0 != target_template);
+    assert (0 != target_template->argv);
 
+    memcpy (&options, target_template, sizeof options);
     memset (&results, 0, sizeof results);
 
-    results.argv = merge_argv (target, argv);
+    options.argv = merge_argv (target, options.argv);
 
-    assert (0 != results.argv);
-    assert (0 != results.argv [0]);
+    assert (0 != options.argv);
+    assert (0 != options.argv [0]);
 
-    target_name = rw_basename (results.argv [0]);
+    target_name = rw_basename (options.argv [0]);
 
-    print_target (&results);
+    print_target (&options);
 
-    if (check_target_ok (&results)) {
-        struct exec_attrs status = exec_file (&results);
-        process_results (&status, &results);
+    if (check_target_ok (options.argv [0], &results)) {
+        exec_file (&options, &results);
+        if (0 == results.exit && 0 == results.signaled)
+            parse_output (&options, &results);
     }
 
     print_status (&results);
 
-    free (results.argv [0]);
-    free (results.argv);
+    free (options.argv [0]);
+    free (options.argv);
 }
 
 /**
@@ -439,10 +389,18 @@ run_target (char* target, char** argv)
 int
 main (int argc, char *argv [])
 {
+    struct target_opts target_template;
+    const char* exe_opts = "";
+
     exe_name = argv [0];
+    memset (&target_template, 0, sizeof target_template);
+
+    target_template.timeout = 10;
+    target_template.data_dir = "";
 
     if (1 < argc && '-' == argv [1][0]) {
-        const int nopts = eval_options (argc, argv);
+        const int nopts =
+            eval_options (argc, argv, &target_template, &exe_opts);
 
         if (0 > nopts)
             return 1;
@@ -457,22 +415,30 @@ main (int argc, char *argv [])
 
     if (0 < argc) {
         int i;
-        char** childargv = split_opt_string (exe_opts);
+        target_template.argv = split_opt_string (exe_opts);
 
-        assert (0 != childargv);
+        assert (0 != target_template.argv);
 
         print_header ();
 
         for (i = 0; i < argc; ++i) {
-            run_target (argv [i], childargv);
+            run_target (argv [i], &target_template);
         }
 
         print_footer ();
 
-        if (childargv [0])
-            free (childargv [0]);
-        free (childargv);
+        if (target_template.argv [0])
+            free (target_template.argv [0]);
+        free (target_template.argv);
     }
+
+    free (target_template.core);
+    free (target_template.cpu);
+    free (target_template.data);
+    free (target_template.fsize);
+    free (target_template.nofile);
+    free (target_template.stack);
+    free (target_template.as);
 
     return 0;
 }
