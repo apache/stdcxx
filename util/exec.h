@@ -27,21 +27,12 @@
 #ifndef RW_EXEC_H
 #define RW_EXEC_H
 
-struct exec_attrs {
-#if !defined (_WIN32) && !defined (_WIN64)
-    int status;
-    int killed;
-#else
-    /* AKA DWORD */
-    unsigned long status;
-    unsigned long error;
-#endif  /* _WIN{32,64} */
-};
+#include "target.h" /* For struct target_opts */
 
 int get_signo (const char* signame);
 
 const char* get_signame (int signo);
 
-struct exec_attrs exec_file (struct target_status* result);
+void exec_file (const struct target_opts* options, struct target_status* result);
 
 #endif   // RW_EXEC_H

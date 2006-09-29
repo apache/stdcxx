@@ -53,15 +53,17 @@ void* guarded_realloc (void* source, const size_t size,
                        const char* const file, const unsigned line);
 
 /**
-   Generates the name of a reference (input/output) file, based on dir and mode.
+   Generates the name of a reference (input/output) file.
 
    This function allocates memory which is to be freed by the caller.
 
-   @param dir example subdirectory to reference
+   @param data_dir location of example data directory
+   @param subdir example subdirectory to reference
    @param mode type of file to generate name for (should be 'in' or 'out')
-   @return translation of 'in_root/dir/mode/target_name.mode'
+   @return translation of 'data_dir/subdir/mode/target_name.mode'
 */
-char* reference_name (const char* dir, const char* mode);
+char* reference_name (const char* data_dir, const char* subdir, 
+                      const char* mode);
 
 /**
    Generates the name of the output file for the executable target.

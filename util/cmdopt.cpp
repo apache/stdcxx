@@ -47,18 +47,12 @@
 #endif   /* _WIN{32,64} */
 
 #include "exec.h"
+#include "target.h"
 #include "util.h"
 
 #include "cmdopt.h"
 
-int timeout = 10; /**< Child process timeout.  Default 10. */
-int compat = 0; /**< Test compatability mode switch.  Defaults to 0 (off). */
-unsigned verbose = 0;
-const char* exe_opts = ""; /**< Global command line switches for child 
-                                processes. */
-const char* in_root = ""; /**< Root directory for input/reference files. */
 const char* exe_name; /**< Alias for process argv [0]. */
-const char* target_name;
 #if !defined (_WIN32) && !defined (_WIN64)
 const char escape_code = '\\';
 const char default_path_sep = '/';
@@ -70,17 +64,6 @@ const char default_path_sep = '\\';
 const char suffix_sep = '.';
 const size_t exe_suffix_len = 4; /* strlen(".exe") == 4 */
 #endif
-
-struct limit_set child_limits = {
-    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
-    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
-    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
-    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
-    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
-    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
-    { RLIM_SAVED_CUR, RLIM_SAVED_MAX },
-    { RLIM_SAVED_CUR, RLIM_SAVED_MAX }
-};
 
 static const char
 usage_text[] = {
@@ -95,8 +78,6 @@ usage_text[] = {
     "    -h, -?       Display usage information and exit.\n"
     "    -t seconds   Set timeout before killing target (default is 10\n"
     "                 seconds).\n"
-    "    -q           Set verbosity level to 0 (default).\n"
-    "    -v           Increase verbosity of output.\n"
     "    -x opts      Specify command line options to pass to targets.\n"
     "    --           Terminate option processing and treat all arguments\n"
     "                 that follow as targets.\n"
@@ -259,10 +240,10 @@ get_long_val (char* const* argv, int* idx, unsigned offset)
    @see child_limits
 */
 static bool
-parse_limit_opts (const char* opts)
+parse_limit_opts (const char* opts, struct target_opts* defaults)
 {
     static const struct {
-        rw_rlimit* limit;
+        rw_rlimit** limit;
         const char* name;
         const char* caps;
         const char* mixd;
@@ -270,49 +251,49 @@ parse_limit_opts (const char* opts)
     } limits[] = {
         {
 #ifdef RLIMIT_CORE
-            &child_limits.core,
+            &defaults->core,
 #else
             0,
 #endif   // RLIMIT_CORE
             "core", "CORE", "Core", 4 },
         {
 #ifdef RLIMIT_CPU
-            &child_limits.cpu,
+            &defaults->cpu,
 #else
             0,
 #endif   // RLIMIT_CPU
             "cpu", "CPU", "Cpu", 3 },
         {
 #ifdef RLIMIT_DATA
-            &child_limits.data,
+            &defaults->data,
 #else
             0,
 #endif   // RLIMIT_DATA
             "data", "DATA", "Data", 4 },
         {
 #ifdef RLIMIT_FSIZE
-            &child_limits.fsize,
+            &defaults->fsize,
 #else
             0,
 #endif   // RLIMIT_FSIZE
             "fsize", "FSIZE", "Fsize", 5 },
         {
 #ifdef RLIMIT_NOFILE
-            &child_limits.nofile,
+            &defaults->nofile,
 #else
             0,
 #endif   // RLIMIT_NOFILE
             "nofile", "NOFILE", "Nofile", 6 },
         {
 #ifdef RLIMIT_STACK
-            &child_limits.stack,
+            &defaults->stack,
 #else
             0,
 #endif   // RLIMIT_STACK
             "stack", "STACK", "Stack", 5 },
         {
 #ifdef RLIMIT_AS
-            &child_limits.as,
+            &defaults->as,
 #else
             0,
 #endif   // RLIMIT_AS    
@@ -355,11 +336,17 @@ parse_limit_opts (const char* opts)
                     break;
 
                 if (limits [i].limit) {
+                    if (!*limits [i].limit) {
+                        (*limits [i].limit) = 
+                            (rw_rlimit*)RW_MALLOC (sizeof (rw_rlimit));
+                        (*limits [i].limit)->rlim_cur = RLIM_SAVED_CUR;
+                        (*limits [i].limit)->rlim_max = RLIM_SAVED_MAX;
+                    }
                     if (soft)
-                        limits [i].limit->rlim_cur = lim;
+                        (*limits [i].limit)->rlim_cur = lim;
 
                     if (hard)
-                        limits [i].limit->rlim_max = lim;
+                        (*limits [i].limit)->rlim_max = lim;
                 } else
                     warn ("Unable to process %s limit: Not supported\n", 
                           limits [i].name);
@@ -423,16 +410,15 @@ bad_option (const char* opt)
 /**
    Parses command line arguments for switches and options.
 
-   @param argc number of command line arguments
-   @param argv command line arguments
+   @param argc number of command line arguments.
+   @param argv command line arguments.
+   @param defaults target_status structure containing default values.
+   @param exe_opts handle to default child process arguments string
    @return number of command line arguments parsed.
-   @see timeout
-   @see compat
-   @see in_root
-   @see exe_opts
 */
 int 
-eval_options (int argc, char **argv)
+eval_options (int argc, char **argv, struct target_opts* defaults, 
+              const char** exe_opts)
 {
     const char opt_timeout[]  = "-t";
     const char opt_data_dir[] = "-d";
@@ -476,7 +462,7 @@ eval_options (int argc, char **argv)
             if (optarg) {
                 if (!isdigit (*optarg))
                     bad_value (optname, optarg);
-                timeout = strtol (optarg, &end, 10);
+                defaults->timeout = strtol (optarg, &end, 10);
                 if (*end || errno)
                     bad_value (optname, optarg);
             }
@@ -487,23 +473,16 @@ eval_options (int argc, char **argv)
 
         case 'd':
             optname = opt_data_dir;
-            in_root = get_short_val (argv, &i);
-            if (!in_root)
+            defaults->data_dir = get_short_val (argv, &i);
+            if (!defaults->data_dir)
                 missing_value (optname);
             break;
         case 'x':
             optname  = opt_t_flags;
-            exe_opts = get_short_val (argv, &i);
-            if (!exe_opts)
+            *exe_opts = get_short_val (argv, &i);
+            if (!*exe_opts)
                 missing_value (optname);
             break;
-        case 'v':
-            ++verbose;
-            break;
-        case 'q':
-            verbose = 0;
-            break;
-
         case '-':
         {
             const size_t arglen = strlen (argv [i]);
@@ -514,12 +493,12 @@ eval_options (int argc, char **argv)
 
             if (   sizeof opt_compat - 1 == arglen
                 && !memcmp (opt_compat, argv [i], sizeof opt_compat)) {
-                compat  = 1;
+                defaults->compat = 1;
                 break;
             }
             else if (   sizeof opt_nocompat - 1 == arglen
                      && !memcmp (opt_nocompat, argv [i], sizeof opt_nocompat)) {
-                compat  = 0;
+                defaults->compat = 0;
                 break;
             }
             else if (   sizeof opt_exit - 1 <= arglen
@@ -587,7 +566,7 @@ eval_options (int argc, char **argv)
                 optname = opt_ulimit;
                 optarg  = get_long_val (argv, &i, sizeof opt_ulimit - 1);
                 if (optarg && *optarg) {
-                    if (!parse_limit_opts (optarg)) {
+                    if (!parse_limit_opts (optarg, defaults)) {
                         break;
                     }
                 }

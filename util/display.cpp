@@ -41,8 +41,9 @@ void print_header_plain ()
           "SYS");
 }
 
-void print_target_plain (const struct target_status*)
+void print_target_plain (const struct target_opts*)
 {
+    const char* const target_name = get_target ();
     printf ("%-25.25s ", target_name);
     fflush (stdout);
 }
@@ -53,14 +54,15 @@ void print_status_plain (const struct target_status* status)
     assert (0 != status);
     assert (ST_OK <= status->status && ST_LAST > status->status);
 
-    valid_timing = status->run && ST_NOT_KILLED != status->status;
+    valid_timing = status->user && status->sys  && 
+        ST_NOT_KILLED != status->status;
 
     if (status->status) /* if status is set, print it */
         printf ("%6s", short_st_name [status->status]);
+    else if (status->signaled) /* if exit signal is non-zero, print it */
+        printf ("%6s", get_signame (status->exit));
     else if (status->exit) /* if exit code is non-zero, print it */
         printf ("%6d", status->exit);
-    else if (status->signal) /* if exit signal is non-zero, print it */
-        printf ("%6s", get_signame (status->signal));
     else 
         printf ("     0");
 
@@ -74,9 +76,9 @@ void print_status_plain (const struct target_status* status)
 
     /* Print timings, if available */
     if (valid_timing)
-        printf (" %3ld.%03ld %3ld.%03ld\n", status->user.tv_sec,
-                status->user.tv_usec/1000, status->sys.tv_sec,
-                status->sys.tv_usec/1000);
+        printf (" %3ld.%03ld %3ld.%03ld\n", status->user->tv_sec,
+                status->user->tv_usec/1000, status->sys->tv_sec,
+                status->sys->tv_usec/1000);
     else {
         puts ("");
     }
@@ -85,7 +87,7 @@ void print_status_plain (const struct target_status* status)
 
 void print_footer_plain () {}
 
-const char* short_st_name [ST_LAST] = {
+const char* const short_st_name [ST_LAST] = {
     "OK", /*ST_OK*/
     "COMP", /*ST_COMPILE*/
     "LINK", /*ST_LINK*/
@@ -105,6 +107,6 @@ const char* short_st_name [ST_LAST] = {
 
 
 void (*print_header) () = print_header_plain;
-void (*print_target) (const struct target_status*) = print_target_plain;
+void (*print_target) (const struct target_opts*) = print_target_plain;
 void (*print_status) (const struct target_status* status)  = print_status_plain;
 void (*print_footer) () = print_footer_plain;

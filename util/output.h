@@ -28,6 +28,6 @@
 #define OUTPUT_H
 
 void
-parse_output (struct target_status* status);
+parse_output (const struct target_opts* options, struct target_status* status);
 
 #endif   // OUTPUT_H

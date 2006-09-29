@@ -51,7 +51,7 @@
 #include <sys/types.h>
 
 #include "cmdopt.h"
-#include "display.h" /* for struct target_status */
+#include "target.h" /* For struct target_opts */
 #include "util.h"
 
 #include "exec.h"
@@ -63,7 +63,6 @@
    Value is 1 when alarm has been triggered and hasn't been handled
 
    @see handle_alrm
-   @see open_input
 */
 static int alarm_timeout;
 
@@ -404,18 +403,19 @@ handle_alrm (int signo)
    @see handle_alrm
    @see alarm_timeout
 */
-static struct exec_attrs
-wait_for_child (pid_t child_pid)
+static void
+wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
 {
+    /* note that processes with no controlling terminal ignore
+       the SIGINT and SIGQUIT signals
+    */
     static const int signals [] = {
-        SIGHUP, SIGINT, SIGTERM, SIGKILL, SIGKILL
+        SIGHUP, SIGINT, SIGQUIT, SIGTERM, SIGKILL, SIGKILL
     };
 
     static const unsigned sigcount = sizeof (signals) / sizeof (int);
 
     struct sigaction act;
-
-    struct exec_attrs state = {-1, 0};
 
     unsigned siginx = 0;
 
@@ -426,6 +426,9 @@ wait_for_child (pid_t child_pid)
 #else
     int waitopts = WUNTRACED;
 #endif
+
+    int status;
+
     assert (1 < child_pid);
 
     /* Clear timeout */
@@ -448,14 +451,27 @@ wait_for_child (pid_t child_pid)
         alarm (timeout);
 
     while (1) {
-        const pid_t wait_pid = waitpid (child_pid, &state.status, waitopts);
+        const pid_t wait_pid = waitpid (child_pid, &status, waitopts);
         if (child_pid == wait_pid) {
-            if (WIFEXITED (state.status) || WIFSIGNALED (state.status))
+            if (WIFEXITED (status)) {
+                result->exit = WEXITSTATUS (status);
+                switch (result->exit) {
+                case 126:
+                    result->status = ST_EXIST;
+                    break;
+                case 127:
+                    result->status = ST_EXECUTE;
+                    break;
+                }
                 break; /*we've got an exit state, so let's bail*/
-            else if (WIFSTOPPED (state.status))
-                stopped = state.status;
+            } else if (WIFSIGNALED (status)) {
+                result->exit = WTERMSIG (status);
+                result->signaled = 1;
+                break; /*we've got an exit state, so let's bail*/
+            } else if (WIFSTOPPED (status))
+                stopped = status;
 #ifdef WIFCONTINUED /*Perhaps we should guard WIFSTOPPED with this guard also */
-            else if (WIFCONTINUED (state.status))
+            else if (WIFCONTINUED (status))
                 stopped = 0;
 #endif
             else
@@ -469,7 +485,8 @@ wait_for_child (pid_t child_pid)
                        recieving signals.  Therefore, we'll record this
                        and break out of the loop.
                     */
-                    state.status = stopped;
+                    result->exit = WTERMSIG (stopped);
+                    result->signaled = 1;
                     break;
                 }
 
@@ -502,7 +519,7 @@ wait_for_child (pid_t child_pid)
                 }
 
                 /* Record the signal used*/
-                state.killed = signals [siginx];
+                /* result->killed = signals [siginx];*/
 
                 ++siginx;
 
@@ -512,8 +529,7 @@ wait_for_child (pid_t child_pid)
                        Therefore, we'll set error flags and break out of 
                        the loop.
                     */
-                    state.status = -1;
-                    state.killed = -1;
+                    result->status = ST_NOT_KILLED;
                     break;
                 }
 
@@ -560,40 +576,38 @@ wait_for_child (pid_t child_pid)
         ++siginx;
         sleep(1);
     }
-
-    return state;
 }
 
 /**
    Opens an input file, based on exec_name
 
-   Takes an executable name, and tries to open an input file based on this 
-   name and the value of the in_root global variable.  If a file is found in 
-   neither of two locattions derived from these variables, this method tries
-   to fall back on /dev/null.
+   Takes a data directory and an executable name, and tries to open an input 
+   file based on these variables.  If a file is found in neither of two 
+   locattions derived from these variables, this method tries to fall back on 
+   /dev/null.
 
    Source file locations:
-     - [in_root]/manual/in/[exec_name].in
-     - [in_root]/tutorial/in/[exec_name].in
+     - [data_dir]/manual/in/[exec_name].in
+     - [data_dir]/tutorial/in/[exec_name].in
      - /dev/null
 
+   @param data_dir the path of the reference data directory
    @param exec_name the name of executable being run
    @returns the file descriptor of the opened file
-   @see in_root
 */
 static int
-open_input (const char* exec_name)
+open_input (const char* data_dir, const char* exec_name)
 {
     int intermit = -1;
 
     assert (0 != exec_name);
-    assert (0 != in_root);
+    assert (0 != data_dir);
 
-    if (strlen (in_root)) {
+    if (strlen (data_dir)) {
         char* tmp_name;
 
-        /* Try in_root/manual/in/exec_name.in */
-        tmp_name = reference_name ("manual", "in");
+        /* Try data_dir/manual/in/exec_name.in */
+        tmp_name = reference_name (data_dir, "manual", "in");
         intermit = open (tmp_name, O_RDONLY);
     
         /* If we opened the file, return the descriptor */
@@ -607,9 +621,9 @@ open_input (const char* exec_name)
             terminate (1, "open (%s) failed: %s\n", tmp_name, 
                        strerror (errno));
 
-        /* Try in_root/tutorial/in/exec_name.in */
+        /* Try data_dir/tutorial/in/exec_name.in */
         free (tmp_name);
-        tmp_name = reference_name ("tutorial", "in");
+        tmp_name = reference_name (data_dir, "tutorial", "in");
         intermit = open (tmp_name, O_RDONLY);
 
         /* If we opened the file, return the descriptor */
@@ -673,21 +687,23 @@ replace_file (int source, int dest, const char* name)
     Utility macro to generate an rlimit tuple.
     
     @parm val 'short' resource name (no leading RLIMIT_).
-    @param idx limit structure name in child_limits global
+    @param idx rw_rlimit pointer in the target_opts structure
     @see limit_process
-    @see child_limits
+    @see target_opts
 */
 #undef LIMIT
-#define LIMIT(val, idx)   { RLIMIT_ ## val, &child_limits.idx, #val }
+#define LIMIT(val, idx)   { RLIMIT_ ## val, options->idx, #val }
 
 /**
    Set process resource limits, based on the child_limits global.
 
-   This method uses the LIMIT macro to build an internal array of limits
-   to try setting.  If setrlimit fails
+   This method uses the LIMIT macro to build an internal array of limits to 
+   try setting.  If setrlimit fails, we print a warning message (into the 
+   output file) and move on.
+   @param options structure containing limits to set.
 */
 static void
-limit_process ()
+limit_process (const struct target_opts* options)
 {
     static const struct {
         int resource;
@@ -719,13 +735,12 @@ limit_process ()
     };
 
     for (size_t i = 0; limits [i].limit; ++i) {
-        rw_rlimit local;
+        struct rlimit local;
 
-        if (   RLIM_SAVED_CUR == limits [i].limit->rlim_cur
-            && RLIM_SAVED_MAX == limits [i].limit->rlim_max )
+        if (!limits [i].limit)
             continue;
 
-        memcpy (&local, limits [i].limit, sizeof (struct rlimit));
+        memcpy (&local, limits [i].limit, sizeof local);
 
         if (setrlimit (limits [i].resource, &local)) {
             warn ("error setting process limits for %s (soft: %lu, hard: "
@@ -754,12 +769,15 @@ calculate_usage (struct target_status* result)
 #ifdef _XOPEN_UNIX
     static bool init = 0;
     static struct rusage history;
+    static rw_timeval user, sys;
     struct rusage now;
 
     assert (0 != result);
 
     if (!init) {
         memset (&history, 0, sizeof history);
+        memset (&user, 0, sizeof user);
+        memset (&sys, 0, sizeof sys);
         init = 1;
     }
 
@@ -769,23 +787,24 @@ calculate_usage (struct target_status* result)
     }
 
     /* time calculations */
-    result->user.tv_sec = now.ru_utime.tv_sec - history.ru_utime.tv_sec;
-    result->user.tv_usec = now.ru_utime.tv_usec - history.ru_utime.tv_usec;
-    result->sys.tv_sec = now.ru_stime.tv_sec - history.ru_stime.tv_sec;
-    result->sys.tv_usec = now.ru_stime.tv_usec - history.ru_stime.tv_usec;
+    user.tv_sec = now.ru_utime.tv_sec - history.ru_utime.tv_sec;
+    user.tv_usec = now.ru_utime.tv_usec - history.ru_utime.tv_usec;
+    sys.tv_sec = now.ru_stime.tv_sec - history.ru_stime.tv_sec;
+    sys.tv_usec = now.ru_stime.tv_usec - history.ru_stime.tv_usec;
 
     /* Adjust seconds/microseconds */
     if (now.ru_utime.tv_usec < history.ru_utime.tv_usec) {
-        --result->user.tv_sec;
-        result->user.tv_usec += 1000000;
+        --user.tv_sec;
+        user.tv_usec += 1000000;
     }
     if (now.ru_stime.tv_usec < history.ru_stime.tv_usec) {
-        --result->sys.tv_sec;
-        result->sys.tv_usec += 1000000;
+        --sys.tv_sec;
+        sys.tv_usec += 1000000;
     }
 
     /* Tag result as having run */
-    result->run = 1;
+    result->user = &user;
+    result->sys = &sys;
 
     /* Cache the values retrieved */
     memcpy (&history, &now, sizeof (struct rusage));
@@ -807,16 +826,16 @@ calculate_usage (struct target_status* result)
    @return structure describing how the child procees exited
    @see wait_for_child ()
 */
-struct exec_attrs 
-exec_file (struct target_status* result)
+void exec_file (const struct target_opts* options, struct target_status* result)
 {
     const pid_t child_pid = fork ();
 
-    assert (0 != result);
-    assert (0 != result->argv);
-    assert (0 != result->argv [0]);
+    assert (0 != options);
+    assert (0 != options->argv);
+    assert (0 != options->argv [0]);
 
     if (0 == child_pid) {   /* child */
+        const char* const target_name = get_target ();
         FILE* error_file;
 
         assert (0 != target_name);
@@ -844,13 +863,13 @@ exec_file (struct target_status* result)
 
         /* Redirect stdin */
         {
-            const int intermit = open_input (target_name);
+            const int intermit = open_input (options->data_dir, target_name);
             replace_file (intermit, 0, "stdin");
         }
 
         /* Redirect stdout */
         {
-            char* const tmp_name = output_name (result->argv [0]);
+            char* const tmp_name = output_name (options->argv [0]);
             int intermit;
 
             intermit = open (tmp_name, O_WRONLY | O_CREAT | O_TRUNC, 
@@ -871,28 +890,25 @@ exec_file (struct target_status* result)
                        strerror (errno));
 
 #ifdef _XOPEN_UNIX
-        limit_process ();
+        limit_process (options);
 #endif /* _XOPEN_UNIX */
 
-        execv (result->argv [0], result->argv);
+        execv (options->argv [0], options->argv);
 
         fprintf (error_file, "%s (%s): execv (\"%s\", ...) error: %s\n",
-                 exe_name, target_name, result->argv [0], strerror (errno));
+                 exe_name, target_name, options->argv [0], strerror (errno));
 
         exit (1);
     }
 
     if (-1 == child_pid) {
-        /* Fake a failue to execute status return structure */
-        struct exec_attrs state = {127, -1};
-        warn ("Unable to create child process for %s: %s\n", result->argv [0],
+        result->status = ST_EXECUTE;
+        warn ("Unable to create child process for %s: %s\n", options->argv [0],
               strerror (errno));
-        return state;
     } else {
         /* parent */
-        struct exec_attrs state = wait_for_child (child_pid);
+        wait_for_child (child_pid, options->timeout, result);
         calculate_usage (result);
-        return state;
     }
 }
 #else  /* _WIN{32,64} */
@@ -900,39 +916,39 @@ exec_file (struct target_status* result)
    Opens an input file, based on exec_name, using the child_sa security 
    setting.
 
-   Takes an executable name and security setting, and tries to open an input 
-   file based on these variables and the value of the in_root global variable.
+   Takes a data directory, an executable name and security setting, and tries 
+   to open an input file based on these variables.
    If a file is found in neither of two locations derived from these 
-   variables, or if in_root is a null string, it returns null.
+   variables, or if data_dir is a null string, it returns null.
    If a file system error occurs when opening a file, INVALID_HANDLE_VALUE
    is returned (and should be checked for).
 
    Source file locations:
-     - [in_root]/manual/in/[exec_name].in
-     - [in_root]/tutorial/in/[exec_name].in
+     - [data_dir]/manual/in/[exec_name].in
+     - [data_dir]/tutorial/in/[exec_name].in
 
+   @param data_dir the path of the reference data directory
    @param exec_name the name of executable being run
    @param child_sa pointer to a SECURITY_ATTRIBUTES    structure
    @returns the file descriptor of the opened file
-   @see in_root
 */
 static HANDLE
-open_input (const char* exec_name, SECURITY_ATTRIBUTES* child_sa)
+open_input (const char* data_dir, const char* exec_name, 
+            SECURITY_ATTRIBUTES* child_sa)
 {
-    const size_t root_len = strlen (in_root);
     HANDLE intermit;
     DWORD error;
     char* tmp_name;
 
     assert (0 != exec_name);
-    assert (0 != in_root);
+    assert (0 != data_dir);
     assert (0 != child_sa);
 
-    if (!root_len) 
+    if (!strlen (data_dir)) 
         return 0;
 
-    /* Try in_root\manual\in\exec_name.in */
-    tmp_name = reference_name ("manual", "in");
+    /* Try data_dir\manual\in\exec_name.in */
+    tmp_name = reference_name (data_dir, "manual", "in");
 
     intermit = CreateFile (tmp_name, GENERIC_READ, FILE_SHARE_READ, child_sa, 
         OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -944,9 +960,9 @@ open_input (const char* exec_name, SECURITY_ATTRIBUTES* child_sa)
         return intermit;
     }
 
-    /* Try in_root\tutorial\in\exec_name.in */
+    /* Try data_dir\tutorial\in\exec_name.in */
     free (tmp_name);
-    tmp_name = reference_name ("tutorial", "in");
+    tmp_name = reference_name (data_dir, "tutorial", "in");
     intermit = CreateFile (tmp_name, GENERIC_READ, FILE_SHARE_READ, child_sa, 
         OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
@@ -1033,6 +1049,65 @@ warn_last_error (const char* action)
 }
 
 /**
+   Try killing the child process with what (limited) facilities we have at
+   our disposal.  Does not collect exit code or close child process handle.
+
+   @param process Process handle of process to kill.
+   @param result status structure to record system errors in.
+*/
+static void
+kill_child_process (PROCESS_INFORMATION child, struct target_status* result)
+{
+    OSVERSIONINFO OSVer;
+
+    OSVer.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
+    if (0 == GetVersionEx (&OSVer)) {
+        result->status = ST_SYSTEM_ERROR;
+        warn_last_error ("Retrieving host version");
+        return;
+    }
+    /* Try to soft kill child process group if it didn't terminate, but only 
+       on NT */
+
+    if (VER_PLATFORM_WIN32_NT == OSVer.dwPlatformId) {
+
+        struct sig_event
+        {
+            DWORD       signal_;
+            const char* msg_;
+        }
+        sig_events [] = {
+            { CTRL_C_EVENT,     "Sending child process Control-C"     },
+            { CTRL_BREAK_EVENT, "Sending child process Control-Break" }
+        };
+
+        for (unsigned long i = 0;
+            i < sizeof (sig_events) / sizeof (*sig_events); ++i) {
+            DWORD wait_code;
+
+            if (0 == GenerateConsoleCtrlEvent (sig_events [i].signal_,
+                                               child.dwProcessId))
+                warn_last_error (sig_events [i].msg_);
+
+            wait_code = WaitForSingleObject (child.hProcess, 1000);
+            if (WAIT_TIMEOUT == wait_code)
+                continue;
+
+            if (WAIT_OBJECT_0 != wait_code) {
+                result->status = ST_SYSTEM_ERROR;
+                warn_last_error ("Waiting for child process");
+            }
+            return;
+        }
+    }
+    /* Then hard kill the child process */
+    if (0 == TerminateProcess (child.hProcess, 3))
+        warn_last_error ("Terminating child process");
+    else if (WAIT_FAILED == WaitForSingleObject (child.hProcess, 1000))
+        warn_last_error ("Waiting for child process");
+}
+
+/**
    Entry point to the child process (watchdog) subsystem.
 
    This method creates a process using the windows CreateProcess API call.
@@ -1049,31 +1124,21 @@ warn_last_error (const char* action)
    @return structure describing how the child procees exited
    @see wait_for_child ()
 */
-struct exec_attrs 
-exec_file (struct target_status* result)
+void exec_file (const struct target_opts* options, struct target_status* result)
 {
     char* merged;
     PROCESS_INFORMATION child;
-    OSVERSIONINFO OSVer;
     STARTUPINFO context;
     SECURITY_ATTRIBUTES child_sa = /* SA for inheritable handle. */
           {sizeof (SECURITY_ATTRIBUTES), NULL, TRUE};
-    struct exec_attrs status;
-    const DWORD real_timeout = (timeout > 0) ? timeout * 1000 : INFINITE;
-    DWORD wait_code;
+    DWORD real_timeout, wait_code;
 
-    assert (0 != result);
-    assert (0 != result->argv);
-    assert (0 != result->argv [0]);
+    assert (0 != options);
+    assert (0 != options->argv);
+    assert (0 != options->argv [0]);
 
-    memset (&status, 0, sizeof status);
+    real_timeout = (options->timeout > 0) ? options->timeout * 1000 : INFINITE;
 
-    OSVer.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
-    if (0 == GetVersionEx (&OSVer)) {
-        status.status = -1;
-        status.error = warn_last_error ("Retrieving host version");
-        return status;
-    }
     /* Borrow our startup info */
     GetStartupInfo (&context);
     context.dwFlags = STARTF_USESTDHANDLES;
@@ -1081,31 +1146,32 @@ exec_file (struct target_status* result)
     /* Create I/O handles */
     {
         /* Output redirection */
-        char* const tmp_name = output_name (result->argv [0]);
+        char* const tmp_name = output_name (options->argv [0]);
 
         context.hStdOutput = CreateFile (tmp_name, GENERIC_WRITE, 
                 FILE_SHARE_WRITE, &child_sa, CREATE_ALWAYS, 
                 FILE_ATTRIBUTE_NORMAL, NULL);
         if (INVALID_HANDLE_VALUE == context.hStdOutput) { 
-            status.status = -1;
-            status.error = warn_last_error ("Opening child output stream");
-            return status;
+            result->status = ST_SYSTEM_ERROR;
+            warn_last_error ("Opening child output stream");
+            return;
         }
 
         context.hStdError = context.hStdOutput;
         free (tmp_name);
 
         /* Input redirection */
-        context.hStdInput = open_input (target_name, &child_sa);
+        context.hStdInput = open_input (options->data_dir, get_target (), 
+                                        &child_sa);
         if (INVALID_HANDLE_VALUE == context.hStdInput) { 
             CloseHandle (context.hStdOutput);
-            status.status = -1;
-            status.error = warn_last_error ("Opening child input stream");
-            return status;
+            result->status = ST_SYSTEM_ERROR;
+            warn_last_error ("Opening child input stream");
+            return;
         }
     }    
 
-    merged = merge_argv (result->argv);
+    merged = merge_argv (options->argv);
 
     /* set appropriate error mode (the child process inherits this
        error mode) to disable displaying the critical-error-handler
@@ -1113,11 +1179,11 @@ exec_file (struct target_status* result)
     UINT old_mode = SetErrorMode (SEM_FAILCRITICALERRORS
                                 | SEM_NOGPFAULTERRORBOX);
     /* Create the child process */
-    if (0 == CreateProcess (result->argv [0], merged, 0, 0, 1, 
+    if (0 == CreateProcess (options->argv [0], merged, 0, 0, 1, 
         CREATE_NEW_PROCESS_GROUP, 0, 0, &context, &child)) {
         /* record the status if we failed to create the process */
-        status.status = -1;
-        status.error = warn_last_error ("Creating child process");;
+        result->status = ST_SYSTEM_ERROR;
+        warn_last_error ("Creating child process");;
     }
 
     /* restore the previous error mode */
@@ -1134,87 +1200,41 @@ exec_file (struct target_status* result)
     free (merged);
 
     /* Return if we failed to create the child process */
-    if (-1 == status.status)
-        return status;
+    if (ST_SYSTEM_ERROR == result->status)
+        return;
 
     if (0 == CloseHandle (child.hThread))
         warn_last_error ("Closing child main thread handle");
 
     /* Wait for the child process to terminate */
     wait_code = WaitForSingleObject (child.hProcess, real_timeout);
-    if (WAIT_TIMEOUT != wait_code) {
-        if (WAIT_OBJECT_0 == wait_code) {
-            if (0 == GetExitCodeProcess (child.hProcess, &status.status)) {
-                warn_last_error ("Retrieving child process exit code");
-                status.status = -1;
-            }
-            status.error = 0;
-        }
-        else {
-            status.status = -1;
-            status.error = warn_last_error ("Waiting for child process");
-        }
 
-        if (0 == CloseHandle (child.hProcess))
-            warn_last_error ("Closing child process handle");
-        return status;
-    }
+    switch (wait_code) {
+    case WAIT_OBJECT_0:
+        break;
+    case WAIT_TIMEOUT:
+        /* Child process didn't shut down, so note that we killed it. */
+        result->status = ST_KILLED;
 
-    /* Try to soft kill child process group if it didn't terminate, but only 
-       on NT */
-    if (VER_PLATFORM_WIN32_NT == OSVer.dwPlatformId) {
-
-        struct sig_event
-        {
-            DWORD       signal_;
-            const char* msg_;
-        }
-        sig_events [] = {
-            { CTRL_C_EVENT,     "Sending child process Control-C"     },
-            { CTRL_BREAK_EVENT, "Sending child process Control-Break" }
-        };
-
-        for (unsigned long i = 0;
-            i < sizeof (sig_events) / sizeof (*sig_events); ++i) {
-
-            if (0 == GenerateConsoleCtrlEvent (sig_events [i].signal_,
-                                               child.dwProcessId))
-                warn_last_error (sig_events [i].msg_);
-
-            wait_code = WaitForSingleObject (child.hProcess, 1000);
-            if (WAIT_TIMEOUT == wait_code)
-                continue;
-
-            if (WAIT_OBJECT_0 == wait_code) {
-                if (0 == GetExitCodeProcess (child.hProcess, &status.status)) {
-                    warn_last_error ("Retrieving child process exit code");
-                    status.status = -1;
-                }
-                status.error = i + 1;
-            }
-            else {
-                status.status = -1;
-                status.error = warn_last_error ("Waiting for child process");
-            }
-
-            if (0 == CloseHandle (child.hProcess))
-                warn_last_error ("Closing child process handle");
-            return status;
-        }
-    }
-    /* Then hard kill the child process */
-    if (0 == TerminateProcess (child.hProcess, 3))
-        warn_last_error ("Terminating child process");
-    else if (WAIT_FAILED == WaitForSingleObject (child.hProcess, 1000))
+        kill_child_process (child, result);
+        break;
+    default:
+        result->status = ST_SYSTEM_ERROR;
         warn_last_error ("Waiting for child process");
-
-    if (0 == GetExitCodeProcess (child.hProcess, &status.status)) {
-        warn_last_error ("Retrieving child process exit code");
-        status.status = -1;
     }
-    status.error = 3;
+
+    if (0 == GetExitCodeProcess (child.hProcess, (LPDWORD)&result->exit)) {
+        warn_last_error ("Retrieving child process exit code");
+        result->status = ST_SYSTEM_ERROR;
+    }
+
     if (0 == CloseHandle (child.hProcess))
         warn_last_error ("Closing child process handle");
-    return status;
+
+    if (STATUS_ACCESS_VIOLATION == result->exit) {
+        result->exit = SIGSEGV;
+        result->signaled = 1;
+    }
 }
+
 #endif  /* _WIN{32,64} */

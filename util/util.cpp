@@ -35,6 +35,7 @@
 void
 warn (const char* const format, ...)
 {
+    const char* const target_name = get_target ();
     va_list args;
 
     assert (0 != format);
@@ -58,6 +59,7 @@ warn (const char* const format, ...)
 void
 terminate (const int state, const char* const format, ...)
 {
+    const char* const target_name = get_target ();
     va_list args;
 
     assert (0 != format);
@@ -128,30 +130,31 @@ guarded_realloc (void* source, const size_t size, const char* const file,
 }
 
 char*
-reference_name (const char* dir, const char* mode)
+reference_name (const char* data_dir, const char* subdir, const char* mode)
 {
     size_t root_len, cmp_len, dir_len, mode_len, net_len;
     char* ref_name;
     char* tail;
+    const char* const target_name = get_target ();
 
-    assert (0 != in_root);
+    assert (0 != data_dir);
     assert (0 != target_name);
-    assert (0 != dir);
+    assert (0 != subdir);
     assert (0 != mode);
 
-    root_len = strlen (in_root);
+    root_len = strlen (data_dir);
     cmp_len = strlen (target_name) - exe_suffix_len;
-    dir_len = strlen (dir);
+    dir_len = strlen (subdir);
     mode_len = strlen (mode);
     net_len = root_len + cmp_len + dir_len + mode_len * 2 + 5;
     /* 5 comes from 3 path seperator characters, the suffix seperator 
        character, and the trailing null */
     tail = ref_name = (char*)RW_MALLOC (net_len);
 
-    memcpy (tail, in_root, root_len);
+    memcpy (tail, data_dir, root_len);
     tail += root_len;
     *tail++ = default_path_sep;
-    memcpy (tail , dir, dir_len);
+    memcpy (tail , subdir, dir_len);
     tail += dir_len;
     *tail++ = default_path_sep;
     memcpy (tail , mode, mode_len);
