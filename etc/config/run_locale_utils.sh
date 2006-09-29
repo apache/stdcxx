@@ -465,9 +465,9 @@ test_locale()
 }
 
 #
-# Cleanup handler
+# cleanup/signal handler
 #
-signal_cleanup ()
+cleanup ()
 {
     if [ "$no_clean" = "" ]; then
         # clean up
@@ -537,8 +537,8 @@ elif [ "$chk_func" = "yes" ]; then
         exit 1
     fi
 
-    # set our cleanup on exit trap
-    trap signal_cleanup EXIT
+    # clean up temporary files on signal or exit
+    trap cleanup HUP INT QUIT TERM EXIT
 
     # test only one locale
     test_locale $nlsdir $tmpdir $locale_db;
