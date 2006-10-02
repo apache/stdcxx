@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2005 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -124,12 +131,34 @@ typedef std::wstreampos     W_wstreampos;
 
 /**************************************************************************/
 
+#ifndef _RWSTD_NO_PART_SPEC_OVERLOAD
+
 template <class T, class U>
 bool is_same_type (const T*, const U*) { return false; }
 
 template <class T>
 bool is_same_type (const T*, const T*) { return true; }
 
+#else   // ifdef _RWSTD_NO_PART_SPEC_OVERLOAD
+
+template <class T, class U>
+struct is_same
+{
+    struct yes {};
+    struct no { yes no_ [2]; };
+    template <class T>
+    struct Type {};
+
+    static yes test (Type<T>, Type<T>);
+    static no test (...);
+
+    enum { value = sizeof (test (Type<T> (), Type<U> ())) == sizeof (yes) };
+};
+
+template <class T, class U>
+bool is_same_type (const T*, const U*) { return is_same<T, U>::value; }
+
+#endif  // _RWSTD_NO_PART_SPEC_OVERLOAD
 
 /**************************************************************************/
 

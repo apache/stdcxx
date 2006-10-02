@@ -130,16 +130,16 @@ struct __rw_bool_t<true>
 template <class _TypeT, class _TypeU>
 struct __rw_is_same
 {
-    struct yes {};
-    struct no { yes no_ [2]; };
-    template <class T>
-    struct Type {};
+    struct _C_yes {};
+    struct _C_no { _C_yes no_ [2]; };
+    template <class _TypeV>
+    struct _C_Type {};
 
-    static yes test (Type<_TypeT>, Type<_TypeT>);
-    static no test (...);
+    static _C_yes test (_C_Type<_TypeT>, _C_Type<_TypeT>);
+    static _C_no test (...);
 
-    enum { _C_val = sizeof (test (Type<_TypeT> (),
-                                  Type<_TypeU> ())) == sizeof (yes) };
+    enum { _C_val = sizeof (test (_C_Type<_TypeT> (),
+                                  _C_Type<_TypeU> ())) == sizeof (_C_yes) };
 
     typedef _TYPENAME __rw_bool_t<_C_val>::_C_type _C_type;
 };
