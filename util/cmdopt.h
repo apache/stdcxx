@@ -35,13 +35,33 @@ extern const char default_path_sep; /**< Primary path seperator */
 extern const char suffix_sep; /**< File suffix seperator. */
 extern const size_t exe_suffix_len; /**< Length of executable suffix. */
 
-void 
-show_usage (int status);
+/**
+   Parses command line arguments for switches and options.
 
+   @param argc number of command line arguments.
+   @param argv command line arguments.
+   @param defaults target_status structure containing default values.
+   @param exe_opts handle to default child process arguments string
+   @return number of command line arguments parsed.
+*/
 int 
 eval_options (int argc, char** argv, struct target_opts* defaults, 
               const char** exe_opts);
 
+/**
+   Translates opts into an array that can be passed to exec().
+
+   This method malloc ()s two blocks of memory.  The first block is the 
+   generated argv index array.  This is the return value of this method.  The 
+   second block is the parsed and split string contents the index referenced.  
+   This block is stored in element 1 of the return array.  It is the 
+   responsibility of the calling method to free () both blocks.
+
+   @warning this logic is UTF-8 unsafe
+   @warning I/O redirection command piping isn't supported in the parse logic
+   @param opts option string to split
+   @return the parsed argv array
+*/
 char**
 split_opt_string (const char* opts);
 
@@ -56,4 +76,4 @@ split_opt_string (const char* opts);
 */
 const char* get_target ();
 
-#endif   // RW_PARSE_OPTS_H
+#endif   /* RW_PARSE_OPTS_H */

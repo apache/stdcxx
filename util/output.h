@@ -27,7 +27,19 @@
 #ifndef OUTPUT_H
 #define OUTPUT_H
 
+/**
+   Umbrella (dispatch) function to analyse the (saved) output of target.
+
+   This file opens the saved output for parsing.  If this fails, 
+   the status structure is updated to reflect this.  Otherwise, check_test (),
+   check_compat_test (), or check_example () is called to parse the output
+   file.
+
+   @param target the path to the executable that generated the output file 
+   being parsed.
+   @param status status object to record results in.
+*/
 void
 parse_output (const struct target_opts* options, struct target_status* status);
 
-#endif   // OUTPUT_H
+#endif   /* OUTPUT_H */

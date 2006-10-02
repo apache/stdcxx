@@ -96,4 +96,4 @@ extern void (*print_status) (const struct target_status* status);
 */
 extern void (*print_footer) ();
 
-#endif   // RW_DISPLAY_H
+#endif   /* RW_DISPLAY_H */

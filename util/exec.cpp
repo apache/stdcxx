@@ -24,8 +24,8 @@
  * 
  **************************************************************************/
 
-// disable Compaq/HP C++ pure libc headers to allow POSIX symbols
-// such as SIGALRM or SIGKILL to be defined
+/* disable Compaq/HP C++ pure libc headers to allow POSIX symbols
+   such as SIGALRM or SIGKILL to be defined. */
 #undef __PURE_CNAME
 
 #include <assert.h> /* for assert */
@@ -291,19 +291,6 @@ rw_strcasecmp (const char* s1, const char* s2)
     return delta;
 }
 
-/**
-   Translates a human understandable signal name into a number usable by kill ().
-
-   This method understands several formats for signal names.  They are as follows:
-   - n
-   - SIGFOO
-   - FOO
-   In this list, n denotes a number and FOO denotes a short signal name.
-
-   @param signame a signal name to decode
-   @returns the signal number or -1 if a number couldn't be determined
-   @see signal_names []
-*/
 int
 get_signo (const char* signame)
 {
@@ -312,7 +299,7 @@ get_signo (const char* signame)
 
     assert (0 != signame);
 
-    if (isdigit (signame [0])){
+    if (isdigit (signame [0])) {
         char *junk;
         int trans = strtol (signame, &junk, 10);
 
@@ -336,15 +323,6 @@ get_signo (const char* signame)
     return -1;
 }
 
-/**
-   Translates a signal number into a human understandable name
-
-   @param signo a signal number
-   @returns the human understandable name for the signal (minus the SIG 
-   prefix), or "#n" if the the name for the number is unknown to the 
-   function, where n is signo
-   @see signal_names []
-*/
 const char* 
 get_signame (int signo)
 {
@@ -464,11 +442,13 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
                     break;
                 }
                 break; /*we've got an exit state, so let's bail*/
-            } else if (WIFSIGNALED (status)) {
+            }
+            else if (WIFSIGNALED (status)) {
                 result->exit = WTERMSIG (status);
                 result->signaled = 1;
                 break; /*we've got an exit state, so let's bail*/
-            } else if (WIFSTOPPED (status))
+            }
+            else if (WIFSTOPPED (status))
                 stopped = status;
 #ifdef WIFCONTINUED /*Perhaps we should guard WIFSTOPPED with this guard also */
             else if (WIFCONTINUED (status))
@@ -490,7 +470,7 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
                     break;
                 }
 
-                if(0 != kill (-child_pid, signals [siginx])) {
+                if (0 != kill (-child_pid, signals [siginx])) {
                     if (ESRCH == errno)
                         /* ESRCH means 'No process (group) found'.  Since 
                            there aren't any processes in the process group, 
@@ -518,8 +498,7 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
                        them like EPERM or EINVAL at this time. */
                 }
 
-                /* Record the signal used*/
-                /* result->killed = signals [siginx];*/
+                /* Consider recording the signal used here.*/
 
                 ++siginx;
 
@@ -574,7 +553,7 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
        process times are rolled into the timing of a later process */
     while (siginx < sigcount && 0 == kill (-child_pid, signals [siginx])) {
         ++siginx;
-        sleep(1);
+        sleep (1);
     }
 }
 
@@ -712,25 +691,25 @@ limit_process (const struct target_opts* options)
     } limits[] = {
 #ifdef RLIMIT_CORE
         LIMIT (CORE, core),
-#endif   // RLIMIT_CORE
+#endif   /* RLIMIT_CORE */
 #ifdef RLIMIT_CPU
         LIMIT (CPU, cpu),
-#endif   // RLIMIT_CPU
+#endif   /* RLIMIT_CPU */
 #ifdef RLIMIT_DATA
         LIMIT (DATA, data),
-#endif   // RLIMIT_DATA
+#endif   /* RLIMIT_DATA */
 #ifdef RLIMIT_FSIZE
         LIMIT (FSIZE, fsize),
-#endif   // RLIMIT_FSIZE
+#endif   /* RLIMIT_FSIZE */
 #ifdef RLIMIT_NOFILE
         LIMIT (NOFILE, nofile),
-#endif   // RLIMIT_NOFILE
+#endif   /* RLIMIT_NOFILE */
 #ifdef RLIMIT_STACK
         LIMIT (STACK, stack),
-#endif   // RLIMIT_STACK
+#endif   /* RLIMIT_STACK */
 #ifdef RLIMIT_AS
         LIMIT (AS, as),
-#endif   // RLIMIT_AS    
+#endif   /* RLIMIT_AS */    
         { 0, 0, 0 }
     };
 
@@ -811,21 +790,6 @@ calculate_usage (struct target_status* result)
 #endif /* _XOPEN_UNIX */
 }
 
-/**
-   Entry point to the child process (watchdog) subsystem.
-
-   This method fork ()s, creating a child process.  This child process becomes
-   a process group leader, redirects input and output files, then exec ()s
-   the target specified in argv [0], providing it with argv to use as its argv 
-   array.  Meanwhile, the parent process calls the wait_for_child method to
-   monitor the child process, passing the return value back to the calling
-   method.
-
-   @param exec_name name of the child executable
-   @param argv argv array for child process
-   @return structure describing how the child procees exited
-   @see wait_for_child ()
-*/
 void exec_file (const struct target_opts* options, struct target_status* result)
 {
     const pid_t child_pid = fork ();
@@ -905,7 +869,8 @@ void exec_file (const struct target_opts* options, struct target_status* result)
         result->status = ST_EXECUTE;
         warn ("Unable to create child process for %s: %s\n", options->argv [0],
               strerror (errno));
-    } else {
+    }
+    else {
         /* parent */
         wait_for_child (child_pid, options->timeout, result);
         calculate_usage (result);
@@ -1107,23 +1072,6 @@ kill_child_process (PROCESS_INFORMATION child, struct target_status* result)
         warn_last_error ("Waiting for child process");
 }
 
-/**
-   Entry point to the child process (watchdog) subsystem.
-
-   This method creates a process using the windows CreateProcess API call.
-   The startup context for this process is based on the context of the exec
-   utility, but with the standard * file handles redirected.  The execution of
-   the process is monitored with the WaitForSingleObject API call.  If the 
-   process doesn't complete within the allowed timeout, it is then killed.  On 
-   Windows NT systems, a soft kill of the process (via the 
-   GenerateConsoleCtrlEvent API call) are first attempted attempted.  The 
-   process is then hard killed via the TerminateProcess API call.
-
-   @param exec_name name of the child executable
-   @param argv argv array for child process
-   @return structure describing how the child procees exited
-   @see wait_for_child ()
-*/
 void exec_file (const struct target_opts* options, struct target_status* result)
 {
     char* merged;

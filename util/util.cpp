@@ -50,12 +50,6 @@ warn (const char* const format, ...)
     va_end (args);
 }
 
-/**
-   Wrapper for exit (), providing a terminal error message on stderr.
-
-   @param state non-zero status code to exit () with
-   @param format printf () format string to display on stderr
-*/
 void
 terminate (const int state, const char* const format, ...)
 {
@@ -77,14 +71,6 @@ terminate (const int state, const char* const format, ...)
     exit (state);
 }
 
-/**
-   Wrapper for malloc (), providing return value checking.
-
-   @param size number of bytes of memory to allocate
-   @param file name of file calling method
-   @param line line number in file method was called from
-   @return (non-null) pointer to allocated bock of memory
-*/
 void*
 guarded_malloc (const size_t size, const char* const file, const unsigned line)
 {
@@ -102,15 +88,6 @@ guarded_malloc (const size_t size, const char* const file, const unsigned line)
     return alloc;
 }
 
-/**
-   Wrapper for realloc(), providing return value checking.
-
-   @param source pointer to memory block to reallocate
-   @param size number of bytes of memory to allocate
-   @param file name of file calling method
-   @param line line number in file method was called from
-   @return (non-null) pointer to allocated bock of memory
-*/
 void*
 guarded_realloc (void* source, const size_t size, const char* const file, 
                  const unsigned line)
@@ -122,8 +99,8 @@ guarded_realloc (void* source, const size_t size, const char* const file,
 
     alloc = realloc (source, size);
 
-    if ( 0 == alloc )
-        terminate ( 1, "malloc(%lu) at line %u of %s failed: %s\n", 
+    if (0 == alloc)
+        terminate (1, "malloc(%lu) at line %u of %s failed: %s\n", 
                  (unsigned long)size, line, file, strerror (errno));
 
     return alloc;

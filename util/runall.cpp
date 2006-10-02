@@ -49,19 +49,19 @@
 
 #ifndef ENOENT
 #  define ENOENT 2
-#endif   // ENOENT
+#endif   /* ENOENT */
 
 #ifndef S_IXUSR
 #  define S_IXUSR 0100
-#endif   // S_IXUSR
+#endif   /* S_IXUSR */
 
 #ifndef S_IXGRP
 #  define S_IXGRP 0010
-#endif   // S_IXGRP
+#endif   /* S_IXGRP */
 
 #ifndef S_IXOTH
 #  define S_IXOTH 0001
-#endif   // S_IXOTH
+#endif   /* S_IXOTH */
 
 /**
    Utility function to rework the argv array
