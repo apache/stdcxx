@@ -319,7 +319,7 @@ test_declarations ()
     (void)fmod (ld, ld);
     (void)frexp (ld, &i);
     (void)ldexp (ld, i);
-    (void)modf (ld, &d);
+    (void)modf (ld, &ld);
     (void)pow (ld, ld);
     (void)pow (ld, i);
 

@@ -7,16 +7,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2005 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -282,35 +289,35 @@ enum {
 
 // define function template overloads for the <cctype> functions with
 // the same name to detect whether the C versions are declared or not
-#define TEST_FUNCTION(name)                     \
-    template <class T> int name (T) {           \
+#define TEST_FUNCTION(name, ret)                     \
+    template <class T> ret name (T) {           \
         missing_set |= bit_ ## name;            \
         return -1;                              \
     } typedef void rw_unused_typedef
 
 _RWSTD_NAMESPACE (std) {
 
-TEST_FUNCTION (iswalnum);
-TEST_FUNCTION (iswalpha);
-TEST_FUNCTION (iswcntrl);
-TEST_FUNCTION (iswdigit);
-TEST_FUNCTION (iswgraph);
-TEST_FUNCTION (iswlower);
-TEST_FUNCTION (iswprint);
-TEST_FUNCTION (iswpunct);
-TEST_FUNCTION (iswspace);
-TEST_FUNCTION (iswupper);
-TEST_FUNCTION (iswxdigit);
-TEST_FUNCTION (towlower);
-TEST_FUNCTION (towupper);
-TEST_FUNCTION (wctrans);
-TEST_FUNCTION (wctype);
+TEST_FUNCTION (iswalnum, int);
+TEST_FUNCTION (iswalpha, int);
+TEST_FUNCTION (iswcntrl, int);
+TEST_FUNCTION (iswdigit, int);
+TEST_FUNCTION (iswgraph, int);
+TEST_FUNCTION (iswlower, int);
+TEST_FUNCTION (iswprint, int);
+TEST_FUNCTION (iswpunct, int);
+TEST_FUNCTION (iswspace, int);
+TEST_FUNCTION (iswupper, int);
+TEST_FUNCTION (iswxdigit, int);
+TEST_FUNCTION (towlower, wchar_t);
+TEST_FUNCTION (towupper, wchar_t);
+TEST_FUNCTION (wctrans, wctrans_t);
+TEST_FUNCTION (wctype, wctype_t);
 
 template <class T, class U>
 int iswctype (T, U) { missing_set |= bit_iswctype; return -1; }
 
 template <class T, class U>
-int towctrans (T, U) { missing_set |= bit_towctrans; return -1; }
+wint_t towctrans (T, U) { missing_set |= bit_towctrans; return -1; }
 
 }   // namespace std
 
@@ -889,6 +896,16 @@ run_test (int, char**)
 
     rw_assert (-1 != result && !(missing_set & bit_wctrans), 0, __LINE__,
                "%s::wctrans (const char*) not defined", std_name);
+
+    // exercise std::towctrans(wint_t, wctrans_t)
+    rw_info (0, 0, 0,
+        "%s::towctrans(wint_t, wctrans_t) definition", std_name);
+
+    const test_wctrans_t category = 0;
+    result = std::towctrans (wc, category);
+
+    rw_assert (-1 != result && !(missing_set & bit_towctrans), 0, __LINE__,
+        "%s::towctrans(wint_t, wctrans_t) not defined", std_name);
 
     //////////////////////////////////////////////////////////////////
     if (rw_opt_no_behavior)

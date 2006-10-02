@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2005 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -632,10 +639,10 @@ int wscanf (const WCharT*, ...) { return ncalls++; }
 template <class WCharT, class SizeT>
 int swprintf (WCharT*, SizeT, const WCharT*, ...) { return ncalls++; }
 
-template <class WCharT, class SizeT>
+template <class WCharT>
 int swscanf (const WCharT*, const WCharT*, ...) { return ncalls++; }
 
-template <class FileT, class WCharT, class SizeT, class VAList>
+template <class FileT, class WCharT, class VAList>
 int vfwprintf (FileT*, const WCharT*, VAList) { return ncalls++; }
 
 template <class WCharT, class VAList>
@@ -645,7 +652,7 @@ template <class WCharT, class SizeT, class VAList>
 int vswprintf (WCharT*, SizeT, const WCharT*, VAList) { return ncalls++; }
 
 template <class FileT>
-int fgetwc (FileT*) { return ncalls++; }
+wint_t fgetwc (FileT*) { return ncalls++; }
 
 template <class WCharT, class FileT>
 WCharT* fgetws (WCharT*, int, FileT*) { ncalls++; return 0; }
@@ -909,7 +916,9 @@ void test_functions ()
     TEST (wchar_t*, wmemmove, (wstr, L"", size), WMEMMOVE, -1);
     TEST (wchar_t*, wmemset, (wstr, L'\0', size), WMEMSET, -1);
 
-    const int tm_buf [16] = { 0 };
+    // const commented to prevent MSVC 7.0 error:
+    // error C2147: 'tm_buf' : const automatic array must be fully initialized
+    /*const */int tm_buf [16] = { 0 };
     const test_tm* tmb = (const test_tm*)&tm_buf;
 
     TEST (test_size_t, wcsftime, (wstr, size, L"", tmb), WCSFTIME, -1);
