@@ -42,7 +42,7 @@ typedef struct rlimit rw_rlimit;
    Abstraction typedef for struct timeval using real struct
 */
 typedef struct timeval rw_timeval;
-#else
+#else /* _XOPEN_UNIX */
 /**
    Placeholder rlim_t for use in rw_rlimit
 */
@@ -77,7 +77,7 @@ struct rw_timeval {
    Abstraction typedef for struct timeval using placeholder struct
 */
 typedef struct rw_timeval rw_timeval;
-#endif
+#endif /* _XOPEN_UNIX */
 
 #ifndef RLIM_INFINITY
 #  define RLIM_INFINITY -1

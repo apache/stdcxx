@@ -34,7 +34,13 @@
 */
 void warn (const char* const format, ...);
 
-void terminate ( const int state, const char* const format, ... );
+/**
+   Wrapper for exit (), providing a terminal error message on stderr.
+
+   @param state non-zero status code to exit () with
+   @param format printf () format string to display on stderr
+*/
+void terminate (const int state, const char* const format, ...);
 
 /* Note: RW_MALLOC should be used rather than malloc within the runall 
    utility.  This macro calls the guarded_malloc function which performs 
@@ -44,11 +50,28 @@ void terminate ( const int state, const char* const format, ... );
 
 #define RW_MALLOC(size)                             \
     guarded_malloc(size, __FILE__, __LINE__)
+/**
+   Wrapper for malloc (), providing return value checking.
+
+   @param size number of bytes of memory to allocate
+   @param file name of file calling method
+   @param line line number in file method was called from
+   @return (non-null) pointer to allocated bock of memory
+*/
 void* guarded_malloc (const size_t size, const char* const file, 
                       const unsigned line);
 
 #define RW_REALLOC(source, size)                 \
     guarded_realloc(source, size, __FILE__, __LINE__)
+/**
+   Wrapper for realloc(), providing return value checking.
+
+   @param source pointer to memory block to reallocate
+   @param size number of bytes of memory to allocate
+   @param file name of file calling method
+   @param line line number in file method was called from
+   @return (non-null) pointer to allocated bock of memory
+*/
 void* guarded_realloc (void* source, const size_t size, 
                        const char* const file, const unsigned line);
 
@@ -74,4 +97,4 @@ char* reference_name (const char* data_dir, const char* subdir,
    @return translation of 'target.out'
 */
 char* output_name (const char* target);
-#endif   // RW_UTIL_H
+#endif   /* RW_UTIL_H */

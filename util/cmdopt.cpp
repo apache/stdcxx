@@ -24,8 +24,8 @@
  *
  **************************************************************************/
 
-// disable Compaq/HP C++ pure libc headers to allow POSIX symbols
-// such as SIGALRM or SIGKILL to be defined
+/* disable Compaq/HP C++ pure libc headers to allow POSIX symbols
+   such as SIGALRM or SIGKILL to be defined.*/
 #undef __PURE_CNAME
 
 #include <assert.h> /* for assert() */
@@ -144,8 +144,8 @@ rw_signal (int signo, void (*func)(int))
     struct sigaction act;
     memset (&act, 0, sizeof act);
 
-    // avoid extern "C"/"C++" mismatch due to an HP aCC 6 bug
-    // (see STDCXX-291)
+    /* avoid extern "C"/"C++" mismatch due to an HP aCC 6 bug
+       (see STDCXX-291) */
     if (func)
         memcpy (&act.sa_handler, &func, sizeof func);
     else
@@ -182,7 +182,7 @@ rw_signal (int signo, void (*func)(int))
 
    @param status status code to exit with.
 */
-void 
+static void 
 show_usage (int status)
 {
     FILE* const where = status ? stderr : stdout;
@@ -254,49 +254,49 @@ parse_limit_opts (const char* opts, struct target_opts* defaults)
             &defaults->core,
 #else
             0,
-#endif   // RLIMIT_CORE
+#endif   /* RLIMIT_CORE */
             "core", "CORE", "Core", 4 },
         {
 #ifdef RLIMIT_CPU
             &defaults->cpu,
 #else
             0,
-#endif   // RLIMIT_CPU
+#endif   /* RLIMIT_CPU */
             "cpu", "CPU", "Cpu", 3 },
         {
 #ifdef RLIMIT_DATA
             &defaults->data,
 #else
             0,
-#endif   // RLIMIT_DATA
+#endif   /* RLIMIT_DATA */
             "data", "DATA", "Data", 4 },
         {
 #ifdef RLIMIT_FSIZE
             &defaults->fsize,
 #else
             0,
-#endif   // RLIMIT_FSIZE
+#endif   /* RLIMIT_FSIZE */
             "fsize", "FSIZE", "Fsize", 5 },
         {
 #ifdef RLIMIT_NOFILE
             &defaults->nofile,
 #else
             0,
-#endif   // RLIMIT_NOFILE
+#endif   /* RLIMIT_NOFILE */
             "nofile", "NOFILE", "Nofile", 6 },
         {
 #ifdef RLIMIT_STACK
             &defaults->stack,
 #else
             0,
-#endif   // RLIMIT_STACK
+#endif   /* RLIMIT_STACK */
             "stack", "STACK", "Stack", 5 },
         {
 #ifdef RLIMIT_AS
             &defaults->as,
 #else
             0,
-#endif   // RLIMIT_AS    
+#endif   /* RLIMIT_AS */    
             "as", "AS", "As", 2 },
         { 0, 0, 0, 0, 0 }
     };
@@ -316,8 +316,8 @@ parse_limit_opts (const char* opts, struct target_opts* defaults)
                     || 0 == memcmp (limits [i].mixd, arg, limits [i].len))
                 && ':' == arg [limits [i].len]) {
 
-                // determine whether the hard limit and/or
-                // the soft limit should be set
+                /* determine whether the hard limit and/or the soft limit
+                   should be set. */
                 const bool hard = isupper (arg [0]);
                 const bool soft = islower (arg [1]);
 
@@ -347,7 +347,8 @@ parse_limit_opts (const char* opts, struct target_opts* defaults)
 
                     if (hard)
                         (*limits [i].limit)->rlim_max = lim;
-                } else
+                }
+                else
                     warn ("Unable to process %s limit: Not supported\n", 
                           limits [i].name);
                 break;
@@ -407,15 +408,6 @@ bad_option (const char* opt)
     show_usage (1);
 }
 
-/**
-   Parses command line arguments for switches and options.
-
-   @param argc number of command line arguments.
-   @param argv command line arguments.
-   @param defaults target_status structure containing default values.
-   @param exe_opts handle to default child process arguments string
-   @return number of command line arguments parsed.
-*/
 int 
 eval_options (int argc, char **argv, struct target_opts* defaults, 
               const char** exe_opts)
@@ -591,20 +583,6 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
     return i;
 }
 
-/**
-   Translates opts into an array that can be passed to exec().
-
-   This method malloc ()s two blocks of memory.  The first block is the 
-   generated argv index array.  This is the return value of this method.  The 
-   second block is the parsed and split string contents the index referenced.  
-   This block is stored in element 1 of the return array.  It is the 
-   responsibility of the calling method to free () both blocks.
-
-   @warning this logic is UTF-8 unsafe
-   @warning I/O redirection command piping isn't supported in the parse logic
-   @param opts option string to split
-   @return the parsed argv array
-*/
 char**
 split_opt_string (const char* opts)
 {

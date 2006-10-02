@@ -35,20 +35,30 @@
 
 #include "display.h"
 
-void print_header_plain ()
+/**
+   Generates output header, designed for text output and console viewing.
+*/
+static void print_header_plain ()
 {
     puts ("NAME                      STATUS ASSERTS FAILED PERCNT    USER     "
           "SYS");
 }
 
-void print_target_plain (const struct target_opts*)
+/**
+   Generates target name listing, designed for text output and console viewing.
+*/
+static void print_target_plain (const struct target_opts*)
 {
     const char* const target_name = get_target ();
     printf ("%-25.25s ", target_name);
     fflush (stdout);
 }
 
-void print_status_plain (const struct target_status* status)
+/**
+   Generates target result listing, designed for text output and console 
+   viewing.
+*/
+static void print_status_plain (const struct target_status* status)
 {
     unsigned valid_timing;
     assert (0 != status);
@@ -85,7 +95,11 @@ void print_status_plain (const struct target_status* status)
 
 }
 
-void print_footer_plain () {}
+/**
+   Placholder output footer function, unneeded for text output and console 
+   viewing.
+*/
+static void print_footer_plain () {}
 
 const char* const short_st_name [ST_LAST] = {
     "OK", /*ST_OK*/
