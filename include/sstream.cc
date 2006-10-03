@@ -135,11 +135,13 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen /* = -1 */)
         // copy the provided string to buffer
         traits_type::copy (__buf, __s, __slen);
 
-        if (this->_C_buffer && this->_C_own_buf ())
-            __alloc.deallocate (this->_C_buffer, this->_C_bufsize);
+        if (this->_C_buffer != __buf) {
+            if (this->_C_buffer && this->_C_own_buf ())
+                __alloc.deallocate (this->_C_buffer, this->_C_bufsize);
 
-        this->_C_buffer  = __buf;
-        this->_C_bufsize = __bufsize;
+            this->_C_buffer  = __buf;
+            this->_C_bufsize = __bufsize;
+        }
     }
 
     if (this->_C_is_in ())
