@@ -2,7 +2,7 @@
  *
  * 22.locale.messages.cpp - tests exercising the std::messages facet
  *
- * $Id: //stdlib/dev/tests/stdlib/locale/messages.cpp#46 $
+ * $Id$
  *
  ***************************************************************************
  *

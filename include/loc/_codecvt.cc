@@ -2,7 +2,7 @@
  *
  * _codecvt .cc - definition of std::codecvt members
  *
- * $Id: //stdlib/dev/include/loc/_codecvt.cc#10 $
+ * $Id$
  *
  ***************************************************************************
  *

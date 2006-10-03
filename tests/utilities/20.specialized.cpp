@@ -2,7 +2,7 @@
  *
  * specialized.cpp - test exercising 20.4.4 [lib.specialized.algorithms]
  *
- * $Id: //stdlib/dev/tests/stdlib/utilities/specialized.cpp#4 $
+ * $Id$
  *
  ***************************************************************************
  *

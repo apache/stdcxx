@@ -2,7 +2,7 @@
  *
  * _algobase.cc - Definitions of out-of-line C++ Standard Library algorithms
  *
- * $Id: //stdlib/dev/include/rw/_algobase.cc#14 $
+ * $Id$
  *
  ***************************************************************************
  *

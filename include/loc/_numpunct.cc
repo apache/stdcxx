@@ -2,7 +2,7 @@
  *
  * _numpunct.cc - definition of std::moneypunct members
  *
- * $Id: //stdlib/dev/include/loc/_numpunct.cc#10 $
+ * $Id$
  *
  ***************************************************************************
  *

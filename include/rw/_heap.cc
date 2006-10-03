@@ -3,7 +3,7 @@
  * _heap.cc - Non-inline definitions for the C++ Standard Library
  *            Heap operations
  *
- * $Id: //stdlib/dev/include/rw/_heap.cc#2 $
+ * $Id$
  *
  ***************************************************************************
  *

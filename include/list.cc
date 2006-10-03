@@ -2,7 +2,7 @@
  *
  * list.cc - Non-nline list definitions for the Standard Library
  *
- * $Id: //stdlib/dev/include/list.cc#24 $
+ * $Id$
  *
  ***************************************************************************
  *
