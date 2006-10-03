@@ -2,7 +2,7 @@
  *
  * valaray.cc - Declarations for the Standard Library valarray
  *
- * $Id: //stdlib/dev/include/valarray.cc#12 $
+ * $Id$
  *
  ***************************************************************************
  *

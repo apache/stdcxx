@@ -2,7 +2,7 @@
  *
  * 25.lex.comparison.cpp - test exercising 25.3.8 [lib.lex.comparison]
  *
- * $Id: //stdlib/dev/tests/stdlib/algorithm/lex_comparison.cpp#9 $
+ * $Id$
  *
  ***************************************************************************
  *

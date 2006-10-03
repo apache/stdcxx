@@ -2,7 +2,7 @@
  *
  * _time_get.cc - definition of std::time_get members
  *
- * $Id: //stdlib/dev/include/loc/_time_get.cc#27 $
+ * $Id$
  *
  ***************************************************************************
  *

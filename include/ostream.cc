@@ -2,7 +2,7 @@
  *
  * ostream.cc - Definitions for the Standard Library ostream classes
  *
- * $Id: //stdlib/dev/include/ostream.cc#41 $
+ * $Id$
  *
  ***************************************************************************
  *

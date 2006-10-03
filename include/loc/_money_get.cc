@@ -2,7 +2,7 @@
  *
  * _money_get.cc - definition of std::money_get members
  *
- * $Id: //stdlib/dev/include/loc/_money_get.cc#28 $
+ * $Id$
  *
  ***************************************************************************
  *

@@ -2,7 +2,7 @@
  *
  * _basic_ios.cc - definitions of basic_ios members
  *
- * $Id: //stdlib/dev/include/rw/_basic_ios.cc#6 $
+ * $Id$
  *
  ***************************************************************************
  *

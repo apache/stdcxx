@@ -2,7 +2,7 @@
  *
  * limits.cc - definitions of numeric_limits static data members
  *
- * $Id: //stdlib/dev/include/limits.cc#13 $
+ * $Id$
  *
  ***************************************************************************
  *

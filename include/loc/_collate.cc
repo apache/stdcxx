@@ -2,7 +2,7 @@
  *
  * _collate .cc - definition of std::collate members
  *
- * $Id: //stdlib/dev/include/loc/_collate.cc#12 $
+ * $Id$
  *
  ***************************************************************************
  *

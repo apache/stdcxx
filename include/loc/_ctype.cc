@@ -2,7 +2,7 @@
  *
  * _ctype .cc - definition of std::ctype members
  *
- * $Id: //stdlib/dev/include/loc/_ctype.cc#10 $
+ * $Id$
  *
  ***************************************************************************
  *
