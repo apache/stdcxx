@@ -58,10 +58,21 @@
 #endif   // _RWSTD_NO_DBL_TRAPS
 
 
+#ifndef _RWSTD_FLT_HAS_DENORM
+#  define _RWSTD_FLT_HAS_DENORM  false
+#endif   // _RWSTD_FLT_HAS_DENORM
+
+#ifndef _RWSTD_DBL_HAS_DENORM
+#  define _RWSTD_DBL_HAS_DENORM  false
+#endif   // _RWSTD_DBL_HAS_DENORM
+
+#ifndef _RWSTD_LDBL_HAS_DENORM
+#  define _RWSTD_LDBL_HAS_DENORM false
+#endif   // _RWSTD_LDBL_HAS_DENORM
+
 #ifndef _RWSTD_HAS_DENORM_LOSS
 #  define _RWSTD_HAS_DENORM_LOSS false
 #endif   // _RWSTD_HAS_DENORM_LOSS
-
 
 #ifndef _RWSTD_HAS_INFINITY
 #  define _RWSTD_HAS_INFINITY    true
