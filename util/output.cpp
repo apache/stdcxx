@@ -259,14 +259,14 @@ check_example (const char* const data_dir, char* const out_name, FILE* fout,
             size_t nread [2];   /* bytes read from the output/ref file */
 
             /* First, read a block from the files into the buffer */
-            nread [0] = fread (buf [0], sizeof buf [0], 1, fout);
+            nread [0] = fread (buf [0], 1, sizeof buf [0], fout);
             if (ferror (fout)) {
                 warn ("Error reading %s: %s\n", out_name, strerror (errno));
                 match = 0;
                 break;
             }
 
-            nread [1] = fread (buf [1], sizeof buf [1], 1, fref);
+            nread [1] = fread (buf [1], 1, sizeof buf [1], fref);
             if (ferror (fref)) {
                 warn ("Error reading %s: %s\n", ref_name, strerror (errno));
                 match = 0;
