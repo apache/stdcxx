@@ -19,16 +19,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -238,6 +245,7 @@ _C_insert_n (const iterator &__it, size_type __n, const_reference __x)
         // compute the beginning of the range of elements whose copies
         // will be constructed just past the current end of the sequence
         const pointer __ucpbeg = _C_end - __n;
+        const pointer __ucpend = _C_end;
 
         // construct copies of elements that will be moved beyond
         // the current end of the sequence controlled by *this
@@ -248,8 +256,7 @@ _C_insert_n (const iterator &__it, size_type __n, const_reference __x)
 
         // copy elements the will be overwritten below
         // over the range of elements moved above
-        const pointer __ucpend = __ucpbeg + __n;
-        _STD::copy_backward (__movbeg, __movend, __ucpend);
+        _STD::copy_backward (__movbeg, __ucpbeg, __ucpend);
     }
     else {
 
