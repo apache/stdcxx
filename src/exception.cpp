@@ -71,6 +71,7 @@ _USING (_STD::va_list);
 #ifdef _MSC_VER
    // MSVC's libc prepends an underscore
 #  define vsnprintf   _vsnprintf
+#  undef  _RWSTD_NO_VSNPRINTF
 #endif
 
 #if defined (_RWSTD_NO_VSNPRINTF) && !defined (_RWSTD_NO_VSNPRINTF_IN_LIBC)
