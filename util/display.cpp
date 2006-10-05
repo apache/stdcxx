@@ -41,7 +41,7 @@
 static void print_header_plain ()
 {
     puts ("NAME                      STATUS ASSERTS FAILED PERCNT    USER     "
-          "SYS");
+          "SYS    WALL");
 }
 
 /**
@@ -81,18 +81,22 @@ static void print_status_plain (const struct target_status* status)
         printf (" %7u %6u %5d%%", status->assert, status->failed, 
                 100 * (status->assert - status->failed) / status->assert);
     }
-    else if (valid_timing)
+    else if (valid_timing || status->wall)
         printf ("                      ");
 
     /* Print timings, if available */
     if (valid_timing)
-        printf (" %3ld.%03ld %3ld.%03ld\n", status->user->tv_sec,
+        printf (" %3ld.%03ld %3ld.%03ld", status->user->tv_sec,
                 status->user->tv_usec/1000, status->sys->tv_sec,
                 status->sys->tv_usec/1000);
-    else {
-        puts ("");
-    }
+    else if (status->wall)
+        printf ("                ");
 
+    if (status->wall)
+        printf (" %3ld.%03ld\n", status->wall->tv_sec,
+                status->wall->tv_usec/1000);
+    else
+        puts ("");
 }
 
 /**

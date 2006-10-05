@@ -42,6 +42,7 @@
 #  include <sys/wait.h>
 #  ifdef _XOPEN_UNIX
 #    include <sys/resource.h> /* for setlimit(), RLIMIT_CORE, ... */
+#    include <sys/time.h> /* for gettimeofday */
 #  endif
 #else
 #  include <windows.h> /* for PROCESS_INFORMATION, ... */
@@ -871,9 +872,27 @@ void exec_file (const struct target_opts* options, struct target_status* result)
               strerror (errno));
     }
     else {
+#ifdef _XOPEN_UNIX
+        struct timeval start;
+        static struct timeval delta;
+        gettimeofday(&start, 0);
+#endif /* _XOPEN_UNIX */
         /* parent */
         wait_for_child (child_pid, options->timeout, result);
         calculate_usage (result);
+#ifdef _XOPEN_UNIX
+        gettimeofday(&delta, 0);
+        delta.tv_sec -= start.tv_sec;
+        delta.tv_usec -= start.tv_usec;
+
+        /* Adjust seconds/microseconds */
+        if (delta.tv_usec < 0) {
+            --delta.tv_sec;
+            delta.tv_usec += 1000000;
+        }
+        /* Link the delta */
+        result->wall = &delta;
+#endif /* _XOPEN_UNIX */
     }
 }
 #else  /* _WIN{32,64} */
@@ -1080,6 +1099,8 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     SECURITY_ATTRIBUTES child_sa = /* SA for inheritable handle. */
           {sizeof (SECURITY_ATTRIBUTES), NULL, TRUE};
     DWORD real_timeout, wait_code;
+    FILETIME start, end, delta;
+    static rw_timeval convert;
 
     assert (0 != options);
     assert (0 != options->argv);
@@ -1126,6 +1147,10 @@ void exec_file (const struct target_opts* options, struct target_status* result)
        and general-protection-fault message boxes */
     UINT old_mode = SetErrorMode (SEM_FAILCRITICALERRORS
                                 | SEM_NOGPFAULTERRORBOX);
+
+    /* Check the wall clock before creating the process */
+    GetSystemTimeAsFileTime(&start);
+
     /* Create the child process */
     if (0 == CreateProcess (options->argv [0], merged, 0, 0, 1, 
         CREATE_NEW_PROCESS_GROUP, 0, 0, &context, &child)) {
@@ -1170,6 +1195,25 @@ void exec_file (const struct target_opts* options, struct target_status* result)
         result->status = ST_SYSTEM_ERROR;
         warn_last_error ("Waiting for child process");
     }
+
+    /* Calculate wall clock time elapsed while the process ran */
+    GetSystemTimeAsFileTime(&end);
+    delta.dwHighDateTime = end.dwHighDateTime - start.dwHighDateTime;
+    delta.dwLowDateTime = end.dwLowDateTime - start.dwLowDateTime;
+
+    /* Handle subtraction across the boundry */
+    if (end.dwLowDateTime < start.dwLowDateTime)
+        --delta.dwHighDateTime;
+
+    /* Convert from 128 bit number to seconds/microseconds */
+    convert.tv_usec = delta.dwLowDateTime % 10000000;
+    convert.tv_sec = (delta.dwLowDateTime - convert.tv_usec) / 10000000;
+    /* The low half of the date has a resolution of 100 nanoseconds, and
+       a magnitude of ~584 years.  Therefore, the upper half shouldn't 
+       matter. */
+
+    /* Link the delta */
+    result->wall = &convert;
 
     if (0 == GetExitCodeProcess (child.hProcess, (LPDWORD)&result->exit)) {
         warn_last_error ("Retrieving child process exit code");
