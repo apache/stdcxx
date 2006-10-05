@@ -1,6 +1,6 @@
 /************************************************************************
  *
- * cmdopt.h - Interface declaration for the option parsing subsystem
+ * target.h - Struct definitions for target execution and results.
  *
  * $Id$
  *
@@ -140,6 +140,7 @@ struct target_status {
     enum ProcessStatus status; /**< Textual process status. */
     const rw_timeval* user; /**< Elapsed user time spent in execution. */
     const rw_timeval* sys; /**< Elapsed system time spent in execution. */
+    const rw_timeval* wall; /**< Wall clock time spent in execution. */
     unsigned warn; /**< Number of (test) warnings. */
     unsigned assert; /**< Number of (test) assertions. */
     unsigned failed; /**< Number of failed (test) assertions. */
