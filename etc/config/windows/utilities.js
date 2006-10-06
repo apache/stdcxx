@@ -2,6 +2,127 @@
 // $Id$
 //
 // defines different utility functions
+//
+//////////////////////////////////////////////////////////////////////
+//
+// Licensed to the Apache Software  Foundation (ASF) under one or more
+// contributor  license agreements.  See  the NOTICE  file distributed
+// with  this  work  for  additional information  regarding  copyright
+// ownership.   The ASF  licenses this  file to  you under  the Apache
+// License, Version  2.0 (the  "License"); you may  not use  this file
+// except in  compliance with the License.   You may obtain  a copy of
+// the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the  License is distributed on an  "AS IS" BASIS,
+// WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+// implied.   See  the License  for  the  specific language  governing
+// permissions and limitations under the License.
+// 
+//////////////////////////////////////////////////////////////////////
+
+var VERSION = "";
+var DEVENV = "";
+var DEVENVFLAGS = "";
+var CPPFLAGS = "";
+var LDFLAGS = "";
+var CONVERT = false;
+var CXX = "";
+var LD = "";
+var AR = "";
+var SLNVER="";
+var SLNCOMMENT="";
+var UNICODELOG = false;
+var NOSTCRT = false;
+var WINDIFF = "";
+var ICCCONVERT = "";
+
+// read and parse compiler configuration file
+// config - name of the compiler configuration
+function getCompilerOpts(config)
+{
+    var scriptDir = getParentFolder(WScript.ScriptFullName);
+    var configFileName = scriptDir + "\\" + config + ".config";
+    var ForReading = 1;
+    var configFile = null;
+
+    try
+    {
+        configFile = fso.OpenTextFile(configFileName, ForReading);
+    }
+    catch (e) {}
+
+    if (null == configFile)
+    {
+        WScript.StdErr.WriteLine("Cannot open configuration file: " + configFileName);
+        WScript.Quit(3);
+    }
+
+    while (!configFile.AtEndOfStream)
+    {
+        var line = configFile.ReadLine();
+        if (0 == line.indexOf("//"))
+            continue;
+        var inc = "#include ";
+        var pos = line.indexOf(inc);
+        if (0 == pos)
+            getCompilerOpts(line.substr(pos + inc.length));
+        var tokens = line.split("=");
+        if (2 == tokens.length)
+        {
+            switch (tokens[0])
+            {
+            case "VERSION":
+                VERSION = tokens[1];
+                break;
+            case "DEVENV":
+                DEVENV = tokens[1];
+                break;
+            case "DEVENVFLAGS":
+                DEVENVFLAGS = tokens[1];
+                break;
+            case "CPPFLAGS":
+                CPPFLAGS = tokens[1];
+                break;
+            case "LDFLAGS":
+                LDFLAGS = tokens[1];
+                break;
+            case "CONVERT":
+                CONVERT = (tokens[1] != "0");
+                break;
+            case "CXX":
+                CXX = tokens[1];
+                break;
+            case "LD":
+                LD = tokens[1];
+                break;
+            case "AR":
+                AR = tokens[1];
+                break;
+            case "SLNVER":
+                SLNVER = tokens[1];
+                break;
+            case "SLNCOMMENT":
+                SLNCOMMENT = tokens[1];
+                break;
+            case "UNICODELOG":
+                UNICODELOG = (tokens[1] != "0");
+                break;
+            case "NOSTCRT":
+                NOSTCRT = (tokens[1] != "0");
+                break;
+            case "WINDIFF":
+                WINDIFF = tokens[1];
+                break;
+            case "ICCCONVERT":
+                ICCCONVERT = tokens[1];
+                break;
+            }
+        }
+    }
+}
 
 // returns parent folder for a path
 function getParentFolder(path)
@@ -10,43 +131,41 @@ function getParentFolder(path)
     return path.substr(0, idx);
 }
 
-var rxUUID = /[a-f0-9\-]+/i;
-// generates new UUID. uuidgen shall be runnable via PATH
-function createUUID()
+// returns filename from a path
+function getFileName(path)
 {
-    var exec = WshShell.Exec("uuidgen");
-    var time = 0;
-    while (exec.Status == 0)
-    {
-        WScript.Sleep(100); // wait for completion
-        time += 100;
-        if (time > 5000)
-        {
-            WScript.StdErr.WriteLine(
-                "createUUID: Fatal error: uuidgen" + 
-                " failed to complete in 5" + 
-                " seconds");
-            WScript.Quit(3);
-        }
-    }
-    var result = exec.ExitCode;
-    if (result != 0)
-    {
-        WScript.StdErr.WriteLine(
-            "createUUID: Fatal error: uuidgen"
-                + " failed");				
-        WScript.Quit(3);
-    }
-    var id = exec.StdOut.ReadAll();
-    return "{" + rxUUID.exec(id)[0].toUpperCase() +"}";
+    var idx = path.lastIndexOf('\\');
+    return path.substr(idx + 1);
 }
 
+// returns extension of the file name (with dot at first character)
+function getExtension(filename)
+{
+    var idx = filename.lastIndexOf('.');
+    return 0 <= idx ? filename.substr(idx) : ".";
+}
 
 /////////////////////////////////////////////////////////////////////////
 // get differences using WinDiff utility
 
 function getWinDiffDifferences(src1, src2, flags)
 {   
+    if (WINDIFF == "")
+    {
+        if (VERSION == "")
+            WINDIFF = "windiff";
+        else
+        {
+            var ver = "";
+            if (0 <= VERSION.indexOf("."))
+                ver = VERSION.replace(".", "");
+            WINDIFF = WshShell.Environment.Item("VS" + ver + "COMNTOOLS") +
+                      "\\bin\\windiff";
+            if (WINDIFF[0] != "\"")
+                WINDIFF = "\"" + WINDIFF + "\"";
+        }
+    }
+
     try
     {
         // first create two temporary files 
@@ -71,7 +190,7 @@ function getWinDiffDifferences(src1, src2, flags)
         var tResPath = tfolder.Path + "\\" + tResName;
   
         // second run windiff
-        var cmd = "windiff -F" + flags + " " + tResPath;
+        var cmd = WINDIFF + " -F" + flags + " " + tResPath;
         cmd += " " + tpath1;
         cmd += " " + tpath2;
 
@@ -80,7 +199,7 @@ function getWinDiffDifferences(src1, src2, flags)
         {
             WScript.StdErr.WriteLine(
                 "getWinDiffDifferences: Fatal error: windiff"
-                    + " failed");				
+                    + " failed");                
             return "unknown";
         }
     
@@ -88,7 +207,7 @@ function getWinDiffDifferences(src1, src2, flags)
         var tResFile = fso.OpenTextFile(tfolder.Path + "\\" + tResName);
         var res = tResFile.ReadAll();
         tResFile.Close();
-	
+    
         fso.DeleteFile(tpath1);
         fso.DeleteFile(tpath2);
         fso.DeleteFile(tResPath);
@@ -101,6 +220,7 @@ function getWinDiffDifferences(src1, src2, flags)
     }
 }
 
+// create temporary file and return path to this file
 function makeTempFile()
 {
     var tfolder, TemporaryFolder = 2;
@@ -113,6 +233,8 @@ function makeTempFile()
     return tfolder.Path + "\\" + tname;
 }
 
+// encode symbols within string with escaped analog
+// srcString - source string
 function encodeHTML(srcString)
 {
     var res = srcString;
@@ -127,6 +249,9 @@ function encodeHTML(srcString)
     return res;
 }
 
+// returns source string without first character if it equal to symbol
+// dotName - source string
+// symbol - symbol to remove
 function removeLeadingSymbol(dotName, symbol)
 {
     var index = dotName.indexOf(symbol);
@@ -137,6 +262,7 @@ function removeLeadingSymbol(dotName, symbol)
     return resName;
 }
 
+// returns source string without first character is is a dot
 function removeLeadingDot(dotName)
 {
     var index = dotName.indexOf(".");
@@ -147,196 +273,131 @@ function removeLeadingDot(dotName)
     return resName;
 }
 
-// icc specific - solution conversion
-function convertSolutionImpl(slnFileName, toICC, logStream)
-{   
-    var convertKey = toICC == true ? "/IC" : "/VC";
-    var cmdICConvert = iccConversionUtility + " \"" + slnFileName + 
-        "\" " + convertKey;
-    
-    var convertKeyFriendly = toICC == true ? "ICC" : "MSVC";
-    WScript.Echo("Converting solution to " + convertKeyFriendly + 
-            ". This may take several minutes.");
-    
-    var res = -1;
-    try
-    {
-        if (logStream)
-            logStream.WriteLine("Converting " + cmdICConvert);
-            
-        res = WshShell.Run(cmdICConvert, 7, true);
-        if (0 != res)
-            WScript.Echo("Conversion finished with code " + res);
-            
-        if (logStream)
-            logStream.WriteLine("Conversion to " + convertKeyFriendly + 
-                " finished with code " + res);
-    }
-    catch(e)
-    {
-        WScript.Echo("Conversion failed");
-        if (logStream)
-            logStream.WriteLine("Conversion failed");
-            
-        return -1;
-    }
-    
-    return res;
+// returns the source filename with replaced extension to new one
+// filename - source filename
+// ext - new extension
+function changeFileExt(filename, ext)
+{
+    var arr = filename.split(".");
+    arr[arr.length - 1] = ext;
+    return arr.join(".");
 }
 
-//////////////////////////////////////////////////////////////////////
-// compile environment
-var activeCompiler = null;
-var activeLinker = null;
-var activeLibrarian = null;
-
-var logFileName = "config.log";
-
-// Setup compiler and linker names and options
-function setCompileEnvironment(solutionName, configurationName
-                                , projectName, logFile)
+// returns new UUID
+function createUUID()
 {
-    // obtain the solution. Check that there is no specail solution
-    // for configure script
-    var solution = configurations.get(solutionName);
-    if (null != configurations.get(solutionName + "_config"))
-        solution = configurations.get(solutionName + "_config");
-        
-    var solutionconfig = solution.configurations.get(configurationName);
-    var projectConfig = 
-        solutionconfig.projectConfigurations.get(projectName);
-    var project = solution.projects.get(projectConfig.projectName);
-    var platform = project.platforms.get(projectConfig.platform);
-    var configuration = 
-        platform.configurations.get(projectConfig.configuration);
-
-    activeCompiler = configuration.tools.get(compilerToolName);
-    activeLinker = configuration.tools.get(linkerToolName);
-    activeLibrarian = configuration.tools.get(librarianToolName);
-
-    logFileName = logFile;
+    return WScript.CreateObject("scriptlet.typelib").guid;
 }
 
-// performs compilation using provided compiler
-function compile(compiler)
+// returns index of value in array or -1
+function arrayIndexOf(array, value)
 {
-    var command = compiler.getCommandLine();
-    var message = "Compiling with command \"" + command + "\"";
-    logLine(message);
-    return WshShell.Run("cmd /c \"" + command +"\" >> " + 
-        logFileName + " 2>&1", runWindowMode, true);
+    for (var i = 0; i < array.length; ++i)
+        if (array[i] == value)
+            return i;
+
+    return -1;
 }
 
-// performs compilation using active compiler
-function compileFiles(srcs, defines)
+// create MSVS solution file
+// projects - array of the projects
+// path - output folder
+// name - name of the solutuion file
+function generateSolution(projects, path, name)
 {
-    var compiler = activeCompiler.clone();
-    var srcsArr = srcs.split(" ");
-    for (i in srcsArr)
+    path += "\\";
+    var sln = fso.CreateTextFile(path + name, true, false);
+    // header
+    sln.WriteLine("Microsoft Visual Studio Solution File, Format Version " + SLNVER);
+    if (0 < SLNCOMMENT.length)
+        sln.WriteLine("# " + SLNCOMMENT);
+    for (var i = 0; i < projects.length; ++i)
     {
-        compiler.inputFiles.add(srcsArr[i]);
-    }
-    if (typeof(defines) == "string")
-    {
-        defines = Array(defines);
-    }
-    if (defines instanceof Array)
-    {
-        for (i in defines)
+        // project section header
+        var Project = projects[i];
+        var VCProject = Project.VSProject;
+        sln.Write("Project(\"{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}\") = ");
+        sln.Write("\"" + VCProject.Name + "\"");
+        var projectFile = VCProject.ProjectFile;
+        var pos = projectFile.indexOf(path);
+        if (0 == pos)
+            projectFile = projectFile.substr(path.length);
+        sln.Write(", \"" + projectFile + "\"");
+        sln.WriteLine(", \"" + VCProject.ProjectGUID + "\"");
+
+        if (SLNVER != "7.00")
         {
-            compiler.defines.add(defines[i]);
+            // project dependencies
+            sln.WriteLine(
+                "\tProjectSection(ProjectDependencies) = postProject");
+            var deps = Project.PrjRefs.concat(Project.PrjDeps);
+            for (var j = 0; j < deps.length; ++j)
+            {
+                var depGUID = deps[j].VSProject.ProjectGUID;
+                sln.WriteLine("\t\t" + depGUID + " = " + depGUID);
+            }
+            sln.WriteLine("\tEndProjectSection");
+        }
+        // project section end
+        sln.WriteLine("EndProject");
+    }
+
+    // Global section
+    sln.WriteLine("Global");
+    // solution configurations
+    sln.WriteLine("\tGlobalSection(SolutionConfiguration) = preSolution");
+    for (var i = 0; i < confNames.length; ++i)
+    {
+        var confName = confNames[i];
+        var confKey = (SLNVER == "7.00" ? "ConfigName." + i : confName);
+        sln.WriteLine("\t\t" + confKey + " = " + confName);
+    }
+    sln.WriteLine("\tEndGlobalSection");
+
+    // project dependencies for MSVC 7.0
+    if (SLNVER == "7.00")
+    {
+        sln.WriteLine("\tGlobalSection(ProjectDependencies) = postSolution");
+        for (var i = 0; i < projects.length; ++i)
+        {
+            var Project = projects[i];
+            var VCProject = Project.VSProject;
+            var prjGUID = VCProject.ProjectGUID;
+            var deps = Project.PrjRefs.concat(Project.PrjDeps);
+            for (var j = 0; j < deps.length; ++j)
+            {
+                var depGUID = deps[j].VSProject.ProjectGUID;
+                sln.WriteLine("\t\t" + prjGUID + "." + j + " = " + depGUID);
+            }
+        }
+        sln.WriteLine("\tEndGlobalSection");
+    }
+
+    // project configurations
+    sln.WriteLine("\tGlobalSection(ProjectConfiguration) = postSolution");
+    for (var i = 0; i < projects.length; ++i)
+    {
+        var Project = projects[i];
+        var VCProject = Project.VSProject;
+        var prjGUID = VCProject.ProjectGUID;
+        var cfgs = VCProject.Configurations;
+        for (var j = 1; j <= cfgs.Count; ++j)
+        {
+            var cfg = cfgs.Item(j);
+            sln.WriteLine("\t\t" + prjGUID + "." + cfg.ConfigurationName +
+                          ".ActiveCfg = " + cfg.Name);
+            sln.WriteLine("\t\t" + prjGUID + "." + cfg.ConfigurationName +
+                          ".Build.0 = " + cfg.Name);
         }
     }
-    return compile(compiler);
-}
+    sln.WriteLine("\tEndGlobalSection");
 
-// links using provided linker
-function link(linker)
-{
-     var command = linker.getCommandLine();
-     var message = "Linking with command \"" + command + "\"";
-     logLine(message);
-     return WshShell.Run("cmd /c \"" + command +"\" >> " 
-        + logFileName + " 2>&1", runWindowMode, true);
-}
+    // some unknown stuff
+    sln.WriteLine("\tGlobalSection(ExtensibilityGlobals) = postSolution");
+    sln.WriteLine("\tEndGlobalSection");
+    sln.WriteLine("\tGlobalSection(ExtensibilityAddIns) = postSolution");
+    sln.WriteLine("\tEndGlobalSection");
 
-// links using active linker
-function linkFiles(srcs, outName, linker)
-{
-     if (!linker)
-     {
-        linker = activeLinker.clone();
-     }
-     linker.outputFile = outName;
-     var srcsArr = srcs.split(" ");
-     for (i in srcsArr)
-     {
-        linker.inputFiles.add(srcsArr[i]);
-     }
-     return link(linker);
-}
-
-// preprocesses using provided compiler
-function preprocess(compiler, preprocFile)
-{
-     var command = compiler.getPreprocessCommandLine();
-     var message = "Preprocessing with command \"" + command + "\"";
-     logLine(message);
-     return WshShell.Run("cmd /c \"" + command +"\" > " 
-        + preprocFile + " 2>> " + logFileName, runWindowMode, true);
-}
-
-// preprocesses using active compiler
-function preprocessFile(src, preprocFile)
-{
-     var compiler = activeCompiler.clone();
-     compiler.inputFiles.add(src);
-     return preprocess(compiler, preprocFile);
-}
-
-// links a library using provided librarian
-function buildLibrary(librarian)
-{
-     var command = librarian.getCommandLine();
-     var message = "Making library with command \"" + command + "\"";
-     logLine(message);
-     return WshShell.Run("cmd /c \"" + command +"\" >> " 
-        + logFileName + " 2>&1", runWindowMode, true);
-}
-
-// links a library using active librarian
-function makeLibrary(srcFiles, outDir, outFile, isShared)
-{
-    var ret = compileFiles(srcFiles);
-    if (ret != 0)
-    {
-        return ret;
-    }
-    var objNames = srcFiles.replace(/(?:[\S]+[/\\\\])?([^/\\\\]+\.)cpp/gi, 
-        outDir + "/$1obj");
-        
-    if (isShared)
-    {
-        // call linker to build a dll
-        var linker = activeLinker.clone();
-        linker.isDLL = true;
-        return linkFiles(objNames, outFile, linker);
-    }
-    // call librarian to build lib
-    var librarian = activeLibrarian.clone();
-    librarian.outputFile = outFile;
-    var objsArray = objNames.split(" ");
-    for (i in objsArray)
-    {
-        librarian.inputFiles.add(objsArray);
-    }
-    return buildLibrary(librarian);
-}
-
-// logs text line into a log file
-function logLine(line)
-{
-    var stream = fso.OpenTextFile(logFileName, 8, true, 0);
-    stream.WriteLine(line);
-    stream.Close();
+    sln.WriteLine("EndGlobal");
+    sln.Close();
 }

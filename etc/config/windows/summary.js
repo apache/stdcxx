@@ -1,6 +1,26 @@
 //
 // $Id$
 //
+//////////////////////////////////////////////////////////////////////
+//
+// Licensed to the Apache Software  Foundation (ASF) under one or more
+// contributor  license agreements.  See  the NOTICE  file distributed
+// with  this  work  for  additional information  regarding  copyright
+// ownership.   The ASF  licenses this  file to  you under  the Apache
+// License, Version  2.0 (the  "License"); you may  not use  this file
+// except in  compliance with the License.   You may obtain  a copy of
+// the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the  License is distributed on an  "AS IS" BASIS,
+// WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+// implied.   See  the License  for  the  specific language  governing
+// permissions and limitations under the License.
+// 
+//////////////////////////////////////////////////////////////////////
+
 // BuildLog.htm file constants
 
 var cmdLineTag = "Command Lines";
@@ -19,8 +39,8 @@ var hdrExamples = "Example Summary";
 var hdrTests = "Test Summary";
 
 ////////////////////////////////////////////////////////////////////
-// read BuildLog.htm  
 
+// read BuildLog.htm  
 function readBuildLog(exeDir, itemInfo, useUnicode)
 {
     if (! fso.FolderExists(exeDir))
@@ -44,9 +64,7 @@ function readBuildLog(exeDir, itemInfo, useUnicode)
     posTmp = getBuildSummaryInfo(itemInfo, blogData, posTmp);
 }
 
-////////////////////////////////////////////////////////////////////
 // BuildLog.htm parsing methods 
-
 function getCommandLinesInfo(itemInfo, blogData, posStart)
 {
     //lookup for the command lines block
@@ -525,7 +543,7 @@ function saveSummaryHeaderMulti(fSum, exsDir, buildType, hdrExamples)
     
     // load information from local summary file 
     // and save it to general summary
-    var lsumFileName = exsDir + "\\" + buildType + "\\" + summaryFileName;
+    var lsumFileName = exsDir + "\\" + summaryFileName;
     if (fso.FileExists(lsumFileName))
     {
         var fileLSum = fso.OpenTextFile(lsumFileName);
@@ -544,32 +562,26 @@ function saveBuildSummarySingle(fSum, libInfo, hdrLibrary)
 }
 
 
-function saveBuildSummaryMulti(fSum, htmDir, buildType)
+function saveBuildSummaryMulti(fSum, htmDir)
 {
-    var htmFolder = fso.GetFolder(htmDir);
-    if (! htmDir)
+    if (!fso.FolderExists(htmDir))
         return;
+    var htmFolder = fso.GetFolder(htmDir);
         
     var enumHtmSubFolders = new Enumerator(htmFolder.SubFolders);
     for (; !enumHtmSubFolders.atEnd(); enumHtmSubFolders.moveNext())
     {
         var htmFName = enumHtmSubFolders.item().Name;
-        if (buildType == htmFName)
-        {
-            saveBuildSummariesFromFolder(fSum,
-                enumHtmSubFolders.item().Path, htmFolderName);
-        }
-        else
-        {
-            saveBuildSummaryMulti(fSum, htmDir + "\\" + htmFName, buildType);
-        }
+        saveBuildSummariesFromFolder(fSum,
+            enumHtmSubFolders.item().Path, htmFolderName);
+        saveBuildSummaryMulti(fSum, htmDir + "\\" + htmFName);
     }
 }
 
 function saveBuildSummariesFromFolder(fSum, testFolder, htmFName)
 {
     var htmFldName = testFolder + "\\" + htmFName;
-    if (! fso.FolderExists(htmFldName))
+    if (!fso.FolderExists(htmFldName))
         return;
         
     var htmFld = fso.GetFolder(htmFldName);
@@ -602,9 +614,9 @@ function closeSummaryLog(fSum)
 function checkForFailures(testDir, bType, logHtm, sumHtm, htmTempDir, 
             seeHtm, useUnicode)
 {
-    var testFolder = fso.GetFolder(testDir);
-    if (! testFolder)
+    if (!fso.FolderExists(testDir))
         return;
+    var testFolder = fso.GetFolder(testDir);
         
     var seeHtmHere = seeHtm;
     if (false == seeHtmHere && testFolder.Name == bType)
