@@ -1,7 +1,22 @@
 <?xml version="1.0" ?>
 <package>
     <comment>
-    PrimalCode wizard generated file.
+        Licensed to the Apache Software Foundation (ASF) under one
+        or more contributor license agreements.  See the NOTICE file
+        distributed with this work for additional information
+        regarding copyright ownership.  The ASF licenses this file
+        to you under the Apache License, Version 2.0 (the
+        "License"); you may not use this file except in compliance
+        with the License.  You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing,
+        software distributed under the License is distributed on an
+        "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+        KIND, either express or implied.  See the License for the
+        specific language governing permissions and limitations
+        under the License.
     </comment>
     <job id="makelog" prompt="no">
         <?job error="false" debug="false" ?>
@@ -57,23 +72,28 @@ var rwtestBuildDir = "tests\\src";
     
 var description = new makelog; // run
 
+// the main function of the script
 function makelog()
 {
     readAndCheckArguments();
+
+    getCompilerOpts(buildCfg);
     
+    var useUnicode = UNICODELOG;
+
+    if (useUnicode)
+        buildLogUnicode = -1;
+
     // check for build failures
-    var sumTempFileNameEx = buildDir + "\\" + examplesBuildDir + "\\" +
-        buildType + "\\" + summaryFileName;
+    var sumTempFileNameEx = buildDir + "\\" + buildType + "\\" +
+        examplesBuildDir + "\\" + summaryFileName;
+    checkForFailures(buildDir + "\\" + buildType + "\\" + examplesBuildDir, buildType,
+        buildlogFile, sumTempFileNameEx, htmFolderName, true, useUnicode);
     
-    var useUnicode = (buildCfg == "msvc-8.0") ? true : false;
-    checkForFailures(buildDir + "\\" + examplesBuildDir, buildType,
-        buildlogFile, sumTempFileNameEx, htmFolderName, false, useUnicode);
-    
-    var sumTempFileNameTst = buildDir + "\\" + testsBuildDir + "\\" +
-        buildType + "\\" + summaryFileName;
-        
-    checkForFailures(buildDir + "\\" + testsBuildDir, buildType,
-        buildlogFile, sumTempFileNameTst, htmFolderName, false, useUnicode);
+    var sumTempFileNameTst = buildDir + "\\" + buildType + "\\" +
+        testsBuildDir + "\\" + summaryFileName;
+    checkForFailures(buildDir + "\\" + buildType + "\\" + testsBuildDir, buildType,
+        buildlogFile, sumTempFileNameTst, htmFolderName, true, useUnicode);
         
     // make build summary log file
     var fSum = makeSummaryLog(buildDirBase, buildSummaryPrefix, buildType);
@@ -82,21 +102,22 @@ function makelog()
     
     // read information about library
     var libInfo = new ItemBuildInfo(".stdlib");
-    getLibraryBuildInfo(buildDir + "\\" + libBuildDir, buildType, libInfo);
+    getLibraryBuildInfo(buildDir + "\\" + buildType +
+        "\\" + libBuildDir, libInfo);
     
     // and test driver
     var rwtestInfo = new ItemBuildInfo(".rwtest");
-    getTestDriverBuildInfo(buildDir + "\\" + rwtestBuildDir, 
-        buildType, rwtestInfo);
+    getTestDriverBuildInfo(buildDir + "\\" + buildType +
+        "\\" + rwtestBuildDir, rwtestInfo);
         
     // save headers for library and test driver
     saveSummaryHeaderLib(fSum, libInfo, hdrLibrary);
     saveSummaryHeaderTestDriver(fSum, rwtestInfo, hdrTestDriver);
     
     // save headers for examples and tests
-    saveSummaryHeaderMulti(fSum, buildDir + "\\" + examplesBuildDir, 
+    saveSummaryHeaderMulti(fSum, buildDir + "\\" + buildType + "\\" + examplesBuildDir, 
         buildType, hdrExamples);
-    saveSummaryHeaderMulti(fSum, buildDir + "\\" + testsBuildDir, 
+    saveSummaryHeaderMulti(fSum, buildDir + "\\" + buildType + "\\" + testsBuildDir, 
         buildType, hdrTests);
 
     // save build summary for library and test driver       
@@ -104,13 +125,11 @@ function makelog()
     saveBuildSummarySingle(fSum, rwtestInfo, hdrTestDriver);
     
     // save build summary for examples and tests
-    saveBuildSummaryMulti(fSum, buildDir + "\\" + examplesBuildDir, 
-        buildType);
-    saveBuildSummaryMulti(fSum, buildDir + "\\" + testsBuildDir, 
-        buildType);
+    saveBuildSummaryMulti(fSum, buildDir + "\\" + buildType + "\\" + examplesBuildDir);
+    saveBuildSummaryMulti(fSum, buildDir + "\\" + buildType + "\\" + testsBuildDir);
         
     closeSummaryLog(fSum);
-    
+
     deleteTemporaryFiles();
     
     var resLogPath = logPath.replace(/\\/mg, "/");  
@@ -119,6 +138,7 @@ function makelog()
     WScript.Quit(0);
 }
 
+// performs checking of the script parameters
 function readAndCheckArguments()
 {
     if (!WScript.Arguments.Named.Exists("BUILDDIR"))
@@ -156,18 +176,17 @@ function readAndCheckArguments()
             
         WScript.Quit(3);
     }
-    
-    if (buildCfg == "msvc-8.0" || buildCfg == "icc-9.1")
-        buildLogUnicode = -1;
 }
 
-function getLibraryBuildInfo(libDir, bType, libInfo)
+// collects information about build process of the stdlib library
+// libDir - output directory for the stdlib library
+// libInfo - ItemBuildInfo object to hold the collected information
+function getLibraryBuildInfo(libDir, libInfo)
 {   
-    var logDir = libDir + "\\" + bType;
-    if (! fso.FolderExists(logDir))
+    if (! fso.FolderExists(libDir))
         return;
         
-    var blogFilePath = logDir + "\\" + buildlogFile;
+    var blogFilePath = libDir + "\\" + buildlogFile;
     if (! fso.FileExists(blogFilePath))
         return;
         
@@ -179,13 +198,15 @@ function getLibraryBuildInfo(libDir, bType, libInfo)
     posTmp = getBuildSummaryInfo(libInfo, blogData, posTmp);
 }
 
-function getTestDriverBuildInfo(rwTestDir, bType, rwtestInfo)
+// collects information about build process of the rwtest library
+// rwtestDir - output directory for the rwtest library
+// rwtestInfo - ItemBuildInfo object to hold the collected information
+function getTestDriverBuildInfo(rwTestDir, rwtestInfo)
 {
-    var logDir = rwTestDir + "\\" + bType;
-    if (! fso.FolderExists(logDir))
+    if (! fso.FolderExists(rwTestDir))
         return;
         
-    var blogFilePath = logDir + "\\" + buildlogFile;
+    var blogFilePath = rwTestDir + "\\" + buildlogFile;
     if (! fso.FileExists(blogFilePath))
         return;
         
@@ -197,30 +218,30 @@ function getTestDriverBuildInfo(rwTestDir, bType, rwtestInfo)
     posTmp = getBuildSummaryInfo(rwtestInfo, blogData, posTmp);
 }
 
+// removes the temporary files created by this script and by run_all.wsf script
 function deleteTemporaryFiles()
 {
     // delete temphtm folders
-    deleteTempFolders(buildDir + "\\" + examplesBuildDir, 
-        buildType, htmFolderName);
+    deleteTempFolders(buildDir + "\\" + buildType + "\\" + examplesBuildDir, htmFolderName);
         
-    deleteTempFolders(buildDir + "\\" + testsBuildDir, 
-        buildType, htmFolderName);
+    deleteTempFolders(buildDir + "\\" + buildType + "\\" + testsBuildDir, htmFolderName);
     
     // delete Summary.htm files
-    var sumTempFileNameEx = buildDir + "\\" + examplesBuildDir + "\\" +
-        buildType + "\\" + summaryFileName;
+    var sumTempFileNameEx = buildDir + "\\" + buildType + "\\" + examplesBuildDir + "\\" + summaryFileName;
         
     if (fso.FileExists(sumTempFileNameEx))
         fso.DeleteFile(sumTempFileNameEx);
         
-    var sumTempFileNameTst = buildDir + "\\" + testsBuildDir + "\\" +
-        buildType + "\\" + summaryFileName;
+    var sumTempFileNameTst = buildDir + "\\" + buildType + "\\" + testsBuildDir + "\\" + summaryFileName;
         
     if (fso.FileExists(sumTempFileNameTst))
         fso.DeleteFile(sumTempFileNameTst);
 }
 
-function deleteTempFolders(startDir, bType, tempName)
+// removes the subfolders with the specified name in specified folder
+// startDir - starting folder
+// tempName - name of the folder with temporary files
+function deleteTempFolders(startDir, tempName)
 {
     var startFolder = fso.GetFolder(startDir);
     if (! startFolder)
@@ -232,7 +253,7 @@ function deleteTempFolders(startDir, bType, tempName)
         var htmFName = enumHtmSubFolders.item().Name;
         var htmParent = enumHtmSubFolders.item().ParentFolder.Name;
         
-        if (htmFName == tempName && htmParent == bType)
+        if (htmFName == tempName)
         {
             try
             {
@@ -246,8 +267,7 @@ function deleteTempFolders(startDir, bType, tempName)
         }
         else
         {
-            deleteTempFolders(startDir + "\\" + htmFName, 
-                bType, tempName);
+            deleteTempFolders(startDir + "\\" + htmFName, tempName);
         }
     }
 }

@@ -1,0 +1,596 @@
+<?xml version="1.0" ?><!-- -*- SGML -*- -->
+<package>
+    <comment>
+        Licensed to the Apache Software Foundation (ASF) under one
+        or more contributor license agreements.  See the NOTICE file
+        distributed with this work for additional information
+        regarding copyright ownership.  The ASF licenses this file
+        to you under the Apache License, Version 2.0 (the
+        "License"); you may not use this file except in compliance
+        with the License.  You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing,
+        software distributed under the License is distributed on an
+        "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+        KIND, either express or implied.  See the License for the
+        specific language governing permissions and limitations
+        under the License.
+    </comment>
+    <job id="run_locale_utils" prompt="no">
+        <?job error="false" debug="false" ?>
+        <runtime>
+            <description>
+Checks locale utilities:
+    1. Locale utilities sanity: location, output, etc;
+    2. Functionality:
+        - (re)generation  of databases;
+            </description>
+            <named helpstring="Debug output" name="d"/>
+            <named helpstring="Perform sanity check" name="s"/>
+            <named helpstring="Perform functionality check" name="f"/>
+            <named helpstring="Path to the locale source files"
+                name="i" type="string"/>
+            <named helpstring="Locale name" name="l" type="string"/>
+            <named helpstring="Output file" name="O" type="string"/>
+            <example>cscript run_locale_utils.wsf /s /b:..\..\..\bin\11s"
+            </example>
+            <usage>
+Usage: cscript run_locale_utils.wsf [/d] [/s] [/f [/i:@NlsDir /l:@LocaleName]] [/b:@BinDir] [/O:@Out],
+where
+- "/d" debug;
+- "/s" tests location, output;
+- "/f" tests functionality; is followed by:
+    - "/i:@NlsDir>"
+    - "/l:@LocaleName>";
+- "/b:@BinDir";
+- "/O:@OutFile"
+            </usage>
+        </runtime>
+        <object id="fso" progid="Scripting.FileSystemObject"/>
+        <object id="WshShell" progid="WScript.Shell"/>
+        <script id="run_locale_utils" language="JScript">
+<![CDATA[
+//
+// run_locale_utils script for Stdcxx library
+//
+
+var dbgout     = false;
+var chk_sanity = false;
+var chk_func   = false;
+var nlsdir     = "";
+var locale_db  = "";
+var bindir     = "";
+var outstrm    = WScript.StdOut;
+
+var locale     = "locale.exe";
+var localedef  = "localedef.exe";
+
+// assertions
+var assertions       = 0;
+var failedassertions = 0;
+
+var run_stdout;
+var run_stderr;
+
+var WEnv = WshShell.Environment("PROCESS");
+
+// printf the message line to the stderr
+function DebugOutLine(msg)
+{
+    if (dbgout)
+        WScript.StdErr.WriteLine(msg);
+}
+
+// printf the message to the stderr
+function DebugOut(msg)
+{
+    if (dbgout)
+        WScript.StdErr.Write(msg);
+}
+
+// execute command and set run_stdout to the cmd stdout content;
+// set run_stderr to the cmd stderr content
+function Run(cmd)
+{
+    var exec = WshShell.Exec(cmd);
+    run_stdout = "";
+    run_stderr = "";
+    while (0 == exec.Status) {
+        WScript.Sleep(100);
+        run_stdout += exec.StdOut.ReadAll();
+        run_stderr += exec.StdErr.ReadAll();
+    }
+
+    run_stdout += exec.StdOut.ReadAll();
+    run_stderr += exec.StdErr.ReadAll();
+
+    return exec;
+}
+
+// convert number num to string with specified width
+function FormatNumber(num, width)
+{
+    var s = num.toString();
+    var spaces = width - s.length;
+    for (var i = 0; i < spaces; ++i)
+        s = " " + s;
+    return s;
+}
+
+var description = new run_locale_utils; // run
+
+//////////////////////////////////////////////////////////////////////////////
+//	Function definitions - checking sanity
+//////////////////////////////////////////////////////////////////////////////
+
+function check_locale_help()
+{
+    DebugOut("Checking \"locale --help\" output...");
+
+    var cmd = locale + " --help";
+    var exec = Run(cmd);
+
+    var xout = new Array("NAME", "SYNOPSIS", "DESCRIPTION");
+
+    for (var i = 0; i < xout.length; ++i)
+    {
+        ++assertions;
+
+        if (0 > run_stdout.search(xout[i]))
+        {
+            DebugOutLine(" incorrect.");
+            DebugOutLine("ERROR: \"locale --help\" gives wrong output ("
+                   + xout[i] + ").");
+
+            ++failedassertions;
+
+            return;
+        }
+    }
+
+    DebugOutLine(" correct.");
+}
+
+function check_locale_all()
+{
+    DebugOut("Checking \"locale -a\" output...");
+
+    var cmd = locale + " -a";
+    var exec = Run(cmd);
+    var aout = run_stdout.split("\n");
+
+    for (var i = 0; i < aout.length; ++i)
+    {
+        ++assertions;
+
+        var line = aout[i].replace("\r", "").replace("\n", "");
+        
+        if (0 == line.length || "C" == line)
+            continue;
+
+        if (0 > line.search(new RegExp("[a-z]\{2\}_[A-Z]\{2\}")))
+        {
+            DebugOutLine(" incorrect.");
+            DebugOutLine("    Warning: Locale name " + line
+                   + " not matching pattern.");
+
+            ++failedassertions;
+
+            return;
+        }
+    }
+
+    DebugOutLine("check completed.");
+}
+
+function check_locale_m()
+{
+    DebugOut("Checking \"locale -m\" output...");
+
+    var cmd = locale + " -m";
+    var exec = Run(cmd);
+    var aout = run_stdout.split("\n");
+
+    for (var i = 0; i < aout.length; ++i)
+    {
+        ++assertions;
+
+        var line = aout[i].replace("\r", "").replace("\n", "");
+        
+        if (0 > line.search(new RegExp(".cm")))
+        {
+            DebugOutLine(" incorrect.");
+            DebugOutLine("ERROR: \"locale -m\" failed.");
+
+            ++failedassertions;
+
+            return;
+        }
+    }
+
+    DebugOutLine(" correct.");
+}
+
+function check_locale_k()
+{
+    DebugOut("Checking \"locale -k LC_ALL\" output...")
+
+    var cmd = locale + " -k LC_ALL";
+    var exec = Run(cmd);
+
+    var xout = new Array("upper", "lower", "space", "print", "cntrl",
+        "alpha", "digit", "punct", "graph", "xdigit", "toupper",
+        "tolower", "abday", "day", "abmon", "", "mon", "am_pm",
+        "d_t_fmt", "d_fmt", "t_fmt", "t_fmt_ampm", "int_curr_symbol",
+        "currency_symbol", "mon_decimal_point", "mon_thousands_sep",
+        "mon_grouping", "positive_sign", "negative_sign", "int_frac_digits",
+        "frac_digits", "p_cs_precedes", "p_sep_by_space", "n_cs_precedes",
+        "n_sep_by_space", "p_sign_posn", "n_sign_posn", "decimal_point",
+        "thousands_sep", "grouping");
+
+    var any_failed = false;
+
+    for (var i = 0; i < xout.length; ++i)
+    {
+        ++assertions;
+
+        if (0 > run_stdout.search(xout[i]))
+        {
+            // output text only for the first failure
+            if (!any_failed)
+                DebugOutLine(" incorrect.");
+
+            DebugOutLine("ERROR: \"locale -k\" gives wrong output (" +
+                         + xout[i] +").");
+
+            ++failedassertions;
+
+            any_failed = true;
+
+        }
+    }
+
+    if (!any_failed)
+        DebugOutLine(" correct.");
+}
+
+function check_localedef_help()
+{
+    DebugOut("Checking \"localedef --help\" output...");
+
+    var cmd = localedef + " --help";
+    var exec = Run(cmd);
+
+    var xout = new Array("NAME", "SYNOPSIS", "DESCRIPTION");
+
+    for (var i = 0; i < xout.length; ++i)
+    {
+        ++assertions;
+
+        if (0 > run_stdout.search(xout[i]))
+        {
+            DebugOutLine(" incorrect.");
+            DebugOutLine("ERROR: \"localedef --help\" gives wrong output ("
+                   + xout[i] + ").");
+
+            ++failedassertions;
+
+            return;
+        }
+    }
+
+    DebugOutLine(" correct.");
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//	Function definitions - checking functionality
+//////////////////////////////////////////////////////////////////////////////
+
+
+//
+// Generates one specified locale
+//
+function generate_locale(charmap, src, locname)
+{
+    var err = "Cannot generate locale database - ";
+
+    // charmap - character map file used in generating the locale database
+    // src     - source/locale definition file
+    // locname - locale database name
+
+    if (charmap == "")
+    {
+        outstrm.WriteLine(err + "character maps file not specified.");
+        WScript.Quit(1);
+    }
+
+    if (src == "")
+    {
+        outstrm.WriteLine(err  + "source input file not specified.");
+        WScript.Quit(1);
+    }
+
+    if (locname == "")
+    {
+        outstrm.WriteLine(err + "output locale name not specified.");
+        WScript.Quit(1);
+    }
+
+    ++assertions;
+
+    // Generating the database
+    var cmd = localedef + " -w -c -f " + charmap
+            + " -i " + src + " " + locname;
+    DebugOutLine(cmd);
+
+    var retcode = Run(cmd).ExitCode;
+    if (retcode)
+    {
+        outstrm.WriteLine("Error - localedef returned code: " + retcode);
+        ++failedassertions;
+    }
+}
+
+//
+// Dumps one locale database
+//
+function dump_locale(dumpfile)
+{
+    var err = "Cannot dump locale database - ";
+
+    // dumpfile - current locale dump file
+
+    if (dumpfile == "")
+    {
+        outstrm.WriteLine(err + " - no output file specified.");
+        WScript.Quit(1);
+    }
+
+    ++assertions;
+
+    // Dumping locale database
+    var cmd = locale + " -ck -h LC_ALL > " + dumpfile;
+    DebugOutLine(cmd);
+
+    var exec = Run(cmd);
+
+    var dmpfile = fso.CreateTextFile(dumpfile, true);
+    if (dmpfile)
+    {
+        dmpfile.Write(run_stdout);
+        dmpfile.Close();
+    }
+
+    var retcode = exec.ExitCode;
+    if (retcode)
+    {
+        outstrm.WriteLine("Error - locale returned code: " + retcode);
+        ++failedassertions;
+    }
+}
+
+//
+// Test one locale
+//
+function test_locale(nlsdir, testdir, locname)
+{
+    var err = "Cannot test locale - ";
+
+    // nlsdir  - nlsdir
+    // testdir - test directory
+    // locname - name of the locale database
+    
+    if (nlsdir == "")
+    {
+        outstrm.WriteLine(err+ " - nls directory not specified.");
+        WScript.Quit(1);
+    }
+
+    if (testdir == "")
+    {
+        outstrm.WriteLine(err + " - test directory not specified.");
+        WScript.Quit(1);
+    }
+
+    if (locname == "")
+    {
+        outstrm.WriteLine(err+ " - locale database name not specified.");
+        WScript.Quit(1);
+    }
+
+    // get locale's name and encoding
+    var locale_src = locname.replace(
+            new RegExp("\([^.]*\)\.\([^>@]*\)\(.*\)"), "$1$3")
+        .replace("@", ".");
+
+    var locale_encoding = locname.replace(
+            new RegExp("\([^.]*\)\.\([^>@]*\)\(.*\)"), "$2")
+        .replace("@", ".");
+
+    DebugOutLine("locale_src = " + locale_src);
+    DebugOutLine("locale_encoding = " + locale_encoding);
+
+    var charmap = nlsdir + "\\charmaps\\" + locale_encoding;
+    var src = nlsdir + "\\src\\" + locale_src;
+    var locdir = testdir + "\\" + locname;
+
+    // generate the first locale database
+    generate_locale(charmap, src, locdir);
+
+    // set necessary environment variables
+    DebugOutLine("LC_ALL=" + locname);
+    WEnv("LC_ALL") = locname;
+    DebugOutLine("LANG=" + locname);
+    WEnv("LANG") = locname;
+
+    // adjust the locale root
+    DebugOutLine("RWSTD_LOCALE_ROOT=" + testdir);
+    WEnv("RWSTD_LOCALE_ROOT") = testdir;
+
+    var test1 = testdir + "\\out.1";
+
+    // dump the locale database content to temporary location
+    dump_locale(test1);
+    DebugOutLine("");
+
+    // remove stage one database
+    if (fso.FolderExists(locdir))
+        fso.DeleteFolder(locdir, true);
+    
+    // generate stage two database
+    generate_locale(charmap, test1, locdir);
+
+    var test2 = testdir + "\\out.2";
+
+    // dump stage two database to file
+    dump_locale(test2);
+
+    // remove stage two database
+    if (fso.FolderExists(locdir))
+        fso.DeleteFolder(locdir, true);
+
+    // generate stage three database
+    generate_locale(charmap, test2, locdir);
+
+    var test3 = testdir + "\\out.3";
+
+    // and finally dump it to file
+    dump_locale(test3);
+
+    ++assertions;
+
+    // compare
+
+    var params = test2 +" " + test3;
+    var cmd = "fc.exe " + params;
+    var retcode = Run(cmd).ExitCode;
+    if (retcode)
+    {
+        DebugOutLine("ERROR: " + params +" differ.");
+        ++failedassertions;
+    }
+
+    // and remove database
+    if (fso.FolderExists(locdir))
+        fso.DeleteFolder(locdir);
+
+    // remove dump files
+    if (fso.FileExists(test1))
+        fso.DeleteFile(test1);
+    if (fso.FileExists(test2))
+        fso.DeleteFile(test2);
+    if (fso.FileExists(test3))
+        fso.DeleteFile(test3);
+
+    // and finally remove the tmp directory
+    if (fso.FolderExists(testdir))
+        fso.DeleteFolder(testdir);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//  Main code
+//////////////////////////////////////////////////////////////////////////////
+
+function run_locale_utils()
+{
+    if (WScript.Arguments.Named.Exists("d"))
+        dbgout = true;
+
+    if (WScript.Arguments.Named.Exists("s"))
+        chk_sanity = true;
+
+    if (WScript.Arguments.Named.Exists("f"))
+        chk_func = true;
+
+    if (WScript.Arguments.Named.Exists("i"))
+        nlsdir = WScript.Arguments.Named("i");
+
+    if (WScript.Arguments.Named.Exists("l"))
+        locale_db = WScript.Arguments.Named("l");
+
+    if (WScript.Arguments.Named.Exists("b"))
+    {
+        bindir = WScript.Arguments.Named("b");
+        locale = bindir + "\\" + locale;
+        localedef = bindir + "\\" + localedef;
+    }
+
+    if (WScript.Arguments.Named.Exists("O"))
+    {
+        var outfile = WScript.Arguments.Named("O");
+        outstrm = fso.CreateTextFile(outfile, true);
+        if (!outstrm)
+        {
+            WScript.StdErr.WriteLine("Unable to create " + outfile + ", aborting");
+            WScript.Quit(2);
+        }
+    }
+
+    if (chk_sanity)
+    {
+        // checking locale sanity
+        check_locale_help();
+        check_locale_all();
+        check_locale_m();
+        check_locale_k();
+        check_localedef_help();
+    
+    }
+    else if (chk_func)
+    {
+        // set the temp dir
+        var TemporaryFolder = 2;
+        var tmpdir = fso.GetSpecialFolder(TemporaryFolder)
+                     + "\\" + fso.GetTempName();
+
+        if (!fso.CreateFolder(tmpdir))
+        {
+            WScript.StdErr.WriteLine("Unable to create " + tmpdir
+                                     + ", aborting");
+            WScript.Quit(1);
+        }
+    
+        // checking locale functionality
+        DebugOutLine("RWSTD_SRC_ROOT=" + nlsdir);
+        WEnv("RWSTD_SRC_ROOT") = nlsdir;
+        DebugOutLine("RWSTD_LOCALE_ROOT=" + tmpdir);
+        WEnv("RWSTD_LOCALE_ROOT") = tmpdir;
+        
+        // test only one locale
+        test_locale(nlsdir, tmpdir, locale_db);
+
+        if (fso.FolderExists(tmpdir))
+            fso.DeleteFolder(tmpdir, true);
+    }
+    else
+    {
+        // Invocation is wrong
+        WScript.Arguments.ShowUsage();
+        WScript.Quit(2);
+    }
+
+    if (assertions)
+    {
+        var pcnt = 100 * (assertions - failedassertions) / assertions;
+        pcnt = Math.floor(pcnt + 0.5);
+        outstrm.WriteLine("# +-----------------------+--------+--------+--------+");
+        outstrm.WriteLine("# | DIAGNOSTIC            | ACTIVE |  TOTAL |INACTIVE|");
+        outstrm.WriteLine("# +-----------------------+--------+--------+--------+");
+        outstrm.WriteLine("# | (S7) ASSERTION        | " + FormatNumber(failedassertions, 6)
+            + " | " + FormatNumber(assertions, 6) + " | " + FormatNumber(pcnt, 5) + "% |");
+        outstrm.WriteLine("# +-----------------------+--------+--------+--------+");
+        outstrm.WriteLine();
+    }
+    outstrm.WriteLine("## Assertions = " + assertions);
+    outstrm.WriteLine("## FailedAssertions = " + failedassertions);
+    outstrm.WriteLine();
+
+    WScript.Quit(failedassertions);
+}
+
+]]>
+        </script>
+    </job>
+</package>
