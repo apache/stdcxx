@@ -623,7 +623,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
         // widen the narrow (multibyte) string into the allocated buffer
         // (at an appropriately aligned offset) and set its offset
         wchar_t* const pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-        size = mbstowcs (pwbuf, str, size);
+        size = mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
         if (_RWSTD_SIZE_MAX == size) {
             // conversion failure - should not happen
@@ -708,13 +708,13 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 #    ifndef _RWSTD_NO_WCSFTIME
 
         wchar_t *pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-        len = wcsftime (pwbuf, bufsize - off, L"%a", &t);
+        len = wcsftime (pwbuf, (bufsize - off) / sizeof (*pwbuf), L"%a", &t);
 
         pun->abday_off [1][t.tm_wday]  = off;
         off                           += (len + 1) * sizeof (wchar_t);
 
         pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-        len   = wcsftime (pwbuf, bufsize - off, L"%A", &t);
+        len   = wcsftime (pwbuf, (bufsize - off) / sizeof (*pwbuf), L"%A", &t);
 
         pun->day_off [1][t.tm_wday]  = off;
         off                         += (len + 1) * sizeof (wchar_t);
@@ -727,7 +727,8 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
             _RWSTD_STATIC_CAST (const char*, pun->abday (t.tm_wday, 0));
 
         wchar_t *pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-        _RWSTD_SIZE_T size = mbstowcs (pwbuf, str, _RWSTD_SIZE_MAX);
+        _RWSTD_SIZE_T size =
+            mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
         if (_RWSTD_SIZE_MAX == size) {
             // conversion failure - should not happen
@@ -744,7 +745,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
         str   = _RWSTD_STATIC_CAST (const char*, pun->day (t.tm_wday, 0));
         pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-        size  = mbstowcs (pwbuf, str, _RWSTD_SIZE_MAX);
+        size  = mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
         if (_RWSTD_SIZE_MAX == size) {
             // conversion failure - should not happen
@@ -787,13 +788,13 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 #    ifndef _RWSTD_NO_WCSFTIME
 
         wchar_t *pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-        len = wcsftime (pwbuf, bufsize - off, L"%b", &t);
+        len = wcsftime (pwbuf, (bufsize - off) / sizeof (*pwbuf), L"%b", &t);
 
         pun->abmon_off [1][t.tm_mon]  = off;
         off                          += (len + 1) * sizeof (wchar_t);
 
         pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-        len   = wcsftime (pwbuf, bufsize - off, L"%B", &t);
+        len   = wcsftime (pwbuf, (bufsize - off) / sizeof (*pwbuf), L"%B", &t);
 
         pun->mon_off [1][t.tm_mon]  = off;
         off                        += (len + 1) * sizeof (wchar_t);
@@ -804,9 +805,9 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
         // (at an appropriately aligned offset) and set its offset
         const char *str =
             _RWSTD_STATIC_CAST (const char*, pun->abmon (t.tm_mon, 0));
-
         wchar_t *pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-        _RWSTD_SIZE_T size = mbstowcs (pwbuf, str, _RWSTD_SIZE_MAX);
+        _RWSTD_SIZE_T size =
+            mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
         if (_RWSTD_SIZE_MAX == size) {
             // conversion failure - should not happen
@@ -823,7 +824,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
         str   = _RWSTD_STATIC_CAST (const char*, pun->mon (t.tm_mon, 0));
         pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-        size  = mbstowcs (pwbuf, str, _RWSTD_SIZE_MAX);
+        size  = mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
         if (_RWSTD_SIZE_MAX == size) {
             // conversion failure - should not happen
@@ -906,13 +907,13 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
     t.tm_hour = 1;
     pwbuf     = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-    len       = wcsftime (pwbuf, bufsize - off, L"%p", &t);
+    len       = wcsftime (pwbuf, (bufsize - off) / sizeof (*pwbuf), L"%p", &t);
     pun->am_pm_off [1][0] = off;
     off += (len + 1) * sizeof (wchar_t);
     
     t.tm_hour = 13;
     pwbuf     = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-    len       = wcsftime (pwbuf, bufsize - off, L"%p", &t);
+    len       = wcsftime (pwbuf, (bufsize - off) / sizeof (*pwbuf), L"%p", &t);
     pun->am_pm_off [1][1] = off;
     off += (len + 1) * sizeof (wchar_t);
 
@@ -920,7 +921,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
     str   = _RWSTD_STATIC_CAST (const char*, pun->am_pm (0, 0));
     pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-    size  = mbstowcs (pwbuf, str, _RWSTD_SIZE_MAX);
+    size  = mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
     if (_RWSTD_SIZE_MAX == size) {
         // conversion failure - should not happen
@@ -937,7 +938,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
     str   = _RWSTD_STATIC_CAST (const char*, pun->am_pm (1, 0));
     pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-    size  = mbstowcs (pwbuf, str, _RWSTD_SIZE_MAX);
+    size  = mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
     if (_RWSTD_SIZE_MAX == size) {
         // conversion failure - should not happen
@@ -957,7 +958,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
     // convert "%x" to its wide equivalent
     str   = _RWSTD_STATIC_CAST (const char*, pun->d_fmt (0));
     pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-    size  = mbstowcs (pwbuf, str, _RWSTD_SIZE_MAX);
+    size  = mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
     if (_RWSTD_SIZE_MAX == size) {
         // conversion failure - should not happen
@@ -975,7 +976,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
     // convert "%X" to its wide equivalent
     str   = _RWSTD_STATIC_CAST (const char*, pun->t_fmt (0));
     pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-    size  = mbstowcs (pwbuf, str, _RWSTD_SIZE_MAX);
+    size  = mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
     if (_RWSTD_SIZE_MAX == size) {
         // conversion failure - should not happen
@@ -993,7 +994,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
     // convert "%c" to its wide equivalent
     str   = _RWSTD_STATIC_CAST (const char*, pun->d_t_fmt (0));
     pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-    size  = mbstowcs (pwbuf, str, _RWSTD_SIZE_MAX);
+    size  = mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
     if (_RWSTD_SIZE_MAX == size) {
         // conversion failure - should not happen
@@ -1011,7 +1012,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
     // convert "%r" to its wide equivalent
     str   = _RWSTD_STATIC_CAST (const char*, pun->t_fmt_ampm (0));
     pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-    size  = mbstowcs (pwbuf, str, _RWSTD_SIZE_MAX);
+    size  = mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
     if (_RWSTD_SIZE_MAX == size) {
         // conversion failure - should not happen
