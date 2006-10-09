@@ -162,6 +162,15 @@ mprotect (CaddrT addr, size_t len, int prot)
 
 #endif   // _WIN{32,64}
 
+#ifndef MAP_PRIVATE
+#  define MAP_PRIVATE     0
+#endif   // MAP_PRIVATE
+
+#ifndef MAP_ANONYMOUS
+   // no MAP_ANONYMOUS on IRIX64
+#  define MAP_ANONYMOUS   0
+#endif   // MAP_ANONYMOUS
+
 /************************************************************************/
 
 struct BlockInfo
