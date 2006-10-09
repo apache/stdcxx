@@ -388,10 +388,12 @@ __rw_libc_do_in (_RWSTD_MBSTATE_T &state,
 
         while (dst_len && src_len) {
 
+            _RWSTD_SIZE_T tmp;
+
 #ifndef _RWSTD_NO_MBRTOWC
-            _RWSTD_SIZE_T tmp = mbrtowc (pdst, psrc, src_len, &state);
+            tmp = mbrtowc (pdst, psrc, src_len, &state);
 #elif !defined (_RWSTD_NO_MBTOWC)
-            _RWSTD_SIZE_T tmp = mbtowc (pdst, psrc, src_len);
+            tmp = mbtowc (pdst, psrc, src_len);
 #else
             tmp = _RWSTD_SIZE_MAX;
 #endif
