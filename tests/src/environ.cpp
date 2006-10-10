@@ -134,7 +134,7 @@ rw_putenv (const char* str, int sep /* = -1 */)
             // try to remove variable from the environment
 
 #ifndef _RWSTD_NO_UNSETENV
-            ret = unsetenv (envvar)
+            ret = unsetenv (envvar);
 #else
             ret = putenv (envvar);
 #endif
