@@ -570,7 +570,7 @@ function checkHeaders(currentCfg)
             c90_funs += " rename rewind scanf setbuf setvbuf sprintf";
             c90_funs += " sscanf tmpfile tmpnam ungetc vfprintf vprintf";
             c90_funs += " vsprintf";
-            c90_funs =c90_funs.split(" ");
+            c90_funs = c90_funs.split(" ");
             
             var c99_funs = "snprintf vsnprintf".split(" ");
             var posix_funs = "fileno".split(" ");
@@ -586,7 +586,7 @@ function checkHeaders(currentCfg)
             c90_funs = c90_funs.split(" ");
             
             var c99_funs = "strtof strtold strtoll strtoull".split(" ");
-            var posix_funs = "mkstemp".split(" ");
+            var posix_funs = "mkstemp putenv setenv unsetenv".split(" ");
             funs = c90_funs.concat(c99_funs, posix_funs);
             lib = "c";
             break;
