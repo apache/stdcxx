@@ -556,13 +556,17 @@ using ::wcscat;
 
 }   // namespace std
 
-extern "C" inline wchar_t* wcscat (wchar_t *__dst, const wchar_t *__src)
+extern "C" {
+
+inline wchar_t* wcscat (wchar_t *__dst, const wchar_t *__src)
 {
     wchar_t *__s = __dst;
     for (; *__s; ++__s);
     while ((*__s++ = *__src++));
     return __dst;
 }
+
+}   // extern "C"
 
 namespace std {
 
@@ -657,11 +661,15 @@ using ::wcscpy;
 
 }   // namespace std
 
-extern "C" inline wchar_t* wcscpy (wchar_t *__dst, const wchar_t *__src)
+extern "C" {
+
+inline wchar_t* wcscpy (wchar_t *__dst, const wchar_t *__src)
 {
     for (wchar_t *__s = __dst; (*__s++ = *__src++); );
     return __dst;
 }
+
+}   // extern "C"
 
 namespace std {
 
