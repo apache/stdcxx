@@ -98,6 +98,8 @@ struct target_opts {
     char** argv; /**< Target argv array. */
     unsigned timeout; /**< Allowed time for process execution. */
     const char* data_dir; /**< Root dir for reference input/output files. */
+    const char* c_warn; /**< Warning flag string when compiling. */
+    const char* l_warn; /**< Warning flag string when linking. */
     int compat; /**< Test suite compatability mode switch. */
     rw_rlimit* core;
     rw_rlimit* cpu;
@@ -141,7 +143,9 @@ struct target_status {
     const rw_timeval* user; /**< Elapsed user time spent in execution. */
     const rw_timeval* sys; /**< Elapsed system time spent in execution. */
     const rw_timeval* wall; /**< Wall clock time spent in execution. */
-    unsigned warn; /**< Number of (test) warnings. */
+    unsigned c_warn; /**< Number of compile warnings. */
+    unsigned l_warn; /**< Number of link warnings. */
+    unsigned t_warn; /**< Number of (test) warnings. */
     unsigned assert; /**< Number of (test) assertions. */
     unsigned failed; /**< Number of failed (test) assertions. */
 };

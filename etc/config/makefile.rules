@@ -60,16 +60,16 @@ ifeq ($(NO_DOT_O),)
     ifneq ($(AS_EXT),".")
 
 %.o: %$(AS_EXT)
-	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $<
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $< $(TEEOPTS)
 
     endif   # ifneq ($(AS_EXT),".")
   endif   # ifneq ($(AS_EXT),)
 
 %.o: %.cpp
-	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $<
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $< $(TEEOPTS)
 
 %: %.o
-	$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS)
+	$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS) $(TEEOPTS)
 
 # disable compilation and linking in the same step
 # %: %.cpp
@@ -78,7 +78,7 @@ else
 
 # compile and link in one step to eliminate the space overhead of .o files
 %: %.cpp
-	$(CXX) $< -o $@ $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS)
+	$(CXX) $< -o $@ $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) $(TEEOPTS)
 
 endif   # eq ($(NO_DOT_O),)
 

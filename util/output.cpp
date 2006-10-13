@@ -109,7 +109,13 @@ check_test (FILE* data, struct target_status* status)
                     return;
                 }
             }
-            /* else if (1 < r_lvl) warning*/
+            else if (1 < r_lvl) {
+                status->t_warn += r_active;
+                if (status->t_warn < r_active) {
+                    status->t_warn = (unsigned int)-1;
+                    return;
+                }
+            }
             fmt_ok = 1;
         }
     }
@@ -138,7 +144,7 @@ check_compat_test (FILE* data, struct target_status* status)
     assert (0 != data);
     assert (0 != status);
 
-    fseek (data, -64, SEEK_END); /* Seek near the end of the file */
+    fseek (data, -80, SEEK_END); /* Seek near the end of the file */
 
     for (tok = fgetc (data); fsm < 4 && !feof (data); tok = fgetc (data)) {
         switch (tok) {
@@ -160,13 +166,13 @@ check_compat_test (FILE* data, struct target_status* status)
             fsm = 0;
         }
     }
-
-    if (!feof (data)) { /* leading "## A" eaten above */
-        read = fscanf (data, "ssertions = %u\n## FailedAssertions = %u",
-                        &status->assert, &status->failed);
+    if (!feof (data)) { /* leading "## W" eaten above */
+        read = fscanf (data, "arnings = %u\n## Assertions = %u\n"
+                       "## FailedAssertions = %u",
+                       &status->t_warn, &status->assert, &status->failed);
     }
 
-    if (2 != read) {
+    if (3 != read) {
         status->status = ST_FORMAT;
     }
 }

@@ -40,8 +40,8 @@
 */
 static void print_header_plain ()
 {
-    puts ("NAME                      STATUS ASSERTS FAILED PERCNT    USER     "
-          "SYS    WALL");
+    puts ("NAME                      STATUS WARN ASSERTS FAILED PERCNT    "
+          "USER     SYS    REAL");
 }
 
 /**
@@ -75,6 +75,8 @@ static void print_status_plain (const struct target_status* status)
         printf ("%6d", status->exit);
     else 
         printf ("     0");
+
+    printf (" %4u", status->c_warn + status->l_warn + status->t_warn);
 
     /* Print assetions, if any registered */
     if (status->assert) {
