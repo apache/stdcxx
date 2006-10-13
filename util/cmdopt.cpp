@@ -89,6 +89,7 @@ usage_text[] = {
     "    --signal=sig Send itself the specified signal.\n"
     "    --ignore=sig Ignore the specified signal.\n"
     "    --ulimit=lim Set child process usage limits (see below).\n"
+    "    --warn=alias Set compiler log warning pattern (see below).\n"
     "\n"
     "  All short (single dash) options must be specified seperately.\n"
     "  If a short option takes a value, it may either be provided like\n"
@@ -121,6 +122,22 @@ usage_text[] = {
     "  Note: Some operating systems lack support for some or all of the\n"
     "  ulimit modes.  If a system is unable to limit a given property, a\n"
     "  warning message will be produced.\n"
+    "\n"
+    "  --warn set the string used to parse compile and link logs.  Rather\n"
+    "  than specifying a search string, an alias code is provided,\n"
+    "  coresponding to the output of a compiler and linker.  Alias codes\n"
+    "  are case sensitive.\n"
+    "\n"
+    "  --warn modes:\n"
+    "    acc     HP aCC\n"
+    "    cxx     Compaq C++\n"
+    "    eccp    EDG eccp\n"
+    "    gcc     GNU gcc\n"
+    "    icc     Intel icc for Linux\n"
+    "    mipspro SGI MIPSpro\n"
+    "    sunpro  Sun C++\n"
+    "    vacpp   IBM VisualAge C++\n"
+    "    xlc     IBM XLC++\n"
 };
 
 #if !defined (_WIN32) && !defined (_WIN64)
@@ -365,6 +382,51 @@ parse_limit_opts (const char* opts, struct target_opts* defaults)
     return 0;
 }
 
+/**
+   Helper function to parse a warning value string
+
+   @param opts ulimit value string to pares
+   @see child_limits
+*/
+static bool
+parse_warn_opts (const char* arg, struct target_opts* defaults)
+{
+    static const struct {
+        const char* name;
+        const char* pat;
+    } warn_set [] = {
+        { "acc", "Warning " },
+/*
+        { "cds", "UNKNOWN"},
+        { "como", "UNKNOWN"},
+*/
+        { "cxx", "Warning:"},
+        { "eccp", "warning:"},
+        { "gcc", "warning:"},
+        { "icc", "warning #"},
+        { "mipspro", "CC: WARNING"},
+        { "sunpro", "Warning:"},
+        { "vacpp", ": (W) "},
+        { "xlc", ": (W) "}, /* xlc and vacpp are synonyms. */
+        { 0, 0 }
+    };
+
+    assert (0 != arg);
+    assert (0 != defaults);
+
+    for (size_t i = 0; warn_set [i].name; ++i) {
+        if (0 == strcmp (warn_set [i].name, arg)) {
+
+            /* Set both compiler and linker warning string. */
+            defaults->c_warn = warn_set [i].pat;
+            defaults->l_warn = warn_set [i].pat;
+
+            return 0;
+        }
+    }
+
+    return 1;
+}
 
 /**
     Helper function to produce 'Bad argument' error message.
@@ -423,10 +485,40 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
     const char opt_signal[]   = "--signal";
     const char opt_sleep[]    = "--sleep";
     const char opt_ulimit[]   = "--ulimit";
+    const char opt_warn[]     = "--warn";
 
     int i;
 
     assert (0 != argv);
+
+    /* The chain of preprocesor logic below initializes the defaults->c_warn 
+       and defaults->l_warn values.
+    */
+#ifdef __GNUG__
+    parse_warn_opts ("Gcc", defaults);
+#elif defined (__HP_aCC)
+    parse_warn_opts ("Acc", defaults);
+#elif defined (__IBMCPP__)
+    parse_warn_opts ("Xlc", defaults);
+#elif defined (__SUNPRO_CC)
+    parse_warn_opts ("Sunpro", defaults);
+#elif defined (SNI)
+    parse_warn_opts ("Cds", defaults);
+#elif defined (__APOGEE__) /* EDG variant that doesn't define __EDG__. */
+    parse_warn_opts ("Como", defaults);
+
+/* The following are EDG variants, that define __EDG__ */
+#elif defined (__DECCXX)
+    parse_warn_opts ("Cxx", defaults);
+#elif defined (_SGI_COMPILER_VERSION)
+    parse_warn_opts ("Mipspro", defaults);
+#elif defined (__INTEL_COMPILER)
+    parse_warn_opts ("Icc", defaults);
+
+/* So we need to check for __EDG__ after we check for them. */
+#elif defined (__EDG__)
+    parse_warn_opts ("Eccp", defaults);
+#endif
 
     if (1 == argc || '-' != argv [1][0])
         return 1;
@@ -559,6 +651,16 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
                 optarg  = get_long_val (argv, &i, sizeof opt_ulimit - 1);
                 if (optarg && *optarg) {
                     if (!parse_limit_opts (optarg, defaults)) {
+                        break;
+                    }
+                }
+            }
+            else if (   sizeof opt_warn - 1 <= arglen
+                     && !memcmp (opt_warn, argv [i], sizeof opt_warn - 1)) {
+                optname = opt_warn;
+                optarg  = get_long_val (argv, &i, sizeof opt_warn - 1);
+                if (optarg && *optarg) {
+                    if (!parse_warn_opts (optarg, defaults)) {
                         break;
                     }
                 }
