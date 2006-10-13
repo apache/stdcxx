@@ -143,10 +143,8 @@ LOGFILE = /dev/null
 
 # if LOGFILE is being created, tee command output into it
 # IMPORTANT: $(TEEOPTS) must be last on the command line
-ifeq ($(LOGFILE),/dev/null)
-  TEEOPTS = 2>&1 | tee $@.log
-else
-  TEEOPTS = 2>&1 | tee $@.log | tee -a $(LOGFILE)
+ifneq ($(LOGFILE),/dev/null)
+  TEEOPTS = 2>&1 | tee -a $(LOGFILE)
 endif
 
 # determine the name of the results file against which to compute regressions
