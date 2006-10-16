@@ -66,16 +66,15 @@ if [ ! -z "$3" ]; then
     function="$3"
 fi
 
+[ -r vars.sh ] && . ./vars.sh
+
+# include headers.inc file
+. $TOPDIR/etc/config/src/headers.inc
+
 if [ ! -z "$4" ]; then
     hdrs="$4"
-else
-    hdrs="assert ctype errno float iso646 limits locale math setjmp signal stdarg stddef stdio stdlib string time wchar wctype new typeinfo"
-
-    hdrs="$hdrs ieeefp.h pthread.h"
 fi
 
-
-[ -r vars.sh ] && . ./vars.sh
 
 
 CPPFLAGS="`echo $CPPFLAGS | sed 's:-I *[^ ]*::g'`"
@@ -269,57 +268,18 @@ EOF
 
 for h in $hdrs ; do
 
-    case $h in
-    math)
-        # provide arguments for functions that may be overloaded
-        c90_funs="acos(0.0) asin(0.0) atan(0.0) atan2(0.0,0.0) ceil(0.0) cos(0.0) cosh(0.0) exp(0.0) fabs(0.0) floor(0.0) fmod(0.0,0.0) frexp(0.0,0) ldexp(0.0,0) log(0.0) log10(0.0) modf(0.0,0) pow(0.0,0.0) sin(0.0) sinh(0.0) sqrt(0.0) tan(0.0) tanh(0.0) acosf asinf atanf atan2f ceilf cosf coshf expf fabsf floorf fmodf frexpf ldexpf logf log10f modff powf sinf sinhf sqrtf tanf tanhf acosl asinl atanl atan2l ceill cosl coshl expl fabsl floorl fmodl frexpl ldexpl logl log10l modfl powl sinl sinhl sqrtl tanl tanhl"
-        c99_funs="cbrtf copysignf erfcf erff expm1f exp2f fdimf fmaf fmaxf fminf hypotf ilogbf lgammaf logbf log1pf log2f llrintf lrintf lroundf llroundf nanf nearbyintf nextafterf nexttowardf remainderf remquof rintf roundf scalbnf scalblnf tgammaf cbrt copysign erf erfc expm1 exp2 fdim fma fmax fmin hypot ilogb lgamma logb log1p log2 llrint lrint lround llround nan nearbyint nextafter nexttoward remainder remquo rint round scalbn scalbln tgamma cbrtl copysignl erfcl erfl expm1l exp2l fdiml fmal fmaxl fminl hypotl ilogbl lgammal logbl log1pl log2l llrintl lrintl lroundl llroundl nanl nearbyintl nextafterl nexttowardl remainderl remquol rintl roundl scalbnl scalblnl tgammal"
+    hdr_base=`${basename} $h \.h`
+    eval funs=\$$hdr_base
 
-        # ignore C99 functions for now
-        funs="$c90_funs"
-        lib=m
-    ;;
-
-    stdio)
-        c90_funs="clearerr fclose feof ferror fflush fgetc fgetpos fgets fopen fprintf fputc fputs fread freopen fscanf fseek fsetpos ftell fwrite getc getchar gets perror printf putc putchar puts remove rename rewind scanf setbuf setvbuf sprintf sscanf tmpfile tmpnam ungetc vfprintf vprintf vsprintf"
-        c99_funs="snprintf vsnprintf"
-        posix_funs="fileno"
-
-        funs="$c90_funs $c99_funs $posix_funs"
-        lib=c
-    ;;
-
-    stdlib)
-        c90_funs="abort abs atexit atof atoi atol atoll bsearch calloc div exit free getenv labs ldiv llabs lldiv malloc mblen mbstowcs mbtowc qsort rand realloc srand strtod strtol strtoul system wcstombs wctomb"
-        c99_funs="strtof strtold strtoll strtoull"
-        posix_funs="mkstemp putenv setenv unsetenv"
-
-        funs="$c90_funs $c99_funs $posix_funs"
-        lib=c
-    ;;
-
-    string)
-        funs="memchr((void*)0,0,0) memcmp memcpy memmove memset strcat strchr((char*)0,0) strcmp strcoll strcpy strcspn strerror strlen strncat strncmp strncpy strpbrk((char*)0,(char*)0) strrchr((char*)0,0) strspn strstr((char*)0,(char*)0) strtok strxfrm"
-        lib=c
-    ;;
-
-    wchar)
-        funs="btowc fgetwc fgetws fputwc fputws fwide fwprintf fwscanf getwc getwchar mbrlen mbrtowc mbsinit mbsrtowcs putwc putwchar swprintf swscanf ungetwc vfwprintf vswprintf vwprintf vwscanf wcrtomb wcscat wcschr((wchar_t*)0,0) wcscmp wcscoll wcscpy wcscspn wcsftime wcslen wcsncat wcsncmp wcsncpy wcspbrk((wchar_t*)0,(wchar_t*)0) wcsrchr((wchar_t*)0,0) wcsrtombs wcsspn wcsstr((wchar_t*)0,(wchar_t*)0) wcstod wcstod wcstof wcstok wcstol wcstold wcstoll wcstoul wcstoull wcsxfrm wctob wmemchr((wchar_t*)0,0,0) wmemcmp wmemcpy wmemmove wmemset wprintf wscanf"
-        lib=c
-    ;;
-
-    wctype)
-        # 7.15 of ISO/IEC 9899:1990/Amendment 1:1995
-        funs="iswalpha iswalnum iswcntrl iswdigit iswgraph iswlower iswprint iswpunct iswspace iswupper iswxdigit wctype iswctype towlower towupper wctrans towctrans"
-        lib=c
-    ;;
-
-    *)
-        unset funs
+    if [ -z "$funs" ] ; then
         continue
-    ;;
+    fi
 
-    esac
+    if [ "$hdr_base" == math ] ; then
+        lib=m
+    else
+        lib=c
+    fi
 
     # float and long double versions of <math.h> functions
     # are not expected to be declared in <cmath> or in std

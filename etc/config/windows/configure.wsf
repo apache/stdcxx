@@ -400,15 +400,47 @@ function checkArchitecture()
 // perform headers presence check
 function checkHeaders(currentCfg)
 {
-    // for some strange reasons Intel C++ 9.0 Compiler
-    // crashes when '*' symbol presents in compiler defines
-    // or do another strange things
-    var useStarInDefines = (currentCfg != "icc-9.0");
+    inc = fso.OpenTextFile(srcDir + "\\headers.inc", 1, false);
+    code = "";
+    var rx = /^([A-Za-z]\w*)=(.*)"([^\$]*)\$([A-Za-z]\w*)(.*)"$/;
     
-    var hdrs = "assert ctype errno float iso646 limits locale math setjmp";
-    hdrs += " signal stdarg stddef stdio stdlib string time wchar wctype";
-    hdrs += " new typeinfo";
-    hdrs += " ieeefp.h pthread.h";  
+    while (!inc.AtEndOfStream)
+    {
+        var line = inc.ReadLine();
+        if (0 == line.length || '#' == line.charAt(0))
+            continue;
+
+        while (true)
+        {
+            var arr = rx.exec(line);
+            if (null == arr)
+                break;
+                
+            line = arr[1] + "=";
+            if (arr[2].length)
+            {
+                line += arr[2];
+                if ('+' != arr[2].charAt(arr[2].length - 1))
+                    line += "+";
+            }
+            if (arr[3].length)
+                line += "\"" + arr[3] + "\"+";
+            line += arr[4];
+            if (arr[5].length)
+                line += "+\"" + arr[5] + "\"";
+        }
+
+        code += line;
+
+        if ('\\' != line.charAt(line.length - 1))
+            code += ";";
+
+        code += "\n";
+    }
+
+    eval(code);
+
+    hdrs = hdrs.replace(/  +/g, " ");
     var headers = hdrs.split(" ");
 
     WScript.StdOut.WriteLine("Checking for headers... ");
@@ -517,140 +549,22 @@ function checkHeaders(currentCfg)
     {
         var fun_params = "";
         var hdr_base = headers[i];
-        switch (hdr_base)
+        
+        try
         {
-        case "math":
-            var c90_funs = "acos(0.0) asin(0.0) atan(0.0) atan2(0.0,0.0)";
-            c90_funs += " ceil(0.0) cos(0.0) cosh(0.0) exp(0.0) fabs(0.0)";
-            c90_funs += 
-                " floor(0.0) fmod(0.0,0.0) frexp(0.0,0) ldexp(0.0,0)";
-            c90_funs += " log(0.0) log10(0.0) modf(0.0,0) pow(0.0,0.0)";
-            c90_funs += " sin(0.0) sinh(0.0) sqrt(0.0) tan(0.0) tanh(0.0)";
-            c90_funs += " acosf asinf atanf atan2f ceilf cosf coshf expf";
-            c90_funs += " fabsf floorf fmodf frexpf ldexpf logf log10f";
-            c90_funs += " modff powf sinf sinhf sqrtf tanf tanhf acosl";
-            c90_funs += " asinl atanl atan2l ceill cosl coshl expl fabsl";
-            c90_funs += " floorl fmodl frexpl ldexpl logl log10l modfl";
-            c90_funs += " powl sinl sinhl sqrtl tanl tanhl";
-            c90_funs = c90_funs.split(" ");
-            
-            // ignore C99 functions for now
-            // var c99_funs = 
-            //  "cbrtf copysignf erfcf erff expm1f exp2f fdimf";
-            // c99_funs += " fmaf fmaxf fminf hypotf ilogbf lgammaf logbf";
-            // c99_funs += 
-            //  " log1pf log2f llrintf lrintf lroundf llroundf nanf";
-            // c99_funs += " nearbyintf nextafterf nexttowardf remainderf";
-            // c99_funs += " remquof rintf roundf scalbnf scalblnf tgammaf";
-            // c99_funs += " cbrt copysign erf erfc expm1 exp2 fdim fma";
-            // c99_funs += " fmax fmin hypot ilogb lgamma logb log1p log2";
-            // c99_funs += 
-            //  " llrint lrint lround llround nan nearbyint nextafter";
-            // c99_funs += " nexttoward remainder remquo rint round scalbn";
-            // c99_funs += 
-            //  " scalbln tgamma cbrtl copysignl erfcl erfl expm1l";
-            // c99_funs += 
-            //  " exp2l fdiml fmal fmaxl fminl hypotl ilogbl lgammal";
-            // c99_funs += 
-            //  " logbl log1pl log2l llrintl lrintl lroundl llroundl nanl";
-            // c99_funs += " nearbyintl nextafterl nexttowardl remainderl";
-            // c99_funs += " remquol rintl roundl scalbnl scalblnl tgammal";
-            // c99_funs = c99_funs.split(" ");
-            
-            funs = c90_funs;
-            // that seems to be useless on Windows since there is no libm
-            lib = "m";
-            break;
-        case "stdio":           
-            var c90_funs = 
-                "clearerr fclose feof ferror fflush fgetc fgetpos";
-            c90_funs += " fgets fopen fprintf fputc fputs fread freopen";
-            c90_funs += " fscanf fseek fsetpos ftell fwrite getc getchar";
-            c90_funs += " gets perror printf putc putchar puts remove";
-            c90_funs += " rename rewind scanf setbuf setvbuf sprintf";
-            c90_funs += " sscanf tmpfile tmpnam ungetc vfprintf vprintf";
-            c90_funs += " vsprintf";
-            c90_funs = c90_funs.split(" ");
-            
-            var c99_funs = "snprintf vsnprintf".split(" ");
-            var posix_funs = "fileno".split(" ");
-            funs = c90_funs.concat(c99_funs, posix_funs);
-            lib = "c";
-            break;
-        case "stdlib":
-            var c90_funs = 
-                "abort abs atexit atof atoi atol atoll bsearch calloc";
-            c90_funs += " div exit free getenv labs ldiv llabs lldiv malloc";
-            c90_funs += " mblen mbstowcs mbtowc qsort rand realloc srand";
-            c90_funs += " strtod strtol strtoul system wcstombs wctomb";
-            c90_funs = c90_funs.split(" ");
-            
-            var c99_funs = "strtof strtold strtoll strtoull".split(" ");
-            var posix_funs = "mkstemp putenv setenv unsetenv".split(" ");
-            funs = c90_funs.concat(c99_funs, posix_funs);
-            lib = "c";
-            break;
-        case "string":
-            funs = 
-                useStarInDefines ? "memchr((char*)0,0,0)" : "memchr(0,0,0)";
-            funs += " memcmp memcpy memmove memset strcat";
-            funs += 
-                useStarInDefines ? " strchr((char*)0,0)" : " strchr(0,0)";
-            funs += 
-                " strcmp strcoll strcpy strcspn strerror strlen";
-            funs += " strncat strncmp strncpy";
-            funs += useStarInDefines ? 
-                " strpbrk((char*)0,(char*)0)" : " strpbrk(0,0)";
-            funs += 
-                useStarInDefines ? " strrchr((char*)0,0)" : " strrchr(0,0)";
-            funs += " strspn";
-            funs += useStarInDefines ? 
-                " strstr((char*)0,(char*)0)" : " strstr(0,0)";
-            funs += " strtok strxfrm";
-            funs = funs.split(" ");
-            lib = "c";
-            break;
-        case "wchar":
-            fun_params = "wchar_t t[] = {'a'}";
-            funs = 
-                "btowc fgetwc fgetws fputwc fputws fwide fwprintf fwscanf";
-            funs += " getwc getwchar mbrlen mbrtowc mbsinit mbsrtowcs putwc";
-            funs += " putwchar swprintf swscanf ungetwc vfwprintf vswprintf";
-            funs += " vwprintf vwscanf wcrtomb wcscat";
-            funs += 
-             useStarInDefines ? " wcschr((wchar_t*)0,0)" : " wcschr(t,0)";
-            funs += " wcscmp wcscoll wcscpy wcscspn wcsftime wcslen wcsncat";
-            funs += " wcsncmp wcsncpy";
-            funs += useStarInDefines ? 
-                " wcspbrk((wchar_t*)0,(wchar_t*)0)" : " wcspbrk(t,0)";
-            funs += useStarInDefines ? 
-                " wcsrchr((wchar_t*)0,0)" : " wcsrchr(t,0)";
-            funs += " wcsrtombs wcsspn";
-            funs += useStarInDefines ? 
-                " wcsstr((wchar_t*)0,(wchar_t*)0)" : " wcsstr(t,0)";
-            funs += 
-             " wcstod wcstod wcstof wcstok";
-            funs += 
-                " wcstol wcstold wcstoll wcstoul wcstoull wcsxfrm";
-            funs += " wctob";
-            funs += useStarInDefines ? 
-                " wmemchr((wchar_t*)0,0,0)" : " wmemchr(t,0,0)";
-            funs += " wmemcmp wmemcpy";
-            funs += " wmemmove wmemset wprintf wscanf";
-            funs = funs.split(" ");         
-            lib = "c";
-            break;
-        case "wctype":
-            // 7.15 of ISO/IEC 9899:1990/Amendment 1:1995
-            funs = "iswalpha iswalnum iswcntrl iswdigit iswgraph iswlower";
-            funs += " iswprint iswpunct iswspace iswupper iswxdigit wctype";
-            funs += " iswctype towlower towupper wctrans towctrans";
-            funs = funs.split(" ");
-            lib = "c";
-            break;
-        default:
-            continue;
+            eval("funs=" + hdr_base);
         }
+        catch (e)
+        {
+            funs = "";
+        }
+        
+        if (0 == funs.length)
+            continue;
+            
+        funs = funs.replace(/  +/g, " ").split(" ");
+
+        lib = ("math" == hdr_base) ? "m" : "c";
         
         var useCHeader = false;
         for (j in funs)
