@@ -6,22 +6,52 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2004-2005 Rogue Wave Software.
  * 
  **************************************************************************/
 
 _RWSTD_NAMESPACE (__rw) { 
 
 
+#if 8 == _RWSTD_CHAR_BIT
+#   define _RWSTD_LOG2_CHAR_BITS 3
+#elif 16 == _RWSTD_CHAR_BIT
+#   define _RWSTD_LOG2_CHAR_BITS 4
+#elif 32 == _RWSTD_CHAR_BIT
+#   define _RWSTD_LOG2_CHAR_BITS 5
+#elif 64 == _RWSTD_CHAR_BIT
+#   define _RWSTD_LOG2_CHAR_BITS 6
+#endif
+
+#if 1 == _RWSTD_LONG_SIZE
+#   define _RWSTD_LOG2_LONG_SIZE 0
+#elif 2 == _RWSTD_LONG_SIZE
+#   define _RWSTD_LOG2_LONG_SIZE 1
+#elif 4 == _RWSTD_LONG_SIZE
+#   define _RWSTD_LOG2_LONG_SIZE 2
+#elif 8 == _RWSTD_LONG_SIZE
+#   define _RWSTD_LOG2_LONG_SIZE 3
+#elif 16 == _RWSTD_LONG_SIZE
+#   define _RWSTD_LOG2_LONG_SIZE 4
+#endif
+
+    
 _EXPORT
 template <class _CharT, class _Traits>
 void __rw_bitset (unsigned long *__bits, _RWSTD_SIZE_T __maxbits,
@@ -51,8 +81,19 @@ void __rw_bitset (unsigned long *__bits, _RWSTD_SIZE_T __maxbits,
     __str += __pos;
 
     // compute the number of bytes occupied by `bits'
+#if defined (_RWSTD_LOG2_CHAR_BITS) && defined (_RWSTD_LOG2_LONG_SIZE)
+
     const _RWSTD_SIZE_T __nbytes =
-        (__maxbits + sizeof *__bits * _RWSTD_CHAR_BIT - 1) / _RWSTD_CHAR_BIT;
+        ((__maxbits >> (_RWSTD_LOG2_CHAR_BITS + _RWSTD_LOG2_LONG_SIZE)) +
+        (0 != (__maxbits & (__wordbits - 1)))) << _RWSTD_LOG2_LONG_SIZE;
+
+#else   // #if !defined (_RWSTD_LOG2_CHAR_BITS) || !defined (_RWSTD_LOG2_LONG_SIZE)
+
+    const _RWSTD_SIZE_T __nbytes = 
+        (__maxbits / __wordbits + (0 != __maxbits % __wordbits))
+        * sizeof (*__bits);
+
+#endif  // _RWSTD_LOG2_CHAR_BITS && _RWSTD_LOG2_LONG_SIZE
 
     _RWSTD_MEMSET (__bits, 0, __nbytes);
 
@@ -73,6 +114,9 @@ void __rw_bitset (unsigned long *__bits, _RWSTD_SIZE_T __maxbits,
         }
     }
 }
+
+#undef _RWSTD_LOG2_CHAR_BITS
+#undef _RWSTD_LOG2_ULONG_SIZE
 
 
 _EXPORT
