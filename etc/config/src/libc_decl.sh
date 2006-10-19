@@ -275,7 +275,7 @@ for h in $hdrs ; do
         continue
     fi
 
-    if [ "$hdr_base" == math ] ; then
+    if [ "$hdr_base" = "math" ] ; then
         lib=m
     else
         lib=c
