@@ -422,8 +422,10 @@ _rw_allocate_blocks ()
 
         if (0 == _rw_head)
             _rw_head = blocks;
-        else
+        else {
+            MemRWGuard guard (&_rw_tail->next_, sizeof (_rw_tail->next_));
             _rw_tail->next_ = blocks;
+        }
 
         _rw_tail = blocks;
 
