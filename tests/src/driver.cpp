@@ -6,23 +6,24 @@
  *
  ************************************************************************
  *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
  *
  * Copyright 2005-2006 Rogue Wave Software.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
  **************************************************************************/
 
 // expand _TEST_EXPORT macros
@@ -1378,6 +1379,10 @@ static void
 _rw_vdiag (diag_t diag, int severity, const char *file, int line,
            const char *fmt, va_list va)
 {
+    // ignore this diagnostic if it's present in _rw_diag_ignore
+    if (_rw_diag_ignore & (1 << diag))
+        return;
+
     CHECK_INIT (true, "_rw_vdiag()");
 
     // check if the diagnostic is expected
@@ -1534,4 +1539,35 @@ rw_info (int success, const char *file, int line, const char *fmt, ...)
     va_end (va);
 
     return success;
+}
+
+/************************************************************************/
+
+_TEST_EXPORT void
+rw_enable (int (*fun) (int, const char*, int, const char*, ...), bool enable)
+{
+    diag_t diag;
+
+    if (&rw_fatal == fun)
+        diag = diag_fatal;
+    else if (&rw_error == fun)
+        diag = diag_error;
+    else if (&rw_assert == fun)
+        diag = diag_assert;
+    else if (&rw_warn == fun)
+        diag = diag_warn;
+    else if (&rw_note == fun)
+        diag = diag_note;
+    else if (&rw_info == fun)
+        diag = diag_info;
+    else {
+        RW_ASSERT (!"Invalid function in rw_enable");
+        return;
+    }
+
+    // if (enable)
+    //     _rw_diag_ignore &= ~(1 << diag);
+    // else
+    //     _rw_diag_ignore |= 1 << diag;
+    _rw_diag_ignore ^= ((enable - 1) ^ _rw_diag_ignore) & (1 << diag);
 }
