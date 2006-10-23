@@ -2255,7 +2255,7 @@ _rw_fmtstrarray (FmtSpec *pspec, size_t paramno, Buffer &buf,
 
         const unsigned pound = spec.fl_pound;
         spec.fl_pound = 0;
-        n = _rw_fmtstr (spec, buf, ",", 1);
+        n = _rw_fmtstr (spec, buf, spec.fl_space ? " " : ",", 1);
         spec.fl_pound = pound;
 
         if (n < 0)
