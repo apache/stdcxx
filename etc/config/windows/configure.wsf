@@ -44,7 +44,7 @@ Usage: cscript configure.wsf /SolutionName:@Solution
 /ConfigurationName:@Configuration [/OutDir:@OutDir] [/OutFile:@OutFile] 
 [/SrcDir:@SrcDir] [/LogFile:@LogFile],
 where
-@Solution is msvc-7.1 or icc-9.0,
+@Solution is the compiler configuration (msvc-7.1, icc-9.0 etc.)
 @Configuration = 11s Debug Static | 11d Debug Dll , etc
 @OutDir - output directory (default: script_directory\tests),
 @OutFile - output file name (default: config.h),
@@ -234,7 +234,7 @@ function configure()
     checkArchitecture();
         
     // headers and functions check
-    checkHeaders(WScript.Arguments.Named("SolutionName"));
+    checkHeaders();
 
     // compile .lib.cpp s
     if (0 == compileLibs())
@@ -293,7 +293,12 @@ function checkSanity()
     }
     
     WScript.StdOut.Write("Checking if run environment is sane... ");
-    ret = WshShell.Run(exeFullName, runWindowMode, true);
+    ret = 1;
+    try
+    {
+        ret = WshShell.Run(exeFullName, runWindowMode, true);
+    }
+    catch (e) {}
     if (ret == 0)
     {
         WScript.StdOut.WriteLine("  ok");
@@ -398,7 +403,7 @@ function checkArchitecture()
 }
 
 // perform headers presence check
-function checkHeaders(currentCfg)
+function checkHeaders()
 {
     inc = fso.OpenTextFile(srcDir + "\\headers.inc", 1, false);
     code = "";

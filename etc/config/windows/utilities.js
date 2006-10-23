@@ -23,25 +23,26 @@
 // 
 //////////////////////////////////////////////////////////////////////
 
-var VERSION = "";
+var VERSION = "7.1";
 var DEVENV = "";
 var DEVENVFLAGS = "";
 var CPPFLAGS = "";
 var LDFLAGS = "";
 var CONVERT = false;
-var CXX = "";
-var LD = "";
-var AR = "";
-var SLNVER="";
+var CXX = "cl";
+var LD = "cl";
+var AR = "lib";
+var SLNVER="8.00";
 var SLNCOMMENT="";
 var UNICODELOG = false;
 var NOSTCRT = false;
 var WINDIFF = "";
 var ICCCONVERT = "";
+var PLATFORM = "Win32";
 
 // read and parse compiler configuration file
 // config - name of the compiler configuration
-function getCompilerOpts(config)
+function parseConfig(config)
 {
     var scriptDir = getParentFolder(WScript.ScriptFullName);
     var configFileName = scriptDir + "\\" + config + ".config";
@@ -60,68 +61,125 @@ function getCompilerOpts(config)
         WScript.Quit(3);
     }
 
+    var rx = /^\s*([A-Z]+)\s*=\s*(\S.*)$/;
+
     while (!configFile.AtEndOfStream)
     {
         var line = configFile.ReadLine();
-        if (0 == line.indexOf("//"))
+
+        if (0 == line.length || 0 == line.indexOf("//"))
             continue;
+
         var inc = "#include ";
         var pos = line.indexOf(inc);
         if (0 == pos)
-            getCompilerOpts(line.substr(pos + inc.length));
-        var tokens = line.split("=");
-        if (2 == tokens.length)
+            parseConfig(line.substr(pos + inc.length));
+
+        var arr = rx.exec(line);
+        if (null == arr || 0 == arr[2].length)
+            continue;
+
+        switch (arr[1])
         {
-            switch (tokens[0])
-            {
-            case "VERSION":
-                VERSION = tokens[1];
-                break;
-            case "DEVENV":
-                DEVENV = tokens[1];
-                break;
-            case "DEVENVFLAGS":
-                DEVENVFLAGS = tokens[1];
-                break;
-            case "CPPFLAGS":
-                CPPFLAGS = tokens[1];
-                break;
-            case "LDFLAGS":
-                LDFLAGS = tokens[1];
-                break;
-            case "CONVERT":
-                CONVERT = (tokens[1] != "0");
-                break;
-            case "CXX":
-                CXX = tokens[1];
-                break;
-            case "LD":
-                LD = tokens[1];
-                break;
-            case "AR":
-                AR = tokens[1];
-                break;
-            case "SLNVER":
-                SLNVER = tokens[1];
-                break;
-            case "SLNCOMMENT":
-                SLNCOMMENT = tokens[1];
-                break;
-            case "UNICODELOG":
-                UNICODELOG = (tokens[1] != "0");
-                break;
-            case "NOSTCRT":
-                NOSTCRT = (tokens[1] != "0");
-                break;
-            case "WINDIFF":
-                WINDIFF = tokens[1];
-                break;
-            case "ICCCONVERT":
-                ICCCONVERT = tokens[1];
-                break;
-            }
+        case "VERSION":
+            VERSION = arr[2];
+            break;
+        case "DEVENV":
+            DEVENV = arr[2];
+            break;
+        case "DEVENVFLAGS":
+            DEVENVFLAGS = arr[2];
+            break;
+        case "CPPFLAGS":
+            CPPFLAGS = arr[2];
+            break;
+        case "LDFLAGS":
+            LDFLAGS = arr[2];
+            break;
+        case "CONVERT":
+            CONVERT = parseInt(arr[2]) != 0;
+            break;
+        case "CXX":
+            CXX = arr[2];
+            break;
+        case "LD":
+            LD = arr[2];
+            break;
+        case "AR":
+            AR = arr[2];
+            break;
+        case "SLNVER":
+            SLNVER = arr[2];
+            break;
+        case "SLNCOMMENT":
+            SLNCOMMENT = arr[2];
+            break;
+        case "UNICODELOG":
+            UNICODELOG = parseInt(arr[2]) != 0;
+            break;
+        case "NOSTCRT":
+            NOSTCRT = parseInt(arr[2]) != 0;
+            break;
+        case "WINDIFF":
+            WINDIFF = arr[2];
+            break;
+        case "ICCCONVERT":
+            ICCCONVERT = arr[2];
+            break;
+        case "PLATFORM":
+            PLATFORM = arr[2];
+            break;
         }
     }
+}
+
+// init script variables for specified compiler configuration
+function getCompilerOpts(config)
+{
+    parseConfig(config);
+
+    if (0 == WINDIFF.length)
+    {
+        if (VERSION.length)
+        {
+            var ver = "";
+            if (0 <= VERSION.indexOf("."))
+                ver = VERSION.replace(".", "");
+            var path = WshShell.Environment.Item("VS" + ver + "COMNTOOLS");
+            if (path.length)
+            {
+                WINDIFF = "\"" +
+                    fso.BuildPath(path.replace(/\"/g, ""), "bin\\windiff") +
+                    "\"";
+            }
+        }
+
+        if (0 == WINDIFF.length)
+            WINDIFF = "windiff";
+    }
+}
+
+// out variables and their values to the stream
+function PrintVars(stream)
+{
+    stream.WriteLine("Variables:");
+    stream.WriteLine("  VERSION=" + VERSION);
+    stream.WriteLine("  DEVENV=" + DEVENV);
+    stream.WriteLine("  DEVENVFLAGS=" + DEVENVFLAGS);
+    stream.WriteLine("  CPPFLAGS=" + CPPFLAGS);
+    stream.WriteLine("  LDFLAGS=" + LDFLAGS);
+    stream.WriteLine("  CONVERT=" + CONVERT);
+    stream.WriteLine("  CXX=" + CXX);
+    stream.WriteLine("  LD=" + LD);
+    stream.WriteLine("  AR=" + AR);
+    stream.WriteLine("  SLNVER=" + SLNVER);
+    stream.WriteLine("  SLNCOMMENT=" + SLNCOMMENT);
+    stream.WriteLine("  UNICODELOG=" + UNICODELOG);
+    stream.WriteLine("  NOSTCRT=" + NOSTCRT);
+    stream.WriteLine("  WINDIFF=" + WINDIFF);
+    stream.WriteLine("  ICCCONVERT=" + ICCCONVERT);
+    stream.WriteLine("  PLATFORM=" + PLATFORM);
+    stream.WriteLine("");
 }
 
 // returns parent folder for a path
@@ -150,22 +208,6 @@ function getExtension(filename)
 
 function getWinDiffDifferences(src1, src2, flags)
 {   
-    if (WINDIFF == "")
-    {
-        if (VERSION == "")
-            WINDIFF = "windiff";
-        else
-        {
-            var ver = "";
-            if (0 <= VERSION.indexOf("."))
-                ver = VERSION.replace(".", "");
-            WINDIFF = WshShell.Environment.Item("VS" + ver + "COMNTOOLS") +
-                      "\\bin\\windiff";
-            if (WINDIFF[0] != "\"")
-                WINDIFF = "\"" + WINDIFF + "\"";
-        }
-    }
-
     try
     {
         // first create two temporary files 

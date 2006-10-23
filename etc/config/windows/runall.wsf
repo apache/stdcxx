@@ -30,6 +30,8 @@ runs examples and checks results.
                 name="INOUTDIR" required="true" type="string"/>
             <named helpstring="The build type" name="BUILDTYPE" 
                 required="true" type="string"/>
+            <named helpstring="The configuration" name="CONFIG" 
+                required="true" type="string"/>
             <named helpstring="The log file" name="LOGFILE" 
                 required="false" type="string"/>
             <named helpstring="The copy lib dll to exe option" name="COPYDLL" 
@@ -40,11 +42,11 @@ runs examples and checks results.
                 required="false" type="string"/>
             <example>
             cscript runexamples.wsf /EXEDIR:"C:\stdcxx\build" 
-            /INOUTDIR:"C:\stdcxx\build" /BUILDTYPE:11d
+            /INOUTDIR:"C:\stdcxx\build" /BUILDTYPE:11d /CONFIG:msvc-7.1
             </example>
             <usage>
 Usage: cscript runexamples.wsf /EXEDIR:@EXEDIR /INOUTDIR:@INOUTDIR 
-/BUILDTYPE:@BUILDTYPE 
+/BUILDTYPE:@BUILDTYPE /CONFIG:@CONFIG
 [/LOGFILE:@LOGFILE] [/COPYDLL:@COPYDLL] [/LIBDIR:@LIBDIR]
 [/COPYRWTESTDLL:@COPYRWTESTDLL]
 where
@@ -52,6 +54,7 @@ where
 @TOPDIR is the root directory with .in and .out files 
 required by executables,
 @BUILDTYPE is the build type (11d, 11s, etc).
+@CONFIG is the compiler configuration (msvc-7.1, icc-9.0, etc).
 @LOGFILE is the log file name.
 @COPYDLL is the option for copy dll to executables
 @LIBDIR is the library dll folder (specify when COPYDLL is true)
