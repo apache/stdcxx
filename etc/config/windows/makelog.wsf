@@ -39,7 +39,7 @@ Usage: cscript makebuildlog.wsf /BUILDDIR:@BUILDDIR
 where
 @BUILDDIR is the build directory,
 @BUILDTYPE is the build type (11d, 11s, etc).
-@CONFIG is the configuration (msvc-7.1, icc-9.0, etc).
+@CONFIG is the compiler configuration (msvc-7.1, icc-9.0, etc).
             </usage>
         </runtime>
         <object id="fso" progid="Scripting.FileSystemObject"/>

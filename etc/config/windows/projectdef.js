@@ -289,6 +289,18 @@ function combFilters(filters, delim)
     return ret;
 }
 
+// assign value to a property if it's exists
+function setProperty(property, value)
+{
+    if ("undefined" != typeof(property))
+    {
+        property = value;
+        return true;
+    }
+
+    return false;
+}
+
 // create VCProject object from ProjectDef
 // engine - VCProjectEngine object
 // report - callback function to report progress
@@ -310,7 +322,7 @@ function projectCreateVCProject(engine, report)
     VCProject.ProjectFile = PrjFile;
     VCProject.ProjectGUID = createUUID();
     
-    VCProject.AddPlatform(platformWin32Name);
+    VCProject.AddPlatform(PLATFORM);
     
     for (var i = 0; i < confNames.length; ++i)
         VCProject.AddConfiguration(confNames[i]);
@@ -371,8 +383,6 @@ function projectCreateVCProject(engine, report)
                 compiler.AdditionalIncludeDirectories =
                     ReplaceMacros(this.Includes, allMacros);
 
-            this.LnkOpts = null;
-            this.LibOpts = null;
             compiler.AdditionalOptions = CPPFLAGS + " " +
                 (null != this.CppOpts ? this.CppOpts : "");
             if (null != this.PrepOpts)
@@ -380,7 +390,7 @@ function projectCreateVCProject(engine, report)
             compiler.DebugInformationFormat = debugEnabled;
             compiler.SuppressStartupBanner = true;
             compiler.WarningLevel = warningLevel_3;
-            compiler.Detect64BitPortabilityProblems = false;
+            setProperty(compiler.Detect64BitPortabilityProblems, false);
             
             if (null != this.Defines)
                 compiler.PreprocessorDefinitions = processDefines(this.Defines, confInfo);
@@ -389,27 +399,21 @@ function projectCreateVCProject(engine, report)
             {
                 compiler.Optimization = optimizeDisabled;
                 compiler.MinimalRebuild = true;
-                //compiler.SmallerTypeCheck = true;
-                compiler.BasicRuntimeChecks = runtimeBasicCheckAll;
+                //setProperty(compiler.SmallerTypeCheck, true);
+                setProperty(compiler.BasicRuntimeChecks, runtimeBasicCheckAll);
                 compiler.BufferSecurityCheck = true;
             }
             else
             {
                 if (typeApplication == conf.ConfigurationType)
                 {
-                    try
-                    {
-                        compiler.OptimizeForWindowsApplication = true;
-                    }
-                    catch (e)
-                    {
+                    if (!setProperty(compiler.OptimizeForWindowsApplication, true))
                         compiler.AdditionalOptions += " /GA";
-                    }
                 }
                 compiler.Optimization = optimizeMinSpace;
                 compiler.MinimalRebuild = false;
-                compiler.SmallerTypeCheck = false;
-                compiler.BasicRuntimeChecks = runtimeBasicCheckNone;
+                setProperty(compiler.SmallerTypeCheck, false);
+                setProperty(compiler.BasicRuntimeChecks, runtimeBasicCheckNone);
                 compiler.BufferSecurityCheck = false;
             }
             
@@ -450,7 +454,6 @@ function projectCreateVCProject(engine, report)
             linker.LinkIncremental = linkIncrementalNo;
             linker.SuppressStartupBanner = true;
             linker.GenerateDebugInformation = true;
-            linker.TargetMachine = machineX86;
             linker.AdditionalDependencies = "kernel32.lib user32.lib";
             linker.IgnoreDefaultLibraryNames = "libcp.lib;libcpd.lib;" +
                                                "libcpmt.lib;libcpmtd.lib;" +

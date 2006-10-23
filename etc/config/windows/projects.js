@@ -385,8 +385,10 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 var libname = "stdlib%CONFIG%.dll";
                 var src = "\"$(SolutionDir)lib\\" + libname + "\"";
                 var dst = "\"$(OutDir)\\" + libname + "\"";
-                var cmd = "if exist " + src + " if not exist " + dst +
-                      " copy /Y " + src + " " + dst;
+                var cmd = "if exist " + src + " (\r\n" +
+                          "del " + dst + "\r\n" +
+                          "copy /Y " + src + " " + dst + "\r\n" +
+                          ")";
                 if (0 == command.length)
                     command = cmd;
                 else
@@ -398,8 +400,10 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 var libname = "rwtest.dll";
                 var src = "\"$(SolutionDir)%CONFIG%\\tests\\" + libname + "\"";
                 var dst = "\"$(OutDir)\\" + libname + "\"";
-                var cmd = "if exist " + src + " if not exist " + dst +
-                          " copy /Y " + src + " " + dst;
+                var cmd = "if exist " + src + " (\r\n" +
+                          "del " + dst + "\r\n" +
+                          "copy /Y " + src + " " + dst + "\r\n" +
+                          ")";
                 if (0 == command.length)
                     command = cmd;
                 else

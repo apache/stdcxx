@@ -35,9 +35,6 @@ function ConfigInfo(debug, mt, dll, out)
     this.out = out;
 }
 
-// platform names
-var platformWin32Name = "Win32";
-
 // configuration names
 var confDebugStaticName = "11s Debug Static";
 var confReleaseStaticName = "8s Optimized Static";
