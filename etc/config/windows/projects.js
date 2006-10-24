@@ -356,7 +356,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         var testlocalesDef = new ProjectDef(".stdlib_testlocales", typeGeneric);
         testlocalesDef.VCProjDir = ProjectsDir + "\\locales";
         testlocalesDef.OutDir = "$(SolutionDir)bin";
-        testlocalesDef.IntDir = localesDef.OutDir;
+        testlocalesDef.IntDir = testlocalesDef.OutDir;
         testlocalesDef.PrjDeps = testlocaleDefs;
     
         projectDefs.push(testlocalesDef);
