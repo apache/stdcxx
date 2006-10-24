@@ -737,7 +737,7 @@ function projectCreateTestLocaleDefs(nlsDir)
     nlsDir = ReplaceMacros(nlsDir, cmnMacros);
 
     if (typeof(this.arrLocales) == "undefined")
-        this.prototype.arrLocales = initLocalesList(nlsDir);
+        ProjectDef.prototype.arrLocales = initLocalesList(nlsDir);
         
     var projectDefs = new Array();
 
