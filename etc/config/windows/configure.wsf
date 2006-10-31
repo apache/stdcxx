@@ -73,7 +73,6 @@ var configFile = configTargerDir + "\\" + configFileName;
 var stageFile = stageDir + "\\" + configFileName;
 var srcDir = slnDir + "\\etc\\config\\src";
 var includeDir = slnDir + "\\include";
-var logFileName = "config.log";
 var runWindowMode = 0;
 var timeOut = 30000; // 30 sec
 var logFileName = "config.log";
@@ -189,6 +188,10 @@ function configure()
     appendLineToOutFile("// Configured " + msg);
     
     var logFileNameURI = "file://" + logFileName.replace(/\\/mg, "/");
+
+    // remove VS_UNICODE_OUTPUT environment variable
+    // http://blogs.msdn.com/freik/archive/2006/04/05/569025.aspx
+    WshShell.Environment("PROCESS").Remove("VS_UNICODE_OUTPUT");
     
     getCompilerOpts(WScript.Arguments.Named("SolutionName"));
     
@@ -209,7 +212,7 @@ function configure()
         LDFLAGS += " /DEBUG";
     }
 
-    CPPFLAGS += joinArray(new Array(stageDir, slnDir + "\\include", includeDir), "/I");
+    CPPFLAGS += joinArray(new Array(stageDir, includeDir), "/I");
     
     var defines = new Array("_RWSTD_USE_CONFIG");
     
