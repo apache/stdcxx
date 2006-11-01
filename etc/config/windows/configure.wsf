@@ -191,8 +191,11 @@ function configure()
 
     // remove VS_UNICODE_OUTPUT environment variable
     // http://blogs.msdn.com/freik/archive/2006/04/05/569025.aspx
-    WshShell.Environment("PROCESS").Remove("VS_UNICODE_OUTPUT");
-    
+    try
+    {
+        WshShell.Environment("PROCESS").Remove("VS_UNICODE_OUTPUT");
+    } catch (e) {}
+
     getCompilerOpts(WScript.Arguments.Named("SolutionName"));
     
     var confInfo = configs.get(WScript.Arguments.Named("ConfigurationName"));
