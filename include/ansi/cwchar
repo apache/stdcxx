@@ -941,7 +941,7 @@ inline wchar_t* wcsrchr (wchar_t *__s, wchar_t __c)
 
 inline const wchar_t* wcsrchr (const wchar_t *__s, wchar_t __c)
 {
-    return wcsrchr (_WRSTD_CONST_CAST (wchar_t*, __s), __c);
+    return wcsrchr (_RWSTD_CONST_CAST (wchar_t*, __s), __c);
 }
 
 }   // extern "C"
