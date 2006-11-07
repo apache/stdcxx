@@ -58,11 +58,21 @@ const char escape_code = '\\';
 const char default_path_sep = '/';
 const char suffix_sep = '.';
 const size_t exe_suffix_len = 0;
+#if defined (_SC_CLK_TCK)
+const float TICKS_PER_SEC = sysconf (_SC_CLK_TCK);
+#elif defined (CLK_TCK)
+const float TICKS_PER_SEC = CLK_TCK;
+#elif defined (CLOCKS_PER_SEC)
+const float TICKS_PER_SEC = CLOCKS_PER_SEC;
+#else
+#  error Unable to determine number of clock ticks in a second.
+#endif
 #else
 const char escape_code = '^';
 const char default_path_sep = '\\';
 const char suffix_sep = '.';
 const size_t exe_suffix_len = 4; /* strlen(".exe") == 4 */
+const float TICKS_PER_SEC = 10000000; /* 100 nanosecond units in a second */
 #endif
 
 static const char
@@ -546,6 +556,8 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
             if (optarg) {
                 if (!isdigit (*optarg))
                     bad_value (optname, optarg);
+
+                errno = 0;
                 defaults->timeout = strtol (optarg, &end, 10);
                 if (*end || errno)
                     bad_value (optname, optarg);
@@ -592,6 +604,8 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
                 if (optarg && *optarg) {
                     if (!isdigit (*optarg))
                         bad_value (optname, optarg);
+
+                    errno = 0;
                     const long code = strtol (optarg, &end, 10);
                     if ('\0' == *end && !errno)
                         exit (code);
@@ -610,6 +624,8 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
                 if (optarg && *optarg) {
                     if (!isdigit (*optarg))
                         bad_value (optname, optarg);
+
+                    errno = 0;
                     const long nsec = strtol (optarg, &end, 10);
                     if ('\0' == *end && 0 <= nsec && !errno) {
                         rw_sleep (nsec);
