@@ -27,22 +27,23 @@
  **************************************************************************/
 
 #include <rw_printf.h>
-#include <environ.h>   // for rw_putenv()
+#include <rw_process.h> // for rw_pid_t
+#include <environ.h>    // for rw_putenv()
 
-#include <bitset>      // for bitset
-#include <ios>         // for ios::openmode, ios::seekdir
-#include <string>      // for string
+#include <bitset>       // for bitset
+#include <ios>          // for ios::openmode, ios::seekdir
+#include <string>       // for string
 
-#include <assert.h>    // for assert()
-#include <ctype.h>     // for isdigit()
-#include <errno.h>     // for EXXX, errno
-#include <limits.h>    // for INT_MAX, ...
-#include <signal.h>    // for SIGABRT, ...
-#include <stdio.h>     // for printf(), ...
-#include <stdlib.h>    // for free(), size_t
-#include <string.h>    // for strcpy()
-#include <stdarg.h>    // for va_arg, ...
-#include <time.h>      // for struct tm
+#include <assert.h>     // for assert()
+#include <ctype.h>      // for isdigit()
+#include <errno.h>      // for EXXX, errno
+#include <limits.h>     // for INT_MAX, ...
+#include <signal.h>     // for SIGABRT, ...
+#include <stdio.h>      // for printf(), ...
+#include <stdlib.h>     // for free(), size_t
+#include <string.h>     // for strcpy()
+#include <stdarg.h>     // for va_arg, ...
+#include <time.h>       // for struct tm
 
 
 // disable tests for function name in "%{lF}"
@@ -559,7 +560,7 @@ test_chararray ()
         TEST ("%{2Ac}", L"abc", 0, 0, "L\"abc\"");
 
         TEST ("%{2.0Ac}", L"",    0, 0, "L\"\"");
-        TEST ("%{2.1Ac}", L"",    0, 0, "L\"\0\"");
+        TEST ("%{2.1Ac}", L"",    0, 0, "L\"\\0\"");
 
         TEST ("%{2.0Ac}", L"a",   0, 0, "L\"\"");
         TEST ("%{2.1Ac}", L"a",   0, 0, "L\"a\"");
@@ -675,6 +676,17 @@ test_stringarray ()
     TEST ("%{#As}", ARG ("abcd"),              0, 0, "\"abcd\"");
     TEST ("%{#As}", ARG ("abcd", "efg"),       0, 0, "\"abcd\",\"efg\"");
     TEST ("%{#As}", ARG ("abcd", "efg", "hi"), 0, 0, "\"abcd\",\"efg\",\"hi\"");
+
+    TEST ("%{ As}", 0,                              0, 0, "(null)");
+    TEST ("%{ As}", ARG ("a"),                      0, 0, "a");
+    TEST ("%{ As}", ARG ("a", "bc"),                0, 0, "a bc");
+    TEST ("%{ As}", ARG ("a", "bc", "def"),         0, 0, "a bc def");
+    TEST ("%{ As}", ARG ("a", "bc", "def", "ghij"), 0, 0, "a bc def ghij");
+
+    TEST ("%{ #As}", 0,                        0, 0, "(null)");
+    TEST ("%{ #As}", ARG ("abc"),              0, 0, "\"abc\"");
+    TEST ("%{ #As}", ARG ("abc", "efg"),       0, 0, "\"abc\" \"efg\"");
+    TEST ("%{ #As}", ARG ("abc", "efg", "hi"), 0, 0, "\"abc\" \"efg\" \"hi\"");
 }
 
 /***********************************************************************/
@@ -2234,6 +2246,27 @@ test_signal ()
 
 /***********************************************************************/
 
+static void
+test_pid ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%P\": rw_pid_t");
+
+    const rw_pid_t pid = 12345;
+
+    TEST ("%{P}", pid, 0, 0, "12345");
+
+    TEST ("[%{10P}]",    pid, 0, 0, "[     12345]");
+    TEST ("[%{+10P}]",   pid, 0, 0, "[     12345]");
+    TEST ("[%{-10P}]",   pid, 0, 0, "[12345     ]");
+    TEST ("[%{.3P}]",    pid, 0, 0, "[12345]");
+    TEST ("[%{10.3P}]",  pid, 0, 0, "[     12345]");
+    TEST ("[%{+10.3P}]", pid, 0, 0, "[     12345]");
+    TEST ("[%{-10.3P}]", pid, 0, 0, "[12345     ]");
+}
+
+/***********************************************************************/
+
 static const tm*
 make_tm (int sec = 0,            // [0,60]
          int min = 0,            // [0,59]
@@ -2822,6 +2855,7 @@ int main ()
     test_memptr ();
     test_errno ();
     test_signal ();
+    test_pid ();
 
     test_basic_string ();
 

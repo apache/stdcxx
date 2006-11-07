@@ -48,7 +48,7 @@ typedef unsigned _RWSTD_LONG_LONG ULLong;
 
 typedef void (*funptr_t)();
 
-struct DummyStruct;
+struct DummyStruct { };
 typedef void (DummyStruct::*memptr_t)() const;
 
 /********************************************************************/
