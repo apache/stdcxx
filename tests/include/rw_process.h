@@ -30,8 +30,7 @@
 
 #include <testdefs.h>
 
-
-typedef long rw_pid_t;
+typedef _RWSTD_SSIZE_T rw_pid_t;
 
 _TEST_EXPORT int
 rw_system (const char*, ...);
@@ -45,15 +44,39 @@ rw_process_create (const char*, ...);
 // returns pid of the created process or -1 on error
 // (in which case errno is set to an appropriate value)
 _TEST_EXPORT rw_pid_t
-rw_process_create (const char*, char* const []);
+rw_process_create (const char* /*path*/, char* const /*argv*/[]);
 
 // result is a pointer to a buffer where the result code
-// of the specified process will be stored, or NULL
-// returns pid of the specified process or -1 on error
-// (in which case errno is set to an appropriate value)
-// Errors:
+//   of the specified process will be stored, or NULL
+//
+// the function suspends execution of the current process
+// until a child has exited or specified timeout is reached
+//
+// returns:
+//   pid of the specified process if it has exited
+//   0 when process still active
+//   -1 on error (in which case errno is set to an appropriate value)
+//
+// timeout is timeout interval in seconds.
+//   if timeout > 0 the function returns if the interval elapses
+//   if timeout == 0 the function returns immediately
+//   if timeout < 0 the function's time-out interval never elapses
+//
+// errors:
 //   ECHILD: no specified process exists
 _TEST_EXPORT rw_pid_t
-rw_waitpid (rw_pid_t, int*);
+rw_waitpid (rw_pid_t /*pid*/, int* /*result*/, int /*timeout*/ = -1);
+
+// returns:
+//  0 when process terminated successfully
+//  1 when signal was sent to the child process, but child process
+//  not terminated within 1 second interval
+//  -1 on error (in which case errno is set to an appropriate value)
+// errors:
+//   ESRCH: the pid does not exist
+//   EPERM: the calling process does not have permission
+//          to terminate the specified process
+_TEST_EXPORT int
+rw_process_kill (rw_pid_t, int = -1);
 
 #endif   // RW_PROCESS_H_INCLUDED
