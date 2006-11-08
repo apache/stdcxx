@@ -277,7 +277,7 @@ ifeq ($(in_topdir),1)
     endif   # gcc
 
     ifeq ($(CONFIG),)
-      $(error "could not find a config file for this system: $(OSNAME)")
+      $(error "could not find a config file for this platform: $(OSNAME)")
     else
       $(warning "CONFIG not specified, using $(CONFIG)")
     endif
@@ -449,7 +449,7 @@ ifeq ($(in_topdir),1)
   else
     ifeq ($(findstring dcethreads,$(BUILDMODE)),dcethreads)
       ifneq ($(OSNAME),OSF1)
-        $(error "DCE threads not suported on this platform")
+        $(error "DCE threads not suported on this platform:" $(OSNAME))
       endif
 
       CPPFLAGS += $(MULTI_CPPFLAGS_DCE)
@@ -457,7 +457,7 @@ ifeq ($(in_topdir),1)
     else
       ifeq ($(findstring threads,$(BUILDMODE)),threads)
         ifneq ($(OSNAME),SunOS)
-          $(error "Solaris threads not suported on this platform")
+          $(error "Solaris threads not suported on this platform: " $(OSNAME))
         endif
 
         CPPFLAGS +=  $(MULTI_CPPFLAGS_SOLARIS)
