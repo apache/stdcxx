@@ -29,7 +29,7 @@
 
 #include <rw_process.h>
 
-#include <stddef.h>
+#include <stddef.h>       // for size_t
 #include <stdarg.h>       // for va_copy, va_list, ...
 #include <stdlib.h>       // for free(), exit()
 #include <string.h>       // for strchr()
@@ -40,8 +40,9 @@
 #include <driver.h>       // for rw_note(), ...
 #include <rw_printf.h>    // for rw_fprintf()
 
-#ifndef ENOMEM
-#  define ENOMEM 12       // e.g., Linux, Solaris
+#ifdef __CYGWIN__
+// use the Windows API on Cygwin
+#  define _WIN32
 #endif
 
 /**************************************************************************/
@@ -51,13 +52,165 @@ rw_vasnprintf (char**, size_t*, const char*, va_list);
 
 /**************************************************************************/
 
-#if defined (_WIN32) || defined (_WIN64)
-#  include <process.h>      // for spawnvp(), cwait()
-#else
+#ifdef _WIN32
+
+#  include <windows.h>      // for WaitForSingleObject(), ...
+
+static int
+_rw_map_errno (DWORD err)
+{
+    if (ERROR_WRITE_PROTECT <= err && ERROR_SHARING_BUFFER_EXCEEDED >= err)
+        return EACCES;
+
+    if (   ERROR_INVALID_STARTING_CODESEG <= err
+        && ERROR_INFLOOP_IN_RELOC_CHAIN >= err) {
+
+        return ENOEXEC;
+    }
+
+    switch (err)
+    {
+    case ERROR_FILE_NOT_FOUND:
+    case ERROR_PATH_NOT_FOUND:
+    case ERROR_INVALID_DRIVE:
+    case ERROR_NO_MORE_FILES:
+    case ERROR_BAD_NETPATH:
+    case ERROR_BAD_NET_NAME:
+    case ERROR_INVALID_NAME:
+    case ERROR_BAD_PATHNAME:
+    case ERROR_FILENAME_EXCED_RANGE:
+        
+        return ENOENT;
+
+    case ERROR_TOO_MANY_OPEN_FILES:
+        return EMFILE;
+
+    case ERROR_ACCESS_DENIED:
+    case ERROR_CURRENT_DIRECTORY:
+    case ERROR_NETWORK_ACCESS_DENIED:
+    case ERROR_CANNOT_MAKE:
+    case ERROR_FAIL_I24:
+    case ERROR_DRIVE_LOCKED:
+    case ERROR_SEEK_ON_DEVICE:
+    case ERROR_NOT_LOCKED:
+    case ERROR_LOCK_FAILED:
+        return EACCES;
+
+    case ERROR_INVALID_HANDLE:
+    case ERROR_INVALID_TARGET_HANDLE:
+    case ERROR_DIRECT_ACCESS_HANDLE:
+        return EBADF;
+
+    case ERROR_ARENA_TRASHED:
+    case ERROR_NOT_ENOUGH_MEMORY:
+    case ERROR_INVALID_BLOCK:
+    case ERROR_NOT_ENOUGH_QUOTA:
+        return ENOMEM;
+
+    case ERROR_BAD_ENVIRONMENT:
+        return E2BIG;
+
+    case ERROR_BAD_FORMAT:
+        return ENOEXEC;
+
+    case ERROR_NOT_SAME_DEVICE:
+        return EXDEV;
+
+    case ERROR_FILE_EXISTS:
+        return EEXIST;
+
+    case ERROR_NO_PROC_SLOTS:
+    case ERROR_MAX_THRDS_REACHED:
+    case ERROR_NESTING_NOT_ALLOWED:
+        return EAGAIN;
+
+    case ERROR_BROKEN_PIPE:
+        return EPIPE;
+
+    case ERROR_DISK_FULL:
+        return ENOSPC;
+
+    case ERROR_WAIT_NO_CHILDREN:
+    case ERROR_CHILD_NOT_COMPLETE:
+        return ECHILD;
+
+    case ERROR_DIR_NOT_EMPTY:
+        return ENOTEMPTY;
+
+    case ERROR_ALREADY_EXISTS:
+        return EEXIST;
+    }
+
+    return EINVAL;
+}
+
+#else   // #if !defined (_WIN32)
+
 #  include <sys/types.h>
 #  include <sys/wait.h>   // for waitpid()
 #  include <unistd.h>     // for fork(), execv(), access()
-#endif   // _WIN{32,64}
+#  include <setjmp.h>     // for setjmp(), longjmp()
+#  include <signal.h>     // for signal()
+#  include <time.h>       // for nanosleep()
+
+/**************************************************************************/
+
+// splits command line to the array of parameters
+// note: modifies the cmd string
+// returns the number of parameters in cmd
+// if argv != 0 fills argv up to size elements
+static size_t
+_rw_split_cmd (char* cmd, char** argv, size_t size)
+{
+    RW_ASSERT (0 != cmd);
+
+    size_t ret = 0;
+
+    for (char* end = cmd + strlen (cmd); cmd != end; /*do nothing*/) {
+        // skip the leading spaces
+        while (isspace (*cmd))
+            ++cmd;
+
+        if (end == cmd)
+            break;
+
+        if (argv && ret < size)
+            argv [ret] = cmd;
+
+        ++ret;
+
+        if ('\'' == *cmd || '\"' == *cmd) {
+            char* const cmd1 = cmd + 1;
+            // search the closing quote
+            char* const pos = strchr (cmd1, *cmd);
+            if (pos) {
+                // found, remove the quotes
+                // remove the opening quote
+                memmove (cmd, cmd1, pos - cmd1);
+                // remove the closing quote
+                cmd = pos - 1;
+                memmove (cmd, pos + 1, end - pos);
+                end -= 2;
+            }
+            else {
+                // not found
+                break;
+            }
+        }
+
+        // search the space
+        while (*cmd && !isspace (*cmd))
+            ++cmd;
+
+        if (cmd != end)
+            // found, replace to '\0'
+            *cmd++ = '\0';
+    }
+
+    return ret;
+}
+
+#endif   // #if defined (_WIN32)
 
 /**************************************************************************/
 
@@ -83,7 +236,7 @@ _rw_vsystem (const char *cmd, va_list va)
 
     if (ret) {
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 
         if (-1 == ret) {
             // system() failed, e.g., because fork() failed
@@ -107,7 +260,7 @@ _rw_vsystem (const char *cmd, va_list va)
                       "the command \"%s\" exited with status %d",
                       buf, status);
         }
-#else   // if defined (_WIN32) || defined (_WIN64)
+#else   // if defined (_WIN32)
 
         // FIXME: make this more descriptive
         rw_error (0, __FILE__, __LINE__,
@@ -140,61 +293,6 @@ rw_system (const char *cmd, ...)
 
 /**************************************************************************/
 
-// splits command line to the array of parameters
-// note: modifies the cmd string
-// returns the number of parameters in cmd
-// if argv != 0 fills argv up to size elements
-static size_t
-_rw_split_cmd (char* cmd, char** argv, size_t size)
-{
-    RW_ASSERT (0 != cmd);
-
-    size_t ret = 0;
-
-    for (char* end = cmd + strlen (cmd); cmd != end; /*do nothing*/) {
-        // skip the leading spaces
-        while (isspace (*cmd))
-            ++cmd;
-
-        if (end == cmd)
-            break;
-
-        if (argv && ret < size)
-            argv [ret] = cmd;
-
-        ++ret;
-
-        if ('\'' == *cmd || '\"' == *cmd) {
-            char* const cmd1 = cmd + 1;
-            // search the closing quote
-            if (char* pos = strchr (cmd1, *cmd)) {
-                // found, remove the quotes
-                // remove the opening quote
-                memmove (cmd, cmd1, pos - cmd1);
-                // remove the closing quote
-                cmd = pos - 1;
-                memmove (cmd, pos + 1, end - pos);
-                end -= 2;
-            } else {
-                // not found
-                break;
-            }
-        }
-
-        // search the space
-        while (*cmd && !isspace (*cmd))
-            ++cmd;
-
-        if (cmd != end)
-            // found, replace to '\0'
-            *cmd++ = '\0';
-    }
-
-    return ret;
-}
-
-/**************************************************************************/
-
 static rw_pid_t
 _rw_vprocess_create (const char* cmd, va_list va)
 {
@@ -207,19 +305,42 @@ _rw_vprocess_create (const char* cmd, va_list va)
 
     rw_vasnprintf (&buf, &bufsize, cmd, va);
 
+    rw_pid_t ret = -1;
+
+#ifdef _WIN32
+
+    STARTUPINFO si = { sizeof (si) };
+    PROCESS_INFORMATION pi;
+
+    if (CreateProcess (0, buf, 0, 0, FALSE,
+                       CREATE_NEW_PROCESS_GROUP, 0, 0, &si, &pi)) {
+
+        CloseHandle (pi.hThread);
+        ret = rw_pid_t (pi.hProcess);
+    }
+    else {
+        const DWORD err = GetLastError ();
+
+        rw_error (0, __FILE__, __LINE__,
+                  "CreateProcess () failed: GetLastError() = %zu",
+                  size_t (err));
+
+        errno = _rw_map_errno (err);
+    }
+
+#else   // #if !defined (_WIN32)
+
     const size_t MAX_PARAMS = 63;
     char* argv [MAX_PARAMS + 1] = { 0 };
-
-    int ret;
 
     size_t argc = _rw_split_cmd (buf, argv, MAX_PARAMS);
 
     if (0 < argc && MAX_PARAMS >= argc)
         ret = rw_process_create (argv [0], argv);
-    else {
-        ret = -1;
-        errno = ENOMEM;
-    }
+    else
+        errno = E2BIG;
+
+#endif  // _WIN32
 
     if (buf != buffer)
         free (buf);
@@ -235,7 +356,7 @@ rw_process_create (const char* cmd, ...)
     va_list va;
     va_start (va, cmd);
 
-    const int ret = _rw_vprocess_create (cmd, va);
+    const rw_pid_t ret = _rw_vprocess_create (cmd, va);
 
     va_end (va);
     return ret;
@@ -246,77 +367,194 @@ rw_process_create (const char* cmd, ...)
 _TEST_EXPORT rw_pid_t
 rw_process_create (const char* path, char* const argv[])
 {
-#if defined (_WIN32) || defined (_WIN64)
+#if defined (_WIN32)
 
-    const rw_pid_t child_pid = spawnvp (P_NOWAIT, path, argv);
+    return rw_process_create ("\"%s\" %{ As}", path, argv + 1);
 
-    if (-1 == child_pid)
-        rw_error (0, __FILE__, __LINE__,
-                  "spawnp (P_NOWAIT, %#s, %{As}) failed: errno = %{#m} (%{m})",
-                  path);
+#else   // #if !defined (_WIN32)
 
-#else
+    if (0 == access (path, X_OK)) {
 
-    rw_pid_t child_pid = -1;
-
-    const int res = access (path, X_OK);
-
-    if (0 == res) {
-
-        child_pid = fork ();
+        const rw_pid_t child_pid = fork ();
 
         if (0 == child_pid) {
             // the child process
             execvp (path, argv);
 
             // the execvp returns only if an error occurs
-            rw_fprintf (rw_stderr, "%s:%d execvp() failed: "
-                        "errno = %{#m} (%{m})\n");
+            rw_fprintf (rw_stderr, "%s:%d execvp (%#s, %{As}) failed: "
+                        "errno = %{#m} (%{m})\n", path, argv);
 
             exit (1);
         }
         else if (-1 == child_pid)
             rw_error (0, __FILE__, __LINE__,
-                      "fork() failed: errno = %{#m} (%{m})");
+                      "fork () failed: errno = %{#m} (%{m})");
+
+        return child_pid;
     }
     else
         rw_error (0, __FILE__, __LINE__,
-                  "access(%#s, X_OK) failed: errno = %{#m} (%{m})",
+                  "access (%#s, X_OK) failed: errno = %{#m} (%{m})",
                   path);
 
-#endif  // #if defined (_WIN32) || defined (_WIN64)
+    return -1;
 
-    return child_pid;
+#endif  // #if defined (_WIN32)
 }
 
 /**************************************************************************/
 
+#if defined (_WIN32)
+
 _TEST_EXPORT rw_pid_t
-rw_waitpid (rw_pid_t pid, int* result)
+rw_waitpid (rw_pid_t pid, int* result, int timeout/* = -1*/)
 {
-#if defined (_WIN32) || defined (_WIN64)
+    /* Explicitly check for process_id being -1 or -2. In Windows NT,
+    * -1 is a handle on the current process, -2 is a handle on the
+    * current thread, and it is perfectly legal to to wait (forever)
+    * on either */
+    if (-1 == pid || -2 == pid) {
+        errno = ECHILD;
+        return -1;
+    }
 
-    const rw_pid_t ret = cwait (result, pid, WAIT_CHILD);
+    const HANDLE handle = HANDLE (pid);
 
+    const DWORD milliseconds =
+        0 > timeout ? INFINITE : DWORD (timeout * 1000);
+
+    const DWORD res = WaitForSingleObject (handle, milliseconds);
+
+    DWORD err = ERROR_SUCCESS;
+
+    if (WAIT_OBJECT_0 == res) {
+
+        DWORD dwExitCode;
+        if (GetExitCodeProcess (handle, &dwExitCode)) {
+
+            CloseHandle (handle);
+
+            if (dwExitCode)
+                rw_error (0, __FILE__, __LINE__,
+                          "the process (pid=%{P}) exited with return code %d",
+                          pid, int (dwExitCode));
+
+            if (result)
+                *result = int (dwExitCode);
+
+            return pid;
+        }
+
+        err = GetLastError ();
+        rw_error (0, __FILE__, __LINE__,
+                  "GetExitCodeProcess (%{P}, %#p) failed: GetLastError() = %zu",
+                  pid, &dwExitCode, size_t (err));
+    }
+    else if (WAIT_FAILED == res) {
+        err = GetLastError ();
+        rw_error (0, __FILE__, __LINE__,
+                  "WaitForSingleObject (%{P}, %{?}INFINITE%{:}%zu%{;}) failed: "
+                  "GetLastError() = %zu",
+                  pid, INFINITE == milliseconds,
+                  size_t (milliseconds), size_t (err));
+    }
+    else {
+        // time-out elapsed
+        RW_ASSERT (WAIT_TIMEOUT == res);
+        return 0;
+    }
+
+    if (ERROR_INVALID_HANDLE == err)
+        errno = ECHILD;
+    else
+        errno = _rw_map_errno (err);
+
+    return -1;
+}
+
+#else   // #if !defined (_WIN32)
+
+extern "C" {
+
+typedef void sig_handler_t (int);
+
+static void
+sig_handler (int)
+{
+    // restore the signal
+    signal (SIGCHLD, sig_handler);
+}
+
+}
+
+_TEST_EXPORT rw_pid_t
+rw_waitpid (rw_pid_t pid, int* result, int timeout/* = -1*/)
+{
+    int status = 0;
+    const int options = 0 > timeout ? 0 : WNOHANG;
+
+    rw_pid_t ret = waitpid (pid, &status, options);
     if (-1 == ret)
         rw_error (0, __FILE__, __LINE__,
-                  "cwait(%#p, %li, WAIT_CHILD) failed: errno = %{#m} (%{m})",
-                  result, pid);
+                  "waitpid (%{P}, %#p, %{?}WNOHANG%{:}%i%{;}) failed: "
+                  "errno = %{#m} (%{m})",
+                  pid, &status, WNOHANG == options, options);
 
-#else
+    if (0 < timeout && 0 == ret) {
+        // process still active, wait
+        sig_handler_t* old_handler = signal (SIGCHLD, sig_handler);
+        timespec rem = { timeout, 0 };
 
-    int status = 0;
-    const rw_pid_t ret = waitpid (pid, &status, 0);
+        do {
+            timespec req = rem;
+            if (-1 == nanosleep (&req, &rem)) {
+                if (EINTR == errno) {
+                    // possible that the child has exited
+                    ret = waitpid (pid, &status, WNOHANG);
+                    if (-1 == ret) {
+                        rw_error (0, __FILE__, __LINE__,
+                                  "waitpid (%{P}, %#p, WNOHANG) failed: "
+                                  "errno = %{#m} (%{m})",
+                                  pid, &status);
+                    }
+                    else if (0 == ret) {
+                        // child still active
+                        continue;
+                    }
+                    else {
+                        // child has exited
+                        RW_ASSERT (pid == ret);
+                    }
+                }
+                else {
+                    rw_error (0, __FILE__, __LINE__,
+                              "nanosleep (&{%i, 0}, %#p) failed: "
+                              "errno = %{#m} (%{m})",
+                              timeout, &rem);
+
+                    ret = -1;
+                }
+            }
+            else {
+                // timeout elapsed
+                RW_ASSERT (0 == ret);
+            }
+        }
+        while (false);
+
+        signal (SIGCHLD, old_handler);
+    }
 
     if (ret == pid) {
-    
+
         if (WIFSIGNALED (status)) {
             // process exited with a signal
             const int signo = WTERMSIG (status);
 
             rw_error (0, __FILE__, __LINE__,
-                      "the process (pid=%ld) exited with signal %d (%{K})",
-                      long (ret), signo, signo);
+                      "the process (pid=%{P}) exited with signal %d (%{K})",
+                      pid, signo, signo);
 
             if (result)
                 *result = signo;
@@ -327,8 +565,8 @@ rw_waitpid (rw_pid_t pid, int* result)
 
             if (retcode)
                 rw_error (0, __FILE__, __LINE__,
-                          "the process (pid=%ld) exited with return code %d",
-                          long (ret), retcode);
+                          "the process (pid=%{P}) exited with return code %d",
+                          pid, retcode);
 
             if (result)
                 *result = retcode;
@@ -337,12 +575,90 @@ rw_waitpid (rw_pid_t pid, int* result)
             *result = -1;
     }
 
+    return ret;
+}
+
+#endif  // #if defined (_WIN32)
+
+
+_TEST_EXPORT int
+rw_process_kill (rw_pid_t pid, int signo)
+{
+    // timeout for rw_wait_pid
+    const int timeout = 1000;
+
+#if defined (_WIN32)
+
+    // send signal
+    if (!TerminateProcess (HANDLE (pid), DWORD (signo))) {
+
+        const DWORD err = GetLastError ();
+        rw_error (0, __FILE__, __LINE__,
+                  "TerminateProcess (%{P}, %i) failed: GetLastError() = %zu",
+                  pid, signo, size_t (err));
+
+        if (ERROR_INVALID_HANDLE == err)
+            errno = ESRCH;
+        else if (ERROR_ACCESS_DENIED == err)
+            errno = EPERM;
+        else
+            errno = _rw_map_errno (err);
+
+        return -1;
+    }
+
+    // wait for process termination
+    int ret = rw_waitpid (pid, 0, timeout);
+    if (pid == ret)
+        return 0;
+
     if (-1 == ret)
         rw_error (0, __FILE__, __LINE__,
-                  "waitpid(%li, %#p, 0) failed: errno = %{#m} (%{m})",
-                  pid, &status);
+                  "rw_waitpid (%{P}, 0, %i) failed: errno = %{#m} (%{m})",
+                  pid, timeout);
 
-#endif  // #if defined (_WIN32) || defined (_WIN64)
+    return 1;
+
+#else   // #if !defined (_WIN32)
+
+    static const int signals_ [] = {
+        SIGHUP, SIGINT, SIGQUIT, SIGTERM, SIGKILL
+    };
+
+    const int* const signals = (-1 == signo) ? signals_ : &signo;
+
+    const unsigned sigcount =
+        (-1 == signo) ? sizeof (signals_) / sizeof (*signals_) : 1;
+
+    int ret = -1;
+
+    for (unsigned i = 0; i < sigcount; ++i) {
+
+        // send signal
+        ret = kill (pid, signals [i]);
+
+        if (-1 == ret) {
+            rw_error (0, __FILE__, __LINE__,
+                      "kill (%{P}, %{K}) failed: errno = %{#m} (%{m})",
+                      pid, signals [i]);
+
+            continue;
+        }
+
+        // wait for process termination
+        ret = rw_waitpid (pid, 0, timeout);
+        if (pid == ret)
+            return 0;
+
+        if (-1 == ret)
+            rw_error (0, __FILE__, __LINE__,
+                      "rw_waitpid (%{P}, 0, %i) failed: errno = %{#m} (%{m})",
+                      pid, timeout);
+
+        ret = 1;
+    }
 
     return ret;
+
+#endif  // #if defined (_WIN32)
 }
