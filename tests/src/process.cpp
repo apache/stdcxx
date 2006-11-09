@@ -27,6 +27,10 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
+// disable Compaq/HP C++ pure libc headers to allow POSIX symbols
+// such as E2BIG to be defined
+#undef __PURE_CNAME
+
 #include <rw_process.h>
 
 #include <stddef.h>       // for size_t
@@ -35,7 +39,7 @@
 #include <string.h>       // for strchr()
 #include <ctype.h>        // for isspace()
 
-#include <errno.h>        // for errno
+#include <errno.h>        // for EACCES, errno
 
 #include <driver.h>       // for rw_note(), ...
 #include <rw_printf.h>    // for rw_fprintf()
