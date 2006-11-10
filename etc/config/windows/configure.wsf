@@ -823,12 +823,13 @@ function runExeTests()
                 var fileBase = stageDir + "\\" + base;
                 var modules =  fileBase + ".obj";
                 var ldopts = 
-                    (/^[^A-Z_a-z0-9]*LDOPTS\s*=\s*(.*)$/m).exec(srcText);
+                    (/^[^A-Z_a-z0-9]*LDOPTS\s*=\s*(\S*)\s*$/m).exec(srcText);
                 if (ldopts != null)
                 {
                     // remove first "./" and replace $(LIBSUFFIX) with .lib
-                    modules += " " + ldopts[1].replace(/^\.\//, 
-                        stageDir + "\\").replace(/\$\(LIBSUFFIX\)/, ".lib");
+                    // and replace .o with .obj
+                    modules += " " + ldopts[1].replace(/^\.\//, stageDir + "\\").
+                        replace(/\$\(LIBSUFFIX\)/, ".lib").replace(/\.o/, ".obj");
                 }
                 var exeFile = base + ".exe";
                 var fullExeName = fileBase + ".exe";
@@ -998,7 +999,7 @@ function compileFiles(srcs, defines)
     if (defines instanceof Array)
         command += joinArray(defines, "/D")
 
-    command += joinArray(srcs.split(" "), "");
+    command += joinArray(srcsArr, "");
 
     var message = "Compiling with command \"" + command + "\"";
     logLine(message);
