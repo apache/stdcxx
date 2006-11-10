@@ -66,7 +66,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     configureDef.CustomBuildCmd = "cscript /nologo \"%CUSTOMFILE%\"" +
         " /SolutionName:\"%SOLUTION%\"" +
         " /ConfigurationName:\"%CFGNAME%\"" +
-        " /SrcDir:\"%SRCDIR%\\etc\\config\\src\\\"" +
+        " /SrcDir:\"%SRCDIR%\\etc\\config\\src\"" +
         " /IncludeDir:\"%SRCDIR%\\include\"" +
         " /OutDir:\"$(OutDir)\"" +
         " /OutFile:\"$(OutDir)\\config.h\"" +

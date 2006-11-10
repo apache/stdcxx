@@ -9,7 +9,7 @@
 
 // establish a dependency on EXPORT_KEYWORD.cpp which must be
 // compiled first since it defines the exported function template
-// LDOPTS = EXPORT_KEYWORD.o 
+// LDOPTS = ./EXPORT_KEYWORD.o 
 #endif   // _RWSTD_NO_EXPORT_KEYWORD
 
 
