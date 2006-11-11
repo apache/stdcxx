@@ -141,7 +141,9 @@ do_test (int         line,     // line number of the test case
                     (long)a1, (long)a2, (long)a3, buf, s0);             \
         }                                                               \
         free (s0);                                                      \
-    } while (0)
+        RW_ASSERT (0 < ntests);                                         \
+        /* avoid EDG constant controlling expression warnings  */       \
+    } while (0 == ntests /* always false */)
 
 /***********************************************************************/
 
