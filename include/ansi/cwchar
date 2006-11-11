@@ -1194,7 +1194,7 @@ extern "C" {
 inline int
 wmemcmp (const wchar_t *__s1, const wchar_t *__s2, size_t __n)
 {
-    return _RW::__rw_memcmp (__s1, __s2, __n);
+    return _RW::__rw_wmemcmp (__s1, __s2, __n);
 }
 
 }   // extern "C"
@@ -1237,7 +1237,7 @@ extern "C" {
 inline wchar_t*
 wmemcpy (wchar_t *__dst, const wchar_t *__src, size_t __n)
 {
-    return _RW::__rw_memcpy (__dst, __src, __n);
+    return _RW::__rw_wmemcpy (__dst, __src, __n);
 }
 
 }   // extern "C"
@@ -1279,14 +1279,14 @@ extern "C" {
 inline wchar_t*
 wmemmove (wchar_t *__dst, const wchar_t *__src, size_t __n)
 {
-    return _RW::__rw_memmove (__dst, __src, __n);
+    return _RW::__rw_wmemmove (__dst, __src, __n);
 }
 
 }   // extern "C"
 
 namespace std {
 
-using ::wmemmove
+using ::wmemmove;
 
 #endif   // _RWSTD_NO_WMEMMOVE
 
@@ -1328,7 +1328,7 @@ wmemset (wchar_t* __s, wchar_t __c, size_t __n)
 
 namespace std {
 
-using ::wmemmove
+using ::wmemset;
 
 #endif   // _RWSTD_NO_WMEMSET
 
