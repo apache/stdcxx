@@ -360,6 +360,8 @@ handle_alrm (int signo)
         alarm_timeout = 1;
 }
 
+typedef void (*alarm_handler)(int);
+
 #ifdef __cplusplus
 }
 #endif
@@ -421,7 +423,7 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
     /* avoid extern "C"/"C++" mismatch due to an HP aCC 6 bug
        (see STDCXX-291)
     */
-    void (*phandler)(int) = handle_alrm;
+    alarm_handler phandler = handle_alrm;
     memcpy (&act.sa_handler, &phandler, sizeof act.sa_handler);
 
     sigaction (SIGALRM, &act, 0);
