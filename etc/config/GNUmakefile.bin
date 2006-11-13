@@ -45,6 +45,9 @@ ifneq ($(CXX_REPOSITORY),)
   LDFLAGS += $(CPPFLAGS)
 endif   # ($(CXX_REPOSITORY),)
 
+# Don't want to link exec utility with stdlib, so create our own LDFLAGS var
+LDFLAGS.exec = $(filter-out -l$(LIBBASE),$(LDFLAGS))
+
 ##############################################################################
 #  TARGETS
 ##############################################################################
@@ -55,8 +58,8 @@ $(LIBDIR)/$(LIBNAME):
 
 # link the run utility
 exec: runall.o cmdopt.o output.o util.o exec.o display.o
-	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" >> $(LOGFILE)
-	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(TEEOPTS)
+	@echo "$(LD) $^ -o $@ $(LDFLAGS.exec) $(LDLIBS)" >> $(LOGFILE)
+	$(LD) $^ -o $@ $(LDFLAGS.exec) $(LDLIBS) $(TEEOPTS)
 
 # link the localedef utility
 localedef: localedef.o aliases.o charmap.o codecvt.o collate.o ctype.o \
