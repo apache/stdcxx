@@ -2161,7 +2161,11 @@ test_errno ()
     for (int i = 0; i != 256; ++i) {
 
         char expect [256];
-        strcpy (expect, strerror (i));
+
+        // be prepared to deal with non-conforming implementations
+        // of strerror() (such as IRIX) that return a null pointer
+        const char* const str = strerror (i);
+        strcpy (expect, str ? str : "(null)");
 
         errno = i;
 
