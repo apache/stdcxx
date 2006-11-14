@@ -112,6 +112,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     rwtestDef.Includes = rwtestIncludes;
     rwtestDef.OutDir = "$(SolutionDir)%CONFIG%\\tests";
     rwtestDef.IntDir = rwtestDef.OutDir + "\\src";
+    rwtestDef.Libs = commonLibs;
     rwtestDef.PrjRefs.push(stdlibDef);
 
     projectDefs.push(rwtestDef);

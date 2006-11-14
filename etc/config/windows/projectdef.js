@@ -454,7 +454,8 @@ function projectCreateVCProject(engine, report)
             linker.LinkIncremental = linkIncrementalNo;
             linker.SuppressStartupBanner = true;
             linker.GenerateDebugInformation = true;
-            linker.AdditionalDependencies = "kernel32.lib user32.lib";
+            if (null != this.Libs)
+                linker.AdditionalDependencies = this.Libs;
             linker.IgnoreDefaultLibraryNames = "libcp.lib;libcpd.lib;" +
                                                "libcpmt.lib;libcpmtd.lib;" +
                                                "msvcprt.lib;msvcprtd.lib";
