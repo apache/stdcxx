@@ -7,22 +7,23 @@
  *
  ***************************************************************************
  *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2005-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2005-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -143,12 +144,33 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
                 return next == page ? -1 : DIST (next, addr);
         }
 
+#  elif defined (_RWSTD_OS_IRIX64)
+
+        // as of 6.5, IRIX has no mincore() or mvalid() call,
+        // or posix_madvise(), and madvise() is unreliable
+        // use msync() instead
+        if (-1 == msync (next, 1, MS_ASYNC)) {
+
+            const int err = errno;
+            errno = errno_save;
+
+            if (err)
+                return next == page ? -1 : DIST (next, addr);
+        }
+
 #  elif !defined (_RWSTD_NO_MADVISE)
+
+#    ifdef _RWSTD_OS_IRIX64
+        // IRIX 6.5 recognizes only MADV_DONTNEED
+        const int advice = MADV_DONTNEED;
+#    else
+        const int advice = MADV_WILLNEED;
+#    endif
 
         // on HP-UX, Linux, use madvise() as opposed to mincore()
         // since the latter fails for address ranges that aren't
         // backed by a file (such as stack variables)
-        if (-1 == madvise (next, 1, MADV_WILLNEED)) {
+        if (-1 == madvise (next, 1, advice)) {
 
             const int err = errno;
             errno = errno_save;
@@ -160,7 +182,10 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
             // but the area maps something that isn't a file"
             bad_address = EFAULT == err || ENOMEM == err;
 #    else   // not Linux
-            bad_address = err != 0;
+            // EINVAL implies bad (e.g., unimplemented, such as
+            // IRIX 6.5) advice, misaligned addr (not on page size
+            // boundary), or zero size
+            bad_address = !(0 == err || EINVAL == err);
 #    endif   // Linux
 
             if (bad_address)
@@ -175,7 +200,9 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
             // for the first NUL byte and when found, return
             // the total size of the memory region between
             // `addr' and the NUL byte (i.e., the length of
-            // the string pointed to by `addr')
+            // the string pointed to by `addr'); this should
+            // be safe since the first byte of the range has
+            // been determined to be readable
 
             const _RWSTD_SIZE_T maxpage =
                 next == page ? pgsz - DIST (addr, next) : pgsz;
