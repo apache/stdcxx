@@ -27,7 +27,7 @@
 #ifndef RW_TARGET_H
 #define RW_TARGET_H
 
-#include <sys/types.h> /* for clock_t */
+#include <time.h> /* for clock_t */
 
 #if !defined (_WIN32) && !defined (_WIN64)
 #  include <unistd.h> /* For _XOPEN_UNIX */
