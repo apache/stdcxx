@@ -139,7 +139,13 @@ OSNAME := $(shell uname)
 
 # provide a value if it isn't already set by (an older version of) make
 ifeq ($(CURDIR),)
-  CURDIR := $(shell pwd)
+  ifneq ($(PWD),)
+    # use the shell PWD variable to avoid expanding NFS paths
+    # as mount points instead of the user-visible directories
+    CURDIR := $(PWD)
+  else
+    CURDIR := $(shell pwd)
+  endif
 endif
 
 
@@ -566,7 +572,8 @@ $(MAKEFILE_IN): $(configpath)
              echo "generating $(MAKEFILE_IN) from $(configpath)"            \
           && echo "TOPDIR     = $(TOPDIR)"               >> $(MAKEFILE_IN)  \
           && echo "BUILDDIR   = $(buildpath)"            >> $(MAKEFILE_IN)  \
-          && echo "CONFIG     = $(configpath)"           >> $(MAKEFILE_IN)  \
+          && echo "CONFIG     = $$""(TOPDIR)/etc/config/$(CONFIG)"          \
+                                                         >> $(MAKEFILE_IN)  \
           && echo "BUILDTYPE  = $(BUILDTYPE)"            >> $(MAKEFILE_IN)  \
           && echo "BUILDMODE  = $(BUILDMODE)"            >> $(MAKEFILE_IN)  \
           && echo "CXX        = $(CXX)"                  >> $(MAKEFILE_IN)  \
