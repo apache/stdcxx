@@ -66,10 +66,10 @@ ifeq ($(NO_DOT_O),)
   endif   # ifneq ($(AS_EXT),)
 
 %.o: %.cpp
-	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $<
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(call CXX.repo,$<) $<
 
 %: %.o
-	$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS)
+	$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<)
 
 # disable compilation and linking in the same step
 # %: %.cpp
@@ -78,7 +78,8 @@ else
 
 # compile and link in one step to eliminate the space overhead of .o files
 %: %.cpp
-	$(CXX) $< -o $@ $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS)
+	$(CXX) $< -o $@ $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) \
+               $(call CXX.repo,$<)
 
 endif   # eq ($(NO_DOT_O),)
 

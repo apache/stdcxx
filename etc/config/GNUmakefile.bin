@@ -8,7 +8,7 @@
 
 include ../makefile.in
 
-SRCDIRS = $(TOPDIR)/util
+SRCDIRS = $(TOPDIR)/src/util
 
 # include common variables setting for all makefiles
 ONE_REPOSITORY = 1
@@ -58,22 +58,25 @@ $(LIBDIR)/$(LIBNAME):
 
 # link the run utility
 exec: runall.o cmdopt.o output.o util.o exec.o display.o
-	@echo "$(LD) $^ -o $@ $(LDFLAGS.exec) $(LDLIBS)" >> $(LOGFILE)
-	$(LD) $^ -o $@ $(LDFLAGS.exec) $(LDLIBS) $(TEEOPTS)
+	@echo "$(LD) $^ -o $@ $(LDFLAGS.exec) $(LDLIBS)" $(call CXX.repo,$<)
+	\>> $(LOGFILE)
+	$(LD) $^ -o $@ $(LDFLAGS.exec) $(LDLIBS) $(call CXX.repo,$<) $(TEEOPTS)
 
 # link the localedef utility
 localedef: localedef.o aliases.o charmap.o codecvt.o collate.o ctype.o \
            def.o diagnostic.o messages.o monetary.o numeric.o path.o   \
            time.o scanner.o
-	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" >> $(LOGFILE)
-	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(TEEOPTS)
+	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" $(call CXX.repo,$<) \
+	>> $(LOGFILE)
+	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<) $(TEEOPTS)
 
 # link the locale utility
 locale: locale.o aliases.o charmap.o codecvt.o collate.o def.o ctype.o \
         diagnostic.o memchk.o messages.o monetary.o numeric.o path.o   \
         scanner.o time.o
-	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" >> $(LOGFILE)
-	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(TEEOPTS)
+	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" $(call CXX.repo,$<) \
+	>> $(LOGFILE)
+	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<) $(TEEOPTS)
 
 # build all locales with the localedef utility
 locales: localedef $(LOCALE_LIST)

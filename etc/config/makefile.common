@@ -44,28 +44,27 @@ endif
 # SRCDIRS must be defined in GNUmakefile that includes this file
 ifeq ($(ONE_REPOSITORY),)
 
+  # using a separate template instantiation repository for each source
+  # and object file (i.e., when each source produces one executable)
   ifneq ($(CXX_REPOSITORY),)
 
-    # compose the name of the template instantiation repository from
-    # the name of the test and a unique suffix (so that each test has
-    # its own and same names with different definitions do not cause
-    # conflicts) and append it to the name of the compiler and linker
+    # define a function, CXX.repo, that returns the name of the template
+    # instantiation repository from the name of a source or object file
+    # and a unique suffix (so that each program has its own and the same
+    # names with different definitions do not cause conflicts)
     #
     # e.g., Compaq C++ where this will expand to something like
     #     -ptr foo.ti
-    # or IBM VisualAge where it will be along the lines of
+    # or IBM VisualAge/XLC++ where it will be along the lines of
     #    --qtempinc=foo.ti
     # or
     #    --qtemplateregistry=foo.ti
     #
-    repository_name = $(shell basename $(*F) 2>/dev/null).ti
-
-    # add CPPFLAGS to LDFLAGS for compilers that implement implicit
-    # inclusion but don't remember (save) the preprocessor flags used
-    # during compilation
-    # (e.g., IBM VisualAge)
-    LDFLAGS += $(CPPFLAGS)
-
+    ifeq ($(findstring =,$(CXX_REPOSITORY)),=)
+      CXX.repo = $(CXX_REPOSITORY)$(basename $(notdir $(1))).ti
+    else
+      CXX.repo = $(CXX_REPOSITORY) $(basename $(notdir $(1))).ti
+    endif
   else   # ifeq ($(CXX_REPOSITORY),)
     ifeq ($(CXX),CC)
       ifeq ($(findstring SunOS,$(PLATFORM)),SunOS)
@@ -85,23 +84,18 @@ ifeq ($(ONE_REPOSITORY),)
     endif   # SunPro
   endif # neq ($(CXX_REPOSITORY),)
 else   # ifneq ($(ONE_REPOSITORY),)
-
   ifneq ($(CXX_REPOSITORY),)
-    repository_name = repository.ti
+
+    # using a template instantiation repository shared by all sources
+    # (i.e., when creating a single executable or library out of all
+    # the object files
+    ifeq ($(findstring =,$(CXX_REPOSITORY)),=)
+      CXX.repo = $(CXX_REPOSITORY)repository.ti
+    else
+      CXX.repo = $(CXX_REPOSITORY) repository.ti
+    endif
   endif
 endif
-
-ifneq ($(repository_name),)
-  ifeq ($(findstring =,$(CXX_REPOSITORY)),=)
-      # no space between '=' and the name of the repository
-      CXXFLAGS += $(CXX_REPOSITORY)$(repository_name)
-      LDFLAGS  += $(CXX_REPOSITORY)$(repository_name)
-  else    # ifeq ($(repository_name),)
-      # insert a space between the option and the name of the repository
-      CXXFLAGS += $(CXX_REPOSITORY) $(repository_name)
-      LDFLAGS  += $(CXX_REPOSITORY) $(repository_name)
-  endif
-endif   # ifeq ($(repository_name),)
 
 CPPFLAGS    += $(INCLUDES)
 CXXFLAGS    += $(WARNFLAGS)
