@@ -56,7 +56,11 @@ function InitVSObjects(config)
     {
         dte = WScript.CreateObject("VisualStudio.DTE." + VERSION);
         if (DEVENV == "")
-            DEVENV = dte.FullName;
+        {
+            // use devenv.com executable, if it present
+            var comName = dte.FullName.replace(/\.exe$/i, ".com");
+            DEVENV = fso.FileExists(comName) ? comName : dte.FullName;
+        }
     }
     catch (e) {}
 
