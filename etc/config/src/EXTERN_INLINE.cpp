@@ -8,7 +8,7 @@
 #  ifndef _RWSTD_NO_extern_inline.lib
 
      // link this compiled translation unit with the lib below
-     // LDOPTS = ./extern_inline.lib$(LIBSUFFIX)
+     // LDOPTS = extern_inline.lib$(LIBSUFFIX)
 
 #  endif   // _RWSTD_NO_extern_inline.lib
 #endif   // 0

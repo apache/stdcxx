@@ -9,7 +9,7 @@
 
 // link the object file produced by compiling this file
 // with the object file below
-// LDOPTS = ./extern_function_template_imp.o
+// LDOPTS = extern_function_template_imp.o
 
 #endif   // _RWSTD_NO_extern_function_template_imp
 

@@ -243,7 +243,7 @@ function configure()
     checkHeaders();
 
     // compile .lib.cpp s
-    if (0 == compileLibs())
+    if (0 == compileLibs(confInfo.dll))
     {
         WScript.StdErr.WriteLine(
             "You may see log here: " + logFileNameURI);
@@ -711,7 +711,7 @@ function readTextFile(fileName)
 }
 
 //compiles all libraries (.lib.cpp files)
-function compileLibs()
+function compileLibs(shared)
 {
     var folder = fso.GetFolder(srcDir);
     var fc = new Enumerator(folder.Files);
@@ -723,7 +723,7 @@ function compileLibs()
              continue; //not a library file
         }
         var outLibName = file.Name.replace(/\.cpp/i, ".lib");
-        if (makeLibrary(srcDir + "\\" + file.Name, outLibName) != 0)
+        if (makeLibrary(srcDir + "\\" + file.Name, outLibName, shared) != 0)
         {
             WScript.StdErr.WriteLine(
                 "Configure: Fatal error: Failed to build library " 
@@ -826,10 +826,10 @@ function runExeTests()
                     (/^[^A-Z_a-z0-9]*LDOPTS\s*=\s*(\S*)\s*$/m).exec(srcText);
                 if (ldopts != null)
                 {
-                    // remove first "./" and replace $(LIBSUFFIX) with .lib
-                    // and replace .o with .obj
-                    modules += " " + ldopts[1].replace(/^\.\//, stageDir + "\\").
-                        replace(/\$\(LIBSUFFIX\)/, ".lib").replace(/\.o/, ".obj");
+                    // replace $(LIBSUFFIX) with .lib and replace .o with .obj
+                    modules += " " + stageDir + "\\" +
+                        ldopts[1].replace(/\$\(LIBSUFFIX\)/, ".lib").
+                                  replace(/\.o/, ".obj");
                 }
                 var exeFile = base + ".exe";
                 var fullExeName = fileBase + ".exe";
@@ -1028,7 +1028,7 @@ function linkFiles(srcs, outName)
 // performs compilation of the source files to the library file
 // src - string with source file names delimited by space
 // outFile - filename of the library file
-function makeLibrary(srcFiles, outFile)
+function makeLibrary(srcFiles, outFile, shared)
 {
     var ret = compileFiles(srcFiles);
     if (ret != 0)
@@ -1036,13 +1036,31 @@ function makeLibrary(srcFiles, outFile)
 
     var objNames = srcFiles.replace(/(?:[\S]+[/\\\\])?([^/\\\\]+\.)cpp/gi, 
         stageDir + "/$1obj");
-        
-    var command = AR + "/OUT:\"" + stageDir + "\\" + outFile + "\"" +
-                    joinArray(objNames.split(" "), "");
-    var message = "Making library with command \"" + command + "\"";
-    logLine(message);
-    return WshShell.Run("cmd /c \"" + command +"\" >> " 
-        + logFileName + " 2>&1", runWindowMode, true);
+
+    if (shared)
+    {
+        var libname = "\"" + stageDir + "\\" + outFile + "\"";
+        var dllname = "\"" + stageDir + "\\" + basename(outFile, "\\.lib") + ".dll\"";
+        var command = LD + " ";
+        command += joinArray(objNames.split(" "), "");
+        command += " /Fe" + dllname + " /link /DLL " + LDFLAGS +
+                   " /IMPLIB:" + libname;
+        var message = "Making library with command \"" + command + "\"";
+        logLine(message);
+        ret = WshShell.Run("cmd /c \"" + command +"\" >> " 
+            + logFileName + " 2>&1", runWindowMode, true);
+    }
+    else
+    {
+        var command = AR + " /OUT:\"" + stageDir + "\\" + outFile + "\"" +
+                      joinArray(objNames.split(" "), "");
+        var message = "Making library with command \"" + command + "\"";
+        logLine(message);
+        ret = WshShell.Run("cmd /c \"" + command +"\" >> " 
+            + logFileName + " 2>&1", runWindowMode, true);
+    }
+    
+    return ret;
 }
 
 // append line to the log file

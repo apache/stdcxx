@@ -8,7 +8,7 @@
 #  ifndef _RWSTD_NO_collapse_static_locals.lib
 
      // link this compiled translation unit with the lib below
-     // LDOPTS = ./collapse_static_locals.lib$(LIBSUFFIX)
+     // LDOPTS = collapse_static_locals.lib$(LIBSUFFIX)
 
 #  endif   // _RWSTD_NO_collapse_static_locals.lib
 #endif   // 0

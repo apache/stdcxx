@@ -15,7 +15,7 @@
 #ifndef _RWSTD_NO_extern_template_imp
 
 // link with the object file below
-// LDOPTS = ./extern_template_imp.o
+// LDOPTS = extern_template_imp.o
 
 #endif   // _RWSTD_NO_extern_template_imp
 
