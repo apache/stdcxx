@@ -8,7 +8,7 @@
 #  ifndef _RWSTD_NO_lib_exceptions.lib
 
      // link this compiled translation unit with the lib below
-     // LDOPTS = ./lib_exceptions.lib$(LIBSUFFIX)
+     // LDOPTS = lib_exceptions.lib$(LIBSUFFIX)
 
 #  endif   // _RWSTD_NO_lib_exceptions.lib
 #endif   // 0

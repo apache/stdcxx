@@ -7,7 +7,7 @@
 #ifndef _RWSTD_NO_extern_template_before_definition_imp
   // establish a dependency on the source file to get it
   // compiled first and  link with the object file
-  // LDOPTS = ./extern_template_before_definition_imp.o
+  // LDOPTS = extern_template_before_definition_imp.o
 #endif
 
 #ifdef _RWSTD_NO_IMPLICIT_INCLUSION

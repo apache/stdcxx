@@ -8,7 +8,7 @@
 #  ifndef _RWSTD_NO_collapse_template_statics.lib
 
      // link this compiled translation unit with the lib below
-     // LDOPTS = ./collapse_template_statics.lib$(LIBSUFFIX)
+     // LDOPTS = collapse_template_statics.lib$(LIBSUFFIX)
 
 #  endif   // _RWSTD_NO_collapse_template_statics.lib
 #endif   // 0
