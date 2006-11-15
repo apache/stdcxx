@@ -8,7 +8,7 @@
 
 include ../makefile.in
 
-SRCDIRS = $(TOPDIR)/src/util
+SRCDIRS = $(TOPDIR)/util
 
 # include common variables setting for all makefiles
 ONE_REPOSITORY = 1
