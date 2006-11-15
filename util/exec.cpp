@@ -40,9 +40,9 @@
 #if !defined (_WIN32) && !defined (_WIN64)
 #  include <unistd.h> /* for close, dup, exec, fork */
 #  include <sys/wait.h>
+#  include <sys/times.h> /* for times - is this XSI? */
 #  ifdef _XOPEN_UNIX
 #    include <sys/resource.h> /* for setlimit(), RLIMIT_CORE, ... */
-#    include <sys/time.h> /* for gettimeofday */
 #  endif
 #else
 #  include <windows.h> /* for PROCESS_INFORMATION, ... */
@@ -736,61 +736,46 @@ limit_process (const struct target_opts* options)
 /**
    Calculates the amount of resources used by the child processes.
 
-   This method uses the getrusage() system call to calculate the resources
-   used by the child process.  However, getrusage() only is able to calcualte
-   agragate usage by all child processes, not usage by a specific child process.
-   Therefore, we must keep a running tally of how many resources had been used
+   This method uses the times() system call to calculate the resources used 
+   by the child process.  However, times() only is able to calcualte agragate 
+   usage by all child processes, not usage by a specific child process.
+   Therefore, we must keep a running tally of how much resources had been used
    the previous time we calculated the usage.  This difference is the resources
    that were used by the process that just completed.
 
    @param result target_status structure to populate with process usage.
+   @param h_clk starting (wall clock) time
+   @param h_tms starting (system/user) time
 */
 static void
-calculate_usage (struct target_status* result)
+calculate_usage (struct target_status* result, const clock_t h_clk, 
+                 const struct tms* const h_tms)
 {
-#ifdef _XOPEN_UNIX
-    static bool init = 0;
-    static struct rusage history;
-    static rw_timeval user, sys;
-    struct rusage now;
+    static clock_t wall, user, sys;
+    struct tms c_tms;
+    clock_t c_clk;
 
     assert (0 != result);
+    assert (0 != h_tms);
 
-    if (!init) {
-        memset (&history, 0, sizeof history);
-        memset (&user, 0, sizeof user);
-        memset (&sys, 0, sizeof sys);
-        init = 1;
-    }
+    wall = user = sys = 0;
 
-    if (0 != getrusage (RUSAGE_CHILDREN, &now)) {
-        warn ("Failed to retrieve child resource usage: %s", strerror (errno));
+    c_clk = times (&c_tms);
+
+    if (-1 == wall) {
+        warn ("Failed to retrieve ending times: %s", strerror (errno));
         return;
     }
 
     /* time calculations */
-    user.tv_sec = now.ru_utime.tv_sec - history.ru_utime.tv_sec;
-    user.tv_usec = now.ru_utime.tv_usec - history.ru_utime.tv_usec;
-    sys.tv_sec = now.ru_stime.tv_sec - history.ru_stime.tv_sec;
-    sys.tv_usec = now.ru_stime.tv_usec - history.ru_stime.tv_usec;
-
-    /* Adjust seconds/microseconds */
-    if (now.ru_utime.tv_usec < history.ru_utime.tv_usec) {
-        --user.tv_sec;
-        user.tv_usec += 1000000;
-    }
-    if (now.ru_stime.tv_usec < history.ru_stime.tv_usec) {
-        --sys.tv_sec;
-        sys.tv_usec += 1000000;
-    }
+    wall = c_clk - h_clk;
+    user = c_tms.tms_cutime - h_tms->tms_cutime;
+    sys = c_tms.tms_cstime - h_tms->tms_cstime;
 
     /* Tag result as having run */
+    result->wall = &wall;
     result->user = &user;
     result->sys = &sys;
-
-    /* Cache the values retrieved */
-    memcpy (&history, &now, sizeof (struct rusage));
-#endif /* _XOPEN_UNIX */
 }
 
 void exec_file (const struct target_opts* options, struct target_status* result)
@@ -874,27 +859,14 @@ void exec_file (const struct target_opts* options, struct target_status* result)
               strerror (errno));
     }
     else {
-#ifdef _XOPEN_UNIX
-        struct timeval start;
-        static struct timeval delta;
-        gettimeofday(&start, 0);
-#endif /* _XOPEN_UNIX */
         /* parent */
+        struct tms h_tms;
+        clock_t h_clk = times (&h_tms);
         wait_for_child (child_pid, options->timeout, result);
-        calculate_usage (result);
-#ifdef _XOPEN_UNIX
-        gettimeofday(&delta, 0);
-        delta.tv_sec -= start.tv_sec;
-        delta.tv_usec -= start.tv_usec;
-
-        /* Adjust seconds/microseconds */
-        if (delta.tv_usec < 0) {
-            --delta.tv_sec;
-            delta.tv_usec += 1000000;
-        }
-        /* Link the delta */
-        result->wall = &delta;
-#endif /* _XOPEN_UNIX */
+        if (-1 != h_clk)
+            calculate_usage (result, h_clk, &h_tms);
+        else
+            warn ("Failed to retrieve start times: %s", strerror (errno));
     }
 }
 #else  /* _WIN{32,64} */
@@ -1101,8 +1073,8 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     SECURITY_ATTRIBUTES child_sa = /* SA for inheritable handle. */
           {sizeof (SECURITY_ATTRIBUTES), NULL, TRUE};
     DWORD real_timeout, wait_code;
-    FILETIME start, end, delta;
-    static rw_timeval convert;
+    FILETIME start, end;
+    static clock_t wall;
 
     assert (0 != options);
     assert (0 != options->argv);
@@ -1200,22 +1172,13 @@ void exec_file (const struct target_opts* options, struct target_status* result)
 
     /* Calculate wall clock time elapsed while the process ran */
     GetSystemTimeAsFileTime(&end);
-    delta.dwHighDateTime = end.dwHighDateTime - start.dwHighDateTime;
-    delta.dwLowDateTime = end.dwLowDateTime - start.dwLowDateTime;
 
-    /* Handle subtraction across the boundry */
-    if (end.dwLowDateTime < start.dwLowDateTime)
-        --delta.dwHighDateTime;
-
-    /* Convert from 128 bit number to seconds/microseconds */
-    convert.tv_usec = delta.dwLowDateTime % 10000000;
-    convert.tv_sec = (delta.dwLowDateTime - convert.tv_usec) / 10000000;
-    /* The low half of the date has a resolution of 100 nanoseconds, and
-       a magnitude of ~584 years.  Therefore, the upper half shouldn't 
-       matter. */
+    /* We're ignoring dwHighDateTime, as it's outside the percision of clock_t 
+     */
+    wall = end.dwLowDateTime - start.dwLowDateTime;
 
     /* Link the delta */
-    result->wall = &convert;
+    result->wall = &wall;
 
     if (0 == GetExitCodeProcess (child.hProcess, (LPDWORD)&result->exit)) {
         warn_last_error ("Retrieving child process exit code");

@@ -26,9 +26,6 @@
 
 #include <assert.h>
 #include <stdio.h>      /* for fflush(), printf(), puts(), ... */
-#if !defined (_WIN32) && !defined (_WIN64)
-#  include <unistd.h> /* for _XOPEN_UNIX */
-#endif
 
 #include "cmdopt.h" /* for target_name -should this be moved? */
 #include "exec.h" /* for get_signame */
@@ -88,15 +85,13 @@ static void print_status_plain (const struct target_status* status)
 
     /* Print timings, if available */
     if (valid_timing)
-        printf (" %3ld.%03ld %3ld.%03ld", status->user->tv_sec,
-                status->user->tv_usec/1000, status->sys->tv_sec,
-                status->sys->tv_usec/1000);
+        printf (" %7.3f %7.3f", (float) *status->user / TICKS_PER_SEC,
+                (float) *status->sys / TICKS_PER_SEC);
     else if (status->wall)
         printf ("                ");
 
     if (status->wall)
-        printf (" %3ld.%03ld\n", status->wall->tv_sec,
-                status->wall->tv_usec/1000);
+        printf (" %7.3f\n", (float) *status->wall / TICKS_PER_SEC);
     else
         puts ("");
 }
