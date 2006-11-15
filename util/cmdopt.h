@@ -34,6 +34,7 @@ extern const char escape_code; /**< Escape character used in paths. */
 extern const char default_path_sep; /**< Primary path seperator */
 extern const char suffix_sep; /**< File suffix seperator. */
 extern const size_t exe_suffix_len; /**< Length of executable suffix. */
+extern const float TICKS_PER_SEC; /**< Number of clock ticks in a second. */
 
 /**
    Parses command line arguments for switches and options.

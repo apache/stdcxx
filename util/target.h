@@ -27,21 +27,18 @@
 #ifndef RW_TARGET_H
 #define RW_TARGET_H
 
+#include <sys/types.h> /* for clock_t */
+
 #if !defined (_WIN32) && !defined (_WIN64)
 #  include <unistd.h> /* For _XOPEN_UNIX */
 #endif
 
 #ifdef _XOPEN_UNIX
 #  include <sys/resource.h> /* for struct rlimit */
-#  include <sys/time.h> /* for struct timeval */
 /**
    Abstraction typedef for struct rlimit using real struct
 */
 typedef struct rlimit rw_rlimit;
-/**
-   Abstraction typedef for struct timeval using real struct
-*/
-typedef struct timeval rw_timeval;
 #else /* _XOPEN_UNIX */
 /**
    Placeholder rlim_t for use in rw_rlimit
@@ -58,25 +55,6 @@ struct rw_rlimit {
    Abstraction typedef for struct rlimit using placeholder struct
 */
 typedef struct rw_rlimit rw_rlimit;
-/**
-   Placeholder time_t for use in rw_timeval
-*/
-typedef long rw_time_t;
-/**
-   Placeholder suseconds_t for use in rw_timeval
-*/
-typedef long rw_suseconds_t;
-/**
-   Placeholder struct timeval to use if _XOPEN_UNIX isn't defined
-*/
-struct rw_timeval {
-    rw_time_t tv_sec;
-    rw_suseconds_t tv_usec;
-};
-/**
-   Abstraction typedef for struct timeval using placeholder struct
-*/
-typedef struct rw_timeval rw_timeval;
 #endif /* _XOPEN_UNIX */
 
 #ifndef RLIM_INFINITY
@@ -140,9 +118,9 @@ struct target_status {
     int signaled; /**< 1 if exit is a signal number, 0 denoting exit code 
                      otherwise */
     enum ProcessStatus status; /**< Textual process status. */
-    const rw_timeval* user; /**< Elapsed user time spent in execution. */
-    const rw_timeval* sys; /**< Elapsed system time spent in execution. */
-    const rw_timeval* wall; /**< Wall clock time spent in execution. */
+    const clock_t* user; /**< Elapsed user time spent in execution. */
+    const clock_t* sys; /**< Elapsed system time spent in execution. */
+    const clock_t* wall; /**< Wall clock time spent in execution. */
     unsigned c_warn; /**< Number of compile warnings. */
     unsigned l_warn; /**< Number of link warnings. */
     unsigned t_warn; /**< Number of (test) warnings. */
