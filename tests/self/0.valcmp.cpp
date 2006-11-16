@@ -3,26 +3,33 @@
  * valcmp.cpp - test exercising the rw_valcmp() family
  *              of utility functions
  *
- * $Id:$
+ * $Id$
  *
  ************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2005-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
 #include <valcmp.h>
 
-#include <stdio.h>   // for fprintf
+#include <stdio.h>   // for fprintf, size_t
 
 
 // the exit status of the whole test
@@ -34,14 +41,14 @@ void
 test_case (const T* /* dummy */, const U* /* dummy */,
            const char *tname, const char *uname,
            int line, int expect,
-           const char *str1, const char *str2, unsigned nelems, int flags)
+           const char *str1, const char *str2, size_t nelems, int flags)
 {
     T buf1 [256] = { T () };
     U buf2 [256] = { U () };
 
     typedef unsigned char UChar;
 
-    for (unsigned i = 0; i != nelems; ++i) {
+    for (size_t i = 0; i != nelems; ++i) {
         buf1 [i] = T (_RWSTD_STATIC_CAST (UChar, str1 [i])); 
         buf2 [i] = U (_RWSTD_STATIC_CAST (UChar, str2 [i]));
    }
@@ -53,7 +60,7 @@ test_case (const T* /* dummy */, const U* /* dummy */,
                  "line %d: %d == rw_valcmp(const %s* = %p, const %s* = %p, "
                  "%u, %d), got %d\n",
                  line, expect, tname, (void*)buf1, uname, (void*)buf2,
-                 nelems, flags, result);
+                 unsigned (nelems), flags, result);
         exit_status = 1;
     }
 }
@@ -64,7 +71,7 @@ struct Case {
     int         expect;
     const char *str1;
     const char *str2;
-    unsigned    nelems;
+    size_t      nelems;
     int         flags;
 };
 
@@ -219,7 +226,7 @@ test_all_cases (const T* /* dummy */, const U* /* dummy */,
 
     _RWSTD_UNUSED (one_time_per_specialization);
 
-    for (unsigned i = 0; i != sizeof cases / sizeof cases; ++i) {
+    for (size_t i = 0; i != sizeof cases / sizeof cases; ++i) {
         test_case ((T*)0, (U*)0,
                    tname, uname,
                    cases [i].line,
