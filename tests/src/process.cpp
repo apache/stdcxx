@@ -387,7 +387,8 @@ rw_process_create (const char* path, char* const argv[])
 
             // the execvp returns only if an error occurs
             rw_fprintf (rw_stderr, "%s:%d execvp (%#s, %{As}) failed: "
-                        "errno = %{#m} (%{m})\n", path, argv);
+                        "errno = %{#m} (%{m})\n",
+                        __FILE__, __LINE__, path, argv);
 
             exit (1);
         }
