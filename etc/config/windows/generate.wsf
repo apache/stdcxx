@@ -116,6 +116,7 @@ function generate()
     InitVSObjects(currentCfg);
 
     PrintVars(logStream);
+    PrintVars(WScript.StdOut);
     
     var solutionName = currentCfg + ".sln";
 

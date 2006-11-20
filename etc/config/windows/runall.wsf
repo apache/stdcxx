@@ -92,7 +92,7 @@ var exRunFailed = 0;
 var exRunTimedOut = 0;
 var exBadCode = 0;
 
-var runTimeout = 10; //30
+var runTimeout = 180;
 
 var buildlogFile = "BuildLog.htm";
 var summaryFileName = "Summary.htm";
