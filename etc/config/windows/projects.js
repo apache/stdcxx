@@ -332,9 +332,10 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     {
         var testlocaleTplDef = new ProjectDef(null, typeGeneric);
         testlocaleTplDef.VCProjDir = ProjectsDir + "\\locales";
-        testlocaleTplDef.OutDir = "$(SolutionDir)bin";
-        testlocaleTplDef.IntDir = testlocaleTplDef.OutDir + "\\Build\\$(ProjectName)";
+        testlocaleTplDef.OutDir = "$(SolutionDir)%CONFIG%\\bin";
+        testlocaleTplDef.IntDir = testlocaleTplDef.OutDir + "\\$(ProjectName)";
         testlocaleTplDef.CustomBuildDeps = "%FILES%";
+        testlocaleTplDef.PrjDeps.push(execDef);
         testlocaleTplDef.PrjDeps.push(localeDef);
         testlocaleTplDef.PrjDeps.push(localedefDef);
         if (!copyDll)

@@ -27,6 +27,9 @@ var TristateUseDefault = -2;
 var TristateTrue = -1;
 var TristateFalse = 0;
 
+// the timeout for the exec utility
+var execTimeout = 180;
+
 var VCProjectEngine = null;
 var ICConvertTool = "ICProjConvert90.exe";
 
@@ -746,6 +749,28 @@ function projectCreateTestLocaleDefs(nlsDir)
         
     var projectDefs = new Array();
 
+    var srcdir = "%SRCDIR%\\etc\\config\\windows";
+    var bindir = "$(SolutionDir)%CONFIG%\\bin";
+    var exec = bindir + "\\exec.exe";
+    var test = bindir + "\\sanity_test";
+
+    // create test_locale_sanity project
+    var sanityDef = this.clone();
+    sanityDef.Name = "test_locale_sanity";
+    sanityDef.FilterDefs.push(
+        new FilterDef("Script Files", null, "js;wsf", eFileTypeScript, false).
+        addFiles(srcdir, new Array("run_locale_utils.wsf")));
+    if (null == sanityDef.PreBuildCmd)
+        sanityDef.PreBuildCmd = "";
+    else
+        sanityDef.PreBuildCmd += "\r\n";
+    sanityDef.PreBuildCmd +=
+        "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
+        " /s /b:\"" + bindir + "\" > \"" + test + ".bat\"";
+    sanityDef.CustomBuildCmd = "\"" + exec + "\" -t " + execTimeout + " \"" + test + ".bat\"";
+    sanityDef.CustomBuildOut = test + ".out";
+    projectDefs.push(sanityDef);
+        
     for (var i = 0; i < this.arrLocales.length; ++i)
     {
         var locale = this.arrLocales[i];
@@ -777,6 +802,8 @@ function projectCreateTestLocaleDefs(nlsDir)
             WScript.Quit(3);
         }
 
+        test = bindir + "\\" + locale.Name;
+
         var projectDef = this.clone();
         projectDef.Name = "test_" + locale.Name;
         projectDef.FilterDefs.push(
@@ -787,12 +814,18 @@ function projectCreateTestLocaleDefs(nlsDir)
             addFiles(null, new Array(srcFile.Path)));
         projectDef.FilterDefs.push(
             new FilterDef("Script Files", null, "js;wsf", eFileTypeScript, false).
-            addFiles("%SRCDIR%\\etc\\config\\windows", new Array("run_locale_utils.wsf")));
-        projectDef.CustomBuildCmd =
-            "cscript /nologo \"%SRCDIR%\\etc\\config\\windows\\run_locale_utils.wsf\"" +
-            " /b:\"$(SolutionDir)%CONFIG%\\bin\" /f" +
-            " /i:\"" + nlsDir + "\"" + " /l:" + locale.Name;
-        projectDef.CustomBuildOut = " ";
+            addFiles(srcdir, new Array("run_locale_utils.wsf")));
+        if (null == projectDef.PreBuildCmd)
+            projectDef.PreBuildCmd = "";
+        else
+            projectDef.PreBuildCmd += "\r\n";
+        projectDef.PreBuildCmd +=
+            "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
+            " /f /b:\"" + bindir + "\" /i:\"" + nlsDir + "\"" +
+            " /l:" + locale.Name + " > \"" + test + ".bat\"";
+        projectDef.CustomBuildCmd = "\"" + exec + "\" -t " + execTimeout + " \"" + test + ".bat\"";
+        projectDef.CustomBuildOut = test + ".out";
+        projectDef.PrjDeps.push(sanityDef);
         
         projectDefs.push(projectDef);
     }    
