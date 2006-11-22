@@ -722,9 +722,6 @@ function projectCreateLocaleDefs(nlsDir)
         projectDef.FilterDefs.push(
             new FilterDef("Src", null, "", eFileTypeText, false).
             addFiles(null, new Array(srcFile.Path)));
-        projectDef.FilterDefs.push(
-            new FilterDef("Script Files", null, "js;wsf", eFileTypeScript, false).
-            addFiles("%SRCDIR%\\etc\\config\\windows", new Array("run_locale_utils.wsf")));
         projectDef.CustomBuildCmd =
             "\"$(SolutionDir)%CONFIG%\\bin\\localedef.exe\" -w -c" +
             " -f \"" + cmFileName + "\"" + " -i \"" + srcFileName + "\"" +
@@ -757,9 +754,6 @@ function projectCreateTestLocaleDefs(nlsDir)
     // create test_locale_sanity project
     var sanityDef = this.clone();
     sanityDef.Name = "test_locale_sanity";
-    sanityDef.FilterDefs.push(
-        new FilterDef("Script Files", null, "js;wsf", eFileTypeScript, false).
-        addFiles(srcdir, new Array("run_locale_utils.wsf")));
     if (null == sanityDef.PreBuildCmd)
         sanityDef.PreBuildCmd = "";
     else
@@ -812,9 +806,6 @@ function projectCreateTestLocaleDefs(nlsDir)
         projectDef.FilterDefs.push(
             new FilterDef("Src", null, "", eFileTypeText, false).
             addFiles(null, new Array(srcFile.Path)));
-        projectDef.FilterDefs.push(
-            new FilterDef("Script Files", null, "js;wsf", eFileTypeScript, false).
-            addFiles(srcdir, new Array("run_locale_utils.wsf")));
         if (null == projectDef.PreBuildCmd)
             projectDef.PreBuildCmd = "";
         else
