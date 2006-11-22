@@ -297,8 +297,13 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     {
         var localeTplDef = new ProjectDef(null, typeGeneric);
         localeTplDef.VCProjDir = ProjectsDir + "\\locales";
+        localeTplDef.FilterDefs.push(
+            new FilterDef("Script Files", null, "js;wsf", eFileTypeScript, false).
+                addFiles("%SRCDIR%\\etc\\config\\windows",
+                         new Array("run_locale_utils.wsf")));
         localeTplDef.OutDir = "$(SolutionDir)nls";
         localeTplDef.IntDir = localeTplDef.OutDir + "\\Build\\$(ProjectName)";
+        localeTplDef.CustomBuildFile = "run_locale_utils.wsf";
         localeTplDef.CustomBuildDeps = "%FILES%";
         localeTplDef.PrjDeps.push(localedefDef);
         if (!copyDll)
@@ -332,8 +337,13 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     {
         var testlocaleTplDef = new ProjectDef(null, typeGeneric);
         testlocaleTplDef.VCProjDir = ProjectsDir + "\\locales";
+        testlocaleTplDef.FilterDefs.push(
+            new FilterDef("Script Files", null, "js;wsf", eFileTypeScript, false).
+                addFiles("%SRCDIR%\\etc\\config\\windows",
+                         new Array("run_locale_utils.wsf")));
         testlocaleTplDef.OutDir = "$(SolutionDir)%CONFIG%\\bin";
         testlocaleTplDef.IntDir = testlocaleTplDef.OutDir + "\\$(ProjectName)";
+        testlocaleTplDef.CustomBuildFile = "run_locale_utils.wsf";
         testlocaleTplDef.CustomBuildDeps = "%FILES%";
         testlocaleTplDef.PrjDeps.push(execDef);
         testlocaleTplDef.PrjDeps.push(localeDef);
