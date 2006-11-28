@@ -1632,10 +1632,13 @@ print_int (const char *keyword, int val, int print_cat)
 }
 
 
+#define MON_INT(member)   \
+    (mon_st && CHAR_MAX != (mon_st->member) ? int (UChar (mon_st->member)) : -1)
+
 static int
 print_int_frac_digits (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->frac_digits [1] : -1, print_cat);
+    print_int (keyword, MON_INT (frac_digits [1]), print_cat);
 
     return 0;
 
@@ -1645,7 +1648,7 @@ print_int_frac_digits (const char *keyword, int print_cat)
 static int
 print_frac_digits (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->frac_digits [0] : -1, print_cat);
+    print_int (keyword, MON_INT (frac_digits [0]), print_cat);
 
     return 0;
 }
@@ -1654,7 +1657,7 @@ print_frac_digits (const char *keyword, int print_cat)
 static int
 print_p_cs_precedes (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->p_cs_precedes [0] : -1, print_cat);
+    print_int (keyword, MON_INT (p_cs_precedes [0]), print_cat);
 
     return 0;
 }
@@ -1663,7 +1666,7 @@ print_p_cs_precedes (const char *keyword, int print_cat)
 static int
 print_n_sep_by_space (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->n_sep_by_space [0] : -1, print_cat);
+    print_int (keyword, MON_INT (n_sep_by_space [0]), print_cat);
 
     return 0;
 }
@@ -1672,7 +1675,7 @@ print_n_sep_by_space (const char *keyword, int print_cat)
 static int
 print_p_sep_by_space (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->p_sep_by_space [0] : -1, print_cat);
+    print_int (keyword, MON_INT (p_sep_by_space [0]), print_cat);
 
     return 0;
 }
@@ -1681,7 +1684,7 @@ print_p_sep_by_space (const char *keyword, int print_cat)
 static int
 print_n_cs_precedes (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->n_cs_precedes [0] : -1, print_cat);
+    print_int (keyword, MON_INT (n_cs_precedes [0]), print_cat);
 
     return 0;
 }
@@ -1690,7 +1693,7 @@ print_n_cs_precedes (const char *keyword, int print_cat)
 static int
 print_p_sign_posn (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->p_sign_posn [0] : -1, print_cat);
+    print_int (keyword, MON_INT (p_sign_posn [0]), print_cat);
 
     return 0;
 }
@@ -1699,7 +1702,7 @@ print_p_sign_posn (const char *keyword, int print_cat)
 static int
 print_n_sign_posn (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->n_sign_posn [0] : -1, print_cat);
+    print_int (keyword, MON_INT (n_sign_posn [0]), print_cat);
 
     return 0;
 }
@@ -1708,7 +1711,7 @@ print_n_sign_posn (const char *keyword, int print_cat)
 static int
 print_int_p_cs_precedes (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->p_cs_precedes [1] : -1, print_cat);
+    print_int (keyword, MON_INT (p_cs_precedes [1]), print_cat);
 
     return 0;
 }
@@ -1717,7 +1720,7 @@ print_int_p_cs_precedes (const char *keyword, int print_cat)
 static int
 print_int_n_sep_by_space (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->n_sep_by_space [1] : -1, print_cat);
+    print_int (keyword, MON_INT (n_sep_by_space [1]), print_cat);
 
     return 0;
 }
@@ -1726,7 +1729,7 @@ print_int_n_sep_by_space (const char *keyword, int print_cat)
 static int
 print_int_p_sep_by_space (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->p_sep_by_space [1] : -1, print_cat);
+    print_int (keyword, MON_INT (p_sep_by_space [1]), print_cat);
 
     return 0;
 }
@@ -1735,7 +1738,7 @@ print_int_p_sep_by_space (const char *keyword, int print_cat)
 static int
 print_int_n_cs_precedes (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->n_cs_precedes [1] : -1, print_cat);
+    print_int (keyword, MON_INT (n_cs_precedes [1]), print_cat);
 
     return 0;
 }
@@ -1744,7 +1747,7 @@ print_int_n_cs_precedes (const char *keyword, int print_cat)
 static int
 print_int_p_sign_posn (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->p_sign_posn [1] : -1, print_cat);
+    print_int (keyword, MON_INT (p_sign_posn [1]), print_cat);
 
     return 0;
 }
@@ -1753,7 +1756,7 @@ print_int_p_sign_posn (const char *keyword, int print_cat)
 static int
 print_int_n_sign_posn (const char *keyword, int print_cat)
 {
-    print_int (keyword, mon_st ? mon_st->n_sign_posn [1] : -1, print_cat);
+    print_int (keyword, MON_INT (n_sign_posn [1]), print_cat);
 
     return 0;
 }
