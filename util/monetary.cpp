@@ -32,7 +32,8 @@
 #include "scanner.h"      // for scanner
 
 #include <cassert>        // for assert()
-#include <cstdlib>        // for atoi()
+#include <climits>        // for CHAR_MAX, CHAR_MIN
+#include <cstdlib>        // for strtol()
 #include <fstream>        // for ofstream
 #include <locale>         // for money_base
 
@@ -44,12 +45,20 @@ void Def::process_monetary()
 {
     issue_diag (I_STAGE, false, 0, "processing %s section\n", lc_name);
 
-    // nexting level
+    // nesting level
     int nesting_level = 0;
 
     mon_def_found_ = true;
     
     while ((next = scanner_.next_token ()).token != Scanner::tok_monetary) {
+
+        // set to point to the integer represented as an ordinary char
+        // corresponding to p_cs_precedes, p_sep_by_space, p_sign_posn,
+        // or one of the n_ (or int_ versions) of the same
+        char *pcharint = 0;
+
+        typedef unsigned char UChar;
+        long maxval = long (UChar (CHAR_MAX));  // maximum allowed value
         
         switch (next.token) {
 
@@ -124,9 +133,8 @@ void Def::process_monetary()
 
         case Scanner::tok_mon_grouping:
             mon_st_.mon_grouping.clear();
-            while ((next = scanner_.next_token()).token 
-                   != Scanner::tok_nl)
-                mon_st_.mon_grouping += std::atoi(next.name.c_str());
+            while ((next = scanner_.next_token()).token != Scanner::tok_nl)
+                mon_st_.mon_grouping += std::strtol (next.name.c_str (), 0, 10);
             break;
 
         case Scanner::tok_positive_sign:
@@ -141,182 +149,94 @@ void Def::process_monetary()
             mon_st_.wnegative_sign = convert_wstring (next);
             break;
 
-        case Scanner::tok_int_frac_digits:
-             mon_out_.frac_digits[1] =
-                 std::atoi(scanner_.next_token().name.c_str());
-                 //strtol(scanner_.next_token().name.c_str(), 0, 10);
+        case Scanner::tok_frac_digits:
+            pcharint = &mon_out_.frac_digits [0];
             break;
 
-        case Scanner::tok_frac_digits:
-             mon_out_.frac_digits[0] =
-                 std::atoi(scanner_.next_token().name.c_str());
+        case Scanner::tok_int_frac_digits:
+            pcharint = &mon_out_.frac_digits [1 /* int'l */ ];
             break;
 
         case Scanner::tok_p_cs_precedes:
-            next = scanner_.next_token();
-            if (next.name.size() == 1 && (next.name[0] == '0' 
-                                          || next.name[0] == '1')) {
-                mon_out_.p_cs_precedes[0] = std::atoi(next.name.c_str());
-            }
-            else
-                 issue_diag (E_INVAL, true, &next, 
-                             "%s is an invalid p_cs_precedes value\n",  
-                             next.name.c_str());
+            maxval   = 1;
+            pcharint = &mon_out_.p_cs_precedes [0];
             break;
 
         case Scanner::tok_p_sep_by_space:
-            next = scanner_.next_token();
-            if (next.name.size() == 1 && (next.name[0] >= '0' 
-                                          && next.name[0] <= '2')) {
-                mon_out_.p_sep_by_space[0] = std::atoi(next.name.c_str());
-            }
-            else
-                 issue_diag (E_INVAL, true, &next, 
-                             "%s is an invalid p_sep_by_space value\n",  
-                             next.name.c_str());
+            maxval   = 2;
+            pcharint = &mon_out_.p_sep_by_space [0];
             break;
 
         case Scanner::tok_n_cs_precedes:
-            next = scanner_.next_token();
-            if (next.name.size() == 1 && (next.name[0] == '0' 
-                                          || next.name[0] == '1')) {
-                mon_out_.n_cs_precedes[0] = std::atoi(next.name.c_str());
-            }
-            else
-                 issue_diag (E_INVAL, true, &next, 
-                             "%s is an invalid n_cs_precedes value\n",  
-                             next.name.c_str());
+            maxval   = 1;
+            pcharint = &mon_out_.n_cs_precedes [0];
             break;
 
         case Scanner::tok_n_sep_by_space:
-            next = scanner_.next_token();
-            if (next.name.size() == 1 && (next.name[0] >= '0' 
-                                          && next.name[0] <= '2')) {
-                mon_out_.n_sep_by_space[0] = std::atoi(next.name.c_str());
-            }
-            else
-                 issue_diag (E_INVAL, true, &next, 
-                             "%s is an invalid n_sep_by_space value\n",  
-                             next.name.c_str());
+            maxval   = 2;
+            pcharint = &mon_out_.n_sep_by_space [0];
             break;
 
         case Scanner::tok_p_sign_posn:
-            next = scanner_.next_token();
-            if (next.name.size() == 1 && (next.name[0] >= '0' 
-                                          && next.name[0] <= '4')) {
-                mon_out_.p_sign_posn[0] = std::atoi(next.name.c_str());
-            }
-            else
-                 issue_diag (120, true, &next, 
-                             "%s is an invalid p_sign_posn value\n",  
-                             next.name.c_str());
+            maxval   = 4;
+            pcharint = &mon_out_.p_sign_posn [0];
             break;
 
         case Scanner::tok_n_sign_posn:
-            next = scanner_.next_token();
-            if (next.name.size() == 1 && (next.name[0] >= '0' 
-                                          && next.name[0] <= '4')) {
-                mon_out_.n_sign_posn[0] = std::atoi(next.name.c_str());
-            }
-            else
-                 issue_diag (120, true, &next, 
-                             "%s is an invalid n_sign_posn value\n",  
-                             next.name.c_str());
+            maxval   = 4;
+            pcharint = &mon_out_.n_sign_posn [0];
             break;
 
         case Scanner::tok_int_p_cs_precedes:
-            next = scanner_.next_token();
-            if (next.name.size() == 1 && (next.name[0] == '0' 
-                                          || next.name[0] == '1')) {
-                mon_out_.p_cs_precedes[1] = std::atoi(next.name.c_str());
-            }
-            else {
-                if (!(next.name.size() == 2 && (next.name[0] == '-'
-                                                && next.name[1] == '1')))
-                    issue_diag (E_INVAL, true, &next, 
-                                "%s is an invalid int_p_cs_precedes value\n",  
-                                next.name.c_str());
-            }
+            maxval   = 1;
+            pcharint = &mon_out_.p_cs_precedes [1 /* int'l */ ];
             break;
 
         case Scanner::tok_int_p_sep_by_space:
-            next = scanner_.next_token();
-            if (next.name.size() == 1 && (next.name[0] >= '0' 
-                                          && next.name[0] <= '2')) {
-                mon_out_.p_sep_by_space[1] = std::atoi(next.name.c_str());
-            }
-            else {
-                if (!(next.name.size() == 2 && (next.name[0] == '-'
-                                                && next.name[1] == '1')))
-                    issue_diag (E_INVAL, true, &next, 
-                                "%s is a invalid int_p_sep_by_space value\n",  
-                                next.name.c_str());
-            }
+            maxval   = 2;
+            pcharint = &mon_out_.p_sep_by_space [1 /* int'l */ ];
             break;
 
         case Scanner::tok_int_n_cs_precedes:
-            next = scanner_.next_token();
-            if (next.name.size() == 1 && (next.name[0] == '0' 
-                                          || next.name[0] == '1')) {
-                mon_out_.n_cs_precedes[1] = std::atoi(next.name.c_str());
-            }
-            else {
-                if (!(next.name.size() == 2 && (next.name[0] == '-'
-                                                && next.name[1] == '1')))
-                    issue_diag (E_INVAL, true, &next, 
-                                "%s is an invalid int_n_cs_precedes value\n",  
-                                next.name.c_str());
-            }
+            maxval   = 1;
+            pcharint = &mon_out_.n_cs_precedes [1 /* int'l */ ];
             break;
 
         case Scanner::tok_int_n_sep_by_space:
-            next = scanner_.next_token();
-            if (next.name.size() == 1 && (next.name[0] >= '0' 
-                                          && next.name[0] <= '2')) {
-                mon_out_.n_sep_by_space[1] = std::atoi(next.name.c_str());
-            }
-            else {
-                if (!(next.name.size() == 2 && (next.name[0] == '-'
-                                                && next.name[1] == '1')))
-                    issue_diag (124, true, &next, 
-                                "%s is a invalid int_n_sep_by_space value\n",  
-                                next.name.c_str());
-            }
+            maxval   = 2;
+            pcharint = &mon_out_.n_sep_by_space [1 /* int'l */ ];
             break;
 
         case Scanner::tok_int_p_sign_posn:
-            next = scanner_.next_token();
-            if (next.name.size() == 1 && (next.name[0] >= '0' 
-                                          && next.name[0] <= '4')) {
-                mon_out_.p_sign_posn[1] = std::atoi(next.name.c_str());
-            }
-            else {
-                if (!(next.name.size() == 2 && (next.name[0] == '-'
-                                                && next.name[1] == '1')))
-                    issue_diag (E_INVAL, true, &next, 
-                                "%s is an invalid int_p_sign_posn value\n",  
-                                next.name.c_str());
-            }
+            maxval   = 4;
+            pcharint = &mon_out_.p_sign_posn [1 /* int'l */ ];
             break;
 
         case Scanner::tok_int_n_sign_posn:
-            next = scanner_.next_token();
-            if (next.name.size() == 1 && (next.name[0] >= '0' 
-                                          && next.name[0] <= '4')) {
-                mon_out_.n_sign_posn[1] = std::atoi(next.name.c_str());
-            }
-            else {
-                if (!(next.name.size() == 2 && (next.name[0] == '-'
-                                                && next.name[1] == '1')))
-                    issue_diag (E_INVAL, true, &next, 
-                                "%s is an invalid int_n_sign_posn value\n",  
-                                next.name.c_str());
-            }
+            maxval   = 4;
+            pcharint = &mon_out_.n_sign_posn [1 /* int'l */ ];
             break;
 
         default:
             break;
 
+        }
+
+        if (pcharint) {
+            next = scanner_.next_token ();
+
+            char *end = 0;
+            const long val = std::strtol (next.name.c_str (), &end, 10);
+
+            if (next.name.empty () || *end || val < -1 || maxval < val) {
+                // report as errors values outside the permitted range
+                // (-1 indicates an unspecified value for a keyword)
+                issue_diag (E_INVAL, true, &next, 
+                            "expected integer in [0, %li], got: %s\n",
+                            maxval, next.name.c_str ());
+            }
+            else
+                *pcharint = char (val);
         }
     }
 }
