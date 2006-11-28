@@ -729,15 +729,11 @@ swap (vector<_TypeT, _Allocator> &__x, vector<_TypeT, _Allocator> &__y)
 
 #ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
 
-#  define _VB_TYPENAME   _TYPENAME
-
 _EXPORT
 template <class _Allocator>
 class
 
 #else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
-
-#  define _VB_TYPENAME
 
      // use a macro to mutate _Allocator into allocator<bool>
 # define _Allocator allocator<bool>
@@ -749,6 +745,12 @@ class _RWSTD_EXPORT
 
 vector<bool, _Allocator >: private _Allocator
 {
+#if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC) && !defined (_RWSTD_NO_TYPENAME)
+    // clear _TYPENAME
+#  undef _TYPENAME
+#  define _TYPENAME
+#endif  // _RWSTD_NO_CLASS_PARTIAL_SPEC && !_RWSTD_NO_TYPENAME
+
     typedef _RWSTD_REBIND(_Allocator, unsigned int)       _C_value_alloc_type;
     typedef vector                                        _C_self;
 public:
@@ -756,10 +758,16 @@ public:
     typedef _Allocator                                      allocator_type;
     typedef bool                                            value_type;
 
-    typedef _VB_TYPENAME allocator_type::size_type          size_type;
-    typedef _VB_TYPENAME allocator_type::difference_type    difference_type;
-    typedef _VB_TYPENAME _C_value_alloc_type::pointer       pointer;
-    typedef _VB_TYPENAME _C_value_alloc_type::const_pointer const_pointer;
+    typedef _TYPENAME allocator_type::size_type             size_type;
+    typedef _TYPENAME allocator_type::difference_type       difference_type;
+    typedef _TYPENAME _C_value_alloc_type::pointer          pointer;
+    typedef _TYPENAME _C_value_alloc_type::const_pointer    const_pointer;
+
+#if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC) && !defined (_RWSTD_NO_TYPENAME)
+    // restore _TYPENAME
+#  undef _TYPENAME
+#  define _TYPENAME   typename
+#endif  // _RWSTD_NO_CLASS_PARTIAL_SPEC && !_RWSTD_NO_TYPENAME
 
     class iterator;
     class const_iterator;
