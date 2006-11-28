@@ -120,7 +120,6 @@ static const _RW::__rw_punct_t*    mon_punct_st = 0;
 static const _RW::__rw_messages_t* messages_st  = 0;
 
 
-static const char sect_charmap[]     = "CHARMAP";
 static const char sect_lc_all[]      = "LC_ALL";
 static const char sect_lc_collate[]  = "LC_COLLATE";
 static const char sect_lc_ctype[]    = "LC_CTYPE";
