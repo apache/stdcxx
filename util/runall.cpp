@@ -89,7 +89,7 @@
    @param argv program wide argv array for child processes
    @return processed argv array, usable in exec ()
 */
-static char** const
+static char**
 merge_argv (char* const target, char* const argv [])
 {
     size_t tlen;
