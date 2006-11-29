@@ -555,25 +555,28 @@ Def::Def (const char* filename, const char* out_name, Charmap& char_map,
     std::memset (&ctype_out_, 0, sizeof (ctype_out_));
     std::memset (&time_out_, 0, sizeof (time_out_));
 
-    mon_out_.frac_digits    [0] = -1;
-    mon_out_.frac_digits    [1] = -1;
-    mon_out_.p_cs_precedes  [0] = -1;
-    mon_out_.p_sep_by_space [0] = -1;
-    mon_out_.n_cs_precedes  [0] = -1;
-    mon_out_.n_sep_by_space [0] = -1;
-    mon_out_.p_sign_posn    [0] = -1;
-    mon_out_.n_sign_posn    [0] = -1;
-    mon_st_.mon_grouping += -1;
+    // invalidate format characters by setting each to CHAR_MAX
+    // as specified by the C function localeconv()
+    mon_out_.frac_digits    [0] = CHAR_MAX;
+    mon_out_.frac_digits    [1] = CHAR_MAX;
+    mon_out_.p_cs_precedes  [0] = CHAR_MAX;
+    mon_out_.p_sep_by_space [0] = CHAR_MAX;
+    mon_out_.n_cs_precedes  [0] = CHAR_MAX;
+    mon_out_.n_sep_by_space [0] = CHAR_MAX;
+    mon_out_.p_sign_posn    [0] = CHAR_MAX;
+    mon_out_.n_sign_posn    [0] = CHAR_MAX;
 
-    // c99 extension
-    mon_out_.p_cs_precedes  [1] = -1;
-    mon_out_.p_sep_by_space [1] = -1;
-    mon_out_.n_cs_precedes  [1] = -1;
-    mon_out_.n_sep_by_space [1] = -1;
-    mon_out_.p_sign_posn    [1] = -1;
-    mon_out_.n_sign_posn    [1] = -1;
+    mon_st_.mon_grouping += CHAR_MAX;
+
+    // invalidate int'l formats
+    mon_out_.p_cs_precedes  [1] = CHAR_MAX;
+    mon_out_.p_sep_by_space [1] = CHAR_MAX;
+    mon_out_.n_cs_precedes  [1] = CHAR_MAX;
+    mon_out_.n_sep_by_space [1] = CHAR_MAX;
+    mon_out_.p_sign_posn    [1] = CHAR_MAX;
+    mon_out_.n_sign_posn    [1] = CHAR_MAX;
     
-    num_st_.grouping += -1;
+    num_st_.grouping += CHAR_MAX;
 
     collate_out_.largest_ce     = 1;
     collate_out_.longest_weight = 1;

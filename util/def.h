@@ -216,9 +216,7 @@ private:
     void process_monetary();
 
     // create the monetary formats
-    void create_format (char format[], const char sign_posn, 
-                        const char cs_precedes, const char sep_by_space,
-                        bool is_positive);
+    void create_format (char [4], char, char, char, bool);
 
     // process the numeric section of the locale definition file
     void process_numeric();
@@ -458,7 +456,6 @@ private:
 
     // the structures used to hold the offsets for each locale category
     // and any non-pointer locale information
-    _RW::__rw_punct_t mon_punct_out_;
     _RW::__rw_punct_t num_punct_out_;
     _RW::__rw_ctype_t ctype_out_;
     _RW::__rw_time_t time_out_;
