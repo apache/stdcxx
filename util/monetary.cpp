@@ -41,7 +41,7 @@
 static const char lc_name[] = "LC_MONETARY";
 
 
-void Def::process_monetary()
+void Def::process_monetary ()
 {
     issue_diag (I_STAGE, false, 0, "processing %s section\n", lc_name);
 
@@ -236,24 +236,27 @@ void Def::process_monetary()
                             maxval, next.name.c_str ());
             }
             else
-                *pcharint = char (val);
+                *pcharint = -1 == val ? CHAR_MAX : char (val);
         }
     }
 }
 
 
-void Def::create_format (char format[], const char sign_posn, 
-                         const char cs_precedes, const char sep_by_space,
+void Def::create_format (char format [4],
+                         char sign_posn, 
+                         char cs_precedes,
+                         char sep_by_space,
                          bool is_positive) 
 {
     switch (sign_posn) {
         // the international extension is not defined for this locale
-    case -1:
-        format[0] = -1;
-        format[1] = -1;
-        format[2] = -1;
-        format[3] = -1;
+    case CHAR_MAX:
+        format [0] = CHAR_MAX;
+        format [1] = CHAR_MAX;
+        format [2] = CHAR_MAX;
+        format [3] = CHAR_MAX;
         return;
+
     case 0:
         // if sign_posn is 0 then we change the sign to "()", if sign is 
         // not the empty string then issue a warning
@@ -405,39 +408,41 @@ void Def::write_monetary (std::string dir_name)
     std::ofstream out (dir_name.c_str(), std::ios::binary);
     out.exceptions (std::ios::failbit | std::ios::badbit);
 
-    // calculate the offsets for the mon_punct structure
-    mon_punct_out_.decimal_point_off [1] = 0;
+    _RW::__rw_punct_t punct;
 
-    mon_punct_out_.thousands_sep_off [1] = 
-          mon_punct_out_.decimal_point_off [1] 
+    // calculate the offsets for the mon_punct structure
+    punct.decimal_point_off [1] = 0;
+
+    punct.thousands_sep_off [1] =
+          punct.decimal_point_off [1] 
         + (mon_st_.wmon_decimal_point.size () + 1) * sizeof (wchar_t);
 
-    mon_punct_out_.decimal_point_off [0] = 
-          mon_punct_out_.thousands_sep_off [1]
+    punct.decimal_point_off [0] =
+          punct.thousands_sep_off [1]
         + (mon_st_.wmon_thousands_sep.size () + 1) * sizeof (wchar_t);
 
-    mon_punct_out_.thousands_sep_off [0] = 
-          mon_punct_out_.decimal_point_off [0]
+    punct.thousands_sep_off [0] =
+          punct.decimal_point_off [0]
         + mon_st_.mon_decimal_point.size () + 1;
 
-    mon_punct_out_.grouping_off =
-          mon_punct_out_.thousands_sep_off [0]
+    punct.grouping_off =
+          punct.thousands_sep_off [0]
         + mon_st_.mon_thousands_sep.size () + 1;
 
-    mon_punct_out_.punct_ext_off =
-          mon_punct_out_.grouping_off
+    punct.punct_ext_off =
+          punct.grouping_off
         + mon_st_.mon_grouping.size () + 1;
 
     // compute the alignment requirement of any offset member
-    const std::size_t align = sizeof mon_punct_out_.punct_ext_off;
+    const std::size_t align = sizeof punct.punct_ext_off;
 
     // align the offset of the extension struct on the required boundary
-    const std::size_t misalign = mon_punct_out_.punct_ext_off % align;
+    const std::size_t misalign = punct.punct_ext_off % align;
 
     // compute the amount of padding between the two structs
     const std::size_t pad = misalign ? align - misalign : 0;
 
-    mon_punct_out_.punct_ext_off += pad;
+    punct.punct_ext_off += pad;
 
     mon_out_.curr_symbol_off [1][1] = 0;
 
@@ -494,12 +499,12 @@ void Def::write_monetary (std::string dir_name)
                 "    charmap_off = %u\n"
                 "}\n",
                 lc_name,
-                mon_punct_out_.decimal_point_off [0],
-                mon_punct_out_.decimal_point_off [1],
-                mon_punct_out_.thousands_sep_off [0],
-                mon_punct_out_.thousands_sep_off [1],
-                mon_punct_out_.grouping_off,
-                mon_punct_out_.punct_ext_off,
+                punct.decimal_point_off [0],
+                punct.decimal_point_off [1],
+                punct.thousands_sep_off [0],
+                punct.thousands_sep_off [1],
+                punct.grouping_off,
+                punct.punct_ext_off,
                 mon_out_.curr_symbol_off [0][0],
                 mon_out_.curr_symbol_off [0][1],
                 mon_out_.curr_symbol_off [1][0],
@@ -527,9 +532,9 @@ void Def::write_monetary (std::string dir_name)
                    false);
         
     // write out the mon_punct structure
-    out.write ((char*)&mon_punct_out_, sizeof (mon_punct_out_));
+    out.write ((char*)&punct, sizeof punct);
         
-    // write out the strings in the mon_punct_out_ structure
+    // write out the strings in the punct structure
     out.write ((const char*)mon_st_.wmon_decimal_point.c_str(),
                (mon_st_.wmon_decimal_point.size() + 1) * sizeof(wchar_t));
     out.write ((const char*)mon_st_.wmon_thousands_sep.c_str(),
