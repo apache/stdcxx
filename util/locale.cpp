@@ -2430,6 +2430,49 @@ print_help ()
 
 /**************************************************************************/
 
+static void
+print_ellipsis (const char *mbchar,
+                unsigned    last_byte [2],
+                unsigned    last_ucs4 [2],
+                unsigned    last_wchar [2])
+{
+    // close the ellipsis
+    const int open_width  = last_ucs4 [0] < 0x10000 ? 4 : 8;
+    const int close_width = last_ucs4 [1] < 0x10000 ? 4 : 8;
+
+    // the number of spaces between the symbolic character name
+    // and its multibyte character representation
+    int pad = 28 - open_width;
+
+    const unsigned nchars = last_byte [1] - last_byte [0] + 1;
+
+    if (1 < nchars) {
+
+        pad -= close_width + 8;
+
+        // print the UCS code, followed by the MB character,
+        // followed by the libc wchar_t value of the character
+        std::printf ("<U%0*X>..<U%0*X>%*s%s\\x%02x   "
+                     "# L'\\x%02x' (%u characters)\n",
+                     open_width, last_ucs4 [0],
+                     close_width, last_ucs4 [1], pad, " ",
+                     mbchar, last_byte [0], last_wchar [0],
+                     nchars);
+    }
+    else {
+        pad -= 3;
+
+        std::printf ("<U%0*X>%*s%s\\x%02x   "
+                     "# L'\\x%02x'\n",
+                     open_width, last_ucs4 [0], pad, " ",
+                     mbchar, last_byte [0], last_wchar [0]);
+    }
+
+    last_byte [0]  = last_byte [1] = UINT_MAX;
+    last_ucs4 [0]  = last_ucs4 [1] = 0;
+    last_wchar [0] = last_wchar [1] = 0;
+}
+
 // traverses codeset conversion tables and prints out the character
 // map in POSIX format with the internal wchar_t encoding in comments
 // collects space utilization statistics
@@ -2462,10 +2505,20 @@ print_charmap (const __rw::__rw_codecvt_t *cvt,
         ++ntables [count_inx];
     }
 
+    unsigned last_byte [2]  = { UINT_MAX, 0 };
+    unsigned last_ucs4 [2]  = { 0, 0 };
+    unsigned last_wchar [2] = { 0, 0 };
+
     // print out all multibyte characters in this map
     for (std::size_t i = 0; i != UCHAR_MAX + 1U; ++i) {
 
         if (tab [i] & 0x80000000) {
+
+            if (last_byte [0] <= UCHAR_MAX) {
+                // print the last character or ellipsis
+                print_ellipsis (mbchar, last_byte, last_ucs4, last_wchar);
+            }
+
             // skip invalid character or next table
             continue;
         }
@@ -2474,13 +2527,23 @@ print_charmap (const __rw::__rw_codecvt_t *cvt,
         const unsigned ucs4  = cvt->get_ucs4_at_offset (tab [i]);
         const unsigned wchar = cvt->get_internal_at_offset (tab [i]);
 
-        const int width = ucs4 < 0x10000 ? 4 : 8;
-        const int pad   = 10 - width;
+        if (UCHAR_MAX < last_byte [0]) {
+            last_byte [0]  = i;
+            last_ucs4 [0]  = ucs4;
+            last_wchar [0] = wchar;
+        }
+        else if (1 < ucs4 - last_ucs4 [1] || 1 < wchar - last_wchar [1]) {
+            // print the last character or ellipsis
+            print_ellipsis (mbchar, last_byte, last_ucs4, last_wchar);
 
-        // print the UCS code, followed by the MB character,
-        // followed by the libc wchar_t value of the character
-        std::printf ("<U%0*X>%*s%s\\x%02x   # L'\\x%02x'\n",
-                     width, ucs4, pad, " ", mbchar, i, wchar);
+            last_byte [0]  = i;
+            last_ucs4 [0]  = ucs4;
+            last_wchar [0] = wchar;
+        }
+
+        last_byte [1]  = i;
+        last_ucs4 [1]  = ucs4;
+        last_wchar [1] = wchar;
 
         if (nchars) {
             // increment the grand total of all characters
@@ -2491,6 +2554,9 @@ print_charmap (const __rw::__rw_codecvt_t *cvt,
             ++nchars [count_inx];
         }
     }
+
+    if (last_byte [0] <= UCHAR_MAX)
+        print_ellipsis (mbchar, last_byte, last_ucs4, last_wchar);
 
     // process subsequent maps
     for (std::size_t i = 0; i != UCHAR_MAX + 1U; ++i) {
