@@ -120,7 +120,7 @@ do_test (int         line,     // line number of the test case
 
 #undef TEST_SPEC
 #define TEST_SPEC(pfx, a1, a2, a3, expect)                              \
-    do {                                                                \
+    {                                                                   \
         ++ntests;                                                       \
         char fmt [64];                                                  \
         sprintf (fmt, "%s%c", pfx, spec);                               \
@@ -141,9 +141,7 @@ do_test (int         line,     // line number of the test case
                     (long)a1, (long)a2, (long)a3, buf, s0);             \
         }                                                               \
         free (s0);                                                      \
-        RW_ASSERT (0 < ntests);                                         \
-        /* avoid EDG constant controlling expression warnings  */       \
-    } while (0 == ntests /* always false */)
+    } (void)0 /* require semicolon after macro invocation */
 
 /***********************************************************************/
 
