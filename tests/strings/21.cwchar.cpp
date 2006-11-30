@@ -631,16 +631,16 @@ template <class FileT, class WCharT>
 int fwscanf (FileT*, const WCharT*, ...) { return ncalls++; }
 
 template <class WCharT>
-int wprintf (const WCharT*, ...) { return ncalls++; }
+int wprintf (const WCharT* dummy, ...) { return ncalls++; }
 
 template <class WCharT>
-int wscanf (const WCharT*, ...) { return ncalls++; }
+int wscanf (const WCharT* dummy, ...) { return ncalls++; }
 
 template <class WCharT, class SizeT>
-int swprintf (WCharT*, SizeT, const WCharT*, ...) { return ncalls++; }
+int swprintf (WCharT*, SizeT, const WCharT* dummy, ...) { return ncalls++; }
 
 template <class WCharT>
-int swscanf (const WCharT*, const WCharT*, ...) { return ncalls++; }
+int swscanf (const WCharT*, const WCharT* dummy, ...) { return ncalls++; }
 
 template <class FileT, class WCharT, class VAList>
 int vfwprintf (FileT*, const WCharT*, VAList) { return ncalls++; }
@@ -918,7 +918,7 @@ void test_functions ()
 
     // const commented to prevent MSVC 7.0 error:
     // error C2147: 'tm_buf' : const automatic array must be fully initialized
-    /*const */int tm_buf [16] = { 0 };
+    /* const */ int tm_buf [16] = { 0 };
     const test_tm* tmb = (const test_tm*)&tm_buf;
 
     TEST (test_size_t, wcsftime, (wstr, size, L"", tmb), WCSFTIME, -1);
