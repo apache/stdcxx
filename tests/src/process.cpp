@@ -152,10 +152,9 @@ _rw_map_errno (DWORD err)
 
 #  include <sys/types.h>
 #  include <sys/wait.h>   // for waitpid()
-#  include <unistd.h>     // for fork(), execv(), access()
+#  include <unistd.h>     // for fork(), execv(), access(), sleep()
 #  include <setjmp.h>     // for setjmp(), longjmp()
 #  include <signal.h>     // for signal()
-#  include <time.h>       // for nanosleep()
 
 /**************************************************************************/
 
@@ -509,36 +508,27 @@ rw_waitpid (rw_pid_t pid, int* result, int timeout/* = -1*/)
     if (0 < timeout && 0 == ret) {
         // process still active, wait
         sig_handler_t* old_handler = signal (SIGCHLD, sig_handler);
-        timespec rem = { timeout, 0 };
+
+        unsigned utimeout = unsigned (timeout);
 
         do {
-            timespec req = rem;
-            if (-1 == nanosleep (&req, &rem)) {
-                if (EINTR == errno) {
-                    // possible that the child has exited
-                    ret = waitpid (pid, &status, WNOHANG);
-                    if (-1 == ret) {
-                        rw_error (0, __FILE__, __LINE__,
-                                  "waitpid (%{P}, %#p, WNOHANG) failed: "
-                                  "errno = %{#m} (%{m})",
-                                  pid, &status);
-                    }
-                    else if (0 == ret) {
-                        // child still active
-                        continue;
-                    }
-                    else {
-                        // child has exited
-                        RW_ASSERT (pid == ret);
-                    }
+            utimeout = sleep (utimeout);
+            if (utimeout) {
+                // possible that the child has exited
+                ret = waitpid (pid, &status, WNOHANG);
+                if (-1 == ret) {
+                    rw_error (0, __FILE__, __LINE__,
+                              "waitpid (%{P}, %#p, WNOHANG) failed: "
+                              "errno = %{#m} (%{m})",
+                              pid, &status);
+                }
+                else if (0 == ret) {
+                    // child still active
+                    continue;
                 }
                 else {
-                    rw_error (0, __FILE__, __LINE__,
-                              "nanosleep (&{%i, 0}, %#p) failed: "
-                              "errno = %{#m} (%{m})",
-                              timeout, &rem);
-
-                    ret = -1;
+                    // child has exited
+                    RW_ASSERT (pid == ret);
                 }
             }
             else {
@@ -590,7 +580,7 @@ _TEST_EXPORT int
 rw_process_kill (rw_pid_t pid, int signo)
 {
     // timeout for rw_wait_pid
-    const int timeout = 1000;
+    const int timeout = 1;
 
 #if defined (_WIN32)
 
