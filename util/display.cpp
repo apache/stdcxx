@@ -110,9 +110,9 @@ const char* const short_st_name [ST_LAST] = {
     "XPERM", /*ST_EXECUTE_FLAG*/
     "EXEC", /*ST_EXECUTE*/
     "NOUT", /*ST_NO_OUTPUT*/
-    "NREF", /*ST_NO_REF*/
+    "OUTPUT", /*ST_NO_REF*/
     "BREF", /*ST_BAD_REF*/
-    "OUTPUT", /*ST_BAD_OUTPUT*/
+    "DIFF", /*ST_BAD_OUTPUT*/
     "FORMAT", /*ST_FORMAT*/
     "OFLOW", /*ST_OVERFLOW*/
     "ERROR", /*ST_SYSTEM_ERROR*/
