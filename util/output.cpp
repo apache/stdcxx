@@ -104,7 +104,9 @@ check_test (FILE* data, struct target_status* status)
                     r_active = r_total-r_active;
                 status->failed += r_active;
                 status->assert += r_total;
-                if (status->failed < r_active || status->assert < r_total) {
+                if (   status->failed < r_active 
+                    || status->assert < r_total
+                    || (unsigned int)-1 == status->assert) {
                     status->status = ST_OVERFLOW;
                     return;
                 }
@@ -113,7 +115,6 @@ check_test (FILE* data, struct target_status* status)
                 status->t_warn += r_active;
                 if (status->t_warn < r_active) {
                     status->t_warn = (unsigned int)-1;
-                    return;
                 }
             }
             fmt_ok = 1;
@@ -215,6 +216,9 @@ check_example (const char* const data_dir, char* const out_name, FILE* fout,
     assert (0 != out_name);
     assert (0 != fout);
     assert (0 != status);
+
+    /* Mark as an example by setting assertions to -1 */
+    status->assert = (unsigned)-1;
 
     /* Try data_dir/manual/out/target_name.out */
     ref_name = reference_name (data_dir, "manual", "out");
