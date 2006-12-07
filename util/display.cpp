@@ -76,9 +76,16 @@ static void print_status_plain (const struct target_status* status)
     printf (" %4u", status->c_warn + status->l_warn + status->t_warn);
 
     /* Print assetions, if any registered */
-    if (status->assert) {
-        printf (" %7u %6u %5d%%", status->assert, status->failed, 
-                100 * (status->assert - status->failed) / status->assert);
+    if (   (unsigned)-1 != status->assert
+        && 0 == status->status 
+        && 0 == status->exit) {
+        if (status->assert) {
+            printf (" %7u %6u %5d%%", status->assert, status->failed, 
+                    100 * (status->assert - status->failed) / status->assert);
+        }
+        else {
+            printf ("       0 %6u   100%%", status->failed);
+        }
     }
     else if (valid_timing || status->wall)
         printf ("                      ");
