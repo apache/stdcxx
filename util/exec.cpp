@@ -64,8 +64,17 @@
    Value is 1 when alarm has been triggered and hasn't been handled
 
    @see handle_alrm
+   @see handle_term_signal
 */
 static int alarm_timeout;
+
+/**
+   Record of fatal signal recieved.  Used to raise() the signal again after
+   child process has been killed.
+
+   @see handle_term_signal
+*/
+static int kill_signal;
 
 /**
     Utility macro to generate a signal number/name pair.
@@ -360,6 +369,22 @@ handle_alrm (int signo)
         alarm_timeout = 1;
 }
 
+/**
+   Callback used to gracefully terminate the utility if signaled to do so
+   while running a target
+
+   @param signo the signal recieved (should be in {SIGHUP, SIGINT, SIGQUIT, 
+   SIGTERM})
+   @see alarm_timeout
+
+*/
+static void
+handle_term_signal (int signo)
+{
+    kill_signal = signo;
+    alarm_timeout = 1;
+}
+
 typedef void (*alarm_handler)(int);
 
 #ifdef __cplusplus
@@ -428,6 +453,19 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
 
     sigaction (SIGALRM, &act, 0);
     
+    /* Set handlers for SIGHUP, SIGINT, SIGQUIT, SIGTERM so we can kill the
+       child process prior to dieing.
+    */
+    kill_signal = 0;
+
+    phandler = handle_term_signal;
+    memcpy (&act.sa_handler, &phandler, sizeof act.sa_handler);
+
+    sigaction (SIGHUP, &act, 0);
+    sigaction (SIGINT, &act, 0);
+    sigaction (SIGQUIT, &act, 0);
+    sigaction (SIGTERM, &act, 0);
+
     if (timeout > 0)
         alarm (timeout);
 
@@ -557,6 +595,20 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
     while (siginx < sigcount && 0 == kill (-child_pid, signals [siginx])) {
         ++siginx;
         sleep (1);
+    }
+
+    /* Check if we were signaled to quit. */
+    if (kill_signal) {
+        /* Reset the handlers to normal */
+        act.sa_handler = SIG_DFL;
+        sigaction (SIGHUP, &act, 0);
+        sigaction (SIGINT, &act, 0);
+        sigaction (SIGQUIT, &act, 0);
+        sigaction (SIGTERM, &act, 0);
+
+        if (0 > raise (kill_signal))
+            terminate (1, "raise(%s) failed: %s\n",
+                       get_signame (kill_signal), strerror (errno));
     }
 }
 
