@@ -23,7 +23,8 @@ ifeq ($(findstring shared,$(BUILDMODE)),shared)
   LIB    := $(LIBLINK).$(LIBVER)
   TARGET := $(LIB) $(LIBLINK)
 else
-  LIB := $(LIBLINK)
+  LIB    := $(LIBLINK)
+  TARGET := $(LIB)
 endif
 
 TARGET += $(CATFILE)
