@@ -48,6 +48,10 @@ endif   # ($(CXX_REPOSITORY),)
 # Don't want to link exec utility with stdlib, so create our own LDFLAGS var
 LDFLAGS.exec = $(filter-out -l$(LIBBASE),$(LDFLAGS))
 
+ifneq ($(RPATH),)
+  LDFLAGS += $(RPATH)$(LIBDIR)
+endif
+
 ##############################################################################
 #  TARGETS
 ##############################################################################
