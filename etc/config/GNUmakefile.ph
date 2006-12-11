@@ -47,6 +47,10 @@ RUNFLAGS     += --ph -X "-C $(CXX)-$(CCVER)"
 # override the runtarget set in makefile.common
 RUNTARGET   = $(shell $(MAKE) -s listtarget listsubtests | sed "s/ / .\//g")
 
+ifneq ($(RPATH),)
+  LDFLAGS += $(RPATH)$(LIBDIR)
+endif
+
 ##############################################################################
 #  TARGETS  
 ##############################################################################

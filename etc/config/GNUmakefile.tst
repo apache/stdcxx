@@ -67,6 +67,10 @@ TARGET := $(patsubst %.cpp,%,$(SRCS))
 # add to targets objects for any sources in the current working directory
 TARGET += $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
+ifneq ($(RPATH),)
+  LDFLAGS += $(RPATH)$(LIBDIR):$(BUILDDIR)/rwtest
+endif
+
 ##############################################################################
 #  TARGETS
 ##############################################################################

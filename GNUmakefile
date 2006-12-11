@@ -589,6 +589,7 @@ $(MAKEFILE_IN): $(configpath)
           && echo "LDLIBS     = $(LDLIBS)"               >> $(MAKEFILE_IN)  \
           && echo "LDSOFLAGS  = $(LDSOFLAGS)"            >> $(MAKEFILE_IN)  \
           && echo "MAPFLAGS   = $(MAPFLAGS)"             >> $(MAKEFILE_IN)  \
+          && echo "RPATH      = $(RPATH)"                >> $(MAKEFILE_IN)  \
           && [ "$(MAPFILE)" = "" ]                                          \
           || echo "MAPFILE    = $$""(TOPDIR)/$(MAPFILE)" >> $(MAKEFILE_IN)  \
           && echo "RUNFLAGS   = -t 180"                  >> $(MAKEFILE_IN)  \

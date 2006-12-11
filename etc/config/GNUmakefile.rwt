@@ -54,6 +54,10 @@ ifneq ($(PRELINKFLAGS),)
 CXXPRELINK = $(CXX) $(CPPFLAGS) $(PRELINKFLAGS) $(OBJS) $(LDFLAGS)
 endif   # ($(PRELINKFLAGS),)
 
+ifneq ($(RPATH),)
+  LDFLAGS += $(RPATH)$(LIBDIR)
+endif
+
 ##############################################################################
 #  TARGETS
 ##############################################################################
