@@ -119,9 +119,10 @@
 #   PICFLAGS  - flags to generate Position Independent Code
 #               for shared libraries
 #
-#   PRELINKFLAGS - flags passed to the prelinker
+#   PREFIX    - the root of the installation directory where the bin/
+#               include/ and lib/ subdirectories will be rooted
 #
-#   REPORTFILE - file containing the results of `make run'
+#   PRELINKFLAGS - flags passed to the prelinker
 #
 #   RUNFLAGS  - default options passed to runall.sh when running executables
 #   RUNOPTS   - additional options to pass to runall.sh (empty by default)
@@ -511,7 +512,7 @@ ifeq ($(in_topdir),1)
   PLATFORM := $(subst i686,i86,$(PLATFORM))
   PLATFORM := $(shell echo $(PLATFORM) | tr "[:upper:]" "[:lower:]")
 
-  REPORTFILE = $(CXX)-$(CCVER)-$(PLATFORM)-$(BUILDTYPE)
+  CONFIG_H := $(CXX)-$(CCVER)-$(BUILDTYPE)
 
   # name of the library w/o the prefix and suffix
   # suitable for use by the linker after the -l option
@@ -574,6 +575,7 @@ $(MAKEFILE_IN): $(configpath)
           && echo "BUILDDIR   = $(buildpath)"            >> $(MAKEFILE_IN)  \
           && echo "CONFIG     = $$""(TOPDIR)/etc/config/$(CONFIG)"          \
                                                          >> $(MAKEFILE_IN)  \
+          && echo "CONFIG_H   = $(CONFIG_H)"             >> $(MAKEFILE_IN)  \
           && echo "BUILDTYPE  = $(BUILDTYPE)"            >> $(MAKEFILE_IN)  \
           && echo "BUILDMODE  = $(BUILDMODE)"            >> $(MAKEFILE_IN)  \
           && echo "CXX        = $(CXX)"                  >> $(MAKEFILE_IN)  \
@@ -610,8 +612,6 @@ $(MAKEFILE_IN): $(configpath)
           && echo "OMIT_TST_SRCS = $(OMIT_TST_SRCS)"     >> $(MAKEFILE_IN)  \
           && echo "BUILDTAG   = $(BUILDTAG)"             >> $(MAKEFILE_IN)  \
           && echo "PLATFORM   = $(PLATFORM)"             >> $(MAKEFILE_IN)  \
-          && echo "REPORTFILE = $(REPORTFILE)$$""(BUILDTAG)"                \
-                                                         >> $(MAKEFILE_IN)  \
           && echo "DEFAULT_SHROBJ = $(DEFAULT_SHROBJ)"   >> $(MAKEFILE_IN)  \
           && echo "CXX_REPOSITORY = $(CXX_REPOSITORY)"	 >> $(MAKEFILE_IN));
 
@@ -666,64 +666,14 @@ phtst:
 examples:
 	-@$(MAKE) -C$(EXMDIR)
 
-
-# run all tests and examples, generate result file and post it in a revison
-# control system (unless the variable DRYRUN is non-empty) ; regressions
-# are computed with respect to last posted report (not just any report that's
-# lying around)
-
-# if DRYRUN isn't set, deletes all the executables first so that if a test
-# doesn't compile, old executables aren't run by accident
-# although the target lists no dependencies is does make lib and tries
-# to make (failures are ignored via -k) the tst and exm targets
-
-# make listtarget is stripped of make's diganostic output (the "Entering/
-# Leaving directory" message); tr is used to chop up the long list of files
-# into a bunch of short lines to accomodate SunOS sed that can't handle very
-# long input lines (Output line too long error)
-post:
-	@(trap "rm -rf $(REPORTFILE) post 2" ;                                \
-          log=$(LOGFILE);                                                     \
-          [ "`echo "$$log" | sed -n 's/^ *\/.*/\//p'`" = / ]                  \
-          || log=$(BUILDDIR)/$$log ;                                          \
-          ts0=`date +%T`;                                                     \
-          echo > $$log ; date >> $$log ;                                      \
-          if [ -z "$(DRYRUN)" ] ; then                                        \
-              POST="-p $(TOPDIR)/etc/results/$(REPORTFILE)";                  \
-              export POST;                                                    \
-              $(MAKE) -s -C $(INCDIR) | tee -a $$log ;                        \
-              $(MAKE) cleantarget ;                                           \
-          fi ;                                                                \
-          ts1=`date +%T`;                                                     \
-          echo >> $$log ; date >> $$log ; echo >> $$log ;                     \
-          $(MAKE) LOGFILE=$$log lib ;                                         \
-          ts2=`date +%T`;                                                     \
-          date >> $$log ;                                                     \
-          $(MAKE) -k LOGFILE=$$log bin tests examples ;                       \
-          echo >> $$log ; date >> $$log ; echo >> $$log ;                     \
-          [ ! -d post ] && mkdir post;                                        \
-          last=$(TOPDIR)/etc/results/$(REPORTFILE) ;                          \
-          tsts=`$(MAKE) -C $(TSTDIR) listtarget | sed -n "n;p" | tr ' ' '\n'  \
-                | sed "s:^:../tests/:g"`;                                     \
-          ph_tsts=`$(MAKE) -C $(PHTSTDIR) listtarget listsubtests             \
-                | sed -n "n;p" | tr ' ' '\n' | sed "s:^:../plumhall/:g"`;     \
-          exms=`$(MAKE) -C $(EXMDIR) listtarget | sed -n "n;p" | tr ' ' '\n'  \
-                | sed "s:^:../examples/:g"` ;                                 \
-          desc="Sizes: `du -ak lib/$(LIBNAME) | awk '{print $$1}'             \
-                ` KB $(LIBNAME), `du -sk $(BUILDDIR) | awk '{print $$1}'      \
-                ` KB $(BUILDDIR)" ;                                           \
-          ltsts=`$(MAKE) -C$(BUILDDIR)/bin listruntarget |                    \
-                sed -n "n;p" | tr ' ' '\n' | sed "s:^:../bin/:g"`;            \
-          (cd post;                                                           \
-           LD_LIBRARY_PATH=$(LIBDIR):$$LD_LIBRARY_PATH                        \
-           PATH=$(BUILDDIR)/bin:$$PATH                                        \
-           ../run $(RUNFLAGS) -d "$$desc" -X "-C $(CXX)-$(CCVER)" -r $$last   \
-                  -T "$$ts0,$$ts1,$$ts2" --log $$log $$ltsts $$tsts           \
-                  -x $(TOPDIR)/examples $$exms --ph $$ph_tsts $$POST          \
-                  | tee $(REPORTFILE) ) ;                                     \
-          mv post/$(REPORTFILE) $(REPORTFILE) ;                               \
-          rm -r post)
-
+# install library, headers, and utilities
+install:
+	mkdir -p $(PREFIX)
+	$(MAKE) -Clib $@
+	$(MAKE) -Cbin $@
+	mkdir -p $(PREFIX)/include
+	cp include/config.h $(PREFIX)/include
+	cp -Rf $(TOPDIR)/include $(PREFIX)
 
 # try each submakefile
 .DEFAULT:
@@ -737,4 +687,4 @@ post:
 endif   # ($(CURDIR),$(TOPDIR))
 
 
-.PHONY: all builddir lib rwtest bin tests phtst examples post util
+.PHONY: all bin builddir examples install lib phtst post rwtest tests util

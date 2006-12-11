@@ -10,7 +10,25 @@
 include ../makefile.in
 
 
-TARGET       = $(LIBDIR)/$(LIBNAME)
+# catalog to build and source files to build it from
+CATFILE  := rwstderr.cat
+MSGFILES := rwstderr.msg
+
+# the name of the library to build (and in shared builds,
+# the name of the symbolic link pointing to it, for library
+# versioning)
+LIBLINK := $(LIBNAME)
+
+ifeq ($(findstring shared,$(BUILDMODE)),shared)
+  LIB    := $(LIBLINK).$(LIBVER)
+  TARGET := $(LIB) $(LIBLINK)
+else
+  LIB := $(LIBLINK)
+endif
+
+TARGET += $(CATFILE)
+
+
 SRCDIRS      = $(TOPDIR)/src
 
 # do not compile these sources...
@@ -19,9 +37,6 @@ OMIT_SRCS   += rwstderr.cpp
 # include common variables setting for all makefiles
 ONE_REPOSITORY = 1
 include ../makefile.common
-
-CATFILE      = rwstderr.cat
-MSGFILES     = rwstderr.msg
 
 CXXFLAGS    += $(PICFLAGS)
 LDFLAGS     += $(LDSOFLAGS) $(MAPFLAGS) $(MAPFILE)
@@ -48,7 +63,7 @@ endif   # ($(PRELINKFLAGS),)
 # Cancel implicit rules
 .SUFFIXES:
 
-all:  $(TARGET) $(CATFILE)
+all: $(TARGET)
 
 # do any directory specific cleanup using the realclean target
 realclean: dependclean clean
@@ -60,23 +75,24 @@ ifeq ($(findstring shared,$(BUILDMODE)),shared)
   # shared archives are unique to IBM AIX
   # IBM VisualAge/XLC++ on AIX first "preprocesses" object files
   # with -qmkshrobj and then uses `ar' to create a shared archive
-$(TARGET): $(OBJS)
+$(LIB): $(OBJS)
 	@echo "$(CXXPRELINK) -o $(LIBBASE).o" >> $(LOGFILE)
 	$(CXXPRELINK) -o $(LIBBASE).o $(TEEOPTS)
-	@echo "$(AR) $(ARFLAGS) $(LIBNAME) $(LIBBASE).o" >> $(LOGFILE)
-	$(AR) $(ARFLAGS) $(LIBNAME) $(LIBBASE).o $(TEEOPTS)
+	@echo "$(AR) $(ARFLAGS) $@ $(LIBBASE).o" >> $(LOGFILE)
+	$(AR) $(ARFLAGS) $@ $(LIBBASE).o $(TEEOPTS)
   else
-$(TARGET): $(OBJS) $(MAPFILE)
-	@echo "$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $@.$(LIBVER)" >> $(LOGFILE)
-	$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $@.$(LIBVER) $(TEEOPTS)
-	@echo "ln -sf $@.$(LIBVER) $@" >> $(LOGFILE)
-	rm -f $@
-	ln -s $@.$(LIBVER) $@
+$(LIB): $(OBJS) $(MAPFILE)
+	@echo "$(LD) $(LDFLAGS) $< $(LDLIBS) -o $@" >> $(LOGFILE)
+	$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $@ $(TEEOPTS)
   endif   # shared archive
+
+$(LIBLINK): $(LIB)
+	@echo "ln -sf $< $@" >> $(LOGFILE)
+	ln -sf $< $@
 
 else
 
-$(TARGET): $(OBJS)
+$(LIB): $(OBJS)
 	@echo "$(CXXPRELINK)" >> $(LOGFILE)
 	$(CXXPRELINK) $(TEEOPTS)
 	@echo "$(AR) $(ARFLAGS) $(LIBNAME) $(SOBJS)" >> $(LOGFILE)
@@ -84,5 +100,18 @@ $(TARGET): $(OBJS)
 
 endif   # ($(findstring shared,$(BUILDMODE)),shared)
 
+
 # Common rules used by all Makefiles
 include ../makefile.rules
+
+# create the $(PREFIX)/etc/ and $(PREFIX)/lib/ directories
+# and install the library binary and the message catalog(s)
+install: $(TARGET)
+	mkdir -p $(PREFIX)/lib
+	cp $(LIB) $(PREFIX)/lib
+	if [ $(LIBLINK) != $(LIB) ]; then          \
+            rm $(PREFIX)/lib/$(LIBLINK);           \
+            ln -s $(LIB) $(PREFIX)/lib/$(LIBLINK); \
+        fi
+	mkdir -p $(PREFIX)/etc
+	cp $(CATFILE) $(PREFIX)/etc

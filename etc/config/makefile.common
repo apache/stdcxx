@@ -141,20 +141,6 @@ ifneq ($(LOGFILE),/dev/null)
   TEEOPTS = 2>&1 | tee -a $(LOGFILE)
 endif
 
-# determine the name of the results file against which to compute regressions
-REGRESS_FILE := $(shell                                      \
-    if [ -z "$(REGRESS)" ] ; then                            \
-        ls -tr1 ../$(REPORTFILE)* 2> /dev/null | tail -1 ;   \
-    elif [ -f $(REGRESS) ] ; then                            \
-        echo "$(REGRESS)" ;                                  \
-    else                                                     \
-        echo "$(TOPDIR)/results/$(REPORTFILE)" ;             \
-    fi)
-
-ifeq ($(REGRESS_FILE),)
-  REGRESS_FILE = "$(TOPDIR)/results/$(REPORTFILE)"
-endif
-
 # set the RUNTARGET variable to command line args if $RUN isn't set
 ifeq ($(RUN),)
   RUNTARGET := $(filter-out run_all runall run,$(MAKECMDGOALS))

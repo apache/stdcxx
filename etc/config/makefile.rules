@@ -100,11 +100,9 @@ endif   # eq ($(NO_DOT_O),)
         echo >> $@ ; echo "$$tmp" >> $@ ;                                   \
         chmod +x $@)
 
-# run all tests, collect exit status and report statistics, tee report to
-# a report file, replace last report if same; regressions are computed with
-# respect to the most recent report; the variable RUN can be set to contain
-# a list of executables to run without generating a report (set to ALL to
-# run all executables)
+# run all tests, collect exit status and report statistics; the variable
+# RUN can be set to contain a list of executables to run without generating
+# a report (set to ALL to run all executables)
 # hung or runaway processes are killed after a customizable timeout period
 #
 # PlumHall specific:
@@ -115,14 +113,10 @@ run runall run_all: $(BINDIR)/exec
         PATH=$$PATH:.;                                                    \
         TOPDIR=$(TOPDIR);                                                 \
         export LD_LIBRARY_PATH PATH TOPDIR;                               \
-        report=../$(REPORTFILE)-`date +%m.%d.%y-%H:%M`;                   \
         if [ -z "$(RUNTARGET)" ];  then                                   \
-            trap "rm $$report" 2 ;                                        \
-            ./run $(RUNFLAGS) -r $(REGRESS_FILE) | tee $$report;          \
-            diff $(REGRESS_FILE) $$report > /dev/null 2>&1                \
-                  && rm $(REGRESS_FILE);                                  \
+            ./run $(RUNFLAGS)                                             \
         else                                                              \
-            ./run $(RUNFLAGS) -r $(REGRESS_FILE) $(RUNTARGET);            \
+            ./run $(RUNFLAGS) $(RUNTARGET);                               \
         fi ;                                                              \
         exit 0)
 

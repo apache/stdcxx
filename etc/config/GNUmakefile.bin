@@ -8,7 +8,7 @@
 
 include ../makefile.in
 
-SRCDIRS = $(TOPDIR)/util
+SRCDIRS = $(TOPDIR)/src/util
 
 # include common variables setting for all makefiles
 ONE_REPOSITORY = 1
@@ -25,20 +25,23 @@ LOCDIR = $(BUILDDIR)/nls
 # have to carry the path with them in the rule target.
 VPATH += $(LOCDIR)
 
-# list of locales  to be built; first compose a  full name from gen_list
-# in the form of <locale name>.<codeset> then move the modifier @euro at
-# the end of the name
-LOCALE_LIST := $(shell cat $(NLSDIR)/gen_list |                              \
-                       sed -e s:"^\([^ ]*\) *\([^ ]*\)":"\1\.\2":g           \
-                           -e s:"\([^.]*\)\(.euro\)\([^ ]*\)":"\1\3@euro":g  \
-                      -e s:"\([^.]*\)\(.cyrillic\)\([^ ]*\)":"\1\3@cyrillic":g)
+# list of locales to build
+# first compose a full name from gen_list in the form
+#   <locale name>.<codeset>
+# then move the known modifiers (@euro and @cyrillic) to the end
+# of the name
+LOCALES :=                                                                 \
+    $(shell sed -e s:"^ *\([^ ]*\)  *\([^ ]*\) *":"\1\.\2":g               \
+                -e s:"\([^.]*\)\(.euro\)\([^ ]*\)":"\1\3@euro":g           \
+                -e s:"\([^.]*\)\(.cyrillic\)\([^ ]*\)":"\1\3@cyrillic":g   \
+                $(NLSDIR)/gen_list)
 
 ## Filter from RUNTARGET only the scripts
 RUNTARGET := $(filter %.sh,$(RUNTARGET))
 
 # If empty populate it with the names of the locales databases test scripts
 ifeq ($(RUNTARGET),)
-  RUNTARGET := sanity_test.sh $(patsubst %,%.sh,$(LOCALE_LIST))
+  RUNTARGET := sanity_test.sh $(patsubst %,%.sh,$(LOCALES))
 endif
 
 ifneq ($(CXX_REPOSITORY),)
@@ -83,7 +86,7 @@ locale: locale.o aliases.o charmap.o codecvt.o collate.o def.o ctype.o \
 	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<) $(TEEOPTS)
 
 # build all locales with the localedef utility
-locales: localedef $(LOCALE_LIST)
+locales: localedef $(LOCALES)
 
 # the rule builds the scripts that are run by the runall script
 $(RUNTARGET): $(NLSDIR)/gen_list
@@ -98,8 +101,8 @@ $(RUNTARGET): $(NLSDIR)/gen_list
           chmod ug+x $@;)
 
 # the rule presents as dependencies the source files corresponding
-# to that locale; it is run once for each entry in LOCALE_LIST
-$(LOCALE_LIST): $(NLSDIR)/gen_list
+# to that locale; it is run once for each entry in LOCALES
+$(LOCALES): $(NLSDIR)/gen_list
 	@(lname=`echo $@ | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\1\3:;y:@:.:"`; \
           cname=`echo $@ | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\2:"`;          \
           echo "./localedef -w -c -f $(NLSDIR)/charmaps/$$cname"             \
@@ -109,7 +112,7 @@ $(LOCALE_LIST): $(NLSDIR)/gen_list
 
 $(DEPENDDIR)/localedb.d: $(DEPENDDIR) $(NLSDIR)/gen_list
 	@(echo "# generated locale dependencies" > $@;                      \
-          for f in $(LOCALE_LIST); do                                       \
+          for f in $(LOCALES); do                                           \
               lname=`echo $$f |                                             \
                 sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\1\3:;y:@:.:"`;           \
               cname=`echo $$f | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\2:"`;    \
@@ -125,5 +128,18 @@ DEPS := $(DEPENDDIR)/localedb.d
 # do any directory specific cleanup using the realclean target
 realclean: clean dependclean
 	-rm -rf $(TARGET) 
+
+# compute the names of codesets (codecvt databases) and set
+# the variable only for the install target for efficiency
+install: codesets := \
+    $(sort $(shell echo $(LOCALES) | sed "s/[a-z][a-z_A-Z]*\.\([^ ]*\)/\1/g"))
+
+# create the $(PREFIX)/bin $(PREFIX)/nls directories and install
+# the utilities and locales 
+install: locale localedef $(LOCALES)
+	mkdir -p $(PREFIX)/bin
+	cp locale localedef $(PREFIX)/bin
+	mkdir -p $(PREFIX)/nls
+	cd ../nls && cp -R $(LOCALES) $(codesets) $(PREFIX)/nls
 
 include ../makefile.rules
