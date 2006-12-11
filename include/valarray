@@ -1472,6 +1472,8 @@ public:
           _C_slice (__s)
         { }
 
+
+
     _RW::__rw_array<value_type>* get_ref_mem_array () const {
         return _C_array;
     }
@@ -1496,6 +1498,7 @@ public:
 
 private:
     gslice_array ();
+    gslice_array<value_type>& operator= (const gslice_array<value_type>&);
 
     _RW::__rw_array<value_type>* _C_array;
     gslice                       _C_slice;
@@ -2115,21 +2118,20 @@ valarray<_TypeT>::operator= (const slice_array<_TypeT>& sl_ar)
 
 template <class _TypeT> 
 inline valarray<_TypeT>
-valarray<_TypeT>::operator[](const gslice& sl) const
+valarray<_TypeT>::operator[](const gslice& __sl) const
 {
-    _RW::__rw_array <_TypeT> __tmp =
-        _RW::__rw_array <_TypeT>(_TypeT (), sl.ind_numb());
+    const _RWSTD_SIZE_T __maxinx = __sl.ind_numb ();
 
-    gslice *gsl = _RWSTD_CONST_CAST (gslice*, &sl);
+    _RW::__rw_array<_TypeT> __tmp =
+        _RW::__rw_array<_TypeT>(_TypeT (), __maxinx);
 
-    _RWSTD_SIZE_T __i = gsl->next_ind();
-    _RWSTD_SIZE_T __cpt = 0;
+    gslice* const __gsl = _RWSTD_CONST_CAST (gslice*, &__sl);
 
-    while( !sl.is_reseted() )
-    {
-      __tmp[__cpt] = _C_array[__i];
-      __i= gsl->next_ind();
-      __cpt++;
+    for (_RWSTD_SIZE_T __i = 0; __i != __maxinx; ++__i) {
+
+        const _RWSTD_SIZE_T __inx = __gsl->next_ind ();
+
+        __tmp [__i] = _C_array [__inx];
     }
 
     return valarray<_TypeT>(__tmp);
