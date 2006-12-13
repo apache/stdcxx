@@ -113,11 +113,7 @@ run runall run_all: $(BINDIR)/exec
         PATH=$$PATH:.;                                                    \
         TOPDIR=$(TOPDIR);                                                 \
         export LD_LIBRARY_PATH PATH TOPDIR;                               \
-        if [ -z "$(RUNTARGET)" ];  then                                   \
-            ./run $(RUNFLAGS)                                             \
-        else                                                              \
-            ./run $(RUNFLAGS) $(RUNTARGET);                               \
-        fi ;                                                              \
+        ./run $(RUNFLAGS) $(RUNTARGET);                                   \
         exit 0)
 
 # include the automatically generated dependencies unless "clean"
