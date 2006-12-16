@@ -47,6 +47,15 @@
 ##############################################################################
 
 
+if [ "`uname`" = "OSF1" -a "$BIN_SH" != "xpg4" ]; then
+    # make getopts work on Tru64 by setting the BIN_SH variable
+    # and re-executing self with the same command line arguments
+    BIN_SH=xpg4
+    export BIN_SH
+    exec $0 $*
+fi
+
+
 locale="./locale"
 localedef="./localedef"
 
