@@ -50,7 +50,7 @@ make_array (const char *s)
         buf [i] = std::size_t (val);
 
         if ('\0' == *end)
-            return std::valarray<std::size_t>(buf, i);
+            return std::valarray<std::size_t>(buf, i + 1);
 
         s = end + 1;
     }
@@ -84,7 +84,7 @@ next_index (const std::gslice &gsl, std::valarray<std::size_t> &factors)
 
     const std::size_t ndims = asizes.size ();
 
-    std::size_t inx = asizes.size ();
+    std::size_t inx = ndims;
 
     if (0 == factors.size ()) {
         factors.resize (ndims);
@@ -160,11 +160,13 @@ test_gslice (std::size_t  start,
     for (std::size_t i = 0; i != va.size (); ++i)
         va [i] = i;
 
-    for (int i = 0; i != 2; ++i) {
-        // repeat each test twice to verify that operator[](gslice)
-        // doesn't change the observable state of its argument
+    for (int i = 0; i != 3; ++i) {
+        // repeat each test three to verify that operator[](gslice)
+        // doesn't change the observable state of its argument and
+        // that the same result is obtained for a copy of gslice
 
-        const std::valarray<std::size_t> array_slice = va [gsl];
+        const std::valarray<std::size_t> array_slice =
+            i < 2 ? va [gsl] : va [std::gslice (gsl)];
 
         bool equal = array_slice.size () == indices.size ();
 
