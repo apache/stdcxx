@@ -191,32 +191,32 @@
 #define y_  !ERROR!
 #define z_  !ERROR!
 
-#define A   !ERROR!
-#define B   !ERROR!
-#define C   !ERROR!
-#define D   !ERROR!
-#define E   !ERROR!
-#define F   !ERROR!
-#define G   !ERROR!
-#define H   !ERROR!
-#define I   !ERROR!
-#define J   !ERROR!
-#define K   !ERROR!
-#define L   !ERROR!
-#define M   !ERROR!
-#define N   !ERROR!
-#define O   !ERROR!
-#define P   !ERROR!
-#define Q   !ERROR!
-#define R   !ERROR!
-#define S   !ERROR!
-#define T   !ERROR!
-#define U   !ERROR!
-#define V   !ERROR!
-#define W   !ERROR!
-#define X   !ERROR!
-#define Y   !ERROR!
-#define Z   !ERROR!
+#define A_  !ERROR!
+#define B_  !ERROR!
+#define C_  !ERROR!
+#define D_  !ERROR!
+#define E_  !ERROR!
+#define F_  !ERROR!
+#define G_  !ERROR!
+#define H_  !ERROR!
+#define I_  !ERROR!
+#define J_  !ERROR!
+#define K_  !ERROR!
+#define L_  !ERROR!
+#define M_  !ERROR!
+#define N_  !ERROR!
+#define O_  !ERROR!
+#define P_  !ERROR!
+#define Q_  !ERROR!
+#define R_  !ERROR!
+#define S_  !ERROR!
+#define T_  !ERROR!
+#define U_  !ERROR!
+#define V_  !ERROR!
+#define W_  !ERROR!
+#define X_  !ERROR!
+#define Y_  !ERROR!
+#define Z_  !ERROR!
 
 #define a1  !ERROR!
 #define b1  !ERROR!
@@ -453,6 +453,7 @@
 #define CharT                   !ERROR!
 #define cmp                     !ERROR!
 #define cnt                     !ERROR!
+#define cpt                     !ERROR!
 #define comp                    !ERROR!
 #define Container               !ERROR!
 #define Compare                 !ERROR!
@@ -469,6 +470,9 @@
 #define gen                     !ERROR!
 #define Gen                     !ERROR!
 #define Generator               !ERROR!
+#define get_array               !ERROR!
+#define get_slice               !ERROR!
+#define gs                      !ERROR!
 #define InputIter               !ERROR!
 #define InputIterator           !ERROR!
 #define index                   !ERROR!
@@ -480,6 +484,7 @@
 #define len                     !ERROR!
 #define lhs                     !ERROR!
 #define line                    !ERROR!
+#define lineno                  !ERROR!
 #define loc                     !ERROR!
 #define LONG                    !ERROR!
 #define med                     !ERROR!
@@ -487,6 +492,7 @@
 #define middle                  !ERROR!
 #define mode                    !ERROR!
 #define msg                     !ERROR!
+#define msk                     !ERROR!
 #define n                       !ERROR!
 #define nchar                   !ERROR!
 #define nchars                  !ERROR!
@@ -526,6 +532,9 @@
 #define rhs                     !ERROR!
 #define rlen                    !ERROR!
 #define save                    !ERROR!
+#define sec                     !ERROR!
+#define sl                      !ERROR!
+#define sla                     !ERROR!
 #define sb                      !ERROR!
 #define SCHAR                   !ERROR!
 #define Size                    !ERROR!
@@ -538,6 +547,7 @@
 #define tag                     !ERROR!
 #define temp                    !ERROR!
 #define tmp                     !ERROR!
+#define Tp                      !ERROR!
 #define traits                  !ERROR!
 #define Traits                  !ERROR!
 #define type                    !ERROR!
@@ -549,6 +559,8 @@
 #define USHRT                   !ERROR!
 #define UnaryFunction           !ERROR!
 #define val                     !ERROR!
+// value used in type traits
+// #define value                   !ERROR!
 #define var                     !ERROR!
 #define way                     !ERROR!
 #define which                   !ERROR!
