@@ -75,10 +75,12 @@ __rw_memchr (const void *src, int c, _RWSTD_SIZE_T nbytes)
 
     const UChar* csrc = _RWSTD_STATIC_CAST (const UChar*, src);
 
-    while (nbytes-- > 0 && int (*csrc) != c)
+    while (nbytes > 0 && int (*csrc) != c) {
         ++csrc;
+        --nbytes;
+    }
 
-    return int (*csrc) == c ? csrc : 0;
+    return nbytes ? csrc : 0;
 }
 
 
@@ -160,10 +162,12 @@ __rw_wmemchr (const wchar_t *src, wchar_t wc, _RWSTD_SIZE_T nwchars)
 {
     _RWSTD_ASSERT (0 == nwchars || src);
 
-    while (nwchars-- > 0 && *src != wc)
+    while (nwchars > 0 && *src != wc) {
         ++src;
+        --nwchars;
+    }
 
-    return *src == wc ? src : 0;
+    return nwchars ? src : 0;
 }
 
 
