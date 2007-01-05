@@ -1027,7 +1027,7 @@ valarray<bool> operator>= (const _TypeT &__lhs, const valarray<_TypeT> &__rhs)
 template<class _TypeT>
 inline valarray<_TypeT> abs (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = __val [__i] < _TypeT () ? -__val [__i] : __val [__i];
@@ -1038,7 +1038,7 @@ inline valarray<_TypeT> abs (const valarray<_TypeT> &__val)
 template<class _TypeT>
 inline valarray<_TypeT> acos (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::acos (__val [__i]);
@@ -1049,7 +1049,7 @@ inline valarray<_TypeT> acos (const valarray<_TypeT> &__val)
 template<class _TypeT>
 inline valarray<_TypeT> asin (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::asin (__val [__i]);
@@ -1061,7 +1061,7 @@ inline valarray<_TypeT> asin (const valarray<_TypeT> &__val)
 template<class _TypeT>
 valarray<_TypeT> atan (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::atan (__val [__i]);
@@ -1072,7 +1072,7 @@ valarray<_TypeT> atan (const valarray<_TypeT> &__val)
 template<class _TypeT>
 inline valarray<_TypeT> cos (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::cos (__val [__i]);
@@ -1083,7 +1083,7 @@ inline valarray<_TypeT> cos (const valarray<_TypeT> &__val)
 template<class _TypeT>
 inline valarray<_TypeT> cosh (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::cosh (__val [__i]);
@@ -1094,7 +1094,7 @@ inline valarray<_TypeT> cosh (const valarray<_TypeT> &__val)
 template<class _TypeT>
 inline valarray<_TypeT> exp (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::exp (__val [__i]);
@@ -1105,7 +1105,7 @@ inline valarray<_TypeT> exp (const valarray<_TypeT> &__val)
 template<class _TypeT>
 inline valarray<_TypeT> log (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::log (__val [__i]);
@@ -1116,7 +1116,7 @@ inline valarray<_TypeT> log (const valarray<_TypeT> &__val)
 template<class _TypeT>
 inline valarray<_TypeT> log10 (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::log10 (__val [__i]);
@@ -1127,7 +1127,7 @@ inline valarray<_TypeT> log10 (const valarray<_TypeT> &__val)
 template<class _TypeT>
 inline valarray<_TypeT> sinh (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::sinh (__val [__i]);
@@ -1138,7 +1138,7 @@ inline valarray<_TypeT> sinh (const valarray<_TypeT> &__val)
 template<class _TypeT>
 inline valarray<_TypeT> sin (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::sin (__val [__i]);
@@ -1149,7 +1149,7 @@ inline valarray<_TypeT> sin (const valarray<_TypeT> &__val)
 template<class _TypeT>
 inline valarray<_TypeT> sqrt (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::sqrt (__val [__i]);
@@ -1160,7 +1160,7 @@ inline valarray<_TypeT> sqrt (const valarray<_TypeT> &__val)
 template<class _TypeT>
 inline valarray<_TypeT> tan (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::tan (__val [__i]);
@@ -1171,7 +1171,7 @@ inline valarray<_TypeT> tan (const valarray<_TypeT> &__val)
 template<class _TypeT>
 inline valarray<_TypeT> tanh (const valarray<_TypeT> &__val)
 {
-    _RW::__rw_array<_TypeT> __tmp (__val.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __val.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __val.size (); ++__i)
         __tmp [__i] = _RWSTD_C::tanh (__val [__i]);
@@ -1185,7 +1185,7 @@ atan2 (const valarray<_TypeT> &__x, const valarray<_TypeT> &__y)
 {
     _RWSTD_ASSERT (__x.size () == __y.size ());
 
-    _RW::__rw_array<_TypeT> __tmp (__x.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __x.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __tmp.size (); ++__i)
         __tmp [__i] = _RWSTD_C::atan2 (__x [__i], __y [__i]);
@@ -1221,7 +1221,7 @@ pow (const valarray<_TypeT> &__x, const valarray<_TypeT> &__y)
 {
     _RWSTD_ASSERT (__x.size () == __y.size ());
 
-    _RW::__rw_array<_TypeT> __tmp (__x.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __x.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __tmp.size (); ++__i)
         __tmp [__i] = _RWSTD_C::pow (__x [__i], __y [__i]);
@@ -1232,7 +1232,7 @@ pow (const valarray<_TypeT> &__x, const valarray<_TypeT> &__y)
 template<class _TypeT>
 inline valarray<_TypeT> pow (const valarray<_TypeT> &__x, const _TypeT &__y)
 {
-    _RW::__rw_array<_TypeT> __tmp (__x.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __x.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __tmp.size (); ++__i)
         __tmp [__i] = _RWSTD_C::pow (__x [__i], __y);
@@ -1243,7 +1243,7 @@ inline valarray<_TypeT> pow (const valarray<_TypeT> &__x, const _TypeT &__y)
 template<class _TypeT>
 inline valarray<_TypeT> pow (const _TypeT &__x, const valarray<_TypeT> &__y)
 {
-    _RW::__rw_array<_TypeT> __tmp (__y.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (), __y.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __tmp.size (); ++__i)
         __tmp [__i] = _RWSTD_C::pow (__x, __y [__i]);
