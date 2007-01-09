@@ -312,7 +312,7 @@ check_target_ok (const char* target, struct target_status* status)
         tmp_name [tmp_len - 4] = 'o';
         tmp_name [tmp_len - 3] = 'b';
         tmp_name [tmp_len - 2] = 'j';
-        tmp_name [tmp_len - 2] = '\0';
+        tmp_name [tmp_len - 1] = '\0';
     }
 #endif   /* _WIN32 */
 
