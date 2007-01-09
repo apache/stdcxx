@@ -57,7 +57,7 @@ valarray<_TypeT> valarray<_TypeT>::cshift (int __n) const
 {
     // compute non-negative modulus - the sign of (a % b) is
     // implementation-defined if either argument is negative (5.6, p4)
-    _RWSTD_PTRDIFF_T __mod = __n % _RWSTD_PTRDIFF_T (size ());
+    _RWSTD_PTRDIFF_T __mod = size () ? __n % _RWSTD_PTRDIFF_T (size ()) : 0;
     _RWSTD_SIZE_T    __rem = __mod < 0 ? -__mod : __mod;
 
     if (0 == __rem)
