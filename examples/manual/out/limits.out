@@ -17,7 +17,7 @@ struct std::numeric_limits<int> {
     static const bool has_infinity = false;
     static const bool has_quiet_NaN = false;
     static const bool has_signaling_NaN = false;
-    static const bool has_denorm = 0;
+    static const std::float_denorm_style has_denorm = std::denorm_absent;
     static const bool has_denorm_loss = false;
     static int infinity () = 0;
     static int quiet_NaN () = 0;
@@ -29,7 +29,7 @@ struct std::numeric_limits<int> {
     static const bool traps = true;
     static const bool tinyness_before = false;
     static const int round_style = 0;
-}
+};
 
 struct std::numeric_limits<double> {
     static const bool is_specialized = true;
@@ -50,7 +50,7 @@ struct std::numeric_limits<double> {
     static const bool has_infinity = true;
     static const bool has_quiet_NaN = true;
     static const bool has_signaling_NaN = true;
-    static const bool has_denorm = 1;
+    static const std::float_denorm_style has_denorm = std::denorm_present;
     static const bool has_denorm_loss = false;
     static double infinity () = inf;
     static double quiet_NaN () = nan;
@@ -62,4 +62,4 @@ struct std::numeric_limits<double> {
     static const bool traps = false;
     static const bool tinyness_before = false;
     static const int round_style = 1;
-}
+};
