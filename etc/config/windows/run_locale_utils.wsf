@@ -37,9 +37,10 @@ Checks locale utilities:
             <example>cscript run_locale_utils.wsf /s /b:..\..\..\bin\11s"
             </example>
             <usage>
-Usage: cscript run_locale_utils.wsf [/d] [/s] [/f [/i:@NlsDir /l:@LocaleName]] [/b:@BinDir] [/O:@Out],
+Usage: cscript run_locale_utils.wsf [/d] [/n] [/s] [/f [/i:@NlsDir /l:@LocaleName]] [/b:@BinDir] [/O:@Out],
 where
 - "/d" debug;
+- "/n" no cleanup;
 - "/s" tests location, output;
 - "/f" tests functionality; is followed by:
     - "/i:@NlsDir>"
@@ -63,9 +64,13 @@ var nlsdir     = "";
 var locale_db  = "";
 var bindir     = "";
 var outstrm    = WScript.StdOut;
+var no_clean   = false;
 
 var locale     = "locale.exe";
 var localedef  = "localedef.exe";
+
+var TemporaryFolder = 2;
+var tmpdir = fso.GetSpecialFolder(TemporaryFolder) + "\\" + fso.GetTempName();
 
 // assertions
 var assertions       = 0;
@@ -109,6 +114,18 @@ function Run(cmd)
     return exec;
 }
 
+function Cleanup()
+{
+    if (!no_clean && fso.FolderExists(tmpdir))
+        fso.DeleteFolder(tmpdir, true);
+}
+
+function Exit(code)
+{
+    Cleanup();
+    WScript.Quit(code);
+}
+
 // convert number num to string with specified width
 function FormatNumber(num, width)
 {
@@ -117,6 +134,33 @@ function FormatNumber(num, width)
     for (var i = 0; i < spaces; ++i)
         s = " " + s;
     return s;
+}
+
+// create folder with intermediate folders, if needed
+function CreateFolder(path)
+{
+    var res = true;
+
+    if (!fso.FolderExists(path))
+    {
+        var parent = fso.GetParentFolderName(path);
+        if (0 == parent.length)
+            return false;
+        res = CreateFolder(parent);
+        if (res)
+        {
+            try
+            {
+                fso.CreateFolder(path);
+            }
+            catch (e)
+            {
+                res = false;
+            }
+        }
+    }
+
+    return res;
 }
 
 var description = new run_locale_utils; // run
@@ -303,19 +347,19 @@ function generate_locale(charmap, src, locname)
     if (charmap == "")
     {
         outstrm.WriteLine(err + "character maps file not specified.");
-        WScript.Quit(1);
+        Exit(1);
     }
 
     if (src == "")
     {
         outstrm.WriteLine(err  + "source input file not specified.");
-        WScript.Quit(1);
+        Exit(1);
     }
 
     if (locname == "")
     {
         outstrm.WriteLine(err + "output locale name not specified.");
-        WScript.Quit(1);
+        Exit(1);
     }
 
     ++assertions;
@@ -325,36 +369,85 @@ function generate_locale(charmap, src, locname)
             + " -i " + src + " " + locname;
     DebugOutLine(cmd);
 
-    var retcode = Run(cmd).ExitCode;
+    var exec = Run(cmd);
+    DebugOut(run_stdout);
+
+    var retcode = exec.ExitCode;
     if (retcode)
     {
-        outstrm.WriteLine("Error - localedef returned code: " + retcode);
-        ++failedassertions;
+        // exit with the same status as the tool
+        Exit(retcode);
+    }
+}
+
+//
+//
+//
+function dump_charmap(locname, outfile)
+{
+    err="Cannot create characater set description file - "
+
+    // locname: LC_ALL value
+    // outfile: output file name
+
+    if (outfile == "")
+    {
+        outstrm.WriteLine(err + " - no output file specified.");
+        Exit(1);
+    }
+
+    ++assertions;
+
+    // dumping charmap
+    var cmd = locale + " --charmap -l";
+    DebugOutLine("LC_ALL=" + locname + " " + cmd + " > " + outfile);
+
+    WEnv("LC_ALL") = locname;
+    var exec = Run(cmd);
+
+    DebugOut(run_stderr);
+
+    var dmpfile = fso.CreateTextFile(outfile, true);
+    if (dmpfile)
+    {
+        dmpfile.Write(run_stdout);
+        dmpfile.Close();
+    }
+
+    var retcode = exec.ExitCode;
+    if (retcode)
+    {
+        // exit with the same status as the tool
+        Exit(retcode);
     }
 }
 
 //
 // Dumps one locale database
 //
-function dump_locale(dumpfile)
+function dump_locale(locname, dumpfile)
 {
     var err = "Cannot dump locale database - ";
 
-    // dumpfile - current locale dump file
+    // locname:  LC_ALL value
+    // dumpfile: current locale dump file
 
     if (dumpfile == "")
     {
         outstrm.WriteLine(err + " - no output file specified.");
-        WScript.Quit(1);
+        Exit(1);
     }
 
     ++assertions;
 
     // Dumping locale database
-    var cmd = locale + " -ck -h LC_ALL > " + dumpfile;
-    DebugOutLine(cmd);
+    var cmd = locale + " -ck -h -l LC_ALL";
+    DebugOutLine("LC_ALL=" + locname + " " + cmd + " > " + dumpfile);
 
+    WEnv("LC_ALL") = locname;
     var exec = Run(cmd);
+
+    DebugOut(run_stderr);
 
     var dmpfile = fso.CreateTextFile(dumpfile, true);
     if (dmpfile)
@@ -366,127 +459,179 @@ function dump_locale(dumpfile)
     var retcode = exec.ExitCode;
     if (retcode)
     {
-        outstrm.WriteLine("Error - locale returned code: " + retcode);
-        ++failedassertions;
+        // exit with the same status as the tool
+        Exit(retcode);
     }
 }
 
 //
 // Test one locale
 //
-function test_locale(nlsdir, testdir, locname)
+function test_locale(nlsdir, tmpdir, fname)
 {
     var err = "Cannot test locale - ";
 
-    // nlsdir  - nlsdir
-    // testdir - test directory
+    // nlsdir  - nls subdirectory of the source directory tree
+    // tmpdir  - the test (sandbox) directory
     // locname - name of the locale database
     
     if (nlsdir == "")
     {
         outstrm.WriteLine(err+ " - nls directory not specified.");
-        WScript.Quit(1);
+        Exit(1);
     }
 
-    if (testdir == "")
+    if (tmpdir == "")
     {
-        outstrm.WriteLine(err + " - test directory not specified.");
-        WScript.Quit(1);
+        outstrm.WriteLine(err + " - temporary directory not specified.");
+        Exit(1);
     }
 
-    if (locname == "")
+    if (fname == "")
     {
         outstrm.WriteLine(err+ " - locale database name not specified.");
-        WScript.Quit(1);
+        Exit(1);
     }
 
     // get locale's name and encoding
-    var locale_src = locname.replace(
-            new RegExp("\([^.]*\)\.\([^>@]*\)\(.*\)"), "$1$3")
-        .replace("@", ".");
+    var rx = new RegExp("\([^.]*\)\.\([^@]*\)\(.*\)");
+    var source = fname.replace(rx, "$1$3").replace("@", ".");
+    var charmap = fname.replace(rx, "$2");
 
-    var locale_encoding = locname.replace(
-            new RegExp("\([^.]*\)\.\([^>@]*\)\(.*\)"), "$2")
-        .replace("@", ".");
+    var src_path = nlsdir + "\\src\\" + source;
+    var cm_path = nlsdir + "\\charmaps\\" + charmap;
 
-    DebugOutLine("locale_src = " + locale_src);
-    DebugOutLine("locale_encoding = " + locale_encoding);
+    var stage_1 = tmpdir + "\\stage.1";
+    var stage_2 = tmpdir + "\\stage.2";
+    var stage_3 = tmpdir + "\\stage.3";
 
-    var charmap = nlsdir + "\\charmaps\\" + locale_encoding;
-    var src = nlsdir + "\\src\\" + locale_src;
-    var locdir = testdir + "\\" + locname;
+    source += ".src";
 
-    // generate the first locale database
-    generate_locale(charmap, src, locdir);
+    // point locale at the original source directory
+    DebugOutLine("RWSTD_SRC_ROOT=" + nlsdir);
+    WEnv("RWSTD_SRC_ROOT") = nlsdir;
 
-    // set necessary environment variables
-    DebugOutLine("LC_ALL=" + locname);
-    WEnv("LC_ALL") = locname;
-    DebugOutLine("LANG=" + locname);
-    WEnv("LANG") = locname;
-
-    // adjust the locale root
-    DebugOutLine("RWSTD_LOCALE_ROOT=" + testdir);
-    WEnv("RWSTD_LOCALE_ROOT") = testdir;
-
-    var test1 = testdir + "\\out.1";
-
-    // dump the locale database content to temporary location
-    dump_locale(test1);
-    DebugOutLine("");
-
-    // remove stage one database
-    if (fso.FolderExists(locdir))
-        fso.DeleteFolder(locdir, true);
-    
-    // generate stage two database
-    generate_locale(charmap, test1, locdir);
-
-    var test2 = testdir + "\\out.2";
-
-    // dump stage two database to file
-    dump_locale(test2);
-
-    // remove stage two database
-    if (fso.FolderExists(locdir))
-        fso.DeleteFolder(locdir, true);
-
-    // generate stage three database
-    generate_locale(charmap, test2, locdir);
-
-    var test3 = testdir + "\\out.3";
-
-    // and finally dump it to file
-    dump_locale(test3);
+    // create a directory for stage 1 charmap source files
+    var cm_dir1 = stage_1 + "\\charmaps";
+    DebugOutLine("mkdir " + cm_dir1);
+    CreateFolder(cm_dir1);
 
     ++assertions;
 
-    // compare
+    var locname1 = stage_1 + "\\" + fname;
+    var cm_path1 = cm_dir1 + "\\" + charmap;
+    var src_path1 = stage_1 + "\\" + source;
 
-    var params = test2 +" " + test3;
-    var cmd = "fc.exe " + params;
+    // generate stage 1 locale database from the orignal sources
+    generate_locale(cm_path, src_path, locname1);
+
+    ++assertions;
+
+    // dump the charmap and the locale data from the database
+    // to a pair of charmap and locale source files
+    dump_charmap(locname1, cm_path1);
+    dump_locale(locname1, src_path1);
+
+    // create a directory for stage 2 charmap source files
+    var cm_dir2 = stage_2 + "\\charmaps";
+    DebugOutLine("mkdir " + cm_dir2);
+    CreateFolder(cm_dir2);
+
+    ++assertions;
+
+    var locname2 = stage_2 + "\\" + fname;
+    var cm_path2 = cm_dir2 + "\\" + charmap;
+    var src_path2 = stage_2 + "\\" + source;
+
+    // generate stage 2 locale database from the charmap and locale
+    // source files produced by locale from the stage 1 database
+    generate_locale(cm_path1, src_path1, locname2);
+
+    // point locale at the stage 1 directory
+    DebugOutLine("RWSTD_SRC_ROOT=" + stage_1);
+    WEnv("RWSTD_SRC_ROOT") = stage_1;
+
+    ++assertions;
+
+    // dump the charmap and the locale data from the database
+    //to a pair of charmap and locale source files
+    dump_charmap(locname2, cm_path2);
+    dump_locale(locname2, src_path2);
+
+    ++assertions;
+
+    // create a directory for stage 2 charmap source files
+    var cm_dir3 = stage_3 + "\\charmaps";
+    DebugOutLine("mkdir " + cm_dir3);
+    CreateFolder(cm_dir3);
+
+    ++assertions;
+
+    var locname3 = stage_3 + "\\" + fname;
+    var cm_path3 = cm_dir3 + "\\" + charmap;
+    var src_path3 = stage_3 + "\\" + source;
+
+    // generate stage 3 locale database from the charmap and locale
+    // source files produced by locale from the stage 2 database
+    generate_locale(cm_path2, src_path2, locname3);
+
+    // point locale at the stage 2 directory
+    DebugOutLine("RWSTD_SRC_ROOT=" + stage_2);
+    WEnv("RWSTD_SRC_ROOT") = stage_2;
+
+    ++assertions;
+
+    // dump the charmap and the locale data from the database
+    // to a pair of charmap and locale source files
+    dump_charmap(locname3, cm_path3);
+    dump_locale(locname3, src_path3);
+
+    ++assertions;
+
+    // verify that stage 1 and stage 2 charmaps are the same
+    var cmd = "fc " + cm_path1 + " " + cm_path2;
+    DebugOutLine(cmd);
     var retcode = Run(cmd).ExitCode;
     if (retcode)
     {
-        DebugOutLine("ERROR: " + params +" differ.");
+        DebugOutLine("## AssertionFailed: " + cm_path1 +
+                     " and " + cm_path2 + " differ.");
         ++failedassertions;
     }
 
-    // and remove database
-    if (fso.FolderExists(locdir))
-        fso.DeleteFolder(locdir);
+    // verify that stage 2 and stage 3 charmaps are the same
+    var cmd = "fc " + cm_path2 + " " + cm_path3;
+    DebugOutLine(cmd);
+    var retcode = Run(cmd).ExitCode;
+    if (retcode)
+    {
+        DebugOutLine("## AssertionFailed: " + cm_path2 +
+                     " and " + cm_path3 + " differ.");
+        ++failedassertions;
+    }
 
-    // remove dump files
-    if (fso.FileExists(test1))
-        fso.DeleteFile(test1);
-    if (fso.FileExists(test2))
-        fso.DeleteFile(test2);
-    if (fso.FileExists(test3))
-        fso.DeleteFile(test3);
+    // verify that stage 2 and stage 3 locale sources are the same
+    var cmd = "fc " + src_path2 + " " + src_path3;
+    DebugOutLine(cmd);
+    var retcode = Run(cmd).ExitCode;
+    if (retcode)
+    {
+        DebugOutLine("## AssertionFailed: " + src_path2 +
+                     " and " + src_path3 + " differ.");
+        ++failedassertions;
+    }
 
-    // and finally remove the tmp directory
-    if (fso.FolderExists(testdir))
-        fso.DeleteFolder(testdir);
+    if (!no_clean)
+    {
+        // clean up
+        DebugOutLine("rm -rf " + stage_1 + " " + stage_2 + " " + stage_3);
+        if (fso.FolderExists(stage_1))
+            fso.DeleteFolder(stage_1, true);
+        if (fso.FolderExists(stage_2))
+            fso.DeleteFolder(stage_2, true);
+        if (fso.FolderExists(stage_3))
+            fso.DeleteFolder(stage_3, true);
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -509,6 +654,9 @@ function run_locale_utils()
 
     if (WScript.Arguments.Named.Exists("l"))
         locale_db = WScript.Arguments.Named("l");
+
+    if (WScript.Arguments.Named.Exists("n"))
+        no_clean = true;
 
     if (WScript.Arguments.Named.Exists("b"))
     {
@@ -540,29 +688,17 @@ function run_locale_utils()
     }
     else if (chk_func)
     {
-        // set the temp dir
-        var TemporaryFolder = 2;
-        var tmpdir = fso.GetSpecialFolder(TemporaryFolder)
-                     + "\\" + fso.GetTempName();
-
-        if (!fso.CreateFolder(tmpdir))
+        // create the temp dir
+        if (!CreateFolder(tmpdir))
         {
-            WScript.StdErr.WriteLine("Unable to create " + tmpdir
-                                     + ", aborting");
+            WScript.StdErr.WriteLine("Unable to create " + tmpdir + ", aborting");
             WScript.Quit(1);
         }
     
-        // checking locale functionality
-        DebugOutLine("RWSTD_SRC_ROOT=" + nlsdir);
-        WEnv("RWSTD_SRC_ROOT") = nlsdir;
-        DebugOutLine("RWSTD_LOCALE_ROOT=" + tmpdir);
-        WEnv("RWSTD_LOCALE_ROOT") = tmpdir;
-        
         // test only one locale
         test_locale(nlsdir, tmpdir, locale_db);
 
-        if (fso.FolderExists(tmpdir))
-            fso.DeleteFolder(tmpdir, true);
+        Cleanup();
     }
     else
     {
@@ -586,8 +722,6 @@ function run_locale_utils()
     outstrm.WriteLine("## Assertions = " + assertions);
     outstrm.WriteLine("## FailedAssertions = " + failedassertions);
     outstrm.WriteLine();
-
-    WScript.Quit(failedassertions);
 }
 
 ]]>

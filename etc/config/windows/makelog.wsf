@@ -125,8 +125,12 @@ function makelog()
     saveBuildSummarySingle(fSum, rwtestInfo, hdrTestDriver);
     
     // save build summary for examples and tests
-    saveBuildSummaryMulti(fSum, buildDir + "\\" + buildType + "\\" + examplesBuildDir);
-    saveBuildSummaryMulti(fSum, buildDir + "\\" + buildType + "\\" + testsBuildDir);
+    saveBuildSummariesFromFolder(fSum,
+        buildDir + "\\" + buildType + "\\" + examplesBuildDir,
+        htmFolderName);
+    saveBuildSummariesFromFolder(fSum,
+        buildDir + "\\" + buildType + "\\" + testsBuildDir,
+        htmFolderName);
         
     closeSummaryLog(fSum);
 
@@ -243,9 +247,10 @@ function deleteTemporaryFiles()
 // tempName - name of the folder with temporary files
 function deleteTempFolders(startDir, tempName)
 {
-    var startFolder = fso.GetFolder(startDir);
-    if (! startFolder)
+    if (!fso.FolderExists(startDir))
         return;
+
+    var startFolder = fso.GetFolder(startDir);
         
     var enumHtmSubFolders = new Enumerator(startFolder.SubFolders);
     for (; !enumHtmSubFolders.atEnd(); enumHtmSubFolders.moveNext())

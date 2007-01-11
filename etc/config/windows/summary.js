@@ -54,9 +54,32 @@ function readBuildLog(exeDir, itemInfo, useUnicode)
     var blogFilePath = blogDir + "\\" + buildlogFile;
     if (! fso.FileExists(blogFilePath))
         return;
-        
+
     var uniMode = (true == useUnicode) ? -1 : 0;
-    var blogFile = fso.OpenTextFile(blogFilePath, 1, false, uniMode);
+    var blogFile;
+
+    // temporary loop for detect place of the problem:
+    // runall.wsf(59, 6) Microsoft JScript runtime error: Permission denied
+    for (var i = 0; i < 5 && "undefined" == typeof(blogFile); ++i)
+    {
+        try
+        {
+            blogFile = fso.OpenTextFile(blogFilePath, 1, false, uniMode);
+        }
+        catch (e)
+        {
+            // file may be locked, waiting
+            WScript.Echo("File " + blogFilePath + " is locked, waiting for a 1 second");
+            WScript.Sleep(1000);
+        }
+    }
+
+    if ("undefined" == typeof(blogFile))
+    {
+        WScript.Echo("Cannot open file: " + blogFilePath);
+        return;
+    }
+
     var blogData = blogFile.ReadAll();
     
     var posTmp = getCommandLinesInfo(itemInfo, blogData, 0);
@@ -314,8 +337,8 @@ function saveBuildInfoTable(outFile, itemInfo, linkSummary, bLib)
         if (itemInfo.runOutput == "" && itemInfo.exitCode != 0)
             itemInfo.runOutput = "Exited with code " + itemInfo.exitCode;
             
-        saveBuildInfoBlock(outFile, 
-            "Executable Output", itemInfo.runOutput, true);
+        saveBuildInfoBlock(outFile, "Executable Output",
+            encodeHTML(itemInfo.runOutput), true);
     }
     
     if (itemInfo.runDiff != "")

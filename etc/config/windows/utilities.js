@@ -284,11 +284,34 @@ function encodeHTML(srcString)
     var destS = new Array ( "&amp;", "&lt;", "&gt;", "&quot;" );
     for (var t = 0; t < srcS.length; t++)
     {
-        var reRep = new RegExp(srcS[t], "mg");
+        var reRep = new RegExp(srcS[t], "g");
         res = res.replace(reRep, destS[t]);
     }
     
     return res;
+}
+
+// decode escaped symbols within string with analog
+// srcString - source string
+function decodeHTML(srcString)
+{
+    var res = srcString;
+    var srcS = new Array ( "&amp;", "&lt;", "&gt;", "&quot;", "&nbsp;" );
+    var destS = new Array ( "&", "<", ">", "\"", " " );
+    for (var t = 0; t < srcS.length; t++)
+    {
+        var reRep = new RegExp(srcS[t], "g");
+        res = res.replace(reRep, destS[t]);
+    }
+    
+    return res;
+}
+
+// remove all tags within string
+// srcString - source string
+function stripTags(srcString)
+{
+    return srcString.replace(new RegExp("(<[\\s\\S]+?>)", "g"), "");
 }
 
 // returns source string without first character if it equal to symbol

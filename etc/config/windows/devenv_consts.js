@@ -132,3 +132,7 @@ var runtimeBasicCheckNone = 0;
 var runtimeCheckStackFrame = 1;
 var runtimeCheckUninitVariables = 2;
 var runtimeBasicCheckAll = 3;
+
+var vsBuildStateNotStarted = 1;
+var vsBuildStateInProgress = 2;
+var vsBuildStateDone = 3;

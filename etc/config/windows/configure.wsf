@@ -191,10 +191,13 @@ function configure()
 
     // remove VS_UNICODE_OUTPUT environment variable
     // http://blogs.msdn.com/freik/archive/2006/04/05/569025.aspx
-    try
     {
-        WshShell.Environment("PROCESS").Remove("VS_UNICODE_OUTPUT");
-    } catch (e) {}
+        var env = WshShell.Environment("PROCESS");
+        var name = "VS_UNICODE_OUTPUT";
+        var str = env.Item(name);
+        if ("undefined" != typeof(str) && "" != str)
+            env.Remove(name);
+    }
 
     getCompilerOpts(WScript.Arguments.Named("SolutionName"));
     
@@ -204,10 +207,10 @@ function configure()
 
     CPPFLAGS += " /M";
 
-    if (!confInfo.mt)
-        CPPFLAGS += NOSTCRT ? "T" : "L";
+    if (confInfo.dll)
+        CPPFLAGS += "D";
     else
-        CPPFLAGS += confInfo.dll ? "D" : "T";
+        CPPFLAGS += (confInfo.mt || NOSTCRT) ? "T" : "L";
 
     if (confInfo.debug)
     {
