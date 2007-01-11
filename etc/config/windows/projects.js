@@ -47,7 +47,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
 {
     var projectDefs = new Array();
  
- ///////////////////////////////////////////////////////////////////////////////   
+///////////////////////////////////////////////////////////////////////////////
     var configureDef = new ProjectDef(".configure", typeGeneric);
     configureDef.VCProjDir = ProjectsDir;
     configureDef.FilterDefs.push(
@@ -74,9 +74,9 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     configureDef.CustomBuildOut = "$(OutDir)\\config.h";
     configureDef.CustomBuildDeps = "%FILES%";
 
-    projectDefs.push(configureDef);
+    projectDefs.push(new Array(configureDef));
 
-///////////////////////////////////////////////////////////////////////////////   
+///////////////////////////////////////////////////////////////////////////////
     var stdlibDef = new ProjectDef(".stdlib", typeLibrary);
     stdlibDef.VCProjDir = ProjectsDir;
     stdlibDef.FilterDefs.push(
@@ -95,9 +95,9 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     stdlibDef.OutFile = "$(OutDir)\\stdlib%CONFIG%%EXT%";
     stdlibDef.PrjDeps.push(configureDef);
 
-    projectDefs.push(stdlibDef);
+    projectDefs.push(new Array(stdlibDef));
 
-///////////////////////////////////////////////////////////////////////////////   
+///////////////////////////////////////////////////////////////////////////////
     var rwtestDef = new ProjectDef(".rwtest", typeLibrary);
     rwtestDef.VCProjDir = ProjectsDir;
     rwtestDef.FilterDefs.push(
@@ -115,9 +115,11 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     rwtestDef.Libs = commonLibs;
     rwtestDef.PrjRefs.push(stdlibDef);
 
-    projectDefs.push(rwtestDef);
+    projectDefs.push(new Array(rwtestDef));
 
-///////////////////////////////////////////////////////////////////////////////   
+///////////////////////////////////////////////////////////////////////////////
+    var utilsArray = new Array();
+
     var execDef = new ProjectDef("util_exec", typeApplication);
     execDef.VCProjDir = ProjectsDir + "\\util";
     execDef.FilterDefs.push(
@@ -135,9 +137,9 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     execDef.OutFile = "$(OutDir)\\exec.exe";
     execDef.PrjDeps.push(configureDef);
 
-    projectDefs.push(execDef);
+    utilsArray.push(execDef);
 
-///////////////////////////////////////////////////////////////////////////////   
+///////////////////////////////////////////////////////////////////////////////
     var localedefDef = new ProjectDef("util_localedef", typeApplication);
     localedefDef.VCProjDir = ProjectsDir + "\\util";
     localedefDef.FilterDefs.push(
@@ -160,9 +162,9 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     localedefDef.OutFile = "$(OutDir)\\localedef.exe";
     localedefDef.PrjRefs.push(stdlibDef);
 
-    projectDefs.push(localedefDef);
+    utilsArray.push(localedefDef);
 
-///////////////////////////////////////////////////////////////////////////////   
+///////////////////////////////////////////////////////////////////////////////
     var localeDef = new ProjectDef("util_locale", typeApplication);
     localeDef.VCProjDir = ProjectsDir + "\\util";
     localeDef.FilterDefs.push(
@@ -185,10 +187,10 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     localeDef.OutFile = "$(OutDir)\\locale.exe";
     localeDef.PrjRefs.push(stdlibDef);
 
-    projectDefs.push(localeDef);
+    utilsArray.push(localeDef);
 
-///////////////////////////////////////////////////////////////////////////////   
-    var utilsDef = new ProjectDef(".stdlib_utils", typeGeneric);
+///////////////////////////////////////////////////////////////////////////////
+    var utilsDef = new ProjectDef(".stdcxx_utils", typeGeneric);
     utilsDef.VCProjDir = ProjectsDir + "\\util";
     utilsDef.OutDir = "$(SolutionDir)%CONFIG%\\bin";
     utilsDef.IntDir = utilsDef.OutDir;
@@ -196,9 +198,13 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     utilsDef.PrjDeps.push(localedefDef);
     utilsDef.PrjDeps.push(localeDef);
 
-    projectDefs.push(utilsDef);
+    utilsArray.push(utilsDef);
 
-///////////////////////////////////////////////////////////////////////////////   
+    projectDefs.push(utilsArray);
+
+///////////////////////////////////////////////////////////////////////////////
+    var exampleArray = new Array();
+
     var exampleTplDef = new ProjectDef(null, typeApplication);
     exampleTplDef.VCProjDir = ProjectsDir + "\\examples";
     exampleTplDef.Defines = commonDefines;
@@ -211,12 +217,23 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         "%SRCDIR%\\examples",
         new RegExp("^.+\\.(?:cpp)$", "i"),
         new RegExp("^(?:\\.svn|Release.*|Debug.*|in|out|CVS)$", "i"),
-        new RegExp("^(?:rwstdmessages.cpp)$", "i"));
+        new RegExp("^(?:rwstdmessages.cpp)$", "i"), false);
 
-    projectDefs = projectDefs.concat(exampleDefs);
+    exampleArray = exampleArray.concat(exampleDefs);
     
-///////////////////////////////////////////////////////////////////////////////   
-    var runexamplesDef = new ProjectDef(".stdlib_examples", typeGeneric);
+///////////////////////////////////////////////////////////////////////////////
+    var allexamplesDef = new ProjectDef(".stdcxx_examples", typeGeneric);
+    allexamplesDef.VCProjDir = ProjectsDir + "\\examples";
+    allexamplesDef.OutDir = "$(SolutionDir)%CONFIG%\\examples";
+    allexamplesDef.IntDir = allexamplesDef.OutDir;
+    allexamplesDef.PrjDeps = exampleDefs;
+
+    exampleArray.push(allexamplesDef);
+
+    projectDefs.push(exampleArray);
+
+///////////////////////////////////////////////////////////////////////////////
+    var runexamplesDef = new ProjectDef(".stdcxx_runexamples", typeGeneric);
     runexamplesDef.VCProjDir = ProjectsDir + "\\examples";
     runexamplesDef.FilterDefs.push(
         new FilterDef("Script Files", null, ".js;.wsf", eFileTypeScript, false).
@@ -239,12 +256,14 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         " /LIBDIR:\"$(SolutionDir)lib\"";
     runexamplesDef.CustomBuildOut = "$(OutDir)\\runexamples.log";
     runexamplesDef.CustomBuildDeps = "%FILES%";
-    runexamplesDef.PrjDeps = exampleDefs;
+    //runexamplesDef.PrjDeps.push(allexamplesDef);
     runexamplesDef.PrjDeps.push(execDef);
 
-    projectDefs.push(runexamplesDef);
+    projectDefs.push(new Array(runexamplesDef));
 
-///////////////////////////////////////////////////////////////////////////////   
+///////////////////////////////////////////////////////////////////////////////
+    var testArray = new Array();
+
     var testTplDef = new ProjectDef(null, typeApplication);
     testTplDef.VCProjDir = ProjectsDir + "\\tests";
     testTplDef.Defines = commonDefines;
@@ -258,12 +277,23 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         "%SRCDIR%\\tests",
         new RegExp("^.+\\.(?:cpp)$", "i"),
         new RegExp("^(?:\\.svn|Release.*|Debug.*|in|out|CVS|src|include)$","i"),
-        new RegExp("^(?:rwstdmessages.cpp)$","i"));
+        new RegExp("^(?:rwstdmessages.cpp)$","i"), false);
 
-    projectDefs = projectDefs.concat(testDefs);
+    testArray = testArray.concat(testDefs);
     
-///////////////////////////////////////////////////////////////////////////////   
-    var runtestsDef = new ProjectDef(".stdlib_tests", typeGeneric);
+///////////////////////////////////////////////////////////////////////////////
+    var alltestsDef = new ProjectDef(".stdcxx_tests", typeGeneric);
+    alltestsDef.VCProjDir = ProjectsDir + "\\tests";
+    alltestsDef.OutDir = "$(SolutionDir)%CONFIG%\\tests";
+    alltestsDef.IntDir = alltestsDef.OutDir;
+    alltestsDef.PrjDeps = testDefs;
+
+    testArray.push(alltestsDef);
+
+    projectDefs.push(testArray);
+
+///////////////////////////////////////////////////////////////////////////////
+    var runtestsDef = new ProjectDef(".stdcxx_runtests", typeGeneric);
     runtestsDef.VCProjDir = ProjectsDir + "\\tests";
     runtestsDef.FilterDefs.push(
         new FilterDef("Script Files", null, ".js;.wsf", eFileTypeScript, false).
@@ -277,22 +307,22 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         "if exist \"$(OutDir)\\runtests.log\" del \"$(OutDir)\\runtests.log\"";
     runtestsDef.CustomBuildFile = "runall.wsf";
     runtestsDef.CustomBuildCmd = "cscript /nologo \"%CUSTOMFILE%\"" +
-        " /INOUTDIR:\"%SRCDIR%\\tests\"" +
         " /EXEDIR:\"$(OutDir)\"" +
         " /BUILDTYPE:\"%CONFIG%\"" +
         " /CONFIG:\"%SOLUTION%\"" +
         " /LOGFILE:\"runtests.log\"" +
         " /COPYDLL:" + (copyDll ? "false" : "true") +
-        " /COPYRWTESTDLL:" + (copyDll ? "false" : "true") +
         " /LIBDIR:\"$(SolutionDir)lib\"";
     runtestsDef.CustomBuildOut = "$(OutDir)\\runtests.log";
     runtestsDef.CustomBuildDeps = "%FILES%";
-    runtestsDef.PrjDeps = testDefs;
+    //runtestsDef.PrjDeps.push(alltestsDef);
     runtestsDef.PrjDeps.push(execDef);
 
-    projectDefs.push(runtestsDef);
+    projectDefs.push(new Array(runtestsDef));
 
-///////////////////////////////////////////////////////////////////////////////   
+///////////////////////////////////////////////////////////////////////////////
+    var localeArray = new Array();
+
     if (buildLocales)
     {
         var localeTplDef = new ProjectDef(null, typeGeneric);
@@ -320,61 +350,62 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         }
     
         var localeDefs = localeTplDef.createLocaleDefs("%SRCDIR%\\etc\\nls");
+
+        localeArray = localeArray.concat(localeDefs);
     
-        projectDefs = projectDefs.concat(localeDefs);
-        
-        var localesDef = new ProjectDef(".stdlib_locales", typeGeneric);
+        var localesDef = new ProjectDef(".stdcxx_locales", typeGeneric);
         localesDef.VCProjDir = ProjectsDir + "\\locales";
         localesDef.OutDir = "$(SolutionDir)nls";
         localesDef.IntDir = localesDef.OutDir;
         localesDef.PrjDeps = localeDefs;
-    
-        projectDefs.push(localesDef);
+
+        localeArray.push(localesDef);
     }
 
+    projectDefs.push(localeArray);
+
 ///////////////////////////////////////////////////////////////////////////////
+    var testlocaleArray = new Array();
+
+    var testlocaleTplDef = new ProjectDef(".stdcxx_testlocales", typeGeneric);
+    testlocaleTplDef.VCProjDir = ProjectsDir + "\\locales";
+    testlocaleTplDef.FilterDefs.push(
+        new FilterDef("Script Files", null, "js;wsf", eFileTypeScript, false).
+            addFiles("%SRCDIR%\\etc\\config\\windows",
+                     new Array("run_locale_utils.wsf")));
+    testlocaleTplDef.OutDir = "$(SolutionDir)%CONFIG%\\bin";
+    testlocaleTplDef.IntDir = testlocaleTplDef.OutDir;
+    testlocaleTplDef.CustomBuildFile = "run_locale_utils.wsf";
+    testlocaleTplDef.CustomBuildDeps = "%FILES%";
+    testlocaleTplDef.PrjDeps.push(execDef);
+    testlocaleTplDef.PrjDeps.push(localeDef);
+    testlocaleTplDef.PrjDeps.push(localedefDef);
+    if (!copyDll)
+    {
+        // copy stdlibxxx.dll to the bin directory
+        // before executing run_locale_utils.wsf script
+        // and finally delete the copied file
+        var libname = "stdlib%CONFIG%.dll";
+        var src = "\"$(SolutionDir)lib\\" + libname + "\"";
+        var dst = "\"$(SolutionDir)%CONFIG%\\bin\\" + libname + "\"";
+        testlocaleTplDef.PreBuildCmd = "if exist " + src + " if not exist " + dst +
+                                     " copy /Y " + src + " " + dst;
+        testlocaleTplDef.PostBuildCmd = "if exist " + dst + " del " + dst;
+    }
+
     if (testLocales)
     {
-        var testlocaleTplDef = new ProjectDef(null, typeGeneric);
-        testlocaleTplDef.VCProjDir = ProjectsDir + "\\locales";
-        testlocaleTplDef.FilterDefs.push(
-            new FilterDef("Script Files", null, "js;wsf", eFileTypeScript, false).
-                addFiles("%SRCDIR%\\etc\\config\\windows",
-                         new Array("run_locale_utils.wsf")));
-        testlocaleTplDef.OutDir = "$(SolutionDir)%CONFIG%\\bin";
-        testlocaleTplDef.IntDir = testlocaleTplDef.OutDir + "\\$(ProjectName)";
-        testlocaleTplDef.CustomBuildFile = "run_locale_utils.wsf";
-        testlocaleTplDef.CustomBuildDeps = "%FILES%";
-        testlocaleTplDef.PrjDeps.push(execDef);
-        testlocaleTplDef.PrjDeps.push(localeDef);
-        testlocaleTplDef.PrjDeps.push(localedefDef);
-        if (!copyDll)
-        {
-            // copy stdlibxxx.dll to the bin directory
-            // before executing run_locale_utils.wsf script
-            // and finally delete the copied file
-            var libname = "stdlib%CONFIG%.dll";
-            var src = "\"$(SolutionDir)lib\\" + libname + "\"";
-            var dst = "\"$(SolutionDir)%CONFIG%\\bin\\" + libname + "\"";
-            testlocaleTplDef.PreBuildCmd = "if exist " + src + " if not exist " + dst +
-                                           " copy /Y " + src + " " + dst;
-            testlocaleTplDef.PostBuildCmd = "if exist " + dst + " del " + dst;
-        }
-        
         var testlocaleDefs = testlocaleTplDef.createTestLocaleDefs("%SRCDIR%\\etc\\nls");
     
-        projectDefs = projectDefs.concat(testlocaleDefs);
-        
-        var testlocalesDef = new ProjectDef(".stdlib_testlocales", typeGeneric);
-        testlocalesDef.VCProjDir = ProjectsDir + "\\locales";
-        testlocalesDef.OutDir = "$(SolutionDir)bin";
-        testlocalesDef.IntDir = testlocalesDef.OutDir;
-        testlocalesDef.PrjDeps = testlocaleDefs;
-    
-        projectDefs.push(testlocalesDef);
+        testlocaleArray = testlocaleArray.concat(testlocaleDefs);
     }
     
-///////////////////////////////////////////////////////////////////////////////   
+    var testlocalesDef = testlocaleTplDef.createTestLocalesDef("%SRCDIR%\\etc\\nls");
+    testlocaleArray.push(testlocalesDef);
+
+    projectDefs.push(testlocaleArray);
+
+///////////////////////////////////////////////////////////////////////////////
     if (copyDll)
     {
         // if project type is application and
@@ -384,48 +415,53 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         //     copy rwtest.dll to project output directory
         for (var i = 0; i < projectDefs.length; ++i)
         {
-            var projectDef = projectDefs[i];
+            var projectArray = projectDefs[i];
 
-            if (projectDef.Type != typeApplication)
-                continue;
-
-            var arrDeps = projectDef.PrjRefs.concat(projectDef.PrjDeps);
-            var command = "";
-
-            if (0 <= arrayIndexOf(arrDeps, stdlibDef))
+            for (var j = 0; j < projectArray.length; ++j)
             {
-                var libname = "stdlib%CONFIG%.dll";
-                var src = "\"$(SolutionDir)lib\\" + libname + "\"";
-                var dst = "\"$(OutDir)\\" + libname + "\"";
-                var cmd = "if exist " + src + " (\r\n" +
-                          "del " + dst + "\r\n" +
-                          "copy /Y " + src + " " + dst + "\r\n" +
-                          ")";
-                if (0 == command.length)
-                    command = cmd;
-                else
-                    command += "\r\n" + cmd;
-            }
+                var projectDef = projectArray[j];
 
-            if (0 <= arrayIndexOf(arrDeps, rwtestDef))
-            {
-                var libname = "rwtest.dll";
-                var src = "\"$(SolutionDir)%CONFIG%\\tests\\" + libname + "\"";
-                var dst = "\"$(OutDir)\\" + libname + "\"";
-                var cmd = "if exist " + src + " (\r\n" +
-                          "del " + dst + "\r\n" +
-                          "copy /Y " + src + " " + dst + "\r\n" +
-                          ")";
-                if (0 == command.length)
-                    command = cmd;
+                if (projectDef.Type != typeApplication)
+                    continue;
+    
+                var arrDeps = projectDef.PrjRefs.concat(projectDef.PrjDeps);
+                var command = "";
+    
+                if (0 <= arrayIndexOf(arrDeps, stdlibDef))
+                {
+                    var libname = "stdlib%CONFIG%.dll";
+                    var src = "\"$(SolutionDir)lib\\" + libname + "\"";
+                    var dst = "\"$(OutDir)\\" + libname + "\"";
+                    var cmd = "if exist " + src + " (\r\n" +
+                              "del " + dst + "\r\n" +
+                              "copy /Y " + src + " " + dst + "\r\n" +
+                              ")";
+                    if (0 == command.length)
+                        command = cmd;
+                    else
+                        command += "\r\n" + cmd;
+                }
+    
+                if (0 <= arrayIndexOf(arrDeps, rwtestDef))
+                {
+                    var libname = "rwtest.dll";
+                    var src = "\"$(SolutionDir)%CONFIG%\\tests\\" + libname + "\"";
+                    var dst = "\"$(OutDir)\\" + libname + "\"";
+                    var cmd = "if exist " + src + " (\r\n" +
+                              "del " + dst + "\r\n" +
+                              "copy /Y " + src + " " + dst + "\r\n" +
+                              ")";
+                    if (0 == command.length)
+                        command = cmd;
+                    else
+                        command += "\r\n" + cmd;
+                }
+    
+                if (null == projectDef.PostBuildCmd || "" == projectDef.PostBuildCmd)
+                    projectDef.PostBuildCmd = command;
                 else
-                    command += "\r\n" + cmd;
+                    projectDef.PostBuildCmd = command + "\r\n" + projectDef.PostBuildCmd;
             }
-
-            if (null == projectDef.PostBuildCmd || "" == projectDef.PostBuildCmd)
-                projectDef.PostBuildCmd = command;
-            else
-                projectDef.PostBuildCmd = command + "\r\n" + projectDef.PostBuildCmd;
         }
     }
 
@@ -439,13 +475,18 @@ function CreateProjects(projectDefs, report)
 {
     for (var i = 0; i < projectDefs.length; ++i)
     {
-        var projectDef = projectDefs[i];
+        var projectArray = projectDefs[i];
 
-        // turn on RTTI support if project in RTTIProjects array
-        if (0 <= arrayIndexOf(RTTIProjects, projectDef.Name))
-            projectDef.RTTI = true;
-
-        projectDef.createVCProject(VCProjectEngine, report);
+        for (var j = 0; j < projectArray.length; ++j)
+        {
+            var projectDef = projectArray[j];
+    
+            // turn on RTTI support if project in RTTIProjects array
+            if (0 <= arrayIndexOf(RTTIProjects, projectDef.Name))
+                projectDef.RTTI = true;
+    
+            projectDef.createVCProject(VCProjectEngine, report);
+        }
     }
 }
 
@@ -456,39 +497,45 @@ function ConfigureDependencies(projectDefs)
 {
     for (var i = 0; i < projectDefs.length; ++i)
     {
-        var projectDef = projectDefs[i];
-        var VCProject = projectDef.VSProject;
+        var projectArray = projectDefs[i];
 
-        var prjrefs = projectDef.PrjRefs;
-        if (0 == prjrefs.length)
-            continue;
+        for (var j = 0; j < projectArray.length; ++j)
+        {
+            var projectDef = projectArray[j];
 
-        var file = fso.OpenTextFile(VCProject.ProjectFile, 1, false);
-        var text = file.ReadAll();
-        file.Close();
-        var refs = "";
-        for (var j = 0; j < prjrefs.length; ++j)
-        {
-            refs += "\t\t<ProjectReference\n";
-            refs += "\t\t\tReferencedProjectIdentifier=\"" +
-                    prjrefs[j].VSProject.ProjectGUID + "\"\n";
-            refs += "\t\t/>\n";
-        }
-        var pos = text.indexOf("\t</References>");
-        if (0 > pos)
-        {
-            var str = "\t</Configurations>";
-            pos = text.indexOf(str);
-            if (0 <= pos)
+            var VCProject = projectDef.VSProject;
+    
+            var prjrefs = projectDef.PrjRefs;
+            if (0 == prjrefs.length)
+                continue;
+    
+            var file = fso.OpenTextFile(VCProject.ProjectFile, 1, false);
+            var text = file.ReadAll();
+            file.Close();
+            var refs = "";
+            for (var k = 0; k < prjrefs.length; ++k)
             {
-                refs = "\n\t<References>\n" + refs + "\t</References>";
-                pos += str.length;
+                refs += "\t\t<ProjectReference\n";
+                refs += "\t\t\tReferencedProjectIdentifier=\"" +
+                        prjrefs[k].VSProject.ProjectGUID + "\"\n";
+                refs += "\t\t/>\n";
             }
+            var pos = text.indexOf("\t</References>");
+            if (0 > pos)
+            {
+                var str = "\t</Configurations>";
+                pos = text.indexOf(str);
+                if (0 <= pos)
+                {
+                    refs = "\n\t<References>\n" + refs + "\t</References>";
+                    pos += str.length;
+                }
+            }
+            text = text.substr(0, pos) + refs + text.substr(pos);
+            text.replace("\t</References>", refs);
+            file = fso.CreateTextFile(VCProject.ProjectFile, true, false);
+            file.Write(text);
+            file.Close();
         }
-        text = text.substr(0, pos) + refs + text.substr(pos);
-        text.replace("\t</References>", refs);
-        file = fso.CreateTextFile(VCProject.ProjectFile, true, false);
-        file.Write(text);
-        file.Close();
     }
 }

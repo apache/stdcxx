@@ -27,16 +27,14 @@ runs examples and checks results.
             <named helpstring="The root directory with executables" 
                 name="EXEDIR" required="true" type="string"/>
             <named helpstring="The root directory with .in and .out files" 
-                name="INOUTDIR" required="true" type="string"/>
+                name="INOUTDIR" required="false" type="string"/>
             <named helpstring="The build type" name="BUILDTYPE" 
                 required="true" type="string"/>
             <named helpstring="The configuration" name="CONFIG" 
                 required="true" type="string"/>
             <named helpstring="The log file" name="LOGFILE" 
                 required="false" type="string"/>
-            <named helpstring="The copy lib dll to exe option" name="COPYDLL" 
-                required="false" type="string"/>
-            <named helpstring="The copy lib dll to exe option" name="COPYRWTESTDLL" 
+            <named helpstring="The copy stdlibxx.dll to exe option" name="COPYDLL" 
                 required="false" type="string"/>
             <named helpstring="The lib dll folder" name="LIBDIR" 
                 required="false" type="string"/>
@@ -45,10 +43,9 @@ runs examples and checks results.
             /INOUTDIR:"C:\stdcxx\build" /BUILDTYPE:11d /CONFIG:msvc-7.1
             </example>
             <usage>
-Usage: cscript runexamples.wsf /EXEDIR:@EXEDIR /INOUTDIR:@INOUTDIR 
+Usage: cscript runexamples.wsf /EXEDIR:@EXEDIR [/INOUTDIR:@INOUTDIR] 
 /BUILDTYPE:@BUILDTYPE /CONFIG:@CONFIG
 [/LOGFILE:@LOGFILE] [/COPYDLL:@COPYDLL] [/LIBDIR:@LIBDIR]
-[/COPYRWTESTDLL:@COPYRWTESTDLL]
 where
 @EXEDIR is the root directory with executables ro be run and checked,
 @TOPDIR is the root directory with .in and .out files 
@@ -56,9 +53,8 @@ required by executables,
 @BUILDTYPE is the build type (11d, 11s, etc).
 @CONFIG is the compiler configuration (msvc-7.1, icc-9.0, etc).
 @LOGFILE is the log file name.
-@COPYDLL is the option for copy dll to executables
+@COPYDLL is the option for copy stdlibxx.dll to executables
 @LIBDIR is the library dll folder (specify when COPYDLL is true)
-@COPYRWTESTDLL is the option for copy rwtest.dll to executables
             </usage>
         </runtime>
         <object id="fso" progid="Scripting.FileSystemObject"/>
@@ -66,7 +62,7 @@ required by executables,
         <script language="JScript" src="config.js"/>
         <script language="JScript" src="utilities.js"/>
         <script language="JScript" src="summary.js"/>
-        <script id="exrunner" language="JScript">
+        <script id="runexamples" language="JScript">
 <![CDATA[
 //
 // Examples running script for stdcxx library
@@ -80,10 +76,8 @@ var currentCfg = "msvc-7.1" // the configuration
 var logFileName = ""; // the log file name
 var logFileDefault = "runexamples.log"; // the default log file name
 var copyDll = false;
-var copyRwtestDll = false;
 var libdllFolder = "";
 
-var varIn = "in";
 var varOut = "out";
 
 var exRun = 0;
@@ -151,14 +145,6 @@ function readAndCheckArguments()
         WScript.Quit(2);
     }
     
-    if (!WScript.Arguments.Named.Exists("INOUTDIR"))
-    {
-        WScript.StdErr.WriteLine(
-            "Generate: Missing required argument INOUTDIR.");
-        WScript.Arguments.ShowUsage();
-        WScript.Quit(2);
-    }
-    
     if (!WScript.Arguments.Named.Exists("BUILDTYPE"))
     {
         WScript.StdErr.WriteLine(
@@ -168,8 +154,10 @@ function readAndCheckArguments()
     }
     
     examplesDir =  WScript.Arguments.Named("EXEDIR");
-    inoutDir =  WScript.Arguments.Named("INOUTDIR");
     buildType = WScript.Arguments.Named("BUILDTYPE");
+
+    if (WScript.Arguments.Named.Exists("INOUTDIR"))
+        inoutDir =  WScript.Arguments.Named("INOUTDIR");
 
     utlExec = examplesDir + "\\..\\bin\\" + utlExec;
     
@@ -188,13 +176,6 @@ function readAndCheckArguments()
             copyDll = true;
     }
     
-    if (WScript.Arguments.Named.Exists("COPYRWTESTDLL"))
-    {
-        var copyOption = WScript.Arguments.Named("COPYRWTESTDLL");
-        if ("true" == copyOption)
-            copyRwtestDll = true;
-    }
-    
     if (WScript.Arguments.Named.Exists("LIBDIR"))
         libdllFolder = WScript.Arguments.Named("LIBDIR");
     
@@ -206,7 +187,7 @@ function readAndCheckArguments()
         WScript.Quit(3);
     }
     
-    if (! fso.FolderExists(inoutDir))
+    if (0 < inoutDir.length && !fso.FolderExists(inoutDir))
     {
         WScript.StdErr.WriteLine(
             "Generate: Could not find directory " + inoutDir);
@@ -225,20 +206,14 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary)
     var exeFolder = fso.GetFolder(exeDir);
     if (! exeFolder)
         return;
-        
-    var enumExeSubFolders = new Enumerator(exeFolder.SubFolders);
-    for (; !enumExeSubFolders.atEnd(); enumExeSubFolders.moveNext())
-    {
-        var exeFolderName = enumExeSubFolders.item().Name;
-        
-        var newSrc = srcDir + "\\" + exeFolderName;
-            
-        runAllExamples(exeDir + "\\" + exeFolderName, 
-            newSrc, fileLog, fileSummary);
-    }
     
-    var dllCopied = false;
-    var rwtdllCopied = false;
+    var htmDir = exeDir + "\\" + htmFolderName;
+    if (! fso.FolderExists(htmDir))
+        fso.CreateFolder(htmDir);
+
+    var exeFiles = new Array();
+    var arrInfo = new Array();
+    
     var rx = new RegExp("^.+\\.(?:exe)$", "i");
     var enumExeFiles = new Enumerator(exeFolder.Files);
     for (; !enumExeFiles.atEnd(); enumExeFiles.moveNext())
@@ -247,146 +222,121 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary)
         if (! rx.test(exeFileName))
             continue;
             
-        // temporary copy the dll to the executable
-        if (copyDll && !dllCopied)
-        {
-            var dllName = libFileName + buildType + ".dll";
-            var copyDllCmd = "cmd /c \"copy /Y " + libdllFolder + "\\" + dllName +
-                             " " + exeDir + "\\" + dllName + "\"";
-                             
-            WshShell.Run(copyDllCmd, 7, true);
-            dllCopied = true;
-        }
-         
-        // temporary copy the rwtest.dll to the executable
-        if (copyRwtestDll && !rwtdllCopied)
-        {
-            var rwtdllName = "rwtest.dll";
-            var copyDllCmd = "cmd /c \"copy /Y " + examplesDir + "\\" + rwtdllName +
-                             " " + exeDir + "\\" + rwtdllName + "\"";
-                             
-            WshShell.Run(copyDllCmd, 7, true);
-            rwtdllCopied = true;
-        }
-         
-        var htmDir = exeDir + "\\" + htmFolderName;
-        if (! fso.FolderExists(htmDir))
-            fso.CreateFolder(htmDir);
-            
         var itemInfo = 
             new ItemBuildInfo(getPureFileName(exeFileName, "exe"));
-            
-        var inData = readInFile(srcDir, exeFileName);
-                
-        var outData = readOutFile(srcDir, exeFileName);
-            
-        // run example
-        var runCmd = exeDir + "\\" + exeFileName;
-        WScript.Echo("running " + exeFileName);
-        fileLog.WriteLine("running " + exeFileName);
-
-        exRun++;
-        
-        if (inData != "" || outData != "")
-            runWithChecks(runCmd, exeFileName, itemInfo, outData, fileLog);
-        else
-            runNoChecks(runCmd, exeFileName, itemInfo, fileLog); 
-            
         readBuildLog(exeDir, itemInfo, unicodeLog);
-        saveBuildInfo(itemInfo, htmDir, "htm"); 
-        saveBuildSummary(itemInfo, fileSummary);
+
+        itemInfo.runReqOutput = readOutFile(srcDir, exeFileName);
+
+        exeFiles.push(exeFileName);
+        arrInfo.push(itemInfo);
+        
+        ++exRun;
     }
     
+    // temporary copy the dll to the executable
+    if (copyDll)
+    {
+        var dllName = libFileName + buildType + ".dll";
+        var copyDllCmd = "cmd /c \"copy /Y " + libdllFolder + "\\" + dllName +
+                         " " + exeDir + "\\" + dllName + "\"";
+                            
+        WshShell.Run(copyDllCmd, 7, true);
+    }
+
+    var runCmd = "\"" + utlExec + "\" -t " + runTimeout;
+    
+    if (0 < srcDir.length)
+        runCmd += " -d \"" + srcDir + "\"";
+        
+    runCmd += " " + exeFiles.join(" ");
+    
+    var prevDir = WshShell.CurrentDirectory;
+    WshShell.CurrentDirectory = exeDir;
+    var oExec = WshShell.Exec(runCmd);
+    WshShell.CurrentDirectory = prevDir;
+    
+    if (!oExec)
+    {
+        // WScript.Echo(itemInfo.name + " failed to run");
+        return;
+    }
+
+    var execOut = "";
+    while (oExec.Status == 0)
+    {
+        execOut += oExec.StdOut.ReadAll();
+        WScript.Sleep(500);
+    }
+    
+    WScript.Echo(execOut);
+    
     // delete the dll if it was copied
-    if (copyDll && dllCopied)
+    if (copyDll)
     {
         try
         {
             fso.DeleteFile(exeFolder.Path + "\\" + dllName);
         }
-        catch(e)  // do nothing
+        catch(e)
         {
             fileLog.WriteLine("error: could not delete temporary file" + 
                 exeFolder.Path + "\\" + dllName);
         }
     }
 
-    // delete the rwtest.dll if it was copied
-    if (copyRwtestDll && rwtdllCopied)
+    for (var i = 0; i < arrInfo.length; ++i)
     {
+        var itemInfo = arrInfo[i];
+        
+        var outFileName = exeDir + "\\" + itemInfo.name + ".out";
+
         try
-        {
-            fso.DeleteFile(exeFolder.Path + "\\" + rwtdllName);
+        {   
+            var outFile = fso.OpenTextFile(outFileName, 1);
+            if (!outFile.AtEndOfStream)
+                itemInfo.runOutput = outFile.ReadAll();
+                
+            outFile.Close();
+            fso.DeleteFile(outFileName);
         }
-        catch(e)  // do nothing
+        catch(e)
         {
-            fileLog.WriteLine("error: could not delete temporary file" + 
-                exeFolder.Path + "\\" + rwtdllName);
+            WScript.Echo("Could not delete temporary file " + outFileName);
         }
-    }
-}
-
-// run command without comparing the command output with expected output
-// cmd - full path to the running executable
-// exeFileName - filename of the running executable
-// itemInfo - ItemBuildInfo object to hold the information
-// fileLog - log filename
-function runNoChecks(cmd, exeFileName, itemInfo, fileLog)
-{
-    var runCmd = utlExec + " -t " + runTimeout + " \"" + cmd + " < NUL:\"";
-    
-    var oExec = WshShell.Exec(runCmd);
-    if (!oExec)
-    {
-        WScript.Echo(itemInfo.name + " failed to run");
-        return;
-    }
-
-    while (oExec.Status == 0)
-        WScript.Sleep(500);
-
-    itemInfo.exitCode = oExec.ExitCode;
         
-    itemInfo.runDiff = "";
-    itemInfo.runOutput = "";
-    
-    var outFileName = cmd.replace(".exe", ".out");
+        itemInfo.exitCode = parseStatus(itemInfo.name + ".exe", execOut);
+        switch (itemInfo.exitCode)
+        {
+        case 0:  // OK
+            ++exRunSucceeded;
+            fileLog.WriteLine(itemInfo.name + " completed successfully, exit code " +
+                itemInfo.exitCode);
+            break;
+        case -1: // KILLED
+            ++exRunTimedOut;
+            fileLog.WriteLine(itemInfo.name + " timed out");
+            break;
+        case -2: // DIFF
+            fileLog.WriteLine(itemInfo.name + " completed successfully, " +
+                "but output differs from the expected");
+            getDifferencesInfo(itemInfo);
+            ++exRunFailed;
+            break;
+        case -3: // SEGV
+        case -4: // other
+            ++exRunFailed;
+            fileLog.WriteLine(itemInfo.name + " failed");
+            break;
+        default:
+            ++exBadCode;
+            fileLog.WriteLine(itemInfo.name + " completed successfully, exit code " +
+                itemInfo.exitCode);
+        }
 
-    try
-    {   
-        var outFile = fso.OpenTextFile(outFileName, 1);
-        
-        var exeOutput = "";
-        if (!outFile.AtEndOfStream)
-          exeOutput = outFile.ReadAll();
-            
-        itemInfo.runOutput = exeOutput;
-        
-        outFile.Close();
-        fso.DeleteFile(outFileName);
+        saveBuildInfo(itemInfo, htmDir, "htm"); 
+        saveBuildSummary(itemInfo, fileSummary);
     }
-    catch(e)
-    {
-        WScript.Echo("Could not delete temporary file " + outFileName);
-    }
-
-    var Status = oExec.StdOut.ReadAll();
-    WScript.Echo(Status);
-
-    if (itemInfo.exitCode == 0)
-        itemInfo.exitCode = parseStatus(exeFileName, Status);
-
-    if (itemInfo.exitCode != 0)
-        exBadCode++;
-  
-    exRunSucceeded++;
-  
-    WScript.Echo("example succeeded! Exit code " + itemInfo.exitCode);
-    fileLog.WriteLine(itemInfo.name + " completed successfully, exit code "
-        + itemInfo.exitCode);
-   
-    WScript.Echo("   ");
-    fileLog.WriteLine(" ");
 }
 
 // parse the exec utility output to get status of the running executable 
@@ -399,101 +349,29 @@ function parseStatus(exeName, execOut)
     var pos = execOut.indexOf(exeName);
     if (0 <= pos)
     {
-        var status = execOut.substr(pos + 26, 6);
+        pos += 26;
+        var status = execOut.substring(pos, execOut.indexOf(" ", pos + 6));
         res = parseInt(status);
         if (isNaN(res))
         {
             switch (status)
             {
             case "KILLED":
-                ++exRunTimedOut;
+                res = -1;
                 break;
+            case "  DIFF":
+                res = -2;
+                break;
+            case "  SEGV":
+                res = -3;
+                break;
+            default:
+                res = -4;
             }
-            res = 0;
         }
     }
 
     return res;
-}
-
-// run command and compare the command output with expected output
-// cmd - full path to the running executable
-// exeFileName - filename of the running executable
-// itemInfo - ItemBuildInfo object to hold the information
-// outData - the expected output of the command
-// fileLog - log filename
-function runWithChecks(cmd, exeFileName, itemInfo, outData, fileLog)
-{
-    var runCmd = utlExec + " -t " + runTimeout + " -d " + inoutDir +
-                 " \"" + cmd + "\"";
-
-    var oExec = WshShell.Exec(runCmd);
-    if (!oExec)
-    {
-        WScript.Echo(itemInfo.name + " failed to run");
-        return;
-    }
-            
-    while (oExec.Status == 0)
-        WScript.Sleep(500);
-
-    var outFileName = cmd.replace(".exe", ".out");
-
-    try
-    {   
-        var outFile = fso.OpenTextFile(outFileName, 1);
-        
-        var exeOutput = "";
-        if (!outFile.AtEndOfStream)
-          exeOutput = outFile.ReadAll();
-            
-        itemInfo.runOutput = exeOutput;
-        
-        outFile.Close();
-        fso.DeleteFile(outFileName);
-    }
-    catch(e)
-    {
-        WScript.Echo("Could not delete temporary file " + outFileName);
-    }
-
-    var Status = oExec.StdOut.ReadAll();
-    WScript.Echo(Status);
-
-    itemInfo.runOutput = exeOutput;
-    itemInfo.exitCode = oExec.ExitCode;
-    itemInfo.runReqOutput = outData;
-  
-    if (itemInfo.exitCode == 0)
-        itemInfo.exitCode = parseStatus(exeFileName, Status);
-
-    if (itemInfo.exitCode != 0)
-        exBadCode++;
-
-    if (exeOutput == outData)
-    {
-        itemInfo.runDiff = "";
-    
-        exRunSucceeded++;
-        WScript.Echo("example succeeded! Exit code " + oExec.ExitCode);
-        fileLog.WriteLine(itemInfo.name + 
-            " completed successfully, exit code " +
-            itemInfo.exitCode);
-    }
-    else
-    {
-        WScript.Echo("example output differs from the expected");
-        getDifferencesInfo(itemInfo);
-    
-        exRunFailed++;
-        WScript.Echo("example failed! Exit code " + oExec.ExitCode);
-        fileLog.WriteLine(itemInfo.name + 
-            " completed with errors, exit code " +
-            itemInfo.exitCode);
-    }
-    
-    WScript.Echo("   ");
-    fileLog.WriteLine(" ");
 }
 
 // returns the content of the .in or .out file for the specified executable
@@ -522,20 +400,25 @@ function readAllFromFile(srcDir, exeFileName, nameSuffix)
     return (someFile.ReadAll());
 }
 
-// returns the content of the .in file for the specified executable
-// srcDir - folder containing .in files
-// exeFileName - filename of the executable
-function readInFile(srcDir, exeFileName)
-{
-    return readAllFromFile(srcDir, exeFileName, varIn);
-}
-
 // returns the content of the .out file for the specified executable
 // srcDir - folder containing .out files
 // exeFileName - filename of the executable
 function readOutFile(srcDir, exeFileName)
 {
     var outData = readAllFromFile(srcDir, exeFileName, varOut);
+    
+    if (0 == outData.length)
+    {
+        outData = readAllFromFile(srcDir + "\\manual", exeFileName, varOut);
+        if (0 < outData.length)
+            srcDir += "\\manual";
+        else
+        {
+            outData = readAllFromFile(srcDir + "\\tutorial", exeFileName, varOut);
+            if (0 < outData.length)
+                srcDir += "\\tutorial";
+        }
+    }
     
     var eolStr = String.fromCharCode(13) + String.fromCharCode(10);
     var idxEOL = outData.indexOf(eolStr);

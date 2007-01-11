@@ -30,6 +30,7 @@ var TristateFalse = 0;
 // the timeout for the exec utility
 var execTimeout = 180;
 
+var dte = null;
 var VCProjectEngine = null;
 var ICConvertTool = "ICProjConvert90.exe";
 
@@ -49,11 +50,10 @@ function TestUtil(cmd)
 
 // init VisualStudio objects using specified configuration
 // config - name of configuration (e.g. msvc-7.0)
-function InitVSObjects(config)
+// freedte - if undefined or true then free dte inside function
+function InitVSObjects(config, freedte)
 {
     getCompilerOpts(config);
-
-    var dte = null;
 
     try
     {
@@ -110,7 +110,7 @@ function InitVSObjects(config)
         }
     }
 
-    if (null != dte)
+    if (("undefined" == typeof(freedte) || true == freedte) && (null != dte))
     {
         dte.Quit();
         dte = null;
@@ -172,6 +172,7 @@ ProjectDef.prototype.createVCProject = projectCreateVCProject;
 ProjectDef.prototype.createProjectDefsFromFolder = projectCreateProjectDefsFromFolder;
 ProjectDef.prototype.createLocaleDefs = projectCreateLocaleDefs;
 ProjectDef.prototype.createTestLocaleDefs = projectCreateTestLocaleDefs;
+ProjectDef.prototype.createTestLocalesDef = projectCreateTestLocalesDef;
 
 // returns copy of ProjectDef object
 function projectCloneDef()
@@ -426,29 +427,26 @@ function projectCreateVCProject(engine, report)
             
             compiler.ExceptionHandling = cppExceptionHandlingYes;
             compiler.RuntimeTypeInfo = this.RTTI;
-            
-            if (confInfo.mt)
+
+            if (confInfo.dll)
             {
-                if (confInfo.dll)
-                    compiler.RuntimeLibrary = confInfo.debug ?
-                        rtMultiThreadedDebugDLL : rtMultiThreadedDLL;
-                else
-                    compiler.RuntimeLibrary = confInfo.debug ?
-                        rtMultiThreadedDebug : rtMultiThreaded;
+                // the singlethreaded dll runtimes are not present
+                // always use the multithreaded dll runtime
+                compiler.RuntimeLibrary = confInfo.debug ?
+                    rtMultiThreadedDebugDLL : rtMultiThreadedDLL;
             }
             else
             {
-                if (!NOSTCRT)
+                if (confInfo.mt || NOSTCRT)
+                    // use multithreaded runtimes
+                    compiler.RuntimeLibrary = confInfo.debug ?
+                        rtMultiThreadedDebug : rtMultiThreaded;
+                else
                     // use singlethreaded runtimes
                     compiler.RuntimeLibrary = confInfo.debug ?
                         rtSingleThreadedDebug : rtSingleThreaded;
-                else
-                    // the singlethreaded runtimes are not present
-                    // use the multithreaded instead
-                    compiler.RuntimeLibrary = confInfo.debug ?
-                        rtMultiThreadedDebug : rtMultiThreaded;
             }
-            
+
             compiler.UsePrecompiledHeader = pchNone;
         }
 
@@ -557,7 +555,9 @@ function projectCreateVCProject(engine, report)
 // inclFiles - regular expression to define include files
 // exclDirs - regular expression to define exclude folder
 // exclFiles - regular expression to define exclude files
-function projectCreateProjectDefsFromFolder(startDir, inclFiles, exclDirs, exclFiles)
+// shiftOutDir - if true then add subfolder name to the OutDir path
+function projectCreateProjectDefsFromFolder(startDir,
+    inclFiles, exclDirs, exclFiles, shiftOutDir)
 {
     var projectDefs = new Array();
     
@@ -573,11 +573,14 @@ function projectCreateProjectDefsFromFolder(startDir, inclFiles, exclDirs, exclF
             continue;
         }
         
-        var newDefs = this.createProjectDefsFromFolder(
-            subFolder.Path, inclFiles, exclDirs, exclFiles);
+        var newDefs = this.createProjectDefsFromFolder(subFolder.Path,
+            inclFiles, exclDirs, exclFiles, shiftOutDir);
 
-        for (var i = 0; i < newDefs.length; ++i)
-            newDefs[i].OutDir += "\\" + subFolder.Name;
+        if (shiftOutDir)
+        {
+            for (var i = 0; i < newDefs.length; ++i)
+                newDefs[i].OutDir += "\\" + subFolder.Name;
+        }
         
         projectDefs = projectDefs.concat(newDefs);
     }
@@ -822,4 +825,72 @@ function projectCreateTestLocaleDefs(nlsDir)
     }    
 
     return projectDefs;
+}
+
+// create  ProjectDef object for test all locales
+// nlsDir - folder containing locale source files
+function projectCreateTestLocalesDef(nlsDir)
+{
+    nlsDir = ReplaceMacros(nlsDir, cmnMacros);
+
+    if (typeof(this.arrLocales) == "undefined")
+        ProjectDef.prototype.arrLocales = initLocalesList(nlsDir);
+        
+    var srcdir = "%SRCDIR%\\etc\\config\\windows";
+    var bindir = "$(SolutionDir)%CONFIG%\\bin";
+    var test = "sanity_test";
+
+    // create test_locale_sanity project
+    var projectDef = this.clone();
+    if (null == projectDef.PreBuildCmd)
+        projectDef.PreBuildCmd = "";
+    else
+        projectDef.PreBuildCmd += "\r\n";
+    projectDef.PreBuildCmd +=
+        "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
+        " /s /b:\"" + bindir + "\" > \"" + bindir + "\\" + test + ".bat\"";
+    projectDef.CustomBuildCmd = "cd \"" + bindir + "\"\r\n" +
+        "exec.exe -t " + execTimeout + " " + test + ".bat";
+    projectDef.CustomBuildOut = bindir + "\\" + test + ".out";
+        
+    for (var i = 0; i < this.arrLocales.length; ++i)
+    {
+        var locale = this.arrLocales[i];
+        srcFileName = nlsDir + "\\src\\" + locale.srcName;
+        cmFileName = nlsDir + "\\charmaps\\" + locale.cmName;
+
+        var cmFile;
+        var srcFile;
+        
+        try
+        {
+            cmFile = fso.GetFile(cmFileName);
+        }
+        catch (e)
+        {
+            WScript.StdErr.WriteLine("Generate: Fatal error: File " +
+                cmFileName + " not found");
+            WScript.Quit(3);
+        }
+
+        try
+        {
+            srcFile = fso.GetFile(srcFileName);
+        }
+        catch (e)
+        {
+            WScript.StdErr.WriteLine("Generate: Fatal error: File " +
+                srcFileName + " not found");
+            WScript.Quit(3);
+        }
+
+        projectDef.PreBuildCmd += "\r\n" +
+            "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
+            " /f /b:\"" + bindir + "\" /i:\"" + nlsDir + "\"" +
+            " /l:" + locale.Name + " > \"" + bindir + "\\" + locale.Name + ".bat\"";
+        projectDef.CustomBuildCmd += " " + locale.Name + ".bat";
+        projectDef.CustomBuildOut += ";" + bindir + "\\" + locale.Name + ".out";
+    }    
+
+    return projectDef;
 }
