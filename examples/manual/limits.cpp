@@ -33,6 +33,20 @@
 #include <examples.h>
 
 
+std::ostream& operator<< (std::ostream &strm, std::float_denorm_style style)
+{
+    const char* name = "(unknown)";
+
+    switch (style) {
+    case std::denorm_absent: name = "std::denorm_absent"; break;
+    case std::denorm_indeterminate: name = "std::denorm_indeterminate"; break;
+    case std::denorm_present: name = "std::denorm_present"; break;
+    }
+
+    return strm << name;
+}
+
+
 template <class T>
 void print_limits (std::ostream &strm, const char *tname, T)
 {
@@ -66,7 +80,7 @@ void print_limits (std::ostream &strm, const char *tname, T)
     PRINT_MEMBER ("const bool", has_infinity);
     PRINT_MEMBER ("const bool", has_quiet_NaN);
     PRINT_MEMBER ("const bool", has_signaling_NaN);
-    PRINT_MEMBER ("const bool", has_denorm);
+    PRINT_MEMBER ("const std::float_denorm_style", has_denorm);
 
     PRINT_MEMBER ("const bool", has_denorm_loss);
 
