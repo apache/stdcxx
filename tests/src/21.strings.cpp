@@ -208,10 +208,10 @@ _rw_sigcat (char **pbuf, size_t *pbufsize,
         which = func->which_;
 
     // determine whether the function is a member function
-    const bool is_member = 0 != (Ids::bit_member & which);
+    const bool is_member = 0 != (Ids::bit_member & int (which));
 
     // get the bitmap describing the function's argument types
-    int argmap = (which & ~Ids::bit_member) >> Ids::fid_bits;
+    int argmap = (~Ids::bit_member & int (which)) >> Ids::fid_bits;
 
     // determine whether the function is a const member function
     bool is_const_member =
@@ -224,7 +224,7 @@ _rw_sigcat (char **pbuf, size_t *pbufsize,
     const char* funcname = 0;
 
     if (0 == func) {
-        const Ids::FuncId fid = Ids::FuncId (which & StringIds::fid_mask);
+        const int fid = StringIds::fid_mask & int (which);
 
         switch (fid) {
             // translate names with funky characters to mnemonics
@@ -508,8 +508,8 @@ rw_setvars (const StringFunc     &func,
         bufsize = 0;
 
         // determine the string function name
-        const size_t funcinx = func.which_ & StringIds::fid_mask;
-        const size_t nfuncs =  sizeof _rw_func_names / sizeof *_rw_func_names;
+        const size_t funcinx = StringIds::fid_mask & int (func.which_);
+        const size_t nfuncs  = sizeof _rw_func_names / sizeof *_rw_func_names;
 
         RW_ASSERT (funcinx < nfuncs);
 
@@ -520,7 +520,8 @@ rw_setvars (const StringFunc     &func,
             _rw_func_names [funcinx] : class_name;
 
         // determine whether the function is a member function
-        const bool is_member = 0 != (func.which_ & StringIds::bit_member);
+        const bool is_member =
+            0 != (StringIds::bit_member & int (func.which_));
 
         // set the {FUNC} variable to the unqualified/undecorated
         // name of the string function (member or otherwise)
@@ -561,10 +562,12 @@ rw_setvars (const StringFunc     &func,
         arg = 0;
 
     // determine whether the function is a member function
-    const bool is_member = 0 != (func.which_ & StringIds::bit_member);
+    const bool is_member =
+        0 != (StringIds::bit_member & int (func.which_));
 
     // determine whether the function is a ctor
-    bool is_ctor = StringIds::fid_ctor == (func.which_ & StringIds::fid_mask);
+    const bool is_ctor =
+        StringIds::fid_ctor == (StringIds::fid_mask & int (func.which_));
 
     if (is_ctor) {
         // for ctors append just the class name here
@@ -1143,7 +1146,7 @@ _rw_dispatch (charT*, Traits*, Allocator*,
     if (reverse_iter) {
         // special processing for reverse iterators
 
-        const size_t func_id = tdata.func_.which_ & StringIds::fid_mask;
+        const size_t func_id = StringIds::fid_mask & int (tdata.func_.which_);
 
         const bool like_ctor =    StringIds::fid_ctor == func_id 
                                || StringIds::fid_assign == func_id;
@@ -1324,7 +1327,7 @@ _rw_run_cases (const StringFunc &func,
     rw_setvars (func);
 
     // determine whether the function is a member function
-    const bool is_member = 0 != (StringIds::bit_member & test.which);
+    const bool is_member = 0 != (StringIds::bit_member & int (test.which));
 
     // compute the function overload's 0-based index
     const size_t siginx = _rw_get_func_inx (test.which);
