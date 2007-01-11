@@ -1242,7 +1242,7 @@ void test_io (charT*, Traits*, Allocator*,
         break;
     }
 
-    if (StringIds::fid_inserter == (func.which_ & StringIds::fid_mask)) {
+    if (StringIds::fid_inserter == (StringIds::fid_mask & int (func.which_))) {
         // verify that const string object was not modified during
         // the call to the inserter (input functions may, obviously,
         // modify it)

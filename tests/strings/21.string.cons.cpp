@@ -1038,7 +1038,9 @@ void test_cons (charT*, Traits*, Allocator*,
 {
     typedef std::basic_string<charT, Traits, Allocator> String;
 
-    if (StringIds::fid_op_set == (tdata.func_.which_ & StringIds::fid_mask)) {
+    const int fid = int (tdata.func_.which_) & StringIds::fid_mask;
+
+    if (StringIds::fid_op_set == fid) {
         test_op_set ((charT*)0, (Traits*)0, (Allocator*)0, tdata);
         return;
     }

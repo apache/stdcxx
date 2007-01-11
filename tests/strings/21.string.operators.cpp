@@ -477,7 +477,7 @@ void test_operators (charT, Traits*, Allocator*,
 
             // form the expected result
             bool exp_res = false;
-            switch (func.which_ & StringIds::fid_mask) {
+            switch (StringIds::fid_mask & int (func.which_)) {
                 case StringIds::fid_op_equal: 
                     exp_res = 0 == tcase.nres;
                     break;
@@ -510,9 +510,9 @@ void test_operators (charT, Traits*, Allocator*,
 
             // verify that Traits::length was used
             std::size_t exp_len_used = 
-                (StringIds::arg_cstr << StringIds::fid_bits) 
-              | (StringIds::arg_cstr << StringIds::arg_bits 
-                                     << StringIds::fid_bits);
+                (StringIds::arg_cstr << int (StringIds::fid_bits))
+              | (StringIds::arg_cstr << int (StringIds::arg_bits)
+                                     << int (StringIds::fid_bits));
 
             std::size_t verlen = 
                 func.which_ & ~StringIds::fid_mask & ~exp_len_used;
