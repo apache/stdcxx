@@ -1,31 +1,38 @@
 /***************************************************************************
  *
- * locale.money.put.cpp - tests exercising the std::money_put facet
+ * 22.locale.money.put.cpp - tests exercising the std::money_put facet
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
 #include <ios>
 #include <locale>
-#include <cstdio>     // for sprintf()
+#include <cstdio>      // for sprintf()
 
-#include <cmdopt.h>   // for rw_enabled()
-#include <driver.h>   // for rw_test()
-#include <valcmp.h>   // for rw_valcmp()
+#include <cmdopt.h>    // for rw_enabled()
+#include <driver.h>    // for rw_assert(), rw_test(), ...
+#include <valcmp.h>    // for rw_strncmp()
 
 /**************************************************************************/
 
@@ -155,7 +162,14 @@ struct Ios: std::basic_ios<charT>
 };
 
 template <class charT>
-struct MoneyPut: std::money_put<charT, charT*> { };
+struct MoneyPut: std::money_put<charT, charT*>
+{
+    // default ctor defined in order to make it possible
+    // to define const objects of the type w/o explictly
+    // initializing them
+    typedef std::money_put<charT, charT*> Base;
+    MoneyPut (): Base () { /* no-op */ }
+};
 
 /**************************************************************************/
 
@@ -176,8 +190,7 @@ set_pattern (const char *format)
         case '\3': case '-': pat.field [i] = std::money_base::sign; break;
         case '\4': case '1': pat.field [i] = std::money_base::value; break;
         default:
-            rw_error (0, __FILE__, __LINE__,
-                      "test error: bad format specifier: '%c'", format [i]);
+            _RWSTD_ASSERT (!!"bad format specifier");
         }
     }
 
@@ -329,7 +342,9 @@ int type_test (int         lineno,
         format = "%.0" _RWSTD_LDBL_PRINTF_PREFIX "f";
 
     char valbuf [256] = "";
-    const std::size_t valbuflen = sprintf (valbuf, format, val);
+    const int valbuflen = std::sprintf (valbuf, format, val);
+
+    RW_ASSERT (0 < valbuflen && valbuflen < sizeof valbuf);
 
     typedef std::char_traits<charT> Traits;
     typedef std::allocator<charT>   Allocator;
