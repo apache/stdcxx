@@ -645,7 +645,7 @@ struct StringIds {
 #undef MEMBER_5
 
     static ArgId arg_type (OverloadId id, int argno) {
-        return ArgId (((id >> fid_bits) >> argno * arg_bits) & arg_mask);
+        return ArgId (((int (id) >> fid_bits) >> argno * arg_bits) & arg_mask);
     }
 };
 
