@@ -62,7 +62,7 @@ make_german_locale ()
         }
         catch (std::runtime_error&) {
             // continue trying until the next name is null
-            if (*++names)
+            if (0 == *++names)
                 throw;
         }
         catch (...) {
