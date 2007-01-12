@@ -447,7 +447,7 @@ ifeq ($(in_topdir),1)
     # not applicable to non-shared builds
     PICFLAGS   =
     LDSOFLAGS  =
-	RPATH      =
+    RPATH      =
   endif
 
   # POSIX, Solaris, DCE threads
