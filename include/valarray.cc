@@ -37,10 +37,9 @@ valarray<_TypeT> valarray<_TypeT>::shift (int __n) const
         return *this;
 
     if (size () <= (_RWSTD_SIZE_T)(__n < 0 ? -__n : __n))
-        return valarray (_TypeT (), size ());
+        return valarray (_TypeT (0), size ());
         
-    _RW::__rw_array <_TypeT> __tmp =
-        _RW::__rw_array <_TypeT> (_TypeT (), size ());
+    _RW::__rw_array <_TypeT> __tmp (_TypeT (0), size ());
 
     // 26.3.2.7, p5 - negative n shifts right, positive left
     if (__n < 0)
@@ -63,7 +62,7 @@ valarray<_TypeT> valarray<_TypeT>::cshift (int __n) const
     if (0 == __rem)
         return *this;
 
-    _RW::__rw_array<_TypeT> __tmp (_TypeT (), size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (0), size ());
 
     // 26.3.2.7, p7 - negative n rotates right, positive left
     rotate_copy (_C_array.begin (),
