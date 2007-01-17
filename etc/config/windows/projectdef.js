@@ -852,6 +852,8 @@ function projectCreateTestLocalesDef(nlsDir)
     projectDef.CustomBuildCmd = "cd \"" + bindir + "\"\r\n" +
         "exec.exe -t " + execTimeout + " " + test + ".bat";
     projectDef.CustomBuildOut = bindir + "\\" + test + ".out";
+
+    var locales = "";
         
     for (var i = 0; i < this.arrLocales.length; ++i)
     {
@@ -884,13 +886,20 @@ function projectCreateTestLocalesDef(nlsDir)
             WScript.Quit(3);
         }
 
-        projectDef.PreBuildCmd += "\r\n" +
-            "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
-            " /f /b:\"" + bindir + "\" /i:\"" + nlsDir + "\"" +
-            " /l:" + locale.Name + " > \"" + bindir + "\\" + locale.Name + ".bat\"";
+        locales += locale.Name + " ";
         projectDef.CustomBuildCmd += " " + locale.Name + ".bat";
         projectDef.CustomBuildOut += ";" + bindir + "\\" + locale.Name + ".out";
-    }    
+    }
+
+    if (0 < locales.length)
+    {
+        locales = "set locales=" + locales;
+        projectDef.PreBuildCmd += "\r\n" + locales + "\r\n" +
+            "for %%l in (%locales%) do " +
+            "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
+            " /f /b:\"" + bindir + "\" /i:\"" + nlsDir + "\"" +
+            " /l:%%l > \"" + bindir + "\\%%l.bat\"";
+    }
 
     return projectDef;
 }

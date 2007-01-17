@@ -58,23 +58,11 @@ function readBuildLog(exeDir, itemInfo, useUnicode)
     var uniMode = (true == useUnicode) ? -1 : 0;
     var blogFile;
 
-    // temporary loop for detect place of the problem:
-    // runall.wsf(59, 6) Microsoft JScript runtime error: Permission denied
-    for (var i = 0; i < 5 && "undefined" == typeof(blogFile); ++i)
+    try
     {
-        try
-        {
-            blogFile = fso.OpenTextFile(blogFilePath, 1, false, uniMode);
-        }
-        catch (e)
-        {
-            // file may be locked, waiting
-            WScript.Echo("File " + blogFilePath + " is locked, waiting for a 1 second");
-            WScript.Sleep(1000);
-        }
+        blogFile = fso.OpenTextFile(blogFilePath, 1, false, uniMode);
     }
-
-    if ("undefined" == typeof(blogFile))
+    catch (e)
     {
         WScript.Echo("Cannot open file: " + blogFilePath);
         return;

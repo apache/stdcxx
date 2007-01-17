@@ -186,6 +186,7 @@ function build()
 
         // save BuildLogging property value
         oldLogging = projectEngine.BuildLogging;
+        projectEngine.BuildLogging = true;
 
         WScript.Echo("Performing configure step...\n");
         var res = BuildProject(solutionBuild, "Projects\\configure.vcproj");
