@@ -9,16 +9,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -201,10 +208,10 @@ struct _RWSTD_EXPORT ios_base: _RW::__rw_synchronized
 
 #ifndef _RWSTD_NO_DEPRECATED    
 
-    // D.6, p1
-    typedef seekdir          seek_dir;
-    typedef openmode         open_mode;
-    typedef iostate          io_state;
+    // D.6, p1 (must be integer types and not enums)
+    typedef int              seek_dir;
+    typedef int              open_mode;
+    typedef int              io_state;
     typedef _RWSTD_STREAMOFF streamoff;
     typedef _RWSTD_STREAMOFF streampos;
 
