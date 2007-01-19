@@ -3,20 +3,27 @@
  *
  * csignal - C++ Standard library interface to the ANSI C header signal.h
  *
- * $Id: //stdlib/dev/include/ansi/_csignal.h#7 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -28,18 +35,6 @@
 
 
 _RWSTD_NAMESPACE (std) { 
-
-#ifndef SIG_DFL
-#  define SIG_DFL _RWSTD_SIG_DFL
-#endif   // SIG_DFL
-
-#ifndef SIG_ERR
-#  define SIG_ERR _RWSTD_SIG_ERR
-#endif   // SIG_ERR
-
-#ifndef SIG_IGN
-#  define SIG_IGN _RWSTD_SIG_IGN
-#endif   // SIG_IGN
 
 #ifndef SIGABRT
 #  define SIGABRT _RWSTD_SIGABRT
@@ -73,6 +68,25 @@ typedef _RWSTD_SIG_ATOMIC_T sig_atomic_t;
 #else
 typedef long sig_atomic_t;
 #endif   // _RWSTD_SIG_ATOMIC_T
+
+
+// helper type (necessary in order to be extern "C")
+typedef void __rw_sighandler_t (int);
+
+#ifndef SIG_DFL
+#  define SIG_DFL \
+       _RWSTD_REINTERPRET_CAST (_STD::__rw_sighandler_t*, _RWSTD_SIG_DFL)
+#endif   // SIG_DFL
+
+#ifndef SIG_ERR
+#  define SIG_ERR \
+       _RWSTD_REINTERPRET_CAST (_STD::__rw_sighandler_t*, _RWSTD_SIG_ERR)
+#endif   // SIG_ERR
+
+#ifndef SIG_IGN
+#  define SIG_IGN \
+       _RWSTD_REINTERPRET_CAST (_STD::__rw_sighandler_t*, _RWSTD_SIG_IGN)
+#endif   // SIG_IGN
 
 
 void (*signal(int, void (*)(int))) (int);
