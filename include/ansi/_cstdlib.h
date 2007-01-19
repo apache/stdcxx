@@ -63,12 +63,16 @@ extern "C" {
 
 struct div_t
 {
-    int _C_fill [2];
+    // traditional layout (e.g., HP-UX, Linux, Solaris)
+    int quot;
+    int rem;
 };
 
 struct ldiv_t
 {
-    long _C_fill [2];
+    // traditional layout (e.g., HP-UX, Linux, Solaris)
+    long quot;
+    long rem;
 };
 
 
