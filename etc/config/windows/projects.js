@@ -386,11 +386,16 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         // before executing run_locale_utils.wsf script
         // and finally delete the copied file
         var libname = "stdlib%CONFIG%.dll";
-        var src = "\"$(SolutionDir)lib\\" + libname + "\"";
-        var dst = "\"$(SolutionDir)%CONFIG%\\bin\\" + libname + "\"";
-        testlocaleTplDef.PreBuildCmd = "if exist " + src + " if not exist " + dst +
-                                     " copy /Y " + src + " " + dst;
-        testlocaleTplDef.PostBuildCmd = "if exist " + dst + " del " + dst;
+        var set = 
+            "set soldir=$(SolutionDir)\r\n" +
+            "set bindir=%soldir%%CONFIG%\\bin\r\n" +
+            "set dstdll=\"%bindir%\\" + libname + "\"\r\n";
+        testlocaleTplDef.PreBuildCmd = set +
+            "set srcdll=\"%soldir%lib\\" + libname + "\"\r\n" +
+            "if exist %srcdll% if not exist %dstdll% " +
+            "copy /Y %srcdll% %dstdll%";
+        testlocaleTplDef.PostBuildCmd = set +
+            "if exist %dstdll% del %dstdll%";
     }
 
     if (testLocales)

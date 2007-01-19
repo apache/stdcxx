@@ -843,12 +843,18 @@ function projectCreateTestLocalesDef(nlsDir)
     // create test_locale_sanity project
     var projectDef = this.clone();
     if (null == projectDef.PreBuildCmd)
-        projectDef.PreBuildCmd = "";
-    else
-        projectDef.PreBuildCmd += "\r\n";
+    {
+        projectDef.PreBuildCmd =
+            "set soldir=$(SolutionDir)\r\n" +
+            "set bindir=%soldir%%CONFIG%\\bin";
+    }
+
+    projectDef.PreBuildCmd += "\r\n" +
+        "set etcdir=%SRCDIR%\\etc\r\n" +
+        "set util=\"%etcdir%\\config\\windows\\run_locale_utils.wsf\"\r\n";
+
     projectDef.PreBuildCmd +=
-        "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
-        " /s /b:\"" + bindir + "\" > \"" + bindir + "\\" + test + ".bat\"";
+        "echo cscript /nologo %util% /s /b:\"%bindir%\" > \"%bindir%\\" + test + ".bat\"";
     projectDef.CustomBuildCmd = "cd \"" + bindir + "\"\r\n" +
         "exec.exe -t " + execTimeout + " " + test + ".bat";
     projectDef.CustomBuildOut = bindir + "\\" + test + ".out";
@@ -893,12 +899,10 @@ function projectCreateTestLocalesDef(nlsDir)
 
     if (0 < locales.length)
     {
-        locales = "set locales=" + locales;
-        projectDef.PreBuildCmd += "\r\n" + locales + "\r\n" +
+        projectDef.PreBuildCmd += "\r\nset locales=" + locales + "\r\n" +
             "for %%l in (%locales%) do " +
-            "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
-            " /f /b:\"" + bindir + "\" /i:\"" + nlsDir + "\"" +
-            " /l:%%l > \"" + bindir + "\\%%l.bat\"";
+            "echo cscript /nologo %util% /f /b:\"%bindir%\" " +
+            "/i:\"%etcdir%\\nls\" /l:%%l > \"%bindir%\\%%l.bat\"";
     }
 
     return projectDef;
