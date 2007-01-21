@@ -117,7 +117,7 @@ public:
     valarray& operator= (const indirect_array<value_type>&);
 
     // 26.3.2.3 - element access
-    value_type operator[] (_RWSTD_SIZE_T __i) const {
+    const value_type& operator[] (_RWSTD_SIZE_T __i) const {
         _RWSTD_ASSERT (__i < size ());
         return _C_array[__i];
     }
