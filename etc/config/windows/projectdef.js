@@ -836,7 +836,6 @@ function projectCreateTestLocalesDef(nlsDir)
     if (typeof(this.arrLocales) == "undefined")
         ProjectDef.prototype.arrLocales = initLocalesList(nlsDir);
         
-    var srcdir = "%SRCDIR%\\etc\\config\\windows";
     var bindir = "$(SolutionDir)%CONFIG%\\bin";
     var test = "sanity_test";
 
@@ -845,8 +844,8 @@ function projectCreateTestLocalesDef(nlsDir)
     if (null == projectDef.PreBuildCmd)
     {
         projectDef.PreBuildCmd =
-            "set soldir=$(SolutionDir)\r\n" +
-            "set bindir=%soldir%%CONFIG%\\bin";
+            "set soldir=%BUILDDIR%\r\n" +
+            "set bindir=%soldir%\\%CONFIG%\\bin";
     }
 
     projectDef.PreBuildCmd += "\r\n" +
