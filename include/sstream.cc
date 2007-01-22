@@ -67,7 +67,7 @@ basic_stringbuf<_CharT, _Traits, _Allocator>::
 template<class _CharT, class _Traits, class _Allocator>
 void
 basic_stringbuf<_CharT, _Traits, _Allocator>::
-str (const char_type *__s, _RWSTD_SIZE_T __slen /* = -1 */)
+str (const char_type *__s, _RWSTD_SIZE_T __slen)
 {
     _RWSTD_ASSERT (this->_C_is_valid ());
 
