@@ -387,11 +387,11 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         // and finally delete the copied file
         var libname = "stdlib%CONFIG%.dll";
         var set = 
-            "set soldir=$(SolutionDir)\r\n" +
-            "set bindir=%soldir%%CONFIG%\\bin\r\n" +
+            "set soldir=%BUILDDIR%\r\n" +
+            "set bindir=%soldir%\\%CONFIG%\\bin\r\n" +
             "set dstdll=\"%bindir%\\" + libname + "\"\r\n";
         testlocaleTplDef.PreBuildCmd = set +
-            "set srcdll=\"%soldir%lib\\" + libname + "\"\r\n" +
+            "set srcdll=\"%soldir%\\lib\\" + libname + "\"\r\n" +
             "if exist %srcdll% if not exist %dstdll% " +
             "copy /Y %srcdll% %dstdll%";
         testlocaleTplDef.PostBuildCmd = set +
