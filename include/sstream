@@ -117,7 +117,7 @@ public:
     basic_stringbuf (const _C_string_type&,
                      ios_base::openmode = _RW::__rw_in_out);
 
-    // extension
+    // undetectable extension
     _EXPLICIT
     basic_stringbuf (const char_type*,
                      ios_base::openmode = _RW::__rw_in_out);
@@ -134,14 +134,14 @@ public:
 
 private:
 
+#endif   // _RWSTD_NO_EXT_STRINGBUF_STR
+
     // extension
     void str (const char_type*, _RWSTD_SIZE_T);
 
-#endif   // _RWSTD_NO_EXT_STRINGBUF_STR
-
 public:
 
-    // public extension for efficiency
+    // undetectable extension for efficiency
     void str (const char_type *__s) {
         str (__s, traits_type::length (__s));
     }
@@ -250,7 +250,7 @@ public:
         : basic_istream<char_type, traits_type>(rdbuf ()),
           _C_sb (__str, __mode | ios_base::in) { }
 
-    // extension
+    // undetectable extension
     _EXPLICIT
     basic_istringstream (const char_type   * __s, 
                          ios_base::openmode __mode = ios_base::in)
@@ -271,11 +271,16 @@ public:
 #ifdef _RWSTD_NO_EXT_STRINGBUF_STR
 
     // extension
-    void str (const char_type *__s, _RWSTD_SIZE_T __len = _RWSTD_SIZE_MAX) {
+    void str (const char_type *__s, _RWSTD_SIZE_T __len) {
         rdbuf ()->str (__s, __len);
     }
 
 #endif   //  _RWSTD_NO_EXT_STRINGBUF_STR
+
+    // undetectable extension for efficiency
+    void str (const char_type *__s) {
+        rdbuf ()->str (__s);
+    }
 
     void str (const _C_string_type &__str) {
         rdbuf ()->str (__str);
@@ -315,7 +320,7 @@ public:
         : basic_ostream<char_type, traits_type>(rdbuf ()),
           _C_sb (__str, __mode | ios_base::out) { }
 
-    // extension
+    // undetectable extension
     _EXPLICIT
     basic_ostringstream (const char_type    *__s, 
                          ios_base::openmode  __mode = ios_base::out)
@@ -336,11 +341,16 @@ public:
 #ifdef _RWSTD_NO_EXT_STRINGBUF_STR
 
     // extension
-    void str (const char_type *__s, _RWSTD_SIZE_T __len = _RWSTD_SIZE_MAX) {
+    void str (const char_type *__s, _RWSTD_SIZE_T __len) {
         rdbuf ()->str (__s, __len);
     }
 
 #endif   //  _RWSTD_NO_EXT_STRINGBUF_STR
+
+    // undetectable extension for efficiency
+    void str (const char_type *__s) {
+        rdbuf ()->str (__s);
+    }
 
     void str (const _C_string_type &__str) {
         rdbuf ()->str (__str);
@@ -368,23 +378,20 @@ public:
     typedef _TYPENAME traits_type::int_type off_type;
 
     _EXPLICIT
-    basic_stringstream (ios_base::openmode __mode =
-                        ios_base::out | ios_base::in)
+    basic_stringstream (ios_base::openmode __mode = _RW::__rw_in_out)
         : basic_iostream<char_type, traits_type>(rdbuf ()),
           _C_sb (__mode) { }
 
     _EXPLICIT
-    basic_stringstream (const _C_string_type &__str, 
-                        ios_base::openmode __mode = 
-                        ios_base::out | ios_base::in)
+    basic_stringstream (const _C_string_type &__str,
+                        ios_base::openmode __mode = _RW::__rw_in_out)
         : basic_iostream<char_type, traits_type>(rdbuf ()),
           _C_sb (__str, __mode) { }
 
-    // extension
+    // undetectable extension
     _EXPLICIT
     basic_stringstream (const char_type    *__s, 
-                        ios_base::openmode __mode = 
-                        ios_base::out | ios_base::in)
+                        ios_base::openmode __mode = _RW::__rw_in_out)
         : basic_iostream<char_type, traits_type>(rdbuf ()),
           _C_sb (__s, __mode) { }
 
@@ -402,11 +409,16 @@ public:
 #ifdef _RWSTD_NO_EXT_STRINGBUF_STR
 
     // extension
-    void str (const char_type *__s, _RWSTD_SIZE_T __len = _RWSTD_SIZE_MAX) {
+    void str (const char_type *__s, _RWSTD_SIZE_T __len) {
         rdbuf ()->str (__s, __len);
     }
 
 #endif   //  _RWSTD_NO_EXT_STRINGBUF_STR
+
+    // undetectable extension for efficiency
+    void str (const char_type *__s) {
+        rdbuf ()->str (__s);
+    }
 
     void str (const _C_string_type &__str) {
         rdbuf ()->str (__str);
