@@ -405,6 +405,21 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         testlocaleArray = testlocaleArray.concat(testlocaleDefs);
     }
     
+    testlocaleTplDef.FilterDefs = new Array();
+    testlocaleTplDef.FilterDefs.push(
+        new FilterDef("Script Files", null, ".js;.wsf", eFileTypeScript, false).
+            addFiles("%SRCDIR%\\etc\\config\\windows",
+                new Array("runall.wsf", "config.js", "utilities.js",
+                          "summary.js")));
+    testlocaleTplDef.CustomBuildFile = "runall.wsf";
+    testlocaleTplDef.CustomBuildCmd = "cscript /nologo \"%CUSTOMFILE%\"" +
+        " /EXEDIR:\"$(OutDir)\"" +
+        " /BUILDTYPE:\"%CONFIG%\"" +
+        " /CONFIG:\"%SOLUTION%\"" +
+        " /LOGFILE:\"runloctests.log\"" +
+        " /COPYDLL:false /EXT:bat";
+    testlocaleTplDef.CustomBuildOut = "$(OutDir)\\runloctests.log";
+
     var testlocalesDef = testlocaleTplDef.createTestLocalesDef("%SRCDIR%\\etc\\nls");
     testlocaleArray.push(testlocalesDef);
 
