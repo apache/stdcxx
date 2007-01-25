@@ -38,14 +38,16 @@ runs examples and checks results.
                 required="false" type="string"/>
             <named helpstring="The lib dll folder" name="LIBDIR" 
                 required="false" type="string"/>
+            <named helpstring="The examples extension" name="EXT" 
+                required="false" type="string"/>
             <example>
             cscript runexamples.wsf /EXEDIR:"C:\stdcxx\build" 
             /INOUTDIR:"C:\stdcxx\build" /BUILDTYPE:11d /CONFIG:msvc-7.1
             </example>
             <usage>
 Usage: cscript runexamples.wsf /EXEDIR:@EXEDIR [/INOUTDIR:@INOUTDIR] 
-/BUILDTYPE:@BUILDTYPE /CONFIG:@CONFIG
-[/LOGFILE:@LOGFILE] [/COPYDLL:@COPYDLL] [/LIBDIR:@LIBDIR]
+/BUILDTYPE:@BUILDTYPE /CONFIG:@CONFIG [/LOGFILE:@LOGFILE]
+[/COPYDLL:@COPYDLL] [/LIBDIR:@LIBDIR] [/EXT:@EXT]
 where
 @EXEDIR is the root directory with executables ro be run and checked,
 @TOPDIR is the root directory with .in and .out files 
@@ -55,6 +57,7 @@ required by executables,
 @LOGFILE is the log file name.
 @COPYDLL is the option for copy stdlibxx.dll to executables
 @LIBDIR is the library dll folder (specify when COPYDLL is true)
+@EXT is the extension of the example files, default value: "exe"
             </usage>
         </runtime>
         <object id="fso" progid="Scripting.FileSystemObject"/>
@@ -77,6 +80,7 @@ var logFileName = ""; // the log file name
 var logFileDefault = "runexamples.log"; // the default log file name
 var copyDll = false;
 var libdllFolder = "";
+var ext = "exe";
 
 var varOut = "out";
 
@@ -114,7 +118,7 @@ function runexamples()
     var fLog = fso.CreateTextFile(examplesDir + "\\" + logFileName);
     var fSummary = fso.CreateTextFile(buildOutDir + "\\" + summaryFileName);
     
-    runAllExamples(examplesDir, inoutDir, fLog, fSummary);
+    runAllExamples(examplesDir, inoutDir, fLog, fSummary, ext);
     
     WScript.Echo("Total run " + exRun + "; " + exRunSucceeded 
         + " succeeded, " 
@@ -179,6 +183,9 @@ function readAndCheckArguments()
     if (WScript.Arguments.Named.Exists("LIBDIR"))
         libdllFolder = WScript.Arguments.Named("LIBDIR");
     
+    if (WScript.Arguments.Named.Exists("EXT"))
+        ext = WScript.Arguments.Named("EXT");
+    
     if (! fso.FolderExists(examplesDir))
     {
         WScript.StdErr.WriteLine(
@@ -201,7 +208,7 @@ function readAndCheckArguments()
 // srcDir - starting folder to search .in and .out files for the executable
 // fileLog - filename of the logfile
 // fileSimmary - filename of the summary file
-function runAllExamples(exeDir, srcDir, fileLog, fileSummary)
+function runAllExamples(exeDir, srcDir, fileLog, fileSummary, exeExt)
 {
     var exeFolder = fso.GetFolder(exeDir);
     if (! exeFolder)
@@ -214,7 +221,7 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary)
     var exeFiles = new Array();
     var arrInfo = new Array();
     
-    var rx = new RegExp("^.+\\.(?:exe)$", "i");
+    var rx = new RegExp("^.+\\.(?:" + exeExt + ")$", "i");
     var enumExeFiles = new Enumerator(exeFolder.Files);
     for (; !enumExeFiles.atEnd(); enumExeFiles.moveNext())
     {
@@ -223,10 +230,10 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary)
             continue;
             
         var itemInfo = 
-            new ItemBuildInfo(getPureFileName(exeFileName, "exe"));
+            new ItemBuildInfo(getPureFileName(exeFileName, exeExt));
         readBuildLog(exeDir, itemInfo, unicodeLog);
 
-        itemInfo.runReqOutput = readOutFile(srcDir, exeFileName);
+        itemInfo.runReqOutput = readOutFile(srcDir, exeFileName, exeExt);
 
         exeFiles.push(exeFileName);
         arrInfo.push(itemInfo);
@@ -305,7 +312,7 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary)
             WScript.Echo("Could not delete temporary file " + outFileName);
         }
         
-        itemInfo.exitCode = parseStatus(itemInfo.name + ".exe", execOut);
+        itemInfo.exitCode = parseStatus(itemInfo.name + "." + exeExt, execOut);
         switch (itemInfo.exitCode)
         {
         case 0:  // OK
@@ -346,10 +353,12 @@ function parseStatus(exeName, execOut)
 {
     var res = 0;
 
-    var pos = execOut.indexOf(exeName);
+    // maxNameLen is the length of the "NAME" column in the exec utility output
+    var maxNameLen = 25;
+    var pos = execOut.indexOf(exeName.substr(0, maxNameLen));
     if (0 <= pos)
     {
-        pos += 26;
+        pos += maxNameLen + 1;
         var status = execOut.substring(pos, execOut.indexOf(" ", pos + 6));
         res = parseInt(status);
         if (isNaN(res))
@@ -378,12 +387,12 @@ function parseStatus(exeName, execOut)
 // srcDir - folder containing subfolders with .in and .out files
 // exeFileName - filename of the executable
 // nameSuffix - one of varIn, varOut
-function readAllFromFile(srcDir, exeFileName, nameSuffix)
+function readAllFromFile(srcDir, exeFileName, nameSuffix, exeExt)
 {   
     if (! fso.FolderExists(srcDir))
         return "";
         
-    var pureName = getPureFileName(exeFileName, "exe");
+    var pureName = getPureFileName(exeFileName, exeExt);
         
     var someDir = srcDir + "\\" + nameSuffix;
     if (! fso.FolderExists(someDir))
@@ -403,18 +412,18 @@ function readAllFromFile(srcDir, exeFileName, nameSuffix)
 // returns the content of the .out file for the specified executable
 // srcDir - folder containing .out files
 // exeFileName - filename of the executable
-function readOutFile(srcDir, exeFileName)
+function readOutFile(srcDir, exeFileName, exeExt)
 {
-    var outData = readAllFromFile(srcDir, exeFileName, varOut);
+    var outData = readAllFromFile(srcDir, exeFileName, varOut, exeExt);
     
     if (0 == outData.length)
     {
-        outData = readAllFromFile(srcDir + "\\manual", exeFileName, varOut);
+        outData = readAllFromFile(srcDir + "\\manual", exeFileName, varOut, exeExt);
         if (0 < outData.length)
             srcDir += "\\manual";
         else
         {
-            outData = readAllFromFile(srcDir + "\\tutorial", exeFileName, varOut);
+            outData = readAllFromFile(srcDir + "\\tutorial", exeFileName, varOut, exeExt);
             if (0 < outData.length)
                 srcDir += "\\tutorial";
         }

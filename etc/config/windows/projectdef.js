@@ -854,10 +854,8 @@ function projectCreateTestLocalesDef(nlsDir)
 
     projectDef.PreBuildCmd +=
         "echo cscript /nologo %util% /s /b:\"%bindir%\" > \"%bindir%\\" + test + ".bat\"";
-    projectDef.CustomBuildCmd = "cd \"" + bindir + "\"\r\n" +
-        "exec.exe -t " + execTimeout + " " + test + ".bat";
-    projectDef.CustomBuildOut = bindir + "\\" + test + ".out";
 
+    var arrLocs = new Array();
     var locales = "";
         
     for (var i = 0; i < this.arrLocales.length; ++i)
@@ -891,14 +889,25 @@ function projectCreateTestLocalesDef(nlsDir)
             WScript.Quit(3);
         }
 
-        locales += locale.Name + " ";
-        projectDef.CustomBuildCmd += " " + locale.Name + ".bat";
-        projectDef.CustomBuildOut += ";" + bindir + "\\" + locale.Name + ".out";
+        if (locales.length + locale.Name.length > 1012)
+        {
+            arrLocs.push(locales);
+            locales = "";
+        }
+        else
+        {
+            if (0 < locales.length)
+                locales += " ";
+            locales += locale.Name;
+        }
     }
 
     if (0 < locales.length)
+        arrLocs.push(locales);
+
+    for (var i = 0; i < arrLocs.length; ++i)
     {
-        projectDef.PreBuildCmd += "\r\nset locales=" + locales + "\r\n" +
+        projectDef.PreBuildCmd += "\r\nset locales=" + arrLocs[i] + "\r\n" +
             "for %%l in (%locales%) do " +
             "echo cscript /nologo %util% /f /b:\"%bindir%\" " +
             "/i:\"%etcdir%\\nls\" /l:%%l > \"%bindir%\\%%l.bat\"";
