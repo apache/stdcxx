@@ -2146,6 +2146,21 @@ test_envvar ()
     TEST ("[%{$*+*}]",  "NULL",     "WORD", 0, "[WORD]");
     TEST ("[%{$*+*}]",  "UNSET",    "WORD", 0, "[]");
 
+    //////////////////////////////////////////////////////////////////
+
+    // exercise unconditional assignment
+    TEST ("[%{$*!:*}]", "NOT_NULL", "WORD1", 0, "[WORD1]");
+    TEST ("[%{$*!:*}]", "NULL",     "WORD2", 0, "[WORD2]");
+    TEST ("[%{$*!:*}]", "UNSET",    "WORD3", 0, "[WORD3]");
+
+    TEST ("[%{$*!:*}]", "NOT_NULL", "WORD4", 0, "[WORD4]");
+    TEST ("[%{$*!:*}]", "NULL",     "WORD5", 0, "[WORD5]");
+    TEST ("[%{$*!:*}]", "UNSET",    "WORD6", 0, "[WORD6]");
+
+    //////////////////////////////////////////////////////////////////
+
+    // exercise assignment of a formatted string
+    TEST ("[%{$FOO!:@}, %{$FOO}]", "%s", "bar", 0, "[bar, bar]");
 }
 
 /***********************************************************************/
@@ -2781,6 +2796,42 @@ test_bufsize ()
 /***********************************************************************/
 
 static void
+test_nested_format ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{@}\" nested format directive");
+
+    TEST ("%{@}",        "",     0,    0, "");
+    TEST ("%{@}",        "a",    0,    0, "a");
+    TEST ("%{@}",        "ab",   0,    0, "ab");
+    TEST ("%{@}",        "abc",  0,    0, "abc");
+    TEST ("%{@}",        "%d",   0,    0, "0");
+    TEST ("%{@}",        "%d",   1,    0, "1");
+    TEST ("%{@}",        "%d",  12,    0, "12");
+    TEST ("%{@}",        "%s",  "x",   0, "x");
+    TEST ("%{@}",        "%s",  "xy",  0, "xy");
+    TEST ("%{@}",        "%s",  "xyz", 0, "xyz");
+    TEST ("x%{@}",       "%s",  "yz",  0, "xyz");
+    TEST ("%{@}z",       "%s",  "xy",  0, "xyz");
+    TEST ("x%{@}z",      "%s",  "y",   0, "xyz");
+
+    TEST ("ABC%{@}F",    "D%{@}E", "",    0, "ABCDEF");
+    TEST ("ABC%{@}GH",   "D%{@}F", "e",   0, "ABCDeFGH");
+    TEST ("ABC%{@}HIJ",  "D%{@}G", "ef",  0, "ABCDefGHIJ");
+    TEST ("ABC%{@}IJKL", "D%{@}H", "efg", 0, "ABCDefgHIJKL");
+
+    TEST ("AB%{@}MN", "CD%{@}KL", "EF%{@}IJ", "gh", "ABCDEFghIJKLMN");
+
+    TEST ("A%{@}C%{@}E%{@}G", "B",  "D",  "F", "ABCDEFG");
+    TEST ("A%{@}C%{@}E",      "%s", "B",  "D", "ABCDE");
+    TEST ("A%{@}C%{@}E",      "B",  "%s", "D", "ABCDE");
+
+    TEST ("ABC%sGHI%{@}XYZ", "DEF", "%s%1$s", "JKL", "ABCDEFGHIJKLJKLXYZ");
+}
+
+/***********************************************************************/
+
+static void
 test_malformed_directives ()
 {
     //////////////////////////////////////////////////////////////////
@@ -2880,6 +2931,8 @@ int main ()
     test_user_defined_formatting ();
 
     test_bufsize ();
+
+    test_nested_format ();
 
     test_malformed_directives ();
 
