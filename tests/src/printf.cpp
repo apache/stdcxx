@@ -198,7 +198,7 @@ _rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
     const char* const fmtbeg = fmt;
 
     if (ext) {
-        if ('$' == *fmt) {
+        if ('$' == *fmt && '}' != fmt [1]) {
 
             // %{$<string>}: introduces the name of an environment
             // variable (or parameter)
@@ -264,7 +264,8 @@ _rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
         }
     }
 
-    if (ext && '@' == *fmt) {
+    if (ext && '@' == *fmt && '}' != fmt [1]) {
+        // @<decimal-number>
 
         ++fmt;
 
@@ -662,34 +663,13 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
 
 /********************************************************************/
 
-_TEST_EXPORT int
-rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
+// implements rw_vasnprintf, but may be called recursively
+static int
+_rw_pvasnprintf (Buffer &buf, const char *fmt, va_list *pva)
 {
-    va_list *pva;
-
-    va_list vacpy;
-    _RWSTD_VA_COPY (vacpy, varg);
-
-    pva = &vacpy;
-
-// do not use varg of vacpy below this point -- use *pva instead
-#define varg  DONT_TOUCH_ME
-#define vacpy DONT_TOUCH_ME
-
-    size_t default_bufsize = 1024;
-    if (0 == pbufsize)
-        pbufsize = &default_bufsize;
-
-    Buffer buf = { pbuf, pbufsize, _RWSTD_SIZE_MAX, 0 };
-
-    RW_ASSERT (0 != buf.pbuf);
-    RW_ASSERT (0 != buf.pbufsize);
-
-    // save the initial value of `pbuf'
-    char* const pbuf_save = *buf.pbuf;
-
-    // when appending to the buffer
-    size_t append_offset = 0;
+    // save the length of the initial subsequence already
+    // in the buffer
+    const size_t begoff = buf.endoff;
 
     // local buffer for a small number of conversion specifiers
     // will grow dynamically if their number exceeds its capacity
@@ -702,45 +682,8 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
     char fmtspec [64];
 
-    char *next = *buf.pbuf;
-
     size_t spec_bufsize = sizeof specbuf / sizeof *specbuf;
     size_t paramno = 0;
-
-    if ('%' == fmt [0] && '{' == fmt [1] && '+' == fmt [2] && '}' == fmt [3]) {
-        // when the format string begins with the special %{+}
-        // directive append to the buffer instead of writing
-        // over it
-        fmt += 4;
-        append_offset = *buf.pbuf ? strlen (*buf.pbuf) : 0;
-        buf.endoff    = append_offset;
-    }
-    else if (*buf.pbuf)
-        **buf.pbuf = '\0';
-
-    if ('%' == fmt [0] && '{' == fmt [1]) {
-        if ('*' == fmt [2] && '}' == fmt [3]) {
-            const int n = va_arg (*pva, int);
-            if (n < 0) {
-#ifdef EINVAL
-                errno = EINVAL;
-#endif   // EINVAL
-                goto fail;
-            }
-
-            buf.maxsize = size_t (n);
-            fmt += 4;
-        }
-        else if (isdigit (fmt [2])) {
-
-            char* end = 0;
-            const ULong n = strtoul (fmt + 2, &end, 0);
-            if ('}' == *end) {
-                buf.maxsize = n;
-                fmt         = end + 1;
-            }
-        }
-    }
 
     for (const char *fc = fmt; *fc; ) {
 
@@ -748,8 +691,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
         size_t nchars = pcnt ? pcnt - fmt : strlen (fc);
 
-        next = _rw_bufcat (buf, fmt, nchars);
-        if (0 == next)
+        if (0 == _rw_bufcat (buf, fmt, nchars))
             goto fail;
 
         RW_ASSERT (0 != *buf.pbuf);
@@ -762,8 +704,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
         if ('%' == *fc) {
             // handle "%%"
-            next = _rw_bufcat (buf, "%", 1);
-            if (0 == next)
+            if (0 == _rw_bufcat (buf, "%", 1))
                 goto fail;
 
             fmt = ++fc;
@@ -792,8 +733,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
             if (0 == endbrace || fc == endbrace) {
                 const size_t flen = strlen (fc -= 2);
-                next = _rw_bufcat (buf, fc, flen);
-                if (0 == next)
+                if (0 == _rw_bufcat (buf, fc, flen))
                     goto fail;
 
                 fc += flen;
@@ -809,7 +749,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
             fmtspec [fmtlen] = '\0';
 
             // compute the length of the buffer so far
-            const size_t buflen = next - *buf.pbuf;
+            const size_t buflen = _rw_bufcat (buf, "", 0) - *buf.pbuf;
 
             RW_ASSERT (paramno < spec_bufsize);
 
@@ -921,12 +861,6 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
 
             RW_ASSERT (len + buflen <= *buf.pbufsize);
 
-            // adjust the next pointer to point to the terminating
-            // NUL in the (possibly reallocated) buffer
-            next = *buf.pbuf + buflen + len;
-
-            RW_ASSERT (next == *buf.pbuf + buf.endoff);
-
             fc += speclen + 1;
             if (fc < endbrace)
                 fc = endbrace + 1;
@@ -947,13 +881,10 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
                 if (-1 == pspec [paramno].paramno)
                     ++paramno;
 
-                next += len;
-                fc   += speclen;
+                fc += speclen;
             }
-            else {
-                next = _rw_bufcat (buf, "%", 1);
-                if (0 == next)
-                    goto fail;
+            else if (0 == _rw_bufcat (buf, "%", 1)) {
+                goto fail;
             }
         }
 
@@ -967,23 +898,13 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
     if (pspec != specbuf)
         free (pspec);
 
-    // NUL-terminate
-    next = _rw_bufcat (buf, "", 1);
-    if (0 == next)
-        goto fail;
+    RW_ASSERT (begoff <= buf.endoff);
 
     // return the number of characters appended to the buffer
-    // not including the terminating NUL
-    return int ((next - *buf.pbuf) - append_offset - 1);
+    // buffer isn't necessarily NUL terminated at this point
+    return int (buf.endoff - begoff);
 
 fail: // function failed
-
-    const int error = errno;
-
-    fprintf (stderr, "%s:%d: rw_vasnprintf(%p, %p, \"%s\", va_list) "
-             "error: errno = %d: %s\n",
-             __FILE__, __LINE__, (void*)buf.pbuf, (void*)buf.pbufsize, fmt,
-             error, strerror (error));
 
     for (size_t i = 0; i != paramno; ++i)
         free (pspec [i].strarg);
@@ -991,16 +912,98 @@ fail: // function failed
     if (pspec != specbuf)
         free (pspec);
 
-    if (*buf.pbuf != pbuf_save) {
-        // free any allocated memory
-        free (*buf.pbuf);
-        *buf.pbuf = 0;
+    return -1;
+}
+
+
+_TEST_EXPORT int
+rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
+{
+    va_list *pva;
+
+    va_list vacpy;
+    _RWSTD_VA_COPY (vacpy, varg);
+
+    pva = &vacpy;
+
+// do not use varg or vacpy below this point -- use *pva instead
+#define varg  DONT_TOUCH_ME
+#define vacpy DONT_TOUCH_ME
+
+    size_t default_bufsize = 1024;
+    if (0 == pbufsize)
+        pbufsize = &default_bufsize;
+
+    Buffer buf = { pbuf, pbufsize, _RWSTD_SIZE_MAX, 0 };
+
+    // save the initial value of `pbuf'
+    char* const pbuf_save = *buf.pbuf;
+
+    RW_ASSERT (0 != buf.pbuf);
+    RW_ASSERT (0 != buf.pbufsize);
+
+    if ('%' == fmt [0] && '{' == fmt [1] && '+' == fmt [2] && '}' == fmt [3]) {
+        // when the format string begins with the special %{+}
+        // directive append to the buffer instead of writing
+        // over it
+        fmt        += 4;
+        buf.endoff  = *buf.pbuf ? strlen (*buf.pbuf) : 0;
+    }
+    else if (*buf.pbuf)
+        **buf.pbuf = '\0';
+
+    if ('%' == fmt [0] && '{' == fmt [1]) {
+        if ('*' == fmt [2] && '}' == fmt [3]) {
+            const int n = va_arg (*pva, int);
+            if (n < 0) {
+#ifdef EINVAL
+                errno = EINVAL;
+#endif   // EINVAL
+                return -1;
+            }
+
+            buf.maxsize = size_t (n);
+            fmt += 4;
+        }
+        else if (isdigit (fmt [2])) {
+
+            char* end = 0;
+            const ULong n = strtoul (fmt + 2, &end, 0);
+            if ('}' == *end) {
+                buf.maxsize = n;
+                fmt         = end + 1;
+            }
+        }
     }
 
-    if (errno != error)
-        errno = error;
+    // format buffer w/o appending terminating NUL
+    const int len = _rw_pvasnprintf (buf, fmt, pva);
 
-    return -1;
+    // append terminating NUL
+    if (len < 0 || !_rw_bufcat (buf, "", 1)) {
+
+        const int error = errno;
+
+        fprintf (stderr, "%s:%d: rw_vasnprintf(%p, %p, \"%s\", va_list) "
+                 "error: errno = %d: %s\n",
+                 __FILE__, __LINE__, (void*)buf.pbuf, (void*)buf.pbufsize,
+                 fmt, error, strerror (error));
+
+        if (*buf.pbuf != pbuf_save) {
+            // free any allocated memory
+            free (*buf.pbuf);
+            *buf.pbuf = 0;
+        }
+
+        if (errno != error) {
+            // reset errno if it's been modified since it was saved
+            errno = error;
+        }
+
+        return len < 0 ? len : -1;
+    }
+
+    return len;
 
 #undef varg
 #undef vacpy
@@ -2555,6 +2558,14 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         len = 0;
         break;
 
+    case '@': {   // %{@}
+        // user-defined formatting string
+        spec.param.ptr_ = PARAM (ptr_);
+        const char* const tmp_fmt = (const char*)spec.param.ptr_;
+        len = _rw_pvasnprintf (buf, tmp_fmt, pva);
+        break;
+    }
+
     case '?':   // %{?}
         // beginning of an if clause
         spec.param.int_ = PARAM (int_);
@@ -2955,9 +2966,31 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, va_list *pva)
         param = va_arg (*pva, char*);
     }
 
+    char* fmtword = 0;
+
     if ('*' == *word) {
         // extract "word" from the argument list
         word = va_arg (*pva, char*);
+    }
+    else if ('@' == *word) {
+        // extract formatting directive from the argument list
+        // and set word to the result of processing it
+        const char* const fmt = va_arg (*pva, char*);
+
+        size_t dummy_size = 0;   // unused
+        Buffer tmpbuf = { &fmtword, &dummy_size, _RWSTD_SIZE_MAX, 0 };
+        const int len = _rw_pvasnprintf (tmpbuf, fmt, pva);
+        if (len < 0)
+            return -1;
+
+        // add terminating NUL
+        if (0 == _rw_bufcat (tmpbuf, "", 1)) {
+            free (fmtword);
+            return -1;
+        }
+
+        // set word to the formatted string
+        word = *tmpbuf.pbuf;
     }
 
     // retrieve the value of the parameter from the environments
@@ -3050,6 +3083,11 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, va_list *pva)
         break;
 
     default:
+        if (0 == val) {
+            // undefined variable
+            val = "";
+        }
+
         break;
     }
 
@@ -3081,16 +3119,24 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, va_list *pva)
 
         char text [256];
         len = sprintf (text, "%%{$%.*s}", int (sizeof text - 3), spec.strarg);
-        if (0 == _rw_bufcat (buf, text, size_t (len)))
+        if (0 == _rw_bufcat (buf, text, size_t (len))) {
+            free (fmtword);
             return -1;
+        }
     }
     else {
         // format the value of the variable (after assignment
         // if it takes place)
-        if (0 == _rw_bufcat (buf, val, size_t (len)))
+        if (0 == _rw_bufcat (buf, val, size_t (len))) {
+            free (fmtword);
             return -1;
+        }
     }
 
+    // free the formatted word (if any)
+    free (fmtword);
+
+    // free the string allocated in _rw_fmtspec()
     free (spec.strarg);
     spec.strarg     = 0;
     spec.param.ptr_ = _RWSTD_CONST_CAST (char*, val);
