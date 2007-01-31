@@ -814,7 +814,7 @@ calculate_usage (struct target_status* result, const clock_t h_clk,
 
     c_clk = times (&c_tms);
 
-    if (-1 == wall) {
+    if (-1 == c_clk) {
         warn ("Failed to retrieve ending times: %s", strerror (errno));
         return;
     }
