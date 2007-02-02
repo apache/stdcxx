@@ -390,7 +390,9 @@ seekoff (off_type __off, ios_base::seekdir __way, ios_base::openmode __which)
 
     if (__which & ios_base::in) {
 
-        if (!this->_C_is_in () || !this->gptr ())
+        // LWG issue 453: the operation fails if either gptr() or pptr()
+        // is a null pointer and the new offset newoff is nonzero
+        if (!this->_C_is_in () || __off && !this->gptr ())
             return pos_type (off_type (-1));
 
         // do the checks for in|out mode here
@@ -414,11 +416,13 @@ seekoff (off_type __off, ios_base::seekdir __way, ios_base::openmode __which)
 
     if (__which & ios_base::out) {
 
-        if (!this->_C_is_out () || !this->pptr ())
+        // LWG issue 453: the operation fails if either gptr() or pptr()
+        // is a null pointer and the new offset newoff is nonzero
+        if (!this->_C_is_out () || __off && !this->pptr ())
             return pos_type (off_type (-1));
 
         // egptr() is used as the "high mark" even when not in "in" mode
-        _RWSTD_ASSERT (0 != this->egptr ());
+        _RWSTD_ASSERT (0 == this->pbase () || 0 != this->egptr ());
 
         // compute the number of initialized characters in the buffer
         // (see LWG issue 432)
