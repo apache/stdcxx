@@ -685,6 +685,9 @@ _rw_pvasnprintf (Buffer &buf, const char *fmt, va_list *pva)
     size_t spec_bufsize = sizeof specbuf / sizeof *specbuf;
     size_t paramno = 0;
 
+    if (0 == fmt || 0 > _RW::__rw_memattr (fmt, _RWSTD_SIZE_MAX, -1))
+        return _rw_fmtbadaddr (pspec [0], buf, fmt);
+
     for (const char *fc = fmt; *fc; ) {
 
         const char* const pcnt = strchr (fc, '%');
@@ -942,7 +945,9 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
     RW_ASSERT (0 != buf.pbuf);
     RW_ASSERT (0 != buf.pbufsize);
 
-    if ('%' == fmt [0] && '{' == fmt [1] && '+' == fmt [2] && '}' == fmt [3]) {
+    if (   fmt
+        && '%' == fmt [0] && '{' == fmt [1]
+        && '+' == fmt [2] && '}' == fmt [3]) {
         // when the format string begins with the special %{+}
         // directive append to the buffer instead of writing
         // over it
@@ -952,7 +957,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
     else if (*buf.pbuf)
         **buf.pbuf = '\0';
 
-    if ('%' == fmt [0] && '{' == fmt [1]) {
+    if (fmt && '%' == fmt [0] && '{' == fmt [1]) {
         if ('*' == fmt [2] && '}' == fmt [3]) {
             const int n = va_arg (*pva, int);
             if (n < 0) {
