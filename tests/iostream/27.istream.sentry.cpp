@@ -27,9 +27,11 @@
  **************************************************************************/
 
 #include <istream>
-#include <locale>      // for ctype
-#include <streambuf>   // for streambuf
+#include <locale>        // for ctype
+#include <streambuf>     // for streambuf
 
+#include <rw_char.h>     // for UserChar, UserTraits
+#include <rw_printf.h>   // for rw_printf()
 #include <driver.h>
 
 /************************************************************************
@@ -114,6 +116,29 @@
 
 ************************************************************************/
 
+void info (int line, const char *cname, const char *tname, const char *fname)
+{
+    // format the ISTREAM and SENTRY environment variables w/o writing
+    // out any output
+    rw_fprintf (0,
+                "%{$ISTREAM!:@}",
+                "%{?}istream%{:}%{?}wistream"
+                "%{:}basic_istream<%s, %s>%{;}%{;}",
+                'c' == *cname && 'c' == *tname, 
+                'w' == *cname && 'c' == *tname,
+                cname, tname);
+
+    rw_fprintf (0,
+                "%{$SENTRY!:@}",
+                "%{$ISTREAM}::sentry");
+
+    // pass fname through the "%{@}" directive to expand any embedded
+    // %{$XYZ} directives
+    rw_info (0, 0, line, "std::%{$SENTRY}::%{@}", fname);
+}
+
+/***********************************************************************/
+
 template <class charT>
 struct Ctype: std::ctype<charT>
 {
@@ -172,10 +197,10 @@ Ctype<char>::Ctype (unsigned ref, char white)
 }
 
 
-template <class charT>
-struct Streambuf: std::basic_streambuf<charT, std::char_traits<charT> >
+template <class charT, class Traits>
+struct Streambuf: std::basic_streambuf<charT, Traits>
 {
-    typedef std::basic_streambuf<charT, std::char_traits<charT> > Base;
+    typedef std::basic_streambuf<charT, Traits> Base;
 
     int nsyncs_;
 
@@ -205,15 +230,14 @@ struct Streambuf: std::basic_streambuf<charT, std::char_traits<charT> >
 };
 
 
-template <class charT>
-void test_ctor (const charT*, const char *tname)
+template <class charT, class Traits>
+void test_ctor (const charT*, const Traits*,
+                const char *cname, const char *tname)
 {
-    typedef std::char_traits<charT>             Traits;
     typedef std::basic_istream<charT, Traits>   Istream;
     typedef typename Istream::sentry            Sentry;
 
-    rw_info (0, 0, __LINE__, "std::basic_istream<%s>::sentry"
-             "::sentry (basic_istream&, bool)", tname);
+    info (__LINE__, cname, tname, "::sentry (%{$ISTREAM}&, bool)");
 
     const charT cbuf[] = { 'a', 'b', 'c', 'd', 'e', ' ', 'f', '\0' };
 
@@ -228,117 +252,112 @@ void test_ctor (const charT*, const char *tname)
         std::ios_base::badbit | std::ios_base::eofbit | std::ios_base::failbit
     };
 
-    {   //////////////////////////////////////////////////////////////
-        // exercise 27.6.1.1.2, p1:
-        //     -  is.good() is true
-        //     -  is.tie() is not null
-        //     =  the function calls is.tie().flush()
+    //////////////////////////////////////////////////////////////
+    // exercise 27.6.1.1.2, p1:
+    //     -  is.good() is true
+    //     -  is.tie() is not null
+    //     =  the function calls is.tie().flush()
 
-        rw_info (0, 0, __LINE__,
-                 "std::basic_istream<%s>::sentry() calls is.tie()->flush()",
-                 tname);
+    unsigned iter = 0;     // iteration counter
 
-        unsigned iter = 0;     // iteration counter
+    for (unsigned i = 0; i != sizeof states / sizeof *states; ++i) {
+        for (unsigned j = 0; j != 2; ++j /* noskipws */) {
+            Streambuf<charT, Traits>
+                sb (cbuf, cbuf + sizeof cbuf / sizeof *cbuf);
 
-        for (unsigned i = 0; i != sizeof states / sizeof *states; ++i) {
-            for (unsigned j = 0; j != 2; ++j /* noskipws */) {
-                Streambuf<charT>
-                    sb (cbuf, cbuf + sizeof cbuf / sizeof *cbuf);
+            Istream is (&sb);
 
-                Istream is (&sb);
+            // flush() is called iff
+            // all of the following conditions hold
+            const bool flush_called = is.good () && 0 != is.tie ();
 
-                // flush() is called iff
-                // all of the following conditions hold
-                const bool flush_called = is.good () && 0 != is.tie ();
+            const Sentry guard (is, 0 != j);
 
-                const Sentry guard (is, 0 != j);
+            _RWSTD_UNUSED (guard);
 
-                _RWSTD_UNUSED (guard);
+            rw_assert (flush_called == sb.nsyncs_, 0, __LINE__,
+                       "%u. basic_istream<%s, %s>::sentry::sentry"
+                       "(basic_istream &is, bool noskipws = %d); "
+                       "expected to call is.flush () %d times, got %d"
+                       "initial is.state () = %{Is}, is.flags() & "
+                       "ios::skipws = %d",
+                       iter, cname, tname, 0 != j, flush_called, sb.nsyncs_,
+                       states [i], is.flags () & std::ios_base::skipws);
 
-                rw_assert (flush_called == sb.nsyncs_, 0, __LINE__,
-                           "%u. basic_istream<%s>::sentry::sentry"
-                           "(basic_istream &is, bool noskipws = %d); "
-                           "expected to call is.flush () %d times, got %d"
-                           "initial is.state () = %{Is}, is.flags() & "
-                           "ios::skipws = %d",
-                           iter, tname, 0 != j, flush_called, sb.nsyncs_,
-                           states [i], is.flags () & std::ios_base::skipws);
-
-                ++iter;
-            }
+            ++iter;
         }
     }
 
-    {   //////////////////////////////////////////////////////////////
-        // exercise 27.6.1.1.2, p1:
-        //     -  is.good() is true
-        //     -  noskipws is zero
-        //     -  is.flags() & ios_base::skipws
-        //     =  the function extracts and discards each character as long
-        //        as the next available input character c is a whitespace
-        //        character.
+    //////////////////////////////////////////////////////////////
+    // exercise 27.6.1.1.2, p1:
+    //     -  is.good() is true
+    //     -  noskipws is zero
+    //     -  is.flags() & ios_base::skipws
+    //     =  the function extracts and discards each character as long
+    //        as the next available input character c is a whitespace
+    //        character.
 
-        rw_info (0, 0, __LINE__,
-                 "std::basic_istream<%s>::sentry() extracts whitespace",
-                 tname);
+    for (unsigned i = 0; i != sizeof states / sizeof *states; ++i) {
+        for (unsigned j = 0; j != 2; ++j /* noskipws */) {
+            for (unsigned k = 0; k != 2; ++k /* ios_base::skipws */) {
+                for (charT wc = charT ('a'); wc != charT ('c'); ++wc) {
 
-        unsigned iter = 0;     // iteration counter
+                    const Ctype<charT> ctp (1, wc);
 
-        for (unsigned i = 0; i != sizeof states / sizeof *states; ++i) {
-            for (unsigned j = 0; j != 2; ++j /* noskipws */) {
-                for (unsigned k = 0; k != 2; ++k /* ios_base::skipws */) {
-                    for (charT wc = charT ('a'); wc != charT ('c'); ++wc) {
+                    Streambuf<charT, Traits>
+                        sb (cbuf, cbuf + sizeof cbuf / sizeof *cbuf);
 
-                        const Ctype<charT> ctp (1, wc);
+                    Istream is (&sb);
 
-                        Streambuf<charT>
-                            sb (cbuf, cbuf + sizeof cbuf / sizeof *cbuf);
+                    is.setstate (states [i]);
 
-                        Istream is (&sb);
+                    if (k)
+                        is.setf (std::ios_base::skipws);
+                    else
+                        is.unsetf (std::ios_base::skipws);
 
-                        is.setstate (states [i]);
+                    const std::locale loc = 
+                        is.imbue (std::locale (is.getloc (), &ctp));
 
-                        if (k)
-                            is.setf (std::ios_base::skipws);
-                        else
-                            is.unsetf (std::ios_base::skipws);
+                    // imbue the previous locale into the stream
+                    // buffer to verify that the sentry ctor uses
+                    // the locale imbued in the stream object and
+                    // not the one in the stream buffer
+                    sb.pubimbue (loc);
 
-                        const std::locale loc = 
-                            is.imbue (std::locale (is.getloc (), &ctp));
+                    // a whitespace character is extracted iff
+                    // all of the following conditions hold
+                    const bool extract =
+                           is.good ()
+                        && 0 == j
+                        && is.flags () & std::ios_base::skipws
+                        && cbuf [0] == wc;
 
-                        // imbue the previous locale into the stream
-                        // buffer to verify that the sentry ctor uses
-                        // the locale imbued in the stream object and
-                        // not the one in the stream buffer
-                        sb.pubimbue (loc);
+                    const Sentry guard (is, 0 != j);
 
-                        // a whitespace character is extracted iff
-                        // all of the following conditions hold
-                        const bool extract =
-                               is.good ()
-                            && 0 == j
-                            && is.flags () & std::ios_base::skipws
-                            && cbuf [0] == wc;
+                    _RWSTD_UNUSED (guard);
 
-                        const Sentry guard (is, 0 != j);
+                    rw_assert (cbuf + extract == sb.pubgptr (), 0, __LINE__, 
+                               "%u. %{$SENTRY}::sentry"
+                               "(%{$ISTREAM} &is, bool noskipws "
+                               "= %b); expected to extract %d "
+                               "whitespace chars ('%c') from %{*Ac}, "
+                               "extracted %u; initial is.state () = "
+                               "%{Is}, is.flags() & ios::skipws = %d",
+                               iter, j, extract + 0, char (wc),
+                               int (sizeof (*cbuf)), cbuf,
+                               sb.pubgptr () - sb.pubeback (),
+                               states [i], k);
 
-                        _RWSTD_UNUSED (guard);
+                    // verify that the ctor doesn't affect gcount()
+                    rw_assert (0 == is.gcount (), 0, __LINE__, 
+                               "%u. %{$SENTRY}::sentry"
+                               "(%{$ISTREAM} &is = %{*Ac}, bool noskipws "
+                               "= %b); changed is.gcount() from 0 to %i",
+                               iter, int (sizeof (*cbuf)), cbuf, j,
+                               is.gcount ());
 
-                        rw_assert (cbuf + extract == sb.pubgptr (),
-                                   0, __LINE__, 
-                                   "%u. basic_istream<%s>::sentry::sentry"
-                                   "(basic_istream &is, bool noskipws "
-                                   "= %d); expected to extract %d "
-                                   "whitespace chars ('%c') from %{*Ac}, "
-                                   "extracted %u; initial is.state () = "
-                                   "%{Is}, is.flags() & ios::skipws = %d",
-                                   iter, tname, j, extract + 0, char (wc),
-                                   int (sizeof (*cbuf)), cbuf,
-                                   sb.pubgptr () - sb.pubeback (),
-                                   states [i], k);
-
-                        ++iter;
-                    }
+                    ++iter;
                 }
             }
         }
@@ -347,17 +366,14 @@ void test_ctor (const charT*, const char *tname)
 
 /***********************************************************************/
 
-
-template <class charT>
-void test_ok (const charT*, const char *tname)
+template <class charT, class Traits>
+void test_ok (const charT*, const Traits*,
+              const char *cname, const char *tname)
 {
-    typedef std::char_traits<charT>             Traits;
     typedef std::basic_istream<charT, Traits>   Istream;
     typedef typename Istream::sentry            Sentry;
 
-    rw_info (0, 0, __LINE__,
-             "std::basic_istream<%s>::sentry::"
-             "operator bool () const", tname);
+    info (__LINE__, cname, tname, "%{$SENTRY}::operator bool () const");
 
     const charT cbuf[] = { 'a', 'b', 'c', 'd', 'e', ' ', 'f', '\0' };
 
@@ -372,66 +388,65 @@ void test_ok (const charT*, const char *tname)
         std::ios_base::badbit | std::ios_base::eofbit | std::ios_base::failbit
     };
 
-    {   //////////////////////////////////////////////////////////////
-        // exercise 27.6.1.1.2, p5:
-        //     -  is.good() is true
-        //     -  noskipws is zero
-        //     -  is.flags() & ios_base::skipws
-        //     -  the function extracts and discards each character as long
-        //        as the next available input character c is a whitespace
-        //        character
-        //     =  if, after any preparation is completed, is.good() is true,
-        //        ok_ != false otherwise, ok_ == false.
+    //////////////////////////////////////////////////////////////
+    // exercise 27.6.1.1.2, p5:
+    //     -  is.good() is true
+    //     -  noskipws is zero
+    //     -  is.flags() & ios_base::skipws
+    //     -  the function extracts and discards each character as long
+    //        as the next available input character c is a whitespace
+    //        character
+    //     =  if, after any preparation is completed, is.good() is true,
+    //        ok_ != false otherwise, ok_ == false.
 
-        unsigned iter = 0;     // iteration counter
+    unsigned iter = 0;     // iteration counter
 
-        for (unsigned i = 0; i != sizeof states / sizeof *states; ++i) {
-            for (unsigned j = 0; j != 2; ++j /* noskipws */) {
-                for (unsigned k = 0; k != 2; ++k /* ios_base::skipws */) {
-                    for (charT wc = charT ('a'); wc != charT ('c'); ++wc) {
+    for (unsigned i = 0; i != sizeof states / sizeof *states; ++i) {
+        for (unsigned j = 0; j != 2; ++j /* noskipws */) {
+            for (unsigned k = 0; k != 2; ++k /* ios_base::skipws */) {
+                for (charT wc = charT ('a'); wc != charT ('c'); ++wc) {
 
-                        const Ctype<charT> ctp (1, wc);
+                    const Ctype<charT> ctp (1, wc);
 
-                        Streambuf<charT>
-                            sb (cbuf, cbuf + sizeof cbuf / sizeof *cbuf);
+                    Streambuf<charT, Traits>
+                        sb (cbuf, cbuf + sizeof cbuf / sizeof *cbuf);
 
-                        Istream is (&sb);
+                    Istream is (&sb);
 
-                        is.setstate (states [i]);
+                    is.setstate (states [i]);
 
-                        if (k)
-                            is.setf (std::ios_base::skipws);
-                        else
-                            is.unsetf (std::ios_base::skipws);
+                    if (k)
+                        is.setf (std::ios_base::skipws);
+                    else
+                        is.unsetf (std::ios_base::skipws);
 
-                        const std::locale loc = 
-                            is.imbue (std::locale (is.getloc (), &ctp));
+                    const std::locale loc = 
+                        is.imbue (std::locale (is.getloc (), &ctp));
 
-                        // imbue the previous locale into the stream
-                        // buffer to verify that the sentry ctor uses
-                        // the locale imbued in the stream object and
-                        // not the one in the stream buffer
-                        sb.pubimbue (loc);
+                    // imbue the previous locale into the stream
+                    // buffer to verify that the sentry ctor uses
+                    // the locale imbued in the stream object and
+                    // not the one in the stream buffer
+                    sb.pubimbue (loc);
 
-                        const Sentry guard (is, 0 != j);
+                    const Sentry guard (is, 0 != j);
 
-                        _RWSTD_UNUSED (guard);
+                    _RWSTD_UNUSED (guard);
 
-                        const bool success =
-                               is.good () && guard
-                            || !is.good () && !guard;
+                    const bool success =
+                           is.good () && guard
+                        || !is.good () && !guard;
 
-                        rw_assert (success, 0, __LINE__,
-                                   "%u. basic_istream<%s>::sentry"
-                                   "(basic_istream &is, bool noskipws "
-                                   "= %d).operator bool() == %d; initial "
-                                   "is.state() = %{Is}, is.flags() & "
-                                   "ios::skipws = %d",
-                                   iter, tname, j, is.good (),
-                                   states [i], k);
+                    rw_assert (success, 0, __LINE__,
+                               "%u. %{$SENTRY}"
+                               "(%{$ISTREAM} &is, bool noskipws "
+                               "= %d).operator bool() == %d; initial "
+                               "is.state() = %{Is}, is.flags() & "
+                               "ios::skipws = %d",
+                               iter, j, is.good (),
+                               states [i], k);
 
-                        ++iter;
-                    }
+                    ++iter;
                 }
             }
         }
@@ -449,13 +464,38 @@ static int opt_user_traits;
 static int
 run_test (int, char**)
 {
-    test_ctor ((char*)0, "char");
-    test_ok ((char*)0, "char");
+#define TEST(what, charT, Traits) \
+    test_ ## what ((charT*)0, (Traits*)0, #charT, #Traits)
+
+    using namespace std;
+
+    if (rw_note (0 <= opt_char && 0 <= opt_char_traits, 0, __LINE__,
+                 "istream::sentry tests disabled")) {
+        TEST (ctor, char, char_traits<char>);
+        TEST (ok, char, char_traits<char>);
+    }
+
+    if (rw_note (0 <= opt_char && 0 <= opt_user_traits, 0, __LINE__,
+                 "basic_istream<char, UserTraits<char>::sentry "
+                 "tests disabled")) {
+        TEST (ctor, char, UserTraits<char>);
+        TEST (ok, char, UserTraits<char>);
+    }
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-    test_ctor ((wchar_t*)0, "wchar_t");
-    test_ok ((wchar_t*)0, "wchar_t");
+    if (rw_note (0 <= opt_wchar && 0 <= opt_char_traits, 0, __LINE__,
+                 "wistream::sentry tests disabled")) {
+        TEST (ctor, wchar_t, char_traits<wchar_t>);
+        TEST (ok, wchar_t, char_traits<wchar_t>);
+    }
+
+    if (rw_note (0 <= opt_wchar && 0 <= opt_user_traits, 0, __LINE__,
+                 "basic_istream<wchar_t, UserTraits<wchar_t>::sentry "
+                 "tests disabled")) {
+        TEST (ctor, wchar_t, UserTraits<wchar_t>);
+        TEST (ok, wchar_t, UserTraits<wchar_t>);
+    }
 
 #endif   // _RWSTD_NO_WCHAR_T
 
