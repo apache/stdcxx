@@ -1,21 +1,28 @@
 /***************************************************************************
  *
- * istream.cc - istream definitions
+ * istream.cc - definitions of basic_istream members
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -36,7 +43,7 @@ __rw_extract (_STD::basic_istream<_CharT, _Traits> &__strm,
 
     _STD::ios_base::iostate __err = _STD::ios_base::goodbit;
 
-    // eat leading whitespace
+    // eat leading whitespace, catching exceptions from sentry
     const _TYPENAME _STD::basic_istream<_CharT, _Traits>::sentry
         __ipfx (__strm /* , noskipws = false */);
 
@@ -72,10 +79,14 @@ _C_ipfx (bool __noskipws, ios_base::iostate __errbits)
     // called after any failed extraction (even formatted) reports 0
     // and always count _all_ extracted characters
 
-    _C_gcount = 0;
+    if (ios_base::goodbit != this->rdstate ()) {
+        this->setstate (ios_base::failbit);
+        return *this;
+    }
 
-    if (ios_base::goodbit == this->rdstate ()) {
+    ios_base::iostate __state = ios_base::goodbit;
 
+    _TRY {        
         if (this->tie ())
             this->tie ()->flush ();
 
@@ -92,8 +103,6 @@ _C_ipfx (bool __noskipws, ios_base::iostate __errbits)
             const ctype<char_type> &__ctp =
                 _USE_FACET (ctype<char_type>, this->getloc ());
 
-#ifndef _RWSTD_NO_OPTIMIZE_SPEED
-
             for ( ; ; ) {
 
                 const char_type* const __gptr  = __rdbuf->gptr ();
@@ -106,8 +115,6 @@ _C_ipfx (bool __noskipws, ios_base::iostate __errbits)
                           __ctp.scan_not (__ctp.space, __gptr, __egptr)
                         - __gptr;
 
-                    _C_gcount += __nskip;
-
                     __rdbuf->gbump (__nskip);
 
                     if (__nskip < __egptr - __gptr)
@@ -118,7 +125,7 @@ _C_ipfx (bool __noskipws, ios_base::iostate __errbits)
                     const int_type __c (__rdbuf->sgetc ());
 
                     if (traits_type::eq_int_type (__c, traits_type::eof ())) {
-                        this->setstate (__errbits);
+                        __state = __errbits;
                         break;
                     }
 
@@ -127,40 +134,16 @@ _C_ipfx (bool __noskipws, ios_base::iostate __errbits)
                         break;
 
                     __rdbuf->sbumpc ();
-
-                    // increment gcount only _after_ sbumpc() but _before_
-                    // the subsequent call to sgetc() to correctly reflect
-                    // the number of extracted characters in the presence
-                    // of exceptions thrown from streambuf virtuals
-                    ++_C_gcount;
                 }
             }
-
-#else   // if defined (_RWSTD_NO_OPTIMIZE_SPEED)
-
-            // increment gcount only _after_ sbumpc() but _before_
-            // the subsequent call to sgetc() to correctly reflect
-            // the number of extracted characters in the presence
-            // of exceptions thrown from streambuf virtuals
-            for (; ; __rdbuf->sbumpc (), ++_C_gcount) {
-
-                const int_type __c (__rdbuf->sgetc ());
-
-                if (traits_type::eq_int_type (__c, traits_type::eof ())) {
-                    this->setstate (__errbits);
-                    break;
-                }
-
-                if (!__ctp.is (__ctp.space, traits_type::to_char_type (__c)))
-                    break;
-            }
-
-#endif   // _RWSTD_NO_OPTIMIZE_SPEED
-
         }
     }
-    else if (!__noskipws)
-        this->setstate (ios_base::failbit);
+    _CATCH (...) {
+        this->setstate (ios_base::badbit | _RW::__rw_rethrow);
+    }
+
+    if (__state)
+        this->setstate (__state);
 
     return *this;
 }
@@ -228,7 +211,9 @@ _C_get (basic_streambuf<char_type, traits_type> &__sb, int_type __delim)
 
     const sentry __ipfx (*this, true /* noskipws */);
 
-    if (__ipfx) { 
+    if (__ipfx) {
+
+        _C_gcount = 0;
 
         _TRY {
             for ( ; ; ) {
@@ -317,6 +302,8 @@ read (char_type *__s, streamsize __n, int_type __delim, int __flags)
     // 27.6.1.2.1, p1 and 27.6.1.3, p1: proceed iff sentry is okay
     if (__ipfx) {
 
+        _C_gcount = 0;
+
         // read at most n - 1 characters when null-terminating
         while (__n) {
 
@@ -386,6 +373,8 @@ read (char_type *__s, streamsize __n)
     // 27.6.1.2.1, p1 and 27.6.1.3, p1: proceed iff sentry is okay
     if (__ipfx) {
 
+        _C_gcount = 0;
+
         streamsize __nread = 0;
 
         _TRY {
@@ -418,6 +407,8 @@ readsome (char_type *__s, streamsize __n)
     const sentry __ipfx (*this, true /* noskipws */);
 
     if (__ipfx) {
+
+        _C_gcount = 0;
 
         streamsize __nread = 0;
 
@@ -577,6 +568,8 @@ get (char_type *__s, streamsize __n, char_type __delim)
 
     if (__ipfx) {
 
+        _C_gcount = 0;
+
         _TRY {
 
             basic_streambuf<char_type, traits_type>* const __rdbuf =
@@ -678,6 +671,8 @@ getline (char_type *__line, streamsize __size, char_type __delim)
     ios_base::iostate __err = ios_base::goodbit;
 
     if (__ipfx) {
+
+        _C_gcount = 0;
 
         basic_streambuf<char_type, traits_type>* const __rdbuf =
             this->rdbuf ();
