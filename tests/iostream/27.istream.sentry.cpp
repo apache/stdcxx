@@ -116,7 +116,8 @@
 
 ************************************************************************/
 
-void info (int line, const char *cname, const char *tname, const char *fname)
+void
+memfun_info (int line, const char *cname, const char *tname, const char *fname)
 {
     // format the ISTREAM and SENTRY environment variables w/o writing
     // out any output
@@ -237,7 +238,7 @@ void test_ctor (const charT*, const Traits*,
     typedef std::basic_istream<charT, Traits>   Istream;
     typedef typename Istream::sentry            Sentry;
 
-    info (__LINE__, cname, tname, "::sentry (%{$ISTREAM}&, bool)");
+    memfun_info (__LINE__, cname, tname, "sentry (%{$ISTREAM}&, bool)");
 
     const charT cbuf[] = { 'a', 'b', 'c', 'd', 'e', ' ', 'f', '\0' };
 
@@ -373,7 +374,7 @@ void test_ok (const charT*, const Traits*,
     typedef std::basic_istream<charT, Traits>   Istream;
     typedef typename Istream::sentry            Sentry;
 
-    info (__LINE__, cname, tname, "%{$SENTRY}::operator bool () const");
+    memfun_info (__LINE__, cname, tname, "operator bool () const");
 
     const charT cbuf[] = { 'a', 'b', 'c', 'd', 'e', ' ', 'f', '\0' };
 
