@@ -112,7 +112,7 @@ $(LOCALES): $(NLSDIR)/gen_list
 
 $(DEPENDDIR)/localedb.d: $(DEPENDDIR) $(NLSDIR)/gen_list
 	@(echo "# generated locale dependencies" > $@;                      \
-          for f in $(LOCALES); do                                           \
+          for f in ""$(LOCALES); do                                         \
               lname=`echo $$f |                                             \
                 sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\1\3:;y:@:.:"`;           \
               cname=`echo $$f | sed "s:\([^.]*\)\.\([^@]*\)\(.*\):\2:"`;    \
