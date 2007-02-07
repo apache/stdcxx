@@ -904,7 +904,7 @@ list<_TypeT, _Allocator>::swap (list &__x)
         _STD::swap (_C_last, __x._C_last);
     }
     else {
-        list &__tmp = *this;
+        list __tmp (*this);
         *this = __x;
         __x = __tmp;
     }
