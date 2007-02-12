@@ -2,7 +2,7 @@
  *
  * except.cpp - Example program for exceptions.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/except.cpp#10 $
+ * $Id$
  *
  ***************************************************************************
  *
