@@ -102,8 +102,24 @@ _rw_fmtllong (const FmtSpec&, Buffer&, _RWSTD_LONG_LONG);
 
 #endif   // _RWSTD_LONG_LONG
 
+struct VarArgs {
+    union {
+        va_list    *pva_;
+        const void *pargs_;
+    } arg_;
+
+    enum {
+        VA_list, VA_array
+    } kind_;
+};
+
+#define VA_ARG(va, T) \
+    (VarArgs::VA_list == (va).kind_ ? va_arg (*(va).arg_.pva_, T) \
+                                    : *((const T*&)(va).arg_.pargs_)++)
+
+
 static int
-_rw_fmtinteger (FmtSpec*, size_t, Buffer&, va_list*);
+_rw_fmtinteger (FmtSpec*, size_t, Buffer&, VarArgs*);
 
 static int
 _rw_fmtfloating (const FmtSpec&, Buffer&, const void*);
@@ -140,11 +156,15 @@ _rw_fmttm (const FmtSpec&, Buffer&, const tm*);
 
 // format an expression (parameter/environment variable)
 static int
-_rw_fmtexpr (FmtSpec&, Buffer&, va_list*);
+_rw_fmtexpr (FmtSpec&, Buffer&, VarArgs*);
+
+// format a nested parametrized directive (%{@}, %{*.*@}, etc.)
+static int
+_rw_fmtnested (const FmtSpec&, Buffer&, const char*, VarArgs*);
 
 // format an extension
 static int
-_rw_vasnprintf_ext (FmtSpec*, size_t, Buffer&, const char*, va_list*);
+_rw_vasnprintf_ext (FmtSpec*, size_t, Buffer&, const char*, VarArgs*);
 
 /********************************************************************/
 
@@ -181,7 +201,7 @@ static size_t        _rw_usr_inx;
 */
 
 static int
-_rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
+_rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, VarArgs *pva)
 {
     RW_ASSERT (0 != pspec);
     RW_ASSERT (0 != fmt);
@@ -276,7 +296,7 @@ _rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
             fmt         = end;
         }
         else if ('*' == *fmt) {
-            pspec->base = va_arg (*pva, int);
+            pspec->base = VA_ARG (*pva, int);
             ++fmt;
         }
 
@@ -292,7 +312,7 @@ _rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
             fmt          = end;
         }
         else if ('*' == *fmt) {
-            pspec->width = va_arg (*pva, int);
+            pspec->width = VA_ARG (*pva, int);
 
             if (pspec->width < 0) {
                 // 7.19.6.1, p5 of ISO/IEC 9899:1999:
@@ -317,7 +337,7 @@ _rw_fmtspec (FmtSpec *pspec, bool ext, const char *fmt, va_list *pva)
             fmt         = end;
         }
         else if ('*' == *fmt) {
-            pspec->prec = va_arg (*pva, int);
+            pspec->prec = VA_ARG (*pva, int);
             ++fmt;
         }
     }
@@ -490,7 +510,7 @@ static int
 _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
                     size_t   paramno,    // index of current parameter
                     Buffer  &buf,
-                    va_list *pva)        // parameter list
+                    VarArgs *pva)        // parameter list
 {
     _RWSTD_UNUSED (paramno);
 
@@ -500,9 +520,13 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
 
     FmtSpec &spec = pspec [paramno];
 
-#define PARAM(name)   \
-  (0 < spec.paramno ? pspec [spec.paramno - 1].param.name \
-                    : va_arg (*pva, FmtSpec::name ## t))
+// retreve paramater either from the argument list (or array),
+// or from the array of previously saved parameters in the case
+// of a positional parameter
+#define PARAM(name, pva)                                \
+  (0 < spec.paramno                                     \
+       ? pspec [spec.paramno - 1].param.name            \
+       : VA_ARG (*pva, FmtSpec::name ## t))
 
     switch (spec.cvtspec) {
 
@@ -523,11 +547,11 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
     case 'g':
     case 'G':
         if (spec.mod == spec.mod_L) {
-            spec.param.ldbl_ = PARAM (ldbl_);
+            spec.param.ldbl_ = PARAM (ldbl_, pva);
             len = _rw_fmtfloating (spec, buf, &spec.param.ldbl_);
         }
         else {
-            spec.param.dbl_ = PARAM (dbl_);
+            spec.param.dbl_ = PARAM (dbl_, pva);
             len = _rw_fmtfloating (spec, buf, &spec.param.dbl_);
         }
         break;
@@ -551,24 +575,24 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
         // character.
         if (spec.mod == spec.mod_l) {
             // wint_t argument formatted as wchar_t (no escapes)
-            spec.param.wint_ = PARAM (wint_);
+            spec.param.wint_ = PARAM (wint_, pva);
             len = _rw_fmtwchr (spec, buf, spec.param.wint_, 1);
         }
         else {
             // int argument formatted as char (no escapes)
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             len = _rw_fmtchr (spec, buf, spec.param.int_, 1);
         }
         break;
 
     case 's':
         if (spec.mod == spec.mod_l) {
-            spec.param.ptr_ = PARAM (ptr_);
+            spec.param.ptr_ = PARAM (ptr_, pva);
             const wchar_t* const str = (wchar_t*)spec.param.ptr_;
             len = _rw_fmtwstr (spec, buf, str, _RWSTD_SIZE_MAX);
         }
         else {
-            spec.param.ptr_ = PARAM (ptr_);
+            spec.param.ptr_ = PARAM (ptr_, pva);
             const char* const str = (char*)spec.param.ptr_;
             len = _rw_fmtstr (spec, buf, str, _RWSTD_SIZE_MAX);
         }
@@ -578,7 +602,7 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
         // The argument shall be a pointer to void. The value of the pointer
         // is converted to a sequence of printing characters, in an
         // implementation-defined manner.
-        spec.param.ptr_ = PARAM (ptr_);
+        spec.param.ptr_ = PARAM (ptr_, pva);
         len = _rw_fmtptr (spec, buf, spec.param.ptr_);
         break;
     }
@@ -603,7 +627,7 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
         // len = int (strlen (*buf.pbuf));
         len = buf.endoff;
 
-        spec.param.ptr_ = PARAM (ptr_);
+        spec.param.ptr_ = PARAM (ptr_, pva);
 
         if (spec.mod == spec.mod_hh) {
             UChar* const ptr = (UChar*)spec.param.ptr_;
@@ -665,7 +689,7 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
 
 // implements rw_vasnprintf, but may be called recursively
 static int
-_rw_pvasnprintf (Buffer &buf, const char *fmt, va_list *pva)
+_rw_pvasnprintf (Buffer &buf, const char *fmt, VarArgs *pva)
 {
     // save the length of the initial subsequence already
     // in the buffer
@@ -982,7 +1006,11 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
     }
 
     // format buffer w/o appending terminating NUL
-    const int len = _rw_pvasnprintf (buf, fmt, pva);
+    VarArgs args;
+    args.kind_     = VarArgs::VA_list;
+    args.arg_.pva_ = pva;
+
+    const int len = _rw_pvasnprintf (buf, fmt, &args);
 
     // append terminating NUL
     if (len < 0 || !_rw_bufcat (buf, "", 1)) {
@@ -1220,7 +1248,7 @@ rw_fmtinteger (const FmtSpec &spec, Buffer &buf, IntT val)
 /********************************************************************/
 
 static int
-_rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
+_rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, VarArgs *pva)
 {
     int len = -1;
 
@@ -1228,7 +1256,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
 
     switch (spec.cvtspec) {
     case 'b': // extension: int argument formatted as bool
-        spec.param.int_ = PARAM (int_);
+        spec.param.int_ = PARAM (int_, pva);
         len = _rw_fmtstr (spec, buf,
                           spec.param.int_ ? "true" : "false",
                           _RWSTD_SIZE_MAX);
@@ -1238,27 +1266,27 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
     case 'i':
         if (spec.mod == spec.mod_hh) {
             // promoted signed char argument
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             const signed char val = spec.param.int_;
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (spec.mod == spec.mod_h) {
             // promoted signed short argument
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             const short val = spec.param.int_;
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (spec.mod == spec.mod_l) {   // %li
-            spec.param.long_ = PARAM (long_);
+            spec.param.long_ = PARAM (long_, pva);
             len = rw_fmtinteger (spec, buf, spec.param.long_);
         }
         else if (spec.mod == spec.mod_ll) {   // %lli
 
 #ifdef _RWSTD_LONG_LONG
-            spec.param.llong_ = PARAM (llong_);
+            spec.param.llong_ = PARAM (llong_, pva);
             len = rw_fmtinteger (spec, buf, spec.param.llong_);
 #elif 8 == _RWSTD_LONG_SIZE
-            spec.param.long_ = PARAM (long_);
+            spec.param.long_ = PARAM (long_, pva);
             len = rw_fmtinteger (spec, buf, spec.param.long_);
 #else
             RW_ASSERT (!"%lld, %lli: long long not supported");
@@ -1266,28 +1294,28 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
 #endif   // _RWSTD_LONG_LONG
         }
         else if (spec.mod == spec.mod_t) {
-            spec.param.diff_ = PARAM (diff_);
+            spec.param.diff_ = PARAM (diff_, pva);
             len = rw_fmtinteger (spec, buf, spec.param.diff_);
         }
         else if (1 == spec.iwidth) {
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             const _RWSTD_INT8_T val = spec.param.int_;
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (2 == spec.iwidth) {
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             const _RWSTD_INT16_T val = spec.param.int_;
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (3 == spec.iwidth) {
-            spec.param.i32_ = PARAM (i32_);
+            spec.param.i32_ = PARAM (i32_, pva);
             const long val = long (spec.param.i32_);
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (4 == spec.iwidth) {
 
 #ifdef _RWSTD_INT64_T
-            spec.param.i64_ = PARAM (i64_);
+            spec.param.i64_ = PARAM (i64_, pva);
 #else   // if !defined (_RWSTD_INT64_T)
             RW_ASSERT (!"%I64d, %I64i: 64-bit types not supported");
 #endif   // _RWSTD_INT64_T
@@ -1303,7 +1331,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
 #endif
         }
         else {   // %i
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             len = rw_fmtinteger (spec, buf, spec.param.int_);
         }
         break;
@@ -1325,23 +1353,23 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
     case 'u':
         if (spec.mod == spec.mod_hh) {
             // promoted unsigned char argument
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             const UChar val = spec.param.int_;
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (spec.mod == spec.mod_h) {
             // promoted unsigned short argument
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             const UShrt val = spec.param.int_;
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (spec.mod == spec.mod_ll) {
 #ifdef _RWSTD_LONG_LONG
-            spec.param.llong_ = PARAM (llong_);
+            spec.param.llong_ = PARAM (llong_, pva);
             const unsigned _RWSTD_LONG_LONG val = spec.param.llong_;
             len = rw_fmtinteger (spec, buf, val);
 #elif 8 == _RWSTD_LONG_SIZE
-            spec.param.long_ = PARAM (long_);
+            spec.param.long_ = PARAM (long_, pva);
             const ULong val = spec.param.long_;
             len = rw_fmtinteger (spec, buf, val);
 #else
@@ -1350,32 +1378,32 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
 
         }
         else if (spec.mod == spec.mod_l) {
-            spec.param.long_ = PARAM (long_);
+            spec.param.long_ = PARAM (long_, pva);
             const ULong val = spec.param.long_;
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (spec.mod == spec.mod_t) {
-            spec.param.size_ = PARAM (size_);
+            spec.param.size_ = PARAM (size_, pva);
             len = rw_fmtinteger (spec, buf, spec.param.size_);
         }
         else if (1 == spec.iwidth) {
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             const _RWSTD_UINT8_T val = spec.param.int_;
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (2 == spec.iwidth) {
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             const long val = UShrt (spec.param.int_);
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (3 == spec.iwidth) {
-            spec.param.i32_ = PARAM (i32_);
+            spec.param.i32_ = PARAM (i32_, pva);
             const long val = long (unsigned (spec.param.int_));
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (4 == spec.iwidth) {
 #ifdef _RWSTD_INT64_T
-            spec.param.i64_ = PARAM (i64_);
+            spec.param.i64_ = PARAM (i64_, pva);
 #else   // if defined 9_RWSTD_INT64_T)
             RW_ASSERT (!"%I64o, %I64u, %I64x: 64-bit types not supported");
 #endif   // _RWSTD_INT64_T
@@ -1391,7 +1419,7 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
 #endif
         }
         else {
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             const unsigned val = spec.param.int_;
             len = rw_fmtinteger (spec, buf, val);
         }
@@ -2161,7 +2189,7 @@ template int _rw_fmtarray(const FmtSpec&, Buffer&, const wchar_t*, size_t, int);
 /********************************************************************/
 
 static int
-_rw_fmtarray (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
+_rw_fmtarray (FmtSpec *pspec, size_t paramno, Buffer &buf, VarArgs *pva)
 {
     RW_ASSERT (0 != pspec);
 
@@ -2191,7 +2219,7 @@ _rw_fmtarray (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
     // precision the number of elements (when negative the array is taken
     // to extend up to but not including the first 0 element)
     if (-1 == width || 1 == width) {
-        spec.param.ptr_ = PARAM (ptr_);
+        spec.param.ptr_ = PARAM (ptr_, pva);
         const _RWSTD_UINT8_T* const array = (_RWSTD_UINT8_T*)spec.param.ptr_;
         // note that when no precision is specified in the format string
         // (e.g., "%{Ac}") its value will be -1 and the function will format
@@ -2199,12 +2227,12 @@ _rw_fmtarray (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
         len = _rw_fmtarray (spec, buf, array, nelems, flags);
     }
     else if (2 == width) {
-        spec.param.ptr_ = PARAM (ptr_);
+        spec.param.ptr_ = PARAM (ptr_, pva);
         const _RWSTD_UINT16_T* const array = (_RWSTD_UINT16_T*)spec.param.ptr_;
         len = _rw_fmtarray (spec, buf, array, nelems, flags);
     }
     else if (4 == width) {
-        spec.param.ptr_ = PARAM (ptr_);
+        spec.param.ptr_ = PARAM (ptr_, pva);
         const _RWSTD_UINT32_T* const array = (_RWSTD_UINT32_T*)spec.param.ptr_;
         len = _rw_fmtarray (spec, buf, array, nelems, flags);
     }
@@ -2212,7 +2240,7 @@ _rw_fmtarray (FmtSpec *pspec, size_t paramno, Buffer &buf, va_list *pva)
 #ifdef _RWSTD_UINT64_T
 
     else if (8 == width) {
-        spec.param.ptr_ = PARAM (ptr_);
+        spec.param.ptr_ = PARAM (ptr_, pva);
         const _RWSTD_UINT64_T* const array = (_RWSTD_UINT64_T*)spec.param.ptr_;
         len = _rw_fmtarray (spec, buf, array, nelems, flags);
     }
@@ -2487,7 +2515,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
                     size_t      paramno,
                     Buffer     &buf,
                     const char *fmt,
-                    va_list    *pva)
+                    VarArgs    *pva)
 {
     RW_ASSERT (0 != pva);
     RW_ASSERT (0 != pspec);
@@ -2519,8 +2547,8 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
             else {
                 // pass the address of the variable argument list
                 // followed by the address of the current parameter
-                len = (_rw_usr_fun [i])(buf.pbuf, buf.pbufsize, fmt, pva,
-                                        &spec.param);
+                len = (_rw_usr_fun [i])(buf.pbuf, buf.pbufsize, fmt,
+                                        pva->arg_.pva_, &spec.param);
             }
 
             // special value indicating that the user-defined function
@@ -2542,7 +2570,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         // set a user-defined formatting function
         if (spec.fl_plus) {
             // push a new user-defined handler on top of the stack
-            spec.param.funptr_          = PARAM (funptr_);
+            spec.param.funptr_          = PARAM (funptr_, pva);
             _rw_usr_fun [_rw_usr_inx++] = (_rw_usr_cb_t*)spec.param.funptr_;
         }
         if (spec.fl_minus) {
@@ -2556,7 +2584,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
             if (0 == _rw_usr_inx)
                 ++_rw_usr_inx;
 
-            spec.param.funptr_            = PARAM (funptr_);
+            spec.param.funptr_            = PARAM (funptr_, pva);
             _rw_usr_fun [_rw_usr_inx - 1] = (_rw_usr_cb_t*)spec.param.funptr_;
         }
 
@@ -2564,16 +2592,16 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         break;
 
     case '@': {   // %{@}
-        // user-defined formatting string
-        spec.param.ptr_ = PARAM (ptr_);
+        // parametrized (nested) formatting directive
+        spec.param.ptr_ = PARAM (ptr_, pva);
         const char* const tmp_fmt = (const char*)spec.param.ptr_;
-        len = _rw_pvasnprintf (buf, tmp_fmt, pva);
+        len = _rw_fmtnested (spec, buf, tmp_fmt, pva);
         break;
     }
 
     case '?':   // %{?}
         // beginning of an if clause
-        spec.param.int_ = PARAM (int_);
+        spec.param.int_ = PARAM (int_, pva);
         spec.cond       = 1;
         spec.cond_begin = 1;
         spec.cond_true  = 0 != spec.param.int_;
@@ -2611,7 +2639,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
 
     case 'B':   // %{B}
         // std::bitset
-        spec.param.ptr_ = PARAM (ptr_);
+        spec.param.ptr_ = PARAM (ptr_, pva);
         if (   0 == spec.param.ptr_
             || 0 > _RW::__rw_memattr (spec.param.ptr_, spec.prec, -1))
             len = _rw_fmtbadaddr (spec, buf, spec.param.ptr_, sizeof (long));
@@ -2620,7 +2648,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         break;
 
     case 'b':   // %{b}
-        spec.param.ptr_ = PARAM (ptr_);
+        spec.param.ptr_ = PARAM (ptr_, pva);
         if (   0 == spec.param.ptr_
             || 0 > _RW::__rw_memattr (spec.param.ptr_, spec.prec, -1))
             len = _rw_fmtbadaddr (spec, buf, spec.param.ptr_);
@@ -2634,21 +2662,21 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         }
         else if (spec.mod == spec.mod_L) {
             // locale category or LC_XXX constant
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             len = _rw_fmtlc (spec, buf, spec.param.int_);
         }
         else if (spec.mod == spec.mod_l) {
             // wint_t argument formatted as wchar_t with non-printable
             // characters represented using traditional C escape
             // sequences
-            spec.param.wint_ = PARAM (wint_);
+            spec.param.wint_ = PARAM (wint_, pva);
             return _rw_fmtwchr (spec, buf, spec.param.wint_, 0);
         }
         else {
             // int argument formatted as char with non-printable
             // characters represented using traditional C escape
             // sequences
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             return _rw_fmtchr (spec, buf, spec.param.int_, 0);
         }
         break;
@@ -2656,45 +2684,45 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
     case 'C':   // %{C}, %{LC}
         if (spec.mod == spec.mod_L) {
             // ctype_base::mask value
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             len = _rw_fmtmask (spec, buf, spec.param.int_);
         }
         else {
             // ctype_base::mask of a character
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             len = _rw_fmtcharmask (spec, buf, spec.param.int_);
         }
         break;
 
     case 'e':   // %{e}, %{Ae}
         if (spec.mod == spec.mod_ext_A) {   // array of floating point values
-            spec.param.ptr_ = PARAM (ptr_);
+            spec.param.ptr_ = PARAM (ptr_, pva);
             len = _rw_fmtfloating (spec, buf, spec.param.ptr_);
         }
         else if (spec.mod == spec.mod_ext_I) {   // ios::copyfmt_event
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             len = _rw_fmtevent (spec, buf, spec.param.int_);
         }
         break;
 
     case 'f':   // %{f}, %{Af}, %{If}
         if (spec.mod == spec.mod_ext_A) {   // array of floating point values
-            spec.param.ptr_ = PARAM (ptr_);
+            spec.param.ptr_ = PARAM (ptr_, pva);
             len = _rw_fmtfloating (spec, buf, spec.param.ptr_);
         }
         else if (spec.mod == spec.mod_ext_I) {   // ios::fmtflags
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             len = _rw_fmtflags (spec, buf, spec.param.int_);
         }
         else {   // function pointer
-            spec.param.funptr_ = PARAM (funptr_);
+            spec.param.funptr_ = PARAM (funptr_, pva);
             len = _rw_fmtfunptr (spec, buf, spec.param.funptr_);
         }
         break;
 
     case 'g':   // %{g}, %{Ag}
         if (spec.mod == spec.mod_ext_A) {   // array of floating point values
-            spec.param.ptr_ = PARAM (ptr_);
+            spec.param.ptr_ = PARAM (ptr_, pva);
             len = _rw_fmtfloating (spec, buf, spec.param.ptr_);
         }
         else {
@@ -2710,7 +2738,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
 
     case 'o':   // %{Io}
         if (spec.mod == spec.mod_ext_I) {   // ios::openmode
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             len = _rw_fmtopenmode (spec, buf, spec.param.int_);
             break;
         }
@@ -2738,7 +2766,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         break;
 
     case 'K':   // %{K} -- signal
-        spec.param.int_ = PARAM (int_);
+        spec.param.int_ = PARAM (int_, pva);
         len = _rw_fmtsignal (spec, buf, spec.param.int_);
         break;
 
@@ -2748,11 +2776,11 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
 
     case 'M':   // %{M}, %{LM}
         if (spec.mod == spec.mod_L) {   // money_base::pattern
-            spec.param.ptr_ = PARAM (ptr_);
+            spec.param.ptr_ = PARAM (ptr_, pva);
             len = _rw_fmtmonpat (spec, buf, (char*)spec.param.ptr_);
         }
         else {   // member pointer
-            spec.param.memptr_ = PARAM (memptr_);
+            spec.param.memptr_ = PARAM (memptr_, pva);
             len = _rw_fmtmemptr (spec, buf, spec.param.memptr_);
         }
         break;
@@ -2770,7 +2798,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
 
         const size_t nbytes = *buf.pbufsize;
 
-        spec.param.ptr_ = PARAM (ptr_);
+        spec.param.ptr_ = PARAM (ptr_, pva);
 
         if (spec.mod == spec.mod_hh) {
             UChar* const ptr = (UChar*)spec.param.ptr_;
@@ -2824,29 +2852,29 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
 
     case 'P':   // %{P}
         // rw_pid_t is _RWSTD_SSIZE_T which is equal to _RWSTD_PTRDIFF_T
-        spec.param.diff_ = PARAM (diff_);
+        spec.param.diff_ = PARAM (diff_, pva);
         len = rw_fmtinteger (spec, buf, spec.param.diff_);
         break;
 
     case 's':   // %{s}, %{As}, %{Is}, %{ls}
         if (spec.mod == spec.mod_ext_A) {   // array of strings
-            spec.param.ptr_ = PARAM (ptr_);
+            spec.param.ptr_ = PARAM (ptr_, pva);
             const char* const* const argv = (char**)spec.param.ptr_;
             len = _rw_fmtstrarray (pspec, paramno, buf, argv);
         }
         else if (spec.mod == spec.mod_ext_I) {   // ios::iostate
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             len = _rw_fmtiostate (spec, buf, spec.param.int_);
         }
         else if (spec.mod == spec.mod_l) {   // wchar_t*
-            spec.param.ptr_ = PARAM (ptr_);
+            spec.param.ptr_ = PARAM (ptr_, pva);
             const wchar_t* const wstr = (wchar_t*)spec.param.ptr_;
             const size_t wstr_len =
                 spec.width < 0 ? _RWSTD_SIZE_MAX : size_t (spec.width);
             len = _rw_fmtarray (spec, buf, wstr, wstr_len, A_WCHAR | A_ESC);
         }
         else {   // char*
-            spec.param.ptr_ = PARAM (ptr_);
+            spec.param.ptr_ = PARAM (ptr_, pva);
             const char* const str = (char*)spec.param.ptr_;
             const size_t str_len =
                 spec.width < 0 ? _RWSTD_SIZE_MAX : size_t (spec.width);
@@ -2858,7 +2886,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         if (   spec.mod == spec.mod_l
             || !spec.mod && spec.fl_pound && sizeof (wchar_t) == spec.width) {
             // std::wstring
-            spec.param.ptr_ = PARAM (ptr_);
+            spec.param.ptr_ = PARAM (ptr_, pva);
 
             const std::wstring* const pstr = (std::wstring*)spec.param.ptr_;
 
@@ -2875,7 +2903,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
             }
         }
         else {   // std::string
-            spec.param.ptr_ = PARAM (ptr_);
+            spec.param.ptr_ = PARAM (ptr_, pva);
 
             const std::string* const pstr = (std::string*)spec.param.ptr_;
 
@@ -2893,7 +2921,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         break;
 
     case 't': {   // %{t}
-        spec.param.ptr_ = PARAM (ptr_);
+        spec.param.ptr_ = PARAM (ptr_, pva);
 
         const tm* const tmb = (tm*)spec.param.ptr_;
 
@@ -2904,7 +2932,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
 
     case 'w': {   // %{Iw}
         if (spec.mod == spec.mod_ext_I) {   // ios::seekdir
-            spec.param.int_ = PARAM (int_);
+            spec.param.int_ = PARAM (int_, pva);
             len = _rw_fmtseekdir (spec, buf, spec.param.int_);
             break;
         }
@@ -2928,7 +2956,7 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
 /********************************************************************/
 
 static int
-_rw_fmtexpr (FmtSpec &spec, Buffer &buf, va_list *pva)
+_rw_fmtexpr (FmtSpec &spec, Buffer &buf, VarArgs *pva)
 {
     RW_ASSERT (0 != spec.strarg);
 
@@ -2968,19 +2996,19 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, va_list *pva)
 
     if ('*' == *param) {
         // extract the name of the parameter from the argument list
-        param = va_arg (*pva, char*);
+        param = _RWSTD_CONST_CAST (char*, VA_ARG (*pva, const char*));
     }
 
     char* fmtword = 0;
 
     if ('*' == *word) {
         // extract "word" from the argument list
-        word = va_arg (*pva, char*);
+        word = _RWSTD_CONST_CAST (char*, VA_ARG (*pva, const char*));
     }
     else if ('@' == *word) {
         // extract formatting directive from the argument list
         // and set word to the result of processing it
-        const char* const fmt = va_arg (*pva, char*);
+        const char* const fmt = VA_ARG (*pva, char*);
 
         size_t dummy_size = 0;   // unused
         Buffer tmpbuf = { &fmtword, &dummy_size, _RWSTD_SIZE_MAX, 0 };
@@ -3145,6 +3173,48 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, va_list *pva)
     free (spec.strarg);
     spec.strarg     = 0;
     spec.param.ptr_ = _RWSTD_CONST_CAST (char*, val);
+
+    return len;
+}
+
+/********************************************************************/
+
+static int
+_rw_fmtnested (const FmtSpec &spec,
+               Buffer        &buf,
+               const char    *fmt,
+               VarArgs       *pva)
+{
+    RW_ASSERT ('@' == spec.cvtspec);
+
+    // optional precision specifies the number of times
+    // for the directive to be applied
+    const int nelems = spec.prec < 0 ? 1 : spec.prec;
+
+    // separator between array elements
+    const char *sepstr = "";
+    size_t      seplen = 0;
+
+    if (spec.fl_space) {
+        sepstr = " ";
+        seplen = 1;
+    }
+
+    VarArgs tmparg (*pva);
+
+    if (spec.mod_ext_A == spec.mod) {
+        tmparg.kind_       = VarArgs::VA_array;
+        tmparg.arg_.pargs_ = VA_ARG (*pva, const void*);
+    }
+
+    int len = 0;
+
+    for (int i = 0; i != nelems; ++i) {
+        len += _rw_pvasnprintf (buf, fmt, &tmparg);
+
+        if (seplen && i + 1 < nelems && 0 == _rw_bufcat (buf, sepstr, seplen))
+            return -1;
+    }
 
     return len;
 }
