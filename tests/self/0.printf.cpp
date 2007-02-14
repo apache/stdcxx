@@ -100,7 +100,7 @@ do_test (int         line,     // line number of the test case
         }
 
         fprintf (stderr, "# Assertion failed on line %d: "
-                 "rw_sprintf(%c%s%c, ...) == %c%s%c got %c%s%c\n",
+                 "rw_printf(%c%s%c, ...) == %c%s%c got %c%s%c\n",
                  line, q_fmt [0], fmt, q_fmt [1],
                  q_expect [0], expect, q_expect [1],
                  q_result [0], result, q_result [1]);
@@ -135,7 +135,7 @@ do_test (int         line,     // line number of the test case
            ++nfailures;                                                 \
            fprintf (stderr,                                             \
                     "# Assertion failed on line %d: "                   \
-                    "rw_sprintf(\"%s\", %ld, %ld, %ld) "                \
+                    "rw_printf(\"%s\", %ld, %ld, %ld) "                 \
                     "== \"%s\", got \"%s\"\n",                          \
                     __LINE__, fmt,                                      \
                     (long)a1, (long)a2, (long)a3, buf, s0);             \
@@ -2827,6 +2827,58 @@ test_nested_format ()
     TEST ("A%{@}C%{@}E",      "B",  "%s", "D", "ABCDE");
 
     TEST ("ABC%sGHI%{@}XYZ", "DEF", "%s%1$s", "JKL", "ABCDEFGHIJKLJKLXYZ");
+
+    // exercise arrays
+
+    TEST ("%{.0@}", "%i", 0, 0, "");
+    TEST ("%{.1@}", "%i", 1, 0, "1");
+    TEST ("%{.2@}", "%i", 2, 3, "23");
+
+    TEST ("%{ .0@}",    "%i",  3, 0, "");
+    TEST ("%{ .1@}",    "%i",  4, 5, "4");
+    TEST ("%{ .2@}",    "%i",  5, 6, "5 6");
+    TEST ("[ %{.2@}]",  "%i ", 6, 7, "[ 6 7 ]");
+
+    const int ia[] = { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
+
+    //
+    //       +---- (width: ???)
+    //       | +-- precision: number of elements in array
+    //       | |
+    //       v v
+    TEST ("%{.0A@}", "%i", ia, 0, "");
+    TEST ("%{.1A@}", "%i", ia, 0, "9");
+    TEST ("%{.2A@}", "%i", ia, 0, "98");
+    TEST ("%{.3A@}", "%i", ia, 0, "987");
+    TEST ("%{.4A@}", "%i", ia, 0, "9876");
+    TEST ("%{.5A@}", "%i", ia, 0, "98765");
+    TEST ("%{.6A@}", "%i", ia, 0, "987654");
+    TEST ("%{.7A@}", "%i", ia, 0, "9876543");
+    TEST ("%{.8A@}", "%i", ia, 0, "98765432");
+    TEST ("%{.9A@}", "%i", ia, 0, "987654321");
+    TEST ("%{.*A@}", 10, "%i", ia, "9876543210");
+    TEST ("[%{ .*A@}]", 9, "%i", ia, "[9 8 7 6 5 4 3 2 1]");
+    TEST ("[%{ .*A@}]", 8, "%i", ia, "[9 8 7 6 5 4 3 2]");
+    TEST ("[%{ .*A@}]", 7, "%i", ia, "[9 8 7 6 5 4 3]");
+    TEST ("[%{ .*A@}]", 6, "%i", ia, "[9 8 7 6 5 4]");
+    TEST ("[%{ .*A@}]", 5, "%i", ia, "[9 8 7 6 5]");
+    TEST ("[%{ .*A@}]", 4, "%i", ia, "[9 8 7 6]");
+    TEST ("[%{ .*A@}]", 3, "%i", ia, "[9 8 7]");
+    TEST ("[%{ .*A@}]", 2, "%i", ia, "[9 8]");
+    TEST ("[%{ .*A@}]", 1, "%i", ia, "[9]");
+    TEST ("[%{ .*A@}]", 0, "%i", ia, "[]");
+
+    static const struct {
+        size_t i; const char *s;
+    } sa[] = {
+        { 1, "foo" }, { 2, "bar" }, { 3, "foobar" }
+    };
+
+    // members must be packed with no padding
+    RW_ASSERT (sizeof *sa == sizeof sa->i + sizeof sa->s);
+
+    TEST ("{%{ .*A@}}", 3, "(%i, %#s)", sa,
+          "{(1, \"foo\") (2, \"bar\") (3, \"foobar\")}");
 }
 
 /***********************************************************************/
