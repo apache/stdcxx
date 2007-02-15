@@ -166,6 +166,52 @@ erase (iterator __first, iterator __last)
 
 template <class _TypeT, class _Allocator>
 void deque<_TypeT, _Allocator>::
+swap (deque<_TypeT, _Allocator> &__rhs)
+{
+    _RWSTD_ASSERT (_C_is_valid ());
+    _RWSTD_ASSERT (__rhs._C_is_valid ());
+
+    if (get_allocator () == __rhs.get_allocator ()) {
+
+        _STD::swap (_C_beg,       __rhs._C_beg);
+        _STD::swap (_C_end,       __rhs._C_end);
+        _STD::swap (_C_nodes,     __rhs._C_nodes);
+        _STD::swap (_C_node_size, __rhs._C_node_size);
+
+        if (pointer() == _C_beg._C_cur) {
+            _RWSTD_ASSERT (pointer() == _C_end._C_cur);
+            _RWSTD_ASSERT (   _C_beg._C_node == &__rhs._C_end._C_cur
+                           && _C_end._C_node == &__rhs._C_end._C_cur);
+
+            _C_beg._C_node =
+            _C_end._C_node = &_C_end._C_cur;
+        }
+        else {
+            _RWSTD_ASSERT (pointer() != _C_end._C_cur);
+        }
+
+        if (pointer() == __rhs._C_beg._C_cur) {
+            _RWSTD_ASSERT (pointer() == __rhs._C_end._C_cur);
+            _RWSTD_ASSERT (   __rhs._C_beg._C_node == &_C_end._C_cur
+                           && __rhs._C_end._C_node == &_C_end._C_cur);
+
+            __rhs._C_beg._C_node =
+            __rhs._C_end._C_node = &__rhs._C_end._C_cur;
+        }
+        else {
+            _RWSTD_ASSERT (pointer() != __rhs._C_end._C_cur);
+        }
+    }
+    else {
+        deque __tmp (*this);
+        *this = __rhs;
+        __rhs = __tmp;
+    }
+}
+
+
+template <class _TypeT, class _Allocator>
+void deque<_TypeT, _Allocator>::
 _C_push (bool __at_back, const_reference __x)
 {
     _RWSTD_ASSERT (_C_is_valid ());
