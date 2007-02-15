@@ -344,6 +344,25 @@ protected:
 
 #endif // _RWSTD_NO_LIST_NODE_BUFFER
 
+#  define _RWSTD_LIST_SAFE_INSERT_RANGE(__it, __first, __last)  \
+    _RWSTD_ASSERT_RANGE (begin (), __it);                       \
+    _RWSTD_ASSERT_RANGE (__first, __last);                      \
+                                                                \
+    if (!(__first == __last)) {                                 \
+        iterator __start = __it;                                \
+                                                                \
+        _TRY {                                                  \
+            __start = insert (__it, *__first);                  \
+                                                                \
+            while (!(++__first == __last))                      \
+                insert (__it, *__first);                        \
+        } _CATCH (...) {                                        \
+            erase (__start, __it);                              \
+            _RETHROW;                                           \
+        }                                                       \
+    } typedef void __dummy_t
+
+
     // here and only here is _C_node initialized
     void _C_init (bool __empty_list = false) {
         _C_node = _C_get_node (__empty_list);
@@ -572,37 +591,12 @@ public:
 #if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)  \
     && (!defined (_MSC_VER) || _MSC_VER >= 1300)
 
-    // handles bidirectional iterators
-    template <class _InputIterator>
-    void _C_insert (const iterator &__it,
-                    _InputIterator __first, _InputIterator __last, 
-                    bidirectional_iterator_tag) {
-        _RWSTD_ASSERT_RANGE (begin (), __it);
-        _RWSTD_ASSERT_RANGE (__first, __last);
-
-        for ( ; !(__first == __last); ++__first)
-            insert (__it, *__first); 
-    }
-
-    // handles input iterators
-    template <class _InputIterator>
-    void _C_insert (iterator __it,
-                    _InputIterator __first, _InputIterator __last, 
-                    input_iterator_tag) {
-        _RWSTD_ASSERT_RANGE (begin (), __it);
-        _RWSTD_ASSERT_RANGE (__first, __last);
-
-        for ( ; !(__first == __last); ++__first, ++__it)
-            __it = insert (__it, *__first); 
-    }
- 
     // handles nonintegral types
     template<class _InputIterator>
     void _C_insert (const iterator &__it,
                     _InputIterator  __first, _InputIterator __last, void*) {
 
-        _C_insert (__it, __first, __last, 
-		   _RWSTD_ITERATOR_CATEGORY (_InputIterator, __first));
+        _RWSTD_LIST_SAFE_INSERT_RANGE (__it, __first, __last);
     }
 
     // handles integral types
@@ -643,20 +637,12 @@ public:
     }
 
     void insert (iterator __it, const_pointer __first, const_pointer __last) {
-        _RWSTD_ASSERT_RANGE (begin (), __it);
-        _RWSTD_ASSERT_RANGE (__first, __last);
-
-        for (; !(__first == __last); ++__first)
-            insert (__it, *__first);
+        _RWSTD_LIST_SAFE_INSERT_RANGE (__it, __first, __last);
     }
 
     void insert (iterator __it,
                  const_iterator __first, const_iterator __last) {
-        _RWSTD_ASSERT_RANGE (begin (), __it);
-        _RWSTD_ASSERT_RANGE (__first, __last);
-
-        for (; !(__first == __last); ++__first)
-            insert (__it, *__first);
+        _RWSTD_LIST_SAFE_INSERT_RANGE (__it, __first, __last);
     }
 
 #endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
@@ -706,8 +692,19 @@ protected:
     void _C_insert (iterator __it, size_type __n, const_reference __x) {
         _RWSTD_ASSERT_RANGE (begin (), __it);
 
-        while (__n--)
-            insert (__it, __x);
+        if (__n) {
+            iterator __start = __it;
+
+            _TRY {
+                __start = insert (__it, __x);
+
+                while (--__n)
+                    insert (__it, __x);
+            } _CATCH (...) {
+                erase (__start, __it);
+                _RETHROW;
+            }
+        }
     }
 
 public:
