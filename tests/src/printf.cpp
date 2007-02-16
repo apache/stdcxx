@@ -104,8 +104,8 @@ _rw_fmtllong (const FmtSpec&, Buffer&, _RWSTD_LONG_LONG);
 
 struct VarArgs {
     union {
-        va_list    *pva_;
-        const void *pargs_;
+        va_list *pva_;
+        void    *pargs_;
     } arg_;
 
     enum {
@@ -115,7 +115,7 @@ struct VarArgs {
 
 #define VA_ARG(va, T) \
     (VarArgs::VA_list == (va).kind_ ? va_arg (*(va).arg_.pva_, T) \
-                                    : *((const T*&)(va).arg_.pargs_)++)
+                                    : *((T*&)(va).arg_.pargs_)++)
 
 
 static int
@@ -2996,14 +2996,14 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, VarArgs *pva)
 
     if ('*' == *param) {
         // extract the name of the parameter from the argument list
-        param = _RWSTD_CONST_CAST (char*, VA_ARG (*pva, const char*));
+        param = VA_ARG (*pva, char*);
     }
 
     char* fmtword = 0;
 
     if ('*' == *word) {
         // extract "word" from the argument list
-        word = _RWSTD_CONST_CAST (char*, VA_ARG (*pva, const char*));
+        word = VA_ARG (*pva, char*);
     }
     else if ('@' == *word) {
         // extract formatting directive from the argument list
@@ -3204,7 +3204,7 @@ _rw_fmtnested (const FmtSpec &spec,
 
     if (spec.mod_ext_A == spec.mod) {
         tmparg.kind_       = VarArgs::VA_array;
-        tmparg.arg_.pargs_ = VA_ARG (*pva, const void*);
+        tmparg.arg_.pargs_ = VA_ARG (*pva, void*);
     }
 
     int len = 0;
