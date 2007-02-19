@@ -32,9 +32,12 @@
 #  include <sys/types.h>
 #endif   // __linux__
 
+#include "diagnostic.h"
+
 #include <rw/_defs.h>
 
 #include <cassert>   // for assert()
+#include <cerrno>    // for errno
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>   // for memcpy(), strlen()
@@ -588,11 +591,9 @@ char* get_installed_locales (int loc_cat /* = LC_INVALID_CAT */)
 
     const int ret = std::system (cmd);
 
-    if (ret && ret != 256) {
-        std::strcpy (slocname, "call to system ");
-        std::perror (std::strcat (slocname, cmd));
-        std::abort ();
-    }
+    if (ret)
+      issue_diag (W_NOTSUP, false, 0, "call to system(\"%s\") failed: %s\n",
+		  cmd, std::strerror (errno));
 
     // open file containing the list of installed locales
     std::FILE *f = std::fopen (fname, "r");
