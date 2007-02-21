@@ -6,16 +6,23 @@
  *
  ************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2005 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -23,7 +30,8 @@
 #include <signal.h>
 #include <stdio.h>
 
-#include <alg_test.h>   // for InputIter, X
+#include <alg_test.h>   // for InputIter
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test(), ...
 
 /***********************************************************************/
@@ -68,9 +76,9 @@ void handle_ABRT (int)
     } (void)0
 
 
-typedef InputIter<X> Iterator;
+typedef InputIter<UserClass> Iterator;
 
-// FIXME: implement an easy way to print out an array of X
+// FIXME: implement an easy way to print out an array of UserClass
 #define X2STR(ign1, ign2)   "***NOT IMPLEMENTED ***"
 
 /***********************************************************************/
@@ -78,7 +86,7 @@ typedef InputIter<X> Iterator;
 static void
 test_0 ()
 {
-    X *x = X::from_char ("abc");
+    UserClass *x = UserClass::from_char ("abc");
 
     Iterator end0 = make_iter (x + 3, x + 0, x + 3, end0);
     Iterator end1 = make_iter (x + 3, x + 0, x + 3, end1);
@@ -89,26 +97,26 @@ test_0 ()
     PASS (equal = end0 == end0);
 
     rw_assert (equal, 0, __LINE__,
-               "InputIter<X> end iterator unexpectedly "
+               "InputIter<UserClass> end iterator unexpectedly "
                "not equal to self: %p == %p", end0.cur_, end0.cur_);
 
     PASS (equal = end0 != end0);
 
     rw_assert (!equal, 0, __LINE__,
-               "InputIter<X> end iterator unexpectedly "
+               "InputIter<UserClass> end iterator unexpectedly "
                "not equal to self: %p == %p", end0.cur_, end0.cur_);
 
     // end iterator must compare equal to another
     PASS (equal = end0 == end1);
 
     rw_assert (equal, 0, __LINE__,
-               "InputIter<X> end iterator unexpectedly "
+               "InputIter<UserClass> end iterator unexpectedly "
                "not equal to another: %p == %p", end0.cur_, end1.cur_);
 
     PASS (equal = end0 != end1);
 
     rw_assert (!equal, 0, __LINE__,
-               "InputIter<X> end iterator unexpectedly "
+               "InputIter<UserClass> end iterator unexpectedly "
                "not equal to another: %p == %p", end0.cur_, end1.cur_);
 
     // cannot increment the end iterator
@@ -132,8 +140,8 @@ test_0 ()
 static void
 test_1 ()
 {
-    X *x = X::from_char ("abcdef");
-    X *y = X::from_char ("ABCDEF");
+    UserClass *x = UserClass::from_char ("abcdef");
+    UserClass *y = UserClass::from_char ("ABCDEF");
 
     const Iterator end = make_iter (x + 6, x + 0, x + 6, end);
           Iterator it  = make_iter (x + 0, x + 0, x + 6, it);
@@ -144,7 +152,7 @@ test_1 ()
     PASS (equal = it == end);
 
     rw_assert (!equal, 0, __LINE__,
-               "InputIter<X> unexpectedly equal to end: "
+               "InputIter<UserClass> unexpectedly equal to end: "
                "%p == %p", it.cur_, end.cur_);
     
     PASS (y [0] = *it);
@@ -152,7 +160,7 @@ test_1 ()
     PASS (equal = it == end);
 
     rw_assert (!equal, 0, __LINE__,
-               "InputIter<X> unexpectedly equal to end: "
+               "InputIter<UserClass> unexpectedly equal to end: "
                "%p == %p", it.cur_, end.cur_);
 
     PASS (y [1] = *it);
@@ -161,7 +169,7 @@ test_1 ()
     PASS (equal = it == it);
 
     rw_assert (equal, 0, __LINE__,
-               "InputIter<X> unexpectedly equal to self: "
+               "InputIter<UserClass> unexpectedly equal to self: "
                "%p == %p", it.cur_, it.cur_);
 
     PASS (y [2] = *it);
@@ -176,12 +184,12 @@ test_1 ()
     PASS (equal = it == end);
 
     rw_assert (equal, 0, __LINE__,
-               "InputIter<X> unexpectedly not qual to end: "
+               "InputIter<UserClass> unexpectedly not qual to end: "
                "%p != %p (diff = %d)",
                it.cur_, end.cur_, end.cur_ - it.cur_);
 
-    rw_assert (0 == X::compare (x, y, 6), 0, __LINE__,
-               "InputIter<X> data mismatch: %s != %s",
+    rw_assert (0 == UserClass::compare (x, y, 6), 0, __LINE__,
+               "InputIter<UserClass> data mismatch: %s != %s",
                X2STR (x, 6), X2STR (y, 6));
     
     delete[] x;
@@ -193,8 +201,8 @@ test_1 ()
 static void
 test_2 ()
 {
-    X *x = X::from_char ("abcdef");
-    X *y = X::from_char ("ABCDEF");
+    UserClass *x = UserClass::from_char ("abcdef");
+    UserClass *y = UserClass::from_char ("ABCDEF");
 
     const Iterator end = make_iter (x + 6, x + 0, x + 6, end);
           Iterator it  = make_iter (x + 0, x + 0, x + 6, it);
@@ -212,7 +220,7 @@ test_2 ()
     PASS (equal = it == end);
 
     rw_assert (!equal, 0, __LINE__,
-               "InputIter<X> unexpectedly equal to end: "
+               "InputIter<UserClass> unexpectedly equal to end: "
                "%p != %p (diff = %d)",
                it.cur_, end.cur_, end.cur_ - it.cur_);
 
@@ -221,12 +229,12 @@ test_2 ()
     PASS (equal = it == end);
 
     rw_assert (equal, 0, __LINE__,
-               "InputIter<X> unexpectedly not equal to end: "
+               "InputIter<UserClass> unexpectedly not equal to end: "
                "%p != %p (diff = %d)",
                it.cur_, end.cur_, end.cur_ - it.cur_);
 
-    rw_assert (0 == X::compare (x, y, 6), 0, __LINE__,
-               "InputIter<X> data mismatch: %s != %s",
+    rw_assert (0 == UserClass::compare (x, y, 6), 0, __LINE__,
+               "InputIter<UserClass> data mismatch: %s != %s",
                X2STR (x, 6), X2STR (y, 6));
     
     delete[] x;
@@ -238,8 +246,8 @@ test_2 ()
 static void
 test_3 ()
 {
-    X *x = X::from_char ("abcdef");
-    X *y = X::from_char ("ABCDEF");
+    UserClass *x = UserClass::from_char ("abcdef");
+    UserClass *y = UserClass::from_char ("ABCDEF");
 
     const Iterator end = make_iter (x + 6, x + 6, x + 6, end);
           Iterator it0 = make_iter (x + 0, x + 0, x + 6, it0);
@@ -250,22 +258,22 @@ test_3 ()
     PASS (equal = it0 == it1);
 
     rw_assert (equal, 0, __LINE__,
-               "InputIter<X> unexpectedly not equal: "
+               "InputIter<UserClass> unexpectedly not equal: "
                "%p != %p (diff = %d)",
                it0.cur_, it1.cur_, it0.cur_ - it1.cur_);
 
     PASS (equal = it0 == end);
 
     rw_assert (!equal, 0, __LINE__,
-               "InputIter<X> unexpectedly equal to end: "
+               "InputIter<UserClass> unexpectedly equal to end: "
                "%p == %p", it1.cur_, end.cur_);
 
     PASS (y [0] = *it0);
     PASS (y [1] = *it1);
 
     rw_assert (y [0].val_ == y [1].val_, 0, __LINE__,
-               "two copies of InputIter<X> unexpectedly yield different "
-               "values: %d != %d", y [0].val_, y [1].val_);
+               "two copies of InputIter<UserClass> unexpectedly yield "
+               "different values: %d != %d", y [0].val_, y [1].val_);
 
     PASS (it0++);
     FAIL (it1++);        // can't pass through the same iterator twice
@@ -274,7 +282,7 @@ test_3 ()
     PASS (equal = it0 == end);
 
     rw_assert (!equal, 0, __LINE__,
-               "InputIter<X> unexpectedly equal to end: "
+               "InputIter<UserClass> unexpectedly equal to end: "
                "%p == %p", it1.cur_, end.cur_);
 
     PASS (it1 = it0);
@@ -282,18 +290,18 @@ test_3 ()
     PASS (equal = it0 == it1);
 
     rw_assert (equal, 0, __LINE__,
-               "InputIter<X> unexpectedly not equal: "
+               "InputIter<UserClass> unexpectedly not equal: "
                "%p == %p", it0.cur_, it1.cur_);
 
     PASS (y [0] = *it0);
     PASS (y [1] = *it1);
 
     rw_assert (y [0].val_ == y [1].val_, 0, __LINE__,
-               "two copies of InputIter<X> unexpectedly yield different "
-               "values: %d != %d", y [0].val_, y [1].val_);
+               "two copies of InputIter<UserClass> unexpectedly yield "
+               "different values: %d != %d", y [0].val_, y [1].val_);
 
     rw_assert (y [0].val_ == 'b', 0, __LINE__,
-               "InputIter<X>::operator*() == %d, got %d",
+               "InputIter<UserClass>::operator*() == %d, got %d",
                y [0].val_, 'b');
 
     PASS (it1++);
@@ -303,7 +311,7 @@ test_3 ()
     PASS (equal = it1 == end);
 
     rw_assert (!equal, 0, __LINE__,
-               "InputIter<X> unexpectedly equal to end: "
+               "InputIter<UserClass> unexpectedly equal to end: "
                "%p == %p", it1.cur_, end.cur_);
 
     FAIL (x [0] = *it0);   // cannot dereference

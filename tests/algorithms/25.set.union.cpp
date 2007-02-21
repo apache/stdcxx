@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -23,6 +30,7 @@
 #include <cstddef>      // for size_t
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -66,7 +74,8 @@ struct Less
 
     // return a type other than bool but one that is implicitly
     // convertible to bool to detect incorrect assumptions
-    conv_to_bool operator() (const X &x, const X &y) /* non-const */ {
+    conv_to_bool operator() (const UserClass &x,
+                             const UserClass &y) /* non-const */ {
         ++funcalls_;
         return conv_to_bool::make (x.val_ < y.val_);
     }
@@ -87,24 +96,25 @@ struct SetUnionBase
     const char* iter_names [3];
 
     // pure virtual, must be overridden
-    virtual X*
-    set_union (const X*, const X*, const X*, const X*,
-               X*, X*, const Less*) const = 0;
+    virtual UserClass*
+    set_union (const UserClass*, const UserClass*, const UserClass*,
+               const UserClass*, UserClass*, UserClass*,
+               const Less*) const = 0;
 };
 
 template <class InputIterator1, class InputIterator2, class OutputIterator>
 struct SetUnion: SetUnionBase
 {
     SetUnion () {
-        iter_names [0] = type_name (InputIterator1 (0, 0, 0), (X*)0);
-        iter_names [1] = type_name (InputIterator2 (0, 0, 0), (X*)0);
-        iter_names [2] = type_name (OutputIterator (0, 0, 0), (X*)0);
+        iter_names [0] = type_name (InputIterator1 (0, 0, 0), (UserClass*)0);
+        iter_names [1] = type_name (InputIterator2 (0, 0, 0), (UserClass*)0);
+        iter_names [2] = type_name (OutputIterator (0, 0, 0), (UserClass*)0);
     }
 
-    virtual X*
-    set_union (const X    *xsrc1, const X *xsrc1_end,
-               const X    *xsrc2, const X *xsrc2_end,
-               X          *xdst, X *xdst_end,
+    virtual UserClass*
+    set_union (const UserClass    *xsrc1, const UserClass *xsrc1_end,
+               const UserClass    *xsrc2, const UserClass *xsrc2_end,
+               UserClass          *xdst, UserClass *xdst_end,
                const Less *ppred) const {
 
         const InputIterator1 first1 (xsrc1,     xsrc1, xsrc1_end);
@@ -144,26 +154,28 @@ void test_set_union (int                 line,
     const char* const fname   = "set_union";
     const char* const funname = predicate ? "Less" : 0;
 
-    X* const xsrc1 = X::from_char (src1, nsrc1, true /* must be sorted */);
-    X* const xsrc2 = X::from_char (src2, nsrc2, true /* must be sorted */);
+    UserClass* const xsrc1 = UserClass::from_char (src1, nsrc1,
+                                                   true /* must be sorted */);
+    UserClass* const xsrc2 = UserClass::from_char (src2, nsrc2,
+                                                   true /* must be sorted */);
     // assert that the sequences have been successfully created
     RW_ASSERT (0 == nsrc1 || xsrc1);
     RW_ASSERT (0 == nsrc2 || xsrc2);
 
-    X* const xdst = new X [ndst];
+    UserClass* const xdst = new UserClass [ndst];
 
     const int max1_id = nsrc1 > 0 ? xsrc1 [nsrc1 - 1].id_ : -1;
 
-    X* const xsrc1_end = xsrc1 + nsrc1;
-    X* const xsrc2_end = xsrc2 + nsrc2;
-    X* const xdst_end  = xdst + ndst;
+    UserClass* const xsrc1_end = xsrc1 + nsrc1;
+    UserClass* const xsrc2_end = xsrc2 + nsrc2;
+    UserClass* const xdst_end  = xdst + ndst;
 
-    const std::size_t last_n_op_lt = X::n_total_op_lt_;
+    const std::size_t last_n_op_lt = UserClass::n_total_op_lt_;
 
     const Less pred (0, 0);
     const Less* const ppred = predicate ? &pred : 0;
 
-    const X* const xdst_res =
+    const UserClass* const xdst_res =
         alg.set_union (xsrc1, xsrc1_end, xsrc2, xsrc2_end,
                        xdst, xdst_end, ppred);
 
@@ -184,7 +196,7 @@ void test_set_union (int                 line,
     }
 
     const std::size_t n_ops_lt = ppred ? 
-        Less::funcalls_ : X::n_total_op_lt_ - last_n_op_lt;
+        Less::funcalls_ : UserClass::n_total_op_lt_ - last_n_op_lt;
 
     // check the algorithm correctness
     std::size_t i = 0;
@@ -319,13 +331,15 @@ void gen_set_union_test (const InputIterator1 &it1,
                          bool predicate)
 {
     if (0 == rw_opt_no_output_iter)
-        gen_set_union_test (it1, it2, OutputIter<X>(0, 0, 0), predicate);
+        gen_set_union_test (it1, it2, OutputIter<UserClass>(0, 0, 0),
+                            predicate);
     if (0 == rw_opt_no_fwd_iter)
-        gen_set_union_test (it1, it2, FwdIter<X>(0, 0, 0), predicate);
+        gen_set_union_test (it1, it2, FwdIter<UserClass>(0, 0, 0), predicate);
     if (0 == rw_opt_no_bidir_iter)
-        gen_set_union_test (it1, it2, BidirIter<X>(0, 0, 0), predicate);
+        gen_set_union_test (it1, it2, BidirIter<UserClass>(0, 0, 0), predicate);
     if (0 == rw_opt_no_rnd_iter)
-        gen_set_union_test (it1, it2, RandomAccessIter<X>(0, 0, 0), predicate);
+        gen_set_union_test (it1, it2, RandomAccessIter<UserClass>(0, 0, 0),
+                            predicate);
 }
 
 template <class InputIterator1>
@@ -333,13 +347,14 @@ void gen_set_union_test (const InputIterator1 &it1,
                          bool                  predicate)
 {
     if (0 == rw_opt_no_input_iter)
-        gen_set_union_test (it1, InputIter<X>(0, 0, 0), predicate);
+        gen_set_union_test (it1, InputIter<UserClass>(0, 0, 0), predicate);
     if (0 == rw_opt_no_fwd_iter)
-        gen_set_union_test (it1, ConstFwdIter<X>(0, 0, 0), predicate);
+        gen_set_union_test (it1, ConstFwdIter<UserClass>(0, 0, 0), predicate);
     if (0 == rw_opt_no_bidir_iter)
-        gen_set_union_test (it1, ConstBidirIter<X>(0, 0, 0), predicate);
+        gen_set_union_test (it1, ConstBidirIter<UserClass>(0, 0, 0), predicate);
     if (0 == rw_opt_no_rnd_iter)
-        gen_set_union_test (it1, ConstRandomAccessIter<X>(0, 0, 0), predicate);
+        gen_set_union_test (it1, ConstRandomAccessIter<UserClass>(0, 0, 0),
+                            predicate);
 }
 
 // generates a specialization of the set_union test for each of the required
@@ -358,22 +373,23 @@ void gen_set_union_test (bool predicate)
     if (rw_opt_no_input_iter)
         rw_note (0, 0, 0, "InputIterator test disabled");
     else
-        gen_set_union_test (InputIter<X>(0, 0, 0), predicate);
+        gen_set_union_test (InputIter<UserClass>(0, 0, 0), predicate);
 
     if (rw_opt_no_fwd_iter)
         rw_note (0, 0, 0, "ForwardIterator test disabled");
     else
-        gen_set_union_test (ConstFwdIter<X>(0, 0, 0), predicate);
+        gen_set_union_test (ConstFwdIter<UserClass>(0, 0, 0), predicate);
 
     if (rw_opt_no_bidir_iter)
         rw_note (0, 0, 0, "BidirectionalIterator test disabled");
     else
-        gen_set_union_test (ConstBidirIter<X>(0, 0, 0), predicate);
+        gen_set_union_test (ConstBidirIter<UserClass>(0, 0, 0), predicate);
 
     if (rw_opt_no_rnd_iter)
         rw_note (0, 0, 0, "RandomAccessIterator test disabled");
     else
-        gen_set_union_test (ConstRandomAccessIter<X>(0, 0, 0), predicate);
+        gen_set_union_test (ConstRandomAccessIter<UserClass>(0, 0, 0),
+                            predicate);
 }
 
 /**************************************************************************/

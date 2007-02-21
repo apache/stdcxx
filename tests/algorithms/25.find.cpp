@@ -6,22 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2000-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2000-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -29,6 +30,7 @@
 #include <cstring>      // for size_t, strlen()
 
 #include <alg_test.h>   
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -95,7 +97,7 @@ void test_find (int           line,     // line number of test case
                 InputIterator dummy_iter,
                 bool          test_pred)
 {
-    static const char* const itname = type_name (dummy_iter, (X*)0);
+    static const char* const itname = type_name (dummy_iter, (UserClass*)0);
     static const char* const pname  = test_pred ? "Predicate" : "operator==";
 
     const std::size_t nsrc = std::strlen (src);
@@ -105,9 +107,9 @@ void test_find (int           line,     // line number of test case
         findoff = nsrc;
 
     // create always at least 1 element (used to test failed searches)
-    X* const tsrc      = X::from_char (src, nsrc + 1);
-    X* const src_begin = tsrc;
-    X* const src_end   = tsrc + nsrc;
+    UserClass* const tsrc      = UserClass::from_char (src, nsrc + 1);
+    UserClass* const src_begin = tsrc;
+    UserClass* const src_end   = tsrc + nsrc;
 
     //                         current    [first,    last)
     const InputIterator first (src_begin, src_begin, src_end);
@@ -116,13 +118,13 @@ void test_find (int           line,     // line number of test case
     // get a reference to the object to find (when findoff == nsrc
     // the sought for element is outside the source range and won't
     // be found)
-    const X &to_find = tsrc [findoff];
+    const UserClass &to_find = tsrc [findoff];
 
     // construct a predicate object to use with find_if
-    const Predicate<X> pred (to_find, 0 /* dummy */);
+    const Predicate<UserClass> pred (to_find, 0 /* dummy */);
 
     // reset the operator==() counter
-    X::n_total_op_eq_ = 0;
+    UserClass::n_total_op_eq_ = 0;
 
     // invoke find() or find_if(), depending on the predicate flag
     const InputIterator res = test_pred ?
@@ -148,7 +150,8 @@ void test_find (int           line,     // line number of test case
     // The complexity when find is successful is actually
     // (res - first) applications of the corresponding predicate.
 
-    const std::size_t npreds = test_pred ? pred.funcalls_ : X::n_total_op_eq_;
+    const std::size_t npreds =
+        test_pred ? pred.funcalls_ : UserClass::n_total_op_eq_;
 
     rw_assert (npreds <= findoff + 1, 0, line,
                "line %d: find%{?}_if%{;} (%s = \"%s\", ..., '%c') "
@@ -164,10 +167,10 @@ void test_find (int           line,     // line number of test case
 template <class InputIterator>
 void test_find (InputIterator dummy_iter, bool test_pred)
 {   
-    static const char* const itname = type_name (dummy_iter, (X*)0);
+    static const char* const itname = type_name (dummy_iter, (UserClass*)0);
 
     rw_info (0, 0, 0, "std::find%{?}_if%{;} (%s, %2$s, "
-             "%{?}Predicate%{:}const X&%{;})",
+             "%{?}Predicate%{:}const UserClass&%{;})",
              test_pred, itname, test_pred);
 
 #define TEST(src, off_find)                             \
@@ -221,31 +224,31 @@ test_find (bool test_pred)
         rw_note (0, __FILE__, __LINE__, "InputIterator test disabled");
     }
     else {
-        test_find (InputIter<X>(0, 0, 0), test_pred);
+        test_find (InputIter<UserClass>(0, 0, 0), test_pred);
     }
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
-        test_find (ConstFwdIter<X>(), test_pred);
-        test_find (FwdIter<X>(), test_pred);
+        test_find (ConstFwdIter<UserClass>(), test_pred);
+        test_find (FwdIter<UserClass>(), test_pred);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        test_find (ConstBidirIter<X>(), test_pred);
-        test_find (BidirIter<X>(), test_pred);
+        test_find (ConstBidirIter<UserClass>(), test_pred);
+        test_find (BidirIter<UserClass>(), test_pred);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
     }
     else {
-        test_find (ConstRandomAccessIter<X>(), test_pred);
-        test_find (RandomAccessIter<X>(), test_pred);
+        test_find (ConstRandomAccessIter<UserClass>(), test_pred);
+        test_find (RandomAccessIter<UserClass>(), test_pred);
     }
 }
 

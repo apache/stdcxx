@@ -29,11 +29,12 @@
 #include <utility>
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>
 
 /**************************************************************************/
 
-struct Y: X { };
+struct Y: UserClass { };
 
 
 int less_used;
@@ -110,27 +111,27 @@ void test_pair (T, const char *tname, U, const char *uname)
     {
         rw_info (0, 0, __LINE__, "std::pair<%s, %s>::pair()", tname, uname);
 
-        X::reset_totals ();
+        UserClass::reset_totals ();
 
         std::pair<Y, Y> py;
 
-        rw_assert (X::n_total_def_ctor_ == 2, 0, __LINE__,
+        rw_assert (UserClass::n_total_def_ctor_ == 2, 0, __LINE__,
                    "pair<Y, Y>::pair() called %d default ctors, "
-                   "expected 2", X::n_total_def_ctor_, 2);
+                   "expected 2", UserClass::n_total_def_ctor_, 2);
 
 #ifndef _RWSTD_NO_EMPTY_MEM_INITIALIZER
 
         // exercise lwg issue 265
-        rw_assert (X::n_total_copy_ctor_ == 0, 0, __LINE__,
+        rw_assert (UserClass::n_total_copy_ctor_ == 0, 0, __LINE__,
                    "pair<Y, Y>::pair() called %d copy ctors, "
-                   "expected 0", X::n_total_copy_ctor_);
+                   "expected 0", UserClass::n_total_copy_ctor_);
 
 #else   // if defined (_RWSTD_NO_EMPTY_MEM_INITIALIZER)
 
         // 20.2.2, p2: commented out -- calls to copy ctor may be elided
-        // RW_ASSERT (t, X::n_total_copy_ctor_ == 2,
+        // RW_ASSERT (t, UserClass::n_total_copy_ctor_ == 2,
         //            ("std::pair<Y, Y>::pair() called %d copy ctors, "
-        //            "expected 2", X::n_total_copy_ctor_));
+        //            "expected 2", UserClass::n_total_copy_ctor_));
 
 #endif   // _RWSTD_NO_EMPTY_MEM_INITIALIZER
 
@@ -138,17 +139,17 @@ void test_pair (T, const char *tname, U, const char *uname)
                  "std::pair<%s, %s>::pair(const %s&, const %s&)",
                  tname, uname, tname, uname);
 
-        X x0;
-        X x1;
+        UserClass x0;
+        UserClass x1;
 
-        X::reset_totals ();
+        UserClass::reset_totals ();
 
         // 20.2.2, p3
-        std::pair<X, X> px0 (x0, x1);
+        std::pair<UserClass, UserClass> px0 (x0, x1);
 
-        rw_assert (X::n_total_copy_ctor_ == 2, 0, __LINE__,
+        rw_assert (UserClass::n_total_copy_ctor_ == 2, 0, __LINE__,
                    "pair<T, U>::pair (const T&, const U&) called %d cpy "
-                   "ctors, expected 2", X::n_total_copy_ctor_);
+                   "ctors, expected 2", UserClass::n_total_copy_ctor_);
 
 
         rw_info (0, 0, __LINE__,
@@ -156,15 +157,16 @@ void test_pair (T, const char *tname, U, const char *uname)
                  "std::pair<%s, %s>::pair(const pair<T, U>&)",
                  tname, uname);
 
-        X::reset_totals ();
+        UserClass::reset_totals ();
 
         // 20.2.2, p4
-        std::pair<X, X> px (py);
+        std::pair<UserClass, UserClass> px (py);
 
-        rw_assert (X::n_total_copy_ctor_ == 2, 0, __LINE__,
-                   "template <class T, class U> pair<X, X>::pair"
-                   "(const std::pair<T, U>&) called %d cpy ctors, expected 2",
-                   X::n_total_copy_ctor_);
+        rw_assert (UserClass::n_total_copy_ctor_ == 2, 0, __LINE__,
+                   "template <class T, class U> pair<UserClass, "
+                   "UserClass>::pair(const std::pair<T, U>&) called "
+                   "%d cpy ctors, expected 2",
+                   UserClass::n_total_copy_ctor_);
 
 
         rw_info (0, 0, __LINE__,
@@ -172,21 +174,23 @@ void test_pair (T, const char *tname, U, const char *uname)
                  "std::pair<%s, %s>::operator= (const pair<T, U>&)",
                  tname, uname);
 
-        X::reset_totals ();
+        UserClass::reset_totals ();
 
         // exercise template assignment if provided,
         // otherwise template ctor and ordinary assignment
         px = py;
 
-        rw_assert (X::n_total_copy_ctor_ == 0, 0, __LINE__,
-                   "template <class T, class U> pair<X, X>::operator="
-                   "(const pair<T, U>&) called %d cpy ctors, expected 0",
-                   X::n_total_copy_ctor_);
+        rw_assert (UserClass::n_total_copy_ctor_ == 0, 0, __LINE__,
+                   "template <class T, class U> pair<UserClass, "
+                   "UserClass>::operator=(const pair<T, U>&) "
+                   "called %d cpy ctors, expected 0",
+                   UserClass::n_total_copy_ctor_);
 
-        rw_assert (X::n_total_op_assign_ == 2, 0, __LINE__,
-                   "template <class T, class U> pair<X, X>::operator="
-                   "(const pair<T, U>&) called %d assignment operators, "
-                   "expected 2", X::n_total_op_assign_);
+        rw_assert (UserClass::n_total_op_assign_ == 2, 0, __LINE__,
+                   "template <class T, class U> pair<UserClass, "
+                   "UserClass>::operator=(const pair<T, U>&) "
+                   "called %d assignment operators, "
+                   "expected 2", UserClass::n_total_op_assign_);
     }
 
 #endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
@@ -217,9 +221,11 @@ void test_pair (T, const char *tname, U, const char *uname)
 
         bool b = p0 == p0;
         rw_assert (b, 0, __LINE__,
-                   "operator== (const pair<X, X>&, const pair<X, X>&)");
+                   "operator== (const pair<UserClass, UserClass>&, "
+                   "const pair<UserClass, UserClass>&)");
         rw_assert (2 == Y::n_total_op_eq_, 0, __LINE__,
-                   "operator== (const pair<X, X>&, const pair<X, X>&)");
+                   "operator== (const pair<UserClass, UserClass>&, "
+                   "const pair<UserClass, UserClass>&)");
 
 
         // exercise lwg issue 348

@@ -27,7 +27,7 @@
 #include <cstdlib>       // for free(), strtol(), size_t
 #include <valarray>      // for indirect_array, valarray
 
-#include <alg_test.h>    // for class X
+#include <rw_value.h>    // for UserClass
 #include <driver.h>      // for rw_test()
 #include <rw_printf.h>   // for rw_asnprintf()
 
@@ -93,15 +93,16 @@ T value (const T &val) { return val; }
 
 /**************************************************************************/
 
-// returns an array of size elements of type X constructed from a string
-// of comma-separated values
-X*
-make_array (const X*, const char *s, std::size_t *psize)
+// returns an array of size elements of type UserClass
+// constructed from a string of comma-separated values
+UserClass*
+make_array (const UserClass*, const char *s, std::size_t *psize)
 {
     std::size_t nelems = psize ? *psize : 0;
 
-    void* const raw = operator new ((nelems ? nelems : 1024) * sizeof (X));
-    X* const buf = _RWSTD_STATIC_CAST (X*, raw);
+    const std::size_t size = sizeof (UserClass);
+    void* const raw = operator new ((nelems ? nelems : 1024) * size);
+    UserClass* const buf = _RWSTD_STATIC_CAST (UserClass*, raw);
 
     if (0 == nelems && (0 == s || '\0' == *s))
         return buf;
@@ -115,12 +116,12 @@ make_array (const X*, const char *s, std::size_t *psize)
 
         RW_ASSERT (0 == end || '\0' == *end || ',' == *end);
 
-        new (buf + i) X ();
+        new (buf + i) UserClass ();
         buf [i].val_ = int (val);
 
         if (0 == end || '\0' == *end) {
             while (++i < nelems)
-                new (buf + i) X (buf [i - 1]);
+                new (buf + i) UserClass (buf [i - 1]);
 
             break;
         }
@@ -137,20 +138,20 @@ make_array (const X*, const char *s, std::size_t *psize)
 
 // deletes an array of elements of type T returned from make_array
 void
-delete_array (const X *array, std::size_t nelems)
+delete_array (const UserClass *array, std::size_t nelems)
 {
-    X* const a = _RWSTD_CONST_CAST (X*, array);
+    UserClass* const a = _RWSTD_CONST_CAST (UserClass*, array);
     
     for (std::size_t i = 0; i != nelems; ++i)
-        (a + i)->~X ();
+        (a + i)->~UserClass ();
 
     operator delete (a);
 }
 
 
-const std::size_t* count (const X*) { return &X::count_; }
+const std::size_t* count (const UserClass*) { return &UserClass::count_; }
 
-int value (const X &val) { return val.val_; }
+int value (const UserClass &val) { return val.val_; }
 
 /**************************************************************************/
 
@@ -175,7 +176,7 @@ test_ctor (const T*, const char *tname, CtorId which, bool copy,
     std::size_t size  = 0;
 
     // pointer to a counter keepint track of all objects of type T
-    // in existence (non-null only for T=X)
+    // in existence (non-null only for T=UserClass)
     const std::size_t* const pcounter = count ((const T*)0);
 
     // get the number of objects of type T before invoking the ctor
@@ -245,7 +246,7 @@ test_ctor (const T*, const char *tname, CtorId which, bool copy,
 
     if (pcounter) {
         // compute the number of objects of type T constructed
-        // by the ctor (valid only for T=X)
+        // by the ctor (valid only for T=UserClass)
         nobjects = *pcounter - nobjects;
         
         rw_assert (nobjects == nelems, 0, line,
@@ -424,7 +425,7 @@ run_test (int, char**)
     TEST (int);
     TEST (double);
 
-    TEST (X);
+    TEST (UserClass);
 
     return 0;
 }

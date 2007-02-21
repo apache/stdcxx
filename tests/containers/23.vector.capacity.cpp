@@ -6,22 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2006 Rogue Wave Software.
  *
  **************************************************************************/
 
@@ -29,6 +30,7 @@
 #include <vector>      // for vector
 
 #include <alg_test.h>
+#include <rw_value.h>  // for UserClass
 #include <driver.h>
 
 /**************************************************************************/
@@ -38,7 +40,7 @@ static int      rw_opt_no_exceptions;
 
 /**************************************************************************/
 
-typedef std::vector<X, std::allocator<X> > Vector;
+typedef std::vector<UserClass, std::allocator<UserClass> > Vector;
 
 // exercise vector<>::capacity() and vector<>::reserve()
 // focus on the complexity of the function
@@ -51,21 +53,21 @@ void test_capacity (Vector::size_type nelems)
     const Vector::size_type     size  = v.size ();
           Vector::const_pointer begin = size ? &v [0] : 0;
 
-    X::reset_totals ();
+    UserClass::reset_totals ();
 
     // call reserve capacity that is less than or equal to the current value
     v.reserve (cap / 2);
 
     // verify that the call had no effect
     rw_assert (v.capacity () == cap, 0, __LINE__,
-               "vector<X>(%zu).reserve(%zu); capacity() == %zu, got %zu",
-               nelems, cap / 2, cap, v.capacity ());
+               "vector<UserClass>(%zu).reserve(%zu); capacity() == %zu, "
+               "got %zu", nelems, cap / 2, cap, v.capacity ());
 
     if (size) {
         // verify that no reallocation took place
         rw_assert (begin == &v [0], 0, __LINE__,
-                   "vector<X>(%zu).reserve(%zu) unexpectedly reallocated",
-                   nelems, cap / 2);
+                   "vector<UserClass>(%zu).reserve(%zu) unexpectedly "
+                   "reallocated", nelems, cap / 2);
     }
 
     // call reserve the same capacity as the current value
@@ -73,14 +75,14 @@ void test_capacity (Vector::size_type nelems)
 
     // verify that the call had no effect
     rw_assert (v.capacity () == cap, 0, __LINE__,
-               "vector<X>(%zu).reserve(%zu); capacity() == %zu, got %zu",
-               nelems, cap / 2, cap, v.capacity ());
+               "vector<UserClass>(%zu).reserve(%zu); capacity() == %zu, "
+               "got %zu", nelems, cap / 2, cap, v.capacity ());
 
     if (size) {
         // verify that no reallocation took place
         rw_assert (begin == &v [0], 0, __LINE__,
-                   "vector<X>(%zu).reserve(%zu) unexpectedly reallocated",
-                   nelems, cap / 2);
+                   "vector<UserClass>(%zu).reserve(%zu) unexpectedly "
+                   "reallocated", nelems, cap / 2);
     }
 
     // call reserve with a larger capacity then is available
@@ -89,19 +91,19 @@ void test_capacity (Vector::size_type nelems)
     // 23.2.4.2, p2: After reserve (), capacity () is greater or equal
     //               to the reserve value if reallocation happens
     rw_assert (v.capacity () >= cap + 1, 0, __LINE__,
-               "vector<X>(%zu).reserve(%zu); capacity() > %zu, got %zu",
+               "vector<UserClass>(%zu).reserve(%zu); capacity() > %zu, got %zu",
                nelems, cap + 1, cap, v.capacity ());
 
     // 23.2.3.2, p3: reserve shall not change the size of the sequence
     rw_assert (v.size () == size, 0, __LINE__,
-               "vector<X>(%zu).reserve(); size() == %zu, got %zu",
+               "vector<UserClass>(%zu).reserve(); size() == %zu, got %zu",
                nelems, size, v.size ());
 
     // 23.2.3.2, p3: takes at most linear time in the size of the sequence
-    rw_assert (X::n_total_copy_ctor_ == v.size (), 0, __LINE__,
-               "vector<X>(%zu).reserve(%zu) complexity: "
+    rw_assert (UserClass::n_total_copy_ctor_ == v.size (), 0, __LINE__,
+               "vector<UserClass>(%zu).reserve(%zu) complexity: "
                "copy ctor called %zu times when size() = %zu",
-               nelems, cap + 1, X::n_total_copy_ctor_, v.size ());
+               nelems, cap + 1, UserClass::n_total_copy_ctor_, v.size ());
 
     if (size) {
         begin = &v [0];
@@ -109,11 +111,11 @@ void test_capacity (Vector::size_type nelems)
         // verify 23.2.4.2, p5: no reallocation takes place until
         // the size of the container would exceed its capacity
         for (Vector::size_type i = 0; i != v.capacity () - size; ++i) {
-            v.push_back (X ());
+            v.push_back (UserClass ());
 
             rw_assert (begin == &v [0], 0, __LINE__,
-                       "vector<X>(%zu).reserve(%zu); insertion of element "
-                       "%zu unexpectedly reallocated; size() = %zu",
+                       "vector<UserClass>(%zu).reserve(%zu); insertion of "
+                       "element %zu unexpectedly reallocated; size() = %zu",
                        nelems, cap + 1, v.size ());
         }
     }
@@ -142,12 +144,14 @@ void test_capacity (Vector::size_type nelems)
     }
 
     rw_assert (0 != caught, 0, __LINE__,
-               "vector<X>(%zu).reserve(%zu) expected exception not thrown",
+               "vector<UserClass>(%zu).reserve(%zu) "
+               "expected exception not thrown",
                nelems, too_much);
 
     if (caught)
         rw_assert ('\0' == *caught, 0, __LINE__,
-                   "vector<X>(%zu).reserve(%zu) expected length_error, got %s",
+                   "vector<UserClass>(%zu).reserve(%zu) "
+                   "expected length_error, got %s",
                    nelems, too_much, caught);
 
 #endif // _RWSTD_NO_EXCEPTIONS
@@ -159,8 +163,8 @@ void test_capacity (Vector::size_type nelems)
 static int
 run_test (int /* argc */, char** /* argv */)
 {
-    rw_info (0, 0, 0, "std::vector<X>::capacity() const");
-    rw_info (0, 0, 0, "std::vector<X>::reserve(size_type)");
+    rw_info (0, 0, 0, "std::vector<UserClass>::capacity() const");
+    rw_info (0, 0, 0, "std::vector<UserClass>::reserve(size_type)");
 
     const Vector::size_type max_elems = Vector::size_type (rw_opt_nloops);
 

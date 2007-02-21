@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -23,6 +30,7 @@
 #include <cstring>      // for memset(), size_t
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 
@@ -358,7 +366,7 @@ static int run_test (int, char*[])
 {
     const std::size_t N = std::size_t (rw_opt_nloops);
 
-    typedef RandomAccessIter<X>::difference_type DiffT;
+    typedef RandomAccessIter<UserClass>::difference_type DiffT;
     typedef RandomGenerator<DiffT>               RandGenT;
 
     if (rw_opt_no_random) {
@@ -370,8 +378,8 @@ static int run_test (int, char*[])
                  "std::random_shuffle (%1$s, %1$s)",
                  "RandomAccessIterator");
 
-        test_random_shuffle (__LINE__, N, RandomAccessIter<X>(),
-                             (RandGenT*)0, (X*)0, false);
+        test_random_shuffle (__LINE__, N, RandomAccessIter<UserClass>(),
+                             (RandGenT*)0, (UserClass*)0, false);
     }
 
     if (rw_opt_no_rand_test) {
@@ -391,8 +399,8 @@ static int run_test (int, char*[])
                  "std::random_shuffle (%1$s, %1$s, %2$s)",
                  "RandomAccessIterator", "RandomNumberGenerator");
 
-        test_random_shuffle (__LINE__, N, RandomAccessIter<X>(),
-                             (RandGenT*)0, (X*)0, true);
+        test_random_shuffle (__LINE__, N, RandomAccessIter<UserClass>(),
+                             (RandGenT*)0, (UserClass*)0, true);
     }
 
     return 0;

@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -31,6 +38,7 @@
 #include <cstring>      // for strlen()
 
 #include <alg_test.h>   // for iterators
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test(), ...
 
 /**************************************************************************/
@@ -73,7 +81,7 @@ binary_search (FwdIter<lt_comp<assign<base<cpy_ctor> > > >,
 // implementation of the algorithms
 struct Y
 {
-    X xval_;
+    UserClass xval_;
 
     // not Default-Constructible
     Y (int /* dummy */, int /*dummy */): xval_ () { }
@@ -88,13 +96,13 @@ private:
 
 
 inline bool
-operator< (const X &lhs, const Y &rhs)
+operator< (const UserClass &lhs, const Y &rhs)
 {
     return lhs < rhs.xval_;
 }
 
 inline bool
-operator< (const Y &lhs, const X &rhs)
+operator< (const Y &lhs, const UserClass &rhs)
 {
     return lhs.xval_ < rhs;
 }
@@ -110,12 +118,12 @@ struct LessThan
 
     // return a type other than bool but one that is implicitly
     // convertible to bool to detect incorrect assumptions
-    bool operator() (const X &lhs, const Y &rhs) {
+    bool operator() (const UserClass &lhs, const Y &rhs) {
         ++funcalls_;
         return lhs < rhs.xval_;
     }
 
-    bool operator() (const Y &lhs, const X &rhs) {
+    bool operator() (const Y &lhs, const UserClass &rhs) {
         ++funcalls_;
         return lhs.xval_ < rhs;
     }
@@ -140,7 +148,7 @@ void test_binary_search (int                    line,
 {
     RW_ASSERT (0 != src_str);
 
-    const char* const tname   = "X";
+    const char* const tname   = "UserClass";
     const char* const itname  = type_name (it, (T*)0);
     const char* const funname = predicate ? "LessThan" : "operator<()";
 
@@ -204,7 +212,8 @@ void test_binary_search (const ForwardIterator &it,
     const char* const itname = type_name (it, (T*)0);
     const char* const funname = predicate ? "LessThan" : "operator<()";
 
-    rw_info (0, 0, 0, "std::binary_search (%s, %1$s, const X&%{?}, %s%{;})",
+    rw_info (0, 0, 0,
+             "std::binary_search (%s, %1$s, const UserClass&%{?}, %s%{;})",
              itname, predicate, funname);
 
 #define TEST(str, val, res, comp) \
@@ -260,7 +269,7 @@ void test_binary_search (const T*,
 
     rw_info (0, 0, 0, "template <class %s, class %s%{?}, class %s%{;}> "
              "bool std::binary_search (%1$s, %1$s, const %2$s&%{?}, %s%{;})",
-             "ForwardIterator", "X", predicate, "Compare", predicate,
+             "ForwardIterator", "UserClass", predicate, "Compare", predicate,
              "Compare");
 
     if (rw_opt_no_fwd_iter) {
@@ -290,14 +299,14 @@ void test_binary_search (const T*,
 static int
 run_test (int, char*[])
 {
-    test_binary_search ((X*)0, false);
+    test_binary_search ((UserClass*)0, false);
 
     if (rw_opt_no_predicate) {
         rw_note (0, __FILE__, __LINE__,
                  "test of the Predicate form of std::binary_search disabled");
     }
     else {
-        test_binary_search ((X*)0, true);
+        test_binary_search ((UserClass*)0, true);
     }
 
     return 0;

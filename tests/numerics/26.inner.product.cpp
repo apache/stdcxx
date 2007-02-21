@@ -2,26 +2,27 @@
  *
  * 26.inner.product.cpp - test exercising 26.4.2 [lib.inner.product]
  *
- * $Id: 
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -29,6 +30,7 @@
 #include <cstddef>      // for size_t
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -84,9 +86,9 @@ inner_product (InputIter<assign<base<cpy_ctor> > >,
 
 /**************************************************************************/
 
-X operator* (const X& lhs, const X& rhs)
+UserClass operator* (const UserClass& lhs, const UserClass& rhs)
 {
-    return X (lhs) *= rhs;
+    return UserClass (lhs) *= rhs;
 }
 
 /**************************************************************************/
@@ -125,12 +127,13 @@ struct Accumulator
         funcalls_ = 0;
     }
 
-    // return a type convertible to X
-    conv_to_T<X> operator() (const X &x, const X &y) /* non-const */ {
+    // return a type convertible to UserClass
+    conv_to_T<UserClass> operator() (const UserClass &x,
+                                     const UserClass &y) /* non-const */ {
         ++funcalls_;
-        X res (x);
+        UserClass res (x);
         res.val_ += y.val_;
-        return conv_to_T<X>::make (res);
+        return conv_to_T<UserClass>::make (res);
     }
 
 private:
@@ -150,12 +153,13 @@ struct Multiplicator
         funcalls_ = 0;
     }
 
-    // return a type convertible to X
-    conv_to_T<X> operator() (const X &x, const X &y) /* non-const */ {
+    // return a type convertible to UserClass
+    conv_to_T<UserClass> operator() (const UserClass &x,
+                                     const UserClass &y) /* non-const */ {
         ++funcalls_;
-        X res (x);
+        UserClass res (x);
         res.val_ *= y.val_;
-        return conv_to_T<X>::make (res);
+        return conv_to_T<UserClass>::make (res);
     }
 
 private:
@@ -173,10 +177,10 @@ struct InnerProductBase
     const char* iter_names [2];
 
     // pure virtual
-    virtual X
-    inner_product (const X    *xsrc1, const X           *xsrc1_end,
-                   const X    *xsrc2, const X           *xsrc2_end,
-                   const X&    init,  const Accumulator *op1, 
+    virtual UserClass
+    inner_product (const UserClass     *xsrc1, const UserClass   *xsrc1_end,
+                   const UserClass     *xsrc2, const UserClass   *xsrc2_end,
+                   const UserClass&     init,  const Accumulator *op1, 
                    const Multiplicator *op2) const = 0;
 };
 
@@ -184,21 +188,21 @@ template <class InputIterator1, class InputIterator2>
 struct InnerProduct : InnerProductBase
 {
     InnerProduct () {
-        iter_names [0] = type_name (InputIterator1 (0, 0, 0), (X*)0);
-        iter_names [1] = type_name (InputIterator2 (0, 0, 0), (X*)0);
+        iter_names [0] = type_name (InputIterator1 (0, 0, 0), (UserClass*)0);
+        iter_names [1] = type_name (InputIterator2 (0, 0, 0), (UserClass*)0);
     }
 
-    virtual X
-    inner_product (const X    *xsrc1, const X           *xsrc1_end,
-                   const X    *xsrc2, const X           *xsrc2_end,
-                   const X&    init,  const Accumulator *op1, 
+    virtual UserClass
+    inner_product (const UserClass     *xsrc1, const UserClass   *xsrc1_end,
+                   const UserClass     *xsrc2, const UserClass   *xsrc2_end,
+                   const UserClass&     init,  const Accumulator *op1, 
                    const Multiplicator *op2) const {
 
         const InputIterator1 first1 (xsrc1,     xsrc1, xsrc1_end);
         const InputIterator1 last1  (xsrc1_end, xsrc1, xsrc1_end);
         const InputIterator2 first2 (xsrc2,     xsrc2, xsrc2_end);
 
-        const X res = op1 ?
+        const UserClass res = op1 ?
               std::inner_product (first1, last1, first2, init, *op1, *op2)
             : std::inner_product (first1, last1, first2, init);
 
@@ -219,7 +223,7 @@ void test_inner_product (const std::size_t       N,
 {
     const char* const it1name = alg.iter_names [0];
     const char* const it2name = alg.iter_names [1];
-    const char* const tname   = "X";
+    const char* const tname   = "UserClass";
     const char* const op1name = "Plus";
     const char* const op2name = "Multiple";
 
@@ -227,19 +231,19 @@ void test_inner_product (const std::size_t       N,
              "std::inner_product (%s, %1$s, %s, %s%{?}, %s, %s%{;})",
              it1name, it2name, tname, binop, op1name, op2name);
 
-    // construct initial X
-    const X init = X ();
+    // construct initial UserClass
+    const UserClass init = UserClass ();
     int sum = init.val_;
 
-    X::gen_ = gen_seq;
+    UserClass::gen_ = gen_seq;
 
-    X* const buf1 = new X [N];
-    X* const buf2 = new X [N];
+    UserClass* const buf1 = new UserClass [N];
+    UserClass* const buf2 = new UserClass [N];
     
     for (std::size_t i = 0; i != N; ++i) {
 
-        X* const buf1_end = buf1 + i;
-        X* const buf2_end = buf2 + i;
+        UserClass* const buf1_end = buf1 + i;
+        UserClass* const buf2_end = buf2 + i;
 
         const Accumulator   acc  (0, 0);
         const Multiplicator mult (0, 0);
@@ -247,8 +251,8 @@ void test_inner_product (const std::size_t       N,
         const Accumulator* const   pbinop1 = binop ? &acc : 0;
         const Multiplicator* const pbinop2 = binop ? &mult : 0;
 
-        const X res = alg.inner_product (buf1, buf1_end, buf2, buf2_end, 
-                                         init, pbinop1, pbinop2);
+        const UserClass res = alg.inner_product (buf1, buf1_end, buf2, buf2_end, 
+                                                 init, pbinop1, pbinop2);
 
         // verify the result 26.4.1, p1
         bool success = sum == res.val_;
@@ -298,16 +302,16 @@ void gen_inner_product_test (const std::size_t     N,
 {
     if (0 == rw_opt_no_input_iter)
         gen_inner_product_test (
-            N, it1, InputIter<X>(0, 0, 0), binop);
+            N, it1, InputIter<UserClass>(0, 0, 0), binop);
     if (0 == rw_opt_no_fwd_iter)
         gen_inner_product_test (
-            N, it1, ConstFwdIter<X>(0, 0, 0), binop);
+            N, it1, ConstFwdIter<UserClass>(0, 0, 0), binop);
     if (0 == rw_opt_no_bidir_iter)
         gen_inner_product_test (
-            N, it1, ConstBidirIter<X>(0, 0, 0), binop);
+            N, it1, ConstBidirIter<UserClass>(0, 0, 0), binop);
     if (0 == rw_opt_no_rnd_iter)
         gen_inner_product_test (
-            N, it1, ConstRandomAccessIter<X>(0, 0, 0), binop);
+            N, it1, ConstRandomAccessIter<UserClass>(0, 0, 0), binop);
 }
 
 // generates a specialization of the inner_product test for each of the required
@@ -319,29 +323,30 @@ void gen_inner_product_test (const std::size_t N,
              "template <class %s, class %s, class %s%{?}, class %s, "
              "class %s%{;}> %3$s inner_product (%1$s, %1$s, %2$s, "
              "%3$s%{?}, %s, %s%{;})", 
-             "InputIterator1", "InputIterator2", "X",
+             "InputIterator1", "InputIterator2", "UserClass",
              binop, "BinaryOperation1", "BinaryOperation2", binop, 
              "BinaryOperation1", "BinaryOperation2");
 
     if (rw_opt_no_input_iter)
         rw_note (0, 0, 0, "InputIterator test disabled");
     else
-        gen_inner_product_test (N, InputIter<X>(0, 0, 0), binop);
+        gen_inner_product_test (N, InputIter<UserClass>(0, 0, 0), binop);
 
     if (rw_opt_no_fwd_iter)
         rw_note (0, 0, 0, "ForwardIterator test disabled");
     else
-        gen_inner_product_test (N, ConstFwdIter<X>(0, 0, 0), binop);
+        gen_inner_product_test (N, ConstFwdIter<UserClass>(0, 0, 0), binop);
 
     if (rw_opt_no_bidir_iter)
         rw_note (0, 0, 0, "BidirectionalIterator test disabled");
     else
-        gen_inner_product_test (N, ConstBidirIter<X>(0, 0, 0), binop);
+        gen_inner_product_test (N, ConstBidirIter<UserClass>(0, 0, 0), binop);
 
     if (rw_opt_no_rnd_iter)
         rw_note (0, 0, 0, "RandomAccessIterator test disabled");
     else
-        gen_inner_product_test (N, ConstRandomAccessIter<X>(0, 0, 0), binop);
+        gen_inner_product_test (N, ConstRandomAccessIter<UserClass>(0, 0, 0),
+                                binop);
 }
 
 /**************************************************************************/

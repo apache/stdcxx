@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -31,16 +38,17 @@
 #include <cstring>      // for strlen()
 
 #include <alg_test.h>   // for iterators
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test(), ...
 
 /**************************************************************************/
 
-// distinct and not Less-Than-Comparable with class X (except as
+// distinct and not Less-Than-Comparable with class UserClass (except as
 // defined below) to detect unwarranted assumptions made by the
 // implementation of the algorithms
 struct Y
 {
-    X xval_;
+    UserClass xval_;
 
     // not Default-Constructible
     Y (int /* dummy */, int /*dummy */): xval_ () { }
@@ -55,13 +63,13 @@ private:
 
 
 inline conv_to_bool
-operator< (const X &lhs, const Y &rhs)
+operator< (const UserClass &lhs, const Y &rhs)
 {
     return conv_to_bool::make (lhs < rhs.xval_);
 }
 
 inline conv_to_bool
-operator< (const Y &lhs, const X &rhs)
+operator< (const Y &lhs, const UserClass &rhs)
 {
     return conv_to_bool::make (lhs.xval_ < rhs);
 }
@@ -77,12 +85,12 @@ struct LessThan
 
     // return a type other than bool but one that is implicitly
     // convertible to bool to detect incorrect assumptions
-    conv_to_bool operator() (const X &lhs, const Y &rhs) {
+    conv_to_bool operator() (const UserClass &lhs, const Y &rhs) {
         ++funcalls_;
         return conv_to_bool::make (lhs < rhs.xval_);
     }
 
-    conv_to_bool operator() (const Y &lhs, const X &rhs) {
+    conv_to_bool operator() (const Y &lhs, const UserClass &rhs) {
         ++funcalls_;
         return conv_to_bool::make (lhs.xval_ < rhs);
     }
@@ -108,7 +116,7 @@ void test_upper_bound (int                    line,
     RW_ASSERT (0 != src_str);
 
     const std::size_t nsrc = std::strlen (src_str);
-    X* const xsrc = X::from_char (src_str, nsrc);
+    UserClass* const xsrc = UserClass::from_char (src_str, nsrc);
 
     if (nsrc < result_off)
         result_off = nsrc;
@@ -127,8 +135,8 @@ void test_upper_bound (int                    line,
     // when `predicate' is true
     const LessThan comp (0, 0 /* dummy arguments */);
 
-    // reset the counter of invocations of X::operator<()
-    X::n_total_op_lt_ = 0;
+    // reset the counter of invocations of UserClass::operator<()
+    UserClass::n_total_op_lt_ = 0;
 
     // invoke the appropriate form of the algorithm, storing
     // the resturned value
@@ -151,7 +159,7 @@ void test_upper_bound (int                    line,
 
     // verify complexity
     const std::size_t funcalls = predicate
-        ? LessThan::funcalls_ : X::n_total_op_lt_;
+        ? LessThan::funcalls_ : UserClass::n_total_op_lt_;
 
     rw_assert (funcalls <= ncomp, 0, line,
                "upper_bound(%s = \"%s\", ...%{?}%#c%{;}) complexity: "
@@ -174,7 +182,8 @@ void test_upper_bound (const ForwardIterator*,
                       std::size_t (comp), (ForwardIterator*)0, \
                       itname, predicate)
 
-    rw_info (0, 0, 0, "std::upper_bound (%s, %1$s, const X&%{?}, %s%{;})",
+    rw_info (0, 0, 0,
+             "std::upper_bound (%s, %1$s, const UserClass&%{?}, %s%{;})",
              itname, predicate, "LessThan");
 
     //    +--------------- source sequence
@@ -223,28 +232,30 @@ static void
 test_upper_bound (bool predicate)
 {
     rw_info (0, 0, 0, "template <class %s, class %s%{?}, class %s%{;}> "
-             "std::upper_bound (%1$s, %1$s, const X&%{?}, %4$s%{;})",
-             "ForwardIterator", "X", predicate, "Compare", predicate);
+             "std::upper_bound (%1$s, %1$s, const UserClass&%{?}, %4$s%{;})",
+             "ForwardIterator", "UserClass", predicate, "Compare", predicate);
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, 0, 0, "ForwardIterator test disabled");
     }
     else {
-        test_upper_bound ((FwdIter<X>*)0, "ForwardIterator", predicate);
+        test_upper_bound ((FwdIter<UserClass>*)0, "ForwardIterator", predicate);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, 0, 0, "BidirectionalIterator test disabled");
     }
     else {
-        test_upper_bound ((BidirIter<X>*)0, "BidirectionalIterator", predicate);
+        test_upper_bound ((BidirIter<UserClass>*)0, "BidirectionalIterator",
+                          predicate);
     }
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, 0, 0, "RandomAccessIterator test disabled");
     }
     else {
-        test_upper_bound ((RandomAccessIter<X>*)0, "RandomAccessIterator",
+        test_upper_bound ((RandomAccessIter<UserClass>*)0,
+                          "RandomAccessIterator",
                           predicate);
     }
 }

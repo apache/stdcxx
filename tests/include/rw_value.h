@@ -32,10 +32,10 @@
 #include <testdefs.h>
 #include <alg_test.h>         // for conv_to_bool
 
-// objects of class X maintain a count of their instances in existence,
+// objects of class UserClass maintain a count of their instances in existence,
 // the number of defaut and copy ctor calls, assignment operators, and
 // the number of calls to operator==() and operator<()
-struct _TEST_EXPORT X
+struct _TEST_EXPORT UserClass
 {
     const int id_;        // a unique non-zero id of the object
     int       origin_;    // id of the original object that this
@@ -131,29 +131,29 @@ struct _TEST_EXPORT X
     static _RWSTD_SIZE_T op_eq_throw_count_;
     static _RWSTD_SIZE_T op_lt_throw_count_;
 
-    X ();
+    UserClass ();
 
-    X (const X&);
+    UserClass (const UserClass&);
 
-    ~X ();
+    ~UserClass ();
 
-    X& operator= (const X&);
-    X& operator+= (const X&);
-    X& operator-= (const X&);
-    X& operator*= (const X&);
-    X& operator/= (const X&);
+    UserClass& operator= (const UserClass&);
+    UserClass& operator+= (const UserClass&);
+    UserClass& operator-= (const UserClass&);
+    UserClass& operator*= (const UserClass&);
+    UserClass& operator/= (const UserClass&);
 
-    bool operator== (const X&) const;
-    bool operator< (const X&) const;
+    bool operator== (const UserClass&) const;
+    bool operator< (const UserClass&) const;
 
     // the following operators are not declared or defined in order
     // to detect any unwarranted assumptions made in algorithms
-    //    bool operator!= (const X &rhs) const;
-    //    bool operator> (const X &rhs) const;
-    //    bool operator>= (const X &rhs) const;
-    //    bool operator<= (const X &rhs) const;
-    //    X operator- () const;
-    //    X operator+ () const;
+    //    bool operator!= (const UserClass &rhs) const;
+    //    bool operator> (const UserClass &rhs) const;
+    //    bool operator>= (const UserClass &rhs) const;
+    //    bool operator<= (const UserClass &rhs) const;
+    //    UserClass operator- () const;
+    //    UserClass operator+ () const;
     
     bool
     is_count (_RWSTD_SIZE_T copy_ctor,
@@ -172,33 +172,36 @@ struct _TEST_EXPORT X
     // returns a pointer to the first element in the sequence whose value
     // is less than the value of the immediately preceding element, or 0
     // when no such element exists
-    static const X*
-    first_less (const X*, _RWSTD_SIZE_T);
+    static const UserClass*
+    first_less (const UserClass*, _RWSTD_SIZE_T);
 
     static void reset_totals ();
 
-    // construct an array of objects of type X each initialized
+    // construct an array of objects of type UserClass each initialized
     // from the corresponding element of the character array
     // when the last argument is true and the character array
     // is not sorted in ascending order the function fails by
     // returning 0
-    static X*
+    static UserClass*
     from_char (const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX,
                bool = false);
 
     // returns -1 when less, 0 when same, or +1 when the array
-    // of X objects is greater than the character string
-    static int compare (const X*, const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
-    static int compare (const char*, const X*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+    // of UserClass objects is greater than the character string
+    static int compare (const UserClass*, const char*,
+                        _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
+    static int compare (const char*, const UserClass*,
+                        _RWSTD_SIZE_T = _RWSTD_SIZE_MAX);
 
     // returns -1 when less, 0 when same, or +1 when the first
-    // array of X objects is greater than the second array
-    static int compare (const X*, const X*, _RWSTD_SIZE_T);
+    // array of UserClass objects is greater than the second array
+    static int compare (const UserClass*, const UserClass*, _RWSTD_SIZE_T);
 
-    // returns a pointer to the first element in the sequence of X
+    // returns a pointer to the first element in the sequence of UserClass
     // whose value is not equal to the corresponding element of
     // the character string or 0 when no such element exists
-    static const X* mismatch (const X*, const char*, _RWSTD_SIZE_T);
+    static const UserClass* mismatch (const UserClass*, const char*,
+                                      _RWSTD_SIZE_T);
 
     struct Less;
 
@@ -209,7 +212,7 @@ private:
         op_times_assign, op_div_assign
     };
 
-    void assign (assign_op, const X&);
+    void assign (assign_op, const UserClass&);
 };
 
 /**************************************************************************/
@@ -227,7 +230,7 @@ struct _TEST_EXPORT UnaryPredicate
 
     virtual ~UnaryPredicate ();
 
-    virtual conv_to_bool operator()(const X&) const;
+    virtual conv_to_bool operator()(const UserClass&) const;
 };
 
 
@@ -249,7 +252,8 @@ struct _TEST_EXPORT BinaryPredicate
 
     virtual ~BinaryPredicate ();
 
-    virtual conv_to_bool operator()(const X&, const X&) /* non-const */;
+    virtual conv_to_bool operator()(const UserClass&,
+                                    const UserClass&) /* non-const */;
 
 private:
 
@@ -260,7 +264,7 @@ private:
 };
 
 
-struct X::Less: BinaryPredicate
+struct UserClass::Less: BinaryPredicate
 {
     // dummy arguments provided to prevent the class from being
     // default constructible and implicit conversion from int

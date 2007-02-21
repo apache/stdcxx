@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -24,6 +31,7 @@
 #include <cstddef>      // for ptrdiff_t
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -126,7 +134,7 @@ void test_sort (int                line,
     _RWSTD_UNUSED (last_n_op_cpy);
 
     if (stable) {
-        std::pair<X*, std::ptrdiff_t> dummy;
+        std::pair<UserClass*, std::ptrdiff_t> dummy;
         if (alloc) {
             dummy = std::_GET_TEMP_BUFFER (T, nsrc + 1);
             rw_assert (0 != dummy.first, 0, 0,
@@ -174,7 +182,8 @@ void test_sort (int                line,
         if (nsrc > 16 && x < x_min)
             x_min = x;
 
-        // complexity: X * N * log (N), ideally with X approaching 1
+        // complexity: UserClass * N * log (N),
+        // ideally with UserClass approaching 1
 
         if (!(nsrc % 20)) {
             rw_info (0, 0, 0,
@@ -182,7 +191,7 @@ void test_sort (int                line,
                      "|   N  | COMP | COPY |N lg N|   X  | max X| min X|\n"
                      "+======+======+======+======+======+======+======+\n");
 
-            // # | comp | assign | exp. complexity | X | max X |
+            // # | comp | assign | exp. complexity | X | max X | min X
             rw_info (0, 0, 0, "\n|%6d|%6d|%6d|%6d|%6.2f|%6.2f|%6.2f|\n",
                      nsrc + 1, ops, cpy, cmplx, x, x_max, x_min);
         }
@@ -372,16 +381,16 @@ static int run_test (int, char*[])
         rw_note (0, __FILE__, __LINE__, "std::sort test disabled");
     }
     else {
-        test_sort (N, (X*)0, false, false);
+        test_sort (N, (UserClass*)0, false, false);
     }
 
     if (rw_opt_no_stable_sort) {
         rw_note (0, __FILE__, __LINE__, "std::stable_sort test disabled");
     }
     else {
-        test_sort (N, (X*)0, true, false);
+        test_sort (N, (UserClass*)0, true, false);
         // test with memory reallocation
-        test_sort (N, (X*)0, true, true);
+        test_sort (N, (UserClass*)0, true, true);
     }
 
     return 0;

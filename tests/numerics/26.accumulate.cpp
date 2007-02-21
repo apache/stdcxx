@@ -30,6 +30,7 @@
 #include <cstddef>      // for size_t
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -72,7 +73,7 @@ accumulate (InputIter<assign<base<cpy_ctor> > >,
 
 /**************************************************************************/
 
-struct Y: public X
+struct Y: public UserClass
 {
     // number of times the object's += operator has been invoked,
     // regardless of whether the operation threw an exception or not
@@ -91,9 +92,9 @@ struct Y: public X
     // objects to which the pointers above initally point
     static std::size_t op_plus_assign_throw_count_;
 
-    Y (): X () { /* empty */ }
+    Y (): UserClass () { /* empty */ }
 
-    Y (const Y &rhs): X (rhs) { /* empty */ }
+    Y (const Y &rhs): UserClass (rhs) { /* empty */ }
 
     Y& operator+= (const Y& rhs) {
 

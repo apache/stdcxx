@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -23,6 +30,7 @@
 #include <cstring>      // for strlen, size_t
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -79,7 +87,8 @@ struct Less
 
     // return a type other than bool but one that is implicitly
     // convertible to bool to detect incorrect assumptions
-    conv_to_bool operator() (const X &x, const X &y) /* non-const */ {
+    conv_to_bool operator() (const UserClass &x,
+                             const UserClass &y) /* non-const */ {
         ++funcalls_;
         return conv_to_bool::make (x.val_ < y.val_);
     }
@@ -103,13 +112,14 @@ struct MergeBase
     // to the specified arguments and (optionally) with
     // a predicate object
     virtual void
-    inplace_merge (X*, X*, X*, const Less*) const {
+    inplace_merge (UserClass*, UserClass*, UserClass*, const Less*) const {
         RW_ASSERT (!"test logic error");
     }
 
     // invokes merge
-    virtual X*
-    merge (const X*, const X*, const X*, const X*, X*, X*, const Less*) const {
+    virtual UserClass*
+    merge (const UserClass*, const UserClass*, const UserClass*,
+           const UserClass*, UserClass*, UserClass*, const Less*) const {
         RW_ASSERT (!"test logic error");
         return 0;
     }
@@ -119,15 +129,15 @@ template <class InputIterator1, class InputIterator2, class OutputIterator>
 struct Merge: MergeBase
 {
     Merge () {
-        iter_names [0] = type_name (InputIterator1 (0, 0, 0), (X*)0);
-        iter_names [1] = type_name (InputIterator2 (0, 0, 0), (X*)0);
-        iter_names [2] = type_name (OutputIterator (0, 0, 0), (X*)0);
+        iter_names [0] = type_name (InputIterator1 (0, 0, 0), (UserClass*)0);
+        iter_names [1] = type_name (InputIterator2 (0, 0, 0), (UserClass*)0);
+        iter_names [2] = type_name (OutputIterator (0, 0, 0), (UserClass*)0);
     }
 
-    virtual X*
-    merge (const X    *xsrc1, const X *xsrc1_end,
-           const X    *xsrc2, const X *xsrc2_end,
-           X          *xdst, X *xdst_end,
+    virtual UserClass*
+    merge (const UserClass    *xsrc1, const UserClass *xsrc1_end,
+           const UserClass    *xsrc2, const UserClass *xsrc2_end,
+           UserClass          *xdst, UserClass *xdst_end,
            const Less *ppred) const {
 
         const InputIterator1 first1 (xsrc1,     xsrc1, xsrc1_end);
@@ -153,13 +163,15 @@ template <class BidirectionalIterator>
 struct InplaceMerge: MergeBase
 {
     InplaceMerge () {
-        iter_names [0] = type_name (BidirectionalIterator (0, 0, 0), (X*)0);
+        iter_names [0] = type_name (BidirectionalIterator (0, 0, 0),
+                                    (UserClass*)0);
         iter_names [1] = 0;
         iter_names [2] = 0;
     }
 
     virtual void
-    inplace_merge (X *xsrc, X *xsrc_mid, X *xsrc_end, const Less *ppred) const {
+    inplace_merge (UserClass *xsrc, UserClass *xsrc_mid, UserClass *xsrc_end,
+                   const Less *ppred) const {
 
         const BidirectionalIterator first (xsrc,     xsrc, xsrc_end);
         const BidirectionalIterator mid   (xsrc_mid, xsrc, xsrc_end);
@@ -192,23 +204,23 @@ void test_merge (int                line,
     const std::size_t nsrc1 = std::strlen (src1);
     const std::size_t nsrc2 = std::strlen (src2);
 
-    X* const xsrc1 = X::from_char (src1, nsrc1);
-    X* const xsrc2 = X::from_char (src2, nsrc2);
+    UserClass* const xsrc1 = UserClass::from_char (src1, nsrc1);
+    UserClass* const xsrc2 = UserClass::from_char (src2, nsrc2);
 
     const std::size_t ndst = nsrc1 + nsrc2;
-    X* const xdst = inplace ? xsrc1 : new X [ndst];
+    UserClass* const xdst = inplace ? xsrc1 : new UserClass [ndst];
 
-    X* const xsrc1_end = xsrc1 + nsrc1;
-    X* const xsrc2_end = xsrc2 + nsrc2;
-    X* const xsrc_mid  = xsrc1 + midinx;
-    X* const xdst_end  = xdst + ndst;
+    UserClass* const xsrc1_end = xsrc1 + nsrc1;
+    UserClass* const xsrc2_end = xsrc2 + nsrc2;
+    UserClass* const xsrc_mid  = xsrc1 + midinx;
+    UserClass* const xdst_end  = xdst + ndst;
 
-    const std::size_t last_n_op_lt = X::n_total_op_lt_;
+    const std::size_t last_n_op_lt = UserClass::n_total_op_lt_;
 
     const Less pred (0, 0);
     const Less* const ppred = predicate ? &pred : 0;
 
-    X* xdst_res = 0;
+    UserClass* xdst_res = 0;
 
     if (inplace) {  // inplace_merge
         alg.inplace_merge (xsrc1, xsrc_mid, xsrc1_end, ppred);
@@ -219,7 +231,7 @@ void test_merge (int                line,
     }
 
     const std::size_t n_ops_lt = ppred ? 
-        Less::funcalls_ : X::n_total_op_lt_ - last_n_op_lt;
+        Less::funcalls_ : UserClass::n_total_op_lt_ - last_n_op_lt;
 
     bool success = true;
 
@@ -436,26 +448,28 @@ void gen_merge_test (const InputIterator1 &it1,
                      bool predicate)
 {
     if (0 == rw_opt_no_output_iter)
-        gen_merge_test (it1, it2, OutputIter<X>(0, 0, 0), predicate);
+        gen_merge_test (it1, it2, OutputIter<UserClass>(0, 0, 0), predicate);
     if (0 == rw_opt_no_fwd_iter)
-        gen_merge_test (it1, it2, FwdIter<X>(0, 0, 0), predicate);
+        gen_merge_test (it1, it2, FwdIter<UserClass>(0, 0, 0), predicate);
     if (0 == rw_opt_no_bidir_iter)
-        gen_merge_test (it1, it2, BidirIter<X>(0, 0, 0), predicate);
+        gen_merge_test (it1, it2, BidirIter<UserClass>(0, 0, 0), predicate);
     if (0 == rw_opt_no_rnd_iter)
-        gen_merge_test (it1, it2, RandomAccessIter<X>(0, 0, 0), predicate);
+        gen_merge_test (it1, it2, RandomAccessIter<UserClass>(0, 0, 0),
+                        predicate);
 }
 
 template <class InputIterator1>
 void gen_merge_test (const InputIterator1 &it1, bool predicate)
 {
     if (0 == rw_opt_no_input_iter)
-        gen_merge_test (it1, InputIter<X>(0, 0, 0), predicate);
+        gen_merge_test (it1, InputIter<UserClass>(0, 0, 0), predicate);
     if (0 == rw_opt_no_fwd_iter)
-        gen_merge_test (it1, ConstFwdIter<X>(0, 0, 0), predicate);
+        gen_merge_test (it1, ConstFwdIter<UserClass>(0, 0, 0), predicate);
     if (0 == rw_opt_no_bidir_iter)
-        gen_merge_test (it1, ConstBidirIter<X>(0, 0, 0), predicate);
+        gen_merge_test (it1, ConstBidirIter<UserClass>(0, 0, 0), predicate);
     if (0 == rw_opt_no_rnd_iter)
-        gen_merge_test (it1, ConstRandomAccessIter<X>(0, 0, 0), predicate);
+        gen_merge_test (it1, ConstRandomAccessIter<UserClass>(0, 0, 0),
+                        predicate);
 }
 
 // generates a specialization of the merge test for each of the required
@@ -465,22 +479,22 @@ void gen_merge_test (bool predicate)
     if (rw_opt_no_input_iter)
         rw_note (0, 0, 0, "InputIterator test disabled");
     else
-        gen_merge_test (InputIter<X>(0, 0, 0), predicate);
+        gen_merge_test (InputIter<UserClass>(0, 0, 0), predicate);
 
     if (rw_opt_no_fwd_iter)
         rw_note (0, 0, 0, "ForwardIterator test disabled");
     else
-        gen_merge_test (ConstFwdIter<X>(0, 0, 0), predicate);
+        gen_merge_test (ConstFwdIter<UserClass>(0, 0, 0), predicate);
 
     if (rw_opt_no_bidir_iter)
         rw_note (0, 0, 0, "BidirectionalIterator test disabled");
     else
-        gen_merge_test (ConstBidirIter<X>(0, 0, 0), predicate);
+        gen_merge_test (ConstBidirIter<UserClass>(0, 0, 0), predicate);
 
     if (rw_opt_no_rnd_iter)
         rw_note (0, 0, 0, "RandomAccessIterator test disabled");
     else
-        gen_merge_test (ConstRandomAccessIter<X>(0, 0, 0), predicate);
+        gen_merge_test (ConstRandomAccessIter<UserClass>(0, 0, 0), predicate);
 }
 
 /**************************************************************************/
@@ -521,12 +535,13 @@ static int run_test (int, char*[])
             if (rw_opt_no_bidir_iter)
                 rw_note (0, 0, 0, "BidirectionalIterator test disabled");
             else
-                gen_inplace_merge_test (BidirIter<X> (0, 0, 0), 1 == i);
+                gen_inplace_merge_test (BidirIter<UserClass> (0, 0, 0), 1 == i);
 
             if (rw_opt_no_rnd_iter)
                 rw_note (0, 0, 0, "RandomAccessIterator test disabled");
             else
-                gen_inplace_merge_test (RandomAccessIter<X> (0, 0, 0), 1 == i);
+                gen_inplace_merge_test (RandomAccessIter<UserClass> (0, 0, 0),
+                                        1 == i);
         }
     }
 
