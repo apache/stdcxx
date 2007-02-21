@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2006 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -23,6 +30,7 @@
 #include <cstring>      // for size_t, strlen()
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 
@@ -65,7 +73,7 @@ struct RotateCopyTag {
 // used as a dummy template argument to test functions exercising rotate()
 // (to differentiate from rotate_copy())
 struct NoIterator { };
-const char* type_name (NoIterator, const X*)
+const char* type_name (NoIterator, const UserClass*)
 {
     return 0;
 }
@@ -78,7 +86,7 @@ unsigned iter_swap_calls;
 _RWSTD_NAMESPACE (std) {
 
 _RWSTD_SPECIALIZED_FUNCTION
-void iter_swap (FwdIter<X> i, FwdIter<X> j)
+void iter_swap (FwdIter<UserClass> i, FwdIter<UserClass> j)
 {
     ++iter_swap_calls;
 
@@ -90,7 +98,7 @@ void iter_swap (FwdIter<X> i, FwdIter<X> j)
 
 
 _RWSTD_SPECIALIZED_FUNCTION
-void iter_swap (BidirIter<X> i, BidirIter<X> j)
+void iter_swap (BidirIter<UserClass> i, BidirIter<UserClass> j)
 {
     ++iter_swap_calls;
 
@@ -102,7 +110,7 @@ void iter_swap (BidirIter<X> i, BidirIter<X> j)
 
 
 _RWSTD_SPECIALIZED_FUNCTION
-void iter_swap (RandomAccessIter<X> i, RandomAccessIter<X> j)
+void iter_swap (RandomAccessIter<UserClass> i, RandomAccessIter<UserClass> j)
 {
     ++iter_swap_calls;
 
@@ -410,14 +418,14 @@ run_test (int, char*[])
         rw_note (0, __FILE__, __LINE__, "std::rotate test disabled");
     }
     else {
-        test_rotate((X*)0, rotate_tag);
+        test_rotate((UserClass*)0, rotate_tag);
     }
 
     if (rw_opt_no_rotate_copy) {
         rw_note (0, __FILE__, __LINE__, "std::rotate_copy test disabled");
     }
     else {
-        test_rotate_copy((X*)0, rotate_copy_tag);
+        test_rotate_copy((UserClass*)0, rotate_copy_tag);
     }
 
     return 0;

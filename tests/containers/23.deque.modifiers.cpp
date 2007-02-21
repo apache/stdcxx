@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -39,7 +46,7 @@
 #  include <rw_new.h>
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
-#include <alg_test.h>    // for X
+#include <rw_value.h>    // for UserClass
 #include <driver.h>      // for rw_test(), ...
 #include <rw_printf.h>   // for rw_asnprintf
 
@@ -63,7 +70,7 @@ typedef unsigned char UChar;
 
 /**************************************************************************/
 
-typedef std::deque<X, std::allocator<X> > Deque;
+typedef std::deque<UserClass, std::allocator<UserClass> > Deque;
 
 Deque::size_type new_capacity;
 
@@ -114,18 +121,18 @@ enum MemberFunction {
 // by throwing an exception; verifies that the exception had no effects
 // on the container
 template <class Iterator>
-void exception_loop (int             line /* line number in caller*/,
-                     MemberFunction  mfun /* deque member function */,
-                     const char     *fcall /* function call string */,
-                     int             exceptions /* enabled exceptions */,
-                     Deque          &deq /* container to call function on */,
+void exception_loop (int              line /* line number in caller*/,
+                     MemberFunction   mfun /* deque member function */,
+                     const char      *fcall /* function call string */,
+                     int              exceptions /* enabled exceptions */,
+                     Deque           &deq /* container to call function on */,
                      const Deque::iterator &it /* iterator into container */,
-                     int             n /* number of elements or offset */,
-                     const X        *x /* pointer to an element or 0 */,
-                     const Iterator &first /* beginning of range */,
-                     const Iterator &last /* end of range to insert */,
-                     int            *n_copy /* number of copy ctors */,
-                     int            *n_asgn /* number of assignments */)
+                     int              n /* number of elements or offset */,
+                     const UserClass *x /* pointer to an element or 0 */,
+                     const Iterator  &first /* beginning of range */,
+                     const Iterator  &last /* end of range to insert */,
+                     int             *n_copy /* number of copy ctors */,
+                     int             *n_asgn /* number of assignments */)
 {
     std::size_t throw_after = 0;
 
@@ -147,13 +154,13 @@ void exception_loop (int             line /* line number in caller*/,
     for ( ; ; ) {
 
         // detect objects constructed but not destroyed after an exception
-        std::size_t x_count = X::count_;
+        std::size_t x_count = UserClass::count_;
 
         _RWSTD_ASSERT (n_copy);
         _RWSTD_ASSERT (n_asgn);
 
-        *n_copy = X::n_total_copy_ctor_;
-        *n_asgn = X::n_total_op_assign_;
+        *n_copy = UserClass::n_total_copy_ctor_;
+        *n_asgn = UserClass::n_total_op_assign_;
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -170,11 +177,13 @@ void exception_loop (int             line /* line number in caller*/,
 #  endif   // DEFINE_REPLACEMENT_NEW_AND_DELETE
 
         if (exceptions & CopyCtorThrows) {
-            X::copy_ctor_throw_count_ = X::n_total_copy_ctor_ + throw_after;
+            UserClass::copy_ctor_throw_count_ =
+                UserClass::n_total_copy_ctor_ + throw_after;
         }
 
         if (exceptions & AssignmentThrows) {
-            X::op_assign_throw_count_ = X::n_total_op_assign_ + throw_after;
+            UserClass::op_assign_throw_count_ =
+                UserClass::n_total_op_assign_ + throw_after;
         }
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -234,7 +243,7 @@ void exception_loop (int             line /* line number in caller*/,
             
 
             // count the number of objects to detect leaks
-            x_count = X::count_ - x_count;
+            x_count = UserClass::count_ - x_count;
             rw_assert (x_count == deq.size () - size, 0, line,
                        "line %d: %s: leaked %zu objects after an exception",
                        __LINE__, fcall, x_count - (deq.size () - size));
@@ -252,7 +261,7 @@ void exception_loop (int             line /* line number in caller*/,
         }
 
         // count the number of objects to detect leaks
-        x_count = X::count_ - x_count;
+        x_count = UserClass::count_ - x_count;
         rw_assert (x_count == deq.size () - size, 0, line,
                    "line %d: %s: leaked %zu objects "
                    "after a successful insertion",
@@ -268,13 +277,13 @@ void exception_loop (int             line /* line number in caller*/,
 
 #endif   // DEFINE_REPLACEMENT_NEW_AND_DELETE
 
-    X::copy_ctor_throw_count_ = 0;
-    X::op_assign_throw_count_ = 0;
+    UserClass::copy_ctor_throw_count_ = 0;
+    UserClass::op_assign_throw_count_ = 0;
 
-    // compute the number of calls to X copy ctor and assignment operator
-    // and set `n_copy' and `n_assgn' to the value of the result
-    *n_copy = X::n_total_copy_ctor_ - *n_copy;
-    *n_asgn = X::n_total_op_assign_ - *n_asgn;
+    // compute the number of calls to UserClass copy ctor and assignment
+    // operator and set `n_copy' and `n_assgn' to the value of the result
+    *n_copy = UserClass::n_total_copy_ctor_ - *n_copy;
+    *n_asgn = UserClass::n_total_op_assign_ - *n_asgn;
 }
 
 
@@ -323,8 +332,8 @@ void test_insert (int line, int exceptions,
                   const char *res, std::size_t reslen)
 {
     // Ensure that xsrc, xins are always dereferenceable
-    const X* const xseq = X::from_char (seq, seqlen + 1);
-          X* const xins = X::from_char (ins, inslen + 1);
+    const UserClass* const xseq = UserClass::from_char (seq, seqlen + 1);
+          UserClass* const xins = UserClass::from_char (ins, inslen + 1);
 
     Deque deq = seqlen ? Deque (xseq, xseq + seqlen) : Deque ();
 
@@ -350,8 +359,8 @@ void test_insert (int line, int exceptions,
                   nelems == -2, *ins, nelems == -1, 
                   int (inslen), -1, xins, nelems, *ins);
 
-    int n_copy = X::n_total_copy_ctor_;
-    int n_asgn = X::n_total_op_assign_;
+    int n_copy = UserClass::n_total_copy_ctor_;
+    int n_asgn = UserClass::n_total_op_assign_;
 
     if (-2 == nelems) {   // insert(iterator, const_reference)
 
@@ -423,7 +432,7 @@ void test_insert (int line, int exceptions,
     rw_assert (n_copy == int (expect_copy),
                __FILE__, line,
                "line %d: %s: expected %zu invocations "
-               "of X::X(const X&), got %d\n",
+               "of UserClass::UserClass(const UserClass&), got %d\n",
                __LINE__, funcall, expect_copy, n_copy);
 
     // compute the number of calls to the assignment operator
@@ -433,7 +442,7 @@ void test_insert (int line, int exceptions,
     rw_assert (n_asgn == int (expect_asgn), 
                __FILE__, line,
                "line %d: %s: expected %zu invocations "
-               "of X::operator=(const X&), got %d\n",
+               "of UserClass::operator=(const UserClass&), got %d\n",
                __LINE__, funcall, expect_asgn, n_asgn);
 
     // Free funcall storage
@@ -449,7 +458,7 @@ template <class Iterator>
 void test_insert_range (const Iterator &it, const char* itname)
 {
     rw_info (0, 0 ,0, 
-             "std::deque<X>::insert(iterator, %s, %s)", itname, itname);
+             "std::deque<UserClass>::insert(iterator, %s, %s)", itname, itname);
 
 #undef TEST
 #define TEST(seq, off, ins, res)                        \
@@ -604,13 +613,14 @@ void test_insert ()
     //////////////////////////////////////////////////////////////////
     // exercise deque::insert(iterator, const_reference)
 
-    rw_info (0, 0, 0, "std::deque<X>::insert(iterator, const_reference)");
+    rw_info (0, 0, 0,
+             "std::deque<UserClass>::insert(iterator, const_reference)");
 
 #undef TEST
 #define TEST(seq, off, ins, res) do {                   \
       const char insseq [] = { ins, '\0' };             \
       test_insert (__LINE__, -1,                        \
-                              (X*)0, -2,                \
+                              (UserClass*)0, -2,        \
                               seq, sizeof seq - 1,      \
                               std::size_t (off),        \
                               insseq, 1,                \
@@ -725,14 +735,14 @@ void test_insert ()
     // exercise deque::insert(iterator, size_type, const_reference)
 
     rw_info (0, 0, 0, 
-             "std::deque<X>::insert(iterator, size_type, "
+             "std::deque<UserClass>::insert(iterator, size_type, "
              "const_reference)");
 
 #undef TEST
 #define TEST(seq, off, n, ins, res) do {                \
       const char insseq [] = { ins, '\0' };             \
       test_insert (__LINE__, -1,                        \
-                              (X*)0, n,                 \
+                              (UserClass*)0, n,         \
                               seq, sizeof seq - 1,      \
                               std::size_t (off),        \
                               insseq, 1,                \
@@ -763,39 +773,41 @@ void test_insert ()
     // exercise deque::insert(iterator, InputIterator, InputIterator)
 
     rw_info (0, 0, 0, 
-             "template <class InputIterator> std::deque<X>::"
+             "template <class InputIterator> std::deque<UserClass>::"
              "insert(iterator, InputIterator, InputIterator)");
 
     if (0 == rw_opt_no_input_iterator)
-        test_insert_range (InputIter<X>(0, 0, 0), "InputIter<X>");
+        test_insert_range (InputIter<UserClass>(0, 0, 0),
+                           "InputIter<UserClass>");
     else 
         rw_note (0, 0, __LINE__, 
                  "template <class T> "
-                 "std::deque<X>::insert(iterator, T, T) "
+                 "std::deque<UserClass>::insert(iterator, T, T) "
                  "[with T = InputIterator] test disabled.");
 
     if (0 == rw_opt_no_forward_iterator)
-        test_insert_range (FwdIter<X>(), "FwdIter<X>");
+        test_insert_range (FwdIter<UserClass>(), "FwdIter<UserClass>");
     else 
         rw_note (0, 0, __LINE__, 
                  "template <class T> "
-                 "std::deque<X>::insert(iterator, T, T) "
+                 "std::deque<UserClass>::insert(iterator, T, T) "
                  "[with T = ForwardIterator] test disabled.");
 
     if (0 == rw_opt_no_bidirectional_iterator)
-        test_insert_range (BidirIter<X>(), "BidirIter<X>");
+        test_insert_range (BidirIter<UserClass>(), "BidirIter<UserClass>");
     else 
         rw_note (0, 0, __LINE__, 
                  "template <class T> "
-                 "std::deque<X>::insert(iterator, T, T) "
+                 "std::deque<UserClass>::insert(iterator, T, T) "
                  "[with T = BidirectionalIterator] test disabled.");
 
     if (0 == rw_opt_no_random_iterator)
-        test_insert_range (RandomAccessIter<X>(), "RandomAccessIter<X>");
+        test_insert_range (RandomAccessIter<UserClass>(),
+                           "RandomAccessIter<UserClass>");
     else 
         rw_note (0, 0, __LINE__, 
                  "template <class T> "
-                 "std::deque<X>::insert(iterator, T, T) "
+                 "std::deque<UserClass>::insert(iterator, T, T) "
                  "[with T = RandomAccessIterator] test disabled."); 
 
     //////////////////////////////////////////////////////////////////
@@ -828,7 +840,7 @@ void test_insert ()
     else
         rw_note (0, 0, __LINE__, 
                  "template <class T> "
-                 "std::deque<X>::insert(iterator, T, T) "
+                 "std::deque<UserClass>::insert(iterator, T, T) "
                  "[with T = IntegralType] tests disabled."); 
 
 }
@@ -842,8 +854,8 @@ void test_assign (int line, int exceptions,
                   const char *asn, std::size_t asnlen,
                   const char *res, std::size_t reslen)
 {
-    const X* const xseq = X::from_char (seq, seqlen + 1);
-          X* const xasn = X::from_char (asn, asnlen + 1);
+    const UserClass* const xseq = UserClass::from_char (seq, seqlen + 1);
+          UserClass* const xasn = UserClass::from_char (asn, asnlen + 1);
 
     Deque deq = seqlen ? Deque (xseq, xseq + seqlen) : Deque ();
 
@@ -860,8 +872,8 @@ void test_assign (int line, int exceptions,
                   asnlen, -1, xasn, 
                   nelems, *asn);
 
-    int n_copy = X::n_total_copy_ctor_;
-    int n_asgn = X::n_total_op_assign_;
+    int n_copy = UserClass::n_total_copy_ctor_;
+    int n_asgn = UserClass::n_total_op_assign_;
 
     // create a dummy deque iterator to pass to exception_loop
     // (the object will not be used by the functiuon)
@@ -953,12 +965,12 @@ void test_assign (int line, int exceptions,
 
     rw_assert (n_copy == int (expect_copy), 0, line,
                "line %d: %s: expected %zu invocations "
-               "of X::X(const X&), got %d\n",
+               "of UserClass::UserClass(const UserClass&), got %d\n",
                __LINE__, funcall, expect_copy, n_copy);
 
     rw_assert (n_asgn == int (expect_asgn), 0, line,
                "line %d: %s: expected %zu invocations "
-               "of X::operator=(const X&), got %d\n",
+               "of UserClass::operator=(const UserClass&), got %d\n",
                __LINE__, funcall, expect_asgn, n_asgn);
 
     // Free funcall storage
@@ -972,7 +984,7 @@ void test_assign (int line, int exceptions,
 template <class Iterator>
 void test_assign_range (const Iterator &it, const char* itname)
 {
-    rw_info (0, 0, 0, "std::deque<X>::assign(%s, %s)", itname, itname);
+    rw_info (0, 0, 0, "std::deque<UserClass>::assign(%s, %s)", itname, itname);
 
     static const char seq[] = "abcdefghijklmnopqrstuvwxyz";
     static const char asn[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -992,7 +1004,8 @@ void test_assign ()
     // exercise
     //   deque::assign(size_type, const_reference)
 
-    rw_info (0, 0, 0, "std::deque<X>::assign(size_type, const_reference)");
+    rw_info (0, 0, 0,
+             "std::deque<UserClass>::assign(size_type, const_reference)");
 
     static const char seq[] = "abcdefghijklmnopqrstuvwxyz";
     static const char res[] = "AAAAAAAAAAAAAAAAAAAAAAAAAA";
@@ -1000,7 +1013,8 @@ void test_assign ()
     for (std::size_t i = 0; i != sizeof seq - 1; ++i) {
         for (std::size_t j = 0; j != sizeof seq - 1; ++j) {
 
-            test_assign (__LINE__, -1, (X*)0, int (j), seq, i, res, 1U, res, j);
+            test_assign (__LINE__, -1, (UserClass*)0, int (j),
+                         seq, i, res, 1U, res, j);
         }
     }
 
@@ -1011,39 +1025,41 @@ void test_assign ()
 
     rw_info (0, 0, 0, 
              "template <class InputIterator> "
-             "std::deque<X>::assign(InputIterator, InputIterator)");
+             "std::deque<UserClass>::assign(InputIterator, InputIterator)");
 
     if (0 == rw_opt_no_input_iterator)
-        test_assign_range (InputIter<X>(0, 0, 0), "InputIter<X>");
+        test_assign_range (InputIter<UserClass>(0, 0, 0),
+                           "InputIter<UserClass>");
     else 
         rw_note (0, 0, __LINE__, 
                  "template <class T> "
-                 "std::deque<X>::assign(T, T) [with T = InputIterator]"
+                 "std::deque<UserClass>::assign(T, T) [with T = InputIterator]"
                  "test disabled.");
 
     if (0 == rw_opt_no_forward_iterator)
-        test_assign_range (FwdIter<X>(), "FwdIter<X>");
+        test_assign_range (FwdIter<UserClass>(), "FwdIter<UserClass>");
     else 
         rw_note (0, 0, __LINE__, 
                  "template <class T> "
-                 "std::deque<X>::assign(T, T) [with T = ForwardIterator]"
-                 "test disabled.");
+                 "std::deque<UserClass>::assign(T, T) "
+                 "[with T = ForwardIterator] test disabled.");
 
     if (0 == rw_opt_no_bidirectional_iterator)
-        test_assign_range (BidirIter<X>(), "BidirIter<X>");
+        test_assign_range (BidirIter<UserClass>(), "BidirIter<UserClass>");
     else 
         rw_note (0, 0, __LINE__, 
                  "template <class T> "
-                 "std::deque<X>::assign(T, T) [with T = BidirectionalIterator]"
-                 "test disabled.");
+                 "std::deque<UserClass>::assign(T, T) "
+                 "[with T = BidirectionalIterator] test disabled.");
 
     if (0 == rw_opt_no_random_iterator)
-        test_assign_range (RandomAccessIter<X>(), "RandomAccessIter<X>");
+        test_assign_range (RandomAccessIter<UserClass>(),
+                           "RandomAccessIter<UserClass>");
     else 
         rw_note (0, 0, __LINE__, 
                  "template <class T> "
-                 "std::deque<X>::assign(T, T) [with T = RandomAccessIterator]"
-                 "test disabled.");
+                 "std::deque<UserClass>::assign(T, T) "
+                 "[with T = RandomAccessIterator] test disabled.");
 }
 
 /**************************************************************************/
@@ -1053,13 +1069,13 @@ void test_erase (int line,
                  std::size_t begoff, std::size_t len,
                  const char *res, std::size_t reslen)
 {
-    const X* const xseq = X::from_char (seq, seqlen + 1);
+    const UserClass* const xseq = UserClass::from_char (seq, seqlen + 1);
 
     Deque deq = seqlen ? Deque (xseq, xseq + seqlen) : Deque ();
     const Deque::iterator start = deq.begin () + begoff;
  
-    int n_copy = X::n_total_copy_ctor_;
-    int n_asgn = X::n_total_op_assign_;
+    int n_copy = UserClass::n_total_copy_ctor_;
+    int n_asgn = UserClass::n_total_op_assign_;
 
     char* funcall = 0;
     std::size_t buflen = 0;
@@ -1073,7 +1089,7 @@ void test_erase (int line,
                       begoff == deq.size (), begoff, begoff);
         
         exception_loop (line, Erase_1, funcall, 0,
-                        deq, start, 1, 0, (X*)0, (X*)0,
+                        deq, start, 1, 0, (UserClass*)0, (UserClass*)0,
                         &n_copy, &n_asgn);
     }
     else {   // assign(size_type, const_reference)
@@ -1093,7 +1109,7 @@ void test_erase (int line,
                       end - deq.begin ());
         
         exception_loop (line, EraseRange, funcall, 0,
-                        deq, start, len, 0, (X*)0, (X*)0,
+                        deq, start, len, 0, (UserClass*)0, (UserClass*)0,
                         &n_copy, &n_asgn);
 
     }
@@ -1151,12 +1167,12 @@ void test_erase (int line,
 
     rw_assert (n_copy == int (expect_copy), 0, line,
                "line %d: %s: expected %zu invocations "
-               "of X::X(const X&), got %d\n",
+               "of UserClass::UserClass(const UserClass&), got %d\n",
                __LINE__, funcall, expect_copy, n_copy);
 
     rw_assert (n_asgn == int (expect_asgn), 0, line,
                "line %d: %s: expected %zu invocations "
-               "of X::operator=(const X&), got %d\n",
+               "of UserClass::operator=(const UserClass&), got %d\n",
                __LINE__, funcall, expect_asgn, n_asgn);
 #endif
 
@@ -1170,7 +1186,7 @@ void test_erase ()
     //////////////////////////////////////////////////////////////////
     // exercise deque::erase(iterator)
 
-    rw_info (0, 0, 0, "std::deque<X>::erase(iterator)");
+    rw_info (0, 0, 0, "std::deque<UserClass>::erase(iterator)");
 
 #undef TEST
 #define TEST(seq, off, res) do {                        \
@@ -1228,7 +1244,7 @@ void test_erase ()
     //////////////////////////////////////////////////////////////////
     // exercise deque::erase(iterator, iterator)
 
-    rw_info (0, 0, 0, "std::deque<X>::erase(iterator, iterator)");
+    rw_info (0, 0, 0, "std::deque<UserClass>::erase(iterator, iterator)");
 }
 
 /**************************************************************************/
@@ -1274,14 +1290,14 @@ void test_dr_438 ()
     // *  If the constructor
     //
     //    template <class InputIterator>
-    //    X (InputIterator f, InputIterator l,
+    //    UserClass (InputIterator f, InputIterator l,
     //       const allocator_type& a = allocator_type())
     //
     //    is called with a type InputIterator that does not qualify
     //    as an input iterator, then the constructor will behave
     //    as if the overloaded constructor:
     //
-    //    X (size_type, const value_type& = value_type(),
+    //    UserClass (size_type, const value_type& = value_type(),
     //       const allocator_type& = allocator_type())
     //
     //    were called instead, with the arguments static_cast<size_type>(f),
@@ -1311,8 +1327,8 @@ void test_dr_438 ()
     //    were called instead, with the same arguments.
     //
     // In the previous paragraph the alternative binding will fail
-    // if f is not implicitly convertible to X::size_type or
-    // if l is not implicitly convertible to X::value_type.
+    // if f is not implicitly convertible to UserClass::size_type or
+    // if l is not implicitly convertible to UserClass::value_type.
     //
     // The extent to which an implementation determines that a type
     // cannot be an input iterator is unspecified, except that
@@ -1362,7 +1378,7 @@ int run_test (int, char**)
         new_capacity = caps [i];
 
         rw_info (0, 0, 0, 
-                 "__rw::__rw_new_capacity<std::deque<X> >(0) = %zu",
+                 "__rw::__rw_new_capacity<std::deque<UserClass> >(0) = %zu",
                  _RW::__rw_new_capacity (0, (Deque*)0));
 
         if (0 == rw_opt_no_assign)

@@ -30,6 +30,7 @@
 #include <cstring>      // for strlen
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -197,10 +198,12 @@ struct NonPredicateTag {
 template <class T>
 std::size_t NonPredicateTag<T>::DummyPredicate::funcalls_;
 
+
 #if defined (_MSC_VER) && _MSC_VER <= 1300
 // to prevent MSVC 7.0 error LNK2001: unresolved external symbol "public:
-// static unsigned int NonPredicateTag<struct X>::DummyPredicate::funcalls_"
-std::size_t NonPredicateTag<X>::DummyPredicate::funcalls_;
+// static unsigned int
+// NonPredicateTag<struct UserClass>::DummyPredicate::funcalls_"
+std::size_t NonPredicateTag<UserClass>::DummyPredicate::funcalls_;
 #endif
 
 /**************************************************************************/
@@ -382,7 +385,7 @@ void test_search_n (int line, const char *seq, Size cnt, const char val,
     const char* const fname = "search_n";
     static const char* const itname  = type_name (it, (T*)0);
     static const char* const szname  = "Size";
-    static const char* const tname   = "X";
+    static const char* const tname   = "UserClass";
     static const char* const predname = 
         pred_tag.pred_inx ? "BinaryPredicate" : "operator <()";
 
@@ -451,7 +454,7 @@ void test_search_n (ForwardIterator it, const T* ,
 {
     static const char* const itname   = type_name (it, (T*)0);
     static const char* const szname   = "Size";
-    static const char* const tname    = "X";
+    static const char* const tname    = "UserClass";
     static const char* const predname = "EqualityPredicate";
 
     if (pred_tag.pred_inx) {  // use predicate
@@ -672,14 +675,14 @@ run_test (int, char*[])
         rw_note (0, __FILE__, __LINE__,  "std::search test disabled");
     }
     else {
-        test_search ((X*)0);
+        test_search ((UserClass*)0);
     }
 
     if (rw_opt_no_search_n) {
         rw_note (0, __FILE__, __LINE__,  "std::search_n test disabled");
     }
     else {
-        test_search_n ((X*)0);
+        test_search_n ((UserClass*)0);
     }
 
     return 0;

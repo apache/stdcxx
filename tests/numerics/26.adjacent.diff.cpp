@@ -2,26 +2,27 @@
  *
  * 26.adjacent.difference.cpp - test exercising lib.adjacent.difference
  *
- * $Id: 
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -29,6 +30,7 @@
 #include <cstddef>      // for size_t
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -74,9 +76,9 @@ adjacent_difference (InputIter<assign<base<cpy_ctor> > >,
 
 /**************************************************************************/
 
-X operator- (const X &lhs, const X &rhs)
+UserClass operator- (const UserClass &lhs, const UserClass &rhs)
 {
-    return X (lhs)-= rhs;
+    return UserClass (lhs)-= rhs;
 }
 
 /**************************************************************************/
@@ -115,12 +117,13 @@ struct Accumulator
         funcalls_ = 0;
     }
 
-    // return a type convertible to X
-    conv_to_T<X> operator() (const X &x, const X &y) /* non-const */ {
+    // return a type convertible to UserClass
+    conv_to_T<UserClass> operator() (const UserClass &x,
+                                     const UserClass &y) /* non-const */ {
         ++funcalls_;
-        X res (x);
+        UserClass res (x);
         res.val_ -= y.val_;
-        return conv_to_T<X>::make (res);
+        return conv_to_T<UserClass>::make (res);
     }
 
 private:
@@ -138,9 +141,9 @@ struct AdjacentDiffBase
     const char* iter_names [2];
 
     // pure virtual
-    virtual X*
-    adjacent_difference (const X    *xsrc, const X     *xsrc_end,
-                         X          *xdst, const X     *xdst_end,
+    virtual UserClass*
+    adjacent_difference (const UserClass   *xsrc, const UserClass  *xsrc_end,
+                         UserClass         *xdst, const UserClass  *xdst_end,
                          const Accumulator *op) const = 0;
 };
 
@@ -148,13 +151,13 @@ template <class InputIterator, class OutputIterator>
 struct AdjacentDiff : AdjacentDiffBase
 {
     AdjacentDiff () {
-        iter_names [0] = type_name (InputIterator (0, 0, 0), (X*)0);
-        iter_names [1] = type_name (OutputIterator (0, 0, 0), (X*)0);
+        iter_names [0] = type_name (InputIterator (0, 0, 0), (UserClass*)0);
+        iter_names [1] = type_name (OutputIterator (0, 0, 0), (UserClass*)0);
     }
 
-    virtual X*
-    adjacent_difference (const X    *xsrc, const X     *xsrc_end,
-                         X          *xdst, const X     *xdst_end,
+    virtual UserClass*
+    adjacent_difference (const UserClass   *xsrc, const UserClass  *xsrc_end,
+                         UserClass         *xdst, const UserClass  *xdst_end,
                          const Accumulator *op) const {
 
         const InputIterator  first (xsrc,     xsrc, xsrc_end);
@@ -189,17 +192,18 @@ void test_adjacent_difference (const std::size_t         N,
              "std::adjacent_difference(%s, %1$s, %s%{?}, %s%{;})%{?}, %s%{;}",
              itname, outname, binop, opname, same_seq, "first == result");
 
-    X::gen_ = gen_seq;
+    UserClass::gen_ = gen_seq;
 
-    X* const src = new X [N + 1];
-    X* dst = same_seq ? src : new X [N + 1];
+    UserClass* const src = new UserClass [N + 1];
+    UserClass* dst = same_seq ? src : new UserClass [N + 1];
 
     for (std::size_t i = 0; i != N; ++i) {
 
-        X* const src_end = src + i;
-        X* const dst_end = dst + i;
+        UserClass* const src_end = src + i;
+        UserClass* const dst_end = dst + i;
 
-        std::size_t last_n_op_minus_assign  = X::n_total_op_minus_assign_;
+        std::size_t last_n_op_minus_assign =
+            UserClass::n_total_op_minus_assign_;
 
         const Accumulator   acc  (0, 0);
         const Accumulator* const pbinop = binop ? &acc : 0;
@@ -212,12 +216,12 @@ void test_adjacent_difference (const std::size_t         N,
 
         tmp_val [0] = src [0].val_;
 
-        const X* const res =
+        const UserClass* const res =
             alg.adjacent_difference (src, src_end, dst, dst_end, pbinop);
 
         const std::size_t minus_ops = binop ?
               Accumulator::funcalls_
-            : X::n_total_op_minus_assign_ - last_n_op_minus_assign;
+            : UserClass::n_total_op_minus_assign_ - last_n_op_minus_assign;
 
         // verify the returned iterator 26.4.4, p2
         bool success = res == dst_end;
@@ -306,16 +310,16 @@ void gen_adjacent_difference_test (const std::size_t     N,
 {
     if (0 == rw_opt_no_output_iter)
         gen_adjacent_difference_test (
-            N, it, OutputIter<X>(0, 0, 0), binop);
+            N, it, OutputIter<UserClass>(0, 0, 0), binop);
     if (0 == rw_opt_no_fwd_iter)
         gen_adjacent_difference_test (
-            N, it, FwdIter<X>(0, 0, 0), binop);
+            N, it, FwdIter<UserClass>(0, 0, 0), binop);
     if (0 == rw_opt_no_bidir_iter)
         gen_adjacent_difference_test (
-            N, it, BidirIter<X>(0, 0, 0), binop);
+            N, it, BidirIter<UserClass>(0, 0, 0), binop);
     if (0 == rw_opt_no_rnd_iter)
         gen_adjacent_difference_test (
-            N, it, RandomAccessIter<X>(0, 0, 0), binop);
+            N, it, RandomAccessIter<UserClass>(0, 0, 0), binop);
 }
 
 // generates a specialization of the partial_sum test for each of the required
@@ -335,23 +339,25 @@ void gen_adjacent_difference_test (const std::size_t N,
     if (rw_opt_no_input_iter)
         rw_note (0, 0, 0, "InputIterator test disabled");
     else
-        gen_adjacent_difference_test (N, InputIter<X>(0, 0, 0), binop);
+        gen_adjacent_difference_test (N, InputIter<UserClass>(0, 0, 0), binop);
 
     if (rw_opt_no_fwd_iter)
         rw_note (0, 0, 0, "ForwardIterator test disabled");
     else
-        gen_adjacent_difference_test (N, ConstFwdIter<X>(0, 0, 0), binop);
+        gen_adjacent_difference_test (N, ConstFwdIter<UserClass>(0, 0, 0),
+                                      binop);
 
     if (rw_opt_no_bidir_iter)
         rw_note (0, 0, 0, "BidirectionalIterator test disabled");
     else
-        gen_adjacent_difference_test (N, ConstBidirIter<X>(0, 0, 0), binop);
+        gen_adjacent_difference_test (N, ConstBidirIter<UserClass>(0, 0, 0),
+                                      binop);
 
     if (rw_opt_no_rnd_iter)
         rw_note (0, 0, 0, "RandomAccessIterator test disabled");
     else
         gen_adjacent_difference_test (N, 
-            ConstRandomAccessIter<X>(0, 0, 0), binop);
+            ConstRandomAccessIter<UserClass>(0, 0, 0), binop);
 }
 
 /**************************************************************************/

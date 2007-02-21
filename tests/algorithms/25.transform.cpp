@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  *
  **************************************************************************/
 
@@ -23,6 +30,7 @@
 #include <cstddef>      // for size_t
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 
@@ -128,7 +136,7 @@ template <class InputIterator, class Unused, class OutputIterator>
 OutputIterator
 invoke_transform (InputIterator first, InputIterator last,
                   Unused /* for compatibility with the overload below */,
-                  OutputIterator dest, incT<X> fun)
+                  OutputIterator dest, incT<UserClass> fun)
 {
     return std::transform (first, last, dest, fun);
 }
@@ -137,7 +145,7 @@ template <class InputIterator1, class InputIterator2, class OutputIterator>
 OutputIterator
 invoke_transform (InputIterator1 first1, InputIterator1 last1,
                   InputIterator2 first2,
-                  OutputIterator dest, plusT<X> fun)
+                  OutputIterator dest, plusT<UserClass> fun)
 {
     return std::transform (first1, last1, first2, dest, fun);
 }
@@ -271,11 +279,11 @@ void gen_test (const T*              ptr,
                int                   tag3,
                int                   same_seq)
 {
-    const InputIter<X>        input_iter (0, 0, 0);
+    const InputIter<UserClass>        input_iter (0, 0, 0);
     const OutputIter<T>       output_iter (0, 0, 0);
     const FwdIter<T>          fwd_iter (0, 0, 0);
     const BidirIter<T>        bidir_iter (0, 0, 0);
-    const RandomAccessIter<X> rand_iter (0, 0, 0);
+    const RandomAccessIter<UserClass> rand_iter (0, 0, 0);
 
     // tag1, tag2 and tag3 indicates that an iterator needs to be generated
     // at the corresponding position by a recursive call to gen_test
@@ -412,9 +420,9 @@ void gen_test (const T*              ptr,
 static int
 run_test (int, char*[])
 {
-    const InputIter<X>        input_iter (0, 0, 0);
-    const RandomAccessIter<X> rand_iter;
-    const X* const            ptr = 0;
+    const InputIter<UserClass>        input_iter (0, 0, 0);
+    const RandomAccessIter<UserClass> rand_iter;
+    const UserClass* const            ptr = 0;
 
     // test transform with a unary function
     // according to 25.2.3 p5 'result may be equal to first'
@@ -424,7 +432,7 @@ run_test (int, char*[])
                  "std::transform unary function test disabled");
     }
     else {
-        const incT<X>* const pfun = 0;
+        const incT<UserClass>* const pfun = 0;
 
         gen_test (ptr, input_iter, rand_iter, rand_iter,
                   pfun, 1, 0, 1, 0 /* result distinct from first */);
@@ -444,7 +452,7 @@ run_test (int, char*[])
                  "std::transform binary function test disabled");
     }
     else {
-        const plusT<X>* const pfun = 0;
+        const plusT<UserClass>* const pfun = 0;
 
         gen_test (ptr, input_iter, rand_iter, rand_iter,
                   pfun, 1, 1, 1, 0 /* result distinct from first{1,2} */);

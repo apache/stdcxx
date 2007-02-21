@@ -6,22 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -31,6 +32,7 @@
 #include <cstddef>     // for size_t
 
 #include <alg_test.h>
+#include <rw_value.h>  // for UserClass
 #include <driver.h>
 #include <rw_new.h>
 
@@ -296,33 +298,33 @@ void test_signatures (Vector*, T*, Allocator)
 // focus on the correct construction and destruction of values
 void test_ctors ()
 {
-    typedef std::vector<X, std::allocator<X> > Vector;
+    typedef std::vector<UserClass, std::allocator<UserClass> > Vector;
 
     if (1) {
 
         rw_info (0, 0, 0,
-                 "std::vector<X>::vector(size_type, "
+                 "std::vector<UserClass>::vector(size_type, "
                  "const_reference, const allocator_type&)");
 
-        rw_info (0, 0, 0, "std::vector<X>::vector(const vector&)");
+        rw_info (0, 0, 0, "std::vector<UserClass>::vector(const vector&)");
 
         // reset function call counters
-        X::reset_totals ();
+        UserClass::reset_totals ();
 
-        // total number of objects of type X in existence
-        const std::size_t x_count = X::count_;
+        // total number of objects of type UserClass in existence
+        const std::size_t x_count = UserClass::count_;
 
         for (Vector::size_type i = 0; i != rw_opt_nloops; ++i) {
 
-            rw_assert (X::count_ == x_count, 0, __LINE__,
-                       "vector<X>::vector(size_type, const_reference); "
+            rw_assert (UserClass::count_ == x_count, 0, __LINE__,
+                       "vector<UserClass>::vector(size_type, const_reference); "
                        "leaked %zu objects of value_type",
-                       X::count_ - x_count);
+                       UserClass::count_ - x_count);
 
             // reset function call counters
-            X::reset_totals ();
+            UserClass::reset_totals ();
 
-            const X val;
+            const UserClass val;
 
             // initialize a vector with `i' copies of `val'
             const Vector v0 (i, val);
@@ -330,17 +332,17 @@ void test_ctors ()
                        && v0.begin ()  + i  == v0.end ()
                        && v0.rbegin () + i  == v0.rend (),
                        0, __LINE__,
-                       "vector<X>::vector(size_type, const_reference)");
+                       "vector<UserClass>::vector(size_type, const_reference)");
 
             // verify that the vector ctor calls only copy ctor
-            // of X and anly the given number of times each
-            rw_assert (X::is_total (i + 1, 1, i, 0, 0, 0), 0, __LINE__,
-                       "vector<X>::vector(size_type, const_reference); "
+            // of UserClass and anly the given number of times each
+            rw_assert (UserClass::is_total (i + 1, 1, i, 0, 0, 0), 0, __LINE__,
+                       "vector<UserClass>::vector(size_type, const_reference); "
                        "called default/copy ctor and operator=() %zu, %zu, "
                        "and %zu times, respectively, 0, %zu, 0 expected",
-                       X::n_total_def_ctor_ - 1,
-                       X::n_total_copy_ctor_,
-                       X::n_total_op_assign_, i);
+                       UserClass::n_total_def_ctor_ - 1,
+                       UserClass::n_total_copy_ctor_,
+                       UserClass::n_total_op_assign_, i);
 
             // create a copy
             Vector v1 (v0);
@@ -348,18 +350,18 @@ void test_ctors ()
                        && v1.begin  () + i == v1.end ()
                        && v1.rbegin () + i == v1.rend (),
                        0, __LINE__,
-                       "vector<X>::vector(const vector&)");
+                       "vector<UserClass>::vector(const vector&)");
 
             // verify that the vector copy ctor calls only copy ctor
-            // of X and anly the given number of times each
-            rw_assert (X::is_total (2 * i + 1, 1, 2 * i, 0, 0, 0),
+            // of UserClass and anly the given number of times each
+            rw_assert (UserClass::is_total (2 * i + 1, 1, 2 * i, 0, 0, 0),
                        0, __LINE__,
-                       "vector<X>::vector(size_type, const_reference); "
+                       "vector<UserClass>::vector(size_type, const_reference); "
                        "called default/copy ctor and operator=() %zu, %zu, "
                        "and %zu times, respectively, 0, %zu, 0 expected",
-                       X::n_total_def_ctor_ - 1,
-                       X::n_total_copy_ctor_,
-                       X::n_total_op_assign_, i);
+                       UserClass::n_total_def_ctor_ - 1,
+                       UserClass::n_total_copy_ctor_,
+                       UserClass::n_total_op_assign_, i);
 
             // exercise vector<>operator=(const vector&)
             Vector v2 (i, val);
@@ -371,10 +373,12 @@ void test_ctors ()
                 // assign a vector (of a possibly unequal size)
                 v3 = v2;
                 rw_assert (v3.size () == v2.size (), 0, __LINE__,
-                           "%zu. vector<X>::operator=(const vector&)", j);
+                           "%zu. vector<UserClass>::operator=(const vector&)",
+                           j);
 
                 rw_assert (v3 == v2, 0, __LINE__,
-                           "%zu. vector<X>::operator=(const vector&)", j);
+                           "%zu. vector<UserClass>::operator=(const vector&)",
+                           j);
             }
 
 #ifndef _RWSTD_NO_EXCEPTIONS
@@ -390,12 +394,13 @@ void test_ctors ()
                 char buf [sizeof (Vector)];
             } buf = { 0 };
 
-            std::size_t x_count_save = X::count_;
+            std::size_t x_count_save = UserClass::count_;
 
             try {
-                // have X copy ctor throw an exception during
+                // have UserClass copy ctor throw an exception during
                 // the copying of the last value
-                X::copy_ctor_throw_count_ = X::n_total_copy_ctor_ + i;
+                UserClass::copy_ctor_throw_count_ =
+                    UserClass::n_total_copy_ctor_ + i;
 
                 // create a vector object, throw an exception
                 // expect vector ctor to destroy any values
@@ -427,19 +432,20 @@ void test_ctors ()
             rw_assert (i == 0 || thrown, 0, __LINE__,
                        "logic error: failed to throw");
 
-            rw_assert (x_count_save == X::count_, 0, __LINE__,
-                       "vector<X>::vector(size_type, const_reference) "
+            rw_assert (x_count_save == UserClass::count_, 0, __LINE__,
+                       "vector<UserClass>::vector(size_type, const_reference) "
                        "leaked %zu value(s) of %zu after an exception",
-                       X::count_ - x_count_save, i);
+                       UserClass::count_ - x_count_save, i);
 
             // exercise vector<>::vector(const vector&)
             thrown       = false;
-            x_count_save = X::count_;
+            x_count_save = UserClass::count_;
 
             try {
-                // have X copy ctor throw an exception during
+                // have UserClass copy ctor throw an exception during
                 // the copying of the last value
-                X::copy_ctor_throw_count_ = X::n_total_copy_ctor_ + i;
+                UserClass::copy_ctor_throw_count_ =
+                    UserClass::n_total_copy_ctor_ + i;
 
                 // use placement new to prevent vector destruction
                 // at scope exit (the object should be destroyed
@@ -467,14 +473,14 @@ void test_ctors ()
             rw_assert(i == 0 || thrown, 0, __LINE__,
                       "logic error: failed to throw");
 
-            rw_assert (x_count_save == X::count_, 0, __LINE__,
-                       "vector<X>::vector(const vector&) leaked "
+            rw_assert (x_count_save == UserClass::count_, 0, __LINE__,
+                       "vector<UserClass>::vector(const vector&) leaked "
                        "%zu value(s) of %zu after an exception",
-                       X::count_ - x_count_save, i);
+                       UserClass::count_ - x_count_save, i);
 
 
             // disable exceptions
-            X::copy_ctor_throw_count_ = std::size_t (-1);
+            UserClass::copy_ctor_throw_count_ = std::size_t (-1);
 
             // remember v1's size and capacity
             const Vector::size_type v1_size = v1.size ();
@@ -488,12 +494,13 @@ void test_ctors ()
 
             // exrecise vector<>::operator=(const vector&)
             thrown       = false;
-            x_count_save = X::count_;
+            x_count_save = UserClass::count_;
 
             try {
-                // have X copy ctor throw an exception during
+                // have UserClass copy ctor throw an exception during
                 // the copying of the last value
-                X::copy_ctor_throw_count_ = X::n_total_copy_ctor_ + v3.size ();
+                UserClass::copy_ctor_throw_count_ =
+                    UserClass::n_total_copy_ctor_ + v3.size ();
 
                 // assign over the existing elements, the last copy ctor or
                 // operator=() throws, destroying all values assigned so far
@@ -505,22 +512,23 @@ void test_ctors ()
             }
 
             // disable exceptions
-            X::copy_ctor_throw_count_ = std::size_t (-1);
+            UserClass::copy_ctor_throw_count_ = std::size_t (-1);
 
             rw_assert (i == 0 || thrown, 0, __LINE__,
                        "logic error: failed to throw");
 
             // verify that no values leaked
-            rw_assert (x_count_save == X::count_, 0, __LINE__,
-                       "vector<X>::vector(const vector&) leaked "
+            rw_assert (x_count_save == UserClass::count_, 0, __LINE__,
+                       "vector<UserClass>::vector(const vector&) leaked "
                        "%zu value(s) of %zu after an exception",
-                       X::count_ - x_count_save, i);
+                       UserClass::count_ - x_count_save, i);
 
             // verify that the size of the left hand size operand
             // of the assignment hasn't changed
             rw_assert (v1.size () == v1_size && v1.capacity () == v1_cap,
-                       0, __LINE__, "vector<X>::operator=(const vector&) "
-                       "changed size of *this from %zu to %zu after exception",
+                       0, __LINE__, "vector<UserClass>::operator="
+                       "(const vector&) changed size of *this from "
+                       "%zu to %zu after exception",
                        i / 2, v3.size ());
 
 #endif   // _RWSTD_NO_EXCEPTIONS
@@ -536,7 +544,8 @@ void test_ctors (Vector*, T*, Alloc alloc)
 {
     if (1) {
 
-        rw_info (0, 0, 0, "std::vector<X>::vector(const allocator_type&)");
+        rw_info (0, 0, 0,
+                 "std::vector<UserClass>::vector(const allocator_type&)");
 
         // verify default ctor arguments
         Vector v0;
@@ -545,18 +554,18 @@ void test_ctors (Vector*, T*, Alloc alloc)
         rw_assert (   0 == v0.size ()
                    && v0.empty () && v0.begin () == v0.end ()
                    && v0.rbegin () == v0.rend (), 0, __LINE__,
-                      ("vector<X>::vector()"));
+                      ("vector<UserClass>::vector()"));
 
         rw_assert (   0 == v1.size ()
                    && v1.empty () && v1.begin () == v1.end ()
                    && v1.rbegin () == v1.rend (), 0, __LINE__,
-                      "vector<X>::vector()");
+                      "vector<UserClass>::vector()");
     }
 
     if (1) {
 
         rw_info (0, 0, 0,
-                 "std::vector<X>::vector(size_type, "
+                 "std::vector<UserClass>::vector(size_type, "
                  "const_reference, const allocator_type&)");
 
         for (typename Vector::size_type i = 0; i != rw_opt_nloops; ++i) {
@@ -570,14 +579,15 @@ void test_ctors (Vector*, T*, Alloc alloc)
                        && v0.begin  () + i == v0.end ()
                        && v0.rbegin () + i == v0.rend (),
                           0, __LINE__,
-                          "vector<X>::vector(size_type, const_reference)");
+                          "vector<UserClass>::vector"
+                          "(size_type, const_reference)");
 
             rw_assert (   i == v1.size ()
                        && v1.begin  () + i == v1.end ()
                        && v1.rbegin () + i == v1.rend (),
                           0, __LINE__,
-                          "vector<X>::vector(size_type, const_reference, "
-                          "const allocator_type&)");
+                          "vector<UserClass>::vector(size_type, "
+                          "const_reference, const allocator_type&)");
 
             bool success = true;
             for (typename Vector::size_type j = 0; j != i; ++j) {
@@ -588,7 +598,7 @@ void test_ctors (Vector*, T*, Alloc alloc)
             }
 
             rw_assert (success, 0, __LINE__,
-                       "vector<X>::vector(size_type, const_reference); "
+                       "vector<UserClass>::vector(size_type, const_reference); "
                        "all elements initialized");
         }
     }
@@ -599,7 +609,7 @@ void test_ctors (Vector*, T*, Alloc alloc)
     if (1) {
 
         rw_info (0, 0, 0,
-                 "template <class InputIterator> std::vector<X>::vector "
+                 "template <class InputIterator> std::vector<UserClass>::vector"
                  "(InputIterator, InputIterator)");
 
         bool success = true;
@@ -649,7 +659,8 @@ void test_ctors (Vector*, T*, Alloc alloc)
 
         rw_assert (success, 0, __LINE__,
                    "template <class InputIterator> "
-                   "std::vector<X>::vector(InputIterator, InputIterator)");
+                   "std::vector<UserClass>::vector"
+                   "(InputIterator, InputIterator)");
 
         // destroy and deallocate...
         for (typename Vector::size_type j = 0; j != rw_opt_nloops; ++j)

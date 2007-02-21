@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -23,6 +30,7 @@
 #include <cstring>      // for size_t, strlen()
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 
@@ -105,8 +113,8 @@ template <class T, class ForwardIterator1, class ForwardIterator2>
 void test_iter_swap (ForwardIterator1 it1, ForwardIterator2 it2, 
                      const T*, bool it_swap)
 {
-    const char* const it1name = it_swap ? type_name (it1, (T*)0) : "X";
-    const char* const it2name = it_swap ? type_name (it2, (T*)0) : "X";
+    const char* const it1name = it_swap ? type_name (it1, (T*)0) : "UserClass";
+    const char* const it2name = it_swap ? type_name (it2, (T*)0) : "UserClass";
     const char* const fname   = it_swap ? "iter_swap" : "swap";
 
     rw_info (0, 0, 0, "std::%s (%s, %s)", fname, it1name, it2name);
@@ -325,7 +333,8 @@ run_test (int, char*[])
     else {
         rw_info (0, 0, 0, "template <class T> void swap (T&, T&)");
 
-        test_iter_swap (FwdIter<X>(), FwdIter<X>(), (X*)0, false);
+        test_iter_swap (FwdIter<UserClass>(), FwdIter<UserClass>(),
+                        (UserClass*)0, false);
     }
 
     if (rw_opt_no_swap_ranges) {
@@ -337,7 +346,7 @@ run_test (int, char*[])
                  "swap_ranges (%1$s, %1$s, %2$s)",
                  "ForwardIterator1", "ForwardIterator2");
 
-        test_swap ((X*)0, true);
+        test_swap ((UserClass*)0, true);
     }
 
     if (rw_opt_no_iter_swap) {
@@ -348,7 +357,7 @@ run_test (int, char*[])
                  "template <class %s, class %s> void iter_swap (%1$s, %2$s)",
                  "ForwardIterator1", "ForwardIterator2");
 
-        test_swap ((X*)0, false);
+        test_swap ((UserClass*)0, false);
     }
 
     return 0;

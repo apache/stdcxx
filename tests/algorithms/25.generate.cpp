@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -23,6 +30,7 @@
 #include <cstddef>      // for size_t
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -43,19 +51,19 @@ struct Generator
 
 
 _RWSTD_SPECIALIZED_CLASS
-struct Generator<X>
+struct Generator<UserClass>
 {
     // dummy arguments provided to prevent Generator
     // from being DefaultConstructible
     Generator (int, int /* dummy */) {
         // use the generator of sequential values
-        X::gen_ = gen_seq;
+        UserClass::gen_ = gen_seq;
     }
 
-    X operator() () /* non-const */ {
-        // return a default-constructed X intialized
+    UserClass operator() () /* non-const */ {
+        // return a default-constructed UserClass intialized
         // to the next sequential value
-        return X ();
+        return UserClass ();
     }
 };
 
@@ -96,7 +104,7 @@ void test_generate (std::size_t N,
     // generate sequential values for each default constructed T
     T::gen_ = gen_seq;
 
-    T *buf = new X [N];
+    T *buf = new UserClass [N];
 
     for (std::size_t i = 0; i < N; ++i) {
 
@@ -167,7 +175,7 @@ void test_generate_n (std::size_t            N,
     // generate sequential values for each default constructed T
     T::gen_ = gen_seq;
 
-    T *buf = new X [N];
+    T *buf = new UserClass [N];
 
     for (std::size_t i = 0; i <= N; ++i) {
 
@@ -238,21 +246,21 @@ test_generate (const std::size_t N)
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
-        test_generate (N, FwdIter<X>(), (X*)0);
+        test_generate (N, FwdIter<UserClass>(), (UserClass*)0);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        test_generate (N, BidirIter<X>(), (X*)0);
+        test_generate (N, BidirIter<UserClass>(), (UserClass*)0);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__,  "RandomAccessIterator test disabled");
     }
     else {
-        test_generate (N, RandomAccessIter<X>(), (X*)0);
+        test_generate (N, RandomAccessIter<UserClass>(), (UserClass*)0);
     }
 }
 
@@ -270,28 +278,31 @@ test_generate_n (const std::size_t N)
         rw_note (0, __FILE__, __LINE__, "OutputIterator test disabled");
     }
     else {
-        test_generate_n (N, OutputIter<X>(0, 0, 0), (Size<int>*)0, (X*)0);
+        test_generate_n (N, OutputIter<UserClass>(0, 0, 0), (Size<int>*)0,
+                         (UserClass*)0);
     }
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
-        test_generate_n (N, FwdIter<X>(), (Size<int>*)0, (X*)0);
+        test_generate_n (N, FwdIter<UserClass>(), (Size<int>*)0, (UserClass*)0);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        test_generate_n (N, BidirIter<X>(), (Size<int>*)0, (X*)0);
+        test_generate_n (N, BidirIter<UserClass>(), (Size<int>*)0,
+                         (UserClass*)0);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
     }
     else {
-        test_generate_n (N, RandomAccessIter<X>(), (Size<int>*)0, (X*)0);
+        test_generate_n (N, RandomAccessIter<UserClass>(), (Size<int>*)0,
+                         (UserClass*)0);
     }
 }
 

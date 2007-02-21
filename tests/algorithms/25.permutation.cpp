@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -23,6 +30,7 @@
 #include <cstring>      // for strlen, size_t
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -251,11 +259,11 @@ void test_permutations (const T*,
     static const RandomAccessIter<T> rand_iter (0, 0, 0);
 
     rw_info (0, 0, 0,
-                 "template <class %s%{?}, class %s%{;}> "
-                 "bool %s (%1$s, %1$s%{?}, %s%{;})",
-                 "BidirectionalIterator", 0 != ppred, "Compare", 
-                 prev ? "prev_permutation" : "next_permutation", 
-                 0 != ppred, "Compare");
+             "template <class %s%{?}, class %s%{;}> "
+             "bool %s (%1$s, %1$s%{?}, %s%{;})",
+             "BidirectionalIterator", 0 != ppred, "Compare", 
+             prev ? "prev_permutation" : "next_permutation", 
+             0 != ppred, "Compare");
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, 0, __LINE__, "BidirectionalIterator test disabled");
@@ -282,14 +290,14 @@ void test_permutations (const T*,
         rw_note (0, 0, __LINE__, "std::prev_permutation test disabled");
     }
     else {
-        test_permutations ((X*)0, ppred, true); 
+        test_permutations ((UserClass*)0, ppred, true); 
     }
 
     if (rw_opt_no_next_permutation) {
         rw_note (0, 0, __LINE__, "std::next_permutation test disabled");
     }
     else {
-        test_permutations ((X*)0, ppred, false); 
+        test_permutations ((UserClass*)0, ppred, false); 
     }
 }
 
@@ -297,13 +305,13 @@ void test_permutations (const T*,
 
 static int run_test (int, char*[])
 {
-    test_permutations ((X*)0, (Less<X>*)0); 
+    test_permutations ((UserClass*)0, (Less<UserClass>*)0); 
 
     if (rw_opt_no_predicate) {
         rw_note (0, 0, __LINE__, "predicate test disabled");
     }
     else {
-        test_permutations ((X*)0, (Less<X>*)1); 
+        test_permutations ((UserClass*)0, (Less<UserClass>*)1); 
     }
 
     return 0;

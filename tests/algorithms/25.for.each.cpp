@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -23,6 +30,7 @@
 #include <cstddef>       // for ptrdiff_t
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>      // for rw_test(), ...
 
 /**************************************************************************/
@@ -53,7 +61,7 @@ struct ConstFunction: FunctionBase
     // from being default constructible
     ConstFunction (int, int): FunctionBase (true) { }
 
-    void operator() (X val)  /* not const */ {
+    void operator() (UserClass val)  /* not const */ {
         ++funcalls_;
         sum_ += val.val_;
     }
@@ -68,7 +76,7 @@ struct MutableFunction: FunctionBase
     // from being default constructible
     MutableFunction (int, int): FunctionBase (false) { }
 
-    void operator() (X &val) /* not const */ {
+    void operator() (UserClass &val) /* not const */ {
         ++funcalls_;
         val.val_ = -val.val_;
     }
@@ -86,16 +94,16 @@ void test_for_each (std::size_t N, InputIterator dummy, T*, Function*)
 
     rw_info (0, 0, 0, "std::for_each (%s, %1$s, %s)", itname, fnname);
 
-    // generate sequential values for each default constructed X
-    X::gen_ = gen_seq;
+    // generate sequential values for each default constructed UserClass
+    UserClass::gen_ = gen_seq;
 
-    X *buf = new X [N];
+    UserClass *buf = new UserClass [N];
 
     const int first_val = buf [0].val_;
 
     for (std::size_t i = 0; i != N; ++i) {
 
-        X* const buf_end = buf + i;
+        UserClass* const buf_end = buf + i;
 
         const InputIterator first (buf, buf, buf_end);
         const InputIterator last  (buf_end, buf_end, buf_end);
@@ -182,34 +190,44 @@ run_test (int, char*[])
         rw_note (0, __FILE__, __LINE__, "InputIterator test disabled");
     }
     else {
-        test_for_each (N, InputIter<X>(0, 0, 0), (X*)0, (ConstFunction*)0);
+        test_for_each (N, InputIter<UserClass>(0, 0, 0), (UserClass*)0,
+                       (ConstFunction*)0);
     }
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
-        test_for_each (N, ConstFwdIter<X>(), (X*)0, (ConstFunction*)0);
-        test_for_each (N, FwdIter<X>(), (X*)0, (ConstFunction*)0);
-        test_for_each (N, FwdIter<X>(), (X*)0, (MutableFunction*)0);
+        test_for_each (N, ConstFwdIter<UserClass>(), (UserClass*)0,
+                       (ConstFunction*)0);
+        test_for_each (N, FwdIter<UserClass>(), (UserClass*)0,
+                       (ConstFunction*)0);
+        test_for_each (N, FwdIter<UserClass>(), (UserClass*)0,
+                       (MutableFunction*)0);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        test_for_each (N, ConstBidirIter<X>(), (X*)0, (ConstFunction*)0);
-        test_for_each (N, BidirIter<X>(), (X*)0, (ConstFunction*)0);
-        test_for_each (N, BidirIter<X>(), (X*)0, (MutableFunction*)0);
+        test_for_each (N, ConstBidirIter<UserClass>(), (UserClass*)0,
+                       (ConstFunction*)0);
+        test_for_each (N, BidirIter<UserClass>(), (UserClass*)0,
+                       (ConstFunction*)0);
+        test_for_each (N, BidirIter<UserClass>(), (UserClass*)0,
+                       (MutableFunction*)0);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
     }
     else {
-        test_for_each (N, ConstRandomAccessIter<X>(), (X*)0, (ConstFunction*)0);
-        test_for_each (N, RandomAccessIter<X>(), (X*)0, (ConstFunction*)0);
-        test_for_each (N, RandomAccessIter<X>(), (X*)0, (MutableFunction*)0);
+        test_for_each (N, ConstRandomAccessIter<UserClass>(), (UserClass*)0,
+                       (ConstFunction*)0);
+        test_for_each (N, RandomAccessIter<UserClass>(), (UserClass*)0,
+                       (ConstFunction*)0);
+        test_for_each (N, RandomAccessIter<UserClass>(), (UserClass*)0,
+                       (MutableFunction*)0);
     }
 
     return 0;

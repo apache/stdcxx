@@ -6,29 +6,31 @@
  *
  ***************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2000-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2000-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
 #include <algorithm>    // for unique, unique_copy
 #include <cstring>      // for strlen
 
-#include <alg_test.h>   // for BinaryPredicate, X
+#include <alg_test.h>   // for BinaryPredicate
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -351,14 +353,14 @@ run_test (int, char*[])
         rw_note (0, __FILE__, __LINE__,  "std::unique test disabled");
     }
     else {
-        test_unique ((X*)0, (BinaryPredicate*)0, false);
+        test_unique ((UserClass*)0, (BinaryPredicate*)0, false);
 
         if (rw_opt_no_predicate) {
            rw_note (0, __FILE__, __LINE__,  
                     "std::unique predicate test disabled");
         }
         else {
-            test_unique ((X*)0, &pred, false);
+            test_unique ((UserClass*)0, &pred, false);
         }
     }
 
@@ -366,14 +368,14 @@ run_test (int, char*[])
         rw_note (0, __FILE__, __LINE__,  "std::unique_copy test disabled");
     }
     else {
-        test_unique ((X*) 0, (BinaryPredicate*)0, true);
+        test_unique ((UserClass*) 0, (BinaryPredicate*)0, true);
 
         if (rw_opt_no_predicate) {
            rw_note (0, __FILE__, __LINE__,  
                     "std::unique_copy predicate test disabled");
         }
         else {
-            test_unique ((X*)0, &pred, true);
+            test_unique ((UserClass*)0, &pred, true);
         }
     }
 

@@ -39,61 +39,61 @@
 #include <rw_printf.h>
 
 
-/* static */ size_t X::count_;
-/* static */ int    X::id_gen_;   // generates unique non-zero ids
-/* static */ int  (*X::gen_)();   // extern "C++" int (*)()
+/* static */ size_t UserClass::count_;
+/* static */ int    UserClass::id_gen_;   // generates unique non-zero ids
+/* static */ int  (*UserClass::gen_)();   // extern "C++" int (*)()
 
-/* static */ size_t X::n_total_def_ctor_;
-/* static */ size_t X::n_total_copy_ctor_;
-/* static */ size_t X::n_total_dtor_;
-/* static */ size_t X::n_total_op_assign_;
-/* static */ size_t X::n_total_op_plus_assign_;
-/* static */ size_t X::n_total_op_minus_assign_;
-/* static */ size_t X::n_total_op_times_assign_;
-/* static */ size_t X::n_total_op_div_assign_;
-/* static */ size_t X::n_total_op_eq_;
-/* static */ size_t X::n_total_op_lt_;
+/* static */ size_t UserClass::n_total_def_ctor_;
+/* static */ size_t UserClass::n_total_copy_ctor_;
+/* static */ size_t UserClass::n_total_dtor_;
+/* static */ size_t UserClass::n_total_op_assign_;
+/* static */ size_t UserClass::n_total_op_plus_assign_;
+/* static */ size_t UserClass::n_total_op_minus_assign_;
+/* static */ size_t UserClass::n_total_op_times_assign_;
+/* static */ size_t UserClass::n_total_op_div_assign_;
+/* static */ size_t UserClass::n_total_op_eq_;
+/* static */ size_t UserClass::n_total_op_lt_;
 
 // default values of pointers
-/* static */ size_t* X::def_ctor_throw_ptr_ =
-    &X::def_ctor_throw_count_;
-/* static */ size_t* X::copy_ctor_throw_ptr_ =
-    &X::copy_ctor_throw_count_;
-/* static */ size_t* X::dtor_throw_ptr_ =
-    &X::dtor_throw_count_;
-/* static */ size_t* X::op_assign_throw_ptr_ =
-    &X::op_assign_throw_count_;
-/* static */ size_t* X::op_plus_assign_throw_ptr_ =
-    &X::op_plus_assign_throw_count_;
-/* static */ size_t* X::op_minus_assign_throw_ptr_ =
-    &X::op_minus_assign_throw_count_;
-/* static */ size_t* X::op_times_assign_throw_ptr_ =
-    &X::op_times_assign_throw_count_;
-/* static */ size_t* X::op_div_assign_throw_ptr_ =
-    &X::op_div_assign_throw_count_;
-/* static */ size_t* X::op_eq_throw_ptr_ =
-    &X::op_eq_throw_count_;
-/* static */ size_t* X::op_lt_throw_ptr_ =
-    &X::op_lt_throw_count_;
+/* static */ size_t* UserClass::def_ctor_throw_ptr_ =
+    &UserClass::def_ctor_throw_count_;
+/* static */ size_t* UserClass::copy_ctor_throw_ptr_ =
+    &UserClass::copy_ctor_throw_count_;
+/* static */ size_t* UserClass::dtor_throw_ptr_ =
+    &UserClass::dtor_throw_count_;
+/* static */ size_t* UserClass::op_assign_throw_ptr_ =
+    &UserClass::op_assign_throw_count_;
+/* static */ size_t* UserClass::op_plus_assign_throw_ptr_ =
+    &UserClass::op_plus_assign_throw_count_;
+/* static */ size_t* UserClass::op_minus_assign_throw_ptr_ =
+    &UserClass::op_minus_assign_throw_count_;
+/* static */ size_t* UserClass::op_times_assign_throw_ptr_ =
+    &UserClass::op_times_assign_throw_count_;
+/* static */ size_t* UserClass::op_div_assign_throw_ptr_ =
+    &UserClass::op_div_assign_throw_count_;
+/* static */ size_t* UserClass::op_eq_throw_ptr_ =
+    &UserClass::op_eq_throw_count_;
+/* static */ size_t* UserClass::op_lt_throw_ptr_ =
+    &UserClass::op_lt_throw_count_;
 
 // exception throwing initially disabled
-/* static */ size_t X::def_ctor_throw_count_        = size_t (-1);
-/* static */ size_t X::copy_ctor_throw_count_       = size_t (-1);
-/* static */ size_t X::dtor_throw_count_            = size_t (-1);
-/* static */ size_t X::op_assign_throw_count_       = size_t (-1);
-/* static */ size_t X::op_plus_assign_throw_count_  = size_t (-1);
-/* static */ size_t X::op_minus_assign_throw_count_ = size_t (-1);
-/* static */ size_t X::op_times_assign_throw_count_ = size_t (-1);
-/* static */ size_t X::op_div_assign_throw_count_   = size_t (-1);
-/* static */ size_t X::op_eq_throw_count_           = size_t (-1);
-/* static */ size_t X::op_lt_throw_count_           = size_t (-1);
+/* static */ size_t UserClass::def_ctor_throw_count_        = size_t (-1);
+/* static */ size_t UserClass::copy_ctor_throw_count_       = size_t (-1);
+/* static */ size_t UserClass::dtor_throw_count_            = size_t (-1);
+/* static */ size_t UserClass::op_assign_throw_count_       = size_t (-1);
+/* static */ size_t UserClass::op_plus_assign_throw_count_  = size_t (-1);
+/* static */ size_t UserClass::op_minus_assign_throw_count_ = size_t (-1);
+/* static */ size_t UserClass::op_times_assign_throw_count_ = size_t (-1);
+/* static */ size_t UserClass::op_div_assign_throw_count_   = size_t (-1);
+/* static */ size_t UserClass::op_eq_throw_count_           = size_t (-1);
+/* static */ size_t UserClass::op_lt_throw_count_           = size_t (-1);
 
 
 static int
 _rw_fmtxarray (char**, size_t*, const char*, ...);
 
 
-X::X ()
+UserClass::UserClass ()
     : id_ (++id_gen_), origin_ (id_), src_id_ (id_), val_ (0),
       n_copy_ctor_ (0), n_op_assign_ (0), n_op_eq_ (0), n_op_lt_ (0)
 {
@@ -126,7 +126,7 @@ X::X ()
 }
 
 
-X::X (const X &rhs)
+UserClass::UserClass (const UserClass &rhs)
     : id_ (++id_gen_), origin_ (rhs.origin_), src_id_ (rhs.id_),
       val_ (rhs.val_),
       n_copy_ctor_ (0), n_op_assign_ (0), n_op_eq_ (0), n_op_lt_ (0)
@@ -136,7 +136,7 @@ X::X (const X &rhs)
 
     // increment the number of times `rhs' has been copied
     // (do so even if the function throws an exception below)
-    ++_RWSTD_CONST_CAST (X*, &rhs)->n_copy_ctor_;
+    ++_RWSTD_CONST_CAST (UserClass*, &rhs)->n_copy_ctor_;
 
     // increment the total number of invocations of the copy ctor
     // (do so even if the function throws an exception below)
@@ -159,7 +159,7 @@ X::X (const X &rhs)
 }
 
 
-X::~X ()
+UserClass::~UserClass ()
 {
     // verify id validity
     RW_ASSERT (id_ && id_ <= id_gen_);
@@ -188,8 +188,8 @@ X::~X ()
 }
 
 
-void X::
-assign (assign_op which, const X &rhs)
+void UserClass::
+assign (assign_op which, const UserClass &rhs)
 {
     // verify id validity and uniqueness:
     // a valid id is non-zero (dtor resets)
@@ -282,8 +282,8 @@ assign (assign_op which, const X &rhs)
 }
 
 
-X& X::
-operator= (const X &rhs)
+UserClass& UserClass::
+operator= (const UserClass &rhs)
 {
     assign (op_assign, rhs);
 
@@ -291,8 +291,8 @@ operator= (const X &rhs)
 }
 
 
-X& X::
-operator+= (const X &rhs)
+UserClass& UserClass::
+operator+= (const UserClass &rhs)
 {
     assign (op_plus_assign, rhs);
 
@@ -300,8 +300,8 @@ operator+= (const X &rhs)
 }
 
 
-X& X::
-operator-= (const X &rhs)
+UserClass& UserClass::
+operator-= (const UserClass &rhs)
 {
     assign (op_minus_assign, rhs);
 
@@ -309,8 +309,8 @@ operator-= (const X &rhs)
 }
 
 
-X& X::
-operator*= (const X &rhs)
+UserClass& UserClass::
+operator*= (const UserClass &rhs)
 {
     assign (op_times_assign, rhs);
 
@@ -318,8 +318,8 @@ operator*= (const X &rhs)
 }
 
 
-X& X::
-operator/= (const X &rhs)
+UserClass& UserClass::
+operator/= (const UserClass &rhs)
 {
     assign (op_div_assign, rhs);
 
@@ -328,7 +328,7 @@ operator/= (const X &rhs)
 
 
 bool
-X::operator== (const X &rhs) const
+UserClass::operator== (const UserClass &rhs) const
 {
     // verify id validity and uniqueness
     RW_ASSERT (id_ && id_ <= id_gen_);
@@ -338,10 +338,10 @@ X::operator== (const X &rhs) const
     // increment the number of times each distinct object
     // has been used as the argument to operator==
     // (do so even if the function throws an exception below)
-    ++_RWSTD_CONST_CAST (X*, this)->n_op_eq_;
+    ++_RWSTD_CONST_CAST (UserClass*, this)->n_op_eq_;
 
     if (this != &rhs)
-        ++_RWSTD_CONST_CAST (X*, &rhs)->n_op_eq_;
+        ++_RWSTD_CONST_CAST (UserClass*, &rhs)->n_op_eq_;
 
     // increment the total number of invocations of the operator
     // (do so even if the function throws an exception below)
@@ -365,7 +365,7 @@ X::operator== (const X &rhs) const
 
 
 bool
-X::operator< (const X &rhs) const
+UserClass::operator< (const UserClass &rhs) const
 {
     // verify id validity and uniqueness
     RW_ASSERT (id_ && id_ <= id_gen_);
@@ -375,10 +375,10 @@ X::operator< (const X &rhs) const
     // increment the number of times each distinct object
     // has been used as the argument to operator<
     // (do so even if the function throws an exception below)
-    ++_RWSTD_CONST_CAST (X*, this)->n_op_lt_;
+    ++_RWSTD_CONST_CAST (UserClass*, this)->n_op_lt_;
 
     if (this != &rhs)
-        ++_RWSTD_CONST_CAST (X*, &rhs)->n_op_lt_;
+        ++_RWSTD_CONST_CAST (UserClass*, &rhs)->n_op_lt_;
 
     // increment the total number of invocations of the operator
     // (do so even if the function throws an exception below)
@@ -401,7 +401,7 @@ X::operator< (const X &rhs) const
 }
 
 
-bool X::
+bool UserClass::
 is_count (size_t n_copy_ctor,
           size_t n_op_assign,
           size_t n_op_eq,
@@ -417,7 +417,7 @@ is_count (size_t n_copy_ctor,
 }
 
 
-/* static */ bool X::
+/* static */ bool UserClass::
 is_total (size_t cnt,
           size_t n_def_ctor,
           size_t n_copy_ctor,
@@ -434,8 +434,8 @@ is_total (size_t cnt,
 }
 
 
-/* static */ const X*
-X::first_less (const X *xarray, size_t nelems)
+/* static */ const UserClass*
+UserClass::first_less (const UserClass *xarray, size_t nelems)
 {
     size_t inx = nelems;
 
@@ -451,7 +451,7 @@ X::first_less (const X *xarray, size_t nelems)
 
 
 /* static */ void
-X::reset_totals ()
+UserClass::reset_totals ()
 {
     n_total_def_ctor_  =
     n_total_copy_ctor_ =
@@ -464,7 +464,7 @@ X::reset_totals ()
 
 typedef unsigned char UChar;
 
-// used to initialize an array of objects of type X
+// used to initialize an array of objects of type UserClass
 static const char *xinit_begin;
 
 static int xinit ()
@@ -476,8 +476,9 @@ static int xinit ()
 }
 
 
-/* static */ X*
-X::from_char (const char *str, size_t len /* = -1 */, bool sorted /* = false */)
+/* static */ UserClass*
+UserClass::from_char (const char *str, size_t len /* = -1 */,
+                      bool sorted /* = false */)
 {
     // handle null pointers
     if (!str)
@@ -500,35 +501,36 @@ X::from_char (const char *str, size_t len /* = -1 */, bool sorted /* = false */)
     xinit_begin = str;
 
     // save the previous pointer to the initializer function
-    int (*gen_save)() = X::gen_;
+    int (*gen_save)() = UserClass::gen_;
 
     // set the generating function
-    X::gen_ = xinit;
+    UserClass::gen_ = xinit;
 
-    X *array = 0;
+    UserClass *array = 0;
 
     _TRY {
         // allocate and construct `len' elements, initializing
         // each from the character array `str' (via `xinit')
-        array = new X [len];
+        array = new UserClass [len];
     }
     _CATCH (...) {
 
         // restore the original initializer function and rethrow
-        X::gen_ = gen_save;
+        UserClass::gen_ = gen_save;
 
         _RETHROW;
     }
 
     // restore the original initializer function
-    X::gen_ = gen_save;
+    UserClass::gen_ = gen_save;
 
     return array;
 }
 
 
-/* static */ const X*
-X::mismatch (const X *xarray, const char *str, size_t len /* = -1 */)
+/* static */ const UserClass*
+UserClass::mismatch (const UserClass *xarray, const char *str,
+                     size_t len /* = -1 */)
 {
     if (!str)
         return xarray;
@@ -549,9 +551,10 @@ X::mismatch (const X *xarray, const char *str, size_t len /* = -1 */)
 
 
 /* static */ int
-X::compare (const X *xarray, const char *str, size_t len /* = -1 */)
+UserClass::compare (const UserClass *xarray, const char *str,
+                    size_t len /* = -1 */)
 {
-    const X* const px = mismatch (xarray, str, len);
+    const UserClass* const px = mismatch (xarray, str, len);
 
     if (px) {
         RW_ASSERT (size_t (px - xarray) < len);
@@ -564,14 +567,15 @@ X::compare (const X *xarray, const char *str, size_t len /* = -1 */)
 
 
 /* static */ int
-X::compare (const char *str, const X *xarray, size_t len /* = -1 */)
+UserClass::compare (const char *str, const UserClass *xarray,
+                    size_t len /* = -1 */)
 {
-    return -X::compare (xarray, str, len);
+    return -UserClass::compare (xarray, str, len);
 }
 
 
 /* static */ int
-X::compare (const X *x, const X *y, size_t count)
+UserClass::compare (const UserClass *x, const UserClass *y, size_t count)
 {
     for (size_t i = 0; i != count; ++i) {
         if (x [i].val_ != y [i].val_)
@@ -613,7 +617,7 @@ operator= (const UnaryPredicate&)
 
 
 /* virtual */ conv_to_bool UnaryPredicate::
-operator()(const X&) const
+operator()(const UserClass&) const
 {
     ++n_total_op_fcall_;
 
@@ -638,7 +642,7 @@ BinaryPredicate (binary_op op): op_ (op)
 
 
 /* virtual */ conv_to_bool BinaryPredicate::
-operator()(const X &lhs, const X &rhs) /* non-const */
+operator()(const UserClass &lhs, const UserClass &rhs) /* non-const */
 {
     ++n_total_op_fcall_;
 
@@ -671,13 +675,13 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     int      paramno  = -1;
     int      cursor   = -1;
 
-    const X* pelem    = 0;
+    const UserClass* pelem    = 0;
 
     // directive syntax:
     // "X=" [ '#' ] [ '+' ] [ '*' | <n> ] [ '.' [ '*' | '@' | <n> ] ]
     // where
-    // '#' causes X::id_ to be included in output
-    // '+' forces X::val_ to be formatted as an integer (otherwise
+    // '#' causes UserClass::id_ to be included in output
+    // '+' forces UserClass::val_ to be formatted as an integer (otherwise
     //     it is formatted as an (optionally escaped) character
     // '*' or <n> is the number of elements in the sequence (the
     //     first occurrence)
@@ -693,13 +697,13 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     fmt += 2;
 
     if ('+' == *fmt) {
-        // use numerical formatting for X::val_
+        // use numerical formatting for UserClass::val_
         fl_plus = true;
         ++fmt;
     }
 
     if ('#' == *fmt) {
-        // include X::id_ in output
+        // include UserClass::id_ in output
         fl_pound = true;
         ++fmt;
     }
@@ -748,7 +752,7 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
 
             // extract the pointer from rw_snprintfa's variable argument
             // list passed through to us by the caller
-            pelem = va_arg (*pva, X*);
+            pelem = va_arg (*pva, UserClass*);
 
             ++fmt;
         }
@@ -768,9 +772,9 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
 
     RW_ASSERT (0 != pva);
 
-    // extract a pointer to X from rw_snprintfa's variable argument
+    // extract a pointer to UserClass from rw_snprintfa's variable argument
     // list pass through to us by the caller 
-    const X* const xbeg = va_arg (*pva, X*);
+    const UserClass* const xbeg = va_arg (*pva, UserClass*);
 
     if (-1 != cursor) {
         RW_ASSERT (-1 < cursor);
@@ -781,7 +785,7 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
 
     // extract the address where to store the extracted argument
     // for use by any subsequent positional paramaters
-    const X** const pparam = va_arg (va, const X**);
+    const UserClass** const pparam = va_arg (va, const UserClass**);
 
     RW_ASSERT (0 != pparam);
 
@@ -799,7 +803,7 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     // value returned from rw_asnprintf() (i.e., the number of
     // bytes appended) back to the caller
 
-    for (const X *px = xbeg; px != xbeg + nelems; ++px) {
+    for (const UserClass *px = xbeg; px != xbeg + nelems; ++px) {
         const int n =
             rw_asnprintf (pbuf, pbufsize,
                           "%{+}%{?}>%{;}"

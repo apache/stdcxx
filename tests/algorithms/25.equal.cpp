@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -24,6 +31,7 @@
 #include <cstddef>      // for size_t
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()...
 
 /**************************************************************************/
@@ -66,35 +74,36 @@ void test_equal (std::size_t           N,
     rw_info (0, 0, 0, "std::equal (%s, %1$s, %s%{?}, %s%{;})",
              it1name, it2name, 0 != predicate, predicate);
 
-    // generate sequential values for each default constructed X
+    // generate sequential values for each default constructed UserClass
     // for both lists
-    X::gen_ = gen_seq_2lists;
+    UserClass::gen_ = gen_seq_2lists;
 
     // use ::operator new() to prevent default initialization
-    X *buf1 = _RWSTD_STATIC_CAST (X*, ::operator new (N * sizeof (X)));
-    X *buf2 = _RWSTD_STATIC_CAST (X*, ::operator new (N * sizeof (X)));
+    const std::size_t size = N * sizeof (UserClass);
+    UserClass *buf1 = _RWSTD_STATIC_CAST (UserClass*, ::operator new (size));
+    UserClass *buf2 = _RWSTD_STATIC_CAST (UserClass*, ::operator new (size));
 
     const std::size_t mid_inx = N / 2;
 
     for (std::size_t i = 0; i != N; ++i) {
 
-        // default-construct a new X at the end of the array
-        new (buf1 + i) X ();
+        // default-construct a new UserClass at the end of the array
+        new (buf1 + i) UserClass ();
 
         // build a nearly identical array only missing the N/2-th element
         if (i != mid_inx)
-            new (buf2 + i) X ();
+            new (buf2 + i) UserClass ();
     }
 
-    new (buf2 + mid_inx) X ();
+    new (buf2 + mid_inx) UserClass ();
 
     for (std::size_t i = 0; i != N; ++i) {
     
         // exercise 25.1.8 - std::equal()
-        std::size_t last_n_op_eq  = X::n_total_op_eq_;
+        std::size_t last_n_op_eq  = UserClass::n_total_op_eq_;
 
-        X* const buf1_end = buf1 + i + 1;
-        X* const buf2_end = buf2 + i + 1;
+        UserClass* const buf1_end = buf1 + i + 1;
+        UserClass* const buf2_end = buf2 + i + 1;
 
         const InputIterator1 first1 =
             make_iter (buf1, buf1, buf1_end, it1_dummy);
@@ -108,7 +117,8 @@ void test_equal (std::size_t           N,
         bool res;
 
         if (predicate) {
-            res = std::equal (first1, last1, first2, std::equal_to<X>());
+            res = std::equal (first1, last1, first2,
+                              std::equal_to<UserClass>());
         }
         else {
             res = std::equal (first1, last1, first2);
@@ -126,13 +136,13 @@ void test_equal (std::size_t           N,
                    equal_expected, res);
 
         // verify 25.1.8, p2
-        success = X::n_total_op_eq_ - last_n_op_eq <= (N + 1);
+        success = UserClass::n_total_op_eq_ - last_n_op_eq <= (N + 1);
         rw_assert (success, 0, __LINE__, 
                    "%zu. equal(%s, %2$s, %s%s%{?}, %s%{;}) complexity: "
                    "%zu <= %zu",
                    i + 1, it1name, it2name,
                    0 != predicate, predicate,
-                   X::n_total_op_eq_, i + 1);
+                   UserClass::n_total_op_eq_, i + 1);
 
         if (!success)
             break;
@@ -160,7 +170,8 @@ void test_equal (const InputIterator &dummy, T*, const char *predicate)
         rw_note (0, __FILE__, __LINE__, "InputIterator test disabled");
     }
     else {
-        test_equal (N, dummy, InputIter<X>((X*)0, (X*)0, (X*)0), (X*)0,
+        test_equal (N, dummy, InputIter<UserClass>((UserClass*)0,
+                    (UserClass*)0, (UserClass*)0), (UserClass*)0,
                     predicate);
     }
 
@@ -168,21 +179,22 @@ void test_equal (const InputIterator &dummy, T*, const char *predicate)
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
-        test_equal (N, dummy, FwdIter<X>(), (X*)0, predicate);
+        test_equal (N, dummy, FwdIter<UserClass>(), (UserClass*)0, predicate);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        test_equal (N, dummy, BidirIter<X>(), (X*)0, predicate);
+        test_equal (N, dummy, BidirIter<UserClass>(), (UserClass*)0, predicate);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
     }
     else {
-        test_equal (N, dummy, RandomAccessIter<X>(), (X*)0, predicate);
+        test_equal (N, dummy, RandomAccessIter<UserClass>(), (UserClass*)0,
+                    predicate);
     }
 }
 
@@ -202,28 +214,29 @@ test_equal (const char *predicate)
         rw_note (0, __FILE__, __LINE__, "InputIterator test disabled");
     }
     else {
-        test_equal (InputIter<X>((X*)0, (X*)0, (X*)0), (X*)0, predicate);
+        test_equal (InputIter<UserClass>((UserClass*)0, (UserClass*)0,
+                    (UserClass*)0), (UserClass*)0, predicate);
     }
 
     if (rw_opt_no_fwd_iter) {
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
-        test_equal (FwdIter<X>(), (X*)0, predicate);
+        test_equal (FwdIter<UserClass>(), (UserClass*)0, predicate);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        test_equal (BidirIter<X>(), (X*)0, predicate);
+        test_equal (BidirIter<UserClass>(), (UserClass*)0, predicate);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
     }
     else {
-        test_equal (RandomAccessIter<X>(), (X*)0, predicate);
+        test_equal (RandomAccessIter<UserClass>(), (UserClass*)0, predicate);
     }
 
 }
@@ -239,7 +252,7 @@ run_test (int, char*[])
         rw_note (0, __FILE__, __LINE__, "Predicate test disabled");
     }
     else {
-        test_equal ("std::equal_to<X>");
+        test_equal ("std::equal_to<UserClass>");
     }
 
     return 0;

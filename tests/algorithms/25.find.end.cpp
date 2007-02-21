@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -24,6 +31,7 @@
 #include <cstring>      // for size_t, strlen()
 
 #include <alg_test.h>   
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -183,7 +191,7 @@ void run_tests (const ForwardIterator1& dummy_iter1,
     
 #define TEST(src, fnd, off_res) \
     do_test (__LINE__, src, fnd, std::size_t (off_res), \
-             dummy_iter1, dummy_iter2, (X*)0, predicate)
+             dummy_iter1, dummy_iter2, (UserClass*)0, predicate)
 
     //    +------------------ subject sequence
     //    |                +--- sequence to be found
@@ -282,21 +290,22 @@ test_find_end (const char* predicate)
         rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {       
-        run_test_find_end (FwdIter<X>(), (X*)0, predicate);
+        run_test_find_end (FwdIter<UserClass>(), (UserClass*)0, predicate);
     }
 
     if (rw_opt_no_bidir_iter) {
         rw_note (0, __FILE__, __LINE__, "BidirectionalIterator test disabled");
     }
     else {
-        run_test_find_end (BidirIter<X>(), (X*)0, predicate);
+        run_test_find_end (BidirIter<UserClass>(), (UserClass*)0, predicate);
     }
 
     if (rw_opt_no_rnd_iter) {
         rw_note (0, __FILE__, __LINE__, "RandomAccessIterator test disabled");
     }
     else {
-        run_test_find_end (RandomAccessIter<X>(), (X*)0, predicate);
+        run_test_find_end (RandomAccessIter<UserClass>(), (UserClass*)0,
+                           predicate);
     }
 }
 
@@ -311,7 +320,7 @@ run_test (int, char*[])
         rw_note (0, __FILE__, __LINE__, "Predicate test disabled");
     }
     else {
-        test_find_end ("std::equal_to<X>");
+        test_find_end ("std::equal_to<UserClass>");
     }
                 
     return 0;

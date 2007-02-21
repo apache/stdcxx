@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http:www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  ***************************************************************************/
 
@@ -24,6 +31,7 @@
 #include <csetjmp>      // for setjmp, longjmp
 
 #include <alg_test.h>
+#include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test()
 
 /**************************************************************************/
@@ -54,8 +62,8 @@ extern "C" {
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-        return   (*_RWSTD_STATIC_CAST (const X*, x)).val_
-               - (*_RWSTD_STATIC_CAST (const X*, y)).val_;
+        return   (*_RWSTD_STATIC_CAST (const UserClass*, x)).val_
+               - (*_RWSTD_STATIC_CAST (const UserClass*, y)).val_;
     }
 }
 
@@ -71,8 +79,8 @@ extern "C++" {
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-        return   (*_RWSTD_STATIC_CAST (const X*, x)).val_
-               - (*_RWSTD_STATIC_CAST (const X*, y)).val_;
+        return   (*_RWSTD_STATIC_CAST (const UserClass*, x)).val_
+               - (*_RWSTD_STATIC_CAST (const UserClass*, y)).val_;
     }
 }
 
@@ -85,8 +93,8 @@ test_qsort (int          line,
             std::size_t  nsrc,
             bool         cxx) 
 {
-    X* const xsrc = X::from_char (src, nsrc);
-    X* const xsrc_end = xsrc + nsrc;
+    UserClass* const xsrc = UserClass::from_char (src, nsrc);
+    UserClass* const xsrc_end = xsrc + nsrc;
     RW_ASSERT (0 == nsrc || 0 != xsrc);
 
     if (cxx)
@@ -166,24 +174,25 @@ test_bsearch (int          line,
               std::size_t  res,
               bool         cxx) 
 {
-    X* const xsrc = X::from_char (src, nsrc, true); // must be sorted
+    UserClass* const xsrc = UserClass::from_char (src, nsrc,
+                                                  true); // must be sorted
     RW_ASSERT (0 == nsrc || 0 != xsrc);
 
-    X key;
+    UserClass key;
     key.val_ = key_val;
 
     const void* result = cxx ?
         std::bsearch (&key, xsrc, nsrc, sizeof *xsrc, cxx_comp)
       : std::bsearch (&key, xsrc, nsrc, sizeof *xsrc, c_comp);
 
-    const X* exp_res = res == _RWSTD_SIZE_MAX ? 0 : xsrc + res;
+    const UserClass* exp_res = res == _RWSTD_SIZE_MAX ? 0 : xsrc + res;
 
     bool success = result == exp_res;
     rw_assert (success, 0, line, 
                "line %d: extern \"C%{?}++%{;}\" bsearch (\"%s\", %#c, ...) "
                "== %p, got %p, difference is %td elements",
                __LINE__, cxx, src, key_val, result, exp_res,
-               _RWSTD_STATIC_CAST (const X*, result) - exp_res);
+               _RWSTD_STATIC_CAST (const UserClass*, result) - exp_res);
 
     delete[] xsrc;
 }
