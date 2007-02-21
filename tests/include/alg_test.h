@@ -685,17 +685,17 @@ struct FwdIter: ITER_BASE (std::forward_iterator_tag, T, int, T*, T&)
 
 
 template <class T>
-struct ConstFwdIter: FwdIter<T>
+struct ConstFwdIter: FwdIter<const T>
 {
-    typedef T                   value_type;
-    typedef FwdIter<value_type> Base;
+    typedef T                         value_type;
+    typedef FwdIter<const value_type> Base;
 
     ConstFwdIter (): Base () { }
 
     ConstFwdIter (const value_type *cur,
                   const value_type *begin,
                   const value_type *end)
-        : Base (_RWSTD_CONST_CAST (value_type*, cur), begin, end) { }
+        : Base (cur, begin, end) { }
 
     const value_type& operator* () const {
         return Base::operator* ();
@@ -780,17 +780,17 @@ struct BidirIter: ITER_BASE (std::bidirectional_iterator_tag, T, int, T*, T&)
 
 
 template <class T>
-struct ConstBidirIter: BidirIter<T>
+struct ConstBidirIter: BidirIter<const T>
 {
-    typedef T                     value_type;
-    typedef BidirIter<value_type> Base;
+    typedef T                           value_type;
+    typedef BidirIter<const value_type> Base;
 
     ConstBidirIter (): Base () { }
 
     ConstBidirIter (const value_type *cur,
                     const value_type *begin,
                     const value_type *end)
-        : Base (_RWSTD_CONST_CAST (value_type*, cur), begin, end) { }
+        : Base (cur, begin, end) { }
 
     const value_type& operator* () const {
         return Base::operator* ();
@@ -925,18 +925,18 @@ struct RandomAccessIter
 /**************************************************************************/
 
 template <class T>
-struct ConstRandomAccessIter: RandomAccessIter<T>
+struct ConstRandomAccessIter: RandomAccessIter<const T>
 {
-    typedef T                              value_type;
-    typedef RandomAccessIter<value_type>   Base;
-    typedef typename Base::difference_type difference_type;
+    typedef T                                  value_type;
+    typedef RandomAccessIter<const value_type> Base;
+    typedef typename Base::difference_type     difference_type;
 
     ConstRandomAccessIter (): Base () { }
 
     ConstRandomAccessIter (const value_type *cur,
                            const value_type *begin,
                            const value_type *end)
-        : Base (_RWSTD_CONST_CAST (value_type*, cur), begin, end) { }
+        : Base (cur, begin, end) { }
 
     const value_type& operator* () const {
         return Base::operator* ();
@@ -1007,7 +1007,7 @@ inline const char* type_name (OutputIter<T>, const T*)
 
 template <class T>
 inline FwdIter<T>
-make_iter (T *cur, const T *begin, const T *end, FwdIter<T>)
+make_iter (T *cur, const T *begin, const T *end, const FwdIter<T>&)
 {
     return FwdIter<T>(cur, begin, end);
 }
@@ -1026,7 +1026,7 @@ inline const char* type_name (FwdIter<T>, const T*)
 
 template <class T>
 inline ConstFwdIter<T>
-make_iter (const T *cur, const T *begin, const T *end, ConstFwdIter<T>)
+make_iter (const T *cur, const T *begin, const T *end, const ConstFwdIter<T>&)
 {
     return ConstFwdIter<T>(cur, begin, end);
 }
@@ -1045,7 +1045,7 @@ inline const char* type_name (ConstFwdIter<T>, const T*)
 
 template <class T>
 inline BidirIter<T>
-make_iter (T *cur, const T *begin, const T *end, BidirIter<T>)
+make_iter (T *cur, const T *begin, const T *end, const BidirIter<T>&)
 {
     return BidirIter<T>(cur, begin, end);
 }
@@ -1064,7 +1064,7 @@ inline const char* type_name (BidirIter<T>, const T*)
 
 template <class T>
 inline ConstBidirIter<T>
-make_iter (const T *cur, const T *begin, const T *end, ConstBidirIter<T>)
+make_iter (const T *cur, const T *begin, const T *end, const ConstBidirIter<T>&)
 {
     return ConstBidirIter<T>(cur, begin, end);
 }
@@ -1083,7 +1083,7 @@ inline const char* type_name (ConstBidirIter<T>, const T*)
 
 template <class T>
 inline RandomAccessIter<T>
-make_iter (T *cur, const T *begin, const T *end, RandomAccessIter<T>)
+make_iter (T *cur, const T *begin, const T *end, const RandomAccessIter<T>&)
 {
     return RandomAccessIter<T>(cur, begin, end);
 }
@@ -1102,7 +1102,8 @@ inline const char* type_name (RandomAccessIter<T>, const T*)
 
 template <class T>
 inline ConstRandomAccessIter<T>
-make_iter (const T *cur, const T *begin, const T *end, ConstRandomAccessIter<T>)
+make_iter (const T *cur, const T *begin, const T *end,
+           const ConstRandomAccessIter<T>&)
 {
     return ConstRandomAccessIter<T>(cur, begin, end);
 }
