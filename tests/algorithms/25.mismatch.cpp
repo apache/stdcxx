@@ -120,16 +120,16 @@ void test_mismatch (std::size_t           N,
 
         // iterators are valid check that the algorithm works correctly
         success = 
-               res_buf1_end->val_ == expected_buf1_end->val_
-            && res_buf2_end->val_ == expected_buf2_end->val_;
+               res_buf1_end->data_.val_ == expected_buf1_end->data_.val_
+            && res_buf2_end->data_.val_ == expected_buf2_end->data_.val_;
 
         rw_assert (success, 0, __LINE__, 
                    "%zu. mismatch (%s, %2$s, %s%{?}, %s%{;}): "
                    "correctness: got: %d "
                    "expected: %d, got: %d expected: %d",
                    i, it1name, it2name, 0 != predicate, predicate,
-                   res_buf1_end->val_, expected_buf1_end->val_,
-                   res_buf2_end->val_, expected_buf2_end->val_);
+                   res_buf1_end->data_.val_, expected_buf1_end->data_.val_,
+                   res_buf2_end->data_.val_, expected_buf2_end->data_.val_);
 
         // verify 25.1.7, p3
         success = UserClass::n_total_op_eq_ - last_n_op_eq <= (N + 1);

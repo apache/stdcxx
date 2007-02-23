@@ -145,7 +145,7 @@ void do_test (int               line,     // line number of test case
     if (res.cur_ != last1.cur_) {
         std::size_t j = 0;
         for ( ; j < nfseq; ++j) {
-            success = (res.cur_ + j)->val_ == fseq[j];
+            success = (res.cur_ + j)->data_.val_ == fseq[j];
             if (!success)
                 break;
         }
@@ -154,7 +154,7 @@ void do_test (int               line,     // line number of test case
                    "line %d: find_end<%s, %s>(it = \"%s\", \"%s\")"
                    " expected value %c got %c at %zu position",
                    __LINE__, it1name, it2name, src, fseq,
-                   fseq[j], (res.cur_ + j)->val_, j);
+                   fseq[j], (res.cur_ + j)->data_.val_, j);
 
         if (!success) {
             delete[] tsrc;

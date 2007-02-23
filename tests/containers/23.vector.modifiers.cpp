@@ -361,12 +361,12 @@ void test_insert (int             line,     // line number of call site
 
         typedef unsigned char UChar;
 
-        if (ptr->val_ != UChar (res [ptr - resbeg])) {
+        if (ptr->data_.val_ != UChar (res [ptr - resbeg])) {
 
             char* const got = new char [vec.size () + 1];
 
             for (Vector::const_pointer p = resbeg; p != resend; ++p) {
-                got [p - resbeg] = char (p->val_);
+                got [p - resbeg] = char (p->data_.val_);
             }
 
             got [vec.size ()] = '\0';

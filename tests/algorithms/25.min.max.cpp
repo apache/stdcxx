@@ -106,7 +106,7 @@ struct Less
     // convertible to bool to detect incorrect assumptions
     conv_to_bool operator() (const T &x, const T &y) /* non-const */ {
         ++funcalls_;
-        return conv_to_bool::make (x.val_ < y.val_);
+        return conv_to_bool::make (x.data_.val_ < y.data_.val_);
     }
 
     static const char* name () { return "Less"; }
@@ -133,8 +133,8 @@ void test_min_max (int              line,
     const char* const funname = Predicate::name();
 
     T ta, tb;
-    ta.val_ = a;
-    tb.val_ = b;
+    ta.data_.val_ = a;
+    tb.data_.val_ = b;
 
     const int exp_id =
         test_min ? b < a ? tb.id_ : ta.id_ : b > a ? tb.id_ : ta.id_;
@@ -148,11 +148,11 @@ void test_min_max (int              line,
       : test_min ? std::min (ta, tb) : std::max (ta, tb);
 
     // verify 25.3.7 p2, p3, p5, p6
-    rw_assert (exp_res == res.val_ && exp_id == res.origin_, 0, line,
+    rw_assert (exp_res == res.data_.val_ && exp_id == res.origin_, 0, line,
                "line %d %s <%s%{?}, %s%{;}> (%#c, %#c) returned "
                "value %#c, id %d; expected value %#c, id %d",
                __LINE__, fname, tname, 0 != ppred, funname, a, b,
-               res.val_, res.origin_, exp_res, exp_id);
+               res.data_.val_, res.origin_, exp_res, exp_id);
 }
 
 /**************************************************************************/

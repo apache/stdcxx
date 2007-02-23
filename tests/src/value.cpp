@@ -1,6 +1,6 @@
 /************************************************************************
  *
- * value.cpp - defines a User Defined type
+ * value.cpp - definitions of UserClass and UserPOD class members
  *
  * $Id$
  *
@@ -36,6 +36,7 @@
 
 
 #include <rw_value.h>
+#include <rw_char.h>    // for rw_expand()
 #include <rw_printf.h>
 
 
@@ -90,7 +91,7 @@
 
 
 UserClass::UserClass ()
-    : id_ (++id_gen_), origin_ (id_), src_id_ (id_), val_ (0),
+    : data_ (), id_ (++id_gen_), origin_ (id_), src_id_ (id_),
       n_copy_ctor_ (0), n_op_assign_ (0), n_op_eq_ (0), n_op_lt_ (0)
 {
     // increment the total number of invocations of the default ctor
@@ -109,7 +110,7 @@ UserClass::UserClass ()
 
     // initialize the object's value
     if (gen_)
-        val_ = gen_ ();
+        data_.val_ = gen_ ();
 
     // increment the number of successfully constructed objects
     ++count_;
@@ -117,8 +118,8 @@ UserClass::UserClass ()
 
 
 UserClass::UserClass (const UserClass &rhs)
-    : id_ (++id_gen_), origin_ (rhs.origin_), src_id_ (rhs.id_),
-      val_ (rhs.val_),
+    : data_ (rhs.data_), id_ (++id_gen_), origin_ (rhs.origin_),
+      src_id_ (rhs.id_),
       n_copy_ctor_ (0), n_op_assign_ (0), n_op_eq_ (0), n_op_lt_ (0)
 {
     // verify id validity
@@ -209,7 +210,7 @@ assign (assign_op which, const UserClass &rhs)
         p_op       = &n_op_assign_;
         p_throw    = op_assign_throw_ptr_;
         pex        = &ex_assign;
-        new_val    = rhs.val_;
+        new_val    = rhs.data_.val_;
         break;
 
     case op_plus_assign:
@@ -217,7 +218,7 @@ assign (assign_op which, const UserClass &rhs)
         p_op       = &n_op_plus_assign_;
         p_throw    = op_plus_assign_throw_ptr_;
         pex        = &ex_plus_assign;
-        new_val    = val_ + rhs.val_;
+        new_val    = data_.val_ + rhs.data_.val_;
         break;
 
     case op_minus_assign:
@@ -225,7 +226,7 @@ assign (assign_op which, const UserClass &rhs)
         p_op       = &n_op_minus_assign_;
         p_throw    = op_minus_assign_throw_ptr_;
         pex        = &ex_minus_assign;
-        new_val    = val_ - rhs.val_;
+        new_val    = data_.val_ - rhs.data_.val_;
         break;
 
     case op_times_assign:
@@ -233,7 +234,7 @@ assign (assign_op which, const UserClass &rhs)
         p_op       = &n_op_times_assign_;
         p_throw    = op_times_assign_throw_ptr_;
         pex        = &ex_times_assign;
-        new_val    = val_ * rhs.val_;
+        new_val    = data_.val_ * rhs.data_.val_;
         break;
 
     case op_div_assign:
@@ -241,7 +242,7 @@ assign (assign_op which, const UserClass &rhs)
         p_op       = &n_op_div_assign_;
         p_throw    = op_div_assign_throw_ptr_;
         pex        = &ex_div_assign;
-        new_val    = val_ / rhs.val_;
+        new_val    = data_.val_ / rhs.data_.val_;
         break;
     }
 
@@ -268,7 +269,7 @@ assign (assign_op which, const UserClass &rhs)
 
     origin_ = rhs.origin_;
     src_id_ = rhs.id_;
-    val_    = new_val;
+    data_.val_    = new_val;
 }
 
 
@@ -350,7 +351,7 @@ UserClass::operator== (const UserClass &rhs) const
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    return val_ == rhs.val_;
+    return data_.val_ == rhs.data_.val_;
 }
 
 
@@ -387,7 +388,7 @@ UserClass::operator< (const UserClass &rhs) const
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-    return val_ < rhs.val_;
+    return data_.val_ < rhs.data_.val_;
 }
 
 
@@ -466,61 +467,58 @@ static int xinit ()
 }
 
 
-/* static */ UserClass*
-UserClass::from_char (const char *str, size_t len /* = -1 */,
-                      bool sorted /* = false */)
+template <class T>
+static T*
+__rw_from_char (T*, const char *str, size_t len, bool sorted)
 {
     // handle null pointers
     if (!str)
         return 0;
 
-    // compute the length of the character array if not specified
-    if (size_t (-1) == len)
-        len = strlen (str);
+    // expand source string
+    char str_buf_ [256];
+    size_t strlen_ = sizeof (str_buf_);
+    const char* const str_ = rw_expand (str_buf_, str, len, &strlen_);
 
     if (sorted) {
         // verify that the sequence is sorted
-        for (size_t i = 1; i < len; ++i) {
-            if (str [i] < str [i - 1]) {
+        for (size_t i = 1; i < strlen_; ++i) {
+            if (str_ [i] < str_ [i - 1]) {
+                if (str_buf_ != str_)
+                    delete[] str_;
                 return 0;
             }
         }
     }
 
-    // set the global pointer to point to the beginning of `str'
-    xinit_begin = str;
-
-    // save the previous pointer to the initializer function
-    int (*gen_save)() = UserClass::gen_;
-
-    // set the generating function
-    UserClass::gen_ = xinit;
-
-    UserClass *array = 0;
+    T*array = 0;
 
     _TRY {
-        // allocate and construct `len' elements, initializing
-        // each from the character array `str' (via `xinit')
-        array = new UserClass [len];
+        array = new T [strlen_];
     }
     _CATCH (...) {
 
-        // restore the original initializer function and rethrow
-        UserClass::gen_ = gen_save;
+        if (str_buf_ != str_)
+            delete[] str_;
 
         _RETHROW;
     }
 
-    // restore the original initializer function
-    UserClass::gen_ = gen_save;
+    typedef unsigned char UChar;
+
+    for (size_t i = 0; i < strlen_; ++i)
+        array [i].data_.val_ = UChar (str_ [i]);
+
+    if (str_buf_ != str_)
+        delete[] str_;
 
     return array;
 }
 
 
-/* static */ const UserClass*
-UserClass::mismatch (const UserClass *xarray, const char *str,
-                     size_t len /* = -1 */)
+template <class T>
+static const T*
+__rw_mismatch (const T *xarray, const char *str, size_t len)
 {
     if (!str)
         return xarray;
@@ -532,11 +530,27 @@ UserClass::mismatch (const UserClass *xarray, const char *str,
 
         const int val = UChar (str [i]);
 
-        if (val != xarray [i].val_)
+        if (val != xarray [i].data_.val_)
             return xarray + i;
     }
 
     return 0;
+}
+
+
+/* static */ UserClass*
+UserClass::from_char (const char *str, size_t len /* = -1 */,
+                      bool sorted /* = false */)
+{
+    return __rw_from_char ((UserClass*)0, str, len, sorted);
+}
+
+
+/* static */ const UserClass*
+UserClass::mismatch (const UserClass *xarray, const char *str,
+                     size_t len /* = -1 */)
+{
+    return __rw_mismatch (xarray, str, len);
 }
 
 
@@ -549,7 +563,7 @@ UserClass::compare (const UserClass *xarray, const char *str,
     if (px) {
         RW_ASSERT (size_t (px - xarray) < len);
 
-        return px->val_ - int (UChar (str [px - xarray]));
+        return px->data_.val_ - int (UChar (str [px - xarray]));
     }
 
     return 0;
@@ -568,11 +582,27 @@ UserClass::compare (const char *str, const UserClass *xarray,
 UserClass::compare (const UserClass *x, const UserClass *y, size_t count)
 {
     for (size_t i = 0; i != count; ++i) {
-        if (x [i].val_ != y [i].val_)
-            return x [i].val_ - y [i].val_;
+        if (x [i].data_.val_ != y [i].data_.val_)
+            return x [i].data_.val_ - y [i].data_.val_;
     }
 
     return 0;
+}
+
+
+/* static */ UserPOD*
+UserPOD::from_char (const char *str, size_t len /* = -1 */,
+                    bool sorted /* = false */)
+{
+    return __rw_from_char ((UserPOD*)0, str, len, sorted);
+}
+
+
+/* static */ const UserPOD*
+UserPOD::mismatch (const UserPOD *xarray, const char *str,
+                   size_t len /* = -1 */)
+{
+    return __rw_mismatch (xarray, str, len);
 }
 
 
@@ -639,12 +669,12 @@ operator()(const UserClass &lhs, const UserClass &rhs) /* non-const */
     bool result;
 
     switch (op_) {
-    case op_equals:        result = lhs.val_ == rhs.val_; break;
-    case op_not_equals:    result = !(lhs.val_ == rhs.val_); break;
-    case op_less:          result = lhs.val_ < rhs.val_; break;
-    case op_less_equal:    result = !(rhs.val_ < lhs.val_); break;
-    case op_greater:       result = rhs.val_ < lhs.val_; break;
-    case op_greater_equal: result = !(rhs.val_ < lhs.val_); break;
+    case op_equals:        result = lhs.data_.val_ == rhs.data_.val_; break;
+    case op_not_equals:    result = !(lhs.data_.val_ == rhs.data_.val_); break;
+    case op_less:          result = lhs.data_.val_ < rhs.data_.val_; break;
+    case op_less_equal:    result = !(rhs.data_.val_ < lhs.data_.val_); break;
+    case op_greater:       result = rhs.data_.val_ < lhs.data_.val_; break;
+    case op_greater_equal: result = !(rhs.data_.val_ < lhs.data_.val_); break;
     }
 
     return conv_to_bool::make (result);
@@ -671,8 +701,8 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     // "X=" [ '#' ] [ '+' ] [ '*' | <n> ] [ '.' [ '*' | '@' | <n> ] ]
     // where
     // '#' causes UserClass::id_ to be included in output
-    // '+' forces UserClass::val_ to be formatted as an integer (otherwise
-    //     it is formatted as an (optionally escaped) character
+    // '+' forces UserClass::data_.val_ to be formatted as an integer (
+    //     otherwise it is formatted as an (optionally escaped) character
     // '*' or <n> is the number of elements in the sequence (the
     //     first occurrence)
     // '*', <n> is the offset of the cursor within the sequence
@@ -687,7 +717,7 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     fmt += 2;
 
     if ('+' == *fmt) {
-        // use numerical formatting for UserClass::val_
+        // use numerical formatting for UserClass::data_.val_
         fl_plus = true;
         ++fmt;
     }
@@ -802,9 +832,9 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
                           "%{?}<%{;}",
                           px == pelem,                    // '>'
                           fl_pound, px->id_,              // "<id>:"
-                          fl_plus, px->val_,              // <val>
+                          fl_plus, px->data_.val_,        // <val>
                           px + 1 < xbeg + nelems,         // ','
-                          px->val_,                       // <val>
+                          px->data_.val_,                 // <val>
                           px == pelem);                   // '<'
         if (n < 0)
             return n;

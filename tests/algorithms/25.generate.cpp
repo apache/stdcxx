@@ -122,7 +122,7 @@ void test_generate (std::size_t N,
         const Generator<T> gen (0, 0);
 
         // store the value of the next element
-        const int last_val = Generator<T>(0, 0)().val_;
+        const int last_val = Generator<T>(0, 0)().data_.val_;
 
         std::generate (begin, end, gen);
 
@@ -131,14 +131,14 @@ void test_generate (std::size_t N,
         // verify 25.2.6, p2
         std::size_t j = 0;
         for ( ; j != i; ++j) {
-            success = (begin.cur_ + j)->val_ == int (last_val + j + 1);
+            success = (begin.cur_ + j)->data_.val_ == int (last_val + j + 1);
             if (!success)
                 break;
         }
 
         rw_assert (success, 0, __LINE__, 
                    "%zu. generate (): buf[%zu]: %d != %d",
-                   i + 1, j, last_val + j + 1, (begin.cur_ + j)->val_ );
+                   i + 1, j, last_val + j + 1, (begin.cur_ + j)->data_.val_ );
 
         if (!success)
             break;
@@ -190,7 +190,7 @@ void test_generate_n (std::size_t            N,
         const Generator<T> gen (0, 0);
 
         // store the value of the next element
-        const int last_val = Generator<T>(0, 0)().val_;
+        const int last_val = Generator<T>(0, 0)().data_.val_;
 
         std::generate_n (begin, n, gen);
 
@@ -199,14 +199,14 @@ void test_generate_n (std::size_t            N,
         // verify 25.2.6, p2
         std::size_t j = 0;
         for ( ; j != i; ++j) {
-            success = (begin.cur_ + j)->val_ == int (last_val + j + 1);
+            success = (begin.cur_ + j)->data_.val_ == int (last_val + j + 1);
             if (!success)
                 break;
         }
 
         rw_assert (success, 0, __LINE__, 
                    "%zu. generate_n (): buf[%zu]: %d != %d",
-                   i + 1, j, last_val + j + 1, (begin.cur_ + j)->val_ );
+                   i + 1, j, last_val + j + 1, (begin.cur_ + j)->data_.val_ );
 
         if (!success)
             break;

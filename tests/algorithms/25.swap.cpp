@@ -89,13 +89,13 @@ void test_iter_swap (int line,
         const ForwardIterator2 it2 = 
             make_iter (tseq + i, tseq, tseq + nseq, it2);
 
-        a_val = (*it1).val_;
-        b_val = (*it2).val_;
+        a_val = (*it1).data_.val_;
+        b_val = (*it2).data_.val_;
 
         it_swap ? std::iter_swap (it1, it2) : std::swap(*it1, *it2);
 
         // verify 25.2.2, p2, p7
-        success = a_val == (*it2).val_ && b_val == (*it1).val_;
+        success = a_val == (*it2).data_.val_ && b_val == (*it1).data_.val_;
         if (!success)
             break;
     }
@@ -103,8 +103,8 @@ void test_iter_swap (int line,
     rw_assert (success, 0, line,
                "%s<%s%{?}, %s%{;}>(%#c, %#c): got: { %#c, %#c } "
                "expected: { %5$#c, %4$#c } at step %zu",
-               fname, it1name, it_swap, it2name, a_val, b_val, tseq->val_, 
-               (tseq + i)->val_, i);
+               fname, it1name, it_swap, it2name, a_val, b_val,
+               tseq->data_.val_, (tseq + i)->data_.val_, i);
 
     delete[] tseq;
 }
@@ -195,7 +195,8 @@ void test_swap_ranges (int              line,
     // check that the sequences were swapped, 25.2.2 p4
     std::size_t i = 0;
     for ( ; i < nseq; ++i) {
-        success = (tseq1 + i)->val_ == seq2[i] && (tseq2 + i)->val_ == seq1[i];
+        success =    (tseq1 + i)->data_.val_ == seq2[i]
+                  && (tseq2 + i)->data_.val_ == seq1[i];
         if (!success)
             break;
     }
@@ -203,8 +204,8 @@ void test_swap_ranges (int              line,
     rw_assert (success, 0, line, 
                "swap_ranges<%s, %s>(\"%s\", \"%s\") mismatch at pos %zu "
                "got { %#c, %#c }, expected { %#c, %#c }",
-               it1name, it2name, seq1, seq2, i,
-               (tseq1 + i)->val_, (tseq2 + i)->val_, seq2[i], seq1[i]);
+               it1name, it2name, seq1, seq2, i, (tseq1 + i)->data_.val_,
+               (tseq2 + i)->data_.val_, seq2[i], seq1[i]);
 
     // check the complexity, 25.2.2 p6
     std::size_t swaps_per_swap_ranges =

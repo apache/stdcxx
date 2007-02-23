@@ -63,7 +63,7 @@ struct ConstFunction: FunctionBase
 
     void operator() (UserClass val)  /* not const */ {
         ++funcalls_;
-        sum_ += val.val_;
+        sum_ += val.data_.val_;
     }
 
     static const char* name () { return "ConstFunction"; }
@@ -78,7 +78,7 @@ struct MutableFunction: FunctionBase
 
     void operator() (UserClass &val) /* not const */ {
         ++funcalls_;
-        val.val_ = -val.val_;
+        val.data_.val_ = -val.data_.val_;
     }
 
     static const char* name () { return "MutableFunction"; }
@@ -99,7 +99,7 @@ void test_for_each (std::size_t N, InputIterator dummy, T*, Function*)
 
     UserClass *buf = new UserClass [N];
 
-    const int first_val = buf [0].val_;
+    const int first_val = buf [0].data_.val_;
 
     for (std::size_t i = 0; i != N; ++i) {
 
@@ -133,21 +133,21 @@ void test_for_each (std::size_t N, InputIterator dummy, T*, Function*)
             }
 
             // compute the sum (computed by the const function object)
-            sum += buf [j].val_;
+            sum += buf [j].data_.val_;
 
             // assert the element value as the same as the expected value
-            rw_assert (expect == buf [j].val_, 0, __LINE__,
+            rw_assert (expect == buf [j].data_.val_, 0, __LINE__,
                        "for_each (%s, %1$s, %s); element [%zu] == %d, got %d",
-                       itname, fnname, j, expect, buf [j].val_);
+                       itname, fnname, j, expect, buf [j].data_.val_);
 
-            if (expect != buf [j].val_) {
+            if (expect != buf [j].data_.val_) {
                 // break out of both loops on failure
                 i = N;
                 break;
             }
 
             // restore the original value of the element
-            buf [j].val_ = first_val + int (j);
+            buf [j].data_.val_ = first_val + int (j);
         }
 
         // assert that for_each invoked the function object's operator()

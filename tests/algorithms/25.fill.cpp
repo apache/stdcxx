@@ -97,12 +97,13 @@ void test_fill (std::size_t            N,
         // verify 25.2.5, p2
         std::size_t j = 0;
         for ( ; success && j != i; ++j) {
-            success = buf [j].val_ == value.val_;
+            success = buf [j].data_.val_ == value.data_.val_;
         }
 
         if (!rw_assert (success, 0, __LINE__, 
                         "%zu. fill (%s, %2$s, const %s&): buf [%zu]: %d != %d",
-                        i, itname, tname, j, buf [j].val_, value.val_))
+                        i, itname, tname, j, buf [j].data_.val_,
+                        value.data_.val_))
             break;
 
         // verify the complexity requirements:
@@ -161,12 +162,13 @@ void test_fill_n (std::size_t           N,
         // verify 25.2.5, p2
         std::size_t j = 0;
         for ( ; success && j != i; ++j) {
-            success = buf [j].val_ == value.val_;
+            success = buf [j].data_.val_ == value.data_.val_;
         }
 
         rw_assert (success, 0, __LINE__, 
                    "%zu. fill_n (%s, %s, const %s&): buf [%zu]: %d != %d",
-                   i, itname, szname, tname, j, buf [j].val_, value.val_);
+                   i, itname, szname, tname, j, buf [j].data_.val_,
+                   value.data_.val_);
 
         if (!success)
             break;

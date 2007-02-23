@@ -121,7 +121,7 @@ struct Accumulator
                                      const UserClass &y) /* non-const */ {
         ++funcalls_;
         UserClass res (x);
-        res.val_ += y.val_;
+        res.data_.val_ += y.data_.val_;
         return conv_to_T<UserClass>::make (res);
     }
 
@@ -210,7 +210,7 @@ void test_partial_sum (const std::size_t     N,
         std::size_t k = 0;
         int* const tmp_val = new int [i];
         for (; k < i; ++k)
-            tmp_val [k] = src [k].val_;
+            tmp_val [k] = src [k].data_.val_;
 
         const UserClass* const res =
             alg.partial_sum (src, src_end, dst, dst_end, pbinop);
@@ -229,7 +229,7 @@ void test_partial_sum (const std::size_t     N,
         int sum = 0;
         for (k = 0; k < i; ++k) {
             sum += tmp_val [k];
-            success = dst [k].val_ == sum;
+            success = dst [k].data_.val_ == sum;
             if (!success)
                 break;
         }

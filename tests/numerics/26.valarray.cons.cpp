@@ -117,7 +117,7 @@ make_array (const UserClass*, const char *s, std::size_t *psize)
         RW_ASSERT (0 == end || '\0' == *end || ',' == *end);
 
         new (buf + i) UserClass ();
-        buf [i].val_ = int (val);
+        buf [i].data_.val_ = int (val);
 
         if (0 == end || '\0' == *end) {
             while (++i < nelems)
@@ -151,7 +151,7 @@ delete_array (const UserClass *array, std::size_t nelems)
 
 const std::size_t* count (const UserClass*) { return &UserClass::count_; }
 
-int value (const UserClass &val) { return val.val_; }
+int value (const UserClass &val) { return val.data_.val_; }
 
 /**************************************************************************/
 

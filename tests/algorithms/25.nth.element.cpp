@@ -73,7 +73,7 @@ struct StrictWeakLess
     // convertible to bool to detect incorrect assumptions
     conv_to_bool operator() (const T &x, const T &y) /* non-const */ {
         ++funcalls_;
-        return conv_to_bool::make (x.val_ < y.val_);
+        return conv_to_bool::make (x.data_.val_ < y.data_.val_);
     }
 
     static const char* name () { return "StrictWeakLess"; }
@@ -134,7 +134,7 @@ void test_nth_element (int                 line,
 
     for (i = 0; i < nth; i++) {
         for (j = nth; j < nsrc; j++) {
-            success = xsrc[i].val_ <= xsrc[j].val_;
+            success = xsrc[i].data_.val_ <= xsrc[j].data_.val_;
             if (!success)
                 break;
         }
@@ -152,14 +152,15 @@ void test_nth_element (int                 line,
                    "line %d: %s<%s%{?}, %s%{;}>(\"%s\", %zu, ...) ==> "
                    "\"%{X=*.*}\", got %#c at %zu !< %#c at %zu",
                    __LINE__, fname, itname, ppred, funname, src, nth, 
-                   int (nsrc), -1, xsrc, xsrc[i].val_, i, xsrc[j].val_, j);
+                   int (nsrc), -1, xsrc, xsrc[i].data_.val_, i,
+                   xsrc[j].data_.val_, j);
     }
     else {
         rw_assert (success, 0, line,
                    "line %d: %s<%s%{?}, %s%{;}>(%zu, %zu, ...) "
                    "got %d at %zu !< %d at %zu",
                    __LINE__, fname, itname, ppred, funname, N, nth, 
-                   xsrc[i].val_, i, xsrc[j].val_, j);
+                   xsrc[i].data_.val_, i, xsrc[j].data_.val_, j);
     }
 
     // check the complexity, 25.3.2, p2

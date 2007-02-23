@@ -406,12 +406,12 @@ void test_insert (int line, int exceptions,
     const Deque::const_iterator resend = deq.end ();
 
     for (Deque::const_iterator it = resbeg; it != resend; ++it) {
-        if ((*it).val_ != UChar (res [it - resbeg])) {
+        if ((*it).data_.val_ != UChar (res [it - resbeg])) {
 
             char* const got = new char [deq.size () + 1];
 
             for (Deque::const_iterator i = resbeg; i != resend; ++i) {
-                got [i - resbeg] = char ((*i).val_);
+                got [i - resbeg] = char ((*i).data_.val_);
             }
 
             got [deq.size ()] = '\0';
@@ -918,7 +918,7 @@ void test_assign (int line, int exceptions,
 
         _RWSTD_ASSERT (inx < deq.size ());
 
-        if ((*it).val_ != UChar (res [inx])) {
+        if ((*it).data_.val_ != UChar (res [inx])) {
 
             char* const got = new char [deq.size () + 1];
 
@@ -928,7 +928,7 @@ void test_assign (int line, int exceptions,
 
                 _RWSTD_ASSERT (inx_2 < deq.size ());
 
-                got [inx_2] = char ((*i).val_);
+                got [inx_2] = char ((*i).data_.val_);
             }
 
             got [deq.size ()] = '\0';
@@ -1124,12 +1124,12 @@ void test_erase (int line,
     const Deque::const_iterator resend = deq.end ();
 
     for (Deque::const_iterator it = resbeg; it != resend; ++it) {
-        if ((*it).val_ != UChar (res [it - resbeg])) {
+        if ((*it).data_.val_ != UChar (res [it - resbeg])) {
 
             char* const got = new char [deq.size () + 1];
 
             for (Deque::const_iterator i = resbeg; i != resend; ++i) {
-                got [i - resbeg] = char ((*i).val_);
+                got [i - resbeg] = char ((*i).data_.val_);
             }
 
             got [deq.size ()] = '\0';
