@@ -29,32 +29,20 @@
 
 #include <rw_char.h>        // for rw_expand()
 #include <testdefs.h>
+#include <23.containers.h>  // for ContainerIds
 
 /**************************************************************************/
 
 // defines enumerations identifying basic_string template arguments,
 // sets of overloaded functions, member types used in the declarations
 // of their signatures, and specific overloads of such member functions
-struct StringIds {
+struct StringIds: ContainerIds {
 
     // identifiers for the charT template argument
     enum CharId { Char, WChar, UChar };
 
     // identifiers for the Traits template argument
     enum TraitsId { DefaultTraits, UserTraits };
-
-    // identifiers for the Allocator template argument
-    enum AllocId { DefaultAlloc, UserAlloc };
-
-    // identifiers for the Iterator template argument
-    // used with meber templates
-    enum IteratorId {
-        None,
-        Input, Forward, Bidir, Random,
-        Pointer, ConstPointer,
-        Iterator, ConstIterator,
-        ReverseIterator, ConstReverseIterator
-    };
 
     // identifies a set of overloaded member or non-member
     // string functions
