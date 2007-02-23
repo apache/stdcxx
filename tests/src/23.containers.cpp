@@ -30,6 +30,7 @@
 #include <memory>           // for allocator
 
 #include <23.containers.h>
+#include <23.list.h>
 
 #include <cmdopt.h>         // for rw_enabled()
 #include <rw_allocator.h>   // for UserAlloc
@@ -344,19 +345,174 @@ _rw_argno (size_t which, int arg)
 
 /**************************************************************************/
 
-// temporary, shuld be defined in 23.list.h
-struct ListIds : ContainerIds
-{
-    enum OverloadId {};
-};
-
 static void
 _rw_list_sigcat (char** pbuf, size_t * pbufsize, ListIds::OverloadId which,
                  bool self, const char* str, size_t str_len,
                  const char* arg, size_t arg_len,
                  const ContainerTestCase &tcase)
 {
-    // temporary empty
+    // compute the end offsets for convenience
+    const size_t range1_end = tcase.off + tcase.size;
+    const size_t range2_end = tcase.off2 + tcase.size2;
+
+    // determine whether the function takes an allocator_type argument
+    const bool use_alloc = 0 < _rw_argno (which, ContainerIds::arg_alloc);
+
+    // format and append cont function arguments abbreviating complex
+    // expressions as much as possible to make them easy to understand
+    switch (which) {
+    case ListIds::ctor_ccont:
+    case ListIds::op_set_ccont:
+    case ListIds::swap_cont:
+    case ListIds::merge_cont:
+        // format self-referential cont argument as *this
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} (%{?}*this%{:}%{$Container}(%{#*s})%{;}"
+                      "%{?}, const allocator_type&%{;})",
+                      self, int (arg_len), arg, use_alloc);
+        break;
+
+    case ListIds::assign_size_cref:
+    case ListIds::ctor_size_cref:
+    case ListIds::ctor_size_cref_alloc:
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} (%zu, %{#c}%{?}, const allocator_type&%{;})",
+                      tcase.size, tcase.val, use_alloc);
+        break;
+
+    case ListIds::assign_range:
+    case ListIds::ctor_range:
+    case ListIds::ctor_range_alloc:
+        rw_asnprintf (pbuf, pbufsize, "%{+}<%{$Iterator:-Iterator}>("
+                      "%{?}begin()%{:}%{$Iterator:-Iterator}(%{#*s})%{;}"
+                      "%{?} + %zu%{;}, "
+                      "%{?}begin()%{:}%{$Iterator:-Iterator}(...)%{;}"
+                      "%{?} + %zu%{;}"
+                      "%{?}, const allocator_type&%{;})",
+                      self, int (arg_len), arg,
+                      0 != tcase.off2, tcase.off2,
+                      self, 0 != range2_end, range2_end, use_alloc);
+        break;
+
+    case ListIds::insert_iter_cref:
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} (begin()%{?} + %zu%{;}, %{#c})",
+                      0 != tcase.off, tcase.off, tcase.val);
+        break;
+
+    case ListIds::insert_iter_size_cref:
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} (begin()%{?} + %zu%{;}, %zu, %{#c})",
+                      0 != tcase.off, tcase.off, tcase.size, tcase.val);
+        break;
+
+    case ListIds::insert_iter_range:
+        rw_asnprintf (pbuf, pbufsize, "%{+}<%{$Iterator:-Iterator}>"
+                      "(begin()%{?} + %zu%{;}, "
+                      "%{?}begin()%{:}%{$Iterator:-Iterator}(%{#*s})%{;}"
+                      "%{?} + %zu%{;}, "
+                      "%{?}begin()%{:}%{$Iterator:-Iterator}(...)%{;}"
+                      "%{?} + %zu%{;})",
+                      0 != tcase.off, tcase.off,
+                      self, int (arg_len), arg,
+                      0 != tcase.off2, tcase.off2,
+                      self, 0 != range2_end, range2_end);
+        break;
+
+    case ListIds::push_front_cref:
+    case ListIds::push_back_cref:
+    case ListIds::remove_cref:
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} (%{#c})", tcase.val);
+        break;
+
+    case ListIds::ctor_void:
+    case ListIds::get_allocator_void:
+    case ListIds::begin_void:
+    case ListIds::end_void:
+    case ListIds::rbegin_void:
+    case ListIds::rend_void:
+    case ListIds::empty_void:
+    case ListIds::size_void:
+    case ListIds::max_size_void:
+    case ListIds::front_void:
+    case ListIds::back_void:
+    case ListIds::pop_front_void:
+    case ListIds::pop_back_void:
+    case ListIds::clear_void:
+    case ListIds::sort_void:
+    case ListIds::reverse_void:
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} ()");
+        break;
+
+    case ListIds::begin_const_void:
+    case ListIds::end_const_void:
+    case ListIds::rbegin_const_void:
+    case ListIds::rend_const_void:
+    case ListIds::front_const_void:
+    case ListIds::back_const_void:
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} () const");
+        break;
+
+    case ListIds::ctor_alloc:
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} (const allocator_type&)");
+        break;
+
+    case ListIds::erase_iter:
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} (begin()%{?} + %zu%{;})",
+                      0 != tcase.off, tcase.off);
+        break;
+
+    case ListIds::erase_iter_iter:
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} (begin()%{?} + %zu%{;}, begin()%{?} + %zu%{;})", 
+                      0 != tcase.off, tcase.off,
+                      0 != range1_end, range1_end);
+        break;
+
+    case ListIds::op_equal_ccont_ccont:
+    case ListIds::op_less_ccont_ccont:
+    case ListIds::op_not_equal_ccont_ccont:
+    case ListIds::op_greater_ccont_ccont:
+    case ListIds::op_greater_equal_ccont_ccont:
+    case ListIds::op_less_equal_ccont_ccont:
+        // format zero cont argument without size as arg
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} (%{?}arg2%{:}%{$CLASS}(%{#*s})%{;}, "
+                      "%{?}arg1%{:}%{$CLASS}(%{#*s})%{;})",
+                      0 == str, int (str_len), str, self, int (arg_len), arg);
+        break;
+
+    case ListIds::ctor_size:
+    case ListIds::resize_size:
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} (%zu)", tcase.size);
+        break;
+
+    case ListIds::resize_size_val:
+        rw_asnprintf (pbuf, pbufsize,
+                      "%{+} (%zu, %{#c})", tcase.size, tcase.val);
+        break;
+
+    case ListIds::swap_cont_cont:
+    case ListIds::splice_iter_cont:
+    case ListIds::splice_iter_cont_iter:
+    case ListIds::splice_iter_cont_iter_iter:
+    case ListIds::remove_if_pred:
+    case ListIds::unique_bpred:
+    case ListIds::merge_cont_comp:
+    case ListIds::sort_comp:
+        rw_asnprintf (pbuf, pbufsize,
+                      "not yet defined");
+        break;
+
+    default:
+        RW_ASSERT (!"test logic error: unknown list overload");
+    }
 }
 
 /**************************************************************************/
