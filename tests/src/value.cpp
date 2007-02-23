@@ -89,20 +89,10 @@
 /* static */ size_t UserClass::op_lt_throw_count_           = size_t (-1);
 
 
-static int
-_rw_fmtxarray (char**, size_t*, const char*, ...);
-
-
 UserClass::UserClass ()
     : id_ (++id_gen_), origin_ (id_), src_id_ (id_), val_ (0),
       n_copy_ctor_ (0), n_op_assign_ (0), n_op_eq_ (0), n_op_lt_ (0)
 {
-    // push a new formatter function on top of the stack
-    // of user-defined formatting callbacks invoked by
-    // rw_printf() at al to process extended directives
-    static int format_init = rw_printf ("%{+!}", _rw_fmtxarray);
-    _RWSTD_UNUSED (format_init);
-
     // increment the total number of invocations of the default ctor
     // (do so even if the function throws an exception below)
     ++n_total_def_ctor_;
@@ -848,4 +838,16 @@ _rw_fmtxarray (char **pbuf, size_t *pbufsize, const char *fmt, ...)
     va_end (va);
 
     return nbytes;
+}
+
+
+UserClassFmatInit::
+UserClassFmatInit ()
+{
+    // push a new formatter function on top of the stack
+    // of user-defined formatting callbacks invoked by
+    // rw_printf() at al to process extended directives
+    static int format_init = rw_printf ("%{+!}", _rw_fmtxarray);
+
+    _RWSTD_UNUSED (format_init);
 }

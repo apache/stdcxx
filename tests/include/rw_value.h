@@ -273,4 +273,9 @@ struct UserClass::Less: BinaryPredicate
 };
 
 
+static const struct _TEST_EXPORT UserClassFmatInit {
+    UserClassFmatInit ();
+} _rw_user_class_fmat_init;
+
+
 #endif   // RW_VALUE_H_INCLUDED
