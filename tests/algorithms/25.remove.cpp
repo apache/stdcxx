@@ -154,7 +154,7 @@ void test_remove (int line,
 
     // construct an element to remove
     T to_remove;
-    to_remove.val_ = val;
+    to_remove.data_.val_ = val;
 
     // construct a predicate object (used with remove_if() only)
     const Predicate pred (to_remove, 0);
@@ -190,7 +190,7 @@ void test_remove (int line,
     // anywhere in the range [first, end) : p 25.2.7.2
     std::size_t i = 0;
     for ( ; i != nsrc - nrem; ++i) {
-        success = UChar (val) != xsrc [i].val_;
+        success = UChar (val) != xsrc [i].data_.val_;
         if (!success)
             break;
     }
@@ -221,7 +221,7 @@ void test_remove (int line,
     // are unchanged 
     success = true;
     for (i = nsrc - nrem; i != nsrc; ++i) {
-        success = src [i] == xsrc [i].val_;
+        success = src [i] == xsrc [i].data_.val_;
         if (!success)
             break;
     }
@@ -270,7 +270,7 @@ void test_remove (int line,
     T* const xdst = T::from_char (src, nsrc);
 
     T to_remove;
-    to_remove.val_ = val;
+    to_remove.data_.val_ = val;
 
     const Predicate pred (to_remove, 0);
 
@@ -299,7 +299,7 @@ void test_remove (int line,
     // in the range [result, end)
     std::size_t i = 0;
     for ( ; i != nsrc - nrem; ++i) {
-        success = UChar (val) != xdst [i].val_;
+        success = UChar (val) != xdst [i].data_.val_;
         if (!success)
             break;
     }

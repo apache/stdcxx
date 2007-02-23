@@ -62,8 +62,8 @@ extern "C" {
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-        return   (*_RWSTD_STATIC_CAST (const UserClass*, x)).val_
-               - (*_RWSTD_STATIC_CAST (const UserClass*, y)).val_;
+        return   (*_RWSTD_STATIC_CAST (const UserClass*, x)).data_.val_
+               - (*_RWSTD_STATIC_CAST (const UserClass*, y)).data_.val_;
     }
 }
 
@@ -79,8 +79,8 @@ extern "C++" {
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-        return   (*_RWSTD_STATIC_CAST (const UserClass*, x)).val_
-               - (*_RWSTD_STATIC_CAST (const UserClass*, y)).val_;
+        return   (*_RWSTD_STATIC_CAST (const UserClass*, x)).data_.val_
+               - (*_RWSTD_STATIC_CAST (const UserClass*, y)).data_.val_;
     }
 }
 
@@ -179,7 +179,7 @@ test_bsearch (int          line,
     RW_ASSERT (0 == nsrc || 0 != xsrc);
 
     UserClass key;
-    key.val_ = key_val;
+    key.data_.val_ = key_val;
 
     const void* result = cxx ?
         std::bsearch (&key, xsrc, nsrc, sizeof *xsrc, cxx_comp)

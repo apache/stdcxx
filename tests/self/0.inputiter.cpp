@@ -129,8 +129,8 @@ test_0 ()
     FAIL (x [0] = *end0);
     FAIL (x [0] = *end1);
 
-    FAIL (equal = int ('a') == end0->val_);
-    FAIL (equal = int ('a') == end1->val_);
+    FAIL (equal = int ('a') == end0->data_.val_);
+    FAIL (equal = int ('a') == end1->data_.val_);
 
     delete[] x;
 }
@@ -271,9 +271,10 @@ test_3 ()
     PASS (y [0] = *it0);
     PASS (y [1] = *it1);
 
-    rw_assert (y [0].val_ == y [1].val_, 0, __LINE__,
+    rw_assert (y [0].data_.val_ == y [1].data_.val_, 0, __LINE__,
                "two copies of InputIter<UserClass> unexpectedly yield "
-               "different values: %d != %d", y [0].val_, y [1].val_);
+               "different values: %d != %d",
+               y [0].data_.val_, y [1].data_.val_);
 
     PASS (it0++);
     FAIL (it1++);        // can't pass through the same iterator twice
@@ -296,13 +297,14 @@ test_3 ()
     PASS (y [0] = *it0);
     PASS (y [1] = *it1);
 
-    rw_assert (y [0].val_ == y [1].val_, 0, __LINE__,
+    rw_assert (y [0].data_.val_ == y [1].data_.val_, 0, __LINE__,
                "two copies of InputIter<UserClass> unexpectedly yield "
-               "different values: %d != %d", y [0].val_, y [1].val_);
+               "different values: %d != %d",
+               y [0].data_.val_, y [1].data_.val_);
 
-    rw_assert (y [0].val_ == 'b', 0, __LINE__,
+    rw_assert (y [0].data_.val_ == 'b', 0, __LINE__,
                "InputIter<UserClass>::operator*() == %d, got %d",
-               y [0].val_, 'b');
+               y [0].data_.val_, 'b');
 
     PASS (it1++);
     FAIL (it0++);        // can't pass through the same iterator twice

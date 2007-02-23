@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * rw_value.h - defines a User Defined type
+ * rw_value.h - defines a User Defined Class type and User Defined POD type
  *
  * $Id$
  *
@@ -32,18 +32,58 @@
 #include <testdefs.h>
 #include <alg_test.h>         // for conv_to_bool
 
+/**************************************************************************/
+
+struct UserData
+{
+    int       val_;       // object's value
+};
+
+/**************************************************************************/
+
+struct _TEST_EXPORT UserPOD
+{
+    UserData data_;
+
+    static UserPOD
+    from_char (char c)
+    {
+        UserPOD x;
+        x.data_.val_ = c;
+        return x;
+    }
+
+    // construct an array of objects of type UserPOD each initialized
+    // from the corresponding element of the character array
+    // when the last argument is true and the character array
+    // is not sorted in ascending order the function fails by
+    // returning 0
+    static UserPOD*
+    from_char (const char*, _RWSTD_SIZE_T = _RWSTD_SIZE_MAX,
+               bool = false);
+
+    // returns a pointer to the first element in the sequence of UserClass
+    // whose value is not equal to the corresponding element of
+    // the character string or 0 when no such element exists
+    static const UserPOD* mismatch (const UserPOD*, const char*,
+                                    _RWSTD_SIZE_T /* len */ = _RWSTD_SIZE_MAX);
+};
+
+/**************************************************************************/
+
 // objects of class UserClass maintain a count of their instances in existence,
 // the number of defaut and copy ctor calls, assignment operators, and
 // the number of calls to operator==() and operator<()
 struct _TEST_EXPORT UserClass
 {
-    const int id_;        // a unique non-zero id of the object
-    int       origin_;    // id of the original object that this
-                          // is a (perhaps indirect) copy of (id_
-                          // when this is the original)
-    int       src_id_;    // id of the object that this is a direct
-                          // copy of (id_ when this the original)
-    int       val_;       // object's value
+    UserData   data_;
+
+    const int  id_;        // a unique non-zero id of the object
+    int        origin_;    // id of the original object that this
+                           // is a (perhaps indirect) copy of (id_
+                           // when this is the original)
+    int        src_id_;    // id of the object that this is a direct
+                           // copy of (id_ when this the original)
 
     // number of times the object has been copied into another object,
     // regardless of whether the operation threw an exception or not
@@ -176,6 +216,14 @@ struct _TEST_EXPORT UserClass
     first_less (const UserClass*, _RWSTD_SIZE_T);
 
     static void reset_totals ();
+
+    static UserClass
+    from_char (char c)
+    {
+        UserClass x;
+        x.data_.val_ = c;
+        return x;
+    }
 
     // construct an array of objects of type UserClass each initialized
     // from the corresponding element of the character array

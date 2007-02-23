@@ -122,7 +122,7 @@ struct Accumulator
                                      const UserClass &y) /* non-const */ {
         ++funcalls_;
         UserClass res (x);
-        res.val_ -= y.val_;
+        res.data_.val_ -= y.data_.val_;
         return conv_to_T<UserClass>::make (res);
     }
 
@@ -212,9 +212,9 @@ void test_adjacent_difference (const std::size_t         N,
         int* const tmp_val = new int [i + 1];
 
         for (; 0 < k; --k)
-            tmp_val [k] = src [k].val_ - src [k - 1].val_;
+            tmp_val [k] = src [k].data_.val_ - src [k - 1].data_.val_;
 
-        tmp_val [0] = src [0].val_;
+        tmp_val [0] = src [0].data_.val_;
 
         const UserClass* const res =
             alg.adjacent_difference (src, src_end, dst, dst_end, pbinop);
@@ -232,7 +232,7 @@ void test_adjacent_difference (const std::size_t         N,
                    int (i), src, dst_end - dst, res - dst);
 
         for (k = 0; k < i; k++) {
-            success = dst [k].val_ == tmp_val [k];
+            success = dst [k].data_.val_ == tmp_val [k];
             if (!success)
                 break;
         }

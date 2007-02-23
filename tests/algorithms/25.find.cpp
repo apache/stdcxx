@@ -138,7 +138,7 @@ void test_find (int           line,     // line number of test case
     if (!rw_assert (res.cur_ == first.cur_ + findoff, 0, line,
                     "line %d: find%{?}_if%{;} (%s = \"%s\", ..., '%c')"
                     " == (it + %zu), got (it + %td)",
-                    __LINE__, test_pred, itname, src, to_find.val_,
+                    __LINE__, test_pred, itname, src, to_find.data_.val_,
                     findoff, res.cur_ - first.cur_)) {
         delete[] tsrc;
         return;
@@ -156,7 +156,7 @@ void test_find (int           line,     // line number of test case
     rw_assert (npreds <= findoff + 1, 0, line,
                "line %d: find%{?}_if%{;} (%s = \"%s\", ..., '%c') "
                "invoked %s %zu times, expected no more than %zu",
-               __LINE__, test_pred, itname, src, to_find.val_,
+               __LINE__, test_pred, itname, src, to_find.data_.val_,
                pname, npreds, findoff + 1);
 
     delete[] tsrc;

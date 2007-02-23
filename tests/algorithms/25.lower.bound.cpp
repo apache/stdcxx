@@ -119,7 +119,7 @@ void test_lower_bound (int                    line,
     // the type of the object is distinct from the iterator's value_type
     // to detect unwarranted assumptions made by the implementation
     Y value (0, 0 /* dummy arguments */);
-    value.xval_.val_ = val_char;
+    value.xval_.data_.val_ = val_char;
 
     // construct the Compare function object to pass to the algorithm
     // when `predicate' is true

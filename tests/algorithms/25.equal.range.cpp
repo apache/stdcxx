@@ -78,7 +78,7 @@ struct Y
     // not Default-Constructible
     Y (char val, int /*dummy */): xval_ () {
         typedef unsigned char UChar;
-        xval_.val_ = int (UChar (val));
+        xval_.data_.val_ = int (UChar (val));
     }
 
     // CopyConstructible

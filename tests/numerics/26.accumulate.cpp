@@ -129,7 +129,7 @@ struct Y: public UserClass
 
 #endif   // _RWSTD_NO_EXCEPTIONS
 
-        val_ += rhs.val_;
+        data_.val_ += rhs.data_.val_;
         return *this;
     }
 };
@@ -180,7 +180,7 @@ struct Accumulator
     conv_to_T<Y> operator() (const Y &x, const Y &y) /* non-const */ {
         ++funcalls_;
         Y res (x);
-        res.val_ += y.val_;
+        res.data_.val_ += y.data_.val_;
         return conv_to_T<Y>::make (res);
     }
 
@@ -208,7 +208,7 @@ void test_accumulate (const std::size_t    N,
 
     // construct initial T
     const T init;
-    int sum = init.val_;
+    int sum = init.data_.val_;
 
     T::gen_ = gen_seq;
 
@@ -228,13 +228,13 @@ void test_accumulate (const std::size_t    N,
           : std::accumulate (first, last, init);
 
         // verify the result 26.4.1, p1
-        bool success = sum == res.val_;
+        bool success = sum == res.data_.val_;
         rw_assert (success, 0, __LINE__,
                    "step %zu: accumulate <%s, %s%{?}, %s%{;}> "
                    "= %d, expected %d",
-                   i + 1, itname, tname, 0 != op, opname, res.val_, sum);
+                   i + 1, itname, tname, 0 != op, opname, res.data_.val_, sum);
 
-        sum += buf [i].val_;
+        sum += buf [i].data_.val_;
 
         if (!success)
             break;

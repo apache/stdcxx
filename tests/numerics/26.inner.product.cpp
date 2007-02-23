@@ -132,7 +132,7 @@ struct Accumulator
                                      const UserClass &y) /* non-const */ {
         ++funcalls_;
         UserClass res (x);
-        res.val_ += y.val_;
+        res.data_.val_ += y.data_.val_;
         return conv_to_T<UserClass>::make (res);
     }
 
@@ -158,7 +158,7 @@ struct Multiplicator
                                      const UserClass &y) /* non-const */ {
         ++funcalls_;
         UserClass res (x);
-        res.val_ *= y.val_;
+        res.data_.val_ *= y.data_.val_;
         return conv_to_T<UserClass>::make (res);
     }
 
@@ -233,7 +233,7 @@ void test_inner_product (const std::size_t       N,
 
     // construct initial UserClass
     const UserClass init = UserClass ();
-    int sum = init.val_;
+    int sum = init.data_.val_;
 
     UserClass::gen_ = gen_seq;
 
@@ -255,14 +255,14 @@ void test_inner_product (const std::size_t       N,
                                                  init, pbinop1, pbinop2);
 
         // verify the result 26.4.1, p1
-        bool success = sum == res.val_;
+        bool success = sum == res.data_.val_;
         rw_assert (success, 0, __LINE__,
                    "inner_product <%s, %s, %s%{?}, %s, %s%{;}>"
                    "({%{X=+*}}, {%{X=+*}}) == %d, got %d",
                    it1name, it2name, tname, binop, op1name, op2name,
-                   int (i), buf1, int (i), buf2, sum, res.val_);
+                   int (i), buf1, int (i), buf2, sum, res.data_.val_);
 
-        sum += (buf1 [i].val_ * buf2 [i].val_);
+        sum += (buf1 [i].data_.val_ * buf2 [i].data_.val_);
 
         if (!success)
             break;

@@ -77,7 +77,7 @@ struct Less
     conv_to_bool operator() (const UserClass &x,
                              const UserClass &y) /* non-const */ {
         ++funcalls_;
-        return conv_to_bool::make (x.val_ < y.val_);
+        return conv_to_bool::make (x.data_.val_ < y.data_.val_);
     }
 
 private:
@@ -204,7 +204,7 @@ void test_set_union (int                 line,
     std::size_t n2 = 0;
     for ( ; i < ndst; i++) {
         xdst[i].origin_ <= max1_id ? n1++ : n2++;
-        success = xdst[i].val_ == res[i];
+        success = xdst[i].data_.val_ == res[i];
         if (!success)
             break;
     }

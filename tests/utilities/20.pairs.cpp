@@ -232,11 +232,11 @@ void test_pair (T, const char *tname, U, const char *uname)
         // (std::less required to be used in order to satisfy 20.3.3, p8)
         std::pair<Y, Y> p1;
 
-        p0.first.val_  = 1;
-        p0.second.val_ = 2;
+        p0.first.data_.val_  = 1;
+        p0.second.data_.val_ = 2;
 
-        p1.first.val_  = 3;
-        p1.second.val_ = 4;
+        p1.first.data_.val_  = 3;
+        p1.second.data_.val_ = 4;
 
         less_used = 0;
 
@@ -249,7 +249,7 @@ void test_pair (T, const char *tname, U, const char *uname)
                    "less<Y>::operator() called %d time(s), expected 1",
                    less_used);
 
-        p1.first.val_ = 1;
+        p1.first.data_.val_ = 1;
 
         less_used = 0;
 
@@ -262,7 +262,7 @@ void test_pair (T, const char *tname, U, const char *uname)
                    "less<Y>::operator() called %d time(s), expected 3",
                    less_used);
 
-        p1.first.val_ = 0;
+        p1.first.data_.val_ = 0;
 
         less_used = 0;
 

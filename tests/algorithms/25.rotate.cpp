@@ -90,10 +90,10 @@ void iter_swap (FwdIter<UserClass> i, FwdIter<UserClass> j)
 {
     ++iter_swap_calls;
 
-    const int tmp = (*i).val_;
+    const int tmp = (*i).data_.val_;
 
-    (*i).val_ = (*j).val_;
-    (*j).val_ = tmp;
+    (*i).data_.val_ = (*j).data_.val_;
+    (*j).data_.val_ = tmp;
 }
 
 
@@ -102,10 +102,10 @@ void iter_swap (BidirIter<UserClass> i, BidirIter<UserClass> j)
 {
     ++iter_swap_calls;
 
-    const int tmp = (*i).val_;
+    const int tmp = (*i).data_.val_;
 
-    (*i).val_ = (*j).val_;
-    (*j).val_ = tmp;
+    (*i).data_.val_ = (*j).data_.val_;
+    (*j).data_.val_ = tmp;
 }
 
 
@@ -114,10 +114,10 @@ void iter_swap (RandomAccessIter<UserClass> i, RandomAccessIter<UserClass> j)
 {
     ++iter_swap_calls;
 
-    const int tmp = (*i).val_;
+    const int tmp = (*i).data_.val_;
 
-    (*i).val_ = (*j).val_;
-    (*j).val_ = tmp;
+    (*i).data_.val_ = (*j).data_.val_;
+    (*j).data_.val_ = tmp;
 }
 
 }   // namespace std
@@ -164,7 +164,7 @@ void test_rotate (int line,
 
         typedef unsigned char UChar;
 
-        success = UChar (src [i]) == xsrc [xpos].val_;
+        success = UChar (src [i]) == xsrc [xpos].data_.val_;
         if (!success)
             break;
     }
@@ -173,7 +173,7 @@ void test_rotate (int line,
                "line %d: %s<%s>(\"%s\", %zu, ...) ==> "
                "\"%{X=*.*}\"; unexpected element value %#c at %zu",
                __LINE__, fname, itname, src, midnsrc,
-               int (nsrc), int (i), xsrc, xsrc [xpos].val_, i);
+               int (nsrc), int (i), xsrc, xsrc [xpos].data_.val_, i);
 
     success = iter_swap_calls <= nsrc;
     rw_assert (success, 0, line,
@@ -230,7 +230,7 @@ void test_rotate (int line,
 
         typedef unsigned char UChar;
 
-        success = UChar (src [i]) == xdst [xpos].val_;
+        success = UChar (src [i]) == xdst [xpos].data_.val_;
         if (!success)
             break;
     }
@@ -239,7 +239,7 @@ void test_rotate (int line,
                "line %d: %s<%s, %s>(\"%s\", %zu, ...) ==> "
                "\"%{X=*.*}\"; unexpected element value %#c at %zu",
                __LINE__, fname, it1name, it2name, src, midnsrc,
-               int (nsrc), int (i), xsrc, xdst [xpos].val_, i);
+               int (nsrc), int (i), xsrc, xdst [xpos].data_.val_, i);
 
     success = T::n_total_op_assign_ - last_n_op_assign == nsrc;
     rw_assert (success, 0, line,

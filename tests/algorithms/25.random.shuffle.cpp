@@ -215,7 +215,7 @@ void test_random_shuffle (const std::size_t            line,
         std::size_t j;
         std::memset (missing, 1, N);
         for (j = 0; j != i; ++j) {
-            const std::size_t inx = std::size_t (buf [j].val_);
+            const std::size_t inx = std::size_t (buf [j].data_.val_);
             if (inx < N)
                 missing [inx] = 0;
         }

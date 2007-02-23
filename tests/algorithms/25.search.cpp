@@ -408,7 +408,7 @@ void test_search_n (int line, const char *seq, Size cnt, const char val,
     _RWSTD_UNUSED (expected);
 
     T value;
-    value.val_ = val;
+    value.data_.val_ = val;
 
     T::n_total_op_eq_ = 0;
     PredTag::Predicate::funcalls_ = 0;

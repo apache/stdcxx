@@ -163,11 +163,11 @@ void test_replace (int line,
 
     // construct an element to replace
     T to_replace;
-    to_replace.val_ = val;
+    to_replace.data_.val_ = val;
 
     // construct an element to replace it with
     T replace_with;
-    replace_with.val_ = new_val;
+    replace_with.data_.val_ = new_val;
 
     // construct a predicate object (used with replace_if() only)
     const Predicate pred (to_replace, 0);
@@ -191,7 +191,7 @@ void test_replace (int line,
     bool success = true;
     std::size_t i = 0;
     for ( ; i != nsrc; ++i) {
-        success = to_replace.val_ != xsrc [i].val_;
+        success = to_replace.data_.val_ != xsrc [i].data_.val_;
         if (!success)
             break;
     }
@@ -274,10 +274,10 @@ void test_replace (int line,
     T* const xdst_end = xdst + nsrc;
 
     T to_replace;
-    to_replace.val_ = val;
+    to_replace.data_.val_ = val;
 
     T replace_with;
-    replace_with.val_ = new_val;
+    replace_with.data_.val_ = new_val;
 
     const Predicate pred (to_replace, 0);
 
@@ -304,7 +304,7 @@ void test_replace (int line,
     std::size_t i = 0;
     for ( ; i != nsrc; ++i) {
         typedef unsigned char UChar;
-        success = UChar (val) != xdst [i].val_;
+        success = UChar (val) != xdst [i].data_.val_;
         if (!success)
             break;
     }

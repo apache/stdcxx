@@ -79,7 +79,7 @@ struct Less
     conv_to_bool operator() (const UserClass &x,
                              const UserClass &y) /* non-const */ {
         ++funcalls_;
-        return conv_to_bool::make (x.val_ < y.val_);
+        return conv_to_bool::make (x.data_.val_ < y.data_.val_);
     }
 
 private:
@@ -208,7 +208,7 @@ void test_set_difference (int                      line,
     std::size_t n2 = 0;
     for ( ; i < ndst; ++i) {
         xdst[i].origin_ <= max1_id ? n1++ : n2++;
-        success = xdst[i].val_ == res[i];
+        success = xdst[i].data_.val_ == res[i];
         if (!success)
             break;
     }
@@ -248,8 +248,9 @@ void test_set_difference (int                      line,
                    " ==> \"%{X=*.*}\" not stable : elements %#c==%#c have "
                    "ids %d >= %d ",
                    __LINE__, fname, it1name, it2name, outname, predicate, 
-                   funname, src1, src2, int (ndst), i, xdst, xdst[i - 1].val_, 
-                   xdst[i].val_, xdst[i - 1].origin_, xdst[i].origin_);
+                   funname, src1, src2, int (ndst), i, xdst,
+                   xdst[i - 1].data_.val_, xdst[i].data_.val_,
+                   xdst[i - 1].origin_, xdst[i].origin_);
     }
 
     // verify the complexity

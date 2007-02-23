@@ -85,7 +85,7 @@ struct Less
     // convertible to bool to detect incorrect assumptions
     conv_to_bool operator() (const T &x, const T &y) /* non-const */ {
         ++funcalls_;
-        return conv_to_bool::make (x.val_ < y.val_);
+        return conv_to_bool::make (x.data_.val_ < y.data_.val_);
     }
 
     static const char* name () { return "Less"; }
@@ -232,7 +232,7 @@ void test_sort (int                line,
     if (stable) {
         std::size_t j = 1;
         for ( ; j < N; j++) {
-            if (xsrc[j - 1].val_ == xsrc[j].val_)
+            if (xsrc[j - 1].data_.val_ == xsrc[j].data_.val_)
                 success = xsrc[j - 1].origin_ < xsrc[j].origin_;
 
             if (!success)
@@ -249,7 +249,8 @@ void test_sort (int                line,
                        "got ids %zu and %zu for values %#c and %#c",
                        __LINE__, fname, itname, ppred, funname, src,
                        int (nsrc), -1, xsrc, j, xsrc[j - 1].origin_, 
-                       xsrc[j].origin_, xsrc[j - 1].val_, xsrc[j].val_);
+                       xsrc[j].origin_, xsrc[j - 1].data_.val_,
+                       xsrc[j].data_.val_);
         }
         else {
             rw_assert (success, 0, line,
@@ -258,7 +259,7 @@ void test_sort (int                line,
                        "for values %d and %d",
                        __LINE__, fname, itname, ppred, funname, 
                        nsrc, j, xsrc[j - 1].origin_, xsrc[j].origin_,
-                       xsrc[j - 1].val_, xsrc[j].val_);
+                       xsrc[j - 1].data_.val_, xsrc[j].data_.val_);
         }
     }
 

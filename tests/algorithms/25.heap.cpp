@@ -113,7 +113,7 @@ struct Less
     // convertible to bool to detect incorrect assumptions
     conv_to_bool operator() (const T &x, const T &y) /* non-const */ {
         ++funcalls_;
-        return conv_to_bool::make (x.val_ < y.val_);
+        return conv_to_bool::make (x.data_.val_ < y.data_.val_);
     }
 
     static const char* name () { return "Less"; }
@@ -133,7 +133,7 @@ bool is_heap (const T* seq, const std::size_t len)
   std::size_t parent = 0;
   for (std::size_t child = 1; child < len; ++child) {
 
-      if (seq [parent].val_ < seq [child].val_) 
+      if (seq [parent].data_.val_ < seq [child].data_.val_) 
           return false;
 
       if ((child & 1) == 0)
@@ -169,7 +169,7 @@ void test_heap_operation (int               line,
     T* const xsrc     = T::from_char (src, nsrc);
     T* const xsrc_end = xsrc + nsrc;
 
-    int val = xsrc[0].val_;
+    int val = xsrc[0].data_.val_;
 
     const RandIter first = make_iter (xsrc,     xsrc, xsrc_end, rand_iter);
     const RandIter last  = make_iter (xsrc_end, xsrc, xsrc_end, rand_iter);
@@ -200,11 +200,11 @@ void test_heap_operation (int               line,
     if (2 == finx) {     // pop_heap special verification
         // verify that the maximal element is in 
         // the end of the sequence: 25.3.6.2, p2
-        rw_assert (val == xsrc[nsrc - 1].val_, 0, line,
+        rw_assert (val == xsrc[nsrc - 1].data_.val_, 0, line,
                    "line %d std::%s <%s%{?}, %s%{;}> (\"%s\", ...) ==> "
                    "\"%{X=*.*}\", last is %#c, expected %#c",
                    __LINE__, fname, itname, ppred, funname, src, 
-                   int (nsrc), -1, xsrc, xsrc [nsrc - 1].val_, val);
+                   int (nsrc), -1, xsrc, xsrc [nsrc - 1].data_.val_, val);
     }
 
     if (3 == finx) {     // sort_heap special verification

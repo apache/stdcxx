@@ -90,7 +90,7 @@ struct Less
     // convertible to bool to detect incorrect assumptions
     conv_to_bool operator() (const T &x, const T &y) /* non-const */ {
         ++funcalls_;
-        return conv_to_bool::make (x.val_ < y.val_);
+        return conv_to_bool::make (x.data_.val_ < y.data_.val_);
     }
 
     static const char* name () { return "Less"; }
@@ -196,22 +196,22 @@ void test_partial_sort (int                  line,
 
     // check that any element in the sorted range <= that any element 
     // in the rest part of the array
-    int max_el = res_x[0].val_;
+    int max_el = res_x[0].data_.val_;
     std::size_t j = 1;
     for ( ; j < mid; j++)
-        max_el = max_el < res_x[j].val_ ? res_x[j].val_ : max_el;
+        max_el = max_el < res_x[j].data_.val_ ? res_x[j].data_.val_ : max_el;
 
     if (copy) {
         std::size_t tmp = 0;
         for (j = 0; j < nsrc; j++) 
-            if (max_el > xsrc[j].val_) 
+            if (max_el > xsrc[j].data_.val_) 
                 tmp++;
 
         success = tmp <= mid;
     }
     else {
         for (j = mid; j < nsrc; j++) {
-            success = max_el <= xsrc[j].val_;
+            success = max_el <= xsrc[j].data_.val_;
             if (! success)
                 break;
         }
@@ -227,7 +227,7 @@ void test_partial_sort (int                  line,
                    "%{?}%#c%{;} in the unsorted part",
                    __LINE__, fname, itname, copy, outname, ppred, funname, 
                    src, mid, int (copy ? mid : nsrc), -1, res_x, 
-                   !copy, xsrc[j].val_);
+                   !copy, xsrc[j].data_.val_);
     }
     else {
         rw_assert (success, 0, line,

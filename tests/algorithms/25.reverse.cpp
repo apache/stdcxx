@@ -87,10 +87,10 @@ void iter_swap (BidirIter<UserClass> i, BidirIter<UserClass> j)
 {
     ++iter_swap_calls;
 
-    const int tmp = (*i).val_;
+    const int tmp = (*i).data_.val_;
 
-    (*i).val_ = (*j).val_;
-    (*j).val_ = tmp;
+    (*i).data_.val_ = (*j).data_.val_;
+    (*j).data_.val_ = tmp;
 }
 
 _RWSTD_SPECIALIZED_FUNCTION
@@ -98,10 +98,10 @@ void iter_swap (RandomAccessIter<UserClass> i, RandomAccessIter<UserClass> j)
 {
     ++iter_swap_calls;
 
-    const int tmp = (*i).val_;
+    const int tmp = (*i).data_.val_;
 
-    (*i).val_ = (*j).val_;
-    (*j).val_ = tmp;
+    (*i).data_.val_ = (*j).data_.val_;
+    (*j).data_.val_ = tmp;
 }
 
 }   // namespace std
@@ -144,7 +144,7 @@ void test_reverse (int line,
 
         typedef unsigned char UChar;
 
-        success = UChar (src [i]) == xsrc [nsrc - i - 1].val_;
+        success = UChar (src [i]) == xsrc [nsrc - i - 1].data_.val_;
         if (!success)
             break;
     }
@@ -154,7 +154,7 @@ void test_reverse (int line,
                "\"%{X=*.*}\"; unexpected element value %#c at offset %zu",
                __LINE__, fname, itname, src,
                int (nsrc), int (i), xsrc,
-               xsrc [nsrc - i - 1].val_, i);
+               xsrc [nsrc - i - 1].data_.val_, i);
 
     const std::size_t iter_swap_expect = nsrc / 2;
     success = iter_swap_calls == iter_swap_expect;
@@ -205,7 +205,7 @@ void test_reverse (int line,
 
         typedef unsigned char UChar;
 
-        success = UChar (src [i]) == xdst [nsrc - i - 1].val_;
+        success = UChar (src [i]) == xdst [nsrc - i - 1].data_.val_;
         if (!success)
             break;
     }
@@ -215,7 +215,7 @@ void test_reverse (int line,
                "\"%{X=*.*}\"; unexpected element value %#c at offset %zu",
                __LINE__, fname, itname, src,
                int (nsrc), int (i), xsrc,
-               xdst [nsrc - i - 1].val_, i);
+               xdst [nsrc - i - 1].data_.val_, i);
 
     success = T::n_total_op_assign_ - last_n_op_assign == nsrc;
     rw_assert (success, 0, line,

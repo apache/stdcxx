@@ -111,7 +111,7 @@ void test_copy (std::size_t N,
         // check that algjrithm works correctly
         std::size_t j = 0;
         for (; j != i + 1; ++j) {
-            success = src[j].val_ == dst[j].val_;
+            success = src[j].data_.val_ == dst[j].data_.val_;
             if (!success)
                 break;
         }
@@ -120,7 +120,7 @@ void test_copy (std::size_t N,
                    "%zu. copy(%p, %p, %p) mismatch at "
                    "offset %zu: expected %d, got %d: (%p, %p, %zu)",
                    i, src, src_end, dst,
-                   j, src[j].val_, dst[j].val_,
+                   j, src[j].data_.val_, dst[j].data_.val_,
                    dst, dst_end, j);
 
         if (!success)
@@ -200,7 +200,7 @@ void test_copy_backward (std::size_t N,
         // verify 25.2.1, p5
         std::size_t j = 0;
         for (; j != i + 1; ++j) {
-            success = src[j].val_ == dst[j].val_;
+            success = src[j].data_.val_ == dst[j].data_.val_;
             if (!success)
                 break;
         }
@@ -209,7 +209,7 @@ void test_copy_backward (std::size_t N,
                    "%zu. copy_backward(%p, %p, %p) mismatch at "
                    "offset %zu: expected %d, got %d: (%p, %p, %zu)",
                    i, src, src_end, dst_end,
-                   j, src[j].val_, dst[j].val_,
+                   j, src[j].data_.val_, dst[j].data_.val_,
                    dst, dst_end, j);
 
         if (!success)

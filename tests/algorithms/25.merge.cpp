@@ -90,7 +90,7 @@ struct Less
     conv_to_bool operator() (const UserClass &x,
                              const UserClass &y) /* non-const */ {
         ++funcalls_;
-        return conv_to_bool::make (x.val_ < y.val_);
+        return conv_to_bool::make (x.data_.val_ < y.data_.val_);
     }
 
 private:
@@ -258,7 +258,7 @@ void test_merge (int                line,
     // check that the algorithm is stable
     std::size_t i = 1;
     for ( ; i < ndst; i++) {
-        if (xdst [i - 1].val_ == xdst [i].val_) {
+        if (xdst [i - 1].data_.val_ == xdst [i].data_.val_) {
             success = xdst [i - 1].origin_ < xdst [i].origin_;
             if (!success)
                 break;
@@ -275,7 +275,7 @@ void test_merge (int                line,
                __LINE__, algname, it1name, !inplace, it2name, outname, 
                predicate, predname, src1, !inplace, src2, inplace, midinx,
                int (ndst), i, xdst, i, xdst [i - 1].origin_, 
-               xdst [i].origin_, xdst [i - 1].val_, xdst [i].val_);
+               xdst [i].origin_, xdst [i - 1].data_.val_, xdst [i].data_.val_);
 
     // check the complexity
     success = n_ops_lt <= ndst - 1;

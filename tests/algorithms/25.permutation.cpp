@@ -83,7 +83,7 @@ struct Less
     // convertible to bool to detect incorrect assumptions
     conv_to_bool operator() (const T &x, const T &y) /* non-const */ {
         ++funcalls_;
-        return conv_to_bool::make (x.val_ < y.val_);
+        return conv_to_bool::make (x.data_.val_ < y.data_.val_);
     }
 
     static const char* name () { return "Less"; }
@@ -148,7 +148,7 @@ void test_permutations (int                     line,
     // verify the permutation result
     std::size_t i = 0;
     for ( ; i < nsrc; i++) {
-        success = xsrc [i].val_ == dst [i];
+        success = xsrc [i].data_.val_ == dst [i];
         if (!success)
             break;
     }

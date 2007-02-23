@@ -74,7 +74,7 @@ struct GreaterThanPredicate
     // convertible to bool to detect incorrect assumptions
     conv_to_bool operator() (const T &arg) {
         ++funcalls_;
-        return conv_to_bool::make (value_ < arg.val_);
+        return conv_to_bool::make (value_ < arg.data_.val_);
     }
 
     static const char* name () { return "GreaterThanPredicate"; }
@@ -150,7 +150,7 @@ void test_partitions (int                   line,
     // "left" part of the array there the predicate should be true
     std::size_t i = 0;
     for ( ; i < offset; i++) {
-        success = xsrc[i].val_ > value;
+        success = xsrc[i].data_.val_ > value;
         if (!success)
             break;
     }
@@ -159,12 +159,12 @@ void test_partitions (int                   line,
                "line %d: std::%s <%s, %s>(\"%s\", ...) "
                "==> \"%{X=*.*}\", at %zu got: %#c !> %#c",
                __LINE__, fname, itname, funname, src, int (nsrc), 
-               -1, xsrc, i + 1, xsrc[i].val_, value);
+               -1, xsrc, i + 1, xsrc[i].data_.val_, value);
 
 
     // "right" part of the array there the predicate should be false
     for ( ; i < nsrc; i++) {
-        success = xsrc[i].val_ <= value;
+        success = xsrc[i].data_.val_ <= value;
         if (!success)
             break;
     }
@@ -173,7 +173,7 @@ void test_partitions (int                   line,
                "line %d: std::%s <%s, %s>(\"%s\", ...) "
                "==> \"%{X=*.*}\", at %zu got: %#c !<= %#c",
                __LINE__, fname, itname, funname, src, int (nsrc), 
-               -1, xsrc, i + 1, xsrc[i].val_, value);
+               -1, xsrc, i + 1, xsrc[i].data_.val_, value);
 
 
     // check the complexity, 25.2.12 p3 & p6
@@ -207,7 +207,7 @@ void test_partitions (int                   line,
 
         // check the stable_partition is really stable 25.2.12, p5
         for (i = 0; i < nsrc; i++) {
-            success = xsrc[i].val_ == xdst[i].val_;
+            success = xsrc[i].data_.val_ == xdst[i].data_.val_;
             if (!success)
                 break;
         }
@@ -218,7 +218,7 @@ void test_partitions (int                   line,
                    "%#c != %#c",
                    __LINE__, fname, itname, funname, src, 
                    int (nsrc), int (i), xsrc, int (ndst), int (i), xdst,
-                   i, xsrc[i].val_, xdst[i].val_);
+                   i, xsrc[i].data_.val_, xdst[i].data_.val_);
     }
 
     delete[] xsrc;

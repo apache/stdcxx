@@ -81,7 +81,7 @@ struct incT
     T operator() (const T &x) /* non-const */ {
         ++funcalls_;
         T y (x);
-        y.val_ += 1;
+        y.data_.val_ += 1;
         return y;
     }
 
@@ -109,7 +109,7 @@ struct plusT
     T operator() (const T &a, const T &b) /* non-const */ {
         ++funcalls_;
         T x (a);
-        x.val_ = a.val_ + b.val_;
+        x.data_.val_ = a.data_.val_ + b.data_.val_;
         return x;
     }
 
@@ -182,8 +182,10 @@ void test_transform (const T*              ptr,
     T* const buf2 = new T [nloops + 1];
     T* const buf3 = same_seq ? (same_seq == 1 ? buf1 : buf2) : new T [nloops];
 
-    const int start1_val = same_seq == 2 ? buf2 [0].val_ : buf1 [0].val_;
-    const int start2_val = same_seq == 2 ? buf1 [0].val_ : buf2 [0].val_;
+    const int start1_val =
+        same_seq == 2 ? buf2 [0].data_.val_ : buf1 [0].data_.val_;
+    const int start2_val =
+        same_seq == 2 ? buf1 [0].data_.val_ : buf2 [0].data_.val_;
 
     for (std::size_t i = 0; i < nloops; ++i) {
 
@@ -232,7 +234,7 @@ void test_transform (const T*              ptr,
                   : start1_val + int (i);
             }
 
-            success = buf3 [j].val_ == exp_val;
+            success = buf3 [j].data_.val_ == exp_val;
             if (!success)
                 break;
         }
@@ -243,7 +245,7 @@ void test_transform (const T*              ptr,
                    "expected %d, position %zu",
                    i, algname, it1name, binary, it2name, outname, funname,
                    same_seq, "first", same_seq, "dest",
-                   buf3 [j].val_, exp_val, j + 1);
+                   buf3 [j].data_.val_, exp_val, j + 1);
 
         if (!success)
             break;
