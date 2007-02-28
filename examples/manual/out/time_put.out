@@ -1,58 +1,58 @@
-   "%a"   "Wed"
-   "%A"   "Wednesday"
-   "%b"   "Feb"
-   "%B"   "February"
-   "%c"   "Wed Feb 29 14:34:56 1984"
-   "%C"   "19"
-   "%d"   "29"
-   "%D"   "02/29/84"
-   "%e"   "29"
-   "%F"   "1984-02-29"
-   "%g"   "84"
-   "%G"   "1984"
-   "%h"   "Feb"
-   "%H"   "14"
-   "%I"   "02"
-   "%j"   "060"
-   "%k"   "14"
-   "%l"   " 2"
-   "%m"   "02"
-   "%M"   "34"
-   "%n"   "\n"
-   "%p"   "PM"
-   "%r"   "02:34:56 PM"
-   "%R"   "14:34"
-   "%S"   "56"
-   "%t"   "\t"
-   "%T"   "14:34:56"
-   "%u"   "3"
-   "%U"   "09"
-   "%V"   "09"
-   "%w"   "3"
-   "%W"   "09"
-   "%x"   "02/29/84"
-   "%X"   "14:34:56"
-   "%y"   "84"
-   "%Y"   "1984"
-   "%z"   "+0800"
-   "%Z"   "PST"
-   "%%"   "%"
-   "%Ec"   "Wed Feb 29 14:34:56 1984"
-   "%EC"   "19"
-   "%Ex"   "02/29/84"
-   "%EX"   "14:34:56"
-   "%Ey"   "84"
-   "%EY"   "1984"
-   "%Od"   "29"
-   "%Oe"   "29"
-   "%OH"   "14"
-   "%OI"   "02"
-   "%Om"   "02"
-   "%OM"   "34"
-   "%OS"   "56"
-   "%Ou"   "3"
-   "%OU"   "09"
-   "%OV"   "09"
-   "%Ow"   "3"
-   "%OW"   "09"
-   "%Oy"   "84"
+  "%a"    "Fri"                           abbreviated weekday name
+  "%A"    "Friday"                        full weekday name
+  "%b"    "Feb"                           abbreviated month name
+  "%B"    "February"                      full month name
+  "%c"    "Fri Feb  3 14:34:56 1984"      date and time ("%a %b %e %H:%M:%S %Y")
+  "%C"    "19"                            two-digit year [00,99]
+  "%d"    "03"                            month number [01,31]
+  "%D"    "02/03/84"                      date as "%m/%d/%y"
+  "%e"    " 3"                            month number [ 1,31]
+  "%F"    "1984-02-03"                    date as "%Y-%m-%d"
+  "%g"    "84"                            week-based year [00,99]
+  "%G"    "1984"                          week-based year
+  "%h"    "Feb"                           same as "%b"
+  "%H"    "14"                            hour [00-23]
+  "%I"    "02"                            hour [01-12]
+  "%j"    "034"                           day of the year [001,366]
+  "%k"    "14"                            hour [ 0,23]
+  "%l"    " 2"                            hour [ 1,12]
+  "%m"    "02"                            month number [01,12]
+  "%M"    "34"                            minute [00,59]
+  "%n"    "\n"                            newline character
+  "%p"    "PM"                            a.m. or p.m. equivalent
+  "%r"    "02:34:56 PM"                   AM/PM time ("%I:%M:%S %p")
+  "%R"    "14:34"                         24-hour time
+  "%S"    "56"                            second [00,60]
+  "%t"    "\t"                            tab character
+  "%T"    "14:34:56"                      time as "%H:%M:%S"
+  "%u"    "5"                             Monday-based weekday [1,7]
+  "%U"    "05"                            week number [00,53]
+  "%V"    "05"                            week numver [01,53]
+  "%w"    "5"                             weekday [0,6]
+  "%W"    "05"                            week number [00,53]
+  "%x"    "02/03/84"                      date ("%m/%d/%y")
+  "%X"    "14:34:56"                      time ("%H:%M:%S")
+  "%y"    "84"                            two-digit year [00,99]
+  "%Y"    "1984"                          year
+  "%z"    "+0700"                         offset from UTC
+  "%Z"    "MST"                           time zone
+  "%%"    "%"                             percent character
+  "%Ec"   "Fri Feb  3 14:34:56 1984"      
+  "%EC"   "19"                            
+  "%Ex"   "02/03/84"                      
+  "%EX"   "14:34:56"                      
+  "%Ey"   "84"                            
+  "%EY"   "1984"                          
+  "%Od"   "03"                            
+  "%Oe"   " 3"                            
+  "%OH"   "14"                            
+  "%OI"   "02"                            
+  "%Om"   "02"                            
+  "%OM"   "34"                            
+  "%OS"   "56"                            
+  "%Ou"   "5"                             
+  "%OU"   "05"                            
+  "%OV"   "05"                            
+  "%Ow"   "5"                             
+  "%OW"   "05"                            
+  "%Oy"   "84"                            
