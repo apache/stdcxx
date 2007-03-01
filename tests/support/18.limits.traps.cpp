@@ -145,14 +145,7 @@ numT test_traps (numT, int lineno, bool)
         // signal hanlder above and execution will resume by
         // returning from setjmp() above again, but this time
         // with a non-zero value
-        TRY {
-            result = one / zero;
-        }
-        EXCEPT (1) {
-            // Windows SEH hackery
-            trapped = true;
-        }
-//        test_trap (one, zero, result, trapped);
+        test_trap (one, zero, result, trapped);
     }
 
     rw_assert (trapped == traps, 0, lineno,
