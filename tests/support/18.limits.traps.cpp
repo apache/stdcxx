@@ -83,6 +83,20 @@ void handle_fpe (int)
 
 
 template <class numT>
+static inline void
+test_trap (const volatile numT &one, const volatile numT &zero,
+           numT &result, bool &trapped)
+{
+    TRY {
+        result = one / zero;
+    }
+    EXCEPT (1) {
+        // Windows SEH hackery
+        trapped = true;
+    }
+}
+
+template <class numT>
 numT test_traps (numT, int lineno, bool)
 {
     static const char* const tname = rw_any_t (numT ()).type_name ();
@@ -138,6 +152,7 @@ numT test_traps (numT, int lineno, bool)
             // Windows SEH hackery
             trapped = true;
         }
+//        test_trap (one, zero, result, trapped);
     }
 
     rw_assert (trapped == traps, 0, lineno,
