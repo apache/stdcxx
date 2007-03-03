@@ -89,27 +89,32 @@ make_locale (const CharT*, const LocaleData &data)
 
     struct NumPunct: std::numpunct<CharT> {
 
-        typedef std::numpunct<CharT> Base;
+        // CharType typedef works around a Sun C++ bug stdcxx-345
+        typedef CharT                                          CharType;
+        typedef std::numpunct<CharType>                        Base;
+        typedef std::char_traits<CharType>                     Traits;
+        typedef std::allocator<CharType>                       Allocator;
+        typedef std::basic_string<CharType, Traits, Allocator> String;
 
-        int          dp_;
-        int          ts_;
-        const char  *grp_;
-        const CharT *fn_;
-        const CharT *tn_;
+        int             dp_;
+        int             ts_;
+        const char     *grp_;
+        const CharType *fn_;
+        const CharType *tn_;
 
         NumPunct (int dp, int ts, const char *grp,
-                  const CharT *fn, const CharT *tn)
+                  const CharType *fn, const CharType *tn)
             : Base (), dp_ (dp), ts_ (ts), grp_ (grp ? grp : ""),
               fn_ (fn), tn_ (tn) { /* empty */ }
 
-        CharT do_decimal_point () const {
+        CharType do_decimal_point () const {
             return -1 == dp_ ? Base::do_decimal_point ()
-                              : make_char (char (dp_), (CharT*)0);
+                              : make_char (char (dp_), (CharType*)0);
         }
 
-        CharT do_thousands_sep () const {
+        CharType do_thousands_sep () const {
             return -1 == ts_ ? Base::do_thousands_sep ()
-                             : make_char (char (ts_), (CharT*)0);
+                             : make_char (char (ts_), (CharType*)0);
         }
 
         std::string do_grouping () const {
@@ -117,14 +122,12 @@ make_locale (const CharT*, const LocaleData &data)
                              : std::string (grp_);
         }
 
-        std::basic_string<CharT> do_truename () const {
-            return 0 == tn_ ? Base::do_truename ()
-                            : std::basic_string<CharT>(tn_);
+        String do_truename () const {
+            return 0 == tn_ ? Base::do_truename () : String (tn_);
         }
 
-        std::basic_string<CharT> do_falsename () const {
-            return 0 == fn_ ? Base::do_falsename ()
-                            : std::basic_string<CharT>(fn_);
+        String do_falsename () const {
+            return 0 == fn_ ? Base::do_falsename () : String (fn_);
         }
     };
 
