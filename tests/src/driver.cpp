@@ -609,15 +609,18 @@ _rw_setopt_output_file (int argc, char *argv[])
     }
 
     if (file_name) {
+        if (file_name[0] != '-' || file_name[1] != '\0') {
+            FILE* const f = fopen (file_name, "w");
 
-        FILE* const f = fopen (file_name, "w");
+            if (f) {
+                if (_rw_ftestout && _rw_ftestout != rw_stdout)
+                    fclose ((FILE*)(void*)_rw_ftestout);
 
-        if (f) {
-            if (_rw_ftestout && _rw_ftestout != rw_stdout)
-                fclose ((FILE*)(void*)_rw_ftestout);
-
-            _rw_ftestout = (rw_file*)(void*)f;
+                _rw_ftestout = (rw_file*)(void*)f;
+            }
         }
+        else
+            _rw_ftestout = (rw_file*)(void*)stdout;
     }
 
     // return 0 on success, any non-zero value on failure

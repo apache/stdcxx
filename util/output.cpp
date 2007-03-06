@@ -145,7 +145,7 @@ check_compat_test (FILE* data, struct target_status* status)
     assert (0 != data);
     assert (0 != status);
 
-    fseek (data, -80, SEEK_END); /* Seek near the end of the file */
+    fseek (data, -70, SEEK_END); /* Seek near the end of the file */
 
     for (tok = fgetc (data); fsm < 4 && !feof (data); tok = fgetc (data)) {
         switch (tok) {
