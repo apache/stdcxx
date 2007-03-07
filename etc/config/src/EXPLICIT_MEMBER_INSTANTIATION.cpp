@@ -1,10 +1,5 @@
 // checking for explicit instantiation of members
 
-#ifdef _RWSTD_USE_CONFIG
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
-
-
 template <class T>
 T foo (T t) { return t; }
 

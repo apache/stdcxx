@@ -7,9 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #ifndef _RWSTD_NO_LONG_LONG
 #  if defined _MSC_VER
@@ -45,12 +43,6 @@ void check_div (T t, const char *tname)
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_DIV_OVERLOADS\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     check_div ((int)1, "INT");
     check_div ((long)1, "LONG");
 

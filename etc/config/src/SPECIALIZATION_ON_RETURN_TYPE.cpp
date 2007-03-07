@@ -1,9 +1,5 @@
 // checking for specialization on return type
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
-
 
 template <class T>
 T foo () { return T (); }

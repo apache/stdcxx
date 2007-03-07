@@ -113,12 +113,6 @@ char cat_seps[] = "\n\t/\\:;#%";
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_LOCALE_NAME_FMAT\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     // compute and print the values of the LC_XXX constants
     // and their relationship to the std::locale::category
     // constants
@@ -237,31 +231,31 @@ static struct LC_vars
     { -1, LC_NUMERIC,  "LC_NUMERIC=C",  "numeric" },
     { -1, LC_TIME,     "LC_TIME=C",     "time" },
 
-#ifdef LC_MESSAGES
+#if defined (LC_MESSAGES)
     { -1, LC_MESSAGES, "LC_MESSAGES=C", "messages" },
 #endif
 
-#ifdef LC_NAME
+#if defined (LC_NAME)
     { -1, LC_NAME, "LC_NAME=C", "name" },
 #endif
 
-#ifdef LC_PAPER
+#if defined (LC_PAPER)
     { -1, LC_PAPER, "LC_PAPER=C", "paper" },
 #endif
 
-#ifdef LC_IDENTIFICATION
+#if defined (LC_IDENTIFICATION)
     { -1, LC_IDENTIFICATION, "LC_IDENTIFICATION=C", "ident" },
 #endif
 
-#ifdef LC_ADDRESS
+#if defined (LC_ADDRESS)
     { -1, LC_ADDRESS, "LC_ADDRESS=C", "address" },
 #endif
 
-#ifdef LC_TELEPHONE
+#if defined (LC_TELEPHONE)
     { -1, LC_TELEPHONE, "LC_TELEPHONE=C", "telephone" },
 #endif
 
-#ifdef LC_MEASUREMENT
+#if defined (LC_MEASUREMENT)
     { -1, LC_MEASUREMENT, "LC_MEASUREMENT=C", "measurement" },
 #endif
 
@@ -541,7 +535,7 @@ int print_locale_name_format (int  guess,
 
     if (guess) {
 
-#ifdef _AIX
+#if defined (_AIX)
 
         setlocale_environ    = 1;
         loc_name_use_cat     = 0;

@@ -1,8 +1,5 @@
 // checking template specialization syntax
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
 
 template <class T>
 int foo (T)

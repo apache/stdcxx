@@ -1,9 +1,5 @@
 // checking for putenv() in <stdlib.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
-
 #include <stdlib.h>
 
 // [re]declare with the expected POSIX signature which will fail

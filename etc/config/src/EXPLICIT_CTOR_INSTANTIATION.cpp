@@ -1,10 +1,5 @@
 // checking for explicit instantiation of ctors
 
-#ifdef _RWSTD_USE_CONFIG
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
-
-
 template <class T>
 struct S
 {

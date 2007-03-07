@@ -1,8 +1,6 @@
 // checking for type_info::name()
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif
+#include "config.h"
 
 
 #ifndef _RWSTD_NO_STD_TYPE_INFO

@@ -6,9 +6,7 @@
 
 #include "extern_template_imp.h"
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 // establish a dependency on extern_template_imp.o to make sure
 // the extern_template_imp.cpp is compiled before this file

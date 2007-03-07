@@ -2,14 +2,11 @@
 
 #include <stdio.h>
 
+#include "config.h"
+
+
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_NEWLINE\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     // determine the byte sequence that corresponds to the '\n'
     // source character, i.e., one of
     //   <CR>     -- Apple II and Mac OS

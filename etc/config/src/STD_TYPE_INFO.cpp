@@ -1,9 +1,5 @@
 // checking for class std::type_info
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif
-
 
 namespace std {
 

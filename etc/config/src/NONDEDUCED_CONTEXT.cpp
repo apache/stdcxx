@@ -1,8 +1,6 @@
 // checking nondeduced context
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif
+#include "config.h"
 
 #ifdef _RWSTD_NO_TYPENAME
 #  define typename

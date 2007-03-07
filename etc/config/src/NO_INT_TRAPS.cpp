@@ -1,8 +1,7 @@
 // checking if integer math traps
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
+
 
 #if (defined (_WIN32) || defined (_WIN64)) && !defined (__CYGWIN__)
 #  define TRY             __try

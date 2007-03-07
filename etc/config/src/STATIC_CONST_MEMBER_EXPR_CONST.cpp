@@ -1,8 +1,6 @@
 // checking for type-dependent constant expressions 
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #ifdef _RWSTD_NO_TYPENAME
 #  define typename /* empty */

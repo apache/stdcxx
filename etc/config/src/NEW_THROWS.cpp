@@ -1,8 +1,6 @@
 // checking if operator new() throws
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #include <stdio.h>
 
@@ -64,10 +62,6 @@ void nodbg () { }
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-    printf ("/**/\n#undef _RWSTD_NO_NEW_THROWS\n");
-#endif
-
     nodbg ();
 
     void *p = 0;

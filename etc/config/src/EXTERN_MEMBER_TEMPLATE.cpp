@@ -1,8 +1,6 @@
 // checking for extern template extension
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 // establish dependencies on the config tests and define config
 // macros used in the header below (the are not autodetected

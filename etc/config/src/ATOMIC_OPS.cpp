@@ -25,12 +25,6 @@ const char* foo (pfllpv_t) { return "volatile long"; }
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_ATOMIC_OPS\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     // determine the argument type of InterlockedIncrement()
     // (the type changes from long* to volatile long* depending
     // on the version/patch of MSVC)
@@ -46,13 +40,7 @@ int main ()
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_ATOMIC_OPS\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
-    return 0;
+   return 0;
 }
 
 #endif   // Windows

@@ -1,9 +1,5 @@
 // checking for long long
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
-
 
 const char* foo (long long) { return "long long"; }
 const char* foo (unsigned long long) { return "unsigned long long"; }

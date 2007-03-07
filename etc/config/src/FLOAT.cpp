@@ -5,9 +5,7 @@
 #  undef __PURE_CNAME
 #endif // __PURE_CNAME
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 enum {
     // the enumerators belo are expected to be hidden by macros #defined
@@ -158,12 +156,6 @@ void print_float (FloatT x, const char *xstr,
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_FLOAT\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     //////////////////////////////////////////////////////////////////
     // compute floating point limits
 

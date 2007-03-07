@@ -1,8 +1,7 @@
 // checking if floating point math traps
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
+
 
 /* IEEE 754 (IEC 559 supeseded by IEC 60559) specifies that
  * the following operations return NaN unless they trap:

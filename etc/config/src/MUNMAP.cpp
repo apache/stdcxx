@@ -1,8 +1,6 @@
 // checking for munmap() in <sys/mman.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 // include <sys/types.h> first in case mman.h depends
 // on it (such as the one on Darwin -- see STDCXX-107)
@@ -35,12 +33,6 @@ const char* get_munmap_arg2_type ()
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_MUNMAP\n");
-
-#endif   // _RWSTD_USE_CONFIG
-    
     const char *argtype = get_munmap_arg2_type ();
 
     printf ("#define _RWSTD_MUNMAP_ARG1_T %s\n", argtype);

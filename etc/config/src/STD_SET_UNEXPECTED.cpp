@@ -1,8 +1,7 @@
 // checking for std::set_unexpected()
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
+
 
 #ifdef _RWSTD_NO_EXCEPTION_SPECIFICATION
 

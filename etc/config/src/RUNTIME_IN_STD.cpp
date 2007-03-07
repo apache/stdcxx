@@ -1,8 +1,6 @@
 // checking for runtime support in namespace std
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #include <stdio.h>
 
@@ -161,12 +159,6 @@ const char* const global_defs[] = {
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_NO_RUNTIME_IN_STD\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     // since some (possibly many) individual config tests fail
     // to detect either an STD or a GLOBAL version of the feature,
     // this test overrides (#undef-ines) one of the matching pair

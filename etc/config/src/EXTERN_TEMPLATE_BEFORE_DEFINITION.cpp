@@ -1,8 +1,6 @@
 // checking for extern template before definition
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #ifndef _RWSTD_NO_extern_template_before_definition_imp
   // establish a dependency on the source file to get it

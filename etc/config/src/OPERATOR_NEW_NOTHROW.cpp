@@ -19,9 +19,7 @@
  *
  **********************************************************************/
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif
+#include "config.h"
 
 #include <stddef.h>   // for size_t
 

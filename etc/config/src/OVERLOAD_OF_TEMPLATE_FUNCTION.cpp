@@ -1,9 +1,5 @@
 // checking complicated partial ordering
 
-#ifdef _RWSTD_USE_CONFIG
-#  include "config.h"
-#endif   // _RWSDT_USE_CONFIG
-
 
 template <class T, class U>
 class S { };

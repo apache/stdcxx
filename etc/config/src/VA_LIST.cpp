@@ -1,9 +1,6 @@
 // checking the type of va_list
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
-
+#include "config.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -151,12 +148,6 @@ const char* va_list_type_name (va_list va)
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_VA_LIST\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
 #if defined (va_copy)
 
     // comment out the macro #defined below when va_copy() exists

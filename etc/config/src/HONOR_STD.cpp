@@ -1,8 +1,5 @@
 // checking if namespace std is honored
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
 
 // g++ 2.9x ignores namespace std unless the -fhonor-std option is used
 
