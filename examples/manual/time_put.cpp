@@ -55,8 +55,12 @@ int main (int argc, char *argv[])
 
     // array of all supported conversion specifiers
     static const struct {
-        const char spec [4];    // specifier
-        const char desc [40];   // description
+        // const below commented out to avoid compiler warnings
+        // such as HP aCC's Warning 578: A class member may not
+        // be a const array since there is no way to initialize
+        // such a member. 
+        /* const */ char spec [4];    // specifier
+        /* const */ char desc [40];   // description
     } fmt[] = {
         // plain (unmodified) conversion specifiers
         { "%a", "abbreviated weekday name" },
