@@ -1,8 +1,6 @@
 // checking if default args are instantiated
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 
 template <class T>

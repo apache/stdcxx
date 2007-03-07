@@ -2,9 +2,7 @@
 
 #include <stdio.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif
+#include "config.h"
 
 #ifndef _RWSTD_NO_FLOAT_H
 #  include <float.h>
@@ -79,12 +77,6 @@ char* append (char *dst, const char *src)
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_LDBL_PRINTF_PREFIX\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     const char* pfx[] = {
         "L",   // C89, C99
         "l",   // on systems where sizeof (long double) == sizeof (double)

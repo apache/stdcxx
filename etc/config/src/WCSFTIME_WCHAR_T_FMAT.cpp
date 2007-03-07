@@ -1,8 +1,6 @@
 // checking for wcsftime() in <wchar.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #include <stddef.h>   // for size_t
 #include <stdio.h>    // for printf()
@@ -47,13 +45,6 @@ const char* bar ()
 
 int main ()
 {
-
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_WCSFTIME_WCHAR_T_FMAT\n");
-
-#endif   // _RWSTD_USE_CONFIG
-    
     const char *argtype = bar ();
     if (*(argtype+6) == 'c') {
        printf ("#define _RWSTD_NO_WCSFTIME_WCHAR_T_FMAT\n");
@@ -72,12 +63,6 @@ struct tm t;
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_WCSFTIME_WCHAR_T_FMAT\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     wchar_t buf [40] = { 0 };
 
     // format using a wchar_t format string; if the function takes
@@ -100,7 +85,6 @@ int main ()
         printf ("#define _RWSTD_NO_WCSFTIME_WCHAR_T_FMAT\n");
 
     }
-
 
     printf ("#define _RWSTD_WCSFTIME_ARG3_T %s\n", argtype);
 

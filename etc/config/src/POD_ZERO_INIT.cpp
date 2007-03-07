@@ -1,8 +1,6 @@
 // checking for POD zero initialization
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif
+#include "config.h"
 
 #ifndef _RWSTD_NO_NEW
 #  include <new>

@@ -2,9 +2,7 @@
 
 #include <stddef.h>   // for size_t
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 
 // will fail if namespaces aren't supported

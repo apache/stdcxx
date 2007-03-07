@@ -1,8 +1,6 @@
 // computing numerical limits
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #ifndef _RWSTD_NO_LIMITS_H
 #  include <limits.h>
@@ -224,12 +222,6 @@ struct EmptyStruct { };
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_LIMITS\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     // determine whether this is a two's complement architecture
     // and set the no_twos_complement global variable to 1 if not
     if (two + zero_complement != one)

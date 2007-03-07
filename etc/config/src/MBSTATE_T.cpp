@@ -1,8 +1,6 @@
 // checking for mbstate_t in <wchar.h> and <wctype.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 // defined to get the correct definition of mbstate_t, available on HPUX;
 // once we get the correct size of the struct, _RWSTD_NO_MBSTATE_T is 

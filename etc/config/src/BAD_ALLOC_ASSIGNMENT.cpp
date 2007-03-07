@@ -29,9 +29,7 @@
 //   EXCEPTION_DEFAULT_CTOR.cpp
 //   EXCEPTION_DTOR.cpp
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif
+#include "config.h"
 
 
 #if 2 == GNUG__

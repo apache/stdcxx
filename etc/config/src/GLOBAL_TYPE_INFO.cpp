@@ -1,8 +1,6 @@
 // checking for class ::type_info
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif
+#include "config.h"
 
 
 #if defined (__EDG__) || defined (__sgi) && !defined (__GNUG__)

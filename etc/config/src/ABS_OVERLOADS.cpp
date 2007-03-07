@@ -7,9 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #ifndef _RWSTD_NO_LONG_LONG
 #  if defined _MSC_VER
@@ -45,12 +43,6 @@ void check_abs (T t, const char *tname)
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_ABS_OVERLOADS\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     check_abs ((bool)0, "BOOL");
     check_abs ((char)0, "CHAR");
     check_abs ((signed char)0, "SCHAR");

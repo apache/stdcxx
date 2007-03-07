@@ -1,8 +1,6 @@
 // checking exception specification
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #include <signal.h>
 #include <stdlib.h>

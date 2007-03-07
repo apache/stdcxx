@@ -1,9 +1,5 @@
 // checking the typename keyword
 
-#if defined _RWSTD_USE_CONFIG
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFGI
-
 
 struct A
 {

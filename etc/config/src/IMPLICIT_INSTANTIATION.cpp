@@ -1,8 +1,6 @@
 // checking for implicit instantiation
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION
     // establish a dependency

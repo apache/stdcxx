@@ -1,8 +1,5 @@
 // checking for std::unexpected()
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
 
 // will fail if namespaces aren't supported
 namespace std {

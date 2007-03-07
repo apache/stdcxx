@@ -1,8 +1,4 @@
-// checking for template on return type
-
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+// checking template overloads on return type
 
 
 template <class T>

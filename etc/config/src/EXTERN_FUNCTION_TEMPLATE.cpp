@@ -1,8 +1,6 @@
 // checking for extern function template extension
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 // establish a dependency on extern_function_template_imp.{cpp,o}
 #ifndef _RWSTD_NO_extern_function_template_imp

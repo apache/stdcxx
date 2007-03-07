@@ -3,9 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 
 const char* type_name (float) { return "FLT"; }
@@ -102,12 +100,6 @@ int main ()
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
     int i = 0;
-
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_MATH_OVERLOADS\n");
-
-#endif   // _RWSTD_USE_CONFIG
 
     abs (d); abs (f); IF_LDBL abs (ld);
     acos (d); acos (f); IF_LDBL acos (ld);

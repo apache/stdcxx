@@ -1,8 +1,6 @@
 // checking for long long printf format prefix
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif
+#include "config.h"
 
 #include <stdio.h>
 
@@ -61,12 +59,6 @@ char* append (char *dst, const char *src)
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_LLONG_PRINTF_PREFIX\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     const char* pfx[] = {
         "ll",   // 7.19.6.2, p11 of C99, HP-UX 11, SunOS 5.7, ...
         "L",    // Linux

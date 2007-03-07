@@ -3,9 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 
 #ifdef _RWSTD_NO_VSNPRINTF
@@ -113,12 +111,6 @@ int test_vsnprintf (int success)
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_VSNPRINTF_RETURN\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     test_vsnprintf (0);
     test_vsnprintf (1);
 

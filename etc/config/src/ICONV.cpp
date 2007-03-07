@@ -1,8 +1,6 @@
 // checking for iconv() in <iconv.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #include <iconv.h>
 
@@ -32,12 +30,6 @@ const char* bar ()
 int main ()
 {
     const char *argtype = bar ();
-
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_ICONV_ARG2_T\n");
-
-#endif   // _RWSTD_USE_CONFIG
 
     if ('o' == argtype [1]) {
         // iconv() second argument type is const char**

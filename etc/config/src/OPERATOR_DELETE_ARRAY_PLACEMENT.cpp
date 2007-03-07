@@ -1,8 +1,6 @@
 // checking for operator delete[] (void*, void*)
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #include <stddef.h>
 

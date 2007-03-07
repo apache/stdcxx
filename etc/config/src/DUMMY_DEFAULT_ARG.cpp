@@ -1,10 +1,5 @@
 // checking for dummy default arguments
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
-
-
 template <class T>
 T foo (const T* = 0) { return T (); }
 

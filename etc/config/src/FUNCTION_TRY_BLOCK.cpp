@@ -1,8 +1,7 @@
 // checking function-try-block
 
-#if defined _RWSTD_USE_CONFIG
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
+
 
 int tried;
 int caught;

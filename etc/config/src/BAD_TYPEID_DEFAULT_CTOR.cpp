@@ -1,8 +1,6 @@
 // checking for bad_typeid default ctor
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif
+#include "config.h"
 
 #if 0   // guard invalid preprocessor symbol below
    // establish a dependency on RUNTIME_IN_STD.cpp

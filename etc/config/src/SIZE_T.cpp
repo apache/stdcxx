@@ -1,8 +1,6 @@
 // checking for fpos_t, ptrdiff_t, and size_t
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -33,12 +31,6 @@ void get_type_names (int dummy, ...)
     ptrdiff_t diff = 0;           // signed integral type
     size_t    size = 0;           // unsigned integral type
     time_t    tim  = 0;           // arithmetic type
-
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_SIZE_T\n");
-
-#endif   // _RWSTD_USE_CONFIG
 
     printf ("#define _RWSTD_CLOCK_T        %s\n", type_name (clk));
     printf ("#define _RWSTD_PTRDIFF_T      %s\n", type_name (diff));

@@ -3,9 +3,7 @@
 #include <float.h>    // for FLT_MIN, DBL_MIN, LDBL_MIN
 #include <stdio.h>    // for printf()
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 /***************************************************************************
  *
@@ -755,12 +753,6 @@ static ldbl_bits ldbl_denorm_min ()
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_NAN_BITS\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     const flt_bits f_inf  = flt_infinity ();
     const flt_bits f_qnan = flt_qnan ();
     const flt_bits f_snan = flt_snan ();

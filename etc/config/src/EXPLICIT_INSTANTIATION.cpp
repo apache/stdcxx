@@ -1,9 +1,5 @@
 // checking for explicit instantiation
 
-#if defined (_RWSTD_USE_CONFIG)
-#include "config.h"
-#endif   // _RWSTD_USE_CONFIG
-
 // IMPLICIT_INSTANTIATION.cpp depends on foo<T>(T)
 template <class T>
 T foo (T t) { return t; }

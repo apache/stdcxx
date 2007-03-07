@@ -1,11 +1,8 @@
 // checking for signaling NaN
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #include <stdio.h>
-
 #include <float.h>
 
 #if !defined (_RWSTD_NO_FENV_H)

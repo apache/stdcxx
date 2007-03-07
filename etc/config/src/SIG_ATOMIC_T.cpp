@@ -3,9 +3,7 @@
 #include <signal.h>
 #include <stdio.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 // establish a dependency on the test for long long
 // and #define the LONG_LONG macro used in "type.h"
@@ -22,13 +20,7 @@
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_SIG_ATOMIC_T\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
-#ifdef SIG_DFL
+#if defined (SIG_DFL)
     printf ("#define _RWSTD_SIG_DFL         %2d\n", SIG_DFL);
 #endif   // SIG_DFL
 

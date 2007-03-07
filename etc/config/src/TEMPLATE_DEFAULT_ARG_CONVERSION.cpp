@@ -1,8 +1,5 @@
 // checking for conversion in template default arguments
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
 
 template <class T>
 struct A { };

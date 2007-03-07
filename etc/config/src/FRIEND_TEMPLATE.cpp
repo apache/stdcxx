@@ -1,8 +1,6 @@
 // checking for friend templates of templates
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 
 template <class T>

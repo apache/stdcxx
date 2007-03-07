@@ -1,8 +1,6 @@
 // checking the contents of <unistd.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #include <sys/types.h>
 #include <fcntl.h>
@@ -118,12 +116,6 @@ const char* ssize_t_name (unsigned LONG_LONG)
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_UNISTD_DECL\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     print_macros ();
 
     off_t off = 0;

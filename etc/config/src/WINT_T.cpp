@@ -1,8 +1,6 @@
 // checking for wint_t in <wchar.h> and <wctype.h>
 
-#if defined (_RWSTD_USE_CONFIG)
-#  include "config.h"
-#endif   // _RWSTD_USE_CONFIG
+#include "config.h"
 
 #ifndef _RWSTD_NO_WCHAR_H
 #  include <wchar.h>
@@ -29,12 +27,6 @@
 
 int main ()
 {
-#if !defined (_RWSTD_USE_CONFIG)
-
-    printf ("/**/\n#undef _RWSTD_WINT_T\n");
-
-#endif   // _RWSTD_USE_CONFIG
-
     //////////////////////////////////////////////////////////////////
     // determine the underlying arithmetic type
 
