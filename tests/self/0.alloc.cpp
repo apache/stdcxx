@@ -31,11 +31,6 @@
 #include <rw_printf.h>   // for rw_printf
 #include <driver.h>
 
-#ifdef __CYGWIN__
-// use the Windows API on Cygwin
-#  define _WIN32
-#endif
-
 static jmp_buf mark;
 
 extern "C" {
@@ -48,7 +43,8 @@ sig_handler (int)
 
 }
 
-#ifdef sigsetjmp
+// on Cygwin use setjmp
+#if !defined (__CYGWIN__) && defined (sigsetjmp)
 #define SETJMP(env) sigsetjmp (env, 1)
 #else
 #define SETJMP(env) setjmp (env)

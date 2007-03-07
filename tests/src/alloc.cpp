@@ -93,7 +93,7 @@ enum {
     PROT_READ  = 1 << 0,
     PROT_WRITE = 1 << 1,
     PROT_RDWR  = PROT_READ | PROT_WRITE,
-    PROT_EXEC  = 1 << 2,
+    PROT_EXEC  = 1 << 2
 };
 
 #define MAP_PRIVATE   0
