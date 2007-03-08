@@ -220,7 +220,7 @@ function configure()
 
     CPPFLAGS += joinArray(new Array(stageDir, includeDir), "/I");
     
-    var defines = new Array("_RWSTD_USE_CONFIG");
+    var defines = new Array ("");
     
     if (confInfo.dll)
         defines.push("_RWSHARED");

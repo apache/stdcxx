@@ -530,13 +530,14 @@
 
   When using the  installed library be sure to  define any macros also
   defined on the  command line when building the  library.  These are:
-  _RWSTD_USE_CONFIG, and _RWSTDDEBUG; when using compilers that do not
-  provide  an option to  enable thread  safety or  to select  a thread
-  library,  the  following  macros   may  also  have  to  be  defined:
-  _RWSTD_POSIX_THREADS,   _RWSTD_SOLARIS_THREADS,  _RWSTD_DCE_THREADS,
-  and _RWSTDDEBUG.  Failing to do so,  or failing to  specify the same
-  compiler options that affect the binary compatibility of the library
-  leads to undefined behavior of the produced executables.
+  _RWSTDDEBUG to  enable debugging support in the  library; when using
+  compilers that do  not provide an option to  enable thread safety or
+  to select a thread library, the following macros may also have to be
+  defined:        _RWSTD_POSIX_THREADS,        _RWSTD_SOLARIS_THREADS,
+  _RWSTD_DCE_THREADS, and  _RWSTDDEBUG.  Failing to do  so, or failing
+  to  specify  the  same  compiler  options  that  affect  the  binary
+  compatibility  of the  library leads  to undefined  behavior  of the
+  produced executables.
 
 
   7  Test Suite Build Instructions

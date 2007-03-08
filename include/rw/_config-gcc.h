@@ -114,9 +114,7 @@
    // use new C++ libc headers
 #undef _RWSTD_NO_NEW_HEADER
 
-#ifdef _RWSTD_USE_CONFIG
-#  undef _RWSTD_NO_LIBC_IN_STD
-#endif
+#undef _RWSTD_NO_LIBC_IN_STD
 
 #undef _RWSTD_NO_DEPRECATED_LIBC_IN_STD
 

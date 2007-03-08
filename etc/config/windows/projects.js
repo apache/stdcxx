@@ -23,7 +23,7 @@
 // 
 //////////////////////////////////////////////////////////////////////
 
-var commonDefines = "_RWSTD_USE_CONFIG;debug?_RWSTDDEBUG;dll?_RWSHARED";
+var commonDefines = "debug?_RWSTDDEBUG;dll?_RWSHARED";
 var commonIncludes = "$(SolutionDir)%CONFIG%\\include";
 var stdlibIncludes = "%SRCDIR%\\include;%SRCDIR%\\include\\ansi;" + commonIncludes;
 var rwtestIncludes = "%SRCDIR%\\tests\\include;" + stdlibIncludes;
@@ -130,7 +130,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         new FilterDef(headerFilterName, headerFilterUuid, headerFilterExts, eFileTypeCppHeader, true).
             addFiles("%SRCDIR%\\util",
                 new Array("cmdopt.h", "display.h", "exec.h", "output.h", "target.h", "util.h")));
-    execDef.Defines = "_RWSTD_USE_CONFIG";
+    execDef.Defines = "";
     execDef.Includes = commonIncludes;
     execDef.OutDir = "$(SolutionDir)%CONFIG%\\bin";
     execDef.Libs = commonLibs;
