@@ -145,9 +145,7 @@ check_compat_test (FILE* data, struct target_status* status)
     assert (0 != data);
     assert (0 != status);
 
-    fseek (data, -70, SEEK_END); /* Seek near the end of the file */
-
-    for (tok = fgetc (data); fsm < 4 && !feof (data); tok = fgetc (data)) {
+    for (tok = fgetc (data); !feof (data); tok = fgetc (data)) {
         switch (tok) {
         case '\n':
             fsm = 1;
@@ -159,20 +157,20 @@ check_compat_test (FILE* data, struct target_status* status)
                 fsm = 0;
             break;
         case ' ':
-            if (3 == fsm) {
+            if (3 == fsm) 
                 ++fsm;
-                break;
-            }
+            else
+                fsm = 0;
+            break;
+        case 'W':
+            if (4 == fsm && !feof (data)) /* leading "## W" eaten */
+                read = fscanf (data, "arnings = %u\n## Assertions = %u\n"
+                       "## FailedAssertions = %u",
+                       &status->t_warn, &status->assert, &status->failed);
         default:
             fsm = 0;
         }
     }
-    if (!feof (data)) { /* leading "## W" eaten above */
-        read = fscanf (data, "arnings = %u\n## Assertions = %u\n"
-                       "## FailedAssertions = %u",
-                       &status->t_warn, &status->assert, &status->failed);
-    }
-
     if (3 != read) {
         status->status = ST_FORMAT;
     }
