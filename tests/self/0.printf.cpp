@@ -126,10 +126,13 @@ do_test (int         line,     // line number of the test case
         sprintf (fmt, "%s%c", pfx, spec);                               \
         char* const s0 = rw_sprintfa (fmt, a1, a2, a3);                 \
         char buf [256];                                                 \
-        if (!(expect))                                                  \
-            sprintf (buf, fmt, a1, a2, a3);                             \
+        /* variable below avoids warnings about controlling */          \
+        /* expression being constant */                                 \
+        const char* const expect_var = (expect);                        \
+        if (expect_var)                                                 \
+            strcpy (buf, expect_var ? expect_var : "");                 \
         else                                                            \
-            strcpy (buf, (expect) ? (expect) : "");                     \
+            sprintf (buf, fmt, a1, a2, a3);                             \
         const int result = memcmp (buf, s0, strlen (buf) + 1);          \
         if (result) {                                                   \
            ++nfailures;                                                 \
