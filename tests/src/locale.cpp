@@ -104,13 +104,8 @@
 #endif
 
 // relative paths to the etc/nls directory and its subdirectories
-#if defined (_RWSTD_USE_CONFIG)
-#  define RELPATH        "etc" SLASH "nls"
-#  define TESTS_ETC_PATH "tests" SLASH "etc"
-#else
-#  define RELPATH        "etc" SLASH "stdlib" SLASH "nls"
-#  define TESTS_ETC_PATH "tests" SLASH "stdlib" SLASH "etc"
-#endif  // _RWSTD_USE_CONFIG
+#define RELPATH        "etc" SLASH "nls"
+#define TESTS_ETC_PATH "tests" SLASH "etc"
             
 /**************************************************************************/
 

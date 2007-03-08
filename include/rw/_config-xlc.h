@@ -112,43 +112,22 @@
 #endif   // __TEMPINC__
 
 
-#ifdef _RWSTD_USE_CONFIG
    // avoid using autodetected libc headers
-#  undef _RWSTD_ANSI_C_ASSERT_H
-#  undef _RWSTD_ANSI_C_CTYPE_H
-#  undef _RWSTD_ANSI_C_ERRNO_H
-#  undef _RWSTD_ANSI_C_FLOAT_H
-#  undef _RWSTD_ANSI_C_ISO646_H
-#  undef _RWSTD_ANSI_C_LIMITS_H
-#  undef _RWSTD_ANSI_C_LOCALE_H
-#  undef _RWSTD_ANSI_C_MATH_H
-#  undef _RWSTD_ANSI_C_SETJMP_H
-#  undef _RWSTD_ANSI_C_SIGNAL_H
-#  undef _RWSTD_ANSI_C_STDARG_H
-#  undef _RWSTD_ANSI_C_STDDEF_H
-#  undef _RWSTD_ANSI_C_STDIO_H
-#  undef _RWSTD_ANSI_C_STDLIB_H
-#  undef _RWSTD_ANSI_C_STRING_H
-#  undef _RWSTD_ANSI_C_TIME_H
-#  undef _RWSTD_ANSI_C_WCHAR_H
-#  undef _RWSTD_ANSI_C_WCTYPE_H
-#else
-   // RCB is too dumb to autodetect these
-
-#  ifndef _RWSTD_NO_COLLAPSE_STATIC_LOCALS
-#    define _RWSTD_NO_COLLAPSE_STATIC_LOCALS
-#  endif
-
-#  ifndef _RWSTD_NO_COLLAPSE_TEMPLATE_LOCALS
-#    define _RWSTD_NO_COLLAPSE_TEMPLATE_LOCALS
-#  endif
-
-#  ifndef _RWSTD_NO_EXTERN_FUNCTION_TEMPLATE
-#    define _RWSTD_NO_EXTERN_FUNCTION_TEMPLATE
-#  endif
-
-#  ifndef _RWSTD_NO_EXTERN_TEMPLATE_BEFORE_DEFINITION
-#    define _RWSTD_NO_EXTERN_TEMPLATE_BEFORE_DEFINITION
-#  endif
-
-#endif   // _RWSTD_USE_CONFIG
+#undef _RWSTD_ANSI_C_ASSERT_H
+#undef _RWSTD_ANSI_C_CTYPE_H
+#undef _RWSTD_ANSI_C_ERRNO_H
+#undef _RWSTD_ANSI_C_FLOAT_H
+#undef _RWSTD_ANSI_C_ISO646_H
+#undef _RWSTD_ANSI_C_LIMITS_H
+#undef _RWSTD_ANSI_C_LOCALE_H
+#undef _RWSTD_ANSI_C_MATH_H
+#undef _RWSTD_ANSI_C_SETJMP_H
+#undef _RWSTD_ANSI_C_SIGNAL_H
+#undef _RWSTD_ANSI_C_STDARG_H
+#undef _RWSTD_ANSI_C_STDDEF_H
+#undef _RWSTD_ANSI_C_STDIO_H
+#undef _RWSTD_ANSI_C_STDLIB_H
+#undef _RWSTD_ANSI_C_STRING_H
+#undef _RWSTD_ANSI_C_TIME_H
+#undef _RWSTD_ANSI_C_WCHAR_H
+#undef _RWSTD_ANSI_C_WCTYPE_H

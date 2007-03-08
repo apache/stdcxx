@@ -336,14 +336,8 @@ static rw_file *_rw_ftestout;
 
 static jmp_buf test_env;
 
-#ifdef _RWSTD_USE_CONFIG
 // set to 1 after the driver has been initialized
 static int _rw_driver_init = 0;
-#else   // if !defined (_RWSTD_USE_CONFIG)
-// FIXME: remove this as soon as all tests have been ported
-// from RWTest to this driver
-_TEST_EXPORT int _rw_driver_init = 0;
-#endif   // _RWSTD_USE_CONFIG
 
 // set to 1 after the driver has finished running
 static int _rw_driver_done = 0;
@@ -977,16 +971,6 @@ rw_vtest (int argc, char **argv,
         return 1;
     }
 
-#ifndef _RWSTD_USE_CONFIG
-
-    // enable RWTest-format compatibility mode
-    _rw_opt_compat (1, 0);
-
-    // disable output to stdout
-    _rw_opt_no_stdout (1, 0);
-
-#endif   // _RWSTD_USE_CONFIG
- 
     _rw_setopts_compat ();
 
     _rw_setopts_types ();

@@ -32,11 +32,8 @@
 #ifndef _RWSTD_RW_CONFIG_H_INCLUDED
 #define _RWSTD_RW_CONFIG_H_INCLUDED
 
-#ifdef _RWSTD_USE_CONFIG
-#  include <config.h>
-#else
-#  include <rw/config/rwconfig_std.h>
-#endif   // _RWSTD_USE_CONFIG
+// include generated configuration header
+#include <config.h>
 
 /*** library version numbers and ids **************************************/
 
