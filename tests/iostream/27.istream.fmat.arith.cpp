@@ -51,8 +51,18 @@ template <class CharT>
 const std::locale
 make_locale (const CharT*, const LocaleData &data)
 {
-    // determine the number of classic characters (expecting 256)
+#if 255U == _RWSTD_UCHAR_MAX
+
+    // work around a bogus gcc error: ISO C++ forbids variable-size
+    // array (see https://issues.apache.org/jira/browse/STDCXX-351)
+    static const std::size_t N = 256;
+
+#else   // if UCHAR_MAX != 255
+
+    // determine the number of classic characters
     static const std::size_t N = std::ctype<char>::table_size;
+
+#endif
 
     // derive a class so we can call the protected classic_table()
     struct ClassicTable: std::ctype<char> {
