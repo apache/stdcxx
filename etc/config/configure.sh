@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //stdlib/dev/etc/stdlib/config/configure.sh#3 $
+# $Id$
 #
 # script to configure the C++ Standard library
 #

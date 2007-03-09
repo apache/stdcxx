@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //stdlib/dev/etc/stdlib/config/xlC_version.sh#1 $
+# $Id$
 #
 # prints VisualAge version
 
