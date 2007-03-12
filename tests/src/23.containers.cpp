@@ -520,7 +520,9 @@ _rw_list_sigcat (char** pbuf, size_t * pbufsize, ListIds::OverloadId which,
 // temporary, should be defined in 23.deque.h
 struct VectorIds : ContainerIds
 {
-    enum OverloadId {};
+    enum OverloadId {
+        dummy
+    };
 };
 
 static void
@@ -537,7 +539,9 @@ _rw_vector_sigcat (char** pbuf, size_t * pbufsize, VectorIds::OverloadId which,
 // temporary, should be defined in 23.deque.h
 struct DequeIds : ContainerIds
 {
-    enum OverloadId {};
+    enum OverloadId {
+        dummy
+    };
 };
 
 static void
@@ -554,7 +558,9 @@ _rw_deque_sigcat (char** pbuf, size_t * pbufsize, DequeIds::OverloadId which,
 // temporary, should be defined in 23.queue.h
 struct QueueIds : ContainerIds
 {
-    enum OverloadId {};
+    enum OverloadId {
+        dummy
+    };
 };
 
 static void
@@ -571,7 +577,9 @@ _rw_queue_sigcat (char** pbuf, size_t * pbufsize, QueueIds::OverloadId which,
 // temporary, should be defined in 23.stack.h
 struct StackIds : ContainerIds
 {
-    enum OverloadId {};
+    enum OverloadId {
+        dummy
+    };
 };
 
 static void
