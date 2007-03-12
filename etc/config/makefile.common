@@ -127,8 +127,11 @@ endif #ifneq ($(TARGET),)
 # link with the produced library and the math library
 # (take care not to try to link the library with itself)
 ifeq ($(findstring $(LIBNAME),$(TARGET)),)
-  LDFLAGS += -L$(LIBDIR) -l$(LIBBASE)
-  LDLIBS  += -lm
+  LDFLAGS += -L$(LIBDIR)
+  # set the GNU make variable LDLIBS to the names of the libraries
+  # to link with (make puts $(LDLIBS) last on the link line in
+  # implicit rules)
+  LDLIBS  := -l$(LIBBASE) $(LDLIBS) -lm
 endif  # ifneq ($(LIBNAME),$findstring ($(LIBNAME),$(TARGET)))
 
 
