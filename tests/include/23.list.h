@@ -225,7 +225,7 @@ struct ListIds : ContainerIds
 /**************************************************************************/
 
 template <class InputIter1, class InputIter2>
-static inline bool
+inline bool
 _rw_equal (InputIter1 first1, InputIter1 last1, InputIter2 first2)
 {
     for (; first1 != last1 && *first1 == *first2; ++first1, ++first2) ;
@@ -246,8 +246,7 @@ struct ListState
     ListCIter*    iters_;
     ListCPtr*     ptrs_;
 
-    ListState (List const & lst) : size_ (lst.size ()), iters_ (0), ptrs_ (0)
-    {
+    ListState (List const & lst) : size_ (lst.size ()), iters_ (0), ptrs_ (0) {
         iters_ = new ListCIter [size_];
         ptrs_  = new ListCPtr  [size_];
 
@@ -260,19 +259,18 @@ struct ListState
         }
     }
 
-    ~ListState ()
-    {
+    ~ListState () {
         delete [] iters_;
         delete [] ptrs_;
     }
 
     // invokes rw_assert() to verify that two states are the same
     void assert_equal (const ListState& state, int line,
-                       int case_line, const char* when) const
-    {
-        const int equal =    size_ == state.size_
-                          && _rw_equal (iters_, iters_ + size_, state.iters_)
-                          && _rw_equal (ptrs_,  ptrs_ + size_,  state.ptrs_);
+                       int case_line, const char* when) const {
+
+        const bool equal =    size_ == state.size_
+                           && _rw_equal (iters_, iters_ + size_, state.iters_)
+                           && _rw_equal (ptrs_,  ptrs_ + size_,  state.ptrs_);
 
         rw_assert (equal, 0, case_line,
                    "line %d: %{$FUNCALL}: object state unexpectedly changed "
