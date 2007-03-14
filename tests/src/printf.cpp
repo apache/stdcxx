@@ -2883,8 +2883,8 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         break;
 
     case 'S':   // %{S}, %{lS}, %{#*S}
-        if (   spec.mod == spec.mod_l
-            || !spec.mod && spec.fl_pound && sizeof (wchar_t) == spec.width) {
+        if (   spec.mod == spec.mod_l || spec.mod == FmtSpec::mod_none
+            && spec.fl_pound && sizeof (wchar_t) == spec.width) {
             // std::wstring
             spec.param.ptr_ = PARAM (ptr_, pva);
 
