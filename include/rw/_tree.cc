@@ -72,6 +72,7 @@ operator= (const __rb_tree &__x)
             _C_end->_C_child [1] = _C_node_t::_C_max (_C_end->_C_parent);
         }
         _C_size = __x._C_size;
+        _C_cmp  = __x._C_cmp;
     }
     return *this;
 }
