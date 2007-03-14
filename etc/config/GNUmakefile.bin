@@ -14,7 +14,6 @@ SRCDIRS = $(TOPDIR)/util
 ONE_REPOSITORY = 1
 include ../makefile.common
 
-INCLUDES += -I$(TOPDIR)/include/loc
 TARGET    = exec localedef locale
 
 # locale sources and related 
