@@ -522,9 +522,6 @@ ifeq ($(in_topdir),1)
   # full library filename (including suffix)
   LIBNAME = lib$(LIBBASE)$(LIBSUFFIX)
 
-  # add to enable config.h (alternate config mechanism)
-  CPPFLAGS += -D_RWSTD_USE_CONFIG
-
   ifeq ($(DEPENDDIR),)
     DEPENDDIR=.depend
   endif
