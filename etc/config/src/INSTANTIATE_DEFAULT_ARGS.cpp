@@ -6,11 +6,19 @@
 template <class T>
 struct A
 {
+    // must be able to use inaccessible members
     void foo (const T& = T ()) { }
+
+    // must be able to use non-existent members
+    void bar (const T& = T::foobar ()) { }
 };
+
+template <class T>
+void A<T>::bar (const T&) { }
 
 struct B
 {
+    // no foobar() declared
 private:
     B () { }
 };
