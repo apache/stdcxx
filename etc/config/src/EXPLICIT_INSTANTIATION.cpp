@@ -15,9 +15,11 @@ struct S
 };
 
 // the symbols expected to be produced by the explicit instantiation
-// directives are:
-//     S<int>::bar(), foo<int>(int)
-//     S<char>::bar(), foo<char>(char)
+// directives and their attributes are as follows:
+//     TEXT             S<int>::bar()
+//     WEAK (or TEXT)   foo<int>(int)
+//     TEXT             S<char>::bar()
+//     WEAK (or TEXT)   foo<char>(char)
 
 // IMPLICIT_INSTANTIATION.cpp uses foo<int>(int)
 template class S<int>;
