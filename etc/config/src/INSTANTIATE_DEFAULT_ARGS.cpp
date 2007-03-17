@@ -10,11 +10,11 @@ struct A
     void foo (const T& = T ()) { }
 
     // must be able to use non-existent members
-    void bar (const T& = T::foobar ()) { }
+    void bar (const T& = T::foobar ());
 };
 
 template <class T>
-void A<T>::bar (const T&) { }
+void A<T>::bar (const T& /* = T::foobar () */) { }
 
 struct B
 {
