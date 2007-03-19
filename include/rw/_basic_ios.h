@@ -230,6 +230,8 @@ protected:
     // the default ctor not to re-initialize the object
     basic_ios () { /* no-op as per 27.4.4.1, p2 */ }
 
+    ~basic_ios () { }
+
     // 27.4.4.1, p3
     void init (streambuf_type*);
 
@@ -334,9 +336,9 @@ basic_ios<_CharT, _Traits>::_C_bufmutex () const
 }   // namespace std
 
 
-#if _RWSTD_DEFINE_TEMPLATE (BASIC_IOS)
+#if _RWSTD_DEFINE_TEMPLATE_FIRST (_BASIC_IOS)
 #  include <rw/_basic_ios.cc>
-#endif
+#endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (_BASIC_IOS)
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -356,6 +358,11 @@ _RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
 #endif   // _RWSTD_INSTANTIATE (_BASIC_IOS, _WCHAR_T)
 
 }   // namespace std
+
+
+#if _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_IOS)
+#  include <rw/_basic_ios.cc>
+#endif   // _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_IOS)
 
 
 #endif   // _RWSTD_RW_BASIC_IOS_H_INCLUDED
