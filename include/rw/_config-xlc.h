@@ -93,12 +93,30 @@
 #  endif   // REENTRANT && LP64
 #endif   // AIX
 
-#if __IBMCPP__ == 800 && !defined (_RWSTDDEBUG)
-   // work around an XLC++ 8.0 ICE (STDCXX-159)
-#  if defined (_RWSTD_NO_EXTERN_TEMPLATE)
-#    define _RWSTD_NO_EXPLICIT_INSTANTIATION
-#  endif   // _RWSTD_NO_EXTERN_TEMPLATE
-#endif   // XLC++ 8.0 without debugging
+#if __IBMCPP__ == 800
+
+#  if !defined (__TEMPINC__) && defined (_RWSTD_NO_INSTANTIATE_DEFAULT_ARGS)
+     // disable explicit instantiation directives occuring prior
+     // the definition of out-of-line member functions of class
+     // templates in .cc files (i.e., prior their explicit
+     // #inclusion at the bottom of each header)
+#    ifndef _RWSTD_NO_EXPLICIT_INSTANTIATION_BEFORE_DEFINITION
+#      define _RWSTD_NO_EXPLICIT_INSTANTIATION_BEFORE_DEFINITION
+#    endif
+#   ifndef _RWSTD_NO_EXTERN_TEMPLATE_BEFORE_DEFINITION
+#      define _RWSTD_NO_EXTERN_TEMPLATE_BEFORE_DEFINITION
+#    endif
+#  endif   // !__TEMPINC__ && _RWSTD_NO_INSTANTIATE_DEFAULT_ARGS
+
+#  ifndef _RWSTDDEBUG
+     // work around an XLC++ 8.0 ICE (STDCXX-159)
+#    if defined (_RWSTD_NO_EXTERN_TEMPLATE)
+#      define _RWSTD_NO_EXPLICIT_INSTANTIATION
+#    endif   // _RWSTD_NO_EXTERN_TEMPLATE
+#  endif   // without debugging
+
+#endif   // XLC++ 8.0
+
 
 #ifndef __TEMPINC__
    // avoid VAC++ 7.0 diagnostic 1540-2910 (I) The template uses
