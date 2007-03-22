@@ -215,7 +215,7 @@ public:
     
     
     ~vector () { 
-        _C_destroy (begin (), end ()); 
+        _C_destroy (begin ()); 
         _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
                             deallocate (_C_begin, _C_bufend - _C_begin));
     }
@@ -367,15 +367,15 @@ public:
 
     void swap (vector&);
     
-    void clear () {
-        erase (begin (), end ());
-    }
+    void clear ();
 
-#if defined (_RWSTD_NO_PART_SPEC_OVERLOAD)
+#ifdef _RWSTD_NO_PART_SPEC_OVERLOAD
+
     friend void swap (vector& __lhs, vector& __rhs) {
         __lhs.swap (__rhs);
     }
-#endif
+
+#endif   // _RWSTD_NO_PART_SPEC_OVERLOAD
 
 private:
 
@@ -455,17 +455,21 @@ public:
 
     void _C_realloc (size_type);
 
-    void _C_construct (pointer __where, const_reference __what) {
-        _RWSTD_VALUE_ALLOC (_C_value_alloc_type,
-                            *this, construct (__where, __what));
+    // constructs a copy at the end and grows the size of container
+    void _C_push_back (const_reference __x) {
+        _RWSTD_ASSERT (_C_end != _C_bufend);
+
+        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
+                            construct (_C_end, __x));
+        ++_C_end;
     }
 
-    void _C_destroy (iterator __first, iterator __last) {
-        for ( ; __first != __last; ++__first)
-            _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
-                destroy (_RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
-                              address (*__first))));
-    }
+    // destroys elements from the iterator to the end of the vector
+    // and resets end() to point to the iterator
+    void _C_destroy (iterator);
+
+    // implements swap for objects with unequal allocator
+    void _C_unsafe_swap (vector&);
 
     pointer _C_begin;
     pointer _C_end;
@@ -571,9 +575,7 @@ push_back (const_reference __x)
         _C_insert_1 (end (), __x);
     }
     else {
-        _C_construct (_C_end, __x);
-
-        ++_C_end;
+        _C_push_back (__x);
     }
 }
 
@@ -583,6 +585,8 @@ inline _TYPENAME vector<_TypeT, _Allocator>::iterator
 vector<_TypeT, _Allocator>::
 insert (iterator __it, const_reference __x)
 {
+    _RWSTD_ASSERT_RANGE (__it, end ());
+
     const difference_type __off = __it - begin ();
 
     if (end () == __it)
@@ -599,12 +603,17 @@ inline _TYPENAME vector<_TypeT, _Allocator>::iterator
 vector<_TypeT, _Allocator>::
 erase (iterator __it)
 {
-    if (!empty ()) { 
-        if (__it + 1 != end ()) 
-            _STD::copy (__it + 1, end (), __it);
-        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this, destroy (_C_end - 1));
-        --_C_end;
-    }
+    _RWSTD_ASSERT_RANGE (__it, end ());
+    _RWSTD_ASSERT (__it < end ());   // `it' must be dereferenceable
+
+    const iterator __next = __it + 1;
+
+    if (__next != end ()) 
+        _STD::copy (__next, end (), __it);
+
+    _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this, destroy (_C_end - 1));
+    --_C_end;
+
     return __it;
 }
 
@@ -617,13 +626,19 @@ erase (iterator __first, iterator __last)
     _RWSTD_ASSERT_RANGE (__first, __last);
     _RWSTD_ASSERT_RANGE (begin (), __first);
 
-    const iterator __it = _STD::copy (__last, end (), __first);
-
-    _C_destroy (__it, end ());
-
-    _C_end -= __last - __first;
+    _C_destroy (_STD::copy (__last, end (), __first));
 
     return __first;
+}
+
+
+template <class _TypeT, class _Allocator>
+inline void
+vector<_TypeT, _Allocator>::
+clear ()
+{
+    if (!empty ())
+        _C_destroy (begin ());
 }
 
 
@@ -633,25 +648,19 @@ vector<_TypeT, _Allocator>::
 swap (vector &__other)
 {
     if (get_allocator () == __other.get_allocator ()) {
-        _STD::swap (_C_begin, __other._C_begin);
-        _STD::swap (_C_end, __other._C_end);
-        _STD::swap (_C_bufend, __other._C_bufend);
+        pointer __tmp    = _C_begin;
+        _C_begin         = __other._C_begin;
+        __other._C_begin = __tmp;
+        __tmp            = _C_end;
+        _C_end           = __other._C_end;
+        __other._C_end   = __tmp;
+        __tmp            = _C_bufend;
+        _C_bufend        = __other._C_bufend;
+        __other._C_bufend = __tmp;
     }
-    else {   // not exception-safe
-
-        // avoid passing the whole object to other vector member
-        // functions (i.e., assign()) in case they are implemented
-        // in terms of swap(); use iterators instead
-
-        vector __tmp (__other.get_allocator ());
-
-        // assert that the copy of the allocator compares equal
-        // to the original (otherwise the swap() below will cause
-        // a recursive call)
-        _RWSTD_ASSERT (__tmp.get_allocator () == __other.get_allocator ());
-
-        __tmp.assign (begin (), end ());
-        __other.swap (__tmp);
+    else {
+        // not exception-safe
+        _C_unsafe_swap (__other);
     }
 }
 
@@ -1253,21 +1262,21 @@ public:
 
     template<class _InputIter>
     void assign (_InputIter __first, _InputIter __last) {
-        erase (begin (), end ());
+        clear ();
         insert (begin (), __first, __last);
     }
 
 #else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
 
     void assign (const_iterator __first, const_iterator __last) {
-        erase (begin (), end ());
+        clear ();
         insert (begin (), __first, __last);
     }
 
 #endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
     void assign (size_type __n, const bool& __x = bool()) { 
-        erase (begin (), end ());
+        clear ();
         insert (begin (), __n, __x);
     }
 
