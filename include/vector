@@ -159,12 +159,12 @@ public:
 
     _EXPLICIT
     vector (const allocator_type &__alloc = allocator_type ())
-        : allocator_type (__alloc), _C_begin (0), _C_end (0), _C_bufend (0) { }
+        : allocator_type (__alloc), _C_begin (), _C_end (), _C_bufend () { }
 
     _EXPLICIT
     vector (size_type __n, const_reference __x = value_type (),
             const allocator_type &__alloc = allocator_type ())
-        : allocator_type (__alloc), _C_begin (0), _C_end (0), _C_bufend (0) {
+        : allocator_type (__alloc), _C_begin (), _C_end (), _C_bufend () {
         assign (__n, __x);
     }
 
@@ -792,7 +792,7 @@ public:
             : _C_p (__x), _C_mask (__y) { }
     public:
 
-        reference () : _C_p(0), _C_mask(0) {}
+        reference () : _C_p (), _C_mask () {}
 
         operator bool () const {
             return !!(*_C_p & _C_mask);
@@ -1183,7 +1183,7 @@ public:
 
     vector (const _Allocator&  __alloc = allocator_type ())
         : allocator_type (__alloc), _C_begin(iterator()), _C_end(iterator()), 
-        _C_bufend(0) { }
+        _C_bufend () { }
 
 #if !defined (__SUNPRO_CC) || __SUNPRO_CC > 0x530
     // working around a SunPro 5.3 bug (see PR #25962)
@@ -1191,7 +1191,7 @@ public:
 #endif   // SunPro > 5.3
     vector (size_type __n, bool __val = bool (), 
        const _Allocator&  __alloc = allocator_type ())
-        : allocator_type (__alloc), _C_bufend(0) {
+        : allocator_type (__alloc), _C_bufend () {
       _C_init(__n); 
       unsigned int * __first = _C_begin._C_p;
       size_type __m = (__n + _RWSTD_WORD_BIT - 1)/_RWSTD_WORD_BIT;
@@ -1199,7 +1199,7 @@ public:
     }
 
     vector (const _C_self &__x)
-        : allocator_type (__x.get_allocator ()), _C_bufend (0) {
+        : allocator_type (__x.get_allocator ()), _C_bufend  () {
         _C_init (__x.size ()); 
         _C_copy (__x.begin (), __x.end (), _C_begin);
     }
@@ -1208,7 +1208,7 @@ public:
 
     template<class _InputIter>
     vector  (_InputIter __first, _InputIter __last)
-        : allocator_type (), _C_bufend(0)
+        : allocator_type (), _C_bufend ()
     {
       size_type __n = _DISTANCE (__first, __last, size_type);
       _C_init(__n); 
@@ -1216,14 +1216,14 @@ public:
     }
 #else
     vector (const_iterator __first, const_iterator __last)
-        : allocator_type (), _C_bufend(0)
+        : allocator_type (), _C_bufend ()
     {
       size_type __n = _DISTANCE (__first, __last, size_type);
       _C_init(__n);
       _C_copy(__first, __last, _C_begin);
     }
     vector (const bool* __first, const bool* __last)
-        : allocator_type (), _C_bufend(0)
+        : allocator_type (), _C_bufend ()
     {
       size_type __n = _DISTANCE (__first, __last, size_type);
       _C_init(__n);
