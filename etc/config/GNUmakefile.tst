@@ -71,7 +71,7 @@ ifneq ($(RPATH),)
   LDFLAGS += $(RPATH)$(LIBDIR):$(BUILDDIR)/rwtest
 endif
 
-RUNFLAGS = --compat -x "--compat -O -"
+RUNFLAGS += --compat -x "--compat -O -"
 
 ##############################################################################
 #  TARGETS
