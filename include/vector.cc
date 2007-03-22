@@ -85,7 +85,7 @@ _C_realloc (size_type __n)
     // allocate storage of requested capacity
     __tmp._C_begin =
         _RWSTD_VALUE_ALLOC (_C_value_alloc_type, __tmp,
-                            allocate (__cap, __tmp._C_begin));
+                            allocate (__cap, this));
 
     // initialize pointers
     __tmp._C_end    = __tmp._C_begin;
@@ -97,14 +97,46 @@ _C_realloc (size_type __n)
     // ctor will cause the destruction of all already constructed
     // elements (by invoking the temporary's dtor)
     for (pointer __ptr = _C_begin; !(__ptr == _C_end); ++__ptr) {
-
-        __tmp._C_construct (__tmp._C_end, *__ptr);
-
-        ++__tmp._C_end;
+        __tmp._C_push_back (*__ptr);
     }
 
     // swap *this with the temporary, having its dtor clean up
     swap (__tmp);
+}
+
+
+template <class _TypeT, class _Allocator>
+void vector<_TypeT, _Allocator>::
+_C_destroy (iterator __first)
+{
+    _RWSTD_ASSERT_RANGE (__first, end ());
+
+    for (size_type __n = end () - __first; !(0 == __n); --__n) {
+        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this, destroy (--_C_end));
+    }
+}
+
+
+template <class _TypeT, class _Allocator>
+void vector<_TypeT, _Allocator>::
+_C_unsafe_swap (vector &__other)
+{
+    // called only from vector::swap() for unequal allocators
+    _RWSTD_ASSERT (!(get_allocator () == __other.get_allocator ()));
+
+    // avoid passing the whole object to other vector member
+    // functions (i.e., assign()) in case they are implemented
+    // in terms of swap(); use iterators instead
+
+    vector __tmp (__other.get_allocator ());
+
+    // assert that the copy of the allocator compares equal
+    // to the original (otherwise the swap() below will cause
+    // a recursive call)
+    _RWSTD_ASSERT (__tmp.get_allocator () == __other.get_allocator ());
+
+    __tmp.assign (begin (), end ());
+    __other.swap (__tmp);
 }
 
 
@@ -137,11 +169,13 @@ _C_insert_1 (const iterator &__it, const_reference __x)
     if (size () < capacity ()) {
 
         if (__it < end ()) {
+
+            const pointer __end = _C_end;
+
             // construct a copy of the last element in the range [it, end)
             // in the uninitialized slot just past the end of the range
-            _C_construct (_C_end, *(_C_end - difference_type (1)));
-
-            const pointer __end = _C_end++;
+            // and bump up end()
+            _C_push_back (*(_C_end - difference_type (1)));
 
             // move the remaining elements from the range above one slot
             // toward the end starting with the last element
@@ -151,11 +185,9 @@ _C_insert_1 (const iterator &__it, const_reference __x)
             *__it = __x;
         }
         else {
-            // construct a copy of the value to be inserted in the
-            // uninitialized slot
-            _C_construct (_C_end, __x);
-
-            ++_C_end;
+            // construct a copy of the value to be inserted
+            //  in the uninitialized slot
+            _C_push_back (__x);
         }
     }
     else {
@@ -192,33 +224,32 @@ _C_insert_n (const iterator &__it, size_type __n, const_reference __x)
 
         // copy the initial range prior to `it' as if by a call to
         // std::uninitialized_copy (begin (), __it, __tmp._C_begin);
-        for (__i = begin (); !(__i == __it); ++__i, ++__tmp._C_end) {
+        for (__i = begin (); !(__i == __it); ++__i) {
 
             _RWSTD_ASSERT (!(__tmp._C_end == __tmp._C_bufend));
 
-            __tmp._C_construct (__tmp._C_end, *__i);
+            __tmp._C_push_back (*__i);
         }
 
         // construct `n' copies of `x' just past the initial range,
         // as if by a call to
         // std::uninitialized_fill_n (__tmp._C_begin + __size1, __n, __x);
-        for ( ; __n; --__n, ++__tmp._C_end) {
+        for ( ; __n; --__n) {
 
             _RWSTD_ASSERT (!(__tmp._C_end == __tmp._C_bufend));
 
-            __tmp._C_construct (__tmp._C_end, __x);
+            __tmp._C_push_back (__x);
         }
 
         // copy the final range of elements starting with `it'
         // as if by a call to
-        // std::uninitialized_copy (__it, end (),
-        //                          __tmp._C_begin + (__size1 + __n);
+        // uninitialized_copy (__it, end (), __tmp._C_begin + __size1 + __n);
 
-        for (__i = __it; !(__i == end ()); ++__i, ++__tmp._C_end) {
+        for (__i = __it; !(__i == end ()); ++__i) {
 
             _RWSTD_ASSERT (!(__tmp._C_end == __tmp._C_bufend));
 
-            __tmp._C_construct (__tmp._C_end, *__i);
+            __tmp._C_push_back (*__i);
         }
 
         // swap the sequences controlled by the temporary vector and *this
@@ -407,8 +438,8 @@ __rw_assign_range (vector<_TypeT, _Allocator> *__self,
         // iteration so that an exception thrown by the copy ctor will
         // cause the destruction of all already constructed elements
         // (by invoking the temporary's dtor)
-        for ( ; !(__first == __last); ++__first, ++__tmp._C_end)
-            __tmp._C_construct (__tmp._C_end, *__first);
+        for ( ; !(__first == __last); ++__first)
+            __tmp._C_push_back (*__first);
 
         // swap *this with the temporary, having its dtor clean up
         __self->swap (__tmp);
@@ -608,7 +639,6 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
         const pointer __end = __self->_C_end;
 
         if (__movend <= __end) {
-
             // compute the beginning of the range of elements whose copies
             // will be copy-constructed in the uninitialized space just past
             // the current end of the sequence
@@ -616,14 +646,11 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
 
             // construct copies of elements that will be moved beyond
             // the current end of the sequence controlled by *this
-            pointer __p;
+            for (pointer __p = __ucpbeg; !(__p == __end); ++__p)
+                __self->_C_push_back (*__p);
 
-            for (__p = __ucpbeg; !(__p == __end); ++__p, ++__self->_C_end)
-                __self->_C_construct (__self->_C_end, *__p);
-
-            // copy elements that will be overwritten below
             // over the range of elements moved above
-            for (__p = __end; __movend < __p--; )
+            for (pointer __p = __end; __movend < __p--; )
                 *__p = *(__p - __size2);
         }
         else {
@@ -638,18 +665,16 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
             // of elements being inserted, as if by a call to
             // std::uninitialized_copy (__mid, __last, _C_end);
 
-            for (_FwdIter __m = __mid ; !(__m == __last);
-                 ++__m, ++__self->_C_end)
-                __self->_C_construct (__self->_C_end, *__m);
+            for (_FwdIter __m = __mid ; !(__m == __last); ++__m)
+                __self->_C_push_back (*__m);
 
             // construct copies of the range of elements [pos, end)
             // past the end of the range of elements inserted above,
             // as if by a call to 
             // std::uninitialized_copy (__movbeg, __end, _C_end);
 
-            for (pointer __p = __movbeg; !(__p == __end);
-                 ++__p, ++__self->_C_end)
-                __self->_C_construct (__self->_C_end, *__p);
+            for (pointer __p = __movbeg; !(__p == __end); ++__p)
+                __self->_C_push_back (*__p);
 
             __last = __mid;
         }
@@ -676,22 +701,20 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
         // iteration so that an exception thrown by the copy ctor
         // will cause the destruction of all already constructed
         // elements (by invoking the temporary's dtor)
-        for (__ix = __self->begin (); __ix != __it; ++__ix, ++__tmp._C_end) {
-
-            __tmp._C_construct (__tmp._C_end, *__ix);
+        for (__ix = __self->begin (); __ix != __it; ++__ix) {
+            __tmp._C_push_back (*__ix);
         }
 
         // append the sequence [first, last) to the temporary,
         // carefully increasing the size of tmp before performing
         // any operations on `first' and `last' in case they throw
         for (; !(__first == __last); ++__first) {
-            __tmp._C_construct (__tmp._C_end, *__first);
-            ++__tmp._C_end;
+            __tmp._C_push_back (*__first);
         }
 
         // copy the remaining elements from *this
-        for ( ; __ix != __self->end (); ++__ix, ++__tmp._C_end) {
-            __tmp._C_construct (__tmp._C_end, *__ix);
+        for ( ; __ix != __self->end (); ++__ix) {
+            __tmp._C_push_back (*__ix);
         }
 
         // swap *this with the temporary, having its dtor clean up
