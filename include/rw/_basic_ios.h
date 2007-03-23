@@ -230,8 +230,6 @@ protected:
     // the default ctor not to re-initialize the object
     basic_ios () { /* no-op as per 27.4.4.1, p2 */ }
 
-    ~basic_ios () { }
-
     // 27.4.4.1, p3
     void init (streambuf_type*);
 
