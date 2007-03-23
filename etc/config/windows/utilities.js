@@ -39,6 +39,7 @@ var NOSTCRT = false;
 var WINDIFF = "";
 var ICCCONVERT = "";
 var PLATFORM = "Win32";
+var CLVARSBAT = "";
 
 // read and parse compiler configuration file
 // config - name of the compiler configuration
@@ -129,6 +130,9 @@ function parseConfig(config)
         case "PLATFORM":
             PLATFORM = arr[2];
             break;
+        case "CLVARSBAT":
+            CLVARSBAT = arr[2];
+            break;
         }
     }
 }
@@ -179,6 +183,7 @@ function PrintVars(stream)
     stream.WriteLine("  WINDIFF=" + WINDIFF);
     stream.WriteLine("  ICCCONVERT=" + ICCCONVERT);
     stream.WriteLine("  PLATFORM=" + PLATFORM);
+    stream.WriteLine("  CLVARSBAT=" + CLVARSBAT);
     stream.WriteLine("");
 }
 

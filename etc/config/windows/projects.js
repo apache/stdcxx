@@ -29,6 +29,9 @@ var stdlibIncludes = "%SRCDIR%\\include;%SRCDIR%\\include\\ansi;" + commonInclud
 var rwtestIncludes = "%SRCDIR%\\tests\\include;" + stdlibIncludes;
 var commonLibs = "kernel32.lib user32.lib";
 
+var binPath = "$(SolutionDir)%CONFIG%\\bin";
+var libPath = "$(SolutionDir)%CONFIG%\\lib";
+
 var ProjectsDir = "%BUILDDIR%\\Projects";
 
 // projects which requires RTTI support
@@ -60,10 +63,14 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         new FilterDef("Script Files", null, ".js;.wsf", eFileTypeScript, false).
             addFiles("%SRCDIR%\\etc\\config\\windows",
                 new Array("configure.wsf", "config.js", "data.js", "utilities.js")));
-    configureDef.OutDir = "$(SolutionDir)%CONFIG%\\include";
+    configureDef.OutDir = commonIncludes;
     configureDef.IntDir = configureDef.OutDir;
     configureDef.CustomBuildFile = "configure.wsf";
-    configureDef.CustomBuildCmd = "cscript /nologo \"%CUSTOMFILE%\"" +
+    if (0 < CLVARSBAT.length)
+        configureDef.CustomBuildCmd = "call \"" + CLVARSBAT + "\"\r\n";
+    else
+        configureDef.CustomBuildCmd = "";
+    configureDef.CustomBuildCmd += "cscript /nologo \"%CUSTOMFILE%\"" +
         " /SolutionName:\"%SOLUTION%\"" +
         " /ConfigurationName:\"%CFGNAME%\"" +
         " /SrcDir:\"%SRCDIR%\\etc\\config\\src\"" +
@@ -89,7 +96,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 addFilesByMask("%SRCDIR%\\include", rxExcludedFolders, null)));
     stdlibDef.Defines = commonDefines;
     stdlibDef.Includes = stdlibIncludes;
-    stdlibDef.OutDir = "$(SolutionDir)lib";
+    stdlibDef.OutDir = libPath;
     stdlibDef.IntDir = "$(SolutionDir)%CONFIG%\\src";
     stdlibDef.Libs = commonLibs;
     stdlibDef.OutFile = "$(OutDir)\\stdlib%CONFIG%%EXT%";
@@ -132,7 +139,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 new Array("cmdopt.h", "display.h", "exec.h", "output.h", "target.h", "util.h")));
     execDef.Defines = "";
     execDef.Includes = commonIncludes;
-    execDef.OutDir = "$(SolutionDir)%CONFIG%\\bin";
+    execDef.OutDir = binPath;
     execDef.Libs = commonLibs;
     execDef.OutFile = "$(OutDir)\\exec.exe";
     execDef.PrjDeps.push(configureDef);
@@ -157,7 +164,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 "loc_exception.h", "localedef.h", "path.h", "scanner.h")));
     localedefDef.Defines = commonDefines;
     localedefDef.Includes = stdlibIncludes;
-    localedefDef.OutDir = "$(SolutionDir)%CONFIG%\\bin";
+    localedefDef.OutDir = binPath;
     localedefDef.Libs = commonLibs;
     localedefDef.OutFile = "$(OutDir)\\localedef.exe";
     localedefDef.PrjRefs.push(stdlibDef);
@@ -182,7 +189,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 "loc_exception.h", "memchk.h", "path.h", "scanner.h")));
     localeDef.Defines = commonDefines;
     localeDef.Includes = stdlibIncludes;
-    localeDef.OutDir = "$(SolutionDir)%CONFIG%\\bin";
+    localeDef.OutDir = binPath;
     localeDef.Libs = commonLibs;
     localeDef.OutFile = "$(OutDir)\\locale.exe";
     localeDef.PrjRefs.push(stdlibDef);
@@ -192,7 +199,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
 ///////////////////////////////////////////////////////////////////////////////
     var utilsDef = new ProjectDef(".stdcxx_utils", typeGeneric);
     utilsDef.VCProjDir = ProjectsDir + "\\util";
-    utilsDef.OutDir = "$(SolutionDir)%CONFIG%\\bin";
+    utilsDef.OutDir = binPath;
     utilsDef.IntDir = utilsDef.OutDir;
     utilsDef.PrjDeps.push(execDef);
     utilsDef.PrjDeps.push(localedefDef);
@@ -253,7 +260,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         " /CONFIG:\"%SOLUTION%\"" +
         " /LOGFILE:\"runexamples.log\"" +
         " /COPYDLL:" + (copyDll ? "false" : "true") +
-        " /LIBDIR:\"$(SolutionDir)lib\"";
+        " /LIBDIR:\"" + libPath + "\"";
     runexamplesDef.CustomBuildOut = "$(OutDir)\\runexamples.log";
     runexamplesDef.CustomBuildDeps = "%FILES%";
     //runexamplesDef.PrjDeps.push(allexamplesDef);
@@ -312,7 +319,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         " /CONFIG:\"%SOLUTION%\"" +
         " /LOGFILE:\"runtests.log\"" +
         " /COPYDLL:" + (copyDll ? "false" : "true") +
-        " /LIBDIR:\"$(SolutionDir)lib\"";
+        " /LIBDIR:\"" + libPath + "\"";
     runtestsDef.CustomBuildOut = "$(OutDir)\\runtests.log";
     runtestsDef.CustomBuildDeps = "%FILES%";
     //runtestsDef.PrjDeps.push(alltestsDef);
@@ -342,8 +349,8 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
             // before executing localedef.exe utility
             // and finally delete the copied file
             var libname = "stdlib%CONFIG%.dll";
-            var src = "\"$(SolutionDir)lib\\" + libname + "\"";
-            var dst = "\"$(SolutionDir)%CONFIG%\\bin\\" + libname + "\"";
+            var src = "\"" + libPath + "\\" + libname + "\"";
+            var dst = "\"" + binPath + "\\" + libname + "\"";
             localeTplDef.PreBuildCmd = "if exist " + src + " if not exist " + dst +
                                        " copy /Y " + src + " " + dst;
             localeTplDef.PostBuildCmd = "if exist " + dst + " del " + dst;
@@ -373,7 +380,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         new FilterDef("Script Files", null, "js;wsf", eFileTypeScript, false).
             addFiles("%SRCDIR%\\etc\\config\\windows",
                      new Array("run_locale_utils.wsf")));
-    testlocaleTplDef.OutDir = "$(SolutionDir)%CONFIG%\\bin";
+    testlocaleTplDef.OutDir = binPath;
     testlocaleTplDef.IntDir = testlocaleTplDef.OutDir;
     testlocaleTplDef.CustomBuildFile = "run_locale_utils.wsf";
     testlocaleTplDef.CustomBuildDeps = "%FILES%";
@@ -450,7 +457,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 if (0 <= arrayIndexOf(arrDeps, stdlibDef))
                 {
                     var libname = "stdlib%CONFIG%.dll";
-                    var src = "\"$(SolutionDir)lib\\" + libname + "\"";
+                    var src = "\"" + libPath + "\\" + libname + "\"";
                     var dst = "\"$(OutDir)\\" + libname + "\"";
                     var cmd = "if exist " + src + " (\r\n" +
                               "del " + dst + "\r\n" +
