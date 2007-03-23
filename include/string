@@ -186,9 +186,8 @@ public:
 
 #endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
-    basic_string (const_pointer __first, const_pointer __last, 
-                  const allocator_type &__alloc 
-                  _RWSTD_REDECLARED_DEFAULT(allocator_type ()));
+    basic_string (const_pointer, const_pointer, const allocator_type&
+                  _RWSTD_REDECLARED_DEFAULT (allocator_type ()));
 
     ~basic_string () {
         _C_unlink (0);
