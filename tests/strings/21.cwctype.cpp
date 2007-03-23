@@ -892,7 +892,9 @@ run_test (int, char**)
     rw_info (0, 0, 0,
              "%s::wctrans (const char*) definition", std_name);
 
-    result = std::wctrans ("");
+    // cast wctrans() result to ptrdiff_t in case it's a pointer
+    // such as in GNU glibc
+    result = (int)(_RWSTD_PTRDIFF_T)std::wctrans ("");
 
     rw_assert (-1 != result && !(missing_set & bit_wctrans), 0, __LINE__,
                "%s::wctrans (const char*) not defined", std_name);
