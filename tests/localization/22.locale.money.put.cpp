@@ -344,7 +344,7 @@ int type_test (int         lineno,
     char valbuf [256] = "";
     const int valbuflen = std::sprintf (valbuf, format, val);
 
-    RW_ASSERT (0 < valbuflen && valbuflen < sizeof valbuf);
+    RW_ASSERT (0 < valbuflen && valbuflen < int (sizeof valbuf));
 
     typedef std::char_traits<charT> Traits;
     typedef std::allocator<charT>   Allocator;
