@@ -315,7 +315,7 @@ void test_virtual (charT, Traits, const VFun *pfid,
 
     const int_type not_eof = Traits::not_eof (arg_int);
 
-    int success = ret == (NOT_EOF == ret_expect ? not_eof : ret_expect);
+    int success = ret == (NOT_EOF == ret_expect ? int (not_eof) : ret_expect);
 
     // verify the expected return value
     if (pfid->vfun_ == VFun::xsputn || is_seek) {
