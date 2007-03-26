@@ -283,14 +283,15 @@ std::string Def::convert_string (const std::string &str1)
         // '<' marks the beginning of a symbolic name
         // construct the name and look up its value in the cmap
         if (str[idx] == '<') {
-            while (str[idx] != '>') {
+            while (str [idx] && str [idx] != '>') {
                 if (str[idx] == scanner_.escape_char ())
                     idx++;
                 sym += str[idx++];
             }
 
             // this is safe because the while loop ended with *str == '>'
-            sym += str[idx++];
+            if (str [idx])
+                sym += str [idx++];
 
             w_cmap_iter w_pos = charmap_.get_w_cmap().find (sym);
             if (w_pos != charmap_.get_w_cmap().end()) {
