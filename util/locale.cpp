@@ -1478,7 +1478,7 @@ print_currency_symbol (const char *keyword, int print_cat)
         std::cout << "\"\"\n";
     else {
         const char* const cs =
-            _RWSTD_STATIC_CAST (const char*, mon_st->curr_symbol (0, 1));
+            _RWSTD_STATIC_CAST (const char*, mon_st->curr_symbol (0, 0));
 
         const wchar_t* const wcs =
             _RWSTD_STATIC_CAST (const wchar_t*, mon_st->curr_symbol (0, 1));
