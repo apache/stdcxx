@@ -1,4 +1,4 @@
-/***************************************************************************
+`/***************************************************************************
  *
  * algorithm.cc - Non-inline definitions for the Standard Library algorithms
  *
@@ -19,16 +19,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -764,7 +771,7 @@ _BidirIter __stable_partition (_BidirIter __first, _BidirIter __last,
                                      __pair.first, __pair.second,
                                      __fill, (_TypeT*)0);
 
-    for (_TypeT *__ptr = __pair.first + __fill; !(__pair.first == --__ptr); )
+    for (_TypeT *__ptr = __pair.first + __fill; !(__pair.first == __ptr--); )
         (*__ptr).~_TypeT ();
 
     _STD::return_temporary_buffer (__pair.first);
