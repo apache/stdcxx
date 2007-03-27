@@ -59,7 +59,7 @@ RWTLIBBASE   = rwtest$(BUILDTYPE)
 RWTLIBNAME   = lib$(RWTLIBBASE).a
 
 # Add to include dirs and link flags:
-INCLUDES    += -I$(RWTESTDIR) -I$(RWTESTDIR)/include -I$(TESTDIR)/include
+INCLUDES    += -I$(RWTESTDIR)/include -I$(TESTDIR)/include
 LDFLAGS     := -L$(BUILDDIR)/rwtest -l$(RWTLIBBASE) $(LDFLAGS)
 
 # targets to be built: object files for sources in the source directories
