@@ -1005,14 +1005,18 @@ rw_vtest (int argc, char **argv,
     if (clause)
         strcpy (clause_id, clause);
 
-    const char begin_fmt[] = {
+    static const char thick_line[] = {
+        "############################################################"
+    };
+
+    static const char begin_fmt[] = {
         "\n"
         "# COMPILER: %s\n"
         "# ENVIRONMENT: %s\n"
         "# FILE: %s\n"
         "# COMPILED: %s, %s\n"
         "# COMMENT: %s\n"
-        "######################################################"
+        "%s\n"
     };
 
     // allow file_name to be null
@@ -1024,7 +1028,8 @@ rw_vtest (int argc, char **argv,
              RW_TEST_COMPILER, RW_TEST_HARDWARE,
              fname ? fname + 1 : file_name,
              __DATE__, __TIME__,
-             comment ? comment : "");
+             comment ? comment : "",
+             thick_line);
 
     status = setjmp (test_env);
 
@@ -1039,11 +1044,11 @@ rw_vtest (int argc, char **argv,
     _rw_driver_done = 1;
 
     static const char tblrow[] =
-        "+-----------------------+--------+--------+--------+";
+        "+-----------------------+----------+----------+----------+";
 
     rw_fprintf (_rw_ftestout,
                 "# %s\n"
-                "# | DIAGNOSTIC            | ACTIVE |  TOTAL |INACTIVE|\n"
+                "# | DIAGNOSTIC            |  ACTIVE  |   TOTAL  | INACTIVE |\n"
                 "# %s\n",
                 tblrow, tblrow);
 
@@ -1058,10 +1063,10 @@ rw_vtest (int argc, char **argv,
 
             ++nlines;
 
-            const long num = (ndiags [i][0] - ndiags [i][1]) * 100L;
-            const long den = long (ndiags [i][0]);
+            const long inactive = ndiags [i][0] - ndiags [i][1];
+            const long total    = long (ndiags [i][0]);
 
-            const long pct = den ? num / den : 0;
+            const long pct = total ? long ((inactive * 100.0) / total) : 0;
 
             const char* pfx = "";
             const char* sfx = "";
@@ -1074,7 +1079,7 @@ rw_vtest (int argc, char **argv,
             }
 
             rw_fprintf (_rw_ftestout,
-                        "# | (S%d) %-*s |%s %6d %s| %6d | %5ld%% |\n",
+                        "# | (S%d) %-*s |%s %8d %s| %8d | %7ld%% |\n",
                         i, int (sizeof diag_msgs [i].code),
                         diag_msgs [i].code,
                         pfx, ndiags [i][1], sfx, ndiags [i][0], pct);
@@ -1093,10 +1098,11 @@ rw_vtest (int argc, char **argv,
         // RWTest compatibility format
 
         rw_fprintf (_rw_ftestout,
-                    "######################################################\n"
+                    "%s\n"
                     "## Warnings = %d\n"
                     "## Assertions = %d\n"
                     "## FailedAssertions = %d\n",
+                    thick_line,
                     ndiags [diag_warn][1] + ndiags [diag_xwarn][1],
                     ndiags [diag_assert][0],
                     ndiags [diag_assert][1] + ndiags [diag_xassert][1]);
