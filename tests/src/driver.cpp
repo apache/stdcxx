@@ -705,7 +705,7 @@ _rw_setopt_ulimit (int argc, char **argv)
 #ifdef RLIMIT_AS
         { "as", "AS", "As", RLIMIT_AS },
 #endif   // RLIMIT_AS
-        { 0, 0 }
+        { 0, 0, 0, 0 }
     };
 
     const char* arg = strchr (argv [0], '=');
@@ -1015,7 +1015,9 @@ rw_vtest (int argc, char **argv,
         "######################################################"
     };
 
-    const char* const fname = strrchr (file_name, _RWSTD_PATH_SEP);
+    // allow file_name to be null
+    const char* const fname =
+        file_name ? strrchr (file_name, _RWSTD_PATH_SEP) : 0;
 
     rw_info (0, 0, 0,
              begin_fmt,
