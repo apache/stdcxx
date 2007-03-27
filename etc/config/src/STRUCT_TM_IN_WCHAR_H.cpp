@@ -5,7 +5,7 @@
 // 7.24.1, p2 of C99: struct tm is required to declared
 // as an incomplete type in <wchar.h>
 
-struct tm* struct_tm_declared (struct tm* arg)
+tm* struct_tm_declared (tm* arg)
 {
     return arg;
 }
