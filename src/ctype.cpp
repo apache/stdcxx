@@ -2,28 +2,33 @@
  *
  * ctype.cpp - source for the C++ Standard Library ctype facets
  *
- * $Id: //stdlib/dev/source/stdlib/ctype.cpp#102 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
 #define _RWSTD_LIB_SRC
 
 #include <rw/_defs.h>
-
-#ifndef _RWSTD_NO_V3_LOCALE
 
 #include <ctype.h>
 #include <limits.h>
@@ -43,11 +48,11 @@
 _RWSTD_NAMESPACE (__rw) {
 
 // table of character classes
-extern const _V3_LOCALE::ctype_base::mask
-__rw_classic_tab [_V3_LOCALE::ctype<char>::table_size] = {
+extern const _STD::ctype_base::mask
+__rw_classic_tab [_STD::ctype<char>::table_size] = {
 
 #undef  MASK
-#define MASK(x)   _V3_LOCALE::ctype_base::mask (x)
+#define MASK(x)   _STD::ctype_base::mask (x)
 
 #undef  LETTER
 #define LETTER(m) MASK (__rw_print | __rw_alpha | __rw_graph | m)
@@ -451,7 +456,7 @@ __rw_classic_tab [_V3_LOCALE::ctype<char>::table_size] = {
 
 // table of lowercase to uppercase character mappings
 extern const unsigned char
-__rw_upper_tab [_V3_LOCALE::ctype<char>::table_size + 1] = {
+__rw_upper_tab [_STD::ctype<char>::table_size + 1] = {
 
 #if 'A' == 0x41
 
@@ -532,7 +537,7 @@ __rw_upper_tab [_V3_LOCALE::ctype<char>::table_size + 1] = {
 
 // table of uppercase to lowercase character mappings
 extern const unsigned char
-__rw_lower_tab [_V3_LOCALE::ctype<char>::table_size + 1] = {
+__rw_lower_tab [_STD::ctype<char>::table_size + 1] = {
 
 #if 'A' == 0x41
 
@@ -646,7 +651,7 @@ typedef _STD::ctype<char> __rw_ctype_facet;
 _RWSTD_SPECIALIZE_USE_FACET (ctype);
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
 
 
 _RW::__rw_facet_id ctype<char>::id;
@@ -938,12 +943,12 @@ ctype_byname<char>::ctype_byname (const char *name, _RWSTD_SIZE_T refs)
         const mask *mask_tab =
             _RWSTD_REINTERPRET_CAST (const mask*, impl->mask_tab);
 
+        // verify that mask is the same size
+        _RWSTD_ASSERT (sizeof *mask_tab == sizeof *impl->mask_tab);
+
         _C_mask_tab = _RWSTD_CONST_CAST (mask*, mask_tab);
     }
 }
 
 
-}   // namespace _V3_LOCALE
-
-
-#endif   // _RWSTD_NO_V3_LOCALE
+}   // namespace std
