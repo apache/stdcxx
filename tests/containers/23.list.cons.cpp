@@ -372,7 +372,7 @@ struct ConsRangePtrOverload: ContRangeBase<List> {
 /**************************************************************************/
 
 template <class InputIterator, class Distance>
-static inline void
+inline void
 _rw_advance (InputIterator& it, Distance dist) {
 
     while (0 < dist) {
