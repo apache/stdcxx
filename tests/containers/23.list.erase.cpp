@@ -244,7 +244,7 @@ pop_back_test_cases [] = {
 /**************************************************************************/
 
 template <class InputIterator, class Distance>
-static inline void
+inline void
 _rw_advance (InputIterator& it, Distance dist) {
 
     while (0 < dist) {
@@ -254,7 +254,7 @@ _rw_advance (InputIterator& it, Distance dist) {
 }
 
 template<class InputIterator>
-static inline size_t
+inline size_t
 _rw_distance(InputIterator first, InputIterator last)
 {
     size_t dist = 0;
