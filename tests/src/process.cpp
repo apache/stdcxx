@@ -33,13 +33,15 @@
 
 #include <rw_process.h>
 
+#include <ctype.h>        // for isspace()
+#include <errno.h>        // for EACCES, errno
+#include <signal.h>       // for SIGXXX, kill()
 #include <stddef.h>       // for size_t
 #include <stdarg.h>       // for va_copy, va_list, ...
 #include <stdlib.h>       // for free(), exit()
 #include <string.h>       // for strchr()
-#include <ctype.h>        // for isspace()
 
-#include <errno.h>        // for EACCES, errno
+#include <sys/types.h>    // for pid_t
 
 #include <driver.h>       // for rw_note(), ...
 #include <rw_printf.h>    // for rw_fprintf()
@@ -48,6 +50,46 @@
 // use the Windows API on Cygwin
 #  define _WIN32
 #endif
+
+#ifndef E2BIG
+#  define E2BIG   7   /* AIX, HP-UX, Linux, Solaris */
+#endif
+
+#ifndef SIGCHLD
+#  if defined (_RWSTD_OS_AIX) || defined (_RWSTD_OS_OSF)
+     // AIX, Tru64
+#    define SIGCHLD   20
+#  elif defined (_RWSTD_OS_LINUX)
+#    define SIGCHLD   17
+#  else
+     // (System V-based) HP-UX, IRIX, and Solaris
+#    define SIGCHLD   18
+#  endif
+#endif
+
+// all known Unices
+#ifndef SIGHUP
+#  define SIGHUP   1
+#endif
+
+#ifndef SIGQUIT
+#  define SIGQUIT  3
+#endif
+
+#ifndef SIGKILL
+#  define SIGKILL  9
+#endif
+
+
+#ifdef _RWSTD_EDG_ECCP
+
+extern "C" {
+
+int kill (pid_t, int);
+
+}   // extern "C"
+
+#endif   // _RWSTD_EDG_ECCP
 
 /**************************************************************************/
 
