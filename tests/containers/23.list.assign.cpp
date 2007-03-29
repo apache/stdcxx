@@ -370,10 +370,10 @@ void test_assign (T*, Allocator*,
             // for convenience
             static const int cwidth = sizeof (T);
 
-            const size_t got_size = lst.size ();
+            const std::size_t got_size = lst.size ();
             char* const got = new char [got_size + 1];
 
-            size_t index = 0;
+            std::size_t index = 0;
             for (ListCIter it = lst.begin (),
                 end = lst.end (); it != end; ++it) {
                 got [index++] = char (it->data_.val_);
