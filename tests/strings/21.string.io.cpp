@@ -934,21 +934,21 @@ void test_io (charT*, Traits*, Allocator*,
     // for tests exercising output
     const String& cstr (str);
 
-    static const size_t BUFSIZE = 256;
+    static const std::size_t BUFSIZE = 256;
 
     static char arg_buf [BUFSIZE];
 
-    size_t arg_len = 0;
+    std::size_t arg_len = 0;
     const char* arg = rw_expand (arg_buf, tcase.arg, tcase.arg_len, &arg_len);
 
     // prepare arrays of indexes on which force the exception throwing
     const charT* arg_throw = test_inserter ? tdata.str_ : tdata.arg_;
-    const size_t arg_throw_len = 
+    const std::size_t arg_throw_len = 
         test_inserter ? tdata.strlen_ : tdata.arglen_;
 
-    size_t* throw_on = new size_t [arg_throw_len + 1];
-    size_t pthrow = 0;
-    for (size_t k = 0; k < arg_throw_len; ++k) {
+    std::size_t* throw_on = new std::size_t [arg_throw_len + 1];
+    std::size_t pthrow = 0;
+    for (std::size_t k = 0; k < arg_throw_len; ++k) {
         if (1 == rw_match (&SYMB_THROW, arg_throw + k, 1))
             throw_on [pthrow++] = k + 1;
     }
@@ -968,8 +968,8 @@ void test_io (charT*, Traits*, Allocator*,
     const StringState cstr_state (rw_get_string_state (cstr));
 
     //                             Xsgetn, Sync, Xsputn
-    size_t throw_count [] = {    1,     1,     1   };
-    size_t throw_inx = 0;
+    std::size_t throw_count [] = {    1,     1,     1   };
+    std::size_t throw_inx = 0;
 
     while (1) {
 
@@ -1101,7 +1101,7 @@ void test_io (charT*, Traits*, Allocator*,
             const std::streamsize ret_width = strm.width ();
             const Iostate         ret_state = strm.rdstate ();
             const charT*          ret_str   = str.data ();
-            size_t                ret_sz    = str.size ();
+            std::size_t                ret_sz    = str.size ();
 
             if (test_inserter) {
                 ret_str = outbuf.pubpbase ();
@@ -1167,7 +1167,7 @@ void test_io (charT*, Traits*, Allocator*,
             if (   !streambuf_threw
                 || Overflow == sbuf.threw_ || Underflow == sbuf.threw_) {
 
-                size_t res_sz = streambuf_threw ?
+                std::size_t res_sz = streambuf_threw ?
                     sbuf.throw_when_ [sbuf.memfun_inx (sbuf.threw_)] - 1 :
                     tdata.reslen_;
 
@@ -1184,7 +1184,8 @@ void test_io (charT*, Traits*, Allocator*,
                     // if the result length matches the expected length
                     // (and only then), also verify that the modified
                     // string matches the expected result
-                    const size_t match = rw_match (tcase.res, ret_str, ret_sz);
+                    const std::size_t match = rw_match (tcase.res,
+                                                        ret_str, ret_sz);
 
                     success = match == res_sz;
                     rw_assert (success, 0, tcase.line,
@@ -1225,7 +1226,7 @@ void test_io (charT*, Traits*, Allocator*,
         // FIXME: verify the number of blocks the function call
         // is expected to allocate and detect any memory leaks
         rw_check_leaks (str.get_allocator (), tcase.line,
-                        size_t (-1), size_t (-1));
+                        std::size_t (-1), std::size_t (-1));
 
         if (streambuf_threw && 0 == tcase.bthrow) {
             // call the function again until streambuf methods
@@ -1280,7 +1281,7 @@ int main (int argc, char** argv)
         TEST (StringIds::getline_istream_str_val, getline_val)
     };
 
-    const size_t test_count = sizeof tests / sizeof *tests;
+    const std::size_t test_count = sizeof tests / sizeof *tests;
 
     return rw_run_string_test (argc, argv, __FILE__,
                                "lib.string.io",
