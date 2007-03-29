@@ -25,7 +25,7 @@
  **************************************************************************/
 
 #include <list>             // for list
-#include <stddef.h>         // for size_t
+#include <cstddef>          // for size_t
 #include <stdexcept>        // for exception
 #include <23.list.h>        // for ListMembers
 #include <driver.h>         // for rw_test()
@@ -370,7 +370,7 @@ void test_capacity (T*, Allocator*,
     // iterate for`throw_after' starting at the next call to operator new,
     // forcing each call to throw an exception, until the function finally
     // succeeds (i.e, no exception is thrown)
-    size_t throw_count;
+    std::size_t throw_count;
     for (throw_count = 0; ; ++throw_count) {
 
         // (name of) expected and caught exception
@@ -402,12 +402,12 @@ void test_capacity (T*, Allocator*,
 
         const bool is_class = ListIds::UserClass == func.elem_id_;
 
-        const size_t x_count_save = UserClass::count_;
+        const std::size_t x_count_save = UserClass::count_;
 
         // start checking for memory leaks
         rw_check_leaks (lst.get_allocator ());
 
-        size_t res = 0;
+        std::size_t res = 0;
 
         try {
 
@@ -451,15 +451,15 @@ void test_capacity (T*, Allocator*,
               || func.which_ == ListIds::resize_size
               || func.which_ == ListIds::resize_size_val)) {
 
-                  size_t nctors = tdata.reslen_ > tdata.strlen_ ? 
+                  std::size_t nctors = tdata.reslen_ > tdata.strlen_ ? 
                       tdata.reslen_ - tdata.strlen_ : 0;
 
-                  size_t ndtors = tdata.reslen_ < tdata.strlen_ ? 
+                  std::size_t ndtors = tdata.reslen_ < tdata.strlen_ ? 
                       tdata.strlen_ - tdata.reslen_ : 0;
 
-                  size_t new_count = x_count_save + nctors - ndtors;
+                  std::size_t new_count = x_count_save + nctors - ndtors;
 
-                  size_t ndefctors = 0;
+                  std::size_t ndefctors = 0;
 
                   if (func.which_ == ListIds::resize_size_val)
                       ++nctors;
@@ -488,7 +488,7 @@ void test_capacity (T*, Allocator*,
             }
 
             if (func.which_ == ListIds::max_size_void) {
-                size_t cur_sz = clst.size ();
+                std::size_t cur_sz = clst.size ();
 
                 rw_assert (cur_sz <= res, 0, tcase.line,
                            "line %d. %{$FUNCALL} == %zu, expected res > %zu",
@@ -502,10 +502,10 @@ void test_capacity (T*, Allocator*,
                  // for convenience
                 static const int cwidth = sizeof (T);
 
-                const size_t got_size = lst.size ();
+                const std::size_t got_size = lst.size ();
                 char* const got = new char [got_size + 1];
 
-                size_t index = 0;
+                std::size_t index = 0;
                 for (ListCIter it = lst.begin (),
                     end = lst.end (); it != end; ++it) {
                     got [index++] = char (it->data_.val_);
@@ -525,7 +525,8 @@ void test_capacity (T*, Allocator*,
                     // if the result length matches the expected length
                     // (and only then), also verify that the modified
                     // list matches the expected result
-                    const size_t match = rw_match (tcase.res, got, got_size);
+                    const std::size_t match = rw_match (tcase.res,
+                                                        got, got_size);
 
                     rw_assert (match == tdata.reslen_, 0, tcase.line,
                                "line %d. %{$FUNCALL} expected \"%{X=*}\", "
@@ -568,7 +569,7 @@ void test_capacity (T*, Allocator*,
         // FIXME: verify the number of blocks the function call
         // is expected to allocate and detect any memory leaks
         rw_check_leaks (lst.get_allocator (), tcase.line,
-            size_t (-1), size_t (-1));
+            std::size_t (-1), std::size_t (-1));
 
         if (caught) {
             // verify that an exception thrown during allocation
@@ -615,7 +616,7 @@ int main (int argc, char** argv)
         TEST (ListIds::empty_void, empty_void)
     };
 
-    const size_t test_count = sizeof tests / sizeof *tests;
+    const std::size_t test_count = sizeof tests / sizeof *tests;
 
     return rw_run_cont_test (argc, argv, __FILE__,
                              "lib.list.capacity",

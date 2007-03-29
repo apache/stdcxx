@@ -254,10 +254,10 @@ _rw_advance (InputIterator& it, Distance dist) {
 }
 
 template<class InputIterator>
-inline size_t
+inline std::size_t
 _rw_distance(InputIterator first, InputIterator last)
 {
-    size_t dist = 0;
+    std::size_t dist = 0;
 
     for (; first != last; ++first)
         ++dist;
@@ -312,7 +312,7 @@ void test_erase (T*, Allocator*,
 
     const bool is_class = ListIds::UserClass == func.elem_id_;
 
-    const size_t x_count_save = UserClass::count_;
+    const std::size_t x_count_save = UserClass::count_;
 
     try {
         // reset function call counters
@@ -372,7 +372,7 @@ void test_erase (T*, Allocator*,
         if (ListIds::pop_front_void != func.which_
          && ListIds::pop_back_void != func.which_) {
              // verify the returned value
-             size_t dist = _rw_distance (lst.begin (), res_iter);
+             std::size_t dist = _rw_distance (lst.begin (), res_iter);
              rw_assert (dist <= lst.size(), 0, tcase.line,
                  "line %d. %{$FUNCALL} returned invalid iterator, "
                  "difference with begin is %zu",
@@ -396,10 +396,10 @@ void test_erase (T*, Allocator*,
         // for convenience
         static const int cwidth = sizeof (T);
 
-        const size_t got_size = lst.size ();
+        const std::size_t got_size = lst.size ();
         char* const got = new char [got_size + 1];
  
-        size_t index = 0;
+        std::size_t index = 0;
         for (ListCIter it = lst.begin (),
             end = lst.end (); it != end; ++it) {
             got [index++] = char (it->data_.val_);

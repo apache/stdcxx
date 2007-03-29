@@ -182,7 +182,7 @@ void test_iterators (T*, Allocator*,
     // construct the constant list object
     const List clst (tdata.str_, tdata.str_ + tdata.strlen_, alloc);
 
-    const size_t s_size = test_const_list ? clst.size () : lst.size ();
+    const std::size_t s_size = test_const_list ? clst.size () : lst.size ();
 
     // save the state of the list object before the call
     // to detect exception safety violations (changes to
@@ -381,7 +381,7 @@ void test_iterators (T*, Allocator*,
     // FIXME: verify the number of blocks the function call
     // is expected to allocate and detect any memory leaks
     rw_check_leaks (lst.get_allocator (), tcase.line,
-        size_t (-1), size_t (-1));
+        std::size_t (-1), std::size_t (-1));
 
     // verify that state of the object didn't changed
     lst_state.assert_equal (ListState (lst),
@@ -418,7 +418,7 @@ int main (int argc, char** argv)
         TEST (ListIds::get_allocator_void, get_allocator_void)
     };
 
-    const size_t test_count = sizeof tests / sizeof *tests;
+    const std::size_t test_count = sizeof tests / sizeof *tests;
 
     return rw_run_cont_test (argc, argv, __FILE__,
                              "lib.list.iterators", ContainerIds::List,

@@ -482,7 +482,7 @@ void test_cons (T*, Allocator*, const ContRangeBase<
 
         const bool is_class = ListIds::UserClass == func.elem_id_;
 
-        const size_t x_count_save = UserClass::count_;
+        const std::size_t x_count_save = UserClass::count_;
 
         try {
             ListIds::OverloadId which =
@@ -542,11 +542,11 @@ void test_cons (T*, Allocator*, const ContRangeBase<
 
                 if (is_class) {
 
-                    size_t def_ctor = (Cons (size) == which);
+                    std::size_t def_ctor = (Cons (size) == which);
 
                     // verify that the list ctor calls only copy ctor
                     // of UserClass and only the given number of times each
-                    bool success = UserClass::is_total (size_t (-1),
+                    bool success = UserClass::is_total (std::size_t (-1),
                                                         def_ctor,
                                                         tdata.reslen_,
                                                         0, 0, 0);
@@ -561,10 +561,10 @@ void test_cons (T*, Allocator*, const ContRangeBase<
                                def_ctor, tdata.reslen_);
                 }
 
-                const size_t got_size = ret_ptr->size ();
+                const std::size_t got_size = ret_ptr->size ();
                 char* const got = new char [got_size + 1];
 
-                size_t index = 0;
+                std::size_t index = 0;
                 for (ListCIter it = ret_ptr->begin (),
                     end = ret_ptr->end (); it != end; ++it) {
                     got [index++] = char (it->data_.val_);
@@ -640,7 +640,7 @@ void test_cons (T*, Allocator*, const ContRangeBase<
 
         // disable UserClass::CopyCtor exception
         if (!caught)
-            UserClass::copy_ctor_throw_count_ = size_t (-1);
+            UserClass::copy_ctor_throw_count_ = std::size_t (-1);
 
         /* const */ std::size_t nbytes;
         const       std::size_t nblocks = rwt_check_leaks (&nbytes, 0);
@@ -763,8 +763,8 @@ void test_op_set (T*, Allocator*,
 
             if (is_class && &lst != &arg_list) {
 
-                const size_t total_copy = UserClass::n_total_copy_ctor_ +
-                    UserClass::n_total_op_assign_;
+                const std::size_t total_copy = UserClass::n_total_copy_ctor_ +
+                                               UserClass::n_total_op_assign_;
 
                 bool success = 0 == UserClass::n_total_def_ctor_
                             && total_copy == tdata.reslen_;
@@ -781,10 +781,10 @@ void test_op_set (T*, Allocator*,
             // for convenience
             static const int cwidth = sizeof (T);
 
-            const size_t got_size = lst.size ();
+            const std::size_t got_size = lst.size ();
             char* const got = new char [got_size + 1];
 
-            size_t index = 0;
+            std::size_t index = 0;
             for (ListCIter it = lst.begin (),
                 end = lst.end (); it != end; ++it) {
                 got [index++] = char (it->data_.val_);
