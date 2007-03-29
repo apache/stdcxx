@@ -297,7 +297,7 @@ ifeq ($(in_topdir),1)
 
   # decode the BUILDTYPE value and set BUILDMODE correspondingly
   ifeq ($(BUILDTYPE),8s)
-    bmode = optimized
+    bmode = optimized,narrow
   endif   # ifeq ($(BUILDTYPE),8s)
 
   ifeq ($(BUILDTYPE),8S)
@@ -305,7 +305,7 @@ ifeq ($(in_topdir),1)
   endif   # ifeq ($(BUILDTYPE),8s)
 
   ifeq ($(BUILDTYPE),8d)
-    bmode = shared,optimized
+    bmode = shared,optimized,narrow
   endif   # ifeq ($(BUILDTYPE),8d)
 
   ifeq ($(BUILDTYPE),8D)
@@ -313,7 +313,7 @@ ifeq ($(in_topdir),1)
   endif   # ifeq ($(BUILDTYPE),8d)
 
   ifeq ($(BUILDTYPE),11s)
-    bmode = debug
+    bmode = debug,narrow
   endif   # ifeq ($(BUILDTYPE),11s)
 
   ifeq ($(BUILDTYPE),11S)
@@ -322,7 +322,7 @@ ifeq ($(in_topdir),1)
 
   # 11d - single-thread, debug, shared
   ifeq ($(BUILDTYPE),11d)
-    bmode = debug,shared
+    bmode = debug,shared,narrow
   endif   # ifeq ($(BUILDTYPE),11d)
 
   ifeq ($(BUILDTYPE),11D)
@@ -331,7 +331,7 @@ ifeq ($(in_topdir),1)
 
   # 12s - multi-thread, optimized, static
   ifeq ($(BUILDTYPE),12s)
-    bmode = pthreads,optimized
+    bmode = pthreads,optimized,narrow
   endif   # ifeq ($(BUILDTYPE),12s)
 
   ifeq ($(BUILDTYPE),12S)
@@ -340,7 +340,7 @@ ifeq ($(in_topdir),1)
 
   # 12d - multi-thread, optimized, shared
   ifeq ($(BUILDTYPE),12d)
-    bmode = pthreads,shared,optimized
+    bmode = pthreads,shared,optimized,narrow
   endif   # ifeq ($(BUILDTYPE),12d)
 
   ifeq ($(BUILDTYPE),12D)
@@ -349,7 +349,7 @@ ifeq ($(in_topdir),1)
 
   # 15s - multi-thread, debug, static
   ifeq ($(BUILDTYPE),15s)
-    bmode = debug,pthreads
+    bmode = debug,pthreads,narrow
   endif   # ifeq ($(BUILDTYPE),15s)
 
   ifeq ($(BUILDTYPE),15S)
@@ -364,6 +364,12 @@ ifeq ($(in_topdir),1)
   ifeq ($(BUILDTYPE),15D)
     bmode = debug,pthreads,shared,wide
   endif   # ifeq ($(BUILDTYPE),15d)
+
+  ifneq ($(BUILDTYPE),)
+    ifeq ($(bmode),)
+      $(error "unknown BUILDTYPE value: '$(BUILDTYPE)'")
+    endif
+  endif
 
   ifeq ($(TOPDIR),)
     # during the first (non-recursive) invocation only,
