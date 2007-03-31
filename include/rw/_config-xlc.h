@@ -93,6 +93,14 @@
 #  endif   // REENTRANT && LP64
 #endif   // AIX
 
+#if __IBMCPP__ <= 800
+#  ifndef _RWSTD_NO_EXTERN_TEMPLATE
+     // disable extern template to work around an XLC++ 8.0 bug
+     // (see STDCXX-379)
+#    define _RWSTD_NO_EXTERN_TEMPLATE
+#  endif   // _RWSTD_NO_EXTERN_TEMPLATE
+#endif   // XLC++ 8.0 or prior
+
 #if __IBMCPP__ == 800
 
 #  if !defined (__TEMPINC__) && defined (_RWSTD_NO_INSTANTIATE_DEFAULT_ARGS)
