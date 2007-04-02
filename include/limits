@@ -195,7 +195,7 @@ _RWSTD_EXPORT extern const long double __rw_ldbl_sNaN;
 
 // 18.2.1.2, p6 - 7
 #define _RWSTD_DIGITS(type, min, max) \
-  (1 == (max) ? 1 : (_RWSTD_CHAR_BIT * int (sizeof (type)) - ((min) != 0)))
+  (1 == (max) ? 1 : (_RWSTD_CHAR_BIT * int (sizeof (type)) - int ((min) != 0)))
 
 // 18.2.1.2, p9
 #define _RWSTD_DIGITS10(digits)   (((digits) * 301) / 1000)
