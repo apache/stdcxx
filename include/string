@@ -406,8 +406,7 @@ public:
 
     // 21.3.5.4, p10
     iterator insert (iterator __pos, value_type __c) {
-        _RWSTD_ASSERT_RANGE (_C_make_iter (_C_data), __pos);
-        size_type __inx = __pos - _C_make_iter (_C_data);
+        const size_type __inx = _C_off (__pos);
         return insert (__inx, &__c, 1), begin () + __inx;
     }
 
@@ -428,16 +427,13 @@ public:
 
     void insert (iterator __p, size_type __n, value_type __c, int) {
         // unnamed arg is used for overload resolution
-        replace (__p - _C_make_iter (_C_data), size_type (), __n, __c);
+        replace (_C_off (__p), size_type (), __n, __c);
     }
 
     void insert (iterator __p,
                  const_pointer __first, const_pointer __last, void*) {
-        // unnamed arg is used for overload resolution
-        const iterator __begin = _C_make_iter (_C_data);
-        _RWSTD_ASSERT_RANGE (__begin, __p);
         if (__first >= _C_data && __first <= _C_data + size ())
-            insert (__p - __begin, basic_string (__first, __last));
+            insert (_C_off (__p), basic_string (__first, __last));
         else
             replace (__p, __p, __first, __last);
     }
@@ -449,7 +445,7 @@ public:
         // unnamed arg is used for overload resolution
         if (!(__first == __last)) {
             const const_pointer __pf = &*__first;
-            insert (__p, __pf, __pf + (__last - __first));
+            insert (__p, __pf, __pf + _C_off (__first, __last));
         }
     }
 
@@ -464,11 +460,8 @@ public:
 #else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
 
     void insert (iterator __p, const_pointer __first, const_pointer __last) {
-        // unnamed arg is used for overload resolution
-        const iterator __begin = _C_make_iter (_C_data);
-        _RWSTD_ASSERT_RANGE (__begin, __p);
         if (__first >= _C_data && __first <= _C_data + size ())
-            insert (__p - __begin, basic_string (__first, __last));
+            insert (_C_off (__p), basic_string (__first, __last));
         else
             replace (__p, __p, __first, __last);
     }
@@ -477,8 +470,7 @@ public:
     
 
     void insert (iterator __it, size_type __n, value_type __c) {
-        _RWSTD_ASSERT_RANGE (_C_make_iter (_C_data), __it);
-        replace (__it - _C_make_iter (_C_data), size_type (), __n, __c);
+        replace (_C_off (__it), size_type (), __n, __c);
     }
 
     basic_string& insert (size_type __pos, size_type __n, value_type __c) {
@@ -493,12 +485,9 @@ public:
     }
 
     iterator erase (iterator __first, iterator __last) {
-        _RWSTD_ASSERT_RANGE (_C_make_iter (_C_data), __first);
-        _RWSTD_ASSERT_RANGE (__first, __last);
+        const size_type __pos = _C_off (__first);
 
-        const difference_type __pos = __first - _C_make_iter (_C_data);
-
-        replace (__pos, __last - __first, const_pointer (), size_type ());
+        replace (__pos, _C_off (__first, __last), const_pointer(), size_type());
 
         return _C_make_iter (_C_data + __pos);
     }
@@ -571,17 +560,15 @@ public:
     // 21.3.5.6, p11
     basic_string&
     replace (iterator __first, iterator __last, const basic_string &__str) {
-        return replace (__first - _C_make_iter (_C_data),
-                        __last - __first, __str);
+        return replace (_C_off (__first), _C_off (__first,  __last), __str);
     }
 
     // 21.3.5.6, p15
     basic_string&
     replace (iterator __first, iterator __last,
              const_pointer __s, size_type __n) {
-        replace (__first - _C_make_iter (_C_data), __last - __first,
-                 __s, __n);
-        return *this;;
+        replace (_C_off (__first), _C_off (__first, __last), __s, __n);
+        return *this;
     }
 
     // 21.3.5.6, p17
@@ -593,8 +580,7 @@ public:
     // 21.3.5.6, p19
     basic_string&
     replace (iterator __first, iterator __last, size_type __n, value_type __c) {
-        return replace (__first - _C_make_iter (_C_data), __last - __first,
-                        __n, __c);
+        return replace (_C_off (__first), _C_off (__first, __last), __n, __c);
     }
 
 #if    !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
@@ -621,9 +607,7 @@ public:
     basic_string&
     replace (iterator __first, iterator __last,
              size_type __n, value_type __c, int) {
-        // unnamed arg is used for overload resolution
-        return replace (__first - _C_make_iter (_C_data), __last - __first,
-                        __n, __c);
+        return replace (_C_off (__first), _C_off (__first, __last), __n, __c);
     }
 
     // 21.3.5.6, p21
@@ -640,8 +624,8 @@ public:
     basic_string&
     replace (iterator __first1, iterator __last1,
              const_pointer __first2, const_pointer __last2) {
-        replace (__first1 - _C_make_iter (_C_data), __last1 - __first1,
-                 __first2, __last2 - __first2);
+        replace (_C_off (__first1), _C_off (__first1, __last1),
+                 __first2, _C_off (__first2, __last2));
         return *this;
     }
 
@@ -846,6 +830,18 @@ public:
 private:
 
 #endif
+
+    static size_type
+    _C_off (const_iterator __first, const_iterator __last) {
+        _RWSTD_ASSERT_RANGE (__first, __last);
+        return size_type (__last - __first);
+    }
+
+    size_type
+    _C_off (const_iterator __it) const {
+        _RWSTD_ASSERT_RANGE (__it, _C_make_iter (_C_data));
+        return _C_off (_C_make_iter (_C_data), __it);
+    }
 
     void _C_clone (size_type);
 
