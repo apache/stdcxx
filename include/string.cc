@@ -6,22 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 1994-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -522,15 +523,14 @@ replace (iterator __first1, iterator __last1,
 
      for ( ; !(__first2 == __last2); ++__first1, ++__first2) {
 
-         size_type __off = __first1 - __s._C_make_iter (__s._C_data);
+         const size_type __off = __s._C_off (__first1);
 
          _RWSTD_REQUIRES (__off <= __s.max_size(),
                           (_RWSTD_ERROR_LENGTH_ERROR,
                            _RWSTD_FUNC ("basic_string::replace(iterator, "
                                         "iterator, InputIterator, "
                                         "InputIterator)"),
-                           __first1 - __s._C_make_iter (__s._C_data),
-                           __s.max_size ()));
+                           __s._C_off (__first1), __s.max_size ()));
          
          // extend the string if necessary
          if (__first1 == __last1) {
@@ -557,10 +557,12 @@ replace (iterator __first1, iterator __last1,
          traits_type::assign (*__first1, *__first2);
      }
 
-     if (!(__first1 == __last1))
-         __s.replace (__first1 - __s._C_make_iter (__s._C_data), 
-                      __last1 - __first1,
-                      size_type (), value_type ());
+     if (!(__first1 == __last1)) {
+         const size_type __pos = __s._C_off (__first1);
+         const size_type __n   = __s._C_off (__first1, __last1);
+
+         __s.replace (__pos, __n, size_type (), value_type ());
+     }
 
      return __s;
 }
@@ -604,9 +606,9 @@ __replace_aux (iterator __first1, iterator __last1,
     _RWSTD_ASSERT_RANGE (__first1, __last1);
     _RWSTD_ASSERT_RANGE (__first2, __last2);
 
-    difference_type __n2  = _DISTANCE (__first2, __last2, difference_type);
-    size_type       __n   = __last1 - __first1;
-    size_type       __pos = __first1 - __s._C_make_iter (__s._C_data);
+    const size_type  __n2 = _DISTANCE (__first2, __last2, size_type);
+    const size_type  __n  = __s._C_off (__first1, __last1);
+    const size_type __pos = __s._C_off (__first1);
 
     _RWSTD_REQUIRES (__pos <= __s.size (),
                      (_RWSTD_ERROR_OUT_OF_RANGE,
@@ -641,7 +643,7 @@ __replace_aux (iterator __first1, iterator __last1,
 
         _C_string_ref_type * __temp = __s._C_get_rep (__cap, __len);
         if (__pos) traits_type::copy(__temp->data(), __s._C_data, __pos);
-        for (__d = 0; __d < (size_type)__n2; __d++)
+        for (__d = 0; __d < __n2; __d++)
             traits_type::assign (*(__temp->data()+__pos+__d), *__first2++);
         if (__rem)
             traits_type::copy (__temp->data () + __pos + __n2,
@@ -654,7 +656,7 @@ __replace_aux (iterator __first1, iterator __last1,
         if (__rem)  
           traits_type::move(__s._C_data+__pos+__n2, __s._C_data+__pos+__n, 
                             __rem);
-        for (__d = 0; __d < (size_type)__n2; __d++)
+        for (__d = 0; __d < __n2; __d++)
             traits_type::assign (*(__s._C_data+__pos+__d), *__first2++);
         traits_type::assign (__s._C_data[__s._C_pref()->_C_size._C_size 
                                          = __len], value_type());
