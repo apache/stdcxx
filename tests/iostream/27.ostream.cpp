@@ -1,21 +1,28 @@
 /***************************************************************************
  *
- * ostream.cpp - test exercising class template basic_ostream
+ * 27.ostream.cpp - test exercising class template basic_ostream
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2002-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -759,14 +766,14 @@ void test_formatted (charT, int line1, int line2,
             cbuf [i] = char (charbuf [i]);
 
         rw_assert (0 == std::strcmp (cbuf, str), __FILE__, line1,
-                   "%d. std::basic_ostream<%s>::operator<<(%s = %{#wc}) "
+                   "%d. std::basic_ostream<%s>::operator<<(%s = %{#lc}) "
                    "inserted \"%s\", expected \"%s\"",
                    line2, cname, tname, cbuf, str);
     }
 
     // verify that stream is in the expected state
     rw_assert (rdstate == os.rdstate (), __FILE__, line1,
-               "%d. std::basic_ostream<%s>::operator<<(%s = %{#wc})"
+               "%d. std::basic_ostream<%s>::operator<<(%s = %{#lc})"
                ".rdstate() == %{Is}, got %{Is}",
                line2, cname, tname, val, rdstate, os.rdstate ());
 
@@ -779,7 +786,7 @@ void test_formatted (charT, int line1, int line2,
             !((!exceptions || !tsb.fails_ && !tnp.fails_) && os.width ());
 
         rw_assert (pass, __FILE__, line1,
-                   "%d. std::basic_ostream<%s>::operator<<(%s = %{#wc})"
+                   "%d. std::basic_ostream<%s>::operator<<(%s = %{#lc})"
                    ".width () == 0, got %d",
                    line2, cname, tname, val, os.width  ());
 
@@ -788,7 +795,7 @@ void test_formatted (charT, int line1, int line2,
         pass = !(exceptions & os.rdstate () && caught != E_failure);
 
         rw_assert (pass, __FILE__, line1,
-                   "%d. std::basic_ostream<%s>::operator<<(%s = %{#wc}) "
+                   "%d. std::basic_ostream<%s>::operator<<(%s = %{#lc}) "
                    "set %{Is} but failed to throw ios_base::failure "
                    "when the same bit is set in exceptions",
                    line2, cname, tname, val, rdstate);
@@ -803,14 +810,14 @@ void test_formatted (charT, int line1, int line2,
         if (exceptions & Bad && caught != tsb.throws_) {
 
             rw_assert (false, __FILE__, line1,
-                       "%d. std::basic_ostream<%s>::operator<<(%s = %{#wc}) "
+                       "%d. std::basic_ostream<%s>::operator<<(%s = %{#lc}) "
                        "failed to propagate an exception thrown by "
                        "basic_filebuf; caught %s instead",
                        line2, cname, tname, val, caught_what);
         }
         else {
             rw_assert ((exceptions & Bad) || !caught, 0, line1,
-                       "%d. std::basic_ostream<%s>::operator<<(%s = %{#wc}) "
+                       "%d. std::basic_ostream<%s>::operator<<(%s = %{#lc}) "
                        "propagated an exception thrown by basic_filebuf "
                        "when ios_base::badbit is clear in exceptions",
                        line2, cname, tname, val);
@@ -825,13 +832,13 @@ void test_formatted (charT, int line1, int line2,
         // been thrown if exceptions is clear
         if (exceptions & Bad)
             rw_assert (caught == tnp.throws_, 0, line1,
-                       "%d. std::basic_ostream<%s>::operator<<(%s = %{#wc}) "
+                       "%d. std::basic_ostream<%s>::operator<<(%s = %{#lc}) "
                        "failed to propagate exception thrown by "
                        "basic_filebuf; caught %s instead",
                        line2, cname, tname, val, caught_what);
         else
             rw_assert (!caught, __FILE__, line1,
-                       "%d. std::basic_ostream<%s>::operator<<(%s = %{#wc}) "
+                       "%d. std::basic_ostream<%s>::operator<<(%s = %{#lc}) "
                        "propagated an exception thrown by basic_filebuf"
                        "when ios_base::badbit is clear in exceptions",
                        line2, cname, tname, val);
