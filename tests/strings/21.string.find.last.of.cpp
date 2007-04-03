@@ -207,10 +207,20 @@ static const StringTestCase
 cptr_size_test_cases [] = {
 
 #undef TEST
-#define TEST(str, arg, off, res)            \
-    { __LINE__, off, NPOS, -1, -1, -1,      \
-      str, sizeof str - 1, arg,             \
-      sizeof arg - 1, 0, res, 0             \
+#define TEST(str, arg, off, res) {                          \
+        /* int         .line =    */ __LINE__,              \
+        /* int         .off =     */ off,                   \
+        /* int         .size =    */ -1,                    \
+        /* int         .off2 =    */ -1,                    \
+        /* int         .size2 =   */ -1,                    \
+        /* int         .val =     */ -1,                    \
+        /* const char* .str =     */ str,                   \
+        /* size_t      .str_len = */ sizeof str - 1,        \
+        /* const char* .arg =     */ arg,                   \
+        /* size_t      .arg_len = */ sizeof arg - 1,        \
+        /* const char* .res =     */ 0,                     \
+        /* size_t      .nres =    */ res,                   \
+        /* int         .bthrow =  */ 0                      \
     }
 
     //    +-------------------------------------- controlled sequence
