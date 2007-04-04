@@ -18,11 +18,8 @@ include ../makefile.in
 
 # The place where the sources are looked for;
 # used in the variables setup in makefile.common
-RWTESTDIR    = $(TOPDIR)/../rwtest
 TESTDIR      = $(TOPDIR)/tests
-SRCDIRS      = $(RWTESTDIR)/src $(TOPDIR)/tests/src
-
-TARGET       = $(RWTESTDIR)/$(RWTESTLIB)
+SRCDIRS      = $(TESTDIR)/src
 
 # include common variables setting for all makefiles
 ONE_REPOSITORY = 1
@@ -35,10 +32,10 @@ LIBSUFFIX    = .a
 RWTESTLIB    = librwtest$(BUILDTYPE)$(LIBSUFFIX)
 
 # Additional include directories: 
-INCLUDES    += -I$(RWTESTDIR) -I$(TESTDIR)/include
+INCLUDES    += -I$(TESTDIR)/include
 
 # VPATH to look for sources in (appended dir for test.cpp)
-VPATH       += $(RWTESTDIR)/src $(TESTDIR)/src
+VPATH       += $(TESTDIR)/src
 
 # For xlC 5.0.2.0
 ifneq ($(DEFAULT_SHROBJ),)

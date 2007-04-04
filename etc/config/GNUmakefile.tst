@@ -31,7 +31,6 @@
 include ../makefile.in
 
 # tests & rwtest library directories
-RWTESTDIR = $(TOPDIR)/../rwtest
 TESTDIR   = $(TOPDIR)/tests
 
 # get the test suite subdirectories minus those known
@@ -59,7 +58,7 @@ RWTLIBBASE   = rwtest$(BUILDTYPE)
 RWTLIBNAME   = lib$(RWTLIBBASE).a
 
 # Add to include dirs and link flags:
-INCLUDES    += -I$(RWTESTDIR)/include -I$(TESTDIR)/include
+INCLUDES    += -I$(TESTDIR)/include
 LDFLAGS     := -L$(BUILDDIR)/rwtest -l$(RWTLIBBASE) $(LDFLAGS)
 
 # targets to be built: object files for sources in the source directories
