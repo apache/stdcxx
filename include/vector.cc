@@ -650,8 +650,8 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
                 __self->_C_push_back (*__p);
 
             // over the range of elements moved above
-            for (pointer __p = __end; __movend < __p--; )
-                *__p = *(__p - __size2);
+            for (pointer __q = __end; __movend < __q--; )
+                *__q = *(__q - __size2);
         }
         else {
             // compute the length of the initial subsequence of the range
