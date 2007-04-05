@@ -558,8 +558,12 @@ function saveSummaryHeaderMulti(fSum, exsDir, buildType, hdrExamples)
     if (fso.FileExists(lsumFileName))
     {
         var fileLSum = fso.OpenTextFile(lsumFileName);
-        var lsumData = fileLSum.ReadAll();
-        fSum.Write(lsumData);
+        if (!fileLSum.AtEndOfStream)
+        {
+            var lsumData = fileLSum.ReadAll();
+            fSum.Write(lsumData);
+        }
+        fileLSum.Close();
     }
     
     fSum.WriteLine("</table>");

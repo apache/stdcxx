@@ -169,19 +169,10 @@ function generate()
     VCProjectEngine = null;
 
     if (CONVERT)
-    {
-        try
-        {
-            LogMessage("Converting solution to ICC.");
-            var res = WshShell.Run(ICCCONVERT + " \"" + outDir + "\\" + solutionName + "\" /IC", 0, true);
-            if (0 != res)
-                LogMessage("Conversion finished with code " + res);
-        }
-        catch(e)
-        {
-            LogMessage("Conversion failed");
-        }
-    }    
+        convertSolutions(new Array(solutionName, exsolutionName,
+                                   tstsolutionName, locsolutionName,
+                                   tstlocsolutionName, runsolutionName));
+    
     
     LogMessage("Generating build.bat...");
 
@@ -197,6 +188,28 @@ function generate()
         resLogPath + " for details.");
         
     WScript.Quit(0);
+}
+
+// convert solution(s) from msvc to icc format
+function convertSolutions(solNames)
+{
+    if (typeof(solNames) == "string")
+        solNames = new Array(solNames);
+    for (var i = 0; i < solNames.length; ++i)
+    {
+        var solName = solNames[i];
+        try
+        {
+            LogMessage("Converting solution " + solName + " to ICC.");
+            var res = WshShell.Run(ICCCONVERT + " \"" + outDir + "\\" + solName + "\" /IC", 0, true);
+            if (0 != res)
+                LogMessage("Conversion finished with code " + res);
+        }
+        catch(e)
+        {
+            LogMessage("Conversion failed");
+        }
+    }
 }
 
 // performs checking of the script parameters
