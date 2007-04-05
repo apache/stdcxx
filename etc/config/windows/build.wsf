@@ -110,8 +110,23 @@ function event_ProjectBuildFinished(Cfg, Warnings, Errors, Canceled)
 
 function BuildProject(solutionBuild, projectName)
 {
-    solutionBuild.BuildProject(longConfName, projectName, true);
-    return solutionBuild.LastBuildInfo;
+    var projectFile = null;
+    var projects = dte.Solution.Projects;
+    for (var i = 1; i <= projects.Count && null == projectFile; ++i)
+    {
+        var project = projects.Item(i);
+        if (project.Name == projectName)
+            projectFile = project.UniqueName;
+    }
+
+    if (null != projectFile)
+    {
+        solutionBuild.BuildProject(longConfName, projectFile, true);
+        return solutionBuild.LastBuildInfo;
+    }
+
+    WScript.Echo("Error: project " + projectName + " not found\n");
+    return 1;
 }
 
 // the main function of the script
@@ -189,7 +204,7 @@ function build()
         projectEngine.BuildLogging = true;
 
         WScript.Echo("Performing configure step...\n");
-        var res = BuildProject(solutionBuild, "Projects\\configure.vcproj");
+        var res = BuildProject(solutionBuild, ".configure");
         if (0 < res)
         {
             retCode = 3;
@@ -197,7 +212,7 @@ function build()
         }   
 
         WScript.Echo("Compiling stdlib library...\n");
-        res = BuildProject(solutionBuild, "Projects\\stdlib.vcproj");
+        res = BuildProject(solutionBuild, ".stdlib");
         if (0 < res)
         {
             retCode = 4;
@@ -205,22 +220,22 @@ function build()
         }   
 
         WScript.Echo("Compiling examples...\n");
-        BuildProject(solutionBuild, "Projects\\examples\\stdcxx_examples.vcproj");
+        BuildProject(solutionBuild, ".stdcxx_examples");
 
         WScript.Echo("Compiling rwtest library...\n");
-        res = BuildProject(solutionBuild, "Projects\\rwtest.vcproj");
+        res = BuildProject(solutionBuild, ".rwtest");
         if (0 == res)
         {
             runTests = true;
             WScript.Echo("Compiling tests...\n");
-            BuildProject(solutionBuild, "Projects\\tests\\stdcxx_tests.vcproj");
+            BuildProject(solutionBuild, ".stdcxx_tests");
         }
 
         WScript.Echo("Compiling utils...\n");
         // compile exec utility
-        var resExec = BuildProject(solutionBuild, "Projects\\util\\util_exec.vcproj");
+        var resExec = BuildProject(solutionBuild, "util_exec");
         // compile rest utils
-        var resUtils = BuildProject(solutionBuild, "Projects\\util\\stdcxx_utils.vcproj");
+        var resUtils = BuildProject(solutionBuild, ".stdcxx_utils");
         if (0 < resExec)
         {
             retCode = 5;
@@ -231,12 +246,12 @@ function build()
            break;
 
         WScript.Echo("Running examples...\n");
-        BuildProject(solutionBuild, "Projects\\examples\\stdcxx_runexamples.vcproj");
+        BuildProject(solutionBuild, ".stdcxx_runexamples");
 
         if (runTests)
         {
             WScript.Echo("Running tests...\n");
-            BuildProject(solutionBuild, "Projects\\tests\\stdcxx_runtests.vcproj");
+            BuildProject(solutionBuild, ".stdcxx_runtests");
         }
         
         if (0 < resUtils)
@@ -246,7 +261,7 @@ function build()
         }   
 
         WScript.Echo("Running locales tests...");
-        BuildProject(solutionBuild, "Projects\\locales\\stdcxx_testlocales.vcproj");
+        BuildProject(solutionBuild, ".stdcxx_testlocales");
     }
     while (false);
 
