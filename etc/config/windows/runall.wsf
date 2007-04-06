@@ -34,7 +34,7 @@ runs examples and checks results.
                 required="true" type="string"/>
             <named helpstring="The log file" name="LOGFILE" 
                 required="false" type="string"/>
-            <named helpstring="The copy stdlibxx.dll to exe option" name="COPYDLL" 
+            <named helpstring="The copy libstdxx.dll to exe option" name="COPYDLL" 
                 required="false" type="string"/>
             <named helpstring="The lib dll folder" name="LIBDIR" 
                 required="false" type="string"/>
@@ -55,7 +55,7 @@ required by executables,
 @BUILDTYPE is the build type (11d, 11s, etc).
 @CONFIG is the compiler configuration (msvc-7.1, icc-9.0, etc).
 @LOGFILE is the log file name.
-@COPYDLL is the option for copy stdlibxx.dll to executables
+@COPYDLL is the option for copy libstdxx.dll to executables
 @LIBDIR is the library dll folder (specify when COPYDLL is true)
 @EXT is the extension of the example files, default value: "exe"
             </usage>
@@ -95,7 +95,7 @@ var runTimeout = 180;
 var buildlogFile = "BuildLog.htm";
 var summaryFileName = "Summary.htm";
 var htmFolderName = "temphtm";
-var libFileName = "stdlib";
+var libFileName = "libstd";
 
 var utlExec = "exec.exe";
 var unicodeLog = false;

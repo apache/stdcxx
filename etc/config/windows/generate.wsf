@@ -26,7 +26,7 @@ Generates solution file for a specified environment
             </description>
             <named helpstring="Name of the compiler configuration"
                 name="CONFIG" required="true" type="string"/>
-            <named helpstring="Top directory of stdlib sources tree" 
+            <named helpstring="Top directory of stdcxx sources tree" 
                 name="TOPDIR" required="false" type="string"/>
             <named helpstring="Output directory for modules" 
                 name="BUILDDIR" required="true" type="string"/>
@@ -138,7 +138,7 @@ function generate()
     var runsolutionName = currentCfg + "_run.sln";
 
     var configureDefs = projectDefs[0];
-    var stdlibDefs = projectDefs[1];
+    var stdcxxDefs = projectDefs[1];
     var rwtestDefs = projectDefs[2];
     var utilDefs = projectDefs[3];
     var exampleDefs = projectDefs[4];
@@ -152,11 +152,11 @@ function generate()
     for (var i = 0; i < projectDefs.length; ++i)
         solution = solution.concat(projectDefs[i]);
 
-    var exsolution = configureDefs.concat(stdlibDefs).concat(exampleDefs);
-    var tstsolution = configureDefs.concat(stdlibDefs).concat(rwtestDefs).concat(testDefs);
-    var locsolution = configureDefs.concat(stdlibDefs).concat(utilDefs).concat(localeDefs);
-    var tstlocsolution = configureDefs.concat(stdlibDefs).concat(utilDefs).concat(testlocaleDefs);
-    var runsolution = configureDefs.concat(stdlibDefs).concat(utilDefs).concat(runexamplesDefs).concat(runtestsDefs);
+    var exsolution = configureDefs.concat(stdcxxDefs).concat(exampleDefs);
+    var tstsolution = configureDefs.concat(stdcxxDefs).concat(rwtestDefs).concat(testDefs);
+    var locsolution = configureDefs.concat(stdcxxDefs).concat(utilDefs).concat(localeDefs);
+    var tstlocsolution = configureDefs.concat(stdcxxDefs).concat(utilDefs).concat(testlocaleDefs);
+    var runsolution = configureDefs.concat(stdcxxDefs).concat(utilDefs).concat(runexamplesDefs).concat(runtestsDefs);
 
     generateSolution(solution, outDir, solutionName);
     generateSolution(exsolution, outDir, exsolutionName);
