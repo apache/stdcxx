@@ -211,8 +211,8 @@ function build()
             break;
         }   
 
-        WScript.Echo("Compiling stdlib library...\n");
-        res = BuildProject(solutionBuild, ".stdlib");
+        WScript.Echo("Compiling stdcxx library...\n");
+        res = BuildProject(solutionBuild, ".stdcxx");
         if (0 < res)
         {
             retCode = 4;

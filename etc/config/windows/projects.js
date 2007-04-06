@@ -25,8 +25,8 @@
 
 var commonDefines = "debug?_RWSTDDEBUG;dll?_RWSHARED";
 var commonIncludes = "$(SolutionDir)%CONFIG%\\include";
-var stdlibIncludes = "%SRCDIR%\\include;%SRCDIR%\\include\\ansi;" + commonIncludes;
-var rwtestIncludes = "%SRCDIR%\\tests\\include;" + stdlibIncludes;
+var stdcxxIncludes = "%SRCDIR%\\include;%SRCDIR%\\include\\ansi;" + commonIncludes;
+var rwtestIncludes = "%SRCDIR%\\tests\\include;" + stdcxxIncludes;
 var commonLibs = "kernel32.lib user32.lib";
 
 var binPath = "$(SolutionDir)%CONFIG%\\bin";
@@ -42,7 +42,7 @@ var rxExcludedFolders =
 
 // fill and return array of ProjectDef objects
 // with definitions of the solution projects
-// copyDll - if true then stdlib and rwtest dlls will be copied
+// copyDll - if true then libstd and rwtest dlls will be copied
 //           to the target folder after build
 // buildLocales - if true then generate projects for build locales
 // testLocales - if true then generate projects for test locales
@@ -84,25 +84,25 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     projectDefs.push(new Array(configureDef));
 
 ///////////////////////////////////////////////////////////////////////////////
-    var stdlibDef = new ProjectDef(".stdlib", typeLibrary);
-    stdlibDef.VCProjDir = ProjectsDir;
-    stdlibDef.FilterDefs.push(
+    var stdcxxDef = new ProjectDef(".stdcxx", typeLibrary);
+    stdcxxDef.VCProjDir = ProjectsDir;
+    stdcxxDef.FilterDefs.push(
         new FilterDef(sourceFilterName, sourceFilterUuid, sourceFilterExts, eFileTypeCppCode, false).
             addFilesByMask("%SRCDIR%\\src", rxExcludedFolders, null));
-    stdlibDef.FilterDefs.push(
+    stdcxxDef.FilterDefs.push(
         new FilterDef(headerFilterName, headerFilterUuid, headerFilterExts, eFileTypeCppHeader, true).
             addFilesByMask("%SRCDIR%\\src", rxExcludedFolders, null).
             addFilter(new FilterDef("Include", headerFilterUuid, headerFilterExts + ";.", eFileTypeCppHeader, true).
                 addFilesByMask("%SRCDIR%\\include", rxExcludedFolders, null)));
-    stdlibDef.Defines = commonDefines;
-    stdlibDef.Includes = stdlibIncludes;
-    stdlibDef.OutDir = libPath;
-    stdlibDef.IntDir = "$(SolutionDir)%CONFIG%\\src";
-    stdlibDef.Libs = commonLibs;
-    stdlibDef.OutFile = "$(OutDir)\\stdlib%CONFIG%%EXT%";
-    stdlibDef.PrjDeps.push(configureDef);
+    stdcxxDef.Defines = commonDefines;
+    stdcxxDef.Includes = stdcxxIncludes;
+    stdcxxDef.OutDir = libPath;
+    stdcxxDef.IntDir = "$(SolutionDir)%CONFIG%\\src";
+    stdcxxDef.Libs = commonLibs;
+    stdcxxDef.OutFile = "$(OutDir)\\libstd%CONFIG%%EXT%";
+    stdcxxDef.PrjDeps.push(configureDef);
 
-    projectDefs.push(new Array(stdlibDef));
+    projectDefs.push(new Array(stdcxxDef));
 
 ///////////////////////////////////////////////////////////////////////////////
     var rwtestDef = new ProjectDef(".rwtest", typeLibrary);
@@ -120,7 +120,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     rwtestDef.OutDir = "$(SolutionDir)%CONFIG%\\tests";
     rwtestDef.IntDir = rwtestDef.OutDir + "\\src";
     rwtestDef.Libs = commonLibs;
-    rwtestDef.PrjRefs.push(stdlibDef);
+    rwtestDef.PrjRefs.push(stdcxxDef);
 
     projectDefs.push(new Array(rwtestDef));
 
@@ -163,11 +163,11 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 new Array("aliases.h", "charmap.h", "def.h", "diagnostic.h",
                 "loc_exception.h", "localedef.h", "path.h", "scanner.h")));
     localedefDef.Defines = commonDefines;
-    localedefDef.Includes = stdlibIncludes;
+    localedefDef.Includes = stdcxxIncludes;
     localedefDef.OutDir = binPath;
     localedefDef.Libs = commonLibs;
     localedefDef.OutFile = "$(OutDir)\\localedef.exe";
-    localedefDef.PrjRefs.push(stdlibDef);
+    localedefDef.PrjRefs.push(stdcxxDef);
 
     utilsArray.push(localedefDef);
 
@@ -188,11 +188,11 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 new Array("aliases.h", "charmap.h", "def.h", "diagnostic.h",
                 "loc_exception.h", "memchk.h", "path.h", "scanner.h")));
     localeDef.Defines = commonDefines;
-    localeDef.Includes = stdlibIncludes;
+    localeDef.Includes = stdcxxIncludes;
     localeDef.OutDir = binPath;
     localeDef.Libs = commonLibs;
     localeDef.OutFile = "$(OutDir)\\locale.exe";
-    localeDef.PrjRefs.push(stdlibDef);
+    localeDef.PrjRefs.push(stdcxxDef);
 
     utilsArray.push(localeDef);
 
@@ -215,10 +215,10 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     var exampleTplDef = new ProjectDef(null, typeApplication);
     exampleTplDef.VCProjDir = ProjectsDir + "\\examples";
     exampleTplDef.Defines = commonDefines;
-    exampleTplDef.Includes = "%SRCDIR%\\examples\\include;" + stdlibIncludes;
+    exampleTplDef.Includes = "%SRCDIR%\\examples\\include;" + stdcxxIncludes;
     exampleTplDef.OutDir = "$(SolutionDir)%CONFIG%\\examples";
     exampleTplDef.Libs = commonLibs;
-    exampleTplDef.PrjRefs.push(stdlibDef);
+    exampleTplDef.PrjRefs.push(stdcxxDef);
     
     var exampleDefs = exampleTplDef.createProjectDefsFromFolder(
         "%SRCDIR%\\examples",
@@ -277,7 +277,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     testTplDef.Includes = rwtestIncludes;
     testTplDef.OutDir = "$(SolutionDir)%CONFIG%\\tests";
     testTplDef.Libs = commonLibs;
-    testTplDef.PrjRefs.push(stdlibDef);
+    testTplDef.PrjRefs.push(stdcxxDef);
     testTplDef.PrjRefs.push(rwtestDef);
     
     var testDefs = testTplDef.createProjectDefsFromFolder(
@@ -345,10 +345,10 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         localeTplDef.PrjDeps.push(localedefDef);
         if (!copyDll)
         {
-            // copy stdlibxxx.dll to the bin directory
+            // copy libstdxx.dll to the bin directory
             // before executing localedef.exe utility
             // and finally delete the copied file
-            var libname = "stdlib%CONFIG%.dll";
+            var libname = "libstd%CONFIG%.dll";
             var src = "\"" + libPath + "\\" + libname + "\"";
             var dst = "\"" + binPath + "\\" + libname + "\"";
             localeTplDef.PreBuildCmd = "if exist " + src + " if not exist " + dst +
@@ -389,10 +389,10 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     testlocaleTplDef.PrjDeps.push(localedefDef);
     if (!copyDll)
     {
-        // copy stdlibxxx.dll to the bin directory
+        // copy libstdxx.dll to the bin directory
         // before executing run_locale_utils.wsf script
         // and finally delete the copied file
-        var libname = "stdlib%CONFIG%.dll";
+        var libname = "libstd%CONFIG%.dll";
         var set = 
             "set soldir=%BUILDDIR%\r\n" +
             "set bindir=%soldir%\\%CONFIG%\\bin\r\n" +
@@ -436,8 +436,8 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     if (copyDll)
     {
         // if project type is application and
-        //   if it depends on stdlib project then
-        //     copy stdlibxxx.dll to project output directory
+        //   if it depends on stdcxx project then
+        //     copy libstdxx.dll to project output directory
         //   if it depends on rwtest project then
         //     copy rwtest.dll to project output directory
         for (var i = 0; i < projectDefs.length; ++i)
@@ -454,9 +454,9 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 var arrDeps = projectDef.PrjRefs.concat(projectDef.PrjDeps);
                 var command = "";
     
-                if (0 <= arrayIndexOf(arrDeps, stdlibDef))
+                if (0 <= arrayIndexOf(arrDeps, stdcxxDef))
                 {
-                    var libname = "stdlib%CONFIG%.dll";
+                    var libname = "libstd%CONFIG%.dll";
                     var src = "\"" + libPath + "\\" + libname + "\"";
                     var dst = "\"$(OutDir)\\" + libname + "\"";
                     var cmd = "if exist " + src + " (\r\n" +

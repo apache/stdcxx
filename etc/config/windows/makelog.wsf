@@ -101,7 +101,7 @@ function makelog()
         buildSummaryPrefix, buildType);
     
     // read information about library
-    var libInfo = new ItemBuildInfo(".stdlib");
+    var libInfo = new ItemBuildInfo(".stdcxx");
     getLibraryBuildInfo(buildDir + "\\" + buildType +
         "\\" + libBuildDir, libInfo);
     
@@ -182,8 +182,8 @@ function readAndCheckArguments()
     }
 }
 
-// collects information about build process of the stdlib library
-// libDir - output directory for the stdlib library
+// collects information about build process of the stdcxx library
+// libDir - output directory for the stdcxx library
 // libInfo - ItemBuildInfo object to hold the collected information
 function getLibraryBuildInfo(libDir, libInfo)
 {   
