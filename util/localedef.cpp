@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -514,51 +521,79 @@ process_command_line (ProgramOptions *opts, int argc, char* argv[])
 }
 
 
+int localedef_main (int argc, char *argv[])
+{
+    ProgramOptions opts;
+
+    if (!process_command_line (&opts, argc, argv))
+        return EXIT_OK;
+
+    if (opts.gen) {
+        // create the locale databases as specified in generation list
+        generate_locales (opts.map_file, opts.alias_file,
+                          opts.charmap_dir.c_str (),
+                          opts.src_dir.c_str (),
+                          opts.output_dir.c_str (),
+                          opts.use_ucs,
+                          opts.no_position,
+                          opts.link_aliases);
+    }
+    else {
+        assert (0 != opts.locale_name);
+
+        // C++ locale name requested
+        std::string std_locale (opts.locale_name);
+
+        // retrieve the output directory if any
+        std::string std_outdir ("");
+
+        if (std_locale.rfind (_RWSTD_PATH_SEP) != std::string::npos) {
+            std_outdir = 
+                std_locale.substr (
+                    0, std_locale.rfind (_RWSTD_PATH_SEP) + 1);
+
+            std_locale = 
+                std_locale.substr (std_locale.rfind (_RWSTD_PATH_SEP) + 1,
+                                   std_locale.size ());
+        }
+
+        // create the locale database
+        create_locale (opts.source_name, opts.charmap_name,
+                       std_outdir, std_locale,
+                       opts.force_output, opts.use_ucs,
+                       opts.no_position, opts.link_aliases);
+    }
+
+    return EXIT_OK;
+}
+
+
+// defined in locale.cpp
+int locale_main (int, char*[]);
+
+
 int main (int argc, char *argv[])
 {
     int exit_status = EXIT_OK;
 
     try {
 
-        ProgramOptions opts;
+        if (1 < argc && 0 == std::strcmp (argv [1], "--locale-mode")) {
 
-        if (!process_command_line (&opts, argc, argv))
-            return exit_status;
+            // invoked with the special option ""--locale-mode"
+            // to act like the locale utility
 
-        if (opts.gen) {
-            // create the locale databases as specified in generation list
-            generate_locales (opts.map_file, opts.alias_file,
-                              opts.charmap_dir.c_str (),
-                              opts.src_dir.c_str (),
-                              opts.output_dir.c_str (),
-                              opts.use_ucs,
-                              opts.no_position,
-                              opts.link_aliases);
+            // remove argv [1] from command line
+            for (int i = 2; argv [i]; ++i)
+                argv [i - 1] = argv [i];
+
+            // NULL-terminate argv
+            argv [argc - 1] = 0;
+
+            exit_status = locale_main (argc - 1, argv);
         }
         else {
-            assert (0 != opts.locale_name);
-
-            // C++ locale name requested
-            std::string std_locale (opts.locale_name);
-
-            // retrieve the output directory if any
-            std::string std_outdir ("");
-
-            if (std_locale.rfind (_RWSTD_PATH_SEP) != std::string::npos) {
-                std_outdir = 
-                    std_locale.substr (
-                        0, std_locale.rfind (_RWSTD_PATH_SEP) + 1);
-
-                std_locale = 
-                    std_locale.substr (std_locale.rfind (_RWSTD_PATH_SEP) + 1,
-                                       std_locale.size ());
-            }
-
-            // create the locale database
-            create_locale (opts.source_name, opts.charmap_name,
-                           std_outdir, std_locale,
-                           opts.force_output, opts.use_ucs,
-                           opts.no_position, opts.link_aliases);
+            exit_status = localedef_main (argc, argv);
         }
     }
     catch (const std::ios::failure& error) {

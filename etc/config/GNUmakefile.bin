@@ -69,17 +69,15 @@ exec: runall.o cmdopt.o output.o util.o exec.o display.o
 	$(LD) $^ -o $@ $(LDFLAGS.exec) $(LDLIBS) $(call CXX.repo,$<) $(TEEOPTS)
 
 # link the localedef utility
-localedef: localedef.o aliases.o charmap.o codecvt.o collate.o ctype.o \
-           def.o diagnostic.o messages.o monetary.o numeric.o path.o   \
-           time.o scanner.o
+localedef: localedef.o locale.o aliases.o charmap.o codecvt.o collate.o \
+           ctype.o def.o diagnostic.o memchk.o messages.o monetary.o    \
+           numeric.o path.o time.o scanner.o
 	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" $(call CXX.repo,$<) \
 	>> $(LOGFILE)
 	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<) $(TEEOPTS)
 
 # link the locale utility
-locale: locale.o aliases.o charmap.o codecvt.o collate.o def.o ctype.o \
-        diagnostic.o memchk.o messages.o monetary.o numeric.o path.o   \
-        scanner.o time.o
+locale: locale_stub.o
 	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" $(call CXX.repo,$<) \
 	>> $(LOGFILE)
 	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<) $(TEEOPTS)
