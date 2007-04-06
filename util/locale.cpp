@@ -1924,7 +1924,7 @@ static int
 print_mon (const char *keyword, int print_cat)
 {
     static const char str[][10] = {
-        "January", "February", "March", "April", "May", "June"
+        "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"
     };
 
@@ -2816,130 +2816,113 @@ static const struct {
 };
 
 
-int main (int argc, char *argv[])
+int locale_main (int argc, char *argv[])
 {
-    try {
-        const char* const program_name = argv [0];
+    const char* const program_name = argv [0];
 
-        if (1 == argc) {
-            // print all localization environment variables
-            print_lc_vars ();
-        }
-        else {
-            init_sections ();
+    if (1 == argc) {
+        // print all localization environment variables
+        print_lc_vars ();
+    }
+    else {
+        init_sections ();
 
-            --argc;
+        --argc;
 
-            while (0 != *++argv && 0 < argc-- && '-' == **argv) {
+        while (0 != *++argv && 0 < argc-- && '-' == **argv) {
 
-                switch (*++*argv) {
+            switch (*++*argv) {
 
-                case 'a':
-                    // -a: print the names of all installed locales
-                    print_locale_names ();
-                    return EXIT_SUCCESS;
+            case 'a':
+                // -a: print the names of all installed locales
+                print_locale_names ();
+                return EXIT_SUCCESS;
 
-                case 'k':
-                    // -k: print the names of keywords when printing
-                    //     their values
+            case 'k':
+                // -k: print the names of keywords when printing
+                //     their values
+                print_keywords = true;
+                break;
+
+            case 'c':
+                // -c[k]: print the name of each section
+                print_sect_names = true;
+                if (*(*argv + 1) == 'k')
                     print_keywords = true;
-                    break;
+                break;
 
-                case 'c':
-                    // -c[k]: print the name of each section
-                    print_sect_names = true;
-                    if (*(*argv + 1) == 'k')
-                        print_keywords = true;
-                    break;
+            case 'm':
+                print_charmap_names ();
+                return EXIT_SUCCESS;
 
-                case 'm':
-                    print_charmap_names ();
-                    return EXIT_SUCCESS;
+            case 'h':
+                // -h: use character names from the original charmap
+                //     used by localedef to build the locale (if possible)
+                decode = true;
+                break;
 
-                case 'h':
-                    // -h: use character names from the original charmap
-                    //     used by localedef to build the locale (if possible)
-                    decode = true;
-                    break;
+            case 'l':
+                // -l: produce output suitable as input for processing
+                //     by the localedef utility
+                posix_output = false;
+                break;
 
-                case 'l':
-                    // -l: produce output suitable as input for processing
-                    //     by the localedef utility
-                    posix_output = false;
-                    break;
+            case 'p':
+                // -p: produce output using symbols from the Portable
+                //     Character Set whenever possible
+                use_pcs      = true;
+                posix_output = false;
+                break;
 
-                case 'p':
-                    // -p: produce output using symbols from the Portable
-                    //     Character Set whenever possible
-                    use_pcs      = true;
-                    posix_output = false;
-                    break;
+            case 'w':
+                if (std::strlen (*argv) == 1)
+                    issue_diag (W_DISABLE, 0, 0, 0);
+                else
+                    issue_diag (std::atoi (++*argv), 0, 0, 0);
+                break;
 
-                case 'w':
-                    if (std::strlen (*argv) == 1)
-                        issue_diag (W_DISABLE, 0, 0, 0);
-                    else
-                        issue_diag (std::atoi (++*argv), 0, 0, 0);
-                    break;
+            case '?':
+                print_help ();
+                return EXIT_SUCCESS;
 
-                case '?':
+            case '-':
+                if (0 == std::strcmp (*argv, "-help")) {
                     print_help ();
                     return EXIT_SUCCESS;
-
-                case '-':
-                    if (0 == std::strcmp (*argv, "-help")) {
-                        print_help ();
-                        return EXIT_SUCCESS;
-                    }
-
-                    if (0 == std::strcmp (*argv, "-charmap")) {
-                        print_charmap ();
-                        return EXIT_SUCCESS;
-                    }
-
-                    // fall through...
-
-                default:
-                    issue_diag (504, true, 0, "%s: invalid option "
-                                "-%s\n", program_name, *argv);
                 }
+
+                if (0 == std::strcmp (*argv, "-charmap")) {
+                    print_charmap ();
+                    return EXIT_SUCCESS;
+                }
+
+                // fall through...
+
+            default:
+                issue_diag (504, true, 0, "%s: invalid option "
+                            "-%s\n", program_name, *argv);
             }
+        }
 
-            if (0 == *argv) {
-                issue_diag (505, true, 0, "%s: missing argument\n Try '"
-                            "%s --help'\n", program_name, program_name);
-            }
+        if (0 == *argv) {
+            issue_diag (505, true, 0, "%s: missing argument\n Try '"
+                        "%s --help'\n", program_name, program_name);
+        }
 
-            for (; 0 != *argv; ++argv) {
+        for (; 0 != *argv; ++argv) {
 
-                for (std::size_t i = 0; handlers [i].name; ++i) {
-                    if (0 == std::strcmp (*argv, handlers [i].name)) {
+            for (std::size_t i = 0; handlers [i].name; ++i) {
+                if (0 == std::strcmp (*argv, handlers [i].name)) {
 
-                        const int arg =
-                            -1 == handlers [i].arg ? print_sect_names
-                                                   : handlers [i].arg;
+                    const int arg =
+                        -1 == handlers [i].arg ? print_sect_names
+                        : handlers [i].arg;
 
-                        handlers [i].print (handlers [i].name, arg);
-                    }
+                    handlers [i].print (handlers [i].name, arg);
                 }
             }
         }
     }
-    catch (loc_exception&) {
-        return 1;
-    }
-    catch (const std::exception& error) {
-        std::cerr <<"Error: " << error.what () << '\n';
-        return 1;
-    }
-    catch (...) {
-        std::cerr << "unknown exception\n";
-        return 1;
-    }
-
-#ifdef _RWSTD_NO_ISO_10646_WCHAR_T
-        //      std::setlocale (LC_CTYPE, saved_loc_name);
-#endif   // _RWSTD_NO_ISO_10646_WCHAR_T
 
     return EXIT_SUCCESS;
 }
