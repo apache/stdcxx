@@ -100,6 +100,12 @@ extern void tzset ();
 #endif   // __EDG__ || !_RWSTD_NO_PURE_C_HEADERS
 
 
+#ifdef _RWSTD_NO_DAYLIGHT
+   // the XSI POSIX extension, daylight, is not declared in <time.h>
+#  define daylight   0
+#endif   // _RWSTD_NO_DAYLIGHT
+
+
 #if defined (_RWSTD_NO_WCSFTIME) && !defined (_RWSTD_NO_WCSFTIME_IN_LIBC)
 #  if defined _RWSTD_WCSFTIME_ARG3_T
 
