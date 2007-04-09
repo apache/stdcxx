@@ -81,7 +81,7 @@ __rw_new_capacity (_RWSTD_CONTAINER_SIZE_TYPE __size, const _Container*)
 
 template <class _TypeT, class _TypeU>
 inline void
-__rw_construct (_TypeT* __p, const _TypeU& __val)
+__rw_construct (_TypeT* __p, _TypeU& __val)
 {
     ::new (_RWSTD_STATIC_CAST (void*, __p)) _TypeT (__val);
 }
@@ -89,7 +89,7 @@ __rw_construct (_TypeT* __p, const _TypeU& __val)
 
 template <class _TypeT, class _TypeU>
 inline void
-__rw_construct (volatile _TypeT* __p, const _TypeU& __val)
+__rw_construct (volatile _TypeT* __p, _TypeU& __val)
 {
     // remove volatile before invoking operator new
     __rw_construct (_RWSTD_CONST_CAST (_TypeT*, __p), __val);
@@ -99,7 +99,7 @@ __rw_construct (volatile _TypeT* __p, const _TypeU& __val)
 
 template <class _TypeT, class _TypeU>
 inline void
-__rw_construct_impl (_TypeT* __p, const _TypeU& __val)
+__rw_construct_impl (_TypeT* __p, _TypeU& __val)
 {
     ::new (_RWSTD_STATIC_CAST (void*, __p)) _TypeT (__val);
 }
@@ -107,7 +107,7 @@ __rw_construct_impl (_TypeT* __p, const _TypeU& __val)
 
 template <class _TypeT, class _TypeU>
 inline void
-__rw_construct (volatile _TypeT* __p, const _TypeU& __val)
+__rw_construct (volatile _TypeT* __p, _TypeU& __val)
 {
     // remove volatile before invoking operator new
     __rw_construct_impl (_RWSTD_CONST_CAST (_TypeT*, __p), __val);
