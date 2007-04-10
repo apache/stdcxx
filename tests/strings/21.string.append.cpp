@@ -569,6 +569,7 @@ void test_append (charT*, Traits*, Allocator*, const RangeBase<
                   const StringTestCaseData<charT>                    &tdata)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
+    typedef typename String::size_type                   SizeT;
     typedef typename String::iterator                    StringIter;
     typedef typename UserTraits<charT>::MemFun           TraitsFunc;
 
@@ -660,7 +661,8 @@ void test_append (charT*, Traits*, Allocator*, const RangeBase<
                 break;
 
             case Append (cstr_size_size):
-                ret_ptr = &str.append (str_arg, tcase.off2, tcase.size2);
+                ret_ptr = &str.append (str_arg,
+                                       SizeT (tcase.off2), SizeT (tcase.size2));
                 break;
 
             case Append (size_val):

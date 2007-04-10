@@ -202,6 +202,7 @@ void test_access (charT, Traits*, Allocator*,
                   const StringTestCase &tcase)
 {
     typedef std::basic_string <charT, Traits, Allocator> String;
+    typedef typename String::size_type                   SizeT;
 
     static const std::size_t BUFSIZE = 256;
 
@@ -238,19 +239,19 @@ void test_access (charT, Traits*, Allocator*,
         switch (func.which_) {
 
         case OpIndex (size):
-            pres = &str [tcase.off];
+            pres = &str [SizeT (tcase.off)];
             break;
 
         case OpIndex (const_size):
-            pres = &const_str [tcase.off];
+            pres = &const_str [SizeT (tcase.off)];
             break;
 
         case At (size):
-            pres = &str.at (tcase.off);
+            pres = &str.at (SizeT (tcase.off));
             break;
 
         case At (const_size):
-            pres = &const_str.at (tcase.off);
+            pres = &const_str.at (SizeT (tcase.off));
             break;
 
         default:
