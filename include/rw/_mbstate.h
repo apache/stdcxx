@@ -259,6 +259,9 @@ struct mbstate_t
 }   // namespace std
 
 #    endif   // _RWSTD_NO_USING_LIBC_IN_STD
+
+#    define _RWSTD_MBSTATE_T   _STD::mbstate_t
+
 #  endif   // generic OS
 #endif   // _RWSTD_NO_MBSTATE_T && !_RWSTD_MBSTATE_T_DEFINED
 
