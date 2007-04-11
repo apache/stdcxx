@@ -4,7 +4,17 @@
 #include <stddef.h>   // for offsetof, size_t
 #include <stdio.h>    // for printf
 #include <string.h>   // for strlen
+
 #include "config.h"
+
+#ifndef _RWSTD_NO_OFFSETOF
+#  define OFF(T, m)   offsetof (T, m)
+#else
+   // provide own equivalent when offsetof() macro doesn't work
+   // (e.g., when using the EDG eccp front end with an incompatible
+   // version of gcc)
+#  define OFF(T, m)   (((const char*)&((T*)0)->m) - ((const char*)(T*)0))
+#endif   // _RWSTD_NO_OFFSETOF
 
 // prevent IBM xlC 5.0 errors caused by using /usr/include/string.h
 // which #defines this (and other) names to undeclared symbols
@@ -21,7 +31,7 @@ int main ()
     } lconv_info[] = {
 
 #define ENTRY(type, member, comment) { \
-        offsetof (lconv, member),      \
+        OFF (lconv, member),           \
         sizeof ((lconv*)0)->member,    \
         type,                          \
         # member,                      \
