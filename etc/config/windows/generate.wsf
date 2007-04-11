@@ -83,18 +83,25 @@ var winconfigDir = "\\etc\\config\\windows";
 
 var description = new generate; // run
 
+// the replacement of the WScript.Echo()
+function Echo(msg)
+{
+    // WScript.Echo(msg);
+    WScript.StdOut.WriteLine(msg);
+}
+
 // print message to the stdout and out the message to the logfile
 function LogMessage(msg)
 {
-    WScript.Echo(msg);
+    Echo(msg);
     logStream.WriteLine(msg);
 }
 
 // the main function of the script
 function generate()
 {
-    WScript.Echo("Solution generation script");
-    WScript.Echo("Checking arguments...");
+    Echo("Solution generation script");
+    Echo("Checking arguments...");
     
     readAndCheckArguments();
     createBuildDirs();
@@ -102,7 +109,7 @@ function generate()
     outDirBase = outDir;
     outDir += "\\" + currentCfg;
 
-    WScript.Echo("Checking consistence...");
+    Echo("Checking consistence...");
     logFile = currentCfg + logFile;
     logStream = fso.CreateTextFile(outDir + "\\" + logFile, true, false);
 
@@ -184,7 +191,7 @@ function generate()
     var logPath = outDir + "\\" + currentCfg + "slngen.log";
     var resLogPath = "file://" + logPath.replace(/\\/mg, "/");
     
-    WScript.Echo("Solution was generated successfully. See " + 
+    Echo("Solution was generated successfully. See " + 
         resLogPath + " for details.");
         
     WScript.Quit(0);
@@ -334,7 +341,7 @@ function createBuildDirs()
         if (! fso.FolderExists(builddir))
             fso.CreateFolder(builddir); 
         
-        WScript.Echo("Building directory tree created");
+        Echo("Building directory tree created");
     }
     catch(e)
     {
@@ -418,7 +425,7 @@ function generateBuildBatch(sourcesDir, buildDir)
     }
     catch(e)
     {
-        WScript.Echo("error creating the build batch file");
+        Echo("error creating the build batch file");
         return 0;
     }
 }
