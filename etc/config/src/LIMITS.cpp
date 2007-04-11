@@ -1,12 +1,9 @@
 // computing numerical limits
 
+#include <stdio.h>    // for printf()
+
 #include "config.h"
 
-#ifndef _RWSTD_NO_LIMITS_H
-#  include <limits.h>
-#endif   // _RWSTD_NO_LIMITS_H
-
-#include <stdio.h>    // for printf()
 
 // establish a dependency on the test for long long
 // and #define the LONG_LONG macro used in "type.h"
