@@ -154,14 +154,16 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
             addFiles("%SRCDIR%\\util",
                 new Array("aliases.cpp", "charmap.cpp", "codecvt.cpp",
                           "collate.cpp", "ctype.cpp", "def.cpp",
-                          "diagnostic.cpp", "localedef.cpp", "messages.cpp",
-                          "monetary.cpp", "numeric.cpp", "path.cpp",
-                          "scanner.cpp", "time.cpp")));
+                          "diagnostic.cpp", "locale.cpp", "localedef.cpp",
+                          "memchk.cpp", "messages.cpp", "monetary.cpp",
+                          "numeric.cpp", "path.cpp", "scanner.cpp",
+                          "time.cpp")));
     localedefDef.FilterDefs.push(
         new FilterDef(headerFilterName, headerFilterUuid, headerFilterExts, eFileTypeCppHeader, true).
             addFiles("%SRCDIR%\\util",
                 new Array("aliases.h", "charmap.h", "def.h", "diagnostic.h",
-                "loc_exception.h", "localedef.h", "path.h", "scanner.h")));
+                          "loc_exception.h", "localedef.h", "memchk.h",
+                          "path.h", "scanner.h")));
     localedefDef.Defines = commonDefines;
     localedefDef.Includes = stdcxxIncludes;
     localedefDef.OutDir = binPath;
@@ -177,22 +179,13 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     localeDef.FilterDefs.push(
         new FilterDef(sourceFilterName, sourceFilterUuid, sourceFilterExts, eFileTypeCppCode, false).
             addFiles("%SRCDIR%\\util",
-                new Array("aliases.cpp", "charmap.cpp", "codecvt.cpp",
-                          "collate.cpp", "ctype.cpp", "def.cpp",
-                          "diagnostic.cpp", "locale.cpp", "memchk.cpp",
-                          "messages.cpp", "monetary.cpp", "numeric.cpp",
-                          "path.cpp", "scanner.cpp", "time.cpp")));
-    localeDef.FilterDefs.push(
-        new FilterDef(headerFilterName, headerFilterUuid, headerFilterExts, eFileTypeCppHeader, true).
-            addFiles("%SRCDIR%\\util",
-                new Array("aliases.h", "charmap.h", "def.h", "diagnostic.h",
-                "loc_exception.h", "memchk.h", "path.h", "scanner.h")));
+                new Array("locale_stub.cpp")));
     localeDef.Defines = commonDefines;
     localeDef.Includes = stdcxxIncludes;
     localeDef.OutDir = binPath;
     localeDef.Libs = commonLibs;
     localeDef.OutFile = "$(OutDir)\\locale.exe";
-    localeDef.PrjRefs.push(stdcxxDef);
+    localeDef.PrjDeps.push(configureDef);
 
     utilsArray.push(localeDef);
 
