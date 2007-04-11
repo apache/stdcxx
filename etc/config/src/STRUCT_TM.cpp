@@ -5,6 +5,17 @@
 #include <string.h>   // for strlen
 #include <time.h>     // for struct tm
 
+#include "config.h"
+
+#ifndef _RWSTD_NO_OFFSETOF
+#  define OFF(T, m)   offsetof (T, m)
+#else
+   // provide own equivalent when offsetof() macro doesn't work
+   // (e.g., when using the EDG eccp front end with an incompatible
+   // version of gcc)
+#  define OFF(T, m)   (((const char*)&((T*)0)->m) - ((const char*)(T*)0))
+#endif   // _RWSTD_NO_OFFSETOF
+
 // prevent IBM xlC 5.0 errors caused by using /usr/include/string.h
 // which #defines these (and other) names to undeclared symbols
 #undef strlen
@@ -20,7 +31,7 @@ int main ()
     } tm_info[] = {
 
 #define ENTRY(member, comment)   \
-        { offsetof (struct tm, member), # member ";", "   /* " comment " */" }
+        { OFF (struct tm, member), # member ";", "   /* " comment " */" }
 
         ENTRY (tm_sec,   "seconds after the minute [O..61] "),
         ENTRY (tm_min,   "minutes after the hour   [0..59] "),
