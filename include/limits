@@ -290,12 +290,16 @@ enum float_round_style
     round_toward_neg_infinity =  3
 };
 
-#define _RWSTD_ROUND_STYLE                                  \
-       0 == _RWSTD_FLT_ROUNDS ? round_toward_zero           \
-    :  1 == _RWSTD_FLT_ROUNDS ? round_to_nearest            \
-    :  2 == _RWSTD_FLT_ROUNDS ? round_toward_infinity       \
-    :  3 == _RWSTD_FLT_ROUNDS ? round_toward_neg_infinity   \
-    :  round_indeterminate
+#ifdef _RWSTD_FLT_ROUNDS
+#  define _RWSTD_ROUND_STYLE                                  \
+         0 == _RWSTD_FLT_ROUNDS ? round_toward_zero           \
+      :  1 == _RWSTD_FLT_ROUNDS ? round_to_nearest            \
+      :  2 == _RWSTD_FLT_ROUNDS ? round_toward_infinity       \
+      :  3 == _RWSTD_FLT_ROUNDS ? round_toward_neg_infinity   \
+      :  round_indeterminate
+#else   // if !defined (_RWSTD_FLT_ROUNDS)
+#  define _RWSTD_ROUND_STYLE   round_indeterminate
+#endif   // _RWSTD_FLT_ROUNDS
 
 
 enum float_denorm_style
