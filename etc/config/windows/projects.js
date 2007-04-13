@@ -391,7 +391,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
             "set bindir=%soldir%\\%CONFIG%\\bin\r\n" +
             "set dstdll=\"%bindir%\\" + libname + "\"\r\n";
         testlocaleTplDef.PreBuildCmd = set +
-            "set srcdll=\"%soldir%\\lib\\" + libname + "\"\r\n" +
+            "set srcdll=\"%soldir%\\%CONFIG%\\lib\\" + libname + "\"\r\n" +
             "if exist %srcdll% if not exist %dstdll% " +
             "copy /Y %srcdll% %dstdll%";
         testlocaleTplDef.PostBuildCmd = set +
