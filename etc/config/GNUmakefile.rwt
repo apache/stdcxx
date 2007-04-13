@@ -48,7 +48,7 @@ endif
 # CXXPRELINK - command for compilers that use template
 # instantiation models that require a prelink stage
 ifneq ($(PRELINKFLAGS),)
-CXXPRELINK = $(CXX) $(CPPFLAGS) $(PRELINKFLAGS) $(OBJS) $(LDFLAGS)
+  CXXPRELINK = $(CXX) $(CPPFLAGS) $(PRELINKFLAGS) $(OBJS) $(LDFLAGS) $(LDLIBS)
 endif   # ($(PRELINKFLAGS),)
 
 ifneq ($(RPATH),)
