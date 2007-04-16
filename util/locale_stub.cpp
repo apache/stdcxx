@@ -32,7 +32,7 @@ int main (int argc, char *argv[])
 {
     // compute the total length of the command line arguments
     std::size_t arglen = 0;
-    for (int i = 1; i != argc; ++i)
+    for (int i = 0; i != argc; ++i)
         arglen += std::strlen (argv [i]);
 
     // add the length of space separating adjacent pairs
@@ -42,8 +42,11 @@ int main (int argc, char *argv[])
     const char argv_1[] = "--locale-mode";
     arglen += sizeof argv_1;
 
+    const char localedef[] = "localedef";
+    arglen += sizeof localedef;
+
     // allocate space for the new command line
-    char* const cmdline = new char [arglen + 3];
+    char* const cmdline = new char [arglen];
 
     // replace the basename of argv[0] with "localedef" keeping the
     // directory portion, if it's there, followed by the new option
@@ -56,7 +59,7 @@ int main (int argc, char *argv[])
         slash = std::strrchr (cmdline, '\\');
     }
 
-    std::strcpy (slash ? slash + 1 : cmdline, "localedef");
+    std::strcpy (slash ? slash + 1 : cmdline, localedef);
 
     std::strcat (cmdline, " ");
     std::strcat (cmdline, argv_1);
