@@ -26,38 +26,39 @@ runs examples and checks results.
             </description>
             <named helpstring="The root directory with executables" 
                 name="EXEDIR" required="true" type="string"/>
-            <named helpstring="The root directory with .in and .out files" 
-                name="INOUTDIR" required="false" type="string"/>
-            <named helpstring="The build type" name="BUILDTYPE" 
-                required="true" type="string"/>
+            <named helpstring="The directory with project files of the executables" 
+                name="PRJDIR" required="false" type="string"/>
             <named helpstring="The configuration" name="CONFIG" 
                 required="true" type="string"/>
+            <named helpstring="The root directory with .in and .out files" 
+                name="INOUTDIR" required="false" type="string"/>
             <named helpstring="The log file" name="LOGFILE" 
                 required="false" type="string"/>
-            <named helpstring="The copy libstdxx.dll to exe option" name="COPYDLL" 
+            <named helpstring="Run tests in compat mode" name="COMPAT" 
                 required="false" type="string"/>
             <named helpstring="The lib dll folder" name="LIBDIR" 
                 required="false" type="string"/>
             <named helpstring="The examples extension" name="EXT" 
                 required="false" type="string"/>
             <example>
-            cscript runexamples.wsf /EXEDIR:"C:\stdcxx\build" 
-            /INOUTDIR:"C:\stdcxx\build" /BUILDTYPE:11d /CONFIG:msvc-7.1
+            cscript runall.wsf /EXEDIR:"C:\stdcxx\build\examples" 
+            /PRJDIR:"C:\stdcxx\build\projects\examples"
+            /INOUTDIR:"C:\stdcxx\examples" /CONFIG:msvc-7.1
             </example>
             <usage>
-Usage: cscript runexamples.wsf /EXEDIR:@EXEDIR [/INOUTDIR:@INOUTDIR] 
-/BUILDTYPE:@BUILDTYPE /CONFIG:@CONFIG [/LOGFILE:@LOGFILE]
-[/COPYDLL:@COPYDLL] [/LIBDIR:@LIBDIR] [/EXT:@EXT]
+Usage: cscript runexamples.wsf /EXEDIR:@EXEDIR /CONFIG:@CONFIG
+[/PRJDIR:@PRJDIR] [/INOUTDIR:@INOUTDIR] [/LOGFILE:@LOGFILE]
+[/COMPAT] [/LIBDIR:@LIBDIR] [/EXT:@EXT]
 where
-@EXEDIR is the root directory with executables ro be run and checked,
-@TOPDIR is the root directory with .in and .out files 
+@EXEDIR is the root directory with executables to be run and checked,
+@PRJDIR is the directory with .vcproj files of the executables,
+@INOUTDIR is the root directory with .in and .out files ,
 required by executables,
-@BUILDTYPE is the build type (11d, 11s, etc).
-@CONFIG is the compiler configuration (msvc-7.1, icc-9.0, etc).
-@LOGFILE is the log file name.
-@COPYDLL is the option for copy libstdxx.dll to executables
-@LIBDIR is the library dll folder (specify when COPYDLL is true)
-@EXT is the extension of the example files, default value: "exe"
+@CONFIG is the compiler configuration (msvc-7.1, icc-9.0, etc),
+@LOGFILE is the log file name,
+@COMPAT is the option for run tests in compat mode,
+@LIBDIR is the library dll folder,
+@EXT is the extension of the example files, default value: "exe".
             </usage>
         </runtime>
         <object id="fso" progid="Scripting.FileSystemObject"/>
@@ -72,13 +73,13 @@ required by executables,
 //
 
 var examplesDir = ""; // path to the root directory containing executables
+var projectsDir = ""; // path to the directory containing projects of the executables
 var inoutDir = "";    // path to the root directory 
-    // containing the .in and .out files
-var buildType = ""      // the buid type (11d, 11s, etc)
+                      // containing the .in and .out files
 var currentCfg = "msvc-7.1" // the configuration
 var logFileName = ""; // the log file name
 var logFileDefault = "runexamples.log"; // the default log file name
-var copyDll = false;
+var compatMode = false;
 var libdllFolder = "";
 var ext = "exe";
 
@@ -89,6 +90,7 @@ var exRunSucceeded = 0;
 var exRunFailed = 0;
 var exRunTimedOut = 0;
 var exBadCode = 0;
+var exNotCompiled = 0;
 
 var runTimeout = 180;
 
@@ -118,19 +120,16 @@ function runexamples()
     var fLog = fso.CreateTextFile(examplesDir + "\\" + logFileName);
     var fSummary = fso.CreateTextFile(buildOutDir + "\\" + summaryFileName);
     
-    runAllExamples(examplesDir, inoutDir, fLog, fSummary, ext);
+    runAllExamples(examplesDir, projectsDir, inoutDir, fLog, fSummary, ext);
+
+    var logMsg = "Total run " + exRun + "; " + exRunSucceeded + " succeeded, " +
+        exRunFailed + " failed, " + exRunTimedOut + " failed because of timeout, " +
+        exBadCode + " exited with non-zero code, " +
+        exNotCompiled + " has not compiled";
     
-    WScript.Echo("Total run " + exRun + "; " + exRunSucceeded 
-        + " succeeded, " 
-        +  exRunFailed + " failed, " + exRunTimedOut 
-        + " failed because of timeout, " + exBadCode 
-        + " exited with non-zero code");
+    WScript.Echo(logMsg);
         
-    fLog.WriteLine("Total run " + exRun + "; " + exRunSucceeded 
-        + " succeeded, " 
-        +  exRunFailed + " failed, " + exRunTimedOut 
-        + " failed because of timeout, " + exBadCode
-        + " exited with non-zero code");
+    fLog.WriteLine(logMsg);
         
     fLog.Close();
     fSummary.Close();
@@ -149,36 +148,32 @@ function readAndCheckArguments()
         WScript.Quit(2);
     }
     
-    if (!WScript.Arguments.Named.Exists("BUILDTYPE"))
+    if (!WScript.Arguments.Named.Exists("CONFIG"))
     {
         WScript.StdErr.WriteLine(
-            "Generate: Missing required argument BUILDTYPE.");
+            "Generate: Missing required argument CONFIG.");
         WScript.Arguments.ShowUsage();
         WScript.Quit(2);
     }
     
     examplesDir =  WScript.Arguments.Named("EXEDIR");
-    buildType = WScript.Arguments.Named("BUILDTYPE");
+    currentCfg = WScript.Arguments.Named("CONFIG");
+
+    if (WScript.Arguments.Named.Exists("PRJDIR"))
+        projectsDir =  WScript.Arguments.Named("PRJDIR");
 
     if (WScript.Arguments.Named.Exists("INOUTDIR"))
         inoutDir =  WScript.Arguments.Named("INOUTDIR");
 
     utlExec = examplesDir + "\\..\\bin\\" + utlExec;
     
-    if (WScript.Arguments.Named.Exists("CONFIG"))
-        currentCfg = WScript.Arguments.Named("CONFIG");
-    
     if (WScript.Arguments.Named.Exists("LOGFILE"))
         logFileName = WScript.Arguments.Named("LOGFILE");
     else
         logFileName = logFileDefault;
         
-    if (WScript.Arguments.Named.Exists("COPYDLL"))
-    {
-        var copyOption = WScript.Arguments.Named("COPYDLL");
-        if ("true" == copyOption)
-            copyDll = true;
-    }
+    if (WScript.Arguments.Named.Exists("COMPAT"))
+        compatMode = true;
     
     if (WScript.Arguments.Named.Exists("LIBDIR"))
         libdllFolder = WScript.Arguments.Named("LIBDIR");
@@ -204,15 +199,20 @@ function readAndCheckArguments()
 }
 
 // run all executables starting from exeDir
-// exeDir - starting folder to search executables in
+// exeDir - folder containing the executables
+// prjDir - folder with .vcproj files of the executables
 // srcDir - starting folder to search .in and .out files for the executable
 // fileLog - filename of the logfile
 // fileSimmary - filename of the summary file
-function runAllExamples(exeDir, srcDir, fileLog, fileSummary, exeExt)
+function runAllExamples(exeDir, prjDir, srcDir, fileLog, fileSummary, exeExt)
 {
-    var exeFolder = fso.GetFolder(exeDir);
-    if (! exeFolder)
+    if (!fso.FolderExists(exeDir))
         return;
+
+    if (0 < prjDir.length && !fso.FolderExists(prjDir))
+        return;
+    
+    var enumFolder = fso.GetFolder(0 < prjDir.length ? prjDir : exeDir);
     
     var htmDir = exeDir + "\\" + htmFolderName;
     if (! fso.FolderExists(htmDir))
@@ -221,19 +221,30 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary, exeExt)
     var exeFiles = new Array();
     var arrInfo = new Array();
     
-    var rx = new RegExp("^.+\\.(?:" + exeExt + ")$", "i");
-    var enumExeFiles = new Enumerator(exeFolder.Files);
-    for (; !enumExeFiles.atEnd(); enumExeFiles.moveNext())
+    var enumFiles = new Enumerator(enumFolder.Files);
+    for (; !enumFiles.atEnd(); enumFiles.moveNext())
     {
-        var exeFileName = enumExeFiles.item().Name;
-        if (! rx.test(exeFileName))
+        var fileName = enumFiles.item().Name;
+
+        if (0 < prjDir.length)
+        {
+            // skip "stdcxx_..." projects
+            if (0 == fileName.indexOf("stdcxx_") ||
+                "vcproj" != fso.GetExtensionName(fileName))
+            {
+                continue;
+            }
+        }
+        else if (exeExt != fso.GetExtensionName(fileName))
             continue;
+
+        var pureFileName = fso.GetBaseName(fileName);
+        var exeFileName = pureFileName + "." + exeExt;
             
-        var itemInfo = 
-            new ItemBuildInfo(getPureFileName(exeFileName, exeExt));
+        var itemInfo = new ItemBuildInfo(pureFileName);
         readBuildLog(exeDir, itemInfo, unicodeLog);
 
-        itemInfo.runReqOutput = readOutFile(srcDir, exeFileName, exeExt);
+        itemInfo.runReqOutput = readOutFile(srcDir, exeFileName);
 
         exeFiles.push(exeFileName);
         arrInfo.push(itemInfo);
@@ -241,23 +252,16 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary, exeExt)
         ++exRun;
     }
     
-    // temporary copy the dll to the executable
-    if (copyDll)
-    {
-        var dllName = libFileName + buildType + ".dll";
-        var copyDllCmd = "cmd /c \"copy /Y " + libdllFolder + "\\" + dllName +
-                         " " + exeDir + "\\" + dllName + "\"";
-                            
-        WshShell.Run(copyDllCmd, 7, true);
-    }
-
     var runCmd = "\"" + utlExec + "\" -t " + runTimeout;
     
     if (0 < srcDir.length)
         runCmd += " -d \"" + srcDir + "\"";
+
+    if (compatMode)
+        runCmd += " --compat -x \"--compat -O -\"";
         
     runCmd += " " + exeFiles.join(" ");
-    
+
     var prevDir = WshShell.CurrentDirectory;
     WshShell.CurrentDirectory = exeDir;
     var oExec = WshShell.Exec(runCmd);
@@ -278,38 +282,27 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary, exeExt)
     
     WScript.Echo(execOut);
     
-    // delete the dll if it was copied
-    if (copyDll)
-    {
-        try
-        {
-            fso.DeleteFile(exeFolder.Path + "\\" + dllName);
-        }
-        catch(e)
-        {
-            fileLog.WriteLine("error: could not delete temporary file" + 
-                exeFolder.Path + "\\" + dllName);
-        }
-    }
-
     for (var i = 0; i < arrInfo.length; ++i)
     {
         var itemInfo = arrInfo[i];
         
         var outFileName = exeDir + "\\" + itemInfo.name + ".out";
 
-        try
-        {   
-            var outFile = fso.OpenTextFile(outFileName, 1);
-            if (!outFile.AtEndOfStream)
-                itemInfo.runOutput = outFile.ReadAll();
-                
-            outFile.Close();
-            fso.DeleteFile(outFileName);
-        }
-        catch(e)
+        if (fso.FileExists(outFileName))
         {
-            WScript.Echo("Could not delete temporary file " + outFileName);
+            try
+            {   
+                var outFile = fso.OpenTextFile(outFileName, 1);
+                if (!outFile.AtEndOfStream)
+                    itemInfo.runOutput = outFile.ReadAll();
+                
+                outFile.Close();
+                fso.DeleteFile(outFileName);
+            }
+            catch(e)
+            {
+                WScript.Echo("Could not delete temporary file " + outFileName);
+            }
         }
         
         itemInfo.exitCode = parseStatus(itemInfo.name + "." + exeExt, execOut);
@@ -331,9 +324,13 @@ function runAllExamples(exeDir, srcDir, fileLog, fileSummary, exeExt)
             ++exRunFailed;
             break;
         case -3: // SEGV
-        case -4: // other
+        case -5: // other
             ++exRunFailed;
             fileLog.WriteLine(itemInfo.name + " failed");
+            break;
+        case -4: // COMP
+            fileLog.WriteLine(itemInfo.name + " has not compiled");
+            ++exNotCompiled;
             break;
         default:
             ++exBadCode;
@@ -374,8 +371,11 @@ function parseStatus(exeName, execOut)
             case "  SEGV":
                 res = -3;
                 break;
-            default:
+            case "  COMP":
                 res = -4;
+                break;
+            default:
+                res = -5;
             }
         }
     }
@@ -387,12 +387,12 @@ function parseStatus(exeName, execOut)
 // srcDir - folder containing subfolders with .in and .out files
 // exeFileName - filename of the executable
 // nameSuffix - one of varIn, varOut
-function readAllFromFile(srcDir, exeFileName, nameSuffix, exeExt)
+function readAllFromFile(srcDir, exeFileName, nameSuffix)
 {   
     if (! fso.FolderExists(srcDir))
         return "";
         
-    var pureName = getPureFileName(exeFileName, exeExt);
+    var pureName = fso.GetBaseName(exeFileName);
         
     var someDir = srcDir + "\\" + nameSuffix;
     if (! fso.FolderExists(someDir))
@@ -412,18 +412,18 @@ function readAllFromFile(srcDir, exeFileName, nameSuffix, exeExt)
 // returns the content of the .out file for the specified executable
 // srcDir - folder containing .out files
 // exeFileName - filename of the executable
-function readOutFile(srcDir, exeFileName, exeExt)
+function readOutFile(srcDir, exeFileName)
 {
-    var outData = readAllFromFile(srcDir, exeFileName, varOut, exeExt);
+    var outData = readAllFromFile(srcDir, exeFileName, varOut);
     
     if (0 == outData.length)
     {
-        outData = readAllFromFile(srcDir + "\\manual", exeFileName, varOut, exeExt);
+        outData = readAllFromFile(srcDir + "\\manual", exeFileName, varOut);
         if (0 < outData.length)
             srcDir += "\\manual";
         else
         {
-            outData = readAllFromFile(srcDir + "\\tutorial", exeFileName, varOut, exeExt);
+            outData = readAllFromFile(srcDir + "\\tutorial", exeFileName, varOut);
             if (0 < outData.length)
                 srcDir += "\\tutorial";
         }
@@ -447,20 +447,6 @@ function readOutFile(srcDir, exeFileName, exeExt)
             
     return (linkedFile.ReadAll());
 }
-
-// returns the filename without extension
-// fileName - source filename
-// fileExtension - extension of the file
-function getPureFileName(fileName, fileExtension)
-{   
-    var pureName = fileName;
-    var indexTmp = fileName.lastIndexOf("." + fileExtension);
-    if (indexTmp != -1)
-        pureName = fileName.substr(0, indexTmp);
-        
-    return pureName;
-}
-
 
 ]]>
         </script>

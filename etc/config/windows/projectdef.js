@@ -726,6 +726,7 @@ function projectCreateLocaleDefs(nlsDir)
             new FilterDef("Src", null, "", eFileTypeText, false).
             addFiles(null, new Array(srcFile.Path)));
         projectDef.CustomBuildCmd =
+            "set PATH=$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
             "\"$(SolutionDir)%CONFIG%\\bin\\localedef.exe\" -w -c" +
             " -f \"" + cmFileName + "\"" + " -i \"" + srcFileName + "\"" +
             " \"$(OutDir)\\" + locale.Name + "\"";
@@ -754,6 +755,8 @@ function projectCreateTestLocaleDefs(nlsDir)
     var exec = bindir + "\\exec.exe";
     var test = bindir + "\\sanity_test";
 
+    var setPath = "set PATH=$(SolutionDir)%CONFIG%\\lib;%PATH%";
+
     // create test_locale_sanity project
     var sanityDef = this.clone();
     sanityDef.Name = "test_locale_sanity";
@@ -764,7 +767,7 @@ function projectCreateTestLocaleDefs(nlsDir)
     sanityDef.PreBuildCmd +=
         "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
         " /s /b:\"" + bindir + "\" > \"" + test + ".bat\"";
-    sanityDef.CustomBuildCmd = "\"" + exec + "\" -t " + execTimeout + " \"" + test + ".bat\"";
+    sanityDef.CustomBuildCmd = setPath + "\r\n\"" + exec + "\" -t " + execTimeout + " \"" + test + ".bat\"";
     sanityDef.CustomBuildOut = test + ".out";
     projectDefs.push(sanityDef);
         
@@ -817,7 +820,7 @@ function projectCreateTestLocaleDefs(nlsDir)
             "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
             " /f /b:\"" + bindir + "\" /i:\"" + nlsDir + "\"" +
             " /l:" + locale.Name + " > \"" + test + ".bat\"";
-        projectDef.CustomBuildCmd = "\"" + exec + "\" -t " + execTimeout + " \"" + test + ".bat\"";
+        projectDef.CustomBuildCmd = setPath + "\r\n\"" + exec + "\" -t " + execTimeout + " \"" + test + ".bat\"";
         projectDef.CustomBuildOut = test + ".out";
         projectDef.PrjDeps.push(sanityDef);
         

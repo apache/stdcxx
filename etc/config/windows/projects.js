@@ -246,14 +246,14 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         "if exist \"$(OutDir)\\summary.htm del\" \"$(OutDir)\\summary.htm\"\r\n" +
         "if exist \"$(OutDir)\\runexamples.log\" del \"$(OutDir)\\runexamples.log\"";
     runexamplesDef.CustomBuildFile = "runall.wsf";
-    runexamplesDef.CustomBuildCmd = "cscript /nologo \"%CUSTOMFILE%\"" +
+    runexamplesDef.CustomBuildCmd =
+        "set PATH=$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
+        "cscript /nologo \"%CUSTOMFILE%\"" +
         " /INOUTDIR:\"%SRCDIR%\\examples\"" +
         " /EXEDIR:\"$(OutDir)\"" +
-        " /BUILDTYPE:\"%CONFIG%\"" +
+        " /PRJDIR:\"" + runexamplesDef.VCProjDir + "\"" +
         " /CONFIG:\"%SOLUTION%\"" +
-        " /LOGFILE:\"runexamples.log\"" +
-        " /COPYDLL:" + (copyDll ? "false" : "true") +
-        " /LIBDIR:\"" + libPath + "\"";
+        " /LOGFILE:\"runexamples.log\"";
     runexamplesDef.CustomBuildOut = "$(OutDir)\\runexamples.log";
     runexamplesDef.CustomBuildDeps = "%FILES%";
     //runexamplesDef.PrjDeps.push(allexamplesDef);
@@ -306,13 +306,14 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         "if exist \"$(OutDir)\\summary.htm\" del \"$(OutDir)\\summary.htm\"\r\n" +
         "if exist \"$(OutDir)\\runtests.log\" del \"$(OutDir)\\runtests.log\"";
     runtestsDef.CustomBuildFile = "runall.wsf";
-    runtestsDef.CustomBuildCmd = "cscript /nologo \"%CUSTOMFILE%\"" +
+    runtestsDef.CustomBuildCmd =
+        "set PATH=$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
+        "cscript /nologo \"%CUSTOMFILE%\"" +
         " /EXEDIR:\"$(OutDir)\"" +
-        " /BUILDTYPE:\"%CONFIG%\"" +
+        " /PRJDIR:\"" + runtestsDef.VCProjDir + "\"" +
         " /CONFIG:\"%SOLUTION%\"" +
-        " /LOGFILE:\"runtests.log\"" +
-        " /COPYDLL:" + (copyDll ? "false" : "true") +
-        " /LIBDIR:\"" + libPath + "\"";
+        " /COMPAT" +
+        " /LOGFILE:\"runtests.log\"";
     runtestsDef.CustomBuildOut = "$(OutDir)\\runtests.log";
     runtestsDef.CustomBuildDeps = "%FILES%";
     //runtestsDef.PrjDeps.push(alltestsDef);
@@ -336,19 +337,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         localeTplDef.CustomBuildFile = "run_locale_utils.wsf";
         localeTplDef.CustomBuildDeps = "%FILES%";
         localeTplDef.PrjDeps.push(localedefDef);
-        if (!copyDll)
-        {
-            // copy libstdxx.dll to the bin directory
-            // before executing localedef.exe utility
-            // and finally delete the copied file
-            var libname = "libstd%CONFIG%.dll";
-            var src = "\"" + libPath + "\\" + libname + "\"";
-            var dst = "\"" + binPath + "\\" + libname + "\"";
-            localeTplDef.PreBuildCmd = "if exist " + src + " if not exist " + dst +
-                                       " copy /Y " + src + " " + dst;
-            localeTplDef.PostBuildCmd = "if exist " + dst + " del " + dst;
-        }
-    
+
         var localeDefs = localeTplDef.createLocaleDefs("%SRCDIR%\\etc\\nls");
 
         localeArray = localeArray.concat(localeDefs);
@@ -380,23 +369,6 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     testlocaleTplDef.PrjDeps.push(execDef);
     testlocaleTplDef.PrjDeps.push(localeDef);
     testlocaleTplDef.PrjDeps.push(localedefDef);
-    if (!copyDll)
-    {
-        // copy libstdxx.dll to the bin directory
-        // before executing run_locale_utils.wsf script
-        // and finally delete the copied file
-        var libname = "libstd%CONFIG%.dll";
-        var set = 
-            "set soldir=%BUILDDIR%\r\n" +
-            "set bindir=%soldir%\\%CONFIG%\\bin\r\n" +
-            "set dstdll=\"%bindir%\\" + libname + "\"\r\n";
-        testlocaleTplDef.PreBuildCmd = set +
-            "set srcdll=\"%soldir%\\%CONFIG%\\lib\\" + libname + "\"\r\n" +
-            "if exist %srcdll% if not exist %dstdll% " +
-            "copy /Y %srcdll% %dstdll%";
-        testlocaleTplDef.PostBuildCmd = set +
-            "if exist %dstdll% del %dstdll%";
-    }
 
     if (testLocales)
     {
@@ -412,12 +384,13 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 new Array("runall.wsf", "config.js", "utilities.js",
                           "summary.js")));
     testlocaleTplDef.CustomBuildFile = "runall.wsf";
-    testlocaleTplDef.CustomBuildCmd = "cscript /nologo \"%CUSTOMFILE%\"" +
+    testlocaleTplDef.CustomBuildCmd =
+        "set PATH=$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
+        "cscript /nologo \"%CUSTOMFILE%\"" +
         " /EXEDIR:\"$(OutDir)\"" +
-        " /BUILDTYPE:\"%CONFIG%\"" +
         " /CONFIG:\"%SOLUTION%\"" +
         " /LOGFILE:\"runloctests.log\"" +
-        " /COPYDLL:false /EXT:bat";
+        " /EXT:bat";
     testlocaleTplDef.CustomBuildOut = "$(OutDir)\\runloctests.log";
 
     var testlocalesDef = testlocaleTplDef.createTestLocalesDef("%SRCDIR%\\etc\\nls");
