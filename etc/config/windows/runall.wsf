@@ -313,22 +313,23 @@ function runAllExamples(exeDir, prjDir, srcDir, fileLog, fileSummary, exeExt)
             fileLog.WriteLine(itemInfo.name + " completed successfully, exit code " +
                 itemInfo.exitCode);
             break;
-        case -1: // KILLED
+        case -1: // other
+        case -4: // SEGV
+            ++exRunFailed;
+            fileLog.WriteLine(itemInfo.name + " failed");
+            break;
+        case -2: // KILLED
             ++exRunTimedOut;
             fileLog.WriteLine(itemInfo.name + " timed out");
             break;
-        case -2: // DIFF
+        case -3: // DIFF
             fileLog.WriteLine(itemInfo.name + " completed successfully, " +
                 "but output differs from the expected");
             getDifferencesInfo(itemInfo);
             ++exRunFailed;
             break;
-        case -3: // SEGV
-        case -5: // other
-            ++exRunFailed;
-            fileLog.WriteLine(itemInfo.name + " failed");
-            break;
-        case -4: // COMP
+        case -5: // COMP
+        case -6: // LINK
             fileLog.WriteLine(itemInfo.name + " has not compiled");
             ++exNotCompiled;
             break;
@@ -363,19 +364,22 @@ function parseStatus(exeName, execOut)
             switch (status)
             {
             case "KILLED":
-                res = -1;
-                break;
-            case "  DIFF":
                 res = -2;
                 break;
-            case "  SEGV":
+            case "  DIFF":
                 res = -3;
                 break;
-            case "  COMP":
+            case "  SEGV":
                 res = -4;
                 break;
-            default:
+            case "  COMP":
                 res = -5;
+                break;
+            case "  LINK":
+                res = -6;
+                break;
+            default:
+                res = -1;
             }
         }
     }
