@@ -272,7 +272,7 @@ function checkSanity()
     removeFile(objName);
     var srcName = stageDir + "\\sanity.cpp";
     writeTextFile(srcName, "int main () { return 0; }\r\n");
-    WScript.StdOut.Write("Checking if compiler is sane... ");
+    WScript.StdOut.Write("checking if compiler is sane... ");
     var ret = compileFiles(srcName);
     if (ret == 0)
     {
@@ -288,7 +288,7 @@ function checkSanity()
     var exeName = "sanity.exe";
     var exeFullName = stageDir + "\\" + exeName;
     removeFile(exeFullName);
-    WScript.StdOut.Write("Checking if linker is sane... "); 
+    WScript.StdOut.Write("checking if linker is sane... "); 
     ret = linkFiles(objName, exeName);
     if (ret == 0)
     {
@@ -301,7 +301,7 @@ function checkSanity()
         return 0;
     }
     
-    WScript.StdOut.Write("Checking if run environment is sane... ");
+    WScript.StdOut.Write("checking if run environment is sane... ");
     ret = 1;
     try
     {
@@ -344,7 +344,7 @@ function writeTextFile(fileName, fileContent)
 function checkArchitecture()
 {
     //TODO: This test seems to be useless
-    WScript.StdOut.Write("Checking system architecture");
+    WScript.StdOut.Write("checking system architecture");
     var types = new Array("int", "long", "long long", "void*");
     var srcFile = stageDir + "\\arch.cpp";
     var objFile = stageDir + "\\arch.obj";
@@ -457,7 +457,7 @@ function checkHeaders()
     hdrs = hdrs.replace(/  +/g, " ");
     var headers = hdrs.split(" ");
 
-    WScript.StdOut.WriteLine("Checking for headers... ");
+    WScript.StdOut.WriteLine("checking for headers... ");
 
     var noNewHeaders = false;
     for (i in headers)
@@ -473,7 +473,7 @@ function checkHeaders()
             {
                 hdr = "c" + h;
             }           
-            WScript.StdOut.Write("Checking for <" + hdr + ">... ");
+            WScript.StdOut.Write("checking for <" + hdr + ">... ");
             var defstring = "_RWSTD_NO_" + hdr.toUpperCase();
             if (checkHeader(hdr) == 0)
             {
@@ -494,7 +494,7 @@ function checkHeaders()
         // check for (deprecated C++) C library headers
         // or for any headers specified with the .h suffix
         hdr = hdr_base + ".h";
-            WScript.StdOut.Write("Checking for <" + hdr + ">... ");
+            WScript.StdOut.Write("checking for <" + hdr + ">... ");
         var sym = hdr_base.toUpperCase();
         var defstring = "_RWSTD_NO_" + sym + "_H";
         if (checkHeader(hdr) == 0)
@@ -534,7 +534,7 @@ function checkHeaders()
     }
 
     // determine the support for namespaces
-    WScript.StdOut.Write("Checking for namespaces");
+    WScript.StdOut.Write("checking for namespaces");
     var noNamespaces = false;
     var ret = compileFiles(srcDir + "\\NAMESPACE.CPP");
     if (ret == 0)
@@ -606,25 +606,24 @@ function checkHeaders()
         
             // determine which form of the header to #include
             var hdrname = hdr_base + ".h";
-            var hdrname2 = hdr_base + ".h";
             if (!useCHeader && !noNewHeaders)
             {
                 hdrname = "c" + hdr_base;
-                hdrname2 = "<c" + hdr_base + ">";
                 if (!noNamespaces)
                 {
                     std = "std::";
                 }
             }
 
+            hdrname = "<" + hdrname + ">";
             removeFile(exeFullName);
             removeFile(objFile);        
-            WScript.StdOut.Write("Checking for " + std + funname + "() in "
-                                     + hdrname2 + "... ");
+            WScript.StdOut.Write("checking for " + std + funname + "() in " +
+                                 hdrname + "... ");
             var sym = "_RWSTD_NO_" + funname.toUpperCase();
-            var defines = new Array("CHECK_DECL", "HDRNAME=<" + hdrname + ">"
-                                , "FUNNAME=" + funname
-                                , "FUN=" + fun, "TAKE_ADDR=" + take_addr);
+            var defines = new Array("CHECK_DECL", "HDRNAME=" + hdrname,
+                                    "FUNNAME=" + funname, "FUN=" + fun,
+                                    "TAKE_ADDR=" + take_addr);
             if (noNamespaces)
             {
                 defines.push("NONAMESPACE");
@@ -654,7 +653,7 @@ function checkHeaders()
 
                 removeFile(exeFullName);
                 removeFile(objFile);
-                WScript.StdOut.Write("Checking for extern \"C\" "
+                WScript.StdOut.Write("checking for extern \"C\" "
                                         + funname + "() in libc... ");
                 ret = compileFiles(srcFile, "FUNNAME=" + funname);
                 if (ret == 0)
