@@ -92,7 +92,7 @@ function event_ProjectBuildFinished(Cfg, Warnings, Errors, Canceled)
         var logStrm = fso.OpenTextFile(path, ForReading, false, format);
         log = logStrm.ReadAll();
         logStrm.Close();
-        log = decodeHTML(stripTags(log));
+        log = stripTags(log);
         var line = "-------";
         log = log.replace("Build Log", "").replace("Command Lines", line);
         log = log.replace("Output Window", line).replace("Results", line);

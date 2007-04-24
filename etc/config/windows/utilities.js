@@ -316,7 +316,11 @@ function decodeHTML(srcString)
 // srcString - source string
 function stripTags(srcString)
 {
-    return srcString.replace(new RegExp("(<[\\s\\S]+?>)", "g"), "");
+    return decodeHTML(srcString).replace(new RegExp("> <", "g"), "><")
+           .replace(new RegExp("><", "g"), ">\r\n<")
+           .replace(new RegExp("(^<[\\s\\S]+?>)", "gm"), "")
+           .replace(new RegExp("\r", "g"), "")
+           .replace(new RegExp("\n{2,}", "g"), "\n\n");
 }
 
 // returns source string without first character if it equal to symbol
