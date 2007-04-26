@@ -576,22 +576,27 @@ void Def::add_missing_values (const std::vector<bool> &ordinal_weights,
     for (symnames_it = charmap_.get_symnames_list ().begin ();
          symnames_it != charmap_.get_symnames_list ().end ();
          ++symnames_it) {
-        wchar_t wchar_val = (*w_cmap.find (*symnames_it)).second;
 
-        coll_map_iter coll_map_it;
-        if ((coll_map_it = coll_map_.find(wchar_val)) != coll_map_.end()) {
-            if (coll_map_it->second.offset == UINT_MAX) {
-                if (give_warning && !warning_issued) {
-                    warning_issued = true;
-                    warnings_occurred_ = 
-                        issue_diag (W_MISSING, false,
-                                    0, "some characters in the codeset "
-                                    "were not explicitly given a "
-                                    "collation value\n") || warnings_occurred_;
-                }
-                if (!collate_out_.undefined_optimization) {
-                    add_to_coll (wchar_val, weights_template, 
-                                 coll_value++, ordinal_weights, true);
+        std::map<std::string, wchar_t>::const_iterator w_cmap_it;
+        if ((w_cmap_it = w_cmap.find(*symnames_it)) != w_cmap.end()) {
+            wchar_t wchar_val = (*w_cmap_it).second;
+
+            coll_map_iter coll_map_it;
+            if ((coll_map_it = coll_map_.find(wchar_val)) != coll_map_.end()) {
+                if (coll_map_it->second.offset == UINT_MAX) {
+                    if (give_warning && !warning_issued) {
+                        warning_issued = true;
+                        warnings_occurred_ = 
+                            issue_diag (W_MISSING, false,
+                                        0, "some characters in the codeset "
+                                        "were not explicitly given a "
+                                        "collation value\n")
+                            || warnings_occurred_;
+                    }
+                    if (!collate_out_.undefined_optimization) {
+                        add_to_coll (wchar_val, weights_template, 
+                                     coll_value++, ordinal_weights, true);
+                    }
                 }
             }
         }
