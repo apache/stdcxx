@@ -331,6 +331,29 @@ function projectCreateVCProject(engine, report)
     VCProject.ProjectGUID = createUUID();
     
     VCProject.AddPlatform(PLATFORM);
+
+    var FixedPrjName = PrjName;
+    var dotObj = ".obj";
+
+    var VC7xWknd = 0 <= PrjName.indexOf(dotObj)
+                && ("7" == VERSION || "7.1" == VERSION);
+
+    var PostBuildCmd = this.PostBuildCmd;
+
+    if (VC7xWknd)
+    {
+        FixedPrjName = FixedPrjName.replace(new RegExp(dotObj, "ig"), "_obj");
+        if (null != PostBuildCmd)
+            PostBuildCmd += "\r\n";
+        else
+            PostBuildCmd = "";
+
+        var srcDir = "$(OutDir)\\" + FixedPrjName;
+        var dstDir = "$(OutDir)\\" + PrjName;
+        PostBuildCmd += "md \"" + dstDir + "\"\r\n" +
+            "copy \"" + srcDir + "\\" + FixedPrjName + dotObj + "\" \"" + dstDir + "\\" + PrjName + dotObj + "\"\r\n" +
+            "copy \"" + srcDir + "\\buildlog.htm\" \"" + dstDir + "\"";
+    }
     
     for (var i = 0; i < confNames.length; ++i)
         VCProject.AddConfiguration(confNames[i]);
@@ -338,7 +361,7 @@ function projectCreateVCProject(engine, report)
     var OutDir = this.OutDir != null ?
         ReplaceMacros(this.OutDir, prjMacros) : "%CONFIG%";
     var IntDir = this.IntDir != null ?
-        ReplaceMacros(this.IntDir, prjMacros) : OutDir + "\\" + PrjName;
+        ReplaceMacros(this.IntDir, prjMacros) : OutDir + "\\" + FixedPrjName;
 
     // add files
     for (var i = 0; i < this.FilterDefs.length; ++i)
@@ -448,6 +471,9 @@ function projectCreateVCProject(engine, report)
             }
 
             compiler.UsePrecompiledHeader = pchNone;
+
+            if (VC7xWknd)
+                compiler.ObjectFile = "$(IntDir)/" + FixedPrjName + dotObj;
         }
 
         var linker = conf.Tools.Item("VCLinkerTool");
@@ -516,10 +542,10 @@ function projectCreateVCProject(engine, report)
                 tool.Description = ReplaceMacros(this.PreBuildDesc, allMacros);
         }
 
-        if (null != this.PostBuildCmd)
+        if (null != PostBuildCmd)
         {
             var tool = conf.Tools.Item("VCPostBuildEventTool");
-            tool.CommandLine = ReplaceMacros(this.PostBuildCmd, allMacros);
+            tool.CommandLine = ReplaceMacros(PostBuildCmd, allMacros);
             if (null != this.PostBuildDesc)
                 tool.Description = ReplaceMacros(this.PostBuildDesc, allMacros);
         }
