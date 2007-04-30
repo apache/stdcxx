@@ -2,20 +2,27 @@
  *
  * codecvt.cpp - Example program of codecvt facet. 
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/codecvt.cpp#14 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1998-2006 Rogue Wave Software.
  * 
  **************************************************************************/
  
@@ -26,8 +33,8 @@
 
 int main ()
 {
-    // not used, must be supplied to facet
-    std::mbstate_t state;
+    // not used, must be zero-initialized and supplied to facet
+    std::mbstate_t state = std::mbstate_t ();
 
     // three strings to use as buffers
     std::string ins ("\xfc \xcc \xcd \x61 \xe1 \xd9 \xc6 \xe6 \xf5");
@@ -36,9 +43,9 @@ int main ()
 
     // Print initial contents of buffers
     std::cout << "Before:\n"
-              << ins << std::endl
-              << ins2 << std::endl
-              << outs << std::endl << std::endl;
+              << ins << '\n'
+              << ins2 << '\n'
+              << outs << '\n' << '\n';
 
     // Create a user defined codecvt fact
     // This facet converts from ISO Latin Alphabet No. 1 (ISO 8859-1)
@@ -62,19 +69,21 @@ int main ()
               &outs [0], &outs [0] + outs.length (), out_next);
 	
     std::cout << "After in:\n"
-              << ins << std::endl
-              << ins2 << std::endl
-              << outs << std::endl << std::endl;
+              << ins << '\n'
+              << ins2 << '\n'
+              << outs << "\n\n";
+
+    // zero-initialize (unused) state object
+    state = std::mbstate_t ();
 
     // Finally, convert back to the original codeset
-
     cdcvt.out (state, outs.c_str (), outs.c_str () + outs.length (),
                const_out_next, &ins [0], &ins [0] + ins.length (), in_next);
 	
     std::cout << "After out:\n"
-              << ins << std::endl
-              << ins2 << std::endl
-              << outs << std::endl;
+              << ins << '\n'
+              << ins2 << '\n'
+              << outs << '\n';
 
     return 0;
 }
