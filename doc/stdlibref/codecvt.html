@@ -357,14 +357,13 @@ virtual int
 //
  
 #include &lt;iostream&gt;
-
 #include &lt;codecvte.h&gt;
 
 
 int main ()
 {
-    // not used, must be supplied to facet
-    std::mbstate_t state;
+    // not used, must be zero-initialized and supplied to facet
+    std::mbstate_t state = std::mbstate_t ();
 
     // three strings to use as buffers
     std::string 
@@ -375,9 +374,9 @@ int main ()
 
     // Print initial contents of buffers
     std::cout &lt;&lt; "Before:\n"
-              &lt;&lt; ins &lt;&lt; std::endl
-              &lt;&lt; ins2 &lt;&lt; std::endl
-              &lt;&lt; outs &lt;&lt; std::endl &lt;&lt; std::endl;
+              &lt;&lt; ins &lt;&lt; '\n'
+              &lt;&lt; ins2 &lt;&lt; '\n'
+              &lt;&lt; outs &lt;&lt; "\n\n";
 
     // Create a user defined codecvt facet
     // This facet converts from ISO Latin Alphabet No. 1 
@@ -402,9 +401,12 @@ int main ()
               outs.length(), out_next);
   
     std::cout &lt;&lt; "After in:\n"
-              &lt;&lt; ins &lt;&lt; std::endl
-              &lt;&lt; ins2 &lt;&lt; std::endl
-              &lt;&lt; outs &lt;&lt; std::endl &lt;&lt; std::endl;
+              &lt;&lt; ins &lt;&lt; '\n'
+              &lt;&lt; ins2 &lt;&lt; '\n'
+              &lt;&lt; outs &lt;&lt; "\n\n";
+
+    // zero-initialize (unused) state object
+    state = std::mbstate_t ();
 
     // Finally, convert back to the original codeset
 
@@ -413,9 +415,9 @@ int main ()
                &amp;ins[0] + ins.length(), in_next);
   
     std::cout &lt;&lt; "After out:\n"
-              &lt;&lt; ins &lt;&lt; std::endl
-              &lt;&lt; ins2 &lt;&lt; std::endl
-              &lt;&lt; outs &lt;&lt; std::endl;
+              &lt;&lt; ins &lt;&lt; '\n'
+              &lt;&lt; ins2 &lt;&lt; '\n'
+              &lt;&lt; outs &lt;&lt; '\n';
 
     return 0;
 }
