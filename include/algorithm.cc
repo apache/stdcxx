@@ -1104,13 +1104,14 @@ _RandomAccessIter __partial_sort_copy (_InputIter __first,
 
 
 // David R. Musser's Introspective Sorting algorithm
+// (see www.cs.rpi.edu/~musser/gp/introsort.ps)
 // O(N * log (N)) worst case complexity
 _EXPORT
 template <class _RandomAccessIter, class _Dist, class _Compare>
 void __introsort_loop (_RandomAccessIter __first, _RandomAccessIter __last,
                        _Dist __max_depth, _Compare __comp)
 {
-    for (; __last - __first > __rw_threshold; __max_depth /= 2) {
+    for ( ; __rw_threshold < __last - __first; ) {
         if (0 == __max_depth) {
             __partial_sort (__first, __last, __last,
                             _RWSTD_VALUE_TYPE (_RandomAccessIter), __comp);
@@ -1125,7 +1126,7 @@ void __introsort_loop (_RandomAccessIter __first, _RandomAccessIter __last,
 
         // limit the depth of the recursion tree to log2 (last - first)
         // where first and last are the initial values passed in from sort()
-        __introsort_loop (__cut, __last, __max_depth, __comp);
+        __introsort_loop (__cut, __last, __max_depth /= 2, __comp);
         __last = __cut;
     }
 }
