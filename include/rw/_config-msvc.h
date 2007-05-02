@@ -175,6 +175,10 @@
 #define _RWSTD_LIBC_SYM(name)   _ ## name
 
 #ifdef _DLL
+   // the _DLL macro is defined by the compiler when building a shared
+   // library, i.e., in response to either of the /MD and /MDd options
+   // _RWSTD_DLLIMPORT is used when declaring libc functions that need
+   // to be "imported" into the shared library
 #  define _RWSTD_DLLIMPORT   __declspec (dllimport)
 #endif   // _DLL
 
