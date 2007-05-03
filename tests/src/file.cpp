@@ -63,6 +63,9 @@
 #endif
 
 #ifndef P_tmpdir
+   // P_tmpdir is an XSI (X/Open System Interfaces) extension
+   // to POSIX which need not be provided by otherwise conforming
+   // implementations
 #  define P_tmpdir "/tmp/"
 #endif
 
