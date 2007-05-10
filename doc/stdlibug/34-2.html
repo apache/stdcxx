@@ -115,9 +115,9 @@ int main(int argc, char *argv[])
 </TABLE>
 <P>As in the original example, <SAMP>out</SAMP> inserts through the standard output stream's buffer, but lacks the special properties of a standard stream.</P>
 <A NAME="idx850"><!></A>
-<P>Here is an alternative solution that uses file descriptors, a nonstandard feature of the Rogue Wave implementation of the standard iostreams.</P>
+<P>Here is an alternative solution that uses file descriptors, a nonstandard feature of this implementation of the standard iostreams.</P>
 <BLOCKQUOTE><HR><B>
-NOTE -- This feature was available in the traditional iostreams, but is not offered by the standard iostreams. The Rogue Wave implementation of the standard iostreams retains the old feature for backward compatibility with the traditional iostreams, but it is nonstandard. Using it might make your application nonportable to other standard iostream libraries.
+NOTE -- This feature was available in the traditional iostreams, but is not offered by the standard iostreams. This implementation of the standard iostreams retains the old feature for backward compatibility with the traditional iostreams, but it is nonstandard. Using it might make your application nonportable to other standard iostream libraries.
 </B><HR></BLOCKQUOTE>
 
 <UL><PRE>int main(int argc, char *argv[])
