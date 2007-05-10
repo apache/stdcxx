@@ -73,7 +73,7 @@ protected:
 
 };
 </PRE></UL>
-<P>For the sake of brevity, we implement only those functions used by the Rogue Wave implementation of file stream buffers. If you want to provide a code conversion facet that is more widely usable, you must also override the virtual member functions <SAMP>do_length()</SAMP> and <SAMP>do_max_length()</SAMP>. </P>
+<P>For the sake of brevity, we implement only those functions used by this implementation of file stream buffers. If you want to provide a code conversion facet that is more widely usable, you must also override the virtual member functions <SAMP>do_length()</SAMP> and <SAMP>do_max_length()</SAMP>. </P>
 <P>The implementation of the functions <SAMP>do_in()</SAMP> and <SAMP>do_out()</SAMP> is straightforward. Each of the functions translates a sequence of characters in the range <SAMP>[from,from_end)</SAMP> into the corresponding sequence <SAMP>[to,to_end)</SAMP>. The pointers <SAMP>from_next</SAMP> and <SAMP>to_next</SAMP> point one beyond the last character successfully converted. In principle, you can do whatever you want, or whatever it takes, in these functions. However, for effective communication with the file stream buffer, it is important to indicate success or failure properly.</P>
 <A NAME="4033"><H3>40.3.3 Use the New Code Conversion Facet</H3></A>
 <A NAME="idx957"><!></A>

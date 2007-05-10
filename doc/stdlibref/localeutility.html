@@ -48,7 +48,7 @@
 <PRE>locale [-a|-m]
 locale [-c][-k] name...
 </PRE>
-<P>Rogue Wave Extensions:</P>
+<P>Extensions of this implementation:</P>
 
 <PRE>
 locale [-c][-h][-k][-l][-w][-wN][--help] name...
@@ -215,7 +215,7 @@ locale [-c][-h][-k][-l][-w][-wN][--help] name...
 </tr>
 </TABLE>
 <A NAME="sec11"><H3>Examples</H3></A>
-<P>The first of the following two commands, <SAMP>localedef</SAMP>, will create a locale database named <SAMP>french@euro</SAMP> in the directory <SAMP>/tmp</SAMP>. The second, <SAMP>locale</SAMP>, will write to <SAMP>stdout</SAMP> the names and values of the keywords for the <SAMP>LC_TIME</SAMP> locale category for the just created locale database. Since <SAMP>-c</SAMP> is specified, <SAMP>locale</SAMP> also writes out the name of the category. Please note that the following example uses Rogue Wave extensions to the <SAMP>locale</SAMP> utility.</P>
+<P>The first of the following two commands, <SAMP>localedef</SAMP>, will create a locale database named <SAMP>french@euro</SAMP> in the directory <SAMP>/tmp</SAMP>. The second, <SAMP>locale</SAMP>, will write to <SAMP>stdout</SAMP> the names and values of the keywords for the <SAMP>LC_TIME</SAMP> locale category for the just created locale database. Since <SAMP>-c</SAMP> is specified, <SAMP>locale</SAMP> also writes out the name of the category. Please note that the following example uses extensions of this implementation to the <SAMP>locale</SAMP> utility.</P>
 
 <UL><PRE>
 $ localedef -c -f -w nls/charmaps/ISO-8859-15 \<br>   -i nls/src fr_FR.euro/tmp/french@euro

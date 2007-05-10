@@ -43,7 +43,7 @@ namespace std {
 <A NAME="sec4"><H3>Description</H3></A>
 <P>The <SAMP>partial_sort()</SAMP> algorithm takes the range <SAMP>[start,finish)</SAMP> and sorts the first <SAMP>mid - start</SAMP> values in ascending order. The remaining elements in the range (those in <SAMP>[mid, finish)</SAMP>) are not in any defined order. The first version of the algorithm uses <SAMP>operator&lt;()</SAMP> as the comparison operator for the sort. The second version uses the function object <SAMP>comp</SAMP>.</P>
 <A NAME="sec5"><H3>Complexity</H3></A>
-<P><SAMP>partial_sort()</SAMP> does approximately<SAMP> (finish  - start) * log(mid-start) </SAMP>comparisons. The Rogue Wave implementation of <SAMP>partial_sort()</SAMP> is implemented using heapsort, which is <SAMP>O(N * log(N))</SAMP> in the worst case. </P>
+<P><SAMP>partial_sort()</SAMP> does approximately<SAMP> (finish  - start) * log(mid-start) </SAMP>comparisons. This implementation of <SAMP>partial_sort()</SAMP> is implemented using heapsort, which is <SAMP>O(N * log(N))</SAMP> in the worst case. </P>
 <A NAME="sec6"><H3>Example</H3></A>
 
 <UL><PRE>//
