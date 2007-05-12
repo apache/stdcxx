@@ -2,7 +2,7 @@
  *
  * moneyget.cpp - Example program for the money_get facet. 
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/moneyget.cpp#15 $
+ * $Id$
  *
  ***************************************************************************
  *
