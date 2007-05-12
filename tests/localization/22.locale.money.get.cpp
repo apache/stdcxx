@@ -30,13 +30,11 @@
 #include <locale>
 
 #include <cstdio>     // for sscanf()
-#include <cstdlib>    // for mbstowcs(), wcstombs()
-#include <cstring>    // for strcat(), strlen()
-#include <cwchar>     // for wcslen()
 
 #include <cmdopt.h>   // for rw_enabled()
 #include <driver.h>   // for rw_assert(), rw_test(), ...
-#include <valcmp.h>   // for rw_fltcmp()
+#include <rw_char.h>  // for rw_expand()
+#include <valcmp.h>   // for rw_ldblcmp()
 
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
@@ -105,103 +103,125 @@ int foo ()
 
 /**************************************************************************/
 
+template <class charT>
+struct PunctData
+{
+    static charT                     decimal_point_ [2];
+    static charT                     thousands_sep_ [2];
+    static const char               *grouping_ [2];
+    static const charT              *curr_symbol_ [2];
+    static const charT              *positive_sign_ [2];
+    static const charT              *negative_sign_ [2];
+    static std::money_base::pattern  format_ [2][2];
+    static int                       frac_digits_ [2];
+};
+
+
+template <class charT>
+const char*
+PunctData<charT>::grouping_ [2] = { "", "" };
+
+template <class charT>
+charT
+PunctData<charT>::decimal_point_ [2] = { '.', '.' };
+
+template <class charT>
+charT
+PunctData<charT>::thousands_sep_ [2] = { ',', ',' };
+
+template <class charT>
+const charT*
+PunctData<charT>::curr_symbol_ [2];
+
+template <class charT>
+const charT*
+PunctData<charT>::positive_sign_ [2];
+
+template <class charT>
+const charT*
+PunctData<charT>::negative_sign_ [2];
+
+template <class charT>
+std::money_base::pattern PunctData<charT>::format_ [2][2] = {
+    {   // local
+        { { // positive
+                std::money_base::symbol, std::money_base::sign,
+                std::money_base::none,   std::money_base::value
+            } },
+        { { // negative
+                std::money_base::symbol, std::money_base::sign,
+                std::money_base::none,   std::money_base::value
+            } }
+    },
+
+    {   // international
+        { { // positive
+                std::money_base::symbol, std::money_base::sign,
+                std::money_base::none,   std::money_base::value
+            } },
+        { { // negative
+                std::money_base::symbol, std::money_base::sign,
+                std::money_base::none,   std::money_base::value
+            } }
+    }
+};
+
+template <class charT>
+int PunctData<charT>::frac_digits_ [2];
+
+
 template <class charT, bool Intl>
-struct Punct: std::moneypunct<charT, Intl>
+struct Punct: std::moneypunct<charT, Intl>, PunctData<charT>
 {
     typedef std::moneypunct<charT, Intl> Base;
     typedef typename Base::char_type     char_type;
     typedef typename Base::string_type   string_type;
-
-    static char_type                 decimal_point_;
-    static char_type                 thousands_sep_;
-    static const char               *grouping_;
-    static const char_type          *curr_symbol_;
-    static const char_type          *positive_sign_;
-    static const char_type          *negative_sign_;
-    static std::money_base::pattern  format_ [2];
-    static int                       frac_digits_;
 
     static int n_thousands_sep_;   // number of calls to do_thousands_sep()
 
     Punct (std::size_t ref): Base (ref) { }
 
     char_type do_decimal_point () const {
-        return decimal_point_;
+        return this->decimal_point_ [Intl];
     }
 
     int do_frac_digits () const {
-        return frac_digits_;
+        return this->frac_digits_ [Intl];
     }
 
     virtual string_type do_curr_symbol () const {
         foo ();
-        return curr_symbol_ ? curr_symbol_ : string_type ();
+        return this->curr_symbol_ [Intl] ?
+            this->curr_symbol_ [Intl] : string_type ();
     }
 
     virtual std::string do_grouping () const {
-        return grouping_ ? std::string (grouping_) : std::string ();
+        return this->grouping_ [Intl] ? this->grouping_ [Intl] : "";
     }
 
     virtual char_type do_thousands_sep () const {
         ++n_thousands_sep_;
-        return thousands_sep_;
+        return this->thousands_sep_ [Intl];
     }
 
     virtual string_type do_positive_sign () const {
-        return positive_sign_ ? positive_sign_ : string_type ();
+        return this->positive_sign_  [Intl] ?
+            this->positive_sign_ [Intl] : string_type ();
     }
 
     virtual string_type do_negative_sign () const {
-        return negative_sign_ ? negative_sign_ : string_type ();
+        return this->negative_sign_ [Intl] ?
+            this->negative_sign_ [Intl] : string_type ();
     }
 
     virtual std::money_base::pattern do_pos_format () const {
-        return format_ [0];
+        return this->format_ [Intl][0];
     }
 
     virtual std::money_base::pattern do_neg_format () const {
-        return format_ [1];
+        return this->format_ [Intl][1];
     }
 };
-
-template <class charT, bool Intl>
-const char* Punct<charT, Intl>::grouping_ = "";
-
-template <class charT, bool Intl>
-typename Punct<charT, Intl>::char_type
-Punct<charT, Intl>::decimal_point_ = '.';
-
-template <class charT, bool Intl>
-typename Punct<charT, Intl>::char_type
-Punct<charT, Intl>::thousands_sep_ = ',';
-
-template <class charT, bool Intl>
-const typename Punct<charT, Intl>::char_type*
-Punct<charT, Intl>::curr_symbol_;
-
-template <class charT, bool Intl>
-const typename Punct<charT, Intl>::char_type*
-Punct<charT, Intl>::positive_sign_;
-
-template <class charT, bool Intl>
-const typename Punct<charT, Intl>::char_type*
-Punct<charT, Intl>::negative_sign_;
-
-template <class charT, bool Intl>
-std::money_base::pattern Punct<charT, Intl>::format_[2] = {
-    { { // positive
-        std::money_base::symbol, std::money_base::sign,
-        std::money_base::none,   std::money_base::value
-    } },
-    { { // negative
-        std::money_base::symbol, std::money_base::sign,
-        std::money_base::none,   std::money_base::value
-    } }
-};
-
-template <class charT, bool Intl>
-int Punct<charT, Intl>::frac_digits_;
-
 
 template <class charT, bool Intl>
 int Punct<charT, Intl>::n_thousands_sep_;
@@ -220,72 +240,6 @@ template <class charT>
 struct MoneyGet: std::money_get<charT, const charT*> { };
 
 /**************************************************************************/
-
-const char* narrow (char *dst, const char *src)
-{
-    if (src == dst || !src || !dst)
-        return src;
-
-    std::memcpy (dst, src, std::strlen (src) + 1);
-    return dst;
-}
-
-
-const char* widen (char *dst, const char *src)
-{
-    if (src == dst || !src || !dst)
-        return src;
-
-    std::memcpy (dst, src, std::strlen (src) + 1);
-    return dst;
-}
-
-
-const char* narrow (char *dst, const wchar_t *src)
-{
-    static char buf [4096];
-
-    if (!src)
-        return 0;
-
-    if (!dst)
-        dst = buf;
-
-    std::size_t len = std::wcslen (src);
-
-    RW_ASSERT (len < sizeof buf);
-
-    len = std::wcstombs (dst, src, sizeof buf / sizeof *buf);
-
-    if (std::size_t (-1) == len)
-        *dst = 0;
-
-    return dst;
-}
-
-
-const wchar_t* widen (wchar_t *dst, const char *src)
-{
-    static wchar_t buf [4096];
-
-    if (!src)
-        return 0;
-
-    if (!dst)
-        dst = buf;
-
-    std::size_t len = std::strlen (src);
-
-    RW_ASSERT (len < sizeof buf /sizeof *buf);
-
-    len = std::mbstowcs (dst, src, sizeof buf / sizeof *buf);
-
-    if (std::size_t (-1) == len)
-        *dst = 0;
-
-    return dst;
-}
-
 
 template <class charT>
 void do_test (charT       which,   // which overload to exercise
@@ -318,21 +272,35 @@ void do_test (charT       which,   // which overload to exercise
         fmat = pat.field;
     }
 
+    // local format? (the opposite of interantional)
+    const bool locl = !intl;
+
     // take care to initialize Punct static data before installing
     // the facet in case locale or the base facet calls the overridden
     // virtuals early to cache the results
-    Punct<charT, false>::format_ [1].field [0] = fmat [0];
-    Punct<charT, false>::format_ [1].field [1] = fmat [1];
-    Punct<charT, false>::format_ [1].field [2] = fmat [2];
-    Punct<charT, false>::format_ [1].field [3] = fmat [3];
+    PunctData<charT>::format_ [intl][1].field [0] = fmat [0];
+    PunctData<charT>::format_ [intl][1].field [1] = fmat [1];
+    PunctData<charT>::format_ [intl][1].field [2] = fmat [2];
+    PunctData<charT>::format_ [intl][1].field [3] = fmat [3];
+
+    PunctData<charT>::format_ [locl][1].field [0] = fmat [3];
+    PunctData<charT>::format_ [locl][1].field [1] = fmat [2];
+    PunctData<charT>::format_ [locl][1].field [2] = fmat [1];
+    PunctData<charT>::format_ [locl][1].field [3] = fmat [0];
 
     // zero out positive format (not used by money_get)
-    Punct<charT, false>::format_ [0] = std::money_base::pattern ();
+    PunctData<charT>::format_ [intl][0] = std::money_base::pattern ();
+    PunctData<charT>::format_ [locl][0] = std::money_base::pattern ();
 
-    charT wcursym_buf [40];
-    Punct<charT, false>::curr_symbol_ = widen (wcursym_buf, cursym);
-    Punct<charT, false>::grouping_    = grouping;
-    Punct<charT, false>::frac_digits_ = frac_digits;
+    // expand (widen) currency symbol
+    PunctData<charT>::curr_symbol_ [intl] = rw_expand ((charT*)0, cursym);
+    PunctData<charT>::curr_symbol_ [locl] = 0;
+    
+    PunctData<charT>::grouping_ [intl] = grouping;
+    PunctData<charT>::grouping_ [locl] = 0;
+
+    PunctData<charT>::frac_digits_ [intl] = frac_digits;
+    PunctData<charT>::frac_digits_ [locl] = frac_digits + 1;
 
     Ios<charT> io;
     MoneyGet<charT> mg;
@@ -351,9 +319,8 @@ void do_test (charT       which,   // which overload to exercise
 
     io.flags (std::ios_base::fmtflags (flags));
 
-    // widen input string if necessary
-    charT wstr_buf [4096];
-    const charT *next = widen (wstr_buf, str);
+    // expand (widen) input sequence
+    const charT* const next = rw_expand ((charT*)0, str);
 
     std::ios_base::iostate err = std::ios_base::goodbit;
 
@@ -374,21 +341,21 @@ void do_test (charT       which,   // which overload to exercise
             !(-1 != consumed && last - next != consumed || err != err_expect);
 
         rw_assert (success, __FILE__, lineno,
-                   "money_get<%s>::get (%s, ..., %d, ..., %s&), "
+                   "money_get<%s>::get (%{*Ac}, ..., %b, ..., %s&), "
                    "ate %d, expected %d, frac_digits = %d, "
                    "flags = %{If}, grouping = %#s, pattern = %{LM}, "
-                   "state = %{Is}, expected = %{Is}",
-                   cname, next, intl, tname,
+                   "state = %{Is}, expected %{Is}",
+                   cname, int (sizeof *next), next, intl, tname,
                    last - next, consumed, frac_digits,
                    flags, grouping, fmat,
                    err, err_expect);
 
         rw_assert (2 > rw_ldblcmp (x, val), __FILE__, lineno,
-                   "money_get<%s>::get (%s, ..., %d, ..., %s&), "
+                   "money_get<%s>::get (%{*Ac}, ..., %b, ..., %s&), "
                    "got %Lg, expected %Lg, frac_digits = %d, "
                    "flags = %{If}s, grouping = %#s, pattern = %{LM}, "
                    "state = %{Is}, expected %{Is}",
-                   cname, next, intl, tname,
+                   cname, int (sizeof *next), next, intl, tname,
                    x, val, frac_digits,
                    flags, grouping, fmat,
                    err, err_expect);
@@ -406,11 +373,11 @@ void do_test (charT       which,   // which overload to exercise
             !(-1 != consumed && last - next != consumed || err != err_expect);
 
         rw_assert (success, __FILE__, lineno,
-                   "money_get<%s>::get (%s, ..., %d, ..., "
+                   "money_get<%s>::get (%{*Ac}, ..., %b, ..., "
                    "basic_string<%s>&), ate %d, expected %d, "
                    "frac_digits = %d, flags = %{If}, grouping = %#s"
-                   ", format = %{LM}, state = %{Is}, expected = %{Is}",
-                   cname, next, intl,
+                   ", format = %{LM}, state = %{Is}, expected %{Is}",
+                   cname, int (sizeof *next), next, intl,
                    cname, last - next, consumed,
                    frac_digits, flags, grouping,
                    fmat, err, err_expect);
@@ -418,7 +385,7 @@ void do_test (charT       which,   // which overload to exercise
         if (success) {
 
             char narrow_buf [4096];
-            narrow (narrow_buf, bs.c_str ());
+            rw_narrow (narrow_buf, bs.c_str ());
 
             LongDouble x = 0;
 
@@ -434,16 +401,19 @@ void do_test (charT       which,   // which overload to exercise
                   && 1 < rw_ldblcmp (x, val));
 
             rw_assert (success, __FILE__, lineno,
-                       "money_get<%s>::get (%s, ..., %d, ..., "
+                       "money_get<%s>::get (%{*Ac}, ..., %b, ..., "
                        "basic_string<%s>&), got %s, expected %Lg, "
                        "frac_digits = %d, flags = %{If}, grouping = %#s,"
                        " pattern = %{LM}, iostate = %{Is}, expected %{Is}",
-                       cname, next, intl,
+                       cname, int (sizeof *next), next, intl,
                        cname, bs.c_str (), val,
                        frac_digits, flags, grouping,
                        fmat, err, err_expect);
         }
     }
+
+    delete[] PunctData<charT>::curr_symbol_ [intl];
+    delete[] next;
 }
 
 /**************************************************************************/
@@ -478,7 +448,7 @@ void do_test (charT       which,   // which overload to exercise
 
 
 template <class charT>
-void test_memfun (charT opt, const char *cname, const char *tname)
+void test_get (charT opt, const char *cname, const char *tname)
 {
 #define T      opt, cname, tname, __LINE__
 #define TEST   do_test
@@ -496,9 +466,12 @@ void test_memfun (charT opt, const char *cname, const char *tname)
     // by decimal_point(). The other symbols are defined as follows:
     //     units ::= digits [ thousandssep units ] digits ::= adigit [ digits ]
 
-    Punct<charT, false>::positive_sign_ = 0;
-    Punct<charT, false>::negative_sign_ = 0;
-    Punct<charT, false>::thousands_sep_ = '\0';
+    PunctData<charT>::positive_sign_ [0] = 0;
+    PunctData<charT>::positive_sign_ [1] = 0;
+    PunctData<charT>::negative_sign_ [0] = 0;
+    PunctData<charT>::negative_sign_ [1] = 0;
+    PunctData<charT>::thousands_sep_ [0] = '\0';
+    PunctData<charT>::thousands_sep_ [1] = '\0';
 
     // parsing zero, no curr_symbol or sign, default pattern, 0 frac_digits
     TEST (T, 0.0, "0",   1, 0, eofbit);
@@ -566,7 +539,8 @@ void test_memfun (charT opt, const char *cname, const char *tname)
     TEST (T,  54321098.0, "5432.1098", 9, 0, eofbit, 4);
     TEST (T, 432109870.0, "43210.987", 9, 0, eofbit, 4);
 
-    Punct<charT, false>::thousands_sep_ = ',';
+    PunctData<charT>::thousands_sep_ [0] = ',';
+    PunctData<charT>::thousands_sep_ [1] = ';';
 
     // parsing with thousands_sep and/or grouping
     TEST (T,      0.0, "0",        1, 0, eofbit,  0, 0, "", "\1");
@@ -637,11 +611,13 @@ void test_memfun (charT opt, const char *cname, const char *tname)
 
     // parsing with a simple non-empty sign
 
-    static const charT plus[]  = { '+', '\0' };
-    static const charT minus[] = { '-', '\0' };
+    static const charT plus[][2]  = { { '+', '\0' }, { '\0' } };
+    static const charT minus[][2] = { { '-', '\0' }, { '\0' } };
 
-    Punct<charT, false>::positive_sign_ = plus;
-    Punct<charT, false>::negative_sign_ = minus;
+    PunctData<charT>::positive_sign_ [0] = plus [0];
+    PunctData<charT>::negative_sign_ [0] = minus [0];
+    PunctData<charT>::positive_sign_ [1] = plus [1];
+    PunctData<charT>::negative_sign_ [1] = minus [1];
 
     TEST (T,  15.0, "+15",     3, 0, eofbit,  0, 0, "");
     TEST (T,  16.0, "+ 16",    4, 0, eofbit,  0, 0, "");
@@ -668,11 +644,13 @@ void test_memfun (charT opt, const char *cname, const char *tname)
 
     // parsing with a multi-char non-empty sign
 
-    static const charT plus_plus[]   = { '+', '+', '\0' };
-    static const charT minus_minus[] = { '-', '-', '\0' };
+    static const charT plus_plus[][3]   = { { '+', '+', '\0' }, { '\0' } };
+    static const charT minus_minus[][3] = { { '-', '-', '\0' }, { '\0' } };
 
-    Punct<charT, false>::positive_sign_ = plus_plus;
-    Punct<charT, false>::negative_sign_ = minus_minus;
+    PunctData<charT>::positive_sign_ [0] = plus_plus [0];
+    PunctData<charT>::negative_sign_ [0] = minus_minus [0];
+    PunctData<charT>::positive_sign_ [1] = plus_plus [1];
+    PunctData<charT>::negative_sign_ [1] = minus_minus [1];
 
     TEST (T,  27.0, "+27+",    4, 0, eofbit, 0, 0, "");
     TEST (T,  28.0, "+  28+",  6, 0, eofbit, 0, 0, "");
@@ -703,9 +681,12 @@ void test_memfun (charT opt, const char *cname, const char *tname)
     TEST (T, 0.0, "$-3.80 -",  3, 0, failbit, 0, 0, "$");
     TEST (T, 0.0, "$- 3.91 -", 7, 0, failbit, 1, 0, "$");
 
-    static const charT plus_minus[] = { '+', '-', '\0' };
-    Punct<charT, false>::positive_sign_ = plus_plus;
-    Punct<charT, false>::negative_sign_ = plus_minus;
+    static const charT plus_minus[][3] = { { '+', '-', '\0' }, { '\0' } };
+
+    PunctData<charT>::positive_sign_ [0] = plus_plus [0];
+    PunctData<charT>::positive_sign_ [1] = plus_plus [1];
+    PunctData<charT>::negative_sign_ [0] = plus_minus [0];
+    PunctData<charT>::negative_sign_ [1] = plus_minus [1];
 
     // 22.2.6.1.2, p3: if the first character of positive
     // and negative sign is the same, the result is positive
@@ -721,8 +702,10 @@ void test_memfun (charT opt, const char *cname, const char *tname)
     // none = 0, space = 1, symbol = 2, sign = 3, value = 4
 
     // test various patterns
-    Punct<charT, false>::positive_sign_ = plus;
-    Punct<charT, false>::negative_sign_ = minus;
+    PunctData<charT>::positive_sign_ [0] = plus [0];
+    PunctData<charT>::positive_sign_ [1] = plus [1];
+    PunctData<charT>::negative_sign_ [0] = minus [0];
+    PunctData<charT>::negative_sign_ [1] = minus [1];
 
     TEST (T,  -100.0, "$-1",   3, showbase, eofbit,  2, "\2\3\4\0", "$");
     TEST (T,  -200.0, "$-2 ",  3, showbase, goodbit, 2, "\2\3\4\0", "$");
@@ -746,8 +729,9 @@ void test_memfun (charT opt, const char *cname, const char *tname)
     TEST (T,     0.0, "14$-",  2, showbase, failbit, 2, "\4\1\2\3", "$");
     TEST (T, -1500.0, "15 $-", 5, showbase, eofbit,  2, "\4\1\2\3", "$");
 
-    const charT parens[] = { '(', ')', '\0' };
-    Punct<charT, false>::negative_sign_ = parens;
+    const charT parens[][3] = { { '(', ')', '\0' }, { '\0' } };
+    PunctData<charT>::negative_sign_ [0] = parens [0];
+    PunctData<charT>::negative_sign_ [1] = parens [1];
 
     // { sign, space, value, symbol }, with symbol required
     TEST (T, -90.0, "( 9$)",    5, showbase, eofbit, 1, "\3\1\4\2", "$");
@@ -772,8 +756,10 @@ void test_memfun (charT opt, const char *cname, const char *tname)
     TEST (T, -104.0, "(104 L)", 7, 0,        eofbit,  0, "\3\4\0\2", "L");
     TEST (T, -105.0, "(105 L)", 7, showbase, eofbit,  0, "\3\4\0\2", "L");
 
-    Punct<charT, false>::positive_sign_ = plus;
-    Punct<charT, false>::negative_sign_ = minus;
+    PunctData<charT>::positive_sign_ [0] = plus [0];
+    PunctData<charT>::negative_sign_ [0] = minus [0];
+    PunctData<charT>::positive_sign_ [1] = plus [1];
+    PunctData<charT>::negative_sign_ [1] = minus [1];
 
     // { sign, value, none, symbol }
     // trailing optional curr_symbol or whitespace preceding it (regardless
@@ -797,8 +783,9 @@ void test_memfun (charT opt, const char *cname, const char *tname)
     // trailing required curr_symbol is consumed
     TEST (T, -109.0, "109-$",  5, showbase, eofbit,  0, "\4\0\3\2", "$");
 
-    const charT minus_space[] = { '-', ' ', '\0' };
-    Punct<charT, false>::negative_sign_ = minus_space;
+    const charT minus_space[][3] = { { '-', ' ', '\0' }, { '\0' } };
+    PunctData<charT>::negative_sign_ [0] = minus_space [0];
+    PunctData<charT>::negative_sign_ [1] = minus_space [1];
 
     // { sign, value, none, symbol }
     // negative_sign is "- ", (note the single trailing space)
@@ -810,24 +797,30 @@ void test_memfun (charT opt, const char *cname, const char *tname)
 
     // verify that optional space after value and before currency
     // symbol is treated correctly
-    Punct<charT, false>::positive_sign_ = plus_plus;
-    Punct<charT, false>::negative_sign_ = 0;
+    PunctData<charT>::positive_sign_ [0] = plus_plus [0];
+    PunctData<charT>::positive_sign_ [1] = 0;
+    PunctData<charT>::negative_sign_ [0] = 0;
+    PunctData<charT>::negative_sign_ [1] = 0;
 
     // { sign, value, none, symbol }
     TEST (T,  1090.0, "1090 $",   6, showbase, eofbit,  0, "\3\4\0\2", "$");
     TEST (T,  1091.0, "1091 $",   6, showbase, eofbit,  0, "\3\4\0\2", "$");
     TEST (T, +1092.0, "+1092 $+", 8, showbase, eofbit,  0, "\3\4\0\2", "$");
 
-    Punct<charT, false>::positive_sign_ = 0;
-    Punct<charT, false>::negative_sign_ = parens;
+    PunctData<charT>::positive_sign_ [0] = 0;
+    PunctData<charT>::positive_sign_ [1] = 0;
+    PunctData<charT>::negative_sign_ [0] = parens [0];
+    PunctData<charT>::negative_sign_ [1] = 0;
 
     TEST (T,  1093.0, "1093 $",   6, showbase, eofbit,  0, "\3\4\0\2", "$");
     TEST (T,  1094.0, "1094 $",   6, showbase, eofbit,  0, "\3\4\0\2", "$");
     TEST (T, -1095.0, "(1095 $)", 8, showbase, eofbit,  0, "\3\4\0\2", "$");
 
     // verify a single-char sign with a multichar one (see bug #428)
-    Punct<charT, false>::positive_sign_ = plus;
-    Punct<charT, false>::negative_sign_ = parens;
+    PunctData<charT>::positive_sign_ [0] = plus [0];
+    PunctData<charT>::positive_sign_ [1] = 0;
+    PunctData<charT>::negative_sign_ [0] = parens [0];
+    PunctData<charT>::negative_sign_ [1] = 0;
 
     // { sign, value, none, symbol }
     TEST (T,  1096.0, "1096 $",   6, showbase, eofbit,  0, "\3\4\0\2", "$");
@@ -835,8 +828,10 @@ void test_memfun (charT opt, const char *cname, const char *tname)
     TEST (T, +1098.0, "+1098 $",  7, showbase, eofbit,  0, "\3\4\0\2", "$");
     TEST (T, -1099.0, "(1099 $)", 8, showbase, eofbit,  0, "\3\4\0\2", "$");
 
-    Punct<charT, false>::positive_sign_ = 0;
-    Punct<charT, false>::negative_sign_ = 0;
+    PunctData<charT>::positive_sign_ [0] = 0;
+    PunctData<charT>::positive_sign_ [1] = 0;
+    PunctData<charT>::negative_sign_ [0] = 0;
+    PunctData<charT>::negative_sign_ [1] = 0;
 
     // { value, none, symbol, sign }
     // trailing whitespace is not extracted (even if required by the format)
@@ -856,9 +851,12 @@ void test_memfun (charT opt, const char *cname, const char *tname)
     TEST (T,  119.0, "119 $",  5, showbase, eofbit,  0, "\4\1\2\3", "$");
 
 
-    Punct<charT, false>::positive_sign_ = plus;
-    Punct<charT, false>::negative_sign_ = minus;
-    Punct<charT, false>::thousands_sep_ = ';';
+    PunctData<charT>::positive_sign_ [0] = plus [0];
+    PunctData<charT>::positive_sign_ [1] = plus [1];
+    PunctData<charT>::negative_sign_ [0] = minus [0];
+    PunctData<charT>::negative_sign_ [1] = minus [1];
+    PunctData<charT>::thousands_sep_ [0] = ';';
+    PunctData<charT>::thousands_sep_ [1] = '*';
 
     // test grouping, default pattern { symbol sign none value }
     TEST (T, 0.0, "$0",     2, 0, eofbit, 0, 0, "$", "\1");
@@ -954,8 +952,8 @@ void
 test_long_double (charT, const char *cname)
 {
     if (rw_enabled ("long double"))
-        test_memfun (charT (0 /* long double argument */),
-                     cname, "long double");
+        test_get (charT (0 /* long double argument */),
+                  cname, "long double");
     else
         rw_note (0, __FILE__, __LINE__, "long double test disabled");
 }
@@ -967,8 +965,8 @@ void
 test_string (charT, const char *cname)
 {
     if (rw_enabled ("basic_string"))
-        test_memfun (charT (1 /* basic_string argument */),
-                     cname, "basic_string");
+        test_get (charT (1 /* basic_string argument */),
+                  cname, "basic_string");
     else
         rw_note (0, __FILE__, __LINE__,
                  "basic_string<%s> test disabled", cname);
