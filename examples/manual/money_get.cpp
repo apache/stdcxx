@@ -52,8 +52,6 @@ const char en_US[] = "en_US";
 
 int main (int argc, char *argv[])
 {
-    typedef std::istreambuf_iterator<char, std::char_traits<char> > Iter;
-  
     // Get the monetary string and locale from the argument vector.
     const char* const buffer  = 1 < argc ? argv [1] : "$1,234.6789";
     const char* const locname = 2 < argc ? argv [2] : en_US;
@@ -67,8 +65,10 @@ int main (int argc, char *argv[])
     // Retrieve the money_get facet from the named locale.
     const std::locale loc (locname);
 
-    const std::money_get<char, Iter> &mgf =
-        std::use_facet<std::money_get<char, Iter> >(loc);
+    typedef std::istreambuf_iterator<char> Iter;
+    typedef std::money_get<char, Iter>     MoneyGet;
+
+    const MoneyGet &mgf = std::use_facet<MoneyGet>(loc);
 
     {
         // Build an istringstream object from the buffer
