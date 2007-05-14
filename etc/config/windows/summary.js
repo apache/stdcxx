@@ -68,7 +68,7 @@ function readBuildLog(exeDir, itemInfo, useUnicode)
         return;
     }
 
-    var blogData = blogFile.ReadAll();
+    var blogData = blogFile.AtEndOfStream ? "" : blogFile.ReadAll();
     
     var posTmp = getCommandLinesInfo(itemInfo, blogData, 0);
     posTmp = getCompilationInfo(itemInfo, blogData, posTmp);
@@ -665,7 +665,7 @@ function checkForFailures(testDir, bType, logHtm, sumHtm, htmTempDir,
         var blogFile = 
             fso.OpenTextFile(testFolder.Path + "\\" + htmFileName, 
                              1, false, uniMode);
-        var blogData = blogFile.ReadAll();
+        var blogData = blogFile.AtEndOfStream ? "" : blogFile.ReadAll();
     
         var posTmp = getCommandLinesInfo(testInfo, blogData, 0);
         posTmp = getCompilationInfo(testInfo, blogData, posTmp);

@@ -320,7 +320,8 @@ function stripTags(srcString)
            .replace(new RegExp("><", "g"), ">\r\n<")
            .replace(new RegExp("(^<[\\s\\S]+?>)", "gm"), "")
            .replace(new RegExp("\r", "g"), "")
-           .replace(new RegExp("\n{2,}", "g"), "\n\n");
+           .replace(new RegExp("\n{2,}", "g"), "\n\n")
+           .replace(new RegExp("</pre>", "g"), "");
 }
 
 // returns source string without first character if it equal to symbol
