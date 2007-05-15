@@ -289,6 +289,9 @@ virtual result
 <LI><P CLASS="LIST"><SAMP>state</SAMP> is either initialized to the beginning of a sequence or equal to the result of the previous conversion on the sequence. </P></LI>
 <LI><P CLASS="LIST"><SAMP>(from &lt;= end)</SAMP> is well-defined and true. </P></LI>
 </UL>
+<UL>
+<P>Note that this function does not behave similarly to the C Standard Library function <SAMP>mbsrtowcs()</SAMP>. See the <SAMP><A HREF="http://svn.apache.org/repos/asf/incubator/stdcxx/trunk/examples/manual/mbsrtowcs.cpp">mbsrtowcs.cpp</A></SAMP> example program for an implementation of this function using the <SAMP>codecvt</SAMP> facet.</P>
+</UL>
 
 <A NAME="idx487"></A><PRE>
 virtual int 
