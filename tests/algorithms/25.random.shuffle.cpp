@@ -70,22 +70,8 @@ struct Convertible
 private:
     const DifferenceType val_;
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
     template <class T>
     Convertible (T);
-
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
-
-    Convertible (unsigned short);
-    Convertible (unsigned);
-    Convertible (unsigned long);
-
-#  ifdef _RWSTD_LONG_LONG
-    Convertible (unsigned _RWSTD_LONG_LONG);
-#  endif   // _RWSTD_LONG_LONG
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
 };
 
 // detect assumptions made by the algorithm about the return value
@@ -126,21 +112,8 @@ struct RandomGenerator
 
 private:
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
     template <class T>
     void operator() (T) /* non-const */;
-
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
-
-    void operator() (unsigned short);
-    void operator() (unsigned);
-    void operator() (unsigned long);
-
-#  ifdef _RWSTD_LONG_LONG
-    void operator() (unsigned _RWSTD_LONG_LONG);
-#  endif   // _RWSTD_LONG_LONG
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
     static DifferenceType gen_;
 };

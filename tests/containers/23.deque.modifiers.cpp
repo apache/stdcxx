@@ -1249,9 +1249,8 @@ void test_erase ()
 
 /**************************************************************************/
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-#  ifndef _RWSTD_NO_EXPLICIT
-#    if !defined (_MSC_VER) || _MSC_VER > 1200
+#ifndef _RWSTD_NO_EXPLICIT
+#  if !defined (_MSC_VER) || _MSC_VER > 1200
 
 struct DR_438
 {
@@ -1266,16 +1265,13 @@ struct DR_438
 
 bool DR_438::cast_used;
 
-#    else   // if MSVC <= 6.0
+#  else   // if MSVC <= 6.0
        // avoid an MSVC 6.0 ICE on this code
-#      define NO_DR_438_TEST "this version of MSVC is too broken"
-#    endif   // !MSVC || MSVC > 6.0
-#  else
-#    define NO_DR_438_TEST "_RWSTD_NO_EXPLICIT #defined"
-#  endif   // _RWSTD_NO_EXPLICIT
-#  else
-#    define NO_DR_438_TEST   "_RWSTD_NO_INLINE_MEMBER_TEMPLATES #defined"
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#    define NO_DR_438_TEST "this version of MSVC is too broken"
+#  endif   // !MSVC || MSVC > 6.0
+#else
+#  define NO_DR_438_TEST "_RWSTD_NO_EXPLICIT #defined"
+#endif   // _RWSTD_NO_EXPLICIT
 
 
 void test_dr_438 ()

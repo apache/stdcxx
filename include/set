@@ -122,15 +122,15 @@ public:
                    const allocator_type &__alloc = allocator_type ())
         : _C_rep (__cmp, __alloc) { }
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     template<class _InputIter>
     set (_InputIter __first, _InputIter __last,
          const key_compare& __cmp = key_compare (),
          const allocator_type& __al = allocator_type ())
         : _C_rep (__first, __last, __cmp, __al, false) { }
-#else
+
+#else // if _MSC_VER < 1300
 
     set (const value_type* __first, const value_type* __last,
          const key_compare &__cmp = key_compare (),
@@ -142,7 +142,7 @@ public:
          const allocator_type &__alloc = allocator_type ())
         : _C_rep (__first, __last, __cmp, __alloc, false) { }
 
-#endif
+#endif // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     set (const set &__x)
         : _C_rep (__x._C_rep) { }
@@ -219,8 +219,7 @@ public:
 
 #endif
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     template<class _InputIter>
     void insert (_InputIter __first, _InputIter __last) {
@@ -228,7 +227,7 @@ public:
             _C_rep.insert (*__first, false);
     }
 
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+#else   // if _MSC_VER < 1300
 
     void insert (const value_type* __first, const value_type* __last) {
         for ( ;__first != __last; ++__first)
@@ -240,7 +239,7 @@ public:
               _C_rep.insert (*__first, false);
       }
 
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     size_type erase (const key_type& __x)  {
         return _C_rep.erase (__x); 
@@ -357,8 +356,7 @@ public:
               const allocator_type &__alloc = allocator_type ())
         : _C_rep (__cmp, __alloc) { }
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     template<class _InputIter>
     multiset (_InputIter __first, _InputIter __last, 
@@ -366,7 +364,7 @@ public:
               const allocator_type &__alloc = allocator_type ())
         : _C_rep (__first, __last, __cmp, __alloc, true) { }
 
-#else
+#else // _MSC_VER < 1300
 
     multiset (const value_type* __first, const value_type* __last, 
               const key_compare &__cmp = key_compare (),
@@ -378,7 +376,7 @@ public:
               const allocator_type &__alloc = allocator_type ())
         : _C_rep (__first, __last, __cmp, __alloc, true) { }
 
-#endif
+#endif // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     multiset (const multiset &__x)
         : _C_rep (__x._C_rep) { }
@@ -421,8 +419,7 @@ public:
         return _C_rep.insert (__it, __x, true);
     }
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     template<class _InputIter>
     void insert (_InputIter __first, _InputIter __last) {
@@ -430,7 +427,7 @@ public:
             _C_rep.insert (*__first, true);
     }
 
-#else
+#else // _MSC_VER < 1300
 
     void insert (const value_type* __first, const value_type* __last) {
         for ( ;__first != __last; ++__first)
@@ -442,7 +439,7 @@ public:
             _C_rep.insert (*__first, true);
     }
 
-#endif
+#endif // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     void erase (iterator __it) {
         _C_rep.erase (__it);

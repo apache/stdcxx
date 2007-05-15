@@ -9,16 +9,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2005 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -185,7 +192,7 @@ struct _RWSTD_CLASS_EXPORT locale
     template <class _Facet>
     locale combine (const locale&) const;
 
-#endif   // _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
+#  endif   // _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
 
     // 22.1.1.4, p3
     template <class _CharT, class _Traits, class _Allocator>
@@ -193,8 +200,6 @@ struct _RWSTD_CLASS_EXPORT locale
                      const basic_string<_CharT, _Traits, _Allocator>&) const;
 
 #else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-#  ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
     template <class _Facet>
     locale (const locale &__rhs, _Facet *__facet)
@@ -218,7 +223,7 @@ struct _RWSTD_CLASS_EXPORT locale
         *this = locale (*__rhs._C_body, __facet);
     }
 
-#      ifndef _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
+#  ifndef _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
 
     template <class _Facet>
     locale combine (const locale &__rhs) const {
@@ -232,7 +237,7 @@ struct _RWSTD_CLASS_EXPORT locale
         return locale (__rhs, &use_facet<_Facet>(__rhs));
     }
 
-#    endif   // _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
+#  endif   // _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
 
     template <class _CharT, class _Traits, class _Allocator>
     bool
@@ -244,7 +249,6 @@ struct _RWSTD_CLASS_EXPORT locale
                       __y.data (), __y.data () + __y.length ()) < 0;
     }
 
-#   endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 

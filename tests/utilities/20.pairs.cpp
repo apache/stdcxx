@@ -99,8 +99,6 @@ void test_pair (T, const char *tname, U, const char *uname)
         _RWSTD_UNUSED (pu);
     }
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
     if (0) {   // compile only
         Pair *p0 = 0;
         std::pair<long, double> p1 (*p0);
@@ -192,8 +190,6 @@ void test_pair (T, const char *tname, U, const char *uname)
                    "called %d assignment operators, "
                    "expected 2", UserClass::n_total_op_assign_);
     }
-
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
     {
 

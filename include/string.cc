@@ -479,8 +479,7 @@ replace (size_type __pos, size_type __len, size_type __count, value_type __val)
 }
 
 
-#if    !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)) 
+#if    !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
 #  ifdef _RWSTD_NO_MEMBER_TEMPLATES
 
@@ -571,7 +570,7 @@ replace (iterator __first1, iterator __last1,
 // Avoids the possibility of multiple allocations
 // We still have to copy characters over one at a time.
 
-#ifdef _RWSTD_NO_MEMBER_TEMPLATES
+#  ifdef _RWSTD_NO_MEMBER_TEMPLATES
 
 template<class _CharT, class _Traits, class _Alloc, class _StringIter, class _InputIter>
 _STD::basic_string<_CharT, _Traits, _Alloc>& 
@@ -665,7 +664,7 @@ __replace_aux (iterator __first1, iterator __last1,
     return __s;
 }
 
-#endif   //_RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif  // !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
 
 template <class _CharT, class _Traits, class _Allocator>

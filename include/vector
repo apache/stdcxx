@@ -58,8 +58,7 @@ _EXPORT
 template <class _TypeT, class _Allocator = allocator<_TypeT> >
 class vector;
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-#  ifdef _RWSTD_NO_MEMBER_TEMPLATES
+#ifdef _RWSTD_NO_MEMBER_TEMPLATES
 
 // declarations of non-member function templates implementing
 // the functionality of vector member function templates
@@ -84,8 +83,7 @@ template <class _TypeT, class _Allocator, class _VectorIter, class _FwdIter>
 void __rw_insert_range (vector<_TypeT, _Allocator>*, _VectorIter,
                         _FwdIter, _FwdIter, forward_iterator_tag);
 
-#  endif   // _RWSTD_NO_MEMBER_TEMPLATES
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 
 _EXPORT
@@ -168,9 +166,7 @@ public:
         assign (__n, __x);
     }
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
-#  if !defined (_MSC_VER) || _MSC_VER >= 1300
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     template <class _InputIter>
     vector (_InputIter __first, _InputIter __last,
@@ -179,7 +175,7 @@ public:
         assign (__first, __last);
     }
 
-#  else   // if !MSVC || MSVC <= 6.0
+#else   // if !MSVC || MSVC <= 6.0
 
     // working around an MSVC 6.0 ICE (bug #554)
     template <class _InputIter>
@@ -195,18 +191,8 @@ public:
         assign (__first, __last);
     }
 
-#  endif   // MSVC <= 6.0
+#endif   // MSVC <= 6.0
     
-#else  // defined _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
-    vector (const_iterator __first, const_iterator __last,
-            const _Allocator &__alloc = allocator_type ())
-        : allocator_type (__alloc), _C_begin (), _C_end (), _C_bufend () {
-        assign (__first, __last);
-    }
-    
-#endif // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
     vector (const vector &__rhs)
         : allocator_type (__rhs.get_allocator ()),
           _C_begin (), _C_end (), _C_bufend () {
@@ -222,26 +208,11 @@ public:
     
     vector& operator= (const vector&);
     
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
     template <class _InputIter>
     void assign (_InputIter __first, _InputIter __last) {
         // dispatch either to a range assign or to an assign with repetition
         _C_assign (__first, __last, _RWSTD_DISPATCH (_InputIter));
     }
-
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
-
-    void assign (const_iterator, const_iterator);
-
-#  ifndef _RWSTD_NO_DEBUG_ITER
-
-    // otherwise, const_pointer is the same as const_iterator
-    void assign (const_pointer, const_pointer);
-
-#  endif   // _RWSTD_NO_DEBUG_ITER
-
-#endif // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
     void assign (size_type __n, const_reference __x) {
         _C_assign_n (__n, __x);
@@ -341,21 +312,10 @@ public:
 
     iterator insert (iterator, const_reference);
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
     template <class _InputIter>
     void insert (iterator __it, _InputIter __first, _InputIter __last) {
         _C_insert (__it, __first, __last, _RWSTD_DISPATCH (_InputIter));
     }
-
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
-
-    void insert (iterator __it,
-                 const_iterator __first, const_iterator __last) {
-        _RWSTD_INSERT_RANGE (__it, __first, __last);
-    }
-    
-#endif // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
     void insert (iterator __it, size_type __n, const_reference __x) {
         _C_insert_n (__it, __n, __x);
@@ -406,8 +366,6 @@ public:
 
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
     // implements range assign
     template <class _InputIter>
     void _C_assign (_InputIter __first, _InputIter __last, void*) {
@@ -450,8 +408,6 @@ public:
                     _IntType __n, _IntType __x, int) {
         _C_insert_n (__it, size_type (__n), __x);
     }
-
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
     void _C_realloc (size_type);
 
@@ -1121,8 +1077,6 @@ public:
         while (__n-- > 0) *__first++ = __val;
     }
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
     template <class _Iterator>
     iterator _C_copy (_Iterator __first, _Iterator __last, iterator __res) {
         while (__first != __last)
@@ -1136,36 +1090,6 @@ public:
         while (__first != __last) *--__res = *--__last;
         return __res;
     }
-
-#else
-    iterator
-    _C_copy (const_iterator __first, const_iterator __last, iterator __res) {
-        while (__first != __last)
-            *__res++ = *__first++;
-        return __res;
-    }
-
-    iterator _C_copy (const bool* __first, const bool* __last, iterator __res) {
-        while (__first != __last)
-            *__res++ = *__first++;
-        return __res;
-    }
-
-    iterator _C_copy_backward (const_iterator __first, const_iterator __last,
-                               iterator __res) {
-        while (__first != __last)
-            *--__res = *--__last;
-        return __res;
-    }
-
-    iterator
-    _C_copy_backward (const bool* __first, const bool* __last, iterator __res) {
-        while (__first != __last)
-            *--__res = *--__last;
-        return __res;
-    }
-
-#endif
 
 private:
 
@@ -1213,8 +1137,6 @@ public:
         _C_copy (__x.begin (), __x.end (), _C_begin);
     }
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
     template<class _InputIter>
     vector  (_InputIter __first, _InputIter __last)
         : allocator_type (), _C_bufend ()
@@ -1223,22 +1145,6 @@ public:
       _C_init(__n); 
       _C_copy(__first, __last, _C_begin);
     }
-#else
-    vector (const_iterator __first, const_iterator __last)
-        : allocator_type (), _C_bufend ()
-    {
-      size_type __n = _DISTANCE (__first, __last, size_type);
-      _C_init(__n);
-      _C_copy(__first, __last, _C_begin);
-    }
-    vector (const bool* __first, const bool* __last)
-        : allocator_type (), _C_bufend ()
-    {
-      size_type __n = _DISTANCE (__first, __last, size_type);
-      _C_init(__n);
-      _C_copy(__first, __last, _C_begin);
-    }
-#endif
   
     ~vector () {
       _C_value_alloc_type(*this).deallocate(_C_begin._C_p,  
@@ -1258,22 +1164,11 @@ public:
       return *this;
     }
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
     template<class _InputIter>
     void assign (_InputIter __first, _InputIter __last) {
         clear ();
         insert (begin (), __first, __last);
     }
-
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
-
-    void assign (const_iterator __first, const_iterator __last) {
-        clear ();
-        insert (begin (), __first, __last);
-    }
-
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
     void assign (size_type __n, const bool& __x = bool()) { 
         clear ();

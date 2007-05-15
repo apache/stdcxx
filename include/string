@@ -47,9 +47,8 @@
 _RWSTD_NAMESPACE (std) { 
 
 
-#if    !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)                           \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER))\
-    && defined (_RWSTD_NO_MEMBER_TEMPLATES)
+#if    defined (_RWSTD_NO_MEMBER_TEMPLATES)                                   \
+    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER))
 
 template <class _CharT, class _Traits, class _Alloc,
           class _StringIter, class _InputIter>
@@ -63,7 +62,7 @@ std::basic_string<_CharT, _Traits, _Alloc>&
 __rw_replace_aux (std::basic_string<_CharT, _Traits, _Alloc>&, 
                   _StringIter, _StringIter, _InputIter, _InputIter);
 
-#endif   // !NO_INLINE_MEMBER_TEMPLATES && NO_MEMBER_TEMPLATES
+#endif   // NO_MEMBER_TEMPLATES
 
 
 _EXPORT
@@ -172,8 +171,7 @@ public:
                   const allocator_type& = allocator_type ());
 
 
-#if    !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)  \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER))
+#if    !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
     // 21.3.1, p15
     template <class _InputIter>
@@ -184,7 +182,7 @@ public:
                  __first, __last);
     }
 
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif // !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
     basic_string (const_pointer, const_pointer, const allocator_type&
                   _RWSTD_REDECLARED_DEFAULT (allocator_type ()));
@@ -298,8 +296,7 @@ public:
         return replace (size (), size_type (), __s);
     }
 
-#if    !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER))
+#if    !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
     template<class _InputIter>
     basic_string& append (_InputIter __first, _InputIter __last) {
@@ -321,14 +318,14 @@ public:
         return replace (size (), size_type (), __n, __c);
     }
 
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+#else   // if _MSC_VER < 1300 && !defined (__INTEL_COMPILER)
 
     basic_string& append (const_pointer __first, const_pointer __last) {
         replace (size (), size_type (), __first, __last - __first);
         return *this;
     }
 
-#endif // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif // !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
     basic_string& append (size_type __n, value_type __c) {
         return replace (size (), size_type (), __n, __c);
@@ -354,8 +351,7 @@ public:
     }
 
 
-#if    !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER))
+#if    !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
     template<class _InputIter>
     basic_string& assign (_InputIter __first, _InputIter __last) {
@@ -378,14 +374,14 @@ public:
         return replace (size_type (), size (), __n, __c);
     }
 
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+#else   // if _MSC_VER < 1300 && !defined (__INTEL_COMPILER)
 
     basic_string& assign (const_pointer __first, const_pointer __last) {
         replace (size_type (), size (), __first, __last - __first);
         return *this;
     }
 
-#endif  // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif  // !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
     basic_string& assign (size_type __n, value_type __c) {
         return replace (size_type (), size (), __n, __c);
@@ -410,8 +406,7 @@ public:
         return insert (__inx, &__c, 1), begin () + __inx;
     }
 
-#if    !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATE) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER))
+#if    !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
     template<class _InputIter>
     void insert (iterator __p, _InputIter __first, _InputIter __last) {
@@ -457,7 +452,7 @@ public:
 
 #  endif   // _RWSTD_NO_DEBUG_ITER
 
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+#else   // if _MSC_VER < 1300 && !defined (__INTEL_COMPILER)
 
     void insert (iterator __p, const_pointer __first, const_pointer __last) {
         if (__first >= _C_data && __first <= _C_data + size ())
@@ -466,7 +461,7 @@ public:
             replace (__p, __p, __first, __last);
     }
 
-#endif  // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif  // !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
     
 
     void insert (iterator __it, size_type __n, value_type __c) {
@@ -507,8 +502,7 @@ private:
     }
 
 
-#if    !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)  \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER))
+#if    !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
 #  ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
@@ -527,7 +521,7 @@ public:
 
 #  endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif // !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
     size_type _C_grow (size_type, size_type) const;
 
@@ -583,8 +577,7 @@ public:
         return replace (_C_off (__first), _C_off (__first, __last), __n, __c);
     }
 
-#if    !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER))
+#if    !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
 #  ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
@@ -619,7 +612,7 @@ public:
                         _RWSTD_DISPATCH (_InputIter));
     }
 
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+#else   // if _MSC_VER < 1300 && !defined (__INTEL_COMPILER)
 
     basic_string&
     replace (iterator __first1, iterator __last1,
@@ -629,7 +622,7 @@ public:
         return *this;
     }
 
-#endif  // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif  // !defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)
 
 
     // 21.3.5.7, p1
@@ -819,9 +812,8 @@ public:
     }
 #endif
 
-#if    !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)                            \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)) \
-    && defined (_RWSTD_NO_MEMBER_TEMPLATES)
+#if    defined (_RWSTD_NO_MEMBER_TEMPLATES)                                    \
+    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER))
 
 public:
 
