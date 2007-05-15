@@ -455,18 +455,6 @@ UserClass::reset_totals ()
 
 typedef unsigned char UChar;
 
-// used to initialize an array of objects of type UserClass
-static const char *xinit_begin;
-
-static int xinit ()
-{
-    if (xinit_begin)
-        return UChar (*xinit_begin++);
-
-    return 0;
-}
-
-
 template <class T>
 static T*
 __rw_from_char (T*, const char *str, size_t len, bool sorted)
