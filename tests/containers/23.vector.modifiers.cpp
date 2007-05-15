@@ -1002,8 +1002,7 @@ void test_complexity ()
     
     }
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     v0.clear ();
     for (i = 0; i < rw_opt_nloops; i++) { 
@@ -1092,7 +1091,7 @@ void test_complexity ()
                    X_count - UserClass::count_ , num_destroy);
             
     }
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES          
+#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300          
     
     rw_assert (success, 0, __LINE__, "vector<UserClass>::insert()");
     rw_assert (success, 0, __LINE__, "vector<UserClass>::erase()");

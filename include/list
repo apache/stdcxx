@@ -394,8 +394,7 @@ public:
         _C_init (__n, __x);
     }
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     template<class _InputIterator>
     void _C_init (_InputIterator __first, _InputIterator __last, void*) {
@@ -419,7 +418,7 @@ public:
         _C_init (__first, __last, _RWSTD_DISPATCH (_InputIterator));
     }
 
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+#else   // if _MSC_VER < 1300
 
     list (const_iterator __first, const_iterator __last, 
           const allocator_type& __alloc = allocator_type ())
@@ -439,7 +438,7 @@ public:
         _RWSTD_LIST_INSERT_RANGE (begin (), __first, __last);
     }
 
-#endif // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     list (const list &__rhs)
         : allocator_type(__rhs.get_allocator()), _RWSTD_NODE_BUFFER_INIT(0,0) 
@@ -452,8 +451,7 @@ public:
 
     list& operator= (const list&);   
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)  \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     template<class _InputIterator>
     void assign (_InputIterator __first, _InputIterator __last) {
@@ -469,7 +467,7 @@ public:
         insert (begin (), __n, __val);
     }
 
-#else
+#else // if _MSC_VER < 1300
     
     void assign (const_iterator __first, const_iterator __last) {
         _RWSTD_ASSERT_RANGE (__first, __last);
@@ -490,7 +488,7 @@ public:
         insert (begin (), __n, __val);
     }
 
-#endif // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     allocator_type get_allocator () const {
         return *this;
@@ -588,8 +586,7 @@ public:
 
     iterator insert (iterator __it, const_reference __x);
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)  \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     // handles nonintegral types
     template<class _InputIterator>
@@ -628,7 +625,7 @@ public:
         _C_insert (__it, __n, __val);
     }
 
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+#else   // if _MSC_VER < 1300
 
     void insert (iterator __it, size_type __n, const_reference __x) {
         _RWSTD_ASSERT_RANGE (begin (), __it);
@@ -645,7 +642,7 @@ public:
         _RWSTD_LIST_SAFE_INSERT_RANGE (__it, __first, __last);
     }
 
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     iterator erase (iterator);
 

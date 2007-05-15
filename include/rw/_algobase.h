@@ -10,6 +10,26 @@
  *
  ***************************************************************************
  *
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2005 Rogue Wave Software.
+ * 
+ ***************************************************************************
+ *
  * Copyright (c) 1994
  * Hewlett-Packard Company
  *
@@ -21,19 +41,6 @@
  * representations about the suitability of this software for any
  * purpose.  It is provided "as is" without express or implied warranty.
  *
- ***************************************************************************
- *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
- * 
  **************************************************************************/
 
 #ifndef _RWSTD_RW_ALGOBASE_H_INCLUDED
@@ -130,8 +137,6 @@ inline void fill_n (_OutputIter __first, _Size __n, const _TypeT &__val)
 
 _RWSTD_NAMESPACE (__rw) {
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
 // `less than' function object - used by non-predicate forms
 // of algorithms to invoke the predicate forms for code reuse
 struct __rw_lt
@@ -146,35 +151,6 @@ struct __rw_lt
 };
 
 #  define _RWSTD_LESS(ignore) _RW::__rw_lt ()
-
-#else   // if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
-
-template <class _TypeT>
-struct __rw_lt
-{
-    bool operator() (const _TypeT &__lhs, const _TypeT &__rhs) const {
-        return __lhs < __rhs;
-    }
-};
-
-#  ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
-
-#    define _RWSTD_LESS(iterT) \
-       _RW::__rw_lt<_TYPENAME _STD::iterator_traits< iterT >::value_type>()
-
-#  else   // if defined (_RWSTD_NO_PARTIAL_CLASS_SPEC)
-
-#    define _RWSTD_LESS(iterT) \
-       _RW::__rw_make_lt (_RWSTD_VALUE_TYPE (iterT))
-
-template <class _TypeT>
-__rw_lt<_TypeT> __rw_make_lt (const _TypeT*)
-{
-    return __rw_lt<_TypeT>();
-}
-
-#  endif   // _RWSTD_NO_PARTIAL_CLASS_SPEC
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
 
 // swaps values of 2 (possibly distinct) types

@@ -38,8 +38,6 @@ void foo ()
 }
 
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
 template <class T>
 struct B
 {
@@ -56,5 +54,3 @@ void bar ()
 
     b.baz (a, ' ');
 }
-
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
