@@ -198,6 +198,9 @@ int main ()
             continue;
         }
 
+        // NUL-terminate the converted string
+        dst [nconv] = L'\0';
+
         // write out the wide and the narrow sequences
         std::cout << "UCS-2 (" << std::dec << length << "): " << std::hex;
 
