@@ -134,14 +134,14 @@ rw_putenv (const char* str, int sep /* = -1 */)
             // try to remove variable from the environment
 
 #ifndef _RWSTD_NO_UNSETENV
-#  ifdef _RWSTD_OS_FREEBSD
-            // FreeBSD declares void unsetenv(const char*)
+#  if defined (_RWSTD_OS_FREEBSD) || defined (_RWSTD_OS_DARWIN)
+            // FreeBSD (and Darwin) declares void unsetenv(const char*)
             // http://www.freebsd.org/cgi/man.cgi?query=unsetenv&sektion=3
             unsetenv (envvar);
             ret = 0;
-#  else   // !FreeBSD
+#  else   // !FreeBSD ...
             ret = unsetenv (envvar);
-#  endif   // FreeBSD
+#  endif   // FreeBSD ...
 #else   // ifdef _RWSTD_NO_UNSETENV
             ret = putenv (envvar);
 #endif   // _RWSTD_NO_UNSETENV
