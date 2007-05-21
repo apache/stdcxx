@@ -1,0 +1,8 @@
+UCS-2: U+61  ==> UTF-8: "a"
+UCS-2: U+61 U+62 U+63  ==> UTF-8: "abc"
+UCS-2: U+391  ==> UTF-8: "\xce\x91"
+UCS-2: U+391 U+392  ==> UTF-8: "\xce\x91\xce\x92"
+UCS-2: U+391 U+392 U+393  ==> UTF-8: "\xce\x91\xce\x92\xce\x93"
+UCS-2: U+f20  ==> UTF-8: "\xe0\xbc\xa0"
+UCS-2: U+f21 U+f20  ==> UTF-8: "\xe0\xbc\xa1\xe0\xbc\xa0"
+UCS-2: U+f22 U+f21 U+f20  ==> UTF-8: "\xe0\xbc\xa2\xe0\xbc\xa1\xe0\xbc\xa0"
