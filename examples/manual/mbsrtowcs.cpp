@@ -142,7 +142,7 @@ int main ()
         // <U0391>: Greek letter Alpha
         "\xce\x91",
         // <U0391><U0392>: Greek letters Alpha Beta
-        "\xce\x91\xce\x91\xce\x92",
+        "\xce\x91\xce\x92",
         // <U0391><U0392><U0393>: Greek letters Alpha Beta Gamma
         "\xce\x91\xce\x92\xce\x93",
         // <U0966>: Devangari digit 0
