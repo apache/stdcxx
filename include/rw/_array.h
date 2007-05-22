@@ -67,9 +67,7 @@ public:
 
     __rw_array (const __rw_array&);
 
-    ~__rw_array () {
-        resize (0);
-    }
+    ~__rw_array ();
 
     __rw_array& operator= (const __rw_array&);
 
@@ -184,6 +182,16 @@ __rw_array<_TypeT>::operator= (const __rw_array<_TypeT> &__rhs)
 
 
 template <class _TypeT>
+inline
+__rw_array<_TypeT>::
+~__rw_array<_TypeT> ()
+{
+    __rw_destroy (_C_data, _C_data + _C_size);
+    ::operator delete (_C_data);
+}
+
+
+template <class _TypeT>
 inline void __rw_array<_TypeT>::swap (__rw_array<_TypeT> &__rhs)
 {
     pointer __tmp_data   = begin ();
@@ -200,9 +208,9 @@ template <class _TypeT>
 inline void __rw_array<_TypeT>::
 resize (size_type __size, const_reference __val /* = value_type () */)
 {
-    if (begin ()) {
-        __rw_destroy (begin (), end ());
-        ::operator delete (begin ());
+    if (_C_data) {
+        __rw_destroy (_C_data, _C_data + _C_size);
+        ::operator delete (_C_data);
         _C_data = 0;
     }
 
