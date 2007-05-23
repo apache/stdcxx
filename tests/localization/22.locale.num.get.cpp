@@ -192,12 +192,12 @@ struct Punct: PunctData, std::numpunct<charT>
 
     virtual string_type do_truename () const {
         char_type name [40];
-        return rw_widen (name, truename_, sizeof name / sizeof *name);
+        return rw_widen (name, truename_, sizeof name / sizeof *name - 1);
     }
 
     virtual string_type do_falsename () const {
         char_type name [40];
-        return rw_widen (name, falsename_, sizeof name / sizeof *name);
+        return rw_widen (name, falsename_, sizeof name / sizeof *name - 1);
     }
 };
 
@@ -1943,7 +1943,7 @@ void test_floating_point (CharType ctype, const char *cname,
     if (test_locale) {
         // verify that the global LC_NUMERIC locale setting
         // has no impact on the facet (in case it uses scanf())
-        for (const char *name = rw_locales (LC_NUMERIC, 0); *name;
+        for (const char *name = rw_locales (LC_NUMERIC, 0); name && *name;
              name += std::strlen (name) + 1) {
 
             // find the first locale whose decimal_point character

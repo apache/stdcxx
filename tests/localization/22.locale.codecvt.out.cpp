@@ -273,7 +273,7 @@ find_mb_locale (std::size_t *mb_cur_max, mb_char_array_t mb_chars)
     *mb_cur_max = 0;
 
     // iterate over all installed locales
-    for (const char *name = rw_locales (); *name;
+    for (const char *name = rw_locales (); name && *name;
          name += std::strlen (name) + 1) {
 
         if (std::setlocale (LC_CTYPE, name)) {

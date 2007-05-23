@@ -238,7 +238,7 @@ runTest()
     const char *first_non_c = 0;
 
     // exercise named locales (including "C" and "POSIX")
-    for (const char* s = rw_locales (); *s; s += std::strlen (s) + 1) {
+    for (const char* s = rw_locales (); s && *s; s += std::strlen (s) + 1) {
         if (check_moneypunct (s))
             if (   !first_non_c
                 && std::strcmp ("C", s)

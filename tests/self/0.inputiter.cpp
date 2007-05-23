@@ -30,6 +30,10 @@
 #include <signal.h>
 #include <stdio.h>
 
+#ifdef _MSC_VER
+#include <crtdbg.h>     // for _CrtSetReportMode()
+#endif
+
 #include <alg_test.h>   // for InputIter
 #include <rw_value.h>   // for UserClass
 #include <driver.h>     // for rw_test(), ...
@@ -353,6 +357,11 @@ run_test (int, char*[])
 
 int main (int argc, char *argv[])
 {
+#ifdef _MSC_VER
+    // disable GUI window from abort()
+    _CrtSetReportMode (_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+#endif
+
     return rw_test (argc, argv, __FILE__,
                     0 /* no clause */,
                     0 /* no comment */, run_test,
