@@ -184,7 +184,7 @@ __rw_array<_TypeT>::operator= (const __rw_array<_TypeT> &__rhs)
 template <class _TypeT>
 inline
 __rw_array<_TypeT>::
-~__rw_array<_TypeT> ()
+~__rw_array ()
 {
     __rw_destroy (_C_data, _C_data + _C_size);
     ::operator delete (_C_data);
