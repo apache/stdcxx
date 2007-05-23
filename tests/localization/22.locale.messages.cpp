@@ -158,6 +158,9 @@ find_named_locale ()
 {
     const char *name = rw_locales (LC_ALL, "");
 
+    if (!name)
+        return 0;
+
     char namebuf [256];
 
     // get the full name of the "C" locale for comparison with aliases

@@ -1480,7 +1480,7 @@ void dbl_test (charT, const char *cname)
 
     if (1) {
         // verify that the global LC_NUMERIC setting has no impact on the facet
-        for (const char *name = rw_locales (LC_NUMERIC, 0); *name;
+        for (const char *name = rw_locales (LC_NUMERIC, 0); name && *name;
              name += std::strlen (name) + 1) {
 
             // find the first locale whose decimal_point character

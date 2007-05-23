@@ -1584,7 +1584,9 @@ find_locale (const char *name)
 #else   // _WIN{32,64}
 
     // FIXME: handle non-UNIX systems
-    for (const char *loc = rw_locales (); *loc; loc += std::strlen (loc) + 1) {
+    for (const char *loc = rw_locales (); loc && *loc;
+         loc += std::strlen (loc) + 1) {
+
         if (!std::strcmp (loc, name))
             return loc;
     }
