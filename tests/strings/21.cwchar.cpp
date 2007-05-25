@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2005 Rogue Wave Software.
+ * Copyright 2004-2005 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -983,7 +983,8 @@ void test_functions ()
 
 // included here to avoid namespace pollution
 #include <cstdarg>       // for va_list
-#include <cstdio>        // for FILE
+#include <cstdio>        // for FILE, fopen()
+#include <file.h>        // for DEV_NUL
 #include <rw_printf.h>   // for rw_stdout
 
 namespace std {
@@ -1028,9 +1029,14 @@ void test_file_functions (int dummy, ...)
     // an incomplete type and casts between two non-void pointers
     // require that the types be complete (in case they are related
     // by inheritance and need to be adjusted)
-    test_FILE* const fp = (test_FILE*)(void*)rw_stdout;
+    test_FILE* const fp = (test_FILE*)std::fopen (DEV_NULL, "w");
     test_va_list va;
     va_start (va, dummy);
+
+    // call fwide() first before any prior output since 7.19.2, p5
+    // of C99 prohibits wide character I/O functions from being called
+    // on a byte-oriented stream
+    TEST (int, fwide, (fp, i), FWIDE, -1);
 
     TEST (int, fwprintf, (fp, L""), FWPRINTF, -1);
     TEST (int, fwprintf, (fp, L"", uniqptr), FWPRINTF, -1);
@@ -1047,7 +1053,6 @@ void test_file_functions (int dummy, ...)
     TEST (test_wint_t, getwc, (fp), GETWC, -1);
     TEST (test_wint_t, putwc, (L'\0', fp), PUTWC, -1);
     TEST (test_wint_t, ungetwc, (wi, fp), UNGETWC, -1);
-    TEST (int, fwide, (fp, i), FWIDE, -1);
 
     _RWSTD_UNUSED (str);
     _RWSTD_UNUSED (cstr);
