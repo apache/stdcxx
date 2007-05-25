@@ -199,17 +199,28 @@
 #  define _RWSTD_NO_FWD_DECLARATIONS
 #endif   // _WIN64
 
+#ifndef __INTEL_COMPILER
    // disable "Same type qualifier used more than once"
-#pragma warning (disable: 4114)
+#  pragma warning (disable: 4114)
 
    // disable "return type for operator->' is not a UDT"
-#pragma warning (disable: 4284)
+#  pragma warning (disable: 4284)
 
    // disable "decorated name length exceeded"
-#pragma warning (disable: 4503)
+#  pragma warning (disable: 4503)
 
    // disable "identifier was truncated to 255 characters"
-#pragma warning (disable: 4786)
+#  pragma warning (disable: 4786)
+
+#else  // __INTEL_COMPILER
+
+   // disable "function was declared "deprecated"
+#  pragma warning (disable: 1478)
+
+   // disable "dllexport/dllimport conflict with ... ; dllexport assumed"
+#  pragma warning (disable: 1740)
+
+#endif	// __INTEL_COMPILER
 
 #if defined (WIN32) && !defined(_WIN32)
 #  define _WIN32
