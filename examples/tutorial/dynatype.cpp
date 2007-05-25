@@ -2,20 +2,27 @@
  *
  * dynatype.cpp - Example program of map. See Class Reference Section
  *
- * $Id: //stdlib/dev/examples/stdlib/tutorial/dynatype.cpp#11 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2005 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -105,27 +112,19 @@ public:
 
 // 14.7.3, p6 - explicit specializations must be defined before first use
 template <>
-inline void dynatype::remove<dynatype::map<void> >()
+inline void dynatype::remove<void> ()
 { /* no-op */ }
 
 
 template <>
-inline void dynatype::copy<dynatype::map<void> >(const dynatype&)
+inline void dynatype::copy<void> (const dynatype&)
 { /* no-op */ }
-
-
-template <>
-inline dynatype& dynatype::operator= (const dynatype::map<void>&)
-{
-    // no-op
-    return *this;
-}
 
 
 // initialize with pointers to no-ops
 inline dynatype::dynatype ()
-    : p_remove (&dynatype::remove<map<void> >),
-      p_copy (&dynatype::copy<map<void> >)
+    : p_remove (&dynatype::remove<void>),
+      p_copy (&dynatype::copy<void>)
 {
 }
 
@@ -220,7 +219,7 @@ int main ()
 
         // attempt to extract any value from an unitialized dynatype fails
         std::cout << "char (v3) = "
-                  << char (v1) << std::endl;
+                  << char (v3) << std::endl;
         
     }
     catch (...) {
