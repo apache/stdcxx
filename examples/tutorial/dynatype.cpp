@@ -88,13 +88,20 @@ public:
         (this->*p_remove)();
     }
 
-    // retrieve a value of the concrete type from an instance of
+    // retrieve a reference to the concrete type from an instance of
     // dynatype throws std::bad_cast if the types don't match exactly
     template <class T>
-    operator T () const {
+    operator T& () {
         if (map<T>::get ().end () == map<T>::get ().find (this))
             throw std::bad_cast ();
         return map<T>::get () [this];
+    }
+
+    // retrieve a const reference to the concrete type from an instance of
+    // dynatype throws std::bad_cast if the types don't match exactly
+    template <class T>
+    operator const T& () const {
+        return static_cast<T&> (*const_cast<dynatype*> (this));
     }
 
     // assign a value of any type to an instance of dynatype
