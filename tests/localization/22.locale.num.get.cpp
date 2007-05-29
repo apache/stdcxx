@@ -266,6 +266,15 @@ int do_test (int         lineno,          // line number
         return 0;
     }
 
+    if (*grouping && '%' != *grouping && rw_opt_no_grouping) {
+        // if grouping is not empty (and doesn't start with '%')
+        // check the state of the --no-grouping command line
+        // option before proceeding with the test case
+        rw_note (0, __FILE__, __LINE__,
+                 "grouping test on line %d disabled", lineno);
+        return 0;
+    }
+
     // create a distinct punctuation facet for each iteration to make sure
     // any data cached in between successive calls to the facet's public
     // member functions are flushed
@@ -436,7 +445,7 @@ int do_test (int         lineno,          // line number
              const char *iname,           // name of iterator type
              nativeT     val,             // value expected to be extracted
              const char *str,             // input sequence
-             int         eat_expect = -1,   // number of consumed characters
+             int         eat_expect = -1, // number of consumed characters
              int         flags = 0,       // initial set of flags
              int         err_expect = -1, // expected iostate
              const char *grouping = "")   // optional grouping string
@@ -1571,12 +1580,128 @@ test_llong (CharType ctype, const char *cname,
 #      define LL(number)   number ## I64
 #    endif   // _MSC_VER
 
-    TEST (T,  LL (   0),                    "0",  1, 0, Eof);
-    TEST (T,  LL (   0),                   "+0",  2, 0, Eof);
-    TEST (T,  LL (   0),                   "-0",  2, 0, Eof);
-    TEST (T,  LL (   1),                   "+1",  2, 0, Eof);
-    TEST (T, -LL (   1),                   "-1",  2, 0, Eof);
-    TEST (T,  LL (1079),                 "1079",  4, 0, Eof);
+    TEST (T,  LL (                  0),                    "0",   1, 0, Eof);
+    TEST (T,  LL (                  1),                    "1",   1, 0, Eof);
+    TEST (T,  LL (                 12),                   "12",   2, 0, Eof);
+    TEST (T,  LL (                123),                  "123",   3, 0, Eof);
+    TEST (T,  LL (               1234),                 "1234",   4, 0, Eof);
+    TEST (T,  LL (              12345),                "12345",   5, 0, Eof);
+    TEST (T,  LL (             123456),               "123456",   6, 0, Eof);
+    TEST (T,  LL (            1234567),              "1234567",   7, 0, Eof);
+    TEST (T,  LL (           12345678),             "12345678",   8, 0, Eof);
+    TEST (T,  LL (          123456789),            "123456789",   9, 0, Eof);
+    TEST (T,  LL (         1234567890),           "1234567890",  10, 0, Eof);
+    TEST (T,  LL (        12345678901),          "12345678901",  11, 0, Eof);
+    TEST (T,  LL (       123456789012),         "123456789012",  12, 0, Eof);
+    TEST (T,  LL (      1234567890123),        "1234567890123",  13, 0, Eof);
+    TEST (T,  LL (     12345678901234),       "12345678901234",  14, 0, Eof);
+    TEST (T,  LL (    123456789012345),      "123456789012345",  15, 0, Eof);
+    TEST (T,  LL (   1234567890123456),     "1234567890123456",  16, 0, Eof);
+    TEST (T,  LL (  12345678901234567),    "12345678901234567",  17, 0, Eof);
+    TEST (T,  LL ( 123456789012345678),   "123456789012345678",  18, 0, Eof);
+    TEST (T,  LL (1234567890123456789),  "1234567890123456789",  19, 0, Eof);
+
+    TEST (T,  LL (                  0),  "0000000000000000000",  19, dec, Eof);
+    TEST (T,  LL (                  1),  "0000000000000000001",  19, dec, Eof);
+    TEST (T,  LL (                  2),   "000000000000000002",  18, dec, Eof);
+    TEST (T,  LL (                  3),    "00000000000000003",  17, dec, Eof);
+    TEST (T,  LL (                  4),     "0000000000000004",  16, dec, Eof);
+    TEST (T,  LL (                  5),      "000000000000005",  15, dec, Eof);
+    TEST (T,  LL (                  6),       "00000000000006",  14, dec, Eof);
+    TEST (T,  LL (                  7),        "0000000000007",  13, dec, Eof);
+    TEST (T,  LL (                  8),         "000000000008",  12, dec, Eof);
+    TEST (T,  LL (                  9),          "00000000009",  11, dec, Eof);
+    TEST (T,  LL (                  1),           "0000000001",  10, dec, Eof);
+    TEST (T,  LL (                  2),            "000000002",   9, dec, Eof);
+    TEST (T,  LL (                  3),             "00000003",   8, dec, Eof);
+    TEST (T,  LL (                  4),              "0000004",   7, dec, Eof);
+    TEST (T,  LL (                  5),               "000005",   6, dec, Eof);
+    TEST (T,  LL (                  6),                "00006",   5, dec, Eof);
+    TEST (T,  LL (                  7),                 "0007",   4, dec, Eof);
+    TEST (T,  LL (                  8),                  "008",   3, dec, Eof);
+    TEST (T,  LL (                  9),                   "09",   2, dec, Eof);
+
+    TEST (T, +LL (                  0),                    "+0",  2, 0, Eof);
+    TEST (T, +LL (                  1),                    "+1",  2, 0, Eof);
+    TEST (T, +LL (                 12),                   "+12",  3, 0, Eof);
+    TEST (T, +LL (                123),                  "+123",  4, 0, Eof);
+    TEST (T, +LL (               1234),                 "+1234",  5, 0, Eof);
+    TEST (T, +LL (              12345),                "+12345",  6, 0, Eof);
+    TEST (T, +LL (             123456),               "+123456",  7, 0, Eof);
+    TEST (T, +LL (            1234567),              "+1234567",  8, 0, Eof);
+    TEST (T, +LL (           12345678),             "+12345678",  9, 0, Eof);
+    TEST (T, +LL (          123456789),            "+123456789", 10, 0, Eof);
+    TEST (T, +LL (         1234567890),           "+1234567890", 11, 0, Eof);
+    TEST (T, +LL (        12345678901),          "+12345678901", 12, 0, Eof);
+    TEST (T, +LL (       123456789012),         "+123456789012", 13, 0, Eof);
+    TEST (T, +LL (      1234567890123),        "+1234567890123", 14, 0, Eof);
+    TEST (T, +LL (     12345678901234),       "+12345678901234", 15, 0, Eof);
+    TEST (T, +LL (    123456789012345),      "+123456789012345", 16, 0, Eof);
+    TEST (T, +LL (   1234567890123456),     "+1234567890123456", 17, 0, Eof);
+    TEST (T, +LL (  12345678901234567),    "+12345678901234567", 18, 0, Eof);
+    TEST (T, +LL ( 123456789012345678),   "+123456789012345678", 19, 0, Eof);
+    TEST (T, +LL (1234567890123456789),  "+1234567890123456789", 20, 0, Eof);
+
+    TEST (T, +LL (                   0), "+0000000000000000000", 20, dec, Eof);
+    TEST (T, +LL (                   1), "+0000000000000000001", 20, dec, Eof);
+    TEST (T, +LL (                   2),  "+000000000000000002", 19, dec, Eof);
+    TEST (T, +LL (                   3),   "+00000000000000003", 18, dec, Eof);
+    TEST (T, +LL (                   4),    "+0000000000000004", 17, dec, Eof);
+    TEST (T, +LL (                   5),     "+000000000000005", 16, dec, Eof);
+    TEST (T, +LL (                   6),      "+00000000000006", 15, dec, Eof);
+    TEST (T, +LL (                   7),       "+0000000000007", 14, dec, Eof);
+    TEST (T, +LL (                   8),        "+000000000008", 13, dec, Eof);
+    TEST (T, +LL (                   9),         "+00000000009", 12, dec, Eof);
+    TEST (T, +LL (                   1),          "+0000000001", 11, dec, Eof);
+    TEST (T, +LL (                   2),           "+000000002", 10, dec, Eof);
+    TEST (T, +LL (                   3),            "+00000003",  9, dec, Eof);
+    TEST (T, +LL (                   4),             "+0000004",  8, dec, Eof);
+    TEST (T, +LL (                   5),              "+000005",  7, dec, Eof);
+    TEST (T, +LL (                   6),               "+00006",  6, dec, Eof);
+    TEST (T, +LL (                   7),                "+0007",  5, dec, Eof);
+    TEST (T, +LL (                   8),                 "+008",  4, dec, Eof);
+    TEST (T, +LL (                   9),                  "+09",  3, dec, Eof);
+
+    TEST (T, -LL (                  0),                    "-0",  2, 0, Eof);
+    TEST (T, -LL (                  1),                    "-1",  2, 0, Eof);
+    TEST (T, -LL (                 12),                   "-12",  3, 0, Eof);
+    TEST (T, -LL (                123),                  "-123",  4, 0, Eof);
+    TEST (T, -LL (               1234),                 "-1234",  5, 0, Eof);
+    TEST (T, -LL (              12345),                "-12345",  6, 0, Eof);
+    TEST (T, -LL (             123456),               "-123456",  7, 0, Eof);
+    TEST (T, -LL (            1234567),              "-1234567",  8, 0, Eof);
+    TEST (T, -LL (           12345678),             "-12345678",  9, 0, Eof);
+    TEST (T, -LL (          123456789),            "-123456789", 10, 0, Eof);
+    TEST (T, -LL (         1234567890),           "-1234567890", 11, 0, Eof);
+    TEST (T, -LL (        12345678901),          "-12345678901", 12, 0, Eof);
+    TEST (T, -LL (       123456789012),         "-123456789012", 13, 0, Eof);
+    TEST (T, -LL (      1234567890123),        "-1234567890123", 14, 0, Eof);
+    TEST (T, -LL (     12345678901234),       "-12345678901234", 15, 0, Eof);
+    TEST (T, -LL (    123456789012345),      "-123456789012345", 16, 0, Eof);
+    TEST (T, -LL (   1234567890123456),     "-1234567890123456", 17, 0, Eof);
+    TEST (T, -LL (  12345678901234567),    "-12345678901234567", 18, 0, Eof);
+    TEST (T, -LL ( 123456789012345678),   "-123456789012345678", 19, 0, Eof);
+    TEST (T, -LL (1234567890123456789),  "-1234567890123456789", 20, 0, Eof);
+
+    TEST (T, -LL (                  0),  "-0000000000000000000", 20, dec, Eof);
+    TEST (T, -LL (                  1),  "-0000000000000000001", 20, dec, Eof);
+    TEST (T, -LL (                  2),   "-000000000000000002", 19, dec, Eof);
+    TEST (T, -LL (                  3),    "-00000000000000003", 18, dec, Eof);
+    TEST (T, -LL (                  4),     "-0000000000000004", 17, dec, Eof);
+    TEST (T, -LL (                  5),      "-000000000000005", 16, dec, Eof);
+    TEST (T, -LL (                  6),       "-00000000000006", 15, dec, Eof);
+    TEST (T, -LL (                  7),        "-0000000000007", 14, dec, Eof);
+    TEST (T, -LL (                  8),         "-000000000008", 13, dec, Eof);
+    TEST (T, -LL (                  9),          "-00000000009", 12, dec, Eof);
+    TEST (T, -LL (                  1),           "-0000000001", 11, dec, Eof);
+    TEST (T, -LL (                  2),            "-000000002", 10, dec, Eof);
+    TEST (T, -LL (                  3),             "-00000003",  9, dec, Eof);
+    TEST (T, -LL (                  4),              "-0000004",  8, dec, Eof);
+    TEST (T, -LL (                  5),               "-000005",  7, dec, Eof);
+    TEST (T, -LL (                  6),                "-00006",  6, dec, Eof);
+    TEST (T, -LL (                  7),                 "-0007",  5, dec, Eof);
+    TEST (T, -LL (                  8),                  "-008",  4, dec, Eof);
+    TEST (T, -LL (                  9),                   "-09",  3, dec, Eof);
 
     // LLONG_MAX for a 64-bit long long
     TEST (T, +LL (9223372036854775807), "+9223372036854775807", 20, 0, Eof);
@@ -1588,6 +1713,179 @@ test_llong (CharType ctype, const char *cname,
     // warning: integer constant is so large that it is unsigned
     // warning: this decimal constant is unsigned only in ISO C90
     TEST (T, -LL (9223372036854775807) - 1, "-9223372036854775808", 20, 0, Eof);
+
+    // exercise hex parsing
+    TEST (T,  LL (                  0),                    "0",   1, hex, Eof);
+    TEST (T,  LL (                0x1),                    "1",   1, hex, Eof);
+    TEST (T,  LL (               0x12),                   "12",   2, hex, Eof);
+    TEST (T,  LL (              0x123),                  "123",   3, hex, Eof);
+    TEST (T,  LL (             0x1234),                 "1234",   4, hex, Eof);
+    TEST (T,  LL (            0x12345),                "12345",   5, hex, Eof);
+    TEST (T,  LL (           0x123456),               "123456",   6, hex, Eof);
+    TEST (T,  LL (          0x1234567),              "1234567",   7, hex, Eof);
+    TEST (T,  LL (         0x12345678),             "12345678",   8, hex, Eof);
+    TEST (T,  LL (        0x123456789),            "123456789",   9, hex, Eof);
+    TEST (T,  LL (       0x123456789a),           "123456789a",  10, hex, Eof);
+    TEST (T,  LL (      0x123456789ab),          "123456789ab",  11, hex, Eof);
+    TEST (T,  LL (     0x123456789abc),         "123456789abc",  12, hex, Eof);
+    TEST (T,  LL (    0x123456789abcd),        "123456789abcd",  13, hex, Eof);
+    TEST (T,  LL (   0x123456789abcde),       "123456789abcde",  14, hex, Eof);
+    TEST (T,  LL (  0x123456789abcdef),      "123456789abcdef",  15, hex, Eof);
+    TEST (T,  LL ( 0x123456789abcdef0),     "123456789abcdef0",  16, hex, Eof);
+
+    TEST (T,  LL (                  0),                  "0x0",   3, hex, Eof);
+    TEST (T,  LL (                0x1),                  "0x1",   3, hex, Eof);
+    TEST (T,  LL (               0x12),                 "0x12",   4, hex, Eof);
+    TEST (T,  LL (              0x123),                "0x123",   5, hex, Eof);
+    TEST (T,  LL (             0x1234),               "0x1234",   6, hex, Eof);
+    TEST (T,  LL (            0x12345),              "0x12345",   7, hex, Eof);
+    TEST (T,  LL (           0x123456),             "0x123456",   8, hex, Eof);
+    TEST (T,  LL (          0x1234567),            "0x1234567",   9, hex, Eof);
+    TEST (T,  LL (         0x12345678),           "0x12345678",  10, hex, Eof);
+    TEST (T,  LL (        0x123456789),          "0x123456789",  11, hex, Eof);
+    TEST (T,  LL (       0x123456789a),         "0x123456789a",  12, hex, Eof);
+    TEST (T,  LL (      0x123456789ab),        "0x123456789ab",  13, hex, Eof);
+    TEST (T,  LL (     0x123456789abc),       "0x123456789abc",  14, hex, Eof);
+    TEST (T,  LL (    0x123456789abcd),      "0x123456789abcd",  15, hex, Eof);
+    TEST (T,  LL (   0x123456789abcde),     "0x123456789abcde",  16, hex, Eof);
+    TEST (T,  LL (  0x123456789abcdef),    "0x123456789abcdef",  17, hex, Eof);
+    TEST (T,  LL ( 0x123456789abcdef0),   "0x123456789abcdef0",  18, hex, Eof);
+
+    TEST (T,  LL (                0x0), "00000000000000000000",  20, hex, Eof);
+    TEST (T,  LL (                0x1),  "0000000000000000001",  19, hex, Eof);
+    TEST (T,  LL (                0x2),   "000000000000000002",  18, hex, Eof);
+    TEST (T,  LL (                0x3),    "00000000000000003",  17, hex, Eof);
+    TEST (T,  LL (                0x4),     "0000000000000004",  16, hex, Eof);
+    TEST (T,  LL (                0x5),      "000000000000005",  15, hex, Eof);
+    TEST (T,  LL (                0x6),       "00000000000006",  14, hex, Eof);
+    TEST (T,  LL (                0x7),        "0000000000007",  13, hex, Eof);
+    TEST (T,  LL (                0x8),         "000000000008",  12, hex, Eof);
+    TEST (T,  LL (                0x9),          "00000000009",  11, hex, Eof);
+    TEST (T,  LL (                0xa),           "000000000a",  10, hex, Eof);
+    TEST (T,  LL (                0xb),            "00000000b",   9, hex, Eof);
+    TEST (T,  LL (                0xc),             "0000000c",   8, hex, Eof);
+    TEST (T,  LL (                0xd),              "000000d",   7, hex, Eof);
+    TEST (T,  LL (                0xe),               "00000e",   6, hex, Eof);
+    TEST (T,  LL (                0xf),                "0000f",   5, hex, Eof);
+    TEST (T,  LL (                0x1),                 "0001",   4, hex, Eof);
+    TEST (T,  LL (                0x2),                  "002",   3, hex, Eof);
+    TEST (T,  LL (                0x3),                   "03",   2, hex, Eof);
+    TEST (T,  LL (                0x4),                    "4",   1, hex, Eof);
+
+    TEST (T,  LL (                0x0), "0x000000000000000000",  20, hex, Eof);
+    TEST (T,  LL (                0x1),  "0x00000000000000001",  19, hex, Eof);
+    TEST (T,  LL (                0x2),   "0x0000000000000002",  18, hex, Eof);
+    TEST (T,  LL (                0x3),    "0x000000000000003",  17, hex, Eof);
+    TEST (T,  LL (                0x4),     "0x00000000000004",  16, hex, Eof);
+    TEST (T,  LL (                0x5),      "0x0000000000005",  15, hex, Eof);
+    TEST (T,  LL (                0x6),       "0x000000000006",  14, hex, Eof);
+    TEST (T,  LL (                0x7),        "0x00000000007",  13, hex, Eof);
+    TEST (T,  LL (                0x8),         "0x0000000008",  12, hex, Eof);
+    TEST (T,  LL (                0x9),          "0x000000009",  11, hex, Eof);
+    TEST (T,  LL (                0xa),           "0x0000000a",  10, hex, Eof);
+    TEST (T,  LL (                0xb),            "0x000000b",   9, hex, Eof);
+    TEST (T,  LL (                0xc),             "0x00000c",   8, hex, Eof);
+    TEST (T,  LL (                0xd),              "0x0000d",   7, hex, Eof);
+    TEST (T,  LL (                0xe),               "0x000e",   6, hex, Eof);
+    TEST (T,  LL (                0xf),                "0x00f",   5, hex, Eof);
+    TEST (T,  LL (                0x1),                 "0x01",   4, hex, Eof);
+    TEST (T,  LL (                0x2),                  "0x2",   3, hex, Eof);
+
+    TEST (T, +LL (                0x0),                    "+0",  2, hex, Eof);
+    TEST (T, +LL (                0x1),                    "+1",  2, hex, Eof);
+    TEST (T, +LL (               0x12),                   "+12",  3, hex, Eof);
+    TEST (T, +LL (              0x123),                  "+123",  4, hex, Eof);
+    TEST (T, +LL (             0x1234),                 "+1234",  5, hex, Eof);
+    TEST (T, +LL (            0x12345),                "+12345",  6, hex, Eof);
+    TEST (T, +LL (           0x123456),               "+123456",  7, hex, Eof);
+    TEST (T, +LL (          0x1234567),              "+1234567",  8, hex, Eof);
+    TEST (T, +LL (         0x12345678),             "+12345678",  9, hex, Eof);
+    TEST (T, +LL (        0x123456789),            "+123456789", 10, hex, Eof);
+    TEST (T, +LL (       0x123456789a),           "+123456789a", 11, hex, Eof);
+    TEST (T, +LL (      0x123456789ab),          "+123456789ab", 12, hex, Eof);
+    TEST (T, +LL (     0x123456789abc),         "+123456789abc", 13, hex, Eof);
+    TEST (T, +LL (    0x123456789abcd),        "+123456789abcd", 14, hex, Eof);
+    TEST (T, +LL (   0x123456789abcde),       "+123456789abcde", 15, hex, Eof);
+    TEST (T, +LL (  0x123456789abcdef),      "+123456789abcdef", 16, hex, Eof);
+    TEST (T, +LL ( 0x123456789abcdef0),     "+123456789abcdef0", 17, hex, Eof);
+
+    TEST (T, +LL (                0x0),                  "+0x0",  4, hex, Eof);
+    TEST (T, +LL (                0x1),                  "+0x1",  4, hex, Eof);
+    TEST (T, +LL (               0x12),                 "+0x12",  5, hex, Eof);
+    TEST (T, +LL (              0x123),                "+0x123",  6, hex, Eof);
+    TEST (T, +LL (             0x1234),               "+0x1234",  7, hex, Eof);
+    TEST (T, +LL (            0x12345),              "+0x12345",  8, hex, Eof);
+    TEST (T, +LL (           0x123456),             "+0x123456",  9, hex, Eof);
+    TEST (T, +LL (          0x1234567),            "+0x1234567", 10, hex, Eof);
+    TEST (T, +LL (         0x12345678),           "+0x12345678", 11, hex, Eof);
+    TEST (T, +LL (        0x123456789),          "+0x123456789", 12, hex, Eof);
+    TEST (T, +LL (       0x123456789a),         "+0x123456789a", 13, hex, Eof);
+    TEST (T, +LL (      0x123456789ab),        "+0x123456789ab", 14, hex, Eof);
+    TEST (T, +LL (     0x123456789abc),       "+0x123456789abc", 15, hex, Eof);
+    TEST (T, +LL (    0x123456789abcd),      "+0x123456789abcd", 16, hex, Eof);
+    TEST (T, +LL (   0x123456789abcde),     "+0x123456789abcde", 17, hex, Eof);
+    TEST (T, +LL (  0x123456789abcdef),    "+0x123456789abcdef", 18, hex, Eof);
+    TEST (T, +LL ( 0x123456789abcdef0),   "+0x123456789abcdef0", 19, hex, Eof);
+
+    TEST (T, +LL (                0x0), "+00000000000000000000", 21, hex, Eof);
+    TEST (T, +LL (                0x1),  "+0000000000000000001", 20, hex, Eof);
+    TEST (T, +LL (                0x2),   "+000000000000000002", 19, hex, Eof);
+    TEST (T, +LL (                0x3),    "+00000000000000003", 18, hex, Eof);
+    TEST (T, +LL (                0x4),     "+0000000000000004", 17, hex, Eof);
+    TEST (T, +LL (                0x5),      "+000000000000005", 16, hex, Eof);
+    TEST (T, +LL (                0x6),       "+00000000000006", 15, hex, Eof);
+    TEST (T, +LL (                0x7),        "+0000000000007", 14, hex, Eof);
+    TEST (T, +LL (                0x8),         "+000000000008", 13, hex, Eof);
+    TEST (T, +LL (                0x9),          "+00000000009", 12, hex, Eof);
+    TEST (T, +LL (                0xa),           "+000000000a", 11, hex, Eof);
+    TEST (T, +LL (                0xb),            "+00000000b", 10, hex, Eof);
+    TEST (T, +LL (                0xc),             "+0000000c",  9, hex, Eof);
+    TEST (T, +LL (                0xd),              "+000000d",  8, hex, Eof);
+    TEST (T, +LL (                0xe),               "+00000e",  7, hex, Eof);
+    TEST (T, +LL (                0xf),                "+0000f",  6, hex, Eof);
+    TEST (T, +LL (                0x1),                 "+0001",  5, hex, Eof);
+    TEST (T, +LL (                0x2),                  "+002",  4, hex, Eof);
+    TEST (T, +LL (                0x3),                   "+03",  3, hex, Eof);
+    TEST (T, +LL (                0x4),                    "+4",  2, hex, Eof);
+
+    TEST (T, -LL (                0x0),                    "-0",  2, hex, Eof);
+    TEST (T, -LL (                0x1),                    "-1",  2, hex, Eof);
+    TEST (T, -LL (               0x12),                   "-12",  3, hex, Eof);
+    TEST (T, -LL (              0x123),                  "-123",  4, hex, Eof);
+    TEST (T, -LL (             0x1234),                 "-1234",  5, hex, Eof);
+    TEST (T, -LL (            0x12345),                "-12345",  6, hex, Eof);
+    TEST (T, -LL (           0x123456),               "-123456",  7, hex, Eof);
+    TEST (T, -LL (          0x1234567),              "-1234567",  8, hex, Eof);
+    TEST (T, -LL (         0x12345678),             "-12345678",  9, hex, Eof);
+    TEST (T, -LL (        0x123456789),            "-123456789", 10, hex, Eof);
+    TEST (T, -LL (       0x123456789a),           "-123456789a", 11, hex, Eof);
+    TEST (T, -LL (      0x123456789ab),          "-123456789ab", 12, hex, Eof);
+    TEST (T, -LL (     0x123456789abc),         "-123456789abc", 13, hex, Eof);
+    TEST (T, -LL (    0x123456789abcd),        "-123456789abcd", 14, hex, Eof);
+    TEST (T, -LL (   0x123456789abcde),       "-123456789abcde", 15, hex, Eof);
+    TEST (T, -LL (  0x123456789abcdef),      "-123456789abcdef", 16, hex, Eof);
+    TEST (T, -LL ( 0x123456789abcdef0),     "-123456789abcdef0", 17, hex, Eof);
+
+    TEST (T, -LL (                0x0), "-00000000000000000000", 21, hex, Eof);
+    TEST (T, -LL (                0x1),  "-0000000000000000001", 20, hex, Eof);
+    TEST (T, -LL (                0x2),   "-000000000000000002", 19, hex, Eof);
+    TEST (T, -LL (                0x3),    "-00000000000000003", 18, hex, Eof);
+    TEST (T, -LL (                0x4),     "-0000000000000004", 17, hex, Eof);
+    TEST (T, -LL (                0x5),      "-000000000000005", 16, hex, Eof);
+    TEST (T, -LL (                0x6),       "-00000000000006", 15, hex, Eof);
+    TEST (T, -LL (                0x7),        "-0000000000007", 14, hex, Eof);
+    TEST (T, -LL (                0x8),         "-000000000008", 13, hex, Eof);
+    TEST (T, -LL (                0x9),          "-00000000009", 12, hex, Eof);
+    TEST (T, -LL (                0xa),           "-000000000a", 11, hex, Eof);
+    TEST (T, -LL (                0xb),            "-00000000b", 10, hex, Eof);
+    TEST (T, -LL (                0xc),             "-0000000c",  9, hex, Eof);
+    TEST (T, -LL (                0xd),              "-000000d",  8, hex, Eof);
+    TEST (T, -LL (                0xe),               "-00000e",  7, hex, Eof);
+    TEST (T, -LL (                0xf),                "-0000f",  6, hex, Eof);
+    TEST (T, -LL (                0x1),                 "-0001",  5, hex, Eof);
+    TEST (T, -LL (                0x2),                  "-002",  4, hex, Eof);
+    TEST (T, -LL (                0x3),                   "-03",  3, hex, Eof);
+    TEST (T, -LL (                0x4),                    "-4",  2, hex, Eof);
 
     if (rw_opt_no_errno) {
         rw_note (0, 0, 0, "errno test disabled");
@@ -1622,12 +1920,151 @@ test_ullong (CharType ctype, const char *cname,
 #      define ULL(number)   number ## UI64
 #    endif   // _MSC_VER
 
-    TEST (T, ULL (                  0),                     "0",  1, 0, Eof);
-    TEST (T, ULL (                  0),                    "+0",  2, 0, Eof);
-    TEST (T, ULL (                  0),                    "-0",  2, 0, Eof);
-    TEST (T, ULL (                  1),                    "+1",  2, 0, Eof);
-    TEST (T, ULL (                1080),                 "1080",  4, 0, Eof);
-    TEST (T, ULL (18446744073709551615), "18446744073709551615", 20, 0, Eof);
+    TEST (T, ULL (                   0),                     "0",  1, 0, Eof);
+    TEST (T, ULL (                   1),                     "1",  1, 0, Eof);
+    TEST (T, ULL (                  12),                    "12",  2, 0, Eof);
+    TEST (T, ULL (                 123),                   "123",  3, 0, Eof);
+    TEST (T, ULL (                1234),                  "1234",  4, 0, Eof);
+    TEST (T, ULL (               12345),                 "12345",  5, 0, Eof);
+    TEST (T, ULL (              123456),                "123456",  6, 0, Eof);
+    TEST (T, ULL (             1234567),               "1234567",  7, 0, Eof);
+    TEST (T, ULL (            12345678),              "12345678",  8, 0, Eof);
+    TEST (T, ULL (           123456789),             "123456789",  9, 0, Eof);
+    TEST (T, ULL (          1234567890),            "1234567890", 10, 0, Eof);
+    TEST (T, ULL (         12345678901),           "12345678901", 11, 0, Eof);
+    TEST (T, ULL (        123456789012),          "123456789012", 12, 0, Eof);
+    TEST (T, ULL (       1234567890123),         "1234567890123", 13, 0, Eof);
+    TEST (T, ULL (      12345678901234),        "12345678901234", 14, 0, Eof);
+    TEST (T, ULL (     123456789012345),       "123456789012345", 15, 0, Eof);
+    TEST (T, ULL (    1234567890123456),      "1234567890123456", 16, 0, Eof);
+    TEST (T, ULL (   12345678901234567),     "12345678901234567", 17, 0, Eof);
+    TEST (T, ULL (  123456789012345678),    "123456789012345678", 18, 0, Eof);
+    TEST (T, ULL ( 1234567890123456789),   "1234567890123456789", 19, 0, Eof);
+
+    TEST (T, ULL (                   0),   "0000000000000000000", 19, dec, Eof);
+    TEST (T, ULL (                   1),   "0000000000000000001", 19, dec, Eof);
+    TEST (T, ULL (                   2),    "000000000000000002", 18, dec, Eof);
+    TEST (T, ULL (                   3),     "00000000000000003", 17, dec, Eof);
+    TEST (T, ULL (                   4),      "0000000000000004", 16, dec, Eof);
+    TEST (T, ULL (                   5),       "000000000000005", 15, dec, Eof);
+    TEST (T, ULL (                   6),        "00000000000006", 14, dec, Eof);
+    TEST (T, ULL (                   7),         "0000000000007", 13, dec, Eof);
+    TEST (T, ULL (                   8),          "000000000008", 12, dec, Eof);
+    TEST (T, ULL (                   9),           "00000000009", 11, dec, Eof);
+    TEST (T, ULL (                   1),            "0000000001", 10, dec, Eof);
+    TEST (T, ULL (                   2),             "000000002",  9, dec, Eof);
+    TEST (T, ULL (                   3),              "00000003",  8, dec, Eof);
+    TEST (T, ULL (                   4),               "0000004",  7, dec, Eof);
+    TEST (T, ULL (                   5),                "000005",  6, dec, Eof);
+    TEST (T, ULL (                   6),                 "00006",  5, dec, Eof);
+    TEST (T, ULL (                   7),                  "0007",  4, dec, Eof);
+    TEST (T, ULL (                   8),                   "008",  3, dec, Eof);
+    TEST (T, ULL (                   9),                    "09",  2, dec, Eof);
+
+    TEST (T, ULL (                   0),                    "+0",  2, 0, Eof);
+    TEST (T, ULL (                   1),                    "+1",  2, 0, Eof);
+    TEST (T, ULL (                  12),                   "+12",  3, 0, Eof);
+    TEST (T, ULL (                 123),                  "+123",  4, 0, Eof);
+    TEST (T, ULL (                1234),                 "+1234",  5, 0, Eof);
+    TEST (T, ULL (               12345),                "+12345",  6, 0, Eof);
+    TEST (T, ULL (              123456),               "+123456",  7, 0, Eof);
+    TEST (T, ULL (             1234567),              "+1234567",  8, 0, Eof);
+    TEST (T, ULL (            12345678),             "+12345678",  9, 0, Eof);
+    TEST (T, ULL (           123456789),            "+123456789", 10, 0, Eof);
+    TEST (T, ULL (          1234567890),           "+1234567890", 11, 0, Eof);
+    TEST (T, ULL (         12345678901),          "+12345678901", 12, 0, Eof);
+    TEST (T, ULL (        123456789012),         "+123456789012", 13, 0, Eof);
+    TEST (T, ULL (       1234567890123),        "+1234567890123", 14, 0, Eof);
+    TEST (T, ULL (      12345678901234),       "+12345678901234", 15, 0, Eof);
+    TEST (T, ULL (     123456789012345),      "+123456789012345", 16, 0, Eof);
+    TEST (T, ULL (    1234567890123456),     "+1234567890123456", 17, 0, Eof);
+    TEST (T, ULL (   12345678901234567),    "+12345678901234567", 18, 0, Eof);
+    TEST (T, ULL (  123456789012345678),   "+123456789012345678", 19, 0, Eof);
+    TEST (T, ULL ( 1234567890123456789),  "+1234567890123456789", 20, 0, Eof);
+
+    TEST (T, ULL (                   0),  "+0000000000000000000", 20, dec, Eof);
+    TEST (T, ULL (                   1),  "+0000000000000000001", 20, dec, Eof);
+    TEST (T, ULL (                   2),   "+000000000000000002", 19, dec, Eof);
+    TEST (T, ULL (                   3),    "+00000000000000003", 18, dec, Eof);
+    TEST (T, ULL (                   4),     "+0000000000000004", 17, dec, Eof);
+    TEST (T, ULL (                   5),      "+000000000000005", 16, dec, Eof);
+    TEST (T, ULL (                   6),       "+00000000000006", 15, dec, Eof);
+    TEST (T, ULL (                   7),        "+0000000000007", 14, dec, Eof);
+    TEST (T, ULL (                   8),         "+000000000008", 13, dec, Eof);
+    TEST (T, ULL (                   9),          "+00000000009", 12, dec, Eof);
+    TEST (T, ULL (                   1),           "+0000000001", 11, dec, Eof);
+    TEST (T, ULL (                   2),            "+000000002", 10, dec, Eof);
+    TEST (T, ULL (                   3),             "+00000003",  9, dec, Eof);
+    TEST (T, ULL (                   4),              "+0000004",  8, dec, Eof);
+    TEST (T, ULL (                   5),               "+000005",  7, dec, Eof);
+    TEST (T, ULL (                   6),                "+00006",  6, dec, Eof);
+    TEST (T, ULL (                   7),                 "+0007",  5, dec, Eof);
+    TEST (T, ULL (                   8),                  "+008",  4, dec, Eof);
+    TEST (T, ULL (                   9),                   "+09",  3, dec, Eof);
+
+    TEST (T, ULL (                   0),                    "-0",  2, 0, Eof);
+    TEST (T, ULL (18446744073709551615),                    "-1",  2, 0, Eof);
+    TEST (T, ULL (18446744073709551604),                   "-12",  3, 0, Eof);
+    TEST (T, ULL (18446744073709551493),                  "-123",  4, 0, Eof);
+    TEST (T, ULL (18446744073709550382),                 "-1234",  5, 0, Eof);
+    TEST (T, ULL (18446744073709539271),                "-12345",  6, 0, Eof);
+    TEST (T, ULL (18446744073709428160),               "-123456",  7, 0, Eof);
+    TEST (T, ULL (18446744073708317049),              "-1234567",  8, 0, Eof);
+    TEST (T, ULL (18446744073697205938),             "-12345678",  9, 0, Eof);
+    TEST (T, ULL (18446744073586094827),            "-123456789", 10, 0, Eof);
+    TEST (T, ULL (18446744072474983726),           "-1234567890", 11, 0, Eof);
+    TEST (T, ULL (18446744061363872715),          "-12345678901", 12, 0, Eof);
+    TEST (T, ULL (18446743950252762604),         "-123456789012", 13, 0, Eof);
+    TEST (T, ULL (18446742839141661493),        "-1234567890123", 14, 0, Eof);
+    TEST (T, ULL (18446731728030650382),       "-12345678901234", 15, 0, Eof);
+    TEST (T, ULL (18446620616920539271),      "-123456789012345", 16, 0, Eof);
+    TEST (T, ULL (18445509505819428160),     "-1234567890123456", 17, 0, Eof);
+    TEST (T, ULL (18434398394808317049),    "-12345678901234567", 18, 0, Eof);
+    TEST (T, ULL (18323287284697205938),   "-123456789012345678", 19, 0, Eof);
+    TEST (T, ULL (17212176183586094827),  "-1234567890123456789", 20, 0, Eof);
+
+    TEST (T, ULL (                   0),  "-0000000000000000000", 20, dec, Eof);
+    TEST (T, ULL (18446744073709551615),  "-0000000000000000001", 20, dec, Eof);
+    TEST (T, ULL (18446744073709551614),   "-000000000000000002", 19, dec, Eof);
+    TEST (T, ULL (18446744073709551613),    "-00000000000000003", 18, dec, Eof);
+    TEST (T, ULL (18446744073709551612),     "-0000000000000004", 17, dec, Eof);
+    TEST (T, ULL (18446744073709551611),      "-000000000000005", 16, dec, Eof);
+    TEST (T, ULL (18446744073709551610),       "-00000000000006", 15, dec, Eof);
+    TEST (T, ULL (18446744073709551609),        "-0000000000007", 14, dec, Eof);
+    TEST (T, ULL (18446744073709551608),         "-000000000008", 13, dec, Eof);
+    TEST (T, ULL (18446744073709551607),          "-00000000009", 12, dec, Eof);
+    TEST (T, ULL (18446744073709551615),           "-0000000001", 11, dec, Eof);
+    TEST (T, ULL (18446744073709551614),            "-000000002", 10, dec, Eof);
+    TEST (T, ULL (18446744073709551613),             "-00000003",  9, dec, Eof);
+    TEST (T, ULL (18446744073709551612),              "-0000004",  8, dec, Eof);
+    TEST (T, ULL (18446744073709551611),               "-000005",  7, dec, Eof);
+    TEST (T, ULL (18446744073709551610),                "-00006",  6, dec, Eof);
+    TEST (T, ULL (18446744073709551609),                 "-0007",  5, dec, Eof);
+    TEST (T, ULL (18446744073709551608),                  "-008",  4, dec, Eof);
+    TEST (T, ULL (18446744073709551607),                   "-09",  3, dec, Eof);
+
+    TEST (T, ULL (18446744073709551615),  "18446744073709551615", 20, 0,   Eof);
+    TEST (T, ULL (18446744073709551615), "018446744073709551615", 21, dec, Eof);
+    TEST (T, ULL (18446744073709551615), "+18446744073709551615", 21, 0,   Eof);
+
+    // exercise hex parsing
+    TEST (T, ULL (                 0x0),                  "0x0",  3, hex, Eof);
+    TEST (T, ULL (                 0x1),                  "0x1",  3, hex, Eof);
+    TEST (T, ULL (                0x12),                 "0x12",  4, hex, Eof);
+    TEST (T, ULL (               0x123),                "0x123",  5, hex, Eof);
+    TEST (T, ULL (              0x1234),               "0x1234",  6, hex, Eof);
+    TEST (T, ULL (             0x12345),              "0x12345",  7, hex, Eof);
+    TEST (T, ULL (            0x123456),             "0x123456",  8, hex, Eof);
+    TEST (T, ULL (           0x1234567),            "0x1234567",  9, hex, Eof);
+    TEST (T, ULL (          0x12345678),           "0x12345678", 10, hex, Eof);
+    TEST (T, ULL (         0x123456789),          "0x123456789", 11, hex, Eof);
+    TEST (T, ULL (        0x123456789a),         "0x123456789a", 12, hex, Eof);
+    TEST (T, ULL (       0x123456789ab),        "0x123456789ab", 13, hex, Eof);
+    TEST (T, ULL (      0x123456789abc),       "0x123456789abc", 14, hex, Eof);
+    TEST (T, ULL (     0x123456789abcd),      "0x123456789abcd", 15, hex, Eof);
+    TEST (T, ULL (    0x123456789abcde),     "0x123456789abcde", 16, hex, Eof);
+    TEST (T, ULL (   0x123456789abcdef),    "0x123456789abcdef", 17, hex, Eof);
+    TEST (T, ULL (  0x123456789abcdef0),   "0x123456789abcdef0", 18, hex, Eof);
 
     if (rw_opt_no_errno) {
         rw_note (0, 0, 0, "errno test disabled");
