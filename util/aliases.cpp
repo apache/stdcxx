@@ -49,7 +49,9 @@
 
 
 #ifndef _MSC_VER
-#  include <langinfo.h>
+#  ifndef _RWSTD_NO_NL_LANGINFO
+#    include <langinfo.h>
+#  endif
 #endif  // _MSC_VER
 
 #include "aliases.h"
