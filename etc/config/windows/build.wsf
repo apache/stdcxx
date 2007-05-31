@@ -73,20 +73,21 @@ function event_ProjectBuildStarted(Cfg)
     // clear output window
     outputPane.Clear();
 
-    // delete old BuildLog.htm
-    var path = Cfg.Evaluate(Cfg.IntermediateDirectory) + "\\BuildLog.htm";
-    if (fso.FileExists(path))
-        fso.DeleteFile(path);
+    if (null != Cfg)
+    {
+        // delete old BuildLog.htm
+        var path = Cfg.Evaluate(Cfg.IntermediateDirectory) + "\\BuildLog.htm";
+        if (fso.FileExists(path))
+            fso.DeleteFile(path);
+    }
 }
 
-function event_ProjectBuildFinished(Cfg, Warnings, Errors, Canceled)
+function getBuildLog(path)
 {
     var log = "";
 
     try
     {
-        // try get log from BuildLog.htm file
-        var path = Cfg.Evaluate(Cfg.IntermediateDirectory) + "\\BuildLog.htm";
         var ForReading = 1;
         var format = UNICODELOG ? -1 : 0;
         var logStrm = fso.OpenTextFile(path, ForReading, false, format);
@@ -99,10 +100,53 @@ function event_ProjectBuildFinished(Cfg, Warnings, Errors, Canceled)
     }
     catch (e)
     {
+        log = "";
+    }
+
+    return log;
+}
+
+function event_ProjectBuildFinished(Cfg, Warnings, Errors, Canceled)
+{
+    var log = "";
+    var htm = "BuildLog.htm";
+
+    if (null != Cfg)
+    {
+        try
+        {
+            // try get log from BuildLog.htm file
+            var path = Cfg.Evaluate(Cfg.IntermediateDirectory) + "\\" + htm;
+            log = getBuildLog(path);
+        }
+        catch (e)
+        {
+            log = "";
+        }
+    }
+
+    if (0 == log.length)
+    {
         // try get log from output window
         var sel = outputPane.TextDocument.Selection;
         sel.SelectAll();
         log = sel.Text;
+
+        // find BuildLoh.htm path
+        var proto = "file://";
+        var begin = log.indexOf(proto);
+        if (0 <= begin)
+        {
+            begin += proto.length;
+            var end = log.indexOf(htm, begin);
+            if (0 <= end)
+            {
+                var path = log.substring(begin, end + htm.length);
+                var log2 = getBuildLog(path);
+                if (0 < log2.length)
+                    log = log2;
+            }
+        }
     }
 
     WScript.Echo(log);
@@ -121,7 +165,18 @@ function BuildProject(solutionBuild, projectName)
 
     if (null != projectFile)
     {
+        var isICC = 0 < projectFile.indexOf(".icproj");
+
+        if (isICC)
+            // event not invoked automatically for Intel projects
+            event_ProjectBuildStarted(null);
+
         solutionBuild.BuildProject(longConfName, projectFile, true);
+
+        if (isICC)
+            // event not invoked automatically for Intel projects
+            event_ProjectBuildFinished(null, 0, 0, 0);
+
         return solutionBuild.LastBuildInfo;
     }
 
