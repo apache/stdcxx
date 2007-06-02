@@ -1,4 +1,4 @@
- /***************************************************************************
+/***************************************************************************
  *
  * exception.cpp - Source for the Standard Library exception classes
  *
@@ -40,14 +40,15 @@
 
 #include <rw/_defs.h>
 
-#if !defined (__EDG__) || defined (__DECCXX) || defined (__INTEL_COMPILER)
+#ifndef _RWSTD_EDG_ECCP
 #  include <stdarg.h>
 #else
+   // use "special" magic for the EDG eccp demo
 #  include <ansi/_cstdarg.h>
 
 _USING (_STD::va_list);
 
-#endif   // __EDG__ ...
+#endif   // EDG eccp demo
 
 #include <stdlib.h>
 #include <stdio.h>
