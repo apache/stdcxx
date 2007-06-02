@@ -113,6 +113,20 @@ inline const void* memchr (const void *__s, int __c, _RWSTD_SIZE_T __n)
 #endif   // _RWSTD_NO_MEMCHR && !_RWSTD_NO_MEMCHR_IN_LIBC
 
 
+#if defined (_RWSTD_NO_STRPBRK) && !defined (_RWSTD_NO_STRPBRK_IN_LIBC)
+
+extern "C" char* strpbrk (char*, const char*);
+
+inline const char* strpbrk (const char *__s, const char *__pat)
+{
+    return strpbrk (_RWSTD_CONST_CAST (char*, __s), __pat);
+}
+
+#  undef _RWSTD_NO_STRPBRK
+
+#endif   // _RWSTD_NO_STRPBRK && !_RWSTD_NO_STRPBRK_IN_LIBC
+
+
 #if defined (_RWSTD_NO_STRCHR) && !defined (_RWSTD_NO_STRCHR_IN_LIBC)
 
 extern "C" char* strchr (char*, int);
