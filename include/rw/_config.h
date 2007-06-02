@@ -164,8 +164,12 @@
 
 #if    defined (__EDG__)                \
     && !defined (__DECCXX)              \
+    && !defined (__HP_aCC)              \
     && !defined (__INTEL_COMPILER)      \
     && !defined (_SGI_COMPILER_VERSION)
+   // FIXME: make this more robust by detecting the EDG eccp demo
+   // during library configuration (and avoid relying on compiler
+   // specific macros)
 #  include "_config-eccp.h"
 #endif   // __EDG__
 
