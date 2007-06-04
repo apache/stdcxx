@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * except.cpp - Example program for exceptions.
+ * failure.cpp - Example program demonstrating ios::failure.
  *
  * $Id$
  *
