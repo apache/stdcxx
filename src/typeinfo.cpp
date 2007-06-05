@@ -92,6 +92,9 @@ static const char _C_name[] = "";
 
 const char* type_info::name () const
 {
+    // silence warning: _C_name declared but never used
+    _RWSTD_UNUSED (::_C_name);
+
     return _C_name;
 }
 
