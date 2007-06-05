@@ -200,7 +200,10 @@ int main ()
         // where necessary
         for (const char *pc = str.c_str (); *pc != '\0'; ++pc) {
 
-            if (std::isalnum (*pc, std::cout.getloc ()))
+            // parenthesize isalnum to prevent macro expension
+            // in case the function happens to be (illegally)
+            // shadowed by a macro
+            if ((std::isalnum)(*pc, std::cout.getloc ()))
                 std::cout << *pc;
             else
                 std::cout << "\\x" << int (UChar (*pc));
