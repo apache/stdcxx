@@ -2,6 +2,10 @@
 
 #include "config.h"
 
+#if !defined (_RWSTD_NO_NEW_THROWS) && !defined (_RWSTD_NO_NEW_OFLOW_SAFE)
+#  include <stddef.h>   // for size_t
+#endif   // !_RWSTD_NO_NEW_THROWS && !_RWSTD_NO_NEW_OFLOW_SAFE
+
 #ifndef _RWSTD_NO_SETRLIMIT
 #  include <sys/resource.h>   // for setrlimit()
 #endif
@@ -70,7 +74,7 @@ int main ()
 #ifndef _RWSTD_NO_NEW_THROWS
 #  ifndef _RWSTD_NO_NEW_OFLOW_SAFE
 
-        void *p = ::operator new ((unsigned long)-1);
+        void *p = ::operator new (size_t (-1));
 
         if (!p)
             return 1;
