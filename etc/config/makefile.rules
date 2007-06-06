@@ -112,6 +112,8 @@ endif   # eq ($(NO_DOT_O),)
 # PlumHall specific:
 # for all "top level" tests that failed to build, find and build all
 # subtests (the little tests the main test consists of)
+ifneq ($(LIBSUFFIX),.dll)
+
 run runall run_all: $(BINDIR)/exec
 	@(LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(LIBDIR);                    \
         PATH=$$PATH:.;                                                    \
@@ -123,6 +125,22 @@ run runall run_all: $(BINDIR)/exec
         mkdir -p $$TMP;                                                   \
         ./run $(RUNFLAGS) $(RUNTARGET);                                   \
         exit 0)
+
+else
+# on Cygwin add $(LIBDIR) to PATH
+run runall run_all: $(BINDIR)/exec
+	@(LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(LIBDIR);                    \
+        PATH=$$PATH:$(LIBDIR):.;                                          \
+        TOPDIR=$(TOPDIR);                                                 \
+        TMP=$${TMP:-/tmp}/stdcxx-run-$$$$;                                \
+        export TMP;                                                       \
+        export LD_LIBRARY_PATH PATH TMP TOPDIR;                           \
+        trap "rm -rf $$TMP" HUP INT QUIT TERM EXIT;                       \
+        mkdir -p $$TMP;                                                   \
+        ./run $(RUNFLAGS) $(RUNTARGET);                                   \
+        exit 0)
+
+endif
 
 # include the automatically generated dependencies unless "clean"
 # or similar is one of the targets

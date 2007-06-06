@@ -20,7 +20,12 @@ MSGFILES := rwstderr.msg
 LIBLINK := $(LIBNAME)
 
 ifeq ($(findstring shared,$(BUILDMODE)),shared)
-  LIB    := $(LIBLINK).$(LIBVER)
+  ifneq ($(LIBSUFFIX),.dll)
+    LIB  := $(LIBLINK).$(LIBVER)
+  else
+    # on Cygwin use name libstd${BUILDTYPE}-X.Y.Z.dll
+    LIB  := $(basename $(LIBLINK))-$(LIBVER)$(LIBSUFFIX)
+  endif
   TARGET := $(LIB) $(LIBLINK)
 else
   LIB    := $(LIBLINK)
