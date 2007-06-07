@@ -28,11 +28,19 @@ if [ $? -eq 0 ]; then
     exit
 fi
 
+# check to see if this is the base 7.0
 grep "V7" $xlcout > /dev/null 2>&1
+v7_or_6=$?
 
-if [ $? -eq 0 ]; then
+if [ $v7_or_6 -ne 0 ]; then
+    # if it's not 7.0 see if it's 6.0
+    grep "version 6.0" $xlcout > /dev/null 2>&1
+    v7_or_6=$?
+fi
 
-    # VisualAge 7.0 (unpatched)
+if [ $v7_or_6 -eq 0 ]; then
+
+    # VisualAge 6.0 or 7.0 (unpatched)
     tmpsrc=/tmp/$CXX_version.$$.cpp
     tmpobj=/tmp/$CXX_version.$$.o
 
@@ -59,7 +67,7 @@ if [ $? -eq 0 ]; then
     exit
 fi
 
-# VisualAge 6.0 (and prior?)
+# VisualAge 5.0 (and prior?)
 echo >> $xlcout
 sed "s/.*version \(.*\)/\1/" $xlcout
 rm $xlcout
