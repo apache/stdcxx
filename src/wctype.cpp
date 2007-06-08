@@ -432,7 +432,9 @@ ctype<wchar_t>::char_type
 ctype<wchar_t>::
 do_widen (char c) const
 {
-    return _RWSTD_CONST_CAST (ctype*, this)->
+    // explicitly specifying template argument list to work around
+    // HP aCC 3 and 5 bug (STDCXX-445)
+    return _RWSTD_CONST_CAST (ctype<wchar_t>*, this)->
         _C_wide_tab [_UChar (c)] = char_type (_UChar (c));
 }
 
