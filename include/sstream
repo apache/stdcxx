@@ -124,24 +124,7 @@ public:
 
     virtual ~basic_stringbuf ();
     
-    _C_string_type str () const {
-        const char_type * first_ = 0;
-        const char_type * last_ = 0;
-
-        if (this->_C_is_out ()) {
-            // in out only or in|out mode
-            first_ = this->pbase ();
-            last_ = this->egptr () < this->pptr () ?
-                this->pptr () : this->egptr ();
-        }
-        else if (this->_C_is_in ()) {
-            // in in only mode
-            first_ = this->eback ();
-            last_ = this->egptr ();
-        }
-
-        return _C_string_type (first_, last_ - first_);
-    }
+    _C_string_type str () const;
 
 #ifdef _RWSTD_NO_EXT_STRINGBUF_STR
 
@@ -194,6 +177,28 @@ private:
     void _C_catchup (char_type*);
 };
 
+template <class _CharT, class _Traits, class _Allocator>
+inline basic_string<_CharT, _Traits, _Allocator>
+basic_stringbuf<_CharT, _Traits, _Allocator>::
+str () const {
+
+    const char_type * __first = 0;
+    const char_type * __last = 0;
+
+    if (this->_C_is_out ()) {
+        // in out only or in|out mode
+        __first = this->pbase ();
+        __last = this->egptr () < this->pptr () ?
+            this->pptr () : this->egptr ();
+    }
+    else if (this->_C_is_in ()) {
+        // in in only mode
+        __first = this->eback ();
+        __last = this->egptr ();
+    }
+
+    return _C_string_type (__first, __last - __first);
+}
 
 template <class _CharT, class _Traits, class _Allocator>
 inline _RWSTD_STREAMSIZE
