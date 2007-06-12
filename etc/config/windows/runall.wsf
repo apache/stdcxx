@@ -341,8 +341,8 @@ function parseStatus(exeName, execOut)
 {
     var res = 0;
 
-    // maxNameLen is the length of the "NAME" column in the exec utility output
-    var maxNameLen = 25;
+    // maxNameLen is the width of the "NAME" column in the exec utility output
+    var maxNameLen = 30;
     var pos = execOut.indexOf(exeName.substr(0, maxNameLen));
     if (0 <= pos)
     {
