@@ -207,11 +207,11 @@
 #  endif   // _SGI_COMPILER_VERSION || !__GNUG__
 #endif   // _RWSTD_OS_IRIX64
 
-/*** MSVC (and Intel C++/Win{32,64}) **************************************/
+/*** MSVC *****************************************************************/
 
-#ifdef _MSC_VER
+#if defined (_MSC_VER) && !defined (__INTEL_COMPILER)
 #  include "_config-msvc.h"
-#endif   // _MSC_VER
+#endif   // _MSC_VER && !__INTEL_COMPILER
 
 /*** Siemens CDS++ ********************************************************/
 

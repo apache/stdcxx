@@ -43,10 +43,20 @@
 #  undef _RWSTD_NO_NEW_HEADER
 #  undef _RWSTD_NO_LIBC_IN_STD
 
-#else   // if defined (_WIN{32,64}
+#else   // if defined (_WIN{32,64})
+
+#  include "_config-msvcrt.h"
+
 #  if defined (_RWSHARED)
      // only when using shared libstd and Intel C++/MSVC
      // working around an Intel C++ 7.1 bug (PR #29178)
 #    define _RWSTD_NO_OUTLINED_USE_FACET_SPECIALIZATIONS
-#  endif   // _MSC_VER > 1200 && _RWSHARED
-#endif
+#  endif   // _RWSHARED
+
+// disable "function was declared "deprecated"
+#  pragma warning (disable: 1478)
+
+// disable "dllexport/dllimport conflict with ... ; dllexport assumed"
+#  pragma warning (disable: 1740)
+
+#endif   // (_WIN{32,64})
