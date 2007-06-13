@@ -298,7 +298,8 @@ function runAllExamples(exeDir, prjDir, srcDir, fileLog, fileSummary, exeExt)
         itemInfo.exitCode = parseStatus(itemInfo.name + "." + exeExt, execOut);
         switch (itemInfo.exitCode)
         {
-        case 0:  // OK
+        case  0: // OK
+        case -7: // OUTPUT
             ++exRunSucceeded;
             fileLog.WriteLine(itemInfo.name + " completed successfully, exit code " +
                 itemInfo.exitCode);
@@ -367,6 +368,9 @@ function parseStatus(exeName, execOut)
                 break;
             case "  LINK":
                 res = -6;
+                break;
+            case "OUTPUT":
+                res = -7;
                 break;
             default:
                 res = -1;
