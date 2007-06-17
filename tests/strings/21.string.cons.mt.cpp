@@ -86,8 +86,15 @@ wshared [nstrings] = {
 
 /**************************************************************************/
 
+#ifdef _RWSTD_REENTRANT
 int rw_opt_nthreads = 4;
-int rw_opt_nloops   = MAX_LOOPS;
+#else   // if !defined (_RWSTD_REENTRANT)
+// in non-threaded builds use just one thread
+int rw_opt_nthreads = 1;
+#endif   // _RWSTD_REENTRANT
+
+// the number of times each thread should iterate
+int rw_opt_nloops = MAX_LOOPS;
 
 
 template <class T>
@@ -192,13 +199,17 @@ run_test (int, char**)
     int result =
         rw_thread_pool (0, std::size_t (rw_opt_nthreads), 0, thread_func, 0);
 
+    rw_error (result == 0, 0, __LINE__,
+              "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
+              rw_opt_nthreads, thread_func);
+
     for (std::size_t i = 0; i != nstrings; ++i) {
 
         const std::size_t size =
             std::string::traits_type::length (data [i]);
 
         rw_assert (size == shared [i].size (), 0, 0,
-                   "shared string modifed from #s to %{#S}",
+                   "shared string modifed from %#s to %{#S}",
                    data [i], &shared [i]);
     }
 
@@ -213,8 +224,12 @@ run_test (int, char**)
     test_wstring = true;
 
     // start a pool of threads to exercise wstring thread safety
-    result +=
+    result =
         rw_thread_pool (0, std::size_t (rw_opt_nthreads), 0, thread_func, 0);
+
+    rw_error (result == 0, 0, __LINE__,
+              "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
+              rw_opt_nthreads, thread_func);
 
     for (std::size_t i = 0; i != nstrings; ++i) {
 
@@ -222,7 +237,7 @@ run_test (int, char**)
             std::wstring::traits_type::length (wdata [i]);
 
         rw_assert (size == wshared [i].size (), 0, 0,
-                   "shared string modifed from #ls to %{#lS}",
+                   "shared string modifed from %#ls to %{#lS}",
                    wdata [i], &wshared [i]);
     }
 
