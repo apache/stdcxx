@@ -28,8 +28,7 @@
  **************************************************************************/
 
 #include <string>       // for string
-
-#include <cstdio>       // for putc(), puts(), ...
+#include <cstddef>      // for size_t
 
 #include <driver.h>     // for rw_test()
 #include <rw_thread.h>  // for rw_thread_pool(), ...
@@ -49,8 +48,14 @@ const std::string shared1 (64, '_');
 
 /**************************************************************************/
 
+#ifdef _RWSTD_REENTRANT
 int rw_opt_nthreads = 4;
-int rw_opt_nloops   = MAX_LOOPS;
+#else   // if !defined (_RWSTD_REENTRANT)
+// in non-threaded builds use just one thread
+int rw_opt_nthreads = 1;
+#endif   // _RWSTD_REENTRANT
+
+int rw_opt_nloops = MAX_LOOPS;
 
 extern "C" {
 
@@ -93,12 +98,6 @@ thread_func (void *arg)
         // verify that the local copies have the expected data
         RW_ASSERT (0 == rw_strncmp (expect0_data, local0.data ()));
         RW_ASSERT (0 == rw_strncmp (expect1_data, local1.data ()));
-      
-        if (60 < rw_opt_nloops && 0 == i % (rw_opt_nloops / 60)) {
-            // parentheses used to thwart macro expansion
-            (std::putc)(to_append [thr_inx], stdout);
-            std::fflush (stdout);
-        }
     }
 
     return 0;
@@ -119,7 +118,9 @@ run_test (int, char**)
     const int result = rw_thread_pool (0, std::size_t (rw_opt_nthreads),
                                        0, thread_func, 0);
 
-    std::puts ("");
+    rw_error (result == 0, 0, __LINE__,
+              "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
+              rw_opt_nthreads, thread_func);
 
     rw_assert (0 == shared0.size (), 0, 0,
                "shared empty string modifed: expected \"\", got %{#S}",
