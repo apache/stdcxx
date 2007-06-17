@@ -6,22 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2001-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -36,9 +37,8 @@
 #include <stdexcept>      // for exception classes
 #include <typeinfo>       // for bad_cast, bad_typeid
 
-#include <csetjmp>        // for jmp_buf, longjmp(), setjmp()
 #include <csignal>        // for signal(), SIGABRT
-#include <cstdio>         // for sprintf()
+#include <cstdio>         // for size_t, sprintf()
 #include <cstring>        // for strcmp(), strlen()
 
 #include <rw/_error.h>    // for _RWSTD_ERROR_XXX constants
@@ -49,6 +49,23 @@
 #endif   // _RWSTD_NO_SETRLIMIT
 
 #include <driver.h>
+
+
+#ifdef _RWSTD_OS_LINUX
+   // use siglongjmp() and sigsetjmp() on Linux to avoid
+   // http://sourceware.org/bugzilla/show_bug.cgi?id=2351
+#  include <setjmp.h>    // for siglongjmp(), sigsetjmp()
+
+#  define RW_JMP_BUF             jmp_buf
+#  define RW_SETJMP(env)         sigsetjmp (env, SIGABRT)
+#  define RW_LONGJMP(env, val)   siglongjmp (env, val)
+#else   // if !defined (_RWSTD_OS_LINUX)
+#  include <csetjmp>    // for longjmp(), setjmp()
+
+#  define RW_JMP_BUF             std::jmp_buf
+#  define RW_SETJMP(env)         std::sigsetjmp (env, SIGABRT)
+#  define RW_LONGJMP(env, val)   std::siglongjmp (env, val)
+#endif   // _RWSTD_OS_LINUX
 
 /**************************************************************************/
 
@@ -195,7 +212,7 @@ int                     expect_abort;        // SIGABRT expected if 1
 int                     expect_terminate;    // terminate expected if 1
 int                     expect_unexpected;   // unexpected expected if 1
 int                     expect_throw_proc;   // throw_proc expected if 1
-std::jmp_buf            env;
+RW_JMP_BUF              jmpenv;
 
 /**************************************************************************/
 
@@ -213,7 +230,7 @@ SIGABRT_handler (int signo)
 
     expect_abort = -1;
 
-    std::longjmp (env, 1);
+    RW_LONGJMP (jmpenv, 1);
 }
 
 }   // extern "C"
@@ -238,7 +255,7 @@ test_terminate_handler ()
     rw_assert (false, 0, __LINE__,
                "std::terminate() not called or returned");
 
-    std::longjmp (env, -1);
+    RW_LONGJMP (jmpenv, -1);
 }
 
 /**************************************************************************/
@@ -266,7 +283,7 @@ test_unexpected_handler ()
     rw_assert (false, 0, __LINE__,
                "std::terminate() not called or returned");
 
-    std::longjmp (env, -1);
+    RW_LONGJMP (jmpenv, -1);
 }
 
 /**************************************************************************/
@@ -325,7 +342,7 @@ test_effects ()
         rw_assert (0,  0, __LINE__, "incompatible exception propagated");
     }
 
-    std::longjmp (env, -1);
+    RW_LONGJMP (jmpenv, -1);
 
 #else
 
@@ -741,7 +758,9 @@ induce_exception (RuntimeExceptionId reid, const char *name)
 #  endif   // _RWSTD_NO_SETRLIMIT
 
             // try to allocate a huge amount of memory to induce bad_alloc
-            ::operator new (~0UL - 4096UL);
+            const std::size_t huge_amount = _RWSTD_SIZE_MAX - 4096;
+
+            ::operator new (huge_amount);
 
 #  ifndef _RWSTD_NO_SETRLIMIT
 #    if !defined (__HP_aCC)
@@ -903,7 +922,7 @@ test_runtime ()
             try {
                 // jump back here if the induced exception causes
                 // a call to terminate() and/or raises SIGABRT
-                if (0 == setjmp (env)) {
+                if (0 == RW_SETJMP (jmpenv)) {
 
                     // try to induce the standard exception
                     if (ex_id == induce_exception (ex_id, ex_name)) {
@@ -981,10 +1000,23 @@ run_test (int, char**)
                  "test of uncaught_exception() disabled"))
         test_uncaught_exception ();
 
+    // exercise __rw::__rw_throw() and __rw::__rw_throw_proc()
+    if (rw_note (0 <= opt_rw_throw, 0, __LINE__,
+                 "test of __rw_throw() disabled"))
+        test_rw_throw ();
+
+    // exercise the cooperation between the C++ standard library and
+    // the runtime support library when throwing standard exceptions
+    if (rw_note (0 <= opt_runtime, 0, __LINE__,
+                 "test of runtime support disabled"))
+        test_runtime ();
+
+    // exercise the effects last to defer potential problems
+    // due to the tests returning (jumping) out of the handlers
     if (rw_note (0 <= opt_effects, 0, __LINE__,
                  "test of effects disabled")) {
         // test the effects of 18.6
-        if (0 == setjmp (env)) {
+        if (0 == RW_SETJMP (jmpenv)) {
             test_effects ();
         }
 
@@ -999,17 +1031,6 @@ run_test (int, char**)
         rw_error (-1 == expect_unexpected, 0, __LINE__,
                   "unexpected() was called unexpectedly");
     }
-
-    // exercise __rw::__rw_throw() and __rw::__rw_throw_proc()
-    if (rw_note (0 <= opt_rw_throw, 0, __LINE__,
-                 "test of __rw_throw() disabled"))
-        test_rw_throw ();
-
-    // exercise the cooperation between the C++ standard library and
-    // the runtime support library when throwing standard exceptions
-    if (rw_note (0 <= opt_runtime, 0, __LINE__,
-                 "test of runtime support disabled"))
-        test_runtime ();
 
     return 0;
 }
