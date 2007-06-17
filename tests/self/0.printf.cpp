@@ -1106,8 +1106,65 @@ test_dec (char spec)
     // "%ld", "%li" //////////////////////////////////////////////////
     printf ("\"%%l%c\": signed long\n", spec);
 
+    TEST_SPEC ("%l", 0L,       0, 0, "0");
+    TEST_SPEC ("%l", 1L,       0, 0, "1");
+    TEST_SPEC ("%l", 2L,       0, 0, "2");
+    TEST_SPEC ("%l", LONG_MAX, 0, 0, 0);
+
+    TEST_SPEC ("%l", -1L,      0, 0, 0);
+    TEST_SPEC ("%l", -2L,      0, 0, 0);
+    TEST_SPEC ("%l", LONG_MIN, 0, 0, 0);
+
+#ifndef _RWSTD_NO_LONG_LONG
+
     // "%lld", "%lli" ////////////////////////////////////////////////
     printf ("\"%%ll%c\": signed long long\n", spec);
+
+    const _RWSTD_LONG_LONG llong_min = _RWSTD_LLONG_MIN;
+    const _RWSTD_LONG_LONG llong_max = _RWSTD_LLONG_MAX;
+
+    TEST_SPEC ("%ll", 0LL,           0, 0, "0");
+    TEST_SPEC ("%ll", 1LL,           0, 0, "1");
+    TEST_SPEC ("%ll", 12LL,          0, 0, "12");
+    TEST_SPEC ("%ll", 123LL,         0, 0, "123");
+    TEST_SPEC ("%ll", 1234LL,        0, 0, "1234");
+    TEST_SPEC ("%ll", 12345LL,       0, 0, "12345");
+    TEST_SPEC ("%ll", 123456LL,      0, 0, "123456");
+    TEST_SPEC ("%ll", 1234567LL,     0, 0, "1234567");
+    TEST_SPEC ("%ll", 12345678LL,    0, 0, "12345678");
+    TEST_SPEC ("%ll", 123456789LL,   0, 0, "123456789");
+
+#  if 4 == _RWSTD_LLONG_SIZE
+
+    // FIXME: exercise 32-bit negative long long
+
+    fprintf (stderr, "Warning: %s\n", "\"%lld\" not exercised "
+             "with negative values for %u-bit long long",
+             sizeof (RWSTD_LONG_LONG) * CHAR_BIT);
+
+#  elif 8 == _RWSTD_LLONG_SIZE
+
+    TEST_SPEC ("%ll", -1LL, 0, 0, sgn ? "-1" : "18446744073709551615");
+    TEST_SPEC ("%ll", -2LL, 0, 0, sgn ? "-2" : "18446744073709551614");
+    TEST_SPEC ("%ll", -3LL, 0, 0, sgn ? "-3" : "18446744073709551613");
+
+    TEST_SPEC ("%ll", llong_min,     0, 0,
+               sgn ? "-9223372036854775808" : "9223372036854775808");
+    TEST_SPEC ("%ll", llong_min + 1, 0, 0,
+               sgn ? "-9223372036854775807" : "9223372036854775809");
+    TEST_SPEC ("%ll", llong_min + 2, 0, 0,
+               sgn ? "-9223372036854775806" : "9223372036854775810");
+
+    TEST_SPEC ("%ll", llong_max,     0, 0, "9223372036854775807");
+    TEST_SPEC ("%ll", llong_max - 1, 0, 0, "9223372036854775806");
+
+#  endif
+
+#else   // if defined (_RWSTD_NO_LONG_LONG)
+
+    fprintf (stderr, "Warning: %s\n", "\"%lld\" not exercised");
+
+#endif   // _RWSTD_NO_LONG_LONG
 }
 
 /***********************************************************************/
@@ -2881,7 +2938,10 @@ test_nested_format ()
     // members must be packed with no padding
     RW_ASSERT (sizeof *sa == sizeof sa->i + sizeof sa->s);
 
-    TEST ("{%{ .*A@}}", 3, "(%i, %#s)", sa,
+    TEST ("{%{ .*A@}}",   // array of nested directives
+          3,              // three elements
+          "(%zu, %#s)",   // descrcibes structure
+          sa,             // array argument
           "{(1, \"foo\") (2, \"bar\") (3, \"foobar\")}");
 }
 
