@@ -31,6 +31,7 @@
 
 #include <rw_thread.h>
 #include <stddef.h>     // for size_t
+#include <string.h>     // for memset()
 
 /**************************************************************************/
 
@@ -381,7 +382,35 @@ rw_thread_pool (rw_thread_t *thr_id, size_t nthrs,
     // small buffer for thread ids when invoked with (thr_id == 0)
     rw_thread_t id_buf [16];
 
-    bool join       = 0 == thr_id;
+    const bool join = 0 == thr_id;
+
+#ifndef _RWSTD_REENTRANT
+
+    // when not reentrant/thread safe emulate the creation
+    // of a single thread and then waiting for it to finish
+    // by simply calling the thread procedure
+
+    if (1 == nthrs && join) {
+
+        if (0 == thr_id) {
+            thr_id = id_buf;
+            memset (thr_id, 0, sizeof *thr_id);
+        }
+
+        // when the thr_arg pointer is 0 pass the address
+        // of each thread's id as the argument to thr_proc
+        void* const arg = thr_arg ? thr_arg [0] : (void*)(thr_id);
+
+        void* const thr_result = thr_proc (arg);
+
+        if (thr_arg)
+            thr_arg [0] = thr_result;
+
+        return 0;
+    }
+
+#endif   // !_RWSTD_REENTRANT
+
     bool delete_ids = false;
 
     if (0 == thr_id) {
