@@ -36,14 +36,15 @@
 #include <file.h>         // for SHELL_RM_RF, rw_tmpnam
 #include <rw_printf.h>    // for rw_fprintf()
 #include <rw_process.h>   // for rw_system()
+#include <cstdio>
 
 
-#if defined __linux__
+#if defined (_RWSTD_OS_LINUX) && !defined (_XOPEN_SOURCE)
    // on Linux define _XOPEN_SOURCE to get CODESET defined in <langinfo.h>
 #  define _XOPEN_SOURCE   500   /* Single Unix conformance */
    // bring __int32_t into scope (otherwise <wctype.h> fails to compile)
 #  include <sys/types.h>
-#endif   // __linux__
+#endif   // Linux
 
 #include <fcntl.h>
 #include <sys/stat.h>   // for stat
@@ -649,3 +650,63 @@ rw_find_mb_locale (size_t            *mb_cur_max,
     return mb_locale_name;
 }
 
+
+/**************************************************************************/
+
+_TEST_EXPORT const char*
+rw_create_locale (const char *charmap, const char *locale)
+{
+    // only one locale is enough (avoid invoking localedef more than once)
+    static const char* locname;
+    const char* locale_root;
+
+    if (locname)
+        return locname;
+
+    // set up RWSTD_LOCALE_ROOT and other environment variables
+    locale_root = rw_set_locale_root ();
+
+    if (0 == locale_root)
+        return 0;
+
+    // create a temporary locale definition file that exercises as
+    // many different parts of the collate standard as possible
+    char srcfname [256];
+    std::sprintf (srcfname, "%s%slocale.src", locale_root, SLASH);
+
+    std::FILE *fout = std::fopen (srcfname, "w");
+
+    if (!fout) {
+        std::fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
+                      __FILE__, __LINE__, srcfname);
+        return 0;
+    }
+
+       std::fprintf (fout, "%s", locale);
+
+    std::fclose (fout);
+
+    // create a temporary character map file
+    char cmfname [256];
+    std::sprintf (cmfname, "%s%scharmap.src", locale_root, SLASH);
+
+    fout = std::fopen (cmfname, "w");
+
+    if (!fout) {
+        std::fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
+                      __FILE__, __LINE__, cmfname);
+        return 0;
+    }
+
+       std::fprintf (fout, "%s", charmap);
+
+    std::fclose (fout);
+
+       locname = "test-locale";
+
+    // process the locale definition file and character map
+    if (0 == rw_localedef ("-w", srcfname, cmfname, locname))
+        locname = 0;
+
+    return locname;
+}

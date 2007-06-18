@@ -83,5 +83,13 @@ _TEST_EXPORT const char*
 rw_find_mb_locale (_RWSTD_SIZE_T* /* mb_cur_max */,
                    rw_mbchar_array_t /* mb_chars */);
 
+// invokes localedef with charmap and locale def to create a locale database 
+// in a directory specified by the RWSTD_LOCALE_ROOT environment
+// variable, if it is defined, otherwise in the current working
+// directory
+// returns the name of the locale
+_TEST_EXPORT const char*
+rw_create_locale (const char *charmap, const char *locale);
+
 
 #endif   // RW_LOCALE_H_INCLUDED
