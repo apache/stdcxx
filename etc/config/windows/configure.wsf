@@ -79,6 +79,27 @@ var logFileName = "config.log";
 
 var description = new configure; // run
 
+// clean tests folder
+// print msg to the StdErr, if specified
+// quit with exitcode
+function cleanQuit(exitcode, msg)
+{
+    // clean Tests folder
+    if (fso.FolderExists(stageDir))
+    {
+        try
+        {
+            fso.DeleteFolder(stageDir, true);
+        }
+        catch (e) { }
+    }
+
+    if (typeof(msg) != "undefined")
+        WScript.StdErr.WriteLine(msg);
+
+    WScript.Quit(exitcode);
+}
+
 // the main function of the script
 function configure()
 {
@@ -231,13 +252,11 @@ function configure()
                " /NODEFAULTLIB:libcpmt /NODEFAULTLIB:libcpmtd" +
                " /NODEFAULTLIB:msvcprt /NODEFAULTLIB:msvcprtd";
 
+    var exitmsg = "You may see log here: " + logFileNameURI;
+
     // sanity check
     if (0 == checkSanity())
-    {
-        WScript.StdErr.WriteLine(
-            "You may see log here: " + logFileNameURI);
-        WScript.Quit(1);
-    }
+        cleanQuit(1, exitmsg);
         
     // check architecture
     checkArchitecture();
@@ -247,22 +266,14 @@ function configure()
 
     // compile .lib.cpp s
     if (0 == compileLibs(confInfo.dll))
-    {
-        WScript.StdErr.WriteLine(
-            "You may see log here: " + logFileNameURI);
-        WScript.Quit(1);
-    }
+        cleanQuit(1, exitmsg);
     
     // compile, link and run .cpp's (if possible)
     if (0 == runExeTests())
-    {
-        WScript.StdErr.WriteLine(
-            "You may see log here: " + logFileNameURI);
-        WScript.Quit(1);
-    }
+        cleanQuit(1, exitmsg);
     
-    fso.MoveFile(stageFile , configFile);
-    WScript.Quit(0);
+    fso.MoveFile(stageFile, configFile);
+    cleanQuit(0);
 }
 
 // performs compiler and linker sanity checks
