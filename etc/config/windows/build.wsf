@@ -223,7 +223,21 @@ function build()
         }
         
         var solutionBuild = solution.SolutionBuild;
-        projectEngine = solution.Projects.Item(1).Object.VCProjectEngine;
+
+        // fix 'Call was Rejected By Callee' error
+        // http://msdn2.microsoft.com/en-us/library/ms228772(vs.80).aspx
+        while (true)
+        {
+            try
+            {
+                projectEngine = solution.Projects.Item(1).Object.VCProjectEngine;
+                break;
+            }
+            catch (e)
+            {
+                WScript.Sleep(1000);
+            }
+        }
         
         events = projectEngine.Events;
         try
