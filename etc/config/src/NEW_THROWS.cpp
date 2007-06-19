@@ -5,9 +5,11 @@
 #include <stdio.h>
 
 #ifndef _RWSTD_NO_SETRLIMIT
-#  include <sys/resource.h>   // for setrlimit()
+// test for setrlimit() presence before compiling current file
 #endif   // _RWSTD_NO_SETRLIMIT
 
+// proclimits.h must be included only after #if[n]def _RWSTD_NO_SETRLIMIT
+#include "proclimits.h"
 
 #if 2 == __GNUG__
 #  ifndef _RWSTD_NO_HONOR_STD
@@ -84,15 +86,9 @@ int main ()
     // by passing it a smaller argument
     printf ("#define _RWSTD_NO_NEW_OFLOW_SAFE\n");
 
-#ifndef _RWSTD_NO_SETRLIMIT
-
     // decrease resource limit to a minimum to induce a failure
     // without unreasonably stressing the system
-
-    struct rlimit rl = { 0, 0 };
-    setrlimit (RLIMIT_DATA, &rl);
-
-#endif   // _RWSTD_NO_SETRLIMIT
+    limit_memory (0);
 
     p = (void*)1;
 
