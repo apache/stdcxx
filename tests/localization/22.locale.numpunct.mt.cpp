@@ -26,8 +26,7 @@
  *
  **************************************************************************/
 
-#include <ios>        // for ios
-#include <locale>     // for locale, num_put
+#include <locale>     // for locale, numpunct
 
 #include <clocale>    // for lconv, localeconv()
 #include <cstdlib>    // for mbstowcs()
@@ -178,7 +177,8 @@ run_test (int, char**)
 
         locales [inx] = name;
 
-        if (std::setlocale (LC_NUMERIC, name)) {
+        // set LC_NUMERIC and LC_CTYPE to be able to use mbstowcs()
+        if (std::setlocale (LC_ALL, name)) {
 
             const std::lconv* const pconv = std::localeconv ();
             NumPunctData* const pdata = punct_data + inx;
