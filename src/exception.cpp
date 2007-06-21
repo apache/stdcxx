@@ -438,6 +438,13 @@ __rw_what_buf [256];
 static _RWSTD_THREAD int
 __rw_what_refcnt;
 
+inline void __rw_free_what_buf (char* buf)
+{
+    if (__rw_what_buf == buf)
+        _RWSTD_THREAD_PREDECREMENT (__rw_what_refcnt, false);
+    else
+        delete[] buf;
+}
 
 // allocate a char array and format it sprintf-style
 // caller responsible for calling delete[] on returned pointer
@@ -547,14 +554,8 @@ __rw_vfmtwhat (char          *buf,      // (allocate if 0)
         if (bufsize)
             return 0;
 
-        if (buf == __rw_what_buf) {
-            _RWSTD_THREAD_PREDECREMENT (__rw_what_refcnt, false);
-        }
-        else {
-            delete[] buf;
-        }
+        __rw_free_what_buf (buf);
         buf = new char [size];
-
     }
 
     return buf;
@@ -741,13 +742,13 @@ static void __rw_throw_exception (int id, char *what)
             _STD::runtime_error ()._C_assign (what, 0);
     }
 
-    delete[] what;
+    __rw_free_what_buf (what);
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
     if (what) {
         fprintf (stderr,"Exception: %s.\n", what);
-        delete[] what;
+        __rw_free_what_buf (what);
     }
     else {
         const char *__str;
@@ -828,7 +829,7 @@ _RWSTD_EXPORT void __rw_throw (int id, ...)
         __rw_throw_proc (id, what);
 
         // if throw_proc returns, delete allocated what string
-        delete[] what;
+        __rw_free_what_buf (what);
     }
 }
 
@@ -867,12 +868,7 @@ __rw_exception::__rw_exception (const _STD::string &whatstr)
 // outlined to avoid functional compatibility issues
 /* virtual */ __rw_exception::~__rw_exception () _THROWS (())
 {
-    if (_C_what == __rw_what_buf) {
-        _RWSTD_THREAD_PREDECREMENT (__rw_what_refcnt, false);
-    }
-    else {
-        delete[] _C_what;
-    }
+    __rw_free_what_buf (_C_what);
 
 #ifdef _C_dummy_what
     // zero out dummy member of the base exception class
@@ -931,7 +927,7 @@ _C_assign (const char *whatstr, size_t len /* = ~0 */)
             }
         }
 
-        delete[] _C_what;
+        __rw_free_what_buf (_C_what);
         _C_what = tmp;
     }
     return *this;
