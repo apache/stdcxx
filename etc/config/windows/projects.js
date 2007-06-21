@@ -247,7 +247,8 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         "if exist \"$(OutDir)\\runexamples.log\" del \"$(OutDir)\\runexamples.log\"";
     runexamplesDef.CustomBuildFile = "runall.wsf";
     runexamplesDef.CustomBuildCmd =
-        "set PATH=$(SolutionDir)%CONFIG%\\bin;$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
+        "set PATH=$(SolutionDir)%CONFIG%\\bin;$(SolutionDir)%CONFIG%\\lib;" +
+        "%SRCDIR%\\examples\\manual;%PATH%\r\n" +
         "cscript /nologo \"%CUSTOMFILE%\"" +
         " /INOUTDIR:\"%SRCDIR%\\examples\"" +
         " /EXEDIR:\"$(OutDir)\"" +
