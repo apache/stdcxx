@@ -827,9 +827,6 @@ _RWSTD_EXPORT void __rw_throw (int id, ...)
 
         // throw_proc takes ownership of allocated string
         __rw_throw_proc (id, what);
-
-        // if throw_proc returns, delete allocated what string
-        __rw_free_what_buf (what);
     }
 }
 
