@@ -3,7 +3,7 @@
  * rwexcept.cpp - Example program demonstrating the use of the optional
  *                C++ Standard Library exception mechanism.
  *
- * $Id: //stdlib/dev/examples/stdlib/manual/rwexcept.cpp#10 $
+ * $Id$
  *
  ***************************************************************************
  *
@@ -35,9 +35,9 @@ void exception_handler (int id, char *what)
 {
     std::cerr << "exception #" <<  id << ": " << what << '\n';
 
-    // 
-    if (id >= _RWSTD_ERROR_BAD_CAST)
-        delete[] what;
+    // free what buffer
+    if (what)
+        __rw::__rw_free_what_buf (what);
 
     // a real program would call abort() here to prevent the potentially
     // dangerous destruction of objects with static storage duration
