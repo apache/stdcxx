@@ -438,10 +438,13 @@ __rw_what_buf [256];
 static _RWSTD_THREAD int
 __rw_what_refcnt;
 
-inline void __rw_free_what_buf (char* buf)
+// free memory buffer allocated in __rw_vfmtwhat()
+_RWSTD_EXPORT inline void __rw_free_what_buf (char* buf)
 {
-    if (__rw_what_buf == buf)
+    if (__rw_what_buf == buf) {
+        _RWSTD_ASSERT (0 < __rw_what_refcnt);
         _RWSTD_THREAD_PREDECREMENT (__rw_what_refcnt, false);
+    }
     else
         delete[] buf;
 }
@@ -838,12 +841,7 @@ __rw_exception::__rw_exception () _THROWS (())
 __rw_exception::__rw_exception (const __rw_exception &rhs)
     : _STD::exception (rhs), _C_what (0)
 {
-    if (rhs._C_what == __rw_what_buf) {
-        _RWSTD_THREAD_PREINCREMENT (__rw_what_refcnt, false);
-        _C_what = __rw_what_buf;
-    }
-    else
-        _C_assign (rhs.what ());
+    _C_assign (rhs.what ());
 }
 
   
@@ -910,17 +908,24 @@ _C_assign (const char *whatstr, size_t len /* = ~0 */)
 
         if (whatstr && *whatstr) {
 
-            if (_RWSTD_SIZE_MAX == len)
-                len = strlen (whatstr);
-
-            if (len) {
-                // allocate own buffer and copy string
-                tmp = new char [len + 1];
-                memcpy (tmp, whatstr, len + 1);
+            if (whatstr == __rw_what_buf) {
+                if (len)
+                    _RWSTD_THREAD_PREINCREMENT (__rw_what_refcnt, false);
+                tmp = __rw_what_buf;
             }
             else {
-                // special case: do not allocate, just use passed in pointer
-                tmp = _RWSTD_CONST_CAST (char*, whatstr);
+                if (_RWSTD_SIZE_MAX == len)
+                    len = strlen (whatstr);
+
+                if (len) {
+                    // allocate own buffer and copy string
+                    tmp = new char [len + 1];
+                    memcpy (tmp, whatstr, len + 1);
+                }
+                else {
+                    // special case: do not allocate, just use passed in pointer
+                    tmp = _RWSTD_CONST_CAST (char*, whatstr);
+                }
             }
         }
 

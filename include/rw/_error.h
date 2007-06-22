@@ -39,9 +39,12 @@ _RWSTD_NAMESPACE (__rw) {
 // (if any) used to format the exception object's what() string
 void _RWSTD_EXPORT __rw_throw (int, ...);
 
+// frees memory buffer used for what() message
+void _RWSTD_EXPORT __rw_free_what_buf (char*);
+
 // throws an exception identified by first argument with the second
 // argument containing the exception object's what() string, which
-// if non-0, is dynamically allocated and must be delete[]'d
+// if non-0, is must be freed using __rw_free_what_buf()
 // may be assigned to a user-defined handler (e.g., to prevent
 // the library from throwing exceptions or to implement logging)
 extern void _RWSTD_EXPORT (*__rw_throw_proc)(int, char*);
