@@ -249,6 +249,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     runexamplesDef.CustomBuildCmd =
         "set PATH=$(SolutionDir)%CONFIG%\\bin;$(SolutionDir)%CONFIG%\\lib;" +
         "%SRCDIR%\\examples\\manual;%PATH%\r\n" +
+        "set TZ=MST+7\r\n" +
         "cscript /nologo \"%CUSTOMFILE%\"" +
         " /INOUTDIR:\"%SRCDIR%\\examples\"" +
         " /EXEDIR:\"$(OutDir)\"" +
