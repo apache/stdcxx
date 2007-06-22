@@ -57,14 +57,18 @@
 #  include <setjmp.h>    // for siglongjmp(), sigsetjmp()
 
 #  define RW_JMP_BUF             jmp_buf
-#  define RW_SETJMP(env)         sigsetjmp (env, SIGABRT)
+#  define RW_SETJMP(env)         sigsetjmp (env, 0)
 #  define RW_LONGJMP(env, val)   siglongjmp (env, val)
 #else   // if !defined (_RWSTD_OS_LINUX)
 #  include <csetjmp>    // for longjmp(), setjmp()
 
 #  define RW_JMP_BUF             std::jmp_buf
-#  define RW_SETJMP(env)         std::sigsetjmp (env, SIGABRT)
-#  define RW_LONGJMP(env, val)   std::siglongjmp (env, val)
+#  ifdef setjmp
+#    define RW_SETJMP(env)       setjmp (env)
+#  else
+#    define RW_SETJMP(env)       std::setjmp (env)
+#  endif
+#  define RW_LONGJMP(env, val)   std::longjmp (env, val)
 #endif   // _RWSTD_OS_LINUX
 
 /**************************************************************************/
