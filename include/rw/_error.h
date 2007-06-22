@@ -40,7 +40,7 @@ _RWSTD_NAMESPACE (__rw) {
 _RWSTD_EXPORT void __rw_throw (int, ...);
 
 // frees memory buffer used for what() message
-_RWSTD_EXPORT inline void __rw_free_what_buf (char*);
+_RWSTD_EXPORT void __rw_free_what_buf (char*);
 
 // throws an exception identified by first argument with the second
 // argument containing the exception object's what() string, which

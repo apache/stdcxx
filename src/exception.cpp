@@ -439,7 +439,7 @@ static _RWSTD_THREAD int
 __rw_what_refcnt;
 
 // free memory buffer allocated in __rw_vfmtwhat()
-_RWSTD_EXPORT inline void __rw_free_what_buf (char* buf)
+_RWSTD_EXPORT void __rw_free_what_buf (char* buf)
 {
     if (__rw_what_buf == buf) {
         _RWSTD_ASSERT (0 < __rw_what_refcnt);
