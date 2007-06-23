@@ -44,9 +44,9 @@ extern const char __rw_ident[] = {
 
 
 #ifdef __HP_aCC
-#  pragma COPYRIGHT      "Quovadx, Inc"
-#  pragma COPYRIGHT_DATE "1994-2004"
+#  pragma COPYRIGHT      "Rogue Wave Software"
+#  pragma COPYRIGHT_DATE "1994-2007"
 #  pragma VERSIONID      _RWSTD_VER_STR
 #elif defined (__IBMCPP__)
-#  pragma comment (copyright, "(C) 1994-2004, Quovadx, Inc")
+#  pragma comment (copyright, "(C) 1994-2007, Rogue Wave Software")
 #endif   // __HP_aCC
