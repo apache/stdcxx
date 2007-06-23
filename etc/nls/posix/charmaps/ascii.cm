@@ -8,15 +8,172 @@
 #
 ###########################################################################
 # 
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
- * 
- **************************************************************************/
+# Licensed to the Apache Software  Foundation (ASF) under one or more
+# contributor  license agreements.  See  the NOTICE  file distributed
+# with  this  work  for  additional information  regarding  copyright
+# ownership.   The ASF  licenses this  file to  you under  the Apache
+# License, Version  2.0 (the  "License"); you may  not use  this file
+# except in  compliance with the License.   You may obtain  a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the  License is distributed on an  "AS IS" BASIS,
+# WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+# implied.   See  the License  for  the  specific language  governing
+# permissions and limitations under the License.
+#
+# Copyright 2001-2007 Rogue Wave Software.
+#
+###########################################################################
+
+<code_set_name>                 "ascii"
+<mb_cur_max>                    1
+<mb_cur_min>                    1
+<escape_char>                   \\
+<comment_char>                  #
+
+CHARMAP
+
+# POSIX portable character set
+
+<NUL>                   \x00
+<SOH>                   \x01
+<STX>                   \x02
+<ETX>                   \x03
+<EOT>                   \x04
+<ENQ>                   \x05
+<ACK>                   \x06
+<BEL>                   \x07
+<alert>                 \x07
+<backspace>             \x08
+<tab>                   \x09
+<newline>               \x0A
+<vertical-tab>          \x0B
+<form-feed>             \x0C
+<carriage-return>       \x0D
+<SO>                    \x0E
+<SI>                    \x0F
+<DLE>                   \x10
+<DC1>                   \x11
+<DC2>                   \x12
+<DC3>                   \x13
+<DC4>                   \x14
+<NAK>                   \x15
+<SYN>                   \x16
+<ETB>                   \x17
+<CAN>                   \x18
+<EM>                    \x19
+<SUB>                   \x1a
+<ESC>                   \x1b
+<IS4>                   \x1c
+<IS3>                   \x1d
+<IS2>                   \x1e
+<IS1>                   \x1f
+<space>                 \x20
+<exclamation-mark>      \x21
+<quotation-mark>        \x22
+<number-sign>           \x23
+<dollar-sign>           \x24
+<percent-sign>          \x25
+<ampersand>             \x26
+<apostrophe>            \x27
+<left-parenthesis>      \x28
+<right-parenthesis>     \x29
+<asterisk>              \x2A
+<plus-sign>             \x2B
+<comma>                 \x2C
+<hyphen-minus>          \x2D
+<hyphen>                \x2D
+<full-stop>             \x2E
+<period>                \x2E
+<slash>                 \x2F
+<solidus>               \x2F
+<zero>                  \x30
+<one>                   \x31
+<two>                   \x32
+<three>                 \x33
+<four>                  \x34
+<five>                  \x35
+<six>                   \x36
+<seven>                 \x37
+<eight>                 \x38
+<nine>                  \x39
+<colon>                 \x3A
+<semicolon>             \x3B
+<less-than-sign>        \x3C
+<equals-sign>           \x3D
+<greater-than-sign>     \x3E
+<question-mark>         \x3F
+<commercial-at>         \x40
+<A>                     \x41
+<B>                     \x42
+<C>                     \x43
+<D>                     \x44
+<E>                     \x45
+<F>                     \x46
+<G>                     \x47
+<H>                     \x48
+<I>                     \x49
+<J>                     \x4A
+<K>                     \x4B
+<L>                     \x4C
+<M>                     \x4D
+<N>                     \x4E
+<O>                     \x4F
+<P>                     \x50
+<Q>                     \x51
+<R>                     \x52
+<S>                     \x53
+<T>                     \x54
+<U>                     \x55
+<V>                     \x56
+<W>                     \x57
+<X>                     \x58
+<Y>                     \x59
+<Z>                     \x5A
+<left-square-bracket>   \x5B
+<backslash>             \x5C
+<reverse-solidus>       \x5C
+<right-square-bracket>  \x5D
+<circumflex-accent>     \x5E
+<circumflex>            \x5E
+<low-line>              \x5F
+<underscore>            \x5F
+<grave-accent>          \x60
+<a>                     \x61
+<b>                     \x62
+<c>                     \x63
+<d>                     \x64
+<e>                     \x65
+<f>                     \x66
+<g>                     \x67
+<h>                     \x68
+<i>                     \x69
+<j>                     \x6A
+<k>                     \x6B
+<l>                     \x6C
+<m>                     \x6D
+<n>                     \x6E
+<o>                     \x6F
+<p>                     \x70
+<q>                     \x71
+<r>                     \x72
+<s>                     \x73
+<t>                     \x74
+<u>                     \x75
+<v>                     \x76
+<w>                     \x77
+<x>                     \x78
+<y>                     \x79
+<z>                     \x7A
+<left-brace>            \x7B
+<left-curly-bracket>    \x7B
+<vertical-line>         \x7C
+<right-brace>           \x7D
+<right-curly-bracket>   \x7D
+<tilde>                 \x7E
+<DEL>                   \x7F
+
+END CHARMAP
