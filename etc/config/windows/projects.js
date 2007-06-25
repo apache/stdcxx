@@ -268,6 +268,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
 
     var testTplDef = new ProjectDef(null, typeApplication);
     testTplDef.VCProjDir = ProjectsDir + "\\tests";
+    testTplDef.RTTI = true;
     testTplDef.Defines = commonDefines;
     testTplDef.Includes = rwtestIncludes;
     testTplDef.OutDir = "$(SolutionDir)%CONFIG%\\tests";
