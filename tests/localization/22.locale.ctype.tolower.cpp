@@ -80,7 +80,7 @@ const char* locale_root;
 
 #define BEGIN_LOCALE_LOOP(num, locname, loop_cntrl)                        \
    for (const char* locname = rw_locales (LC_CTYPE, 0);                    \
-        *locname; locname += std::strlen (locname) + 1) {                  \
+        locname && *locname; locname += std::strlen (locname) + 1) {       \
        _TRY {                                                              \
            const std::locale loc (locname);                                \
            const std::ctype<char> &ctc =                                   \
