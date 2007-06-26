@@ -479,12 +479,12 @@ replace (size_type __pos, size_type __len, size_type __count, value_type __val)
 }
 
 
-#if    !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER)) 
+#ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
-#  ifdef _RWSTD_NO_MEMBER_TEMPLATES
+#  ifdef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
-template<class _CharT, class _Traits, class _Alloc, class _StringIter, class _InputIter>
+template <class _CharT, class _Traits, class _Alloc,
+          class _StringIter, class _InputIter>
 _STD::basic_string<_CharT, _Traits, _Alloc>& 
 __rw_replace (_STD::basic_string<_CharT, _Traits, _Alloc> &__s, 
               _StringIter __first1, _StringIter __last1,
@@ -499,7 +499,7 @@ __rw_replace (_STD::basic_string<_CharT, _Traits, _Alloc> &__s,
      _C_string_ref_type;
 
 
-#  else   // !defined (_RWSTD_NO_MEMBER_TEMPLATES)
+#  else   // !defined (_RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES)
 
 template<class _CharT, class _Traits, class _Allocator>
 template<class _InputIter>
@@ -510,7 +510,7 @@ replace (iterator __first1, iterator __last1,
 {
   basic_string &__s = *this;
 
-#  endif   // _RWSTD_NO_MEMBER_TEMPLATES
+#  endif   // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
     _RWSTD_ASSERT_RANGE (__first1, __s._C_make_iter (__s._C_data + __s.size ()));
     _RWSTD_ASSERT_RANGE (__first1, __last1);
@@ -571,9 +571,10 @@ replace (iterator __first1, iterator __last1,
 // Avoids the possibility of multiple allocations
 // We still have to copy characters over one at a time.
 
-#ifdef _RWSTD_NO_MEMBER_TEMPLATES
+#  ifdef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
-template<class _CharT, class _Traits, class _Alloc, class _StringIter, class _InputIter>
+template <class _CharT, class _Traits, class _Alloc,
+          class _StringIter, class _InputIter>
 _STD::basic_string<_CharT, _Traits, _Alloc>& 
 __rw_replace_aux (_STD::basic_string<_CharT, _Traits, _Alloc> &__s, 
                   _StringIter __first1, _StringIter __last1,
@@ -588,7 +589,7 @@ __rw_replace_aux (_STD::basic_string<_CharT, _Traits, _Alloc> &__s,
     typedef _RW::__string_ref<value_type, traits_type, allocator_type>
      _C_string_ref_type;
 
-#  else
+#  else   // if !defined (_RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES)
 
 template<class _CharT, class _Traits, class _Allocator>
 template<class _InputIter>
@@ -599,7 +600,7 @@ __replace_aux (iterator __first1, iterator __last1,
 {
   basic_string &__s = *this;
 
-#  endif  // _RWSTD_NO_MEMBER_TEMPLATES
+#  endif  // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
     _RWSTD_ASSERT_RANGE (__first1, __s._C_make_iter (__s._C_data 
                                                      + __s.size ()));
@@ -665,7 +666,7 @@ __replace_aux (iterator __first1, iterator __last1,
     return __s;
 }
 
-#endif   //_RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 
 template <class _CharT, class _Traits, class _Allocator>

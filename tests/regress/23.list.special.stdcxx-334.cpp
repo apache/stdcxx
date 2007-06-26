@@ -1,6 +1,6 @@
-/**************************************************************************
+/************************************************************************
  *
- * except.cpp - Example program for exceptions.
+ * 23.list.special.stdcxx-334.cpp - test case from STDCXX-334 issue
  *
  * $Id$
  *
@@ -21,52 +21,46 @@
  * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
- *
- * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
-#include <iostream>
-#include <stdexcept>
+#include <list>
+#include <string>
+#include <cassert>
 
-#include <examples.h>
-
-#ifndef _RWSTD_NO_EXCEPTIONS
-
-int main ()
+class Alloc : public std::allocator <char>
 {
-   try {
-       // Enable exceptions in cin.
-       std::cin.exceptions (std::ios::eofbit);
+};
 
-       // Clear all bits and set eofbit.
-       std::cin.clear (std::ios::eofbit);
-   }
-   catch (const std::ios::failure &e) {
-       std::cout << "Caught an exception: " << e.what () << std::endl;
-   }
-   catch (const std::exception &e) {
-       std::cout << "Caught an exception: " << e.what () << std::endl;
-
-       return 1;   // Indicate failure.
-   }
-   catch (...) {
-       std::cout << "Caught an unknown exception" << std::endl;
-
-       return 1;   // Indicate failure.
-   }
-
-   return 0;
+bool operator == (Alloc a1, Alloc a2)
+{
+    return false;
 }
 
-#else
-
-int main ()
+bool operator != (Alloc a1, Alloc a2)
 {
-    std::cout << "Exceptions not supported." << std::endl;
+    return true;
+}
+
+int main(int argc, char* argv[])
+{
+    const char src [] = "source string";
+    const char dst [] = "destination string";
+
+    typedef std::list <char, Alloc> List;
+    
+    Alloc a1;
+    Alloc a2;
+
+    assert (!(a1 == a2));
+
+    List src_lst (src, src + sizeof (src) - 1, a1);
+    List dst_lst (dst, dst + sizeof (dst) - 1, a2);
+
+    src_lst.swap (dst_lst);
+
+    assert (std::string (src_lst.begin (), src_lst.end ()) == dst);
+    assert (std::string (dst_lst.begin (), dst_lst.end ()) == src);
 
     return 0;
 }
-
-
-#endif   // _RWSTD_NO_EXCEPTIONS

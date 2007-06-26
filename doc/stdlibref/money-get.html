@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>money_get</TITLE>
-<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Apache stdcxx Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
 <A HREF="modulus.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="moneypunct.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library Reference Guide</B></DIV>
 <H2>money_get</H2>
@@ -165,54 +165,53 @@ virtual iter_type
 #include &lt;iostream&gt;   // for cout, endl
 #include &lt;iterator&gt;   // for istreambuf_iterator
 
-#include &lt;examples.h&gt;
-
-
-int main ()
+int main (int argc, char *argv[])
 {
-    typedef std::istreambuf_iterator&lt;char,
-            std::char_traits&lt;char&gt; &gt; Iter;
-  
-    const std::string buffer ("$100.02");
-    std::string dest;
-    long double ldest;
-    std::ios_base::iostate state;
-    Iter end;
+    // Get the monetary string and locale from the argument vector.
+    const char* const buffer  = 1 &lt; argc ? argv [1] : "$1,234.6789";
+    const char* const locname = 2 &lt; argc ? argv [2] : "en_US";
+    const bool        intl    = 3 &lt; argc;
 
-    // Retrieve the money_get facet from the global locale.
-    const std::money_get&lt;char, Iter&gt; &amp;mgf =
-        std::use_facet&lt;std::money_get&lt;char, Iter&gt; &gt;(std::locale
-             ());
+    std::string smon;
+    long double fmon = 0.0;
+
+    std::ios_base::iostate state = std::ios_base::goodbit;
+
+    // Retrieve the money_get facet from the named locale.
+    const std::locale loc (locname);
+
+    typedef std::istreambuf_iterator&lt;char&gt; Iter;
+    typedef std::money_get&lt;char, Iter&gt;     MoneyGet;
+
+    const MoneyGet &mgf = std::use_facet&lt;MoneyGet&gt;(loc);
 
     {
-        // Build an istringstream from the buffer and construct
-        // a beginning iterator on it.
+        // Build an istringstream object from the buffer
+        // and imbue the locale in it.
         std::istringstream ins (buffer);
-        Iter begin (ins);
+        ins.imbue (loc);
 
-        // Get a string representation of the monetary value
-        mgf.get (begin, end, false, ins, state, dest);
+        // Get a string representation of the monetary value.
+        mgf.get (ins, Iter (), intl, ins, state, smon);
     }
     {
-        // Build another istringstream from the buffer, etc.
-        // so we have an iterator pointing to the beginning
         std::istringstream ins (buffer);
-        Iter begin (ins);
+        ins.imbue (loc);
 
-        // Get a a long double representation of the monetary
-           value
-        mgf.get (begin, end, false, ins, state, ldest);
+        // Get a floating point representation of the monetary value.
+        mgf.get (ins, Iter (), intl, ins, state, fmon);
     }
 
-    std::cout &lt;&lt; buffer &lt;&lt; " --&gt; "
-              &lt;&lt; dest &lt;&lt; " --&gt; " &lt;&lt; ldest &lt;&lt; std::endl;
+    // Output the original sequence and its string and floating point
+    // representations.
+    std::cout &lt;&lt; buffer &lt;&lt; " --&gt; \"" &lt;&lt; smon &lt;&lt; "\" --&gt; " &lt;&lt; fmon &lt;&lt; '\n';
 
-    // return 0 on success, non-zero on failure
+    // Return 0 on success, non-zero on failure.
     return !(std::ios_base::eofbit == state);
 }
 
 Program Output:
-$100.02 --&gt; 10002 --&gt; 10002
+$1,234.6789 --&gt; "123467" --&gt; 123467
 </PRE></UL>
 <A NAME="sec13"><H3>See Also</H3></A>
 <P><B><I><A HREF="locale.html">locale</A></I></B>, <A HREF="facets.html">Facets</A>, <B><I><A HREF="money-put.html">money_put</A></I></B>, <B><I><A HREF="moneypunct.html">moneypunct</A></I></B></P>

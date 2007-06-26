@@ -86,8 +86,14 @@ var description = new generate; // run
 // the replacement of the WScript.Echo()
 function Echo(msg)
 {
-    // WScript.Echo(msg);
-    WScript.StdOut.WriteLine(msg);
+    try
+    {
+        // WScript.Echo(msg);
+        WScript.StdOut.WriteLine(msg);
+    }
+    catch(e)
+    {
+    }
 }
 
 // print message to the stdout and out the message to the logfile

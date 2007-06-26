@@ -47,12 +47,21 @@
 ##############################################################################
 
 
-if [ "`uname`" = "OSF1" -a "$BIN_SH" != "xpg4" ]; then
+OSNAME=`uname`
+
+if [ "$OSNAME" = "OSF1" -a "$BIN_SH" != "xpg4" ]; then
     # make getopts work on Tru64 by setting the BIN_SH variable
     # and re-executing self with the same command line arguments
     BIN_SH=xpg4
     export BIN_SH
     exec $0 $*
+elif [ "$OSNAME" = "AIX" -a -z "$BASH_VERSION" ]; then
+    # use an alternate shell to work around a bug (?) in the AIX system
+    # shell that prevents it from trapping SIGHUP (and invoking the signal
+    # handler)
+    if [ -x /bin/bash ]; then
+        exec /bin/bash $0 $*
+    fi
 fi
 
 
@@ -374,6 +383,13 @@ test_locale()
     dump_charmap $stage_1/$fname $stage_1/charmaps/$charmap
     dump_locale $stage_1/$fname $stage_1/$source.src
 
+    if [ -z "$no_clean" ]; then
+        # remove stage 1 locale to free up disk space but keep
+        # the text dumps for later processing
+        debug_output "rm $stage_1/$fname"
+        rm $stage_1/$fname
+    fi
+
     # create a directory for stage 2 charmap source files
     debug_output "mkdir -p $stage_2/charmaps"
     mkdir -p $stage_2/charmaps
@@ -404,6 +420,13 @@ test_locale()
     dump_charmap $stage_2/$fname $stage_2/charmaps/$charmap
     dump_locale $stage_2/$fname $stage_2/$source.src
 
+    if [ -z "$no_clean" ]; then
+        # remove stage 2 locale to free up disk space but keep
+        # the text dumps for later processing
+        debug_output "rm $stage_2/$fname"
+        rm $stage_2/$fname
+    fi
+
     assertions=`expr $assertions + 1`
 
     # create a directory for stage 2 charmap source files
@@ -433,6 +456,13 @@ test_locale()
     # to a pair of charmap and locale source files
     dump_charmap $stage_3/$fname $stage_3/charmaps/$charmap
     dump_locale $stage_3/$fname $stage_3/$source.src
+
+    if [ -z "$no_clean" ]; then
+        # remove stage 3 locale to free up disk space but keep
+        # the text dumps for later processing
+        debug_output "rm $stage_3/$fname"
+        rm $stage_3/$fname
+     fi
 
     assertions=`expr $assertions + 1`
 
@@ -466,10 +496,10 @@ test_locale()
         failedassertions=`expr $failedassertions + 1`
     fi
 
-    if [ "$no_clean" = "" ]; then
+    if [ -z "$no_clean" ]; then
         # clean up
         debug_output "rm -rf $stage_1 $stage_2 $stage_3"
-        rm -rf rm -rf $stage_1 $stage_2 $stage_3
+        rm -rf $stage_1 $stage_2 $stage_3
     fi
 }
 
@@ -478,16 +508,19 @@ test_locale()
 #
 cleanup ()
 {
-    if [ "$no_clean" = "" ]; then
+    if [ -z "$no_clean" ]; then
         # clean up
         debug_output "rm -rf $tmpdir"
         rm -rf $tmpdir
     fi
+
+    exit
 }
 
 ##############################################################################
 #  Main code
 ##############################################################################
+
 
 ## assertions
 assertions=0
@@ -502,10 +535,6 @@ chk_func=no
 bindir=""
 nlsdir=""
 locdir=""
-
-## Temporary (working) directory
-[ -z "$TMP" ] && TMP="/tmp";
-tmpdir=$TMP/locale.$$
 
 ## Get the options from the command line
 while getopts ":nsfdb:i:l:O:L:M:C:D:" opt_name; do
@@ -526,6 +555,14 @@ while getopts ":nsfdb:i:l:O:L:M:C:D:" opt_name; do
            exit 1;;
      esac;
 done
+
+## set temporary (working) directory
+if [ -z "$TMP" ]; then
+    TMP="/tmp";
+    export TMP;
+fi
+
+tmpdir=$TMP/${locale_db:-unnamed-locale}.$$
 
 ## Actual test
 if [ "$chk_sanity" = "yes" ]; then

@@ -37,8 +37,8 @@
 */
 static void print_header_plain ()
 {
-    puts ("NAME                      STATUS WARN ASSERTS FAILED PERCNT    "
-          "USER     SYS    REAL");
+    puts ("NAME                           STATUS WARN ASSERTS FAILED PERCNT"
+          "    USER     SYS    REAL");
 }
 
 /**
@@ -47,7 +47,7 @@ static void print_header_plain ()
 static void print_target_plain (const struct target_opts*)
 {
     const char* const target_name = get_target ();
-    printf ("%-25.25s ", target_name);
+    printf ("%-30.30s ", target_name);
     fflush (stdout);
 }
 

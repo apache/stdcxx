@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>count(), count_if()</TITLE>
-<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Apache stdcxx Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
 <A HREF="copy.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="cout.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library Reference Guide</B></DIV>
 <H2>count(), count_if()</H2>
@@ -49,7 +49,7 @@ namespace std {
 </PRE>
 <A NAME="sec4"><H3>Description</H3></A>
 <BLOCKQUOTE><HR><B>
-NOTE -- The second versions of the count() and count_if() functions are not part of the C++ Standard, but are included here as extensions for compatibility purposes. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of Rogue Wave extensions.
+NOTE -- The second versions of the count() and count_if() functions are not part of the C++ Standard, but are included here as extensions for compatibility purposes. See <A HREF="B.html">Appendix&nbsp;B</A> for a complete list of extensions of this implementation.
 </B><HR></BLOCKQUOTE>
 <P>The <SAMP>count()</SAMP> algorithm compares <SAMP>value</SAMP> to elements in the sequence defined by iterators <SAMP>start</SAMP> and <SAMP>finish</SAMP>. The first version of <SAMP>count()</SAMP> returns the number of matches. The second version, which is provided for backwards compatibility or as an alternative to the first in case the template <B><I><A HREF="iterator-traits.html">iterator_traits</A></I></B> isn't provided, increments a counting value <SAMP>n</SAMP> each time it finds a match. In other words, <SAMP>count()</SAMP> returns (or adds to <SAMP>n</SAMP>) the number of iterators <SAMP>i</SAMP> in the range <SAMP>[start, finish)</SAMP> for which the following condition holds:</P>
 <P><SAMP>*i == value</SAMP></P>

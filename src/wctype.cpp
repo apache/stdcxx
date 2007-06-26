@@ -6,16 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2005 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -421,6 +428,17 @@ do_is (const char_type *lo, const char_type *hi, mask *mvec) const
 }
 
 
+ctype<wchar_t>::char_type
+ctype<wchar_t>::
+do_widen (char c) const
+{
+    // explicitly specifying template argument list to work around
+    // HP aCC 3 and 5 bug (STDCXX-445)
+    return _RWSTD_CONST_CAST (ctype<wchar_t>*, this)->
+        _C_wide_tab [_UChar (c)] = char_type (_UChar (c));
+}
+
+
 const char*
 ctype<wchar_t>::
 do_widen (const char *lo, const char *hi, char_type *dest) const
@@ -432,6 +450,24 @@ do_widen (const char *lo, const char *hi, char_type *dest) const
         *dest++ = widen (*lo++);
     }
     return hi;
+}
+
+
+ctype<wchar_t>::char_type
+ctype<wchar_t>::
+do_toupper (char_type c) const
+{
+    return _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, c) < _C_tab_size ?
+        _C_upper_tab [_UChar (c)] : c;
+}
+
+
+ctype<wchar_t>::char_type
+ctype<wchar_t>::
+do_tolower (char_type c) const
+{
+    return _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, c) < _C_tab_size ?
+        _C_lower_tab [_UChar (c)] : c;
 }
 
 
@@ -491,6 +527,15 @@ do_scan_not (mask m, const char_type *lo, const char_type *hi) const
     }
 
     return lo;
+}
+
+
+char
+ctype<wchar_t>::
+do_narrow (char_type c, char dfault) const
+{
+    return _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, c) <= _RWSTD_SCHAR_MAX ?
+        _RWSTD_STATIC_CAST (char, c) : dfault;
 }
 
 

@@ -36,8 +36,6 @@ runs examples and checks results.
                 required="false" type="string"/>
             <named helpstring="Run tests in compat mode" name="COMPAT" 
                 required="false" type="string"/>
-            <named helpstring="The lib dll folder" name="LIBDIR" 
-                required="false" type="string"/>
             <named helpstring="The examples extension" name="EXT" 
                 required="false" type="string"/>
             <example>
@@ -48,7 +46,7 @@ runs examples and checks results.
             <usage>
 Usage: cscript runexamples.wsf /EXEDIR:@EXEDIR /CONFIG:@CONFIG
 [/PRJDIR:@PRJDIR] [/INOUTDIR:@INOUTDIR] [/LOGFILE:@LOGFILE]
-[/COMPAT] [/LIBDIR:@LIBDIR] [/EXT:@EXT]
+[/COMPAT] [/EXT:@EXT]
 where
 @EXEDIR is the root directory with executables to be run and checked,
 @PRJDIR is the directory with .vcproj files of the executables,
@@ -57,7 +55,6 @@ required by executables,
 @CONFIG is the compiler configuration (msvc-7.1, icc-9.0, etc),
 @LOGFILE is the log file name,
 @COMPAT is the option for run tests in compat mode,
-@LIBDIR is the library dll folder,
 @EXT is the extension of the example files, default value: "exe".
             </usage>
         </runtime>
@@ -80,7 +77,6 @@ var currentCfg = "msvc-7.1" // the configuration
 var logFileName = ""; // the log file name
 var logFileDefault = "runexamples.log"; // the default log file name
 var compatMode = false;
-var libdllFolder = "";
 var ext = "exe";
 
 var varOut = "out";
@@ -97,7 +93,6 @@ var runTimeout = 180;
 var buildlogFile = "BuildLog.htm";
 var summaryFileName = "Summary.htm";
 var htmFolderName = "temphtm";
-var libFileName = "libstd";
 
 var utlExec = "exec.exe";
 var unicodeLog = false;
@@ -165,8 +160,6 @@ function readAndCheckArguments()
     if (WScript.Arguments.Named.Exists("INOUTDIR"))
         inoutDir =  WScript.Arguments.Named("INOUTDIR");
 
-    utlExec = examplesDir + "\\..\\bin\\" + utlExec;
-    
     if (WScript.Arguments.Named.Exists("LOGFILE"))
         logFileName = WScript.Arguments.Named("LOGFILE");
     else
@@ -174,9 +167,6 @@ function readAndCheckArguments()
         
     if (WScript.Arguments.Named.Exists("COMPAT"))
         compatMode = true;
-    
-    if (WScript.Arguments.Named.Exists("LIBDIR"))
-        libdllFolder = WScript.Arguments.Named("LIBDIR");
     
     if (WScript.Arguments.Named.Exists("EXT"))
         ext = WScript.Arguments.Named("EXT");
@@ -308,7 +298,8 @@ function runAllExamples(exeDir, prjDir, srcDir, fileLog, fileSummary, exeExt)
         itemInfo.exitCode = parseStatus(itemInfo.name + "." + exeExt, execOut);
         switch (itemInfo.exitCode)
         {
-        case 0:  // OK
+        case  0: // OK
+        case -7: // OUTPUT
             ++exRunSucceeded;
             fileLog.WriteLine(itemInfo.name + " completed successfully, exit code " +
                 itemInfo.exitCode);
@@ -351,8 +342,8 @@ function parseStatus(exeName, execOut)
 {
     var res = 0;
 
-    // maxNameLen is the length of the "NAME" column in the exec utility output
-    var maxNameLen = 25;
+    // maxNameLen is the width of the "NAME" column in the exec utility output
+    var maxNameLen = 30;
     var pos = execOut.indexOf(exeName.substr(0, maxNameLen));
     if (0 <= pos)
     {
@@ -377,6 +368,9 @@ function parseStatus(exeName, execOut)
                 break;
             case "  LINK":
                 res = -6;
+                break;
+            case "OUTPUT":
+                res = -7;
                 break;
             default:
                 res = -1;

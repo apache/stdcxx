@@ -2,9 +2,16 @@
 
 #include "config.h"
 
+#if !defined (_RWSTD_NO_NEW_THROWS) && !defined (_RWSTD_NO_NEW_OFLOW_SAFE)
+#  include <stddef.h>   // for size_t
+#endif   // !_RWSTD_NO_NEW_THROWS && !_RWSTD_NO_NEW_OFLOW_SAFE
+
 #ifndef _RWSTD_NO_SETRLIMIT
-#  include <sys/resource.h>   // for setrlimit()
+// test for setrlimit() presence before compiling current file
 #endif
+
+// proclimits.h must be included only after #if[n]def _RWSTD_NO_SETRLIMIT
+#include "proclimits.h"
 
 #ifndef _RWSTD_NO_HONOR_STD
 #  ifdef _RWSTD_NO_STD_TERMINATE
@@ -70,19 +77,14 @@ int main ()
 #ifndef _RWSTD_NO_NEW_THROWS
 #  ifndef _RWSTD_NO_NEW_OFLOW_SAFE
 
-        void *p = ::operator new ((unsigned long)-1);
+        void *p = ::operator new (size_t (-1));
 
         if (!p)
             return 1;
 
 #  else   // if defined (_RWSTD_NO_NEW_OFLOW_SAFE)
 
-#ifndef _RWSTD_NO_SETRLIMIT
-
-        struct rlimit rl = { 0, 0 };
-        setrlimit (RLIMIT_DATA, &rl);
-
-#endif   // _RWSTD_NO_SETRLIMIT
+        limit_memory (0);
 
         for (unsigned long n = 1UL << (sizeof (long) * 8 - 1);
              0 != n; n |= (n >> 1)) {

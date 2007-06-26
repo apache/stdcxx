@@ -160,7 +160,7 @@ int main (int argc, char *argv[])
     std::cout.imbue (std::cin.getloc ());
 
     // output the monetary value specified by the command line argument,
-    // inlcuing the currency symbol, in both the local and international
+    // including the currency symbol, in both the local and international
     // formats
     std::cout.setf (std::cout.showbase);
     std::cout << put_money (valstr) << '\n';

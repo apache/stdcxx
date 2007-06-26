@@ -6,30 +6,28 @@
  *
  ***************************************************************************
  *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2001-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
 #define _RWSTD_LIB_SRC
-
 #include <rw/_defs.h>
-
-#ifndef _RWSTD_NO_V3_LOCALE
 
 #include <locale.h>   // for lconv, localeconv(), setlocale()
 #include <stdio.h>    // for sprintf()
@@ -59,15 +57,17 @@
 _RWSTD_NAMESPACE (__rw) {
 
 
-static inline void __rw_copy (void *dst, const void *src, _RWSTD_SIZE_T n)
+static inline void
+__rw_copy (void *dst, const void *src, size_t n)
 {
-    ::memcpy (dst, src, n);
+    memcpy (dst, src, n);
 }
 
-static inline void __rw_widen (void *dst, const void *src, _RWSTD_SIZE_T n)
+static inline void
+__rw_widen (void *dst, const void *src, size_t n)
 {
-    ::mbstowcs (_RWSTD_STATIC_CAST (wchar_t*, dst),
-                _RWSTD_STATIC_CAST (const char*, src), n);
+    mbstowcs (_RWSTD_STATIC_CAST (wchar_t*, dst),
+              _RWSTD_STATIC_CAST (const char*, src), n);
 }
 
 
@@ -80,7 +80,7 @@ __rw_get_numpunct (const __rw_facet *pfacet, int flags)
 
     if (pdata) {
 
-        const __rw_punct_t *pun =
+        const __rw_punct_t* const pun =
             _RWSTD_STATIC_CAST (const __rw_punct_t*, pdata);
 
         const __rw_num_t *num;
@@ -144,13 +144,13 @@ __rw_get_numpunct (const __rw_facet *pfacet, int flags)
     const char* const ts  = pconv->thousands_sep ? pconv->thousands_sep : "";
 
     // the size of the narrow grouping string in bytes
-    const _RWSTD_SIZE_T grsz = strlen (grp) + 1;
+    const size_t grsz = strlen (grp) + 1;
 
     // compute the sizes of all members in bytes
-    _RWSTD_SIZE_T dpsz = strlen (dp) + 1;
-    _RWSTD_SIZE_T tssz = strlen (ts) + 1;
-    _RWSTD_SIZE_T tnsz = sizeof "true";
-    _RWSTD_SIZE_T fnsz = sizeof "false";
+    size_t dpsz = strlen (dp) + 1;
+    size_t tssz = strlen (ts) + 1;
+    size_t tnsz = sizeof "true";
+    size_t fnsz = sizeof "false";
 
     if (winx) {
         // adjust for wide characters
@@ -161,10 +161,10 @@ __rw_get_numpunct (const __rw_facet *pfacet, int flags)
     }
 
     // compute the actual size of the variable size structure
-    const _RWSTD_SIZE_T size =
+    const size_t size =
           sizeof (__rw_punct_t)
         + sizeof (__rw_num_t)
-        + sizeof (_RWSTD_SIZE_T)   // maximum padding for alignment
+        + sizeof (size_t)   // maximum padding for alignment
         + grsz + dpsz + tssz + tnsz + fnsz;
 
     // allocate variable size structure(s)
@@ -176,7 +176,7 @@ __rw_get_numpunct (const __rw_facet *pfacet, int flags)
     pun->thousands_sep_off [winx] = pun->decimal_point_off [winx] + int (dpsz);
 
     // point widen to a wrapper for mbstowcs() for wchar_t or memcpy otherwise
-    void (*widen)(void*, const void*, _RWSTD_SIZE_T) =
+    void (*widen)(void*, const void*, size_t) =
         winx ? __rw_widen : __rw_copy;
 
     // copy strings from lconv data members to the varaiable size structure
@@ -189,9 +189,9 @@ __rw_get_numpunct (const __rw_facet *pfacet, int flags)
     pun->punct_ext_off = pun->thousands_sep_off [winx] + int (tssz);
 
     // adjust alignment
-    const _RWSTD_SIZE_T misalign = pun->punct_ext_off % sizeof (_RWSTD_SIZE_T);
+    const size_t misalign = pun->punct_ext_off % sizeof (size_t);
     if (misalign)
-        pun->punct_ext_off += int (sizeof (_RWSTD_SIZE_T) - misalign);
+        pun->punct_ext_off += int (sizeof (size_t) - misalign);
 
     s = _RWSTD_REINTERPRET_CAST (char*, pun + 1) + pun->punct_ext_off;
 
@@ -220,7 +220,7 @@ __rw_get_numpunct (const __rw_facet *pfacet, int flags)
         pun;
 
     __rw_access::_C_get_impsize (*_RWSTD_CONST_CAST (__rw_facet*, pfacet)) =
-        (_RWSTD_SIZE_T)(-1);
+        (size_t)(-1);
 
     // call self recursively on already initialized `impdata'
     return __rw_get_numpunct (pfacet, flags);
@@ -239,7 +239,7 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
 
     if (pdata) {
 
-        const __rw_punct_t *pun =
+        const __rw_punct_t* const pun =
             _RWSTD_STATIC_CAST (const __rw_punct_t*, pdata);
 
         const __rw_mon_t *mon;
@@ -267,7 +267,7 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
         case __rw_nf: return mon->neg_format [intl];
 
         case __rw_fd:
-            return _RWSTD_REINTERPRET_CAST (void*, (_RWSTD_SIZE_T)
+            return _RWSTD_REINTERPRET_CAST (void*, (size_t)
                                             UChar (mon->frac_digits [intl]));
 
         default: _RWSTD_ASSERT (!"bad discriminant");
@@ -318,18 +318,18 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
     _RWSTD_ASSERT (pconv->mon_thousands_sep);
 
     // the size of the narrow grouping string in bytes
-    const _RWSTD_SIZE_T grsz = ::strlen (pconv->mon_grouping) + 1;
+    const size_t grsz = strlen (pconv->mon_grouping) + 1;
 
     // compute the sizes of all members in bytes
-    _RWSTD_SIZE_T dpsz = ::strlen (pconv->mon_decimal_point) + 1;
-    _RWSTD_SIZE_T tssz = ::strlen (pconv->mon_thousands_sep) + 1;
-    _RWSTD_SIZE_T pssz = ::strlen (pconv->positive_sign) + 1;
-    _RWSTD_SIZE_T nssz = ::strlen (pconv->negative_sign) + 1;
+    size_t dpsz = strlen (pconv->mon_decimal_point) + 1;
+    size_t tssz = strlen (pconv->mon_thousands_sep) + 1;
+    size_t pssz = strlen (pconv->positive_sign) + 1;
+    size_t nssz = strlen (pconv->negative_sign) + 1;
 
     const char* const cs = intl ? pconv->int_curr_symbol
                                 : pconv->currency_symbol;
 
-    _RWSTD_SIZE_T cssz = ::strlen (cs) + 1;
+    size_t cssz = strlen (cs) + 1;
 
     if (winx) {
         // adjust for wide characters
@@ -341,10 +341,10 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
     }
 
     // compute the actual size of the variable size structure
-    const _RWSTD_SIZE_T size =
+    const size_t size =
           sizeof (__rw_punct_t)
         + sizeof (__rw_mon_t)
-        + sizeof (_RWSTD_SIZE_T)   // maximum padding for alignment
+        + sizeof (size_t)   // maximum padding for alignment
         + grsz + dpsz + tssz + pssz + nssz + cssz;
 
     // allocate variable size structure(s)
@@ -356,7 +356,7 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
     pun->thousands_sep_off [winx] = pun->decimal_point_off [winx] + int (dpsz);
 
     // point widen to a wrapper for mbstowcs() for wchar_t or memcpy otherwise
-    void (*widen)(void*, const void*, _RWSTD_SIZE_T) =
+    void (*widen)(void*, const void*, size_t) =
         winx ? __rw_widen : __rw_copy;
 
     // copy strings from lconv data members to the varaiable size structure
@@ -369,9 +369,9 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
     pun->punct_ext_off = pun->thousands_sep_off [winx] + int (tssz);
 
     // adjust alignment
-    const _RWSTD_SIZE_T misalign = pun->punct_ext_off % sizeof (_RWSTD_SIZE_T);
+    const size_t misalign = pun->punct_ext_off % sizeof (size_t);
     if (misalign)
-        pun->punct_ext_off += int (sizeof (_RWSTD_SIZE_T) - misalign);
+        pun->punct_ext_off += int (sizeof (size_t) - misalign);
 
     s = _RWSTD_REINTERPRET_CAST (char*, pun + 1) + pun->punct_ext_off;
 
@@ -380,7 +380,7 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
     s += sizeof *mon;
 
     // invalidate members (offsets) by setting them to 0xff
-    ::memset (mon, ~0, sizeof *mon);
+    memset (mon, ~0, sizeof *mon);
 
     mon->positive_sign_off [winx] = 0;
     mon->negative_sign_off [winx] = mon->positive_sign_off [winx] + int (pssz);
@@ -399,7 +399,7 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
         + mon->curr_symbol_off [intl][winx] + cssz);
 
     // place narrow grouping string last to avoid alignment issues
-    ::memcpy (s + mon->curr_symbol_off [intl][winx] + cssz,
+    memcpy (s + mon->curr_symbol_off [intl][winx] + cssz,
             pconv->mon_grouping, grsz);
 
     mon->frac_digits [0]    = pconv->frac_digits;
@@ -437,14 +437,14 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
 
     enum {
         // for syntactic convenience
-        none   = _V3_LOCALE::money_base::none,
-        space  = _V3_LOCALE::money_base::space,
-        symbol = _V3_LOCALE::money_base::symbol,
-        sign   = _V3_LOCALE::money_base::sign,
-        value  = _V3_LOCALE::money_base::value
+        none   = _STD::money_base::none,
+        space  = _STD::money_base::space,
+        symbol = _STD::money_base::symbol,
+        sign   = _STD::money_base::sign,
+        value  = _STD::money_base::value
     };
 
-    static const _V3_LOCALE::money_base::pattern pat[] = {
+    static const _STD::money_base::pattern pat[] = {
 
         // cs_precedes [0..1]:
         //
@@ -517,32 +517,30 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
         /* 124: $ -1 */ { { symbol, space, sign, value } }   // "\2\1\3\4"
     };
 
-    typedef _RWSTD_SIZE_T SizeT;
-
-    _RWSTD_SIZE_T inx =   SizeT (mon->p_cs_precedes [intl]) * (3U * 5U)
-                        + SizeT (mon->p_sep_by_space [intl]) * 5U
-                        + SizeT (mon->p_sign_posn [intl]);
+    size_t inx =   size_t (mon->p_cs_precedes [intl]) * (3U * 5U)
+                 + size_t (mon->p_sep_by_space [intl]) * 5U
+                 + size_t (mon->p_sign_posn [intl]);
 
     if (inx < sizeof pat / sizeof *pat)
-        ::memcpy (mon->pos_format [intl], pat + inx, sizeof *pat);
+        memcpy (mon->pos_format [intl], pat + inx, sizeof *pat);
     else
-        ::memset (mon->pos_format [intl], none, sizeof *pat);
+        memset (mon->pos_format [intl], none, sizeof *pat);
 
-    inx =   SizeT (mon->n_cs_precedes [intl]) * (3U * 5U)
-          + SizeT (mon->n_sep_by_space [intl]) * 5U
-          + SizeT (mon->n_sign_posn [intl]);
+    inx =   size_t (mon->n_cs_precedes [intl]) * (3U * 5U)
+          + size_t (mon->n_sep_by_space [intl]) * 5U
+          + size_t (mon->n_sign_posn [intl]);
 
     if (inx < sizeof pat / sizeof *pat)
-        ::memcpy (mon->neg_format [intl], pat + inx, sizeof *pat);
+        memcpy (mon->neg_format [intl], pat + inx, sizeof *pat);
     else
-        ::memset (mon->neg_format [intl], none, sizeof *pat);
+        memset (mon->neg_format [intl], none, sizeof *pat);
 
     // set `impdata' and `impsize' (facet base dtor will delete)
     __rw_access::_C_get_impdata (*_RWSTD_CONST_CAST (__rw_facet*, pfacet)) =
         pun;
 
     __rw_access::_C_get_impsize(*_RWSTD_CONST_CAST (__rw_facet*, pfacet)) =
-        (_RWSTD_SIZE_T)(-1);
+        (size_t)(-1);
 
     // call self recursively on already initialized `impdata'
     return __rw_get_moneypunct (pfacet, flags);
@@ -641,7 +639,7 @@ __rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags, int prec)
 
 #ifdef _RWSTD_LLONG_PRINTF_PREFIX
 
-        ::memcpy (pbuf, _RWSTD_LLONG_PRINTF_PREFIX,
+        memcpy (pbuf, _RWSTD_LLONG_PRINTF_PREFIX,
                 sizeof _RWSTD_LLONG_PRINTF_PREFIX - 1);
         pbuf += sizeof _RWSTD_LLONG_PRINTF_PREFIX - 1;
 
@@ -695,6 +693,3 @@ __rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags, int prec)
 
 
 }   // namespace __rw
-
-
-#endif   // _RWSTD_NO_V3_LOCALE

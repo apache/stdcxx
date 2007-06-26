@@ -36,7 +36,9 @@
 #include <set>
 
 #ifndef _MSC_VER
-#  include <iconv.h>
+#  ifndef _RWSTD_NO_ICONV
+#    include <iconv.h>
+#  endif
 #endif  // _MSC_VER
 
 #include "scanner.h"

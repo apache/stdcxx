@@ -291,13 +291,13 @@ struct _RWSTD_EXPORT ios_base: _RW::__rw_synchronized
 
     typedef void (*event_callback)(event, ios_base&, int);
 
-    // 27.5.2.6, p1
+    // 27.4.2.6, p1
     void register_callback (event_callback, int);
     
     // 27.4.2.4, p1
     static bool sync_with_stdio (bool = true);
 
-    // 27.5.2.7, p2
+    // 27.4.2.7, p2
     virtual ~ios_base ();    
 
     // returns a numeric base as per 22.2.2.1.2, p4
@@ -307,7 +307,7 @@ struct _RWSTD_EXPORT ios_base: _RW::__rw_synchronized
 
 protected:
 
-    // 27.5.2.7, p1
+    // 27.4.2.7, p1
     ios_base ();
 
     // implements basic_ios<T>::init()

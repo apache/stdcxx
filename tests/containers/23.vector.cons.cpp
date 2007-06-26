@@ -241,11 +241,10 @@ void test_signatures (Vector*, T*, Allocator)
 
     MEMFUN (void, insert, (Iterator, SizeType, const T&));
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
     // member function template insert
     MEMFUN (void, insert, (Iterator, InputIter<T>, InputIter<T>));
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     MEMFUN (Iterator, erase, (Iterator));
     MEMFUN (Iterator, erase, (Iterator, Iterator));
@@ -603,8 +602,7 @@ void test_ctors (Vector*, T*, Alloc alloc)
         }
     }
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     if (1) {
 
@@ -669,7 +667,7 @@ void test_ctors (Vector*, T*, Alloc alloc)
         alloc.deallocate (vals, rw_opt_nloops);
     }
 
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
 
 }
 

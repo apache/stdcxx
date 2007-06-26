@@ -409,56 +409,17 @@ struct InputIter: ITER_BASE (std::input_iterator_tag, T, int, T*, T&)
     };
 
     // InputIterators are not default constructible
-    InputIter (const value_type *cur,
-               const value_type *beg,
-               const value_type *end)
-        : ptr_ (new Shared (cur, beg, end)), cur_ (cur) { }
+    InputIter (const value_type* /* current */,
+               const value_type* /* begin */,
+               const value_type* /* end */);
 
-    InputIter (const InputIter &rhs)
-        : ptr_ (rhs.ptr_), cur_ (rhs.cur_) {
-        RW_ASSERT (0 != ptr_);
-        ++ptr_->ref_;
-    }
+    InputIter (const InputIter&);
 
-    ~InputIter () {
-        RW_ASSERT (0 != ptr_);
+    ~InputIter ();
 
-        if (0 == --ptr_->ref_)   // decrement the reference count
-            delete ptr_;
-        ptr_ = 0;
-        cur_ = 0;
-    }
+    InputIter& operator= (const InputIter&);
 
-    InputIter& operator= (const InputIter &rhs) {
-        RW_ASSERT (rhs == rhs);   // assert `rhs' is valid
-
-        RW_ASSERT (0 != ptr_);
-        if (0 == --ptr_->ref_)
-            delete ptr_;
-
-        ptr_ = rhs.ptr_;
-
-        RW_ASSERT (0 != ptr_);
-        ++ptr_->ref_;
-
-        cur_ = rhs.cur_;
-
-        return *this;
-    }
-
-    bool operator== (const InputIter &rhs) const {
-        // assert that both arguments are in the domain of operator==()
-        // i.e., that no copy of *this or `rhs' has been incremented
-        // and that no copy passed through this value of the iterator
-
-        RW_ASSERT (0 != ptr_);
-        RW_ASSERT (cur_ == ptr_->cur_);
-
-        RW_ASSERT (0 != rhs.ptr_);
-        RW_ASSERT (rhs.cur_ == rhs.ptr_->cur_);
-
-        return cur_ == rhs.cur_;
-    }
+    bool operator== (const InputIter&) const;
 
     bool operator!= (const InputIter &rhs) const {
         return !(*this == rhs);
@@ -492,6 +453,84 @@ struct InputIter: ITER_BASE (std::input_iterator_tag, T, int, T*, T&)
     Shared           *ptr_;
     const value_type *cur_;   // past-the-end
 };
+
+
+// "large" member functions outlined to prevent gcc -Winline warnings
+
+template <class T>
+InputIter<T>::
+InputIter (const value_type *cur,
+           const value_type *beg,
+           const value_type *end)
+    : ptr_ (new Shared (cur, beg, end)), cur_ (cur)
+{
+    // empty
+}
+
+
+template <class T>
+InputIter<T>::
+InputIter (const InputIter &rhs)
+    : ptr_ (rhs.ptr_), cur_ (rhs.cur_)
+{
+    RW_ASSERT (0 != ptr_);
+    ++ptr_->ref_;
+}
+
+
+template <class T>
+InputIter<T>::
+~InputIter ()
+{
+    RW_ASSERT (0 != ptr_);
+
+    if (0 == --ptr_->ref_)   // decrement the reference count
+        delete ptr_;
+
+    ptr_ = 0;
+    cur_ = 0;
+}
+
+
+template <class T>
+InputIter<T>&
+InputIter<T>::
+operator= (const InputIter &rhs)
+{
+    RW_ASSERT (rhs == rhs);   // assert `rhs' is valid
+
+    RW_ASSERT (0 != ptr_);
+    if (0 == --ptr_->ref_)
+        delete ptr_;
+
+    ptr_ = rhs.ptr_;
+
+    RW_ASSERT (0 != ptr_);
+    ++ptr_->ref_;
+
+    cur_ = rhs.cur_;
+
+    return *this;
+}
+
+
+template <class T>
+bool
+InputIter<T>::
+operator== (const InputIter &rhs) const
+{
+    // assert that both arguments are in the domain of operator==()
+    // i.e., that no copy of *this or `rhs' has been incremented
+    // and that no copy passed through this value of the iterator
+
+    RW_ASSERT (0 != ptr_);
+    RW_ASSERT (cur_ == ptr_->cur_);
+
+    RW_ASSERT (0 != rhs.ptr_);
+    RW_ASSERT (rhs.cur_ == rhs.ptr_->cur_);
+
+    return cur_ == rhs.cur_;
+}
 
 /**************************************************************************/
 
@@ -567,24 +606,9 @@ struct OutputIter: ITER_BASE (std::output_iterator_tag, T, int, T*, T&)
         ++ptr_->ref_;   // increment the reference count
     }
 
-    ~OutputIter () {
-        if (0 == --ptr_->ref_)   // decrement the reference count
-            delete ptr_;
-        ptr_ = 0;
-        cur_ = 0;
-    }
+    ~OutputIter ();
 
-    OutputIter& operator= (const OutputIter &rhs) {
-        if (0 == --ptr_->ref_)
-            delete ptr_;
-
-        ptr_ = rhs.ptr_;
-        ++ptr_->ref_;
-
-        cur_ = rhs.cur_;
-
-        return *this;
-    }
+    OutputIter& operator= (const OutputIter&);
 
     void operator= (const value_type &rhs) const {
         **this = rhs;
@@ -619,6 +643,41 @@ struct OutputIter: ITER_BASE (std::output_iterator_tag, T, int, T*, T&)
     Shared  *ptr_;
     pointer  cur_;
 };
+
+
+// "large" member functions outlined to prevent gcc -Winline warnings
+
+template <class T>
+OutputIter<T>::
+~OutputIter ()
+{
+    RW_ASSERT (0 != ptr_);
+
+    if (0 == --ptr_->ref_)   // decrement the reference count
+        delete ptr_;
+
+    ptr_ = 0;
+    cur_ = 0;
+}
+
+
+template <class T>
+OutputIter<T>&
+OutputIter<T>::
+operator= (const OutputIter &rhs)
+{
+    RW_ASSERT (0 != ptr_);
+
+    if (0 == --ptr_->ref_)
+        delete ptr_;
+
+    ptr_ = rhs.ptr_;
+    ++ptr_->ref_;
+
+    cur_ = rhs.cur_;
+
+    return *this;
+}
 
 /**************************************************************************/
 

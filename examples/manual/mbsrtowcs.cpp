@@ -142,7 +142,7 @@ int main ()
         // <U0391>: Greek letter Alpha
         "\xce\x91",
         // <U0391><U0392>: Greek letters Alpha Beta
-        "\xce\x91\xce\x91\xce\x92",
+        "\xce\x91\xce\x92",
         // <U0391><U0392><U0393>: Greek letters Alpha Beta Gamma
         "\xce\x91\xce\x92\xce\x93",
         // <U0966>: Devangari digit 0
@@ -197,6 +197,9 @@ int main ()
             std::cerr << "Error converting source sequence.\n";
             continue;
         }
+
+        // NUL-terminate the converted string
+        dst [nconv] = L'\0';
 
         // write out the wide and the narrow sequences
         std::cout << "UCS-2 (" << std::dec << length << "): " << std::hex;

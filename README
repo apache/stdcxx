@@ -37,6 +37,7 @@
     VisualStudio Setup Instructions .............................. 5.1
   Library Installation ............................................. 6
   Test Suite Build Instructions .................................... 7
+    VisualStudio Test Suite Build Instructions ................... 7.1
   Library Configuration ............................................ 8
     Header config.h .............................................. 8.1
     Headers rw/_config.h and rw/_defs.h .......................... 8.2
@@ -51,7 +52,7 @@
       Macros Controlling Implementation Properties ............. 8.3.8
       Other Configuration Macros ............................... 8.3.9
       Macros Controlling Extensions ........................... 8.3.10
-  Library Oragnization ............................................. 9
+  Library Organization ............................................. 9
     Organization of Headers ...................................... 9.1 
     Organization of Sources ...................................... 9.2
   Platform Notes .................................................. 10
@@ -147,34 +148,46 @@
   create the required directory structure from the alternate structure
   (not described here).
 
-      ${TOPDIR}/GNUmakefile       master makefile
+      ${TOPDIR}/GNUmakefile           master makefile
        +- etc/
-       |  +- config/GNUmakefile.* makefiles
-       |  |  |     /*.config      compiler config files
-       |  |  |     /fixtree.sh    directory tree configuration script
-       |  |  |     /makefile.*    common definitions and rules
-       |  |  |     /runall.sh     testsuite run script
-       |  |  +- src/              configuration sources and scripts
-       |  +- nls/                 locale definitions and charmaps
-       |     +- charmaps/         character set description files
-       |     +- src/              locale definition files
-       +- examples/               set of examples and tutorials
-       |  +- include/*.h          common example headers
-       |  +- manual/*.cpp         example sources
-       |  +- tutorial/*.cpp       tutorial sources
-       +- include/*               public library headers
-       |  +- ansi/*               C++ C library headers
-       |  +- loc/_*.{h,c,cc}      private locale headers
-       |  +- rw/_*.{h,c,cc}       other private library headers
-       +- src/*.cpp               library sources
-       +- util/*.{h,c,cc,cpp}     utility headers and sources
-       +- tests/                  test suite files
-       |  +- include/*.h          common test headers
-       |  +- */*.cpp              test suite sources
-       +- ../rwtest               test suite infrastructure
+       |  +- config/GNUmakefile.*     makefiles
+       |  |  |     /*.config          compiler config files
+       |  |  |     /fixtree.sh        directory tree configuration
+       |  |  |                        script
+       |  |  |     /makefile.*        common definitions and rules
+       |  |  |     /runall.sh         testsuite run script
+       |  |  +- src/                  configuration sources and
+       |  |  |                        scripts
+       |  |  +- windows/generate.wsf  solution generation script
+       |  |            /configure.wsf configuration script
+       |  |            /build.wsf     solution build script
+       |  |            /makelog.wsf   log creation script
+       |  |            /runall.wsf    testsuite run script
+       |  |            /*.js          utility scripts
+       |  |            /*.config      compiler config files
+       |  +- nls/                     locale definitions and
+       |     |                        charmaps
+       |     +- charmaps/             character set description files
+       |     +- src/                  locale definition files
+       +- examples/                   set of examples and tutorials
+       |  +- include/*.h              common example headers
+       |  +- manual/*.cpp             example sources
+       |  +- tutorial/*.cpp           tutorial sources
+       +- include/*                   public library headers
+       |  +- ansi/*                   C++ C library headers
+       |  +- loc/_*.{h,c,cc}          private locale headers
+       |  +- rw/_*.{h,c,cc}           other private library headers
+       +- src/*.cpp                   library sources
+       +- util/*.{h,c,cc,cpp}         utility headers and sources
+       +- tests/                      test suite files
+       |  +- include/*.h              common test headers
+       |  +- */*.cpp                  test suite sources
+       +- ../rwtest                   test suite infrastructure
              +- rw/
-             |  +- rwtest/*.h     test suite infrastructure headers
-             +- src/*.cpp         test suite infrastructure sources
+             |  +- rwtest/*.h         test suite infrastructure
+             |                        headers
+             +- src/*.cpp             test suite infrastructure
+                                      sources
 
 
   4.1  Library Files
@@ -221,7 +234,7 @@
     +------------+------------+------------+------------+------------+
 
   Any  other  header  files  not  mandated by  the  C++  Standard  are
-  contained  in the include/rw/  or includ/loc  subdirectories.  Their
+  contained  in the include/rw/ or include/loc  subdirectories.  Their
   names start  with an underscore,  to prevent potential  clashes with
   any user  headers, and end  in a .h  suffix.  Some of them  may have
   corresponding .c and .cc files.
@@ -492,14 +505,78 @@
 
   o  > .\generate.bat /BUILDDIR:<builddir> /CONFIG:<config>
 
-     Where <builddir> is the name of the directory where to create the
-     solution and projects, and <config> is one of msvc-7.1, msvc-8.0,
-     and  icc-9.0.   After  the  script has  finished  generating  the
-     solution and  projects, cd to <builddir>  and launch VisualStudio
-     with the name  of the solution as the argument.   The name of the
-     solution will correspond to  the specified configuration with the
-     .sln suffix.
+     <builddir> is the pathname of the build directory where to create
+                the solution  and  projects;  the  directory  will  be
+                created  (as will  all  its  required  subdirectories)
+                this is a required argument
+     <config>   name  (not  pathname)  of  a  config  file  containing
+                compiler options; the available configuration files
+                are:
+                icc-9.0.config  - for Intel C++ 9.0
+                icc-9.1.config  - for Intel C++ 9.1
+                msvc-7.0.config - for Microsoft Visual C++ .NET
+                msvc-7.1.config - for Microsoft Visual C++ .NET 2003
+                msvc-8.0.config - for Microsoft Visual C++ .NET 2005
+                msvc-8.0-x64.config - for Microsoft Visual C++ .NET
+                                      2005 (x64 platform)
+                msvcex-8.0.config - for Microsoft Visual C++ Express
+                                    2005
+                this is a required argument
 
+  o  Example:
+       > generate.bat /BUILDDIR:C:\stdcxx /CONFIG:msvc-7.1
+
+     This command will create a build directory rooted at ${BUILDDIR},
+     the solution file  ${BUILDDIR}\msvc-7.1\msvc-7.1.sln, the project
+     files in directory  ${BUILDDIR}\msvc-7.1\Projects, and batch file
+     ${BUILDDIR}\build_msvc-7.1.bat.
+
+  To build the library, test  suite (*), and examples (*), perform the
+  following steps: (* Where available.)
+
+  o  > cd ${BUILDDIR}
+
+  o  > build_msvc-7.1.bat [<build-types>]
+
+     <build-types> is one or more of {
+                      8s, 8d, 11s, 11d, 12s, 12d, 15s, 15d
+                  }
+
+                  The  numeric  part  of <build-type>  determines  the
+                  presence  or  absence   of  support  for  debugging,
+                  whether  optimization is or  isn't enabled,  and the
+                  thread safety level of the library, as follows:
+
+                  --  optimization enabled: even  numbers (i.e., 8 and
+                      12) 
+                  --  debugging enabled: odd numbers (i.e., 11 and 15)
+                  --  thread safe code: 12 and 15
+
+                  The  single  letter following  the  numeric part  of
+                  <build-type> determines  whether a static or dynamic
+                  library is  built:
+
+                  --  s implies an static library 
+                  --  d implies a dynamic library
+
+                  The <build-types>  argument  is optional.  When  not
+                  specified a build type of 11s is assumed.
+
+  o  Example:
+       > build_msvc-7.1.bat 15d
+
+     run  the configuration  scripts, and  build a thread-safe dynamic
+     library  with   debugging  information  included   and  debugging
+     facilities enabled.  If the build is successful, the library will
+     be  located in ${BUILDDIR}\msvc-7.1\${BUILDTYPE}\lib\ and will be
+     named libstd${BUILDTYPE}.dll  (libstd${BUILDTYPE}.lib if building
+     a   static    library).    Public   library    headers   are   in
+     ${TOPDIR}\include\ and its subdirectories, the generated config.h
+     is in ${BUILDDIR}\msvc-7.1\${BUILDTYPE}\include\.
+
+     Alternatively,  you can run Microsoft Visual Studio IDE,  open the
+     generated solution file, select the desired solution configuration
+     and invoke "Build"->"Build Solution" command.
 
   6  Library Installation
   -----------------------
@@ -581,6 +658,28 @@
      ${TOPDIR}/etc/config/runall.sh for other options).
 
      * Where available. 
+
+
+  7.1  VisualStudio Test Suite Build Instructions
+  -----------------------------------------------
+
+  When  available,  the test  suite  can  be  built by  following  the
+  following steps.
+
+  o  Run  Microsoft Visual Studio IDE,  open  the  generated  solution
+     file and select the desired solution configuration.
+
+     To build  the examples  select the  .stdcxx_examples  project and
+     invoke "Build"->"Build .stdcxx_examples" command.
+
+     To build  the tests select  the .stdcxx_tests  project and invoke
+     "Build"->"Build .stdcxx_tests" command.
+
+     To run  the examples  select the .stdcxx_runexamples  project and
+     invoke "Build"->"Build .stdcxx_runexamples" command.
+
+     To run  the tests select the .stdcxx_runtests  project and invoke
+     "Build"->"Build .stdcxx_runtests" command.
 
 
   8  Library Configuration
@@ -1126,7 +1225,7 @@
      acosf(float) is  not declared in  <math.h> on a platform  but the
      symbol extern "C" acosf is  found in the libm library binary, the
      macro   _RWSTD_NO_ACOSF   will   be   #defined  but   the   macro
-     _RWSTD_NO_ACOSF_IN_LIBM will be #undef-ined.
+     _RWSTD_NO_ACOSF_IN_LIBM will be #undefined.
 
   o  _RWSTD_NO_PURE_C_HEADERS
 
@@ -1228,7 +1327,7 @@
 
   o  _RWSTD_NO_CONDENSED_NAME
 
-     Whend   #defined,  locale   names  always   include   all  locale
+     When   #defined,  locale   names  always   include   all   locale
      categories,  even if they  are all  the same.  This is  true, for
      example, on HP-UX  when the name of the  "C" locale returned from
      setlocale (LC_ALL, 0) is "C C C C  C C" and not just "C" as it is
@@ -1236,7 +1335,7 @@
 
   o  _RWSTD_LDBL_PRINTF_PREFIX [auto, lib]
 
-     #defined the the printf() format modifier as a string literal for
+     #defined  the printf()  format modifier  as a string  literal for
      type  long double, when  supported. Typically,  the value  of the
      macro is "L".
 
@@ -1247,7 +1346,7 @@
 
   o  _RWSTD_LLONG_PRINTF_PREFIX [auto]
 
-     #defined the the printf() format modifier as a string literal for
+     #defined  the printf()  format  modifier as a string  literal for
      type long long, when supported. Typically, the value of the macro
      is "ll".
 
@@ -1291,7 +1390,7 @@
      _RWSTD_MEMPTR_SIZE   (member pointer)
 
      Each of  the _RWSTD_<type>_SIZE macros above expands  to the size
-     of the respective  fundamental type (as retruned by  sizeof) as a
+     of the respective  fundamental type (as returned by  sizeof) as a
      constant   integer   expressions   suitable   for  use   in   #if
      preprocessing   directives.   If   no   such  type   exists   the
      corresponding macros are not #defined.
@@ -1473,7 +1572,7 @@
 
   o  _RWSTD_NO_EXT_IOS_SAFE_CONVERSION [over]
 
-     When #defined, the the  const member function operator void*() of
+     When  #defined,  the  const member  function  operator void*() of
      the  class   template  basic_ios  is   declared.  Otherwise,  the
      resolution  of   the  Library   Working  Group's  issue   568  is
      implemented instead. See
@@ -1487,7 +1586,7 @@
 
   o  _RWSTD_NO_EXT_PORTABLE_RANDOM_SEQUENCE [lib, pure]
 
-     Whend  #defined,  the  random   number  generator  used  by  this
+     When  #defined,  the  random   number   generator  used  by  this
      implementation  of  the C++  Standard  Library generates  integer
      values  in the  full range  of the  type size_t.   Otherwise, the
      generator is  restricted to the  range of unsigned  32-bit values
@@ -1546,12 +1645,12 @@
   o  _RWSTD_NO_EXT_TIME_PUT_PRIMARY [over, pure]
   o  _RWSTD_NO_EXT_MESSAGES_PRIMARY [over, pure]
 
-     When  #defined,  the  correspondig  primary  template,  which  is
+     When  #defined,  the  corresponding  primary  template, which  is
      otherwise defined as an  extension of this implementation, is not
      defined by the library.
 
 
-  9  Library Oragnization
+  9  Library Organization
   -----------------------
 
   The symbols declared  and defined by this implementation  of the C++
@@ -1570,7 +1669,7 @@
   directory  (such as  iostream  or rw/_config.h) along  with a  brief
   description of the contents of the file and a copyright notice.
 
-  Below  the comment  is a  header #inclusion  guard that  pevents the
+  Below  the comment is a  header #inclusion  guard that  prevents the
   contents of the same header  file from being expanded more than once
   in any translation unit from which the header might be included more
   than once. The naming convention used for the guard is as follows:
@@ -1713,7 +1812,7 @@
     10.12  Microsoft MSVC
     --------------------
 
-    Pported to MSVC 6.0 through 8.0 on Windows (x86, IA64, and EM64T).
+    Ported to MSVC 6.0 through 8.0 on Windows (x86, IA64, and EM64T).
 
 
     10.13  SGI MIPSpro

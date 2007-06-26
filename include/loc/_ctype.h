@@ -1,24 +1,31 @@
 /***************************************************************************
  *
- * _ctype.h - 
+ * _ctype.h
  *
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id: //stdlib/dev/include/loc/_ctype.h#57 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2005 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -426,34 +433,21 @@ protected:
     virtual const char_type*
     do_is (const char_type*, const char_type*, mask*) const;
 
-// for convenience
-#define _RWSTD_CONVERT(tab, c)   \
-   _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, c) < _C_tab_size ? tab [_UChar (c)] : c
-
     // 22.2.1.1.2, p7
-    virtual char_type do_toupper (char_type __c) const {
-        return _RWSTD_CONVERT (_C_upper_tab, __c);
-    }
+    virtual char_type do_toupper (char_type) const;
 
     // 22.2.1.1.2, p9
-    virtual char_type do_tolower (char_type __c) const {
-        return _RWSTD_CONVERT (_C_lower_tab, __c);
-    }
+    virtual char_type do_tolower (char_type) const;
 
     // 22.2.1.1.2, p11
-    virtual char_type do_widen (char __c) const {
-        return _RWSTD_CONST_CAST (ctype*, this)->
-            _C_wide_tab [_UChar (__c)] = char_type (_UChar (__c));
-    }
+    virtual char_type do_widen (char) const;
 
     virtual const char*
     do_widen (const char*, const char*, char_type*) const;
 
     // 22.2.1.1.2, p13
-    virtual char do_narrow (char_type __c, char __dfault) const {
-        return _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, __c) <= _RWSTD_SCHAR_MAX ?
-            _RWSTD_STATIC_CAST (char, __c) : __dfault;
-    }
+    virtual char
+    do_narrow (char_type, char) const;
 
     virtual const char_type*
     do_toupper (char_type*, const char_type*) const;
@@ -474,7 +468,7 @@ protected:
 
 public:
 
-    _EXPLICIT ctype (_RWSTD_SIZE_T __ref = 0);
+    _EXPLICIT ctype (_RWSTD_SIZE_T = 0);
 
 
     // 22.2.1.1.1, p1
