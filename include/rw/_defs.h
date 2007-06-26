@@ -619,18 +619,10 @@
 // If compiler supports member and default templates then it supports
 // the _RWSTD_ALLOCATOR
 //
-#if    !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)  \
-    && !defined (_RWSTD_NO_SIMPLE_DEFAULT_TEMPLATES) \
+#if    !defined (_RWSTD_NO_SIMPLE_DEFAULT_TEMPLATES) \
     && (!defined (_MSC_VER) || _MSC_VER >= 1300)
 #  define _RWSTD_ALLOCATOR
 #endif
-
-#ifdef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-   // disable container member function templates
-#  ifndef _RWSTD_NO_CONTAINER_TEMPLATE_MEMBERS
-#    define _RWSTD_NO_CONTAINER_TEMPLATE_MEMBERS
-#  endif   // _RWSTD_NO_CONTAINER_TEMPLATE_MEMBERS
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
 
 #define _RWSTD_MB_CUR_MAX 16  // FIXME: must be determined dynamically

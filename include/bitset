@@ -7,22 +7,23 @@
  *
  ***************************************************************************
  *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 1994-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -108,8 +109,6 @@ class bitset
                 _C_elembits - _Size % _C_elembits) % _C_elembits));
     }
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
     template <class _CharT, class _Traits>
     void _C_from_char (const _CharT *__str, _RWSTD_SIZE_T __len,
                        const _Traits *__traits, _CharT __b0, _CharT __b1,
@@ -119,32 +118,6 @@ class bitset
                           __traits, __b0, __b1,
                           __pos, __n, __file, __fun);
     }
-
-#else   // ifdef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
-    void _C_from_char (const char *__str, _RWSTD_SIZE_T __len,
-                       const char_traits<char>* __traits, char __b0, char __b1,
-                       _RWSTD_SIZE_T __pos, _RWSTD_SIZE_T __n,
-                       const char *__file, const char *__fun) {
-        _RW::__rw_bitset (_C_bits, _Size, __str, __len,
-                          __traits, __b0, __b1,
-                          __pos, __n, __file, __fun);
-    }
-
-#  ifndef _RWSTD_NO_WCHAR_T
-
-    void _C_from_char (const wchar_t *__str, _RWSTD_SIZE_T __len,
-                       const char_traits<wchar_t*> __traits,
-                       wchar_t __b0, wchar_t __b1,
-                       _RWSTD_SIZE_T __pos, _RWSTD_SIZE_T __n,
-                       const char *__file, const char *__fun) {
-        _RW::__rw_bitset (_C_bits, _Size, __str, __len,
-                          __traits, __b0, __b1,
-                          __pos, __n, __file, __fun);
-    }
-
-#  endif   // _RWSTD_NO_WCHAR_T
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
 public:
 
@@ -189,10 +162,8 @@ public:
         _C_from_ulong (__n);
     }
 
-#ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
-#  if    !defined (_RWSTD_NO_NONDEDUCED_CONTEXT) \
-      && (!defined (__SUNPRO_CC) || __SUNPRO_CC > 0x550)
+#if    !defined (_RWSTD_NO_NONDEDUCED_CONTEXT) \
+    && (!defined (__SUNPRO_CC) || __SUNPRO_CC > 0x550)
 
     // 23.3.5.1, p3
     template <class _CharT, class _Traits, class _Allocator>
@@ -210,7 +181,7 @@ public:
                                    "size_type, size_type)"));
     }
 
-#  else   // if defined (_RWSTD_NO_NONDEDUCED_CONTEXT)
+#else   // if defined (_RWSTD_NO_NONDEDUCED_CONTEXT)
 
     // working around a SunPro 5.5 and prior bug (PR #28992)
 
@@ -226,8 +197,7 @@ public:
                                    "size_t, size_t)"));
     }
 
-#  endif   // _RWSTD_NO_NONDEDUCED_CONTEXT
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+#endif   // _RWSTD_NO_NONDEDUCED_CONTEXT
 
 
 #ifndef _RWSTD_NO_EXT_BITSET_CTOR_STRING
@@ -290,8 +260,6 @@ public:
 
 #  endif   // _RWSTD_NO_WCHAR_T
 
-#  ifndef _RWSTD_NO_INLINE_MEMBER_TEMPLATES
-
     // extension:
     // uses char_traits<CharT>::length() to compute the length of the string
     // and char_traits<CharT>::eq() to compare characters with `b0' and `b1'
@@ -305,8 +273,6 @@ public:
                       _RWSTD_FUNC ("bitset::bitset (const charT*, "
                                    "size_t, size_t)"));
     }
-
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES
 
     // extensions:
     // prevent ambiguities between the above and bitset(unsigned long)
@@ -420,8 +386,7 @@ public:
 # define _RWSTD_BITSET_TO_STRING(charT, Traits) \
     template to_string<charT, Traits, allocator <charT> >()
 
-#  if    !defined (_RWSTD_NO_EXT_BITSET_TO_STRING) \
-      && !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)
+#  ifndef _RWSTD_NO_EXT_BITSET_TO_STRING
 
     // convenience extensions
     template <class _CharT, class _Traits>
@@ -443,7 +408,7 @@ public:
             (__b0, __b1);
     }
 
-#  endif   // !_NO_EXT_BITSET_TO_STRING && !NO_INLINE_MEMBER_TEMPLATES
+#  endif   // !_NO_EXT_BITSET_TO_STRING
 
 #else   // if _MEMBER_TEMPLATES || _NO_TEMPLATE_ON_RETURN_TYPE || ...
 

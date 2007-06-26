@@ -43,7 +43,7 @@
 #include <cmdopt.h>      // for rw_enabled()
 #include <driver.h>      // for rw_test()
 #include <file.h>        // for rw_fwrite()
-#include <rw_locale.h>   // for rw_localedef()
+#include <rw_locale.h>   // for rw_localedef(), rw_find_mb_locale()
 #include <rw_printf.h>   // for rw_printf()
 
 /****************************************************************************/
@@ -114,185 +114,6 @@ const char* create_locale ()
                       src_fname, cm_fname, "mb_cur_max-9");
 
     return locname;
-}
-
-
-// finds a multibyte character that is `bytes' long if `bytes' is less
-// than or equal to MB_CUR_MAX, or the longest multibyte sequence in
-// the current locale
-const char* get_mb_char (char *buf, std::size_t bytes)
-{
-    _RWSTD_ASSERT (0 != buf);
-
-    *buf = '\0';
-
-    if (0 == bytes)
-        return buf;
-
-    const bool exact = bytes <= std::size_t (MB_CUR_MAX);
-
-    if (!exact)
-        bytes = MB_CUR_MAX;
-
-    wchar_t wc;
-
-    // search the first 64K characters sequentially
-    for (wc = wchar_t (1); wc != wchar_t (0xffff); ++wc) {
-
-        if (   int (bytes) == std::wctomb (buf, wc)
-            && int (bytes) == std::mblen (buf, bytes)) {
-            // NUL-terminate the multibyte character of the requested length
-            buf [bytes] = '\0';
-            break;
-        }
-
-        *buf = '\0';
-    }
-
-#if 2 < _RWSTD_WCHAR_T_SIZE
-
-    // if a multibyte character of the requested size is not found
-    // in the low 64K range, try to find one using a random search
-    if (wchar_t (0xffff) == wc) {
-
-        // iterate only so many times to prevent an infinite loop
-        // in case when MB_CUR_MAX is greater than the longest
-        // multibyte character
-        for (int i = 0; i != 0x100000; ++i) {
-
-            wc = wchar_t (std::rand ());
-
-            if (RAND_MAX < 0x10000) {
-                wc <<= 16;
-                wc |=  wchar_t (std::rand ());
-            }
-
-            if (   int (bytes) == std::wctomb (buf, wc)
-                && int (bytes) == std::mblen (buf, bytes)) {
-                // NUL-terminate the multibyte character
-                buf [bytes] = '\0';
-                break;
-            }
-
-            *buf = '\0';
-        }
-    }
-
-#endif   // 2 < _RWSTD_WCHAR_SIZE
-
-    // return 0 on failure to find a sequence exactly `bytes' long
-    return !exact || bytes == std::strlen (buf) ? buf : 0;
-}
-
-
-typedef char mb_char_array_t [MB_LEN_MAX][MB_LEN_MAX];
-
-// fills consecutive elemenets of the `mb_chars' array with multibyte
-// characters between 1 and MB_CUR_MAX bytes long for the given locale
-// returns the number of elements populated (normally, MB_CUR_MAX)
-std::size_t get_mb_chars (mb_char_array_t mb_chars)
-{
-    _RWSTD_ASSERT (0 != mb_chars);
-
-    const char* mbc = get_mb_char (mb_chars [0], std::size_t (-1));
-
-    if (!mbc) {
-        rw_fprintf (rw_stderr, "*** failed to find any multibyte characters "
-                    "in locale \"%s\" with MB_CUR_MAX = %u\n",
-                    std::setlocale (LC_CTYPE, 0), MB_CUR_MAX);
-        return 0;
-    }
-
-    std::size_t mb_cur_max = std::strlen (mbc);
-
-    if (MB_LEN_MAX < mb_cur_max)
-        mb_cur_max = MB_LEN_MAX;
-
-    // fill each element of `mb_chars' with a multibyte character
-    // of the corresponding length
-    for (std::size_t i = mb_cur_max; i; --i) {
-
-        // try to generate a multibyte character `i' bytes long
-        mbc = get_mb_char (mb_chars [i - 1], i);
-
-        if (0 == mbc) {
-            if (i < mb_cur_max) {
-                rw_fprintf (rw_stderr, "*** failed to find %u-byte characters "
-                            "in locale \"%s\" with MB_CUR_MAX = %u\n",
-                            i + 1, std::setlocale (LC_CTYPE, 0), MB_CUR_MAX);
-                mb_cur_max = 0;
-                break;
-            }
-            --mb_cur_max;
-        }
-    }
-
-    return mb_cur_max;
-}
-
-
-// finds the multibyte locale with the largest MB_CUR_MAX value and
-// fills consecutive elemenets of the `mb_chars' array with multibyte
-// characters between 1 and MB_CUR_MAX bytes long for such a locale
-const char* find_mb_locale (std::size_t *mb_cur_max, mb_char_array_t mb_chars)
-{
-    _RWSTD_ASSERT (0 != mb_cur_max);
-    _RWSTD_ASSERT (0 != mb_chars);
-
-    if (2 > MB_LEN_MAX) {
-        rw_fprintf (rw_stderr, "MB_LEN_MAX = %d, giving up\n", MB_LEN_MAX);
-        return 0;
-    }
-
-    static const char *mb_locale_name;
-
-    char saved_locale_name [1024];
-    std::strcpy (saved_locale_name, std::setlocale (LC_CTYPE, 0));
-
-    _RWSTD_ASSERT (std::strlen (saved_locale_name) < sizeof saved_locale_name);
-
-    *mb_cur_max = 0;
-
-    // iterate over all installed locales
-    for (const char *name = rw_locales (_RWSTD_LC_CTYPE, 0); *name;
-         name += std::strlen (name) + 1) {
-
-        if (std::setlocale (LC_CTYPE, name)) {
-
-            // try to generate a set of multibyte characters
-            // with lengths from 1 and MB_CUR_MAX (or less)
-            const std::size_t cur_max = get_mb_chars (mb_chars);
-
-            if (*mb_cur_max < cur_max) {
-                *mb_cur_max    = cur_max;
-                mb_locale_name = name;
-
-                // break when we've found a multibyte locale
-                // with the longest possible encoding
-                if (MB_LEN_MAX == *mb_cur_max)
-                    break;
-            }
-        }
-    }
-
-    if (*mb_cur_max < 2) {
-        rw_fprintf (rw_stderr, "*** failed to find a full set of multibyte "
-                    "characters in locale \"%s\" with MB_CUR_MAX = %u "
-                    "(computed)", mb_locale_name, *mb_cur_max);
-        mb_locale_name = 0;
-    }
-    else {
-        // (re)generate the multibyte characters for the saved locale
-        // as they may have been overwritten in subsequent iterations
-        // of the loop above (while searching for a locale with greater
-        // value of MB_CUR_MAX)
-        std::setlocale (LC_CTYPE, mb_locale_name);
-        get_mb_chars (mb_chars);
-    }
-
-    std::setlocale (LC_CTYPE, saved_locale_name);
-
-    return mb_locale_name;
 }
 
 /****************************************************************************/
@@ -654,9 +475,9 @@ test_wcodecvt_byname_libc_based ()
     
     std::size_t mb_cur_max = 0;
 
-    mb_char_array_t mb_chars;
+    rw_mbchar_array_t mb_chars;
 
-    const char* const locname = find_mb_locale (&mb_cur_max, mb_chars);
+    const char* const locname = rw_find_mb_locale (&mb_cur_max, mb_chars);
 
     if (!rw_warn (0 != locname, 0, __LINE__,
                   "failed to find a multibyte locale")) {

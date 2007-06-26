@@ -2,20 +2,27 @@
  *
  * strtol.cpp - definitions of __rw_strtol, __rw_strtoul, and other helpers
  *
- * $Id: //stdlib/dev/source/stdlib/strtol.cpp#7 $
+ * $Id$
  *
  ***************************************************************************
  *
- * Copyright (c) 1994-2005 Quovadx,  Inc., acting through its  Rogue Wave
- * Software division. Licensed under the Apache License, Version 2.0 (the
- * "License");  you may  not use this file except  in compliance with the
- * License.    You    may   obtain   a   copy   of    the   License    at
- * http://www.apache.org/licenses/LICENSE-2.0.    Unless   required    by
- * applicable law  or agreed to  in writing,  software  distributed under
- * the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR
- * CONDITIONS OF  ANY KIND, either  express or implied.  See  the License
- * for the specific language governing permissions  and limitations under
- * the License.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  License); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -145,6 +152,8 @@ __rw_base_bits [] = {
 // SHift Left and OR: helper macro used by __rw_strtol
 // to multiply a number by a power of 2 (SHL) and add
 // another number less than the power (OR)
+//
+// IMPORTANT: each argument must be evaluated exactly once
 #undef SHLOR
 #define SHLOR(x, dig)   (((x) << shift) | __rw_digit_map [UChar (dig)])
 
@@ -163,6 +172,8 @@ __rw_base_bits [] = {
 
 
 // MULtiply and ADD: helper macro used by __rw_strtol
+//
+// IMPORTANT: each argument must be evaluated exactly once
 #undef MULADD
 #define MULADD(x, dig)   (((x) * base) + __rw_digit_map [UChar (dig)])
 
@@ -198,6 +209,8 @@ __rw_strtoul (const char *nptr, int *errptr, int base)
     const int shift = __rw_base_bits [base];
 
     unsigned long res = __rw_digit_map [UChar (*nptr)];
+
+    _RWSTD_ASSERT (res < unsigned (base));
 
     if (shift) {
 
@@ -244,6 +257,8 @@ __rw_strtoul (const char *nptr, int *errptr, int base)
                     while (*++nptr) {
                         const unsigned digit =
                             __rw_digit_map [UChar (*nptr)];
+
+                        _RWSTD_ASSERT (digit < unsigned (base));
 
                         // check for overflow
                         const unsigned long save = res;
@@ -353,6 +368,8 @@ __rw_strtoul (const char *nptr, int *errptr, int base)
 
                 const unsigned digit = __rw_digit_map [UChar (*nptr)];
 
+                _RWSTD_ASSERT (digit < unsigned (base));
+
                 // check for overflow
                 if (maxres < res)
                     goto overflow;
@@ -394,6 +411,8 @@ __rw_strtol (const char *nptr, int *errptr, int base)
     const int shift = __rw_base_bits [base];
 
     unsigned long res = __rw_digit_map [UChar (*nptr)];
+
+    _RWSTD_ASSERT (res < unsigned (base));
 
     if (shift) {
 
@@ -440,6 +459,8 @@ __rw_strtol (const char *nptr, int *errptr, int base)
                     while (*++nptr) {
                         const unsigned digit =
                             __rw_digit_map [UChar (*nptr)];
+
+                        _RWSTD_ASSERT (digit < unsigned (base));
 
                         // check for overflow
                         const unsigned long save = res;
@@ -550,6 +571,8 @@ __rw_strtol (const char *nptr, int *errptr, int base)
 
                 const unsigned digit = __rw_digit_map [UChar (*nptr)];
 
+                _RWSTD_ASSERT (digit < unsigned (base));
+
                 // check for overflow
                 if (maxres < res)
                     goto overflow;
@@ -592,11 +615,17 @@ overflow:
 
 #ifdef _RWSTD_LONG_LONG
 
+
+// for convenience
+typedef _RWSTD_LONG_LONG          LLong;
+typedef unsigned _RWSTD_LONG_LONG ULLong;
+
+
    // using LLONG_SIZE instead of ULLONG_MAX in the preprocessor
    // conditional below to work around a gcc 3.2 bug (PR #28595)
 #  if (_RWSTD_LONG_SIZE < _RWSTD_LLONG_SIZE)
 
-unsigned _RWSTD_LONG_LONG
+ULLong
 __rw_strtoull (const char *nptr, int *errptr, int base)
 {
     _RWSTD_ASSERT (0 != nptr);
@@ -612,7 +641,9 @@ __rw_strtoull (const char *nptr, int *errptr, int base)
         
     const int shift = __rw_base_bits [base];
 
-    unsigned _RWSTD_LONG_LONG res = __rw_digit_map [UChar (*nptr)];
+    ULLong res = __rw_digit_map [UChar (*nptr)];
+
+    _RWSTD_ASSERT (res < unsigned (base));
 
     if (shift) {
 
@@ -657,8 +688,10 @@ __rw_strtoull (const char *nptr, int *errptr, int base)
                         const unsigned digit =
                             __rw_digit_map [UChar (*nptr)];
 
+                        _RWSTD_ASSERT (digit < unsigned (base));
+
                         // check for overflow
-                        const unsigned _RWSTD_LONG_LONG save = res;
+                        const ULLong save = res;
 
                         res <<= shift;
 
@@ -687,9 +720,9 @@ __rw_strtoull (const char *nptr, int *errptr, int base)
         // process subject sequence by multiplication
 
         // unroll loop w/o overflow checking
-        if (*++nptr) {
+        if (nptr [1]) {
             // multiply by base and add second digit
-            res = MULADD (res, *nptr);
+            res = MULADD (res, *++nptr);
 
             // digits 3 through 6, inclusive
             MULADD_4_DIGITS_BEGIN (res, nptr);
@@ -703,9 +736,9 @@ __rw_strtoull (const char *nptr, int *errptr, int base)
             // digits 7 through 10, inclusive
             MULADD_4_DIGITS_BEGIN (res, nptr);
 
-            if (*++nptr) {
+            if (nptr [1]) {
                 // digit 11
-                res = MULADD (res, *nptr);
+                res = MULADD (res, *++nptr);
 
                 if (base < 12) {
 
@@ -749,10 +782,11 @@ __rw_strtoull (const char *nptr, int *errptr, int base)
             // close brackets
             MULADD_4_DIGITS_END ();
 
-            for (unsigned _RWSTD_LONG_LONG maxres = _RWSTD_ULLONG_MAX / base;
-                 *++nptr; ) {
+            for (ULLong maxres = _RWSTD_ULLONG_MAX / base; *++nptr; ) {
 
                 const unsigned digit = __rw_digit_map [UChar (*nptr)];
+
+                _RWSTD_ASSERT (digit < unsigned (base));
 
                 // check for overflow
                 if (maxres < res)
@@ -778,7 +812,7 @@ overflow:
 }
 
 
-_RWSTD_LONG_LONG
+LLong
 __rw_strtoll (const char *nptr, int *errptr, int base)
 {
     _RWSTD_ASSERT (0 != nptr);
@@ -794,7 +828,9 @@ __rw_strtoll (const char *nptr, int *errptr, int base)
 
     const int shift = __rw_base_bits [base];
 
-    unsigned _RWSTD_LONG_LONG res = __rw_digit_map [UChar (*nptr)];
+    ULLong res = __rw_digit_map [UChar (*nptr)];
+
+    _RWSTD_ASSERT (res < unsigned (base));
 
     if (shift) {
 
@@ -839,8 +875,10 @@ __rw_strtoll (const char *nptr, int *errptr, int base)
                         const unsigned digit =
                             __rw_digit_map [UChar (*nptr)];
 
+                        _RWSTD_ASSERT (digit < unsigned (base));
+
                         // check for overflow
-                        const unsigned _RWSTD_LONG_LONG save = res;
+                        const ULLong save = res;
 
                         res <<= shift;
 
@@ -886,9 +924,9 @@ __rw_strtoll (const char *nptr, int *errptr, int base)
             // digits 7 through 10, inclusive
             MULADD_4_DIGITS_BEGIN (res, nptr);
 
-            if (*++nptr) {
+            if (nptr [1]) {
                 // digit 11
-                res = MULADD (res, *nptr);
+                res = MULADD (res, *++nptr);
 
                 if (base < 12) {
 
@@ -932,10 +970,11 @@ __rw_strtoll (const char *nptr, int *errptr, int base)
             // close brackets
             MULADD_4_DIGITS_END ();
 
-            for (unsigned _RWSTD_LONG_LONG maxres =
-                     _RWSTD_ULLONG_MAX / base; *++nptr; ) {
+            for (ULLong maxres = _RWSTD_ULLONG_MAX / base; *++nptr; ) {
 
                 const unsigned digit = __rw_digit_map [UChar (*nptr)];
+
+                _RWSTD_ASSERT (digit < unsigned (base));
 
                 // check for overflow
                 if (maxres < res)
@@ -951,15 +990,13 @@ __rw_strtoll (const char *nptr, int *errptr, int base)
         }
     }
 
-    typedef unsigned _RWSTD_LONG_LONG ULLong;
-
     if (neg) {
         if (res > ULLong (_RWSTD_LLONG_MIN)) {
             *errptr = ERANGE;
             return _RWSTD_LLONG_MIN;
         }
 
-        return -_RWSTD_STATIC_CAST (_RWSTD_LONG_LONG, res);
+        return -LLong (res);
     }
 
     if (res > ULLong (_RWSTD_LLONG_MAX)) {

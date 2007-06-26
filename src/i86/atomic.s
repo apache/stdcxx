@@ -6,24 +6,32 @@
  *
  ***************************************************************************
  *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2003-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2003-2006 Rogue Wave Software.
  * 
  **************************************************************************/
+
+#if defined (__ELF__)
+   /* GNU as supports this .type directive only on ELF targets */
+#  define TYPE_DIR(name, kind)    .type name, kind
+#else
+#  define TYPE_DIR(ign1, ign2)
+#endif
 
     .text
     .align 4
@@ -36,6 +44,8 @@
  **************************************************************************/
 
     .globl __rw_atomic_xchg8
+    TYPE_DIR (__rw_atomic_xchg8, @function)
+
 __rw_atomic_xchg8:                 /* ; char (char *x, char y)        */
     mov           4(%esp), %ecx    /* ; %ecx = x                      */
     movb          8(%esp), %al     /* ; %al = y                       */
@@ -51,6 +61,8 @@ __rw_atomic_xchg8:                 /* ; char (char *x, char y)        */
  **************************************************************************/
 
     .globl __rw_atomic_xchg16
+    TYPE_DIR (__rw_atomic_xchg16, @function)
+
 __rw_atomic_xchg16:                /* ; short (short *x, short y)     */
     mov           4(%esp), %ecx    /* ; %ecx = x                      */
     mov           8(%esp), %eax    /* ; %eax = y                      */
@@ -66,6 +78,8 @@ __rw_atomic_xchg16:                /* ; short (short *x, short y)     */
  **************************************************************************/
 
     .globl __rw_atomic_xchg32
+    TYPE_DIR (__rw_atomic_xchg32, @function)
+
 __rw_atomic_xchg32:                /* ; int (int *x, int y)           */
     movl          4(%esp), %ecx    /* ; %ecx = x                      */
     movl          8(%esp), %eax    /* ; %eax = y                      */
@@ -81,6 +95,8 @@ __rw_atomic_xchg32:                /* ; int (int *x, int y)           */
  **************************************************************************/
 
     .globl __rw_atomic_add8
+    TYPE_DIR (__rw_atomic_add8, @function)
+
 __rw_atomic_add8:                  /* ; char (char *dst, int inc)     */
     mov            4(%esp), %ecx   /* ; %ecx = dst                    */
     mov            8(%esp), %eax   /* ; %eax = inc                    */
@@ -103,6 +119,8 @@ __rw_atomic_add8:                  /* ; char (char *dst, int inc)     */
  **************************************************************************/
 
      .globl __rw_atomic_add16
+    TYPE_DIR (__rw_atomic_add16, @function)
+
 __rw_atomic_add16:                 /* ; long (long *dst, long inc)    */
     mov            4(%esp), %ecx   /* ; %ecx = dst                    */
     mov            8(%esp), %eax   /* ; %eax = inc                    */
@@ -125,6 +143,8 @@ __rw_atomic_add16:                 /* ; long (long *dst, long inc)    */
  **************************************************************************/
 
     .globl __rw_atomic_add32
+    TYPE_DIR (__rw_atomic_add32, @function)
+
 __rw_atomic_add32:                 /* ; long (long *dst, long inc)    */
     movl           4(%esp), %ecx   /* ; %ecx = dst                    */
     movl           8(%esp), %edx   /* ; %edx = inc                    */

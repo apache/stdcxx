@@ -86,6 +86,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
 ///////////////////////////////////////////////////////////////////////////////
     var stdcxxDef = new ProjectDef(".stdcxx", typeLibrary);
     stdcxxDef.VCProjDir = ProjectsDir;
+    stdcxxDef.RTTI = true;
     stdcxxDef.FilterDefs.push(
         new FilterDef(sourceFilterName, sourceFilterUuid, sourceFilterExts, eFileTypeCppCode, false).
             addFilesByMask("%SRCDIR%\\src", rxExcludedFolders, null));
@@ -247,7 +248,9 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         "if exist \"$(OutDir)\\runexamples.log\" del \"$(OutDir)\\runexamples.log\"";
     runexamplesDef.CustomBuildFile = "runall.wsf";
     runexamplesDef.CustomBuildCmd =
-        "set PATH=$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
+        "set PATH=$(SolutionDir)%CONFIG%\\bin;$(SolutionDir)%CONFIG%\\lib;" +
+        "%SRCDIR%\\examples\\manual;%PATH%\r\n" +
+        "set TZ=MST+7\r\n" +
         "cscript /nologo \"%CUSTOMFILE%\"" +
         " /INOUTDIR:\"%SRCDIR%\\examples\"" +
         " /EXEDIR:\"$(OutDir)\"" +
@@ -266,6 +269,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
 
     var testTplDef = new ProjectDef(null, typeApplication);
     testTplDef.VCProjDir = ProjectsDir + "\\tests";
+    testTplDef.RTTI = true;
     testTplDef.Defines = commonDefines;
     testTplDef.Includes = rwtestIncludes;
     testTplDef.OutDir = "$(SolutionDir)%CONFIG%\\tests";
@@ -307,7 +311,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         "if exist \"$(OutDir)\\runtests.log\" del \"$(OutDir)\\runtests.log\"";
     runtestsDef.CustomBuildFile = "runall.wsf";
     runtestsDef.CustomBuildCmd =
-        "set PATH=$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
+        "set PATH=$(SolutionDir)%CONFIG%\\bin;$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
         "cscript /nologo \"%CUSTOMFILE%\"" +
         " /EXEDIR:\"$(OutDir)\"" +
         " /PRJDIR:\"" + runtestsDef.VCProjDir + "\"" +
@@ -385,7 +389,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                           "summary.js")));
     testlocaleTplDef.CustomBuildFile = "runall.wsf";
     testlocaleTplDef.CustomBuildCmd =
-        "set PATH=$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
+        "set PATH=$(SolutionDir)%CONFIG%\\bin;$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
         "cscript /nologo \"%CUSTOMFILE%\"" +
         " /EXEDIR:\"$(OutDir)\"" +
         " /CONFIG:\"%SOLUTION%\"" +

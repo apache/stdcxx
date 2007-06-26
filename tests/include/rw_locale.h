@@ -2,7 +2,7 @@
  *
  * localedef.h - declarations of locale testsuite helpers
  *
- * $Id:$
+ * $Id$
  *
  ************************************************************************
  *
@@ -62,6 +62,34 @@ rw_set_locale_root ();
 // returned from prior calls
 _TEST_EXPORT const char*
 rw_localedef (const char*, const char*, const char*, const char*);
+
+
+// an array of multibyte characters 1 to MB_LEN_MAX bytes in length
+typedef char
+rw_mbchar_array_t [_RWSTD_MB_LEN_MAX][_RWSTD_MB_LEN_MAX];
+
+// fills consecutive elements of the `mb_chars' array with multibyte
+// characters between 1 and MB_CUR_MAX bytes long for the currently
+// set locale
+// returns the number of elements populated (normally, MB_CUR_MAX)
+_TEST_EXPORT _RWSTD_SIZE_T
+rw_get_mb_chars (rw_mbchar_array_t /* mb_chars */);
+
+
+// finds the multibyte locale with the largest MB_CUR_MAX value and
+// fills consecutive elements of the `mb_chars' array with multibyte
+// characters between 1 and MB_CUR_MAX bytes long for such a locale
+_TEST_EXPORT const char*
+rw_find_mb_locale (_RWSTD_SIZE_T* /* mb_cur_max */,
+                   rw_mbchar_array_t /* mb_chars */);
+
+// invokes localedef with charmap and locale def to create a locale database 
+// in a directory specified by the RWSTD_LOCALE_ROOT environment
+// variable, if it is defined, otherwise in the current working
+// directory
+// returns the name of the locale
+_TEST_EXPORT const char*
+rw_create_locale (const char *charmap, const char *locale);
 
 
 #endif   // RW_LOCALE_H_INCLUDED

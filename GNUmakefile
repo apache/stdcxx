@@ -681,6 +681,7 @@ install:
 
 # try each submakefile
 .DEFAULT:
+	-@$(MAKE) -C$(BUILDDIR)/include $@
 	-@$(MAKE) -C$(LIBDIR) $@
 	-@$(MAKE) -C$(BUILDDIR)/rwtest $@
 	-@$(MAKE) -C$(BUILDDIR)/bin $@

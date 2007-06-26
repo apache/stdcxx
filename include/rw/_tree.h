@@ -9,6 +9,26 @@
  *
  ***************************************************************************
  *
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ * 
+ ***************************************************************************
+ *
  * Copyright (c) 1994
  * Hewlett-Packard Company
  *
@@ -20,25 +40,6 @@
  * representations about the suitability of this software for any
  * purpose.  It is provided "as is" without express or implied warranty.
  *
- ***************************************************************************
- *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
- *
- * Copyright 1994-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
  **************************************************************************/
 
 /***************************************************************************
@@ -151,15 +152,14 @@ public:
     __rw_tree_iter (const _C_iterator &__rhs)
         : _C_node (__rhs._C_node) { }
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     template <class _Ptr, class _Ref>
     __rw_tree_iter (const __rw_tree_iter<_TypeT, _DiffT, _Ptr, _Ref, _Node>&
                     __rhs)
         : _C_node (__rhs._C_node) { }
 
-#endif   // _RWSTD_NO_INLINE_MEMBER_TEMPLATES && ...
+#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     __rw_tree_iter (_C_link_t __lnk)
         : _C_node (__lnk) {}        
@@ -472,8 +472,7 @@ public:
     __rb_tree (const key_compare& = key_compare (),
                const allocator_type& = allocator_type ());
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     template<class _InputIter>
     __rb_tree (_InputIter __first, _InputIter __last,
@@ -494,7 +493,7 @@ public:
         }
     }
 
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
+#else   // if _MSC_VER < 1300
 
     __rb_tree (const value_type* __first, const value_type* __last, 
                const key_compare& __cmp,
@@ -532,7 +531,7 @@ public:
         }
     }
    
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     __rb_tree (const __rb_tree&);
 
@@ -619,8 +618,7 @@ public:
 
     iterator insert (iterator, const value_type&, bool);
 
-#if !defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES)  \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#if !defined (_MSC_VER) || _MSC_VER >= 1300
 
     template<class _Iterator>
     void insert (_Iterator __first, _Iterator __last, bool __dup) {
@@ -629,12 +627,12 @@ public:
     }
 
 
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
+#else   // if _MSC_VER < 1300
 
     void insert (const_iterator, const_iterator, bool);
     void insert (const value_type*, const value_type*, bool);
 
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     iterator erase (iterator);
 
@@ -867,8 +865,7 @@ _C_rotate (_C_link_t __lnk, bool __right)
 #endif   // _RWSTD_NO_OPTIMIZE_SPEED
 
 
-#if defined (_RWSTD_NO_INLINE_MEMBER_TEMPLATES) \
-    || (defined (_MSC_VER) && _MSC_VER < 1300)
+#if defined (_MSC_VER) && _MSC_VER < 1300
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
 inline void __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
@@ -886,7 +883,7 @@ insert (const _Val* __first, const _Val* __last, bool __dup)
         insert (*__first, __dup);
 }
 
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+#endif   // defined (_MSC_VER) && _MSC_VER < 1300
          
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>

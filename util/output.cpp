@@ -58,10 +58,14 @@
 static void
 check_test (FILE* data, struct target_status* status)
 {
-    unsigned r_lvl = 0, r_active = 0, r_total = 0;
-    int fmt_ok = 0;
-    unsigned fsm = 0;
-    char tok;
+    unsigned r_lvl    = 0;   /* diagnostic severity level */
+    unsigned r_active = 0;   /* number of active diagnostics */
+    unsigned r_total  = 0;   /* total number of diagnostics */
+
+    int fmt_ok = 0;          /* is output format okay? */
+
+    unsigned fsm = 0;        /* state */
+    char tok;                /* current character */
 
     const char* const target_name = get_target ();
 
@@ -69,7 +73,15 @@ check_test (FILE* data, struct target_status* status)
     assert (0 != data);
     assert (0 != status);
 
-    for (tok = fgetc (data); fsm < 6 && !feof (data); tok = fgetc (data)) {
+    tok = fgetc (data);
+
+    if (feof (data)) {
+        /* target produced no output (regression test?) */
+        status->status = ST_NO_OUTPUT;
+        return;
+    }
+
+    for ( ; fsm < 6 && !feof (data); tok = fgetc (data)) {
         switch (tok) {
         case '\n':
             fsm = 1;
@@ -145,7 +157,15 @@ check_compat_test (FILE* data, struct target_status* status)
     assert (0 != data);
     assert (0 != status);
 
-    for (tok = fgetc (data); !feof (data); tok = fgetc (data)) {
+    tok = fgetc (data);
+
+    if (feof (data)) {
+        /* target produced no output (regression test?) */
+        status->status = ST_NO_OUTPUT;
+        return;
+    }
+
+    for ( ; !feof (data); tok = fgetc (data)) {
         switch (tok) {
         case '\n':
             fsm = 1;

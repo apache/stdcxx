@@ -32,7 +32,9 @@
 // _XOPEN_SOURCE macro in assert.h selects a different declaration for 
 // iconv than the one used in comp test.
 #ifndef _MSC_VER
-#  include <iconv.h>
+#  ifndef _RWSTD_NO_ICONV
+#    include <iconv.h>
+#  endif
 #  include _RWSTD_CERRNO
 #else
 #  include <windows.h>

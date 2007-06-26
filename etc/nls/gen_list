@@ -32,6 +32,7 @@ de_BE               ISO-8859-1
 de_BE.euro          ISO-8859-15         
 de_CH               ISO-8859-1          
 de_DE               ISO-8859-1          
+de_DE               UTF-8
 de_DE.euro          ISO-8859-15         
 de_LU               ISO-8859-1          
 de_LU.euro          ISO-8859-15         
@@ -50,6 +51,7 @@ en_PH               ISO-8859-1
 en_SG               ISO-8859-1          
 en_US               ISO-8859-1          
 en_US               ANSI_X3.4-1968
+en_US               UTF-8
 en_ZA               ISO-8859-1          
 en_ZW               ISO-8859-1          
 es_AR               ISO-8859-1          
@@ -85,6 +87,7 @@ fr_BE.euro          ISO-8859-15
 fr_CA               ISO-8859-1          
 fr_CH               ISO-8859-1          
 fr_FR               ISO-8859-1          
+fr_FR               UTF-8
 fr_FR.euro          ISO-8859-15         
 fr_LU               ISO-8859-1          
 fr_LU.euro          ISO-8859-15         
@@ -132,6 +135,7 @@ pt_PT.euro          ISO-8859-15
 ro_RO               ISO-8859-2          
 ru_RU               ISO-8859-5          
 ru_RU               KOI8-R              
+ru_RU               UTF-8
 ru_UA               KOI8-U              
 sk_SK               ISO-8859-2          
 sl_SI               ISO-8859-2          
@@ -155,6 +159,7 @@ yi_US               CP1255
 zh_CN               GB2312              
 zh_CN               GB18030             
 zh_CN               GBK                 
+zh_CN               UTF-8
 zh_HK               BIG5-HKSCS          
 zh_TW               BIG5                
 zh_TW               EUC-TW              

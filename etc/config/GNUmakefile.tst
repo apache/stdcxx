@@ -70,7 +70,9 @@ ifneq ($(RPATH),)
   LDFLAGS += $(RPATH)$(LIBDIR):$(BUILDDIR)/rwtest
 endif
 
-RUNFLAGS += --compat -x "--compat -O -"
+RUNFLAGS += --compat -x "--compat -O -" --ulimit=as:1073741824
+# No test should use more than 1 GB of memory (See STDCXX-440).
+# The magic number 1073741824 is 1 GB in bytes.
 
 ##############################################################################
 #  TARGETS

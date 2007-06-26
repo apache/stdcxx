@@ -1,16 +1,16 @@
 <HTML>
 <HEAD>
 <TITLE>Manipulators with Parameters</TITLE>
-<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Apache stdcxx Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
 <A HREF="33-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="34.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>33.3 Manipulators with Parameters</H2>
 <P>Manipulators with parameters are more complex than those without because there are additional issues to consider. Before we explore these issues in detail and examine various techniques for implementing manipulators with parameters, let's take a look at one particular technique, the one that is used to implement standard manipulators such as <SAMP>std::setprecision(),</SAMP> <SAMP>std::setw()</SAMP>, etc.</P>
 <A NAME="3331"><H3>33.3.1 The Standard Manipulators</H3></A>
 <A NAME="idx810"><!></A>
-<P>The Rogue Wave implementation of the standard iostreams uses a certain technique for implementing most standard manipulators with parameters: the manipulator type <SAMP>manipT</SAMP> is a function pointer type; the manipulator object is the function pointed to; and the associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a non-member function. </P>
+<P>This implementation of the standard iostreams uses a certain technique for implementing most standard manipulators with parameters: the manipulator type <SAMP>manipT</SAMP> is a function pointer type; the manipulator object is the function pointed to; and the associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a non-member function. </P>
 <A NAME="idx811"><!></A>
-<P>The C++ standard informally refers to the manipulator type as <SAMP>smanip</SAMP>. The type itself is implementation-specified and may not be accessible to user code at all (i.e., it may be defined in some private namespace or called something entirely different); all you know is that it is returned by some of the standard manipulators. In the Rogue Wave implementation, the type referred to as <SAMP>smanip</SAMP> is a class template:</P>
+<P>The C++ standard informally refers to the manipulator type as <SAMP>smanip</SAMP>. The type itself is implementation-specified and may not be accessible to user code at all (i.e., it may be defined in some private namespace or called something entirely different); all you know is that it is returned by some of the standard manipulators. In this implementation, the type referred to as <SAMP>smanip</SAMP> is a class template:</P>
 
 <UL><PRE>
 template&lt;class T&gt;
@@ -140,7 +140,7 @@ std::cout &lt;&lt; Manip(x);
 <LI><P CLASS="LIST">The associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a non-member function. </P></LI>
 </UL>
 <A NAME="idx825"><!></A>
-<P>The Rogue Wave implementation of the standard iostreams uses this technique for implementing most standard manipulators with parameters. See <A HREF="28-3.html#2832">Section&nbsp;28.3.2</A> for reference.</P>
+<P>This implementation of the standard iostreams uses this technique for implementing most standard manipulators with parameters. See <A HREF="28-3.html#2832">Section&nbsp;28.3.2</A> for reference.</P>
 <A NAME="idx826"><!></A>
 <P><B>Example 2: Unnamed Object and Static Member Function.</B> This example combines <B>2.)</B> and <B>b.)</B>, and thus:</P>
 <UL>
@@ -172,7 +172,7 @@ class setprecision : public <I>smanip</I>&lt;int&gt; {
 </UL>
 <P>The idea here is that the associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP><SAMP><SUB> </SUB></SAMP>is a non-static member function of the manipulator type <SAMP>manipT</SAMP>. In such a model, the manipulator does not store a pointer to the associated function <SAMP>f</SAMP><SAMP><SUB>manipT</SUB></SAMP>, but defines the associated function as a pure virtual member function. Consequently, the manipulator type <SAMP>manipT</SAMP> is an abstract class, and concrete manipulator types are derived from this abstract manipulator type. They are required to implement the virtual member function that represents the associated function.</P>
 <A NAME="idx829"><!></A>
-<P>Clearly, we need a new manipulator type because the implementation-specific manipulator type <SAMP><I>smanip</I></SAMP> is implementation-defined. In the Rogue Wave C++ Standard Library, <SAMP><I>smanip</I></SAMP> has no virtual member functions, but stores a pointer to the associated function. Here is the abstract manipulator type we need:</P>
+<P>Clearly, we need a new manipulator type because the implementation-specific manipulator type <SAMP><I>smanip</I></SAMP> is implementation-defined. In thisimplementation of the C++ Standard Library, <SAMP><I>smanip</I></SAMP> has no virtual member functions, but stores a pointer to the associated function. Here is the abstract manipulator type we need:</P>
 
 <UL><PRE>
 template &lt;class Arg, class Ostream&gt;

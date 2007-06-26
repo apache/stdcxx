@@ -37,8 +37,12 @@
 #ifndef _MSC_VER
 #  include <sys/mman.h>   // for mmap()
 #  include <unistd.h>     // for close ()
-#  include <iconv.h>
-#  include <langinfo.h>
+#  ifndef _RWSTD_NO_ICONV
+#    include <iconv.h>
+#  endif
+#  ifndef _RWSTD_NO_NL_LANGINFO
+#    include <langinfo.h>
+#  endif
 #else
 #  include <io.h>         // for open()
 #  include <windows.h>

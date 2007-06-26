@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>The Open Mode</TITLE>
-<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Apache stdcxx Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
 <A HREF="30-2.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="30-4.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>30.3 The Open Mode</H2>
@@ -9,10 +9,12 @@
 <P>There may be times when you want to modify the way a file is opened or used in a program. For example, in some cases it is desirable that writes append to the end of a file rather than overwriting the existing values. The file stream constructor takes a second argument, the <I>open mode</I>, that allows such variations to be specified. Here is an example that creates a file stream object <SAMP>Str</SAMP>, connects it to the external file named <SAMP>"inout.txt"</SAMP>, and opens it for reading and for writing at the end of the file:</P>
 
 <UL><PRE>
-std::fstream Str("inout.txt",
-                 std::ios_base::in | std::ios_base::out |
-                 std::ios_base::app);
+std::fstream Str("inout.txt", std::ios_base::in | std::ios_base::out | std::ios_base::app);
 </PRE></UL>
+<P>
+Note that if the <SAMP>"inout.txt"</SAMP> file doesn't exist it will be
+created.
+</P>
 <A NAME="3031"><H3>30.3.1 The Open Mode Flags</H3></A>
 <A NAME="idx751"><!></A>
 <P>The open mode argument is of type <SAMP>std::ios_base::openmode</SAMP>, which is a bitmask type like the format flags and the stream state. <A HREF="30-3.html#Table&nbsp;32">Table&nbsp;32</A> defines the following bits:</P>

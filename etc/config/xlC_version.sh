@@ -2,7 +2,31 @@
 #
 # $Id$
 #
-# prints VisualAge version
+# prints IBM VisualAge and XLC/C++ version
+#
+# reported versions and patches they correspond to:
+#
+# version    release/patch
+# --------   -------------
+# 6.0.0.0    VisualAge 6
+# 6.0.0.14   VisualAge 6, Septemmber 2005 PTF
+# 6.0.0.17   VisualAge 6, November 2006 PTF
+# 7.0        VisualAge 7
+# 7.0.0.1    VisualAge 7 November 2004 PTF
+# 7.0.0.2    VisualAge 7 May 2005 PTF
+# 7.0.0.3    VisualAge 7 Aug 2005 PTF
+# 7.0.0.4    ???
+# 7.0.0.5    VisualAge 7 January 2006 PTF
+# 7.0.0.6    VisualAge 7 April 2006 PTF
+# 7.0.0.7    VisualAge 7 August 2006 PTF
+# 7.0.0.8    VisualAge 7 October 2006 PTF
+# 7.0.0.9    VisualAge 7 Feb 2007 PTF
+# 8.0.0.0    XLC/C++ 8
+# 8.0.0.1    XLC/C++ 8 March 2006 PTF
+# 8.0.0.10   XLC/C++ 8 June 2006 PTF
+# 8.0.0.11   XLC/C++ 8 August 2006 PTF
+# 8.0.0.12   XLC/C++ 8 December 2006 PTF
+# 8.0.0.13   XLC/C++ 8 February 2007 PTF
 
 if [ $# -gt 0 ]; then
     CXX=$1
@@ -28,11 +52,19 @@ if [ $? -eq 0 ]; then
     exit
 fi
 
+# check to see if this is the base 7.0
 grep "V7" $xlcout > /dev/null 2>&1
+v7_or_6=$?
 
-if [ $? -eq 0 ]; then
+if [ $v7_or_6 -ne 0 ]; then
+    # if it's not 7.0 see if it's 6.0
+    grep "version 6.0" $xlcout > /dev/null 2>&1
+    v7_or_6=$?
+fi
 
-    # VisualAge 7.0 (unpatched)
+if [ $v7_or_6 -eq 0 ]; then
+
+    # VisualAge 6.0 or 7.0 (unpatched)
     tmpsrc=/tmp/$CXX_version.$$.cpp
     tmpobj=/tmp/$CXX_version.$$.o
 
@@ -59,7 +91,7 @@ if [ $? -eq 0 ]; then
     exit
 fi
 
-# VisualAge 6.0 (and prior?)
+# VisualAge 5.0 (and prior?)
 echo >> $xlcout
 sed "s/.*version \(.*\)/\1/" $xlcout
 rm $xlcout

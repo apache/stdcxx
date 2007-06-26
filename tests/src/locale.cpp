@@ -34,15 +34,17 @@
 
 #include <environ.h>      // for rw_putenv()
 #include <file.h>         // for SHELL_RM_RF, rw_tmpnam
+#include <rw_printf.h>    // for rw_fprintf()
 #include <rw_process.h>   // for rw_system()
+#include <cstdio>
 
 
-#if defined __linux__
+#if defined (_RWSTD_OS_LINUX) && !defined (_XOPEN_SOURCE)
    // on Linux define _XOPEN_SOURCE to get CODESET defined in <langinfo.h>
 #  define _XOPEN_SOURCE   500   /* Single Unix conformance */
    // bring __int32_t into scope (otherwise <wctype.h> fails to compile)
 #  include <sys/types.h>
-#endif   // __linux__
+#endif   // Linux
 
 #include <fcntl.h>
 #include <sys/stat.h>   // for stat
@@ -62,7 +64,7 @@
 #include <assert.h>   // for assert
 #include <errno.h>    // for EBADF
 #include <float.h>    // for {FLT,DBL,LDBL}_DIG
-#include <limits.h>   // for CHAR_BIT, PATH_MAX
+#include <limits.h>   // for CHAR_BIT, MB_LEN_MAX, PATH_MAX
 #include <locale.h>   // for LC_XXX macros, setlocale
 #include <stdarg.h>   // for va_copy, va_list, ...
 #include <stdio.h>    // for fgets, remove, sprintf, ...
@@ -469,4 +471,242 @@ rw_locales (int loc_cat, const char* grep_exp)
     remove (fname);
 
     return slocname;
+}
+
+/**************************************************************************/
+
+// finds a multibyte character that is `bytes' long if `bytes' is less
+// than or equal to MB_CUR_MAX, or the longest multibyte sequence in
+// the current locale
+static const char*
+_get_mb_char (char *buf, size_t bytes)
+{
+    _RWSTD_ASSERT (0 != buf);
+
+    *buf = '\0';
+
+    if (0 == bytes)
+        return buf;
+
+    const bool exact = bytes <= size_t (MB_CUR_MAX);
+
+    if (!exact)
+        bytes = MB_CUR_MAX;
+
+    wchar_t wc;
+
+    // search the first 64K characters sequentially
+    for (wc = wchar_t (1); wc != wchar_t (0xffff); ++wc) {
+
+        if (   int (bytes) == wctomb (buf, wc)
+            && int (bytes) == mblen (buf, bytes)) {
+            // NUL-terminate the multibyte character of the requested length
+            buf [bytes] = '\0';
+            break;
+        }
+
+        *buf = '\0';
+    }
+
+#if 2 < _RWSTD_WCHAR_T_SIZE
+
+    // if a multibyte character of the requested size is not found
+    // in the low 64K range, try to find one using a random search
+    if (wchar_t (0xffff) == wc) {
+
+        // iterate only so many times to prevent an infinite loop
+        // in case when MB_CUR_MAX is greater than the longest
+        // multibyte character
+        for (int i = 0; i != 0x100000; ++i) {
+
+            wc = wchar_t (rand ());
+
+            if (RAND_MAX < 0x10000) {
+                wc <<= 16;
+                wc |=  wchar_t (rand ());
+            }
+
+            if (   int (bytes) == wctomb (buf, wc)
+                && int (bytes) == mblen (buf, bytes)) {
+                // NUL-terminate the multibyte character
+                buf [bytes] = '\0';
+                break;
+            }
+
+            *buf = '\0';
+        }
+    }
+
+#endif   // 2 < _RWSTD_WCHAR_SIZE
+
+    // return 0 on failure to find a sequence exactly `bytes' long
+    return !exact || bytes == strlen (buf) ? buf : 0;
+}
+
+
+_TEST_EXPORT size_t
+rw_get_mb_chars (rw_mbchar_array_t mb_chars)
+{
+    _RWSTD_ASSERT (0 != mb_chars);
+
+    const char* mbc = _get_mb_char (mb_chars [0], size_t (-1));
+
+    if (!mbc) {
+        rw_fprintf (rw_stderr, "*** failed to find any multibyte characters "
+                    "in locale \"%s\" with MB_CUR_MAX = %u\n",
+                    setlocale (LC_CTYPE, 0), MB_CUR_MAX);
+        return 0;
+    }
+
+    size_t mb_cur_max = strlen (mbc);
+
+    if (_RWSTD_MB_LEN_MAX < mb_cur_max)
+        mb_cur_max = _RWSTD_MB_LEN_MAX;
+
+    // fill each element of `mb_chars' with a multibyte character
+    // of the corresponding length
+    for (size_t i = mb_cur_max; i; --i) {
+
+        // try to generate a multibyte character `i' bytes long
+        mbc = _get_mb_char (mb_chars [i - 1], i);
+
+        if (0 == mbc) {
+            if (i < mb_cur_max) {
+                rw_fprintf (rw_stderr, "*** failed to find %u-byte characters "
+                            "in locale \"%s\" with MB_CUR_MAX = %u\n",
+                            i + 1, setlocale (LC_CTYPE, 0), MB_CUR_MAX);
+                mb_cur_max = 0;
+                break;
+            }
+            --mb_cur_max;
+        }
+    }
+
+    return mb_cur_max;
+}
+
+
+_TEST_EXPORT const char*
+rw_find_mb_locale (size_t            *mb_cur_max,
+                   rw_mbchar_array_t  mb_chars)
+{
+    _RWSTD_ASSERT (0 != mb_cur_max);
+    _RWSTD_ASSERT (0 != mb_chars);
+
+    if (2 > _RWSTD_MB_LEN_MAX) {
+        rw_fprintf (rw_stderr, "MB_LEN_MAX = %d, giving up\n",
+                    _RWSTD_MB_LEN_MAX);
+        return 0;
+    }
+
+    static const char *mb_locale_name;
+
+    char saved_locale_name [1024];
+    strcpy (saved_locale_name, setlocale (LC_CTYPE, 0));
+
+    _RWSTD_ASSERT (strlen (saved_locale_name) < sizeof saved_locale_name);
+
+    *mb_cur_max = 0;
+
+    // iterate over all installed locales
+    for (const char *name = rw_locales (_RWSTD_LC_CTYPE, 0); name && *name;
+         name += strlen (name) + 1) {
+
+        if (setlocale (LC_CTYPE, name)) {
+
+            // try to generate a set of multibyte characters
+            // with lengths from 1 and MB_CUR_MAX (or less)
+            const size_t cur_max = rw_get_mb_chars (mb_chars);
+
+            if (*mb_cur_max < cur_max) {
+                *mb_cur_max    = cur_max;
+                mb_locale_name = name;
+
+                // break when we've found a multibyte locale
+                // with the longest possible encoding
+                if (_RWSTD_MB_LEN_MAX == *mb_cur_max)
+                    break;
+            }
+        }
+    }
+
+    if (*mb_cur_max < 2) {
+        rw_fprintf (rw_stderr, "*** failed to find a full set of multibyte "
+                    "characters in locale \"%s\" with MB_CUR_MAX = %u "
+                    "(computed)", mb_locale_name, *mb_cur_max);
+        mb_locale_name = 0;
+    }
+    else {
+        // (re)generate the multibyte characters for the saved locale
+        // as they may have been overwritten in subsequent iterations
+        // of the loop above (while searching for a locale with greater
+        // value of MB_CUR_MAX)
+        setlocale (LC_CTYPE, mb_locale_name);
+        rw_get_mb_chars (mb_chars);
+    }
+
+    setlocale (LC_CTYPE, saved_locale_name);
+
+    return mb_locale_name;
+}
+
+
+/**************************************************************************/
+
+_TEST_EXPORT const char*
+rw_create_locale (const char *charmap, const char *locale)
+{
+    // only one locale is enough (avoid invoking localedef more than once)
+    static const char* locname;
+    const char* locale_root;
+
+    if (locname)
+        return locname;
+
+    // set up RWSTD_LOCALE_ROOT and other environment variables
+    locale_root = rw_set_locale_root ();
+
+    if (0 == locale_root)
+        return 0;
+
+    // create a temporary locale definition file that exercises as
+    // many different parts of the collate standard as possible
+    char srcfname [256];
+    std::sprintf (srcfname, "%s%slocale.src", locale_root, SLASH);
+
+    std::FILE *fout = std::fopen (srcfname, "w");
+
+    if (!fout) {
+        std::fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
+                      __FILE__, __LINE__, srcfname);
+        return 0;
+    }
+
+       std::fprintf (fout, "%s", locale);
+
+    std::fclose (fout);
+
+    // create a temporary character map file
+    char cmfname [256];
+    std::sprintf (cmfname, "%s%scharmap.src", locale_root, SLASH);
+
+    fout = std::fopen (cmfname, "w");
+
+    if (!fout) {
+        std::fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
+                      __FILE__, __LINE__, cmfname);
+        return 0;
+    }
+
+       std::fprintf (fout, "%s", charmap);
+
+    std::fclose (fout);
+
+       locname = "test-locale";
+
+    // process the locale definition file and character map
+    if (0 == rw_localedef ("-w", srcfname, cmfname, locname))
+        locname = 0;
+
+    return locname;
 }

@@ -1,4 +1,4 @@
- /***************************************************************************
+/***************************************************************************
  *
  * exception.cpp - Source for the Standard Library exception classes
  *
@@ -40,14 +40,15 @@
 
 #include <rw/_defs.h>
 
-#if !defined (__EDG__) || defined (__DECCXX) || defined (__INTEL_COMPILER)
+#ifndef _RWSTD_EDG_ECCP
 #  include <stdarg.h>
 #else
+   // use "special" magic for the EDG eccp demo
 #  include <ansi/_cstdarg.h>
 
 _USING (_STD::va_list);
 
-#endif   // __EDG__ ...
+#endif   // EDG eccp demo
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -437,6 +438,16 @@ __rw_what_buf [256];
 static _RWSTD_THREAD int
 __rw_what_refcnt;
 
+// free memory buffer allocated in __rw_vfmtwhat()
+_RWSTD_EXPORT void __rw_free_what_buf (char* buf)
+{
+    if (__rw_what_buf == buf) {
+        _RWSTD_ASSERT (0 < __rw_what_refcnt);
+        _RWSTD_THREAD_PREDECREMENT (__rw_what_refcnt, false);
+    }
+    else
+        delete[] buf;
+}
 
 // allocate a char array and format it sprintf-style
 // caller responsible for calling delete[] on returned pointer
@@ -546,14 +557,8 @@ __rw_vfmtwhat (char          *buf,      // (allocate if 0)
         if (bufsize)
             return 0;
 
-        if (buf == __rw_what_buf) {
-            _RWSTD_THREAD_PREDECREMENT (__rw_what_refcnt, false);
-        }
-        else {
-            delete[] buf;
-        }
+        __rw_free_what_buf (buf);
         buf = new char [size];
-
     }
 
     return buf;
@@ -740,13 +745,13 @@ static void __rw_throw_exception (int id, char *what)
             _STD::runtime_error ()._C_assign (what, 0);
     }
 
-    delete[] what;
+    __rw_free_what_buf (what);
 
 #else   // if defined (_RWSTD_NO_EXCEPTIONS)
 
     if (what) {
         fprintf (stderr,"Exception: %s.\n", what);
-        delete[] what;
+        __rw_free_what_buf (what);
     }
     else {
         const char *__str;
@@ -825,9 +830,6 @@ _RWSTD_EXPORT void __rw_throw (int id, ...)
 
         // throw_proc takes ownership of allocated string
         __rw_throw_proc (id, what);
-
-        // if throw_proc returns, delete allocated what string
-        delete[] what;
     }
 }
 
@@ -839,12 +841,7 @@ __rw_exception::__rw_exception () _THROWS (())
 __rw_exception::__rw_exception (const __rw_exception &rhs)
     : _STD::exception (rhs), _C_what (0)
 {
-    if (rhs._C_what == __rw_what_buf) {
-        _RWSTD_THREAD_PREINCREMENT (__rw_what_refcnt, false);
-        _C_what = __rw_what_buf;
-    }
-    else
-        _C_assign (rhs.what ());
+    _C_assign (rhs.what ());
 }
 
   
@@ -866,12 +863,7 @@ __rw_exception::__rw_exception (const _STD::string &whatstr)
 // outlined to avoid functional compatibility issues
 /* virtual */ __rw_exception::~__rw_exception () _THROWS (())
 {
-    if (_C_what == __rw_what_buf) {
-        _RWSTD_THREAD_PREDECREMENT (__rw_what_refcnt, false);
-    }
-    else {
-        delete[] _C_what;
-    }
+    __rw_free_what_buf (_C_what);
 
 #ifdef _C_dummy_what
     // zero out dummy member of the base exception class
@@ -916,21 +908,28 @@ _C_assign (const char *whatstr, size_t len /* = ~0 */)
 
         if (whatstr && *whatstr) {
 
-            if (_RWSTD_SIZE_MAX == len)
-                len = strlen (whatstr);
-
-            if (len) {
-                // allocate own buffer and copy string
-                tmp = new char [len + 1];
-                memcpy (tmp, whatstr, len + 1);
+            if (whatstr == __rw_what_buf) {
+                if (len)
+                    _RWSTD_THREAD_PREINCREMENT (__rw_what_refcnt, false);
+                tmp = __rw_what_buf;
             }
             else {
-                // special case: do not allocate, just use passed in pointer
-                tmp = _RWSTD_CONST_CAST (char*, whatstr);
+                if (_RWSTD_SIZE_MAX == len)
+                    len = strlen (whatstr);
+
+                if (len) {
+                    // allocate own buffer and copy string
+                    tmp = new char [len + 1];
+                    memcpy (tmp, whatstr, len + 1);
+                }
+                else {
+                    // special case: do not allocate, just use passed in pointer
+                    tmp = _RWSTD_CONST_CAST (char*, whatstr);
+                }
             }
         }
 
-        delete[] _C_what;
+        __rw_free_what_buf (_C_what);
         _C_what = tmp;
     }
     return *this;

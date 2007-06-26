@@ -1,13 +1,13 @@
 <HTML>
 <HEAD>
 <TITLE>Multithread-Safe: Level 2</TITLE>
-<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Rogue Wave Standard Stylesheet"></HEAD>
+<LINK REL=StyleSheet HREF="../rw.css" TYPE="text/css" TITLE="Apache stdcxx Stylesheet"></HEAD>
 <BODY BGCOLOR=#FFFFFF>
 <A HREF="44.html"><IMG SRC="images/bprev.gif" WIDTH=20 HEIGHT=21 ALT="Previous file" BORDER=O></A><A HREF="noframes.html"><IMG SRC="images/btop.gif" WIDTH=56 HEIGHT=21 ALT="Top of Document" BORDER=O></A><A HREF="booktoc.html"><IMG SRC="images/btoc.gif" WIDTH=56 HEIGHT=21 ALT="Contents" BORDER=O></A><A HREF="tindex.html"><IMG SRC="images/bindex.gif" WIDTH=56 HEIGHT=21 ALT="Index page" BORDER=O></A><A HREF="44-2.html"><IMG SRC="images/bnext.gif" WIDTH=25 HEIGHT=21 ALT="Next file" BORDER=O></A><DIV CLASS="DOCUMENTNAME"><B>Apache C++ Standard Library User's Guide</B></DIV>
 <H2>44.1 Multithread-Safe: Level 2</H2>
 <A NAME="idx980"><!></A>
 <A NAME="idx981"><!></A>
-<P>This Rogue Wave implementation of iostreams and locales provides Multithread-Safety Level 2 as an option. All public and protected functions are reentrant under certain conditions, and there is protection against multiple threads trying to modify static and global data. The library may also lock an iostream object before modifying it. When this level of multi-thread safety is enabled, client code is not required to explicitly lock or unlock a class object, whether static, global, or local, in order to perform a single operation on the object.</P>
+<P>This implementation of iostreams and locales provides Multithread-Safety Level 2 as an option. All public and protected functions are reentrant under certain conditions, and there is protection against multiple threads trying to modify static and global data. The library may also lock an iostream object before modifying it. When this level of multi-thread safety is enabled, client code is not required to explicitly lock or unlock a class object, whether static, global, or local, in order to perform a single operation on the object.</P>
 <P>This means that iostream objects, with the exception of stream buffers, can be shared between threads of execution using a simple mutex object without explicit locking. The locking mechanism is enforced at the stream level. Therefore, all operations carried out on the stream are multithread safe, including the following:</P>
 <TABLE BORDER="0" CELLPADDING="3" CELLSPACING="3">
 <tr><td valign=top><P CLASS="TABLE"><B>Thread 1:</B></P>
