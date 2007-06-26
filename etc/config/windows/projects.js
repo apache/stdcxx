@@ -86,6 +86,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
 ///////////////////////////////////////////////////////////////////////////////
     var stdcxxDef = new ProjectDef(".stdcxx", typeLibrary);
     stdcxxDef.VCProjDir = ProjectsDir;
+    stdcxxDef.RTTI = true;
     stdcxxDef.FilterDefs.push(
         new FilterDef(sourceFilterName, sourceFilterUuid, sourceFilterExts, eFileTypeCppCode, false).
             addFilesByMask("%SRCDIR%\\src", rxExcludedFolders, null));
