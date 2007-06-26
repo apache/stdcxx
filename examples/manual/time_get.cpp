@@ -78,9 +78,11 @@ int main ()
     Iter begin (ins);
     Iter end;
 
+    const std::locale loc ("C");
+
     // Get a reference to the time_get facet in locale loc.
     const std::time_get<char, Iter> &tg =
-        std::use_facet<std::time_get<char, Iter> >(std::locale ("C"));
+        std::use_facet<std::time_get<char, Iter> >(loc);
 
     // Display time_base::dateorder value.
     std::cout << "time_base::dateorder == " << tg.date_order () << ".\n";
