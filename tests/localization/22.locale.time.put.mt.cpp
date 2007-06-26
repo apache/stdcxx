@@ -100,6 +100,7 @@ thread_func (void *arg)
 #endif   // _RWSTD_NO_WCHAR_T
 
     struct Ios: std::ios {
+        Ios () { this->init (0); }
     } io;
 
     int j = 0;

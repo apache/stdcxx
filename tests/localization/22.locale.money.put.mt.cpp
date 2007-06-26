@@ -101,6 +101,7 @@ thread_func (void*)
 #endif   // _RWSTD_NO_WCHAR_T
 
     struct Ios: std::ios {
+        Ios () { this->init (0); }
     } io;
 
     for (int i = 0; i != rw_opt_nloops; ++i) {
