@@ -44,9 +44,11 @@ int main ()
     // Construct a ostreambuf_iterator on cout
     Iter begin (std::cout);
 
+    const std::locale loc;
+
     // Get a money put facet
     const std::money_put<char, Iter> &mp = 
-        std::use_facet<std::money_put<char, Iter> >(std::locale ());
+        std::use_facet<std::money_put<char, Iter> >(loc);
 
     // Put out the string representation of the monetary value
     std::cout << buffer << " --> ";
