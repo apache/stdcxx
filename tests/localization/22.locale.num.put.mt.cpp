@@ -89,6 +89,7 @@ thread_func (void*)
 #endif   // _RWSTD_NO_WCHAR_T
 
     struct Ios: std::ios {
+        Ios () { this->init (0); }
     } io;
 
     const std::ios::fmtflags baseflags[] = {
