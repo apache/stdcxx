@@ -59,9 +59,11 @@ rw_thread_join (rw_thread_t, void**);
 
 // create a pool of nthreads, passing each a successive element
 // of argarray as argument (if non-null) and filling the tidarray
-// array with their id's; if tidarray is null, waits for all
+// array with their id's; if (tidarray == 0), waits for all
 // threads to join and fills the aragarray with the result
 // returned from each thread
+// if (nthreads == SIZE_MAX), sets nthreads to the positive result
+// of rw_get_processors() plus 1, or to 2 otherwise
 // returns 0 on success, or a non-zero value indicating the thread
 // number that failed to create on error
 _TEST_EXPORT int
@@ -70,6 +72,12 @@ rw_thread_pool (rw_thread_t*      /* tidarray */,
                 rw_thread_attr_t* /* attr */,
                 void* (*)(void*)  /* thr_proc */,
                 void**            /* argarray */);
+
+// returns the number of logical processors/cores on the system,
+// or -1 on error
+_TEST_EXPORT int
+rw_get_cpus ();
+
 
 }   // extern "C"
 
