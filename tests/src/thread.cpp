@@ -31,7 +31,12 @@
 
 #include <rw_thread.h>
 #include <stddef.h>     // for size_t
+#include <stdio.h>      // for FILE, fscanf(), popen()
 #include <string.h>     // for memset()
+
+#ifdef _WIN32
+#  define popen(name, mode)   _popen(name, mode)
+#endif   // _WIN32
 
 /**************************************************************************/
 
@@ -369,22 +374,108 @@ rw_thread_join (rw_thread_t, void**)
 
 #endif   // threads environment
 
+/**************************************************************************/
+
+// retrieves the number of processors/cores on the system
+_TEST_EXPORT int
+rw_get_cpus ()
+{
+    const char* const cmd = {
+        // shell command(s) to obtain the number of processors
+
+#ifdef _RWSTD_OS_AIX
+        // AIX: /etc/lsdev -Cc processor | wc -l
+        "/etc/lsdev -Cc processor | /usr/bin/wc -l"
+#elif defined (_RWSTD_OS_LINUX)
+        // Linux: cat /proc/cpuinfo | grep processor | wc -l
+        "/usr/bin/cat /proc/cpuinfo "
+        "  | /usr/bin/grep processor "
+        "  | /usr/bin/wc -l"
+#elif defined (_RWSTD_OS_FREEBSD)
+        // FreeBSD: /sbin/sysctl -n hw.ncpu
+        "/sbin/sysctl -n hw.ncpu"
+#elif defined (_RWSTD_OS_HP_UX)
+        // HP-UX: /etc/ioscan -k -C processor | grep processor | wc -l
+        "/etc/ioscan -k -C processor "
+        "  | /usr/bin/grep processor "
+        "  | /usr/bin/wc -l"
+#elif defined (_RWSTD_OS_IRIX64)
+        // IRIX: hinv | /usr/bin/grep "^[1-9][0-9]* .* Processor"
+        "/sbin/hinv "
+        "  | /usr/bin/grep \"^[1-9][0-9]* .* Processor\""
+#elif defined (_RWSTD_OS_OSF1)
+        // Tru64 UNIX: /usr/sbin/psrinfo | grep online | wc -l
+        "/usr/sbin/psrinfo "
+        "  | /usr/bin/grep on[-]*line "
+        "  | /usr/bin wc -l"
+#elif defined (_RWSTD_OS_SUNOS)
+        // Solaris: /usr/bin/mpstat | wc -l
+        "/usr/bin/mpstat "
+        "  | /usr/bin/grep -v \"^CPU\" "
+        "  | /usr/bin/wc -l"
+#elif defined (_RWSTD_OS_WINDOWS)
+        // Windows: ???
+        0
+#else
+        0
+#endif
+
+    };
+
+    int ncpus = -1;
+
+    if (cmd) {
+        // open and read the output of the command from a pipe
+        FILE* const fp = popen (cmd, "r");
+
+        if (fp) {
+            int tmp = 0;
+        
+            int n = fscanf (fp, "%d", &tmp);
+
+            if (1 == n)
+                ncpus = tmp;
+
+            fclose (fp);
+        }
+    }
+
+    return ncpus;
+}
+
+/**************************************************************************/
 
 extern "C" {
 
 
 _TEST_EXPORT int
-rw_thread_pool (rw_thread_t *thr_id, size_t nthrs,
+rw_thread_pool (rw_thread_t        *thr_id,
+                size_t              nthrs,
                 rw_thread_attr_t*,
-                void* (*thr_proc)(void*),
-                void **thr_arg)
+                void*             (*thr_proc)(void*),
+                void*              *thr_arg)
 {
     // small buffer for thread ids when invoked with (thr_id == 0)
     rw_thread_t id_buf [16];
 
     const bool join = 0 == thr_id;
 
-#ifndef _RWSTD_REENTRANT
+#ifdef _RWSTD_REENTRANT
+
+    if (_RWSTD_SIZE_MAX == nthrs) {
+        // when the number of threads is -1 use the number
+        // of processors plus 1 (in case it's 1 to begin
+        // with)
+
+        const int ncpus = rw_get_cpus ();
+
+        if (0 < ncpus)
+            nthrs = size_t (ncpus) + 1;
+        else
+            nthrs = 2;
+    }
+
+#else
 
     // when not reentrant/thread safe emulate the creation
     // of a single thread and then waiting for it to finish
@@ -408,7 +499,6 @@ rw_thread_pool (rw_thread_t *thr_id, size_t nthrs,
 
         return 0;
     }
-
 #endif   // !_RWSTD_REENTRANT
 
     bool delete_ids = false;
