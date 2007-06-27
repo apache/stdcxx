@@ -404,12 +404,19 @@ rw_locales (int loc_cat, const char* grep_exp)
         // if successful, construct a char array with the locales
         while (fgets (linebuf, sizeof linebuf, file)) {
 
-            linebuf [strlen (linebuf) - 1] = '\0';
+            const size_t linelen = strlen (linebuf);
+
+            linebuf [linelen ? linelen - 1 : 0] = '\0';
 
 #ifdef _RWSTD_OS_SUNOS
 
-            // avoid the bad locale named iso_8859_1 on SunOS
-            if (!strcmp ("iso_8859_1", linebuf))
+            const char iso_8859_pfx[] = "iso_8859_";
+
+            // avoid locales named common and iso_8859_* on SunOS
+            // since they are known to cause setlocale() to fail
+            if (   !strcmp ("common", linebuf)
+                || sizeof iso_8859_pfx <= linelen 
+                && !memcmp (iso_8859_pfx, linebuf, sizeof iso_8859_pfx - 1))
                 continue;
 
 #endif   // _RWSTD_OS_SUNOS
