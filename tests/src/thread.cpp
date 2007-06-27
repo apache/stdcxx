@@ -31,11 +31,12 @@
 
 #include <rw_thread.h>
 #include <stddef.h>     // for size_t
-#include <stdio.h>      // for FILE, fscanf(), popen()
 #include <string.h>     // for memset()
 
-#ifdef _WIN32
-#  define popen(name, mode)   _popen(name, mode)
+#ifndef _WIN32
+#  include <stdio.h>      // for FILE, fscanf(), popen()
+#else    // _WIN32
+#  include <windows.h>    // for GetSystemInfo()
 #endif   // _WIN32
 
 /**************************************************************************/
@@ -380,45 +381,44 @@ rw_thread_join (rw_thread_t, void**)
 _TEST_EXPORT int
 rw_get_cpus ()
 {
+#ifndef _WIN32
+
     const char* const cmd = {
         // shell command(s) to obtain the number of processors
 
-#ifdef _RWSTD_OS_AIX
+#  ifdef _RWSTD_OS_AIX
         // AIX: /etc/lsdev -Cc processor | wc -l
         "/etc/lsdev -Cc processor | /usr/bin/wc -l"
-#elif defined (_RWSTD_OS_LINUX)
+#  elif defined (_RWSTD_OS_LINUX)
         // Linux: cat /proc/cpuinfo | grep processor | wc -l
         "/usr/bin/cat /proc/cpuinfo "
         "  | /usr/bin/grep processor "
         "  | /usr/bin/wc -l"
-#elif defined (_RWSTD_OS_FREEBSD)
+#  elif defined (_RWSTD_OS_FREEBSD)
         // FreeBSD: /sbin/sysctl -n hw.ncpu
         "/sbin/sysctl -n hw.ncpu"
-#elif defined (_RWSTD_OS_HP_UX)
+#  elif defined (_RWSTD_OS_HP_UX)
         // HP-UX: /etc/ioscan -k -C processor | grep processor | wc -l
         "/etc/ioscan -k -C processor "
         "  | /usr/bin/grep processor "
         "  | /usr/bin/wc -l"
-#elif defined (_RWSTD_OS_IRIX64)
+#  elif defined (_RWSTD_OS_IRIX64)
         // IRIX: hinv | /usr/bin/grep "^[1-9][0-9]* .* Processor"
         "/sbin/hinv "
         "  | /usr/bin/grep \"^[1-9][0-9]* .* Processor\""
-#elif defined (_RWSTD_OS_OSF1)
+#  elif defined (_RWSTD_OS_OSF1)
         // Tru64 UNIX: /usr/sbin/psrinfo | grep online | wc -l
         "/usr/sbin/psrinfo "
         "  | /usr/bin/grep on[-]*line "
         "  | /usr/bin wc -l"
-#elif defined (_RWSTD_OS_SUNOS)
+#  elif defined (_RWSTD_OS_SUNOS)
         // Solaris: /usr/bin/mpstat | wc -l
         "/usr/bin/mpstat "
         "  | /usr/bin/grep -v \"^CPU\" "
         "  | /usr/bin/wc -l"
-#elif defined (_RWSTD_OS_WINDOWS)
-        // Windows: ???
+#  else
         0
-#else
-        0
-#endif
+#  endif
 
     };
 
@@ -441,6 +441,14 @@ rw_get_cpus ()
     }
 
     return ncpus;
+
+#else    // _WIN32
+
+    SYSTEM_INFO info;
+    GetSystemInfo (&info);
+    return int (info.dwNumberOfProcessors);
+
+#endif   // _WIN32
 }
 
 /**************************************************************************/
