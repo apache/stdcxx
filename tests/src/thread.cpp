@@ -391,9 +391,9 @@ rw_get_cpus ()
         "/etc/lsdev -Cc processor | /usr/bin/wc -l"
 #  elif defined (_RWSTD_OS_LINUX)
         // Linux: cat /proc/cpuinfo | grep processor | wc -l
-        "/usr/bin/cat /proc/cpuinfo "
-        "  | /usr/bin/grep processor "
-        "  | /usr/bin/wc -l"
+        "cat /proc/cpuinfo "
+        "  | grep processor "
+        "  | wc -l"
 #  elif defined (_RWSTD_OS_FREEBSD)
         // FreeBSD: /sbin/sysctl -n hw.ncpu
         "/sbin/sysctl -n hw.ncpu"
