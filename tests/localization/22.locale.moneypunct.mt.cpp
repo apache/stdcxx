@@ -252,15 +252,11 @@ thread_func (void*)
 
 /**************************************************************************/
 
-static char*
-rw_opt_locales;
-
-
 static int
 run_test (int, char**)
 {
     // find all installed locales for which setlocale(LC_ALL) succeeds
-    char* const locale_list =
+    const char* const locale_list =
         rw_opt_locales ? rw_opt_locales : rw_locales (_RWSTD_LC_ALL);
 
     // array of locale names to use for testing
@@ -269,7 +265,7 @@ run_test (int, char**)
     const std::size_t maxinx = sizeof locales / sizeof *locales;
 
     // iterate over locales, initializing a global punct_data array
-    for (char *name = locale_list; *name; name += std::strlen (name) + 1) {
+    for (const char *name = locale_list; *name; name += std::strlen (name) +1) {
 
         std::locale loc;
 
@@ -464,37 +460,6 @@ run_test (int, char**)
 
 /**************************************************************************/
 
-static int
-rw_opt_setlocales (int argc, char* argv[])
-{
-    RW_ASSERT (0 < argc && argv [0]);
-
-    rw_opt_locales = std::strchr (argv [0], '=');
-
-    if (rw_opt_locales) {
-
-        const std::size_t len = std::strlen (++rw_opt_locales);
-        char* const locale_names = new char [len + 2];
-
-        locale_names [len + 1] = '\0';
-
-        std::memcpy (locale_names, rw_opt_locales, len);
-
-        rw_opt_locales = locale_names;
-
-        for (char *next = rw_opt_locales; ; ) {
-            next = std::strpbrk (next, ", ");
-            if (next)
-                *next++ = '\0';
-            else
-                break;
-        }
-    }
-
-    return 0;
-}
-
-
 int main (int argc, char *argv[])
 {
 #ifdef _RWSTD_REENTRANT
@@ -508,7 +473,7 @@ int main (int argc, char *argv[])
                     "lib.locale.moneypunct",
                     "thread safety", run_test,
                     "|-nloops#0 "       // must be non-negative
-                    "|-nthreads#0-*"    // must be in [0, MAX_THREADS]
+                    "|-nthreads#0-* "   // must be in [0, MAX_THREADS]
                     "|-locales=",       // must be provided
                     &rw_opt_nloops,
                     int (MAX_THREADS),

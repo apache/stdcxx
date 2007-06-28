@@ -36,7 +36,6 @@
 #include <file.h>         // for SHELL_RM_RF, rw_tmpnam
 #include <rw_printf.h>    // for rw_fprintf()
 #include <rw_process.h>   // for rw_system()
-#include <cstdio>
 
 
 #if defined (_RWSTD_OS_LINUX) && !defined (_XOPEN_SOURCE)
@@ -679,35 +678,35 @@ rw_create_locale (const char *charmap, const char *locale)
     // create a temporary locale definition file that exercises as
     // many different parts of the collate standard as possible
     char srcfname [256];
-    std::sprintf (srcfname, "%s%slocale.src", locale_root, SLASH);
+    sprintf (srcfname, "%s%slocale.src", locale_root, SLASH);
 
-    std::FILE *fout = std::fopen (srcfname, "w");
+    FILE *fout = fopen (srcfname, "w");
 
     if (!fout) {
-        std::fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
-                      __FILE__, __LINE__, srcfname);
+        fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
+                 __FILE__, __LINE__, srcfname);
         return 0;
     }
 
-       std::fprintf (fout, "%s", locale);
+       fprintf (fout, "%s", locale);
 
-    std::fclose (fout);
+    fclose (fout);
 
     // create a temporary character map file
     char cmfname [256];
-    std::sprintf (cmfname, "%s%scharmap.src", locale_root, SLASH);
+    sprintf (cmfname, "%s%scharmap.src", locale_root, SLASH);
 
-    fout = std::fopen (cmfname, "w");
+    fout = fopen (cmfname, "w");
 
     if (!fout) {
-        std::fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
-                      __FILE__, __LINE__, cmfname);
+        fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
+                 __FILE__, __LINE__, cmfname);
         return 0;
     }
 
-       std::fprintf (fout, "%s", charmap);
+       fprintf (fout, "%s", charmap);
 
-    std::fclose (fout);
+    fclose (fout);
 
        locname = "test-locale";
 
@@ -716,4 +715,56 @@ rw_create_locale (const char *charmap, const char *locale)
         locname = 0;
 
     return locname;
+}
+
+
+/**************************************************************************/
+
+static const char*
+_rw_locale_names;
+
+_TEST_EXPORT const char* const&
+rw_opt_locales = _rw_locale_names;
+
+
+_TEST_EXPORT int
+rw_opt_setlocales (int argc, char* argv[])
+{
+    RW_ASSERT (0 < argc && argv [0]);
+
+    // the option requires an equals sign followed by an optional argument
+    char *args = strchr (argv [0], '=');
+
+    RW_ASSERT (0 != args);
+
+    // small static buffer should be sufficient in most cases
+    static char buffer [256];
+
+    const size_t len = strlen (++args);
+
+    // dynamically allocate a bigger buffer when the small buffer
+    // isn't big enough (let the dynamically allocated buffer leak)
+    char* const locale_names =
+        sizeof buffer < len + 2 ? (char*)malloc (len + 2) : buffer;
+
+    if (0 == locale_names)
+        return 1;
+
+    locale_names [len]     = '\0';
+    locale_names [len + 1] = '\0';
+
+    memcpy (locale_names, args, len);
+
+    for (char *next = locale_names; ; ) {
+        next = strpbrk (next, ", ");
+        if (next)
+            *next++ = '\0';
+        else
+            break;
+    }
+
+    _rw_locale_names = locale_names;
+
+    // return 0 on success
+    return 0;
 }

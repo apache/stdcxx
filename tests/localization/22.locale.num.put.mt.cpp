@@ -33,20 +33,16 @@
 #include <cstring>    // for strlen()
 
 #include <rw_locale.h>
-#include <rw_thread.h>
+#include <rw_thread.h>   // for rw_get_processors (), rw_thread_pool()
 #include <driver.h>
 
 
 // maximum number of threads allowed by the command line interface
 #define MAX_THREADS   32
 
-
-#ifdef _RWSTD_REENTRANT
-int rw_opt_nthreads = 4;
-#else   // if !defined (_RWSTD_REENTRANT)
-// in non-threaded builds use just one thread
+// default number of threads (will be adjusted to the number
+// of processors/cores later)
 int rw_opt_nthreads = 1;
-#endif   // _RWSTD_REENTRANT
 
 // the number of times each thread should iterate (unless specified
 // otherwise on the command line)
@@ -164,7 +160,7 @@ thread_func (void*)
 
             const std::ostreambuf_iterator<char> iter (&sb);
 
-            switch (PutId (i % put_max)) {
+            switch (i % put_max) {
             case put_bool:
                 if (i & 2)
                     io.setf (std::ios::boolalpha);
@@ -220,7 +216,7 @@ thread_func (void*)
 
             const std::ostreambuf_iterator<wchar_t> iter (&wb);
 
-            switch (PutId (i % put_max)) {
+            switch (i % put_max) {
             case put_bool:
                 np.put (iter, io, L' ', bool (ival));
                 break;
@@ -273,11 +269,14 @@ thread_func (void*)
 static int
 run_test (int, char**)
 {
-    char* const locale_list = rw_locales ();
+    // find all installed locales for which setlocale(LC_ALL) succeeds
+    const char* const locale_list =
+        rw_opt_locales ? rw_opt_locales : rw_locales (_RWSTD_LC_ALL);
 
     const std::size_t maxinx = sizeof locales / sizeof *locales;
 
-    for (char *name = locale_list; *name; name += std::strlen (name) + 1) {
+    for (const char *name = locale_list; *name; name += std::strlen (name) +1) {
+
         locales [nlocales++] = name;
 
         if (nlocales == maxinx)
@@ -345,12 +344,21 @@ run_test (int, char**)
 
 int main (int argc, char *argv[])
 {
+#ifdef _RWSTD_REENTRANT
+
+    // set nthreads to the number of processors by default
+    rw_opt_nthreads = rw_get_cpus ();
+
+#endif   // _RWSTD_REENTRANT
+
     return rw_test (argc, argv, __FILE__,
                     "lib.locale.num.put",
                     "thread safety", run_test,
-                    "|-nloops#0 "       // must be non-negative
-                    "|-nthreads#0-*",   // must be in [0, MAX_THREADS]
+                    "|-nloops#0 "        // must be non-negative
+                    "|-nthreads#0-* "    // must be in [0, MAX_THREADS]
+                    "|-locales=",        // must be provided
                     &rw_opt_nloops,
                     int (MAX_THREADS),
-                    &rw_opt_nthreads);
+                    &rw_opt_nthreads,
+                    &rw_opt_setlocales);
 }
