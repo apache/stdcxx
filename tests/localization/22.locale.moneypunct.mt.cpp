@@ -464,8 +464,11 @@ int main (int argc, char *argv[])
 {
 #ifdef _RWSTD_REENTRANT
 
-    // set nthreads to the number of processors by default
+    // set nthreads to the greater of the number of processors
+    // and 2 (for uniprocessor systems) by default
     rw_opt_nthreads = rw_get_cpus ();
+    if (rw_opt_nthreads < 2)
+        rw_opt_nthreads = 2;
 
 #endif   // _RWSTD_REENTRANT
 
