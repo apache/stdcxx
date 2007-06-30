@@ -28,6 +28,7 @@
 
 #include <locale>     // for locale
 
+#include <cwchar>     // for mbstate_t
 #include <cstring>    // for strlen()
 
 #include <rw_locale.h>
