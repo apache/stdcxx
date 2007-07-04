@@ -1409,6 +1409,8 @@ void test_flush (charT)
     }
 
     {
+        // exercise LWG issue 581: flush() not unformatted function
+
         test_streambuf<charT> tsb (0);
         Ostream strm (&tsb);
 
