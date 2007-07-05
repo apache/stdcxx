@@ -61,6 +61,7 @@ handle_ABRT (int)
 #define FAIL(code)                                              \
     fail = line = __LINE__;                                     \
     signal (SIGABRT, handle_ABRT);                              \
+    signal (SIGSEGV, handle_ABRT);                              \
     if (0 == setjmp (env)) {                                    \
         code;                                                   \
         exit_status = 1;                                        \
@@ -72,6 +73,7 @@ handle_ABRT (int)
 #define PASS(code)                                              \
     fail = -1; line = __LINE__;                                 \
     signal (SIGABRT, handle_ABRT);                              \
+    signal (SIGSEGV, handle_ABRT);                              \
     if (0 == setjmp (env)) {                                    \
         code;                                                   \
     }                                                           \
