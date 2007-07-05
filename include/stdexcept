@@ -65,6 +65,8 @@ struct _RWSTD_EXPORT domain_error: logic_error
     // extension
     _EXPLICIT domain_error (const char *__s = 0)
         : logic_error (__s) { }
+
+    virtual ~domain_error () _THROWS (());
 };
 
 
@@ -113,6 +115,8 @@ struct _RWSTD_EXPORT runtime_error: _RW::__rw_exception
     // extension
     _EXPLICIT runtime_error (const char *__s = 0)
         : _RW::__rw_exception (__s) { }
+
+    virtual ~runtime_error () _THROWS (());
 };
 
 
@@ -125,6 +129,8 @@ struct _RWSTD_EXPORT range_error: runtime_error
     // extension
     _EXPLICIT range_error (const char *__s = 0)
         : runtime_error (__s) { }
+
+    virtual ~range_error () _THROWS (());
 };
 
 
