@@ -34,7 +34,7 @@
 /**************************************************************************/
 
 #undef EOF
-#define EOF   traits_eof
+#define EOF   (_RWSTD_INT_MIN + 2)
 
 #undef NOT_EOF
 #define NOT_EOF   (_RWSTD_INT_MIN + 1)
@@ -178,6 +178,12 @@ void test_virtual (charT, Traits, const VFun *pfid,
         rw_note (0, 0, 0, "test on line %d disabled", line);
         return;
     }
+
+    if (EOF == arg0)
+        arg0 = Traits::eof ();
+
+    if (EOF == ret_expect)
+        ret_expect = Traits::eof ();
 
     // widen the source sequence into the (possibly wide) character buffer
     static charT wstr [4096];
