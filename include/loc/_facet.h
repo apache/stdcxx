@@ -66,9 +66,13 @@ struct _RWSTD_EXPORT __rw_facet: __rw_synchronized
     // of standard types by the library
     typedef __rw_facet* (_C_ctor_t)(_RWSTD_SIZE_T, const char*);
 
+protected:
+
     _EXPLICIT __rw_facet (_RWSTD_SIZE_T = 0);
 
     virtual ~__rw_facet ();
+
+public:
 
     // types of standard facets; only globally managed facets (i.e.,
     // standard facets created internally) set this member, user-created
