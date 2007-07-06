@@ -31,14 +31,12 @@
 #include <new>
 #include <rw/_defs.h>
 
-#ifndef _RWSTD_NO_V3_LOCALE
-
 #include <loc/_locale.h>
 
 #include "locale_body.h"
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 /* static */ const locale& locale::classic ()
@@ -60,7 +58,4 @@ _RWSTD_NAMESPACE (_V3_LOCALE) {
 }
 
 
-}   // namespace _V3_LOCALE
-
-
-#endif   // _RWSTD_NO_V3_LOCALE
+}   // namespace std

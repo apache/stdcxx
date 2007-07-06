@@ -30,12 +30,10 @@
 
 #include <rw/_defs.h>
 
-#ifndef _RWSTD_NO_V3_LOCALE
-
 #include <loc/_locale.h>
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 _RWSTD_DEFINE_STATIC_CONST (const locale::category locale::none);
@@ -48,7 +46,4 @@ _RWSTD_DEFINE_STATIC_CONST (const locale::category locale::messages);
 _RWSTD_DEFINE_STATIC_CONST (const locale::category locale::all);
 
 
-}   // namespace _V3_LOCALE
-
-
-#endif   // _RWSTD_NO_V3_LOCALE
+}   // namespace std

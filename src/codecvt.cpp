@@ -30,8 +30,6 @@
 
 #include <rw/_defs.h>
 
-#ifndef _RWSTD_NO_V3_LOCALE
-
 
 // working around a Compaq C++ bug (see PR #26778)
 #if __DECCXX_VER >= 60300000 && __DECCXX_VER < 60400000
@@ -93,7 +91,7 @@ __rw_mbsinit (const StateT *ps)
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
 
 
 _RW::__rw_facet_id codecvt<char, char, _RWSTD_MBSTATE_T>::id;
@@ -259,11 +257,10 @@ do_max_length () const _THROWS (())
 }
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 #define TARGS_C   <char, char, _RWSTD_MBSTATE_T>
 
 _RWSTD_DEFINE_FACET_FACTORY (static, codecvt, TARGS_C, codecvt);
 _RWSTD_SPECIALIZE_USE_FACET (codecvt);
 
-#endif   // _RWSTD_NO_V3_LOCALE

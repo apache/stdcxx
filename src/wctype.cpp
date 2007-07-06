@@ -371,7 +371,7 @@ __rw_widen (const __rw_codecvt_t *cvt, bool use_libstd,
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
 
 
 _RW::__rw_facet_id ctype<wchar_t>::id;
@@ -1051,7 +1051,7 @@ do_widen (const char *lo, const char *hi, char_type *dest) const
 }
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 _RWSTD_DEFINE_FACET_FACTORY (static, ctype, <wchar_t>, wctype);

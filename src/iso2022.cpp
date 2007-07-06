@@ -30,8 +30,6 @@
 
 #include <rw/_defs.h>
 
-#ifndef _RWSTD_NO_V3_LOCALE
-
 #include <string.h>     // for strxxx()
 #include <iosfwd>       // for mbstate_t
 
@@ -123,9 +121,9 @@
 #endif
 
 
-#define CODECVT_ERROR   _V3_LOCALE::codecvt_base::error
-#define CODECVT_OK      _V3_LOCALE::codecvt_base::ok
-#define CODECVT_PARTIAL _V3_LOCALE::codecvt_base::partial
+#define CODECVT_ERROR   _STD::codecvt_base::error
+#define CODECVT_OK      _STD::codecvt_base::ok
+#define CODECVT_PARTIAL _STD::codecvt_base::partial
 
 
 _RWSTD_NAMESPACE (__rw) {
@@ -661,7 +659,7 @@ const void* __rw_get_encoding_database (unsigned char n)
 // given by the last parameter and is currently one of the following:
 //   - ISO_2022-JP
 //   - ISO_2022-JP2
-static _V3_LOCALE::codecvt_base::result
+static _STD::codecvt_base::result
 __rw_iso2022jp_designate (__rw_iso2022_state_t& state,
                           char*&                to,
                           char*                 to_end,
@@ -779,7 +777,7 @@ __rw_iso2022jp_designate (__rw_iso2022_state_t& state,
 // Upon entry:
 //   - from  - points to the first byte after the ESCAPE_CHAR indicator;
 //   - enc   - encoding type.
-static _V3_LOCALE::codecvt_base::result
+static _STD::codecvt_base::result
 __rw_iso2022_escape (__rw_iso2022_state_t& state,
                      const char*&          from,
                      const char*           from_end,
@@ -861,10 +859,10 @@ __rw_iso2022_escape (__rw_iso2022_state_t& state,
 // ISO-2022-JP conversion from ANSI_X3.4-1968
 // Convert one character.
 // Returns:
-//    _V3_LOCALE::codecvt_base::ok      in case the conversion succeeded
-//    _V3_LOCALE::codecvt_base::partial for partial conversions
-//    _V3_LOCALE::codecvt_base::error   erroneous sequence
-static _V3_LOCALE::codecvt_base::result
+//    std::codecvt_base::ok      in case the conversion succeeded
+//    std::codecvt_base::partial for partial conversions
+//    std::codecvt_base::error   erroneous sequence
+static _STD::codecvt_base::result
 __rw_ascii_to_iso2022 (__rw_iso2022_state_t& state,
                        const char*&          from,
                        const char*           from_end,
@@ -879,7 +877,7 @@ __rw_ascii_to_iso2022 (__rw_iso2022_state_t& state,
     _RWSTD_ASSERT (from_end-from >= int(width));
     _RWSTD_UNUSED (from_end);
 
-    _V3_LOCALE::codecvt_base::result ret;
+    _STD::codecvt_base::result ret;
 
     // check the designation sequence
     if (state.g_map [0] != reg) {
@@ -916,10 +914,10 @@ __rw_ascii_to_iso2022 (__rw_iso2022_state_t& state,
 // ISO-2022-JP conversion from KSC5601-1987
 // Convert one character.
 // Returns:
-//    _V3_LOCALE::codecvt_base::ok      in case the conversion succeeded
-//    _V3_LOCALE::codecvt_base::partial for partial conversions
-//    _V3_LOCALE::codecvt_base::error   erroneous sequence
-static _V3_LOCALE::codecvt_base::result
+//    std::codecvt_base::ok      in case the conversion succeeded
+//    std::codecvt_base::partial for partial conversions
+//    std::codecvt_base::error   erroneous sequence
+static _STD::codecvt_base::result
 __rw_ksc5601_to_iso2022 (__rw_iso2022_state_t& state,
                          const char*&        from,
                          const char*         from_end,
@@ -934,7 +932,7 @@ __rw_ksc5601_to_iso2022 (__rw_iso2022_state_t& state,
     _RWSTD_ASSERT(from_end-from >= int(width));
     _RWSTD_UNUSED(from_end);
 
-    _V3_LOCALE::codecvt_base::result ret;
+    _STD::codecvt_base::result ret;
 
     // check the designation sequence
     if (state.g_map [0] != reg) {
@@ -971,10 +969,10 @@ __rw_ksc5601_to_iso2022 (__rw_iso2022_state_t& state,
 // ISO-2022-JP conversion from GB2312-1980
 // Convert one character.
 // Returns:
-//    _V3_LOCALE::codecvt_base::ok      in case the conversion succeeded
-//    _V3_LOCALE::codecvt_base::partial for partial conversions
-//    _V3_LOCALE::codecvt_base::error   erroneous sequence
-static _V3_LOCALE::codecvt_base::result
+//    std::codecvt_base::ok      in case the conversion succeeded
+//    std::codecvt_base::partial for partial conversions
+//    std::codecvt_base::error   erroneous sequence
+static _STD::codecvt_base::result
 __rw_gb2312_to_iso2022 (__rw_iso2022_state_t& state,
                         const char*&          from,
                         const char*           from_end,
@@ -989,7 +987,7 @@ __rw_gb2312_to_iso2022 (__rw_iso2022_state_t& state,
     _RWSTD_ASSERT(from_end-from >= int(width));
     _RWSTD_UNUSED(from_end);
 
-    _V3_LOCALE::codecvt_base::result ret;
+    _STD::codecvt_base::result ret;
 
     // check the designation sequence
     if (state.g_map [0] != reg) {
@@ -1026,10 +1024,10 @@ __rw_gb2312_to_iso2022 (__rw_iso2022_state_t& state,
 // ISO-2022-JP conversion from ISO-8859-7
 // Convert one character.
 // Returns:
-//    _V3_LOCALE::codecvt_base::ok      in case the conversion succeeded
-//    _V3_LOCALE::codecvt_base::partial for partial conversions
-//    _V3_LOCALE::codecvt_base::error   erroneous sequence
-static _V3_LOCALE::codecvt_base::result
+//    std::codecvt_base::ok      in case the conversion succeeded
+//    std::codecvt_base::partial for partial conversions
+//    std::codecvt_base::error   erroneous sequence
+static _STD::codecvt_base::result
 __rw_iso88597_to_iso2022 (__rw_iso2022_state_t& state,
                           const char*&          from,
                           const char*           from_end,
@@ -1044,7 +1042,7 @@ __rw_iso88597_to_iso2022 (__rw_iso2022_state_t& state,
     _RWSTD_ASSERT(from_end-from >= int(width2));
     _RWSTD_UNUSED(from_end);
 
-    _V3_LOCALE::codecvt_base::result ret;
+    _STD::codecvt_base::result ret;
 
     // always call designate for this one; designation will at least insert a
     // single shift function in the destination buffer
@@ -1073,10 +1071,10 @@ __rw_iso88597_to_iso2022 (__rw_iso2022_state_t& state,
 // ISO-2022-JP conversion from ISO-8859-1
 // Convert one character.
 // Returns:
-//    _V3_LOCALE::codecvt_base::ok      in case the conversion succeeded
-//    _V3_LOCALE::codecvt_base::partial for partial conversions
-//    _V3_LOCALE::codecvt_base::error   erroneous sequence
-static _V3_LOCALE::codecvt_base::result
+//    std::codecvt_base::ok      in case the conversion succeeded
+//    std::codecvt_base::partial for partial conversions
+//    std::codecvt_base::error   erroneous sequence
+static _STD::codecvt_base::result
 __rw_iso88591_to_iso2022 (__rw_iso2022_state_t& state,
                           const char*&          from,
                           const char*           from_end,
@@ -1091,7 +1089,7 @@ __rw_iso88591_to_iso2022 (__rw_iso2022_state_t& state,
     _RWSTD_ASSERT(from_end-from >= int(width2));
     _RWSTD_UNUSED(from_end);
 
-    _V3_LOCALE::codecvt_base::result ret;
+    _STD::codecvt_base::result ret;
 
     // always call designate for this one; designation will at least insert a
     // single shift function in the destination buffer
@@ -1120,10 +1118,10 @@ __rw_iso88591_to_iso2022 (__rw_iso2022_state_t& state,
 // ISO-2022-JP conversion from packed EUC-JP
 // Convert one character.
 // Returns:
-//    _V3_LOCALE::codecvt_base::ok      in case the conversion succeeded
-//    _V3_LOCALE::codecvt_base::partial for partial conversions
-//    _V3_LOCALE::codecvt_base::error   erroneous sequence
-static _V3_LOCALE::codecvt_base::result
+//    std::codecvt_base::ok      in case the conversion succeeded
+//    std::codecvt_base::partial for partial conversions
+//    std::codecvt_base::error   erroneous sequence
+static _STD::codecvt_base::result
 __rw_eucjp_to_iso2022 (__rw_iso2022_state_t& state,
                        const char*&          from,
                        const char*           from_end,
@@ -1134,7 +1132,7 @@ __rw_eucjp_to_iso2022 (__rw_iso2022_state_t& state,
     int width = 0;
     unsigned char reg = 0;
 
-    _V3_LOCALE::codecvt_base::result ret;
+    _STD::codecvt_base::result ret;
 
     // convert and store the encoding
     unsigned char c = *_RWSTD_REINTERPRET_CAST(const unsigned char*, from);
@@ -1204,18 +1202,18 @@ __rw_eucjp_to_iso2022 (__rw_iso2022_state_t& state,
 // ISO-2022-JP conversion to GB2312-1980
 // Converts one character.
 // Returns:
-//    _V3_LOCALE::codecvt_base::ok      in case the conversion succeeded
-//    _V3_LOCALE::codecvt_base::partial for partial conversions
-//    _V3_LOCALE::codecvt_base::error   erroneous sequence
+//    std::codecvt_base::ok      in case the conversion succeeded
+//    std::codecvt_base::partial for partial conversions
+//    std::codecvt_base::error   erroneous sequence
 static inline
-_V3_LOCALE::codecvt_base::result
+_STD::codecvt_base::result
 __rw_iso2022_to_gb2312 (const char*& from,
                         const char*  from_end,
                         char*&       to,
                         int          /* reg */,
                         int          /* enc */)
 {
-    _V3_LOCALE::codecvt_base::result res = CODECVT_OK;
+    _STD::codecvt_base::result res = CODECVT_OK;
 
     if (from_end - from < GB2312_CHAR_LEN)
         return res;
@@ -1231,18 +1229,18 @@ __rw_iso2022_to_gb2312 (const char*& from,
 // ISO-2022-JP conversion to KSC2312
 // Converts one character.
 // Returns:
-//    _V3_LOCALE::codecvt_base::ok      in case the conversion succeeded
-//    _V3_LOCALE::codecvt_base::partial for partial conversions
-//    _V3_LOCALE::codecvt_base::error   erroneous sequence
+//    std::codecvt_base::ok      in case the conversion succeeded
+//    std::codecvt_base::partial for partial conversions
+//    std::codecvt_base::error   erroneous sequence
 static inline
-_V3_LOCALE::codecvt_base::result
+_STD::codecvt_base::result
 __rw_iso2022_to_ksc5601 (const char*& from,
                          const char*  from_end,
                          char*&       to,
                          int          /* reg */,
                          int          /* enc */)
 {
-    _V3_LOCALE::codecvt_base::result res = CODECVT_OK;
+    _STD::codecvt_base::result res = CODECVT_OK;
 
     if (from_end - from < KSC5601_CHAR_LEN)
         return res;
@@ -1258,18 +1256,18 @@ __rw_iso2022_to_ksc5601 (const char*& from,
 // ISO-2022-JP conversion to ISO-8859-1
 // Converts one character.
 // Returns:
-//    _V3_LOCALE::codecvt_base::ok      in case the conversion succeeded
-//    _V3_LOCALE::codecvt_base::partial for partial conversions
-//    _V3_LOCALE::codecvt_base::error   erroneous sequence
+//    std::codecvt_base::ok      in case the conversion succeeded
+//    std::codecvt_base::partial for partial conversions
+//    std::codecvt_base::error   erroneous sequence
 static inline
-_V3_LOCALE::codecvt_base::result
+_STD::codecvt_base::result
 __rw_iso2022_to_iso88591 (const char*& from,
                           const char*  from_end,
                           char*&       to,
                           int          /* reg */,
                           int          /* enc */)
 {
-    _V3_LOCALE::codecvt_base::result res = CODECVT_OK;
+    _STD::codecvt_base::result res = CODECVT_OK;
 
     if (from_end - from < ISO_8859_1_CHAR_LEN)
         return res;
@@ -1284,18 +1282,18 @@ __rw_iso2022_to_iso88591 (const char*& from,
 // ISO-2022-JP conversion to ISO-8859-7
 // Converts one character.
 // Returns:
-//    _V3_LOCALE::codecvt_base::ok      in case the conversion succeeded
-//    _V3_LOCALE::codecvt_base::partial for partial conversions
-//    _V3_LOCALE::codecvt_base::error   erroneous sequence
+//    std::codecvt_base::ok      in case the conversion succeeded
+//    std::codecvt_base::partial for partial conversions
+//    std::codecvt_base::error   erroneous sequence
 static inline
-_V3_LOCALE::codecvt_base::result
+_STD::codecvt_base::result
 __rw_iso2022_to_iso88597 (const char*& from,
                           const char*  from_end,
                           char*&       to,
                           int          /* reg */,
                           int          /* enc */)
 {
-    _V3_LOCALE::codecvt_base::result res = CODECVT_OK;
+    _STD::codecvt_base::result res = CODECVT_OK;
 
     if (from_end - from < ISO_8859_7_CHAR_LEN)
         return res;
@@ -1310,10 +1308,10 @@ __rw_iso2022_to_iso88597 (const char*& from,
 // ISO-2022-JP conversion to packed EUC-JP
 // Converts one character.
 // Returns:
-//    _V3_LOCALE::codecvt_base::ok      in case the conversion succeeded
-//    _V3_LOCALE::codecvt_base::partial for partial conversions
-//    _V3_LOCALE::codecvt_base::error   erroneous sequence
-static _V3_LOCALE::codecvt_base::result
+//    std::codecvt_base::ok      in case the conversion succeeded
+//    std::codecvt_base::partial for partial conversions
+//    std::codecvt_base::error   erroneous sequence
+static _STD::codecvt_base::result
 __rw_iso2022_to_eucjp (const char*&          from,
                        const char*           from_end,
                        char*&                to,
@@ -1327,7 +1325,7 @@ __rw_iso2022_to_eucjp (const char*&          from,
     if (from_end - from < width)
         return CODECVT_OK;
 
-    _V3_LOCALE::codecvt_base::result res = CODECVT_OK;
+    _STD::codecvt_base::result res = CODECVT_OK;
 
     // from either the ANSI_X3.4-1968 or JIS X 0201 Roman or JIS X 0201 Kana
     switch (reg) {
@@ -1382,7 +1380,7 @@ __rw_iso2022_to_eucjp (const char*&          from,
 //  Converts  one  character  from  the  external  representation  to  the
 //  intermediary encoding  that is later  used in retrieving  the internal
 //  representation of that character
-static _V3_LOCALE::codecvt_base::result
+static _STD::codecvt_base::result
 __rw_iso2022_to_interm (__rw_iso2022_state_t& state,
                         const char*&          from,
                         const char*           from_end,
@@ -1390,7 +1388,7 @@ __rw_iso2022_to_interm (__rw_iso2022_state_t& state,
                         unsigned char&        reg,
                         int                   enc)
 {
-    _V3_LOCALE::codecvt_base::result res = CODECVT_OK;
+    _STD::codecvt_base::result res = CODECVT_OK;
 
     bool first = true;
     for (; *from == ESCAPE_CHAR; first = false) {
@@ -1458,7 +1456,7 @@ __rw_iso2022_to_interm (__rw_iso2022_state_t& state,
 }
 
 
-static _V3_LOCALE::codecvt_base::result
+static _STD::codecvt_base::result
 __rw_ucs4_to_eucjp (const wchar_t*& from,
                     const wchar_t*  from_end,
                     char*&          to,
@@ -1594,7 +1592,7 @@ __rw_ucs4_to_interm (  const wchar_t*& from,
 
 
 // does the conversion of one character to internal representation
-static _V3_LOCALE::codecvt_base::result
+static _STD::codecvt_base::result
 __rw_iso2022_to_ucs4 (_RWSTD_MBSTATE_T&     state,
                       __rw_iso2022_state_t* iso_state,
                       const char*&          from,
@@ -1603,7 +1601,7 @@ __rw_iso2022_to_ucs4 (_RWSTD_MBSTATE_T&     state,
                       wchar_t*              /* to_end */,
                       int                   enc)
 {
-    _V3_LOCALE::codecvt_base::result res;
+    _STD::codecvt_base::result res;
 
     // the registration code of the character set
     unsigned char reg   = iso_state->g_map [0];
@@ -1695,7 +1693,7 @@ __rw_iso2022_to_ucs4 (_RWSTD_MBSTATE_T&     state,
 /****************************************************************************/
 
 // Conversion from ISO-2022-JP to UCS-4
-_V3_LOCALE::codecvt_base::result
+_STD::codecvt_base::result
 __rw_iso2022jp_do_in (_RWSTD_MBSTATE_T& state,
                       const char*&      from,
                       const char*       from_end,
@@ -1716,7 +1714,7 @@ __rw_iso2022jp_do_in (_RWSTD_MBSTATE_T& state,
 
     while (from_end - from && to_end - to) {
         // operation result
-        _V3_LOCALE::codecvt_base::result res;
+        _STD::codecvt_base::result res;
         res = __rw_iso2022_to_ucs4 (state, iso_state, from_next,
                                     from_end, to_next, to_end, iso2022_jp);
 
@@ -1740,7 +1738,7 @@ __rw_iso2022jp_do_in (_RWSTD_MBSTATE_T& state,
 
 
 // Conversion from UCS-4 to ISO-2022-JP
-_V3_LOCALE::codecvt_base::result
+_STD::codecvt_base::result
 __rw_iso2022jp_do_out (_RWSTD_MBSTATE_T& state,
                        const wchar_t*&   from,
                        const wchar_t*    from_end,
@@ -1771,7 +1769,7 @@ __rw_iso2022jp_do_out (_RWSTD_MBSTATE_T& state,
     // Loop until the source buffer is consumed, an error occurs, or
     // the destination buffer reaches capacity
     while (from_end - from && to_end - to) {
-        _V3_LOCALE::codecvt_base::result res;
+        _STD::codecvt_base::result res;
 
         // convert the UCS-4 value to EUC-JP
         const wchar_t* ps   = from;
@@ -1817,11 +1815,11 @@ __rw_iso2022jp_do_out (_RWSTD_MBSTATE_T& state,
 }
 
 
-_V3_LOCALE::codecvt_base::result
+_STD::codecvt_base::result
 __rw_iso2022jp_do_unshift (_RWSTD_MBSTATE_T& state,
                            char*& to, char* to_end)
 {
-    _V3_LOCALE::codecvt_base::result res =
+    _STD::codecvt_base::result res =
         CODECVT_ERROR;
 
     // the iso2022 state
@@ -1861,7 +1859,7 @@ __rw_iso2022jp_do_length (_RWSTD_MBSTATE_T& state,
         return CODECVT_ERROR;
 
     int ret = 0;
-    _V3_LOCALE::codecvt_base::result res = CODECVT_OK;
+    _STD::codecvt_base::result res = CODECVT_OK;
     while (max && from_end - from) {
         while (*from == ESCAPE_CHAR)
 
@@ -1911,7 +1909,7 @@ bool __rw_iso2022jp_do_always_noconv ()
 /****************************************************************************/
 
 // Conversion from ISO-2022-JP to UCS-4
-_V3_LOCALE::codecvt_base::result
+_STD::codecvt_base::result
 __rw_iso2022jp2_do_in (_RWSTD_MBSTATE_T& state,
                        const char*&      from,
                        const char*       from_end,
@@ -1933,7 +1931,7 @@ __rw_iso2022jp2_do_in (_RWSTD_MBSTATE_T& state,
         wchar_t*    to_next   = to;
 
         // operation result
-        _V3_LOCALE::codecvt_base::result res;
+        _STD::codecvt_base::result res;
         res = __rw_iso2022_to_ucs4 (state, iso_state, from_next,
                                     from_end, to_next, to_end, iso2022_jp2);
 
@@ -1957,7 +1955,7 @@ __rw_iso2022jp2_do_in (_RWSTD_MBSTATE_T& state,
 
 
 // Conversion from UCS-4 to ISO-2022-JP-2
-_V3_LOCALE::codecvt_base::result
+_STD::codecvt_base::result
 __rw_iso2022jp2_do_out (_RWSTD_MBSTATE_T& state,
                        const wchar_t*&    from,
                        const wchar_t*     from_end,
@@ -1977,7 +1975,7 @@ __rw_iso2022jp2_do_out (_RWSTD_MBSTATE_T& state,
     // Loop until the source buffer is consumed, an error occurs, or
     // the destination buffer reaches capacity
     while (from_end - from && to_end - to) {
-        _V3_LOCALE::codecvt_base::result res;
+        _STD::codecvt_base::result res;
 
         // convert the UCS-4 value to intermediary encoding
         const wchar_t* ps   = from;
@@ -2058,7 +2056,7 @@ __rw_iso2022jp2_do_out (_RWSTD_MBSTATE_T& state,
 }
 
 
-_V3_LOCALE::codecvt_base::result
+_STD::codecvt_base::result
 __rw_iso2022jp2_do_unshift (_RWSTD_MBSTATE_T& state,
                             char*& to, char* to_end)
 {
@@ -2081,7 +2079,7 @@ __rw_iso2022jp2_do_length (_RWSTD_MBSTATE_T& state,
         return CODECVT_ERROR;
 
     int ret = 0;
-    _V3_LOCALE::codecvt_base::result res = CODECVT_OK;
+    _STD::codecvt_base::result res = CODECVT_OK;
 
     while (max && from_end - from) {
 
@@ -2153,5 +2151,3 @@ bool __rw_iso2022jp2_do_always_noconv ()
 }
 
 }   // namespace __rw
-
-#endif   // _RWSTD_NO_V3_LOCALE
