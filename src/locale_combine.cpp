@@ -31,8 +31,6 @@
 
 #include <rw/_defs.h>
 
-#ifndef _RWSTD_NO_V3_LOCALE
-
 #include <locale.h>
 #include <stdio.h>
 #include <string.h>   // for memxxx() and strxxx() functions
@@ -626,7 +624,7 @@ _C_get_body (__rw_locale      *one,
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
 
 
 // outlined to hide implementation details
@@ -724,7 +722,4 @@ _C_get_facet (const id &fid) const
 }
 
 
-}   // namespace _V3_LOCALE
-
-
-#endif   // _RWSTD_NO_V3_LOCALE
+}   // namespace std

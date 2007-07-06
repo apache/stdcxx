@@ -30,8 +30,6 @@
 
 #include <rw/_defs.h>
 
-#ifndef _RWSTD_NO_V3_LOCALE
-
 #ifdef __SUNPRO_CC
    // working around SunPro bug 568
 #  include <time.h>
@@ -47,7 +45,7 @@
 #include <sys/stat.h>   // for stat()
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 // outlined to hide implementation details
@@ -200,7 +198,4 @@ locale::_C_get_std_facet (facet::_C_facet_type  type,
 }
 
 
-}   // namespace _V3_LOCALE
-
-
-#endif   // _RWSTD_NO_V3_LOCALE
+}   // namespace std

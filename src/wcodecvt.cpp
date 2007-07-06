@@ -1068,7 +1068,7 @@ __rw_libstd_do_length (const char*                from,
 }  //  namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
         
 
 _RW::__rw_facet_id codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::id;
@@ -1760,7 +1760,7 @@ do_max_length () const _THROWS (())
 
 #endif   // _RWSTD_NO_WCHAR_T
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #ifndef _RWSTD_NO_WCHAR_T
