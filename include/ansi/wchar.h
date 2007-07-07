@@ -198,4 +198,16 @@ using std::wscanf;
 
 #  include _RWSTD_ANSI_C_WCHAR_H
 
+extern "C" {
+
+// add missing declarations for functions known to be defined
+// in the system libc
+
+#if defined (_RWSTD_NO_WCTOB) && !defined (_RWSTD_NO_WCTOB_IN_LIBC)
+int wctob (_RWSTD_WINT_T);
+#  undef _RWSTD_NO_WCTOB
+#endif   // _RWSTD_NO_WCTOB && !_RWSTD_NO_WCTOB_IN_LIBC
+
+}   // extern "C"
+
 #endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
