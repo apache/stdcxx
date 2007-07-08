@@ -1298,7 +1298,7 @@ public:
 
     slice_array (const slice_array &__rhs)
         : _C_array(__rhs.get_ref_mem_array()),
-          _C_slice(__rhs.get_slice())
+          _C_slice(__rhs._C_get_slice())
         { }
           
     // implementation
@@ -1311,7 +1311,7 @@ public:
         return _C_array;
     }
 
-    slice get_slice () const {
+    slice _C_get_slice () const {
         return _C_slice;
     }
 
@@ -1464,7 +1464,7 @@ public:
 
     gslice_array (const gslice_array<value_type>& __rhs)
         : _C_array (__rhs.get_ref_mem_array ()),
-          _C_slice (__rhs.get_slice ())
+          _C_slice (__rhs._C_get_slice ())
         { }
 
     gslice_array (_RW::__rw_array<value_type>* __a, const gslice & __s)
@@ -1478,7 +1478,7 @@ public:
         return _C_array;
     }
 
-    gslice get_slice () const {
+    gslice _C_get_slice () const {
         return _C_slice;
     }
 
@@ -1517,7 +1517,7 @@ public:
 
     mask_array (const mask_array<value_type> &__rhs)
         : _C_array (__rhs.get_ref_mem_array ()),
-          _C_valarray (__rhs.get_array ())
+          _C_valarray (__rhs._C_get_array ())
         { }
 
     mask_array (_RW::__rw_array<value_type> *__a, const valarray<bool>& __val)
@@ -1529,11 +1529,11 @@ public:
         return _C_array;
     }
 
-    valarray<bool> get_array () const {
+    valarray<bool> _C_get_array () const {
         return _C_valarray;
     }
 
-    const valarray<bool>* get_array_pt () const {
+    const valarray<bool>* _C_get_array_ptr () const {
         return &_C_valarray;
     }
 
@@ -1624,7 +1624,7 @@ public:
 
     indirect_array (const indirect_array<value_type>& __sl)
       :_C_array (__sl.get_ref_mem_array ()),
-       _C_valarray (__sl.get_array ())
+       _C_valarray (__sl._C_get_array ())
         { }
 
     indirect_array (_RW::__rw_array<value_type>   *__a,
@@ -1637,11 +1637,11 @@ public:
         return _C_array;
     }
 
-    valarray<_RWSTD_SIZE_T> get_array () const {
+    valarray<_RWSTD_SIZE_T> _C_get_array () const {
         return _C_valarray;
     }
 
-    const valarray<_RWSTD_SIZE_T>* get_array_pt () const {
+    const valarray<_RWSTD_SIZE_T>* _C_get_array_ptr () const {
         return &_C_valarray;
     }
 
@@ -1734,7 +1734,7 @@ __rw_unary_function (const _STD::slice_array<_TypeT> &__lhs,
 {
     _RWSTD_ASSERT (0 != __lhs.get_ref_mem_array ());
 
-    _STD::slice __slice           = __lhs.get_slice ();
+    _STD::slice __slice           = __lhs._C_get_slice ();
     _RW::__rw_array<_TypeT> &__ar = *__lhs.get_ref_mem_array ();
 
     for (_RWSTD_SIZE_T __i = __slice.start (), __j = 0;
@@ -1754,7 +1754,7 @@ __rw_binary_function (const _STD::slice_array<_TypeT> &__lhs,
 {
     _RWSTD_ASSERT (0 != __lhs.get_ref_mem_array ());
 
-    _STD::slice __slice           = __lhs.get_slice ();
+    _STD::slice __slice           = __lhs._C_get_slice ();
     _RW::__rw_array<_TypeT> &__ar = *__lhs.get_ref_mem_array ();
 
     for (_RWSTD_SIZE_T __i = __slice.start (), __j = 0;
@@ -1775,7 +1775,7 @@ __rw_unary_function (const _STD::mask_array<_TypeT> &__lhs,
     _RWSTD_ASSERT (0 != __lhs.get_ref_mem_array ());
 
     _RW::__rw_array<_TypeT>    &__ar    = *__lhs.get_ref_mem_array ();
-    const _STD::valarray<bool> &__vlray = *__lhs.get_array_pt ();
+    const _STD::valarray<bool> &__vlray = *__lhs._C_get_array_ptr ();
 
     for (_RWSTD_SIZE_T __i = 0, __j = 0; __i != __vlray.size (); ++__i)
         if (__vlray [__i])
@@ -1792,7 +1792,7 @@ __rw_binary_function (const _STD::mask_array<_TypeT> &__lhs,
     _RWSTD_ASSERT (0 != __lhs.get_ref_mem_array ());
 
     _RW::__rw_array<_TypeT>    &__ar    = *__lhs.get_ref_mem_array ();
-    const _STD::valarray<bool> &__vlray = *__lhs.get_array_pt ();
+    const _STD::valarray<bool> &__vlray = *__lhs._C_get_array_ptr ();
 
     for (_RWSTD_SIZE_T __i = 0, __j = 0; __i != __vlray.size (); ++__i)
         if (__vlray [__i])
@@ -1809,7 +1809,7 @@ __rw_unary_function (const _STD::indirect_array<_TypeT> &__lhs,
     _RWSTD_ASSERT (0 != __lhs.get_ref_mem_array ());
 
     _RW::__rw_array<_TypeT>             &__ar    = *__lhs.get_ref_mem_array ();
-    const _STD::valarray<_RWSTD_SIZE_T> &__vlray = *__lhs.get_array_pt ();
+    const _STD::valarray<_RWSTD_SIZE_T> &__vlray = *__lhs._C_get_array_ptr ();
 
     for (_RWSTD_SIZE_T __i = 0; __i != __vlray.size (); ++__i)
         __ar [__vlray [__i]] = __fun (__rhs [__i]);
@@ -1826,7 +1826,7 @@ __rw_binary_function (const _STD::indirect_array<_TypeT> &__lhs,
     _RWSTD_ASSERT (0 != __lhs.get_ref_mem_array ());
 
     _RW::__rw_array<_TypeT>             &__ar    = *__lhs.get_ref_mem_array ();
-    const _STD::valarray<_RWSTD_SIZE_T> &__vlray = *__lhs.get_array_pt ();
+    const _STD::valarray<_RWSTD_SIZE_T> &__vlray = *__lhs._C_get_array_ptr ();
 
     for (_RWSTD_SIZE_T __i = 0; __i != __vlray.size (); ++__i)
         __ar [__vlray [__i]] = __fun (__ar [__vlray [__i]], __rhs [__i]);
@@ -2074,15 +2074,15 @@ template <class _TypeT>
 inline valarray<_TypeT>::valarray (const slice_array<_TypeT>& sl_ar)
 {
     _RW::__rw_array <_TypeT> __tmp =
-        _RW::__rw_array <_TypeT>(_TypeT (), sl_ar.get_slice ().size());
+        _RW::__rw_array <_TypeT>(_TypeT (), sl_ar._C_get_slice ().size());
       
-    _RWSTD_SIZE_T __i = sl_ar.get_slice().start();
+    _RWSTD_SIZE_T __i = sl_ar._C_get_slice().start();
     _RWSTD_SIZE_T __cpt = 0; 
 
-    while( __cpt < sl_ar.get_slice().size() )
+    while( __cpt < sl_ar._C_get_slice().size() )
     {
         __tmp[__cpt] = (*(sl_ar.get_ref_mem_array()))[__i];
-        __i+= sl_ar.get_slice().stride();
+        __i+= sl_ar._C_get_slice().stride();
         __cpt++;
     }
 
@@ -2095,15 +2095,15 @@ inline valarray<_TypeT>&
 valarray<_TypeT>::operator= (const slice_array<_TypeT>& sl_ar)
 { 
     _RW::__rw_array <_TypeT> __tmp =
-        _RW::__rw_array <_TypeT>(_TypeT (), sl_ar.get_slice ().size());
+        _RW::__rw_array <_TypeT>(_TypeT (), sl_ar._C_get_slice ().size());
 
-    _RWSTD_SIZE_T __i = sl_ar.get_slice().start();
+    _RWSTD_SIZE_T __i = sl_ar._C_get_slice().start();
     _RWSTD_SIZE_T __cpt = 0; 
 
-    while( __cpt < sl_ar.get_slice().size() )
+    while( __cpt < sl_ar._C_get_slice().size() )
     {
       __tmp[__cpt] = (*(sl_ar.get_ref_mem_array()))[__i];
-      __i+= sl_ar.get_slice().stride();
+      __i+= sl_ar._C_get_slice().stride();
       __cpt++;
     }
 
@@ -2141,7 +2141,7 @@ valarray<_TypeT>::operator[](const gslice& __sl) const
 template <class _TypeT>
 inline valarray<_TypeT>::valarray(const gslice_array<_TypeT>& sl_ar)
 {
-    gslice sl(sl_ar.get_slice());
+    gslice sl(sl_ar._C_get_slice());
 
     _RW::__rw_array <_TypeT> __tmp =
         _RW::__rw_array <_TypeT>(_TypeT (), sl.ind_numb());
@@ -2164,7 +2164,7 @@ template <class _TypeT>
 inline valarray<_TypeT>&
 valarray<_TypeT>::operator= (const gslice_array<_TypeT>& sl_ar)
 { 
-    gslice sl(sl_ar.get_slice());
+    gslice sl(sl_ar._C_get_slice());
 
     _RW::__rw_array <_TypeT> __tmp =
         _RW::__rw_array <_TypeT>(_TypeT (), sl.ind_numb());
@@ -2213,7 +2213,7 @@ inline valarray<_TypeT>::valarray(const mask_array<_TypeT>& __rhs)
 {
 
     mask_array<_TypeT>  *msk = _RWSTD_CONST_CAST (mask_array<_TypeT>*, &__rhs);
-    const valarray<bool>*sec = msk->get_array_pt();
+    const valarray<bool>*sec = msk->_C_get_array_ptr();
 
     _RWSTD_SIZE_T __i, __n = 0;
 
@@ -2236,7 +2236,7 @@ inline valarray<_TypeT>&
 valarray<_TypeT>::operator= (const mask_array<_TypeT>& __rhs)
 { 
     mask_array<_TypeT>  *msk = _RWSTD_CONST_CAST (mask_array<_TypeT>*, &__rhs);
-    const valarray<bool>*sec = msk->get_array_pt();
+    const valarray<bool>*sec = msk->_C_get_array_ptr();
 
     _RWSTD_SIZE_T __i, __n = 0;
 
@@ -2291,7 +2291,7 @@ inline valarray<_TypeT>::valarray (const indirect_array<_TypeT>& __rhs)
     indirect_array<_TypeT> *__ia =
         _RWSTD_CONST_CAST (indirect_array<_TypeT>*, &__rhs);
 
-    const valarray<_RWSTD_SIZE_T> *__sec = __ia->get_array_pt();
+    const valarray<_RWSTD_SIZE_T> *__sec = __ia->_C_get_array_ptr();
 
     _RW::__rw_array <_TypeT> __tmp =
         _RW::__rw_array <_TypeT>(_TypeT (), __sec->size());
@@ -2312,7 +2312,7 @@ valarray<_TypeT>::operator= (const indirect_array<_TypeT>& __rhs)
     indirect_array<_TypeT> *__ia =
         _RWSTD_CONST_CAST (indirect_array<_TypeT>*, &__rhs);
 
-    const valarray<_RWSTD_SIZE_T> *__sec = __ia->get_array_pt();
+    const valarray<_RWSTD_SIZE_T> *__sec = __ia->_C_get_array_ptr();
 
     _RW::__rw_array <_TypeT> __tmp =
         _RW::__rw_array <_TypeT>(_TypeT (), __sec->size());
