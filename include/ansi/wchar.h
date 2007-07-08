@@ -198,15 +198,207 @@ using std::wscanf;
 
 #  include _RWSTD_ANSI_C_WCHAR_H
 
+#  include <rw/_mbstate.h>
+
+#  ifndef WCHAR_MAX
+#    define WCHAR_MAX   _RWSTD_WCHAR_MAX
+#  endif
+
+#  ifndef WCHAR_MIN
+#    define WCHAR_MIN   _RWSTD_WCHAR_MIN
+#  endif
+
 extern "C" {
 
 // add missing declarations for functions known to be defined
 // in the system libc
 
-#if defined (_RWSTD_NO_WCTOB) && !defined (_RWSTD_NO_WCTOB_IN_LIBC)
+#  if defined (_RWSTD_NO_MBSTATE_T) && defined (_RWSTD_MBSTATE_T)
+typedef _RWSTD_MBSTATE_T mbstate_t;
+#  endif   // _RWSTD_NO_MBSTATE_T && _RWSTD_MBSTATE_T
+
+#  if defined (_RWSTD_NO_FWPRINTF) && !defined (_RWSTD_NO_FWPRINTF_IN_LIBC)
+int fwprintf (FILE*, const wchar_t*, ...);
+#    undef _RWSTD_NO_FWPRINTF
+#  endif   // _RWSTD_NO_FWPRINTF && !_RWSTD_NO_FWPRINTF_IN_LIBC
+
+#  if defined (_RWSTD_NO_FWSCANF) && !defined (_RWSTD_NO_FWSCANF_IN_LIBC)
+int fwscanf (FILE*, const wchar_t*, ...);
+#    undef _RWSTD_NO_FWSCANF
+#  endif   // _RWSTD_NO_FWSCANF && !_RWSTD_NO_FWSCANF_IN_LIBC
+
+#  if defined (_RWSTD_NO_SWPRINTF) && !defined (_RWSTD_NO_SWPRINTF_IN_LIBC)
+int swprintf (wchar_t*, const wchar_t*, ...);
+#    undef _RWSTD_NO_SWPRINTF
+#  endif   // _RWSTD_NO_SWPRINTF && !_RWSTD_NO_SWPRINTF_IN_LIBC
+
+#  if defined (_RWSTD_NO_SWSCANF) && !defined (_RWSTD_NO_SWSCANF_IN_LIBC)
+int swscanf (const wchar_t*, const wchar_t*, ...);
+#    undef _RWSTD_NO_SWSCANF
+#  endif   // _RWSTD_NO_SWSCANF && !_RWSTD_NO_SWSCANF_IN_LIBC
+
+#  ifdef _RWSTD_VA_LIST
+#    if defined (_RWSTD_NO_VFWPRINTF) && !defined (_RWSTD_NO_VFWPRINTF_IN_LIBC)
+int vfwprintf (FILE*, const wchar_t*, _RWSTD_VA_LIST);
+#      undef _RWSTD_NO_VFWPRINTF
+#    endif   // _RWSTD_NO_VFWPRINTF && !_RWSTD_NO_VFWPRINTF_IN_LIBC
+
+#    if defined (_RWSTD_NO_VFWSCANF) && !defined (_RWSTD_NO_VFWSCANF_IN_LIBC)
+int vfwscanf (FILE*, const wchar_t*, _RWSTD_VA_LIST);
+#      undef _RWSTD_NO_VFWSCANF
+#    endif   // _RWSTD_NO_VFWSCANF && !_RWSTD_NO_VFWSCANF_IN_LIBC
+
+#    if defined (_RWSTD_NO_VWPRINTF) && !defined (_RWSTD_NO_VWPRINTF_IN_LIBC)
+int vwprintf (const wchar_t*, _RWSTD_VA_LIST);
+#      undef _RWSTD_NO_VWPRINTF
+#    endif   // _RWSTD_NO_VWPRINTF && !_RWSTD_NO_VWPRINTF_IN_LIBC
+
+#    if defined (_RWSTD_NO_VWSCANF) && !defined (_RWSTD_NO_VWSCANF_IN_LIBC)
+int vwscanf (const wchar_t*, _RWSTD_VA_LIST);
+#      undef _RWSTD_NO_VWSCANF
+#    endif   // _RWSTD_NO_VWSCANF && !_RWSTD_NO_VWSCANF_IN_LIBC
+#  endif   // _RWSTD_VA_LIST
+
+#  if defined (_RWSTD_NO_MBRLEN) && !defined (_RWSTD_NO_MBRLEN_IN_LIBC)
+_RWSTD_SIZE_T mbrlen (const wchar_t*, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*);
+#    undef _RWSTD_NO_MBRLEN
+#  endif   // _RWSTD_NO_MBRLEN && !_RWSTD_NO_MBRLEN_IN_LIBC
+
+#  if defined (_RWSTD_NO_MBRTOWC) && !defined (_RWSTD_NO_MBRTOWC_IN_LIBC)
+wchar_t mbrtowc (wchar_t*, const char*, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*);
+#    undef _RWSTD_NO_MBRTOWC
+#  endif   // _RWSTD_NO_MBRTOWC && !_RWSTD_NO_MBRTOWC_IN_LIBC
+
+#  if defined (_RWSTD_NO_MBSINIT) && !defined (_RWSTD_NO_MBSINIT_IN_LIBC)
+int mbsinit (const _RWSTD_MBSTATE_T*);
+#    undef _RWSTD_NO_MBSINIT
+#  endif   // _RWSTD_NO_MBSINIT && !_RWSTD_NO_MBSINIT_IN_LIBC
+
+#  if defined (_RWSTD_NO_MBSRTOWCS) && !defined (_RWSTD_NO_MBSRTOWCS_IN_LIBC)
+_RWSTD_SIZE_T mbsrtowcs (const wchar_t*, const char**, _RWSTD_SIZE_T,
+                         _RWSTD_MBSTATE_T*);
+#    undef _RWSTD_NO_MBSRTOWCS
+#  endif   // _RWSTD_NO_MBSRTOWCS && !_RWSTD_NO_MBSRTOWCS_IN_LIBC
+
+#  if defined (_RWSTD_NO_WCRTOMB) && !defined (_RWSTD_NO_WCRTOMB_IN_LIBC)
+_RWSTD_SIZE_T wcrtomb (char*, wchar_t, _RWSTD_MBSTATE_T*);
+#    undef _RWSTD_NO_WCRTOMB
+#  endif   // _RWSTD_NO_WCRTOMB && !_RWSTD_NO_WCRTOMB_IN_LIBC
+
+#  if defined (_RWSTD_NO_WCSRTOMBS) && !defined (_RWSTD_NO_WCSRTOMBS_IN_LIBC)
+_RWSTD_SIZE_T wcsrtombs (char*,  const char**, _RWSTD_SIZE_T,
+                         _RWSTD_MBSTATE_T*);
+#    undef _RWSTD_NO_WCSRTOMBS
+#  endif   // _RWSTD_NO_WCSRTOMBS && !_RWSTD_NO_WCSRTOMBS_IN_LIBC
+
+
+#  if defined (_RWSTD_NO_WCSCHR) && !defined (_RWSTD_NO_WCSCHR_IN_LIBC)
+
+wchar_t* wcschr (wchar_t*, wchar_t);
+
+}   // extern "C"
+
+inline const wchar_t*
+wcschr (const wchar_t *__s, wchar_t __c)
+{
+    return wcschr (_RWSTD_CONST_CAST (wchar_t*, __s), __c);
+}
+
+extern "C" {
+
+#    undef _RWSTD_NO_WCSCHR
+#  endif   // _RWSTD_NO_WCSCHR && !_RWSTD_NO_WCSCHR_IN_LIBC
+
+
+#  if defined (_RWSTD_NO_WCSRCHR) && !defined (_RWSTD_NO_WCSRCHR_IN_LIBC)
+
+wchar_t* wcsrchr (wchar_t*, wchar_t);
+
+}   // extern "C"
+
+inline const wchar_t*
+wcsrchr (const wchar_t *__s, wchar_t __c)
+{
+    return wcsrchr (_RWSTD_CONST_CAST (wchar_t*, __s), __c);
+}
+
+extern "C" {
+
+#    undef _RWSTD_NO_WCSCHR
+#  endif   // _RWSTD_NO_WCSCHR && !_RWSTD_NO_WCSCHR_IN_LIBC
+
+
+#  if defined (_RWSTD_NO_WCSSTR) && !defined (_RWSTD_NO_WCSSTR_IN_LIBC)
+
+wchar_t* wcsstr (wchar_t*, const wchar_t*);
+
+}   // extern "C"
+
+inline const wchar_t*
+wcsstr (const wchar_t *__s1, const wchar_t *__s2)
+{
+    return wcsstr (_RWSTD_CONST_CAST (wchar_t*, __s1), __s2);
+}
+
+extern "C" {
+
+#    undef _RWSTD_NO_WCSSTR
+#  endif   // _RWSTD_NO_WCSSTR && !_RWSTD_NO_WCSSTR_IN_LIBC
+
+
+#  if defined (_RWSTD_NO_WMEMCHR) && !defined (_RWSTD_NO_WMEMCHR_IN_LIBC)
+
+wchar_t* wmemchr (wchar_t*, wchar_t, _RWSTD_SIZE_T);
+
+}   // extern "C"
+
+inline const wchar_t*
+wmemchr (const wchar_t *__s, wchar_t __c, _RWSTD_SIZE_T __n)
+{
+    return wmemchr (_RWSTD_CONST_CAST (wchar_t*, __s), __c, __n);
+}
+
+extern "C" {
+
+#    undef _RWSTD_NO_WMEMCHR
+#  endif   // _RWSTD_NO_WMEMCHR && !_RWSTD_NO_WMEMCHR_IN_LIBC
+
+
+#  if defined (_RWSTD_NO_WMEMCMP) && !defined (_RWSTD_NO_WMEMCMP_IN_LIBC)
+int wmemcmp (const wchar_t*, const wchar_t*);
+#    undef _RWSTD_NO_WMEMCMP
+#  endif   // _RWSTD_NO_WMEMCMP && !_RWSTD_NO_WMEMCMP_IN_LIBC
+
+#  if defined (_RWSTD_NO_WMEMCPY) && !defined (_RWSTD_NO_WMEMCPY_IN_LIBC)
+wchar_t* wmemcpy (wchar_t*, const wchar_t*, _RWSTD_SIZE_T);
+#    undef _RWSTD_NO_WMEMCPY
+#  endif   // _RWSTD_NO_WMEMCPY && !_RWSTD_NO_WMEMCPY_IN_LIBC
+
+#  if defined (_RWSTD_NO_WMEMMOVE) && !defined (_RWSTD_NO_WMEMMOVE_IN_LIBC)
+wchar_t* wmemmove (wchar_t*, const wchar_t*, _RWSTD_SIZE_T);
+#    undef _RWSTD_NO_WMEMMOVE
+#  endif   // _RWSTD_NO_WMEMMOVE && !_RWSTD_NO_WMEMMOVE_IN_LIBC
+
+#  if defined (_RWSTD_NO_WMEMSET) && !defined (_RWSTD_NO_WMEMSET_IN_LIBC)
+wchar_t* wmemset (wchar_t*, wchar_t, _RWSTD_SIZE_T);
+#    undef _RWSTD_NO_WMEMSET
+#  endif   // _RWSTD_NO_WMEMSET && !_RWSTD_NO_WMEMSET_IN_LIBC
+
+
+#  if defined (_RWSTD_NO_WPRINTF) && !defined (_RWSTD_NO_WPRINTF_IN_LIBC)
+int wprintf (const wchar_t*, ...);
+#    undef _RWSTD_NO_WPRINTF
+#  endif   // _RWSTD_NO_WPRINTF && !_RWSTD_NO_WPRINTF_IN_LIBC
+
+#  if defined (_RWSTD_NO_WSCANF) && !defined (_RWSTD_NO_WSCANF_IN_LIBC)
+int wscanf (const wchar_t*, ...);
+#    undef _RWSTD_NO_WSCANF
+#  endif   // _RWSTD_NO_WSCANF && !_RWSTD_NO_WSCANF_IN_LIBC
+
+#  if defined (_RWSTD_NO_WCTOB) && !defined (_RWSTD_NO_WCTOB_IN_LIBC)
 int wctob (_RWSTD_WINT_T);
-#  undef _RWSTD_NO_WCTOB
-#endif   // _RWSTD_NO_WCTOB && !_RWSTD_NO_WCTOB_IN_LIBC
+#    undef _RWSTD_NO_WCTOB
+#  endif   // _RWSTD_NO_WCTOB && !_RWSTD_NO_WCTOB_IN_LIBC
 
 }   // extern "C"
 
