@@ -61,19 +61,24 @@ bool locale::operator== (const locale &rhs) const
     if (!_C_body->_C_n_usr_facets && !rhs._C_body->_C_n_usr_facets) {
 
         // in order to compare equal, both bodies must have the same
-        // sets of facets (some slots may still be uninitialized)
+        // sets of facets (some slots may still be uninitialized) and
+        // not have different names
         const bool eql =
            _C_body->_C_std_facet_bits == rhs._C_body->_C_std_facet_bits
         && _C_body->_C_byname_facet_bits == rhs._C_body->_C_byname_facet_bits
         && !memcmp (_C_body->_C_std_facets, rhs._C_body->_C_std_facets,
-                    _C_body->_C_n_std_facets * sizeof *_C_body->_C_std_facets);
+                    _C_body->_C_n_std_facets * sizeof *_C_body->_C_std_facets)
+        && !strcmp (_C_body->_C_name, rhs._C_body->_C_name);
 
         // at least some standard facets must have been replaced in order
-        // for two locale objects not to share the same body
-        _RWSTD_ASSERT (   _C_body->_C_std_facet_bits        != _C_body->_C_all
+        // for two "equal" locale objects not to share the same body, or
+        // the locales' names must be different
+        _RWSTD_ASSERT (   eql
+                       || _C_body->_C_std_facet_bits        != _C_body->_C_all
                        || rhs._C_body->_C_std_facet_bits    != _C_body->_C_all
                        || _C_body->_C_byname_facet_bits     != _C_body->_C_all
-                       || rhs._C_body->_C_byname_facet_bits != _C_body->_C_all);
+                       || rhs._C_body->_C_byname_facet_bits != _C_body->_C_all
+                       || strcmp (_C_body->_C_name, rhs._C_body->_C_name));
 
         // facet bits of both objects must be the same if the two objects
         // share the exact same facets (otherwise the bits may or may not
