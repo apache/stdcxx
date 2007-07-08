@@ -514,7 +514,7 @@ _get_mb_char (char *buf, size_t bytes)
         *buf = '\0';
     }
 
-#if 2 < _RWSTD_WCHAR_T_SIZE
+#if 2 < _RWSTD_WCHAR_SIZE
 
     // if a multibyte character of the requested size is not found
     // in the low 64K range, try to find one using a random search

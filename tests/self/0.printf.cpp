@@ -763,7 +763,7 @@ test_basic_string ()
     TEST ("%{#1S}", S ("a\0\0"),  0, 0, "\"a\\0\\0\"");
     TEST ("%{#1S}", S ("\0\0\0"), 0, 0, "\"\\0\\0\\0\"");
 
-#if 2 == _RWSTD_WCHAR_T_SIZE
+#if 2 == _RWSTD_WCHAR_SIZE
 
     TEST ("%{#2S}",  0,             0, 0, "(null)");
     TEST ("%{#2S}",  WS (""),       0, 0, "L\"\"");
@@ -777,7 +777,7 @@ test_basic_string ()
     TEST ("%{#2S}",  WS ("a\0\0"),  0, 0, "L\"a\\0\\0\"");
     TEST ("%{#2S}",  WS ("\0\0\0"), 0, 0, "L\"\\0\\0\\0\"");
 
-#elif 4 == _RWSTD_WCHAR_T_SIZE
+#elif 4 == _RWSTD_WCHAR_SIZE
 
     TEST ("%{#4S}",  0,             0, 0, "(null)");
     TEST ("%{#4S}",  WS (""),       0, 0, "L\"\"");
@@ -791,7 +791,7 @@ test_basic_string ()
     TEST ("%{#4S}",  WS ("a\0\0"),  0, 0, "L\"a\\0\\0\"");
     TEST ("%{#4S}",  WS ("\0\0\0"), 0, 0, "L\"\\0\\0\\0\"");
 
-#endif   // _RWSTD_WCHAR_T_SIZE
+#endif   // _RWSTD_WCHAR_SIZE
 
 }
 
