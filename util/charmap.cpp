@@ -643,7 +643,7 @@ convert_sym_to_ucs (const std::string &sym) const
 
     const unsigned long val = std::strtoul (&*++it, (char**)0, 16);
 
-    if (_RWSTD_WCHAR_T_MAX <= val)
+    if (_RWSTD_WCHAR_MAX <= val)
         issue_diag (E_UCS, true, 0, 
                     "UCS value %lu of symbolic character %s out of range.\n",
                     val, sym.c_str ());

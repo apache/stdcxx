@@ -1287,7 +1287,7 @@ _rw_fmtstringv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
 
         nbytes = rw_asnprintf (pbuf, pbufsize, "%{+}%{#*s}", nelems, beg.pc);
     }
-    else if (_RWSTD_WCHAR_T_SIZE == elemsize) {
+    else if (_RWSTD_WCHAR_SIZE == elemsize) {
         if (nelems < 0)
             nbytes = rw_asnprintf (pbuf, pbufsize, "%{+}%{#ls}", beg.pwc);
         else

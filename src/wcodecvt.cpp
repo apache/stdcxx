@@ -804,13 +804,13 @@ __rw_libstd_do_out (const wchar_t             *from,
             // in strict mode check wide character for validity
             // (i.e., diagnose surrogate pairs as illegal)
 
-#  if _RWSTD_WCHAR_T_SIZE == _RWSTD_CHAR_SIZE
+#  if _RWSTD_WCHAR_SIZE == _RWSTD_CHAR_SIZE
             typedef unsigned char WIntT;
-#  elif _RWSTD_WCHAR_T_SIZE == _RWSTD_SHRT_SIZE
+#  elif _RWSTD_WCHAR_SIZE == _RWSTD_SHRT_SIZE
             typedef unsigned short WIntT;
-#  elif _RWSTD_WCHAR_T_SIZE ==_RWSTD_INT_SIZE
+#  elif _RWSTD_WCHAR_SIZE ==_RWSTD_INT_SIZE
             typedef unsigned int WIntT;
-#  elif _RWSTD_WCHAR_T_SIZE ==_RWSTD_LLONG_SIZE
+#  elif _RWSTD_WCHAR_SIZE ==_RWSTD_LLONG_SIZE
             typedef unsigned _RWSTD_LONG_LONG WIntT;
 #  else
             typedef unsigned long WIntT;

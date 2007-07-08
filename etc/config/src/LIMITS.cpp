@@ -331,14 +331,14 @@ int main ()
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-    printf ("#define _RWSTD_WCHAR_T_SIZE  %2u /* sizeof (wchar_t) */\n",
+    printf ("#define _RWSTD_WCHAR_SIZE  %2u /* sizeof (wchar_t) */\n",
             SIZEOF (wchar_t));
 
     const char *suffix = "U";
     if ((wchar_t)~0 < (wchar_t)0)
         suffix = "";
     
-    compute_limits ((wchar_t)0, "WCHAR_T", suffix, "wchar_t");
+    compute_limits ((wchar_t)0, "WCHAR", suffix, "wchar_t");
 
 #endif   // _RWSTD_NO_WCHAR_T
 

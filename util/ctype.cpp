@@ -55,7 +55,7 @@ convert_literal_to_ucs4 (Scanner::token_t& t)
 
     long w = std::strtol (t.name.substr (2, t.name.size ()).c_str (),
                                0, 16);
-    if (w > _RWSTD_WCHAR_T_MAX) {
+    if (w > _RWSTD_WCHAR_MAX) {
         // issue_diag intercepted in process_transliteration_statement
         // but will render -w switch useless; just throw here
         throw loc_exception ("symbol could not be converted to UCS-4 "

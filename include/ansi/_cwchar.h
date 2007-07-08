@@ -56,11 +56,11 @@ typedef _RWSTD_MBSTATE_T mbstate_t;
 struct tm;
 
 #ifndef WCHAR_MIN
-#  define WCHAR_MIN _RWSTD_WCHAR_T_MIN
+#  define WCHAR_MIN _RWSTD_WCHAR_MIN
 #endif   // WCHAR_MIN
 
 #ifndef WCHAR_MAX
-#  define WCHAR_MAX _RWSTD_WCHAR_T_MAX
+#  define WCHAR_MAX _RWSTD_WCHAR_MAX
 #endif   // WCHAR_MAX
 
 #ifndef WEOF

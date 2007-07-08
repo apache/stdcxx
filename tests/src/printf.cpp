@@ -1843,25 +1843,25 @@ _rw_fmttm (const FmtSpec &spec, Buffer &buf, const tm *tmb)
 template <class charT>
 int _rw_quotechar (char *buf, charT wc, int noesc)
 {
-#if _RWSTD_WCHAR_T_MIN < 0
+#if _RWSTD_WCHAR_MIN < 0
 
     // wchar_t is signed, convert its value to unsigned long
     // without widening (i.e., treat it as an unsigned type)
 
-#  if _RWSTD_WCHAR_T_MIN == _RWSTD_SHRT_MIN
+#  if _RWSTD_WCHAR_MIN == _RWSTD_SHRT_MIN
     const ULong wi = UShrt (wc);
-#  elif _RWSTD_WCHAR_T_MIN ==_RWSTD_INT_MIN
+#  elif _RWSTD_WCHAR_MIN ==_RWSTD_INT_MIN
     const ULong wi = UInt (wc);
-#  elif _RWSTD_WCHAR_T_MIN == _RWSTD_LONG_MIN
+#  elif _RWSTD_WCHAR_MIN == _RWSTD_LONG_MIN
     const ULong wi = ULong (wc);
 #  endif
 
-#else   // if _RWSTD_WCHAR_T_MIN >= 0
+#else   // if _RWSTD_WCHAR_MIN >= 0
 
     // wchar_t is unsigned
     const ULong wi = ULong (wc);
 
-#endif   // _RWSTD_WCHAR_T_MIN < 0
+#endif   // _RWSTD_WCHAR_MIN < 0
 
     if ((1 == sizeof wc || wi < 0x100) && noesc) {
         buf [0] = char (wc);
@@ -1978,7 +1978,7 @@ int _rw_fmtarray (const FmtSpec &spec,
             // wchar_t (bot not for an array of wchar_t's being
             // formatted using the {%ls} directive -- the caller
             // can easily stick the 'L' there themselves)
-            if (flags & A_ARRAY && _RWSTD_WCHAR_T_SIZE == sizeof (elemT))
+            if (flags & A_ARRAY && _RWSTD_WCHAR_SIZE == sizeof (elemT))
                 *next++ = 'L';
 
             *next++ = '"';
@@ -2067,7 +2067,7 @@ int _rw_fmtarray (const FmtSpec &spec,
             if (last_repeat < 0) {
                 if (flags & (A_CHAR | A_WCHAR)) {
                     if (   (flags & A_ARRAY)
-                        && _RWSTD_WCHAR_T_SIZE == sizeof (elemT))
+                        && _RWSTD_WCHAR_SIZE == sizeof (elemT))
                         *s++ = 'L';
 
                     // insert an opening quote
