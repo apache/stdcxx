@@ -182,6 +182,12 @@ _RWSTD_DLLIMPORT int (fileno)(FILE*) _LIBC_THROWS ();
 #ifndef RW_TEST_HARDWARE
 #  if defined (__alpha__) || defined (__alpha)
 #    define RW_TEST_ARCH "alpha"
+#  elif defined (__x86_64__) || defined (__x86_64)
+#    if defined (__LP64__) || defined (_LP64)
+#      define RW_TEST_ARCH "x86_64/LP64"
+#    else
+#      define RW_TEST_ARCH "x86_64/ILP32"
+#    endif
 #  elif defined (__amd64__) || defined (__amd64)
 #    if defined (__LP64__) || defined (_LP64)
 #      define RW_TEST_ARCH "amd64/LP64"
@@ -240,12 +246,6 @@ _RWSTD_DLLIMPORT int (fileno)(FILE*) _LIBC_THROWS ();
 #    define RW_TEST_ARCH "ia64"
 #  elif defined (_WIN32)
 #    define RW_TEST_ARCH "i86"
-#  elif defined (__x86_64__) || defined (__x86_64)
-#    if defined (__LP64__) || defined (_LP64)
-#      define RW_TEST_ARCH "x86_64/LP64"
-#    else
-#      define RW_TEST_ARCH "x86_64/ILP32"
-#    endif
 #  else
 #    define RW_TEST_ARCH "unknown"
 #  endif
@@ -276,23 +276,15 @@ _RWSTD_DLLIMPORT int (fileno)(FILE*) _LIBC_THROWS ();
 #  elif defined (__sgi) && defined (__mips)
 #    define RW_TEST_OS "irix"
 #  elif defined (__linux__) || defined (__linux)
-
-     // get Linux release string (UTS_RELEASE)
-#    include <linux/version.h>
-
-#    ifndef UTS_RELEASE
-#      define UTS_RELEASE "(unknown release)"
-#    endif   // UTS_RELEASE
-
 #    if defined (__ELF__)
 #      define LINUX_TYPE "linux-elf"
 #    else
 #      define LINUX_TYPE "linux"
 #    endif
 
-#    define RW_TEST_OS LINUX_TYPE " "     \
-            UTS_RELEASE " with glibc "    \
-            RW_TEST_STR (__GLIBC__) "."   \
+#    define RW_TEST_OS LINUX_TYPE " ("           \
+            _RWSTD_LINUX_RELEASE ") with glibc " \
+            RW_TEST_STR (__GLIBC__) "."          \
             RW_TEST_STR (__GLIBC_MINOR__)
 
 #  elif defined (__SunOS_5_10)
