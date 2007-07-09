@@ -119,8 +119,9 @@ run runall run_all: $(BINDIR)/exec
         PATH=$$PATH:.;                                                    \
         TOPDIR=$(TOPDIR);                                                 \
         TMP=$${TMP:-/tmp}/stdcxx-run-$$$$;                                \
+        TZ=MST+7;                                                         \
         export TMP;                                                       \
-        export LD_LIBRARY_PATH PATH TMP TOPDIR;                           \
+        export LD_LIBRARY_PATH PATH TMP TOPDIR TZ;                        \
         trap "rm -rf $$TMP" HUP INT QUIT TERM EXIT;                       \
         mkdir -p $$TMP;                                                   \
         ./run $(RUNFLAGS) $(RUNTARGET);                                   \
@@ -133,8 +134,9 @@ run runall run_all: $(BINDIR)/exec
         PATH=$$PATH:$(LIBDIR):.;                                          \
         TOPDIR=$(TOPDIR);                                                 \
         TMP=$${TMP:-/tmp}/stdcxx-run-$$$$;                                \
+        TZ=MST+7;                                                         \
         export TMP;                                                       \
-        export LD_LIBRARY_PATH PATH TMP TOPDIR;                           \
+        export LD_LIBRARY_PATH PATH TMP TOPDIR TZ;                        \
         trap "rm -rf $$TMP" HUP INT QUIT TERM EXIT;                       \
         mkdir -p $$TMP;                                                   \
         ./run $(RUNFLAGS) $(RUNTARGET);                                   \
