@@ -112,16 +112,38 @@ bool locale::operator== (const locale &rhs) const
     if (strcmp (_C_body->_C_name, rhs._C_body->_C_name))
         return false;
 
-    _RWSTD_ASSERT (_C_body->_C_n_usr_facets == rhs._C_body->_C_n_usr_facets);
+    // highest valid index
+    const size_t maxinx =
+        rhs._C_body->_C_n_usr_facets + _RW::__rw_locale::_C_n_std_facets;
 
     // locales with the same (non-0) number of user-defined
     // facets compare equal iff all the facets are identical
     for (_RWSTD_SIZE_T i = 0; i != _C_body->_C_n_usr_facets; ++i) {
 
-        _RWSTD_ASSERT (_C_body->_C_usr_facets [i]);
-        _RWSTD_ASSERT (rhs._C_body->_C_usr_facets [i]);
+        const _RW::__rw_facet* const pf = _C_body->_C_usr_facets [i];
 
-        if (_C_body->_C_usr_facets [i] != rhs._C_body->_C_usr_facets [i])
+        _RWSTD_ASSERT (0 != pf);
+        _RWSTD_ASSERT (0 != pf->_C_pid);
+        _RWSTD_ASSERT (0 != *pf->_C_pid);
+
+        // if the facets at the same index aren't the same but their
+        // numeric id's are the locales are not equal; this check short
+        // circuits the linear lookup of the facet in rhs done below
+        if (   pf != rhs._C_body->_C_usr_facets [i]
+            && pf->_C_pid == rhs._C_body->_C_usr_facets [i]->_C_pid)
+            return false;
+
+        // find the index of the facet in rhs if it's installed there
+        size_t inx = rhs._C_body->_C_get_facet_inx (*pf->_C_pid);
+        if (maxinx <= inx || inx < _RW::__rw_locale::_C_n_std_facets)
+            return false;
+
+        // the index starts at _C_n_std_facets
+        inx -= _RW::__rw_locale::_C_n_std_facets;
+
+        // if the two facets aren't the same objects the locales aren't
+        // equal (since they may each behave differently)
+        if (pf != rhs._C_body->_C_usr_facets [inx])
             return false;
     }
 
