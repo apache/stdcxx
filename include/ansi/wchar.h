@@ -365,7 +365,7 @@ extern "C" {
 
 
 #  if defined (_RWSTD_NO_WMEMCMP) && !defined (_RWSTD_NO_WMEMCMP_IN_LIBC)
-int wmemcmp (const wchar_t*, const wchar_t*);
+int wmemcmp (const wchar_t*, const wchar_t*, _RWSTD_SIZE_T);
 #    undef _RWSTD_NO_WMEMCMP
 #  endif   // _RWSTD_NO_WMEMCMP && !_RWSTD_NO_WMEMCMP_IN_LIBC
 
