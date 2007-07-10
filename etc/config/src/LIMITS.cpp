@@ -155,7 +155,7 @@ const char* type_suffix (unsigned __int64) { return "UL"; }
 
 
 template <class T>
-T compute_limits (T, const char *pfx, const char *sfx, const char *type)
+T compute_limits (T *pval, const char *pfx, const char *sfx, const char *type)
 {
     T min = T (-one);
     T max = T (one);
@@ -167,17 +167,17 @@ T compute_limits (T, const char *pfx, const char *sfx, const char *type)
 
     // compute the maximum representable value
     for (; T (max * two) > max; max *= two);
-    for (T n = max / (two + two); n; ) {
-        if (T (max + n) < max) {
-            if (n > T (two))
-                n /= two;
+    for (*pval = max / (two + two); *pval; ) {
+        if (T (max + *pval) < max) {
+            if (*pval > T (two))
+                *pval /= two;
             else if (max < T (max + one))
-                n = one;
+                *pval = one;
             else
                 break;
         }
         else
-            max += n;
+            max += *pval;
     }
 
     // print the maximum representable value
@@ -281,18 +281,24 @@ int main ()
     }
     printf ("#define _RWSTD_NO_TWOS_COMPLEMENT\n");
 
-    compute_limits ((char)0, "CHAR", "", "char");
-    compute_limits ((signed char)0, "SCHAR", "", "signed char");
-    compute_limits ((unsigned char)0, "UCHAR", "U", "unsigned char");
+#define MKLIMITS(T, pfx, sfx, type)            \
+    do {                                       \
+        T buf = 0;                             \
+        compute_limits (&buf, pfx, sfx, type); \
+    } while (0)
 
-    compute_limits ((short)0, "SHRT", "", "short");
-    compute_limits ((unsigned short)0, "USHRT", "U", "unsigned short");
+    MKLIMITS (char, "CHAR", "", "char");
+    MKLIMITS (signed char, "SCHAR", "", "signed char");
+    MKLIMITS (unsigned char, "UCHAR", "U", "unsigned char");
 
-    compute_limits ((int)0, "INT", "", "int");
-    compute_limits ((unsigned int)0, "UINT", "U", "unsigned int");
+    MKLIMITS (short, "SHRT", "", "short");
+    MKLIMITS (unsigned short, "USHRT", "U", "unsigned short");
 
-    compute_limits ((long)0, "LONG", "L", "long");
-    compute_limits ((unsigned long)0, "ULONG", "UL", "unsigned long");
+    MKLIMITS (int, "INT", "", "int");
+    MKLIMITS (unsigned int, "UINT", "U", "unsigned int");
+
+    MKLIMITS (long, "LONG", "L", "long");
+    MKLIMITS (unsigned long, "ULONG", "UL", "unsigned long");
 
 #ifndef _RWSTD_NO_LONG_LONG
 
@@ -302,8 +308,8 @@ int main ()
 
     const char llong_name[] = "long long";
 
-    compute_limits ((LLong)0, "LLONG", "LL", "long long");
-    compute_limits ((unsigned LLong)0, "ULLONG", "ULL", "unsigned long long");
+    MKLIMITS (LLong, "LLONG", "LL", "long long");
+    MKLIMITS (unsigned LLong, "ULLONG", "ULL", "unsigned long long");
 
 #else   // if defined (_RWSTD_NO_LONG_LONG)
 
@@ -315,9 +321,8 @@ int main ()
 
     const char llong_name[] = "__int64";
 
-    compute_limits ((LLong)0, "LLONG", "L", "__int64");
-    compute_limits ((unsigned LLong)0, "ULLONG", "UL",
-                    "unsigned __int64");
+    MKLIMITS (LLong, "LLONG", "L", "__int64");
+    MKLIMITS (unsigned LLong, "ULLONG", "UL", "unsigned __int64");
 
 #    else
 
@@ -338,7 +343,7 @@ int main ()
     if ((wchar_t)~0 < (wchar_t)0)
         suffix = "";
     
-    compute_limits ((wchar_t)0, "WCHAR", suffix, "wchar_t");
+    MKLIMITS (wchar_t, "WCHAR", suffix, "wchar_t");
 
 #endif   // _RWSTD_NO_WCHAR_T
 
