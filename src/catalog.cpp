@@ -95,8 +95,7 @@ nl_catd catopen(const char* name, int oflag)
 
         if (cat && cat->good()) {
             CatVector::size_type i = 0;
-            while (__rw_catlist[i] != 0)
-                i++;
+            for (; i < __rw_catlist.size() && __rw_catlist[i]; ++i) ;
             if (__rw_catlist.size() == i)
                 __rw_catlist.resize(__rw_catlist.size() * 2,0);
             __rw_catlist[i] = cat;
