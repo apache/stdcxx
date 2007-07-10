@@ -588,7 +588,10 @@ $(MAKEFILE_IN): $(configpath)
           && echo "PICFLAGS   = $(PICFLAGS)"             >> $(MAKEFILE_IN)  \
           && echo "CPPFLAGS   = $(CPPFLAGS)"             >> $(MAKEFILE_IN)  \
           && echo "WARNFLAGS  = $(WARNFLAGS)"            >> $(MAKEFILE_IN)  \
-          && echo "DEPENDFLAGS = $(DEPENDFLAGS)"         >> $(MAKEFILE_IN)  \
+          && echo "DEPENDFLAGS     = $(DEPENDFLAGS)"     >> $(MAKEFILE_IN)  \
+          && echo "DEPENDFLAGS.cpp = $(DEPENDFLAGS.cpp)" >> $(MAKEFILE_IN)  \
+          && echo "DEPENDFLAGS$(AS_EXT) = $(value DEPENDFLAGS$(AS_EXT))"    \
+                                                         >> $(MAKEFILE_IN)  \
           && echo "AS_EXT     = $(AS_EXT)"               >> $(MAKEFILE_IN)  \
           && echo "LD         = $(LD)"                   >> $(MAKEFILE_IN)  \
           && echo "LDFLAGS    = $(LDFLAGS)"              >> $(MAKEFILE_IN)  \
