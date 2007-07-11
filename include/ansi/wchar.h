@@ -232,7 +232,7 @@ int fwscanf (FILE*, const wchar_t*, ...);
 
 // disabled for MSVC 8.0 and beyond to avoid running into its awful
 // declaration hackery
-int swprintf (wchar_t*, const wchar_t*, ...);
+int swprintf (wchar_t*, _RWSTD_SIZE_T, const wchar_t*, ...);
 
 #    endif   // !MSVC || MSVC < 8.0
 #    undef _RWSTD_NO_SWPRINTF
@@ -266,7 +266,7 @@ int vwscanf (const wchar_t*, _RWSTD_VA_LIST);
 #  endif   // _RWSTD_VA_LIST
 
 #  if defined (_RWSTD_NO_MBRLEN) && !defined (_RWSTD_NO_MBRLEN_IN_LIBC)
-_RWSTD_SIZE_T mbrlen (const wchar_t*, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*);
+_RWSTD_SIZE_T mbrlen (const char*, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*);
 #    undef _RWSTD_NO_MBRLEN
 #  endif   // _RWSTD_NO_MBRLEN && !_RWSTD_NO_MBRLEN_IN_LIBC
 
