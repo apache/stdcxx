@@ -429,7 +429,7 @@ rw_get_cpus ()
     // try to obtain the number of processors that are currently online
     // programmatically and fall back on the shell script above if it
     // fails
-    ncpus = int (sysconf (_SC_NPROCESSORS_CONF));
+    ncpus = int (sysconf (_SC_NPROCESSORS_ONLN));
 
 #  elif defined (_SC_NPROCESSORS_CONF)
 
