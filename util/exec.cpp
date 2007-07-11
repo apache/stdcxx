@@ -47,6 +47,9 @@
 #else
 #  include <windows.h> /* for PROCESS_INFORMATION, ... */
 #  include <process.h> /* for CreateProcess, ... */
+#  ifndef SIGTRAP
+#  define SIGTRAP 5  // STATUS_BREAKPOINT translated into SIGTRAP
+#  endif
 #endif
 #include <sys/stat.h> /* for S_* */
 #include <sys/types.h>
@@ -1242,6 +1245,10 @@ void exec_file (const struct target_opts* options, struct target_status* result)
 
     if (STATUS_ACCESS_VIOLATION == result->exit) {
         result->exit = SIGSEGV;
+        result->signaled = 1;
+    }
+    else if (STATUS_BREAKPOINT == result->exit) {
+        result->exit = SIGTRAP;
         result->signaled = 1;
     }
 }
