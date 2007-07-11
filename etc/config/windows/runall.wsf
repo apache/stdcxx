@@ -300,12 +300,15 @@ function runAllExamples(exeDir, prjDir, srcDir, fileLog, fileSummary, exeExt)
         {
         case  0: // OK
         case -7: // OUTPUT
+        case -8: // FORMAT
+        case -9: // NOUT
             ++exRunSucceeded;
             fileLog.WriteLine(itemInfo.name + " completed successfully, exit code " +
                 itemInfo.exitCode);
             break;
-        case -1: // other
-        case -4: // SEGV
+        case -1:  // other
+        case -4:  // SEGV
+        case -10: // TRAP
             ++exRunFailed;
             fileLog.WriteLine(itemInfo.name + " failed");
             break;
@@ -371,6 +374,15 @@ function parseStatus(exeName, execOut)
                 break;
             case "OUTPUT":
                 res = -7;
+                break;
+            case "FORMAT":
+                res = -8;
+                break;
+            case "  NOUT":
+                res = -9;
+                break;
+            case "  TRAP":
+                res = -10;
                 break;
             default:
                 res = -1;
