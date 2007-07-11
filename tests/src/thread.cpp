@@ -35,6 +35,7 @@
 
 #ifndef _WIN32
 #  include <stdio.h>      // for FILE, fscanf(), popen()
+#  include <unistd.h>     // for sysconf(), _SC_NPROCESSORS_{CONF,ONLN}
 #else    // _WIN32
 #  include <windows.h>    // for GetSystemInfo()
 #endif   // _WIN32
@@ -424,8 +425,25 @@ rw_get_cpus ()
 
     int ncpus = -1;
 
-    if (cmd) {
-        // open and read the output of the command from a pipe
+#  ifdef _SC_NPROCESSORS_ONLN
+    // try to obtain the number of processors that are currently online
+    // programmatically and fall back on the shell script above if it
+    // fails
+    ncpus = int (sysconf (_SC_NPROCESSORS_CONF));
+
+#  elif defined (_SC_NPROCESSORS_CONF)
+
+    // try to obtain the number of processors the system is configured
+    // with (not all of them are necessarily online) programmatically
+    // and fall back on the shell script above if it fails
+    ncpus = int (sysconf (_SC_NPROCESSORS_CONF));
+
+#  endif   // _SC_NPROCESSORS_CONF
+
+    if (ncpus < 1 && cmd) {
+        // if the number of processors couldn't be determined using
+        // sysconf() above,  open and read the output of the command
+        // from a pipe
         FILE* const fp = popen (cmd, "r");
 
         if (fp) {
