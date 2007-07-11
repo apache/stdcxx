@@ -47,6 +47,27 @@ int opt_nthreads = 1;
 // otherwise on the command line)
 int opt_nloops = 20000;
 
+enum {
+    opt_inx_codecvt,
+    opt_inx_collate,
+    opt_inx_ctype,
+    opt_inx_messages,
+    opt_inx_moneypunct,
+    opt_inx_moneypunct_intl,
+    opt_inx_numpunct,
+    opt_inx_money_get,
+    opt_inx_money_put,
+    opt_inx_num_get,
+    opt_inx_num_put,
+    opt_inx_time_get,
+    opt_inx_time_put,
+    opt_nfacets
+};
+
+int opt_facets [opt_nfacets];
+
+int opt_no_exceptions;
+
 /**************************************************************************/
 
 // array of locale names to use for testing
@@ -60,9 +81,9 @@ nlocales;
 /**************************************************************************/
 
 // convenience typedefs for all required specializations of standard facets
+typedef std::codecvt<char, char, std::mbstate_t> Codecvt;
 typedef std::collate<char>                       Collate;
 typedef std::ctype<char>                         Ctype;
-typedef std::codecvt<char, char, std::mbstate_t> Codecvt;
 typedef std::messages<char>                      Messages;
 typedef std::moneypunct<char, false>             Moneypunct0;
 typedef std::moneypunct<char, true>              Moneypunct1;
@@ -133,18 +154,22 @@ test_has_facet (void*)
 
         const bool byname = loc != classic;
 
-        RW_ASSERT (std::has_facet<Collate>(loc));
-        RW_ASSERT (std::has_facet<Ctype>(loc));
-        RW_ASSERT (std::has_facet<Codecvt>(loc));
-        RW_ASSERT (std::has_facet<Messages>(loc));
-        RW_ASSERT (std::has_facet<Moneypunct0>(loc));
-        RW_ASSERT (std::has_facet<Moneypunct1>(loc));
-        RW_ASSERT (std::has_facet<MoneyGet>(loc));
-        RW_ASSERT (std::has_facet<MoneyPut>(loc));
-        RW_ASSERT (std::has_facet<NumGet>(loc));
-        RW_ASSERT (std::has_facet<NumPut>(loc));
-        RW_ASSERT (std::has_facet<TimeGet>(loc));
-        RW_ASSERT (std::has_facet<TimePut>(loc));
+#define HAS(Facet, opt) \
+    (0 <= opt_facets [opt_inx_ ## opt] ? std::has_facet<Facet>(loc) : true)
+
+        HAS (Codecvt, codecvt);
+        HAS (Collate, collate);
+        HAS (Ctype, ctype);
+        HAS (Messages, messages);
+        HAS (Moneypunct0, moneypunct);
+        HAS (Moneypunct1, moneypunct_intl);
+        HAS (MoneyGet, money_get);
+        HAS (MoneyPut, money_put);
+        HAS (Numpunct, numpunct);
+        HAS (NumGet, num_get); 
+        HAS (NumPut, num_put);
+        HAS (TimeGet, time_get);
+        HAS (TimePut, time_put);
 
         RW_ASSERT (byname == std::has_facet<CollateByname>(loc));
         RW_ASSERT (byname == std::has_facet<CtypeByname>(loc));
@@ -157,18 +182,19 @@ test_has_facet (void*)
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-        RW_ASSERT (std::has_facet<WCollate>(loc));
-        RW_ASSERT (std::has_facet<WCtype>(loc));
-        RW_ASSERT (std::has_facet<WCodecvt>(loc));
-        RW_ASSERT (std::has_facet<WMessages>(loc));
-        RW_ASSERT (std::has_facet<WMoneypunct0>(loc));
-        RW_ASSERT (std::has_facet<WMoneypunct1>(loc));
-        RW_ASSERT (std::has_facet<WMoneyGet>(loc));
-        RW_ASSERT (std::has_facet<WMoneyPut>(loc));
-        RW_ASSERT (std::has_facet<WNumGet>(loc));
-        RW_ASSERT (std::has_facet<WNumPut>(loc));
-        RW_ASSERT (std::has_facet<WTimeGet>(loc));
-        RW_ASSERT (std::has_facet<WTimePut>(loc));
+        HAS (WCodecvt, codecvt);
+        HAS (WCollate, collate);
+        HAS (WCtype, ctype);
+        HAS (WMessages, messages);
+        HAS (WMoneypunct0, moneypunct);
+        HAS (WMoneypunct1, moneypunct_intl);
+        HAS (WMoneyGet, money_get);
+        HAS (WMoneyPut, money_put);
+        HAS (WNumpunct, numpunct);
+        HAS (WNumGet, num_get); 
+        HAS (WNumPut, num_put);
+        HAS (WTimeGet, time_get);
+        HAS (WTimePut, time_put);
 
         RW_ASSERT (byname == std::has_facet<WCollateByname>(loc));
         RW_ASSERT (byname == std::has_facet<WCtypeByname>(loc));
@@ -186,6 +212,181 @@ test_has_facet (void*)
     return 0;
 }
 
+}   // extern "C"
+
+
+static void
+use_facet_loop (const std::locale &classic, int i)
+{
+    static const std::locale::facet* const dummy =
+        (std::locale::facet*)1;
+
+    // save the name of the locale
+    const char* const locale_name = locales [i % nlocales];
+
+    // construct a named locale and imbue it in the ios object
+    // so that the locale is used not only by the num_put facet
+    // but also by the numpunct facet
+    const std::locale loc (locale_name);
+
+    const bool byname = loc != classic;
+
+    {
+
+#define USE(Facet, opt) \
+    (0 <= opt_facets [opt_inx_ ## opt] ? &std::use_facet<Facet>(loc) : dummy)
+
+        const std::locale::facet* const bases[] = {
+            // get pointers to the char specializations of facets
+            USE (Collate, collate),
+            USE (Ctype, ctype),
+            USE (Codecvt, codecvt),
+            USE (Messages, messages),
+            USE (Moneypunct0, moneypunct),
+            USE (Moneypunct1, moneypunct_intl),
+            USE (MoneyGet, money_get),
+            USE (MoneyPut, money_put),
+            USE (Numpunct, numpunct),
+            USE (NumGet, num_get),
+            USE (NumPut, num_put),
+            USE (TimeGet, time_get),
+            USE (TimePut, time_put)
+        };
+
+        if (byname) {
+
+            // get pointers to the char specializations
+            // of byname facets
+            const std::locale::facet* const derived[] = {
+                USE (CollateByname, collate),
+                USE (CtypeByname, ctype),
+                USE (CodecvtByname, codecvt),
+                USE (MessagesByname, messages),
+                USE (Moneypunct0Byname, moneypunct),
+                USE (Moneypunct1Byname, moneypunct_intl),
+                // no money_get_byname or money_put_byname
+                USE (MoneyGet, money_get),
+                USE (MoneyPut, money_put),
+                USE (NumpunctByname, numpunct),
+                // no num_get_byname or num_put_byname
+                USE (NumGet, num_get),
+                USE (NumPut, num_put),
+                USE (TimeGetByname, time_get),
+                USE (TimePutByname, time_put)
+            };
+
+            const std::size_t nbases = sizeof bases / sizeof *bases;
+
+            for (std::size_t i = 0; i != nbases; ++i) {
+                RW_ASSERT (bases [i] != 0);
+                RW_ASSERT (bases [i] == derived [i]);
+            }
+        }
+        else if (0 == opt_no_exceptions) {
+
+#if 1 // def _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
+
+            bool threw;
+
+#define TEST_USE_FACET(Facet, opt)                              \
+    try {                                                       \
+        threw = false;                                          \
+        if (0 <= opt_facets [opt_inx_ ## opt])                  \
+            std::use_facet<Facet>(loc);                         \
+    }                                                           \
+    catch (...) { threw = true; }                               \
+    RW_ASSERT (threw || opt_facets [opt_inx_ ## opt] < 0)
+
+            TEST_USE_FACET (CollateByname, collate);
+            TEST_USE_FACET (CtypeByname, ctype);
+            TEST_USE_FACET (CodecvtByname, codecvt);
+            TEST_USE_FACET (MessagesByname, messages);
+            TEST_USE_FACET (Moneypunct0Byname, moneypunct);
+            TEST_USE_FACET (Moneypunct1Byname, moneypunct_intl);
+            TEST_USE_FACET (NumpunctByname, numpunct);
+            TEST_USE_FACET (TimeGetByname, time_get);
+            TEST_USE_FACET (TimePutByname, time_put);
+
+#endif   // _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
+
+        }
+    }
+
+#ifndef _RWSTD_NO_WCHAR_T
+
+    {
+        const std::locale::facet* const bases[] = {
+            // get pointers to the char specializations of facets
+            USE (WCollate, collate),
+            USE (WCtype, ctype),
+            USE (WCodecvt, codecvt),
+            USE (WMessages, messages),
+            USE (WMoneypunct0, moneypunct),
+            USE (WMoneypunct1, moneypunct_intl),
+            USE (WMoneyGet, money_get),
+            USE (WMoneyPut, money_put),
+            USE (WNumpunct, numpunct),
+            USE (WNumGet, num_get),
+            USE (WNumPut, num_put),
+            USE (WTimeGet, time_get),
+            USE (WTimePut, time_put)
+        };
+
+        if (byname) {
+            // get pointers to the char specializations
+            // of byname facets
+            const std::locale::facet* const derived[] = {
+                USE (WCollateByname, collate),
+                USE (WCtypeByname, ctype),
+                USE (WCodecvtByname, codecvt),
+                USE (WMessagesByname, messages),
+                USE (WMoneypunct0Byname, moneypunct),
+                USE (WMoneypunct1Byname, moneypunct_intl),
+                // no money_get_byname or money_put_byname
+                USE (WMoneyGet, money_get),
+                USE (WMoneyPut, money_put),
+                USE (WNumpunctByname, numpunct),
+                // no num_get_byname or num_put_byname
+                USE (WNumGet, num_get),
+                USE (WNumPut, num_put),
+                USE (WTimeGetByname, time_get),
+                USE (WTimePutByname, time_put)
+            };
+
+            const std::size_t nbases = sizeof bases / sizeof *bases;
+
+            for (std::size_t i = 0; i != nbases; ++i) {
+                RW_ASSERT (bases [i] != 0);
+                RW_ASSERT (bases [i] == derived [i]);
+            }
+        }
+        else if (0 == opt_no_exceptions) {
+
+#ifndef _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
+
+            bool threw;
+
+            TEST_USE_FACET (WCollateByname, collate);
+            TEST_USE_FACET (WCtypeByname, ctype);
+            TEST_USE_FACET (WCodecvtByname, codecvt);
+            TEST_USE_FACET (WMessagesByname, messages);
+            TEST_USE_FACET (WMoneypunct0Byname, moneypunct);
+            TEST_USE_FACET (WMoneypunct1Byname, moneypunct_intl);
+            TEST_USE_FACET (WNumpunctByname, numpunct);
+            TEST_USE_FACET (WTimeGetByname, time_get);
+            TEST_USE_FACET (WTimePutByname, time_put);
+
+#endif   // _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
+
+        }
+    }
+
+#endif   // _RWSTD_NO_WCHAR_T
+
+}
+
+
+extern "C" {
 
 static void*
 test_use_facet (void*)
@@ -193,163 +394,12 @@ test_use_facet (void*)
     const std::locale classic (std::locale::classic ());
 
     for (int i = 0; i != opt_nloops; ++i) {
-
-        // save the name of the locale
-        const char* const locale_name = locales [i % nlocales];
-
-        // construct a named locale and imbue it in the ios object
-        // so that the locale is used not only by the num_put facet
-        // but also by the numpunct facet
-        const std::locale loc (locale_name);
-
-        const bool byname = loc != classic;
-
-        {
-            // get references to the char specializations of facets
-            const Collate     &f0  = std::use_facet<Collate>(loc);
-            const Ctype       &f1  = std::use_facet<Ctype>(loc);
-            const Codecvt     &f2  = std::use_facet<Codecvt>(loc);
-            const Messages    &f3  = std::use_facet<Messages>(loc);
-            const Moneypunct0 &f4  = std::use_facet<Moneypunct0>(loc);
-            const Moneypunct1 &f5  = std::use_facet<Moneypunct1>(loc);
-            const MoneyGet    &f6  = std::use_facet<MoneyGet>(loc);
-            const MoneyPut    &f7  = std::use_facet<MoneyPut>(loc);
-            const Numpunct    &f8  = std::use_facet<Numpunct>(loc);
-            const NumGet      &f9  = std::use_facet<NumGet>(loc);
-            const NumPut      &f10 = std::use_facet<NumPut>(loc);
-            const TimeGet     &f11 = std::use_facet<TimeGet>(loc);
-            const TimePut     &f12 = std::use_facet<TimePut>(loc);
-
-            if (byname) {
-                // get references to the char specializations
-                // of byname facets
-                const CollateByname &f0n =
-                    std::use_facet<CollateByname>(loc);
-                const CtypeByname &f1n =
-                    std::use_facet<CtypeByname>(loc);
-                const CodecvtByname &f2n =
-                    std::use_facet<CodecvtByname>(loc);
-                const MessagesByname &f3n =
-                    std::use_facet<MessagesByname>(loc);
-                const Moneypunct0Byname &f4n =
-                    std::use_facet<Moneypunct0Byname>(loc);
-                const Moneypunct1Byname &f5n =
-                    std::use_facet<Moneypunct1Byname>(loc);
-                const NumpunctByname &f8n =
-                    std::use_facet<NumpunctByname>(loc);
-                const TimeGetByname &f11n =
-                    std::use_facet<TimeGetByname>(loc);
-                const TimePutByname &f12n =
-                    std::use_facet<TimePutByname>(loc);
-
-                RW_ASSERT (byname == (&f0  == &f0n));
-                RW_ASSERT (byname == (&f1  == &f1n));
-                RW_ASSERT (byname == (&f2  == &f2n));
-                RW_ASSERT (byname == (&f3  == &f3n));
-                RW_ASSERT (byname == (&f4  == &f4n));
-                RW_ASSERT (byname == (&f5  == &f5n));
-                RW_ASSERT (byname == (&f8  == &f8n));
-                RW_ASSERT (byname == (&f11 == &f11n));
-                RW_ASSERT (byname == (&f12 == &f12n));
-            }
-            else {
-
-#ifndef _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
-
-                bool threw;
-
-#define TEST_USE_FACET(Facet, loc)                       \
-    try { threw = false; std::use_facet<Facet>(loc); }   \
-    catch (...) { threw = true; }                        \
-    RW_ASSERT (threw)
-
-                TEST_USE_FACET (CollateByname, loc);
-                TEST_USE_FACET (CtypeByname, loc);
-                TEST_USE_FACET (CodecvtByname, loc);
-                TEST_USE_FACET (MessagesByname, loc);
-                TEST_USE_FACET (Moneypunct0Byname, loc);
-                TEST_USE_FACET (Moneypunct1Byname, loc);
-                TEST_USE_FACET (NumpunctByname, loc);
-                TEST_USE_FACET (TimeGetByname, loc);
-                TEST_USE_FACET (TimePutByname, loc);
-
-#endif   // _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
-
-            }
+        try {
+            use_facet_loop (classic, i);
         }
-
-#ifndef _RWSTD_NO_WCHAR_T
-
-        {
-            const WCollate     &f0  = std::use_facet<WCollate>(loc);
-            const WCtype       &f1  = std::use_facet<WCtype>(loc);
-            const WCodecvt     &f2  = std::use_facet<WCodecvt>(loc);
-            const WMessages    &f3  = std::use_facet<WMessages>(loc);
-            const WMoneypunct0 &f4  = std::use_facet<WMoneypunct0>(loc);
-            const WMoneypunct1 &f5  = std::use_facet<WMoneypunct1>(loc);
-            const WMoneyGet    &f6  = std::use_facet<WMoneyGet>(loc);
-            const WMoneyPut    &f7  = std::use_facet<WMoneyPut>(loc);
-            const WNumpunct    &f8  = std::use_facet<WNumpunct>(loc);
-            const WNumGet      &f9  = std::use_facet<WNumGet>(loc);
-            const WNumPut      &f10 = std::use_facet<WNumPut>(loc);
-            const WTimeGet     &f11 = std::use_facet<WTimeGet>(loc);
-            const WTimePut     &f12 = std::use_facet<WTimePut>(loc);
-
-            if (byname) {
-                const WCollateByname &f0n =
-                    std::use_facet<WCollateByname>(loc);
-                const WCtypeByname &f1n =
-                    std::use_facet<WCtypeByname>(loc);
-                const WCodecvtByname &f2n =
-                    std::use_facet<WCodecvtByname>(loc);
-                const WMessagesByname &f3n =
-                    std::use_facet<WMessagesByname>(loc);
-                const WMoneypunct0Byname &f4n =
-                    std::use_facet<WMoneypunct0Byname>(loc);
-                const WMoneypunct1Byname &f5n =
-                    std::use_facet<WMoneypunct1Byname>(loc);
-                const WTimeGetByname &f11n =
-                    std::use_facet<WTimeGetByname>(loc);
-                const WTimePutByname &f12n =
-                    std::use_facet<WTimePutByname>(loc);
-
-                RW_ASSERT (byname == (&f0  == &f0n));
-                RW_ASSERT (byname == (&f1  == &f1n));
-                RW_ASSERT (byname == (&f2  == &f2n));
-                RW_ASSERT (byname == (&f3  == &f3n));
-                RW_ASSERT (byname == (&f4  == &f4n));
-                RW_ASSERT (byname == (&f5  == &f5n));
-                RW_ASSERT (byname == (&f11 == &f11n));
-                RW_ASSERT (byname == (&f12 == &f12n));
-            }
-            else {
-
-#ifndef _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
-
-                bool threw;
-
-#define TEST_USE_FACET(Facet, loc)                       \
-    try { threw = false; std::use_facet<Facet>(loc); }   \
-    catch (...) { threw = true; }                        \
-    RW_ASSERT (threw)
-
-                TEST_USE_FACET (WCollateByname, loc);
-                TEST_USE_FACET (WCtypeByname, loc);
-                TEST_USE_FACET (WCodecvtByname, loc);
-                TEST_USE_FACET (WMessagesByname, loc);
-                TEST_USE_FACET (WMoneypunct0Byname, loc);
-                TEST_USE_FACET (WMoneypunct1Byname, loc);
-                TEST_USE_FACET (WNumpunctByname, loc);
-                TEST_USE_FACET (WTimeGetByname, loc);
-                TEST_USE_FACET (WTimePutByname, loc);
-
-#endif   // _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
-
-            }
+        catch (...) {
+            // what to do here?
         }
-
-#endif   // _RWSTD_NO_WCHAR_T
-
     }
 
     return 0;
@@ -367,6 +417,59 @@ int opt_use_facet;   // exercise std::use_facet?
 static int
 run_test (int, char**)
 {
+    
+    for (std::size_t i = 0; i != opt_nfacets; ++i) {
+        if (0 < opt_facets [i]) {
+            for (std::size_t j = 0; j != opt_nfacets; ++j) {
+                if (opt_facets [j] == 0)
+                    opt_facets [j] = -1;
+            }
+            break;
+        }
+    }
+
+    rw_note (0 <= opt_facets [opt_inx_codecvt], 0, __LINE__,
+             "std::codecvt tests disabled");
+
+    rw_note (0 <= opt_facets [opt_inx_collate], 0, __LINE__,
+             "std::collate tests disabled");
+
+    rw_note (0 <= opt_facets [opt_inx_ctype], 0, __LINE__,
+             "std::ctype tests disabled");
+
+    rw_note (0 <= opt_facets [opt_inx_messages], 0, __LINE__,
+             "std::messages tests disabled");
+
+    rw_note (0 <= opt_facets [opt_inx_moneypunct], 0, __LINE__,
+             "std::moneypunct<charT, false> tests disabled");
+
+    rw_note (0 <= opt_facets [opt_inx_moneypunct_intl], 0, __LINE__,
+             "std::moneypunct<charT, true> tests disabled");
+
+    rw_note (0 <= opt_facets [opt_inx_money_get], 0, __LINE__,
+             "std::money_get tests disabled");
+
+    rw_note (0 <= opt_facets [opt_inx_money_put], 0, __LINE__,
+             "std::money_put tests disabled");
+
+    rw_note (0 <= opt_facets [opt_inx_numpunct], 0, __LINE__,
+             "std::numpunct tests disabled");
+
+    rw_note (0 <= opt_facets [opt_inx_num_get], 0, __LINE__,
+             "std::num_get tests disabled");
+
+    rw_note (0 <= opt_facets [opt_inx_num_put], 0, __LINE__,
+             "std::num_put tests disabled");
+
+    rw_note (0 <= opt_facets [opt_inx_time_get], 0, __LINE__,
+             "std::time_get tests disabled");
+
+    rw_note (0 <= opt_facets [opt_inx_time_put], 0, __LINE__,
+             "std::time_put tests disabled");
+
+    rw_note (0 == opt_no_exceptions, 0, __LINE__,
+             "tests involving exceptions disabled");
+
     // find all installed locales for which setlocale(LC_ALL) succeeds
     const char* const locale_list =
         rw_opt_locales ? rw_opt_locales : rw_locales (_RWSTD_LC_ALL);
@@ -423,8 +526,8 @@ run_test (int, char**)
 
 #ifdef _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
 
-        rw_warning (0, 0, 0,
-                    "exceptions not thread safe, skipping that part of test")
+        rw_warn (0, 0, 0,
+                 "exceptions not thread safe, skipping that part of test");
 
 #endif   // _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
 
@@ -465,11 +568,39 @@ int main (int argc, char *argv[])
                     "|-use_facet~ "
                     "|-nloops#0 "        // must be non-negative
                     "|-nthreads#0-* "    // must be in [0, MAX_THREADS]
-                    "|-locales=",        // must be provided
+                    "|-locales= "        // must be provided
+                    "|-no-exceptions# "
+                    "|-codecvt~ "
+                    "|-collate~ "
+                    "|-ctype~ "
+                    "|-messages~ "
+                    "|-moneypunct~ "
+                    "|-moneypunct_intl~ "
+                    "|-money_get~ "
+                    "|-money_put~ "
+                    "|-numpunct~ "
+                    "|-num_get~ "
+                    "|-num_put~ "
+                    "|-time_get~ "
+                    "|-time_put~ ",
                     &opt_has_facet,
                     &opt_use_facet,
                     &opt_nloops,
                     int (MAX_THREADS),
                     &opt_nthreads,
-                    &rw_opt_setlocales);
+                    &rw_opt_setlocales,
+                    &opt_no_exceptions,
+                    opt_facets + opt_inx_codecvt,
+                    opt_facets + opt_inx_collate,
+                    opt_facets + opt_inx_ctype,
+                    opt_facets + opt_inx_messages,
+                    opt_facets + opt_inx_moneypunct,
+                    opt_facets + opt_inx_moneypunct_intl,
+                    opt_facets + opt_inx_money_get,
+                    opt_facets + opt_inx_money_put,
+                    opt_facets + opt_inx_numpunct,
+                    opt_facets + opt_inx_num_get,
+                    opt_facets + opt_inx_num_put,
+                    opt_facets + opt_inx_time_get,
+                    opt_facets + opt_inx_time_put);
 }
