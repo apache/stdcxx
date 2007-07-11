@@ -829,9 +829,11 @@ do_narrow (char_type ch, char dfault) const
                 break;
             }
         }
+
+        return dfault;
     }
 
-    return dfault;
+    return ch;
 }
 
 
@@ -1235,9 +1237,11 @@ do_narrow (char_type ch, char dfault) const
                 break;
             }
         }
+
+        return dfault;
     }
 
-    return dfault;
+    return char (uch);
 }
 
 
@@ -1646,9 +1650,11 @@ do_narrow (char_type ch, char dfault) const
                 break;
             }
         }
+
+        return dfault;
     }
 
-    return dfault;
+    return char (uch);
 }
 
 
