@@ -186,6 +186,10 @@ _rw_fmtstr (const FmtSpec&, Buffer&, const char*, size_t);
 extern int
 _rw_fmterrno (const FmtSpec&, Buffer&, int);
 
+// format Windows GetLastError(), or errno value/name
+extern int
+_rw_fmtlasterror (const FmtSpec&, Buffer&, int);
+
 // format the name/value of an LC_XXX constant/environment variable
 extern int
 _rw_fmtlc (const FmtSpec&, Buffer&, int);

@@ -57,7 +57,7 @@
    // define macros to enable Win98 + WinNT support in <windows.h>
 #  define _WIN32_WINNT 0x0410
 #  define WINVER       0x400
-#  include <windows.h>   // for IsDebuggerPresent()
+#  include <windows.h>   // for GetLastError(), IsDebuggerPresent()
 #else
 #  include <dlfcn.h>
 #endif   // _WIN{32,64}
@@ -2694,6 +2694,15 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         }
         break;
 
+    case 'E':   // %{E} -- Windows GetLastError(), errno elsewhere
+#ifdef _WIN32
+        spec.param.int_ = -1 == spec.width ? GetLastError () : spec.width;
+#else   // if !defined (_WIN32)
+        spec.param.int_ = -1 == spec.width ? errno : spec.width;
+#endif   // _WIN32
+        len = _rw_fmtlasterror (spec, buf, spec.param.int_);
+        break;
+
     case 'e':   // %{e}, %{Ae}
         if (spec.mod == spec.mod_ext_A) {   // array of floating point values
             spec.param.ptr_ = PARAM (ptr_, pva);
@@ -2771,7 +2780,8 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         break;
 
     case 'm':   // %{m} -- errno
-        len = _rw_fmterrno (spec, buf, -1 == spec.width ? errno : spec.width);
+        spec.param.int_ = -1 == spec.width ? errno : spec.width;
+        len = _rw_fmterrno (spec, buf, spec.param.int_);
         break;
 
     case 'M':   // %{M}, %{LM}
