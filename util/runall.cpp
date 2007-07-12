@@ -35,9 +35,6 @@
 #include <sys/stat.h>
 #if !defined (_WIN32) && !defined (_WIN64)
 #  include <sys/wait.h>   /* for WIFEXITED(), ... */
-#else
-#  include <signal.h>     /* for SIGSEGV */
-#  include <windows.h>    /* for STATUS_ACCESS_VIOLATION */
 #endif
 
 #include "cmdopt.h"

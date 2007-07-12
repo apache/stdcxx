@@ -48,7 +48,10 @@
 #  include <windows.h> /* for PROCESS_INFORMATION, ... */
 #  include <process.h> /* for CreateProcess, ... */
 #  ifndef SIGTRAP
-#  define SIGTRAP 5  // STATUS_BREAKPOINT translated into SIGTRAP
+#    define SIGTRAP 5   // STATUS_BREAKPOINT translated into SIGTRAP
+#  endif
+#  ifndef SIGBUS
+#    define SIGBUS  10  // STATUS_IN_PAGE_ERROR translated into SIGBUS
 #  endif
 #endif
 #include <sys/stat.h> /* for S_* */
@@ -925,6 +928,29 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     }
 }
 #else  /* _WIN{32,64} */
+
+// map between NT_STATUS value and corresponding UNIX signal
+static const struct {
+    DWORD nt_status;
+    int   signal;
+} nt_status_map [] = {
+    { STATUS_BREAKPOINT,              SIGTRAP },
+    { STATUS_ACCESS_VIOLATION,        SIGSEGV },
+    { STATUS_IN_PAGE_ERROR,           SIGBUS  },
+    { STATUS_ILLEGAL_INSTRUCTION,     SIGILL  },
+    { STATUS_PRIVILEGED_INSTRUCTION,  SIGILL  },
+    { STATUS_FLOAT_DENORMAL_OPERAND,  SIGFPE  },
+    { STATUS_FLOAT_DIVIDE_BY_ZERO,    SIGFPE  },
+    { STATUS_FLOAT_INEXACT_RESULT,    SIGFPE  },
+    { STATUS_FLOAT_INVALID_OPERATION, SIGFPE  },
+    { STATUS_FLOAT_OVERFLOW,          SIGFPE  },
+    { STATUS_FLOAT_STACK_CHECK,       SIGFPE  },
+    { STATUS_FLOAT_UNDERFLOW,         SIGFPE  },
+    { STATUS_INTEGER_DIVIDE_BY_ZERO,  SIGFPE  },
+    { STATUS_INTEGER_OVERFLOW,        SIGFPE  }
+};
+
+
 /**
    Opens an input file, based on exec_name, using the child_sa security 
    setting.
@@ -1243,13 +1269,12 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     if (0 == CloseHandle (child.hProcess))
         warn_last_error ("Closing child process handle");
 
-    if (STATUS_ACCESS_VIOLATION == result->exit) {
-        result->exit = SIGSEGV;
-        result->signaled = 1;
-    }
-    else if (STATUS_BREAKPOINT == result->exit) {
-        result->exit = SIGTRAP;
-        result->signaled = 1;
+    for (int i = 0; i < sizeof (nt_status_map) / sizeof (*nt_status_map); ++i) {
+        if (nt_status_map [i].nt_status == DWORD (result->exit)) {
+            result->exit = nt_status_map [i].signal;
+            result->signaled = 1;
+            break;
+        }
     }
 }
 
