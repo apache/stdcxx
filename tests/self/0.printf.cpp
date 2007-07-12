@@ -2257,6 +2257,12 @@ test_errno ()
 
     int count = 0;
 
+    errno = 0;
+    TEST ("%{#m}", 0, 0, 0, "E#0");
+
+    errno = 0;
+    TEST ("%{#*m}", 0, 0, 0, "E#0");
+
 #ifdef EDOM
 
     ++count;
