@@ -1026,7 +1026,9 @@ _rw_fmtlasterror (const FmtSpec &spec, Buffer &buf, int val)
     newspec.width    = 0;
     newspec.fl_pound = 0;
 
-    const int result = _rw_fmtstr (newspec, buf, pmsg, _RWSTD_SIZE_MAX);
+    const int result = _rw_fmtstr (newspec, buf,
+                                   _RWSTD_STATIC_CAST (const char*, pmsg),
+                                   _RWSTD_SIZE_MAX);
 
     LocalFree (pmsg);
 
