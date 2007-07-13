@@ -271,7 +271,7 @@ _RWSTD_SIZE_T mbrlen (const char*, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*);
 #  endif   // _RWSTD_NO_MBRLEN && !_RWSTD_NO_MBRLEN_IN_LIBC
 
 #  if defined (_RWSTD_NO_MBRTOWC) && !defined (_RWSTD_NO_MBRTOWC_IN_LIBC)
-wchar_t mbrtowc (wchar_t*, const char*, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*);
+_RWSTD_SIZE_T mbrtowc (wchar_t*, const char*, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*);
 #    undef _RWSTD_NO_MBRTOWC
 #  endif   // _RWSTD_NO_MBRTOWC && !_RWSTD_NO_MBRTOWC_IN_LIBC
 
