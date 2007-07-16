@@ -228,13 +228,12 @@ int fwscanf (FILE*, const wchar_t*, ...);
 #  endif   // _RWSTD_NO_FWSCANF && !_RWSTD_NO_FWSCANF_IN_LIBC
 
 #  if defined (_RWSTD_NO_SWPRINTF) && !defined (_RWSTD_NO_SWPRINTF_IN_LIBC)
-#    if !defined (_MSC_VER) || _MSC_VER < 1400
+#    if !defined (_MSC_VER)
 
-// disabled for MSVC 8.0 and beyond to avoid running into its awful
-// declaration hackery
+// disabled for MSVC to avoid running into its awful declaration hackery
 int swprintf (wchar_t*, _RWSTD_SIZE_T, const wchar_t*, ...);
 
-#    endif   // !MSVC || MSVC < 8.0
+#    endif   // !MSVC
 #    undef _RWSTD_NO_SWPRINTF
 #  endif   // _RWSTD_NO_SWPRINTF && !_RWSTD_NO_SWPRINTF_IN_LIBC
 
