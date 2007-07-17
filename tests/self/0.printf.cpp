@@ -126,9 +126,9 @@ do_test (int         line,     // line number of the test case
         sprintf (fmt, "%s%c", pfx, spec);                               \
         char* const s0 = rw_sprintfa (fmt, a1, a2, a3);                 \
         char buf [256];                                                 \
-        /* variable below avoids warnings about controlling */          \
-        /* expression being constant */                                 \
-        const char* const expect_var = (expect);                        \
+        /* non-const variable below avoids warnings about */            \
+        /* controlling expression being constant */                     \
+        const char* /* const */ expect_var = (expect);                  \
         if (expect_var)                                                 \
             strcpy (buf, expect_var ? expect_var : "");                 \
         else                                                            \
