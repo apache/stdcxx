@@ -421,55 +421,7 @@ public:
 
     typedef wchar_t char_type;
 
-protected:
-    // inline virtual functions defined first to allow compilers to
-    // inline their definitions when being called from nonvirtuals
-
-    virtual ~ctype ();
-
-    // 22.2.1.1.2, p1
-    virtual bool do_is (mask, char_type) const;
-
-    virtual const char_type*
-    do_is (const char_type*, const char_type*, mask*) const;
-
-    // 22.2.1.1.2, p7
-    virtual char_type do_toupper (char_type) const;
-
-    // 22.2.1.1.2, p9
-    virtual char_type do_tolower (char_type) const;
-
-    // 22.2.1.1.2, p11
-    virtual char_type do_widen (char) const;
-
-    virtual const char*
-    do_widen (const char*, const char*, char_type*) const;
-
-    // 22.2.1.1.2, p13
-    virtual char
-    do_narrow (char_type, char) const;
-
-    virtual const char_type*
-    do_toupper (char_type*, const char_type*) const;
-
-    virtual const char_type*
-    do_tolower (char_type*, const char_type*) const;
-
-    // 22.2.1.1.2, p3
-    virtual const char_type*
-    do_scan_is (mask, const char_type*, const char_type*) const;
-
-    // 22.2.1.1.2, p5
-    virtual const char_type*
-    do_scan_not (mask, const char_type*, const char_type*) const;
-
-    virtual const char_type*
-    do_narrow (const char_type*, const char_type*, char, char*) const;
-
-public:
-
     _EXPLICIT ctype (_RWSTD_SIZE_T = 0);
-
 
     // 22.2.1.1.1, p1
     bool is (mask __m, char_type __c) const {
@@ -529,6 +481,49 @@ public:
     }
 
     static _RW::__rw_facet_id id;
+
+protected:
+
+    virtual ~ctype ();
+
+    // 22.2.1.1.2, p1
+    virtual bool do_is (mask, char_type) const;
+
+    virtual const char_type*
+    do_is (const char_type*, const char_type*, mask*) const;
+
+    // 22.2.1.1.2, p7
+    virtual char_type do_toupper (char_type) const;
+
+    // 22.2.1.1.2, p9
+    virtual char_type do_tolower (char_type) const;
+
+    // 22.2.1.1.2, p11
+    virtual char_type do_widen (char) const;
+
+    virtual const char*
+    do_widen (const char*, const char*, char_type*) const;
+
+    // 22.2.1.1.2, p13
+    virtual char
+    do_narrow (char_type, char) const;
+
+    virtual const char_type*
+    do_toupper (char_type*, const char_type*) const;
+
+    virtual const char_type*
+    do_tolower (char_type*, const char_type*) const;
+
+    // 22.2.1.1.2, p3
+    virtual const char_type*
+    do_scan_is (mask, const char_type*, const char_type*) const;
+
+    // 22.2.1.1.2, p5
+    virtual const char_type*
+    do_scan_not (mask, const char_type*, const char_type*) const;
+
+    virtual const char_type*
+    do_narrow (const char_type*, const char_type*, char, char*) const;
 
 private:
 
