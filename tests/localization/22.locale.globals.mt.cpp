@@ -31,9 +31,9 @@
 #include <cwchar>     // for mbstate_t
 #include <cstring>    // for strlen()
 
-#include <rw_locale.h>
-#include <rw_thread.h>   // for rw_get_processors (), rw_thread_pool()
-#include <driver.h>
+#include <rw_locale.h>   // for rw_locales()
+#include <rw_thread.h>   // for rw_get_processors(), rw_thread_pool()
+#include <driver.h>      // for rw_test()
 
 
 // maximum number of threads allowed by the command line interface
@@ -64,8 +64,13 @@ enum {
     opt_nfacets
 };
 
+// tri-state options to enable/disable individual facets
+//   opt_facets [i] <  0: facet is initially explicitly disabled
+//   opt_facets [i] == 0: option not specified on the command line
+//   opt_facets [i] >  0: facet is initially explicitly enabled
 int opt_facets [opt_nfacets];
 
+// disable exceptions?
 int opt_no_exceptions;
 
 /**************************************************************************/
@@ -154,6 +159,7 @@ test_has_facet (void*)
 
         const bool byname = loc != classic;
 
+// call has_facet for each base facet only of it's enabled
 #define HAS(Facet, opt) \
     (0 <= opt_facets [opt_inx_ ## opt] ? std::has_facet<Facet>(loc) : true)
 
@@ -171,14 +177,19 @@ test_has_facet (void*)
         HAS (TimeGet, time_get);
         HAS (TimePut, time_put);
 
-        RW_ASSERT (byname == std::has_facet<CollateByname>(loc));
-        RW_ASSERT (byname == std::has_facet<CtypeByname>(loc));
-        RW_ASSERT (byname == std::has_facet<CodecvtByname>(loc));
-        RW_ASSERT (byname == std::has_facet<MessagesByname>(loc));
-        RW_ASSERT (byname == std::has_facet<Moneypunct0Byname>(loc));
-        RW_ASSERT (byname == std::has_facet<Moneypunct1Byname>(loc));
-        RW_ASSERT (byname == std::has_facet<TimeGetByname>(loc));
-        RW_ASSERT (byname == std::has_facet<TimePutByname>(loc));
+// call has_facet for each _byname facet only of it's enabled
+#define HAS_BYNAME(Facet, opt)           \
+    (0 <= opt_facets [opt_inx_ ## opt] ? \
+         byname == std::has_facet<Facet>(loc) : true)
+
+        HAS_BYNAME (CodecvtByname, codecvt);
+        HAS_BYNAME (CollateByname, collate);
+        HAS_BYNAME (CtypeByname, ctype);
+        HAS_BYNAME (MessagesByname, messages);
+        HAS_BYNAME (Moneypunct0Byname, moneypunct);
+        HAS_BYNAME (Moneypunct1Byname, moneypunct_intl);
+        HAS_BYNAME (TimeGetByname, time_get);
+        HAS_BYNAME (TimePutByname, time_put);
 
 #ifndef _RWSTD_NO_WCHAR_T
 
@@ -196,14 +207,14 @@ test_has_facet (void*)
         HAS (WTimeGet, time_get);
         HAS (WTimePut, time_put);
 
-        RW_ASSERT (byname == std::has_facet<WCollateByname>(loc));
-        RW_ASSERT (byname == std::has_facet<WCtypeByname>(loc));
-        RW_ASSERT (byname == std::has_facet<WCodecvtByname>(loc));
-        RW_ASSERT (byname == std::has_facet<WMessagesByname>(loc));
-        RW_ASSERT (byname == std::has_facet<WMoneypunct0Byname>(loc));
-        RW_ASSERT (byname == std::has_facet<WMoneypunct1Byname>(loc));
-        RW_ASSERT (byname == std::has_facet<WTimeGetByname>(loc));
-        RW_ASSERT (byname == std::has_facet<WTimePutByname>(loc));
+        HAS_BYNAME (WCodecvtByname, codecvt);
+        HAS_BYNAME (WCollateByname, collate);
+        HAS_BYNAME (WCtypeByname, ctype);
+        HAS_BYNAME (WMessagesByname, messages);
+        HAS_BYNAME (WMoneypunct0Byname, moneypunct);
+        HAS_BYNAME (WMoneypunct1Byname, moneypunct_intl);
+        HAS_BYNAME (WTimeGetByname, time_get);
+        HAS_BYNAME (WTimePutByname, time_put);
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -417,7 +428,6 @@ int opt_use_facet;   // exercise std::use_facet?
 static int
 run_test (int, char**)
 {
-    
     for (std::size_t i = 0; i != opt_nfacets; ++i) {
         if (0 < opt_facets [i]) {
             for (std::size_t j = 0; j != opt_nfacets; ++j) {
@@ -566,11 +576,11 @@ int main (int argc, char *argv[])
                     "thread safety", run_test,
                     "|-has_facet~ "
                     "|-use_facet~ "
-                    "|-nloops#0 "        // must be non-negative
-                    "|-nthreads#0-* "    // must be in [0, MAX_THREADS]
-                    "|-locales= "        // must be provided
-                    "|-no-exceptions# "
-                    "|-codecvt~ "
+                    "|-nloops#0 "        // arg must be non-negative
+                    "|-nthreads#0-* "    // arg must be in [0, MAX_THREADS]
+                    "|-locales= "        // argument must be provided
+                    "|-no-exceptions# "  // disable exceptions
+                    "|-codecvt~ "        // enable/disable individual facets
                     "|-collate~ "
                     "|-ctype~ "
                     "|-messages~ "
