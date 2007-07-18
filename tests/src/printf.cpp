@@ -3339,7 +3339,7 @@ rw_sprintf (char *buf, const char *fmt, ...)
     va_end (va);
 
     if (-1 < nchars)
-        memcpy (buf, tmpbuf, size_t (nchars));
+        memcpy (buf, tmpbuf, size_t (nchars + 1 /* NUL */));
 
     free (tmpbuf);
 
