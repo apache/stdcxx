@@ -753,12 +753,6 @@ rfind (const_pointer __s,  size_type __pos, size_type __n) const
 {
     _RWSTD_ASSERT(__s != 0);
 
-    _RWSTD_REQUIRES (__n <= max_size (),
-                     (_RWSTD_ERROR_LENGTH_ERROR, 
-                      _RWSTD_FUNC ("basic_string::rfind(const_pointer, "
-                                   "size_type, size_type) const"),
-                      __n, max_size ()));
-
     if (size() < __n)
       return npos;
     
