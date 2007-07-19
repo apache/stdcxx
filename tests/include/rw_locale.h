@@ -40,8 +40,11 @@ _TEST_EXPORT char*
 rw_locales (int = _UNUSED_CAT, const char* = 0);
 
 
+// invokes the locale utility with the arguments specified by 'arg',
+// redirecting its output to the file named by 'fname' if non-null
+// returns the exit status of the utility
 _TEST_EXPORT int
-rw_locale (const char *args, const char *fname);
+rw_locale (const char* /* args */, const char* /* fname */);
 
 
 // creates a temporary directory and defines the RWSTD_LOCALE_ROOT
@@ -53,6 +56,7 @@ rw_locale (const char *args, const char *fname);
 
 _TEST_EXPORT const char*
 rw_set_locale_root ();
+
 
 // invokes localedef to create a locale database named by the last argument,
 // if non-0, or in a directory specified by the RWSTD_LOCALE_ROOT environment
@@ -90,7 +94,7 @@ rw_find_mb_locale (_RWSTD_SIZE_T* /* mb_cur_max */,
 // directory
 // returns the name of the locale
 _TEST_EXPORT const char*
-rw_create_locale (const char *charmap, const char *locale);
+rw_create_locale (const char* /* charmap */, const char* /* locale */);
 
 
 // NUL-separated list of locale names specified by the --locales
