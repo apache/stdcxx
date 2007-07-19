@@ -235,6 +235,10 @@ MyStreambuf (std::streamsize bufsize, int fail_set, int when)
     // set the fail and throw flags
     if (fail_set & Throw) {
         throw_set_ = fail_set & ~Throw;
+
+        for (unsigned i = 0; i < 11; ++i)
+            if (throw_set_ & (1U << i))
+                throw_when_ [i] = when;
     }
     else {
         fail_set_ = fail_set;
@@ -281,6 +285,10 @@ MyStreambuf (const char *buf, std::streamsize bufsize, int fail_set, int when)
     // set the fail and throw flags
     if (fail_set & Throw) {
         throw_set_ = fail_set & ~Throw;
+
+        for (unsigned i = 0; i < 11; ++i)
+            if (throw_set_ & (1U << i))
+                throw_when_ [i] = when;
     }
     else {
         fail_set_ = fail_set;
