@@ -595,6 +595,67 @@ rw_get_mb_chars (rw_mbchar_array_t mb_chars)
 }
 
 
+_TEST_EXPORT size_t
+rw_get_wchars (wchar_t *wbuf, size_t bufsize, int nbytes /* = 0 */)
+{
+    if (0 == bufsize)
+        return 0;
+
+    char tmp [_RWSTD_MB_LEN_MAX];
+
+    size_t nchars = 0;
+
+    for (int i = 0; i != 65536; ++i) {
+
+        // determine whether the wide character is valid
+        // and if so, the length of the multibyte character
+        // that corresponds to it
+        const int len = wctomb (tmp, wchar_t (i));
+
+        if (nbytes == 0 && 0 < len || nbytes != 0 && nbytes == len) {
+            // if the requested length is 0 (i.e., the caller doesn't
+            // care) and the character is valid, store it
+            // if the requested length is non-zero (including -1),
+            // and the value returned from mblen() is the same, store
+            // it (this makes it possible to find invalid characters
+            // as well as valid ones)
+            wbuf [nchars++];
+            if (nchars == bufsize)
+                return nchars;
+        }
+    }
+
+#if 2 < _RWSTD_WCHAR_SIZE
+
+    // try to find the remaining wide characters by a random
+    // search, iterating only so many times to prevent an
+    // infinite loop
+    for (int i = 0; i != 0x100000; ++i) {
+
+        // make a wide character with a random bit pattern
+        wchar_t wc = wchar_t (rand ());
+
+        if (RAND_MAX < 0x10000) {
+            wc <<= 16;
+            wc |= wchar_t (rand ());
+        }
+
+        const int len = wctomb (tmp, wchar_t (i));
+
+        if (nbytes == 0 && 0 < len || nbytes != 0 && nbytes == len) {
+            wbuf [nchars++];
+            if (nchars == bufsize)
+                return nchars;
+        }
+    }
+
+#endif   // 2 < _RWSTD_WCHAR_SIZE
+
+    return nchars;
+
+}
+
+
 _TEST_EXPORT const char*
 rw_find_mb_locale (size_t            *mb_cur_max,
                    rw_mbchar_array_t  mb_chars)

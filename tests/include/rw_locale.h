@@ -69,6 +69,17 @@ _TEST_EXPORT const char*
 rw_localedef (const char*, const char*, const char*, const char*);
 
 
+// stores up to 'size' wide characters valid in the current locale
+// in consecutive elements of the 'wbuf' buffer; if 'nbytes' is
+// non-zero only wide characters with multibyte sequences of the
+// specified length will be stored (as determined by mblen())
+// returns the number of elements stored
+_TEST_EXPORT _RWSTD_SIZE_T
+rw_get_wchars (wchar_t*      /* wbuf */,
+               _RWSTD_SIZE_T /* size */,
+               int           /* nbytes */ = 0);
+
+
 // an array of multibyte characters 1 to MB_LEN_MAX bytes in length
 typedef char
 rw_mbchar_array_t [_RWSTD_MB_LEN_MAX][_RWSTD_MB_LEN_MAX];
