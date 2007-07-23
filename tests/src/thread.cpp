@@ -174,13 +174,6 @@ rw_thread_join (rw_thread_t thr_id, void **parg)
 
 extern "C" {
 
-#  ifdef __PURE_CNAME
-
-extern int sigsetjmp (jmp_buf, int);
-
-#  endif
-
-
 _TEST_EXPORT int
 rw_thread_create (rw_thread_t *thr_id,
                   rw_thread_attr_t*,
