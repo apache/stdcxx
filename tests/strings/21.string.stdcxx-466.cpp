@@ -29,13 +29,29 @@
 
 int main (int argc, char* argv[])
 {
-    std::string s ("abcd");
-    try {
-        assert (std::string::npos == s.rfind ("bc", 0, s.max_size () + 1));
-    }
-    catch (...) {
-        assert (!"Unexpected exception was thrown");
-    }
+    const std::string s ("efgh");
+
+    const std::string::size_type len = s.max_size () + 1;
+
+#define TEST(expr)                                      \
+    try {                                               \
+        assert (expr);                                  \
+    }                                                   \
+    catch (...) {                                       \
+        assert (!"Unexpected exception was thrown");    \
+    } (void)0
+
+    const std::string::size_type npos = std::string::npos;
+
+    TEST (npos == s.find ("fg", 0, len));
+    TEST (npos == s.rfind ("fg", 0, len));
+    TEST (0 == s.find_first_of ("eh", 0, len));
+    TEST (3 == s.find_last_of ("eh", npos, len));
+    TEST (npos == s.find_first_not_of ("eh", 0, len));
+    TEST (npos == s.find_last_not_of ("eh", npos, len));
+    TEST (0 > s.compare (0, npos, "efgh", len));
+    TEST (0 > s.compare (0, npos, "ijkl", len));
+    TEST (0 < s.compare (0, npos, "abcd", len));
 
     return 0;
 }
