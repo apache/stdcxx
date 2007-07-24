@@ -776,12 +776,6 @@ find_first_of (const_pointer __s, size_type __pos, size_type __n) const
 {
     _RWSTD_ASSERT(__s != 0);
 
-    _RWSTD_REQUIRES (__n <= max_size (),
-                     (_RWSTD_ERROR_LENGTH_ERROR,
-                      _RWSTD_FUNC ("basic_string::find_first_of(const_pointer, "
-                                   "size_type, size_type) const"),
-                      __n, max_size ()));
-
     for (size_type __xpos = __pos; __xpos < size() ; __xpos++)
     {
       for (size_type __i = 0; __i < __n ; __i++)
@@ -799,12 +793,6 @@ basic_string<_CharT, _Traits, _Allocator>::
 find_last_of (const_pointer __s, size_type __pos, size_type __n) const
 {
     _RWSTD_ASSERT(__s != 0);
-
-    _RWSTD_REQUIRES (__n <= max_size (),
-                     (_RWSTD_ERROR_LENGTH_ERROR, 
-                      _RWSTD_FUNC ("basic_string::find_last_of(const_pointer, "
-                                   "size_type, size_type) const"),
-                      __n, max_size ()));
 
     if (size())
     {
@@ -827,12 +815,6 @@ basic_string<_CharT, _Traits, _Allocator>::
 find_first_not_of (const_pointer __s, size_type __pos, size_type __n) const
 {
     _RWSTD_ASSERT(__s != 0);
-
-    _RWSTD_REQUIRES (__n <= max_size (),
-                     (_RWSTD_ERROR_LENGTH_ERROR, 
-                      _RWSTD_FUNC ("basic_string::find_first_not_of("
-                                  "const_pointer, size_type, size_type) const"),
-                      __n, max_size ()));
 
     for (size_type __xpos = __pos; __xpos < size() ; __xpos++)
     {
@@ -860,12 +842,6 @@ find_last_not_of (const_pointer __s, size_type __pos, size_type __n) const
 {
     _RWSTD_ASSERT(__s != 0);
 
-    _RWSTD_REQUIRES (__n <= max_size (),
-                     (_RWSTD_ERROR_LENGTH_ERROR, 
-                      _RWSTD_FUNC ("basic_string::find_last_not_of("
-                                  "const_pointer, size_type, size_type) const"),
-                      __n, max_size ()));
-    
     if (size())
     {
       size_type __slen = size() -1;
