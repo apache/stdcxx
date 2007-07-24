@@ -340,8 +340,7 @@ replace (size_type __pos1, size_type __n1, const_pointer __s, size_type __n2)
     _RWSTD_REQUIRES (__pos1 <= __size0,
                      (_RWSTD_ERROR_OUT_OF_RANGE, 
                      _RWSTD_FUNC ("basic_string::replace(size_type, size_type"
-                                  ", const_pointer, size_type, size_type, "
-                                  "size_type)"), 
+                                  ", const_pointer, size_type)"), 
                       __pos1, __size0 > __n2 ? __size0 : __n2));
 
     // number of characters to delete
@@ -350,8 +349,7 @@ replace (size_type __pos1, size_type __n1, const_pointer __s, size_type __n2)
     _RWSTD_REQUIRES (__size0 - __xlen <= max_size () - __n2,
                      (_RWSTD_ERROR_LENGTH_ERROR,
                      _RWSTD_FUNC ("basic_string::replace(size_type, size_type"
-                                  ", const_pointer, size_type, size_type, "
-                                  "size_type)"), 
+                                  ", const_pointer, size_type)"), 
                       __size0 - __xlen, max_size() - __n2));
 
     // compute the resulting string size
