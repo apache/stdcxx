@@ -1,6 +1,6 @@
 /************************************************************************
  *
- * 21.string.rfind.stdcxx-466.cpp - test case from STDCXX-466 issue
+ * 21.string.stdcxx-466.cpp - test case from STDCXX-466 issue
  *
  * $Id$
  *
