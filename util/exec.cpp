@@ -45,8 +45,10 @@
 #    include <sys/resource.h> /* for setlimit(), RLIMIT_CORE, ... */
 #  endif
 #else
-#  include <windows.h> /* for PROCESS_INFORMATION, ... */
-#  include <process.h> /* for CreateProcess, ... */
+#  ifndef _WIN32_WINNT
+#    define _WIN32_WINNT 0x0500
+#  endif
+#  include <windows.h> /* for PROCESS_INFORMATION, CreateProcess, ... */
 #  ifndef SIGTRAP
 #    define SIGTRAP 5   // STATUS_BREAKPOINT translated into SIGTRAP
 #  endif
@@ -1203,12 +1205,9 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     UINT old_mode = SetErrorMode (SEM_FAILCRITICALERRORS
                                 | SEM_NOGPFAULTERRORBOX);
 
-    /* Check the wall clock before creating the process */
-    GetSystemTimeAsFileTime(&start);
-
-    /* Create the child process */
+    /* Create the child process in suspended state */
     if (0 == CreateProcess (options->argv [0], merged, 0, 0, 1, 
-        CREATE_NEW_PROCESS_GROUP, 0, 0, &context, &child)) {
+        CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED, 0, 0, &context, &child)) {
         /* record the status if we failed to create the process */
         result->status = ST_SYSTEM_ERROR;
         warn_last_error ("Creating child process");;
@@ -1230,6 +1229,41 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     /* Return if we failed to create the child process */
     if (ST_SYSTEM_ERROR == result->status)
         return;
+
+#if _WIN32_WINNT >= 0x0500
+    if (options->as) {
+        if (HANDLE hJob = CreateJobObject (NULL, NULL)) {
+            if (AssignProcessToJobObject (hJob, child.hProcess)) {
+                JOBOBJECT_EXTENDED_LIMIT_INFORMATION job_info = { 0 };
+                
+                job_info.BasicLimitInformation.LimitFlags =
+                    JOB_OBJECT_LIMIT_PROCESS_MEMORY;
+                
+                const rw_rlimit* as = options->as;
+                job_info.ProcessMemoryLimit =
+                    as->rlim_cur < as->rlim_max ? as->rlim_cur : as->rlim_max;
+
+                if (!SetInformationJobObject (hJob,
+                                              JobObjectExtendedLimitInformation,
+                                              &job_info, sizeof (job_info)))
+                    warn_last_error ("Setting process limits");
+            }
+            else 
+                warn_last_error ("Assigning process to job object");
+
+            if (!CloseHandle (hJob))
+                warn_last_error ("Closing job object handle");
+        }
+        else
+            warn_last_error ("Creating job object");
+    }
+#endif   // _WIN32_WINNT >= 0x0500
+
+    /* Check the wall clock before resuming the process */
+    GetSystemTimeAsFileTime(&start);
+
+    if (DWORD (-1) == ResumeThread (child.hThread))
+        warn_last_error ("Resuming process");
 
     if (0 == CloseHandle (child.hThread))
         warn_last_error ("Closing child main thread handle");

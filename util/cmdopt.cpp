@@ -73,6 +73,14 @@ const char default_path_sep = '\\';
 const char suffix_sep = '.';
 const size_t exe_suffix_len = 4; /* strlen(".exe") == 4 */
 const float TICKS_PER_SEC = 10000000; /* 100 nanosecond units in a second */
+
+#  ifndef _WIN32_WINNT
+#    define _WIN32_WINNT 0x0500
+#  endif
+
+#  if _WIN32_WINNT >= 0x0500
+#    define RLIMIT_AS
+#  endif
 #endif
 
 static const char
