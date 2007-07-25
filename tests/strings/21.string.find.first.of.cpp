@@ -404,10 +404,10 @@ cptr_size_size_test_cases [] = {
     TEST ("abcdefghij", "abc",        10,  3, NPOS,       0),
     TEST ("abcdefghij", "cba",        10,  1, NPOS,       0),
 
-    TEST ("",           "cba",         0, -1,    0,       1),
-    TEST ("abcdefghij", "cba",         0, -1,    0,       1),
-    TEST ("x@4096",     "xxx",         0, -1,    0,       1),
-    TEST ("abcdefghij", "x@4096",      0, -1,    0,       1),
+    TEST ("",           "cba",         0, -1, NPOS,       0),
+    TEST ("abcdefghij", "cba",         0, -1,    0,       0),
+    TEST ("x@4096",     "xxx",         0, -1,    0,       0),
+    TEST ("abcdefghij", "ax@4096",     0, -1,    0,       0),
 
     TEST ("last test", "test",         0,  4,    2,       0)
 };
