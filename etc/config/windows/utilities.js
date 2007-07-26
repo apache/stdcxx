@@ -41,6 +41,9 @@ var ICCCONVERT = "";
 var PLATFORM = "Win32";
 var CLVARSBAT = "";
 
+// timeout for exec utility in seconds
+var EXEC_TIMEOUT = 300;
+
 // read and parse compiler configuration file
 // config - name of the compiler configuration
 function parseConfig(config)
