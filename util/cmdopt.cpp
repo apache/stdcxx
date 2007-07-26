@@ -503,11 +503,15 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
     const char opt_signal[]   = "--signal";
     const char opt_sleep[]    = "--sleep";
     const char opt_ulimit[]   = "--ulimit";
+    const char opt_verbose[]  = "--verbose";
     const char opt_warn[]     = "--warn";
 
     int i;
 
     assert (0 != argv);
+    assert (0 != defaults);
+
+    memset (defaults, 0, sizeof (target_opts));
 
     /* The chain of preprocesor logic below initializes the defaults->c_warn 
        and defaults->l_warn values.
@@ -582,6 +586,11 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
             defaults->data_dir = get_short_val (argv, &i);
             if (!defaults->data_dir)
                 missing_value (optname);
+            break;
+
+        case 'v':   /* enable verbose mode */
+            optname = opt_verbose;
+            ++defaults->verbose;
             break;
 
         case 'x':   /* command line options to pass to targets */
