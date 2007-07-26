@@ -36,8 +36,6 @@
 #ifndef _WIN32
 #  include <stdio.h>      // for FILE, fscanf(), popen()
 #  include <unistd.h>     // for sysconf(), _SC_NPROCESSORS_{CONF,ONLN}
-#else    // _WIN32
-#  include <windows.h>    // for GetSystemInfo()
 #endif   // _WIN32
 
 /**************************************************************************/
@@ -241,7 +239,8 @@ rw_thread_join (rw_thread_t thr_id, void **parg)
 /**************************************************************************/
 
 #elif defined (_WIN32) || defined (_WIN64)
-#  include <windows.h>
+#  include <windows.h>    // for GetSystemInfo()
+#  include <process.h>    // for _beginthreadex()
 
 extern "C" {
 
@@ -258,34 +257,33 @@ rw_thread_create (rw_thread_t *thr_id,
     if (0 == thr_id)
         thr_id = &tmpid;
 
-    DWORD nid;   // numerical id
+    unsigned nid;   // numerical id
 
-    typedef DWORD ThreadProc (LPVOID);
-
-    LPTHREAD_START_ROUTINE win32_thr_proc =
-        _RWSTD_REINTERPRET_CAST (LPTHREAD_START_ROUTINE, thr_proc);
+    typedef unsigned int (__stdcall *win32_thr_proc_t)(void *);
+    win32_thr_proc_t win32_thr_proc =
+        _RWSTD_REINTERPRET_CAST (win32_thr_proc_t, thr_proc);
 
     // set the thread number *before* creating the thread
     // so that it's visible in thr_proc when it starts to
     // run even before CreateThread returns
     thr_id->threadno = maxthreads;
 
-    const HANDLE hthread =
-        CreateThread (0,                // lpThreadAttributes
-                      0,                // dwStackSize
-                      win32_thr_proc,   // lpStartAddress
-                      thr_arg,          // lpParameter
-                      0,                // dwCreationFlags
-                      &nid);            // lpThreadId
+    const uintptr_t hthread =
+        _beginthreadex (0,                // lpThreadAttributes
+                        0,                // dwStackSize
+                        win32_thr_proc,   // lpStartAddress
+                        thr_arg,          // lpParameter
+                        0,                // dwCreationFlags
+                        &nid);            // lpThreadId
 
-    if (INVALID_HANDLE_VALUE == hthread) {
+    if (!hthread) {
         thr_id->id     = -1;
         thr_id->handle = 0;
         result         = -1;
     }
     else {
         thr_id->id     = nid;
-        thr_id->handle = hthread;
+        thr_id->handle = _RWSTD_REINTERPRET_CAST (void*, hthread);
         ++maxthreads;
     }
 
