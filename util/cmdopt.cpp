@@ -552,13 +552,15 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
         char* end = 0;
 
         switch (argv [i][1]) {
-        case '?':
+        case '?':   /* display help and exit with status of 0 */
         case 'h':
             show_usage (0);
+
         case 'r':
             ++i; /* Ignore -r option (makefile compat) */
             break;
-        case 't':
+
+        case 't':   /* executable timeout in seconds */
             optname = opt_timeout;
             optarg  = get_short_val (argv, &i);
             if (optarg) {
@@ -575,19 +577,21 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
 
             break;
 
-        case 'd':
+        case 'd':   /* directory containing example reference files */
             optname = opt_data_dir;
             defaults->data_dir = get_short_val (argv, &i);
             if (!defaults->data_dir)
                 missing_value (optname);
             break;
-        case 'x':
+
+        case 'x':   /* command line options to pass to targets */
             optname  = opt_t_flags;
             *exe_opts = get_short_val (argv, &i);
             if (!*exe_opts)
                 missing_value (optname);
             break;
-        case '-':
+
+        case '-':   /* long options */
         {
             const size_t arglen = strlen (argv [i]);
 
@@ -597,16 +601,19 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
 
             if (   sizeof opt_compat - 1 == arglen
                 && !memcmp (opt_compat, argv [i], sizeof opt_compat)) {
+                /* enter compatibility mode */
                 defaults->compat = 1;
                 break;
             }
             else if (   sizeof opt_nocompat - 1 == arglen
                      && !memcmp (opt_nocompat, argv [i], sizeof opt_nocompat)) {
+                /* exit compatibility mode */
                 defaults->compat = 0;
                 break;
             }
             else if (   sizeof opt_exit - 1 <= arglen
                      && !memcmp (opt_exit, argv [i], sizeof opt_exit - 1)) {
+                /* exit immediately with the specified status */
                 optname = opt_exit;
                 optarg  = get_long_val (argv, &i, sizeof opt_exit - 1);
                 if (optarg && *optarg) {
@@ -621,12 +628,14 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
             }
             else if (   sizeof opt_help - 1 == arglen
                      && !memcmp (opt_help, argv [i], sizeof opt_help - 1)) {
+                /* display help and exit with status of 0 */
                 optname = opt_help;
                 show_usage (0);
                 break;
             }
             else if (   sizeof opt_sleep - 1 <= arglen
                      && !memcmp (opt_sleep, argv [i], sizeof opt_sleep - 1)) {
+                /* sleep for the specified number of seconds */ 
                 optname = opt_sleep;
                 optarg  = get_long_val (argv, &i, sizeof opt_sleep - 1);
                 if (optarg && *optarg) {
@@ -643,6 +652,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
             }
             else if (   sizeof opt_signal - 1 <= arglen
                      && !memcmp (opt_signal, argv [i], sizeof opt_signal - 1)) {
+                /* send ourselves the specified signal */
                 optname = opt_signal;
                 optarg  = get_long_val (argv, &i, sizeof opt_signal - 1);
                 if (optarg && *optarg) {
@@ -657,6 +667,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
             }
             else if (   sizeof opt_ignore - 1 <= arglen
                      && !memcmp (opt_ignore, argv [i], sizeof opt_ignore - 1)) {
+                /* ignore the specified signal */
                 optname = opt_ignore;
                 optarg  = get_long_val (argv, &i, sizeof opt_ignore - 1);
                 if (optarg && *optarg) {
@@ -671,6 +682,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
             }
             else if (   sizeof opt_ulimit - 1 <= arglen
                      && !memcmp (opt_ulimit, argv [i], sizeof opt_ulimit - 1)) {
+                /* set child process resource utilization limits */
                 optname = opt_ulimit;
                 optarg  = get_long_val (argv, &i, sizeof opt_ulimit - 1);
                 if (optarg && *optarg) {
@@ -681,6 +693,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
             }
             else if (   sizeof opt_warn - 1 <= arglen
                      && !memcmp (opt_warn, argv [i], sizeof opt_warn - 1)) {
+                /* set compiler warning mode */
                 optname = opt_warn;
                 optarg  = get_long_val (argv, &i, sizeof opt_warn - 1);
                 if (optarg && *optarg) {
