@@ -27,9 +27,6 @@ var TristateUseDefault = -2;
 var TristateTrue = -1;
 var TristateFalse = 0;
 
-// the timeout for the exec utility
-var execTimeout = 180;
-
 var dte = null;
 var VCProjectEngine = null;
 var ICConvertTool = "ICProjConvert90.exe";
@@ -793,7 +790,7 @@ function projectCreateTestLocaleDefs(nlsDir)
     sanityDef.PreBuildCmd +=
         "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
         " /s /b:\"" + bindir + "\" > \"" + test + ".bat\"";
-    sanityDef.CustomBuildCmd = setPath + "\r\n\"" + exec + "\" -t " + execTimeout + " \"" + test + ".bat\"";
+    sanityDef.CustomBuildCmd = setPath + "\r\n\"" + exec + "\" -t " + EXEC_TIMEOUT + " \"" + test + ".bat\"";
     sanityDef.CustomBuildOut = test + ".out";
     projectDefs.push(sanityDef);
         
@@ -846,7 +843,7 @@ function projectCreateTestLocaleDefs(nlsDir)
             "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
             " /f /b:\"" + bindir + "\" /i:\"" + nlsDir + "\"" +
             " /l:" + locale.Name + " > \"" + test + ".bat\"";
-        projectDef.CustomBuildCmd = setPath + "\r\n\"" + exec + "\" -t " + execTimeout + " \"" + test + ".bat\"";
+        projectDef.CustomBuildCmd = setPath + "\r\n\"" + exec + "\" -t " + EXEC_TIMEOUT + " \"" + test + ".bat\"";
         projectDef.CustomBuildOut = test + ".out";
         projectDef.PrjDeps.push(sanityDef);
         

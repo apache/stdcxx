@@ -257,7 +257,8 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         " /EXEDIR:\"$(OutDir)\"" +
         " /PRJDIR:\"" + runexamplesDef.VCProjDir + "\"" +
         " /CONFIG:\"%SOLUTION%\"" +
-        " /LOGFILE:\"runexamples.log\"";
+        " /LOGFILE:\"runexamples.log\"" +
+        " /RUNFLAGS:\"-t " + EXEC_TIMEOUT + "\"";
     runexamplesDef.CustomBuildOut = "$(OutDir)\\runexamples.log";
     runexamplesDef.CustomBuildDeps = "%FILES%";
     //runexamplesDef.PrjDeps.push(allexamplesDef);
@@ -317,8 +318,8 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         " /EXEDIR:\"$(OutDir)\"" +
         " /PRJDIR:\"" + runtestsDef.VCProjDir + "\"" +
         " /CONFIG:\"%SOLUTION%\"" +
-        " /COMPAT" +
-        " /LOGFILE:\"runtests.log\"";
+        " /LOGFILE:\"runtests.log\"" +
+        " /RUNFLAGS:\"--compat -x \'--compat -O -\' -t " + EXEC_TIMEOUT + "\"";
     runtestsDef.CustomBuildOut = "$(OutDir)\\runtests.log";
     runtestsDef.CustomBuildDeps = "%FILES%";
     //runtestsDef.PrjDeps.push(alltestsDef);
@@ -395,7 +396,8 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         " /EXEDIR:\"$(OutDir)\"" +
         " /CONFIG:\"%SOLUTION%\"" +
         " /LOGFILE:\"runloctests.log\"" +
-        " /EXT:bat";
+        " /EXT:bat" +
+        " /RUNFLAGS:\"-t " + EXEC_TIMEOUT + "\"";
     testlocaleTplDef.CustomBuildOut = "$(OutDir)\\runloctests.log";
 
     var testlocalesDef = testlocaleTplDef.createTestLocalesDef("%SRCDIR%\\etc\\nls");

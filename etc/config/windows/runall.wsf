@@ -34,10 +34,10 @@ runs examples and checks results.
                 name="INOUTDIR" required="false" type="string"/>
             <named helpstring="The log file" name="LOGFILE" 
                 required="false" type="string"/>
-            <named helpstring="Run tests in compat mode" name="COMPAT" 
-                required="false" type="string"/>
             <named helpstring="The examples extension" name="EXT" 
                 required="false" type="string"/>
+            <named helpstring="The additional options for exec utility"
+                name="RUNFLAGS" required="false" type="string"/>
             <example>
             cscript runall.wsf /EXEDIR:"C:\stdcxx\build\examples" 
             /PRJDIR:"C:\stdcxx\build\projects\examples"
@@ -46,7 +46,7 @@ runs examples and checks results.
             <usage>
 Usage: cscript runexamples.wsf /EXEDIR:@EXEDIR /CONFIG:@CONFIG
 [/PRJDIR:@PRJDIR] [/INOUTDIR:@INOUTDIR] [/LOGFILE:@LOGFILE]
-[/COMPAT] [/EXT:@EXT]
+[/EXT:@EXT] [/RUNFLAGS:@RUNFLAGS]
 where
 @EXEDIR is the root directory with executables to be run and checked,
 @PRJDIR is the directory with .vcproj files of the executables,
@@ -54,8 +54,8 @@ where
 required by executables,
 @CONFIG is the compiler configuration (msvc-7.1, icc-9.0, etc),
 @LOGFILE is the log file name,
-@COMPAT is the option for run tests in compat mode,
 @EXT is the extension of the example files, default value: "exe".
+@RUNFLAGS is the additional options for exec utility
             </usage>
         </runtime>
         <object id="fso" progid="Scripting.FileSystemObject"/>
@@ -76,8 +76,8 @@ var inoutDir = "";    // path to the root directory
 var currentCfg = "msvc-7.1" // the configuration
 var logFileName = ""; // the log file name
 var logFileDefault = "runexamples.log"; // the default log file name
-var compatMode = false;
 var ext = "exe";
+var runflags = "";
 
 var varOut = "out";
 
@@ -87,8 +87,6 @@ var exRunFailed = 0;
 var exRunTimedOut = 0;
 var exBadCode = 0;
 var exNotCompiled = 0;
-
-var runTimeout = 180;
 
 var buildlogFile = "BuildLog.htm";
 var summaryFileName = "Summary.htm";
@@ -165,12 +163,15 @@ function readAndCheckArguments()
     else
         logFileName = logFileDefault;
         
-    if (WScript.Arguments.Named.Exists("COMPAT"))
-        compatMode = true;
-    
     if (WScript.Arguments.Named.Exists("EXT"))
         ext = WScript.Arguments.Named("EXT");
     
+    if (WScript.Arguments.Named.Exists("RUNFLAGS"))
+    {
+        runflags = WScript.Arguments.Named("RUNFLAGS");
+        runflags = runflags.replace(/\'/g, "\"");
+    }
+
     if (! fso.FolderExists(examplesDir))
     {
         WScript.StdErr.WriteLine(
@@ -242,14 +243,14 @@ function runAllExamples(exeDir, prjDir, srcDir, fileLog, fileSummary, exeExt)
         ++exRun;
     }
     
-    var runCmd = "\"" + utlExec + "\" -t " + runTimeout;
+    var runCmd = "\"" + utlExec + "\"";
     
     if (0 < srcDir.length)
         runCmd += " -d \"" + srcDir + "\"";
 
-    if (compatMode)
-        runCmd += " --compat -x \"--compat -O -\"";
-        
+    if (0 < runflags.length)
+        runCmd += " " + runflags;
+
     runCmd += " " + exeFiles.join(" ");
 
     var prevDir = WshShell.CurrentDirectory;
