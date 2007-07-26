@@ -87,7 +87,7 @@
    @return processed argv array, usable in exec ()
 */
 static char**
-merge_argv (char* const target, char* const argv [])
+merge_argv (const char* target, char* const argv [])
 {
     size_t tlen;
     char ** split;
@@ -420,7 +420,9 @@ const char* get_target ()
    @see process_results
 */
 static void
-run_target (char* target, const struct target_opts *target_template)
+run_target (struct target_status     *summary,
+            const char               *target,
+            const struct target_opts *target_template)
 {
     struct target_opts options;
     struct target_status results;
@@ -449,9 +451,23 @@ run_target (char* target, const struct target_opts *target_template)
 
     print_status (&results);
 
+    if (summary) {
+        /* increment summary the counters */
+        if (0 == results.signaled && results.exit)
+            ++summary->exit;
+
+        summary->signaled += results.signaled;
+        summary->c_warn   += results.c_warn;
+        summary->l_warn   += results.l_warn;
+        summary->t_warn   += results.t_warn;
+        summary->assert   += results.assert;
+        summary->failed   += results.failed;
+    }
+
     free (options.argv [0]);
     free (options.argv);
 }
+
 
 /**
    Entry point to the application.
@@ -469,12 +485,9 @@ main (int argc, char *argv [])
 {
     struct target_opts target_template;
     const char* exe_opts = "";
+    const char* const* const saved_argv = (const char* const*)argv;
 
     exe_name = argv [0];
-    memset (&target_template, 0, sizeof target_template);
-
-    target_template.timeout = 10;
-    target_template.data_dir = "";
 
     if (1 < argc && '-' == argv [1][0]) {
         const int nopts =
@@ -487,9 +500,18 @@ main (int argc, char *argv [])
         argv += nopts;
     }
     else {
+        /* initialize data members */
+        memset (&target_template, 0, sizeof target_template);
+
         --argc;
         ++argv;
     }
+
+    /* set the program output mode */
+    if (target_template.verbose)
+        set_output_format (FMT_VERBOSE);
+    else
+        set_output_format (FMT_PLAIN);
 
     if (0 < argc) {
         int i;
@@ -497,13 +519,17 @@ main (int argc, char *argv [])
 
         assert (0 != target_template.argv);
 
-        print_header ();
+        /* print out the program's argv array in verbose mode */
+        print_header (target_template.verbose ? saved_argv : 0);
+
+        struct target_status summary;
+        memset (&summary, 0, sizeof summary);
 
         for (i = 0; i < argc; ++i) {
-            run_target (argv [i], &target_template);
+            run_target (&summary, argv [i], &target_template);
         }
 
-        print_footer ();
+        print_footer (&summary);
 
         if (target_template.argv [0])
             free (target_template.argv [0]);

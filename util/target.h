@@ -79,6 +79,7 @@ struct target_opts {
     const char* c_warn; /**< Warning flag string when compiling. */
     const char* l_warn; /**< Warning flag string when linking. */
     int compat; /**< Test suite compatability mode switch. */
+    int verbose; /**< Verbose mode. */
     rw_rlimit* core;
     rw_rlimit* cpu;
     rw_rlimit* data;

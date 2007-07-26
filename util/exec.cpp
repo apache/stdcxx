@@ -643,9 +643,8 @@ open_input (const char* data_dir, const char* exec_name)
     int intermit = -1;
 
     assert (0 != exec_name);
-    assert (0 != data_dir);
 
-    if (strlen (data_dir)) {
+    if (data_dir && data_dir) {
         char* tmp_name;
 
         /* Try data_dir/manual/in/exec_name.in */
@@ -982,10 +981,9 @@ open_input (const char* data_dir, const char* exec_name,
     char* tmp_name;
 
     assert (0 != exec_name);
-    assert (0 != data_dir);
     assert (0 != child_sa);
 
-    if (!strlen (data_dir)) 
+    if (0 == data_dir || '\0' == *data_dir) 
         return 0;
 
     /* Try data_dir\manual\in\exec_name.in */
