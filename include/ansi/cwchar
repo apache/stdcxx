@@ -113,13 +113,15 @@ using ::wint_t;
 
 #ifndef _RWSTD_NO_STRUCT_TM_IN_WCHAR_H
 using ::tm;
-#elif !defined (_RWSTD_NO_TM)
+#elif !defined (_RWSTD_NO_STRUCT_TM)
 
 }   // namespace std
 
 #include _RWSTD_ANSI_C_TIME_H
 
 namespace std {
+
+using ::tm;
 
 #endif   // NO_STRUCT_TM
 
