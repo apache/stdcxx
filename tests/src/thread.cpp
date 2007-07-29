@@ -36,6 +36,8 @@
 #ifndef _WIN32
 #  include <stdio.h>      // for FILE, fscanf(), popen()
 #  include <unistd.h>     // for sysconf(), _SC_NPROCESSORS_{CONF,ONLN}
+#else
+#  include <windows.h>    // for GetSystemInfo()
 #endif   // _WIN32
 
 /**************************************************************************/
@@ -238,8 +240,7 @@ rw_thread_join (rw_thread_t thr_id, void **parg)
 
 /**************************************************************************/
 
-#elif defined (_WIN32) || defined (_WIN64)
-#  include <windows.h>    // for GetSystemInfo()
+#elif defined (_WIN32) && defined (_MT)
 #  include <process.h>    // for _beginthreadex()
 
 extern "C" {
