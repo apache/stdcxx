@@ -328,7 +328,7 @@ void set_output_format (enum OutputFmt format)
 }
 
 
-void (*print_header) (const char* const*) = print_header_plain;
+void (*print_header) (const char* const[]) = print_header_plain;
 void (*print_target) (const struct target_opts*) = print_target_plain;
 void (*print_status) (const struct target_status*) = print_status_plain;
 void (*print_footer) (const struct target_status*) = print_footer_plain;
