@@ -50,4 +50,7 @@ $(BINDIR)/runutil:
 realclean: dependclean clean
 	rm -f *.out
 
+#set TZ environment variable for examples
+run runall run_all: TZ = MST+7
+
 include ../makefile.rules
