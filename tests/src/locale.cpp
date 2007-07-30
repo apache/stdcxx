@@ -329,6 +329,7 @@ rw_set_locale_root ()
 _TEST_EXPORT char*
 rw_locales (int loc_cat, const char* grep_exp)
 {
+    static char deflocname [3] = "C\0";
     static char* slocname = 0;
 
     static size_t size       = 0;         // the number of elements in the array
@@ -370,7 +371,7 @@ rw_locales (int loc_cat, const char* grep_exp)
     const char* const fname = rw_tmpnam (0);
 
     if (!fname) {
-        return 0;   // error
+        return deflocname;   // error
     }
 
     // make sure that grep_exp is <= 80 
@@ -385,7 +386,7 @@ rw_locales (int loc_cat, const char* grep_exp)
         : rw_system ("locale -a > %s", fname);
 
     if (exit_status) {
-        return 0;   // error
+        return deflocname;   // error
     }
 
     // open file containing the list of installed locales
@@ -429,7 +430,12 @@ rw_locales (int loc_cat, const char* grep_exp)
                     _RWSTD_STATIC_CAST (char*, malloc (total_size));
 
                 memcpy (tmp, slocname, total_size - 5120);
+
+#ifndef _MSC_VER
                 free (slocname);
+#else
+                _free_dbg (slocname, _CLIENT_BLOCK);
+#endif
 
                 slocname = tmp;
                 locname  = slocname + size - strlen (linebuf) - 1;
@@ -477,7 +483,7 @@ rw_locales (int loc_cat, const char* grep_exp)
 
     remove (fname);
 
-    return slocname;
+    return *slocname ? slocname : deflocname;
 }
 
 /**************************************************************************/
