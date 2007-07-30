@@ -112,14 +112,13 @@ endif   # eq ($(NO_DOT_O),)
 # PlumHall specific:
 # for all "top level" tests that failed to build, find and build all
 # subtests (the little tests the main test consists of)
-ifneq ($(LIBSUFFIX),.dll)
+ifeq (,$(findstring cygwin,$(PLATFORM)))
 
 run runall run_all: $(BINDIR)/exec
 	@(LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(LIBDIR);                    \
         PATH=$$PATH:.;                                                    \
         TOPDIR=$(TOPDIR);                                                 \
         TMP=$${TMP:-/tmp}/stdcxx-run-$$$$;                                \
-        TZ=MST+7;                                                         \
         export TMP;                                                       \
         export LD_LIBRARY_PATH PATH TMP TOPDIR TZ;                        \
         trap "rm -rf $$TMP" HUP INT QUIT TERM EXIT;                       \
@@ -128,13 +127,12 @@ run runall run_all: $(BINDIR)/exec
         exit 0)
 
 else
-# on Cygwin add $(LIBDIR) to PATH
+# on Cygwin add $(LIBDIR) and $(BINDIR) to PATH
 run runall run_all: $(BINDIR)/exec
 	@(LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(LIBDIR);                    \
-        PATH=$$PATH:$(LIBDIR):.;                                          \
+        PATH=$$PATH:$(LIBDIR):$(BINDIR):.;                                \
         TOPDIR=$(TOPDIR);                                                 \
         TMP=$${TMP:-/tmp}/stdcxx-run-$$$$;                                \
-        TZ=MST+7;                                                         \
         export TMP;                                                       \
         export LD_LIBRARY_PATH PATH TMP TOPDIR TZ;                        \
         trap "rm -rf $$TMP" HUP INT QUIT TERM EXIT;                       \
