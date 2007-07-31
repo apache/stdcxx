@@ -314,6 +314,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     runtestsDef.CustomBuildFile = "runall.wsf";
     runtestsDef.CustomBuildCmd =
         "set PATH=$(SolutionDir)%CONFIG%\\bin;$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
+        "set TOPDIR=%SRCDIR%\r\n" +
         "cscript /nologo \"%CUSTOMFILE%\"" +
         " /EXEDIR:\"$(OutDir)\"" +
         " /PRJDIR:\"" + runtestsDef.VCProjDir + "\"" +
