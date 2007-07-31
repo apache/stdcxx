@@ -533,7 +533,10 @@ void test_open_close (const char *loc_name, const char *cname)
              "std::messages<%s>::open() and close() in locale(#%s)",
              cname, loc_name);
 
-    const std::locale loc (loc_name);
+    // construct a copy of the named locale or default
+    // when no name is specified
+    const std::locale loc =
+        loc_name ? std::locale (loc_name) : std::locale ();
 
     const std::messages<charT>& msgs =
         std::use_facet<std::messages<charT> >(loc);
@@ -564,7 +567,10 @@ void test_get (const char *loc_name,
                const char* const text[5][5],
                const char *cname)
 {
-    const std::locale loc (loc_name);
+    // construct a copy of the named locale or default
+    // when no name is specified
+    const std::locale loc =
+        loc_name ? std::locale (loc_name) : std::locale ();
 
     const std::messages<charT>& msgs =
         std::use_facet<std::messages<charT> > (loc);
