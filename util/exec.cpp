@@ -1046,8 +1046,8 @@ void exec_file (const struct target_opts* options, struct target_status* result)
 
         /* Input redirection */
         context.hStdInput =
-            CreateFile (tmp_name, GENERIC_READ, FILE_SHARE_READ, &child_sa, 
-                        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+            CreateFile (options->infname, GENERIC_READ, FILE_SHARE_READ, 
+                        &child_sa, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
         if (INVALID_HANDLE_VALUE == context.hStdInput) { 
             CloseHandle (context.hStdOutput);
