@@ -434,12 +434,17 @@ run_target (struct target_status     *summary,
     memcpy (&options, target_template, sizeof options);
     memset (&results, 0, sizeof results);
 
+    /* create the argv array for this target */
     options.argv = merge_argv (target, options.argv);
 
     assert (0 != options.argv);
     assert (0 != options.argv [0]);
 
     target_name = rw_basename (options.argv [0]);
+
+    /* create the names of files to redirect stdin and stdout */
+    options.infname  = input_name (options.data_dir, target_name);
+    options.outfname = output_name (options.argv [0]);
 
     print_target (&options);
 
@@ -452,7 +457,7 @@ run_target (struct target_status     *summary,
     print_status (&results);
 
     if (summary) {
-        /* increment summary the counters */
+        /* increment summary counters */
         if (0 == results.signaled && results.exit)
             ++summary->exit;
 
@@ -460,12 +465,19 @@ run_target (struct target_status     *summary,
         summary->c_warn   += results.c_warn;
         summary->l_warn   += results.l_warn;
         summary->t_warn   += results.t_warn;
-        summary->assert   += results.assert;
-        summary->failed   += results.failed;
+
+        if ((unsigned)-1 != results.assert) {
+            /* increment assertion counters only when they're valid */
+            summary->assert += results.assert;
+            summary->failed += results.failed;
+        }
     }
 
+    /* free data dynamically allocated for this target alone */
     free (options.argv [0]);
     free (options.argv);
+    free ((char*)options.infname);
+    free ((char*)options.outfname);
 }
 
 
@@ -529,7 +541,7 @@ main (int argc, char *argv [])
             run_target (&summary, argv [i], &target_template);
         }
 
-        print_footer (&summary);
+        print_footer (argc, &summary);
 
         if (target_template.argv [0])
             free (target_template.argv [0]);

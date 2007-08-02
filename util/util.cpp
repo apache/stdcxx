@@ -30,6 +30,8 @@
 #include <stdlib.h> /* for exit, malloc */
 #include <stdarg.h> /* for va_* */
 #include <string.h> /* for strerror */
+
+#include <sys/stat.h> /* for stat() */
 #include <sys/types.h> /* for size_t */
 
 #include "cmdopt.h" /* for exe_name, target_name */
@@ -149,6 +151,61 @@ reference_name (const char* data_dir, const char* subdir, const char* mode)
 
     return ref_name;
 }
+
+
+/**
+   Composes the name of an input file, based on target
+
+   Takes a data directory and an executable name, and tries to open an input 
+   file based on these variables.  If a file is found in neither of two 
+   locattions derived from these variables, this method tries to fall back on 
+   /dev/null.
+
+   Source file locations:
+     - [data_dir]/manual/in/[target].in
+     - [data_dir]/tutorial/in/[target].in
+     - /dev/null
+
+   @param data_dir the path of the reference data directory
+   @param target the name of executable being run
+   @returns the name of the file
+*/
+char*
+input_name (const char* data_dir, const char* target)
+{
+    char* fname = 0;
+    int stat_result = 0;
+    struct stat sb;
+
+    assert (0 != target);
+
+    if (data_dir && *data_dir) {
+
+        /* Try data_dir/manual/in/target.in */
+        fname       = reference_name (data_dir, "manual", "in");
+        stat_result = stat (fname, &sb);
+    
+        if (0 == stat_result)
+            return fname;
+
+        free (fname);
+
+        /* Try data_dir/tutorial/in/target.in */
+        fname       = reference_name (data_dir, "tutorial", "in");
+        stat_result = stat (fname, &sb);
+
+        if (0 == stat_result)
+            return fname;
+
+        free (fname);
+    }
+
+    /* If we didn't find a source file, use /dev/null */
+    fname = (char*)RW_MALLOC (sizeof "/dev/null");
+    strcpy (fname, "/dev/null");
+    return fname;
+}
+
 
 char*
 output_name (const char* target)

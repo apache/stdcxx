@@ -89,7 +89,7 @@ extern void (*print_status) (const struct target_status* status);
 /**
    Prints the closing formatting for the table.
 */
-extern void (*print_footer) (const struct target_status* status);
+extern void (*print_footer) (int count, const struct target_status* status);
 
 
 #endif   /* RW_DISPLAY_H */
