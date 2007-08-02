@@ -620,79 +620,6 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
     }
 }
 
-/**
-   Opens an input file, based on exec_name
-
-   Takes a data directory and an executable name, and tries to open an input 
-   file based on these variables.  If a file is found in neither of two 
-   locattions derived from these variables, this method tries to fall back on 
-   /dev/null.
-
-   Source file locations:
-     - [data_dir]/manual/in/[exec_name].in
-     - [data_dir]/tutorial/in/[exec_name].in
-     - /dev/null
-
-   @param data_dir the path of the reference data directory
-   @param exec_name the name of executable being run
-   @returns the file descriptor of the opened file
-*/
-static int
-open_input (const char* data_dir, const char* exec_name)
-{
-    int intermit = -1;
-
-    assert (0 != exec_name);
-
-    if (data_dir && data_dir) {
-        char* tmp_name;
-
-        /* Try data_dir/manual/in/exec_name.in */
-        tmp_name = reference_name (data_dir, "manual", "in");
-        intermit = open (tmp_name, O_RDONLY);
-    
-        /* If we opened the file, return the descriptor */
-        if (0 <= intermit) {
-            free (tmp_name);
-            return intermit;
-        }
-
-        /* If the file exists (errno isn't ENOENT), exit */
-        if (ENOENT != errno)
-            terminate (1, "open (%s) failed: %s\n", tmp_name, 
-                       strerror (errno));
-
-        /* Try data_dir/tutorial/in/exec_name.in */
-        free (tmp_name);
-        tmp_name = reference_name (data_dir, "tutorial", "in");
-        intermit = open (tmp_name, O_RDONLY);
-
-        /* If we opened the file, return the descriptor */
-        if (0 <= intermit) {
-            free (tmp_name);
-            return intermit;
-        }
-
-        /* If the file exists (errno isn't ENOENT), exit */
-        if (-1 == intermit && ENOENT != errno)
-            terminate (1, "open (%s) failed: %s\n", tmp_name, 
-                       strerror (errno));
-
-        free (tmp_name);
-    }
-
-    /* If we didn't find a source file, open /dev/null */
-
-    intermit = open ("/dev/null", O_RDONLY);
-
-    /* If we opened the file, return the descriptor */
-    if (0 <= intermit)
-        return intermit;
-
-    /* otherwise, print an error message and exit */
-    terminate (1, "open (/dev/null) failed: %s\n", strerror (errno));
-    return -1; /* silence a compiler warning */
-}
 
 /**
    Replaces one file descriptor with a second, closing second after replacing
@@ -874,25 +801,23 @@ void exec_file (const struct target_opts* options, struct target_status* result)
 
         /* Redirect stdin */
         {
-            const int intermit = open_input (options->data_dir, target_name);
+            const int intermit = open (options->infname, O_RDONLY);
             replace_file (intermit, 0, "stdin");
         }
 
         /* Redirect stdout */
         {
-            char* const tmp_name = output_name (options->argv [0]);
             int intermit;
 
-            intermit = open (tmp_name, O_WRONLY | O_CREAT | O_TRUNC, 
+            intermit = open (options->outfname,
+                             O_WRONLY | O_CREAT | O_TRUNC, 
                              S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
             if (-1 == intermit)
                 terminate (1, "Error opening %s for output redirection: "
-                           "%s\n", tmp_name, strerror (errno));
+                           "%s\n", options->outfname, strerror (errno));
 
             replace_file (intermit, 1, "stdout");
-
-            free (tmp_name);
         }
 
         /* Redirect stderr */
@@ -951,69 +876,6 @@ static const struct {
     { STATUS_INTEGER_OVERFLOW,        SIGFPE  }
 };
 
-
-/**
-   Opens an input file, based on exec_name, using the child_sa security 
-   setting.
-
-   Takes a data directory, an executable name and security setting, and tries 
-   to open an input file based on these variables.
-   If a file is found in neither of two locations derived from these 
-   variables, or if data_dir is a null string, it returns null.
-   If a file system error occurs when opening a file, INVALID_HANDLE_VALUE
-   is returned (and should be checked for).
-
-   Source file locations:
-     - [data_dir]/manual/in/[exec_name].in
-     - [data_dir]/tutorial/in/[exec_name].in
-
-   @param data_dir the path of the reference data directory
-   @param exec_name the name of executable being run
-   @param child_sa pointer to a SECURITY_ATTRIBUTES    structure
-   @returns the file descriptor of the opened file
-*/
-static HANDLE
-open_input (const char* data_dir, const char* exec_name, 
-            SECURITY_ATTRIBUTES* child_sa)
-{
-    HANDLE intermit;
-    DWORD error;
-    char* tmp_name;
-
-    assert (0 != exec_name);
-    assert (0 != child_sa);
-
-    if (0 == data_dir || '\0' == *data_dir) 
-        return 0;
-
-    /* Try data_dir\manual\in\exec_name.in */
-    tmp_name = reference_name (data_dir, "manual", "in");
-
-    intermit = CreateFile (tmp_name, GENERIC_READ, FILE_SHARE_READ, child_sa, 
-        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-    error = GetLastError ();
-    /* If we found the file, return the descriptor */
-    if (INVALID_HANDLE_VALUE != intermit || (2 != error && 3 != error)) {
-        free (tmp_name);
-        return intermit;
-    }
-
-    /* Try data_dir\tutorial\in\exec_name.in */
-    free (tmp_name);
-    tmp_name = reference_name (data_dir, "tutorial", "in");
-    intermit = CreateFile (tmp_name, GENERIC_READ, FILE_SHARE_READ, child_sa, 
-        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-    /* If we didn't find the file, null out the handle to return */
-    error = GetLastError ();
-    if (INVALID_HANDLE_VALUE == intermit && (2 == error || 3 == error)) {
-        intermit = 0;
-    }
-
-    free (tmp_name);
-    return intermit;
-}
 
 /**
    Convert an argv array into a string that can be passed to CreateProcess.
@@ -1170,9 +1032,8 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     /* Create I/O handles */
     {
         /* Output redirection */
-        char* const tmp_name = output_name (options->argv [0]);
 
-        context.hStdOutput = CreateFile (tmp_name, GENERIC_WRITE, 
+        context.hStdOutput = CreateFile (options->outfname, GENERIC_WRITE, 
                 FILE_SHARE_WRITE, &child_sa, CREATE_ALWAYS, 
                 FILE_ATTRIBUTE_NORMAL, NULL);
         if (INVALID_HANDLE_VALUE == context.hStdOutput) { 
@@ -1182,11 +1043,12 @@ void exec_file (const struct target_opts* options, struct target_status* result)
         }
 
         context.hStdError = context.hStdOutput;
-        free (tmp_name);
 
         /* Input redirection */
-        context.hStdInput = open_input (options->data_dir, get_target (), 
-                                        &child_sa);
+        context.hStdInput =
+            CreateFile (tmp_name, GENERIC_READ, FILE_SHARE_READ, &child_sa, 
+                        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
         if (INVALID_HANDLE_VALUE == context.hStdInput) { 
             CloseHandle (context.hStdOutput);
             result->status = ST_SYSTEM_ERROR;

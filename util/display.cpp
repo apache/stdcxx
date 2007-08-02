@@ -161,6 +161,14 @@ print_target_verbose (const struct target_opts *defaults)
 
     printf ("%s ", "Executing \"");
     print_argv (defaults->argv, 0 /* no newline */);
+
+    /* print stdin, stdout, and stderr redirections */
+    if (defaults->infname && *defaults->infname)
+        printf (" <%s", defaults->infname);
+
+    if (defaults->outfname && *defaults->outfname)
+        printf (" >%s 2>&1", defaults->outfname);
+
     puts ("\"");
 
     /* flush to prevent killing a signal from not displaying the text */
@@ -238,7 +246,7 @@ print_status_verbose (const struct target_status* status)
     if (status->status) /* if status is set, print it */
         printf ("  Status: %s\n", verbose_st_name [status->status]);
     else if (status->signaled) /* if exit signal is non-zero, print it */
-        printf ("  Process signalled: %s", get_signame (status->exit));
+        printf ("  Process signalled:    %s\n", get_signame (status->exit));
     else {
         printf ("  Exit status:          %6d%s\n"
                 "  Compiler warnings:    %6u\n"
@@ -279,29 +287,36 @@ print_status_verbose (const struct target_status* status)
    viewing.
 */
 static void
-print_footer_plain (const struct target_status *summary)
+print_footer_plain (int count, const struct target_status *summary)
 {
     printf ("PROGRAM SUMMARY:\n"
+            "  Programs:             %6d\n"
             "  Non-zero exit status: %6d\n"
             "  Signalled:            %6d\n"
             "  Compiler warnings:    %6u\n"
             "  Linker warnings:      %6u\n"
-            "  Runtime warnings:     %6u\n"
-            "  Assertions:           %6u\n"
-            "  Failed assertions:    %6u\n",
+            "  Runtime warnings:     %6u\n",
+            count,
             summary->exit,
             summary->signaled,
             summary->c_warn,
             summary->l_warn,
-            summary->t_warn,
-            summary->assert,
-            summary->failed);
+            summary->t_warn);
+
+    if ((unsigned)-1 != summary->assert) {
+        /* print assertion counters only when they're valid */
+        printf ("  Assertions:           %6u\n"
+                "  Failed assertions:    %6u\n",
+                summary->assert,
+                summary->failed);
+    }
 }
 
+
 static void
-print_footer_verbose (const struct target_status *summary)
+print_footer_verbose (int count, const struct target_status *summary)
 {
-    print_footer_plain (summary);
+    print_footer_plain (count, summary);
 }
 
 
@@ -331,4 +346,4 @@ void set_output_format (enum OutputFmt format)
 void (*print_header) (const char* const[]) = print_header_plain;
 void (*print_target) (const struct target_opts*) = print_target_plain;
 void (*print_status) (const struct target_status*) = print_status_plain;
-void (*print_footer) (const struct target_status*) = print_footer_plain;
+void (*print_footer) (int, const struct target_status*) = print_footer_plain;
