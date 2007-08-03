@@ -38,6 +38,14 @@
 
 #include "util.h"
 
+
+#ifdef _WIN32
+#  define DEV_NULL   "NUL:"
+#else
+#  define DEV_NULL   "/dev/null"
+#endif   // _WIN32
+
+
 void
 warn (const char* const format, ...)
 {
@@ -201,8 +209,8 @@ input_name (const char* data_dir, const char* target)
     }
 
     /* If we didn't find a source file, use /dev/null */
-    fname = (char*)RW_MALLOC (sizeof "/dev/null");
-    strcpy (fname, "/dev/null");
+    fname = (char*)RW_MALLOC (sizeof DEV_NULL);
+    strcpy (fname, DEV_NULL);
     return fname;
 }
 
