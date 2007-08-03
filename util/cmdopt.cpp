@@ -353,8 +353,8 @@ parse_limit_opts (const char* opts, struct target_opts* defaults)
 
                 /* determine whether the hard limit and/or the soft limit
                    should be set. */
-                const bool hard = isupper (arg [0]);
-                const bool soft = islower (arg [1]);
+                const bool hard = 0 != isupper (arg [0]);
+                const bool soft = 0 != islower (arg [1]);
 
                 arg += limits [i].len + 1;
 
