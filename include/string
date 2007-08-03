@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  *
  **************************************************************************/
 
@@ -340,9 +340,7 @@ public:
     }
 
     // lwg issue 7
-    void push_back (value_type __c) {
-        append (size_type (1), __c);
-    }
+    void push_back (value_type);
 
     basic_string& assign (const basic_string &__str) {
         return *this = __str;
@@ -1083,6 +1081,24 @@ resize (size_type __n, value_type __c)
         erase (__n, size () - __n);
     else
         replace (size (), size_type (), __n - size (), __c);
+}
+
+
+template <class _CharT, class _Traits , class _Allocator>
+inline void basic_string<_CharT, _Traits, _Allocator>::
+push_back (value_type __c)
+{
+    const size_type __size = size () + 1;
+
+    if (   capacity () < __size
+        || size_type (1) < size_type (_C_pref ()->_C_get_ref ()))
+        append (1, __c);
+    else {
+        traits_type::assign (_C_data [size ()], __c);
+        // append the terminating NUL character
+        traits_type::assign (_C_data [__size], value_type ());
+        _C_pref ()->_C_size._C_size = __size;
+    }
 }
 
 
