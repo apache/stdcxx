@@ -255,7 +255,7 @@ function runAllExamples(exeDir, prjDir, srcDir, fileLog, fileSummary, exeExt)
 
     var prevDir = WshShell.CurrentDirectory;
     WshShell.CurrentDirectory = exeDir;
-    var oExec = WshShell.Exec(runCmd);
+    var oExec = WshShell.Exec("cmd /c " + runCmd + " 2>&1");
     WshShell.CurrentDirectory = prevDir;
     
     if (!oExec)
