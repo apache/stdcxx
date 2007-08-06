@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -801,7 +801,16 @@ rw_opt_locales = _rw_locale_names;
 _TEST_EXPORT int
 rw_opt_setlocales (int argc, char* argv[])
 {
-    RW_ASSERT (0 < argc && argv [0]);
+    if (1 == argc && argv && 0 == argv [0]) {
+        static const char helpstr[] = {
+            "Use the locales specified by the space-parated list of locale"
+            "names given by <arg>.\n"
+        };
+
+        argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
+
+        return 0;
+    }
 
     // the option requires an equals sign followed by an optional argument
     char *args = strchr (argv [0], '=');
