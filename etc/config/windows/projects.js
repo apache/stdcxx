@@ -428,15 +428,20 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 var arrDeps = projectDef.PrjRefs.concat(projectDef.PrjDeps);
                 var command = "";
     
+                var cmdtpl = "set src=_SRC_\r\n" +
+                             "set dst=_DST_\r\n" +
+                             "if /I not %src%==%dst% (\r\n" +
+                             "if exist %src% (\r\n" +
+                             "del %dst%\r\n" +
+                             "copy /Y %src% %dst%\r\n" +
+                             "))";
+
                 if (0 <= arrayIndexOf(arrDeps, stdcxxDef))
                 {
                     var libname = "libstd%CONFIG%.dll";
                     var src = "\"" + libPath + "\\" + libname + "\"";
                     var dst = "\"$(OutDir)\\" + libname + "\"";
-                    var cmd = "if exist " + src + " (\r\n" +
-                              "del " + dst + "\r\n" +
-                              "copy /Y " + src + " " + dst + "\r\n" +
-                              ")";
+                    var cmd = cmdtpl.replace("_SRC_", src).replace("_DST_", dst);
                     if (0 == command.length)
                         command = cmd;
                     else
@@ -448,10 +453,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                     var libname = "rwtest.dll";
                     var src = "\"$(SolutionDir)%CONFIG%\\tests\\" + libname + "\"";
                     var dst = "\"$(OutDir)\\" + libname + "\"";
-                    var cmd = "if exist " + src + " (\r\n" +
-                              "del " + dst + "\r\n" +
-                              "copy /Y " + src + " " + dst + "\r\n" +
-                              ")";
+                    var cmd = cmdtpl.replace("_SRC_", src).replace("_DST_", dst);
                     if (0 == command.length)
                         command = cmd;
                     else
