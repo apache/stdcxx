@@ -243,7 +243,7 @@ function runAllExamples(exeDir, prjDir, srcDir, fileLog, fileSummary, exeExt)
         ++exRun;
     }
     
-    var runCmd = "\"" + utlExec + "\"";
+    var runCmd = utlExec;
     
     if (0 < srcDir.length)
         runCmd += " -d \"" + srcDir + "\"";
@@ -268,9 +268,10 @@ function runAllExamples(exeDir, prjDir, srcDir, fileLog, fileSummary, exeExt)
     while (oExec.Status == 0)
     {
         execOut += oExec.StdOut.ReadAll();
-        WScript.Sleep(500);
+        WScript.Sleep(100);
     }
     
+    execOut += oExec.StdOut.ReadAll();
     WScript.Echo(execOut);
     
     for (var i = 0; i < arrInfo.length; ++i)
