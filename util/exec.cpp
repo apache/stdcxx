@@ -59,7 +59,10 @@
 #    define SIGSYS  12  // STATUS_INVALID_PARAMETER translated into SIGSYS
 #  endif
 #  ifndef STATUS_INVALID_PARAMETER
-#    define STATUS_INVALID_PARAMETER  ((DWORD)0xC000000DL)
+#    define STATUS_INVALID_PARAMETER     ((DWORD)0xC000000DL)
+#  endif
+#  ifndef STATUS_STACK_BUFFER_OVERRUN
+#    define STATUS_STACK_BUFFER_OVERRUN  ((DWORD)0xC0000409L)
 #  endif
 #endif
 #include <sys/stat.h> /* for S_* */
@@ -869,6 +872,7 @@ static const struct {
     { STATUS_BREAKPOINT,              SIGTRAP },
     { STATUS_ACCESS_VIOLATION,        SIGSEGV },
     { STATUS_STACK_OVERFLOW,          SIGSEGV },
+    { STATUS_STACK_BUFFER_OVERRUN,    SIGSEGV },
     { STATUS_IN_PAGE_ERROR,           SIGBUS  },
     { STATUS_ILLEGAL_INSTRUCTION,     SIGILL  },
     { STATUS_PRIVILEGED_INSTRUCTION,  SIGILL  },
@@ -1156,9 +1160,14 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     /* Calculate wall clock time elapsed while the process ran */
     GetSystemTimeAsFileTime(&end);
 
+    /* 100 nanosecond units in a second */
+    const DWORD UNITS_PER_SEC = 10000000;
+    const DWORD UNITS_PER_CLOCK = UNITS_PER_SEC / CLOCKS_PER_SEC;
+    assert (UNITS_PER_CLOCK * CLOCKS_PER_SEC == UNITS_PER_SEC);
+
     /* We're ignoring dwHighDateTime, as it's outside the percision of clock_t 
      */
-    wall = end.dwLowDateTime - start.dwLowDateTime;
+    wall = (end.dwLowDateTime - start.dwLowDateTime) / UNITS_PER_CLOCK;
 
     /* Link the delta */
     result->wall = &wall;
