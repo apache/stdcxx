@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006, 2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -34,16 +34,9 @@
 
 #include <examples.h>
 
-typedef
-    std::map<std::string, int, std::less<std::string>,
-             std::allocator<std::pair<const std::string, int> > > stringVector;
-
-typedef
-    std::map<std::string, stringVector, std::less<std::string>,
-             std::allocator<std::pair<const std::string,
-                                           stringVector > > >     graph;
-
-typedef std::pair<unsigned,std::string> DistancePair;
+typedef std::map<std::string, int>       Distances;
+typedef std::map<std::string, Distances> Cities;
+typedef std::pair<unsigned, std::string> DistancePair;
 
 bool operator< (const DistancePair& lhs, const DistancePair& rhs) {
     
@@ -57,17 +50,11 @@ bool operator> (const DistancePair& lhs, const DistancePair& rhs) {
 }
 
 
-std::string pendleton ("Pendleton");
-std::string pensacola ("Pensacola");
-std::string peoria ("Peoria");
-std::string phoenix ("Phoenix");
-std::string pierre ("Pierre");
-std::string pittsburgh ("Pittsburgh");
-std::string princeton ("Princeton");
-std::string pueblo ("Pueblo");
-
-void shortestDistance (graph& city_map, std::string& start_city,
-                       stringVector& distances) {
+static void
+shortestDistance (Cities            &city_map,
+                  const std::string &start_city,
+                  Distances         &dist)
+{
     
     // Process a priority queue of distances to nodes.
     std::priority_queue<DistancePair,
@@ -85,15 +72,15 @@ void shortestDistance (graph& city_map, std::string& start_city,
         que.pop ();
 
         // If we haven't seen it already, process it.
-        if (0 == distances.count (city))
+        if (0 == dist.count (city))
         {
             // Then add it to shortest distance map.
-            distances[city] = distance;
+            dist[city] = distance;
 
             // And put values into queue.
-            const stringVector& cities = city_map[city];
-            stringVector::const_iterator start = cities.begin ();
-            stringVector::const_iterator stop  = cities.end ();
+            const Distances& cities = city_map[city];
+            Distances::const_iterator start = cities.begin ();
+            Distances::const_iterator stop  = cities.end ();
 
             for (; start != stop; ++start) 
                 que.push (DistancePair (distance + (*start).second,
@@ -103,14 +90,22 @@ void shortestDistance (graph& city_map, std::string& start_city,
 }
 
 
-// Global city map
-graph cityMap;
-
 int main () {
     
     std::cout << "Graph example program "
               << " - find shortest path in a directed graph." 
               << std::endl;
+
+    static const char pendleton[]  = "Pendleton";
+    static const char pensacola[]  = "Pensacola";
+    static const char peoria[]     = "Peoria";
+    static const char phoenix[]    = "Phoenix";
+    static const char pierre[]     = "Pierre";
+    static const char pittsburgh[] = "Pittsburgh";
+    static const char princeton[]  = "Princeton";
+    static const char pueblo[]     = "Pueblo";
+
+    Cities cityMap;
 
     cityMap[pendleton][phoenix]    = 4;
     cityMap[pendleton][pueblo]     = 8;
@@ -125,23 +120,19 @@ int main () {
     cityMap[princeton][pittsburgh] = 2;
     cityMap[pueblo][pierre]        = 3;
     
-    stringVector distances;
+    Distances dist;
     
-    shortestDistance (cityMap, pierre, distances);
-    stringVector::iterator where;
+    shortestDistance (cityMap, pierre, dist);
+    Distances::iterator where;
 
     std::cout << "Find the shortest path from : " 
-              << pierre.c_str () << std::endl;
+              << pierre << '\n';
 
-    for (where = distances.begin (); where != distances.end (); ++where)
+    for (where = dist.begin (); where != dist.end (); ++where)
         std::cout << "  Distance to: " << (*where).first << ":"
-                  <<  (*where).second << std::endl;
+                  <<  (*where).second << '\n';
         
-    std::cout << "End of graph example program" << std::endl;
+    std::cout << "End of graph example program" << '\n';
 
     return 0;
 }
-
-
-
-
