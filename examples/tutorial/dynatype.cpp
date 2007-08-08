@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2005 Rogue Wave Software.
+ * Copyright 2001-2005, 2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -43,10 +43,7 @@ class dynatype
     struct map {
         typedef std::map<const dynatype*, T> map_type;
         
-        static map_type& get () {
-            static map_type m;
-            return m;
-        }
+        static map_type& get ();
     };
 
     // helper: removes this instance of dynatype from map
@@ -112,26 +109,41 @@ public:
 
 // 14.7.3, p6 - explicit specializations must be defined before first use
 template <>
-inline void dynatype::remove<void> ()
+void dynatype::
+remove<void> ()
 { /* no-op */ }
 
 
 template <>
-inline void dynatype::copy<void> (const dynatype&)
+void dynatype::
+copy<void> (const dynatype&)
 { /* no-op */ }
 
 
 // initialize with pointers to no-ops
-inline dynatype::dynatype ()
+dynatype::
+dynatype ()
     : p_remove (&dynatype::remove<void>),
       p_copy (&dynatype::copy<void>)
 {
 }
 
 
+template <class T>
+typename dynatype::map<T>::map_type&
+dynatype::map<T>::
+get ()
+{
+    static map_type m;
+
+    return m;
+}
+
+
 // construct a dynatype object from a value of any type
 template <class T>
-inline dynatype::dynatype (const T &t)
+dynatype::
+dynatype (const T &t)
     : p_remove (&dynatype::remove<T>),
       p_copy (&dynatype::copy<T>)
 {
@@ -140,7 +152,8 @@ inline dynatype::dynatype (const T &t)
 
 
 // assign one dynatype object to another
-inline dynatype& dynatype::operator= (const dynatype &rhs)
+dynatype& dynatype::
+operator= (const dynatype &rhs)
 {
     if (this != &rhs) {
         // remove `this' from the associated map
@@ -159,7 +172,8 @@ inline dynatype& dynatype::operator= (const dynatype &rhs)
 
 // assign a value of any type to an instance of dynatype
 template <class T>
-inline dynatype& dynatype::operator= (const T &t)
+dynatype& dynatype::
+operator= (const T &t)
 {
     // remove `this' from the map of the corresponding type
     (this->*p_remove)();
