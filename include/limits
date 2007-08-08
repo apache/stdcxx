@@ -94,6 +94,9 @@ _RWSTD_EXPORT extern const double      __rw_dbl_infinity;
 _RWSTD_EXPORT extern const float       __rw_flt_qNaN;
 _RWSTD_EXPORT extern const double      __rw_dbl_qNaN;
 
+_RWSTD_EXPORT extern const float       __rw_flt_sNaN;
+_RWSTD_EXPORT extern const double      __rw_dbl_sNaN;
+
 _RWSTD_EXPORT extern const float       __rw_flt_denorm_min;
 _RWSTD_EXPORT extern const double      __rw_dbl_denorm_min;
 
@@ -101,39 +104,12 @@ _RWSTD_EXPORT extern const double      __rw_dbl_denorm_min;
 
 _RWSTD_EXPORT extern const long double __rw_ldbl_infinity;
 _RWSTD_EXPORT extern const long double __rw_ldbl_qNaN;
+_RWSTD_EXPORT extern const long double __rw_ldbl_sNaN;
 _RWSTD_EXPORT extern const long double __rw_ldbl_denorm_min;
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
 }   // namespace __rw
-
-
-// signaling NAN
-#if defined (FLT_SNAN) && defined (DBL_SNAN) && defined (LDBL_SNAN)  // DEC osf
-#  define _RWSTD_FLT_SNAN    FLT_SNAN
-#  define _RWSTD_DBL_SNAN    DBL_SNAN
-#  define _RWSTD_LDBL_SNAN   LDBL_SNAN
-#else
-
-_RWSTD_NAMESPACE (__rw) { 
-
-_RWSTD_EXPORT extern const float       __rw_flt_sNaN;
-_RWSTD_EXPORT extern const double      __rw_dbl_sNaN;
-
-#  define _RWSTD_FLT_SNAN              _RW::__rw_flt_sNaN
-#  define _RWSTD_DBL_SNAN              _RW::__rw_dbl_sNaN
-
-#  ifndef _RWSTD_NO_LONG_DOUBLE
-
-_RWSTD_EXPORT extern const long double __rw_ldbl_sNaN;
-
-#    define _RWSTD_LDBL_SNAN           _RW::__rw_ldbl_sNaN
-
-#  endif   // _RWSTD_NO_LONG_DOUBLE
-
-}   // namespace __rw
-
-#endif   // FLT_SNAN && DBL_SNAN && LDBL_SNAN
 
 
 #ifndef _RWSTD_NO_SIGNALING_NAN
