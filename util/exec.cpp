@@ -55,6 +55,12 @@
 #  ifndef SIGBUS
 #    define SIGBUS  10  // STATUS_IN_PAGE_ERROR translated into SIGBUS
 #  endif
+#  ifndef SIGSYS
+#    define SIGSYS  12  // STATUS_INVALID_PARAMETER translated into SIGSYS
+#  endif
+#  ifndef STATUS_INVALID_PARAMETER
+#    define STATUS_INVALID_PARAMETER  ((DWORD)0xC000000DL)
+#  endif
 #endif
 #include <sys/stat.h> /* for S_* */
 #include <sys/types.h>
@@ -862,6 +868,7 @@ static const struct {
 } nt_status_map [] = {
     { STATUS_BREAKPOINT,              SIGTRAP },
     { STATUS_ACCESS_VIOLATION,        SIGSEGV },
+    { STATUS_STACK_OVERFLOW,          SIGSEGV },
     { STATUS_IN_PAGE_ERROR,           SIGBUS  },
     { STATUS_ILLEGAL_INSTRUCTION,     SIGILL  },
     { STATUS_PRIVILEGED_INSTRUCTION,  SIGILL  },
@@ -873,7 +880,8 @@ static const struct {
     { STATUS_FLOAT_STACK_CHECK,       SIGFPE  },
     { STATUS_FLOAT_UNDERFLOW,         SIGFPE  },
     { STATUS_INTEGER_DIVIDE_BY_ZERO,  SIGFPE  },
-    { STATUS_INTEGER_OVERFLOW,        SIGFPE  }
+    { STATUS_INTEGER_OVERFLOW,        SIGFPE  },
+    { STATUS_INVALID_PARAMETER,       SIGSYS  }
 };
 
 
