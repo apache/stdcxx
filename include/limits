@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -86,7 +86,9 @@
 #endif   // _RWSTD_IS_IEC559
 
 
-_RWSTD_NAMESPACE (__rw) { 
+_RWSTD_NAMESPACE (__rw) {
+
+extern "C" {
 
 _RWSTD_EXPORT extern const float       __rw_flt_infinity;
 _RWSTD_EXPORT extern const double      __rw_dbl_infinity;
@@ -108,6 +110,8 @@ _RWSTD_EXPORT extern const long double __rw_ldbl_sNaN;
 _RWSTD_EXPORT extern const long double __rw_ldbl_denorm_min;
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
+
+}   // extern "C"
 
 }   // namespace __rw
 
