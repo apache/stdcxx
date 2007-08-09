@@ -111,9 +111,6 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen)
         }
 
         __buf = __alloc.allocate (__bufsize);
-
-        // take ownsership of the allocated buffer
-        this->_C_own_buf (true);
     }
     else if (0 < __bufsize) {
         // requested capacity is the same or less than the current one
@@ -138,6 +135,9 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen)
         if (this->_C_buffer != __buf) {
             if (this->_C_buffer && this->_C_own_buf ())
                 __alloc.deallocate (this->_C_buffer, this->_C_bufsize);
+
+            // take ownership of the allocated buffer
+            this->_C_own_buf (true);
 
             this->_C_buffer  = __buf;
             this->_C_bufsize = __bufsize;
@@ -185,20 +185,9 @@ xsputn (const char_type* __s, streamsize __n)
         const _RWSTD_SIZE_T __bufsize =
             __n + (this->pptr () - this->pbase ());
 
-        _RWSTD_PTRDIFF_T __off = -1;
-
-        if (this->pbase () <= __s && this->pptr () > __s) {
-            // __s is part of buffer
-            _RWSTD_ASSERT (this->epptr () >= __s + __n);
-            __off = this->pbase () - __s;
-        }
-
         // grow the buffer if necessary to accommodate the whole
         // string plus the contents of the buffer up to pptr()
         str (this->_C_buffer, __bufsize);
-
-        if (0 <= __off)
-            __s = this->pbase () + __off;
 
         _RWSTD_ASSERT (__n <= this->epptr () - this->pptr ());
     }
