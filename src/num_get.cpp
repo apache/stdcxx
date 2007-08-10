@@ -83,9 +83,13 @@ _RWSTD_NAMESPACE (__rw) {
 typedef unsigned char UChar;
 
 
+extern "C" {
+
 extern const float       __rw_flt_infinity;
 extern const double      __rw_dbl_infinity;
 extern const long double __rw_ldbl_infinity;
+
+}   // extern "C"
 
 
 const char*
