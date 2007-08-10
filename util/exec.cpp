@@ -50,13 +50,16 @@
 #  endif
 #  include <windows.h> /* for PROCESS_INFORMATION, CreateProcess, ... */
 #  ifndef SIGTRAP
-#    define SIGTRAP 5   // STATUS_BREAKPOINT translated into SIGTRAP
+#    define SIGTRAP   5   // STATUS_BREAKPOINT translated into SIGTRAP
 #  endif
 #  ifndef SIGBUS
-#    define SIGBUS  10  // STATUS_IN_PAGE_ERROR translated into SIGBUS
+#    define SIGBUS    10  // STATUS_IN_PAGE_ERROR translated into SIGBUS
 #  endif
 #  ifndef SIGSYS
-#    define SIGSYS  12  // STATUS_INVALID_PARAMETER translated into SIGSYS
+#    define SIGSYS    12  // STATUS_INVALID_PARAMETER translated into SIGSYS
+#  endif
+#  ifndef SIGSTKFLT
+#    define SIGSTKFLT 16  // STATUS_FLOAT_STACK_CHECK translated into SIGSTKFLT
 #  endif
 #  ifndef STATUS_INVALID_PARAMETER
 #    define STATUS_INVALID_PARAMETER     ((DWORD)0xC000000DL)
@@ -869,23 +872,23 @@ static const struct {
     DWORD nt_status;
     int   signal;
 } nt_status_map [] = {
-    { STATUS_BREAKPOINT,              SIGTRAP },
-    { STATUS_ACCESS_VIOLATION,        SIGSEGV },
-    { STATUS_STACK_OVERFLOW,          SIGSEGV },
-    { STATUS_STACK_BUFFER_OVERRUN,    SIGSEGV },
-    { STATUS_IN_PAGE_ERROR,           SIGBUS  },
-    { STATUS_ILLEGAL_INSTRUCTION,     SIGILL  },
-    { STATUS_PRIVILEGED_INSTRUCTION,  SIGILL  },
-    { STATUS_FLOAT_DENORMAL_OPERAND,  SIGFPE  },
-    { STATUS_FLOAT_DIVIDE_BY_ZERO,    SIGFPE  },
-    { STATUS_FLOAT_INEXACT_RESULT,    SIGFPE  },
-    { STATUS_FLOAT_INVALID_OPERATION, SIGFPE  },
-    { STATUS_FLOAT_OVERFLOW,          SIGFPE  },
-    { STATUS_FLOAT_STACK_CHECK,       SIGFPE  },
-    { STATUS_FLOAT_UNDERFLOW,         SIGFPE  },
-    { STATUS_INTEGER_DIVIDE_BY_ZERO,  SIGFPE  },
-    { STATUS_INTEGER_OVERFLOW,        SIGFPE  },
-    { STATUS_INVALID_PARAMETER,       SIGSYS  }
+    { STATUS_BREAKPOINT,              SIGTRAP   },
+    { STATUS_ACCESS_VIOLATION,        SIGSEGV   },
+    { STATUS_STACK_OVERFLOW,          SIGSEGV   },
+    { STATUS_STACK_BUFFER_OVERRUN,    SIGSEGV   },
+    { STATUS_IN_PAGE_ERROR,           SIGBUS    },
+    { STATUS_ILLEGAL_INSTRUCTION,     SIGILL    },
+    { STATUS_PRIVILEGED_INSTRUCTION,  SIGILL    },
+    { STATUS_FLOAT_DENORMAL_OPERAND,  SIGFPE    },
+    { STATUS_FLOAT_DIVIDE_BY_ZERO,    SIGFPE    },
+    { STATUS_FLOAT_INEXACT_RESULT,    SIGFPE    },
+    { STATUS_FLOAT_INVALID_OPERATION, SIGFPE    },
+    { STATUS_FLOAT_OVERFLOW,          SIGFPE    },
+    { STATUS_FLOAT_UNDERFLOW,         SIGFPE    },
+    { STATUS_INTEGER_DIVIDE_BY_ZERO,  SIGFPE    },
+    { STATUS_INTEGER_OVERFLOW,        SIGFPE    },
+    { STATUS_FLOAT_STACK_CHECK,       SIGSTKFLT },
+    { STATUS_INVALID_PARAMETER,       SIGSYS    }
 };
 
 
@@ -1018,6 +1021,15 @@ kill_child_process (PROCESS_INFORMATION child, struct target_status* result)
         warn_last_error ("Terminating child process");
     else if (WAIT_FAILED == WaitForSingleObject (child.hProcess, 1000))
         warn_last_error ("Waiting for child process");
+}
+
+/* FILETIME to ULONGLONG */
+inline ULONGLONG fttoull (const FILETIME& ft)
+{
+    ULARGE_INTEGER __ft;
+    __ft.LowPart  = ft.dwLowDateTime;
+    __ft.HighPart = ft.dwHighDateTime;
+    return __ft.QuadPart;
 }
 
 void exec_file (const struct target_opts* options, struct target_status* result)
@@ -1165,9 +1177,22 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     const DWORD UNITS_PER_CLOCK = UNITS_PER_SEC / CLOCKS_PER_SEC;
     assert (UNITS_PER_CLOCK * CLOCKS_PER_SEC == UNITS_PER_SEC);
 
-    /* We're ignoring dwHighDateTime, as it's outside the percision of clock_t 
-     */
-    wall = (end.dwLowDateTime - start.dwLowDateTime) / UNITS_PER_CLOCK;
+#if _WIN32_WINNT >= 0x0500
+    FILETIME stime, utime;
+    static clock_t user, sys;
+    if (GetProcessTimes (child.hProcess, &start, &end, &stime, &utime)) {
+        user = clock_t (fttoull (utime) / UNITS_PER_CLOCK);
+        sys  = clock_t (fttoull (stime) / UNITS_PER_CLOCK);
+
+        /* Link the delta */
+        result->user = &user;
+        result->sys  = &sys;
+    }
+    else
+        warn_last_error ("Getting child process times");
+#endif  // _WIN32_WINNT >= 0x0500
+
+    wall = clock_t ((fttoull (end) - fttoull (start)) / UNITS_PER_CLOCK);
 
     /* Link the delta */
     result->wall = &wall;
