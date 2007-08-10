@@ -1371,7 +1371,7 @@ __rw_atomic_preincrement (int &__x, bool)
 inline unsigned int
 __rw_atomic_preincrement (unsigned int &__x, bool)
 {
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (long&, __x),
+    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x),
                                      false);
 }
 
