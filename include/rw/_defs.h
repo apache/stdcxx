@@ -91,7 +91,7 @@
 
 #else   // if defined (_RWSTD_NO_NEW_HEADER)
 
-#  define _RWSTD_CASSERT   <assert.h>
+#  define _RWSTD_CASSERT   "assert.h"
 #  define _RWSTD_CCTYPE    <ctype.h>
 #  define _RWSTD_CERRNO    "errno.h"
 #  define _RWSTD_CFLOAT    <float.h>
@@ -99,7 +99,7 @@
 #  define _RWSTD_CLIMITS   <limits.h>
 #  define _RWSTD_CLOCALE   <locale.h>
 #  define _RWSTD_CMATH     <math.h>
-#  define _RWSTD_CSETJMP   <setjmp.h>
+#  define _RWSTD_CSETJMP   "setjmp.h"
 #  define _RWSTD_CSIGNAL   <signal.h>
 #  define _RWSTD_CSTDARG   <stdarg.h>
 #  define _RWSTD_CSTDDEF   <stddef.h>
@@ -135,7 +135,9 @@
 #if defined (_M_IA64)
    // IA64/Itanium SDK paths
 #  if !defined (_RWSTD_NO_ASSERT_H) && !defined (_RWSTD_ANSI_C_ASSERT_H)
-#    define _RWSTD_ANSI_C_ASSERT_H <../include/crt/assert.h>
+     // pathname quoted in order to prevent the assert macro
+     // from expanding in the include directive
+#    define _RWSTD_ANSI_C_ASSERT_H "../include/crt/assert.h"
 #  endif
 #  if !defined (_RWSTD_NO_CTYPE_H) && !defined (_RWSTD_ANSI_C_CTYPE_H)
 #    define _RWSTD_ANSI_C_CTYPE_H <../include/crt/ctype.h>
@@ -167,7 +169,9 @@
 #    define _RWSTD_ANSI_C_MATH_H <../include/crt/math.h>
 #  endif
 #  if !defined (_RWSTD_NO_SETJMP_H) && !defined (_RWSTD_ANSI_C_SETJMP_H)
-#    define _RWSTD_ANSI_C_SETJMP_H <../include/crt/setjmp.h>
+     // pathname quoted in order to prevent the setjmp macro
+     // from expanding in the include directive
+#    define _RWSTD_ANSI_C_SETJMP_H "../include/crt/setjmp.h"
 #  endif
 #  if !defined (_RWSTD_NO_SIGNAL_H) && !defined (_RWSTD_ANSI_C_SIGNAL_H)
 #    define _RWSTD_ANSI_C_SIGNAL_H <../include/crt/signal.h>
@@ -205,7 +209,9 @@
 #elif !defined (_RWSTD_NO_FORCE_RELATIVE_PATHS)
 
 #  undef _RWSTD_ANSI_C_ASSERT_H
-#  define _RWSTD_ANSI_C_ASSERT_H <../include/assert.h>
+   // pathname quoted in order to prevent the assert macro
+   // from expanding in the include directive
+#  define _RWSTD_ANSI_C_ASSERT_H "../include/assert.h"
 #  undef _RWSTD_ANSI_C_CTYPE_H
 #  define _RWSTD_ANSI_C_CTYPE_H <../include/ctype.h>
 #  undef _RWSTD_ANSI_C_ERRNO_H
@@ -229,7 +235,9 @@
 #  undef _RWSTD_ANSI_C_MATH_H
 #  define _RWSTD_ANSI_C_MATH_H <../include/math.h>
 #  undef _RWSTD_ANSI_C_SETJMP_H
-#  define _RWSTD_ANSI_C_SETJMP_H <../include/setjmp.h>
+   // pathname quoted in order to prevent the setjmp macro
+   // from expanding in the include directive
+#  define _RWSTD_ANSI_C_SETJMP_H "../include/setjmp.h"
 #  undef _RWSTD_ANSI_C_SIGNAL_H
 #  define _RWSTD_ANSI_C_SIGNAL_H <../include/signal.h>
 #  undef _RWSTD_ANSI_C_STDARG_H
@@ -262,7 +270,9 @@
 #elif defined (_RWSTD_USE_USR_INCLUDE_HEADERS)
 
 #  if !defined (_RWSTD_NO_ASSERT_H) && !defined (_RWSTD_ANSI_C_ASSERT_H)
-#    define _RWSTD_ANSI_C_ASSERT_H </usr/include/assert.h>
+     // pathname quoted in order to prevent the assert macro
+     // from expanding in the include directive
+#    define _RWSTD_ANSI_C_ASSERT_H "/usr/include/assert.h"
 #  endif
 #  if !defined (_RWSTD_NO_CTYPE_H) && !defined (_RWSTD_ANSI_C_CTYPE_H)
 #    define _RWSTD_ANSI_C_CTYPE_H </usr/include/ctype.h>
@@ -294,7 +304,9 @@
 #    define _RWSTD_ANSI_C_MATH_H </usr/include/math.h>
 #  endif
 #  if !defined (_RWSTD_NO_SETJMP_H) && !defined (_RWSTD_ANSI_C_SETJMP_H)
-#    define _RWSTD_ANSI_C_SETJMP_H </usr/include/setjmp.h>
+     // pathname quoted in order to prevent the setjmp macro
+     // from expanding in the include directive
+#    define _RWSTD_ANSI_C_SETJMP_H "/usr/include/setjmp.h"
 #  endif
 #  if !defined (_RWSTD_NO_SIGNAL_H) && !defined (_RWSTD_ANSI_C_SIGNAL_H)
 #    define _RWSTD_ANSI_C_SIGNAL_H </usr/include/signal.h>
@@ -332,7 +344,9 @@
 #else   // if !_WIN64 && !_RWSTD_USE_USR_INCLUDE_HEADERS
 
 #  if !defined (_RWSTD_NO_ASSERT_H) && !defined (_RWSTD_ANSI_C_ASSERT_H)
-#    define _RWSTD_ANSI_C_ASSERT_H <../include/assert.h>
+     // pathname quoted in order to prevent the assert macro
+     // from expanding in the include directive
+#    define _RWSTD_ANSI_C_ASSERT_H "../include/assert.h"
 #  endif
 #  if !defined (_RWSTD_NO_CTYPE_H) && !defined (_RWSTD_ANSI_C_CTYPE_H)
 #    define _RWSTD_ANSI_C_CTYPE_H <../include/ctype.h>
@@ -364,7 +378,9 @@
 #    define _RWSTD_ANSI_C_MATH_H <../include/math.h>
 #  endif
 #  if !defined (_RWSTD_NO_SETJMP_H) && !defined (_RWSTD_ANSI_C_SETJMP_H)
-#    define _RWSTD_ANSI_C_SETJMP_H <../include/setjmp.h>
+     // pathname quoted in order to prevent the setjmp macro
+     // from expanding in the include directive
+#    define _RWSTD_ANSI_C_SETJMP_H "../include/setjmp.h"
 #  endif
 #  if !defined (_RWSTD_NO_SIGNAL_H) && !defined (_RWSTD_ANSI_C_SIGNAL_H)
 #    define _RWSTD_ANSI_C_SIGNAL_H <../include/signal.h>
