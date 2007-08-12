@@ -171,7 +171,7 @@ thread_func (void*)
 
             // format time using provided format specifier
             *tp.put (std::ostreambuf_iterator<char>(&nsb),
-                    nio, ' ', &data.time_, data.format_) = char();
+                     nio, ' ', &data.time_, data.format_) = '\0';
 
             RW_ASSERT (!nio.fail ());
             RW_ASSERT (!rw_strncmp(ncs, data.ncs_));
@@ -194,7 +194,7 @@ thread_func (void*)
             wio.rdbuf (&wsb);
 
             *wp.put (std::ostreambuf_iterator<wchar_t>(&wsb),
-                     wio, L' ', &data.time_, data.format_) = wchar_t();
+                     wio, L' ', &data.time_, data.format_) = L'\0';
 
             RW_ASSERT (!wio.fail ());
             RW_ASSERT (!rw_strncmp(wcs, data.wcs_));
@@ -246,24 +246,24 @@ run_test (int, char**)
             MyTimeData& data = my_time_data [inx];
             data.locale_name_ = name;
 
+            // initialize tm with random but valid values
+            data.time_.tm_sec  = ++j % 61;
+            data.time_.tm_min  = ++j % 60;
+            data.time_.tm_hour = ++j % 12;
+            data.time_.tm_wday = ++j % 7;
+            data.time_.tm_mon  = ++j % 12;
+            data.time_.tm_mday = ++j % 31;
+            data.time_.tm_yday = ++j % 366;
+            data.time_.tm_year = ++j;
+
+            const char cvtspecs[] = "aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ%";
+
+            // get the "random" conversion specifier used to generate
+            // the result string
+            data.format_ = cvtspecs [nlocales % (sizeof cvtspecs - 1)];
+
             try {
                 const std::locale loc (data.locale_name_);
-
-                // initialize tm with random but valid values
-                data.time_.tm_sec  = ++j % 61;
-                data.time_.tm_min  = ++j % 60;
-                data.time_.tm_hour = ++j % 12;
-                data.time_.tm_wday = ++j % 7;
-                data.time_.tm_mon  = ++j % 12;
-                data.time_.tm_mday = ++j % 31;
-                data.time_.tm_yday = ++j % 366;
-                data.time_.tm_year = ++j;
-
-                const char cvtspecs[] = "aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ%";
-
-                // get the "random" conversion specifier used to generate
-                // the result string
-                data.format_ = cvtspecs [nlocales % (sizeof cvtspecs - 1)];
 
                 const std::time_put<char> &np =
                     std::use_facet<std::time_put<char> >(loc);
@@ -274,7 +274,7 @@ run_test (int, char**)
                 nio.rdbuf (&nsb);
                 
                 *np.put (std::ostreambuf_iterator<char>(&nsb),
-                         nio, ' ', &data.time_, data.format_) = char();
+                         nio, ' ', &data.time_, data.format_) = '\0';
 
                 rw_assert (!nio.fail (), __FILE__, __LINE__,
                            "time_put<char>::put(..., %c) "
@@ -292,7 +292,7 @@ run_test (int, char**)
                 wio.rdbuf (&wsb);
                 
                 *wp.put (std::ostreambuf_iterator<wchar_t>(&wsb),
-                         wio, L' ', &data.time_, data.format_) = wchar_t();
+                         wio, L' ', &data.time_, data.format_) = L'\0';
                 
                 rw_assert (!wio.fail (), __FILE__, __LINE__,
                            "time_put<wchar_t>::put(..., %c) "
@@ -322,15 +322,15 @@ run_test (int, char**)
     }
 
     // avoid divide by zero in thread if there are no locales to test
-    rw_fatal(nlocales != 0, 0, __LINE__,
-             "failed to create one or more usable locales!");
+    rw_fatal (nlocales != 0, 0, __LINE__,
+              "failed to create one or more usable locales!");
 
     rw_info (0, 0, 0,
              "testing std::time_put<charT> with %d thread%{?}s%{;}, "
-             "%zu iteration%{?}s%{;} each, in locales { %{ .*A@} }",
+             "%zu iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
              rw_opt_nthreads, 1 != rw_opt_nthreads,
              rw_opt_nloops, 1 != rw_opt_nloops,
-             int (nlocales), "%#s", locales);
+             nlocales, int (nlocales), "%#s", locales);
 
     rw_info (0, 0, 0, "exercising std::time_put<char>");
 
