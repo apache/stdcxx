@@ -35,7 +35,7 @@ var libPath = "$(SolutionDir)%CONFIG%\\lib";
 var ProjectsDir = "%BUILDDIR%\\Projects";
 
 // projects which requires RTTI support
-var RTTIProjects = new Array("18.exception");
+var NonRTTIProjects = new Array();
 
 var rxExcludedFolders = 
     new RegExp("^(?:\\.svn|Release.*|Debug.*|in|out|CVS)$","i");
@@ -86,7 +86,6 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
 ///////////////////////////////////////////////////////////////////////////////
     var stdcxxDef = new ProjectDef(".stdcxx", typeLibrary);
     stdcxxDef.VCProjDir = ProjectsDir;
-    stdcxxDef.RTTI = true;
     stdcxxDef.FilterDefs.push(
         new FilterDef(sourceFilterName, sourceFilterUuid, sourceFilterExts, eFileTypeCppCode, false).
             addFilesByMask("%SRCDIR%\\src", rxExcludedFolders, null));
@@ -108,7 +107,6 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
 ///////////////////////////////////////////////////////////////////////////////
     var rwtestDef = new ProjectDef(".rwtest", typeLibrary);
     rwtestDef.VCProjDir = ProjectsDir;
-    rwtestDef.RTTI = true;
     rwtestDef.FilterDefs.push(
         new FilterDef(sourceFilterName, sourceFilterUuid, sourceFilterExts, eFileTypeCppCode, false).
             addFilesByMask("%SRCDIR%\\tests\\src", rxExcludedFolders, null));
@@ -271,7 +269,6 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
 
     var testTplDef = new ProjectDef(null, typeApplication);
     testTplDef.VCProjDir = ProjectsDir + "\\tests";
-    testTplDef.RTTI = true;
     testTplDef.Defines = commonDefines;
     testTplDef.Includes = rwtestIncludes;
     testTplDef.OutDir = "$(SolutionDir)%CONFIG%\\tests";
@@ -484,9 +481,9 @@ function CreateProjects(projectDefs, report)
         {
             var projectDef = projectArray[j];
     
-            // turn on RTTI support if project in RTTIProjects array
-            if (0 <= arrayIndexOf(RTTIProjects, projectDef.Name))
-                projectDef.RTTI = true;
+            // turn off RTTI support if project in NonRTTIProjects array
+            if (0 <= arrayIndexOf(NonRTTIProjects, projectDef.Name))
+                projectDef.RTTI = false;
     
             projectDef.createVCProject(VCProjectEngine, report);
         }

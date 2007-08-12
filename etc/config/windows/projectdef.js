@@ -135,7 +135,7 @@ function ProjectDef(name, type)
     this.Type = type;
     this.SubSystem = typeGeneric == type ? null :
         (typeApplication == type ? subSystemConsole : subSystemWindows);
-    this.RTTI = false;
+    this.RTTI = true;
     this.VCProjDir = "%BUILDDIR%";
     this.FilterDefs = new Array();
     this.Defines = null;
