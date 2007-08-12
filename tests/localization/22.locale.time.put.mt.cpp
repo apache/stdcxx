@@ -32,13 +32,13 @@
 #include <iterator>   // for ostreambuf_iterator
 #include <locale>     // for locale, time_put
 
-#include <cstring>    // for strlen()
+#include <cstring>    // for strlen ()
 #include <ctime>      // for tm
 
 #include <rw_locale.h>
 #include <rw_thread.h>
-#include <driver.h>
-
+#include <driver.h>    // for rw_assert ()
+#include <valcmp.h>    // for rw_strncmp ()
 
 #define MAX_THREADS      32
 #define MAX_LOOPS    100000
@@ -49,6 +49,13 @@ int rw_opt_nthreads = 1;
 
 // the number of times each thread should iterate
 int rw_opt_nloops = MAX_LOOPS;
+
+// number of locales to use
+int rw_opt_nlocales = MAX_THREADS;
+
+// should all threads share the same set of locale objects instead
+// of creating their own?
+int rw_opt_shared_locale;
 
 /**************************************************************************/
 
@@ -62,6 +69,63 @@ nlocales;
 
 /**************************************************************************/
 
+//
+struct MyTimeData
+{
+    enum { BufferSize = 64 };
+
+    // name of the locale the data corresponds to
+    const char* locale_name_;
+
+    // optionally set to the named locale for threads to share
+    std::locale locale_;
+
+    // the time struct used to generate strings below
+    std::tm time_;
+
+    // the format specifier
+    char format_;
+
+    // narrow representations of time_ given the 
+    // locale_name_ and the format_
+    char ncs_ [BufferSize];
+    
+#ifndef _RWSTD_NO_WCHAR_T
+
+    // wide representations of time_
+    wchar_t wcs_ [BufferSize];
+
+#endif // _RWSTD_NO_WCHAR_T
+
+} my_time_data [MAX_THREADS];
+
+
+template <class charT, class Traits>
+struct MyIos: std::basic_ios<charT, Traits>
+{
+    MyIos () {
+        this->init (0);
+    }
+};
+
+
+template <class charT, class Traits>
+struct MyStreambuf: std::basic_streambuf<charT, Traits>
+{
+    typedef std::basic_streambuf<charT, Traits> Base;
+
+    MyStreambuf ()
+        : Base () {
+    }
+
+    void pubsetp (charT *pbeg, std::streamsize n) {
+        this->setp (pbeg, pbeg + n);
+    }
+};
+
+
+#define countof(x) (sizeof (x) / sizeof (*x))
+
 extern "C" {
 
 bool test_char;    // exercise time_put<char>
@@ -71,53 +135,27 @@ bool test_wchar;   // exercise time_put<wchar_t>
 static void*
 thread_func (void*)
 {
-    std::tm tmb = std::tm ();
-
-    const char cvtspecs[] = "aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ%";
-
-    // dummy streambuf-derived object the doesn't do anything
-    // but allows ostreambuf_iterator to "think" it can write
-    // to it
-    struct NarrowBuf: std::streambuf {
-        int_type overflow (int_type c) { return c; }
-    } sb;
+    char              ncs [MyTimeData::BufferSize];
+    MyIos<char, std::char_traits<char> >       nio;
+    MyStreambuf<char, std::char_traits<char> > nsb;
 
 #ifndef _RWSTD_NO_WCHAR_T
+    wchar_t                 wcs [MyTimeData::BufferSize];
+    MyIos<wchar_t, std::char_traits<wchar_t> >       wio;
+    MyStreambuf<wchar_t, std::char_traits<wchar_t> > wsb;
+#endif // _RWSTD_NO_WCHAR_T
 
-    struct WideBuf: std::wstreambuf {
-        int_type overflow (int_type c) { return c; }
-    } wsb;
-
-#endif   // _RWSTD_NO_WCHAR_T
-
-    struct Ios: std::ios {
-        Ios () { this->init (0); }
-    } io;
-
-    int j = 0;
-
-    for (int i = 0; i != rw_opt_nloops; ++i, ++j) {
-
-        // initialize tm with random but valid values
-        tmb.tm_sec  = ++j % 61;
-        tmb.tm_min  = ++j % 60;
-        tmb.tm_min  = ++j % 60;
-        tmb.tm_wday = ++j % 7;
-        tmb.tm_mon  = ++j % 12;
-        tmb.tm_year = ++j;
-
-        // generate a "random" conversion specifier from the set
-        // of valid specifiers recognized by the facet to exercise
-        // all (or most) code paths
-        const char cvt = cvtspecs [i % (sizeof cvtspecs - 1)];
+    for (int i = 0; i != rw_opt_nloops; ++i) {
 
         // save the name of the locale
-        const char* const locale_name = locales [i % nlocales];
+        const MyTimeData& data = my_time_data [i % nlocales];
 
         // construct a named locale, get a reference to the time_put
         // facet from it and use it to format a random time value
         // using a random conversion specifier
-        const std::locale loc (locale_name);
+        const std::locale loc =
+            rw_opt_shared_locale ? data.locale_
+                                 : std::locale (data.locale_name_);
 
         if (test_char) {
             // exercise the narrow char specialization of the facet
@@ -125,10 +163,18 @@ thread_func (void*)
             const std::time_put<char> &tp =
                 std::use_facet<std::time_put<char> >(loc);
 
-            // format a "random" but valid tm value using the random
-            // format specifier
-            tp.put (std::ostreambuf_iterator<char>(&sb),
-                    io, ' ', &tmb, cvt);
+            nio.imbue (loc);
+
+            // assign data buffer to streambuf
+            nsb.pubsetp (ncs, countof (ncs));
+            nio.rdbuf (&nsb);
+
+            // format time using provided format specifier
+            *tp.put (std::ostreambuf_iterator<char>(&nsb),
+                    nio, ' ', &data.time_, data.format_) = char();
+
+            RW_ASSERT (!nio.fail ());
+            RW_ASSERT (!rw_strncmp(ncs, data.ncs_));
 
         }
 
@@ -139,13 +185,21 @@ thread_func (void*)
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-            const std::time_put<wchar_t> &wtp =
+            const std::time_put<wchar_t> &wp =
                 std::use_facet<std::time_put<wchar_t> >(loc);
 
-            wtp.put (std::ostreambuf_iterator<wchar_t>(&wsb),
-                     io, L' ', &tmb, cvt);
+            wio.imbue (loc);
 
-#endif   // _RWSTD_NO_WCHAR_T
+            wsb.pubsetp (wcs, countof (wcs));
+            wio.rdbuf (&wsb);
+
+            *wp.put (std::ostreambuf_iterator<wchar_t>(&wsb),
+                     wio, L' ', &data.time_, data.format_) = wchar_t();
+
+            RW_ASSERT (!wio.fail ());
+            RW_ASSERT (!rw_strncmp(wcs, data.wcs_));
+
+#endif // _RWSTD_NO_WCHAR_T
 
         }
     }
@@ -160,18 +214,116 @@ thread_func (void*)
 static int
 run_test (int, char**)
 {
-    // find all installed locales for which setlocale(LC_ALL) succeeds
+    MyIos<char, std::char_traits<char> >       nio;
+    MyStreambuf<char, std::char_traits<char> > nsb;
+
+#ifndef _RWSTD_NO_WCHAR_T
+    MyIos<wchar_t, std::char_traits<wchar_t> >       wio;
+    MyStreambuf<wchar_t, std::char_traits<wchar_t> > wsb;
+#endif // _RWSTD_NO_WCHAR_T
+
+    // find all installed locales for which setlocale (LC_ALL) succeeds
     const char* const locale_list =
         rw_opt_locales ? rw_opt_locales : rw_locales (_RWSTD_LC_ALL);
 
-    const std::size_t maxinx = sizeof locales / sizeof *locales;
+    const std::size_t maxinx = countof (locales);
 
-    for (const char *name = locale_list; *name; name += std::strlen (name) +1) {
-        locales [nlocales++] = name;
+    const char* const possible_locale_options[] = {
+        locale_list, "C\0", 0
+    };
 
-        if (nlocales == maxinx)
-            break;
+    for (int p = 0; possible_locale_options[p]; ++p) {
+
+        int j = 0;
+        for (const char* name = possible_locale_options[p];
+             *name;
+             name += std::strlen (name) + 1) {
+
+            const std::size_t inx = nlocales;
+            locales [inx] = name;
+
+            // fill in the time and results for this locale
+            MyTimeData& data = my_time_data [inx];
+            data.locale_name_ = name;
+
+            try {
+                const std::locale loc (data.locale_name_);
+
+                // initialize tm with random but valid values
+                data.time_.tm_sec  = ++j % 61;
+                data.time_.tm_min  = ++j % 60;
+                data.time_.tm_hour = ++j % 12;
+                data.time_.tm_wday = ++j % 7;
+                data.time_.tm_mon  = ++j % 12;
+                data.time_.tm_mday = ++j % 31;
+                data.time_.tm_yday = ++j % 366;
+                data.time_.tm_year = ++j;
+
+                const char cvtspecs[] = "aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ%";
+
+                // get the "random" conversion specifier used to generate
+                // the result string
+                data.format_ = cvtspecs [nlocales % (sizeof cvtspecs - 1)];
+
+                const std::time_put<char> &np =
+                    std::use_facet<std::time_put<char> >(loc);
+
+                nio.imbue (loc);
+
+                nsb.pubsetp (data.ncs_, countof (data.ncs_));
+                nio.rdbuf (&nsb);
+                
+                *np.put (std::ostreambuf_iterator<char>(&nsb),
+                         nio, ' ', &data.time_, data.format_) = char();
+
+                rw_assert (!nio.fail (), __FILE__, __LINE__,
+                           "time_put<char>::put(..., %c) "
+                           "failed for locale(%#s)",
+                           data.format_, data.locale_name_);
+                
+#ifndef _RWSTD_NO_WCHAR_T
+
+                const std::time_put<wchar_t> &wp =
+                    std::use_facet<std::time_put<wchar_t> >(loc);
+
+                wio.imbue (loc);
+
+                wsb.pubsetp (data.wcs_, countof (data.wcs_));
+                wio.rdbuf (&wsb);
+                
+                *wp.put (std::ostreambuf_iterator<wchar_t>(&wsb),
+                         wio, L' ', &data.time_, data.format_) = wchar_t();
+                
+                rw_assert (!wio.fail (), __FILE__, __LINE__,
+                           "time_put<wchar_t>::put(..., %c) "
+                           "failed for locale(%#s)",
+                           data.format_, data.locale_name_);
+
+#endif // _RWSTD_NO_WCHAR_T
+
+                if (rw_opt_shared_locale)
+                    data.locale_ = loc;
+
+                nlocales += 1;
+
+            }
+            catch (...) {
+                rw_warn (!rw_opt_locales, 0, __LINE__,
+                         "failed to create locale(%#s)", name);
+            }
+
+            if (nlocales == maxinx || nlocales == std::size_t (rw_opt_nlocales))
+                break;
+        }
+
+        if (nlocales != 0) {
+            break; // found at least one locale
+        }
     }
+
+    // avoid divide by zero in thread if there are no locales to test
+    rw_fatal(nlocales != 0, 0, __LINE__,
+             "failed to create one or more usable locales!");
 
     rw_info (0, 0, 0,
              "testing std::time_put<charT> with %d thread%{?}s%{;}, "
@@ -208,7 +360,7 @@ run_test (int, char**)
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
               rw_opt_nthreads, thread_func);
 
-    // exercise bothe the char and the wchar_t specializations
+    // exercise both the char and the wchar_t specializations
     // at the same time
 
     rw_info (0, 0, 0,
@@ -249,9 +401,13 @@ int main (int argc, char *argv[])
                     "thread safety", run_test,
                     "|-nloops#0 "       // must be non-negative
                     "|-nthreads#0-* "   // must be in [0, MAX_THREADS]
-                    "|-locales=",       // must be provided
+                    "|-nlocales#0 "     // arg must be non-negative
+                    "|-locales= "       // must be provided
+                    "|-shared-locale# ",
                     &rw_opt_nloops,
                     int (MAX_THREADS),
                     &rw_opt_nthreads,
-                    &rw_opt_setlocales);
+                    &rw_opt_nlocales,
+                    &rw_opt_setlocales,
+                    &rw_opt_shared_locale);
 }
