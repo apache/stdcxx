@@ -822,6 +822,11 @@ GET_TYPE_NAME (long);
 GET_TYPE_NAME (unsigned long);
 GET_TYPE_NAME (double);
 
+#ifndef _RWSTD_NO_LONG_LONG
+GET_TYPE_NAME (_RWSTD_LONG_LONG);
+GET_TYPE_NAME (unsigned _RWSTD_LONG_LONG);
+#endif
+
 #ifndef _RWSTD_NO_NATIVE_WCHAR_T
 GET_TYPE_NAME (wchar_t);
 #endif
