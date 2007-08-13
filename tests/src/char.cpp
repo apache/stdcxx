@@ -501,7 +501,7 @@ rw_widen (char *dst, const char *src, size_t len /* = SIZE_MAX */)
 {
     // compute the length of src if not specified
     if (_RWSTD_SIZE_MAX == len)
-        len = src ? strlen (src) + 1 : 0;
+        len = src ? strlen (src) : 0;
 
     if (len) {
         RW_ASSERT (0 != dst);
@@ -509,6 +509,7 @@ rw_widen (char *dst, const char *src, size_t len /* = SIZE_MAX */)
         if (src) {
             // copy src into dst
             memcpy (dst, src, len);
+            dst [len] = '\0';
         }
         else {
             // set dst to all NUL
@@ -850,18 +851,16 @@ rw_widen (wchar_t *dst, const char *src, size_t len /* = SIZE_MAX */)
 {
     // compute the length of src if not specified
     if (_RWSTD_SIZE_MAX == len)
-        len = src ? strlen (src) + 1 : 0;
+        len = src ? strlen (src) : 0;
 
     // if len is non-zero dst must be non-0 as well
     RW_ASSERT (0 == len || 0 != dst);
 
-    if (len) {
-        RW_ASSERT (0 != dst);
-
+    if (dst) {
         if (src) {
             // widen src into dst one element at a time
             for (size_t i = 0; ; ++i) {
-                if (i == len - 1) {
+                if (i == len) {
                     dst [i] = L'\0';
                     break;
                 }
@@ -874,8 +873,6 @@ rw_widen (wchar_t *dst, const char *src, size_t len /* = SIZE_MAX */)
             memset (dst, 0, len * sizeof *dst);
         }
     }
-    else if (dst)
-        *dst = L'\0';
 
     return dst;
 }
@@ -1002,18 +999,16 @@ rw_widen (UserChar *dst, const char *src, size_t len /* = SIZE_MAX */)
 {
     // compute the length of src if not specified
     if (_RWSTD_SIZE_MAX == len)
-        len = src ? strlen (src) + 1 : 0;
+        len = src ? strlen (src) : 0;
 
     // if len is non-zero dst must be non-0 as well
     RW_ASSERT (0 == len || 0 != dst);
 
-    if (len) {
-        RW_ASSERT (0 != dst);
-
+    if (dst) {
         if (src) {
             // widen src into dst one element at a time
             for (size_t i = 0; ; ++i) {
-                if (i == len - 1) {
+                if (i == len) {
                     dst [i] = UserChar::eos ();
                     break;
                 }
@@ -1027,8 +1022,6 @@ rw_widen (UserChar *dst, const char *src, size_t len /* = SIZE_MAX */)
             memset (dst, 0, len * sizeof *dst);
         }
     }
-    else if (dst)
-        *dst = UserChar::eos ();
 
     return dst;
 }
