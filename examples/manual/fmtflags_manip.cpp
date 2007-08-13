@@ -42,7 +42,7 @@ class fmtflags_manip
     std::ios_base::fmtflags  saved_;
 
 public:
-    fmtflags_manip (): strm_ (), saved_ () { }
+    fmtflags_manip (): strm_ (), saved_ (std::ios_base::fmtflags (-1)) { }
 
     void operator() (std::ios_base           &strm,
                      std::ios_base::fmtflags  flags) const {
