@@ -183,6 +183,7 @@ define makedep
                    s:$(TOPDIR):$$""(TOPDIR):gp;                              \
                    s:$(BUILDDIR):$$""(BUILDDIR):gp" ;                        \
 	   depflags="$(value DEPENDFLAGS$(depsuffix))";                      \
+           [ "$$depflags" = "" ] && depflags=$(DEPENDFLAGS);                 \
            echo "$(CXX) $$depflags $(CPPFLAGS) $(CXXFLAGS) $<";              \
            $(CXX) $$depflags $(CPPFLAGS) $(CXXFLAGS) $<                      \
                | sed "$$sedexp1" | tr "@" "\n" | sed -n "$$sedexp2" >$@ ;    \
