@@ -4,7 +4,27 @@
 #
 # main makefile to build and test the C++ Standard library
 #
-##############################################################################
+########################################################################
+#
+# Licensed to the Apache Software  Foundation (ASF) under one or more
+# contributor  license agreements.  See  the NOTICE  file distributed
+# with  this  work  for  additional information  regarding  copyright
+# ownership.   The ASF  licenses this  file to  you under  the Apache
+# License, Version  2.0 (the  "License"); you may  not use  this file
+# except in  compliance with the License.   You may obtain  a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the  License is distributed on an  "AS IS" BASIS,
+# WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+# implied.   See  the License  for  the  specific language  governing
+# permissions and limitations under the License.
+#
+# Copyright 1999-2007 Rogue Wave Software, Inc.
+#
+########################################################################
 #
 # Usage:
 #
@@ -42,7 +62,7 @@
 #
 #   The variable SHELL can be defined to override the default shell, /bin/sh.
 #
-##############################################################################
+########################################################################
 #
 # Targets:
 #
@@ -131,7 +151,7 @@
 #
 #   WARNFLAGS - any compiler warning options
 #
-##############################################################################
+########################################################################
 
 SHELL = /bin/sh
 
@@ -231,9 +251,9 @@ endif
 
 ifeq ($(in_topdir),1)
 
-  ############################################################################
+  ######################################################################
   # THIS BLOCK IS EVALUATED ONLY WHEN MAKE IS INVOKED IN TOPDIR
-  ############################################################################
+  ######################################################################
 
   # try to determine configuration (unless specified on the command line)
   # invoke $(SHELL) from within the $(shell) function to silence shell
@@ -536,7 +556,9 @@ ifeq ($(in_topdir),1)
   # #defined in the rw/_config.h library header
   LIBVER := $(shell awk '/^.define _RWSTD_VER / { major = substr ($$3, 3, 2); minor = substr ($$3, 5, 2); micro = substr ($$3, 7, 2); print (major + 0) "." (minor + 0) "." (micro + 0) }' $(TOPDIR)/include/rw/_config.h)
 
-### TARGETS ##################################################################
+########################################################################
+#  TARGETS
+########################################################################
 
 all: libstd
 
@@ -639,9 +661,9 @@ makefile.in:
 
 else   # ifneq ($(in_topdir),1) ##############################################
 
-  ############################################################################
+  ######################################################################
   # THIS BLOCK IS EVALUATED ONLY WHEN MAKE IS INVOKED IN BUILDDIR
-  ############################################################################
+  ######################################################################
 
 all: config lib examples util rwtest tests $(PHDTSTDIR)
 
