@@ -209,7 +209,7 @@ thread_func (void*)
             }
 
             RW_ASSERT (!nio.fail ());
-            RW_ASSERT (!rw_strncmp(ncs, data.ncs_));
+            RW_ASSERT (!rw_strncmp (ncs, data.ncs_));
 
         }
 
@@ -243,7 +243,7 @@ thread_func (void*)
             }
 
             RW_ASSERT (!wio.fail ());
-            RW_ASSERT (!rw_strncmp(wcs, data.wcs_));
+            RW_ASSERT (!rw_strncmp (wcs, data.wcs_));
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -293,7 +293,7 @@ run_test (int, char**)
             // initialize with random but valid values
 
             data.money_value_ = inx;
-            data.type_ = MyMoneyData::PutId(nlocales % MyMoneyData::put_max);
+            data.type_ = MyMoneyData::PutId (nlocales % MyMoneyData::put_max);
             data.money_index_ = inx % RW_COUNT_OF (n_money_vals);
 
             // exercise domestic formats every other iteration

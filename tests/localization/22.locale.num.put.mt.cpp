@@ -141,13 +141,14 @@ struct MyStreambuf: std::basic_streambuf<charT, Traits>
     }
 };
 
-template <class charT, class traitT>
+template <class charT, class Traits>
 void
-put_data(const MyNumData& data, 
-         const std::num_put<charT>& np,
-         const std::ostreambuf_iterator<charT>& iter,
-         std::basic_ios<charT, traitT>& io,
-         charT fill, charT term)
+put_data (const MyNumData                               &data,
+          const std::num_put<charT>                     &np,
+          const std::ostreambuf_iterator<charT, Traits> &iter,
+          std::basic_ios<charT, Traits>                 &io,
+          charT                                          fill,
+          charT                                          term)
 {
     switch (data.type_) {
     case MyNumData::put_bool:
@@ -245,8 +246,8 @@ thread_func (void*)
             nio.imbue (loc);
             nsb.pubsetp (ncs, RW_COUNT_OF (ncs));
 
-            put_data(data, np, std::ostreambuf_iterator<char>(&nsb),
-                     nio, ' ', '\0');
+            put_data (data, np, std::ostreambuf_iterator<char>(&nsb),
+                      nio, ' ', '\0');
 
             RW_ASSERT (!nio.fail ()); 
             RW_ASSERT (!rw_strncmp (ncs, data.ncs_));
@@ -265,8 +266,8 @@ thread_func (void*)
             wio.imbue (loc);
             wsb.pubsetp (wcs, RW_COUNT_OF (wcs));
 
-            put_data(data, wp, std::ostreambuf_iterator<wchar_t>(&wsb),
-                     wio, L' ', L'\0');
+            put_data (data, wp, std::ostreambuf_iterator<wchar_t>(&wsb),
+                      wio, L' ', L'\0');
 
             RW_ASSERT (!wio.fail ()); 
             RW_ASSERT (!rw_strncmp (wcs, data.wcs_));
@@ -318,7 +319,7 @@ run_test (int, char**)
             const std::locale loc (data.locale_name_);
 
             data.value_ = nlocales & 1 ? -1 * nlocales : nlocales;
-            data.type_ = MyNumData::PutId(nlocales % MyNumData::put_max);
+            data.type_ = MyNumData::PutId (nlocales % MyNumData::put_max);
 
             // format data into buffers
             const std::num_put<char> &np =
@@ -327,8 +328,8 @@ run_test (int, char**)
             nio.imbue (loc);
             nsb.pubsetp (data.ncs_, RW_COUNT_OF (data.ncs_));
 
-            put_data(data, np, std::ostreambuf_iterator<char>(&nsb),
-                     nio, ' ', '\0');
+            put_data (data, np, std::ostreambuf_iterator<char>(&nsb),
+                      nio, ' ', '\0');
 
             rw_fatal (!nio.fail (), __FILE__, __LINE__,
                       "num_put<char>::put(...) failed for locale(%#s)",
@@ -342,8 +343,8 @@ run_test (int, char**)
             wio.imbue (loc);
             wsb.pubsetp (data.wcs_, RW_COUNT_OF (data.wcs_));
 
-            put_data(data, wp, std::ostreambuf_iterator<wchar_t>(&wsb),
-                     wio, L' ', L'\0');
+            put_data (data, wp, std::ostreambuf_iterator<wchar_t>(&wsb),
+                      wio, L' ', L'\0');
 
             rw_fatal (!wio.fail (), __FILE__, __LINE__,
                       "num_put<wchar_t>::put(...) failed for locale(%#s)",

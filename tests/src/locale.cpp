@@ -404,8 +404,8 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
 
         // put the C locale at the front
         if (prepend_c_loc) {
-            strcpy(locname, deflocname);
-            locname += strlen(deflocname) + 1; 
+            strcpy (locname, deflocname);
+            locname += strlen (deflocname) + 1; 
         }
 
         // if successful, construct a char array with the locales
@@ -417,7 +417,7 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
 
             // don't allow C locale to be in the list again
             // if we put it at the front of the locale list
-            if (prepend_c_loc && !strcmp(linebuf, deflocname))
+            if (prepend_c_loc && !strcmp (linebuf, deflocname))
                 continue;
 
 #ifdef _RWSTD_OS_SUNOS
