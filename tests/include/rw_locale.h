@@ -37,7 +37,7 @@
 
 
 _TEST_EXPORT char*
-rw_locales (int = _UNUSED_CAT, const char* = 0);
+rw_locales (int = _UNUSED_CAT, const char* = 0, bool = true);
 
 
 // invokes the locale utility with the arguments specified by 'arg',

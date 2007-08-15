@@ -124,8 +124,6 @@ struct MyStreambuf: std::basic_streambuf<charT, Traits>
 };
 
 
-#define countof(x) (sizeof (x) / sizeof (*x))
-
 extern "C" {
 
 bool test_char;    // exercise time_put<char>
@@ -138,11 +136,13 @@ thread_func (void*)
     char              ncs [MyTimeData::BufferSize];
     MyIos<char, std::char_traits<char> >       nio;
     MyStreambuf<char, std::char_traits<char> > nsb;
+    nio.rdbuf (&nsb);
 
 #ifndef _RWSTD_NO_WCHAR_T
     wchar_t                 wcs [MyTimeData::BufferSize];
     MyIos<wchar_t, std::char_traits<wchar_t> >       wio;
     MyStreambuf<wchar_t, std::char_traits<wchar_t> > wsb;
+    wio.rdbuf (&wsb);
 #endif // _RWSTD_NO_WCHAR_T
 
     for (int i = 0; i != rw_opt_nloops; ++i) {
@@ -164,10 +164,7 @@ thread_func (void*)
                 std::use_facet<std::time_put<char> >(loc);
 
             nio.imbue (loc);
-
-            // assign data buffer to streambuf
-            nsb.pubsetp (ncs, countof (ncs));
-            nio.rdbuf (&nsb);
+            nsb.pubsetp (ncs, RW_COUNT_OF (ncs));
 
             // format time using provided format specifier
             *tp.put (std::ostreambuf_iterator<char>(&nsb),
@@ -189,9 +186,7 @@ thread_func (void*)
                 std::use_facet<std::time_put<wchar_t> >(loc);
 
             wio.imbue (loc);
-
-            wsb.pubsetp (wcs, countof (wcs));
-            wio.rdbuf (&wsb);
+            wsb.pubsetp (wcs, RW_COUNT_OF (wcs));
 
             *wp.put (std::ostreambuf_iterator<wchar_t>(&wsb),
                      wio, L' ', &data.time_, data.format_) = L'\0';
@@ -216,109 +211,96 @@ run_test (int, char**)
 {
     MyIos<char, std::char_traits<char> >       nio;
     MyStreambuf<char, std::char_traits<char> > nsb;
+    nio.rdbuf (&nsb);
 
 #ifndef _RWSTD_NO_WCHAR_T
     MyIos<wchar_t, std::char_traits<wchar_t> >       wio;
     MyStreambuf<wchar_t, std::char_traits<wchar_t> > wsb;
+    wio.rdbuf (&wsb);
 #endif // _RWSTD_NO_WCHAR_T
 
     // find all installed locales for which setlocale (LC_ALL) succeeds
     const char* const locale_list =
         rw_opt_locales ? rw_opt_locales : rw_locales (_RWSTD_LC_ALL);
 
-    const std::size_t maxinx = countof (locales);
+    const std::size_t maxinx = RW_COUNT_OF (locales);
 
-    const char* const possible_locale_options[] = {
-        locale_list, "C\0", 0
-    };
+    int j = 0;
+    for (const char* name = locale_list;
+         *name;
+         name += std::strlen (name) + 1) {
 
-    for (int p = 0; possible_locale_options[p]; ++p) {
+        const std::size_t inx = nlocales;
+        locales [inx] = name;
 
-        int j = 0;
-        for (const char* name = possible_locale_options[p];
-             *name;
-             name += std::strlen (name) + 1) {
+        // fill in the time and results for this locale
+        MyTimeData& data = my_time_data [inx];
+        data.locale_name_ = name;
 
-            const std::size_t inx = nlocales;
-            locales [inx] = name;
+        // initialize tm with random but valid values
+        data.time_.tm_sec  = ++j % 61;
+        data.time_.tm_min  = ++j % 60;
+        data.time_.tm_hour = ++j % 12;
+        data.time_.tm_wday = ++j % 7;
+        data.time_.tm_mon  = ++j % 12;
+        data.time_.tm_mday = ++j % 31;
+        data.time_.tm_yday = ++j % 366;
+        data.time_.tm_year = ++j;
 
-            // fill in the time and results for this locale
-            MyTimeData& data = my_time_data [inx];
-            data.locale_name_ = name;
+        const char cvtspecs[] = "aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ%";
 
-            // initialize tm with random but valid values
-            data.time_.tm_sec  = ++j % 61;
-            data.time_.tm_min  = ++j % 60;
-            data.time_.tm_hour = ++j % 12;
-            data.time_.tm_wday = ++j % 7;
-            data.time_.tm_mon  = ++j % 12;
-            data.time_.tm_mday = ++j % 31;
-            data.time_.tm_yday = ++j % 366;
-            data.time_.tm_year = ++j;
+        // get the "random" conversion specifier used to generate
+        // the result string
+        data.format_ = cvtspecs [nlocales % (sizeof cvtspecs - 1)];
 
-            const char cvtspecs[] = "aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ%";
+        try {
+            const std::locale loc (data.locale_name_);
 
-            // get the "random" conversion specifier used to generate
-            // the result string
-            data.format_ = cvtspecs [nlocales % (sizeof cvtspecs - 1)];
+            const std::time_put<char> &np =
+                std::use_facet<std::time_put<char> >(loc);
 
-            try {
-                const std::locale loc (data.locale_name_);
+            nio.imbue (loc);
+            nsb.pubsetp (data.ncs_, RW_COUNT_OF (data.ncs_));
+            
+            *np.put (std::ostreambuf_iterator<char>(&nsb),
+                     nio, ' ', &data.time_, data.format_) = '\0';
 
-                const std::time_put<char> &np =
-                    std::use_facet<std::time_put<char> >(loc);
-
-                nio.imbue (loc);
-
-                nsb.pubsetp (data.ncs_, countof (data.ncs_));
-                nio.rdbuf (&nsb);
-                
-                *np.put (std::ostreambuf_iterator<char>(&nsb),
-                         nio, ' ', &data.time_, data.format_) = '\0';
-
-                rw_assert (!nio.fail (), __FILE__, __LINE__,
-                           "time_put<char>::put(..., %c) "
-                           "failed for locale(%#s)",
-                           data.format_, data.locale_name_);
-                
+            rw_fatal (!nio.fail (), __FILE__, __LINE__,
+                      "time_put<char>::put(..., %c) "
+                      "failed for locale(%#s)",
+                      data.format_, data.locale_name_);
+            
 #ifndef _RWSTD_NO_WCHAR_T
 
-                const std::time_put<wchar_t> &wp =
-                    std::use_facet<std::time_put<wchar_t> >(loc);
+            const std::time_put<wchar_t> &wp =
+                std::use_facet<std::time_put<wchar_t> >(loc);
 
-                wio.imbue (loc);
-
-                wsb.pubsetp (data.wcs_, countof (data.wcs_));
-                wio.rdbuf (&wsb);
-                
-                *wp.put (std::ostreambuf_iterator<wchar_t>(&wsb),
-                         wio, L' ', &data.time_, data.format_) = L'\0';
-                
-                rw_assert (!wio.fail (), __FILE__, __LINE__,
-                           "time_put<wchar_t>::put(..., %c) "
-                           "failed for locale(%#s)",
-                           data.format_, data.locale_name_);
+            wio.imbue (loc);
+            wsb.pubsetp (data.wcs_, RW_COUNT_OF (data.wcs_));
+            
+            *wp.put (std::ostreambuf_iterator<wchar_t>(&wsb),
+                     wio, L' ', &data.time_, data.format_) = L'\0';
+            
+            rw_fatal (!wio.fail (), __FILE__, __LINE__,
+                      "time_put<wchar_t>::put(..., %c) "
+                      "failed for locale(%#s)",
+                      data.format_, data.locale_name_);
 
 #endif // _RWSTD_NO_WCHAR_T
 
-                if (rw_opt_shared_locale)
-                    data.locale_ = loc;
+            if (rw_opt_shared_locale)
+                data.locale_ = loc;
 
-                nlocales += 1;
+            nlocales += 1;
 
-            }
-            catch (...) {
-                rw_warn (!rw_opt_locales, 0, __LINE__,
-                         "failed to create locale(%#s)", name);
-            }
-
-            if (nlocales == maxinx || nlocales == std::size_t (rw_opt_nlocales))
-                break;
+        }
+        catch (...) {
+            rw_warn (!rw_opt_locales, 0, __LINE__,
+                     "failed to create locale(%#s)", name);
         }
 
-        if (nlocales != 0) {
-            break; // found at least one locale
-        }
+        if (nlocales == maxinx || nlocales == std::size_t (rw_opt_nlocales))
+            break;
     }
 
     // avoid divide by zero in thread if there are no locales to test
