@@ -327,7 +327,7 @@ rw_set_locale_root ()
 /**************************************************************************/
 
 _TEST_EXPORT char*
-rw_locales (int loc_cat, const char* grep_exp)
+rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
 {
     static char deflocname [3] = "C\0";
     static char* slocname = 0;
@@ -402,12 +402,23 @@ rw_locales (int loc_cat, const char* grep_exp)
         char last_name [256];
         *last_name = '\0';
 
+        // put the C locale at the front
+        if (prepend_c_loc) {
+            strcpy(locname, deflocname);
+            locname += strlen(deflocname) + 1; 
+        }
+
         // if successful, construct a char array with the locales
         while (fgets (linebuf, sizeof linebuf, file)) {
 
             const size_t linelen = strlen (linebuf);
 
             linebuf [linelen ? linelen - 1 : 0] = '\0';
+
+            // don't allow C locale to be in the list again
+            // if we put it at the front of the locale list
+            if (prepend_c_loc && !strcmp(linebuf, deflocname))
+                continue;
 
 #ifdef _RWSTD_OS_SUNOS
 
