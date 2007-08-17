@@ -22,37 +22,73 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
 #define _RWSTD_LIB_SRC
-
-#include <new>
 #include <rw/_defs.h>
 
-#include <loc/_locale.h>
+#include <new>             // for placment new
 
-#include "locale_body.h"
-
-
-_RWSTD_NAMESPACE (std) { 
+#include <loc/_locale.h>   // for locale
+#include "once.h"          // for __rw_once()
 
 
-/* static */ const locale& locale::classic ()
+_RWSTD_NAMESPACE (__rw) { 
+
+// static buffer for the classic "C" locale object
+static union {
+    void* _C_align;
+    char  _C_buf [sizeof (_STD::locale)];
+} __rw_classic;
+
+
+// init-once flag for the classic "C" locale object
+static __rw_once_t
+__rw_classic_once_init = _RWSTD_ONCE_INIT;
+
+
+extern "C" {
+
+// one-time initializer for the classic "C" locale object
+static void
+__rw_init_classic ()
 {
-    // classic locale will not be destroyed during program runtime
-    static _RW::__rw_locale *pbody = _RW::__rw_locale::_C_manage (0, "C");
+#ifdef _RWSTDDEBUG
 
-    static union {
-        void* _C_align;
-        char  _C_buf [sizeof (locale)];
-    } classic_locale;
+    static int init;
 
-    _RWSTD_ASSERT (0 != pbody);
+    // paranoid check: verify that one-time initialization works
+    _RWSTD_ASSERT (0 == init);
 
-    // multiple initialization by multiple threads is benign
-    static locale *pclassic = new (&classic_locale) locale (*pbody);
+    ++init;
+
+#endif   // _RWSTDDEBUG
+
+    // construct the classic "C" locale in the provided buffer
+    new (&__rw_classic) _STD::locale ("C");
+}
+
+}   // extern "C"
+
+}   // namespace __rw
+
+
+_RWSTD_NAMESPACE (std) {
+
+
+/* static */ const locale& locale::
+classic ()
+{
+    // initialize classic locale in the static buffer exactly once
+    _RW::__rw_once (&_RW::__rw_classic_once_init, _RW::__rw_init_classic);
+
+    // cast the address of the buffer to a locale pointer
+    const locale* const pclassic =
+        _RWSTD_REINTERPRET_CAST (locale*, &_RW::__rw_classic);
+
+    _RWSTD_ASSERT (0 != pclassic->_C_body);
 
     return *pclassic;
 }
