@@ -42,20 +42,79 @@ extern "C" {
 #ifdef _RWSTD_THREAD_ONCE
 
 
+// implementation that relies on the system one-time initialization
+// mechanism such as pthread_once()
 _RWSTD_EXPORT int
 __rw_once (__rw_once_t *once, void (*func)())
 {
+    _RWSTD_ASSERT (0 != once && 0 != func);
+
     return _RWSTD_THREAD_ONCE (once, func);
+}
+
+
+#elif defined (_RWSTD_NO_ATOMIC_OPS) && defined (_RWSTD_POSIX_THREADS)
+
+
+// implementation that uses a mutex instead of pthread_once() or atomic
+// operations
+_RWSTD_EXPORT int
+__rw_once (__rw_once_t *once, void (*func)())
+{
+    _RWSTD_ASSERT (0 != once && 0 != func);
+
+    // _C_init may take on one of two valid values:
+    // -1 for a properly initialized __rw_once_t object whose initializer
+    //    hasn't run yet
+    // +1 for ar __rw_once_t object whose initializer has already been
+    //    executed
+    // Any other value (including 0, for __rw_once_t objects that haven't
+    // been properly initialized) is invalid.
+
+    if (-1 == once->_C_init) {
+
+        const int result = pthread_mutex_lock (&once->_C_mutex);
+        if (result)
+            return result;
+
+        if (-1 == once->_C_init) {
+
+            // entered by the first thread and only the first time around,
+            // unless the initialization function throws
+
+            _TRY {
+                func ();
+            }
+            _CATCH (...) {
+                pthread_mutex_unlock (&once->_C_mutex);
+                _RETHROW;
+            }
+
+            once->_C_init += 2;
+        }
+
+        pthread_mutex_unlock (&once->_C_mutex);
+    }
+
+    // verify that initialization took place exactly once and help detect
+    // uninitialized __rw_once_t objects to help catch problems on platforms
+    // such as HP-UX that require pthread_once_t objects to be explicitly
+    // initialized (i.e., not all bits tobe zeroed out) in order for
+    // pthread_once() to succeed
+    _RWSTD_ASSERT (1 == once->_C_init);
+
+    return 0;
 }
 
 
 #elif defined (_RWSTD_REENTRANT)
 
 
+// implementation that uses atomic operations
 _RWSTD_EXPORT int
 __rw_once (__rw_once_t *once, void (*func)())
 {
-    _RWSTD_ASSERT (0 != once);
+    _RWSTD_ASSERT (0 != once && 0 != func);
 
     volatile int &init = once->_C_init;
 
@@ -102,10 +161,11 @@ restart:
 #else   // if !defined (_RWSTD_THREAD_ONCE)
 
 
+// thread-unsafe implementation
 _RWSTD_EXPORT int
 __rw_once (__rw_once_t *once, void (*func)())
 {
-    _RWSTD_ASSERT (0 != once);
+    _RWSTD_ASSERT (0 != once && 0 != func);
 
     // detect uninitialized __rw_once_t objects to help reveal problems
     // in reentrant code on platforms such as HP-UX that require

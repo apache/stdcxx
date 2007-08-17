@@ -37,6 +37,7 @@
 
 #    define _RWSTD_THREAD_ONCE(once, func)   pthread_once (once, func)
 #    define _RWSTD_THREAD_YIELD()            thr_yield ()
+#    define _RWSTD_ONCE_INIT                 PTHREAD_ONCE_INIT
 
 typedef pthread_once_t __rw_once_t;
 
@@ -44,9 +45,27 @@ typedef pthread_once_t __rw_once_t;
 
 #    include <pthread.h>
 
+#    ifndef _RWSTD_NO_PTHREAD_ONCE
+
 typedef pthread_once_t __rw_once_t;
 
-#    define _RWSTD_THREAD_ONCE(once, func)   pthread_once (once, func)
+#      define _RWSTD_THREAD_ONCE(once, func)   pthread_once (once, func)
+#      define _RWSTD_ONCE_INIT                 PTHREAD_ONCE_INIT
+
+#    else   // if defined (_RWSTD_NO_PTHREAD_ONCE)
+
+_RWSTD_NAMESPACE (__rw) {
+
+struct __rw_once_t {
+    pthread_mutex_t _C_mutex;
+    int             _C_init;
+};
+
+}   // namespace __rw
+
+#      define _RWSTD_ONCE_INIT   { PTHREAD_MUTEX_INITIALIZER, -1 }
+
+#    endif   // _RWSTD_NO_PTHREAD_ONCE
 
 #    ifndef _RWSTD_NO_SCHED_YIELD
 #      define _RWSTD_THREAD_YIELD()   sched_yield ()
@@ -59,35 +78,48 @@ typedef pthread_once_t __rw_once_t;
 #      include <dce/pthread.h>
 #    endif
 
+_RWSTD_NAMESPACE (__rw) {
+
 typedef pthread_once_t __rw_once_t;
+
+}   // namespace __rw
 
 #    define _RWSTD_THREAD_ONCE(once, func)   pthread_once (once, func)
 #    define _RWSTD_THREAD_YIELD()            pthread_yield ()
+#    define _RWSTD_ONCE_INIT                 PTHREAD_ONCE_INIT
 
 #  elif defined (_WIN32)
 
 #    include <windows.h>
 
+_RWSTD_NAMESPACE (__rw) {
+
 struct __rw_once_t { int _C_init; };
+
+}   // namespace __rw
 
 #    define _RWSTD_THREAD_YIELD()   Sleep (0)
-#  endif   // _RWSTD_*_THREADS
+#  else   // !_WIN32
 
-
-#  ifdef PTHREAD_ONCE_INIT
-#    define _RWSTD_ONCE_INIT   PTHREAD_ONCE_INIT
-#  endif   // PTHREAD_ONCE_INIT
-
-#else   // if !defined (_RWSTD_REENTRANT)
+_RWSTD_NAMESPACE (__rw) {
 
 struct __rw_once_t { int _C_init; };
+
+}   // namespace __rw
+
+#    define _RWSTD_ONCE_INIT   { 0 }
+#  endif   // _WIN32
+#else   // if !defined (_RWSTD_REENTRANT)
+
+_RWSTD_NAMESPACE (__rw) {
+
+struct __rw_once_t { int _C_init; };
+
+}   // namespace __rw
 
    // defined to a non-zero value to help detect uninitialized
    // __rw_once_t objects
 #  define _RWSTD_ONCE_INIT   { -1 }
-
-   // not defined
-#  undef  _RWSTD_THREAD_ONCE
 #endif   // _RWSTD_REENTRANT
 
 
