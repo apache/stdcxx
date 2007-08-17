@@ -99,6 +99,7 @@ struct __rw_once_t { int _C_init; };
 }   // namespace __rw
 
 #    define _RWSTD_THREAD_YIELD()   Sleep (0)
+#    define _RWSTD_ONCE_INIT        { 0 }
 #  else   // !_WIN32
 
 _RWSTD_NAMESPACE (__rw) {
