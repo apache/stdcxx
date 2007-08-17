@@ -24,7 +24,7 @@
  * Copyright 2005-2006 The Apache Software Foundation or its licensors,
  * as applicable.
  *
- * Copyright 2003-2007 Rogue Wave Software.
+ * Copyright 2003-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -166,5 +166,11 @@
 
 // convenience macro to get number of elements in a c style array
 #define RW_COUNT_OF(x) (sizeof(x) / sizeof(*x))
+
+#if defined (__INTEL_COMPILER) && __INTEL_COMPILER <= 1000
+   // disable warning #279: controlling expression is constant
+   // issued for the commonly used RW_ASSERT(!"not implemented")
+#  pragma warning (disable: 279)
+#endif   // Intel C++ 10.0 and prior
 
 #endif   // RW_TESTDEFS_H_INCLUDED
