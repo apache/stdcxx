@@ -55,7 +55,9 @@ class dynatype
     // helper: copies one instance of dynatype to another
     template <class T>
     void copy (const dynatype &rhs) {
-        *this = static_cast<T>(rhs);
+        // cast to <const T&> instead of <T> to avoid error on gcc 3.4.4/cygwin:
+        // error: invalid static_cast from type `const dynatype' to type `int'
+        *this = static_cast<const T&>(rhs);
     }
 
     // pointers to the helpers (do not depend on a template parameter)
