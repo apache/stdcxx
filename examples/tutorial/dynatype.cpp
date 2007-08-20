@@ -55,7 +55,7 @@ class dynatype
     // helper: copies one instance of dynatype to another
     template <class T>
     void copy (const dynatype &rhs) {
-        *this = static_cast<const T&>(rhs);
+        *this = static_cast<T>(rhs);
     }
 
     // pointers to the helpers (do not depend on a template parameter)
