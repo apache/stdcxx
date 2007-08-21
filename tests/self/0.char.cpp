@@ -394,7 +394,7 @@ test_rw_widen ()
 
         rw_assert (cdst == ret, 0, __LINE__,
                    "rw_widen(char*, %{#s}%{?}, %zu%{;})",
-                   src, i < nsrc);
+                   src, i < nsrc, i);
 
         rw_assert (0 == memcmp (cdst, src, i) && '\0' == cdst [i],
                    0, __LINE__,
@@ -638,7 +638,7 @@ test_rw_narrow ()
 
         rw_assert (cdst == ret, 0, __LINE__,
                    "rw_narrow(char*, %{#s}%{?}, %zu%{;})",
-                   src, i < nsrc);
+                   src, i < nsrc, i);
 
         rw_assert (0 == memcmp (cdst, src, i) && '\0' == cdst [i],
                    0, __LINE__,
