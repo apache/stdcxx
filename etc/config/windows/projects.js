@@ -312,6 +312,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     runtestsDef.CustomBuildCmd =
         "set PATH=$(SolutionDir)%CONFIG%\\bin;$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
         "set TOPDIR=%SRCDIR%\r\n" +
+        "set BINDIR=$(SolutionDir)%CONFIG%\\bin\r\n" +
         "cscript /nologo \"%CUSTOMFILE%\"" +
         " /EXEDIR:\"$(OutDir)\"" +
         " /PRJDIR:\"" + runtestsDef.VCProjDir + "\"" +
