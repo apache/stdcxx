@@ -1,12 +1,12 @@
-Apache stdcxx
+Apache C++ Standard Library - stdcxx
 
-Copyright 2005-2006 The Apache Software Foundation.
+Copyright 2005-2007 The Apache Software Foundation.
 
 This product includes software developed at The Apache Software Foundation
 (http://www.apache.org/).
 
-Portions of this software were developed at Rogue Wave Software, Copyright
-(c) 1994-2005.
+Portions of this software were developed at Rogue Wave Software, Inc.,
+Copyright (c) 1994-2007.
 
 This software contains code derived from the HP Standard Template Library,
 Copyright (c) 1994 Hewlett-Packard Company.
