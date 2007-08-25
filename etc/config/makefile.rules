@@ -119,8 +119,9 @@ run runall run_all: $(BINDIR)/exec
         PATH=$$PATH:.;                                                    \
         TOPDIR=$(TOPDIR);                                                 \
         TMP=$${TMP:-/tmp}/stdcxx-run-$$$$;                                \
+        TZ=MST+7;                                                         \
         export TMP;                                                       \
-        export LD_LIBRARY_PATH PATH TMP TOPDIR;                           \
+        export LD_LIBRARY_PATH PATH TMP TOPDIR TZ;                        \
         trap "rm -rf $$TMP" HUP INT QUIT TERM EXIT;                       \
         mkdir -p $$TMP;                                                   \
         ./run $(RUNFLAGS) $(RUNTARGET);                                   \
@@ -133,8 +134,9 @@ run runall run_all: $(BINDIR)/exec
         PATH=$$PATH:$(LIBDIR):.;                                          \
         TOPDIR=$(TOPDIR);                                                 \
         TMP=$${TMP:-/tmp}/stdcxx-run-$$$$;                                \
+        TZ=MST+7;                                                         \
         export TMP;                                                       \
-        export LD_LIBRARY_PATH PATH TMP TOPDIR;                           \
+        export LD_LIBRARY_PATH PATH TMP TOPDIR TZ;                        \
         trap "rm -rf $$TMP" HUP INT QUIT TERM EXIT;                       \
         mkdir -p $$TMP;                                                   \
         ./run $(RUNFLAGS) $(RUNTARGET);                                   \
@@ -164,8 +166,6 @@ ifeq ($(findstring clean,$(MAKECMDGOALS)),)
 endif   # eq ($(findstring clean,$(MAKECMDGOALS)),)
 
 
-ifneq ($(DEPENDFLAGS),)
-
 # generate dependencies only if they don't yet exist, removing anything
 # not under $(TOPDIR) or $(BUILDDIR) (e.g., system headers) from the list
 # this is done by splitting up dependencies using tr so that there is just
@@ -186,8 +186,9 @@ define makedep
                    s:$$RWTSRCDIR:$$""(TOPDIR)/\.\./rwtest:gp;                \
                    s:$(TOPDIR):$$""(TOPDIR):gp;                              \
                    s:$(BUILDDIR):$$""(BUILDDIR):gp" ;                        \
-                                                                             \
-           $(CXX) $(DEPENDFLAGS) $(CPPFLAGS) $(CXXFLAGS) $<                  \
+	   depflags="$(value DEPENDFLAGS$(depsuffix))";                      \
+           echo "$(CXX) $$depflags $(CPPFLAGS) $(CXXFLAGS) $<";              \
+           $(CXX) $$depflags $(CPPFLAGS) $(CXXFLAGS) $<                      \
                | sed "$$sedexp1" | tr "@" "\n" | sed -n "$$sedexp2" >$@ ;    \
            if [ ! -s $@ ]; then                                              \
                depfile=$*.u;                                                 \
@@ -205,14 +206,36 @@ endef
 $(DEPENDDIR):
 	@[ ! -d $(DEPENDDIR) ] && mkdir -p $(DEPENDDIR)
 
+
+ifeq ($(DEPENDFLAGS),)
+  # if DEPENDFLAGS is empty or not defined, set it to the concatenation
+  # of the variables specific to each type of a source file
+  DEPENDFLAGS = $(DEPENDFLAGS.cpp) $(value DEPENDFLAGS$(AS_EXT))
+else
+  DEPENDFLAGS.cpp := $(DEPENDFLAGS)
+  DEPENDFLAGS.S   := $(DEPENDFLAGS)
+  DEPENDFLAGS.s   := $(DEPENDFLAGS)
+endif
+
+ifneq ($(DEPENDFLAGS),)
+
+# set depsuffix to the suffix of the first prerequisite
+$(DEPENDDIR)/%.d: depsuffix = $(suffix $<)
+
+  ifneq ($(DEPENDFLAGS.cpp),)
+
 # rule to make dependencies for C++ source files
 $(DEPENDDIR)/%.d: %.cpp $(DEPENDDIR)
 	$(makedep)
+
+  endif   # DEPENDFLAGS.cpp
+  ifneq ($(value DEPENDFLAGS$(AS_EXT)),)
 
 # rule to make dependencies for assembly files
 $(DEPENDDIR)/%.d: %$(AS_EXT) $(DEPENDDIR)
 	$(makedep)
 
+  endif   # DEPENDFLAGS.as
 
 else   # ifeq ($(DEPENDFLAGS),)
 
