@@ -166,8 +166,7 @@ virtual iter_type
 
 int main ()
 {
-    typedef std::ostreambuf_iterator&lt;char,
-        std::char_traits&lt;char&gt; &gt; Iter;
+    typedef std::ostreambuf_iterator&lt;char, std::char_traits&lt;char&gt; &gt; Iter;
   
     const std::string buffer ("10002");
     const long double ldval = 10002; 
@@ -175,10 +174,11 @@ int main ()
     // Construct a ostreambuf_iterator on cout
     Iter begin (std::cout);
 
+    const std::locale loc;
+
     // Get a money put facet
-    const std::money_put&lt;char, Iter&gt; &amp;mp =
-        std::use_facet&lt;std::money_put&lt;char, Iter&gt; &gt;(std::locale
-        ());
+    const std::money_put&lt;char, Iter&gt; &amp;mp = 
+        std::use_facet&lt;std::money_put&lt;char, Iter&gt; &gt;(loc);
 
     // Put out the string representation of the monetary value
     std::cout &lt;&lt; buffer &lt;&lt; " --&gt; ";
