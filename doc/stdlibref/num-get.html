@@ -243,9 +243,11 @@ int main ()
     long        lval  = 0L;
     long double ldval = 0.0;
 
+    const std::locale loc;
+
     // Get a num_get facet
     const std::num_get&lt;char, Iter&gt; &amp;ng =
-        std::use_facet&lt;std::num_get&lt;char, Iter&gt; &gt;(std::locale ());
+        std::use_facet&lt;std::num_get&lt;char, Iter&gt; &gt;(loc);
 
 #ifndef _RWSTD_NO_BOOL
     {
