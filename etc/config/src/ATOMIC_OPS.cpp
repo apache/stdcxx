@@ -1,6 +1,6 @@
 // checking for atomic operations
 
-#if defined (_WIN32) || defined (_WIN64)
+#if defined (_WIN32) && !defined (_WIN64)
 
 #include <stdio.h>
 #include <windows.h>
@@ -34,7 +34,7 @@ int main ()
     return 0;
 }
 
-#else   // not Windows
+#else   // not 32-bit Windows
 
 #include <stdio.h>
 
