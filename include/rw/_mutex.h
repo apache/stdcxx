@@ -1527,6 +1527,32 @@ __rw_atomic_preincrement (unsigned long &__x, bool)
 #endif   // _RWSTD_LONG_SIZE
 
 
+#ifdef _RWSTD_LONG_LONG
+#  if _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
+
+inline _RWSTD_LONG_LONG
+__rw_atomic_preincrement (_RWSTD_LONG_LONG &__x, bool)
+{
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (_RWSTD_LONG_LONG));
+
+    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
+                              +1);
+}
+
+
+inline unsigned _RWSTD_LONG_LONG
+__rw_atomic_preincrement (unsigned _RWSTD_LONG_LONG &__x, bool)
+{
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned _RWSTD_LONG_LONG));
+
+    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
+                              +1);
+}
+
+#  endif   // _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
+#endif   // _RWSTD_LONG_LONG
+
+
 inline char
 __rw_atomic_predecrement (char &__x, bool)
 {
@@ -1612,13 +1638,39 @@ __rw_atomic_predecrement (long &__x, bool)
 inline unsigned long
 __rw_atomic_predecrement (unsigned long &__x, bool)
 {
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned long));
 
     return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
                               -1);
 }
 
 #endif   // _RWSTD_LONG_SIZE
+
+
+#ifdef _RWSTD_LONG_LONG
+#  if _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
+
+inline _RWSTD_LONG_LONG
+__rw_atomic_predecrement (_RWSTD_LONG_LONG &__x, bool)
+{
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (_RWSTD_LONG_LONG));
+
+    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
+                              -1);
+}
+
+
+inline unsigned _RWSTD_LONG_LONG
+__rw_atomic_predecrement (unsigned _RWSTD_LONG_LONG &__x, bool)
+{
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned _RWSTD_LONG_LONG));
+
+    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
+                              -1);
+}
+
+#  endif   // _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
+#endif   // _RWSTD_LONG_LONG
 
 
 inline char
@@ -1713,6 +1765,34 @@ __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
 }
 
 #  endif   // _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
+
+
+#ifdef _RWSTD_LONG_LONG
+#  if _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
+
+inline _RWSTD_LONG_LONG
+__rw_atomic_exchange (_RWSTD_LONG_LONG &__x, _RWSTD_LONG_LONG __y, bool)
+{
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (_RWSTD_LONG_LONG));
+
+    return __rw_atomic_xchg64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
+                               _RWSTD_STATIC_CAST (_RWSTD_INT64_T, __y));
+}
+
+
+inline unsigned _RWSTD_LONG_LONG
+__rw_atomic_exchange (unsigned _RWSTD_LONG_LONG &__x,
+                      unsigned _RWSTD_LONG_LONG __y, bool)
+{
+    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned _RWSTD_LONG_LONG));
+
+    return __rw_atomic_xchg64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
+                               _RWSTD_STATIC_CAST (_RWSTD_INT64_T, __y));
+}
+
+#  endif   // _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
+#endif   // _RWSTD_LONG_LONG
+
 
 #elif !defined (_RWSTD_NO_ATOMIC_OPS)
 #  define _RWSTD_NO_ATOMIC_OPS
