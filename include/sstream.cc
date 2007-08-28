@@ -185,9 +185,15 @@ xsputn (const char_type* __s, streamsize __n)
         const _RWSTD_SIZE_T __bufsize =
             __n + (this->pptr () - this->pbase ());
 
+        // preserve current pptr() since str() would seek to end
+        const streamsize __cur = this->pptr () - this->pbase ();
+
         // grow the buffer if necessary to accommodate the whole
         // string plus the contents of the buffer up to pptr()
         str (this->_C_buffer, __bufsize);
+
+        // restore pptr()
+        this->pbump (__cur - (this->pptr () - this->pbase ()));
 
         _RWSTD_ASSERT (__n <= this->epptr () - this->pptr ());
     }
