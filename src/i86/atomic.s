@@ -129,7 +129,7 @@ SYMNAME (__rw_atomic_add8):        /* ; char (char *dst, int inc)     */
      .globl SYMNAME (__rw_atomic_add16)
     TYPE_DIR (__rw_atomic_add16, @function)
 
-SYMNAME (__rw_atomic_add16):       /* ; long (long *dst, long inc)    */
+SYMNAME (__rw_atomic_add16):       /* ; short (short *dst, short inc) */
     mov            4(%esp), %ecx   /* ; %ecx = dst                    */
     mov            8(%esp), %eax   /* ; %eax = inc                    */
     mov            %eax, %edx      /* ; */
@@ -137,7 +137,7 @@ SYMNAME (__rw_atomic_add16):       /* ; long (long *dst, long inc)    */
     lock
     xaddw          %ax, (%ecx)     /* ; tmp = *dst;
                                       ; dst += inc;
-                                      ; eax = tmp                     */
+                                      ; %ax = tmp                     */
 
     add            %edx, %eax      /* ; return %eax + inc             */
     ret
@@ -153,7 +153,7 @@ SYMNAME (__rw_atomic_add16):       /* ; long (long *dst, long inc)    */
     .globl SYMNAME (__rw_atomic_add32)
     TYPE_DIR (__rw_atomic_add32, @function)
 
-SYMNAME (__rw_atomic_add32):       /* ; long (long *dst, long inc)    */
+SYMNAME (__rw_atomic_add32):       /* ; int (int *dst, int inc)       */
     movl           4(%esp), %ecx   /* ; %ecx = dst                    */
     movl           8(%esp), %edx   /* ; %edx = inc                    */
     movl           %edx, %eax      /* ; */
