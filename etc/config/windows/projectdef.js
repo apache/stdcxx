@@ -66,14 +66,17 @@ function InitVSObjects(config, freedte)
 
     if (CONVERT)
     {
+        if (ICCCONVERT == "")
+            ICCCONVERT = "ICProjConvert90.exe";
+
         var ICConvertTool = ICCCONVERT;
 
         var arrPath = new Array(ICConvertTool);
 
-        if (ICConvertTool == "")
+        if (0 > ICConvertTool.indexOf("\\"))
         {
-            ICConvertTool = "ICProjConvert90.exe";
-            arrPath[0] = ICConvertTool;
+            // no file path specified
+            // try to detect the path
             if (null != dte)
             {
                 try
@@ -103,6 +106,7 @@ function InitVSObjects(config, freedte)
         if (!success)
         {
             WScript.StdErr.WriteLine(ICCCONVERT + " conversion utility not found");
+            WScript.StdErr.WriteLine("You should check ICCCONVERT configuration variable");
             WScript.Quit(3);
         }
     }
