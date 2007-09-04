@@ -527,7 +527,14 @@ void test_open_close (const char *loc_name, const char *cname)
     int fdcount [2];
     int next_fd [2];
 
+#ifndef _WIN32
     next_fd [0] = rw_nextfd (fdcount + 0);
+#else
+    // don't test file descriptor leaking on Win32 to avoid
+    // invalid parameter error
+    // catalog functions not uses file descriptors
+    next_fd [0] = fdcount [0] = 0;
+#endif
 
     rw_info (0, 0, __LINE__,
              "std::messages<%s>::open() and close() in locale(#%s)",
@@ -551,7 +558,11 @@ void test_open_close (const char *loc_name, const char *cname)
     close_catalog (msgs, cat, true, cname, __LINE__);
 
     // verify that no file descriptor has leaked
+#ifndef _WIN32
     next_fd [1] = rw_nextfd (fdcount + 1);
+#else
+    next_fd [1] = fdcount [1] = 0;
+#endif
 
     rw_assert (next_fd [1] == next_fd [0] && fdcount [0] == fdcount [1],
                0, __LINE__,
@@ -782,10 +793,6 @@ void stress_test (const char *cname)
         const char* const dot = std::strrchr (msg_name, '.');
         std::strncpy (catalog_names[i], msg_name, dot - msg_name);
         *(catalog_names[i] + (dot - msg_name)) = '\0';
-
-#ifdef _WIN32
-        std::strcat (catalog_names[i], ".dll");
-#endif   // _WIN32
 
         // open each catalog (expect success)
         cats [i] = open_catalog (msgs, catalog_names [i],
