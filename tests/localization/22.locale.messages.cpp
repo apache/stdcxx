@@ -590,9 +590,9 @@ void test_get (const char *loc_name,
     typedef std::allocator<charT>                       Allocator;
     typedef std::basic_string<charT, Traits, Allocator> String;
 
-    for (int setId = 1; setId < MAX_SETS; ++setId) {
+    for (int setId = 1; setId <= MAX_SETS; ++setId) {
 
-        for (int msgId = 1; msgId < MAX_MESSAGES; ++msgId) {
+        for (int msgId = 1; msgId <= MAX_MESSAGES; ++msgId) {
 
             const int id = msg_id (setId, msgId);
             const String got = msgs.get (cat, setId, id, def);
