@@ -120,4 +120,13 @@ rw_opt_locales;
 _TEST_EXPORT int
 rw_opt_setlocales (int, char*[]);
 
+
+// creates message file and invokes gencat to create message catalog
+// then removes the message file
+// catalog is a '\0' separated list of strings, each of which representing
+// a single message, and with a blank line separating one set from another
+// returns 0 in success
+_TEST_EXPORT int
+rw_create_catalog (const char * /* catname */, const char * /* catalog */);
+
 #endif   // RW_LOCALE_H_INCLUDED
