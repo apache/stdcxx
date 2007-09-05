@@ -108,6 +108,13 @@
 #define RELPATH        "etc" SLASH "nls"
 #define TESTS_ETC_PATH "tests" SLASH "etc"
             
+// extension of the catalog file
+#ifndef _WIN32
+#  define RW_CAT_EXT ".cat"
+#else
+#  define RW_CAT_EXT ".dll"
+#endif
+
 /**************************************************************************/
 
 _TEST_EXPORT int
@@ -858,4 +865,55 @@ rw_opt_setlocales (int argc, char* argv[])
 
     // return 0 on success
     return 0;
+}
+
+
+/**************************************************************************/
+
+_TEST_EXPORT int
+rw_create_catalog (const char * catname, const char * catalog)
+{
+    RW_ASSERT (catname && catalog);
+
+    FILE* const f = fopen (catname, "w");
+
+    if (!f)
+        return -1;
+
+#ifndef _WIN32
+
+    for (int i = 1; *catalog; ++catalog, ++i) {
+        fprintf (f, "$set %d This is Set %d\n", i, i);
+        for (int j = 1; *catalog; catalog += strlen (catalog) + 1, ++j)
+             fprintf (f, "%d %s\n", j, catalog);
+    }
+
+#else   // if defined (_WIN32)
+
+    fprintf (f, "STRINGTABLE\nBEGIN\n");
+
+    for (int i = 1; *catalog; ++catalog) {
+        for (; *catalog; catalog += strlen (catalog) + 1, ++i)
+            fprintf (f, "%d \"%s\"\n", i, catalog);
+    }
+
+    fprintf (f, "END\n");
+
+#endif   // _WIN32
+
+    fclose (f);
+
+    char *cat_name = new char [strlen (catname) + 1];
+    strcpy (cat_name, catname);
+    if (char *dot = strrchr (cat_name, '.'))
+        *dot = '\0';
+
+    const int ret = rw_system ("gencat %s" RW_CAT_EXT " %s",
+                               cat_name, catname);
+
+    delete[] cat_name;
+
+    remove (catname);
+
+    return ret;
 }
