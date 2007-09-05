@@ -34,7 +34,7 @@ SRCDIRS = $(TOPDIR)/util
 ONE_REPOSITORY = 1
 include ../makefile.common
 
-TARGET    = exec localedef locale
+TARGET    = exec localedef locale gencat
 
 # locale sources and related 
 NLSDIR = $(TOPDIR)/etc/nls
@@ -99,6 +99,12 @@ localedef: localedef.o locale.o aliases.o charmap.o codecvt.o collate.o \
 
 # link the locale utility
 locale: locale_stub.o
+	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" $(call CXX.repo,$<) \
+	>> $(LOGFILE)
+	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<) $(TEEOPTS)
+
+# link the gencat utility
+gencat: gencat.o
 	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" $(call CXX.repo,$<) \
 	>> $(LOGFILE)
 	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<) $(TEEOPTS)
