@@ -134,7 +134,7 @@ int catclose(nl_catd catd)
     delete __rw_catlist[i];
     __rw_catlist[i] = 0;
     CatVector::size_type j;
-    for (j = i+1; __rw_catlist[j] && j < __rw_catlist.size(); j++)
+    for (j = i+1; j < __rw_catlist.size() && __rw_catlist[j]; j++)
       __rw_catlist[j-1] = __rw_catlist[j];
     if (j < __rw_catlist.size())
       __rw_catlist[j] = 0;
