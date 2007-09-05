@@ -40,7 +40,7 @@
 
 #include <cstring>   // for strlen()
 #include <cstdlib>   // for getcwd(), getenv()
-#include <cstdio>    // for FILE, fopen(), fprintf()
+#include <cstdio>    // for remove()
 #include <clocale>   // for LC_ALL
 
 #include <cwchar>    // for mbsinit()
@@ -260,75 +260,7 @@ messages [MAX_SETS][MAX_MESSAGES] = {
     }
 };
 
-
-void generate_catalog (const char *msg_name,
-                       const char* const text [MAX_SETS][MAX_MESSAGES])
-{
-    std::FILE* const f = std::fopen (msg_name, "w");
-
-    if (!f)
-        return;
-
-#ifndef _WIN32
-
-    for (int i = 0; i < MAX_SETS; ++i) {
-        std::fprintf (f, "$set %d This is Set %d\n", i+1, i+1);
-        for (int j = 0; j < MAX_MESSAGES; ++j) {
-            std::fprintf (f, "%d %s\n", j + 1, text [i][j]);
-        }
-    }
-
-#else   // if defined (_WIN32)
-
-    std::fprintf (f, "STRINGTABLE\nBEGIN\n");
-    for (int i = 0; i < MAX_SETS; ++i) {
-        for (int j = 0; j < MAX_MESSAGES; ++j) {
-            const int msgid = msg_id (i + 1, j + 1);
-            std::fprintf (f, "%d \"%s\"\n", msgid, text[i][j]);
-        }
-    }
-
-    std::fprintf (f, "END\n");
-
-#endif   // _WIN32
-
-    std::fclose (f);
-
-    char *cat_name = new char [std::strlen (msg_name) + 1];
-    const char *dot = std::strrchr (msg_name, '.');
-    std::strncpy (cat_name, msg_name, dot - msg_name);
-    *(cat_name + (dot - msg_name)) = '\0';
-
-#ifndef _WIN32
-
-    rw_system ("gencat %s.cat %s", cat_name, msg_name);
-
-#else   // if defined (_WIN32)
-
-    char cpp_name [128];
-
-    std::sprintf (cpp_name, "%s.cpp", cat_name);
-
-    std::FILE* const cpp_file = std::fopen (cpp_name, "w");
-    std::fprintf (cpp_file, "void foo () { }");
-    std::fclose (cpp_file);
-
-    rw_system (   "rc -r %s.rc "
-               "&& cl -nologo -c %s"
-               "&& link -nologo /DLL /OUT:%s.dll %s.obj %s.res",
-               cat_name,
-               cpp_name,
-               cat_name, cat_name, cat_name);
-
-    rw_system (SHELL_RM_F "%s %s.rc %s.res %s.obj",
-               cpp_name, cat_name, cat_name, cat_name);
-
-#endif   // _WIN32
-
-    delete[] cat_name;
-
-    std::remove (msg_name);
-}
+static std::string catalog;
 
 /***************************************************************************/
 
@@ -788,7 +720,7 @@ void stress_test (const char *cname)
         std::sprintf (msg_name, "rwstdmessages_%d.rc", int (i));
 #endif
 
-        generate_catalog (msg_name, messages);
+        rw_create_catalog (msg_name, catalog.c_str ());
 
         const char* const dot = std::strrchr (msg_name, '.');
         std::strncpy (catalog_names[i], msg_name, dot - msg_name);
@@ -891,9 +823,16 @@ void test_messages (charT, const char *cname, const char *locname)
 static int
 run_test (int, char*[])
 {
+    for (int i = 0; i < MAX_SETS; ++i) {
+        for (int j = 0; j < MAX_MESSAGES; ++j)
+            catalog.append (messages [i][j], std::strlen (messages [i][j]) + 1);
+
+        catalog.append (1, '\0');
+    }
+
     const char* const locname = find_named_locale ();
 
-    generate_catalog (MSG_NAME, messages);
+    rw_create_catalog (MSG_NAME, catalog.c_str ());
 
     test_messages (char (), "char", locname);
 
