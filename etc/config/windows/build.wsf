@@ -65,6 +65,7 @@ var buildType = "";
 var longConfName = "";
 var buildOnly = false;
 var outputPane = null;
+var postBuildInvoked;
 
 var description = new build; // run
 
@@ -108,6 +109,8 @@ function getBuildLog(path)
 
 function event_ProjectBuildFinished(Cfg, Warnings, Errors, Canceled)
 {
+    postBuildInvoked = true;
+
     var log = "";
     var htm = "BuildLog.htm";
 
@@ -132,21 +135,28 @@ function event_ProjectBuildFinished(Cfg, Warnings, Errors, Canceled)
         sel.SelectAll();
         log = sel.Text;
 
-        // find BuildLoh.htm path
-        var proto = "file://";
-        var begin = log.indexOf(proto);
-        if (0 <= begin)
+        var log2 = "";
+        var begin = 0;
+
+        while (true)
         {
+            // find BuildLog.htm path
+            var proto = "file://";
+            begin = log.indexOf(proto, begin);
+            if (0 > begin)
+                break;
+
             begin += proto.length;
             var end = log.indexOf(htm, begin);
-            if (0 <= end)
-            {
-                var path = log.substring(begin, end + htm.length);
-                var log2 = getBuildLog(path);
-                if (0 < log2.length)
-                    log = log2;
-            }
+            if (0 > end)
+                break;
+
+            var path = log.substring(begin, end + htm.length);
+            log2 += getBuildLog(path);
         }
+
+        if (0 < log2.length)
+            log = log2;
     }
 
     WScript.Echo(log);
@@ -154,27 +164,34 @@ function event_ProjectBuildFinished(Cfg, Warnings, Errors, Canceled)
 
 function BuildProject(solutionBuild, projectName)
 {
-    var projectFile = null;
+    var projectFile = "";
     var projects = dte.Solution.Projects;
-    for (var i = 1; i <= projects.Count && null == projectFile; ++i)
+    for (var i = 1; i <= projects.Count && 0 == projectFile.length; ++i)
     {
         var project = projects.Item(i);
         if (project.Name == projectName)
-            projectFile = project.UniqueName;
+        {
+            try
+            {
+                projectFile = project.UniqueName;
+            }
+            catch (e)
+            {
+                WScript.Echo("Exception: cannot get UniqueName for " + projectName + "\n");
+                projectFile = project.FileName;
+            }
+        }
     }
 
-    if (null != projectFile)
+    if (0 < projectFile.length)
     {
-        var isICC = 0 < projectFile.indexOf(".icproj");
+        event_ProjectBuildStarted(null);
 
-        if (isICC)
-            // event not invoked automatically for Intel projects
-            event_ProjectBuildStarted(null);
+        postBuildInvoked = false;
 
         solutionBuild.BuildProject(longConfName, projectFile, true);
 
-        if (isICC)
-            // event not invoked automatically for Intel projects
+        if (!postBuildInvoked)
             event_ProjectBuildFinished(null, 0, 0, 0);
 
         return solutionBuild.LastBuildInfo;
