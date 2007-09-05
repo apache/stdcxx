@@ -232,6 +232,10 @@ run_test (int, char**)
             break;
     }
 
+    // avoid divide by zero in thread if there are no locales to test
+    rw_fatal (nlocales != 0, 0, __LINE__,
+              "failed to create one or more usable locales!");
+
     rw_info (0, 0, 0,
              "testing std::ctype<charT> with %d thread%{?}s%{;}, "
              "%zu iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
