@@ -242,7 +242,8 @@ struct MoneyGet: std::money_get<charT, const charT*> { };
 /**************************************************************************/
 
 template <class charT>
-void do_test (charT       which,   // which overload to exercise
+void do_test (bool        intl,    // international?
+              charT       which,   // which overload to exercise
               const char *cname,   // the name of the charT type
               const char *tname,   // the name of the floating point type
               int         lineno,  // line number
@@ -254,8 +255,7 @@ void do_test (charT       which,   // which overload to exercise
               int         frac_digits = 0, // fractional digits
               const char *fmat = 0,        // money_base::pattern
               const char *cursym = 0,      // currency symbol
-              const char *grouping = "",   // grouping string
-              bool intl = false)           // international?
+              const char *grouping = "")   // grouping string
 {
     if (!rw_enabled (lineno)) {
         rw_note (0, __FILE__, __LINE__, "test on line %d disabled", lineno);
@@ -448,10 +448,12 @@ void do_test (charT       which,   // which overload to exercise
 
 
 template <class charT>
-void test_get (charT opt, const char *cname, const char *tname)
+void test_get (charT opt, const char *cname, const char *tname, bool intl)
 {
-#define T      opt, cname, tname, __LINE__
+#define T      intl, opt, cname, tname, __LINE__
 #define TEST   do_test
+
+    const bool locl = !intl;
 
     rw_info (0, 0, 0,
              "money_get<%s, istreambuf_iterator<%s> >::get "
@@ -466,12 +468,12 @@ void test_get (charT opt, const char *cname, const char *tname)
     // by decimal_point(). The other symbols are defined as follows:
     //     units ::= digits [ thousandssep units ] digits ::= adigit [ digits ]
 
-    PunctData<charT>::positive_sign_ [0] = 0;
-    PunctData<charT>::positive_sign_ [1] = 0;
-    PunctData<charT>::negative_sign_ [0] = 0;
-    PunctData<charT>::negative_sign_ [1] = 0;
-    PunctData<charT>::thousands_sep_ [0] = '\0';
-    PunctData<charT>::thousands_sep_ [1] = '\0';
+    PunctData<charT>::positive_sign_ [intl] = 0;
+    PunctData<charT>::positive_sign_ [locl] = 0;
+    PunctData<charT>::negative_sign_ [intl] = 0;
+    PunctData<charT>::negative_sign_ [locl] = 0;
+    PunctData<charT>::thousands_sep_ [intl] = '\0';
+    PunctData<charT>::thousands_sep_ [locl] = '\0';
 
     // parsing zero, no curr_symbol or sign, default pattern, 0 frac_digits
     TEST (T, 0.0, "0",   1, 0, eofbit);
@@ -539,8 +541,8 @@ void test_get (charT opt, const char *cname, const char *tname)
     TEST (T,  54321098.0, "5432.1098", 9, 0, eofbit, 4);
     TEST (T, 432109870.0, "43210.987", 9, 0, eofbit, 4);
 
-    PunctData<charT>::thousands_sep_ [0] = ',';
-    PunctData<charT>::thousands_sep_ [1] = ';';
+    PunctData<charT>::thousands_sep_ [intl] = ',';
+    PunctData<charT>::thousands_sep_ [locl] = ';';
 
     // parsing with thousands_sep and/or grouping
     TEST (T,      0.0, "0",        1, 0, eofbit,  0, 0, "", "\1");
@@ -614,10 +616,10 @@ void test_get (charT opt, const char *cname, const char *tname)
     static const charT plus[][2]  = { { '+', '\0' }, { '\0' } };
     static const charT minus[][2] = { { '-', '\0' }, { '\0' } };
 
-    PunctData<charT>::positive_sign_ [0] = plus [0];
-    PunctData<charT>::negative_sign_ [0] = minus [0];
-    PunctData<charT>::positive_sign_ [1] = plus [1];
-    PunctData<charT>::negative_sign_ [1] = minus [1];
+    PunctData<charT>::positive_sign_ [intl] = plus [0];
+    PunctData<charT>::negative_sign_ [intl] = minus [0];
+    PunctData<charT>::positive_sign_ [locl] = plus [1];
+    PunctData<charT>::negative_sign_ [locl] = minus [1];
 
     TEST (T,  15.0, "+15",     3, 0, eofbit,  0, 0, "");
     TEST (T,  16.0, "+ 16",    4, 0, eofbit,  0, 0, "");
@@ -647,10 +649,10 @@ void test_get (charT opt, const char *cname, const char *tname)
     static const charT plus_plus[][3]   = { { '+', '+', '\0' }, { '\0' } };
     static const charT minus_minus[][3] = { { '-', '-', '\0' }, { '\0' } };
 
-    PunctData<charT>::positive_sign_ [0] = plus_plus [0];
-    PunctData<charT>::negative_sign_ [0] = minus_minus [0];
-    PunctData<charT>::positive_sign_ [1] = plus_plus [1];
-    PunctData<charT>::negative_sign_ [1] = minus_minus [1];
+    PunctData<charT>::positive_sign_ [intl] = plus_plus [0];
+    PunctData<charT>::negative_sign_ [intl] = minus_minus [0];
+    PunctData<charT>::positive_sign_ [locl] = plus_plus [1];
+    PunctData<charT>::negative_sign_ [locl] = minus_minus [1];
 
     TEST (T,  27.0, "+27+",    4, 0, eofbit, 0, 0, "");
     TEST (T,  28.0, "+  28+",  6, 0, eofbit, 0, 0, "");
@@ -683,10 +685,10 @@ void test_get (charT opt, const char *cname, const char *tname)
 
     static const charT plus_minus[][3] = { { '+', '-', '\0' }, { '\0' } };
 
-    PunctData<charT>::positive_sign_ [0] = plus_plus [0];
-    PunctData<charT>::positive_sign_ [1] = plus_plus [1];
-    PunctData<charT>::negative_sign_ [0] = plus_minus [0];
-    PunctData<charT>::negative_sign_ [1] = plus_minus [1];
+    PunctData<charT>::positive_sign_ [intl] = plus_plus [0];
+    PunctData<charT>::positive_sign_ [locl] = plus_plus [1];
+    PunctData<charT>::negative_sign_ [intl] = plus_minus [0];
+    PunctData<charT>::negative_sign_ [locl] = plus_minus [1];
 
     // 22.2.6.1.2, p3: if the first character of positive
     // and negative sign is the same, the result is positive
@@ -702,10 +704,10 @@ void test_get (charT opt, const char *cname, const char *tname)
     // none = 0, space = 1, symbol = 2, sign = 3, value = 4
 
     // test various patterns
-    PunctData<charT>::positive_sign_ [0] = plus [0];
-    PunctData<charT>::positive_sign_ [1] = plus [1];
-    PunctData<charT>::negative_sign_ [0] = minus [0];
-    PunctData<charT>::negative_sign_ [1] = minus [1];
+    PunctData<charT>::positive_sign_ [intl] = plus [0];
+    PunctData<charT>::positive_sign_ [locl] = plus [1];
+    PunctData<charT>::negative_sign_ [intl] = minus [0];
+    PunctData<charT>::negative_sign_ [locl] = minus [1];
 
     TEST (T,  -100.0, "$-1",   3, showbase, eofbit,  2, "\2\3\4\0", "$");
     TEST (T,  -200.0, "$-2 ",  3, showbase, goodbit, 2, "\2\3\4\0", "$");
@@ -730,8 +732,8 @@ void test_get (charT opt, const char *cname, const char *tname)
     TEST (T, -1500.0, "15 $-", 5, showbase, eofbit,  2, "\4\1\2\3", "$");
 
     const charT parens[][3] = { { '(', ')', '\0' }, { '\0' } };
-    PunctData<charT>::negative_sign_ [0] = parens [0];
-    PunctData<charT>::negative_sign_ [1] = parens [1];
+    PunctData<charT>::negative_sign_ [intl] = parens [0];
+    PunctData<charT>::negative_sign_ [locl] = parens [1];
 
     // { sign, space, value, symbol }, with symbol required
     TEST (T, -90.0, "( 9$)",    5, showbase, eofbit, 1, "\3\1\4\2", "$");
@@ -756,10 +758,10 @@ void test_get (charT opt, const char *cname, const char *tname)
     TEST (T, -104.0, "(104 L)", 7, 0,        eofbit,  0, "\3\4\0\2", "L");
     TEST (T, -105.0, "(105 L)", 7, showbase, eofbit,  0, "\3\4\0\2", "L");
 
-    PunctData<charT>::positive_sign_ [0] = plus [0];
-    PunctData<charT>::negative_sign_ [0] = minus [0];
-    PunctData<charT>::positive_sign_ [1] = plus [1];
-    PunctData<charT>::negative_sign_ [1] = minus [1];
+    PunctData<charT>::positive_sign_ [intl] = plus [0];
+    PunctData<charT>::negative_sign_ [intl] = minus [0];
+    PunctData<charT>::positive_sign_ [locl] = plus [1];
+    PunctData<charT>::negative_sign_ [locl] = minus [1];
 
     // { sign, value, none, symbol }
     // trailing optional curr_symbol or whitespace preceding it (regardless
@@ -784,8 +786,8 @@ void test_get (charT opt, const char *cname, const char *tname)
     TEST (T, -109.0, "109-$",  5, showbase, eofbit,  0, "\4\0\3\2", "$");
 
     const charT minus_space[][3] = { { '-', ' ', '\0' }, { '\0' } };
-    PunctData<charT>::negative_sign_ [0] = minus_space [0];
-    PunctData<charT>::negative_sign_ [1] = minus_space [1];
+    PunctData<charT>::negative_sign_ [intl] = minus_space [0];
+    PunctData<charT>::negative_sign_ [locl] = minus_space [1];
 
     // { sign, value, none, symbol }
     // negative_sign is "- ", (note the single trailing space)
@@ -797,30 +799,30 @@ void test_get (charT opt, const char *cname, const char *tname)
 
     // verify that optional space after value and before currency
     // symbol is treated correctly
-    PunctData<charT>::positive_sign_ [0] = plus_plus [0];
-    PunctData<charT>::positive_sign_ [1] = 0;
-    PunctData<charT>::negative_sign_ [0] = 0;
-    PunctData<charT>::negative_sign_ [1] = 0;
+    PunctData<charT>::positive_sign_ [intl] = plus_plus [0];
+    PunctData<charT>::positive_sign_ [locl] = 0;
+    PunctData<charT>::negative_sign_ [intl] = 0;
+    PunctData<charT>::negative_sign_ [locl] = 0;
 
     // { sign, value, none, symbol }
     TEST (T,  1090.0, "1090 $",   6, showbase, eofbit,  0, "\3\4\0\2", "$");
     TEST (T,  1091.0, "1091 $",   6, showbase, eofbit,  0, "\3\4\0\2", "$");
     TEST (T, +1092.0, "+1092 $+", 8, showbase, eofbit,  0, "\3\4\0\2", "$");
 
-    PunctData<charT>::positive_sign_ [0] = 0;
-    PunctData<charT>::positive_sign_ [1] = 0;
-    PunctData<charT>::negative_sign_ [0] = parens [0];
-    PunctData<charT>::negative_sign_ [1] = 0;
+    PunctData<charT>::positive_sign_ [intl] = 0;
+    PunctData<charT>::positive_sign_ [locl] = 0;
+    PunctData<charT>::negative_sign_ [intl] = parens [0];
+    PunctData<charT>::negative_sign_ [locl] = 0;
 
     TEST (T,  1093.0, "1093 $",   6, showbase, eofbit,  0, "\3\4\0\2", "$");
     TEST (T,  1094.0, "1094 $",   6, showbase, eofbit,  0, "\3\4\0\2", "$");
     TEST (T, -1095.0, "(1095 $)", 8, showbase, eofbit,  0, "\3\4\0\2", "$");
 
     // verify a single-char sign with a multichar one (see bug #428)
-    PunctData<charT>::positive_sign_ [0] = plus [0];
-    PunctData<charT>::positive_sign_ [1] = 0;
-    PunctData<charT>::negative_sign_ [0] = parens [0];
-    PunctData<charT>::negative_sign_ [1] = 0;
+    PunctData<charT>::positive_sign_ [intl] = plus [0];
+    PunctData<charT>::positive_sign_ [locl] = 0;
+    PunctData<charT>::negative_sign_ [intl] = parens [0];
+    PunctData<charT>::negative_sign_ [locl] = 0;
 
     // { sign, value, none, symbol }
     TEST (T,  1096.0, "1096 $",   6, showbase, eofbit,  0, "\3\4\0\2", "$");
@@ -828,10 +830,10 @@ void test_get (charT opt, const char *cname, const char *tname)
     TEST (T, +1098.0, "+1098 $",  7, showbase, eofbit,  0, "\3\4\0\2", "$");
     TEST (T, -1099.0, "(1099 $)", 8, showbase, eofbit,  0, "\3\4\0\2", "$");
 
-    PunctData<charT>::positive_sign_ [0] = 0;
-    PunctData<charT>::positive_sign_ [1] = 0;
-    PunctData<charT>::negative_sign_ [0] = 0;
-    PunctData<charT>::negative_sign_ [1] = 0;
+    PunctData<charT>::positive_sign_ [intl] = 0;
+    PunctData<charT>::positive_sign_ [locl] = 0;
+    PunctData<charT>::negative_sign_ [intl] = 0;
+    PunctData<charT>::negative_sign_ [locl] = 0;
 
     // { value, none, symbol, sign }
     // trailing whitespace is not extracted (even if required by the format)
@@ -851,12 +853,12 @@ void test_get (charT opt, const char *cname, const char *tname)
     TEST (T,  119.0, "119 $",  5, showbase, eofbit,  0, "\4\1\2\3", "$");
 
 
-    PunctData<charT>::positive_sign_ [0] = plus [0];
-    PunctData<charT>::positive_sign_ [1] = plus [1];
-    PunctData<charT>::negative_sign_ [0] = minus [0];
-    PunctData<charT>::negative_sign_ [1] = minus [1];
-    PunctData<charT>::thousands_sep_ [0] = ';';
-    PunctData<charT>::thousands_sep_ [1] = '*';
+    PunctData<charT>::positive_sign_ [intl] = plus [0];
+    PunctData<charT>::positive_sign_ [locl] = plus [1];
+    PunctData<charT>::negative_sign_ [intl] = minus [0];
+    PunctData<charT>::negative_sign_ [locl] = minus [1];
+    PunctData<charT>::thousands_sep_ [intl] = ';';
+    PunctData<charT>::thousands_sep_ [locl] = '*';
 
     // test grouping, default pattern { symbol sign none value }
     TEST (T, 0.0, "$0",     2, 0, eofbit, 0, 0, "$", "\1");
@@ -943,6 +945,19 @@ void test_get (charT opt, const char *cname, const char *tname)
 
 #undef T
 
+}
+
+/**************************************************************************/
+
+template <class charT>
+void
+test_get (charT opt, const char *cname, const char *tname)
+{
+    // test local money format
+    test_get (opt, cname, tname, false);
+
+    // test international money format
+    test_get (opt, cname, tname, true);
 }
 
 /**************************************************************************/
