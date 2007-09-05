@@ -190,6 +190,22 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     utilsArray.push(localeDef);
 
 ///////////////////////////////////////////////////////////////////////////////
+    var gencatDef = new ProjectDef("util_gencat", typeApplication);
+    gencatDef.VCProjDir = ProjectsDir + "\\util";
+    gencatDef.FilterDefs.push(
+        new FilterDef(sourceFilterName, sourceFilterUuid, sourceFilterExts, eFileTypeCppCode, false).
+            addFiles("%SRCDIR%\\util",
+                new Array("gencat.cpp")));
+    gencatDef.Defines = commonDefines;
+    gencatDef.Includes = stdcxxIncludes;
+    gencatDef.OutDir = binPath;
+    gencatDef.Libs = commonLibs;
+    gencatDef.OutFile = "$(OutDir)\\gencat.exe";
+    gencatDef.PrjRefs.push(stdcxxDef);
+
+    utilsArray.push(gencatDef);
+
+///////////////////////////////////////////////////////////////////////////////
     var utilsDef = new ProjectDef(".stdcxx_utils", typeGeneric);
     utilsDef.VCProjDir = ProjectsDir + "\\util";
     utilsDef.OutDir = binPath;
@@ -197,6 +213,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     utilsDef.PrjDeps.push(execDef);
     utilsDef.PrjDeps.push(localedefDef);
     utilsDef.PrjDeps.push(localeDef);
+    utilsDef.PrjDeps.push(gencatDef);
 
     utilsArray.push(utilsDef);
 
