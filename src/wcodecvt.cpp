@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -1079,6 +1079,31 @@ codecvt (_RWSTD_SIZE_T __ref /* = 0 */)
     : _RW::__rw_facet (__ref)
 {
     // no-op
+}
+
+
+/* virtual */ bool
+codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
+do_always_noconv () const _THROWS (())
+{
+    return false;   // conversion always necessary
+}
+
+
+/* virtual */ int
+codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
+do_encoding () const _THROWS (())
+{
+    // 22.2.1.5.2 p6    1(ext.) <=> 1(int.)
+    return 1;   
+}
+
+
+/* virtual */ int
+codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
+do_max_length () const _THROWS (())
+{
+    return 1;
 }
 
 

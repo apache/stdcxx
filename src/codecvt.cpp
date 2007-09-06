@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -95,6 +95,14 @@ _RWSTD_NAMESPACE (std) {
 
 
 _RW::__rw_facet_id codecvt<char, char, _RWSTD_MBSTATE_T>::id;
+
+
+codecvt<char, char, _RWSTD_MBSTATE_T>::
+codecvt (size_t refs /* = 0 */)
+    : _RW::__rw_facet (refs), _C_always_noconv (-1)
+{
+    // empty
+}
 
 
 /* virtual */ codecvt<char, char, _RWSTD_MBSTATE_T>::~codecvt ()
