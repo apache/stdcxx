@@ -20,7 +20,7 @@
 # implied.   See  the License  for  the  specific language  governing
 # permissions and limitations under the License.
 #
-# Copyright 2001-2006 Rogue Wave Software.
+# Copyright 2001-2007 Rogue Wave Software, Inc.
 #
 ##############################################################################
 #
@@ -82,9 +82,13 @@ CPPFLAGS="`echo $CPPFLAGS | sed 's:-I *[^ ]*::g'`"
 if [ "$CXX" = "aCC" ] ; then
 
     cxx_major="`echo $CXX_VER | sed 's/.*\.\([0-9][0-9]*\)\..*/\1/'`"
+    echo $CXXFLAGS | grep '[-]Aa' >/dev/null 2>&1
+    has_Aa=$?
 
-    if [ "$cxx_major" -le "05" ] ; then
-        # prepend -I/usr/include to CXXOPTS for HP aCC on PA but not IPF
+    if [ "$cxx_major" -le "05" -a $has_Aa -eq 0 ] ; then
+        # prepend -I/usr/include to CXXOPTS for HP aCC when the -Aa
+        # command line option is specified (aCC 3 and 5 but not aCC
+        # 6 on IPF)
         CXXFLAGS="$CXXFLAGS -I/usr/include"
     fi
 
