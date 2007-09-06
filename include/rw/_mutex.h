@@ -140,6 +140,9 @@ LeaveCriticalSection (_RTL_CRITICAL_SECTION*);
 __declspec (dllimport) void __stdcall
 DeleteCriticalSection (_RTL_CRITICAL_SECTION*);
 
+
+#if defined _RWSTD_INTERLOCKED_T && (!defined (_MSC_VER) || _MSC_VER < 1400)
+
 __declspec (dllimport) long __stdcall
 InterlockedIncrement (_RWSTD_INTERLOCKED_T*);
 
@@ -148,6 +151,12 @@ InterlockedDecrement (_RWSTD_INTERLOCKED_T*);
 
 __declspec (dllimport) long __stdcall
 InterlockedExchange (_RWSTD_INTERLOCKED_T*, long);
+
+#  define _InterlockedIncrement InterlockedIncrement
+#  define _InterlockedDecrement InterlockedDecrement
+#  define _InterlockedExchange  InterlockedExchange
+
+#endif   // _RWSTD_INTERLOCKED_T && (!_MSC_VER || _MSC_VER < 1400)
 
 }   // extern "C"
 
@@ -166,6 +175,21 @@ union __rw_critical_section {
 
 #  endif   // _RWSTD_NO_FWD_DECLARATIONS
 
+#  if _MSC_VER >= 1400
+#    include <intrin.h>
+
+#    pragma intrinsic (_InterlockedIncrement)
+#    pragma intrinsic (_InterlockedIncrement16)
+#    pragma intrinsic (_InterlockedDecrement)
+#    pragma intrinsic (_InterlockedDecrement16)
+#    pragma intrinsic (_InterlockedExchange)
+
+#    ifdef _M_X64
+#      pragma intrinsic (_InterlockedIncrement64)
+#      pragma intrinsic (_InterlockedDecrement64)
+#      pragma intrinsic (_InterlockedExchange64)
+#    endif
+#  endif   // _MSC_VER >= 1400
 
 
 _RWSTD_NAMESPACE (__rw) { 
@@ -480,9 +504,9 @@ __rw_mutex_base& __rw_get_static_mutex (_TypeT*)
     // up with multiple copies)
     static volatile long __cntr /* = 0 */;   // initialization counter
 
-#if defined (_WIN32) || defined (_WIN64)
+#if defined (_WIN32)
     // MT safe
-    if (0 == __cntr && 1 == InterlockedIncrement ((long*)&__cntr))
+    if (0 == __cntr && 1 == _InterlockedIncrement ((long*)&__cntr))
 #else
     // not so safe (volatile should help)
     if (0 == __cntr && 1 == ++__cntr)
@@ -1161,19 +1185,20 @@ __rw_string_atomic_exchange (unsigned &__x, unsigned __y, bool)
                                         false);
 } 
 
-/********************** i386/gcc **************************************/
+/********************** i386/gcc || _M_IX86 *********************************/
 
-#elif defined (__i386__) && (defined (__GNUG__) || defined (__INTEL_COMPILER))
+#elif defined (__i386__) && (defined (__GNUG__) \
+   || defined (__INTEL_COMPILER)) || defined (_M_IX86)
 
 extern "C" {
 
-char __rw_atomic_add8 (char*, int);
-short __rw_atomic_add16 (short*, short);
-int __rw_atomic_add32 (int*, int);
+_RWSTD_EXPORT char __rw_atomic_add8 (char*, int);
+_RWSTD_EXPORT short __rw_atomic_add16 (short*, short);
+_RWSTD_EXPORT int __rw_atomic_add32 (int*, int);
 
-char __rw_atomic_xchg8 (char*, char);
-short __rw_atomic_xchg16 (short*, short);
-int __rw_atomic_xchg32 (int*, int);
+_RWSTD_EXPORT char __rw_atomic_xchg8 (char*, char);
+_RWSTD_EXPORT short __rw_atomic_xchg16 (short*, short);
+_RWSTD_EXPORT int __rw_atomic_xchg32 (int*, int);
 
 }   // extern "C"
 
@@ -1206,7 +1231,12 @@ inline short
 __rw_atomic_preincrement (short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
+
+#if defined (_MSC_VER) && _MSC_VER >= 1400
+    return _InterlockedIncrement16 (&__x);
+#else
     return __rw_atomic_add16 (&__x, +1);
+#endif
 }
 
 
@@ -1214,7 +1244,12 @@ inline unsigned short
 __rw_atomic_preincrement (unsigned short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
+
+#if defined (_MSC_VER) && _MSC_VER >= 1400
+    return _InterlockedIncrement16 (_RWSTD_REINTERPRET_CAST (short*, &__x));
+#else
     return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (short*, &__x), +1);
+#endif
 }
 
 
@@ -1222,7 +1257,12 @@ inline int
 __rw_atomic_preincrement (int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
+
+#ifdef _MSC_VER
+    return _InterlockedIncrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
+#else
     return __rw_atomic_add32 (&__x, 1);
+#endif
 }
 
 
@@ -1230,7 +1270,12 @@ inline unsigned int
 __rw_atomic_preincrement (unsigned int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
+
+#ifdef _MSC_VER
+    return _InterlockedIncrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
+#else
     return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), 1);
+#endif
 }
 
 
@@ -1262,7 +1307,12 @@ inline short
 __rw_atomic_predecrement (short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
+
+#if defined (_MSC_VER) && _MSC_VER >= 1400
+    return _InterlockedDecrement16 (&__x);
+#else
     return __rw_atomic_add16 (&__x, -1);
+#endif
 }
 
 
@@ -1270,7 +1320,12 @@ inline unsigned short
 __rw_atomic_predecrement (unsigned short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
+
+#if defined (_MSC_VER) && _MSC_VER >= 1400
+    return _InterlockedDecrement16 (_RWSTD_REINTERPRET_CAST (short*, &__x));
+#else
     return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (short*, &__x), -1);
+#endif
 }
 
 
@@ -1278,7 +1333,12 @@ inline int
 __rw_atomic_predecrement (int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
+
+#ifdef _MSC_VER
+    return _InterlockedDecrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
+#else
     return __rw_atomic_add32 (&__x, -1);
+#endif
 }
 
 
@@ -1286,7 +1346,12 @@ inline unsigned int
 __rw_atomic_predecrement (unsigned int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
+
+#ifdef _MSC_VER
+    return _InterlockedDecrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
+#else
     return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), -1);
+#endif
 }
 
 
@@ -1337,7 +1402,13 @@ inline int
 __rw_atomic_exchange (int &__x, int __y, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
+
+#ifdef _MSC_VER
+    return _InterlockedExchange (_RWSTD_REINTERPRET_CAST (long*, &__x),
+                                 _RWSTD_STATIC_CAST (long, __y));
+#else
     return __rw_atomic_xchg32 (&__x, __y);
+#endif
 }
 
 
@@ -1345,88 +1416,48 @@ inline unsigned int
 __rw_atomic_exchange (unsigned int &__x, unsigned int __y, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
+
+#ifdef _MSC_VER
+    return _InterlockedExchange (_RWSTD_REINTERPRET_CAST (long*, &__x),
+                                 _RWSTD_STATIC_CAST (long, __y));
+#else
     return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (int*, &__x),
                                _RWSTD_STATIC_CAST (int, __y));
+#endif
 }
 
+/********************** IA64/x86_64/_M_X64 *****************************/
 
-/********************** WIN 32/64 ************************************/
-
-#elif defined (_WIN32)
-
-// Interlocked[In|De]crement functions atomically modify their argument
-// and return the new value
-
-// InterlockedExchange atomically sets the value pointed to by the first
-// argument to that of the second argument and returns the original value
-
-inline int
-__rw_atomic_preincrement (int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
-    return InterlockedIncrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
-}
-
-
-inline unsigned int
-__rw_atomic_preincrement (unsigned int &__x, bool)
-{
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                     false);
-}
-
-
-inline int
-__rw_atomic_predecrement (int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
-    return InterlockedDecrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
-}
-
-
-inline unsigned int
-__rw_atomic_predecrement (unsigned int &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                     false);
-}
-
-
-inline int
-__rw_atomic_exchange (int &__x, int __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (sizeof __x == sizeof (long));
-    return InterlockedExchange (_RWSTD_REINTERPRET_CAST (long*, &__x),
-                                _RWSTD_STATIC_CAST (long, __y));
-}
-
-
-inline unsigned int
-__rw_atomic_exchange (unsigned int &__x, unsigned int __y, bool)
-{
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                 _RWSTD_STATIC_CAST (int, __y), false);
-}
-
-/********************** IA64/x86_64 ***********************************/
-
-#elif defined (__ia64) || defined (__x86_64)
+#elif defined (__ia64) || defined (__x86_64) || defined (_M_X64)
 
 extern "C" {
 
-_RWSTD_INT8_T  __rw_atomic_xchg8  (_RWSTD_INT8_T*,  _RWSTD_INT8_T);
-_RWSTD_INT16_T __rw_atomic_xchg16 (_RWSTD_INT16_T*, _RWSTD_INT16_T);
-_RWSTD_INT32_T __rw_atomic_xchg32 (_RWSTD_INT32_T*, _RWSTD_INT32_T);
+_RWSTD_EXPORT _RWSTD_INT8_T
+__rw_atomic_xchg8  (_RWSTD_INT8_T*,  _RWSTD_INT8_T);
+
+_RWSTD_EXPORT _RWSTD_INT16_T
+__rw_atomic_xchg16 (_RWSTD_INT16_T*, _RWSTD_INT16_T);
+
+_RWSTD_EXPORT _RWSTD_INT32_T
+__rw_atomic_xchg32 (_RWSTD_INT32_T*, _RWSTD_INT32_T);
 
 
-_RWSTD_INT8_T  __rw_atomic_add8  (_RWSTD_INT8_T*,  _RWSTD_INT8_T);
-_RWSTD_INT16_T __rw_atomic_add16 (_RWSTD_INT16_T*, _RWSTD_INT16_T);
-_RWSTD_INT32_T __rw_atomic_add32 (_RWSTD_INT32_T*, _RWSTD_INT32_T);
+_RWSTD_EXPORT _RWSTD_INT8_T
+__rw_atomic_add8  (_RWSTD_INT8_T*,  _RWSTD_INT8_T);
+
+_RWSTD_EXPORT _RWSTD_INT16_T
+__rw_atomic_add16 (_RWSTD_INT16_T*, _RWSTD_INT16_T);
+
+_RWSTD_EXPORT _RWSTD_INT32_T
+__rw_atomic_add32 (_RWSTD_INT32_T*, _RWSTD_INT32_T);
 
 #ifdef _RWSTD_INT64_T
 
-_RWSTD_INT64_T __rw_atomic_xchg64 (_RWSTD_INT64_T*, _RWSTD_INT64_T);
-_RWSTD_INT64_T __rw_atomic_add64 (_RWSTD_INT64_T*, _RWSTD_INT64_T);
+_RWSTD_EXPORT _RWSTD_INT64_T
+__rw_atomic_xchg64 (_RWSTD_INT64_T*, _RWSTD_INT64_T);
+
+_RWSTD_EXPORT _RWSTD_INT64_T
+__rw_atomic_add64 (_RWSTD_INT64_T*, _RWSTD_INT64_T);
 
 #endif   // _RWSTD_INT64_T
 
@@ -1468,8 +1499,12 @@ __rw_atomic_preincrement (short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
 
+#ifdef _MSC_VER
+    return _InterlockedIncrement16 (&__x);
+#else
     return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
                               +1);
+#endif
 }
 
 
@@ -1478,8 +1513,12 @@ __rw_atomic_preincrement (unsigned short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
 
+#ifdef _MSC_VER
+    return _InterlockedIncrement16 (_RWSTD_REINTERPRET_CAST (short*, &__x));
+#else
     return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
                               +1);
+#endif
 }
 
 
@@ -1488,8 +1527,12 @@ __rw_atomic_preincrement (int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
 
+#ifdef _MSC_VER
+    return _InterlockedIncrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
+#else
     return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
                               +1);
+#endif
 }
 
 
@@ -1498,8 +1541,12 @@ __rw_atomic_preincrement (unsigned int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
 
+#ifdef _MSC_VER
+    return _InterlockedIncrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
+#else
     return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
                               +1);
+#endif
 }
 
 
@@ -1535,8 +1582,12 @@ __rw_atomic_preincrement (_RWSTD_LONG_LONG &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (8 == sizeof (_RWSTD_LONG_LONG));
 
+#ifdef _MSC_VER
+    return _InterlockedIncrement64 (_RWSTD_REINTERPRET_CAST (__int64*, &__x));
+#else
     return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
                               +1);
+#endif
 }
 
 
@@ -1545,8 +1596,12 @@ __rw_atomic_preincrement (unsigned _RWSTD_LONG_LONG &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned _RWSTD_LONG_LONG));
 
+#ifdef _MSC_VER
+    return _InterlockedIncrement64 (_RWSTD_REINTERPRET_CAST (__int64*, &__x));
+#else
     return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
                               +1);
+#endif
 }
 
 #  endif   // _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
@@ -1588,8 +1643,12 @@ __rw_atomic_predecrement (short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
 
+#ifdef _MSC_VER
+    return _InterlockedDecrement16 (&__x);
+#else
     return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
                               -1);
+#endif
 }
 
 
@@ -1598,8 +1657,12 @@ __rw_atomic_predecrement (unsigned short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
 
+#ifdef _MSC_VER
+    return _InterlockedDecrement16 (_RWSTD_REINTERPRET_CAST (short*, &__x));
+#else
     return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
                               -1);
+#endif
 }
 
 
@@ -1608,8 +1671,12 @@ __rw_atomic_predecrement (int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
 
+#ifdef _MSC_VER
+    return _InterlockedDecrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
+#else
     return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
                               -1);
+#endif
 }
 
 
@@ -1618,8 +1685,12 @@ __rw_atomic_predecrement (unsigned int &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
 
+#ifdef _MSC_VER
+    return _InterlockedDecrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
+#else
     return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
                               -1);
+#endif
 }
 
 
@@ -1655,8 +1726,12 @@ __rw_atomic_predecrement (_RWSTD_LONG_LONG &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (8 == sizeof (_RWSTD_LONG_LONG));
 
+#ifdef _MSC_VER
+    return _InterlockedDecrement64 (_RWSTD_REINTERPRET_CAST (__int64*, &__x));
+#else
     return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
                               -1);
+#endif
 }
 
 
@@ -1665,8 +1740,12 @@ __rw_atomic_predecrement (unsigned _RWSTD_LONG_LONG &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned _RWSTD_LONG_LONG));
 
+#ifdef _MSC_VER
+    return _InterlockedDecrement64 (_RWSTD_REINTERPRET_CAST (__int64*, &__x));
+#else
     return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
                               -1);
+#endif
 }
 
 #  endif   // _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
@@ -1728,8 +1807,13 @@ __rw_atomic_exchange (int &__x, int __y, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
 
+#ifdef _MSC_VER
+    return _InterlockedExchange (_RWSTD_REINTERPRET_CAST (long*, &__x),
+                                 _RWSTD_STATIC_CAST (long, __y));
+#else
     return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
                                _RWSTD_STATIC_CAST (_RWSTD_INT32_T, __y));
+#endif
 }
 
 
@@ -1738,8 +1822,13 @@ __rw_atomic_exchange (unsigned int &__x, unsigned int __y, bool)
 {
     _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
 
+#ifdef _MSC_VER
+    return _InterlockedExchange (_RWSTD_REINTERPRET_CAST (long*, &__x),
+                                 _RWSTD_STATIC_CAST (long, __y));
+#else
     return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
                                _RWSTD_STATIC_CAST (_RWSTD_INT32_T, __y));
+#endif
 }
 
 
@@ -1775,8 +1864,13 @@ __rw_atomic_exchange (_RWSTD_LONG_LONG &__x, _RWSTD_LONG_LONG __y, bool)
 {
     _RWSTD_COMPILE_ASSERT (8 == sizeof (_RWSTD_LONG_LONG));
 
+#ifdef _MSC_VER
+    return _InterlockedExchange64 (_RWSTD_REINTERPRET_CAST (__int64*, &__x),
+                                   _RWSTD_STATIC_CAST (__int64, __y));
+#else
     return __rw_atomic_xchg64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
                                _RWSTD_STATIC_CAST (_RWSTD_INT64_T, __y));
+#endif
 }
 
 
@@ -1786,8 +1880,13 @@ __rw_atomic_exchange (unsigned _RWSTD_LONG_LONG &__x,
 {
     _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned _RWSTD_LONG_LONG));
 
+#ifdef _MSC_VER
+    return _InterlockedExchange64 (_RWSTD_REINTERPRET_CAST (__int64*, &__x),
+                                   _RWSTD_STATIC_CAST (__int64, __y));
+#else
     return __rw_atomic_xchg64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
                                _RWSTD_STATIC_CAST (_RWSTD_INT64_T, __y));
+#endif
 }
 
 #  endif   // _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE

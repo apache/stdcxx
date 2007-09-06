@@ -85,6 +85,10 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     projectDefs.push(new Array(configureDef));
 
 ///////////////////////////////////////////////////////////////////////////////
+    // add platform dependent files
+    customFileDefs.push(new CustomFileDef("i86\\atomic.asm", "Win32", InitAsmTool));
+    customFileDefs.push(new CustomFileDef("i86_64\\atomic.asm", "x64", InitAsmTool));
+
     var stdcxxDef = new ProjectDef(".stdcxx", typeLibrary);
     stdcxxDef.VCProjDir = ProjectsDir;
     stdcxxDef.FilterDefs.push(
