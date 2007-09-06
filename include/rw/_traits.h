@@ -406,8 +406,9 @@ struct char_traits<char>
         // cast to const void* used to get around a gcc 2.95 bug
         // that prevents a static_cast from void* --> const T*
         // (only occurs if memchr() isn't overloaded on const)
-        return _RWSTD_STATIC_CAST (const char_type*,
-                                   (const void*)_RWSTD_MEMCHR (__s, __c, __n));
+        return _RWSTD_STATIC_CAST (
+            const char_type*, (const void*)_RWSTD_MEMCHR (
+                __s, _RWSTD_STATIC_CAST (unsigned char, __c), __n));
     }
 
     static _RWSTD_SIZE_T length (const char_type *__s) {
