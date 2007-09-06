@@ -67,7 +67,8 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     configureDef.IntDir = configureDef.OutDir;
     configureDef.CustomBuildFile = "configure.wsf";
     if (0 < CLVARSBAT.length)
-        configureDef.CustomBuildCmd = "call \"" + CLVARSBAT + "\"\r\n";
+        configureDef.CustomBuildCmd = "echo Calling \"" + CLVARSBAT + "\"\r\n" +
+                                      "call \"" + CLVARSBAT + "\"\r\n";
     else
         configureDef.CustomBuildCmd = "";
     configureDef.CustomBuildCmd += "cscript /nologo \"%CUSTOMFILE%\"" +
