@@ -178,7 +178,7 @@ function BuildProject(solutionBuild, projectName)
             catch (e)
             {
                 WScript.Echo("Exception: cannot get UniqueName for " + projectName + "\n");
-                projectFile = project.FileName;
+                projectFile = project.FullName;
             }
         }
     }
