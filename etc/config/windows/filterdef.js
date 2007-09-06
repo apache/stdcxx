@@ -25,7 +25,7 @@
 
 var sourceFilterName = "Source Files";
 var sourceFilterUuid = "{4FC737F1-C7A5-4376-A066-2A32D752A2FF}";
-var sourceFilterExts = ".cpp;.cxx;.s";
+var sourceFilterExts = ".cpp;.cxx;.s;.asm";
 
 var headerFilterName = "Header Files";
 var headerFilterUuid = "{93995380-89BD-4b04-88EB-625FBE52EBFB}";
@@ -55,6 +55,21 @@ function ReplaceMacros(str, arrMacro)
     
     return str;
 }
+
+//------------------------------------------------
+// CustomFileDef class
+//------------------------------------------------
+
+// CustomFileDef .ctor
+function CustomFileDef(filepath, platform, initfun)
+{
+    this.filepath = filepath;
+    this.platform = platform;
+    this.initfun  = initfun;
+}
+
+// global array with platform dependent files definitions
+var customFileDefs = new Array();
 
 // common macros
 var cmnMacros = new Array();
@@ -126,7 +141,29 @@ function AddFilterFile(filter, filename, filetype, exclude)
     var VCFile = filter.AddFile(filename);
     if (null != filetype && typeof(VCFile.FileType) != "undefined")
         VCFile.FileType = filetype;
-        
+
+    var customFileDef = null;
+
+    if (!exclude)
+    {
+        // find the platform dependent file definition
+        for (var i = 0; i < customFileDefs.length; ++i)
+        {
+            var custFileDef = customFileDefs[i];
+            var pos = VCFile.FullPath.length - custFileDef.filepath.length;
+            if (0 <= pos && pos == VCFile.FullPath.indexOf(custFileDef.filepath))
+            {
+                customFileDef = custFileDef;
+                break;
+            }
+        }
+
+        // exclude this file from build if current platform
+        // is not custom file target platform
+        if (null != customFileDef && customFileDef.platform != PLATFORM)
+            exclude = true;
+    }
+    
     if (exclude)
     {
         var cfgs = VCFile.FileConfigurations;
@@ -143,6 +180,12 @@ function AddFilterFile(filter, filename, filetype, exclude)
 
             cfg.ExcludedFromBuild = exclude;
         }
+    }
+    else if (null != customFileDef &&
+             "undefined" != typeof(customFileDef.initfun))
+    {
+        // init
+        customFileDef.initfun(VCFile);
     }
 }
 

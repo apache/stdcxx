@@ -32,6 +32,7 @@ var CONVERT = false;
 var CXX = "cl";
 var LD = "cl";
 var AR = "lib";
+var AS = "ml";
 var SLNVER="8.00";
 var SLNCOMMENT="";
 var UNICODELOG = false;
@@ -112,6 +113,9 @@ function parseConfig(config)
         case "AR":
             AR = arr[2];
             break;
+        case "AS":
+            AS = arr[2];
+            break;
         case "SLNVER":
             SLNVER = arr[2];
             break;
@@ -179,6 +183,7 @@ function PrintVars(stream)
     stream.WriteLine("  CXX=" + CXX);
     stream.WriteLine("  LD=" + LD);
     stream.WriteLine("  AR=" + AR);
+    stream.WriteLine("  AS=" + AS);
     stream.WriteLine("  SLNVER=" + SLNVER);
     stream.WriteLine("  SLNCOMMENT=" + SLNCOMMENT);
     stream.WriteLine("  UNICODELOG=" + UNICODELOG);
