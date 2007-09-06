@@ -127,7 +127,7 @@ int main (int argc, char *argv[])
     }
 
     if (std::string::npos != cmd.find (' ')) {
-        cmd.insert (0, 1, '\"');
+        cmd.insert (cmd.begin (), 1, '\"');
         cmd.push_back ('\"');
     }
 
