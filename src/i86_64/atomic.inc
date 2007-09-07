@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; i86_64/atomic.asm
+; i86_64/atomic.inc
 ;
 ; $Id$
 ;
@@ -182,5 +182,3 @@ __rw_atomic_add64 proc                    ; int64_t (int64_t *dst, int64_t inc)
                 add     rax, rdx          ; return %eax + inc
                 ret
 __rw_atomic_add64 endp
-
-                end
