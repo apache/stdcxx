@@ -945,25 +945,3 @@ function projectCreateTestLocalesDef(nlsDir)
 
     return projectDef;
 }
-
-// init custom build rule for .asm files
-function InitAsmTool(VCFile)
-{
-    var cfgs = VCFile.FileConfigurations;
-    for (var i = 1; i <= cfgs.Count; ++i)
-    {
-        var cfg = cfgs.Item(i);
-        if ((typeof(cfg.Tool.ToolKind) != "undefined" &&
-            cfg.Tool.ToolKind != "VCCustomBuildTool") ||
-            cfg.Tool.ToolName != "Custom Build Tool")
-        {
-            cfg.Tool = cfg.ProjectConfiguration.FileTools.Item("VCCustomBuildTool");
-        }
-
-        var tool = cfg.Tool;
-        tool.Description = "Compiling .asm file...";
-        tool.Outputs = "$(IntDir)\\$(InputName).obj";
-        tool.CommandLine = AS + " /c /nologo /Fo" + tool.Outputs +
-                           " /W3 /Zi /Ta" + VCFile.RelativePath;
-    }
-}

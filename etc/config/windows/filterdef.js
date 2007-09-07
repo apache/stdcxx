@@ -56,23 +56,30 @@ function ReplaceMacros(str, arrMacro)
     return str;
 }
 
-//------------------------------------------------
-// CustomFileDef class
-//------------------------------------------------
-
-// CustomFileDef .ctor
-function CustomFileDef(filepath, platform, initfun)
-{
-    this.filepath = filepath;
-    this.platform = platform;
-    this.initfun  = initfun;
-}
-
-// global array with platform dependent files definitions
-var customFileDefs = new Array();
-
 // common macros
 var cmnMacros = new Array();
+
+// init custom build rule for .asm files
+function InitAsmTool(VCFile)
+{
+    var cfgs = VCFile.FileConfigurations;
+    for (var i = 1; i <= cfgs.Count; ++i)
+    {
+        var cfg = cfgs.Item(i);
+        if ((typeof(cfg.Tool.ToolKind) != "undefined" &&
+            cfg.Tool.ToolKind != "VCCustomBuildTool") ||
+            cfg.Tool.ToolName != "Custom Build Tool")
+        {
+            cfg.Tool = cfg.ProjectConfiguration.FileTools.Item("VCCustomBuildTool");
+        }
+
+        var tool = cfg.Tool;
+        tool.Description = "Compiling .asm file...";
+        tool.Outputs = "$(IntDir)\\$(InputName).obj";
+        tool.CommandLine = AS + " /c /nologo /D" + PLATFORM + " /Fo" + tool.Outputs +
+                           " /W3 /Zi /Ta" + VCFile.RelativePath;
+    }
+}
 
 //------------------------------------------------
 // FilterDef class
@@ -144,26 +151,6 @@ function AddFilterFile(filter, filename, filetype, exclude)
 
     var customFileDef = null;
 
-    if (!exclude)
-    {
-        // find the platform dependent file definition
-        for (var i = 0; i < customFileDefs.length; ++i)
-        {
-            var custFileDef = customFileDefs[i];
-            var pos = VCFile.FullPath.length - custFileDef.filepath.length;
-            if (0 <= pos && pos == VCFile.FullPath.indexOf(custFileDef.filepath))
-            {
-                customFileDef = custFileDef;
-                break;
-            }
-        }
-
-        // exclude this file from build if current platform
-        // is not custom file target platform
-        if (null != customFileDef && customFileDef.platform != PLATFORM)
-            exclude = true;
-    }
-    
     if (exclude)
     {
         var cfgs = VCFile.FileConfigurations;
@@ -181,12 +168,8 @@ function AddFilterFile(filter, filename, filetype, exclude)
             cfg.ExcludedFromBuild = exclude;
         }
     }
-    else if (null != customFileDef &&
-             "undefined" != typeof(customFileDef.initfun))
-    {
-        // init
-        customFileDef.initfun(VCFile);
-    }
+    else if (".asm" == VCFile.Extension)
+        InitAsmTool(VCFile);
 }
 
 // create VCFilter object from the FilterDef definition

@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; i86/atomic.asm
+; i86/atomic.inc
 ;
 ; $Id$
 ;
@@ -174,5 +174,3 @@ arg_inc         = dword ptr  8
                 add     eax, edx             ; return %eax + inc        
                 ret
 ___rw_atomic_add32 endp
-
-                end
