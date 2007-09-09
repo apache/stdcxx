@@ -443,6 +443,7 @@ function projectCreateVCProject(engine, report)
                         compiler.AdditionalOptions += " /GA";
                 }
                 compiler.Optimization = optimizeMinSpace;
+                compiler.EnableIntrinsicFunctions = true;
                 compiler.MinimalRebuild = false;
                 setProperty(compiler.SmallerTypeCheck, false);
                 setProperty(compiler.BasicRuntimeChecks, runtimeBasicCheckNone);
