@@ -45,6 +45,36 @@ var CLVARSBAT = "";
 // timeout for exec utility in seconds
 var EXEC_TIMEOUT = 300;
 
+// expand system macros
+function expandSysMacro(str)
+{
+    var env = null;
+    var pos = 0;
+
+    while (true)
+    {
+        pos = str.indexOf("%", pos);
+        if (0 > pos)
+            break;
+
+        ++pos;
+        var pos2 = str.indexOf("%", pos);
+        if (0 > pos2)
+            break;
+
+        if (null == env)
+            env = WshShell.Environment("PROCESS");
+
+        var macro = str.substring(pos, pos2);
+        pos = pos2 + 1;
+        var value = env.Item(macro);
+        if ("undefined" != typeof(value) && "" != value)
+            str = str.replace("%" + macro + "%", value);
+    }
+
+    return str;
+}
+
 // read and parse compiler configuration file
 // config - name of the compiler configuration
 function parseConfig(config)
@@ -83,6 +113,8 @@ function parseConfig(config)
         var arr = rx.exec(line);
         if (null == arr || 0 == arr[2].length)
             continue;
+
+        arr[2] = expandSysMacro(arr[2]);
 
         switch (arr[1])
         {
