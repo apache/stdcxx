@@ -442,8 +442,7 @@ function projectCreateVCProject(engine, report)
                     if (!setProperty(compiler.OptimizeForWindowsApplication, true))
                         compiler.AdditionalOptions += " /GA";
                 }
-                compiler.Optimization = optimizeMinSpace;
-                compiler.EnableIntrinsicFunctions = true;
+                compiler.Optimization = optimizeMaxSpeed;
                 compiler.MinimalRebuild = false;
                 setProperty(compiler.SmallerTypeCheck, false);
                 setProperty(compiler.BasicRuntimeChecks, runtimeBasicCheckNone);
