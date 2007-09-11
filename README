@@ -495,15 +495,15 @@
 
   o  > CD stdlib-X.Y.Z-YYYYMMDD\stdlib
      > DIR /D  # this is ${TOPDIR}
-     GNUmakefile  etc  examples  generate.bat include  src  tests
+     GNUmakefile  etc  examples  configure.bat  include  src  tests
 
      If your distribution  does not contain the test  suite and/or the
      examples, the output will look like so:
 
      > DIR /D  # this is ${TOPDIR}
-     GNUmakefile  etc  generate.bat include  src
+     GNUmakefile  etc  configure.bat  include  src
 
-  o  > .\generate.bat [/BUILDDIR:<builddir>] [/CONFIG:<config>]
+  o  > .\configure.bat  [/BUILDDIR:<builddir>] [/CONFIG:<config>]
 
      <builddir> is the pathname of the build directory where to create
                 the solution  and  projects;  the  directory  will  be
@@ -532,7 +532,7 @@
                 automatically.
 
   o  Example:
-       > generate.bat /BUILDDIR:C:\stdcxx /CONFIG:msvc-7.1
+       > configure.bat  /BUILDDIR:C:\stdcxx /CONFIG:msvc-7.1
 
      This command will create a build directory rooted at ${BUILDDIR},
      the solution file  ${BUILDDIR}\msvc-7.1\msvc-7.1.sln, the project
