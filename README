@@ -528,7 +528,7 @@
                                     2005
 
                 The  <config>  argument  is optional.  When  not
-                specified a the suitable config file will be selected
+                specified, the suitable config file will be selected
                 automatically.
 
   o  Example:
