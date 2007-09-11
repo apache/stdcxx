@@ -429,7 +429,7 @@ __rw_get_num (void *pval, const char *buf, int type, int flags,
                     val.ul = _RWSTD_UINT_MAX - val.ul + 1;
             }
 
-            *_RWSTD_STATIC_CAST (unsigned*, pval) = val.ul;
+            *_RWSTD_STATIC_CAST (unsigned*, pval) = unsigned (val.ul);
             break;
 
         case __rw_facet::_C_int:
@@ -458,7 +458,7 @@ __rw_get_num (void *pval, const char *buf, int type, int flags,
 
 #endif   // _RWSTD_UINT_MAX < _RWSTD_ULONG_MAX
 
-            *_RWSTD_STATIC_CAST (int*, pval) = val.l;
+            *_RWSTD_STATIC_CAST (int*, pval) = int (val.l);
             break;
 
         case __rw_facet::_C_ulong:

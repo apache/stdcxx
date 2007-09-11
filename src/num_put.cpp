@@ -72,7 +72,8 @@ static const char __rw_digits[] =
 
 
 const char*
-__rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags, int prec);
+__rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags,
+                     _STD::streamsize prec);
 
 
 #ifdef _RWSTD_LONG_LONG
@@ -414,7 +415,7 @@ __rw_itoa (char *buf, unsigned long i, unsigned flags)
         j = 0;
 
     do {
-        const int dig = (i >> (j * bits)) & basemask;
+        const int dig = int ((i >> (j * bits)) & basemask);
 
         _RWSTD_ASSERT (dig >= 0 && dig <= basemask);
 
