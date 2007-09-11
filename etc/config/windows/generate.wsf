@@ -302,8 +302,6 @@ function readAndCheckArguments()
                 + srcDir);
             WScript.Quit(2);
         }
-        
-        outDir = srcDir;
     }
     
     if (WScript.Arguments.Named.Exists("COPYDLL"))
