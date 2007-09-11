@@ -428,8 +428,8 @@ function generateBuildBatch(sourcesDir, buildDir)
 
         buildBatchFile.WriteLine("cscript /nologo "
             + "\"%topdir%\\%scriptdir%\\build.wsf\""
-            + " /BUILDDIR:\"%builddir%\" /BUILDTYPE:%cfgbrief%"
-            + " /CONFIG:" + currentCfg);
+            + " /BUILDDIR:\"%builddir%\" /TOPDIR:\"%topdir%\""
+            + " /BUILDTYPE:%cfgbrief% /CONFIG:" + currentCfg);
         buildBatchFile.WriteLine("cscript /nologo "
             + "\"%topdir%\\%scriptdir%\\%makelog%\""
             + " /BUILDDIR:\"%builddir%\" /BUILDTYPE:%cfgbrief%"
