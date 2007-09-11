@@ -490,9 +490,22 @@ function projectCreateVCProject(engine, report)
             linker.GenerateDebugInformation = true;
             if (null != this.Libs)
                 linker.AdditionalDependencies = this.Libs;
-            linker.IgnoreDefaultLibraryNames = "libcp.lib;libcpd.lib;" +
-                                               "libcpmt.lib;libcpmtd.lib;" +
-                                               "msvcprt.lib;msvcprtd.lib";
+
+            if (confInfo.dll)
+            {
+                linker.IgnoreDefaultLibraryNames =
+                    confInfo.debug ? "msvcprtd.lib" : "msvcprt.lib";
+            }
+            else
+            {
+                if (confInfo.mt || NOSTCRT)
+                    linker.IgnoreDefaultLibraryNames =
+                        confInfo.debug ? "libcpmtd.lib" : "libcpmt.lib";
+                else
+                    linker.IgnoreDefaultLibraryNames =
+                        confInfo.debug ? "libcpd.lib" : "libcp.lib";
+            }
+
             linker.SubSystem = this.SubSystem;
             if (confInfo.debug)
             {
