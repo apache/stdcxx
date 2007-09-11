@@ -25,11 +25,11 @@
 Generates solution file for a specified environment
             </description>
             <named helpstring="Name of the compiler configuration"
-                name="CONFIG" required="true" type="string"/>
+                name="CONFIG" required="false" type="string"/>
             <named helpstring="Top directory of stdcxx sources tree" 
                 name="TOPDIR" required="false" type="string"/>
             <named helpstring="Output directory for modules" 
-                name="BUILDDIR" required="true" type="string"/>
+                name="BUILDDIR" required="false" type="string"/>
             <named helpstring="Copy dll to exe option" 
                 name="COPYDLL" required="false" type="string"/>
             <named helpstring="Generate locales projects" 
@@ -40,8 +40,8 @@ Generates solution file for a specified environment
                 /BUILDDIR:"C:\stdcxx\build" /CONFIG:msvc-7.1
             </example>
             <usage>
-Usage: cscript generate.wsf /CONFIG:@CONFIG 
-/BUILDDIR:@BUILDDIR [/TOPDIR:@TOPDIR] [/COPYDLL:@COPYDLL]
+Usage: cscript generate.wsf [/CONFIG:@CONFIG]
+[/BUILDDIR:@BUILDDIR] [/TOPDIR:@TOPDIR] [/COPYDLL:@COPYDLL]
 [/LOCALES:@LOCALES] [/LOCALETESTS:@LOCALETESTS]
 where
 @CONFIG is the compiler configuration (msvc-7.1, icc-9.0, etc).
@@ -108,7 +108,7 @@ function generate()
 {
     Echo("Solution generation script");
     Echo("Checking arguments...");
-    
+
     readAndCheckArguments();
     createBuildDirs();
     
@@ -116,6 +116,10 @@ function generate()
     outDir += "\\" + currentCfg;
 
     Echo("Checking consistence...");
+    // get solution object
+    if (null == VCProjectEngine && !InitVSObjects(currentCfg))
+        WScript.Quit(3);
+
     logFile = currentCfg + logFile;
     logStream = fso.CreateTextFile(outDir + "\\" + logFile, true, false);
 
@@ -124,9 +128,6 @@ function generate()
                     new Macro("%SRCDIR%", srcDir),
                     new Macro("%BUILDDIR%", outDir));
                         
-    // get solution object
-    InitVSObjects(currentCfg);
-
     PrintVars(logStream);
     PrintVars(WScript.StdOut);
     
@@ -228,23 +229,48 @@ function convertSolutions(solNames)
 // performs checking of the script parameters
 function readAndCheckArguments()
 {
-    if (!WScript.Arguments.Named.Exists("CONFIG"))
+    if (WScript.Arguments.Named.Exists("CONFIG"))
+        currentCfg = WScript.Arguments.Named("CONFIG");
+    else
     {
-        WScript.StdErr.WriteLine(
-            "Generate: Missing required argument.");
-        WScript.Arguments.ShowUsage();
+        // try to deduce it
+        // ICC cannot be used without VisualStudio installed
+        // so we check only for MSVC
+        Echo("CONFIG parameter not specified, trying to detect it...");
+        var cfgs = new Array("msvc-8.0", "msvc-7.1", "msvc-7.0");
+        for (var i = 0; i < cfgs.length; ++i)
+        {
+            var curCfg = cfgs[i];
+            Echo("Trying " + curCfg + "...");
+
+            if (InitVSObjects(curCfg))
+            {
+                Echo("Succeeded. Using CONFIG=" + curCfg + ".");
+                currentCfg = curCfg;
+                break;
+            }
+
+            Echo(curCfg + " checking failed.");
+        }
+    }
+
+    if ("" == currentCfg)
+    {
+        WScript.StdErr.WriteLine("No suitable config file detected.");
         WScript.Quit(2);
     }
     
-    if (!WScript.Arguments.Named.Exists("BUILDDIR"))
+    if (WScript.Arguments.Named.Exists("BUILDDIR"))
     {
-        WScript.StdErr.WriteLine(
-            "Generate: Missing required argument BUILDDIR.");
-        WScript.Arguments.ShowUsage();
-        WScript.Quit(2);
+        outDir = WScript.Arguments.Named("BUILDDIR");
+        outDir = fso.GetAbsolutePathName (outDir);
     }
-    
-    currentCfg = WScript.Arguments.Named("CONFIG");
+    else
+    {
+        // use current directory
+        outDir = WshShell.CurrentDirectory;
+        Echo("BUILDDIR parameter not specified, using BUILDDIR=" + outDir);
+    }
     
     if (WScript.Arguments.Named.Exists("TOPDIR"))
     {
@@ -264,6 +290,7 @@ function readAndCheckArguments()
         }
         
         srcDir = myDir.substr(0, dirIndex);
+        Echo("TOPDIR parameter not specified, using TOPDIR=" + srcDir);
     }
    
     if (srcDir != "")
@@ -277,12 +304,6 @@ function readAndCheckArguments()
         }
         
         outDir = srcDir;
-    }
-    
-    if (WScript.Arguments.Named.Exists("BUILDDIR"))
-    {
-        outDir = WScript.Arguments.Named("BUILDDIR");
-        outDir = fso.GetAbsolutePathName (outDir);
     }
     
     if (WScript.Arguments.Named.Exists("COPYDLL"))

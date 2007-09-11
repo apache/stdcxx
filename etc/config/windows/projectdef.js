@@ -124,8 +124,10 @@ function InitVSObjects(config, freedte)
     catch (e)
     {
         WScript.StdErr.WriteLine("Unable to create VCProjectEngine object: " + e.message);
-        WScript.Quit(3);
+        return false;
     }
+
+    return true;
 }
 
 //------------------------------------------------

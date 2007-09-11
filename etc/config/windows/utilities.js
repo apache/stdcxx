@@ -23,23 +23,23 @@
 // 
 //////////////////////////////////////////////////////////////////////
 
-var VERSION = "7.1";
+var VERSION = "";
 var DEVENV = "";
 var DEVENVFLAGS = "";
 var CPPFLAGS = "";
 var LDFLAGS = "";
 var CONVERT = false;
-var CXX = "cl";
-var LD = "cl";
-var AR = "lib";
-var AS = "ml";
-var SLNVER="8.00";
+var CXX = "";
+var LD = "";
+var AR = "";
+var AS = "";
+var SLNVER="";
 var SLNCOMMENT="";
 var UNICODELOG = false;
 var NOSTCRT = false;
 var WINDIFF = "";
 var ICCCONVERT = "";
-var PLATFORM = "Win32";
+var PLATFORM = "";
 var CLVARSBAT = "";
 
 // timeout for exec utility in seconds
@@ -179,6 +179,26 @@ function parseConfig(config)
 // init script variables for specified compiler configuration
 function getCompilerOpts(config)
 {
+    // set vars to initial state
+    VERSION = "";
+    DEVENV = "";
+    DEVENVFLAGS = "";
+    CPPFLAGS = "";
+    LDFLAGS = "";
+    CONVERT = false;
+    CXX = "";
+    LD = "";
+    AR = "";
+    AS = "";
+    SLNVER="";
+    SLNCOMMENT="";
+    UNICODELOG = false;
+    NOSTCRT = false;
+    WINDIFF = "";
+    ICCCONVERT = "";
+    PLATFORM = "";
+    CLVARSBAT = "";
+
     parseConfig(config);
 
     if (0 == WINDIFF.length)

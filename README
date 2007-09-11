@@ -503,17 +503,22 @@
      > DIR /D  # this is ${TOPDIR}
      GNUmakefile  etc  generate.bat include  src
 
-  o  > .\generate.bat /BUILDDIR:<builddir> /CONFIG:<config>
+  o  > .\generate.bat [/BUILDDIR:<builddir>] [/CONFIG:<config>]
 
      <builddir> is the pathname of the build directory where to create
                 the solution  and  projects;  the  directory  will  be
                 created  (as will  all  its  required  subdirectories)
-                this is a required argument
+
+                The  <builddir>  argument  is optional.  When  not
+                specified a current directory is assumed.
+
      <config>   name  (not  pathname)  of  a  config  file  containing
                 compiler options; the available configuration files
                 are:
                 icc-9.0.config  - for Intel C++ 9.0
                 icc-9.1.config  - for Intel C++ 9.1
+                icc-10.0.config - for Intel C++ 10.0
+                icc-10.0-x64.config - for Intel C++ 10.0 (x64 platform)
                 msvc-7.0.config - for Microsoft Visual C++ .NET
                 msvc-7.1.config - for Microsoft Visual C++ .NET 2003
                 msvc-8.0.config - for Microsoft Visual C++ .NET 2005
@@ -521,7 +526,10 @@
                                       2005 (x64 platform)
                 msvcex-8.0.config - for Microsoft Visual C++ Express
                                     2005
-                this is a required argument
+
+                The  <config>  argument  is optional.  When  not
+                specified a the suitable config file will be selected
+                automatically.
 
   o  Example:
        > generate.bat /BUILDDIR:C:\stdcxx /CONFIG:msvc-7.1
