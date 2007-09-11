@@ -294,14 +294,14 @@ public:
 
     basic_string& append (const basic_string&, size_type, size_type);
 
-    basic_string& append (const basic_string&);
-
-    basic_string& append (const_pointer __s, size_type __n) {
-        return replace (size (), size_type (), __s, __n);
+    basic_string& append (const basic_string &__str) {
+        return append (__str.data (), __str.size ());
     }
 
+    basic_string& append (const_pointer, size_type);
+
     basic_string& append (const_pointer __s) {
-        return replace (size (), size_type (), __s);
+        return append (__s, traits_type::length (__s));
     }
 
 #ifndef _RWSTD_NO_MEMBER_TEMPLATES
@@ -1194,16 +1194,17 @@ compare (const basic_string &__str) const
 template <class _CharT, class _Traits, class _Allocator>
 inline basic_string<_CharT, _Traits, _Allocator>&
 basic_string<_CharT, _Traits, _Allocator>::
-append (const basic_string &__str)
+append (const_pointer __s, size_type __n)
 {
-    const size_type __size = size () + __str.size ();
+    const size_type __newsize = size () + __n;
 
-    if (   capacity () < __size
+    if (   capacity () <= __newsize
         || size_type (1) < size_type (_C_pref ()->_C_get_ref ()))
-        return append (__str, size_type (), __str.size ());
+        return replace (size (), size_type (), __s, __n);
 
-    traits_type::copy (_C_data + size (), __str.data (), __str.size () + 1);
-    _C_pref ()->_C_size._C_size = __size;
+    traits_type::copy (_C_data + size (), __s, __n);
+    traits_type::assign (_C_data [__newsize], value_type ());
+    _C_pref ()->_C_size._C_size = __newsize;
 
     return *this;
 }
