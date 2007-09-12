@@ -31,11 +31,15 @@
 
 struct X: std::iterator<std::random_access_iterator_tag, int> { };
 
+namespace std {
+
 // specialize the std::distance() function template of a user-defined
 // iterator type to verify that the signature of the primary template
 // is the same as the one of the specialization
 template <> std::iterator_traits<X>::difference_type
-std::distance (X, X) { return 0; }
+distance<X> (X, X) { return 0; }
+
+} // namespace std
 
 int main ()
 {
