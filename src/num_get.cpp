@@ -99,7 +99,8 @@ extern const long double __rw_ldbl_infinity;
 
 
 const char*
-__rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags, int prec);
+__rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags,
+                     _STD::streamsize prec);
 
 
 // verifies that the `grps' array of size `ngrps' representing the
