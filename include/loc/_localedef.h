@@ -6,23 +6,24 @@
  *
  ***************************************************************************
  *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2001-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
+ *
  **************************************************************************/
 
 #ifndef _RWSTD_LOC_LOCALEDEF_H_INCLUDED
@@ -88,7 +89,7 @@ struct __rw_codecvt_t
     _RWSTD_UINT32_T codecvt_ext_off;
 
     // the size of the longest multibyte character
-    unsigned char mb_cur_max;
+    _RWSTD_UINT8_T mb_cur_max;
 
     // the name of the codeset and its database file
     const char* codeset_name () const {
@@ -150,10 +151,10 @@ struct __rw_ctype_t
     // this is added to allow for future extensions
     _RWSTD_UINT32_T ctype_ext_off;      // extended ctype data offset
 
-    unsigned char toupper_tab[256];   // the narrow char to_upper table
-    unsigned char tolower_tab[256];   // the narrow char to_lower table
-    _RWSTD_UINT32_T  mask_tab[256];      // the narrow char mask table
-    unsigned char mb_cur_max;         // max number of bytes per MB character
+    _RWSTD_UINT8_T  toupper_tab[256];   // the narrow char to_upper table
+    _RWSTD_UINT8_T  tolower_tab[256];   // the narrow char to_lower table
+    _RWSTD_UINT32_T mask_tab[256];      // the narrow char mask table
+    _RWSTD_UINT8_T  mb_cur_max;         // max number of bytes per MB character
 
     _RWSTD_SIZE_T wtoupper_s () const {
         return (wtolower_off - wtoupper_off) / sizeof (__rw_upper_elm);
@@ -236,11 +237,11 @@ struct __rw_collate_t
 
     _RWSTD_UINT32_T undefined_optimization;
 
-    unsigned char longest_weight;    // the longest weight value
-    unsigned char num_weights;       // number of weights
-    unsigned char largest_ce;
+    _RWSTD_UINT8_T longest_weight;    // the longest weight value
+    _RWSTD_UINT8_T num_weights;       // number of weights
+    _RWSTD_UINT8_T largest_ce;
 
-    unsigned char weight_type[256];  // weight types (ex. forward)
+    _RWSTD_UINT8_T weight_type[256];  // weight types (ex. forward)
 
     // get the offset of a table number `tabno'
     _RWSTD_UINT32_T get_n_tab_off (_RWSTD_UINT32_T tabno) const {
@@ -266,29 +267,29 @@ struct __rw_collate_t
                             + (tabno * sizeof (_RWSTD_UINT32_T))))));
     }
 
-    unsigned char get_first_char_in_n_tab (_RWSTD_UINT32_T tabno) const {
-        return *((const unsigned char*)this + sizeof *this 
+    _RWSTD_UINT8_T get_first_char_in_n_tab (_RWSTD_UINT32_T tabno) const {
+        return *((const _RWSTD_UINT8_T*)this + sizeof *this 
                  + n_char_first_char_off + tabno);
         
     }
 
-    unsigned char get_first_char_in_n_ce_tab (_RWSTD_UINT32_T tabno) const {
-        return *((const unsigned char*)this + sizeof *this 
+    _RWSTD_UINT8_T get_first_char_in_n_ce_tab (_RWSTD_UINT32_T tabno) const {
+        return *((const _RWSTD_UINT8_T*)this + sizeof *this 
                  + n_ce_first_char_off + tabno);
     }
 
-    unsigned char get_first_char_in_w_ce_tab (_RWSTD_UINT32_T tabno) const {
-        return *((const unsigned char*)this + sizeof *this 
+    _RWSTD_UINT8_T get_first_char_in_w_ce_tab (_RWSTD_UINT32_T tabno) const {
+        return *((const _RWSTD_UINT8_T*)this + sizeof *this 
                  + w_ce_first_char_off + tabno);
     }
 
-    unsigned char get_last_char_in_n_ce_tab (_RWSTD_UINT32_T tabno) const {
-        return *((const unsigned char*)this + sizeof *this 
+    _RWSTD_UINT8_T get_last_char_in_n_ce_tab (_RWSTD_UINT32_T tabno) const {
+        return *((const _RWSTD_UINT8_T*)this + sizeof *this 
                  + n_ce_last_char_off  + tabno);
     }
 
-    unsigned char get_last_char_in_w_ce_tab (_RWSTD_UINT32_T tabno) const {
-        return *((const unsigned char*)this + sizeof *this 
+    _RWSTD_UINT8_T get_last_char_in_w_ce_tab (_RWSTD_UINT32_T tabno) const {
+        return *((const _RWSTD_UINT8_T*)this + sizeof *this 
                  + w_ce_last_char_off + tabno);
     }
 
@@ -318,8 +319,8 @@ struct __rw_collate_t
                             + (tabno * sizeof (_RWSTD_UINT32_T))))));
     }
 
-    unsigned char get_first_char_in_w_tab (_RWSTD_UINT32_T tabno) const {
-        return *((const unsigned char*)this + sizeof *this 
+    _RWSTD_UINT8_T get_first_char_in_w_tab (_RWSTD_UINT32_T tabno) const {
+        return *((const _RWSTD_UINT8_T*)this + sizeof *this 
                  + w_char_first_char_off + tabno);
         
     }
@@ -682,7 +683,7 @@ struct __rw_time_t
 static inline _RWSTD_SIZE_T
 __rw_itoutf8 (_RWSTD_UINT32_T wchar, char *to)
 {
-    typedef unsigned char _UChar;
+    typedef _RWSTD_UINT8_T _UChar;
 
     if (wchar < 0x80U) {
         to [0] = _UChar (wchar);
@@ -739,8 +740,8 @@ __rw_utf8toucs4 (_RWSTD_INT32_T *ret, const char *from, const char *from_end)
 
     typedef _RWSTD_INT32_T _Int32;
 
-    const unsigned char* const byte =
-        _RWSTD_REINTERPRET_CAST (const unsigned char*, from);
+    const _RWSTD_UINT8_T* const byte =
+        _RWSTD_REINTERPRET_CAST (const _RWSTD_UINT8_T*, from);
 
     if (byte [0] < 0x80U) {
         *ret = _Int32 (byte [0]);
@@ -823,7 +824,7 @@ unsigned __rw_mbtowco (const unsigned *cvtbl,
                        const char     *&from,
                        const char     *from_end)
 {
-    typedef unsigned char _UChar;
+    typedef _RWSTD_UINT8_T _UChar;
 
     // `bit31' has the most significant bit set and all others clear
     const unsigned bit31 = 0x80000000U;
