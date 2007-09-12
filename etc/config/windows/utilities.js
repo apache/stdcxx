@@ -41,6 +41,7 @@ var WINDIFF = "";
 var ICCCONVERT = "";
 var PLATFORM = "";
 var CLVARSBAT = "";
+var ICCVER="";
 
 // timeout for exec utility in seconds
 var EXEC_TIMEOUT = 300;
@@ -172,6 +173,9 @@ function parseConfig(config)
         case "CLVARSBAT":
             CLVARSBAT = arr[2];
             break;
+        case "ICCVER":
+            ICCVER = arr[2];
+            break;
         }
     }
 }
@@ -198,6 +202,7 @@ function getCompilerOpts(config)
     ICCCONVERT = "";
     PLATFORM = "";
     CLVARSBAT = "";
+    ICCVER = "";
 
     parseConfig(config);
 
@@ -244,6 +249,7 @@ function PrintVars(stream)
     stream.WriteLine("  ICCCONVERT=" + ICCCONVERT);
     stream.WriteLine("  PLATFORM=" + PLATFORM);
     stream.WriteLine("  CLVARSBAT=" + CLVARSBAT);
+    stream.WriteLine("  ICCVER=" + ICCVER);
     stream.WriteLine("");
 }
 

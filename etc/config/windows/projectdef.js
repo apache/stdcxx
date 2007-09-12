@@ -82,11 +82,12 @@ function InitVSObjects(config, freedte)
                 try
                 {
                     var isettings = dte.GetObject("IntelOptions");
-                    var icompiler = isettings.Compiler(isettings.CurrentCompilerIndex);
-                    var path = icompiler.ExecutablePath.split(";");
-                    for (var i = 0; i < path.length; ++i)
-                        arrPath.push("\"" + path[i] + "\\" + ICConvertTool + "\"");
-                    icompiler = null;
+                    for (var i = 1; i <= isettings.CompilersCount; ++i)
+                    {
+                        var paths = isettings.Compiler(i).ExecutablePath.split(";");
+                        for (var j = 0; j < paths.length; ++j)
+                            arrPath.push("\"" + isettings.Evaluate(paths[j]) + "\\" + ICConvertTool + "\"");
+                    }
                     isettings = null;
                 }
                 catch (e) {}

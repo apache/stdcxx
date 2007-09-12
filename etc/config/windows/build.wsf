@@ -258,6 +258,9 @@ function build()
     var prop = null;
     var propVal;
     var oldLogging = null;
+    var iSettings = null;
+    var oldIccIdx = null;
+    var oldPlatIdx = null;
     var projectEngine = null;
     var events = null;
 
@@ -332,6 +335,69 @@ function build()
             prop = null;
         }
 
+        if ("" != ICCVER)
+        {
+            // select proper Intel C++ compiler
+            try
+            {
+                iSettings = dte.GetObject("IntelOptions");
+            }
+            catch (e)
+            {
+                WScript.StdErr.WriteLine(
+                    "Build: Intel C++ not installed or installed incorrectly.");
+                retCode = 1;
+                break;
+            }
+
+            oldIccIdx = iSettings.CurrentCompilerIndex;
+            oldPlatIdx = iSettings.CurrentPlatformIndex;
+            WScript.Echo("Current compiler: " +
+                         iSettings.Compiler(oldIccIdx).Name);
+
+            var ICPlatform = "IA32";
+            if ("x64" == PLATFORM)
+                ICPlatform = "EM64T";
+
+            for (var i = 0; i < iSettings.PlatformsCount; ++i)
+            {
+                iSettings.CurrentPlatformIndex = i;
+                if (ICPlatform == iSettings.CurrentPlatformName)
+                    break;
+            }
+
+            if (i >= iSettings.PlatformsCount)
+            {
+                WScript.StdErr.WriteLine(
+                    "Build: Installed ICC does not support " + PLATFORM + " platform.");
+                retCode = 1;
+                break;
+            }
+
+            var rx = new RegExp("(^.*C\\+\\+ " + ICCVER + ".*)");
+
+            for (var i = 1; i <= iSettings.CompilersCount; ++i)
+            {
+                var compname = iSettings.Compiler(i).Name;
+                if (null != rx.exec(compname))
+                    break;
+            }
+
+            if (i <= iSettings.CompilersCount)
+            {
+                iSettings.CurrentCompilerIndex = i;
+                WScript.Echo("Selected compiler: " +
+                             iSettings.Compiler(i).Name);
+            }
+            else
+            {
+                WScript.StdErr.WriteLine(
+                    "Build: ICC " + ICCVER + " not found.");
+                retCode = 1;
+                break;
+            }
+        }
+
         // save BuildLogging property value
         oldLogging = projectEngine.BuildLogging;
         projectEngine.BuildLogging = true;
@@ -397,6 +463,16 @@ function build()
         BuildProject(solutionBuild, ".stdcxx_testlocales");
     }
     while (false);
+
+    if (null != iSettings)
+    {
+        if (null != oldIccIdx)
+            iSettings.CurrentCompilerIndex = oldIccIdx;
+        if (null != oldPlatIdx)
+            iSettings.CurrentPlatformIndex = oldPlatIdx;
+
+        iSettings = null;
+    }
 
     if (null != oldLogging)
         projectEngine.BuildLogging = oldLogging;
