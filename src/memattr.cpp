@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2006 Rogue Wave Software.
+ * Copyright 2005-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -31,6 +31,10 @@
 
 #include <errno.h>    // for ENOMEM, errno
 #include <string.h>   // for memchr
+
+#ifndef EFAULT
+#  define EFAULT  14   // Linux value
+#endif   // EFAULT
 
 #ifdef __CYGWIN__
    // use the Windows API on Cygwin
@@ -43,6 +47,12 @@
 #    include <time.h>
 #  endif
 #  include <unistd.h>     // for getpagesize(), sysconf()
+
+#  if defined (_RWSTD_OS_LINUX) && !defined (__USE_BSD)
+     // needed for caddr_t, madvise, and MADV_WILLNEED
+#    define __USE_BSD
+#  endif   // _RWSTD_OS_LINUX && !__USE_BSD
+
 #  include <sys/mman.h>   // for mincore()
 #  include <sys/types.h>
 
