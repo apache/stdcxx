@@ -31,6 +31,7 @@
 #include <stdio.h>      /* for FILE, fopen(), ... */
 
 #include <ctype.h>      /* for isspace */
+#include <limits.h>     /* for PATH_MAX */
 #include <sys/types.h>
 #include <sys/stat.h>
 #if !defined (_WIN32) && !defined (_WIN64)
@@ -60,6 +61,12 @@
 #ifndef S_IXOTH
 #  define S_IXOTH 0001
 #endif   /* S_IXOTH */
+
+#if !defined (PATH_MAX) || PATH_MAX < 128 || 4096 < PATH_MAX
+   // deal  with undefined, bogus, or excessive values
+#  undef  PATH_MAX
+#  define PATH_MAX   1024
+#endif
 
 /**
    Utility function to rework the argv array
@@ -537,11 +544,50 @@ main (int argc, char *argv [])
         struct target_status summary;
         memset (&summary, 0, sizeof summary);
 
+        /* number of program's executed */
+        int progs_count = 0;
+
         for (i = 0; i < argc; ++i) {
-            run_target (&summary, argv [i], &target_template);
+            const char* target = argv [i];
+
+            if ('@' == target [0]) {
+                /* read targets from specified file */
+                const char* lst_name = target + 1;
+                FILE* lst = fopen (lst_name, "r");
+                if (0 == lst) {
+                    warn ("Error opening %s: %s\n", lst_name, strerror (errno));
+                    break;
+                }
+
+                while (!feof (lst)) {
+                    char buf [PATH_MAX];
+                    target = fgets (buf, sizeof (buf), lst);
+
+                    if (ferror (lst)) {
+                        warn ("Error reading %s: %s\n", lst_name, strerror (errno));
+                        break;
+                    }
+
+                    if (target) {
+                        /* remove terminating newline character if present */
+                        if (char* pos = strchr (target, '\n'))
+                            *pos = '\0';
+                        if (*target) {
+                            ++progs_count;
+                            run_target (&summary, target, &target_template);
+                        }
+                    }
+                }
+
+                fclose (lst);
+            }
+            else {
+                ++progs_count;
+                run_target (&summary, target, &target_template);
+            }
         }
 
-        print_footer (argc, &summary);
+        print_footer (progs_count, &summary);
 
         if (target_template.argv [0])
             free (target_template.argv [0]);

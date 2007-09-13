@@ -89,6 +89,8 @@ usage_text[] = {
     "\n"
     "  Treats each token in targets as the path to an executable. Each target\n"
     "  enumerated is executed, and the output is processed after termination.\n"
+    "  If target prepended by '@' character, target is treated as text file\n"
+    "  with list of targets (one target per line).\n"
     "  If the execution takes longer than a certain (configurable) amount of\n"
     "  time, the process is killed.\n"
     "\n"
