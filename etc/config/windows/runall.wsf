@@ -249,31 +249,59 @@ function runAllExamples(exeDir, prjDir, srcDir, fileLog, fileSummary, exeExt)
         runCmd += " -d \"" + srcDir + "\"";
 
     if (0 < runflags.length)
-        runCmd += " " + runflags;
+        runCmd += " " + runflags + " ";
 
-    runCmd += " " + exeFiles.join(" ");
-
+    var targets = exeFiles.join(" ");
+    var target_list = null;
+    
     var prevDir = WshShell.CurrentDirectory;
     WshShell.CurrentDirectory = exeDir;
-    var oExec = WshShell.Exec("cmd /c " + runCmd + " 2>&1");
-    WshShell.CurrentDirectory = prevDir;
     
-    if (!oExec)
+    // the max command line len == 2047 for Win2000
+    // http://support.microsoft.com/kb/830473
+    var MaxCmdLineLen = 2047;
+    if (MaxCmdLineLen >= runCmd.length + targets.length)
+        runCmd += exeFiles.join(" ");
+    else
     {
-        // WScript.Echo(itemInfo.name + " failed to run");
-        return;
+        target_list = "targets.lst";
+        
+        var strm = fso.CreateTextFile(target_list, true);
+        for (var i = 0; i < exeFiles.length; ++i)
+            strm.WriteLine(exeFiles[i]);
+        strm.Close();
+        
+        runCmd += "@" + target_list;
     }
 
-    var execOut = "";
-    while (oExec.Status == 0)
+    try
     {
+        runCmd = "cmd /c " + runCmd + " 2>&1";
+        var oExec = WshShell.Exec(runCmd);
+
+        var execOut = "";
+        while (oExec.Status == 0)
+        {
+            execOut += oExec.StdOut.ReadAll();
+            WScript.Sleep(100);
+        }
+
         execOut += oExec.StdOut.ReadAll();
-        WScript.Sleep(100);
+        WScript.Echo(execOut);
     }
-    
-    execOut += oExec.StdOut.ReadAll();
-    WScript.Echo(execOut);
-    
+    catch (e)
+    {
+        WScript.Echo("Exception in WshShell.Exec(" + runCmd + "): " + e.message);
+        return;
+    }
+    finally
+    {
+        if (null != target_list)
+            fso.DeleteFile(target_list);
+
+        WshShell.CurrentDirectory = prevDir;
+    }
+
     for (var i = 0; i < arrInfo.length; ++i)
     {
         var itemInfo = arrInfo[i];
