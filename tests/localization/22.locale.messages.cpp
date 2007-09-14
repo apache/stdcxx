@@ -31,26 +31,20 @@
 #include <driver.h>      // for rw_test()
 #include <environ.h>     // for rw_putenv()
 #include <file.h>        // for rw_nextfd()
-#include <rw_locale.h>   // for rw_locales()
+#include <rw_locale.h>   // for rw_locales(), rw_create_catalog()
 #include <rw_process.h>  // for rw_system()
 
-#ifndef _MSC_VER
-#  include <nl_types.h>  // for cat operations
-#endif
-
 #include <cstring>   // for strlen()
-#include <cstdlib>   // for getcwd(), getenv()
+#include <cstdlib>   // for getenv()
 #include <cstdio>    // for remove()
 #include <clocale>   // for LC_ALL
 
 #include <cwchar>    // for mbsinit()
 
-
 #ifndef _RWSTD_NO_NEW_HEADER
-#  include <stdio.h>         // for fileno()
 #  if defined (_MSC_VER)
 #    include <io.h>          // for _open()
-#    include <direct.h>
+#    include <direct.h>      // for getcwd()
 #  else
 #    include <sys/types.h>
 #    include <sys/stat.h>

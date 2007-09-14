@@ -29,49 +29,12 @@
 #include <locale>
 
 #include <driver.h>      // for rw_test()
-#include <environ.h>     // for rw_putenv()
-#include <file.h>        // for rw_nextfd()
-#include <rw_locale.h>   // for rw_locales()
-#include <rw_process.h>  // for rw_system()
+#include <rw_locale.h>   // for rw_create_catalog()
 #include <rw_thread.h>
-#include <valcmp.h>    // for rw_strncmp ()
-
-#ifndef _MSC_VER
-#  include <nl_types.h>  // for cat operations
-#endif
+#include <valcmp.h>      // for rw_strncmp ()
 
 #include <cstring>   // for strlen()
-#include <cstdlib>   // for getcwd(), getenv()
-#include <cstdio>    // for FILE, fopen(), fprintf()
-#include <clocale>   // for LC_ALL
-
-#include <cwchar>    // for mbsinit()
-
-
-#ifndef _RWSTD_NO_NEW_HEADER
-#  include <stdio.h>         // for fileno()
-#  if defined (_MSC_VER)
-#    include <io.h>          // for _open()
-#    include <direct.h>
-#  else
-#    include <sys/types.h>
-#    include <sys/stat.h>
-#    include <unistd.h>      // for getcwd()
-#  endif
-#  include <fcntl.h>         // for mode flags for _open
-#endif   // _RWSTD_NO_NEW_HEADER
-
-#undef open
-#undef close
-
-#if defined (_MSC_VER)
-#  define open(f,m) _open  (f, _##m)
-#  define close(f)  _close (f)
-#else
-#  define open(f,m) open  (f, m)
-#  define close(f)  close (f)
-#endif // defined (_MSC_VER)
-
+#include <cstdio>    // for remove()
 
 // maximum number of threads allowed by the command line interface
 #define MAX_THREADS      32
@@ -105,8 +68,6 @@ std::messages_base::catalog wcatalog;
 #  define CAT_NAME "rwstdmessages.dll"
 #  define MSG_NAME "rwstdmessages.rc"
 #endif
-
-#define NLS_CAT_NAME "rwstdmessages"
 
 #define MAX_SETS 5
 #define MAX_MESSAGES  5
@@ -162,75 +123,7 @@ messages [MAX_SETS][MAX_MESSAGES] = {
     }
 };
 
-
-void generate_catalog (const char *msg_name,
-                       const char* const text [MAX_SETS][MAX_MESSAGES])
-{
-    std::FILE* const f = std::fopen (msg_name, "w");
-
-    if (!f)
-        return;
-
-#ifndef _WIN32
-
-    for (int i = 0; i < MAX_SETS; ++i) {
-        std::fprintf (f, "$set %d This is Set %d\n", i+1, i+1);
-        for (int j = 0; j < MAX_MESSAGES; ++j) {
-            std::fprintf (f, "%d %s\n", j + 1, text [i][j]);
-        }
-    }
-
-#else   // if defined (_WIN32)
-
-    std::fprintf (f, "STRINGTABLE\nBEGIN\n");
-    for (int i = 0; i < MAX_SETS; ++i) {
-        for (int j = 0; j < MAX_MESSAGES; ++j) {
-            const int msgid = msg_id (i + 1, j + 1);
-            std::fprintf (f, "%d \"%s\"\n", msgid, text[i][j]);
-        }
-    }
-
-    std::fprintf (f, "END\n");
-
-#endif   // _WIN32
-
-    std::fclose (f);
-
-    char *cat_name = new char [std::strlen (msg_name) + 1];
-    const char *dot = std::strrchr (msg_name, '.');
-    std::strncpy (cat_name, msg_name, dot - msg_name);
-    *(cat_name + (dot - msg_name)) = '\0';
-
-#ifndef _WIN32
-
-    rw_system ("gencat %s.cat %s", cat_name, msg_name);
-
-#else   // if defined (_WIN32)
-
-    char cpp_name [128];
-
-    std::sprintf (cpp_name, "%s.cpp", cat_name);
-
-    std::FILE* const cpp_file = std::fopen (cpp_name, "w");
-    std::fprintf (cpp_file, "void foo () { }");
-    std::fclose (cpp_file);
-
-    rw_system (   "rc -r %s.rc "
-               "&& cl -nologo -c %s"
-               "&& link -nologo /DLL /OUT:%s.dll %s.obj %s.res",
-               cat_name,
-               cpp_name,
-               cat_name, cat_name, cat_name);
-
-    rw_system (SHELL_RM_F "%s %s.rc %s.res %s.obj",
-               cpp_name, cat_name, cat_name, cat_name);
-
-#endif   // _WIN32
-
-    delete[] cat_name;
-
-    std::remove (msg_name);
-}
+static std::string str_messages;
 
 /**************************************************************************/
 
@@ -326,8 +219,15 @@ thread_func (void*)
 static int
 run_test (int, char**)
 {
+    for (int i = 0; i < MAX_SETS; ++i) {
+        for (int j = 0; j < MAX_MESSAGES; ++j)
+            str_messages.append (messages [i][j], std::strlen (messages [i][j]) + 1);
+
+        str_messages.append (1, '\0');
+    }
+
     // generate a message catalog
-    generate_catalog (MSG_NAME, messages);
+    rw_create_catalog (MSG_NAME, str_messages.c_str ());
     const std::string name (CAT_NAME);
 
     const std::messages<char>& nmsgs =
