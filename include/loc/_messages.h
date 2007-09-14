@@ -82,7 +82,7 @@ public:
                          allocator<char_type> > string_type;
 
     _EXPLICIT messages (_RWSTD_SIZE_T __refs = 0)
-        : _RW::__rw_facet (__refs), messages_base () { }
+        : _RW::__rw_facet (__refs) { }
 
 
     catalog open (const string& __fun, const locale& __loc) const {
