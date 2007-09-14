@@ -570,7 +570,8 @@ main (int argc, char *argv [])
 
                     if (target) {
                         /* remove terminating newline character if present */
-                        if (char* pos = strchr (target, '\n'))
+                        assert (buf == target);
+                        if (char* pos = strchr (buf, '\n'))
                             *pos = '\0';
                         if (*target) {
                             ++progs_count;
