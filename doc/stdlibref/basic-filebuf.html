@@ -33,6 +33,7 @@
 <A HREF="#idx40">char_type</A><BR>
 <A HREF="#idx52">close()</A><BR>
 <A HREF="#idx53">detach()</A><BR>
+<A HREF="#idx66">fd()</A><BR>
 </TD>
 <TD VALIGN=top><A HREF="#idx41">int_type</A><BR>
 <A HREF="#idx54">is_open()</A><BR>
@@ -119,6 +120,8 @@ namespace std {
                                        streamsize);
     basic_filebuf&lt;charT, traits&gt;* attach(int);
     int detach();
+
+    int fd() const;
 
     basic_filebuf&lt;charT, traits&gt;* close();
 
@@ -235,7 +238,18 @@ NOTE -- This function is not part of the C++ Standard, but is included here as a
 </UL>
 
 <BLOCKQUOTE><HR><B>
-NOTE -- <B>This function is not part of the C++ Standard, but is provided as an extension of this implementation for compatibility with Classic Iostreams. See </B><A HREF="B.html">Appendix&nbsp;B</A><B> for a complete list of extensions of this implementation.
+NOTE -- This function is not part of the C++ Standard, but is provided as an extension of this implementation for compatibility with Classic Iostreams. See </B><A HREF="B.html">Appendix&nbsp;B</A><B> for a complete list of extensions of this implementation.
+</B><HR></BLOCKQUOTE>
+
+
+<A NAME="idx66"></A><PRE>int
+<B>fd</B>() const;</PRE>
+<UL>
+<P>If <SAMP>is_open()</SAMP> returns <SAMP>true</SAMP>, returns the associated file descriptor, otherwise -1.</P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is not part of the C++ Standard, but is provided as an extension of this implementation for compatibility with Classic Iostreams. See </B><A HREF="B.html">Appendix&nbsp;B</A><B> for a complete list of extensions of this implementation.
 </B><HR></BLOCKQUOTE>
 
 <A NAME="idx52"></A><PRE>
