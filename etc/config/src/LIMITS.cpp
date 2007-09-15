@@ -1,6 +1,7 @@
 // computing numerical limits
 
 #include <stdio.h>    // for printf()
+#include <limits.h>   // for MB_MAX_LEN
 
 #include "config.h"
 
@@ -366,6 +367,8 @@ int main ()
     printf ("#define _RWSTD_MB_LEN_MAX %d   /* known glibc 2.2 value */\n", 16);
 #  elif defined (__sun__) || defined (__sun) || defined (__sun)
     printf ("#define _RWSTD_MB_LEN_MAX %d   /* known SunOS libc value */\n", 5);
+#  elif defined (_WIN32)
+    printf ("#define _RWSTD_MB_LEN_MAX %d   /* known WIN32 libc value */\n", 5);
 #  else
     printf ("#define _RWSTD_MB_LEN_MAX %d   /* guess */\n", 8);
 #  endif
