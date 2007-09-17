@@ -212,8 +212,60 @@ function BuildProject(solutionBuild, projectName)
             }
             catch (e)
             {
-                WScript.Echo("Exception: cannot get UniqueName for " + projectName + "\n");
-                projectFile = project.FullName;
+                WScript.Echo("Exception: cannot get UniqueName for " + projectName + ": " + e.message);
+
+                if ("undefined" != typeof (project.CodeModel))
+                    WScript.Echo ("project.CodeModel");
+
+                if ("undefined" != typeof (project.Collection))
+                    WScript.Echo ("project.Collection");
+
+                if ("undefined" != typeof (project.ConfigurationManager))
+                    WScript.Echo ("project.ConfigurationManager");
+
+                if ("undefined" != typeof (project.DTE))
+                    WScript.Echo ("project.DTE = " + project.DTE);
+
+                if ("undefined" != typeof (project.Extender))
+                    WScript.Echo ("project.Extender");
+
+                if ("undefined" != typeof (project.ExtenderCATID))
+                    WScript.Echo ("project.ExtenderCATID = " + project.ExtenderCATID);
+
+                if ("undefined" != typeof (project.ExtenderNames))
+                    WScript.Echo ("project.ExtenderNames");
+
+                if ("undefined" != typeof (project.FullName))
+                    WScript.Echo ("project.FullName = " + project.FullName);
+
+                if ("undefined" != typeof (project.Globals))
+                    WScript.Echo ("project.Globals");
+
+                if ("undefined" != typeof (project.Kind))
+                    WScript.Echo ("project.Kind = " + project.Kind);
+
+                if ("undefined" != typeof (project.Name))
+                    WScript.Echo ("project.Name = " + project.Name);
+
+                if ("undefined" != typeof (project.Object))
+                    WScript.Echo ("project.Object");
+
+                if ("undefined" != typeof (project.ParentProjectItem))
+                    WScript.Echo ("project.ParentProjectItem");
+
+                if ("undefined" != typeof (project.ProjectItems))
+                    WScript.Echo ("project.ProjectItems");
+
+                if ("undefined" != typeof (project.Properties))
+                    WScript.Echo ("project.Properties");
+
+                if ("undefined" != typeof (project.Saved))
+                    WScript.Echo ("project.Saved = " + project.Saved);
+
+                if ("undefined" != typeof (project.UniqueName))
+                    WScript.Echo ("project.UniqueName = " + project.UniqueName);
+
+                break;
             }
         }
     }
