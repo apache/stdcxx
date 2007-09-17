@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -138,7 +138,7 @@ locale::_C_get_std_facet (facet::_C_facet_type  type,
     if (next && *next) {
 
         // compute the facet category from the value of its id
-        const int facet_cat = _RW::__rw_get_cat (inx + 1);
+        const int facet_cat = _RW::__rw_get_cat (int (inx + 1));
 
         // determine the locale name of the given category
         size_t i = 0;
