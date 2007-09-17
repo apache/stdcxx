@@ -71,12 +71,14 @@ static CatVector __rw_catlist (2);
 
   CatVector::size_type __catfind(nl_catd id)
   {
-    CatVector::size_type i = 0;
-    while (i < __rw_catlist.size() && __rw_catlist[i] && __rw_catlist[i]->id() != id)
-      i++;
-    if (!__rw_catlist[i])
-      return __rw_catlist.size();
-    return i;
+    for (CatVector::size_type i = 0;
+         i < __rw_catlist.size() && __rw_catlist[i]; ++i) {
+
+      if (__rw_catlist[i]->id() == id)
+          return i;
+    }
+    
+    return __rw_catlist.size();
   }  
 
 
