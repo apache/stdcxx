@@ -25,13 +25,12 @@
  **************************************************************************/
 
 #include <cstring>   // for memset()
+#include <cassert>   // for assert()
 
 #include <locale>    // for std::moneypunct, std::messages
 
-#include <driver.h>  // for rw_test()
-
 template <class charT>
-void test_moneypunct (charT, const char* name)
+void test_moneypunct (charT)
 {
     typedef std::moneypunct <charT> PunctT;
 
@@ -42,15 +41,13 @@ void test_moneypunct (charT, const char* name)
 
     PunctT* p = new (buf) PunctT ();
 
-    rw_assert (fill == buf [sizeof (PunctT)], __FILE__, __LINE__,
-               "buf [sizeof (std::moneypunct <%s>)] expected %d, got %d\n",
-               name, int (fill), int (buf [sizeof (PunctT)]));
+    assert (fill == buf [sizeof (PunctT)]);
 
     p->~PunctT ();
 }
 
 template <class charT>
-void test_messages (charT, const char* name)
+void test_messages (charT)
 {
     typedef std::messages <charT> MessagesT;
 
@@ -61,32 +58,20 @@ void test_messages (charT, const char* name)
 
     MessagesT* p = new (buf) MessagesT ();
 
-    rw_assert (fill == buf [sizeof (MessagesT)], __FILE__, __LINE__,
-               "buf [sizeof (std::messages <%s>)] expected %d, got %d\n",
-               name, int (fill), int (buf [sizeof (MessagesT)]));
+    assert (fill == buf [sizeof (MessagesT)]);
 
     p->~MessagesT ();
 }
 
-static int run_test (int, char**)
+int main (int, char* [])
 {
-    test_moneypunct (char (), "char");
-    test_messages (char (), "char");
+    test_moneypunct (char ());
+    test_messages (char ());
 
 #ifndef _RWSTD_NO_WCHAR_T
-    test_moneypunct (wchar_t (), "wchar_t");
-    test_messages (wchar_t (), "wchar_t");
+    test_moneypunct (wchar_t ());
+    test_messages (wchar_t ());
 #endif
 
     return 0;
-}
-
-int main (int argc, char* argv[])
-{
-    return rw_test (argc, argv, __FILE__,
-                    "lib.locale",
-                    "STDCXX-544",
-                    run_test,
-                    "",
-                    (void*)0);
 }
