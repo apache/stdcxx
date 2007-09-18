@@ -49,13 +49,17 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-int __rw_cat_open (const _STD::string&, const _V3_LOCALE::locale&);
+_RWSTD_EXPORT int
+__rw_cat_open (const _STD::string&, const _V3_LOCALE::locale&);
 
-const char* __rw_get_message (int, int, int);
+_RWSTD_EXPORT const char*
+__rw_get_message (int, int, int);
 
-const _V3_LOCALE::locale& __rw_get_locale (int);
+_RWSTD_EXPORT const _V3_LOCALE::locale&
+__rw_get_locale (int);
 
-void __rw_cat_close (int);
+_RWSTD_EXPORT void
+__rw_cat_close (int);
 
 }   // namespace __rw
 
