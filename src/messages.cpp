@@ -210,7 +210,7 @@ __rw_manage_cat_data (int &cat,  __rw_open_cat_data *pcat_data)
 
 // Open a message catalog and assign and return a handle for it.
 
-int
+_RWSTD_EXPORT int
 __rw_cat_open (const _STD::string &cat_name, const _STD::locale &loc)
 {
     _RWSTD_MT_CLASS_GUARD (__rw_open_cat_data);
@@ -233,7 +233,7 @@ __rw_cat_open (const _STD::string &cat_name, const _STD::locale &loc)
 
 
 // Get message text from catalog.
-const char*
+_RWSTD_EXPORT const char*
 __rw_get_message (int cat, int set_num, int msg_num)
 {
     if (cat < 0)
@@ -261,7 +261,7 @@ __rw_get_message (int cat, int set_num, int msg_num)
 
 
 // Get locale to be used for character translation for this message catalog.
-const _STD::locale&
+_RWSTD_EXPORT const _STD::locale&
 __rw_get_locale (int cat)
 {
     _RWSTD_MT_CLASS_GUARD (__rw_open_cat_data);
@@ -276,7 +276,7 @@ __rw_get_locale (int cat)
 
 
 // Close a catalog and release its handle.
-void
+_RWSTD_EXPORT void
 __rw_cat_close (int cat)
 {
     _RWSTD_MT_CLASS_GUARD (__rw_open_cat_data);
