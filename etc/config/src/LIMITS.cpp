@@ -1,9 +1,14 @@
 // computing numerical limits
 
-#include <stdio.h>    // for printf()
-#include <limits.h>   // for MB_MAX_LEN
-
 #include "config.h"
+
+#include <stdio.h>    // for printf()
+
+#ifndef _RWSTD_NO_LIMITS_H
+   // avoid including broken <limits.h> (due to the use of #include_next)
+   // with EDG eccp on Linux
+#  include <limits.h>   // for MB_LEN_MAX
+#endif   // _RWSTD_NO_LIMITS_H
 
 
 // establish a dependency on the test for long long
