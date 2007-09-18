@@ -115,7 +115,8 @@ int main (int argc, char *argv[])
 #  endif  // _WIN64
 
     const char* const env_vars [] = {
-        "VS80COMNTOOLS", "VS71COMNTOOLS", "VSCOMNTOOLS"
+        "VS90COMNTOOLS", "VS80COMNTOOLS",
+        "VS71COMNTOOLS", "VSCOMNTOOLS"
     };
 
     for (size_t i = 0; i < sizeof (env_vars) / sizeof (*env_vars); ++i) {
