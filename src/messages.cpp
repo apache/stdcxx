@@ -213,7 +213,7 @@ __rw_manage_cat_data (int &cat,  __rw_open_cat_data *pcat_data)
 int
 __rw_cat_open (const _STD::string &cat_name, const _STD::locale &loc)
 {
-    _RWSTD_MT_STATIC_GUARD (__rw_open_cat_data);
+    _RWSTD_MT_CLASS_GUARD (__rw_open_cat_data);
 
     const nl_catd catd = catopen (cat_name.c_str (), NL_CAT_LOCALE);
     if (_RWSTD_BAD_CATD == catd)
@@ -239,7 +239,7 @@ __rw_get_message (int cat, int set_num, int msg_num)
     if (cat < 0)
         return 0;
 
-    _RWSTD_MT_STATIC_GUARD (__rw_open_cat_data);
+    _RWSTD_MT_CLASS_GUARD (__rw_open_cat_data);
 
     __rw_open_cat_data *const pcat_data = __rw_manage_cat_data (cat, 0);
 
@@ -264,7 +264,7 @@ __rw_get_message (int cat, int set_num, int msg_num)
 const _STD::locale&
 __rw_get_locale (int cat)
 {
-    _RWSTD_MT_STATIC_GUARD (__rw_open_cat_data);
+    _RWSTD_MT_CLASS_GUARD (__rw_open_cat_data);
 
     _RWSTD_ASSERT (0 <= cat);
     __rw_open_cat_data* const pcat_data = __rw_manage_cat_data (cat, 0);
@@ -279,7 +279,7 @@ __rw_get_locale (int cat)
 void
 __rw_cat_close (int cat)
 {
-    _RWSTD_MT_STATIC_GUARD (__rw_open_cat_data);
+    _RWSTD_MT_CLASS_GUARD (__rw_open_cat_data);
     
     __rw_open_cat_data* const pcat_data =
         cat < 0 ? 0 : __rw_manage_cat_data (cat, 0);
