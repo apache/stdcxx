@@ -443,9 +443,9 @@ run_test (int, char**)
     // avoid instantiating test on very large structs
     // to prevent failures (at compile or run-time) due
     // to compiler bugs
-    test_failure ((BigStruct<_RWSTD_PTRDIFF_MAX / 2>*)0, 0);
-    test_failure ((BigStruct<_RWSTD_PTRDIFF_MAX - 1>*)0, 0);
-    test_failure ((BigStruct<_RWSTD_PTRDIFF_MAX>*)0, 0);
+    test_failure ((BigStruct<_RWSTD_LONG_MAX / 2>*)0, 0);
+    test_failure ((BigStruct<_RWSTD_LONG_MAX - 1>*)0, 0);
+    test_failure ((BigStruct<_RWSTD_LONG_MAX>*)0, 0);
 
 #else
 
