@@ -175,7 +175,7 @@ union __rw_critical_section {
 
 #  endif   // _RWSTD_NO_FWD_DECLARATIONS
 
-#  if _MSC_VER >= 1400
+#  if defined (_MSC_VER) && _MSC_VER >= 1400 && !defined (__INTEL_COMPILER)
 #    include <intrin.h>
 
 #    pragma intrinsic (_InterlockedIncrement)
@@ -189,7 +189,7 @@ union __rw_critical_section {
 #      pragma intrinsic (_InterlockedDecrement64)
 #      pragma intrinsic (_InterlockedExchange64)
 #    endif
-#  endif   // _MSC_VER >= 1400
+#  endif   // _MSC_VER >= 1400 && !__INTEL_COMPILER
 
 
 _RWSTD_NAMESPACE (__rw) { 
@@ -1232,7 +1232,7 @@ __rw_atomic_preincrement (short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
 
-#if defined (_MSC_VER) && _MSC_VER >= 1400
+#if defined (_MSC_VER) && _MSC_VER >= 1400 && !defined (__INTEL_COMPILER)
     return _InterlockedIncrement16 (&__x);
 #else
     return __rw_atomic_add16 (&__x, +1);
@@ -1245,7 +1245,7 @@ __rw_atomic_preincrement (unsigned short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
 
-#if defined (_MSC_VER) && _MSC_VER >= 1400
+#if defined (_MSC_VER) && _MSC_VER >= 1400 && !defined (__INTEL_COMPILER)
     return _InterlockedIncrement16 (_RWSTD_REINTERPRET_CAST (short*, &__x));
 #else
     return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (short*, &__x), +1);
@@ -1308,7 +1308,7 @@ __rw_atomic_predecrement (short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
 
-#if defined (_MSC_VER) && _MSC_VER >= 1400
+#if defined (_MSC_VER) && _MSC_VER >= 1400 && !defined (__INTEL_COMPILER)
     return _InterlockedDecrement16 (&__x);
 #else
     return __rw_atomic_add16 (&__x, -1);
@@ -1321,7 +1321,7 @@ __rw_atomic_predecrement (unsigned short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
 
-#if defined (_MSC_VER) && _MSC_VER >= 1400
+#if defined (_MSC_VER) && _MSC_VER >= 1400 && !defined (__INTEL_COMPILER)
     return _InterlockedDecrement16 (_RWSTD_REINTERPRET_CAST (short*, &__x));
 #else
     return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (short*, &__x), -1);
@@ -1499,7 +1499,7 @@ __rw_atomic_preincrement (short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
 
-#ifdef _MSC_VER
+#if defined (_MSC_VER) && !defined (__INTEL_COMPILER)
     return _InterlockedIncrement16 (&__x);
 #else
     return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
@@ -1513,7 +1513,7 @@ __rw_atomic_preincrement (unsigned short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
 
-#ifdef _MSC_VER
+#if defined (_MSC_VER) && !defined (__INTEL_COMPILER)
     return _InterlockedIncrement16 (_RWSTD_REINTERPRET_CAST (short*, &__x));
 #else
     return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
@@ -1643,7 +1643,7 @@ __rw_atomic_predecrement (short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
 
-#ifdef _MSC_VER
+#if defined (_MSC_VER) && !defined (__INTEL_COMPILER)
     return _InterlockedDecrement16 (&__x);
 #else
     return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
@@ -1657,7 +1657,7 @@ __rw_atomic_predecrement (unsigned short &__x, bool)
 {
     _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
 
-#ifdef _MSC_VER
+#if defined (_MSC_VER) && !defined (__INTEL_COMPILER)
     return _InterlockedDecrement16 (_RWSTD_REINTERPRET_CAST (short*, &__x));
 #else
     return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
