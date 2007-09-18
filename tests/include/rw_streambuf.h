@@ -53,8 +53,7 @@ enum MemFun {
     Sync      = 0x0400,
     // bit OR-ed with MemFun bits
     Throw     = 0x1000,
-    Failure   = 0x2000,
-    Unknown   = 0x4000
+    Failure   = 0x2000
 };
 
 static const char* const streambuf_func_names[] = {
