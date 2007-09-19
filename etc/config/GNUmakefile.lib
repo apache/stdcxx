@@ -66,8 +66,6 @@ include ../makefile.common
 CXXFLAGS    += $(PICFLAGS)
 LDFLAGS     += $(LDSOFLAGS) $(MAPFLAGS) $(MAPFILE)
 
-# OBJS += $(shell [ -d ./cxx_repository/ ] && echo ./cxx_repository/*.o)
-
 # For AIX 5.1 xlC 5.0.2.0
 ifneq ($(DEFAULT_SHROBJ),)
   SOBJS=$(DEFAULT_SHROBJ)
@@ -116,6 +114,9 @@ $(LIBLINK): $(LIB)
 	ln -sf $< $@
 
 else
+
+# Compaq C++ needs all files from the repository
+SOBJS += $(shell [ -d repository.ti ] && echo repository.ti/*.o)
 
 $(LIB): $(OBJS)
 	@echo "$(CXXPRELINK)" >> $(LOGFILE)
