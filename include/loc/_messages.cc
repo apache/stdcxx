@@ -37,7 +37,7 @@ _RW::__rw_facet_id messages<_CharT>::id;
 
 
 template <class _CharT>
-_TYPENAME messages<_CharT>::catalog
+messages_base::catalog
 messages<_CharT>::
 do_open (const string& __fun, const locale&__loc) const
 {
@@ -48,7 +48,7 @@ do_open (const string& __fun, const locale&__loc) const
 template <class _CharT>
 void
 messages<_CharT>::
-do_close (catalog __cat) const
+do_close (messages_base::catalog __cat) const
 {
     _RW::__rw_cat_close (__cat);
 }
