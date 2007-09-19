@@ -208,6 +208,7 @@ function BuildProject(solutionBuild, projectName)
         {
             try
             {
+                WScript.Echo ("project.ExtenderCATID = " + project.ExtenderCATID);
                 projectFile = project.UniqueName;
             }
             catch (e)
