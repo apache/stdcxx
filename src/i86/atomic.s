@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2003-2006 Rogue Wave Software.
+ * Copyright 2003-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -57,7 +57,7 @@
 SYMNAME (__rw_atomic_xchg8):       /* ; char (char *x, char y)        */
     mov           4(%esp), %ecx    /* ; %ecx = x                      */
     movb          8(%esp), %al     /* ; %al = y                       */
-    xchg          %al, (%ecx)      /* ; %al <-> (%ecx)                */
+    xchgb         %al, (%ecx)      /* ; %al <-> (%ecx)                */
     ret
 
 
