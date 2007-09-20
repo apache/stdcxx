@@ -22,9 +22,13 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2006 Rogue Wave Software.
+ * Copyright 2005-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
+
+// tell Compaq C++ we need ENOMEM (defined by POSIX
+// but not in the compiler's pure C++ libc headers)
+#undef __PURE_CNAME
 
 #include <rw_printf.h>
 #include <rw_process.h> // for rw_pid_t

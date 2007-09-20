@@ -25,8 +25,11 @@
 *
 **************************************************************************/
 
+// tell Compaq C++ we need POSIX errno constants that are otherwise
+// guarded (not defined) in the compiler's pure C++ libc headers
+#undef __PURE_CNAME
+#include <errno.h>          // for ENOENT, ECHILD, ESRCH, errno
 #include <string.h>         // for strcmp()
-#include <errno.h>          // for errno
 
 #include <rw_process.h>     // for rw_process_create(), rw_waitpid()
 #include <driver.h>         // for rw_test()
