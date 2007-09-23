@@ -383,8 +383,6 @@ struct InsertRange: ContRangeBase<List> {
     operator() (List &lst, 
                 const ContainerTestCaseData<ListVal>& tdata) const {
 
-        const ContainerTestCase &tcase = tdata.tcase_;
-
         // create a pair of iterators into the list object being modified
         ListIter first1 (lst.begin ());
         _rw_advance (first1, tdata.off1_);
@@ -414,8 +412,6 @@ struct InsertRangeOverload: ContRangeBase<List>
     virtual List&
     operator() (List &lst, 
                 const ContainerTestCaseData<ListVal>& tdata) const {
-
-        const ContainerTestCase &tcase = tdata.tcase_;
 
         // create a pair of iterators into the list object being modified
         ListIter first1 (lst.begin ());
@@ -460,16 +456,14 @@ struct InsertRangePtrOverload: ContRangeBase<List> {
     operator() (List& lst,
                 const ContainerTestCaseData<ListVal>& tdata) const {
 
-        const ContainerTestCase &tcase = tdata.tcase_;
-
         ListIter first1 (lst.begin ());
         _rw_advance (first1, tdata.off1_);
 
         const ListVal* const beg = tdata.arg_ + tdata.off2_;
         const ListVal* const end = beg + tdata.ext2_;
 
-        const Iterator first2 = _RWSTD_CONST_CAST (const Iterator, beg);
-        const Iterator last2  = _RWSTD_CONST_CAST (const Iterator, end);
+        const Iterator first2 = _RWSTD_CONST_CAST (Iterator, beg);
+        const Iterator last2  = _RWSTD_CONST_CAST (Iterator, end);
 
         lst.insert (first1, first2, last2);
         return lst;
