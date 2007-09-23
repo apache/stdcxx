@@ -246,9 +246,8 @@ struct AssignRangeOverload: ContRangeBase<List>
     operator() (List &lst, 
                 const ContainerTestCaseData<ListVal>& tdata) const {
 
-        const ContainerTestCase &tcase = tdata.tcase_;
-
-        bool reverse_iter = ListIds::ReverseIterator == tdata.func_.iter_id_
+        const bool reverse_iter =
+               ListIds::ReverseIterator == tdata.func_.iter_id_
             || ListIds::ConstReverseIterator == tdata.func_.iter_id_;
 
         const std::size_t off = tdata.arglen_ - tdata.off2_ - tdata.ext2_;
@@ -284,8 +283,8 @@ struct AssignRangePtrOverload: ContRangeBase<List> {
         const ListVal* const beg = tdata.arg_ + tdata.off2_;
         const ListVal* const end = beg + tdata.ext2_;
 
-        const Iterator first = _RWSTD_CONST_CAST (const Iterator, beg);
-        const Iterator last  = _RWSTD_CONST_CAST (const Iterator, end);
+        const Iterator first = _RWSTD_CONST_CAST (Iterator, beg);
+        const Iterator last  = _RWSTD_CONST_CAST (Iterator, end);
 
         lst.assign (first, last);
         return lst;
