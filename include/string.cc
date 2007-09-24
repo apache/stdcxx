@@ -241,34 +241,6 @@ operator= (const basic_string &__rhs)
 template <class _CharT, class _Traits, class _Allocator>
 basic_string<_CharT, _Traits, _Allocator>&
 basic_string<_CharT, _Traits, _Allocator>::
-append (const basic_string &__str, size_type __pos, size_type __n)
-{
-    _RWSTD_REQUIRES (__pos <= __str.size (),
-                     (_RWSTD_ERROR_OUT_OF_RANGE,
-                      _RWSTD_FUNC ("basic_string::append(const basic_string&,"
-                                   " size_type, size_type)"),
-                      __pos, __str.size ()));
-
-    if (__n > __str.size () - __pos)
-        __n = __str.size () - __pos;
-
-    const size_type __rlen = _C_min (__str.size() - __pos, __n);
-
-    _RWSTD_REQUIRES (size () <= max_size () - __rlen,
-                     (_RWSTD_ERROR_LENGTH_ERROR,
-                      _RWSTD_FUNC ("basic_string::append(const basic_string&,"
-                                   " size_type, size_type)"),
-                      size (), max_size () - __rlen));
-
-    replace (size (), size_type (), __str.c_str () + __pos, __n);
-
-    return *this;
-}
-
-
-template <class _CharT, class _Traits, class _Allocator>
-basic_string<_CharT, _Traits, _Allocator>&
-basic_string<_CharT, _Traits, _Allocator>::
 assign (const basic_string &__str, size_type __pos, size_type __n)
 {
     _RWSTD_REQUIRES (__pos <= __str.size (),
