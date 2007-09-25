@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -2034,6 +2034,9 @@ gslice_array<_TypeT>::operator= (const valarray<_TypeT>& __rhs) const
 
 inline _RWSTD_SIZE_T gslice::ind_numb() const
 {
+    if (_C_length.size () == 0)
+        return 0;
+
     _RWSTD_SIZE_T __inx = 1;
 
     for(_RWSTD_SIZE_T __i = 0; __i < _C_length.size (); ++__i)
