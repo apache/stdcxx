@@ -717,7 +717,7 @@ limit_process (const struct target_opts* options)
         { 0, 0, 0 }
     };
 
-    for (size_t i = 0; limits [i].limit; ++i) {
+    for (size_t i = 0; limits [i].name; ++i) {
         struct rlimit local;
 
         if (!limits [i].limit)
