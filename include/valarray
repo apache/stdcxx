@@ -1196,7 +1196,7 @@ atan2 (const valarray<_TypeT> &__x, const valarray<_TypeT> &__y)
 template<class _TypeT>
 inline valarray<_TypeT> atan2 (const valarray<_TypeT> &__x, const _TypeT &__y)
 {
-    _RW::__rw_array<_TypeT> __tmp (__x.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (0), __x.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __tmp.size (); ++__i)
         __tmp [__i] = _RWSTD_C::atan2 (__x [__i], __y);
@@ -1207,7 +1207,7 @@ inline valarray<_TypeT> atan2 (const valarray<_TypeT> &__x, const _TypeT &__y)
 template<class _TypeT>
 inline valarray<_TypeT> atan2 (const _TypeT &__x, const valarray<_TypeT> &__y)
 {
-    _RW::__rw_array<_TypeT> __tmp (__y.size ());
+    _RW::__rw_array<_TypeT> __tmp (_TypeT (0), __y.size ());
 
     for (_RWSTD_SIZE_T __i = 0; __i != __tmp.size (); ++__i)
         __tmp [__i] = _RWSTD_C::atan2 (__x, __y [__i]);
