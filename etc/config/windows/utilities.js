@@ -28,6 +28,7 @@ var DEVENV = "";
 var DEVENVFLAGS = "";
 var CPPFLAGS = "";
 var LDFLAGS = "";
+var LIBS = "";
 var CONVERT = false;
 var CXX = "";
 var LD = "";
@@ -134,6 +135,9 @@ function parseConfig(config)
         case "LDFLAGS":
             LDFLAGS = arr[2];
             break;
+        case "LIBS":
+            LIBS = arr[2];
+            break;
         case "CONVERT":
             CONVERT = parseInt(arr[2]) != 0;
             break;
@@ -189,6 +193,7 @@ function getCompilerOpts(config)
     DEVENVFLAGS = "";
     CPPFLAGS = "";
     LDFLAGS = "";
+    LIBS = "";
     CONVERT = false;
     CXX = "";
     LD = "";
@@ -236,6 +241,7 @@ function PrintVars(stream)
     stream.WriteLine("  DEVENVFLAGS=" + DEVENVFLAGS);
     stream.WriteLine("  CPPFLAGS=" + CPPFLAGS);
     stream.WriteLine("  LDFLAGS=" + LDFLAGS);
+    stream.WriteLine("  LIBS=" + LIBS);
     stream.WriteLine("  CONVERT=" + CONVERT);
     stream.WriteLine("  CXX=" + CXX);
     stream.WriteLine("  LD=" + LD);
