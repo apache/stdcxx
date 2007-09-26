@@ -179,8 +179,8 @@ thread_loop_body (std::size_t i)
 
         const Punct &mp = std::use_facet<Punct>(loc);
 
-        const char           dp  = mp.decimal_point ();
-        const char           ts  = mp.thousands_sep ();
+        const wchar_t        dp  = mp.decimal_point ();
+        const wchar_t        ts  = mp.thousands_sep ();
         const std::string    grp = mp.grouping ();
         const std::wstring   cur = mp.curr_symbol ();
         const std::wstring   pos = mp.positive_sign ();
@@ -208,8 +208,8 @@ thread_loop_body (std::size_t i)
 
         const Punct &mp = std::use_facet<Punct>(loc);
 
-        const char           dp  = mp.decimal_point ();
-        const char           ts  = mp.thousands_sep ();
+        const wchar_t        dp  = mp.decimal_point ();
+        const wchar_t        ts  = mp.thousands_sep ();
         const std::string    grp = mp.grouping ();
         const std::wstring   cur = mp.curr_symbol ();
         const std::wstring   pos = mp.positive_sign ();
