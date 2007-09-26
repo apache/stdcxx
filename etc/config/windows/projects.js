@@ -27,7 +27,6 @@ var commonDefines = "debug?_RWSTDDEBUG;dll?_RWSHARED";
 var commonIncludes = "$(SolutionDir)%CONFIG%\\include";
 var stdcxxIncludes = "%SRCDIR%\\include;%SRCDIR%\\include\\ansi;" + commonIncludes;
 var rwtestIncludes = "%SRCDIR%\\tests\\include;" + stdcxxIncludes;
-var commonLibs = "kernel32.lib user32.lib";
 
 var binPath = "$(SolutionDir)%CONFIG%\\bin";
 var libPath = "$(SolutionDir)%CONFIG%\\lib";
@@ -99,7 +98,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     stdcxxDef.Includes = stdcxxIncludes;
     stdcxxDef.OutDir = libPath;
     stdcxxDef.IntDir = "$(SolutionDir)%CONFIG%\\src";
-    stdcxxDef.Libs = commonLibs;
+    stdcxxDef.Libs = LIBS;
     stdcxxDef.OutFile = "$(OutDir)\\libstd%CONFIG%%EXT%";
     stdcxxDef.PrjDeps.push(configureDef);
 
@@ -120,7 +119,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     rwtestDef.Includes = rwtestIncludes;
     rwtestDef.OutDir = "$(SolutionDir)%CONFIG%\\tests";
     rwtestDef.IntDir = rwtestDef.OutDir + "\\src";
-    rwtestDef.Libs = commonLibs;
+    rwtestDef.Libs = LIBS;
     rwtestDef.PrjRefs.push(stdcxxDef);
 
     projectDefs.push(new Array(rwtestDef));
@@ -141,7 +140,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     execDef.Defines = "";
     execDef.Includes = commonIncludes;
     execDef.OutDir = binPath;
-    execDef.Libs = commonLibs;
+    execDef.Libs = LIBS;
     execDef.OutFile = "$(OutDir)\\exec.exe";
     execDef.PrjDeps.push(configureDef);
 
@@ -168,7 +167,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     localedefDef.Defines = commonDefines;
     localedefDef.Includes = stdcxxIncludes;
     localedefDef.OutDir = binPath;
-    localedefDef.Libs = commonLibs;
+    localedefDef.Libs = LIBS;
     localedefDef.OutFile = "$(OutDir)\\localedef.exe";
     localedefDef.PrjRefs.push(stdcxxDef);
 
@@ -184,7 +183,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     localeDef.Defines = commonDefines;
     localeDef.Includes = stdcxxIncludes;
     localeDef.OutDir = binPath;
-    localeDef.Libs = commonLibs;
+    localeDef.Libs = LIBS;
     localeDef.OutFile = "$(OutDir)\\locale.exe";
     localeDef.PrjDeps.push(configureDef);
 
@@ -200,7 +199,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     gencatDef.Defines = commonDefines;
     gencatDef.Includes = stdcxxIncludes;
     gencatDef.OutDir = binPath;
-    gencatDef.Libs = commonLibs;
+    gencatDef.Libs = LIBS;
     gencatDef.OutFile = "$(OutDir)\\gencat.exe";
     gencatDef.PrjRefs.push(stdcxxDef);
 
@@ -228,7 +227,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     exampleTplDef.Defines = commonDefines;
     exampleTplDef.Includes = "%SRCDIR%\\examples\\include;" + stdcxxIncludes;
     exampleTplDef.OutDir = "$(SolutionDir)%CONFIG%\\examples";
-    exampleTplDef.Libs = commonLibs;
+    exampleTplDef.Libs = LIBS;
     exampleTplDef.PrjRefs.push(stdcxxDef);
     
     var exampleDefs = exampleTplDef.createProjectDefsFromFolder(
@@ -290,7 +289,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     testTplDef.Defines = commonDefines;
     testTplDef.Includes = rwtestIncludes;
     testTplDef.OutDir = "$(SolutionDir)%CONFIG%\\tests";
-    testTplDef.Libs = commonLibs;
+    testTplDef.Libs = LIBS;
     testTplDef.PrjRefs.push(stdcxxDef);
     testTplDef.PrjRefs.push(rwtestDef);
     
