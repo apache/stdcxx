@@ -49,6 +49,13 @@ int rw_opt_nthreads = 1;
 // otherwise on the command line)
 int rw_opt_nloops = 200000;
 
+// number of locales to use
+int rw_opt_nlocales = MAX_THREADS;
+
+// should all threads share the same set of locale objects instead
+// of creating their own?
+int rw_opt_shared_locale;
+
 /**************************************************************************/
 
 // array of locale names to use for testing
@@ -63,18 +70,22 @@ nlocales;
 
 struct NumPunctData
 {
+    const char* locale_name_;
+    std::locale locale_;
+
+    std::string grouping_;
+
     char decimal_point_;
     char thousands_sep_;
-    char grouping_ [32];
-    char truename_ [32];
-    char falsename_ [32];
+    std::string truename_;
+    std::string falsename_;
 
 #ifndef _RWSTD_NO_WCHAR_T
 
     wchar_t wdecimal_point_;
     wchar_t wthousands_sep_;
-    wchar_t wtruename_ [32];
-    wchar_t wfalsename_ [32];
+    std::wstring wtruename_;
+    std::wstring wfalsename_;
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -94,13 +105,12 @@ thread_func (void*)
 
         const std::size_t inx = std::size_t (i) % nlocales;
 
-        // save the name of the locale
-        const char* const locale_name = locales [inx];
-
-        const NumPunctData* const data = punct_data + inx;
+        const NumPunctData& data = punct_data[inx];
 
         // construct a named locale
-        const std::locale loc (locale_name);
+        const std::locale loc =
+            rw_opt_shared_locale ? data.locale_
+                                 : std::locale (data.locale_name_);
 
         if (test_char) {
             // exercise the narrow char specialization of the facet
@@ -114,11 +124,14 @@ thread_func (void*)
             const std::string tn  = np.truename ();
             const std::string fn  = np.falsename ();
 
-            RW_ASSERT (dp == data->decimal_point_);
-            RW_ASSERT (ts == data->thousands_sep_);
-            RW_ASSERT (0 == rw_strncmp (grp.c_str (), data->grouping_));
-            RW_ASSERT (0 == rw_strncmp (tn.c_str (),  data->truename_));
-            RW_ASSERT (0 == rw_strncmp (fn.c_str (),  data->falsename_));
+            RW_ASSERT (dp == data.decimal_point_);
+            RW_ASSERT (ts == data.thousands_sep_);
+            RW_ASSERT (0 == rw_strncmp (grp.c_str (),
+                                        data.grouping_.c_str ()));
+            RW_ASSERT (0 == rw_strncmp (tn.c_str (),
+                                        data.truename_.c_str ()));
+            RW_ASSERT (0 == rw_strncmp (fn.c_str (),
+                                        data.falsename_.c_str ()));
         }
 
         // both specializations may be tested at the same time
@@ -128,20 +141,23 @@ thread_func (void*)
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-            const std::numpunct<wchar_t> &np =
+            const std::numpunct<wchar_t> &wp =
                 std::use_facet<std::numpunct<wchar_t> >(loc);
 
-            const wchar_t      dp  = np.decimal_point ();
-            const wchar_t      ts  = np.thousands_sep ();
-            const std::string  grp = np.grouping ();
-            const std::wstring tn  = np.truename ();
-            const std::wstring fn  = np.falsename ();
+            const wchar_t      dp  = wp.decimal_point ();
+            const wchar_t      ts  = wp.thousands_sep ();
+            const std::string  grp = wp.grouping ();
+            const std::wstring tn  = wp.truename ();
+            const std::wstring fn  = wp.falsename ();
 
-            RW_ASSERT (dp == data->wdecimal_point_);
-            RW_ASSERT (ts == data->wthousands_sep_);
-            RW_ASSERT (0 == rw_strncmp (grp.c_str (), data->grouping_));
-            RW_ASSERT (0 == rw_strncmp (tn.c_str (),  data->wtruename_));
-            RW_ASSERT (0 == rw_strncmp (fn.c_str (),  data->wfalsename_));
+            RW_ASSERT (dp == data.wdecimal_point_);
+            RW_ASSERT (ts == data.wthousands_sep_);
+            RW_ASSERT (0 == rw_strncmp (grp.c_str (),
+                                        data.grouping_.c_str ()));
+            RW_ASSERT (0 == rw_strncmp (tn.c_str (),
+                                        data.wtruename_.c_str ()));
+            RW_ASSERT (0 == rw_strncmp (fn.c_str (),
+                                        data.wfalsename_.c_str ()));
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -162,65 +178,63 @@ run_test (int, char**)
     const char* const locale_list =
         rw_opt_locales ? rw_opt_locales : rw_locales (_RWSTD_LC_ALL);
 
-    const std::size_t maxinx = sizeof locales / sizeof *locales;
+    const std::size_t maxinx = sizeof punct_data / sizeof *punct_data;
 
     // iterate over locales, initializing a global punct_data array
-    for (const char *name = locale_list; *name; name += std::strlen (name) +1) {
+    for (const char *name = locale_list;
+         *name;
+         name += std::strlen (name) +1) {
 
         const std::size_t inx = nlocales;
-
         locales [inx] = name;
 
-        // set LC_NUMERIC and LC_CTYPE to be able to use mbstowcs()
-        if (std::setlocale (LC_ALL, name)) {
+        NumPunctData& data = punct_data [inx];
 
-            const std::lconv* const pconv = std::localeconv ();
-            NumPunctData* const pdata = punct_data + inx;
+        try {
+            std::locale loc(name);
+            data.locale_name_ = name;
 
-            // assign just the first character of the (potentially)
-            // multibyte decimal_point and thousands_sep (C++ locale
-            // can't deal with more)
-            pdata->decimal_point_ = *pconv->decimal_point;
-            pdata->thousands_sep_ = *pconv->thousands_sep;
+            const std::numpunct<char> &np =
+                std::use_facet<std::numpunct<char> >(loc);
 
-            // simply copy the narrow grouping
-            std::strcpy (pdata->grouping_, pconv->grouping);
+            data.grouping_ = np.grouping ();
 
-            // FIXME: this will need to change once useful truename
-            //        and falsename has been implemented
-            std::strcpy (pdata->truename_,  "true");
-            std::strcpy (pdata->falsename_, "false");
+            data.decimal_point_ = np.decimal_point ();
+            data.thousands_sep_ = np.thousands_sep ();
 
-            wchar_t tmp [2];
+            data.truename_  = np.truename ();
+            data.falsename_ = np.falsename ();
 
-            // convert multibyte decimal point and thousands separator
-            // to wide characters (assumes they are single character
-            // each -- C++ locale can't handle more)
-            std::mbstowcs (tmp, pconv->decimal_point, 2);
-            pdata->wdecimal_point_ = tmp [0];
+#ifndef _RWSTD_NO_WCHAR_T
 
-            std::mbstowcs (tmp, pconv->thousands_sep, 2);
-            pdata->wthousands_sep_ = tmp [0];
+            const std::numpunct<wchar_t> &wp =
+                std::use_facet<std::numpunct<wchar_t> >(loc);
 
-            const std::size_t n =
-                sizeof pdata->wtruename_ / sizeof (wchar_t);
+            data.wdecimal_point_ = wp.decimal_point ();
+            data.wthousands_sep_ = wp.thousands_sep ();
 
-            std::mbstowcs (pdata->wtruename_, pdata->truename_, n);
-            std::mbstowcs (pdata->wfalsename_, pdata->falsename_, n);
+            data.wtruename_  = wp.truename ();
+            data.wfalsename_ = wp.falsename ();
 
-            ++nlocales;
+#endif
+
+            if (rw_opt_shared_locale)
+                data.locale_ = loc;
+
+            nlocales += 1;
+        }
+        catch (...) {
+            rw_warn (!rw_opt_locales, 0, __LINE__,
+                     "failed to create locale(%#s)", name);
         }
 
-        if (nlocales == maxinx)
+        if (nlocales == maxinx || nlocales == std::size_t (rw_opt_nlocales))
             break;
     }
 
     // avoid divide by zero in thread if there are no locales to test
     rw_fatal (nlocales != 0, 0, __LINE__,
               "failed to create one or more usable locales!");
-
-    // reset the global locale
-    std::setlocale (LC_ALL, "C");
 
     rw_info (0, 0, 0,
              "testing std::numpunct<charT> with %d thread%{?}s%{;}, "
@@ -297,11 +311,15 @@ int main (int argc, char *argv[])
     return rw_test (argc, argv, __FILE__,
                     "lib.locale.numpunct",
                     "thread safety", run_test,
-                    "|-nloops#0 "        // must be non-negative
-                    "|-nthreads#0-* "    // must be in [0, MAX_THREADS]
-                    "|-locales=",        // must be provided
+                    "|-nloops#0 "       // must be non-negative
+                    "|-nthreads#0-* "   // must be in [0, MAX_THREADS]
+                    "|-nlocales#0 "     // arg must be non-negative
+                    "|-locales= "       // must be provided
+                    "|-shared-locale# ",
                     &rw_opt_nloops,
                     int (MAX_THREADS),
                     &rw_opt_nthreads,
-                    &rw_opt_setlocales);
+                    &rw_opt_nlocales,
+                    &rw_opt_setlocales,
+                    &rw_opt_shared_locale);
 }
