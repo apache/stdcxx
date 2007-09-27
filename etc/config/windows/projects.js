@@ -339,7 +339,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     runtestsDef.CustomBuildOut = "$(OutDir)\\runtests.log";
     runtestsDef.CustomBuildDeps = "%FILES%";
     //runtestsDef.PrjDeps.push(alltestsDef);
-    runtestsDef.PrjDeps.push(execDef);
+    runtestsDef.PrjDeps.push(utilsDef);
 
     projectDefs.push(new Array(runtestsDef));
 
