@@ -324,8 +324,8 @@ typedef _RWSTD_UINT_LEAST128_T    uint_fast128_t;
 
 #define SIZE_MAX            _RWSTD_SIZE_MAX
 
-#define WCHAR_MIN           _RWSTD_WCHAR_T_MIN
-#define WCHAR_MAX           _RWSTD_WCHAR_T_MAX
+#define WCHAR_MIN           _RWSTD_WCHAR_MIN
+#define WCHAR_MAX           _RWSTD_WCHAR_MAX
 
 #define WINT_MIN            _RWSTD_WINT_MIN
 #define WINT_MAX            _RWSTD_WINT_MAX

@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  *
  **************************************************************************/
 
@@ -289,19 +289,19 @@ public:
     }
 
     basic_string& operator+= (value_type __c) {
-        return append (size_type (1), __c);
+        return push_back (__c), *this;
     }
 
     basic_string& append (const basic_string&, size_type, size_type);
 
-    basic_string& append (const basic_string&);
-
-    basic_string& append (const_pointer __s, size_type __n) {
-        return replace (size (), size_type (), __s, __n);
+    basic_string& append (const basic_string &__str) {
+        return append (__str.data (), __str.size ());
     }
 
+    basic_string& append (const_pointer, size_type);
+
     basic_string& append (const_pointer __s) {
-        return replace (size (), size_type (), __s);
+        return append (__s, traits_type::length (__s));
     }
 
 #ifndef _RWSTD_NO_MEMBER_TEMPLATES
@@ -323,26 +323,21 @@ public:
 
     basic_string& append (size_type __n, value_type __c, int) {
         // unnamed arg is used for overload resolution
-        return replace (size (), size_type (), __n, __c);
+        return append (__n, __c);
     }
 
 #else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
 
     basic_string& append (const_pointer __first, const_pointer __last) {
-        replace (size (), size_type (), __first, __last - __first);
-        return *this;
+        return append (__first, __last - __first);
     }
 
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
-    basic_string& append (size_type __n, value_type __c) {
-        return replace (size (), size_type (), __n, __c);
-    }
+    basic_string& append (size_type, value_type);
 
     // lwg issue 7
-    void push_back (value_type __c) {
-        append (size_type (1), __c);
-    }
+    void push_back (value_type);
 
     basic_string& assign (const basic_string &__str) {
         return *this = __str;
@@ -1087,6 +1082,26 @@ resize (size_type __n, value_type __c)
 
 
 template <class _CharT, class _Traits , class _Allocator>
+inline void
+basic_string<_CharT, _Traits, _Allocator>::
+push_back (value_type __c)
+{
+    const size_type __size0 = size ();
+    const _RWSTD_SIZE_T __size1 = __size0 + 1;
+
+    if (   capacity () < __size1
+        || size_type (1) < size_type (_C_pref ()->_C_get_ref ())) {
+         replace (size (), size_type (), 1, __c);
+    }
+    else {
+        traits_type::assign (_C_data [__size0], __c);
+        traits_type::assign (_C_data [__size1], value_type ());
+        _C_pref ()->_C_size._C_size = __size1;
+    }
+}
+
+
+template <class _CharT, class _Traits , class _Allocator>
 inline void basic_string<_CharT, _Traits, _Allocator>::
 reserve (size_type __cap)
 {
@@ -1108,16 +1123,16 @@ replace (size_type __pos1, size_type __n1, const basic_string &__str,
 {
     _RWSTD_REQUIRES (__pos1 <= size (),
                      (_RWSTD_ERROR_OUT_OF_RANGE, 
-                      _RWSTD_FUNC ("basic_string::compare(size_type, "
+                      _RWSTD_FUNC ("basic_string::replace(size_type, "
                                    "size_type, const basic_string&, "
-                                   "size_type, size_type) const"),
+                                   "size_type, size_type)"),
                       __pos1, size ()));
 
     _RWSTD_REQUIRES (__pos2 <= __str.size (),
                      (_RWSTD_ERROR_OUT_OF_RANGE, 
-                      _RWSTD_FUNC ("basic_string::compare(size_type, "
+                      _RWSTD_FUNC ("basic_string::replace(size_type, "
                                    "size_type, const basic_string&, "
-                                   "size_type, size_type) const"),
+                                   "size_type, size_type)"),
                       __pos2, __str.size ()));
 
     const size_type __rem = __str.size () - __pos2;
@@ -1178,16 +1193,55 @@ compare (const basic_string &__str) const
 template <class _CharT, class _Traits, class _Allocator>
 inline basic_string<_CharT, _Traits, _Allocator>&
 basic_string<_CharT, _Traits, _Allocator>::
-append (const basic_string &__str)
+append (const basic_string &__str, size_type __pos, size_type __n)
 {
-    const size_type __size = size () + __str.size ();
+    _RWSTD_REQUIRES (__pos <= __str.size (),
+                     (_RWSTD_ERROR_OUT_OF_RANGE,
+                      _RWSTD_FUNC ("basic_string::append(const basic_string&,"
+                                   " size_type, size_type)"),
+                      __pos, __str.size ()));
 
-    if (   capacity () < __size
+    const size_type __rlen = _C_min (__str.size() - __pos, __n);
+
+    return append (__str.data () + __pos, __rlen);
+}
+
+
+template <class _CharT, class _Traits, class _Allocator>
+inline basic_string<_CharT, _Traits, _Allocator>&
+basic_string<_CharT, _Traits, _Allocator>::
+append (const_pointer __s, size_type __n)
+{
+    const size_type __size0 = size ();
+    const _RWSTD_SIZE_T __size1 = __size0 + __n;
+
+    if (   capacity () <= __size1
         || size_type (1) < size_type (_C_pref ()->_C_get_ref ()))
-        return append (__str, size_type (), __str.size ());
+        return replace (size (), size_type (), __s, __n);
 
-    traits_type::copy (_C_data + size (), __str.data (), __str.size () + 1);
-    _C_pref ()->_C_size._C_size = __size;
+    traits_type::copy (_C_data + __size0, __s, __n);
+    traits_type::assign (_C_data [__size1], value_type ());
+    _C_pref ()->_C_size._C_size = __size1;
+
+    return *this;
+}
+
+
+template <class _CharT, class _Traits, class _Allocator>
+inline basic_string<_CharT, _Traits, _Allocator>&
+basic_string<_CharT, _Traits, _Allocator>::
+append (size_type __n, value_type __c)
+{
+    const size_type __size0 = size ();
+    const _RWSTD_SIZE_T __size1 = __size0 + __n;
+
+    if (   capacity () < __size1
+        || size_type (1) < size_type (_C_pref ()->_C_get_ref ()))
+        return replace (size (), size_type (), __n, __c);
+
+    traits_type::assign (_C_data + __size0, __n, __c);
+    traits_type::assign (_C_data [__size1], value_type ());
+    _C_pref ()->_C_size._C_size = __size1;
 
     return *this;
 }

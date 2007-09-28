@@ -1,9 +1,8 @@
 
             $Id$
 
-               STDCXX - Apache C++ Standard Library 4.1.3
-          (based on Rogue Wave(R) C++ Standard Library 4.1.3)
-          ---------------------------------------------------
+       STDCXX - Apache C++ Standard Library 4.2.0 (pre-release)
+       --------------------------------------------------------
 
   i. Disclaimer
   -------------
@@ -21,6 +20,7 @@
   0  Index
   --------
 
+  Disclaimer ....................................................... i
   Index ............................................................ 0
   Contents ......................................................... 1
   Requirements ..................................................... 2
@@ -495,25 +495,30 @@
 
   o  > CD stdlib-X.Y.Z-YYYYMMDD\stdlib
      > DIR /D  # this is ${TOPDIR}
-     GNUmakefile  etc  examples  generate.bat include  src  tests
+     GNUmakefile  etc  examples  configure.bat  include  src  tests
 
      If your distribution  does not contain the test  suite and/or the
      examples, the output will look like so:
 
      > DIR /D  # this is ${TOPDIR}
-     GNUmakefile  etc  generate.bat include  src
+     GNUmakefile  etc  configure.bat  include  src
 
-  o  > .\generate.bat /BUILDDIR:<builddir> /CONFIG:<config>
+  o  > .\configure.bat  [/BUILDDIR:<builddir>] [/CONFIG:<config>]
 
      <builddir> is the pathname of the build directory where to create
                 the solution  and  projects;  the  directory  will  be
                 created  (as will  all  its  required  subdirectories)
-                this is a required argument
+
+                The  <builddir>  argument  is optional.  When  not
+                specified a current directory is assumed.
+
      <config>   name  (not  pathname)  of  a  config  file  containing
                 compiler options; the available configuration files
                 are:
                 icc-9.0.config  - for Intel C++ 9.0
                 icc-9.1.config  - for Intel C++ 9.1
+                icc-10.0.config - for Intel C++ 10.0
+                icc-10.0-x64.config - for Intel C++ 10.0 (x64 platform)
                 msvc-7.0.config - for Microsoft Visual C++ .NET
                 msvc-7.1.config - for Microsoft Visual C++ .NET 2003
                 msvc-8.0.config - for Microsoft Visual C++ .NET 2005
@@ -521,10 +526,13 @@
                                       2005 (x64 platform)
                 msvcex-8.0.config - for Microsoft Visual C++ Express
                                     2005
-                this is a required argument
+
+                The  <config>  argument  is optional.  When  not
+                specified, the suitable config file will be selected
+                automatically.
 
   o  Example:
-       > generate.bat /BUILDDIR:C:\stdcxx /CONFIG:msvc-7.1
+       > configure.bat  /BUILDDIR:C:\stdcxx /CONFIG:msvc-7.1
 
      This command will create a build directory rooted at ${BUILDDIR},
      the solution file  ${BUILDDIR}\msvc-7.1\msvc-7.1.sln, the project

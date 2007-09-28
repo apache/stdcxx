@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -186,8 +186,7 @@ public:
     typedef char             intern_type;
     typedef _RWSTD_MBSTATE_T state_type;
 
-    _EXPLICIT codecvt (_RWSTD_SIZE_T __refs = 0)
-        : _RW::__rw_facet (__refs), _C_always_noconv (-1) { }
+    _EXPLICIT codecvt (_RWSTD_SIZE_T = 0);
 
     virtual ~codecvt ();
 
@@ -318,23 +317,16 @@ protected:
     virtual result
     do_unshift (state_type&, extern_type*, extern_type*, extern_type*&) const;
 
-    virtual bool do_always_noconv () const _THROWS (()) {
-        return false;   // conversion always necessary
-    }
+    virtual bool do_always_noconv () const _THROWS (());
 
-    virtual int do_encoding () const _THROWS (()) {
-        // 22.2.1.5.2 p6    1(ext.) <=> 1(int.)
-        return 1;   
-    }
+    virtual int do_encoding () const _THROWS (());
 
     // signature follows lwg issue 75
     virtual int
     do_length (state_type&,
                const extern_type*, const extern_type*, _RWSTD_SIZE_T) const;
 
-    virtual int do_max_length () const _THROWS (()) {
-        return 1;
-    }
+    virtual int do_max_length () const _THROWS (());
 
 public:
 

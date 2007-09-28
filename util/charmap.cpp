@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -73,7 +73,7 @@
 // the numeric values cannot be greater then 3 digits long
 #define MAX_BYTE_LEN 5
 
-#ifndef _MSC_VER
+#ifndef _RWSTD_NO_ICONV
 
 static iconv_t
 my_iconv_open (const char *to_codeset, const char *from_codeset)
@@ -163,7 +163,7 @@ iconv_t Charmap::open_iconv_to_ext ()
 }
 
 #  endif   // _RWSTD_NO_ISO_10646_WCHAR_T
-#endif  // _MSC_VER
+#endif   // _RWSTD_NO_ICONV
 
 
 // utf8_decode translates the UTF-8 encoded character (specified
@@ -433,20 +433,21 @@ bool Charmap::convert_to_wc (const std::string& sym_name,
 }
 
 
-#ifndef _MSC_VER
 char* Charmap::convert_to_utf8 (const char *inbuf, size_t inbuf_s, 
                                 char *outbuf, size_t outbuf_s) const
 {
+#ifndef _RWSTD_NO_ICONV
+
     if (ic_to_utf8_ == iconv_t (-1))
         return 0;
 
     char* outbufp = outbuf;
 
-#ifndef _RWSTD_NO_ICONV_CONST_CHAR
+#  ifndef _RWSTD_NO_ICONV_CONST_CHAR
     const char* inbufp = inbuf;
-#else
+#  else
     char* inbufp = _RWSTD_CONST_CAST(char*, inbuf);
-#endif   // _RWSTD_NO_ICONV_CONST_CHAR
+#  endif   // _RWSTD_NO_ICONV_CONST_CHAR
     
     if (std::size_t (-1) == 
         iconv (ic_to_utf8_, &inbufp, &inbuf_s, &outbufp, &outbuf_s)) {
@@ -460,8 +461,15 @@ char* Charmap::convert_to_utf8 (const char *inbuf, size_t inbuf_s,
     }
 
     return outbufp;
+
+#else   // if defined (_RWSTD_NO_ICONV)
+
+    return 0;
+
+#endif   // _RWSTD_NO_ICONV
+
 }
-#endif  // _MSC_VER
+
 
 
 std::string Charmap::get_charmap_name () const
@@ -643,7 +651,7 @@ convert_sym_to_ucs (const std::string &sym) const
 
     const unsigned long val = std::strtoul (&*++it, (char**)0, 16);
 
-    if (_RWSTD_WCHAR_T_MAX <= val)
+    if (_RWSTD_WCHAR_MAX <= val)
         issue_diag (E_UCS, true, 0, 
                     "UCS value %lu of symbolic character %s out of range.\n",
                     val, sym.c_str ());
@@ -988,10 +996,10 @@ Charmap::Charmap(const char* Clocale,
        reverse_maps (create_reverse_maps),
        UCS4_internal_ (use_UCS4)
 {
-#ifndef _MSC_VER
+#ifndef _RWSTD_NO_ICONV
     ic_to_utf8_ = 0;
     ic_to_ext_ = 0;
-#endif  // _MSC_VER
+#endif   // _RWSTD_NO_ICONV
 
     scanner_.open (fname, '#', '\\');
 
@@ -1020,21 +1028,26 @@ Charmap::Charmap(const char* Clocale,
 
             // we always need a iconv to utf8 so that we can create
             // the utf8_charmap unless we are on windows
-#if !defined (_MSC_VER)
+#ifndef _RWSTD_NO_ICONV
             if (!in_utf8_) {
                 ic_to_utf8_ = open_iconv_to_utf8 ();
 #  if !defined (_RWSTD_NO_ISO_10646_WCHAR_T)
                 ic_to_ext_ = open_iconv_to_ext ();
 #  endif   // _RWSTD_NO_ISO_10646_WCHAR_T
             }
-#else
+
+#else   // if defined (_RWSTD_NO_ICONV)
+
+#  ifdef _MSC_VER
             codepage_ = get_codepage (code_set_name_);
             if (codepage_ == 0) {
                 issue_diag (W_ICONV, false, 0, 
                             "iconv_open (%s to UTF-8) failed\n",
                             code_set_name_.c_str());
             }
-#endif     // _MSC_VER
+
+#  endif   // _MSC_VER
+#endif   // _RWSTD_NO_ICONV
 
             scanner_.ignore_line ();
             break;

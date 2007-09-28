@@ -1,3 +1,23 @@
+<!--
+    Licensed to the Apache Software  Foundation (ASF) under one or more
+    contributor  license agreements.  See  the NOTICE  file distributed
+    with  this  work  for  additional information  regarding  copyright
+    ownership.   The ASF  licenses this  file to  you under  the Apache
+    License, Version  2.0 (the  License); you may  not use  this file
+    except in  compliance with the License.   You may obtain  a copy of
+    the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the  License is distributed on an  "AS IS" BASIS,
+    WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+    implied.   See  the License  for  the  specific language  governing
+    permissions and limitations under the License.
+
+    Copyright 1999-2007 Rogue Wave Software, Inc.
+-->
+
 <HTML>
 <HEAD>
 <TITLE>basic_filebuf</TITLE>
@@ -33,6 +53,7 @@
 <A HREF="#idx40">char_type</A><BR>
 <A HREF="#idx52">close()</A><BR>
 <A HREF="#idx53">detach()</A><BR>
+<A HREF="#idx66">fd()</A><BR>
 </TD>
 <TD VALIGN=top><A HREF="#idx41">int_type</A><BR>
 <A HREF="#idx54">is_open()</A><BR>
@@ -119,6 +140,8 @@ namespace std {
                                        streamsize);
     basic_filebuf&lt;charT, traits&gt;* attach(int);
     int detach();
+
+    int fd() const;
 
     basic_filebuf&lt;charT, traits&gt;* close();
 
@@ -235,7 +258,18 @@ NOTE -- This function is not part of the C++ Standard, but is included here as a
 </UL>
 
 <BLOCKQUOTE><HR><B>
-NOTE -- <B>This function is not part of the C++ Standard, but is provided as an extension of this implementation for compatibility with Classic Iostreams. See </B><A HREF="B.html">Appendix&nbsp;B</A><B> for a complete list of extensions of this implementation.
+NOTE -- This function is not part of the C++ Standard, but is provided as an extension of this implementation for compatibility with Classic Iostreams. See </B><A HREF="B.html">Appendix&nbsp;B</A><B> for a complete list of extensions of this implementation.
+</B><HR></BLOCKQUOTE>
+
+
+<A NAME="idx66"></A><PRE>int
+<B>fd</B>() const;</PRE>
+<UL>
+<P>If <SAMP>is_open()</SAMP> returns <SAMP>true</SAMP>, returns the associated file descriptor, otherwise -1.</P>
+</UL>
+
+<BLOCKQUOTE><HR><B>
+NOTE -- This function is not part of the C++ Standard, but is provided as an extension of this implementation for compatibility with Classic Iostreams. See </B><A HREF="B.html">Appendix&nbsp;B</A><B> for a complete list of extensions of this implementation.
 </B><HR></BLOCKQUOTE>
 
 <A NAME="idx52"></A><PRE>

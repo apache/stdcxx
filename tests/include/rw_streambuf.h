@@ -53,8 +53,7 @@ enum MemFun {
     Sync      = 0x0400,
     // bit OR-ed with MemFun bits
     Throw     = 0x1000,
-    Failure   = 0x2000,
-    Unknown   = 0x4000
+    Failure   = 0x2000
 };
 
 static const char* const streambuf_func_names[] = {
@@ -235,6 +234,10 @@ MyStreambuf (std::streamsize bufsize, int fail_set, int when)
     // set the fail and throw flags
     if (fail_set & Throw) {
         throw_set_ = fail_set & ~Throw;
+
+        for (unsigned i = 0; i < 11; ++i)
+            if (throw_set_ & (1U << i))
+                throw_when_ [i] = when;
     }
     else {
         fail_set_ = fail_set;
@@ -281,6 +284,10 @@ MyStreambuf (const char *buf, std::streamsize bufsize, int fail_set, int when)
     // set the fail and throw flags
     if (fail_set & Throw) {
         throw_set_ = fail_set & ~Throw;
+
+        for (unsigned i = 0; i < 11; ++i)
+            if (throw_set_ & (1U << i))
+                throw_when_ [i] = when;
     }
     else {
         fail_set_ = fail_set;

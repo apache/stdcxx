@@ -187,11 +187,12 @@ void test_copy (charT, Traits*, Allocator*,
     std::size_t res = 0;
 
     // create destination array and initialize it with garbage
-    charT* const s_res = new charT [min_len + 1];
+    charT* const s_res = new charT [min_len + 2];
 
-    char cgb = '#';
-    charT wcgb = make_char (cgb, (charT*)0);
+    const char cgb [2] = "#";
+    const charT wcgb = make_char (cgb [0], (charT*)0);
     Traits::assign (s_res, min_len + 1, wcgb);
+    s_res [min_len + 1] = charT ();
 
     // save the state of the string object before the call
     // to detect wxception safety violations (changes to
@@ -247,7 +248,7 @@ void test_copy (charT, Traits*, Allocator*,
                        __LINE__, int (tcase.nres), tcase.res, 
                        int (sizeof (charT)), int (res), s_res, match);
 
-            success = 1 == rw_match (&cgb, &s_res [min_len], 1);
+            success = 1 == rw_match (cgb, s_res + min_len, 1);
             rw_assert (success, 0, tcase.line,
                        "line %d. %{$FUNCALL} detected writing past the end of "
                        "the provided buffer", __LINE__);

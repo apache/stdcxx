@@ -1,0 +1,966 @@
+#!/bin/sh
+#
+# $Id$
+#
+########################################################################
+#
+#  Licensed to the Apache Software  Foundation (ASF) under one or more
+#  contributor  license agreements.  See  the NOTICE  file distributed
+#  with  this  work  for  additional information  regarding  copyright
+#  ownership.   The ASF  licenses this  file to  you under  the Apache
+#  License, Version  2.0 (the  "License"); you may  not use  this file
+#  except in  compliance with the License.   You may obtain  a copy of
+#  the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the  License is distributed on an  "AS IS" BASIS,
+#  WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+#  implied.   See  the License  for  the  specific language  governing
+#  permissions and limitations under the License.
+#
+#  Copyright 2007 Rogue Wave Software.
+#
+########################################################################
+#
+# NAME
+#     xbuildgen - Generate build results across multiple platforms.
+#
+# SYNOPSIS
+#     xbuildgen [option(s)...] [log-file(s)...]
+#
+# DESCRIPTION
+#     The xbuildgen utility generates a build result in HTML format
+#     across multiple platforms or tests with builds in columns and
+#     components such as examples, locales, and tests in rows by
+#     default.
+#
+# OPTIONS
+#     -n   No clean. Avoid removing temporary files.
+#
+#     -s   Stylesheet. Create a style sheet named resultstyle.css in
+#          the same directory as the output file when the -o option
+#          is specified, or in the current working directory otherwise.
+#
+#     -v   Verbose. Produce verbose output on stdout.
+#
+#     -e <list-of-examples>
+#          Generate a report for the specified list of example programs
+#          with examples listed in columns and builds in rows.
+#
+#     -l <list-of-locales>
+#          Generate a report for the specified list of locales with
+#          locales listed in columns and builds in rows.
+#
+#     -o <output-file>
+#          Specify the pathname of the output file. The utility will
+#          use stdout when no output file is specified.
+#
+#     -t <list-of-tests>
+#          Generate a report for the specified list of tests with
+#          tests listed in columns and builds in rows.
+#
+########################################################################
+
+
+# by default, display one component (example, locale, or test) per row
+components_in_rows=1
+
+## process command line options
+while getopts ":nsv:e:l:o:t:" opt_name; do
+    case $opt_name in
+        # options with no arguments 
+
+        n)  # avoid cleaning up temporary files
+            no_clean=1
+            ;;
+
+        s)  # create a style sheet
+            create_stylesheet=1
+            ;;
+
+        v)  # output all components (including passing ones)
+            verbose=1
+            ;;
+
+        # options with arguments 
+
+        e)  # argument is a list of examples to process
+            example_list=$OPTARG
+            components_in_rows=0
+            ;;
+
+        l)  # argument is a list of locales to process
+            locale_list=$OPTARG
+            components_in_rows=0
+            ;;
+
+        o)  # argument is the name of output file (stdout by default)
+            outfile=$OPTARG
+            ;;
+
+        t)  # argument is a list of tests to process
+            test_list=$OPTARG
+            components_in_rows=0
+            ;;
+
+        *) echo "unknown option : -$opt_name" >&2;
+           exit 1;;
+     esac;
+done
+
+# remove command line options and their arguments from the command line
+shift $(($OPTIND - 1))
+
+# take the remaining command line arguments as the names of logs
+# to process
+gzlogs=$*
+
+
+# set the TMP variable to /tmp if not set
+[ -z $TMP ] && TMP=/tmp
+
+######################################################################
+
+# output to output file when specified or to stdout
+output ()
+{
+    if [ $# -eq 0 ]; then
+        # no arguments provided, copy its own stdin to outfile
+        if [ -z $outfile ]; then
+            cat
+        else
+            cat >>$outfile
+        fi
+    elif [ -z $outfile ]; then
+        echo "$*"
+    else
+        echo "$*" >>$outfile
+    fi
+}
+
+
+######################################################################
+
+# remove output file if specified
+if [ ! -z $outfile ]; then
+    rm -f $outfile
+fi
+
+
+# overwrite style sheet
+if [ "$create_stylesheet" = "1" ]; then
+
+    if [ -z $outfile ]; then
+        dir=.
+    else
+        dir=`dirname $outfile`
+    fi
+
+    cat <<EOF >$dir/resultstyle.css
+
+table {
+    border-width:0px;
+    background:#000000;
+    font-size:smaller;
+}
+th {
+    font-family:fixed
+    font-size:smaller;
+    background:#cccccc;
+    text-align:center;
+}
+td {
+    font-family:fixed;
+    font-size:smaller;
+    padding: 3px;
+    text-align: center;
+    background-color: lightblue;
+}
+td.rowno {
+    font-family:fixed;
+    font-size:smaller;
+    padding: 3px;
+    text-align: right;
+    background-color:#cccccc;
+}
+td.name {
+    font-family:fixed;
+    font-size:smaller;
+    padding: 3px;
+    text-align: left;
+    background-color:lightblue;
+}
+td.number {
+    font-family:fixed;
+    font-size:smaller;
+    padding: 3px;
+    text-align: center;
+    background-color:lightblue;
+}
+td.na {
+    background:white;
+    text-align:left;
+    font-family:fixed
+    font-size:smaller;
+}
+td.header {
+    background:#cccccc;
+    text-align:center;
+    font-family:fixed;
+    font-size:smaller;
+    font-weight:bold;
+}
+td.OK {
+    background:forestgreen;
+    text-align:center;
+    font-family:fixed;
+    font-size:smaller;
+    font-weight:bold;
+}
+td.BASE {
+    background:lightgreen;
+    text-align:center;
+    font-size:smaller;
+    font-weight:bold;
+    font-family:fixed;
+}
+td.NOUT {
+    background:lightgreen;
+    text-align:center;
+    font-size:smaller;
+    font-weight:bold;
+    font-family:fixed;
+}
+td.OUTPUT {
+    background:lightgreen;
+    text-align:center;
+    font-size:smaller;
+    font-weight:bold;
+    font-family:fixed;
+}
+td.missing {
+    color:white;
+    background:lightgray;
+    text-align:center;
+    font-size:smaller;
+    font-family:fixed;
+    font-weight:bold;
+}
+td.WARN {
+    color:red;
+    background:#ffff99;
+    text-align:center;
+    font-family:fixed
+}
+td.EXIT {
+    color:red;
+    background:gold;
+    text-align:center;
+    font-weight:bold;
+    font-family:fixed;
+    font-size:smaller;
+}
+td.FORMAT {
+    background:#ffffcc;
+    text-align:center;
+    font-family:fixed
+    font-size:smaller;
+}
+td.RUNWARN {
+    color:black;
+    background:#ffff99;
+    text-align:center;
+    font-weight:bold;
+    font-family:fixed;
+    font-size:smaller;
+}
+td.DIFF {
+    color:red;
+    background:#ffff99;
+    font-weight:bold;
+    text-align:center;
+    font-family:fixed;
+    font-size:smaller;
+}
+td.ASSERT {
+    color:red;
+    background:#ffff99;
+    font-weight:bold;
+    text-align:center;
+    font-family:fixed;
+    font-size:smaller;
+}
+td.SIGNAL {
+    color:yellow;
+    background:red;
+    font-weight:bold;
+    text-align:center;
+    font-family:fixed;
+    font-size:smaller;
+}
+td.COMP {
+    background:violet;
+    font-weight:bold;
+    text-align:center;
+    font-family:fixed;
+    font-size:smaller;
+}
+td.LINK {
+    color:yellow;
+    background:mediumpurple;
+    font-weight:bold;
+    text-align:center;
+    font-family:fixed;
+    font-size:smaller;
+}
+td.xdep {
+    color:yellow;
+    background:gray;
+    font-weight:bold;
+    text-align:center;
+    font-family:fixed;
+    font-size:smaller;
+}
+EOF
+
+fi
+
+######################################################################
+
+# output the initial portion of the HTML file
+cat <<EOF | output
+<html>
+  <head>
+    <link rel="stylesheet" href="resultstyle.css" type="text/css"
+          title="Cross-Build View Style Sheet">
+  </head>
+  <body>
+
+    <h1>Multi-platform Test Result View</h1>
+    Generated `date`
+    <hr>
+
+    <h2>Index</h2>
+
+    <ul>
+        <li><a href="#examples">Examples</a></li>
+        <li><a href="#tests">Tests</a></li>
+        <li><a href="#locales">Locales</a></li>
+        <li><a href="#codes">Codes and Colors</a></li>
+        <li><a href="#buildtypes">Build Types</a></li>
+    </ul>
+    <hr>
+EOF
+
+######################################################################
+
+# the location of the logs
+logdir="http://people.apache.org/~sebor/stdcxx/results"
+
+# the names of temporary files containing the list of components
+# (examples, locales, and tests) to process and include in the
+# generated report
+tests_file=$TMP/.stdcxx-tests.$$
+examples_file=$TMP/.stdcxx-examples.$$
+locales_file=$TMP/.stdcxx-locales.$$
+
+# remove temporary files in case they exist
+rm -f $tests_file $examples_file $locales_file
+
+if [ $? -ne 0 ]; then
+    exit 2
+fi
+
+
+cat <<EOF | output
+    <h2>Logs and Columns</h2>
+    <ol>
+EOF
+
+######################################################################
+# expand gzipped logs and extract the relevant portion from each into
+# a smaller text file for fast and easy processing
+
+n=0
+for l in $gzlogs; do
+    n=`expr $n + 1`
+    fname=`basename $l`
+
+    if [ $components_in_rows -ne 0 ]; then
+        # output one component per row with their results in columns
+        table_header="$table_header <th><div title=\"$fname\">$n</div></th>"
+
+        output "      <li><a href=\"$logdir/$fname\">$fname</a></li>"
+    fi
+
+    # runlog=$TMP/.stdcxx-tmplog.$$.$n
+    runlog=$TMP/`basename $l`.$$
+    textlogs="$textlogs $runlog"
+
+      gunzip -c $l                             \
+    | sed -e "1,/### [g]*make runall/d"        \
+          -e "/^[g]*make\[.\]: .*/d"           \
+          -e "/###/,999999d"                   \
+          -e "/^PHDIR/d"                       \
+          -e "/\/bin\/sh: /d" > $runlog
+
+    status=$?
+
+    if [ $status -eq 0 ]; then
+
+        # extract the list of locales from the log
+
+          sed -e "1,2d" $runlog                    \
+        | sed -n -e "1,/NAME  */p"                 \
+        | sed -e "/NAME  */d"                      \
+              -e "s/  *.*//" >>$locales_file
+
+        status=$?
+    else
+        exit 3
+    fi
+
+    if [ $status -eq 0 ]; then
+
+        # extract the list of tests from the log
+
+          sed "1,2d" $runlog                       \
+        | sed -e "1,/NAME  */d"                    \
+              -e "/NAME  */,999999d"               \
+              -e "s/  *.*//" >>$tests_file;
+
+        status=$?
+    else
+        exit 3
+    fi
+
+    if [ $status -eq 0 ]; then
+
+        # extract the list of examples from the log
+                                               \
+          sed "1,2d" $runlog                       \
+        | sed -e "1,/NAME  */d"                    \
+        | sed -e "1,/NAME  */d"                    \
+        | sed -e "/NAME  */,999999d"               \
+              -e "s/  *.*//" >>$examples_file
+    else
+        exit 3
+    fi
+done
+
+
+n=0
+if [ $components_in_rows -eq 0 ]; then
+
+    for c in $example_list $test_list $locale_list; do
+        n=`expr $n + 1`
+
+        # output one build per row, with components in columns
+        table_header="$table_header <th><div title=\"$c\">$n</div></th>"
+        output "      <li>$c</li>"
+    done
+fi
+
+output "    </ol>"
+output "    <hr>"
+
+if [ -s $locales_file ]; then
+    # if the list of locales non-empty sort it and weed out duplicates
+       sort $locales_file | uniq > $locales_file.2 \
+    && mv $locales_file.2 $locales_file
+fi
+
+if [ -s $examples_file ]; then
+    # if the list of examples is non-empty sort it and weed out duplicates
+       sort $examples_file | uniq > $examples_file.2 \
+    && mv $examples_file.2 $examples_file
+fi
+
+if [ -s $tests_file ]; then
+    # if list of tests file is non-empty sort it and weed out duplicates
+       sort $tests_file | uniq > $tests_file.2 \
+    && mv $tests_file.2 $tests_file
+fi
+
+######################################################################
+
+awkscript=$TMP/stdcxx-cross.$$.awk
+
+cat > $awkscript <<EOF
+BEGIN {
+    columns     = ""
+    compinx     = 0
+    count       = 0
+    max_asserts = 0
+    min_asserts = -1
+}
+\$0 ~ "^" name "  *[^-]" {
+
+    status = \$2
+
+    if (status == 0) {
+        if (comp == "example" || \$5 == 0) {
+            if (\$3 == 0) {
+                class = "OK"
+                value = "0"
+            }
+            else {
+                ++count;
+                ++nfailures [compinx]
+                class = "RUNWARN"
+                value = "(" \$3 ")"
+            }
+        }
+        else {
+            ++count
+            ++nfailures [compinx]
+
+            class   = "ASSERT"
+            # value = \$5 " / " \$4
+            value   = "(" \$5 ")"
+        }
+
+        if (comp == "test") {
+            asserts [n] = \$5
+
+            if (max_asserts < \$4) {
+                max_asserts = \$4
+            }
+
+            if (\$4 < min_asserts || min_asserts < 0) {
+                min_asserts = \$4
+            }
+        }
+    }
+    else if (0 < status && status < 256) {
+        ++count
+        ++nfailures [compinx]
+
+        class = "EXIT"
+        value = status
+    }
+    else if (status == "FORMAT" || status == "NOUT" || status == "OUTPUT") {
+        ++count
+
+        class = status
+        value = status
+    }
+    else if (status == "DIFF" || status == "COMP" || status == "LINK") {
+        ++count
+        ++nfailures [compinx]
+
+        class = status
+        value = status
+    }
+    else {
+        ++count
+        ++nfailures [compinx]
+
+        class = "SIGNAL"
+        value = status
+    }
+
+    columns = columns "\n        <td class=\"" class "\">" value "</td>"
+
+    ++compinx
+}
+
+function build_summary () {
+    if (verbose || count) {
+        print "      <tr>"
+        print "        <td class=\"rowno\">" n "</td>"
+        print "        <td class=\"name\"><a name=\"" name "\">" \
+                       name "</a></td>"
+
+        if (comp == "test") {
+            print "        <td class=\"number\">" max_asserts "</td>"
+        }
+
+        print columns;
+        print "      </tr>"
+    }
+
+    tmpfile = "$TMP/.stdcxx-failtotals.$$.txt"
+
+    if (count) {
+        getline < tmpfile
+        close(tmpfile)
+
+        ORS=" "
+        for (i = 0; i < compinx; ++i) {
+            print nfailures [i] + \$(i + 1) > tmpfile
+        }
+
+        ORS="\n"
+        print "" >> tmpfile
+        close(tmpfile)
+    }
+
+    if (FILENAME == "-") {
+
+        if (comp == "test") {
+            print "<td class=\"header\"></td>"
+        }
+
+        getline < tmpfile
+
+        for (i = 1; i < NF + 1; ++i) {
+            print "        <td class=\"header\">" \$(i) "</td>"
+        }
+
+        system("rm -f " tmpfile)
+    }
+}
+
+function component_summary () {
+    print columns;
+}
+
+END {
+    if (comp != "") {
+        build_summary()
+    }
+    else {
+        component_summary()
+    }
+}
+EOF
+
+######################################################################
+
+# process a list of components, one component per row
+process_components()
+{
+    component_name=$1
+    component_list=$2
+
+    if [ $component_name = "test" ]; then
+        column3="        <th><div title=\"maximum total assertions\">asserts</div></th>"
+    else
+        unset column3
+    fi
+
+    cat <<EOF | output
+    <h2>Results of ${component_name}s</h2>
+    <table>
+      <tr>
+        <th><div title="${component_name} number">###</div></th>
+        <th>
+          <a name="${component_name}s"></a>$component_name name
+        </th>
+        $column3
+        $table_header
+      </tr>
+EOF
+
+    n=0;
+    for c in $component_list; do
+
+        n=`expr $n + 1`
+
+          awk -f $awkscript \
+              n=$n name=$c verbose=$verbose comp=$component_name \
+              $textlogs \
+        | output
+
+    done
+    cat <<EOF | output
+      <tr>
+        <td class="rowno">$n</th>
+        <td class="header">
+          <div title="total number of ${component_name}s/failed number of ${component_name}s">total/failed</div>
+        </td>
+EOF
+
+    echo "" | awk -f $awkscript comp=$component_name | output
+
+    cat <<EOF | output
+      </tr>
+    </table>
+EOF
+}
+
+######################################################################
+
+# process a list of builds, one build per row
+process_builds()
+{
+    component_name=$1
+    component_list=$2
+
+    cat <<EOF | output
+    <h2>Results of ${component_name}s</h2>
+    <table>
+      <tr>
+        <th><a name="${component_name}s"></a>log</th>
+        $table_header
+      </tr>
+EOF
+
+    for l in $textlogs; do
+
+        fname=`basename $l .$$`
+        cat <<EOF | output
+      <tr>
+        <td class="name">
+            <a href="$logdir/$fname">$fname</a>
+        </td>
+EOF
+
+        for c in $component_list; do
+
+            line=`grep "^$c  *[^-]" $l`
+            if [ $? -eq 0 -a "$line" != "" ]; then
+                  echo $line \
+                | awk -f $awkscript component=$component_name \
+                      name=$c verbose=$verbose \
+                | output
+            else
+                output "        <td class=\"missing\">N/A</td>"
+            fi
+        done
+
+        output "      </tr>"
+    done
+    output "    </table>"
+}
+
+
+if [ $components_in_rows -ne 0 ]; then
+    process_components "example" "`cat $examples_file`"
+    process_components "test" "`cat $tests_file`"
+    process_components "locale" "`cat $locales_file`"
+else
+    if [ "$examples_list" != "" ]; then
+        process_builds "example" "$examples_list"
+    fi
+
+    if [ "$test_list" != "" ]; then
+        process_builds "test" "$test_list"
+    fi
+
+    if [ "$locale_list" != "" ]; then
+        process_builds "locale" "$locale_list"
+    fi
+fi
+
+
+######################################################################
+# output the rest of the HTML file
+cat <<EOF | output
+    <h2><a name="codes"></a>Codes and Colors</h2>
+    <table>
+      <thead>
+        <tr>
+          <td class="header">Symbol</td>
+          <td class="header">Meaning</td>
+        </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="OK">OK</td>
+            <td class="na">
+              Component completed successfully and produced the expected
+              output.
+            </td>
+          </tr>
+          <tr>
+            <td class="NOUT">NOUT</td>
+            <td class="na">
+              Component completed successfully and produced no output.
+            </td>
+          </tr>
+          <tr>
+            <td class="BASE">BASE</td>
+            <td class="na">
+              Component completed successfully and matched the baseline.
+            </td>
+          </tr>
+          <tr>
+            <td class="missing">N/A</td>
+            <td class="na">Component was not tested.</td>
+          </tr>
+          <tr>
+            <td class="XDEP">XDEP</td>
+            <td class="na">
+                Component was not attempted due to a missing (or failed)
+                dependency.
+            </td>
+          </tr>
+          <tr>
+            <td class="COMP">COMP</td>
+            <td class="na">Component failed to compile.</td>
+          </tr>
+          <tr>
+            <td class="LINK">LINK</td>
+            <td class="na">
+                 Component compiled successfully but failed to link.
+            </td>
+          </tr>
+          <tr>
+            <td class="WARN">WARN</td>
+            <td class="na">
+               Component compiled and linked successfully but with warnings.
+            </td>
+          </tr>
+          <tr>
+            <td class="runwarn">(N)</td>
+            <td class="na">
+              Component compiled and linked successfully, exited with
+              a status of 0, but produced N warnings at runtime.
+            </td>
+          </tr>
+          <tr>
+            <td class="EXIT">N</td>
+            <td class="na">
+              Component compiled and linked successfully but exited with
+              a non-zero status of N.
+            </td>
+          </tr>
+          <tr>
+            <td class="DIFF">DIFF</td>
+            <td class="na">
+              Component compiled and linked successfully, exited with
+              a status of 0, but produced unexpected output.
+            </td>
+          </tr>
+          <tr>
+            <td class="SIGNAL">[SIG]&lt;name&gt;</td>
+            <td class="na">
+              Component compiled and linked successfully, but exited
+              with the named signal (for example, SIGABRT).
+            </td>
+          </tr>
+          <tr>
+            <td class="assert">(N)</td>
+            <td class="na">
+              Component compiled and linked successfully, exited with
+              a status of 0, but failed Nassertions at runtime.
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    
+    <h2><a name="buildtypes"></a>Build Types</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <td class="header">Library:</td>
+          <th colspan="2">Archive Library</th>
+          <th colspan="2">Shared Library</th>
+          <th colspan="2">Shared Archive (AIX)</th>
+          </tr>
+          <tr>
+            <td class="header">Number/Symbol</td>
+            <td class="header">s<br>(32-bit)</td>
+            <td class="header">S<br>(64-bit)</td>
+            <td class="header">d<br>(32-bit)</td>
+            <td class="header">D<br>(64-bit)</td> 
+            <td class="header">a<br>(32-bit)</td>
+            <td class="header">A<br>(64-bit)</td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="header"><b>8</b><br>(optimized)</td>
+            <td class="na">
+              <b>8s</b>: Debugging off, optimized, not reentrant.
+            </td>
+            <td class="na">
+              <b>8S</b>: Debugging off, optimized, not reentrant.
+            </td>
+            <td class="na">
+              <b>8d</b>: Debugging off, optimized, not reentrant.
+            </td>
+            <td class="na">
+              <b>8D</b>: Debugging off, optimized, not reentrant.
+            </td>
+            <td class="na">
+              <b>8a</b>: Debugging off, optimized, not reentrant.
+            </td>
+            <td class="na">
+              <b>8A</b>: Debugging off, optimized, not reentrant.
+            </td>
+          </tr>
+          <tr>
+            <td class="header"><b>11</b><br>(debug)</td>
+            <td class="na">
+              <b>11s</b>: Debug, not optimized, not reentrant.
+            </td>
+            <td class="na">
+              <b>11S</b>: Debug, not optimized, not reentrant.
+            </td>
+            <td class="na">
+               <b>11d</b>: Debug, not optimized, not reentrant.
+            </td>
+            <td class="na">
+                <b>11D</b>: Debug, not optimized, not reentrant.
+            </td>
+            <td class="na">
+                <b>11a</b>: Debug, not optimized, not reentrant.
+            </td>
+            <td class="na">
+                <b>11A</b>: Debug, not optimized, not reentrant.
+            </td>
+          </tr>
+          <tr>
+            <td class="header"><b>12</b><br>(optimized)</td>
+            <td class="na">
+              <b>12s</b>: Debugging off, optimized, reentrant.
+            </td>
+            <td class="na">
+              <b>12S</b>: Debugging off, optimized, reentrant.
+            </td>
+            <td class="na">
+              <b>12d</b>: Debugging off, optimized, reentrant.
+            </td>
+            <td class="na">
+              <b>12D</b>: Debugging off, optimized, reentrant.
+            </td>
+            <td class="na">
+              <b>12a</b>: Debugging off, optimized, reentrant.
+            </td>
+            <td class="na">
+              <b>12A</b>: Debugging off, optimized, reentrant.
+            </td>
+          </tr>
+          <tr>
+            <td class="header"><b>15</b><br>(debug)</td>
+            <td class="na">
+               <b>15s</b>: Debug, not optimized, reentrant.
+            </td>
+            <td class="na">
+              <b>15S</b>: Debug, not optimized, reentrant.
+            </td>
+            <td class="na">
+              <b>15d</b>: Debug, not optimized, reentrant.
+            </td>
+            <td class="na">
+               <b>15D</b>: Debug, not optimized, reentrant.
+            </td>
+            <td class="na">
+               <b>15a</b>: Debug, not optimized, reentrant.
+            </td>
+            <td class="na">
+               <b>15A</b>: Debug, not optimized, reentrant.
+            </td>
+          </tr>
+        </tbody>
+    </table>
+  </body>
+</html>
+EOF
+
+######################################################################
+
+if [ -z $no_clean ]; then
+    # clean up
+    rm $awkscript $examples_file $tests_file $locales_file
+
+    for l in $textlogs; do
+        rm $l
+    done
+fi

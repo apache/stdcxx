@@ -22,24 +22,23 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
 
-#ifndef _RWSTD_LOC_CHARMAP_H_INCLUDED
-#define _RWSTD_LOC_CHARMAP_H_INCLUDED
+#ifndef _RWSTD_CHARMAP_H_INCLUDED
+#define _RWSTD_CHARMAP_H_INCLUDED
 
 #include <string>
 #include <list>
 #include <map>
 #include <set>
 
-#ifndef _MSC_VER
-#  ifndef _RWSTD_NO_ICONV
-#    include <iconv.h>
-#  endif
-#endif  // _MSC_VER
+#ifndef _RWSTD_NO_ICONV
+#  include <iconv.h>
+#endif   // _RWSTD_NO_ICONV
+
 
 #include "scanner.h"
 
@@ -162,10 +161,10 @@ private:
     // are defined in the character map
     void verify_portable_charset () const;
 
-#ifndef _MSC_VER
+#ifndef _RWSTD_NO_ICONV
     // open the iconv descriptor to convert to utf8
     iconv_t open_iconv_to_utf8 () const;
-#endif  // _MSC_VER
+#endif   // _RWSTD_NO_ICONV
 
     // convert a human-readable encoding of a character
     // to its raw multibyte character representation
@@ -175,13 +174,14 @@ private:
     char* convert_to_utf8 (const char *inbuf, std::size_t inbuf_s, 
                            char *outbuf, std::size_t outbuf_s) const;
 
-#ifndef _MSC_VER
+#ifndef _RWSTD_NO_ICONV
 #  ifndef _RWSTD_NO_ISO_10646_WCHAR_T    
+
     // open the iconv descriptor to convert from utf8 to the external encoding
     iconv_t open_iconv_to_ext ();
 
 #  endif   // _RWSTD_NO_ISO_10646_WCHAR_T
-#endif  // _MSC_VER
+#endif   // _RWSTD_NO_ICONV
     
     // add the symbolic name of a character and the raw multibyte
     // character corresponding to it to the character maps
@@ -225,13 +225,13 @@ private:
     // the number of bytes in the largest multi-byte value
     int mb_cur_max_;
 
-#ifndef _MSC_VER
+#ifndef _RWSTD_NO_ICONV
     // the iconv file descriptor that converts to utf8
     iconv_t ic_to_utf8_;
 
     // the iconv file descriptor that converts from utf8 to external
     iconv_t ic_to_ext_;
-#endif  // _MSC_VER
+#endif   // _RWSTD_NO_ICONV
 
     // the name of the character map file
     std::string charmap_name_;
@@ -260,5 +260,5 @@ private:
 };
 
 
-#endif   // _RWSTD_LOC_CHARMAP_H_INCLUDED
+#endif   // _RWSTD_CHARMAP_H_INCLUDED
 

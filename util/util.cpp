@@ -1,22 +1,26 @@
 /************************************************************************
  *
- * util.cpp - Utility function definitions for the runall utility
+ * util.cpp - Utility function definitions for the exec utility
  *
  * $Id$
  *
  ************************************************************************
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
  * 
  **************************************************************************/
 
@@ -26,11 +30,21 @@
 #include <stdlib.h> /* for exit, malloc */
 #include <stdarg.h> /* for va_* */
 #include <string.h> /* for strerror */
+
+#include <sys/stat.h> /* for stat() */
 #include <sys/types.h> /* for size_t */
 
 #include "cmdopt.h" /* for exe_name, target_name */
 
 #include "util.h"
+
+
+#ifdef _WIN32
+#  define DEV_NULL   "NUL:"
+#else
+#  define DEV_NULL   "/dev/null"
+#endif   // _WIN32
+
 
 void
 warn (const char* const format, ...)
@@ -114,12 +128,11 @@ reference_name (const char* data_dir, const char* subdir, const char* mode)
     char* tail;
     const char* const target_name = get_target ();
 
-    assert (0 != data_dir);
     assert (0 != target_name);
     assert (0 != subdir);
     assert (0 != mode);
 
-    root_len = strlen (data_dir);
+    root_len = data_dir ? strlen (data_dir) : 0;
     cmp_len = strlen (target_name) - exe_suffix_len;
     dir_len = strlen (subdir);
     mode_len = strlen (mode);
@@ -146,6 +159,61 @@ reference_name (const char* data_dir, const char* subdir, const char* mode)
 
     return ref_name;
 }
+
+
+/**
+   Composes the name of an input file, based on target
+
+   Takes a data directory and an executable name, and tries to open an input 
+   file based on these variables.  If a file is found in neither of two 
+   locattions derived from these variables, this method tries to fall back on 
+   /dev/null.
+
+   Source file locations:
+     - [data_dir]/manual/in/[target].in
+     - [data_dir]/tutorial/in/[target].in
+     - /dev/null
+
+   @param data_dir the path of the reference data directory
+   @param target the name of executable being run
+   @returns the name of the file
+*/
+char*
+input_name (const char* data_dir, const char* target)
+{
+    char* fname = 0;
+    int stat_result = 0;
+    struct stat sb;
+
+    assert (0 != target);
+
+    if (data_dir && *data_dir) {
+
+        /* Try data_dir/manual/in/target.in */
+        fname       = reference_name (data_dir, "manual", "in");
+        stat_result = stat (fname, &sb);
+    
+        if (0 == stat_result)
+            return fname;
+
+        free (fname);
+
+        /* Try data_dir/tutorial/in/target.in */
+        fname       = reference_name (data_dir, "tutorial", "in");
+        stat_result = stat (fname, &sb);
+
+        if (0 == stat_result)
+            return fname;
+
+        free (fname);
+    }
+
+    /* If we didn't find a source file, use /dev/null */
+    fname = (char*)RW_MALLOC (sizeof DEV_NULL);
+    strcpy (fname, DEV_NULL);
+    return fname;
+}
+
 
 char*
 output_name (const char* target)

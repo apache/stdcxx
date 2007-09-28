@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -34,10 +34,8 @@
 
 #include <environ.h>      // for rw_putenv()
 #include <file.h>         // for SHELL_RM_RF, rw_tmpnam
-#include <rw_printf.h>    // for rw_fprintf()
 #include <rw_process.h>   // for rw_system()
-#include <cstdio>
-
+#include <driver.h>       // for rw_error()
 
 #if defined (_RWSTD_OS_LINUX) && !defined (_XOPEN_SOURCE)
    // on Linux define _XOPEN_SOURCE to get CODESET defined in <langinfo.h>
@@ -62,9 +60,7 @@
 #include <locale>     // for money_base::pattern
 
 #include <assert.h>   // for assert
-#include <errno.h>    // for EBADF
-#include <float.h>    // for {FLT,DBL,LDBL}_DIG
-#include <limits.h>   // for CHAR_BIT, MB_LEN_MAX, PATH_MAX
+#include <limits.h>   // for PATH_MAX
 #include <locale.h>   // for LC_XXX macros, setlocale
 #include <stdarg.h>   // for va_copy, va_list, ...
 #include <stdio.h>    // for fgets, remove, sprintf, ...
@@ -72,10 +68,6 @@
 #include <string.h>   // for strcat, strcpy, strlen, ...
 #include <ctype.h>
 #include <wchar.h>    // for wcslen, ...
-
-#ifndef PATH_MAX
-#  define PATH_MAX   1024
-#endif
 
 #ifndef _MSC_VER
 #  include <clocale>
@@ -87,6 +79,13 @@
 #else   // if MSVC
 #  define EXE_SUFFIX    ".exe"
 #endif  // _MSC_VER
+
+
+#if !defined (PATH_MAX) || PATH_MAX < 128 || 4096 < PATH_MAX
+   // deal  with undefined, bogus, or excessive values
+#  undef  PATH_MAX
+#  define PATH_MAX   1024
+#endif
 
 
 #define TOPDIR   "TOPDIR"   /* the TOPDIR environment variable */
@@ -109,13 +108,20 @@
 #define RELPATH        "etc" SLASH "nls"
 #define TESTS_ETC_PATH "tests" SLASH "etc"
             
+// extension of the catalog file
+#ifndef _WIN32
+#  define RW_CAT_EXT ".cat"
+#else
+#  define RW_CAT_EXT ".dll"
+#endif
+
 /**************************************************************************/
 
 _TEST_EXPORT int
 rw_locale (const char *args, const char *fname)
 {
     // use BINDIR to determine the location of the locale command
-    const char* bindir = getenv ("BINDIR");
+    const char* bindir = getenv (BINDIR);
     if (!bindir)
         bindir = ".." SLASH "bin";
 
@@ -202,13 +208,14 @@ rw_localedef (const char *args,
     // use TOPDIR to determine the root of the source tree
     const char* const topdir = getenv (TOPDIR);
     if (!topdir || !*topdir) {
-        fprintf (stderr, "%s:%d: the environment variable %s is %s\n",
-                 __FILE__, __LINE__, TOPDIR, topdir ? "empty" : "undefined");
+        rw_error (0, __FILE__, __LINE__,
+                  "the environment variable %s is %s",
+                  TOPDIR, topdir ? "empty" : "undefined");
         return 0;
     }
 
     // use BINDIR to determine the location of the localedef command
-    const char* bindir = getenv ("BINDIR");
+    const char* bindir = getenv (BINDIR);
     if (!bindir)
         bindir = ".." SLASH "bin";
 
@@ -272,7 +279,7 @@ rw_localedef (const char *args,
 
 extern "C" {
 
-static char rw_locale_root [256];
+static char rw_locale_root [PATH_MAX];
 
 static void atexit_rm_locale_root ()
 {
@@ -318,8 +325,8 @@ rw_set_locale_root ()
     // where std::locale looks for locale database files
     rw_putenv (envvar);
 
-    if (atexit (atexit_rm_locale_root))
-        perror ("atexit(atexit_rm_locale_root) failed");
+    rw_error (0 == atexit (atexit_rm_locale_root), __FILE__, __LINE__,
+              "atexit(atexit_rm_locale_root) failed: %m");
 
     return locale_root;
 }
@@ -327,8 +334,9 @@ rw_set_locale_root ()
 /**************************************************************************/
 
 _TEST_EXPORT char*
-rw_locales (int loc_cat, const char* grep_exp)
+rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
 {
+    static char deflocname [3] = "C\0";
     static char* slocname = 0;
 
     static size_t size       = 0;         // the number of elements in the array
@@ -360,7 +368,7 @@ rw_locales (int loc_cat, const char* grep_exp)
     char* locname = slocname;
 
     char* save_localename = 0;
-    char  namebuf [256];
+    char  namebuf [PATH_MAX];
 
     if (loc_cat != _UNUSED_CAT) {
         // copy the locale name, the original may be overwitten by libc
@@ -370,7 +378,7 @@ rw_locales (int loc_cat, const char* grep_exp)
     const char* const fname = rw_tmpnam (0);
 
     if (!fname) {
-        return 0;   // error
+        return deflocname;   // error
     }
 
     // make sure that grep_exp is <= 80 
@@ -385,7 +393,7 @@ rw_locales (int loc_cat, const char* grep_exp)
         : rw_system ("locale -a > %s", fname);
 
     if (exit_status) {
-        return 0;   // error
+        return deflocname;   // error
     }
 
     // open file containing the list of installed locales
@@ -401,15 +409,33 @@ rw_locales (int loc_cat, const char* grep_exp)
         char last_name [256];
         *last_name = '\0';
 
+        // put the C locale at the front
+        if (prepend_c_loc) {
+            strcpy (locname, deflocname);
+            locname += strlen (deflocname) + 1; 
+        }
+
         // if successful, construct a char array with the locales
         while (fgets (linebuf, sizeof linebuf, file)) {
 
-            linebuf [strlen (linebuf) - 1] = '\0';
+            const size_t linelen = strlen (linebuf);
+
+            linebuf [linelen ? linelen - 1 : 0] = '\0';
+
+            // don't allow C locale to be in the list again
+            // if we put it at the front of the locale list
+            if (prepend_c_loc && !strcmp (linebuf, deflocname))
+                continue;
 
 #ifdef _RWSTD_OS_SUNOS
 
-            // avoid the bad locale named iso_8859_1 on SunOS
-            if (!strcmp ("iso_8859_1", linebuf))
+            const char iso_8859_pfx[] = "iso_8859_";
+
+            // avoid locales named common and iso_8859_* on SunOS
+            // since they are known to cause setlocale() to fail
+            if (   !strcmp ("common", linebuf)
+                || sizeof iso_8859_pfx <= linelen 
+                && !memcmp (iso_8859_pfx, linebuf, sizeof iso_8859_pfx - 1))
                 continue;
 
 #endif   // _RWSTD_OS_SUNOS
@@ -422,7 +448,12 @@ rw_locales (int loc_cat, const char* grep_exp)
                     _RWSTD_STATIC_CAST (char*, malloc (total_size));
 
                 memcpy (tmp, slocname, total_size - 5120);
+
+#ifndef _MSC_VER
                 free (slocname);
+#else
+                _free_dbg (slocname, _CLIENT_BLOCK);
+#endif
 
                 slocname = tmp;
                 locname  = slocname + size - strlen (linebuf) - 1;
@@ -470,7 +501,7 @@ rw_locales (int loc_cat, const char* grep_exp)
 
     remove (fname);
 
-    return slocname;
+    return *slocname ? slocname : deflocname;
 }
 
 /**************************************************************************/
@@ -508,7 +539,7 @@ _get_mb_char (char *buf, size_t bytes)
         *buf = '\0';
     }
 
-#if 2 < _RWSTD_WCHAR_T_SIZE
+#if 2 < _RWSTD_WCHAR_SIZE
 
     // if a multibyte character of the requested size is not found
     // in the low 64K range, try to find one using a random search
@@ -551,12 +582,11 @@ rw_get_mb_chars (rw_mbchar_array_t mb_chars)
 
     const char* mbc = _get_mb_char (mb_chars [0], size_t (-1));
 
-    if (!mbc) {
-        rw_fprintf (rw_stderr, "*** failed to find any multibyte characters "
-                    "in locale \"%s\" with MB_CUR_MAX = %u\n",
-                    setlocale (LC_CTYPE, 0), MB_CUR_MAX);
+    if (0 == rw_note (0 != mbc, __FILE__, __LINE__,
+                      "failed to find any multibyte characters "
+                      "in locale \"%s\" with MB_CUR_MAX = %u",
+                      setlocale (LC_CTYPE, 0), MB_CUR_MAX))
         return 0;
-    }
 
     size_t mb_cur_max = strlen (mbc);
 
@@ -571,10 +601,13 @@ rw_get_mb_chars (rw_mbchar_array_t mb_chars)
         mbc = _get_mb_char (mb_chars [i - 1], i);
 
         if (0 == mbc) {
-            if (i < mb_cur_max) {
-                rw_fprintf (rw_stderr, "*** failed to find %u-byte characters "
-                            "in locale \"%s\" with MB_CUR_MAX = %u\n",
-                            i + 1, setlocale (LC_CTYPE, 0), MB_CUR_MAX);
+            // zh_CN.gb18030 and zh_TW.euctw on Linux are examples
+            // of multibyte locales where MB_CUR_MAX == 4 but,
+            // apparently, no 3-byte characters
+            if (0 == rw_note (mb_cur_max <= i, __FILE__, __LINE__,
+                              "failed to find %u-byte characters "
+                              "in locale \"%s\" with MB_CUR_MAX = %u",
+                              i, setlocale (LC_CTYPE, 0), MB_CUR_MAX)) {
                 mb_cur_max = 0;
                 break;
             }
@@ -586,6 +619,67 @@ rw_get_mb_chars (rw_mbchar_array_t mb_chars)
 }
 
 
+_TEST_EXPORT size_t
+rw_get_wchars (wchar_t *wbuf, size_t bufsize, int nbytes /* = 0 */)
+{
+    if (0 == bufsize)
+        return 0;
+
+    char tmp [_RWSTD_MB_LEN_MAX];
+
+    size_t nchars = 0;
+
+    for (int i = 0; i != 65536; ++i) {
+
+        // determine whether the wide character is valid
+        // and if so, the length of the multibyte character
+        // that corresponds to it
+        const int len = wctomb (tmp, wchar_t (i));
+
+        if (nbytes == 0 && 0 < len || nbytes != 0 && nbytes == len) {
+            // if the requested length is 0 (i.e., the caller doesn't
+            // care) and the character is valid, store it
+            // if the requested length is non-zero (including -1),
+            // and the value returned from mblen() is the same, store
+            // it (this makes it possible to find invalid characters
+            // as well as valid ones)
+            wbuf [nchars++];
+            if (nchars == bufsize)
+                return nchars;
+        }
+    }
+
+#if 2 < _RWSTD_WCHAR_SIZE
+
+    // try to find the remaining wide characters by a random
+    // search, iterating only so many times to prevent an
+    // infinite loop
+    for (int i = 0; i != 0x100000; ++i) {
+
+        // make a wide character with a random bit pattern
+        wchar_t wc = wchar_t (rand ());
+
+        if (RAND_MAX < 0x10000) {
+            wc <<= 16;
+            wc |= wchar_t (rand ());
+        }
+
+        const int len = wctomb (tmp, wchar_t (i));
+
+        if (nbytes == 0 && 0 < len || nbytes != 0 && nbytes == len) {
+            wbuf [nchars++];
+            if (nchars == bufsize)
+                return nchars;
+        }
+    }
+
+#endif   // 2 < _RWSTD_WCHAR_SIZE
+
+    return nchars;
+
+}
+
+
 _TEST_EXPORT const char*
 rw_find_mb_locale (size_t            *mb_cur_max,
                    rw_mbchar_array_t  mb_chars)
@@ -594,8 +688,8 @@ rw_find_mb_locale (size_t            *mb_cur_max,
     _RWSTD_ASSERT (0 != mb_chars);
 
     if (2 > _RWSTD_MB_LEN_MAX) {
-        rw_fprintf (rw_stderr, "MB_LEN_MAX = %d, giving up\n",
-                    _RWSTD_MB_LEN_MAX);
+        rw_warn (0, __FILE__, __LINE__, "MB_LEN_MAX = %d, giving up",
+                 _RWSTD_MB_LEN_MAX);
         return 0;
     }
 
@@ -631,9 +725,10 @@ rw_find_mb_locale (size_t            *mb_cur_max,
     }
 
     if (*mb_cur_max < 2) {
-        rw_fprintf (rw_stderr, "*** failed to find a full set of multibyte "
-                    "characters in locale \"%s\" with MB_CUR_MAX = %u "
-                    "(computed)", mb_locale_name, *mb_cur_max);
+        rw_warn (0, __FILE__, __LINE__,
+                 "failed to find a full set of multibyte "
+                 "characters in locale \"%s\" with MB_CUR_MAX = %u "
+                 "(computed)", mb_locale_name, *mb_cur_max);
         mb_locale_name = 0;
     }
     else {
@@ -671,36 +766,36 @@ rw_create_locale (const char *charmap, const char *locale)
 
     // create a temporary locale definition file that exercises as
     // many different parts of the collate standard as possible
-    char srcfname [256];
-    std::sprintf (srcfname, "%s%slocale.src", locale_root, SLASH);
+    char srcfname [PATH_MAX];
+    sprintf (srcfname, "%s%slocale.src", locale_root, SLASH);
 
-    std::FILE *fout = std::fopen (srcfname, "w");
+    FILE *fout = fopen (srcfname, "w");
 
     if (!fout) {
-        std::fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
-                      __FILE__, __LINE__, srcfname);
+        rw_error (0, __FILE__, __LINE__,
+                  "fopen(#%s, \"w\") failed: %m", srcfname);
         return 0;
     }
 
-       std::fprintf (fout, "%s", locale);
+    fprintf (fout, "%s", locale);
 
-    std::fclose (fout);
+    fclose (fout);
 
     // create a temporary character map file
-    char cmfname [256];
-    std::sprintf (cmfname, "%s%scharmap.src", locale_root, SLASH);
+    char cmfname [PATH_MAX];
+    sprintf (cmfname, "%s%scharmap.src", locale_root, SLASH);
 
-    fout = std::fopen (cmfname, "w");
+    fout = fopen (cmfname, "w");
 
     if (!fout) {
-        std::fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
-                      __FILE__, __LINE__, cmfname);
+        rw_error (0, __FILE__, __LINE__,
+                  "fopen(%#s, \"w\") failed: %m", cmfname);
         return 0;
     }
 
-       std::fprintf (fout, "%s", charmap);
+       fprintf (fout, "%s", charmap);
 
-    std::fclose (fout);
+    fclose (fout);
 
        locname = "test-locale";
 
@@ -709,4 +804,116 @@ rw_create_locale (const char *charmap, const char *locale)
         locname = 0;
 
     return locname;
+}
+
+
+/**************************************************************************/
+
+static const char*
+_rw_locale_names;
+
+_TEST_EXPORT const char* const&
+rw_opt_locales = _rw_locale_names;
+
+
+_TEST_EXPORT int
+rw_opt_setlocales (int argc, char* argv[])
+{
+    if (1 == argc && argv && 0 == argv [0]) {
+        static const char helpstr[] = {
+            "Use the locales specified by the space-parated list of locale"
+            "names given by <arg>.\n"
+        };
+
+        argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
+
+        return 0;
+    }
+
+    // the option requires an equals sign followed by an optional argument
+    char *args = strchr (argv [0], '=');
+
+    RW_ASSERT (0 != args);
+
+    // small static buffer should be sufficient in most cases
+    static char buffer [256];
+
+    const size_t len = strlen (++args);
+
+    // dynamically allocate a bigger buffer when the small buffer
+    // isn't big enough (let the dynamically allocated buffer leak)
+    char* const locale_names =
+        sizeof buffer < len + 2 ? (char*)malloc (len + 2) : buffer;
+
+    if (0 == locale_names)
+        return 1;
+
+    locale_names [len]     = '\0';
+    locale_names [len + 1] = '\0';
+
+    memcpy (locale_names, args, len);
+
+    for (char *next = locale_names; ; ) {
+        next = strpbrk (next, ", ");
+        if (next)
+            *next++ = '\0';
+        else
+            break;
+    }
+
+    _rw_locale_names = locale_names;
+
+    // return 0 on success
+    return 0;
+}
+
+
+/**************************************************************************/
+
+_TEST_EXPORT int
+rw_create_catalog (const char * catname, const char * catalog)
+{
+    RW_ASSERT (catname && catalog);
+
+    FILE* const f = fopen (catname, "w");
+
+    if (!f)
+        return -1;
+
+#ifndef _WIN32
+
+    for (int i = 1; *catalog; ++catalog, ++i) {
+        fprintf (f, "$set %d This is Set %d\n", i, i);
+        for (int j = 1; *catalog; catalog += strlen (catalog) + 1, ++j)
+             fprintf (f, "%d %s\n", j, catalog);
+    }
+
+#else   // if defined (_WIN32)
+
+    fprintf (f, "STRINGTABLE\nBEGIN\n");
+
+    for (int i = 1; *catalog; ++catalog) {
+        for (; *catalog; catalog += strlen (catalog) + 1, ++i)
+            fprintf (f, "%d \"%s\"\n", i, catalog);
+    }
+
+    fprintf (f, "END\n");
+
+#endif   // _WIN32
+
+    fclose (f);
+
+    char *cat_name = new char [strlen (catname) + 1];
+    strcpy (cat_name, catname);
+    if (char *dot = strrchr (cat_name, '.'))
+        *dot = '\0';
+
+    const int ret = rw_system ("gencat %s" RW_CAT_EXT " %s",
+                               cat_name, catname);
+
+    delete[] cat_name;
+
+    remove (catname);
+
+    return ret;
 }

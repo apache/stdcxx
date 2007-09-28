@@ -39,6 +39,13 @@
 #include "access.h"
 
 
+// helper macro _RWSTD_DEFINE_FACET_FACTORY() defines a facet factory
+// function called to construct, on demand, objects of specializations
+// of facet class templates
+// _byname facets are constructed on the heap while ordinary facets
+// are constructed in static memory for efficiency and to avoid leaks,
+// and are not destroyed during program lifetime
+
 #ifndef _RWSTD_NO_BYNAME_FACET
 
      // definition for facets that come in both forms, plain and _byname
@@ -51,9 +58,11 @@
            {                                                               \
                __rw_facet* pfacet;                                         \
                if (name) {                                                 \
+                   /* construct a _byname facet on the heap */             \
                    pfacet = new _STD:: Facet ## _byname TArgs (name, ref); \
                }                                                           \
                else {                                                      \
+                   /* construct an ordinary facet in static memory */      \
                    static union {                                          \
                        void *align_;                                       \
                        char  data_ [sizeof (__rw_ ## fid ## _facet)];      \
@@ -80,11 +89,12 @@
            Linkage __rw_facet*                                             \
            __rw_ct_ ## fid (_RWSTD_SIZE_T ref, const char*)                \
            {                                                               \
+               /* construct an ordinary facet in static memory */          \
                static union {                                              \
                    void *align_;                                           \
                    char  data_ [sizeof (__rw_ ## fid ## _facet)];          \
                } f;                                                        \
-               static __rw_facet *pf =                                     \
+               static __rw_facet* const pf =                               \
                    new (&f) __rw_ ## fid ## _facet (ref);                  \
                /* set the pointer to the facet id */                       \
                __rw_access::_C_get_pid (*pf) =                             \

@@ -148,7 +148,7 @@ get_mb_char (wchar_t *wchar, char *mbchar, std::size_t bytes)
         *mbchar = '\0';
     }
 
-#if 2 < _RWSTD_WCHAR_T_SIZE
+#if 2 < _RWSTD_WCHAR_SIZE
 
     // if a multibyte character of the requested size is not found
     // in the low 64K range, try to find one using a random search

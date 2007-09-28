@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -582,7 +582,8 @@ __rw_get_punct(const __rw_facet *pfacet, int flags, wchar_t)
 
 
 const char*
-__rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags, int prec)
+__rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags,
+                     _STD::streamsize prec)
 {
     char *pbuf = buf;
 
@@ -608,7 +609,7 @@ __rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags, int prec)
             // 7.19.6.1, p5 of C99 specifies that, when given using the
             // asterisk, negative precision is treated the same as if
             // it were omitted; treat negative precision the same here
-            pbuf += sprintf (pbuf, ".%d", prec);
+            pbuf += sprintf (pbuf, ".%ld", long (prec));
         }
     }
     else if (fmtflags & _RWSTD_IOS_SHOWBASE)

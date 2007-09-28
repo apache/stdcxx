@@ -4,7 +4,27 @@
 #
 # makefile to build the C++ Standard library utility programs
 #
-##############################################################################
+########################################################################
+#
+# Licensed to the Apache Software  Foundation (ASF) under one or more
+# contributor  license agreements.  See  the NOTICE  file distributed
+# with  this  work  for  additional information  regarding  copyright
+# ownership.   The ASF  licenses this  file to  you under  the Apache
+# License, Version  2.0 (the  "License"); you may  not use  this file
+# except in  compliance with the License.   You may obtain  a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the  License is distributed on an  "AS IS" BASIS,
+# WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+# implied.   See  the License  for  the  specific language  governing
+# permissions and limitations under the License.
+#
+# Copyright 1999-2007 Rogue Wave Software, Inc.
+#
+########################################################################
 
 include ../makefile.in
 
@@ -14,7 +34,7 @@ SRCDIRS = $(TOPDIR)/util
 ONE_REPOSITORY = 1
 include ../makefile.common
 
-TARGET    = exec localedef locale
+TARGET    = exec localedef locale gencat
 
 # locale sources and related 
 NLSDIR = $(TOPDIR)/etc/nls
@@ -54,9 +74,10 @@ ifneq ($(RPATH),)
   LDFLAGS += $(RPATH)$(LIBDIR)
 endif
 
-##############################################################################
+########################################################################
 #  TARGETS
-##############################################################################
+########################################################################
+
 all:  $(LIBDIR)/$(LIBNAME) $(TARGET) $(RUNTARGET)
 
 $(LIBDIR)/$(LIBNAME):
@@ -78,6 +99,12 @@ localedef: localedef.o locale.o aliases.o charmap.o codecvt.o collate.o \
 
 # link the locale utility
 locale: locale_stub.o
+	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" $(call CXX.repo,$<) \
+	>> $(LOGFILE)
+	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<) $(TEEOPTS)
+
+# link the gencat utility
+gencat: gencat.o
 	@echo "$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS)" $(call CXX.repo,$<) \
 	>> $(LOGFILE)
 	$(LD) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<) $(TEEOPTS)

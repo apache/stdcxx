@@ -1,28 +1,32 @@
-// -*- C++ -*-
 /***************************************************************************
  *
- * 18.limits.cvqual.cpp - test exercising lib.numeric.limits
+ * 18.limits.cvqual.cpp:
+ *
+ *   Test exercising lib.numeric.limits, numeric_limits specializations
+ *   on cv-qualified scalar types. See DR 559 for details:
+ *   http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#559
  *
  * $Id$
  *
  ***************************************************************************
  *
- * Copyright 2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  License); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2006-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -52,6 +56,8 @@ void test_limits (const volatile T*, CVQualifiedT*,
     typedef std::numeric_limits<T>            limits;
     typedef std::numeric_limits<CVQualifiedT> cv_limits;
 
+   // verify that the member has the same value as the same member
+   // of a specialization of numeric_limits on the cv-qualified T
 #  define TEST(member)                                                      \
       rw_assert (limits::member == cv_limits::member, 0, __LINE__,          \
                  "numeric_limits<%s>::%s == numeric_limits<%s %1$s>::%2$s", \
@@ -61,6 +67,9 @@ void test_limits (const volatile T*, CVQualifiedT*,
     typedef std::numeric_limits<UserType<T> > limits;
     typedef std::numeric_limits<CVQualifiedT> cv_limits;
 
+   // verify that the member has the same value as the same member
+   // of a specialization of numeric_limits on some user-defined T
+   // (i.e., the primary template)
 #  define TEST(member)                                                      \
       rw_assert (limits::member == cv_limits::member, 0, __LINE__,          \
                  "numeric_limits<%s>::%s == numeric_limits<%s %1$s>::%2$s", \
@@ -98,7 +107,13 @@ void test_limits (const volatile T*, CVQualifiedT*,
         TEST (signaling_NaN ());
     }
     else {
-        // test NaN
+        const bool expect = limits::has_quiet_NaN;
+
+        rw_assert (expect == (limits::quiet_NaN () != cv_limits::quiet_NaN ()),
+                   0, __LINE__,
+                   "numeric_limits<%s>::qNaN() %{?}!=%{:}==%{;} "
+                   "numeric_limits<%s %1$s>::qNaN ()",
+                   tname, expect, quals);
     }
 
     TEST (denorm_min ());
@@ -120,7 +135,8 @@ void test_limits (const volatile T*, const char *tname)
     typedef volatile T       volatile_T;
     typedef const volatile T const_volatile_T;
     
-    rw_info (0, 0, 0, "std::numeric_limits<T> with T = cv-qualified %s", tname);
+    rw_info (0, 0, __LINE__,
+             "std::numeric_limits<T> with T = cv-qualified %s", tname);
 
     test_limits ((T*)0, (const_T*)0, tname, "const");
     test_limits ((T*)0, (volatile_T*)0, tname, "volatile");
@@ -184,5 +200,5 @@ int main (int argc, char *argv[])
                     "specializations on cv-qualifed types",
                     run_test,
                     0,
-                    0);
+                    (void*)0);
 }

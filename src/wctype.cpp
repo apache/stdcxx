@@ -371,7 +371,7 @@ __rw_widen (const __rw_codecvt_t *cvt, bool use_libstd,
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
 
 
 _RW::__rw_facet_id ctype<wchar_t>::id;
@@ -856,19 +856,19 @@ char
 ctype_byname<wchar_t>::
 do_narrow (char_type c, char dfault) const
 {
-#if _RWSTD_WCHAR_T_MIN < 0
+#if _RWSTD_WCHAR_MIN < 0
 
     // wchar_t is a signed type
     if (c > L'\0' && c < SCHAR_MAX)
         return char (c);
 
-#else   // if _RWSTD_WCHAR_T_MIN >= 0
+#else   // if _RWSTD_WCHAR_MIN >= 0
 
     // wchar_t is an unsigned type
     if (c < SCHAR_MAX)
         return char (c);
 
-#endif   // _RWSTD_WCHAR_T_MIN
+#endif   // _RWSTD_WCHAR_MIN
 
     const _RW::__rw_codecvt_t* cvt = 
         _RWSTD_STATIC_CAST(const _RW::__rw_codecvt_t*, _C_cvtimpl);
@@ -898,11 +898,11 @@ do_narrow (char_type c, char dfault) const
     }
     else {
         
-#if _RWSTD_WCHAR_T_MIN < 0
+#if _RWSTD_WCHAR_MIN < 0
         // For a signed wchar_t test if the character has a negative value
         if (c < 0)
             return dfault;
-#endif // _RWSTD_WCHAR_T_MIN < 0
+#endif // _RWSTD_WCHAR_MIN < 0
 
         // Look up narrow character value in database; be aware that there 
         // is no way to know what the internal representation is for this 
@@ -918,12 +918,12 @@ do_narrow (char_type c, char dfault) const
         char* ptmp = tmp;
         _RWSTD_SIZE_T utf8_sz = _RW::__rw_itoutf8 (c, tmp);
 
-#if _RWSTD_WCHAR_T_MIN < 0
+#if _RWSTD_WCHAR_MIN < 0
         // compute the invalid bit mask (the MSB set)
-        const wchar_t imask = wchar_t (~(_RWSTD_WCHAR_T_MAX));
+        const wchar_t imask = wchar_t (~(_RWSTD_WCHAR_MAX));
 #else
-        const wchar_t imask = wchar_t (~(_RWSTD_WCHAR_T_MAX >> 1));
-#endif // _RWSTD_WCHAR_T_MIN < 0
+        const wchar_t imask = wchar_t (~(_RWSTD_WCHAR_MAX >> 1));
+#endif // _RWSTD_WCHAR_MIN < 0
 
         typedef unsigned char UChar;
         
@@ -931,7 +931,7 @@ do_narrow (char_type c, char dfault) const
         wc = ptbl [UChar (*ptmp)];
         while (wc & imask) {
             // check validity of the value
-            if (wc == (imask | _RWSTD_WCHAR_T_MAX)) 
+            if (wc == (imask | _RWSTD_WCHAR_MAX)) 
                 return dfault;
 
             ptbl = tbl + 256 * (wc & (~imask));
@@ -1014,12 +1014,12 @@ do_widen (char c) const
     }
     else {
 
-#if _RWSTD_WCHAR_T_MIN < 0
+#if _RWSTD_WCHAR_MIN < 0
         // compute the invalid bit mask (the MSB set)
-        const char_type imask = char_type (~(_RWSTD_WCHAR_T_MAX));
+        const char_type imask = char_type (~(_RWSTD_WCHAR_MAX));
 #else
-        const char_type imask = char_type (~(_RWSTD_WCHAR_T_MAX >> 1));
-#endif   // _RWSTD_WCHAR_T_MIN < 0
+        const char_type imask = char_type (~(_RWSTD_WCHAR_MAX >> 1));
+#endif   // _RWSTD_WCHAR_MIN < 0
 
         // Lookup the narrow character in the table; be aware that 
         // the result of the lookup might be the index for another
@@ -1051,7 +1051,7 @@ do_widen (const char *lo, const char *hi, char_type *dest) const
 }
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 _RWSTD_DEFINE_FACET_FACTORY (static, ctype, <wchar_t>, wctype);

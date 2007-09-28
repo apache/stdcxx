@@ -38,20 +38,10 @@
 
 
 _RWSTD_NAMESPACE (std) { 
-}   // namespace std
-
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
-
-#ifndef _MSC_VER
-// make _V3_LOCALE think it's std (if it isn't) to avoid
-// having to qualify all references to standard names with _STD::
-_USING (namespace std);
-
-#endif
 
 struct _RWSTD_CLASS_EXPORT locale;
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 _RWSTD_NAMESPACE (__rw) { 
@@ -66,9 +56,13 @@ struct _RWSTD_EXPORT __rw_facet: __rw_synchronized
     // of standard types by the library
     typedef __rw_facet* (_C_ctor_t)(_RWSTD_SIZE_T, const char*);
 
+protected:
+
     _EXPLICIT __rw_facet (_RWSTD_SIZE_T = 0);
 
     virtual ~__rw_facet ();
+
+public:
 
     // types of standard facets; only globally managed facets (i.e.,
     // standard facets created internally) set this member, user-created
@@ -200,8 +194,6 @@ struct _RWSTD_EXPORT __rw_facet: __rw_synchronized
 
 protected:
 
-    typedef __rw_facet* (*_C_factory_f)(void*);
-
     // set facet locale name (will allocate if bufsize is too small)
     void _C_set_name (const char*, char*, _RWSTD_SIZE_T);
 
@@ -227,7 +219,7 @@ private:
     static __rw_facet*
     _C_manage (__rw_facet*, _C_facet_type, const char*, _C_ctor_t*);
 
-    friend struct _V3_LOCALE::locale;
+    friend struct _STD::locale;
     friend class __rw_locale;
     friend struct __rw_facet_id;
     friend struct __rw_access;
@@ -270,7 +262,7 @@ private:
     _MUTABLE _RWSTD_SIZE_T _C_id;           // unique id > 0
 
     friend class __rw_locale;
-    friend struct _V3_LOCALE::locale;
+    friend struct _STD::locale;
     friend struct __rw_access;
 };
 

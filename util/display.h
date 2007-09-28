@@ -43,11 +43,6 @@ enum OutputFmt {
 };
 
 /**
-   ProcessStatus enum lookup table for 'short' (6 character) strings.
-*/
-extern const char* const short_st_name [ST_LAST];
-
-/**
    Sets the output functions referenced.
 */
 void set_output_format (enum OutputFmt format);
@@ -62,7 +57,7 @@ extern void (*set_header) (const char* format);
 /**
    Prints the table preamble formatting, followed by the formatted header row.
 */
-extern void (*print_header) ();
+extern void (*print_header) (const char* const argv[]);
 
 /**
    Prints the formatted header column for a target row.
@@ -94,6 +89,7 @@ extern void (*print_status) (const struct target_status* status);
 /**
    Prints the closing formatting for the table.
 */
-extern void (*print_footer) ();
+extern void (*print_footer) (int count, const struct target_status* status);
+
 
 #endif   /* RW_DISPLAY_H */

@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -82,7 +82,7 @@ public:
                          allocator<char_type> > string_type;
 
     _EXPLICIT messages (_RWSTD_SIZE_T __refs = 0)
-        : _RW::__rw_facet (__refs), messages_base () { }
+        : _RW::__rw_facet (__refs) { }
 
 
     catalog open (const string& __fun, const locale& __loc) const {
@@ -102,15 +102,11 @@ public:
 
 protected:
 
-    virtual catalog do_open (const string& __fun, const locale&__loc) const {
-        return _RW::__rw_cat_open (__fun, __loc);
-    }
+    virtual catalog do_open (const string&, const locale&) const;
 
     virtual string_type do_get (catalog, int, int, const string_type&) const;
 
-    virtual void do_close (catalog __cat) const { 
-	_RW::__rw_cat_close (__cat);
-    }
+    virtual void do_close (catalog) const;
 };
 
 

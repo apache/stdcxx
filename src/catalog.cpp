@@ -71,12 +71,14 @@ static CatVector __rw_catlist (2);
 
   CatVector::size_type __catfind(nl_catd id)
   {
-    CatVector::size_type i = 0;
-    while (i < __rw_catlist.size() && __rw_catlist[i] && __rw_catlist[i]->id() != id)
-      i++;
-    if (!__rw_catlist[i])
-      return __rw_catlist.size();
-    return i;
+    for (CatVector::size_type i = 0;
+         i < __rw_catlist.size() && __rw_catlist[i]; ++i) {
+
+      if (__rw_catlist[i]->id() == id)
+          return i;
+    }
+    
+    return __rw_catlist.size();
   }  
 
 
@@ -95,8 +97,7 @@ nl_catd catopen(const char* name, int oflag)
 
         if (cat && cat->good()) {
             CatVector::size_type i = 0;
-            while (__rw_catlist[i] != 0)
-                i++;
+            for (; i < __rw_catlist.size() && __rw_catlist[i]; ++i) ;
             if (__rw_catlist.size() == i)
                 __rw_catlist.resize(__rw_catlist.size() * 2,0);
             __rw_catlist[i] = cat;
@@ -135,7 +136,7 @@ int catclose(nl_catd catd)
     delete __rw_catlist[i];
     __rw_catlist[i] = 0;
     CatVector::size_type j;
-    for (j = i+1; __rw_catlist[j] && j < __rw_catlist.size(); j++)
+    for (j = i+1; j < __rw_catlist.size() && __rw_catlist[j]; j++)
       __rw_catlist[j-1] = __rw_catlist[j];
     if (j < __rw_catlist.size())
       __rw_catlist[j] = 0;

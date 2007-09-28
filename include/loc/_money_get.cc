@@ -165,7 +165,10 @@ _C_get (iter_type __it, iter_type __end, bool __intl, ios_base &__flags,
         case /* '\3' */ money_base::sign: {
 
             if (__it == __end) {
-                __ebits |= _RW::__rw_failbit;
+                if (__ps.size () && __ns.size ())
+                    __ebits |= _RW::__rw_failbit;
+                else
+                    __sign = __ps.empty () - 1;
                 break;
             }
 

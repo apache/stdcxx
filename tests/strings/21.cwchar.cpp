@@ -87,10 +87,6 @@ enum {
 
 /**************************************************************************/
 
-#ifdef _MSC_VER
-#include <crtdbg.h>   // for _CrtSetReportMode()
-#endif
-
 #include <cwchar>
 #include <any.h>      // for rw_any_t
 #include <driver.h>   // for rw_test(), ...
@@ -822,6 +818,11 @@ GET_TYPE_NAME (long);
 GET_TYPE_NAME (unsigned long);
 GET_TYPE_NAME (double);
 
+#ifndef _RWSTD_NO_LONG_LONG
+GET_TYPE_NAME (_RWSTD_LONG_LONG);
+GET_TYPE_NAME (unsigned _RWSTD_LONG_LONG);
+#endif
+
 #ifndef _RWSTD_NO_NATIVE_WCHAR_T
 GET_TYPE_NAME (wchar_t);
 #endif
@@ -926,16 +927,16 @@ void test_functions ()
     const test_tm* tmb = (const test_tm*)&tm_buf;
 
 #ifdef _MSC_VER
-    // disable GUI window with error:
-    // Assertion failed: ("Zero length output buffer passed to strftime",0)
-    int oldmode = _CrtSetReportMode (_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+    // prevent MSVC parameter validation error:
+    // "Zero length output buffer passed to strftime"
+    size = 1;
 #endif
 
     TEST (test_size_t, wcsftime, (wstr, size, L"", tmb), WCSFTIME, -1);
 
 #ifdef _MSC_VER
-    // restore error report mode
-    _CrtSetReportMode (_CRT_ASSERT, oldmode);
+    // restore size
+    size = 0;
 #endif
 
     TEST (test_wint_t, btowc, (i), BTOWC, -1);

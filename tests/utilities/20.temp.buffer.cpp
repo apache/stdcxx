@@ -33,6 +33,10 @@
 #include <cstdio>      // for sprintf()
 #include <cstring>     // for memset()
 
+#ifdef _MSC_VER
+#  include <climits>     // for INT_MAX
+#endif
+
 #include <rw_new.h>
 #include <driver.h>
 
@@ -385,7 +389,7 @@ typedef void (*FunctionPointer)();
 struct MyStruct { };
 typedef void (MyStruct::*MemberPointer)();
 
-template <unsigned long N>
+template <std::size_t N>
 struct BigStruct { char dummy [N]; };
 
 /**************************************************************************/
@@ -440,12 +444,20 @@ run_test (int, char**)
 #if    (!defined (__IBMCPP__) || __IBMCPP__ > 700) \
     && !defined (__HP_aCC)
 
+#  ifndef _MSC_VER
+    const std::size_t MAX_SIZE = _RWSTD_PTRDIFF_MAX;
+#  else
+    // the MSVC and ICC/Windows has maximum size of
+    // the array equal to 0x7fffffff bytes
+    const std::size_t MAX_SIZE = INT_MAX;
+#  endif
+
     // avoid instantiating test on very large structs
     // to prevent failures (at compile or run-time) due
     // to compiler bugs
-    test_failure ((BigStruct<_RWSTD_PTRDIFF_MAX / 2>*)0, 0);
-    test_failure ((BigStruct<_RWSTD_PTRDIFF_MAX - 1>*)0, 0);
-    test_failure ((BigStruct<_RWSTD_PTRDIFF_MAX>*)0, 0);
+    test_failure ((BigStruct<MAX_SIZE / 2>*)0, 0);
+    test_failure ((BigStruct<MAX_SIZE - 1>*)0, 0);
+    test_failure ((BigStruct<MAX_SIZE>*)0, 0);
 
 #else
 

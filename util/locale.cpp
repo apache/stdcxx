@@ -34,6 +34,14 @@
 #include <rw/_defs.h>
 #include _RWSTD_SYS_TYPES_H
 
+#if _RWSTD_PATH_SEP == '/'
+#  define SLASH      "/"
+#  define LS_1       "ls -1 "
+#else
+#  define SLASH      "\\"
+#  define LS_1       "dir /B /A:D"
+#endif
+
 #ifndef _MSC_VER
 #  include <sys/mman.h>   // for mmap()
 #  include <unistd.h>     // for close ()
@@ -2362,7 +2370,7 @@ print_locale_names ()
     const char* const locale_root = std::getenv ("RWSTD_LOCALE_ROOT");
 
     if (0 != locale_root) {
-        const std::string cmd = std::string ("ls -1 ") + locale_root;
+        const std::string cmd = std::string (LS_1) + locale_root;
 
         std::system (cmd.c_str ());
     }
@@ -2377,7 +2385,7 @@ print_charmap_names ()
 
     if (0 != locale_root) {
         const std::string cmd =
-            std::string ("ls -1 ") + locale_root + "/charmaps";
+            std::string (LS_1) + locale_root + SLASH "charmaps";
 
         std::system (cmd.c_str());
     }

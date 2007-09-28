@@ -6,22 +6,23 @@
  *
  ***************************************************************************
  *
- * Copyright 2005-2006 The Apache Software Foundation or its licensors,
- * as applicable.
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
  *
- * Copyright 2001-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -83,13 +84,23 @@ _RWSTD_NAMESPACE (__rw) {
 typedef unsigned char UChar;
 
 
+extern "C" {
+
 extern const float       __rw_flt_infinity;
 extern const double      __rw_dbl_infinity;
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
 extern const long double __rw_ldbl_infinity;
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+}   // extern "C"
 
 
 const char*
-__rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags, int prec);
+__rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags,
+                     _STD::streamsize prec);
 
 
 // verifies that the `grps' array of size `ngrps' representing the
@@ -419,7 +430,7 @@ __rw_get_num (void *pval, const char *buf, int type, int flags,
                     val.ul = _RWSTD_UINT_MAX - val.ul + 1;
             }
 
-            *_RWSTD_STATIC_CAST (unsigned*, pval) = val.ul;
+            *_RWSTD_STATIC_CAST (unsigned*, pval) = unsigned (val.ul);
             break;
 
         case __rw_facet::_C_int:
@@ -448,7 +459,7 @@ __rw_get_num (void *pval, const char *buf, int type, int flags,
 
 #endif   // _RWSTD_UINT_MAX < _RWSTD_ULONG_MAX
 
-            *_RWSTD_STATIC_CAST (int*, pval) = val.l;
+            *_RWSTD_STATIC_CAST (int*, pval) = int (val.l);
             break;
 
         case __rw_facet::_C_ulong:

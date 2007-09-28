@@ -1428,6 +1428,286 @@ void ullong_test (charT, const char *cname)
 #endif   // _RWSTD_NO_LONG_LONG
 }
 
+/**************************************************************************/
+
+// use a volatile variable to fool optimizers into not issuing
+// warnings about division by zero
+volatile double zero;
+
+
+template <class charT, class floatT>
+void inf_nan_test (charT, floatT, const char *cname, const char *tname)
+{
+    rw_info (0, 0, 0, "std::num_put<%s>::put (..., %s) formatting "
+             "infinities", cname, tname);
+
+    // compute infinity
+    const floatT inf = 1 / zero;
+
+    //////////////////////////////////////////////////////////////////
+    // exercise the formatting of positive and negative infinities
+
+    //        +-- value to format
+    //        |    +-- fmtflags
+    //        |    |                    +-- precision
+    //        |    |                    |  +-- field width
+    //        |    |                    |  |   +-- fill character
+    //        |    |                    |  |   |   +-- grouping
+    //        |    |                    |  |   |   |   +-- expected output
+    //        |    |                    |  |   |   |   |
+    //        V    V                    V  V   V   V   V
+    TEST (T,  inf, 0,                   0, 0, ' ', "", "inf");
+    TEST (T,  inf, showpos,             0, 0, ' ', "", "+inf");
+    TEST (T,  inf, uppercase,           0, 0, ' ', "", "INF");
+    TEST (T,  inf, showpos | uppercase, 0, 0, ' ', "", "+INF");
+
+    TEST (T, -inf, 0,                   0, 0, ' ', "", "-inf");
+    TEST (T, -inf, showpos,             0, 0, ' ', "", "-inf");
+    TEST (T, -inf, uppercase,           0, 0, ' ', "", "-INF");
+    TEST (T, -inf, showpos | uppercase, 0, 0, ' ', "", "-INF");
+
+    TEST (T,  inf, 0,                   1, 0, ' ', "", "inf");
+    TEST (T,  inf, showpos,             1, 0, ' ', "", "+inf");
+    TEST (T,  inf, uppercase,           1, 0, ' ', "", "INF");
+    TEST (T,  inf, showpos | uppercase, 1, 0, ' ', "", "+INF");
+
+    TEST (T, -inf, 0,                   1, 0, ' ', "", "-inf");
+    TEST (T, -inf, showpos,             1, 0, ' ', "", "-inf");
+    TEST (T, -inf, uppercase,           1, 0, ' ', "", "-INF");
+    TEST (T, -inf, showpos | uppercase, 1, 0, ' ', "", "-INF");
+
+    TEST (T,  inf, 0,                   3, 0, ' ', "", "inf");
+    TEST (T,  inf, showpos,             3, 0, ' ', "", "+inf");
+    TEST (T,  inf, uppercase,           3, 0, ' ', "", "INF");
+    TEST (T,  inf, showpos | uppercase, 3, 0, ' ', "", "+INF");
+
+    TEST (T, -inf, 0,                   3, 0, ' ', "", "-inf");
+    TEST (T, -inf, showpos,             3, 0, ' ', "", "-inf");
+    TEST (T, -inf, uppercase,           3, 0, ' ', "", "-INF");
+    TEST (T, -inf, showpos | uppercase, 3, 0, ' ', "", "-INF");
+
+    TEST (T,  inf, 0,                   4, 0, ' ', "", "inf");
+    TEST (T,  inf, showpos,             4, 0, ' ', "", "+inf");
+    TEST (T,  inf, uppercase,           4, 0, ' ', "", "INF");
+    TEST (T,  inf, showpos | uppercase, 4, 0, ' ', "", "+INF");
+
+    TEST (T, -inf, 0,                   4, 0, ' ', "", "-inf");
+    TEST (T, -inf, showpos,             4, 0, ' ', "", "-inf");
+    TEST (T, -inf, uppercase,           4, 0, ' ', "", "-INF");
+    TEST (T, -inf, showpos | uppercase, 4, 0, ' ', "", "-INF");
+
+    TEST (T,  inf, 0,                   9, 0, ' ', "", "inf");
+    TEST (T,  inf, showpos,             9, 0, ' ', "", "+inf");
+    TEST (T,  inf, uppercase,           9, 0, ' ', "", "INF");
+    TEST (T,  inf, showpos | uppercase, 9, 0, ' ', "", "+INF");
+
+    TEST (T, -inf, 0,                   9, 0, ' ', "", "-inf");
+    TEST (T, -inf, showpos,             9, 0, ' ', "", "-inf");
+    TEST (T, -inf, uppercase,           9, 0, ' ', "", "-INF");
+    TEST (T, -inf, showpos | uppercase, 9, 0, ' ', "", "-INF");
+
+    TEST (T,  inf, 0,                   0, 1, ' ', "", "inf");
+    TEST (T,  inf, showpos,             0, 1, ' ', "", "+inf");
+    TEST (T,  inf, uppercase,           0, 1, ' ', "", "INF");
+    TEST (T,  inf, showpos | uppercase, 0, 1, ' ', "", "+INF");
+
+    TEST (T, -inf, 0,                   0, 1, ' ', "", "-inf");
+    TEST (T, -inf, showpos,             0, 1, ' ', "", "-inf");
+    TEST (T, -inf, uppercase,           0, 1, ' ', "", "-INF");
+    TEST (T, -inf, showpos | uppercase, 0, 1, ' ', "", "-INF");
+
+    TEST (T,  inf, 0,                   0, 3, ' ', "", "inf");
+    TEST (T,  inf, showpos,             0, 3, ' ', "", "+inf");
+    TEST (T,  inf, uppercase,           0, 3, ' ', "", "INF");
+    TEST (T,  inf, showpos | uppercase, 0, 3, ' ', "", "+INF");
+
+    TEST (T, -inf, 0,                   0, 3, ' ', "", "-inf");
+    TEST (T, -inf, showpos,             0, 3, ' ', "", "-inf");
+    TEST (T, -inf, uppercase,           0, 3, ' ', "", "-INF");
+    TEST (T, -inf, showpos | uppercase, 0, 3, ' ', "", "-INF");
+
+    TEST (T,  inf, 0,                   0, 4, ' ', "", " inf");
+    TEST (T,  inf, showpos,             0, 4, ' ', "", "+inf");
+    TEST (T,  inf, uppercase,           0, 4, ' ', "", " INF");
+    TEST (T,  inf, showpos | uppercase, 0, 4, ' ', "", "+INF");
+
+    TEST (T, -inf, 0,                   0, 4, ' ', "", "-inf");
+    TEST (T, -inf, showpos,             0, 4, ' ', "", "-inf");
+    TEST (T, -inf, uppercase,           0, 4, ' ', "", "-INF");
+    TEST (T, -inf, showpos | uppercase, 0, 4, ' ', "", "-INF");
+
+    TEST (T,  inf, 0,                   0, 8, ' ', "", "     inf");
+    TEST (T,  inf, showpos,             0, 8, ' ', "", "    +inf");
+    TEST (T,  inf, uppercase,           0, 8, ' ', "", "     INF");
+    TEST (T,  inf, showpos | uppercase, 0, 8, ' ', "", "    +INF");
+
+    TEST (T, -inf, 0,                   0, 8, ' ', "", "    -inf");
+    TEST (T, -inf, showpos,             0, 8, ' ', "", "    -inf");
+    TEST (T, -inf, uppercase,           0, 8, ' ', "", "    -INF");
+    TEST (T, -inf, showpos | uppercase, 0, 8, ' ', "", "    -INF");
+
+    TEST (T,  inf, left,                        0, 9, ' ', "", "inf      ");
+    TEST (T,  inf, left | showpos,              0, 9, ' ', "", "+inf     ");
+    TEST (T,  inf, left | uppercase,            0, 9, ' ', "", "INF      ");
+    TEST (T,  inf, left | showpos | uppercase,  0, 9, ' ', "", "+INF     ");
+
+    TEST (T, -inf, left,                        0, 9, ' ', "", "-inf     ");
+    TEST (T, -inf, left | showpos,              0, 9, ' ', "", "-inf     ");
+    TEST (T, -inf, left | uppercase,            0, 9, ' ', "", "-INF     ");
+    TEST (T, -inf, left | showpos | uppercase,  0, 9, ' ', "", "-INF     ");
+
+    TEST (T,  inf, right,                       0, 9, ' ', "", "      inf");
+    TEST (T,  inf, right | showpos,             0, 9, ' ', "", "     +inf");
+    TEST (T,  inf, right | uppercase,           0, 9, ' ', "", "      INF");
+    TEST (T,  inf, right | showpos | uppercase, 0, 9, ' ', "", "     +INF");
+
+    TEST (T, -inf, right,                       0, 9, ' ', "", "     -inf");
+    TEST (T, -inf, right | showpos,             0, 9, ' ', "", "     -inf");
+    TEST (T, -inf, right | uppercase,           0, 9, ' ', "", "     -INF");
+    TEST (T, -inf, right | showpos | uppercase, 0, 9, ' ', "", "     -INF");
+
+    //////////////////////////////////////////////////////////////////
+    // exercise the formatting of positive and negative (quiet) NaNs
+
+    rw_info (0, 0, 0, "std::num_put<%s>::put (..., %s) formatting "
+             "NaN's", cname, tname);
+
+    // compute a quiet NaN
+#if 0
+
+    // temporarily disabled (NAN format is platform specific
+    // and subject to bugs -- see for example STDCXX-460)
+
+    const floatT nan = 0 / zero;
+
+    TEST (T,  nan, 0,                   0, 0, ' ', "", "nan");
+    TEST (T,  nan, showpos,             0, 0, ' ', "", "+nan");
+    TEST (T,  nan, uppercase,           0, 0, ' ', "", "NAN");
+    TEST (T,  nan, showpos | uppercase, 0, 0, ' ', "", "+NAN");
+
+    TEST (T, -nan, 0,                   0, 0, ' ', "", "-nan");
+    TEST (T, -nan, showpos,             0, 0, ' ', "", "-nan");
+    TEST (T, -nan, uppercase,           0, 0, ' ', "", "-NAN");
+    TEST (T, -nan, showpos | uppercase, 0, 0, ' ', "", "-NAN");
+
+    TEST (T,  nan, 0,                   1, 0, ' ', "", "nan");
+    TEST (T,  nan, showpos,             1, 0, ' ', "", "+nan");
+    TEST (T,  nan, uppercase,           1, 0, ' ', "", "NAN");
+    TEST (T,  nan, showpos | uppercase, 1, 0, ' ', "", "+NAN");
+
+    TEST (T, -nan, 0,                   1, 0, ' ', "", "-nan");
+    TEST (T, -nan, showpos,             1, 0, ' ', "", "-nan");
+    TEST (T, -nan, uppercase,           1, 0, ' ', "", "-NAN");
+    TEST (T, -nan, showpos | uppercase, 1, 0, ' ', "", "-NAN");
+
+    TEST (T,  nan, 0,                   3, 0, ' ', "", "nan");
+    TEST (T,  nan, showpos,             3, 0, ' ', "", "+nan");
+    TEST (T,  nan, uppercase,           3, 0, ' ', "", "NAN");
+    TEST (T,  nan, showpos | uppercase, 3, 0, ' ', "", "+NAN");
+
+    TEST (T, -nan, 0,                   3, 0, ' ', "", "-nan");
+    TEST (T, -nan, showpos,             3, 0, ' ', "", "-nan");
+    TEST (T, -nan, uppercase,           3, 0, ' ', "", "-NAN");
+    TEST (T, -nan, showpos | uppercase, 3, 0, ' ', "", "-NAN");
+
+    TEST (T,  nan, 0,                   4, 0, ' ', "", "nan");
+    TEST (T,  nan, showpos,             4, 0, ' ', "", "+nan");
+    TEST (T,  nan, uppercase,           4, 0, ' ', "", "NAN");
+    TEST (T,  nan, showpos | uppercase, 4, 0, ' ', "", "+NAN");
+
+    TEST (T, -nan, 0,                   4, 0, ' ', "", "-nan");
+    TEST (T, -nan, showpos,             4, 0, ' ', "", "-nan");
+    TEST (T, -nan, uppercase,           4, 0, ' ', "", "-NAN");
+    TEST (T, -nan, showpos | uppercase, 4, 0, ' ', "", "-NAN");
+
+    TEST (T,  nan, 0,                   9, 0, ' ', "", "nan");
+    TEST (T,  nan, showpos,             9, 0, ' ', "", "+nan");
+    TEST (T,  nan, uppercase,           9, 0, ' ', "", "NAN");
+    TEST (T,  nan, showpos | uppercase, 9, 0, ' ', "", "+NAN");
+
+    TEST (T, -nan, 0,                   9, 0, ' ', "", "-nan");
+    TEST (T, -nan, showpos,             9, 0, ' ', "", "-nan");
+    TEST (T, -nan, uppercase,           9, 0, ' ', "", "-NAN");
+    TEST (T, -nan, showpos | uppercase, 9, 0, ' ', "", "-NAN");
+
+    TEST (T,  nan, 0,                   0, 1, ' ', "", "nan");
+    TEST (T,  nan, showpos,             0, 1, ' ', "", "+nan");
+    TEST (T,  nan, uppercase,           0, 1, ' ', "", "NAN");
+    TEST (T,  nan, showpos | uppercase, 0, 1, ' ', "", "+NAN");
+
+    TEST (T, -nan, 0,                   0, 1, ' ', "", "-nan");
+    TEST (T, -nan, showpos,             0, 1, ' ', "", "-nan");
+    TEST (T, -nan, uppercase,           0, 1, ' ', "", "-NAN");
+    TEST (T, -nan, showpos | uppercase, 0, 1, ' ', "", "-NAN");
+
+    TEST (T,  nan, 0,                   0, 3, ' ', "", "nan");
+    TEST (T,  nan, showpos,             0, 3, ' ', "", "+nan");
+    TEST (T,  nan, uppercase,           0, 3, ' ', "", "NAN");
+    TEST (T,  nan, showpos | uppercase, 0, 3, ' ', "", "+NAN");
+
+    TEST (T, -nan, 0,                   0, 3, ' ', "", "-nan");
+    TEST (T, -nan, showpos,             0, 3, ' ', "", "-nan");
+    TEST (T, -nan, uppercase,           0, 3, ' ', "", "-NAN");
+    TEST (T, -nan, showpos | uppercase, 0, 3, ' ', "", "-NAN");
+
+    TEST (T,  nan, 0,                   0, 4, ' ', "", " nan");
+    TEST (T,  nan, showpos,             0, 4, ' ', "", "+nan");
+    TEST (T,  nan, uppercase,           0, 4, ' ', "", " NAN");
+    TEST (T,  nan, showpos | uppercase, 0, 4, ' ', "", "+NAN");
+
+    TEST (T, -nan, 0,                   0, 4, ' ', "", "-nan");
+    TEST (T, -nan, showpos,             0, 4, ' ', "", "-nan");
+    TEST (T, -nan, uppercase,           0, 4, ' ', "", "-NAN");
+    TEST (T, -nan, showpos | uppercase, 0, 4, ' ', "", "-NAN");
+
+    TEST (T,  nan, 0,                   0, 5, ' ', "", "  nan");
+    TEST (T,  nan, showpos,             0, 5, ' ', "", " +nan");
+    TEST (T,  nan, uppercase,           0, 5, ' ', "", "  NAN");
+    TEST (T,  nan, showpos | uppercase, 0, 5, ' ', "", " +NAN");
+
+    TEST (T, -nan, 0,                   0, 5, ' ', "", " -nan");
+    TEST (T, -nan, showpos,             0, 5, ' ', "", " -nan");
+    TEST (T, -nan, uppercase,           0, 5, ' ', "", " -NAN");
+    TEST (T, -nan, showpos | uppercase, 0, 5, ' ', "", " -NAN");
+
+    TEST (T,  nan, 0,                   0, 8, ' ', "", "     nan");
+    TEST (T,  nan, showpos,             0, 8, ' ', "", "    +nan");
+    TEST (T,  nan, uppercase,           0, 8, ' ', "", "     NAN");
+    TEST (T,  nan, showpos | uppercase, 0, 8, ' ', "", "    +NAN");
+
+    TEST (T, -nan, 0,                   0, 8, ' ', "", "    -nan");
+    TEST (T, -nan, showpos,             0, 8, ' ', "", "    -nan");
+    TEST (T, -nan, uppercase,           0, 8, ' ', "", "    -NAN");
+    TEST (T, -nan, showpos | uppercase, 0, 8, ' ', "", "    -NAN");
+
+    TEST (T,  nan, left,                        0, 9, ' ', "", "nan      ");
+    TEST (T,  nan, left | showpos,              0, 9, ' ', "", "+nan     ");
+    TEST (T,  nan, left | uppercase,            0, 9, ' ', "", "NAN      ");
+    TEST (T,  nan, left | showpos | uppercase,  0, 9, ' ', "", "+NAN     ");
+
+    TEST (T, -nan, left,                        0, 9, ' ', "", "-nan     ");
+    TEST (T, -nan, left | showpos,              0, 9, ' ', "", "-nan     ");
+    TEST (T, -nan, left | uppercase,            0, 9, ' ', "", "-NAN     ");
+    TEST (T, -nan, left | showpos | uppercase,  0, 9, ' ', "", "-NAN     ");
+
+    TEST (T,  nan, right,                       0, 9, ' ', "", "      nan");
+    TEST (T,  nan, right | showpos,             0, 9, ' ', "", "     +nan");
+    TEST (T,  nan, right | uppercase,           0, 9, ' ', "", "      NAN");
+    TEST (T,  nan, right | showpos | uppercase, 0, 9, ' ', "", "     +NAN");
+
+    TEST (T, -nan, right,                       0, 9, ' ', "", "     -nan");
+    TEST (T, -nan, right | showpos,             0, 9, ' ', "", "     -nan");
+    TEST (T, -nan, right | uppercase,           0, 9, ' ', "", "     -NAN");
+    TEST (T, -nan, right | showpos | uppercase, 0, 9, ' ', "", "     -NAN");
+
+#else
+
+    rw_info (0, 0, 0, "std::num_put<%s>::put (..., %s) formatting "
+             "NaN's disabled due to platform bugs", cname, tname);
+
+#endif   // 0/1
+
+}
 
 /**************************************************************************/
 
@@ -1511,8 +1791,9 @@ void dbl_test (charT, const char *cname)
         // reset the global locale
         std::setlocale (LC_NUMERIC, "C");
     }
-}
 
+    inf_nan_test (charT (), double (), cname, tname);
+}
 
 /**************************************************************************/
 
@@ -1680,6 +1961,8 @@ void ldbl_test (charT, const char *cname)
     TEST (T, Pi, scientific, 12, 0, ' ', "", "%.12Le", Eof, 3.14159265359L);
     TEST (T, Pi, scientific, -3, 0, ' ', "", "%Le");
     TEST (T, Pi, scientific, -7, 0, ' ', "", "%Le");
+
+    inf_nan_test (charT (), (long double)0, cname, tname);
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
 }

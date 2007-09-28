@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  *
  ***************************************************************************
  *
@@ -843,10 +843,17 @@ public:
         // On Sun, gcc 3.1 does generate an incorrect copy constructor
         // that has as an effect an incompletely/incorrectly initialized 
         // iterator.
-#if defined (__sun__) && defined (__GNUG__) 
+#if    defined (__sun__) && defined (__GNUG__) \
+    || defined (__SUNPRO_CC) && defined (__amd64__)
+
+        // working around a gcc 3.1 bug on Solaris where the compiler
+        // generates bad code for the implicitly defined copy ctor
+        // also working around a Sun C++ 5.9 optimizer ICE on x86_64
+        // in wide (64-bit) mode (see STDCXX-551)
+
         _C_iter (const _C_iter& __it)
             : _C_p (__it._C_p), _C_offset (__it._C_offset) {}
-#endif // __GNUG__
+#endif   // gcc 3.1/Solaris || Sun C++ 5.9/x86_64
 
         void operator++ () {
             if (_C_offset++ == _RWSTD_WORD_BIT - 1) {

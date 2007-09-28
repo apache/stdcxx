@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -86,68 +86,34 @@
 #endif   // _RWSTD_IS_IEC559
 
 
-_RWSTD_NAMESPACE (__rw) { 
+_RWSTD_NAMESPACE (__rw) {
+
+extern "C" {
 
 _RWSTD_EXPORT extern const float       __rw_flt_infinity;
 _RWSTD_EXPORT extern const double      __rw_dbl_infinity;
 
-#define _RWSTD_FLT_INFINITY            _RW::__rw_flt_infinity
-#define _RWSTD_DBL_INFINITY            _RW::__rw_dbl_infinity
-
 _RWSTD_EXPORT extern const float       __rw_flt_qNaN;
 _RWSTD_EXPORT extern const double      __rw_dbl_qNaN;
 
-#define _RWSTD_FLT_QNAN                _RW::__rw_flt_qNaN
-#define _RWSTD_DBL_QNAN                _RW::__rw_dbl_qNaN
+_RWSTD_EXPORT extern const float       __rw_flt_sNaN;
+_RWSTD_EXPORT extern const double      __rw_dbl_sNaN;
 
 _RWSTD_EXPORT extern const float       __rw_flt_denorm_min;
 _RWSTD_EXPORT extern const double      __rw_dbl_denorm_min;
-
-#define _RWSTD_FLT_DENORM_MIN          _RW::__rw_flt_denorm_min
-#define _RWSTD_DBL_DENORM_MIN          _RW::__rw_dbl_denorm_min
-
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
 
 _RWSTD_EXPORT extern const long double __rw_ldbl_infinity;
 _RWSTD_EXPORT extern const long double __rw_ldbl_qNaN;
+_RWSTD_EXPORT extern const long double __rw_ldbl_sNaN;
 _RWSTD_EXPORT extern const long double __rw_ldbl_denorm_min;
-
-#  define _RWSTD_LDBL_INFINITY         _RW::__rw_ldbl_infinity
-#  define _RWSTD_LDBL_QNAN             _RW::__rw_ldbl_qNaN
-#  define _RWSTD_LDBL_DENORM_MIN       _RW::__rw_ldbl_denorm_min
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
-}   // namespace __rw
-
-
-// signaling NAN
-#if defined (FLT_SNAN) && defined (DBL_SNAN) && defined (LDBL_SNAN)  // DEC osf
-#  define _RWSTD_FLT_SNAN    FLT_SNAN
-#  define _RWSTD_DBL_SNAN    DBL_SNAN
-#  define _RWSTD_LDBL_SNAN   LDBL_SNAN
-#else
-
-_RWSTD_NAMESPACE (__rw) { 
-
-_RWSTD_EXPORT extern const float       __rw_flt_sNaN;
-_RWSTD_EXPORT extern const double      __rw_dbl_sNaN;
-
-#  define _RWSTD_FLT_SNAN              _RW::__rw_flt_sNaN
-#  define _RWSTD_DBL_SNAN              _RW::__rw_dbl_sNaN
-
-#  ifndef _RWSTD_NO_LONG_DOUBLE
-
-_RWSTD_EXPORT extern const long double __rw_ldbl_sNaN;
-
-#    define _RWSTD_LDBL_SNAN           _RW::__rw_ldbl_sNaN
-
-#  endif   // _RWSTD_NO_LONG_DOUBLE
+}   // extern "C"
 
 }   // namespace __rw
-
-#endif   // FLT_SNAN && DBL_SNAN && LDBL_SNAN
 
 
 #ifndef _RWSTD_NO_SIGNALING_NAN
@@ -400,10 +366,10 @@ _RWSTD_CLASS_BEGIN (numeric_limits<float>)
                    float_denorm_style (_RWSTD_FLT_HAS_DENORM));
     _RWSTD_STATIC (float, bool, has_denorm_loss, _RWSTD_HAS_DENORM_LOSS);
 
-    _RWSTD_STATIC_FUN (float, infinity,      _RWSTD_FLT_INFINITY)
-    _RWSTD_STATIC_FUN (float, quiet_NaN,     _RWSTD_FLT_QNAN)
-    _RWSTD_STATIC_FUN (float, signaling_NaN, _RWSTD_FLT_SNAN)
-    _RWSTD_STATIC_FUN (float, denorm_min,    _RWSTD_FLT_DENORM_MIN)
+    _RWSTD_STATIC_FUN (float, infinity,      _RW::__rw_flt_infinity)
+    _RWSTD_STATIC_FUN (float, quiet_NaN,     _RW::__rw_flt_qNaN)
+    _RWSTD_STATIC_FUN (float, signaling_NaN, _RW::__rw_flt_sNaN)
+    _RWSTD_STATIC_FUN (float, denorm_min,    _RW::__rw_flt_denorm_min)
 
     _RWSTD_STATIC (float, bool, is_iec559,  _RWSTD_IS_IEC559);
     _RWSTD_STATIC (float, bool, is_bounded, true);
@@ -447,10 +413,10 @@ _RWSTD_CLASS_BEGIN (numeric_limits<double>)
                    float_denorm_style (_RWSTD_DBL_HAS_DENORM));
     _RWSTD_STATIC (double, bool, has_denorm_loss,   _RWSTD_HAS_DENORM_LOSS);
 
-    _RWSTD_STATIC_FUN (double, infinity,      _RWSTD_DBL_INFINITY)
-    _RWSTD_STATIC_FUN (double, quiet_NaN,     _RWSTD_DBL_QNAN)
-    _RWSTD_STATIC_FUN (double, signaling_NaN, _RWSTD_DBL_SNAN)
-    _RWSTD_STATIC_FUN (double, denorm_min,    _RWSTD_DBL_DENORM_MIN)
+    _RWSTD_STATIC_FUN (double, infinity,      _RW::__rw_dbl_infinity)
+    _RWSTD_STATIC_FUN (double, quiet_NaN,     _RW::__rw_dbl_qNaN)
+    _RWSTD_STATIC_FUN (double, signaling_NaN, _RW::__rw_dbl_sNaN)
+    _RWSTD_STATIC_FUN (double, denorm_min,    _RW::__rw_dbl_denorm_min)
 
     _RWSTD_STATIC (double, bool, is_iec559,  _RWSTD_IS_IEC559);
     _RWSTD_STATIC (double, bool, is_bounded, true);
@@ -496,10 +462,10 @@ _RWSTD_CLASS_BEGIN (numeric_limits<long double>)
                    float_denorm_style (_RWSTD_LDBL_HAS_DENORM));
     _RWSTD_STATIC (long double, bool, has_denorm_loss, _RWSTD_HAS_DENORM_LOSS);
 
-    _RWSTD_STATIC_FUN (long double, infinity,      _RWSTD_LDBL_INFINITY)
-    _RWSTD_STATIC_FUN (long double, quiet_NaN,     _RWSTD_LDBL_QNAN)
-    _RWSTD_STATIC_FUN (long double, signaling_NaN, _RWSTD_LDBL_SNAN)
-    _RWSTD_STATIC_FUN (long double, denorm_min,    _RWSTD_LDBL_DENORM_MIN)
+    _RWSTD_STATIC_FUN (long double, infinity,      _RW::__rw_ldbl_infinity)
+    _RWSTD_STATIC_FUN (long double, quiet_NaN,     _RW::__rw_ldbl_qNaN)
+    _RWSTD_STATIC_FUN (long double, signaling_NaN, _RW::__rw_ldbl_sNaN)
+    _RWSTD_STATIC_FUN (long double, denorm_min,    _RW::__rw_ldbl_denorm_min)
 
     _RWSTD_STATIC (long double, bool, is_iec559,  _RWSTD_IS_IEC559);
     _RWSTD_STATIC (long double, bool, is_bounded, true);
@@ -531,7 +497,7 @@ _RWSTD_SPECIALIZE_LIMITS (unsigned long int, _RWSTD_ULONG)
 #ifndef _RWSTD_NO_WCHAR_T
 #  ifndef _RWSTD_NO_NATIVE_WCHAR_T
 
-_RWSTD_SPECIALIZE_LIMITS (wchar_t, _RWSTD_WCHAR_T)
+_RWSTD_SPECIALIZE_LIMITS (wchar_t, _RWSTD_WCHAR)
 
 #  endif   // _RWSTD_NO_NATIVE_WCHAR_T
 #endif   // _RWSTD_NO_WCHAR_T

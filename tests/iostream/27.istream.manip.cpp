@@ -301,10 +301,9 @@ test_ws (const Traits*           /* dummy */,
                skipws, err_type, err_after);
 
     //////////////////////////////////////////////////////////////////
-    // verify that gcount() correctly reflects the number of whitespace
-    // characters extracted from the stream
+    // verify that gcount() value not affected (27.6.1.4 p1)
 
-    rw_assert (extract == is.gcount (), 0, __LINE__,
+    rw_assert (0 == is.gcount (), 0, __LINE__,
                "%u. std::ws (basic_istream<%s, %s >&)."
                "gcount() == %d, got %d; whitespace is"
                " '%c', input is %{*Ac}, initial rdstate() = %{Is}, "
@@ -321,7 +320,11 @@ test_ws (const Traits*           /* dummy */,
     // (i.e., the initial stream state), // except...
     std::ios_base::iostate expect_state = state;
 
-    if (!state && (white == cbuf [0] || !err_after)) {
+    if (state) {
+        // lwg 419
+        expect_state |= std::ios_base::failbit;
+    }
+    else if (white == cbuf [0] || !err_after) {
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 

@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -804,13 +804,13 @@ __rw_libstd_do_out (const wchar_t             *from,
             // in strict mode check wide character for validity
             // (i.e., diagnose surrogate pairs as illegal)
 
-#  if _RWSTD_WCHAR_T_SIZE == _RWSTD_CHAR_SIZE
+#  if _RWSTD_WCHAR_SIZE == _RWSTD_CHAR_SIZE
             typedef unsigned char WIntT;
-#  elif _RWSTD_WCHAR_T_SIZE == _RWSTD_SHRT_SIZE
+#  elif _RWSTD_WCHAR_SIZE == _RWSTD_SHRT_SIZE
             typedef unsigned short WIntT;
-#  elif _RWSTD_WCHAR_T_SIZE ==_RWSTD_INT_SIZE
+#  elif _RWSTD_WCHAR_SIZE ==_RWSTD_INT_SIZE
             typedef unsigned int WIntT;
-#  elif _RWSTD_WCHAR_T_SIZE ==_RWSTD_LLONG_SIZE
+#  elif _RWSTD_WCHAR_SIZE ==_RWSTD_LLONG_SIZE
             typedef unsigned _RWSTD_LONG_LONG WIntT;
 #  else
             typedef unsigned long WIntT;
@@ -1068,7 +1068,7 @@ __rw_libstd_do_length (const char*                from,
 }  //  namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
         
 
 _RW::__rw_facet_id codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::id;
@@ -1079,6 +1079,31 @@ codecvt (_RWSTD_SIZE_T __ref /* = 0 */)
     : _RW::__rw_facet (__ref)
 {
     // no-op
+}
+
+
+/* virtual */ bool
+codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
+do_always_noconv () const _THROWS (())
+{
+    return false;   // conversion always necessary
+}
+
+
+/* virtual */ int
+codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
+do_encoding () const _THROWS (())
+{
+    // 22.2.1.5.2 p6    1(ext.) <=> 1(int.)
+    return 1;   
+}
+
+
+/* virtual */ int
+codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
+do_max_length () const _THROWS (())
+{
+    return 1;
 }
 
 
@@ -1760,7 +1785,7 @@ do_max_length () const _THROWS (())
 
 #endif   // _RWSTD_NO_WCHAR_T
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #ifndef _RWSTD_NO_WCHAR_T

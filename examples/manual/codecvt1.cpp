@@ -207,16 +207,18 @@ int main ()
     try {
        for (int i = 0; i != sizeof locales / sizeof *locales; i++) 
            do_roundtrip_conversion (locales [i].name, locales [i].buffer);
-    }
-    catch (...) {
-        return 1;
-    }
 
-    try {
-        do_diff_conversion ();
+       do_diff_conversion ();
+    }
+    catch (const std::exception &e) {
+        std::cout << "Caught an exception: " << e.what () << std::endl;
+
+        return 1;   // Indicate failure.
     }
     catch (...) {
-        return 2;
+        std::cout << "Caught an unknown exception" << std::endl;
+
+        return 1;   // Indicate failure.
     }
 
     return 0;

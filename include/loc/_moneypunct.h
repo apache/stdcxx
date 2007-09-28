@@ -66,7 +66,7 @@ struct moneypunct: _RW::__rw_facet, public money_base
     string_type;
 
     _EXPLICIT moneypunct (_RWSTD_SIZE_T __refs = 0)
-        : _RW::__rw_facet (__refs), money_base () { }
+        : _RW::__rw_facet (__refs) { }
 
     char_type decimal_point () const {
         return do_decimal_point ();

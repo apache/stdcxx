@@ -31,13 +31,11 @@
 #include <stdio.h>      /* for FILE, fopen(), ... */
 
 #include <ctype.h>      /* for isspace */
+#include <limits.h>     /* for PATH_MAX */
 #include <sys/types.h>
 #include <sys/stat.h>
 #if !defined (_WIN32) && !defined (_WIN64)
 #  include <sys/wait.h>   /* for WIFEXITED(), ... */
-#else
-#  include <signal.h>     /* for SIGSEGV */
-#  include <windows.h>    /* for STATUS_ACCESS_VIOLATION */
 #endif
 
 #include "cmdopt.h"
@@ -63,6 +61,12 @@
 #ifndef S_IXOTH
 #  define S_IXOTH 0001
 #endif   /* S_IXOTH */
+
+#if !defined (PATH_MAX) || PATH_MAX < 128 || 4096 < PATH_MAX
+   // deal  with undefined, bogus, or excessive values
+#  undef  PATH_MAX
+#  define PATH_MAX   1024
+#endif
 
 /**
    Utility function to rework the argv array
@@ -90,7 +94,7 @@
    @return processed argv array, usable in exec ()
 */
 static char**
-merge_argv (char* const target, char* const argv [])
+merge_argv (const char* target, char* const argv [])
 {
     size_t tlen;
     char ** split;
@@ -423,7 +427,9 @@ const char* get_target ()
    @see process_results
 */
 static void
-run_target (char* target, const struct target_opts *target_template)
+run_target (struct target_status     *summary,
+            const char               *target,
+            const struct target_opts *target_template)
 {
     struct target_opts options;
     struct target_status results;
@@ -435,12 +441,17 @@ run_target (char* target, const struct target_opts *target_template)
     memcpy (&options, target_template, sizeof options);
     memset (&results, 0, sizeof results);
 
+    /* create the argv array for this target */
     options.argv = merge_argv (target, options.argv);
 
     assert (0 != options.argv);
     assert (0 != options.argv [0]);
 
     target_name = rw_basename (options.argv [0]);
+
+    /* create the names of files to redirect stdin and stdout */
+    options.infname  = input_name (options.data_dir, target_name);
+    options.outfname = output_name (options.argv [0]);
 
     print_target (&options);
 
@@ -452,9 +463,30 @@ run_target (char* target, const struct target_opts *target_template)
 
     print_status (&results);
 
+    if (summary) {
+        /* increment summary counters */
+        if (0 == results.signaled && results.exit)
+            ++summary->exit;
+
+        summary->signaled += results.signaled;
+        summary->c_warn   += results.c_warn;
+        summary->l_warn   += results.l_warn;
+        summary->t_warn   += results.t_warn;
+
+        if ((unsigned)-1 != results.assert) {
+            /* increment assertion counters only when they're valid */
+            summary->assert += results.assert;
+            summary->failed += results.failed;
+        }
+    }
+
+    /* free data dynamically allocated for this target alone */
     free (options.argv [0]);
     free (options.argv);
+    free ((char*)options.infname);
+    free ((char*)options.outfname);
 }
+
 
 /**
    Entry point to the application.
@@ -472,12 +504,9 @@ main (int argc, char *argv [])
 {
     struct target_opts target_template;
     const char* exe_opts = "";
+    const char* const* const saved_argv = (const char* const*)argv;
 
     exe_name = argv [0];
-    memset (&target_template, 0, sizeof target_template);
-
-    target_template.timeout = 10;
-    target_template.data_dir = "";
 
     if (1 < argc && '-' == argv [1][0]) {
         const int nopts =
@@ -490,9 +519,18 @@ main (int argc, char *argv [])
         argv += nopts;
     }
     else {
+        /* initialize data members */
+        memset (&target_template, 0, sizeof target_template);
+
         --argc;
         ++argv;
     }
+
+    /* set the program output mode */
+    if (target_template.verbose)
+        set_output_format (FMT_VERBOSE);
+    else
+        set_output_format (FMT_PLAIN);
 
     if (0 < argc) {
         int i;
@@ -500,13 +538,57 @@ main (int argc, char *argv [])
 
         assert (0 != target_template.argv);
 
-        print_header ();
+        /* print out the program's argv array in verbose mode */
+        print_header (target_template.verbose ? saved_argv : 0);
+
+        struct target_status summary;
+        memset (&summary, 0, sizeof summary);
+
+        /* number of program's executed */
+        int progs_count = 0;
 
         for (i = 0; i < argc; ++i) {
-            run_target (argv [i], &target_template);
+            const char* target = argv [i];
+
+            if ('@' == target [0]) {
+                /* read targets from specified file */
+                const char* lst_name = target + 1;
+                FILE* lst = fopen (lst_name, "r");
+                if (0 == lst) {
+                    warn ("Error opening %s: %s\n", lst_name, strerror (errno));
+                    break;
+                }
+
+                while (!feof (lst)) {
+                    char buf [PATH_MAX];
+                    target = fgets (buf, sizeof (buf), lst);
+
+                    if (ferror (lst)) {
+                        warn ("Error reading %s: %s\n", lst_name, strerror (errno));
+                        break;
+                    }
+
+                    if (target) {
+                        /* remove terminating newline character if present */
+                        assert (buf == target);
+                        if (char* pos = strchr (buf, '\n'))
+                            *pos = '\0';
+                        if (*target) {
+                            ++progs_count;
+                            run_target (&summary, target, &target_template);
+                        }
+                    }
+                }
+
+                fclose (lst);
+            }
+            else {
+                ++progs_count;
+                run_target (&summary, target, &target_template);
+            }
         }
 
-        print_footer ();
+        print_footer (progs_count, &summary);
 
         if (target_template.argv [0])
             free (target_template.argv [0]);
