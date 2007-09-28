@@ -228,10 +228,28 @@ function configure()
 
     CPPFLAGS += " /M";
 
+    LDFLAGS += " /NODEFAULTLIB:\"";
+
     if (confInfo.dll)
+    {
         CPPFLAGS += "D";
+        LDFLAGS += confInfo.debug ? "msvcprtd" : "msvcprt";
+    }
     else
-        CPPFLAGS += (confInfo.mt || NOSTCRT) ? "T" : "L";
+    {
+        if (confInfo.mt || NOSTCRT)
+        {
+            CPPFLAGS += "T";
+            LDFLAGS += confInfo.debug ? "libcpmtd" : "libcpmt";
+        }
+        else
+        {
+            CPPFLAGS += "L";
+            LDFLAGS += confInfo.debug ? "libcpd" : "libcp";
+        }
+    }
+
+    LDFLAGS += ".lib\"";
 
     if (confInfo.debug)
     {
@@ -248,10 +266,6 @@ function configure()
     
     CPPFLAGS += joinArray(defines, "/D");
     
-    LDFLAGS += " /NODEFAULTLIB:libcp /NODEFAULTLIB:libcpd" +
-               " /NODEFAULTLIB:libcpmt /NODEFAULTLIB:libcpmtd" +
-               " /NODEFAULTLIB:msvcprt /NODEFAULTLIB:msvcprtd";
-
     var exitmsg = "You may see log here: " + logFileNameURI;
 
     // sanity check

@@ -23,23 +23,59 @@
 // 
 //////////////////////////////////////////////////////////////////////
 
-var VERSION = "7.1";
+var VERSION = "";
 var DEVENV = "";
 var DEVENVFLAGS = "";
 var CPPFLAGS = "";
 var LDFLAGS = "";
+var LIBS = "";
 var CONVERT = false;
-var CXX = "cl";
-var LD = "cl";
-var AR = "lib";
-var SLNVER="8.00";
+var CXX = "";
+var LD = "";
+var AR = "";
+var AS = "";
+var SLNVER="";
 var SLNCOMMENT="";
 var UNICODELOG = false;
 var NOSTCRT = false;
 var WINDIFF = "";
 var ICCCONVERT = "";
-var PLATFORM = "Win32";
+var PLATFORM = "";
 var CLVARSBAT = "";
+var ICCVER="";
+
+// timeout for exec utility in seconds
+var EXEC_TIMEOUT = 300;
+
+// expand system macros
+function expandSysMacro(str)
+{
+    var env = null;
+    var pos = 0;
+
+    while (true)
+    {
+        pos = str.indexOf("%", pos);
+        if (0 > pos)
+            break;
+
+        ++pos;
+        var pos2 = str.indexOf("%", pos);
+        if (0 > pos2)
+            break;
+
+        if (null == env)
+            env = WshShell.Environment("PROCESS");
+
+        var macro = str.substring(pos, pos2);
+        pos = pos2 + 1;
+        var value = env.Item(macro);
+        if ("undefined" != typeof(value) && "" != value)
+            str = str.replace("%" + macro + "%", value);
+    }
+
+    return str;
+}
 
 // read and parse compiler configuration file
 // config - name of the compiler configuration
@@ -80,6 +116,8 @@ function parseConfig(config)
         if (null == arr || 0 == arr[2].length)
             continue;
 
+        arr[2] = expandSysMacro(arr[2]);
+
         switch (arr[1])
         {
         case "VERSION":
@@ -97,6 +135,9 @@ function parseConfig(config)
         case "LDFLAGS":
             LDFLAGS = arr[2];
             break;
+        case "LIBS":
+            LIBS = arr[2];
+            break;
         case "CONVERT":
             CONVERT = parseInt(arr[2]) != 0;
             break;
@@ -108,6 +149,9 @@ function parseConfig(config)
             break;
         case "AR":
             AR = arr[2];
+            break;
+        case "AS":
+            AS = arr[2];
             break;
         case "SLNVER":
             SLNVER = arr[2];
@@ -133,6 +177,9 @@ function parseConfig(config)
         case "CLVARSBAT":
             CLVARSBAT = arr[2];
             break;
+        case "ICCVER":
+            ICCVER = arr[2];
+            break;
         }
     }
 }
@@ -140,6 +187,28 @@ function parseConfig(config)
 // init script variables for specified compiler configuration
 function getCompilerOpts(config)
 {
+    // set vars to initial state
+    VERSION = "";
+    DEVENV = "";
+    DEVENVFLAGS = "";
+    CPPFLAGS = "";
+    LDFLAGS = "";
+    LIBS = "";
+    CONVERT = false;
+    CXX = "";
+    LD = "";
+    AR = "";
+    AS = "";
+    SLNVER="";
+    SLNCOMMENT="";
+    UNICODELOG = false;
+    NOSTCRT = false;
+    WINDIFF = "";
+    ICCCONVERT = "";
+    PLATFORM = "";
+    CLVARSBAT = "";
+    ICCVER = "";
+
     parseConfig(config);
 
     if (0 == WINDIFF.length)
@@ -172,10 +241,12 @@ function PrintVars(stream)
     stream.WriteLine("  DEVENVFLAGS=" + DEVENVFLAGS);
     stream.WriteLine("  CPPFLAGS=" + CPPFLAGS);
     stream.WriteLine("  LDFLAGS=" + LDFLAGS);
+    stream.WriteLine("  LIBS=" + LIBS);
     stream.WriteLine("  CONVERT=" + CONVERT);
     stream.WriteLine("  CXX=" + CXX);
     stream.WriteLine("  LD=" + LD);
     stream.WriteLine("  AR=" + AR);
+    stream.WriteLine("  AS=" + AS);
     stream.WriteLine("  SLNVER=" + SLNVER);
     stream.WriteLine("  SLNCOMMENT=" + SLNCOMMENT);
     stream.WriteLine("  UNICODELOG=" + UNICODELOG);
@@ -184,6 +255,7 @@ function PrintVars(stream)
     stream.WriteLine("  ICCCONVERT=" + ICCCONVERT);
     stream.WriteLine("  PLATFORM=" + PLATFORM);
     stream.WriteLine("  CLVARSBAT=" + CLVARSBAT);
+    stream.WriteLine("  ICCVER=" + ICCVER);
     stream.WriteLine("");
 }
 

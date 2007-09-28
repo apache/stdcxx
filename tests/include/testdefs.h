@@ -6,22 +6,25 @@
  *
  ***************************************************************************
  *
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
  * Copyright 2005-2006 The Apache Software Foundation or its licensors,
  * as applicable.
  *
- * Copyright 2003-2006 Rogue Wave Software.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2003-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -30,6 +33,14 @@
 
 
 #include <rw/_defs.h>
+
+#ifdef _RWSTD_TEST_SRC
+   // #undef-ine the Compaq C++ macro #defined in response to
+   // the -std strict_ansi_errors compiler option in order to
+   // allow C++ extensions (such POSIX names) to be declared
+   // by C++ libc headers when building the test driver
+#  undef __PURE_CNAME
+#endif   // _RWSTD_TEST_SRC
 
 
 #if    (defined (_WIN32) || defined (_WIN64)) \
@@ -153,5 +164,13 @@
    ((expr) ? (void)0 : _RW::__rw_assert_fail (#expr, __FILE__, __LINE__, 0))
 #endif   // _RWSTD_NO_PRETTY_FUNCTION, _RWSTD_NO_FUNC
 
+// convenience macro to get number of elements in a c style array
+#define RW_COUNT_OF(x) (sizeof(x) / sizeof(*x))
+
+#if defined (__INTEL_COMPILER) && __INTEL_COMPILER <= 1000
+   // disable warning #279: controlling expression is constant
+   // issued for the commonly used RW_ASSERT(!"not implemented")
+#  pragma warning (disable: 279)
+#endif   // Intel C++ 10.0 and prior
 
 #endif   // RW_TESTDEFS_H_INCLUDED

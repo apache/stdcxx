@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -42,7 +42,7 @@
 #include <cstdio>
 #include <cstring>   // for memcpy(), strlen()
 #include <clocale>   // for setlocale()
-#include <locale>
+#include <locale>    // for tolower()
 #include <iostream>
 #include <string>
 #include <vector>
@@ -349,8 +349,8 @@ static int ci_pre_compare (const std::string& s1, const std::string& s2)
     std::string::const_iterator it1 = s1.begin ();
     std::string::const_iterator it2 = s2.begin ();
     for (; it1 != s1.end () && it2 != s2.end (); it1++, it2++)
-        if (std::tolower(*it1, std::locale ()) !=
-            std::tolower(*it2, std::locale ()))
+        if (   (std::tolower)(*it1, std::locale ())
+            != (std::tolower)(*it2, std::locale ()))
             return (*it1 - *it2);
 
     return 0;

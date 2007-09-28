@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2000-2006 Rogue Wave Software.
+ * Copyright 2000-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -776,7 +776,7 @@ pow (const _TypeT&, const complex<_TypeT>&);
 //     phi = v2 * log(r1) + u2 * theta1
 _EXPORT
 template <class _TypeT>
-inline complex<_TypeT>
+complex<_TypeT>
 pow (const complex<_TypeT>&, const complex<_TypeT>&);
 
 

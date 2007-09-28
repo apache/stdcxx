@@ -22,15 +22,13 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
 #define _RWSTD_LIB_SRC
 
 #include <rw/_defs.h>
-
-#ifndef _RWSTD_NO_V3_LOCALE
 
 #ifdef __SUNPRO_CC
    // working around SunPro bug 568
@@ -47,7 +45,7 @@
 #include <sys/stat.h>   // for stat()
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 // outlined to hide implementation details
@@ -140,7 +138,7 @@ locale::_C_get_std_facet (facet::_C_facet_type  type,
     if (next && *next) {
 
         // compute the facet category from the value of its id
-        const int facet_cat = _RW::__rw_get_cat (inx + 1);
+        const int facet_cat = _RW::__rw_get_cat (int (inx + 1));
 
         // determine the locale name of the given category
         size_t i = 0;
@@ -200,7 +198,4 @@ locale::_C_get_std_facet (facet::_C_facet_type  type,
 }
 
 
-}   // namespace _V3_LOCALE
-
-
-#endif   // _RWSTD_NO_V3_LOCALE
+}   // namespace std

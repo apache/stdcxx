@@ -92,7 +92,7 @@ extern "C" {
 // declare these for Linux glibc and SunOS
 extern int daylight;
 extern long int timezone;
-extern void tzset ();
+extern void tzset () _LIBC_THROWS ();
 
 }   // extern "C"
 

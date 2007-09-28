@@ -266,10 +266,12 @@ void test_access (charT, Traits*, Allocator*,
             return;
         }
 
-        const char exp_res =
-            NPOS != tcase.nres ? char (tcase.nres) : char ();
+        const char exp_res [2] = {
+            NPOS != tcase.nres ? char (tcase.nres) : char (),
+            char ()
+        };
 
-        const bool success = 1 == rw_match (&exp_res, pres, 1);
+        const bool success = 1 == rw_match (exp_res, pres, 1);
 
         rw_assert (success, 0, tcase.line,
                    "line %d. %{$FUNCALL} == %{#c}, got %{#c}",

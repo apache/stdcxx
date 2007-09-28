@@ -342,7 +342,7 @@ parse_output (const struct target_opts* options, struct target_status* status)
         status->status = ST_NO_OUTPUT;
     }
     else {
-        if (!strlen (options->data_dir)) {
+        if (0 == options->data_dir || '\0' == *options->data_dir) {
             /* If there is not an input directory, look at the assertion tags */
 
             if (!options->compat)

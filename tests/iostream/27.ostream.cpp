@@ -779,16 +779,19 @@ void test_formatted (charT, int line1, int line2,
 
     if (!tsb.throws_ && !tnp.throws_) {
 
+        bool pass;
+
+#ifdef _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
         // verify that width(0) has been called (unless there are exceptions
         // involved, in which case it's unspecified whether width(0) has or
         // has not been called
-        bool pass =
-            !((!exceptions || !tsb.fails_ && !tnp.fails_) && os.width ());
+        pass = !((!exceptions || !tsb.fails_ && !tnp.fails_) && os.width ());
 
         rw_assert (pass, __FILE__, line1,
                    "%d. std::basic_ostream<%s>::operator<<(%s = %{#lc})"
                    ".width () == 0, got %d",
                    line2, cname, tname, val, os.width  ());
+#endif   // _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
 
         // verify that ios_base::failure has been thrown (and caught)
         // if badbit is set in exceptions
@@ -1409,6 +1412,8 @@ void test_flush (charT)
     }
 
     {
+        // exercise LWG issue 581: flush() not unformatted function
+
         test_streambuf<charT> tsb (0);
         Ostream strm (&tsb);
 

@@ -27,9 +27,6 @@ var TristateUseDefault = -2;
 var TristateTrue = -1;
 var TristateFalse = 0;
 
-// the timeout for the exec utility
-var execTimeout = 180;
-
 var dte = null;
 var VCProjectEngine = null;
 var ICConvertTool = "ICProjConvert90.exe";
@@ -69,24 +66,28 @@ function InitVSObjects(config, freedte)
 
     if (CONVERT)
     {
+        if (ICCCONVERT == "")
+            ICCCONVERT = "ICProjConvert90.exe";
+
         var ICConvertTool = ICCCONVERT;
 
         var arrPath = new Array(ICConvertTool);
 
-        if (ICConvertTool == "")
+        if (0 > ICConvertTool.indexOf("\\"))
         {
-            ICConvertTool = "ICProjConvert90.exe";
-            arrPath[0] = ICConvertTool;
+            // no file path specified
+            // try to detect the path
             if (null != dte)
             {
                 try
                 {
                     var isettings = dte.GetObject("IntelOptions");
-                    var icompiler = isettings.Compiler(isettings.CurrentCompilerIndex);
-                    var path = icompiler.ExecutablePath.split(";");
-                    for (var i = 0; i < path.length; ++i)
-                        arrPath.push("\"" + path[i] + "\\" + ICConvertTool + "\"");
-                    icompiler = null;
+                    for (var i = 1; i <= isettings.CompilersCount; ++i)
+                    {
+                        var paths = isettings.Compiler(i).ExecutablePath.split(";");
+                        for (var j = 0; j < paths.length; ++j)
+                            arrPath.push("\"" + isettings.Evaluate(paths[j]) + "\\" + ICConvertTool + "\"");
+                    }
                     isettings = null;
                 }
                 catch (e) {}
@@ -106,6 +107,7 @@ function InitVSObjects(config, freedte)
         if (!success)
         {
             WScript.StdErr.WriteLine(ICCCONVERT + " conversion utility not found");
+            WScript.StdErr.WriteLine("You should check ICCCONVERT configuration variable");
             WScript.Quit(3);
         }
     }
@@ -123,8 +125,10 @@ function InitVSObjects(config, freedte)
     catch (e)
     {
         WScript.StdErr.WriteLine("Unable to create VCProjectEngine object: " + e.message);
-        WScript.Quit(3);
+        return false;
     }
+
+    return true;
 }
 
 //------------------------------------------------
@@ -138,7 +142,7 @@ function ProjectDef(name, type)
     this.Type = type;
     this.SubSystem = typeGeneric == type ? null :
         (typeApplication == type ? subSystemConsole : subSystemWindows);
-    this.RTTI = false;
+    this.RTTI = true;
     this.VCProjDir = "%BUILDDIR%";
     this.FilterDefs = new Array();
     this.Defines = null;
@@ -441,7 +445,7 @@ function projectCreateVCProject(engine, report)
                     if (!setProperty(compiler.OptimizeForWindowsApplication, true))
                         compiler.AdditionalOptions += " /GA";
                 }
-                compiler.Optimization = optimizeMinSpace;
+                compiler.Optimization = optimizeMaxSpeed;
                 compiler.MinimalRebuild = false;
                 setProperty(compiler.SmallerTypeCheck, false);
                 setProperty(compiler.BasicRuntimeChecks, runtimeBasicCheckNone);
@@ -487,9 +491,22 @@ function projectCreateVCProject(engine, report)
             linker.GenerateDebugInformation = true;
             if (null != this.Libs)
                 linker.AdditionalDependencies = this.Libs;
-            linker.IgnoreDefaultLibraryNames = "libcp.lib;libcpd.lib;" +
-                                               "libcpmt.lib;libcpmtd.lib;" +
-                                               "msvcprt.lib;msvcprtd.lib";
+
+            if (confInfo.dll)
+            {
+                linker.IgnoreDefaultLibraryNames =
+                    confInfo.debug ? "msvcprtd.lib" : "msvcprt.lib";
+            }
+            else
+            {
+                if (confInfo.mt || NOSTCRT)
+                    linker.IgnoreDefaultLibraryNames =
+                        confInfo.debug ? "libcpmtd.lib" : "libcpmt.lib";
+                else
+                    linker.IgnoreDefaultLibraryNames =
+                        confInfo.debug ? "libcpd.lib" : "libcp.lib";
+            }
+
             linker.SubSystem = this.SubSystem;
             if (confInfo.debug)
             {
@@ -793,7 +810,7 @@ function projectCreateTestLocaleDefs(nlsDir)
     sanityDef.PreBuildCmd +=
         "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
         " /s /b:\"" + bindir + "\" > \"" + test + ".bat\"";
-    sanityDef.CustomBuildCmd = setPath + "\r\n\"" + exec + "\" -t " + execTimeout + " \"" + test + ".bat\"";
+    sanityDef.CustomBuildCmd = setPath + "\r\n\"" + exec + "\" -t " + EXEC_TIMEOUT + " \"" + test + ".bat\"";
     sanityDef.CustomBuildOut = test + ".out";
     projectDefs.push(sanityDef);
         
@@ -846,7 +863,7 @@ function projectCreateTestLocaleDefs(nlsDir)
             "echo cscript /nologo \"" + srcdir + "\\run_locale_utils.wsf\"" +
             " /f /b:\"" + bindir + "\" /i:\"" + nlsDir + "\"" +
             " /l:" + locale.Name + " > \"" + test + ".bat\"";
-        projectDef.CustomBuildCmd = setPath + "\r\n\"" + exec + "\" -t " + execTimeout + " \"" + test + ".bat\"";
+        projectDef.CustomBuildCmd = setPath + "\r\n\"" + exec + "\" -t " + EXEC_TIMEOUT + " \"" + test + ".bat\"";
         projectDef.CustomBuildOut = test + ".out";
         projectDef.PrjDeps.push(sanityDef);
         

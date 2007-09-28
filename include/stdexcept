@@ -65,6 +65,8 @@ struct _RWSTD_EXPORT domain_error: logic_error
     // extension
     _EXPLICIT domain_error (const char *__s = 0)
         : logic_error (__s) { }
+
+    virtual ~domain_error () _THROWS (());
 };
 
 
@@ -77,6 +79,8 @@ struct _RWSTD_EXPORT invalid_argument: logic_error
     // extension
     _EXPLICIT invalid_argument (const char *__s = 0)
         : logic_error (__s) { }
+
+    virtual ~invalid_argument () _THROWS (());
 };
 
 
@@ -89,6 +93,8 @@ struct _RWSTD_EXPORT length_error: logic_error
     // extension
     _EXPLICIT length_error (const char *__s = 0)
         : logic_error (__s) { }
+
+    virtual ~length_error () _THROWS (());
 };
 
 
@@ -101,6 +107,8 @@ struct _RWSTD_EXPORT out_of_range: logic_error
     // extension
     _EXPLICIT out_of_range (const char *__s = 0)
         : logic_error (__s) { }
+
+    virtual ~out_of_range () _THROWS (());
 };
 
 
@@ -113,6 +121,8 @@ struct _RWSTD_EXPORT runtime_error: _RW::__rw_exception
     // extension
     _EXPLICIT runtime_error (const char *__s = 0)
         : _RW::__rw_exception (__s) { }
+
+    virtual ~runtime_error () _THROWS (());
 };
 
 
@@ -125,6 +135,8 @@ struct _RWSTD_EXPORT range_error: runtime_error
     // extension
     _EXPLICIT range_error (const char *__s = 0)
         : runtime_error (__s) { }
+
+    virtual ~range_error () _THROWS (());
 };
 
 
@@ -137,6 +149,8 @@ struct _RWSTD_EXPORT overflow_error: runtime_error
     // extension
     _EXPLICIT overflow_error (const char *__s = 0)
         : runtime_error (__s) { }
+
+    virtual ~overflow_error () _THROWS (());
 };
 
 
@@ -149,6 +163,8 @@ struct _RWSTD_EXPORT underflow_error: runtime_error
     // extension
     _EXPLICIT underflow_error (const char *__s = 0)
         : runtime_error (__s) { }
+
+    virtual ~underflow_error () _THROWS (());
 };
 
 

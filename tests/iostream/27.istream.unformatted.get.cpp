@@ -54,15 +54,14 @@ check_failure (const MyStreambuf<charT, Traits>&  sb,
                int                                nexpect,
                int                                rdstate,
                int                                exceptions,
-               MemFun                             caught)
+               int                                caught)
 {
     static const char* const exnames[] = {
-        "none", "std::ios_base::failure", "unknown exception"
+        "none", "std::ios_base::failure",
+        "streambuf_exception", "unknown exception"
     };
 
-    const char* const caught_what =
-        caught < int (sizeof exnames / sizeof *exnames) ?
-        exnames [caught] : "streambuf_exception";
+    const char* const caught_what = exnames [caught];
 
     // verify that stream is in the expected state
     rw_assert (strm.rdstate () == rdstate, 0, lineno,
@@ -71,13 +70,13 @@ check_failure (const MyStreambuf<charT, Traits>&  sb,
                __LINE__, cname, fun, rdstate, strm.rdstate ());
 
 
-    if (sb.throw_set_ && sb.ncalls (sb.threw_) == sb.fail_when_ + 1) {
+    if (sb.throw_set_ && sb.ncalls (sb.threw_) == sb.fail_when_) {
 
         // verify that the same exception (and not ios_base::failure)
         // as the one thrown from basic_filebuf has been propagated
         // and caught when badbit is set in exceptions, and that no
         // exception has been thrown if exceptions is clear
-        if (exceptions & Bad && caught != sb.threw_) {
+        if (exceptions & Bad && caught != 2) {
 
             rw_assert (false, 0, lineno,
                        "line %d: basic_istream<%s>::%s failed "
@@ -100,7 +99,7 @@ check_failure (const MyStreambuf<charT, Traits>&  sb,
         // or that it increased exactly `fail_when_'
         const int actual = strm.gcount () - gcount;
 
-        rw_assert (!actual || actual ==  sb.fail_when_, 0, lineno,
+        rw_assert (!actual || actual == sb.fail_when_ - 1, 0, lineno,
                    "line %d: basic_istream<%s>::%s changed "
                    "gcount () from %d to %d after a failure; "
                    "either no change from 0 expected, or "
@@ -112,7 +111,7 @@ check_failure (const MyStreambuf<charT, Traits>&  sb,
 
         // verify that ios_base::failure has been thrown (and caught)
         // if badbit is set in exceptions
-        rw_assert (!(exceptions & strm.rdstate ()) || caught == Failure,
+        rw_assert (!(exceptions & strm.rdstate ()) || caught == 1,
                    0, lineno,
                    "line %d: basic_istream<%s>::%s set %{Is} "
                    "but failed to throw ios_base::failure "
@@ -138,14 +137,14 @@ check_failure (const MyStreambuf<charT, Traits>&  sb,
     try {                                     \
         expr;                                 \
     }                                         \
-    catch (MemFun e) {                        \
-        caught = e;                           \
-    }                                         \
     catch (const std::ios_base::failure&) {   \
-        caught = Failure;                     \
+        caught = 1;                           \
+    }                                         \
+    catch (Exception& e) {                    \
+        caught = ex_stream == e.id_ ? 2 : 3;  \
     }                                         \
     catch (...) {                             \
-        caught = Unknown;                     \
+        caught = 3;                           \
     } (void)0
 
 
@@ -201,7 +200,7 @@ test_get_void (charT, const char *cname,
 
     int_type got = Traits::eof ();
 
-    MemFun caught = None;
+    int caught = 0;
 
     TRY_GET (got = strm.get ());
 
@@ -252,21 +251,21 @@ void test_get_void (charT, const char *cname)
     TEST (T, "\x80",  1, 0x80, Good,       Good, 0, -1);
     TEST (T, "\xff ", 2, 0xff, Good,       Good, 0, -1);
 
-    TEST (T, "c",     1, eof,  Eof | Fail, Good, Underflow, 0);
-    TEST (T, "d",     1, eof,  Bad,        Good, Underflow | Throw, 0);
+    TEST (T, "c",     1, eof,  Eof | Fail, Good, Underflow, 1);
+    TEST (T, "d",     1, eof,  Bad,        Good, Underflow | Throw, 1);
 
     eof = 256;
 
     TEST (T, "",  0, eof, Eof | Fail, Good, 0, 0);
     TEST (T, "f", 1, 'f', Good,       Good, 0, 0);
-    TEST (T, "g", 1, eof, Eof | Fail, Good, Underflow, 0);
-    TEST (T, "h", 1, eof, Bad,        Good, Underflow | Throw, 0);
+    TEST (T, "g", 1, eof, Eof | Fail, Good, Underflow, 1);
+    TEST (T, "h", 1, eof, Bad,        Good, Underflow | Throw, 1);
     
     eof = '\0';
 
     TEST (T, "\0", 1, eof, Eof | Fail, Good, 0, -1);
-    TEST (T, "\1", 1, eof, Eof | Fail, Good, Underflow, 0);
-    TEST (T, "\2", 1, eof, Bad,        Good, Underflow | Throw, 0);
+    TEST (T, "\1", 1, eof, Eof | Fail, Good, Underflow, 1);
+    TEST (T, "\2", 1, eof, Bad,        Good, Underflow | Throw, 1);
 }
 
 /***********************************************************************/
@@ -311,7 +310,7 @@ void test_get_char (charT, const char* cname,
           charT got = charT (UChar (initval));
     const charT val = charT (UChar (expectval));
 
-    MemFun caught = None;
+    int caught = 0;
 
     TRY_GET (strm.get (got));
 
@@ -368,14 +367,14 @@ void test_get_char (charT, const char *cname)
     TEST (T, "2 ", 2, '\3', '2',  Good,       Good, 0, -1);
     TEST (T, " 3", 2, '\4', ' ',  Good,       Good, 0, -1);
 
-    TEST (T, "4",  1, '\5', '\5', Eof | Fail, Good, Underflow, 0);
-    TEST (T, "5",  1, '\6', '\6', Bad,        Good, Underflow | Throw, 0);
-    TEST (T, "6",  1, '\7', '\6', Eof | Fail, Eof,  Underflow, 0);
-    TEST (T, "7",  1, 'x',   'x', Eof | Fail, Fail, Underflow, 0);
-    TEST (T, "8",  1, 'y',   'y', Eof | Fail, Eof | Fail, Underflow, 0);
-    TEST (T, "9",  1, 'z',   'z', Eof | Fail, Eof | Fail | Bad, Underflow, 0);
+    TEST (T, "4",  1, '\5', '\5', Eof | Fail, Good, Underflow, 1);
+    TEST (T, "5",  1, '\6', '\6', Bad,        Good, Underflow | Throw, 1);
+    TEST (T, "6",  1, '\7', '\6', Eof | Fail, Eof,  Underflow, 1);
+    TEST (T, "7",  1, 'x',   'x', Eof | Fail, Fail, Underflow, 1);
+    TEST (T, "8",  1, 'y',   'y', Eof | Fail, Eof | Fail, Underflow, 1);
+    TEST (T, "9",  1, 'z',   'z', Eof | Fail, Eof | Fail | Bad, Underflow, 1);
 
-    TEST (T, "A",  1, 'a',   'a', Bad,        Bad, Underflow | Throw, 0);
+    TEST (T, "A",  1, 'a',   'a', Bad,        Bad, Underflow | Throw, 1);
 }
 
 /***********************************************************************/
@@ -440,7 +439,7 @@ void test_get_char_array (charT, const char* cname,
 
     typedef unsigned char UChar;
 
-    MemFun caught = None;
+    int caught = 0;
 
     charT got [MAXCHARS + 1];
     Traits::assign (got, sizeof got / sizeof *got, charT ('\xfe'));
@@ -521,23 +520,23 @@ void test_get_char_array (charT, const char *cname)
 
     // exercise the behavior on underflow() failure indicated
     // by returning traits_type::eof()
-    TEST (T, "78\n9", 4, 4, eof, 0, Eof | Fail, Good,        Underflow, 0);
-    TEST (T, "78901", 5, 5, eof, 0, Eof | Fail, Eof,         Underflow, 0);
-    TEST (T, "78902", 5, 5, eof, 0, Eof | Fail, Fail,        Underflow, 0);
-    TEST (T, "78803", 5, 5, eof, 0, Eof | Fail, Eof | Fail,  Underflow, 0);
-    TEST (T, "89\na", 4, 4, eof, 1, Eof,        Good,        Underflow, 1);
-    TEST (T, "9a\nb", 4, 4, eof, 2, Eof,        Good,        Underflow, 2);
-    TEST (T, "ab\nc", 4, 4, eof, 2, Good,       Good,        Underflow, 3);
+    TEST (T, "78\n9", 4, 4, eof, 0, Eof | Fail, Good,        Underflow, 1);
+    TEST (T, "78901", 5, 5, eof, 0, Eof | Fail, Eof,         Underflow, 1);
+    TEST (T, "78902", 5, 5, eof, 0, Eof | Fail, Fail,        Underflow, 1);
+    TEST (T, "78803", 5, 5, eof, 0, Eof | Fail, Eof | Fail,  Underflow, 1);
+    TEST (T, "89\na", 4, 4, eof, 1, Eof,        Good,        Underflow, 2);
+    TEST (T, "9a\nb", 4, 4, eof, 2, Eof,        Good,        Underflow, 3);
+    TEST (T, "ab\nc", 4, 4, eof, 2, Good,       Good,        Underflow, 4);
 
     // exercise the behavior on underflow() failure caused
     // by throwing an exception
-    TEST (T, "bc\nd", 4, 4, eof, 0, Bad,        Good, Underflow | Throw, 0);
-    TEST (T, "cd\ne", 4, 4, eof, 1, Bad,        Good, Underflow | Throw, 1);
-    TEST (T, "def\n", 4, 4, eof, 2, Bad,        Good, Underflow | Throw, 2);
-    TEST (T, "efg\n", 4, 4, eof, 2, Bad,        Bad,  Underflow | Throw, 2);
-    TEST (T, "fgh\n", 4, 4, eof, 3, Good,       Bad,  Underflow | Throw, 3);
-    TEST (T, "ghij",  4, 4, eof, 3, Good,       Bad,  Underflow | Throw, 3);
-    TEST (T, "hijk",  4, 5, eof, 3, Bad,        Bad,  Underflow | Throw, 3);
+    TEST (T, "bc\nd", 4, 4, eof, 0, Bad,        Good, Underflow | Throw, 1);
+    TEST (T, "cd\ne", 4, 4, eof, 1, Bad,        Good, Underflow | Throw, 2);
+    TEST (T, "def\n", 4, 4, eof, 2, Bad,        Good, Underflow | Throw, 3);
+    TEST (T, "efg\n", 4, 4, eof, 2, Bad,        Bad,  Underflow | Throw, 3);
+    TEST (T, "fgh\n", 4, 4, eof, 3, Good,       Bad,  Underflow | Throw, 4);
+    TEST (T, "ghij",  4, 4, eof, 3, Good,       Bad,  Underflow | Throw, 4);
+    TEST (T, "hijk",  4, 5, eof, 3, Bad,        Bad,  Underflow | Throw, 4);
 
     const std::streamsize N = std::streamsize (MAXCHARS);
     char *buf = new char [N];
@@ -631,7 +630,7 @@ void test_get_streambuf (charT, const char* cname,
 
     typedef unsigned char UChar;
 
-    MemFun caught = None;
+    int caught = 0;
 
     Streambuf outbuf (strsize, out_failure, out_fail_when);
 
@@ -714,27 +713,27 @@ void test_get_streambuf (charT, const char *cname)
     TEST (T, "cd\0e", 4, '\0', 2, Good,       Good, 0, 0);
     TEST (T, "def\0", 4, '\0', 3, Good,       Good, 0, 0);
 
-    TEST (T, "efgh",  4, 'f',  0, Eof | Fail, Good,       Underflow, 0);
-    TEST (T, "fghi",  4, 'g',  0, Eof | Fail, Eof,        Underflow, 0);
-    TEST (T, "ghij",  4, 'h',  0, Eof | Fail, Fail,       Underflow, 0);
-    TEST (T, "hijk",  4, 'i',  0, Eof | Fail, Eof | Fail, Underflow, 0);
+    TEST (T, "efgh",  4, 'f',  0, Eof | Fail, Good,       Underflow, 1);
+    TEST (T, "fghi",  4, 'g',  0, Eof | Fail, Eof,        Underflow, 1);
+    TEST (T, "ghij",  4, 'h',  0, Eof | Fail, Fail,       Underflow, 1);
+    TEST (T, "hijk",  4, 'i',  0, Eof | Fail, Eof | Fail, Underflow, 1);
 
-    TEST (T, "ijkl",  4, 'k',  1, Eof,        Good, Underflow, 1);
-    TEST (T, "jklm",  4, 'm',  2, Eof,        Good, Underflow, 2);
+    TEST (T, "ijkl",  4, 'k',  1, Eof,        Good, Underflow, 2);
+    TEST (T, "jklm",  4, 'm',  2, Eof,        Good, Underflow, 3);
 
-    TEST (T, "klmn",  4, 'n',  2, Bad,        Good, Underflow | Throw, 2);
-    TEST (T, "lmno",  4, 'o',  2, Bad,        Bad,  Underflow | Throw, 2);
+    TEST (T, "klmn",  4, 'n',  2, Bad,        Good, Underflow | Throw, 3);
+    TEST (T, "lmno",  4, 'o',  2, Bad,        Bad,  Underflow | Throw, 3);
 
-    TEST (T, "EFGH",  4, 'F',  0, Fail,       Good,       Overflow, 0);
-    TEST (T, "FGHI",  4, 'G',  0, Fail,       Eof,        Overflow, 0);
-    TEST (T, "GHIJ",  4, 'H',  0, Fail,       Fail,       Overflow, 0);
-    TEST (T, "HIJK",  4, 'I',  0, Fail,       Eof | Fail, Overflow, 0);
+    TEST (T, "EFGH",  4, 'F',  0, Fail,       Good,       Overflow, 1);
+    TEST (T, "FGHI",  4, 'G',  0, Fail,       Eof,        Overflow, 1);
+    TEST (T, "GHIJ",  4, 'H',  0, Fail,       Fail,       Overflow, 1);
+    TEST (T, "HIJK",  4, 'I',  0, Fail,       Eof | Fail, Overflow, 1);
 
-    TEST (T, "IJKL",  4, 'K',  1, Fail,       Good, Overflow, 1);
-    TEST (T, "JKLM",  4, 'M',  2, Fail,       Good, Overflow, 2);
+    TEST (T, "IJKL",  4, 'K',  1, Fail,       Good, Overflow, 2);
+    TEST (T, "JKLM",  4, 'M',  2, Fail,       Good, Overflow, 3);
 
-    TEST (T, "KLMN",  4, 'N',  2, Fail,       Good, Overflow | Throw, 2);
-    TEST (T, "LMNO",  4, 'O',  2, Fail,       Bad,  Overflow | Throw, 2);
+    TEST (T, "KLMN",  4, 'N',  2, Fail,       Good, Overflow | Throw, 3);
+    TEST (T, "LMNO",  4, 'O',  2, Fail,       Bad,  Overflow | Throw, 3);
 
     rw_info (0, 0, 0, "27.6.1.3, p15 - std::basic_istream<%s>"
              "::get (basic_streambuf<char_type, traits_type>&)", cname);

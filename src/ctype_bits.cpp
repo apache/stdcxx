@@ -30,12 +30,10 @@
 
 #include <rw/_defs.h>
 
-#ifndef _RWSTD_NO_V3_LOCALE
-
 #include <loc/_ctype.h>
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
 
 
 _RWSTD_DEFINE_STATIC_CONST (const ctype_base::mask ctype_base::space);
@@ -52,7 +50,5 @@ _RWSTD_DEFINE_STATIC_CONST (const ctype_base::mask ctype_base::graph);
 
 _RWSTD_DEFINE_STATIC_CONST (const _RWSTD_SIZE_T ctype<char>::table_size);
 
-}   // namespace _V3_LOCALE
 
-
-#endif   // _RWSTD_NO_V3_LOCALE
+}   // namespace std

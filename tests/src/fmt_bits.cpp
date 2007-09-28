@@ -48,6 +48,10 @@
 #  include <wctype.h>   // for iswalpha(), ...
 #endif   // _RWSTD_NO_WCTYPE_H
 
+#ifdef _WIN32
+#  include <windows.h>   // for FormatMessage()
+#endif   // _WIN32
+
 #include <ios>
 #include <iostream>
 #include <locale>
@@ -1000,6 +1004,42 @@ _rw_fmterrno (const FmtSpec &spec, Buffer &buf, int val)
     newspec.fl_pound = 0;
 
     return _rw_fmtstr (newspec, buf, str, _RWSTD_SIZE_MAX);
+}
+
+/********************************************************************/
+
+/* extern */ int
+_rw_fmtlasterror (const FmtSpec &spec, Buffer &buf, int val)
+{
+#ifdef _WIN32
+
+    LPVOID pmsg;
+    FormatMessage (  FORMAT_MESSAGE_ALLOCATE_BUFFER
+                   | FORMAT_MESSAGE_FROM_SYSTEM
+                   | FORMAT_MESSAGE_IGNORE_INSERTS,
+                   0, (DWORD)val,
+                   MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT),
+                   (LPTSTR)&pmsg,
+                   0, 0);
+
+    FmtSpec newspec (spec);
+    newspec.width    = 0;
+    newspec.fl_pound = 0;
+
+    const int result = _rw_fmtstr (newspec, buf,
+                                   _RWSTD_STATIC_CAST (const char*, pmsg),
+                                   _RWSTD_SIZE_MAX);
+
+    LocalFree (pmsg);
+
+    return result;
+
+#else   // if !defined (_WIN32)
+
+    return _rw_fmterrno (spec, buf, val);
+
+#endif   // _WIN32
+
 }
 
 /********************************************************************/

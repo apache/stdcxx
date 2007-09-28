@@ -33,24 +33,26 @@
 #include <cstring>    // for strlen()
 
 #include <rw_locale.h>
-#include <rw_thread.h>
+#include <rw_thread.h>   // for rw_get_processors (), rw_thread_pool()
 #include <driver.h>
+#include <valcmp.h>
 
+#define MAX_THREADS      32
+#define MAX_LOOPS    100000
 
-// maximum number of threads allowed by the command line interface
-#define MAX_THREADS   32
-
-
-#ifdef _RWSTD_REENTRANT
-int rw_opt_nthreads = 4;
-#else   // if !defined (_RWSTD_REENTRANT)
-// in non-threaded builds use just one thread
+// default number of threads (will be adjusted to the number
+// of processors/cores later)
 int rw_opt_nthreads = 1;
-#endif   // _RWSTD_REENTRANT
 
-// the number of times each thread should iterate (unless specified
-// otherwise on the command line)
-int rw_opt_nloops = 200000;
+// the number of times each thread should iterate
+int rw_opt_nloops = MAX_LOOPS;
+
+// number of locales to use
+int rw_opt_nlocales = MAX_THREADS;
+
+// should all threads share the same set of locale objects instead
+// of creating their own?
+int rw_opt_shared_locale;
 
 /**************************************************************************/
 
@@ -62,7 +64,146 @@ locales [MAX_THREADS];
 static std::size_t
 nlocales;
 
+
+struct MyNumData {
+
+    enum { BufferSize = 32 };
+
+    enum PutId {
+        put_bool,
+        put_long,
+        put_ulong,
+
+#ifndef _RWSTD_NO_LONG_LONG
+
+        put_llong,
+        put_ullong,
+
+#endif   // _RWSTD_NO_LONG_LONG
+
+        put_dbl,
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+        put_ldbl,
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+        put_ptr,
+        put_max
+    };
+
+    // name of the locale the data corresponds to
+    const char* locale_name_;
+
+    // optionally set to the named locale for threads to share
+    std::locale locale_;
+
+    // the value that we will be formatting
+    double value_;
+
+    // the type of the data we put
+    PutId type_;
+
+    // holds the narrow/wide character representation of value_ and
+    // the number of used 'charT' in each buffer.
+    char    ncs_ [BufferSize];
+
+#ifndef _RWSTD_NO_WCHAR_T
+
+    wchar_t wcs_ [BufferSize];
+
+#endif  // _RWSTD_NO_WCHAR_T
+
+} my_num_data [MAX_THREADS];
+
 /**************************************************************************/
+
+template <class charT, class Traits>
+struct MyIos: std::basic_ios<charT, Traits>
+{
+   MyIos () {
+        this->init (0);
+    }
+};
+
+template <class charT, class Traits>
+struct MyStreambuf: std::basic_streambuf<charT, Traits>
+{
+    typedef std::basic_streambuf<charT, Traits> Base;
+
+    MyStreambuf ()
+        : Base () {
+    }
+
+    void pubsetp (charT *pbeg, std::streamsize n) {
+        this->setp (pbeg, pbeg + n);
+    }
+};
+
+template <class charT, class Traits>
+void
+put_data (const MyNumData                               &data,
+          const std::num_put<charT>                     &np,
+          const std::ostreambuf_iterator<charT, Traits> &iter,
+          std::basic_ios<charT, Traits>                 &io,
+          charT                                          fill,
+          charT                                          term)
+{
+    switch (data.type_) {
+    case MyNumData::put_bool:
+        *np.put (iter, io, fill,
+                 data.value_ < 1.f) = term;
+        break;
+    case MyNumData::put_long:
+        *np.put (iter, io, fill,
+                 (long)data.value_) = term;
+        break;
+    case MyNumData::put_ulong:
+        *np.put (iter, io, fill,
+                 (unsigned long)data.value_) = term;
+        break;
+
+#ifndef _RWSTD_NO_LONG_LONG
+
+    case MyNumData::put_llong:
+        *np.put (iter, io, fill,
+                 (_RWSTD_LONG_LONG)data.value_) = term;
+        break;
+    case MyNumData::put_ullong:
+        *np.put (iter, io, fill,
+                 (unsigned _RWSTD_LONG_LONG)data.value_) = term;
+        break;
+
+#endif   // _RWSTD_NO_LONG_LONG
+
+    case MyNumData::put_dbl:
+        *np.put (iter, io, fill,
+                 (double)data.value_) = term;
+
+        break;
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+    case MyNumData::put_ldbl:
+        *np.put (iter, io, fill,
+                 (long double)data.value_) = term;
+        break;
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+    case MyNumData::put_ptr:
+        *np.put (iter, io, fill,
+                 (const void*)&data.value_) = term;
+        break;
+
+    case MyNumData::put_max:
+        // avoid enumeration value `put_max' not handled in switch
+        // this case should never happen
+        break;
+    }
+
+}
 
 extern "C" {
 
@@ -73,88 +214,28 @@ bool test_wchar;   // exercise num_put<wchar_t>
 static void*
 thread_func (void*)
 {
-    // dummy streambuf-derived object the doesn't do anything
-    // but allows ostreambuf_iterator to "think" it can write
-    // to it
-    struct NarrowBuf: std::streambuf {
-        int_type overflow (int_type c) { return c; }
-    } sb;
+    char               ncs [MyNumData::BufferSize];
+    MyIos<char, std::char_traits<char> >       nio;
+    MyStreambuf<char, std::char_traits<char> > nsb;
+    nio.rdbuf (&nsb);
 
 #ifndef _RWSTD_NO_WCHAR_T
-
-    struct WideBuf: std::wstreambuf {
-        int_type overflow (int_type c) { return c; }
-    } wb;
-
-#endif   // _RWSTD_NO_WCHAR_T
-
-    struct Ios: std::ios {
-        Ios () { this->init (0); }
-    } io;
-
-    const std::ios::fmtflags baseflags[] = {
-        std::ios::oct,
-        std::ios::dec,
-        std::ios::hex
-    };
-
-    const std::ios::fmtflags fmtflags[] = {
-        std::ios::showpos,
-        std::ios::showpoint,
-        std::ios::fixed,
-        std::ios::scientific
-    };
-
-    const std::ios::fmtflags adjustflags[] = {
-        std::ios::internal,
-        std::ios::left,
-        std::ios::right
-    };
+    wchar_t                  wcs [MyNumData::BufferSize];
+    MyIos<wchar_t, std::char_traits<wchar_t> >       wio;
+    MyStreambuf<wchar_t, std::char_traits<wchar_t> > wsb;
+    wio.rdbuf (&wsb);
+#endif // _RWSTD_NO_WCHAR_T
 
     for (int i = 0; i != rw_opt_nloops; ++i) {
 
-        // save the name of the locale
-        const char* const locale_name = locales [i % nlocales];
+        // fill in the value and results for this locale
+        const MyNumData& data = my_num_data [i % nlocales];
 
         // construct a named locale and imbue it in the ios object
         // so that the locale is used not only by the num_put facet
-        // but also by the numpunct facet
-        const std::locale loc (locale_name);
-        io.imbue (loc);
-
-        enum PutId {
-            put_bool,
-            put_long,
-            put_ulong,
-
-#ifndef _RWSTD_NO_LONG_LONG
-
-            put_llong,
-            put_ullong,
-
-#endif   // _RWSTD_NO_LONG_LONG
-
-            put_dbl,
-            put_ldbl,
-            put_ptr,
-            put_max
-        };
-
-        const std::ios::fmtflags base =
-            baseflags [i % (sizeof baseflags / sizeof *baseflags)];
-
-        const std::ios::fmtflags fmt =
-            fmtflags [i % (sizeof baseflags / sizeof *baseflags)];
-
-        const std::ios::fmtflags adjust =
-            adjustflags [i % (sizeof baseflags / sizeof *baseflags)];
-
-        io.flags (base | fmt | adjust);
-
-        io.width (i % 16);
-
-        // exercise postive and negative values
-        const int ival = i & 1 ? -i : i;
+        const std::locale loc =
+            rw_opt_shared_locale ? data.locale_
+                                 : std::locale (data.locale_name_);
 
         if (test_char) {
             // exercise the narrow char specialization of the facet
@@ -162,50 +243,14 @@ thread_func (void*)
             const std::num_put<char> &np =
                 std::use_facet<std::num_put<char> >(loc);
 
-            const std::ostreambuf_iterator<char> iter (&sb);
+            nio.imbue (loc);
+            nsb.pubsetp (ncs, RW_COUNT_OF (ncs));
 
-            switch (PutId (i % put_max)) {
-            case put_bool:
-                if (i & 2)
-                    io.setf (std::ios::boolalpha);
-                else
-                    io.unsetf (std::ios::boolalpha);
-                        
-                np.put (iter, io, ' ', bool (ival));
-                break;
+            put_data (data, np, std::ostreambuf_iterator<char>(&nsb),
+                      nio, ' ', '\0');
 
-            case put_long:
-                np.put (iter, io, ' ', long (ival));
-                break;
-
-            case put_ulong:
-                np.put (iter, io, ' ', (unsigned long)ival);
-                break;
-
-#ifndef _RWSTD_NO_LONG_LONG
-
-            case put_llong:
-                np.put (iter, io, ' ', (_RWSTD_LONG_LONG)ival);
-                break;
-
-#endif   // _RWSTD_NO_LONG_LONG
-
-            case put_ullong:
-                np.put (iter, io, ' ', (unsigned _RWSTD_LONG_LONG)ival);
-                break;
-
-            case put_dbl:
-                np.put (iter, io, ' ', double (ival));
-                break;
-
-            case put_ldbl:
-                np.put (iter, io, ' ', (long double)ival);
-                break;
-
-            case put_ptr:
-                np.put (iter, io, ' ', (void*)ival);
-                break;
-            }
+            RW_ASSERT (!nio.fail ()); 
+            RW_ASSERT (!rw_strncmp (ncs, data.ncs_));
         }
 
         // both specializations may be tested at the same time
@@ -215,48 +260,17 @@ thread_func (void*)
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-            const std::num_put<wchar_t> &np =
+            const std::num_put<wchar_t> &wp =
                 std::use_facet<std::num_put<wchar_t> >(loc);
 
-            const std::ostreambuf_iterator<wchar_t> iter (&wb);
+            wio.imbue (loc);
+            wsb.pubsetp (wcs, RW_COUNT_OF (wcs));
 
-            switch (PutId (i % put_max)) {
-            case put_bool:
-                np.put (iter, io, L' ', bool (ival));
-                break;
+            put_data (data, wp, std::ostreambuf_iterator<wchar_t>(&wsb),
+                      wio, L' ', L'\0');
 
-            case put_long:
-                np.put (iter, io, L' ', long (ival));
-                break;
-
-            case put_ulong:
-                np.put (iter, io, L' ', (unsigned long)ival);
-                break;
-
-#ifndef _RWSTD_NO_LONG_LONG
-
-            case put_llong:
-                np.put (iter, io, L' ', (_RWSTD_LONG_LONG)ival);
-                break;
-
-            case put_ullong:
-                np.put (iter, io, L' ', (unsigned _RWSTD_LONG_LONG)ival);
-                break;
-
-#endif   // _RWSTD_NO_LONG_LONG
-
-            case put_dbl:
-                np.put (iter, io, L' ', double (ival));
-                break;
-
-            case put_ldbl:
-                np.put (iter, io, L' ', (long double)ival);
-                break;
-
-            case put_ptr:
-                np.put (iter, io, L' ', (void*)ival);
-                break;
-            }
+            RW_ASSERT (!wio.fail ()); 
+            RW_ASSERT (!rw_strncmp (wcs, data.wcs_));
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -270,26 +284,98 @@ thread_func (void*)
 
 /**************************************************************************/
 
+
 static int
 run_test (int, char**)
 {
-    char* const locale_list = rw_locales ();
+    MyIos<char, std::char_traits<char> >       nio;
+    MyStreambuf<char, std::char_traits<char> > nsb;
+    nio.rdbuf (&nsb);
 
-    const std::size_t maxinx = sizeof locales / sizeof *locales;
+#ifndef _RWSTD_NO_WCHAR_T
+    MyIos<wchar_t, std::char_traits<wchar_t> >       wio;
+    MyStreambuf<wchar_t, std::char_traits<wchar_t> > wsb;
+    wio.rdbuf (&wsb);
+#endif // _RWSTD_NO_WCHAR_T
 
-    for (char *name = locale_list; *name; name += std::strlen (name) + 1) {
-        locales [nlocales++] = name;
+    // find all installed locales for which setlocale(LC_ALL) succeeds
+    const char* const locale_list =
+        rw_opt_locales ? rw_opt_locales : rw_locales (_RWSTD_LC_ALL);
 
-        if (nlocales == maxinx)
+    const std::size_t maxinx = RW_COUNT_OF (locales);
+
+    for (const char *name = locale_list;
+         *name;
+         name += std::strlen (name) + 1) {
+
+        const std::size_t inx = nlocales;
+        locales [inx] = name;
+
+        // fill in the value and results for this locale
+        MyNumData& data = my_num_data [nlocales];
+        data.locale_name_ = name;
+
+        try {
+            const std::locale loc (data.locale_name_);
+
+            data.value_ = nlocales & 1 ? -1 * nlocales : nlocales;
+            data.type_ = MyNumData::PutId (nlocales % MyNumData::put_max);
+
+            // format data into buffers
+            const std::num_put<char> &np =
+                std::use_facet<std::num_put<char> >(loc);
+
+            nio.imbue (loc);
+            nsb.pubsetp (data.ncs_, RW_COUNT_OF (data.ncs_));
+
+            put_data (data, np, std::ostreambuf_iterator<char>(&nsb),
+                      nio, ' ', '\0');
+
+            rw_fatal (!nio.fail (), __FILE__, __LINE__,
+                      "num_put<char>::put(...) failed for locale(%#s)",
+                      data.locale_name_);
+
+#ifndef _RWSTD_NO_WCHAR_T
+
+            const std::num_put<wchar_t> &wp =
+                std::use_facet<std::num_put<wchar_t> >(loc);
+
+            wio.imbue (loc);
+            wsb.pubsetp (data.wcs_, RW_COUNT_OF (data.wcs_));
+
+            put_data (data, wp, std::ostreambuf_iterator<wchar_t>(&wsb),
+                      wio, L' ', L'\0');
+
+            rw_fatal (!wio.fail (), __FILE__, __LINE__,
+                      "num_put<wchar_t>::put(...) failed for locale(%#s)",
+                      data.locale_name_);
+
+#endif // _RWSTD_NO_WCHAR_T
+
+            if (rw_opt_shared_locale)
+                data.locale_ = loc;
+
+            nlocales += 1;
+        }
+        catch (...) {
+            rw_warn (!rw_opt_locales, 0, __LINE__,
+                     "failed to create locale(%#s)", name);
+        }
+
+        if (nlocales == maxinx || nlocales == std::size_t (rw_opt_nlocales))
             break;
     }
 
+    // avoid divide by zero in thread if there are no locales to test
+    rw_fatal (nlocales != 0, 0, __LINE__,
+              "failed to create one or more usable locales!");
+
     rw_info (0, 0, 0,
              "testing std::num_put<charT> with %d thread%{?}s%{;}, "
-             "%zu iteration%{?}s%{;} each, in locales { %{ .*A@} }",
+             "%zu iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
              rw_opt_nthreads, 1 != rw_opt_nthreads,
              rw_opt_nloops, 1 != rw_opt_nloops,
-             int (nlocales), "%#s", locales);
+             nlocales, int (nlocales), "%#s", locales);
 
     rw_info (0, 0, 0, "exercising std::num_put<char>");
 
@@ -319,7 +405,7 @@ run_test (int, char**)
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
               rw_opt_nthreads, thread_func);
 
-    // exercise bothe the char and the wchar_t specializations
+    // exercise both the char and the wchar_t specializations
     // at the same time
 
     rw_info (0, 0, 0,
@@ -345,12 +431,28 @@ run_test (int, char**)
 
 int main (int argc, char *argv[])
 {
+#ifdef _RWSTD_REENTRANT
+
+    // set nthreads to the greater of the number of processors
+    // and 2 (for uniprocessor systems) by default
+    rw_opt_nthreads = rw_get_cpus ();
+    if (rw_opt_nthreads < 2)
+        rw_opt_nthreads = 2;
+
+#endif   // _RWSTD_REENTRANT
+
     return rw_test (argc, argv, __FILE__,
                     "lib.locale.num.put",
                     "thread safety", run_test,
                     "|-nloops#0 "       // must be non-negative
-                    "|-nthreads#0-*",   // must be in [0, MAX_THREADS]
+                    "|-nthreads#0-* "   // must be in [0, MAX_THREADS]
+                    "|-nlocales#0 "     // arg must be non-negative
+                    "|-locales= "       // must be provided
+                    "|-shared-locale# ",
                     &rw_opt_nloops,
                     int (MAX_THREADS),
-                    &rw_opt_nthreads);
+                    &rw_opt_nthreads,
+                    &rw_opt_nlocales,
+                    &rw_opt_setlocales,
+                    &rw_opt_shared_locale);
 }

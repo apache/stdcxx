@@ -22,15 +22,12 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 2001-2006 Rogue Wave Software.
  * 
  **************************************************************************/
 
 #define _RWSTD_LIB_SRC
-
 #include <rw/_defs.h>
-
-#ifndef _RWSTD_NO_V3_LOCALE
 
 #include <limits>     // for numeric_limits
 
@@ -75,7 +72,8 @@ static const char __rw_digits[] =
 
 
 const char*
-__rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags, int prec);
+__rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags,
+                     _STD::streamsize prec);
 
 
 #ifdef _RWSTD_LONG_LONG
@@ -417,7 +415,7 @@ __rw_itoa (char *buf, unsigned long i, unsigned flags)
         j = 0;
 
     do {
-        const int dig = (i >> (j * bits)) & basemask;
+        const int dig = int ((i >> (j * bits)) & basemask);
 
         _RWSTD_ASSERT (dig >= 0 && dig <= basemask);
 
@@ -621,13 +619,23 @@ __rw_fix_flt (char *&end, _RWSTD_SIZE_T &len, unsigned flags)
 
     typedef unsigned char UChar;
 
-    if (43 /* '+' or '-' */ == __rw_digit_map [UChar (*beg)])
+    // is there a sign?
+    bool sgn = false;
+
+    if (43 /* '+' or '-' */ == __rw_digit_map [UChar (*beg)]) {
+        sgn = true;
         ++beg;
+    }
 
     const char* pstr;
 
     switch (__rw_digit_map [UChar (*beg)]) {
-    case 18 /* 'I' or 'i' */ : pstr = "iInNfF\0\0"; break;
+
+    case 18 /* 'I' or 'i' */ :
+        pstr = "iInNfF\0\0";
+        len  = 3;
+        break;
+
     case 23 /* 'N' or 'n' */ : {
 
         // distinguish between quiet and signaling NaN
@@ -638,12 +646,18 @@ __rw_fix_flt (char *&end, _RWSTD_SIZE_T &len, unsigned flags)
         // AIX, output NaNQ and NaNS, respectively)
 
         const UChar last = __rw_digit_map [UChar (*(end - 1))];
-        if (26 /* 'Q' or 'q' */ == last)
+        if (26 /* 'Q' or 'q' */ == last) {
             pstr = "nNaAnNqQ";
-        else if (28 /* 'S' or 's' */ == last)
+            len  = 4;
+        }
+        else if (28 /* 'S' or 's' */ == last) {
             pstr = "nNaAnNsS";
-        else
+            len  = 4;
+        }
+        else {
             pstr = "nNaAnN\0\0";
+            len  = 3;
+        }
         break;
     }
 
@@ -657,9 +671,12 @@ __rw_fix_flt (char *&end, _RWSTD_SIZE_T &len, unsigned flags)
     beg [1] = pstr [cap + 2];
     beg [2] = pstr [cap + 4];
     beg [3] = pstr [cap + 6];
-    beg [4] = '\0';
 
-    end = beg + 3 + ('0' != beg [3]);
+    end = beg + 3 + ('\0' != beg [3]);
+
+    // increase the length by one for the sign
+    if (sgn)
+        ++len;
 
 #endif   // _WIN{32,64}
 
@@ -900,6 +917,3 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
 
 
 }   // namespace __rw
-
-
-#endif   // _V3_LOCALE

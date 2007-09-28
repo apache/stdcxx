@@ -111,9 +111,10 @@ _C_destroy (iterator __first)
 {
     _RWSTD_ASSERT_RANGE (__first, end ());
 
-    for (size_type __n = end () - __first; !(0 == __n); --__n) {
-        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this, destroy (--_C_end));
-    }
+    _C_value_alloc_type __alloc = _RWSTD_VALUE_ALLOC_CAST (*this);
+
+    for (size_type __n = end () - __first; !(0 == __n); --__n)
+        __alloc.destroy (--_C_end);
 }
 
 
@@ -650,8 +651,10 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
                 __self->_C_push_back (*__p);
 
             // over the range of elements moved above
-            for (pointer __q = __end; __movend < __q--; )
+            for (pointer __q = __end; __movend < __q; ) {
+                --__q;
                 *__q = *(__q - __size2);
+            }
         }
         else {
             // compute the length of the initial subsequence of the range

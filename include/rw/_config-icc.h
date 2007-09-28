@@ -54,7 +54,7 @@
 #  endif   // _RWSHARED
 
 // disable "function was declared "deprecated"
-#  pragma warning (disable: 1478)
+#  pragma warning (disable: 1786)
 
 // disable "dllexport/dllimport conflict with ... ; dllexport assumed"
 #  pragma warning (disable: 1740)

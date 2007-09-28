@@ -501,7 +501,7 @@ rw_widen (char *dst, const char *src, size_t len /* = SIZE_MAX */)
 {
     // compute the length of src if not specified
     if (_RWSTD_SIZE_MAX == len)
-        len = src ? strlen (src) + 1 : 0;
+        len = src ? strlen (src) : 0;
 
     if (len) {
         RW_ASSERT (0 != dst);
@@ -851,7 +851,7 @@ rw_widen (wchar_t *dst, const char *src, size_t len /* = SIZE_MAX */)
 {
     // compute the length of src if not specified
     if (_RWSTD_SIZE_MAX == len)
-        len = src ? strlen (src) + 1 : 0;
+        len = src ? strlen (src) : 0;
 
     // if len is non-zero dst must be non-0 as well
     RW_ASSERT (0 == len || 0 != dst);
@@ -999,7 +999,7 @@ rw_widen (UserChar *dst, const char *src, size_t len /* = SIZE_MAX */)
 {
     // compute the length of src if not specified
     if (_RWSTD_SIZE_MAX == len)
-        len = src ? strlen (src) + 1 : 0;
+        len = src ? strlen (src) : 0;
 
     // if len is non-zero dst must be non-0 as well
     RW_ASSERT (0 == len || 0 != dst);
@@ -1287,7 +1287,7 @@ _rw_fmtstringv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
 
         nbytes = rw_asnprintf (pbuf, pbufsize, "%{+}%{#*s}", nelems, beg.pc);
     }
-    else if (_RWSTD_WCHAR_T_SIZE == elemsize) {
+    else if (_RWSTD_WCHAR_SIZE == elemsize) {
         if (nelems < 0)
             nbytes = rw_asnprintf (pbuf, pbufsize, "%{+}%{#ls}", beg.pwc);
         else

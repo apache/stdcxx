@@ -32,12 +32,6 @@
 
 #include <rw/_defs.h>   
 
-#ifndef _RWSTD_NO_V3_LOCALE
-
-
 _RWSTD_NAMESPACE (__rw) {
 
 }   // namespace __rw
-
-
-#endif   // _RWSTD_NO_V3_LOCALE

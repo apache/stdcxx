@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2003-2006 Rogue Wave Software.
+ * Copyright 2003-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -31,6 +31,14 @@
 #  define TYPE_DIR(name, kind)    .type name, kind
 #else
 #  define TYPE_DIR(ign1, ign2)
+#endif
+
+#if defined (__CYGWIN__)
+   /* on cygwin used COFF object file format
+      C-functions names should prepended by '_' */
+#  define SYMNAME(name)    _##name
+#else
+#  define SYMNAME(name)    name
 #endif
 
     .text
@@ -43,13 +51,13 @@
  * the original (before assignment) 8-bit value of *x.
  **************************************************************************/
 
-    .globl __rw_atomic_xchg8
+    .globl SYMNAME (__rw_atomic_xchg8)
     TYPE_DIR (__rw_atomic_xchg8, @function)
 
-__rw_atomic_xchg8:                 /* ; char (char *x, char y)        */
+SYMNAME (__rw_atomic_xchg8):       /* ; char (char *x, char y)        */
     mov           4(%esp), %ecx    /* ; %ecx = x                      */
     movb          8(%esp), %al     /* ; %al = y                       */
-    xchg          %al, (%ecx)      /* ; %al <-> (%ecx)                */
+    xchgb         %al, (%ecx)      /* ; %al <-> (%ecx)                */
     ret
 
 
@@ -60,10 +68,10 @@ __rw_atomic_xchg8:                 /* ; char (char *x, char y)        */
  * the original (before assignment) 16-bit value of *x.
  **************************************************************************/
 
-    .globl __rw_atomic_xchg16
+    .globl SYMNAME (__rw_atomic_xchg16)
     TYPE_DIR (__rw_atomic_xchg16, @function)
 
-__rw_atomic_xchg16:                /* ; short (short *x, short y)     */
+SYMNAME (__rw_atomic_xchg16):      /* ; short (short *x, short y)     */
     mov           4(%esp), %ecx    /* ; %ecx = x                      */
     mov           8(%esp), %eax    /* ; %eax = y                      */
     xchgw         %ax, (%ecx)      /* ; %ax <-> (%ecx)                */
@@ -77,10 +85,10 @@ __rw_atomic_xchg16:                /* ; short (short *x, short y)     */
  * the original (before assignment) 32-bit value of *x.
  **************************************************************************/
 
-    .globl __rw_atomic_xchg32
+    .globl SYMNAME (__rw_atomic_xchg32)
     TYPE_DIR (__rw_atomic_xchg32, @function)
 
-__rw_atomic_xchg32:                /* ; int (int *x, int y)           */
+SYMNAME (__rw_atomic_xchg32):      /* ; int (int *x, int y)           */
     movl          4(%esp), %ecx    /* ; %ecx = x                      */
     movl          8(%esp), %eax    /* ; %eax = y                      */
     xchgl         %eax, (%ecx)     /* ; %eax <-> (%ecx)               */
@@ -94,10 +102,10 @@ __rw_atomic_xchg32:                /* ; int (int *x, int y)           */
  * the new (after increment) 8-bit value of *x.
  **************************************************************************/
 
-    .globl __rw_atomic_add8
+    .globl SYMNAME (__rw_atomic_add8)
     TYPE_DIR (__rw_atomic_add8, @function)
 
-__rw_atomic_add8:                  /* ; char (char *dst, int inc)     */
+SYMNAME (__rw_atomic_add8):        /* ; char (char *dst, int inc)     */
     mov            4(%esp), %ecx   /* ; %ecx = dst                    */
     mov            8(%esp), %eax   /* ; %eax = inc                    */
     mov            %eax, %edx      /* ; */
@@ -118,10 +126,10 @@ __rw_atomic_add8:                  /* ; char (char *dst, int inc)     */
  * the new (after increment) 16-bit value of *x.
  **************************************************************************/
 
-     .globl __rw_atomic_add16
+     .globl SYMNAME (__rw_atomic_add16)
     TYPE_DIR (__rw_atomic_add16, @function)
 
-__rw_atomic_add16:                 /* ; long (long *dst, long inc)    */
+SYMNAME (__rw_atomic_add16):       /* ; short (short *dst, short inc) */
     mov            4(%esp), %ecx   /* ; %ecx = dst                    */
     mov            8(%esp), %eax   /* ; %eax = inc                    */
     mov            %eax, %edx      /* ; */
@@ -129,7 +137,7 @@ __rw_atomic_add16:                 /* ; long (long *dst, long inc)    */
     lock
     xaddw          %ax, (%ecx)     /* ; tmp = *dst;
                                       ; dst += inc;
-                                      ; eax = tmp                     */
+                                      ; %ax = tmp                     */
 
     add            %edx, %eax      /* ; return %eax + inc             */
     ret
@@ -142,10 +150,10 @@ __rw_atomic_add16:                 /* ; long (long *dst, long inc)    */
  * the new (after increment) 32-bit value of *x.
  **************************************************************************/
 
-    .globl __rw_atomic_add32
+    .globl SYMNAME (__rw_atomic_add32)
     TYPE_DIR (__rw_atomic_add32, @function)
 
-__rw_atomic_add32:                 /* ; long (long *dst, long inc)    */
+SYMNAME (__rw_atomic_add32):       /* ; int (int *dst, int inc)       */
     movl           4(%esp), %ecx   /* ; %ecx = dst                    */
     movl           8(%esp), %edx   /* ; %edx = inc                    */
     movl           %edx, %eax      /* ; */

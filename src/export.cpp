@@ -127,3 +127,32 @@
 #include "podarray.cc"
 
 #endif   // _RWSTD_NO_EXPORT
+
+// export __rw_atomic_xxx() functions, defined in atomic.asm
+#if defined (_WIN32) && defined (_DLL)
+
+#  if defined (_M_IX86)
+
+#    pragma comment(linker, "/EXPORT:___rw_atomic_add8")
+#    pragma comment(linker, "/EXPORT:___rw_atomic_add16")
+#    pragma comment(linker, "/EXPORT:___rw_atomic_add32")
+#    pragma comment(linker, "/EXPORT:___rw_atomic_xchg8")
+#    pragma comment(linker, "/EXPORT:___rw_atomic_xchg16")
+#    pragma comment(linker, "/EXPORT:___rw_atomic_xchg32")
+
+#  elif defined (_M_X64)
+
+#    pragma comment(linker, "/EXPORT:__rw_atomic_add8")
+#    pragma comment(linker, "/EXPORT:__rw_atomic_add16")
+#    pragma comment(linker, "/EXPORT:__rw_atomic_add32")
+#    pragma comment(linker, "/EXPORT:__rw_atomic_xchg8")
+#    pragma comment(linker, "/EXPORT:__rw_atomic_xchg16")
+#    pragma comment(linker, "/EXPORT:__rw_atomic_xchg32")
+
+#    ifdef _RWSTD_INT64_T
+#      pragma comment(linker, "/EXPORT:__rw_atomic_add64")
+#      pragma comment(linker, "/EXPORT:__rw_atomic_xchg64")
+#    endif   // _RWSTD_INT64_T
+#  endif   // _M_IX86
+
+#endif   // _WIN32 && _DLL

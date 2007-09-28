@@ -28,6 +28,8 @@ Builds specified solution configuration
                 name="CONFIG" required="true" type="string"/>
             <named helpstring="Output directory for modules" 
                 name="BUILDDIR" required="true" type="string"/>
+            <named helpstring="Top directory of stdcxx sources tree" 
+                name="TOPDIR" required="false" type="string"/>
             <named helpstring="Name of the solution configuration" 
                 name="BUILDTYPE" required="true" type="string"/>
             <named helpstring="Build projects only, do not execute tests" 
@@ -35,10 +37,12 @@ Builds specified solution configuration
             <example>cscript build.wsf /CONFIG:msvc-7.1 /BUILDTYPE:11d
             </example>
             <usage>
-Usage: cscript build.wsf /CONFIG:@CONFIG /BUILDDIR:@BUILDDIR /BUILDTYPE:@BUILDTYPE [/BUILDONLY:@BUILDONLY]
+Usage: cscript build.wsf /CONFIG:@CONFIG /BUILDDIR:@BUILDDIR
+/TOPDIR:@TOPDIR /BUILDTYPE:@BUILDTYPE [/BUILDONLY:@BUILDONLY]
 where
 @CONFIG is the compiler configuration (msvc-7.1, icc-9.0, etc).
 @BUILDDIR is the root of the build directory.
+@TOPDIR is the root of the stdcxx source tree.
 @BUILDTYPE is the build type (11d, 11s, etc).
 @BUILDONLY is one of { yes, no } - execute or not the tests.
             </usage>
@@ -61,10 +65,15 @@ where
 // constants
 var currentCfg = "";
 var slnDir = "";
+var srcDir = "";
 var buildType = "";
 var longConfName = "";
 var buildOnly = false;
 var outputPane = null;
+var winconfigDir = "\\etc\\config\\windows";
+var postBuildInvoked;
+var rxBuildDir = null;
+var rxTopDir = null;
 
 var description = new build; // run
 
@@ -106,8 +115,37 @@ function getBuildLog(path)
     return log;
 }
 
+function removeLogClutter(log)
+{
+    if ("" != slnDir)
+    {
+        if (null == rxBuildDir)
+        {
+            var buildDir = slnDir.replace(/\\/g, "\\\\");
+            rxBuildDir = new RegExp("(" + buildDir + ")", "ig");
+        }
+        log = log.replace(rxBuildDir, "$(BUILDDIR)");
+    }
+
+    if ("" != srcDir)
+    {
+        if (null == rxTopDir)
+        {
+            var topDir = srcDir.replace(/\\/g, "\\\\");
+            rxTopDir = new RegExp("(" + topDir + ")", "ig");
+        }
+        log = log.replace(rxTopDir, "$(TOPDIR)");
+    }
+
+    log = log.replace(/^Build log was saved at.*$/gm, "");
+
+    return log;
+}
+
 function event_ProjectBuildFinished(Cfg, Warnings, Errors, Canceled)
 {
+    postBuildInvoked = true;
+
     var log = "";
     var htm = "BuildLog.htm";
 
@@ -132,49 +170,53 @@ function event_ProjectBuildFinished(Cfg, Warnings, Errors, Canceled)
         sel.SelectAll();
         log = sel.Text;
 
-        // find BuildLoh.htm path
-        var proto = "file://";
-        var begin = log.indexOf(proto);
-        if (0 <= begin)
+        var log2 = "";
+        var begin = 0;
+
+        while (true)
         {
+            // find BuildLog.htm path
+            var proto = "file://";
+            begin = log.indexOf(proto, begin);
+            if (0 > begin)
+                break;
+
             begin += proto.length;
             var end = log.indexOf(htm, begin);
-            if (0 <= end)
-            {
-                var path = log.substring(begin, end + htm.length);
-                var log2 = getBuildLog(path);
-                if (0 < log2.length)
-                    log = log2;
-            }
+            if (0 > end)
+                break;
+
+            var path = log.substring(begin, end + htm.length);
+            log2 += getBuildLog(path);
         }
+
+        if (0 < log2.length)
+            log = log2;
     }
 
-    WScript.Echo(log);
+    WScript.Echo(removeLogClutter(log));
 }
 
 function BuildProject(solutionBuild, projectName)
 {
-    var projectFile = null;
+    var projectFile = "";
     var projects = dte.Solution.Projects;
-    for (var i = 1; i <= projects.Count && null == projectFile; ++i)
+    for (var i = 1; i <= projects.Count && 0 == projectFile.length; ++i)
     {
         var project = projects.Item(i);
         if (project.Name == projectName)
             projectFile = project.UniqueName;
     }
 
-    if (null != projectFile)
+    if (0 < projectFile.length)
     {
-        var isICC = 0 < projectFile.indexOf(".icproj");
+        event_ProjectBuildStarted(null);
 
-        if (isICC)
-            // event not invoked automatically for Intel projects
-            event_ProjectBuildStarted(null);
+        postBuildInvoked = false;
 
         solutionBuild.BuildProject(longConfName, projectFile, true);
 
-        if (isICC)
-            // event not invoked automatically for Intel projects
+        if (!postBuildInvoked)
             event_ProjectBuildFinished(null, 0, 0, 0);
 
         return solutionBuild.LastBuildInfo;
@@ -197,7 +239,7 @@ function build()
     
     dte.SuppressUI = true;
     
-    var solutionName = slnDir + "\\" + currentCfg + "\\" + currentCfg + ".sln";
+    var solutionName = slnDir + "\\" + currentCfg + ".sln";
 
     WScript.Echo("Loading solution...");
     var solution = dte.Solution;
@@ -206,6 +248,9 @@ function build()
     var prop = null;
     var propVal;
     var oldLogging = null;
+    var iSettings = null;
+    var oldIccIdx = null;
+    var oldPlatIdx = null;
     var projectEngine = null;
     var events = null;
 
@@ -280,6 +325,69 @@ function build()
             prop = null;
         }
 
+        if ("" != ICCVER)
+        {
+            // select proper Intel C++ compiler
+            try
+            {
+                iSettings = dte.GetObject("IntelOptions");
+            }
+            catch (e)
+            {
+                WScript.StdErr.WriteLine(
+                    "Build: Intel C++ not installed or installed incorrectly.");
+                retCode = 1;
+                break;
+            }
+
+            oldIccIdx = iSettings.CurrentCompilerIndex;
+            oldPlatIdx = iSettings.CurrentPlatformIndex;
+            WScript.Echo("Current compiler: " +
+                         iSettings.Compiler(oldIccIdx).Name);
+
+            var ICPlatform = "IA32";
+            if ("x64" == PLATFORM)
+                ICPlatform = "EM64T";
+
+            for (var i = 0; i < iSettings.PlatformsCount; ++i)
+            {
+                iSettings.CurrentPlatformIndex = i;
+                if (ICPlatform == iSettings.CurrentPlatformName)
+                    break;
+            }
+
+            if (i >= iSettings.PlatformsCount)
+            {
+                WScript.StdErr.WriteLine(
+                    "Build: Installed ICC does not support " + PLATFORM + " platform.");
+                retCode = 1;
+                break;
+            }
+
+            var rx = new RegExp("(^.*C\\+\\+ " + ICCVER + ".*)");
+
+            for (var i = 1; i <= iSettings.CompilersCount; ++i)
+            {
+                var compname = iSettings.Compiler(i).Name;
+                if (null != rx.exec(compname))
+                    break;
+            }
+
+            if (i <= iSettings.CompilersCount)
+            {
+                iSettings.CurrentCompilerIndex = i;
+                WScript.Echo("Selected compiler: " +
+                             iSettings.Compiler(i).Name);
+            }
+            else
+            {
+                WScript.StdErr.WriteLine(
+                    "Build: ICC " + ICCVER + " not found.");
+                retCode = 1;
+                break;
+            }
+        }
+
         // save BuildLogging property value
         oldLogging = projectEngine.BuildLogging;
         projectEngine.BuildLogging = true;
@@ -346,6 +454,16 @@ function build()
     }
     while (false);
 
+    if (null != iSettings)
+    {
+        if (null != oldIccIdx)
+            iSettings.CurrentCompilerIndex = oldIccIdx;
+        if (null != oldPlatIdx)
+            iSettings.CurrentPlatformIndex = oldPlatIdx;
+
+        iSettings = null;
+    }
+
     if (null != oldLogging)
         projectEngine.BuildLogging = oldLogging;
 
@@ -400,7 +518,22 @@ function readAndCheckArguments()
     currentCfg = WScript.Arguments.Named("CONFIG");
     
     slnDir = WScript.Arguments.Named("BUILDDIR");
-    slnDir = fso.GetAbsolutePathName (slnDir);
+    slnDir = fso.GetAbsolutePathName (slnDir) + "\\" + currentCfg;
+
+    if (WScript.Arguments.Named.Exists("TOPDIR"))
+    {
+        srcDir = WScript.Arguments.Named("TOPDIR");
+    }
+    else
+    {
+        // try to deduce it
+        var myDir = WScript.ScriptFullName;
+        var dirIndex = myDir.indexOf(winconfigDir);
+        if (0 <= dirIndex)
+            srcDir = myDir.substr(0, dirIndex);
+        else
+            srcDir = "";
+    }
 
     buildType = WScript.Arguments.Named("BUILDTYPE");
     

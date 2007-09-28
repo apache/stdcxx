@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -727,6 +727,15 @@ enum RuntimeExceptionId {
     E_bad_alloc, E_bad_cast, E_bad_exception, E_bad_typeid, E_error
 };
 
+
+// helper classes used by the bad_cast test
+// defined at namespace scope rather than at local scope
+// to work around an Intel C++ 10.0 ICE (see STDCXX-475)
+struct Base { virtual ~Base () { } };
+struct Derived1: Base { };
+struct Derived2: Base { };
+
+
 // induce the language runtime into throwing an exception
 // returns e if exception cannot bee thrown
 static RuntimeExceptionId
@@ -801,14 +810,11 @@ induce_exception (RuntimeExceptionId reid, const char *name)
 
 #ifndef _RWSTD_NO_DYNAMIC_CAST
 
-        struct A { virtual ~A () { } };
-        struct B: A { } b;
-        struct C: A { };
-
-        A &a = b;
+        Derived1 b;
+        Base &a = b;
 
         // induce bad_cast
-        dynamic_cast<C&>(a);
+        dynamic_cast<Derived2&>(a);
 
         return E_error;
 

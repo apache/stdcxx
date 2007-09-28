@@ -22,9 +22,13 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2006 Rogue Wave Software.
+ * Copyright 2005-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
+
+// tell Compaq C++ we need ENOMEM (defined by POSIX
+// but not in the compiler's pure C++ libc headers)
+#undef __PURE_CNAME
 
 #include <rw_printf.h>
 #include <rw_process.h> // for rw_pid_t
@@ -126,9 +130,9 @@ do_test (int         line,     // line number of the test case
         sprintf (fmt, "%s%c", pfx, spec);                               \
         char* const s0 = rw_sprintfa (fmt, a1, a2, a3);                 \
         char buf [256];                                                 \
-        /* variable below avoids warnings about controlling */          \
-        /* expression being constant */                                 \
-        const char* const expect_var = (expect);                        \
+        /* non-const variable below avoids warnings about */            \
+        /* controlling expression being constant */                     \
+        const char* /* const */ expect_var = (expect);                  \
         if (expect_var)                                                 \
             strcpy (buf, expect_var ? expect_var : "");                 \
         else                                                            \
@@ -763,7 +767,7 @@ test_basic_string ()
     TEST ("%{#1S}", S ("a\0\0"),  0, 0, "\"a\\0\\0\"");
     TEST ("%{#1S}", S ("\0\0\0"), 0, 0, "\"\\0\\0\\0\"");
 
-#if 2 == _RWSTD_WCHAR_T_SIZE
+#if 2 == _RWSTD_WCHAR_SIZE
 
     TEST ("%{#2S}",  0,             0, 0, "(null)");
     TEST ("%{#2S}",  WS (""),       0, 0, "L\"\"");
@@ -777,7 +781,7 @@ test_basic_string ()
     TEST ("%{#2S}",  WS ("a\0\0"),  0, 0, "L\"a\\0\\0\"");
     TEST ("%{#2S}",  WS ("\0\0\0"), 0, 0, "L\"\\0\\0\\0\"");
 
-#elif 4 == _RWSTD_WCHAR_T_SIZE
+#elif 4 == _RWSTD_WCHAR_SIZE
 
     TEST ("%{#4S}",  0,             0, 0, "(null)");
     TEST ("%{#4S}",  WS (""),       0, 0, "L\"\"");
@@ -791,7 +795,7 @@ test_basic_string ()
     TEST ("%{#4S}",  WS ("a\0\0"),  0, 0, "L\"a\\0\\0\"");
     TEST ("%{#4S}",  WS ("\0\0\0"), 0, 0, "L\"\\0\\0\\0\"");
 
-#endif   // _RWSTD_WCHAR_T_SIZE
+#endif   // _RWSTD_WCHAR_SIZE
 
 }
 
@@ -2256,6 +2260,12 @@ test_errno ()
     printf ("%s\n", "extension: \"%{#m}\": errno");
 
     int count = 0;
+
+    errno = 0;
+    TEST ("%{#m}", 0, 0, 0, "E#0");
+
+    errno = 0;
+    TEST ("%{#*m}", 0, 0, 0, "E#0");
 
 #ifdef EDOM
 

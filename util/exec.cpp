@@ -45,8 +45,31 @@
 #    include <sys/resource.h> /* for setlimit(), RLIMIT_CORE, ... */
 #  endif
 #else
-#  include <windows.h> /* for PROCESS_INFORMATION, ... */
-#  include <process.h> /* for CreateProcess, ... */
+#  ifndef _WIN32_WINNT
+#    define _WIN32_WINNT 0x0500
+#  endif
+#  include <windows.h> /* for PROCESS_INFORMATION, CreateProcess, ... */
+#  ifndef SIGTRAP
+#    define SIGTRAP   5   // STATUS_BREAKPOINT translated into SIGTRAP
+#  endif
+#  ifndef SIGBUS
+#    define SIGBUS    10  // STATUS_IN_PAGE_ERROR translated into SIGBUS
+#  endif
+#  ifndef SIGSYS
+#    define SIGSYS    12  // STATUS_INVALID_PARAMETER translated into SIGSYS
+#  endif
+#  ifndef SIGSTKFLT
+#    define SIGSTKFLT 16  // STATUS_FLOAT_STACK_CHECK translated into SIGSTKFLT
+#  endif
+#  ifndef STATUS_INVALID_PARAMETER
+#    define STATUS_INVALID_PARAMETER          ((DWORD)0xC000000DL)
+#  endif
+#  ifndef STATUS_STACK_BUFFER_OVERRUN
+#    define STATUS_STACK_BUFFER_OVERRUN       ((DWORD)0xC0000409L)
+#  endif
+#  ifndef STATUS_INVALID_CRUNTIME_PARAMETER
+#    define STATUS_INVALID_CRUNTIME_PARAMETER ((DWORD)0xC0000417L)
+#  endif
 #endif
 #include <sys/stat.h> /* for S_* */
 #include <sys/types.h>
@@ -612,80 +635,6 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
     }
 }
 
-/**
-   Opens an input file, based on exec_name
-
-   Takes a data directory and an executable name, and tries to open an input 
-   file based on these variables.  If a file is found in neither of two 
-   locattions derived from these variables, this method tries to fall back on 
-   /dev/null.
-
-   Source file locations:
-     - [data_dir]/manual/in/[exec_name].in
-     - [data_dir]/tutorial/in/[exec_name].in
-     - /dev/null
-
-   @param data_dir the path of the reference data directory
-   @param exec_name the name of executable being run
-   @returns the file descriptor of the opened file
-*/
-static int
-open_input (const char* data_dir, const char* exec_name)
-{
-    int intermit = -1;
-
-    assert (0 != exec_name);
-    assert (0 != data_dir);
-
-    if (strlen (data_dir)) {
-        char* tmp_name;
-
-        /* Try data_dir/manual/in/exec_name.in */
-        tmp_name = reference_name (data_dir, "manual", "in");
-        intermit = open (tmp_name, O_RDONLY);
-    
-        /* If we opened the file, return the descriptor */
-        if (0 <= intermit) {
-            free (tmp_name);
-            return intermit;
-        }
-
-        /* If the file exists (errno isn't ENOENT), exit */
-        if (ENOENT != errno)
-            terminate (1, "open (%s) failed: %s\n", tmp_name, 
-                       strerror (errno));
-
-        /* Try data_dir/tutorial/in/exec_name.in */
-        free (tmp_name);
-        tmp_name = reference_name (data_dir, "tutorial", "in");
-        intermit = open (tmp_name, O_RDONLY);
-
-        /* If we opened the file, return the descriptor */
-        if (0 <= intermit) {
-            free (tmp_name);
-            return intermit;
-        }
-
-        /* If the file exists (errno isn't ENOENT), exit */
-        if (-1 == intermit && ENOENT != errno)
-            terminate (1, "open (%s) failed: %s\n", tmp_name, 
-                       strerror (errno));
-
-        free (tmp_name);
-    }
-
-    /* If we didn't find a source file, open /dev/null */
-
-    intermit = open ("/dev/null", O_RDONLY);
-
-    /* If we opened the file, return the descriptor */
-    if (0 <= intermit)
-        return intermit;
-
-    /* otherwise, print an error message and exit */
-    terminate (1, "open (/dev/null) failed: %s\n", strerror (errno));
-    return -1; /* silence a compiler warning */
-}
 
 /**
    Replaces one file descriptor with a second, closing second after replacing
@@ -768,7 +717,7 @@ limit_process (const struct target_opts* options)
         { 0, 0, 0 }
     };
 
-    for (size_t i = 0; limits [i].limit; ++i) {
+    for (size_t i = 0; limits [i].name; ++i) {
         struct rlimit local;
 
         if (!limits [i].limit)
@@ -867,25 +816,23 @@ void exec_file (const struct target_opts* options, struct target_status* result)
 
         /* Redirect stdin */
         {
-            const int intermit = open_input (options->data_dir, target_name);
+            const int intermit = open (options->infname, O_RDONLY);
             replace_file (intermit, 0, "stdin");
         }
 
         /* Redirect stdout */
         {
-            char* const tmp_name = output_name (options->argv [0]);
             int intermit;
 
-            intermit = open (tmp_name, O_WRONLY | O_CREAT | O_TRUNC, 
+            intermit = open (options->outfname,
+                             O_WRONLY | O_CREAT | O_TRUNC, 
                              S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
             if (-1 == intermit)
                 terminate (1, "Error opening %s for output redirection: "
-                           "%s\n", tmp_name, strerror (errno));
+                           "%s\n", options->outfname, strerror (errno));
 
             replace_file (intermit, 1, "stdout");
-
-            free (tmp_name);
         }
 
         /* Redirect stderr */
@@ -922,69 +869,32 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     }
 }
 #else  /* _WIN{32,64} */
-/**
-   Opens an input file, based on exec_name, using the child_sa security 
-   setting.
 
-   Takes a data directory, an executable name and security setting, and tries 
-   to open an input file based on these variables.
-   If a file is found in neither of two locations derived from these 
-   variables, or if data_dir is a null string, it returns null.
-   If a file system error occurs when opening a file, INVALID_HANDLE_VALUE
-   is returned (and should be checked for).
+// map between NT_STATUS value and corresponding UNIX signal
+static const struct {
+    DWORD nt_status;
+    int   signal;
+} nt_status_map [] = {
+    { STATUS_BREAKPOINT,                 SIGTRAP   },
+    { STATUS_ACCESS_VIOLATION,           SIGSEGV   },
+    { STATUS_STACK_OVERFLOW,             SIGSEGV   },
+    { STATUS_STACK_BUFFER_OVERRUN,       SIGSEGV   },
+    { STATUS_IN_PAGE_ERROR,              SIGBUS    },
+    { STATUS_ILLEGAL_INSTRUCTION,        SIGILL    },
+    { STATUS_PRIVILEGED_INSTRUCTION,     SIGILL    },
+    { STATUS_FLOAT_DENORMAL_OPERAND,     SIGFPE    },
+    { STATUS_FLOAT_DIVIDE_BY_ZERO,       SIGFPE    },
+    { STATUS_FLOAT_INEXACT_RESULT,       SIGFPE    },
+    { STATUS_FLOAT_INVALID_OPERATION,    SIGFPE    },
+    { STATUS_FLOAT_OVERFLOW,             SIGFPE    },
+    { STATUS_FLOAT_UNDERFLOW,            SIGFPE    },
+    { STATUS_INTEGER_DIVIDE_BY_ZERO,     SIGFPE    },
+    { STATUS_INTEGER_OVERFLOW,           SIGFPE    },
+    { STATUS_FLOAT_STACK_CHECK,          SIGSTKFLT },
+    { STATUS_INVALID_PARAMETER,          SIGSYS    },
+    { STATUS_INVALID_CRUNTIME_PARAMETER, SIGSYS    }
+};
 
-   Source file locations:
-     - [data_dir]/manual/in/[exec_name].in
-     - [data_dir]/tutorial/in/[exec_name].in
-
-   @param data_dir the path of the reference data directory
-   @param exec_name the name of executable being run
-   @param child_sa pointer to a SECURITY_ATTRIBUTES    structure
-   @returns the file descriptor of the opened file
-*/
-static HANDLE
-open_input (const char* data_dir, const char* exec_name, 
-            SECURITY_ATTRIBUTES* child_sa)
-{
-    HANDLE intermit;
-    DWORD error;
-    char* tmp_name;
-
-    assert (0 != exec_name);
-    assert (0 != data_dir);
-    assert (0 != child_sa);
-
-    if (!strlen (data_dir)) 
-        return 0;
-
-    /* Try data_dir\manual\in\exec_name.in */
-    tmp_name = reference_name (data_dir, "manual", "in");
-
-    intermit = CreateFile (tmp_name, GENERIC_READ, FILE_SHARE_READ, child_sa, 
-        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-    error = GetLastError ();
-    /* If we found the file, return the descriptor */
-    if (INVALID_HANDLE_VALUE != intermit || (2 != error && 3 != error)) {
-        free (tmp_name);
-        return intermit;
-    }
-
-    /* Try data_dir\tutorial\in\exec_name.in */
-    free (tmp_name);
-    tmp_name = reference_name (data_dir, "tutorial", "in");
-    intermit = CreateFile (tmp_name, GENERIC_READ, FILE_SHARE_READ, child_sa, 
-        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-    /* If we didn't find the file, null out the handle to return */
-    error = GetLastError ();
-    if (INVALID_HANDLE_VALUE == intermit && (2 == error || 3 == error)) {
-        intermit = 0;
-    }
-
-    free (tmp_name);
-    return intermit;
-}
 
 /**
    Convert an argv array into a string that can be passed to CreateProcess.
@@ -1117,6 +1027,15 @@ kill_child_process (PROCESS_INFORMATION child, struct target_status* result)
         warn_last_error ("Waiting for child process");
 }
 
+/* FILETIME to ULONGLONG */
+inline ULONGLONG fttoull (const FILETIME& ft)
+{
+    ULARGE_INTEGER __ft;
+    __ft.LowPart  = ft.dwLowDateTime;
+    __ft.HighPart = ft.dwHighDateTime;
+    return __ft.QuadPart;
+}
+
 void exec_file (const struct target_opts* options, struct target_status* result)
 {
     char* merged;
@@ -1141,9 +1060,8 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     /* Create I/O handles */
     {
         /* Output redirection */
-        char* const tmp_name = output_name (options->argv [0]);
 
-        context.hStdOutput = CreateFile (tmp_name, GENERIC_WRITE, 
+        context.hStdOutput = CreateFile (options->outfname, GENERIC_WRITE, 
                 FILE_SHARE_WRITE, &child_sa, CREATE_ALWAYS, 
                 FILE_ATTRIBUTE_NORMAL, NULL);
         if (INVALID_HANDLE_VALUE == context.hStdOutput) { 
@@ -1153,11 +1071,12 @@ void exec_file (const struct target_opts* options, struct target_status* result)
         }
 
         context.hStdError = context.hStdOutput;
-        free (tmp_name);
 
         /* Input redirection */
-        context.hStdInput = open_input (options->data_dir, get_target (), 
-                                        &child_sa);
+        context.hStdInput =
+            CreateFile (options->infname, GENERIC_READ, FILE_SHARE_READ, 
+                        &child_sa, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
         if (INVALID_HANDLE_VALUE == context.hStdInput) { 
             CloseHandle (context.hStdOutput);
             result->status = ST_SYSTEM_ERROR;
@@ -1174,12 +1093,9 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     UINT old_mode = SetErrorMode (SEM_FAILCRITICALERRORS
                                 | SEM_NOGPFAULTERRORBOX);
 
-    /* Check the wall clock before creating the process */
-    GetSystemTimeAsFileTime(&start);
-
-    /* Create the child process */
+    /* Create the child process in suspended state */
     if (0 == CreateProcess (options->argv [0], merged, 0, 0, 1, 
-        CREATE_NEW_PROCESS_GROUP, 0, 0, &context, &child)) {
+        CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED, 0, 0, &context, &child)) {
         /* record the status if we failed to create the process */
         result->status = ST_SYSTEM_ERROR;
         warn_last_error ("Creating child process");;
@@ -1201,6 +1117,41 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     /* Return if we failed to create the child process */
     if (ST_SYSTEM_ERROR == result->status)
         return;
+
+#if _WIN32_WINNT >= 0x0500
+    if (options->as) {
+        if (HANDLE hJob = CreateJobObject (NULL, NULL)) {
+            if (AssignProcessToJobObject (hJob, child.hProcess)) {
+                JOBOBJECT_EXTENDED_LIMIT_INFORMATION job_info = { 0 };
+                
+                job_info.BasicLimitInformation.LimitFlags =
+                    JOB_OBJECT_LIMIT_PROCESS_MEMORY;
+                
+                const rw_rlimit* as = options->as;
+                job_info.ProcessMemoryLimit =
+                    as->rlim_cur < as->rlim_max ? as->rlim_cur : as->rlim_max;
+
+                if (!SetInformationJobObject (hJob,
+                                              JobObjectExtendedLimitInformation,
+                                              &job_info, sizeof (job_info)))
+                    warn_last_error ("Setting process limits");
+            }
+            else 
+                warn_last_error ("Assigning process to job object");
+
+            if (!CloseHandle (hJob))
+                warn_last_error ("Closing job object handle");
+        }
+        else
+            warn_last_error ("Creating job object");
+    }
+#endif   // _WIN32_WINNT >= 0x0500
+
+    /* Check the wall clock before resuming the process */
+    GetSystemTimeAsFileTime(&start);
+
+    if (DWORD (-1) == ResumeThread (child.hThread))
+        warn_last_error ("Resuming process");
 
     if (0 == CloseHandle (child.hThread))
         warn_last_error ("Closing child main thread handle");
@@ -1225,9 +1176,27 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     /* Calculate wall clock time elapsed while the process ran */
     GetSystemTimeAsFileTime(&end);
 
-    /* We're ignoring dwHighDateTime, as it's outside the percision of clock_t 
-     */
-    wall = end.dwLowDateTime - start.dwLowDateTime;
+    /* 100 nanosecond units in a second */
+    const DWORD UNITS_PER_SEC = 10000000;
+    const DWORD UNITS_PER_CLOCK = UNITS_PER_SEC / CLOCKS_PER_SEC;
+    assert (UNITS_PER_CLOCK * CLOCKS_PER_SEC == UNITS_PER_SEC);
+
+#if _WIN32_WINNT >= 0x0500
+    FILETIME stime, utime;
+    static clock_t user, sys;
+    if (GetProcessTimes (child.hProcess, &start, &end, &stime, &utime)) {
+        user = clock_t (fttoull (utime) / UNITS_PER_CLOCK);
+        sys  = clock_t (fttoull (stime) / UNITS_PER_CLOCK);
+
+        /* Link the delta */
+        result->user = &user;
+        result->sys  = &sys;
+    }
+    else
+        warn_last_error ("Getting child process times");
+#endif  // _WIN32_WINNT >= 0x0500
+
+    wall = clock_t ((fttoull (end) - fttoull (start)) / UNITS_PER_CLOCK);
 
     /* Link the delta */
     result->wall = &wall;
@@ -1240,9 +1209,12 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     if (0 == CloseHandle (child.hProcess))
         warn_last_error ("Closing child process handle");
 
-    if (STATUS_ACCESS_VIOLATION == result->exit) {
-        result->exit = SIGSEGV;
-        result->signaled = 1;
+    for (int i = 0; i < sizeof (nt_status_map) / sizeof (*nt_status_map); ++i) {
+        if (nt_status_map [i].nt_status == DWORD (result->exit)) {
+            result->exit = nt_status_map [i].signal;
+            result->signaled = 1;
+            break;
+        }
     }
 }
 

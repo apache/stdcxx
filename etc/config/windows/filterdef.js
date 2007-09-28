@@ -25,7 +25,7 @@
 
 var sourceFilterName = "Source Files";
 var sourceFilterUuid = "{4FC737F1-C7A5-4376-A066-2A32D752A2FF}";
-var sourceFilterExts = ".cpp;.cxx;.s";
+var sourceFilterExts = ".cpp;.cxx;.s;.asm";
 
 var headerFilterName = "Header Files";
 var headerFilterUuid = "{93995380-89BD-4b04-88EB-625FBE52EBFB}";
@@ -58,6 +58,28 @@ function ReplaceMacros(str, arrMacro)
 
 // common macros
 var cmnMacros = new Array();
+
+// init custom build rule for .asm files
+function InitAsmTool(VCFile)
+{
+    var cfgs = VCFile.FileConfigurations;
+    for (var i = 1; i <= cfgs.Count; ++i)
+    {
+        var cfg = cfgs.Item(i);
+        if ((typeof(cfg.Tool.ToolKind) != "undefined" &&
+            cfg.Tool.ToolKind != "VCCustomBuildTool") ||
+            cfg.Tool.ToolName != "Custom Build Tool")
+        {
+            cfg.Tool = cfg.ProjectConfiguration.FileTools.Item("VCCustomBuildTool");
+        }
+
+        var tool = cfg.Tool;
+        tool.Description = "Compiling .asm file...";
+        tool.Outputs = "$(IntDir)\\$(InputName).obj";
+        tool.CommandLine = AS + " /c /nologo /D" + PLATFORM + " /Fo" + tool.Outputs +
+                           " /W3 /Zi /Ta" + VCFile.RelativePath;
+    }
+}
 
 //------------------------------------------------
 // FilterDef class
@@ -126,7 +148,9 @@ function AddFilterFile(filter, filename, filetype, exclude)
     var VCFile = filter.AddFile(filename);
     if (null != filetype && typeof(VCFile.FileType) != "undefined")
         VCFile.FileType = filetype;
-        
+
+    var customFileDef = null;
+
     if (exclude)
     {
         var cfgs = VCFile.FileConfigurations;
@@ -144,6 +168,8 @@ function AddFilterFile(filter, filename, filetype, exclude)
             cfg.ExcludedFromBuild = exclude;
         }
     }
+    else if (".asm" == VCFile.Extension)
+        InitAsmTool(VCFile);
 }
 
 // create VCFilter object from the FilterDef definition

@@ -115,4 +115,9 @@
 #  endif   // _POSIX_PATH_MAX
 #endif   // HP-UX
 
+#if (MB_LEN_MAX != _RWSTD_MB_LEN_MAX)
+#  undef MB_LEN_MAX
+#  define MB_LEN_MAX _RWSTD_MB_LEN_MAX
+#endif   // MB_LEN_MAX
+
 #endif   // _RWSTD_LIMITS_H_INCLUDED

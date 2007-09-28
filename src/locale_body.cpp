@@ -918,7 +918,11 @@ _C_manage (__rw_locale *plocale, const char *locname)
                             (n_locales - inx) * sizeof (*locales));
 
                     delete[] locales;
-                    locales = locale_buf;
+
+                    // point at the statically allocated buffer and reset
+                    // the current capacity to the original capacity
+                    locales        = locale_buf;
+                    locale_bufsize = bufsize;
                 }
                 else {
                     // move facet pointers back

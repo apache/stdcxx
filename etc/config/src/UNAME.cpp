@@ -1,5 +1,27 @@
 // determining OS name and version
 
+/***************************************************************************
+ *
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  License); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1999-2007 Rogue Wave Software, Inc.
+ * 
+ **************************************************************************/
+
 #include <stdio.h>
 
 #if !defined (_WIN32) && !defined (_WIN64)
@@ -9,14 +31,35 @@
 #endif
 
 
-int compare (const char *a, const char *b)
+static int print_os_version ();
+
+
+int main ()
+{
+    return print_os_version ();
+}
+
+////////////////////////////////////////////////////////////////////////
+
+static unsigned length (const char *s)
+{
+    unsigned len = 0;
+
+    while (*s++)
+        ++len;
+
+    return len;
+}
+
+
+static int compare (const char *a, const char *b)
 {
     for (; *a && *a == *b; ++a, ++b);
     return *a - *b;
 }
 
 
-char* capitalize (char *str)
+static char* capitalize (char *str)
 {
     static const char upper[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     static const char lower[] = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -43,16 +86,80 @@ char* capitalize (char *str)
 }
 
 
+
 #define ISDIGIT(x)   ((x) >= '0' && (x) <= '9')
 
-int main ()
-{
-#if !defined (_WIN32) && !defined (_WIN64)
 
+#ifndef _WIN32
+
+
+static void print_linux_release ()
+{
+    static const char* const files[] = {
+        // Debian
+ 	"/etc/debian_release",   // see also /etc/debian_version?
+        // Fedora
+ 	"/etc/fedora-release",
+        // Gentoo
+ 	"/etc/gentoo-release",
+        // Novell SUSE
+  	"/etc/SuSE-release",
+        // Red Hat
+ 	"/etc/redhat-release",   // see also /etc/redhat_version?
+        // Slackware
+ 	"/etc/slackware-release",   // see also /etc/slackware-version?
+        // Mandrake
+ 	"/etc/mandrake-release",
+        // Mandriva
+        "/etc/mandriva-release",
+        // MEPIS Linux
+        "/etc/mepis-release",
+        // Sun JDS
+ 	"/etc/sun-release",
+        // Solaris/SPARC
+ 	"/etc/release",
+        // Turbo Linux
+        "/etc/turbolinux-release",
+        // UnitedLinux
+ 	"/etc/UnitedLinux-release",
+        // Ubuntu
+ 	"/etc/lsb-release",
+        // Yellow Dog
+ 	"/etc/yellowdog-release",
+
+        ////////////////////////////////////////////////////
+        // Last entry must be 0
+        0
+    };
+
+    FILE *fp = 0;
+
+    for (unsigned i = 0; files [i]; ++i) {
+        fp = fopen (files [i], "r");
+        if (fp)
+            break;
+    }
+
+
+    char buffer [1024] = "(unknown release)";
+
+    if (fp) {
+        char *s = fgets (buffer, int (sizeof buffer), fp);
+        if (s)
+            buffer [length (s) - 1] = '\0';
+
+    }
+
+    printf ("#define _RWSTD_LINUX_RELEASE \"%s\"\n", buffer);
+}
+
+
+static int print_os_version ()
+{
     struct utsname uts;
 
     if (0 > uname (&uts))
-        return 0;
+        return 1;
 
     printf ("#define _RWSTD_OS_%s\n", capitalize (uts.sysname));
 
@@ -99,8 +206,21 @@ int main ()
 
     printf ("#define _RWSTD_OS_MICRO %lu\n", num);
 
-#else   // if defined (_WIN{32,64})
+    if (0 == compare ("LINUX", uts.sysname)) {
 
+        // determine Linux distribution
+        print_linux_release ();
+    }
+
+    return 0;
+}
+
+
+#else   // if defined (_WIN32)
+
+
+static int print_os_version ()
+{
     OSVERSIONINFO osinfo;
     osinfo.dwOSVersionInfoSize = sizeof osinfo;
 
@@ -110,7 +230,7 @@ int main ()
     printf ("#define _RWSTD_OS_SYSNAME \"WINDOWS\"\n");
 
     if (!success)
-        return 0;
+        return 1;
 
     printf ("#define _RWSTD_OS_MAJOR %lu\n", osinfo.dwMajorVersion);
     printf ("#define _RWSTD_OS_MINOR %lu\n", osinfo.dwMinorVersion);
@@ -150,7 +270,7 @@ int main ()
 
     printf ("#define _RWSTD_OS_VERSION \"%s\"\n", osinfo.szCSDVersion);
 
-#endif   // _WIN{32,64}
-
     return 0;
 }
+
+#endif   // _WIN32

@@ -467,12 +467,13 @@ static int rw_opt_no_stress;          // for --no-stress
 
 int run_test (int, char**)
 {
-#define TEST(name)                                              \
+#ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+#  define TEST(name)                                            \
     if (rw_opt_no_ ## name)                                     \
         rw_note (0, 0, __LINE__, "%s test disabled", #name);    \
-else                                                            \
+    else                                                        \
         test_ ## name ()
-
 
     TEST (bad_alloc);
     TEST (mismatch);
@@ -482,11 +483,22 @@ else                                                            \
     TEST (leaks);
     TEST (stress);
 
+#else    // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+    rw_note (0, 0, __LINE__, "Test disabled");
+
+#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
     return 0;
 }
 
 /**************************************************************************/
-
+/*
+void* operator new (size_t n) throw (std::bad_alloc)
+{
+    return 0;
+}
+*/
 int main (int argc, char** argv)
 {
     return rw_test (argc, argv, __FILE__,

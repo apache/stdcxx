@@ -699,11 +699,11 @@ void test_cons (charT*, Traits*, Allocator*, const RangeBase<
             break;
 
         case Cons (size_val):
-            ret_ptr = new String (tcase.size, arg_val);
+            ret_ptr = new String (arg_size, arg_val);
             break;
 
         case Cons (size_val_alloc):
-            ret_ptr = new String (tcase.size, arg_val, arg_alc);
+            ret_ptr = new String (arg_size, arg_val, arg_alc);
             break;
 
         case Cons (range):

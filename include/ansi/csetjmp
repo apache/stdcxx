@@ -54,7 +54,7 @@ _RWSTD_NAMESPACE (std) {
 #endif   // _RWSTD_NAMESPACE_STD_OPEN == 9
 
 #else   // if defined (_RWSTD_NO_DEPRECATED_C_HEADERS)
-#undef setjmp
+
 #ifndef _RWSTD_CSETJMP_INCLUDED
 #define _RWSTD_CSETJMP_INCLUDED
 
@@ -76,5 +76,9 @@ using ::longjmp;
 #endif   // _RWSTD_CSETJMP_INCLUDED
 
 #endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
+
+#ifndef setjmp
+#  define setjmp(env) setjmp (env)
+#endif
 
 #endif   // _RWSTD_NO_PURE_C_HEADERS

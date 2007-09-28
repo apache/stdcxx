@@ -27,7 +27,6 @@ var commonDefines = "debug?_RWSTDDEBUG;dll?_RWSHARED";
 var commonIncludes = "$(SolutionDir)%CONFIG%\\include";
 var stdcxxIncludes = "%SRCDIR%\\include;%SRCDIR%\\include\\ansi;" + commonIncludes;
 var rwtestIncludes = "%SRCDIR%\\tests\\include;" + stdcxxIncludes;
-var commonLibs = "kernel32.lib user32.lib";
 
 var binPath = "$(SolutionDir)%CONFIG%\\bin";
 var libPath = "$(SolutionDir)%CONFIG%\\lib";
@@ -35,7 +34,7 @@ var libPath = "$(SolutionDir)%CONFIG%\\lib";
 var ProjectsDir = "%BUILDDIR%\\Projects";
 
 // projects which requires RTTI support
-var RTTIProjects = new Array("18.exception");
+var NonRTTIProjects = new Array();
 
 var rxExcludedFolders = 
     new RegExp("^(?:\\.svn|Release.*|Debug.*|in|out|CVS)$","i");
@@ -67,7 +66,8 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     configureDef.IntDir = configureDef.OutDir;
     configureDef.CustomBuildFile = "configure.wsf";
     if (0 < CLVARSBAT.length)
-        configureDef.CustomBuildCmd = "call \"" + CLVARSBAT + "\"\r\n";
+        configureDef.CustomBuildCmd = "echo Calling \"" + CLVARSBAT + "\"\r\n" +
+                                      "call \"" + CLVARSBAT + "\"\r\n";
     else
         configureDef.CustomBuildCmd = "";
     configureDef.CustomBuildCmd += "cscript /nologo \"%CUSTOMFILE%\"" +
@@ -86,9 +86,8 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
 ///////////////////////////////////////////////////////////////////////////////
     var stdcxxDef = new ProjectDef(".stdcxx", typeLibrary);
     stdcxxDef.VCProjDir = ProjectsDir;
-    stdcxxDef.RTTI = true;
     stdcxxDef.FilterDefs.push(
-        new FilterDef(sourceFilterName, sourceFilterUuid, sourceFilterExts, eFileTypeCppCode, false).
+        new FilterDef(sourceFilterName, sourceFilterUuid, sourceFilterExts + ";.inc", eFileTypeCppCode, false).
             addFilesByMask("%SRCDIR%\\src", rxExcludedFolders, null));
     stdcxxDef.FilterDefs.push(
         new FilterDef(headerFilterName, headerFilterUuid, headerFilterExts, eFileTypeCppHeader, true).
@@ -99,7 +98,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     stdcxxDef.Includes = stdcxxIncludes;
     stdcxxDef.OutDir = libPath;
     stdcxxDef.IntDir = "$(SolutionDir)%CONFIG%\\src";
-    stdcxxDef.Libs = commonLibs;
+    stdcxxDef.Libs = LIBS;
     stdcxxDef.OutFile = "$(OutDir)\\libstd%CONFIG%%EXT%";
     stdcxxDef.PrjDeps.push(configureDef);
 
@@ -120,7 +119,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     rwtestDef.Includes = rwtestIncludes;
     rwtestDef.OutDir = "$(SolutionDir)%CONFIG%\\tests";
     rwtestDef.IntDir = rwtestDef.OutDir + "\\src";
-    rwtestDef.Libs = commonLibs;
+    rwtestDef.Libs = LIBS;
     rwtestDef.PrjRefs.push(stdcxxDef);
 
     projectDefs.push(new Array(rwtestDef));
@@ -141,7 +140,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     execDef.Defines = "";
     execDef.Includes = commonIncludes;
     execDef.OutDir = binPath;
-    execDef.Libs = commonLibs;
+    execDef.Libs = LIBS;
     execDef.OutFile = "$(OutDir)\\exec.exe";
     execDef.PrjDeps.push(configureDef);
 
@@ -168,7 +167,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     localedefDef.Defines = commonDefines;
     localedefDef.Includes = stdcxxIncludes;
     localedefDef.OutDir = binPath;
-    localedefDef.Libs = commonLibs;
+    localedefDef.Libs = LIBS;
     localedefDef.OutFile = "$(OutDir)\\localedef.exe";
     localedefDef.PrjRefs.push(stdcxxDef);
 
@@ -184,11 +183,27 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     localeDef.Defines = commonDefines;
     localeDef.Includes = stdcxxIncludes;
     localeDef.OutDir = binPath;
-    localeDef.Libs = commonLibs;
+    localeDef.Libs = LIBS;
     localeDef.OutFile = "$(OutDir)\\locale.exe";
     localeDef.PrjDeps.push(configureDef);
 
     utilsArray.push(localeDef);
+
+///////////////////////////////////////////////////////////////////////////////
+    var gencatDef = new ProjectDef("util_gencat", typeApplication);
+    gencatDef.VCProjDir = ProjectsDir + "\\util";
+    gencatDef.FilterDefs.push(
+        new FilterDef(sourceFilterName, sourceFilterUuid, sourceFilterExts, eFileTypeCppCode, false).
+            addFiles("%SRCDIR%\\util",
+                new Array("gencat.cpp")));
+    gencatDef.Defines = commonDefines;
+    gencatDef.Includes = stdcxxIncludes;
+    gencatDef.OutDir = binPath;
+    gencatDef.Libs = LIBS;
+    gencatDef.OutFile = "$(OutDir)\\gencat.exe";
+    gencatDef.PrjRefs.push(stdcxxDef);
+
+    utilsArray.push(gencatDef);
 
 ///////////////////////////////////////////////////////////////////////////////
     var utilsDef = new ProjectDef(".stdcxx_utils", typeGeneric);
@@ -198,6 +213,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     utilsDef.PrjDeps.push(execDef);
     utilsDef.PrjDeps.push(localedefDef);
     utilsDef.PrjDeps.push(localeDef);
+    utilsDef.PrjDeps.push(gencatDef);
 
     utilsArray.push(utilsDef);
 
@@ -211,7 +227,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     exampleTplDef.Defines = commonDefines;
     exampleTplDef.Includes = "%SRCDIR%\\examples\\include;" + stdcxxIncludes;
     exampleTplDef.OutDir = "$(SolutionDir)%CONFIG%\\examples";
-    exampleTplDef.Libs = commonLibs;
+    exampleTplDef.Libs = LIBS;
     exampleTplDef.PrjRefs.push(stdcxxDef);
     
     var exampleDefs = exampleTplDef.createProjectDefsFromFolder(
@@ -256,7 +272,8 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         " /EXEDIR:\"$(OutDir)\"" +
         " /PRJDIR:\"" + runexamplesDef.VCProjDir + "\"" +
         " /CONFIG:\"%SOLUTION%\"" +
-        " /LOGFILE:\"runexamples.log\"";
+        " /LOGFILE:\"runexamples.log\"" +
+        " /RUNFLAGS:\"-t " + EXEC_TIMEOUT + "\"";
     runexamplesDef.CustomBuildOut = "$(OutDir)\\runexamples.log";
     runexamplesDef.CustomBuildDeps = "%FILES%";
     //runexamplesDef.PrjDeps.push(allexamplesDef);
@@ -269,11 +286,10 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
 
     var testTplDef = new ProjectDef(null, typeApplication);
     testTplDef.VCProjDir = ProjectsDir + "\\tests";
-    testTplDef.RTTI = true;
     testTplDef.Defines = commonDefines;
     testTplDef.Includes = rwtestIncludes;
     testTplDef.OutDir = "$(SolutionDir)%CONFIG%\\tests";
-    testTplDef.Libs = commonLibs;
+    testTplDef.Libs = LIBS;
     testTplDef.PrjRefs.push(stdcxxDef);
     testTplDef.PrjRefs.push(rwtestDef);
     
@@ -312,16 +328,18 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
     runtestsDef.CustomBuildFile = "runall.wsf";
     runtestsDef.CustomBuildCmd =
         "set PATH=$(SolutionDir)%CONFIG%\\bin;$(SolutionDir)%CONFIG%\\lib;%PATH%\r\n" +
+        "set TOPDIR=%SRCDIR%\r\n" +
+        "set BINDIR=$(SolutionDir)%CONFIG%\\bin\r\n" +
         "cscript /nologo \"%CUSTOMFILE%\"" +
         " /EXEDIR:\"$(OutDir)\"" +
         " /PRJDIR:\"" + runtestsDef.VCProjDir + "\"" +
         " /CONFIG:\"%SOLUTION%\"" +
-        " /COMPAT" +
-        " /LOGFILE:\"runtests.log\"";
+        " /LOGFILE:\"runtests.log\"" +
+        " /RUNFLAGS:\"--compat -x \'--compat -O -\' -t " + EXEC_TIMEOUT + "\"";
     runtestsDef.CustomBuildOut = "$(OutDir)\\runtests.log";
     runtestsDef.CustomBuildDeps = "%FILES%";
     //runtestsDef.PrjDeps.push(alltestsDef);
-    runtestsDef.PrjDeps.push(execDef);
+    runtestsDef.PrjDeps.push(utilsDef);
 
     projectDefs.push(new Array(runtestsDef));
 
@@ -394,7 +412,8 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         " /EXEDIR:\"$(OutDir)\"" +
         " /CONFIG:\"%SOLUTION%\"" +
         " /LOGFILE:\"runloctests.log\"" +
-        " /EXT:bat";
+        " /EXT:bat" +
+        " /RUNFLAGS:\"-t " + EXEC_TIMEOUT + "\"";
     testlocaleTplDef.CustomBuildOut = "$(OutDir)\\runloctests.log";
 
     var testlocalesDef = testlocaleTplDef.createTestLocalesDef("%SRCDIR%\\etc\\nls");
@@ -424,15 +443,20 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                 var arrDeps = projectDef.PrjRefs.concat(projectDef.PrjDeps);
                 var command = "";
     
+                var cmdtpl = "set src=_SRC_\r\n" +
+                             "set dst=_DST_\r\n" +
+                             "if /I not %src%==%dst% (\r\n" +
+                             "if exist %src% (\r\n" +
+                             "del %dst%\r\n" +
+                             "copy /Y %src% %dst%\r\n" +
+                             "))";
+
                 if (0 <= arrayIndexOf(arrDeps, stdcxxDef))
                 {
                     var libname = "libstd%CONFIG%.dll";
                     var src = "\"" + libPath + "\\" + libname + "\"";
                     var dst = "\"$(OutDir)\\" + libname + "\"";
-                    var cmd = "if exist " + src + " (\r\n" +
-                              "del " + dst + "\r\n" +
-                              "copy /Y " + src + " " + dst + "\r\n" +
-                              ")";
+                    var cmd = cmdtpl.replace("_SRC_", src).replace("_DST_", dst);
                     if (0 == command.length)
                         command = cmd;
                     else
@@ -444,10 +468,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
                     var libname = "rwtest.dll";
                     var src = "\"$(SolutionDir)%CONFIG%\\tests\\" + libname + "\"";
                     var dst = "\"$(OutDir)\\" + libname + "\"";
-                    var cmd = "if exist " + src + " (\r\n" +
-                              "del " + dst + "\r\n" +
-                              "copy /Y " + src + " " + dst + "\r\n" +
-                              ")";
+                    var cmd = cmdtpl.replace("_SRC_", src).replace("_DST_", dst);
                     if (0 == command.length)
                         command = cmd;
                     else
@@ -478,9 +499,9 @@ function CreateProjects(projectDefs, report)
         {
             var projectDef = projectArray[j];
     
-            // turn on RTTI support if project in RTTIProjects array
-            if (0 <= arrayIndexOf(RTTIProjects, projectDef.Name))
-                projectDef.RTTI = true;
+            // turn off RTTI support if project in NonRTTIProjects array
+            if (0 <= arrayIndexOf(NonRTTIProjects, projectDef.Name))
+                projectDef.RTTI = false;
     
             projectDef.createVCProject(VCProjectEngine, report);
         }

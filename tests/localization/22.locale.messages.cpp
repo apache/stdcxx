@@ -31,26 +31,20 @@
 #include <driver.h>      // for rw_test()
 #include <environ.h>     // for rw_putenv()
 #include <file.h>        // for rw_nextfd()
-#include <rw_locale.h>   // for rw_locales()
+#include <rw_locale.h>   // for rw_locales(), rw_create_catalog()
 #include <rw_process.h>  // for rw_system()
 
-#ifndef _MSC_VER
-#  include <nl_types.h>  // for cat operations
-#endif
-
 #include <cstring>   // for strlen()
-#include <cstdlib>   // for getcwd(), getenv()
-#include <cstdio>    // for FILE, fopen(), fprintf()
+#include <cstdlib>   // for getenv()
+#include <cstdio>    // for remove()
 #include <clocale>   // for LC_ALL
 
 #include <cwchar>    // for mbsinit()
 
-
 #ifndef _RWSTD_NO_NEW_HEADER
-#  include <stdio.h>         // for fileno()
 #  if defined (_MSC_VER)
 #    include <io.h>          // for _open()
-#    include <direct.h>
+#    include <direct.h>      // for getcwd()
 #  else
 #    include <sys/types.h>
 #    include <sys/stat.h>
@@ -260,75 +254,7 @@ messages [MAX_SETS][MAX_MESSAGES] = {
     }
 };
 
-
-void generate_catalog (const char *msg_name,
-                       const char* const text [MAX_SETS][MAX_MESSAGES])
-{
-    std::FILE* const f = std::fopen (msg_name, "w");
-
-    if (!f)
-        return;
-
-#ifndef _WIN32
-
-    for (int i = 0; i < MAX_SETS; ++i) {
-        std::fprintf (f, "$set %d This is Set %d\n", i+1, i+1);
-        for (int j = 0; j < MAX_MESSAGES; ++j) {
-            std::fprintf (f, "%d %s\n", j + 1, text [i][j]);
-        }
-    }
-
-#else   // if defined (_WIN32)
-
-    std::fprintf (f, "STRINGTABLE\nBEGIN\n");
-    for (int i = 0; i < MAX_SETS; ++i) {
-        for (int j = 0; j < MAX_MESSAGES; ++j) {
-            const int msgid = msg_id (i + 1, j + 1);
-            std::fprintf (f, "%d \"%s\"\n", msgid, text[i][j]);
-        }
-    }
-
-    std::fprintf (f, "END\n");
-
-#endif   // _WIN32
-
-    std::fclose (f);
-
-    char *cat_name = new char [std::strlen (msg_name) + 1];
-    const char *dot = std::strrchr (msg_name, '.');
-    std::strncpy (cat_name, msg_name, dot - msg_name);
-    *(cat_name + (dot - msg_name)) = '\0';
-
-#ifndef _WIN32
-
-    rw_system ("gencat %s.cat %s", cat_name, msg_name);
-
-#else   // if defined (_WIN32)
-
-    char cpp_name [128];
-
-    std::sprintf (cpp_name, "%s.cpp", cat_name);
-
-    std::FILE* const cpp_file = std::fopen (cpp_name, "w");
-    std::fprintf (cpp_file, "void foo () { }");
-    std::fclose (cpp_file);
-
-    rw_system (   "rc -r %s.rc "
-               "&& cl -nologo -c %s"
-               "&& link -nologo /DLL /OUT:%s.dll %s.obj %s.res",
-               cat_name,
-               cpp_name,
-               cat_name, cat_name, cat_name);
-
-    rw_system (SHELL_RM_F "%s %s.rc %s.res %s.obj",
-               cpp_name, cat_name, cat_name, cat_name);
-
-#endif   // _WIN32
-
-    delete[] cat_name;
-
-    std::remove (msg_name);
-}
+static std::string catalog;
 
 /***************************************************************************/
 
@@ -527,13 +453,23 @@ void test_open_close (const char *loc_name, const char *cname)
     int fdcount [2];
     int next_fd [2];
 
+#ifndef _WIN32
     next_fd [0] = rw_nextfd (fdcount + 0);
+#else
+    // don't test file descriptor leaking on Win32 to avoid
+    // invalid parameter error
+    // catalog functions not uses file descriptors
+    next_fd [0] = fdcount [0] = 0;
+#endif
 
     rw_info (0, 0, __LINE__,
              "std::messages<%s>::open() and close() in locale(#%s)",
              cname, loc_name);
 
-    const std::locale loc (loc_name);
+    // construct a copy of the named locale or default
+    // when no name is specified
+    const std::locale loc =
+        loc_name ? std::locale (loc_name) : std::locale ();
 
     const std::messages<charT>& msgs =
         std::use_facet<std::messages<charT> >(loc);
@@ -548,7 +484,11 @@ void test_open_close (const char *loc_name, const char *cname)
     close_catalog (msgs, cat, true, cname, __LINE__);
 
     // verify that no file descriptor has leaked
+#ifndef _WIN32
     next_fd [1] = rw_nextfd (fdcount + 1);
+#else
+    next_fd [1] = fdcount [1] = 0;
+#endif
 
     rw_assert (next_fd [1] == next_fd [0] && fdcount [0] == fdcount [1],
                0, __LINE__,
@@ -564,7 +504,10 @@ void test_get (const char *loc_name,
                const char* const text[5][5],
                const char *cname)
 {
-    const std::locale loc (loc_name);
+    // construct a copy of the named locale or default
+    // when no name is specified
+    const std::locale loc =
+        loc_name ? std::locale (loc_name) : std::locale ();
 
     const std::messages<charT>& msgs =
         std::use_facet<std::messages<charT> > (loc);
@@ -584,9 +527,9 @@ void test_get (const char *loc_name,
     typedef std::allocator<charT>                       Allocator;
     typedef std::basic_string<charT, Traits, Allocator> String;
 
-    for (int setId = 1; setId < MAX_SETS; ++setId) {
+    for (int setId = 1; setId <= MAX_SETS; ++setId) {
 
-        for (int msgId = 1; msgId < MAX_MESSAGES; ++msgId) {
+        for (int msgId = 1; msgId <= MAX_MESSAGES; ++msgId) {
 
             const int id = msg_id (setId, msgId);
             const String got = msgs.get (cat, setId, id, def);
@@ -771,15 +714,11 @@ void stress_test (const char *cname)
         std::sprintf (msg_name, "rwstdmessages_%d.rc", int (i));
 #endif
 
-        generate_catalog (msg_name, messages);
+        rw_create_catalog (msg_name, catalog.c_str ());
 
         const char* const dot = std::strrchr (msg_name, '.');
         std::strncpy (catalog_names[i], msg_name, dot - msg_name);
         *(catalog_names[i] + (dot - msg_name)) = '\0';
-
-#ifdef _WIN32
-        std::strcat (catalog_names[i], ".dll");
-#endif   // _WIN32
 
         // open each catalog (expect success)
         cats [i] = open_catalog (msgs, catalog_names [i],
@@ -878,9 +817,16 @@ void test_messages (charT, const char *cname, const char *locname)
 static int
 run_test (int, char*[])
 {
+    for (int i = 0; i < MAX_SETS; ++i) {
+        for (int j = 0; j < MAX_MESSAGES; ++j)
+            catalog.append (messages [i][j], std::strlen (messages [i][j]) + 1);
+
+        catalog.append (1, '\0');
+    }
+
     const char* const locname = find_named_locale ();
 
-    generate_catalog (MSG_NAME, messages);
+    rw_create_catalog (MSG_NAME, catalog.c_str ());
 
     test_messages (char (), "char", locname);
 

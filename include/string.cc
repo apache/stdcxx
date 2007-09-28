@@ -241,34 +241,6 @@ operator= (const basic_string &__rhs)
 template <class _CharT, class _Traits, class _Allocator>
 basic_string<_CharT, _Traits, _Allocator>&
 basic_string<_CharT, _Traits, _Allocator>::
-append (const basic_string &__str, size_type __pos, size_type __n)
-{
-    _RWSTD_REQUIRES (__pos <= __str.size (),
-                     (_RWSTD_ERROR_OUT_OF_RANGE,
-                      _RWSTD_FUNC ("basic_string::append(const basic_string&,"
-                                   " size_type, size_type)"),
-                      __pos, __str.size ()));
-
-    if (__n > __str.size () - __pos)
-        __n = __str.size () - __pos;
-
-    const size_type __rlen = _C_min (__str.size() - __pos, __n);
-
-    _RWSTD_REQUIRES (size () <= max_size () - __rlen,
-                     (_RWSTD_ERROR_LENGTH_ERROR,
-                      _RWSTD_FUNC ("basic_string::append(const basic_string&,"
-                                   " size_type, size_type)"),
-                      size (), max_size () - __rlen));
-
-    replace (size (), size_type (), __str.c_str () + __pos, __n);
-
-    return *this;
-}
-
-
-template <class _CharT, class _Traits, class _Allocator>
-basic_string<_CharT, _Traits, _Allocator>&
-basic_string<_CharT, _Traits, _Allocator>::
 assign (const basic_string &__str, size_type __pos, size_type __n)
 {
     _RWSTD_REQUIRES (__pos <= __str.size (),
@@ -340,18 +312,22 @@ replace (size_type __pos1, size_type __n1, const_pointer __s, size_type __n2)
     _RWSTD_REQUIRES (__pos1 <= __size0,
                      (_RWSTD_ERROR_OUT_OF_RANGE, 
                      _RWSTD_FUNC ("basic_string::replace(size_type, size_type"
-                                  ", const_pointer, size_type, size_type, "
-                                  "size_type)"), 
+                                  ", const_pointer, size_type)"), 
                       __pos1, __size0 > __n2 ? __size0 : __n2));
 
     // number of characters to delete
     const size_type __xlen = _C_min (__n1, __size0 - __pos1);
 
+    _RWSTD_REQUIRES (__n2 <= max_size (),
+                     (_RWSTD_ERROR_LENGTH_ERROR,
+                     _RWSTD_FUNC ("basic_string::replace(size_type, size_type"
+                                  ", const_pointer, size_type)"), 
+                     __n2, max_size()));
+
     _RWSTD_REQUIRES (__size0 - __xlen <= max_size () - __n2,
                      (_RWSTD_ERROR_LENGTH_ERROR,
                      _RWSTD_FUNC ("basic_string::replace(size_type, size_type"
-                                  ", const_pointer, size_type, size_type, "
-                                  "size_type)"), 
+                                  ", const_pointer, size_type)"), 
                       __size0 - __xlen, max_size() - __n2));
 
     // compute the resulting string size
@@ -753,12 +729,6 @@ rfind (const_pointer __s,  size_type __pos, size_type __n) const
 {
     _RWSTD_ASSERT(__s != 0);
 
-    _RWSTD_REQUIRES (__n <= max_size (),
-                     (_RWSTD_ERROR_LENGTH_ERROR, 
-                      _RWSTD_FUNC ("basic_string::rfind(const_pointer, "
-                                   "size_type, size_type) const"),
-                      __n, max_size ()));
-
     if (size() < __n)
       return npos;
     
@@ -782,12 +752,6 @@ find_first_of (const_pointer __s, size_type __pos, size_type __n) const
 {
     _RWSTD_ASSERT(__s != 0);
 
-    _RWSTD_REQUIRES (__n <= max_size (),
-                     (_RWSTD_ERROR_LENGTH_ERROR,
-                      _RWSTD_FUNC ("basic_string::find_first_of(const_pointer, "
-                                   "size_type, size_type) const"),
-                      __n, max_size ()));
-
     for (size_type __xpos = __pos; __xpos < size() ; __xpos++)
     {
       for (size_type __i = 0; __i < __n ; __i++)
@@ -805,12 +769,6 @@ basic_string<_CharT, _Traits, _Allocator>::
 find_last_of (const_pointer __s, size_type __pos, size_type __n) const
 {
     _RWSTD_ASSERT(__s != 0);
-
-    _RWSTD_REQUIRES (__n <= max_size (),
-                     (_RWSTD_ERROR_LENGTH_ERROR, 
-                      _RWSTD_FUNC ("basic_string::find_last_of(const_pointer, "
-                                   "size_type, size_type) const"),
-                      __n, max_size ()));
 
     if (size())
     {
@@ -833,12 +791,6 @@ basic_string<_CharT, _Traits, _Allocator>::
 find_first_not_of (const_pointer __s, size_type __pos, size_type __n) const
 {
     _RWSTD_ASSERT(__s != 0);
-
-    _RWSTD_REQUIRES (__n <= max_size (),
-                     (_RWSTD_ERROR_LENGTH_ERROR, 
-                      _RWSTD_FUNC ("basic_string::find_first_not_of("
-                                  "const_pointer, size_type, size_type) const"),
-                      __n, max_size ()));
 
     for (size_type __xpos = __pos; __xpos < size() ; __xpos++)
     {
@@ -866,12 +818,6 @@ find_last_not_of (const_pointer __s, size_type __pos, size_type __n) const
 {
     _RWSTD_ASSERT(__s != 0);
 
-    _RWSTD_REQUIRES (__n <= max_size (),
-                     (_RWSTD_ERROR_LENGTH_ERROR, 
-                      _RWSTD_FUNC ("basic_string::find_last_not_of("
-                                  "const_pointer, size_type, size_type) const"),
-                      __n, max_size ()));
-    
     if (size())
     {
       size_type __slen = size() -1;

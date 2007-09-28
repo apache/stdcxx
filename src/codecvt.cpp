@@ -22,15 +22,13 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
 #define _RWSTD_LIB_SRC
 
 #include <rw/_defs.h>
-
-#ifndef _RWSTD_NO_V3_LOCALE
 
 
 // working around a Compaq C++ bug (see PR #26778)
@@ -93,10 +91,18 @@ __rw_mbsinit (const StateT *ps)
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
 
 
 _RW::__rw_facet_id codecvt<char, char, _RWSTD_MBSTATE_T>::id;
+
+
+codecvt<char, char, _RWSTD_MBSTATE_T>::
+codecvt (size_t refs /* = 0 */)
+    : _RW::__rw_facet (refs), _C_always_noconv (-1)
+{
+    // empty
+}
 
 
 /* virtual */ codecvt<char, char, _RWSTD_MBSTATE_T>::~codecvt ()
@@ -259,11 +265,10 @@ do_max_length () const _THROWS (())
 }
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 #define TARGS_C   <char, char, _RWSTD_MBSTATE_T>
 
 _RWSTD_DEFINE_FACET_FACTORY (static, codecvt, TARGS_C, codecvt);
 _RWSTD_SPECIALIZE_USE_FACET (codecvt);
 
-#endif   // _RWSTD_NO_V3_LOCALE

@@ -89,6 +89,26 @@ char* reference_name (const char* data_dir, const char* subdir,
                       const char* mode);
 
 /**
+   Composes the name of an input file, based on exec_name
+
+   Takes a data directory and an executable name, and tries to open an input 
+   file based on these variables.  If a file is found in neither of two 
+   locattions derived from these variables, this method tries to fall back on 
+   /dev/null.
+
+   Source file locations:
+     - [data_dir]/manual/in/[exec_name].in
+     - [data_dir]/tutorial/in/[exec_name].in
+     - /dev/null
+
+   @param data_dir the path of the reference data directory
+   @param exec_name the name of executable being run
+   @returns the name of the file
+*/
+char* input_name (const char* data_dir, const char* target);
+
+
+/**
    Generates the name of the output file for the executable target.
 
    This function allocates memory which is to be freed by the caller.
@@ -97,4 +117,5 @@ char* reference_name (const char* data_dir, const char* subdir,
    @return translation of 'target.out'
 */
 char* output_name (const char* target);
+
 #endif   /* RW_UTIL_H */

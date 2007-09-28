@@ -1,3 +1,23 @@
+<!--
+    Licensed to the Apache Software  Foundation (ASF) under one or more
+    contributor  license agreements.  See  the NOTICE  file distributed
+    with  this  work  for  additional information  regarding  copyright
+    ownership.   The ASF  licenses this  file to  you under  the Apache
+    License, Version  2.0 (the  License); you may  not use  this file
+    except in  compliance with the License.   You may obtain  a copy of
+    the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the  License is distributed on an  "AS IS" BASIS,
+    WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+    implied.   See  the License  for  the  specific language  governing
+    permissions and limitations under the License.
+
+    Copyright 1999-2007 Rogue Wave Software, Inc.
+-->
+
 <HTML>
 <HEAD>
 <TITLE>time_get</TITLE>
@@ -572,29 +592,41 @@ virtual iter_type
 #include &lt;sstream&gt;    // for stringstream
 #include &lt;iostream&gt;   // for cout, endl
 
-// Print out a tm struct
-std::ostream&amp; operator&lt;&lt; (std::ostream &amp;os, const struct tm &amp;t)
+
+// Print out a tm struct value in one atomic operation
+std::ostream&amp; operator&lt;&lt; (std::ostream &amp;os, const std::tm &amp;t)
 {
-    return os &lt;&lt; "Daylight Savings = " &lt;&lt; t.tm_isdst
-              &lt;&lt; "\nDay of year      = " &lt;&lt; t.tm_yday
-              &lt;&lt; "\nDay of week      = " &lt;&lt; t.tm_wday
-              &lt;&lt; "\nYear             = " &lt;&lt; t.tm_year
-              &lt;&lt; "\nMonth            = " &lt;&lt; t.tm_mon
-              &lt;&lt; "\nDay of month     = " &lt;&lt; t.tm_mday
-              &lt;&lt; "\nHour             = " &lt;&lt; t.tm_hour
-              &lt;&lt; "\nMinute           = " &lt;&lt; t.tm_min
-              &lt;&lt; "\nSecond           = " &lt;&lt; t.tm_sec
-              &lt;&lt; std::endl;
+    std::stringstream strm;
+
+    strm &lt;&lt; "Daylight Savings = "   &lt;&lt; t.tm_isdst
+         &lt;&lt; "\nDay of year      = " &lt;&lt; t.tm_yday
+         &lt;&lt; "\nDay of week      = " &lt;&lt; t.tm_wday
+         &lt;&lt; "\nYear             = " &lt;&lt; t.tm_year
+         &lt;&lt; "\nMonth            = " &lt;&lt; t.tm_mon
+         &lt;&lt; "\nDay of month     = " &lt;&lt; t.tm_mday
+         &lt;&lt; "\nHour             = " &lt;&lt; t.tm_hour
+         &lt;&lt; "\nMinute           = " &lt;&lt; t.tm_min
+         &lt;&lt; "\nSecond           = " &lt;&lt; t.tm_sec
+         &lt;&lt; '\n';
+
+    // guard for thread safety and output synchronization
+    const std::ostream::sentry guard (os);
+
+    if (guard)
+        os.rdbuf ()-&gt;sputn (strm.str ().c_str (), strm.str ().size ());
+    else
+        os.setstate (os.failbit);
+
+    return os;
 }
 
 
 int main ()
 {
-    typedef std::istreambuf_iterator&lt;char,
-            std::char_traits&lt;char&gt; &gt; Iter;
+    typedef std::istreambuf_iterator&lt;char, std::char_traits&lt;char&gt; &gt; Iter;
 
     // time struct to parse date into
-    static struct tm timeb;  // zero initialized
+    static std::tm timeb;  // zero initialized
 
     // Unused, required by time_get
     std::ios_base::iostate state;
@@ -606,14 +638,14 @@ int main ()
     Iter begin (ins);
     Iter end;
 
+    const std::locale loc ("C");
+
     // Get a reference to the time_get facet in locale loc.
     const std::time_get&lt;char, Iter&gt; &amp;tg =
-        std::use_facet&lt;std::time_get&lt;char, Iter&gt; &gt;(std::locale
-                 ("C"));
+        std::use_facet&lt;std::time_get&lt;char, Iter&gt; &gt;(loc);
 
     // Display time_base::dateorder value.
-    std::cout &lt;&lt; "time_base::dateorder == " &lt;&lt; tg.date_order ()
-                 &lt;&lt; ".\n";
+    std::cout &lt;&lt; "time_base::dateorder == " &lt;&lt; tg.date_order () &lt;&lt; ".\n";
   
     // Insert date string into stream.
     ins.str ("04/07/69");

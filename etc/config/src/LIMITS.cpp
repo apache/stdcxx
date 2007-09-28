@@ -1,8 +1,36 @@
 // computing numerical limits
 
+#include "config.h"
+
+/***************************************************************************
+ *
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  License); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1999-2007 Rogue Wave Software, Inc.
+ * 
+ **************************************************************************/
+
 #include <stdio.h>    // for printf()
 
-#include "config.h"
+#ifndef _RWSTD_NO_LIMITS_H
+   // avoid including broken <limits.h> (due to the use of #include_next)
+   // with EDG eccp on Linux
+#  include <limits.h>   // for MB_LEN_MAX
+#endif   // _RWSTD_NO_LIMITS_H
 
 
 // establish a dependency on the test for long long
@@ -336,14 +364,14 @@ int main ()
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-    printf ("#define _RWSTD_WCHAR_T_SIZE  %2u /* sizeof (wchar_t) */\n",
+    printf ("#define _RWSTD_WCHAR_SIZE  %2u /* sizeof (wchar_t) */\n",
             SIZEOF (wchar_t));
 
     const char *suffix = "U";
     if ((wchar_t)~0 < (wchar_t)0)
         suffix = "";
     
-    MKLIMITS (wchar_t, "WCHAR_T", suffix, "wchar_t");
+    MKLIMITS (wchar_t, "WCHAR", suffix, "wchar_t");
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -366,6 +394,8 @@ int main ()
     printf ("#define _RWSTD_MB_LEN_MAX %d   /* known glibc 2.2 value */\n", 16);
 #  elif defined (__sun__) || defined (__sun) || defined (__sun)
     printf ("#define _RWSTD_MB_LEN_MAX %d   /* known SunOS libc value */\n", 5);
+#  elif defined (_WIN32)
+    printf ("#define _RWSTD_MB_LEN_MAX %d   /* known WIN32 libc value */\n", 5);
 #  else
     printf ("#define _RWSTD_MB_LEN_MAX %d   /* guess */\n", 8);
 #  endif
