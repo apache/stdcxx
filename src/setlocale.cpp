@@ -135,18 +135,18 @@ __rw_setlocale::__rw_setlocale (const char *locname, int cat, int nothrow)
 // was in effect when the object was constructed
 __rw_setlocale::~__rw_setlocale ()
 {
-    // release the lock
-    if (_C_guard)
-        __rw_setlocale_mutex._C_release ();
+    // if guard is set, constructor changed the locale
+    if (_C_guard) {
 
-    if (_C_name) {
-
-        // and restore the locale
+        // restore the locale
         ::setlocale (_C_cat, _C_name);
 
-        if (_C_name != _C_namebuf)
-            delete [] _C_name;
+        // release the lock
+        __rw_setlocale_mutex._C_release ();
     }
+
+    if (_C_name != _C_namebuf)
+        delete [] _C_name;
 }
 
 
