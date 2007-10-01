@@ -132,6 +132,14 @@ __rw_get_numpunct (const __rw_facet *pfacet, int flags)
     // set all categories -- need LC_NUMERIC and LC_CTYPE
     const __rw_setlocale clocale (locname, _RWSTD_LC_ALL);
 
+    if (pfacet->_C_data ()) {
+        // check to see if another thread may have set _C_data()
+        // while we were waiting for the lock in __rw_setlocale
+        // ctor above and, if so, call self recursively on the
+        // already initialized `impdata'
+        return __rw_get_numpunct (pfacet, flags);
+    }
+
     // get the lconv data
     const lconv* const pconv = localeconv ();
     if (!pconv)
@@ -307,6 +315,14 @@ __rw_get_moneypunct (const __rw_facet *pfacet, int flags)
     
     // set all categories -- need LC_NUMERIC and LC_CTYPE
     const __rw_setlocale clocale (locname, _RWSTD_LC_ALL);
+
+    if (pfacet->_C_data ()) {
+        // check to see if another thread may have set _C_data()
+        // while we were waiting for the lock in __rw_setlocale
+        // ctor above and, if so, call self recursively on the
+        // already initialized `impdata'
+        return __rw_get_moneypunct (pfacet, flags);
+    }
 
     // get the lconv data
     const lconv* const pconv = localeconv ();
