@@ -2361,6 +2361,38 @@ print_charmap_name (const char *section, int)
 }
 
 
+#ifdef _WIN32
+static BOOL CALLBACK
+EnumLocales (char* locale_id)
+{
+    const LCID lcid = std::strtoul (locale_id, 0, 16);
+
+    char buf [80];
+    const int bufsize = sizeof (buf) / sizeof (*buf);
+
+    std::string name;
+
+    if (GetLocaleInfo (lcid, LOCALE_SENGLANGUAGE, buf, bufsize))
+        name = buf;
+
+    if (GetLocaleInfo (lcid, LOCALE_SENGCOUNTRY, buf, bufsize)) {
+        name += '_';
+        name += buf;
+    }
+
+    if (   GetLocaleInfo (lcid, LOCALE_IDEFAULTANSICODEPAGE , buf, bufsize)
+        && std::strtoul (buf, 0, 10)) {
+        name += '.';
+        name += buf;
+    }
+
+    if (const char* locname = std::setlocale (LC_ALL, name.c_str ()))
+        std::cout << locname << '\n';
+
+    return TRUE;
+}
+#endif
+
 // print the available locales
 static void
 print_locale_names ()
@@ -2373,6 +2405,13 @@ print_locale_names ()
         const std::string cmd = std::string (LS_1) + locale_root;
 
         std::system (cmd.c_str ());
+    }
+    else {
+#ifndef _WIN32
+        std::system ("/usr/bin/locale -a");
+#else
+        EnumSystemLocales (EnumLocales, LCID_INSTALLED);
+#endif
     }
 }
 
