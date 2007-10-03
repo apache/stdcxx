@@ -205,8 +205,10 @@ static void print_status_plain (const struct target_status* status)
         && 0 == status->status 
         && 0 == status->exit) {
         if (status->assert) {
-            printf (" %7u %6u %5d%%", status->assert, status->failed, 
-                    100 * (status->assert - status->failed) / status->assert);
+            const int percnt = int (  100.0
+                                    * (status->assert - status->failed)
+                                    / status->assert);
+            printf (" %7u %6u %5d%%", status->assert, status->failed, percnt);
         }
         else {
             printf ("       0 %6u   100%%", status->failed);
