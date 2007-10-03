@@ -279,7 +279,10 @@ std::wstring
 convert (const char *locname, const char *s, const wchar_t*)
 {
     // save the name of the original locale
-    const char *savename = std::setlocale (LC_ALL, 0);
+    std::string saved_loc;
+
+    if (const char *savename = std::setlocale (LC_ALL, 0))
+        saved_loc = savename;
 
     // switch to (named) locale
     const char *loc = std::setlocale (LC_ALL, locname);
@@ -305,14 +308,15 @@ convert (const char *locname, const char *s, const wchar_t*)
 
             // restore the original locale before printing out
             // the error message (we don't want it localized)
-            std::setlocale (LC_ALL, savename);
+            std::setlocale (LC_ALL, saved_loc.c_str ());
 
             rw_fprintf (rw_stderr,
                         "%s:%d: mbstowcs(..., %#s, %zu) "
                         "= -1: %m\n", __FILE__, __LINE__,
                         s, res.capacity ());
             res = std::wstring ();   // mbstowcs() error
-            break;
+
+            return res;
         }
         else {
             // shrink if necessary
@@ -322,7 +326,7 @@ convert (const char *locname, const char *s, const wchar_t*)
     }
 
     // restore original locale
-    std::setlocale (LC_ALL, savename);
+    std::setlocale (LC_ALL, saved_loc.c_str ());
 
     return res;
 }
