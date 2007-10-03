@@ -42,8 +42,8 @@ int main ()
     assert (cbegin == begin);
     assert (begin  == cbegin);
 
-    assert (!(cbegin == begin));
-    assert (!(begin  == cbegin));
+    assert (!(cbegin != begin));
+    assert (!(begin  != cbegin));
 
     assert (cbegin <= begin);
     assert (begin  <= cbegin);
