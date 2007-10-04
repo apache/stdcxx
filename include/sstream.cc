@@ -185,6 +185,15 @@ xsputn (const char_type* __s, streamsize __n)
         const _RWSTD_SIZE_T __bufsize =
             __n + (this->pptr () - this->pbase ());
 
+        _RWSTD_PTRDIFF_T __off = -1;
+
+        if (this->pbase () <= __s && this->pptr () > __s) {
+            // __s is a part of the buffer
+            _RWSTD_ASSERT (this->epptr () >= __s + __n);
+            // save the offset from pbase()
+            __off = this->pbase () - __s;
+        }
+
         // preserve current pptr() since str() would seek to end
         const streamsize __cur = this->pptr () - this->pbase ();
 
@@ -196,6 +205,11 @@ xsputn (const char_type* __s, streamsize __n)
         this->pbump (__cur - (this->pptr () - this->pbase ()));
 
         _RWSTD_ASSERT (__n <= this->epptr () - this->pptr ());
+
+        if (0 <= __off) {
+            // correct __s after the buffer reallocation
+            __s = this->pbase () + __off;
+        }
     }
 
     // copy the whole string
