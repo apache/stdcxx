@@ -87,7 +87,10 @@ _InputIter __rw_match_name (_InputIter __it, _InputIter __end,
 
             typedef _STD::char_traits<_CharT> _Traits;
 
-            if (__bits & 1UL << __k) {
+            const _RWSTD_SIZE_T __mask =
+                _RWSTD_STATIC_CAST(_RWSTD_SIZE_T, 1UL) << __k;
+
+            if (__bits & __mask) {
                 // `name' is still in the set, see if the next char matches
                 // (case insensitive comparison done if `ctp' is nonzero)
                 if (   __pos < __sizes [__k]
@@ -108,7 +111,7 @@ _InputIter __rw_match_name (_InputIter __it, _InputIter __end,
 
                         // this match is a duplicate of the last best one
                         // remove this match from the set
-                        __bits &= ~(1UL << __k);
+                        __bits &= ~__mask;
                         --__nmatch;
                     }
                     else if (   __sizes [__k] < __sizes [__inx]
@@ -137,7 +140,7 @@ _InputIter __rw_match_name (_InputIter __it, _InputIter __end,
 
                     // clear the bit for the `name' that failed to match
                     // and decrement the numeber of matches
-                    __bits &= ~(1UL << __k);
+                    __bits &= ~__mask;
                     --__nmatch;
                 }
             }
