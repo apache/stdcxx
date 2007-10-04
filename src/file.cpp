@@ -475,13 +475,18 @@ __rw_fmode (void *file, int flags)
 }
 
 
+#ifdef _WIN64
+// disable MSVC warning: conversion from '__int64' to 'long', possible loss of data
+#pragma warning (disable: 4244)
+#endif
+
 _RWSTD_EXPORT long
 __rw_fseek (void *file, int flags, _RWSTD_PTRDIFF_T offset, int origin)
 {
     if (flags & _RWSTD_IOS_STDIO) {
         FILE* const fp = _RWSTD_STATIC_CAST (FILE*, file);
 
-        const int pos = fseek (fp, offset, origin);
+        const int pos = fseek (fp, long (offset), origin);
         if (pos < 0)
             return long (pos);
 
@@ -522,6 +527,11 @@ __rw_fwrite (void *file, int flags, const void *buf, _RWSTD_SIZE_T size)
 
     return write (fd, buf, size);
 }
+
+#ifdef _WIN64
+// restore MSVC warning: conversion from '__int64' to 'long', possible loss of data
+#pragma warning (default: 4244)
+#endif
 
 
 _RWSTD_EXPORT extern const void* __rw_std_streams[];
