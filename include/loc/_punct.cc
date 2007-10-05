@@ -88,7 +88,7 @@ _InputIter __rw_match_name (_InputIter __it, _InputIter __end,
             typedef _STD::char_traits<_CharT> _Traits;
 
             const _RWSTD_SIZE_T __mask =
-                _RWSTD_STATIC_CAST(_RWSTD_SIZE_T, 1UL) << __k;
+                _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, 1UL) << __k;
 
             if (__bits & __mask) {
                 // `name' is still in the set, see if the next char matches
