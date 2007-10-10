@@ -2254,6 +2254,8 @@ test_errno ()
                      "rw_sprintfa(\"%%m\") == \"%s\", got \"%s\" for "
                      "errno=%d", expect, result, i);
         }
+
+        free (result);
     }
 
     //////////////////////////////////////////////////////////////////
