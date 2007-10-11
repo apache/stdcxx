@@ -24,8 +24,11 @@
 
 #include "config.h"
 
-#ifndef _RWSTD_NO_WCHAR_H
-#  include <wchar.h>
-#endif   // _RWSTD_NO_WCHAR_H
+#ifdef _RWSTD_NO_NATIVE_WCHAR_T
+#  ifndef _RWSTD_NO_WCHAR_H
+#    include <wchar.h>
+#  endif   // _RWSTD_NO_WCHAR_H
+#endif   // _RWSTD_NO_NATIVE_WCHAR_T
+
 
 wchar_t c = L'\0';
