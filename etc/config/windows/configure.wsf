@@ -72,7 +72,6 @@ var configFileName = "config.h";
 var configFile = configTargerDir + "\\" + configFileName;
 var stageFile = stageDir + "\\" + configFileName;
 var srcDir = slnDir + "\\etc\\config\\src";
-var includeDir = slnDir + "\\include";
 var runWindowMode = 0;
 var timeOut = 30000; // 30 sec
 var logFileName = "config.log";
@@ -132,18 +131,6 @@ function configure()
             WScript.StdErr.WriteLine(
                 "Configure: Fatal error: Unable to read sources folder "
                 + srcDir);
-            WScript.Quit(2);
-        }
-    }
-        
-    if (WScript.Arguments.Named.Exists("IncludeDir"))
-    {
-        includeDir = WScript.Arguments.Named("IncludeDir");
-        if (!fso.FolderExists(includeDir))
-        {
-            WScript.StdErr.WriteLine(
-                "Configure: Fatal error: Unable to read includes folder "
-                + includeDir);
             WScript.Quit(2);
         }
     }
@@ -257,7 +244,7 @@ function configure()
         LDFLAGS += " /DEBUG";
     }
 
-    CPPFLAGS += joinArray(new Array(stageDir, includeDir), "/I");
+    CPPFLAGS += " /I\"" + stageDir + "\"";
     
     var defines = new Array ();
     
