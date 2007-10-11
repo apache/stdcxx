@@ -49,6 +49,9 @@ int main ()
     std::cout << "Full text, " << inout.pcount ()
               << " characters:\n" << inout.str ();
 
+    // unfreeze the streambuf so it cleans up its allocated memory 
+    inout.freeze (false);
+
     // keep track of the number of characters extracted by getline
     int gcount = 0;
 
