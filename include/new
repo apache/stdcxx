@@ -145,10 +145,10 @@ public:
     // prevent ld error when replacing operator new:
     // multiple definition of `operator new(unsigned long)'
 
+    ~bad_alloc () _THROWS (());
+
     // 18.4.2.1, p5
     virtual const char* what () const  _THROWS (());
-
-    ~bad_alloc () _THROWS (());
 
 #endif   // Intel C++ > 8.0
 
