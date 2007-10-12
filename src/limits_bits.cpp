@@ -150,6 +150,8 @@ __rw_ldbl_denorm_min = { _RWSTD_LDBL_DENORM_MIN_BITS };
 
 #else   // if defined (_RWSTD_NO_INFINITY)
 
+extern "C" {
+
 // as the last resort compute values at dynamic initialization time
 _RWSTD_EXPORT extern const float __rw_flt_infinity =
 
@@ -221,6 +223,9 @@ _RWSTD_EXPORT extern const long double __rw_ldbl_sNaN = __rw_dbl_sNaN;
 _RWSTD_EXPORT extern const long double __rw_ldbl_denorm_min = 0;
 
 #  endif   // _RWSTD_NO_LONG_DOUBLE
+
+}   // extern "C"
+
 
 #endif   // _RWSTD_NO_INFINITY
 
