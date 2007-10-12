@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * support.cpp - definition of support functions and objects
+ * file.cpp - definition of file I/O helper functions
  *
  * $Id$
  *
@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2005 Rogue Wave Software.
+ * Copyright 2002-2005, 2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -85,7 +85,8 @@ _RWSTD_DLLIMPORT int mkstemp (char*);
 #endif   // _RWSTD_NO_MKSTEMP[_IN_LIBC]
 
 
-#if defined (_RWSTD_NO_FILENO) && !defined (_RWSTD_NO_FILENO_IN_LIBC)
+#if     defined (_RWSTD_NO_FILENO) && !defined (_RWSTD_NO_FILENO_IN_LIBC) \
+    || !defined (_RWSTD_NO_PURE_C_HEADERS)
 
 // declare fileno in case it's not declared (for strict ANSI conformance)
 extern "C" {
@@ -96,7 +97,7 @@ _RWSTD_DLLIMPORT int (fileno)(FILE*) _LIBC_THROWS ();
 
 }   // extern "C"
 
-#endif   // _RWSTD_NO_FILENO && !_RWSTD_NO_FILENO_IN_LIBC
+#endif   // _NO_FILENO && !_NO_FILENO_IN_LIBC || !_NO_PURE_C_HEADERS
 
 
 _RWSTD_NAMESPACE (__rw) {
