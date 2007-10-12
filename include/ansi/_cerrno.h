@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 2005-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -40,18 +40,12 @@ _RWSTD_NAMESPACE (std) {
 
 extern "C" {
 
-extern int errno;
-
 extern int* __errno_location ();
 
 
-#ifdef _RWSTD_REENTRANT
-   // 17.4.1.2, p5 - errno may be a macro
-   // lwg issue 310 - errno must be a macro
-#  define errno (*_STD::__errno_location ())
-#else   // if !defined (_RWSTD_REENTRANT)
-#  define errno _STD::errno
-#endif   // _RWSTD_REENTRANT
+ // 17.4.1.2, p5 - errno may be a macro
+ // lwg issue 310 - errno must be a macro
+#define errno (*_STD::__errno_location ())
 
 
 #define EDOM     33
