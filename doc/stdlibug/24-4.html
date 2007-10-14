@@ -42,7 +42,7 @@ class locale {
 <TR VALIGN="top"><TD><SAMP>//1</SAMP></TD><TD>You can create a locale object from a C locale's external representation. The constructor <SAMP>std::locale::locale(const char* std_name)</SAMP> takes the name of a C locale. This locale name is like the one you would use for a call to the C library function <SAMP>setlocale()</SAMP>.
 <TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>You can also use a predefined locale object, returned by <SAMP>std::locale::classic()</SAMP>, which represents the US English ASCII environment.
 </TABLE>
-<P>For a comprehensive description of the constructors described above, see the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A>.</P>
+<P>For a comprehensive description of the constructors described above, see the <A HREF="../stdlibref/noframes.html"><I>Apache C++ Standard Library Reference Guide</I></A>.</P>
 <A NAME="idx551"><!></A>
 <P>It's important to understand that locales are immutable objects: once a locale object is created, it cannot be modified. This makes locales reliable and easy to use. As a programmer, you know that whenever you use pointers or references to elements held in a container, you have to worry about the validity of the pointers and references. If the container changes, pointers and references to its elements might not be valid any longer.</P>
 <P>A locale object is a container, too. However, it is an immutable container; that is, it does not change. Therefore, you can take references to a locale's facet objects and pass the references around without worrying about their validity, as long as the locale object or any copy of it remains in existence. The locale object is never modified; no facets can be silently replaced.</P>
@@ -65,7 +65,7 @@ public:
 std::locale loc(std::locale::classic(),
                 std::locale("De_DE"), LC_NUMERIC);
 </PRE></UL>
-<P>For a comprehensive description of the constructors described above, see the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A>.</P>
+<P>For a comprehensive description of the constructors described above, see the <A HREF="../stdlibref/noframes.html"><I>Apache C++ Standard Library Reference Guide</I></A>.</P>
 <A NAME="idx554"><!></A>
 <P>Copying a locale object is a cheap operation. You should have no hesitation about passing locale objects around by value. You may copy locale objects for composing new locale objects; you may pass copies of locale objects as arguments to functions, etc. </P>
 <A NAME="idx555"><!></A>
