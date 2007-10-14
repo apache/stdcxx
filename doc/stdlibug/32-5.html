@@ -33,7 +33,7 @@
 <P>However, the more general question here is: What are inserters and extractors supposed to do? Some recommendations follow.</P>
 <P><B><I>Regarding </I></B><B>format flags</B><B><I>, inserters and extractors should:</I></B></P>
 <UL>
-<LI><P CLASS="LIST">Create a sentry object right at the beginning of every inserter and extractor. In its constructor and destructor, the sentry performs certain standard tasks, like skipping white characters, flushing tied streams, etc. See the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A> for a detailed explanation.</P></LI>
+<LI><P CLASS="LIST">Create a sentry object right at the beginning of every inserter and extractor. In its constructor and destructor, the sentry performs certain standard tasks, like skipping white characters, flushing tied streams, etc. See the <A HREF="../stdlibref/noframes.html"><I>Apache C++ Standard Library Reference Guide</I></A> for a detailed explanation.</P></LI>
 <LI><P CLASS="LIST">Reset the width after each usage.</P></LI>
 </UL>
 <P><B><I>Regarding </I></B><B>state bits</B><B><I>, inserters and extractors should:</I></B></P>
