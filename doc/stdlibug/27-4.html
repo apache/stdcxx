@@ -40,7 +40,7 @@
 
 <P><IMG SRC="images/stdlibug-IOStreams7.gif" WIDTH=592 HEIGHT=499></P>
 <A NAME="idx645"><!></A>
-<P>You may notice that the classes <B><I><A HREF="../stdlibref/strstream.html">strstream</A></I></B>, <B><I><A HREF="../stdlibref/istrstream.html">istrstream</A></I></B>, and <B><I><A HREF="../stdlibref/ostrstream.html">ostrstream</A></I></B> are not included in this diagram, even though we describe them in the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A>. Sometimes called <I>deprecated features</I> in the standard, these classes are provided solely for the sake of compatibility with the traditional iostreams, and will not be supported in future versions of the standard iostreams. </P>
+<P>You may notice that the classes <B><I><A HREF="../stdlibref/strstream.html">strstream</A></I></B>, <B><I><A HREF="../stdlibref/istrstream.html">istrstream</A></I></B>, and <B><I><A HREF="../stdlibref/ostrstream.html">ostrstream</A></I></B> are not included in this diagram, even though we describe them in the <A HREF="../stdlibref/noframes.html"><I>Apache C++ Standard Library Reference Guide</I></A>. Sometimes called <I>deprecated features</I> in the standard, these classes are provided solely for the sake of compatibility with the traditional iostreams, and will not be supported in future versions of the standard iostreams. </P>
 <P>In the next sections, we discuss in more detail the components and characteristics of the components that are included in the class hierarchy given in <A HREF="27-4.html#Figure&nbsp;23">Figure&nbsp;23</A>.</P>
 <A NAME="idx646"><!></A>
 <A NAME="2741-1"><H4>27.4.1.1 Iostreams Base Class ios_base</H4></A>
@@ -83,7 +83,7 @@ basic_ios;
 <A NAME="idx656"><!></A>
 <LI><P CLASS="LIST"><B>The equality of two characters</B>. For an exotic user-defined character type, the equality of two characters might mean something different from just bit-wise equality. Here you can define it.</P></LI>
 </UL>
-<P>A complete list of character traits is given in the <I>C++ Standard Library Module Reference Guide</I> entry for <SAMP>char_traits</SAMP>.</P>
+<P>A complete list of character traits is given in the <I>Apache C++ Standard Library Reference Guide</I> entry for <SAMP>char_traits</SAMP>.</P>
 <P>There are specializations defined for type <SAMP>char</SAMP> and <SAMP>wchar_t</SAMP>. In general, this class template is not meant to be explicitly instantiated for a user-defined character type. You should always define class template specializations.</P>
 <P>Fortunately, the C++ Standard Library is designed to make the most common cases the easiest. The traits template parameter has a sensible default value, so usually you need not bother with character traits at all.</P>
 <A NAME="idx657"><!></A>

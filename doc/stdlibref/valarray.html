@@ -857,34 +857,50 @@ template &lt;class T&gt; valarray&lt;T&gt;
 //  valarray.cpp
 //
 
-#include &lt;valarray.h&gt;   // for valarray stream inserter
-#include &lt;iostream&gt;     // for cout, endl
+#include &lt;cstddef&gt;      // for size_t
+#include &lt;iostream&gt;     // for cout
+#include &lt;valarray&gt;     // for valarray
+
+#include &lt;examples.h&gt;
+
+
+template &lt;class T&gt; 
+inline std::ostream&
+operator&lt;&lt; (std::ostream &amp;out, const std::valarray&lt;T&gt; &amp;v)
+{
+    out &lt;&lt; '[';
+
+    for (std::size_t i = 0; i &lt; v.size (); ++i) {
+        out &lt;&lt; v [i];
+        if (i &lt; v.size () - 1)
+            out &lt;&lt; ',';
+    }
+
+    return out &lt;&lt; ']';
+}
+
 
 int main ()
 {
-  const int ibuf[]  = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };  
-  const int ibuf2[] = { 10, 11, 12, 13, 14, 
-                        15, 16, 17, 18, 19 };
+    const int ibuf[]  = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };  
+    const int ibuf2[] = { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 };  
 
-  // create 2 valarrays of ints
-  std::valarray&lt;int&gt; vi (ibuf, sizeof ibuf / sizeof *ibuf);
-  std::valarray&lt;int&gt; vi2 (ibuf2, sizeof ibuf2 / sizeof *ibuf2);
+    // create 2 valarrays of ints
+    std::valarray&lt;int&gt; vi (ibuf, sizeof ibuf / sizeof *ibuf);
+    std::valarray&lt;int&gt; vi2 (ibuf2, sizeof ibuf2 / sizeof *ibuf2);
 
-  // print them out
-  std::cout &lt;&lt; vi  &lt;&lt; std::endl 
-            &lt;&lt; vi2 &lt;&lt; std::endl;
+    // print them out
+    std::cout &lt;&lt; vi &lt;&lt; '\n' &lt;&lt; vi2 &lt;&lt; '\n';
 
-  vi += vi2;
-  vi2 *= 2;
+    vi += vi2;
+    vi2 *= 2;
 
-  std::valarray&lt;int&gt; vi3 = vi2 % vi;
+    std::valarray&lt;int&gt; vi3 = vi2 % vi;
 
-  // print them out again
-  std::cout &lt;&lt; vi  &lt;&lt; std::endl 
-            &lt;&lt; vi2 &lt;&lt; std::endl 
-            &lt;&lt; vi3 &lt;&lt; std::endl;
+    // print them out again
+    std::cout &lt;&lt; vi &lt;&lt; '\n' &lt;&lt; vi2 &lt;&lt; '\n' &lt;&lt; vi3 &lt;< '\n';
 
-  return 0;
+    return 0;
 }
 
 
