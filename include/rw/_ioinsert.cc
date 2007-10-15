@@ -170,7 +170,7 @@ __rw_insert (_STD::basic_ostream<_CharT, _Traits> &__strm,
             else {
                 __err = _STD::ios_base::badbit;
 
-#ifndef _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
+#ifdef _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
                 __strm.width (0);
 #endif   // _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
             }
