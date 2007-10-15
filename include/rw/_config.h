@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -59,8 +59,8 @@
 // release number. Libraries whose major release numbers differ may
 // or may not be source compatible.
 // Two libraries are Binary Compatible (symbol-wise and functionally)
-// if have the same major and minor release numbers. Libraries whose
-// major and minor release numbers differ may or may not be binary
+// if they have the same major and minor release numbers. Libraries
+// whose major and minor release numbers differ may or may not be binary
 // compatible.
 
 /**************************************************************************
