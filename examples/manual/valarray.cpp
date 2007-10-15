@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * valarray.cpp -- Valarray examples 
+ * valarray.cpp -- valarray example
  *
  * $Id$
  *
@@ -22,12 +22,32 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
-#include <valarray.h>   // for valarray stream inserter
-#include <iostream>     // for cout, endl
+#include <cstddef>      // for size_t
+#include <iostream>     // for cout
+#include <valarray>     // for valarray
+
+#include <examples.h>
+
+
+template <class T> 
+inline std::ostream&
+operator<< (std::ostream &out, const std::valarray<T> &v)
+{
+    out << '[';
+
+    for (std::size_t i = 0; i < v.size (); ++i) {
+        out << v [i];
+        if (i < v.size () - 1)
+            out << ',';
+    }
+
+    return out << ']';
+}
+
 
 int main ()
 {
@@ -39,7 +59,7 @@ int main ()
     std::valarray<int> vi2 (ibuf2, sizeof ibuf2 / sizeof *ibuf2);
 
     // print them out
-    std::cout << vi << std::endl << vi2 << std::endl;
+    std::cout << vi << '\n' << vi2 << '\n';
 
     vi += vi2;
     vi2 *= 2;
@@ -47,7 +67,7 @@ int main ()
     std::valarray<int> vi3 = vi2 % vi;
 
     // print them out again
-    std::cout << vi << std::endl << vi2 << std::endl << vi3 << std::endl;
+    std::cout << vi << '\n' << vi2 << '\n' << vi3 << '\n';
 
     return 0;
 }
