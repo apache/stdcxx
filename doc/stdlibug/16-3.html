@@ -104,7 +104,7 @@ namespace my_namespace {
     iterator end() { return current_end; } 
   };
 </PRE></UL>
-<P>Given this class interface, here's a definition of a possible constructor that uses the allocator. The numbered comments following this code briefly describe the allocator's role. For a more thorough treatment of allocators, see <A HREF="15.html">Chapter&nbsp;15</A> and the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A> entry for allocators.</P>
+<P>Given this class interface, here's a definition of a possible constructor that uses the allocator. The numbered comments following this code briefly describe the allocator's role. For a more thorough treatment of allocators, see <A HREF="15.html">Chapter&nbsp;15</A> and the <A HREF="../stdlibref/noframes.html"><I>Apache C++ Standard Library Reference Guide</I></A> entry for allocators.</P>
 
 <UL><PRE>
   template &lt;class T, class Allocator&gt;
@@ -141,7 +141,7 @@ namespace my_namespace {
 </TABLE>
 <A NAME="1633"><H3>16.3.3 Iterator Requirements</H3></A>
 <A NAME="idx407"><!></A>
-<P>Every container must define an iterator type. Iterators allow algorithms to iterate over the container's contents. Although iterators can range from simple to very complex, it is not the complexity but the<I> iterator category</I> that most affects an algorithm. The iterator category describes capabilities of the iterator, such as which direction it can traverse. <A HREF="16-4.html">Section&nbsp;16.4</A> and the iterator entries in the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A> provide additional information about iterator categories.</P>
+<P>Every container must define an iterator type. Iterators allow algorithms to iterate over the container's contents. Although iterators can range from simple to very complex, it is not the complexity but the<I> iterator category</I> that most affects an algorithm. The iterator category describes capabilities of the iterator, such as which direction it can traverse. <A HREF="16-4.html">Section&nbsp;16.4</A> and the iterator entries in the <A HREF="../stdlibref/noframes.html"><I>Apache C++ Standard Library Reference Guide</I></A> provide additional information about iterator categories.</P>
 <P>The example in <A HREF="16-3.html#1632">Section&nbsp;16.3.2</A> shows the implementation of a container that uses a simple pointer. A simple pointer is actually an example of the most powerful type of iterator: the <I>random access iterator</I>. If an iterator supports random access, we can add to or subtract from it as easily as we can increment it.</P>
 <P>Some iterators have much less capability. For example, consider an iterator attached to a singly-linked <I>list</I>. Since each node in the <B><I><A HREF="../stdlibref/list.html">list</A></I></B> has links leading forward only, a naive iterator can advance through the container in only one direction. An iterator with this limitation falls into the category of forward iterator. </P>
 <P>Certain member functions such as <SAMP>begin()</SAMP> and <SAMP>end()</SAMP> produce iterators for a container. A container's description should always describe the category of iterator that its member functions produce. That way, a user of the container can see immediately which algorithms can operate successfully on the container.</P>

@@ -98,7 +98,7 @@ class change_bool_names
 <TR VALIGN="top"><TD><SAMP>//2</SAMP></TD><TD>The new facet is derived from the <SAMP>std::numpunct_byname&lt;charT&gt;</SAMP> facet.
 <BR><BR>The byname facets read the respective locale information from the external representation of a C locale. The name provided to construct a byname<I> </I>facet is the name of a locale, as you would use it in a call to <SAMP>setlocale()</SAMP>.
 <TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>A constructor is provided that takes a locale name and the new values we want to display for the alpha versions of <SAMP>true</SAMP> and <SAMP>false</SAMP>. The fourth parameter, <SAMP>refs</SAMP>, controls the facet's lifetime, as described in an earlier section.
-<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>The virtual member functions <SAMP>do_truename()</SAMP> and <SAMP>do_falsename()</SAMP> are reimplemented. They are called by the public member functions <SAMP>truename()</SAMP> and <SAMP>falsename()</SAMP>. See the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A> for further details.
+<TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>The virtual member functions <SAMP>do_truename()</SAMP> and <SAMP>do_falsename()</SAMP> are reimplemented. They are called by the public member functions <SAMP>truename()</SAMP> and <SAMP>falsename()</SAMP>. See the <A HREF="../stdlibref/noframes.html"><I>Apache C++ Standard Library Reference Guide</I></A> for further details.
 </TABLE>
 <P>Now let's create a German locale in which the <SAMP>std::numpunct&lt;char&gt;</SAMP> facet has been replaced by an object of our new derived facet type, as shown in <A HREF="25-5.html#Figure&nbsp;11">Figure&nbsp;11</A>:</P>
 <A NAME="idx580"><!></A>

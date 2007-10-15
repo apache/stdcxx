@@ -62,7 +62,7 @@ struct Etraits
   static int_type eof();
 };
 </PRE></UL>
-<P>See the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A> section on <A HREF="../stdlibref/char-traits.html">char_traits</A> for a complete description of the member functions in a traits class.</P>
+<P>See the <A HREF="../stdlibref/noframes.html"><I>Apache C++ Standard Library Reference Guide</I></A> section on <A HREF="../stdlibref/char-traits.html">char_traits</A> for a complete description of the member functions in a traits class.</P>
 <P>To create a new code conversion facet, you must inherit from the <SAMP>std::codecvt</SAMP> template and then override some or all the protected virtual functions. Iostreams calls the protected functions through the public interface defined for <SAMP>std::codecvt</SAMP>. You must also provide a constructor taking a single <SAMP>std::size_t</SAMP> argument, and initialize <SAMP>codecvt</SAMP> with that argument.</P>
 <A NAME="idx969"><!></A>
 <P>A code conversion facet for <SAMP>Echar</SAMP> has a declaration that looks like this:</P>
@@ -97,7 +97,7 @@ class Ecodecvt : public std::codecvt&lt;Echar,char,Estate&gt;
          virtual int do_max_length() const throw();
 };
 </PRE></UL>
-<P>See <A HREF="40.html">Chapter&nbsp;40</A> on defining a code conversion facet for more details. Also see the <A HREF="../stdlibref/noframes.html"><I>C++ Standard Library Module Reference Guide</I></A> section on <A HREF="../stdlibref/codecvt.html">codecvt</A> for a complete description of member functions.</P>
+<P>See <A HREF="40.html">Chapter&nbsp;40</A> on defining a code conversion facet for more details. Also see the <A HREF="../stdlibref/noframes.html"><I>Apache C++ Standard Library Reference Guide</I></A> section on <A HREF="../stdlibref/codecvt.html">codecvt</A> for a complete description of member functions.</P>
 <P>To create a character classification facet, you must inherit from the <SAMP>std::ctype</SAMP> template and provide implementations for all protected virtual functions. You must also provide a constructor taking a single <SAMP>std::size_t</SAMP> argument, and initialize <SAMP>std::ctype</SAMP> with that argument.</P>
 <P>Note that the <SAMP>widen()</SAMP> functions define conversions from simple <SAMP>char</SAMP>s to the user-defined character type, and the narrow function provides conversions from the user-defined type to simple <SAMP>char</SAMP>s.</P>
 <A NAME="idx970"><!></A>
