@@ -2,13 +2,10 @@
 #include <string>
 #include <cassert>
 
-int main ()
+void test (const std::string& str, const std::streamsize width)
 {
-    std::string str ("abcdefghijk");
-
     char buf[10];
     std::ostrstream os (buf, sizeof(buf));
-    const std::streamsize width = 2;
 
     os.width (width);
     os.exceptions (std::ios_base::failbit | std::ios_base::badbit);
@@ -19,6 +16,19 @@ int main ()
     catch (std::ios_base::failure&) {
     }
 
+#ifndef _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE
+    assert (width == os.width ());
+#else
     assert (0 == os.width ());
+#endif
+}
+
+int main ()
+{
+    std::string str ("abcdefghijk");
+
+    test (str, 2);
+    test (str, str.size () + 2);
+
     return 0;
 }
