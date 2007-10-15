@@ -62,12 +62,11 @@ public:
     // 18.6.1, p4
     exception& operator= (const exception&) _THROWS (());
 
-    // 18.6.1, p6
-    virtual ~exception () _THROWS (());
-
     // 18.6.1, p8
     virtual const char* what () const _THROWS (());
 
+    // 18.6.1, p6
+    virtual ~exception () _THROWS (());
 
 #if defined (__INTEL_COMPILER) && !defined (_MSC_VER)
 
@@ -129,10 +128,10 @@ public:
     // 18.6.2.1, p4
     bad_exception& operator= (const bad_exception&) _THROWS (());
 
+    virtual ~bad_exception () _THROWS (());
+
     // 18.6.2.1, p5
     virtual const char* what () const _THROWS (());
-
-    virtual ~bad_exception () _THROWS (());
 };
 
 #if    !defined (_RWSTD_NO_STD_BAD_EXCEPTION) \
