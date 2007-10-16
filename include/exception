@@ -62,11 +62,11 @@ public:
     // 18.6.1, p4
     exception& operator= (const exception&) _THROWS (());
 
-    // 18.6.1, p8
-    virtual const char* what () const _THROWS (());
-
     // 18.6.1, p6
     virtual ~exception () _THROWS (());
+
+    // 18.6.1, p8
+    virtual const char* what () const _THROWS (());
 
 #if defined (__INTEL_COMPILER) && !defined (_MSC_VER)
 
