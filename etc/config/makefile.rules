@@ -67,7 +67,7 @@ listruntarget:
 
 # create a catalog from text message files - see gencat(1)
 $(CATFILE): $(MSGFILES)
-	gencat $@ $^
+	-gencat $@ $^
 
 
 ########################################################################
