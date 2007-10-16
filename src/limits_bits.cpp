@@ -69,11 +69,19 @@ union _LDblBits {
 
 #  endif   // _RWSTD_NO_LONG_DOUBLE
 
+#  ifndef _RWSTD_NO_OBJECT_MANGLING
+
 extern "C" {
 
+#  else   // if defined (_RWSTD_NO_OBJECT_MANGLING)
+
+extern "C++" {
+
+#  endif   // _RWSTD_NO_OBJECT_MANGLING
+
 // The constants below are declared in <limits> but with a different
-// type. C linkage is used to defeat MSVC and other "clever" compilers
-// that mangle the type of objects into their names.
+// type. C linkage is (conditionally) used to defeat MSVC and other
+// "clever" compilers that mangle the type of objects into their names.
 
 // infinity computed at config time
 _RWSTD_EXPORT extern const _DblBits
@@ -146,11 +154,22 @@ __rw_ldbl_denorm_min = { _RWSTD_LDBL_DENORM_MIN_BITS };
 
 #  endif   // _RWSTD_NO_LONG_DOUBLE
 
-}   // extern "C"
+}   // extern "C"/"C++"
+
 
 #else   // if defined (_RWSTD_NO_INFINITY)
 
+
+#  ifndef _RWSTD_NO_OBJECT_MANGLING
+
 extern "C" {
+
+#  else   // if defined (_RWSTD_NO_OBJECT_MANGLING)
+
+extern "C++" {
+
+#  endif   // _RWSTD_NO_OBJECT_MANGLING
+
 
 // as the last resort compute values at dynamic initialization time
 _RWSTD_EXPORT extern const float __rw_flt_infinity =
@@ -224,8 +243,7 @@ _RWSTD_EXPORT extern const long double __rw_ldbl_denorm_min = 0;
 
 #  endif   // _RWSTD_NO_LONG_DOUBLE
 
-}   // extern "C"
-
+}   // extern "C"/"C++"
 
 #endif   // _RWSTD_NO_INFINITY
 
