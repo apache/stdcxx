@@ -84,7 +84,16 @@ _RWSTD_NAMESPACE (__rw) {
 typedef unsigned char UChar;
 
 
+#ifndef _RWSTD_NO_OBJECT_MANGLING
+
 extern "C" {
+
+#else   // if defined (_RWSTD_NO_OBJECT_MANGLING)
+
+extern "C++" {
+
+#endif   // _RWSTD_NO_OBJECT_MANGLING
+
 
 extern const float       __rw_flt_infinity;
 extern const double      __rw_dbl_infinity;
@@ -95,7 +104,7 @@ extern const long double __rw_ldbl_infinity;
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
-}   // extern "C"
+}   // extern "C"/"C++"
 
 
 const char*
