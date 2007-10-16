@@ -69,7 +69,8 @@
 #endif   // _MSC_VER
 
 
-#if defined (_RWSTD_NO_MKSTEMP) && !defined (_RWSTD_NO_MKSTEMP_IN_LIBC)
+#if     defined (_RWSTD_NO_MKSTEMP) && !defined (_RWSTD_NO_MKSTEMP_IN_LIBC) \
+    || !defined (_RWSTD_NO_PURE_C_HEADERS)
 
 extern "C" {
 
@@ -82,7 +83,7 @@ _RWSTD_DLLIMPORT int mkstemp (char*);
 
 #  undef _RWSTD_NO_MKSTEMP
 
-#endif   // _RWSTD_NO_MKSTEMP[_IN_LIBC]
+#endif   // _RWSTD_NO_MKSTEMP[_IN_LIBC] || !_NO_PURE_C_HEADERS
 
 
 #if     defined (_RWSTD_NO_FILENO) && !defined (_RWSTD_NO_FILENO_IN_LIBC) \
