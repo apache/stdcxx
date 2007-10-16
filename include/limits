@@ -88,7 +88,16 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
+#ifndef _RWSTD_NO_OBJECT_MANGLING
+
 extern "C" {
+
+#else   // if defined (_RWSTD_NO_OBJECT_MANGLING)
+
+extern "C++" {
+
+#endif   // _RWSTD_NO_OBJECT_MANGLING
+
 
 _RWSTD_EXPORT extern const float       __rw_flt_infinity;
 _RWSTD_EXPORT extern const double      __rw_dbl_infinity;
@@ -111,7 +120,8 @@ _RWSTD_EXPORT extern const long double __rw_ldbl_denorm_min;
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
-}   // extern "C"
+
+}   // extern "C"/"C++"
 
 }   // namespace __rw
 
