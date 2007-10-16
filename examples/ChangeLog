@@ -1,0 +1,561 @@
+2007-10-14  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-278
+	* valarray.cpp (<valarray.h>): Removed a confusing #include directive
+	and added the definition of a generic operator<<() for valarray copied
+	from the said header.
+	(main): Replaced endl with '\n' for efficiency.
+
+2007-10-04 Travis Vitek <vitek@roguewave.com>
+
+	STDCXX-580
+	* strstream.cpp (main): Unfreeze streambuf so destructor
+	will deallocate memory.
+
+2007-10-01 Farid Zaripov <farid_zaripov@epam.com>
+
+	* Merged the head of branches/4.2.0
+
+2007-09-26  Martin Sebor  <sebor@roguewave.com>
+
+	* ctype.cpp (main): Parenthesized a call to ctype::toupper() to avoid
+	errors when the symbol is shadowed by a macro defined in libc header(s)
+	as happens to be the case with gcc 4 on Darwin.
+
+2007-09-11 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* codecvt1.cpp (main): Added output of the error message
+	in case of exception caught.
+
+2007-08-20 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* dynatype.cpp (copy): applied again changes in r544831 with
+	adding comment in source file (the changes prevents error
+	"invalid static_cast from type `const dynatype' to type `int'"
+	on gcc 3.4.4/Cygwin).
+
+2007-08-20 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* dynatype.cpp (copy): This change was hasty and fixed in r567733
+	(was: reverted unnecessary changes in r544831).
+
+2007-08-13 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-519
+	* fmtflags_manip.cpp (fmtflags_manip): Use value
+	initialization to workaround MSVC 7.1 bug.
+
+2007-08-07  Martin Sebor  <sebor@roguewave.com>
+
+	* graph.cpp: Simplified in an (unsuccessful) effort to eliminate
+	gcc -Winline warnings.
+	(stringVector, graph): Used default template arguments for similicity
+	and renamed to Distances and Cities, respectively.
+	(main): Moved global variables into local scope, changing strings to
+	const char arrays for simplicity and efficiency. Replaced std::endl
+	with '\n' for efficiency.
+
+2007-08-07  Martin Sebor  <sebor@roguewave.com>
+
+	* dynatype.cpp (get): Outlined to silence gcc -Winline warnings.
+	(dynatype, operator=): Same.
+
+2007-06-26 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-462
+	* moneyput.cpp (main): Create named std::locale object instead of unnamed.
+	* num_get.cpp (main): Ditto.
+	* time_get.cpp (main): Ditto.
+
+2007-06-23  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-457
+	* rwstdmessages.h: Updated license statement.
+	* replace.h: Same.
+	* codecvte.h: Same.
+	* examples.h: Same.
+	* valarray.h: Same.
+	* memfunref.h: Same.
+	* alg3.h: Same.
+	* widwork.h: Same.
+	* stocks.h: Same.
+	* teller.h: Same.
+
+2007-06-23  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-457
+	* icecream.cpp: Updated license statement.
+	* graph.cpp: Same.
+	* complx.cpp: Same.
+	* calc.cpp: Same.
+	* stocks.cpp: Same.
+	* radix.cpp: Same.
+	* sieve.cpp: Same.
+	* spell.cpp: Same.
+	* alg1.cpp: Same.
+	* alg2.cpp: Same.
+	* widwork.cpp: Same.
+	* alg3.cpp: Same.
+	* alg4.cpp: Same.
+	* concord.cpp: Same.
+	* teller.cpp: Same.
+	* alg5.cpp: Same.
+	* alg6.cpp: Same.
+	* tele.cpp: Same.
+	* alg7.cpp: Same.
+	* heap_ops.cpp: Same.
+	* toupper.cpp: Same.
+	* rotate.cpp: Same.
+	* map.cpp: Same.
+	* mismatch.cpp: Same.
+	* search.cpp: Same.
+	* find_end.cpp: Same.
+	* includes.cpp: Same.
+	* partial_sort.cpp: Same.
+	* messages.cpp: Same.
+	* transform.cpp: Same.
+	* codecvt1.cpp: Same.
+	* replace.cpp: Same.
+	* partial_sum.cpp: Same.
+	* lex_compare.cpp: Same.
+	* max.cpp: Same.
+	* strstreambuf.cpp: Same.
+	* set_diff.cpp: Same.
+	* fill.cpp: Same.
+	* set_intr.cpp: Same.
+	* setex.cpp: Same.
+	* bitset.cpp: Same.
+	* distance.cpp: Same.
+	* random_shuffle.cpp: Same.
+	* auto_ptr.cpp: Same.
+	* time_get.cpp: Same.
+	* remove.cpp: Same.
+	* has_facet.cpp: Same.
+	* funct_ob.cpp: Same.
+	* slice.cpp: Same.
+	* mutex.cpp: Same.
+	* stringbuf.cpp: Same.
+	* stack.cpp: Same.
+	* string.cpp: Same.
+	* complex.cpp: Same.
+	* ul_bound.cpp: Same.
+	* isalnum.cpp: Same.
+	* swap.cpp: Same.
+	* ifstream.cpp: Same.
+	* istreambuf_iterator.cpp: Same.
+	* valarray.cpp: Same.
+	* ostreambuf_iterator.cpp: Same.
+	* collate.cpp: Same.
+	* adj_diff.cpp: Same.
+	* count.cpp: Same.
+	* multimap.cpp: Same.
+	* negator.cpp: Same.
+	* multiset.cpp: Same.
+	* pnt2fnct.cpp: Same.
+	* indirect_array.cpp: Same.
+	* locale.cpp: Same.
+	* moneypunct.cpp: Same.
+	* wostream.cpp: Same.
+	* advance.cpp: Same.
+	* vector.cpp: Same.
+	* deque.cpp: Same.
+	* accumulate.cpp: Same.
+	* equal.cpp: Same.
+	* copyex.cpp: Same.
+	* list.cpp: Same.
+	* reverse.cpp: Same.
+	* num_get.cpp: Same.
+	* permutation.cpp: Same.
+	* find.cpp: Same.
+	* moneyput.cpp: Same.
+	* ctype.cpp: Same.
+	* queue.cpp: Same.
+	* strstream.cpp: Same.
+	* max_elem.cpp: Same.
+	* sort.cpp: Same.
+	* mask_array.cpp: Same.
+	* num_put.cpp: Same.
+	* istringstream.cpp: Same.
+	* generate.cpp: Same.
+	* slice_array.cpp: Same.
+	* nthelem.cpp: Same.
+	* gslice_array.cpp: Same.
+	* istrstream.cpp: Same.
+	* rwexcept.cpp: Same.
+	* fstream.cpp: Same.
+	* set_union.cpp: Same.
+	* for_each.cpp: Same.
+	* unique.cpp: Same.
+	* gslice.cpp: Same.
+	* use_facet.cpp: Same.
+	* filebuf.cpp: Same.
+	* memfunref.cpp: Same.
+	* istream1.cpp: Same.
+	* binders.cpp: Same.
+	* stream_iterator.cpp: Same.
+	* wstringstream.cpp: Same.
+	* memfunc.cpp: Same.
+	* find_first_of.cpp: Same.
+	* equal_range.cpp: Same.
+	* inner_product.cpp: Same.
+	* insert_iterator.cpp: Same.
+	* priority_queue.cpp: Same.
+	* partition.cpp: Same.
+	* set_sym_diff.cpp: Same.
+
+2007-06-22 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-454
+	* _error.h: Added declaration of the __rw_free_what_buf.
+	* exception.cpp (__rw_free_what_buf): Added _RWSTD_EXPORT to prototype.
+	Added assertion on __rw_what_refcnt value.
+	(_C_assign): If whatstr == __rw_what_buf, just reuse it without allocation
+	of the new buffer.
+	* rwexcept.cpp: Use __rw_free_what_buf() instead of delete[].
+
+2007-06-21 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* rwstdmessages.cpp (_rw_messages_version): Added missing '}'.
+	* rwstdmessages.dll: Updated to valid WIN32 dll file.
+
+2007-06-21 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* time_manip.in: New input file for the time_manip.cpp example.
+
+2007-06-13 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* money_manip.in: New input file for the money_manip.cpp example.
+
+2007-06-13 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* dynatype.out: Corrected example expected output.
+
+2007-06-13 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* except.out: Renamed...
+	* failure.out: ...to this (see http://svn.apache.org/viewvc?view=rev&rev=544238).
+	* insert_wchar.out: Added svn:eol-style=native property. Removed svn:keywords property.
+	* mbsrtowcs.out: Ditto.
+	* fmtflags_manip.out: Ditto.
+	* wstringstream.out: Ditto.
+
+2007-06-12 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* dynatype.out: Added svn:eol-style=native property.
+
+2007-06-11  Martin Sebor  <sebor@roguewave.com>
+
+	* money_manip.cpp (main): Corrected a trivial typo in a comment.
+
+2007-06-09  Martin Sebor  <sebor@roguewave.com>
+
+	* dynatype.out: Expected output of tutorial/dynatype.cpp.
+
+2007-06-06 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* dynatype.cpp (copy): static_cast to const T& instead of T
+	to avoid error on gcc 3.4.4/Cygwin: invalid static_cast from
+	type `const dynatype' to type `int'.
+
+2007-06-05  Martin Sebor  <sebor@roguewave.com>
+
+	* insert_wchar.cpp (main): Parenthesized a call to isalnum() to prevent
+	macro expension in case the function happens to be (illegally) shadowed
+	by a macro.
+
+2007-06-04  Martin Sebor  <sebor@roguewave.com>
+
+	* stdexcept.cpp: Removed output file (exact output depends on
+	the compiler and on the location of stdcxx headers).
+
+2007-06-04  Martin Sebor  <sebor@roguewave.com>
+
+	* exceptn.cpp: Moved...
+	* stdexcept.cpp: ...to this.
+
+2007-06-04  Martin Sebor  <sebor@roguewave.com>
+
+	* exceptn.cpp: Renamed...
+	* failure.cpp: ...to this.
+
+2007-05-29 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-378
+	* dynatype.cpp: Restored dynatype::operator T&(); dynatype::operator T() const
+	renamed to dynatype::operator const T&() const.
+
+2007-05-25  Martin Sebor  <sebor@roguewave.com>
+
+	* fmtflags_manip.cpp: New example program demonstrating
+	an implementation of a user-defined manipulator for convenient
+	and exception-safe setting and restoring of stream formatting
+	flags. Prompted by the following Usenet thread:
+	http://groups.google.com/group/comp.lang.c++/browse_frm/thread/acfa77336a6137cd/50e116d0a0c889ad
+	* fmtflags_manip.out: Expected example output.
+
+2007-05-25 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-378
+	* dynatype.cpp: Removed dynatype::operator T&() to resolve
+	ambiguity between user defined conversions on MSVC.
+
+2007-05-25 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* dynatype.cpp: Updated copyright notice;
+	(main): Fixed missprint (v1 replaced with v3).
+
+2007-05-22  Martin Sebor  <sebor@roguewave.com>
+
+	* mbsrtowcs.cpp (main): Corrected typo in hardcoded input.
+	* mbsrtowcs.out: Corrected typos in expected output.
+
+2007-05-21  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-296
+	* insert_wchar.cpp: New example program demonstrating an implementation
+	of an inserter operator overloaded for arrays of wchar_t that performs
+	codeset conversion from arrays of wchar_t to mutlibyte characters.
+	* insert_wchar.out: Expected output of the example program.
+
+2007-05-16  Martin Sebor  <sebor@roguewave.com>
+
+	* mbsrtowcs.cpp: NUL-terminated destination sequence before
+	writing it out to stdout.
+
+2007-05-12  Martin Sebor  <sebor@roguewave.com>
+
+	* money_get.cpp (main): Removed a redundant template argument
+	for brevity and introduced a typedef for better readability.
+
+2007-05-12  Martin Sebor  <sebor@roguewave.com>
+
+	* money_get.cpp: Made example more interesting by using thousands
+	separators and more decimal places than two in input, and by making
+	it possible to specify all parameters on the command line.
+	Simplified the invocation of money_get::get() by taking advantage
+	of the implicit conversion from ios to istreambuf_iterator.
+	* money_get.out: Adjusted to match the above changes.
+
+2007-05-12  Martin Sebor  <sebor@roguewave.com>
+
+	* moneyget.out: Renamed...
+	* money_get.out: ...to this to complete rev 537480.
+
+2007-05-12  Martin Sebor  <sebor@roguewave.com>
+
+	* moneyget.cpp: Renamed...
+	* money_get.cpp: ...to this to match the name of the facet
+	and (as closely as reasonable) the documentation page in
+	the Class Reference.
+
+2007-05-05  Martin Sebor  <sebor@roguewave.com>
+
+	* mbsrtowcs.cpp: New example program to demonstrate an implementation
+	of the C Standard Library function mbsrtowcs() in terms of the C++
+	Standard Library codecvt facet precipitated by the Usenet thread:
+	http://groups.google.com/group/comp.lang.c++/browse_thread/thread/85ffe366e1d65734
+	* mbsrtowcs.out: Expected output of the example program.
+
+2007-04-30  Martin Sebor  <sebor@roguewave.com>
+
+	* codecvt.cpp (main): Zero-initialized mbstate_t variable
+	before passing it to codecvt::in() and codecvt::out().
+	Replaced std::endl with '\n' for efficiency.
+
+2007-03-07  Martin Sebor  <sebor@roguewave.com>
+
+	* wstringstream.out: Added a missing example output file.
+
+2007-03-07  Martin Sebor  <sebor@roguewave.com>
+
+	* time_put.cpp (main): Silenced the bogus HP aCC Warning 578: A class
+	member may not be a const array since there is no way to initialize
+	such a member (see STDCXX-347).
+
+2007-02-27  Martin Sebor  <sebor@roguewave.com>
+
+	* time_put.cpp: Added descriptions of ordinary (unmodified) conversion
+	specifiers and printed out the "base" format specifier string for %c,
+	%r, %x, and %X. Changed the date to demonstrate the formatting of %e
+	formats (space followed by a digit for single-digit days of month).
+	Treated the first command line argument as the name of the locale to
+	format output in (including "" for the locale specified by the
+	environment).
+	* time_put.out: Adjusted accordingly.
+
+2007-02-11  Martin Sebor  <sebor@apache.org>
+
+	* exception.cpp: Updated copyright notice.
+
+2007-02-11  Martin Sebor  <sebor@apache.org>
+
+	* except.cpp: Renamed...
+	* exception.cpp: ...to this.
+
+2007-01-11  Martin Sebor  <sebor@roguewave.com>
+
+	* numpunct.cpp (make_german_locale): Corrected a logic error
+	introduced in revision 431272.
+
+2007-01-11  Martin Sebor  <sebor@roguewave.com>
+
+	* limits.cpp (operator<<): New overload for std::float_denorm_style.
+	(print_limits): Called it for numeric_limits<T>::has_denorm.
+	* limits.out: Adjusted accordingly.
+
+2006-10-03 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* time_get.cpp: File renamed ...
+	* time_get.out: ... to this.
+
+2006-10-03 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	Set svn:eol-style property.
+
+2006-09-10  Martin Sebor  <sebor@roguewave.com>
+
+	* time_manip.cpp (time_get_manip. time_put_manip): Rewrote
+	operator() to demonstrate necessary exception handling.
+
+2006-09-10  Martin Sebor  <sebor@roguewave.com>
+
+	* money_manip.cpp: Updated copyright.
+	* time_manip.cpp: Same.
+
+2006-08-13  Martin Sebor  <sebor@roguewave.com>
+
+	* numpunct.cpp (make_german_locale): New helper function.
+	(main): Called it instead of using a hardcoded locale name for each
+	known operating system (apparently the names that used to be valid
+	on Tru64 UNIX no longer is in 5.1).
+
+2006-08-08  Martin Sebor  <sebor@roguewave.com>
+
+	* ostream1.cpp: Renamed...
+	* ostream.cpp: ...to this.
+	* ostream1.out: Renamed...
+	* ostream.out: ...to this.
+
+2006-08-08  Martin Sebor  <sebor@roguewave.com>
+
+	* ostream1.cpp: Hardcoded 64-bit output for platforms with
+	no 64-bit integer type to prevent comparison failures while
+	testing.
+
+2006-08-08  Martin Sebor  <sebor@roguewave.com>
+
+	* limits.cpp: Added output for numeric_limits<int> and changed
+	format to make it more readable.
+	* limits.out: Same.
+
+2006-06-20  Martin Sebor  <sebor@roguewave.com>
+
+	* reverse_iterator.cpp: Updated copyright.
+
+2006-06-19  Martin Sebor  <sebor@roguewave.com>
+
+	Renamed files for sanity.
+
+2006-03-27  Martin Sebor  <sebor@roguewave.com>
+
+	* merge.cpp: Used '\n' instead of endl.
+	* merge.out: Added terminating newline.
+
+2006-03-06  Martin Sebor  <sebor@roguewave.com>
+
+	* b_search.cpp: Uncomplicated tricky expression to deconfuse
+	the XLC++ 8.0 optimizitor. Introduced convenience typedefs
+	for better readability. Renamed...
+	* binary_search.cpp: ...to this.
+	* b_search.out: Renamed...
+	* binary_search.out: ...to this.
+
+2006-02-12  Martin Sebor  <sebor@roguewave.com>
+
+	* stringstream.cpp: Renamed...
+	* wstringstream.cpp: ...to this.
+
+2006-01-14  Martin Sebor  <sebor@roguewave.com>
+
+	* codecvte.h (<algorithm>): Removed include directive and rewrote
+	the facet without the use of the std::min() function.
+
+2006-01-10  Martin Sebor  <sebor@roguewave.com>
+
+	* codecvt1.cpp (<cwchar>): Included header for mbstate_t.
+
+2006-01-10  Martin Sebor  <sebor@roguewave.com>
+
+	* codecvte.h (<cwchar>): Included header for mbstate_t.
+        (<strstream>, <functional>): Removed #include directives.
+
+2006-01-07  Martin Sebor  <sebor@roguewave.com>
+
+	* codecvt1.cpp: Added a missing #include directive.
+
+2005-12-09  Martin Sebor  <sebor@roguewave.com>
+
+	* list.cpp (operator<<): Added comments.
+	(main): Replaced endl with '\n' for efficiency.
+
+2005-11-17  Martin Sebor  <sebor@roguewave.com>
+
+	* strstream.cpp: Output line numbers and the numbers of extracted
+	characters to make example more interesting.
+	* strstream.out: Changed to match the existing output.
+
+2005-11-11  Martin Sebor  <sebor@roguewave.com>
+
+	* stringstream.cpp: Replaced uses of std::endl with '\n' for efficiency.
+
+2005-11-04  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-63
+	* ostream1.cpp (main): Conditionalized so as not to assume
+	that the long long extension is implemented or enabled.
+
+2005-11-03  Martin Sebor  <sebor@roguewave.com>
+
+	* Set the svn:eol-style property to native.
+
+2005-10-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-53
+	* rwstdmessages.msg: Added a final newline to prevent a gencat error
+	on IRIX: set 2 msg 3: Unexpected quote ().
+
+2005-10-13  Martin Sebor  <sebor@roguewave.com>
+
+	* time_manip.cpp (time_get_manip): Made ctor explicit.
+	(time_put_manip): Same.
+	(get_time): Explicitly invoked the time_get_manip ctor instead
+	of relying on implicit user-defined conversion.
+	(put_time): Same.
+	(main): Added a missing std:: qualification.
+	Improved error message and exited with a non-zero status
+	on error.
+
+2005-10-13  Martin Sebor  <sebor@roguewave.com>
+
+        * money_manip.cpp: New example program demonstrating the implementation
+        of user-defined manipulators (using the std::__rw_smanip template) for
+        the convenient extraction and insertion of monetary values.
+
+2005-10-12  Martin Sebor  <sebor@roguewave.com>
+
+	* time_manip.cpp (put_time): Added a missing template declaration.
+
+2005-10-12  Martin Sebor  <sebor@roguewave.com>
+
+	* time_manip.cpp: New example program demonstrating the implementation
+	of user-defined manipulators (using the std::__rw_smanip template) for
+	the convenient extraction and insertion of std::tm values.
+
+2005-07-26  Martin Sebor  <sebor@roguewave.com>
+
+	Set the svn:keywords property and enabled the expansion
+	of the Id keyword.
+
+2005-07-19  Martin Sebor  <sebor@roguewave.com>
+
+	Initial import of the Rogue Wave C++ Standard library 4.1.2.

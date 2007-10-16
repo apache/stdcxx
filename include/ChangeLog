@@ -1,0 +1,2128 @@
+2007-10-15  Martin Sebor  <sebor@roguewave.com>
+
+	* _config.h: Corrected a typo in a comment and updated the year
+	of copyright.
+
+2007-10-15 Farid Zaripov <farid_zaripov@epam.com>
+
+	STDCXX-206
+	* _ioinsert.cc (__rw_insert): Corrected #ifndef to #ifdef.
+
+2007-10-11  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-590
+	* _cerrno.h [__linux__] (errno): Unconditionally #defined to
+	__errno_location() which is always declared/defined by GNU
+	libc, going as far back as Red Hat Linux 8 (libc 2.2.93).
+
+2007-10-11  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-588
+	* _config-eccp.h (_RWSTD_NO_DEPRECATED_C_HEADERS,
+	_RWSTD_NO_PURE_C_HEADERS): #undef'ined config macros for EDG eccp.
+
+2007-09-26 Martin Sebor <sebor@roguewave.com>
+
+	STDCXX-262
+	* exception (~exception): Declared after what() to prevent gcc 4
+	on Darwin from generating a vtable for the class in exception.o.
+	gcc 3.4.6 on FreeBSD 6.2 has no problem either way.
+	(~bad_exception): Declared before what() to achieve the same
+	effect as above.
+	* new (~bad_alloc): Declared before what() for the same reason.
+
+2007-10-05 Farid Zaripov <farid_zaripov@epam.com>
+
+	* _punct.cc (__rw_match_name): Added missing space character.
+
+2007-10-04 Farid Zaripov <farid_zaripov@epam.com>
+
+	* Merged the head of branches/4.2.0
+
+2007-10-04 Farid Zaripov <farid_zaripov@epam.com>
+
+	* Merged the head of branches/4.2.0
+
+2007-09-26  Farid Zaripov  <farid_zaripov@epam.com>
+
+	* _money_get.cc (_C_get): If no characters available during
+	parsing sign part of the pattern, then set failbit only when
+	positive_sign and negative_sign both are not empty. Else set
+	negative sign if positive_sign is not empty and negative_sign
+	is empty.
+
+2007-09-25  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-315
+	* valarray (atan2): Initialized array elements before assigning
+	to them.
+
+2007-09-25  Dennis Handly <dhandly@cup.hp.com>
+
+	STDCXX-237
+	STDCXX-448
+	* valarray (ind_numb): Returned 0 when the lengths array is empty.
+
+2007-09-24 Travis Vitek <vitek@roguewave.com>
+
+	STDCXX-492
+	* string (operator+=): Replace call to append with push_back
+	for performance.
+	(append): Avoid calling replace() from append if there is
+	sufficient buffer space available for performance.
+	(append): Simplify append overload, move it to header and then
+	inline it.
+	(append): Use _RWSTD_SIZE_T to avoid integer overflow problems
+	that could lead to heap corruption.
+	(push_back): Call replace() instead of append when buffer
+	reallocation required. cleanup. avoid integer overflow problem.
+	* string.cc (append): Moved append overload to header and make
+	it inline. 
+
+2007-09-21  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-570
+	* complex (pow): Removed inline keyword from the declaration
+	of a function template outlined in revision 545847 while fixing
+	STDCXX-447.
+
+2007-09-19  Martin Sebor  <sebor@roguewave.com>
+
+	* _messages.cc (do_close): Qualified argument type to work around
+	a Sun C++ 5.8 (and prior) bug.
+
+2007-09-19 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _messages.h: Reverted changes from r577000 because
+	they are obsolete since r577098.
+	messages.cpp: Ditto.
+
+2007-09-18  Martin Sebor  <sebor@roguewave.com>
+
+	* _messages.h (do_open, do_close): Outlined virtual functions
+	to avoid code bloat due to compiler emitting their definition
+	in every object file where the class is used.
+	* _messages.cc: Same.
+
+2007-09-18 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _mutex.h: Use #pragma intrinsic only on MSVC
+	(ICC doesn't support this #pragma).
+	Use _InterlockedIncrement16() and _InterlockedDecrement16()
+	intrinsic functions only on MSVC (ICC doesn't support them).
+
+2007-09-18 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _messages.h (__rw_cat_open): Declare fnuction as _RWSTD_EXPORT.
+	* _messages.h (__rw_get_message): Ditto.
+	* _messages.h (__rw_get_locale): Ditto.
+	* _messages.h (__rw_cat_close): Ditto.
+	* messages.cpp (__rw_cat_open): Ditto.
+	* messages.cpp (__rw_get_message): Ditto.
+	* messages.cpp (__rw_get_locale): Ditto.
+	* messages.cpp (__rw_cat_close): Ditto.
+
+2007-09-14 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-554
+	* _messages.h (messages): Removed explicit invoking of the messages_base() ctor
+	to avoid buffer overrun due to bad code generation on MSVC 7.1.
+	* _moneypunct.h (moneypunct): Removed explicit invoking of the money_base() ctor
+	to avoid buffer overrun due to bad code generation on MSVC 7.1.
+
+2007-09-12  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-545
+	* vector (vector<bool>::_C_iter): Explicitly defined a copy ctor
+	for the nested class to work around a Sun C++ optimizer (ube) ICE
+	on x86_64.
+
+2007-09-12  Martin Sebor  <sebor@roguewave.com>
+
+	* _localedef.h (__rw_codecvt_t, __rw_ctype_t, __rw_itoutf8,
+	__rw_utf8toucs4,  __rw_mbtowco): Used _RWSTD_UINT8_T instead of plain
+	unsigned char to make the expected width of the data type explicit and
+	for consistency with the other data types.
+
+2007-09-07  Mark Brown  <mbrown@inbox.com>
+
+	STDCXX-493
+	* string (append): Replaced calls to replace() with calls to append()
+	to improve performance.
+
+2007-09-07 Travis Vitek <vitek@roguewave.com>
+
+	STDCXX-436
+	* limits.h (MB_LEN_MAX): Redefine MB_LEN_MAX if the current
+	value is different from the configured value.
+	* climits (MB_LEN_MAX): Ditto.
+
+2007-08-09  Martin Sebor  <sebor@roguewave.com>
+
+	* stdexcept (invalid_argument, length_error, underflow_error,
+	overflow_error, out_of_range): Declared virtual ctors to prevent
+	them from being implicitly defined by the compiler (and to reduce
+	the size of object files compiled from translation units that
+	#include the header). See also change 553643.
+	* invalid_argument.cpp: Defined virtual dtor.
+	* length_error.cpp: Same.
+	* underflow_error.cpp: Same.
+	* overflow_error.cpp: Same.
+	* out_of_range.cpp: Same.
+
+2007-09-06  Martin Sebor  <sebor@roguewave.com>
+
+	* _codecvt.h (codecvt, do_always_noconv, do_encoding, do_max_length):
+	Outlined codecvt<char, char, mbstate_t> ctor and virtual member
+	functions of the codecvt<wchar_t, char, mbstate_t> specialization
+	to reduce the size of objects in which these functions end up getting
+	emitted by most (all?) compilers.
+
+2007-09-06 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* projects.js: Added definitions of the platform dependent files.
+	* i86/atomic.asm: New file with definitions of the __rw_atomic_xxx()
+	functions for Win32 platform.
+	* i86_64/atomic.asm: New file with definitions of the
+	__rw_atomic_xxx() functions for Windows/x64 platform.
+	* _mutex.h: Use new __rw_atomic_xxx() functions if corresponding
+	InterlockedXXX() functions are not present.
+	[_MSC_VER >= 1400]: Use intrinsic InterlockedXXX() functions
+	on MSVC 8 and higher.
+	* once.cpp [_WIN32 && _DLL]: Tell linker to export __atomic_xxx()
+	functions, defined in .asm files.
+
+2007-09-06  Liviu Nicoara  <nicoara@roguewave.com>
+
+	* rw/_traits.h: added cast to unsigned char
+	
+
+2007-09-06  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-234
+	* _iterbase.h (distance): Corrected function signature according
+	to the spec.
+
+2007-08-29  Everton Araujo  <everton.basso@gmail.com>
+	    Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-522
+	* fstream.cc (overflow): Prevented writing junk to file when
+	the argument is EOF and the internal buffer is empty.
+
+2007-08-29 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _config-icc.h: Corrected warning number.
+
+2007-08-28 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-515
+	* sstream.cc (xsputn): Correct write position after growing the buffer.
+
+2007-08-28 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _mutex.h [__ia64 || __x86_64]: Define set of __rw_atomic_xxx()
+	functions for types _RWSTD_LONG_LONG and unsigned _RWSTD_LONG_LONG.
+
+2007-08-13 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _defs.h: Quote assert.h and setjmp.h pathnames
+	in order to prevent the corresponding macro
+	expanding in the #include directive.
+
+2007-08-10 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _mutex.h (__rw_atomic_preincrement) [_WIN32]: Cast __x to int& instead of long&
+	to use InterlockedIncrement() optimized function instead of generic one using
+	critical sections.
+
+2007-08-09 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-514
+	* sstream.cc (str): Take ownership of the allocated buffer a bit
+	later to avoid deallocation of the external buffer.
+
+2007-08-09 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-513
+	* csetjmp: #define setjmp macro if it's not #defined.
+
+2007-08-09  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-509
+	* limits (__rw_flt_denorm_min, __rw_flt_infinity, __rw_flt_qNaN,
+	__rw_flt_sNaN, __rw_dbl_denorm_min, __rw_dbl_infinity, __rw_dbl_qNaN,
+	__rw_dbl_sNaN, __rw_ldbl_denorm_min, __rw_ldbl_infinity, __rw_ldbl_qNaN,
+	__rw_ldbl_sNaN): Declared floating point constants with "C" language
+	linkage to prevent "clever" compilers such as MSVC from mangling their
+	type into their names and to permit them to be defined with different
+	types.
+	* limits_bits.cpp (__rw_flt_denorm_min, __rw_flt_infinity,
+	__rw_flt_qNaN, __rw_flt_sNaN, __rw_dbl_denorm_min, __rw_dbl_infinity,
+	__rw_dbl_qNaN, __rw_dbl_sNaN, __rw_ldbl_denorm_min, __rw_ldbl_infinity,
+	__rw_ldbl_qNaN, __rw_ldbl_sNaN): Defined as statically (i.e., at load
+	time as opposed to dynamically, at runtime) initialized unions, backed
+	by the appropriate byte patterns, with "C" language linkage to permit
+	the defintions to have a different type than the declarations.
+	(__rw_flt_denorm_min_bits, __rw_flt_infinity_bits, __rw_flt_qNaN_bits,
+	__rw_flt_sNaN_bits, __rw_dbl_denorm_min_bits, __rw_dbl_infinity_bits,
+	__rw_dbl_qNaN_bits, __rw_dbl_sNaN_bits, __rw_ldbl_denorm_min_bits,
+	__rw_ldbl_infinity_bits, __rw_ldbl_qNaN_bits,  __rw_ldbl_sNaN_bits):
+	Removed.
+
+2007-08-08  Martin Sebor  <sebor@roguewave.com>
+
+	* limits (_RWSTD_FLT_SNAN, _RWSTD_DBL_SNAN, _RWSTD_LDBL_SNAN):
+	Removed macro vestiges.
+	(__rw_flt_sNaN, __rw_dbl_sNaN, __rw_ldbl_sNaN): Declared
+	unconditionally.
+
+2007-08-08  Martin Sebor  <sebor@roguewave.com>
+
+	* limits (_RWSTD_FLT_INFINITY, _RWSTD_FLT_QNAN, _RWSTD_FLT_SNAN,
+	_RWSTD_FLT_DENORM_MIN): Removed macro definitions and replaced
+	their uses with the actual symbols).
+	(_RWSTD_DBL_INFINITY, _RWSTD_DBL_QNAN, _RWSTD_DBL_SNAN,
+	_RWSTD_DBL_DENORM_MIN, _RWSTD_LDBL_INFINITY, _RWSTD_LDBL_QNAN,
+	_RWSTD_LDBL_SNAN, _RWSTD_LDBL_DENORM_MIN): Same.
+
+2007-08-07  Martin Sebor  <sebor@roguewave.com>
+
+	* vector.cc (__rw_insert_range): Used predecrement even with pointers
+	instead of preincrement for efficiency when pointer is a user-defined
+	type.
+
+2007-08-03  Mark Brown  <mark.g.brown@gmail.com>
+	    Farid Zaripov  <faridz@apache.org>
+
+	STDCXX-491
+	* string (push_back): Moved definition outside the basic_string class
+	template and optimized so as to call append() only when reallocation
+	is necessary.
+
+2007-07-27 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* cwchar: _RWSTD_NO_TM replaced with _RWSTD_NO_STRUCT_TM.
+	Added using ::tm after #including _RWSTD_ANSI_C_TIME_H.
+
+2007-07-24  Travis Vitek  <vitek@roguewave.com>
+
+	STDCXX-502
+	* valarray (valarray, operator=): Updated local variable names
+	to meet conventions and get test 17.names passing again.
+
+2007-07-24 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-175
+	* string.cc (replace): Throw std::length_error() if __n2 > max_size().
+
+2007-07-24 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* string (replace): Corrected function name in _RWSTD_FUNC() macro.
+	* string.cc (replace): Ditto.
+
+2007-07-24 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-466
+	* string.cc (find_first_of): Don't throw std::length_error() if n > max_size().
+	(find_first_of): Ditto.
+	(find_last_of): Ditto.
+	(find_first_not_of): Ditto.
+	(find_last_not_of): Ditto.
+
+2007-07-19 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-466
+	* string.cc (rfind): Don't throw std::length_error() if n > max_size().
+
+2007-07-18  Martin Sebor  <sebor@roguewave.com>
+
+	* _ctype.h (ctype<wchar_t>): Moved definitions of public members
+	above those of protected virtual functions and removed an outdated
+	comment explaining the unusual class layout.
+
+2007-07-16 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* wchar.h (swprintf): Avoided declaring function for all MSVC's.
+
+2007-07-13  Martin Sebor  <sebor@roguewave.com>
+
+	* wchar.h (mbrtowc): Changed return type from wchar_t (introduced
+	in r554281 to address STDCXX-472) to size_t.
+
+2007-07-11  Martin Sebor  <sebor@roguewave.com>
+
+	* wchar.h (swprintf): Corrected a nonconforming signature, introduced
+	in r554281 to address STDCXX-472, to one taking size_t as the second
+	argument.
+	(mbrlen): Corrected signature to take const char* as the first argument.
+
+2007-07-09  Martin Sebor  <sebor@roguewave.com>
+
+	* wchar.h (swprintf): Avoided declaring function for MSVC 8 so as
+	not to cause a collision with the compiler's own horribly hacked up
+	declaration.
+
+2007-07-09  Martin Sebor  <sebor@roguewave.com>
+
+	* wchar.h (wmemcmp): Corrected declaration introduced in r554281
+	to address STDCXX-472.
+
+2007-07-08  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-395
+	* etc/config/src/LIMITS.cpp (_RWSTD_WCHAR_T_MAX, _RWSTD_WCHAR_T_MIN,
+	_RWSTD_WCHAR_T_SIZE): Renamed to _RWSTD_WCHAR_MAX, _RWSTD_WCHAR_MIN,
+	and _RWSTD_WCHAR_SIZE, respectively, for consistency with the libc
+	macros.
+	* tests/src/locale.cpp: Same.
+	* tests/src/char.cpp: Same.
+	* tests/src/printf.cpp: Same.
+	* tests/localization/22.locale.codecvt.out.cpp: Same.
+	* tests/self/0.printf.cpp: Same.
+	* include/limits: Same.
+	* include/tr1/cstdint: Same.
+	* include/ansi/_cwchar.h: Same.
+	* src/wctype.cpp: Same.
+	* src/wcodecvt.cpp: Same.
+	* util/ctype.cpp: Same.
+	* util/charmap.cpp: Same.
+
+2007-07-08  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-474
+	* valarray (slice_array): Renamed the implementation-specific member
+	get_slice() to _C_get_slice() to prevent it from clashing with macros
+	of the same name in the user namespace.
+	(gslice_array): Same.
+	(mask_array): Renamed get_array() and get_array_pt() to _C_get_array()
+	and _C_get_array_ptr() for the same reason as above.
+	(indirect_array): Same.
+	(__rw_unary_function, __rw_binary_function): Same.
+
+2007-07-07  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-472
+	* wchar.h (WCHAR_MAX, WCHAR_MIN): #defined macros when they're not
+	#defined in the system header.
+	(mbstate_t): Defined typedef when not defined in system header.
+	(fwprintf, fwscanf, swprintf, swscanf, vfwprintf, vfwscanf, vwprintf,
+	vwscanf, mbrlen, mbrtowc, mbsinit, mbsrtowcs, wcrtomb, wcsrtombs,
+	wcschr, wcsrchr, wcsstr, wmemchr, wmemcmp, wmemcpy, wmemmove, wmemset,
+	wprintf, wscanf): Declared functions (including C++ overloads wherever
+	appropriate) when not declared in system header.
+
+2007-07-07  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-125
+	* wchar.h (wctob): Added a declaration for wctob() when it's not
+	provided in the system header. 
+
+2007-07-06  Martin Sebor  <sebor@roguewave.com>
+
+	* _facet.h (_V3_LOCALE): Replaced a vestige from stdcxx 2 with _STD.
+	(_C_factory_f): Removed unused typedef.
+
+2007-07-06  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-469
+	* _facet.h (__rw_facet): Declared ctor and dtor protected.
+
+2007-07-06 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* sstream.cc (xsputn): __off declared as _RWSTD_PTRDIFF_T (was int).
+
+2007-07-06 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* sstream.cc (xsputn): Allow to pass internal buffer as method parameter.
+
+2007-07-05  Martin Sebor  <sebor@roguewave.com>
+
+	* stdexcept (range_error, domain_error, runtime_error): Declared
+	virtual destructors instead of relying on the compiler to generate
+	them automatically to avoid generating the class vtable in every
+	translation unit that uses each of the classes.
+	* range_error.cpp: Defined range_error destructor.
+	* domain_error.cpp: Defined domain_error destructor.
+	* runtime_error.cpp: Defined runtime_error destructor.
+
+2007-07-05  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-457
+	* limits.c: Updated license statement.
+	* valarray.c: Ditto.
+	* deque.c: Ditto.
+	* rw/_tree.c: Ditto.
+	* rw/_algobase.c: Ditto.
+	* rw/_heap.c: Ditto.
+	* rw/_basic_ios.c: Ditto.
+	* rw/_ioinsert.c: Ditto.
+	* list.c: Ditto.
+	* bitset.c: Ditto.
+	* fstream.c: Ditto.
+	* istream.c: Ditto.
+	* string.c: Ditto.
+	* ostream.c: Ditto.
+	* sstream.c: Ditto.
+	* algorithm.c: Ditto.
+	* vector.c: Ditto.
+	* streambuf.c: Ditto.
+
+2007-07-05  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-457
+	* _moneypunct.c: Updated license statement.
+	* _messages.c: Ditto.
+	* _numpunct.c: Ditto.
+	* _collate.c: Ditto.
+	* _money_get.c: Ditto.
+	* _time_get.c: Ditto.
+	* _num_get.c: Ditto.
+	* _money_put.c: Ditto.
+	* _ctype.c: Ditto.
+	* _time_put.c: Ditto.
+	* _num_put.c: Ditto.
+	* _codecvt.c: Ditto.
+	* _punct.c: Ditto.
+
+2007-07-02  Martin Sebor  <sebor@roguewave.com>
+
+	* sstream (str): Corrected formatting problems.
+
+2007-06-26 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _iosbase.h: Fixed references to standard.
+
+2007-06-23  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-457
+	* tr1/array: Updated license statement.
+	* ansi/csignal: Same.
+	* ansi/cstdio: Same.
+	* ansi/cstdarg: Same.
+	* ansi/ciso646: Same.
+	* ansi/climits: Same.
+	* ansi/cstring: Same.
+	* ansi/cstddef: Same.
+	* ansi/cwctype: Same.
+	* ansi/cstdlib: Same.
+	* ansi/cctype: Same.
+	* ansi/cerrno: Same.
+	* ansi/cmath: Same.
+	* ansi/ctime: Same.
+	* ansi/clocale: Same.
+	* ansi/cassert: Same.
+	* ansi/csetjmp: Same.
+	* ansi/cfloat: Same.
+	* iostream: Same.
+	* numeric: Same.
+	* utility: Same.
+	* memory: Same.
+	* iterator: Same.
+	* functional: Same.
+	* istream: Same.
+	* algorithm: Same.
+	* typeinfo: Same.
+	* exception: Same.
+	* locale: Same.
+	* strstream: Same.
+	* new: Same.
+	* ios: Same.
+
+2007-06-23  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-457
+	* loc/_time_get.cc: Updated license statement.
+	* loc/_convenience.h: Same.
+	* loc/_moneypunct.h: Same.
+	* loc/_messages.h: Same.
+	* loc/_numpunct.h: Same.
+	* loc/_money_put.cc: Same.
+	* loc/_facet.h: Same.
+	* loc/_collate.h: Same.
+	* loc/_codecvt.cc: Same.
+	* loc/_punct.cc: Same.
+	* loc/_moneypunct.cc: Same.
+	* loc/_numpunct.cc: Same.
+	* loc/_collate.cc: Same.
+	* loc/_ctype.cc: Same.
+	* loc/_time_put.cc: Same.
+	* loc/_num_put.h: Same.
+	* loc/_codecvt.h: Same.
+	* loc/_punct.h: Same.
+	* rw/_iosfailure.h: Same.
+	* rw/_relops.h: Same.
+	* rw/_heap.cc: Same.
+	* rw/_file.h: Same.
+	* rw/_funcbase.h: Same.
+	* rw/_error.h: Same.
+	* rw/_basic_ios.cc: Same.
+	* rw/_bitmask.h: Same.
+	* rw/_iosfwd.h: Same.
+	* rw/_tree.cc: Same.
+	* rw/_exception.h: Same.
+	* rw/_typetraits.h: Same.
+	* rw/_algobase.cc: Same.
+	* rw/_heap.h: Same.
+	* rw/_rawiter.h: Same.
+	* rw/_allocator.h: Same.
+	* rw/_math.h: Same.
+	* rw/_new.h: Same.
+	* ansi/_cmath.h: Same.
+	* ansi/_ctime.h: Same.
+	* ansi/_clocale.h: Same.
+	* ansi/limits.h: Same.
+	* ansi/_cassert.h: Same.
+	* ansi/_csetjmp.h: Same.
+	* ansi/float.h: Same.
+	* ansi/_cwchar.h: Same.
+	* ansi/stddef.h: Same.
+	* ansi/wctype.h: Same.
+	* ansi/stdlib.h: Same.
+	* ansi/stdio.h: Same.
+	* ansi/_cctype.h: Same.
+	* ansi/_cstdarg.h: Same.
+	* ansi/_cerrno.h: Same.
+	* ansi/math.h: Same.
+	* ansi/time.h: Same.
+	* ansi/locale.h: Same.
+	* ansi/assert.h: Same.
+	* ansi/setjmp.h: Same.
+	* ansi/wchar.h: Same.
+	* ansi/_cfloat.h: Same.
+	* ansi/_cstring.h: Same.
+	* ansi/_cstddef.h: Same.
+	* ansi/_cwctype.h: Same.
+	* ansi/signal.h: Same.
+	* ansi/_cstdio.h: Same.
+	* ansi/ctype.h: Same.
+	* ansi/stdarg.h: Same.
+	* ansi/errno.h: Same.
+	* vector_spec.h: Same.
+	* deque.cc: Same.
+	* ostream.cc: Same.
+	* list.cc: Same.
+	* limits.cc: Same.
+	* deque_spec.h: Same.
+	* list_spec.h: Same.
+
+2007-06-22 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _error.h(__rw_free_what_buf): Removed inline in declaration.
+	* exception.cpp(__rw_free_what_buf): The same.
+
+2007-06-22 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _error.h: Put _RWSTD_EXPORT before the return type for
+	consistency between declaration and definition.
+
+2007-06-22 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-454
+	* _error.h: Added declaration of the __rw_free_what_buf.
+	* exception.cpp (__rw_free_what_buf): Added _RWSTD_EXPORT to prototype.
+	Added assertion on __rw_what_refcnt value.
+	(_C_assign): If whatstr == __rw_what_buf, just reuse it without allocation
+	of the new buffer.
+	* rwexcept.cpp: Use __rw_free_what_buf() instead of delete[].
+
+2007-06-12 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-429
+	* _config.h: #include "_config-msvc.h" only on MSVC.
+	* _config-msvcrt.h: New file with configuration definitions of the MSVC CRT.
+	* _config-icc.h [_WIN{32,64}]: #include "_config-msvcrt.h",
+	added #pragma's to silence bogus warnings.
+	* _config-msvc.h: #include "_config-msvcrt.h",
+	MSVC CRT specific definitions moved to _config-msvcrt.h.
+
+2007-06-12 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* sstream (str): Method definition moved outside of the class definition.
+
+2007-06-12 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* cwchar: Added missing ';' in using declarations.
+
+2007-06-09  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-446
+	STDCXX-447
+	* complex (pow, operator>>, operator<<): Removed inline definitions.
+	* complex.cc (pow, operator>>, operator<<): Defined out-of-line and
+	exported.
+	* complex.c: #included complex.cc.
+	* export.cpp (<complex>, complex.cc): #included.
+
+2007-06-08 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-427
+	* sstream (str): Function updated according to 27.7.1.2, p1
+
+2007-06-07  Martin Sebor  <sebor@roguewave.com>
+
+	* _ctype.h (do_toupper, do_tolower, do_widen, do_narrow): Outlined
+	virtual member functions of ctype<wchar_t> since they can almost
+	never be inlined anyway.
+	* wctype.cpp: Same.
+
+2007-06-06  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-271
+	* string (_RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES): New convenience
+	macro #defined in response to the various conditions previously tested
+	throughout the header and .cc file.
+	(__rw_replace, __rw_replace_aux, replace): Guarded global and member
+	functions with said macro.
+	Replaced guards for specific version(s) of MSVC with the config macro
+	_RWSTD_NO_MEMBER_TEMPLATES (tested by artificially defining the macro
+	on the command line).
+	* string.cc (__rw_replace, __rw_replace_aux, replace): Same as above.
+
+2007-06-01  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-433
+	* string.h (strpbrk): Added declaration and definition when
+	the function is not declared in the system string.h header.
+
+2007-06-01  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-432
+	* _config.h (_config-eccp.h): Avoided #including when using HP aCC.
+	* exception.cpp (stdarg.h): Used _RWSTD_EDG_ECCP to guard against
+	inclusion when using EDG eccp based compilers including HP aCC 6.
+
+2007-06-01  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-431
+	* string.h (memchr): Added declaration and definition when
+	the function is not declared in the system string.h header.
+
+2007-05-25 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _config-msvc.h: MSVC specific #pragma's decorated with #ifndef _INTEL_COMPILER;
+	added #pragma's to disable ICC warnings.
+
+2007-05-23  Martin Sebor  <sebor@roguewave.com>
+
+	* _array.h (ctor): Removed redundant (ill-formed?) template
+	argument list from the definition of __rw_array destructor.
+
+2007-05-22  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-424
+	* _array.h (dtor): Simplified and implemented without
+	relying on resize() for efficiency.
+	(resize): Avoided calling trivial inline functions.
+
+2007-05-15  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-416
+	* stdexcept (logic_error): Declared dtor.
+	* logic_error.cpp: New file.
+	(logic_error): Defined class dtor
+
+2007-05-15 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-339
+	* NONDEDUCED_CONTEXT.cpp: Removed _RWSTD_NO_INLINE_MEMBER_TEMPLATES
+	config macro and all workarounds for it. Updated copyright notice.
+	* bitset: Ditto
+	* deque: Ditto
+	* iomanip: Ditto
+	* list: Ditto
+	* _locale.h: Ditto
+	* map: Ditto
+	* queue: Ditto
+	* _algobase.h: Ditto
+	* _defs.h: Ditto
+	* _pair.h: Ditto
+	* _tree.h: Ditto
+	* set: Ditto
+	* string: Ditto
+	* string.cc: Ditto
+	* vector: Ditto
+	* 25.random.shuffle.cpp: Ditto
+	* 23.deque.modifiers.cpp: Ditto
+	* 23.vector.cons.cpp: Ditto
+	* 23.vector.modifiers.cpp: Ditto
+	* rw_allocator.h: Ditto
+	* 20.pairs.cpp: Ditto
+
+2007-05-02  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-338
+	* _config-gcc.h [__CYGWIN__](_RWSTD_NO_EXCEPTION_WHAT): Undefined
+	to prevent linker errors due to the symbol being multiply defined.
+
+2007-05-02  Martin Sebor  <sebor@roguewave.com>
+
+	* _config-msvc.h (_RWSTD_DLLIMPORT): Added comments.
+
+2007-04-30  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-397
+	* algorithm.cc (__introsort_loop): Reduced max_depth before each
+	recursive call rather than after.
+
+2007-04-10  Martin Sebor  <sebor@roguewave.com>
+
+	* limits (_RWSTD_ROUND_STYLE): #defined to round_indeterminate
+	when the configuration macro _RWSTD_FLT_ROUNDS is not #defined.
+
+2007-04-10  Martin Sebor  <sebor@roguewave.com>
+
+	* _mbstate.h: Updated ASF license.
+
+2007-04-10  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-392
+	* _mbstate.h (_RWSTD_MBSTATE_T): #defined macro for generic OS.
+
+2007-04-09  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-390
+	* _specialized.h (__rw_construct): Removed const qualification from
+	second parameter and let the compiler deduce the cv-qualifier from
+	the actual argument.
+
+2007-04-04  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-385
+	* vector.cc (_C_insert_range): Renamed a loop control variable
+	to prevent clashing with another, and to silence a bogus HP
+	cadvise error #2101: variable has already been declared in the
+	current scope.
+
+2007-04-02  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-383
+	* string (_C_off): Convenience functions to compute the unsigned
+	distance between two iterators or the offset of an iterator from
+	the beginning of the container.
+	(insert, erase, replace): Used _C_off() to silence HP aCC 3.76
+	remark #4271-D: type conversion may lose sign.
+
+2007-04-02  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-382
+	* limits (_RWSTD_DIGITS): Cast a Boolean expression to int to silence
+	many HP aCC 3.76 remarks #4296-D: arithmetic operation on boolean type.
+
+2007-03-30  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-379
+	* _config-xlc.h (_RWSTD_NO_EXTERN_TEMPLATE): Hardcoded macro
+	for XLC++ 8.0 and prior to work around a compiler bug.
+
+2007-03-26  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-62
+	* _money_get.cc (_C_get): Checked for iterator equality to end before
+	dereferencing it.
+
+2007-03-26  Martin Sebor  <sebor@roguewave.com>
+
+	* algorithm.cc: Removed a stray backtick.
+
+2007-03-26  Anton Pevtsov  <antonp@moscow.vdiweb.com>
+
+	STDCXX-131
+	* algorithm.cc (__stable_partition): Corrected an off-by-one error.
+
+2007-03-23  Martin Sebor  <sebor@roguewave.com>
+
+	* _basic_ios.h (~basic_ios): Removed protected declaration accidentally
+	introduced in http://svn.apache.org/viewvc?view=rev&revision=519751.
+
+2007-03-23  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-368
+	* string (ctor): Removed unused function formal arguments
+	from function declaration to silence gcc 3.2.3 warnings.
+
+2007-03-22  Martin Sebor  <sebor@roguewave.com>
+
+	* vector (_C_construct): Eliminated first argument (is always end())
+	and replaced with _C_push_back() for efficiency.
+	(_C_destroy): Removed an un unnecessary argument (is always end())
+	and outlined.
+	(_C_unsafe_swap): New function defined out of line.
+	(insert): Added an assertion.
+	(erase): Simplified and optimized a wee bit.
+	(clear): Defined in terms of _C_destroy() outside the body
+	of the class template.
+	(swap): Optimized, called _C_unsafe_swap() for unequal allocators.
+	(dtor): Called _C_destroy() with a single argument for efficiency.
+	(assign): Called clear() instead of erase() for better efficiency.
+	* vector.cc (_C_realloc): Passed this to Allocator::allocate()
+	instead of begin() and called _C_push_back() instead of _C_construct().
+	(_C_unsafe_swap): Implements swap for objects with unequal allocators.
+	(_C_assign_n, _C_insert_1, _C_assign_range, _C_insert_range): Called
+	_C_push_back() instead of _C_construct() for efficiency.
+
+2007-03-22  Martin Sebor  <sebor@roguewave.com>
+
+	* vector (ctors): Removed extraneous zeros from initializers.
+
+2007-03-22  Martin Sebor  <sebor@roguewave.com>
+
+	* vector (ctors): Removed extraneous zeros from initializers.
+
+2007-03-20  Martin Sebor  <sebor@roguewave.com>
+
+	* istream: Used _RWSTD_DEFINE_TEMPLATE_{FIRST,LAST} instead
+	of just plain _RWSTD_DEFINE_TEMPLATE (_BASIC_ISTREAM).
+
+2007-03-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-300
+	* _config-xlc.h (_RWSTD_NO_EXPLICIT_INSTANTIATION_BEFORE_DEFINITION,
+	_RWSTD_NO_EXTERN_TEMPLATE_BEFORE_DEFINITION): Defined for IBM XLC++
+	8.0 when _RWSTD_NO_INSTANTIATE_DEFAULT_ARGS is also #defined.
+
+2007-03-18  Martin Sebor  <sebor@roguewave.com>
+
+	* _basic_ios.h: Used _RWSTD_DEFINE_TEMPLATE_FIRST and _LAST instead of
+	just _RWSTD_DEFINE_TEMPLATE, and corrected the spelling of _BASIC_IOS.
+
+2007-03-14  Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-16
+	* _tree.cc (operator=): Added missing assignment of the _C_cmp member.
+
+2007-03-07  Martin Sebor  <sebor@roguewave.com>
+
+	* locale.cpp (_RWSTD_USE_CONFIG): Removed references to macro.
+	* driver.cpp (_RWSTD_USE_CONFIG): Ditto.
+	* _config-gcc.h (_RWSTD_USE_CONFIG): Ditto.
+	* _config-xlc.h (_RWSTD_USE_CONFIG): Ditto.
+	* configure.wsf (_RWSTD_USE_CONFIG): Ditto.
+	* projects.js (_RWSTD_USE_CONFIG): Ditto.
+	* README (_RWSTD_USE_CONFIG): Ditto.
+
+2007-03-01  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-214
+	* _traits.h (lt): Cast char arguments to unsigned char to
+	yield results consistent with compare (and with memcmp).
+
+2007-02-15 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	STDCXX-268
+	STDCXX-331
+	* list (_RWSTD_LIST_SAFE_INSERT_RANGE): New macro for exception
+	safe inserting the range into the list.
+	(_C_insert (bidirectional_iterator_tag, input_iterator_tag)):
+	Removed.
+	(_C_insert): Used _RWSTD_LIST_SAFE_INSERT_RANGE macro.
+	(_C_insert): Added try/catch with removing the inserted elements
+	if exception was thrown.
+
+2007-02-15 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* deque: The swap method moved from here ...
+	* deque.cc: ... to here
+
+2007-02-15 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	STDCXX-127
+	* deque (swap): Corrected _C_beg._C_node and _C_end._C_node
+	after swap operation for empty container.
+
+2007-02-07 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	STDCXX-334
+	* list (swap): Fixed bug: used reference instead of the temporary object.
+
+2007-02-05  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-230
+	STDCXX-329
+	* istream.cc (__rw_extract): Added comment.
+	(_C_ipfx): Avoided resetting gcount().
+	(_C_ipfx): Guarded body in a try/catch block and set badbit when
+	an exception occurs.
+	[_RWSTD_NO_OPTIMIZE_SPEED](_C_ipfx): Removed conditionally compiled
+	block (and instead used the "optimized" branch unconditionally).
+	(_C_get, read, readsome, get, getline, operator>>): Explicitly
+	reset gcount.
+
+i2007-02-02  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-295
+	* sstream.cc (seekoff): Prevented the function from failing when
+	offset is 0 and neither sequence has been initialized yet (see 
+	LWG issue 453:
+	http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#453).
+
+2007-01-29  Martin Sebor  <sebor@roguewave.com>
+
+	* _num_get.cc (_C_get): Added comments.
+
+2007-01-22  Martin Sebor  <sebor@roguewave.com>
+
+	* sstream (str): Made one-argument char_type* overload public
+	for efficiency since it's indistinguishable from the string
+	overload (the two argument continues to be private in strict
+	mode).
+	(basic_stringstream ctor): Used __rw::__rw_in_out instead of
+	(in | out) for efficiency and to make debugging easier (by
+	avoiding the call to operator| defined by the implementation).
+
+2007-01-22  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-327
+	* sstream (stringbuf::str): Added a public char_type* overload
+	to prevent compilation errors in strict mode when the 2 argument
+	overload is private.
+	* sstream.cc (stringbuf::str): Removed a comment.
+
+2007-01-21  Martin Sebor  <sebor@roguewave.com>
+
+	* valarray (operator[]): Changed return type to const value_type&
+	as per LWG issue 389:
+	http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#389
+
+2007-01-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-326
+	* _iosbase.h (seek_dir, io_state, open_mode): Declared as int.
+
+2007-01-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-324
+	* _cstdlib.h (div_t, ldiv_t): Declared quot and rem members.
+
+2007-01-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-323
+	* _cstdlib.h (abs, div): Added overloads for long.
+
+2007-01-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-322
+	* complex (operator=): Used the public member functions real()
+	and imag() instead of the private data members.
+
+2007-01-18  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-320
+	* _csignal.h (SIG_DFL, SIG_ERR, SIG_IGN): Cast to the appropriate type.
+
+2007-01-12  Martin Sebor  <sebor@roguewave.com>
+
+	* valarray.cc (shift, cshift): Used T(0) instead of T() in the
+	declaration of an object to avoid a gcc 3.2 bug (see STDCXX-317).
+
+2007-01-09  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-318
+	* valarray.cc (cshift): Avoided division by zero when *this is empty.
+
+2007-01-09  Martin Sebor  <sebor@roguewave.com>
+
+	* valarray (abs, acos, asin, atan, atan2, cos, cosh, exp, log,
+	log10, pow, sin, sinh, sqrt, tan, tanh): Replaced T() with T(0)
+	in order to work around a gcc 3.2.3 bug (see STDCXX-317).
+
+2007-01-05  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-316
+	* valarray.cc (cshift): Initialized destination array prior
+	to assigning to its elements.
+
+2007-01-05  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-315
+	* valarray (abs, acos, asin, atan, atan2, cos, cosh, exp, log,
+	log10, pow, sin, sinh, sqrt, tan, tanh): Initialized destination
+	array prior to assigning to its elements. 
+
+2006-12-20  Martin Sebor  <sebor@roguewave.com>
+
+	* _array.h (operator[]): Returned a const reference rather than
+	value_type to make it possible to implement the resolution of
+	LWG issue 389.
+	Simplifed a few other expressions and removed redundant formal
+	argument names from member function declarations.
+
+2006-12-11  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-309
+	* valarray (operator[]): Invoked next_ind() at most once per each
+	iteration of the loop.
+	* valarray.cpp (next_ind): Returned start() instead of 0 after
+	wrapping around.
+
+2006-12-06  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-306
+	* valarray (gslice_array::operator=): Removed private declaration.
+
+2006-11-28 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* vector (vector<bool, _Allocator>): Removed _VB_TYPENAME macro.
+	[_RWSTD_NO_CLASS_PARTIAL_SPEC && !_RWSTD_NO_TYPENAME]: _TYPENAME
+	cleared before types definitions and restored after.
+
+2006-11-28 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* _config-msvc.h: Updated copyright notice
+
+2006-11-28 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* _config-msvc.h: All definitions which duplicates or contradict
+	with config.h are moved to #if _MSC_VER <= 1200 / #endif
+
+2006-11-10  Martin Sebor  <sebor@roguewave.com>
+
+	* cwchar (wmemcmp, wmemcpy, wmemmove): Correted typos (called the
+	corresponding wide forms of the __rw_xxx functions rather than the
+	narrow ones). Causing compilation errors with MIPSpro on IRIX64.
+
+2006-11-03  Martin Sebor  <sebor@roguewave.com>
+
+	* cwchar (wcsrchr): Fixed a typo in conditionally compiled code.
+
+2006-10-19 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	STDCXX-297
+	* bitset.cc (__rw_bitset): Corrected calculation of
+	size of the __bits buffer
+
+2006-10-11  Martin Sebor  <sebor@roguewave.com>
+
+	* cwchar (wcscat, wcscpy): Used the block form of language linkage
+	specification to work around an HP aCC 3.70 bug (see STDCXX-298).
+
+2006-10-05  Martin Sebor  <sebor@roguewave.com>
+
+	* _config.h: Updated license.
+
+2006-10-04  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-294
+	* vector.cc (_C_insert_n): Corrected logic error.
+
+2006-10-03  Martin Sebor  <sebor@roguewave.com>
+
+	* limits (_RWSTD_FLT_HAS_DENORM, _RWSTD_DBL_HAS_DENORM,
+	_RWSTD_LDBL_HAS_DENORM): Defined macros to false when
+	not #defined at configuration time.
+
+2006-10-03 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* _defs.h: _RWBUILD_std replaced to _RWSTD_LIB_SRC
+
+2006-10-03 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	Set svn:eol-style property.
+
+2006-10-03 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* sstream.cc (basic_stringbuf<>::str): Added check before
+	deallocate the old buffer
+
+2006-10-03 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* _specialized.h: Restored HP copyright notice
+	* vector: Ditto
+	* set: Ditto
+	* map: Ditto
+	* list: Ditto
+	* deque: Ditto
+
+2006-10-02 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* _select.h (__rw_is_same): Renamed: yes; no; Type<class T> to:
+	_C_yes; _C_no; _C_Type<class _TypeV>
+	* 22.locale.num.get.cpp (do_test): Changed type of dummy argument
+	from charT to charT* to resolve MSVC 7.0 ambiguity
+	* 21.cwchar.cpp (swscanf, vfwprintf): Removed unused template
+	parameter SizeT to prevent MSVC 7.0 error:
+	error C2783: 'int std::swscanf(const WCharT *,const WCharT *,...)' :
+	could not deduce template argument for 'SizeT'
+	(fgetwc): Return type changed to wint_t to prevent MSVC 7.0 error:
+	error C2785: 'int std::fgetwc(FileT *)' and 'wint_t fgetwc(FILE *)'
+	have different return types
+	(test_functions): commented const to prevent MSVC 7.0 error:
+	error C2147: 'tm_buf' : const automatic array must be fully
+	initialized
+	* 21.cwctype.cpp (towlower, towupper, wctrans, wctype, towctrans):
+	Corrected return type to prevent MSVC 7.0 error:
+	error C2785: 'int std::towlower(T)' and 'wchar_t towlower(wchar_t)'
+	have different return types
+	(run_test): Added exercising of the std::towctrans()
+	* 26.c.math.cpp (test_declarations): Resolved MSVC 7.0 ambiguity:
+	error C2782: 'T std::modf(T,T *)' : template parameter 'T' is
+	ambiguous: could be 'double' or 'long double'
+	* 27.forward.cpp [_RWSTD_NO_PART_SPEC_OVERLOAD]: Added is_same_type
+	for compilers which not support the partial ordering of function
+	templates
+	* 25.search.cpp [_MSC_VER <= 1300]: Added explicit definition of the
+	NonPredicateTag<X>::DummyPredicate::funcalls_ to prevent MSVC 7.0
+	linker error
+	* alg_test.h [_MSC_VER <= 1300] (conv_to_bool): UniquePtr defined
+	as const void* to deal with MSVC 7.0
+
+2006-09-29 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* _num_put.cc: Updated the licensing header
+	* _select.h: The same
+	* file.cpp: The same
+
+2006-09-29 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* _num_put.cc (__rw_iter_failed): Removed const to resolve
+	ambiguity on MSVC 7.0
+	* _select.h [_RWSTD_NO_CLASS_PARTIAL_SPEC]: Added __rw_is_same
+	for compilers which not support the partial template specialization
+	* file.cpp: Declare fileno() only if it not declared in CRT header,
+	but present in libc
+	* NEW_THROWS.cpp: Returned 1 if operator new doesn't throws
+
+2006-09-28 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* deque: Added #ifndef _RWSTD_NO_PART_SPEC_OVERLOAD/#endif around the
+	function std::swap<T, A> (std::deque<T, A>&, std::deque<T, A>&);
+	[_RWSTD_NO_PART_SPEC_OVERLOAD]: Added function std::swap
+	(std::deque&, std::deque&)
+	* list [_RWSTD_NO_PART_SPEC_OVERLOAD]: Added function
+	std::swap (std::list&, std::list&)
+	* map [_RWSTD_NO_PART_SPEC_OVERLOAD]: Added functions
+	std::swap (std::map&, std::map&) and
+	std::swap (std::multimap&, std::multimap&)
+	* set [_RWSTD_NO_PART_SPEC_OVERLOAD]: Added functions
+	std::swap (std::set&, std::set&) and
+	std::swap (std::multiset&, std::multiset&)
+	* string [_RWSTD_NO_PART_SPEC_OVERLOAD]: Added function
+	std::swap (std::string&, std::string&)
+	* vector [_RWSTD_NO_PART_SPEC_OVERLOAD]: Added functions
+	std::swap (std::vector&, std::vector&) and
+	std::swap (std::vector<bool>&, std::vector<bool>&)
+
+2006-09-25  Martin Sebor  <sebor@roguewave.com>
+
+	* cwchar (wcschr): Added a missing parenthesis.
+
+2006-09-22 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* limits [_RWSTD_NO_CLASS_PARTIAL_SPEC]: Corrected macro _RWSTD_SPECIALIZE_LIMITS
+	* rw_char.h (UserInt): Added const_cast to avoid MSVC 7.0 error "C2446: '=='
+	: no conversion from 'const int *' to 'void *const '"
+	* _autoptr.h (__rw_nonvoid_ref): Added #ifndef _RWSTD_NO_CV_VOID_SPECIALIZATIONS/#endif
+	to avoid error on MSVC 7.0 (http://www.dotnet247.com/247reference/msgs/1/7727.aspx)
+	* _specialized.h (__rw_construct) [_RWSTD_NO_PART_SPEC_OVERLOAD]: Added code to deal
+	with compilers, which are not supports the "Partial Ordering of Function Templates"
+	* VA_LIST.cpp (va_list_array_size) [_RWSTD_NO_CLASS_PARTIAL_SPEC && _RWSTD_NO_PART_SPEC_OVERLOAD]:
+	Added code to deal with compilers, which are not supports the "Partial Ordering of Function Templates"
+	* CV_VOID_SPECIALIZATIONS.cpp: New file, checking for cv qualifiers on type void
+	* 20.operators.cpp: Added #include <cstddef> for std::size_t
+	* 20.pairs.cpp: Added #ifdef/#endif guard to avoid error "Cannot access private copy constructor"
+
+2006-09-12  Martin Sebor  <sebor@roguewave.com>
+
+	* sstream.cc (str): Avoided setting (pptr() == epptr()) except in
+	input mode as required (see lwg issue 562 for clarification). See
+	also http://gcc.gnu.org/bugzilla/show_bug.cgi?id=29035.
+	* stringbuf_virtuals.cpp (test_seekoff): Corrected tests exercising
+	seeking on objects constructed in out mode so as not to assume that
+	(pptr() == epptr()) holds after the construction of the stream (in
+	fact, (pptr() == pbase()) is required to hold -- see lwg issue 562
+	and this issue http://gcc.gnu.org/bugzilla/show_bug.cgi?id=29035
+	for more detail).
+
+2006-07-11  Martin Sebor  <sebor@roguewave.com>
+
+	* _config.h (_RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE): #defined
+	in response to _RWSTD_STRICT_ANSI/_RWSTD_NO_EXTENSIONS being
+	#defined. (See STDCXX-205 and STDCXX-206).
+	(_RWSTD_VER): Added a missing digit.
+
+2006-07-11  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-205
+	STDCXX-206
+	* _num_put.cc (_C_put): Called width(0) before outputting any
+	characters (see STDCXX-259) but guarded with the configuration
+	macro _RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE for consistency with
+	(some) other inserters. When the macro is not #defined, reset
+	width only after all characters have been successfully output
+	(i.e., no exception occurred and the iterator is not in failed
+	state).
+	* ostream (operator<<(ostream&, charT), operator<<(ostream&,
+	charT*): Avoided calling width(0) here (done in __rw_insert).
+	_ioinsert.cc (__rw_insert)): Called width(0) unconditionally
+	after outputting characters as required of array inserters
+	(but not single-charater inserters), and guarded with
+	_RWSTD_NO_EXT_KEEP_WIDTH_ON_FAILURE. When the macro is not
+	#defined, reset width only after all characters, including
+	any padding, have been successfully output (for consistency
+	with numeric inserters).
+
+2006-06-30  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-251
+	* streambuf (uflow): Outlined and moved...
+	* streambuf.cc (uflow): ...to here. Prevented undefined behavior
+	caused by dereferencing gptr() when underflow() doesn't set up
+	a non-empty pending sequence (i.e., when gptr() == 0 or when
+	gptr() == egptr()).
+
+2006-06-30  Martin Sebor  <sebor@roguewave.com>
+
+	* _mutex.h: Updated copyright.
+
+2006-06-29  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-245
+	STDCXX-247
+	* sstream.cc (seekpos): Used a typedef rather than the class name
+	(w/o a template argument list) to prevent invoking a virtual member
+	function overridden in a derived class to work around an HP aCC
+	3.27 bug.
+	* fstream.cc (overflow, xsputn): Same.
+	Replaced codecvt_base::result with plain old int to work around
+	yet another HP aCC 3.27 bug.
+	* _messages.cc (do_get): Same.
+
+2006-06-29  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-184
+	* cstdlib (abs): Hacked around an HP aCC quirk when using system
+	headers in /usr/include without the compiler's wrappers (i.e.,
+	when -I/usr/include is before the compiler's include directory
+	in the preprocessor seacrh path). See STDCXX-244.
+	* stdlib.h: Same.
+
+2006-06-26  Anton Pevtsov  <antonp@moscow.vdiweb.com>
+
+	* include/rw/_mutex.h: Added missed _RWSTD_EXPORT directive.
+	* src/exception.cpp: Added missed _RWSTD_EXPORT directive.
+
+2006-06-20  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-7
+	* fstream (xsputn): Declared.
+	* fstream (xsputn): Overrode the base class virtual function and
+	optimized to avoid unnecessary writes when the size of the array
+	argument exceeds the amount of space available in the internal
+	character buffer.
+	(overflow): Moved most of the body of the function to xsputn()
+	and called it.
+
+2006-06-15  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-203
+	* _specialized.h (__rw_construct): Added an overload on volatile T*.
+
+2006-06-14  Martin Sebor  <sebor@roguewave.com>
+
+	* cwchar (swprintf, vswprintf): More hackery for the various
+	strains of the disease known as MSVC.
+
+2006-06-13  Martin Sebor  <sebor@roguewave.com>
+
+	* cwchar (wprintf, swprintf): Avoid declaring functions extern
+	"C++" to prevent dumb MSVC 8 from choking on it for some bizarre
+	reason.
+
+2006-06-13  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-200
+	* _localedef.h (__rw_time_t): Changed function argument types
+	to silence Sun C++ 5.8 64-bit conversion/truncation warnings.
+	* punct.cpp (__rw_get_numpunct, __rw_get_moneypunct): Explicitly
+	cast wide expressions to the (narrower) destination type in order
+	to silence Sun C++ 5.8 64-bit truncation warnings.
+	* time_put.cpp (__rw_get_timepunct, __rw_get_zone): Same.
+
+2006-06-09  Martin Sebor  <sebor@roguewave.com>
+
+	* cwchar (swprintf, vswprintf): Declared extern "C++" for MSVC 7.1
+        and beyond.
+
+2006-05-17  Martin Sebor  <sebor@roguewave.com>
+
+	* vector.cc (_C_insert_range): Removed a shadowing variable.
+
+2006-05-16  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-179
+	* vector.cc (_C_insert_range): Corrected the persistent logic
+	error in the computation of the end of the range of elements
+	to be overwritten (assigned).
+
+2006-05-12  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-179
+	* vector.cc (_C_insert_range): Corrected logic error in the computation
+	of the end of the range of elements to be overwritten (assigned over).
+
+2006-05-12  Martin Sebor  <sebor@roguewave.com>
+
+	* deque (_RWSTD_COMPLEX_DEFAULT): Eliminated and unconditionally
+	used default template arguments.
+	* list: Same.
+	* map: Same.
+	* queue: Same.
+	* set: Same.
+	* stack: Same.
+	* vector: Same.
+	* _strref.h: Same.
+	* fstream (_RWSTD_COMPLEX_DEFAULT): Same.
+	(filebuf, fstream, ...): Made use of default template arguments
+	in typedef defintions and in explicit instantiation directives.
+	* iosfwd: Same.
+	* sstream: Same.
+	* istream: Same.
+	* streambuf: Same.
+	* _basic_ios.h: Same.
+	* _ioinsert.h: Same.
+	* _ioiter.h: Same.
+	* _iterator.h: Same.
+	* _money_get.h: Same. Replaced the _RWSTD_V3_LOCALE macro with std.
+	* _money_put.h: Same.
+	* _num_get.h: Same.
+	* _num_put.h: Same.
+	* _time_get.h: Same.
+	* _time_put.h: Same.
+	* _defs.h (_RWSTD_SIMPLE_DEFAULT, _RWSTD_COMPLEX_DEFAULT): Removed.
+
+2006-05-12  Martin Sebor  <sebor@roguewave.com>
+
+	* _iterbase.h (iterator): Removed uses of the _RWSTD_SIMPLE_DEFAULT
+	macro (no longer detected).
+	* _streamiter.h (istream_iterator, ostream_iterator): Same.
+
+2006-05-04  Martin Sebor  <sebor@roguewave.com>
+
+	* _config-gcc.h (_RWSTD_NO_EXCEPTIONS): #defined in response to
+	the __EXCEPTIONS macro not being #defined by the compiler, e.g.,
+	when the -fno-exceptions command line option is used.
+
+2006-05-03  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-176
+	* string.cc (find): Optimized for a 50% speedup.
+
+2006-05-03  Martin Sebor  <sebor@roguewave.com>
+
+	* string.cc (replace): Renamed function arguments for clarity.
+
+2006-04-20  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-174
+	* bitset (_C_from_ulong, flip, set, operator<<=): Used ULONG_MAX
+	instead of SIZE_MAX in bitwise operations involving unsigned long.
+
+2006-04-18  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-172
+	* _smartptr.h (__rw_nonvoid_ref): Moved from here...
+	* _autoptr.h: ...to here and used to declare operator*().
+	(operator->): Avoided using _RWSTD_OPERATOR_ARROW and instead spelled
+	out the definition of the operator without relying on operator*() to
+	avoid instantiating its (ill-formed) declaration when element_type is
+	void.
+
+2006-03-28  Martin Sebor  <sebor@roguewave.com>
+
+	* cwchar (mbrlen, mbrtowc, ...): Used _RWSTD_MBSTATE_T instead
+	of mbstate_t.
+	* _mbstate.h (_RWSTD_NO_STD_MBSTATE_T): Undefined when not using
+	HP aCC on HP-UX (i.e., for gcc).
+
+2006-03-27  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-159
+	* _config-xlc.h: Disabled explicit instantiation for XLC++ 8.0 when
+	extern template isn't correctly implemented to work around an XLC++
+	8.0 optimizer bug.
+
+2006-03-25  Martin Sebor  <sebor@roguewave.com>
+
+	* _defs.h (_RWSTD_VA_COPY): New helper macro.
+	* VA_LIST.cpp(_RWSTD_NO_VA_COPY): New macro #defined in response
+	to the C99 va_copy() macro not being #defined in <stdarg.h>.
+	* exception.cpp (__rw_vfmtwhat): Unconditionally used _RWSTD_VA_COPY().
+	* printf.cpp (rw_vasnprintf): Used _RWSTD_VA_COPY.
+	(rw_sprintf, rw_snprintf): Provided definitions.
+
+2006-03-17  Martin Sebor  <sebor@roguewave.com>
+
+	* _tree.h (_C_make_iter): Removed an unnecessary const qualification.
+
+2006-03-08  Martin Sebor  <sebor@roguewave.com>
+
+	* _defs.h (_RWSTD_NO_IMPLICIT_INSTANTIATION): Handled in a conditional.
+	Added comments.
+
+2006-03-08  Martin Sebor  <sebor@roguewave.com>
+
+	* fstream (_C_pbacksize): Changed type from streamsize to size_t
+	since negative values don't make sense and aren't permitted.
+	* streambuf (_C_write_avail, _C_putback_avail): Returned size_t
+	instead of streamsize since the returned value is guaranteed to
+	be non-negative.
+
+2006-03-06  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-162
+	* _config.h (_RWSTD_NO_STRING_MUTEX): Removed conditional definition.
+	* _mutex.h (_RWSTD_ATOMIC_OPS): Corrected spelling and simplified the
+	handling of the macro. Handled x86_64 in the same block as IA64.
+	* _strref.h (_RWSTD_NO_STRING_MUTEX): Defined in response to
+	_RWSTD_ATOMIC_OPS being undefined.
+	* atomic.s: Handled __x86_64 (and __x86_64__).
+	* i86_64/atomic.s: AMD64/EM64T implementation.
+
+2006-03-04  Martin Sebor  <sebor@roguewave.com>
+
+	* istream.cc (_C_ipfx, _C_unsafe_get, _C_get, read, getline,
+	operator>>): Used direct initialization instead of copy
+	initialization for int_type objects.
+	(read): Eliminated an assumption about the return type of
+	int_type's assignment operator.
+
+2006-03-03  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-161
+	* fstream.cc (sync): Called __rw_fflush() in stdio mode.
+
+2006-03-03  Martin Sebor  <sebor@roguewave.com>
+
+	* fstream.cc (sync): Fixed typos inadvertently s introduced
+	in a previous change. Changed the type of a local to avoid
+	signed/unsigned comparison warnings.
+
+2006-03-03  Martin Sebor  <sebor@roguewave.com>
+
+	* fstream (__GNUC__MINOR__): Corrected spelling.
+
+2006-03-03  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-160
+	* fstream.cc: Avoided using operator+ on pos_type (which need
+	not be defined) and used the required operator+= instead.
+
+2006-03-02  Martin Sebor  <sebor@roguewave.com>
+
+	* _config.h: Moved each compiler-specific section to its own header.
+	* _config-acc.h: HP aC++ configuration definitions and overrides.
+	* _config-deccxx.h: Same for DEC/Compaq/HP C++.
+	* _config-eccp.h: Same for the EDG eccp demo.
+	* _config-gcc.h: Same for GCC.
+	* _config-icc.h: Same for Intel C++.
+	* _config-mipspro.h: Same for SGI MIPSpro.
+	* _config-msvc.h: Same for MSVC.
+	* _config-sunpro.h: Same for Sun C++ aka SunPro.
+	* _config-xlc.h: Same for IBM XLC++ aka VisualAge C++.
+
+2006-02-27  Martin Sebor  <sebor@roguewave.com>
+
+	* sstream.cc (overflow): Removed an unused variable.
+
+2006-02-25  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-142
+	* _defs.h (_RWSTD_MINIMUM_STRINGBUF_CAPACITY): New macro.
+	* sstream (xsputn): Added a declaration.
+	(_C_grow): Removed an unnecessary function argument, used the
+	new _RWSTD_MINIMUM_STRINGBUF_CAPACITY macro, and simplified.
+	* sstream.cc (str): Extended to allow to be called with own
+	buffer as an argument to grow it.
+	(xsputn): Defined for better efficiency than the base class
+	function.
+	(overflow): Called str() for code reuse.
+	(setbuf): Set the "high mark" in out mode.
+	Updated copyrights.
+
+2006-02-25  Martin Sebor  <sebor@roguewave.com>
+
+	* _defs.h (_M_IA64): Used instead of the generic MSVC _WIN64 macro
+	to distinguish between the IA64 SDK and ordinary WIN64 environments
+	such as EM64T.
+
+2006-02-24  Martin Sebor  <sebor@roguewave.com>
+
+	* _traits.h (_RWSTD_MEMCPY, et al): Qualified name(s) with the
+	_RWSTD_C:: prefix. Updated copyright.
+
+2006-02-24  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-153
+	* _punct.cc (__rw_match_name): Parenthesized toupper to prevent
+	macro expansion.
+
+2006-02-20  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-151
+	* limits: Implemented the proposed resolution of LWG issue 559 and
+	guarded it with _RWSTD_NO_EXT_CV_QUALIFIED_LIMITS until it has been
+	accepted.
+
+2006-02-19  Martin Sebor  <sebor@roguewave.com>
+
+	* streambuf.cc (xsputn): Asserted a precondition and simplified
+	no-op detection.
+
+2006-02-19  Martin Sebor  <sebor@roguewave.com>
+
+	* streambuf (_C_is_out, _C_is_inout): Simplified bitwise expressions.
+
+2006-02-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-149
+	* sstream (str): Simplified.
+	(showmanyc): Outlined a virtual function.
+	(_C_strlen): Returned (pptr - pbase) in out mode instead of
+	(epptr - pbase) as per DR 432.
+	(_C_catchup): New inline function called to let egptr catch up
+	with pptr.
+	* sstream.cc (str): Set egptr (et al) to point to the end of the
+	controlling sequence even when not in "in" mode as an efficient
+	way of implementing the "high mark" referred to in DR 432.
+	(showmanyc): Outlined and called _C_catchup.
+	(overflow): Called _C_catchup to allow the function to succeed
+	even when (gptr < egptr) initially. Handled epptr pointing prior
+	to the very end of the buffer. After reallocation set epptr to
+	oint to the very end of the buffer and not just one past pptr
+	(as per DR 169 and DR 432). Called _C_Catchip to let egptr get
+	caught up with pptr.
+	(underflow): Returned successfully if argument is eof regardless
+	of openmode to strictly conform to the requirements.
+	(seekoff): Simplified, called _C_catchup, and handled offsets
+	pointing to uninitialized storage as required in DR 432.
+	(seekpos): Implemented completely in terms of seekoff.
+
+2006-02-16  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-146
+	* sstream (stringbuf, istringstream, ostringstream, stringstream):
+	Added ctor and str() overloads for const char_type* for improved
+	efficiency (gives a 20% speedup).
+	(_RWSTD_NO_EXT_STRINGBUF_STR): New macro guarding the extended
+	str() overloads.
+	(stringbuf dtor, underflow): Outlined virtual functions.
+	* sstream.cc (stringuf ctor, str): Implemented in terms
+	of the new str(const char_type*) overload for simplicity.
+
+i2006-02-08  Martin Sebor  <sebor@roguewave.com>
+
+	* _mbstate.h [_RWSTD_OS_SUNOS] (_RWSTD_NO_STD_MBSTATE_T): Defined to
+	let <cwchar> et al know that mbstate_t is not declared in namespace
+	std (and should be introduced there via a using declaration).
+
+2006-02-02  Martin Sebor  <sebor@roguewave.com>
+
+	* _defs.h: Removed the macros _RWSTD_WCRTOMB() and _RWSTD_MBRTOWC()
+	obviated by change in r374235.
+
+2006-02-02  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-129
+	* cwchar: Consistently introduced all function declarations into
+	the global scope first, before injecting each into namespace std
+	via a using declaration.
+
+2006-02-01  Martin Sebor  <sebor@roguewave.com>
+
+	* _algobase.h: Renamed file #include guards to include the name	of
+	the directory. Guarded #include directives of files in include/_rw
+	for compilation efficiency. Removed the inclusion of from headers
+	that also #include other implementation-specific headers.
+	* iosfwd: Same.
+	* _algobase.h: Same.
+	* _allocator.h: Same.
+	* _array.h: Same.
+	* _autoptr.h: Same.
+	* _basic_ios.h: Same.
+	* _bitmask.h: Same.
+	* _config.h: Same.
+	* _defs.h: Same.
+	* _error.h: Same.
+	* _exception.h: Same.
+	* _file.h: Same.
+	* _funcbase.h: Same.
+	* _heap.h: Same.
+	* _ioinsert.h: Same.
+	* _ioiter.h: Same.
+	* _iosbase.h: Same.
+	* _iosfailure.h: Same.
+	* _iosfwd.h: Same.
+	* _iterator.h: Same.
+	* _iterbase.h: Same.
+	* _math.h: Same.
+	* _mbstate.h: Same.
+	* _mutex.h: Same.
+	* _new.h: Same.
+	* _pair.h: Same.
+	* _rawiter.h: Same.
+	* _relops.h: Same.
+	* _select.h: Same.
+	* _specialized.h: Same.
+	* _streamiter.h: Same.
+	* _strref.h: Same.
+	* _traits.h: Same.
+	* _tree.h: Same.
+	* _typetraits.h: Same.
+
+2006-01-30  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-34
+	* cstdint: Simplified.
+	* 8.cstdint.cpp: New test exercising tr.c99.cstdint.
+
+2006-01-27  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-34
+	* cstdint: Implementation of tr.c99.cstdint.
+	* stdint.h: Implementation of tr.c99.stdinth.
+
+2006-01-26  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-32
+	* array: New. Implementation of tr.array.
+
+2006-01-26  Martin Sebor  <sebor@roguewave.com>
+
+	* array: Deleted.
+
+2006-01-26  Martin Sebor  <sebor@roguewave.com>
+
+	* array: New. Implementation of tr.array.
+
+2006-01-26  Martin Sebor  <sebor@roguewave.com>
+
+	* _config.h (_RWSTD_SSIZE_TYPE): Removed conditional definition
+	of the unused macro.
+
+2006-01-26  Martin Sebor  <sebor@roguewave.com>
+
+	* _num_get.cc: Replaced hardcoded magic numbers representing special
+	characters with constants obtained from __rw_digit_map. Used UCHAR_MAX
+	instead of (unsigned char)-1.
+
+2006-01-25  Martin Sebor  <sebor@roguewave.com>
+
+	* algorithm.cc (random_shuffle): Asserted a precondition.
+
+2006-01-25  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-126
+	* algorithm.cc (random_shuffle): Removed assumptions about the random
+	number generator object's operator() taking an argument or returning
+	a value convertible from or to anything other than the iterator's
+	difference_type as required by 25.2.11, p3.
+
+2006-01-17  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-121
+	* algorithm.cc (__search_n): Converted the Size argument
+        to ptrdiff_t before doing any math on it.
+
+2006-01-16  Martin Sebor  <sebor@roguewave.com>
+
+	* _algobase.h (__rw_lt::operator()): Declared arguments const to allow
+	them to bind to rvalues and cast away their constness before invoking
+	operator< in case it takes a non-const argument.
+
+2006-01-16  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-120
+	* deque.cc (erase, _C_assign_n, _C_assign_range, _C_insert_range):
+	Avoided using operator!= with iterators and used the negated result
+	of operator== instead, to avoid ambiguity when both namespace std
+	and namespace rel_ops are in the same scope.
+	* _tree.cc (erase): Same.
+
+2006-01-12  Martin Sebor  <sebor@roguewave.com>
+	
+	* _mbstate.h (__rw_mbstate_t) [_RWSTD_OS_AIX]: Introduced typedef
+	to avoid problems due to const qualification on _RWSTD_MBSTATE_T.
+	(<machine/_types.h>) [_RWSTD_OS_DARWIN]: Included for __mbstate_t.
+	(_RWSTD_MBSTATE_T): Defined to std::mbstate_t for the generic OS.
+	* _cwchar.h (mbstate_t): Defined in terms of _RWSTD_MBSTATE_T.
+
+2006-01-11  Andrew Black <ablack@roguewave.com>
+
+	STDCXX-103
+	* time_put.cpp [_RWSTD_NO_NL_LANGINFO] (<langinfo.h>): Guarded
+        against inclusion when the header is detected to be missing at
+        configuration time.
+        * _defs.h [_RWSTD_NO_WCHAR_H] (_RWSTD_ANSI_C_WCHAR_H): Defined
+        to <rw/_defs.h> when the header is absent on a platform.
+
+2006-01-11  Martin Sebor  <sebor@roguewave.com>
+
+	* _traits.h [_RWSTD_NO_WMEMCMP] (_RWSTD_WMEMCMP): Fixed a typo
+	in conditionally compiled code.
+
+2006-01-10  Martin Sebor  <sebor@roguewave.com>
+
+	* cwchar (_RWSTD_NO_STD_MBSTATE_T): Used instead of
+	_RWSTD_NO_MBSTATE_T_IN_STD to guard the using declaration
+	of mbstate_t in namespace std.
+
+2006-01-10  Martin Sebor  <sebor@roguewave.com>
+
+	* _mbstate.h (_RWSTD_MBSTATE_T): New macro for std::mbstate_t,
+	::mbstate_t, the internal ::__mbstate_t (on Linux and Solaris),
+	char* on AIX, char on IRIX, and int for MSVC.
+	* iosfwd (_mbstate.h, _RWSTD_MBSTATE_T): Unconditionally included
+	and used the macro instead of referring to mbstate_t directly.
+	* _codecvt.h: Same.
+	* _locale.h: Same.
+	* _messages.cc: Same.
+	* _traits.h: Same.
+	* codecvt.cpp: Same.
+	* iso2022.cpp: Same.
+	* iso2022.h: Same.
+	* wcodecvt.cpp: Same.
+
+2006-01-07  Martin Sebor  <sebor@roguewave.com>
+
+	* fstream.cc (underflow): Used char_traits::move() instead of memmove.
+	* _messages.cc (do_get): Used char_traits::length() instead of strlen.
+
+2006-01-07  Martin Sebor  <sebor@roguewave.com>
+
+	* bitset (reset, set): Used the _RWSTD_MEMSET() macro instead
+	of calling memset directly.
+	* bitset.cc (__rw_bitset): Same.
+
+2006-01-07  Martin Sebor  <sebor@roguewave.com>
+
+	* _traits.h: Used string helpers instead of the corresponding libc
+	functions in debug mode or with the vanilla EDG eccp demo to avoid
+	namespace pollution and for better compile time and runtime error
+	detection.
+
+2006-01-07  Martin Sebor  <sebor@roguewave.com>
+
+	* _mbstate.h (<cwchar>): Avoided #including on Solaris and instead
+	defined struct __mbstate_t and mbstate_t directly in this header.
+
+2006-01-05  Martin Sebor  <sebor@roguewave.com>
+
+	* _mutex.h (_RWSTD_CSTRING): Removed an unnecessary #include directive.
+
+2005-12-30  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-89
+	* _algobase.h [!_RWSTD_NO_INLINE_MEMBER_TEMPLATES] (__rw_lt): Changed
+	from a template class with an ordinary member operator() to an ordinary
+	class with a template member operator() to permit the comparison of
+	arguments of heterogeneous types.
+
+2005-12-08  Martin Sebor  <sebor@roguewave.com>
+
+	* vector (swap): Optimized for unequal allocators.
+
+2005-12-08  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-86
+	* numeric (__adjacent_difference): Renamed __value to __val in order
+	to avoid MSVC 8.0 error C4980: '__value': use of this keyword requires
+	/clr:oldSyntax command line option.
+	* _algobase.h (fill, fill_n): Ditto.
+	* vector (_C_fill): Ditto. While there, also replaced const references
+	to bool in function arguments with ordinary values.
+
+2005-12-07  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-84
+	* _algobase.h (fill_n): Removed the assumption that the Size argument
+	is modifiable and can be predecremented and instead converted it to
+	ptrdiff_t and manipulated the converted object.
+
+2005-12-07  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-83
+	* algorithm (generate_n): Removed the assumption that the Size argument
+	is modifiable and can be predecremented, and instead converted it to
+	ptrdiff_t and manipulated the converted object.
+
+2005-12-05  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-28
+	* _smartptr.h: An icomplete implementation of tr.util.smartptr.
+
+2005-12-02  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-73
+	* typeinfo: Used guard macros appropriate for each class instead
+	of fudging it based on what appears to work in most cases (except
+	for MSVC 8).
+	* typeinfo.cpp: Same. Also indented preprocessor conditionals for
+	readability.
+
+2005-11-25  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-70
+	* string (basic_string): Took into account the fact that the value
+	of the reference count when read unguarded may be negative (-1) on
+	SPARC V8 when it's being manipulated (incremented or decremented)
+	by another thread, and cast it to an unsigned type in expressions
+	involving relational operators such as < and <=.
+	(begin): Same.
+	(append): Same.
+	* string.cc (operator=): Same.
+	(replace): Same.
+	(__replace_aux): Same.
+
+2005-11-23  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-71
+	* cerrno: Avoided #undefining errno.
+	* errno.h: Same.
+	* _defs.h: Used quotes instead of pointy brackets in the defintion
+	of the _RWSTD_ANSI_C_ERRNO_H and _RWSTD_CERRNO macros to prevent
+	the errno macro from expanding.
+
+2005-11-18  Martin Sebor  <sebor@roguewave.com>
+
+	* _list (C_get_node): Renamed a function argument to eliminate
+	an MSVC 8.0 compilation error. __is_empty is apparently an MSVC
+	reserved symbol new in 8.0 even though it's not documented here:
+	http://msdn2.microsoft.com/en-us/library/2e6a4at9.aspx.
+	(_C_init): Same.
+
+2005-11-16  Martin Sebor  <sebor@roguewave.com>
+
+	* istream.cc: Removed HP copyright notice (HP had nothing to do with
+	this file).
+
+2005-11-16  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-59
+	STDCXX-67
+	* istream.cc (getline): Renamed function formal arguments for clarity.
+	Prevented the function from writing past the end of a zero-size buffer
+	(thus reverting a partial regression introduced in revision 328966).
+
+2005-11-10  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-65
+	* limits: Used _RWSTD_NO_INT_TRAPS to define numeric_limits::traps
+	for all integral T.
+	* NO_INT_TRAPS.cpp: Used division by zero to trigger an arithmetic
+	trap on platforms where integer trapping is implemented and enabled.
+
+2005-11-08  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-57
+	* _defs.h: Defined _RWSTD_NO_EXPLICIT_INSTANTIATION_BEFORE_DEFINITION
+	whenever _RWSTD_NO_EXTERN_TEMPLATE_BEFORE_DEFINITION is #defined.
+
+2005-11-04  Martin Sebor  <sebor@roguewave.com>
+
+	* _money_put.cc (_C_put): Eliminated gcc -O warning: variable
+	might be used uninitialized in this function.
+
+2005-11-01  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-61
+	* _mutex.h (__rw_atomic_preincrement): Fixed an egregious typo
+	in a reinterpet_cast from a reference to pointer not caught by
+	MSVC.
+	(__rw_atomic_predecrement): Same.
+	(__rw_atomic_exchange): Same.
+
+2005-10-27  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-59
+	* istream.cc (getline): On failure, stored the NUL character
+	in the first location of the array as required by DR 243.
+	Prevented the function from overwriting extracted data or storing
+	the NUL character past the end of buffer.
+
+2005-10-27  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-60
+	* istream.cc (get): On failure, stored the NUL character in the first
+	location of the array as required by DR 243.
+
+2005-10-19  Martin Sebor  <sebor@roguewave.com>
+
+	* _mutex.h: Replaced copyright notices inadvertently ovewritten
+	in a previous commit.
+
+2005-10-19  Martin Sebor  <sebor@roguewave.com>
+
+	* typeinfo: Corrected a preprocessor conditional guarding an EDG
+	specific #pragma recognized by the vanilla EDG front end, Compaq
+	C++, and SGI MIPSpro but not HP aCC 6.x or Intel C++ (which also
+	use the same front end).
+
+2005-10-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-56
+	* deque.cc (_C_assign_n): Renamed a local variable from __it to __ix
+	to silence gcc -Wshadow warnings.
+	(_C_assign_range): Same.
+	* vector.cc (_C_assign_range): Renamed a local to silence gcc -Wshadow
+	warnings.
+	(_C_insert_range): Same.
+
+2005-10-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-55
+	* _specialized.h (__rw_new_capacity): Silenced a gcc -Wshadow warning
+	on IRIX.
+	* string (__rw_new_capacity): Same.
+
+2005-10-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-54
+	* _mutex.h: Cast -1 to unsigned in order to silence gcc warnings
+	on IRIX: argument passing of negative value `-1' to `unsigned int'.
+
+2005-10-19  Martin Sebor  <sebor@roguewave.com>
+
+	* _config.h: Disabled the extern template extension for gcc 2.x which
+	doesn't implement it but doesn't fail the config test and only issues
+	a warning: ANSI C++ forbids the use of `extern' on explicit
+	instantiations.
+	Defined the  _RWSTD_SGI_MIPSPRO macro when SGI MIPSpro is detected
+	as the compiler.
+
+2005-10-14  Martin Sebor  <sebor@roguewave.com>
+
+	* _config.h: Replaced an unreliable preprocessor conditional
+	with a simpler one using the _RWSTD_EDG_ECCP macro.
+	Introduced a new convenience macro: _RWSTD_REVERSE_ITERATOR().
+
+2005-10-14  Martin Sebor  <sebor@roguewave.com>
+
+	* _config.h: Introduced the _RWSTD_EDG_ECCP macro to unambiguously
+	identify the vanilla EDG eccp front end demo and to distinguish it
+	from compilers such as Compaq C++, Intel C++, or SGI MIPSpro that
+	use the front-end and (sometimes) also #define __EDG__.
+	Removed the hardcoded _RWSTD_CRLF_CONVENTION macro (superseded
+	by the new _RWSTD_NEWLINE_... set of autoconfigured macros).
+	* fstream (_C_crlf_extern_count): Replaced the _RWSTD_CRLF_CONVENTION
+	macro with the new _RWSTD_NEWLINE_... set of macros. Replaced a loop
+	with the potentially more efficient call to traits::find().
+	(_C_crlf_intern_count): Same.
+
+2005-10-14  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-47
+	* cstdlib (abs): Moved the definition of the int overload from
+	namespace std to the global scope and introduced it into std
+	via a using declaration for consistency with the rest of the
+	C functions declared in the same block. Guarded said definition
+	with the _RWSTD_NO_ABS_INT config macro to avoid colliding with
+	the same function in <cmath>.
+
+2005-10-14  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-46
+	* cstdlib (div): Guarded definitions of the div(long,long) overload
+	with the _RWSTD_NO_DIV_LONG config macro to prevent errors due to
+	multiple definitions of the function when it's also defined in
+	the system <stdlib.h> header.
+
+2005-10-13  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-48
+	* cwchar (wmemcpy): Incremented the source pointer in every
+	iteration of the loop.
+
+2005-10-13  Martin Sebor  <sebor@roguewave.com>
+
+	* _money_put.cc (do_put): Eliminated the assumption that non-virtual
+	member functions of both the local and international specializations
+	of the moneypunct facet have identical behavior and are interchangeable
+	(i.e., that the static types of the facets do not cache any data).
+	(_C_put): Same.
+
+2005-09-29  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-43
+	* _mutex.h (__rw_atomic_preincrement): Eliminated a typo introduced
+	in revision #292352 into code conditionally compiled on AIX with VAC++.
+
+2005-09-29  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-22
+	* _time_put.cc (__rw_put_time): Changed to an ordinary function.
+	* time_put.cpp (__rw_put_time): Changed linkage from internal to
+	external.
+
+2005-09-29  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-43
+	* _mutex.h (__rw_atomic_preincrement): Removed the definition of
+	the duplicate overload for long in code conditionally compiled
+	for i386 inadvertently left in by rev 292352.
+	(__rw_atomic_predecrement): Same.
+	(__rw_atomic_exchange): Same.
+
+2005-09-28  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-43
+	* i86/atomic.s (__rw_atomic_add): renamed to __rw_atomic_add32.
+	(__rw_atomic_xchg): renamed to __rw_atomic_xchg32.
+	* sparc/atomic-64.s: Ditto.
+	* _mutex.h: Simplified by factoring out common code from platform
+	specific blocks to a single platform-independent block (wherever
+	possible).
+	(__rw_atomic_add): renamed to __rw_atomic_add32.
+	(__rw_atomic_xchg): renamed to __rw_atomic_xchg32.
+
+2005-09-27  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-42
+	* bitset (to_string): Corrected the preprocessor conditional guarding
+	the definition of the member function to be the same as the one used
+	to guard its declaration in the body of the template.
+
+2005-09-19  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-25
+	* string (insert): Added overloads for string::const_pointer
+	to detect insertion of (substrings of) self.
+
+2005-09-15  Martin Sebor  <sebor@roguewave.com>
+
+	* _config.h: Bumped up version number to 4.1.3.
+	Enabled long long for Cygwin.
+
+2005-08-25  Martin Sebor  <sebor@roguewave.com>
+
+	* _config.h: Bumped up version number to 4.1.2.
+
+2005-08-04  Nicole  Willson  <willson@roguewave.com>
+	    Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-11:
+	* include/rw/_mutex.h (__rw_atomic_preincrement,
+	__rw_atomic_predecrement, __rw_atomic_exhange): Added
+	long long overloads for 32-bit IA64.
+	* src/atomic.s: Conditionally #included atomic-ia64-32.s.
+	* src/atomic-ia64-32.s: New. Same as atomic-ia64.s except
+	for 32-bit mode.
+
+Issue STDCXX-8:
+
+2005-07-30  Nick Gunn  <gunn@roguewave.com>
+
+        * include/ansi/cfloat (LDBL_MAX, LDBL_MIN): Avoided re-defining
+	macros when using the EDG-based Intel C++ on Linux.
+        * include/ansi/float.h: Same; also keyed in on __linux__ instead
+        of __GLIBC__.
+        * etc/config/src/LIMITS.cpp (LDBL_EPSILON, LDBL_MAX, LDBL_MIN):
+	Same.
+
+2005-07-26  Martin Sebor  <sebor@roguewave.com>
+
+	Set the svn:keywords property and enabled the expansion
+	of the Id keyword.
+
+2005-07-19  Martin Sebor  <sebor@roguewave.com>
+
+	Initial import of the Rogue Wave C++ Standard library 4.1.2.
