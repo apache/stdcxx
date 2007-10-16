@@ -1,8 +1,8 @@
 
             $Id$
 
-       STDCXX - Apache C++ Standard Library 4.2.0 (pre-release)
-       --------------------------------------------------------
+              STDCXX - Apache C++ Standard Library 4.2.0
+              ------------------------------------------
 
   i. Disclaimer
   -------------
@@ -59,7 +59,7 @@
     Apogee C++ .................................................. 10.1
     Borland C++ ................................................. 10.2
     Comeau C++ .................................................. 10.3
-    Compaq C++ .................................................. 10.4
+    Compaq/HP C++ ............................................... 10.4
     EDG eccp .................................................... 10.5
     GNU gcc ..................................................... 10.6
     HP aCC ...................................................... 10.7
@@ -67,7 +67,7 @@
     Intel C++ ................................................... 10.9
     KAI C++ .................................................... 10.10
     Metrowerks CodeWarrior ..................................... 10.11
-    Microsoft MSVC ............................................. 10.12
+    Microsoft Visual Studio .................................... 10.12
     SGI MIPSpro ................................................ 10.13
     Siemens CDS++ .............................................. 10.14
     Sun C++ .................................................... 10.15
@@ -112,7 +112,7 @@
   o  HP aCC 3.13 or later for PA-RISC, or
   o  HP aCC 5.36 or later for IPF, or
   o  Intel C++ 7.0 or later for Linux/IA32 or IA64, or
-  o  Compaq C++ 6.2 or later for Tru64 UNIX, or
+  o  Compaq/HP C++ 6.2 or later for Tru64 UNIX, or
   o  IBM VisualAge 5.0 or later for AIX 4.3 or later
   o  SGI MIPSpro 7.3 or later for IRIX
   o  Sun C++ 5.3 or later for SunOS 5.6 or later
@@ -416,7 +416,7 @@
                   gcc.config      - for gcc
                   icc.config      - for Intel C++ on Linux
                   mipspro.config  - for SGI MIPSpro
-                  osf_cxx.config  - for Compaq C++
+                  osf_cxx.config  - for Compaq/HP C++
                   reliant_cds.config - for Siemens CDS++
                   sunpro.config   - for Sun C++
                   vacpp.config    - for IBM VisualAge C++ and XL C/C++
@@ -1760,25 +1760,57 @@
 
     Ported to Comeau C++ 4.2.42 or later on Solaris.
 
-    10.4  Compaq C++
-    ----------------
+    This release not tested.
 
-    Ported to Compaq C++ 6.2 or later for Tru64 UNIX.
+    10.4  Compaq/HP C++
+    -------------------
+
+    Ported to Compaq/HP C++ 6.2 or later for Tru64 UNIX.
+
+    This release tested with:
+
+    o  Compaq/HP C++ 6.5 and 7.1 on Tru64 UNIX
+    o  Compaq/HP C++ 7.1 on Tru64 UNIX
+
+       Shared library contains uresolved references that cause
+       linker errors in programs that link with it.
+       See http://issues.apache.org/jira/browse/STDCXX-406
 
     10.5  EDG eccp
     --------------
 
-    Ported  to the  EDG  eccp demo  2.45.2  through 3.6  on Linux  and
+    Ported  to the  EDG  eccp demo  2.45.2  through 3.10 on Linux  and
     Solaris.
+
+    This release tested with:
+
+    o  EDG eccp 3.9 on Red Hat Enterprise Linux 5.0, x86_64
+       The library fails to build unless _RWSTDDEBUG is #defined.
+       See http://issues.apache.org/jira/browse/STDCXX-595
+
+       The test driver and the exec utility fail to build.
+       See http://issues.apache.org/jira/browse/STDCXX-414
+
+    o  EDG eccp 3.9 on Solaris 9
 
     10.6  GNU gcc
     -------------
 
-    Ported  to gcc  2.95.2 through  4.0.0  on a  variety of  operating
-    systems   and   architectures,   including   HP-UX,   Linux,   and
-    Solaris. The  library has not been  ported to Apple  Darwin and is
-    known to fail to build.
+    Ported  to gcc  2.95.2 through  4.1.0  on a  variety of  operating
+    systems  and architectures,  including Darwin  (Mac OS  X), HP-UX,
+    Linux, and Solaris.
 
+    This release tested with:
+
+    o  gcc 4.1.1, Solaris 10, SPARC
+    o  gcc 4.1.0, SuSE Linux Enterprise Server 10.0, EM64T
+    o  gcc 4.0.1, Mac OS X (Darwin), x86
+    o  gcc 3.4.6, Red Hat Enterprise Linux 4, Update 4, AMD64 and EM64T
+    o  gcc 3.4.4, FreeBSD 6.2, x86
+    o  gcc 3.4.4, Red Hat Enterprise Linux 4, Update 2, IA64
+    o  gcc 3.3.3, SuSE Linux Enterprise Server 9.1, AMD64
+    o  gcc 3.2.3, Red Hat Enterprise Linux 3, Update 8, EM64T
+                                   
     10.7 HP aCC
     ------------
 
@@ -1788,7 +1820,17 @@
     10.8  IBM VisualAge C++
     -----------------------
 
-    For  builds with  VisualAge for  C++ 5.0  and 6.0  there  are some
+    Ported to VisualAge  C++ 5.0 on AIX 4.3, VisualAge  C++ 6.0 on AIX
+    5.2, and XLC++ 7.0, 8.0, and 9.0 on AIX 5.2 and 5.3.
+
+    This release tested with:
+
+    o  XLC++ 9.0, AIX 5.3, POWER
+    o  XLC++ 8.0, AIX 5.3, POWER
+    o  XLC++ 7.0, AIX 5.3, POWER
+    o  VisualAge C++ 6.0, AIX 5.2, POWER
+
+    For  builds with  VisualAge C++ 5.0  and 6.0  there  are some
     special  considerations  when   building  programs  that  use  the
     implicit inclusion  mechanism (i.e.,  the -qtempinc mode  which is
     active by default).
@@ -1807,6 +1849,11 @@
     Ported to  Intel C++ 7.0 through  9.0 on Linux  and Windows (x86,
     IA64, and EM64T).
 
+    o  Intel C++ 10.0, Red Hat Enterprise Linux 4, Update 4, AMD64 and EM64T
+    o  Intel C++ 10.0, SuSE Linux Enterprise Server 10.0, EM64T
+    o  Intel C++ 9.1, Red Hat Enterprise Linux 4, Update 4, AMD64 and EM64T
+    o  Intel C++ 9.1, SuSE Linux Enterprise Server 10.0, EM64T
+
     10.10  KAI C++
     --------------
 
@@ -1817,10 +1864,15 @@
 
     Not ported.
 
-    10.12  Microsoft MSVC
-    --------------------
+    10.12  Microsoft Visual Studio
+    ------------------------------
 
-    Ported to MSVC 6.0 through 8.0 on Windows (x86, IA64, and EM64T).
+    Ported to  Visual Studio .NET  2003 (AKA MSVC 7.0)  through Visual
+    Studio .NET 2005 (AKA MSVC 8.0) on Windows (x86, IA64, and EM64T),
+    and Visual Studio 2008 (AKA MSVC 9.0), Beta 2.
+
+    o  Visual Studio 2008 Beta 2, Windows XP, x86
+    o  Visual Studio 2005, Windows XP, 
 
 
     10.13  SGI MIPSpro
@@ -1836,5 +1888,13 @@
     10.15  Sun C++
     --------------
 
-    Ported to Sun C++ 5.3 through 5.7 on Solaris and Linux (SPARC and
+    Ported to Sun C++ 5.3 through 5.9 on Solaris and Linux (SPARC and
     x86_64).
+
+    o  Sun C++ 5.9, Red Hat Enterprise Linux 4, Update 4, AMD64 and EM64T
+    o  Sun C++ 5.9, SuSE Linux Enterprise Server 9.1, AMD64
+    o  Sun C++ 5.9, Solaris 10, AMD64
+    o  Sun C++ 5.8, Solaris 10, AMD64
+    o  Sun C++ 5.7, Solaris 9, SPARC
+    o  Sun C++ 5.6, Solaris 9, SPARC
+    o  Sun C++ 5.3, Solaris 8, SPARC
