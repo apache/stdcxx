@@ -1,0 +1,1241 @@
+2007-10-03 Farid Zaripov <farid_zaripov@epam.com>
+
+	* display.cpp (print_status_plain): Use float arithmetic when
+	calculating the percent of the failed assertions to avoid
+	overflow of the unsigned int type.
+
+2007-10-01  Farid Zaripov  <farid_zaripov@epam.com>
+
+	* locale.cpp [_WIN32] (EnumLocales): New function to
+	enumerate system locales.
+	(print_locale_names): Obtain list of system locales if
+	RWSTD_LOCALE_ROOT environment variable is not defined.
+
+2007-09-26  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-572
+	* aliases.cpp (ci_pre_compare): Parenthesized calls to two-argument
+	overload of tolower() to avoid errors when the symbol is #defined
+	as a macro in libc header(s) as is the case with gcc 4 on Darwin.
+
+2007-09-26  Farid Zaripov  <farid_zaripov@epam.com>
+
+	* locale.cpp [_WIN32]: Add /A:D option in dir command
+	to print the directory names only.
+
+2007-09-25  Andrew Black  <ablack@roguewave.com>
+	STDCXX-440
+	* exec.cpp (limit_process): Stop itteration over limits structure
+	when name element is null, not limit element.  Old behavior
+	incorrectly aborted loop when encountering the first limit that
+	didn't need to be set.
+
+2007-09-24  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-404
+	* charmap.h (<iconv.h>): Removed a redundant _MSC_VER guard.
+	(open_iconv_to_utf8, open_iconv_to_ext, ic_to_utf8_, ic_to_ext_):
+	Guarded declarations with _RWSTD_NO_ICONV instead of _MSC_VER.
+	* charmap.cpp (my_iconv_open): Guarded function definition with
+	_RWSTD_NO_ICONV instead of _MSC_VER.
+	(convert_to_utf8): Defined function unconditionally and guarded
+	implementation with _RWSTD_NO_ICONV (defaulting to returning 0
+	when the macro is #defined).
+	(ic_to_utf8_, ic_to_ext_): Guarded the assignment of variables
+	with _RWSTD_NO_ICONV.
+	Guarded MSVC-specific behavior with _MSC_VER.
+
+2007-09-18  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-457
+	* path.h: Added the required ASL header.
+
+2007-09-18 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* gencat.cpp [_WIN32] (main): Added checking VS90COMNTOOLS
+	environment variable (get ready to use with MSVC 9.0 Orcas).
+
+2007-09-18 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* exec.cpp [_WIN32]: Added STATUS_INVALID_CRUNTIME_PARAMETER
+	to the nt_status_map (detected on x64 Windows).
+
+2007-09-14 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* runall.cpp (main): Pass buf to strchr() call instead of target
+	(we need char* result instead of const char*).
+
+2007-09-13 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-543
+	* runall.cpp (main): Added ability to pass list of the targets
+	using the text file.
+	* cmdopt.cpp: Updated usage_text with description of the
+	changes above.
+	* runall.wsf (runAllExamples): Pass targets using text file
+	rather than using command line if the resulting command line
+	length would exceed the maximum value.
+
+2007-09-06 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* gencat.cpp (main): Resolve ambiguity of overloaded methods.
+
+2007-09-05 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* GNUmakefile.bin: Added gencat target.
+	* projects.js (CreateProjectsDefs): Added gencat utility project.
+	* gencat.cpp: New utility for generating the message catalogs.
+
+2007-08-10 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* exec.cpp (fttoull) [_WIN32]: New function to convert from
+	FILETIME to ULONGLONG.
+	(exec_file) [_WIN32]: Get kernel time and user time of the child
+	process using GetProcessTimes().
+	Map STATUS_FLOAT_STACK_CHECK to SIGSTKFLT signal instead of SIGFPE.
+
+2007-08-08 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* cmdopt.cpp [_WIN32]: Set TICKS_PER_SEC = CLOCKS_PER_SEC.
+	* exec.cpp [_WIN32]: Added mappings of the STATUS_STACK_BUFFER_OVERRUN.
+	Translate wall time value from 100ns units to clocks.
+
+2007-08-08 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* exec.cpp [_WIN32]: Added mappings of the STATUS_STACK_OVERFLOW and
+	STATUS_INVALID_PARAMETER.
+
+2007-08-03  Martin Sebor  <sebor@roguewave.com>
+
+	* cmdopt.cpp (parse_limit_opts): Silenced silly MSVC "performance"
+	warnings about converting int to bool.
+
+2007-08-03  Martin Sebor  <sebor@roguewave.com>
+
+	* util.cpp (DEV_NULL): Defined macro.
+	(input_name): Used it.
+
+2007-08-02  Andrew Black  <ablack@roguewave.com>
+
+	* exec.cpp [_WIN32] (exec_file): Fix incorrect variable name in
+	conditionally compiled code, introduced in http://svn.apache.org/viewvc?view=rev&rev=562224
+
+2007-07-26  Martin Sebor  <sebor@roguewave.com>
+
+	* display.h (print_footer): Added an argument for the total number
+	of programs processed by the utility.
+	* display.cpp (print_target_verbose): Print stdin, stdout, and stderr
+	redirectiopn.
+	(print_status_verbose): Justified output.
+	(print_footer_plain): Printed the total number of programs processed
+	by the utility and avoided printing assertion totals unless they're
+	valid.
+	(print_footer_verbose): Added an argument.
+	* target.h (target_opts): Added infname and outfname members.
+	* util.h (input_name): Declared.
+	* util.cpp (input_name): Defined to parallel output_name().
+	* exec.cpp (open_input): Removed.
+	(exec_file): Used target_opts::infname and target_opts::outfname.
+	* runall.cpp (run_target): Called input_name() and output_name()
+	to set the names of files to redirect input and output from and
+	to, respectively.
+	Avoided printing out assertion totals when they're not valid.
+
+2007-07-29  Martin Sebor  <sebor@roguewave.com>
+
+	* display.cpp (print_header): Defined function pointer using
+	the array notation just as is done in the declaration of the
+	object to work around what looks like a bug in the Intel C++
+	compiler on Windows.
+
+2007-07-26  Martin Sebor  <sebor@roguewave.com>
+
+	* display.h (short_st_name): Removed declaration.
+	(print_header, print_footer): Added an argument.
+	* display.cpp (short_st_name): Moved to the top of file.
+	(verbose_st_name): New array to parallel short_st_name.
+	(print_argv): New.
+	(print_header_plain): Added an (unused) argument.
+	(print_header_verbose, print_target_verbose, print_status_verbose):
+	New handlers for verbose output.
+	(print_target_plain): Asserted a precondition.
+	(print_footer_plain): Added an argument and printed out summary
+	information.
+	(set_output_format): Defined.
+	* exec.cpp (open_input): Allowed data_dir to be null.
+	* cmdopt.cpp (eval_options): Set defaults to all 0. Handled
+	the -v (verbose) option.
+	* output.cpp (parse_output): Allowed data_dir to be null.
+	* util.cpp (reference_name): Allowed data_dir to be null.
+	* target.h (target_opts): Added a verbose member.
+	* runall.cpp (merge_argv): Corrected constness of argument.
+	(run_target): Added a new argument and incremented summary data.
+	(main): Removed default timeout of 10 seconds.
+	Called set_output_format().
+	Passed argument to print_header() and print_footer().
+
+2007-07-25  Martin Sebor  <sebor@roguewave.com>
+
+	* cmdopt.cpp (eval_options): Added inline comments.
+
+2007-07-25 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* cmdopt.cpp [_WIN32]: #define RLIMIT_AS (for limit process memory on Windows).
+	* exec.cpp (exec_file) [_WIN32]: Create process in suspended state.
+	Limit process memory if needed. Set start time as time before resuming process.
+
+2007-07-12 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* exec.cpp [WIN32]: Added map between NT_STATUS values and UNIX signals.
+	(exec_file) [WIN32]: Translate exit code to signal value using map.
+	* runall.cpp [WIN32]: Removed #include'ing of signal.h and windows.h.
+
+2007-07-11 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* exec.cpp (exec_file) [_WIN32]: Translate STATUS_BREAKPOINT exit code into SIGTRAP.
+
+2007-07-08  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-395
+	* etc/config/src/LIMITS.cpp (_RWSTD_WCHAR_T_MAX, _RWSTD_WCHAR_T_MIN,
+	_RWSTD_WCHAR_T_SIZE): Renamed to _RWSTD_WCHAR_MAX, _RWSTD_WCHAR_MIN,
+	and _RWSTD_WCHAR_SIZE, respectively, for consistency with the libc
+	macros.
+	* tests/src/locale.cpp: Same.
+	* tests/src/char.cpp: Same.
+	* tests/src/printf.cpp: Same.
+	* tests/localization/22.locale.codecvt.out.cpp: Same.
+	* tests/self/0.printf.cpp: Same.
+	* include/limits: Same.
+	* include/tr1/cstdint: Same.
+	* include/ansi/_cwchar.h: Same.
+	* src/wctype.cpp: Same.
+	* src/wcodecvt.cpp: Same.
+	* util/ctype.cpp: Same.
+	* util/charmap.cpp: Same.
+
+2007-07-04 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* locale.cpp: Use "dir /B" command on Windows instead of "ls -1"
+
+2007-06-23  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-457
+	* loc_exception.h: Updated license statement.
+	* memchk.h: Same.
+	* path.cpp: Same.
+	* iconv.cpp: Same.
+	* localedef.h: Same.
+	* aliases.h: Same.
+
+2007-06-08  Martin Sebor  <sebor@roguewave.com>
+
+	* display.cpp (print_header_plain, print_target_plain): Increased
+	the width of the first column (NAME) to 30 characters.
+	* output.cpp (check_test, check_test_compat): Set the state
+	of targets that produce an empty output file to ST_NO_OUTPUT.
+
+2007-05-30  Andrew Black  <ablack@roguewave.com>
+
+	STDCXX-117
+	* aliases.cpp [_RWSTD_NO_NL_LANGINFO] (<langinfo.h>): Guarded 
+	against inclusion when the header is detected to be missing at 
+	configuration time.
+	* charmap.cpp [_RWSTD_NO_ICONV] (<iconv.h>): Ditto.
+	* charmap.h [_RWSTD_NO_ICONV] (<iconv.h>): Ditto.
+	* locale.cpp [_RWSTD_NO_ICONV] (<iconv.h>): Ditto.
+	[_RWSTD_NO_NL_LANGINFO] (<langinfo.h>): Ditto.
+
+2007-04-26 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	STDCXX-220
+	* collate.cpp (def::add_missing_values): Added checking of the
+	iterator validity before use.
+
+2007-04-16 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* locale_stub.cpp (main): Corrected calculation of
+	the command line length (arglen).
+
+2007-04-06  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-386
+	* locale.cpp (main): Renamed...
+	(locale_main): ...to this and removed exception handling.
+	(print_mon): Added missing comma.
+	* localedef.cpp (main): Renamed...
+	(localedef_main): ...to this and removed exception handling.
+	(main): Invoked locale_main() or localedef_main() depending on whether
+	the first command line option is the special keyword "--locale-mode"
+	or something else. Handled exceptions from either function.
+	* locale_stub.cpp: New. Invokes localedef --locale-mode ...
+	* GNUmakefile.bin (localedef): Added a dependency on locale.o and
+	memchk.o.
+	(locale): Replaced all dependencies with one on locale_stub.o so
+	as to avoid linking the same object files into more than one program.
+
+2007-03-26  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-371
+	* locale.cpp (print_currency_symbol): Corrected indices (regression
+	introduced in http://svn.apache.org/viewvc?view=rev&revision=448754).
+
+2007-03-26  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-370
+	* def.cpp (convert_string): Removed the assumption that a string
+	that begins with the less-than sign also ends with a greater-than
+	sign.
+
+2007-03-07  Andrew Black  <ablack@roguewave.com>
+
+	* util/output.cpp (check_compat_test): Rewrite FSM to eliminate seek 
+	to near end (was causing parsing issues on tests with output 
+	following result block).
+
+2007-03-05  Andrew Black  <ablack@roguewave.com>
+
+	* tests/src/driver.cpp (_rw_setopt_output_file): Add logic to treat 
+	the magic file name of '-' as a reference to stdout.
+	* etc/config/GNUmakefile.tst (RUNFLAGS): Specify compatibility mode 
+	flags to enable parsing of legacy tests.
+	* util/output.cpp (check_compat_test): Adjust seek position to avoid 
+	false format errors when an executable contains a very small number 
+	of tests.
+
+2007-02-19  Mark Brown  <mbrown@inbox.com>
+
+	STDCXX-340
+	* aliases.cpp (get_installed_locales): Avoided aborting on locale
+	(or system) error and instead just issued a warning and continued.
+
+2007-01-31 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* exec.cpp (calculate_usage): Corrected variable
+	in conditional expression
+
+2007-01-09 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* runall.cpp (check_target_ok): Corrected index in array item assigning
+
+2006-12-07  Andrew Black  <ablack@roguewave.com>
+
+	* exec.cpp (alarm_timeout) [!_WIN32]: Update documentation.
+	(kill_signal) [!WIN32]: Add file local variable to track signal used to 
+	kill process.
+	(handle_term_signal) [!_WIN32]: Add new callback function...
+	(wait_for_child) [!_WIN32]: ... Used here for SIGHUP, SIGINT, SIGQUIT, 
+	and SIGTERM signals (via sigaction).  Handlers are cleared if 
+	kill_signal is set and the signal contained within is raise()ed.
+
+2006-12-07  Andrew Black  <ablack@roguewave.com>
+
+	* output.cpp (check_test): Set status->status to ST_OVERFLOW if 
+	status->assert equals -1, don't return when status->t_warn reaches -1.
+	(check_example): Set status->assert to -1 to denote example.
+	* display.cpp (print_status_plain): Output assertion totals if 
+	status->assert isn't -1 and status->status and status->exit are 0,
+	special case status->assert = 0 to avoid divide by 0 errors.
+
+2006-12-04  Andrew Black  <ablack@roguewave.com>
+
+	* display.cpp (short_st_name): Rename "OUTPUT" and "NREF" states, per 
+	http://tinyurl.com/y28xev
+
+2006-11-29  Martin Sebor  <sebor@roguewave.com>
+
+	* def.h (create_format): Removed redundant const qualifier from
+	function formal arguments and removed their names.
+	(mon_punct_out_): Removed data member.
+	* def.cpp (Def): Invalidated mon_out_ char members by assigning
+	CHAR_MAX as expected (and required by C) rather than -1.
+	* monetary.cpp (create_format): Assigned CHAR_MAX instead of -1
+	to indicate missing values.
+	(write_monetary): Renamed mon_punct_out_ to punct and made local.
+
+2006-11-28  Martin Sebor  <sebor@roguewave.com>
+
+	* locale.cpp (print_ellipsis): New function to print sequences
+	of consecutive characters as ellipses for compactness and for
+	better efficiency.
+	(print_charmap): Called print_ellipsis.
+
+2006-11-28  Martin Sebor  <sebor@roguewave.com>
+
+	* monetary.cpp (process_monetary): Simplified the parsing of integer
+	values and checking their validity.
+
+2006-11-28  Martin Sebor  <sebor@roguewave.com>
+
+	* locale.cpp (MON_INT): New convenience macro to print out unspecified
+	integer values as -1 even when char is an unsigned type.
+	(print_int_frac_digits, print_frac_digits, print_p_cs_precedes,
+	print_n_sep_by_space, print_p_sep_by_space, print_n_cs_precedes,
+	print_p_sign_posn, print_n_sign_posn, print_int_p_cs_precedes,
+	print_int_n_sep_by_space, print_int_p_sep_by_space,
+	print_int_n_cs_precedes, print_int_p_sign_posn,
+	print_int_n_sign_posn): Used it.
+
+2006-11-27  Martin Sebor  <sebor@roguewave.com>
+
+	* runall.cpp (merge_argv): Removed a redundant const qualifier
+	from function return type.
+
+2006-11-27  Martin Sebor  <sebor@roguewave.com>
+
+	* locale.cpp (sect_charmap): Removed an unused static constant.
+
+2006-11-15 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* target.h: #include time.h instead of sys/types.h for clock_t
+
+2006-11-14  Andrew Black  <ablack@roguewave.com>
+
+	* cmdopt.h (TICKS_PER_SEC): Declare global constant.
+	* cmdopt.cpp (TICKS_PER_SEC): Define, value dependent on pre-processor
+	declarations. (Already comitted -- see revision 472162).
+	* target.h (sys/types.h): Include for clock_t.
+	(sys/time.h) [!_WIN32 && !_WIN64 && _XOPEN_UNIX]: Remove dependency.
+	(rw_timeval): Remove as unneeded.
+	(rw_time_t, rw_suseconds_t) [!_XOPEN_UNIX]: Ditto.
+	(target_status): Use clock_t rather than rw_timeval.
+	* exec.cpp (sys/times.h) [!_WIN32 && !_WIN64]: Include.
+	(sys/time.h) [!_WIN32 && !_WIN64 && _XOPEN_UNIX]: Remove dependency.
+	(calculate_usage) [!_WIN32 && !_WIN64]: Update documentation, alter
+	signature, use times() rather than getrusage() to retrieve timing
+	information.
+	(exec_file) [!_WIN32 && !_WIN64]: Move wall clock timing logic into
+	calculate_usage, retrieve starting times prior to wait_for_child().
+	(exec_file) [_WIN32 || _WIN64]: Simplify wall clock delta logic.
+	* display.cpp (unistd.h) [!_WIN32 && !_WIN64]: Remove dependency.
+	(print_status_plain): Alter logic used to print times, reflecting
+	change to target_status.
+
+2006-11-13  Andrew Black  <ablack@roguewave.com>
+
+	* exec.cpp (alarm_handler) [!_WIN32]: Define typedef with signature matching that of handle_alrm.
+	(wait_for_child) [!_WIN32]: Use alarm_handler typedef for type of local variable storing reference to handle_alrm.
+
+2006-11-07  Martin Sebor  <sebor@roguewave.com>
+
+	* cmdopt.cpp (eval_options): Set errno to 0 before calling strtol
+	and testing its value to avoid false positives due to the variable
+	being already set by another function.
+
+2006-10-12  Andrew Black  <ablack@roguewave.com>
+
+	* makefile.rules (%.o: %(AS_EXT), %.o: %.cpp, %: %.o, %: %.cpp): Add
+	$(TEEOPTS) to compile/link line so that output is routed to log files.
+	* makefile.common (TEEOPTS): Always tee output to $@.log.
+	* target.h (target_opts): Add c_warn and l_warn fields.
+	(target_status): Split warn field into c_warn, l_warn, t_warn.
+	* output.cpp (check_test): Count warnings, store in status->t_warn.
+	(check_compat_test): Expand tail horizon, capture warnings into
+	status->t_warn.
+	* display.cpp (print_header_plain): Add WARN column, rename WALL
+	column to REAL.
+	(print_status_plain): Print the total number of warnings in the WARN
+	column.
+	* runall.cpp (count_warnings): Add static method to count the number
+	of warnings in a .log file.
+	(check_target_ok): Always calculate object file name, call
+	count_warnings for object and executable.
+	* cmdopt.cpp (usage_text): Document new --warn switch.
+	(parse_warn_opts): Define new helper function to parse --warn switch.
+	(eval_options): Used here in parsing and to initialize default c_warn
+	and l_warn values. 
+
+2006-10-05  Andrew Black  <ablack@roguewave.com>
+
+	* target.h: Update header comment.
+	(target_status): Add wall field for wall clock timing.
+	* exec.cpp [!_WIN32 && !_WIN64 && _XOPEN_UNIX] (sys/time.h): Included
+	for gettimeofday.
+	exec_file [!_WIN32 && !_WIN64 && _XOPEN_UNIX]: Set result->wall.
+	exec_file [_WIN32 || _WIN64]: Ditto.
+	* display.cpp (print_header_plain): Add column for wall clock time.
+	(print_status_plain): Print result->wall, if set.
+
+2006-10-04 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* output.cpp (check_example): swapped size and count parameters of fread() call
+
+2006-10-03 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	Set svn:eol-style property.
+
+2006-10-02 Andrew Black <ablack@roguewave.com>
+
+	* cmdopt.cpp: Convert C++ comments to C comments.
+	(rw_signal) [!_WIN32 & !_WIN64]: Ditto.
+	(parse_limit_opts): Ditto, fix style violation.
+	(show_usage): Make static (move from global to file scope).
+	(eval_options, split_opt_string): Move documentation from here ...
+	* cmdopt.h (eval_options, split_opt_string): ... To here.
+	Convert C++ comments to C comments.
+	* display.cpp (print_header_plain, print_target_plain,
+	print_status_plain, print_footer_plain): Make static, document.
+	* display.h: Convert C++ comments to C comments.
+	* exec.cpp: Ditto.
+	(limit_process) [!_WIN32 & !_WIN64]: Ditto.
+	(get_signo): Fix style violation.
+	(wait_for_child, exec_file) [!_WIN32 & !_WIN64]: Ditto.
+	(wait_for_child) [!_WIN32 & !_WIN64]: Correct embedded comment.
+	(get_signo, get_signame, exec_file): Move documentation from here ...
+	* exec.h (get_signo, get_signame, exec_file): ... To here.
+	Convert C++ comments to C comments.
+	* output.cpp (parse_output): Move documentation from here ...
+	* output.h (parse_output): ... To here.
+	Convert C++ comments to C comments.
+	* runall.cpp: Ditto
+	* target.h: Ditto, correct file header documentation.
+	* util.cpp (guarded_realloc): Fix style violation.
+	(terminate, guarded_malloc, guarded_realloc): Move documentation
+	from here ...
+	* util.h (terminate, guarded_malloc, guarded_realloc): ... To here.
+	(terminate): Fix style violation in declaration.
+	Convert C++ comments to C comments.
+
+2006-09-28  Martin Sebor  <sebor@roguewave.com>
+
+	* exec.cpp (wait_for_child): Added SIGQUIT to the array of signals
+	to send to child.
+
+2006-09-28  Andrew Black  <ablack@roguewave.com>
+
+	* target.h: Add new header.
+	(target_opts): Define.
+	(rw_rlimit, ProcessStatus, target_status): Move from display.h.
+	(rw_timeval, RLIM_INFINITY, RLIM_SAVED_CUR, RLIM_SAVED_MAX): Move from
+	cmdopt.h.
+	* cmdopt.h (rw_timeval, RLIM_INFINITY, RLIM_SAVED_CUR, RLIM_SAVED_MAX):
+	Move to target.h.
+	(timeout, compat, verbose, exe_opts, in_root, child_limits): Remove
+	global declarations.
+	(target_name): Move from global scope to runall.cpp local scope.
+	(eval_options): Alter declaration to take storage structure, handle.
+	(get_target): Declare, document accessor function defined in runall.cpp.
+	* cmdopt.cpp (timeout, compat, verbose, exe_opts, in_root, target_name,
+	child_limits): Remove global definitions.
+	(usage_text): Remove -q and -v switch descriptions (they were unused).
+	(parse_limit_opts): Alter definition to take storage structure, use
+	storage structure.
+	(eval_options): Alter definition to take storage structure, handle,
+	update documentation, store parsed values in provided structure/handle,
+	remove -q, -v switches.
+	* display.h (rw_rlimit, ProcessStatus, target_status): Move to target.h.
+	(short_st_name): Make immutable.
+	(print_target): Alter declaration to take target_opts rather than
+	target_status.
+	* display.cpp (print_target_plain): Alter definition to match
+	print_target.
+	(print_status_plain): Alter usage to match changes to target_status
+	structure.
+	(short_st_name): Make immutable.
+	(print_target): Alter definition to match declaration.
+	* exec.h (exec_attrs): Remove.
+	(target.h): Include.
+	(exec_file): Alter declaration to accept target_opts in addition to
+	target_status.
+	* exec.cpp (target.h): Include instead of display.h.
+	(open_input): Alter definition to take data_dir, update documentation.
+	[!_WIN32 && !_WIN64] (alarm_timeout): Clean documentation slightly.
+	[!_WIN32 && !_WIN64] (wait_for_child): Alter definition to take timeout,
+	target_status, store results directly in struct.
+	[!_WIN32 && !_WIN64] (LIMIT, limit_process): Alter definition to take
+	target_opts, update documentation, check for valid pointer to limit
+	structure rather than invalid values.
+	[!_WIN32 && !_WIN64 && _XOPEN_UNIX] (calculate_usage): Store calculated
+	times in static local vartiables, and store references to these
+	variables in target_status struct.
+	[!_WIN32 && !_WIN64] (exec_file): Alter to match prototype, altered
+	function usage to match definitions.
+	[_WIN32 || _WIN64] (kill_child_process): New helper function to simplify
+	child process kill code.
+	[_WIN32 || _WIN64] (exec_file): Alter to match prototype, altered
+	functions to match definitions, use new helper function, some cleaning,
+	process execution results.
+	* output.h (parse_output): Alter declaration to take target_opts in
+	addition to target_status.
+	* output.cpp (check_test): Retrieve target_name via get_target.
+	(check_example): Alter definition to take data_dir, update
+	documentation.
+	(parse_output): Alter definition to match prototype, use target_opts
+	in place of removed globals.
+	* runall.cpp (target.h): Included.
+	(check_target_ok): Alter definition to take target (char*) in addition
+	to target_status, retrieve target_name via get_target.
+	(process_results): Remove, functionality rolled into exec_file.
+	(target_name): moved to file local scope from global scope.
+	(get_target): Declare accessor function for target_name, defined in
+	cmdopt.h.
+	(run_target): Alter definition to take target_opts structure rather
+	than argv array.
+	(main): Create local target_opts structure to fill in eval_opts and
+	use in target_template, free any rlimit structures allocated in
+	parse_limit_opts.
+	* util.h (reference_name): Alter declaration to take data_dir, update
+	documentation.
+	* util.cpp (warn, terminate): Retrieve target_name via get_target.
+	(reference_name): Retrieve target_name via get_target, use data_dir
+	rather than (removed) in_root global.
+
+2006-09-27  Martin Sebor  <sebor@roguewave.com>
+
+	* charmap.cpp (convert_sym_to_ucs): Parenthesized a call
+	to isxdigit to prevent macro expansion.
+	(process_ellipsis): Corrected a loop control expression.
+
+2006-09-25  Martin Sebor  <sebor@roguewave.com>
+
+	* exec.cpp (wait_for_child): Worked around HP aCC bug (STDCXX-291)
+	even harder (and more correctly).
+
+2006-09-25  Martin Sebor  <sebor@roguewave.com>
+
+	* exec.cpp (wait_for_child): Used memcpy to assign function
+	pointers as a workaround for HP aCC 6 bug (STDCXX-291).
+
+2006-09-25  Martin Sebor  <sebor@roguewave.com>
+
+	* cmdopt.cpp (rw_signal): Worked around an HP aCC 6 bug (see
+	STDCXX-291).
+	(eval_options): Changed the type of a local to avoid HP aCC
+	sign extension warnings.
+
+2006-09-25  Martin Sebor  <sebor@roguewave.com>
+
+	* scanner.cpp (convert_escape): Cast away constness to work around
+	an MSVC 7.0 bug causing error C2446: '==' : no conversion from
+	'char ** ' to 'const char ** ' Conversion loses qualifier.
+
+2006-09-24  Andrew Black  <ablack@roguewave.com>
+
+	* exec.cpp [!_WIN32 && !WIN64] (wait_for_child): Evaluate return value
+	when sending signals to child process group, correct off-by-one issue
+	when checking for end of signal array, Try to kill off any grandchildren
+	left in the child process group after the child process terminates.
+
+2006-09-22  Andrew Black  <ablack@roguewave.com>
+
+	* cmdopt.cpp (parse_limit_opts): Restrict sub-option values to
+	non-negative integers.
+	(eval_options): Ditto for -t, --exit, and --sleep. Fix off-by
+	one error in logic for --ignore and --ulimit, leading to incorrect
+	parsing.
+
+2006-09-22  Martin Sebor  <sebor@roguewave.com>
+
+	* def.cpp (strip_pair): Eliminated HP aCC Warning (suggestion) 887:
+	Type 'int' is smaller than type 'unsigned long', unwanted widening
+	in value may result.
+
+2006-09-22  Martin Sebor  <sebor@roguewave.com>
+
+	* codecvt.cpp (write_codecvt): Corrected delete expressions.
+
+2006-09-21  Martin Sebor  <sebor@roguewave.com>
+
+	* aliases.cpp (get_installed_locales): Redirected locale's stderr
+	to /dev/null to prevent it from cluttering our own. Eliminated
+	the handling of invalid category values.
+	* charmap.h (<list>): Included.
+	(portable_charset): Declared.
+	(get_n_cmap, get_rn_cmap, get_w_cmap, get_rw_cmap): Documented.
+	(get_n_cmap2, get_rn_cmap2, get_strval_map, increment_val): Renamed...
+	(get_mb_cmap, get_rmb_cmap, get_symnames_list, increment_wchar): ...to
+	this.
+	(get_strval_map): Replaced...
+	(get_symnames_list): ...with this.
+	(process_ellipsis): Changed to return the number of characters denoted
+	by the ellipsis instead of void.
+	(increment_strval): Renamed...
+	(increment_encoding): ...to this for clarity and changed it to return
+	true on success and false otherwise.
+	(verify_portable_charset): Made const.
+	(parse_ext_strval): Renamed...
+	(encoding_to_mbchar): ...to this for clarity.
+	(add_to_cmaps): Added a bool argument.
+	(n_cmap2_, rn_cmap2_): Renamed...
+	(mb_cmap_, rmb_cmap_): ...to this for clarity.
+	(valid_mb_set_, valid_wchar_set_, strval_map_): Removed unused members.
+	(symnames_list_): Added new member.
+	* def.h (process_abs_ellipsis): New.
+	(process_sym_ellipsis): Returned the number of characters denoted by
+	the ellipsis instead of void.
+	(hex_increment, dec_increment): Removed (defined as static non-members
+	in collate.cpp).
+	(process_mask): Added an argument denoting the human readable name
+	of the mask for progress diagnostics.
+	(process_transliteration, process_transliteration_statement,
+	generate_xliteration_data): Renamed...
+	(process_xlit, process_xlit_statement, gen_xlit_data): ...to this for
+	brevity.
+	(extract_string_array): New.
+	(ctype_offset_tab_t): Renamed...
+	(codecvt_offset_tab_t): ...to this.
+	(wchar_off_map_, mb_char_offs_, wchar_offs_, wchar_utf8_to_ext_,
+	utf8_offs_, valid_codecvt_utf8_set_, utf8_map_, next_codecvt_tab_num_,
+	next_wchar_codecvt_tab_num_, next_utf8_codecvt_tab_num_, codecvt_out_):
+	Removed data members.
+	(mb_char_offs_iter, wchar_offs_iter, utf8_offs_iter, utf8_map_iter,
+	(gen_valid_codecvt_wchar_set, gen_valid_codecvt_utf8_set, gen_utf8_map,
+	generate_wchar_codecvt_table, generate_utf8_codecvt_table):
+	Replaced member functions...
+	(gen_mbchar_tables, gen_wchar_tables, gen_utf8_tables): ...with these.
+	* diagnostic.h (E_NOTSUP, W_NOTSUP, W_CHARMAP, I_SKIP): Added.
+	(W_COLVAL): Removed.
+	* scanner.h (token_id): Arranged enumerators by LC_XXX section and
+	documented. Added enumerators for LC_ADDRESS and other sections defined
+	by ISO/IEC TR 14652.
+	(tok_ellipsis, tok_dellipsis, tok_qellipsis, tok_doub_inc_ellipsis):
+	Renamed...
+	(tok_abs_ellipsis, tok_hex_ellipsis, tok_dec_ellipsis,
+	tok_dbl_ellipsis): ...to this for better correspondence to ISO/IEC
+	TR 14652 names.
+	(tok_eof, tok_cont_line): Removed unused names.
+	(tok_octal_value, tok_decimal_value, tok_hex_value): Replaced...
+	(tok_char_value): ...with this for simplicity.
+	* charmap.cpp (convert_escape): Removed dead code.
+	(portable_charset): Defined.
+	(convert_to_wc): Simplified, added comments.
+	(increment_val): Renamed...
+	(increment_wchar): ...to this, renamed locals for clarity, and replaced
+	hardcoded 0xff with UCHAR_MAX (is this really correct when char is more
+	that 8 bits wide?).
+	(increment_strval): Renamed...
+	(increment_encoding): ...to this, removed local statics, and optimized.
+	The function is unused since it is not possible to increment a multibyte
+	character so that its last byte overflows (i.e., wraps around to 0). It
+	should/will be removed in a future commit.
+	(parse_ext_strval): Renamed...
+	(encoding_to_mbchar): ...to this and renamed locals.
+	(convert_sym_to_ucs): Tightened up the checking of symbolic character
+	names for validity (expect a hex digit after the leading "<U" prefix).
+	Used strtoul instead strtol for simplicity.
+	(convert_to_ucs): Adjusted formatting.
+	(add_to_cmaps): Added an argument indicating whether the encoding
+	is multibyte or whether it should be converted to it. Optimized and
+	added inline comments.
+	(process_ellipsis): Renamed locals, added inline comments and adjusted
+	formatting for clarity. Corrected sprintf format. Avoided calling
+	increment_strval and instead incremented the last byte of a multibyte
+	character, detecting and diagnosing overflow, for efficiency.
+	(process_chars): Added a progress message at the beginning of the
+	function. Counted the number of tokens, ellipses, and characters
+	processed. Added inline comments. Simplified the handling of numeric
+	character values (tok_char_value). Used tok_abs_ellipsis,
+	tok_hex_ellipsis, and tok_dec_ellipsis.  Added a progress message
+	at the end of the function indicating the number of of tokens, ellipses,
+	and characters processed.
+	* codecvt.cpp (gen_valid_codecvt_mb_set, gen_valid_codecvt_wchar_set,
+	gen_valid_codecvt_utf8_set, generate_codecvt_table, gen_utf8_map,
+	generate_wchar_codecvt_table, -generate_utf8_codecvt_table): Replaced...
+	(gen_mbchar_tables, gen_wchar_tables, gen_utf8_tables): ...with these
+	functions and simplified by replacing member variables with function
+	arguments wherever possible.
+	(create_wchar_utf8_table): Moved to collate.cpp where the function
+	is actually used.	
+	(generate_xliteration_data): Renamed...
+	(gen_xlit_data): ...to this.
+	(write_codecvt): Called gen_mbchar_tables, gen_wchar_tables, and
+	gen_utf8_tables for better locality of reference and documented.
+	* collate.cpp (lc_name): New.
+	(create_wchar_utf8_table): Moved from codecvt.cpp.
+	(dec_increment, hex_increment): Made static non-members.
+	(process_weights, add_missing_values, process_collate, write_collate):
+	Used preincrement instead of postincrement with iterators for better
+	efficiency.
+	* ctype.cpp (lc_name): New.
+	(convert_literal_to_ucs4): Handled tok_char_value instead of
+	tok_octal_value, tok_decimal_value, and tok_hex_value.
+	(process_abs_ellipsis): New function.
+	(process_sym_ellipsis): Simplified.
+	(process_mask): Added an argument, displayed progress message, and
+	simplified.
+	(process_upper_lower): Displayed progress message, and simplified.
+	(process_transliteration, process_transliteration_statement): Renamed...
+	(process_xlit, process_xlit_statement): ...to this.
+	(process_ctype): Added a progress diagnostic.
+	* def.cpp (convert_to_ext): Used rmb_cmap_iter.
+	(process_input): Removed progress diagnostics.
+	(verify_portable_charset): Used portable_charset.
+	* diagnostic.cpp (issue_diag): Used fputs instead of fprintf where
+	appropriate and simplified.
+	* messages.cpp (lc_name): New.
+	(process_messages): Used lc_name, issued an informative diagnostic,
+	and simplified ever so slightly.
+	* monetary.cpp (lc_name): New.
+	(process_monetary): Used lc_name. Issued an informative diagnostic.
+	* numeric.cpp (lc_name): New.
+	(process_numeric): Used lc_name, issued an informative diagnostic,
+	and simplified ever so slightly.
+	* time.cpp (lc_name): New.
+	(parse_era): Handled empty era strings and constified locals.
+	(extract_string_array): Defined new member function of class Def.
+	(process_time): Used lc_name, issued an informative diagnostic,
+	called extract_string_array.
+	(write_time): Issued an informative diagnostic and simplified ever
+	so slightly.
+	* scanner.cpp (ScannerContext): Declared copy ctor and assignment
+	operator private and removed definitions.
+	(process_token): Simplified the handling of numeric character values,
+	removed unnecessary qualification from the definition of tok_map array
+	elements.
+	(next_token): Used the new names tok_abs_ellipsis, tok_hex_ellipsis,
+	tok_dec_ellipsis, and tok_dbl_ellipsis, eliminated a C-style const
+	cast to avoid a gcc warning.
+	* localedef.cpp (--notes): Documented option.
+	* locale.cpp: Declared all definitions static, renamed many locals for
+	clarity and/or brevity.
+	(collate_charmap, ctype_charmap, time_charmap, num_charmap, mon_charmap,
+	messages_charmap, current_locales, is_env_set): Removed globals (moved
+	into get_charmap()).
+	(sect_charmap, sect_lc_all, sect_lc_collate, sect_lc_ctype, ect_lc_time,
+	sect_lc_messages, sect_lc_monetary, sect_lc_numeric): Defined new global
+	constants.
+	(UChar): New convenience typedef.
+	(validate): Tweaked text of error message.
+	(initialize_struct): Renamed...
+	(init_struct): ...to this for brevity, removed redundant arguments
+	and added their static local equivalents.
+	(initialize): Renamed...
+	(init_section): ...to this and removed redundant arguments.
+	(initialize_structs): Renamed...
+	(init_sections): ...to this. Called init_section with fewer arguments.
+	(get_charmap): Added static locals for better encapsulation and locality
+	of reference.
+	(escape_value): New function to handling the formatting of characters
+	and weights using escape sequences.
+	(create_str): Simolified.
+	(print_section, print_keyword): New helper functions.
+	(print_weight): Simplified.
+	(write_coll_info): Renamed locals.
+	(print_ce_info): Added comments, adjusted code formatting.
+	(print_lc_collate, print_lc_ctype, print_lc_messages, print_lc_numeric,
+	print_lc_time, print_lc_all): Printed comments on stdout with additional
+	detail about each section. Simplified.
+	(print_int): New helper to handle the printing of numeric values.
+	(print_time_keyword): New helper to handle the printing of LC_TIME
+	keywords.
+	(print_mask, print_toupper, print_tolower): Simplified, added inline
+	comments, adjusted formatting.
+	(print_frac_digits, ...): Called print_int or print_time_keyword
+	as appropriate for simplicity and to avoid code duplication.
+	(print_help_msg): Renamed...
+	(print_help): ...to this.
+	(initialize_env_vars): Removed (done in get_charmap).
+	(print_locale_name): Removed.
+	(print_charmap): Collected character statistics.
+	(print_charmap): Added a default argument, computed additional stats.
+	(print_lc_var): New function to handle the formatting of localization
+	environment variables according to POSIX rules.
+	(handlers): New array of command line argument handlers.
+	(main): Used handlers. Added -p to force locale to use symbolic
+	character names from the Portable Character Set whenever possible.
+
+2006-09-15 Andrew Black <ablack@roguewave.com>
+
+	* display.h (unistd.h) [!_WIN32 && !_WIN64]: Include.
+	(sys/time.h) [_XOPEN_UNIX]: Include.
+	(rw_time_t, rw_suseconds_t, struct rw_timeval) [!_XOPEN_UNIX]: Define
+	placeholder structures.
+	(rw_timeval): Define abstraction typedef.
+	(struct target_status): Add run, user, sys elements.
+	* display.cpp (unistd.h) [!_WIN32 && !_WIN64]: Include.
+	print_header_plain: Alter cols for process times.
+	print_target_plain: Partition output column printing by section, add
+	timing output.
+	* exec.h (exec_file): Alter signature to accept target_status rather
+	than char**.
+	* exec.cpp (display.h): Include.
+	(calculate_usage) [!_WIN32 && !_WIN64]: Define function to populate
+	user and sys fields of provided target_status struct (if _XOPEN_UNIX
+	is defined).
+	(exec_file): Alter to accept target_status rather than char**, use
+	argv element in place of old char** argument.
+	(exec_file) [!_WIN32 && !_WIN64]: call calculate_usage after
+	wait_for_child.
+	* runall.cpp (run_target): Pass target_status struct rather than argv
+	element.
+
+2006-09-15  Farid Zaripov  <farid@kyiv.vdiweb.com>
+
+	* output.cpp (check_example): Switched size and count parameters of fread() call to get fread() result in bytes (needed for memcmp)
+
+2006-09-14  Andrew Black  <ablack@roguewave.com>
+
+	* cmdopt.cpp (RLIM_INFINITY, RLIM_SAVED_CUR, RLIM_SAVED_MAX): Move
+	fallback definitions to...
+	* cmdopt.h (RLIM_INFINITY, RLIM_SAVED_CUR, RLIM_SAVED_MAX): ... Here.
+	* exec.cpp (limit_process) [!_WIN32 && !_WIN64 && _XOPEN_UNIX]: Check
+	limits prior to setting.
+
+2006-09-14  Martin Sebor  <sebor@roguewave.com>
+
+	* aliases.cpp (get_installed_locales): Redirected locale stderr
+	to /dev/null to prevent warning/error messages from cluttering
+	our output.
+
+2006-09-13  Andrew Black  <ablack@roguewave.com>
+
+	* cmdopt.h (unistd.h) [!_WIN32 && !_WIN64]: Include.
+	(sys/resource.h) [_XOPEN_UNIX]: Include.
+	(rw_rlim_t, struct rw_rlimit) [!_XOPEN_UNIX]: Define placeholder
+	type/struct for rlim_t and struct rlimit respectively.
+	(rw_rlimit, limit_set): Define.
+	(child_limits): Declare.
+	* cmdopt.cpp (sys/resource.h) [!_WIN32 && !_WIN64 && _XOPEN_UNIX]:
+	Include.
+	(RLIM_INFINITY, RLIM_SAVED_CUR, RLIM_SAVED_MAX): Define if not defined.
+	(child_limits): Define/initialize.
+	(usage_text): Document --ulimit switch.
+	(parse_limit_opts): Define helper function for parsing --rlimit option
+	borrowed in part from _rw_setopt_ulimit in tests/src/driver.cpp.
+	(eval_options): Define opt_ulimit character string, use with
+	parse_limit_opts to handle --ulimit command line switch.
+	* exec.cpp (sys/resource.h) [!_WIN32 && !_WIN64 && _XOPEN_UNIX]:
+	Include.
+	(LIMIT) [!_WIN32 && !_WIN64 && _XOPEN_UNIX]: Define helper macro for...
+	(limit_process) [!_WIN32 && !_WIN64 && _XOPEN_UNIX]: ... New helper
+	function to set resource limits, based on the values in child_limits
+	borrowed in part from _rw_setopt_ulimit in tests/src/driver.cpp.
+	(exec_file) [!_WIN32 && !_WIN64 && _XOPEN_UNIX]: Call above prior to
+	execv.
+
+2006-09-06 Andrew Black <ablack@roguewave.com>
+
+	* GNUmakefile.bin: Added display.o to link objects for exec utility.
+	* display.h: New. Defined display subsystem.
+	* display.cpp: New. Implemented initial display subsystem, equivalent
+	to existing output.
+	* output.h (parse_output): Altered signature to support display
+	subsystem.
+	* output.cpp: Included display.h. Updated comments.
+	(check_test, check_compat_test, check_example, parse_output): Altered
+	signatures to support display subsystem, replaced I/O calls with
+	updates to target_status structure.
+	* runall.cpp: Same as above.
+	(check_target_ok, process_results): Same as above.
+	(run_target): Added storage structure for display subsystem, calls
+	into display subsystem.
+	(main): Added calls into display subsystem.
+
+2006-09-05  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-184
+	* charmap.cpp (Charmap): Set code_set_name_ to the same basename
+	as the name of the character set description file in case it's
+	not specified by the <code_set_name> declaration witin the said
+	file.
+
+2006-08-29  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-277
+	* locale.cpp (print_weight): Formatted weights with value greater
+	than UCHAR_MAX as multibyte characters of value UCHAR_MAX or less.
+	(write_coll_info): Introduced a convenience typedef and simplified.
+	* collate.cpp (get_weight): Handled weights formatted as multibyte
+	characters (using escape sequences).
+	* scanner.h (convert_escape): Added an argument.
+	* scanner.cpp (convert_escape): Handled multibyte characters.
+
+2006-08-25  Farid Zaripov  <faridz@kyiv.vdiweb.com>
+
+	* exec.cpp [_WIN32 || _WIN64] (exec_file): Set appropriate error mode
+	before running the child process to disable displaying the critical
+	error-handler and general-protection-fault message boxes.
+	* runall.cpp [_WIN32 || _WIN64]: Included windows.h and signal.h.
+	(process_results): Handle returned status STATUS_ACCESS_VIOLATION
+	and print status "SEGV".
+
+2006-08-25  Andrew Black  <ablack@roguewave.com>
+
+	* runall.cpp (merge_argv): Update function documentation.
+	(run_target): Free argv array returned by merge_argv.
+
+2006-08-21 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+        * exec.cpp [_WIN32 || _WIN64] (exec_file): WAIT_FAIL replaced
+        with WAIT_FAILED; fixed incorrect parameter in calls CloseHandle
+        and WaitForSingleObject.
+
+2006-08-18  Andrew Black  <ablack@roguewave.com>
+
+	* exec.cpp [_WIN32 || _WIN64] (exec_file): Check return value
+	from calls to CloseHandle and WaitForSingleObject.
+
+2006-08-18 Farid Zaripov <faridz@kyiv.vdiweb.com>
+
+	* exec.cpp [_WIN32 || _WIN64] (warn_last_error): When
+	FORMAT_MESSAGE_ALLOCATE_BUFFER is used then lpBuffer must point
+	to the place where pointer to the allocated buffer is stored.
+	(exec_file): Added wait after sending Ctrl+Break signal. Added
+	wait after TerminateProcess(). Closed handles of child process.
+
+2006-08-18 Andrew Black <ablack@roguewave.com>
+
+	* cmdopt.cpp [!_WIN32 && !_WIN64] (rw_sleep): Declared function
+	'extern "C"' if __cplusplus is defined.
+
+2006-08-18 Martin Sebor  <sebor@roguewave.com>
+
+	* cmdopt.cpp: Added comments.
+
+2006-08-17  Andrew Black  <ablack@roguewave.com>
+
+	* exec.h [_WIN32 || _WIN64] (exec_attrs): Alter structure definition
+	for windows.
+	* exec.cpp [_WIN32 || _WIN64]: Use windows.h and process.h in place
+	of unistd.h and sys/wait.h on windows.
+	[!_WIN32 && !_WIN64] (handle_alrm, wait_for_child, open_input,
+	replace_file, exec_file): Reduce scope of (existing) functions
+	to non-windows platforms only.
+	[_WIN32 || _WIN64] (open_input, merge_argv, warn_last_error, exec_file):
+	Define implementation of named functions for windows platforms only.
+	* cmdopt.cpp [_WIN32 || _WIN64]: Use windows.h in place of unistd.h
+	on windows.
+	(escape_code, default_path_sep, suffix_sep, exe_suffix_len): Alter
+	values for windows.
+	(rw_sleep, rw_signal): Define platform independent wrapper for
+	sleep/Sleep and sigaction/signal.
+	(eval_options): Use above.
+	* runall.cpp [!_WIN32 && !_WIN64]: Don't include sys/wait.h on windows.
+	(S_IXUSR, S_IXGRP, S_IXOTH): Define values if undefined (for windows).
+	(check_target_ok) [_WIN32 || _WIN64]: Make object file comparison
+	operating system specific.
+	(process_results) [_WIN32 || _WIN64]: Make error state processing code
+	operating system specific.
+	(rw_basename) [_WIN32 || _WIN64]: Treat slash as an additional path
+	separator on windows.
+
+2006-08-16  Farid Zaripov  <faridz@kyiv.vdiweb.com>
+
+	* memchk.cpp [_WIN32] (memchk): Or'ed _O_TEMPORARY with O_CREAT
+	before passing the whole thing to Win32 open() and handled error
+	return.
+
+2006-08-16 Andrew Black <ablack@roguewave.com>
+
+	* util.h (reference_name, output_name): Declaree functions to generate
+	the names for reference and output files respectively.
+	* util.cpp (reference_name, output_name): Defined the above.
+	(guarded_malloc, guarded_realloc): Allocated memory after asserts.
+	* cmdopt.h (escape_code, default_path_sep, suffix_len, suffix_sep):
+	Declared (platform specific) file system related constants.
+	* cmdopt.cpp (escape_code, default_path_sep, suffix_len, suffix_sep):
+	Defined the above for UNIX systems.
+	(split_opt_string): Moved the use of opts after assert, used escape_code
+	as escape character in place of '\'.
+	* exec.cpp: (get_signame): Enlarged static buffer, use sprintf in place
+	of snprintf.
+	(open_input): Used reference_name to determine input file name, removed
+	root_len variable, move use of in_root after asserts.
+	(exec_file): Altered to use output_name to determine output file name.
+	* output.cpp (check_example): Used reference_name to determine reference
+	file location, add assert on on_name.
+	(parse_output): Used output_name to determine output file name.
+	* runall.cpp (merge_argv): Used target after asserts.
+	(check_target_ok): Disabled (unused) logic for output only targets.
+	Altered compile check on windows systems to correctly locate .obj file.
+	(rw_basename): Used default_path_sep as separator.
+	(run_target): Used target, argv, childargv after asserts.
+
+2006-08-16 Andrew Black <ablack@roguewave.com>
+
+	* scanner.cpp (Scanner::convert_escape): Corrected order of arguments
+	to an issue_diag call, added missing newline.
+
+2006-08-14  Andrew Black <ablack@roguewave.com>
+
+	* exec.cpp (wait_for_child): Corrected mistake in kill()
+	call to kill child process group rather than child process.
+
+2006-08-13  Martin Sebor  <sebor@roguewave.com>
+
+	* output.cpp (check_example): Compared only as many bytes as read
+	from files to prevent false negatives.
+	(fout, fref, buf, nread): Renamed locals for brevity and to avoid
+	confusing Emacs syntax highlighting for "reference."
+
+2006-08-10  Martin Sebor  <sebor@roguewave.com>
+
+	* runall.cpp (<sys/wait.h>): Included for WIFEXITED() et al.
+
+2006-08-07  Andrew Black  <ablack@roguewave.com>
+
+	* cmdopt.cpp (eval_options): Used raise(signal) rather than
+        kill(getpid (), signal).
+	* runall.cpp (merge_argv): Added missing terminator to generated
+	array for bare executables.
+	* cmdopt.cpp, output.cpp, runall.cpp: Removed unneeded #includes.
+
+2006-08-07 Andrew Black <ablack@roguewave.com>
+
+	* output.cpp (check_example): Initialized read buffers prior
+	to read to prevent incorrect results.
+
+2006-08-07  Martin Sebor  <sebor@roguewave.com>
+
+	* cmdopt.h (show_usage, eval_options): Removed redundant const
+	qualifier from function parameter types to avoid running into
+	bugs in Sun and Compaq/HP C++ compilers (see STDCXX-266 and
+	STDCXX-267).
+	* cmdopt.cpp (show_usage, eval_options): Made definitions
+	consistent with declarations.
+
+2006-08-03  Martin Sebor  <sebor@roguewave.com>
+
+	* cmdopt.cpp (usage_text): New.
+	(show_usage): Printed usage to stdout when explicitly requested
+	via a command line option (such as --help) and to stderr otherwise.
+	(eval_options): Added the new --help option (same as -h).
+
+2006-08-03  Andrew Black  <ablack@roguewave.com>
+	    Martin Sebor  <sebor@roguewave.com>
+
+	* cmdopt.cpp (bad_value, missing_value): New helpers.
+	(bad_option): Made pointer const, not the argument.
+	(eval_options): Detected and diagnosed invalid or missing
+	option arguments and failed calls to kill and sigaction.
+
+2006-08-01 Andrew Black <ablack@roguewave.com>
+
+	* runall.cpp (main): Widened NAME column to 25 characters, and
+	renamed ASSRTS column to ASSERTS, widening to 7 characters in
+	the process.
+	* runall.cpp (run_target): Altered format string used to print
+	target name to match above.
+	* output.cpp (check_test, check_compat_test): Altered format
+	string used to print assertion counts to match the above.
+
+2006-08-02  Martin Sebor  <sebor@roguewave.com>
+
+	* cmdopt.h (eval_options, split_opt_string): Removed spurious const.
+	* exec.cpp: Inserted a missing newline to reduce line length to less
+	than 80 characters.
+	* exec.h (get_signo): Removed a redundant const qualifier from the
+	function's return type.
+
+2006-08-01 Andrew Black <ablack@roguewave.com>
+
+	* exec.h (get_signo): Declared.
+	* exec.cpp (get_signo): Defined.
+	* exec.cpp (signal_names): Moved lookup table out of get_signame
+        to file scope.
+	* cmdopt.h (verbose): Declared global.
+	* cmdopt.cpp (verbose): Defined global.
+	* cmdopt.cpp (get_short_val, get_long_val, bad_option): Added
+        helper functions for option parsing.
+	* cmdopt.cpp (eval_options): Used new functions, add -v, -q,
+        --exit, --sleep, --signal, --ignore switches.
+
+2006-07-31 Andrew Black <ablack@roguewave.com>
+
+	* util.h (RW_REALLOC, guarded_realloc): Define helper macro and
+	wrapper function for realloc.
+	* util.cpp (guarded_realloc): Implementation.
+	* cmdopt.h (split_child_opts): rename to split_opt_string, alter
+        signature.
+	* cmdopt.cpp (split_child_opts): ditto, alter behavior removing
+        'empty' 0 element from generated array.
+	* runall.cpp (merge_argv): Define static function to merge a target
+        with an argument array.
+	* runall.cpp (run_target): Alter to use above.
+	* runall.cpp (main): alter use of split_child_opts/split_opt_string
+        to reflect changes in cmdopt.cpp/h.
+
+2006-08-01 Andrew Black <ablack@roguewave.com>
+
+	* util.cpp (warn, terminate): Handle case of null target_name.
+
+2006-07-31  Martin Sebor  <sebor@roguewave.com>
+
+	* exec.cpp (__PURE_CNAME): Defined prior to #including any system
+	headers in order to prevent Compaq/HP C++ from using its "pure"
+	libc headers and to get it to define POSIX symbols such as SIGABRT
+	or SIGKILL.
+
+2006-07-28 Andrew Black <ablack@roguewave.com>
+
+	* cmdopt.h (target_name): Declared global variable indicating current
+	target.
+	* cmdopt.cpp (eval_options): Routed unknown option message to stderr
+	rather than stdout.
+	* cmdopt.cpp (split_child_opts): Cached output of a strlen() call.
+	* util.h (warn): Declared.
+	* util.cpp (warn): Added utility function for generating a (non-fatal)
+	error message.
+	* util.cpp (terminate): Added executable and target name to output.
+	* output.h (parse_output): Altered prototype.
+	* exec.h (exec_file): Ditto.
+	* output.cpp (FILE_TEST, check_example): Altered check_example to
+	remove reliance on the diff utility, remove FILE_TEST as unneeded.
+	* output.cpp (check_test, check_compat_test, parse_output): Moved
+	opening of output file to parse_output.
+	* exec.cpp (wait_for_child, exec_file): Used warn() utility.
+	* runall.cpp (check_target_ok): Ditto.
+	* runall.cpp (process_results): Altered signature, alter call to
+	parse_output.
+	* runall.cpp (run_target): Set/used target_name global, alter calls
+	to exec_file and process_results.
+
+2006-07-25 Andrew Black <ablack@roguewave.com>
+
+	* cmdopt.cpp: Formatting cleanup.
+	* exec.cpp: Same.
+	* output.cpp: Same.
+	* runall.cpp: Same.
+	* util.cpp: Same.
+
+2006-07-23 Andrew Black <ablack@roguewave.com>
+	   Martin Sebor <sebor@apache.org>
+
+	* GNUmakefile (BINDIR): Add and use convenience variable referencing
+	the bin/ subdirectory of the buildspace.
+	* GNUmakefile.exm (RUNFLAGS): Change command line switch used to
+	specify input/output file directory to match switch expected by
+	the utility.
+	* GNUmakefile.bin (exec): Add rule to build the new exec utility.
+	* GNUmakefile.tst (RUNFLAGS): Removed additional switches as unneeded.
+	* makefile.rules (run runall run_all): Add dependency on exec utility.
+	* GNUmakefile.exm, GNUmakefile.tst: Add rule to build the exec utility.
+	* run_locale_utils.sh: Change default output file to /dev/stdout, add
+	test driver style assertion count summary.
+	* cmdopt.h: New. Declared command line parsing function(s).
+	* cmdopt.cpp: Definition(s) of the above.
+	* exec.h: New. Declared helper to execute program(s).
+	* exec.cpp: Definition(s) of the above.
+	* output.h: New. Declarations of functions for program (test,
+	example, etc.) output processing.
+	* output.cpp: Defintions of the above.
+	* runall.cpp: Defintion of main and helpers.
+	* util.h: New. Declared helper functions.
+	* util.cpp: Definitions of the above.
+
+2006-07-10  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-255
+	* locale.cpp (initialize): Avoided trying to validate and diagnose
+	null pointers.
+
+2006-02-15  Martin Sebor  <sebor@roguewave.com>
+
+	* collate.cpp (<cstring>): #included for strchr().
+
+2006-02-07  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-132
+	* def.cpp (<cstring>): Added a missing #include directive.
+	* time.cpp: Same.
+	* aliases.cpp: Same.
+	* ctype.cpp: Same.
+
+2005-07-26  Martin Sebor  <sebor@roguewave.com>
+
+	Set the svn:keywords property and enabled the expansion
+	of the Id keyword.
+
+2005-07-19  Martin Sebor  <sebor@roguewave.com>
+
+	Initial import of the Rogue Wave C++ Standard library 4.1.2.

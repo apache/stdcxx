@@ -1,3 +1,272 @@
+2007-10-11  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-509
+	* limits_bits.cpp [_RWSTD_NO_INFINITY] (__rw_flt_denorm_min,
+	__rw_flt_infinity, __rw_flt_qNaN, __rw_flt_sNaN, __rw_dbl_denorm_min,
+	__rw_dbl_infinity, __rw_dbl_qNaN, __rw_dbl_sNaN, __rw_ldbl_denorm_min,
+	__rw_ldbl_infinity, __rw_ldbl_qNaN, __rw_ldbl_sNaN): Declared constants
+	with "C" linkage corresponding to rev 564059.
+
+2007-10-11  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-589
+	* file.cpp [!_RWSTD_NO_PURE_C_HEADERS] (fileno): Relaxed a guard
+	around a declaration.
+
+2007-10-04 Farid Zaripov <farid_zaripov@epam.com>
+
+	* Merged the head of branches/4.2.0
+
+2007-10-01 Farid Zaripov <farid_zaripov@epam.com>
+
+	* Merged the head of branches/4.2.0
+
+2007-10-01  Farid Zaripov  <farid_zaripov@epam.com>
+
+	* time_put.cpp (__rw_get_date_fmat): Convert char argument
+	of isspace(), isdigit(), ispunct() to unsigned char.
+	(__rw_get_time_fmat): Ditto.
+
+2007-10-01  Farid Zaripov  <farid_zaripov@epam.com>
+
+	* Merged the head of branches/4.2.0
+
+2007-09-20  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-567
+	* atomic.s (__rw_atomic_xchg8): Appended the 'b' (byte) prefix
+	to the xchg instruction instead of counting on the assembler to
+	figure it out from the widths of the operands to prevent an error
+	when using the Sun Assembler (which, unlike the GNU assembler,
+	doesn't support doing this).
+
+2007-09-19  Martin Sebor  <sebor@roguewave.com>
+
+	* rwstderr.msg: Added missing space after the comment character
+	to prevent pedantic gencat errors on Linux.
+
+2007-09-19 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _messages.h: Reverted changes from r577000 because
+	they are obsolete since r577098.
+	messages.cpp: Ditto.
+
+2007-09-18  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-457
+	* rwstderr.rc: Added a comment with the required ASL header.
+	Comment format according to:
+	http://msdn2.microsoft.com/en-us/library/aa380896.aspx
+
+2007-09-18  Martin Sebor  <sebor@roguewave.com>
+
+	* rwstderr.msg: Added the RCS Id keyword.
+
+2007-09-18  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-457
+	* rwstderr.msg: Added a comment with the required ASL header.
+
+2007-09-18 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* _messages.h (__rw_cat_open): Declare fnuction as _RWSTD_EXPORT.
+	* _messages.h (__rw_get_message): Ditto.
+	* _messages.h (__rw_get_locale): Ditto.
+	* _messages.h (__rw_cat_close): Ditto.
+	* messages.cpp (__rw_cat_open): Ditto.
+	* messages.cpp (__rw_get_message): Ditto.
+	* messages.cpp (__rw_get_locale): Ditto.
+	* messages.cpp (__rw_cat_close): Ditto.
+
+2007-09-18 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* messages.cpp (__rw_cat_open): Use _RWSTD_MT_CLASS_GUARD instead of
+	_RWSTD_MT_STATIC_GUARD to synchronize access to global repository
+	of open	catalogs.
+	(__rw_get_message): Ditto.
+	(__rw_get_locale): Ditto.
+	(__rw_cat_close): Ditto.
+
+2007-09-17  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-547
+	* locale_core.cpp (_C_get_std_facet): Used a safe cast to silence
+	a Sun C++ 64-bit conversion warning.
+
+2007-09-17 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* catalog.cpp (__catfind): Fixed undefined behavior
+	when __rw_catlist vector is full and id is not valid.
+
+2007-09-13  Martin Sebor  <sebor@roguewave.com>
+
+	* memattr.cpp (EFAULT): #defined macro when not #defined in system
+	headers. Needed by EDG eccp on Linux.
+	[Linux] (__USE_BSD): #defined macro when not already #defined to
+	bring in declarations of caddr_t, madvise(), and MADV_WILLNEED.
+	Also needed by EDG eccp on Linux.
+
+2007-09-12  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-547	
+	* num_get.cpp (__rw_get_stdio_fmat): Changed the type of the last
+	argument so std::streamsize to make it possible to pass in and
+	correctly handle 64-bit values and to aid in silencing 64-bit
+	conversion warnings at the call site. (Missed this in r574422).
+
+2007-09-10  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-547
+	* num_get.cpp (__rw_get_num): Cast a wider type to a narrower one
+	to silence Sun C++ 64-bit conversion warnings.
+	* num_put.cpp (__rw_get_stdio_fmat): Changed the type of the last
+	argument so std::streamsize to make it possible to pass in and
+	correctly handle 64-bit values and to aid in silencing 64-bit
+	conversion warnings at the call site.
+	* punct.cpp (__rw_get_stdio_fmat): Same. Used the %ld formatting
+	directive and cast streamsize argument to long before passing it
+	to sprintf.
+
+2007-09-07 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* src/atomic.asm: New file to define __rw_atomicxxx() functions.
+	* i86/atomic.asm: File renamed ...
+	* i86/atomic.inc: ... to this.
+	* i86_64/atomic.asm: File renamed ...
+	* i86_64/atomic.inc: ... to this.
+	* projects.js (CreateProjectsDefs): Removed platform dependent files array.
+	* projectdef.js: InitAsmTool() function moved ...
+	* filterdef.js: ... to this. Removed platform dependent files processing.
+
+2007-09-07 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* once.cpp: Moved #pragma's from this file ...
+	* export.cpp: ... to this.
+
+2007-09-07 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* atomic-cxx.S: Updated copyright notice.
+	* atomic.s: Ditto.
+
+2007-08-09  Martin Sebor  <sebor@roguewave.com>
+
+	* stdexcept (invalid_argument, length_error, underflow_error,
+	overflow_error, out_of_range): Declared virtual ctors to prevent
+	them from being implicitly defined by the compiler (and to reduce
+	the size of object files compiled from translation units that
+	#include the header). See also change 553643.
+	* invalid_argument.cpp: Defined virtual dtor.
+	* length_error.cpp: Same.
+	* underflow_error.cpp: Same.
+	* overflow_error.cpp: Same.
+	* out_of_range.cpp: Same.
+
+2007-09-06  Martin Sebor  <sebor@roguewave.com>
+
+	* _codecvt.h (codecvt, do_always_noconv, do_encoding, do_max_length):
+	Outlined codecvt<char, char, mbstate_t> ctor and virtual member
+	functions of the codecvt<wchar_t, char, mbstate_t> specialization
+	to reduce the size of objects in which these functions end up getting
+	emitted by most (all?) compilers.
+
+2007-09-06 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* projects.js: Added definitions of the platform dependent files.
+	* i86/atomic.asm: New file with definitions of the __rw_atomic_xxx()
+	functions for Win32 platform.
+	* i86_64/atomic.asm: New file with definitions of the
+	__rw_atomic_xxx() functions for Windows/x64 platform.
+	* _mutex.h: Use new __rw_atomic_xxx() functions if corresponding
+	InterlockedXXX() functions are not present.
+	[_MSC_VER >= 1400]: Use intrinsic InterlockedXXX() functions
+	on MSVC 8 and higher.
+	* once.cpp [_WIN32 && _DLL]: Tell linker to export __atomic_xxx()
+	functions, defined in .asm files.
+
+2007-09-05 Travis Vitek <vitek@roguewave.com>
+
+	STDCXX-542
+	* catalog.cpp (catclose): check bounds before index to avoid out of
+	bound access.
+
+2007-08-28 Farid Zaripov <Farid_Zaripov@epam.com>
+
+	* ia64/atomic-64.s: Updated copyright notice.
+	* ia64/atomic.s: Ditto.
+	* parisc/atomic-64.s: Ditto.
+	* parisc/atomic.s: Ditto.
+	* sparc/atomic-64.s: Ditto.
+	* sparc/atomic.s: Ditto.
+	* i86/atomic.s: Updated comments.
+	* i86_64/atomic.s: Updated copyright notice and comments.
+
+2007-08-17  Martin Sebor  <sebor@roguewave.com>
+
+	* once.h [_WIN32] (_RWSTD_ONCE_INIT): Defined also for Windows.
+
+2007-08-17  Martin Sebor  <sebor@roguewave.com>
+
+	* once.h (_RWSTD_ONCE_INIT): Defined to PTHREAD_ONCE_INIT.
+	[_RWSTD_POSIX_THREADS, _RWSTD_NO_PTHREAD_ONCE] (__rw_once_t,
+	_RWSTD_ONCE_INIT): Defined in terms of pthread_mutex_t and
+	PTHREAD_MUTEX_INITIALIZER, respectively.
+	* once.cpp [_RWSTD_POSIX_THREADS, _RWSTD_NO_PTHREAD_ONCE]
+	(__rw_once_t): Defined in terms of pthread_mutex_lock()
+	and pthread_mutex_unlock().
+	(__rw_once_t): Consistently asserted both preconditions.
+
+2007-08-17  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-523
+	* locale_classic.cpp (__rw_classic): New. Namespace-scope buffer
+	backing the classic locale object.
+	(__rw_classic_once_init): New. One-time initialization flag for
+	the classic locale object.
+	(__rw_init_classic): New. One-time initialization function for
+	the classic locale object.
+	(classic): Used __rw_once() to initialize the classic locale
+	object.
+
+2007-08-10  Farid Zaripov  <faridz@apache.org>
+
+	* num_get.cpp (__rw_ldbl_infinity): Guarded with _RWSTD_NO_LONG_DOUBLE.
+
+2007-08-10  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-509
+	* num_get.cpp (__rw_flt_infinity, __rw_dbl_infinity,
+	__rw_ldbl_infinity): Declared constants with C language
+	linkage as in r564059.
+
+2007-08-09  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-509
+	* limits (__rw_flt_denorm_min, __rw_flt_infinity, __rw_flt_qNaN,
+	__rw_flt_sNaN, __rw_dbl_denorm_min, __rw_dbl_infinity, __rw_dbl_qNaN,
+	__rw_dbl_sNaN, __rw_ldbl_denorm_min, __rw_ldbl_infinity, __rw_ldbl_qNaN,
+	__rw_ldbl_sNaN): Declared floating point constants with "C" language
+	linkage to prevent "clever" compilers such as MSVC from mangling their
+	type into their names and to permit them to be defined with different
+	types.
+	* limits_bits.cpp (__rw_flt_denorm_min, __rw_flt_infinity,
+	__rw_flt_qNaN, __rw_flt_sNaN, __rw_dbl_denorm_min, __rw_dbl_infinity,
+	__rw_dbl_qNaN, __rw_dbl_sNaN, __rw_ldbl_denorm_min, __rw_ldbl_infinity,
+	__rw_ldbl_qNaN, __rw_ldbl_sNaN): Defined as statically (i.e., at load
+	time as opposed to dynamically, at runtime) initialized unions, backed
+	by the appropriate byte patterns, with "C" language linkage to permit
+	the defintions to have a different type than the declarations.
+	(__rw_flt_denorm_min_bits, __rw_flt_infinity_bits, __rw_flt_qNaN_bits,
+	__rw_flt_sNaN_bits, __rw_dbl_denorm_min_bits, __rw_dbl_infinity_bits,
+	__rw_dbl_qNaN_bits, __rw_dbl_sNaN_bits, __rw_ldbl_denorm_min_bits,
+	__rw_ldbl_infinity_bits, __rw_ldbl_qNaN_bits,  __rw_ldbl_sNaN_bits):
+	Removed.
+
+2007-08-07  Martin Sebor  <sebor@roguewave.com>
+
+	* once.h: New implementation-private header. Declares __rw_once_t
+	and __rw_once() for portable, thread-safe one-time initialization.
+	* once.cpp: New. Defines the above.
+
 2007-08-06  Martin Sebor  <sebor@roguewave.com>
 
 	* ChangeLog: Updated, keeping original TABs.
@@ -208,22 +477,20 @@
 	* _error.h: Added declaration of the __rw_free_what_buf.
 	* exception.cpp (__rw_free_what_buf): Added _RWSTD_EXPORT to prototype.
 	Added assertion on __rw_what_refcnt value.
-	(_C_assign): If whatstr == __rw_what_buf, just reuse it without
-	allocation
+	(_C_assign): If whatstr == __rw_what_buf, just reuse it without allocation
 	of the new buffer.
 	* rwexcept.cpp: Use __rw_free_what_buf() instead of delete[].
 
 2007-06-21 Farid Zaripov <Farid_Zaripov@epam.com>
 
 	STDCXX-293
-	* exception.cpp (__rw_throw): Don't delete allocated what string because
-	of __rw_throw_proc() takes ownership and must delete what string.
+	* exception.cpp (__rw_throw): Don't delete allocated what string because of
+	__rw_throw_proc() takes ownership and must delete what string.
 
 2007-06-21 Farid Zaripov <Farid_Zaripov@epam.com>
 
 	STDCXX-293
-	* exception.cpp (__rw_free_what_buf): New function to free buffer,
-	allocated by __rw_vfmtwhat().
+	* exception.cpp (__rw_free_what_buf): New function to free buffer, allocated by __rw_vfmtwhat().
 	Used __rw_free_what_buf() instead of delete[].
 
 2007-06-19  Martin Sebor  <sebor@roguewave.com>
@@ -260,8 +527,7 @@
 2007-06-06 Farid Zaripov <Farid_Zaripov@epam.com>
 
 	STDCXX-188
-	* typeinfo.cpp: use ::_C_name or std::_C_name depending on
-	_RWSTD_NO_STD_TYPE_INFO macro.
+	* typeinfo.cpp: use ::_C_name or std::_C_name depending on _RWSTD_NO_STD_TYPE_INFO macro
 
 2007-06-05 Farid Zaripov <Farid_Zaripov@epam.com>
 
@@ -956,8 +1222,8 @@ Updated.
 
 2005-07-26  Martin Sebor  <sebor@roguewave.com>
 
-	Set the svn:keywords property and enabled the expansion of the Id
-	keyword.
+	Set the svn:keywords property and enabled the expansion
+	of the Id keyword.
 
 2005-07-19  Martin Sebor  <sebor@roguewave.com>
 
