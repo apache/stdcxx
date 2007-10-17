@@ -1806,6 +1806,7 @@
     o  gcc 4.1.0, SuSE Linux Enterprise Server 10.0, EM64T
     o  gcc 4.0.1, Mac OS X (Darwin), x86
     o  gcc 3.4.6, Red Hat Enterprise Linux 4, Update 4, AMD64 and EM64T
+    o  gcc 3.4.4, Cygwin on Windows XP SP 2, x86
     o  gcc 3.4.4, FreeBSD 6.2, x86
     o  gcc 3.4.4, Red Hat Enterprise Linux 4, Update 2, IA64
     o  gcc 3.3.3, SuSE Linux Enterprise Server 9.1, AMD64
@@ -1816,6 +1817,19 @@
 
     Ported to HP  aCC 3.13 and later for PA-RISC,  and 5.36 and later,
     and 6.0 and later for IPF.
+
+    This release tested with:
+    
+    o  aCC 3.63, HPUX 11.11, PA-RISC
+    o  aCC 3.73, HPUX 11.11, PA-RISC
+    o  aCC 5.57, HPUX 11.23, IPF
+    o  aCC 6.00, HPUX 11.23, IPF
+    o  aCC 6.13, HPUX 11.23, IPF
+    o  aCC 3.63, HPUX 11.23, PA-RISC
+    o  aCC 3.73, HPUX 11.23, PA-RISC
+    o  aCC 3.63, HPUX 11.31, PA-RISC
+    o  aCC 3.73, HPUX 11.31, PA-RISC
+    o  aCC 3.74, HPUX 11.31, PA-RISC
 
     10.8  IBM VisualAge C++
     -----------------------
@@ -1849,10 +1863,20 @@
     Ported to  Intel C++ 7.0 through  9.0 on Linux  and Windows (x86,
     IA64, and EM64T).
 
+    This release tested with:
+
     o  Intel C++ 10.0, Red Hat Enterprise Linux 4, Update 4, AMD64 and EM64T
     o  Intel C++ 10.0, SuSE Linux Enterprise Server 10.0, EM64T
+    o  Intel C++ 10.0, Windows 2000 SP 4, x86
+    o  Intel C++ 10.0, Windows 2003 SP 1, EM64T and x86
+    o  Intel C++ 10.0, Windows XP SP 2, EM64T and x86
+    o  Intel C++ 10.0, Windows Vista, EM64T
     o  Intel C++ 9.1, Red Hat Enterprise Linux 4, Update 4, AMD64 and EM64T
+    o  Intel C++ 9.1, Red Hat Enterprise Linux 4, Update 2, IA64
     o  Intel C++ 9.1, SuSE Linux Enterprise Server 10.0, EM64T
+    o  Intel C++ 9.1, Windows 2000 SP 4, x86
+    o  Intel C++ 9.1, Windows 2003 SP 1, x86
+    o  Intel C++ 9.1, Windows XP SP 2, x86
 
     10.10  KAI C++
     --------------
@@ -1867,12 +1891,20 @@
     10.12  Microsoft Visual Studio
     ------------------------------
 
-    Ported to  Visual Studio .NET  2003 (AKA MSVC 7.0)  through Visual
+    Ported to  Visual Studio .NET 2002 (AKA MSVC 7.0)  through Visual
     Studio .NET 2005 (AKA MSVC 8.0) on Windows (x86, IA64, and EM64T),
     and Visual Studio 2008 (AKA MSVC 9.0), Beta 2.
 
+    This release tested with:
+
     o  Visual Studio 2008 Beta 2, Windows XP, x86
-    o  Visual Studio 2005, Windows XP, 
+    o  Visual Studio 2005, Windows 2000 SP 4, x86
+    o  Visual Studio 2005, Windows 2003 SP 1, EM64T and x86
+    o  Visual Studio 2005, Windows XP SP 2, EM64T and x86
+    o  Visual Studio 2005, Windows Vista, EM64T
+    o  Visual Studio 2003, Windows 2000 SP 4, x86
+    o  Visual Studio 2003, Windows 2003 SP 1, x86
+    o  Visual Studio 2003, Windows XP SP 2, x86
 
 
     10.13  SGI MIPSpro
@@ -1891,10 +1923,14 @@
     Ported to Sun C++ 5.3 through 5.9 on Solaris and Linux (SPARC and
     x86_64).
 
+    This release tested with:
+
     o  Sun C++ 5.9, Red Hat Enterprise Linux 4, Update 4, AMD64 and EM64T
     o  Sun C++ 5.9, SuSE Linux Enterprise Server 9.1, AMD64
-    o  Sun C++ 5.9, Solaris 10, AMD64
-    o  Sun C++ 5.8, Solaris 10, AMD64
-    o  Sun C++ 5.7, Solaris 9, SPARC
+    o  Sun C++ 5.9, Solaris 10, AMD64 and SPARC
+    o  Sun C++ 5.9, Solaris 9, SPARC
+    o  Sun C++ 5.8, Solaris 10, AMD64 and SPARC
+    o  Sun C++ 5.8, Solaris 8, SPARC
+    o  Sun C++ 5.7, Solaris 10, SPARC
     o  Sun C++ 5.6, Solaris 9, SPARC
     o  Sun C++ 5.3, Solaris 8, SPARC
