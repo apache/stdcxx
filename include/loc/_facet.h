@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -56,7 +56,13 @@ struct _RWSTD_EXPORT __rw_facet: __rw_synchronized
     // of standard types by the library
     typedef __rw_facet* (_C_ctor_t)(_RWSTD_SIZE_T, const char*);
 
+#if !defined (_MSC_VER) || 5 <= _RWSTD_VER_MAJOR
+
+    // disabled for binary compatibility with stdcxx 4.1.x for MSVC
+    // (the compiler mangles access specifiers into class members)
 protected:
+
+#endif   // !MSVC || 5 <= stdcxx version
 
     _EXPLICIT __rw_facet (_RWSTD_SIZE_T = 0);
 
