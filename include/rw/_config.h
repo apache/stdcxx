@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -132,6 +132,24 @@
 
 #if defined (__sparc__) || defined (__sparc)
 #endif   // SPARC
+
+/*** AMD64/Intel EM64T ****************************************************/
+
+#if    defined (__amd64__) || defined (__amd64) \
+    || defined (__x86_64__) || defined (__x86_64)
+
+#  if _RWSTD_VER_MAJOR < 5
+#    ifdef _RWSTD_OS_LINUX
+       // on Linux/AMD64, unless explicitly requested, disable the use
+       // of atomic operations in string for binary compatibility with
+       // stdcxx 4.1.x
+#      ifndef _RWSTD_USE_STRING_ATOMIC_OPS
+#        define _RWSTD_NO_STRING_ATOMIC_OPS
+#      endif   // _RWSTD_USE_STRING_ATOMIC_OPS
+#    endif   // _WIN32
+#  endif   // stdcxx < 5.0
+
+#endif   // AMD64/EM64T
 
 /**************************************************************************
  * COMPILER-SPECIFIC OVERRIDES                                            * 
