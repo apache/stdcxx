@@ -511,13 +511,13 @@ private:
 
 #else
 
+public:
+
     template <class _InputIter>
     basic_string& __replace_aux (iterator __first1, iterator __last1, 
                                  _InputIter __first2, _InputIter __last2) {
         return __rw_replace_aux (*this, __first1, __last1, __first2, __last2);
     }
-
-public:
 
 #endif   // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
