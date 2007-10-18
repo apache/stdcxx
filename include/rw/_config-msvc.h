@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -57,6 +57,25 @@
 #endif   // _RWSTD_NO_EXPORT
 
 #endif   // MSVC <= 6.0
+
+#if (_MSC_VER < 1400) && (_RWSTD_VER_MAJOR < 5)
+#  define _RWSTD_MSVC7_STDCXX42_BINARY_COMPAT_FIX
+#endif
+
+#if _RWSTD_VER_MAJOR < 5
+   // defined for binary compatibility with stdcxx 4.1.x
+#  define _RWSTD_NO_BAD_CAST_ASSIGNMENT
+#  define _RWSTD_NO_BAD_CAST_COPY_CTOR
+#  define _RWSTD_NO_BAD_CAST_DTOR
+#  define _RWSTD_NO_BAD_TYPEID_ASSIGNMENT
+#  define _RWSTD_NO_BAD_TYPEID_COPY_CTOR
+#  define _RWSTD_NO_BAD_TYPEID_DTOR
+#  define _RWSTD_NO_EXCEPTION_ASSIGNMENT
+#  define _RWSTD_NO_EXCEPTION_COPY_CTOR
+#  define _RWSTD_NO_EXCEPTION_DEFAULT_CTOR
+#  define _RWSTD_NO_EXCEPTION_DTOR
+#  define _RWSTD_NO_EXCEPTION_WHAT
+#endif   // stdcxx version < 5
 
    // disable "Same type qualifier used more than once"
 #  pragma warning (disable: 4114)
