@@ -26,7 +26,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -219,3 +219,19 @@
 typedef unsigned short wchar_t;
 
 #endif   // _NATIVE_WCHAR_T_DEFINED
+
+#if _RWSTD_VER_MAJOR < 5
+   // defined for binary compatibility with stdcxx 4.1.x
+   // (for all versions of MSVC and Intel C++)
+#  define _RWSTD_NO_BAD_CAST_ASSIGNMENT
+#  define _RWSTD_NO_BAD_CAST_COPY_CTOR
+#  define _RWSTD_NO_BAD_CAST_DTOR
+#  define _RWSTD_NO_BAD_TYPEID_ASSIGNMENT
+#  define _RWSTD_NO_BAD_TYPEID_COPY_CTOR
+#  define _RWSTD_NO_BAD_TYPEID_DTOR
+#  define _RWSTD_NO_EXCEPTION_ASSIGNMENT
+#  define _RWSTD_NO_EXCEPTION_COPY_CTOR
+#  define _RWSTD_NO_EXCEPTION_DEFAULT_CTOR
+#  define _RWSTD_NO_EXCEPTION_DTOR
+#  define _RWSTD_NO_EXCEPTION_WHAT
+#endif   // _RWSTD_VER_MAJOR < 5
