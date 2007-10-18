@@ -504,8 +504,6 @@ private:
         return _C_make_iter (_C_data + __pos1);
     }
 
-public:
-
 #ifndef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
     template <class _InputIter>
@@ -518,6 +516,8 @@ public:
                                  _InputIter __first2, _InputIter __last2) {
         return __rw_replace_aux (*this, __first1, __last1, __first2, __last2);
     }
+
+public:
 
 #endif   // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
