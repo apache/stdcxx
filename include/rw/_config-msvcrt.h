@@ -220,7 +220,7 @@ typedef unsigned short wchar_t;
 
 #endif   // _NATIVE_WCHAR_T_DEFINED
 
-#if _RWSTD_VER_MAJOR < 5
+#if _RWSTD_VER_MAJOR < 5 && defined (_DLL)
    // defined for binary compatibility with stdcxx 4.1.x
    // (for all versions of MSVC and Intel C++)
 #  define _RWSTD_NO_BAD_CAST_ASSIGNMENT
@@ -234,4 +234,4 @@ typedef unsigned short wchar_t;
 #  define _RWSTD_NO_EXCEPTION_DEFAULT_CTOR
 #  define _RWSTD_NO_EXCEPTION_DTOR
 #  define _RWSTD_NO_EXCEPTION_WHAT
-#endif   // _RWSTD_VER_MAJOR < 5
+#endif   // _RWSTD_VER_MAJOR < 5 && _DLL
