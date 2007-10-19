@@ -278,6 +278,11 @@ function configure()
     // headers and functions check
     checkHeaders();
 
+    if (confInfo.mt)
+        appendLineToOutFile("// #define _RWSTD_NO_REENTRANT");
+    else
+        appendLineToOutFile("#define _RWSTD_NO_REENTRANT");
+
     // compile .lib.cpp s
     if (0 == compileLibs(confInfo.dll))
         cleanQuit(1, exitmsg);
