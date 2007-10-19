@@ -1,11 +1,16 @@
 
             $Id$
 
-              STDCXX - Apache C++ Standard Library 4.2.0
+              Apache C++ Standard Library (STDCXX) 4.2.0
               ------------------------------------------
 
   i. Disclaimer
   -------------
+
+  The  ASF Incubation Policy  requires every  Podling (project  of the
+  Apache Incubator) to include a  clear disclaimer on its Web site and
+  in all documentation stating  that it is undergoing incubation.  The
+  following is the text of the required disclaimer.
 
   STDCXX  is an effort  undergoing incubation  at the  Apache Software
   Foundation (ASF), sponsored by  the Apache Incubator PMC. Incubation
@@ -23,6 +28,7 @@
   Disclaimer ....................................................... i
   Index ............................................................ 0
   Contents ......................................................... 1
+    Compatibility ................................................ 1.1
   Requirements ..................................................... 2
   Unpacking Instructions ........................................... 3
   Directory Structure ...............................................4
@@ -36,10 +42,12 @@
   Library Build Instructions ....................................... 5
     VisualStudio Setup Instructions .............................. 5.1
   Library Installation ............................................. 6
+    Library Installation on UNIX Systems ......................... 6.1
+    Library Installation on Microsoft Windows .................... 6.2
   Test Suite Build Instructions .................................... 7
     VisualStudio Test Suite Build Instructions ................... 7.1
   Library Configuration ............................................ 8
-    Header config.h .............................................. 8.1
+    Header config.h (and config.log) ............................. 8.1
     Headers rw/_config.h and rw/_defs.h .......................... 8.2
     Configuration Macros ......................................... 8.3
       Platform Identification Macros ........................... 8.3.1
@@ -76,23 +84,49 @@
   1  Contents
   -----------
 
-  This  file is  part of  the STDCXX  distribution of  the  Apache C++
-  Standard  Library.  The  distribution consists  of this  file  and a
-  compressed (gzipped) tar file containing the header and source files
-  comprising  the  Rogue  Wave  implementation  of  the  C++  Standard
-  Library,  the configuration mechanism  required to  characterize the
-  platform on which  the library is to be built, and  a set of scripts
-  and makefiles to build the library.
+  This  file is  part  of version  4.2.0  of the  Apache C++  Standard
+  Library (STDCXX), an Open  Source implementation of the C++ Standard
+  Library   conforming   to   INCITS/ISO/IEC  14882-2003   Programming
+  Languages  -- C++.
 
-  Optionally,  the  distribution  may  also  contain  the  Apache  C++
-  Standard Library test suite, a set of examples demonstrating the use
+  The distribution  consists of this  file and a  compressed (gzipped)
+  tar  file containing  the  header and  source  files comprising  the
+  Apache implementation of the C++ Standard Library, the configuration
+  infrastructure required  to characterize  the platform on  which the
+  library is to be built, and  a set of scripts and makefiles to build
+  the  library.  In  addition, a  license (LICENSE.txt)  and  a notice
+  (NOTICE.txt) files are provided.  Read LICENSE.txt to understand the
+  licensing  requirements of  the  Apache C++  Standard Library.   The
+  NOTICE.txt  file contains  a list  of copyrights  that apply  to the
+  same.
+
+  In addition, the distribution  also contains the Apache C++ Standard
+  Library test suite, a set  of example programs demonstrating the use
   of the library, plus scripts and makefiles to build and run the test
-  suite and the examples.
+  suite and the examples and report their results.
 
-  The  audience  targeted by  this  document  is library  maintainers,
-  developers,  and those porting  the library  to new  platforms.  The
-  purpose  of the document  is to  describe in  detail the  process of
-  unpacking, configuring, building, and testing the library.
+  The  primary   audience  targeted   by  this  document   is  library
+  maintainers,  developers,  and  those  porting the  library  to  new
+  platforms.  The purpose of the document is to describe in detail the
+  process  of  unpacking,   configuring,  building,  and  testing  the
+  library.
+
+
+  1.1  Compatibility
+  ------------------
+
+  This version of the library is source and binary compatible with all
+  previous 4.x  releases. Programs  compiled and linked  with previous
+  versions  of  the  (shared)  library  within the  4.x  lineage  will
+  continue to link and work correctly when linked with this version of
+  the   library   (this   is   sometimes  referred   to   a   backward
+  compatibility), provided  the same compiler is used  to compile both
+  the programs and  the library. Changing the compiler  or its version
+  may  have an  impact on  the binary  compatibility of  the generated
+  object code. Programs  compiled and linked with this  version of the
+  library may not link with with prior versions of the library, or may
+  not  operate correctly  (this is  sometimes referred  to  as forward
+  compatibility).
 
 
   2  Requirements
@@ -121,9 +155,13 @@
   3  Unpacking Instructions
   -------------------------
 
+  The  distribution consists entirely  of a  single file  named either
+  stdcxx-incubating-X.Y.Z.tar.gz    for    a    final   release,    or
+  stdcxx-incubating-X.Y.Z-YYYYMMDD.tar.gz for snapshots.
+
   To unpack the tarball, execute the following command:
 
-  $ gunzip -c stdcxx-incubating-X.Y.Z-YYYYMMDD.tar.gz | tar -xf -
+  $ gunzip -c stdcxx-incubating-X.Y.Z.tar.gz | tar -xf -
 
   Above, X, Y, and Z are the major, minor, and micro version number of
   the library,  respectively, and the  optional -YYYYMMDD part  is the
@@ -131,8 +169,8 @@
   if the tarball is a final release rather than a snapshot.
 
   The  script  above will  expand  the  tarball  and create  a  single
-  directory named stdcxx-X.Y.Z-YYYYMMDD/  (with the date part possibly
-  missing). This  directory is referred to a  ${TOPDIR} throughout the
+  directory  named  stdcxx-X.Y.Z   (or  stdcxx-X.Y.Z-YYYYMMDD/  for  a
+  snapshot). This directory is  referred to a ${TOPDIR} throughout the
   rest of this document.
 
 
@@ -143,17 +181,21 @@
   files  and any  support scripts  are organized  in a  directory tree
   described below. If  the files are arranged otherwise  you will need
   to move  them to  the expected directories  in order  to accommodate
-  this  requirement  and  use  the infrastructure.  The  shell  script
-  fixtree.sh that resides  in the config/ subdirectory can  be used to
-  create the required directory structure from the alternate structure
-  (not described here).
+  this  requirement  and  use  the infrastructure.
 
-      ${TOPDIR}/GNUmakefile           master makefile
+      ${TOPDIR}/bin/                  executable scripts
+       |        doc/index.html        documentation index
+       |        generate.bat          (obsolete)
+       |        configure.bat         Windows configuration script
+       |        ChangeLog             log of changes
+       |        GNUmakefile           master makefile
+       |        LICENSE.txt           license file
+       |        NOTICE.txt            copyright notices
+       |        README                this file
+       |
        +- etc/
        |  +- config/GNUmakefile.*     makefiles
        |  |  |     /*.config          compiler config files
-       |  |  |     /fixtree.sh        directory tree configuration
-       |  |  |                        script
        |  |  |     /makefile.*        common definitions and rules
        |  |  |     /runall.sh         testsuite run script
        |  |  +- src/                  configuration sources and
@@ -248,13 +290,16 @@
   4.2  Library Utilities
   ----------------------
 
-  Two utility programs  are provided in complete source  form with the
-  library sources:  locale and localedef. The header  and source files
-  for these utilities are  contained in the ${TOPDIR}/util/ directory.
-  The  localedef  utility  is   used  to  build  locales  from  locale
-  definition  files  and  character  set  description  files.  Locales
-  generated by the utility can be  read by the locale utility and used
-  by the Apache C++ Standard Library's localization library.
+  Several utility programs are  provided in complete source form along
+  with  the  library sources.   They  are:  exec,  gencat, locale  and
+  localedef.  The header  and  source files  for  these utilities  are
+  contained  in the  ${TOPDIR}/util/ directory.   The exec  and gencat
+  utilities are  part of the test  harness and are not  intended to be
+  used directly or distributed to end users.  The localedef utility is
+  used to build locales from locale definition files and character set
+  description files.  Locales generated by  the utility can be read by
+  the locale  utility and  used by the  Apache C++  Standard Library's
+  localization library.
 
 
   4.3  Locales
@@ -271,27 +316,36 @@
   4.4  Test Suite Files
   ---------------------
 
-  The test  suite consists of a  set of two components:  a test driver
-  library, rwtest,  and a set of headers, in ${TOPDIR}/tests/include/,
-  and   many   source   files,   in   several   subdirectories   under
-  ${TOPDIR}/tests/. 
+  The test  suite consists of a  set of three  components: a makefile,
+  the  exec test  utility residing  in ${BUILDDIR}/bin/exec,  the test
+  driver  library, rwtest,  in ${TOPDIR}/tests/include/,  and  a large
+  number  of test  source  files, residing  in several  subdirectories
+  under ${TOPDIR}/tests/.
 
-  Each test program links with  the test driver library which contains
-  code  for command line  processing. When  run, tests  produce output
-  files which can be read  and analyzed by the run_all.sh script found
-  in the ${TOPDIR}/etc/config/ directory. The script presents the test
-  results  in a  tabular format.  For  more information  refer to  the
-  script's help output.
+  Each   test   program   links   with  the   test   driver   library,
+  ${BUILDDIR}/rwtest/librwtest.a, which contains code for command line
+  processing. When the tests are run by the test harness, they produce
+  output  files  which  are  then   read  and  analyzed  by  the  exec
+  utility. The utility writes the  test results to stdandard output in
+  a tabular  format, with columns  indicating the exit status  of each
+  test,  the  number  of   failed  assertions,  the  total  number  of
+  assertions, the number  of runtime warnings, and the  amount of time
+  each  test took  to run.   For more  information refer  to  the help
+  output of the exec utility.
 
 
   4.5  Examples and Tutorials
   ---------------------------
 
-  A  set of  example  and tutorial  files  may be  provided under  the
-  ${TOPDIR}/examples/  directory,   in   subdirectories  manual/   and
-  tutorial/.   Most but  not  all example  programs  expect input  and
-  produce output. Sets  of input and output files  are provided in the
-  in/ and out/ subdirectories, respectively.
+  Two sets  of example  and tutorial programs  are provided  under the
+  ${TOPDIR}/examples/   directory,  in   subdirectories   manual/  and
+  tutorial/.   The  vast  majority  of example  programs  write  their
+  results  to  standard output,  and  some  of  them also  read  their
+  standard  input. When  running  the example  programs  via the  test
+  harness, the standard  input of each example is  redirected from the
+  corresponding .in file (if one  exists) in the in/ subdirectory, and
+  the standard output is compared with the corresponding .out file (if
+  it exists) in the out/ subdirectory to make sure the two match.
 
 
   4.6  Build Directory Structure
@@ -303,7 +357,7 @@
   one on the right):
 
       ${BUILDDIR}/GNUmakefile  -> ${TOPDIR}/GNUmakefile
-       |       /makefile.in
+       |       /makefile.in       generated makefile
        |       /makefile.common-> ${TOPDIR}/makefile.common
        |       /makefile.rules -> ${TOPDIR}/makefile.rules
        |       /run            -> ${TOPDIR}/etc/config/runall.sh
@@ -325,9 +379,6 @@
        +- rwtest/GNUmakefile.rwt->${TOPDIR}/etc/config/GNUmakefile.rwt
        |     /*.{a,o,so,...}      binaries and temporary files
        |     /.depend/*.d         dependencies
-       .
-       . ...test suite directories are optional...
-       .
        +- plumhall/GNUmakefile -> ${TOPDIR}/etc/config/GNUmakefile.ph
        |          /*.{d,o,...}    binaries and temporary files
        +- tests/GNUmakefile    -> ${TOPDIR}/etc/config/GNUmakefile.tst
@@ -341,15 +392,11 @@
   To build the library, test  suite (*), and examples (*), perform the
   following steps: (* Where available.)
 
-  o  $ cd stdcxx-X.Y.Z-YYYYMMDD/
+  o  $ cd stdcxx-X.Y.Z/
      $ ls   # this is ${TOPDIR}
-     GNUmakefile  etc  examples  include  src  tests
-
-     If your distribution  does not contain the test  suite and/or the
-     examples, the output will look like so:
-
-     $ ls   # this is ${TOPDIR}
-     GNUmakefile  etc  include  src
+     bin            doc       generate.bat  LICENSE.txt  src
+     ChangeLog      etc       GNUmakefile   NOTICE.txt   tests
+     configure.bat  examples  include       README       util
 
   o  $ gmake BUILDDIR=<build-dir>         \
              [   BUILDTYPE=<build-type>   \
@@ -493,7 +540,7 @@
   To generate a Microsoft VisualStudio solution (for .NET 2003 or 2005
   only) follow the step below.
 
-  o  > CD stdlib-X.Y.Z-YYYYMMDD\stdlib
+  o  > CD stdlib-X.Y.Z\stdlib
      > DIR /D  # this is ${TOPDIR}
      GNUmakefile  etc  examples  configure.bat  include  src  tests
 
@@ -586,32 +633,9 @@
      generated solution file, select the desired solution configuration
      and invoke "Build"->"Build Solution" command.
 
+
   6  Library Installation
   -----------------------
-
-  There  is no  automated  way  of installing  the  library binary  or
-  headers.   To   install,  simply   copy  the  library   binary  from
-  ${BUILDDIR}/lib/  into   the  directory   of   your  choice   (e.g.,
-  /usr/local/lib)  and   copy  the  library   headers  (including  any
-  implementation  .c and  .cc  files) from  ${TOPDIR}/include/ and its
-  subdirectories to  the directory of  your choice. Make sure  to also
-  copy  the  generated ${BUILDDIR}/include/config.h  into  one of  the
-  directories in your preprocessor's search path.
-
-  When  using   locale  databases,  also   copy  the  ${BUILDDIR}/nls/
-  directory to wherever appropriate.
-
-  For example,  to install the library binaries  (including the locale
-  databases)    in    /usr/local/lib/,   and   the    headers    under
-  /usr/local/include/ perform the following steps:
-
-  $ cp ${BUILDDIR}/lib/*.a    \
-       ${BUILDDIR}/lib/*.so   \
-       ${BUILDDIR}/lib/*.so.* \
-       /usr/local/lib
-  $ cp -R ${BUILDDIR}/nls /usr/local/lib
-  $ cp ${BUILDDIR}/include/config.h /usr/local/include
-  $ cp -R ${TOPDIR}/include/* /usr/local/include
 
   When using the  installed library be sure to  define any macros also
   defined on the  command line when building the  library.  These are:
@@ -623,6 +647,67 @@
   to  specify  the  same  compiler  options  that  affect  the  binary
   compatibility  of the  library leads  to undefined  behavior  of the
   produced executables.
+
+
+  6.1  Library Installation on UNIX Systems
+  -----------------------------------------
+
+  To  install  the  library,   including  all  required  headers,  the
+  utilities that  are intended for  distribution, and the full  set of
+  locales, follow the following steps:
+
+  o  $ cd ${BUILDDIR}
+  o  $ gmake install PREFIX=<installation-directory>
+
+  The second  command will build  the library, the utilities,  and the
+  full set of locales,  create the specified installation directory if
+  it doesn't exist yet, and install in it the final product (including
+  library headers).  The structure of the installation directory is as
+  follows:
+
+      ${PREFIX}
+       |
+       +- bin/locale             utility programs
+       |     /localedef
+       +- etc/rwstderr.cat       message catalog
+       +- include/*{,.cc}        library headers
+       |         /config.h       generated configuration header
+       +- lib/libstd*.[a|so]     archive or .so symbolic link
+       |      libstd*.so.4.2.0   versioned shared library
+       +- nls/*/*                codeset and locale databases
+
+  To specify a  subset of locales to install instead  of the full set,
+  define  the LOCALES  make  variable  to the  desired  set of  locale
+  names.  For  example,  to  install  only  the  en_US.ISO-8859-1  and
+  de_DE@UTF-8 locales, enter:
+
+  o  $ cd ${BUILDDIR}
+  o  $ gmake install PREFIX=<installation-directory> \
+             LOCALES="en_US.ISO-8859-1 de_DE@UTF-8"
+
+  To use the  installed library to compile and  link C++ programs, set
+  your  compiler's  preprocessor search  path  (typically  via the  -I
+  command line  option) to point to ${PREFIX}/include,  and the linker
+  search path (typically  via the -L command line  option) to point to
+  ${PREFIX}/lib, and  specify the base name of  the library (typically
+  via  the -l  command line  option).
+
+  For example, to compile a C++ program, t.cpp, in the current working
+  directory with Sun C++ using stdcxx instead of the compiler's native
+  C++  Standard Library,  and link  it with  the stdcxx  library named
+  libstd12d (i.e.,  a narrow  or 32-bit, optimized,  reentrant, shared
+  library), enter:
+
+  o  CC -I${PREFIX}/include -mt -library=%none -c -o t.o t.cpp
+  o  CC -L${PREFIX}/lib -mt -library=%none t.o -lstd12d -o prog
+
+  This will produce ane executable file named prog that depends on the
+  stdcxx shared library libstd12d.so.  To run the executable, set your
+  runtime loader path to  point to ${PREFIX}/lib before invoking prog.
+  This is typically done like so (the name of the envrionment variable
+  may be different depending on the operating system):
+
+  o  LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PREFIX}/lib ./prog
 
 
   7  Test Suite Build Instructions
@@ -693,8 +778,8 @@
   8  Library Configuration
   ------------------------
 
-  8.1  config.h
-  -------------
+  8.1  Heade config.h (and config.log)
+  ------------------------------------
 
   The library  is configured (or reconfigured) for the platform (i.e.,
   the compiler  and operating system) it  is to be  built by executing
@@ -705,7 +790,11 @@
   This  command   generates  a  new   config.h  header  file   in  the
   ${BUILDDIR}/include/  directory (replacing an  existing one  only if
   the new  one differs) containing configuration  macros describing to
-  the library the properties of the platform.
+  the  library the properties  of the  platform. Executing  the config
+  target  writes  the  details  of the  configuration,  including  the
+  executed commands,  into a log  file named config.log. This  file is
+  helpful in detecting configuration problems when porting the library
+  to new environments.
 
 
   8.2  rw/_config.h and rw/_defs.h
@@ -1025,6 +1114,11 @@
   o  _RWSTD_NO_NONTYPE_ARGS
   o  _RWSTD_NO_NONTYPE_ARGUMENT_DEDUCTION
 
+  o  _RWSTD_NO_OBJECT_MANGLING [abi, auto, lib]
+
+     #defined when  the compiler does not  include (mangle) information
+     about the type of namespace-scope objects in their names.
+
   o  _RWSTD_NO_PARTIAL_CLASS_SPEC [abi, auto]
 
      #defined  when partial  specialization of  class  templates isn't
@@ -1237,6 +1331,10 @@
 
   o  _RWSTD_NO_PURE_C_HEADERS
 
+     #defined  to disable  the use  of "pure"  C++ Standard  C library
+     headers.  The  pure  headers   expose  only the  set  of  symbols
+     specified by the C++ and C standards and nothing more.
+
   o  _RWSTD_NO_WCSFTIME_WCHAR_T_FMAT [auto]
 
 
@@ -1251,6 +1349,19 @@
 
      When #defined std::basic_string  objects are reference counted. A
      single per-process mutex object is used for thread safety.
+
+  o  _RWSTD_USE_STRING_ATOMIC_OPS [abi, lib, over]
+
+     When #defined on Linux/x86_64  (AMD64 or EM64T), in wide (64-bit)
+     mode,  std::basic_string   objects  use  atomic   operations  for
+     reference counting  instead of the default mutex.   Using a mutex
+     in basic_string is suboptimal and is only done in this release of
+     the  library  to  maintain  binary  compatibility  with  previous
+     versions.  This macro is  provided to allow users not constrained
+     by  binary  compatibility  to  make  use of  the  more  efficient
+     implementation of strings.  The macro has no effect in the narrow
+     (32-bit)  configuration   on  this  platform  or   on  any  other
+     platforms.
 
 
   8.3.6  Macros Controlling Iostreams
@@ -1750,10 +1861,12 @@
 
     Port not maintained.
 
+
     10.2  Borland C++
     -----------------
 
     Not ported.
+
 
     10.3  Comeau C++
     ----------------
@@ -1761,6 +1874,7 @@
     Ported to Comeau C++ 4.2.42 or later on Solaris.
 
     This release not tested.
+
 
     10.4  Compaq/HP C++
     -------------------
@@ -1775,6 +1889,7 @@
        Shared library contains uresolved references that cause
        linker errors in programs that link with it.
        See http://issues.apache.org/jira/browse/STDCXX-406
+
 
     10.5  EDG eccp
     --------------
@@ -1792,6 +1907,7 @@
        See http://issues.apache.org/jira/browse/STDCXX-414
 
     o  EDG eccp 3.9 on Solaris 9
+
 
     10.6  GNU gcc
     -------------
@@ -1811,6 +1927,7 @@
     o  gcc 3.4.4, Red Hat Enterprise Linux 4, Update 2, IA64
     o  gcc 3.3.3, SuSE Linux Enterprise Server 9.1, AMD64
     o  gcc 3.2.3, Red Hat Enterprise Linux 3, Update 8, EM64T
+
                                    
     10.7 HP aCC
     ------------
@@ -1820,16 +1937,17 @@
 
     This release tested with:
     
-    o  aCC 3.63, HPUX 11.11, PA-RISC
-    o  aCC 3.73, HPUX 11.11, PA-RISC
-    o  aCC 5.57, HPUX 11.23, IPF
-    o  aCC 6.00, HPUX 11.23, IPF
     o  aCC 6.13, HPUX 11.23, IPF
-    o  aCC 3.63, HPUX 11.23, PA-RISC
-    o  aCC 3.73, HPUX 11.23, PA-RISC
-    o  aCC 3.63, HPUX 11.31, PA-RISC
-    o  aCC 3.73, HPUX 11.31, PA-RISC
+    o  aCC 6.05, HPUX 11.23, IPF
+    o  aCC 6.00, HPUX 11.23, IPF
+    o  aCC 5.57, HPUX 11.23, IPF
     o  aCC 3.74, HPUX 11.31, PA-RISC
+    o  aCC 3.73, HPUX 11.31, PA-RISC
+    o  aCC 3.73, HPUX 11.23, PA-RISC
+    o  aCC 3.73, HPUX 11.11, PA-RISC
+    o  aCC 3.63, HPUX 11.31, PA-RISC
+    o  aCC 3.63, HPUX 11.23, PA-RISC
+    o  aCC 3.63, HPUX 11.11, PA-RISC
 
     10.8  IBM VisualAge C++
     -----------------------
@@ -1912,16 +2030,22 @@
 
     Ported to SGI MIPSpro 7.3 through 7.5 for IRIX 6.5.
 
+    This release tested with:
+
+    o  SGI MIPSpro 7.41, IRIX 6.5, MIPS
+
+
     10.14  Siemens CDS++
     --------------------
 
     Port not maintained.
 
+
     10.15  Sun C++
     --------------
 
-    Ported to Sun C++ 5.3 through 5.9 on Solaris and Linux (SPARC and
-    x86_64).
+    Ported to  Sun C++  5.3 through 5.9  on Solaris and  Linux (SPARC,
+    x86, and x86_64).
 
     This release tested with:
 
