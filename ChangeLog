@@ -1,3 +1,87 @@
+2007-10-20  Martin Sebor  <sebor@roguewave.com>
+
+	* ChangeLog: Regenerated.
+
+2007-10-20  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-350
+	* _rawiter.h [__GNUG__ >= 4] (get_temporary_buffer,
+	return_temporary_buffer): Used __attribute__ (__may_alias__) to
+	tell the gcc optimizier about type-punning in a reinterpret_cast()
+	and to silence gcc 4 warning: dereferencing type-punned pointer will
+	break strict-aliasing rules.
+
+2007-10-20  Martin Sebor  <sebor@roguewave.com>
+
+	* 26.valarray.cassign.cpp (run_test): Disabled tests exercising
+	valarray specializations on a user-defined type for 4.2.0 and
+	prior since they are known to fail to compile due to STDCXX-512.
+
+2007-10-20  Martin Sebor  <sebor@roguewave.com>
+
+	* _config.h (_RWSTD_VER): Corrected comments explaining source
+	and binary compatibility rules controlling changes to the library
+	version number.
+
+2007-10-19  Travis Vitek  <vitek@roguewave.com>
+
+	* README (Index): Update section names and numbers.
+	(VisualStudio Directory Structure): Add new section 
+	describing expected directory structure.
+	(VisualStudio Setup Instructions): Remove filename
+	extension from the list of supported configuration
+	options so that the provided names match the names
+	allowed by the configure script.
+
+2007-10-19 Farid Zaripov <farid_zaripov@epam.com>
+
+	* etc/config/windows/configure.wsf (configure): #define
+	_RWSTD_NO_REENTRANT macro in config.h file for single-threaded builds
+	for compatibility with prior versions of stdcxx on Windows (MSVC 7.x),
+	i.e., in order to make 8s and 11s build types non-reentrant even when
+	the compiler itself doesn't have a non-reentrant runtime (MSVC 8 and
+	beyond).
+	* include/rw/_config-msvcrt.h (_RWSTD_REENTRANT): #define macro only if
+	#defined _MT and not #defined _RWSTD_NO_REENTRANT, for single-threaded
+	builds with compilers that don't have a single-threaded CRT (i.e. MSVC
+	8, MSVC 9).
+
+2007-10-19 Farid Zaripov <farid_zaripov@epam.com>
+
+	Merged rev 586502 from branches/4.2.0.
+	* _config-msvcrt.h [_DLL]: Define configuration macros
+	to maintain binary compatibility with 4.1.x on MSVC
+	only for dynamic builds to prevent the multiple
+	definition symbols linker errors.
+
+2007-10-19  Martin Sebor  <sebor@roguewave.com>
+
+	* README (Disclaimer): Added an explanation.
+	(Contents): Expanded to document LICENSE.txt and NOTICE.txt.
+	(Compatibility): Added a new subsection.
+	(Unpacking Intructions): Expanded  to clarify tarball names.
+	(Source Directory Structure): Added documentation of top-level files
+	new in this release and removed the no longer relevant blurb about
+	the fixtree.sh script.
+	(Library Utilities): Briefly documented the new utility programs,
+	exec and gencat.
+	(Test Suite Files): Added a few words about the exec utility.
+	(Examples and Tutorials): Expanded and clarified.
+	(Build Directory Structure): Removed obsolte text about tests being
+	optional.
+	(Library Build Instructions): Updated top-level directory listing.
+	(Library Installation on UNIX Systems): New section documenting
+	the install make target.
+	(Library Installation on Microsoft Windows): Placeholder for future
+	work.
+	(config.h): Documented confih.log.
+	(Compiler Configuration Macros): Documented _RWSTD_NO_OBJECT_MANGLING.
+	(C Library Configuration Macros): Documented _RWSTD_NO_PURE_C_HEADERS.
+	(Macros Controlling Strings): Documented _RWSTD_USE_STRING_ATOMIC_OPS.
+	(HP aCC): Arranged compiler versions from most recent to oldest.
+	(SGI MIPSpro): Added "tested with" versions.
+	(Sun C++): Added x86 to the set of arches.
+
 2007-10-18  Martin Sebor  <sebor@roguewave.com>
 
 	* ChangeLog: Regenerated.
@@ -10793,4 +10877,4 @@ Issue STDCXX-8:
 
 2005-07-19  Martin Sebor  <sebor@roguewave.com>
 
-	Initial import of the Rogue Wave C++ Standard library 4.1.2.
+	* trunk: Initial import of the Rogue Wave C++ Standard library 4.1.2.
