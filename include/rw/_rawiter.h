@@ -36,7 +36,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -135,8 +135,19 @@ get_temporary_buffer (_Distance __nelems, _TypeT*)
 {
     pair<_TypeT*, _Distance> __res (0, 0);
 
+#if __GNUG__ >= 4
+
+    // tell gcc 4 about type-punning in the cast below
+    typedef void* __attribute__ ((__may_alias__)) _VoidPtrT;
+
+#else   // !gcc || gcc < 4
+
+    typedef void* _VoidPtrT;
+
+#endif   // gcc
+
     __res.second =
-        _RW::__rw_tmpbuf (_RWSTD_REINTERPRET_CAST (void**, &__res.first),
+        _RW::__rw_tmpbuf (_RWSTD_REINTERPRET_CAST (_VoidPtrT*, &__res.first),
                           __nelems < 0 ? 0 : __nelems, sizeof (_TypeT));
 
     return __res;
@@ -161,7 +172,18 @@ template <class _TypeT>
 inline void
 return_temporary_buffer (_TypeT *__p)
 {
-    _RW::__rw_tmpbuf (_RWSTD_REINTERPRET_CAST (void**, &__p),
+#if __GNUG__ >= 4
+
+    // tell gcc 4 about type-punning in the cast below
+    typedef void* __attribute__ ((__may_alias__)) _VoidPtrT;
+
+#else   // !gcc || gcc < 4
+
+    typedef void* _VoidPtrT;
+
+#endif   // gcc
+
+    _RW::__rw_tmpbuf (_RWSTD_REINTERPRET_CAST (_VoidPtrT*, &__p),
                       0, sizeof (_TypeT));
 }
 
