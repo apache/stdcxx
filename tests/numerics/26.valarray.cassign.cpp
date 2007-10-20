@@ -801,10 +801,23 @@ run_test (int, char**)
 {
 #undef TEST
 #define TEST(T)   test_op_assign ((const T*)0, #T)
+
     TEST (int);
     TEST (double);
 
+#if 0x04020000 <= _RWSTD_VER
+
+    // test fails to compile with stdcxx 4.2.0 and prior due to
+    // STDCXX-512: http://issues.apache.org/jira/browse/STDCXX-512
+    rw_warn (0, 0, __LINE__,
+             "test of UserClass disabled in stdcxx 4.2.0 and prior "
+             "due to STDCXX-512");
+
+#else   // stdcxx > 4.2.0
+
     TEST (UserClass);
+
+#endif   // stdcxx version
 
     return 0;
 }
