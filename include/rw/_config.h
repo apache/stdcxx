@@ -41,10 +41,10 @@
 //                    | | | |
 //                   MMmmuupp
 //                    | | | |
-//                    | | | +--- pp = patch release number
-//                    | | +----- uu = micro release number
-//                    | +------- mm = minor release number
-//                    +--------- MM = major release number
+//                    | | | +--- pp = patch version number
+//                    | | +----- uu = micro version number
+//                    | +------- mm = minor version number
+//                    +--------- MM = major version number
 
 // library version string (patch number included only if non-zero)
 #define _RWSTD_VER_STR   "4.2.0"
@@ -55,13 +55,22 @@
 #define _RWSTD_VER_MICRO ((_RWSTD_VER >>  8) & 0xff)
 #define _RWSTD_VER_PATCH (_RWSTD_VER & 0xff)
 
-// Two libraries are Source Compatible if they have the same major
-// release number. Libraries whose major release numbers differ may
-// or may not be source compatible.
-// Two libraries are Binary Compatible (symbol-wise and functionally)
-// if they have the same major and minor release numbers. Libraries
-// whose major and minor release numbers differ may or may not be binary
-// compatible.
+// a newer release of stdcxx is backward source and binary compatible
+// with an older release if both releases share the same major version
+// number; stdcxx releases whose major version numbers differ may or
+// may not be source or binary compatible
+
+// two releases of stdcxx are forward (as well as backward) source and
+// binary compatible if both releases share the same major and minor
+// version numbers
+
+// backward compatibility means that a program linked with an older
+// release of a library will not be adversely affected by upgrading
+// to a more recent release of the same library
+
+// forward compatibility means that a program linked with a newer
+// release of a library will not be adversely affected by downgrading
+// to an older release of the same library
 
 /**************************************************************************
  * OVERRIDES FOR CONFIGURATION MACROS                                     *
