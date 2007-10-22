@@ -39,6 +39,8 @@
  * 
  **************************************************************************/
 
+#include <rw/_typetraits.h>   // for __rw_type_traits<>
+
 _RWSTD_NAMESPACE (std) { 
 
 template <class _TypeT, class _Allocator>
@@ -178,12 +180,38 @@ _C_insert_1 (const iterator &__it, const_reference __x)
             // and bump up end()
             _C_push_back (*(_C_end - difference_type (1)));
 
-            // move the remaining elements from the range above one slot
-            // toward the end starting with the last element
-            _STD::copy_backward (__it, end () - 2, __end);
+            if (__rw::__rw_type_traits<value_type>::_C_is_class) {
+                // save the pointer to allow inserting the value from self
+                const value_type* __px = &__x;
 
-            // overwrite the element at the given position
-            *__it = __x;
+                if (&*__it < __px && __px < &*__end) {
+                    // adjust the pointer if the inserting value
+                    // belongs the range (__it; __end)
+                    ++__px;
+                } else if (&*__it == __px) {
+                    // reset the pointer to 0 to avoid
+                    // self assignment __x = __x
+                    __px = 0;
+                }
+
+                // move the remaining elements from the range above one slot
+                // toward the end starting with the last element
+                _STD::copy_backward (__it, end () - 2, __end);
+
+                // overwrite the element at the given position
+                if (__px)
+                    *__it = *__px;
+            } else {
+                // save the copy to allow inserting the value from self
+                const value_type __tmp = __x;
+
+                // move the remaining elements from the range above one slot
+                // toward the end starting with the last element
+                _STD::copy_backward (__it, end () - 2, __end);
+
+                // overwrite the element at the given position
+                *__it = __tmp;
+            }
         }
         else {
             // construct a copy of the value to be inserted
