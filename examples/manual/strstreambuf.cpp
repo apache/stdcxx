@@ -86,5 +86,8 @@ int main ()
     // output the contents of the streambuf object associated with out
     std::cout << out.rdbuf ()->str ();
 
+    // unfreeze the streambuf so it cleans up its allocated memory
+    out.rdbuf ()->freeze (false);
+
     return 0;
 }
