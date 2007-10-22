@@ -1933,7 +1933,10 @@ int _rw_fmtarray (const FmtSpec &spec,
 {
     RW_ASSERT (0 != buf.pbuf);
 
-    if (   0 == array || 0 > _RW::__rw_memattr (array, _RWSTD_SIZE_MAX, -1)
+    const size_t memlen =   _RWSTD_SIZE_MAX == nelems
+                          ? _RWSTD_SIZE_MAX : nelems * sizeof *array;
+    if (   0 == array
+        || 0 > _RW::__rw_memattr (array, memlen, -1)
         || ((size_t)array & (sizeof *array - 1))) {
         // qualify the name of the static function in order to
         // allow it to be found when referenced from a template
@@ -2369,7 +2372,7 @@ _rw_fmtstr (const FmtSpec &spec, Buffer &buf, const char *str, size_t len)
     if (spec.fl_pound)
         return _rw_fmtarray (spec, buf, str, len, A_CHAR | A_ESC);
 
-    if (0 == str || 0 > _RW::__rw_memattr (str, _RWSTD_SIZE_MAX, -1))
+    if (0 == str || 0 > _RW::__rw_memattr (str, len, -1))
         return _rw_fmtbadaddr (spec, buf, str);
 
     if (_RWSTD_SIZE_MAX == len)
@@ -2440,7 +2443,10 @@ _rw_fmtwstr (const FmtSpec &spec, Buffer &buf,
         return _rw_fmtarray (spec, buf, wstr, len, flags);
     }
 
-    if (   0 == wstr || 0 > _RW::__rw_memattr (wstr, _RWSTD_SIZE_MAX, -1)
+    const size_t memlen =   _RWSTD_SIZE_MAX == len
+                          ? _RWSTD_SIZE_MAX : len * sizeof *wstr;
+    if (   0 == wstr
+        || 0 > _RW::__rw_memattr (wstr, memlen, -1)
         || ((size_t)wstr & (sizeof *wstr - 1)))
         return _rw_fmtbadaddr (spec, buf, wstr, sizeof *wstr);
 
