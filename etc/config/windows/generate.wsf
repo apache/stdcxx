@@ -397,13 +397,16 @@ function generateBuildBatch(sourcesDir, buildDir)
         buildBatchFile.WriteLine("set builddir=" + buildDir);
         buildBatchFile.WriteLine("set scriptdir=etc\\config\\windows");
         buildBatchFile.WriteLine("set makelog=makelog.wsf");
-        buildBatchFile.WriteLine("set cfg=");
-        buildBatchFile.WriteLine("set cfgbrief=");
+        buildBatchFile.WriteLine("set cfg=11s Debug Static");
+        buildBatchFile.WriteLine("set cfgbrief=11s");
         buildBatchFile.WriteLine("set devenv=\"" + DEVENV + "\"");
         buildBatchFile.WriteLine("");
         
+        buildBatchFile.WriteLine("if \"%1\"==\"\" goto buildcfg");
+        buildBatchFile.WriteLine("");
+
         buildBatchFile.WriteLine(":cfgloop");
-        buildBatchFile.WriteLine("if \"%1\"==\"\" goto continue");
+        buildBatchFile.WriteLine("set cfg=");
         buildBatchFile.WriteLine("");
         
         for (var i = 0; i < confNames.length; ++i)
@@ -418,14 +421,15 @@ function generateBuildBatch(sourcesDir, buildDir)
             buildBatchFile.WriteLine("");
         }
         
-        buildBatchFile.WriteLine("");
         buildBatchFile.WriteLine("if \"%cfg%\"==\"\" (");
-        buildBatchFile.WriteLine("echo Unknown configuration to build");
+        buildBatchFile.WriteLine("echo Unknown configuration to build: %1");
         buildBatchFile.WriteLine("set ERRORLEVEL=1");
         buildBatchFile.WriteLine("goto nextcfg");
         buildBatchFile.WriteLine(")");
         buildBatchFile.WriteLine("");
 
+        buildBatchFile.WriteLine(":buildcfg");
+        buildBatchFile.WriteLine("echo Building %cfg%...");
         buildBatchFile.WriteLine("cscript /nologo "
             + "\"%topdir%\\%scriptdir%\\build.wsf\""
             + " /BUILDDIR:\"%builddir%\" /TOPDIR:\"%topdir%\""
@@ -438,11 +442,11 @@ function generateBuildBatch(sourcesDir, buildDir)
         
         buildBatchFile.WriteLine(":nextcfg");
         buildBatchFile.WriteLine("shift");
-        buildBatchFile.WriteLine("goto cfgloop");
+        buildBatchFile.WriteLine("if not \"%1\"==\"\" goto cfgloop");
         buildBatchFile.WriteLine("");
         
         buildBatchFile.WriteLine(":continue");
-        buildBatchFile.WriteLine("echo build complete");
+        buildBatchFile.WriteLine("echo Build complete");
         buildBatchFile.WriteLine("");
         
         buildBatchFile.Close();
