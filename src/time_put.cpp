@@ -450,7 +450,11 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
     _RWSTD_SIZE_T bufsize = 2048;
 
-    char *pbuf = new char [sizeof (__rw_time_t) + bufsize];
+    const size_t newsize = bufsize + sizeof (__rw_time_t);
+ 
+    // allocate memory using operator new to avoid mismatch with
+    // facet destructor
+    char *pbuf = _RWSTD_STATIC_CAST (char*, ::operator new (newsize));
 
     __rw_time_t *pun = _RWSTD_REINTERPRET_CAST (__rw_time_t*, pbuf);
 
@@ -602,10 +606,15 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
         if (off + estsize >= bufsize) {
             // reallocate
-            char* const tmp = new char [sizeof *pun + bufsize * 2 + estsize];
+            const size_t tmpsize = sizeof *pun + bufsize * 2 + estsize;
+
+            // reallocate, again using operator new to avoid mismatch
+            // with facet destructor
+            char* const tmp = 
+                _RWSTD_STATIC_CAST(char* const, ::operator new (tmpsize));
             memcpy (tmp, pun, sizeof *pun + off);
 
-            delete[] _RWSTD_REINTERPRET_CAST (char*, pun);
+            ::operator delete (_RWSTD_REINTERPRET_CAST (char*, pun));
 
             pun      = _RWSTD_REINTERPRET_CAST (__rw_time_t*, tmp);
             pmem     = _RWSTD_REINTERPRET_CAST (_RWSTD_UINT32_T*, pun);
