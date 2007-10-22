@@ -2009,7 +2009,7 @@ int _rw_fmtarray (const FmtSpec &spec,
 
     for (const elemT *pelem = last + 1; ; ++pelem) {
 
-        if (*pelem == *last && size_t (pelem - array) < nelems) {
+        if (size_t (pelem - array) < nelems && *pelem == *last) {
             // if the last processed element repeats, continue
             // until a different element is encountered
             continue;
