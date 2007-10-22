@@ -335,8 +335,11 @@ NOTE -- This is a deprecated feature and might not be available in future versio
 //
  
 #include &lt;iomanip&gt;     // for setw
-#include &lt;iostream&gt;    // for cerr, cout, endl
+#include &lt;ios&gt;         // for dec, ends
+#include &lt;iostream&gt;    // for cerr, cout
 #include &lt;strstream&gt;   // for istream, ostrstream
+
+#include &lt;examples.h&gt;
 
 
 int main ()
@@ -348,21 +351,19 @@ int main ()
     std::istream in (out.rdbuf ());   
 
     // output to out
-    out &lt;&lt; "Anticonstitutionellement is a big word!!!\n";
+    out &lt;&lt; "Anticonstitutionnellement is a big word!!!\n";
 
     // create a NTBS 
     const char s[] ="Le rat des villes et le rat des champs.";
 
     // output the NTBS
-    out &lt;&lt; s &lt;&lt; std::endl;   
+    out &lt;&lt; s &lt;&lt; '\n';
 
     // (try to) resize the buffer
-    if (out.rdbuf ()-&gt;pubsetbuf (0, 5000))
-        std::cout &lt;&lt; "Successfully allocated buffer." 
-                  &lt;&lt; std::endl;
+    if (out.rdbuf ()-&gt;pubsetbuf (0, 128L))
+        std::cout &lt;&lt; "Successfully allocated buffer.\n";
     else
-        std::cerr &lt;&lt; "Failed to allocate buffer." 
-                  &lt;&lt; std::endl;
+        std::cerr &lt;&lt; "Failed to allocate buffer.\n";
 
     // output the contents of the buffer to standard output
     std::cout &lt;&lt; in.rdbuf ();
@@ -371,27 +372,30 @@ int main ()
     out &lt;&lt; std::dec              // decimal base
         &lt;&lt; std::setfill ('#')    // set fill character
         &lt;&lt; std::setw (16)        // set field width
-        &lt;&lt; 0x100 &lt;&lt; std::endl;   // format
+        &lt;&lt; 0x100 &lt;&lt; '\n';        // format
   
-    // output the content of the input sequence to 
-    // standard output
-    std::cout &lt;&lt; in.rdbuf( ) &lt;&lt; std::endl;
+    // output the content of the input sequence to standard output
+    std::cout &lt;&lt; in.rdbuf( ) &lt;&lt; '\n';
 
     // number of elements in the output sequence
-    std::cout &lt;&lt; "Buffer size is " &lt;&lt; out.rdbuf ()-&gt;pcount ()
-              &lt;&lt; std::endl;
+    const std::streamsize pcount = std::streamsize (out.rdbuf ()-&gt;pcount ());
 
-    // (try to) resize the buffer to a minimum size
-    if (out.rdbuf()-&gt;pubsetbuf (0,out.rdbuf()-&gt;pcount() + 1))
-        std::cout &lt;&lt; std::endl 
-                  &lt;&lt; "Successfully resized buffer." 
-                  &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Buffer size is " &lt;&lt; pcount &lt;&lt; '\n';
+
+    // (try to) resize the buffer
+    if (out.rdbuf ()-&gt;pubsetbuf (0, pcount * 2L))
+        std::cout &lt;&lt; "\nSuccessfully resized buffer to " &lt;&lt; pcount * 2 &lt;&lt; '\n';
     else
-        std::cerr &lt;&lt; "Failed to resize buffer." &lt;&lt; std::endl;
+        std::cerr &lt;&lt; "\nFailed to resize buffer to " &lt;&lt; pcount * 2 &lt;&lt; '\n';
 
-    // output the contents of the streambuf object 
-    // associated with out
+    // NUL-terminate the character array before streaming it out
+    out &lt;&lt; std::ends;
+
+    // output the contents of the streambuf object associated with out
     std::cout &lt;&lt; out.rdbuf ()-&gt;str ();
+
+    // unfreeze the streambuf so it cleans up its allocated memory
+    out.rdbuf ()-&gt;freeze (false);
 
     return 0;
 }
@@ -402,6 +406,14 @@ Program Output:
 <UL><PRE>Successfully allocated buffer.
 Anticonstitutionnellement is a big word!!!
 Le rat des villes et le rat des champs.
+#############256
+
+Buffer size is 100
+
+Successfully resized buffer to 200
+Anticonstitutionnellement is a big word!!!
+Le rat des villes et le rat des champs.
+#############256
 </PRE></UL>
 <A NAME="sec11"><H3>See Also</H3></A>
 <P><B><I><A HREF="char-traits.html">char_traits</A></I></B>, <B><I><A HREF="ios-base.html">ios_base</A></I></B>, <B><I><A HREF="basic-ios.html">basic_ios</A></I></B>, <B><I><A HREF="basic-streambuf.html">basic_streambuf</A></I></B>, <B><I><A HREF="istrstream.html">istrstream</A></I></B>, <B><I><A HREF="ostrstream.html">ostrstream</A></I></B>, <B><I><A HREF="strstream.html">strstream</A></I></B></P>
