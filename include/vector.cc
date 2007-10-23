@@ -268,6 +268,8 @@ _C_insert_n (const iterator &__it, size_type __n, const_reference __x)
 
     _RWSTD_ASSERT (_C_make_iter (__movbeg) == __it);
 
+    _C_value_alloc_type __alloc = _RWSTD_VALUE_ALLOC_CAST (*this);
+
     if (__movend <= _C_end) {
 
         // the end of the range of existing elements after being
@@ -281,7 +283,7 @@ _C_insert_n (const iterator &__it, size_type __n, const_reference __x)
 
         // construct copies of elements that will be moved beyond
         // the current end of the sequence controlled by *this
-        _STD::uninitialized_copy (__ucpbeg, _C_end, _C_end);
+        _STD::uninitialized_copy (__ucpbeg, _C_end, _C_end, __alloc);
 
         // advance end to maintain consistent state
         _C_end += __n;
@@ -298,7 +300,7 @@ _C_insert_n (const iterator &__it, size_type __n, const_reference __x)
         const size_type __n1 = size () - __size1;
         const size_type __n2 = __n - __n1;
 
-        _STD::uninitialized_fill_n (_C_end, __n2, __x);
+        _STD::uninitialized_fill_n (_C_end, __n2, __x, __alloc);
 
         const pointer __end = _C_end;
 
@@ -306,7 +308,7 @@ _C_insert_n (const iterator &__it, size_type __n, const_reference __x)
 
         // construct copies of the range of elements [pos, end)
         // past the end of the range of elements inserted above
-        _STD::uninitialized_copy (__movbeg, __end, _C_end);
+        _STD::uninitialized_copy (__movbeg, __end, _C_end, __alloc);
 
         _C_end += __end - __movbeg;
 
