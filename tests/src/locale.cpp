@@ -339,22 +339,24 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
     static char deflocname [3] = "C\0";
     static char* slocname = 0;
 
+    static const size_t grow_size = 5120;
     static size_t size       = 0;         // the number of elements in the array
-    static size_t total_size = 5120;      // the size of the array
+    static size_t total_size = grow_size; // the size of the array
     static int    last_cat   = loc_cat;   // last category
+
+#ifndef _MSC_VER
+#  define _QUIET_MALLOC(n)  malloc(n)
+#  define _QUIET_FREE(p)    free(p)
+#else
+    // prevent allocation from causing failures in tests that
+    // keep track of storage allocated in _NORMAL_BLOCKS
+#  define _QUIET_MALLOC(n) _malloc_dbg (n, _CLIENT_BLOCK, 0, 0)
+#  define _QUIET_FREE(p)   _free_dbg (p, _CLIENT_BLOCK);
+#endif
 
     // allocate first time through
     if (!slocname) {
-
-#ifndef _MSC_VER
-        slocname = _RWSTD_STATIC_CAST (char*, malloc (5120));
-#else
-        // prevent this leaked allocation from causing failures
-        // in tests that keep track of storage allocated in
-        //  _NORMAL_BLOCKS
-        slocname = _RWSTD_STATIC_CAST (char*,
-                       _malloc_dbg (5120, _CLIENT_BLOCK, 0, 0));
-#endif
+        slocname = _RWSTD_STATIC_CAST (char*, _QUIET_MALLOC (total_size));
         *slocname = '\0';
     }
 
@@ -412,7 +414,10 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
         // put the C locale at the front
         if (prepend_c_loc) {
             strcpy (locname, deflocname);
-            locname += strlen (deflocname) + 1; 
+
+            const size_t defnamelen = strlen (deflocname) + 1;
+            locname += defnamelen; 
+            size    += defnamelen;
         }
 
         // if successful, construct a char array with the locales
@@ -441,29 +446,26 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
 #endif   // _RWSTD_OS_SUNOS
 
             // if our buffer is full then dynamically allocate a new one
-            if (total_size < (size += (strlen (linebuf) + 1))) {
-                total_size += 5120;
+            size += linelen;
+            if (total_size < size) {
+                total_size += grow_size;
 
                 char* tmp =
-                    _RWSTD_STATIC_CAST (char*, malloc (total_size));
+                    _RWSTD_STATIC_CAST (char*, _QUIET_MALLOC (total_size));
 
-                memcpy (tmp, slocname, total_size - 5120);
+                memcpy (tmp, slocname, total_size - grow_size);
 
-#ifndef _MSC_VER
-                free (slocname);
-#else
-                _free_dbg (slocname, _CLIENT_BLOCK);
-#endif
+                _QUIET_FREE (slocname);
 
                 slocname = tmp;
-                locname  = slocname + size - strlen (linebuf) - 1;
+                locname  = slocname + size - linelen;
             }
 
 #ifdef _WIN64
 
             // prevent a hang (OS/libc bug?)
             strcpy (locname, linebuf);
-            locname += strlen (linebuf) + 1;
+            locname += linelen;
 
 #else   // if !defined (_WIN64)
             if (loc_cat != _UNUSED_CAT) {
@@ -475,7 +477,7 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
                 // from the last one, append it to the list
                 if (name && strcmp (last_name, name)) {
                     strcpy (locname, linebuf);
-                    locname += strlen (linebuf) + 1;
+                    locname += linelen;
 
                     // save the last locale name
                     assert (strlen (name) < sizeof last_name);
@@ -484,7 +486,7 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
             }
             else {
                 strcpy (locname, linebuf);
-                locname += strlen (linebuf) + 1;
+                locname += linelen;
             }
 
 #endif   // _WIN64
