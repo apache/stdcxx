@@ -138,10 +138,10 @@ extern "C" void* thr_func (void *arg)
 
 #endif   // _RWSTD_INT64_T
 
-    std::pair<_RWSTD_INT8_T*,  std::ptrdiff_t> buf0 (0, 0);
-    std::pair<_RWSTD_INT16_T*, std::ptrdiff_t> buf1 (0, 0);
-    std::pair<_RWSTD_INT32_T*, std::ptrdiff_t> buf2 (0, 0);
-    std::pair<Type64*,         std::ptrdiff_t> buf3 (0, 0);
+    std::pair<_RWSTD_INT8_T*,  std::ptrdiff_t> buf0;
+    std::pair<_RWSTD_INT16_T*, std::ptrdiff_t> buf1;
+    std::pair<_RWSTD_INT32_T*, std::ptrdiff_t> buf2;
+    std::pair<Type64*,         std::ptrdiff_t> buf3;
 
     for (unsigned i = 0; i != rw_opt_nloops; ++i) {
 
