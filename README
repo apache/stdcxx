@@ -197,7 +197,6 @@
        |  +- config/GNUmakefile.*     makefiles
        |  |  |     /*.config          compiler config files
        |  |  |     /makefile.*        common definitions and rules
-       |  |  |     /runall.sh         testsuite run script
        |  |  +- src/                  configuration sources and
        |  |  |                        scripts
        |  |  +- windows/generate.wsf  solution generation script
@@ -360,12 +359,13 @@
        |       /makefile.in       generated makefile
        |       /makefile.common-> ${TOPDIR}/makefile.common
        |       /makefile.rules -> ${TOPDIR}/makefile.rules
-       |       /run            -> ${TOPDIR}/etc/config/runall.sh
        +- bin/GNUmakefile      -> ${TOPDIR}/etc/config/GNUmakefile.bin
        |     /*.{o,...}           binaries and temporary files
        |     /.depend/*.d         dependencies
+       |     /run              -> ${BUILDDIR}/bin/exec
+       |     /run_utils        -> ${TOPDIR}/etc/config/run_locale_utils.sh
        +- examples/GNUmakefile -> ${TOPDIR}/etc/config/GNUmakefile.exm
-       |          /run         -> ${TOPDIR}/etc/config/runall.sh
+       |          /run         -> ${BUILDDIR}/bin/exec
        |          /*.{o,...}      binaries and temporary files
        |          /.depend/*.d    dependencies
        +- include/GNUmakefile  -> ${TOPDIR}/etc/config/GNUmakefile.cfg
@@ -384,6 +384,7 @@
        +- tests/GNUmakefile    -> ${TOPDIR}/etc/config/GNUmakefile.tst
                /*.{o,...}         binaries and temporary files
                /.depend/*.d       dependencies
+               /*/run          -> ${BUILDDIR}/bin/exec
 
 
   4.6.1  VisualStudio Directory Structure
@@ -430,7 +431,7 @@
      ChangeLog      etc       GNUmakefile   NOTICE.txt   tests
      configure.bat  examples  include       README       util
 
-  o  $ gmake BUILDDIR=<build-dir>         \
+  o  $ gmake [ BUILDDIR=<build-dir> ]     \
              [   BUILDTYPE=<build-type>   \
                | BUILDMODE=<build-mode> ] \
              [ CONFIG=<config-file> ]
@@ -438,7 +439,10 @@
      <build-dir> is the pathname of the build directory where you want
                  to perform the build; the directory will be created
                  (as will all its required subdirectories)
-                 this is a required argument
+
+                 Setting the  BUILDDIR variable is  optional. When not
+                 specified   the   effect    is   the   same   as   if
+                 BUILLDDIR=${TOPDIR}/build had been specified instead.
 
      <build-type> is one of {
                       8s, 8d, 11s, 11d, 12s, 12d, 15s, 15d,
@@ -465,13 +469,15 @@
                   --  lowercase letter implies narrow (32-bit) code
                   --  capital letter implies wide (64-bit) code
 
-                  The  <build-type>  argument  is optional.  When  not
-                  specified a build type of 11s is assumed.
+                  Setting  the  BUILDTYPE  variable is  optional.  The
+                  variable  must  not  be  defined when  BUILDMODE  is
+                  defined.
 
     <build-mode> is a comma-separated list of keywords describing how
                  to build the library and the rest of the
                  binaries. The following arguments are recognized:
 
+                 archive - create an archive library (this is default)
                  dcethreads - create a thread-safe library, use DCE
                               threads
                  debug - include debugging information
@@ -482,9 +488,19 @@
                  shared,archive - create an AIX shared archive
                  threads - create a thread-safe library, use Solaris
                            threads
+                 narrow - generate narrow (32-bit) code
                  wide - generate wide (64-bit) code
 
-    Note that exactly one of BUILDTYPE and BUILDMODE must be defined.
+                 Setting  the  BUILDMODE  variable is  optional.   The
+                 variable  must  not  be  defined  when  BUILDTYPE  is
+                 defined.
+
+    Note  that  at  most  one  of  BUILDTYPE  and  BUILDMODE  must  be
+    defined. When neither is specified, the effect is that of creating
+    a  default configuration for  the platform.  This is  typically an
+    archive  library  of  the  native  word-width  (narrow  on  32-bit
+    platforms  and  wide  on  64-bit  platforms),  with  no  debugging
+    information, no optimization, and no thread safety.
                    
     <config-file> name (not pathname) of a config file containing
                   compiler options; the available configuration files
@@ -603,11 +619,14 @@
                 msvc-8.0        - for Microsoft Visual C++ .NET 2005
                 msvc-8.0-x64    - for Microsoft Visual C++ .NET 2005
                                   (x64 platform)
+                msvc-9.0        - for Microsoft Visual C++ .NET 2008
+                msvc-8.0-x64    - for Microsoft Visual C++ .NET 2008
+                                  (x64 platform)
                 msvcex-8.0      - for Microsoft Visual C++ Express
                                   2005
 
-                The  <config>  argument  is optional.  When  not
-                specified, the suitable config file will be selected
+                The   <config>  argument   is   optional.   When   not
+                specified, the  suitable config file  will be selected
                 automatically.
 
   o  Example:
@@ -745,11 +764,13 @@
   7  Test Suite Build Instructions
   --------------------------------
 
-  When  available,  the test  suite  can  be  built by  following  the
-  following steps.
+  The test suite  along with the supplied set  of example programs and
+  locales can be built and  run or verified by executing the following
+  commands at the shell prompt:
 
   o  $ cd ${BUILDDIR}
      $ gmake [ rwtest ][ tests ] [ examples ]
+     $ gmake runall
 
      The rwtest library is a prerequisite for the test programs (gmake
      rwtest).
@@ -762,27 +783,17 @@
      ${BUILDDIR} by typing gmake tests or gmake examples.
 
      The  library  sources  and  headers  are expected  to  reside  in
-     ${TOPDIR}/src/ and  ${TOPDIR}/include/, respectively, tests(*) in
-     ${TOPDIR}/tests/ and  examples(*) in ${TOPDIR}/examples/.  The .d
-     (dependencies) , .o (object) files and the executables are placed
-     in the respective subdirectories of ${BUILDDIR}.
+     ${TOPDIR}/src/ and  ${TOPDIR}/include/, respectively, tests in
+     ${TOPDIR}/tests/ and examples  in ${TOPDIR}/examples/.  The .d
+     (dependencies) files are placed in the .depend/ subdirectory, and
+     .o  (object)  files  and   the  executables  are  placed  in  the
+     respective subdirectories of ${BUILDDIR}.
 
-     * Where available. 
-
-     To run the tests(*) or examples(*), cd into ${BUILDDIR}/tests/ or
-     ${BUILDDIR}/examples/,  respectively, and  type  gmake run.   For
-     best results you should be using  bash and an xterm. To make sure
-     that you use  bash either set your SHELL  environment variable or
-     set  the SHELL  makefile  variable  on the  command  line to  the
-     pathname of bash on your system.
-
-     By default, the  output of gmake run is  formatted and colorized.
-     If your  terminal cannot deal  with the escape sequences  used to
-     produce colors you can make it monochrome by setting your RUNOPTS
-     make    variable   to    -m    on   the    command   line    (see
-     ${TOPDIR}/etc/config/runall.sh for other options).
-
-     * Where available. 
+     To run  all examples and  compare their output with  the expected
+     master output, all tests, and  build and verify all locales, type
+     gmake run  while in  ${BUILDDIR}.  To run  the tests  or examples
+     individually,       cd      into       ${BUILDDIR}/tests/      or
+     ${BUILDDIR}/examples/, respectively, and type gmake run.
 
 
   7.1  VisualStudio Test Suite Build Instructions
