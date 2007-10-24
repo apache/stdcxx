@@ -441,9 +441,7 @@ test_throw_proc (int id, char *s)
                "throw_proc expected %d, got %d (\"%s\")",
                expect_throw_proc, id, s);
 
-    // do not delete[] s if returning to the lib
-    // must delete only if rethrowing or jumping from here
-    _RWSTD_UNUSED (s);
+    _RW::__rw_free_what_buf (s);
 
     // signal that we were successfully called and with what value
     expect_throw_proc = -id;
