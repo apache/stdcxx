@@ -40,6 +40,14 @@
 #  include <windows.h>    // for GetSystemInfo()
 #endif   // _WIN32
 
+#ifndef _RWSTD_NO_PURE_C_HEADERS
+
+extern "C" {
+FILE* popen (const char*, const char*);
+}   // extern "C"
+
+#endif   // _RWSTD_NO_PURE_C_HEADERS
+
 /**************************************************************************/
 
 static long maxthreads;
