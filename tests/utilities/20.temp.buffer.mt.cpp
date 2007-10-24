@@ -117,6 +117,7 @@ test_return_buffer (thr_args *args, std::pair<T*, std::ptrdiff_t> &buf)
     assert (len == buf.second * sizeof (T));
 
     std::return_temporary_buffer<T>(buf.first);
+    buf.first = 0;
 }
 
 /**************************************************************************/
@@ -137,10 +138,10 @@ extern "C" void* thr_func (void *arg)
 
 #endif   // _RWSTD_INT64_T
 
-    std::pair<_RWSTD_INT8_T*,  std::ptrdiff_t> buf0;
-    std::pair<_RWSTD_INT16_T*, std::ptrdiff_t> buf1;
-    std::pair<_RWSTD_INT32_T*, std::ptrdiff_t> buf2;
-    std::pair<Type64*,         std::ptrdiff_t> buf3;
+    std::pair<_RWSTD_INT8_T*,  std::ptrdiff_t> buf0 (0, 0);
+    std::pair<_RWSTD_INT16_T*, std::ptrdiff_t> buf1 (0, 0);
+    std::pair<_RWSTD_INT32_T*, std::ptrdiff_t> buf2 (0, 0);
+    std::pair<Type64*,         std::ptrdiff_t> buf3 (0, 0);
 
     for (unsigned i = 0; i != rw_opt_nloops; ++i) {
 
@@ -181,6 +182,12 @@ extern "C" void* thr_func (void *arg)
             break;
         }
     }
+
+    // free any buffers that remain allocated
+    if (buf0.first) test_return_buffer (targs, buf0);
+    if (buf1.first) test_return_buffer (targs, buf1);
+    if (buf2.first) test_return_buffer (targs, buf2);
+    if (buf3.first) test_return_buffer (targs, buf3);
 
     return 0;
 }
