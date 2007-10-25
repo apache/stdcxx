@@ -411,6 +411,23 @@ function projectCreateVCProject(engine, report)
 
         var allMacros = prjMacros.concat(cfgMacros);
 
+        var OutFile = this.OutFile != null ?
+            ReplaceMacros(this.OutFile, allMacros) :
+            "$(OutDir)\\" + PrjName + ext;
+
+        var IngoreLibs = "";
+        if (confInfo.dll)
+        {
+            IngoreLibs = confInfo.debug ? "msvcprtd.lib" : "msvcprt.lib";
+        }
+        else
+        {
+            if (confInfo.mt || NOSTCRT)
+                IngoreLibs = confInfo.debug ? "libcpmtd.lib" : "libcpmt.lib";
+            else
+                IngoreLibs = confInfo.debug ? "libcpd.lib" : "libcp.lib";
+        }
+
         var compiler = conf.Tools.Item("VCCLCompilerTool");
         if (null != compiler)
         {
@@ -423,6 +440,7 @@ function projectCreateVCProject(engine, report)
             if (null != this.PrepOpts)
                 compiler.GeneratePreprocessedFile = this.PrepOpts;
             compiler.DebugInformationFormat = debugEnabled;
+            compiler.ProgramDataBaseFileName = changeFileExt(OutFile, "pdb");
             compiler.SuppressStartupBanner = true;
             compiler.WarningLevel = warningLevel_3;
             setProperty(compiler.Detect64BitPortabilityProblems, false);
@@ -486,28 +504,17 @@ function projectCreateVCProject(engine, report)
             linker.AdditionalOptions = LDFLAGS + " " +
                 (null != this.LnkOpts ? this.LnkOpts : "");
 
-            linker.LinkIncremental = linkIncrementalNo;
-            linker.SuppressStartupBanner = true;
-            linker.GenerateDebugInformation = true;
             if (null != this.Libs)
                 linker.AdditionalDependencies = this.Libs;
 
-            if (confInfo.dll)
-            {
-                linker.IgnoreDefaultLibraryNames =
-                    confInfo.debug ? "msvcprtd.lib" : "msvcprt.lib";
-            }
-            else
-            {
-                if (confInfo.mt || NOSTCRT)
-                    linker.IgnoreDefaultLibraryNames =
-                        confInfo.debug ? "libcpmtd.lib" : "libcpmt.lib";
-                else
-                    linker.IgnoreDefaultLibraryNames =
-                        confInfo.debug ? "libcpd.lib" : "libcp.lib";
-            }
-
+            linker.LinkIncremental = linkIncrementalNo;
+            linker.SuppressStartupBanner = true;
+            linker.GenerateDebugInformation = true;
+            // use the compiler's .pdb
+            linker.ProgramDatabaseFile = "";
+            linker.IgnoreDefaultLibraryNames = IngoreLibs;
             linker.SubSystem = this.SubSystem;
+
             if (confInfo.debug)
             {
                 linker.OptimizeReferences = optReferencesDefault;
@@ -519,12 +526,7 @@ function projectCreateVCProject(engine, report)
                 linker.EnableCOMDATFolding = optFolding;
             }
 
-            if (this.OutFile != null)
-                linker.OutputFile = ReplaceMacros(this.OutFile, allMacros);
-            else
-                linker.OutputFile = "$(OutDir)\\" + PrjName + ext;
-
-            linker.ProgramDatabaseFile = changeFileExt(linker.OutputFile, "pdb");
+            linker.OutputFile = OutFile;
 
             if (this.Type != typeApplication)
                 linker.ImportLibrary = changeFileExt(linker.OutputFile, "lib");
@@ -537,10 +539,8 @@ function projectCreateVCProject(engine, report)
                 linker.AdditionalOptions = this.LibOpts;
                 
             librarian.SuppressStartupBanner = true;
-            if (this.OutFile != null)
-                librarian.OutputFile = ReplaceMacros(this.OutFile, allMacros);
-            else
-                librarian.OutputFile = "$(OutDir)\\" + PrjName + ".lib";
+            librarian.IgnoreDefaultLibraryNames = IngoreLibs;
+            librarian.OutputFile = OutFile;
         }
 
         if (null != this.PreLinkCmd)
