@@ -48,8 +48,7 @@ _RWSTD_NAMESPACE (std) {
 
 
 #if    (   defined (_RWSTD_NO_MEMBER_TEMPLATES)   \
-        || defined (_RWSTD_NO_EXTERN_MEMBER_TEMPLATE)) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300 || defined (__INTEL_COMPILER))
+        || defined (_RWSTD_NO_EXTERN_MEMBER_TEMPLATE))
 #  define _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 #endif   // _RWSTD_NO_STRING_MEMBER_TEMPLATES
 

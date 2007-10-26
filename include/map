@@ -123,30 +123,12 @@ public:
          const allocator_type &__alloc = allocator_type ()) 
         : _C_rep (__cmp, __alloc) { }
 
-
-#if !defined (_MSC_VER) || _MSC_VER >= 1300
-
     // 23.3.1.1, p3
     template <class _InputIter>
     map (_InputIter __first, _InputIter __last, 
          const _Compare& __cmp = _Compare (),
          const _Allocator& __alloc = _Allocator ())
       : _C_rep (__first, __last, __cmp, __alloc, false) { }
-
-#else   // if _MSC_VER < 1300
-
-    map (const value_type* __first, const value_type* __last, 
-         const key_compare &__cmp = key_compare (),
-         const allocator_type &__alloc = allocator_type ())
-      : _C_rep (__first, __last, __cmp, __alloc, false) { }
-
-    map (const_iterator __first, const_iterator __last, 
-         const key_compare &__cmp = key_compare (),
-         const allocator_type &__alloc = allocator_type ())
-      : _C_rep (__first, __last, __cmp, __alloc, false) { }
-
-#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
-
 
     map (const map &__rhs): _C_rep (__rhs._C_rep) { /* empty */ }
 
@@ -216,25 +198,10 @@ public:
         return _C_rep.insert (__it, __x, false);
     }
 
-#if !defined (_MSC_VER) || _MSC_VER >= 1300
-
     template<class _InputIter>
     void insert (_InputIter __first, _InputIter __last) {
         _C_rep.insert (__first, __last, false);
     }
-
-#else   // if _MSC_VER < 1300
-
-    void insert (const value_type* __first, const value_type* __last) {
-        _C_rep.insert (__first, __last, false);
-    }
-
-    void insert (const_iterator __first, const_iterator __last) {
-        _C_rep.insert (__first, __last, false);
-    }
-
-#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
-
 
     void erase (iterator __it) {
         _C_rep.erase (__it);
@@ -362,28 +329,11 @@ public:
               const allocator_type &__alloc = allocator_type ())
       : _C_rep (__cmp, __alloc) { }
 
-#if !defined (_MSC_VER) || _MSC_VER >= 1300
-
     template<class _InputIter>
     multimap (_InputIter __first, _InputIter __last, 
               const _Compare& __cmp = _Compare (),
               const _Allocator& __alloc = _Allocator ()) 
       : _C_rep (__first, __last, __cmp, __alloc, true) { }
-
-#else   // if _MSC_VER < 1300
-
-    multimap (const value_type* __first, const value_type* __last, 
-              const key_compare &__cmp = key_compare (),
-              const allocator_type &__alloc = allocator_type ())
-      : _C_rep (__first, __last, __cmp, __alloc, true) { }
-
-    multimap (const_iterator __first, const_iterator __last,
-              const key_compare &__cmp = key_compare (),
-              const allocator_type &__alloc = allocator_type ())
-      : _C_rep (__first, __last, __cmp, __alloc, true) { }
-
-#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
-
 
     multimap (const multimap &__rhs)
         : _C_rep (__rhs._C_rep) { }
@@ -448,25 +398,10 @@ public:
         return _C_rep.insert (__it, __x, true);
     }
 
-#if !defined (_MSC_VER) || _MSC_VER >= 1300
-
     template<class _InputIter>
     void insert (_InputIter __first, _InputIter __last) {
         _C_rep.insert (__first, __last, true);
     }
-
-#else  // if _MSC_VER < 1300
-
-    void insert (const value_type* __first, const value_type* __last) {
-        _C_rep.insert (__first, __last, true);
-    }
-
-    void insert (const_iterator __first, const_iterator __last) {
-        _C_rep.insert (__first, __last, true);
-    }
-
-#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
-
 
     void erase (iterator __it) {
         _C_rep.erase (__it);

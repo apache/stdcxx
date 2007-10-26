@@ -108,14 +108,14 @@ set_unexpected (_STD::unexpected_handler) _THROWS (());
 
 void unexpected ()  _RWSTD_GNUC_ATTRIBUTE ((__noreturn__));
 
-#if 1300 <= _MSC_VER
+#ifdef _MSC_VER
    // MSVC 7 and 8 reliably define __uncaught_exception
    // uncaught_exception() only seems to be defined by some compiler
    // magic that requires the compiler's native C++ Standard library
    // headers
 #  undef _RWSTD_NO_GLOBAL_UNCAUGHT_EXCEPTION
 #  define UNCAUGHT_EXCEPTION   __uncaught_exception
-#endif   // MSVC >= 7.0
+#endif   // MSVC
 
 #ifndef UNCAUGHT_EXCEPTION
 #  define UNCAUGHT_EXCEPTION   uncaught_exception

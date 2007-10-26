@@ -152,14 +152,10 @@ public:
     __rw_tree_iter (const _C_iterator &__rhs)
         : _C_node (__rhs._C_node) { }
 
-#if !defined (_MSC_VER) || _MSC_VER >= 1300
-
     template <class _Ptr, class _Ref>
     __rw_tree_iter (const __rw_tree_iter<_TypeT, _DiffT, _Ptr, _Ref, _Node>&
                     __rhs)
         : _C_node (__rhs._C_node) { }
-
-#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     __rw_tree_iter (_C_link_t __lnk)
         : _C_node (__lnk) {}        
@@ -472,8 +468,6 @@ public:
     __rb_tree (const key_compare& = key_compare (),
                const allocator_type& = allocator_type ());
 
-#if !defined (_MSC_VER) || _MSC_VER >= 1300
-
     template<class _InputIter>
     __rb_tree (_InputIter __first, _InputIter __last,
                const key_compare &__cmp,
@@ -492,46 +486,6 @@ public:
             _RETHROW;
         }
     }
-
-#else   // if _MSC_VER < 1300
-
-    __rb_tree (const value_type* __first, const value_type* __last, 
-               const key_compare& __cmp,
-               const allocator_type& __alloc, bool __dup)
-        : allocator_type (__alloc), _C_buf_list (0),
-          _C_end (0), _C_size (0), 
-          _C_cmp (__cmp) { 
-
-        _C_init (); 
-
-        _TRY {
-            insert (__first, __last, __dup);
-        }
-        _CATCH (...) {
-            _C_deallocate_buffers ();
-            _RETHROW;
-        }
-    }
-
-    __rb_tree (const_iterator __first, const_iterator __last, 
-               const key_compare &__cmp,
-               const allocator_type& __alloc, bool __dup)
-        : allocator_type (__alloc), _C_buf_list (0),
-          _C_end (0), _C_size (0), 
-          _C_cmp (__cmp) {
-
-        _C_init ();
-
-        _TRY {
-            insert (__first, __last, __dup);
-        }
-        _CATCH (...) {
-            _C_deallocate_buffers ();
-            _RETHROW;
-        }
-    }
-   
-#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     __rb_tree (const __rb_tree&);
 
@@ -618,21 +572,11 @@ public:
 
     iterator insert (iterator, const value_type&, bool);
 
-#if !defined (_MSC_VER) || _MSC_VER >= 1300
-
     template<class _Iterator>
     void insert (_Iterator __first, _Iterator __last, bool __dup) {
         for (; __first != __last; ++__first)
             insert (*__first, __dup);
     }
-
-
-#else   // if _MSC_VER < 1300
-
-    void insert (const_iterator, const_iterator, bool);
-    void insert (const value_type*, const value_type*, bool);
-
-#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     iterator erase (iterator);
 
@@ -864,27 +808,6 @@ _C_rotate (_C_link_t __lnk, bool __right)
 
 #endif   // _RWSTD_NO_OPTIMIZE_SPEED
 
-
-#if defined (_MSC_VER) && _MSC_VER < 1300
-
-template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-inline void __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
-insert (const_iterator __first, const_iterator __last, bool __dup)
-{
-    for (; __first != __last; ++__first)
-        insert (*__first, __dup);
-}
-
-template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-inline void __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
-insert (const _Val* __first, const _Val* __last, bool __dup)
-{
-    for (; __first != __last; ++__first)
-        insert (*__first, __dup);
-}
-
-#endif   // defined (_MSC_VER) && _MSC_VER < 1300
-         
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
 inline void __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
