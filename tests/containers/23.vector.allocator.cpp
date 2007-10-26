@@ -5,7 +5,7 @@
  *     Test exercising vector specialized on a user-defined allocator
  *     with a user-defined pointer type.
  *
- * $Id:$
+ * $Id$
  *
  ***************************************************************************
  *
@@ -165,11 +165,12 @@ public:
     typedef std::random_access_iterator_tag iterator_category;
 
     pointer address (reference r) const {
-        return pointer (&r);
+        return pointer (_RWSTD_REINTERPRET_CAST (difference_type, &r), 1);
     }
 
     const_pointer address (const_reference r) const {
-        return const_pointer (&r);
+        return const_pointer (_RWSTD_REINTERPRET_CAST (difference_type, &r),
+                              1);
     }
 
     Allocator () throw () {}
