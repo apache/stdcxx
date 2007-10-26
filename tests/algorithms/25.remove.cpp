@@ -188,49 +188,43 @@ void test_remove (int line,
 
     // verify that the value to be removed does not appear
     // anywhere in the range [first, end) : p 25.2.7.2
-    std::size_t i = 0;
-    for ( ; i != nsrc - nrem; ++i) {
+    success = true;
+    for (std::size_t i = 0; i != nsrc - nrem && success; ++i) {
         success = UChar (val) != xsrc [i].data_.val_;
-        if (!success)
-            break;
+        rw_assert (success, 0, line,
+                   "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
+                   "\"%{X=*.*}\"; expected element value %#c",
+                   __LINE__, fname, itname, src, val,
+                   int (nsrc), int (i), xsrc, src [i]);
     }
 
-    rw_assert (success, 0, line,
-               "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
-               "\"%{X=*.*}\"; expected element value %#c",
-               __LINE__, fname, itname, src, val,
-               int (nsrc), int (i), xsrc, src [i]);
 
     // verify that the algorithm is stable: the relative order of the elements
     // that are not removed remains unchanged : p 25.2.7.4
     success = true;
-    for (i = 1; i < nsrc - nrem; ++i) {
+    for (std::size_t i = 1; i < nsrc - nrem && success; ++i) {
         success = xsrc [i - 1].id_ < xsrc [i].id_;
-        if (!success)
-            break;
+        rw_assert (success, 0, line, 
+                   "line %d: %s<%s>(\"%s\", ..., %#c) ==> \"%{X=#*.*}\"; "
+                   "unstable at offset %zu element ids: %d and %d",
+                   __LINE__, fname, itname, src, val,
+                   int (nsrc), int (i - 1), xsrc,
+                   i - 1, xsrc [i - 1].id_, xsrc [i].id_);
     }
 
-    rw_assert (success, 0, line, 
-               "line %d: %s<%s>(\"%s\", ..., %#c) ==> \"%{X=#*.*}\"; "
-               "unstable at offset %zu element ids: %d and %d",
-               __LINE__, fname, itname, src, val,
-               int (nsrc), int (i - 1), xsrc,
-               i - 1, xsrc [i - 1].id_, xsrc [i].id_);
 
     // verify that the values of elements in the range [end, last)
     // are unchanged 
     success = true;
-    for (i = nsrc - nrem; i != nsrc; ++i) {
+    for (std::size_t i = nsrc - nrem; i != nsrc && success; ++i) {
         success = src [i] == xsrc [i].data_.val_;
-        if (!success)
-            break;
+        rw_assert (success, 0, line, 
+                   "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
+                   "\"%{X=*.*}\"; expected element value %#c",
+                   __LINE__, fname, itname, src, val,
+                   int (nsrc), int (i), xsrc, val);
     }
 
-    rw_assert (success, 0, line, 
-               "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
-               "\"%{X=*.*}\"; expected element value %#c",
-               __LINE__, fname, itname, src, val,
-               int (nsrc), int (i), xsrc, val);
 
     // verify the number of applications of the predicate: p 25.2.7.5
     if (tag.use_predicate) {
@@ -297,35 +291,28 @@ void test_remove (int line,
 
     // verify that the value to be removed does not appear anywhere
     // in the range [result, end)
-    std::size_t i = 0;
-    for ( ; i != nsrc - nrem; ++i) {
+    success = true;
+    for (std::size_t i = 0; i != nsrc - nrem && success; ++i) {
         success = UChar (val) != xdst [i].data_.val_;
-        if (!success)
-            break;
+        rw_assert (success, 0, line,
+                   "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
+                   "\"%{X=*.*}\"; expected element value %#c",
+                   __LINE__, fname, itname, src, val,
+                   int (nsrc - nrem), int (i), xdst, src [i]);
     }
-
-    rw_assert (success, 0, line,
-               "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
-               "\"%{X=*.*}\"; expected element value %#c",
-               __LINE__, fname, itname, src, val,
-               int (nsrc - nrem), int (i), xdst,
-               src [i]);
 
     // verify that the algorithm is stable: the relative order of the elements
     // that are not removed remains unchanged : p 25.2.7.10
     success = true;
-    for (i = 1; i < nsrc - nrem; ++i) {
+    for (std::size_t i = 1; i < nsrc - nrem && success; ++i) {
         success = xdst [i - 1].id_ < xdst [i].id_;
-        if (!success)
-            break;
+        rw_assert (success, 0, line, 
+                   "line %d: %s<%s>(\"%s\", ..., %#c) ==> \"%{X=#*.*}\"; "
+                   "unstable at offset %zu: element ids: %d and %d",
+                   __LINE__, fname, itname, src, val,
+                   int (nsrc - nrem), int (i - 1), xdst,
+                   i - 1, xdst [i - 1].id_, xdst [i].id_);
     }
-
-    rw_assert (success, 0, line, 
-               "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
-               "\"%{X=#*.*}\"; unstable at offset %zu: element ids: %d and %d",
-               __LINE__, fname, itname, src, val,
-               int (nsrc - nrem), int (i - 1), xdst,
-               i - 1, xdst [i - 1].id_, xdst [i].id_);
 
     // verify the number of applications of the predicate p 25.2.7.9
     if (tag.use_predicate) {
