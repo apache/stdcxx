@@ -36,11 +36,4 @@
 
 #undef _RWSTD_NO_TEMPLATE_DEFINITIONS
 
-#if defined (_MSC_VER) && _MSC_VER < 1300
-   // shut up bogus warning C4661: 'std::ios::ios(const std::ios&)':
-   // no suitable definition provided for explicit template instantiation
-   // request
-#  pragma warning (disable: 4661)
-#endif   // MSVC < 7.0
-
 #include <rw/_basic_ios.h>

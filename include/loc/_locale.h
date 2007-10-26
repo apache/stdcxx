@@ -288,13 +288,12 @@ private:
 
     _RW::__rw_locale *_C_body;     // reference-counted body
 
-#if    defined (__SUNPRO_CC) && __SUNPRO_CC <= 0x540 \
-    || defined (_MSC_VER) && _MSC_VER < 1300
+#if    defined (__SUNPRO_CC) && __SUNPRO_CC <= 0x540
 
    // working around a SunPro member access control bug (see PR #25910)
 public:
 
-#endif   // SunPro <= 5.4 || MSVC <= 6.0
+#endif   // SunPro <= 5.4
 
     // (try to) retrieve a facet from a locale given an id
     // may initialize the id if it isn't initialized yet

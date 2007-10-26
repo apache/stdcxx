@@ -48,16 +48,6 @@
 #  endif   // _RWSTD_NO_STRING_NPOS_TYPE
 #endif   // MSVC <= 7.0
 
-#if _MSC_VER <= 1200   // MSVC <= 6.0
-#  define _RWSTD_NO_TYPENAME
-
-#ifndef _RWSTD_NO_EXPORT
-     // not implemented
-#  define _RWSTD_NO_EXPORT
-#endif   // _RWSTD_NO_EXPORT
-
-#endif   // MSVC <= 6.0
-
    // disable "Same type qualifier used more than once"
 #  pragma warning (disable: 4114)
 
