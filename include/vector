@@ -166,8 +166,6 @@ public:
         assign (__n, __x);
     }
 
-#if !defined (_MSC_VER) || _MSC_VER >= 1300
-
     template <class _InputIter>
     vector (_InputIter __first, _InputIter __last,
             const allocator_type &__alloc = allocator_type ())
@@ -175,24 +173,6 @@ public:
         assign (__first, __last);
     }
 
-#else   // if !MSVC || MSVC <= 6.0
-
-    // working around an MSVC 6.0 ICE (bug #554)
-    template <class _InputIter>
-    vector (_InputIter __first, _InputIter __last)
-        : allocator_type (), _C_begin (), _C_end (), _C_bufend () {
-        assign (__first, __last);
-    }
-
-    template <class _InputIter>
-    vector (_InputIter __first, _InputIter __last,
-            const allocator_type &__alloc)
-        : allocator_type (__alloc), _C_begin (), _C_end (), _C_bufend () {
-        assign (__first, __last);
-    }
-
-#endif   // MSVC <= 6.0
-    
     vector (const vector &__rhs)
         : allocator_type (__rhs.get_allocator ()),
           _C_begin (), _C_end (), _C_bufend () {

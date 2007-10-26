@@ -107,7 +107,6 @@ public:
     typedef _TYPENAME __rep_type::pointer                 pointer;
     typedef _TYPENAME __rep_type::const_pointer           const_pointer;
 #if !defined (_RWSTD_NO_MEMBER_TEMPLATES)
-    //    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
     typedef _TYPENAME __rep_type::const_reverse_iterator  reverse_iterator;
 #else
     typedef _TYPENAME __rep_type::reverse_iterator        reverse_iterator;
@@ -122,27 +121,11 @@ public:
                    const allocator_type &__alloc = allocator_type ())
         : _C_rep (__cmp, __alloc) { }
 
-#if !defined (_MSC_VER) || _MSC_VER >= 1300
-
     template<class _InputIter>
     set (_InputIter __first, _InputIter __last,
          const key_compare& __cmp = key_compare (),
          const allocator_type& __al = allocator_type ())
         : _C_rep (__first, __last, __cmp, __al, false) { }
-
-#else // if _MSC_VER < 1300
-
-    set (const value_type* __first, const value_type* __last,
-         const key_compare &__cmp = key_compare (),
-         const allocator_type& __alloc = allocator_type ())
-        : _C_rep (__first, __last, __cmp, __alloc, false) { }
-    
-    set (const_iterator __first, const_iterator __last,
-         const key_compare &__cmp = key_compare (),
-         const allocator_type &__alloc = allocator_type ())
-        : _C_rep (__first, __last, __cmp, __alloc, false) { }
-
-#endif // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     set (const set &__x)
         : _C_rep (__x._C_rep) { }
@@ -186,7 +169,7 @@ public:
 #if !defined (_MSC_VER) || _MSC_VER > 1300
 
     iterator insert (iterator __it, const value_type& __x) {
-	return _C_rep.insert (__it, __x, false);
+	    return _C_rep.insert (__it, __x, false);
     }
 
     void erase (iterator __it) {
@@ -201,45 +184,29 @@ public:
 
     // working around MSVC bugs
     iterator insert (iterator __it, const value_type& __x) {
-	typedef _TYPENAME __rep_type::iterator _Iterator;
+	    typedef _TYPENAME __rep_type::iterator _Iterator;
         return _RWSTD_REINTERPRET_CAST (iterator&, _C_rep.insert (
-	    _RWSTD_REINTERPRET_CAST (_Iterator&, __it), __x, false));
+	        _RWSTD_REINTERPRET_CAST (_Iterator&, __it), __x, false));
     }
 
     void erase (iterator __it) {
-	typedef _TYPENAME __rep_type::iterator _Iterator;
+	    typedef _TYPENAME __rep_type::iterator _Iterator;
         _C_rep.erase (_RWSTD_REINTERPRET_CAST (_Iterator&, __it));
     }
 
     void erase (iterator __first, iterator __last) {
-	typedef _TYPENAME __rep_type::iterator _Iterator;
+	    typedef _TYPENAME __rep_type::iterator _Iterator;
         _C_rep.erase (_RWSTD_REINTERPRET_CAST (_Iterator&, __first),
 		    _RWSTD_REINTERPRET_CAST (_Iterator&, __last));
     }
 
 #endif
 
-#if !defined (_MSC_VER) || _MSC_VER >= 1300
-
     template<class _InputIter>
     void insert (_InputIter __first, _InputIter __last) {
         for ( ;__first != __last; ++__first)
             _C_rep.insert (*__first, false);
     }
-
-#else   // if _MSC_VER < 1300
-
-    void insert (const value_type* __first, const value_type* __last) {
-        for ( ;__first != __last; ++__first)
-            _C_rep.insert (*__first, false);
-    }
-
-      void insert (const_iterator __first, const_iterator __last) {
-          for ( ;__first != __last; ++__first)
-              _C_rep.insert (*__first, false);
-      }
-
-#endif   // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     size_type erase (const key_type& __x)  {
         return _C_rep.erase (__x); 
@@ -356,27 +323,11 @@ public:
               const allocator_type &__alloc = allocator_type ())
         : _C_rep (__cmp, __alloc) { }
 
-#if !defined (_MSC_VER) || _MSC_VER >= 1300
-
     template<class _InputIter>
     multiset (_InputIter __first, _InputIter __last, 
               const key_compare &__cmp = key_compare (),
               const allocator_type &__alloc = allocator_type ())
         : _C_rep (__first, __last, __cmp, __alloc, true) { }
-
-#else // _MSC_VER < 1300
-
-    multiset (const value_type* __first, const value_type* __last, 
-              const key_compare &__cmp = key_compare (),
-              const allocator_type &__alloc = allocator_type ())
-        : _C_rep (__first, __last, __cmp, __alloc, true) { }
-
-    multiset (const_iterator __first, const_iterator __last, 
-              const key_compare &__cmp = key_compare (),
-              const allocator_type &__alloc = allocator_type ())
-        : _C_rep (__first, __last, __cmp, __alloc, true) { }
-
-#endif // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     multiset (const multiset &__x)
         : _C_rep (__x._C_rep) { }
@@ -419,27 +370,11 @@ public:
         return _C_rep.insert (__it, __x, true);
     }
 
-#if !defined (_MSC_VER) || _MSC_VER >= 1300
-
     template<class _InputIter>
     void insert (_InputIter __first, _InputIter __last) {
         for ( ;__first != __last; ++__first)
             _C_rep.insert (*__first, true);
     }
-
-#else // _MSC_VER < 1300
-
-    void insert (const value_type* __first, const value_type* __last) {
-        for ( ;__first != __last; ++__first)
-            _C_rep.insert (*__first, true);
-    }
-
-    void insert (const_iterator __first, const_iterator __last) {
-        for ( ;__first != __last; ++__first)
-            _C_rep.insert (*__first, true);
-    }
-
-#endif // !defined (_MSC_VER) || _MSC_VER >= 1300
 
     void erase (iterator __it) {
         _C_rep.erase (__it);

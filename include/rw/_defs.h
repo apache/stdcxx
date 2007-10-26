@@ -481,13 +481,8 @@
 #    define _RWSTD_EXPORT            __declspec (dllimport)
 #  endif   // _RWSTD_LIB_SRC
 
-#  if _MSC_VER >= 1300
 #    define _RWSTD_CLASS_EXPORT    _RWSTD_EXPORT
 #    define _RWSTD_MEMBER_EXPORT   /* empty */
-#  else   // if MSVC < 7.0
-#    define _RWSTD_CLASS_EXPORT    /* empty */
-#    define _RWSTD_MEMBER_EXPORT   _RWSTD_EXPORT
-#  endif   // MSVC >= 7.0
 
    // disable warnings:
    // C4251: class needs to have dll-interface to be used by cliens
@@ -635,8 +630,7 @@
 // If compiler supports member and default templates then it supports
 // the _RWSTD_ALLOCATOR
 //
-#if    !defined (_RWSTD_NO_SIMPLE_DEFAULT_TEMPLATES) \
-    && (!defined (_MSC_VER) || _MSC_VER >= 1300)
+#ifndef _RWSTD_NO_SIMPLE_DEFAULT_TEMPLATES
 #  define _RWSTD_ALLOCATOR
 #endif
 
