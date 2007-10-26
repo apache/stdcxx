@@ -71,6 +71,34 @@
 #    define STATUS_INVALID_CRUNTIME_PARAMETER ((DWORD)0xC0000417L)
 #  endif
 #endif
+
+#ifndef SIGHUP
+#  define SIGHUP     1   /* Linux value */
+#endif
+#ifndef SIGQUIT
+#  define SIGQUIT    3   /* Linux value */
+#endif
+#ifndef SIGKILL
+#  define SIGKILL    9   /* Linux value */
+#endif
+#ifndef SIGALRM
+#  define SIGALRM   14   /* Linux value */
+#endif
+
+
+#ifndef ESRCH
+#  define ESRCH      3   /* Linux value */
+#endif
+#ifndef EINTR
+#  define EINTR      4   /* Linux value */
+#endif
+#ifndef ECHILD
+#  define ECHILD    10   /* Linux value */
+#endif
+#ifndef EINVAL
+#  define EINVAL    22   /* Linux value */
+#endif
+
 #include <sys/stat.h> /* for S_* */
 #include <sys/types.h>
 
@@ -79,6 +107,21 @@
 #include "util.h"
 
 #include "exec.h"
+
+#ifndef _RWSTD_NO_PURE_C_HEADERS
+#  ifdef __cplusplus
+extern "C" {
+#  endif
+
+int kill (pid_t pid, int sig);
+
+FILE* fdopen (int fd, const char *mode);
+
+#  ifdef __cplusplus
+}   /* extern "C" */
+#  endif
+#endif   /* _RWSTD_NO_PURE_C_HEADERS */
+
 
 /**
    Status flag used to comunicate that an alarm has triggered.
@@ -444,8 +487,6 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
 
     static const unsigned sigcount = sizeof (signals) / sizeof (int);
 
-    struct sigaction act;
-
     unsigned siginx = 0;
 
     int stopped = 0;
@@ -463,31 +504,19 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
     /* Clear timeout */
     alarm_timeout = 0;
 
-    /* Set handler (if needed).  Need to use sigaction rather than signal due
-       to linux glitch
+    /* Set handler (if needed).
     */
-    memset (&act, 0, sizeof act);
-
-    /* avoid extern "C"/"C++" mismatch due to an HP aCC 6 bug
-       (see STDCXX-291)
-    */
-    alarm_handler phandler = handle_alrm;
-    memcpy (&act.sa_handler, &phandler, sizeof act.sa_handler);
-
-    sigaction (SIGALRM, &act, 0);
+    rw_signal (SIGALRM, handle_alrm);
     
     /* Set handlers for SIGHUP, SIGINT, SIGQUIT, SIGTERM so we can kill the
        child process prior to dieing.
     */
     kill_signal = 0;
 
-    phandler = handle_term_signal;
-    memcpy (&act.sa_handler, &phandler, sizeof act.sa_handler);
-
-    sigaction (SIGHUP, &act, 0);
-    sigaction (SIGINT, &act, 0);
-    sigaction (SIGQUIT, &act, 0);
-    sigaction (SIGTERM, &act, 0);
+    rw_signal (SIGHUP, handle_term_signal);
+    rw_signal (SIGINT, handle_term_signal);
+    rw_signal (SIGQUIT, handle_term_signal);
+    rw_signal (SIGTERM, handle_term_signal);
 
     if (timeout > 0)
         alarm (timeout);
@@ -623,11 +652,10 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
     /* Check if we were signaled to quit. */
     if (kill_signal) {
         /* Reset the handlers to normal */
-        act.sa_handler = SIG_DFL;
-        sigaction (SIGHUP, &act, 0);
-        sigaction (SIGINT, &act, 0);
-        sigaction (SIGQUIT, &act, 0);
-        sigaction (SIGTERM, &act, 0);
+        rw_signal (SIGHUP, SIG_DFL);
+        rw_signal (SIGINT, SIG_DFL);
+        rw_signal (SIGQUIT, SIG_DFL);
+        rw_signal (SIGTERM, SIG_DFL);
 
         if (0 > raise (kill_signal))
             terminate (1, "raise(%s) failed: %s\n",
