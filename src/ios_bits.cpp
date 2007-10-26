@@ -81,13 +81,9 @@ _RWSTD_DEFINE_STATIC_CONST (const ios_base::openmode ios_base::out);
 _RWSTD_DEFINE_STATIC_CONST (const ios_base::openmode ios_base::trunc);
 _RWSTD_DEFINE_STATIC_CONST (const ios_base::openmode ios_base::ate);
 
-//#if !defined (_MSC_VER) || (_MSC_VER <= 1300)
-
 _RWSTD_DEFINE_STATIC_CONST (const ios_base::seekdir ios_base::beg);
 _RWSTD_DEFINE_STATIC_CONST (const ios_base::seekdir ios_base::cur);
 _RWSTD_DEFINE_STATIC_CONST (const ios_base::seekdir ios_base::end);
-
-//#endif // !defined (_MSC_VER) || (_MSC_VER <= 1300)
 
 #ifndef _RWSTD_STRICT_ANSI
 
