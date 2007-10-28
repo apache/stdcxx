@@ -70,10 +70,8 @@ process_results ()
     osname="$1"
     arch="$2"
     compiler="$3"
-    logs="$4"
+    alllogs="$4"
     outfile="$5"
-
-    logs=`echo $logs | tr ' ' '\n' | sort`
 
     cat<<EOF
           <tr>
@@ -85,8 +83,20 @@ process_results ()
 
 EOF
 
-    # $CROSS -o$OUTDIR/$outfile $logs
-    echo "$CROSS -o$OUTDIR/$outfile $logs"
+    btypes="8 11 12 15"
+    suffixes="a A d D s D"
+
+    unset buildlogs
+
+    for b in $btypes; do
+        for s in $suffixes; do
+            log=`echo $alllogs | tr ' ' '\n' | grep "[-]$b$s-" \
+                               | sort | tail -n 1`
+            buildlogs="$buildlogs $log"
+        done
+    done
+
+    $CROSS -o$OUTDIR/$outfile $buildlogs
 }
 
 # AIX ##################################################################
