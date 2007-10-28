@@ -67,6 +67,9 @@
 # by default, display one component (example, locale, or test) per row
 components_in_rows=1
 
+# no verbosity by default
+verbose=0
+
 ## process command line options
 while getopts ":nsv:e:l:o:t:" opt_name; do
     case $opt_name in
@@ -388,6 +391,10 @@ for l in $gzlogs; do
     n=`expr $n + 1`
     fname=`basename $l`
 
+    if [ $verbose -eq 1 ]; then
+        echo "processing $l"
+    fi
+
     if [ $components_in_rows -ne 0 ]; then
         # output one component per row with their results in columns
         table_header="$table_header <th><div title=\"$fname\">$n</div></th>"
@@ -399,12 +406,8 @@ for l in $gzlogs; do
     runlog=$TMP/`basename $l`.$$
     textlogs="$textlogs $runlog"
 
-      gunzip -c $l                             \
-    | sed -e "1,/### [g]*make runall/d"        \
-          -e "/^[g]*make\[.\]: .*/d"           \
-          -e "/###/,999999d"                   \
-          -e "/^PHDIR/d"                       \
-          -e "/\/bin\/sh: /d" > $runlog
+    # unzip the log and cut the firt part up to the first table
+    gunzip -c $l | sed -e "1,/^NAME  *STATUS/d" > $runlog
 
     status=$?
 
@@ -412,12 +415,15 @@ for l in $gzlogs; do
 
         # extract the list of locales from the log
 
-          sed -e "1,2d" $runlog                    \
-        | sed -n -e "1,/NAME  */p"                 \
-        | sed -e "/NAME  */d"                      \
-              -e "s/  *.*//" >>$locales_file
+             sed -e "/^PROGRAM SUMMARY:/,999999d" $runlog              \
+           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"  >>$locales_file       \
+        && sed -e "1,/^NAME  *STATUS/d" $runlog > $runlog.next
 
         status=$?
+
+        if [ $verbose -eq 1 ]; then
+            echo "  extracted locale results into $locales_file"
+        fi
     else
         exit 3
     fi
@@ -426,12 +432,16 @@ for l in $gzlogs; do
 
         # extract the list of tests from the log
 
-          sed "1,2d" $runlog                       \
-        | sed -e "1,/NAME  */d"                    \
-              -e "/NAME  */,999999d"               \
-              -e "s/  *.*//" >>$tests_file;
+             sed -e "/^PROGRAM SUMMARY:/,999999d" $runlog.next          \
+           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"  >>$tests_file          \
+        && sed -e "1,/^NAME  *STATUS/d" $runlog.next > $runlog.next.2   \
+        && mv $runlog.next.2 $runlog.next
 
         status=$?
+
+        if [ $verbose -eq 1 ]; then
+            echo "  extracted test results into $tests_file"
+        fi
     else
         exit 3
     fi
@@ -439,15 +449,20 @@ for l in $gzlogs; do
     if [ $status -eq 0 ]; then
 
         # extract the list of examples from the log
-                                               \
-          sed "1,2d" $runlog                       \
-        | sed -e "1,/NAME  */d"                    \
-        | sed -e "1,/NAME  */d"                    \
-        | sed -e "/NAME  */,999999d"               \
-              -e "s/  *.*//" >>$examples_file
+
+             sed -e "/^PROGRAM SUMMARY:/,999999d" $runlog.next          \
+           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"  >>$examples_file       \
+        && sed -e "1,/^NAME  *STATUS/d" $runlog > $runlog.next.2        \
+        && mv $runlog.next.2 $runlog.next
+
+        if [ $verbose -eq 1 ]; then
+            echo "  extracted example results into $examples_file"
+        fi
     else
         exit 3
     fi
+
+    rm $runlog.next
 done
 
 
