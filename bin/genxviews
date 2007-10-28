@@ -22,9 +22,9 @@
 #
 ########################################################################
 
-CROSS=/home/sebor/bin/cross
+CROSS=$HOME/bin/xbuildgen
 
-OUTDIR=/home/sebor/public_html/stdcxx/results
+OUTDIR=$HOME/public_html/stdcxx/results
 
 cd $OUTDIR
 
