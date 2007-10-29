@@ -37,7 +37,7 @@
 
 /*** library version numbers and ids **************************************/
 
-#define _RWSTD_VER 0x04020000
+#define _RWSTD_VER 0x04020001
 //                    | | | |
 //                   MMmmuupp
 //                    | | | |
@@ -47,7 +47,7 @@
 //                    +--------- MM = major version number
 
 // library version string (patch number included only if non-zero)
-#define _RWSTD_VER_STR   "4.2.0"
+#define _RWSTD_VER_STR   "4.2.1"
 
 // library version numbers
 #define _RWSTD_VER_MAJOR ((_RWSTD_VER >> 24) & 0xff)
