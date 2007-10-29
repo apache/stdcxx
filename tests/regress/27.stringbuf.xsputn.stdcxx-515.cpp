@@ -27,10 +27,11 @@
 #include <sstream>  // for stringstream
 #include <string>   // for string
 #include <cassert>  // for assert()
+#include <cstddef>  // for size_t
 
 int main ()
 {
-    for (size_t i = 1; i <= 1024; ++i) {
+    for (std::size_t i = 1; i <= 1024; ++i) {
         std::stringstream strm;
         std::string s (i, 'a');
         strm << s;
