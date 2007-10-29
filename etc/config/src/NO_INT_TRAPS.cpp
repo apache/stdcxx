@@ -34,30 +34,49 @@
 #endif   // _WIN{32,64}
 
 
-int get_int ();
+int get_int (int);
+
+
+volatile int int_zero;
+volatile int int_one;
+
 
 int main (int argc, char*[])
 {
-    int int_zero = get_int ();
-    int int_one  = get_int ();
+    // test expects to be called with no command line arguments
+    // i.e., (argc < 2) is expected to hold
 
-    int result;
+    // argc used to try to foil optimizers
+    int_zero = get_int (argc);
+    int_one  = get_int (argc);
+
+    int result [2];
 
     TRY {
-        result = int_one / int_zero;
+        // use both division and modulo to try to foil optimizers
+        result [0] = int_one / int_zero;
+        result [1] = int_one % int_zero;
     }
     EXCEPT (1) {
         return 1;
     }
 
     // NEGATIVE test: successful exit status indicates a failure
-    return argc < 2 ? 0 : result;
+    return argc < 2 ? result [0] : result [1];
 }
 
-// foil optimizers
-volatile int int_value = 0;
+// use volatile to try to foil optimizers
+volatile int int_value;
 
-int get_int ()
+// use recursion to try to foil optimizers
+int get_int (int arg)
 {
-    return int_value++;
+    if (1 < arg)
+        return get_int (arg - 1) + get_int (arg - 2);
+
+    const int value = int_value;
+
+    ++int_value;
+
+    return value;
 }
