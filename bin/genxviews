@@ -83,8 +83,17 @@ process_results ()
 
 EOF
 
+    # build types:
+    #    8: not reentrant, optimized, no debugging info
+    #   11: not reentrant, not optimized with debugging info
+    #   12: reentrant, optimized, no debugging info
+    #   15: reentrant, not optimized, with debugging info
     btypes="8 11 12 15"
-    suffixes="a A d D s D"
+
+    # a, A: AIX shared archive (32-bit and 64-bit, respectively)
+    # d, D: shared library (.sl, .so, or .dll)
+    # s, S: archive library (.a or .lib(
+    suffixes="a A d D s S"
 
     unset buildlogs
 
