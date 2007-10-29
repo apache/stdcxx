@@ -48,7 +48,7 @@ struct S {
     ~S () { pass = pass && this == self; }
     operator double () const { pass = pass && this == self; return 1.0; }
 
-    void operator=(const S &s) const {
+    void operator=(const S &s) {
         pass = pass && &s == s.self && this == self;
     }
     S operator- () const { pass = pass && this == self; return *this; }
