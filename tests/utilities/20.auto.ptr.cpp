@@ -224,7 +224,7 @@ void test_auto_ptr (T*, const char *tname)
 
     rw_info (0, 0, 0, "[lib.auto.ptr.cons]");
 
-    T *pt = new T;
+    T *pt = new T ();
 
     // 20.4.5.1, p1
     std::auto_ptr<T> ap1 (pt);
