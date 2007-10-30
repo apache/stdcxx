@@ -226,6 +226,11 @@ function BuildProject(solutionBuild, projectName)
     return 1;
 }
 
+function TimeEcho(msg)
+{
+    WScript.Echo(Date() + ": " + msg);
+}
+
 // the main function of the script
 function build()
 {
@@ -241,7 +246,7 @@ function build()
     
     var solutionName = slnDir + "\\" + currentCfg + ".sln";
 
-    WScript.Echo("Loading solution...");
+    TimeEcho("Loading solution...");
     var solution = dte.Solution;
 
     var retCode = 0;
@@ -392,7 +397,7 @@ function build()
         oldLogging = projectEngine.BuildLogging;
         projectEngine.BuildLogging = true;
 
-        WScript.Echo("Performing configure step...\n");
+        TimeEcho("Performing configure step...\n");
         var res = BuildProject(solutionBuild, ".configure");
         if (0 < res)
         {
@@ -400,7 +405,7 @@ function build()
             break;
         }   
 
-        WScript.Echo("Compiling stdcxx library...\n");
+        TimeEcho("Compiling stdcxx library...\n");
         res = BuildProject(solutionBuild, ".stdcxx");
         if (0 < res)
         {
@@ -408,19 +413,19 @@ function build()
             break;
         }   
 
-        WScript.Echo("Compiling examples...\n");
+        TimeEcho("Compiling examples...\n");
         BuildProject(solutionBuild, ".stdcxx_examples");
 
-        WScript.Echo("Compiling rwtest library...\n");
+        TimeEcho("Compiling rwtest library...\n");
         res = BuildProject(solutionBuild, ".rwtest");
         if (0 == res)
         {
             runTests = true;
-            WScript.Echo("Compiling tests...\n");
+            TimeEcho("Compiling tests...\n");
             BuildProject(solutionBuild, ".stdcxx_tests");
         }
 
-        WScript.Echo("Compiling utils...\n");
+        TimeEcho("Compiling utils...\n");
         // compile exec utility
         var resExec = BuildProject(solutionBuild, "util_exec");
         // compile rest utils
@@ -434,12 +439,12 @@ function build()
         if (buildOnly)
            break;
 
-        WScript.Echo("Running examples...\n");
+        TimeEcho("Running examples...\n");
         BuildProject(solutionBuild, ".stdcxx_runexamples");
 
         if (runTests)
         {
-            WScript.Echo("Running tests...\n");
+            TimeEcho("Running tests...\n");
             BuildProject(solutionBuild, ".stdcxx_runtests");
         }
         
@@ -449,7 +454,7 @@ function build()
             break;
         }   
 
-        WScript.Echo("Running locales tests...");
+        TimeEcho("Running locales tests...");
         BuildProject(solutionBuild, ".stdcxx_testlocales");
     }
     while (false);
@@ -481,10 +486,12 @@ function build()
     if (null != prop)
         prop.Value = propVal;
         
+    TimeEcho("Closing the VisualStudio...");
     solution = null;
     dte.Quit();
     dte = null;
 
+    TimeEcho("Exiting...");
     WScript.Quit(retCode);
 }
 
