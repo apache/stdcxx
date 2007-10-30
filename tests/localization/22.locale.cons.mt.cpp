@@ -119,8 +119,13 @@ test_ctors (void*)
             const std::locale combined (first, next_name, cat);
 
             // verify that the locales were created correctly
-            if (std::locale::none == cat || first == next)
+            if (   std::locale::none == cat
+#ifdef _MSC_VER
+                || std::locale::messages == cat
+#endif
+                || first == next) {
                 RW_ASSERT (combined == first);
+            }
             else if (std::locale::all == cat)
                 RW_ASSERT (combined == next);
             else
@@ -129,8 +134,13 @@ test_ctors (void*)
             // repeat the step above but with a locale object
             const std::locale combined_2 (first, next, cat);
 
-            if (std::locale::none == cat || first == next)
+            if (   std::locale::none == cat
+#ifdef _MSC_VER
+                || std::locale::messages == cat
+#endif
+                || first == next) {
                 RW_ASSERT (combined_2 == first);
+            }
             else if (std::locale::all == cat)
                 RW_ASSERT (combined_2 == next);
             else
