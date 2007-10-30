@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2006 Rogue Wave Software.
+ * Copyright 2005-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -39,6 +39,14 @@
 #else
 #  include <windows.h>    // for GetSystemInfo()
 #endif   // _WIN32
+
+#ifndef _RWSTD_NO_PURE_C_HEADERS
+
+extern "C" {
+FILE* popen (const char*, const char*);
+}   // extern "C"
+
+#endif   // _RWSTD_NO_PURE_C_HEADERS
 
 /**************************************************************************/
 
