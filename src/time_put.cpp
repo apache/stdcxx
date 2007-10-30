@@ -160,6 +160,7 @@ __rw_put_time (const __rw_facet*, wchar_t*, _RWSTD_SIZE_T,
 
 #ifdef _RWSTD_NO_NL_LANGINFO
 
+typedef unsigned char UChar;
 
 // compute the format string corresponding to the "%x" format specifier
 // in the current locale (set by setlocale (LC_ALL, ...))
@@ -197,16 +198,16 @@ __rw_get_date_fmat (char *fmt)
     for (char *ptmp = tmp; *ptmp; ) {
 
         // store all whitespace as part of format
-        for (; (isspace)(*ptmp); ++ptmp)
+        for (; (isspace)(UChar (*ptmp)); ++ptmp)
             *pfmt++ = *ptmp;
 
         const char *begin = ptmp;
 
         // skip over all non-digit characters
-        for (; *ptmp && !(isdigit)(*ptmp); ++ptmp) {
-            if ((ispunct)(*ptmp) || (isspace)(*ptmp)) {
+        for (; *ptmp && !(isdigit)(UChar (*ptmp)); ++ptmp) {
+            if ((ispunct)(UChar (*ptmp)) || (isspace)(UChar (*ptmp))) {
                 // store all punctuators as part of format
-                for ( ; (ispunct)(*ptmp) || (isspace)(*ptmp); ++ptmp)
+                for ( ; (ispunct)(UChar (*ptmp)) || (isspace)(UChar (*ptmp)); ++ptmp)
                     *pfmt++ = *ptmp;
                 break;
             }
@@ -258,9 +259,9 @@ __rw_get_date_fmat (char *fmt)
             }
         }
 
-        if ((isdigit)(*ptmp)) {
+        if ((isdigit)(UChar (*ptmp))) {
 
-            for (begin = ptmp; (isdigit)(*ptmp); ++ptmp);
+            for (begin = ptmp; (isdigit)(UChar (*ptmp)); ++ptmp);
 
             *pfmt++ = '%';
             if (ptmp - begin == 1) {
@@ -322,16 +323,16 @@ __rw_get_time_fmat (char *fmt)
 
     for (char *ptmp = tmp; *ptmp; ) {
 
-        for (; (isspace)(*ptmp); ++ptmp)
+        for (; (isspace)(UChar (*ptmp)); ++ptmp)
             *pfmt++ = *ptmp;
 
         const char *begin = ptmp;
 
-        for (; *ptmp && !(isdigit)(*ptmp); ++ptmp) {
-            if (   (ispunct)(*ptmp)
-                || (isspace)(*ptmp)) {
-                for (;    (ispunct)(*ptmp)
-                       || (isspace)(*ptmp); ++ptmp)
+        for (; *ptmp && !(isdigit)(UChar (*ptmp)); ++ptmp) {
+            if (   (ispunct)(UChar (*ptmp))
+                || (isspace)(UChar (*ptmp))) {
+                for (;    (ispunct)(UChar (*ptmp))
+                       || (isspace)(UChar (*ptmp)); ++ptmp)
                     *pfmt++ = *ptmp;
                 break;
             }
@@ -359,9 +360,9 @@ __rw_get_time_fmat (char *fmt)
             }
         }
 
-        if ((isdigit)(*ptmp)) {
+        if ((isdigit)(UChar (*ptmp))) {
 
-            for (begin = ptmp; (isdigit)(*ptmp); ++ptmp);
+            for (begin = ptmp; (isdigit)(UChar (*ptmp)); ++ptmp);
 
             *pfmt++ = '%';
 
