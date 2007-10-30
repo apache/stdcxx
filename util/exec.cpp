@@ -108,7 +108,7 @@
 
 #include "exec.h"
 
-#ifndef _RWSTD_NO_PURE_C_HEADERS
+#if !defined (_WIN32) && !defined (_RWSTD_NO_PURE_C_HEADERS)
 #  ifdef __cplusplus
 extern "C" {
 #  endif
@@ -120,7 +120,7 @@ FILE* fdopen (int fd, const char *mode);
 #  ifdef __cplusplus
 }   /* extern "C" */
 #  endif
-#endif   /* _RWSTD_NO_PURE_C_HEADERS */
+#endif   /* !_WIN32 && !_RWSTD_NO_PURE_C_HEADERS */
 
 
 /**
