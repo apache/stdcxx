@@ -74,7 +74,6 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         " /SolutionName:\"%SOLUTION%\"" +
         " /ConfigurationName:\"%CFGNAME%\"" +
         " /SrcDir:\"%SRCDIR%\\etc\\config\\src\"" +
-        " /IncludeDir:\"%SRCDIR%\\include\"" +
         " /OutDir:\"$(OutDir)\"" +
         " /OutFile:\"$(OutDir)\\config.h\"" +
         " /LogFile:\"$(OutDir)\\config.log\"";
