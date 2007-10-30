@@ -26,6 +26,7 @@
 
 #include <assert.h> /* for assert */
 #include <errno.h> /* for errno */
+#include <signal.h> /* for sigaction(), signal() */
 #include <stdio.h> /* for vfprintf */
 #include <stdlib.h> /* for exit, malloc */
 #include <stdarg.h> /* for va_* */
@@ -33,6 +34,13 @@
 
 #include <sys/stat.h> /* for stat() */
 #include <sys/types.h> /* for size_t */
+
+#ifndef _WIN32
+#  include <unistd.h> /* for sleep() */
+#else
+#  include <windows.h> /* for Sleep() */
+#endif   /* _WIN{32,64} */
+
 
 #include "cmdopt.h" /* for exe_name, target_name */
 
@@ -228,3 +236,80 @@ output_name (const char* target)
     memcpy (tmp_name + exe_len + 1, suffix, sfx_len + 1);
     return tmp_name;
 }
+
+
+#ifndef _WIN32
+
+void
+rw_sleep (int seconds)
+{
+    sleep (seconds);
+}
+
+
+#  ifdef _RWSTD_NO_PURE_C_HEADERS
+
+#    ifdef __cplusplus
+
+extern "C" {
+
+#    endif   /* __cplusplus */
+
+int
+rw_signal (int signo, void (*func)(int))
+{
+    struct sigaction act;
+    memset (&act, 0, sizeof act);
+
+    /* avoid extern "C"/"C++" mismatch due to an HP aCC 6 bug
+       (see STDCXX-291) */
+    if (func)
+        memcpy (&act.sa_handler, &func, sizeof func);
+    else
+        act.sa_handler = 0;
+
+    return 0 > sigaction (signo, &act, 0);
+}
+
+#    ifdef __cplusplus
+
+}   /* extern "C" */
+
+#    endif   /* __cplusplus */
+
+#  else   /* if defined (_RWSTD_NO_PURE_C_HEADERS) */
+
+#    ifdef __cplusplus
+
+extern "C" {
+
+#    endif   /* __cplusplus */
+
+int
+rw_signal (int signo, void (*func)(int))
+{
+    return SIG_ERR == signal (signo, func);
+}
+
+#    ifdef __cplusplus
+
+}   /* extern "C" */
+
+#    endif   /* __cplusplus */
+#  endif   /* _RWSTD_NO_PURE_C_HEADERS */
+#else   /* if defined (_WIN32) || defined (_WIN64) */
+
+void
+rw_sleep (int seconds)
+{
+    Sleep (seconds * 1000);
+}
+
+
+int
+rw_signal (int signo, void (*func)(int))
+{
+    return SIG_ERR == signal (signo, func);
+}
+
+#endif   /* _WIN32 */

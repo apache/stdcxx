@@ -160,59 +160,6 @@ usage_text[] = {
     "    xlc     IBM XLC++\n"
 };
 
-#if !defined (_WIN32) && !defined (_WIN64)
-
-static void
-rw_sleep (int seconds)
-{
-    sleep (seconds);
-}
-
-
-#ifdef __cplusplus
-
-extern "C" {
-
-#endif   /* __cplusplus */
-
-static int
-rw_signal (int signo, void (*func)(int))
-{
-    struct sigaction act;
-    memset (&act, 0, sizeof act);
-
-    /* avoid extern "C"/"C++" mismatch due to an HP aCC 6 bug
-       (see STDCXX-291) */
-    if (func)
-        memcpy (&act.sa_handler, &func, sizeof func);
-    else
-        act.sa_handler = 0;
-
-    return 0 > sigaction (signo, &act, 0);
-}
-
-#ifdef __cplusplus
-
-}   /* extern "C" */
-
-#endif   /* __cplusplus */
-
-#else   /* if defined (_WIN32) || defined (_WIN64) */
-
-static void
-rw_sleep (int seconds)
-{
-    Sleep (seconds * 1000);
-}
-
-
-static int
-rw_signal (int signo, void (*func)(int))
-{
-    return SIG_ERR == signal (signo, func);
-}
-
-#endif   /* _WIN{32,64}*/
 
 /**
    Display command line switches for program and terminate.

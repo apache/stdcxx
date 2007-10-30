@@ -118,4 +118,31 @@ char* input_name (const char* data_dir, const char* target);
 */
 char* output_name (const char* target);
 
+
+/**
+   Portability interface to sleep.
+
+   @param seconds the number of seconds to sleep
+ */
+void rw_sleep (int seconds);
+
+
+/**
+   Portability interface to signal or sigaction.
+
+   @param signo signal number
+   @param func signal handler
+   @return 0 on success, -1 otherwise
+ */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int rw_signal (int signo, void (*func)(int));
+
+#ifdef __cplusplus
+}   /* extern "C" */
+#endif
+
 #endif   /* RW_UTIL_H */
