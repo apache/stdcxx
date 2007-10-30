@@ -5,7 +5,7 @@
  * Test exercising the thread safety of basic_string constructors
  * and assignment operators.
  *
- * $Id: 21.string.push_back.mt.cpp 425530 2006-07-25 21:39:50Z sebor $
+ * $Id$
  *
  ***************************************************************************
  *
