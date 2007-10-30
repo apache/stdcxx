@@ -215,7 +215,7 @@ int main ()
         if (-1 != bits [i].val) {
             used |= bits [i].val;
 
-            printf ("#define _RWSTD_CTYPE_%s = %#010x"
+            printf ("#define _RWSTD_CTYPE_%s %#010x"
                     "   /* libc value */\n",
                     bits [i].name, bits [i].val);
         }
@@ -228,7 +228,7 @@ int main ()
 
                     used |= 1 << i;
 
-                    printf ("#define _RWSTD_CTYPE_%s = %#010x"
+                    printf ("#define _RWSTD_CTYPE_%s %#010x"
                             "   /* computed */\n",
                             bits [j].name, 1 << i);
 
