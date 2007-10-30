@@ -247,7 +247,7 @@ rw_sleep (int seconds)
 }
 
 
-#  ifdef _RWSTD_NO_PURE_C_HEADERS
+#  ifndef _RWSTD_EDG_ECCP
 
 #    ifdef __cplusplus
 
@@ -277,7 +277,7 @@ rw_signal (int signo, void (*func)(int))
 
 #    endif   /* __cplusplus */
 
-#  else   /* if defined (_RWSTD_NO_PURE_C_HEADERS) */
+#  else   /* if defined (_RWSTD_EDG_ECCP) */
 
 #    ifdef __cplusplus
 
@@ -296,7 +296,7 @@ rw_signal (int signo, void (*func)(int))
 }   /* extern "C" */
 
 #    endif   /* __cplusplus */
-#  endif   /* _RWSTD_NO_PURE_C_HEADERS */
+#  endif   /* _RWSTD_EDG_ECCP */
 #else   /* if defined (_WIN32) || defined (_WIN64) */
 
 void
