@@ -91,7 +91,7 @@
 #  define _WIN32
 #endif
 
-#ifdef _MT
+#if defined (_MT) && !defined (_RWSTD_NO_REENTRANT)
 #  ifndef _RWSTD_REENTRANT
 #    define _RWSTD_REENTRANT 1
 #  endif   // _RWSTD_REENTRANT
@@ -102,11 +102,14 @@
 #      define _RWSTD_THREAD   __declspec (thread)
 #    endif   // _RWSTD_THREAD
 #  endif   // _RWSTD_NO_TLS
-#else   // if !defined (_MT)
+#else   // if !defined (_MT) || defined (_RWSTD_NO_REENTRANT)
+#  ifdef _RWSTD_REENTRANT
+#    undef _RWSTD_REENTRANT
+#  endif   // _RWSTD_REENTRANT
 #  ifndef _RWSTD_THREAD
 #    define _RWSTD_THREAD   /* empty */
 #  endif   // _RWSTD_THREAD
-#endif   //_MT
+#endif   // _MT && !_RWSTD_NO_REENTRANT
 
 #if defined (_CPPRTTI)
      // override in case library was configured with -GR-
