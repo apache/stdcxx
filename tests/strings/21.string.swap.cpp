@@ -2,7 +2,7 @@
  *
  * 21.string.swap.cpp - string test exercising [lib.string::swap]
  *
- * $Id  $
+ * $Id$
  *
  ***************************************************************************
  *
