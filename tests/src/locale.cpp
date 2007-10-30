@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2007 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -37,11 +37,15 @@
 #include <rw_process.h>   // for rw_system()
 #include <driver.h>       // for rw_error()
 
-#if defined (_RWSTD_OS_LINUX) && !defined (_XOPEN_SOURCE)
-   // on Linux define _XOPEN_SOURCE to get CODESET defined in <langinfo.h>
-#  define _XOPEN_SOURCE   500   /* Single Unix conformance */
-   // bring __int32_t into scope (otherwise <wctype.h> fails to compile)
-#  include <sys/types.h>
+#ifdef _RWSTD_OS_LINUX
+#  ifdef _RWSTD_NO_PURE_C_HEADERS
+     // on Linux define _XOPEN_SOURCE to get CODESET defined in <langinfo.h>
+     // (avoid this hackery when using pure "C' headers (i.e., with the EDG
+     // eccp demo)
+#    define _XOPEN_SOURCE   500   /* Single Unix conformance */
+     // bring __int32_t into scope (otherwise <wctype.h> fails to compile)
+#    include <sys/types.h>
+#  endif
 #endif   // Linux
 
 #include <fcntl.h>
