@@ -440,7 +440,13 @@ function projectCreateVCProject(engine, report)
             if (null != this.PrepOpts)
                 compiler.GeneratePreprocessedFile = this.PrepOpts;
             compiler.DebugInformationFormat = debugEnabled;
-            compiler.ProgramDataBaseFileName = changeFileExt(OutFile, "pdb");
+
+            if (typeStaticLibrary == conf.ConfigurationType)
+            {
+                // generate the source pdb in the OutDir
+                compiler.ProgramDataBaseFileName = changeFileExt(OutFile, "pdb");
+            }
+
             compiler.SuppressStartupBanner = true;
             compiler.WarningLevel = warningLevel_3;
             setProperty(compiler.Detect64BitPortabilityProblems, false);
@@ -510,8 +516,7 @@ function projectCreateVCProject(engine, report)
             linker.LinkIncremental = linkIncrementalNo;
             linker.SuppressStartupBanner = true;
             linker.GenerateDebugInformation = true;
-            // use the compiler's .pdb
-            linker.ProgramDatabaseFile = "";
+            linker.ProgramDatabaseFile = changeFileExt(OutFile, "pdb");
             linker.IgnoreDefaultLibraryNames = IngoreLibs;
             linker.SubSystem = this.SubSystem;
 
