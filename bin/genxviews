@@ -110,141 +110,188 @@ EOF
 
 # AIX ##################################################################
 process_results "AIX 5.3" "PowerPC" "IBM XLC++ 9.0" \
-                "aix-5.3-ppc-vacpp-*-9.0-*-*-log.gz.txt" \
+                "aix-5.3-ppc-vacpp-9.0-*-*-log.gz.txt" \
                 aix-5.3-ppc-vacpp-9.0.html
 
 process_results "AIX 5.3" "PowerPC" "IBM XLC++ 8.0" \
-                "aix-5.3-ppc-vacpp-*-8.0-*-*-log.gz.txt" \
+                "aix-5.3-ppc-vacpp-8.0-*-*-log.gz.txt" \
                 aix-5.3-ppc-vacpp-8.0.html
 
 process_results "AIX 5.3" "PowerPC" "IBM XLC++ 7.0" \
-                "aix-5.3-ppc-vacpp-*-7.0.0.0-*-*-log.gz.txt" \
+                "aix-5.3-ppc-vacpp-7.0.0.0-*-*-log.gz.txt" \
                 aix-5.3-ppc-vacpp-7.0.html
 
 process_results "AIX 5.2" "PowerPC" "IBM VisualAge C++ 6.0" \
-                "aix-5.2-ppc-visualage-*-6.0.0-*-*-log.gz.txt" \
+                "aix-5.2-ppc-visualage-6.0.0-*-*-log.gz.txt" \
                 aix-5.2-ppc-visualage-6.0.html
 
 # FreeBSD ##############################################################
 process_results "FreeBSD 6.2" "x86" "gcc 3.4.4" \
-                "freebsd-6.2-x86-gcc-*-3.4.4-*-*-log.gz.txt" \
+                "freebsd-6.2-x86-gcc-3.4.4-*-*-log.gz.txt" \
                 freebsd-6.2-x86-gcc-3.4.4.html
 
 # HP-UX ################################################################
 process_results "HP-UX 11.31" "PA-RISC" "HP aCC 3.74" \
-                "hpux-11.31-pa-acc-*-3.74-*-*-log.gz.txt" \
+                "hpux-11.31-pa-acc-3.74-*-*-log.gz.txt" \
                 hpux-11.31-pa-acc-3.74.html
 
 process_results "HP-UX 11.31" "PA-RISC" "HP aCC 3.73" \
-                "hpux-11.31-pa-acc-*-3.73-*-*-log.gz.txt" \
+                "hpux-11.31-pa-acc-3.73-*-*-log.gz.txt" \
                 hpux-11.31-pa-acc-3.73.html
 
 process_results "HP-UX 11.23" "IPF" "HP aCC 6.13" \
-                "hpux-11.23-ia64-acc-64b-6.13-*-*-log.gz.txt" \
+                "hpux-11.23-ia64-acc-6.13-*-*-log.gz.txt" \
                 hpux-11.23-ia64-acc-6.13.html
 
 process_results "HP-UX 11.23" "IPF" "HP aCC 6.00" \
-                "hpux-11.23-ia64-acc-64b-6.00-*-*-log.gz.txt" \
+                "hpux-11.23-ia64-acc-6.00-*-*-log.gz.txt" \
                 hpux-11.23-ia64-acc-6.00.html
 
 process_results "HP-UX 11.23" "IPF" "HP aCC 5.57" \
-                "hpux-11.23-ia64-acc-64b-5.57-*-*-log.gz.txt" \
+                "hpux-11.23-ia64-acc-5.57-*-*-log.gz.txt" \
                 hpux-11.23-ia64-acc-5.57.html
 
 process_results "HP-UX 11.23" "PA-RISC" "HP aCC 3.73" \
-                "hpux-11.23-pa-acc-*-3.73-*-*-log.gz.txt" \
+                "hpux-11.23-pa-acc-3.73-*-*-log.gz.txt" \
                 hpux-11.23-pa-acc-3.73.html
 
 process_results "HP-UX 11.23" "PA-RISC" "HP aCC 3.63" \
-                "hpux-11.23-pa-acc-*-3.63-*-*-log.gz.txt" \
+                "hpux-11.23-pa-acc-3.63-*-*-log.gz.txt" \
                 hpux-11.23-pa-acc-3.63.html
 
 process_results "HP-UX 11.11" "PA-RISC" "HP aCC 3.73" \
-                "hpux-11.11-pa-acc-*-3.73-*-*-log.gz.txt" \
+                "hpux-11.11-pa-acc-3.73-*-*-log.gz.txt" \
                 hpux-11.11-pa-acc-3.73.html
 
 process_results "HP-UX 11.11" "PA-RISC" "HP aCC 3.63" \
-                "hpux-11.11-pa-acc-*-3.63-*-*-log.gz.txt" \
+                "hpux-11.11-pa-acc-3.63-*-*-log.gz.txt" \
                 hpux-11.11-pa-acc-3.63.html
 
 # IRIX #################################################################
 process_results "IRIX 6.5.16" "MIPS" "SGI MIPSpro 7.41" \
-                "irix-6.5.16-mips-mipspro-*-7.41-*-*-log.gz.txt" \
+                "irix-6.5.16-mips-mipspro-7.41-*-*-log.gz.txt" \
                 irix-6.5.16-mips-mipspro-7.41.htm
 
 # Red Hat Linux ########################################################
 process_results "Red Hat EL 5.0" "EM64T" "gcc 4.1.1" \
-                "linux_redhat_el-5.0-em64t-gcc-*-4.1.1-*-*-log.gz.txt" \
+                "linux_redhat_el-5.0-em64t-gcc-4.1.1-*-*-log.gz.txt" \
                 linux_redhat_el-5.0-em64t-gcc-4.1.1.html
 
 process_results "Red Hat AS 4 Update 4" "AMD64" "gcc 3.4.4" \
-                "linux_redhat_el-4.4-amd64-gcc-*-3.4.4-*-*-log.gz.txt" \
+                "linux_redhat_el-4.4-amd64-gcc-3.4.4-*-*-log.gz.txt" \
                 linux_redhat_el-4.4-amd64-gcc-3.4.4.html
 
 process_results "Red Hat AS 4 Update 2" "AMD64" "gcc 3.4.6" \
-                "linux_redhat_el-4.4-amd64-gcc-*-3.4.6-*-*-log.gz.txt" \
+                "linux_redhat_el-4.4-amd64-gcc-3.4.6-*-*-log.gz.txt" \
                 linux_redhat_el-4.4-amd64-gcc-3.4.6.html
 
 process_results "Red Hat AS 4 Update 2" "IA64" "gcc 3.4.4" \
-                "linux_redhat_el-4.2-ia64-gcc-*-3.4.4-*-*-log.gz.txt" \
+                "linux_redhat_el-4.2-ia64-gcc-3.4.4-*-*-log.gz.txt" \
                 linux_redhat_el-4.2-ia64-gcc-3.4.4.html
 
 process_results "Red Hat AS 3 Update 8" "EM64T" "gcc 3.2.3" \
-                "linux_redhat_el-3.8-em64t-gcc-3.2.3-*-*-log.gz.txt \
-                 linux_redhat_el-3.8-em64t-gcc-64b-3.2.3-*-log.gz.txt" \
+                "linux_redhat_el-3.8-em64t-gcc-3.2.3-*-*-log.gz.txt" \
                 linux_redhat_el-3.8-em64t-gcc-3.2.3.html
 
 # Solaris ##############################################################
 process_results "Solaris 10" "SPARC" "gcc 4.1.1" \
-                "solaris-10-sparc-gcc-*-4.1.1-*-*-log.gz.txt" \
+                "solaris-10-sparc-gcc-4.1.1-*-*-log.gz.txt" \
                 solaris-10-sparc-gcc-4.1.1.html
 
 process_results "Solaris 10" "SPARC" "Sun C++ 5.9" \
-                "solaris-10-sparc-sunpro-*-5.9-*-*-log.gz.txt" \
+                "solaris-10-sparc-sunpro-5.9-*-*-log.gz.txt" \
                 solaris-10-sparc-sunpro-5.9.html
 
 process_results "Solaris 10" "SPARC" "Sun C++ 5.8" \
-                "solaris-10-sparc-sunpro-*-5.8-*-*-log.gz.txt" \
+                "solaris-10-sparc-sunpro-5.8-*-*-log.gz.txt" \
                 solaris-10-sparc-sunpro-5.8.html
 
 process_results "Solaris 10" "SPARC" "Sun C++ 5.7" \
-                "solaris-10-sparc-sunpro-*-5.7-*-*-log.gz.txt" \
+                "solaris-10-sparc-sunpro-5.7-*-*-log.gz.txt" \
                 solaris-10-sparc-sunpro-5.7.html
 
 process_results "Solaris 9" "SPARC" "Sun C++ 5.6" \
-                "solaris-9-sparc-sunpro-*-5.6-*-*-log.gz.txt" \
+                "solaris-9-sparc-sunpro-5.6-*-*-log.gz.txt" \
                 solaris-9-sparc-sunpro-5.6.html
 
 # process_results "Solaris 9" "SPARC" "Sun C++ 5.5" \
-#                 "solaris-9-sparc-sunpro-*-5.5-*-*-log.gz.txt" \
+#                 "solaris-9-sparc-sunpro-5.5-*-*-log.gz.txt" \
 #                 solaris-9-sparc-sunpro-5.5.html
 
 process_results "Solaris 9" "SPARC" "EDG eccp 3.9" \
-                "solaris-9-sparc-eccp-*-3.9-*-*-log.gz.txt" \
-                solaris-9-sparc-eccp--3.9.html
+                "solaris-9-sparc-eccp-3.9-*-*-log.gz.txt" \
+                solaris-9-sparc-eccp-3.9.html
 
 # process_results "Solaris 8" "SPARC" "Sun C++ 5.5" \
-#                 "solaris-8-sparc-sunpro-*-5.5-*-*-log.gz.txt" \
+#                 "solaris-8-sparc-sunpro-5.5-*-*-log.gz.txt" \
 #                 solaris-8-sparc-sunpro-5.5.html
 
 process_results "Solaris 8" "SPARC" "Sun C++ 5.3" \
-                "solaris-8-sparc-sunpro-*-5.3-*-*-log.gz.txt" \
+                "solaris-8-sparc-sunpro-5.3-*-*-log.gz.txt" \
                 solaris-8-sparc-sunpro-5.3.html
 
 # SuSE Linux ###########################################################
 process_results "SuSE ES 10.0" "x86" "gcc 4.1.0" \
-                "linux_suse-10.0-em64t-gcc-*-4.1.0-*-*-log.gz.txt" \
+                "linux_suse-10.0-em64t-gcc-4.1.0-*-*-log.gz.txt" \
                 linux_suse-10.0-em64t-gcc-4.1.0.html
 
 process_results "SuSE ES 9.1" "AMD64" "gcc 3.3.3" \
-                "linux_suse-9.1-amd64-gcc-3.3.3-43.28-*-*-log.gz.txt \
-                 linux_suse-9.1-amd64-gcc-64b-3.3.3-*-*-log.gz.txt" \
+                "linux_suse-9.1-amd64-gcc-3.3.3-43.28-*-*-log.gz.txt" \
                 linux_suse-9.1-amd64-gcc-3.3.3.html
 
 # CygWin ###############################################################
 process_results "CygWin/Windows XP" "x86" "gcc 3.4.4" \
-                "win_xp-2-x86-gcc-*-3.4.4-*-*-log.gz.txt" \
+                "win_xp-2-x86-gcc-3.4.4-*-*-log.gz.txt" \
                  win_xp-2-x86-gcc-3.4.4.html
+
+# Windows ##############################################################
+process_results "Windows Vista" "EM64T" "MSVC 8.0" \
+                "win_vista-0-em64t-msvc-8.0-*-*-log.gz.txt" \
+                 win_vista_0-em64t-msvc-8.0.html
+
+process_results "Windows Vista" "EM64T" "Intel C++ 10.0" \
+                "win_vista-0-em64t-icl-10.0-*-*-log.gz.txt" \
+                 win_vista_0-em64t-icl-10.0.html
+
+process_results "Windows XP, SP2" "x86" "MSVC 8.0" \
+                "win_xp-2-x86-msvc-8.0-*-*-log.gz.txt" \
+                 win_xp_2-x86-msvc-8.0.html
+
+process_results "Windows XP, SP2" "x86" "MSVC 7.1" \
+                "win_xp-2-x86-msvc-7.1-*-*-log.gz.txt" \
+                 win_xp_2-x86-msvc-7.1.html
+
+process_results "Windows XP, SP2" "x86" "Intel C++ 10.0" \
+                "win_xp-2-x86-icl-10.0-*-*-log.gz.txt" \
+                 win_xp_2-x86-icl-10.0.html
+
+process_results "Windows XP, SP2" "x86" "Intel C++ 9.1" \
+                "win_xp-2-x86-icl-9.1-*-*-log.gz.txt" \
+                 win_xp_2-x86-icl-9.1.html
+
+process_results "Windows XP, SP1" "EM64T" "MSVC 8.0" \
+                "win_xp-1-em64t-msvc-8.0-*-*-log.gz.txt" \
+                 win_xp_1-em64t-msvc-8.0.html
+
+process_results "Windows XP, SP1" "EM64T" "Intel C++ 10.0" \
+                "win_xp-1-em64t-icl-10.0-*-*-log.gz.txt" \
+                 win_xp_1-em64t-icl-10.0.html
+
+process_results "Windows 2003, SP1" "EM64T" "MSVC 8.0" \
+                "win_2003-1-em64t-msvc-8.0-*-*-log.gz.txt" \
+                 win_2003_1-em64t-msvc-8.0.html
+
+process_results "Windows 2003, SP1" "EM64T" "Intel C++ 10.0" \
+                "win_2003-1-em64t-icl-10.0-*-*-log.gz.txt" \
+                 win_2003_1-em64t-icl-10.0.html
+
+process_results "Windows 2000, SP4" "x86" "MSVC 7.1" \
+                "win_2000-4-x86-msvc-7.1-*-*-log.gz.txt" \
+                 win_2000_4-x86-msvc-7.1.html
+
+process_results "Windows 2000, SP4" "x86" "Intel C++ 9.1" \
+                "win_2000-4-x86-icl-9.1-*-*-log.gz.txt" \
+                 win_2000_4-x86-icl-9.1.html
 
 cat<<EOF
     </table>
