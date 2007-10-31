@@ -524,8 +524,8 @@ typedef void sig_handler_t (int);
 static void
 sig_handler (int)
 {
-    // restore the signal
-    signal (SIGCHLD, sig_handler);
+    // do not re-register for signal here. it causes
+    // a stack overflow problem on HP-UX and AIX.
 }
 
 }
@@ -545,12 +545,16 @@ rw_waitpid (rw_pid_t pid, int* result, int timeout/* = -1*/)
 
     if (0 < timeout && 0 == ret) {
         // process still active, wait
-        sig_handler_t* old_handler = signal (SIGCHLD, sig_handler);
 
         unsigned utimeout = unsigned (timeout);
 
         do {
+            sig_handler_t* old_handler = signal (SIGCHLD, sig_handler);
+
             utimeout = sleep (utimeout);
+
+            signal (SIGCHLD, old_handler);
+
             if (utimeout) {
                 // possible that the child has exited
                 ret = waitpid (pid, &status, WNOHANG);
@@ -575,8 +579,6 @@ rw_waitpid (rw_pid_t pid, int* result, int timeout/* = -1*/)
             }
         }
         while (false);
-
-        signal (SIGCHLD, old_handler);
     }
 
     if (ret == pid) {
