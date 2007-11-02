@@ -439,8 +439,11 @@ function build()
         if (buildOnly)
            break;
 
-        TimeEcho("Running examples...\n");
-        BuildProject(solutionBuild, ".stdcxx_runexamples");
+        if (0 >= resUtils)
+        {
+            TimeEcho("Running locales tests...");
+            BuildProject(solutionBuild, ".stdcxx_testlocales");
+        }   
 
         if (runTests)
         {
@@ -448,14 +451,8 @@ function build()
             BuildProject(solutionBuild, ".stdcxx_runtests");
         }
         
-        if (0 < resUtils)
-        {
-            retCode = 6;
-            break;
-        }   
-
-        TimeEcho("Running locales tests...");
-        BuildProject(solutionBuild, ".stdcxx_testlocales");
+        TimeEcho("Running examples...\n");
+        BuildProject(solutionBuild, ".stdcxx_runexamples");
     }
     while (false);
 
