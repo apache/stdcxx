@@ -10,3 +10,6 @@ Copyright (c) 1994-2007.
 
 This software contains code derived from the HP Standard Template Library,
 Copyright (c) 1994 Hewlett-Packard Company.
+
+This software contains PA-RISC assembly code,
+Copyright (c) 2002 Hewlett-Packard Company.
