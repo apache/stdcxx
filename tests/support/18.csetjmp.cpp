@@ -68,7 +68,9 @@ run_test (int, char**)
 #endif   // setjmp
 
     // verify that setjmp works
-    int arg = 1;
+    // using volatile to work around a gcc optimizer bug:
+    //   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=34024
+    volatile int arg = 1;
     int result;
 
     result = setjmp (env);
