@@ -22,13 +22,50 @@
 #
 ########################################################################
 
+# set program name (used in diagnostic messages)
+myname=`basename $0`
+
+# program to invoke to process detailed results
 CROSS=$HOME/bin/xbuildgen
 
-OUTDIR=$HOME/public_html/stdcxx/results
+# output directory
+outdir=$HOME/public_html/stdcxx/results
 
-cd $OUTDIR
+dryrun=0
+quiet=0
 
-cat<<EOF
+# process command line options
+while getopts "dqD:o:" opt_name; do
+    case $opt_name in
+        # options with no arguments
+
+        d)  # dry run (do not invoke xbuildgen)
+            dryrun=1
+            ;;
+
+        q) # quiet mode
+           quiet=1
+           ;;
+
+        # options with arguments
+
+        D)  # output directory
+            outdir=$OPTARG
+            ;;
+
+        o)  # argument is the name of output file (stdout by default)
+            outfile=$OPTARG
+            ;;
+
+     esac;
+done
+
+
+cd $outdir
+
+
+if [ $quiet -eq 0 ]; then
+    cat<<EOF
 <html>
   <body>
     <style type="text/css">
@@ -65,6 +102,9 @@ cat<<EOF
         <tbody>
 EOF
 
+fi   # [ $quiet -eq 0  ]
+
+
 process_results ()
 {
     osname="$1"
@@ -73,7 +113,8 @@ process_results ()
     alllogs="$4"
     outfile="$5"
 
-    cat<<EOF
+    if [ $quiet -eq 0 ]; then
+        cat<<EOF
           <tr>
             <td>$osname</td>
             <td>$arch</td>
@@ -82,6 +123,7 @@ process_results ()
           </tr>
 
 EOF
+    fi   # [ quiet -eq 0 ]
 
     # build types:
     #    8: not reentrant, optimized, no debugging info
@@ -96,16 +138,30 @@ EOF
     suffixes="a A d D s S"
 
     unset buildlogs
+    count=0
 
     for b in $btypes; do
         for s in $suffixes; do
+
             log=`echo $alllogs | tr ' ' '\n' | grep "[-]$b$s-" \
                                | sort | tail -n 1`
-            buildlogs="$buildlogs $log"
+
+            if [ "$log" != "" ]; then
+                buildlogs="$buildlogs $log"
+                count=`expr $count + 1`
+            fi
         done
     done
 
-    $CROSS -o$OUTDIR/$outfile $buildlogs
+    if [ "$buildlogs" = "" ]; then
+        echo "$myname: no logs for $compiler on $osname/$arch." >&2
+    else
+        if [ $dryrun -eq 1 ]; then
+            echo "$myname: $CROSS -o$outdir/$outfile $buildlogs   # $count logs"
+        else
+            $CROSS -o$outdir/$outfile $buildlogs
+        fi
+    fi
 }
 
 # AIX ##################################################################
@@ -118,12 +174,12 @@ process_results "AIX 5.3" "PowerPC" "IBM XLC++ 8.0" \
                 aix-5.3-ppc-vacpp-8.0.html
 
 process_results "AIX 5.3" "PowerPC" "IBM XLC++ 7.0" \
-                "aix-5.3-ppc-vacpp-7.0.0.0-*-*-log.gz.txt" \
+                "aix-5.3-ppc-vacpp-7.0-*-*-log.gz.txt" \
                 aix-5.3-ppc-vacpp-7.0.html
 
 process_results "AIX 5.2" "PowerPC" "IBM VisualAge C++ 6.0" \
-                "aix-5.2-ppc-visualage-6.0.0-*-*-log.gz.txt" \
-                aix-5.2-ppc-visualage-6.0.html
+                "aix-5.2-ppc-vacpp-6.0-*-*-log.gz.txt" \
+                aix-5.2-ppc-vacpp-6.0.html
 
 # FreeBSD ##############################################################
 process_results "FreeBSD 6.2" "x86" "gcc 3.4.4" \
@@ -168,9 +224,9 @@ process_results "HP-UX 11.11" "PA-RISC" "HP aCC 3.63" \
                 hpux-11.11-pa-acc-3.63.html
 
 # IRIX #################################################################
-process_results "IRIX 6.5.16" "MIPS" "SGI MIPSpro 7.41" \
-                "irix-6.5.16-mips-mipspro-7.41-*-*-log.gz.txt" \
-                irix-6.5.16-mips-mipspro-7.41.htm
+process_results "IRIX 6.5" "MIPS" "SGI MIPSpro 7.41" \
+                "irix-6.5-mips-mipspro-7.41-*-*-log.gz.txt" \
+                irix-6.5-mips-mipspro-7.41.htm
 
 # Red Hat Linux ########################################################
 process_results "Red Hat EL 5.0" "EM64T" "gcc 4.1.1" \
