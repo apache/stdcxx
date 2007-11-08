@@ -394,13 +394,15 @@ if [ $components_in_rows -ne 0 ]; then
     <table>
       <tr>
         <th><div title="">###</div></th>
-        <th>build type</th>
+        <th>build<br>type</th>
         <th>build date</th>
         <th>revision</th>
         <th>build log</th>
-        <th>library size<br>(bytes)</th>
-        <th>build size<br>(kB)</th>
-        <th>clean<br>(kb)</th>
+        <th>library<br>(bytes)</th>
+        <th>build<br>(kB)</th>
+        <th>clean<br>(kB)</th>
+        <th>errors</th>
+        <th>warnings</th>
       </tr>
       <tbody>
 EOF
@@ -489,6 +491,10 @@ for l in $gzlogs; do
         buildtype="(unknown)"
     fi
 
+    # count the number of errors and warnings in the build
+    errors=`grep -i error $txtlog | wc -l`
+    warnings=`grep -i warning $txtlog | wc -l`
+
     ###
     if [ $components_in_rows -ne 0 ]; then
         # when displaying one component (example, test, or locale) per row
@@ -514,6 +520,8 @@ for l in $gzlogs; do
         output "          <td>$libsize</td>"
         output "          <td>$fullbuildsize</td>"
         output "          <td>$cleanbuildsize</td>"
+        output "          <td>$errors</td>"
+        output "          <td>$warnings</td>"
         output "      </tr>"
     fi
 
