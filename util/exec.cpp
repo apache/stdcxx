@@ -64,6 +64,9 @@
 #  ifndef STATUS_INVALID_PARAMETER
 #    define STATUS_INVALID_PARAMETER          ((DWORD)0xC000000DL)
 #  endif
+#  ifndef STATUS_HEAP_CORRUPTION
+#    define STATUS_HEAP_CORRUPTION            ((DWORD)0xC0000374L)
+#  endif
 #  ifndef STATUS_STACK_BUFFER_OVERRUN
 #    define STATUS_STACK_BUFFER_OVERRUN       ((DWORD)0xC0000409L)
 #  endif
@@ -906,6 +909,7 @@ static const struct {
     { STATUS_BREAKPOINT,                 SIGTRAP   },
     { STATUS_ACCESS_VIOLATION,           SIGSEGV   },
     { STATUS_STACK_OVERFLOW,             SIGSEGV   },
+    { STATUS_HEAP_CORRUPTION,            SIGSEGV   },
     { STATUS_STACK_BUFFER_OVERRUN,       SIGSEGV   },
     { STATUS_IN_PAGE_ERROR,              SIGBUS    },
     { STATUS_ILLEGAL_INSTRUCTION,        SIGILL    },
