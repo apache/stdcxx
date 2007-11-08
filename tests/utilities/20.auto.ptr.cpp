@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2000-2006 Rogue Wave Software.
+ * Copyright 2000-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -290,7 +290,13 @@ test_auto_ptr_void ()
 
 #ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
+#  if !defined (__HP_aCC) || 6 <=  _RWSTD_HP_aCC_MAJOR
+
+    // working around an HP aCC 3 and 5 bug (STDCXX-655)
+
     ap1.operator=<void>(ap1);
+
+#  endif   // !HP aCC or HP aCC 6 and better
 
     std::auto_ptr<int> ap4;
     ap1 = ap4;
@@ -312,12 +318,17 @@ test_auto_ptr_void ()
 
 #ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
+#  if !defined (__HP_aCC) || 6 <=  _RWSTD_HP_aCC_MAJOR
+
+    // working around an HP aCC 3 and 5 bug (STDCXX-656)
+
     const std::auto_ptr_ref<void> ar = ap1.operator std::auto_ptr_ref<void>();
     const std::auto_ptr<void> ap5 = ap1.operator std::auto_ptr<void>();
 
     _RWSTD_UNUSED (ar);
     _RWSTD_UNUSED (ap5);
 
+#  endif   // !HP aCC or HP aCC 6 and better
 #endif // _RWSTD_NO_MEMBER_TEMPLATES
 
 }
