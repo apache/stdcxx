@@ -348,7 +348,7 @@ cat <<EOF | output
   <body>
 
     <h1>Multi-platform Test Result View</h1>
-    Generated `date`
+    Generated `date` on `hostname` running `uname -sr`
     <hr>
 
     <h2>Index</h2>
@@ -398,6 +398,9 @@ if [ $components_in_rows -ne 0 ]; then
         <th>build date</th>
         <th>revision</th>
         <th>build log</th>
+        <th>library size<br>(bytes)</th>
+        <th>build size<br>(kB)</th>
+        <th>clean<br>(kb)</th>
       </tr>
       <tbody>
 EOF
@@ -449,6 +452,27 @@ for l in $gzlogs; do
     # strip the year from the date
     date=${date% [1-9][0-9][0-9][0-9]}
 
+    # extract the size of the library binary from the build log
+    # being careful to avoid the symlink (in the case of a .so)
+    libsize=`awk '/build\/lib\/libstd[^ ]*\$/{ print $5 }' $txtlog`
+    if [ $? -ne 0 ]; then
+        echo "$myname: warning: unable to extract library size from $l" >&2
+        libsize="(unknown)"
+    fi
+
+    # extract the size of the whole build, both before and after
+    # it's been cleaned
+    buildsizes=`  sed -n '/^### du -sk .\/build\/ .\/build\/\*/{n;p;}' \
+                      $txtlog | sed 's/ *\([1-9][0-9]*\).*/\1/'`
+    if [ $? -ne 0 ]; then
+        echo "$myname: warning: unable to extract build size from $l" >&2
+        fullbuildsize="(unknown)"
+        cleanbuildsize="(unknown)"
+    else
+        fullbuildsize=${buildsizes%%[^0-9]*}
+        cleanbuildsize=${buildsizes#[0-9]*[^0-9]}
+    fi
+
     # extract the source repository revision number the build
     # corresponds to from the name of the log
     revno=`echo $l | sed "s/.*-\([1-9][0-9]*\)-log.*/\1/"`
@@ -487,6 +511,9 @@ for l in $gzlogs; do
                            "<a href=$viewvc?view=rev&rev=$revno>$revno</a>" \
                           "</td>"
         output "          <td><a href=\"$logdir/$fname\">$fname</a></td>"
+        output "          <td>$libsize</td>"
+        output "          <td>$fullbuildsize</td>"
+        output "          <td>$cleanbuildsize</td>"
         output "      </tr>"
     fi
 
