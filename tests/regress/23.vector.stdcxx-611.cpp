@@ -35,7 +35,7 @@ struct S
 
 void test ()
 {
-    const S s [3];
+    const S s [3] = { S (), S (), S () };
 
     std::vector<S> v;
 
@@ -64,11 +64,9 @@ void test ()
     std::vector<S>().swap (v);
 }
 
-int main (int argc, char**)
-{
-    // this is just a compile test, it is not intended to run
-    if (1 < argc)
-        test ();
 
+int main ()
+{
+    // compile-time only test
     return 0;
 }
