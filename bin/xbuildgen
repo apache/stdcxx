@@ -64,6 +64,12 @@
 ########################################################################
 
 
+# set program name (used in diagnostic messages)
+myname=`basename $0`
+
+# URL to the ViewVC directory
+viewvc="http://svn.apache.org/viewvc"
+
 # by default, display one component (example, locale, or test) per row
 components_in_rows=1
 
@@ -108,7 +114,7 @@ while getopts ":nsv:e:l:o:t:" opt_name; do
             components_in_rows=0
             ;;
 
-        *) echo "unknown option : -$opt_name" >&2;
+        *) echo "$myname: unknown option : -$opt_name" >&2;
            exit 1;;
      esac;
 done
@@ -379,35 +385,114 @@ fi
 
 cat <<EOF | output
     <h2>Logs and Columns</h2>
-    <ol>
 EOF
+
+
+if [ $components_in_rows -ne 0 ]; then
+
+    cat <<EOF | output
+    <table>
+      <tr>
+        <th><div title="">###</div></th>
+        <th>build type</th>
+        <th>build date</th>
+        <th>revision</th>
+        <th>build log</th>
+      </tr>
+      <tbody>
+EOF
+
+fi
 
 ######################################################################
 # expand gzipped logs and extract the relevant portion from each into
-# a smaller text file for fast and easy processing
+# a smaller text file for fast and easy processing; the names of all
+# the text files are stored in the textlogs variable
 
+# number of logs processed in loop below
 n=0
+
+# space-separated list of names of text logs processed in loop below
+textlogs=""
+
 for l in $gzlogs; do
     n=`expr $n + 1`
     fname=`basename $l`
 
     if [ $verbose -eq 1 ]; then
-        echo "processing $l"
+        echo "$myname: processing $l"
     fi
 
-    if [ $components_in_rows -ne 0 ]; then
-        # output one component per row with their results in columns
-        table_header="$table_header <th><div title=\"$fname\">$n</div></th>"
-
-        output "      <li><a href=\"$logdir/$fname\">$fname</a></li>"
-    fi
-
-    # runlog=$TMP/.stdcxx-tmplog.$$.$n
+    # set temporary variables (valid only within the loop)
     runlog=$TMP/`basename $l`.$$
+    txtlog=$TMP/`basename $l`.txt.$$
+
+    # append the name of the log to the list
     textlogs="$textlogs $runlog"
 
-    # unzip the log and cut the firt part up to the first table
-    gunzip -c $l | sed -e "1,/^NAME  *STATUS/d" > $runlog
+    # unzip the log into a temporary text file
+    gunzip -c $l > $txtlog
+    if [ $? -ne 0 ]; then
+        echo "$myname: error unzipping $l" >&2
+        exit 1
+    fi
+
+    # extract the date and time the build started
+    # the date is expected to be introduced by a line like this:
+    #   ### date:
+    date=`sed -n "/^### date:$/{n;p;}" $txtlog`
+    if [ $? -ne 0 ]; then
+        echo "$myname: warning: unable to extract date from $l" >&2
+        date="(unknown)"
+    fi
+
+    # strip the year from the date
+    date=${date% [1-9][0-9][0-9][0-9]}
+
+    # extract the source repository revision number the build
+    # corresponds to from the name of the log
+    revno=`echo $l | sed "s/.*-\([1-9][0-9]*\)-log.*/\1/"`
+    if [ $? -ne 0 ]; then
+        echo "$myname: warning: unable to extract revision number from $l" >&2
+        revno="(unknown)"
+    fi
+
+    # extract the build type from the name of the log
+    buildtype=`  echo $l \
+               | sed "s/.*-\([18][125]*[aAdDsS]\)-[1-9][0-9]*-log.*/\1/"`
+    if [ $? -ne 0 ]; then
+        echo "$myname: warning: unable to extract build type from $l" >&2
+        buildtype="(unknown)"
+    fi
+
+    ###
+    if [ $components_in_rows -ne 0 ]; then
+        # when displaying one component (example, test, or locale) per row
+        # of the table, format the table header so as to include the build
+        # date, source repository revision number, and build type, and
+        # include the same information in the list of logs
+
+        table_header="$table_header <th><div title=\"$fname\">"
+        table_header="$table_header $n.</br>$buildtype</div></th>"
+
+        # retrieve the revision log
+        # revlog="`svn log -r $revno \
+        #              http://svn.apache.org/repos/asf/incubator/stdcxx`"
+
+        output "      <tr>"
+        output "          <td>$n</td>"
+        output "          <td>$buildtype</td>"
+        output "          <td>$date</td>"
+        output "          <td>" \
+                           "<a href=$viewvc?view=rev&rev=$revno>$revno</a>" \
+                          "</td>"
+        output "          <td><a href=\"$logdir/$fname\">$fname</a></td>"
+        output "      </tr>"
+    fi
+
+
+    # cut the first part up to the first table from the text log
+    sed -e "1,/^NAME  *STATUS/d" $txtlog > $runlog
 
     status=$?
 
@@ -422,7 +507,7 @@ for l in $gzlogs; do
         status=$?
 
         if [ $verbose -eq 1 ]; then
-            echo "  extracted locale results into $locales_file"
+            echo "$myname:  extracted locale results into $locales_file"
         fi
     else
         exit 3
@@ -440,7 +525,7 @@ for l in $gzlogs; do
         status=$?
 
         if [ $verbose -eq 1 ]; then
-            echo "  extracted test results into $tests_file"
+            echo "$myname:  extracted test results into $tests_file"
         fi
     else
         exit 3
@@ -456,19 +541,27 @@ for l in $gzlogs; do
         && mv $runlog.next.2 $runlog.next
 
         if [ $verbose -eq 1 ]; then
-            echo "  extracted example results into $examples_file"
+            echo "$myname:  extracted example results into $examples_file"
         fi
     else
         exit 3
     fi
 
     rm $runlog.next
+    rm $txtlog
 done
 
 
-n=0
-if [ $components_in_rows -eq 0 ]; then
+if [ $components_in_rows -ne 0 ]; then
 
+    output "      </tbody>"
+    output "    </table>"
+
+else
+
+    output "    <ol>"
+
+    n=0
     for c in $example_list $test_list $locale_list; do
         n=`expr $n + 1`
 
@@ -476,9 +569,10 @@ if [ $components_in_rows -eq 0 ]; then
         table_header="$table_header <th><div title=\"$c\">$n</div></th>"
         output "      <li>$c</li>"
     done
+
+    output "    </ol>"
 fi
 
-output "    </ol>"
 output "    <hr>"
 
 if [ -s $locales_file ]; then
@@ -651,8 +745,9 @@ process_components()
     component_name=$1
     component_list=$2
 
-    if [ $component_name = "test" ]; then
-        column3="        <th><div title=\"maximum total assertions\">asserts</div></th>"
+    if [ "$component_name" = "test" ]; then
+        column3="        <th><div title=\"maximum total assertions\">"
+        column3="$column3 asserts</div></th>"
     else
         unset column3
     fi
@@ -670,9 +765,15 @@ process_components()
       </tr>
 EOF
 
+    # iterate over the list of idividual components (examples, tests,
+    # or locales) invoking the awk script on each of them (i.e., each
+    # example, test, or locale) in every iteration of the loop
     n=0;
     for c in $component_list; do
 
+        # compute the sequential component number and pass it
+        # to the awk script to include it on the row it generates
+        # (if it generates one)
         n=`expr $n + 1`
 
           awk -f $awkscript \
@@ -973,9 +1074,11 @@ EOF
 
 if [ -z $no_clean ]; then
     # clean up
-    rm $awkscript $examples_file $tests_file $locales_file
 
-    for l in $textlogs; do
-        rm $l
-    done
+    if [ $verbose -eq 1 ]; then
+        echo "$myname: " \
+             "rm $awkscript $examples_file $tests_file $locales_file $textlogs"
+    fi
+
+    rm $awkscript $examples_file $tests_file $locales_file $textlogs
 fi
