@@ -233,9 +233,9 @@ process_results "Red Hat EL 5.0" "EM64T" "gcc 4.1.1" \
                 "linux_redhat_el-5.0-em64t-gcc-4.1.1-*-*-log.gz.txt" \
                 linux_redhat_el-5.0-em64t-gcc-4.1.1.html
 
-process_results "Red Hat AS 4 Update 4" "AMD64" "gcc 3.4.4" \
-                "linux_redhat_el-4.4-amd64-gcc-3.4.4-*-*-log.gz.txt" \
-                linux_redhat_el-4.4-amd64-gcc-3.4.4.html
+process_results "Red Hat AS 4 Update 4" "AMD64" "gcc 3.4.6" \
+                "linux_redhat_el-4.4-amd64-gcc-3.4.6-*-*-log.gz.txt" \
+                linux_redhat_el-4.4-amd64-gcc-3.4.6.html
 
 process_results "Red Hat AS 4 Update 2" "AMD64" "gcc 3.4.6" \
                 "linux_redhat_el-4.4-amd64-gcc-3.4.6-*-*-log.gz.txt" \
