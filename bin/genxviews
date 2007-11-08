@@ -34,6 +34,11 @@ outdir=$HOME/public_html/stdcxx/results
 dryrun=0
 quiet=0
 
+# start the clock measuring the amount of wall clock time to process
+# all logs and generate the page
+processing_time=`expr \( $(date +%M) \* 60 \) + $(date +%S)`
+
+
 # process command line options
 while getopts "dqD:o:" opt_name; do
     case $opt_name in
@@ -88,7 +93,7 @@ if [ $quiet -eq 0 ]; then
       }
     </style>
     <h1>Available Multi-platform Build Result Views</h1>
-    Generated `date`
+    Generated `date` on `hostname` running `uname -sr`
     <hr>
     <table>
       <thead>
@@ -97,6 +102,8 @@ if [ $quiet -eq 0 ]; then
           <th>Architecture</td>
           <th>Compiler</td>
           <th>Build Results</td>
+          <th>Logs</td>
+          <th>Time (sec)</td>
         </tr>
         </thead>
         <tbody>
@@ -120,8 +127,6 @@ process_results ()
             <td>$arch</td>
             <td>$compiler</td>
             <td><a href="$outfile">$outfile</a></td>
-          </tr>
-
 EOF
     fi   # [ quiet -eq 0 ]
 
@@ -153,6 +158,9 @@ EOF
         done
     done
 
+    # start the clock
+    duration=`expr \( $(date +%M) \* 60 \) + $(date +%S)`
+
     if [ "$buildlogs" = "" ]; then
         echo "$myname: no logs for $compiler on $osname/$arch." >&2
     else
@@ -162,6 +170,17 @@ EOF
             $CROSS -o$outdir/$outfile $buildlogs
         fi
     fi
+
+    # compute the number of seconds it took to process the logs
+    duration=`expr \( \( $(date +%M) \* 60 \) + $(date +%S) \) - $duration`
+
+    if [ $quiet -eq 0 ]; then
+        cat<<EOF
+            <td>$count</td>
+            <td>$duration</td>
+          </tr>
+EOF
+    fi   # [ quiet -eq 0 ]
 }
 
 # AIX ##################################################################
@@ -349,8 +368,15 @@ process_results "Windows 2000, SP4" "x86" "Intel C++ 9.1" \
                 "win_2000-4-x86-icl-9.1-*-*-log.gz.txt" \
                  win_2000_4-x86-icl-9.1.html
 
+
+# compute the number of seconds it took to process all logs
+processing_time=`expr \( \( $(date +%M) \* 60 \) + $(date +%S) \) \
+                      - $processing_time`
+
 cat<<EOF
     </table>
+    <hr>
+    <i>Generated in $processing_time seconds.</i>
   </body>
 </html>
 EOF
