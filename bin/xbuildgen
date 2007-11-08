@@ -483,8 +483,12 @@ for l in $gzlogs; do
         revno="(unknown)"
     fi
 
-    # extract the build type from the name of the log
+    # extract the build type from the name of the log, removing
+    # the name of thread library
     buildtype=`  echo $l \
+               | sed "s/\(.*-[18][125]*[aAdDsS]\)-dce-\(.*\)/\1-\2/" \
+               | sed "s/\(.*-[18][125]*[aAdDsS]\)-solaris-\(.*\)/\1-\2/" \
+               | sed "s/\(.*-[18][125]*[aAdDsS]\)-win32-\(.*\)/\1-\2/" \
                | sed "s/.*-\([18][125]*[aAdDsS]\)-[1-9][0-9]*-log.*/\1/"`
     if [ $? -ne 0 ]; then
         echo "$myname: warning: unable to extract build type from $l" >&2
