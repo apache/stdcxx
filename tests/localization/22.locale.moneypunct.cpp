@@ -339,7 +339,7 @@ check_moneypunct (const char *locname)
 {
     // (try to) set the global C locale
     char locnamebuf [256];
-    const char *loc = std::setlocale (LC_MONETARY, locname);
+    const char *loc = std::setlocale (LC_ALL, locname);
     if (!loc)
         return false;
 
@@ -369,7 +369,7 @@ check_moneypunct (const char *locname)
             return false;
 
         // reset to default locale given by LC_LANG
-        std::setlocale (LC_MONETARY, "");
+        std::setlocale (LC_ALL, "");
 
         // create a new C++ locale object
         loc_ = std::locale (locname);
