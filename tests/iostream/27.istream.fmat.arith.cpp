@@ -1025,8 +1025,8 @@ test_llong (CharT*, Traits*,
 {
     info (cname, tname, "long long");
 
-    test_extractor ((CharT*)0, (Traits*)0, (long*)0,
-                    cname, tname, "long", "%lli");
+    test_extractor ((CharT*)0, (Traits*)0, (long long*)0,
+                    cname, tname, "long long", "%lli");
 
 #define TEST_LLONG(ss, fl, is, ex, ee, es, ne, fw, iv, ev)   \
     TEST (long long, "%lli", ss, fl, is, ex, ee, es, ne, fw, iv, ev)
@@ -1082,10 +1082,10 @@ test_ullong (CharT*, Traits*,
     info (cname, tname, "unsigned long long");
 
     test_extractor ((CharT*)0, (Traits*)0, (unsigned long long*)0,
-                     cname, tname, "unsigned long long", "%llu");
+                    cname, tname, "unsigned long long", "%llu");
 
 #define TEST_ULLONG(ss, fl, is, ex, ee, es, ne, fw, iv, ev)   \
-    TEST (long long, "%llu", ss, fl, is, ex, ee, es, ne, fw, iv, ev)
+    TEST (unsigned long long, "%llu", ss, fl, is, ex, ee, es, ne, fw, iv, ev)
 
     LocaleData locale_data = { 0, -1, -1, 0, 0, 0 };
     locale_data.whitespace = "";
