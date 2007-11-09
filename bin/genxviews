@@ -36,7 +36,9 @@ quiet=0
 
 # start the clock measuring the amount of wall clock time to process
 # all logs and generate the page
-processing_time=`expr \( $(date +%M) \* 60 \) + $(date +%S)`
+processing_time=`expr   \( $(date +%H) \* 1440 \) \
+                      + \( $(date +%M) \* 60 \) \
+                      + $(date +%S)`
 
 
 # process command line options
@@ -172,7 +174,14 @@ EOF
     fi
 
     # compute the number of seconds it took to process the logs
-    duration=`expr \( \( $(date +%M) \* 60 \) + $(date +%S) \) - $duration`
+    end=`expr \( \( $(date +%M) \* 60 \) + $(date +%S) \)`
+
+    if [ $end -lt $duration ]; then
+        # adjust for overflow
+        end=`expr $end + 60`
+    fi
+
+    duration=`expr $end - $duration`
 
     if [ $quiet -eq 0 ]; then
         cat<<EOF
@@ -251,6 +260,10 @@ process_results "IRIX 6.5" "MIPS" "SGI MIPSpro 7.41" \
 process_results "Red Hat EL 5.0" "EM64T" "gcc 4.1.1" \
                 "linux_redhat_el-5.0-em64t-gcc-4.1.1-*-*-log.gz.txt" \
                 linux_redhat_el-5.0-em64t-gcc-4.1.1.html
+
+process_results "Red Hat EL 5.0" "EM64T" "EDG eccp 3.9" \
+                "linux_redhat_el-5.0-em64t-eccp-3.9-*-*-log.gz.txt" \
+                linux_redhat_el-5.0-em64t-eccp-3.9.html
 
 process_results "Red Hat AS 4 Update 4" "AMD64" "gcc 3.4.6" \
                 "linux_redhat_el-4.4-amd64-gcc-3.4.6-*-*-log.gz.txt" \
@@ -370,8 +383,16 @@ process_results "Windows 2000, SP4" "x86" "Intel C++ 9.1" \
 
 
 # compute the number of seconds it took to process all logs
-processing_time=`expr \( \( $(date +%M) \* 60 \) + $(date +%S) \) \
-                      - $processing_time`
+end_time=`expr   \( $(date +%H) \* 1440 \) \
+                      + \( $(date +%M) \* 60 \) \
+                      + $(date +%S)`
+
+if [ $end_time -lt $processing_time ]; then
+    # adjust for overflow
+    end_time=`expr $end_time + 1440`
+fi
+
+processing_time=`expr $end_time - $processing_time`
 
 cat<<EOF
     </table>
