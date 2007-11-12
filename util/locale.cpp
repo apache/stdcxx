@@ -39,7 +39,7 @@
 #  define LS_1       "ls -1 "
 #else
 #  define SLASH      "\\"
-#  define LS_1       "dir /B /A:D"
+#  define LS_1       "dir /B /A:D "
 #endif
 
 #ifndef _MSC_VER
