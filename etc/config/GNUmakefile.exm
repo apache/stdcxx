@@ -41,7 +41,7 @@ include ../makefile.common
 
 INCLUDES += -I$(EXMDIR)/include
 
-RUNFLAGS += -d $(EXMDIR) --ulimit=as:268435456
+RUNFLAGS += -d $(EXMDIR) --ulimit=as:536870912
 # No example should use more than 256MB of memory (Related to STDCXX-440).
 # The magic number 268435456 is 256MB in bytes.
 
