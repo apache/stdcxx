@@ -96,8 +96,11 @@
 #  else
 #    include <dce/pthread.h>
 #  endif
-#elif defined (_WIN32) || defined (_WIN32)
+#elif defined (_WIN32)
 #  include <windows.h>
+#  if defined (_MSC_VER) && 1400 <= _MSC_VER
+#    include <intrin.h>
+#  endif   // 1400 <= _MSC_VER
 #endif
 
 
