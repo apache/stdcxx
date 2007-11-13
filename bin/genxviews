@@ -100,12 +100,12 @@ if [ $quiet -eq 0 ]; then
     <table>
       <thead>
         <tr>
-          <th>OS</td>
+          <th>Operating System</td>
           <th>Architecture</td>
           <th>Compiler</td>
           <th>Build Results</td>
           <th>Logs</td>
-          <th>Time (sec)</td>
+          <th>Time<br>(sec)</td>
         </tr>
         </thead>
         <tbody>
@@ -257,27 +257,27 @@ process_results "IRIX 6.5" "MIPS" "SGI MIPSpro 7.41" \
                 irix-6.5-mips-mipspro-7.41.htm
 
 # Red Hat Linux ########################################################
-process_results "Red Hat EL 5.0" "EM64T" "gcc 4.1.1" \
+process_results "Red Hat Enterprise Linux 5.0" "EM64T" "gcc 4.1.1" \
                 "linux_redhat_el-5.0-em64t-gcc-4.1.1-*-*-log.gz.txt" \
                 linux_redhat_el-5.0-em64t-gcc-4.1.1.html
 
-process_results "Red Hat EL 5.0" "EM64T" "EDG eccp 3.9" \
+process_results "Red Hat Enterprise Linux 5.0" "EM64T" "EDG eccp 3.9" \
                 "linux_redhat_el-5.0-em64t-eccp-3.9-*-*-log.gz.txt" \
                 linux_redhat_el-5.0-em64t-eccp-3.9.html
 
-process_results "Red Hat AS 4 Update 4" "AMD64" "gcc 3.4.6" \
+process_results "Red Hat Enterprise Linux 4 Update 4" "AMD64" "gcc 3.4.6" \
                 "linux_redhat_el-4.4-amd64-gcc-3.4.6-*-*-log.gz.txt" \
                 linux_redhat_el-4.4-amd64-gcc-3.4.6.html
 
-process_results "Red Hat AS 4 Update 2" "AMD64" "gcc 3.4.6" \
+process_results "Red Hat Enterprise Linux 4 Update 2" "AMD64" "gcc 3.4.6" \
                 "linux_redhat_el-4.4-amd64-gcc-3.4.6-*-*-log.gz.txt" \
                 linux_redhat_el-4.4-amd64-gcc-3.4.6.html
 
-process_results "Red Hat AS 4 Update 2" "IA64" "gcc 3.4.4" \
+process_results "Red Hat Enterprise Linux 4 Update 2" "IA64" "gcc 3.4.4" \
                 "linux_redhat_el-4.2-ia64-gcc-3.4.4-*-*-log.gz.txt" \
                 linux_redhat_el-4.2-ia64-gcc-3.4.4.html
 
-process_results "Red Hat AS 3 Update 8" "EM64T" "gcc 3.2.3" \
+process_results "Red Hat Enterprise Linux 3 Update 8" "EM64T" "gcc 3.2.3" \
                 "linux_redhat_el-3.8-em64t-gcc-3.2.3-*-*-log.gz.txt" \
                 linux_redhat_el-3.8-em64t-gcc-3.2.3.html
 
@@ -319,11 +319,11 @@ process_results "Solaris 8" "SPARC" "Sun C++ 5.3" \
                 solaris-8-sparc-sunpro-5.3.html
 
 # SuSE Linux ###########################################################
-process_results "SuSE ES 10.0" "x86" "gcc 4.1.0" \
+process_results "SuSE Enterprise Server 10.0" "x86" "gcc 4.1.0" \
                 "linux_suse-10.0-em64t-gcc-4.1.0-*-*-log.gz.txt" \
                 linux_suse-10.0-em64t-gcc-4.1.0.html
 
-process_results "SuSE ES 9.1" "AMD64" "gcc 3.3.3" \
+process_results "SuSE Enterprise Server 9.1" "AMD64" "gcc 3.3.3" \
                 "linux_suse-9.1-amd64-gcc-3.3.3-43.28-*-*-log.gz.txt" \
                 linux_suse-9.1-amd64-gcc-3.3.3.html
 
