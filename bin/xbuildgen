@@ -20,7 +20,7 @@
 #  implied.   See  the License  for  the  specific language  governing
 #  permissions and limitations under the License.
 #
-#  Copyright 2007 Rogue Wave Software.
+#  Copyright 2007 Rogue Wave Software, Inc.
 #
 ########################################################################
 #
@@ -69,6 +69,9 @@ myname=`basename $0`
 
 # URL to the ViewVC directory
 viewvc="http://svn.apache.org/viewvc"
+
+# URL to the revision number (use: "$revurl=$revno")
+revurl="$viewvc?view=rev&rev"
 
 # by default, display one component (example, locale, or test) per row
 components_in_rows=1
@@ -517,9 +520,7 @@ for l in $gzlogs; do
         output "          <td>$n</td>"
         output "          <td>$buildtype</td>"
         output "          <td>$date</td>"
-        output "          <td>" \
-                           "<a href=$viewvc?view=rev&rev=$revno>$revno</a>" \
-                          "</td>"
+        output "          <td><a href=$revurl=$revno>$revno</a></td>"
         output "          <td><a href=\"$logdir/$fname\">$fname</a></td>"
         output "          <td>$libsize</td>"
         output "          <td>$fullbuildsize</td>"
@@ -934,6 +935,13 @@ cat <<EOF | output
             </td>
           </tr>
           <tr>
+            <td class="FORMAT">FORMAT</td>
+            <td class="na">
+               Component completed successfully but produced unexpected
+               output.
+            </td>
+          </tr>
+          <tr>
             <td class="missing">N/A</td>
             <td class="na">Component was not tested.</td>
           </tr>
@@ -992,7 +1000,7 @@ cat <<EOF | output
             <td class="assert">(N)</td>
             <td class="na">
               Component compiled and linked successfully, exited with
-              a status of 0, but failed Nassertions at runtime.
+              a status of 0, but failed N assertions at runtime.
             </td>
           </tr>
       </tbody>
