@@ -11,46 +11,46 @@ pumping queue with event 14
 pumping queue with event 17
 Time: 0 group of 2 customers arrives is seated
 Time: 0 group of 4 customers arrives is seated
-Time: 3 serviced order for 3
+Time: 2 group of 3 customers arrives is seated
 Time: 3 serviced order for 4
 Time: 3 serviced order for 1
 Time: 3 serviced order for 1
-Time: 10 group of size 4 leaves
-Time: 2 group of 3 customers arrives is seated
-Time: 5 serviced order for 4
+Time: 3 serviced order for 3
+Time: 4 serviced order for 4
+Time: 4 serviced order for 1
+Time: 4 group of size 4 leaves
+Time: 5 serviced order for 2
 Time: 5 serviced order for 1
 Time: 5 serviced order for 3
-Time: 13 group of size 3 leaves
 Time: 7 group of 1 customers arrives is seated
-Time: 8 serviced order for 3
-Time: 10 group of size 1 leaves
+Time: 7 group of size 2 leaves
+Time: 7 group of size 3 leaves
 Time: 8 group of 3 customers arrives is seated
-Time: 11 serviced order for 4
-Time: 11 serviced order for 3
-Time: 11 serviced order for 1
-Time: 19 group of size 3 leaves
-Time: 12 group of 3 customers arrives is seated
-Time: 16 serviced order for 2
-Time: 16 serviced order for 2
-Time: 16 serviced order for 4
-Time: 25 group of size 3 leaves
+Time: 10 serviced order for 3
 Time: 12 group of 2 customers arrives is seated
-Time: 15 serviced order for 3
-Time: 15 serviced order for 4
-Time: 22 group of size 2 leaves
+Time: 12 group of 3 customers arrives is seated
+Time: 12 serviced order for 2
+Time: 12 serviced order for 2
+Time: 12 serviced order for 4
 Time: 12 group of 1 customers arrives is seated
-Time: 15 serviced order for 4
-Time: 18 group of size 1 leaves
+Time: 14 serviced order for 3
+Time: 14 serviced order for 4
 Time: 14 group of 2 customers arrives is seated
-Time: 15 serviced order for 3
-Time: 15 serviced order for 2
-Time: 20 group of size 2 leaves
+Time: 15 serviced order for 4
+Time: 16 serviced order for 1
+Time: 16 serviced order for 3
+Time: 16 serviced order for 2
+Time: 17 serviced order for 2
+Time: 17 serviced order for 2
 Time: 17 group of 2 customers arrives is seated
-Time: 19 serviced order for 2
-Time: 19 serviced order for 3
-Time: 29 group of size 2 leaves
-Time: 4 serviced order for 3
-Time: 4 serviced order for 4
-Time: 10 group of size 2 leaves
-Total profits 22.4
+Time: 18 group of size 1 leaves
+Time: 19 group of size 1 leaves
+Time: 21 group of size 2 leaves
+Time: 21 group of size 3 leaves
+Time: 21 group of size 3 leaves
+Time: 21 serviced order for 3
+Time: 21 serviced order for 4
+Time: 24 group of size 2 leaves
+Time: 27 group of size 2 leaves
+Total profits 20.65
 End of ice cream store simulation
