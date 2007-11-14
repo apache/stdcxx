@@ -51,8 +51,8 @@ public:
 <P>Since comparison of pointers cannot be specialized on the basis of the pointer types, we must instead define a new comparison function for pointers to events. In the C++ Standard Library we do this by defining a new structure whose sole purpose is to define the function invocation <SAMP>operator()()</SAMP> in the appropriate fashion.   Since in this particular example we want to use the <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B> to return the smallest element each time, rather than the largest, the order of the comparison is reversed, as follows:</P>
 
 <UL><PRE>
-struct eventComparison {
-  bool operator () (const event * left, const event * right) {
+struct eventComparator {
+  bool operator() (const event * left, const event * right) {
     return left-&gt;time &gt; right-&gt;time;
   }
 };
@@ -74,9 +74,8 @@ public:
   unsigned int time;
 protected:
   std::priority_queue&lt;event*,
-                      std::vector&lt;event *,
-                                  std::allocator&lt;event*&gt; &gt;,
-                      eventComparison&gt; eventQueue;
+                      std::vector&lt;event *, std::allocator&lt;event*&gt; &gt;,
+                      eventComparator&gt; eventQueue;
 };
 </PRE></UL>
 <P>Notice the declaration of the <B><I><A HREF="../stdlibref/priority-queue.html">priority_queue</A></I></B> used to hold the pending <B><I>event</I></B>s. In this case we are using a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> as the underlying container, but we could just as easily have used a <B><I><A HREF="../stdlibref/deque.html">deque</A></I></B>. </P>
@@ -104,8 +103,8 @@ void simulation::run () {
 <UL><PRE>
 class storeSimulation : public simulation {
 public:
-  storeSimulation () : simulation (),
-                       freeChairs (35), profit (0.0) { }
+  storeSimulation () : simulation (), freeChairs (35), profit (0.0)
+    { }
   bool canSeat (unsigned int numberOfPeople);
   void order   (unsigned int numberOfScoops);
   void leave   (unsigned int numberOfPeople);
@@ -121,16 +120,15 @@ public:
 bool storeSimulation::canSeat (unsigned int numberOfPeople) {
     
   std::cout &lt;&lt; "Time: " &lt;&lt; time;
-  std::cout &lt;&lt; " group of " &lt;&lt; numberOfPeople
-            &lt;&lt; " customers arrives";
+  std::cout &lt;&lt; " group of " &lt;&lt; numberOfPeople &lt;&lt; " customers arrives";
 
   if (numberOfPeople &lt; freeChairs) {
-    std::cout &lt;&lt; " is seated" &lt;&lt; std::endl;
+    std::cout &lt;&lt; " is seated\n";
     freeChairs -= numberOfPeople;
     return true;
   }
   else {
-    std::cout &lt;&lt; " no room, they leave" &lt;&lt; std::endl;
+    std::cout &lt;&lt; " no room, they leave\n";
     return false;
   }
 }
@@ -138,17 +136,16 @@ bool storeSimulation::canSeat (unsigned int numberOfPeople) {
 void storeSimulation::order (unsigned int numberOfScoops) {
     
   std::cout &lt;&lt; "Time: " &lt;&lt; time &lt;&lt; " serviced order for "
-            &lt;&lt; numberOfScoops &lt;&lt; std::endl;
+            &lt;&lt; numberOfScoops &lt;&lt; '\n';
   profit += 0.35 * numberOfScoops;
 }
 
 void storeSimulation::leave (unsigned int numberOfPeople) {
     
   std::cout &lt;&lt; "Time: " &lt;&lt; time &lt;&lt; " group of size "
-            &lt;&lt; numberOfPeople &lt;&lt; " leaves" &lt;&lt; std::endl;
+            &lt;&lt; numberOfPeople &lt;&lt; " leaves\n";
   freeChairs += numberOfPeople;
 }
-
 </PRE></UL>
 <A NAME="idx217"><!></A>
 <P>As we noted already, each activity is matched by a subclass of <B><I>event</I></B>.  Each subclass of <B><I>event</I></B> includes an integer data member, which represents the size of a group of customers. The arrival event occurs when a group enters. When executed, the arrival event creates and installs a new instance of the order event. The function <SAMP>randomInteger()</SAMP> is used to compute a random integer between 1 and the argument value (see <A HREF="2-2.html#225">Section&nbsp;2.2.5</A>).</P>
@@ -165,6 +162,7 @@ private:
 };
 
 void arriveEvent::processEvent () {
+
   if (theSimulation.canSeat (size))
     theSimulation.scheduleEvent
       (new orderEvent (time + 1 + irand (4), size));
@@ -210,6 +208,7 @@ private:
 };
 
 void leaveEvent::processEvent () {
+
   theSimulation.leave (size);
 }
 </PRE></UL>
@@ -218,24 +217,20 @@ void leaveEvent::processEvent () {
 <UL><PRE>
 int main () {
 
-  std::cout &lt;&lt; "Ice Cream Store simulation from Chapter 9"
-            &lt;&lt; std::endl;
+  std::cout &lt;&lt; "Ice Cream Store simulation from Chapter 9\n";
 
   // Load queue with some number of initial events.
-  unsigned int t = 0;
-  while (t &lt; 20) {
-    t += irand (6);
-    std::cout &lt;&lt; "pumping queue with event " &lt;&lt; t &lt;&lt; std::endl;
-    theSimulation.scheduleEvent
-      (new arriveEvent (t, 1 + irand (4)));
+  for (unsigned t = 0; t &lt; 20; t += irand (6)) {
+
+    std::cout &lt;&lt; "pumping queue with event " &lt;&lt; t &lt;&lt; '\n';
+    theSimulation.scheduleEvent (new arriveEvent (t, 1 + irand (4)));
   }
 
   // Run the simulation.
   theSimulation.run ();
 
-  std::cout &lt;&lt; "Total profits "
-            &lt;&lt; theSimulation.profit &lt;&lt; std::endl
-            &lt;&lt; "End of ice cream store simulation" &lt;&lt; std::endl;
+  std::cout &lt;&lt; "Total profits " &lt;&lt; theSimulation.profit
+            &lt;&lt; "\nEnd of ice cream store simulation\n";
 
   return 0;
 }
