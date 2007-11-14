@@ -41,16 +41,17 @@ public:
     event (unsigned int t) : time (t)
         { }
 
-    // Execute event my invoking this method.
+    // Execute event by invoking this method.
     virtual void processEvent () = 0;
-    bool operator> ( const event* evt_ ) {
-        return time > evt_->time;
-    }
 
     const unsigned int time;
 };
 
-typedef std::greater<event*> eventComparator;
+struct eventComparator {
+    bool operator() (const event * left, const event * right) {
+        return left->time > right->time;
+    }
+};
 
 
 // Framework for discrete event-driven simulations.
@@ -66,14 +67,14 @@ public:
 protected:
     std::priority_queue<event*,
                         std::vector<event *, std::allocator<event*> >,
-                        eventComparator > eventQueue;
+                        eventComparator> eventQueue;
 };
 
 
 void simulation::run () {
-    
+
     while (! eventQueue.empty ()) {
-        
+
         event * nextEvent = eventQueue.top ();
         eventQueue.pop ();
         time = nextEvent->time;
@@ -147,7 +148,7 @@ int irand (int n)
 
 
 void arriveEvent::processEvent () {
-    
+
     if (theSimulation.canSeat (size))
         theSimulation.scheduleEvent
             (new orderEvent (time + 1 + irand (4), size));
@@ -155,7 +156,7 @@ void arriveEvent::processEvent () {
 
 
 void orderEvent::processEvent () {
-    
+
     // Each person orders some number of scoops.
     for (unsigned int i = 0; i < size; i++)
         theSimulation.order (1 + irand (4));
@@ -174,7 +175,7 @@ void leaveEvent::processEvent () {
 
 // If sufficient room then seat customers.
 bool storeSimulation::canSeat (unsigned int numberOfPeople) {
-    
+
     std::cout << "Time: " << time;
     std::cout << " group of " << numberOfPeople << " customers arrives";
 
@@ -192,7 +193,7 @@ bool storeSimulation::canSeat (unsigned int numberOfPeople) {
 
 // Service icecream, compute profits.
 void storeSimulation::order (unsigned int numberOfScoops) {
-    
+
     std::cout << "Time: " << time << " serviced order for "
               << numberOfScoops << '\n';
     profit += 0.35 * numberOfScoops;
@@ -201,7 +202,7 @@ void storeSimulation::order (unsigned int numberOfScoops) {
 
 // People leave, free up chairs.
 void storeSimulation::leave (unsigned int numberOfPeople) {
-    
+
     std::cout << "Time: " << time << " group of size "
               << numberOfPeople << " leaves\n";
     freeChairs += numberOfPeople;
@@ -209,7 +210,7 @@ void storeSimulation::leave (unsigned int numberOfPeople) {
 
 
 int main () {
-    
+
     std::cout << "Ice Cream Store simulation from Chapter 9\n";
 
     // Load queue with some number of initial events.
