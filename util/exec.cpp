@@ -783,14 +783,11 @@ static void
 calculate_usage (struct target_status* result, const clock_t h_clk, 
                  const struct tms* const h_tms)
 {
-    static clock_t wall, user, sys;
     struct tms c_tms;
     clock_t c_clk;
 
     assert (0 != result);
     assert (0 != h_tms);
-
-    wall = user = sys = 0;
 
     c_clk = times (&c_tms);
 
@@ -800,14 +797,9 @@ calculate_usage (struct target_status* result, const clock_t h_clk,
     }
 
     /* time calculations */
-    wall = c_clk - h_clk;
-    user = c_tms.tms_cutime - h_tms->tms_cutime;
-    sys = c_tms.tms_cstime - h_tms->tms_cstime;
-
-    /* Tag result as having run */
-    result->wall = &wall;
-    result->user = &user;
-    result->sys = &sys;
+    result->wall_time = c_clk - h_clk;
+    result->usr_time  = c_tms.tms_cutime - h_tms->tms_cutime;
+    result->sys_time  = c_tms.tms_cstime - h_tms->tms_cstime;
 }
 
 void exec_file (const struct target_opts* options, struct target_status* result)
@@ -1077,7 +1069,6 @@ void exec_file (const struct target_opts* options, struct target_status* result)
           {sizeof (SECURITY_ATTRIBUTES), NULL, TRUE};
     DWORD real_timeout, wait_code;
     FILETIME start, end;
-    static clock_t wall;
 
     assert (0 != options);
     assert (0 != options->argv);
@@ -1215,23 +1206,18 @@ void exec_file (const struct target_opts* options, struct target_status* result)
 
 #if _WIN32_WINNT >= 0x0500
     FILETIME stime, utime;
-    static clock_t user, sys;
-    if (GetProcessTimes (child.hProcess, &start, &end, &stime, &utime)) {
-        user = clock_t (fttoull (utime) / UNITS_PER_CLOCK);
-        sys  = clock_t (fttoull (stime) / UNITS_PER_CLOCK);
 
-        /* Link the delta */
-        result->user = &user;
-        result->sys  = &sys;
+    if (GetProcessTimes (child.hProcess, &start, &end, &stime, &utime)) {
+        result->usr_time = clock_t (fttoull (utime) / UNITS_PER_CLOCK);
+        result->sys_time = clock_t (fttoull (stime) / UNITS_PER_CLOCK);
     }
     else
         warn_last_error ("Getting child process times");
 #endif  // _WIN32_WINNT >= 0x0500
 
-    wall = clock_t ((fttoull (end) - fttoull (start)) / UNITS_PER_CLOCK);
+    result->wall_time =
+        clock_t ((fttoull (end) - fttoull (start)) / UNITS_PER_CLOCK);
 
-    /* Link the delta */
-    result->wall = &wall;
 
     if (0 == GetExitCodeProcess (child.hProcess, (LPDWORD)&result->exit)) {
         warn_last_error ("Retrieving child process exit code");

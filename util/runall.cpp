@@ -468,6 +468,16 @@ run_target (struct target_status     *summary,
         if (0 == results.signaled && results.exit)
             ++summary->exit;
 
+        /* add cumulative times (when valid) */
+        if (results.usr_time != (clock_t)-1)
+            summary->usr_time += results.usr_time;
+
+        if (results.sys_time != (clock_t)-1)
+            summary->sys_time += results.sys_time;
+
+        if (results.wall_time != (clock_t)-1)
+            summary->wall_time += results.wall_time;
+
         summary->signaled += results.signaled;
         summary->c_warn   += results.c_warn;
         summary->l_warn   += results.l_warn;
@@ -533,7 +543,10 @@ main (int argc, char *argv [])
         set_output_format (FMT_PLAIN);
 
     if (0 < argc) {
+        struct target_status summary;
+
         int i;
+
         target_template.argv = split_opt_string (exe_opts);
 
         assert (0 != target_template.argv);
@@ -541,7 +554,6 @@ main (int argc, char *argv [])
         /* print out the program's argv array in verbose mode */
         print_header (target_template.verbose ? saved_argv : 0);
 
-        struct target_status summary;
         memset (&summary, 0, sizeof summary);
 
         /* number of program's executed */

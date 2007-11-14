@@ -121,9 +121,9 @@ struct target_status {
     int signaled; /**< 1 if exit is a signal number, 0 denoting exit code 
                      otherwise */
     enum ProcessStatus status; /**< Textual process status. */
-    const clock_t* user; /**< Elapsed user time spent in execution. */
-    const clock_t* sys; /**< Elapsed system time spent in execution. */
-    const clock_t* wall; /**< Wall clock time spent in execution. */
+    clock_t  usr_time;  /**< Elapsed user time spent in execution. */
+    clock_t  sys_time;  /**< Elapsed system time spent in execution. */
+    clock_t  wall_time; /**< Wall clock time spent in execution. */
     unsigned c_warn; /**< Number of compile warnings. */
     unsigned l_warn; /**< Number of link warnings. */
     unsigned t_warn; /**< Number of (test) warnings. */
