@@ -52,7 +52,7 @@ public:
 
 <UL><PRE>
 struct eventComparator {
-  bool operator() (const event * left, const event * right) {
+  bool operator() (const event * left, const event * right) const {
     return left-&gt;time &gt; right-&gt;time;
   }
 };

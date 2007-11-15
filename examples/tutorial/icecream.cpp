@@ -48,7 +48,7 @@ public:
 };
 
 struct eventComparator {
-    bool operator() (const event * left, const event * right) {
+    bool operator() (const event * left, const event * right) const {
         return left->time > right->time;
     }
 };
