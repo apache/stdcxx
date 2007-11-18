@@ -1,0 +1,686 @@
+#!/bin/bash
+########################################################################
+#
+# $Id$
+#
+# script to build and test the Apache C++ Standard Library
+#
+########################################################################
+#
+# Licensed to the Apache Software  Foundation (ASF) under one or more
+# contributor  license agreements.  See  the NOTICE  file distributed
+# with  this  work  for  additional information  regarding  copyright
+# ownership.   The ASF  licenses this  file to  you under  the Apache
+# License, Version  2.0 (the  "License"); you may  not use  this file
+# except in  compliance with the License.   You may obtain  a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the  License is distributed on an  "AS IS" BASIS,
+# WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+# implied.   See  the License  for  the  specific language  governing
+# permissions and limitations under the License.
+#
+# Copyright 2007 Rogue Wave Software, Inc.
+#
+########################################################################
+#
+# USAGE:
+#
+#     buildntest [ -e <examples-to-build> ]
+#                [ -l <locales-to-build> ]
+#                [ -o <output-file> ]
+#                [ -t <tests-to-build> ]
+#                [ -u <utilities-to-build> ]
+#                [ -C <config> ]
+#                [ -B <buildtype> ]
+#                [ -E <examples-to-run> ]
+#                [ -L <locales-to-run> ]
+#                [ -M <buildmode> ]
+#                [ -P <prefix> ]
+#                [ -T <tests-to-run> ]
+#
+# OPTIONS:
+#
+#     -e <examples-to-build>
+#         Specifies the list of example programs to build. When omitted,
+#         defaults to all.
+#                            
+#     -l <locales-to-build>
+#         Specifies the list of locales to build. When omitted, defaults
+#         to all.
+#                            
+#     -o <output-file>
+#         Specifies the name of the ouptut file to create. When omitted,
+#         defaults to STDOUT and STDERR.
+#
+#     -t <tests-to-build>
+#         Specifies the list of tests to build. When omitted, defaults
+#         to all.
+#
+#     -B <buildtype>
+#         Specifies the value of the BUILDTYPE variable to pass to
+#         make.
+#
+#     -C <config>
+#         Specifies the value of the CONFIG variable to pass to make.
+#
+#     -M <buildmode>
+#         Specifies the value of the BUILDMODE variable to pass to
+#         make.
+#
+#     -E <examples-to-run>
+#         Specifies the list of example programs to run. When omitted,
+#         defaults to <examples-to-build>.
+#                            
+#     -L <locales-to-run>
+#         Specifies the list of locales to exhaustively test. When
+#         omittedm, defaults to <locales-to-build>.
+#                            
+#     -P <prefix>
+#         Specifies the value for the PREFIX variable to pass to make.
+#         When omitted, the test makefile target is not exercised.
+#
+#     -T <tests-to-run>
+#         Specifies the list of tests to run. When omitted, defaults
+#         to <tests-to-build>.
+#
+# EXAMPLES:
+#
+#     Example 1:
+#
+#     buildntest -Cgcc.config -B15s \
+#                -e"accumulate money_put time_get" \
+#                -l"en_US.ISO-8859-1 de_DE.ISO-8859-15" \
+#                -t"21.string.append 21.string.replace" \
+#                -E"time_get" -L"de_DE.ISO-8859-15" \
+#                -Pinstall
+#
+#     The command above will build the stdcxx library with gcc in the
+#     15s build type, then build the accumulate, money_put, and time_get
+#     example programs, the en_US.ISO-8859-1 and de_DE.ISO-8859-15
+#     locales, and the tests 21.string.append and 21.string.replace.
+#     Then it will run the time_get example, followed by running tests
+#     for the de_DE.ISO-8859-15 locale, then run the two tests it built
+#     and, finally, execute the install target with 'install' as the
+#     installation directory.
+#     
+#
+########################################################################
+
+##########
+# global constants
+
+# date format used to compute real time elapsed between stages
+DATEFMT="((((((%Y*366)+(1%j-100)*24)+(1%H-100)*60)+(1%M-100))*60)+(1%S-100))"
+
+# the name of the top-level source directory (TOPDIR)
+TOPDIR=`pwd | sed -e "s/\//\\\\\\\\\\\//g"` #Mangle path for sed usage
+
+# script to replace the name of the top-level source and builr directories
+# with the respective symbols for brevity
+TRANS="s/${TOPDIR}\/build/\\\$(BUILDDIR)/g;s/${TOPDIR}/\\\$(TOPDIR)/g"
+
+
+# set the TMPDIR variable if not set
+[ -z $TMPDIR ] && TMPDIR=$TMP
+[ -z $TMPDIR ] && TMPDIR=/tmp
+
+##########
+# global variables
+
+# by default (unless otherwise specified on the command line) build
+# and run all examples, locales, tests, and utilities
+build_examples="*"
+build_locales="*"
+build_rwtest="*"
+build_tests="*"
+build_utils="*"
+
+run_examples="*"
+run_locales="*"
+run_rwtest="*"
+run_tests="*"
+
+# script's own temporary directory
+tmpdir=$TMPDIR/stdcxx-tmp.$$
+
+
+##########
+# write_times(): writes the amount of real, user, and system time since
+# the last call, or the date and time if this is the first call
+write_times()
+{
+    if [ -z $startsec ]; then
+        echo; echo "### date:"
+        date
+    else
+        elapsed="`date +$DATEFMT`-$startsec"
+
+        # compute the minutes and seconds elapsed of real time since
+        # the last call to the function
+        real_min=$((elapsed))
+        real_min=$((real_min / 60))
+
+        real_sec=$((elapsed))
+        real_sec=$((real_sec % 60))
+
+        # display the real, user, and system times since the last call
+        echo; echo "### real, user, system time ($1):"
+        echo "${real_min}m${real_sec}s"
+        times
+    fi
+
+    # set the new start timestamp
+    startsec=`date +$DATEFMT`
+}
+
+
+##########
+# make_stage(): executes a stage of the build process, reports real,
+# user, and system times, and processes errors
+make_stage()
+{
+    stagedir=$1
+    failstate=$2
+    stageargs=$3
+
+    # remove the longest prefix matching the pattern "*/"
+    stagename="${stagedir##*/}"
+
+    if [ "$failstate" = "" ]; then
+        keep_going="-k"
+    else
+        keep_going=""
+    fi
+
+    if [ "$stagename" = "runall" ]; then
+        runlog="$TMPDIR/run.$$.log"
+        log=$runlog
+    else
+        buildlog="$TMPDIR/build.$$.log"
+        log=$buildlog
+    fi
+
+    echo "### $MAKE $keep_going $stagedir $stageargs $MAKEVARS 2>&1 | sed -e "${TRANS}" | tee $buildlog:"
+
+    (   # start a subshell to measure user and system times
+        # of the subshell commands only
+        export TMPDIR=$tmpdir
+
+          $MAKE $keep_going $stagedir $stageargs $MAKEVARS 2>&1 \
+        | sed -e "${TRANS}" | tee $buildlog
+
+        # save the status of the first command in the pipeline
+        # and pass it to the parent shell after writing the real,
+        # user, and system times for the subshell and its children
+        status=${PIPESTATUS[0]}
+
+        write_times $stagename
+
+        exit $status
+    )
+
+    status=$?
+
+    if [ -r "$runlog" ]; then
+        # Parse runall results
+        $AWK -f parse_runlog.awk $runlog >>${OUTFILE}
+
+        rm $runlog
+    elif [ -r "$buildlog" ]; then
+        # count warnings and errors in the stage
+        warnings=`grep -i "warning" $buildlog | wc -l`
+        errors=`grep -i "error" $buildlog | wc -l`
+
+        diags=": $warnings warnings and $errors errors,"
+
+        rm $buildlog
+    fi
+
+    if [ $status -ne 0 ]; then
+        if [ "$failstate" = "F" ]; then
+          echo "### stage $stagename${diags} exiting with status $status"
+
+          cat <<EOF >> ${OUTFILE}
+state=F
+warnings=0
+examples.run=0
+examples.good=0
+tests.run=0
+tests.good=0
+locales.run=0
+locales.good=0
+utils.run=0
+utils.good=0
+EOF
+          exit $status
+      elif [ "$failstate" != "" ]; then
+          # if failstate is specified and the exit status is non-zero
+          # write out the failstate and exit immediately with an error
+          echo "state=$failstate" >> ${OUTFILE}
+
+          echo "### stage $stagename${diags} exiting with status 1"
+          exit 1
+      fi
+    fi
+
+    echo "### stage $stagename${diags} continuing with status $status"
+    echo
+
+    return $status
+}
+
+##########
+# main body of script
+
+echo "### running $0 $* [$#]"
+
+# process command line options
+while getopts ":nv:e:l:o:t:B:C:E:L:M:P:T:" opt_name; do
+
+    echo "$opt_name:$OPTARG"
+
+    case $opt_name in
+        # options with no arguments 
+
+        n)  # avoid cleaning up temporary files
+            no_clean=1
+            ;;
+
+        v)  # output all components (including passing ones)
+            verbose=1
+            ;;
+
+        # options with arguments 
+
+        e)  # argument is a list of examples to build
+            build_examples="$OPTARG"
+            ;;
+
+        l)  # argument is a list of locales to build
+            build_locales="$OPTARG"
+            ;;
+
+        o)  # argument is the name of output file (stdout by default)
+            outfile=$OPTARG
+            ;;
+
+        t)  # argument is a list of tests to build
+            build_tests="$OPTARG"
+            ;;
+
+        u)  # argument is a list of utilities to process
+            build_utils="$OPTARG"
+            ;;
+
+        B)  # argument is the value of the BUILDTYPE variable
+            MAKEVARS="$MAKEVARS BUILDTYPE=$OPTARG"
+            ;;
+
+        C)  # argument is the value of the CONFIG file name
+            MAKEVARS="$MAKEVARS CONFIG=$OPTARG"
+            ;;
+
+        E)  # argument is a list of examples to run
+            run_examples="$OPTARG"
+            ;;
+
+        L)  # argument is a space-separated list of locales
+            MAKEVARS="$MAKEVARS LOCALES=\"$OPTARG\""
+            run_locales="$OPTARG"
+            ;;
+
+        M)  # argument is the value of the BUILDMODE variable
+            MAKEVARS="$MAKEVARS BUILDMODE=$OPTARG"
+            ;;
+
+        P)  # argument is the value of the PREFIX variable
+            MAKEVARS="$MAKEVARS PREFIX=$OPTARG"
+            prefix=$OPTARG
+            ;;
+
+        T)  # argument is a list of tests to build
+            run_tests="$OPTARG"
+            ;;
+
+        *) echo "$myname: unknown option : -$opt_name" >&2;
+           exit 1;;
+    esac;
+done
+
+# default to running the same set of components (examples, locales,
+# and tests) as those specified to be built
+if [ "$run_examples" = "*" ]; then
+    run_examples="$build_examples"
+fi
+
+if [ "$run_locales" = "*" ]; then
+    run_locales="$build_locales"
+fi
+
+if [ "$run_tests" = "*" ]; then
+    run_tests="$build_tests"
+fi
+
+
+# remove command line options and their arguments from the command line
+shift $(($OPTIND - 1))
+
+
+# Try to make certain we clean up the temp directory
+# This is an ugly workaround for an HPUX 11.23 glitch we haven't managed
+# to reproduce in manual testing.
+trap 'rm -rf $tmpdir' EXIT INT QUIT TERM
+
+mkdir $tmpdir
+
+
+# echo command line arguments
+echo "### running $0 $* [$#]"
+
+# start by writing out information about the host to stdout
+echo; echo "### uname -a:"
+uname -a
+
+osname=`uname -s`
+
+if [ $# -gt 1 ]; then
+    ### BEGIN HACK for eccp-3.9 and acc-3.76 compilers
+
+    case `awk -F= '"hpp.compiler"==$1 {print $2}' $2` in
+    ("eccp-3.9")
+        osdir="<UNKNOWN-OS>"
+        case "$osname" in
+	(Linux)
+            osdir=eccp-3.9-linux-x86
+            ;;
+
+            (SunOS)
+            export PATH=/usr/ccs/bin:$PATH
+            osdir=eccp-3.9-solaris-sparcv9
+            ;;
+        esac
+
+        echo "### Injecting EDG 3.9 environment"
+        export EDG_BASE=/nfs/devco/ablack/compilers/$osdir
+        export PATH=$EDG_BASE/bin:$PATH
+        ;;
+
+    ("acc-3.76")
+        echo "### Injecting aCC 3.76 environment"
+        export ACCROOT=/nfs/devco/ablack/compilers/acc-3.76-hpux-parisc2
+        export PATH=$ACCROOT:$PATH
+        export _CXXOPTS="+W2193 +W2261 +W2340 +W2401 +W2487 +W4263 +W4264 +W4297"
+    ;;
+    esac
+
+    ### END HACK
+fi
+
+AWK=awk
+case "$osname" in
+    (AIX)
+    # output the amount of real memory installed on the host
+    echo; echo "### /usr/sbin/lsattr -El sys0 -a realmem:"
+    /usr/sbin/lsattr -El sys0 -a realmem
+    ;;
+
+    (HP-UX)
+    # grep the system log for the amount of physical memory
+    echo; echo "### grep Physical /var/adm/syslog/syslog.log:"
+    grep Physical /var/adm/syslog/syslog.log
+    ;;
+
+    (Linux)
+    # output the contents of the /etc/<distro>-release file
+    # to identify the Linux distribution
+    echo; echo "### cat " /etc/*-release ":"
+    cat /etc/*-release
+
+    # output the amount of installed physical memory and swap space
+    echo; echo "### free -o:"
+    free -o
+
+    # output information about installed processors
+    echo; echo "### cat /proc/cpuinfo:"
+    cat /proc/cpuinfo
+    ;;
+
+    (SunOS)
+    # use POSIX awk (nawk) rather than Solaris awk
+    # using nawk rather than /usr/xpg4/bin/awk as the later has a bad bug
+    AWK=nawk
+
+    # output the amount of installed physical memory
+    echo; echo "### prtconf | grep Memory:"
+    /usr/sbin/prtconf | grep Memory
+
+    # output information about installed processors
+    echo; echo "### /usr/sbin/psrinfo -v:"
+    /usr/sbin/psrinfo -v
+    ;;
+
+esac
+
+# output the amount of installed, available, and used disk space
+# in all mounted filesystems
+echo; echo "### df -k:"
+df -k
+
+# echo today's date
+write_times
+
+
+# echo environment to stdout for refernce
+echo; echo "### env:"
+env
+
+echo
+
+#Set up constants (BSFNAME, OUTFILE)
+BSFNAME=$2
+OUTFILE=results.xml
+
+MAKE=gmake
+if [ "CYGWIN_NT-5.1" == "$osname" ]; then
+    # The cygwin .bashrc changes the working directory to ~, so we need to 
+    # manually reset our working directory to the buildspace.
+    cd `cygpath -u \`$AWK -F= '"batman.workingdir"==$1 {print $2}' ${BSFNAME}\``
+    MAKE=make
+fi
+
+#Start our output file
+echo "result.file.type=stdcxx-short" > ${OUTFILE}
+
+# Hack due to jar eating x bits, so we set them ourself.
+chmod 0744 etc/config/*.sh etc/config/src/*.sh
+
+if [ -r "$BSFNAME" ]; then
+    # parse BSF file
+    echo; echo "### Parsing" $BSFNAME
+
+    MAKEVARS=`$AWK -f build_stdcxx.awk ${BSFNAME}`
+    RET=$?
+    if [ 0 != ${RET} ]; then
+        echo "state=C" >> ${OUTFILE}
+        exit 1
+    fi
+fi
+
+##########
+# Create build directory, set state to 'C' on failure
+make_stage "builddir" "C"
+
+# Configure build directory, set state to 'C' on failure
+make_stage "config" "C"
+
+# Build library, set state to 'F' on failure
+make_stage "-Cbuild/lib" "F"
+
+# show the library and its size
+echo; echo "### ls -l build/lib/lib*"
+ls -l build/lib/lib*
+
+echo
+
+
+# State is now 'L' or better
+
+
+# Build examples, ignore errors
+if [ "$build_examples" != "" ]; then
+    if [ "$build_examples" = "*" ]; then
+        unset list
+    else
+        list="$build_examples"
+    fi
+    make_stage "-Cbuild/examples" "" "$list"
+fi
+
+
+# Build utilities, save return code for later
+if [ "$build_utils" != "" ]; then
+    if [ "$build_utils" = "*" ]; then
+        unset list
+    else
+        list="$build_utils"
+    fi
+   
+    make_stage "-Cbuild/bin" "" "$list"
+    utils_status=$?
+else
+    utils_status=1
+fi
+
+
+# Build rwtest library, save return code for later
+if [ "$build_rwtest" != "" ]; then
+    if [ "$build_rwtest" = "*" ]; then
+        unset list
+    else
+        list="$build_rwtest"
+    fi
+    make_stage "-Cbuild/rwtest" "" "$list"
+    rwtest_status=$?
+else
+    rwtest_status=1
+fi
+
+
+##########
+# Create a counter so we can keep track of the number of 'good' utilities.
+# While not the most accurate, we're calling a utility good if it exists and
+# is executable.  The utilities we check are the exec, locale and localedef, 
+# all of which reside in the build/bin subdirectory and were built above.
+# The reason this definition isn't accurate is because it doesn't tell us if
+# the utility is behaving correctly.  However, to make such checks would be
+# more difficult.
+UTILS=0
+
+# We want to check that the exec utility is good prior to using it via
+# the $MAKE runall target
+if [ -x "build/bin/exec" ]; then
+    if [ 0 == ${rwtest_status} ]; then
+        echo "state=T" >> ${OUTFILE}
+
+        # Build tests only if rwtest built, ignore errors
+
+        if [ "$build_tests" = "*" ]; then
+            unset list
+        else
+            list="$build_tests"
+        fi
+
+        make_stage "-Cbuild/tests" "" "$list"
+    else
+        echo "state=E" >> ${OUTFILE}
+
+        if [ 0 == ${utils_status} ]; then
+            utils_status=${rwtest_status}
+        fi
+    fi
+    #Record it as good
+    UTILS=`expr ${UTILS} + 1`
+
+    # Run successfully built executables, ignore errors
+    if [    "$run_examples" = "*" \
+         -a "$run_locales" = "*" \
+         -a "$run_tests" = "*" ]; then
+        make_stage "runall"
+    else
+        if [ "$run_examples" != "" ]; then
+            if [ "$run_examples" = "*" ]; then
+                unset list
+            else
+                list="$run_examples"
+            fi
+
+            make_stage "-Cbuild/examples" "" "runall $list"
+        fi
+
+        if [ "$run_locales" != "" ]; then
+            if [ "$run_locales" = "*" ]; then
+                unset list
+            else
+                list="$run_locales"
+            fi
+
+            make_stage "-Cbuild/bin" "" "runall $list"
+        fi
+
+        if [ "$run_tests" != "" ]; then
+            if [ "$run_tests" = "*" ]; then
+                unset list
+            else
+                list="$run_tests"
+            fi
+
+            make_stage "-Cbuild/tests" "" "runall $list"
+        fi
+    fi    
+else
+    echo "state=L" >> ${OUTFILE}
+fi
+
+if [ -x "build/bin/locale" ]; then
+    UTILS=`expr ${UTILS} + 1`
+fi
+
+if [ -x "build/bin/localedef" ]; then
+    UTILS=`expr ${UTILS} + 1`
+fi
+
+echo "utils.run=3" >> ${OUTFILE}
+echo "utils.good="${UTILS} >> ${OUTFILE}
+
+
+if [ "$prefix" != "" ]; then
+    make_stage "-Cbuild" "" "install"
+fi
+
+
+# write out the size of the buildspace and (when specified)
+# the installation directory BEFORE cleaning it up for reference
+echo; echo "### du -sk build build/* $prefix"
+du -sk build build/* $prefix
+
+
+# Clean up most of what we built.  We don't want to clean/realclean include, 
+# as clean deletes the config.log, and realclean deletes the config.h.
+# The top level realclean target affects the lib, rwtest, bin, test, 
+# plumbhall, and example directories (via the .DEFAULT rule).
+echo; echo "### $MAKE realclean"
+$MAKE realclean
+
+# write out the size of the buildspace AFTER cleaning it up for reference
+echo; echo "### du -sk ./build/ ./build/*"
+du -sk ./build/ ./build/*
+
+# write the amount of real, user, and system time
+write_times "runall"
+
+# Pass the captured return code from make util/make rwtest back out
+exit ${utils_status}
