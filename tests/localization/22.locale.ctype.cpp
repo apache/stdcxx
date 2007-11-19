@@ -1503,8 +1503,9 @@ void test_libstd_toupper_tolower (charT, const char *cname,
     TEST ('b', 'B');
     TEST ('c', 'C');
 
-    if (sizeof(charT) > 1)
+    if (sizeof(charT) > 1) {
         TEST ('\xa0', '\xa1');
+    }
 
 #undef TEST
 }
@@ -1606,7 +1607,7 @@ void test_libstd_mask (charT, const char *cname,
         TEST (ct.widen ('\xa2'), DIGIT);
         TEST (ct.widen ('\xa2'), GRAPH);
         TEST (ct.widen ('\xa2'), PRINT);
-        TEST (ct.widen ('\xa0'), DIGIT | GRAPH | PRINT);
+        TEST (ct.widen ('\xa2'), DIGIT | GRAPH | PRINT);
     }
 }
 
