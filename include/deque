@@ -117,7 +117,8 @@ public:
         // deque only uses __rw_new_capacity to retrieve the minimum
         // allocation amount; this may be specialized to provide a
         // customized minimum amount
-        return _RW::__rw_new_capacity(0, (const deque<_TypeT, _Allocator>*)0);
+        typedef deque<_TypeT, _Allocator> _RWDeque;
+        return _RWSTD_NEW_CAPACITY (_RWDeque, (const _RWDeque*)0, 0);
     }
     
 #ifdef _RWSTDDEBUG
@@ -400,7 +401,7 @@ public:
 #endif   // _RWSTD_NO_DEBUG_ITER
 
     size_type _C_vecsize (size_type __nodes) const {
-        return _RW::__rw_new_capacity (__nodes, this);
+        return _RWSTD_NEW_CAPACITY (deque, this, __nodes);
     }
 
     static size_type _C_bufsize () {
