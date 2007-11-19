@@ -79,10 +79,10 @@ void list<_TypeT, _Allocator>::_C_add_buffer (bool __is_list_empty)
     if(!__is_list_empty) {
         if ((void*)_C_buflist) {
             __next_buffer_size = 
-                _RW::__rw_new_capacity(_C_buflist->_C_bufsize,this);
+                _RWSTD_NEW_CAPACITY (list, this, _C_buflist->_C_bufsize);
         }
         else {
-            __next_buffer_size = _RW::__rw_new_capacity(0,this);
+            __next_buffer_size = _RWSTD_NEW_CAPACITY (list, this, 0);
         }          
      }
     _C_buf_pointer __tmp = 
