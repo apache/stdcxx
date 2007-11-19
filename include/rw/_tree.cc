@@ -132,7 +132,7 @@ _C_add_new_buffer ()
     const size_type __bufsize =
         _C_buf_ptr_t () == _C_buf_list ? 0 : _C_buf_list->size;
 
-    size_type __newsize = __rw_new_capacity (__bufsize, this);
+    size_type __newsize = _RWSTD_NEW_CAPACITY (__rb_tree, this, __bufsize);
     if (__newsize <= __bufsize)
         __newsize = __bufsize + 1;
 
