@@ -72,8 +72,7 @@ _C_realloc (size_type __n)
 
     // compute the new capacity from the greater of the current size
     // and the requested size, but no greater than max_size()
-    size_type __cap =
-        size_type (_RW::__rw_new_capacity ((max)(size (), __n), this));
+    size_type __cap = _RWSTD_NEW_CAPACITY (vector, this, (max)(size (), __n));
 
     // do not exceed max_size()
     if (__max_size < __cap)
