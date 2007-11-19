@@ -840,6 +840,12 @@ void test_libstd_mask (charT, const char *cname,
 template <class charT>
 void test_libstd (charT, const char *cname)
 {
+    if (0) {
+        // do a compile time only test on use_facet and has_facet
+        _STD_HAS_FACET (std::ctype_byname<charT>, std::locale ());
+        _STD_USE_FACET (std::ctype_byname<charT>, std::locale ());
+    }
+
     const char cmap_1[] = {
         "<code_set_name> \"ANSI_X3.4-1968\"\n"
         "<mb_cur_max> 1\n"
@@ -1025,26 +1031,20 @@ void test_libstd (charT, const char *cname)
 
 /**************************************************************************/
 
-template <class charT>
-void run_test (charT, const char *cname)
-{
-    if (0) {
-        // do a compile time only test on use_facet and has_facet
-        _STD_HAS_FACET (std::ctype_byname<charT>, std::locale ());
-        _STD_USE_FACET (std::ctype_byname<charT>, std::locale ());
-    }
-
-    test_libstd (charT (), cname);
-    test_libc (charT (), cname);
-}
-
-/**************************************************************************/
-
 static int
 run_test (int, char**)
 {
-    run_test (char (), "char");
-    run_test (wchar_t (), "wchar_t");
+    test_libc (char (), "char");
+
+#ifndef _RWSTD_NO_WCHAR_T
+    test_libc (wchar_t (), "wchar_t");
+#endif   // _RWSTD_NO_WCHAR_T
+
+    test_libstd (char (), "char");
+
+#ifndef _RWSTD_NO_WCHAR_T
+    test_libstd (wchar_t (), "wchar_t");
+#endif   // _RWSTD_NO_WCHAR_T
 
     return 0;
 }

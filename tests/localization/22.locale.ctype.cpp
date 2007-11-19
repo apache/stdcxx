@@ -605,170 +605,6 @@ void gen_str (charT *str, std::size_t size)
     _RWSTD_ASSERT (c_strlen (str) == size);
 }
 
-
-
-//  The  character map, as  well as  the source  file generated  below use
-//  Unicode literal strings for character symbolic names; the algorithm in
-//  localedef utility will generate correct databases even if the platform
-//  does not have a C library locale encoded with the character set we are
-//  creating.
-void write_string (std::FILE *fp, const char *str)
-{
-    // ASCII (ISO-646) character map definition
-    static const char* const base_chset [] = {
-        "<U0000>", "<U0001>", "<U0002>", "<U0003>", "<U0004>", "<U0005>",
-        "<U0006>", "<U0007>", "<U0008>", "<U0009>", "<U000a>", "<U000b>",
-        "<U000c>", "<U000d>", "<U000e>", "<U000f>", "<U0010>", "<U0011>",
-        "<U0012>", "<U0013>", "<U0014>", "<U0015>", "<U0016>", "<U0017>",
-        "<U0018>", "<U0019>", "<U001a>", "<U001b>", "<U001c>", "<U001d>",
-        "<U001e>", "<U001f>", "<U0020>", "<U0021>", "<U0022>", "<U0023>",
-        "<U0024>", "<U0025>", "<U0026>", "<U0027>", "<U0028>", "<U0029>",
-        "<U002a>", "<U002b>", "<U002c>", "<U002d>", "<U002e>", "<U002f>",
-        "<U0030>", "<U0031>", "<U0032>", "<U0033>", "<U0034>", "<U0035>",
-        "<U0036>", "<U0037>", "<U0038>", "<U0039>", "<U003a>", "<U003b>",
-        "<U003c>", "<U003d>", "<U003e>", "<U003f>", "<U0040>", "<U0041>",
-        "<U0042>", "<U0043>", "<U0044>", "<U0045>", "<U0046>", "<U0047>",
-        "<U0048>", "<U0049>", "<U004a>", "<U004b>", "<U004c>", "<U004d>",
-        "<U004e>", "<U004f>", "<U0050>", "<U0051>", "<U0052>", "<U0053>",
-        "<U0054>", "<U0055>", "<U0056>", "<U0057>", "<U0058>", "<U0059>",
-        "<U005a>", "<U005b>", "<U005c>", "<U005d>", "<U005e>", "<U005f>",
-        "<U0060>", "<U0061>", "<U0062>", "<U0063>", "<U0064>", "<U0065>",
-        "<U0066>", "<U0067>", "<U0068>", "<U0069>", "<U006a>", "<U006b>",
-        "<U006c>", "<U006d>", "<U006e>", "<U006f>", "<U0070>", "<U0071>",
-        "<U0072>", "<U0073>", "<U0074>", "<U0075>", "<U0076>", "<U0077>",
-        "<U0078>", "<U0079>", "<U007a>", "<U007b>", "<U007c>", "<U007d>",
-        "<U007e>", "<U007f>"
-    };
-
-    static const char* const supp_chset [] = {
-        // And a set of characters above 128, which have wide equivalents
-        // with values above 256
-        /* <U1000> */ "<U1000> \\xa0",
-        /* <U1001> */ "<U1001> \\xa1",
-        /* <U1002> */ "<U1002> \\xa2"
-    };
-
-    if (str) {
-        // write out `str' using the charmap above
-        for (; *str; ++str)
-            std::fprintf (fp, "%s", base_chset [UChar (*str)]);
-
-    }
-    else {
-
-#ifndef _RWSTD_NO_NL_LANGINFO
-
-        const char* const codeset = nl_langinfo (CODESET);
-
-        std::fprintf (fp, "<code_set_name> \"%s\"\n", codeset);
-        std::fprintf (fp, "<mb_cur_max> 1\n");
-        std::fprintf (fp, "<mb_cur_min> 1\n");
-
-        std::fprintf (fp, "CHARMAP\n");
-
-        // write out the basic character set
-        for (unsigned i = 0; i < sizeof base_chset / sizeof *base_chset; ++i)
-            std::fprintf (fp, "%s \\x%02x\n", base_chset [i], i);
-
-        // write out the additional characters
-        for (unsigned j = 0; j < sizeof supp_chset / sizeof *supp_chset; ++j)
-            std::fprintf (fp, "%s\n", supp_chset [j]);
-
-        std::fprintf (fp, "END CHARMAP\n");
-
-#endif   // _RWSTD_NO_NL_LANGINFO
-
-    }
-}
-
-
-// invoke localedef to build a simple locale for testing
-const char* create_locale ()
-{
-    // only one locale is enough (avoid invoking localedef more than once)
-    static const char* locname;
-
-    if (locname)
-        return locname;
-
-    // set up RWSTD_LOCALE_ROOT and other environment variables
-    locale_root = rw_set_locale_root ();
-
-    if (0 == locale_root)
-        return 0;
-
-    // create a temporary locale definition file that exercises as
-    // many different parts of the collate standard as possible
-    char srcfname [256];
-    std::sprintf (srcfname, "%s%slocale.src", locale_root, SLASH);
-
-    std::FILE *fout = std::fopen (srcfname, "w");
-
-    if (!fout) {
-        std::fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
-                      __FILE__, __LINE__, srcfname);
-        return 0;
-    }
-
-    static const char text[] = {
-        "escape_char /\n"
-        "LC_CTYPE\n"
-        "#     <A>     <B>     <C>     MYANMAR LETTER KHA\n"
-        "upper <U0041>;<U0042>;<U0043>;<U1001>\n"
-        "      <a>     <b>     <c>     MYANMAR LETTER KA\n"
-        "lower <U0061>;<U0062>;<U0063>;<U1000>\n"
-        "alpha <U0061>;<U0062>;<U0063>;<U0041>;"
-              "<U0042>;<U0043>;<U1000>;<U1001>\n"
-        "digit <U0031>;<U0032>;<U0033>;<U1002>\n"
-        "space <U0020>\n"
-        "cntrl <U0000>\n"
-        "      <!>      <\">\n"
-        "punct <U0021>; <U0022>\n"
-        "graph <U0041>;<U0042>;<U0043>;<U0061>;<U0062>;<U0063>;"
-              "<U1000>;<U1001>;<U1002>;<U1003>;<U1004>;<U1005>;"
-              "<U0031>;<U0032>;<U0033>;<U0020>;<U0021>;<U0022>\n"
-        "print <U0041>;<U0042>;<U0043>;"
-              "<U0061>;<U0062>;<U0063>;"
-              "<U1000>;<U1001>;<U1002>;<U1003>;<U1004>;<U1005>;"
-              "<U0031>;<U0032>;<U0033>;<U0020>;<U0021>;<U0022>\n"
-        "xdigit <U0041>;<U0042>;<U0043>;<U0061>;<U0062>;"
-               "<U0063>;<U0031>;<U0032>;<U0033>\n"
-        "toupper (<U0061>,<U0041>);(<U0062>,<U0042>);"
-                "(<U0063>,<U0043>);(<U1000>,<U1001>)\n"
-        "tolower (<U0041>,<U0061>);(<U0042>,<U0062>);"
-                "(<U0043>,<U0063>);(<U1001>,<U1000>)\n"
-        "END LC_CTYPE\n"
-    };
-
-    std::fprintf (fout, "%s", text);
-
-    std::fclose (fout);
-
-    // create a temporary character map file
-    char cmfname [256];
-    std::sprintf (cmfname, "%s%scharmap.src", locale_root, SLASH);
-
-    fout = std::fopen (cmfname, "w");
-
-    if (!fout) {
-        std::fprintf (stderr, "%s:%d: fopen(\"%s\", \"w\") failed\n",
-                      __FILE__, __LINE__, cmfname);
-        return 0;
-    }
-
-    write_string (fout, 0);
-
-    std::fclose (fout);
-
-    locname = "test-locale";
-
-    // process the locale definition file and character map
-    if (0 == rw_localedef ("-w", srcfname, cmfname, locname))
-        locname = 0;
-
-    return locname;
-}
-
 /**************************************************************************/
 
 template <class charT>
@@ -1503,8 +1339,9 @@ void test_libstd_toupper_tolower (charT, const char *cname,
     TEST ('b', 'B');
     TEST ('c', 'C');
 
-    if (sizeof(charT) > 1)
+    if (sizeof(charT) > 1) {
         TEST ('\xa0', '\xa1');
+    }
 
 #undef TEST
 }
@@ -1606,7 +1443,7 @@ void test_libstd_mask (charT, const char *cname,
         TEST (ct.widen ('\xa2'), DIGIT);
         TEST (ct.widen ('\xa2'), GRAPH);
         TEST (ct.widen ('\xa2'), PRINT);
-        TEST (ct.widen ('\xa0'), DIGIT | GRAPH | PRINT);
+        TEST (ct.widen ('\xa2'), DIGIT | GRAPH | PRINT);
     }
 }
 
@@ -1615,8 +1452,183 @@ void test_libstd_mask (charT, const char *cname,
 template <class charT>
 void test_libstd (charT, const char *cname)
 {
-    // invoke localedef to build a locale to test with
-    const char* const locname = create_locale ();
+    if (0) {
+        // do a compile time only test on use_facet and has_facet
+        _STD_HAS_FACET (std::ctype_byname<charT>, std::locale ());
+        _STD_USE_FACET (std::ctype_byname<charT>, std::locale ());
+    }
+
+    const char cmap_1[] = {
+        "<code_set_name> \"ANSI_X3.4-1968\"\n"
+        "<mb_cur_max> 1\n"
+        "<mb_cur_min> 1\n"
+        "CHARMAP\n"
+        "<U0000> \\x00\n"
+        "<U0001> \\x01\n"
+        "<U0002> \\x02\n"
+        "<U0003> \\x03\n"
+        "<U0004> \\x04\n"
+        "<U0005> \\x05\n"
+        "<U0006> \\x06\n"
+        "<U0007> \\x07\n"
+        "<U0008> \\x08\n"
+        "<U0009> \\x09\n"
+        "<U000a> \\x0a\n"
+        "<U000b> \\x0b\n"
+        "<U000c> \\x0c\n"
+        "<U000d> \\x0d\n"
+        "<U000e> \\x0e\n"
+        "<U000f> \\x0f\n"
+        "<U0010> \\x10\n"
+        "<U0011> \\x11\n"
+        "<U0012> \\x12\n"
+        "<U0013> \\x13\n"
+        "<U0014> \\x14\n"
+        "<U0015> \\x15\n"
+        "<U0016> \\x16\n"
+        "<U0017> \\x17\n"
+        "<U0018> \\x18\n"
+        "<U0019> \\x19\n"
+        "<U001a> \\x1a\n"
+        "<U001b> \\x1b\n"
+        "<U001c> \\x1c\n"
+        "<U001d> \\x1d\n"
+        "<U001e> \\x1e\n"
+        "<U001f> \\x1f\n"
+        "<U0020> \\x20\n"
+        "<U0021> \\x21\n"
+        "<U0022> \\x22\n"
+        "<U0023> \\x23\n"
+        "<U0024> \\x24\n"
+        "<U0025> \\x25\n"
+        "<U0026> \\x26\n"
+        "<U0027> \\x27\n"
+        "<U0028> \\x28\n"
+        "<U0029> \\x29\n"
+        "<U002a> \\x2a\n"
+        "<U002b> \\x2b\n"
+        "<U002c> \\x2c\n"
+        "<U002d> \\x2d\n"
+        "<U002e> \\x2e\n"
+        "<U002f> \\x2f\n"
+        "<U0030> \\x30\n"
+        "<U0031> \\x31\n"
+        "<U0032> \\x32\n"
+        "<U0033> \\x33\n"
+        "<U0034> \\x34\n"
+        "<U0035> \\x35\n"
+        "<U0036> \\x36\n"
+        "<U0037> \\x37\n"
+        "<U0038> \\x38\n"
+        "<U0039> \\x39\n"
+        "<U003a> \\x3a\n"
+        "<U003b> \\x3b\n"
+        "<U003c> \\x3c\n"
+        "<U003d> \\x3d\n"
+        "<U003e> \\x3e\n"
+        "<U003f> \\x3f\n"
+        "<U0040> \\x40\n"
+        "<U0041> \\x41\n"
+        "<U0042> \\x42\n"
+        "<U0043> \\x43\n"
+        "<U0044> \\x44\n"
+        "<U0045> \\x45\n"
+        "<U0046> \\x46\n"
+        "<U0047> \\x47\n"
+        "<U0048> \\x48\n"
+        "<U0049> \\x49\n"
+        "<U004a> \\x4a\n"
+        "<U004b> \\x4b\n"
+        "<U004c> \\x4c\n"
+        "<U004d> \\x4d\n"
+        "<U004e> \\x4e\n"
+        "<U004f> \\x4f\n"
+        "<U0050> \\x50\n"
+        "<U0051> \\x51\n"
+        "<U0052> \\x52\n"
+        "<U0053> \\x53\n"
+        "<U0054> \\x54\n"
+        "<U0055> \\x55\n"
+        "<U0056> \\x56\n"
+        "<U0057> \\x57\n"
+        "<U0058> \\x58\n"
+        "<U0059> \\x59\n"
+        "<U005a> \\x5a\n"
+        "<U005b> \\x5b\n"
+        "<U005c> \\x5c\n"
+        "<U005d> \\x5d\n"
+        "<U005e> \\x5e\n"
+        "<U005f> \\x5f\n"
+        "<U0060> \\x60\n"
+        "<U0061> \\x61\n"
+        "<U0062> \\x62\n"
+        "<U0063> \\x63\n"
+        "<U0064> \\x64\n"
+        "<U0065> \\x65\n"
+        "<U0066> \\x66\n"
+        "<U0067> \\x67\n"
+        "<U0068> \\x68\n"
+        "<U0069> \\x69\n"
+        "<U006a> \\x6a\n"
+        "<U006b> \\x6b\n"
+        "<U006c> \\x6c\n"
+        "<U006d> \\x6d\n"
+        "<U006e> \\x6e\n"
+        "<U006f> \\x6f\n"
+        "<U0070> \\x70\n"
+        "<U0071> \\x71\n"
+        "<U0072> \\x72\n"
+        "<U0073> \\x73\n"
+        "<U0074> \\x74\n"
+        "<U0075> \\x75\n"
+        "<U0076> \\x76\n"
+        "<U0077> \\x77\n"
+        "<U0078> \\x78\n"
+        "<U0079> \\x79\n"
+        "<U007a> \\x7a\n"
+        "<U007b> \\x7b\n"
+        "<U007c> \\x7c\n"
+        "<U007d> \\x7d\n"
+        "<U007e> \\x7e\n"
+        "<U007f> \\x7f\n"
+        "<U1000> \\xa0\n"
+        "<U1001> \\xa1\n"
+        "<U1002> \\xa2\n"
+        "END CHARMAP\n"
+    };
+
+    const char loc_1[] = {
+        "escape_char /\n"
+        "LC_CTYPE\n"
+        "#     <A>     <B>     <C>     MYANMAR LETTER KHA\n"
+        "upper <U0041>;<U0042>;<U0043>;<U1001>\n"
+        "      <a>     <b>     <c>     MYANMAR LETTER KA\n"
+        "lower <U0061>;<U0062>;<U0063>;<U1000>\n"
+        "alpha <U0061>;<U0062>;<U0063>;<U0041>;"
+              "<U0042>;<U0043>;<U1000>;<U1001>\n"
+        "digit <U0031>;<U0032>;<U0033>;<U1002>\n"
+        "space <U0020>\n"
+        "cntrl <U0000>\n"
+        "      <!>      <\">\n"
+        "punct <U0021>; <U0022>\n"
+        "graph <U0041>;<U0042>;<U0043>;<U0061>;<U0062>;<U0063>;"
+              "<U1000>;<U1001>;<U1002>;<U1003>;<U1004>;<U1005>;"
+              "<U0031>;<U0032>;<U0033>;<U0020>;<U0021>;<U0022>\n"
+        "print <U0041>;<U0042>;<U0043>;"
+              "<U0061>;<U0062>;<U0063>;"
+              "<U1000>;<U1001>;<U1002>;<U1003>;<U1004>;<U1005>;"
+              "<U0031>;<U0032>;<U0033>;<U0020>;<U0021>;<U0022>\n"
+        "xdigit <U0041>;<U0042>;<U0043>;<U0061>;<U0062>;"
+               "<U0063>;<U0031>;<U0032>;<U0033>\n"
+        "toupper (<U0061>,<U0041>);(<U0062>,<U0042>);"
+                "(<U0063>,<U0043>);(<U1000>,<U1001>)\n"
+        "tolower (<U0041>,<U0061>);(<U0042>,<U0062>);"
+                "(<U0043>,<U0063>);(<U1001>,<U1000>)\n"
+        "END LC_CTYPE\n"
+    };
+
+    //invoke rw_create_locale to build a locale to test with
+    const char* const locname = rw_create_locale (cmap_1, loc_1);
 
     if (!rw_error (0 != locname, 0, __LINE__,
                    "failed to create a locale in %s", locale_root))
@@ -1667,26 +1679,20 @@ void test_libstd (charT, const char *cname)
 
 /**************************************************************************/
 
-template <class charT>
-void run_test (charT, const char *cname)
-{
-    if (0) {
-        // do a compile time only test on use_facet and has_facet
-        _STD_HAS_FACET (std::ctype_byname<charT>, std::locale ());
-        _STD_USE_FACET (std::ctype_byname<charT>, std::locale ());
-    }
-
-    test_libstd (charT (), cname);
-    test_libc (charT (), cname);
-}
-
-/**************************************************************************/
-
 static int
 run_test (int, char**)
 {
-    run_test (char (), "char");
-    run_test (wchar_t (), "wchar_t");
+    test_libc (char (), "char");
+
+#ifndef _RWSTD_NO_WCHAR_T
+    test_libc (wchar_t (), "wchar_t");
+#endif   // _RWSTD_NO_WCHAR_T
+
+    test_libstd (char (), "char");
+
+#ifndef _RWSTD_NO_WCHAR_T
+    test_libstd (wchar_t (), "wchar_t");
+#endif   // _RWSTD_NO_WCHAR_T
 
     return 0;
 }
