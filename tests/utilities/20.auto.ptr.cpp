@@ -208,11 +208,14 @@ void test_auto_ptr (T*, const char *tname)
        // and a conversion operator (see PR #24476)
 #      if !defined (__SUNPRO_CC) || __SUNPRO_CC > 0x540
 
+#        if !defined (_MSC_VER) || _MSC_VER > 1310 || defined (__INTEL_COMPILER)
     FUN (std::auto_ptr_ref<Base>, Derived,
          operator std::auto_ptr_ref<Base>, () _PTR_THROWS (()));
 
     FUN (std::auto_ptr<Base>, Derived,
          operator std::auto_ptr<Base>, () _PTR_THROWS (()));
+
+#        endif   // MSVC > 7.1
 
 #      endif   // SunPro > 5.4
 
