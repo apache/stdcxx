@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -47,13 +47,16 @@ _TEST_EXPORT int
 rw_locale (const char* /* args */, const char* /* fname */);
 
 
-// creates a temporary directory and defines the RWSTD_LOCALE_ROOT
-// environment variable to the name of the directory; if the environment
-// variable RW_PUTENV is defined, defines any additional environment
-// variable specified by it (by calling rw_putenv(0))
-// returns the absolute pathname of the directory
 #define LOCALE_ROOT_ENVAR   "RWSTD_LOCALE_ROOT"
 
+// creates a temporary directory and defines the RWSTD_LOCALE_ROOT
+// environment variable to the name of the directory; the directory
+// will be automatically removed on program exit as if by calling
+// atexit()
+// if the environment variable RW_PUTENV is defined, defines any
+// additional environment variable(s) specified by it (by calling
+// rw_putenv(0))
+// returns the absolute pathname of the directory
 _TEST_EXPORT const char*
 rw_set_locale_root ();
 
