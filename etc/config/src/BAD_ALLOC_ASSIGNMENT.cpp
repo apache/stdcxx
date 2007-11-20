@@ -54,7 +54,7 @@
 #include "config.h"
 
 
-#if 2 == GNUG__
+#if 2 == __GNUG__
 #  ifndef _RWSTD_NO_HONOR_STD
 #    ifdef _RWSTD_NO_STD_TERMINATE
 
