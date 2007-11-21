@@ -1,7 +1,5 @@
 // computing numerical limits
 
-#include "config.h"
-
 /***************************************************************************
  *
  * Licensed to the Apache Software  Foundation (ASF) under one or more
@@ -23,6 +21,8 @@
  * Copyright 1999-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
+
+#include "config.h"
 
 #include <stdio.h>    // for printf()
 
