@@ -56,11 +56,11 @@ enum __rw_locale_category {
 class _RWSTD_EXPORT __rw_locale;
 
 inline const __rw_facet*
-__rw_get_std_facet (const _V3_LOCALE::locale&, __rw_facet::_C_facet_type,
+__rw_get_std_facet (const _STD::locale&, __rw_facet::_C_facet_type,
                     __rw_facet::_C_ctor_t*);
 
 inline const __rw_facet*
-__rw_get_facet_by_id (const _V3_LOCALE::locale&,
+__rw_get_facet_by_id (const _STD::locale&,
                       const __rw_facet_id&,
                       const __rw_facet*);
 
@@ -68,12 +68,12 @@ __rw_get_facet_by_id (const _V3_LOCALE::locale&,
 // const-qualifier from the type of Facet
 template <class _Facet>
 inline const __rw_facet*
-__rw_get_facet (const _V3_LOCALE::locale&, const _Facet*);
+__rw_get_facet (const _STD::locale&, const _Facet*);
 
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
 
 
 // 22.1.2, p1
@@ -244,7 +244,7 @@ struct _RWSTD_CLASS_EXPORT locale
     operator() (const basic_string<_CharT, _Traits, _Allocator> &__x,
                 const basic_string<_CharT, _Traits, _Allocator> &__y) const {
         // qualify collate to distinguish it from locale::collate
-        return use_facet<_V3_LOCALE::collate<_CharT> >(*this)
+        return use_facet<_STD::collate<_CharT> >(*this)
             .compare (__x.data (), __x.data () + __x.length (),
                       __y.data (), __y.data () + __y.length ()) < 0;
     }
@@ -309,23 +309,23 @@ public:
     // function arguments below are qualified to work around
     // a SunPro 5.5 and prior bug (PR #28626)
     friend const facet*
-    _RW::__rw_get_std_facet (const _V3_LOCALE::locale&,
+    _RW::__rw_get_std_facet (const _STD::locale&,
                              _RW::__rw_facet::_C_facet_type,
                              _RW::__rw_facet::_C_ctor_t*);
 
     friend const _RW::__rw_facet*
-    _RW::__rw_get_facet_by_id (const _V3_LOCALE::locale&,
+    _RW::__rw_get_facet_by_id (const _STD::locale&,
                                const _RW::__rw_facet_id&,
                                const _RW::__rw_facet*);
 };
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 _RWSTD_NAMESPACE (__rw) {
 
 inline const __rw_facet*
-__rw_get_facet_by_id (const _V3_LOCALE::locale &__loc,
+__rw_get_facet_by_id (const _STD::locale &__loc,
                       const __rw_facet_id      &__id,
                       const __rw_facet*)
 {
@@ -336,7 +336,7 @@ __rw_get_facet_by_id (const _V3_LOCALE::locale &__loc,
 
 template <class _Facet>
 inline const __rw_facet*
-__rw_get_facet (const _V3_LOCALE::locale &__loc, const _Facet *__dummy)
+__rw_get_facet (const _STD::locale &__loc, const _Facet *__dummy)
 {
     // resolves either to one of the overloads of __rw_get_facet_by_id
     // defined for the set of standard facets or the overload for the base
@@ -349,7 +349,7 @@ __rw_get_facet (const _V3_LOCALE::locale &__loc, const _Facet *__dummy)
 
 
 inline const __rw_facet*
-__rw_get_std_facet (const _V3_LOCALE::locale  &__loc,
+__rw_get_std_facet (const _STD::locale  &__loc,
                     __rw_facet::_C_facet_type  __type,
                     __rw_facet::_C_ctor_t     *__ctor)
 {
@@ -391,7 +391,7 @@ _RWSTD_EXPORT __rw_facet* __rw_ct_num_put (_RWSTD_SIZE_T, const char*);
 
 #define _RWSTD_OVERLOAD_GET_FACET(F)                 \
     _RWSTD_EXPORT const __rw_facet*                  \
-    __rw_get_facet_by_id (const _V3_LOCALE::locale&, \
+    __rw_get_facet_by_id (const _STD::locale&,       \
                           const __rw_facet_id&, const F*)
 
 #define _Facet(name, T, U)   _STD::name<T, U >
@@ -503,7 +503,7 @@ _RWSTD_OVERLOAD_GET_FACET (_STD::messages<wchar_t>);
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
 
 
 #ifndef _RWSTD_NO_MEMBER_TEMPLATES
@@ -555,7 +555,7 @@ locale::operator() (const basic_string<_CharT, _Traits, _Allocator> &__x,
                     const basic_string<_CharT, _Traits, _Allocator> &__y) const
 {
     // qualify collate to distinguish it from locale::collate
-    return use_facet<_V3_LOCALE::collate<_CharT> >(*this)
+    return use_facet<_STD::collate<_CharT> >(*this)
         .compare (__x.data (), __x.data () + __x.length (),
                   __y.data (), __y.data () + __y.length ()) < 0;
 }
@@ -564,37 +564,7 @@ locale::operator() (const basic_string<_CharT, _Traits, _Allocator> &__x,
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 
-}   // namespace _V3_LOCALE
-
-
-#  ifndef _V3_LOCALE
-
-_RWSTD_NAMESPACE (std) {
-
-class _RWSTD_EXPORT locale;
-
 }   // namespace std
 
-
-_RWSTD_NAMESPACE (_V3_LOCALE) {
-
-
-// template provided to allow code that mixes _V3_LOCALE::locale
-// and std::iostreams to compile (i.e., when locale.2 is enabled
-// and in namespace std and locale.3 is in namespace _V3_LOCALE
-
-template <class _Facet>
-inline const _Facet& use_facet (const _STD::locale &__loc)
-{
-    // FIXME: this is quite unsafe since the facet may be destroyed
-    //        as soon as the unnamed lacale temporary is destroyed
-    return use_facet<_Facet>(_V3_LOCALE::locale (__loc.name ().c_str ()));
-}
-
-
-}   // namespace _V3_LOCALE
-
-
-#  endif   // _V3_LOCALE
 
 #endif   // _RWSTD_LOC_LOCALE_INCLUDED

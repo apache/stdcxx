@@ -53,7 +53,7 @@ __rw_put_time (const __rw_facet*, wchar_t*, _RWSTD_SIZE_T,
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 template <class _CharT, class _OutputIter>
@@ -173,4 +173,4 @@ put (iter_type __it, ios_base &__flags, char_type __fill, const tm *__tmb,
 }
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std

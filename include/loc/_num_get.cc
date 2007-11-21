@@ -53,7 +53,7 @@ _RWSTD_EXPORT extern const unsigned char __rw_roman_inxs[];
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 template <class _CharT, class _InputIter>
@@ -564,4 +564,4 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
 }
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std
