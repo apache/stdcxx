@@ -27,7 +27,7 @@
  **************************************************************************/
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) {
+_RWSTD_NAMESPACE (std) {
 
 
 // #ifndef _RWSTD_NO_EXT_NUMPUNCT_PRIMARY
@@ -45,4 +45,4 @@ template <class _CharT>
 // #endif   // _RWSTD_NO_EXT_NUMPUNCT_PRIMARY
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std

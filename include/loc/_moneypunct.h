@@ -44,7 +44,7 @@
 #include <rw/_defs.h>
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 // 22.2.6.3
@@ -214,7 +214,7 @@ public:
 };
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE_FIRST (_MONEYPUNCT)
@@ -222,7 +222,7 @@ public:
 #endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (_MONEYPUNCT)
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 #if _RWSTD_INSTANTIATE (_MONEYPUNCT, _CHAR)
 
@@ -238,7 +238,7 @@ _RWSTD_INSTANTIATE_2 (struct _RWSTD_EXPORT moneypunct<wchar_t, false>);
 
 #endif   // _RWSTD_INSTANTIATE (_MONEYPUNCT, _WCHAR_T)
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE_LAST (_MONEYPUNCT)

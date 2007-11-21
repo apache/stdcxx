@@ -39,7 +39,7 @@
 #include <rw/_defs.h>
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 // convenience interfaces: is*(char)
@@ -135,7 +135,7 @@ inline _CharT (tolower)(_CharT __c, const locale &__loc)
     return (_V3_USE_FACET (ctype<_CharT>, __loc).tolower) (__c);
 }
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #endif   // _RWSTD_LOC_CONVENIENCE_H_INCLUDED

@@ -37,15 +37,6 @@
 #endif   //_RWSTD_RW_CONFIG_H_INCLUDED
 
 
-#ifndef _RWSTD_NO_V3_LOCALE
-#  ifndef _RWSTD_NO_NAMESPACE
-#    define _V3_LOCALE std
-#  else
-#    define _V3_LOCALE /* empty */
-#  endif   // _RWSTD_NO_NAMESPACE
-#endif   // _RWSTD_NO_V3_LOCALE
-
-
 // provide definitions for C++ versions of standard C headers
 // if a header is not available its name is #defined to the name of
 // this file (it's harmless and avoids polluting code with
@@ -970,13 +961,13 @@
 // support for building the new locale (v.3)
 #ifndef _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
 #  ifndef _RWSTD_NO_HONOR_STD
-#    define _V3_USE_FACET(type, arg)   _V3_LOCALE::use_facet< type >(arg)
+#    define _V3_USE_FACET(type, arg)   _STD::use_facet< type >(arg)
 #  else
 #    define _V3_USE_FACET(type, arg)   use_facet< type >(arg)
 #  endif
 #else   // if defined (_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE)
 #  ifndef _RWSTD_NO_HONOR_STD
-#    define _V3_USE_FACET(type, arg)   _V3_LOCALE::use_facet(arg, (type*)(0))
+#    define _V3_USE_FACET(type, arg)   _STD::use_facet(arg, (type*)(0))
 #  else
 #    define _V3_USE_FACET(type, arg)   use_facet(arg, (type*)(0))
 #  endif

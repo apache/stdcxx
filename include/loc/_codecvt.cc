@@ -27,7 +27,7 @@
  **************************************************************************/
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 #ifndef _RWSTD_NO_EXT_CODECVT_PRIMARY
@@ -38,4 +38,4 @@ _RW::__rw_facet_id codecvt<_InternT, _ExternT, _StateT>::id;
 #endif   // _RWSTD_NO_EXT_CODECVT_PRIMARY
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std

@@ -43,7 +43,7 @@
 #include <rw/_defs.h>
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 _EXPORT
@@ -254,7 +254,7 @@ protected:
 
 #endif   // _RWSTD_NO_WCHAR_T
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE (_COLLATE)

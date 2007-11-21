@@ -44,7 +44,7 @@ struct __rw_ctype_t;
 
 }   // namespace __rw
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 // 22.2.1.5 - Template class codecvt
 
@@ -446,7 +446,7 @@ protected:
 #endif   // _RWSTD_NO_WCHAR_T
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE (_CODECVT)

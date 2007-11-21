@@ -43,7 +43,7 @@ __rw_get_timepunct (const __rw_facet *pfacet,
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 template <class _CharT, class _InputIter>
@@ -356,4 +356,4 @@ do_get (iter_type __it, iter_type __end, ios_base &__fl,
 }
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std
