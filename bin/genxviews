@@ -128,7 +128,6 @@ process_results ()
             <td>$osname</td>
             <td>$arch</td>
             <td>$compiler</td>
-            <td><a href="$outfile">$outfile</a></td>
 EOF
     fi   # [ quiet -eq 0 ]
 
@@ -165,10 +164,18 @@ EOF
 
     if [ "$buildlogs" = "" ]; then
         echo "$myname: no logs for $compiler on $osname/$arch." >&2
+
+        if [ $quiet -eq 0 ]; then
+            echo "<td><i>$outfile</i></td>"
+        fi
     else
         if [ $dryrun -eq 1 ]; then
             echo "$myname: $CROSS -o$outdir/$outfile $buildlogs   # $count logs"
         else
+            if [ $quiet -eq 0 ]; then
+                echo "<td><a href="$outfile">$outfile</a></td>"
+            fi
+
             $CROSS -o$outdir/$outfile $buildlogs
         fi
     fi
@@ -191,6 +198,10 @@ EOF
 EOF
     fi   # [ quiet -eq 0 ]
 }
+
+########################################################################
+# operating systems and compilers below are listed alphabetically
+# starting with the most recent version first
 
 # AIX ##################################################################
 process_results "AIX 5.3" "PowerPC" "IBM XLC++ 9.0" \
@@ -257,18 +268,37 @@ process_results "IRIX 6.5" "MIPS" "SGI MIPSpro 7.41" \
                 irix-6.5-mips-mipspro-7.41.htm
 
 # Red Hat Linux ########################################################
-process_results "Red Hat Enterprise Linux 5.0" "EM64T" "gcc 4.1.1" \
-                "linux_redhat_el-5.0-em64t-gcc-4.1.1-*-*-log.gz.txt" \
-                linux_redhat_el-5.0-em64t-gcc-4.1.1.html
-
+# Red Hat Enterprise Linux 5.0
 process_results "Red Hat Enterprise Linux 5.0" "EM64T" "EDG eccp 3.9" \
                 "linux_redhat_el-5.0-em64t-eccp-3.9-*-*-log.gz.txt" \
                 linux_redhat_el-5.0-em64t-eccp-3.9.html
 
+process_results "Red Hat Enterprise Linux 5.0" "EM64T" "gcc 4.1.1" \
+                "linux_redhat_el-5.0-em64t-gcc-4.1.1-*-*-log.gz.txt" \
+                linux_redhat_el-5.0-em64t-gcc-4.1.1.html
+
+process_results "Red Hat Enterprise Linux 5.0" "EM64T" "Intel C++ 10.0" \
+                "linux_redhat_el-5.0-em64t-icc-10.0-*-*-log.gz.txt" \
+                linux_redhat_el-5.0-em64t-icc-10.0.html
+
+process_results "Red Hat Enterprise Linux 5.0" "EM64T" "Intel C++ 9.1" \
+                "linux_redhat_el-5.0-em64t-icc-9.1-*-*-log.gz.txt" \
+                linux_redhat_el-5.0-em64t-icc-9.1.html
+
+# Red Hat Enterprise Linux 4 Update 4
 process_results "Red Hat Enterprise Linux 4 Update 4" "AMD64" "gcc 3.4.6" \
                 "linux_redhat_el-4.4-amd64-gcc-3.4.6-*-*-log.gz.txt" \
                 linux_redhat_el-4.4-amd64-gcc-3.4.6.html
 
+process_results "Red Hat Enterprise Linux 4 Update 4" "EM64T" "Intel C++ 10.0" \
+                "linux_redhat_el-4.4-em64t-icc-10.0-*-*-log.gz.txt" \
+                linux_redhat_el-4.4-em64t-icc-10.0.html
+
+process_results "Red Hat Enterprise Linux 4 Update 4" "EM64T" "Intel C++ 9.1" \
+                "linux_redhat_el-4.4-em64t-icc-9.1-*-*-log.gz.txt" \
+                linux_redhat_el-4.4-em64t-icc-9.1.html
+
+# Red Hat Enterprise Linux 4 Update 2
 process_results "Red Hat Enterprise Linux 4 Update 2" "AMD64" "gcc 3.4.6" \
                 "linux_redhat_el-4.4-amd64-gcc-3.4.6-*-*-log.gz.txt" \
                 linux_redhat_el-4.4-amd64-gcc-3.4.6.html
@@ -277,11 +307,20 @@ process_results "Red Hat Enterprise Linux 4 Update 2" "IA64" "gcc 3.4.4" \
                 "linux_redhat_el-4.2-ia64-gcc-3.4.4-*-*-log.gz.txt" \
                 linux_redhat_el-4.2-ia64-gcc-3.4.4.html
 
+process_results "Red Hat Enterprise Linux 4 Update 2" "IA64" "Intel C++ 9.1" \
+                "linux_redhat_el-4.2-ia64-icc-9.1-*-*-log.gz.txt" \
+                linux_redhat_el-4.2-ia64-icc-9.1.html
+
+# Red Hat Enterprise Linux 3 Update 8
 process_results "Red Hat Enterprise Linux 3 Update 8" "EM64T" "gcc 3.2.3" \
                 "linux_redhat_el-3.8-em64t-gcc-3.2.3-*-*-log.gz.txt" \
                 linux_redhat_el-3.8-em64t-gcc-3.2.3.html
 
 # Solaris ##############################################################
+process_results "Solaris 10" "SPARC" "EDG eccp 3.9" \
+                "solaris-10-sparc-eccp-3.9-*-*-log.gz.txt" \
+                solaris-10-sparc-eccp-3.9.html
+
 process_results "Solaris 10" "SPARC" "gcc 4.1.1" \
                 "solaris-10-sparc-gcc-4.1.1-*-*-log.gz.txt" \
                 solaris-10-sparc-gcc-4.1.1.html
@@ -298,34 +337,72 @@ process_results "Solaris 10" "SPARC" "Sun C++ 5.7" \
                 "solaris-10-sparc-sunpro-5.7-*-*-log.gz.txt" \
                 solaris-10-sparc-sunpro-5.7.html
 
-process_results "Solaris 9" "SPARC" "Sun C++ 5.6" \
-                "solaris-9-sparc-sunpro-5.6-*-*-log.gz.txt" \
-                solaris-9-sparc-sunpro-5.6.html
-
-# process_results "Solaris 9" "SPARC" "Sun C++ 5.5" \
-#                 "solaris-9-sparc-sunpro-5.5-*-*-log.gz.txt" \
-#                 solaris-9-sparc-sunpro-5.5.html
-
 process_results "Solaris 9" "SPARC" "EDG eccp 3.9" \
                 "solaris-9-sparc-eccp-3.9-*-*-log.gz.txt" \
                 solaris-9-sparc-eccp-3.9.html
 
-# process_results "Solaris 8" "SPARC" "Sun C++ 5.5" \
-#                 "solaris-8-sparc-sunpro-5.5-*-*-log.gz.txt" \
-#                 solaris-8-sparc-sunpro-5.5.html
+process_results "Solaris 9" "SPARC" "Sun C++ 5.9" \
+                "solaris-9-sparc-sunpro-5.9-*-*-log.gz.txt" \
+                solaris-9-sparc-sunpro-5.9.html
+
+process_results "Solaris 9" "SPARC" "Sun C++ 5.6" \
+                "solaris-9-sparc-sunpro-5.6-*-*-log.gz.txt" \
+                solaris-9-sparc-sunpro-5.6.html
+
+process_results "Solaris 8" "SPARC" "Sun C++ 5.8" \
+                "solaris-8-sparc-sunpro-5.8-*-*-log.gz.txt" \
+                solaris-8-sparc-sunpro-5.8.html
 
 process_results "Solaris 8" "SPARC" "Sun C++ 5.3" \
                 "solaris-8-sparc-sunpro-5.3-*-*-log.gz.txt" \
                 solaris-8-sparc-sunpro-5.3.html
 
+process_results "Solaris 10" "AMD64" "Sun C++ 5.9" \
+                "solaris-10-amd64-sunpro-5.9-*-*-log.gz.txt" \
+                solaris-10-amd64-sunpro-5.9.html
+
+process_results "Solaris 10" "AMD64" "Sun C++ 5.8" \
+                "solaris-10-amd64-sunpro-5.8-*-*-log.gz.txt" \
+                solaris-10-amd64-sunpro-5.8.html
+
 # SuSE Linux ###########################################################
-process_results "SuSE Enterprise Server 10.0" "x86" "gcc 4.1.0" \
+# SuSE Enterprise Server 10
+process_results "SuSE Enterprise Server 10.0" "EM64T" "EDG eccp 3.9" \
+                "linux_suse-10.0-em64t-eccp-3.9-*-*-log.gz.txt" \
+                linux_suse-10.0-em64t-eccp-3.9.html
+
+process_results "SuSE Enterprise Server 10.0" "EM64T" "gcc 4.1.0" \
                 "linux_suse-10.0-em64t-gcc-4.1.0-*-*-log.gz.txt" \
                 linux_suse-10.0-em64t-gcc-4.1.0.html
 
+process_results "SuSE Enterprise Server 10.0" "EM64T" "Intel C++ 10.0" \
+                "linux_suse-10.0-em64t-icc-10.0-*-*-log.gz.txt" \
+                linux_suse-10.0-em64t-icc-10.0.html
+
+process_results "SuSE Enterprise Server 10.0" "EM64T" "Intel C++ 9.1" \
+                "linux_suse-10.0-em64t-icc-9.1-*-*-log.gz.txt" \
+                linux_suse-10.0-em64t-icc-9.1.html
+
+# SuSE Enterprise Server 9.1
 process_results "SuSE Enterprise Server 9.1" "AMD64" "gcc 3.3.3" \
                 "linux_suse-9.1-amd64-gcc-3.3.3-43.28-*-*-log.gz.txt" \
                 linux_suse-9.1-amd64-gcc-3.3.3.html
+
+process_results "SuSE Enterprise Server 9.1" "AMD64" "Intel C++ 10.0" \
+                "linux_suse-9.1-amd64-icc-10.0-*-*-log.gz.txt" \
+                linux_suse-9.1-amd64-icc-10.0.html
+
+process_results "SuSE Enterprise Server 9.1" "AMD64" "Intel C++ 9.1" \
+                "linux_suse-9.1-amd64-icc-9.1-*-*-log.gz.txt" \
+                linux_suse-9.1-amd64-icc-9.1.html
+
+process_results "SuSE Enterprise Server 9.1" "AMD64" "EDG eccp 3.9" \
+                "linux_suse-9.1-amd64-eccp-3.9-*-*-log.gz.txt" \
+                linux_suse-9.1-amd64-eccp-3.9.html
+
+process_results "SuSE Enterprise Server 9.1" "AMD64" "Sun C++ 5.9" \
+                "linux_suse-9.1-amd64-sunpro-5.9-*-*-log.gz.txt" \
+                linux_suse-9.1-amd64-sunpro-5.9.html
 
 # CygWin ###############################################################
 process_results "CygWin/Windows XP" "x86" "gcc 3.4.4" \
