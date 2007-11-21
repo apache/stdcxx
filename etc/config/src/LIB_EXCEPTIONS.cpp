@@ -38,20 +38,7 @@
 
 #ifndef _RWSTD_NO_HONOR_STD
 #  ifdef _RWSTD_NO_STD_TERMINATE
-
-namespace std {
-
-void terminate ()
-{
-    for (; ;) {
-        char *p = 0;
-        *p = 0;        // force a SIGSEGV
-    }
-}
-
-}   // std
-
-
+#    include "terminate.h"
 #  endif   // _RWSTD_NO_STD_TERMINATE
 #endif   // _RWSTD_NO_HONOR_STD
 
