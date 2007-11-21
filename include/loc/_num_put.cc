@@ -55,7 +55,7 @@ __rw_iter_failed (/*const */_STD::ostreambuf_iterator<_CharT, _Traits> &__it)
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 template <class _CharT, class _OutputIter>
@@ -206,4 +206,4 @@ _C_put (iter_type __it, ios_base &__flags, char_type __fill, int __type,
 }
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std

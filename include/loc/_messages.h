@@ -49,18 +49,18 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-int __rw_cat_open (const _STD::string&, const _V3_LOCALE::locale&);
+int __rw_cat_open (const _STD::string&, const _STD::locale&);
 
 const char* __rw_get_message (int, int, int);
 
-const _V3_LOCALE::locale& __rw_get_locale (int);
+const _STD::locale& __rw_get_locale (int);
 
 void __rw_cat_close (int);
 
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 struct _RWSTD_EXPORT messages_base
@@ -138,7 +138,7 @@ public:
     }
 };
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE_FIRST (_MESSAGES)
@@ -146,7 +146,7 @@ public:
 #endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (MESSAGES)
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 #if _RWSTD_INSTANTIATE (_MESSAGES, _CHAR)
 
@@ -160,7 +160,7 @@ _RWSTD_INSTANTIATE_1 (class _RWSTD_EXPORT messages<wchar_t>);
 
 #endif   // _RWSTD_INSTANTIATE (_MESSAGES, _WCHAR_T)
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE_LAST (_MESSAGES)

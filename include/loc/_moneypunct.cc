@@ -27,7 +27,7 @@
  **************************************************************************/
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 template <class _CharT, bool _Intl>
 _RW::__rw_facet_id moneypunct<_CharT, _Intl>::id;
@@ -40,4 +40,4 @@ const bool moneypunct<_CharT, _Intl>::intl /* = _Intl */;
 
 #endif   // _RWSTD_NO_STATIC_CONST_MEMBER_INIT
 
-}   // namespace _V3_LOCALE
+}   // namespace std

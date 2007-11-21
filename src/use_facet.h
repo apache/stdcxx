@@ -131,7 +131,7 @@
         _RWSTD_EXPORT                                                 \
         const __rw_facet*                                             \
         __rw_get_facet_by_id                                          \
-            (const _V3_LOCALE::locale &__loc,                         \
+            (const _STD::locale &__loc,                               \
              const __rw_facet_id&,                                    \
              const __rw_ ## fid ## _facet*) {                         \
             return __rw_get_std_facet (__loc, __rw_facet::_C_ ## fid, \

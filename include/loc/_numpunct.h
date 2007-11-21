@@ -44,7 +44,7 @@
 #include <rw/_defs.h>
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 // FIXME: provide just required specializations when #defined
@@ -240,7 +240,7 @@ public:
     }
 };
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE_FIRST (_NUMPUNCT)
@@ -248,7 +248,7 @@ public:
 #endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (_NUMPUNCT)
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 #if _RWSTD_INSTANTIATE (_NUMPUNCT, _CHAR)
 
@@ -262,7 +262,7 @@ _RWSTD_INSTANTIATE_1 (struct _RWSTD_EXPORT numpunct<wchar_t>);
 
 #endif   // _RWSTD_INSTANTIATE (_NUMPUNCT, _WCHAR_T)
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE_LAST (_NUMPUNCT)

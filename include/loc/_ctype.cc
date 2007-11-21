@@ -27,7 +27,7 @@
  **************************************************************************/
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 #ifndef _RWSTD_NO_EXT_CTYPE_PRIMARY
@@ -145,4 +145,4 @@ do_narrow (const char_type *__lo, const char_type *__hi,
 #endif   // _RWSTD_NO_EXT_CTYPE_PRIMARY
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std
