@@ -21,7 +21,7 @@
  * 
  **************************************************************************/
 
-#include <config.h>
+#include "config.h"
 
 // establish dependencies on the config tests and define config
 // macros used in the header below (the are not autodetected

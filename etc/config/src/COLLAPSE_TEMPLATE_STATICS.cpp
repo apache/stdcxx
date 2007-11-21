@@ -22,8 +22,6 @@
  * 
  **************************************************************************/
 
-#include "config.h"
-
 #if 0   // guard invalid preprocessor symbol below
 
    // establish a dependency on collapse_template_statics.lib.*

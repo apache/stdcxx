@@ -22,8 +22,6 @@
  * 
  **************************************************************************/
 
-#include "config.h"
-
 // establish a dependency on extern_function_template_imp.{cpp,o}
 #ifndef _RWSTD_NO_extern_function_template_imp
 

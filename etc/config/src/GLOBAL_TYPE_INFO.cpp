@@ -22,9 +22,6 @@
  * 
  **************************************************************************/
 
-#include "config.h"
-
-
 #if defined (__EDG__) || defined (__sgi) && !defined (__GNUG__)
    // let edg (or its derivative) know about this fake type_info
 #  pragma define_type_info
