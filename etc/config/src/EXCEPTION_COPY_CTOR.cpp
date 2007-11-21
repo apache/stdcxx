@@ -22,8 +22,6 @@
  * 
  **************************************************************************/
 
-#include "config.h"
-
 #if 0   // guard invalid preprocessor symbol below
    // establish a dependency on RUNTIME_IN_STD.cpp
 #  ifndef _RWSTD_NO_RUNTIME_IN_STD

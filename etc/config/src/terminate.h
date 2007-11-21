@@ -1,4 +1,3 @@
-// checking for bad_typeid assignment operator
 
 /***************************************************************************
  *
@@ -22,19 +21,22 @@
  * 
  **************************************************************************/
 
-#if 0   // guard invalid preprocessor symbol below
-   // establish a dependency on RUNTIME_IN_STD.cpp
-#  ifndef _RWSTD_NO_RUNTIME_IN_STD
-#  endif   // _RWSTD_NO_RUNTIME_IN_STD
-#endif   // 0
+namespace std {
 
-#define TEST_ASSIGNMENT
-#define bad_alloc bad_typeid
-#define main      test_bad_typeid_assignment
-#include "BAD_ALLOC_ASSIGNMENT.cpp"
-#undef main
-
-int main (int argc, char *argv[])
+void terminate ()
 {
-    return test_bad_typeid_assignment (argc, argv);
+    static int *ip;
+
+terminate_loop:
+
+    if ((ip [0] = ip [1])) {  // force a SIGSEGV
+        ++ip;
+        terminate ();         // recurse infinitely
+    }
+
+    // prevent gcc warnings for a function
+    // that's not supposed to return
+    goto terminate_loop;
+}
+
 }

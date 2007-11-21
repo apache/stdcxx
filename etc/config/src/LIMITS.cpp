@@ -1,7 +1,5 @@
 // computing numerical limits
 
-#include "config.h"
-
 /***************************************************************************
  *
  * Licensed to the Apache Software  Foundation (ASF) under one or more
@@ -23,6 +21,8 @@
  * Copyright 1999-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
+
+#include "config.h"
 
 #include <stdio.h>    // for printf()
 
@@ -48,20 +48,7 @@
 
 #ifndef _RWSTD_NO_HONOR_STD
 #  ifdef _RWSTD_NO_STD_TERMINATE
-
-namespace std {
-
-void terminate ()
-{
-    for (; ;) {
-        char *p = 0;
-        *p = 0;        // force a SIGSEGV
-    }
-}
-
-}   // std
-
-
+#    include "terminate.h"
 #  endif   // _RWSTD_NO_STD_TERMINATE
 #endif   // _RWSTD_NO_HONOR_STD
 

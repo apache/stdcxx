@@ -22,8 +22,6 @@
  * 
  **************************************************************************/
 
-#include "config.h"
-
 // will fail if namespaces aren't supported
 namespace std {
 

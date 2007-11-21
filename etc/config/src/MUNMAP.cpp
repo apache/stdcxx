@@ -22,8 +22,6 @@
  * 
  **************************************************************************/
 
-#include "config.h"
-
 // include <sys/types.h> first in case mman.h depends
 // on it (such as the one on Darwin -- see STDCXX-107)
 #include <sys/types.h>   // for size_t

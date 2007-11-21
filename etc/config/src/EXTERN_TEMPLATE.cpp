@@ -28,8 +28,6 @@
 
 #include "extern_template_imp.h"
 
-#include "config.h"
-
 // establish a dependency on extern_template_imp.o to make sure
 // the extern_template_imp.cpp is compiled before this file
 #ifndef _RWSTD_NO_extern_template_imp
