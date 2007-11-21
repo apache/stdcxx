@@ -44,7 +44,7 @@ __rw_put_groups (char **, _RWSTD_SIZE_T, _RWSTD_SIZE_T,
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 template <class _CharT, class _OutputIter>
@@ -401,4 +401,4 @@ do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
 }
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std

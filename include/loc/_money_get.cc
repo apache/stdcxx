@@ -45,7 +45,7 @@ __rw_check_grouping (const char*, _RWSTD_SIZE_T,
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 template <class _CharT, class _InputIter>
@@ -374,4 +374,4 @@ _C_get (iter_type __it, iter_type __end, bool __intl, ios_base &__flags,
 }
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std

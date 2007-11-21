@@ -62,7 +62,7 @@ _RWSTD_DEFINE_BITMASK_OPERATORS (__rw_ctype_mask);
 }   // namespace __rw
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 struct _RWSTD_CLASS_EXPORT locale;
 
@@ -644,7 +644,7 @@ private:
 #endif   // _RWSTD_NO_WCHAR_T
 
 
-}   // namespace _V3_LOCALE
+}   // namespace std
 
 
 #if _RWSTD_DEFINE_TEMPLATE (CTYPE)

@@ -27,7 +27,7 @@
  **************************************************************************/
 
 
-_RWSTD_NAMESPACE (_V3_LOCALE) { 
+_RWSTD_NAMESPACE (std) { 
 
 
 #ifndef _RWSTD_NO_EXT_COLLATE_PRIMARY
@@ -37,4 +37,4 @@ _RW::__rw_facet_id collate<_CharT>::id;
 
 #endif   // _RWSTD_NO_EXT_COLLATE_PRIMARY
 
-}   // namespace _V3_LOCALE
+}   // namespace std
