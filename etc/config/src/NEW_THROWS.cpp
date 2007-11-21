@@ -36,25 +36,7 @@
 #if 2 == __GNUG__
 #  ifndef _RWSTD_NO_HONOR_STD
 #    ifdef _RWSTD_NO_STD_TERMINATE
-
-namespace std {
-
-void terminate ()
-{
-    static int *ip;
-
-loop:
-
-    while ((ip [0] = ip [1])) {  // force a SIGSEGV
-        ++ip;
-        terminate ();            // recurse infinitely
-    }
-
-    goto loop;
-}
-
-}   // namespace std
-
+#      include "terminate.h"
 #    endif   // _RWSTD_NO_STD_TERMINATE
 #  endif   // _RWSTD_NO_HONOR_STD
 #endif   // gcc 2.x
