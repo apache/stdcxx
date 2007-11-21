@@ -22,9 +22,6 @@
  * 
  **************************************************************************/
 
-#include "config.h"
-
-
 #if (defined (_WIN32) || defined (_WIN64)) && !defined (__CYGWIN__)
 #  define TRY             __try
 #  define EXCEPT(expr)    __except (expr)

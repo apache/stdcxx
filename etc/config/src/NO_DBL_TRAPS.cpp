@@ -22,9 +22,6 @@
  * 
  **************************************************************************/
 
-#include "config.h"
-
-
 /* IEEE 754 (IEC 559 supeseded by IEC 60559) specifies that
  * the following operations return NaN unless they trap:
  *
