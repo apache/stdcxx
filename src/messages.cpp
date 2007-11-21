@@ -275,27 +275,37 @@ const _STD::locale& __rw_get_locale (int cat)
 // Close a catalog and release its handle.
 void __rw_cat_close (int cat)
 {
-    _RWSTD_MT_CLASS_GUARD (__rw_open_cat_data);
+    bool cat_closed = false;
+
+    {
+        // guard is local to this scope to avoid reacquiring the mutex
+        // if have to generate an exception message string below.
+        _RWSTD_MT_CLASS_GUARD (__rw_open_cat_data);
     
-    __rw_open_cat_data* const pcat_data =
-        cat < 0 ? 0 : __rw_manage_cat_data (cat, 0);
+        __rw_open_cat_data* const pcat_data =
+            cat < 0 ? 0 : __rw_manage_cat_data (cat, 0);
 
-    // 22.2.7.1.2, p5: `catalog' must be valid
-    if (pcat_data && pcat_data->catd != _RWSTD_BAD_CATD) {
+        // 22.2.7.1.2, p5: `catalog' must be valid
+        if (pcat_data && pcat_data->catd != _RWSTD_BAD_CATD) {
 
-	catclose (pcat_data->catd);
+            catclose (pcat_data->catd);
 
-	_STD::locale* const ploc =
-            _RWSTD_REINTERPRET_CAST (_STD::locale*, &pcat_data->loc);
+            _STD::locale* const ploc =
+                _RWSTD_REINTERPRET_CAST (_STD::locale*, &pcat_data->loc);
 
-	ploc->~locale ();
+            ploc->~locale ();
 
-	__rw_manage_cat_data (cat, pcat_data);
+            __rw_manage_cat_data (cat, pcat_data);
+
+            cat_closed = true;
+        }
+        else {
+            cat_closed = false;
+        }
     }
-    else {
-        _RWSTD_REQUIRES (0, (_RWSTD_ERROR_INVALID_ARGUMENT,
-                             _RWSTD_FUNC ("__rw_cat_close (int cat)")));
-    }
+
+    _RWSTD_REQUIRES (cat_closed, (_RWSTD_ERROR_INVALID_ARGUMENT,
+                                  _RWSTD_FUNC ("__rw_cat_close (int cat)")));
 }
 
 
