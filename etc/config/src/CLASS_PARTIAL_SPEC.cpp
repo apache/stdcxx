@@ -22,8 +22,6 @@
  * 
  **************************************************************************/
 
-#include "config.h"
-
 // primary template
 template <class T, class U>
 struct PartiallySpecialized

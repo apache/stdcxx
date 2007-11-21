@@ -34,8 +34,6 @@
 #include <string.h>
 #include <time.h>
 
-#include "config.h"
-
 int main ()
 {
     (void)&std::isalpha;     // <ctype>
