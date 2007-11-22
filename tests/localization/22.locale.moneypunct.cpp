@@ -192,10 +192,10 @@ runTest()
 
     if (1) {
         if (_STD_HAS_FACET (MoneyPunctByname, loc_))
-            _V3_USE_FACET (MoneyPunctByname, loc_);
+            _RWSTD_USE_FACET (MoneyPunctByname, loc_);
 
         if (_STD_HAS_FACET (MoneyPunctIntlByname, loc_))
-            _V3_USE_FACET (MoneyPunctIntlByname, loc_);
+            _RWSTD_USE_FACET (MoneyPunctIntlByname, loc_);
     }
 
     // note that values in 7.4 of C89, and 7.11, p2 of C99, respectively,
@@ -443,8 +443,8 @@ template <class charT>
 void Test<charT>::
 check_decimal_point (charT result)
 {
-    const charT c = intl_ ? _V3_USE_FACET (IntlPunct, loc_).decimal_point ()
-                          : _V3_USE_FACET (Punct, loc_).decimal_point ();
+    const charT c = intl_ ? _RWSTD_USE_FACET (IntlPunct, loc_).decimal_point ()
+                          : _RWSTD_USE_FACET (Punct, loc_).decimal_point ();
 
     rw_assert (std::char_traits<charT>::eq (c, result), 0, __LINE__,
                "moneypunct<%s, %b>::decimal_point() == %#lc, got %#lc "
@@ -459,8 +459,8 @@ template <class charT>
 void Test<charT>::
 check_thousands_sep (charT result)
 {
-    const charT c = intl_ ? _V3_USE_FACET (IntlPunct, loc_).thousands_sep ()
-                          : _V3_USE_FACET (Punct, loc_).thousands_sep ();
+    const charT c = intl_ ? _RWSTD_USE_FACET (IntlPunct, loc_).thousands_sep ()
+                          : _RWSTD_USE_FACET (Punct, loc_).thousands_sep ();
 
     rw_assert (std::char_traits<charT>::eq (c, result), 0, __LINE__,
                "moneypunct<%s, %b>::thousands_sep() == %#lc, got %#lc "
@@ -475,8 +475,8 @@ template <class charT>
 void Test<charT>::
 check_frac_digits (int result)
 {
-    const int i = intl_ ? _V3_USE_FACET (IntlPunct, loc_).frac_digits ()
-                        : _V3_USE_FACET (Punct, loc_).frac_digits ();
+    const int i = intl_ ? _RWSTD_USE_FACET (IntlPunct, loc_).frac_digits ()
+                        : _RWSTD_USE_FACET (Punct, loc_).frac_digits ();
 
     rw_assert (i == result, 0, __LINE__,
                "moneypunct<%s, %b>::frac_digits() == %d, got %d "
@@ -491,8 +491,9 @@ template <class charT>
 void Test<charT>::
 check_grouping (const std::string &result)
 {
-    const std::string s = intl_ ? _V3_USE_FACET (IntlPunct, loc_).grouping ()
-                                : _V3_USE_FACET (Punct, loc_).grouping ();
+    const std::string s = intl_ ?
+          _RWSTD_USE_FACET (IntlPunct, loc_).grouping ()
+        : _RWSTD_USE_FACET (Punct, loc_).grouping ();
 
     if (   s != result
         && s.size () != result.size () && s.size () && result.size ()) {
@@ -536,7 +537,7 @@ check_grouping (const std::string &result)
     //                 as the result of numpunct<charT>::do_grouping().
 
     const std::string grp =
-        _V3_USE_FACET (std::numpunct<charT>, loc_).grouping ();
+        _RWSTD_USE_FACET (std::numpunct<charT>, loc_).grouping ();
 
     rw_assert (s == grp, 0, __LINE__,
                "moneypunct<%s, %b>::grouping() == numpunct<>::grouping() == "
@@ -557,8 +558,8 @@ template <class charT>
 void Test<charT>::
 check_curr_symbol (const String &result)
 {
-    const String s = intl_ ? _V3_USE_FACET (IntlPunct, loc_).curr_symbol ()
-                           : _V3_USE_FACET (Punct, loc_).curr_symbol ();
+    const String s = intl_ ? _RWSTD_USE_FACET (IntlPunct, loc_).curr_symbol ()
+                           : _RWSTD_USE_FACET (Punct, loc_).curr_symbol ();
 
     rw_assert (s == result, 0, __LINE__,
                "moneypunct<%s, %b>::curr_symbol() == %{*Ac}, got %{*Ac} "
@@ -575,8 +576,9 @@ template <class charT>
 void Test<charT>::
 check_positive_sign (const String &result)
 {
-    const String s = intl_ ? _V3_USE_FACET (IntlPunct, loc_).positive_sign ()
-                           : _V3_USE_FACET (Punct, loc_).positive_sign ();
+    const String s = intl_ ?
+          _RWSTD_USE_FACET (IntlPunct, loc_).positive_sign ()
+        : _RWSTD_USE_FACET (Punct, loc_).positive_sign ();
 
     rw_assert (s == result, 0, __LINE__,
                "moneypunct<%s, %b>::positive_sign() == %{*Ac}, got %{*Ac} "
@@ -593,8 +595,9 @@ template <class charT>
 void Test<charT>::
 check_negative_sign (const String &result)
 {
-    const String s = intl_ ? _V3_USE_FACET (IntlPunct, loc_).negative_sign ()
-                           : _V3_USE_FACET (Punct, loc_).negative_sign ();
+    const String s = intl_ ?
+          _RWSTD_USE_FACET (IntlPunct, loc_).negative_sign ()
+        : _RWSTD_USE_FACET (Punct, loc_).negative_sign ();
 
     rw_assert (s == result, 0, __LINE__,
                "moneypunct<%s, %b>::negative_sign() == %{*Ac}, got %{*Ac} "
@@ -747,10 +750,10 @@ void Test<charT>::
 check_format (bool pos, std::money_base::pattern result, const UChar cpat [3])
 {
     const std::money_base::pattern pat =
-        intl_ ? pos ? _V3_USE_FACET (IntlPunct, loc_).pos_format ()
-                    : _V3_USE_FACET (IntlPunct, loc_).neg_format ()
-              : pos ? _V3_USE_FACET (Punct, loc_).pos_format ()
-                    : _V3_USE_FACET (Punct, loc_).neg_format ();
+        intl_ ? pos ? _RWSTD_USE_FACET (IntlPunct, loc_).pos_format ()
+                    : _RWSTD_USE_FACET (IntlPunct, loc_).neg_format ()
+              : pos ? _RWSTD_USE_FACET (Punct, loc_).pos_format ()
+                    : _RWSTD_USE_FACET (Punct, loc_).neg_format ();
 
     // number of times each symbol appears in pattern
     int counts [5] = { 0 };
