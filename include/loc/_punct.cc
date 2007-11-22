@@ -62,7 +62,7 @@ _InputIter __rw_match_name (_InputIter __it, _InputIter __end,
     __inx = __badval;   // invalidate
 
     const _STD::ctype<_CharT> *__ctp = __flags ?
-        &_V3_USE_FACET (_STD::ctype<_CharT>, __flags->getloc ()) : 0;
+        &_RWSTD_USE_FACET (_STD::ctype<_CharT>, __flags->getloc ()) : 0;
 
     _CharT __ch;
 
