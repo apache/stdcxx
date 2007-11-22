@@ -63,8 +63,9 @@ _C_get (iter_type __it, iter_type __end, bool __intl, ios_base &__flags,
 
     const _Punct0 &__pun = __intl ? 
           _RWSTD_REINTERPRET_CAST (const _Punct0&,
-                                   _V3_USE_FACET (_Punct1,__flags.getloc ()))
-        : _V3_USE_FACET (_Punct0, __flags.getloc ());
+                                   _RWSTD_USE_FACET (_Punct1,
+                                                     __flags.getloc ()))
+        : _RWSTD_USE_FACET (_Punct0, __flags.getloc ());
 
     // retrieve positive and negative sign, currency symbol,
     // the grouping string and the pattern format
@@ -80,7 +81,7 @@ _C_get (iter_type __it, iter_type __end, bool __intl, ios_base &__flags,
     bool __seendp = false;   // seen decimal point in input
 
     const ctype<_CharT> &__ctp = 
-        _V3_USE_FACET (ctype<_CharT>, __flags.getloc ());
+        _RWSTD_USE_FACET (ctype<_CharT>, __flags.getloc ());
 
     char __buf [304];
     char *__pcur = __buf;

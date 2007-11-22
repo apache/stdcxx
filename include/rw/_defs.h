@@ -961,15 +961,15 @@
 // support for building the new locale (v.3)
 #ifndef _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
 #  ifndef _RWSTD_NO_HONOR_STD
-#    define _V3_USE_FACET(type, arg)   _STD::use_facet< type >(arg)
+#    define _RWSTD_USE_FACET(type, arg)   _STD::use_facet< type >(arg)
 #  else
-#    define _V3_USE_FACET(type, arg)   use_facet< type >(arg)
+#    define _RWSTD_USE_FACET(type, arg)   use_facet< type >(arg)
 #  endif
 #else   // if defined (_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE)
 #  ifndef _RWSTD_NO_HONOR_STD
-#    define _V3_USE_FACET(type, arg)   _STD::use_facet(arg, (type*)(0))
+#    define _RWSTD_USE_FACET(type, arg)   _STD::use_facet(arg, (type*)(0))
 #  else
-#    define _V3_USE_FACET(type, arg)   use_facet(arg, (type*)(0))
+#    define _RWSTD_USE_FACET(type, arg)   use_facet(arg, (type*)(0))
 #  endif
 #endif // _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
 

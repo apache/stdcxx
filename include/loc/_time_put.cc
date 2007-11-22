@@ -109,7 +109,7 @@ put (iter_type __it, ios_base &__flags, char_type __fill, const tm *__tmb,
         __end = __pat + char_traits<char_type>::length (__pat);
 
     const ctype<char_type> &__ctp = 
-      _V3_USE_FACET (ctype<char_type>, __flags.getloc ());
+      _RWSTD_USE_FACET (ctype<char_type>, __flags.getloc ());
     
     for (; __pat != __end; ++__pat) {
 
