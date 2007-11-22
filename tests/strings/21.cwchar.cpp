@@ -509,9 +509,15 @@ test_macros ()
     }
 
     for (unsigned i = 0; masking_macros [i]; ++i) {
+#ifdef _RWSTD_STRICT_ANSI
         rw_assert ('\0' == masking_macros [i][0], 0, __LINE__,
                    "masking macro %s unexpectedly defined",
                    masking_macros [i]);
+#else
+        rw_warn ('\0' == masking_macros [i][0], 0, __LINE__,
+                 "masking macro %s unexpectedly defined",
+                 masking_macros [i]);
+#endif
     }
 }
 
@@ -855,13 +861,13 @@ void test_functions ()
                  std_name, #fun, overload < 0, 0 == overload);          \
         const char* const return_type_name =                            \
             get_type_name ((T)0, std::fun args);                        \
-        rw_assert (0 == ncalls, 0, __LINE__,                            \
-                   "%s::%s("                                            \
-                   "%{?}%{:}/* %{?}non-%{;}const overload */%{;}) "     \
-                   "not declared (_RWSTD_NO_%s = %d, "                  \
-                   "_RWSTD_NO_%s_IN_LIBC = %d)",                        \
-                   std_name, #fun, overload < 0, 0 == overload,         \
-                   #macro, EVAL (macro), #macro, EVAL_IN_LIBC (macro)); \
+        rw_warn (0 == ncalls, 0, __LINE__,                              \
+                 "%s::%s("                                              \
+                 "%{?}%{:}/* %{?}non-%{;}const overload */%{;}) "       \
+                 "not declared (_RWSTD_NO_%s = %d, "                    \
+                 "_RWSTD_NO_%s_IN_LIBC = %d)",                          \
+                 std_name, #fun, overload < 0, 0 == overload,           \
+                 #macro, EVAL (macro), #macro, EVAL_IN_LIBC (macro));   \
         if (0 == ncalls)                                                \
             rw_assert (0 == return_type_name, 0, __LINE__, "%s::%s("    \
                        "%{?}%{:}/* %{?}non-%{;}const overload */%{;}) " \
