@@ -54,6 +54,15 @@
 #  define _RWSTD_NO_DEPRECATED_C_HEADERS
 #endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
 
+#ifndef _RWSTD_NO_WCSTOK
+// MSVC CRT has incorrect prototype of the wcstok()
+#  define _RWSTD_NO_WCSTOK
+#endif   // _RWSTD_NO_WCSTOK
+
+#ifndef _RWSTD_NO_WCSTOK_IN_LIBC
+#  define _RWSTD_NO_WCSTOK_IN_LIBC
+#endif   // _RWSTD_NO_WCSTOK_IN_LIBC
+
    // operator new and delete is not reliably replaceable across
    // shared library boundaries, which includes the shared library
    // version of the language support library
