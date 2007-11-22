@@ -1074,6 +1074,22 @@ namespace std {
 using ::wcstok;
 
 #  undef _RWSTD_NO_WCSTOK
+#elif defined (_MSC_VER) && 1400 <= _MSC_VER
+
+}   // namespace std
+
+/* extern "C++" */ inline wchar_t*
+wcstok (wchar_t* __s1, const wchar_t* __s2, wchar_t** __ptr)
+{
+    return wcstok_s (__s1, __s2, __ptr);
+}
+
+namespace std {
+
+using ::wcstok;
+
+#  undef _RWSTD_NO_WCSTOK
+#  undef _RWSTD_NO_WCSTOK_IN_LIBC
 #endif   // _RWSTD_NO_WCSTOK[_IN_LIBC]
 
 #ifndef _RWSTD_NO_WCSTOL
