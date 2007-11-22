@@ -1297,6 +1297,10 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, VarArgs *pva)
             spec.param.diff_ = PARAM (diff_, pva);
             len = rw_fmtinteger (spec, buf, spec.param.diff_);
         }
+        else if (spec.mod == spec.mod_z) {
+            spec.param.diff_ = PARAM (diff_, pva);
+            len = rw_fmtinteger (spec, buf, spec.param.diff_);
+        }
         else if (1 == spec.iwidth) {
             spec.param.int_ = PARAM (int_, pva);
             const _RWSTD_INT8_T val = spec.param.int_;
@@ -1383,6 +1387,10 @@ _rw_fmtinteger (FmtSpec *pspec, size_t paramno, Buffer &buf, VarArgs *pva)
             len = rw_fmtinteger (spec, buf, val);
         }
         else if (spec.mod == spec.mod_t) {
+            spec.param.size_ = PARAM (size_, pva);
+            len = rw_fmtinteger (spec, buf, spec.param.size_);
+        }
+        else if (spec.mod == spec.mod_z) {
             spec.param.size_ = PARAM (size_, pva);
             len = rw_fmtinteger (spec, buf, spec.param.size_);
         }
