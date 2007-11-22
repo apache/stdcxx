@@ -46,6 +46,13 @@ _RWSTD_NAMESPACE (std) {
 #include _RWSTD_ANSI_C_WCHAR_H
 
 
+#ifdef _RWSTD_STRICT_ANSI
+// 17.4.1.2, p6 - masking macros are not allowed
+#  undef getwc
+#  undef putwc
+#endif   // _RWSTD_STRICT_ANSI
+
+
 #if _RWSTD_NAMESPACE_STD_OPEN == 17
 #undef _RWSTD_NAMESPACE_STD_OPEN
 
