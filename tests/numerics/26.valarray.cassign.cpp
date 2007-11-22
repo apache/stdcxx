@@ -805,7 +805,7 @@ run_test (int, char**)
     TEST (int);
     TEST (double);
 
-#if 0x04020000 <= _RWSTD_VER
+#if 0x04020000 >= _RWSTD_VER
 
     // test fails to compile with stdcxx 4.2.0 and prior due to
     // STDCXX-512: http://issues.apache.org/jira/browse/STDCXX-512
