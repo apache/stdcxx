@@ -193,7 +193,7 @@ do_get (iter_type __begin, iter_type __end, ios_base &__flags,
     __err = _RW::__rw_goodbit;
 
     const numpunct<char_type> &__pun = 
-        _V3_USE_FACET (numpunct<char_type>, __flags.getloc ());
+        _RWSTD_USE_FACET (numpunct<char_type>, __flags.getloc ());
 
     // lwg issue 17
     typedef basic_string<char_type> string_type;
@@ -246,7 +246,7 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
     const locale &__loc = __flags.getloc ();
 
     const numpunct<char_type> &__pun = 
-        _V3_USE_FACET (numpunct<char_type>, __loc);
+        _RWSTD_USE_FACET (numpunct<char_type>, __loc);
 
     // 22.2.2.1.2, p8: Stage 2
 
@@ -257,7 +257,7 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
 
     _RWSTD_UNUSED (__bufsize);
 
-    const ctype<char_type> &__ctp = _V3_USE_FACET (ctype<char_type>, __loc);
+    const ctype<char_type> &__ctp = _RWSTD_USE_FACET (ctype<char_type>, __loc);
 
     const _CharT __decimal_point = __pun.decimal_point ();
     const _CharT __thousands_sep = __pun.thousands_sep ();

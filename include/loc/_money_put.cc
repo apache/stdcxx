@@ -72,15 +72,15 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
 
     if (__intl) {
         __pun0 = 0;
-        __pun1 = &_V3_USE_FACET (_Punct1, __flags.getloc ());
+        __pun1 = &_RWSTD_USE_FACET (_Punct1, __flags.getloc ());
     }
     else {
-        __pun0 = &_V3_USE_FACET (_Punct0, __flags.getloc ());
+        __pun0 = &_RWSTD_USE_FACET (_Punct0, __flags.getloc ());
         __pun1 = 0;
     }
 
     const ctype<_CharT> &__ctp =
-        _V3_USE_FACET (ctype<_CharT>,__flags.getloc ());
+        _RWSTD_USE_FACET (ctype<_CharT>,__flags.getloc ());
 
     money_base::pattern __fmat;   // negative or positive format
     string_type         __sign;   // negative or positive sign
@@ -285,14 +285,14 @@ do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
 
     if (__intl) {
         typedef moneypunct<_CharT, true> _Punct;
-        const _Punct &__pun = _V3_USE_FACET (_Punct, __flags.getloc ());
+        const _Punct &__pun = _RWSTD_USE_FACET (_Punct, __flags.getloc ());
 
         __fd       = __pun.frac_digits ();
         __grouping = __pun.grouping ();
     }
     else {
         typedef moneypunct<_CharT, false> _Punct;
-        const _Punct &__pun = _V3_USE_FACET (_Punct, __flags.getloc ());
+        const _Punct &__pun = _RWSTD_USE_FACET (_Punct, __flags.getloc ());
 
         __fd       = __pun.frac_digits ();
         __grouping = __pun.grouping ();
@@ -313,7 +313,7 @@ do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
 
     // widen narrow buffer (necessary even if char_type == char)
     const ctype<_CharT> &__ctp =
-        _V3_USE_FACET (ctype<_CharT>, __flags.getloc ());
+        _RWSTD_USE_FACET (ctype<_CharT>, __flags.getloc ());
 
     __ctp.widen (__buf, __buf + __n, __wbuf);
 
@@ -338,7 +338,7 @@ do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
     if (__intl) {
         typedef moneypunct<_CharT, true> _Punct;
 
-        const _Punct &__pun = _V3_USE_FACET (_Punct, __flags.getloc ());
+        const _Punct &__pun = _RWSTD_USE_FACET (_Punct, __flags.getloc ());
 
         __fd       = __pun.frac_digits ();
         __grouping = __pun.grouping ();
@@ -346,7 +346,7 @@ do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
     else {
         typedef moneypunct<_CharT, false> _Punct;
 
-        const _Punct &__pun = _V3_USE_FACET (_Punct, __flags.getloc ());
+        const _Punct &__pun = _RWSTD_USE_FACET (_Punct, __flags.getloc ());
 
         __fd       = __pun.frac_digits ();
         __grouping = __pun.grouping ();
@@ -363,7 +363,7 @@ do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
     char       *__groups = __grouping.size () ? __buf : &__nul;
 
     const ctype<_CharT> &__ctp =
-        _V3_USE_FACET (ctype<_CharT>, __flags.getloc ());
+        _RWSTD_USE_FACET (ctype<_CharT>, __flags.getloc ());
 
     // narrow digits into a temporary buffer to determine grouping
     for (_StringIter __it = __str.begin (); __it != __str.end (); ++__it) {

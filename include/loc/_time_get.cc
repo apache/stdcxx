@@ -60,7 +60,7 @@ get (iter_type __it, iter_type __end, ios_base &__fl, _RWSTD_IOSTATE &__err,
     _RWSTD_ASSERT (__pat <= __pat_end);
 
     const ctype<char_type> &__ctp =
-        _V3_USE_FACET (ctype<char_type>, __fl.getloc ());
+        _RWSTD_USE_FACET (ctype<char_type>, __fl.getloc ());
 
     // extension: `tmb' may be 0
     tm __tmp = __tmb ? *__tmb : tm ();
@@ -141,7 +141,7 @@ do_get (iter_type __it, iter_type __end, ios_base &__fl,
     _RWSTD_SIZE_T __dup;   // number of allowed duplicates
 
     const ctype<char_type> &__ctp =
-        _V3_USE_FACET (ctype<char_type>, __fl.getloc ());
+        _RWSTD_USE_FACET (ctype<char_type>, __fl.getloc ());
 
     switch (__fmt) {
 
