@@ -55,4 +55,6 @@ int main ()
     buf.pubimbue (loc);
 
     assert (_STD_HAS_FACET (MyFacet, buf.getloc ()));
+
+    return 0;
 }
