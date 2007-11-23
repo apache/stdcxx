@@ -248,7 +248,7 @@ protected:
 
     // 27.5.2.4.1, p1
     virtual void imbue (const locale &__loc) {
-        _C_locale = __loc;
+        // do nothing
     }
 
     // 27.5.2.4.2, p1
@@ -496,6 +496,7 @@ pubimbue (const locale &__loc)
 
     const locale __tmp (getloc ());
     imbue (__loc);
+    _C_locale = __loc;
     return __tmp;
 }
 
