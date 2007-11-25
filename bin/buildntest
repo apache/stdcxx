@@ -115,6 +115,12 @@
 
 # date format used to compute real time elapsed between stages
 DATEFMT="((((((%Y*366)+(1%j-100)*24)+(1%H-100)*60)+(1%M-100))*60)+(1%S-100))"
+OUTFILE=results.xml
+
+if [ -z "$MAKE" ]; then
+    # let callers override the default gmake
+    MAKE=gmake
+fi
 
 # the name of the top-level source directory (TOPDIR)
 TOPDIR=`pwd | sed -e "s/\//\\\\\\\\\\\//g"` #Mangle path for sed usage
@@ -204,7 +210,7 @@ make_stage()
         log=$buildlog
     fi
 
-    echo "### $MAKE $keep_going $stagedir $stageargs $MAKEVARS 2>&1 | sed -e "${TRANS}" | tee $buildlog:"
+    echo "### $MAKE $keep_going $stagedir $stageargs $MAKEVARS 2>&1 | sed -e \"${TRANS}\" | tee $buildlog:"
 
     (   # start a subshell to measure user and system times
         # of the subshell commands only
@@ -387,39 +393,6 @@ uname -a
 
 osname=`uname -s`
 
-if [ $# -gt 1 ]; then
-    ### BEGIN HACK for eccp-3.9 and acc-3.76 compilers
-
-    case `awk -F= '"hpp.compiler"==$1 {print $2}' $2` in
-    ("eccp-3.9")
-        osdir="<UNKNOWN-OS>"
-        case "$osname" in
-	(Linux)
-            osdir=eccp-3.9-linux-x86
-            ;;
-
-            (SunOS)
-            export PATH=/usr/ccs/bin:$PATH
-            osdir=eccp-3.9-solaris-sparcv9
-            ;;
-        esac
-
-        echo "### Injecting EDG 3.9 environment"
-        export EDG_BASE=/nfs/devco/ablack/compilers/$osdir
-        export PATH=$EDG_BASE/bin:$PATH
-        ;;
-
-    ("acc-3.76")
-        echo "### Injecting aCC 3.76 environment"
-        export ACCROOT=/nfs/devco/ablack/compilers/acc-3.76-hpux-parisc2
-        export PATH=$ACCROOT:$PATH
-        export _CXXOPTS="+W2193 +W2261 +W2340 +W2401 +W2487 +W4263 +W4264 +W4297"
-    ;;
-    esac
-
-    ### END HACK
-fi
-
 AWK=awk
 case "$osname" in
     (AIX)
@@ -480,35 +453,8 @@ env
 
 echo
 
-#Set up constants (BSFNAME, OUTFILE)
-BSFNAME=$2
-OUTFILE=results.xml
-
-MAKE=gmake
-if [ "CYGWIN_NT-5.1" == "$osname" ]; then
-    # The cygwin .bashrc changes the working directory to ~, so we need to 
-    # manually reset our working directory to the buildspace.
-    cd `cygpath -u \`$AWK -F= '"batman.workingdir"==$1 {print $2}' ${BSFNAME}\``
-    MAKE=make
-fi
-
-#Start our output file
+# Start our output file
 echo "result.file.type=stdcxx-short" > ${OUTFILE}
-
-# Hack due to jar eating x bits, so we set them ourself.
-chmod 0744 etc/config/*.sh etc/config/src/*.sh
-
-if [ -r "$BSFNAME" ]; then
-    # parse BSF file
-    echo; echo "### Parsing" $BSFNAME
-
-    MAKEVARS=`$AWK -f build_stdcxx.awk ${BSFNAME}`
-    RET=$?
-    if [ 0 != ${RET} ]; then
-        echo "state=C" >> ${OUTFILE}
-        exit 1
-    fi
-fi
 
 ##########
 # Create build directory, set state to 'C' on failure
