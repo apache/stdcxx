@@ -247,7 +247,7 @@ protected:
     }
 
     // 27.5.2.4.1, p1
-    virtual void imbue (const locale &__loc) {
+    virtual void imbue (const locale&) {
         // do nothing
     }
 
