@@ -186,8 +186,9 @@ static void print_status_plain (const struct target_status* status)
     assert (0 != status);
     assert (ST_OK <= status->status && ST_LAST > status->status);
 
-    valid_timing = status->user && status->sys  && 
-        ST_NOT_KILLED != status->status;
+    valid_timing =    status->usr_time != (clock_t)-1
+                   && status->sys_time != (clock_t)-1
+                   && ST_NOT_KILLED != status->status;
 
     if (status->status) /* if status is set, print it */
         printf ("%6s", short_st_name [status->status]);
@@ -214,18 +215,18 @@ static void print_status_plain (const struct target_status* status)
             printf ("       0 %6u   100%%", status->failed);
         }
     }
-    else if (valid_timing || status->wall)
+    else if (valid_timing || status->wall_time != (clock_t)-1)
         printf ("                      ");
 
     /* Print timings, if available */
     if (valid_timing)
-        printf (" %7.3f %7.3f", (float) *status->user / TICKS_PER_SEC,
-                (float) *status->sys / TICKS_PER_SEC);
-    else if (status->wall)
+        printf (" %7.3f %7.3f", (float)status->usr_time / TICKS_PER_SEC,
+                (float)status->sys_time / TICKS_PER_SEC);
+    else if (status->wall_time != (clock_t)-1)
         printf ("                ");
 
-    if (status->wall)
-        printf (" %7.3f\n", (float) *status->wall / TICKS_PER_SEC);
+    if (status->wall_time != (clock_t)-1)
+        printf (" %7.3f\n", (float)status->wall_time / TICKS_PER_SEC);
     else
         puts ("");
 }
@@ -242,8 +243,9 @@ print_status_verbose (const struct target_status* status)
     assert (0 != status);
     assert (ST_OK <= status->status && ST_LAST > status->status);
 
-    valid_timing = status->user && status->sys
-        && ST_NOT_KILLED != status->status;
+    valid_timing =    status->usr_time != (clock_t)-1
+                   && status->sys_time != (clock_t)-1
+                   && ST_NOT_KILLED != status->status;
 
     if (status->status) /* if status is set, print it */
         printf ("  Status: %s\n", verbose_st_name [status->status]);
@@ -269,9 +271,9 @@ print_status_verbose (const struct target_status* status)
 
     /* Print timings, if available */
     if (valid_timing) {
-        const float wall = status->wall ? *status->wall / TICKS_PER_SEC : -1;
-        const float user = status->user ? *status->user / TICKS_PER_SEC : -1;
-        const float sys  = status->sys  ? *status->sys  / TICKS_PER_SEC : -1;
+        const float wall = (float)status->wall_time / TICKS_PER_SEC;
+        const float user = (float)status->usr_time  / TICKS_PER_SEC;
+        const float sys  = (float)status->sys_time  / TICKS_PER_SEC;
 
         printf ("  Times:\n"
                 "    Real               %7.3fs\n"
@@ -291,13 +293,18 @@ print_status_verbose (const struct target_status* status)
 static void
 print_footer_plain (int count, const struct target_status *summary)
 {
+    /* compute cumulative times for all targets */
+    const float wall = (float)summary->wall_time / TICKS_PER_SEC;
+    const float user = (float)summary->usr_time  / TICKS_PER_SEC;
+    const float sys  = (float)summary->sys_time  / TICKS_PER_SEC;
+
     printf ("PROGRAM SUMMARY:\n"
-            "  Programs:             %6d\n"
-            "  Non-zero exit status: %6d\n"
-            "  Signalled:            %6d\n"
-            "  Compiler warnings:    %6u\n"
-            "  Linker warnings:      %6u\n"
-            "  Runtime warnings:     %6u\n",
+            "  Programs:             %9d\n"
+            "  Non-zero exit status: %9d\n"
+            "  Signalled:            %9d\n"
+            "  Compiler warnings:    %9u\n"
+            "  Linker warnings:      %9u\n"
+            "  Runtime warnings:     %9u\n",
             count,
             summary->exit,
             summary->signaled,
@@ -307,11 +314,19 @@ print_footer_plain (int count, const struct target_status *summary)
 
     if ((unsigned)-1 != summary->assert) {
         /* print assertion counters only when they're valid */
-        printf ("  Assertions:           %6u\n"
-                "  Failed assertions:    %6u\n",
+        printf ("  Assertions:           %9u\n"
+                "  Failed assertions:    %9u\n",
                 summary->assert,
                 summary->failed);
     }
+
+    printf (            "  Cumulative times:\n"
+            "    Real                      %7.3fs\n"
+            "    User                      %7.3fs\n"
+            "    Sys                       %7.3fs\n",
+            wall,
+            user,
+            sys);
 }
 
 
