@@ -210,14 +210,14 @@ make_stage()
         log=$buildlog
     fi
 
-    echo "### $MAKE $keep_going $stagedir $stageargs $MAKEVARS 2>&1 | sed -e \"${TRANS}\" | tee $buildlog:"
+    echo "### $MAKE $keep_going $stagedir $stageargs $MAKEVARS 2>&1 | sed -e \"${TRANS}\" | tee $log:"
 
     (   # start a subshell to measure user and system times
         # of the subshell commands only
         export TMPDIR=$tmpdir
 
           $MAKE $keep_going $stagedir $stageargs $MAKEVARS 2>&1 \
-        | sed -e "${TRANS}" | tee $buildlog
+        | sed -e "${TRANS}" | tee $log
 
         # save the status of the first command in the pipeline
         # and pass it to the parent shell after writing the real,
