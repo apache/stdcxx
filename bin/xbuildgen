@@ -49,6 +49,8 @@
 #          Generate a report for the specified list of example programs
 #          with examples listed in columns and builds in rows.
 #
+#     -h   Print help.
+#
 #     -l <list-of-locales>
 #          Generate a report for the specified list of locales with
 #          locales listed in columns and builds in rows.
@@ -79,10 +81,61 @@ components_in_rows=1
 # no verbosity by default
 verbose=0
 
-## process command line options
-while getopts ":nsv:e:l:o:t:" opt_name; do
+######################################################################
+
+print_help ()
+{
+    echo "NAME"
+    echo "    $myname - generate a cross-build result page"
+    echo
+    echo "SYNOPSIS"
+    echo "    $myname [option(s)...] [log-file(s)...]"
+    echo
+    echo "DESCRIPTION"
+    echo "    The $myname utility generates a build result in HTML format"
+    echo "    across multiple platforms or tests with builds in columns and"
+    echo "    components such as examples, locales, and tests in rows by"
+    echo "    default."
+    echo
+    echo "OPTIONS"
+    echo "     -n   No clean. Avoid removing temporary files."
+    echo
+    echo "     -s   Stylesheet. Create a style sheet named resultstyle.css in"
+    echo "          the same directory as the output file when the -o option"
+    echo "          is specified, or in the current working directory otherwise."
+    echo
+    echo "     -v   Verbose. Produce verbose output on stdout."
+    echo
+    echo "     -e <list-of-examples>"
+    echo "          Generate a report for the specified list of example programs"
+    echo "          with examples listed in columns and builds in rows."
+    echo
+    echo "     -h   Print help."
+    echo
+    echo "     -l <list-of-locales>"
+    echo "          Generate a report for the specified list of locales with"
+    echo "          locales listed in columns and builds in rows."
+    echo
+    echo "     -o <output-file>"
+    echo "          Specify the pathname of the output file. The utility will"
+    echo "          use stdout when no output file is specified."
+    echo
+    echo "     -t <list-of-tests>"
+    echo "          Generate a report for the specified list of tests with"
+    echo "          tests listed in columns and builds in rows."
+}
+
+######################################################################
+
+# process command line options
+while getopts ":hnsv:e:l:o:t:" opt_name; do
     case $opt_name in
         # options with no arguments 
+
+        h)  # print help and exit
+            print_help
+            exit
+            ;;
 
         n)  # avoid cleaning up temporary files
             no_clean=1
@@ -118,6 +171,8 @@ while getopts ":nsv:e:l:o:t:" opt_name; do
             ;;
 
         *) echo "$myname: unknown option : -$opt_name" >&2;
+           echo
+           print_help
            exit 1;;
      esac;
 done
