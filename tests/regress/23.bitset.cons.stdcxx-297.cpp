@@ -39,7 +39,8 @@ int main ()
     char buf [size + 4];
     memset (buf, '\xff', sizeof (buf));
 
-    BitSet* btest = new (buf) BitSet (std::basic_string<int> ());
+    const std::basic_string<int> s;
+    BitSet* btest = new (buf) BitSet (s);
 
     for (std::size_t i = size; i < sizeof (buf); ++i)
         assert ('\xff' == buf [i]);
