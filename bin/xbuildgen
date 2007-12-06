@@ -515,7 +515,7 @@ for l in $gzlogs; do
         # the build date and now in days, or hours, or minutes,
         # or just seconds, whichever happens to be the most
         # significant
-        age=`$HOME/bin/duration "$date" "$today"`
+        age=`$HOME/stdcxx/bin/duration "$date" "$today"`
     fi
 
     # strip the year from the date
