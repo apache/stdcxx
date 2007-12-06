@@ -77,6 +77,9 @@ viewvc="http://svn.apache.org/viewvc"
 # URL to the revision number (use: "$revurl=$revno")
 revurl="$viewvc?view=rev&rev"
 
+# URL to the trunk of the source repository
+svnpath="$viewvc/incubator/stdcxx/trunk/"
+
 # by default, display one component (example, locale, or test) per row
 components_in_rows=1
 
@@ -232,38 +235,28 @@ if [ "$create_stylesheet" = "1" ]; then
 table {
     border-width:0px;
     background:#000000;
-    font-size:smaller;
+    font-family:courier
 }
 th {
-    font-family:fixed
-    font-size:smaller;
     background:#cccccc;
     text-align:center;
 }
 td {
-    font-family:fixed;
-    font-size:smaller;
     padding: 3px;
     text-align: center;
     background-color: lightblue;
 }
 td.rowno {
-    font-family:fixed;
-    font-size:smaller;
     padding: 3px;
     text-align: right;
     background-color:#cccccc;
 }
 td.name {
-    font-family:fixed;
-    font-size:smaller;
     padding: 3px;
     text-align: left;
     background-color:lightblue;
 }
 td.number {
-    font-family:fixed;
-    font-size:smaller;
     padding: 3px;
     text-align: center;
     background-color:lightblue;
@@ -271,50 +264,36 @@ td.number {
 td.na {
     background:white;
     text-align:left;
-    font-family:fixed
-    font-size:smaller;
 }
 td.header {
     background:#cccccc;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
     font-weight:bold;
 }
 td.OK {
     background:forestgreen;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
     font-weight:bold;
 }
 td.BASE {
     background:lightgreen;
     text-align:center;
-    font-size:smaller;
     font-weight:bold;
-    font-family:fixed;
 }
 td.NOUT {
     background:lightgreen;
     text-align:center;
-    font-size:smaller;
     font-weight:bold;
-    font-family:fixed;
 }
 td.OUTPUT {
     background:lightgreen;
     text-align:center;
-    font-size:smaller;
     font-weight:bold;
-    font-family:fixed;
 }
 td.missing {
     color:white;
     background:lightgray;
     text-align:center;
-    font-size:smaller;
-    font-family:fixed;
     font-weight:bold;
 }
 td.WARN {
@@ -328,69 +307,51 @@ td.EXIT {
     background:gold;
     text-align:center;
     font-weight:bold;
-    font-family:fixed;
-    font-size:smaller;
 }
 td.FORMAT {
     background:#ffffcc;
     text-align:center;
-    font-family:fixed
-    font-size:smaller;
 }
 td.RUNWARN {
     color:black;
     background:#ffff99;
     text-align:center;
     font-weight:bold;
-    font-family:fixed;
-    font-size:smaller;
 }
 td.DIFF {
     color:red;
     background:#ffff99;
     font-weight:bold;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
 }
 td.ASSERT {
     color:red;
     background:#ffff99;
     font-weight:bold;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
 }
 td.SIGNAL {
     color:yellow;
     background:red;
     font-weight:bold;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
 }
 td.COMP {
     background:violet;
     font-weight:bold;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
 }
 td.LINK {
     color:yellow;
     background:mediumpurple;
     font-weight:bold;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
 }
 td.xdep {
     color:yellow;
     background:gray;
     font-weight:bold;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
 }
 EOF
 
@@ -414,6 +375,8 @@ cat <<EOF | output
     <h2>Index</h2>
 
     <ul>
+        <li><a href="#logs">Logs and Columns</a></li>
+        <li><a href="#timings">Timings</a></li>
         <li><a href="#examples">Examples</a></li>
         <li><a href="#tests">Tests</a></li>
         <li><a href="#locales">Locales</a></li>
@@ -434,6 +397,8 @@ logdir="http://people.apache.org/~sebor/stdcxx/results"
 tests_file=$TMP/.stdcxx-tests.$$
 examples_file=$TMP/.stdcxx-examples.$$
 locales_file=$TMP/.stdcxx-locales.$$
+timings_file=$TMP/.stdcxx-timings.$$
+
 
 # remove temporary files in case they exist
 rm -f $tests_file $examples_file $locales_file
@@ -449,26 +414,103 @@ EOF
 
 
 if [ $components_in_rows -ne 0 ]; then
+    cat <<EOF >$timings_file
+
+    <h2>Timings</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th rowspan=3><div title="column number">col.</div></th>
+          <th rowspan=3>build<br>type</th>
+          <th colspan=21>build and run times (MM:SS)</th>
+        </tr>
+        <tr>
+          <th colspan=3>config</th>
+          <th colspan=3>library</th>
+          <th colspan=3>examples</th>
+          <th colspan=3>locales</th>
+          <th colspan=3>tests</th>
+          <th colspan=3>runall</th>
+          <th colspan=3>total</th>
+        </tr>
+        <tr>
+          <th>real</th>
+          <th>user</th>
+          <th>sys</th>
+          <th>real</th>
+          <th>user</th>
+          <th>sys</th>
+          <th>real</th>
+          <th>user</th>
+          <th>sys</th>
+          <th>real</th>
+          <th>user</th>
+          <th>sys</th>
+          <th>real</th>
+          <th>user</th>
+          <th>sys</th>
+          <th>real</th>
+          <th>user</th>
+          <th>sys</th>
+          <th>real</th>
+          <th>user</th>
+          <th>sys</th>
+        </tr>
+      </thead>
+      <tbody>
+EOF
 
     cat <<EOF | output
     <table>
-      <tr>
-        <th><div title="">###</div></th>
-        <th>build<br>type</th>
-        <th>build date</th>
-        <th>age</th>
-        <th>revision</th>
-        <th>build log</th>
-        <th>library<br>(bytes)</th>
-        <th>build<br>(kB)</th>
-        <th>clean<br>(kB)</th>
-        <th>errors</th>
-        <th>warnings</th>
-      </tr>
+      <thead>
+        <tr>
+          <th><div title="column number">col.</div></th>
+          <th>build<br>type</th>
+          <th>build start date</th>
+          <th>build<br>age</th>
+          <th>revision</th>
+          <th>build log</th>
+          <th>library<br>(bytes)</th>
+          <th>build<br>(kB)</th>
+          <th>clean<br>(kB)</th>
+          <th>errors</th>
+          <th>warnings</th>
+        </tr>
+      </thead>
       <tbody>
 EOF
 
 fi
+
+
+get_times ()
+{
+    stage=$1
+    file=$2
+
+    pattern="^### real, user, system time ($stage):"
+
+    # extract the real, user and system times for the children
+    # of the shell that executed the commands from the log
+    # the format of the output is:
+    #   <real-time>
+    #   <times-output>
+    # with <real-time> looking like:
+    #   [1-9][0-9]*m[1-9][0-9]s
+    # and with <times-output> being the output of the POSIX standard
+    # times built-in utility, i.e., the first line giving the system
+    # and user times for the shell and the second line giving the
+    # system and user times for its children in the format:
+    #   "%dm%fs %dm%fs"
+    # we don't care about the shell times, just the times for its
+    # children, so we skip that line
+    times=`sed -n "/$pattern/{n;p;n;n;p}" $file`
+
+    # strip fractional parts of seconds and replace 'm' with ':'
+    echo $times | sed -e "s/\.[0-9][0-9]*s//g" -e "s/s//" -e "s/m/:/g"
+}
+
 
 ######################################################################
 # expand gzipped logs and extract the relevant portion from each into
@@ -482,7 +524,7 @@ n=0
 textlogs=""
 
 for l in $gzlogs; do
-    n=`expr $n + 1`
+    n=$((n + 1))
     fname=`basename $l`
 
     if [ $verbose -eq 1 ]; then
@@ -520,6 +562,63 @@ for l in $gzlogs; do
 
     # strip the year from the date
     date=${date% [1-9][0-9][0-9][0-9]}
+
+    # extract the real, user, and system times for each stage
+    # of the build process
+    bin_times=`get_times bin $txtlog`
+    config_times=`get_times config $txtlog`
+    examples_times=`get_times examples $txtlog` 
+    lib_times=`get_times lib $txtlog`
+    locales_times=`get_times examples $txtlog`
+    runall_times=`get_times runall $txtlog`
+    rwtest_times=`get_times rwtest $txtlog`
+    tests_times=`get_times tests $txtlog`
+    total_times=`get_times "total" $txtlog`
+
+    bin_real=${bin_times%% *}
+    bin_user=${bin_times#* }
+    bin_user=${bin_user%% *}
+    bin_sys=${bin_times##* }
+
+    config_real=${config_times%% *}
+    config_user=${config_times#* }
+    config_user=${config_user%% *}
+    config_sys=${config_times##* }
+
+    examples_real=${examples_times%% *}
+    examples_user=${examples_times#* }
+    examples_user=${examples_user%% *}
+    examples_sys=${examples_times##* }
+
+    lib_real=${lib_times%% *}
+    lib_user=${lib_times#* }
+    lib_user=${lib_user%% *}
+    lib_sys=${lib_times##* }
+
+    locales_real=${locales_times%% *}
+    locales_user=${locales_times#* }
+    locales_user=${locales_user%% *}
+    locales_sys=${locales_times##* }
+
+    runall_real=${runall_times%% *}
+    runall_user=${runall_times#* }
+    runall_user=${runall_user%% *}
+    runall_sys=${runall_times##* }
+
+    rwtest_real=${rwtest_times%% *}
+    rwtest_user=${rwtest_times#* }
+    rwtest_user=${rwtest_user%% *}
+    rwtest_sys=${rwtest_times##* }
+
+    tests_real=${tests_times%% *}
+    tests_user=${tests_times#* }
+    tests_user=${tests_user%% *}
+    tests_sys=${tests_times##* }
+
+    total_real=${total_times%% *}
+    total_user=${total_times#* }
+    total_user=${total_user%% *}
+    total_sys=${total_times##* }
 
     # extract the size of the library binary from the build log
     # being careful to avoid the symlink (in the case of a .so)
@@ -592,6 +691,43 @@ for l in $gzlogs; do
         output "          <td>$cleanbuildsize</td>"
         output "          <td>$errors</td>"
         output "          <td>$warnings</td>"
+
+        cat <<EOF >>$timings_file
+
+        <tr>
+          <td>$n</td>
+          <td>$buildtype</td>
+
+          <td>$config_real</td>
+          <td>$config_user</td>
+          <td>$config_sys</td>
+
+          <td>$lib_real</td>
+          <td>$lib_user</td>
+          <td>$lib_sys</td>
+
+          <td>$examples_real</td>
+          <td>$examples_user</td>
+          <td>$examples_sys</td>
+
+          <td>$locales_real</td>
+          <td>$locales_user</td>
+          <td>$locales_sys</td>
+
+          <td>$tests_real</td>
+          <td>$tests_user</td>
+          <td>$tests_sys</td>
+
+          <td>$runall_real</td>
+          <td>$runall_user</td>
+          <td>$runall_sys</td>
+
+          <td>$total_real</td>
+          <td>$total_user</td>
+          <td>$total_sys</td>
+        </tr>
+        
+EOF
         output "      </tr>"
     fi
 
@@ -661,6 +797,13 @@ if [ $components_in_rows -ne 0 ]; then
 
     output "      </tbody>"
     output "    </table>"
+    output "    <hr>"
+
+    cat <<EOF >>$timings_file
+      </tbody>
+    </table>
+EOF
+    cat $timings_file | output
 
 else
 
@@ -668,7 +811,7 @@ else
 
     n=0
     for c in $example_list $test_list $locale_list; do
-        n=`expr $n + 1`
+        n=$((n + 1))
 
         # output one build per row, with components in columns
         table_header="$table_header <th><div title=\"$c\">$n</div></th>"
@@ -759,7 +902,7 @@ BEGIN {
         ++count
 
         class = status
-        value = status
+        value = status == "FORMAT" ? "FMAT" : status
     }
     else if (status == "DIFF" || status == "COMP" || status == "LINK") {
         ++count
@@ -785,8 +928,13 @@ function build_summary () {
     if (verbose || count) {
         print "      <tr>"
         print "        <td class=\"rowno\">" n "</td>"
-        print "        <td class=\"name\"><a name=\"" name "\">" \
-                       name "</a></td>"
+        print "        <td class=\"name\"><a name=\"" name "\"></a>"
+
+        if (dir != "")
+            print "        <a href=\"$svnpath/" dir "/" name ".cpp?view=markup\">" name "</a>"
+        else
+            print "        " name
+        print "        </td>"
 
         if (comp == "test") {
             print "        <td class=\"number\">" max_asserts "</td>"
@@ -845,6 +993,7 @@ EOF
 ######################################################################
 
 # process a list of components, one component per row
+# component name is one of: { example, locale, test }
 process_components()
 {
     component_name=$1
@@ -879,10 +1028,38 @@ EOF
         # compute the sequential component number and pass it
         # to the awk script to include it on the row it generates
         # (if it generates one)
-        n=`expr $n + 1`
+        n=$((n + 1))
+
+        # determine the directory in the source repository the component
+        # source lives in
+        if [ "example" = $component_name ]; then
+            dir=""
+        elif [ "locale" = $component_name ]; then
+            dir=""
+        elif [ "test" = $component_name ]; then
+
+            dir="tests"
+
+            case $c in
+                *-stdcxx-*.cpp) dir="regress";;
+                0.*)  dir="$dir/self";;
+                17.*) dir="$dir/intro";;
+                18.*) dir="$dir/support";;
+                19.*) dir="$dir/diagnostics";;
+                20.*) dir="$dir/utilities";;
+                21.*) dir="$dir/strings";;
+                22.*) dir="$dir/localization";;
+                23.*) dir="$dir/containers";;
+                24.*) dir="$dir/iterators";;
+                25.*) dir="$dir/algorithm";;
+                26.*) dir="$dir/numerics";;
+                27.*) dir="$dir/iostream";;
+                *)    dir="";;
+            esac
+        fi
 
           awk -f $awkscript \
-              n=$n name=$c verbose=$verbose comp=$component_name \
+              n=$n dir=$dir name=$c verbose=$verbose comp=$component_name \
               $textlogs \
         | output
 
@@ -1000,7 +1177,7 @@ cat <<EOF | output
             </td>
           </tr>
           <tr>
-            <td class="FORMAT">FORMAT</td>
+            <td class="FORMAT">FMAT</td>
             <td class="na">
                Component completed successfully but produced unexpected
                output.
@@ -1189,8 +1366,10 @@ if [ -z $no_clean ]; then
 
     if [ $verbose -eq 1 ]; then
         echo "$myname: " \
-             "rm $awkscript $examples_file $tests_file $locales_file $textlogs"
+             "rm $awkscript $examples_file $tests_file $locales_file " \
+             "$textlogs $timings_file"
     fi
 
-    rm $awkscript $examples_file $tests_file $locales_file $textlogs
+    rm $awkscript $examples_file $tests_file $locales_file $textlogs \
+       $timings_file
 fi
