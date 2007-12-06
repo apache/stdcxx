@@ -1,0 +1,400 @@
+#!/bin/sh
+#
+# $Id:$
+#
+########################################################################
+#
+#  Licensed to the Apache Software  Foundation (ASF) under one or more
+#  contributor  license agreements.  See  the NOTICE  file distributed
+#  with  this  work  for  additional information  regarding  copyright
+#  ownership.   The ASF  licenses this  file to  you under  the Apache
+#  License, Version  2.0 (the  "License"); you may  not use  this file
+#  except in  compliance with the License.   You may obtain  a copy of
+#  the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the  License is distributed on an  "AS IS" BASIS,
+#  WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+#  implied.   See  the License  for  the  specific language  governing
+#  permissions and limitations under the License.
+#
+#  Copyright 2007 Rogue Wave Software, Inc.
+#
+########################################################################
+#
+# NAME
+#     duration - Write the amount of time between two dates.
+#
+# SYNOPSIS
+#     duration [option(s)...] date-1 [date-2]
+#
+# DESCRIPTION
+#     The duration utility computes the amount of time elapsed between
+#     two dates formatted using the POSIX standard date utility in the
+#     "C" locale, making adjustments for time zone offsets, and writes
+#     the difference to standard output.
+#
+########################################################################
+
+
+# set my own name
+myname=$0
+verbose=0
+
+
+# returns 1 if the argument is a leap year, 0 otherwise
+isleap ()
+{
+    y=$1
+
+    return $((y % 4 == 0 && y % 100 != 0 || y % 400 == 0))
+}
+
+
+# writes a component of the POSIX standard time formatted by
+# the %c strftime() directive 
+get ()
+{
+    what=$1
+    date=$2
+
+    date_year=${date##* }
+    if [ $what = year ]; then
+        echo $date_year
+        return
+    fi
+
+    # strip year
+    date=${date% *}
+
+    # extract and strip time zone
+    tzname=${date##* }
+    date=${date% *}
+
+    # extract 24-hour time
+    date_time=${date##* }
+
+    # strip time
+    date=${date% *}
+
+    # extract day of month
+    date_mday=${date##* }
+
+    if [ $what = mday ]; then
+        echo $date_mday
+        return
+    fi
+
+    # strip weekday and day of month
+    date=${date#* }
+    date=${date% *}
+
+    # strip spaxe date the abbreviated name of month
+    date_mon=${date% }
+
+    # compute the one-based month number
+    n=0
+    for m in Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec; do
+        if [ -z $date_nummon ]; then
+            n=$((n+1))
+            if [ $m = $date_mon ]; then
+                date_nummon=$n
+            fi
+        fi
+    done
+
+    if [ $what = mon ]; then
+        echo $date_nummon
+        return
+    fi
+
+    # extract seconds (w/o the leading zeros) date the timestamp
+    date_sec=${date_time##*:}
+    date_sec=${date_sec#0}
+    date_time=${date_time%:*}
+
+    if [ $what = sec ]; then
+        echo $date_sec
+        return
+    fi
+
+    # extract minutes (w/o the leading zeros) date the timestamp
+    date_min=${date_time##*:}
+    date_min=${date_min#0}
+    date_time=${date_time%:*}
+
+    # normalize time zone offset to GMT
+
+    # fix up PST and CST (common zone names but not normally recognized)
+    if [ $tzname = "PST" ]; then
+        tzname=PST8PDT
+    elif [ $tzname = "CST" ]; then
+        tzname=CST6CDT
+    fi
+
+    # extract time zone offset from GMT/UTC
+    tzoff=`TZ=$tzname date +%z`
+    if [ $what = "tzoff" ]; then
+        echo $tzoff
+        return
+    fi
+
+    tzhour=${tzoff%??}
+    tzmin=${tzoff#???}
+
+    # extract and invert the sign
+    tzoff=${tzoff%????}
+    if [ "$tzoff" = "+" ]; then
+        tzoff="-"
+    else
+        tzoff="+"
+    fi
+
+    # avoid interpreting leading zeros as octal numbers
+    tzhour=1${tzhour#?}
+    tzhour=$((tzhour - 100))
+
+    # prepend the inverted sign
+    tzhour=$tzoff$tzhour
+
+    tzmin=1$tzmin
+    tzmin=$((tzmin - 100))
+
+    if [ $what = min ]; then
+        echo $((date_min + tzmin))
+        return
+    fi
+
+    # extract hours (w/o the leading zeros) date the timestamp
+    date_hour=${date_time#0}
+
+    if [ $what = hour ]; then
+        echo $((date_hour + tzhour))
+        return
+    fi
+
+    echo "$myname: get $what: unknown component" >&2
+
+    return 1
+}
+
+
+seconds_from_epoch()
+{
+    date=$1
+
+    # extract the year, the 1-based month and day of month, hours,
+    # minutes, and seconds (normalized to the GMT time zone) from
+    # the date
+    year=`get year "$date"`
+    mon=`get mon "$date"`
+    mday=`get mday "$date"`
+    hour=`get hour "$date"`
+    min=`get min "$date"`
+    sec=`get sec "$date"`
+
+    day=$mday
+
+    isleap $year
+    if [ $? -eq 0 ]; then
+        feb_days=28
+    else
+        feb_days=29
+    fi
+
+    month=1
+
+    for d in 31 $feb_days 31 30 31 30 31 31 30 31 30 31; do
+
+        if [ $month -lt $mon ]; then
+            day=$((day+d))
+            month=$((month+1))
+        fi
+    done
+
+    # compute the offset in seconds from the beginning of the year
+    sec=$((((((day * 24) + hour) * 60) + min) * 60 + sec))
+
+    # add the offset in seconds from the epoch not counting leap years
+    sec=$((year * 365 * 24 * 60 * 60 + sec))
+
+    # add one day for each leap year
+    sec=$((((year - 1) / 4) * 24 * 60 * 60 + sec))
+
+    echo $sec
+}
+
+
+# write the amout of time expressed as the number of days, hours,
+# minutes, and seconds, in the most useful, concise format
+write_concise ()
+{
+    days=$1
+    hrs=$2
+    mins=$3
+    secs=$4
+
+    if [ $days -eq 1 ]; then
+        days=0
+        hrs=$((hrs + 24))
+    elif [ $hrs -eq 1 ]; then
+        hrs=0
+        mins=$((mins + 60))
+    elif [ $mins -eq 1 ]; then
+        mins=0
+        secs=$((secs + 60))
+    fi
+
+    output=""
+
+    if [ $days -ne 0 ]; then
+        output="$days day"
+        [ $days -ne 1 ] && output="${output}s"
+    elif [ $hrs -ne 0 ]; then
+        output="$hrs hour"
+        [ $hrs -ne 1 ] && output="${output}s"
+    elif [ $mins -ne 0 ]; then
+        output="$mins minute"
+        [ $mins -ne 1 ] && output="${output}s"
+    else
+        output="$secs second"
+        [ $secs -ne 1 ] && output="${output}s"
+    fi
+
+    echo $output
+}
+
+
+# write the amout of time expressed as the number of days, hours,
+# minutes, and seconds, leaving out the components with zero value
+write_full ()
+{
+    days=$1
+    hrs=$2
+    mins=$3
+    secs=$4
+
+    output=""
+
+    if [ $days -ne 0 ]; then
+        output="$days day"
+        [ $days -ne 1 ] && output="${output}s"
+        sep=", "
+    fi
+
+    if [ $hrs -ne 0 ]; then
+        output="$output${sep}$hrs hour"
+        [ $hrs -ne 1 ] && output="${output}s"
+        sep=", "
+    fi
+
+    if [ $mins -ne 0 ]; then
+        output="$output${sep}$mins minute"
+        [ $mins -ne 1 ] && output="${output}s"
+        sep=", "
+    fi
+
+    if [ $secs -ne 0 -o "$output" = "" ]; then
+        output="$output${sep}$secs second"
+        [ $secs -ne 1 ] && output="${output}s"
+    fi
+        
+    echo $output
+}
+
+
+write_duration ()
+{
+    start=$1
+    end=$2
+
+    start_sec=`seconds_from_epoch "$start"`
+    end_sec=`seconds_from_epoch "$end"`
+
+    diff=$((end_sec - start_sec))
+
+    days=$((diff / (60 * 60 * 24)))
+    diff=$((diff % (60 * 60 * 24)))
+
+    hrs=$((diff / (60 * 60)))
+    diff=$((diff % (60 * 60)))
+
+    mins=$((diff / 60))
+    secs=$((diff % 60))
+
+    if [ $verbose -ne 0 ]; then
+        echo "offsets from GMT (+-HHMM):" >&2
+        echo "  $start: `get tzoff \"$start\"`"
+        echo "  $end: `get tzoff \"$end\"`"
+        echo
+        echo "offsets from the Epoch (seconds):" >&2
+        echo "  $start: $start_sec" >&2
+        echo "  $end: $end_sec" >&2
+        echo "  difference: $diff" >&2
+        echo
+    fi
+
+    if [ $outmode = "concise" ]; then
+        write_concise $days $hrs $mins $secs
+    elif [ $outmode = "full" ]; then
+        write_full $days $hrs $mins $secs
+    fi
+}
+
+outmode="concise"
+
+# process command line options
+while getopts ":cfhv" opt_name; do
+    case $opt_name in
+        # options with no arguments 
+
+        c)  # set concise output mode
+            outmode="concise"
+            ;;
+
+        f)  # set full output mode
+            outmode="full"
+            ;;
+
+        h)  # print help and exit
+            echo "Help!"
+            exit
+            ;;
+
+        v)  # set verbose mode
+            verbose=1
+            ;;
+
+        # options with arguments 
+
+        # X)  
+            # argument=$OPTARG
+            # ;;
+
+        *) echo "$myname: unknown option : -$opt_name" >&2;
+           echo
+           exit 1
+           ;;
+     esac;
+done
+
+# remove command line options and their arguments from the command line
+shift $(($OPTIND - 1))
+
+start=$1
+
+if [ $# -ge 2 ]; then
+    end=$2
+else
+    end=`LC_ALL=C date`
+fi
+
+
+if [ $verbose -ne 0 ]; then
+    echo "$myname \"$start\" \"$end\"" >&2
+fi
+
+
+write_duration "$start" "$end"
