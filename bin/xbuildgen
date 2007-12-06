@@ -505,7 +505,7 @@ get_times ()
     #   "%dm%fs %dm%fs"
     # we don't care about the shell times, just the times for its
     # children, so we skip that line
-    times=`sed -n "/$pattern/{n;p;n;n;p}" $file`
+    times=`sed -n "/$pattern/{n;p;n;n;p;}" $file`
 
     # strip fractional parts of seconds and replace 'm' with ':'
     echo $times | sed -e "s/\.[0-9][0-9]*s//g" -e "s/s//" -e "s/m/:/g"
