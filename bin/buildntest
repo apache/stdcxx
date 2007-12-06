@@ -159,6 +159,8 @@ tmpdir=$TMPDIR/stdcxx-tmp.$$
 # the last call, or the date and time if this is the first call
 write_times()
 {
+    label=$1
+
     if [ -z $startsec ]; then
         echo; echo "### date:"
         date
@@ -174,7 +176,7 @@ write_times()
         real_sec=$((real_sec % 60))
 
         # display the real, user, and system times since the last call
-        echo; echo "### real, user, system time ($1):"
+        echo; echo "### real, user, system time ($label):"
         echo "${real_min}m${real_sec}s"
         times
     fi
@@ -626,7 +628,7 @@ echo; echo "### du -sk ./build/ ./build/*"
 du -sk ./build/ ./build/*
 
 # write the amount of real, user, and system time
-write_times "runall"
+write_times "total"
 
 # Pass the captured return code from make util/make rwtest back out
 exit ${utils_status}
