@@ -69,6 +69,8 @@
 # set program name (used in diagnostic messages)
 myname=`basename $0`
 
+today=`LC_ALL="C" date`
+
 # URL to the ViewVC directory
 viewvc="http://svn.apache.org/viewvc"
 
@@ -406,7 +408,7 @@ cat <<EOF | output
   <body>
 
     <h1>Multi-platform Test Result View</h1>
-    Generated `date` on `hostname` running `uname -sr`
+    Generated $today on `hostname` running `uname -sr`
     <hr>
 
     <h2>Index</h2>
@@ -454,6 +456,7 @@ if [ $components_in_rows -ne 0 ]; then
         <th><div title="">###</div></th>
         <th>build<br>type</th>
         <th>build date</th>
+        <th>age</th>
         <th>revision</th>
         <th>build log</th>
         <th>library<br>(bytes)</th>
@@ -507,6 +510,12 @@ for l in $gzlogs; do
     if [ $? -ne 0 ]; then
         echo "$myname: warning: unable to extract date from $l" >&2
         date="(unknown)"
+    else
+        # compute the age of the build as the difference between
+        # the build date and now in days, or hours, or minutes,
+        # or just seconds, whichever happens to be the most
+        # significant
+        age=`$HOME/bin/duration "$date" "$today"`
     fi
 
     # strip the year from the date
@@ -575,6 +584,7 @@ for l in $gzlogs; do
         output "          <td>$n</td>"
         output "          <td>$buildtype</td>"
         output "          <td>$date</td>"
+        output "          <td>$age</td>"
         output "          <td><a href=$revurl=$revno>$revno</a></td>"
         output "          <td><a href=\"$logdir/$fname\">$fname</a></td>"
         output "          <td>$libsize</td>"
