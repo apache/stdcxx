@@ -596,7 +596,7 @@ inline valarray<_TypeT>& valarray<_TypeT>::operator>>= (const _TypeT& __rhs)
 
 template <class _TypeT>
 inline valarray<_TypeT>
-valarray<_TypeT>::apply (value_type __fun (value_type)) const
+valarray<_TypeT>::apply (_TypeT __fun (_TypeT)) const
 {
     return _RW::__rw_unary_function (*this, __fun);
 }
@@ -604,7 +604,7 @@ valarray<_TypeT>::apply (value_type __fun (value_type)) const
 
 template <class _TypeT>
 inline valarray<_TypeT>
-valarray<_TypeT>::apply (value_type __fun (const value_type&)) const
+valarray<_TypeT>::apply (_TypeT __fun (const _TypeT&)) const
 {
     return _RW::__rw_unary_function (*this, __fun);
 } 
