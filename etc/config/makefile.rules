@@ -87,8 +87,16 @@ ifeq ($(NO_DOT_O),)
     endif   # ifneq ($(AS_EXT),".")
   endif   # ifneq ($(AS_EXT),)
 
+# make the rule match for sources matching *.out.cpp
+%.out.o: %.out.cpp
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(call CXX.repo,$<) $<
+
 %.o: %.cpp
 	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(call CXX.repo,$<) $<
+
+# make the rule match for objects matching *.out.o
+%.out: %.out.o
+	$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<)
 
 %: %.o
 	$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<)
