@@ -107,7 +107,7 @@ if [ $quiet -eq 0 ]; then
       }
     </style>
     <h1>Available Multi-platform Build Result Views</h1>
-    Generated `date` by scripturl on `hostname` running `uname -sr`
+    Generated `date` by $scripturl on `hostname` running `uname -sr`
     <hr>
     <table>
       <thead>
