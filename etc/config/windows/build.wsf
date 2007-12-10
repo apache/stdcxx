@@ -226,11 +226,19 @@ function BuildProject(solutionBuild, projectName)
     return 1;
 }
 
-function TimeEcho(msg)
+function DiffTime(start, end)
 {
-    WScript.Echo("### date:");
-    WScript.Echo(Date())
-    WScript.Echo("### " + msg);
+    var msec = end - start;
+    var min = Math.floor(msec / 60000);
+    var sec = Math.floor(msec % 60000 / 1000);
+    msec %= 1000;
+    return min + "m" + sec + "." + msec + "s";
+}
+
+function TimeEcho(msg, time)
+{
+    WScript.Echo("### real time (" + msg + "):");
+    WScript.Echo(DiffTime(time, new Date()) + "\n");
 }
 
 // the main function of the script
@@ -248,7 +256,7 @@ function build()
     
     var solutionName = slnDir + "\\" + currentCfg + ".sln";
 
-    TimeEcho("Loading solution...");
+    WScript.Echo("Loading solution...");
     var solution = dte.Solution;
 
     var retCode = 0;
@@ -399,39 +407,52 @@ function build()
         oldLogging = projectEngine.BuildLogging;
         projectEngine.BuildLogging = true;
 
-        TimeEcho("Performing configure step...\n");
+        WScript.Echo("Performing configure step...\n");
+        var start = new Date();
         var res = BuildProject(solutionBuild, ".configure");
+        TimeEcho ("config", start);
         if (0 < res)
         {
             retCode = 3;
             break;
         }   
 
-        TimeEcho("Compiling stdcxx library...\n");
+        WScript.Echo("Compiling stdcxx library...\n");
+        start = new Date();
         res = BuildProject(solutionBuild, ".stdcxx");
+        TimeEcho ("lib", start);
         if (0 < res)
         {
             retCode = 4;
             break;
         }   
 
-        TimeEcho("Compiling examples...\n");
+        WScript.Echo("Compiling examples...\n");
+        start = new Date();
         BuildProject(solutionBuild, ".stdcxx_examples");
+        TimeEcho ("examples", start);
 
-        TimeEcho("Compiling rwtest library...\n");
+        WScript.Echo("Compiling rwtest library...\n");
+        start = new Date();
         res = BuildProject(solutionBuild, ".rwtest");
+        TimeEcho ("rwtest", start);
         if (0 == res)
         {
             runTests = true;
-            TimeEcho("Compiling tests...\n");
+            WScript.Echo("Compiling tests...\n");
+            start = new Date();
             BuildProject(solutionBuild, ".stdcxx_tests");
+            TimeEcho ("tests", start);
         }
 
-        TimeEcho("Compiling utils...\n");
+        WScript.Echo("Compiling utils...\n");
         // compile exec utility
+        start = new Date();
         var resExec = BuildProject(solutionBuild, "util_exec");
         // compile rest utils
+        start = new Date();
         var resUtils = BuildProject(solutionBuild, ".stdcxx_utils");
+        TimeEcho ("bin", start);
         if (0 < resExec)
         {
             retCode = 5;
@@ -441,20 +462,24 @@ function build()
         if (buildOnly)
            break;
 
+        start = new Date();
         if (0 >= resUtils)
         {
-            TimeEcho("Running locales tests...");
+            WScript.Echo("Running locales tests...");
             BuildProject(solutionBuild, ".stdcxx_testlocales");
         }   
 
         if (runTests)
         {
-            TimeEcho("Running tests...\n");
+            WScript.Echo("Running tests...\n");
+            start = new Date();
             BuildProject(solutionBuild, ".stdcxx_runtests");
         }
         
-        TimeEcho("Running examples...\n");
+        WScript.Echo("Running examples...\n");
+        start = new Date();
         BuildProject(solutionBuild, ".stdcxx_runexamples");
+        TimeEcho ("runall", start);
     }
     while (false);
 
@@ -485,12 +510,12 @@ function build()
     if (null != prop)
         prop.Value = propVal;
         
-    TimeEcho("Closing the VisualStudio...");
+    WScript.Echo("Closing the VisualStudio...");
     solution = null;
     dte.Quit();
     dte = null;
 
-    TimeEcho("Exiting...");
+    WScript.Echo("Exiting...");
     WScript.Quit(retCode);
 }
 
