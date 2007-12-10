@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id$
+# $Id: genxviews 601595 2007-12-06 01:33:50Z sebor $
 #
 ########################################################################
 #
@@ -23,7 +23,18 @@
 ########################################################################
 
 # set program name (used in diagnostic messages)
-myname=`basename $0`
+readonly myname=`basename $0`
+
+# URL to the trunk of the source repository
+readonly svnpath="http://svn.apache.org/viewvc/incubator/stdcxx/trunk/"
+
+# script's revision number
+myrev='$Revision$'
+myrev=${myrev#'$Revision: '}
+myrev=${myrev%' $'}
+
+# URL to this version of the script in the repository
+readonly myurl="$svnpath/bin/xbuildgen?view=markup&rev=$myrev"
 
 # program to invoke to process detailed results
 CROSS=$HOME/stdcxx/bin/xbuildgen
@@ -36,9 +47,7 @@ quiet=0
 
 # start the clock measuring the amount of wall clock time to process
 # all logs and generate the page
-processing_time=`expr   \( $(date +%H) \* 1440 \) \
-                      + \( $(date +%M) \* 60 \) \
-                      + $(date +%S)`
+start_time=`LC_ALL=C date`
 
 
 # process command line options
@@ -72,6 +81,9 @@ cd $outdir
 
 
 if [ $quiet -eq 0 ]; then
+
+    readonly scripturl="<a href=\"$myurl\"><code>$myname</code></a>"
+
     cat<<EOF
 <html>
   <body>
@@ -95,7 +107,7 @@ if [ $quiet -eq 0 ]; then
       }
     </style>
     <h1>Available Multi-platform Build Result Views</h1>
-    Generated `date` on `hostname` running `uname -sr`
+    Generated `date` by scripturl on `hostname` running `uname -sr`
     <hr>
     <table>
       <thead>
@@ -159,6 +171,9 @@ EOF
         done
     done
 
+    # create a title for the page
+    title="$compiler results on $osname/$arch"
+
     # start the clock
     duration=`expr \( $(date +%M) \* 60 \) + $(date +%S)`
 
@@ -176,7 +191,7 @@ EOF
                 echo "<td><a href="$outfile">$outfile</a></td>"
             fi
 
-            $CROSS -o$outdir/$outfile $buildlogs
+            $CROSS -o$outdir/$outfile -t $title $buildlogs
         fi
     fi
 
@@ -299,7 +314,7 @@ process_results "Red Hat Enterprise Linux 4 Update 4" "EM64T" "Intel C++ 9.1" \
                 linux_redhat_el-4.4-em64t-icc-9.1.html
 
 # Red Hat Enterprise Linux 4 Update 2
-process_results "Red Hat Enterprise Linux 4 Update 2" "AMD64" "gcc 3.4.6" \
+process_results "Red Hat Enterprise Linux 4 Update 4" "AMD64" "gcc 3.4.6" \
                 "linux_redhat_el-4.4-amd64-gcc-3.4.6-*-*-log.gz.txt" \
                 linux_redhat_el-4.4-amd64-gcc-3.4.6.html
 
@@ -460,16 +475,8 @@ process_results "Windows 2000, SP4" "x86" "Intel C++ 9.1" \
 
 
 # compute the number of seconds it took to process all logs
-end_time=`expr   \( $(date +%H) \* 1440 \) \
-                      + \( $(date +%M) \* 60 \) \
-                      + $(date +%S)`
-
-if [ $end_time -lt $processing_time ]; then
-    # adjust for overflow
-    end_time=`expr $end_time + 1440`
-fi
-
-processing_time=`expr $end_time - $processing_time`
+readonly now=`date`
+processing_time=`$HOME/stdcxx/bin/duration "$start_date" "$now"`
 
 cat<<EOF
     </table>

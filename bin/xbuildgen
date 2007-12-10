@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id$
+# $Id: xbuildgen 601917 2007-12-06 23:46:48Z sebor $
 #
 ########################################################################
 #
@@ -59,6 +59,9 @@
 #          Specify the pathname of the output file. The utility will
 #          use stdout when no output file is specified.
 #
+#     -T <text>
+#          Specify the title for the page.
+#
 #     -t <list-of-tests>
 #          Generate a report for the specified list of tests with
 #          tests listed in columns and builds in rows.
@@ -66,25 +69,43 @@
 ########################################################################
 
 
-# set program name (used in diagnostic messages)
-myname=`basename $0`
+######################################################################
+# global constants
 
-today=`LC_ALL="C" date`
+# set program name (used in diagnostic messages)
+readonly myname=`basename $0`
+
+readonly today=`LC_ALL="C" date`
 
 # URL to the ViewVC directory
-viewvc="http://svn.apache.org/viewvc"
+readonly viewvc="http://svn.apache.org/viewvc"
 
 # URL to the revision number (use: "$revurl=$revno")
-revurl="$viewvc?view=rev&rev"
+readonly revurl="$viewvc?view=rev&rev"
 
 # URL to the trunk of the source repository
-svnpath="$viewvc/incubator/stdcxx/trunk/"
+readonly svnpath="$viewvc/incubator/stdcxx/trunk/"
+
+######################################################################
+# global variables
 
 # by default, display one component (example, locale, or test) per row
 components_in_rows=1
 
 # no verbosity by default
 verbose=0
+
+# default page title (unless overridden on the command line)
+title="Multi-platform Test Result View"
+
+# script's revision number
+myrev='$Revision$'
+myrev=${myrev#'$Revision: '}
+myrev=${myrev%' $'}
+
+# URL to this version of the script in the repository
+readonly myurl="$svnpath/bin/xbuildgen?view=markup&rev=$myrev"
+
 
 ######################################################################
 
@@ -125,6 +146,9 @@ print_help ()
     echo "          Specify the pathname of the output file. The utility will"
     echo "          use stdout when no output file is specified."
     echo
+    echo "     -T <text>"
+    echo "          Specify the title for the page."
+    echo
     echo "     -t <list-of-tests>"
     echo "          Generate a report for the specified list of tests with"
     echo "          tests listed in columns and builds in rows."
@@ -132,8 +156,345 @@ print_help ()
 
 ######################################################################
 
+# extracts the real, user and system times for a specified stage
+# of the build process from the file given by the second argument
+# and writes them out to stdout
+get_times ()
+{
+    stage=$1
+    file=$2
+
+    pattern="^### real, user, system time ($stage):"
+
+    # extract the real, user and system times for the children
+    # of the shell that executed the commands from the log
+    # the format of the output is:
+    #   <real-time>
+    #   <times-output>
+    # with <real-time> looking like:
+    #   [1-9][0-9]*m[1-9][0-9]s
+    # and with <times-output> being the output of the POSIX standard
+    # times built-in utility, i.e., the first line giving the system
+    # and user times for the shell and the second line giving the
+    # system and user times for its children in the format:
+    #   "%dm%fs %dm%fs"
+    # we don't care about the shell times, just the times for its
+    # children, so we skip that line
+
+
+    stage_times=`  sed -n "/$pattern/{n;p;n;n;p;}" $file`
+
+    # strip newlines and fractional parts of seconds and replace
+    # 'm' with ':'
+    
+    stage_times=`  echo $stage_times \
+                 | sed -e "s/\.[0-9][0-9]*s//g" \
+                       -e "s/s//" \
+                       -e "s/m/:/g"`
+
+    # extract the real time (first)
+    real_time=${stage_times%% *}
+
+    # append a leading '0' to single-digit seconds
+    sec=${real_time##*:}
+    if [ ${#sec} -eq 1 ]; then
+        real_time=${real_time%:*}":0$sec"
+    fi
+
+    # extract the user time (middle)
+    user_time=${stage_times#* }
+    user_time=${user_time%% *}
+
+    # append a leading '0' to single-digit seconds
+    sec=${user_time##*:}
+    if [ ${#sec} -eq 1 ]; then
+        user_time=${user_time%:*}":0$sec"
+    fi
+
+    # extract the system time (last)
+    sys_time=${stage_times##* }
+
+    # append a leading '0' to single-digit seconds
+    sec=${sys_time##*:}
+    if [ ${#sec} -eq 1 ]; then
+        sys_time=${sys_time%:*}":0$sec"
+    fi
+
+    # output the three times
+    cat <<EOF
+    <td>$real_time</td>
+    <td>$user_time</td>
+    <td>$sys_time</td>
+EOF
+}
+
+######################################################################
+# extracts the date and time the build started from the file
+# given by the second argument
+get_build_date ()
+{
+    file=$1
+
+    # extract the date and time the build started
+    # the date is expected to be introduced by a line like this:
+    #   ### date:
+    date=`sed -n "/^##* *date *: *$/{n;p;q;}" $file`
+    if [ "$date" = "" ]; then
+        echo "$myname: warning: unable to extract date from $l" >&2
+        unset date
+    fi
+
+    # strip the year from the date
+    echo ${date% [1-9][0-9][0-9][0-9]}
+}
+
+
+######################################################################
+# extracts the size of the library binary from the build log
+# being careful to avoid the symlink (in the case of a .so)
+get_lib_size ()
+{
+    file=$1
+
+    libsize=`awk '/build\/lib\/libstd[^ ]*\$/{ print $5 }' $file`
+    if [ "$libsize" = "" ]; then
+        echo "$myname: warning: unable to extract library size from $l" >&2
+        unset libsize
+    fi
+
+    echo $libsize
+}
+
+
+######################################################################
+# extracts the build type from the string specified by the argument
+# (the name of the log)
+get_buildtype ()
+{
+    str=$1
+
+    # extract the build type from the name of the log, removing
+    # the name of thread library
+    buildtype=`  echo $str \
+               | sed "s/\(.*-[18][125]*[aAdDsS]\)-dce-\(.*\)/\1-\2/" \
+               | sed "s/\(.*-[18][125]*[aAdDsS]\)-solaris-\(.*\)/\1-\2/" \
+               | sed "s/\(.*-[18][125]*[aAdDsS]\)-win32-\(.*\)/\1-\2/" \
+               | sed "s/.*-\([18][125]*[aAdDsS]\)-[1-9][0-9]*-log.*/\1/"`
+    if [ "$buildtype" = "" ]; then
+        echo "$myname: warning: unable to extract build type from $str" >&2
+        unset buildtype
+    fi
+
+    echo $buildtype
+}
+
+######################################################################
+# extracts the operating system name and version from the log file
+get_os ()
+{
+    file=$1
+
+    uname=`sed -n "/^##* uname  *-a.*:$/{n;p;q;}" $file`
+
+    case "$uname" in
+        "AIX "*)
+            osname="AIX"
+            # extract the version number from AIX uname -a output:
+            #   "AIX <hostname> <minor> <major> ...
+            osver=${uname#* }   # remove AIX
+            osver=${osver#* }   # remove hostname
+            minor=${osver%% *}  # extract minor version
+            osver=${osver% *}   # remove gibberish at the end
+            osver=${osver#* }"."$minor
+            ;;
+
+        CYGWIN*)
+            osname="Cygwin"
+            osver=${uname#* }   # remove CYGWIN
+            osver=${osver#* }   # remove hostname
+            osver=${osver%%(*}  # extract version
+            ;;
+
+        *"FreeBSD "*)
+            osname="FreeBSD"
+            ;;
+
+        "HP-UX "*)
+            # for example
+            # HP-UX hostname B.11.23 U ia64 0025699549 unlimited-user license
+            osname="HP-UX"
+            osver=${uname#* }       # remove HP-UX
+            osver=${osver#* }       # remove hostname
+            osver=${osver%% *}      # extract full version
+            osver=${osver#[A-Z].}   # remove letter prefix
+            ;;
+
+        "IRIX64 "*)
+            ;;
+
+        "Linux "*)
+            # extract the Linux distron name from the contents
+            # of the /etc/*-release files
+            osname=`  sed -n "/^##* * cat  *\/etc\/.*-release /{n;p;n;p;}"   \
+                             $file                                           \
+                    | sed -e "/^ *LSB_VERSION *=/d" -e "/^ *VERSION *= */d"`
+
+            rhel="Red Hat Enterprise Linux"
+
+            # SuSE Linux 10
+            suse_Linux="SUSE Linux Enterprise Server"
+
+            # SuSE Linux 9 (sigh...)
+            suse_LINUX="SUSE LINUX Enterprise Server"
+
+            pfx="<div title=\"$osname\">"
+            sfx="</div>"
+
+            case "$osname" in
+                "$rhel "*)
+                    # remove the Red Hat code name including the release
+                    # and keep the distribution code name and update info:
+                    #   RHEL 5:      Tikanga (Update 1 through 2)
+                    #   RHEL 4:      Nahant (Update 1 through 6)
+                    #   RHEL 3:      Taroon (Update 1 through 9)
+                    #   RHEL 2.1 AS: Pensacola
+                    #   RHEL 2.1 ES: Panama
+                    oscode=${osname##* (}
+                    # append space (important below)
+                    oscode="${oscode%)} "
+
+                    update=${oscode#* }       # strip code name
+                    update=${update#* }       # strip the word "Update"
+
+                    osver=${osname#$rhel }    # strip the distro name
+                    ostype=${osver%% *}       # extract OS type (AS or Server)
+                    osver=${osver#* release } # strip OS type
+                    osver=${osver%% (*}
+                    
+                    # osver="[osver=$osver][oscode=$oscode][update=$update]"
+
+                    osname="RHEL"
+                    if [ "$update" != "" ]; then
+                        osver="$osver.$update"
+                    fi
+                    ;;
+
+                "$suse_Linux "*)
+                    osver=${osname#$suse_Linux }
+                    osver=${osver%% *}
+
+                    osname="SLES"
+                    ;;
+
+                "$suse_LINUX "*)
+                    osver=${osname#$suse_LINUX }
+                    osver=${osver%% *}
+
+                    osname="SLES"
+                    ;;
+                *)
+                    ;;
+            esac
+            ;;
+
+        "SunOS "*)
+            osname="SunOS"
+            osver=${uname#* }    # remove SunOS
+            osver=${osver#* }    # remove hostname
+            osver=${osver%% *}   # strip averything past version
+            ;;
+       
+        *)
+            osname=$uname
+            ;;
+    esac
+
+    echo "$pfx$osname $osver$sfx"
+}
+
+######################################################################
+# extracts the hardware architecture from the log file
+get_arch ()
+{
+    file=$1
+
+    uname=`sed -n "/^##* uname  *-a.*:$/{n;p;}" $file`
+
+    if [ "$uname" = "" -o "${uname%%_*}" = "CYGWIN" ]; then
+        # Windows or CygWin
+        id=`sed -n "s/^ *PROCESSOR_IDENTIFIER *= *\(.*\)/\1/p" $file`
+        arch=${id%% *}
+        arch="<div title=\"$id\">$arch</div>"
+    else
+        
+        case "$uname" in
+            # recent HP-UX machines always return 9000/800
+            "HP-UX "*" 9000/8"??" "*) arch="PA-RISC";;
+
+            *" i686 "*) arch="i686";;
+            *" i586 "*) arch="i586";;
+            *" i486 "*) arch="i486";;
+            *" i386 "*) arch="i386";;
+            *" i286 "*) arch="i286";;
+
+            *" ia64 "*) arch="IA64";;
+
+            *" sparc "*) arch="SPARC";;
+
+            *" x86_64 "*)
+                arch="x86_64"
+                model=`  sed -n "s/^model name.*: *\(.*\)/\1/p" $file \
+                       | sed 's/  */ /g' | head -n 1`
+                if [ ${model%% *} = "Intel(R)" ]; then
+                    arch="<div title=\"$model\">EM64T</div>"
+                else
+                    arch="<div title=\"$model\">AMD64</div>"
+                fi
+                ;;
+        esac
+    fi
+
+    echo $arch
+}
+
+######################################################################
+# extracts the compiler and version from the log file
+get_compiler ()
+{
+    file=$1
+
+    compiler=`  sed -n "/^configuring stdcxx /{p;q;}" $file \
+              | sed "s/.* for \([^ ][^ ]*\) .*/\1/"`
+
+    if [ "${compiler%%-*}" = "xlCcore" ]; then
+        # replace xlCcore with XLC++ for IBM XLC/C++
+        compiler="XLC++ "${compiler#*-}
+    elif [ "${compiler%%-*}" = "aCC" ]; then
+        # remove the "A.0" version prefix from HP aCC version
+        compiler="aCC ${compiler#aCC-[A-Z].0}"
+    elif [ "$compiler" = "" ]; then
+        # this must be a Windoze compiler...
+        compiler=`  sed -n "/^ *CXX *=.*/{p;q;}" $file \
+                  | sed "s/^.*= *\(.*\)/\1/"`
+
+        if [ "$compiler" = "cl" ]; then
+            vs="Microsoft Visual Studio"
+
+            compiler=`  sed -n "/^ *Variables *: *$/{n;p;}" $file\
+                      | sed "s/ *VERSION= *\(.*\)/\1/"`
+            compiler="MSVC $compiler"
+        elif [ "$compiler" = "icl" ]; then
+            true
+        fi
+    fi
+
+    echo $compiler | sed "s/-/ /g"
+}
+
+######################################################################
+
 # process command line options
-while getopts ":hnsv:e:l:o:t:" opt_name; do
+while getopts ":hnsv:e:l:o:T:t:" opt_name; do
     case $opt_name in
         # options with no arguments 
 
@@ -168,6 +529,10 @@ while getopts ":hnsv:e:l:o:t:" opt_name; do
 
         o)  # argument is the name of output file (stdout by default)
             outfile=$OPTARG
+            ;;
+
+        T)  # argument is the title of the page
+            title=$OPTARG
             ;;
 
         t)  # argument is a list of tests to process
@@ -233,23 +598,24 @@ if [ "$create_stylesheet" = "1" ]; then
     cat <<EOF >$dir/resultstyle.css
 
 table {
-    border-width:0px;
-    background:#000000;
-    font-family:courier
+    background:lightslategray;
+    font-family:courier;
+    font-size: 80%;
 }
 th {
-    background:#cccccc;
+    background:lightgray;
     text-align:center;
+    font-family:lucida mono;
 }
 td {
-    padding: 3px;
+    padding: 2px;
     text-align: center;
-    background-color: lightblue;
+    background-color:powderblue;
 }
 td.rowno {
     padding: 3px;
     text-align: right;
-    background-color:#cccccc;
+    background-color:lightgray;
 }
 td.name {
     padding: 3px;
@@ -359,17 +725,20 @@ fi
 
 ######################################################################
 
+readonly scripturl="<a href=\"$myurl\"><code>$myname</code></a>"
+
 # output the initial portion of the HTML file
 cat <<EOF | output
 <html>
   <head>
+    <title>$title</title>
     <link rel="stylesheet" href="resultstyle.css" type="text/css"
           title="Cross-Build View Style Sheet">
   </head>
   <body>
 
-    <h1>Multi-platform Test Result View</h1>
-    Generated $today on `hostname` running `uname -sr`
+    <h1>$title</h1>
+    Generated $today by $scripturl on `hostname` running `uname -sr`
     <hr>
 
     <h2>Index</h2>
@@ -421,18 +790,32 @@ if [ $components_in_rows -ne 0 ]; then
     <table>
       <thead>
         <tr>
-          <th rowspan=3><div title="column number">col.</div></th>
+          <th rowspan=3><div title="column number and log">col.</div></th>
           <th rowspan=3>build<br>type</th>
-          <th colspan=21>build and run times (MM:SS)</th>
+          <th colspan=21>build and run times (M:SS)</th>
         </tr>
         <tr>
-          <th colspan=3>config</th>
-          <th colspan=3>library</th>
-          <th colspan=3>examples</th>
-          <th colspan=3>locales</th>
-          <th colspan=3>tests</th>
-          <th colspan=3>runall</th>
-          <th colspan=3>total</th>
+          <th colspan=3>
+            <div title="library configuration times">config</div>
+          </th>
+          <th colspan=3>
+            <div title="library build times">library</div>
+          </th>
+          <th colspan=3>
+            <div title="build times for all examples">examples</div>
+          </th>
+          <th colspan=3>
+            <div title="build times for all utilities">utilities</div>
+          </th>
+          <th colspan=3>
+            <div title="build times for all tests">tests</div>
+          </th>
+          <th colspan=3>
+            <div title="run times for all components">run times</div>
+          </th>
+          <th colspan=3>
+            <div title="total build and run times">total</div>
+          </th>
         </tr>
         <tr>
           <th>real</th>
@@ -465,12 +848,14 @@ EOF
     <table>
       <thead>
         <tr>
-          <th><div title="column number">col.</div></th>
+          <th><div title="column number and log">col.</div></th>
+          <th>OS</th>
+          <th>arch</th>
+          <th>compiler</th>
           <th>build<br>type</th>
           <th>build start date</th>
           <th>build<br>age</th>
           <th>revision</th>
-          <th>build log</th>
           <th>library<br>(bytes)</th>
           <th>build<br>(kB)</th>
           <th>clean<br>(kB)</th>
@@ -483,33 +868,6 @@ EOF
 
 fi
 
-
-get_times ()
-{
-    stage=$1
-    file=$2
-
-    pattern="^### real, user, system time ($stage):"
-
-    # extract the real, user and system times for the children
-    # of the shell that executed the commands from the log
-    # the format of the output is:
-    #   <real-time>
-    #   <times-output>
-    # with <real-time> looking like:
-    #   [1-9][0-9]*m[1-9][0-9]s
-    # and with <times-output> being the output of the POSIX standard
-    # times built-in utility, i.e., the first line giving the system
-    # and user times for the shell and the second line giving the
-    # system and user times for its children in the format:
-    #   "%dm%fs %dm%fs"
-    # we don't care about the shell times, just the times for its
-    # children, so we skip that line
-    times=`sed -n "/$pattern/{n;p;n;n;p;}" $file`
-
-    # strip fractional parts of seconds and replace 'm' with ':'
-    echo $times | sed -e "s/\.[0-9][0-9]*s//g" -e "s/s//" -e "s/m/:/g"
-}
 
 
 ######################################################################
@@ -548,10 +906,11 @@ for l in $gzlogs; do
     # extract the date and time the build started
     # the date is expected to be introduced by a line like this:
     #   ### date:
-    date=`sed -n "/^### date:$/{n;p;}" $txtlog`
-    if [ $? -ne 0 ]; then
+    date=`sed -n "/^### date:$/{n;p;q;}" $txtlog`
+    if [ "$date" = "" ]; then
         echo "$myname: warning: unable to extract date from $l" >&2
-        date="(unknown)"
+        unset date
+        unset age
     else
         # compute the age of the build as the difference between
         # the build date and now in days, or hours, or minutes,
@@ -561,81 +920,19 @@ for l in $gzlogs; do
     fi
 
     # strip the year from the date
-    date=${date% [1-9][0-9][0-9][0-9]}
-
-    # extract the real, user, and system times for each stage
-    # of the build process
-    bin_times=`get_times bin $txtlog`
-    config_times=`get_times config $txtlog`
-    examples_times=`get_times examples $txtlog` 
-    lib_times=`get_times lib $txtlog`
-    locales_times=`get_times examples $txtlog`
-    runall_times=`get_times runall $txtlog`
-    rwtest_times=`get_times rwtest $txtlog`
-    tests_times=`get_times tests $txtlog`
-    total_times=`get_times "total" $txtlog`
-
-    bin_real=${bin_times%% *}
-    bin_user=${bin_times#* }
-    bin_user=${bin_user%% *}
-    bin_sys=${bin_times##* }
-
-    config_real=${config_times%% *}
-    config_user=${config_times#* }
-    config_user=${config_user%% *}
-    config_sys=${config_times##* }
-
-    examples_real=${examples_times%% *}
-    examples_user=${examples_times#* }
-    examples_user=${examples_user%% *}
-    examples_sys=${examples_times##* }
-
-    lib_real=${lib_times%% *}
-    lib_user=${lib_times#* }
-    lib_user=${lib_user%% *}
-    lib_sys=${lib_times##* }
-
-    locales_real=${locales_times%% *}
-    locales_user=${locales_times#* }
-    locales_user=${locales_user%% *}
-    locales_sys=${locales_times##* }
-
-    runall_real=${runall_times%% *}
-    runall_user=${runall_times#* }
-    runall_user=${runall_user%% *}
-    runall_sys=${runall_times##* }
-
-    rwtest_real=${rwtest_times%% *}
-    rwtest_user=${rwtest_times#* }
-    rwtest_user=${rwtest_user%% *}
-    rwtest_sys=${rwtest_times##* }
-
-    tests_real=${tests_times%% *}
-    tests_user=${tests_times#* }
-    tests_user=${tests_user%% *}
-    tests_sys=${tests_times##* }
-
-    total_real=${total_times%% *}
-    total_user=${total_times#* }
-    total_user=${total_user%% *}
-    total_sys=${total_times##* }
+    date=`echo ${date% [1-9][0-9][0-9][0-9]}`
 
     # extract the size of the library binary from the build log
-    # being careful to avoid the symlink (in the case of a .so)
-    libsize=`awk '/build\/lib\/libstd[^ ]*\$/{ print $5 }' $txtlog`
-    if [ $? -ne 0 ]; then
-        echo "$myname: warning: unable to extract library size from $l" >&2
-        libsize="(unknown)"
-    fi
+    libsize=`get_lib_size $txtlog`
 
     # extract the size of the whole build, both before and after
     # it's been cleaned
     buildsizes=`  sed -n '/^### du -sk .\/build\/ .\/build\/\*/{n;p;}' \
                       $txtlog | sed 's/ *\([1-9][0-9]*\).*/\1/'`
-    if [ $? -ne 0 ]; then
+    if [ "$buildsizes" = "" ]; then
         echo "$myname: warning: unable to extract build size from $l" >&2
-        fullbuildsize="(unknown)"
-        cleanbuildsize="(unknown)"
+        unset fullbuildsize
+        unset cleanbuildsize
     else
         fullbuildsize=${buildsizes%%[^0-9]*}
         cleanbuildsize=${buildsizes#[0-9]*[^0-9]}
@@ -644,22 +941,22 @@ for l in $gzlogs; do
     # extract the source repository revision number the build
     # corresponds to from the name of the log
     revno=`echo $l | sed "s/.*-\([1-9][0-9]*\)-log.*/\1/"`
-    if [ $? -ne 0 ]; then
+    if [ "$revno" = "" ]; then
         echo "$myname: warning: unable to extract revision number from $l" >&2
-        revno="(unknown)"
+        unset revno
     fi
 
-    # extract the build type from the name of the log, removing
-    # the name of thread library
-    buildtype=`  echo $l \
-               | sed "s/\(.*-[18][125]*[aAdDsS]\)-dce-\(.*\)/\1-\2/" \
-               | sed "s/\(.*-[18][125]*[aAdDsS]\)-solaris-\(.*\)/\1-\2/" \
-               | sed "s/\(.*-[18][125]*[aAdDsS]\)-win32-\(.*\)/\1-\2/" \
-               | sed "s/.*-\([18][125]*[aAdDsS]\)-[1-9][0-9]*-log.*/\1/"`
-    if [ $? -ne 0 ]; then
-        echo "$myname: warning: unable to extract build type from $l" >&2
-        buildtype="(unknown)"
-    fi
+    # extract the build type from the name of the log
+    buildtype=`get_buildtype $l`
+
+    # extract the operating system name and version from the log
+    osname=`get_os $txtlog`
+
+    # extract hardware architecture info from the log
+    arch=`get_arch $txtlog`
+
+    # extract compiler name and version from the log
+    compiler=`get_compiler $txtlog`
 
     # count the number of errors and warnings in the build
     errors=`grep -i error $txtlog | wc -l`
@@ -667,25 +964,37 @@ for l in $gzlogs; do
 
     ###
     if [ $components_in_rows -ne 0 ]; then
+        # retrieve the revision log
+        # revlog="`svn log -r $revno \
+        #              http://svn.apache.org/repos/asf/incubator/stdcxx`"
+
+        # trim the suffix from fname, including the revision number
+        # and the build type
+        fbase=${fname%%-log.gz.txt}
+        fbase=${fbase%-$revno}
+        fbase=${fbase%-$buildtype}
+
+        # componse the column header
+        colhdr="<a href=\"$logdir/$fname\"><div title=\"$fbase\">$n"
+        colhdr="$colhdr</div></a>"
+
         # when displaying one component (example, test, or locale) per row
         # of the table, format the table header so as to include the build
         # date, source repository revision number, and build type, and
         # include the same information in the list of logs
 
-        table_header="$table_header <th><div title=\"$fname\">"
-        table_header="$table_header $n.</br>$buildtype</div></th>"
-
-        # retrieve the revision log
-        # revlog="`svn log -r $revno \
-        #              http://svn.apache.org/repos/asf/incubator/stdcxx`"
+        tbl_hdr_1="$tbl_hdr_1 <th>$colhdr</th>"
+        tbl_hdr_2="$tbl_hdr_2 <th>$buildtype</th>"
 
         output "      <tr>"
-        output "          <td>$n</td>"
+        output "          <td>$colhdr</td>"
+        output "          <td>$osname</td>"
+        output "          <td>$arch</td>"
+        output "          <td>$compiler</td>"
         output "          <td>$buildtype</td>"
         output "          <td>$date</td>"
         output "          <td>$age</td>"
         output "          <td><a href=$revurl=$revno>$revno</a></td>"
-        output "          <td><a href=\"$logdir/$fname\">$fname</a></td>"
         output "          <td>$libsize</td>"
         output "          <td>$fullbuildsize</td>"
         output "          <td>$cleanbuildsize</td>"
@@ -695,39 +1004,22 @@ for l in $gzlogs; do
         cat <<EOF >>$timings_file
 
         <tr>
-          <td>$n</td>
+          <td>$colhdr</td>
           <td>$buildtype</td>
-
-          <td>$config_real</td>
-          <td>$config_user</td>
-          <td>$config_sys</td>
-
-          <td>$lib_real</td>
-          <td>$lib_user</td>
-          <td>$lib_sys</td>
-
-          <td>$examples_real</td>
-          <td>$examples_user</td>
-          <td>$examples_sys</td>
-
-          <td>$locales_real</td>
-          <td>$locales_user</td>
-          <td>$locales_sys</td>
-
-          <td>$tests_real</td>
-          <td>$tests_user</td>
-          <td>$tests_sys</td>
-
-          <td>$runall_real</td>
-          <td>$runall_user</td>
-          <td>$runall_sys</td>
-
-          <td>$total_real</td>
-          <td>$total_user</td>
-          <td>$total_sys</td>
-        </tr>
-        
 EOF
+
+        # extract timings for each stage and append them
+        # to the timings file
+        get_times "config" $txtlog >>$timings_file
+        get_times "lib" $txtlog >>$timings_file
+        get_times "examples" $txtlog >>$timings_file
+        get_times "bin" $txtlog >>$timings_file
+        get_times "tests" $txtlog >>$timings_file
+        get_times "runall" $txtlog >>$timings_file
+        get_times "total" $txtlog >>$timings_file
+
+        echo "        </tr>" >>$timings_file
+        
         output "      </tr>"
     fi
 
@@ -740,9 +1032,12 @@ EOF
     if [ $status -eq 0 ]; then
 
         # extract the list of locales from the log
+        # removing the .bat or .sh suffix from their names
 
              sed -e "/^PROGRAM SUMMARY:/,999999d" $runlog              \
-           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"  >>$locales_file       \
+           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"                        \
+           | sed -e "s/^\([^ ][^ ]*\)\.bat/\1/"                        \
+                 -e "s/^\([^ ][^ ]*\)\.sh/\1/" >>$locales_file         \
         && sed -e "1,/^NAME  *STATUS/d" $runlog > $runlog.next
 
         status=$?
@@ -757,9 +1052,11 @@ EOF
     if [ $status -eq 0 ]; then
 
         # extract the list of tests from the log
+        # removing the .exe suffix from their names
 
              sed -e "/^PROGRAM SUMMARY:/,999999d" $runlog.next          \
-           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"  >>$tests_file          \
+           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"                         \
+           | sed -e "s/^\([^ ][^ ]*\)\.exe/\1/" >>$tests_file \
         && sed -e "1,/^NAME  *STATUS/d" $runlog.next > $runlog.next.2   \
         && mv $runlog.next.2 $runlog.next
 
@@ -775,9 +1072,11 @@ EOF
     if [ $status -eq 0 ]; then
 
         # extract the list of examples from the log
+        # removing the .exe suffix from their names
 
              sed -e "/^PROGRAM SUMMARY:/,999999d" $runlog.next          \
-           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"  >>$examples_file       \
+           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"                         \
+           | sed -e "s/^\([^ ][^ ]*\)\.exe/\1/" >>$examples_file \
         && sed -e "1,/^NAME  *STATUS/d" $runlog > $runlog.next.2        \
         && mv $runlog.next.2 $runlog.next
 
@@ -853,7 +1152,9 @@ BEGIN {
     max_asserts = 0
     min_asserts = -1
 }
-\$0 ~ "^" name "  *[^-]" {
+# match the first record to the name optionally followed
+# by one of the three suffixes
+\$1 ~ "^" name "(|.bat|.exe|.sh)\$" {
 
     status = \$2
 
@@ -1000,7 +1301,7 @@ process_components()
     component_list=$2
 
     if [ "$component_name" = "test" ]; then
-        column3="        <th><div title=\"maximum total assertions\">"
+        column3="        <th rowspan=2><div title=\"maximum total assertions\">"
         column3="$column3 asserts</div></th>"
     else
         unset column3
@@ -1009,14 +1310,18 @@ process_components()
     cat <<EOF | output
     <h2>Results of ${component_name}s</h2>
     <table>
-      <tr>
-        <th><div title="${component_name} number">###</div></th>
-        <th>
-          <a name="${component_name}s"></a>$component_name name
-        </th>
-        $column3
-        $table_header
-      </tr>
+      <thead>
+        <tr>
+          <th rowspan=2><div title="${component_name} number">###</div></th>
+          <th rowspan=2>
+            <a name="${component_name}s"></a>$component_name name
+          </th>
+          $column3
+          $tbl_hdr_1
+        </tr>
+        <tr>$tbl_hdr_2</tr>
+      </thead>
+      <tbody>
 EOF
 
     # iterate over the list of idividual components (examples, tests,
@@ -1065,17 +1370,20 @@ EOF
 
     done
     cat <<EOF | output
-      <tr>
-        <td class="rowno">$n</th>
-        <td class="header">
-          <div title="total number of ${component_name}s/failed number of ${component_name}s">total/failed</div>
-        </td>
+        <tr>
+          <td class="rowno">$n</th>
+          <td class="header">
+            <div title="total number of ${component_name}s/failed number of ${component_name}s">total/failed</div>
+          </td>
 EOF
 
-    echo "" | awk -f $awkscript comp=$component_name | output
+    # set name to bogus value and invoke the script again
+    # to get it to print summary information
+    echo "" | awk -f $awkscript comp=$component_name name="@" | output
 
     cat <<EOF | output
-      </tr>
+        </tr>
+      </tbody>
     </table>
 EOF
 }
