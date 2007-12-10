@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/local/bin/bash
 #
 # $Id: genxviews 601595 2007-12-06 01:33:50Z sebor $
 #
@@ -185,13 +185,13 @@ EOF
         fi
     else
         if [ $dryrun -eq 1 ]; then
-            echo "$myname: $CROSS -o$outdir/$outfile $buildlogs   # $count logs"
+            echo "$myname: $CROSS -o$outdir/$outfile -T\"$title\" $buildlogs   # $count logs"
         else
             if [ $quiet -eq 0 ]; then
                 echo "<td><a href="$outfile">$outfile</a></td>"
             fi
 
-            $CROSS -o$outdir/$outfile -t $title $buildlogs
+            $CROSS -o$outdir/$outfile -T"$title" $buildlogs
         fi
     fi
 

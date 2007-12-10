@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/local/bin/bash
 #
 # $Id: xbuildgen 601917 2007-12-06 23:46:48Z sebor $
 #
@@ -466,7 +466,7 @@ get_compiler ()
     compiler=`  sed -n "/^configuring stdcxx /{p;q;}" $file \
               | sed "s/.* for \([^ ][^ ]*\) .*/\1/"`
 
-    if [ "${compiler%%-*}" = "xlCcore" ]; then
+    if [    "${compiler%%[-_]*}" = "xlCcore" ]; then
         # replace xlCcore with XLC++ for IBM XLC/C++
         compiler="XLC++ "${compiler#*-}
     elif [ "${compiler%%-*}" = "aCC" ]; then
@@ -1154,7 +1154,10 @@ BEGIN {
 }
 # match the first record to the name optionally followed
 # by one of the three suffixes
-\$1 ~ "^" name "(|.bat|.exe|.sh)\$" {
+   \$1 ~ "^" name "\$" \
+|| \$1 ~ "^" name ".bat\$" \
+|| \$1 ~ "^" name ".exe\$" \
+|| \$1 ~ "^" name ".sh\$" {
 
     status = \$2
 
