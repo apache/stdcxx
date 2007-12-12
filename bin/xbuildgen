@@ -84,7 +84,7 @@ readonly viewvc="http://svn.apache.org/viewvc"
 readonly revurl="$viewvc?view=rev&rev"
 
 # URL to the trunk of the source repository
-readonly svnpath="$viewvc/incubator/stdcxx/trunk/"
+readonly svnpath="$viewvc/incubator/stdcxx/trunk"
 
 ######################################################################
 # global variables
@@ -1349,7 +1349,7 @@ EOF
             dir="tests"
 
             case $c in
-                *-stdcxx-*.cpp) dir="regress";;
+                *-stdcxx-*) dir="regress";;
                 0.*)  dir="$dir/self";;
                 17.*) dir="$dir/intro";;
                 18.*) dir="$dir/support";;
