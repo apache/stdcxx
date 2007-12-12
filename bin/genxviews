@@ -181,14 +181,14 @@ EOF
         echo "$myname: no logs for $compiler on $osname/$arch." >&2
 
         if [ $quiet -eq 0 ]; then
-            echo "<td><i>$outfile</i></td>"
+            echo "            <td><i>$outfile</i></td>"
         fi
     else
         if [ $dryrun -eq 1 ]; then
             echo "$myname: $CROSS -o$outdir/$outfile -T\"$title\" $buildlogs   # $count logs"
         else
             if [ $quiet -eq 0 ]; then
-                echo "<td><a href="$outfile">$outfile</a></td>"
+                echo "            <td><a href="$outfile">$outfile</a></td>"
             fi
 
             $CROSS -o$outdir/$outfile -T"$title" $buildlogs
@@ -476,12 +476,12 @@ process_results "Windows 2000, SP4" "x86" "Intel C++ 9.1" \
 
 # compute the number of seconds it took to process all logs
 readonly now=`date`
-processing_time=`$HOME/stdcxx/bin/duration "$start_date" "$now"`
+processing_time=`$HOME/stdcxx/bin/duration "$start_time" "$now"`
 
 cat<<EOF
     </table>
     <hr>
-    <i>Generated in $processing_time seconds.</i>
+    <i>Generated in $processing_time.</i>
   </body>
 </html>
 EOF
