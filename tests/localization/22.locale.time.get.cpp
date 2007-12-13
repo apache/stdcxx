@@ -39,6 +39,7 @@
 #include <driver.h>      // for rw_test()
 #include <file.h>        // for rw_nextfd()
 #include <rw_locale.h>   // for rw_locales()
+#include <rw_printf.h>   // for rw_snprintf()
 
 /**************************************************************************/
 
@@ -1125,14 +1126,16 @@ locale_root;
 static const char*
 make_LC_TIME (const time_data *td)
 {
-    static char locnamebuf [L_tmpnam + 32];
+    static char locnamebuf [1024];
 
     if (*locnamebuf)
         return locnamebuf;
 
     // create a temporary locale definition file
-    char srcfname [L_tmpnam + 32];
-    std::sprintf (srcfname, "%s" SLASH "LC_TIME.src", locale_root);
+    char srcfname [1024];
+    if (rw_snprintf (srcfname, sizeof srcfname, "%s%c%s",
+                     locale_root, _RWSTD_PATH_SEP, "LC_TIME.src") < 0)
+        return 0;
 
     std::FILE *fout = std::fopen (srcfname, "w");
 
@@ -1265,8 +1268,10 @@ make_LC_TIME (const time_data *td)
     std::fclose (fout);
 
     // create a temporary character map file
-    char cmfname [L_tmpnam + 32];
-    std::sprintf (cmfname, "%s" SLASH "pcs.cm", locale_root);
+    char cmfname [1024];
+    if (rw_snprintf (cmfname, sizeof cmfname, "%s%c%s",
+                     locale_root, _RWSTD_PATH_SEP, "LC_TIME.cm") < 0)
+        return 0;
 
     fout = std::fopen (cmfname, "w");
     pcs_write (fout, 0);
@@ -1276,6 +1281,9 @@ make_LC_TIME (const time_data *td)
     // process the locale definition file and the character map
     const char* const locname =
         rw_localedef ("-w ", srcfname, cmfname, "test-locale");
+
+    if (locname && (strlen(locname) < sizeof locnamebuf))
+        std::strcpy (locnamebuf, locname);
 
     return locname;
 }
