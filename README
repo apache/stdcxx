@@ -4,28 +4,9 @@
               Apache C++ Standard Library (STDCXX) 4.2.0
               ------------------------------------------
 
-  i. Disclaimer
-  -------------
-
-  The  ASF Incubation Policy  requires every  Podling (project  of the
-  Apache Incubator) to include a  clear disclaimer on its Web site and
-  in all documentation stating  that it is undergoing incubation.  The
-  following is the text of the required disclaimer.
-
-  STDCXX  is an effort  undergoing incubation  at the  Apache Software
-  Foundation (ASF), sponsored by  the Apache Incubator PMC. Incubation
-  is required  of all newly  accepted projects until a  further review
-  indicates  that  the  infrastructure, communications,  and  decision
-  making  process have stabilized  in a  manner consistent  with other
-  successful ASF projects.  While incubation status is not necessarily
-  a reflection of  the completeness or stability of  the code, it does
-  indicate that the project has yet to be fully endorsed by the ASF.
-
-
   0  Index
   --------
 
-  Disclaimer ....................................................... i
   Index ............................................................ 0
   Contents ......................................................... 1
     Compatibility ................................................ 1.1
@@ -156,12 +137,12 @@
   -------------------------
 
   The  distribution consists entirely  of a  single file  named either
-  stdcxx-incubating-X.Y.Z.tar.gz    for    a    final   release,    or
-  stdcxx-incubating-X.Y.Z-YYYYMMDD.tar.gz for snapshots.
+  stdcxx-X.Y.Z.tar.gz    for    a    final   release,    or
+  stdcxx-X.Y.Z-YYYYMMDD.tar.gz for snapshots.
 
   To unpack the tarball, execute the following command:
 
-  $ gunzip -c stdcxx-incubating-X.Y.Z.tar.gz | tar -xf -
+  $ gunzip -c stdcxx-X.Y.Z.tar.gz | tar -xf -
 
   Above, X, Y, and Z are the major, minor, and micro version number of
   the library,  respectively, and the  optional -YYYYMMDD part  is the

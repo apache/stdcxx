@@ -1,3 +1,7 @@
+2007-12-13  William Rowe <wrowe@rowe-clan.net>
+
+	* README: Struck incubating disclaimer, stdcxx is a top level project
+
 2007-10-16  Martin Sebor  <sebor@roguewave.com>
 
 	* ChangeLog: Generated a single per-project ChangeLog.
