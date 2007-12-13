@@ -58,7 +58,9 @@ static const char*
 create_locale ()
 {
     char cm_fname [1024];
-    std::sprintf (cm_fname, "%s%c%s", locale_root, _RWSTD_PATH_SEP, "charmap");
+    if (rw_snprintf (cm_fname, sizeof cm_fname, "%s%c%s",
+                     locale_root, _RWSTD_PATH_SEP, "charmap") < 0)
+        return 0;
 
     static const char charmap[] = {
         "<code_set_name> test_charmap \n"
@@ -90,7 +92,9 @@ create_locale ()
         return 0;
 
     char src_fname [1024];
-    std::sprintf (src_fname, "%s%c%s", locale_root, _RWSTD_PATH_SEP, "source");
+    if (rw_snprintf (src_fname, sizeof src_fname, "%s%c%s",
+                     locale_root, _RWSTD_PATH_SEP, "source") < 0)
+        return 0;
 
     if (std::size_t (-1) == rw_fwrite (src_fname, "LC_CTYPE\nEND LC_CTYPE\n"))
         return 0;

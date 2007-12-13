@@ -41,6 +41,7 @@
 #include <environ.h>     // for rw_putenv()
 #include <file.h>        // for pcs_write(), ...
 #include <rw_locale.h>   // for rw_localedef(), ...
+#include <rw_printf.h>   // for rw_snprintf()
 #include <valcmp.h>      // for rw_strncmp()
 
 
@@ -54,10 +55,6 @@
 // the root of the locale directory (RWSTD_LOCALE_ROOT)
 // set in main() instead of here to avoid Solaris 7 putenv() bug (PR #30017)
 const char* locale_root;
-
-#define LC_TIME_SRC        "LC_TIME.src"
-#define LC_TIME_CM         "LC_TIME.cm"
-#define TEST_LOCALE_NAME   "test.locale"
 
 /**************************************************************************/
 
@@ -482,7 +479,7 @@ struct time_data
 
 const char* make_LC_TIME (const time_data *td)
 {
-    static char locnamebuf [256];
+    static char locnamebuf [1024];
 
     // assume `td' points to the same data as the first time
     // the function was called and reuse the same database
@@ -490,12 +487,12 @@ const char* make_LC_TIME (const time_data *td)
         return locnamebuf;
 
     // create a temporary locale definition file
-    char lc_time_src_path [256];
-    std::strcpy (lc_time_src_path, locale_root);
-    std::strcat (lc_time_src_path, SLASH);
-    std::strcat (lc_time_src_path, LC_TIME_SRC);
+    char srcfname [1024];
+    if (rw_snprintf (srcfname, sizeof srcfname, "%s%c%s",
+                     locale_root, _RWSTD_PATH_SEP, "LC_TIME.src") < 0)
+        return 0;
 
-    std::FILE *fout = std::fopen (lc_time_src_path, "w");
+    std::FILE *fout = std::fopen (srcfname, "w");
 
     std::fprintf (fout, "LC_TIME\n");
 
@@ -626,25 +623,25 @@ const char* make_LC_TIME (const time_data *td)
     std::fclose (fout);
 
     // create a temporary character map file
-    char lc_time_cm_path [256];
-    std::strcpy (lc_time_cm_path, locale_root);
-    std::strcat (lc_time_cm_path, SLASH);
-    std::strcat (lc_time_cm_path, LC_TIME_CM);
+    char cmfname [1024];
+    if (rw_snprintf (cmfname, sizeof cmfname, "%s%c%s",
+                     locale_root, _RWSTD_PATH_SEP, "LC_TIME.cm") < 0)
+        return 0;
 
-    fout = std::fopen (lc_time_cm_path, "w");
+    fout = std::fopen (cmfname, "w");
     pcs_write (fout, 0);
 
     std::fclose (fout);
 
     const char* const locname =
-        rw_localedef ("", lc_time_src_path, lc_time_cm_path, TEST_LOCALE_NAME);
+        rw_localedef ("", srcfname, cmfname, "test-locale");
 
-    if (locname)
+    if (locname && (strlen(locname) < sizeof locnamebuf))
         std::strcpy (locnamebuf, locname);
 
     // remove temporary files
-    std::remove (lc_time_cm_path);
-    std::remove (lc_time_src_path);
+    std::remove (cmfname);
+    std::remove (srcfname);
 
     return locname;
 }
