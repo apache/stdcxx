@@ -35,6 +35,7 @@
 #include <environ.h>      // for rw_putenv()
 #include <file.h>         // for SHELL_RM_RF, rw_tmpnam
 #include <rw_process.h>   // for rw_system()
+#include <rw_printf.h>    // for rw_snprintf()
 #include <driver.h>       // for rw_error()
 
 #ifdef _RWSTD_OS_LINUX
@@ -773,7 +774,10 @@ rw_create_locale (const char *charmap, const char *locale)
     // create a temporary locale definition file that exercises as
     // many different parts of the collate standard as possible
     char srcfname [PATH_MAX];
-    sprintf (srcfname, "%s%slocale.src", locale_root, SLASH);
+    if (rw_snprintf (srcfname, PATH_MAX, "%s%slocale.src",
+                     locale_root, SLASH) < 0) {
+        return 0;
+    }
 
     FILE *fout = fopen (srcfname, "w");
 
@@ -789,7 +793,10 @@ rw_create_locale (const char *charmap, const char *locale)
 
     // create a temporary character map file
     char cmfname [PATH_MAX];
-    sprintf (cmfname, "%s%scharmap.src", locale_root, SLASH);
+    if (rw_snprintf (cmfname, PATH_MAX, "%s%scharmap.src",
+                     locale_root, SLASH) < 0) {
+        return 0;
+    }
 
     fout = fopen (cmfname, "w");
 
@@ -799,11 +806,11 @@ rw_create_locale (const char *charmap, const char *locale)
         return 0;
     }
 
-       fprintf (fout, "%s", charmap);
+    fprintf (fout, "%s", charmap);
 
     fclose (fout);
 
-       locname = "test-locale";
+    locname = "test-locale";
 
     // process the locale definition file and character map
     if (0 == rw_localedef ("-w", srcfname, cmfname, locname))
