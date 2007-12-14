@@ -288,9 +288,9 @@ use_facet_loop (const std::locale &classic, int i)
 
             const std::size_t nbases = sizeof bases / sizeof *bases;
 
-            for (std::size_t i = 0; i != nbases; ++i) {
-                RW_ASSERT (bases [i] != 0);
-                RW_ASSERT (bases [i] == derived [i]);
+            for (std::size_t j = 0; j != nbases; ++j) {
+                RW_ASSERT (bases [j] != 0);
+                RW_ASSERT (bases [j] == derived [j]);
             }
         }
         else if (0 == opt_no_exceptions) {
@@ -361,9 +361,9 @@ use_facet_loop (const std::locale &classic, int i)
 
             const std::size_t nbases = sizeof bases / sizeof *bases;
 
-            for (std::size_t i = 0; i != nbases; ++i) {
-                RW_ASSERT (bases [i] != 0);
-                RW_ASSERT (bases [i] == derived [i]);
+            for (std::size_t j = 0; j != nbases; ++j) {
+                RW_ASSERT (bases [j] != 0);
+                RW_ASSERT (bases [j] == derived [j]);
             }
         }
         else if (0 == opt_no_exceptions) {
@@ -499,7 +499,7 @@ run_test (int, char**)
 
     rw_info (0, 0, 0,
              "testing std::locale globals with %d thread%{?}s%{;}, "
-             "%zu iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
+             "%d iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
              opt_nthreads, 1 != opt_nthreads,
              opt_nloops, 1 != opt_nloops,
              nlocales, int (nlocales), "%#s", locales);
