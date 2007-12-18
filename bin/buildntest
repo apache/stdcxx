@@ -114,7 +114,8 @@
 # global constants
 
 # date format used to compute real time elapsed between stages
-DATEFMT="((((((%Y*366)+(1%j-100)*24)+(1%H-100)*60)+(1%M-100))*60)+(1%S-100))"
+# assumes 366 days/year for simplicity
+DATEFMT="((((%Y*366+1%j-100)*24+1%H-100)*60+1%M-100)*60+1%S-100)"
 OUTFILE=results.xml
 
 if [ -z "$MAKE" ]; then
@@ -284,7 +285,23 @@ EOF
 ##########
 # main body of script
 
+# write the name of the script and all arguments
 echo "### running $0 $* [$#]"
+
+# script's revision number
+myrev='$Revision$'
+myrev=${myrev#'$Revision: '}   # strip leading text
+myrev=${myrev%' $'}            # strip trailing text
+
+# URL to this version of the script in the repository
+myurl='$HeadURL$'
+myurl=${myurl#'$HeadURL: '}   # strip leading text
+myurl=${myurl%' $'}           # strip trailing text
+myurl="$myurl?view=markup&rev=$myrev"
+
+# write the URL to the version of the script that's running
+echo; echo "### script source: $myurl"
+
 
 # process command line options
 while getopts ":nv:e:l:o:t:B:C:E:L:M:P:T:" opt_name; do
@@ -385,9 +402,6 @@ trap 'rm -rf $tmpdir' EXIT INT QUIT TERM
 
 mkdir $tmpdir
 
-
-# echo command line arguments
-echo "### running $0 $* [$#]"
 
 # start by writing out information about the host to stdout
 echo; echo "### uname -a:"
