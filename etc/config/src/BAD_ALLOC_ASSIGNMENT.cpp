@@ -100,34 +100,29 @@ public:
 
     virtual ~bad_alloc ();
 
-#  else   // if !defined (TEST_DTOR) 
-
-    ~bad_alloc () { }
-
-#    if defined (TEST_COPY_CTOR)
+#  elif defined (TEST_COPY_CTOR)
 
     bad_alloc (const bad_alloc&);
 
-#    elif defined (TEST_WHAT)
+#  elif defined (TEST_WHAT)
 
     virtual const char* what () const;
 
-#    else   // test assignment
+#  else   // test assignment
 
-#      if !defined (TEST_ASSIGNMENT)
-#        define TEST_ASSIGNMENT
-#      endif
+#    if !defined (TEST_ASSIGNMENT)
+#      define TEST_ASSIGNMENT
+#    endif
 
-      bad_alloc& operator= (const bad_alloc&);
+    bad_alloc& operator= (const bad_alloc&);
 
-      bad_alloc& assign (const bad_alloc &rhs) {
-          ++nassignments;
-          return *this = rhs;
-      }
+    bad_alloc& assign (const bad_alloc &rhs) {
+        ++nassignments;
+        return *this = rhs;
+    }
 
-#    endif   // TEXT_...
-#  endif   // !TEST_DTOR
-#endif   // !TEST_DEFAULT_COR
+#  endif   // TEST_...
+#endif   // !TEST_DEFAULT_CTOR
 
 };
 
