@@ -790,6 +790,8 @@ operator>> (basic_istream<_CharT, _Traits>&            __is,
 
     ios_base::iostate __err = ios_base::goodbit;
 
+    _RWSTD_SIZE_T __gcount = 0;
+
     _TRY {
 
         const _TYPENAME basic_istream<_CharT, _Traits>::sentry
@@ -808,14 +810,16 @@ operator>> (basic_istream<_CharT, _Traits>&            __is,
             const _RWSTD_SIZE_T __maxlen =
                 __is.width () ? __is.width () : __str.max_size ();
 
-            _RWSTD_SIZE_T __i = 0;
-
             __str.erase ();
 
             const ctype<_CharT> &__ctp =
                 _USE_FACET (ctype<_CharT>, __is.getloc ());
 
-            for ( ; __maxlen != __i; ++__i, __rdbuf->sbumpc ()) {
+            // increment gcount only _after_ sbumpc() but _before_
+            // the subsequent call to sgetc() to correctly reflect
+            // the number of extracted characters in the presence
+            // of exceptions thrown from streambuf virtuals
+            for ( ; __maxlen != __gcount; __rdbuf->sbumpc (), ++__gcount) {
 
                 const _TYPENAME _Traits::int_type __c (__rdbuf->sgetc ());
 
@@ -835,14 +839,14 @@ operator>> (basic_istream<_CharT, _Traits>&            __is,
             }
 
             __is.width (0);
-
-            if (!__i)
-                __err |= ios_base::failbit;
         }
     }
     _CATCH (...) {
         __is.setstate (__is.badbit | _RW::__rw_rethrow);
     }
+
+    if (!__gcount)
+        __err |= ios_base::failbit;
 
     if (__err)
         __is.setstate (__err);
