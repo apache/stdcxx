@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/bash
 #
 # $Id: genxviews 601595 2007-12-06 01:33:50Z sebor $
 #
@@ -22,19 +22,25 @@
 #
 ########################################################################
 
-# set program name (used in diagnostic messages)
-readonly myname=`basename $0`
-
-# URL to the trunk of the source repository
-readonly svnpath="http://svn.apache.org/viewvc/incubator/stdcxx/trunk/"
-
-# script's revision number
+# extract the script's revision number
 myrev='$Revision$'
-myrev=${myrev#'$Revision: '}
-myrev=${myrev%' $'}
+myrev=${myrev#'$Revision: '}   # strip leading text
+myrev=${myrev%' $'}            # strip trailing text
 
-# URL to this version of the script in the repository
-readonly myurl="$svnpath/bin/xbuildgen?view=markup&rev=$myrev"
+# form the URL to this version of the script in the repository
+myurl='$HeadURL: https://svn.apache.org/repos/asf/incubator/stdcxx/trunk/bin/genxviews $'
+myurl=${myurl#'$HeadURL: '}   # strip leading text
+myurl=${myurl##*asf/}         # strip svn prefix
+myurl=${myurl%' $'}           # strip trailing text
+
+# prepend ViewVC prefix
+myurl="http://svn.apache.org/viewvc/$myurl"
+
+# extract program name from the url (used in diagnostic messages)
+readonly myname=${myurl##*/}
+
+myurl="$myurl?view=markup&rev=$myrev"
+
 
 # program to invoke to process detailed results
 CROSS=$HOME/stdcxx/bin/xbuildgen
